@@ -24,7 +24,8 @@ jobs:
             cd /var/www/aeolab
 
             echo "=== Git Pull ==="
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
 
             echo "=== Backend Update ==="
             source /var/www/aeolab/venv/bin/activate
