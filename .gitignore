@@ -1,0 +1,33 @@
+# 환경변수 (절대 커밋 금지)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+
+# Python
+backend_venv/
+__pycache__/
+*.py[cod]
+.Python
+*.egg-info/
+
+# Node.js
+node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# 로그
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

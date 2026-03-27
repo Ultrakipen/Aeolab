@@ -1,0 +1,112 @@
+"""
+팀 계정 관리 API (Biz 플랜 전용 — 최대 5명)
+"""
+from fastapi import APIRouter, Header, HTTPException
+from pydantic import BaseModel, EmailStr
+from db.supabase_client import get_client, execute
+
+router = APIRouter()
+
+TEAM_LIMIT = {"biz": 5, "enterprise": 20}
+
+
+class TeamInviteRequest(BaseModel):
+    email: EmailStr
+    role: str = "member"  # member | viewer
+
+
+async def _get_plan(user_id: str) -> tuple[str, str]:
+    supabase = get_client()
+    sub = (
+        await execute(
+            supabase.table("subscriptions")
+            .select("plan, status")
+            .eq("user_id", user_id)
+            .maybe_single()
+        )
+    ).data
+    return (sub or {}).get("plan", "free"), (sub or {}).get("status", "inactive")
+
+
+@router.get("/members")
+async def list_members(x_user_id: str = Header(...)):
+    """팀 멤버 목록 조회"""
+    plan, status = await _get_plan(x_user_id)
+    if plan not in ("biz", "enterprise") or status != "active":
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},
+        )
+    supabase = get_client()
+    members = (
+        await execute(
+            supabase.table("team_members")
+            .select("*")
+            .eq("owner_id", x_user_id)
+        )
+    ).data or []
+    return members
+
+
+@router.post("/invite")
+async def invite_member(req: TeamInviteRequest, x_user_id: str = Header(...)):
+    """팀원 초대 (이메일)"""
+    plan, status = await _get_plan(x_user_id)
+    if plan not in ("biz", "enterprise") or status != "active":
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},
+        )
+
+    supabase = get_client()
+    limit = TEAM_LIMIT.get(plan, 5)
+
+    current_count = len(
+        (
+            await execute(
+                supabase.table("team_members")
+                .select("id")
+                .eq("owner_id", x_user_id)
+            )
+        ).data or []
+    )
+    if current_count >= limit:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "TEAM_LIMIT_REACHED", "limit": limit},
+        )
+
+    # 초대 기록 생성 (이메일로 초대 링크 발송은 별도 구현)
+    result = await execute(supabase.table("team_members").insert({
+        "owner_id": x_user_id,
+        "email": req.email,
+        "role": req.role,
+        "status": "pending",
+    }))
+    return result.data[0] if result.data else {"status": "invited"}
+
+
+@router.delete("/members/{member_id}")
+async def remove_member(member_id: str, x_user_id: str = Header(...)):
+    """팀원 제거"""
+    supabase = get_client()
+    await execute(
+        supabase.table("team_members").delete().eq("id", member_id).eq(
+            "owner_id", x_user_id
+        )
+    )
+    return {"deleted": True}
+
+
+@router.patch("/members/{member_id}/role")
+async def update_member_role(member_id: str, role: str, x_user_id: str = Header(...)):
+    """팀원 역할 변경 (member ↔ viewer)"""
+    if role not in ("member", "viewer"):
+        raise HTTPException(status_code=400, detail="role must be member or viewer")
+    supabase = get_client()
+    await execute(
+        supabase.table("team_members").update({"role": role}).eq("id", member_id).eq(
+            "owner_id", x_user_id
+        )
+    )
+    return {"updated": True}

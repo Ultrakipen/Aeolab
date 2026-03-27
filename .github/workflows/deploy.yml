@@ -1,0 +1,41 @@
+name: Deploy to iwinv
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          timeout: 300s
+          script: |
+            set -e
+
+            cd /var/www/aeolab
+
+            echo "=== Git Pull ==="
+            git pull origin main
+
+            echo "=== Backend Update ==="
+            source /var/www/aeolab/venv/bin/activate
+            pip install -r backend/requirements.txt --quiet
+            pm2 restart aeolab-backend
+
+            echo "=== Frontend Build ==="
+            cd /var/www/aeolab/frontend
+            npm install --legacy-peer-deps
+            npm run build
+            pm2 restart aeolab-frontend
+
+            echo "=== Deploy Complete ==="
+            pm2 status
