@@ -8,6 +8,7 @@ backend/.env
 
 # Python
 backend_venv/
+venv/
 __pycache__/
 *.py[cod]
 .Python
