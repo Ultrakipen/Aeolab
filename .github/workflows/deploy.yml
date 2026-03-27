@@ -18,12 +18,14 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           timeout: 300s
+          envs: GH_PAT
           script: |
             set -e
 
             cd /var/www/aeolab
 
             echo "=== Git Pull ==="
+            git remote set-url origin https://x-access-token:$GH_PAT@github.com/Ultrakipen/Aeolab.git
             git pull origin main
 
             echo "=== Backend Update ==="
@@ -39,3 +41,5 @@ jobs:
 
             echo "=== Deploy Complete ==="
             pm2 status
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
