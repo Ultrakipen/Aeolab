@@ -34,6 +34,7 @@ export default function TrialPage() {
     business_name: "",
     category: "restaurant" as Category,
     region: "",
+    keyword: "",
     email: "",
   });
 
@@ -53,7 +54,8 @@ export default function TrialPage() {
     }, 600);
 
     try {
-      const data = await trialScan(form);
+      const scanData = { ...form, keyword: form.keyword || undefined };
+      const data = await trialScan(scanData);
       clearInterval(stepInterval);
       setScanStep(SCAN_STEPS.length - 1);
       setResult(data);
@@ -152,6 +154,20 @@ export default function TrialPage() {
                   onChange={(e) => setForm({ ...form, region: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  실제 서비스 키워드 <span className="text-gray-400 font-normal">(선택 — 더 정확한 분석)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="예: 결혼식 촬영, 돌잔치 사진, 행사 촬영"
+                  value={form.keyword}
+                  onChange={(e) => setForm({ ...form, keyword: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-400 mt-1">업종 선택보다 실제 서비스를 직접 입력하면 더 정확합니다</p>
               </div>
 
               <div>

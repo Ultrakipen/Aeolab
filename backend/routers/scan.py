@@ -77,8 +77,11 @@ def cleanup_expired_stream_tokens() -> int:
 async def trial_scan(req: TrialScanRequest):
     """랜딩 무료 체험: Gemini Flash 단일 스캔 (비로그인)"""
     scanner = MultiAIScanner(mode="trial")
-    category_ko = _CATEGORY_KO.get(req.category, req.category)
-    query = f"{req.region} {category_ko} 추천"
+    if req.keyword:
+        query = f"{req.region} {req.keyword.strip()} 추천"
+    else:
+        category_ko = _CATEGORY_KO.get(req.category, req.category)
+        query = f"{req.region} {category_ko} 추천"
     result = await scanner.scan_single(query, req.business_name)
     score = calculate_score(result)
 

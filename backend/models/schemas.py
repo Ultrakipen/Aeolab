@@ -14,7 +14,8 @@ class TrialScanRequest(BaseModel):
     business_name: str
     category: str
     region: str
-    email: Optional[str] = None  # 대기자 명단 수집용
+    keyword: Optional[str] = None  # 직접 입력 서비스 키워드
+    email: Optional[str] = None    # 대기자 명단 수집용
 
 
 class BusinessCreate(BaseModel):
