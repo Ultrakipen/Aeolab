@@ -58,7 +58,7 @@ _PLATFORM_LABELS = {
 router = APIRouter()
 
 # ── 무료 체험 IP 레이트 리밋 설정 ─────────────────────────────────────────
-_TRIAL_LIMIT_PER_DAY = 3          # IP당 하루 최대 체험 횟수
+_TRIAL_LIMIT_PER_DAY = 20         # IP당 하루 최대 체험 횟수 (개발 기간 20회, 운영 시 3으로 변경)
 _TRIAL_WINDOW_SEC    = 86_400     # 24시간
 
 # 관리자 우회: ADMIN_IPS 환경변수 (쉼표 구분) 또는 X-Admin-Key 헤더
