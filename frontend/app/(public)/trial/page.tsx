@@ -79,15 +79,35 @@ const SCAN_STEPS = [
 
 type Step = "category" | "tags" | "info" | "scanning" | "result";
 
-const TRIAL_LS_KEY = "aeolab_trial_used_at";
-const TRIAL_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24시간
+const TRIAL_LS_KEY    = "aeolab_trial_v2";   // {count, resetAt}
+const TRIAL_DAY_MS    = 24 * 60 * 60 * 1000; // 24시간 윈도우
+const TRIAL_DAY_LIMIT = 20;                  // 개발 기간 20회 (운영 시 3으로 변경)
+
+interface TrialStore { count: number; resetAt: number }
+
+function loadTrialStore(): TrialStore {
+  if (typeof window === "undefined") return { count: 0, resetAt: Date.now() + TRIAL_DAY_MS };
+  try {
+    const raw = localStorage.getItem(TRIAL_LS_KEY);
+    if (!raw) return { count: 0, resetAt: Date.now() + TRIAL_DAY_MS };
+    const store: TrialStore = JSON.parse(raw);
+    // 24시간 지났으면 초기화
+    if (Date.now() > store.resetAt) return { count: 0, resetAt: Date.now() + TRIAL_DAY_MS };
+    return store;
+  } catch { return { count: 0, resetAt: Date.now() + TRIAL_DAY_MS }; }
+}
+
+function recordTrialUse(): void {
+  if (typeof window === "undefined") return;
+  const store = loadTrialStore();
+  store.count += 1;
+  localStorage.setItem(TRIAL_LS_KEY, JSON.stringify(store));
+}
 
 function getTrialCooldownRemaining(): number {
-  if (typeof window === "undefined") return 0;
-  const raw = localStorage.getItem(TRIAL_LS_KEY);
-  if (!raw) return 0;
-  const diff = TRIAL_COOLDOWN_MS - (Date.now() - Number(raw));
-  return diff > 0 ? diff : 0;
+  const store = loadTrialStore();
+  if (store.count < TRIAL_DAY_LIMIT) return 0;
+  return Math.max(0, store.resetAt - Date.now());
 }
 
 function formatCooldown(ms: number): string {
@@ -170,19 +190,15 @@ export default function TrialPage() {
       }, adminKey);
       clearInterval(stepInterval);
       setScanStep(SCAN_STEPS.length - 1);
-      // 성공 시 쿨다운 기록 (관리자 제외)
-      if (!isAdmin && typeof window !== "undefined") {
-        localStorage.setItem(TRIAL_LS_KEY, String(Date.now()));
-      }
+      // 성공 시 횟수 기록 (관리자 제외)
+      if (!isAdmin) recordTrialUse();
       setResult(data);
       setStep("result");
     } catch (err: unknown) {
       clearInterval(stepInterval);
       if (err instanceof ApiError && err.code === "TRIAL_LIMIT") {
         setError("하루 무료 체험 한도(3회)에 도달했습니다. 내일 다시 시도하거나 회원가입 후 전체 분석을 이용하세요.");
-        if (typeof window !== "undefined") {
-          localStorage.setItem(TRIAL_LS_KEY, String(Date.now()));
-        }
+        recordTrialUse();
       } else {
         setError("스캔 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
