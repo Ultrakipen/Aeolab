@@ -6,6 +6,7 @@ import { TrialScanResult } from "@/types";
 import Link from "next/link";
 import { CATEGORY_GROUPS, CATEGORY_MAP } from "@/lib/categories";
 import { CATEGORY_ICON_MAP } from "@/lib/categoryIcons";
+import { ApiError } from "@/lib/api";
 import { ChevronLeft } from "lucide-react";
 
 const BREAKDOWN_LABELS: Record<string, string> = {
@@ -27,11 +28,29 @@ const SCAN_STEPS = [
 
 type Step = "category" | "tags" | "info" | "scanning" | "result";
 
+const TRIAL_LS_KEY = "aeolab_trial_used_at";
+const TRIAL_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24시간
+
+function getTrialCooldownRemaining(): number {
+  if (typeof window === "undefined") return 0;
+  const raw = localStorage.getItem(TRIAL_LS_KEY);
+  if (!raw) return 0;
+  const diff = TRIAL_COOLDOWN_MS - (Date.now() - Number(raw));
+  return diff > 0 ? diff : 0;
+}
+
+function formatCooldown(ms: number): string {
+  const h = Math.floor(ms / 3_600_000);
+  const m = Math.floor((ms % 3_600_000) / 60_000);
+  return h > 0 ? `${h}시간 ${m}분` : `${m}분`;
+}
+
 export default function TrialPage() {
   const [step, setStep] = useState<Step>("category");
   const [result, setResult] = useState<TrialScanResult | null>(null);
   const [error, setError] = useState("");
   const [scanStep, setScanStep] = useState(0);
+  const [cooldownMs, setCooldownMs] = useState(0);
 
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -40,6 +59,11 @@ export default function TrialPage() {
     region: "",
     extra_keyword: "",
     email: "",
+  });
+
+  // 마운트 시 쿨다운 확인
+  useState(() => {
+    setCooldownMs(getTrialCooldownRemaining());
   });
 
   const toggleTag = (tag: string) => {
@@ -57,6 +81,13 @@ export default function TrialPage() {
 
   const handleScan = async (e: React.FormEvent) => {
     e.preventDefault();
+    // 클라이언트 쿨다운 체크
+    const remaining = getTrialCooldownRemaining();
+    if (remaining > 0) {
+      setCooldownMs(remaining);
+      setError(`오늘 무료 체험을 이미 사용하셨습니다. ${formatCooldown(remaining)} 후 다시 이용하거나 회원가입 후 전체 분석을 이용하세요.`);
+      return;
+    }
     setError("");
     setStep("scanning");
     setScanStep(0);
@@ -80,11 +111,22 @@ export default function TrialPage() {
       });
       clearInterval(stepInterval);
       setScanStep(SCAN_STEPS.length - 1);
+      // 성공 시 쿨다운 기록
+      if (typeof window !== "undefined") {
+        localStorage.setItem(TRIAL_LS_KEY, String(Date.now()));
+      }
       setResult(data);
       setStep("result");
-    } catch {
+    } catch (err: unknown) {
       clearInterval(stepInterval);
-      setError("스캔 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      if (err instanceof ApiError && err.code === "TRIAL_LIMIT") {
+        setError("하루 무료 체험 한도(3회)에 도달했습니다. 내일 다시 시도하거나 회원가입 후 전체 분석을 이용하세요.");
+        if (typeof window !== "undefined") {
+          localStorage.setItem(TRIAL_LS_KEY, String(Date.now()));
+        }
+      } else {
+        setError("스캔 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      }
       setStep("info");
     }
   };

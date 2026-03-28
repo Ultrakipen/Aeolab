@@ -4,13 +4,14 @@ import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from models.schemas import ScanRequest, TrialScanRequest
 from services.ai_scanner.multi_scanner import MultiAIScanner
 from services.score_engine import calculate_score
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
+import utils.cache as _cache
 
 _logger = logging.getLogger("aeolab")
 
@@ -55,6 +56,39 @@ _PLATFORM_LABELS = {
 
 router = APIRouter()
 
+# ── 무료 체험 IP 레이트 리밋 설정 ─────────────────────────────────────────
+_TRIAL_LIMIT_PER_DAY = 3          # IP당 하루 최대 체험 횟수
+_TRIAL_WINDOW_SEC    = 86_400     # 24시간
+
+
+def _get_client_ip(request: Request) -> str:
+    """실제 클라이언트 IP 추출 (Nginx 리버스 프록시 고려)"""
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _check_trial_rate_limit(ip: str) -> None:
+    """IP 기반 무료 체험 횟수 초과 시 429 반환"""
+    key = f"trial_ip:{ip}"
+    count: int = _cache.get(key) or 0
+    if count >= _TRIAL_LIMIT_PER_DAY:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "TRIAL_LIMIT",
+                "message": f"하루 {_TRIAL_LIMIT_PER_DAY}회 무료 체험 한도에 도달했습니다. 내일 다시 시도하거나 회원가입 후 이용하세요.",
+                "retry_after": _TRIAL_WINDOW_SEC,
+            },
+        )
+    # 첫 요청이면 TTL=24h로 신규 생성, 이후엔 카운트만 증가 (TTL 유지)
+    if count == 0:
+        _cache.set(key, 1, _TRIAL_WINDOW_SEC)
+    else:
+        _cache.set(key, count + 1, _TRIAL_WINDOW_SEC)
+
+
 # ── SSE stream 단기 OTP 토큰 저장소 (실운영은 Redis 권장) ──────────────────
 _stream_tokens: dict[str, dict] = {}
 
@@ -74,8 +108,10 @@ def cleanup_expired_stream_tokens() -> int:
 
 
 @router.post("/trial")
-async def trial_scan(req: TrialScanRequest):
-    """랜딩 무료 체험: Gemini Flash 단일 스캔 (비로그인)"""
+async def trial_scan(req: TrialScanRequest, request: Request):
+    """랜딩 무료 체험: Gemini Flash 단일 스캔 (비로그인) — IP당 하루 3회 제한"""
+    ip = _get_client_ip(request)
+    _check_trial_rate_limit(ip)
     scanner = MultiAIScanner(mode="trial")
     if req.keyword:
         query = f"{req.region} {req.keyword.strip()} 추천"

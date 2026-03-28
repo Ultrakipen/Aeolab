@@ -10,6 +10,7 @@ const BACKEND_URL = apiBase;
 
 // API 에러 코드별 사용자 메시지 매핑
 const ERROR_MESSAGES: Record<string, string> = {
+  TRIAL_LIMIT:      "하루 무료 체험 한도(3회)에 도달했습니다. 내일 다시 시도하거나 회원가입 후 이용하세요.",
   PLAN_REQUIRED:    "이 기능은 유료 플랜에서 이용할 수 있습니다.",
   SCAN_LIMIT:       "이번 달 무료 스캔 횟수(3회)를 모두 사용했습니다.",
   SCAN_IN_PROGRESS: "이미 스캔이 진행 중입니다. 잠시 후 다시 시도해주세요.",
