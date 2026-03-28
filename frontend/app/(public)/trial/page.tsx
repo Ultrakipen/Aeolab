@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 import { trialScan } from "@/lib/api";
-import { Category, TrialScanResult } from "@/types";
+import { TrialScanResult } from "@/types";
 import Link from "next/link";
-import { CATEGORY_GROUPS } from "@/lib/categories";
+import { CATEGORY_GROUPS, CATEGORY_MAP } from "@/lib/categories";
 
 const BREAKDOWN_LABELS: Record<string, string> = {
-  exposure_freq:    "AI 노출 빈도",
-  review_quality:   "리뷰 품질",
-  schema_score:     "Schema 구조화",
-  online_mentions:  "온라인 언급",
-  info_completeness:"정보 완성도",
-  content_freshness:"콘텐츠 최신성",
+  exposure_freq:     "AI 노출 빈도",
+  review_quality:    "리뷰 품질",
+  schema_score:      "Schema 구조화",
+  online_mentions:   "온라인 언급",
+  info_completeness: "정보 완성도",
+  content_freshness: "콘텐츠 최신성",
 };
 
 const SCAN_STEPS = [
@@ -23,20 +23,35 @@ const SCAN_STEPS = [
   "점수 계산",
 ];
 
-type Step = "input" | "scanning" | "result";
+type Step = "category" | "tags" | "info" | "scanning" | "result";
 
 export default function TrialPage() {
-  const [step, setStep] = useState<Step>("input");
+  const [step, setStep] = useState<Step>("category");
   const [result, setResult] = useState<TrialScanResult | null>(null);
   const [error, setError] = useState("");
   const [scanStep, setScanStep] = useState(0);
+
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [form, setForm] = useState({
     business_name: "",
-    category: "restaurant" as Category,
     region: "",
-    keyword: "",
+    extra_keyword: "",
     email: "",
   });
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const buildKeyword = () => {
+    const tags = selectedTags.slice(0, 3).join(" ");
+    return form.extra_keyword
+      ? `${tags} ${form.extra_keyword}`.trim()
+      : tags;
+  };
 
   const handleScan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +59,6 @@ export default function TrialPage() {
     setStep("scanning");
     setScanStep(0);
 
-    // 단계별 프로그레스 시뮬레이션
     const stepInterval = setInterval(() => {
       setScanStep((prev) => {
         if (prev < SCAN_STEPS.length - 1) return prev + 1;
@@ -54,8 +68,14 @@ export default function TrialPage() {
     }, 600);
 
     try {
-      const scanData = { ...form, keyword: form.keyword || undefined };
-      const data = await trialScan(scanData);
+      const keyword = buildKeyword();
+      const data = await trialScan({
+        business_name: form.business_name,
+        category: selectedCategory,
+        region: form.region,
+        keyword: keyword || undefined,
+        email: form.email || undefined,
+      });
       clearInterval(stepInterval);
       setScanStep(SCAN_STEPS.length - 1);
       setResult(data);
@@ -63,7 +83,7 @@ export default function TrialPage() {
     } catch {
       clearInterval(stepInterval);
       setError("스캔 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-      setStep("input");
+      setStep("info");
     }
   };
 
@@ -75,51 +95,157 @@ export default function TrialPage() {
     return map[grade] ?? "text-gray-500";
   };
 
+  const reset = () => {
+    setStep("category");
+    setResult(null);
+    setSelectedCategory("");
+    setSelectedTags([]);
+    setForm({ business_name: "", region: "", extra_keyword: "", email: "" });
+    setScanStep(0);
+  };
+
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-blue-600">AEOlab</Link>
-          <span className="text-sm text-gray-500">무료 AI 노출 진단 (1회)</span>
+          <span className="text-sm text-gray-500">무료 AI 노출 진단</span>
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto py-12 px-4">
+      <div className="max-w-2xl mx-auto py-10 px-4">
 
-        {/* 입력 단계 */}
-        {step === "input" && (
+        {/* 단계 표시 */}
+        {step !== "scanning" && step !== "result" && (
+          <div className="flex items-center justify-center gap-2 mb-8">
+            {[
+              { key: "category", label: "업종" },
+              { key: "tags", label: "서비스" },
+              { key: "info", label: "정보 입력" },
+            ].map((s, i) => (
+              <div key={s.key} className="flex items-center gap-2">
+                <div className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full ${
+                  step === s.key
+                    ? "bg-blue-600 text-white"
+                    : ["category", "tags", "info"].indexOf(step) > i
+                    ? "bg-blue-100 text-blue-600"
+                    : "bg-gray-100 text-gray-400"
+                }`}>
+                  <span>{i + 1}</span>
+                  <span>{s.label}</span>
+                </div>
+                {i < 2 && <div className="w-4 h-px bg-gray-300" />}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 1단계: 업종 선택 */}
+        {step === "category" && (
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1 text-center">
-              내 가게 AI 노출 진단
+              어떤 업종인가요?
             </h1>
-            <p className="text-gray-500 text-center text-sm mb-8">
-              Gemini AI로 내 가게가 추천되는지 1회 무료로 확인하세요.
+            <p className="text-gray-500 text-center text-sm mb-6">
+              가장 가까운 업종을 선택하세요
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {CATEGORY_GROUPS.map((cat) => (
+                <button
+                  key={cat.value}
+                  onClick={() => {
+                    setSelectedCategory(cat.value);
+                    setSelectedTags([]);
+                    setStep("tags");
+                  }}
+                  className="flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-blue-400 hover:shadow-md transition-all text-left"
+                >
+                  <span className="text-2xl">{cat.emoji}</span>
+                  <span className="text-sm font-medium text-gray-800">{cat.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 2단계: 서비스 태그 선택 */}
+        {step === "tags" && selectedCategory && (
+          <div>
+            <button
+              onClick={() => setStep("category")}
+              className="text-sm text-gray-400 hover:text-gray-600 mb-4 flex items-center gap-1"
+            >
+              ← 업종 다시 선택
+            </button>
+            <h2 className="text-xl font-bold text-gray-900 mb-1">
+              {CATEGORY_MAP[selectedCategory]?.emoji} 어떤 서비스를 제공하나요?
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              해당하는 서비스를 모두 선택하세요 <span className="text-blue-500">(복수 선택 가능)</span>
             </p>
 
-            {/* 1회 vs 100회 설명 */}
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
-              <div className="text-sm font-semibold text-blue-800 mb-2">이 체험은 1회 스캔입니다</div>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="bg-white rounded-lg p-3">
-                  <div className="font-medium text-gray-700 mb-1">무료 체험 (지금)</div>
-                  <div className="text-gray-400">Gemini AI 1회만 확인</div>
-                  <div className="text-gray-400">노출 여부만 판단 가능</div>
-                </div>
-                <div className="bg-blue-600 rounded-lg p-3 text-white">
-                  <div className="font-medium mb-1">구독 (월 9,900원)</div>
-                  <div className="text-blue-100">6개 AI × 100회 샘플링</div>
-                  <div className="text-blue-100">정확한 노출 확률 측정</div>
-                </div>
-              </div>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {CATEGORY_MAP[selectedCategory]?.tags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => toggleTag(tag)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                    selectedTags.includes(tag)
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-blue-400"
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
             </div>
 
-            <form onSubmit={handleScan} className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
+            {selectedTags.length > 0 && (
+              <div className="bg-blue-50 rounded-xl p-3 mb-4 text-sm text-blue-700">
+                선택한 서비스: <strong>{selectedTags.join(", ")}</strong>
+              </div>
+            )}
+
+            <button
+              onClick={() => setStep("info")}
+              disabled={selectedTags.length === 0}
+              className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              다음 →
+            </button>
+            <p className="text-xs text-center text-gray-400 mt-2">서비스를 1개 이상 선택하세요</p>
+          </div>
+        )}
+
+        {/* 3단계: 정보 입력 */}
+        {step === "info" && (
+          <div>
+            <button
+              onClick={() => setStep("tags")}
+              className="text-sm text-gray-400 hover:text-gray-600 mb-4 flex items-center gap-1"
+            >
+              ← 서비스 다시 선택
+            </button>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              사업장 정보를 입력하세요
+            </h2>
+
+            {/* 선택 요약 */}
+            <div className="bg-gray-50 rounded-xl p-3 mb-4 text-xs text-gray-600 flex flex-wrap gap-1">
+              <span className="font-medium">{CATEGORY_MAP[selectedCategory]?.label}</span>
+              <span className="text-gray-400">·</span>
+              {selectedTags.map((t) => (
+                <span key={t} className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{t}</span>
+              ))}
+            </div>
+
+            <form onSubmit={handleScan} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">사업장 이름 *</label>
                 <input
                   type="text"
                   required
-                  placeholder="예: 강남 맛있는 치킨"
+                  placeholder="예: 홍스튜디오"
                   value={form.business_name}
                   onChange={(e) => setForm({ ...form, business_name: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -127,29 +253,11 @@ export default function TrialPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">업종 *</label>
-                <select
-                  required
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {CATEGORY_GROUPS.map((g) => (
-                    <optgroup key={g.group} label={g.group}>
-                      {g.options.map((c) => (
-                        <option key={c.value} value={c.value}>{c.label}</option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">지역 (구/동 단위) *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">지역 *</label>
                 <input
                   type="text"
                   required
-                  placeholder="예: 강남구, 마포구, 홍대"
+                  placeholder="예: 창원시 성산구"
                   value={form.region}
                   onChange={(e) => setForm({ ...form, region: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -158,24 +266,23 @@ export default function TrialPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  실제 서비스 키워드 <span className="text-gray-400 font-normal">(선택 — 더 정확한 분석)</span>
+                  추가 키워드 <span className="text-gray-400 font-normal">(선택)</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="예: 결혼식 촬영 / 돌잔치 사진 / 행사 사진촬영"
-                  value={form.keyword}
-                  onChange={(e) => setForm({ ...form, keyword: e.target.value })}
+                  placeholder="예: 야외촬영 가능 / 신생아 전문 / 출장 가능"
+                  value={form.extra_keyword}
+                  onChange={(e) => setForm({ ...form, extra_keyword: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <p className="text-xs text-gray-400 mt-1">
-                  실제 제공하는 서비스를 입력하세요. 업종 선택보다 정확한 분석이 가능합니다.<br/>
-                  입력 예시: <span className="text-gray-500">강남 헤어샵 / 여성 커트 전문 / 염색 펌</span>
+                  가게만의 특징을 입력하면 더 정확한 분석이 가능합니다
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  이메일 <span className="text-gray-400 font-normal">(결과 발송·업데이트 알림, 선택)</span>
+                  이메일 <span className="text-gray-400 font-normal">(결과 발송, 선택)</span>
                 </label>
                 <input
                   type="email"
@@ -192,7 +299,7 @@ export default function TrialPage() {
                 type="submit"
                 className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-blue-700 transition-colors"
               >
-                AI 노출 진단 시작
+                AI 노출 진단 시작 (무료)
               </button>
             </form>
           </div>
@@ -204,27 +311,21 @@ export default function TrialPage() {
             <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
             <h2 className="text-xl font-semibold text-gray-900 mb-1">AI 검색 분석 중...</h2>
             <p className="text-gray-500 text-sm mb-8">
-              &ldquo;{form.region} {form.category} 추천&rdquo; 검색어로 Gemini를 확인하고 있습니다.
+              &ldquo;{form.region} {selectedTags[0]} 추천&rdquo; 검색어로 Gemini를 확인하고 있습니다.
             </p>
             <div className="max-w-xs mx-auto space-y-2">
               {SCAN_STEPS.map((s, i) => (
                 <div
                   key={i}
                   className={`flex items-center gap-3 text-sm px-4 py-2 rounded-lg transition-all ${
-                    i < scanStep
-                      ? "text-green-600 bg-green-50"
-                      : i === scanStep
-                      ? "text-blue-600 bg-blue-50 font-medium"
+                    i < scanStep ? "text-green-600 bg-green-50"
+                      : i === scanStep ? "text-blue-600 bg-blue-50 font-medium"
                       : "text-gray-300"
                   }`}
                 >
-                  {i < scanStep ? (
-                    <span>✓</span>
-                  ) : i === scanStep ? (
-                    <span className="w-3 h-3 border-2 border-blue-400 border-t-blue-600 rounded-full animate-spin inline-block" />
-                  ) : (
-                    <span className="w-3 h-3 rounded-full bg-gray-200 inline-block" />
-                  )}
+                  {i < scanStep ? <span>✓</span>
+                    : i === scanStep ? <span className="w-3 h-3 border-2 border-blue-400 border-t-blue-600 rounded-full animate-spin inline-block" />
+                    : <span className="w-3 h-3 rounded-full bg-gray-200 inline-block" />}
                   {s}
                 </div>
               ))}
@@ -232,10 +333,25 @@ export default function TrialPage() {
           </div>
         )}
 
-        {/* 결과 단계 */}
+        {/* 결과 */}
         {step === "result" && result && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">진단 결과</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">진단 결과</h2>
+
+            {/* 측정 신뢰도 */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-yellow-800">측정 신뢰도</span>
+                <span className="text-sm font-bold text-yellow-800">1 / 100회</span>
+              </div>
+              <div className="w-full bg-yellow-200 rounded-full h-3 mb-2">
+                <div className="bg-yellow-500 h-3 rounded-full" style={{ width: "1%" }} />
+              </div>
+              <p className="text-xs text-yellow-700">
+                손님 <strong>1명</strong>에게만 물어본 결과입니다.
+                구독하면 <strong>100명</strong>에게 물어봐 정확한 노출 확률을 알 수 있습니다.
+              </p>
+            </div>
 
             {/* 핵심 점수 */}
             <div className="bg-white rounded-2xl p-6 shadow-sm mb-4">
@@ -266,7 +382,6 @@ export default function TrialPage() {
                 </div>
               </div>
 
-              {/* 항목별 점수 */}
               {result.score.breakdown && (
                 <div className="border-t border-gray-100 pt-4">
                   <div className="text-xs font-medium text-gray-500 mb-3">항목별 분석</div>
@@ -278,7 +393,7 @@ export default function TrialPage() {
                         </div>
                         <div className="flex-1 bg-gray-100 rounded-full h-1.5">
                           <div
-                            className="bg-blue-500 h-1.5 rounded-full transition-all"
+                            className="bg-blue-500 h-1.5 rounded-full"
                             style={{ width: `${Math.min(100, Number(value))}%` }}
                           />
                         </div>
@@ -292,42 +407,41 @@ export default function TrialPage() {
               )}
             </div>
 
-            {/* 1회 vs 100회 비교 설명 */}
-            <div className="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-100">
-              <div className="text-sm font-semibold text-gray-700 mb-2">
-                이 결과는 1회 스캔입니다
+            {/* 잠긴 기능 */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm mb-4 relative overflow-hidden">
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-2xl">
+                <div className="text-3xl mb-2">🔒</div>
+                <div className="text-sm font-bold text-gray-800 mb-1">구독 시 확인 가능</div>
+                <div className="text-xs text-gray-500 text-center px-4">
+                  8개 AI × 100회 측정으로 정확한 노출 확률과<br />경쟁사 대비 순위를 확인하세요
+                </div>
               </div>
-              <p className="text-xs text-gray-500 mb-3">
-                AI 답변은 매번 달라집니다. 1회 결과만으로는 실제 노출 확률을 알 수 없습니다.
-                같은 질문을 100번 해야 &ldquo;30%의 확률로 노출된다&rdquo;는 통계가 나옵니다.
-              </p>
-              <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                {[
-                  { label: "1회 스캔", value: "노출 여부만", color: "bg-gray-100 text-gray-600" },
-                  { label: "100회 샘플링", value: "정확한 확률", color: "bg-blue-50 text-blue-700" },
-                  { label: "경쟁사 비교", value: "격차 분석", color: "bg-blue-50 text-blue-700" },
-                ].map((item) => (
-                  <div key={item.label} className={`rounded-lg p-2 ${item.color}`}>
-                    <div className="font-medium">{item.label}</div>
-                    <div className="opacity-70">{item.value}</div>
-                  </div>
-                ))}
+              <div className="text-xs font-medium text-gray-400 mb-3">구독 전용 분석</div>
+              <div className="space-y-3 opacity-30 select-none">
+                <div className="flex justify-between"><span className="text-sm">ChatGPT 노출율</span><span className="font-bold">??%</span></div>
+                <div className="flex justify-between"><span className="text-sm">네이버 AI 브리핑</span><span className="font-bold">??%</span></div>
+                <div className="flex justify-between"><span className="text-sm">경쟁사 대비 순위</span><span className="font-bold">?위</span></div>
+                <div className="flex justify-between"><span className="text-sm">AI 개선 가이드</span><span className="font-bold text-blue-500">보기 →</span></div>
               </div>
             </div>
 
-            {/* 업그레이드 CTA — 점수 맞춤형 메시지 */}
+            {/* CTA */}
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-4">
-              <p className="font-semibold text-amber-800 mb-1">
-                지금 보이는 점수는 AI 1개가 1번 검색한 결과입니다
+              <p className="font-bold text-amber-900 mb-1 text-lg">
+                {result.result.gemini?.mentioned
+                  ? "AI에 나오고 있지만, 경쟁사보다 자주 나오나요?"
+                  : "AI 검색에 내 가게가 보이지 않습니다"}
               </p>
               <p className="text-sm text-amber-700 mb-3">
-                구독하면 <strong>8개 AI × 100회 = 800회 측정</strong>으로
-                오차 ±3% 이내의 정확한 AI 노출 점수를 받습니다
+                지금 결과는 손님 <strong>1명</strong>에게 물어본 것입니다.<br />
+                구독하면 <strong>8개 AI × 100명</strong>에게 물어봐 정확한 노출 확률과
+                경쟁사 격차를 알 수 있습니다.
               </p>
               <ul className="text-sm text-amber-700 mb-4 space-y-1">
-                <li>• ChatGPT·Perplexity·Grok·네이버 AI 등 8개 플랫폼 동시 분석</li>
-                <li>• 경쟁사{result.score.total_score > 60 ? " 앞서는" : " 추월하는"} 맞춤 개선 전략 제공</li>
-                <li>• 매일 자동 스캔 + 카카오톡 알림</li>
+                <li>✓ ChatGPT·Perplexity·네이버 AI 등 8개 플랫폼 동시 분석</li>
+                <li>✓ 경쟁사 대비 내 가게 순위 확인</li>
+                <li>✓ AI 노출을 높이는 맞춤 개선 가이드</li>
+                <li>✓ 매일 자동 스캔 + 카카오톡 알림</li>
               </ul>
               <Link
                 href="/signup"
@@ -335,11 +449,12 @@ export default function TrialPage() {
               >
                 월 9,900원으로 정확한 분석 시작하기 →
               </Link>
+              <p className="text-xs text-amber-600 text-center mt-2">언제든 해지 가능 · 첫 달 무료</p>
             </div>
 
             <button
-              onClick={() => { setStep("input"); setResult(null); setScanStep(0); }}
-              className="w-full border border-gray-300 text-gray-600 py-3 rounded-xl hover:bg-gray-50 transition-colors text-sm"
+              onClick={reset}
+              className="w-full border border-gray-300 text-gray-600 py-3 rounded-xl hover:bg-gray-50 text-sm"
             >
               다른 사업장 진단하기
             </button>

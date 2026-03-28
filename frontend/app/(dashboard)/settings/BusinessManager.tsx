@@ -145,11 +145,7 @@ export function BusinessManager({ businesses, userId }: Props) {
                     className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {CATEGORY_GROUPS.map((g) => (
-                      <optgroup key={g.group} label={g.group}>
-                        {g.options.map((c) => (
-                          <option key={c.value} value={c.value}>{c.label}</option>
-                        ))}
-                      </optgroup>
+                      <option key={g.value} value={g.value}>{g.emoji} {g.label}</option>
                     ))}
                   </select>
                 </div>

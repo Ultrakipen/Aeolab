@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { CATEGORY_GROUPS } from '@/lib/categories'
-import { Search } from 'lucide-react'
+import { Search, ChevronLeft } from 'lucide-react'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -24,10 +24,17 @@ interface RegisterBusinessFormProps {
   userId: string
 }
 
+type Step = 'category' | 'tags' | 'info'
+
 export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // 단계 관리
+  const [step, setStep] = useState<Step>('category')
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
 
   // 사업자등록번호 조회
   const [regNo, setRegNo] = useState('')
@@ -44,12 +51,10 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
 
   const [form, setForm] = useState({
     name: '',
-    category: 'restaurant',
     region: '',
     address: '',
     phone: '',
     website_url: '',
-    keywords: '',
   })
 
   // 드롭다운 외부 클릭 시 닫기
@@ -73,7 +78,6 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
   const handleRegNoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatRegNo(e.target.value)
     setRegNo(formatted)
-    // 10자리 입력 완료 시 자동 조회 — 최신 값을 직접 전달해 stale closure 방지
     const digits = formatted.replace(/-/g, '')
     if (digits.length === 10) {
       setTimeout(() => handleLookup(digits), 100)
@@ -135,12 +139,24 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
     setAddressCandidates([])
   }
 
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    )
+  }
+
+  const currentCategoryGroup = CATEGORY_GROUPS.find((g) => g.value === selectedCategory)
+
   const canSubmit = isPreStartup || (lookupResult?.is_active === true)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!canSubmit) {
       setError('사업자등록번호를 먼저 조회하거나 창업 예정을 선택하세요.')
+      return
+    }
+    if (!selectedCategory) {
+      setError('업종을 선택해주세요.')
       return
     }
     setLoading(true)
@@ -151,7 +167,8 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
         headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
         body: JSON.stringify({
           ...form,
-          keywords: form.keywords ? form.keywords.split(',').map((k) => k.trim()).filter(Boolean) : [],
+          category: selectedCategory,
+          keywords: selectedTags,
         }),
       })
       if (!res.ok) throw new Error()
@@ -163,9 +180,116 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
     }
   }
 
+  // ── STEP 1: 업종 선택 ──────────────────────────────────────────────
+  if (step === 'category') {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-sm max-w-lg">
+        <h2 className="font-semibold text-gray-900 mb-1">사업장 등록</h2>
+        <p className="text-sm text-gray-500 mb-4">내 사업장이 속하는 업종을 선택하세요.</p>
+        <div className="grid grid-cols-2 gap-2.5">
+          {CATEGORY_GROUPS.map((g) => (
+            <button
+              key={g.value}
+              type="button"
+              onClick={() => {
+                setSelectedCategory(g.value)
+                setSelectedTags([])
+                setStep('tags')
+              }}
+              className="flex items-center gap-2.5 p-3.5 border-2 border-gray-100 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all text-left group"
+            >
+              <span className="text-2xl">{g.emoji}</span>
+              <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700 leading-tight">{g.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // ── STEP 2: 서비스 태그 선택 ──────────────────────────────────────
+  if (step === 'tags') {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-sm max-w-lg">
+        <button
+          type="button"
+          onClick={() => setStep('category')}
+          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+        >
+          <ChevronLeft className="w-4 h-4" /> 업종 다시 선택
+        </button>
+
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xl">{currentCategoryGroup?.emoji}</span>
+          <h2 className="font-semibold text-gray-900">{currentCategoryGroup?.label}</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          내 사업장과 관련된 서비스를 모두 선택하세요. <span className="text-blue-600">AI가 이 키워드로 검색합니다.</span>
+        </p>
+
+        <div className="flex flex-wrap gap-2 mb-5">
+          {currentCategoryGroup?.tags.map((tag) => {
+            const selected = selectedTags.includes(tag)
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => toggleTag(tag)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                  selected
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-blue-400 hover:text-blue-600'
+                }`}
+              >
+                {selected && <span className="mr-1">✓</span>}
+                {tag}
+              </button>
+            )
+          })}
+        </div>
+
+        {selectedTags.length > 0 && (
+          <div className="bg-blue-50 rounded-xl px-4 py-3 mb-4">
+            <p className="text-xs text-blue-700 font-medium mb-1">선택된 서비스 키워드 ({selectedTags.length}개)</p>
+            <p className="text-sm text-blue-800">{selectedTags.join(', ')}</p>
+          </div>
+        )}
+
+        <button
+          type="button"
+          disabled={selectedTags.length === 0}
+          onClick={() => setStep('info')}
+          className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {selectedTags.length === 0 ? '서비스를 1개 이상 선택하세요' : `${selectedTags.length}개 선택 완료 → 다음`}
+        </button>
+      </div>
+    )
+  }
+
+  // ── STEP 3: 사업장 정보 입력 ──────────────────────────────────────
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm max-w-lg">
-      <h2 className="font-semibold text-gray-900 mb-1">사업장 등록</h2>
+      <button
+        type="button"
+        onClick={() => setStep('tags')}
+        className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+      >
+        <ChevronLeft className="w-4 h-4" /> 서비스 다시 선택
+      </button>
+
+      {/* 선택 요약 */}
+      <div className="bg-gray-50 rounded-xl px-4 py-3 mb-5 flex items-center gap-3">
+        <span className="text-xl">{currentCategoryGroup?.emoji}</span>
+        <div>
+          <p className="text-xs text-gray-400">선택한 업종</p>
+          <p className="text-sm font-medium text-gray-800">
+            {currentCategoryGroup?.label} · <span className="text-blue-600">{selectedTags.slice(0, 3).join(', ')}{selectedTags.length > 3 ? ` 외 ${selectedTags.length - 3}개` : ''}</span>
+          </p>
+        </div>
+      </div>
+
+      <h2 className="font-semibold text-gray-900 mb-1">사업장 정보 입력</h2>
       <p className="text-xs text-gray-400 mb-4">사업자등록번호로 조회하거나, 창업 예정이라면 직접 입력하세요.</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -240,34 +364,16 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
           />
         </div>
 
-        {/* 업종 + 지역 */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">업종 *</label>
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {CATEGORY_GROUPS.map((g) => (
-                <optgroup key={g.group} label={g.group}>
-                  {g.options.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">지역 *</label>
-            <input
-              required
-              placeholder="예: 강남구 역삼동"
-              value={form.region}
-              onChange={(e) => setForm({ ...form, region: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+        {/* 지역 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">지역 *</label>
+          <input
+            required
+            placeholder="예: 강남구 역삼동"
+            value={form.region}
+            onChange={(e) => setForm({ ...form, region: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
 
         {/* 주소 (자동 검색 + 수동 입력) */}
@@ -290,7 +396,6 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          {/* 검색 결과 드롭다운 */}
           {showDropdown && addressCandidates.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
               {addressCandidates.map((c, i) => (
@@ -329,20 +434,6 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-        </div>
-
-        {/* 키워드 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            핵심 키워드 <span className="text-gray-400 font-normal">(쉼표로 구분)</span>
-          </label>
-          <input
-            placeholder="예: 강남 치킨, 야식, 배달"
-            value={form.keywords}
-            onChange={(e) => setForm({ ...form, keywords: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <p className="text-xs text-gray-400 mt-1">AI가 내 가게를 검색할 때 쓰는 키워드를 입력하세요.</p>
         </div>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}

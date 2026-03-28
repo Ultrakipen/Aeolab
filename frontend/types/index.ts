@@ -128,6 +128,7 @@ export interface TrialScanRequest {
   business_name: string;
   category: Category;
   region: string;
+  keyword?: string;
   email?: string;
 }
 

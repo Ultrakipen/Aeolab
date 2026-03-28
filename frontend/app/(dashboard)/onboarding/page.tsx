@@ -113,9 +113,7 @@ export default function OnboardingPage() {
                     onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                   >
                     {CATEGORY_GROUPS.map((g) => (
-                      <optgroup key={g.group} label={g.group}>
-                        {g.options.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                      </optgroup>
+                      <option key={g.value} value={g.value}>{g.emoji} {g.label}</option>
                     ))}
                   </select>
                 </div>
