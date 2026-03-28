@@ -39,10 +39,13 @@ export async function apiCall<T>(url: string, options?: RequestInit): Promise<T>
   return res.json();
 }
 
-export async function trialScan(req: TrialScanRequest): Promise<TrialScanResult> {
+export async function trialScan(req: TrialScanRequest, adminKey?: string): Promise<TrialScanResult> {
   return apiCall<TrialScanResult>(`${BACKEND_URL}/api/scan/trial`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(adminKey ? { "X-Admin-Key": adminKey } : {}),
+    },
     body: JSON.stringify(req),
   });
 }

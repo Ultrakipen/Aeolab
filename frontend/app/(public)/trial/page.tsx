@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trialScan } from "@/lib/api";
 import { TrialScanResult } from "@/types";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { CATEGORY_GROUPS, CATEGORY_MAP } from "@/lib/categories";
 import { CATEGORY_ICON_MAP } from "@/lib/categoryIcons";
 import { ApiError } from "@/lib/api";
 import { ChevronLeft } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 // 소상공인 친화적 항목 설명
 const BREAKDOWN_INFO: Record<string, {
@@ -101,6 +102,7 @@ export default function TrialPage() {
   const [error, setError] = useState("");
   const [scanStep, setScanStep] = useState(0);
   const [cooldownMs, setCooldownMs] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -111,10 +113,14 @@ export default function TrialPage() {
     email: "",
   });
 
-  // 마운트 시 쿨다운 확인
-  useState(() => {
+  // 마운트 시 쿨다운 확인 + 로그인 상태(관리자) 확인
+  useEffect(() => {
     setCooldownMs(getTrialCooldownRemaining());
-  });
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) setIsAdmin(true); // 로그인 상태 = 개발 기간 관리자 우회
+    });
+  }, []);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -131,12 +137,14 @@ export default function TrialPage() {
 
   const handleScan = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 클라이언트 쿨다운 체크
-    const remaining = getTrialCooldownRemaining();
-    if (remaining > 0) {
-      setCooldownMs(remaining);
-      setError(`오늘 무료 체험을 이미 사용하셨습니다. ${formatCooldown(remaining)} 후 다시 이용하거나 회원가입 후 전체 분석을 이용하세요.`);
-      return;
+    // 클라이언트 쿨다운 체크 (관리자/로그인 상태는 제외)
+    if (!isAdmin) {
+      const remaining = getTrialCooldownRemaining();
+      if (remaining > 0) {
+        setCooldownMs(remaining);
+        setError(`오늘 무료 체험을 이미 사용하셨습니다. ${formatCooldown(remaining)} 후 다시 이용하거나 회원가입 후 전체 분석을 이용하세요.`);
+        return;
+      }
     }
     setError("");
     setStep("scanning");
@@ -152,17 +160,18 @@ export default function TrialPage() {
 
     try {
       const keyword = buildKeyword();
+      const adminKey = isAdmin ? process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY : undefined;
       const data = await trialScan({
         business_name: form.business_name,
         category: selectedCategory,
         region: form.region,
         keyword: keyword || undefined,
         email: form.email || undefined,
-      });
+      }, adminKey);
       clearInterval(stepInterval);
       setScanStep(SCAN_STEPS.length - 1);
-      // 성공 시 쿨다운 기록
-      if (typeof window !== "undefined") {
+      // 성공 시 쿨다운 기록 (관리자 제외)
+      if (!isAdmin && typeof window !== "undefined") {
         localStorage.setItem(TRIAL_LS_KEY, String(Date.now()));
       }
       setResult(data);
@@ -374,7 +383,7 @@ export default function TrialPage() {
                 <input
                   type="text"
                   required
-                  placeholder="예: 홍스튜디오"
+                  placeholder="사업장 이름을 입력하세요"
                   value={form.business_name}
                   onChange={(e) => setForm({ ...form, business_name: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -386,7 +395,7 @@ export default function TrialPage() {
                 <input
                   type="text"
                   required
-                  placeholder="예: 창원시 성산구"
+                  placeholder="시·구·동 단위로 입력 (예: 수원시 팔달구)"
                   value={form.region}
                   onChange={(e) => setForm({ ...form, region: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -399,7 +408,7 @@ export default function TrialPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="예: 야외촬영 가능 / 신생아 전문 / 출장 가능"
+                  placeholder="예: 주차 가능, 예약 운영, 단체 주문 가능"
                   value={form.extra_keyword}
                   onChange={(e) => setForm({ ...form, extra_keyword: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"

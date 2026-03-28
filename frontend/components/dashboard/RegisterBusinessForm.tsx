@@ -386,7 +386,7 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
           <label className="block text-sm font-medium text-gray-700 mb-1">사업장 이름 *</label>
           <input
             required
-            placeholder="예: 강남 맛있는 치킨"
+            placeholder="사업장 이름을 입력하세요"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -398,7 +398,7 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
           <label className="block text-sm font-medium text-gray-700 mb-1">지역 *</label>
           <input
             required
-            placeholder="예: 강남구 역삼동"
+            placeholder="시·구·동 단위로 입력 (예: 수원시 팔달구)"
             value={form.region}
             onChange={(e) => setForm({ ...form, region: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -419,7 +419,7 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
             </button>
           </div>
           <input
-            placeholder="예: 서울시 강남구 테헤란로 123  (또는 위 검색 버튼 이용)"
+            placeholder="도로명 또는 지번 주소 (위 검색 버튼으로 자동 입력 가능)"
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"

@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -60,6 +61,13 @@ router = APIRouter()
 _TRIAL_LIMIT_PER_DAY = 3          # IP당 하루 최대 체험 횟수
 _TRIAL_WINDOW_SEC    = 86_400     # 24시간
 
+# 관리자 우회: ADMIN_IPS 환경변수 (쉼표 구분) 또는 X-Admin-Key 헤더
+_ADMIN_IPS: set[str] = {
+    ip.strip()
+    for ip in os.getenv("ADMIN_IPS", "127.0.0.1,::1").split(",")
+    if ip.strip()
+}
+
 
 def _get_client_ip(request: Request) -> str:
     """실제 클라이언트 IP 추출 (Nginx 리버스 프록시 고려)"""
@@ -67,6 +75,18 @@ def _get_client_ip(request: Request) -> str:
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
+
+
+def _is_admin_request(request: Request) -> bool:
+    """관리자 요청 여부 확인: IP 화이트리스트 또는 Admin 헤더 키 일치"""
+    ip = _get_client_ip(request)
+    if ip in _ADMIN_IPS:
+        return True
+    admin_key = request.headers.get("X-Admin-Key", "")
+    secret = os.getenv("ADMIN_SECRET_KEY", "")
+    if admin_key and secret and secrets.compare_digest(admin_key, secret):
+        return True
+    return False
 
 
 def _check_trial_rate_limit(ip: str) -> None:
@@ -109,9 +129,10 @@ def cleanup_expired_stream_tokens() -> int:
 
 @router.post("/trial")
 async def trial_scan(req: TrialScanRequest, request: Request):
-    """랜딩 무료 체험: Gemini Flash 단일 스캔 (비로그인) — IP당 하루 3회 제한"""
-    ip = _get_client_ip(request)
-    _check_trial_rate_limit(ip)
+    """랜딩 무료 체험: Gemini Flash 단일 스캔 (비로그인) — IP당 하루 3회 제한 (관리자 제외)"""
+    if not _is_admin_request(request):
+        ip = _get_client_ip(request)
+        _check_trial_rate_limit(ip)
     scanner = MultiAIScanner(mode="trial")
     if req.keyword:
         query = f"{req.region} {req.keyword.strip()} 추천"
