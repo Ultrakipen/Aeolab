@@ -9,13 +9,63 @@ import { CATEGORY_ICON_MAP } from "@/lib/categoryIcons";
 import { ApiError } from "@/lib/api";
 import { ChevronLeft } from "lucide-react";
 
-const BREAKDOWN_LABELS: Record<string, string> = {
-  exposure_freq:     "AI 노출 빈도",
-  review_quality:    "리뷰 품질",
-  schema_score:      "Schema 구조화",
-  online_mentions:   "온라인 언급",
-  info_completeness: "정보 완성도",
-  content_freshness: "콘텐츠 최신성",
+// 소상공인 친화적 항목 설명
+const BREAKDOWN_INFO: Record<string, {
+  label: string;
+  icon: string;
+  what: string;             // 이 항목이 무엇인지
+  low: string;              // 점수 낮을 때 이유
+  high: string;             // 점수 높을 때 이유
+  tip: string;              // 개선 힌트 (잠금)
+}> = {
+  exposure_freq: {
+    label: "AI 검색 노출",
+    icon: "🔍",
+    what: "손님이 AI에 \"추천해줘\" 라고 물어봤을 때 내 가게가 답변에 나오는 빈도입니다.",
+    low:  "이번 검색 1회에서 AI가 내 가게를 언급하지 않았습니다.",
+    high: "이번 검색 1회에서 AI가 내 가게를 언급했습니다.",
+    tip:  "100회 반복 검색으로 정확한 노출 확률(%)을 측정합니다.",
+  },
+  review_quality: {
+    label: "리뷰 평판",
+    icon: "⭐",
+    what: "네이버·카카오맵 등에 등록된 리뷰 수와 평점입니다. AI는 리뷰가 많고 평점이 높은 가게를 더 자주 추천합니다.",
+    low:  "리뷰 수가 적거나 평점이 낮아 AI가 신뢰도 있는 가게로 인식하기 어렵습니다.",
+    high: "리뷰와 평점이 충분해 AI가 신뢰할 수 있는 가게로 인식합니다.",
+    tip:  "리뷰 키워드 분석으로 어떤 단어가 AI 추천에 영향을 주는지 확인합니다.",
+  },
+  schema_score: {
+    label: "온라인 정보 정리",
+    icon: "📋",
+    what: "내 가게의 영업시간·전화번호·위치·메뉴가 인터넷에 얼마나 잘 정리돼 있는지입니다. AI는 정리가 잘 된 가게를 더 자주 추천합니다.",
+    low:  "가게 정보가 인터넷에 충분히 등록되지 않아 AI가 정확한 정보를 파악하기 어렵습니다.",
+    high: "가게 기본 정보가 잘 정리돼 있어 AI가 쉽게 인식합니다.",
+    tip:  "홈페이지·네이버플레이스·카카오맵에 빠진 정보를 자동으로 찾아드립니다.",
+  },
+  online_mentions: {
+    label: "온라인 언급 수",
+    icon: "📢",
+    what: "블로그·SNS·카페 등에서 내 가게가 언급된 횟수입니다. 많이 언급될수록 AI가 더 자주 추천합니다.",
+    low:  "온라인에서 내 가게에 대한 언급이 거의 없습니다. AI가 가게를 알 수 있는 정보가 부족합니다.",
+    high: "온라인에서 언급이 충분해 AI가 내 가게를 잘 알고 있습니다.",
+    tip:  "어느 플랫폼에서 언급이 많고 적은지, 경쟁사와 비교해 드립니다.",
+  },
+  info_completeness: {
+    label: "기본 정보 완성도",
+    icon: "📍",
+    what: "전화번호·주소·영업시간·메뉴판 등 기본 정보가 얼마나 등록되어 있는지입니다.",
+    low:  "전화번호·영업시간 등 기본 정보가 일부 누락되어 있습니다.",
+    high: "기본 정보가 모두 잘 등록되어 있습니다.",
+    tip:  "어떤 정보가 빠져 있는지 항목별로 체크리스트를 제공합니다.",
+  },
+  content_freshness: {
+    label: "최근 활동",
+    icon: "🗓️",
+    what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다. AI는 활발하게 운영 중인 가게를 더 신뢰합니다.",
+    low:  "최근 3개월 내 새 리뷰나 콘텐츠가 없어 AI가 현재 운영 중인지 확신하기 어렵습니다.",
+    high: "최근에 새 리뷰나 활동이 있어 AI가 현재 운영 중임을 인식합니다.",
+    tip:  "리뷰 요청 타이밍과 콘텐츠 업데이트 주기를 가이드로 제공합니다.",
+  },
 };
 
 const SCAN_STEPS = [
@@ -413,132 +463,233 @@ export default function TrialPage() {
         )}
 
         {/* 결과 */}
-        {step === "result" && result && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">진단 결과</h2>
+        {step === "result" && result && (() => {
+          const mentioned = result.result.gemini?.mentioned ?? false;
+          const excerpt   = result.result.gemini?.excerpt ?? "";
+          const score     = Math.round(result.score.total_score);
+          const grade     = result.score.grade;
 
-            {/* 측정 신뢰도 */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-yellow-800">측정 신뢰도</span>
-                <span className="text-sm font-bold text-yellow-800">1 / 100회</span>
-              </div>
-              <div className="w-full bg-yellow-200 rounded-full h-3 mb-2">
-                <div className="bg-yellow-500 h-3 rounded-full" style={{ width: "1%" }} />
-              </div>
-              <p className="text-xs text-yellow-700">
-                손님 <strong>1명</strong>에게만 물어본 결과입니다.
-                구독하면 <strong>100명</strong>에게 물어봐 정확한 노출 확률을 알 수 있습니다.
-              </p>
+          return (
+          <div className="space-y-4">
+
+            {/* ── 헤더 ───────────────────────────────────────────── */}
+            <div className="text-center">
+              <p className="text-sm text-gray-400 mb-1">{form.business_name} · {form.region}</p>
+              <h2 className="text-2xl font-bold text-gray-900">AI 노출 진단 결과</h2>
             </div>
 
-            {/* 핵심 점수 */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm mb-4">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div className={`text-5xl font-bold ${gradeColor(result.score.grade)}`}>
-                    {result.score.grade}
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900 mt-1">
-                    {Math.round(result.score.total_score)}점
-                  </div>
-                  <div className="text-xs text-gray-400">AI Visibility Score / 100점</div>
-                </div>
-                <div className="text-right">
-                  <div className={`text-sm font-semibold ${
-                    result.result.gemini?.mentioned ? "text-green-600" : "text-red-500"
-                  }`}>
-                    {result.result.gemini?.mentioned ? "AI에 노출됨" : "AI 미노출"}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    검색어: &ldquo;{result.query}&rdquo;
-                  </div>
-                  {result.result.gemini?.excerpt && (
-                    <div className="text-xs text-gray-500 mt-2 max-w-48 text-right leading-relaxed">
-                      &ldquo;{result.result.gemini.excerpt.slice(0, 60)}...&rdquo;
+            {/* ── 1. 실제 AI가 뭐라고 했나 ───────────────────────── */}
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="bg-gray-50 px-5 py-3 border-b border-gray-100">
+                <p className="text-xs text-gray-500">
+                  Gemini(구글 AI)에 이렇게 물어봤습니다
+                </p>
+                <p className="text-sm font-semibold text-gray-800 mt-0.5">
+                  &ldquo;{result.query}&rdquo;
+                </p>
+              </div>
+              <div className="px-5 py-4">
+                {mentioned ? (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm font-bold shrink-0">✓</span>
+                      <p className="text-sm font-semibold text-green-700">
+                        AI 답변에 <strong>{form.business_name}</strong>이(가) 언급됐습니다
+                      </p>
                     </div>
-                  )}
-                </div>
+                    {excerpt && (
+                      <div className="bg-green-50 rounded-xl px-4 py-3 border-l-4 border-green-400">
+                        <p className="text-xs text-gray-500 mb-1">AI가 한 말 (발췌)</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          &ldquo;{excerpt.slice(0, 120)}{excerpt.length > 120 ? "..." : ""}&rdquo;
+                        </p>
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-400 mt-3">
+                      단, 이번 1회 검색에서 나온 것입니다. 100회 중 몇 번 나오는지가 실제 노출 확률입니다.
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-sm font-bold shrink-0">✕</span>
+                      <p className="text-sm font-semibold text-red-600">
+                        이번 검색에서 AI가 <strong>{form.business_name}</strong>을(를) 추천하지 않았습니다
+                      </p>
+                    </div>
+                    <div className="bg-red-50 rounded-xl px-4 py-3">
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        AI는 이 검색어에서 다른 가게를 추천했습니다.<br/>
+                        지금 이 순간에도 손님들이 AI에 가게를 추천받고 있는데,
+                        내 가게는 그 목록에 없는 상태입니다.
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-3">
+                      1회 미노출이라도 100회 중 일부는 나올 수 있습니다. 정확한 확률은 구독 후 측정됩니다.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── 2. 종합 점수 ────────────────────────────────────── */}
+            <div className="bg-white rounded-2xl shadow-sm px-5 py-4">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-sm font-semibold text-gray-700">AI 노출 종합 점수</p>
+                <p className="text-xs text-gray-400">100점 만점</p>
+              </div>
+              <div className="flex items-end gap-3 mb-3">
+                <span className={`text-5xl font-black ${gradeColor(grade)}`}>{grade}</span>
+                <span className="text-3xl font-bold text-gray-900 mb-1">{score}점</span>
+                <span className="text-sm text-gray-400 mb-1.5">
+                  {score >= 80 ? "경쟁사보다 유리한 위치입니다" :
+                   score >= 60 ? "평균 수준이며 개선 여지가 있습니다" :
+                   score >= 40 ? "AI 노출이 낮아 손님이 놓치고 있습니다" :
+                                 "AI 검색에서 거의 보이지 않는 상태입니다"}
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-3">
+                <div
+                  className={`h-3 rounded-full transition-all ${
+                    score >= 80 ? "bg-green-500" : score >= 60 ? "bg-blue-500" : score >= 40 ? "bg-yellow-500" : "bg-red-400"
+                  }`}
+                  style={{ width: `${score}%` }}
+                />
+              </div>
+            </div>
+
+            {/* ── 3. 항목별 분석 (소상공인 언어) ─────────────────── */}
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100">
+                <p className="text-sm font-semibold text-gray-800">점수 항목별 분석</p>
+                <p className="text-xs text-gray-400 mt-0.5">각 항목이 왜 이 점수인지 설명합니다</p>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {result.score.breakdown && Object.entries(result.score.breakdown).map(([key, rawVal]) => {
+                  const val  = Math.round(Number(rawVal));
+                  const info = BREAKDOWN_INFO[key];
+                  if (!info) return null;
+                  const isLow = val < 40;
+                  return (
+                    <div key={key} className="px-5 py-4">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{info.icon}</span>
+                          <span className="text-sm font-medium text-gray-800">{info.label}</span>
+                        </div>
+                        <span className={`text-sm font-bold ${
+                          val >= 70 ? "text-green-600" : val >= 40 ? "text-yellow-600" : "text-red-500"
+                        }`}>{val}점</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-1.5 mb-2">
+                        <div
+                          className={`h-1.5 rounded-full ${
+                            val >= 70 ? "bg-green-500" : val >= 40 ? "bg-yellow-400" : "bg-red-400"
+                          }`}
+                          style={{ width: `${val}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 leading-relaxed">{info.what}</p>
+                      <p className={`text-xs mt-1 font-medium ${isLow ? "text-red-500" : "text-green-600"}`}>
+                        {isLow ? `⚠ ${info.low}` : `✓ ${info.high}`}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── 4. 구독하면 무엇이 달라지나 (잠금) ─────────────── */}
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100">
+                <p className="text-sm font-semibold text-gray-800">구독하면 이런 정보를 드립니다</p>
               </div>
 
-              {result.score.breakdown && (
-                <div className="border-t border-gray-100 pt-4">
-                  <div className="text-xs font-medium text-gray-500 mb-3">항목별 분석</div>
-                  <div className="space-y-2">
-                    {Object.entries(result.score.breakdown).map(([key, value]) => (
-                      <div key={key} className="flex items-center gap-3">
-                        <div className="text-xs text-gray-600 w-28 shrink-0">
-                          {BREAKDOWN_LABELS[key] ?? key}
-                        </div>
-                        <div className="flex-1 bg-gray-100 rounded-full h-1.5">
-                          <div
-                            className="bg-blue-500 h-1.5 rounded-full"
-                            style={{ width: `${Math.min(100, Number(value))}%` }}
-                          />
-                        </div>
-                        <div className="text-xs text-gray-400 w-8 text-right">
-                          {Math.round(Number(value))}
-                        </div>
-                      </div>
-                    ))}
+              {/* 무료 vs 구독 비교표 */}
+              <div className="px-5 pt-4 pb-2">
+                <div className="grid grid-cols-2 gap-2 text-xs mb-4">
+                  <div className="bg-gray-50 rounded-xl p-3">
+                    <p className="font-bold text-gray-500 mb-2">지금 (무료 체험)</p>
+                    <ul className="space-y-1.5 text-gray-500">
+                      <li>· AI 1개 (Gemini만)</li>
+                      <li>· 검색 1회</li>
+                      <li>· 노출 여부만 확인</li>
+                      <li>· 점수 추이 없음</li>
+                    </ul>
+                  </div>
+                  <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
+                    <p className="font-bold text-blue-700 mb-2">구독 후</p>
+                    <ul className="space-y-1.5 text-blue-700">
+                      <li>· AI 8개 동시 분석</li>
+                      <li>· 100회 반복 → 확률(%)</li>
+                      <li>· 경쟁사 순위 비교</li>
+                      <li>· 매일 자동 스캔</li>
+                    </ul>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* 잠긴 기능 */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm mb-4 relative overflow-hidden">
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-2xl">
-                <div className="text-3xl mb-2">🔒</div>
-                <div className="text-sm font-bold text-gray-800 mb-1">구독 시 확인 가능</div>
-                <div className="text-xs text-gray-500 text-center px-4">
-                  8개 AI × 100회 측정으로 정확한 노출 확률과<br />경쟁사 대비 순위를 확인하세요
+              {/* 잠긴 항목들 */}
+              <div className="relative mx-5 mb-5 rounded-xl overflow-hidden">
+                <div className="absolute inset-0 bg-white/85 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-xl">
+                  <span className="text-2xl mb-1">🔒</span>
+                  <p className="text-sm font-bold text-gray-700">구독 후 확인 가능</p>
+                  <p className="text-xs text-gray-500 text-center mt-1 px-4">월 9,900원 · 언제든 해지 가능</p>
+                </div>
+                <div className="space-y-3 p-4 opacity-20 select-none pointer-events-none">
+                  {Object.entries(BREAKDOWN_INFO).map(([key, info]) => (
+                    <div key={key} className="flex items-start gap-2">
+                      <span>{info.icon}</span>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700">{info.label} 개선 방법</p>
+                        <p className="text-xs text-gray-500">{info.tip}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="text-xs font-medium text-gray-400 mb-3">구독 전용 분석</div>
-              <div className="space-y-3 opacity-30 select-none">
-                <div className="flex justify-between"><span className="text-sm">ChatGPT 노출율</span><span className="font-bold">??%</span></div>
-                <div className="flex justify-between"><span className="text-sm">네이버 AI 브리핑</span><span className="font-bold">??%</span></div>
-                <div className="flex justify-between"><span className="text-sm">경쟁사 대비 순위</span><span className="font-bold">?위</span></div>
-                <div className="flex justify-between"><span className="text-sm">AI 개선 가이드</span><span className="font-bold text-blue-500">보기 →</span></div>
+
+              {/* 누가 개선하나요? */}
+              <div className="mx-5 mb-5 bg-blue-50 rounded-xl px-4 py-3">
+                <p className="text-xs font-bold text-blue-800 mb-2">개선은 누가 하나요?</p>
+                <div className="space-y-1.5 text-xs text-blue-700">
+                  <p>📊 <strong>AEOlab이 분석합니다</strong> — 매일 자동으로 스캔하고 결과를 카카오톡으로 알려드립니다.</p>
+                  <p>✏️ <strong>사업주가 직접 하거나</strong> — 가이드에서 "이 문장을 네이버플레이스 소개란에 넣으세요" 처럼 구체적으로 알려드립니다.</p>
+                  <p>📈 <strong>개선 후 변화를 확인</strong> — 변경 전·후 점수를 비교해 효과를 눈으로 확인할 수 있습니다.</p>
+                </div>
               </div>
             </div>
 
-            {/* CTA */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-4">
-              <p className="font-bold text-amber-900 mb-1 text-lg">
-                {result.result.gemini?.mentioned
-                  ? "AI에 나오고 있지만, 경쟁사보다 자주 나오나요?"
-                  : "AI 검색에 내 가게가 보이지 않습니다"}
+            {/* ── 5. CTA ──────────────────────────────────────────── */}
+            <div className={`rounded-2xl p-5 ${mentioned ? "bg-blue-600" : "bg-gray-900"}`}>
+              <p className="font-bold text-white text-lg mb-1">
+                {mentioned
+                  ? "노출은 됐지만, 경쟁사보다 자주 나오나요?"
+                  : "지금 이 순간도 경쟁 가게에 손님을 빼앗기고 있습니다"}
               </p>
-              <p className="text-sm text-amber-700 mb-3">
-                지금 결과는 손님 <strong>1명</strong>에게 물어본 것입니다.<br />
-                구독하면 <strong>8개 AI × 100명</strong>에게 물어봐 정확한 노출 확률과
-                경쟁사 격차를 알 수 있습니다.
+              <p className="text-sm text-white/80 mb-4">
+                {mentioned
+                  ? `${score}점은 100회 중 몇 번 나오는지는 알 수 없는 점수입니다. 정확한 확률과 경쟁사 순위를 확인하세요.`
+                  : `AI가 답변할 때 경쟁 가게를 먼저 추천합니다. 개선 방법을 알아보세요.`}
               </p>
-              <ul className="text-sm text-amber-700 mb-4 space-y-1">
-                <li>✓ ChatGPT·Perplexity·네이버 AI 등 8개 플랫폼 동시 분석</li>
-                <li>✓ 경쟁사 대비 내 가게 순위 확인</li>
-                <li>✓ AI 노출을 높이는 맞춤 개선 가이드</li>
-                <li>✓ 매일 자동 스캔 + 카카오톡 알림</li>
-              </ul>
               <Link
                 href="/signup"
-                className="block w-full bg-amber-600 text-white rounded-lg py-3 font-semibold text-center hover:bg-amber-700 transition-colors"
+                className="block w-full bg-white text-gray-900 rounded-xl py-3.5 font-bold text-center hover:bg-gray-100 transition-colors text-sm"
               >
-                월 9,900원으로 정확한 분석 시작하기 →
+                월 9,900원으로 전체 분석 시작하기 →
               </Link>
-              <p className="text-xs text-amber-600 text-center mt-2">언제든 해지 가능 · 첫 달 무료</p>
+              <p className="text-xs text-white/60 text-center mt-2">첫 달 무료 · 언제든 해지 가능</p>
             </div>
 
             <button
               onClick={reset}
-              className="w-full border border-gray-300 text-gray-600 py-3 rounded-xl hover:bg-gray-50 text-sm"
+              className="w-full border border-gray-200 text-gray-500 py-3 rounded-xl hover:bg-gray-50 text-sm"
             >
               다른 사업장 진단하기
             </button>
           </div>
-        )}
+          );
+        })()}
       </div>
     </main>
   );
