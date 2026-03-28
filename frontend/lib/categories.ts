@@ -63,7 +63,6 @@ export const CATEGORY_GROUPS: CategoryGroup[] = [
       { value: "realestate",    label: "부동산·공인중개사" },
       { value: "architecture",  label: "건축사·설계·측량" },
       { value: "insurance",     label: "보험설계사·금융" },
-      { value: "consulting",    label: "경영컨설팅·HR·코칭" },
       { value: "translation",   label: "번역·통역" },
     ],
   },
@@ -75,8 +74,14 @@ export const CATEGORY_GROUPS: CategoryGroup[] = [
       { value: "photo_event",   label: "행사·돌잔치·결혼식 촬영" },
       { value: "video",         label: "영상제작·유튜브·광고영상" },
       { value: "design",        label: "그래픽디자인·인쇄·출판" },
+    ],
+  },
+  {
+    group: "IT·디지털 마케팅",
+    options: [
       { value: "it",            label: "IT·개발·앱·웹 제작" },
       { value: "marketing",     label: "광고·마케팅·SNS 관리" },
+      { value: "consulting",    label: "경영컨설팅·HR·코칭" },
     ],
   },
   {

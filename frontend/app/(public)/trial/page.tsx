@@ -162,12 +162,15 @@ export default function TrialPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="예: 결혼식 촬영, 돌잔치 사진, 행사 촬영"
+                  placeholder="예: 결혼식 촬영 / 돌잔치 사진 / 행사 사진촬영"
                   value={form.keyword}
                   onChange={(e) => setForm({ ...form, keyword: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-xs text-gray-400 mt-1">업종 선택보다 실제 서비스를 직접 입력하면 더 정확합니다</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  실제 제공하는 서비스를 입력하세요. 업종 선택보다 정확한 분석이 가능합니다.<br/>
+                  입력 예시: <span className="text-gray-500">강남 헤어샵 / 여성 커트 전문 / 염색 펌</span>
+                </p>
               </div>
 
               <div>
