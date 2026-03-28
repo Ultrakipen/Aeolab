@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { CATEGORY_GROUPS } from '@/lib/categories'
+import { CATEGORY_ICON_MAP } from '@/lib/categoryIcons'
 import { Search, ChevronLeft } from 'lucide-react'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
@@ -187,21 +188,29 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
         <h2 className="font-semibold text-gray-900 mb-1">사업장 등록</h2>
         <p className="text-sm text-gray-500 mb-4">내 사업장이 속하는 업종을 선택하세요.</p>
         <div className="grid grid-cols-2 gap-2.5">
-          {CATEGORY_GROUPS.map((g) => (
-            <button
-              key={g.value}
-              type="button"
-              onClick={() => {
-                setSelectedCategory(g.value)
-                setSelectedTags([])
-                setStep('tags')
-              }}
-              className="flex items-center gap-2.5 p-3.5 border-2 border-gray-100 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all text-left group"
-            >
-              <span className="text-2xl">{g.emoji}</span>
-              <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700 leading-tight">{g.label}</span>
-            </button>
-          ))}
+          {CATEGORY_GROUPS.map((g) => {
+            const cfg = CATEGORY_ICON_MAP[g.value]
+            const Icon = cfg?.Icon
+            return (
+              <button
+                key={g.value}
+                type="button"
+                onClick={() => {
+                  setSelectedCategory(g.value)
+                  setSelectedTags([])
+                  setStep('tags')
+                }}
+                className="flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-gray-300 hover:shadow-sm transition-all text-left group"
+              >
+                {Icon && (
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cfg.bg}`}>
+                    <Icon className={`w-5 h-5 ${cfg.text}`} strokeWidth={1.8} />
+                  </div>
+                )}
+                <span className="text-sm font-semibold text-gray-700 leading-tight">{g.label}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
     )
@@ -219,10 +228,20 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
           <ChevronLeft className="w-4 h-4" /> 업종 다시 선택
         </button>
 
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-xl">{currentCategoryGroup?.emoji}</span>
-          <h2 className="font-semibold text-gray-900">{currentCategoryGroup?.label}</h2>
-        </div>
+        {(() => {
+          const cfg = currentCategoryGroup ? CATEGORY_ICON_MAP[currentCategoryGroup.value] : null
+          const Icon = cfg?.Icon
+          return (
+            <div className="flex items-center gap-2.5 mb-1">
+              {Icon && (
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${cfg?.bg}`}>
+                  <Icon className={`w-5 h-5 ${cfg?.text}`} strokeWidth={1.8} />
+                </div>
+              )}
+              <h2 className="font-semibold text-gray-900">{currentCategoryGroup?.label}</h2>
+            </div>
+          )
+        })()}
         <p className="text-sm text-gray-500 mb-4">
           내 사업장과 관련된 서비스를 모두 선택하세요. <span className="text-blue-600">AI가 이 키워드로 검색합니다.</span>
         </p>
@@ -279,15 +298,25 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
       </button>
 
       {/* 선택 요약 */}
-      <div className="bg-gray-50 rounded-xl px-4 py-3 mb-5 flex items-center gap-3">
-        <span className="text-xl">{currentCategoryGroup?.emoji}</span>
-        <div>
-          <p className="text-xs text-gray-400">선택한 업종</p>
-          <p className="text-sm font-medium text-gray-800">
-            {currentCategoryGroup?.label} · <span className="text-blue-600">{selectedTags.slice(0, 3).join(', ')}{selectedTags.length > 3 ? ` 외 ${selectedTags.length - 3}개` : ''}</span>
-          </p>
-        </div>
-      </div>
+      {(() => {
+        const cfg = currentCategoryGroup ? CATEGORY_ICON_MAP[currentCategoryGroup.value] : null
+        const Icon = cfg?.Icon
+        return (
+          <div className={`rounded-xl px-4 py-3 mb-5 flex items-center gap-3 ${cfg?.bg ?? 'bg-gray-50'}`}>
+            {Icon && (
+              <div className="w-9 h-9 rounded-xl bg-white/60 flex items-center justify-center shrink-0">
+                <Icon className={`w-5 h-5 ${cfg?.text}`} strokeWidth={1.8} />
+              </div>
+            )}
+            <div>
+              <p className={`text-xs font-semibold ${cfg?.text ?? 'text-gray-400'}`}>{currentCategoryGroup?.label}</p>
+              <p className="text-sm font-medium text-gray-800 mt-0.5">
+                {selectedTags.slice(0, 3).join(', ')}{selectedTags.length > 3 ? ` 외 ${selectedTags.length - 3}개` : ''}
+              </p>
+            </div>
+          </div>
+        )
+      })()}
 
       <h2 className="font-semibold text-gray-900 mb-1">사업장 정보 입력</h2>
       <p className="text-xs text-gray-400 mb-4">사업자등록번호로 조회하거나, 창업 예정이라면 직접 입력하세요.</p>

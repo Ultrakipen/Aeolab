@@ -5,6 +5,8 @@ import { trialScan } from "@/lib/api";
 import { TrialScanResult } from "@/types";
 import Link from "next/link";
 import { CATEGORY_GROUPS, CATEGORY_MAP } from "@/lib/categories";
+import { CATEGORY_ICON_MAP } from "@/lib/categoryIcons";
+import { ChevronLeft } from "lucide-react";
 
 const BREAKDOWN_LABELS: Record<string, string> = {
   exposure_freq:     "AI 노출 빈도",
@@ -149,21 +151,29 @@ export default function TrialPage() {
             <p className="text-gray-500 text-center text-sm mb-6">
               가장 가까운 업종을 선택하세요
             </p>
-            <div className="grid grid-cols-2 gap-3">
-              {CATEGORY_GROUPS.map((cat) => (
-                <button
-                  key={cat.value}
-                  onClick={() => {
-                    setSelectedCategory(cat.value);
-                    setSelectedTags([]);
-                    setStep("tags");
-                  }}
-                  className="flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-blue-400 hover:shadow-md transition-all text-left"
-                >
-                  <span className="text-2xl">{cat.emoji}</span>
-                  <span className="text-sm font-medium text-gray-800">{cat.label}</span>
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-2.5">
+              {CATEGORY_GROUPS.map((cat) => {
+                const cfg = CATEGORY_ICON_MAP[cat.value];
+                const Icon = cfg?.Icon;
+                return (
+                  <button
+                    key={cat.value}
+                    onClick={() => {
+                      setSelectedCategory(cat.value);
+                      setSelectedTags([]);
+                      setStep("tags");
+                    }}
+                    className={`flex items-center gap-3 bg-white rounded-xl p-3.5 border-2 border-gray-100 hover:border-current hover:shadow-sm transition-all text-left group ${cfg?.text ?? ''}`}
+                  >
+                    {Icon && (
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cfg.bg}`}>
+                        <Icon className={`w-5 h-5 ${cfg.text}`} strokeWidth={1.8} />
+                      </div>
+                    )}
+                    <span className="text-sm font-semibold text-gray-800 leading-tight">{cat.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -175,11 +185,24 @@ export default function TrialPage() {
               onClick={() => setStep("category")}
               className="text-sm text-gray-400 hover:text-gray-600 mb-4 flex items-center gap-1"
             >
-              ← 업종 다시 선택
+              <ChevronLeft className="w-4 h-4" /> 업종 다시 선택
             </button>
-            <h2 className="text-xl font-bold text-gray-900 mb-1">
-              {CATEGORY_MAP[selectedCategory]?.emoji} 어떤 서비스를 제공하나요?
-            </h2>
+            {(() => {
+              const cfg = CATEGORY_ICON_MAP[selectedCategory];
+              const Icon = cfg?.Icon;
+              return (
+                <div className="flex items-center gap-2.5 mb-1">
+                  {Icon && (
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${cfg.bg}`}>
+                      <Icon className={`w-5 h-5 ${cfg.text}`} strokeWidth={1.8} />
+                    </div>
+                  )}
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {CATEGORY_MAP[selectedCategory]?.label}
+                  </h2>
+                </div>
+              );
+            })()}
             <p className="text-sm text-gray-500 mb-4">
               해당하는 서비스를 모두 선택하세요 <span className="text-blue-500">(복수 선택 가능)</span>
             </p>
@@ -224,20 +247,34 @@ export default function TrialPage() {
               onClick={() => setStep("tags")}
               className="text-sm text-gray-400 hover:text-gray-600 mb-4 flex items-center gap-1"
             >
-              ← 서비스 다시 선택
+              <ChevronLeft className="w-4 h-4" /> 서비스 다시 선택
             </button>
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               사업장 정보를 입력하세요
             </h2>
 
             {/* 선택 요약 */}
-            <div className="bg-gray-50 rounded-xl p-3 mb-4 text-xs text-gray-600 flex flex-wrap gap-1">
-              <span className="font-medium">{CATEGORY_MAP[selectedCategory]?.label}</span>
-              <span className="text-gray-400">·</span>
-              {selectedTags.map((t) => (
-                <span key={t} className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{t}</span>
-              ))}
-            </div>
+            {(() => {
+              const cfg = CATEGORY_ICON_MAP[selectedCategory];
+              const Icon = cfg?.Icon;
+              return (
+                <div className={`rounded-xl p-3 mb-4 flex items-center gap-3 ${cfg?.bg ?? 'bg-gray-50'}`}>
+                  {Icon && (
+                    <div className="w-8 h-8 rounded-lg bg-white/60 flex items-center justify-center shrink-0">
+                      <Icon className={`w-4 h-4 ${cfg?.text ?? 'text-gray-600'}`} strokeWidth={1.8} />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-semibold ${cfg?.text ?? 'text-gray-600'}`}>{CATEGORY_MAP[selectedCategory]?.label}</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {selectedTags.map((t) => (
+                        <span key={t} className="bg-white/70 text-gray-700 text-xs px-2 py-0.5 rounded-full">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             <form onSubmit={handleScan} className="space-y-4">
               <div>
