@@ -14,6 +14,39 @@ from middleware.plan_gate import get_current_user
 
 _logger = logging.getLogger("aeolab")
 
+# 업종 value → 한국어 검색 키워드 매핑
+_CATEGORY_KO: dict[str, str] = {
+    "restaurant": "음식점", "cafe": "카페", "chicken": "치킨", "bbq": "고기집",
+    "seafood": "횟집", "bakery": "베이커리", "bar": "술집", "snack": "분식",
+    "delivery": "배달음식", "health_food": "건강식",
+    "hospital": "병원", "dental": "치과", "oriental": "한의원", "pharmacy": "약국",
+    "skincare": "피부과", "eye": "안과", "mental": "심리상담", "rehab": "물리치료",
+    "checkup": "건강검진", "fitness": "헬스장", "yoga": "요가 필라테스", "swimming": "수영장",
+    "academy": "학원", "language": "영어학원", "coding": "코딩학원", "daycare": "어린이집",
+    "tutoring": "과외", "music_edu": "음악학원", "art_studio": "미술학원",
+    "art_edu": "미술공예학원", "sports_edu": "태권도학원", "driving": "운전학원",
+    "law": "법률사무소", "tax": "세무회계", "realestate": "부동산", "architecture": "건축설계",
+    "insurance": "보험", "it": "IT개발", "design": "디자인", "marketing": "마케팅",
+    "photo": "사진관", "photo_wedding": "웨딩 스튜디오", "video": "영상제작",
+    "consulting": "컨설팅", "translation": "번역통역", "funeral": "장례",
+    "beauty": "미용실", "nail": "네일샵", "makeup": "메이크업", "spa": "마사지 스파",
+    "clothing": "의류", "shoes": "신발", "eyewear": "안경", "sportswear": "스포츠웨어",
+    "shop": "쇼핑몰", "grocery": "식자재", "electronics": "전자제품", "furniture": "가구",
+    "stationery": "문구", "book": "서점", "instrument": "악기", "supplement": "건강식품",
+    "baby": "유아용품", "interior": "인테리어", "auto": "자동차정비", "auto_trade": "중고차",
+    "laundry": "세탁소", "pet": "반려동물", "vet": "동물병원", "cleaning": "청소대행",
+    "moving": "이사", "repair": "가전수리", "locksmith": "열쇠", "flower": "꽃집",
+    "funeral_supp": "장례용품", "music_live": "라이브공연", "music_cafe": "뮤직카페",
+    "recording": "녹음실", "perform_plan": "공연기획", "instrument_lesson": "악기레슨",
+    "karaoke_pro": "노래방", "wedding_hall": "웨딩홀 예식장", "wedding_plan": "웨딩플래너",
+    "event_plan": "이벤트 행사기획", "party_room": "파티룸", "catering": "케이터링",
+    "photo_event": "행사 사진촬영", "flower_event": "플라워 꽃장식", "mc_dj": "MC DJ",
+    "accommodation": "숙박 펜션", "guesthouse": "게스트하우스", "camping": "캠핑 글램핑",
+    "travel": "여행사", "sports": "스포츠 레저", "jjimjil": "찜질방", "entertainment": "노래방 PC방",
+    "kids": "키즈카페", "study_cafe": "스터디카페", "workshop": "공방 클래스",
+    "culture": "공연 전시", "agriculture": "농업", "manufacturing": "제조", "other": "",
+}
+
 _PLATFORM_LABELS = {
     "gemini": "Gemini", "chatgpt": "ChatGPT", "perplexity": "Perplexity",
     "grok": "Grok", "naver": "Naver AI 브리핑", "claude": "Claude",
@@ -44,7 +77,8 @@ def cleanup_expired_stream_tokens() -> int:
 async def trial_scan(req: TrialScanRequest):
     """랜딩 무료 체험: Gemini Flash 단일 스캔 (비로그인)"""
     scanner = MultiAIScanner(mode="trial")
-    query = f"{req.region} {req.category} 추천"
+    category_ko = _CATEGORY_KO.get(req.category, req.category)
+    query = f"{req.region} {category_ko} 추천"
     result = await scanner.scan_single(query, req.business_name)
     score = calculate_score(result)
 
