@@ -154,10 +154,12 @@ async def trial_scan(req: TrialScanRequest, request: Request):
         except Exception as e:
             _logger.warning(f"Waitlist upsert failed for {req.email}: {e}")
 
+    competitors = result.get("gemini", {}).get("competitors", [])
     return {
         "score": score,
         "result": result,
         "query": query,
+        "competitors": competitors,
         "message": "무료 원샷 체험 결과입니다. 100회 샘플링 전체 분석은 구독 후 이용 가능합니다.",
     }
 

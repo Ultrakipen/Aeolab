@@ -29,8 +29,8 @@ class MultiAIScanner:
         self.google = GoogleAIOverviewScanner()
 
     async def scan_single(self, query: str, target: str) -> dict:
-        """무료 원샷 체험: Gemini Flash 단일 스캔"""
-        result = await self.gemini.single_check(query, target)
+        """무료 원샷 체험: Gemini Flash 단일 스캔 (경쟁 가게 포함)"""
+        result = await self.gemini.single_check_with_competitors(query, target)
         return {"gemini": result}
 
     async def _run_playwright(self, fn, *args):

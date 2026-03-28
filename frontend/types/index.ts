@@ -140,6 +140,7 @@ export interface TrialScanResult {
   };
   result: Record<string, AIResult>;
   query: string;
+  competitors: string[];
   message: string;
 }
 

@@ -557,7 +557,49 @@ export default function TrialPage() {
               </div>
             </div>
 
-            {/* ── 2. 종합 점수 ────────────────────────────────────── */}
+            {/* ── 2. 경쟁 가게 현황 ──────────────────────────────── */}
+            {result.competitors && result.competitors.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">
+                      AI가 대신 추천한 경쟁 가게
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      &ldquo;{result.query}&rdquo; 검색에서 노출된 가게들
+                    </p>
+                  </div>
+                  <span className="text-xs bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-full">
+                    {result.competitors.length}개 경쟁 중
+                  </span>
+                </div>
+                <div className="px-5 py-3 space-y-2">
+                  {result.competitors.map((name, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                        i === 0 ? "bg-yellow-100 text-yellow-700" :
+                        i === 1 ? "bg-gray-100 text-gray-600" :
+                        i === 2 ? "bg-orange-100 text-orange-700" :
+                        "bg-gray-50 text-gray-400"
+                      }`}>{i + 1}</span>
+                      <span className="text-sm text-gray-800 font-medium">{name}</span>
+                      {mentioned && i === 0 && (
+                        <span className="text-xs text-blue-500 ml-auto">경쟁사 1위</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
+                  <p className="text-xs text-gray-500">
+                    {mentioned
+                      ? `내 가게도 언급됐지만 위 가게들과 경쟁 중입니다. 구독하면 100회 중 몇 번 앞서는지 확인할 수 있습니다.`
+                      : `이 가게들이 손님의 AI 검색에서 내 가게 대신 노출되고 있습니다.`}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* ── 3. 종합 점수 ────────────────────────────────────── */}
             <div className="bg-white rounded-2xl shadow-sm px-5 py-4">
               <div className="flex items-center justify-between mb-1">
                 <p className="text-sm font-semibold text-gray-700">AI 노출 종합 점수</p>
@@ -583,7 +625,7 @@ export default function TrialPage() {
               </div>
             </div>
 
-            {/* ── 3. 항목별 분석 (소상공인 언어) ─────────────────── */}
+            {/* ── 4. 항목별 분석 (소상공인 언어) ─────────────────── */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100">
                 <p className="text-sm font-semibold text-gray-800">점수 항목별 분석</p>
@@ -624,7 +666,7 @@ export default function TrialPage() {
               </div>
             </div>
 
-            {/* ── 4. 구독하면 무엇이 달라지나 (잠금) ─────────────── */}
+            {/* ── 5. 구독하면 무엇이 달라지나 (잠금) ─────────────── */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100">
                 <p className="text-sm font-semibold text-gray-800">구독하면 이런 정보를 드립니다</p>
@@ -685,7 +727,7 @@ export default function TrialPage() {
               </div>
             </div>
 
-            {/* ── 5. CTA ──────────────────────────────────────────── */}
+            {/* ── 6. CTA ──────────────────────────────────────────── */}
             <div className={`rounded-2xl p-5 ${mentioned ? "bg-blue-600" : "bg-gray-900"}`}>
               <p className="font-bold text-white text-lg mb-1">
                 {mentioned

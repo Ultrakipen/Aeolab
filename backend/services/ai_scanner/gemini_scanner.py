@@ -68,6 +68,58 @@ class GeminiScanner:
             "confidence": {"lower": 0, "upper": 1},
         }
 
+    async def single_check_with_competitors(self, query: str, target: str) -> dict:
+        """무료 원샷 체험용 — 경쟁 가게 목록 포함 스캔"""
+        prompt = f"""검색어: "{query}"
+
+손님이 AI에게 이 검색어로 물어봤을 때의 답변을 시뮬레이션하세요.
+아래 JSON 형식으로만 답하세요 (다른 텍스트 없이):
+
+{{
+  "mentioned": true 또는 false,
+  "rank": 순위(정수) 또는 null,
+  "excerpt": "{target}이(가) 언급된 문장 (없으면 null)",
+  "competitors": ["이 검색에서 실제로 추천될 법한 동종 업체명 3~5개"],
+  "answer_summary": "AI가 이 검색에 실제로 답한다면 1~2문장 요약"
+}}
+
+확인 대상 가게: {target}
+competitors는 실제 해당 지역에 존재할 법한 업체명으로 작성하세요."""
+
+        try:
+            resp = await asyncio.to_thread(self.model.generate_content, prompt)
+            m = re.search(r"\{.*\}", resp.text, re.DOTALL)
+            data = json.loads(m.group()) if m else {}
+            mentioned = bool(data.get("mentioned"))
+            return {
+                "platform": "gemini",
+                "mentioned": mentioned,
+                "rank": data.get("rank"),
+                "excerpt": data.get("excerpt") or "",
+                "competitors": [
+                    c for c in (data.get("competitors") or [])
+                    if isinstance(c, str) and c.strip() and c.strip() != target
+                ][:5],
+                "answer_summary": data.get("answer_summary") or "",
+                "exposure_freq": 1 if mentioned else 0,
+                "exposure_rate": 1.0 if mentioned else 0.0,
+                "confidence": {"lower": 0, "upper": 1},
+            }
+        except Exception:
+            # 파싱 실패 시 기본 single_check 결과 반환
+            fallback = await self._check(query, target)
+            return {
+                "platform": "gemini",
+                "mentioned": bool(fallback.get("mentioned")),
+                "rank": fallback.get("rank"),
+                "excerpt": fallback.get("excerpt") or "",
+                "competitors": [],
+                "answer_summary": "",
+                "exposure_freq": 1 if fallback.get("mentioned") else 0,
+                "exposure_rate": 1.0 if fallback.get("mentioned") else 0.0,
+                "confidence": {"lower": 0, "upper": 1},
+            }
+
     async def scan_by_keywords(
         self,
         business_info: dict,
