@@ -1,9 +1,10 @@
 """
 팀 계정 관리 API (Biz 플랜 전용 — 최대 5명)
 """
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from db.supabase_client import get_client, execute
+from middleware.plan_gate import get_current_user
 
 router = APIRouter()
 
@@ -29,7 +30,8 @@ async def _get_plan(user_id: str) -> tuple[str, str]:
 
 
 @router.get("/members")
-async def list_members(x_user_id: str = Header(...)):
+async def list_members(user=Depends(get_current_user)):
+    x_user_id = user["id"]
     """팀 멤버 목록 조회"""
     plan, status = await _get_plan(x_user_id)
     if plan not in ("biz", "enterprise") or status != "active":
@@ -49,7 +51,8 @@ async def list_members(x_user_id: str = Header(...)):
 
 
 @router.post("/invite")
-async def invite_member(req: TeamInviteRequest, x_user_id: str = Header(...)):
+async def invite_member(req: TeamInviteRequest, user=Depends(get_current_user)):
+    x_user_id = user["id"]
     """팀원 초대 (이메일)"""
     plan, status = await _get_plan(x_user_id)
     if plan not in ("biz", "enterprise") or status != "active":
@@ -87,7 +90,8 @@ async def invite_member(req: TeamInviteRequest, x_user_id: str = Header(...)):
 
 
 @router.delete("/members/{member_id}")
-async def remove_member(member_id: str, x_user_id: str = Header(...)):
+async def remove_member(member_id: str, user=Depends(get_current_user)):
+    x_user_id = user["id"]
     """팀원 제거"""
     supabase = get_client()
     await execute(
@@ -99,7 +103,8 @@ async def remove_member(member_id: str, x_user_id: str = Header(...)):
 
 
 @router.patch("/members/{member_id}/role")
-async def update_member_role(member_id: str, role: str, x_user_id: str = Header(...)):
+async def update_member_role(member_id: str, role: str, user=Depends(get_current_user)):
+    x_user_id = user["id"]
     """팀원 역할 변경 (member ↔ viewer)"""
     if role not in ("member", "viewer"):
         raise HTTPException(status_code=400, detail="role must be member or viewer")

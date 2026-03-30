@@ -18,7 +18,7 @@ module.exports = {
       name: "aeolab-backend",
       cwd: "/var/www/aeolab/backend",
       script: "/var/www/aeolab/venv/bin/uvicorn",
-      args: "main:app --host 127.0.0.1 --port 8000 --workers 2",
+      args: "main:app --host 127.0.0.1 --port 8000 --workers 1",
       interpreter: "none",
       max_memory_restart: "1G",
       error_file: "/var/log/pm2/backend-error.log",

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Header, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from models.schemas import BusinessCreate
 from db.supabase_client import get_client, execute
+from middleware.plan_gate import get_current_user
 import logging
 import os
 import aiohttp
@@ -20,10 +21,8 @@ TAX_TYPE_LABELS = {
 }
 
 
-def _get_user_id(x_user_id: str = Header(None)) -> str:
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="X-User-Id header required")
-    return x_user_id
+def _get_user_id(user=Depends(get_current_user)) -> str:
+    return user["id"]
 
 
 @router.get("/search-address")
@@ -114,21 +113,23 @@ async def lookup_business_registration(reg_no: str = Query(..., description="사
 
 
 @router.post("")
-async def create_business(req: BusinessCreate, x_user_id: str = Header(None)):
+async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
     """사업장 등록"""
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="인증 필요")
+    x_user_id = user["id"]
     supabase = get_client()
     result = await execute(supabase.table("businesses").insert({
         "user_id": x_user_id,
         "name": req.name,
         "category": req.category,
-        "region": req.region,
+        "region": req.region or "",
         "address": req.address,
         "phone": req.phone,
         "naver_place_id": req.naver_place_id,
+        "google_place_id": req.google_place_id,
+        "kakao_place_id": req.kakao_place_id,
         "website_url": req.website_url,
         "keywords": req.keywords or [],
+        "business_type": req.business_type or "location_based",
         "is_active": True,
     }))
     if not result.data:
@@ -155,19 +156,17 @@ async def create_business(req: BusinessCreate, x_user_id: str = Header(None)):
 
 
 @router.get("/me")
-async def get_my_businesses(x_user_id: str = Header(None)):
+async def get_my_businesses(user=Depends(get_current_user)):
     """내 사업장 목록"""
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="인증 필요")
+    x_user_id = user["id"]
     supabase = get_client()
     result = await execute(supabase.table("businesses").select("*").eq("user_id", x_user_id).eq("is_active", True))
     return result.data
 
 
 @router.get("/{biz_id}")
-async def get_business(biz_id: str, x_user_id: str = Header(None)):
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="인증 필요")
+async def get_business(biz_id: str, user=Depends(get_current_user)):
+    x_user_id = user["id"]
     supabase = get_client()
     result = await execute(supabase.table("businesses").select("*").eq("id", biz_id).eq("user_id", x_user_id).single())
     if not result.data:
@@ -176,10 +175,9 @@ async def get_business(biz_id: str, x_user_id: str = Header(None)):
 
 
 @router.delete("/{biz_id}")
-async def delete_business(biz_id: str, x_user_id: str = Header(None)):
+async def delete_business(biz_id: str, user=Depends(get_current_user)):
     """사업장 삭제 (soft delete)"""
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="인증 필요")
+    x_user_id = user["id"]
     supabase = get_client()
     result = await execute(supabase.table("businesses").update({"is_active": False}).eq("id", biz_id).eq("user_id", x_user_id))
     if not result.data:
@@ -188,11 +186,10 @@ async def delete_business(biz_id: str, x_user_id: str = Header(None)):
 
 
 @router.patch("/{biz_id}")
-async def update_business(biz_id: str, updates: dict, x_user_id: str = Header(None)):
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="인증 필요")
+async def update_business(biz_id: str, updates: dict, user=Depends(get_current_user)):
+    x_user_id = user["id"]
     supabase = get_client()
-    allowed = {"name", "address", "phone", "website_url", "keywords", "naver_place_id"}
+    allowed = {"name", "address", "phone", "website_url", "keywords", "naver_place_id", "google_place_id", "kakao_place_id", "business_type", "region", "receipt_review_count", "visitor_review_count", "review_count", "avg_rating"}
     filtered = {k: v for k, v in updates.items() if k in allowed}
     result = await execute(supabase.table("businesses").update(filtered).eq("id", biz_id).eq("user_id", x_user_id))
     return result.data[0] if result.data else {}

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { SettingsClient } from "./SettingsClient";
 import { BusinessManager } from "./BusinessManager";
+import { AccountClient } from "./AccountClient";
 
 const PLAN_NAMES: Record<string, string> = {
   free: "무료 플랜",
@@ -24,24 +25,23 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 export default async function SettingsPage() {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) redirect("/login");
-  const user = session.user;
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (!user || error) redirect("/login");
 
   const [{ data: sub }, { data: businesses }, { data: profile }] = await Promise.all([
     supabase
       .from("subscriptions")
-      .select("*")
+      .select("plan, status, start_at, end_at")
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase
       .from("businesses")
-      .select("id, name, category, region, address, phone, website_url, keywords, created_at")
+      .select("id, name, category, region, address, phone, website_url, keywords, receipt_review_count, visitor_review_count, created_at")
       .eq("user_id", user.id)
       .eq("is_active", true),
     supabase
       .from("profiles")
-      .select("phone")
+      .select("phone, kakao_scan_notify, kakao_competitor_notify")
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
@@ -63,11 +63,12 @@ export default async function SettingsPage() {
 
       {/* 계정 정보 */}
       <section className="bg-white rounded-2xl p-6 shadow-sm mb-4">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">계정</h2>
+        <h2 className="text-sm font-semibold text-gray-700 mb-3">계정 정보</h2>
         <p className="text-sm text-gray-600">{user.email}</p>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-gray-400 mt-1 mb-4">
           가입일: {formatDate(user.created_at)}
         </p>
+        <AccountClient currentEmail={user.email ?? ""} />
       </section>
 
       {/* 구독 정보 */}
@@ -99,7 +100,11 @@ export default async function SettingsPage() {
             </a>
           </div>
         ) : (
-          <SettingsClient userId={user.id} currentPhone={profile?.phone ?? ""} />
+          <SettingsClient
+            currentPhone={profile?.phone ?? ""}
+            kakaoScanNotify={profile?.kakao_scan_notify ?? true}
+            kakaoCompetitorNotify={profile?.kakao_competitor_notify ?? true}
+          />
         )}
       </section>
 

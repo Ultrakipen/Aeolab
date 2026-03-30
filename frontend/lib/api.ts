@@ -4,6 +4,9 @@ import {
   TeamMember, ApiKey, CompetitorSearchResult, CompetitorSuggestion,
   SharePageData, MentionContext, BadgeData,
 } from "@/types";
+import type { GapAnalysis } from "@/types/gap";
+import type { ActionPlan } from "@/types/action";
+import type { MarketLandscape } from "@/types/market";
 
 export const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 const BACKEND_URL = apiBase;
@@ -126,8 +129,10 @@ export async function issueBilling(body: {
 // ── 사업장 ──────────────────────────────────────────────
 export async function createBusiness(
   data: {
-    name: string; category: string; region: string;
+    name: string; category: string; region?: string;
     address?: string; phone?: string; website_url?: string; keywords?: string[];
+    naver_place_id?: string; google_place_id?: string; kakao_place_id?: string;
+    business_type?: string;
   },
   userId: string,
 ) {
@@ -177,23 +182,23 @@ export async function getIndustryRanking(category: string, region: string) {
 }
 
 // ── 설정·구독 ─────────────────────────────────────────────
-export async function getMySettings(userId: string) {
+export async function getMySettings(token: string) {
   return apiCall(`${BACKEND_URL}/api/settings/me`, {
-    headers: { "X-User-Id": userId },
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
-export async function cancelSubscription(userId: string) {
+export async function cancelSubscription(token: string) {
   return apiCall(`${BACKEND_URL}/api/settings/cancel`, {
     method: "POST",
-    headers: { "X-User-Id": userId },
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
-export async function updatePhone(phone: string, userId: string) {
+export async function updatePhone(phone: string, token: string) {
   return apiCall(`${BACKEND_URL}/api/settings/me`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json", "X-User-Id": userId },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ phone }),
   });
 }
@@ -245,10 +250,10 @@ export async function getBenchmark(category: string, region: string): Promise<Be
   );
 }
 
-// ② PDF 리포트 다운로드 (Bearer 토큰 방식)
-export async function downloadPdfReport(bizId: string, token: string): Promise<void> {
+// ② PDF 리포트 다운로드 (X-User-Id 방식)
+export async function downloadPdfReport(bizId: string, userId: string): Promise<void> {
   const res = await fetch(`${BACKEND_URL}/api/report/pdf/${bizId}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { "X-User-Id": userId },
   });
   if (!res.ok) throw new ApiError("SERVER_ERROR");
   const blob = await res.blob();
@@ -332,12 +337,14 @@ export async function searchCompetitors(query: string, region: string): Promise<
 }
 
 // ⑫ AEOlab 내 동종업계 추천
-export async function getSuggestedCompetitors(bizId: string, userId: string): Promise<CompetitorSuggestion[]> {
-  return apiCall<CompetitorSuggestion[]>(`${BACKEND_URL}/api/competitors/suggest/list`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-User-Id": userId },
-    body: JSON.stringify({ biz_id: bizId }),
-  });
+export async function getSuggestedCompetitors(
+  bizId: string,
+  category: string,
+  region: string,
+): Promise<CompetitorSuggestion[]> {
+  return apiCall<CompetitorSuggestion[]>(
+    `${BACKEND_URL}/api/competitors/suggest/list?business_id=${encodeURIComponent(bizId)}&category=${encodeURIComponent(category)}&region=${encodeURIComponent(region)}`,
+  );
 }
 
 // ── 공유 카드 ──────────────────────────────────────────────
@@ -355,4 +362,36 @@ export async function getMentionContext(bizId: string, userId: string): Promise<
 // ── AEO 인증 배지 ──────────────────────────────────────────
 export async function getBadge(bizId: string): Promise<BadgeData> {
   return apiCall<BadgeData>(`${BACKEND_URL}/api/report/badge/${bizId}`);
+}
+
+// ── 도메인 모델 v2.1 — 4개 도메인 API ────────────────────────
+
+// Domain 2: MarketLandscape 통합 조회 (Basic+)
+export async function getMarket(bizId: string, authToken: string): Promise<MarketLandscape> {
+  return apiCall<MarketLandscape>(`${BACKEND_URL}/api/report/market/${bizId}`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+}
+
+// Domain 3: GapAnalysis 조회 (Basic+)
+export async function getGapAnalysis(bizId: string, authToken: string): Promise<GapAnalysis> {
+  return apiCall<GapAnalysis>(`${BACKEND_URL}/api/report/gap/${bizId}`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+}
+
+// Domain 4: ActionPlan 최신 가이드 조회 (ActionTools 포함)
+export async function getLatestActionPlan(bizId: string, authToken: string): Promise<ActionPlan | null> {
+  try {
+    return await apiCall<ActionPlan>(`${BACKEND_URL}/api/guide/${bizId}/latest`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+  } catch {
+    return null;
+  }
+}
+
+// 갭 카드 PNG URL (이미지 src로 직접 사용)
+export function getGapCardUrl(bizId: string): string {
+  return `${BACKEND_URL}/api/report/gap-card/${bizId}`;
 }

@@ -1,10 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { RegisterBusinessForm } from "@/components/dashboard/RegisterBusinessForm";
 import { ScoreCard } from "@/components/dashboard/ScoreCard";
 import { RankingBar } from "@/components/dashboard/RankingBar";
 import { TrendLine } from "@/components/dashboard/TrendLine";
 import { ResultTable } from "@/components/scan/ResultTable";
+import { ChannelScoreCards } from "@/components/dashboard/ChannelScoreCards";
+import { GlobalAIBanner } from "@/components/dashboard/GlobalAIBanner";
+import { PlatformDistributionChart } from "@/components/dashboard/PlatformDistributionChart";
+import { WebsiteCheckCard } from "@/components/dashboard/WebsiteCheckCard";
 import { ScanTrigger } from "./ScanTrigger";
 import Link from "next/link";
 import { Search } from "lucide-react";
@@ -29,9 +32,8 @@ const BREAKDOWN_LABELS: Record<string, string> = {
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) redirect("/login");
-  const user = session.user;
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (!user || error) redirect("/login");
 
   const { data: businesses } = await supabase
     .from("businesses")
@@ -43,19 +45,13 @@ export default async function DashboardPage() {
   const business = businesses?.[0];
 
   if (!business) {
-    return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">대시보드</h1>
-        <p className="text-gray-500 mb-6">사업장을 먼저 등록하면 AI 스캔이 자동으로 시작됩니다.</p>
-        <RegisterBusinessForm userId={user.id} />
-      </div>
-    );
+    redirect("/onboarding");
   }
 
-  const [{ data: scanResults }, { data: competitors }, { data: history }, benchmarkRes] = await Promise.all([
+  const [{ data: scanResults }, { data: competitors }, { data: history }, benchmarkRes, { data: subscription }] = await Promise.all([
     supabase
       .from("scan_results")
-      .select("*")
+      .select("id, scanned_at, query_used, gemini_result, chatgpt_result, perplexity_result, grok_result, naver_result, claude_result, zeta_result, google_result, kakao_result, website_check_result, exposure_freq, total_score, score_breakdown, naver_channel_score, global_channel_score, rank_in_query, competitor_scores")
       .eq("business_id", business.id)
       .order("scanned_at", { ascending: false })
       .limit(2),
@@ -73,12 +69,19 @@ export default async function DashboardPage() {
     fetch(`${BACKEND}/api/report/benchmark/${business.category}/${encodeURIComponent(business.region)}`)
       .then((r) => r.ok ? r.json() : null)
       .catch(() => null),
+    supabase
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", user.id)
+      .maybeSingle(),
   ]);
 
   const benchmark: Benchmark | null = benchmarkRes ?? null;
 
   const latestScan = scanResults?.[0];
   const prevScan = scanResults?.[1];
+  const plan = subscription?.plan ?? "basic";
+  const scanInfo = nextScanLabel(plan);
 
   const competitorScores: Record<string, { name: string; score: number }> =
     latestScan?.competitor_scores ?? {};
@@ -90,12 +93,34 @@ export default async function DashboardPage() {
     { name: business.name, score: latestScan?.total_score ?? 0, isMe: true },
   ];
 
+  // 채널 점수
+  const naverChannelScore  = latestScan?.naver_channel_score  ?? null
+  const globalChannelScore = latestScan?.global_channel_score ?? null
+
+  // 플랫폼별 결과 병합 (카카오맵 노출 여부 포함)
+  const allPlatformResults: Record<string, { mentioned: boolean; exposure_freq?: number; in_briefing?: boolean; in_ai_overview?: boolean; error?: string }> = {
+    ...(latestScan?.gemini_result     ? { gemini:     latestScan.gemini_result }     : {}),
+    ...(latestScan?.chatgpt_result    ? { chatgpt:    latestScan.chatgpt_result }    : {}),
+    ...(latestScan?.perplexity_result ? { perplexity: latestScan.perplexity_result } : {}),
+    ...(latestScan?.grok_result       ? { grok:       latestScan.grok_result }       : {}),
+    ...(latestScan?.naver_result      ? { naver:      latestScan.naver_result }      : {}),
+    ...(latestScan?.claude_result     ? { claude:     latestScan.claude_result }     : {}),
+    ...(latestScan?.zeta_result       ? { zeta:       latestScan.zeta_result }       : {}),
+    ...(latestScan?.google_result     ? { google:     latestScan.google_result }     : {}),
+  }
+
+  const kakaoResult = latestScan?.kakao_result ?? null
+  const websiteCheckResult = latestScan?.website_check_result ?? null
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{business.name}</h1>
           <p className="text-gray-500 text-sm">{business.region} · {business.category}</p>
+          <p className="text-xs text-blue-500 mt-1" title={scanInfo.desc}>
+            🔄 {scanInfo.label}
+          </p>
         </div>
         <ScanTrigger
           businessId={business.id}
@@ -111,7 +136,7 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <ScoreCard
               score={Math.round(latestScan.total_score)}
-              grade={latestScan.score_breakdown ? scoreToGrade(latestScan.total_score) : "—"}
+              grade={scoreToGrade(latestScan.total_score)}
               exposureFreq={latestScan.exposure_freq}
               prevScore={prevScan?.total_score}
               scannedAt={latestScan.scanned_at}
@@ -121,35 +146,62 @@ export default async function DashboardPage() {
               <p className="text-xs text-gray-400 mb-4">각 항목 점수가 높을수록 AI 검색에 더 잘 노출됩니다.</p>
               {latestScan.score_breakdown && (
                 <div className="space-y-3">
-                  {Object.entries(latestScan.score_breakdown).map(([key, value]) => (
-                    <div key={key} className="flex items-center gap-3">
-                      <div className="text-sm text-gray-600 w-32 shrink-0">
-                        {BREAKDOWN_LABELS[key] ?? key}
+                  {Object.entries(latestScan.score_breakdown).map(([key, value]) => {
+                    const v = Math.round(Number(value));
+                    return (
+                      <div key={key} className="flex items-center gap-3">
+                        <div className="text-sm text-gray-600 w-32 shrink-0">
+                          {BREAKDOWN_LABELS[key] ?? key}
+                        </div>
+                        <div className="flex-1 bg-gray-100 rounded-full h-2">
+                          <div
+                            className={`${scoreBarColor(v)} h-2 rounded-full transition-all`}
+                            style={{ width: `${Math.min(100, v)}%` }}
+                          />
+                        </div>
+                        <div className={`text-sm w-10 text-right font-medium ${v >= 70 ? "text-green-600" : v >= 40 ? "text-yellow-600" : "text-red-500"}`}>
+                          {v}
+                        </div>
                       </div>
-                      <div className="flex-1 bg-gray-100 rounded-full h-2">
-                        <div
-                          className="bg-blue-500 h-2 rounded-full"
-                          style={{ width: `${Math.min(100, Number(value))}%` }}
-                        />
-                      </div>
-                      <div className="text-sm text-gray-500 w-10 text-right">
-                        {Math.round(Number(value))}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Row 2: 추세 + 경쟁사 순위 */}
+          {/* Row 2: 채널 분리 점수 카드 */}
+          {naverChannelScore !== null && globalChannelScore !== null && (
+            <ChannelScoreCards
+              naverScore={naverChannelScore}
+              globalScore={globalChannelScore}
+              isSmartPlace={!!(latestScan.naver_result as { in_briefing?: boolean } | null)?.in_briefing || (latestScan.score_breakdown?.schema_score ?? 0) >= 60}
+              isOnKakao={kakaoResult?.is_on_kakao ?? false}
+              kakaoRank={(kakaoResult as { my_rank?: number | null } | null)?.my_rank ?? null}
+              kakaoCompetitorCount={((kakaoResult as { kakao_competitors?: unknown[] } | null)?.kakao_competitors ?? []).length}
+              naverMentioned={latestScan.naver_result?.mentioned ?? false}
+              chatgptMentioned={latestScan.chatgpt_result?.mentioned ?? false}
+              hasWebsite={!!business.website_url}
+              googlePlaceRegistered={!!business.google_place_id}
+            />
+          )}
+
+          {/* Row 3: 글로벌 AI 미노출 교육 배너 */}
+          {globalChannelScore !== null && (
+            <GlobalAIBanner
+              globalScore={globalChannelScore}
+              hasWebsite={!!business.website_url}
+            />
+          )}
+
+          {/* Row 4: 추세 + 경쟁사 순위 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <TrendLine data={history ?? []} />
             <RankingBar items={rankingItems} />
           </div>
 
-          {/* Row 3: 업종 벤치마크 */}
-          {benchmark && benchmark.count > 1 && latestScan && (
+          {/* Row 5: 업종 벤치마크 */}
+          {benchmark && benchmark.count > 1 && (
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <div className="text-sm font-medium text-gray-700 mb-1">
                 같은 지역·업종 비교 — {business.region} {business.category}
@@ -173,7 +225,6 @@ export default async function DashboardPage() {
                 <div
                   className="absolute h-full bg-gray-300 rounded-full"
                   style={{ width: `${Math.min(100, benchmark.avg_score)}%` }}
-                  title={`평균: ${benchmark.avg_score}`}
                 />
                 <div
                   className="absolute h-full w-1 bg-blue-600 rounded-full"
@@ -194,19 +245,25 @@ export default async function DashboardPage() {
             </div>
           )}
 
-          {/* Row 4: 플랫폼별 결과 */}
-          {(latestScan.gemini_result || latestScan.chatgpt_result) && (
-            <ResultTable
-              results={{
-                ...(latestScan.gemini_result ? { gemini: latestScan.gemini_result } : {}),
-                ...(latestScan.chatgpt_result ? { chatgpt: latestScan.chatgpt_result } : {}),
-                ...(latestScan.perplexity_result ? { perplexity: latestScan.perplexity_result } : {}),
-                ...(latestScan.grok_result ? { grok: latestScan.grok_result } : {}),
-                ...(latestScan.naver_result ? { naver: latestScan.naver_result } : {}),
-                ...(latestScan.claude_result ? { claude: latestScan.claude_result } : {}),
-              }}
+          {/* Row 6: AI 플랫폼 분포 차트 */}
+          {Object.keys(allPlatformResults).length > 0 && (
+            <PlatformDistributionChart
+              results={allPlatformResults}
+              naverChannelScore={naverChannelScore ?? undefined}
+              globalChannelScore={globalChannelScore ?? undefined}
             />
           )}
+
+          {/* Row 7: 플랫폼별 상세 결과 테이블 */}
+          {Object.keys(allPlatformResults).length > 0 && (
+            <ResultTable results={allPlatformResults} />
+          )}
+
+          {/* Row 8: 웹사이트 SEO 체크 */}
+          <WebsiteCheckCard
+            websiteUrl={business.website_url}
+            checkResult={websiteCheckResult}
+          />
 
           {/* 빠른 액션 링크 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -231,18 +288,39 @@ export default async function DashboardPage() {
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center">
           <Search className="w-14 h-14 text-blue-300 mx-auto" strokeWidth={1} />
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">첫 번째 AI 스캔을 실행하세요</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">첫 AI 스캔을 시작하세요</h2>
             <p className="text-gray-500 max-w-md">
-              8개 AI 플랫폼에서 <strong>{business.name}</strong>이(가) 얼마나 검색되는지 확인합니다.
-              <br />첫 스캔은 약 2~3분 소요됩니다.
+              손님이 &ldquo;{business.region} {business.category} 추천&rdquo; 이라고 AI에 물어봤을 때<br />
+              <strong>{business.name}</strong>이 나오는지 8개 AI에서 동시에 확인합니다.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm text-gray-500 max-w-lg">
-            {["Gemini (100회)", "ChatGPT", "네이버 AI 브리핑", "Perplexity", "Grok", "Claude", "뤼튼(Zeta)", "Google AI"].map((p) => (
-              <div key={p} className="bg-gray-50 rounded-lg py-2 px-3">{p}</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-500 max-w-lg w-full">
+            {[
+              { name: "Gemini", note: "100회 측정" },
+              { name: "ChatGPT", note: "인용 여부" },
+              { name: "네이버 AI 브리핑", note: "브리핑 포함" },
+              { name: "Perplexity", note: "출처 검색" },
+              { name: "Grok AI", note: "최신 검색" },
+              { name: "Claude", note: "AI 노출" },
+              { name: "뤼튼(Zeta)", note: "국내 AI" },
+              { name: "Google AI", note: "AI 오버뷰" },
+            ].map((p) => (
+              <div key={p.name} className="bg-gray-50 rounded-lg py-2 px-3">
+                <div className="font-medium text-gray-700">{p.name}</div>
+                <div className="text-gray-400">{p.note}</div>
+              </div>
             ))}
           </div>
-          <p className="text-xs text-gray-400">상단의 &ldquo;AI 스캔 시작&rdquo; 버튼을 눌러주세요</p>
+          <div className="bg-blue-50 rounded-2xl px-6 py-4 max-w-md w-full text-left">
+            <p className="text-sm font-semibold text-blue-800 mb-2">스캔 후 바로 확인할 수 있습니다</p>
+            <ul className="space-y-1 text-xs text-blue-700">
+              <li>→ 8개 AI 중 몇 개에서 내 가게가 나오는지</li>
+              <li>→ 네이버·카카오 지역 검색 순위</li>
+              <li>→ 경쟁 가게와의 AI 노출 점수 비교</li>
+              <li>→ 점수를 올리는 맞춤 개선 가이드</li>
+            </ul>
+          </div>
+          <p className="text-sm text-gray-400">상단 <strong className="text-gray-600">AI 스캔 시작</strong> 버튼을 눌러주세요 · 약 2~3분 소요</p>
         </div>
       )}
     </div>
@@ -255,4 +333,17 @@ function scoreToGrade(score: number): string {
   if (score >= 50) return "C";
   if (score >= 35) return "D";
   return "F";
+}
+
+function scoreBarColor(value: number): string {
+  if (value >= 70) return "bg-green-500";
+  if (value >= 40) return "bg-yellow-400";
+  return "bg-red-400";
+}
+
+function nextScanLabel(plan: string | null | undefined): { label: string; desc: string } {
+  const p = plan ?? "basic";
+  if (p === "biz" || p === "enterprise") return { label: "매일 새벽 자동 스캔", desc: "내일 새벽 2시에 자동 분석합니다" };
+  if (p === "pro") return { label: "매주 월요일 자동 스캔", desc: "다음 월요일 새벽 2시에 자동 분석합니다" };
+  return { label: "매월 1일 자동 스캔", desc: "다음 달 1일에 자동 분석합니다" };
 }

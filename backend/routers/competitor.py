@@ -1,17 +1,16 @@
 import os
 import aiohttp
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException
 from models.schemas import CompetitorCreate
 from db.supabase_client import get_client, execute
+from middleware.plan_gate import get_current_user
 
 router = APIRouter()
 
 
 @router.get("/search")
-async def search_local_businesses(query: str, region: str, x_user_id: str = Header(None)):
+async def search_local_businesses(query: str, region: str, user=Depends(get_current_user)):
     """네이버 지역 검색 API 기반 지역 사업장 검색"""
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="인증 필요")
     client_id = os.getenv("NAVER_CLIENT_ID")
     client_secret = os.getenv("NAVER_CLIENT_SECRET")
     if not client_id or not client_secret:
@@ -69,10 +68,9 @@ async def list_competitors(biz_id: str):
 
 
 @router.post("")
-async def add_competitor(req: CompetitorCreate, x_user_id: str = Header(None)):
+async def add_competitor(req: CompetitorCreate, user=Depends(get_current_user)):
     """경쟁사 등록"""
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="인증 필요")
+    x_user_id = user["id"]
     supabase = get_client()
 
     # 플랜별 경쟁사 수 제한 확인
@@ -171,10 +169,8 @@ async def suggest_competitors(category: str, region: str, business_id: str):
 
 
 @router.delete("/{competitor_id}")
-async def remove_competitor(competitor_id: str, x_user_id: str = Header(None)):
+async def remove_competitor(competitor_id: str, user=Depends(get_current_user)):
     """경쟁사 삭제 (soft delete)"""
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="인증 필요")
     supabase = get_client()
     await execute(supabase.table("competitors").update({"is_active": False}).eq("id", competitor_id))
     return {"status": "deleted"}

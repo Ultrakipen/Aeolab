@@ -16,6 +16,8 @@ interface Business {
   phone?: string;
   website_url?: string;
   keywords?: string[];
+  receipt_review_count?: number;
+  visitor_review_count?: number;
   created_at: string;
 }
 
@@ -35,6 +37,7 @@ export function BusinessManager({ businesses, userId }: Props) {
   const [editForm, setEditForm] = useState<Omit<Business, "id" | "created_at">>({
     name: "", category: "restaurant", region: "",
     address: "", phone: "", website_url: "", keywords: [],
+    receipt_review_count: 0, visitor_review_count: 0,
   });
 
   const openEdit = (biz: Business) => {
@@ -46,6 +49,8 @@ export function BusinessManager({ businesses, userId }: Props) {
       phone: biz.phone ?? "",
       website_url: biz.website_url ?? "",
       keywords: biz.keywords ?? [],
+      receipt_review_count: biz.receipt_review_count ?? 0,
+      visitor_review_count: biz.visitor_review_count ?? 0,
     });
     setEditingId(biz.id);
     setError("");
@@ -196,6 +201,35 @@ export function BusinessManager({ businesses, userId }: Props) {
                   placeholder="예: 강남 치킨, 야식, 배달"
                   className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+              {/* 네이버 리뷰 현황 — 점수에 반영됨 */}
+              <div className="bg-amber-50 rounded-xl px-4 py-3 space-y-2">
+                <div className="text-xs font-medium text-amber-800">
+                  네이버 리뷰 현황 <span className="font-normal text-amber-600">(네이버 플레이스 → 리뷰 탭에서 확인)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">영수증 리뷰 수</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editForm.receipt_review_count ?? 0}
+                      onChange={(e) => setEditForm({ ...editForm, receipt_review_count: parseInt(e.target.value) || 0 })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">방문자 리뷰 수</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editForm.visitor_review_count ?? 0}
+                      onChange={(e) => setEditForm({ ...editForm, visitor_review_count: parseInt(e.target.value) || 0 })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-amber-700">영수증 리뷰가 많을수록 AI 노출 점수(리뷰 품질)가 높아집니다.</p>
               </div>
               <div className="flex justify-end">
                 <button

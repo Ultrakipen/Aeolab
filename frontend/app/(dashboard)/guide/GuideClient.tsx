@@ -33,6 +33,7 @@ interface Guide {
   items_json: GuideItem[]
   priority_json: string[]
   generated_at: string
+  checklist_done?: number[]
 }
 
 interface Props {
@@ -53,18 +54,32 @@ export function GuideClient({ business, guide: initialGuide, latestScanId, userI
   const STORAGE_KEY = `guide_checklist_${business.id}`
 
   useEffect(() => {
+    // DB 저장값 우선, 없으면 localStorage 마이그레이션
+    if (guide?.checklist_done && guide.checklist_done.length > 0) {
+      setChecked(new Set(guide.checklist_done))
+      return
+    }
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved) setChecked(new Set(JSON.parse(saved)))
     } catch {}
-  }, [STORAGE_KEY])
+  }, [STORAGE_KEY, guide?.id])
 
   const toggleCheck = (rank: number) => {
     setChecked((prev) => {
       const next = new Set(prev)
       if (next.has(rank)) next.delete(rank)
       else next.add(rank)
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...next])) } catch {}
+      const arr = [...next]
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)) } catch {}
+      if (guide) {
+        fetch(`${BACKEND}/api/guide/${guide.id}/checklist`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ done: arr }),
+        }).catch(() => {})
+      }
       return next
     })
   }
@@ -86,13 +101,26 @@ export function GuideClient({ business, guide: initialGuide, latestScanId, userI
         headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
         body: JSON.stringify({ business_id: business.id, scan_id: latestScanId }),
       })
-      // 백그라운드 생성 — 3초 후 재조회
-      await new Promise((r) => setTimeout(r, 3000))
-      const res = await fetch(`${BACKEND}/api/guide/${business.id}/latest`)
-      if (res.ok) setGuide(await res.json())
-      router.refresh()
+      // 백그라운드 생성 완료 대기 — 최대 5회(25초) 폴링
+      let guideData = null
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await new Promise((r) => setTimeout(r, 5000))
+        try {
+          const res = await fetch(`${BACKEND}/api/guide/${business.id}/latest`)
+          if (res.ok) {
+            guideData = await res.json()
+            break
+          }
+        } catch { /* 네트워크 오류 시 재시도 */ }
+      }
+      if (guideData) {
+        setGuide(guideData)
+        router.refresh()
+      } else {
+        setError('가이드 생성에 시간이 걸리고 있습니다. 잠시 후 페이지를 새로고침해주세요.')
+      }
     } catch {
-      setError('가이드 생성 중 오류가 발생했습니다.')
+      setError('가이드 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
     } finally {
       clearInterval(timer)
       setLoading(false)
@@ -123,8 +151,12 @@ export function GuideClient({ business, guide: initialGuide, latestScanId, userI
         {loading && (
           <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
             <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-gray-600 mb-1">AI가 맞춤 전략을 작성 중입니다... ({elapsedSeconds}초)</p>
-            <p className="text-gray-400 text-xs">보통 10~15초 소요됩니다</p>
+            <p className="text-gray-600 mb-1">AI가 내 가게 맞춤 전략을 작성 중입니다... ({elapsedSeconds}초)</p>
+            <p className="text-gray-400 text-xs">
+              {elapsedSeconds < 10 ? "보통 10~25초 소요됩니다" :
+               elapsedSeconds < 20 ? "거의 다 됐습니다..." :
+               "조금만 더 기다려주세요..."}
+            </p>
           </div>
         )}
 
@@ -134,7 +166,10 @@ export function GuideClient({ business, guide: initialGuide, latestScanId, userI
             {(guide.items_json ?? []).length > 0 && (
               <div className="bg-white rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-sm font-medium text-gray-700">완료 체크리스트</div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-700">완료 체크리스트</div>
+                    <div className="text-xs text-gray-400">체크 항목은 이 기기에 저장됩니다</div>
+                  </div>
                   <div className="text-sm text-gray-500">
                     {checked.size} / {guide.items_json.length} 완료
                   </div>

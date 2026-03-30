@@ -1,34 +1,30 @@
 export type Category = string; // lib/categories.ts 참고
 
-export type Plan = "free" | "basic" | "pro" | "biz" | "startup" | "enterprise";
-
-export interface Business {
-  id: string;
-  user_id: string;
-  name: string;
-  category: Category;
-  region: string;
-  address?: string;
-  phone?: string;
-  naver_place_id?: string;
-  website_url?: string;
-  keywords?: string[];
-  is_active: boolean;
-  created_at: string;
-}
-
-export interface Competitor {
-  id: string;
-  business_id: string;
-  name: string;
-  address?: string;
-  is_active: boolean;
-}
+// 핵심 엔티티는 entities.ts에서 관리 (도메인 모델 v2.1 § 4)
+export type {
+  Plan,
+  BusinessType,
+  Business,
+  Competitor,
+  Subscription,
+  SubscriptionStatus,
+} from "./entities";
 
 export interface CompetitorScore {
   name: string;
   score: number;
   mentioned: boolean;
+}
+
+export interface WebsiteCheckResult {
+  has_json_ld: boolean;
+  has_schema_local_business: boolean;
+  has_open_graph: boolean;
+  is_mobile_friendly: boolean;
+  has_favicon: boolean;
+  is_https: boolean;
+  title: string;
+  error: string | null;
 }
 
 export interface ScanResult {
@@ -44,9 +40,13 @@ export interface ScanResult {
   claude_result?: AIResult;
   zeta_result?: AIResult;
   google_result?: AIResult;
+  kakao_result?: KakaoVisibilityData;
+  website_check_result?: WebsiteCheckResult;
   exposure_freq: number;
   total_score: number;
   score_breakdown: ScoreBreakdown;
+  naver_channel_score?: number;
+  global_channel_score?: number;
   rank_in_query?: number;
   competitor_scores?: Record<string, CompetitorScore>;
 }
@@ -113,23 +113,59 @@ export interface GuideItem {
   competitor_example?: string;
 }
 
-export interface Subscription {
-  id: string;
-  user_id: string;
-  plan: Plan;
-  status: "active" | "grace_period" | "suspended" | "cancelled" | "expired";
-  start_at: string;
-  end_at: string;
-  billing_key?: string;
-  customer_key?: string;
-}
+// Subscription은 entities.ts에서 re-export됩니다.
 
 export interface TrialScanRequest {
   business_name: string;
   category: Category;
-  region: string;
+  region?: string;
   keyword?: string;
   email?: string;
+  business_type?: "location_based" | "non_location";
+  website_url?: string;   // non_location 전용 웹사이트 SEO 체크용
+}
+
+export interface NaverCompetitor {
+  rank: number;
+  name: string;
+  address: string;
+  category: string;
+  telephone: string;
+  link: string;
+}
+
+export interface NaverBlogPost {
+  title: string;
+  link: string;
+  description: string;
+  postdate: string;
+}
+
+export interface NaverVisibilityData {
+  search_query: string;
+  my_rank: number | null;
+  is_smart_place: boolean;
+  blog_mentions: number;
+  naver_competitors: NaverCompetitor[];
+  top_blogs: NaverBlogPost[];
+  top_competitor_name: string | null;
+  top_competitor_blog_count: number;
+}
+
+export interface KakaoCompetitor {
+  rank: number;
+  name: string;
+  address: string;
+  category: string;
+  phone: string;
+  url: string;
+}
+
+export interface KakaoVisibilityData {
+  search_query: string;
+  my_rank: number | null;
+  is_on_kakao: boolean;
+  kakao_competitors: KakaoCompetitor[];
 }
 
 export interface TrialScanResult {
@@ -137,10 +173,14 @@ export interface TrialScanResult {
     total_score: number;
     grade: string;
     breakdown: ScoreBreakdown;
+    naver_channel_score?: number;
+    global_channel_score?: number;
   };
   result: Record<string, AIResult>;
   query: string;
   competitors: string[];
+  naver?: NaverVisibilityData;
+  kakao?: KakaoVisibilityData;
   message: string;
 }
 
@@ -222,11 +262,10 @@ export interface CompetitorSearchResult {
 }
 
 export interface CompetitorSuggestion {
-  id: string;
   name: string;
-  category: string;
+  address: string;
   region: string;
-  avg_score: number;
+  score: number;
 }
 
 export interface SharePageData {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
@@ -9,17 +9,230 @@ interface Business { id: string; name: string; category: string; region: string 
 interface Competitor { id: string; name: string; address?: string }
 interface Suggestion { name: string; address: string; region: string; score: number }
 interface SearchResult { name: string; address: string; category: string; phone: string; naver_url: string }
+interface TrendScan {
+  scanned_at: string
+  total_score: number
+  competitor_scores: Record<string, { name: string; score: number; mentioned: boolean }> | null
+}
+
+function GapCard({ bizId, bizName, myScore }: { bizId: string; bizName: string; myScore: number }) {
+  const [imgUrl, setImgUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const generate = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(`${BACKEND}/api/report/gap-card/${bizId}`)
+      if (!res.ok) return
+      const blob = await res.blob()
+      setImgUrl(URL.createObjectURL(blob))
+    } finally {
+      setLoading(false)
+    }
+  }, [bizId])
+
+  const handleShare = async () => {
+    if (!imgUrl) return
+    try {
+      const res = await fetch(imgUrl)
+      const blob = await res.blob()
+      const file = new File([blob], 'gap_card.png', { type: 'image/png' })
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: `${bizName} AI 경쟁 현황` })
+      } else {
+        const a = document.createElement('a')
+        a.href = imgUrl
+        a.download = 'gap_card.png'
+        a.click()
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
+    } catch {}
+  }
+
+  return (
+    <div className="bg-white rounded-2xl p-5 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="text-sm font-medium text-gray-700">AI 경쟁 현황 카드</div>
+          <div className="text-xs text-gray-400">카카오톡·SNS 공유용 이미지</div>
+        </div>
+        {!imgUrl && (
+          <button
+            onClick={generate}
+            disabled={loading}
+            className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            {loading ? '생성 중...' : '카드 생성'}
+          </button>
+        )}
+      </div>
+      {imgUrl && (
+        <div className="space-y-2">
+          <img src={imgUrl} alt="경쟁 현황 카드" className="w-full rounded-xl border border-gray-100" />
+          <div className="flex gap-2">
+            <button
+              onClick={handleShare}
+              className="flex-1 text-xs bg-yellow-400 text-gray-900 font-semibold py-2 rounded-lg hover:bg-yellow-500 transition-colors"
+            >
+              {copied ? '저장됨 ✓' : '📤 공유 / 저장'}
+            </button>
+            <button
+              onClick={() => { setImgUrl(null); generate() }}
+              className="text-xs border border-gray-200 text-gray-500 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              새로고침
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface Props {
   business: Business
   competitors: Competitor[]
   myScore: number
   userId: string
+  trendScans?: TrendScan[]
+}
+
+// 경쟁사 점수 추이 시각화 (최근 스캔 기록)
+function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]; bizName: string }) {
+  if (trendScans.length < 2) {
+    return (
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <div className="text-sm font-medium text-gray-700 mb-1">경쟁사 점수 추이</div>
+        <p className="text-xs text-gray-400">스캔을 2회 이상 실행하면 경쟁사와의 점수 변화 추이를 확인할 수 있습니다.</p>
+      </div>
+    )
+  }
+
+  // 등장하는 모든 경쟁사 이름 수집
+  const compNames = new Set<string>()
+  trendScans.forEach((s) => {
+    if (s.competitor_scores) {
+      Object.values(s.competitor_scores).forEach((c) => compNames.add(c.name))
+    }
+  })
+
+  // 색상 팔레트
+  const COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#8b5cf6','#ec4899','#14b8a6']
+  const compList = [...compNames].slice(0, 5)
+
+  // 추이 데이터 구성
+  const points = trendScans.map((s) => {
+    const date = new Date(s.scanned_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+    const row: Record<string, string | number> = { date, me: Math.round(s.total_score) }
+    compList.forEach((name) => {
+      const entry = s.competitor_scores
+        ? Object.values(s.competitor_scores).find((c) => c.name === name)
+        : undefined
+      row[name] = entry ? entry.score : 0
+    })
+    return row
+  })
+
+  // 최신 점수 기준 내 순위
+  const latest = points[points.length - 1]
+  const allScores = [{ name: bizName, score: latest.me as number }, ...compList.map((n) => ({ name: n, score: latest[n] as number }))]
+  allScores.sort((a, b) => b.score - a.score)
+  const myRank = allScores.findIndex((x) => x.name === bizName) + 1
+
+  const maxY = Math.max(...points.flatMap((p) => [p.me as number, ...compList.map((n) => p[n] as number)]), 10)
+
+  return (
+    <div className="bg-white rounded-2xl p-5 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="text-sm font-medium text-gray-700">경쟁사 점수 추이</div>
+          <div className="text-xs text-gray-400">최근 {trendScans.length}회 스캔 기준</div>
+        </div>
+        <div className={`text-xs font-semibold px-2 py-1 rounded-full ${myRank === 1 ? 'bg-green-100 text-green-700' : myRank <= 3 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'}`}>
+          현재 {myRank}위
+        </div>
+      </div>
+
+      {/* 간이 꺾은선 차트 */}
+      <div className="relative h-32 flex items-end gap-1 mb-3">
+        {points.map((p, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center gap-0.5 h-full justify-end">
+            {/* 내 점수 막대 */}
+            <div
+              className="w-full bg-blue-500 rounded-t-sm opacity-90 transition-all"
+              style={{ height: `${((p.me as number) / maxY) * 100}%` }}
+              title={`내 가게: ${p.me}점`}
+            />
+          </div>
+        ))}
+        {/* 경쟁사 오버레이 선 (SVG) */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
+          {compList.map((name, ci) => {
+            const pts = points.map((p, i) => {
+              const x = ((i + 0.5) / points.length) * 100
+              const y = 100 - ((p[name] as number) / maxY) * 100
+              return `${x},${y}`
+            })
+            return (
+              <polyline
+                key={name}
+                points={pts.join(' ')}
+                fill="none"
+                stroke={COLORS[ci % COLORS.length]}
+                strokeWidth="1.5"
+                strokeDasharray="3,2"
+              />
+            )
+          })}
+          {/* 내 점수 선 */}
+          <polyline
+            points={points.map((p, i) => `${((i + 0.5) / points.length) * 100},${100 - ((p.me as number) / maxY) * 100}`).join(' ')}
+            fill="none"
+            stroke="#3b82f6"
+            strokeWidth="2"
+          />
+        </svg>
+      </div>
+
+      {/* X축 날짜 */}
+      <div className="flex justify-between text-xs text-gray-400 mb-3">
+        {points.map((p, i) => (
+          <span key={i} className="flex-1 text-center truncate">{p.date}</span>
+        ))}
+      </div>
+
+      {/* 범례 */}
+      <div className="flex flex-wrap gap-x-3 gap-y-1">
+        <div className="flex items-center gap-1 text-xs text-gray-700">
+          <div className="w-3 h-1.5 bg-blue-500 rounded" />
+          <span className="font-medium">{bizName} (내 가게)</span>
+        </div>
+        {compList.map((name, ci) => (
+          <div key={name} className="flex items-center gap-1 text-xs text-gray-500">
+            <div className="w-3 h-0 border-t-2 border-dashed" style={{ borderColor: COLORS[ci % COLORS.length] }} />
+            <span>{name}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* 최신 순위표 */}
+      <div className="mt-3 border-t border-gray-100 pt-3 space-y-1">
+        {allScores.map((x, i) => (
+          <div key={x.name} className={`flex items-center justify-between text-xs ${x.name === bizName ? 'font-semibold text-blue-700' : 'text-gray-600'}`}>
+            <span>{i + 1}위 {x.name === bizName ? `${x.name} ← 내 가게` : x.name}</span>
+            <span>{x.score}점</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 type AddTab = 'search' | 'manual'
 
-export function CompetitorsClient({ business, competitors: initial, myScore, userId }: Props) {
+export function CompetitorsClient({ business, competitors: initial, myScore, userId, trendScans = [] }: Props) {
   const router = useRouter()
   const [competitors, setCompetitors] = useState(initial)
   const [tab, setTab] = useState<AddTab>('search')
@@ -102,8 +315,8 @@ export function CompetitorsClient({ business, competitors: initial, myScore, use
     try {
       await doAdd(result.name, result.address)
       setSearchResults((prev) => prev.filter((r) => r.name !== result.name))
-    } catch (e: any) {
-      if (e.message === 'PLAN_LIMIT') setSearchError('경쟁사 등록 한도에 도달했습니다. 플랜을 업그레이드하세요.')
+    } catch (e: unknown) {
+      if (e instanceof Error && e.message === 'PLAN_LIMIT') setSearchError('경쟁사 등록 한도에 도달했습니다. 플랜을 업그레이드하세요.')
       else setSearchError('등록 중 오류가 발생했습니다.')
     } finally {
       setAddingName(null)
@@ -119,8 +332,8 @@ export function CompetitorsClient({ business, competitors: initial, myScore, use
     try {
       await doAdd(form.name, form.address)
       setForm({ name: '', address: '' })
-    } catch (e: any) {
-      if (e.message === 'PLAN_LIMIT') setFormError('경쟁사 등록 한도에 도달했습니다. 플랜을 업그레이드하세요.')
+    } catch (e: unknown) {
+      if (e instanceof Error && e.message === 'PLAN_LIMIT') setFormError('경쟁사 등록 한도에 도달했습니다. 플랜을 업그레이드하세요.')
       else setFormError('경쟁사 등록 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
@@ -326,6 +539,12 @@ export function CompetitorsClient({ business, competitors: initial, myScore, use
           <p className="font-medium mb-1">경쟁사 선택 팁</p>
           <p>같은 지역·업종의 가게를 등록하세요. 스캔 시 AI 노출 순위를 자동으로 비교합니다.</p>
         </div>
+
+        {/* 경쟁 현황 카드 (Gap Card) */}
+        <GapCard bizId={business.id} bizName={business.name} myScore={myScore} />
+
+        {/* 경쟁사 점수 추이 차트 */}
+        <CompetitorTrendChart trendScans={trendScans} bizName={business.name} />
       </div>
       {/* 경쟁사 추가 후 즉시 스캔 제안 모달 */}
       {scanPromptName && (

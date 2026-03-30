@@ -24,13 +24,11 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user || error) {
     redirect("/login");
   }
-
-  const user = session.user;
 
   // 구독 정보 조회
   const { data: sub } = await supabase
@@ -74,7 +72,7 @@ export default async function DashboardLayout({
         </nav>
 
         <div className="px-4 py-4 border-t border-gray-100 space-y-2">
-          <p className="text-xs text-gray-400 truncate px-1">{user.email}</p>
+          <Link href="/settings" className="text-xs text-gray-400 hover:text-blue-600 truncate px-1 transition-colors">{user.email}</Link>
           <LogoutButton />
         </div>
       </aside>

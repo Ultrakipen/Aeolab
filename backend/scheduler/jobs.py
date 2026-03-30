@@ -47,9 +47,11 @@ async def _cleanup_memory_stores():
 
 async def daily_scan_all():
     """활성 구독자 사업장 자동 AI 스캔 (새벽 2시)
-    - biz/enterprise: 매일
-    - pro: 매주 월요일
-    - basic/startup: 매월 1일
+
+    플랜별 스캔 전략:
+    - basic   : Gemini(100회) + 네이버 매일 / 8개 AI 전체는 월요일만 (비용 절감)
+    - pro/startup : 8개 AI 매일
+    - biz/enterprise : 8개 AI 매일
     """
     from db.supabase_client import get_client
     from services.ai_scanner.multi_scanner import MultiAIScanner
@@ -59,33 +61,38 @@ async def daily_scan_all():
         supabase = get_client()
         today = date.today()
         is_monday = today.weekday() == 0
-        is_first_of_month = today.day == 1
-
-        eligible_plans = ["biz", "enterprise"]
-        if is_monday:
-            eligible_plans += ["pro"]
-        if is_first_of_month:
-            eligible_plans += ["basic", "startup"]
 
         businesses = (
             supabase.table("businesses")
             .select("*, subscriptions!inner(status, plan)")
             .eq("subscriptions.status", "active")
-            .in_("subscriptions.plan", eligible_plans)
+            .in_("subscriptions.plan", ["basic", "pro", "biz", "startup", "enterprise"])
             .execute()
             .data
         )
 
-        scanner = MultiAIScanner(mode="daily")
+        basic_scanner = MultiAIScanner(mode="basic")
+        full_scanner  = MultiAIScanner(mode="full")
+
         for i, biz in enumerate(businesses):
             try:
+                plan = (biz.get("subscriptions") or {}).get("plan", "basic")
                 keywords = biz.get("keywords") or []
                 query = f"{biz['region']} {biz['category']} 추천"
                 if keywords:
                     query = f"{biz['region']} {keywords[0]}"
 
-                result = await scanner.scan_all(query, biz["name"])
+                # 플랜별 스캐너 선택
+                # basic 평일 → 경량 스캔 / basic 월요일 → 풀스캔 / 나머지 → 매일 풀스캔
+                if plan == "basic" and not is_monday:
+                    result = await basic_scanner.scan_basic(query, biz["name"])
+                else:
+                    result = await full_scanner.scan_all(query, biz["name"])
+
                 score = calculate_score(result, biz)
+
+                naver_channel = score.get("naver_channel_score")
+                global_channel = score.get("global_channel_score")
 
                 scan_row = supabase.table("scan_results").insert(
                     {
@@ -102,6 +109,8 @@ async def daily_scan_all():
                         "exposure_freq": result.get("gemini", {}).get("exposure_freq", 0),
                         "total_score": score["total_score"],
                         "score_breakdown": score["breakdown"],
+                        "naver_channel_score": naver_channel,
+                        "global_channel_score": global_channel,
                     }
                 ).execute().data
 
@@ -126,6 +135,8 @@ async def daily_scan_all():
                         "total_score": score["total_score"],
                         "exposure_freq": result.get("gemini", {}).get("exposure_freq", 0),
                         "weekly_change": weekly_change,
+                        "naver_channel_score": naver_channel,
+                        "global_channel_score": global_channel,
                     },
                     on_conflict="business_id,score_date",
                 ).execute()
@@ -176,7 +187,7 @@ async def weekly_kakao_notify():
                 # 1. 점수 변화 알림
                 history = (
                     supabase.table("score_history")
-                    .select("*")
+                    .select("total_score, score_date, rank_in_category")
                     .eq("business_id", biz_id)
                     .order("score_date", desc=True)
                     .limit(2)
@@ -198,7 +209,7 @@ async def weekly_kakao_notify():
                 if phone:
                     citations = (
                         supabase.table("ai_citations")
-                        .select("*")
+                        .select("platform, query, excerpt")
                         .eq("business_id", biz_id)
                         .eq("mentioned", True)
                         .gte("created_at", str(date.today() - timedelta(days=7)))
@@ -260,6 +271,63 @@ async def weekly_kakao_notify():
                                 for it in items[:3]
                             ]
                             await notifier.send_action_items(phone, biz_name, titles)
+
+                # 5. 갭 카드 PNG 생성 → Storage 업로드 → URL 알림
+                try:
+                    latest_scan = (
+                        supabase.table("scan_results")
+                        .select("total_score, competitor_scores, score_breakdown")
+                        .eq("business_id", biz_id)
+                        .order("scanned_at", desc=True)
+                        .limit(1)
+                        .execute()
+                        .data
+                    )
+                    if latest_scan:
+                        scan = latest_scan[0]
+                        my_score = float(scan.get("total_score", 0))
+                        comp_scores: dict = scan.get("competitor_scores") or {}
+
+                        comp_rows = (
+                            supabase.table("competitors")
+                            .select("id, name")
+                            .eq("business_id", biz_id)
+                            .eq("is_active", True)
+                            .execute()
+                            .data
+                        ) or []
+                        comp_name_map = {c["id"]: c["name"] for c in comp_rows}
+                        competitor_items = [
+                            {"name": comp_name_map.get(cid, "경쟁사"), "score": float(v.get("score", 0))}
+                            for cid, v in comp_scores.items()
+                        ]
+
+                        breakdown = scan.get("score_breakdown") or {}
+                        LABELS = {
+                            "exposure_freq": "Gemini 노출 빈도",
+                            "review_quality": "리뷰 품질",
+                            "schema_score": "Schema 구조화",
+                            "online_mentions": "온라인 언급",
+                            "info_completeness": "정보 완성도",
+                            "content_freshness": "콘텐츠 최신성",
+                        }
+                        lowest = min(breakdown.items(), key=lambda x: x[1], default=(None, None))
+                        hint = f"{LABELS.get(lowest[0], '')} 개선 시 점수 상승 예상" if lowest[0] else ""
+
+                        from services.gap_card import generate_and_upload_gap_card
+                        gap_url = await generate_and_upload_gap_card(
+                            business_id=biz_id,
+                            business_name=biz_name,
+                            region=biz.get("region", ""),
+                            category=biz.get("category", ""),
+                            my_score=my_score,
+                            competitor_items=competitor_items,
+                            hint=hint,
+                        )
+                        if gap_url and phone:
+                            await notifier.send_gap_card_url(phone, biz_name, gap_url)
+                except Exception as gap_err:
+                    logger.warning(f"Gap card generation failed for {biz_name}: {gap_err}")
 
             except Exception as e:
                 logger.error(f"Notify failed for user: {e}")

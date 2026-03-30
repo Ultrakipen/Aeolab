@@ -128,19 +128,73 @@ def cleanup_expired_stream_tokens() -> int:
 
 
 @router.post("/trial")
-async def trial_scan(req: TrialScanRequest, request: Request):
-    """랜딩 무료 체험: Gemini Flash 단일 스캔 (비로그인) — IP당 하루 3회 제한 (관리자 제외)"""
+async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTasks):
+    """랜딩 무료 체험: Gemini + (location: 네이버+카카오 / non_location: 웹사이트) 병렬 스캔
+    도메인 모델 v2.1 § 10.1 — ScanContext별 분기
+    """
+    import asyncio, hashlib
+
     if not _is_admin_request(request):
         ip = _get_client_ip(request)
         _check_trial_rate_limit(ip)
+
     scanner = MultiAIScanner(mode="trial")
-    if req.keyword:
-        query = f"{req.region} {req.keyword.strip()} 추천"
+    keyword_ko = req.keyword.strip() if req.keyword else _CATEGORY_KO.get(req.category, req.category)
+    is_non_location = (req.business_type == "non_location") or not req.region
+
+    if is_non_location:
+        query = f"{keyword_ko} 추천"
     else:
-        category_ko = _CATEGORY_KO.get(req.category, req.category)
-        query = f"{req.region} {category_ko} 추천"
-    result = await scanner.scan_single(query, req.business_name)
-    score = calculate_score(result)
+        query = f"{req.region} {keyword_ko} 추천"
+
+    # ── context별 병렬 실행 ──────────────────────────────────────────
+    if is_non_location:
+        # non_location: Gemini + 웹사이트 체크 (naver/kakao 생략)
+        coros = [scanner.scan_single(query, req.business_name)]
+        if req.website_url:
+            from services.website_checker import check_website_seo
+            coros.append(check_website_seo(req.website_url))
+        else:
+            coros.append(asyncio.sleep(0))  # placeholder
+
+        results = await asyncio.gather(*coros, return_exceptions=True)
+        ai_result = results[0] if not isinstance(results[0], Exception) else {}
+        website_data = results[1] if (req.website_url and not isinstance(results[1], Exception)) else None
+        naver_data = None
+        kakao_data = None
+    else:
+        # location_based: Gemini + 네이버 + 카카오
+        from services.naver_visibility import get_naver_visibility
+        from services.kakao_visibility import get_kakao_visibility
+
+        ai_result, naver_data, kakao_data = await asyncio.gather(
+            scanner.scan_single(query, req.business_name),
+            get_naver_visibility(req.business_name, keyword_ko, req.region or ""),
+            get_kakao_visibility(req.business_name, keyword_ko, req.region or ""),
+            return_exceptions=True,
+        )
+        if isinstance(ai_result, Exception):
+            ai_result = {}
+        if isinstance(naver_data, Exception):
+            naver_data = None
+        if isinstance(kakao_data, Exception):
+            kakao_data = None
+        website_data = None
+
+    # 카카오 결과 병합 (채널 점수 계산용)
+    combined_result = {**ai_result}
+    if kakao_data:
+        combined_result["kakao"] = kakao_data
+    if website_data:
+        combined_result["website_check"] = website_data
+
+    biz_ctx = {"business_type": req.business_type or "location_based", "website_url": req.website_url}
+    score = calculate_score(
+        combined_result,
+        biz=biz_ctx,
+        naver_data=naver_data or {},
+        context=req.business_type or "location_based",
+    )
 
     # 이메일 수집 (대기자 명단)
     if req.email:
@@ -154,12 +208,51 @@ async def trial_scan(req: TrialScanRequest, request: Request):
         except Exception as e:
             _logger.warning(f"Waitlist upsert failed for {req.email}: {e}")
 
-    competitors = result.get("gemini", {}).get("competitors", [])
+    # trial_scans DB 저장 (백그라운드)
+    async def _save():
+        try:
+            ip = _get_client_ip(request)
+            ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:16]
+            naver = naver_data or {}
+            kakao = kakao_data or {}
+            ai_mentioned = bool(ai_result.get("gemini", {}).get("mentioned"))
+            supabase = get_client()
+            await execute(supabase.table("trial_scans").insert({
+                "business_name": req.business_name,
+                "category": req.category,
+                "region": req.region,
+                "keyword": keyword_ko,
+                "email": req.email,
+                "is_smart_place": naver.get("is_smart_place"),
+                "naver_rank": naver.get("my_rank"),
+                "blog_mentions": naver.get("blog_mentions"),
+                "search_query": naver.get("search_query") or query,
+                "naver_competitors": naver.get("naver_competitors"),
+                "top_competitor_name": naver.get("top_competitor_name"),
+                "top_competitor_blog_count": naver.get("top_competitor_blog_count"),
+                "kakao_rank": kakao.get("my_rank"),
+                "is_on_kakao": kakao.get("is_on_kakao"),
+                "kakao_competitors": kakao.get("kakao_competitors"),
+                "ai_mentioned": ai_mentioned,
+                "total_score": score.get("total_score"),
+                "grade": score.get("grade"),
+                "score_breakdown": score.get("breakdown"),
+                "ip_hash": ip_hash,
+            }))
+        except Exception as e:
+            _logger.warning(f"trial_scans save failed: {e}")
+    bg.add_task(_save)
+
+    competitors = ai_result.get("gemini", {}).get("competitors", [])
     return {
         "score": score,
-        "result": result,
+        "result": ai_result,
         "query": query,
         "competitors": competitors,
+        "naver": naver_data,
+        "kakao": kakao_data,
+        "website_health": website_data,
+        "context": req.business_type or "location_based",
         "message": "무료 원샷 체험 결과입니다. 100회 샘플링 전체 분석은 구독 후 이용 가능합니다.",
     }
 
@@ -224,14 +317,14 @@ async def stream_scan(stream_token: str):
 
     # 사업장 정보 조회
     supabase = get_client()
-    biz = (await execute(supabase.table("businesses").select("*").eq("id", biz_id).single())).data
+    biz = (await execute(supabase.table("businesses").select("id, name, category, region, business_type, website_url, keywords").eq("id", biz_id).single())).data
     if not biz:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
 
     req = ScanRequest(
         business_name=biz["name"],
         category=biz["category"],
-        region=biz["region"],
+        region=biz.get("region") or "",
         business_id=biz_id,
     )
 
@@ -279,7 +372,7 @@ async def stream_scan(stream_token: str):
 async def get_scan(scan_id: str):
     """스캔 결과 조회"""
     supabase = get_client()
-    result = await execute(supabase.table("scan_results").select("*").eq("id", scan_id).single())
+    result = await execute(supabase.table("scan_results").select("id, business_id, scanned_at, query_used, exposure_freq, total_score, score_breakdown, naver_channel_score, global_channel_score, gemini_result, chatgpt_result, perplexity_result, grok_result, naver_result, claude_result, zeta_result, google_result, kakao_result, website_check_result, competitor_scores, rank_in_query").eq("id", scan_id).single())
     if not result.data:
         raise HTTPException(status_code=404, detail="Scan not found")
     return result.data
@@ -290,10 +383,29 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
     import asyncio as _asyncio
     from datetime import date as _date
     from services.ai_scanner.gemini_scanner import GeminiScanner
+    from services.kakao_visibility import get_kakao_visibility
+    from services.website_checker import check_website_seo
 
     supabase = get_client()
-    biz = (await execute(supabase.table("businesses").select("*").eq("id", business_id).single())).data
-    score = calculate_score(results, biz or {})
+    biz = (await execute(supabase.table("businesses").select("id, name, category, region, business_type, website_url, keywords, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, keyword_diversity, receipt_review_count").eq("id", business_id).single())).data
+
+    # 카카오 가시성 + 웹사이트 SEO 체크 병렬 실행
+    keyword_ko = _CATEGORY_KO.get((biz or {}).get("category", req.category), req.category)
+    kakao_data, website_check = await _asyncio.gather(
+        get_kakao_visibility(req.business_name, keyword_ko, req.region),
+        check_website_seo((biz or {}).get("website_url", "")),
+        return_exceptions=True,
+    )
+    if isinstance(kakao_data, Exception):
+        _logger.warning(f"kakao_visibility failed (stream): {kakao_data}")
+        kakao_data = None
+    if isinstance(website_check, Exception):
+        _logger.warning(f"website_checker failed (stream): {website_check}")
+        website_check = None
+
+    # 카카오·웹사이트 결과를 scan_results에 병합해 채널 점수 계산
+    combined_results = {**results, "kakao": kakao_data or {}, "website_check": website_check or {}}
+    score = calculate_score(combined_results, biz or {})
     query = f"{req.region} {req.category} 추천"
 
     # 이전 score_history로 weekly_change 계산
@@ -350,9 +462,13 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
         "claude_result":     results.get("claude"),
         "zeta_result":       results.get("zeta"),
         "google_result":     results.get("google"),
+        "kakao_result":      kakao_data or None,
+        "website_check_result": website_check or None,
         "exposure_freq": (results.get("gemini") or {}).get("exposure_freq", 0),
         "total_score": score["total_score"],
         "score_breakdown": score["breakdown"],
+        "naver_channel_score": score.get("naver_channel_score"),
+        "global_channel_score": score.get("global_channel_score"),
         "competitor_scores": competitor_scores or None,
     }))).data
 
@@ -370,6 +486,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
                     "query": query,
                     "mentioned": True,
                     "excerpt": (r.get("excerpt") or r.get("content") or "")[:500],
+                    "sentiment": r.get("sentiment") or "neutral",
+                    "mention_type": r.get("mention_type") or "information",
                 })
         if citation_rows:
             try:
@@ -404,6 +522,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
                     "rank_in_category": 0,
                     "total_in_category": 0,
                     "weekly_change": weekly_change,
+                    "naver_channel_score": score.get("naver_channel_score"),
+                    "global_channel_score": score.get("global_channel_score"),
                 },
                 on_conflict="business_id,score_date",
             )
@@ -492,6 +612,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
     import asyncio as _asyncio
     from datetime import date as _date
     from services.ai_scanner.gemini_scanner import GeminiScanner
+    from services.kakao_visibility import get_kakao_visibility
+    from services.website_checker import check_website_seo
 
     try:
         scanner = MultiAIScanner(mode="full")
@@ -499,11 +621,29 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         if req.keywords:
             query = f"{req.region} {req.keywords[0]}"
 
-        result = await scanner.scan_all(query, req.business_name)
-
         supabase = get_client()
-        biz = (await execute(supabase.table("businesses").select("*").eq("id", req.business_id).single())).data
-        score = calculate_score(result, biz or {})
+        biz = (await execute(supabase.table("businesses").select("id, name, category, region, business_type, website_url, keywords, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, keyword_diversity, receipt_review_count").eq("id", req.business_id).single())).data
+
+        # AI 스캔 + 카카오 가시성 + 웹사이트 SEO 병렬 실행
+        keyword_ko = _CATEGORY_KO.get(req.category, req.category)
+        result, kakao_data, website_check = await _asyncio.gather(
+            scanner.scan_all(query, req.business_name),
+            get_kakao_visibility(req.business_name, keyword_ko, req.region),
+            check_website_seo((biz or {}).get("website_url", "")),
+            return_exceptions=True,
+        )
+        if isinstance(result, Exception):
+            raise result
+        if isinstance(kakao_data, Exception):
+            _logger.warning(f"kakao_visibility failed (full): {kakao_data}")
+            kakao_data = None
+        if isinstance(website_check, Exception):
+            _logger.warning(f"website_checker failed (full): {website_check}")
+            website_check = None
+
+        # 카카오·웹사이트 결과를 병합해 채널 점수 계산
+        combined_result = {**result, "kakao": kakao_data or {}, "website_check": website_check or {}}
+        score = calculate_score(combined_result, biz or {})
 
         # weekly_change 계산 (이전 score_history 기준)
         prev_history = (
@@ -561,9 +701,13 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "claude_result": result.get("claude"),
                     "zeta_result": result.get("zeta"),
                     "google_result": result.get("google"),
+                    "kakao_result": kakao_data or None,
+                    "website_check_result": website_check or None,
                     "exposure_freq": result.get("gemini", {}).get("exposure_freq", 0),
                     "total_score": score["total_score"],
                     "score_breakdown": score["breakdown"],
+                    "naver_channel_score": score.get("naver_channel_score"),
+                    "global_channel_score": score.get("global_channel_score"),
                     "competitor_scores": competitor_scores or None,
                 }
             )
@@ -581,6 +725,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "query": query,
                     "mentioned": True,
                     "excerpt": (r.get("excerpt") or r.get("content") or "")[:500],
+                    "sentiment": r.get("sentiment") or "neutral",
+                    "mention_type": r.get("mention_type") or "information",
                 })
         if citation_rows:
             try:
@@ -614,6 +760,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "rank_in_category": 0,
                     "total_in_category": 0,
                     "weekly_change": weekly_change,
+                    "naver_channel_score": score.get("naver_channel_score"),
+                    "global_channel_score": score.get("global_channel_score"),
                 }, on_conflict="business_id,score_date")
             )
 

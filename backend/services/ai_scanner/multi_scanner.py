@@ -74,9 +74,33 @@ class MultiAIScanner:
             for k, v in zip(all_keys, all_results)
         }
 
+    async def scan_basic(self, query: str, target: str) -> dict:
+        """Basic 플랜 경량 자동 스캔: Gemini(100회) + 네이버 AI 브리핑만.
+
+        비용: ~15원/회 (풀스캔 대비 절반 이하)
+        용도: Basic 플랜 평일 자동 스캔 (핵심 지표 매일 업데이트)
+        """
+        gemini_result, naver_result = await asyncio.gather(
+            self.gemini.sample_100(query, target),
+            self._run_playwright(self.naver.check_mention, query, target),
+            return_exceptions=True,
+        )
+        return {
+            "gemini": gemini_result if not isinstance(gemini_result, Exception)
+                      else {"platform": "gemini", "mentioned": False, "error": str(gemini_result)},
+            "naver":  naver_result  if not isinstance(naver_result,  Exception)
+                      else {"platform": "naver",  "mentioned": False, "error": str(naver_result)},
+        }
+
     async def scan_with_progress(self, req) -> AsyncIterator[dict]:
         """SSE 실시간 진행률 스트리밍 — Playwright 계열은 세마포어 제한"""
-        query = f"{req.region} {req.category} 추천"
+        region = getattr(req, "region", None) or ""
+        category = getattr(req, "category", "")
+        business_type = getattr(req, "business_type", "location_based") or "location_based"
+        if business_type == "non_location" or not region:
+            query = f"{category} 추천"
+        else:
+            query = f"{region} {category} 추천"
         # (name, message, fn, is_playwright)
         platforms = [
             ("gemini",     "Gemini AI 100회 샘플링 중...",    self.gemini.sample_100,        False),

@@ -139,6 +139,17 @@ class KakaoNotifier:
         )
         await self._send_raw(phone, message)
 
+    async def send_gap_card_url(self, phone: str, biz_name: str, card_url: str):
+        """주간 갭 카드 PNG URL 알림 — 카카오톡 공유 유도"""
+        message = (
+            f"[AEOlab] {biz_name} 이번 주 경쟁 현황\n\n"
+            f"📊 AI 경쟁 순위 카드가 생성되었습니다.\n\n"
+            f"▼ 카드 보기 (카카오톡으로 공유 가능)\n"
+            f"{card_url}\n\n"
+            f"같은 상권 사장님들과 공유해보세요."
+        )
+        await self._send_raw(phone, message)
+
     async def _send_raw(self, phone: str, text: str):
         """템플릿 없이 단문 문자 발송 (SMS fallback)"""
         masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"

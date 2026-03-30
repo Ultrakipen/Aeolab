@@ -36,6 +36,7 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
   const [step, setStep] = useState<Step>('category')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [businessType, setBusinessType] = useState<'location_based' | 'non_location'>('location_based')
 
   // 사업자등록번호 조회
   const [regNo, setRegNo] = useState('')
@@ -56,6 +57,8 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
     address: '',
     phone: '',
     website_url: '',
+    google_place_id: '',
+    kakao_place_id: '',
   })
 
   // 드롭다운 외부 클릭 시 닫기
@@ -170,10 +173,11 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
           ...form,
           category: selectedCategory,
           keywords: selectedTags,
+          business_type: businessType,
         }),
       })
       if (!res.ok) throw new Error()
-      router.refresh()
+      router.push("/dashboard")
     } catch {
       setError('사업장 등록 중 오류가 발생했습니다. 다시 시도해주세요.')
     } finally {
@@ -186,7 +190,34 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
     return (
       <div className="bg-white rounded-2xl p-6 shadow-sm max-w-lg">
         <h2 className="font-semibold text-gray-900 mb-1">사업장 등록</h2>
-        <p className="text-sm text-gray-500 mb-4">내 사업장이 속하는 업종을 선택하세요.</p>
+        <p className="text-sm text-gray-500 mb-3">내 사업장이 속하는 업종을 선택하세요.</p>
+
+        {/* 사업 형태 선택 */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => setBusinessType('location_based')}
+            className={`py-2 px-3 rounded-xl border-2 text-sm font-medium transition-all ${
+              businessType === 'location_based'
+                ? 'border-blue-600 bg-blue-50 text-blue-700'
+                : 'border-gray-200 text-gray-500 hover:border-gray-300'
+            }`}
+          >
+            🏪 오프라인 매장
+          </button>
+          <button
+            type="button"
+            onClick={() => setBusinessType('non_location')}
+            className={`py-2 px-3 rounded-xl border-2 text-sm font-medium transition-all ${
+              businessType === 'non_location'
+                ? 'border-blue-600 bg-blue-50 text-blue-700'
+                : 'border-gray-200 text-gray-500 hover:border-gray-300'
+            }`}
+          >
+            💻 온라인·전문직
+          </button>
+        </div>
+
         <div className="grid grid-cols-2 gap-2.5">
           {CATEGORY_GROUPS.map((g) => {
             const cfg = CATEGORY_ICON_MAP[g.value]
@@ -395,10 +426,12 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
 
         {/* 지역 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">지역 *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            지역{businessType === 'location_based' ? ' *' : <span className="text-gray-400 font-normal ml-1">(선택)</span>}
+          </label>
           <input
-            required
-            placeholder="시·구·동 단위로 입력 (예: 수원시 팔달구)"
+            required={businessType === 'location_based'}
+            placeholder={businessType === 'location_based' ? '시·구·동 단위로 입력 (예: 수원시 팔달구)' : '서울 강남 등 (비워두면 전국 기준)'}
             value={form.region}
             onChange={(e) => setForm({ ...form, region: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -462,6 +495,49 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
               onChange={(e) => setForm({ ...form, website_url: e.target.value })}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+        </div>
+
+        {/* AI 채널 등록 정보 (글로벌 AI 노출용) */}
+        <div className="border border-blue-100 rounded-xl p-4 bg-blue-50/50 space-y-3">
+          <div>
+            <p className="text-xs font-semibold text-blue-700 mb-0.5">글로벌 AI 채널 등록 정보</p>
+            <p className="text-xs text-blue-600">
+              ChatGPT·Perplexity에서 노출되려면 구글·카카오 등록이 필요합니다.
+              <strong> 정보완성도 점수에 반영됩니다.</strong>
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Google 비즈니스 프로필 ID
+                <span className="text-gray-400 font-normal ml-1">(선택)</span>
+              </label>
+              <input
+                placeholder="예: ChIJN1t_tDeuEmsRUsoyG83frY4"
+                value={form.google_place_id}
+                onChange={(e) => setForm({ ...form, google_place_id: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Google 지도에서 사업장 URL의 <code className="bg-gray-100 px-1 rounded">place_id=</code> 값
+              </p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                카카오맵 Place ID
+                <span className="text-gray-400 font-normal ml-1">(선택)</span>
+              </label>
+              <input
+                placeholder="예: 1234567890"
+                value={form.kakao_place_id}
+                onChange={(e) => setForm({ ...form, kakao_place_id: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                카카오맵에서 사업장 URL의 숫자 ID
+              </p>
+            </div>
           </div>
         </div>
 

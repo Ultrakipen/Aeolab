@@ -13,20 +13,25 @@ class ScanRequest(BaseModel):
 class TrialScanRequest(BaseModel):
     business_name: str
     category: str
-    region: str
-    keyword: Optional[str] = None  # 직접 입력 서비스 키워드
-    email: Optional[str] = None    # 대기자 명단 수집용
+    region: Optional[str] = None
+    keyword: Optional[str] = None      # 직접 입력 서비스 키워드
+    email: Optional[str] = None        # 대기자 명단 수집용
+    business_type: Optional[str] = "location_based"  # location_based | non_location
+    website_url: Optional[str] = None  # non_location: WebsiteChecker 실행용
 
 
 class BusinessCreate(BaseModel):
     name: str
     category: str
-    region: str
+    region: Optional[str] = None
     address: Optional[str] = None
     phone: Optional[str] = None
     naver_place_id: Optional[str] = None
+    google_place_id: Optional[str] = None
+    kakao_place_id: Optional[str] = None
     website_url: Optional[str] = None
     keywords: Optional[List[str]] = None
+    business_type: Optional[str] = "location_based"  # location_based | non_location
 
 
 class CompetitorCreate(BaseModel):

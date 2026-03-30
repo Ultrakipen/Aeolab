@@ -357,6 +357,61 @@ CREATE TABLE IF NOT EXISTS waitlist (
 );
 
 -- ========================================
+-- trial_scans (무료 체험 스캔 데이터 — 시장 정보 축적)
+-- ========================================
+-- 비로그인 체험 결과를 저장해 벤치마크·시장 데이터로 활용
+-- 개인정보: IP는 SHA256 해시 저장, 이메일은 선택 수집
+CREATE TABLE IF NOT EXISTS trial_scans (
+  id                         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  scanned_at                 TIMESTAMPTZ DEFAULT now(),
+
+  -- 사업장 정보 (공개 정보)
+  business_name              TEXT NOT NULL,
+  category                   TEXT,
+  region                     TEXT,
+  keyword                    TEXT,
+  email                      TEXT,  -- 선택 입력, waitlist와 연계
+
+  -- 내 가게 네이버 가시성
+  is_smart_place             BOOLEAN,
+  naver_rank                 INT,        -- NULL = 미노출
+  blog_mentions              INT,
+  search_query               TEXT,       -- 실제 사용된 검색어
+
+  -- 경쟁 데이터
+  naver_competitors          JSONB,      -- [{rank, name, address, category}]
+  top_competitor_name        TEXT,
+  top_competitor_blog_count  INT,
+
+  -- AI 스캔 결과
+  ai_mentioned               BOOLEAN,
+  total_score                NUMERIC(5,1),
+  grade                      TEXT,
+  score_breakdown            JSONB,
+
+  -- 카카오맵 가시성
+  kakao_rank                 INT,        -- NULL = 미노출
+  is_on_kakao                BOOLEAN,
+  kakao_competitors          JSONB,      -- [{rank, name, address, category}]
+
+  -- 메타
+  ip_hash                    TEXT        -- SHA256(IP), 개인정보 비식별화
+);
+
+-- 벤치마크 집계용 인덱스
+CREATE INDEX IF NOT EXISTS idx_trial_scans_category_region
+  ON trial_scans(category, lower(region), scanned_at DESC);
+
+-- 이메일 재접촉용 인덱스
+CREATE INDEX IF NOT EXISTS idx_trial_scans_email
+  ON trial_scans(email)
+  WHERE email IS NOT NULL;
+
+-- 특정 업체 재방문 추적
+CREATE INDEX IF NOT EXISTS idx_trial_scans_business
+  ON trial_scans(lower(business_name), lower(region));
+
+-- ========================================
 -- keyword_scan_results (키워드별 노출 추적 — Pro+)
 -- ========================================
 CREATE TABLE IF NOT EXISTS keyword_scan_results (
@@ -407,9 +462,156 @@ CREATE INDEX IF NOT EXISTS idx_guides_biz_generated
   ON guides(business_id, generated_at DESC);
 
 -- ========================================
+-- v1.7 신규 컬럼 추가 (ALTER TABLE)
+-- Supabase SQL Editor에서 실행하세요
+-- ========================================
+
+-- businesses: Google/카카오 Place ID (정보 완성도 + 채널 점수에 반영)
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS google_place_id TEXT,
+  ADD COLUMN IF NOT EXISTS kakao_place_id  TEXT;
+
+-- scan_results: 채널 분리 점수 + 카카오 스캔 결과 + 웹사이트 SEO 체크 결과
+ALTER TABLE scan_results
+  ADD COLUMN IF NOT EXISTS naver_channel_score  NUMERIC(5,2),
+  ADD COLUMN IF NOT EXISTS global_channel_score NUMERIC(5,2),
+  ADD COLUMN IF NOT EXISTS kakao_result         JSONB,
+  ADD COLUMN IF NOT EXISTS website_check_result JSONB;
+
+-- 채널 점수 인덱스 (채널별 랭킹 조회용)
+CREATE INDEX IF NOT EXISTS idx_scan_naver_channel
+  ON scan_results(business_id, naver_channel_score DESC);
+CREATE INDEX IF NOT EXISTS idx_scan_global_channel
+  ON scan_results(business_id, global_channel_score DESC);
+
+-- ========================================
+-- v1.8 신규 컬럼 추가 (ALTER TABLE)
+-- Supabase SQL Editor에서 실행하세요
+-- ========================================
+
+-- score_history: 채널 점수 시계열 추적
+ALTER TABLE score_history
+  ADD COLUMN IF NOT EXISTS naver_channel_score  NUMERIC(5,2),
+  ADD COLUMN IF NOT EXISTS global_channel_score NUMERIC(5,2);
+
+-- businesses: category CHECK 제약 완화 (더 많은 업종 허용)
+-- 기존 CHECK 제약 삭제 후 재생성
+ALTER TABLE businesses DROP CONSTRAINT IF EXISTS businesses_category_check;
+ALTER TABLE businesses ADD CONSTRAINT businesses_category_check
+  CHECK (category IN (
+    'restaurant','cafe','hospital','academy','law','beauty','shop',
+    'bakery','gym','pet','pharmacy','convenience','laundry',
+    'clinic','dental','hair','nail','massage',
+    'food','health','education','professional','shopping','living','culture','media','accommodation',
+    'online','expert','creator','startup','other'
+  ));
+
+-- businesses: 트랙 구분 컬럼 추가 (위치 기반 / 비위치 기반)
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS business_type TEXT DEFAULT 'location_based'
+    CHECK (business_type IN ('location_based', 'non_location'));
+
+-- ========================================
+-- v1.9 신규 컬럼 추가 (ALTER TABLE)
+-- Supabase SQL Editor에서 실행하세요
+-- ========================================
+
+-- guides: 체크리스트 완료 항목 DB 저장 (rank 번호 배열)
+ALTER TABLE guides
+  ADD COLUMN IF NOT EXISTS checklist_done JSONB DEFAULT '[]';
+
+-- businesses: 영수증 리뷰 / 방문자 리뷰 수 수동 입력 (네이버 AI 브리핑 신뢰도 신호)
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS receipt_review_count INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS visitor_review_count INTEGER DEFAULT 0;
+
+-- ========================================
 -- Supabase Storage 버킷 (Storage 탭에서 수동 생성)
 -- ========================================
 -- before-after  : 스크린샷 저장 (Public, 파일 크기 제한 5MB)
 -- 버킷 생성 후 RLS policy 추가:
 --   INSERT: service_role only (백엔드에서만 업로드)
 --   SELECT: public (이미지 공개 URL)
+
+-- ========================================
+-- v2.1 도메인 모델 시스템 신규 컬럼 추가 (ALTER TABLE)
+-- Supabase SQL Editor에서 실행하세요
+-- ========================================
+
+-- guides: ActionPlan 구조화 데이터 저장
+ALTER TABLE guides
+  ADD COLUMN IF NOT EXISTS scan_id          UUID REFERENCES scan_results(id),
+  ADD COLUMN IF NOT EXISTS context          TEXT DEFAULT 'location_based'
+    CHECK (context IN ('location_based', 'non_location')),
+  ADD COLUMN IF NOT EXISTS next_month_goal  TEXT,
+  ADD COLUMN IF NOT EXISTS tools_json       JSONB DEFAULT '{}';
+
+-- guides: items_json에 ActionItem 구조 저장 (기존 JSONB 컬럼 재사용)
+-- tools_json: ActionTools (json_ld_schema, faq_list, keyword_list, blog_post_template, smart_place_checklist, seo_checklist)
+
+-- score_history: context 컬럼 추가 (non_location 사업장 구분)
+ALTER TABLE score_history
+  ADD COLUMN IF NOT EXISTS context TEXT DEFAULT 'location_based';
+
+-- businesses: receipt_review_count 혹시 없을 경우 보완
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS receipt_review_count INTEGER DEFAULT 0;
+
+-- ========================================
+-- v2.2 신규 테이블 + 뷰 추가
+-- Supabase SQL Editor에서 실행하세요
+-- ========================================
+
+-- gap_cards (주간 경쟁사 갭 카드 이력)
+-- gap_card.py가 생성한 PNG를 Storage에 올리고 URL·메타를 여기에 기록
+CREATE TABLE IF NOT EXISTS gap_cards (
+  id                   UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  business_id          UUID REFERENCES businesses(id) ON DELETE CASCADE,
+  card_type            TEXT DEFAULT 'weekly'
+                         CHECK (card_type IN ('weekly', 'monthly', 'milestone')),
+  region_label         TEXT,           -- 예: '역삼동 / 카페 AI 경쟁 현황'
+  competitors_snapshot JSONB,          -- [{name, score, rank}] 스냅샷
+  my_score             NUMERIC(5,2),
+  my_rank              INTEGER,
+  image_url            TEXT,           -- Supabase Storage 공개 URL
+  kakao_share_url      TEXT,           -- 카카오톡 공유 URL (향후 활용)
+  created_at           TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_gap_cards_biz_created
+  ON gap_cards(business_id, created_at DESC);
+
+ALTER TABLE gap_cards ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "own_gap_cards" ON gap_cards
+  USING (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = gap_cards.business_id AND b.user_id = auth.uid()
+  ));
+CREATE POLICY "own_gap_cards_insert" ON gap_cards
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = gap_cards.business_id AND b.user_id = auth.uid()
+  ));
+
+-- weekly_scores 뷰 — 플랫폼·주간 단위 집계 (dev_doc § 2.3 기준)
+-- scan_results JSONB에서 각 AI 플랫폼 언급 여부를 weekly 단위로 집계
+CREATE OR REPLACE VIEW weekly_scores AS
+SELECT
+  sr.business_id,
+  DATE_TRUNC('week', sr.scanned_at)                           AS week_start,
+  COUNT(*)                                                    AS scan_count,
+  AVG(sr.total_score)                                         AS avg_total_score,
+  AVG(sr.exposure_freq)                                       AS avg_exposure_freq,
+  AVG(sr.naver_channel_score)                                 AS avg_naver_channel,
+  AVG(sr.global_channel_score)                                AS avg_global_channel,
+  -- 플랫폼별 언급률 (JSONB → boolean)
+  ROUND(
+    AVG(CASE WHEN (sr.gemini_result->>'mentioned')::boolean THEN 1 ELSE 0 END) * 100, 1
+  )                                                           AS gemini_mention_rate,
+  ROUND(
+    AVG(CASE WHEN (sr.chatgpt_result->>'mentioned')::boolean THEN 1 ELSE 0 END) * 100, 1
+  )                                                           AS chatgpt_mention_rate,
+  ROUND(
+    AVG(CASE WHEN (sr.naver_result->>'mentioned')::boolean THEN 1 ELSE 0 END) * 100, 1
+  )                                                           AS naver_mention_rate
+FROM scan_results sr
+GROUP BY sr.business_id, DATE_TRUNC('week', sr.scanned_at)
+ORDER BY week_start DESC;

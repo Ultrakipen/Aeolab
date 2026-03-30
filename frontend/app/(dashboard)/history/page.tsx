@@ -9,9 +9,8 @@ import { History, ImageIcon, TrendingUp, Calendar, Download } from 'lucide-react
 
 export default async function HistoryPage() {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) redirect('/login')
-  const user = session.user
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (!user || error) redirect('/login')
 
   const { data: businesses } = await supabase
     .from('businesses')

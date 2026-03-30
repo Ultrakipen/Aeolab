@@ -215,6 +215,7 @@ SECRET_KEY=random-32-char-string
 | team_members | 팀 계정 (Biz: 5명, Enterprise: 20명) |
 | api_keys | Public API 키 (Biz/Enterprise 전용, 최대 5개) |
 | waitlist | 대기자 명단 (Phase 0) |
+| trial_scans | 무료 체험 스캔 결과 (비로그인, IP 해시 저장, scan.py + report.py 참조) |
 
 ---
 
@@ -295,9 +296,9 @@ SECRET_KEY=random-32-char-string
 ### Phase 0 — 검증 (1~2주)
 - [x] 랜딩 페이지 (업종/지역 입력 폼)
 - [x] 무료 원샷 체험 (Gemini API 연결 + 이메일 수집)
-- [ ] Supabase 프로젝트 생성 + scripts/supabase_schema.sql 실행
-- [ ] .env.local / backend/.env 환경변수 설정
-- [ ] 엔드투엔드 체험 플로우 테스트 (trial 페이지)
+- [x] Supabase 프로젝트 생성 + scripts/supabase_schema.sql 실행
+- [x] .env.local / backend/.env 환경변수 설정
+- [x] 엔드투엔드 체험 플로우 테스트 (trial 페이지)
 - [ ] 소상공인 30명 현장 인터뷰
 - [ ] 9,900원 YES 10명+ 확인 → Phase 1 착수 결정
 
@@ -311,7 +312,7 @@ SECRET_KEY=random-32-char-string
 - [x] 토스페이먼츠 결제 + 빌링키 발급 (자동갱신)
 - [x] 플랜 제한 미들웨어 (PlanGate 컴포넌트 + plan_gate.py)
 - [x] Rate Limiting (Nginx 설정 필요 + FastAPI 월별 한도)
-- [ ] Nginx Rate Limiting 서버 설정 적용
+- [x] Nginx Rate Limiting 서버 설정 적용
 - [ ] 유료 구독자 20명 달성 (BEP)
 
 ### Phase 2 — v1.0 (11~24주)
@@ -323,7 +324,7 @@ SECRET_KEY=random-32-char-string
 - [x] 30일 추세선 차트 (TrendLine + Recharts)
 - [x] Before/After 히스토리 페이지
 - [x] 관리자 대시보드 API (/admin/stats 등)
-- [ ] 카카오 알림톡 템플릿 5종 심사 신청 (3~5 영업일)
+- [x] 카카오 알림톡 템플릿 5종 심사 신청 (심사 중 — 승인 후 KAKAO_APP_KEY·KAKAO_SENDER_KEY 입력 필요)
 - [x] Pro 플랜 CSV 내보내기 (`/api/report/export/{biz_id}`)
 - [x] PDF 리포트 (`services/pdf_generator.py`, reportlab)
 - [x] 네이버 플레이스 통계 연동 (`services/naver_place_stats.py`, Playwright)
@@ -375,6 +376,23 @@ SECRET_KEY=random-32-char-string
 - 구독자 20명 BEP 달성 후 코드 품질·테스트·모니터링 체계화
 - iwinv 단독 → Vercel+Railway 분리는 구독자 100명 이후 진행
 - **비용 최적화:** 100회 샘플링은 Gemini Flash 주력, Claude는 가이드 생성 시만 호출
+
+### 작업 기준 — 실제 서버 우선
+
+> **모든 코드 수정·추가는 실제 서버에 직접 반영하는 것이 기준이다.**
+> 로컬 환경은 서버와 동일하게 맞추기 위한 복사본이다.
+
+- **서버 정보:** `root@115.68.231.57`, SSH 키 `~/.ssh/id_ed25519`
+- **서버 경로:** `/var/www/aeolab/`
+- **로컬 경로:** `C:/app_build/aeolab/`
+
+**작업 순서:**
+1. SSH로 서버 파일 직접 수정 또는 `scp`로 서버에 업로드
+2. 프론트엔드 변경 시: 서버에서 `npm run build`
+3. 재시작: `pm2 restart aeolab-frontend` / `pm2 restart aeolab-backend`
+4. 서버 작업 완료 후 `scp 서버 → 로컬`로 동기화하여 로컬도 동일하게 유지
+
+**테스트 URL:** `https://aeolab.co.kr` (로컬호스트 아님)
 
 ---
 
@@ -458,13 +476,15 @@ SECRET_KEY=random-32-char-string
 - `frontend/app/(dashboard)/settings/api-keys/page.tsx` — API 키 발급·폐기
 
 ### 남은 작업 (운영 환경)
-- [ ] Supabase Cloud 프로젝트 생성 + `scripts/supabase_schema.sql` 실행
-- [ ] `.env.local` / `backend/.env` 환경변수 설정
-- [ ] **`KAKAO_REST_API_KEY` 발급**: kakao developers.kakao.com → 앱 생성 → REST API 키 (알림톡 JS 키와 별개)
-- [ ] Supabase Storage `before-after` 버킷 생성 (Public 읽기 설정)
-- [ ] 카카오 알림톡 템플릿 5종 심사 신청
-- [ ] Nginx Rate Limiting 설정
-- [ ] iwinv 서버에 `reportlab` + `NotoSansCJK` 폰트 설치 (PDF 한글 출력용)
+- [x] Supabase Cloud 프로젝트 생성 + `scripts/supabase_schema.sql` 실행
+- [x] `.env.local` / `backend/.env` 환경변수 설정
+- [x] **`KAKAO_REST_API_KEY` 발급 및 설정** — 서버 `.env`에 적용 완료
+- [x] Supabase Storage `before-after` 버킷 생성 (Public 읽기 설정 확인 완료)
+- [x] 카카오 알림톡 템플릿 5종 심사 신청 완료 (심사 중)
+- [x] Nginx Rate Limiting 설정 (`limit_req_zone` + `/api/scan/trial` 적용 완료)
+- [x] iwinv 서버에 `reportlab 4.2.2` + `NotoSansCJK` 폰트 설치 완료
+- [ ] **카카오 알림톡 심사 승인 후**: `KAKAO_APP_KEY`, `KAKAO_SENDER_KEY` `.env` 입력 → `pm2 restart aeolab-backend`
+- [ ] **실결제 전환 시**: `TOSS_SECRET_KEY`를 `test_sk_...` → `live_sk_...` 교체 → 재시작
 - [ ] B2G 공식화 (지자체 MOU) — Phase 4
 
 ---
@@ -505,4 +525,47 @@ SECRET_KEY=random-32-char-string
 - **`routers/scan.py`**: 모든 `except Exception: pass` → `except Exception as e: _logger.warning(...)` 개선
 - **`scheduler/jobs.py`**: `_cleanup_memory_stores` 잡 추가 — 10분마다 TTL 캐시·SSE 토큰 정리
 
-*최종 업데이트: 2026-03-27 | v1.6 — 성능·보안 심층 개선 완료*
+### 추가 구현 완료 (v1.7 — AI 채널 분리 + 글로벌 AI 노출 강화)
+- **`score_engine.py`**: `_calc_naver_channel_score()` / `_calc_global_channel_score()` 추가, `calculate_score()` 반환에 채널 점수 포함, `_calc_completeness()`에 `google_place_id` / `kakao_place_id` 반영
+- **`services/website_checker.py`**: 신규 — aiohttp 기반 경량 웹사이트 SEO 체커 (JSON-LD, Open Graph, viewport, favicon, HTTPS, LocalBusiness schema, 8초 타임아웃)
+- **`routers/scan.py`**: 풀스캔에 카카오 가시성 + 웹사이트 체크 병렬 추가; trial 스캔 채널 점수 계산 적용; DB에 `kakao_result`, `website_check_result`, `naver_channel_score`, `global_channel_score` 저장
+- **`scripts/supabase_schema.sql`**: v1.7 ALTER TABLE — `businesses`에 `google_place_id`/`kakao_place_id`; `scan_results`에 채널 점수 + `kakao_result` + `website_check_result` + 인덱스 2개
+- **`frontend/types/index.ts`**: `Business`, `ScanResult`, `TrialScanResult` 타입 업데이트; `WebsiteCheckResult` 인터페이스 신규
+- **`components/dashboard/ChannelScoreCards.tsx`**: 신규 — 네이버 AI 채널 / 글로벌 AI 채널 분리 점수 카드
+- **`components/dashboard/GlobalAIBanner.tsx`**: 신규 — 글로벌 AI 점수 30점 미만 시 네이버 robots.txt 차단 교육 배너
+- **`components/dashboard/PlatformDistributionChart.tsx`**: 신규 — 채널별 플랫폼 노출 현황 바 차트
+- **`components/dashboard/WebsiteCheckCard.tsx`**: 신규 — 웹사이트 SEO 체크리스트 카드
+- **`components/scan/ResultTable.tsx`**: 네이버 생태계 / 글로벌 AI 채널 그룹 구분; AI 브리핑 배지 강조
+- **`app/(dashboard)/dashboard/page.tsx`**: 신규 컴포넌트 4개 통합
+- **`app/(public)/trial/page.tsx`**: 채널 분리 미리보기 + 네이버 robots.txt 교육 배너 추가
+- **`components/dashboard/RegisterBusinessForm.tsx`**: Google / 카카오 Place ID 입력 필드 추가
+
+### 운영 환경 추가 필요 작업 (v1.7)
+- [x] **Supabase SQL Editor**에서 `scripts/supabase_schema.sql` 하단 v1.7 ALTER TABLE 섹션 실행 완료
+
+### 도메인 모델 시스템 v2.1 구현 완료 (2026-03-30)
+
+**4-도메인 모델 (docs/model_system.md 기준) 전체 구현:**
+
+- **Phase A — 모델 정의**: `backend/models/context.py` (ScanContext Enum), `diagnosis.py`, `market.py`, `gap.py`, `action.py` 신규; `frontend/types/context.ts`, `diagnosis.ts`, `market.ts`, `gap.ts`, `action.ts` 신규
+- **Phase B — 스캔 context 분기**: `score_engine.py` WEIGHTS dict를 ScanContext별로 분리; `routers/scan.py` trial 스캔에 non_location 분기 추가 (naver/kakao 스킵, website checker 실행); `models/schemas.py` TrialScanRequest에 `website_url` 추가
+- **Phase C — GapAnalysis**: `services/gap_analyzer.py` 신규 — context별 가중치·gap_reason; `routers/report.py`에 `GET /api/report/gap/{biz_id}` 추가
+- **Phase D — ActionPlan + ActionTools**: `services/action_tools.py` 신규 (FAQ 7개·블로그 템플릿·스마트플레이스 체크리스트·SEO 체크리스트); `services/guide_generator.py`에 `generate_action_plan()` 추가 (ActionPlan Pydantic 반환)
+- **Phase E — 프론트엔드 연결**: `lib/api.ts`에 `getGapAnalysis()`, `getLatestActionPlan()`, `getGapCardUrl()` 추가; `components/dashboard/GapAnalysisCard.tsx` 신규; `competitors/page.tsx`에 GapAnalysis 섹션 통합
+
+**ScanContext 분기 검증 완료 (production 서버 테스트):**
+- `location_based`: naver + kakao 데이터 수집, WEIGHTS 30/20/15/15/10/10%
+- `non_location`: naver/kakao 스킵, website checker 실행, WEIGHTS 35/10/20/20/10/5%
+
+**Supabase 마이그레이션 완료:**
+- [x] `guides` 테이블: `scan_id`, `context`, `next_month_goal`, `tools_json` 컬럼 추가
+- [x] `score_history` 테이블: `context` 컬럼 추가
+- [x] `businesses` 테이블: `receipt_review_count` 컬럼 추가
+
+### 버그 수정 및 기능 개선 (v2.2 — 2026-03-30)
+- **`ScanTrigger.tsx`**: 대시보드 "AI 스캔 시작" 버튼 동작 불가 버그 수정 — 구 방식(`?business_name=`) → stream_token 2단계 인증 방식으로 전환; 버튼 disabled + "준비 중…" 로딩 표시 추가
+- **`trial/page.tsx`**: `TRIAL_DAY_LIMIT` 개발용 20 → 운영용 3 복구
+- **`SettingsClient.tsx`**: 카카오 알림 수신 설정 토글 UI 추가 (스캔 완료 알림 / 경쟁사 순위변동 알림)
+- **`backend/routers/settings.py`**: `PATCH /api/settings/me`에 `kakao_scan_notify`, `kakao_competitor_notify` 필드 저장 지원; `GET /api/settings/me`에 `profile` 반환 추가
+
+*최종 업데이트: 2026-03-30 | v2.2 — 스캔 버튼 버그 수정 + 카카오 알림 설정 UI + 운영 환경 전체 완료*

@@ -3,8 +3,9 @@ Public API 키 관리 (Biz/Enterprise 전용)
 개발자·대행사용 API 접근 키 발급 및 관리
 """
 import secrets
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from db.supabase_client import get_client, execute
+from middleware.plan_gate import get_current_user
 
 router = APIRouter()
 
@@ -30,8 +31,9 @@ async def _check_plan(user_id: str):
 
 
 @router.get("")
-async def list_api_keys(x_user_id: str = Header(...)):
+async def list_api_keys(user=Depends(get_current_user)):
     """발급된 API 키 목록 조회"""
+    x_user_id = user["id"]
     await _check_plan(x_user_id)
     supabase = get_client()
     keys = (
@@ -46,8 +48,9 @@ async def list_api_keys(x_user_id: str = Header(...)):
 
 
 @router.post("")
-async def create_api_key(name: str, x_user_id: str = Header(...)):
+async def create_api_key(name: str, user=Depends(get_current_user)):
     """API 키 발급 (최대 5개)"""
+    x_user_id = user["id"]
     await _check_plan(x_user_id)
     supabase = get_client()
 
@@ -83,7 +86,8 @@ async def create_api_key(name: str, x_user_id: str = Header(...)):
 
 
 @router.delete("/{key_id}")
-async def revoke_api_key(key_id: str, x_user_id: str = Header(...)):
+async def revoke_api_key(key_id: str, user=Depends(get_current_user)):
+    x_user_id = user["id"]
     """API 키 폐기"""
     supabase = get_client()
     await execute(

@@ -33,19 +33,83 @@ async def _verify_biz_ownership(supabase, biz_id: str, user_id: str) -> None:
 
 @router.get("/score/{biz_id}")
 async def get_score(biz_id: str, user=Depends(get_current_user)):
-    """AI Visibility Score 조회 (breakdown 포함) — 본인 사업장만"""
+    """DiagnosisReport — AI Visibility Score 전체 조회 (Domain 1)
+    channel_scores, website_health, score_breakdown 포함
+    """
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
-    result = await execute(
+
+    row = (await execute(
         supabase.table("scan_results")
-        .select("id, scanned_at, total_score, exposure_freq, score_breakdown, competitor_scores, query_used")
+        .select(
+            "id, scanned_at, total_score, exposure_freq, score_breakdown, "
+            "competitor_scores, query_used, "
+            "naver_channel_score, global_channel_score, "
+            "website_check_result, kakao_result"
+        )
         .eq("business_id", biz_id)
         .order("scanned_at", desc=True)
         .limit(1)
-    )
-    if not result.data:
+    )).data
+    if not row:
         raise HTTPException(status_code=404, detail="No scan results found")
-    return result.data[0]
+
+    r = row[0]
+    total = float(r.get("total_score") or 0)
+    grade = "A" if total >= 80 else "B" if total >= 60 else "C" if total >= 40 else "D"
+
+    naver_ch  = float(r.get("naver_channel_score") or 0)
+    global_ch = float(r.get("global_channel_score") or 0)
+    gap       = abs(naver_ch - global_ch)
+    if gap < 10:
+        dominant = "balanced"
+    elif naver_ch > global_ch:
+        dominant = "naver"
+    else:
+        dominant = "global"
+
+    # website_health — WebsiteHealth 도메인 모델 구조로 변환
+    wc = r.get("website_check_result") or {}
+    website_health = {
+        "has_json_ld":                wc.get("has_json_ld", False),
+        "has_schema_local_business":  wc.get("has_schema_local_business", False),
+        "has_open_graph":             wc.get("has_open_graph", False),
+        "is_mobile_friendly":         wc.get("is_mobile_friendly", False),
+        "has_favicon":                wc.get("has_favicon", False),
+        "is_https":                   wc.get("is_https", False),
+        "title":                      wc.get("title", ""),
+        "error":                      wc.get("error"),
+        "checked": bool(wc),
+    }
+
+    return {
+        "id":          r["id"],
+        "scanned_at":  r["scanned_at"],
+        "query_used":  r.get("query_used"),
+        "exposure_freq": r.get("exposure_freq", 0),
+        # DiagnosisReport — score_result
+        "score_result": {
+            "total_score": total,
+            "grade":       grade,
+            "breakdown":   r.get("score_breakdown") or {},
+        },
+        # DiagnosisReport — channel_scores
+        "channel_scores": {
+            "naver_channel":   naver_ch,
+            "global_channel":  global_ch,
+            "dominant_channel": dominant,
+            "channel_gap":     round(gap, 1),
+        },
+        # DiagnosisReport — website_health
+        "website_health": website_health,
+        # 하위호환 필드 (기존 대시보드 컴포넌트 지원)
+        "total_score":      total,
+        "grade":            grade,
+        "score_breakdown":  r.get("score_breakdown") or {},
+        "naver_channel_score":  naver_ch,
+        "global_channel_score": global_ch,
+        "competitor_scores":    r.get("competitor_scores"),
+    }
 
 
 @router.get("/history/{biz_id}")
@@ -190,33 +254,66 @@ def _compute_benchmark_stats(scores: list[float], category: str, region: str | N
 
 
 async def _query_benchmark_scores(supabase, category: str | None, region: str | None) -> list[float]:
-    """업종·지역 조건으로 최신 점수 목록 조회"""
-    q = supabase.table("businesses").select("id").eq("is_active", True)
-    if category:
-        q = q.eq("category", category)
-    if region:
-        # 접두어 매칭(prefix)으로 B-tree 인덱스 활용 가능 (%로 시작하지 않음)
-        region_prefix = region.split()[0]
-        q = q.ilike("region", f"{region_prefix}%")
-    businesses = (await execute(q.limit(200))).data or []
-    if not businesses:
-        return []
+    """업종·지역 조건으로 최신 점수 목록 조회
+    구독 사업장(score_history) + 무료 체험(trial_scans) 데이터를 합산
+    → 초기 데이터 부족 문제 해소 + 더 넓은 모집단으로 정확한 벤치마크
+    """
+    import asyncio
 
-    biz_ids = [b["id"] for b in businesses]
-    scores_raw = (
-        await execute(
-            supabase.table("score_history")
-            .select("business_id, total_score")
-            .in_("business_id", biz_ids)
-            .order("score_date", desc=True)
-            .limit(len(biz_ids) * 2)
+    region_prefix = region.split()[0] if region else None
+
+    # ── 1. 구독 사업장 최신 점수 ──────────────────────────────────
+    async def _registered_scores() -> list[float]:
+        q = supabase.table("businesses").select("id").eq("is_active", True)
+        if category:
+            q = q.eq("category", category)
+        if region_prefix:
+            q = q.ilike("region", f"{region_prefix}%")
+        businesses = (await execute(q.limit(200))).data or []
+        if not businesses:
+            return []
+        biz_ids    = [b["id"] for b in businesses]
+        scores_raw = (
+            await execute(
+                supabase.table("score_history")
+                .select("business_id, total_score")
+                .in_("business_id", biz_ids)
+                .order("score_date", desc=True)
+                .limit(len(biz_ids) * 2)
+            )
+        ).data or []
+        latest: dict = {}
+        for s in scores_raw:
+            if s["business_id"] not in latest:
+                latest[s["business_id"]] = float(s["total_score"])
+        return list(latest.values())
+
+    # ── 2. 무료 체험 스캔 점수 (최근 90일) ───────────────────────
+    async def _trial_scores() -> list[float]:
+        from datetime import datetime, timedelta, timezone
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+        q = (
+            supabase.table("trial_scans")
+            .select("total_score")
+            .gte("scanned_at", cutoff)
+            .not_.is_("total_score", "null")
         )
-    ).data or []
-    latest: dict = {}
-    for s in scores_raw:
-        if s["business_id"] not in latest:
-            latest[s["business_id"]] = s["total_score"]
-    return list(latest.values())
+        if category:
+            q = q.eq("category", category)
+        if region_prefix:
+            q = q.ilike("region", f"{region_prefix}%")
+        rows = (await execute(q.limit(500))).data or []
+        return [float(r["total_score"]) for r in rows if r.get("total_score") is not None]
+
+    registered, trial = await asyncio.gather(
+        _registered_scores(), _trial_scores(), return_exceptions=True
+    )
+    if isinstance(registered, Exception):
+        registered = []
+    if isinstance(trial, Exception):
+        trial = []
+
+    return registered + trial
 
 
 @router.get("/benchmark/{category}/{region}")
@@ -258,6 +355,129 @@ async def get_benchmark(category: str, region: str):
              "fallback": "global", "fallback_message": "아직 비교 데이터가 없습니다"}
     _cache.set(cache_key, empty, 300)  # 빈 결과는 5분만 캐시
     return empty
+
+
+@router.get("/market/{biz_id}")
+async def get_market(biz_id: str, user=Depends(get_current_user)):
+    """MarketLandscape — 업종·지역 시장 현황 통합 조회 (Domain 2)
+    MarketPosition, CompetitorProfile[], MarketDistribution 포함
+    """
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    cache_key = _cache._make_key("market", biz_id)
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    # 사업장 기본 정보
+    biz = (await execute(
+        supabase.table("businesses")
+        .select("id, name, category, region, business_type")
+        .eq("id", biz_id)
+        .single()
+    )).data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    context  = biz.get("business_type") or "location_based"
+    category = biz["category"]
+    region   = biz.get("region") if context == "location_based" else None
+
+    # 내 최신 점수 + 카테고리 내 순위
+    my_hist = (await execute(
+        supabase.table("score_history")
+        .select("total_score, rank_in_category, total_in_category, score_date")
+        .eq("business_id", biz_id)
+        .order("score_date", desc=True)
+        .limit(1)
+    )).data
+    my_score      = float(my_hist[0]["total_score"])     if my_hist else 0.0
+    my_rank       = my_hist[0].get("rank_in_category")   if my_hist else None
+    total_in_cat  = my_hist[0].get("total_in_category")  if my_hist else None
+
+    # 등록 경쟁사 목록
+    comp_rows = (await execute(
+        supabase.table("competitors")
+        .select("id, name, address")
+        .eq("business_id", biz_id)
+        .eq("is_active", True)
+    )).data or []
+
+    # 경쟁사 점수 (최신 스캔의 competitor_scores JSONB)
+    scan_row = (await execute(
+        supabase.table("scan_results")
+        .select("competitor_scores")
+        .eq("business_id", biz_id)
+        .order("scanned_at", desc=True)
+        .limit(1)
+    )).data
+    raw_comp_scores = {}
+    if scan_row:
+        raw = scan_row[0].get("competitor_scores") or {}
+        if isinstance(raw, dict):
+            raw_comp_scores = raw
+
+    competitor_profiles = []
+    for c in comp_rows:
+        entry = raw_comp_scores.get(c["id"]) or {}
+        score = float(entry.get("score", 0)) if isinstance(entry, dict) else float(entry or 0)
+        competitor_profiles.append({
+            "id":      c["id"],
+            "name":    c["name"],
+            "address": c.get("address"),
+            "score":   score,
+        })
+    competitor_profiles.sort(key=lambda x: x["score"], reverse=True)
+
+    # 업종·지역 벤치마크 (MarketDistribution)
+    benchmark_scores = await _query_benchmark_scores(supabase, category=category, region=region)
+    avg_score = top10_score = 0.0
+    distribution = []
+    percentile   = None
+
+    if benchmark_scores:
+        sorted_scores = sorted(benchmark_scores)
+        count         = len(sorted_scores)
+        avg_score     = round(sum(sorted_scores) / count, 1)
+        top10_idx     = max(0, int(count * 0.9))
+        top10_score   = round(sorted_scores[top10_idx], 1)
+
+        bands  = [0, 20, 40, 60, 80, 100]
+        grades = ["D", "D", "C", "B", "A"]
+        distribution = [
+            {
+                "grade": grades[i],
+                "range": f"{bands[i]}~{bands[i+1]}",
+                "count": sum(1 for s in sorted_scores if bands[i] <= s < bands[i+1]),
+            }
+            for i in range(len(bands) - 1)
+        ]
+        below_me   = sum(1 for s in sorted_scores if s < my_score)
+        percentile = round(below_me / count * 100, 1)
+
+    result = {
+        "biz_id":   biz_id,
+        "context":  context,
+        "category": category,
+        "region":   region,
+        # MarketPosition
+        "market_position": {
+            "my_score":          my_score,
+            "my_rank":           my_rank,
+            "total_in_category": total_in_cat or len(benchmark_scores),
+            "percentile":        percentile,
+            "avg_score":         avg_score,
+            "top10_score":       top10_score,
+        },
+        # CompetitorProfile[]
+        "competitors":    competitor_profiles,
+        # MarketDistribution
+        "distribution":   distribution,
+        "sample_count":   len(benchmark_scores),
+    }
+    _cache.set(cache_key, result, _TTL_RANKING)
+    return result
 
 
 @router.get("/export/{biz_id}")
@@ -346,7 +566,7 @@ async def export_pdf(biz_id: str, x_user_id: str = Header(...)):
     biz = (
         await execute(
             supabase.table("businesses")
-            .select("id, name, category, region, address, phone, website_url, keywords, has_schema")
+            .select("id, name, category, region, address, phone, website_url, keywords")
             .eq("id", biz_id)
             .single()
         )
@@ -357,7 +577,7 @@ async def export_pdf(biz_id: str, x_user_id: str = Header(...)):
     latest_scan = (
         await execute(
             supabase.table("scan_results")
-            .select("*")
+            .select("id, scanned_at, total_score, exposure_freq, score_breakdown, naver_channel_score, global_channel_score, query_used, gemini_result, chatgpt_result, naver_result, google_result")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(1)
@@ -369,7 +589,7 @@ async def export_pdf(biz_id: str, x_user_id: str = Header(...)):
     history = (
         await execute(
             supabase.table("score_history")
-            .select("*")
+            .select("score_date, total_score, exposure_freq, rank_in_category, total_in_category, weekly_change")
             .eq("business_id", biz_id)
             .order("score_date", desc=True)
             .limit(30)
@@ -415,7 +635,7 @@ async def get_share_page_data(biz_id: str):
     score_data = (
         await execute(
             supabase.table("score_history")
-            .select("total_score, exposure_freq, created_at")
+            .select("total_score, exposure_freq, score_date")
             .eq("business_id", biz_id)
             .order("score_date", desc=True)
             .limit(1)
@@ -434,7 +654,7 @@ async def get_share_page_data(biz_id: str):
         "score": score,
         "grade": grade,
         "gemini_frequency": s.get("exposure_freq", 0),
-        "scanned_at": s.get("created_at", ""),
+        "scanned_at": s.get("score_date", ""),
     }
 
 
@@ -607,7 +827,7 @@ async def get_mention_context(biz_id: str, x_user_id: str = Header(...)):
     citations = (
         await execute(
             supabase.table("ai_citations")
-            .select("*")
+            .select("id, platform, query, mentioned, excerpt, sentiment, mention_type, created_at")
             .eq("business_id", biz_id)
             .order("created_at", desc=True)
             .limit(20)
@@ -623,3 +843,94 @@ async def get_mention_context(biz_id: str, x_user_id: str = Header(...)):
             "total": len(citations),
         },
     }
+
+
+@router.get("/gap-card/{biz_id}")
+async def get_gap_card(biz_id: str, user=Depends(get_current_user)):
+    """갭 카드 PNG 즉시 생성 — 경쟁사 AI 순위 시각화 (Basic+)"""
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    # 사업장 정보
+    biz = (
+        await execute(supabase.table("businesses").select("id, name, category, region, business_type").eq("id", biz_id).maybe_single())
+    ).data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    # 최신 스캔 결과
+    scan = (
+        await execute(
+            supabase.table("scan_results")
+            .select("total_score, competitor_scores, score_breakdown")
+            .eq("business_id", biz_id)
+            .order("scanned_at", { "ascending": False })
+            .limit(1)
+            .maybe_single()
+        )
+    ).data
+
+    if not scan:
+        raise HTTPException(status_code=404, detail="스캔 결과가 없습니다. 먼저 AI 스캔을 실행해주세요.")
+
+    my_score = float(scan.get("total_score", 0))
+    competitor_scores: dict = scan.get("competitor_scores") or {}
+
+    # 경쟁사 이름 조회
+    comp_rows = (
+        await execute(
+            supabase.table("competitors")
+            .select("id, name")
+            .eq("business_id", biz_id)
+            .eq("is_active", True)
+        )
+    ).data or []
+    comp_name_map = {c["id"]: c["name"] for c in comp_rows}
+
+    competitor_items = [
+        {"name": comp_name_map.get(cid, "경쟁사"), "score": float(v.get("score", 0))}
+        for cid, v in competitor_scores.items()
+    ]
+
+    # 개선 힌트 — 가장 낮은 항목 기반
+    breakdown = scan.get("score_breakdown") or {}
+    LABELS = {
+        "exposure_freq": "Gemini 노출 빈도",
+        "review_quality": "리뷰 품질",
+        "schema_score": "Schema 구조화",
+        "online_mentions": "온라인 언급",
+        "info_completeness": "정보 완성도",
+        "content_freshness": "콘텐츠 최신성",
+    }
+    lowest = min(breakdown.items(), key=lambda x: x[1], default=(None, None))
+    hint = f"{LABELS.get(lowest[0], '')} 개선 시 점수 상승 예상" if lowest[0] else ""
+
+    from services.gap_card import generate_gap_card
+    png_bytes = generate_gap_card(
+        business_name=biz["name"],
+        region=biz.get("region", ""),
+        category=biz.get("category", ""),
+        my_score=my_score,
+        competitor_items=competitor_items,
+        hint=hint,
+    )
+
+    return Response(content=png_bytes, media_type="image/png")
+
+
+# ── GapAnalysis — 도메인 모델 v2.1 § 7 ────────────────────────────────────────
+
+@router.get("/gap/{biz_id}")
+async def get_gap_analysis(biz_id: str, user=Depends(get_current_user)):
+    """격차 분석 — 내 점수와 1위 경쟁사의 항목별 격차 계산 (Basic+)"""
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    from services.gap_analyzer import analyze_gap_from_db
+    result = await analyze_gap_from_db(biz_id, supabase)
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="격차 분석에 필요한 스캔 데이터 또는 경쟁사 데이터가 없습니다. 먼저 AI 스캔을 실행하고 경쟁사를 등록해주세요.",
+        )
+    return result.model_dump(mode="json")
