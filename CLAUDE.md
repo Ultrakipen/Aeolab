@@ -568,4 +568,16 @@ SECRET_KEY=random-32-char-string
 - **`SettingsClient.tsx`**: 카카오 알림 수신 설정 토글 UI 추가 (스캔 완료 알림 / 경쟁사 순위변동 알림)
 - **`backend/routers/settings.py`**: `PATCH /api/settings/me`에 `kakao_scan_notify`, `kakao_competitor_notify` 필드 저장 지원; `GET /api/settings/me`에 `profile` 반환 추가
 
-*최종 업데이트: 2026-03-30 | v2.2 — 스캔 버튼 버그 수정 + 카카오 알림 설정 UI + 운영 환경 전체 완료*
+### 모델 정합성 개선 (v2.3 — 2026-03-30)
+- **`backend/models/entities.py`**: 신규 — Business, Competitor, Subscription 핵심 엔티티 Pydantic 모델 (model_system.md § 4 기준)
+- **`frontend/types/entities.ts`**: 신규 — Business, Competitor, Subscription, Plan TypeScript 엔티티 타입 분리
+- **`frontend/types/index.ts`**: entities.ts에서 핵심 엔티티 re-export로 변경 (중복 제거)
+- **`frontend/types/market.ts`**: MarketLandscape 타입을 API 응답 구조와 동기화
+- **`backend/routers/report.py`**: `GET /score/{biz_id}` → DiagnosisReport 전체 구조 반환 (channel_scores + website_health + 하위호환 필드)
+- **`backend/routers/report.py`**: `GET /market/{biz_id}` 신규 — MarketLandscape Domain 2 통합 엔드포인트 (30분 캐시)
+- **`backend/routers/guide.py`**: `_verify_biz_ownership` 런타임 버그 수정 (미정의 함수 참조)
+- **`frontend/lib/api.ts`**: `getMarket()` 추가 (Domain 2 API 호출)
+- **`scripts/supabase_schema.sql`**: v2.2 — gap_cards 테이블 + weekly_scores 뷰 추가
+- 미커밋 파일 73개 전체 git 추적 추가 및 서버 배포 완료
+
+*최종 업데이트: 2026-03-30 | v2.3 — 도메인 모델 정합성 전면 개선 + 서버 배포 완료*
