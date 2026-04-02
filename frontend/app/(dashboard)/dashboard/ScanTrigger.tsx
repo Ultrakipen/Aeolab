@@ -12,14 +12,19 @@ interface Props {
   businessName: string
   category: string
   region: string
+  scanUsed?: number
+  scanLimit?: number
 }
 
-export function ScanTrigger({ businessId, businessName, category, region }: Props) {
+export function ScanTrigger({ businessId, businessName, category, region, scanUsed = 0, scanLimit = 0 }: Props) {
   const router = useRouter()
   const [scanning, setScanning] = useState(false)
   const [loading, setLoading] = useState(false)
   const [eventSource, setEventSource] = useState<EventSource | null>(null)
   const [error, setError] = useState('')
+  const [completed, setCompleted] = useState(false)
+
+  const limitReached = scanLimit > 0 && scanLimit < 999 && scanUsed >= scanLimit
 
   const startScan = async () => {
     setError('')
@@ -46,7 +51,7 @@ export function ScanTrigger({ businessId, businessName, category, region }: Prop
         if (code === 'SCAN_IN_PROGRESS') {
           setError('이미 스캔이 진행 중입니다. 잠시 후 다시 시도해주세요.')
         } else if (code === 'SCAN_LIMIT') {
-          setError('이번 달 스캔 횟수를 모두 사용했습니다.')
+          setError('오늘 수동 스캔 횟수를 모두 사용했습니다. 자동 스캔은 새벽 2시에 실행됩니다.')
         } else {
           setError('스캔을 시작할 수 없습니다. 잠시 후 다시 시도해주세요.')
         }
@@ -71,7 +76,10 @@ export function ScanTrigger({ businessId, businessName, category, region }: Prop
   const handleComplete = () => {
     setScanning(false)
     setEventSource(null)
+    setCompleted(true)
     router.refresh()
+    // 5초 후 완료 메시지 숨김
+    setTimeout(() => setCompleted(false), 5000)
   }
 
   const handleError = () => {
@@ -96,14 +104,25 @@ export function ScanTrigger({ businessId, businessName, category, region }: Prop
 
   return (
     <div className="flex flex-col items-end gap-1">
+      {completed && (
+        <p className="text-base text-green-600 font-medium">✓ 스캔 완료! 결과를 업데이트했습니다.</p>
+      )}
       <button
         onClick={startScan}
-        disabled={loading}
-        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        disabled={loading || limitReached}
+        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-base font-medium hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {loading ? '준비 중…' : 'AI 스캔 시작'}
+        {loading ? '준비 중…' : limitReached ? `오늘 스캔 완료 (${scanUsed}/${scanLimit}회)` : 'AI 스캔 시작'}
       </button>
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {/* 스캔 횟수 표시 (한도 있는 플랜) */}
+      {scanLimit > 0 && scanLimit < 999 && (
+        <p className={`text-sm ${limitReached ? 'text-gray-500' : 'text-gray-400'}`}>
+          {limitReached
+            ? '새벽 2시에 자동 스캔이 실행됩니다'
+            : `오늘 ${scanUsed}/${scanLimit}회 사용`}
+        </p>
+      )}
+      {error && <p className="text-base text-red-500 text-right max-w-[240px]">{error}</p>}
     </div>
   )
 }

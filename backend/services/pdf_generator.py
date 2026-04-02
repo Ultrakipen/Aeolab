@@ -47,7 +47,6 @@ PLATFORM_LABELS = {
     "grok": "Grok",
     "naver": "네이버 AI 브리핑",
     "claude": "Claude AI",
-    "zeta": "뤼튼(Zeta)",
 }
 
 

@@ -1,12 +1,12 @@
 """
 ActionTools 생성 서비스
-도메인 모델 v2.1 § 8 — context별 실행 도구 생성
+도메인 모델 v2.4 § 8 — context별 실행 도구 생성
 ActionPlan의 tools 필드를 채우는 역할
 """
 import json
 import logging
 from models.context import ScanContext
-from models.action import ActionTools, FAQ
+from models.action import ActionTools, FAQ, ReviewResponseDraft
 
 _logger = logging.getLogger("aeolab")
 
@@ -257,14 +257,216 @@ def build_seo_checklist(website_health: dict = None) -> list[str]:
     return checklist
 
 
+def build_review_response_drafts(biz: dict, recent_reviews: list[dict] = None) -> list[ReviewResponseDraft]:
+    """리뷰 답변 초안 3개 생성 (긍정/부정/일반)
+
+    리뷰 답변율은 네이버 AI 브리핑·Google AI 추천의 직접 신호.
+    recent_reviews: [{"text": str, "rating": int}, ...] — 없으면 템플릿으로 생성
+    """
+    name = biz.get("name", "우리 가게")
+    category = biz.get("category", "")
+
+    if recent_reviews:
+        drafts = []
+        for review in recent_reviews[:3]:
+            rating = review.get("rating", 5)
+            snippet = review.get("text", "")[:50]
+            if rating >= 4:
+                tone = "grateful"
+                response = (
+                    f"소중한 리뷰 감사합니다! {name}을 찾아주셔서 정말 기쁩니다. "
+                    f"앞으로도 더 좋은 서비스로 보답하겠습니다. 또 방문해 주세요 😊"
+                )
+            elif rating <= 2:
+                tone = "apologetic"
+                response = (
+                    f"불편을 드려 진심으로 사과드립니다. 소중한 말씀 감사히 듣겠습니다. "
+                    f"더 나은 {category} 서비스를 위해 즉시 개선하겠습니다. "
+                    f"다음에 다시 방문해 주신다면 더 만족스러운 경험을 드리겠습니다."
+                )
+            else:
+                tone = "neutral"
+                response = (
+                    f"리뷰 남겨주셔서 감사합니다. {name}을 이용해 주셔서 감사드립니다. "
+                    f"더 좋은 서비스로 보답하겠습니다. 또 뵙겠습니다!"
+                )
+            drafts.append(ReviewResponseDraft(
+                review_snippet=snippet,
+                rating=rating,
+                draft_response=response,
+                tone=tone,
+            ))
+        return drafts
+
+    # 템플릿 기반 (리뷰 데이터 없을 때)
+    return [
+        ReviewResponseDraft(
+            review_snippet="(긍정 리뷰 — 별점 4~5)",
+            rating=5,
+            draft_response=(
+                f"소중한 리뷰 감사합니다! {name}을 찾아주셔서 정말 기쁩니다. "
+                f"앞으로도 최고의 {category} 서비스로 보답하겠습니다. 다음에 또 만나요 😊"
+            ),
+            tone="grateful",
+        ),
+        ReviewResponseDraft(
+            review_snippet="(부정 리뷰 — 별점 1~2)",
+            rating=2,
+            draft_response=(
+                f"불편을 드려 진심으로 사과드립니다. 소중한 말씀 감사히 받겠습니다. "
+                f"{name}은 고객 만족을 최우선으로 생각합니다. "
+                f"지적해 주신 부분을 즉시 개선하겠습니다. 다시 한 번 기회를 주시면 더 나은 모습을 보여드리겠습니다."
+            ),
+            tone="apologetic",
+        ),
+        ReviewResponseDraft(
+            review_snippet="(일반 리뷰 — 별점 3)",
+            rating=3,
+            draft_response=(
+                f"방문해 주시고 리뷰 남겨주셔서 감사합니다. "
+                f"{name}을 이용해 주셔서 감사드립니다. "
+                f"더 좋은 서비스로 보답하겠습니다. 또 방문해 주세요!"
+            ),
+            tone="neutral",
+        ),
+    ]
+
+
+def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
+    """스마트플레이스 '사장님 Q&A' 탭에 바로 등록 가능한 FAQ (location_based 전용)
+
+    네이버 AI 브리핑의 가장 직접적 인용 경로:
+    스마트플레이스 FAQ 답변이 네이버 AI 브리핑에 그대로 노출됨.
+    """
+    name = biz.get("name", "저희 가게")
+    category = biz.get("category", "")
+    region = biz.get("region", "")
+    region_short = region.split()[0] if region else region
+    address = biz.get("address", f"{region} 위치")
+    phone = biz.get("phone", "")
+    keywords = biz.get("keywords") or []
+    kw1 = keywords[0] if keywords else category
+
+    return [
+        FAQ(
+            question=f"{region_short} {category} 추천할 수 있나요?",
+            answer=(
+                f"네, {name}을 추천드립니다. {region_short}에서 {kw1} 전문으로 운영하고 있으며, "
+                f"지역 고객분들께 꾸준히 사랑받고 있습니다. "
+                f"방문 전 전화 또는 네이버 예약을 이용해 주세요."
+            ),
+        ),
+        FAQ(
+            question="영업시간이 어떻게 되나요?",
+            answer=(
+                f"{name}의 영업시간은 네이버 스마트플레이스에서 확인하실 수 있습니다. "
+                f"공휴일 및 임시 휴무는 네이버 공지사항을 참고해 주세요. "
+                f"방문 전 확인을 권장드립니다."
+            ),
+        ),
+        FAQ(
+            question="주차가 가능한가요?",
+            answer=(
+                f"{name} 주변 주차 정보는 네이버 지도에서 '주차' 검색으로 확인하실 수 있습니다. "
+                f"자세한 안내는 {phone or '전화 문의'}를 통해 확인해 주세요."
+            ),
+        ),
+        FAQ(
+            question="예약이 필요한가요?",
+            answer=(
+                f"{name}은 네이버 예약을 통해 편리하게 예약하실 수 있습니다. "
+                f"주말·공휴일은 사전 예약을 권장드립니다. "
+                f"당일 방문도 가능하지만, 대기 시간이 발생할 수 있습니다."
+            ),
+        ),
+        FAQ(
+            question=f"{name}의 대표 메뉴(서비스)는 무엇인가요?",
+            answer=(
+                f"{name}의 대표 {kw1}는 고객들이 가장 많이 찾는 메뉴입니다. "
+                f"자세한 내용은 네이버 스마트플레이스 메뉴 탭 또는 "
+                f"카카오맵에서 확인하실 수 있습니다."
+            ),
+        ),
+    ]
+
+
+def build_review_request_message(
+    biz: dict,
+    top_priority_keyword: str | None = None,
+    missing_keywords: list[str] | None = None,
+) -> str:
+    """QR코드·영수증·테이블 카드에 넣을 리뷰 유도 문구
+
+    리뷰 수 증가 → review_quality 점수 상승 → AI 검색 추천 확률 상승
+
+    키워드 타겟팅:
+    - top_priority_keyword가 있으면 그 키워드를 자연스럽게 유도
+    - 네이버 리뷰 정책 엄수: 리워드 제공 암시 금지 (정책 위반 시 리뷰 삭제 + 제재)
+    """
+    from services.keyword_taxonomy import build_qr_message as _qr_msg
+
+    name = biz.get("name", "저희 가게")
+    naver_place_id = biz.get("naver_place_id", "")
+
+    naver_url = (
+        f"https://map.naver.com/p/entry/place/{naver_place_id}"
+        if naver_place_id else f"네이버 지도에서 '{name}' 검색 후 리뷰 작성"
+    )
+
+    # 키워드 타겟팅 문구 (있을 경우)
+    if top_priority_keyword:
+        keyword_msg = _qr_msg(
+            top_priority_keyword=top_priority_keyword,
+            missing_keywords=missing_keywords or [],
+            business_name=name,
+        )
+    else:
+        keyword_msg = f"오늘 {name} 방문 어떠셨나요? 솔직한 경험을 짧게 남겨주시면 감사하겠습니다."
+
+    return (
+        f"{keyword_msg}\n\n"
+        f"📝 네이버 리뷰 작성: {naver_url}"
+    )
+
+
+def build_naver_post_template(biz: dict) -> str:
+    """스마트플레이스 '소식' (공지사항) 등록용 초안 (location_based 전용)
+
+    블로그 글쓰기가 어려운 소상공인용 대안.
+    스마트플레이스 소식은 네이버 검색 결과와 AI 브리핑에 직접 노출됨.
+    200~300자 단문으로 작성.
+    """
+    name = biz.get("name", "저희 가게")
+    category = biz.get("category", "")
+    region = biz.get("region", "")
+    region_short = region.split()[0] if region else region
+    keywords = biz.get("keywords") or []
+    kw1 = keywords[0] if keywords else category
+
+    return (
+        f"✨ {name} 소식\n\n"
+        f"{region_short} {category}을 찾고 계신가요?\n\n"
+        f"{name}은 {kw1} 전문으로 지역 고객분들께 꾸준히 사랑받고 있습니다.\n"
+        f"최신 메뉴와 이벤트 정보는 네이버 스마트플레이스에서 확인하세요!\n\n"
+        f"📌 예약: 네이버 예약\n"
+        f"📞 문의: {biz.get('phone', '전화 문의')}\n"
+        f"📍 위치: {biz.get('address', region)}"
+    )
+
+
 async def build_action_tools(
     biz: dict,
     context: str,
     website_health: dict = None,
     naver_data: dict = None,
     scan_id: str = None,
+    recent_reviews: list[dict] = None,
+    keyword_gap: dict | None = None,
 ) -> ActionTools:
-    """ActionTools 전체 생성 (guide_generator.py에서 호출)"""
+    """ActionTools 전체 생성 (guide_generator.py에서 호출)
+
+    v2.6 추가: direct_briefing_paths — 고객 없이 오늘 당장 할 수 있는 AI 브리핑 강화 4경로
+    """
     try:
         ctx = ScanContext(context)
     except ValueError:
@@ -288,6 +490,42 @@ async def build_action_tools(
     # SEO 체크리스트 (non_location 전용)
     seo_checklist = build_seo_checklist(website_health) if ctx == ScanContext.NON_LOCATION else None
 
+    # v2.4 추가 — 소상공인 즉시 활용 도구
+    review_drafts = build_review_response_drafts(biz, recent_reviews)
+
+    smart_place_faq = build_smart_place_faq_answers(biz) if ctx == ScanContext.LOCATION_BASED else None
+
+    # v2.5 — keyword_gap이 있으면 1순위 키워드 타겟팅 QR 문구 생성
+    top_kw = keyword_gap.get("top_priority_keyword") if keyword_gap else None
+    missing_kws = keyword_gap.get("missing_keywords") if keyword_gap else None
+    comp_only_kws = keyword_gap.get("competitor_only_keywords") if keyword_gap else None
+    covered_kws = keyword_gap.get("covered_keywords") if keyword_gap else None
+    coverage_rate = keyword_gap.get("coverage_rate", 0.0) if keyword_gap else 0.0
+
+    review_request = build_review_request_message(biz, top_kw, missing_kws)
+
+    naver_post = build_naver_post_template(biz) if ctx == ScanContext.LOCATION_BASED else None
+
+    # v2.6 — AI 브리핑 직접 관리 경로 (location_based 전용)
+    direct_paths: list[dict] = []
+    briefing_summary = ""
+    if ctx == ScanContext.LOCATION_BASED and keyword_gap:
+        try:
+            from services.briefing_engine import build_direct_briefing_paths, build_briefing_summary
+            direct_paths = build_direct_briefing_paths(
+                biz=biz,
+                missing_keywords=missing_kws or [],
+                competitor_only_keywords=comp_only_kws or [],
+                existing_keywords=covered_kws or [],
+            )
+            briefing_summary = build_briefing_summary(
+                paths=direct_paths,
+                coverage_rate=coverage_rate,
+                top_priority_keyword=top_kw,
+            )
+        except Exception as e:
+            _logger.warning(f"direct_briefing_paths 생성 실패: {e}")
+
     return ActionTools(
         json_ld_schema=json_ld,
         faq_list=faq_list,
@@ -295,6 +533,12 @@ async def build_action_tools(
         blog_post_template=blog_template,
         smart_place_checklist=smart_place,
         seo_checklist=seo_checklist,
+        review_response_drafts=review_drafts,
+        smart_place_faq_answers=smart_place_faq,
+        review_request_message=review_request,
+        naver_post_template=naver_post,
+        direct_briefing_paths=direct_paths,
+        briefing_summary=briefing_summary,
     )
 
 

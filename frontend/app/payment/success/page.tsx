@@ -75,7 +75,7 @@ function PaymentSuccessContent() {
           <span className="font-semibold text-blue-600">{planName}</span> 플랜이 활성화되었습니다.
         </p>
         <p className="text-gray-400 text-sm mb-8">
-          이제 6개 AI 플랫폼 자동 스캔과 개선 가이드를 이용할 수 있습니다.
+          이제 7개 AI 플랫폼 자동 스캔과 개선 가이드를 이용할 수 있습니다.
         </p>
 
         <div className="space-y-3">

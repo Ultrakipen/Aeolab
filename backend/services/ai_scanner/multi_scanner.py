@@ -6,11 +6,10 @@ from .perplexity_scanner import PerplexityScanner
 from .grok_scanner import GrokScanner
 from .naver_scanner import NaverAIBriefingScanner
 from .claude_scanner import ClaudeScanner
-from .zeta_scanner import ZetaScanner
 from .google_scanner import GoogleAIOverviewScanner
 
-# Playwright 인스턴스 1개 = RAM 300~500MB → 최대 2개 동시 실행으로 제한 (서버 RAM 4GB 보호)
-PLAYWRIGHT_SEMAPHORE = asyncio.Semaphore(2)
+# Playwright 인스턴스 1개 = RAM 300~500MB → 동시 1개로 제한 (RAM 4GB 서버 OOM 방지)
+PLAYWRIGHT_SEMAPHORE = asyncio.Semaphore(1)
 
 
 class MultiAIScanner:
@@ -25,7 +24,6 @@ class MultiAIScanner:
         self.grok = GrokScanner()
         self.naver = NaverAIBriefingScanner()
         self.claude = ClaudeScanner()
-        self.zeta = ZetaScanner()
         self.google = GoogleAIOverviewScanner()
 
     async def scan_single(self, query: str, target: str) -> dict:
@@ -53,10 +51,9 @@ class MultiAIScanner:
 
         # Playwright 기반 스캐너: 세마포어로 동시성 제한 후 직렬 실행
         playwright_results = []
-        playwright_keys = ["naver", "zeta", "google"]
+        playwright_keys = ["naver", "google"]
         playwright_fns = [
             (self.naver.check_mention, query, target),
-            (self.zeta.check_mention, query, target),
             (self.google.check_mention, query, target),
         ]
         for fn, *args in playwright_fns:
@@ -92,8 +89,46 @@ class MultiAIScanner:
                       else {"platform": "naver",  "mentioned": False, "error": str(naver_result)},
         }
 
-    async def scan_with_progress(self, req) -> AsyncIterator[dict]:
-        """SSE 실시간 진행률 스트리밍 — Playwright 계열은 세마포어 제한"""
+    async def scan_all_no_perplexity(self, query: str, target: str) -> dict:
+        """7개 AI 병렬 스캔 — Perplexity 제외 (수동 스캔·비월요일 자동 스캔용)
+
+        비용: ~15원/회 (풀스캔 대비 40% 절감, Perplexity ~25원 제외)
+        """
+        api_tasks = [
+            self.gemini.sample_100(query, target),
+            self.chatgpt.check_mention(query, target),
+            self.grok.check(query, target),
+            self.claude.check_mention(query, target),
+        ]
+        api_keys = ["gemini", "chatgpt", "grok", "claude"]
+        api_results = await asyncio.gather(*api_tasks, return_exceptions=True)
+
+        playwright_results = []
+        playwright_keys = ["naver", "google"]
+        playwright_fns = [
+            (self.naver.check_mention, query, target),
+            (self.google.check_mention, query, target),
+        ]
+        for fn, *args in playwright_fns:
+            try:
+                result = await self._run_playwright(fn, *args)
+            except Exception as e:
+                result = e
+            playwright_results.append(result)
+            await asyncio.sleep(2)
+
+        all_keys = api_keys + playwright_keys
+        all_results = list(api_results) + playwright_results
+        return {
+            k: (v if not isinstance(v, Exception) else {"platform": k, "mentioned": False, "error": str(v)})
+            for k, v in zip(all_keys, all_results)
+        }
+
+    async def scan_with_progress(self, req, include_perplexity: bool = False) -> AsyncIterator[dict]:
+        """SSE 실시간 진행률 스트리밍 — Playwright 계열은 세마포어 제한
+
+        include_perplexity: True면 Perplexity 포함 (월요일 자동 스캔 전용)
+        """
         region = getattr(req, "region", None) or ""
         category = getattr(req, "category", "")
         business_type = getattr(req, "business_type", "location_based") or "location_based"
@@ -105,13 +140,13 @@ class MultiAIScanner:
         platforms = [
             ("gemini",     "Gemini AI 100회 샘플링 중...",    self.gemini.sample_100,        False),
             ("chatgpt",    "ChatGPT 결과 확인 중...",          self.chatgpt.check_mention,    False),
-            ("perplexity", "Perplexity 검색 중...",            self.perplexity.check,         False),
             ("grok",       "Grok AI 검색 중...",               self.grok.check,               False),
             ("claude",     "Claude AI 확인 중...",             self.claude.check_mention,     False),
             ("naver",      "네이버 AI 브리핑 파싱 중...",       self.naver.check_mention,      True),
-            ("zeta",       "뤼튼(Zeta) AI 확인 중...",         self.zeta.check_mention,       True),
             ("google",     "Google AI Overview 확인 중...",    self.google.check_mention,     True),
         ]
+        if include_perplexity:
+            platforms.insert(2, ("perplexity", "Perplexity 검색 중...", self.perplexity.check, False))
         total = len(platforms)
         for i, (name, msg, fn, is_playwright) in enumerate(platforms):
             yield {"step": name, "status": "running", "message": msg, "progress": int(i / total * 80)}

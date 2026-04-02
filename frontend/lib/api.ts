@@ -395,3 +395,61 @@ export async function getLatestActionPlan(bizId: string, authToken: string): Pro
 export function getGapCardUrl(bizId: string): string {
   return `${BACKEND_URL}/api/report/gap-card/${bizId}`;
 }
+
+// ── 공지사항 ─────────────────────────────────────────────────
+export async function getNotices(
+  page = 1,
+  category?: string,
+): Promise<{ items: import("@/types").Notice[]; total: number; page: number }> {
+  const params = new URLSearchParams({ page: String(page) });
+  if (category) params.set("category", category);
+  return apiCall(`${BACKEND_URL}/api/notices?${params.toString()}`);
+}
+
+export async function getNotice(id: number): Promise<import("@/types").Notice> {
+  return apiCall(`${BACKEND_URL}/api/notices/${id}`);
+}
+
+// ── FAQ ──────────────────────────────────────────────────────
+export async function getFAQs(
+  category?: string,
+): Promise<{ items: import("@/types").FAQ[] }> {
+  const params = new URLSearchParams();
+  if (category) params.set("category", category);
+  const qs = params.toString();
+  return apiCall(`${BACKEND_URL}/api/faq${qs ? "?" + qs : ""}`);
+}
+
+
+// ── 문의하기 ─────────────────────────────────────────────────
+export async function submitInquiry(data: {
+  name: string;
+  email: string;
+  subject: string;
+  content: string;
+}): Promise<{ id: number; message: string }> {
+  const { createClient } = await import("@/lib/supabase/client");
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  return apiCall<{ id: number; message: string }>(`${BACKEND_URL}/api/inquiry`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getMyInquiries(): Promise<{ items: import("@/types").Inquiry[] }> {
+  const { createClient } = await import("@/lib/supabase/client");
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  return apiCall<{ items: import("@/types").Inquiry[] }>(`${BACKEND_URL}/api/inquiry/me`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+}

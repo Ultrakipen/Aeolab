@@ -22,9 +22,9 @@ export function RankingBar({ items, title = '경쟁사 비교' }: RankingBarProp
           .sort((a, b) => b.score - a.score)
           .map((item, idx) => (
             <div key={idx} className="flex items-center gap-3">
-              <div className="w-5 text-xs text-gray-400 shrink-0 text-right">{idx + 1}</div>
+              <div className="w-5 text-sm text-gray-400 shrink-0 text-right">{idx + 1}</div>
               <div
-                className={`text-sm shrink-0 w-28 truncate font-medium ${
+                className={`text-sm shrink-0 w-20 md:w-28 truncate font-medium ${
                   item.isMe ? 'text-blue-600' : 'text-gray-700'
                 }`}
               >

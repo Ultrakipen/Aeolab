@@ -1,0 +1,343 @@
+                                    AEOlab
+                           기술 개발 문서 v1.3
+--------------------------------------------------------------------------------
+
+
+문서 버전v1.3작성일2026년 3월 30일개발 도구Claude Code (claude-sonnet-4-6)v1.2 --> v1.3 변경듀얼트랙 엔진 + 데이터 수집 아키텍처 + CLAUDE.md 구조 + 5개 모듈 명세기술 스택Next.js 14 + Python FastAPI + Supabase + Playwright + Gemini Flash + Claude Sonnet호스팅iwinv (NVMe, root access, Docker) + Nginx + PM2 + GitHub Actions결제토스페이먼츠알림카카오 비즈API
+01  프로젝트 구조 및 CLAUDE.md
+
+1.1  디렉토리 구조
+
+aeolab/
+├── CLAUDE.md                    # Claude Code 영구 컨텍스트 (필수)
+├── frontend/                    # Next.js 14 App Router
+│   ├── app/
+│   │   ├── (auth)/login/
+│   │   ├── (dashboard)/
+│   │   │   ├── vitals/          # 건강 진단 탭
+│   │   │   ├── compete/         # 경쟁 비교 탭
+│   │   │   ├── roadmap/         # 개선 로드맵 탭
+│   │   │   └── future/          # 미래 시나리오 탭
+│   │   ├── scan/                # 원샷 무료 진단 (랜딩 체험)
+│   │   └── api/                 # Next.js API Routes
+│   └── components/
+│       ├── modules/             # 5개 진단 모듈 컴포넌트
+│       └── charts/              # 레이더차트, 시나리오차트
+├── backend/                     # Python FastAPI
+│   ├── main.py
+│   ├── routers/
+│   │   ├── scan.py              # AI 스캔 엔드포인트
+│   │   ├── competitor.py        # 경쟁사 분석
+│   │   ├── review.py            # 리뷰 분석
+│   │   └── guide.py             # 개선 가이드 생성
+│   ├── services/
+│   │   ├── naver_api.py         # 방법 3: 네이버 공식 API
+│   │   ├── playwright_crawler.py # 방법 1: Playwright (제한적)
+│   │   ├── gemini_scanner.py    # 100회 샘플링 AI 노출 분석
+│   │   └── claude_guide.py      # Claude Sonnet 가이드 생성
+│   └── models/                  # Supabase 스키마 모델
+└── scripts/
+    ├── playwright_worker.py     # 크롤링 워커 (제한적)
+    └── kakao_notify.py          # 카카오톡 주간 알림
+
+1.2  CLAUDE.md 구조 (Claude Code 영구 컨텍스트)
+
+CLAUDE.md는 프로젝트 루트에 위치하며 Claude Code 세션마다 자동 로드됩니다.
+
+# AEOlab CLAUDE.md
+
+## 프로젝트 개요
+- 서비스: 소상공인 AI 검색 가시성 진단 및 성장 플랫폼
+- 포지셔닝: "AI가 내 가게를 어떻게 설명하는지 진단·개선"
+- 기획서: v7.2 (최신) / 개발문서: v1.3 (최신)
+
+## 핵심 아키텍처
+- 데이터 수집: 방법3(네이버 API) 우선 + 방법1(Playwright) 보조
+- AI 분석: Gemini Flash (100회 샘플링) + Claude Sonnet (가이드 생성)
+- 프레임워크: Next.js 14 App Router + Python FastAPI + Supabase
+
+## 개발 원칙
+- Phase 0~1: 방법3 API만 사용 (Playwright는 Phase 2부터)
+- 네이버 플레이스 방문자 리뷰: 공식 API 없음 --> Playwright 제한적 사용
+- 블로그 리뷰: 네이버 검색 API (블로그) 사용 (합법)
+- 경쟁사 수집: 지역 검색 API로 목록 --> Playwright로 키워드 리뷰 (주 1회 한정)
+
+## 환경 변수 (.env)
+NAVER_CLIENT_ID=          # 네이버 오픈 API
+NAVER_CLIENT_SECRET=
+GEMINI_API_KEY=           # Gemini Flash (100회 샘플링)
+ANTHROPIC_API_KEY=        # Claude Sonnet (가이드 생성)
+KAKAO_ADMIN_KEY=          # 카카오 비즈API
+TOSS_SECRET_KEY=          # 토스페이먼츠
+SUPABASE_URL=
+SUPABASE_KEY=
+
+## 주의사항
+- 한국어 텍스트: font: 'Malgun Gothic' 반드시 지정
+- Playwright: 네이버 robots.txt 준수, 과도한 요청 금지
+- 리뷰 조작 방지: 사용자에게 자연 유도 문구만 제공 (직접 작성 금지)
+
+02  데이터 수집 아키텍처
+
+2.1  방법 3  --  네이버 공식 API (메인)
+
+블로그 검색 API
+# services/naver_api.py
+
+import httpx
+from typing import List, Dict
+
+NAVER_API_URL = 'https://openapi.naver.com/v1/search/blog'
+
+async def get_blog_reviews(business_name: str, count: int = 30) -> List[Dict]:
+    """가게명으로 블로그 리뷰 수집 (네이버 공식 API)"""
+    headers = {
+        'X-Naver-Client-Id': settings.NAVER_CLIENT_ID,
+        'X-Naver-Client-Secret': settings.NAVER_CLIENT_SECRET,
+    }
+    params = {
+        'query': f'{business_name} 방문 후기',
+        'display': min(count, 100),
+        'sort': 'date',  # 최신순
+    }
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(NAVER_API_URL, headers=headers, params=params)
+        data = resp.json()
+        return data.get('items', [])
+
+async def get_competitors_by_region(region: str, industry: str) -> List[Dict]:
+    """지역 + 업종으로 경쟁사 목록 수집"""
+    url = 'https://openapi.naver.com/v1/search/local'
+    params = { 'query': f'{region} {industry}', 'display': 10, 'sort': 'comment' }
+    # ... 동일 헤더로 요청
+
+DataLab API  --  검색 트렌드
+async def get_search_trend(keywords: List[str], period: str = '3months') -> Dict:
+    """키워드 검색 트렌드 (내 가게 vs 경쟁사)"""
+    url = 'https://openapi.naver.com/v1/datalab/search'
+    payload = {
+        'startDate': start_date,
+        'endDate': end_date,
+        'timeUnit': 'week',
+        'keywordGroups': [
+            { 'groupName': '내가게', 'keywords': [business_name] },
+            { 'groupName': '경쟁사', 'keywords': [competitor_name] },
+        ]
+    }
+    # POST 요청, 동일 헤더
+
+2.2  방법 1  --  Playwright 크롤링 (보조, Phase 2+)
+
+  ⚠ 네이버 이용약관상 자동화 수집 금지 조항 해당. Phase 1에서는 사용 금지. Phase 2부터 내 가게 한정 최소 사용.
+
+# services/playwright_crawler.py
+# Phase 2 이후 사용. 내 가게 플레이스 리뷰 1회 수집 한정.
+
+from playwright.async_api import async_playwright
+
+async def get_my_place_reviews(place_id: str, max_reviews: int = 50) -> List[Dict]:
+    """내 플레이스 방문자 리뷰 수집 (사장님 동의 하에)"""
+    url = f'https://map.naver.com/p/entry/place/{place_id}'
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
+        await page.goto(url)
+        await page.wait_for_timeout(2000)  # 과도한 요청 방지
+        # ... 리뷰 텍스트, 키워드 추출
+        # 주의: 셀렉터는 네이버 UI 변경 시 즉시 업데이트 필요
+    return reviews
+
+# ⚠ 경쟁사 리뷰 크롤링: Phase 2에서도 주 1회 한정, 과도한 요청 금지
+# ⚠ 수집 데이터는 Supabase에 캐싱, 동일 place_id 24시간 내 재요청 금지
+
+03  5개 진단 모듈 기술 명세
+
+모듈 1  --  AI 브리핑 키워드 갭 진단
+
+입력업종 + 리뷰 텍스트 (방법3 블로그 API 또는 사용자 입력)처리Claude Sonnet: 6개 카테고리(접근·단체·분위기·동반자·메뉴·운영) 키워드 추출출력카테고리별 보유/미보유 키워드 + 커버리지 점수 (0~100)API 엔드포인트POST /api/modules/briefing-gap응답 예시{"covered": ["주차 가능", "예약 필수"], "missing": ["반려견 동반", "단체 예약"], "score": 45}
+모듈 2  --  미래 조건 검색 대비 진단
+
+입력업종 + 보유 키워드 목록처리네이버 예고 조건 검색 쿼리 DB와 매핑 ("홍대 맛집 주차 가능" 등 50개+)출력조건별 대응 가능/미대응 리스트 + 예상 노출 기회 점수데이터 관리Supabase query_templates 테이블 (주기적 업데이트)API 엔드포인트POST /api/modules/future-query
+모듈 3  --  리뷰 건강도 경보
+
+입력리뷰 목록 (날짜·키워드·영수증여부)처리최신성(30일 내 비중) + 다양성(카테고리 수) + 영수증 비율 + 비정상 패턴 감지출력건강도 점수 4개 + AI 브리핑 차단 리스크 레벨 (Low/Medium/High)경고 조건영수증 비율 < 30% OR 동일 키워드 반복 > 70% OR 특정 기간 집중API 엔드포인트POST /api/modules/review-health
+모듈 4  --  경쟁사 브리핑 역분석
+
+입력내 place_id + 경쟁사 place_id 최대 5개처리방법1 크롤링(Phase 2+) 또는 방법3 블로그 API로 키워드 수집 --> 교차 분석출력경쟁사 보유/내 미보유 키워드 + 선점 가능 키워드 (경쟁사도 없는 것)업데이트 주기주 1회 (월요일 오전 6시 배치)API 엔드포인트GET /api/modules/competitor-brief?placeId={id}&competitors={ids}
+모듈 5  --  QR 리뷰 유도 카드 생성
+
+입력업종 + 지역 + 갭 키워드 목록 (모듈 1 결과)처리Claude Sonnet 4.6 API --> 업종·지역 맞춤 자연스러운 리뷰 유도 문구 생성출력테이블 QR 카드용 텍스트 (2~3문장) + 강조 키워드 태그프롬프트 원칙조작처럼 보이지 않음, 구체적 상황 언급 유도, 네이버 정책 준수API 엔드포인트POST /api/modules/review-guide비용 관리캐싱 활용 (동일 업종+지역+갭 조합 24시간 재사용)
+04  가게 성장 엔진  --  컴포넌트 명세
+
+4.1  건강 진단 (Vitals) 탭
+
+// frontend/app/(dashboard)/vitals/page.tsx
+
+interface HealthScore {
+  visibility: number;     // AI 노출 건강도 (0-100)
+  review: number;         // 리뷰 자산 건강도 (0-100)
+  engagement: number;     // 고객 반응 건강도 (0-100)
+  differentiation: number; // 차별화 건강도 (0-100)
+  overall: number;        // 종합 점수
+}
+
+// 체크리스트 항목 --> 점수 자동 계산
+// Claude API 호출: 점수 + 업종 + 지역 --> 맞춤 AI 진단 문구
+// RadialScore 컴포넌트: SVG 애니메이션 원형 게이지
+
+4.2  경쟁 비교 (Compete) 탭
+
+// 경쟁사 데이터: 방법3 API로 자동 수집 (Phase 1)
+// RadarChart: 내 가게 vs 선택 경쟁사 4개 차원 비교
+
+interface Competitor {
+  placeId: string;
+  name: string;
+  distance: string;
+  scores: HealthScore;
+  topKeywords: string[];  // AI 브리핑에서 추출된 강점 키워드
+  threatLevel: 'high' | 'medium' | 'low';
+}
+
+// 경쟁사 목록: GET /api/competitors?region=강남구&industry=음식점&radius=500
+
+4.3  개선 로드맵 (Roadmap) 탭
+
+// 4단계 시간축: 즉시 / 1~2주 / 3~4주 / 2~3개월
+// 각 단계별 2개 액션: 제목 + 소요시간 + 기대효과 + 구체적 방법
+
+// 동적 생성: 건강진단 결과의 취약 항목을 우선순위로 정렬
+// 정부 지원 안내: 소상공인365, 디지털 전환 바우처 500만원
+
+interface RoadmapAction {
+  phase: 'immediate' | 'week2' | 'week4' | 'month3';
+  title: string;
+  effort: string;        // 예: "30분"
+  impact: string;        // 예: "+27% 클릭률"
+  how: string;           // 구체적 실행 방법
+  isFree: boolean;       // 비용 발생 여부
+}
+
+4.4  미래 시나리오 (Future) 탭
+
+// 3개 시나리오 6개월 예측 (SVG 꺾은선 차트)
+const SCENARIOS = {
+  doNothing: { label: '현재 유지', data: [0, -2, -5, -9, -15, -22, -30] },
+  partial:   { label: '부분 개선', data: [0,  3,  5,  6,  7,   8,   9] },
+  full:      { label: '전략 실행', data: [0,  8, 18, 28, 38,  50,  65] },
+};
+
+// 4단계 성장 로드맵 타임라인
+// CTA: 구독 전환 + 월 9,900원 버튼
+
+05  Supabase 데이터베이스 스키마
+
+-- 사업장 테이블
+CREATE TABLE businesses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id),
+  name TEXT NOT NULL,
+  region TEXT NOT NULL,
+  industry TEXT NOT NULL,
+  place_id TEXT,              -- 네이버 플레이스 ID
+  open_period TEXT,           -- 운영 기간
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- AI 스캔 결과
+CREATE TABLE scan_results (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id UUID REFERENCES businesses(id),
+  scan_type TEXT,             -- 'ai_sampling' | 'briefing_gap' | 'competitor'
+  scores JSONB,               -- {visibility, review, engagement, differentiation}
+  platform_scores JSONB,      -- {naver, chatgpt, perplexity, grok, claude}
+  gap_keywords JSONB,         -- 미보유 키워드 목록
+  raw_data JSONB,             -- 원시 수집 데이터
+  scanned_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 경쟁사 정보 (캐시)
+CREATE TABLE competitors (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id UUID REFERENCES businesses(id),
+  place_id TEXT,
+  name TEXT,
+  distance_m INTEGER,
+  scores JSONB,
+  top_keywords TEXT[],
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 리뷰 데이터 (블로그 API + Playwright)
+CREATE TABLE reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id UUID REFERENCES businesses(id),
+  source TEXT,                -- 'naver_blog' | 'place_visitor' | 'kakao'
+  content TEXT,
+  keywords TEXT[],            -- 추출된 키워드
+  categories JSONB,           -- {access, party, ambience, companion, menu, ops}
+  published_at TIMESTAMPTZ,
+  collected_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 주간 알림 로그
+CREATE TABLE notification_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id UUID REFERENCES businesses(id),
+  type TEXT,                  -- 'score_change' | 'competitor' | 'market' | 'todo'
+  content JSONB,
+  sent_at TIMESTAMPTZ DEFAULT now()
+);
+
+06  FastAPI 엔드포인트 전체 목록
+
+MethodEndpoint설명인증                                     POST
+/api/scan/free무료 원샷 AI 가시성 스캔 (랜딩 체험)없음                                     POST
+/api/businesses/register사업장 등록JWT                                      GET
+/api/businesses/{id}/health건강 진단 점수 조회JWT                                      GET
+/api/businesses/{id}/competitors반경 내 경쟁사 목록JWT                                     POST
+/api/modules/briefing-gapAI 브리핑 키워드 갭 분석JWT                                     POST
+/api/modules/future-query미래 조건 검색 대비 진단JWT                                     POST
+/api/modules/review-health리뷰 건강도 분석JWT                                      GET
+/api/modules/competitor-brief경쟁사 브리핑 역분석JWT                                     POST
+/api/modules/review-guideQR 리뷰 유도 문구 생성 (Claude)JWT                                     POST
+/api/collect/naver-blog블로그 리뷰 수집 (방법3 API)JWT                                     POST
+/api/collect/place-reviews플레이스 리뷰 수집 (방법1 Phase2+)JWT + Admin                                     POST
+/api/guide/generateClaude Sonnet 맞춤 개선 가이드JWT                                     POST
+/api/notify/weekly카카오톡 주간 알림 발송내부 크론                                     POST
+/api/payments/subscribe토스페이먼츠 구독 결제JWT                                      GET
+/api/payments/status구독 상태 확인JWT
+07  Claude Code 작업 지시사항
+
+이 섹션은 Claude Code가 실제 개발 작업 시 참조해야 하는 구체적 지침입니다.
+
+7.1  Phase 0 개발 우선순위
+
+#작업구현 내용완료 조건                                       1
+CLAUDE.md 작성프로젝트 루트에 상기 CLAUDE.md 내용 작성Claude Code 세션마다 컨텍스트 로드                                       2
+방법3 API 서비스naver_api.py: 블로그·지역·DataLab API 구현가게명으로 블로그 리뷰 30개 수집 성공                                       3
+AI 브리핑 갭 분석모듈1 Claude API 연동: 키워드 카테고리 추출6개 카테고리 점수 반환                                       4
+가게 성장 엔진 UINext.js 4탭 대시보드 컴포넌트 구현체크리스트 --> 점수 실시간 계산                                       5
+Phase 0 시연 페이지랜딩: 가게명 입력 --> AI 브리핑 분석 --> 결과30초 내 결과 표시
+7.2  코딩 컨벤션
+
+ 모든 사용자 노출 텍스트는 한국어. 변수명·함수명은 영어
+ Next.js: Server Components 기본, 클라이언트 인터랙션은 'use client'
+ FastAPI: 비동기(async/await) 기본, Pydantic v2 모델 사용
+ 에러 처리: 모든 외부 API 호출에 try-except, 사용자 친화적 메시지 반환
+ 환경 변수: python-dotenv / Next.js .env.local, 코드에 직접 삽입 금지
+ Playwright: 요청 간 최소 2초 딜레이, 동일 URL 24시간 캐싱
+
+7.3  테스트 우선 개발 대상
+
+ 네이버 블로그 API: 다양한 가게명으로 30개 리뷰 수집 성공 여부
+ Claude API 키워드 추출: 6개 카테고리 정확도 (업종별 10개 샘플)
+ 점수 계산 로직: 체크리스트 변경 --> 실시간 점수 반영
+ 경쟁사 반경 필터: 지역 검색 API 반경 500m 내 필터링 정확도
+
+
+                        # Claude Code 시작 명령어
+
+cd aeolab && claude
+# Claude Code는 CLAUDE.md를 자동 로드합니다.# 첫 번째 작업: naver_api.py 블로그 검색 구현
+         AEOlab Tech Doc v1.3  |  2026.03.30  |  Claude Code 개발용

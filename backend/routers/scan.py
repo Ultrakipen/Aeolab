@@ -52,13 +52,13 @@ _CATEGORY_KO: dict[str, str] = {
 _PLATFORM_LABELS = {
     "gemini": "Gemini", "chatgpt": "ChatGPT", "perplexity": "Perplexity",
     "grok": "Grok", "naver": "Naver AI 브리핑", "claude": "Claude",
-    "zeta": "Zeta(뤼튼)", "google": "Google AI Overview",
+"google": "Google AI Overview",
 }
 
 router = APIRouter()
 
 # ── 무료 체험 IP 레이트 리밋 설정 ─────────────────────────────────────────
-_TRIAL_LIMIT_PER_DAY = 20         # IP당 하루 최대 체험 횟수 (개발 기간 20회, 운영 시 3으로 변경)
+_TRIAL_LIMIT_PER_DAY = 3          # IP당 하루 최대 체험 횟수
 _TRIAL_WINDOW_SEC    = 86_400     # 24시간
 
 # 관리자 우회: ADMIN_IPS 환경변수 (쉼표 구분) 또는 X-Admin-Key 헤더
@@ -244,7 +244,44 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
     bg.add_task(_save)
 
     competitors = ai_result.get("gemini", {}).get("competitors", [])
+
+    # ── v3.0 필드: 키워드 갭 + 성장 단계를 최상위 응답에 노출 ──────────────
+    try:
+        from services.keyword_taxonomy import get_all_keywords_flat, analyze_keyword_coverage
+        all_kws = get_all_keywords_flat(req.category or "restaurant")
+        # trial 스캔에서는 리뷰 발췌문 없으므로 빈 리스트로 coverage 분석
+        kw_analysis = analyze_keyword_coverage(req.category or "restaurant", [])
+        top_missing_keywords = kw_analysis.get("missing", all_kws[:3])[:3]
+        pioneer_keywords = kw_analysis.get("pioneer", [])[:2]
+    except Exception as _e:
+        _logger.warning(f"trial keyword analysis failed: {_e}")
+        top_missing_keywords = []
+        pioneer_keywords = []
+
+    # FAQ 복사 텍스트 — 업종 1순위 키워드 기반 기본 템플릿
+    faq_copy_text = ""
+    if top_missing_keywords:
+        kw1 = top_missing_keywords[0]
+        biz_nm = req.business_name
+        faq_copy_text = (
+            f"Q: {keyword_ko} 중에서 {kw1}(으)로 유명한 곳인가요?\n"
+            f"A: 네, 저희 {biz_nm}은(는) {kw1}을(를) 전문으로 하고 있습니다. "
+            "고객님께서 방문하시면 직접 확인하실 수 있습니다."
+        )
+
     return {
+        # v3.0 핵심 필드 (프론트엔드 trial/page.tsx에서 직접 참조)
+        "track1_score": score.get("track1_score"),
+        "track2_score": score.get("track2_score"),
+        "unified_score": score.get("unified_score"),
+        "naver_weight": score.get("naver_weight"),
+        "global_weight": score.get("global_weight"),
+        "growth_stage": score.get("growth_stage"),
+        "growth_stage_label": score.get("growth_stage_label"),
+        "top_missing_keywords": top_missing_keywords,
+        "pioneer_keywords": pioneer_keywords,
+        "faq_copy_text": faq_copy_text,
+        # 기존 필드 (하위호환)
         "score": score,
         "result": ai_result,
         "query": query,
@@ -258,14 +295,16 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
 
 
 @router.post("/full")
-async def full_scan(req: ScanRequest, bg: BackgroundTasks, x_user_id: Optional[str] = Header(None)):
-    """전체 6개 AI 병렬 스캔 (구독자 전용, 백그라운드)"""
+async def full_scan(req: ScanRequest, bg: BackgroundTasks, user=Depends(get_current_user)):
+    """전체 AI 병렬 스캔 (구독자 전용, 백그라운드)"""
     if not req.business_id:
         raise HTTPException(status_code=400, detail="business_id required")
 
-    if x_user_id:
-        from middleware.rate_limit import check_monthly_scan_limit
-        await check_monthly_scan_limit(x_user_id, get_client())
+    x_user_id = str(user["id"])
+    from middleware.rate_limit import check_monthly_scan_limit
+    await check_monthly_scan_limit(x_user_id, get_client())
+    from middleware.plan_gate import check_manual_scan_limit
+    await check_manual_scan_limit(x_user_id, get_client())
 
     # 중복 스캔 방지
     scan_key = f"{x_user_id or 'anon'}:{req.business_id}"
@@ -343,10 +382,16 @@ async def stream_scan(stream_token: str):
             except HTTPException as e:
                 yield f"data: {json.dumps({'error': e.detail}, ensure_ascii=False)}\n\n"
                 return
+            from middleware.plan_gate import check_manual_scan_limit
+            try:
+                await check_manual_scan_limit(user_id, get_client())
+            except HTTPException as e:
+                yield f"data: {json.dumps({'error': e.detail}, ensure_ascii=False)}\n\n"
+                return
 
             scanner = MultiAIScanner(mode="full")
             scan_results: dict = {}
-            async for progress in scanner.scan_with_progress(req):
+            async for progress in scanner.scan_with_progress(req, include_perplexity=False):
                 yield f"data: {json.dumps(progress, ensure_ascii=False)}\n\n"
                 if progress.get("status") == "done" and "result" in progress:
                     scan_results[progress["step"]] = progress["result"]
@@ -369,12 +414,16 @@ async def stream_scan(stream_token: str):
 
 
 @router.get("/{scan_id}")
-async def get_scan(scan_id: str):
-    """스캔 결과 조회"""
+async def get_scan(scan_id: str, user: dict = Depends(get_current_user)):
+    """스캔 결과 조회 (인증 + 소유권 검증)"""
     supabase = get_client()
-    result = await execute(supabase.table("scan_results").select("id, business_id, scanned_at, query_used, exposure_freq, total_score, score_breakdown, naver_channel_score, global_channel_score, gemini_result, chatgpt_result, perplexity_result, grok_result, naver_result, claude_result, zeta_result, google_result, kakao_result, website_check_result, competitor_scores, rank_in_query").eq("id", scan_id).single())
+    result = await execute(supabase.table("scan_results").select("id, business_id, scanned_at, query_used, exposure_freq, total_score, score_breakdown, naver_channel_score, global_channel_score, gemini_result, chatgpt_result, perplexity_result, grok_result, naver_result, claude_result, google_result, kakao_result, website_check_result, competitor_scores, rank_in_query").eq("id", scan_id).single())
     if not result.data:
         raise HTTPException(status_code=404, detail="Scan not found")
+    # 소유권 검증: scan이 속한 business의 user_id 확인
+    biz_check = await execute(supabase.table("businesses").select("user_id").eq("id", result.data["business_id"]).single())
+    if not biz_check.data or biz_check.data.get("user_id") != user["id"]:
+        raise HTTPException(status_code=403, detail="접근 권한 없음")
     return result.data
 
 
@@ -387,13 +436,16 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
     from services.website_checker import check_website_seo
 
     supabase = get_client()
-    biz = (await execute(supabase.table("businesses").select("id, name, category, region, business_type, website_url, keywords, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, keyword_diversity, receipt_review_count").eq("id", business_id).single())).data
+    biz = (await execute(supabase.table("businesses").select("id, name, category, region, business_type, website_url, naver_place_url, keywords, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, keyword_diversity, receipt_review_count").eq("id", business_id).single())).data
 
-    # 카카오 가시성 + 웹사이트 SEO 체크 병렬 실행
+    # 카카오 가시성 + 웹사이트 SEO 체크 + 스마트플레이스 병렬 실행
     keyword_ko = _CATEGORY_KO.get((biz or {}).get("category", req.category), req.category)
-    kakao_data, website_check = await _asyncio.gather(
+    naver_place_url = (biz or {}).get("naver_place_url", "") or ""
+    from services.naver_place_stats import check_smart_place_completeness
+    kakao_data, website_check, smart_place_check = await _asyncio.gather(
         get_kakao_visibility(req.business_name, keyword_ko, req.region),
         check_website_seo((biz or {}).get("website_url", "")),
+        check_smart_place_completeness(naver_place_url) if naver_place_url else _asyncio.sleep(0),
         return_exceptions=True,
     )
     if isinstance(kakao_data, Exception):
@@ -402,6 +454,11 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
     if isinstance(website_check, Exception):
         _logger.warning(f"website_checker failed (stream): {website_check}")
         website_check = None
+    if isinstance(smart_place_check, Exception):
+        _logger.warning(f"smart_place_completeness failed (stream): {smart_place_check}")
+        smart_place_check = None
+    elif not naver_place_url:
+        smart_place_check = None
 
     # 카카오·웹사이트 결과를 scan_results에 병합해 채널 점수 계산
     combined_results = {**results, "kakao": kakao_data or {}, "website_check": website_check or {}}
@@ -447,8 +504,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
                     "mentioned": result.get("mentioned", False),
                     "score": 45 if result.get("mentioned") else 15,
                 }
-        except Exception:
-            pass
+        except Exception as e:
+            _logger.warning(f"competitor_scores scan failed (stream biz={business_id}): {e}")
 
     # scan_results 저장
     inserted = (await execute(supabase.table("scan_results").insert({
@@ -460,7 +517,6 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
         "grok_result":       results.get("grok"),
         "naver_result":      results.get("naver"),
         "claude_result":     results.get("claude"),
-        "zeta_result":       results.get("zeta"),
         "google_result":     results.get("google"),
         "kakao_result":      kakao_data or None,
         "website_check_result": website_check or None,
@@ -469,8 +525,25 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
         "score_breakdown": score["breakdown"],
         "naver_channel_score": score.get("naver_channel_score"),
         "global_channel_score": score.get("global_channel_score"),
+        "unified_score": score.get("unified_score"),
+        "track1_score": score.get("track1_score"),
+        "track2_score": score.get("track2_score"),
+        "keyword_coverage": score.get("breakdown", {}).get("keyword_gap_score", 0.0) / 100,
         "competitor_scores": competitor_scores or None,
+        "smart_place_completeness_result": smart_place_check or None,
     }))).data
+
+    # smart_place_auto_checked_at 업데이트 (스마트플레이스 URL 있는 경우)
+    if naver_place_url and smart_place_check and not smart_place_check.get("error"):
+        try:
+            from datetime import datetime, timezone as _tz
+            await execute(
+                supabase.table("businesses").update({
+                    "smart_place_auto_checked_at": datetime.now(_tz.utc).isoformat(),
+                }).eq("id", business_id)
+            )
+        except Exception as e:
+            _logger.warning(f"smart_place_auto_checked_at update failed (stream): {e}")
 
     # ai_citations 저장 (언급된 플랫폼만)
     if inserted and inserted[0]:
@@ -524,6 +597,9 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
                     "weekly_change": weekly_change,
                     "naver_channel_score": score.get("naver_channel_score"),
                     "global_channel_score": score.get("global_channel_score"),
+                    "unified_score": score.get("unified_score"),
+                    "track1_score": score.get("track1_score"),
+                    "track2_score": score.get("track2_score"),
                 },
                 on_conflict="business_id,score_date",
             )
@@ -562,8 +638,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
                         "total_in_category": total_in_category,
                     }).eq("business_id", business_id).eq("score_date", str(_date.today()))
                 )
-    except Exception:
-        pass
+    except Exception as e:
+        _logger.warning(f"rank_in_category update failed (stream biz={business_id}): {e}")
 
     # 스캔 완료 즉시 카카오톡 알림 (kakao_scan_notify 설정 ON + 전화번호 있는 경우만)
     try:
@@ -573,7 +649,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
                 await execute(
                     supabase.table("profiles")
                     .select("phone, kakao_scan_notify")
-                    .eq("id", biz_user_id)
+                    .eq("user_id", biz_user_id)
                     .maybe_single()
                 )
             ).data
@@ -603,8 +679,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict):
                     top_platform=top_platform,
                     top_improvement=top_improvement,
                 ))
-    except Exception:
-        pass
+    except Exception as e:
+        _logger.warning(f"kakao scan_complete notify failed (biz={business_id}): {e}")
 
 
 async def _run_full_scan(scan_id: str, req: ScanRequest):
@@ -622,14 +698,17 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             query = f"{req.region} {req.keywords[0]}"
 
         supabase = get_client()
-        biz = (await execute(supabase.table("businesses").select("id, name, category, region, business_type, website_url, keywords, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, keyword_diversity, receipt_review_count").eq("id", req.business_id).single())).data
+        biz = (await execute(supabase.table("businesses").select("id, name, category, region, business_type, website_url, naver_place_url, keywords, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, keyword_diversity, receipt_review_count").eq("id", req.business_id).single())).data
 
-        # AI 스캔 + 카카오 가시성 + 웹사이트 SEO 병렬 실행
+        # AI 스캔 + 카카오 가시성 + 웹사이트 SEO + 스마트플레이스 병렬 실행
         keyword_ko = _CATEGORY_KO.get(req.category, req.category)
-        result, kakao_data, website_check = await _asyncio.gather(
-            scanner.scan_all(query, req.business_name),
+        naver_place_url = (biz or {}).get("naver_place_url", "") or ""
+        from services.naver_place_stats import check_smart_place_completeness
+        result, kakao_data, website_check, smart_place_check = await _asyncio.gather(
+            scanner.scan_all_no_perplexity(query, req.business_name),
             get_kakao_visibility(req.business_name, keyword_ko, req.region),
             check_website_seo((biz or {}).get("website_url", "")),
+            check_smart_place_completeness(naver_place_url) if naver_place_url else _asyncio.sleep(0),
             return_exceptions=True,
         )
         if isinstance(result, Exception):
@@ -640,6 +719,11 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         if isinstance(website_check, Exception):
             _logger.warning(f"website_checker failed (full): {website_check}")
             website_check = None
+        if isinstance(smart_place_check, Exception):
+            _logger.warning(f"smart_place_completeness failed (full): {smart_place_check}")
+            smart_place_check = None
+        elif not naver_place_url:
+            smart_place_check = None
 
         # 카카오·웹사이트 결과를 병합해 채널 점수 계산
         combined_result = {**result, "kakao": kakao_data or {}, "website_check": website_check or {}}
@@ -684,8 +768,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                         "mentioned": r.get("mentioned", False),
                         "score": 45 if r.get("mentioned") else 15,
                     }
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning(f"competitor_scores scan failed (full biz={req.business_id}): {e}")
 
         await execute(
             supabase.table("scan_results").insert(
@@ -699,7 +783,6 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "grok_result": result.get("grok"),
                     "naver_result": result.get("naver"),
                     "claude_result": result.get("claude"),
-                    "zeta_result": result.get("zeta"),
                     "google_result": result.get("google"),
                     "kakao_result": kakao_data or None,
                     "website_check_result": website_check or None,
@@ -708,10 +791,27 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "score_breakdown": score["breakdown"],
                     "naver_channel_score": score.get("naver_channel_score"),
                     "global_channel_score": score.get("global_channel_score"),
+                    "unified_score": score.get("unified_score"),
+                    "track1_score": score.get("track1_score"),
+                    "track2_score": score.get("track2_score"),
+                    "keyword_coverage": score.get("breakdown", {}).get("keyword_gap_score", 0.0) / 100,
                     "competitor_scores": competitor_scores or None,
+                    "smart_place_completeness_result": smart_place_check or None,
                 }
             )
         )
+
+        # smart_place_auto_checked_at 업데이트 (스마트플레이스 URL 있는 경우)
+        if naver_place_url and smart_place_check and not smart_place_check.get("error"):
+            try:
+                from datetime import datetime, timezone as _tz
+                await execute(
+                    supabase.table("businesses").update({
+                        "smart_place_auto_checked_at": datetime.now(_tz.utc).isoformat(),
+                    }).eq("id", req.business_id)
+                )
+            except Exception as e:
+                _logger.warning(f"smart_place_auto_checked_at update failed: {e}")
 
         # ai_citations 저장
         citation_rows = []

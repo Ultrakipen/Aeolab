@@ -39,7 +39,7 @@ async def generate_guide(
     current_user: dict = Depends(get_current_user),
 ):
     """Claude API로 개선 가이드 생성 (비동기 백그라운드).
-    월별 생성 한도: Basic 2회 / Pro 10회 / Biz 무제한
+    월별 생성 한도: Basic 1회 / Startup 5회 / Pro 8회 / Biz 20회 / Enterprise 무제한
     """
     from middleware.plan_gate import check_guide_limit
     supabase = get_client()
@@ -94,7 +94,8 @@ async def get_latest_guide(biz_id: str, user=Depends(get_current_user)):
             .order("generated_at", desc=True)
             .limit(1)
         )
-    except Exception:
+    except Exception as e:
+        _logger.warning(f"guide fetch fallback (v3.0 columns not found): {e}")
         result = await execute(
             supabase.table("guides")
             .select("id, business_id, items_json, priority_json, summary, checklist_done, generated_at")
@@ -107,10 +108,200 @@ async def get_latest_guide(biz_id: str, user=Depends(get_current_user)):
     return result.data[0]
 
 
-@router.post("/ad-defense/{biz_id}")
-async def generate_ad_defense_guide(biz_id: str, x_user_id: str = Header(...)):
-    """ChatGPT 광고 대응 가이드 생성 (Basic+ 전용)"""
+class ReviewReplyRequest(BaseModel):
+    business_id: str
+    review_text: str
+
+
+@router.post("/review-reply")
+async def generate_review_reply(
+    req: ReviewReplyRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """리뷰 답변 초안 생성 (Claude Haiku, Basic+ 전용).
+
+    월별 한도: Basic/Startup 10회, Pro 50회, Biz/Enterprise 무제한
+    """
+    from middleware.plan_gate import check_review_reply_limit
     supabase = get_client()
+
+    allowed, used, limit = await check_review_reply_limit(current_user["id"], supabase)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "REVIEW_REPLY_LIMIT_EXCEEDED",
+                "used": used,
+                "limit": limit,
+                "message": f"이번 달 리뷰 답변 생성 한도({limit}회)를 초과했습니다.",
+                "upgrade_url": "/pricing",
+            },
+        )
+
+    await _verify_biz_ownership(supabase, req.business_id, current_user["id"])
+
+    biz = (await execute(
+        supabase.table("businesses")
+        .select("name, category, keywords")
+        .eq("id", req.business_id).single()
+    )).data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    reply_draft, sentiment = await _generate_reply(biz, req.review_text)
+
+    # 저장
+    await execute(
+        supabase.table("review_replies").insert({
+            "business_id": req.business_id,
+            "review_text": req.review_text,
+            "reply_draft": reply_draft,
+            "sentiment": sentiment,
+            "keywords_used": biz.get("keywords") or [],
+        })
+    )
+
+    return {
+        "reply_draft": reply_draft,
+        "sentiment": sentiment,
+        "used": used + 1,
+        "limit": limit,
+    }
+
+
+async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str]:
+    """Claude Haiku로 감정 분류 + 답변 초안 생성"""
+    import anthropic
+    import os
+
+    client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+    keywords = ", ".join((biz.get("keywords") or [])[:5])
+    category = biz.get("category", "")
+    biz_name = biz.get("name", "저희 가게")
+
+    prompt = f"""당신은 한국 소상공인({biz_name}, 업종: {category})의 고객 리뷰 답변을 작성하는 전문가입니다.
+주요 키워드: {keywords}
+
+다음 리뷰에 대해 두 가지를 응답하세요.
+1. sentiment: "positive"(긍정), "negative"(부정), "neutral"(일반) 중 하나만
+2. reply: 50~80자 사이의 진심 어린 답변 (업종 키워드 자연스럽게 포함, 네이버 정책상 혜택 제공 문구 금지)
+
+형식:
+sentiment: <값>
+reply: <답변 내용>
+
+리뷰: {review_text[:300]}"""
+
+    try:
+        msg = await client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=256,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = msg.content[0].text.strip()
+        sentiment = "neutral"
+        reply = ""
+        for line in text.splitlines():
+            if line.lower().startswith("sentiment:"):
+                raw = line.split(":", 1)[1].strip().lower()
+                if raw in ("positive", "negative", "neutral"):
+                    sentiment = raw
+            elif line.lower().startswith("reply:"):
+                reply = line.split(":", 1)[1].strip()
+        if not reply:
+            reply = text
+        return reply, sentiment
+    except Exception as e:
+        _logger.error(f"review reply generation failed: {e}")
+        return "소중한 리뷰 감사드립니다. 더 나은 서비스로 보답하겠습니다.", "neutral"
+
+
+@router.get("/{biz_id}/review-replies")
+async def get_review_replies(biz_id: str, user=Depends(get_current_user)):
+    """최근 리뷰 답변 이력 조회 (최대 20개)"""
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+    result = await execute(
+        supabase.table("review_replies")
+        .select("id, review_text, reply_draft, sentiment, created_at")
+        .eq("business_id", biz_id)
+        .order("created_at", desc=True)
+        .limit(20)
+    )
+    return result.data or []
+
+
+@router.get("/{biz_id}/qr-card")
+async def get_qr_card(biz_id: str, user=Depends(get_current_user)):
+    """리뷰 유도 QR 카드 PNG 반환 (인쇄용, Basic+ 전용)"""
+    from fastapi.responses import StreamingResponse
+    from services.action_tools import build_qr_message
+    from services.qr_generator import generate_review_qr_card
+
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    # Basic+ 플랜 체크
+    sub = (await execute(
+        supabase.table("subscriptions")
+        .select("plan, status")
+        .eq("user_id", user["id"])
+        .maybe_single()
+    )).data
+    _plan = (sub or {}).get("plan", "free")
+    _status = (sub or {}).get("status", "inactive")
+    if _plan == "free" or _status != "active":
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "pro", "biz", "enterprise"]},
+        )
+
+    biz = (await execute(
+        supabase.table("businesses")
+        .select("name, category, region, keywords, naver_place_id")
+        .eq("id", biz_id).single()
+    )).data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    naver_place_id = biz.get("naver_place_id") or ""
+    if naver_place_id:
+        review_url = f"https://map.naver.com/p/entry/place/{naver_place_id}?reviews=1"
+    else:
+        import urllib.parse
+        q = urllib.parse.quote(f"{biz['name']} 리뷰")
+        review_url = f"https://search.naver.com/search.naver?query={q}"
+
+    # 업종 최우선 키워드
+    top_keyword = (biz.get("keywords") or [None])[0]
+    qr_message = build_qr_message(biz.get("category", ""), top_keyword)
+
+    try:
+        buf = generate_review_qr_card(
+            business_name=biz["name"],
+            naver_review_url=review_url,
+            qr_message=qr_message,
+            category=biz.get("category", ""),
+        )
+    except ImportError:
+        raise HTTPException(
+            status_code=503,
+            detail="QR 생성 패키지 미설치: pip install qrcode[pil]",
+        )
+
+    filename = f"review_qr_{biz['name']}.png"
+    return StreamingResponse(
+        buf,
+        media_type="image/png",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.post("/ad-defense/{biz_id}")
+async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(get_current_user)):
+    """ChatGPT 광고 대응 가이드 생성 (Pro+ 전용)"""
+    supabase = get_client()
+    x_user_id = current_user["id"]
     sub = (
         await execute(
             supabase.table("subscriptions")
@@ -121,11 +312,13 @@ async def generate_ad_defense_guide(biz_id: str, x_user_id: str = Header(...)):
     ).data
     plan = (sub or {}).get("plan", "free")
     status = (sub or {}).get("status", "inactive")
-    if plan == "free" or status != "active":
+    if plan not in ("pro", "biz", "enterprise") or status != "active":
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "pro", "biz"]},
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz", "enterprise"]},
         )
+
+    await _verify_biz_ownership(supabase, biz_id, x_user_id)
 
     biz = (await execute(
         supabase.table("businesses")

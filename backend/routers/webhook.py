@@ -12,9 +12,9 @@ router = APIRouter()
 
 PLAN_PRICES = {
     9900: "basic",
-    29900: "pro",
-    79900: "biz",
-    39900: "startup",
+    22900: "pro",
+    49900: "biz",
+    16900: "startup",
     200000: "enterprise",
 }
 
@@ -37,7 +37,16 @@ async def confirm_payment(body: PaymentConfirm):
         raise HTTPException(status_code=400, detail=f"결제 확정 실패: {resp.text}")
 
     data = resp.json()
-    plan = PLAN_PRICES.get(body.amount, "basic")
+    # 서버에서 amount 기준으로 플랜 결정 (클라이언트 조작 방지)
+    plan_by_amount = PLAN_PRICES.get(body.amount)
+    # plan 필드가 있을 경우 교차 검증
+    PLAN_NAME_MAP = {"basic": "basic", "pro": "pro", "biz": "biz", "startup": "startup", "enterprise": "enterprise"}
+    plan_by_name = PLAN_NAME_MAP.get((body.plan or "").lower()) if body.plan else None
+    if plan_by_amount and plan_by_name and plan_by_amount != plan_by_name:
+        logger.warning(f"플랜 교차검증 불일치: amount={body.amount} -> {plan_by_amount}, plan={body.plan} -> {plan_by_name}")
+    if not plan_by_amount and not plan_by_name:
+        raise HTTPException(status_code=400, detail="유효하지 않은 결제 금액입니다")
+    plan = plan_by_amount or plan_by_name or "basic"
     user_id = _extract_user_id(body.orderId)
 
     customer_key = f"customer_{user_id}"
@@ -74,12 +83,13 @@ PLAN_NAME_TO_KEY = {
     "basic": "basic", "pro": "pro", "biz": "biz",
 }
 
-PLAN_PRICES = {9900: "basic", 29900: "pro", 79900: "biz", 39900: "startup", 200000: "enterprise"}
-
 
 @router.post("/toss/billing/issue")
 async def issue_billing(body: BillingIssueRequest):
     """빌링키 발급 + 첫 결제 → 구독 활성화"""
+    import re as _re
+    if not _re.match(r"^customer_[a-f0-9\-]{36}$", body.customerKey):
+        raise HTTPException(status_code=400, detail="유효하지 않은 customerKey 형식입니다")
     secret_key = os.getenv("TOSS_SECRET_KEY", "")
 
     # 1. 빌링키 발급

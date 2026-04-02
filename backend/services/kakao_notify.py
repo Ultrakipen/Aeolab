@@ -14,7 +14,11 @@ TEMPLATES = {
 
 
 class KakaoNotifier:
-    BASE = "https://api-alimtalk.cloud.toast.com/alimtalk/v2.3"
+    _BASE_TMPL = "https://kakaotalk-bizmessage.api.nhncloudservice.com/alimtalk/v2.3/appkeys/{appkey}"
+
+    @property
+    def BASE(self):
+        return self._BASE_TMPL.format(appkey=os.getenv("KAKAO_APP_KEY", ""))
 
     async def send_score_change(
         self, phone: str, biz_name: str, prev: float, curr: float, prev_r: int, curr_r: int
@@ -150,6 +154,63 @@ class KakaoNotifier:
         )
         await self._send_raw(phone, message)
 
+    async def send_low_rating_alert(
+        self, phone: str, biz_name: str, rating: int, review_excerpt: str
+    ):
+        """별점 2점 이하 리뷰 긴급 알림 (템플릿 코드: AEOLAB_ALERT_01)"""
+        app_key = os.getenv("KAKAO_APP_KEY", "")
+        if not app_key:
+            masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
+            logger.warning(f"send_low_rating_alert skipped (KAKAO_APP_KEY 미설정): {masked}")
+            return
+        excerpt_short = review_excerpt[:50] if review_excerpt else "(내용 없음)"
+        message = (
+            f"[AEOlab] {biz_name}\n\n"
+            f"별점 {rating}점 리뷰가 등록됐습니다.\n\n"
+            f"내용: {excerpt_short}\n\n"
+            f"빠른 답변으로 신뢰를 지키세요.\n"
+            f"스마트플레이스에서 답변하기 →"
+        )
+        await self._send_raw(phone, message)
+        self._log_notification(None, "low_rating_alert", {
+            "biz_name": biz_name,
+            "rating": rating,
+            "excerpt": excerpt_short,
+        }, "sent")
+
+    async def send_monthly_report(
+        self, phone: str, biz_name: str, score_change: float,
+        scan_count: int, citation_count: int, month_str: str,
+    ):
+        """월간 성장 리포트 알림 (템플릿 코드: AEOLAB_MONTHLY_01)"""
+        app_key = os.getenv("KAKAO_APP_KEY", "")
+        if not app_key:
+            masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
+            logger.warning(f"send_monthly_report skipped (KAKAO_APP_KEY 미설정): {masked}")
+            return
+        change_sign = "+" if score_change >= 0 else ""
+        message = (
+            f"[AEOlab] {month_str}월 성장 리포트\n"
+            f"사업장: {biz_name}\n\n"
+            f"📊 AI 가시성 점수: {change_sign}{score_change:.1f}점\n"
+            f"🔍 스캔 횟수: {scan_count}회\n"
+            f"💬 AI 인용: {citation_count}건\n\n"
+            f"전체 리포트 보기 →\n"
+            f"https://aeolab.co.kr/dashboard"
+        )
+        await self._send_raw(phone, message)
+        self._log_notification(None, "monthly_report", {
+            "biz_name": biz_name,
+            "score_change": score_change,
+            "scan_count": scan_count,
+            "citation_count": citation_count,
+            "month": month_str,
+        }, "sent")
+
+    async def send_text(self, phone: str, message: str):
+        """단문 텍스트 알림 발송 (템플릿 없음, SMS fallback)"""
+        await self._send_raw(phone, message)
+
     async def _send_raw(self, phone: str, text: str):
         """템플릿 없이 단문 문자 발송 (SMS fallback)"""
         masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
@@ -162,7 +223,7 @@ class KakaoNotifier:
             async with httpx.AsyncClient(timeout=10) as c:
                 r = await c.post(
                     f"{self.BASE}/messages",
-                    headers={"X-Secret-Key": os.getenv("KAKAO_APP_KEY", "")},
+                    headers={"X-Secret-Key": os.getenv("KAKAO_SECRET_KEY", "")},
                     json={
                         "senderKey": os.getenv("KAKAO_SENDER_KEY", ""),
                         "templateCode": TEMPLATES[ttype],

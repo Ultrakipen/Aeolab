@@ -38,12 +38,21 @@ export interface ScanResult {
   grok_result?: AIResult;
   naver_result?: AIResult;
   claude_result?: AIResult;
-  zeta_result?: AIResult;
   google_result?: AIResult;
   kakao_result?: KakaoVisibilityData;
   website_check_result?: WebsiteCheckResult;
   exposure_freq: number;
   total_score: number;
+  // v3.0 듀얼트랙 점수
+  unified_score?: number;
+  track1_score?: number;
+  track2_score?: number;
+  naver_weight?: number;
+  global_weight?: number;
+  keyword_coverage?: number;
+  growth_stage?: string;
+  growth_stage_label?: string;
+  is_keyword_estimated?: boolean;
   score_breakdown: ScoreBreakdown;
   naver_channel_score?: number;
   global_channel_score?: number;
@@ -66,12 +75,22 @@ export interface AIResult {
 }
 
 export interface ScoreBreakdown {
+  // 하위호환 필드
   exposure_freq: number;
   review_quality: number;
   schema_score: number;
   online_mentions: number;
   info_completeness: number;
   content_freshness: number;
+  // v3.0 Track 1 항목
+  keyword_gap_score?: number;
+  smart_place_completeness?: number;
+  naver_exposure_confirmed?: number;
+  // v3.0 Track 2 항목
+  multi_ai_exposure?: number;
+  schema_seo?: number;
+  online_mentions_t2?: number;
+  google_presence?: number;
 }
 
 export interface ScoreHistory {
@@ -107,7 +126,6 @@ export interface GuideItem {
   category: string;
   title: string;
   action: string;
-  expected_effect?: string;
   difficulty: "easy" | "medium" | "hard";
   time_required?: string;
   competitor_example?: string;
@@ -122,7 +140,12 @@ export interface TrialScanRequest {
   keyword?: string;
   email?: string;
   business_type?: "location_based" | "non_location";
-  website_url?: string;   // non_location 전용 웹사이트 SEO 체크용
+  website_url?: string;
+  // v3.0 스마트플레이스 체크박스
+  has_faq?: boolean;
+  has_recent_post?: boolean;
+  has_intro?: boolean;
+  review_text?: string;
 }
 
 export interface NaverCompetitor {
@@ -168,20 +191,52 @@ export interface KakaoVisibilityData {
   kakao_competitors: KakaoCompetitor[];
 }
 
+export interface GrowthStage {
+  stage: "survival" | "stability" | "growth" | "dominance";
+  stage_label: string;
+  score_range: string;
+  focus_message: string;
+  this_week_action: string;
+  do_not_do: string;
+  estimated_weeks_to_next?: number;
+}
+
 export interface TrialScanResult {
   score: {
     total_score: number;
+    unified_score?: number;
+    track1_score?: number;
+    track2_score?: number;
+    naver_weight?: number;
+    global_weight?: number;
+    growth_stage?: string;
+    growth_stage_label?: string;
+    is_keyword_estimated?: boolean;
     grade: string;
     breakdown: ScoreBreakdown;
     naver_channel_score?: number;
     global_channel_score?: number;
   };
+  // v3.0 키워드 갭
+  track1_score?: number;
+  track2_score?: number;
+  naver_weight?: number;
+  global_weight?: number;
+  growth_stage?: GrowthStage;
+  growth_stage_label?: string;
+  is_keyword_estimated?: boolean;
+  top_missing_keywords?: string[];
+  pioneer_keywords?: string[];
+  keyword_coverage_rate?: number;
+  faq_copy_text?: string;
   result: Record<string, AIResult>;
   query: string;
   competitors: string[];
   naver?: NaverVisibilityData;
   kakao?: KakaoVisibilityData;
+  website_health?: WebsiteCheckResult;
   message: string;
+  context?: string;
 }
 
 export interface RankingItem {
@@ -294,4 +349,35 @@ export interface BadgeData {
   issued_at: string;
   svg_url: string;
   embed_code: string;
+}
+export interface Notice {
+  id: number;
+  title: string;
+  content: string;
+  category: "general" | "update" | "maintenance";
+  is_pinned: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FAQ {
+  id: number;
+  question: string;
+  answer: string;
+  category: "general" | "pricing" | "scan" | "guide";
+  order_num: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface Inquiry {
+  id: number;
+  name: string;
+  email: string;
+  subject: string;
+  content: string;
+  status: 'pending' | 'answered';
+  answer: string | null;
+  answered_at: string | null;
+  created_at: string;
 }

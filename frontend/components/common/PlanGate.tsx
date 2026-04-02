@@ -7,18 +7,22 @@ import { Lock } from 'lucide-react'
 const PLAN_HIERARCHY: Record<string, number> = {
   free: 0,
   basic: 1,
+  startup: 1.5,
   pro: 2,
   biz: 3,
+  enterprise: 4,
 }
 
 const PLAN_PRICE: Record<string, string> = {
   basic: '월 9,900원',
-  pro: '월 29,900원',
-  biz: '월 79,900원',
+  startup: '월 16,900원',
+  pro: '월 22,900원',
+  biz: '월 49,900원',
+  enterprise: '문의하기',
 }
 
 interface PlanGateProps {
-  requiredPlan: 'basic' | 'pro' | 'biz'
+  requiredPlan: 'basic' | 'startup' | 'pro' | 'biz' | 'enterprise'
   currentPlan: string
   feature: string
   children: React.ReactNode
@@ -40,7 +44,7 @@ export function PlanGate({ requiredPlan, currentPlan, feature, children }: PlanG
         <div className="text-center p-6">
           <Lock className="w-6 h-6 text-gray-400 mx-auto mb-2" strokeWidth={1.5} />
           <p className="font-bold text-gray-800 mb-1">{feature}</p>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-base text-gray-500 mb-4">
             {PLAN_PRICE[requiredPlan]} {requiredPlan.charAt(0).toUpperCase() + requiredPlan.slice(1)} 플랜부터 이용 가능합니다
           </p>
           <Button

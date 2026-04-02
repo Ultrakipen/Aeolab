@@ -7,6 +7,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from routers import scan, report, guide, schema_gen, webhook, admin, business, competitor, settings, startup, teams, api_keys as api_keys_router
+from routers import notices as notices_router, faq as faq_router, inquiry as inquiry_router
 from scheduler.jobs import start_scheduler
 from utils.logger import setup_logging
 import os
@@ -33,7 +34,7 @@ _logger = logging.getLogger("aeolab")
 
 app = FastAPI(
     title="AEOlab API",
-    version="1.3.0",
+    version="3.0.0",
     description="AI Engine Optimization Lab - Backend API",
     # 운영 환경에서 Swagger UI 비활성화 (보안)
     docs_url="/docs" if os.getenv("APP_ENV", "development") != "production" else None,
@@ -66,6 +67,13 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' https://supabase.co https://*.supabase.co"
+        )
         # SSE 스트림 응답에는 Cache-Control 덮어쓰지 않음
         if "text/event-stream" not in response.headers.get("content-type", ""):
             response.headers.setdefault("Cache-Control", "no-store")
@@ -86,6 +94,9 @@ app.include_router(settings.router,       prefix="/api/settings",    tags=["sett
 app.include_router(startup.router,        prefix="/api/startup",     tags=["startup"])
 app.include_router(teams.router,          prefix="/api/teams",        tags=["teams"])
 app.include_router(api_keys_router.router, prefix="/api/v1/keys",    tags=["public-api"])
+app.include_router(notices_router.router, prefix="/api/notices", tags=["notices"])
+app.include_router(faq_router.router,     prefix="/api/faq",     tags=["faq"])
+app.include_router(inquiry_router.router, prefix="/api/inquiry", tags=["inquiry"])
 
 
 

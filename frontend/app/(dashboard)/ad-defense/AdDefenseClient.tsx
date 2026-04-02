@@ -97,17 +97,17 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="text-center p-3 bg-gray-50 rounded-xl">
                 <div className="text-2xl font-bold text-gray-900">{result.current_score.toFixed(0)}</div>
-                <div className="text-xs text-gray-500 mt-1">AI 점수</div>
+                <div className="text-sm text-gray-500 mt-1">AI 점수</div>
               </div>
               <div className="text-center p-3 bg-gray-50 rounded-xl">
                 <div className="text-2xl font-bold text-gray-900">{result.exposure_freq}</div>
-                <div className="text-xs text-gray-500 mt-1">Gemini 노출(/100)</div>
+                <div className="text-sm text-gray-500 mt-1">Gemini 노출(/100)</div>
               </div>
               <div className={`text-center p-3 rounded-xl ${result.chatgpt_mentioned ? "bg-green-50" : "bg-red-50"}`}>
                 <div className={`text-lg font-bold ${result.chatgpt_mentioned ? "text-green-700" : "text-red-700"}`}>
                   {result.chatgpt_mentioned ? "언급됨" : "미언급"}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">ChatGPT</div>
+                <div className="text-sm text-gray-500 mt-1">ChatGPT</div>
               </div>
             </div>
 
@@ -134,7 +134,7 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
                     className={`border-l-4 pl-3 py-1 ${PRIORITY_COLORS[s.priority] ?? "border-l-gray-300"}`}
                   >
                     <p className="text-sm font-medium text-gray-900">{s.title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{s.description}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{s.description}</p>
                   </div>
                 ))}
               </div>
@@ -148,7 +148,7 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
                 <h2 className="text-sm font-semibold text-gray-700 mb-3">즉시 실행 액션</h2>
                 <ul className="space-y-2">
                   {result.guide.content_actions.map((a, i) => (
-                    <li key={i} className="text-xs text-gray-700 flex gap-2">
+                    <li key={i} className="text-sm text-gray-700 flex gap-2">
                       <span className="text-blue-500 shrink-0">→</span>{a}
                     </li>
                   ))}
@@ -160,7 +160,7 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
                 <h2 className="text-sm font-semibold text-gray-700 mb-3">Schema 권장사항</h2>
                 <ul className="space-y-2">
                   {result.guide.schema_recommendations.map((r, i) => (
-                    <li key={i} className="text-xs text-gray-700 flex gap-2">
+                    <li key={i} className="text-sm text-gray-700 flex gap-2">
                       <span className="text-green-500 shrink-0">✓</span>{r}
                     </li>
                   ))}

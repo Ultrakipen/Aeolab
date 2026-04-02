@@ -45,7 +45,8 @@ async def get_score(biz_id: str, user=Depends(get_current_user)):
             "id, scanned_at, total_score, exposure_freq, score_breakdown, "
             "competitor_scores, query_used, "
             "naver_channel_score, global_channel_score, "
-            "website_check_result, kakao_result"
+            "website_check_result, kakao_result, "
+            "track1_score, track2_score, unified_score, keyword_coverage"
         )
         .eq("business_id", biz_id)
         .order("scanned_at", desc=True)
@@ -87,11 +88,15 @@ async def get_score(biz_id: str, user=Depends(get_current_user)):
         "scanned_at":  r["scanned_at"],
         "query_used":  r.get("query_used"),
         "exposure_freq": r.get("exposure_freq", 0),
-        # DiagnosisReport — score_result
+        # DiagnosisReport — score_result (v3.0 듀얼트랙 필드 포함)
         "score_result": {
-            "total_score": total,
-            "grade":       grade,
-            "breakdown":   r.get("score_breakdown") or {},
+            "total_score":   total,
+            "grade":         grade,
+            "breakdown":     r.get("score_breakdown") or {},
+            "track1_score":  r.get("track1_score"),
+            "track2_score":  r.get("track2_score"),
+            "unified_score": r.get("unified_score"),
+            "keyword_coverage": r.get("keyword_coverage"),
         },
         # DiagnosisReport — channel_scores
         "channel_scores": {
@@ -109,20 +114,31 @@ async def get_score(biz_id: str, user=Depends(get_current_user)):
         "naver_channel_score":  naver_ch,
         "global_channel_score": global_ch,
         "competitor_scores":    r.get("competitor_scores"),
+        # v3.0 최상위 레벨 (DualTrackCard 직접 참조용)
+        "track1_score":     r.get("track1_score"),
+        "track2_score":     r.get("track2_score"),
+        "unified_score":    r.get("unified_score"),
+        "keyword_coverage": r.get("keyword_coverage"),
     }
 
 
 @router.get("/history/{biz_id}")
 async def get_history(biz_id: str, user=Depends(get_current_user)):
-    """30일 점수 추세 — 본인 사업장만"""
+    """점수 추세 — 본인 사업장만, 플랜별 보관 일수 적용"""
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
+    plan = await get_user_plan(user["id"], supabase)
+    history_days = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["history_days"]
+    limit_rows = history_days if history_days < 999 else 3650  # 무제한 → 10년치
+    if limit_rows == 0:
+        return []
     result = await execute(
         supabase.table("score_history")
         .select("score_date, total_score, exposure_freq, rank_in_category, total_in_category, weekly_change")
         .eq("business_id", biz_id)
         .order("score_date", desc=True)
-        .limit(30)
+        .limit(limit_rows)
     )
     return result.data
 
@@ -481,9 +497,10 @@ async def get_market(biz_id: str, user=Depends(get_current_user)):
 
 
 @router.get("/export/{biz_id}")
-async def export_csv(biz_id: str, x_user_id: str = Header(...)):
+async def export_csv(biz_id: str, user=Depends(get_current_user)):
     """Pro+ 전용: 스캔 히스토리 CSV 내보내기"""
     supabase = get_client()
+    x_user_id = user["id"]
     await _verify_biz_ownership(supabase, biz_id, x_user_id)
 
     # 플랜 확인
@@ -496,10 +513,10 @@ async def export_csv(biz_id: str, x_user_id: str = Header(...)):
         )
     ).data
     plan = (sub or {}).get("plan", "free")
-    if plan not in ("pro", "biz", "startup", "enterprise"):
+    if plan not in ("startup", "pro", "biz", "enterprise") or (sub or {}).get("status") != "active":
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz"]},
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["startup", "pro", "biz"]},
         )
 
     rows = (
@@ -514,21 +531,28 @@ async def export_csv(biz_id: str, x_user_id: str = Header(...)):
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["스캔일시", "총점", "AI노출빈도(/100)", "검색쿼리",
-                     "AI노출(30%)", "리뷰품질(20%)", "Schema(15%)", "언급빈도(15%)", "정보완성도(10%)", "최신성(10%)"])
+    # v3.0 듀얼트랙 항목 (Track1: 네이버채널 / Track2: 글로벌AI)
+    writer.writerow([
+        "스캔일시", "통합점수", "트랙1(네이버)", "트랙2(글로벌AI)", "검색쿼리",
+        "키워드커버리지", "리뷰품질", "스마트플레이스완성도", "네이버AI브리핑노출",
+        "글로벌AI노출", "웹사이트구조화", "온라인언급", "GoogleAI노출",
+    ])
     for r in rows:
         bd = r.get("score_breakdown") or {}
         writer.writerow([
             r["scanned_at"],
-            r["total_score"],
-            r["exposure_freq"],
+            r.get("total_score") or r.get("unified_score", ""),
+            r.get("track1_score", ""),
+            r.get("track2_score", ""),
             r["query_used"],
-            bd.get("exposure_freq", ""),
+            bd.get("keyword_gap_score", ""),
             bd.get("review_quality", ""),
-            bd.get("schema_score", ""),
-            bd.get("online_mentions", ""),
-            bd.get("info_completeness", ""),
-            bd.get("content_freshness", ""),
+            bd.get("smart_place_completeness", ""),
+            bd.get("naver_exposure_confirmed", ""),
+            bd.get("multi_ai_exposure", ""),
+            bd.get("schema_seo", ""),
+            bd.get("online_mentions_t2", bd.get("online_mentions", "")),
+            bd.get("google_presence", ""),
         ])
 
     output.seek(0)
@@ -541,9 +565,10 @@ async def export_csv(biz_id: str, x_user_id: str = Header(...)):
 
 
 @router.get("/pdf/{biz_id}")
-async def export_pdf(biz_id: str, x_user_id: str = Header(...)):
+async def export_pdf(biz_id: str, user=Depends(get_current_user)):
     """Pro+ 전용: AI Visibility 리포트 PDF 다운로드"""
     supabase = get_client()
+    x_user_id = user["id"]
     await _verify_biz_ownership(supabase, biz_id, x_user_id)
 
     # 플랜 확인
@@ -556,10 +581,10 @@ async def export_pdf(biz_id: str, x_user_id: str = Header(...)):
         )
     ).data
     plan = (sub or {}).get("plan", "free")
-    if plan not in ("pro", "biz", "startup", "enterprise"):
+    if plan not in ("startup", "pro", "biz", "enterprise") or (sub or {}).get("status") != "active":
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz"]},
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["startup", "pro", "biz"]},
         )
 
     # 데이터 조회 (PDF 생성에 필요한 필드만 선택)
@@ -802,9 +827,10 @@ async def get_badge_svg(biz_id: str):
 # ── AI 언급 맥락 분석 (Pro+) ──────────────────────────────────────────────────
 
 @router.get("/mention-context/{biz_id}")
-async def get_mention_context(biz_id: str, x_user_id: str = Header(...)):
+async def get_mention_context(biz_id: str, user=Depends(get_current_user)):
     """최근 스캔의 AI 인용 맥락 데이터 조회 (Pro+ 전용)"""
     supabase = get_client()
+    x_user_id = user["id"]
     await _verify_biz_ownership(supabase, biz_id, x_user_id)
 
     # 플랜 확인
@@ -864,7 +890,7 @@ async def get_gap_card(biz_id: str, user=Depends(get_current_user)):
             supabase.table("scan_results")
             .select("total_score, competitor_scores, score_breakdown")
             .eq("business_id", biz_id)
-            .order("scanned_at", { "ascending": False })
+            .order("scanned_at", desc=True)
             .limit(1)
             .maybe_single()
         )
@@ -895,15 +921,15 @@ async def get_gap_card(biz_id: str, user=Depends(get_current_user)):
     # 개선 힌트 — 가장 낮은 항목 기반
     breakdown = scan.get("score_breakdown") or {}
     LABELS = {
-        "exposure_freq": "Gemini 노출 빈도",
-        "review_quality": "리뷰 품질",
-        "schema_score": "Schema 구조화",
-        "online_mentions": "온라인 언급",
-        "info_completeness": "정보 완성도",
-        "content_freshness": "콘텐츠 최신성",
+        "keyword_gap_score":        "키워드 커버리지",
+        "review_quality":           "리뷰 품질",
+        "smart_place_completeness": "스마트플레이스 완성도",
+        "naver_exposure_confirmed":  "네이버 AI 브리핑 노출",
+        "multi_ai_exposure":        "글로벌 AI 노출",
+        "schema_seo":               "웹사이트 구조화",
     }
     lowest = min(breakdown.items(), key=lambda x: x[1], default=(None, None))
-    hint = f"{LABELS.get(lowest[0], '')} 개선 시 점수 상승 예상" if lowest[0] else ""
+    hint = f"{LABELS.get(lowest[0], '')} 개선이 필요합니다" if lowest[0] else ""
 
     from services.gap_card import generate_gap_card
     png_bytes = generate_gap_card(
@@ -934,3 +960,234 @@ async def get_gap_analysis(biz_id: str, user=Depends(get_current_user)):
             detail="격차 분석에 필요한 스캔 데이터 또는 경쟁사 데이터가 없습니다. 먼저 AI 스캔을 실행하고 경쟁사를 등록해주세요.",
         )
     return result.model_dump(mode="json")
+
+
+# ── 스마트플레이스 최적화 스코어카드 ─────────────────────────────────────────
+
+@router.get("/smartplace/{biz_id}")
+async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
+    """네이버 스마트플레이스 최적화 스코어카드.
+
+    AI 브리핑 노출에 직결되는 스마트플레이스 7개 항목을 점검합니다.
+    추가 API 호출 없이 기존 스캔 결과로 즉시 계산합니다.
+    """
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    biz = (await execute(
+        supabase.table("businesses")
+        .select("id, name, category, region, naver_place_id, website_url, keywords")
+        .eq("id", biz_id)
+        .single()
+    )).data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다.")
+
+    scan_rows = (await execute(
+        supabase.table("scan_results")
+        .select("naver_result, website_check_result, score_breakdown, scanned_at")
+        .eq("business_id", biz_id)
+        .order("scanned_at", desc=True)
+        .limit(1)
+    )).data
+    scan = scan_rows[0] if scan_rows else {}
+
+    # tools_json은 guides 테이블에 저장됨
+    guide_row = (await execute(
+        supabase.table("guides")
+        .select("tools_json")
+        .eq("business_id", biz_id)
+        .order("generated_at", desc=True)
+        .limit(1)
+        .maybe_single()
+    )).data
+
+    naver = scan.get("naver_result") or {}
+    website = scan.get("website_check_result") or {}
+    breakdown = scan.get("score_breakdown") or {}
+    tools = (guide_row or {}).get("tools_json") or {}
+
+    naver_place_id = biz.get("naver_place_id", "")
+
+    checks = [
+        {
+            "key": "registration",
+            "label": "스마트플레이스 등록",
+            "done": bool(naver_place_id or naver.get("is_smart_place")),
+            "impact": "high",
+            "action": "smartplace.naver.com 에서 내 가게를 등록하세요.",
+            "effect": "AI 브리핑 기본 노출 조건 충족",
+            "deeplink": "https://smartplace.naver.com",
+        },
+        {
+            "key": "basic_info",
+            "label": "기본 정보 완성 (주소·전화·영업시간)",
+            "done": (breakdown.get("info_completeness", 0) or 0) >= 60,
+            "score": round(breakdown.get("info_completeness", 0) or 0),
+            "impact": "high",
+            "action": "스마트플레이스 > 기본 정보에서 주소·전화번호·영업시간을 모두 입력하세요.",
+            "effect": "정보 완성도 +20~30점",
+            "deeplink": f"https://smartplace.naver.com/places/{naver_place_id}/info" if naver_place_id else None,
+        },
+        {
+            "key": "photos",
+            "label": "대표 사진 10장 이상",
+            "done": (naver.get("photo_count") or 0) >= 10,
+            "count": naver.get("photo_count") or 0,
+            "impact": "medium",
+            "action": "가게 내외부, 메뉴/서비스 사진을 10장 이상 올리세요.",
+            "effect": "AI 조건 검색 매칭 향상",
+            "deeplink": f"https://smartplace.naver.com/places/{naver_place_id}/photo" if naver_place_id else None,
+        },
+        {
+            "key": "faq",
+            "label": "FAQ(Q&A) 3개 이상 등록",
+            "done": ((tools.get("smart_place_faq_count") or naver.get("faq_count") or 0)) >= 3,
+            "count": tools.get("smart_place_faq_count") or naver.get("faq_count") or 0,
+            "impact": "high",
+            "action": "스마트플레이스 > Q&A에 고객 자주 묻는 질문 3~5개를 등록하세요. 네이버 AI 브리핑 인용의 가장 직접적 경로입니다.",
+            "effect": "AI 브리핑 인용 확률 +30~40%",
+            "deeplink": f"https://smartplace.naver.com/places/{naver_place_id}/qna" if naver_place_id else None,
+        },
+        {
+            "key": "news_post",
+            "label": "소식(News) 최근 1개월 내 업데이트",
+            "done": (breakdown.get("content_freshness", 0) or 0) >= 50,
+            "impact": "medium",
+            "action": "스마트플레이스 > 소식에 메뉴 변경, 이벤트, 운영 안내를 주 1회 게시하세요.",
+            "effect": "AI 최신성 점수 유지 + 활성 사업장 인식",
+            "deeplink": f"https://smartplace.naver.com/places/{naver_place_id}/news" if naver_place_id else None,
+        },
+        {
+            "key": "review_response",
+            "label": "리뷰 답변 활성화 (50% 이상)",
+            "done": (naver.get("response_rate") or 0) >= 50,
+            "rate": naver.get("response_rate") or 0,
+            "impact": "medium",
+            "action": "미답변 리뷰에 키워드가 포함된 자연스러운 답변을 달아주세요.",
+            "effect": "리뷰 품질 신호 강화 + 고객 신뢰도 향상",
+            "deeplink": f"https://smartplace.naver.com/places/{naver_place_id}/review" if naver_place_id else None,
+        },
+        {
+            "key": "website_schema",
+            "label": "웹사이트 + JSON-LD 구조화",
+            "done": bool(biz.get("website_url") or website.get("url")) and bool(website.get("has_json_ld")),
+            "has_website": bool(biz.get("website_url") or website.get("url")),
+            "has_json_ld": bool(website.get("has_json_ld")),
+            "impact": "low",
+            "action": "독립 웹사이트에 LocalBusiness JSON-LD를 추가하면 ChatGPT·Perplexity에서도 노출됩니다.",
+            "effect": "글로벌 AI 채널 +15~20점",
+            "deeplink": None,
+        },
+    ]
+
+    done_count = sum(1 for c in checks if c["done"])
+    total = len(checks)
+    pct = round(done_count / total * 100)
+
+    if pct >= 85:
+        grade, grade_label = "A", "최적화 완료"
+    elif pct >= 65:
+        grade, grade_label = "B", "일부 개선 필요"
+    elif pct >= 40:
+        grade, grade_label = "C", "주요 항목 미완성"
+    else:
+        grade, grade_label = "D", "즉시 개선 필요"
+
+    impact_order = {"high": 0, "medium": 1, "low": 2}
+    top_actions = sorted(
+        [c for c in checks if not c["done"]],
+        key=lambda x: impact_order.get(x["impact"], 9)
+    )[:3]
+
+    return {
+        "business_id": biz_id,
+        "business_name": biz["name"],
+        "completion_pct": pct,
+        "done_count": done_count,
+        "total_count": total,
+        "grade": grade,
+        "grade_label": grade_label,
+        "checks": checks,
+        "top_actions": top_actions,
+        "naver_place_id": naver_place_id,
+        "smartplace_url": f"https://smartplace.naver.com/places/{naver_place_id}" if naver_place_id else "https://smartplace.naver.com",
+    }
+
+
+# ── 스마트플레이스 자동 체크 결과 조회 ──────────────────────────────────────
+
+@router.get("/smart-place/{biz_id}")
+async def get_smart_place_result(biz_id: str, user=Depends(get_current_user)):
+    """최근 스캔의 스마트플레이스 자동 체크 결과 조회.
+    결과 없으면 businesses.naver_place_url 반환 (수동 등록 유도)
+    """
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    # 최신 스캔에서 smart_place_completeness_result 조회
+    scan = (
+        await execute(
+            supabase.table("scan_results")
+            .select("id, scanned_at, smart_place_completeness_result")
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+            .maybe_single()
+        )
+    ).data
+
+    result = (scan or {}).get("smart_place_completeness_result")
+    if result and not result.get("error"):
+        return {
+            "biz_id": biz_id,
+            "source": "auto_scan",
+            "scanned_at": (scan or {}).get("scanned_at"),
+            "completeness_score": result.get("completeness_score", 0),
+            "has_faq": result.get("has_faq", False),
+            "has_recent_post": result.get("has_recent_post", False),
+            "has_intro": result.get("has_intro", False),
+            "has_menu": result.get("has_menu", False),
+            "has_hours": result.get("has_hours", False),
+            "photo_count": result.get("photo_count", 0),
+            "raw": result,
+        }
+
+    # 결과 없음 — naver_place_url 반환하여 프론트에서 수동 안내
+    biz = (
+        await execute(
+            supabase.table("businesses")
+            .select("naver_place_url, naver_place_id, smart_place_auto_checked_at")
+            .eq("id", biz_id)
+            .maybe_single()
+        )
+    ).data or {}
+
+    naver_place_url = biz.get("naver_place_url")
+    naver_place_id = biz.get("naver_place_id")
+
+    return {
+        "biz_id": biz_id,
+        "source": "not_scanned",
+        "scanned_at": None,
+        "completeness_score": None,
+        "has_faq": None,
+        "has_recent_post": None,
+        "has_intro": None,
+        "has_menu": None,
+        "has_hours": None,
+        "photo_count": None,
+        "naver_place_url": naver_place_url,
+        "smartplace_register_url": (
+            f"https://smartplace.naver.com/places/{naver_place_id}"
+            if naver_place_id
+            else "https://smartplace.naver.com"
+        ),
+        "message": (
+            "스마트플레이스 URL을 등록하면 다음 스캔 시 자동으로 분석됩니다."
+            if not naver_place_url
+            else "다음 AI 스캔 시 스마트플레이스 완성도를 자동으로 분석합니다."
+        ),
+        "raw": None,
+    }
+

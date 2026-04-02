@@ -1,5 +1,5 @@
 // Domain 1 — DiagnosisReport (진단 리포트)
-// 도메인 모델 v2.1 § 5
+// 도메인 모델 v2.4 § 5
 
 import { ScanContext } from "./context";
 
@@ -52,6 +52,24 @@ export interface NaverChannelDetail {
   is_on_kakao: boolean;
   naver_rank: number | null;
   top_competitor_blog_count: number;
+  // v2.4 추가 — AI 브리핑 노출 품질 신호
+  briefing_keyword?: string;          // 어떤 검색어에서 브리핑 노출됐는지
+  briefing_excerpt?: string;          // 브리핑에서 내 가게를 어떻게 소개했는지
+  smart_place_faq_count: number;      // 스마트플레이스 사장님 Q&A 등록 수 (브리핑 직결)
+  smart_place_photo_count: number;    // 스마트플레이스 사진 수
+  // v2.4 추가 — 카카오 리뷰 데이터
+  kakao_review_count: number;         // 카카오맵 리뷰 수
+  kakao_avg_rating: number;           // 카카오맵 평점
+}
+
+// v2.4 신규 — 실제 고객 행동 신호 (스마트플레이스 API 연동)
+export interface CustomerSignals {
+  smart_place_views_week?: number;    // 7일 스마트플레이스 조회수
+  smart_place_saves?: number;         // 저장(찜) 수
+  phone_clicks_week?: number;         // 7일 전화 연결 클릭
+  direction_clicks_week?: number;     // 7일 길 찾기 클릭
+  photo_views_week?: number;          // 7일 사진 조회수
+  views_change_pct?: number;          // 전주 대비 조회수 변화율 (%)
 }
 
 export interface WebsiteHealth {
@@ -67,12 +85,12 @@ export interface WebsiteHealth {
 }
 
 export interface ScoreBreakdown {
-  exposure_freq: number;
-  review_quality: number;
-  schema_score: number;
-  online_mentions: number;
-  info_completeness: number;
-  content_freshness: number;
+  exposure_freq: number;      // AI 검색 노출 빈도 (25% / 35%)
+  review_quality: number;     // 리뷰 수·평점·키워드 (25% / 10%)
+  schema_score: number;       // 정보 구조화 점수 (20% / 20%)
+  online_mentions: number;    // 온라인 언급 빈도 (15% / 20%)
+  info_completeness: number;  // 정보 완성도 (10%)
+  content_freshness: number;  // 콘텐츠 최신성 (5%)
 }
 
 export interface ScoreResult {
@@ -94,5 +112,6 @@ export interface DiagnosisReport {
   ai_visibility: AIVisibility;
   naver_detail?: NaverChannelDetail;    // location_based 전용
   website_health?: WebsiteHealth;       // 웹사이트 있을 때만
+  customer_signals?: CustomerSignals;   // v2.4 — 스마트플레이스 API 연동 시
   score: ScoreResult;
 }

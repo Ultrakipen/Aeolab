@@ -25,7 +25,7 @@ export function GapAnalysisCard({ gap }: Props) {
         <TrendingUp className="w-4 h-4 text-orange-500" />
         <div className="text-sm font-medium text-gray-700">1위와 나의 격차 분석</div>
       </div>
-      <p className="text-xs text-gray-400 mb-4">
+      <p className="text-sm text-gray-400 mb-4">
         최고 점수 경쟁사 대비 나의 부족한 항목을 우선순위 순으로 보여줍니다.
         {gap.vs_top?.top_competitor_name && (
           <span className="ml-1 text-gray-500">
@@ -49,11 +49,11 @@ export function GapAnalysisCard({ gap }: Props) {
                     <span className="text-sm font-medium text-gray-700">
                       {DIMENSION_LABELS[d.dimension_key] ?? d.dimension_key}
                     </span>
-                    <span className="text-xs text-red-500 font-semibold shrink-0">
+                    <span className="text-sm text-red-500 font-semibold shrink-0">
                       -{Math.round(d.gap_to_top)}점
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">{d.gap_reason}</p>
+                  <p className="text-sm text-gray-500 mt-0.5">{d.gap_reason}</p>
                   <div className="mt-1.5 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                     <div className="h-full bg-orange-400 rounded-full" style={{ width: `${potentialWidth}%` }} />
                   </div>
@@ -65,7 +65,7 @@ export function GapAnalysisCard({ gap }: Props) {
       )}
 
       {gap.estimated_score_if_fixed > 0 && gap.vs_top?.my_score > 0 && (
-        <div className="mt-4 bg-blue-50 rounded-xl p-3 text-xs text-blue-700">
+        <div className="mt-4 bg-blue-50 rounded-xl p-3 text-sm text-blue-700">
           위 3개 항목 개선 시 예상 점수:{" "}
           <strong className="text-blue-900">
             {Math.round(gap.estimated_score_if_fixed)}점

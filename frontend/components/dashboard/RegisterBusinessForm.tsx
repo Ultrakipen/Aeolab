@@ -23,11 +23,12 @@ interface AddressCandidate {
 
 interface RegisterBusinessFormProps {
   userId: string
+  onSuccess?: () => void
 }
 
 type Step = 'category' | 'tags' | 'info'
 
-export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
+export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -59,7 +60,9 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
     website_url: '',
     google_place_id: '',
     kakao_place_id: '',
+    naver_place_url: '',
   })
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
@@ -177,7 +180,11 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
         }),
       })
       if (!res.ok) throw new Error()
-      router.push("/dashboard")
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        router.push("/dashboard")
+      }
     } catch {
       setError('사업장 등록 중 오류가 발생했습니다. 다시 시도해주세요.')
     } finally {
@@ -300,7 +307,7 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
 
         {selectedTags.length > 0 && (
           <div className="bg-blue-50 rounded-xl px-4 py-3 mb-4">
-            <p className="text-xs text-blue-700 font-medium mb-1">선택된 서비스 키워드 ({selectedTags.length}개)</p>
+            <p className="text-sm text-blue-700 font-medium mb-1">선택된 서비스 키워드 ({selectedTags.length}개)</p>
             <p className="text-sm text-blue-800">{selectedTags.join(', ')}</p>
           </div>
         )}
@@ -340,7 +347,7 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
               </div>
             )}
             <div>
-              <p className={`text-xs font-semibold ${cfg?.text ?? 'text-gray-400'}`}>{currentCategoryGroup?.label}</p>
+              <p className={`text-sm font-semibold ${cfg?.text ?? 'text-gray-400'}`}>{currentCategoryGroup?.label}</p>
               <p className="text-sm font-medium text-gray-800 mt-0.5">
                 {selectedTags.slice(0, 3).join(', ')}{selectedTags.length > 3 ? ` 외 ${selectedTags.length - 3}개` : ''}
               </p>
@@ -350,7 +357,7 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
       })()}
 
       <h2 className="font-semibold text-gray-900 mb-1">사업장 정보 입력</h2>
-      <p className="text-xs text-gray-400 mb-4">사업자등록번호로 조회하거나, 창업 예정이라면 직접 입력하세요.</p>
+      <p className="text-sm text-gray-400 mb-4">사업자등록번호로 조회하거나, 창업 예정이라면 직접 입력하세요.</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
 
@@ -370,12 +377,12 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
                 }}
                 className="w-3.5 h-3.5 accent-blue-600"
               />
-              <span className="text-xs text-gray-500">창업 예정 (미등록)</span>
+              <span className="text-sm text-gray-500">창업 예정 (미등록)</span>
             </label>
           </div>
 
           {isPreStartup ? (
-            <p className="text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
+            <p className="text-sm text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
               창업 예정자는 사업자등록 없이 바로 시장 분석을 시작할 수 있습니다.
             </p>
           ) : (
@@ -402,12 +409,12 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
                 </button>
               </div>
               {lookupResult && lookupResult.is_active && (
-                <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">
                   <span className="text-green-500 text-base">✓</span>
                   <span><strong>{lookupResult.status}</strong> · {lookupResult.tax_type}</span>
                 </div>
               )}
-              {lookupError && <p className="text-xs text-red-500">{lookupError}</p>}
+              {lookupError && <p className="text-sm text-red-500">{lookupError}</p>}
             </>
           )}
         </div>
@@ -446,7 +453,7 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
               type="button"
               onClick={handleAddressSearch}
               disabled={addressSearching}
-              className="text-xs text-blue-600 hover:text-blue-700 disabled:opacity-50 flex items-center gap-1"
+              className="text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50 flex items-center gap-1"
             >
               <Search className="w-3 h-3" />{addressSearching ? '검색 중...' : ' 네이버 주소 검색'}
             </button>
@@ -468,8 +475,8 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
                   className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0"
                 >
                   <div className="text-sm font-medium text-gray-900">{c.name}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{c.address}</div>
-                  {c.phone && <div className="text-xs text-gray-400">{c.phone}</div>}
+                  <div className="text-sm text-gray-500 mt-0.5">{c.address}</div>
+                  {c.phone && <div className="text-sm text-gray-400">{c.phone}</div>}
                 </button>
               ))}
             </div>
@@ -501,44 +508,74 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
         {/* AI 채널 등록 정보 (글로벌 AI 노출용) */}
         <div className="border border-blue-100 rounded-xl p-4 bg-blue-50/50 space-y-3">
           <div>
-            <p className="text-xs font-semibold text-blue-700 mb-0.5">글로벌 AI 채널 등록 정보</p>
-            <p className="text-xs text-blue-600">
+            <p className="text-sm font-semibold text-blue-700 mb-0.5">글로벌 AI 채널 등록 정보</p>
+            <p className="text-sm text-blue-600">
               ChatGPT·Perplexity에서 노출되려면 구글·카카오 등록이 필요합니다.
               <strong> 정보완성도 점수에 반영됩니다.</strong>
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Google 비즈니스 프로필 ID
-                <span className="text-gray-400 font-normal ml-1">(선택)</span>
-              </label>
-              <input
-                placeholder="예: ChIJN1t_tDeuEmsRUsoyG83frY4"
-                value={form.google_place_id}
-                onChange={(e) => setForm({ ...form, google_place_id: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Google 지도에서 사업장 URL의 <code className="bg-gray-100 px-1 rounded">place_id=</code> 값
+          {/* Place ID — 고급 설정 (접기/펼치기) */}
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="w-full flex items-center justify-between text-sm text-gray-400 hover:text-blue-600 transition-colors py-1"
+          >
+            <span>📌 Google / 카카오 Place ID 입력 <span className="text-gray-300">(선택 · 고급)</span></span>
+            <span>{showAdvanced ? '▲ 접기' : '▼ 펼치기'}</span>
+          </button>
+          {showAdvanced && (
+            <div className="grid grid-cols-1 gap-3 border border-gray-100 rounded-xl p-3 bg-gray-50">
+              <p className="text-sm text-gray-500">
+                <strong>Place ID란?</strong> Google 지도·카카오맵에서 내 가게를 식별하는 고유 번호입니다.
+                모르는 경우 그냥 건너뛰어도 됩니다. 나중에 설정 메뉴에서 추가할 수 있습니다.
               </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  네이버 스마트플레이스 URL
+                  <span className="text-gray-400 font-normal ml-1">(선택 · FAQ/소식 자동 체크)</span>
+                </label>
+                <input
+                  placeholder="예: https://naver.me/xxxxx 또는 https://map.naver.com/p/entry/place/12345"
+                  value={form.naver_place_url}
+                  onChange={(e) => setForm({ ...form, naver_place_url: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+                <p className="text-sm text-gray-400 mt-1">
+                  입력 시 스캔 때 FAQ·소식·소개글 등록 여부를 자동으로 확인합니다.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Google 비즈니스 프로필 ID
+                  <span className="text-gray-400 font-normal ml-1">(선택)</span>
+                </label>
+                <input
+                  placeholder="예: ChIJN1t_tDeuEmsRUsoyG83frY4"
+                  value={form.google_place_id}
+                  onChange={(e) => setForm({ ...form, google_place_id: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+                <p className="text-sm text-gray-400 mt-1">
+                  Google 지도 → 내 가게 클릭 → 주소창 URL에서 <code className="bg-gray-100 px-1 rounded">place_id=</code> 뒤의 값
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  카카오맵 Place ID
+                  <span className="text-gray-400 font-normal ml-1">(선택)</span>
+                </label>
+                <input
+                  placeholder="예: 1234567890"
+                  value={form.kakao_place_id}
+                  onChange={(e) => setForm({ ...form, kakao_place_id: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+                <p className="text-sm text-gray-400 mt-1">
+                  카카오맵 → 내 가게 클릭 → 주소창 URL 맨 끝 숫자 (예: map.kakao.com/장소/1234567890)
+                </p>
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                카카오맵 Place ID
-                <span className="text-gray-400 font-normal ml-1">(선택)</span>
-              </label>
-              <input
-                placeholder="예: 1234567890"
-                value={form.kakao_place_id}
-                onChange={(e) => setForm({ ...form, kakao_place_id: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                카카오맵에서 사업장 URL의 숫자 ID
-              </p>
-            </div>
-          </div>
+          )}
         </div>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -552,7 +589,7 @@ export function RegisterBusinessForm({ userId }: RegisterBusinessFormProps) {
         </button>
 
         {!canSubmit && !isPreStartup && (
-          <p className="text-xs text-center text-gray-400">
+          <p className="text-sm text-center text-gray-400">
             사업자등록번호 조회 후 등록할 수 있습니다
           </p>
         )}

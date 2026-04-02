@@ -44,7 +44,7 @@ function PlatformRow({
 
   return (
     <div className="flex items-center gap-3">
-      <div className="w-32 shrink-0 text-xs text-gray-600 font-medium truncate">
+      <div className="w-32 shrink-0 text-sm text-gray-600 font-medium truncate">
         {platform.label}
       </div>
       <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
@@ -60,17 +60,17 @@ function PlatformRow({
       </div>
       <div className="w-20 text-right shrink-0">
         {hasError ? (
-          <span className="text-xs text-gray-300">오류</span>
+          <span className="text-sm text-gray-300">오류</span>
         ) : platform.key === 'gemini' && exposureFreq !== undefined ? (
-          <span className={`text-xs font-semibold ${mentioned ? 'text-indigo-600' : 'text-gray-400'}`}>
+          <span className={`text-sm font-semibold ${mentioned ? 'text-indigo-600' : 'text-gray-400'}`}>
             {exposureFreq}회/100
           </span>
         ) : mentioned ? (
-          <span className="text-xs font-semibold" style={{ color: platform.color }}>
+          <span className="text-sm font-semibold" style={{ color: platform.color }}>
             노출됨 {result?.in_briefing ? '(브리핑)' : result?.in_ai_overview ? '(AI Overview)' : ''}
           </span>
         ) : (
-          <span className="text-xs text-gray-300">미노출</span>
+          <span className="text-sm text-gray-300">미노출</span>
         )}
       </div>
     </div>
@@ -90,11 +90,11 @@ export function PlatformDistributionChart({
       <div className="flex items-center justify-between mb-4">
         <div>
           <div className="text-sm font-medium text-gray-700">AI 플랫폼별 노출 현황</div>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-sm text-gray-400 mt-0.5">
             네이버 생태계와 글로벌 AI 채널을 분리해 보여줍니다
           </p>
         </div>
-        <div className="flex gap-3 text-xs text-gray-500">
+        <div className="flex gap-3 text-sm text-gray-500">
           <span>
             노출 <strong className="text-gray-800">
               {naverMentionCount + globalMentionCount}
@@ -107,7 +107,7 @@ export function PlatformDistributionChart({
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2.5">
           <div className="w-2 h-2 rounded-full bg-green-500" />
-          <span className="text-xs font-semibold text-gray-600">
+          <span className="text-sm font-semibold text-gray-600">
             네이버 AI 생태계
             {naverChannelScore !== undefined && (
               <span className="ml-2 text-green-600">{naverChannelScore}점</span>
@@ -127,13 +127,13 @@ export function PlatformDistributionChart({
       <div>
         <div className="flex items-center gap-2 mb-2.5">
           <div className="w-2 h-2 rounded-full bg-blue-500" />
-          <span className="text-xs font-semibold text-gray-600">
+          <span className="text-sm font-semibold text-gray-600">
             글로벌 AI 채널
             {globalChannelScore !== undefined && (
               <span className="ml-2 text-blue-600">{globalChannelScore}점</span>
             )}
           </span>
-          <span className="text-xs text-gray-400 ml-1">
+          <span className="text-sm text-gray-400 ml-1">
             (ChatGPT 한국 MAU 2,000만+ 대응)
           </span>
         </div>

@@ -1,7 +1,7 @@
 """
 Domain 1 — DiagnosisReport (진단 리포트)
 "내 가게 지금 어때?"
-도메인 모델 v2.1 § 5
+도메인 모델 v2.4 § 5
 """
 from __future__ import annotations
 from pydantic import BaseModel
@@ -34,7 +34,7 @@ class BusinessSnapshot(BaseModel):
 
 class AIPlatformResult(BaseModel):
     """AI 플랫폼 1개의 노출 결과"""
-    platform: str               # gemini | chatgpt | perplexity | grok | naver | claude | zeta | google
+    platform: str               # gemini | chatgpt | perplexity | grok | naver | claude | google
     mentioned: bool             # 노출 여부
     rank: Optional[int] = None  # 노출 순위 (1~5)
     excerpt: Optional[str] = None  # 인용 문구
@@ -63,12 +63,22 @@ class ChannelScores(BaseModel):
 
 class NaverChannelDetail(BaseModel):
     """네이버 채널 세부 현황 (location_based 전용)"""
-    in_ai_briefing: bool        # 네이버 AI 브리핑 노출
-    is_smart_place: bool        # 스마트플레이스 등록
-    blog_mentions: int          # 블로그 언급 수
-    is_on_kakao: bool           # 카카오맵 등록
-    naver_rank: Optional[int] = None  # 지역 검색 순위
-    top_competitor_blog_count: int = 0  # 1위 경쟁사 블로그 언급 수
+    in_ai_briefing: bool            # 네이버 AI 브리핑 노출
+    is_smart_place: bool            # 스마트플레이스 등록
+    blog_mentions: int              # 블로그 언급 수
+    is_on_kakao: bool               # 카카오맵 등록
+    naver_rank: Optional[int] = None            # 지역 검색 순위
+    top_competitor_blog_count: int = 0          # 1위 경쟁사 블로그 언급 수
+
+    # v2.4 추가 — AI 브리핑 노출 품질 신호
+    briefing_keyword: Optional[str] = None      # 어떤 검색어에서 브리핑 노출됐는지
+    briefing_excerpt: Optional[str] = None      # 브리핑에서 내 가게를 어떻게 소개했는지
+    smart_place_faq_count: int = 0              # 스마트플레이스 사장님 Q&A 등록 수 (브리핑 직결)
+    smart_place_photo_count: int = 0            # 스마트플레이스 사진 수 (완성도 신호)
+
+    # v2.4 추가 — 카카오 리뷰 데이터 (AI 추천 신호)
+    kakao_review_count: int = 0                 # 카카오맵 리뷰 수
+    kakao_avg_rating: float = 0.0               # 카카오맵 평점
 
 
 class WebsiteHealth(BaseModel):
@@ -84,14 +94,28 @@ class WebsiteHealth(BaseModel):
     error: Optional[str] = None
 
 
+class CustomerSignals(BaseModel):
+    """실제 고객 행동 신호 — 스마트플레이스 API 연동 (v2.4 신규)
+
+    점수↑ = 손님↑ 연결고리: AI 노출 개선이 실제 클릭·방문으로 이어지는지 추적.
+    데이터 없으면 None (스마트플레이스 API 미연동 사업장).
+    """
+    smart_place_views_week: Optional[int] = None    # 7일 스마트플레이스 조회수
+    smart_place_saves: Optional[int] = None         # 저장(찜) 수
+    phone_clicks_week: Optional[int] = None         # 7일 전화 연결 클릭
+    direction_clicks_week: Optional[int] = None     # 7일 길 찾기 클릭
+    photo_views_week: Optional[int] = None          # 7일 사진 조회수
+    views_change_pct: Optional[float] = None        # 전주 대비 조회수 변화율 (%)
+
+
 class ScoreBreakdown(BaseModel):
     """6항목 세부 점수 (각 0~100)"""
-    exposure_freq: float        # AI 검색 노출 빈도 (30% / 35%)
-    review_quality: float       # 리뷰 수·평점·키워드 (20% / 10%)
-    schema_score: float         # 정보 구조화 점수 (15% / 20%)
+    exposure_freq: float        # AI 검색 노출 빈도 (25% / 35%)
+    review_quality: float       # 리뷰 수·평점·키워드 (25% / 10%)
+    schema_score: float         # 정보 구조화 점수 (20% / 20%)
     online_mentions: float      # 온라인 언급 빈도 (15% / 20%)
     info_completeness: float    # 정보 완성도 (10%)
-    content_freshness: float    # 콘텐츠 최신성 (10% / 5%)
+    content_freshness: float    # 콘텐츠 최신성 (5%)
 
 
 class ScoreResult(BaseModel):
@@ -118,4 +142,6 @@ class DiagnosisReport(BaseModel):
     naver_detail: Optional[NaverChannelDetail] = None
     # 웹사이트가 있을 때만 수집 (context 무관)
     website_health: Optional[WebsiteHealth] = None
+    # 스마트플레이스 API 연동 시 수집 (location_based 전용)
+    customer_signals: Optional[CustomerSignals] = None
     score: ScoreResult

@@ -6,7 +6,7 @@ from datetime import date
 logger = logging.getLogger("aeolab")
 
 TOSS_API_BASE = "https://api.tosspayments.com/v1"
-PLAN_PRICE = {"basic": 9900, "pro": 29900, "biz": 79900, "startup": 39900, "enterprise": 200000}
+PLAN_PRICE = {"basic": 9900, "pro": 22900, "biz": 49900, "startup": 16900, "enterprise": 200000}
 
 
 async def issue_billing_key(customer_key: str, auth_key: str) -> str:

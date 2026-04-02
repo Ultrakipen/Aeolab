@@ -115,8 +115,22 @@ async def lookup_business_registration(reg_no: str = Query(..., description="사
 @router.post("")
 async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
     """사업장 등록"""
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
     x_user_id = user["id"]
     supabase = get_client()
+
+    # 플랜별 사업장 등록 한도 체크
+    plan = await get_user_plan(x_user_id, supabase)
+    biz_limit = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["businesses"]
+    existing_count = (await execute(
+        supabase.table("businesses").select("id", count="exact").eq("user_id", x_user_id).eq("is_active", True)
+    )).count or 0
+    if existing_count >= biz_limit:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "message": f"{plan} 플랜은 사업장 최대 {biz_limit}개까지 등록 가능합니다", "upgrade_url": "/pricing"},
+        )
+
     result = await execute(supabase.table("businesses").insert({
         "user_id": x_user_id,
         "name": req.name,
@@ -160,7 +174,7 @@ async def get_my_businesses(user=Depends(get_current_user)):
     """내 사업장 목록"""
     x_user_id = user["id"]
     supabase = get_client()
-    result = await execute(supabase.table("businesses").select("*").eq("user_id", x_user_id).eq("is_active", True))
+    result = await execute(supabase.table("businesses").select("id, name, category, region, address, phone, website_url, naver_place_url, keywords, business_type, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, is_active, created_at").eq("user_id", x_user_id).eq("is_active", True))
     return result.data
 
 
@@ -168,7 +182,7 @@ async def get_my_businesses(user=Depends(get_current_user)):
 async def get_business(biz_id: str, user=Depends(get_current_user)):
     x_user_id = user["id"]
     supabase = get_client()
-    result = await execute(supabase.table("businesses").select("*").eq("id", biz_id).eq("user_id", x_user_id).single())
+    result = await execute(supabase.table("businesses").select("id, name, category, region, address, phone, website_url, naver_place_url, keywords, business_type, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, is_active, created_at").eq("id", biz_id).eq("user_id", x_user_id).single())
     if not result.data:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
     return result.data
@@ -189,7 +203,7 @@ async def delete_business(biz_id: str, user=Depends(get_current_user)):
 async def update_business(biz_id: str, updates: dict, user=Depends(get_current_user)):
     x_user_id = user["id"]
     supabase = get_client()
-    allowed = {"name", "address", "phone", "website_url", "keywords", "naver_place_id", "google_place_id", "kakao_place_id", "business_type", "region", "receipt_review_count", "visitor_review_count", "review_count", "avg_rating"}
+    allowed = {"name", "address", "phone", "website_url", "naver_place_url", "keywords", "naver_place_id", "google_place_id", "kakao_place_id", "business_type", "region", "receipt_review_count", "visitor_review_count", "review_count", "avg_rating"}
     filtered = {k: v for k, v in updates.items() if k in allowed}
     result = await execute(supabase.table("businesses").update(filtered).eq("id", biz_id).eq("user_id", x_user_id))
     return result.data[0] if result.data else {}

@@ -615,3 +615,159 @@ SELECT
 FROM scan_results sr
 GROUP BY sr.business_id, DATE_TRUNC('week', sr.scanned_at)
 ORDER BY week_start DESC;
+
+
+-- ========================================
+-- v3.0 듀얼트랙 모델 — track 점수 컬럼 추가
+-- Supabase SQL Editor에서 실행하세요
+-- ========================================
+
+-- scan_results: 듀얼트랙 점수 + keyword_coverage 추가
+ALTER TABLE scan_results
+  ADD COLUMN IF NOT EXISTS track1_score     FLOAT,
+  ADD COLUMN IF NOT EXISTS track2_score     FLOAT,
+  ADD COLUMN IF NOT EXISTS unified_score    FLOAT,
+  ADD COLUMN IF NOT EXISTS keyword_coverage FLOAT;
+
+-- score_history: 듀얼트랙 점수 추가 (30일 추세용)
+ALTER TABLE score_history
+  ADD COLUMN IF NOT EXISTS track1_score  FLOAT,
+  ADD COLUMN IF NOT EXISTS track2_score  FLOAT,
+  ADD COLUMN IF NOT EXISTS unified_score FLOAT;
+
+-- scan_results 검색 인덱스 (track1 기준 성장 단계 조회용)
+CREATE INDEX IF NOT EXISTS idx_scan_results_track1
+  ON scan_results(business_id, track1_score DESC, scanned_at DESC);
+
+-- score_history 추세 조회 인덱스
+CREATE INDEX IF NOT EXISTS idx_score_history_tracks
+  ON score_history(business_id, score_date DESC);
+
+-- ========================================
+-- v3.1 review_replies 테이블 추가
+-- 리뷰 답변 초안 생성 이력 (guide.py /review-reply 엔드포인트)
+-- Supabase SQL Editor에서 실행하세요
+-- ========================================
+
+CREATE TABLE IF NOT EXISTS review_replies (
+  id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  business_id   UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  review_text   TEXT NOT NULL,
+  reply_draft   TEXT NOT NULL,
+  sentiment     TEXT NOT NULL DEFAULT 'neutral'
+                  CHECK (sentiment IN ('positive', 'negative', 'neutral')),
+  keywords_used TEXT[] DEFAULT '{}',
+  created_at    TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_review_replies_biz_created
+  ON review_replies(business_id, created_at DESC);
+
+ALTER TABLE review_replies ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "own_review_replies" ON review_replies
+  USING (EXISTS (
+    SELECT 1 FROM businesses b
+    WHERE b.id = review_replies.business_id AND b.user_id = auth.uid()
+  ));
+
+CREATE POLICY "own_review_replies_insert" ON review_replies
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM businesses b
+    WHERE b.id = review_replies.business_id AND b.user_id = auth.uid()
+  ));
+
+
+-- ========================================
+-- v3.1 공지사항/FAQ 테이블 추가
+-- Supabase SQL Editor에서 실행하세요
+-- ========================================
+
+CREATE TABLE IF NOT EXISTS notices (
+  id          BIGSERIAL PRIMARY KEY,
+  title       TEXT NOT NULL,
+  content     TEXT NOT NULL,
+  category    TEXT NOT NULL DEFAULT 'general',  -- general / update / maintenance
+  is_pinned   BOOLEAN NOT NULL DEFAULT false,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS faqs (
+  id          BIGSERIAL PRIMARY KEY,
+  question    TEXT NOT NULL,
+  answer      TEXT NOT NULL,
+  category    TEXT NOT NULL DEFAULT 'general',  -- general / pricing / scan / guide
+  order_num   INT NOT NULL DEFAULT 0,
+  is_active   BOOLEAN NOT NULL DEFAULT true,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notices_pinned_created ON notices (is_pinned DESC, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_faqs_category_order ON faqs (category, order_num);
+
+-- ── v3.2 문의(Q&A) ───────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS inquiries (
+  id           BIGSERIAL PRIMARY KEY,
+  user_id      UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  name         TEXT NOT NULL,
+  email        TEXT NOT NULL,
+  subject      TEXT NOT NULL,
+  content      TEXT NOT NULL,
+  status       TEXT NOT NULL DEFAULT 'pending',  -- pending / answered
+  answer       TEXT,
+  answered_at  TIMESTAMPTZ,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_inquiries_status ON inquiries (status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_inquiries_user   ON inquiries (user_id, created_at DESC);
+
+-- =============================================
+-- v3.3 마이그레이션 (2026-04-02)
+-- =============================================
+
+-- 1. trial_scans — 팔로업 이메일 발송 추적 컬럼
+--    체험 스캔 후 D+1/D+3/D+7 재접촉 이메일 관리
+ALTER TABLE trial_scans
+  ADD COLUMN IF NOT EXISTS followup_sent_1  BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS followup_sent_3  BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS followup_sent_7  BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS followup_sent_at TIMESTAMPTZ;
+
+-- trial_scans.email 컬럼은 v1.0 CREATE TABLE에 이미 존재
+-- 혹시 누락된 환경을 위해 IF NOT EXISTS로 보완 추가
+ALTER TABLE trial_scans
+  ADD COLUMN IF NOT EXISTS email TEXT;
+
+-- 팔로업 스케줄러용 인덱스 (미발송 + 이메일 있는 레코드 빠른 조회)
+CREATE INDEX IF NOT EXISTS idx_trial_scans_followup
+  ON trial_scans(scanned_at)
+  WHERE email IS NOT NULL AND followup_sent_1 = FALSE;
+
+-- 2. businesses — 네이버 플레이스 URL + 스마트플레이스 자동 체크 일시
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS naver_place_url              TEXT,
+  ADD COLUMN IF NOT EXISTS smart_place_auto_checked_at  TIMESTAMPTZ;
+
+-- 3. scan_results — 스마트플레이스 자동 체크 결과 (JSONB)
+--    {is_smart_place, has_faq, has_recent_post, has_intro, score}
+ALTER TABLE scan_results
+  ADD COLUMN IF NOT EXISTS smart_place_completeness_result JSONB;
+
+-- 4. review_replies — 기존 v3.1 테이블에 누락 컬럼 추가
+--    (user_id, reviewer_name, rating, reply_type, is_posted, posted_at, updated_at)
+ALTER TABLE review_replies
+  ADD COLUMN IF NOT EXISTS user_id       UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS reviewer_name TEXT,
+  ADD COLUMN IF NOT EXISTS rating        INTEGER,
+  ADD COLUMN IF NOT EXISTS reply_type    TEXT NOT NULL DEFAULT 'positive',
+  ADD COLUMN IF NOT EXISTS is_posted     BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS posted_at     TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS platform      TEXT NOT NULL DEFAULT 'naver',
+  ADD COLUMN IF NOT EXISTS updated_at    TIMESTAMPTZ DEFAULT NOW();
+
+-- review_replies user_id 인덱스 (사용자별 답변 목록 조회)
+CREATE INDEX IF NOT EXISTS idx_review_replies_user
+  ON review_replies(user_id)
+  WHERE user_id IS NOT NULL;

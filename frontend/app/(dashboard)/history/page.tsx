@@ -39,7 +39,7 @@ export default async function HistoryPage() {
     .select('plan, status')
     .eq('user_id', user.id)
     .maybeSingle()
-  const plan = sub?.plan ?? 'free'
+  const plan = sub?.status === "active" ? (sub?.plan ?? "free") : "free"
 
   const [{ data: beforeAfter }, { data: history }] = await Promise.all([
     supabase
@@ -56,13 +56,13 @@ export default async function HistoryPage() {
   ])
 
   return (
-    <div className="p-8">
-      <div className="mb-6 flex items-start justify-between">
+    <div className="p-3 md:p-6">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">변화 기록</h1>
-          <p className="text-gray-500 text-sm mt-1">스캔을 진행할 때마다 기록이 쌓입니다. AI 검색 노출이 어떻게 개선되었는지 확인하세요.</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">변화 기록</h1>
+          <p className="text-gray-500 text-sm mt-1 leading-relaxed">스캔을 진행할 때마다 기록이 쌓입니다. AI 검색 노출이 어떻게 개선되었는지 확인하세요.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <ShareButton
             title={`${business.name} AI 노출 리포트`}
             text={`AEOlab으로 분석한 AI 검색 노출 결과를 확인해보세요.`}
@@ -71,54 +71,68 @@ export default async function HistoryPage() {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         <TrendLine data={history ?? []} />
         <BeforeAfterCard items={beforeAfter ?? []} businessName={business.name} />
 
+        {/* Before/After 초기 안내 — after 데이터 없을 때 */}
+        {(beforeAfter ?? []).filter((i) => i.capture_type?.startsWith?.('after_')).length === 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+            <p className="text-sm text-amber-700 font-medium">
+              개선 후(After) 스크린샷은 다음 자동 스캔(매일 새벽 2시) 후 자동 저장됩니다.
+            </p>
+            <p className="text-sm text-amber-600 mt-1">
+              첫 스캔 완료 후 다음 날 확인해보세요.
+            </p>
+          </div>
+        )}
+
         {/* 스캔 히스토리 테이블 */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
+          <div className="px-4 md:px-6 py-4 border-b border-gray-100">
             <div>
-              <div className="text-sm font-medium text-gray-700">점수 변화 기록</div>
-              <div className="text-xs text-gray-400 mt-0.5">점수가 높을수록 AI 검색에 더 잘 노출됩니다 (0~100점)</div>
+              <div className="text-base font-medium text-gray-700">점수 변화 기록</div>
+              <div className="text-base text-gray-400 mt-0.5">점수가 높을수록 AI 검색에 더 잘 노출됩니다 (0~100점)</div>
             </div>
           </div>
           {(history ?? []).length === 0 ? (
             <div className="p-8 text-center">
               <p className="text-gray-500 text-sm font-medium mb-1">아직 스캔 기록이 없습니다.</p>
-              <p className="text-gray-400 text-xs">대시보드에서 첫 AI 스캔을 진행하면 여기에 기록이 쌓입니다.</p>
+              <p className="text-gray-400 text-sm">대시보드에서 첫 AI 스캔을 진행하면 여기에 기록이 쌓입니다.</p>
             </div>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="text-left px-6 py-3 text-xs text-gray-500 font-medium">날짜</th>
-                  <th className="text-left px-6 py-3 text-xs text-gray-500 font-medium">점수</th>
-                  <th className="text-left px-6 py-3 text-xs text-gray-500 font-medium">AI 노출 횟수 (100회 중)</th>
-                  <th className="text-left px-6 py-3 text-xs text-gray-500 font-medium">전주 대비 변화</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {(history ?? []).map((row) => (
-                  <tr key={row.id}>
-                    <td className="px-6 py-3 text-gray-700">
-                      {new Date(row.score_date).toLocaleDateString('ko-KR')}
-                    </td>
-                    <td className="px-6 py-3 font-semibold text-blue-600">{Math.round(row.total_score)}점</td>
-                    <td className="px-6 py-3 text-gray-600">{row.exposure_freq}/100</td>
-                    <td className="px-6 py-3">
-                      {row.weekly_change > 0 ? (
-                        <span className="text-green-600">+{row.weekly_change.toFixed(1)}</span>
-                      ) : row.weekly_change < 0 ? (
-                        <span className="text-red-500">{row.weekly_change.toFixed(1)}</span>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[480px]">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">날짜</th>
+                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">점수</th>
+                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">AI 노출 횟수 (100회 중)</th>
+                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">전주 대비</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {(history ?? []).map((row) => (
+                    <tr key={row.id}>
+                      <td className="px-4 md:px-6 py-3 text-gray-700 whitespace-nowrap">
+                        {new Date(row.score_date).toLocaleDateString('ko-KR')}
+                      </td>
+                      <td className="px-4 md:px-6 py-3 font-semibold text-blue-600">{Math.round(row.total_score)}점</td>
+                      <td className="px-4 md:px-6 py-3 text-gray-600">{row.exposure_freq}/100</td>
+                      <td className="px-4 md:px-6 py-3">
+                        {row.weekly_change > 0 ? (
+                          <span className="text-green-600">+{row.weekly_change.toFixed(1)}</span>
+                        ) : row.weekly_change < 0 ? (
+                          <span className="text-red-500">{row.weekly_change.toFixed(1)}</span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>

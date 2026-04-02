@@ -77,7 +77,7 @@ export function ScoreCard({ score, grade, exposureFreq, prevScore, scannedAt }: 
         </div>
       </div>
       {scannedAt && (
-        <div className="text-xs text-gray-400 mt-3">
+        <div className="text-sm text-gray-400 mt-3">
           마지막 스캔: {new Date(scannedAt).toLocaleDateString('ko-KR')}
         </div>
       )}

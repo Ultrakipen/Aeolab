@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from db.supabase_client import get_client, execute
-from middleware.plan_gate import get_current_user
 from supabase import create_client
+from middleware.plan_gate import get_current_user
 
 router = APIRouter()
 

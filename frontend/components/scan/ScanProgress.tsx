@@ -85,7 +85,7 @@ export function ScanProgress({ eventSource, onComplete, onError }: ScanProgressP
         {Object.entries(PLATFORM_LABELS).map(([key, label]) => {
           const status = steps[key]
           return (
-            <div key={key} className="flex items-center gap-3 text-sm">
+            <div key={key} className="flex items-center gap-3 text-base">
               <div className="w-5">
                 {status === 'running' && (
                   <div className="w-4 h-4 border-2 border-blue-400 border-t-blue-600 rounded-full animate-spin" />
