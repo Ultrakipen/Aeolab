@@ -39,7 +39,7 @@ async def generate_guide(
     current_user: dict = Depends(get_current_user),
 ):
     """Claude API로 개선 가이드 생성 (비동기 백그라운드).
-    월별 생성 한도: Basic 1회 / Startup 5회 / Pro 8회 / Biz 20회 / Enterprise 무제한
+    월별 생성 한도: Basic 5회 / Startup 5회 / Pro 8회 / Biz 20회 / Enterprise 무제한
     """
     from middleware.plan_gate import check_guide_limit
     supabase = get_client()
@@ -85,7 +85,7 @@ async def get_latest_guide(biz_id: str, user=Depends(get_current_user)):
     """최신 가이드 조회 (ActionPlan 구조 포함)"""
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
-    # v2.1 컬럼 포함 조회 시도, 없으면 레거시 컬럼만
+    # v2.1 컬럼 포함 조회 시도, 없으면 레거시 컬럼만 (checklist_done 별도 처리)
     try:
         result = await execute(
             supabase.table("guides")
@@ -95,17 +95,33 @@ async def get_latest_guide(biz_id: str, user=Depends(get_current_user)):
             .limit(1)
         )
     except Exception as e:
-        _logger.warning(f"guide fetch fallback (v3.0 columns not found): {e}")
-        result = await execute(
-            supabase.table("guides")
-            .select("id, business_id, items_json, priority_json, summary, checklist_done, generated_at")
-            .eq("business_id", biz_id)
-            .order("generated_at", desc=True)
-            .limit(1)
-        )
+        err_str = str(e)
+        _logger.warning(f"guide fetch fallback (v2.1 columns not found): {e}")
+        # checklist_done 등 신규 컬럼 제외 레거시 조회
+        try:
+            result = await execute(
+                supabase.table("guides")
+                .select("id, business_id, items_json, priority_json, summary, generated_at, context, next_month_goal, tools_json")
+                .eq("business_id", biz_id)
+                .order("generated_at", desc=True)
+                .limit(1)
+            )
+        except Exception:
+            result = await execute(
+                supabase.table("guides")
+                .select("id, business_id, items_json, priority_json, summary, generated_at")
+                .eq("business_id", biz_id)
+                .order("generated_at", desc=True)
+                .limit(1)
+            )
     if not result.data:
         raise HTTPException(status_code=404, detail="No guide found")
-    return result.data[0]
+    row = result.data[0]
+    row.setdefault("checklist_done", {})
+    row.setdefault("context", None)
+    row.setdefault("next_month_goal", None)
+    row.setdefault("tools_json", None)
+    return row
 
 
 class ReviewReplyRequest(BaseModel):
@@ -120,11 +136,30 @@ async def generate_review_reply(
 ):
     """리뷰 답변 초안 생성 (Claude Haiku, Basic+ 전용).
 
-    월별 한도: Basic/Startup 10회, Pro 50회, Biz/Enterprise 무제한
+    월별 한도: Basic 10회 / Startup 20회, Pro 50회, Biz/Enterprise 무제한
     """
     from middleware.plan_gate import check_review_reply_limit
     supabase = get_client()
 
+    # 1. 소유권 검증 먼저
+    await _verify_biz_ownership(supabase, req.business_id, current_user["id"])
+
+    # 2. 플랜 체크 (free 플랜이면 403)
+    sub = (await execute(
+        supabase.table("subscriptions")
+        .select("plan, status")
+        .eq("user_id", current_user["id"])
+        .maybe_single()
+    )).data
+    _plan = (sub or {}).get("plan", "free")
+    _status = (sub or {}).get("status", "inactive")
+    if _plan == "free" or _status not in ("active", "grace_period"):
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "pro", "biz", "enterprise"]},
+        )
+
+    # 3. 월별 한도 체크
     allowed, used, limit = await check_review_reply_limit(current_user["id"], supabase)
     if not allowed:
         raise HTTPException(
@@ -138,8 +173,6 @@ async def generate_review_reply(
             },
         )
 
-    await _verify_biz_ownership(supabase, req.business_id, current_user["id"])
-
     biz = (await execute(
         supabase.table("businesses")
         .select("name, category, keywords")
@@ -151,15 +184,31 @@ async def generate_review_reply(
     reply_draft, sentiment = await _generate_reply(biz, req.review_text)
 
     # 저장
-    await execute(
-        supabase.table("review_replies").insert({
-            "business_id": req.business_id,
-            "review_text": req.review_text,
-            "reply_draft": reply_draft,
-            "sentiment": sentiment,
-            "keywords_used": biz.get("keywords") or [],
-        })
-    )
+    try:
+        await execute(
+            supabase.table("review_replies").insert({
+                "business_id": req.business_id,
+                "review_text": req.review_text,
+                "reply_draft": reply_draft,
+                "sentiment": sentiment,
+                "keywords_used": biz.get("keywords") or [],
+            })
+        )
+    except Exception as e:
+        err_str = str(e)
+        if "sentiment" in err_str and "does not exist" in err_str:
+            # sentiment 컬럼 미적용 DB 환경 fallback
+            _logger.warning("review_replies.sentiment 컬럼 미적용 — sentiment 제외 저장 (마이그레이션 필요)")
+            await execute(
+                supabase.table("review_replies").insert({
+                    "business_id": req.business_id,
+                    "review_text": req.review_text,
+                    "reply_draft": reply_draft,
+                    "keywords_used": biz.get("keywords") or [],
+                })
+            )
+        else:
+            raise
 
     return {
         "reply_draft": reply_draft,
@@ -221,14 +270,32 @@ async def get_review_replies(biz_id: str, user=Depends(get_current_user)):
     """최근 리뷰 답변 이력 조회 (최대 20개)"""
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
-    result = await execute(
-        supabase.table("review_replies")
-        .select("id, review_text, reply_draft, sentiment, created_at")
-        .eq("business_id", biz_id)
-        .order("created_at", desc=True)
-        .limit(20)
-    )
-    return result.data or []
+    try:
+        result = await execute(
+            supabase.table("review_replies")
+            .select("id, review_text, reply_draft, sentiment, created_at")
+            .eq("business_id", biz_id)
+            .order("created_at", desc=True)
+            .limit(20)
+        )
+        return result.data or []
+    except Exception as e:
+        # sentiment 컬럼 미적용 DB 환경 fallback — sentiment 제외 조회
+        err_str = str(e)
+        if "sentiment" in err_str and "does not exist" in err_str:
+            _logger.warning("review_replies.sentiment 컬럼 미적용 — 마이그레이션 필요 (sentiment 제외 조회)")
+            result = await execute(
+                supabase.table("review_replies")
+                .select("id, review_text, reply_draft, created_at")
+                .eq("business_id", biz_id)
+                .order("created_at", desc=True)
+                .limit(20)
+            )
+            rows = result.data or []
+            for row in rows:
+                row.setdefault("sentiment", "neutral")
+            return rows
+        raise
 
 
 @router.get("/{biz_id}/qr-card")
@@ -250,7 +317,7 @@ async def get_qr_card(biz_id: str, user=Depends(get_current_user)):
     )).data
     _plan = (sub or {}).get("plan", "free")
     _status = (sub or {}).get("status", "inactive")
-    if _plan == "free" or _status != "active":
+    if _plan == "free" or _status not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "pro", "biz", "enterprise"]},
@@ -302,6 +369,10 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
     """ChatGPT 광고 대응 가이드 생성 (Pro+ 전용)"""
     supabase = get_client()
     x_user_id = current_user["id"]
+
+    # 소유권 검증 먼저 — 타인 biz_id로 플랜 체크 우회 방지
+    await _verify_biz_ownership(supabase, biz_id, x_user_id)
+
     sub = (
         await execute(
             supabase.table("subscriptions")
@@ -312,17 +383,15 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
     ).data
     plan = (sub or {}).get("plan", "free")
     status = (sub or {}).get("status", "inactive")
-    if plan not in ("pro", "biz", "enterprise") or status != "active":
+    if plan not in ("pro", "biz", "enterprise") or status not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz", "enterprise"]},
         )
 
-    await _verify_biz_ownership(supabase, biz_id, x_user_id)
-
     biz = (await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, keywords, website_url, description")
+        .select("id, name, category, region, keywords, website_url")
         .eq("id", biz_id).single()
     )).data
     if not biz:
@@ -351,7 +420,7 @@ async def _generate_and_save(req: GuideRequest):
         supabase = get_client()
         biz = (await execute(
             supabase.table("businesses")
-            .select("id, name, category, region, keywords, website_url, description, google_place_id, kakao_place_id, business_type, naver_place_id, address, phone")
+            .select("id, name, category, region, keywords, website_url, google_place_id, kakao_place_id, business_type, naver_place_id, address, phone, is_smart_place, has_faq, has_intro, has_recent_post, review_count, avg_rating, visitor_review_count, receipt_review_count")
             .eq("id", req.business_id).single()
         )).data
         if not biz:
@@ -424,6 +493,14 @@ async def _generate_and_save(req: GuideRequest):
             "priority_json": [item.title for item in action_plan.quick_wins],
             "summary": action_plan.summary,
         }
+
+        # tools_json에 weekly_roadmap, this_week_mission 병합 (Claude 응답에서 추출)
+        tools_data = action_plan.tools.model_dump()
+        if action_plan.weekly_roadmap:
+            tools_data["weekly_roadmap"] = action_plan.weekly_roadmap
+        if action_plan.this_week_mission:
+            tools_data["this_week_mission"] = action_plan.this_week_mission
+
         try:
             await execute(
                 supabase.table("guides").insert({
@@ -431,7 +508,7 @@ async def _generate_and_save(req: GuideRequest):
                     "scan_id": req.scan_id,
                     "context": context,
                     "next_month_goal": action_plan.next_month_goal,
-                    "tools_json": action_plan.tools.model_dump(),
+                    "tools_json": tools_data,
                 })
             )
         except Exception as col_err:

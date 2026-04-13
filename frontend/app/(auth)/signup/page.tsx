@@ -49,13 +49,22 @@ function SignupForm() {
       email,
       password,
       options: {
-        emailRedirectTo: `${location.origin}/dashboard`,
+        emailRedirectTo: `${location.origin}/onboarding`,
         data: { marketing_agreed: agreeMarketing },
       },
     });
 
     if (signupError) {
-      setError(signupError.message);
+      const msg = signupError.message;
+      if (msg.includes("already registered") || msg.includes("User already registered")) {
+        setError("이미 가입된 이메일입니다. 로그인해 주세요.");
+      } else if (msg.includes("Password should be at least")) {
+        setError("비밀번호는 최소 6자 이상이어야 합니다.");
+      } else if (msg.includes("rate limit") || msg.includes("too many")) {
+        setError("요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.");
+      } else {
+        setError("회원가입 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      }
       setLoading(false);
       return;
     }

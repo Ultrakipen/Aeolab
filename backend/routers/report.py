@@ -1,11 +1,14 @@
 import csv
 import io
+import logging
 from datetime import date
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import StreamingResponse, Response
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
 from utils import cache as _cache
+
+_logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -513,16 +516,16 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
         )
     ).data
     plan = (sub or {}).get("plan", "free")
-    if plan not in ("startup", "pro", "biz", "enterprise") or (sub or {}).get("status") != "active":
+    if plan not in ("startup", "pro", "biz", "enterprise") or (sub or {}).get("status") not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["startup", "pro", "biz"]},
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["startup", "pro", "biz", "enterprise"]},
         )
 
     rows = (
         await execute(
             supabase.table("scan_results")
-            .select("scanned_at, total_score, exposure_freq, query_used, score_breakdown")
+            .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, query_used, score_breakdown")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(100)
@@ -581,10 +584,10 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
         )
     ).data
     plan = (sub or {}).get("plan", "free")
-    if plan not in ("startup", "pro", "biz", "enterprise") or (sub or {}).get("status") != "active":
+    if plan not in ("pro", "biz", "enterprise") or (sub or {}).get("status") not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["startup", "pro", "biz"]},
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz", "enterprise"]},
         )
 
     # 데이터 조회 (PDF 생성에 필요한 필드만 선택)
@@ -720,7 +723,8 @@ async def generate_share_card(biz_id: str):
             font_large = ImageFont.truetype("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc", 120)
             font_medium = ImageFont.truetype("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 48)
             font_small = ImageFont.truetype("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 32)
-        except Exception:
+        except Exception as e:
+            _logger.warning("NotoSansCJK 폰트 로드 실패 — 기본 폰트로 대체 (한글 깨짐 가능): %s", e)
             font_large = ImageFont.load_default()
             font_medium = font_large
             font_small = font_large
@@ -974,40 +978,51 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    biz = (await execute(
+    _biz_res = await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, naver_place_id, website_url, keywords")
+        .select("id, name, category, region, naver_place_id, website_url, keywords, has_faq, has_intro, has_recent_post, has_photos, has_review_response")
         .eq("id", biz_id)
         .single()
-    )).data
+    )
+    biz = _biz_res.data if _biz_res else None
     if not biz:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다.")
 
-    scan_rows = (await execute(
+    _scan_res = await execute(
         supabase.table("scan_results")
-        .select("naver_result, website_check_result, score_breakdown, scanned_at")
+        .select("naver_result, website_check_result, score_breakdown, smart_place_completeness_result, scanned_at")
         .eq("business_id", biz_id)
         .order("scanned_at", desc=True)
         .limit(1)
-    )).data
+    )
+    scan_rows = _scan_res.data if _scan_res else None
     scan = scan_rows[0] if scan_rows else {}
 
     # tools_json은 guides 테이블에 저장됨
-    guide_row = (await execute(
+    _guide_res = await execute(
         supabase.table("guides")
         .select("tools_json")
         .eq("business_id", biz_id)
         .order("generated_at", desc=True)
         .limit(1)
         .maybe_single()
-    )).data
+    )
+    guide_row = _guide_res.data if _guide_res else None
 
     naver = scan.get("naver_result") or {}
     website = scan.get("website_check_result") or {}
     breakdown = scan.get("score_breakdown") or {}
+    sp_auto = scan.get("smart_place_completeness_result") or {}  # Playwright 자동 체크 결과
     tools = (guide_row or {}).get("tools_json") or {}
 
     naver_place_id = biz.get("naver_place_id", "")
+
+    # sp_auto 에서 실제 스마트플레이스 상태 추출 (Playwright 크롤링 결과)
+    sp_photo_count = sp_auto.get("photo_count") or 0
+    sp_has_faq = bool(sp_auto.get("has_faq"))
+    sp_has_recent_post = bool(sp_auto.get("has_recent_post"))
+    sp_has_hours = bool(sp_auto.get("has_hours"))
+    sp_has_intro = bool(sp_auto.get("has_intro"))
 
     checks = [
         {
@@ -1022,8 +1037,7 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
         {
             "key": "basic_info",
             "label": "기본 정보 완성 (주소·전화·영업시간)",
-            "done": (breakdown.get("info_completeness", 0) or 0) >= 60,
-            "score": round(breakdown.get("info_completeness", 0) or 0),
+            "done": sp_has_hours or bool(naver_place_id),
             "impact": "high",
             "action": "스마트플레이스 > 기본 정보에서 주소·전화번호·영업시간을 모두 입력하세요.",
             "effect": "정보 완성도 +20~30점",
@@ -1032,8 +1046,8 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
         {
             "key": "photos",
             "label": "대표 사진 10장 이상",
-            "done": (naver.get("photo_count") or 0) >= 10,
-            "count": naver.get("photo_count") or 0,
+            "done": (sp_photo_count >= 10 if sp_auto else False) or bool(biz.get("has_photos")),
+            "count": sp_photo_count,
             "impact": "medium",
             "action": "가게 내외부, 메뉴/서비스 사진을 10장 이상 올리세요.",
             "effect": "AI 조건 검색 매칭 향상",
@@ -1042,8 +1056,8 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
         {
             "key": "faq",
             "label": "FAQ(Q&A) 3개 이상 등록",
-            "done": ((tools.get("smart_place_faq_count") or naver.get("faq_count") or 0)) >= 3,
-            "count": tools.get("smart_place_faq_count") or naver.get("faq_count") or 0,
+            "done": sp_has_faq or ((tools.get("smart_place_faq_count") or 0) >= 3) or bool(biz.get("has_faq")),
+            "count": tools.get("smart_place_faq_count") or (1 if sp_has_faq else 0),
             "impact": "high",
             "action": "스마트플레이스 > Q&A에 고객 자주 묻는 질문 3~5개를 등록하세요. 네이버 AI 브리핑 인용의 가장 직접적 경로입니다.",
             "effect": "AI 브리핑 인용 확률 +30~40%",
@@ -1052,7 +1066,7 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
         {
             "key": "news_post",
             "label": "소식(News) 최근 1개월 내 업데이트",
-            "done": (breakdown.get("content_freshness", 0) or 0) >= 50,
+            "done": sp_has_recent_post or (breakdown.get("content_freshness", 0) or 0) >= 50 or bool(biz.get("has_recent_post")),
             "impact": "medium",
             "action": "스마트플레이스 > 소식에 메뉴 변경, 이벤트, 운영 안내를 주 1회 게시하세요.",
             "effect": "AI 최신성 점수 유지 + 활성 사업장 인식",
@@ -1061,7 +1075,7 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
         {
             "key": "review_response",
             "label": "리뷰 답변 활성화 (50% 이상)",
-            "done": (naver.get("response_rate") or 0) >= 50,
+            "done": (naver.get("response_rate") or 0) >= 50 or bool(biz.get("has_review_response")),
             "rate": naver.get("response_rate") or 0,
             "impact": "medium",
             "action": "미답변 리뷰에 키워드가 포함된 자연스러운 답변을 달아주세요.",
@@ -1070,12 +1084,12 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
         },
         {
             "key": "website_schema",
-            "label": "웹사이트 + JSON-LD 구조화",
+            "label": "웹사이트 AI 인식 정보 추가",
             "done": bool(biz.get("website_url") or website.get("url")) and bool(website.get("has_json_ld")),
             "has_website": bool(biz.get("website_url") or website.get("url")),
             "has_json_ld": bool(website.get("has_json_ld")),
             "impact": "low",
-            "action": "독립 웹사이트에 LocalBusiness JSON-LD를 추가하면 ChatGPT·Perplexity에서도 노출됩니다.",
+            "action": "독립 웹사이트에 AI 인식 정보 코드를 추가하면 ChatGPT·Perplexity에서도 노출됩니다.",
             "effect": "글로벌 AI 채널 +15~20점",
             "deeplink": None,
         },
@@ -1191,3 +1205,528 @@ async def get_smart_place_result(biz_id: str, user=Depends(get_current_user)):
         "raw": None,
     }
 
+
+# ── 성장 리포트 ─────────────────────────────────────────────────────────────
+
+BREAKDOWN_LABELS = {
+    "exposure_freq":      "AI 검색 노출",
+    "review_quality":     "리뷰 평판",
+    "schema_score":       "온라인 정보",
+    "online_mentions":    "온라인 언급",
+    "info_completeness":  "기본 정보 완성도",
+    "content_freshness":  "최근 활동",
+    "track1_naver":       "네이버 AI 채널",
+    "track2_global":      "글로벌 AI 채널",
+}
+
+
+def _score_to_grade(score: float) -> str:
+    if score >= 80:
+        return "A"
+    if score >= 60:
+        return "B"
+    if score >= 40:
+        return "C"
+    return "D"
+
+
+def _next_goal(current_score: float, breakdown: dict) -> dict:
+    """다음 등급 목표 계산."""
+    grade = _score_to_grade(current_score)
+    thresholds = {"D": (40, "C"), "C": (60, "B"), "B": (80, "A"), "A": (80, "A")}
+    target_score, target_grade = thresholds[grade]
+    gap = max(0.0, round(target_score - current_score, 1))
+
+    # 가장 낮은 breakdown 항목 찾아 action 문구 생성
+    action = "FAQ를 등록하면 AI 브리핑 노출 가능성이 올라갑니다"
+    if breakdown:
+        valid = {k: v for k, v in breakdown.items() if isinstance(v, (int, float))}
+        if valid:
+            worst_key = min(valid, key=lambda k: valid[k])
+            label = BREAKDOWN_LABELS.get(worst_key, worst_key)
+            action = f"'{label}' 개선 시 점수 상승 가능"
+
+    return {
+        "target_score":  float(target_score),
+        "target_grade":  target_grade,
+        "gap":           gap,
+        "action":        action,
+    }
+
+
+def _safe_float(v) -> float:
+    try:
+        return float(v) if v is not None else 0.0
+    except (TypeError, ValueError):
+        return 0.0
+
+
+@router.get("/growth/{biz_id}")
+async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
+    """성장 리포트 — trial_scans + scan_results 통합 타임라인, 성장 드라이버, 다음 목표.
+    - free 플랜: timeline 빈 배열 + locked=True
+    - basic 이상: 전체 반환
+    - 캐시 30분
+    """
+    from middleware.plan_gate import get_user_plan
+
+    supabase   = get_client()
+    user_id    = user["id"]
+    user_email = user.get("email", "")
+
+    # 소유권 검증 + 사업장 기본정보
+    biz_row = (
+        await execute(
+            supabase.table("businesses")
+            .select("id, name, category, region, user_id")
+            .eq("id", biz_id)
+            .eq("user_id", user_id)
+            .maybe_single()
+        )
+    ).data
+    if not biz_row:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    # 캐시
+    cache_key = _cache._make_key("growth", biz_id, user_id)
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    plan = await get_user_plan(user_id, supabase)
+
+    # ── 1. scan_results 이력 조회 (최대 100개, ASC) ───────────────────
+    scans_raw = (
+        await execute(
+            supabase.table("scan_results")
+            .select(
+                "id, scanned_at, unified_score, track1_score, track2_score, "
+                "score_breakdown, growth_stage, top_missing_keywords, "
+                "naver_weight, global_weight"
+            )
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=False)
+            .limit(100)
+        )
+    ).data or []
+
+    # ── 2. trial_scans 최신 1개 (이메일 매칭) ────────────────────────
+    trial_raw = None
+    if user_email:
+        trial_rows = (
+            await execute(
+                supabase.table("trial_scans")
+                .select(
+                    "id, scanned_at, business_name, unified_score, "
+                    "track1_score, track2_score, score_breakdown, "
+                    "growth_stage, growth_stage_label, top_missing_keywords"
+                )
+                .eq("email", user_email)
+                .order("scanned_at", desc=True)
+                .limit(1)
+            )
+        ).data or []
+        if trial_rows:
+            trial_raw = trial_rows[0]
+
+    # ── 3. 기준 점수 결정 ────────────────────────────────────────────
+    trial_score      = _safe_float((trial_raw or {}).get("unified_score"))
+    first_scan_score = _safe_float((scans_raw[0] if scans_raw else {}).get("unified_score"))
+    start_score      = trial_score if trial_raw else first_scan_score
+    current_score    = _safe_float((scans_raw[-1] if scans_raw else {}).get("unified_score"))
+
+    # ── 4. timeline 구성 ─────────────────────────────────────────────
+    prev_score = start_score
+    timeline: list[dict] = []
+    for scan in scans_raw:
+        s     = _safe_float(scan.get("unified_score"))
+        delta = round(s - prev_score, 1)
+        timeline.append({
+            "scanned_at":      scan.get("scanned_at"),
+            "unified_score":   s,
+            "track1_score":    _safe_float(scan.get("track1_score")),
+            "growth_stage":    scan.get("growth_stage_label") or scan.get("growth_stage") or "생존기",
+            "score_breakdown": scan.get("score_breakdown") or {},
+            "delta":           delta,
+        })
+        prev_score = s
+
+    # ── 5. 성장 드라이버 (첫 스캔 vs 최신 스캔 breakdown 비교) ──────
+    growth_drivers: list[dict] = []
+    if scans_raw:
+        first_bd  = scans_raw[0].get("score_breakdown")  or {}
+        latest_bd = scans_raw[-1].get("score_breakdown") or {}
+        drivers: list[dict] = []
+        all_keys = set(first_bd.keys()) | set(latest_bd.keys())
+        for key in all_keys:
+            label   = BREAKDOWN_LABELS.get(key, key)
+            current = _safe_float(latest_bd.get(key))
+            prev    = _safe_float(first_bd.get(key))
+            delta   = round(current - prev, 1)
+            drivers.append({"label": label, "key": key, "delta": delta, "current": current})
+        # delta가 모두 0이면 current 값 기준 정렬 (초기 단계 사용자 대응)
+        all_zero = all(d["delta"] == 0 for d in drivers)
+        sort_key = (lambda x: x["current"]) if all_zero else (lambda x: x["delta"])
+        growth_drivers = sorted(drivers, key=sort_key, reverse=True)[:4]
+
+    # ── 6. summary ────────────────────────────────────────────────────
+    start_stage = (
+        (trial_raw or {}).get("growth_stage")
+        or (scans_raw[0].get("growth_stage") if scans_raw else None)
+        or "생존기"
+    )
+    current_stage = (
+        (scans_raw[-1].get("growth_stage") if scans_raw else None)
+        or start_stage
+    )
+
+    summary = {
+        "start_score":   round(start_score, 1),
+        "current_score": round(current_score, 1),
+        "total_delta":   round(current_score - start_score, 1),
+        "start_grade":   _score_to_grade(start_score),
+        "current_grade": _score_to_grade(current_score),
+        "start_stage":   start_stage,
+        "current_stage": current_stage,
+        "scan_count":    len(scans_raw),
+    }
+
+    # ── 7. 다음 목표 ──────────────────────────────────────────────────
+    latest_bd_for_goal = (scans_raw[-1].get("score_breakdown") if scans_raw else None) or {}
+    next_goal = _next_goal(current_score, latest_bd_for_goal)
+
+    # ── 8. days_active ────────────────────────────────────────────────
+    from datetime import datetime, timezone
+    today      = datetime.now(timezone.utc).date()
+    days_active = 0
+    anchor_at  = (
+        (trial_raw or {}).get("scanned_at")
+        or (scans_raw[0].get("scanned_at") if scans_raw else None)
+    )
+    if anchor_at:
+        try:
+            anchor_date = datetime.fromisoformat(anchor_at.replace("Z", "+00:00")).date()
+            days_active = (today - anchor_date).days
+        except Exception:
+            days_active = 0
+
+    # ── 9. trial_scan 직렬화 ──────────────────────────────────────────
+    trial_out = None
+    if trial_raw:
+        trial_out = {
+            "scanned_at":      trial_raw.get("scanned_at"),
+            "unified_score":   _safe_float(trial_raw.get("unified_score")),
+            "track1_score":    _safe_float(trial_raw.get("track1_score")),
+            "growth_stage":    trial_raw.get("growth_stage") or "생존기",
+            "score_breakdown": trial_raw.get("score_breakdown") or {},
+        }
+
+    # ── 10. 플랜 제한 적용 ────────────────────────────────────────────
+    locked = plan == "free"
+    result = {
+        "business_name":  biz_row.get("name"),
+        "category":       biz_row.get("category"),
+        "region":         biz_row.get("region"),
+        "plan":           plan,
+        "days_active":    days_active,
+        "trial_scan":     trial_out,
+        "timeline":       [] if locked else timeline,
+        "summary":        summary,
+        "growth_drivers": [] if locked else growth_drivers,
+        "next_goal":      next_goal,
+        "locked":         locked,
+    }
+
+    _cache.set(cache_key, result, _TTL_RANKING)  # 30분
+    return result
+
+
+# ── 키워드 검색량 조회 (Basic+) ───────────────────────────────────────────────
+
+@router.get("/keyword-volumes/{biz_id}")
+async def get_keyword_volumes(biz_id: str, user=Depends(get_current_user)):
+    """
+    Basic+ 전용: gap_analyzer의 missing_keywords + pioneer_keywords 검색량 조회.
+    네이버 검색광고 API 미설정 시 gap 데이터만 반환 (graceful degradation).
+    """
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
+
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    # Basic+ 플랜 확인
+    plan = await get_user_plan(user["id"], supabase)
+    if plan not in ("basic", "startup", "pro", "biz", "enterprise"):
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "startup", "pro", "biz", "enterprise"]},
+        )
+
+    # 사업장 카테고리 조회
+    biz = (await execute(
+        supabase.table("businesses")
+        .select("category, name")
+        .eq("id", biz_id)
+        .maybe_single()
+    )).data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    category = biz.get("category", "restaurant")
+
+    # GapAnalysis에서 missing + pioneer 키워드 추출
+    from services.gap_analyzer import analyze_gap_from_db
+    gap = await analyze_gap_from_db(biz_id, supabase)
+
+    target_keywords: list[str] = []
+    if gap and gap.keyword_gap:
+        kg = gap.keyword_gap
+        target_keywords.extend(kg.missing_keywords[:10])
+        target_keywords.extend(kg.pioneer_keywords[:5])
+    if not target_keywords:
+        return {
+            "biz_id": biz_id,
+            "category": category,
+            "volumes": {},
+            "message": "키워드 갭 데이터가 없습니다. 먼저 AI 스캔을 실행해주세요.",
+        }
+
+    # 중복 제거 후 최대 15개
+    seen: set[str] = set()
+    unique_keywords: list[str] = []
+    for kw in target_keywords:
+        if kw not in seen:
+            seen.add(kw)
+            unique_keywords.append(kw)
+    unique_keywords = unique_keywords[:15]
+
+    # 검색광고 API 호출 (캐시 포함)
+    from services.naver_searchad import get_searchad_client
+    client = get_searchad_client()
+    volumes = await client.get_volumes_with_cache(unique_keywords, category, supabase)
+
+    # 키워드 유형 레이블 추가
+    missing_set = set(gap.keyword_gap.missing_keywords) if gap and gap.keyword_gap else set()
+    pioneer_set = set(gap.keyword_gap.pioneer_keywords) if gap and gap.keyword_gap else set()
+
+    enriched: dict[str, dict] = {}
+    for kw in unique_keywords:
+        vol = volumes.get(kw, {})
+        enriched[kw] = {
+            **vol,
+            "type": "missing" if kw in missing_set else "pioneer" if kw in pioneer_set else "unknown",
+        }
+
+    return {
+        "biz_id": biz_id,
+        "category": category,
+        "volumes": enriched,
+        "keyword_count": len(enriched),
+        "api_available": bool(volumes),  # API 미설정 시 False
+    }
+
+
+# ── 업종 트렌드 조회 (공개) ───────────────────────────────────────────────────
+
+@router.get("/industry-trend/{category}")
+async def get_industry_trend(category: str, region: str | None = None):
+    """
+    공개 엔드포인트 (인증 불필요): 업종별 네이버 검색 트렌드.
+    DB 캐시 → DataLab API 순으로 조회 (7일 캐시).
+    네이버 API 미설정 시 빈 결과 반환.
+    """
+    _TTL_TREND = 3600  # 1시간 인메모리 캐시
+
+    cache_key = _cache._make_key("industry_trend", category, region or "all")
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    supabase = get_client()
+
+    from services.naver_datalab import get_datalab_client
+    client = get_datalab_client()
+    result = await client.get_trend_with_cache(category, region, supabase)
+
+    # 에러가 있어도 빈 결과로 처리 (graceful degradation)
+    if result.get("error"):
+        _logger.debug(f"industry_trend error [{category}/{region}]: {result['error']}")
+        empty = {
+            "category": category,
+            "region": region,
+            "trend_data": [],
+            "trend_direction": "stable",
+            "trend_delta": 0.0,
+            "available": False,
+            "message": "트렌드 데이터를 불러오는 중입니다.",
+        }
+        _cache.set(cache_key, empty, 300)  # 에러 시 5분 캐시
+        return empty
+
+    result["available"] = bool(result.get("trend_data"))
+    _cache.set(cache_key, result, _TTL_TREND)
+    return result
+
+
+
+# ── 네이버 SearchAd 키워드 볼륨 (등록 키워드 기반) ───────────────────────────
+
+@router.get("/keyword-volume/{biz_id}")
+async def get_keyword_volume(biz_id: str, user=Depends(get_current_user)):
+    """네이버 검색광고 API로 사업장 등록 키워드의 월간 검색량 조회 (Basic+ 전용, 7일 캐시)"""
+    from middleware.plan_gate import get_user_plan
+
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    plan = await get_user_plan(user["id"], supabase)
+    if plan not in ("basic", "startup", "pro", "biz", "enterprise"):
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "startup", "pro", "biz", "enterprise"]},
+        )
+
+    biz = (await execute(
+        supabase.table("businesses").select("keywords, category").eq("id", biz_id).single()
+    )).data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    keywords = (biz.get("keywords") or [])[:10]
+    if not keywords:
+        return {"volumes": {}, "message": "등록된 키워드가 없습니다"}
+
+    from services.naver_searchad import get_searchad_client
+    client = get_searchad_client()
+    volumes = await client.get_volumes_with_cache(keywords, biz.get("category", ""), supabase)
+    return {"volumes": volumes, "keywords": keywords}
+
+
+# ── 스마트플레이스 vs 경쟁사 1:1 비교표 ──────────────────────────────────────
+
+@router.get("/place-compare/{biz_id}")
+async def get_place_compare(biz_id: str, user=Depends(get_current_user)):
+    """내 스마트플레이스 vs 경쟁사 항목별 1:1 비교 (Basic+, 1시간 캐시)"""
+    from middleware.plan_gate import get_user_plan
+
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    plan = await get_user_plan(user["id"], supabase)
+    if plan not in ("basic", "startup", "pro", "biz", "enterprise"):
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "startup", "pro", "biz", "enterprise"]},
+        )
+
+    # 캐시 확인 (1시간)
+    cache_key = _cache._make_key("place_compare", biz_id)
+    cached = _cache.get(cache_key)
+    if cached:
+        return cached
+
+    # 내 사업장 정보
+    biz = (await execute(
+        supabase.table("businesses")
+        .select("name, is_smart_place, has_faq, has_intro, has_recent_post, review_count, avg_rating, visitor_review_count")
+        .eq("id", biz_id).single()
+    )).data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    # 경쟁사 목록 (최대 5개, 리뷰 수 기준 내림차순)
+    competitors = (await execute(
+        supabase.table("competitors")
+        .select("id, name, naver_review_count, naver_avg_rating, has_faq, has_recent_post, has_menu, naver_photo_count, detail_synced_at")
+        .eq("business_id", biz_id)
+        .eq("is_active", True)
+        .order("naver_review_count", desc=True)
+        .limit(5)
+    )).data or []
+
+    # 비교 항목 정의
+    FIELDS = [
+        {"key": "review_count",    "label": "리뷰 수",       "type": "number", "action": "리뷰를 더 받기 위해 QR 카드를 활용하세요"},
+        {"key": "avg_rating",      "label": "평균 평점",      "type": "rating", "action": "낮은 평점 리뷰에 키워드 담은 답변을 달면 개선됩니다"},
+        {"key": "has_faq",         "label": "FAQ 등록",       "type": "bool",   "action": "스마트플레이스 Q&A 탭에 FAQ 3개 이상 등록하세요"},
+        {"key": "has_intro",       "label": "소개글 등록",    "type": "bool",   "action": "기본정보 탭에 키워드 포함 소개글을 작성하세요"},
+        {"key": "has_recent_post", "label": "최근 소식",      "type": "bool",   "action": "소식 탭에 주 1회 이상 게시물을 올리세요"},
+        {"key": "has_menu",        "label": "메뉴/상품 등록", "type": "bool",   "action": "메뉴 탭에 대표 상품을 최소 3개 이상 등록하세요"},
+        {"key": "photo_count",     "label": "사진 수",        "type": "number", "action": "사진 10장 이상 등록 시 노출 가능성이 높아집니다"},
+    ]
+
+    # 내 데이터 매핑
+    my_data = {
+        "review_count":    biz.get("review_count") or 0,
+        "avg_rating":      float(biz.get("avg_rating") or 0),
+        "has_faq":         bool(biz.get("has_faq")),
+        "has_intro":       bool(biz.get("has_intro")),
+        "has_recent_post": bool(biz.get("has_recent_post")),
+        "has_menu":        False,
+        "photo_count":     0,
+    }
+
+    # 경쟁사 데이터 매핑
+    comp_data = []
+    for c in competitors:
+        comp_data.append({
+            "name": c.get("name", ""),
+            "synced_at": c.get("detail_synced_at"),
+            "data": {
+                "review_count":    c.get("naver_review_count") or 0,
+                "avg_rating":      float(c.get("naver_avg_rating") or 0),
+                "has_faq":         bool(c.get("has_faq")),
+                "has_intro":       False,
+                "has_recent_post": bool(c.get("has_recent_post")),
+                "has_menu":        bool(c.get("has_menu")),
+                "photo_count":     c.get("naver_photo_count") or 0,
+            }
+        })
+
+    # 갭 분석: 경쟁사 중 최선값 대비 내 가게 차이
+    gaps = []
+    for field in FIELDS:
+        key = field["key"]
+        my_val = my_data.get(key, 0 if field["type"] in ("number", "rating") else False)
+        best_comp_val = None
+        best_comp_name = None
+        for c in comp_data:
+            cv = c["data"].get(key, 0 if field["type"] in ("number", "rating") else False)
+            if best_comp_val is None:
+                best_comp_val = cv
+                best_comp_name = c["name"]
+            elif field["type"] in ("number", "rating"):
+                if cv > best_comp_val:
+                    best_comp_val = cv
+                    best_comp_name = c["name"]
+            elif field["type"] == "bool":
+                if cv and not best_comp_val:
+                    best_comp_val = cv
+                    best_comp_name = c["name"]
+
+        needs_action = False
+        if field["type"] in ("number", "rating"):
+            needs_action = my_val < (best_comp_val or 0)
+        elif field["type"] == "bool":
+            needs_action = not my_val and bool(best_comp_val)
+
+        gaps.append({
+            "field": key,
+            "label": field["label"],
+            "type": field["type"],
+            "my_value": my_val,
+            "best_competitor_value": best_comp_val,
+            "best_competitor_name": best_comp_name,
+            "needs_action": needs_action,
+            "action": field["action"] if needs_action else None,
+        })
+
+    result = {
+        "mine": my_data,
+        "mine_name": biz.get("name", "내 가게"),
+        "competitors": comp_data,
+        "gaps": gaps,
+        "has_competitor_sync": any(c.get("synced_at") for c in competitors),
+    }
+    _cache.set(cache_key, result, ttl=3600)
+    return result

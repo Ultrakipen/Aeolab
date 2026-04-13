@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { MessageSquare, Send, Copy, Check, Trash2, ThumbsUp, ThumbsDown, Minus } from 'lucide-react'
+import { MessageSquare, Send, Copy, Check, Trash2, ThumbsUp, ThumbsDown, Minus, Star, Clock } from 'lucide-react'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -71,7 +71,7 @@ export default function ReviewInboxPage() {
       if (biz) setBusinessId(biz.id)
 
       const { data: sub } = await supabase
-        .from('subscriptions').select('plan').eq('user_id', session.user.id).eq('status', 'active').maybeSingle()
+        .from('subscriptions').select('plan, status').eq('user_id', session.user.id).in('status', ['active', 'grace_period']).maybeSingle()
       setPlan(sub?.plan ?? 'free')
     }
     init()
@@ -119,13 +119,60 @@ export default function ReviewInboxPage() {
   }
 
   if (plan === 'free') {
+    const features = [
+      {
+        Icon: MessageSquare,
+        title: 'AI 답변 자동 초안',
+        desc: '리뷰를 붙여넣으면 업종 키워드가 포함된 답변 초안을 즉시 생성합니다.',
+      },
+      {
+        Icon: Star,
+        title: '감정 자동 분류',
+        desc: '긍정·부정·일반 리뷰를 자동으로 구분해 상황에 맞는 톤으로 답변합니다.',
+      },
+      {
+        Icon: Copy,
+        title: '바로 복사·붙여넣기',
+        desc: '생성된 답변을 한 번에 복사해 네이버·카카오 리뷰 답글란에 붙여넣으세요.',
+      },
+      {
+        Icon: Clock,
+        title: '답변 이력 관리',
+        desc: '생성한 답변 이력을 모아볼 수 있어 일관된 답변 품질을 유지합니다.',
+      },
+    ]
+
     return (
-      <div className="p-8 max-w-2xl">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">리뷰 답변 생성</h1>
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mt-6">
-          <p className="text-amber-800 font-medium mb-2">Basic 플랜 이상에서 이용 가능합니다</p>
-          <p className="text-amber-700 text-sm mb-4">리뷰 답변 자동 생성은 월 10회(Basic) 이용할 수 있습니다.</p>
-          <a href="/pricing" className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+      <div className="p-4 md:p-8 max-w-2xl">
+        <div className="flex items-center gap-2 mb-1">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
+          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Basic 이상</span>
+        </div>
+        <p className="text-sm text-gray-500 mb-6">손님 리뷰에 AI가 업종 키워드 포함 답변 초안을 생성합니다</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          {features.map((f) => (
+            <div key={f.title} className="bg-white rounded-2xl p-5 shadow-sm flex gap-4">
+              <div className="shrink-0 w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                <f.Icon className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <div className="font-medium text-gray-900 text-sm mb-0.5">{f.title}</div>
+                <div className="text-sm text-gray-500">{f.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-blue-600 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-white font-semibold text-sm">Basic 플랜부터 이용 가능</p>
+            <p className="text-blue-100 text-sm mt-0.5">월 9,900원 · 리뷰 답변 월 10회 포함</p>
+          </div>
+          <a
+            href="/pricing"
+            className="shrink-0 bg-white text-blue-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-50 transition-colors"
+          >
             플랜 업그레이드
           </a>
         </div>
@@ -134,13 +181,13 @@ export default function ReviewInboxPage() {
   }
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-4 md:p-8 max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
           <MessageSquare className="w-5 h-5 text-blue-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
           <p className="text-sm text-gray-500">리뷰를 붙여넣으면 AI가 업종 키워드 포함 답변을 초안해드립니다</p>
         </div>
       </div>
@@ -206,7 +253,7 @@ export default function ReviewInboxPage() {
             {history.map((h) => (
               <div key={h.id} className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className="text-xs text-gray-400 leading-relaxed flex-1 line-clamp-2">
+                  <p className="text-sm text-gray-400 leading-relaxed flex-1 line-clamp-2">
                     리뷰: {h.review_text}
                   </p>
                   <SentimentBadge sentiment={h.sentiment} />

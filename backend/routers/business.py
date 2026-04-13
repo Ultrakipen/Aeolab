@@ -5,6 +5,7 @@ from middleware.plan_gate import get_current_user
 import logging
 import os
 import aiohttp
+import utils.cache as _cache
 
 router = APIRouter()
 logger = logging.getLogger("aeolab")
@@ -115,7 +116,9 @@ async def lookup_business_registration(reg_no: str = Query(..., description="사
 @router.post("")
 async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
     """사업장 등록"""
+    import asyncio
     from middleware.plan_gate import get_user_plan, PLAN_LIMITS
+    from services.kakao_geocoding import get_coordinates
     x_user_id = user["id"]
     supabase = get_client()
 
@@ -131,7 +134,14 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
             detail={"code": "PLAN_REQUIRED", "message": f"{plan} 플랜은 사업장 최대 {biz_limit}개까지 등록 가능합니다", "upgrade_url": "/pricing"},
         )
 
-    result = await execute(supabase.table("businesses").insert({
+    # 주소 → 좌표 변환 (실패해도 등록은 정상 진행)
+    lat, lng = None, None
+    try:
+        lat, lng = await get_coordinates(req.address)
+    except Exception as e:
+        logger.warning(f"Geocoding skipped for business '{req.name}': {e}")
+
+    insert_payload: dict = {
         "user_id": x_user_id,
         "name": req.name,
         "category": req.category,
@@ -142,10 +152,21 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
         "google_place_id": req.google_place_id,
         "kakao_place_id": req.kakao_place_id,
         "website_url": req.website_url,
+        "blog_url": req.blog_url,
         "keywords": req.keywords or [],
         "business_type": req.business_type or "location_based",
+        "review_count": req.review_count or 0,
+        "avg_rating": req.avg_rating or 0,
         "is_active": True,
-    }))
+    }
+    if req.business_registration_no:
+        insert_payload["business_registration_no"] = req.business_registration_no
+    if lat is not None:
+        insert_payload["lat"] = lat
+    if lng is not None:
+        insert_payload["lng"] = lng
+
+    result = await execute(supabase.table("businesses").insert(insert_payload))
     if not result.data:
         raise HTTPException(status_code=500, detail="사업장 등록 실패")
 
@@ -153,7 +174,6 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
 
     # Before 스크린샷 자동 캡처 (백그라운드)
     try:
-        import asyncio
         asyncio.create_task(_capture_before_screenshot(biz))
     except Exception as e:
         logger.warning(f"Before screenshot task failed to create: {e}")
@@ -161,7 +181,6 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
     # 네이버 플레이스 통계 동기화 (naver_place_id 있을 때, 백그라운드)
     if biz.get("naver_place_id"):
         try:
-            import asyncio
             asyncio.create_task(_sync_naver_stats(biz["id"], biz["naver_place_id"]))
         except Exception as e:
             logger.warning(f"Naver place stats task failed to create: {e}")
@@ -174,7 +193,7 @@ async def get_my_businesses(user=Depends(get_current_user)):
     """내 사업장 목록"""
     x_user_id = user["id"]
     supabase = get_client()
-    result = await execute(supabase.table("businesses").select("id, name, category, region, address, phone, website_url, naver_place_url, keywords, business_type, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, is_active, created_at").eq("user_id", x_user_id).eq("is_active", True))
+    result = await execute(supabase.table("businesses").select("id, name, category, region, address, phone, website_url, blog_url, naver_place_url, keywords, business_type, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, receipt_review_count, visitor_review_count, is_active, created_at, has_faq, has_recent_post, has_intro, is_smart_place, review_sample, kakao_score, kakao_checklist, kakao_registered, business_registration_no").eq("user_id", x_user_id).eq("is_active", True))
     return result.data
 
 
@@ -182,7 +201,7 @@ async def get_my_businesses(user=Depends(get_current_user)):
 async def get_business(biz_id: str, user=Depends(get_current_user)):
     x_user_id = user["id"]
     supabase = get_client()
-    result = await execute(supabase.table("businesses").select("id, name, category, region, address, phone, website_url, naver_place_url, keywords, business_type, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, is_active, created_at").eq("id", biz_id).eq("user_id", x_user_id).single())
+    result = await execute(supabase.table("businesses").select("id, name, category, region, address, phone, website_url, blog_url, naver_place_url, keywords, business_type, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, receipt_review_count, visitor_review_count, is_active, created_at, has_faq, has_recent_post, has_intro, is_smart_place, review_sample, kakao_score, kakao_checklist, kakao_registered, business_registration_no").eq("id", biz_id).eq("user_id", x_user_id).single())
     if not result.data:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
     return result.data
@@ -203,28 +222,180 @@ async def delete_business(biz_id: str, user=Depends(get_current_user)):
 async def update_business(biz_id: str, updates: dict, user=Depends(get_current_user)):
     x_user_id = user["id"]
     supabase = get_client()
-    allowed = {"name", "address", "phone", "website_url", "naver_place_url", "keywords", "naver_place_id", "google_place_id", "kakao_place_id", "business_type", "region", "receipt_review_count", "visitor_review_count", "review_count", "avg_rating"}
+    allowed = {"name", "address", "phone", "website_url", "blog_url", "naver_place_url", "keywords", "naver_place_id", "google_place_id", "kakao_place_id", "business_type", "region", "receipt_review_count", "visitor_review_count", "review_count", "avg_rating", "kakao_score", "kakao_checklist", "kakao_registered", "is_smart_place", "has_faq", "has_recent_post", "has_intro", "has_photos", "has_review_response", "review_sample", "business_registration_no"}
     filtered = {k: v for k, v in updates.items() if k in allowed}
     result = await execute(supabase.table("businesses").update(filtered).eq("id", biz_id).eq("user_id", x_user_id))
     return result.data[0] if result.data else {}
+
+
+
+_REVIEW_SYNC_COOLDOWN = 3600  # 1시간 (초)
+_ADMIN_USER_IDS: set[str] = set(
+    uid.strip() for uid in os.getenv("ADMIN_USER_IDS", "").split(",") if uid.strip()
+)
+
+
+@router.post("/{biz_id}/sync-review-stats")
+async def sync_review_stats(biz_id: str, user=Depends(get_current_user)):
+    """네이버 플레이스에서 리뷰 통계 자동 불러오기 (관리자 제외 1시간 쿨다운)"""
+    x_user_id = user["id"]
+    is_admin = x_user_id in _ADMIN_USER_IDS
+    supabase = get_client()
+
+    # 쿨다운 체크 (관리자 제외)
+    if not is_admin:
+        cache_key = f"review_sync_cooldown:{biz_id}"
+        if _cache.get(cache_key) is not None:
+            raise HTTPException(
+                status_code=429,
+                detail="1시간에 1회만 자동 불러오기가 가능합니다. 잠시 후 다시 시도해주세요.",
+            )
+
+    # 소유권 검증 + naver_place_id 조회
+    biz_result = await execute(
+        supabase.table("businesses")
+        .select("id, user_id, naver_place_id")
+        .eq("id", biz_id)
+        .eq("is_active", True)
+        .single()
+    )
+    if not biz_result.data:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    biz = biz_result.data
+    if biz["user_id"] != x_user_id:
+        raise HTTPException(status_code=403, detail="접근 권한 없음")
+
+    naver_place_id = biz.get("naver_place_id")
+    if not naver_place_id:
+        raise HTTPException(
+            status_code=422,
+            detail="네이버 플레이스 ID를 먼저 등록해주세요",
+        )
+
+    try:
+        from services.naver_place_stats import sync_naver_place_stats
+        stats = await sync_naver_place_stats(biz_id, naver_place_id)
+    except Exception as e:
+        logger.warning(f"sync_review_stats failed for {biz_id}: {e}")
+        return {
+            "success": False,
+            "error": "네이버 플레이스 통계 불러오기에 실패했습니다",
+        }
+
+    if stats.get("error"):
+        return {
+            "success": False,
+            "error": stats["error"],
+        }
+
+    # 성공 시 쿨다운 설정 (관리자 제외)
+    if not is_admin:
+        _cache.set(f"review_sync_cooldown:{biz_id}", 1, ttl=_REVIEW_SYNC_COOLDOWN)
+
+    return {
+        "success": True,
+        "visitor_review_count": stats.get("visitor_review_count", 0),
+        "receipt_review_count": stats.get("receipt_review_count", 0),
+        "avg_rating": stats.get("avg_rating", 0.0),
+        "place_name": stats.get("place_name", ""),
+    }
+
+@router.post("/{biz_id}/sync-smartplace-completeness")
+async def sync_smartplace_completeness(biz_id: str, user=Depends(get_current_user)):
+    """네이버 스마트플레이스에서 FAQ·소식·소개글 자동 확인 (관리자 제외 1시간 쿨다운)"""
+    x_user_id = user["id"]
+    is_admin = x_user_id in _ADMIN_USER_IDS
+    supabase = get_client()
+
+    if not is_admin:
+        cache_key = f"smartplace_sync_cooldown:{biz_id}"
+        if _cache.get(cache_key) is not None:
+            raise HTTPException(
+                status_code=429,
+                detail="1시간에 1회만 자동 확인이 가능합니다. 잠시 후 다시 시도해주세요.",
+            )
+
+    biz_result = await execute(
+        supabase.table("businesses")
+        .select("id, user_id, naver_place_url, naver_place_id")
+        .eq("id", biz_id)
+        .eq("is_active", True)
+        .single()
+    )
+    if not biz_result.data:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    biz = biz_result.data
+    if biz["user_id"] != x_user_id:
+        raise HTTPException(status_code=403, detail="접근 권한 없음")
+
+    naver_place_url = biz.get("naver_place_url")
+    naver_place_id = biz.get("naver_place_id")
+
+    # naver_place_url 없으면 naver_place_id로 URL 구성
+    if not naver_place_url and naver_place_id:
+        naver_place_url = f"https://map.naver.com/p/entry/place/{naver_place_id}"
+    if not naver_place_url:
+        raise HTTPException(
+            status_code=422,
+            detail="네이버 플레이스 URL 또는 플레이스 ID를 먼저 등록해주세요",
+        )
+
+    try:
+        from services.naver_place_stats import check_smart_place_completeness
+        result = await check_smart_place_completeness(naver_place_url)
+    except Exception as e:
+        logger.warning(f"sync_smartplace_completeness failed for {biz_id}: {e}")
+        return {"success": False, "error": "스마트플레이스 확인 중 오류가 발생했습니다"}
+
+    if result.get("error"):
+        return {"success": False, "error": result["error"]}
+
+    # DB 업데이트
+    update_data = {
+        "has_faq": result.get("has_faq", False),
+        "has_recent_post": result.get("has_recent_post", False),
+        "has_intro": result.get("has_intro", False),
+    }
+    try:
+        supabase.table("businesses").update(update_data).eq("id", biz_id).execute()
+    except Exception as e:
+        logger.warning(f"smartplace completeness DB update failed: {e}")
+
+    if not is_admin:
+        _cache.set(f"smartplace_sync_cooldown:{biz_id}", 1, ttl=_REVIEW_SYNC_COOLDOWN)
+
+    return {
+        "success": True,
+        **update_data,
+        "completeness_score": result.get("completeness_score", 0),
+    }
 
 
 async def _capture_before_screenshot(biz: dict):
     try:
         from services.screenshot import capture_batch, build_queries
         from db.supabase_client import get_client, execute
+        import asyncio
         supabase = get_client()
         queries = build_queries(biz)
-        urls = await capture_batch(biz["id"], queries)
-        for url in urls:
-            if url:
-                await execute(
-                    supabase.table("before_after").insert({
-                        "business_id": biz["id"],
-                        "capture_type": "before",
-                        "image_url": url,
-                    })
-                )
+        for q in queries[:3]:
+            try:
+                urls = await capture_batch(biz["id"], [q])
+                url = urls[0] if urls else None
+                if url:
+                    await execute(
+                        supabase.table("before_after").insert({
+                            "business_id": biz["id"],
+                            "capture_type": "before",
+                            "image_url": url,
+                            "query_used": q,
+                        })
+                    )
+            except Exception as inner_e:
+                logger.warning(f"Before screenshot failed for query '{q}': {inner_e}")
+            await asyncio.sleep(2)
     except Exception as e:
         logger.error(f"Before screenshot capture failed: {e}")
 
@@ -235,3 +406,33 @@ async def _sync_naver_stats(business_id: str, naver_place_id: str):
         await sync_naver_place_stats(business_id, naver_place_id)
     except Exception as e:
         logger.warning(f"Naver place stats sync failed for {business_id}: {e}")
+
+
+@router.get("/{biz_id}/blog-mentions")
+async def get_my_blog_mentions(biz_id: str, user=Depends(get_current_user)):
+    """내 가게 이름으로 네이버 블로그 언급 수 조회 (경쟁사와 동일 방식)"""
+    x_user_id = user["id"]
+    supabase = get_client()
+
+    biz_result = await execute(
+        supabase.table("businesses")
+        .select("id, name, region")
+        .eq("id", biz_id)
+        .eq("user_id", x_user_id)
+        .eq("is_active", True)
+        .maybeSingle()
+    )
+    if not biz_result.data:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다.")
+
+    biz = biz_result.data
+    try:
+        from services.competitor_place_crawler import fetch_competitor_blog_mentions
+        count = await fetch_competitor_blog_mentions(
+            biz["name"],
+            biz.get("region", "")
+        )
+        return {"count": count}
+    except Exception as e:
+        logger.warning(f"blog-mentions fetch failed [{biz_id}]: {e}")
+        return {"count": 0}

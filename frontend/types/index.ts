@@ -27,6 +27,15 @@ export interface WebsiteCheckResult {
   error: string | null;
 }
 
+export interface InstagramResult {
+  username?: string;
+  follower_count?: number;
+  post_count_30d?: number;
+  keyword_coverage?: number;
+  ai_citation_signal?: number;
+  tips?: string[];
+}
+
 export interface ScanResult {
   id: string;
   business_id: string;
@@ -36,11 +45,12 @@ export interface ScanResult {
   chatgpt_result?: AIResult;
   perplexity_result?: AIResult;
   grok_result?: AIResult;
-  naver_result?: AIResult;
+  naver_result?: NaverResult;
   claude_result?: AIResult;
   google_result?: AIResult;
   kakao_result?: KakaoVisibilityData;
   website_check_result?: WebsiteCheckResult;
+  instagram_result?: InstagramResult | null;
   exposure_freq: number;
   total_score: number;
   // v3.0 듀얼트랙 점수
@@ -72,6 +82,47 @@ export interface AIResult {
   in_briefing?: boolean;
   in_ai_overview?: boolean;
   error?: string;
+}
+
+export interface NaverCompetitor {
+  rank: number;
+  name: string;
+  address?: string;
+  blog_count?: number;
+}
+
+export interface KeywordBlogComparison {
+  keyword: string;
+  competitor_name?: string;
+  competitor_count: number;
+  my_count: number;
+}
+
+export interface KeywordRank {
+  query: string;
+  exposed: boolean;
+  rank?: number | null;
+}
+
+export interface NaverTopBlog {
+  link: string;
+  title: string;
+  description?: string;
+  postdate?: string;
+}
+
+/** 네이버 스캔 결과 — AIResult를 확장한 네이버 전용 필드 포함 */
+export interface NaverResult extends AIResult {
+  my_rank?: number | null;
+  blog_mentions?: number;
+  top_competitor_name?: string;
+  top_competitor_blog_count?: number;
+  is_smart_place?: boolean;
+  naver_competitors?: NaverCompetitor[];
+  top_blogs?: NaverTopBlog[];
+  keyword_blog_comparison?: KeywordBlogComparison[];
+  keyword_ranks?: KeywordRank[];
+  search_query?: string;
 }
 
 export interface ScoreBreakdown {
@@ -138,6 +189,7 @@ export interface TrialScanRequest {
   category: Category;
   region?: string;
   keyword?: string;
+  keywords?: string[];  // 등록 키워드 목록 (복수)
   email?: string;
   business_type?: "location_based" | "non_location";
   website_url?: string;
@@ -145,7 +197,9 @@ export interface TrialScanRequest {
   has_faq?: boolean;
   has_recent_post?: boolean;
   has_intro?: boolean;
+  is_smart_place?: boolean;  // 사용자 직접 입력 — API 결과보다 우선 적용
   review_text?: string;
+  description?: string;
 }
 
 export interface NaverCompetitor {
@@ -164,6 +218,12 @@ export interface NaverBlogPost {
   postdate: string;
 }
 
+export interface KeywordRank {
+  query: string;
+  rank: number | null;
+  exposed: boolean;
+}
+
 export interface NaverVisibilityData {
   search_query: string;
   my_rank: number | null;
@@ -173,6 +233,7 @@ export interface NaverVisibilityData {
   top_blogs: NaverBlogPost[];
   top_competitor_name: string | null;
   top_competitor_blog_count: number;
+  keyword_ranks?: KeywordRank[];
 }
 
 export interface KakaoCompetitor {
@@ -229,6 +290,12 @@ export interface TrialScanResult {
   pioneer_keywords?: string[];
   keyword_coverage_rate?: number;
   faq_copy_text?: string;
+  keyword_blog_comparison?: Array<{
+    keyword: string;
+    my_count: number;
+    competitor_name: string;
+    competitor_count: number;
+  }>;
   result: Record<string, AIResult>;
   query: string;
   competitors: string[];
@@ -308,6 +375,19 @@ export interface ApiKey {
   last_used_at?: string;
 }
 
+export interface BusinessSearchResult {
+  name: string;
+  address: string;
+  category: string;
+  phone: string;
+  naver_place_url: string;
+  naver_place_id: string;
+  kakao_place_id: string;
+  review_count: number;
+  avg_rating: number;
+  source: 'kakao' | 'naver' | 'both';
+}
+
 export interface CompetitorSearchResult {
   name: string;
   address: string;
@@ -380,4 +460,75 @@ export interface Inquiry {
   answer: string | null;
   answered_at: string | null;
   created_at: string;
+}
+
+// ── 스마트플레이스·블로그 AI 최적화 (SchemaClient v2) ───────────────────────
+
+export interface IntroScore {
+  score: number;
+  grade: "A" | "B" | "C" | "D";
+  matched_keywords: string[];
+  missing_top_keywords: string[];
+  total_checked: number;
+}
+
+export interface BlogDraft {
+  template_type: string;
+  title: string;
+  content: string;
+  target_keyword: string;
+}
+
+export interface CategoryTips {
+  smartplace_tip: string;
+  blog_tip: string;
+  no_website_guide?: string;
+}
+
+export interface SchemaResult {
+  smartplace_intro: string;
+  blog_title: string;
+  blog_content: string;
+  keywords: string[];
+  smartplace_checklist: Array<{ item: string; tip: string }>;
+  script_tag?: string;
+  intro_score?: IntroScore;
+  blog_drafts?: BlogDraft[];
+  category_tips?: CategoryTips;
+  extended_checklist?: Array<{ item: string; tip: string }>;
+  no_website_guide?: string;
+}
+
+// ── 블로그 진단 (GuideClient BlogDiagnosisCard) ──────────────────────────────
+
+export interface BlogAnalysisResult {
+  platform: string;
+  post_count: number;
+  latest_post_date: string | null;
+  keyword_coverage: number;
+  covered_keywords: string[];
+  missing_keywords: string[];
+  ai_readiness_score: number;
+  ai_readiness_items: Array<{ label: string; passed: boolean; tip: string }>;
+  freshness: "fresh" | "stale" | "outdated";
+  top_recommendation: string;
+  error?: string;
+}
+
+// 네이버 데이터랩 키워드 검색량
+export interface KeywordVolume {
+  keyword: string;
+  monthly_pc: number;
+  monthly_mo: number;
+  monthly_total: number;
+  competition?: 'low' | 'medium' | 'high';
+}
+
+// 업종 트렌드 (네이버 데이터랩 상대 지수)
+export interface IndustryTrend {
+  category: string;
+  region?: string;
+  trend_data: Array<{ period: string; ratio: number }>;
+  trend_direction: 'rising' | 'falling' | 'stable';
+  trend_delta: number;
 }

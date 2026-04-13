@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 
 const PLATFORM_LABELS: Record<string, string> = {
-  gemini: 'Gemini AI (100회 샘플링)',
+  gemini: 'Gemini AI',
   chatgpt: 'ChatGPT',
   perplexity: 'Perplexity',
-  grok: 'Grok AI',
   naver: '네이버 AI 브리핑',
-  claude: 'Claude AI',
+  google: 'Google AI Overview',
 }
 
 interface ProgressEvent {
@@ -17,6 +16,7 @@ interface ProgressEvent {
   message?: string
   progress?: number
   result?: Record<string, unknown>
+  error?: string
 }
 
 interface ScanProgressProps {
@@ -30,14 +30,33 @@ export function ScanProgress({ eventSource, onComplete, onError }: ScanProgressP
   const [progress, setProgress] = useState(0)
   const [message, setMessage] = useState('AI 스캔을 시작합니다...')
   const allResults = useRef<Record<string, unknown>>({})
+  const completedRef = useRef(false)
 
   useEffect(() => {
     allResults.current = {}  // reset on new eventSource
+    completedRef.current = false
     if (!eventSource) return
+
+    // 90초 안전망 타임아웃
+    const safetyTimer = setTimeout(() => {
+      if (!completedRef.current) {
+        eventSource.close()
+        onError()
+      }
+    }, 90_000)
 
     eventSource.onmessage = (e) => {
       try {
         const data: ProgressEvent = JSON.parse(e.data)
+
+        // 서버에서 보낸 에러 이벤트 처리 (스캔 한도 초과 등)
+        if (data.error) {
+          clearTimeout(safetyTimer)
+          eventSource.close()
+          onError()
+          return
+        }
+
         setProgress(data.progress ?? 0)
         if (data.message) setMessage(data.message)
 
@@ -46,7 +65,9 @@ export function ScanProgress({ eventSource, onComplete, onError }: ScanProgressP
           if (data.result) allResults.current[data.step] = data.result
         }
 
-        if (data.step === 'complete' || data.status === 'done' && data.progress === 100) {
+        if (data.step === 'complete' || (data.status === 'done' && data.progress === 100)) {
+          clearTimeout(safetyTimer)
+          completedRef.current = true
           eventSource.close()
           onComplete(allResults.current)
         }
@@ -55,14 +76,18 @@ export function ScanProgress({ eventSource, onComplete, onError }: ScanProgressP
       }
     }
 
-    eventSource.onerror = (e) => {
-      // DONE 이후 브라우저가 자동으로 연결 종료하는 경우는 에러로 처리하지 않음
-      if (eventSource.readyState === EventSource.CLOSED) return
+    eventSource.onerror = () => {
+      // 정상 완료 후 브라우저가 연결을 닫는 경우는 무시
+      if (completedRef.current) return
+      clearTimeout(safetyTimer)
       eventSource.close()
       onError()
     }
 
-    return () => eventSource.close()
+    return () => {
+      clearTimeout(safetyTimer)
+      eventSource.close()
+    }
   }, [eventSource])
 
   return (

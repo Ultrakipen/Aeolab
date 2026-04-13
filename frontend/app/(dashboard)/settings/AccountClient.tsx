@@ -107,17 +107,17 @@ export function AccountClient({ currentEmail }: Props) {
   return (
     <div className="space-y-4">
       {/* 비밀번호 변경 */}
-      <div className="border border-gray-100 rounded-xl p-5">
-        <h3 className="text-sm font-medium text-gray-800 mb-1">비밀번호 변경</h3>
-        <p className="text-xs text-gray-400 mb-3">새 비밀번호는 8자 이상이어야 합니다.</p>
-        <form onSubmit={handlePasswordChange} className="space-y-2">
+      <div className="border border-gray-100 rounded-xl p-4 md:p-5">
+        <h3 className="text-base font-semibold text-gray-800 mb-1">비밀번호 변경</h3>
+        <p className="text-sm text-gray-400 mb-3">새 비밀번호는 8자 이상이어야 합니다.</p>
+        <form onSubmit={handlePasswordChange} className="space-y-2.5">
           <input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="새 비밀번호 (8자 이상)"
             autoComplete="new-password"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
             type="password"
@@ -125,56 +125,59 @@ export function AccountClient({ currentEmail }: Props) {
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="새 비밀번호 확인"
             autoComplete="new-password"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {pwMsg && (
-            <p className={`text-xs ${pwMsg.type === "ok" ? "text-green-600" : "text-red-500"}`}>{pwMsg.text}</p>
+            <p className={`text-sm ${pwMsg.type === "ok" ? "text-green-600" : "text-red-500"}`}>{pwMsg.text}</p>
           )}
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-1">
             <button
               type="submit"
               disabled={pwSaving || !newPassword || !confirmPassword}
-              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-40"
+              className="w-full sm:w-auto px-5 py-3 bg-blue-600 text-white text-base font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-40"
             >
-              {pwSaving ? "변경 중..." : "변경"}
+              {pwSaving ? "변경 중..." : "비밀번호 변경"}
             </button>
           </div>
         </form>
       </div>
 
       {/* 이메일 변경 */}
-      <div className="border border-gray-100 rounded-xl p-5">
-        <h3 className="text-sm font-medium text-gray-800 mb-1">이메일 변경</h3>
-        <p className="text-xs text-gray-400 mb-3">
+      <div className="border border-gray-100 rounded-xl p-4 md:p-5">
+        <h3 className="text-base font-semibold text-gray-800 mb-1">이메일 변경</h3>
+        <p className="text-sm text-gray-400 mb-3">
           현재: <span className="text-gray-600">{currentEmail}</span>
-          {" "}— 새 이메일로 확인 메일이 발송됩니다.
+          <br className="sm:hidden" />
+          <span className="hidden sm:inline">{" "}—{" "}</span>
+          <span className="sm:hidden">새 이메일로 확인 메일이 발송됩니다.</span>
+          <span className="hidden sm:inline">새 이메일로 확인 메일이 발송됩니다.</span>
         </p>
-        <form onSubmit={handleEmailChange} className="flex gap-2">
+        <form onSubmit={handleEmailChange} className="flex flex-col sm:flex-row gap-2.5">
           <input
             type="email"
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
             placeholder="새 이메일 주소"
             autoComplete="email"
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             type="submit"
             disabled={emailSaving || !newEmail}
-            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-40"
+            className="w-full sm:w-auto px-5 py-3 bg-blue-600 text-white text-base font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-40"
           >
             {emailSaving ? "발송 중..." : "변경"}
           </button>
         </form>
         {emailMsg && (
-          <p className={`text-xs mt-2 ${emailMsg.type === "ok" ? "text-green-600" : "text-red-500"}`}>{emailMsg.text}</p>
+          <p className={`text-sm mt-2 ${emailMsg.type === "ok" ? "text-green-600" : "text-red-500"}`}>{emailMsg.text}</p>
         )}
       </div>
 
       {/* 계정 탈퇴 */}
-      <div className="border border-red-100 rounded-xl p-5">
-        <h3 className="text-sm font-medium text-red-700 mb-1">계정 탈퇴</h3>
-        <p className="text-xs text-gray-400 mb-3">탈퇴 시 모든 사업장, 스캔 기록, 구독이 영구 삭제됩니다.</p>
+      <div className="border border-red-100 rounded-xl p-4 md:p-5">
+        <h3 className="text-base font-semibold text-red-700 mb-1">계정 탈퇴</h3>
+        <p className="text-sm text-gray-400 mb-3">탈퇴 시 모든 사업장, 스캔 기록, 구독이 영구 삭제됩니다.</p>
         {!showDeleteConfirm ? (
           <button
             onClick={() => setShowDeleteConfirm(true)}
@@ -184,28 +187,30 @@ export function AccountClient({ currentEmail }: Props) {
           </button>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-red-700">
-              탈퇴를 확인하려면 아래에 <strong>탈퇴합니다</strong>를 입력하세요.
-            </p>
+            <div className="bg-red-50 rounded-lg px-3 py-2.5">
+              <p className="text-sm text-red-700">
+                탈퇴를 확인하려면 아래에 <strong>탈퇴합니다</strong>를 입력하세요.
+              </p>
+            </div>
             <input
               type="text"
               value={deleteInput}
               onChange={(e) => setDeleteInput(e.target.value)}
               placeholder="탈퇴합니다"
-              className="w-full border border-red-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+              className="w-full border border-red-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-red-400"
             />
-            {deleteMsg && <p className="text-xs text-red-500">{deleteMsg}</p>}
-            <div className="flex gap-2">
+            {deleteMsg && <p className="text-sm text-red-500">{deleteMsg}</p>}
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleting || deleteInput !== "탈퇴합니다"}
-                className="text-sm bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-40 transition-colors"
+                className="w-full sm:w-auto text-base bg-red-600 text-white px-5 py-3 rounded-lg hover:bg-red-700 disabled:opacity-40 transition-colors font-medium"
               >
                 {deleting ? "처리 중..." : "탈퇴 확인"}
               </button>
               <button
                 onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); setDeleteMsg(""); }}
-                className="text-sm border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="w-full sm:w-auto text-base border border-gray-300 text-gray-600 px-5 py-3 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 취소
               </button>

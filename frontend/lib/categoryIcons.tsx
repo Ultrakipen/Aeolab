@@ -8,6 +8,8 @@ import {
   Wrench,
   Music2,
   Camera,
+  Video,
+  Palette,
   BedDouble,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -28,6 +30,8 @@ export const CATEGORY_ICON_MAP: Record<string, CategoryIconConfig> = {
   shopping:      { Icon: ShoppingBag,   bg: 'bg-emerald-100',text: 'text-emerald-600',border: 'border-emerald-200'},
   living:        { Icon: Wrench,        bg: 'bg-amber-100',  text: 'text-amber-600',  border: 'border-amber-200'  },
   culture:       { Icon: Music2,        bg: 'bg-violet-100', text: 'text-violet-600', border: 'border-violet-200' },
-  media:         { Icon: Camera,        bg: 'bg-indigo-100', text: 'text-indigo-600', border: 'border-indigo-200' },
-  accommodation: { Icon: BedDouble,     bg: 'bg-teal-100',   text: 'text-teal-600',   border: 'border-teal-200'   },
+  photo:         { Icon: Camera,        bg: 'bg-indigo-100',  text: 'text-indigo-600',  border: 'border-indigo-200'  },
+  video:         { Icon: Video,         bg: 'bg-red-100',     text: 'text-red-600',     border: 'border-red-200'     },
+  design:        { Icon: Palette,       bg: 'bg-violet-100',  text: 'text-violet-600',  border: 'border-violet-200'  },
+  accommodation: { Icon: BedDouble,     bg: 'bg-teal-100',    text: 'text-teal-600',    border: 'border-teal-200'    },
 }

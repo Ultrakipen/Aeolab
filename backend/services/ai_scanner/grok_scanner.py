@@ -1,7 +1,10 @@
 import httpx
 import json
+import logging
 import re
 import os
+
+logger = logging.getLogger(__name__)
 
 
 class GrokScanner:
@@ -22,7 +25,7 @@ class GrokScanner:
                         "Content-Type": "application/json",
                     },
                     json={
-                        "model": "grok-beta",
+                        "model": "grok-3",
                         "messages": [{"role": "user", "content": prompt}],
                         "temperature": 0.2,
                     },
@@ -32,7 +35,8 @@ class GrokScanner:
                 m = re.search(r"\{.*?\}", text, re.DOTALL)
                 result = json.loads(m.group()) if m else {"mentioned": False}
                 return {"platform": "grok", **result}
-        except Exception:
+        except Exception as e:
+            logger.warning("GrokScanner.check failed: query=%s target=%s error=%s", query, target, e)
             return {"platform": "grok", "mentioned": False}
 
     async def check_mention(self, query: str, target: str) -> dict:

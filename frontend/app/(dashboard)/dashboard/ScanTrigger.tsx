@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ScanProgress } from '@/components/scan/ScanProgress'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -12,19 +12,31 @@ interface Props {
   businessName: string
   category: string
   region: string
+  keywords?: string[]
   scanUsed?: number
   scanLimit?: number
 }
 
-export function ScanTrigger({ businessId, businessName, category, region, scanUsed = 0, scanLimit = 0 }: Props) {
+export function ScanTrigger({ businessId, businessName, category, region, keywords, scanUsed = 0, scanLimit = 0 }: Props) {
   const router = useRouter()
   const [scanning, setScanning] = useState(false)
   const [loading, setLoading] = useState(false)
   const [eventSource, setEventSource] = useState<EventSource | null>(null)
+  const eventSourceRef = useRef<EventSource | null>(null)
   const [error, setError] = useState('')
   const [completed, setCompleted] = useState(false)
 
   const limitReached = scanLimit > 0 && scanLimit < 999 && scanUsed >= scanLimit
+  // cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
+        eventSourceRef.current = null
+      }
+    }
+  }, [])
+
 
   const startScan = async () => {
     setError('')
@@ -50,8 +62,12 @@ export function ScanTrigger({ businessId, businessName, category, region, scanUs
         const code = err?.detail?.code
         if (code === 'SCAN_IN_PROGRESS') {
           setError('이미 스캔이 진행 중입니다. 잠시 후 다시 시도해주세요.')
-        } else if (code === 'SCAN_LIMIT') {
-          setError('오늘 수동 스캔 횟수를 모두 사용했습니다. 자동 스캔은 새벽 2시에 실행됩니다.')
+        } else if (code === 'SCAN_LIMIT' || code === 'SCAN_DAILY_LIMIT') {
+          setError('오늘 수동 스캔 횟수를 모두 사용했습니다.')
+        } else if (code === 'PLAN_REQUIRED') {
+          setError('무료 체험 스캔 1회를 이미 사용했습니다. 계속 이용하려면 Basic 플랜으로 업그레이드하세요.')
+        } else if (code === 'BIZ_NOT_FOUND') {
+          setError('사업장 정보를 찾을 수 없습니다. 페이지를 새로고침해주세요.')
         } else {
           setError('스캔을 시작할 수 없습니다. 잠시 후 다시 시도해주세요.')
         }
@@ -64,6 +80,7 @@ export function ScanTrigger({ businessId, businessName, category, region, scanUs
       const es = new EventSource(
         `${BACKEND}/api/scan/stream?stream_token=${encodeURIComponent(stream_token)}`
       )
+      eventSourceRef.current = es
       setEventSource(es)
       setScanning(true)
     } catch {
@@ -75,15 +92,18 @@ export function ScanTrigger({ businessId, businessName, category, region, scanUs
 
   const handleComplete = () => {
     setScanning(false)
+    eventSourceRef.current = null
     setEventSource(null)
     setCompleted(true)
-    router.refresh()
-    // 5초 후 완료 메시지 숨김
-    setTimeout(() => setCompleted(false), 5000)
+    // complete 이벤트 수신 시점에 DB 저장 완료 보장 — 짧은 UX 지연 후 즉시 이동
+    setTimeout(() => {
+      window.location.href = '/dashboard'
+    }, 1500)
   }
 
   const handleError = () => {
     setScanning(false)
+    eventSourceRef.current = null
     setEventSource(null)
     setError('스캔 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
   }
@@ -105,7 +125,7 @@ export function ScanTrigger({ businessId, businessName, category, region, scanUs
   return (
     <div className="flex flex-col items-end gap-1">
       {completed && (
-        <p className="text-base text-green-600 font-medium">✓ 스캔 완료! 결과를 업데이트했습니다.</p>
+        <p className="text-base text-green-600 font-medium">✓ AI 빠른 스캔 완료! 결과를 불러옵니다...</p>
       )}
       <button
         onClick={startScan}
@@ -114,6 +134,12 @@ export function ScanTrigger({ businessId, businessName, category, region, scanUs
       >
         {loading ? '준비 중…' : limitReached ? `오늘 스캔 완료 (${scanUsed}/${scanLimit}회)` : 'AI 스캔 시작'}
       </button>
+      {/* 스캔 방식 고지 */}
+      {!completed && !limitReached && (
+        <p className="text-xs text-gray-400 text-right">
+          주요 AI 빠르게 확인 · 전체 분석은 매일 새벽 자동 실행
+        </p>
+      )}
       {/* 스캔 횟수 표시 (한도 있는 플랜) */}
       {scanLimit > 0 && scanLimit < 999 && (
         <p className={`text-sm ${limitReached ? 'text-gray-500' : 'text-gray-400'}`}>

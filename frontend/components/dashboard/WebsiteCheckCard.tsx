@@ -17,7 +17,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
   if (!websiteUrl) {
     return (
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-dashed border-gray-200">
-        <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 SEO 체크</div>
+        <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 AI 인식 점검</div>
         <p className="text-sm text-gray-400 mb-4">
           독립 웹사이트가 없으면 ChatGPT·Perplexity에서 인용되기 어렵습니다.
           네이버는 AI 크롤링을 차단하고 있어, 글로벌 AI는 독립 웹사이트를 소스로 사용합니다.
@@ -35,7 +35,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
             href="/schema"
             className="text-sm text-center bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl py-2.5 px-3 transition-colors"
           >
-            JSON-LD 스키마 자동 생성 →
+            AI 검색 등록 →
           </Link>
         </div>
       </div>
@@ -47,7 +47,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
   if (checkResult.error) {
     return (
       <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 SEO 체크</div>
+        <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 AI 인식 점검</div>
         <p className="text-sm text-red-400">{checkResult.error} — 사이트 접속 후 재스캔하세요.</p>
       </div>
     )
@@ -61,19 +61,19 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
       tip: 'HTTP 사이트는 AI 크롤러가 우선순위를 낮게 처리합니다.',
     },
     {
-      label: 'JSON-LD 구조화 데이터',
+      label: 'AI 인식 정보 코드',
       ok: checkResult.has_json_ld,
       impact: 'high',
-      tip: 'AI가 사업장 정보를 정확히 인식하는 핵심 마크업입니다.',
+      tip: 'AI가 내 가게 정보를 정확히 읽어가는 핵심 항목입니다.',
     },
     {
-      label: 'LocalBusiness 스키마',
+      label: '가게 유형 정보 등록',
       ok: checkResult.has_schema_local_business,
       impact: 'high',
-      tip: 'LocalBusiness/Restaurant 스키마로 AI 인용 확률이 크게 높아집니다.',
+      tip: '가게 유형 정보를 등록하면 AI 노출 확률이 높아집니다.',
     },
     {
-      label: 'Open Graph 메타태그',
+      label: 'SNS 공유 설정',
       ok: checkResult.has_open_graph,
       impact: 'medium',
       tip: 'SNS 공유 시 썸네일·설명이 표시되어 브랜드 인지도를 높입니다.',
@@ -100,7 +100,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
     <div className="bg-white rounded-2xl p-6 shadow-sm">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <div className="text-sm font-medium text-gray-700">웹사이트 SEO 체크</div>
+          <div className="text-sm font-medium text-gray-700">웹사이트 AI 인식 점검</div>
           {checkResult.title && (
             <p className="text-sm text-gray-400 mt-0.5 truncate max-w-xs">{checkResult.title}</p>
           )}
@@ -149,7 +149,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
               href="/schema"
               className="flex-1 text-center text-sm bg-blue-600 text-white rounded-xl py-2.5 hover:bg-blue-700 transition-colors font-medium"
             >
-              JSON-LD 자동 생성 →
+              AI 검색 등록 →
             </Link>
           )}
           <a

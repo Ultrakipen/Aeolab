@@ -22,7 +22,7 @@ async def _check_plan(user_id: str):
     ).data
     plan = (sub or {}).get("plan", "free")
     status = (sub or {}).get("status", "inactive")
-    if plan not in ("biz", "enterprise") or status != "active":
+    if plan not in ("biz", "enterprise") or status not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},
@@ -87,12 +87,14 @@ async def create_api_key(name: str, user=Depends(get_current_user)):
 
 @router.delete("/{key_id}")
 async def revoke_api_key(key_id: str, user=Depends(get_current_user)):
-    x_user_id = user["id"]
     """API 키 폐기"""
+    x_user_id = user["id"]
     supabase = get_client()
-    await execute(
+    result = await execute(
         supabase.table("api_keys").update({"is_active": False}).eq("id", key_id).eq(
             "user_id", x_user_id
         )
     )
+    if not result.data:
+        raise HTTPException(status_code=404, detail="API key not found")
     return {"revoked": True}

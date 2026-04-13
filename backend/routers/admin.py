@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
-from db.supabase_client import get_client, execute
-from datetime import date, datetime, timedelta
+import logging
 import os
 import secrets
+from datetime import date, datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, Header
+from db.supabase_client import get_client, execute
+
+_logger = logging.getLogger("aeolab")
 
 router = APIRouter()
 
@@ -27,7 +30,7 @@ async def get_stats(_=Depends(verify_admin)):
     """구독자 MRR BEP 현황 통계 플랜별 포함"""
     supabase = get_supabase()
 
-    subs = (await execute(supabase.table("subscriptions").select("plan, status, user_id"))).data
+    subs = (await execute(supabase.table("subscriptions").select("plan, status, user_id").limit(5000))).data
     total = len(subs)
     active = [s for s in subs if s["status"] in ("active", "grace_period")]
 
@@ -93,7 +96,7 @@ async def get_stats(_=Depends(verify_admin)):
 async def list_subscriptions(plan: str = None, status: str = "active", _=Depends(verify_admin)):
     """구독자 목록"""
     supabase = get_supabase()
-    query = supabase.table("subscriptions").select("id, user_id, plan, status, start_at, end_at, grace_until, billing_key, customer_key")
+    query = supabase.table("subscriptions").select("id, user_id, plan, status, start_at, end_at, grace_until, customer_key")
     if status:
         query = query.eq("status", status)
     if plan:
@@ -166,6 +169,6 @@ async def broadcast_kakao(message: str, _=Depends(verify_admin)):
             try:
                 await notifier.send_notice(phone, message)
                 sent += 1
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning("kakao broadcast failed phone=%s: %s", f"{str(phone)[:3]}****{str(phone)[-2:]}", e)
     return {"sent": sent}

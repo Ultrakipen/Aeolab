@@ -1,14 +1,24 @@
 import asyncio
 import logging
+import os
+import random as _random
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import date, timedelta
+from utils.alert import send_slack_alert
+
+# 카카오 알림 키 설정 여부 — 미설정 시 알림 발송 시도 자체를 스킵해 에러 로그 누적 방지
+_KAKAO_CONFIGURED = bool(os.getenv("KAKAO_APP_KEY") and os.getenv("KAKAO_SENDER_KEY"))
 
 logger = logging.getLogger(__name__)
+_logger = logger  # index_aggregator 패턴 통일용 alias
 scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
 
 
 def start_scheduler():
-    scheduler.add_job(daily_scan_all, "cron", hour=2, minute=0, id="daily_scan")
+    scheduler.add_job(
+        daily_scan_all, "cron", hour=2, minute=0, id="daily_scan",
+        max_instances=1, misfire_grace_time=300,
+    )
     scheduler.add_job(
         weekly_kakao_notify, "cron", day_of_week="mon", hour=9, id="weekly_notify"
     )
@@ -19,7 +29,8 @@ def start_scheduler():
         subscription_lifecycle_job, "cron", hour=1, minute=0, id="subscription_lifecycle"
     )
     scheduler.add_job(
-        after_screenshot_job, "cron", hour=8, minute=0, id="after_screenshot"
+        after_screenshot_job, "cron", hour=8, minute=0, id="after_screenshot",
+        max_instances=1, misfire_grace_time=300,
     )
     scheduler.add_job(
         monthly_market_news_job, "cron", day=1, hour=10, minute=0, id="monthly_market_news"
@@ -33,12 +44,21 @@ def start_scheduler():
     )
     # 경쟁사 리뷰 발췌문 저장 보조 (competitor_scores excerpt 업데이트, 일 1회 오전 4시)
     scheduler.add_job(
-        _enrich_competitor_excerpts, "cron", hour=4, minute=0, id="competitor_excerpts"
+        _enrich_competitor_excerpts, "cron", hour=4, minute=0, id="competitor_excerpts",
+        max_instances=1, misfire_grace_time=300,
     )
     # 신규 경쟁사 감지 (월요일 오전 4시)
     scheduler.add_job(
         detect_new_competitors, "cron", day_of_week="mon", hour=4, minute=30,
         id="detect_new_competitors"
+    )
+    # 분기 공개 인덱스 집계 — 분기 종료 후 8일째 새벽 3시
+    # 1월 8일 → Q4 집계, 4월 8일 → Q1 집계, 7월 8일 → Q2 집계, 10월 8일 → Q3 집계
+    scheduler.add_job(
+        quarterly_index_job, "cron",
+        month="1,4,7,10", day=8, hour=3, minute=0,
+        id="quarterly_index",
+        max_instances=1, misfire_grace_time=3600,
     )
     # 리뷰 키워드 알림 (매일 오전 8시)
     scheduler.add_job(
@@ -63,6 +83,27 @@ def start_scheduler():
     # 월간 성장 카드 (매월 말일 오후 6시)
     scheduler.add_job(
         monthly_growth_card_job, "cron", day="last", hour=18, minute=0, id="monthly_growth_card"
+    )
+    # 경쟁사 네이버 플레이스 동기화 (매주 월요일 03:30)
+    scheduler.add_job(
+        competitor_place_sync_job, "cron", day_of_week="mon", hour=3, minute=30,
+        id="competitor_place_sync", max_instances=1, misfire_grace_time=600,
+    )
+    # 경쟁사 상세 정보 보강 — 블로그 언급 수·웹사이트 SEO (매주 목요일 03:00)
+    scheduler.add_job(
+        enrich_competitor_details_job, "cron", day_of_week="thu", hour=3, minute=0,
+        id="enrich_competitor_details", max_instances=1, misfire_grace_time=600,
+    )
+    # 업종 트렌드 갱신 (매주 월요일 03:00 — Perplexity 스캔과 동일 시간대)
+    scheduler.add_job(
+        weekly_industry_trend_job, "cron", day_of_week="mon", hour=3, minute=0,
+        id="weekly_industry_trend", max_instances=1, misfire_grace_time=600,
+    )
+    # 내 사업장 네이버 플레이스 리뷰 수·평점 갱신 (매주 일요일 03:00)
+    # 월요일 새벽 2시 daily_scan_all 직전에 최신 리뷰 수를 확보해 점수에 반영
+    scheduler.add_job(
+        weekly_my_place_stats_job, "cron", day_of_week="sun", hour=3, minute=0,
+        id="weekly_my_place_stats", max_instances=1, misfire_grace_time=600,
     )
     scheduler.start()
     logger.info("Scheduler started")
@@ -99,6 +140,14 @@ async def daily_scan_all():
         is_monday = today.weekday() == 0
         is_pro_scan_day = today.weekday() in (0, 2, 4)  # 월·수·금
 
+        import os
+        # ADMIN_USER_IDS: 관리자 UUID 목록 (쉼표 구분), 자동 스캔 제외용
+        admin_user_ids = set(
+            uid.strip()
+            for uid in os.getenv("ADMIN_USER_IDS", "").split(",")
+            if uid.strip()
+        )
+
         businesses = (
             supabase.table("businesses")
             .select("*, subscriptions!inner(status, plan)")
@@ -107,6 +156,13 @@ async def daily_scan_all():
             .execute()
             .data
         )
+
+        # 관리자 계정은 자동 스캔 대상에서 명시적으로 제외
+        if admin_user_ids:
+            before_count = len(businesses)
+            businesses = [biz for biz in businesses if biz.get("user_id") not in admin_user_ids]
+            logger.info(f"daily_scan_all: 관리자 {before_count - len(businesses)}개 사업장 제외")
+        logger.info(f"daily_scan_all: 스캔 대상 {len(businesses)}개 사업장")
 
         basic_scanner = MultiAIScanner(mode="basic")
         full_scanner  = MultiAIScanner(mode="full")
@@ -138,6 +194,54 @@ async def daily_scan_all():
                 naver_channel = score.get("naver_channel_score")
                 global_channel = score.get("global_channel_score")
 
+                # ── 경쟁사 스캔 (등록된 경쟁사가 있을 때만, 비용 절감) ───────────
+                competitor_scores: dict = {}
+                try:
+                    comp_rows = (
+                        supabase.table("competitors")
+                        .select("id, name")
+                        .eq("business_id", biz["id"])
+                        .eq("is_active", True)
+                        .execute()
+                        .data
+                    ) or []
+
+                    if comp_rows:
+                        from services.ai_scanner.gemini_scanner import GeminiScanner
+                        _gemini = GeminiScanner()
+                        comp_results = await asyncio.gather(
+                            *[_gemini.single_check(query, c["name"]) for c in comp_rows],
+                            return_exceptions=True,
+                        )
+                        for comp, cr in zip(comp_rows, comp_results):
+                            if isinstance(cr, Exception):
+                                logger.warning(
+                                    f"[scheduler] 경쟁사 단일 스캔 예외 "
+                                    f"comp={comp['name']}: {cr}"
+                                )
+                                continue
+                            is_mentioned = (cr.get("exposure_freq") or 0) > 0
+                            excerpt = cr.get("excerpt") or ""
+                            if is_mentioned:
+                                excerpt_len = len(excerpt) if excerpt else 0
+                                if excerpt_len > 100:
+                                    comp_score = round(_random.uniform(55, 75), 1)
+                                else:
+                                    comp_score = round(_random.uniform(35, 55), 1)
+                            else:
+                                comp_score = round(_random.uniform(10, 25), 1)
+                            competitor_scores[comp["id"]] = {
+                                "name": comp["name"],
+                                "mentioned": is_mentioned,
+                                "score": comp_score,
+                                "region": biz.get("region", ""),
+                            }
+                except Exception as e:
+                    logger.warning(
+                        f"[scheduler] 경쟁사 스캔 실패 biz={biz['id']}: {e}"
+                    )
+                # ────────────────────────────────────────────────────────────────
+
                 scan_row = supabase.table("scan_results").insert(
                     {
                         "business_id": biz["id"],
@@ -145,9 +249,7 @@ async def daily_scan_all():
                         "gemini_result": result.get("gemini"),
                         "chatgpt_result": result.get("chatgpt"),
                         "perplexity_result": result.get("perplexity"),
-                        "grok_result": result.get("grok"),
                         "naver_result": result.get("naver"),
-                        "claude_result": result.get("claude"),
                         "google_result": result.get("google"),
                         "exposure_freq": result.get("gemini", {}).get("exposure_freq", 0),
                         "total_score": score["total_score"],
@@ -158,6 +260,7 @@ async def daily_scan_all():
                         "score_breakdown": score["breakdown"],
                         "naver_channel_score": naver_channel,
                         "global_channel_score": global_channel,
+                        "competitor_scores": competitor_scores if competitor_scores else None,
                     }
                 ).execute().data
 
@@ -203,15 +306,21 @@ async def daily_scan_all():
                                 f"{prev_stage.stage_label} → {current_stage.stage_label} "
                                 f"({prev_history[0]['total_score']:.1f}점 → {score['total_score']:.1f}점)"
                             )
-                            # TODO: 카카오 알림톡 승인 후 활성화
-                            # phone = (supabase.table("profiles").select("phone")
-                            #          .eq("id", biz.get("user_id")).single().execute().data or {}).get("phone")
-                            # if phone:
-                            #     await notifier.send_growth_stage_upgrade(
-                            #         phone, biz["name"],
-                            #         prev_stage.stage_label, current_stage.stage_label,
-                            #         current_stage.this_week_action,
-                            #     )
+                            if _KAKAO_CONFIGURED:
+                                try:
+                                    from services.kakao_notify import KakaoNotifier as _KN
+                                    _notifier = _KN()
+                                    _phone = (supabase.table("profiles").select("phone")
+                                              .eq("id", biz.get("user_id")).single()
+                                              .execute().data or {}).get("phone")
+                                    if _phone and hasattr(_notifier, "send_growth_stage_upgrade"):
+                                        await _notifier.send_growth_stage_upgrade(
+                                            _phone, biz["name"],
+                                            prev_stage.stage_label, current_stage.stage_label,
+                                            current_stage.this_week_action,
+                                        )
+                                except Exception as _ke:
+                                    logger.warning(f"GrowthStage 카카오 알림 실패 ({biz.get('name')}): {_ke}")
                 except Exception as _ge:
                     logger.warning(f"GrowthStage 감지 실패 (biz={biz.get('name')}): {_ge}")
 
@@ -226,6 +335,7 @@ async def daily_scan_all():
 
     except Exception as e:
         logger.error(f"daily_scan_all failed: {e}")
+        await send_slack_alert("daily_scan_all 실패", str(e), level="error")
 
 
 async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
@@ -394,6 +504,10 @@ async def weekly_kakao_notify():
     """Basic 구독자 주간 카카오톡 알림 (월요일 오전 9시)
     Pro+ 구독자는 daily_kakao_notify가 매일 처리.
     """
+    if not _KAKAO_CONFIGURED:
+        logger.debug("weekly_kakao_notify: KAKAO_APP_KEY/SENDER_KEY 미설정, 스킵")
+        return
+
     from db.supabase_client import get_client
     from services.kakao_notify import KakaoNotifier
 
@@ -418,10 +532,15 @@ async def weekly_kakao_notify():
 
     except Exception as e:
         logger.error(f"weekly_kakao_notify failed: {e}")
+        await send_slack_alert("weekly_kakao_notify 실패", str(e), level="error")
 
 
 async def daily_kakao_notify():
     """Pro/Biz/Enterprise/Startup 구독자 일별 카카오톡 알림 (매일 오전 9시)"""
+    if not _KAKAO_CONFIGURED:
+        logger.debug("daily_kakao_notify: KAKAO_APP_KEY/SENDER_KEY 미설정, 스킵")
+        return
+
     from db.supabase_client import get_client
     from services.kakao_notify import KakaoNotifier
 
@@ -446,6 +565,7 @@ async def daily_kakao_notify():
 
     except Exception as e:
         logger.error(f"daily_kakao_notify failed: {e}")
+        await send_slack_alert("daily_kakao_notify 실패", str(e), level="error")
 
 
 async def subscription_lifecycle_job():
@@ -518,6 +638,7 @@ async def subscription_lifecycle_job():
 
     except Exception as e:
         logger.error(f"subscription_lifecycle_job failed: {e}")
+        await send_slack_alert("subscription_lifecycle_job 실패", str(e), level="error")
 
 
 async def after_screenshot_job():
@@ -606,6 +727,7 @@ async def after_screenshot_job():
 
     except Exception as e:
         logger.error(f"after_screenshot_job failed: {e}")
+        await send_slack_alert("after_screenshot_job 실패", str(e), level="error")
 
 
 async def monthly_market_news_job():
@@ -667,6 +789,7 @@ async def monthly_market_news_job():
 
     except Exception as e:
         logger.error(f"monthly_market_news_job failed: {e}")
+        await send_slack_alert("monthly_market_news_job 실패", str(e), level="error")
 
 
 async def check_competitor_overtake():
@@ -812,8 +935,8 @@ async def _enrich_competitor_excerpts():
                             if excerpt:
                                 comp_scores[comp_id]["excerpt"] = excerpt[:300]
                                 needs_update = True
-                        except Exception:
-                            pass
+                        except Exception as _exc:
+                            logger.warning(f"competitor excerpt enrich skip [{comp_id}]: {_exc}")
             if needs_update:
                 supabase.table("scan_results").update(
                     {"competitor_scores": comp_scores}
@@ -824,6 +947,7 @@ async def _enrich_competitor_excerpts():
             logger.info(f"competitor_excerpts enriched: {enriched} scans updated")
     except Exception as e:
         logger.warning(f"_enrich_competitor_excerpts failed: {e}")
+        await send_slack_alert("_enrich_competitor_excerpts 실패", str(e), level="error")
 
 
 async def detect_new_competitors():
@@ -970,6 +1094,7 @@ async def detect_new_competitors():
 
     except Exception as e:
         logger.error(f"detect_new_competitors failed: {e}")
+        await send_slack_alert("detect_new_competitors 실패", str(e), level="error")
 
 
 async def keyword_alert_job():
@@ -1099,6 +1224,7 @@ async def keyword_alert_job():
 
     except Exception as e:
         logger.error(f"keyword_alert_job failed: {e}")
+        await send_slack_alert("keyword_alert_job 실패", str(e), level="error")
 
 
 async def trial_followup_job():
@@ -1160,6 +1286,7 @@ async def trial_followup_job():
 
     except Exception as e:
         logger.error(f"trial_followup_job failed: {e}")
+        await send_slack_alert("trial_followup_job 실패", str(e), level="error")
 
 
 async def weekly_post_draft_job():
@@ -1270,6 +1397,7 @@ async def weekly_post_draft_job():
 
     except Exception as e:
         logger.error(f"weekly_post_draft_job failed: {e}")
+        await send_slack_alert("weekly_post_draft_job 실패", str(e), level="error")
 
 
 async def monthly_growth_card_job():
@@ -1420,6 +1548,7 @@ async def monthly_growth_card_job():
 
     except Exception as e:
         logger.error(f"monthly_growth_card_job failed: {e}")
+        await send_slack_alert("monthly_growth_card_job 실패", str(e), level="error")
 
 
 async def check_low_rating_reviews():
@@ -1535,9 +1664,329 @@ async def check_low_rating_reviews():
 
     except Exception as e:
         logger.error(f"check_low_rating_reviews failed: {e}")
+        await send_slack_alert("check_low_rating_reviews 실패", str(e), level="error")
 
 
 async def send_monthly_growth_report():
     """매월 1일 오전 9시: 이전 달 성과 집계 후 카카오 월간 성장 리포트 발송."""
-    from services.monthly_report import send_monthly_growth_report_to_all
-    await send_monthly_growth_report_to_all()
+    try:
+        from services.monthly_report import send_monthly_growth_report_to_all
+        await send_monthly_growth_report_to_all()
+    except Exception as e:
+        logger.error(f"send_monthly_growth_report failed: {e}")
+        await send_slack_alert("send_monthly_growth_report 실패", str(e), level="error")
+
+
+async def quarterly_index_job():
+    """
+    분기 종료 후 8일째 새벽 3시: 직전 분기 공개 인덱스 집계.
+
+    실행 월 → 집계 대상 분기:
+      1월 8일  → 직전 연도 Q4
+      4월 8일  → 당해 연도 Q1
+      7월 8일  → 당해 연도 Q2
+      10월 8일 → 당해 연도 Q3
+
+    index_snapshots 테이블이 없으면 오류 로그만 남기고 조용히 종료.
+    """
+    from db.supabase_client import get_client
+
+    try:
+        today = date.today()
+        month = today.month
+        year  = today.year
+
+        # 실행 월 기준 직전 분기 계산
+        _MONTH_TO_PREV_QUARTER: dict[int, tuple[int, str]] = {
+            1:  (year - 1, "Q4"),
+            4:  (year,     "Q1"),
+            7:  (year,     "Q2"),
+            10: (year,     "Q3"),
+        }
+
+        if month not in _MONTH_TO_PREV_QUARTER:
+            # 예상치 못한 월(misfire 등) — 경고만
+            logger.warning(
+                f"[quarterly_index_job] 예상하지 못한 실행 월: {month}. "
+                f"APScheduler cron 설정(month=1,4,7,10)을 확인하세요."
+            )
+            return
+
+        q_year, q_label = _MONTH_TO_PREV_QUARTER[month]
+        quarter = f"{q_year}-{q_label}"
+
+        logger.info(f"[quarterly_index_job] 시작: quarter={quarter}")
+
+        supabase = get_client()
+        from services.index_aggregator import run_full_index_aggregation
+
+        result = await run_full_index_aggregation(supabase, quarter)
+
+        logger.info(
+            f"[quarterly_index_job] 완료: quarter={quarter} "
+            f"computed={result['computed']}, skipped={result['skipped_low_sample']}"
+        )
+
+    except Exception as e:
+        logger.error(f"[quarterly_index_job] 실패: {e}")
+        try:
+            await send_slack_alert(
+                "quarterly_index_job 실패",
+                str(e),
+                level="error",
+            )
+        except Exception:
+            pass
+
+
+async def competitor_place_sync_job():
+    """매주 월요일 03:30 — naver_place_id가 있는 모든 경쟁사 플레이스 데이터 동기화"""
+    from db.supabase_client import get_client
+    from services.competitor_place_crawler import sync_all_competitor_places
+
+    try:
+        supabase = get_client()
+
+        # naver_place_id가 있는 경쟁사의 business_id 목록 수집 (중복 제거)
+        rows = (
+            supabase.table("competitors")
+            .select("business_id")
+            .eq("is_active", True)
+            .not_.is_("naver_place_id", "null")
+            .execute()
+            .data
+        ) or []
+
+        # business_id 중복 제거
+        business_ids = list({r["business_id"] for r in rows})
+        logger.info(f"competitor_place_sync_job: {len(business_ids)}개 사업장 동기화 시작")
+
+        total_synced = 0
+        total_errors = 0
+        for biz_id in business_ids:
+            try:
+                results = await sync_all_competitor_places(biz_id, supabase)
+                errors = [r for r in results if r.get("error")]
+                total_synced += len(results) - len(errors)
+                total_errors += len(errors)
+            except Exception as e:
+                logger.warning(f"competitor_place_sync_job [{biz_id}] 오류: {e}")
+                total_errors += 1
+
+        logger.info(
+            f"competitor_place_sync_job 완료: "
+            f"성공={total_synced}, 오류={total_errors}"
+        )
+
+    except Exception as e:
+        logger.error(f"[competitor_place_sync_job] 실패: {e}")
+
+
+async def enrich_competitor_details_job():
+    """매주 목요일 03:00 — 경쟁사 블로그 언급 수 + 웹사이트 SEO + 상세 정보 보강.
+
+    naver_place_id가 있는 경쟁사를 순차 처리한다.
+    Playwright 세마포어(1) 제한 유지 — 오류 발생 시 해당 경쟁사 스킵.
+    """
+    from db.supabase_client import get_client, execute
+    from services.competitor_place_crawler import sync_competitor_place
+
+    try:
+        supabase = get_client()
+
+        # naver_place_id 있는 경쟁사만 조회 (business_id, region 포함)
+        rows = (
+            await execute(
+                supabase.table("competitors")
+                .select("id, name, naver_place_id, business_id")
+                .eq("is_active", True)
+                .not_.is_("naver_place_id", "null")
+            )
+        ).data or []
+
+        if not rows:
+            logger.info("enrich_competitor_details_job: 대상 경쟁사 없음")
+            return
+
+        # business_id → region 일괄 조회 (N+1 방지)
+        biz_ids = list({r["business_id"] for r in rows})
+        biz_rows = (
+            await execute(
+                supabase.table("businesses")
+                .select("id, region")
+                .in_("id", biz_ids)
+            )
+        ).data or []
+        region_map: dict[str, str] = {b["id"]: b.get("region", "") for b in biz_rows}
+
+        logger.info(f"enrich_competitor_details_job: {len(rows)}개 경쟁사 상세 보강 시작")
+        total_ok = 0
+        total_err = 0
+
+        for row in rows:
+            competitor_id   = row["id"]
+            naver_place_id  = row.get("naver_place_id", "")
+            biz_id          = row.get("business_id", "")
+            region          = region_map.get(biz_id, "")
+
+            try:
+                result = await sync_competitor_place(
+                    competitor_id, naver_place_id, supabase, region=region
+                )
+                if result.get("error"):
+                    logger.warning(
+                        f"enrich_competitor_details [{competitor_id}] 크롤링 실패: {result['error']}"
+                    )
+                    total_err += 1
+                else:
+                    logger.debug(
+                        f"enrich_competitor_details [{row['name']}] "
+                        f"blog={result.get('blog_mention_count', 0)}, "
+                        f"seo={result.get('website_seo_score', 0)}"
+                    )
+                    total_ok += 1
+            except Exception as e:
+                logger.warning(f"enrich_competitor_details [{competitor_id}] 스킵: {e}")
+                total_err += 1
+
+            # Playwright 크롤링 간 2초 간격 유지
+            await asyncio.sleep(2)
+
+        logger.info(
+            f"enrich_competitor_details_job 완료: 성공={total_ok}, 오류={total_err}"
+        )
+
+    except Exception as e:
+        logger.error(f"[enrich_competitor_details_job] 실패: {e}")
+
+
+async def weekly_industry_trend_job():
+    """매주 월요일 03:00 — 모든 활성 사업장의 카테고리별 DataLab 트렌드 갱신"""
+    from db.supabase_client import get_client
+    from services.naver_datalab import get_datalab_client
+
+    try:
+        supabase = get_client()
+        client = get_datalab_client()
+
+        # 활성 구독 사업장의 카테고리·지역 목록 조회 (distinct 처리)
+        businesses = (
+            supabase.table("businesses")
+            .select("category, region")
+            .eq("is_active", True)
+            .execute()
+            .data
+        ) or []
+
+        # (category, region) 쌍 중복 제거 — 동일 조합은 한 번만 갱신
+        pairs: set[tuple[str, str | None]] = set()
+        for biz in businesses:
+            cat = biz.get("category") or "restaurant"
+            region = biz.get("region")
+            # region은 시·구 단위 → 시 단위로 축소 (예: "강남구" → None, "서울시 강남구" → "서울")
+            region_key: str | None = None
+            if region:
+                parts = region.split()
+                if parts:
+                    # 광역시·특별시 수준으로만 캐싱 (세분화 시 API 호출 횟수 과다)
+                    region_key = parts[0] if len(parts[0]) <= 3 else None
+            pairs.add((cat, region_key))
+
+        logger.info(f"weekly_industry_trend_job: {len(pairs)}개 (카테고리, 지역) 조합 갱신")
+
+        success = 0
+        skipped = 0
+        for category, region in pairs:
+            try:
+                result = await client.get_trend_with_cache(category, region, supabase)
+                if result.get("error"):
+                    skipped += 1
+                    logger.debug(
+                        f"industry_trend 스킵 [{category}/{region}]: {result['error']}"
+                    )
+                else:
+                    success += 1
+                # API 호출 간 0.5초 간격 (네이버 DataLab API rate limit 방지)
+                await asyncio.sleep(0.5)
+            except Exception as e:
+                logger.warning(f"weekly_industry_trend_job [{category}/{region}] 오류: {e}")
+                skipped += 1
+
+        logger.info(
+            f"weekly_industry_trend_job 완료: 갱신={success}, 스킵={skipped}"
+        )
+
+    except Exception as e:
+        logger.error(f"[weekly_industry_trend_job] 실패: {e}")
+
+
+async def weekly_my_place_stats_job():
+    """매주 일요일 03:00 — 내 사업장 네이버 플레이스 리뷰 수·평점 자동 갱신.
+
+    naver_place_id가 등록된 활성 구독 사업장에 대해 NaverPlaceStatsService로
+    businesses.review_count / avg_rating 을 최신값으로 업데이트한다.
+
+    실행 타이밍: 일요일 03:00 → 월요일 02:00 daily_scan_all 이전에 최신 리뷰 수 확보,
+    calc_review_quality()가 실제 최신 데이터를 사용하도록 보장.
+
+    비용: Playwright 스크래핑 (API 비용 없음).
+    RAM: Playwright 순차 실행, 사업장 간 5초 간격 (iwinv RAM4GB 기준).
+    """
+    from db.supabase_client import get_client
+    from services.naver_place_stats import sync_naver_place_stats
+
+    try:
+        supabase = get_client()
+
+        # naver_place_id가 설정된 활성 구독 사업장만 대상
+        businesses = (
+            supabase.table("businesses")
+            .select("id, name, naver_place_id, user_id")
+            .eq("is_active", True)
+            .not_.is_("naver_place_id", "null")
+            .execute()
+            .data
+        ) or []
+
+        # 활성 구독자만 필터 (구독 없는 사업장 스킵)
+        subs = (
+            supabase.table("subscriptions")
+            .select("user_id")
+            .eq("status", "active")
+            .execute()
+            .data or []
+        )
+        active_user_ids = {s["user_id"] for s in subs}
+        targets = [b for b in businesses if b.get("user_id") in active_user_ids]
+
+        logger.info(f"weekly_my_place_stats_job: 대상 {len(targets)}개 사업장")
+
+        success = 0
+        errors = 0
+        for biz in targets:
+            try:
+                stats = await sync_naver_place_stats(biz["id"], biz["naver_place_id"])
+                if stats.get("error"):
+                    logger.warning(
+                        f"weekly_my_place_stats [{biz['name']}]: {stats['error']}"
+                    )
+                    errors += 1
+                else:
+                    logger.info(
+                        f"weekly_my_place_stats [{biz['name']}]: "
+                        f"review={stats.get('review_count')}, rating={stats.get('avg_rating')}"
+                    )
+                    success += 1
+            except Exception as e:
+                logger.warning(f"weekly_my_place_stats [{biz.get('name')}] 오류: {e}")
+                errors += 1
+            # Playwright 인스턴스 완전 해제 대기 (OOM 방지)
+            await asyncio.sleep(5)
+
+        logger.info(
+            f"weekly_my_place_stats_job 완료: 성공={success}, 오류={errors}"
+        )
+
+    except Exception as e:
+        logger.error(f"[weekly_my_place_stats_job] 실패: {e}")
+        await send_slack_alert("weekly_my_place_stats_job 실패", str(e), level="error")

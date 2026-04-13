@@ -30,7 +30,7 @@ export function GlobalAIBanner({ globalScore, hasWebsite }: GlobalAIBannerProps)
               <div className="bg-white rounded-xl px-3 py-2.5 border border-amber-200">
                 <p className="text-sm font-semibold text-gray-800 mb-0.5">독립 웹사이트 만들기</p>
                 <p className="text-sm text-gray-500">
-                  카페24·아임웹으로 간단히 개설. JSON-LD 스키마 등록 필수.
+                  카페24·아임웹으로 간단히 개설. AI 인식 정보 등록 필수.
                 </p>
               </div>
             )}
@@ -38,9 +38,9 @@ export function GlobalAIBanner({ globalScore, hasWebsite }: GlobalAIBannerProps)
               href="/schema"
               className="bg-white rounded-xl px-3 py-2.5 border border-amber-200 hover:border-amber-400 transition-colors block"
             >
-              <p className="text-sm font-semibold text-gray-800 mb-0.5">JSON-LD 자동 생성 →</p>
+              <p className="text-sm font-semibold text-gray-800 mb-0.5">AI 검색 등록 →</p>
               <p className="text-sm text-gray-500">
-                AI가 사업장 정보를 인식하는 구조화 마크업을 자동 생성합니다.
+                AI가 내 가게를 정확히 찾도록 필요한 정보를 자동으로 생성합니다.
               </p>
             </Link>
             <a

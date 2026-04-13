@@ -5,24 +5,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoutButton } from "./LogoutButton";
 import {
-  LayoutDashboard, Store, Lightbulb, Code2, History,
-  Rocket, Shield, Settings, MessageSquare, Menu, X, Lock,
-  Bell, HelpCircle,
+  LayoutDashboard, Store, Lightbulb, Code2, History, FileText,
+  Rocket, Shield, Settings, MessageSquare, Menu, X, Lock, TrendingUp, Eye,
   type LucideIcon,
 } from "lucide-react";
 
 // requiredPlan: 이 요금제 미만이면 잠금 뱃지 표시 (null = 항상 열림)
-const NAV_ITEMS: { href: string; label: string; Icon: LucideIcon; requiredPlan?: string }[] = [
+// requiresBusiness: 사업장 등록이 필요한 메뉴
+const NAV_ITEMS: { href: string; label: string; Icon: LucideIcon; requiredPlan?: string; requiresBusiness?: boolean }[] = [
   { href: "/dashboard",     label: "대시보드",       Icon: LayoutDashboard },
-  { href: "/competitors",   label: "경쟁사 관리",    Icon: Store },
-  { href: "/guide",         label: "개선 가이드",    Icon: Lightbulb },
-  { href: "/review-inbox",  label: "리뷰 답변 생성", Icon: MessageSquare, requiredPlan: "basic" },
-  { href: "/schema",        label: "AI 검색 등록",   Icon: Code2,         requiredPlan: "basic" },
-  { href: "/history",       label: "변화 기록",      Icon: History,       requiredPlan: "basic" },
+  { href: "/competitors",   label: "경쟁사 관리",    Icon: Store,         requiresBusiness: true },
+  { href: "/guide",         label: "개선 가이드",    Icon: Lightbulb,     requiresBusiness: true },
+  { href: "/blog",          label: "블로그 진단",    Icon: FileText,      requiredPlan: "basic",   requiresBusiness: true },
+  { href: "/review-inbox",  label: "리뷰 답변 생성", Icon: MessageSquare, requiredPlan: "basic",   requiresBusiness: true },
+  { href: "/schema",        label: "AI 검색 등록",   Icon: Code2,         requiredPlan: "basic",   requiresBusiness: true },
+  { href: "/history",       label: "변화 기록",      Icon: History,       requiredPlan: "basic",   requiresBusiness: true },
+  { href: "/growth",        label: "성장 리포트",    Icon: TrendingUp,    requiredPlan: "basic",   requiresBusiness: true },
   { href: "/startup",       label: "창업 시장 분석", Icon: Rocket,        requiredPlan: "startup" },
   { href: "/ad-defense",    label: "광고 대응 전략", Icon: Shield,        requiredPlan: "pro" },
-  { href: "/notices",       label: "공지사항",       Icon: Bell },
-  { href: "/faq",           label: "FAQ · 문의",       Icon: HelpCircle },
+  { href: "/preview",       label: "요금제 미리보기", Icon: Eye },
   { href: "/settings",      label: "설정·구독",      Icon: Settings },
 ];
 
@@ -32,7 +33,7 @@ const PLAN_LABEL: Record<string, string> = {
 };
 
 const PLAN_RANK: Record<string, number> = {
-  free: 0, basic: 1, startup: 2, pro: 3, biz: 4, enterprise: 5,
+  free: 0, basic: 1, startup: 1.5, pro: 2, biz: 3, enterprise: 4,
 };
 
 function isPlanLocked(currentPlan: string, requiredPlan?: string): boolean {
@@ -89,6 +90,7 @@ export function DashboardSidebar({ email, plan, hasBusiness = true }: Props) {
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           const locked = isPlanLocked(planKey, item.requiredPlan);
+          const needsBiz = !hasBusiness && !!item.requiresBusiness;
           return (
             <Link
               key={item.href}
@@ -104,7 +106,10 @@ export function DashboardSidebar({ email, plan, hasBusiness = true }: Props) {
             >
               <item.Icon className="w-4 h-4 shrink-0" strokeWidth={1.5} />
               <span className="flex-1">{item.label}</span>
-              {locked && <Lock className="w-3 h-3 text-gray-300 shrink-0" />}
+              {locked && !needsBiz && <Lock className="w-3 h-3 text-gray-300 shrink-0" />}
+              {needsBiz && !locked && (
+                <span className="text-xs text-gray-300 shrink-0 whitespace-nowrap">등록 필요</span>
+              )}
             </Link>
           );
         })}

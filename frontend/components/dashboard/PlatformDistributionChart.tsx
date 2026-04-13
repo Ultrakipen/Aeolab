@@ -21,9 +21,6 @@ const GLOBAL_PLATFORMS: { key: string; label: string; color: string }[] = [
   { key: 'chatgpt',   label: 'ChatGPT',           color: '#10a37f' },
   { key: 'google',    label: 'Google AI Overview', color: '#ea4335' },
   { key: 'perplexity',label: 'Perplexity',         color: '#20b2aa' },
-  { key: 'grok',      label: 'Grok',              color: '#1d9bf0' },
-  { key: 'claude',    label: 'Claude',            color: '#d97706' },
-  { key: 'zeta',      label: '뤼튼(Zeta)',         color: '#7c3aed' },
 ]
 
 function PlatformRow({

@@ -18,20 +18,22 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "AEOlab — AI가 내 가게를 추천하게 만드는 서비스",
+  metadataBase: new URL("https://aeolab.co.kr"),
+  title: "AEOlab — AI 검색 시대, 내 가게는 보이고 있을까요?",
   description:
-    "ChatGPT·네이버 AI·구글·Perplexity·Grok·Claude 7개 AI에서 내 사업장 노출을 자동 추적하고 개선 가이드를 제공합니다. 한국 소상공인 AI 검색 최적화 플랫폼.",
+    "네이버 AI 브리핑·카카오맵·ChatGPT 3채널에서 내 사업장 노출 여부를 자동 진단하고 개선 방법을 알려드립니다. 한국 소상공인 AI 검색 노출 관리 서비스.",
   openGraph: {
-    title: "AEOlab — AI 검색 노출 최적화",
-    description: "7개 AI 플랫폼에서 내 가게가 추천되는지 자동 추적 · 경쟁사 벤치마킹 · 개선 가이드",
+    title: "AEOlab — AI 검색 노출 진단 서비스",
+    description: "네이버 AI 브리핑이 내 가게를 발견할 수 있는지 자동 진단 · 경쟁사 비교 · 개선 가이드",
     siteName: "AEOlab",
-    images: [{ url: "https://aeolab.co.kr/og-image.png", width: 1200, height: 630 }],
+    // opengraph-image.tsx 파일이 Next.js App Router에서 자동으로 OG 이미지를 생성합니다.
+    // 정적 URL 참조 불필요 — Next.js가 /opengraph-image 경로를 자동 등록합니다.
   },
   twitter: {
     card: "summary_large_image",
     title: "AEOlab — AI 검색 노출 최적화",
-    description: "7개 AI 플랫폼에서 내 가게가 추천되는지 자동 추적 · 경쟁사 벤치마킹 · 개선 가이드",
-    images: ["https://aeolab.co.kr/og-image.png"],
+    description: "네이버·카카오·ChatGPT 3채널 노출 여부 자동 진단 · 경쟁사 벤치마킹 · 개선 가이드",
+    // opengraph-image.tsx 자동 적용 — 별도 images 배열 불필요
   },
 };
 

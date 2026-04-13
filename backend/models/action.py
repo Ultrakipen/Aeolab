@@ -113,3 +113,5 @@ class ActionPlan(BaseModel):
     next_month_goal: str            # "다음 달까지 AI 노출 빈도 +20% 목표"
     tools: ActionTools
     progress: Optional[ActionProgress] = None  # 프론트에서 주입
+    weekly_roadmap: Optional[list] = None       # 4주 로드맵 (Claude 생성)
+    this_week_mission: Optional[dict] = None    # 이번 주 미션 (Claude 생성)

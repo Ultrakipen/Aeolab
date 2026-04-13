@@ -8,7 +8,6 @@ export interface ActionItem {
   dimension: string;
   title: string;
   action: string;
-  expected_effect: string;
   difficulty: "easy" | "medium" | "hard";
   time_required: string;
   competitor_example?: string;

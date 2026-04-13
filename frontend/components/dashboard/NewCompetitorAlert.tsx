@@ -6,8 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 
 interface Notification {
   id: string
-  payload: { new_places?: string[] }
-  created_at: string
+  content: { new_places?: string[] }
+  sent_at: string
 }
 
 interface Props {
@@ -30,11 +30,11 @@ export function NewCompetitorAlert({ businessId }: Props) {
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const { data } = await supabase
         .from('notifications')
-        .select('id, payload, created_at')
-        .eq('business_id', businessId)
+        .select('id, content, sent_at')
+        .eq('user_id', session.user.id)
         .eq('type', 'new_competitor')
         .gte('sent_at', weekAgo)
-        .order('created_at', { ascending: false })
+        .order('sent_at', { ascending: false })
         .limit(3)
 
       if (data) setAlerts(data as Notification[])
@@ -51,7 +51,7 @@ export function NewCompetitorAlert({ businessId }: Props) {
   return (
     <div className="space-y-2 mb-4">
       {visible.map((alert) => {
-        const places = alert.payload?.new_places ?? []
+        const places = alert.content?.new_places ?? []
         return (
           <div
             key={alert.id}

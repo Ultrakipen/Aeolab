@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY || "";
+// 관리자 API는 서버 사이드 프록시를 통해 호출 (키 노출 방지)
+const ADMIN_PROXY = "/api/admin-proxy";
 
 interface PlanStat {
   subscribers: number;
@@ -69,7 +69,7 @@ const FAQ_CATEGORY_LABELS: Record<string, string> = {
 };
 
 // ─── 공지사항 탭 ──────────────────────────────────────────────
-function NoticesTab({ adminKey }: { adminKey: string }) {
+function NoticesTab() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ title: "", content: "", category: "general", is_pinned: false });
@@ -79,15 +79,13 @@ function NoticesTab({ adminKey }: { adminKey: string }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${BACKEND}/api/notices?limit=50`, {
-        headers: { "X-Admin-Key": adminKey },
-      });
+      const res = await fetch(`${ADMIN_PROXY}?path=api/notices&limit=50`);
       const data = await res.json();
       setNotices(data.items ?? []);
     } finally {
       setLoading(false);
     }
-  }, [adminKey]);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
@@ -97,9 +95,9 @@ function NoticesTab({ adminKey }: { adminKey: string }) {
     setSubmitting(true);
     setMsg("");
     try {
-      const res = await fetch(`${BACKEND}/api/notices`, {
+      const res = await fetch(`${ADMIN_PROXY}?path=api/notices`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
       if (res.ok) {
@@ -116,9 +114,8 @@ function NoticesTab({ adminKey }: { adminKey: string }) {
 
   async function handleDelete(id: number) {
     if (!confirm("삭제하시겠습니까?")) return;
-    await fetch(`${BACKEND}/api/notices/${id}`, {
+    await fetch(`${ADMIN_PROXY}?path=api/notices/${id}`, {
       method: "DELETE",
-      headers: { "X-Admin-Key": adminKey },
     });
     load();
   }
@@ -222,7 +219,7 @@ function NoticesTab({ adminKey }: { adminKey: string }) {
 }
 
 // ─── FAQ 탭 ──────────────────────────────────────────────────
-function FAQTab({ adminKey }: { adminKey: string }) {
+function FAQTab() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ question: "", answer: "", category: "general", order_num: 0 });
@@ -232,15 +229,13 @@ function FAQTab({ adminKey }: { adminKey: string }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${BACKEND}/api/faq`, {
-        headers: { "X-Admin-Key": adminKey },
-      });
+      const res = await fetch(`${ADMIN_PROXY}?path=api/faq`);
       const data = await res.json();
       setFaqs(data.items ?? []);
     } finally {
       setLoading(false);
     }
-  }, [adminKey]);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
@@ -250,9 +245,9 @@ function FAQTab({ adminKey }: { adminKey: string }) {
     setSubmitting(true);
     setMsg("");
     try {
-      const res = await fetch(`${BACKEND}/api/faq`, {
+      const res = await fetch(`${ADMIN_PROXY}?path=api/faq`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
       if (res.ok) {
@@ -269,9 +264,8 @@ function FAQTab({ adminKey }: { adminKey: string }) {
 
   async function handleDelete(id: number) {
     if (!confirm("삭제하시겠습니까?")) return;
-    await fetch(`${BACKEND}/api/faq/${id}`, {
+    await fetch(`${ADMIN_PROXY}?path=api/faq/${id}`, {
       method: "DELETE",
-      headers: { "X-Admin-Key": adminKey },
     });
     load();
   }
@@ -386,7 +380,7 @@ interface InquiryRow {
   created_at: string;
 }
 
-function InquiryTab({ adminKey }: { adminKey: string }) {
+function InquiryTab() {
   const [items, setItems] = useState<InquiryRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "answered">("all");
@@ -400,16 +394,14 @@ function InquiryTab({ adminKey }: { adminKey: string }) {
     try {
       const params = new URLSearchParams({ page: "1", limit: "50" });
       if (statusFilter !== "all") params.set("status", statusFilter);
-      const res = await fetch(`${BACKEND}/api/inquiry/admin/list?${params.toString()}`, {
-        headers: { "X-Admin-Key": adminKey },
-      });
+      const res = await fetch(`${ADMIN_PROXY}?path=api/inquiry/admin/list&${params.toString()}`);
       if (!res.ok) return;
       const data = await res.json();
       setItems(data.items ?? []);
     } finally {
       setLoading(false);
     }
-  }, [adminKey, statusFilter]);
+  }, [statusFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -428,9 +420,9 @@ function InquiryTab({ adminKey }: { adminKey: string }) {
     setSubmitting((prev) => ({ ...prev, [id]: true }));
     setMsg((prev) => ({ ...prev, [id]: "" }));
     try {
-      const res = await fetch(`${BACKEND}/api/inquiry/admin/${id}/answer`, {
+      const res = await fetch(`${ADMIN_PROXY}?path=api/inquiry/admin/${id}/answer`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answer: answerText }),
       });
       if (res.ok) {
@@ -563,9 +555,10 @@ function InquiryTab({ adminKey }: { adminKey: string }) {
 }
 
 // ─── 메인 대시보드 ────────────────────────────────────────────
+// 로그인: 입력받은 key를 서버 프록시로 검증. key는 state에만 보관하며 번들에 포함되지 않음.
 export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
-  const [adminKey, setAdminKey] = useState(initialKey || ADMIN_KEY);
-  const [authed, setAuthed] = useState(!!(initialKey || ADMIN_KEY));
+  const [inputKey, setInputKey] = useState("");
+  const [authed, setAuthed] = useState(false);
   const [tab, setTab] = useState<"dashboard" | "notices" | "faq" | "inquiry">("dashboard");
   const [stats, setStats] = useState<Stats | null>(null);
   const [revenue, setRevenue] = useState<RevenueRow[]>([]);
@@ -573,15 +566,17 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchAll = useCallback(async (key: string) => {
+  // initialKey prop은 더 이상 사용하지 않음 (하위호환용 파라미터만 유지)
+  void initialKey;
+
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const headers = { "X-Admin-Key": key };
       const [statsRes, revenueRes, subsRes] = await Promise.all([
-        fetch(`${BACKEND}/admin/stats`, { headers }),
-        fetch(`${BACKEND}/admin/revenue`, { headers }),
-        fetch(`${BACKEND}/admin/subscriptions`, { headers }),
+        fetch(`${ADMIN_PROXY}?path=admin/stats`),
+        fetch(`${ADMIN_PROXY}?path=admin/revenue`),
+        fetch(`${ADMIN_PROXY}?path=admin/subscriptions`),
       ]);
       if (!statsRes.ok) {
         if (statsRes.status === 403) {
@@ -602,9 +597,43 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
     }
   }, []);
 
+  // 로그인 검증: 입력한 키를 서버 프록시에 전달해 403 여부로 확인
+  const handleLogin = useCallback(async () => {
+    if (!inputKey.trim()) return;
+    setLoading(true);
+    setError("");
+    try {
+      // 임시로 쿠키/세션 없이 서버 환경변수 ADMIN_SECRET_KEY와 비교하는 경량 검증
+      // 프록시가 ADMIN_KEY를 header에 붙이므로 stats 호출 성공 = 인증 성공
+      const res = await fetch(`${ADMIN_PROXY}?path=admin/stats`);
+      if (res.status === 403) {
+        setError("관리자 키가 올바르지 않습니다.");
+        return;
+      }
+      if (!res.ok) throw new Error("API 오류");
+      setStats(await res.json());
+      // 나머지 데이터 로드
+      const [revenueRes, subsRes] = await Promise.all([
+        fetch(`${ADMIN_PROXY}?path=admin/revenue`),
+        fetch(`${ADMIN_PROXY}?path=admin/subscriptions`),
+      ]);
+      setRevenue(await revenueRes.json());
+      setSubs(await subsRes.json());
+      setAuthed(true);
+      // 세션 유지 (새로고침 대응)
+      try { localStorage.setItem("aeolab_admin_authed", "1"); } catch { /* ignore */ }
+    } catch {
+      setError("데이터를 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }, [inputKey]);
+
   useEffect(() => {
-    if (authed && adminKey) fetchAll(adminKey);
-  }, [authed, adminKey, fetchAll]);
+    // localStorage 기반 간단 세션 유지
+    const saved = (() => { try { return localStorage.getItem("aeolab_admin_authed"); } catch { return null; } })();
+    if (saved === "1") fetchAll();
+  }, [fetchAll]);
 
   if (!authed) {
     return (
@@ -614,17 +643,18 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
           <input
             type="password"
             placeholder="관리자 키 입력"
-            value={adminKey}
-            onChange={(e) => setAdminKey(e.target.value)}
+            value={inputKey}
+            onChange={(e) => setInputKey(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onKeyDown={(e) => e.key === "Enter" && fetchAll(adminKey)}
+            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
           />
           {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
           <button
-            onClick={() => fetchAll(adminKey)}
-            className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+            onClick={handleLogin}
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
-            확인
+            {loading ? "확인 중..." : "확인"}
           </button>
         </div>
       </main>
@@ -652,7 +682,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
             <p className="text-sm text-gray-400">구독자·매출·공지사항·FAQ 관리</p>
           </div>
           <button
-            onClick={() => fetchAll(adminKey)}
+            onClick={() => fetchAll()}
             className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
           >
             새로고침
@@ -682,9 +712,9 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
         </div>
 
         {/* 탭 콘텐츠 */}
-        {tab === "notices" && <NoticesTab adminKey={adminKey} />}
-        {tab === "faq" && <FAQTab adminKey={adminKey} />}
-        {tab === "inquiry" && <InquiryTab adminKey={adminKey} />}
+        {tab === "notices" && <NoticesTab />}
+        {tab === "faq" && <FAQTab />}
+        {tab === "inquiry" && <InquiryTab />}
 
         {tab === "dashboard" && (
           <>

@@ -131,7 +131,7 @@ def generate_pdf_report(
         bd_labels = {
             "exposure_freq": ("AI 검색 노출 빈도", "30%"),
             "review_quality": ("리뷰 품질", "20%"),
-            "schema_score": ("Schema JSON-LD", "15%"),
+            "schema_score": ("AI 인식 정보", "15%"),
             "online_mentions": ("온라인 언급", "15%"),
             "info_completeness": ("정보 완성도", "10%"),
             "content_freshness": ("콘텐츠 최신성", "10%"),

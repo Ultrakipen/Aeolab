@@ -44,25 +44,51 @@ class NaverPlaceStatsService:
             page = await ctx.new_page()
             try:
                 await page.goto(url, timeout=20000, wait_until="domcontentloaded")
-                await page.wait_for_timeout(3000)
+                await page.wait_for_timeout(4000)
 
-                # iframe 내부 접근 시도
+                # pcmap.place.naver.com iframe이 실제 플레이스 데이터를 담고 있음
                 frame = None
                 for f in page.frames:
-                    if "place" in f.url:
+                    if "pcmap.place.naver.com" in f.url:
                         frame = f
                         break
                 target = frame or page
 
                 body_text = await target.inner_text("body")
 
-                # 리뷰 수 파싱
-                review_match = re.search(r"리뷰\s*[\s\S]*?(\d[\d,]+)\s*개", body_text)
-                review_count = int(review_match.group(1).replace(",", "")) if review_match else 0
+                # 방문자 리뷰 수 파싱 — "방문자 리뷰 16" 또는 "리뷰 16개" 형식 지원
+                visitor_review_count = 0
+                review_match = re.search(r"방문자\s*리뷰\s*(\d[\d,]*)", body_text)
+                if review_match:
+                    visitor_review_count = int(review_match.group(1).replace(",", ""))
+                else:
+                    review_match2 = re.search(r"리뷰\s*(\d[\d,]+)\s*개?", body_text)
+                    if review_match2:
+                        visitor_review_count = int(review_match2.group(1).replace(",", ""))
 
-                # 별점 파싱
-                rating_match = re.search(r"(\d\.\d{1,2})\s*(?:점|★)", body_text)
-                avg_rating = float(rating_match.group(1)) if rating_match else 0.0
+                # 영수증 리뷰 수 파싱
+                receipt_review_count = 0
+                receipt_match = re.search(r"영수증\s*리뷰\s*(\d[\d,]*)", body_text)
+                if receipt_match:
+                    receipt_review_count = int(receipt_match.group(1).replace(",", ""))
+
+                # 별점 파싱 — 여러 패턴 순서대로 시도
+                avg_rating = 0.0
+                rating_patterns = [
+                    r"별점\s*(\d+\.\d{1,2})",          # "별점 4.5"
+                    r"(\d+\.\d{1,2})\s*(?:점|★)",       # "4.5점" / "4.5★"
+                    r"평점\s*(\d+\.\d{1,2})",            # "평점 4.5"
+                    r"★\s*(\d+\.\d{1,2})",              # "★ 4.5"
+                    r"(\d+\.\d{1,2})\s*/\s*5",          # "4.5 / 5"
+                    r"리뷰.{0,30}?(\d+\.\d{1,2})",      # 리뷰 근처의 소수점 숫자
+                ]
+                for pat in rating_patterns:
+                    m = re.search(pat, body_text)
+                    if m:
+                        val = float(m.group(1))
+                        if 0.0 < val <= 5.0:
+                            avg_rating = val
+                            break
 
                 # 사업장명 파싱
                 name_el = None
@@ -75,10 +101,15 @@ class NaverPlaceStatsService:
                     except Exception:
                         continue
 
+                # review_count는 하위호환용으로 visitor_review_count와 동일하게 유지
+                review_count = visitor_review_count
+
                 return {
                     "naver_place_id": naver_place_id,
                     "place_name": (name_el or "").strip(),
                     "review_count": review_count,
+                    "visitor_review_count": visitor_review_count,
+                    "receipt_review_count": receipt_review_count,
                     "avg_rating": avg_rating,
                     "source": "naver_place_public",
                 }
@@ -201,14 +232,30 @@ async def sync_naver_place_stats(business_id: str, naver_place_id: str):
 
     supabase = get_client()
     update_data: dict = {}
-    if stats.get("review_count"):
+    if stats.get("review_count") is not None:
         update_data["review_count"] = stats["review_count"]
+    if stats.get("visitor_review_count") is not None:
+        update_data["visitor_review_count"] = stats["visitor_review_count"]
+    if stats.get("receipt_review_count") is not None:
+        update_data["receipt_review_count"] = stats["receipt_review_count"]
     if stats.get("avg_rating"):
         update_data["avg_rating"] = stats["avg_rating"]
 
     if update_data:
-        supabase.table("businesses").update(update_data).eq("id", business_id).execute()
-        logger.info(f"Naver place stats updated for {business_id}: {update_data}")
+        try:
+            update_data["is_smart_place"] = True  # 플레이스 ID로 데이터 조회 성공 = 스마트플레이스 등록됨
+            supabase.table("businesses").update(update_data).eq("id", business_id).execute()
+            logger.info(f"Naver place stats updated for {business_id}: {update_data}")
+        except Exception as e:
+            # is_smart_place 컬럼 없을 경우 fallback: review_count/avg_rating만 업데이트
+            if "is_smart_place" in str(e):
+                logger.warning(f"is_smart_place column missing, updating without it: {e}")
+                fallback = {k: v for k, v in update_data.items() if k != "is_smart_place"}
+                if fallback:
+                    supabase.table("businesses").update(fallback).eq("id", business_id).execute()
+                    logger.info(f"Fallback update done for {business_id}: {fallback}")
+            else:
+                raise
 
     return stats
 

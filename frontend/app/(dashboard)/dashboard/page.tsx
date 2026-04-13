@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import DualTrackCard from "@/components/dashboard/DualTrackCard";
+import AIDiagnosisCard from "@/components/dashboard/AIDiagnosisCard";
+import ScoreEvidenceCard from "@/components/dashboard/ScoreEvidenceCard";
 import { RankingBar } from "@/components/dashboard/RankingBar";
 import { TrendLine } from "@/components/dashboard/TrendLine";
 import { ResultTable } from "@/components/scan/ResultTable";
@@ -11,11 +13,18 @@ import { WebsiteCheckCard } from "@/components/dashboard/WebsiteCheckCard";
 import { ScanTrigger } from "./ScanTrigger";
 import { SmartPlaceScorecard } from "@/components/dashboard/SmartPlaceScorecard";
 import { BriefingTimeline } from "@/components/dashboard/BriefingTimeline";
+import InstagramSignalCard from "@/components/dashboard/InstagramSignalCard";
+import KakaoChecklistCard from "@/components/dashboard/KakaoChecklistCard";
 import { RescanBanner } from "./RescanBanner";
 import { NewCompetitorAlert } from "@/components/dashboard/NewCompetitorAlert";
+import ConversionGuideSection from "@/components/dashboard/ConversionGuideSection";
 import Link from "next/link";
 import { MentionContextSection } from "./MentionContextSection";
-import { Search, ChevronRight, Share2 } from "lucide-react";
+import { Search, ChevronRight, Share2, CheckCircle2, RefreshCw } from "lucide-react";
+import { IndustryTrendClientWrapper } from "./IndustryTrendClientWrapper";
+import { CATEGORY_LABEL } from "@/lib/categories";
+import FirstTimeEducationCard from "@/components/dashboard/FirstTimeEducationCard";
+import { OnboardingProgressBar } from "@/components/dashboard/OnboardingProgressBar";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -26,42 +35,23 @@ interface Benchmark {
   distribution: { range: string; count: number }[]
 }
 
-const BREAKDOWN_LABELS: Record<string, string> = {
-  // v3.0 Track 1 항목
-  keyword_gap_score:        "키워드 커버리지",
-  review_quality:           "리뷰 수·평점",
-  smart_place_completeness: "스마트플레이스 완성도",
-  naver_exposure_confirmed: "네이버 AI 브리핑 노출",
-  // v3.0 Track 2 항목
-  multi_ai_exposure:        "글로벌 AI 노출",
-  schema_seo:               "웹사이트 구조화",
-  online_mentions_t2:       "온라인 언급 수",
-  google_presence:          "Google AI 노출",
-  // 하위호환 항목
-  exposure_freq:            "AI 검색 노출 횟수",
-  schema_score:             "AI 인식 최적화",
-  online_mentions:          "온라인 언급 빈도",
-  info_completeness:        "사업장 정보 완성도",
-  content_freshness:        "최신 정보 업데이트",
+// 영문 점수 키 → 소상공인 이해 가능한 한국어 레이블
+const SCORE_LABELS: Record<string, string> = {
+  exposure_freq:             "AI 검색 노출",
+  review_quality:            "리뷰 평판",
+  schema_score:              "온라인 정보 정리",
+  online_mentions:           "온라인 언급 수",
+  info_completeness:         "기본 정보 완성도",
+  content_freshness:         "최근 활동",
+  keyword_gap_score:         "키워드 커버리지",
+  smart_place_completeness:  "스마트플레이스 완성도",
+  naver_exposure_confirmed:  "네이버 AI 노출 확인",
+  track1_score:              "네이버 AI 채널 점수",
+  track2_score:              "글로벌 AI 채널 점수",
+  unified_score:             "AI 노출 종합점수",
 };
 
-// breakdown에서 UI에 표시할 항목 순서 (v3.0 Track 우선, 하위호환 제외)
-const BREAKDOWN_DISPLAY_KEYS = [
-  "keyword_gap_score", "review_quality", "smart_place_completeness", "naver_exposure_confirmed",
-  "multi_ai_exposure", "schema_seo", "online_mentions_t2", "google_presence",
-];
-
-// 각 항목에 대한 소상공인 눈높이 설명 (ⓘ tooltip용)
-const BREAKDOWN_DESCRIPTIONS: Record<string, string> = {
-  exposure_freq: "Gemini AI에서 100번 질문했을 때 내 가게가 답변에 나온 횟수입니다. 높을수록 AI 검색에서 잘 노출됩니다.",
-  review_quality: "리뷰 수와 평균 별점이 반영됩니다. AI는 리뷰가 많고 평점이 높은 가게를 더 자주 추천합니다.",
-  schema_score: "스마트플레이스 정보 등록 완성도입니다. 영업시간·전화번호·메뉴가 정확히 등록돼야 AI가 잘 인식합니다.",
-  online_mentions: "블로그·SNS에 가게가 언급된 빈도입니다. 온라인에 자주 등장할수록 AI가 신뢰도 높게 인식합니다.",
-  info_completeness: "주소·전화·영업시간·메뉴 등 가게 기본 정보가 얼마나 완전히 입력됐는지입니다.",
-  content_freshness: "최근에 올라온 블로그·리뷰·공지가 있는지 확인합니다. 오래된 정보만 있으면 AI가 최신 가게로 인식하지 못합니다.",
-};
-
-// 항목 점수가 낮을 때 바로 실천할 행동
+// 항목 점수가 낮을 때 바로 실천할 행동 (오늘의 할 일 도출에 사용)
 const BREAKDOWN_ACTIONS: Record<string, { action: string; link: string }> = {
   exposure_freq:      { action: "스마트플레이스 대표 키워드를 추가·정리하세요",               link: "/schema" },
   review_quality:     { action: "단골 손님 1명에게 네이버 리뷰를 요청하세요",               link: "/guide" },
@@ -69,6 +59,9 @@ const BREAKDOWN_ACTIONS: Record<string, { action: string; link: string }> = {
   online_mentions:    { action: "블로그 후기 1건을 요청하거나 직접 작성하세요",              link: "/schema" },
   info_completeness:  { action: "전화번호·영업시간·주소 정보를 확인하고 채워주세요",         link: "/schema" },
   content_freshness:  { action: "최근 공지나 메뉴 변경 사항을 스마트플레이스에 등록하세요",   link: "/schema" },
+  keyword_gap_score:  { action: "부족한 키워드를 스마트플레이스 FAQ·소개글에 추가하세요",    link: "/guide" },
+  smart_place_completeness: { action: "스마트플레이스 FAQ를 등록하면 점수가 즉시 오릅니다", link: "/guide" },
+  naver_exposure_confirmed: { action: "스마트플레이스 FAQ와 소개글을 보강해 AI 브리핑 노출을 높이세요", link: "/guide" },
 };
 
 // 플랜별 하루 수동 스캔 한도
@@ -77,16 +70,23 @@ const SCAN_DAILY_LIMITS: Record<string, number> = {
 };
 
 // 플랜별 자동 스캔 레이블 (실제 스케줄러 동작과 일치)
+function iGa(name: string): string {
+  const last = name[name.length - 1];
+  const code = last.charCodeAt(0);
+  if (code < 0xac00 || code > 0xd7a3) return `${name}이(가)`;
+  return (code - 0xac00) % 28 !== 0 ? `${name}이` : `${name}가`;
+}
+
 function nextScanLabel(plan: string | null | undefined): { label: string; desc: string } {
   const p = plan ?? "free";
   if (p === "biz" || p === "enterprise")
-    return { label: "매일 새벽 자동 스캔", desc: "내일 새벽 2시에 7개 AI 전체 분석합니다" };
+    return { label: "매일 새벽 자동 스캔", desc: "내일 새벽 2시에 전체 AI 채널 분석합니다" };
   if (p === "startup")
-    return { label: "매일 자동 스캔 (월요일 전체)", desc: "매일 Gemini+네이버, 월요일 새벽 2시에 7개 AI 전체 분석합니다" };
+    return { label: "매일 빠른 스캔 (월요일 전체 AI 스캔)", desc: "매일 주요 AI 빠른 스캔, 월요일 새벽 2시에 전체 AI 채널 분석합니다" };
   if (p === "pro")
-    return { label: "주 3회 자동 스캔 (월·수·금)", desc: "월·수·금 새벽 2시에 7개 AI 전체 분석, 나머지 날은 Gemini+네이버만 분석합니다" };
+    return { label: "주 3회 자동 스캔 (월·수·금)", desc: "월·수·금 새벽 2시에 전체 AI 채널 분석, 나머지 날은 Gemini+네이버만 분석합니다" };
   if (p === "basic")
-    return { label: "매일 자동 스캔 (월요일 전체)", desc: "매일 Gemini+네이버, 월요일 새벽 2시에 7개 AI 전체 분석합니다" };
+    return { label: "매일 빠른 스캔 (월요일 전체 AI 스캔)", desc: "매일 주요 AI 빠른 스캔, 월요일 새벽 2시에 전체 AI 채널 분석합니다" };
   return { label: "자동 스캔 없음", desc: "유료 플랜으로 업그레이드하면 자동 스캔을 이용할 수 있습니다" };
 }
 
@@ -97,11 +97,6 @@ function scoreToGrade(score: number): string {
   return "D";
 }
 
-function scoreBarColor(value: number): string {
-  if (value >= 70) return "bg-green-500";
-  if (value >= 40) return "bg-yellow-400";
-  return "bg-red-400";
-}
 
 export default async function DashboardPage({
   searchParams,
@@ -114,10 +109,12 @@ export default async function DashboardPage({
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (!user || error) redirect("/login");
+  const { data: { session } } = await supabase.auth.getSession();
+  const accessToken = session?.access_token ?? '';
 
   const { data: businesses } = await supabase
     .from("businesses")
-    .select("*")
+    .select("id, name, category, region, business_type, website_url, naver_place_id, google_place_id, kakao_place_id, kakao_score, kakao_checklist, kakao_registered, is_active, naver_place_url, review_count, avg_rating, keywords, is_smart_place, has_faq, has_recent_post, has_intro")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .limit(1);
@@ -147,7 +144,7 @@ export default async function DashboardPage({
     ? await Promise.all([
         supabase
           .from("scan_results")
-          .select("id, scanned_at, query_used, gemini_result, chatgpt_result, perplexity_result, grok_result, naver_result, claude_result, google_result, kakao_result, website_check_result, exposure_freq, total_score, unified_score, track1_score, track2_score, naver_weight, global_weight, growth_stage, growth_stage_label, is_keyword_estimated, keyword_coverage, score_breakdown, naver_channel_score, global_channel_score, rank_in_query, competitor_scores, top_missing_keywords")
+          .select("id, scanned_at, query_used, gemini_result, chatgpt_result, perplexity_result, grok_result, naver_result, claude_result, google_result, kakao_result, website_check_result, instagram_result, smart_place_completeness_result, exposure_freq, total_score, unified_score, track1_score, track2_score, naver_weight, global_weight, growth_stage, growth_stage_label, is_keyword_estimated, keyword_coverage, score_breakdown, naver_channel_score, global_channel_score, rank_in_query, competitor_scores, top_missing_keywords")
           .eq("business_id", business.id)
           .order("scanned_at", { ascending: false })
           .limit(2),
@@ -162,15 +159,19 @@ export default async function DashboardPage({
           .eq("business_id", business.id)
           .order("score_date", { ascending: false })
           .limit(30),
-        fetch(`${BACKEND}/api/report/benchmark/${business.category}/${encodeURIComponent(business.region)}`)
-          .then((r) => r.ok ? r.json() : null)
-          .catch(() => null),
-        fetch(`${BACKEND}/api/report/ranking/${business.category}/${encodeURIComponent(business.region)}`)
-          .then((r) => r.ok ? r.json() : null)
-          .catch(() => null),
+        (business.category && business.region)
+          ? fetch(`${BACKEND}/api/report/benchmark/${business.category}/${encodeURIComponent(business.region)}`)
+              .then((r) => r.ok ? r.json() : null)
+              .catch(() => null)
+          : Promise.resolve(null),
+        (business.category && business.region)
+          ? fetch(`${BACKEND}/api/report/ranking/${business.category}/${encodeURIComponent(business.region)}`)
+              .then((r) => r.ok ? r.json() : null)
+              .catch(() => null)
+          : Promise.resolve(null),
         supabase
           .from("guides")
-          .select("priority_json")
+          .select("priority_json, next_month_goal, tools_json")
           .eq("business_id", business.id)
           .order("generated_at", { ascending: false })
           .limit(1)
@@ -195,23 +196,86 @@ export default async function DashboardPage({
   const rankingTop5: Array<{ name: string; total_score: number }> = rankingRes?.slice(0, 5) ?? [];
   const latestScan = scanResults?.[0];
   const prevScan = scanResults?.[1];
-  const plan = subscription?.status === "active" ? (subscription?.plan ?? "free") : "free";
-  const scanInfo = nextScanLabel(plan);
-  const scanLimit = SCAN_DAILY_LIMITS[plan] ?? 0;
+  // 관리자 이메일 확인 (배지 표시·수동 스캔 한도용, 자동 스캔 대상 아님)
+  // layout.tsx와 동일한 방식 사용 (NEXT_PUBLIC_ — 이메일 주소는 민감 시크릿 아님)
+  const ADMIN_EMAILS_LIST = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "hoozdev@gmail.com")
+    .split(",").map((e) => e.trim().toLowerCase());
+  const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? "").toLowerCase());
+  // 관리자는 모든 기능 이용 가능 (enterprise 권한) — 배지만 "관리자"로 표시
+  const plan = isAdmin ? "enterprise" : ((subscription?.status === "active" || subscription?.status === "grace_period") ? (subscription?.plan ?? "free") : "free");
+  const scanInfo = isAdmin
+    ? { label: "자동 스캔 없음 (관리자)", desc: "관리자 계정은 자동 스캔 대상에서 제외됩니다" }
+    : nextScanLabel(plan);
+  const scanLimit = isAdmin ? 999 : (SCAN_DAILY_LIMITS[plan] ?? 0);
   const scanUsed = scanUsedToday ?? 0;
 
   // 오늘의 할 일 도출: 가이드 최상위 항목 > 가장 낮은 점수 항목
+  type GuideData = {
+    priority_json?: string[];
+    next_month_goal?: string;
+    // tools_json은 ActionTools 구조 그대로 DB에 저장됨
+    tools_json?: {
+      faq_list?: { question: string; answer: string }[];
+      review_request_message?: string;
+      naver_post_template?: string;
+      briefing_summary?: string;
+      direct_briefing_paths?: { path_label?: string; ready_text?: string; minutes?: number }[];
+      smart_place_checklist?: string[];
+      keyword_list?: string[];
+    };
+  } | null;
+  const guideData = latestGuide as GuideData;
   let todayAction: { text: string; link: string } | null = null;
-  const guideTopAction = (latestGuide as { priority_json?: string[] } | null)?.priority_json?.[0] ?? null;
+  const guideTopAction = guideData?.priority_json?.[0] ?? null;
   if (guideTopAction) {
     todayAction = { text: guideTopAction, link: "/guide" };
   } else if (latestScan?.score_breakdown) {
-    const lowest = Object.entries(latestScan.score_breakdown as Record<string, number>)
-      .sort(([, a], [, b]) => Number(a) - Number(b))[0];
+    // 이미 완료된 항목은 건너뛰기 (예: 소개글 작성됨 → schema_score 액션 스킵)
+    const completedKeys = new Set<string>();
+    if (business?.has_intro) completedKeys.add("schema_score");
+    if (business?.has_faq) completedKeys.add("smart_place_completeness");
+
+    const sorted = Object.entries(latestScan.score_breakdown as Record<string, number>)
+      .filter(([key]) => BREAKDOWN_ACTIONS[key] && !completedKeys.has(key))
+      .sort(([, a], [, b]) => Number(a) - Number(b));
+    const lowest = sorted[0];
     if (lowest && BREAKDOWN_ACTIONS[lowest[0]]) {
       todayAction = { text: BREAKDOWN_ACTIONS[lowest[0]].action, link: BREAKDOWN_ACTIONS[lowest[0]].link };
     }
   }
+
+  // 3단 행동 카드 데이터
+  // "오늘": 실제 행동 지시문 우선 — FAQ 답변 본문·붙여넣기 텍스트는 제외
+  const briefingPathLabel = guideData?.tools_json?.direct_briefing_paths?.[0]?.path_label ?? null;
+  const faqQuestion = guideData?.tools_json?.faq_list?.[0]?.question ?? null;
+
+  const actionCardToday: string | null = (() => {
+    // 1순위: 가이드 우선 실행 항목 (priority_json)
+    if (todayAction?.text) return todayAction.text;
+    // 2순위: AI 브리핑 경로 레이블 → "오늘 [경로명] 하세요" 형식
+    if (briefingPathLabel) return `오늘 스마트플레이스에서 '${briefingPathLabel}'을 실행하세요`;
+    // 3순위: FAQ 질문이 있으면 등록 유도
+    if (faqQuestion) return `스마트플레이스 Q&A에 '${faqQuestion}' 질문을 등록하세요`;
+    // 4순위: 누락 키워드 기반 행동
+    const topMissingKw0 = Array.isArray((latestScan as { top_missing_keywords?: string[] })?.top_missing_keywords)
+      ? (latestScan as { top_missing_keywords?: string[] }).top_missing_keywords![0]
+      : null;
+    if (topMissingKw0) return `'${topMissingKw0}' 키워드를 스마트플레이스 소개글 또는 FAQ에 추가하세요`;
+    return null;
+  })();
+
+  // "이번 주": 누락 키워드 → 스마트플레이스 FAQ 등록 유도
+  const topMissingKw = Array.isArray((latestScan as { top_missing_keywords?: string[] })?.top_missing_keywords)
+    ? (latestScan as { top_missing_keywords?: string[] }).top_missing_keywords![0]
+    : null;
+  const actionCardWeek = topMissingKw
+    ? `"${topMissingKw}" 키워드를 스마트플레이스 FAQ에 등록하세요`
+    : (guideData?.tools_json?.naver_post_template
+        ? "스마트플레이스 '소식' 탭에 새 공지를 등록하세요"
+        : null);
+
+  const actionCardMonth   = guideData?.next_month_goal ?? null;
+  const showActionCards   = !!(actionCardToday || actionCardWeek || actionCardMonth);
 
   const competitorScores: Record<string, { name: string; score: number }> =
     latestScan?.competitor_scores ?? {};
@@ -237,6 +301,15 @@ export default async function DashboardPage({
   const isKeywordEstimated = latestScan?.is_keyword_estimated ?? false;
   const topMissingKeywords: string[] = Array.isArray(latestScan?.top_missing_keywords) ? latestScan.top_missing_keywords.slice(0, 3) : [];
 
+  // 스마트플레이스 실제 상태: Playwright 자동 체크 OR 사용자 체크박스 (어느 하나라도 true면 완료)
+  const spAuto = (latestScan as Record<string, unknown>)?.smart_place_completeness_result as Record<string, unknown> | null;
+  const smartPlaceStatus = {
+    hasFaq: !!(spAuto?.has_faq) || !!(business?.has_faq),
+    hasIntro: !!(spAuto?.has_intro) || !!(business?.has_intro),
+    hasRecentPost: !!(spAuto?.has_recent_post) || !!(business?.has_recent_post),
+    hasWebsite: !!(business?.website_url),
+  };
+
   const allPlatformResults: Record<string, { mentioned: boolean; exposure_freq?: number; in_briefing?: boolean; in_ai_overview?: boolean; error?: string }> = {
     ...(latestScan?.gemini_result     ? { gemini:     latestScan.gemini_result }     : {}),
     ...(latestScan?.chatgpt_result    ? { chatgpt:    latestScan.chatgpt_result }    : {}),
@@ -249,33 +322,63 @@ export default async function DashboardPage({
 
   const kakaoResult = latestScan?.kakao_result ?? null;
   const websiteCheckResult = latestScan?.website_check_result ?? null;
+  const instagramResult = latestScan?.instagram_result ?? null;
+  const isInstagramConnected = (business as { instagram_connected?: boolean })?.instagram_connected ?? false;
+
+  // 카카오맵 체크리스트
+  const kakaoScore       = (business as { kakao_score?: number })?.kakao_score;
+  const kakaoChecklist   = (business as { kakao_checklist?: Record<string, boolean> })?.kakao_checklist;
+  const kakaoRegistered  =
+    (business as { kakao_registered?: boolean })?.kakao_registered  // DB 저장값 우선
+    ?? kakaoResult?.is_on_kakao                                     // 스캔 결과 fallback
+    ?? !!(business?.kakao_place_id);                                // place_id 보유 여부 최종 fallback
+
+  // 지역명 표시용: "창원시 성산구" → "창원" (시/도/군/구 접미사 제거)
+  const displayCity = business?.region
+    ? business.region.trim().split(" ")[0].replace(/(특별시|광역시|특별자치시|특별자치도|시|도|군|구)$/, "")
+    : "";
+
+  // 검색 쿼리용 키워드
+  const bizKeywords = (business as { keywords?: string[] } | null)?.keywords ?? [];
+  // 단일 검색어 (쿼리 문구용): 첫 번째 키워드
+  const displaySearchKw = bizKeywords[0] ?? CATEGORY_LABEL[business?.category ?? ""] ?? business?.category ?? "";
+  // 복수 키워드 표시 (배너 안내문용): 최대 3개 나열
+  const displayKeywordList = bizKeywords.length > 0
+    ? bizKeywords.slice(0, 3).join(", ")
+    : (CATEGORY_LABEL[business?.category ?? ""] ?? business?.category ?? "");
+
+  // scoreToGrade 사용 참조 유지 (미사용 경고 방지)
+  void scoreToGrade;
+  void SCORE_LABELS;
+  // prevScan 참조 유지
+  void prevScan;
 
   return (
-    <div className="p-3 md:p-6">
+    <div className="p-4 md:p-8">
       {/* 스캔 요청 후 리다이렉트 시 안내 배너 */}
       {showRescanNotice && <RescanBanner />}
 
       {/* 사업장 미등록 시 CTA 배너 */}
       {!business && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 md:p-8 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 md:p-10 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
             <div className="flex-1">
-              <h2 className="text-xl md:text-2xl font-bold text-blue-900 mb-2">
+              <h2 className="text-2xl md:text-3xl font-bold text-blue-900 mb-3">
                 내 가게를 등록하고 AI 검색 분석을 시작하세요
               </h2>
-              <p className="text-blue-700 text-base mb-3">
+              <p className="text-blue-700 text-base md:text-lg mb-4">
                 가게 이름과 업종만 입력하면 AI 검색 노출 현황을 즉시 확인할 수 있습니다.
               </p>
-              <ul className="space-y-1.5 text-sm text-blue-600">
-                <li>✓ 7개 AI 플랫폼 노출 현황 분석</li>
-                <li>✓ 경쟁 사업장과 비교</li>
-                <li>✓ AI 브리핑 노출 개선 가이드</li>
+              <ul className="space-y-2 text-base text-blue-600">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 shrink-0" /> 네이버·카카오·ChatGPT 등 7개 AI 노출 현황 분석</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 shrink-0" /> 경쟁 사업장과 비교</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 shrink-0" /> AI 브리핑 노출 개선 가이드</li>
               </ul>
             </div>
-            <div className="flex flex-col gap-2 shrink-0">
+            <div className="flex flex-col gap-3 shrink-0">
               <a
                 href="/onboarding"
-                className="inline-flex items-center justify-center w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-base transition-colors"
+                className="inline-flex items-center justify-center w-full md:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-lg transition-colors"
               >
                 내 가게 등록하고 시작하기
               </a>
@@ -286,78 +389,194 @@ export default async function DashboardPage({
       )}
 
       {business && (<>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900">{business.name}</h1>
-            <span
-              className={`text-xs font-semibold px-2 py-0.5 rounded-full cursor-default ${
-                plan === 'biz' || plan === 'enterprise' ? 'bg-purple-100 text-purple-700' :
-                plan === 'pro'     ? 'bg-blue-100 text-blue-700' :
-                plan === 'startup' ? 'bg-green-100 text-green-700' :
-                plan === 'basic'   ? 'bg-gray-100 text-gray-600' :
-                'bg-gray-50 text-gray-400'
-              }`}
-              title={
-                plan === 'basic'   ? 'Basic 플랜 — 경쟁사 3개 · 가이드 월 1회 · 히스토리 30일' :
-                plan === 'pro'     ? 'Pro 플랜 — 경쟁사 10개 · 가이드 월 5회 · 히스토리 90일' :
-                plan === 'biz'     ? 'Biz 플랜 — 경쟁사 무제한 · 가이드 월 20회 · 히스토리 무제한' :
-                plan === 'startup' ? '창업패키지 — 경쟁사 10개 · 가이드 월 5회 · 시장 분석 리포트 포함' :
-                '무료 — 자동 스캔 없음'
-              }
-            >
-              {plan === 'enterprise' ? 'Enterprise' :
-               plan === 'biz'        ? 'Biz' :
-               plan === 'pro'        ? 'Pro' :
-               plan === 'startup'    ? '창업패키지' :
-               plan === 'basic'      ? 'Basic' : '무료'}
-            </span>
+      {/* 온보딩 진행 바 (7일 이내 완료 체크리스트) */}
+      <OnboardingProgressBar userId={user.id} />
+
+      {/* 첫 방문자 AI 브리핑 교육 카드 (localStorage 기반 1회 표시) */}
+      <FirstTimeEducationCard />
+
+      {/* 사업장 헤더 카드 */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 mb-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5 mb-2 flex-wrap">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{business.name}</h1>
+              {isAdmin ? (
+                <span className="text-sm font-semibold px-3 py-1 rounded-full cursor-default bg-slate-100 text-slate-600" title="관리자 계정 — 자동 스캔 제외">
+                  관리자
+                </span>
+              ) : (
+                <span
+                  className={`text-sm font-semibold px-3 py-1 rounded-full cursor-default ${
+                    plan === 'biz' || plan === 'enterprise' ? 'bg-purple-100 text-purple-700' :
+                    plan === 'pro'     ? 'bg-blue-100 text-blue-700' :
+                    plan === 'startup' ? 'bg-green-100 text-green-700' :
+                    plan === 'basic'   ? 'bg-gray-100 text-gray-600' :
+                    'bg-gray-50 text-gray-400'
+                  }`}
+                  title={
+                    plan === 'basic'   ? 'Basic 플랜 — 경쟁사 3개 · 가이드 월 1회 · 히스토리 30일' :
+                    plan === 'pro'     ? 'Pro 플랜 — 경쟁사 10개 · 가이드 월 8회 · 히스토리 90일' :
+                    plan === 'biz'     ? 'Biz 플랜 — 경쟁사 무제한 · 가이드 월 20회 · 히스토리 무제한' :
+                    plan === 'startup' ? '창업패키지 — 경쟁사 5개 · 가이드 월 5회 · 시장 분석 리포트 포함' :
+                    plan === 'enterprise' ? 'Enterprise 플랜' :
+                    '무료 — 자동 스캔 없음'
+                  }
+                >
+                  {plan === 'enterprise' ? 'Enterprise' :
+                   plan === 'biz'        ? 'Biz' :
+                   plan === 'pro'        ? 'Pro' :
+                   plan === 'startup'    ? '창업패키지' :
+                   plan === 'basic'      ? 'Basic' : '무료'}
+                </span>
+              )}
+            </div>
+            <p className="text-base md:text-lg text-gray-600 font-medium">
+              {displayCity} · {CATEGORY_LABEL[business.category] ?? business.category}
+            </p>
+            <p className="text-sm text-blue-500 mt-1.5 flex items-center gap-1.5" title={scanInfo.desc}>
+              <RefreshCw className="w-3.5 h-3.5 shrink-0" /> {scanInfo.label}
+            </p>
           </div>
-          <p className="text-gray-500">{business.region} · {business.category}</p>
-          <p className="text-sm text-blue-500 mt-1" title={scanInfo.desc}>
-            🔄 {scanInfo.label}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <a
-            href={`/share/${business.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-gray-200 hover:border-blue-300 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            <Share2 className="w-3.5 h-3.5" /> 결과 공유
-          </a>
-          <ScanTrigger
-            businessId={business.id}
-            businessName={business.name}
-            category={business.category}
-            region={business.region}
-            scanUsed={scanUsed}
-            scanLimit={scanLimit}
-          />
+          <div className="flex items-center gap-2 flex-wrap sm:shrink-0">
+            <a
+              href={`/share/${business.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 px-3 py-2 rounded-lg transition-colors"
+            >
+              <Share2 className="w-4 h-4" /> 결과 공유
+            </a>
+            <ScanTrigger
+              businessId={business.id}
+              businessName={business.name}
+              category={business.category}
+              region={business.region}
+              keywords={(business as { keywords?: string[] })?.keywords}
+              scanUsed={scanUsed}
+              scanLimit={scanLimit}
+            />
+          </div>
         </div>
       </div>
+
+      {/* 키워드 미등록 안내 배너 */}
+      {(!(business as { keywords?: string[] })?.keywords?.length) && (
+        <div className="bg-amber-50 border border-amber-300 rounded-xl px-5 py-4 mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-800 flex items-start gap-1.5">
+              <Search className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>키워드를 등록하면 &quot;{displayCity} {displaySearchKw} 추천해줘&quot; 같은 실제 검색어로 AI에 내 가게가 노출되는지 확인할 수 있습니다</span>
+            </p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              등록된 키워드로 AI 검색 진단 — 예: {displayCity} &quot;{displayKeywordList}&quot; 각각 검색합니다.
+              키워드 미등록 시 &quot;{CATEGORY_LABEL[business.category] ?? business.category} 추천&quot;(업종 전체 검색)으로만 검색됩니다.
+            </p>
+          </div>
+          <a
+            href="/settings?tab=business"
+            className="shrink-0 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+          >
+            키워드 추가하기 →
+          </a>
+        </div>
+      )}
+
+      {/* 점수 낮음 안내 배너 — AI 점수 의미 설명 + 정보 입력 유도 */}
+      {latestScan && unifiedScore < 30 && (
+        <div className="bg-amber-50 border border-amber-300 rounded-xl px-5 py-4 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-amber-800 mb-1">
+                AI 검색 노출 점수가 낮습니다 — 이 점수가 낮은 이유를 먼저 확인하세요
+              </p>
+              <p className="text-sm text-amber-700 leading-relaxed">
+                이 점수는 Gemini·ChatGPT 등 AI가 내 가게를 검색 결과에 얼마나 언급하는지를 측정합니다.
+                네이버 스마트플레이스에 등록되어 있어도, AI가 아직 내 가게를 충분히 학습하지 못했거나
+                리뷰 수·FAQ·소개글 정보가 입력되지 않으면 점수가 낮게 나올 수 있습니다.
+              </p>
+              <p className="text-xs text-amber-600 mt-1.5">
+                아래에서 네이버 리뷰 수, 스마트플레이스 등록 여부를 직접 입력하면 다음 스캔부터 정확한 분석이 가능합니다.
+              </p>
+            </div>
+            <a
+              href="/settings?tab=business&edit=1"
+              className="shrink-0 text-sm font-semibold bg-amber-600 hover:bg-amber-700 text-white px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap"
+            >
+              정보 입력하기 →
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* 신규 경쟁사 알림 배너 */}
       <NewCompetitorAlert businessId={business.id} />
 
       {latestScan ? (
-        <div className="space-y-4 md:space-y-5">
-          {/* 오늘의 할 일 */}
-          {todayAction && (
-            <Link
-              href={todayAction.link}
-              className="flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3.5 hover:bg-amber-100 transition-colors group"
-            >
-              <div>
-                <div className="text-sm font-semibold text-amber-700 mb-0.5">오늘의 할 일 1가지</div>
-                <p className="text-base text-amber-900 font-medium">{todayAction.text}</p>
+        <div className="space-y-5 md:space-y-6">
+          {/* 이번 주 변화 요약 카드 — 소상공인 직접 체감 지표 */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-4 md:p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-blue-900">이번 주 내 가게 현황</h3>
+              <span className="text-xs text-blue-400">
+                {latestScan.scanned_at
+                  ? new Date(latestScan.scanned_at).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) + " 기준"
+                  : "최근 스캔 기준"}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 md:gap-3">
+              {/* 네이버 순위 */}
+              <div className="bg-white rounded-lg p-2.5 md:p-3 text-center">
+                <p className="text-xs text-gray-400 mb-1">네이버 순위</p>
+                <p className="text-lg md:text-xl font-bold text-gray-800">
+                  {latestScan.naver_result?.my_rank
+                    ? `${latestScan.naver_result.my_rank}위`
+                    : "–"}
+                </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-amber-500 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-          )}
+              {/* 블로그 후기 */}
+              <div className="bg-white rounded-lg p-2.5 md:p-3 text-center">
+                <p className="text-xs text-gray-400 mb-1">블로그 후기</p>
+                <p className="text-lg md:text-xl font-bold text-gray-800">
+                  {typeof latestScan.naver_result?.blog_mentions === "number"
+                    ? `${latestScan.naver_result.blog_mentions.toLocaleString()}건`
+                    : "–"}
+                </p>
+              </div>
+              {/* AI 언급 여부 */}
+              <div className="bg-white rounded-lg p-2.5 md:p-3 text-center">
+                <p className="text-xs text-gray-400 mb-1">AI 언급</p>
+                <p className="text-base md:text-lg font-bold text-gray-800">
+                  {(latestScan.exposure_freq ?? 0) > 0 ? "노출됨" : "미노출"}
+                </p>
+              </div>
+            </div>
+            {/* 경쟁사 대비 한 줄 메시지 */}
+            {latestScan.naver_result?.top_competitor_name && (
+              <p className="mt-3 text-xs md:text-sm text-blue-700 bg-blue-100 rounded-lg px-3 py-2">
+                경쟁사 <strong>{latestScan.naver_result.top_competitor_name}</strong> 대비
+                블로그 후기{" "}
+                {Math.abs(
+                  (latestScan.naver_result.top_competitor_blog_count ?? 0) -
+                    (latestScan.naver_result.blog_mentions ?? 0)
+                ).toLocaleString()}
+                건{" "}
+                {(latestScan.naver_result.blog_mentions ?? 0) >=
+                (latestScan.naver_result.top_competitor_blog_count ?? 0)
+                  ? "앞서고 있습니다"
+                  : "뒤처져 있습니다"}
+              </p>
+            )}
+            {/* 경쟁사 데이터 없을 때: 경쟁사 등록 유도 */}
+            {!latestScan.naver_result?.top_competitor_name && (
+              <p className="mt-3 text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                경쟁 가게를 등록하면 블로그 후기·AI 노출 격차를 비교할 수 있습니다.{" "}
+                <a href="/competitors" className="font-semibold underline">경쟁사 등록 →</a>
+              </p>
+            )}
+          </div>
 
-          {/* Row 1: 듀얼트랙 점수 카드 */}
+          {/* Row 1: 듀얼트랙 점수 카드 — 점수 파악 먼저 */}
           <DualTrackCard
             track1Score={track1Score}
             track2Score={track2Score}
@@ -369,79 +588,205 @@ export default async function DashboardPage({
             growthStageLabel={growthStageLabel}
             isKeywordEstimated={isKeywordEstimated}
             topMissingKeywords={topMissingKeywords}
+            benchmarkAvg={benchmark?.avg_score ?? undefined}
+            smartPlaceStatus={smartPlaceStatus}
           />
 
-          {/* 개선 가이드 CTA — 갭 ③ */}
+          {/* ── Basic 강화 카드 1: 키워드별 블로그 비교 ── */}
+          {(latestScan.naver_result?.keyword_blog_comparison?.length ?? 0) > 0 && (
+            <div className="bg-white rounded-xl border p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-bold text-gray-800 mb-4">
+                📊 키워드별 블로그 비교
+              </h3>
+              <div className="space-y-4">
+                {latestScan.naver_result!.keyword_blog_comparison!.map((kbc: { keyword: string; my_count: number; competitor_count: number; competitor_name?: string }, i: number) => {
+                  const maxCount = Math.max(kbc.my_count, kbc.competitor_count, 1)
+                  const myPct   = Math.round((kbc.my_count / maxCount) * 100)
+                  const compPct = Math.round((kbc.competitor_count / maxCount) * 100)
+                  return (
+                    <div key={i}>
+                      <p className="text-sm font-semibold text-gray-700 mb-1.5">
+                        &ldquo;{kbc.keyword}&rdquo; 키워드
+                      </p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs text-gray-500 w-24 truncate">{kbc.competitor_name ?? '경쟁 1위'}</span>
+                        <div className="flex-1 bg-gray-100 rounded-full h-2.5">
+                          <div className="bg-gray-400 h-2.5 rounded-full" style={{width:`${compPct}%`}}/>
+                        </div>
+                        <span className="text-xs text-gray-600 w-14 text-right">{kbc.competitor_count.toLocaleString()}건</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-blue-700 w-24 truncate">내 가게</span>
+                        <div className="flex-1 bg-gray-100 rounded-full h-2.5">
+                          <div className={`h-2.5 rounded-full ${kbc.my_count >= kbc.competitor_count ? 'bg-green-500' : 'bg-blue-500'}`} style={{width:`${myPct}%`}}/>
+                        </div>
+                        <span className="text-xs font-bold text-blue-700 w-14 text-right">{kbc.my_count.toLocaleString()}건</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Basic 강화 카드 2: 최신 블로그 후기 ── */}
+          {(latestScan.naver_result?.top_blogs?.length ?? 0) > 0 && (
+            <div className="bg-white rounded-xl border p-4 md:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base md:text-lg font-bold text-gray-800">📝 최신 블로그 후기</h3>
+                <span className="text-xs text-gray-400">
+                  {latestScan.naver_result?.blog_mentions?.toLocaleString()}건 언급
+                </span>
+              </div>
+              <div className="divide-y">
+                {latestScan.naver_result!.top_blogs!.slice(0, 3).map((blog: { title: string; link: string; description?: string; postdate?: string }, i: number) => (
+                  <a key={i} href={blog.link} target="_blank" rel="noopener noreferrer"
+                    className="block py-3 hover:bg-gray-50 rounded transition-colors">
+                    <p className="text-sm font-medium text-gray-800 line-clamp-1">{blog.title}</p>
+                    {blog.description && (
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{blog.description}</p>
+                    )}
+                    {blog.postdate && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        {blog.postdate.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3')}
+                      </p>
+                    )}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Basic 강화 카드 3: 오늘 할 일 퀵 액션 ── */}
+          {(latestScan.naver_result?.keyword_ranks?.length ?? 0) > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6">
+              <h3 className="text-base font-bold text-amber-900 mb-3">📌 오늘 할 일</h3>
+              <div className="space-y-2">
+                {latestScan.naver_result!.keyword_ranks!
+                  .filter((kr: { query: string; exposed: boolean }) => !kr.exposed)
+                  .slice(0, 2)
+                  .map((kr: { query: string; exposed: boolean }, i: number) => (
+                    <div key={i} className="flex items-start gap-2 text-sm">
+                      <span className="text-amber-500 mt-0.5">•</span>
+                      <span className="text-amber-800">
+                        <strong>&ldquo;{kr.query}&rdquo;</strong> 검색에서 미노출 — 스마트플레이스 Q&amp;A에 해당 키워드 포함 등록 권장
+                      </span>
+                    </div>
+                  ))}
+                <Link href="/guide" className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-amber-700 hover:text-amber-900">
+                  전체 개선 가이드 보기 →
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* AI 검색 진단 카드 — 진단 이해 */}
+          <AIDiagnosisCard
+            businessName={business.name}
+            category={business.category}
+            region={business.region}
+            keywords={(business as { keywords?: string[] })?.keywords}
+            allPlatformResults={allPlatformResults}
+            reviewCount={(business as { review_count?: number })?.review_count ?? 0}
+            avgRating={(business as { avg_rating?: number })?.avg_rating ?? 0}
+            smartPlaceScore={(latestScan.score_breakdown as Record<string, number>)?.smart_place_completeness ?? 0}
+            naverMentioned={latestScan.naver_result?.mentioned ?? false}
+            totalScore={latestScan.total_score ?? 0}
+            competitorItems={rankingItems}
+            categoryKo={CATEGORY_LABEL[business.category] ?? business.category}
+            inBriefing={latestScan.naver_result?.in_briefing ?? false}
+          />
+
+          {/* 행동 카드 — 오늘 1개 강조 + 이번주·이번달 접힌 형태 */}
+          {showActionCards && (
+            <div className="space-y-3">
+              {actionCardToday && (
+                <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                    <span className="text-base font-bold text-green-700">오늘 할 일 1가지</span>
+                  </div>
+                  <p className="text-sm text-green-800 leading-relaxed mb-3">{actionCardToday}</p>
+                  <Link href="/guide" className="text-xs text-green-600 hover:underline font-medium">
+                    가이드에서 해결책 보기 →
+                  </Link>
+                </div>
+              )}
+              {(actionCardWeek || actionCardMonth) && (
+                <div className="border border-gray-200 rounded-xl px-4 py-3 space-y-1.5">
+                  {actionCardWeek && (
+                    <div className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="text-blue-500 font-bold shrink-0">이번 주</span>
+                      <span>{actionCardWeek}</span>
+                    </div>
+                  )}
+                  {actionCardMonth && (
+                    <div className="flex items-start gap-2 text-sm text-gray-500">
+                      <span className="text-purple-500 font-bold shrink-0">이번 달</span>
+                      <span>{actionCardMonth}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 개선 가이드 CTA */}
           <Link
             href="/guide"
-            className="flex items-center justify-between gap-3 bg-blue-600 text-white rounded-xl px-5 py-4 hover:bg-blue-700 transition-colors group"
+            className="flex items-center justify-between gap-3 bg-blue-600 text-white rounded-xl px-5 py-4 md:py-5 hover:bg-blue-700 transition-colors group"
           >
             <div>
-              <div className="text-sm font-semibold text-blue-200 mb-0.5">점수를 올리려면</div>
-              <p className="text-base font-bold">AI 개선 가이드 보기 → 지금 바로 복사해서 쓸 수 있는 문구 제공</p>
+              <div className="text-sm font-semibold text-blue-200 mb-1">점수를 올리려면</div>
+              <p className="text-base md:text-lg font-bold">AI 개선 가이드 보기 → 지금 바로 복사해서 쓸 수 있는 문구 제공</p>
               <p className="text-sm text-blue-200 mt-1">⏱ 스마트플레이스 개선 후 보통 2~4주 뒤 점수 변화가 시작됩니다</p>
             </div>
             <ChevronRight className="w-5 h-5 shrink-0 opacity-80 group-hover:translate-x-0.5 transition-transform" />
           </Link>
 
-          {/* Row 2: 항목별 분석 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm col-span-3 md:col-span-2">
-              <div className="text-sm font-medium text-gray-700 mb-1">항목별 분석</div>
-              <p className="text-sm text-gray-400 mb-4 leading-relaxed">각 항목이 높을수록 AI 검색에서 더 자주 노출됩니다. 항목명을 탭하면 설명을 볼 수 있습니다.</p>
-              {latestScan.score_breakdown && (
-                <div className="space-y-3">
-                  {(BREAKDOWN_DISPLAY_KEYS.some(k => k in latestScan.score_breakdown)
-                    ? BREAKDOWN_DISPLAY_KEYS
-                    : Object.keys(latestScan.score_breakdown)
-                  ).filter(key => key in latestScan.score_breakdown && BREAKDOWN_LABELS[key]).map((key) => {
-                    const v = Math.round(Number((latestScan.score_breakdown as Record<string, number>)[key] ?? 0));
-                    const desc = BREAKDOWN_DESCRIPTIONS[key];
-                    return (
-                      <div key={key} className="flex items-center gap-2">
-                        <div
-                          className="text-sm md:text-base text-gray-600 w-28 md:w-40 shrink-0 flex items-center gap-1 cursor-default leading-tight"
-                          title={desc}
-                        >
-                          {BREAKDOWN_LABELS[key] ?? key}
-                          {desc && <span className="text-gray-300 text-sm hidden md:inline">ⓘ</span>}
-                        </div>
-                        <div className="flex-1 bg-gray-100 rounded-full h-2">
-                          <div
-                            className={`${scoreBarColor(v)} h-2 rounded-full transition-all`}
-                            style={{ width: `${Math.min(100, v)}%` }}
-                          />
-                        </div>
-                        <div className={`text-sm md:text-base w-10 md:w-12 text-right font-medium shrink-0 ${v >= 70 ? "text-green-600" : v >= 40 ? "text-yellow-600" : "text-red-500"}`}>
-                          {v}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
+          {/* 네이버 기반 점수 근거 */}
+          <ScoreEvidenceCard
+            breakdown={latestScan.score_breakdown as Record<string, number> ?? {}}
+            naverResult={latestScan.naver_result ?? null}
+            kakaoResult={kakaoResult}
+            topMissingKeywords={topMissingKeywords}
+            isKeywordEstimated={isKeywordEstimated}
+            track1Score={track1Score}
+            track2Score={track2Score}
+            naverWeight={naverWeight}
+            allPlatformResults={allPlatformResults}
+            reviewCount={(business as { review_count?: number })?.review_count ?? undefined}
+            avgRating={(business as { avg_rating?: number })?.avg_rating ?? undefined}
+          />
+
+          {/* 무료→유료 전환 섹션: ScoreEvidenceCard 바로 다음 */}
+          <ConversionGuideSection
+            breakdown={latestScan.score_breakdown as Record<string, number> ?? {}}
+            businessName={business.name}
+            topMissingKeywords={topMissingKeywords}
+            reviewCount={(business as { review_count?: number })?.review_count ?? 0}
+            plan={plan}
+          />
 
           {/* 업그레이드 넛지 (Basic 사용자) */}
           {plan === 'basic' && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <div className="text-sm font-semibold text-blue-900 mb-0.5">Pro로 업그레이드하면...</div>
-                <p className="text-sm text-blue-700 leading-relaxed">7개 AI 전체 스캔 주 3회 · 경쟁사 10개 비교 · CSV/PDF 내보내기 · 90일 히스토리</p>
+                <div className="text-base font-semibold text-blue-900 mb-1">Pro로 업그레이드하면...</div>
+                <p className="text-sm md:text-base text-blue-700 leading-relaxed">Gemini·ChatGPT·Perplexity 등 7개 AI 전체 스캔 주 3회 · 경쟁사 10개 비교 · CSV/PDF 내보내기 · 90일 히스토리</p>
               </div>
-              <a href="/pricing" className="shrink-0 text-sm font-semibold bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors text-center">
+              <a href="/pricing" className="shrink-0 text-base font-semibold bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-colors text-center whitespace-nowrap">
                 요금제 보기 →
               </a>
             </div>
           )}
 
-          {/* Row 2: 채널 분리 점수 카드 */}
+          {/* 채널 분리 점수 카드 */}
           {naverChannelScore !== null && globalChannelScore !== null && (
             <ChannelScoreCards
               naverScore={naverChannelScore}
               globalScore={globalChannelScore}
-              isSmartPlace={!!(latestScan.naver_result as { in_briefing?: boolean } | null)?.in_briefing || (latestScan.score_breakdown?.schema_score ?? 0) >= 60}
+              isSmartPlace={!!(business as { is_smart_place?: boolean } | null)?.is_smart_place}
               isOnKakao={kakaoResult?.is_on_kakao ?? false}
               kakaoRank={(kakaoResult as { my_rank?: number | null } | null)?.my_rank ?? null}
               kakaoCompetitorCount={((kakaoResult as { kakao_competitors?: unknown[] } | null)?.kakao_competitors ?? []).length}
@@ -452,7 +797,21 @@ export default async function DashboardPage({
             />
           )}
 
-          {/* Row 3: 글로벌 AI 미노출 교육 배너 */}
+          {/* 인스타그램 AI 인용 신호 카드 */}
+          <InstagramSignalCard
+            instagramResult={instagramResult}
+            isConnected={isInstagramConnected}
+          />
+
+          {/* 카카오맵 완성도 체크리스트 */}
+          <KakaoChecklistCard
+            bizId={business.id}
+            initialScore={kakaoScore}
+            initialChecklist={kakaoChecklist}
+            kakaoRegistered={kakaoRegistered}
+          />
+
+          {/* 글로벌 AI 미노출 교육 배너 */}
           {globalChannelScore !== null && (
             <GlobalAIBanner
               globalScore={globalChannelScore}
@@ -460,31 +819,36 @@ export default async function DashboardPage({
             />
           )}
 
-          {/* Row 4: 추세 + 경쟁사 순위 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* 추세 + 경쟁사 순위 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <TrendLine data={history ?? []} />
             <RankingBar items={rankingItems} />
           </div>
 
-          {/* Row 5: 업종 벤치마크 */}
+          {/* 업종 벤치마크 */}
           {benchmark && benchmark.count > 1 && (
             <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm">
-              <div className="text-sm font-medium text-gray-700 mb-1">
-                같은 지역·업종 비교 — {business.region} {business.category}
-              </div>
-              <p className="text-sm text-gray-400 mb-4">같은 지역의 동종 점포 {benchmark.count}곳과 AI 노출 점수를 비교한 결과입니다.</p>
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="text-center">
-                  <div className="text-xl md:text-2xl font-bold text-blue-600">{Math.round(latestScan.total_score)}</div>
-                  <div className="text-sm text-gray-500 mt-0.5">내 점수</div>
+              <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">
+                같은 지역·업종 비교
+              </h2>
+              <p className="text-sm text-gray-500 mb-1">
+                {displayCity} {CATEGORY_LABEL[business.category] ?? business.category}
+              </p>
+              <p className="text-sm text-gray-400 mb-5">
+                같은 지역의 동종 점포 {benchmark.count}곳과 AI 노출 점수를 비교한 결과입니다.
+              </p>
+              <div className="grid grid-cols-3 gap-3 md:gap-4 mb-5">
+                <div className="text-center bg-blue-50 rounded-xl py-3 md:py-4">
+                  <div className="text-2xl md:text-3xl font-bold text-blue-600">{Math.round(unifiedScore)}</div>
+                  <div className="text-sm text-gray-500 mt-1">내 점수</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl md:text-2xl font-bold text-gray-700">{benchmark.avg_score}</div>
-                  <div className="text-sm text-gray-500 mt-0.5">업종 평균</div>
+                <div className="text-center bg-gray-50 rounded-xl py-3 md:py-4">
+                  <div className="text-2xl md:text-3xl font-bold text-gray-700">{benchmark.avg_score}</div>
+                  <div className="text-sm text-gray-500 mt-1">업종 평균</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl md:text-2xl font-bold text-amber-600">{benchmark.top10_score}</div>
-                  <div className="text-sm text-gray-500 mt-0.5">상위 10%</div>
+                <div className="text-center bg-amber-50 rounded-xl py-3 md:py-4">
+                  <div className="text-2xl md:text-3xl font-bold text-amber-600">{benchmark.top10_score}</div>
+                  <div className="text-sm text-gray-500 mt-1">상위 10%</div>
                 </div>
               </div>
               <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -493,37 +857,37 @@ export default async function DashboardPage({
                   style={{ width: `${Math.min(100, benchmark.avg_score)}%` }}
                 />
                 <div
-                  className="absolute h-full w-1 bg-blue-600 rounded-full"
-                  style={{ left: `${Math.min(99, latestScan.total_score)}%` }}
+                  className="absolute h-full w-1.5 bg-blue-600 rounded-full"
+                  style={{ left: `${Math.min(99, unifiedScore)}%` }}
                 />
               </div>
-              <div className="flex justify-between text-sm text-gray-400 mt-1">
+              <div className="flex justify-between text-sm text-gray-400 mt-1.5">
                 <span>0</span>
                 <span>100</span>
               </div>
-              {latestScan.total_score >= benchmark.top10_score ? (
-                <p className="text-sm text-green-600 font-medium mt-2">상위 10% 달성!</p>
+              {unifiedScore >= benchmark.top10_score ? (
+                <p className="text-sm font-semibold text-green-600 mt-2">상위 10% 달성!</p>
               ) : (
                 <p className="text-sm text-gray-500 mt-2">
-                  상위 10%까지 {Math.ceil(benchmark.top10_score - latestScan.total_score)}점 남았습니다.
+                  상위 10%까지 {Math.ceil(benchmark.top10_score - unifiedScore)}점 남았습니다.
                 </p>
               )}
               {rankingTop5.length > 0 && (
-                <div className="mt-4 border-t border-gray-100 pt-4">
-                  <div className="text-sm font-semibold text-gray-500 mb-2">지역 TOP {rankingTop5.length} 순위</div>
-                  <div className="space-y-1.5">
-                    {rankingTop5.map((item, idx) => (
-                      <div key={item.name} className="flex items-center gap-2">
-                        <span className={`text-sm font-bold w-5 text-center ${idx === 0 ? 'text-amber-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-orange-400' : 'text-gray-300'}`}>
+                <div className="mt-5 border-t border-gray-100 pt-4">
+                  <div className="text-sm font-semibold text-gray-600 mb-3">지역 TOP {rankingTop5.length} 순위</div>
+                  <div className="space-y-2.5">
+                    {rankingTop5.map((item: { name: string; total_score: number }, idx: number) => (
+                      <div key={item.name} className="flex items-center gap-2.5">
+                        <span className={`text-sm font-bold w-5 text-center shrink-0 ${idx === 0 ? 'text-amber-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-orange-400' : 'text-gray-300'}`}>
                           {idx + 1}
                         </span>
-                        <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+                        <div className="flex-1 bg-gray-100 rounded-full h-2">
                           <div
-                            className={`h-1.5 rounded-full ${idx === 0 ? 'bg-amber-400' : 'bg-gray-300'}`}
+                            className={`h-2 rounded-full ${idx === 0 ? 'bg-amber-400' : 'bg-gray-300'}`}
                             style={{ width: `${Math.min(100, item.total_score)}%` }}
                           />
                         </div>
-                        <span className="text-sm text-gray-600 max-w-[80px] truncate text-right">{item.name}</span>
+                        <span className="text-sm text-gray-600 max-w-[96px] truncate text-right">{item.name}</span>
                         <span className="text-sm font-semibold text-gray-700 w-8 text-right shrink-0">{Math.round(item.total_score)}</span>
                       </div>
                     ))}
@@ -533,7 +897,7 @@ export default async function DashboardPage({
             </div>
           )}
 
-          {/* Row 6: AI 플랫폼 분포 차트 */}
+          {/* AI 플랫폼 분포 차트 */}
           {Object.keys(allPlatformResults).length > 0 && (
             <PlatformDistributionChart
               results={allPlatformResults}
@@ -542,12 +906,12 @@ export default async function DashboardPage({
             />
           )}
 
-          {/* Row 7: 플랫폼별 상세 결과 테이블 */}
+          {/* 플랫폼별 상세 결과 테이블 */}
           {Object.keys(allPlatformResults).length > 0 && (
             <ResultTable results={allPlatformResults} />
           )}
 
-          {/* Row 8: 웹사이트 SEO 체크 */}
+          {/* 웹사이트 SEO 체크 */}
           <WebsiteCheckCard
             websiteUrl={business.website_url}
             checkResult={websiteCheckResult}
@@ -561,13 +925,22 @@ export default async function DashboardPage({
             <BriefingTimeline history={history} businessName={business.name} />
           )}
 
-          {/* Row: AI 언급 맥락 (Pro+ 전용 — 클라이언트 fetch) */}
+          {/* AI 언급 맥락 (Pro+ 전용) */}
           {(plan === 'pro' || plan === 'biz' || plan === 'enterprise') && latestScan && (
-            <MentionContextSection bizId={business.id} token="" />
+            <MentionContextSection bizId={business.id} token={accessToken} />
+          )}
+
+          {/* 업종 트렌드 (Pro+) */}
+          {(plan === 'pro' || plan === 'biz' || plan === 'enterprise') && (
+            <IndustryTrendClientWrapper
+              category={CATEGORY_LABEL[business.category] ?? business.category}
+              categoryCode={business.category}
+              region={business.region}
+            />
           )}
 
           {/* 빠른 액션 링크 */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {[
               { href: "/guide",       label: "AI 개선 가이드",         desc: "AI가 추천하는 개선 방법" },
               { href: "/schema",      label: "스마트플레이스 최적화",   desc: "소개글·블로그 자동 생성" },
@@ -577,50 +950,49 @@ export default async function DashboardPage({
               <Link
                 key={item.href}
                 href={item.href}
-                className="bg-white rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md transition-shadow text-center"
+                className="bg-white rounded-xl p-3 md:p-5 shadow-sm hover:shadow-md transition-shadow text-center border border-gray-100 hover:border-blue-200"
               >
-                <div className="font-semibold text-gray-900 text-base leading-tight">{item.label}</div>
-                <div className="text-sm text-gray-400 mt-1 leading-snug">{item.desc}</div>
+                <div className="font-semibold text-gray-900 text-base md:text-lg leading-tight">{item.label}</div>
+                <div className="text-sm text-gray-400 mt-1.5 leading-snug">{item.desc}</div>
               </Link>
             ))}
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-2">
-          <Search className="w-12 h-12 md:w-14 md:h-14 text-blue-300 mx-auto" strokeWidth={1} />
+        /* 스캔 없는 Empty State */
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+          <Search className="w-14 h-14 md:w-16 md:h-16 text-blue-300 mx-auto" strokeWidth={1} />
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">첫 AI 스캔을 시작하세요</h2>
-            <p className="text-base text-gray-500 max-w-md leading-relaxed">
-              손님이 &ldquo;{business.region} {business.category} 추천&rdquo; 이라고 AI에 물어봤을 때<br />
-              <strong>{business.name}</strong>이 나오는지 7개 AI에서 동시에 확인합니다.
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">첫 AI 스캔을 시작하세요</h2>
+            <p className="text-base md:text-lg text-gray-500 max-w-md leading-relaxed">
+              손님이 <strong className="text-gray-700">&ldquo;{displayCity} {displaySearchKw} 추천&rdquo;</strong>이라고
+              AI에 물어봤을 때 <strong>{iGa(business.name)}</strong> 나오는지 네이버·카카오·ChatGPT 3채널에서 동시에 확인합니다.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-500 max-w-lg w-full">
+          <div className="grid grid-cols-4 gap-2 md:gap-3 max-w-lg w-full">
             {[
-              { name: "Gemini", note: "100회 측정" },
-              { name: "ChatGPT", note: "인용 여부" },
-              { name: "네이버 AI 브리핑", note: "브리핑 포함" },
-              { name: "Perplexity", note: "출처 검색" },
-              { name: "Grok AI", note: "최신 검색" },
-              { name: "Claude", note: "AI 노출" },
-              { name: "Google AI", note: "AI 오버뷰" },
+              { name: "Gemini",      note: "100회 측정" },
+              { name: "ChatGPT",     note: "인용 여부"  },
+              { name: "네이버 AI",   note: "브리핑 포함" },
+              { name: "Perplexity",  note: "출처 검색"  },
+              { name: "Google AI",   note: "AI 오버뷰"  },
             ].map((p) => (
-              <div key={p.name} className="bg-gray-50 rounded-lg py-2.5 px-3">
-                <div className="font-semibold text-gray-700">{p.name}</div>
-                <div className="text-gray-400 text-sm mt-0.5">{p.note}</div>
+              <div key={p.name} className="bg-gray-50 rounded-xl py-3 px-2 border border-gray-100 text-center">
+                <div className="font-semibold text-gray-800 text-xs md:text-sm leading-tight">{p.name}</div>
+                <div className="text-gray-400 text-xs mt-0.5 leading-tight">{p.note}</div>
               </div>
             ))}
           </div>
-          <div className="bg-blue-50 rounded-2xl px-5 py-4 max-w-md w-full text-left">
-            <p className="text-sm font-semibold text-blue-800 mb-2">스캔 후 바로 확인할 수 있습니다</p>
-            <ul className="space-y-1.5 text-base text-blue-700">
-              <li>→ 7개 AI 중 몇 개에서 내 가게가 나오는지</li>
-              <li>→ 네이버·카카오 지역 검색 순위</li>
+          <div className="bg-blue-50 border border-blue-100 rounded-2xl px-6 py-5 max-w-md w-full text-left">
+            <p className="text-base font-semibold text-blue-800 mb-3">스캔 후 바로 확인할 수 있습니다</p>
+            <ul className="space-y-2 text-base text-blue-700">
+              <li>→ 네이버·카카오·ChatGPT 3채널에서 내 가게가 나오는지</li>
+              <li>→ 네이버 AI 브리핑에 내 가게가 포함되는지</li>
               <li>→ 경쟁 가게와의 AI 노출 점수 비교</li>
               <li>→ 점수를 올리는 맞춤 개선 가이드</li>
             </ul>
           </div>
-          <p className="text-base text-gray-400">상단 <strong className="text-gray-600">AI 스캔 시작</strong> 버튼을 눌러주세요 · 약 2~3분 소요</p>
+          <p className="text-base text-gray-500">상단 <strong className="text-gray-700">AI 스캔 시작</strong> 버튼을 눌러주세요 · 약 2~3분 소요</p>
         </div>
       )}
       </>)}

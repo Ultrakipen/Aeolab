@@ -40,7 +40,7 @@ _CATEGORY_ALIASES: dict[str, str] = {
     "legal": "legal", "lawyer": "legal", "tax": "legal", "accounting": "legal",
     "법률": "legal", "세무": "legal", "변호사": "legal", "회계": "legal",
     # 쇼핑몰·온라인
-    "shopping": "shopping", "online": "shopping",
+    "shop": "shopping", "shopping": "shopping", "online": "shopping",
     "쇼핑몰": "shopping", "온라인": "shopping", "이커머스": "shopping",
     # 카페 추가 별칭
     "coffee": "cafe", "coffeeshop": "cafe", "커피숍": "cafe", "디저트카페": "cafe",
@@ -51,6 +51,26 @@ _CATEGORY_ALIASES: dict[str, str] = {
     # 반려동물
     "pet": "pet", "petshop": "pet", "vet": "pet", "grooming": "pet",
     "반려동물": "pet", "펫샵": "pet", "동물병원": "pet", "반려견": "pet", "반려묘": "pet",
+    # 사진
+    "photo": "photo", "사진": "photo", "사진관": "photo", "스튜디오": "photo",
+    "웨딩스튜디오": "photo", "프로필사진": "photo",
+    # 영상
+    "video": "video", "영상": "video", "영상제작": "video", "드론": "video",
+    "유튜브": "video", "광고영상": "video",
+    # 디자인
+    "design": "design", "디자인": "design", "그래픽": "design", "인쇄": "design",
+    "로고": "design", "브랜딩": "design", "명함": "design",
+    # 전문직·기타 서비스 (professional → 업종별 세분화)
+    # 사진·영상 관련
+    "professional": "photo",          # 기본: 사진/스튜디오로 분류 (전문직 중 가장 많은 비중)
+    "웨딩": "photo", "스냅": "photo", "촬영": "photo",
+    "사진작가": "photo", "웨딩스냅": "photo", "돌스냅": "photo",
+    # 숙박
+    "accommodation": "accommodation", "숙박": "accommodation",
+    "펜션": "accommodation", "모텔": "accommodation", "호텔": "accommodation",
+    # 생활서비스
+    "living": "restaurant", "세탁": "restaurant", "인테리어": "restaurant",
+    "이사": "restaurant", "청소": "restaurant",
 }
 
 # 업종별 상황 키워드 분류 체계 (모델 엔진 명세서 v1.0 § 02)
@@ -324,6 +344,106 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             "keywords": ["가격 투명", "항목별 견적", "할인 이벤트", "정기권"],
             "weight": 0.10,
             "condition_search_example": "",
+        },
+    },
+
+    # § 2.10 사진·영상 (스냅·영상 촬영 포함)
+    "photo": {
+        "촬영목적": {
+            "keywords": [
+                "웨딩스냅", "돌스냅", "행사촬영", "웨딩본식", "스냅촬영", "야외스냅",
+                "웨딩 사진", "프로필 사진", "증명사진", "가족사진", "돌잔치 사진", "기업 사진",
+                "돌잔치스냅", "돌 스냅", "웨딩 스냅", "행사 스냅", "본식 스냅",
+            ],
+            "weight": 0.30,
+            "condition_search_example": "웨딩스냅 추천 스튜디오",
+        },
+        "결과물품질": {
+            "keywords": [
+                "보정 포함", "무보정 가능", "원본 제공", "고화질", "앨범 제작", "즉석 출력",
+                "스냅 보정", "빠른 보정 납품", "전체컷 제공", "RAW 원본",
+            ],
+            "weight": 0.25,
+            "condition_search_example": "웨딩스냅 보정 포함",
+        },
+        "스튜디오환경": {
+            "keywords": [
+                "야외 촬영 가능", "실내 스튜디오", "자연광 스튜디오", "컨셉 다양", "소품 구비",
+                "야외스냅 가능", "로케이션 다양", "공원 스냅", "한복 스냅",
+            ],
+            "weight": 0.20,
+            "condition_search_example": "야외스냅 자연광 스튜디오",
+        },
+        "가격투명도": {
+            "keywords": [
+                "패키지 가격 명시", "추가 비용 없음", "할인 이벤트", "대여 시간 명확",
+                "스냅 패키지", "웨딩스냅 가격", "돌스냅 가격",
+            ],
+            "weight": 0.15,
+            "condition_search_example": "돌스냅 가격 패키지",
+        },
+        "접근편의": {
+            "keywords": ["주차 가능", "대중교통 접근", "예약제 운영", "당일 예약 가능", "출장 촬영 가능"],
+            "weight": 0.10,
+            "condition_search_example": "스냅 출장 촬영",
+        },
+    },
+
+    # § 2.11 영상·드론
+    "video": {
+        "제작목적": {
+            "keywords": ["유튜브 영상", "광고 영상", "웨딩 영상", "기업 홍보 영상", "드론 촬영", "항공 촬영"],
+            "weight": 0.30,
+            "condition_search_example": "강남 기업 홍보영상 제작",
+        },
+        "기술품질": {
+            "keywords": ["4K 촬영", "편집 포함", "색보정 포함", "자막 작업 가능", "당일 편집"],
+            "weight": 0.25,
+            "condition_search_example": "4K 드론 촬영 업체",
+        },
+        "납기일정": {
+            "keywords": ["당일 납품", "3일 납품", "빠른 편집", "급행 작업 가능"],
+            "weight": 0.20,
+            "condition_search_example": "웨딩 영상 빠른 납품",
+        },
+        "장비보유": {
+            "keywords": ["드론 보유", "짐벌 보유", "조명 장비", "전문 카메라"],
+            "weight": 0.15,
+            "condition_search_example": "드론 보유 영상 제작",
+        },
+        "포트폴리오": {
+            "keywords": ["포트폴리오 공개", "샘플 영상 제공", "레퍼런스 다수"],
+            "weight": 0.10,
+            "condition_search_example": "영상 제작 포트폴리오",
+        },
+    },
+
+    # § 2.12 디자인·인쇄
+    "design": {
+        "디자인유형": {
+            "keywords": ["로고 디자인", "브랜딩", "명함 디자인", "현수막", "포스터", "SNS 콘텐츠"],
+            "weight": 0.30,
+            "condition_search_example": "로고 디자인 업체 추천",
+        },
+        "납기속도": {
+            "keywords": ["당일 제작", "빠른 납품", "급행 가능", "3일 납품"],
+            "weight": 0.25,
+            "condition_search_example": "명함 당일 제작 인쇄",
+        },
+        "수정가능횟수": {
+            "keywords": ["무제한 수정", "3회 수정 포함", "수정 빠름", "피드백 반영"],
+            "weight": 0.20,
+            "condition_search_example": "로고 디자인 무제한 수정",
+        },
+        "가격": {
+            "keywords": ["합리적 가격", "소량 인쇄 가능", "패키지 할인", "견적 무료"],
+            "weight": 0.15,
+            "condition_search_example": "현수막 소량 저렴하게",
+        },
+        "포트폴리오": {
+            "keywords": ["포트폴리오 공개", "작업 샘플", "다양한 스타일"],
+            "weight": 0.10,
+            "condition_search_example": "브랜딩 디자인 포트폴리오",
         },
     },
 }

@@ -8,6 +8,10 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from routers import scan, report, guide, schema_gen, webhook, admin, business, competitor, settings, startup, teams, api_keys as api_keys_router
 from routers import notices as notices_router, faq as faq_router, inquiry as inquiry_router
+from routers import business_search as business_search_router
+from routers import kakao as kakao_router
+from routers import blog as blog_router
+from routers import public_index as public_index_router
 from scheduler.jobs import start_scheduler
 from utils.logger import setup_logging
 import os
@@ -88,6 +92,8 @@ app.include_router(guide.router,      prefix="/api/guide",   tags=["guide"])
 app.include_router(schema_gen.router, prefix="/api/schema",  tags=["schema"])
 app.include_router(webhook.router,    prefix="/api/webhook", tags=["webhook"])
 app.include_router(admin.router,      prefix="/admin",       tags=["admin"])
+# business_search_router를 business.router보다 먼저 등록 — /search 경로가 /{id} 경로와 충돌하지 않도록
+app.include_router(business_search_router.router, prefix="/api/businesses", tags=["business-search"])
 app.include_router(business.router,   prefix="/api/businesses", tags=["business"])
 app.include_router(competitor.router, prefix="/api/competitors", tags=["competitor"])
 app.include_router(settings.router,       prefix="/api/settings",    tags=["settings"])
@@ -97,7 +103,9 @@ app.include_router(api_keys_router.router, prefix="/api/v1/keys",    tags=["publ
 app.include_router(notices_router.router, prefix="/api/notices", tags=["notices"])
 app.include_router(faq_router.router,     prefix="/api/faq",     tags=["faq"])
 app.include_router(inquiry_router.router, prefix="/api/inquiry", tags=["inquiry"])
-
+app.include_router(kakao_router.router,   prefix="/api/kakao",   tags=["kakao"])
+app.include_router(blog_router.router,    prefix="/api/blog",    tags=["blog"])
+app.include_router(public_index_router.router, prefix="/api/public/index", tags=["public-index"])
 
 
 @app.exception_handler(Exception)

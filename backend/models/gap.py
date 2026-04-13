@@ -88,3 +88,8 @@ class GapAnalysis(BaseModel):
     # 어떤 키워드를 리뷰에 받아야 AI 브리핑에 나오는지 구체적으로 제시
     growth_stage: Optional[GrowthStage] = None
     # 지금 어느 단계이고 이번 주 뭘 해야 하는지 명확히 제시
+
+    # 기능 B 추가 — 블로그 진단 결과 (blog_analyzer.analyze_blog() 반환 구조)
+    blog_diagnosis: Optional[dict] = None
+    # platform, post_count, keyword_coverage, ai_readiness_score, freshness,
+    # top_recommendation 등 블로그 분석 결과 전체 포함

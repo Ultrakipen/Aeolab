@@ -2,7 +2,8 @@ import {
   TrialScanRequest, TrialScanResult, BenchmarkData, AdDefenseGuide,
   StartupReportRequest, StartupReport, StartupMarket,
   TeamMember, ApiKey, CompetitorSearchResult, CompetitorSuggestion,
-  SharePageData, MentionContext, BadgeData,
+  SharePageData, MentionContext, BadgeData, BusinessSearchResult,
+  KeywordVolume, IndustryTrend,
 } from "@/types";
 import type { GapAnalysis } from "@/types/gap";
 import type { ActionPlan } from "@/types/action";
@@ -76,16 +77,22 @@ export async function streamScan(bizId: string, authToken: string): Promise<Even
   return new EventSource(`${BACKEND_URL}/api/scan/stream?stream_token=${encodeURIComponent(streamToken)}`);
 }
 
-export async function getScore(bizId: string) {
-  return apiCall(`${BACKEND_URL}/api/report/score/${bizId}`);
+export async function getScore(bizId: string, authToken?: string) {
+  return apiCall(`${BACKEND_URL}/api/report/score/${bizId}`, {
+    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+  });
 }
 
-export async function getHistory(bizId: string) {
-  return apiCall(`${BACKEND_URL}/api/report/history/${bizId}`);
+export async function getHistory(bizId: string, authToken?: string) {
+  return apiCall(`${BACKEND_URL}/api/report/history/${bizId}`, {
+    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+  });
 }
 
-export async function getCompetitors(bizId: string) {
-  return apiCall(`${BACKEND_URL}/api/report/competitors/${bizId}`);
+export async function getCompetitors(bizId: string, authToken?: string) {
+  return apiCall(`${BACKEND_URL}/api/report/competitors/${bizId}`, {
+    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+  });
 }
 
 export async function generateSchema(req: {
@@ -97,10 +104,13 @@ export async function generateSchema(req: {
   website_url?: string;
   opening_hours?: string;
   description?: string;
-}) {
+}, userId?: string) {
   return apiCall(`${BACKEND_URL}/api/schema/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(userId ? { "X-User-Id": userId } : {}),
+    },
     body: JSON.stringify(req),
   });
 }
@@ -131,50 +141,91 @@ export async function createBusiness(
   data: {
     name: string; category: string; region?: string;
     address?: string; phone?: string; website_url?: string; keywords?: string[];
-    naver_place_id?: string; google_place_id?: string; kakao_place_id?: string;
+    naver_place_id?: string; naver_place_url?: string;
+    google_place_id?: string; kakao_place_id?: string;
     business_type?: string;
   },
   userId: string,
+  token?: string,
 ) {
   return apiCall(`${BACKEND_URL}/api/businesses`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-User-Id": userId },
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify(data),
   });
 }
 
-export async function getMyBusinesses(userId: string) {
+export async function getMyBusinesses(userId: string, token?: string) {
   return apiCall(`${BACKEND_URL}/api/businesses/me`, {
-    headers: { "X-User-Id": userId },
+    headers: {
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
+}
+
+// ── 사업장 검색 (네이버/카카오 자동완성) ─────────────────────
+export async function searchBusiness(query: string, region: string): Promise<BusinessSearchResult[]> {
+  try {
+    const params = new URLSearchParams({ query, region });
+    const res = await fetch(`${BACKEND_URL}/api/businesses/search?${params}`);
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
 }
 
 // ── 경쟁사 ──────────────────────────────────────────────
 export async function addCompetitor(
-  data: { business_id: string; name: string; address?: string },
+  data: {
+    business_id: string;
+    name: string;
+    address?: string;
+    naver_place_id?: string;
+    kakao_place_id?: string;
+    lat?: number;
+    lng?: number;
+  },
   userId: string,
+  token?: string,
 ) {
   return apiCall(`${BACKEND_URL}/api/competitors`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-User-Id": userId },
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify(data),
   });
 }
 
-export async function removeCompetitor(competitorId: string, userId: string) {
+export async function removeCompetitor(competitorId: string, userId: string, token?: string) {
   return apiCall(`${BACKEND_URL}/api/competitors/${competitorId}`, {
     method: "DELETE",
-    headers: { "X-User-Id": userId },
+    headers: {
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
 }
 
-export async function listCompetitors(bizId: string) {
-  return apiCall(`${BACKEND_URL}/api/competitors/${bizId}`);
+export async function listCompetitors(bizId: string, authToken?: string) {
+  return apiCall(`${BACKEND_URL}/api/competitors/${bizId}`, {
+    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+  });
 }
 
 // ── 리포트 ──────────────────────────────────────────────
-export async function getBeforeAfter(bizId: string) {
-  return apiCall(`${BACKEND_URL}/api/report/before-after/${bizId}`);
+export async function getBeforeAfter(bizId: string, authToken?: string) {
+  return apiCall(`${BACKEND_URL}/api/report/before-after/${bizId}`, {
+    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+  });
 }
 
 export async function getIndustryRanking(category: string, region: string) {
@@ -203,9 +254,12 @@ export async function updatePhone(phone: string, token: string) {
   });
 }
 
-export async function exportReport(bizId: string, userId: string): Promise<void> {
+export async function exportReport(bizId: string, userId: string, authToken?: string): Promise<void> {
   const res = await fetch(`${BACKEND_URL}/api/report/export/${bizId}`, {
-    headers: { "X-User-Id": userId },
+    headers: {
+      "X-User-Id": userId,
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    },
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -222,9 +276,12 @@ export async function exportReport(bizId: string, userId: string): Promise<void>
   URL.revokeObjectURL(url);
 }
 
-export async function exportPdfReport(bizId: string, userId: string): Promise<void> {
+export async function exportPdfReport(bizId: string, userId: string, authToken?: string): Promise<void> {
   const res = await fetch(`${BACKEND_URL}/api/report/pdf/${bizId}`, {
-    headers: { "X-User-Id": userId },
+    headers: {
+      "X-User-Id": userId,
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    },
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -250,34 +307,28 @@ export async function getBenchmark(category: string, region: string): Promise<Be
   );
 }
 
-// ② PDF 리포트 다운로드 (X-User-Id 방식)
-export async function downloadPdfReport(bizId: string, userId: string): Promise<void> {
-  const res = await fetch(`${BACKEND_URL}/api/report/pdf/${bizId}`, {
-    headers: { "X-User-Id": userId },
-  });
-  if (!res.ok) throw new ApiError("SERVER_ERROR");
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `aeolab_report_${bizId}.pdf`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+// ② PDF 리포트 다운로드 — exportPdfReport 사용 (통합됨)
 
 // ③ ChatGPT 광고 대응 가이드
-export async function generateAdDefenseGuide(bizId: string, userId: string): Promise<AdDefenseGuide> {
+export async function generateAdDefenseGuide(bizId: string, userId: string, token?: string): Promise<AdDefenseGuide> {
   return apiCall<AdDefenseGuide>(`${BACKEND_URL}/api/guide/ad-defense/${bizId}`, {
     method: "POST",
-    headers: { "X-User-Id": userId },
+    headers: {
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
 }
 
 // ④ 창업 시장 분석 리포트
-export async function generateStartupReport(req: StartupReportRequest, userId: string): Promise<StartupReport> {
+export async function generateStartupReport(req: StartupReportRequest, userId: string, token?: string): Promise<StartupReport> {
   return apiCall<StartupReport>(`${BACKEND_URL}/api/startup/report`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-User-Id": userId },
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify(req),
   });
 }
@@ -290,49 +341,67 @@ export async function getStartupMarket(category: string, region: string): Promis
 }
 
 // ⑥ 팀 멤버 목록
-export async function getTeamMembers(userId: string): Promise<TeamMember[]> {
+export async function getTeamMembers(userId: string, token?: string): Promise<TeamMember[]> {
   return apiCall<TeamMember[]>(`${BACKEND_URL}/api/teams/members`, {
-    headers: { "X-User-Id": userId },
+    headers: {
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
 }
 
 // ⑦ 팀원 초대
-export async function inviteTeamMember(email: string, role: string, userId: string): Promise<void> {
+export async function inviteTeamMember(email: string, role: string, userId: string, token?: string): Promise<void> {
   return apiCall<void>(`${BACKEND_URL}/api/teams/invite`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-User-Id": userId },
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ email, role }),
   });
 }
 
 // ⑧ API 키 목록
-export async function getApiKeys(userId: string): Promise<ApiKey[]> {
+export async function getApiKeys(userId: string, token?: string): Promise<ApiKey[]> {
   return apiCall<ApiKey[]>(`${BACKEND_URL}/api/v1/keys`, {
-    headers: { "X-User-Id": userId },
+    headers: {
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
 }
 
 // ⑨ API 키 발급
-export async function createApiKey(name: string, userId: string): Promise<ApiKey> {
+export async function createApiKey(name: string, userId: string, token?: string): Promise<ApiKey> {
   return apiCall<ApiKey>(`${BACKEND_URL}/api/v1/keys`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-User-Id": userId },
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ name }),
   });
 }
 
 // ⑩ API 키 폐기
-export async function revokeApiKey(keyId: string, userId: string): Promise<void> {
+export async function revokeApiKey(keyId: string, userId: string, token?: string): Promise<void> {
   return apiCall<void>(`${BACKEND_URL}/api/v1/keys/${keyId}`, {
     method: "DELETE",
-    headers: { "X-User-Id": userId },
+    headers: {
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
 }
 
 // ⑪ 경쟁사 지역 검색 (네이버)
-export async function searchCompetitors(query: string, region: string): Promise<CompetitorSearchResult[]> {
+export async function searchCompetitors(query: string, region: string, token?: string): Promise<CompetitorSearchResult[]> {
   return apiCall<CompetitorSearchResult[]>(
     `${BACKEND_URL}/api/competitors/search?query=${encodeURIComponent(query)}&region=${encodeURIComponent(region)}`,
+    { headers: token ? { Authorization: `Bearer ${token}` } : {} },
   );
 }
 
@@ -341,9 +410,11 @@ export async function getSuggestedCompetitors(
   bizId: string,
   category: string,
   region: string,
+  token?: string,
 ): Promise<CompetitorSuggestion[]> {
   return apiCall<CompetitorSuggestion[]>(
     `${BACKEND_URL}/api/competitors/suggest/list?business_id=${encodeURIComponent(bizId)}&category=${encodeURIComponent(category)}&region=${encodeURIComponent(region)}`,
+    { headers: token ? { Authorization: `Bearer ${token}` } : {} },
   );
 }
 
@@ -353,9 +424,12 @@ export async function getSharePageData(bizId: string): Promise<SharePageData> {
 }
 
 // ── 언급 맥락 분석 (Pro+) ────────────────────────────────────
-export async function getMentionContext(bizId: string, userId: string): Promise<{ platforms: MentionContext[]; summary: Record<string, unknown> }> {
+export async function getMentionContext(bizId: string, userId: string, token?: string): Promise<{ platforms: MentionContext[]; summary: Record<string, unknown> }> {
   return apiCall(`${BACKEND_URL}/api/report/mention-context/${bizId}`, {
-    headers: { "X-User-Id": userId },
+    headers: {
+      "X-User-Id": userId,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
 }
 
@@ -451,5 +525,156 @@ export async function getMyInquiries(): Promise<{ items: import("@/types").Inqui
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
+  });
+}
+
+// ── 카카오맵 체크리스트 ──────────────────────────────────────────
+
+export interface KakaoScoreResult {
+  biz_id: string;
+  score: number;
+  checklist: Record<string, boolean>;
+  kakao_registered: boolean;
+  updated_at?: string;
+}
+
+/** 카카오맵 체크리스트 점수 조회 */
+export async function getKakaoScore(bizId: string, token?: string): Promise<KakaoScoreResult | null> {
+  try {
+    return await apiCall<KakaoScoreResult>(`${BACKEND_URL}/api/kakao/checklist/${bizId}`, {
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+  } catch {
+    return null;
+  }
+}
+
+/** 카카오맵 체크리스트 저장 */
+export async function saveKakaoChecklist(
+  bizId: string,
+  checklist: Record<string, boolean>,
+  score: number,
+  token?: string,
+): Promise<{ message: string }> {
+  return apiCall<{ message: string }>(`${BACKEND_URL}/api/kakao/checklist/${bizId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ checklist, score }),
+  });
+}
+
+/** 카카오맵 등록 여부 확인 (kakao_place_id 보유 여부 기반) */
+export async function checkKakaoRegistration(bizId: string, token?: string): Promise<{ registered: boolean; kakao_place_id?: string }> {
+  try {
+    return await apiCall<{ registered: boolean; kakao_place_id?: string }>(
+      `${BACKEND_URL}/api/kakao/check/${bizId}`,
+      { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } },
+    );
+  } catch {
+    return { registered: false };
+  }
+}
+
+// ── 네이버 데이터 연동 ───────────────────────────────────────────
+
+// 키워드 검색량 조회 (네이버 데이터랩)
+export async function getKeywordVolumes(bizId: string): Promise<Record<string, KeywordVolume>> {
+  try {
+    return await apiCall<Record<string, KeywordVolume>>(
+      `${BACKEND_URL}/api/report/keyword-volumes/${bizId}`,
+    );
+  } catch {
+    return {};
+  }
+}
+
+// 업종 트렌드 조회 (네이버 데이터랩)
+export async function getIndustryTrend(category: string, region?: string): Promise<IndustryTrend | null> {
+  try {
+    const params = new URLSearchParams();
+    if (region) params.set("region", region);
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    return await apiCall<IndustryTrend>(
+      `${BACKEND_URL}/api/report/industry-trend/${encodeURIComponent(category)}${qs}`,
+    );
+  } catch {
+    return null;
+  }
+}
+
+// 경쟁사 정보 수정 (naver_place_id 등)
+export async function updateCompetitor(
+  competitorId: string,
+  data: { naver_place_id?: string; kakao_place_id?: string; name?: string; address?: string },
+  token: string,
+): Promise<Record<string, unknown>> {
+  return apiCall<Record<string, unknown>>(`${BACKEND_URL}/api/competitors/${competitorId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(data),
+  });
+}
+
+// 경쟁사 플레이스 수동 동기화
+export async function syncCompetitorPlace(competitorId: string, token?: string): Promise<void> {
+  await apiCall<void>(`${BACKEND_URL}/api/competitors/${competitorId}/sync-place`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+}
+
+// ── 블로그 진단 ───────────────────────────────────────────────────────────────
+
+export async function analyzeBlog(
+  businessId: string,
+  blogUrl: string,
+  token: string,
+): Promise<import("@/types").BlogAnalysisResult> {
+  return apiCall<import("@/types").BlogAnalysisResult>(`${BACKEND_URL}/api/blog/analyze`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ business_id: businessId, blog_url: blogUrl }),
+  });
+}
+
+export async function getBlogResult(businessId: string, token?: string): Promise<{
+  blog_url?: string;
+  blog_analyzed_at?: string;
+  blog_keyword_coverage?: number;
+} | null> {
+  try {
+    return await apiCall<{
+      blog_url?: string;
+      blog_analyzed_at?: string;
+      blog_keyword_coverage?: number;
+    }>(`${BACKEND_URL}/api/blog/result/${businessId}`, {
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+  } catch {
+    return null;
+  }
+}
+
+// ── 카드 변경 ─────────────────────────────────────────────────
+export async function updateBillingCard(
+  authKey: string,
+  customerKey: string,
+  token: string,
+): Promise<{ message: string }> {
+  return apiCall<{ message: string }>(`${BACKEND_URL}/api/settings/card/update`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ authKey, customerKey }),
   });
 }

@@ -8,6 +8,11 @@ interface AIResult {
   in_briefing?: boolean
   in_ai_overview?: boolean
   error?: string
+  // 네이버 전용 — API 기반 (Playwright 실패와 무관하게 신뢰 가능)
+  my_rank?: number
+  naver_place_rank?: number
+  blog_mentions?: number
+  is_smart_place?: boolean
 }
 
 interface ResultTableProps {
@@ -15,16 +20,13 @@ interface ResultTableProps {
 }
 
 const NAVER_KEYS  = new Set(['naver'])
-const GLOBAL_KEYS = new Set(['gemini', 'chatgpt', 'perplexity', 'grok', 'claude', 'zeta', 'google'])
+const GLOBAL_KEYS = new Set(['gemini', 'chatgpt', 'perplexity', 'google'])
 
 const PLATFORM_LABELS: Record<string, string> = {
   gemini:     'Gemini AI',
   chatgpt:    'ChatGPT',
   perplexity: 'Perplexity',
-  grok:       'Grok AI',
   naver:      '네이버 AI 브리핑',
-  claude:     'Claude AI',
-  zeta:       '뤼튼(Zeta)',
   google:     'Google AI Overview',
 }
 
@@ -32,6 +34,41 @@ function StatusBadge({ result, platformKey }: { result: AIResult; platformKey: s
   if (result.error) {
     return <span className="text-gray-400 text-sm">오류</span>
   }
+
+  // 네이버 전용: 검색 결과 노출 + AI 브리핑 분리 표시
+  if (platformKey === 'naver') {
+    const placeRank = result.my_rank ?? result.naver_place_rank ?? result.rank
+    const inSearch  = result.mentioned || !!placeRank
+    const inBrief   = result.in_briefing
+
+    if (!inSearch && !inBrief) {
+      return (
+        <div className="space-y-0.5">
+          <span className="text-gray-400 text-sm block">검색 미노출</span>
+          <span className="text-gray-300 text-xs block">AI 브리핑 미포함</span>
+        </div>
+      )
+    }
+    return (
+      <div className="flex flex-col gap-1">
+        {inSearch ? (
+          <span className="inline-flex items-center gap-1 text-green-600 font-medium text-sm">
+            ✓ 검색 노출{placeRank ? ` (${placeRank}위)` : ''}
+          </span>
+        ) : (
+          <span className="text-gray-400 text-sm">검색 미노출</span>
+        )}
+        {inBrief ? (
+          <span className="inline-flex items-center gap-1 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full font-medium w-fit">
+            🤖 AI 브리핑 포함
+          </span>
+        ) : (
+          <span className="text-gray-400 text-xs">AI 브리핑 미포함</span>
+        )}
+      </div>
+    )
+  }
+
   if (!result.mentioned) {
     return <span className="text-gray-400 text-sm">미노출</span>
   }
@@ -67,6 +104,13 @@ function DetailCell({ result, platformKey }: { result: AIResult; platformKey: st
     )
   }
   if (result.in_ai_overview) return <span className="text-sm text-gray-500">Google AI Overview에 포함</span>
+  if (platformKey === 'naver' && result.blog_mentions !== undefined) {
+    return (
+      <span className="text-sm text-gray-500">
+        블로그 언급 <strong className="text-gray-700">{result.blog_mentions}건</strong>
+      </span>
+    )
+  }
   if (result.in_briefing)    return <span className="text-sm text-gray-500">네이버 AI 브리핑에 포함</span>
   if (result.excerpt)        return <span className="text-sm text-gray-500 truncate max-w-xs block">&ldquo;{result.excerpt}&rdquo;</span>
   return <span className="text-sm text-gray-300">—</span>

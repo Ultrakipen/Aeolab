@@ -1,8 +1,9 @@
+import base64
 import httpx
 import os
 import logging
 from datetime import datetime, timedelta
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from models.schemas import PaymentConfirm, BillingIssueRequest
 from db.supabase_client import get_client, execute
 
@@ -19,9 +20,24 @@ PLAN_PRICES = {
 }
 
 
+def _verify_toss_auth(request: Request) -> None:
+    """Toss Basic Auth 검증 — Authorization: Basic base64(secret_key:)"""
+    secret_key = os.getenv("TOSS_SECRET_KEY", "")
+    if not secret_key:
+        return  # 환경변수 미설정 시 건너뜀 (개발 환경)
+    expected = base64.b64encode(f"{secret_key}:".encode()).decode()
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Basic "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+    provided = auth_header[len("Basic "):]
+    if provided != expected:
+        raise HTTPException(status_code=401, detail="Invalid Toss secret key")
+
+
 @router.post("/toss/confirm")
-async def confirm_payment(body: PaymentConfirm):
+async def confirm_payment(request: Request, body: PaymentConfirm):
     """토스페이먼츠 결제 확정 → 구독 활성화"""
+    _verify_toss_auth(request)
     async with httpx.AsyncClient(timeout=30) as c:
         resp = await c.post(
             "https://api.tosspayments.com/v1/payments/confirm",
@@ -44,9 +60,10 @@ async def confirm_payment(body: PaymentConfirm):
     plan_by_name = PLAN_NAME_MAP.get((body.plan or "").lower()) if body.plan else None
     if plan_by_amount and plan_by_name and plan_by_amount != plan_by_name:
         logger.warning(f"플랜 교차검증 불일치: amount={body.amount} -> {plan_by_amount}, plan={body.plan} -> {plan_by_name}")
-    if not plan_by_amount and not plan_by_name:
+    if not plan_by_amount:
+        logger.warning(f"알 수 없는 결제 금액: {body.amount}, plan={body.plan}")
         raise HTTPException(status_code=400, detail="유효하지 않은 결제 금액입니다")
-    plan = plan_by_amount or plan_by_name or "basic"
+    plan = plan_by_amount
     user_id = _extract_user_id(body.orderId)
 
     customer_key = f"customer_{user_id}"
@@ -80,7 +97,7 @@ def _extract_user_id(order_id: str) -> str:
 PLAN_NAME_TO_KEY = {
     "Basic": "basic", "Pro": "pro", "Biz": "biz",
     "창업 패키지": "startup", "Enterprise": "enterprise",
-    "basic": "basic", "pro": "pro", "biz": "biz",
+    "basic": "basic", "pro": "pro", "biz": "biz", "startup": "startup",
 }
 
 

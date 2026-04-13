@@ -6,12 +6,19 @@ interface Props {
 }
 
 const DIMENSION_LABELS: Record<string, string> = {
-  exposure_freq:     "AI 검색 노출 빈도",
-  review_quality:    "리뷰 수·평점",
-  schema_score:      "AI 인식 최적화",
-  online_mentions:   "온라인 언급 빈도",
-  info_completeness: "정보 완성도",
-  content_freshness: "최신성",
+  exposure_freq:              "AI 검색 노출 빈도",
+  review_quality:             "리뷰 수·평점",
+  schema_score:               "AI 인식 최적화",
+  online_mentions:            "온라인 언급 빈도",
+  info_completeness:          "정보 완성도",
+  content_freshness:          "최신성",
+  naver_exposure_confirmed:   "네이버 AI 브리핑 노출",
+  smart_place_completeness:   "스마트플레이스 완성도",
+  schema_seo:                 "웹사이트 AI 구조화",
+  keyword_gap_score:          "키워드 격차",
+  multi_ai_exposure:          "다중 AI 플랫폼 노출",
+  online_mentions_t2:         "온라인 언급 빈도",
+  google_presence:            "구글 검색 노출",
 };
 
 export function GapAnalysisCard({ gap }: Props) {

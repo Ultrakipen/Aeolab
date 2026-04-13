@@ -31,19 +31,37 @@ export default async function GuidePage() {
     />
   )
 
-  const { data: guides } = await supabase
+  // ⚠️ Bug Fix: title·growth_stage·created_at 컬럼은 guides 테이블에 존재하지 않음
+  // 존재하지 않는 컬럼 SELECT 시 PostgREST 오류 → data=null → "가이드 없음" 오표시 버그
+  const { data: guides, error: guidesError } = await supabase
     .from('guides')
-    .select('*')
+    .select('id, business_id, context, next_month_goal, priority_json, tools_json, scan_id, summary, items_json, generated_at')
     .eq('business_id', business.id)
     .order('generated_at', { ascending: false })
     .limit(1)
 
+  if (guidesError) {
+    console.error('[GuidePage] guides query error:', guidesError.message)
+  }
+
   const { data: scans } = await supabase
     .from('scan_results')
-    .select('id, total_score, scanned_at')
+    .select('id, total_score, scanned_at, gemini_result, naver_result')
     .eq('business_id', business.id)
     .order('scanned_at', { ascending: false })
     .limit(1)
+
+  // 최신 스캔에서 네이버 AI 브리핑 또는 Gemini 노출 여부 추출
+  const latestScan = scans?.[0]
+  const latestScanMentioned: boolean | null = (() => {
+    if (!latestScan) return null
+    const naver = latestScan.naver_result as { in_briefing?: boolean; mentioned?: boolean } | null
+    if (naver?.in_briefing === true) return true
+    const gemini = latestScan.gemini_result as { mentioned?: boolean } | null
+    if (gemini?.mentioned === true) return true
+    if (naver?.in_briefing === false || gemini?.mentioned === false) return false
+    return null
+  })()
 
   // 플랜 + 이번 달 가이드 사용 횟수 조회
   const { data: subscription } = await supabase
@@ -52,10 +70,10 @@ export default async function GuidePage() {
     .eq('user_id', user.id)
     .maybeSingle()
 
-  const currentPlan = subscription?.status === "active" ? (subscription?.plan ?? "free") : "free"
+  const currentPlan = (subscription?.status === "active" || subscription?.status === "grace_period") ? (subscription?.plan ?? "free") : "free"
 
   const GUIDE_LIMITS: Record<string, number> = {
-    free: 0, basic: 1, pro: 8, startup: 5, biz: 20, enterprise: 999,
+    free: 0, basic: 5, pro: 8, startup: 5, biz: 20, enterprise: 999,
   }
   const guideLimit = GUIDE_LIMITS[currentPlan] ?? 0
 
@@ -70,7 +88,7 @@ export default async function GuidePage() {
     .gte('generated_at', monthStart.toISOString())
 
   return (
-    <div className="p-3 md:p-6">
+    <div className="p-4 md:p-8">
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 개선 가이드</h1>
         <p className="text-gray-500 text-sm mt-1 leading-relaxed">스캔 결과를 바탕으로 AI가 분석한 <strong>지금 당장 실천 가능한</strong> 개선 방법을 알려드립니다.</p>
@@ -78,11 +96,12 @@ export default async function GuidePage() {
       <GuideClient
         business={business}
         guide={guides?.[0] ?? null}
-        latestScanId={scans?.[0]?.id ?? null}
+        latestScanId={latestScan?.id ?? null}
         userId={user.id}
         currentPlan={currentPlan}
         guideUsed={guideUsed ?? 0}
         guideLimit={guideLimit}
+        latestScanMentioned={latestScanMentioned}
       />
     </div>
   )

@@ -1,6 +1,6 @@
 """
 AI 브리핑 직접 관리 경로 엔진 (Direct Briefing Path Engine)
-모델 엔진 v2.6
+모델 엔진 v3.0
 
 핵심 인사이트:
   네이버 AI 브리핑은 고객 리뷰뿐 아니라 사장님이 직접 쓰는
@@ -15,6 +15,7 @@ AI 브리핑 직접 관리 경로 엔진 (Direct Briefing Path Engine)
   D. 소개글     : 한 번 설정 → 영구적 키워드 기반 데이터
 """
 
+import re
 import logging
 from typing import Optional
 from services.keyword_taxonomy import get_industry_keywords, normalize_category
@@ -57,6 +58,131 @@ _ACTION_STEPS = {
     ],
 }
 
+# 업종별 FAQ 질문 목록 (스마트플레이스 Q&A 탭 직접 등록용)
+# 실제 고객이 물어보는 자연스러운 말투로 작성
+_FAQ_QUESTIONS: dict[str, list[str]] = {
+    "photo": [
+        "돌스냅 비용이 얼마예요?",
+        "야외 촬영도 가능한가요?",
+        "촬영 후 사진 보정은 얼마나 걸려요?",
+        "웨딩스냅 예약은 어떻게 하나요?",
+        "돌잔치 당일 스냅도 가능한가요?",
+    ],
+    "restaurant": [
+        "주차는 가능한가요?",
+        "단체 예약 받으시나요?",
+        "포장이나 배달도 되나요?",
+        "예약 없이 방문해도 되나요?",
+        "생일 파티나 회식 이용 가능한가요?",
+    ],
+    "cafe": [
+        "주차 공간이 있나요?",
+        "노트북 작업하기 좋은가요?",
+        "반려견 동반 가능한가요?",
+        "단체석이나 룸 예약 되나요?",
+        "디저트 종류가 어떻게 되나요?",
+    ],
+    "beauty": [
+        "예약 없이 방문해도 되나요?",
+        "염색 비용이 얼마 정도 되나요?",
+        "주차는 가능한가요?",
+        "어린이 커트도 가능한가요?",
+        "당일 예약도 가능한가요?",
+    ],
+    "clinic": [
+        "예약 없이 방문 가능한가요?",
+        "주차 공간이 있나요?",
+        "야간 진료나 주말 진료 하시나요?",
+        "건강보험 적용이 되나요?",
+        "진료 대기 시간이 얼마나 되나요?",
+    ],
+    "academy": [
+        "체험 수업이나 무료 상담이 가능한가요?",
+        "수업 레벨이 어떻게 나뉘나요?",
+        "중간에 등록해도 따라갈 수 있나요?",
+        "교재비나 재료비가 따로 있나요?",
+        "휴강이 생기면 보충 수업이 있나요?",
+    ],
+    "fitness": [
+        "1일 체험권이 있나요?",
+        "개인 PT도 가능한가요?",
+        "샤워 시설이 있나요?",
+        "주차는 가능한가요?",
+        "등록 전 시설 둘러볼 수 있나요?",
+    ],
+    "pet": [
+        "예약 없이 방문해도 되나요?",
+        "모든 견종 미용 가능한가요?",
+        "미용 시간이 얼마나 걸리나요?",
+        "대형견도 가능한가요?",
+        "픽업 서비스가 있나요?",
+    ],
+    "shopping": [
+        "반품/교환은 어떻게 하나요?",
+        "배송은 얼마나 걸리나요?",
+        "사이즈 교환이 가능한가요?",
+        "재입고 알림을 받을 수 있나요?",
+    ],
+    "_default": [
+        "영업시간이 어떻게 되나요?",
+        "주차는 가능한가요?",
+        "예약 없이 방문해도 되나요?",
+    ],
+}
+
+# 업종별 카테고리 정규화 맵 (FAQ 질문 분류용)
+_CATEGORY_TO_FAQ_KEY: dict[str, str] = {
+    "restaurant": "restaurant",
+    "food": "restaurant",
+    "korean": "restaurant",
+    "japanese": "restaurant",
+    "chinese": "restaurant",
+    "cafe": "cafe",
+    "coffee": "cafe",
+    "dessert": "cafe",
+    "beauty": "beauty",
+    "hair": "beauty",
+    "salon": "beauty",
+    "nail": "beauty",
+    "skin": "beauty",
+    "clinic": "clinic",
+    "hospital": "clinic",
+    "medical": "clinic",
+    "dental": "clinic",
+    "pharmacy": "clinic",
+    "academy": "academy",
+    "education": "academy",
+    "tutoring": "academy",
+    "fitness": "fitness",
+    "gym": "fitness",
+    "pilates": "fitness",
+    "yoga": "fitness",
+    "pet": "pet",
+    "grooming": "pet",
+    "vet": "pet",
+    "shopping": "shopping",
+    "online": "shopping",
+    "photo": "photo",
+    "studio": "photo",
+    "photography": "photo",
+}
+
+
+def _normalize_to_faq_key(category: str) -> str:
+    """카테고리 문자열을 FAQ 질문 목록 키로 정규화."""
+    if not category:
+        return "_default"
+    cat_lower = category.lower().strip()
+    return _CATEGORY_TO_FAQ_KEY.get(cat_lower, "_default")
+
+
+def _clean_keyword(kw: str) -> str:
+    """
+    키워드 끝의 조사/어미 제거.
+    rstrip 대신 re.sub 사용 — rstrip은 문자 집합 기반이라 '이' 등 단일 자모도 소거됨.
+    """
+    return re.sub(r"(이며|이고|있음|입니다|이오니|합니다)$", "", kw).strip()
+
 
 def _make_review_response_content(
     target_keywords: list[str],
@@ -76,23 +202,45 @@ def _make_review_response_content(
             f"다음에 또 방문해 주시면 더 좋은 서비스로 맞이하겠습니다."
         )
 
-    kw1 = target_keywords[0]
-    kw2 = target_keywords[1] if len(target_keywords) > 1 else ""
+    kw1 = _clean_keyword(target_keywords[0])
+    kw2 = _clean_keyword(target_keywords[1]) if len(target_keywords) > 1 else ""
 
     if kw2:
         kw_sentence = (
-            f"저희 {business_name}은 {kw1}이며, {kw2} 환경을 갖추고 있어 "
-            f"다양한 상황에서 방문하실 수 있습니다."
+            f"저희 {business_name}은 {kw1}과 {kw2} 서비스를 함께 운영하고 있어 "
+            f"다양한 상황에서 편리하게 방문하실 수 있습니다."
         )
     else:
-        kw_sentence = f"저희 {business_name}은 {kw1}이오니 다음에도 편하게 방문해 주세요."
+        kw_sentence = f"저희 {business_name}은 {kw1} 서비스를 운영하고 있으니 다음에도 편하게 방문해 주세요."
 
+    category_ko = _to_ko_category(category)
     return (
         f"소중한 리뷰 남겨주셔서 정말 감사합니다! "
         f"{kw_sentence} "
-        f"앞으로도 더 좋은 {category} 서비스로 보답하겠습니다. "
-        f"다음 방문도 기다리고 있겠습니다 😊"
+        f"앞으로도 더 좋은 {category_ko} 서비스로 보답하겠습니다. "
+        f"다음 방문도 기다리고 있겠습니다."
     )
+
+
+def _make_faq_pair(question: str, business_name: str, target_keyword: str) -> str:
+    """
+    단일 Q&A 쌍 생성.
+    target_keyword를 답변에 자연스럽게 1회 포함.
+    """
+    kw_clean = _clean_keyword(target_keyword) if target_keyword else ""
+
+    if kw_clean:
+        answer = (
+            f"네, {business_name}의 {kw_clean}에 대해 안내해 드립니다. "
+            f"자세한 내용은 카카오톡 채널 또는 전화로 문의해 주시면 빠르게 안내해 드리겠습니다."
+        )
+    else:
+        answer = (
+            f"네, {business_name}에서 안내해 드립니다. "
+            f"카카오톡 채널 또는 전화로 문의해 주시면 자세히 안내해 드리겠습니다."
+        )
+
+    return f"Q: {question}\nA: {answer}"
 
 
 def _make_faq_content(
@@ -102,55 +250,30 @@ def _make_faq_content(
     region: str,
 ) -> str:
     """
-    목표 키워드 기반 FAQ Q&A 쌍 생성 (스마트플레이스 Q&A 탭 직접 등록용).
+    업종별 자연스러운 FAQ Q&A 3쌍 생성 (스마트플레이스 Q&A 탭 직접 등록용).
 
-    네이버 AI 브리핑은 FAQ 답변을 가장 직접적으로 인용합니다.
-    '단체 예약 가능한가요?' 답변이 브리핑에 그대로 노출됩니다.
+    - 업종별로 실제 고객이 물어보는 말투의 질문 사용
+    - 각 답변에 target_keyword를 1회 자연스럽게 포함
+    - 네이버 AI 브리핑은 FAQ 답변을 가장 직접적으로 인용
     """
-    if not target_keywords:
-        return (
-            f"Q: {business_name} 이용 방법을 알려주세요.\n"
-            f"A: 네이버 예약 또는 전화로 문의해 주시면 안내해 드리겠습니다."
-        )
+    faq_key = _normalize_to_faq_key(category)
+    questions = _FAQ_QUESTIONS.get(faq_key, _FAQ_QUESTIONS["_default"])
+
+    # 질문 3개 선택 (목록 개수가 3 미만이면 있는 만큼만)
+    selected_questions = questions[:3]
+
+    # 키워드 3개 준비 (부족하면 반복 사용)
+    kws = (target_keywords or []) + ([""] * 3)
 
     lines = []
-    for kw in target_keywords[:3]:
-        # 키워드별 자연스러운 Q&A 생성
-        if "주차" in kw:
-            lines.append(
-                f"Q: {business_name} 주차 가능한가요?\n"
-                f"A: 네, 저희는 {kw}하게 운영하고 있습니다. "
-                f"{region} {category}을 방문하실 때 주차 걱정 없이 편하게 오실 수 있습니다."
-            )
-        elif "예약" in kw or "단체" in kw:
-            lines.append(
-                f"Q: {business_name} 단체 예약 가능한가요?\n"
-                f"A: 네, {kw}입니다. "
-                f"회식·모임·행사 등 단체 방문 시 미리 연락 주시면 더욱 편리하게 준비하겠습니다."
-            )
-        elif "반려견" in kw or "동반" in kw:
-            lines.append(
-                f"Q: 반려견 동반 가능한가요?\n"
-                f"A: 네, {kw}입니다. "
-                f"반려동물과 함께 편안하게 이용하실 수 있습니다."
-            )
-        elif "야간" in kw or "심야" in kw:
-            lines.append(
-                f"Q: 늦게까지 영업하나요?\n"
-                f"A: 네, {kw}합니다. "
-                f"야간에도 편하게 방문하실 수 있으니 영업시간을 확인하고 오세요."
-            )
-        else:
-            lines.append(
-                f"Q: {business_name}의 {kw.rstrip('이며있음')} 서비스가 있나요?\n"
-                f"A: 네, 저희는 {kw}입니다. "
-                f"{region}에서 {kw}를 찾으신다면 {business_name}을 추천드립니다."
-            )
+    for i, question in enumerate(selected_questions):
+        kw = kws[i] if i < len(kws) else ""
+        lines.append(_make_faq_pair(question, business_name, kw))
 
     return "\n\n".join(lines)
 
 
-def _make_post_content(  # noqa: E302
+def _make_post_content(
     target_keywords: list[str],
     business_name: str,
     category: str,
@@ -167,21 +290,22 @@ def _make_post_content(  # noqa: E302
 
     if not target_keywords:
         return (
-            f"✨ {business_name} 소식\n\n"
+            f"{business_name} 소식\n\n"
             f"{region_short} {category_ko}을 찾으시나요? "
             f"{business_name}에서 편안한 시간 보내세요.\n\n"
-            f"📞 문의 및 예약: 네이버 예약 또는 전화"
+            f"문의 및 예약: 네이버 예약 또는 전화"
         )
 
-    kw_phrase = " · ".join(target_keywords[:2])
+    kw1_clean = _clean_keyword(target_keywords[0])
+    kw_phrase = " · ".join(_clean_keyword(kw) for kw in target_keywords[:2])
 
     return (
-        f"✨ {business_name} 안내\n\n"
+        f"{business_name} 안내\n\n"
         f"{region_short}에서 {kw_phrase}을 찾고 계신가요?\n\n"
-        f"{business_name}은 {kw_phrase}로 운영하고 있어 "
+        f"{business_name}에서는 {kw1_clean} 서비스를 운영하고 있어 "
         f"다양한 상황에서 편리하게 이용하실 수 있습니다.\n\n"
         f"방문 전 네이버 예약 또는 전화로 미리 확인해 주세요.\n\n"
-        f"#{region_short}{category_ko} #{target_keywords[0].replace(' ', '')}"
+        f"#{region_short}{category_ko} #{kw1_clean.replace(' ', '')}"
     )
 
 
@@ -192,6 +316,9 @@ _CATEGORY_KO: dict[str, str] = {
     "academy": "학원", "education": "교육",
     "legal": "법률사무소", "lawyer": "변호사", "tax": "세무사",
     "shopping": "쇼핑몰", "online": "온라인몰",
+    "fitness": "헬스·필라테스", "gym": "헬스장", "pilates": "필라테스",
+    "pet": "반려동물", "grooming": "펫미용",
+    "photo": "사진관·스튜디오", "studio": "스튜디오",
 }
 
 
@@ -212,8 +339,10 @@ def _make_intro_content(
     소개글은 네이버 AI가 사업장의 핵심 정보를 파악하는 기반 텍스트입니다.
     한 번 잘 써두면 영구적으로 AI 브리핑 키워드 기반이 됩니다.
     """
-    all_kws = (existing_keywords or [])[:3] + target_keywords[:2]
-    kw_str = ", ".join(all_kws) if all_kws else category
+    clean_target = [_clean_keyword(kw) for kw in target_keywords[:3]]
+    clean_existing = [_clean_keyword(kw) for kw in (existing_keywords or [])[:3]]
+    all_kws = clean_existing + [kw for kw in clean_target if kw not in clean_existing]
+    kw_str = ", ".join(all_kws[:5]) if all_kws else category
 
     region_short = region.split()[0] if region else region
     category_ko = _to_ko_category(category)
@@ -253,10 +382,8 @@ def build_direct_briefing_paths(
     urgent = competitor_only_keywords[:3] if competitor_only_keywords else missing_keywords[:3]
     top2 = urgent[:2]
 
-    # URL에 place_id 포함 (있을 경우)
     def smartplace_url(path_key: str) -> str:
-        base = _SMARTPLACE_URLS.get(path_key, "https://smartplace.naver.com")
-        return base
+        return _SMARTPLACE_URLS.get(path_key, "https://smartplace.naver.com")
 
     paths = []
 
@@ -357,7 +484,10 @@ def build_briefing_summary(
     else:
         state = "AI 브리핑에 다양한 조건 검색에서 노출되고 있습니다"
 
-    kw_msg = f" '{top_priority_keyword}' 키워드를 먼저 확보하는 것이 가장 급합니다." if top_priority_keyword else ""
+    kw_msg = (
+        f" '{_clean_keyword(top_priority_keyword)}' 키워드를 먼저 확보하는 것이 가장 급합니다."
+        if top_priority_keyword else ""
+    )
 
     return (
         f"{state}.{kw_msg} "

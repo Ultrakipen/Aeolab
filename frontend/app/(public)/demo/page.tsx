@@ -476,7 +476,7 @@ export default function DemoPage() {
                 네이버 스마트플레이스만 관리하면 ChatGPT에서는 내 가게가 안 나옵니다.
                 <strong> 네이버는 해외 AI의 접근을 막기 때문</strong>입니다.
                 ChatGPT·Google AI 노출엔 <strong>Google 비즈니스 프로필</strong>과
-                <strong> JSON-LD Schema</strong>가 필요합니다.
+                <strong> AI 검색 최적화 정보</strong>가 필요합니다.
               </p>
             </div>
 
@@ -725,7 +725,7 @@ export default function DemoPage() {
                     <p className="text-sm font-bold text-blue-700 mb-2">구독 후 (Basic 기준)</p>
                     <ul className="space-y-1.5 text-sm text-blue-700">
                       <li>· Gemini+네이버 자동 스캔 매일</li>
-                      <li>· 7개 AI 전체 스캔 주 1회</li>
+                      <li>· 3채널 AI 스캔 주 1회</li>
                       <li>· 100회 반복 → 노출 확률(%)</li>
                       <li>· 경쟁사 3개 순위 비교</li>
                       <li>· 경쟁사 6개 차원 갭 분석</li>
@@ -782,7 +782,7 @@ export default function DemoPage() {
               {[
                 { step: "1", label: "1분 회원가입",               desc: "이메일 인증만으로 즉시 시작" },
                 { step: "2", label: "가게 등록",                   desc: "방금 입력한 정보 그대로 사용" },
-                { step: "3", label: "Full 스캔 1회 무료",          desc: "7개 AI 동시 측정 · 100회 샘플링" },
+                { step: "3", label: "Full 스캔 1회 무료",          desc: "5개 AI 동시 측정 · 100회 샘플링" },
                 { step: "4", label: "경쟁사 갭 분석",              desc: "6개 차원 격차 — 어디서 밀리는지 정확히" },
                 { step: "5", label: "Claude AI 맞춤 가이드",       desc: "경쟁사 격차 기반 우선순위 실행 가이드" },
                 { step: "6", label: "매일 자동 스캔 + 재스캔",     desc: "체크리스트 완료 후 효과 즉시 확인" },

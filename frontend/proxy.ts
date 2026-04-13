@@ -30,6 +30,8 @@ export async function proxy(request: NextRequest) {
   const protectedPaths = [
     "/dashboard", "/guide", "/schema", "/history",
     "/competitors", "/settings", "/startup", "/ad-defense",
+    "/onboarding", "/growth", "/review-inbox", "/preview",
+    "/notices", "/faq",
   ];
   const isProtected = protectedPaths.some((p) =>
     request.nextUrl.pathname.startsWith(p)
@@ -55,6 +57,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // layout.tsx 서버 컴포넌트에서 현재 pathname 접근 가능하도록 헤더 전달
+  supabaseResponse.headers.set("x-pathname", pathname);
+
   return supabaseResponse;
 }
 
@@ -68,7 +73,22 @@ export const config = {
     "/settings/:path*",
     "/startup/:path*",
     "/ad-defense/:path*",
+    "/onboarding/:path*",
+    "/onboarding",
+    "/growth/:path*",
+    "/review-inbox/:path*",
+    "/preview/:path*",
+    "/notices/:path*",
+    "/faq/:path*",
     "/login",
     "/signup",
+    // public 경로도 포함 — 세션 쿠키 갱신 및 서버 컴포넌트에서 user 조회 정상 동작
+    "/",
+    "/pricing",
+    "/pricing/:path*",
+    "/trial",
+    "/trial/:path*",
+    "/demo",
+    "/demo/:path*",
   ],
 };

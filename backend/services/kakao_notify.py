@@ -211,6 +211,29 @@ class KakaoNotifier:
         """단문 텍스트 알림 발송 (템플릿 없음, SMS fallback)"""
         await self._send_raw(phone, message)
 
+    async def send_growth_stage_upgrade(
+        self, phone: str, biz_name: str, prev_stage: str, curr_stage: str, track1_score: float
+    ):
+        """성장 단계 업그레이드 알림 — AEOLAB_SCORE_01 템플릿 재활용"""
+        stage_labels = {
+            "survival": "생존기", "stable": "안정기",
+            "growth": "성장기", "dominance": "지배기",
+        }
+        prev_label = stage_labels.get(prev_stage, prev_stage)
+        curr_label = stage_labels.get(curr_stage, curr_stage)
+        await self._send(
+            phone,
+            "score_change",
+            {
+                "#{사업장명}": biz_name,
+                "#{이전점수}": prev_label,
+                "#{현재점수}": curr_label,
+                "#{변화}": f"↑ {prev_label} → {curr_label} 단계 상승!",
+                "#{이전순위}": "-",
+                "#{현재순위}": str(int(track1_score)),
+            },
+        )
+
     async def _send_raw(self, phone: str, text: str):
         """템플릿 없이 단문 문자 발송 (SMS fallback)"""
         masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"

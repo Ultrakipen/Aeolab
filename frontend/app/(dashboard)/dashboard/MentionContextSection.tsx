@@ -13,10 +13,10 @@ interface MentionSummary {
 
 interface Props {
   bizId: string
-  token: string
+  token?: string
 }
 
-export function MentionContextSection({ bizId }: Props) {
+export function MentionContextSection({ bizId, token }: Props) {
   const [citations, setCitations] = useState<MentionContext[]>([])
   const [summary, setSummary] = useState<MentionSummary | null>(null)
   const [loading, setLoading] = useState(true)
@@ -25,9 +25,11 @@ export function MentionContextSection({ bizId }: Props) {
     if (!bizId) return
     const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
-    // 쿠키 기반 인증 사용 (서버 컴포넌트에서 token 불필요)
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
     fetch(`${BACKEND}/api/report/mention-context/${bizId}`, {
-      credentials: 'include',
+      headers,
     })
       .then((res) => {
         if (!res.ok) throw new Error('fetch error')

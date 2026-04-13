@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { CheckCircle2, Circle, ExternalLink, ChevronDown, ChevronUp, Zap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -60,22 +60,58 @@ export function SmartPlaceScorecard({ businessId }: Props) {
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!businessId) return
+    setLoading(true)
     const supabase = createClient()
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const token = session?.access_token
-      if (!token) { setLoading(false); return }
-      fetch(`${BACKEND}/api/report/smartplace/${businessId}`, {
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+    if (!token) { setLoading(false); return }
+    try {
+      const r = await fetch(`${BACKEND}/api/report/smartplace/${businessId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-        .then((r) => r.ok ? r.json() : null)
-        .then((d) => setData(d))
-        .catch(() => { setError('스마트플레이스 정보를 불러올 수 없습니다.') })
-        .finally(() => setLoading(false))
-    })
+      const d = r.ok ? await r.json() : null
+      setData(d)
+    } catch {
+      setError('스마트플레이스 정보를 불러올 수 없습니다.')
+    } finally {
+      setLoading(false)
+    }
   }, [businessId])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const handleMarkDone = async (key: string) => {
+    if (confirming) return
+    setConfirming(key)
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+    if (!token) { setConfirming(null); return }
+
+    const body: Record<string, boolean> = {}
+    if (key === 'photos') body.has_photos = true
+    if (key === 'review_response') body.has_review_response = true
+
+    try {
+      await fetch(`${BACKEND}/api/businesses/${businessId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      })
+      await fetchData()
+    } finally {
+      setConfirming(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -162,12 +198,21 @@ export function SmartPlaceScorecard({ businessId }: Props) {
                 </div>
                 <p className="text-sm text-gray-500 leading-relaxed">{action.action}</p>
                 <p className="text-sm text-green-600 mt-1">{action.effect}</p>
+                {(action.key === 'photos' || action.key === 'review_response') && (
+                  <button
+                    onClick={() => handleMarkDone(action.key)}
+                    disabled={confirming === action.key}
+                    className="mt-1.5 text-xs text-gray-400 hover:text-gray-600 underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {confirming === action.key ? '처리 중…' : '이미 완료했어요 ✓'}
+                  </button>
+                )}
                 {action.deeplink && (
                   <a
                     href={action.deeplink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline mt-1"
+                    className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline mt-1 ml-3"
                   >
                     바로 가기 <ExternalLink className="w-3 h-3" />
                   </a>

@@ -13,10 +13,10 @@ export default async function SchemaPage() {
     .from('subscriptions')
     .select('plan, status')
     .eq('user_id', user.id)
-    .eq('status', 'active')
+    .in('status', ['active', 'grace_period'])
     .maybeSingle()
 
-  const plan = sub?.plan ?? 'free'
+  const plan = (sub?.status === "active" || sub?.status === "grace_period") ? (sub?.plan ?? 'free') : 'free'
   const hasAccess = plan !== 'free'
 
   if (!hasAccess) {
@@ -34,7 +34,7 @@ export default async function SchemaPage() {
           </div>
           <h2 className="text-lg font-bold text-gray-900 mb-1">Basic 플랜부터 이용 가능합니다</h2>
           <p className="text-base text-gray-500 mb-2 leading-relaxed">
-            스마트플레이스 소개글, 네이버 블로그 초안, JSON-LD 코드를 AI가 자동으로 생성합니다.
+            스마트플레이스 소개글, 네이버 블로그 초안, AI 인식 코드를 자동으로 생성합니다.
           </p>
           <p className="text-base text-gray-400 mb-6">현재 플랜: 무료 체험</p>
           <Link
@@ -48,5 +48,5 @@ export default async function SchemaPage() {
     )
   }
 
-  return <SchemaPageContent />
+  return <SchemaPageContent userId={user.id} />
 }

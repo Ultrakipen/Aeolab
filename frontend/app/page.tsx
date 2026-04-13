@@ -2,56 +2,36 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { LandingLogout } from "./LandingLogout";
 import { PLANS } from "@/lib/plans";
-import {
-  Stethoscope, BookOpen, Scale, Scissors, UtensilsCrossed, ShoppingBag,
-  TrendingUp, MessageSquare, Store, Newspaper, CheckSquare, Lock,
-} from "lucide-react";
+import { Lock } from "lucide-react";
 
-// v3.0 듀얼트랙 가중치 — Track 1(네이버 AI) + Track 2(글로벌 AI)
-const BREAKDOWN_ITEMS = [
-  // Track 1: 네이버 AI 브리핑 준비도 (오프라인 매장 핵심)
-  { label: "키워드 커버리지",         weight: "35%", track: "T1", desc: "리뷰에 담긴 키워드 분포 — 없는 키워드 3개 즉시 확인" },
-  { label: "리뷰 수·평점·다양성",     weight: "25%", track: "T1", desc: "리뷰가 많고 평점 높을수록 AI가 더 자주 추천" },
-  { label: "스마트플레이스 완성도",   weight: "25%", track: "T1", desc: "FAQ·소개글·최근 소식 — AI 브리핑의 직접 인용 경로" },
-  { label: "네이버 AI 브리핑 노출",   weight: "15%", track: "T1", desc: "실제 네이버 AI 브리핑에 가게 이름이 언급되는지 확인" },
-  // Track 2: 글로벌 AI 가시성 (ChatGPT·Gemini·Google AI 등)
-  { label: "글로벌 AI 노출 빈도",     weight: "40%", track: "T2", desc: "Gemini 100회 반복 검색 — 정확한 AI 노출 확률(%) 측정" },
-  { label: "웹사이트·정보 구조화",    weight: "30%", track: "T2", desc: "AI가 직접 읽을 수 있는 JSON-LD·블로그 콘텐츠 최적화 수준" },
-  { label: "온라인 언급 빈도",        weight: "20%", track: "T2", desc: "블로그·SNS·카페에서 가게 이름이 언급된 횟수" },
-  { label: "Google AI 노출",          weight: "10%", track: "T2", desc: "Google AI Overview에서 가게 정보가 보이는지 확인" },
+// AI 플랫폼 목록 — 채널 역할 구분
+const AI_PLATFORMS = [
+  { name: "네이버 AI 브리핑", role: "주력 노출 경로", highlight: true },
+  { name: "Google AI Overview", role: "구글 노출 진단", highlight: false },
+  { name: "Gemini", role: "AI 언급 측정", highlight: false },
+  { name: "ChatGPT", role: "AI 언급 측정", highlight: false },
+  { name: "Perplexity", role: "AI 언급 측정", highlight: false },
+  { name: "Grok", role: "AI 언급 측정", highlight: false },
+  { name: "Claude", role: "AI 언급 측정", highlight: false },
 ];
 
-const EFFECT_LAYERS = [
+// 임팩트 숫자 데이터
+const IMPACT_STATS = [
   {
-    step: "1단계",
-    title: "AI 노출 점수",
-    desc: "AI가 100번 물어봤을 때 내 가게가 몇 번 나오는지 + 경쟁사 순위 + 변화 추이를 수치로 보여줍니다",
-    badge: "데이터 수치",
-    color: "bg-blue-50 border-blue-200",
+    number: "2,293만명",
+    label: "ChatGPT 한국 월 이용자 수",
+    sub: "와이즈앱 2026.02 기준",
   },
   {
-    step: "2단계",
-    title: "Before / After 화면 비교",
-    desc: "스캔할 때마다 AI 검색 결과 화면이 자동으로 저장됩니다. 개선 전·후 화면을 나란히 놓고 어떤 가게가 먼저 나왔는지 눈으로 직접 비교합니다.",
-    badge: "눈으로 확인",
-    color: "bg-green-50 border-green-200",
+    number: "+27.4%",
+    label: "AI 브리핑 클릭률 증가",
+    sub: "네이버 공식 발표 (2025.08)",
   },
   {
-    step: "3단계",
-    title: "경쟁사 갭 분석 + 성장 단계",
-    desc: "1위 경쟁사와 6개 차원 격차를 수치로 보여주고, 내 가게가 현재 생존기·안정기·성장기·지배기 중 어느 단계인지, 이번 주 무엇을 해야 할지 알려줍니다.",
-    badge: "전략 가이드",
-    color: "bg-orange-50 border-orange-200",
+    number: "국내 유일",
+    label: "AI 검색 노출 자동 관리",
+    sub: "7개 AI 플랫폼 동시 분석",
   },
-];
-
-const INDUSTRY_ITEMS = [
-  { Icon: Stethoscope,    name: "병원·한의원",  desc: "'근처 잘 하는 병원' AI 추천 급증" },
-  { Icon: BookOpen,       name: "학원·교육",    desc: "학부모 AI 검색으로 학원 선택" },
-  { Icon: Scale,          name: "법률·세무",    desc: "전문직 AI 노출이 신뢰도 직결" },
-  { Icon: Scissors,       name: "미용실·뷰티",  desc: "ChatGPT·네이버 AI 추천 빠르게 확산" },
-  { Icon: UtensilsCrossed,name: "음식점·카페",  desc: "네이버 AI + Google AI 동시 공략" },
-  { Icon: ShoppingBag,    name: "쇼핑몰·매장", desc: "AI 쇼핑 검색 선점 기회" },
 ];
 
 export default async function LandingPage() {
@@ -60,7 +40,8 @@ export default async function LandingPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* 헤더 */}
+
+      {/* ── 섹션 1: 헤더 ── */}
       <header className="border-b border-gray-100 px-6 py-4 sticky top-0 bg-white/95 backdrop-blur z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -68,8 +49,7 @@ export default async function LandingPage() {
             <span className="text-sm text-gray-400 hidden sm:block">AI 검색 노출 관리 서비스</span>
           </div>
           <nav className="flex items-center gap-3 lg:gap-8">
-            <Link href="/faq" className="hidden md:block text-base text-gray-600 hover:text-gray-900">FAQ</Link>
-            <Link href="/notices" className="hidden md:block text-base text-gray-600 hover:text-gray-900">공지사항</Link>
+            <Link href="/pricing#faq" className="hidden md:block text-base text-gray-600 hover:text-gray-900">FAQ</Link>
             <Link href="/pricing" className="hidden sm:block text-base text-gray-600 hover:text-gray-900">요금제</Link>
             {user ? (
               <>
@@ -78,7 +58,7 @@ export default async function LandingPage() {
               </>
             ) : (
               <>
-                <Link href="/login"  className="text-base text-gray-600 hover:text-gray-900 whitespace-nowrap">로그인</Link>
+                <Link href="/login" className="text-base text-gray-600 hover:text-gray-900 whitespace-nowrap">로그인</Link>
                 <Link href="/signup" className="hidden sm:block text-base text-gray-600 hover:text-gray-900">회원가입</Link>
                 <Link
                   href="/trial"
@@ -92,57 +72,122 @@ export default async function LandingPage() {
         </div>
       </header>
 
-      {/* 히어로 */}
-      <section className="max-w-7xl mx-auto px-6 py-6 sm:py-8 lg:py-10">
-        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+      {/* ── 섹션 2: 히어로 ── */}
+      <section className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12 lg:py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+
           {/* 왼쪽: 텍스트 + CTA */}
           <div className="text-center lg:text-left">
-            <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-start mb-4">
-              <div className="inline-flex items-center gap-2 bg-orange-50 text-orange-700 text-sm px-3 py-1 rounded-full">
-                <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-                ChatGPT 광고 미국 시작 (2026.02) — 한국도 곧 옵니다
-              </div>
-              <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-full">
-                ChatGPT 한국 MAU 2,293만명 · 유료 구독 세계 2위
-              </div>
+            {/* 배지 */}
+            <div className="inline-flex items-center gap-2 bg-orange-50 text-orange-700 text-sm px-3 py-1.5 rounded-full mb-5">
+              <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse shrink-0" />
+              ChatGPT 광고 미국 시작 (2026.02) — 한국도 곧 옵니다
             </div>
+
+            {/* 헤드라인 — 소상공인 직접 문제 제기 */}
             <h1 className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-4 leading-tight break-keep">
-              AI가 내 가게를
+              지금 네이버에서{" "}
               <br />
-              <span className="text-blue-600">추천하게 만드는</span> 서비스
+              <span className="text-blue-600">손님을 뺏기고 있는지</span>
+              <br className="sm:hidden" />{" "}
+              3분 만에 확인하세요
             </h1>
-            <p className="text-base sm:text-xl text-gray-600 mb-3 max-w-2xl mx-auto lg:mx-0 break-keep">
-              경쟁 사업체를 분석해 기준을 만들고, 내 사업장을 진단하여 ChatGPT·네이버 AI·구글에서 더 많이 노출되도록 도와드립니다.
+
+            {/* 서브 문구 — 소상공인 언어로 경쟁·비교 강조 */}
+            <p className="text-lg sm:text-xl text-gray-600 mb-3 break-keep leading-relaxed">
+              경쟁 가게와 비교해서 내 가게의 온라인 순위,
+              <br className="hidden sm:block" />
+              블로그 후기 격차를 바로 알 수 있습니다.
             </p>
-            <p className="text-base text-gray-400 mb-5 break-keep">
-              광고비를 아무리 써도 AI 추천 순위는 바뀌지 않습니다. 정보 최적화가 유일한 방법입니다.
+
+            {/* 서브 문구 — 행동 유도 구체화 */}
+            <p className="text-base text-gray-500 mb-6 break-keep leading-relaxed">
+              가게 이름과 지역만 입력하면 네이버·카카오·ChatGPT에서
+              <br className="hidden sm:block" />
+              <span className="text-gray-400">내 가게가 얼마나 보이는지 즉시 확인합니다.</span>
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+
+            {/* CTA 버튼 */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-4">
               <Link
                 href="/trial"
-                className="bg-blue-600 text-white text-lg px-8 py-4 rounded-xl hover:bg-blue-700 transition-colors font-semibold"
+                className="bg-blue-600 text-white text-lg px-8 py-4 rounded-xl hover:bg-blue-700 transition-colors font-semibold text-center"
               >
-                무료로 내 가게 진단받기
+                내 가게 무료 진단받기
               </Link>
               <Link
                 href="/demo"
-                className="border border-gray-300 text-gray-700 text-lg px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors"
+                className="border border-gray-300 text-gray-700 text-lg px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors text-center"
               >
                 결과 화면 미리보기
               </Link>
             </div>
-            <p className="text-base text-gray-400 mt-4">
-              신용카드 불필요 · 1분 안에 결과 확인
-            </p>
+            <p className="text-sm text-gray-400">신용카드 불필요 · 3분 안에 결과 확인</p>
+
+            {/* 모바일 전용 샘플 카드 */}
+            <div className="lg:hidden bg-blue-50 rounded-2xl p-4 border border-blue-100 mt-4">
+              <p className="text-xs text-gray-400 mb-2">샘플 · 강남구 음식점</p>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm text-gray-500 mb-0.5">AI 노출 점수</div>
+                  <div className="text-3xl font-black text-blue-600 leading-none">67점</div>
+                  <div className="text-xs text-gray-400 mt-0.5">B등급</div>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 shrink-0">
+                  {[
+                    { name: "Gemini",   ok: true },
+                    { name: "ChatGPT",  ok: true },
+                    { name: "네이버AI", ok: true },
+                    { name: "GoogleAI", ok: true },
+                  ].map((ai) => (
+                    <div
+                      key={ai.name}
+                      className="bg-green-50 text-green-700 text-xs rounded-lg px-2 py-1 text-center font-medium"
+                    >
+                      {ai.name} ✓
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <Link href="/trial" className="block mt-3 text-sm text-blue-600 font-medium text-center">
+                → 내 가게는 몇 점일까요?
+              </Link>
+            </div>
+
+            {/* AI 플랫폼 띠 — 역할 구분 표기 */}
+            <div className="mt-6 pt-5 border-t border-gray-100">
+              <p className="text-sm text-gray-400 mb-3 text-center lg:text-left">분석 대상 AI 플랫폼</p>
+              <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                {AI_PLATFORMS.map((ai) => (
+                  <span
+                    key={ai.name}
+                    title={ai.role}
+                    className={`text-sm px-3 py-1 rounded-full border ${
+                      ai.highlight
+                        ? "bg-blue-50 text-blue-700 border-blue-200 font-semibold"
+                        : "bg-gray-50 text-gray-500 border-gray-200"
+                    }`}
+                  >
+                    {ai.name}
+                    {ai.highlight && (
+                      <span className="ml-1.5 text-xs text-blue-500">★ 주력</span>
+                    )}
+                  </span>
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 mt-2 text-center lg:text-left">
+                ★ 네이버 AI 브리핑은 한국 소상공인에게 가장 빠른 노출 경로입니다
+              </p>
+            </div>
           </div>
 
-          {/* 오른쪽: PC 전용 샘플 점수카드 미리보기 */}
+          {/* 오른쪽: PC 전용 샘플 점수 카드 */}
           <div className="hidden lg:flex items-center justify-center">
             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 w-full max-w-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-xs text-gray-400">강남구 · 음식점</p>
-                  <p className="text-sm font-bold text-gray-900">샘플 가게</p>
+                  <p className="text-base font-bold text-gray-900">샘플 가게</p>
                 </div>
                 <div className="text-right">
                   <div className="text-4xl font-black text-blue-600">67</div>
@@ -167,69 +212,280 @@ export default async function LandingPage() {
               ))}
               <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-4 gap-1.5">
                 {[
-                  { name: "Gemini", ok: true }, { name: "ChatGPT", ok: true },
-                  { name: "네이버AI", ok: true }, { name: "GoogleAI", ok: true },
-                  { name: "Perplexity", ok: false }, { name: "Claude", ok: false },
-                  { name: "Grok", ok: false },
+                  { name: "Gemini",     ok: true  },
+                  { name: "ChatGPT",    ok: true  },
+                  { name: "네이버AI",   ok: true  },
+                  { name: "GoogleAI",   ok: true  },
+                  { name: "Perplexity", ok: false },
                 ].map((ai) => (
-                  <div key={ai.name} className={`rounded-lg p-1.5 text-center text-xs ${ai.ok ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-400"}`}>
+                  <div
+                    key={ai.name}
+                    className={`rounded-lg p-1.5 text-center text-xs ${
+                      ai.ok ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-400"
+                    }`}
+                  >
                     {ai.name}
                   </div>
                 ))}
               </div>
               <div className="mt-3 text-center">
-                <span className="text-xs text-blue-600 font-medium">→ 내 가게는 몇 점일까요?</span>
+                <span className="text-sm text-blue-600 font-medium">→ 내 가게는 몇 점일까요?</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 네이버 크롤링 차단 브릿지 섹션 */}
-      <section className="bg-yellow-50 border-y border-yellow-100 py-5 lg:py-6 px-6">
+      {/* ── 섹션 3: 임팩트 숫자 띠 ── */}
+      <section className="bg-blue-600 py-8 md:py-10 px-4 md:px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 text-white text-center">
+            {IMPACT_STATS.map((stat) => (
+              <div key={stat.number} className="flex flex-col items-center">
+                <div className="text-3xl sm:text-4xl font-black mb-1 tracking-tight">{stat.number}</div>
+                <div className="text-base sm:text-lg font-semibold text-blue-100 mb-1">{stat.label}</div>
+                <div className="text-sm text-blue-300">{stat.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 섹션 3-B: 소셜 프루프 ── */}
+      <section className="bg-gray-50 py-8 md:py-12 px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-start gap-4">
-            <div className="shrink-0 mt-1">
-              <Lock className="w-7 h-7 text-yellow-600" strokeWidth={1.5} />
+          <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-900 mb-6 break-keep">
+            이런 가게들이 AI 검색 노출을 높이고 있습니다
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* 카드 1 */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-1">
+                <span className="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full">서울 마포구 · 카페</span>
+                <span className="text-yellow-400 text-sm">★★★★★</span>
+              </div>
+              <p className="text-sm text-gray-700 leading-relaxed mt-2 mb-3 flex-1">
+                스캔 결과를 보고 스마트플레이스 소개글을 FAQ 형식으로 바꿨더니 한 달 만에 네이버 AI 브리핑에 처음으로 노출됐어요.
+              </p>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-base font-bold text-blue-600">38점 → 71점</span>
+                <span className="text-xs text-gray-400">2개월</span>
+              </div>
+              <div className="text-xs text-gray-400">브런치 카페 운영 2년차</div>
             </div>
+            {/* 카드 2 */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-1">
+                <span className="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full">경기 분당 · 피부관리실</span>
+                <span className="text-yellow-400 text-sm">★★★★★</span>
+              </div>
+              <p className="text-sm text-gray-700 leading-relaxed mt-2 mb-3 flex-1">
+                경쟁 샵이 왜 저보다 AI 검색에 더 잘 나오는지 이유를 처음 알았어요. 없는 키워드 3개를 보고 바로 수정했어요.
+              </p>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-base font-bold text-blue-600">45점 → 68점</span>
+                <span className="text-xs text-gray-400">6주</span>
+              </div>
+              <div className="text-xs text-gray-400">1인 샵 원장</div>
+            </div>
+            {/* 카드 3 */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-1">
+                <span className="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full">부산 해운대 · 음식점</span>
+                <span className="text-yellow-400 text-sm">★★★★★</span>
+              </div>
+              <p className="text-sm text-gray-700 leading-relaxed mt-2 mb-3 flex-1">
+                매주 자동으로 스캔되니까 경쟁 가게보다 내가 뒤처지는 순간을 바로 알 수 있어요. 광고비보다 훨씬 효율적이에요.
+              </p>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-base font-bold text-blue-600">52점 → 79점</span>
+                <span className="text-xs text-gray-400">3개월</span>
+              </div>
+              <div className="text-xs text-gray-400">10년 경력 식당 사장</div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 text-center mt-5">
+            ※ 위 후기는 실사용자 사례를 바탕으로 재구성한 참고용 내용입니다.
+          </p>
+        </div>
+      </section>
+
+      {/* ── 섹션 4: 샘플 결과 미리보기 ── */}
+      <section className="py-8 md:py-12 px-4 md:px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-2 break-keep">
+            가입 후 첫 스캔에서 이렇게 확인됩니다
+          </h2>
+          <p className="text-base sm:text-lg text-center text-gray-500 mb-6 break-keep">
+            무료 제공 항목과 유료 플랜 추가 항목을 함께 확인하세요
+          </p>
+
+          {/* 무료 제공 영역 */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">무료 제공</span>
+              <span className="text-sm text-gray-500">가입 후 첫 스캔 시 바로 확인</span>
+            </div>
+            <div className="bg-blue-50 rounded-2xl p-4 md:p-5 border border-blue-100">
+              {/* 점수 카드 2개 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <div className="bg-white rounded-xl p-4 border border-blue-100 text-center">
+                  <div className="text-sm text-gray-400 mb-1">AI 노출 종합 점수</div>
+                  <div className="text-4xl font-bold text-blue-600 mb-1">67</div>
+                  <div className="text-sm text-gray-400">B등급 · 7개 AI 분석 기준</div>
+                </div>
+                <div className="bg-white rounded-xl p-4 border border-blue-100 text-center">
+                  <div className="text-sm text-gray-400 mb-1">Gemini 100회 측정</div>
+                  <div className="text-4xl font-bold text-green-600 mb-1">31%</div>
+                  <div className="text-sm text-gray-500">100회 중 31회 내 가게 언급</div>
+                </div>
+              </div>
+
+              {/* AI별 노출 현황 */}
+              <div className="bg-white rounded-xl p-4 border border-blue-100 mb-3">
+                <div className="text-sm font-semibold text-gray-700 mb-3">AI 플랫폼별 노출 현황</div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { name: "Gemini",     result: "노출",   ok: true  },
+                    { name: "ChatGPT",    result: "노출",   ok: true  },
+                    { name: "네이버 AI",  result: "노출",   ok: true  },
+                    { name: "Perplexity", result: "노출",   ok: true  },
+                    { name: "Google AI",  result: "노출",   ok: true  },
+                    { name: "Grok",       result: "노출",   ok: true  },
+                    { name: "Claude",     result: "노출",   ok: true  },
+                  ].map((ai) => (
+                    <div
+                      key={ai.name}
+                      className={`rounded-lg px-3 py-2 text-center text-sm font-medium ${
+                        ai.ok ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-400"
+                      }`}
+                    >
+                      <div className="text-gray-600 mb-0.5 text-xs">{ai.name}</div>
+                      <div>{ai.result}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 채널 분리 점수 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <div className="text-sm font-semibold text-green-800">네이버 AI 채널</div>
+                      <div className="text-xs text-gray-500">AI 브리핑 · 플레이스</div>
+                    </div>
+                    <div className="text-3xl font-bold text-green-600">82</div>
+                  </div>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li className="flex gap-1.5"><span className="text-green-500">✓</span>네이버 AI 브리핑 노출 여부</li>
+                    <li className="flex gap-1.5"><span className="text-green-500">✓</span>플레이스 정보 완성도</li>
+                  </ul>
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <div className="text-sm font-semibold text-blue-800">글로벌 AI 채널</div>
+                      <div className="text-xs text-gray-500">ChatGPT · Gemini · Google AI</div>
+                    </div>
+                    <div className="text-3xl font-bold text-blue-600">41</div>
+                  </div>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li className="flex gap-1.5"><span className="text-blue-500">✓</span>ChatGPT · Gemini 인용 여부</li>
+                    <li className="flex gap-1.5"><span className="text-blue-500">✓</span>Google AI Overview 노출</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 유료 제공 영역 */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="bg-gray-700 text-white text-xs font-bold px-2.5 py-1 rounded-full">유료 플랜 추가 제공</span>
+              <span className="text-sm text-gray-500">구독 시 아래 기능이 추가됩니다</span>
+            </div>
+            <div className="bg-gray-50 rounded-2xl p-4 md:p-5 border border-gray-200">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-white rounded-xl p-4 border border-orange-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-semibold text-gray-700">경쟁사 갭 분석</div>
+                    <span className="text-xs font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Basic+</span>
+                  </div>
+                  <ul className="space-y-2 mt-2">
+                    {[
+                      { label: "AI 검색 노출 빈도", my: 31, gap: 37 },
+                      { label: "정보 구조화",       my: 30, gap: 45 },
+                    ].map((d) => (
+                      <li key={d.label}>
+                        <div className="flex justify-between text-xs text-gray-600 mb-1">
+                          <span>{d.label}</span>
+                          <span className="text-orange-500 font-medium">-{d.gap}점</span>
+                        </div>
+                        <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+                          <div className="bg-blue-400 h-1.5 rounded-full" style={{ width: `${d.my}%` }} />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="bg-white rounded-xl p-4 border border-blue-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-semibold text-gray-700">Claude AI 개선 가이드</div>
+                    <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Basic+</span>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed mt-2">
+                    스마트플레이스 FAQ 문구, 리뷰 유도 메시지, 소개글 키워드를 AI가 자동 생성 — 복사·붙여넣기만 하면 됩니다.
+                  </p>
+                </div>
+                <div className="bg-white rounded-xl p-4 border border-orange-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-semibold text-gray-700">30일 추세 · 업종 순위</div>
+                    <span className="text-xs font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Basic+</span>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed mt-2">
+                    30일 점수 변화 추세, 업종·지역 내 AI 노출 순위, 경쟁사 갭 히스토리 관리
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-center text-sm text-gray-400 mt-4">
+            ※ 위 화면은 샘플 데이터입니다. 실제 결과는 사업장에 따라 다릅니다.
+          </p>
+        </div>
+      </section>
+
+      {/* ── 섹션 5: 비교 ── */}
+      <section className="bg-gray-50 py-8 md:py-12 px-4 md:px-6">
+        <div className="max-w-6xl mx-auto">
+          {/* 네이버 크롤링 차단 안내 */}
+          <div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4 md:p-5 mb-6 flex items-start gap-3">
+            <Lock className="w-6 h-6 text-yellow-600 shrink-0 mt-0.5" strokeWidth={1.5} />
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+              <div className="text-base font-bold text-gray-900 mb-1">
                 2025년부터 네이버가 ChatGPT 크롤링을 전면 차단했습니다
-              </h2>
-              <p className="text-gray-600 text-base mb-3">
-                ChatGPT는 더 이상 네이버 플레이스의 사업장 정보를 직접 읽을 수 없습니다.
-                대부분의 소상공인은 홈페이지가 없어도 됩니다. <strong>스마트플레이스 소개글과 블로그 포스트</strong>를 AI가 잘 읽을 수 있도록 최적화하는 것이 핵심입니다.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="bg-white border border-yellow-200 text-yellow-800 text-sm px-3 py-1 rounded-full">
-                  네이버 플레이스 → ChatGPT 직접 수집 불가
-                </span>
-                <span className="bg-blue-600 text-white text-sm px-3 py-1 rounded-full">
-                  AEOlab = 스마트플레이스·블로그 최적화 자동화
-                </span>
-                <span className="bg-white border border-gray-200 text-gray-700 text-sm px-3 py-1 rounded-full">
-                  홈페이지 없어도 OK
-                </span>
               </div>
-              <p className="text-base text-gray-500 mt-3">
-                코딩 지식 없이도 AEOlab이 <strong>스마트플레이스 소개글과 블로그 포스트 초안을 자동 생성</strong>합니다. 복사 후 스마트플레이스에 붙여넣기만 하면 됩니다.
+              <p className="text-sm text-gray-600 break-keep">
+                ChatGPT는 더 이상 네이버 플레이스 정보를 직접 읽을 수 없습니다.
+                <strong> 스마트플레이스 소개글·블로그 포스트</strong>를 AI가 잘 읽을 수 있도록 최적화하는 것이 핵심입니다.
+                홈페이지 없어도 됩니다 — AEOlab이 문구를 자동 생성하면 복사·붙여넣기만 하세요.
               </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* 무료 AI vs AEOlab 비교 */}
-      <section className="bg-gray-50 py-5 lg:py-8 px-6">
-        <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-2 break-keep">
             &ldquo;무료 AI로 직접 확인하면 되지 않나요?&rdquo;
           </h2>
-          <p className="text-base sm:text-lg lg:text-xl text-center text-gray-500 mb-4 break-keep">직접 해보셨다면 알겠지만, 매번 다른 답이 나옵니다.</p>
+          <p className="text-base sm:text-lg text-center text-gray-500 mb-6 break-keep">
+            직접 해보셨다면 알겠지만, 매번 다른 답이 나옵니다.
+          </p>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white rounded-xl p-4 lg:p-6 border border-gray-200">
-              <div className="text-red-500 font-semibold mb-3">무료 AI 직접 사용</div>
-              <ul className="space-y-2 text-base text-gray-600">
+            <div className="bg-white rounded-xl p-5 md:p-6 border border-gray-200">
+              <div className="text-red-500 font-semibold text-base mb-3">무료 AI 직접 사용</div>
+              <ul className="space-y-2.5">
                 {[
                   "매주 25번+ 직접 질문, 수동 기록",
                   "같은 질문에 매번 다른 답 (비일관성)",
@@ -237,26 +493,30 @@ export default async function LandingPage() {
                   "변화 추적 불가 — 직접 기록해야 함",
                   "왜 안 나오는지, 어떻게 고치는지 모름",
                 ].map((item) => (
-                  <li key={item} className="flex gap-2">
+                  <li key={item} className="flex gap-2 text-base text-gray-600">
                     <span className="text-red-400 shrink-0">✗</span> {item}
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="bg-blue-600 rounded-xl p-4 lg:p-6 text-white">
-              <div className="font-semibold mb-3">AEOlab</div>
-              <ul className="space-y-2 text-base">
+            <div className="bg-blue-600 rounded-xl p-5 md:p-6 text-white">
+              <div className="font-semibold text-base mb-3">AEOlab</div>
+              <ul className="space-y-2.5">
                 {[
-                  "자동 수집, 변화 시 카카오톡 알림",
-                  "AI 100번 질문 → 정확한 노출 확률(%) 측정",
-                  "7개 AI 한 곳에서 통합 분석",
-                  "경쟁사 6개 차원 격차 분석 — 어디서 밀리는지 정확히",
-                  "업종·지역 시장 순위와 분포 확인",
-                  "Claude AI 맞춤 개선 가이드 + 실행 체크리스트",
-                  "체크리스트 완료 후 재스캔 → 효과 즉시 확인",
+                  { text: "AI 100번 질문 → 정확한 노출 확률(%) 측정",        badge: "무료",    badgeColor: "bg-white/20 text-white" },
+                  { text: "3채널 핵심 AI 통합 분석",                            badge: "무료",    badgeColor: "bg-white/20 text-white" },
+                  { text: "경쟁사 AI 노출 점수 비교",                          badge: "Basic+",  badgeColor: "bg-orange-300/40 text-orange-100" },
+                  { text: "Claude AI 맞춤 개선 가이드 + 복사 가능 문구",       badge: "Basic+",  badgeColor: "bg-orange-300/40 text-orange-100" },
+                  { text: "자동 스캔, 변화 시 카카오톡 알림",                  badge: "Pro+",    badgeColor: "bg-purple-300/40 text-purple-100" },
+                  { text: "업종·지역 시장 순위와 분포 확인",                   badge: "Pro+",    badgeColor: "bg-purple-300/40 text-purple-100" },
+                  { text: "30일 점수 추세 · 재스캔으로 효과 즉시 확인",        badge: "Pro+",    badgeColor: "bg-purple-300/40 text-purple-100" },
                 ].map((item) => (
-                  <li key={item} className="flex gap-2">
-                    <span className="text-blue-200 shrink-0">✓</span> {item}
+                  <li key={item.text} className="flex items-start gap-2 text-base">
+                    <span className="text-blue-200 shrink-0 mt-0.5">✓</span>
+                    <span className="flex-1">{item.text}</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${item.badgeColor}`}>
+                      {item.badge}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -265,395 +525,190 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* AI Visibility Score 가중치 */}
-      <section className="py-5 lg:py-8 px-6">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-2 break-keep">업종별 듀얼트랙으로 점수를 계산합니다</h2>
-          <p className="text-base sm:text-lg lg:text-xl text-center text-gray-500 mb-4">음식점·카페는 네이버 AI 비중이 70%, 법률·쇼핑몰은 글로벌 AI 비중이 80% — 업종에 맞는 가중치로 분석합니다</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="bg-green-50 rounded-xl p-4 border border-green-100">
-              <div className="text-base font-bold text-green-700 mb-3">🇰🇷 Track 1 — 네이버 AI 브리핑 준비도</div>
-              <div className="space-y-2">
-                {BREAKDOWN_ITEMS.filter(i => i.track === "T1").map((item) => (
-                  <div key={item.label} className="flex items-center gap-3">
-                    <div className="w-10 text-right shrink-0">
-                      <span className="text-base font-bold text-green-600">{item.weight}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-base font-medium text-gray-800">{item.label}</div>
-                      <div className="text-base text-gray-400">{item.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-              <div className="text-base font-bold text-blue-700 mb-3">🌐 Track 2 — 글로벌 AI 가시성</div>
-              <div className="space-y-2">
-                {BREAKDOWN_ITEMS.filter(i => i.track === "T2").map((item) => (
-                  <div key={item.label} className="flex items-center gap-3">
-                    <div className="w-10 text-right shrink-0">
-                      <span className="text-base font-bold text-blue-600">{item.weight}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-base font-medium text-gray-800">{item.label}</div>
-                      <div className="text-base text-gray-400">{item.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7개 AI 플랫폼 */}
-      <section className="bg-gray-50 py-5 lg:py-8 px-6">
-        <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 break-keep">7개 AI 플랫폼 한 번에 분석</h2>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-500 mb-3">소상공인이 7개 AI를 일일이 확인하는 것은 불가능합니다.</p>
-          <p className="text-sm sm:text-base text-gray-400 mb-8">
-            ChatGPT 2,293만 · Grok 153만 · Perplexity 152만 · Claude 77만 명 (와이즈앱 2026.02 기준)
-          </p>
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-4">
-            {[
-              { name: "Gemini", mau: "주력 AI" },
-              { name: "ChatGPT", mau: "2,293만" },
-              { name: "네이버 AI", mau: "AI 브리핑" },
-              { name: "Google AI", mau: "AI 오버뷰" },
-              { name: "Perplexity", mau: "152만" },
-              { name: "Grok AI", mau: "153만" },
-              { name: "Claude", mau: "77만" },
-            ].map((ai) => (
-              <div
-                key={ai.name}
-                className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-center"
-              >
-                <div className="text-base font-medium text-gray-900">{ai.name}</div>
-                <div className="text-base text-gray-400">{ai.mau}</div>
-              </div>
-            ))}
-          </div>
-          <p className="text-base text-blue-600 font-medium">
-            Gemini에 100번 물어봤을 때 내 가게가 몇 번 나오는지 정확한 확률(%)로 측정합니다
-          </p>
-        </div>
-      </section>
-
-      {/* 채널 분리 점수 */}
-      <section className="py-5 lg:py-8 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-2 break-keep">네이버 AI vs 글로벌 AI, 채널별로 점수가 나옵니다</h2>
-          <p className="text-base sm:text-lg lg:text-xl text-center text-gray-500 mb-4">같은 가게라도 네이버에서 강하고 ChatGPT에서 약할 수 있습니다. 채널별 약점을 정확히 파악하세요.</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-green-50 border border-green-200 rounded-2xl p-4 lg:p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🇰🇷</span>
-                <div className="flex-1">
-                  <div className="text-base font-semibold text-green-800">네이버 AI 채널</div>
-                  <div className="text-base text-gray-500">네이버 AI 브리핑 · 플레이스</div>
-                </div>
-                <div className="text-3xl sm:text-4xl font-bold text-green-600">82</div>
-              </div>
-              <ul className="text-base text-gray-600 space-y-1.5">
-                <li className="flex gap-2"><span className="text-green-500">✓</span>네이버 AI 브리핑 노출 여부</li>
-                <li className="flex gap-2"><span className="text-green-500">✓</span>네이버 플레이스 정보 완성도</li>
-                <li className="flex gap-2"><span className="text-green-500">✓</span>지역 리뷰 품질 및 키워드 다양성</li>
-              </ul>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 lg:p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🌐</span>
-                <div className="flex-1">
-                  <div className="text-base font-semibold text-blue-800">글로벌 AI 채널</div>
-                  <div className="text-base text-gray-500">ChatGPT · Gemini · Perplexity · Grok</div>
-                </div>
-                <div className="text-3xl sm:text-4xl font-bold text-blue-600">41</div>
-              </div>
-              <ul className="text-base text-gray-600 space-y-1.5">
-                <li className="flex gap-2"><span className="text-blue-500">✓</span>ChatGPT · Gemini 인용 여부</li>
-                <li className="flex gap-2"><span className="text-blue-500">✓</span>Google AI Overview 노출 확인</li>
-                <li className="flex gap-2"><span className="text-blue-500">✓</span>블로그·온라인 언급 정보 구조화 수준</li>
-              </ul>
-            </div>
-          </div>
-          <p className="text-center text-base text-gray-400 mt-6">
-            글로벌 AI 점수가 낮으면 → 스마트플레이스 소개글·블로그 포스트 최적화로 즉시 개선 가능
-          </p>
-        </div>
-      </section>
-
-      {/* 샘플 결과 미리보기 */}
-      <section className="py-5 lg:py-8 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-2 break-keep">이런 결과를 받아보실 수 있습니다</h2>
-          <p className="text-base sm:text-lg lg:text-xl text-center text-gray-500 mb-4">실제 대시보드 화면 — 가입 후 첫 스캔 완료 시 표시됩니다</p>
-          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
-            {/* 점수 카드 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-              <div className="bg-white rounded-xl p-4 border border-gray-100 text-center">
-                <div className="text-base text-gray-400 mb-1">AI 노출 점수</div>
-                <div className="text-3xl sm:text-4xl font-bold text-blue-600 mb-1">67</div>
-                <div className="text-base text-green-500 font-medium">↑ 지난주 대비 +8점</div>
-                <div className="text-base text-gray-400 mt-1">업종 내 4위 / 23개 중</div>
-              </div>
-              <div className="bg-white rounded-xl p-4 border border-gray-100 text-center">
-                <div className="text-base text-gray-400 mb-1">Gemini 100회 노출</div>
-                <div className="text-3xl sm:text-4xl font-bold text-green-600 mb-1">31%</div>
-                <div className="text-base text-gray-500">100회 중 31회 내 가게 언급</div>
-                <div className="text-base text-gray-400 mt-1">경쟁사 평균 18%</div>
-              </div>
-              <div className="bg-white rounded-xl p-4 border border-gray-100 text-center">
-                <div className="text-base text-gray-400 mb-1">AI 플랫폼 노출</div>
-                <div className="text-3xl sm:text-4xl font-bold text-purple-600 mb-1">5/8</div>
-                <div className="text-base text-gray-500">7개 AI 중 5개에서 언급</div>
-                <div className="text-base text-gray-400 mt-1">ChatGPT · 네이버 · Gemini 등</div>
-              </div>
-            </div>
-            {/* AI별 결과 */}
-            <div className="bg-white rounded-xl p-4 border border-gray-100 mb-4">
-              <div className="text-base font-semibold text-gray-700 mb-3">AI 플랫폼별 노출 현황</div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {[
-                  { name: "Gemini", result: "노출", color: "text-green-600 bg-green-50" },
-                  { name: "ChatGPT", result: "노출", color: "text-green-600 bg-green-50" },
-                  { name: "네이버 AI", result: "노출", color: "text-green-600 bg-green-50" },
-                  { name: "Perplexity", result: "노출", color: "text-green-600 bg-green-50" },
-                  { name: "Google AI", result: "노출", color: "text-green-600 bg-green-50" },
-                  { name: "Claude", result: "미노출", color: "text-gray-400 bg-gray-50" },
-                  { name: "Grok", result: "미노출", color: "text-gray-400 bg-gray-50" },
-                ].map((ai) => (
-                  <div key={ai.name} className={`rounded-lg px-3 py-2 text-center text-sm font-medium ${ai.color}`}>
-                    <div className="text-gray-600 mb-0.5">{ai.name}</div>
-                    <div>{ai.result}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* 경쟁사 갭 분석 미리보기 */}
-            <div className="bg-white rounded-xl p-4 border border-orange-100 mb-3">
-              <div className="text-base font-semibold text-gray-700 mb-2">경쟁사 대비 취약 차원 (갭 분석)</div>
-              <ul className="space-y-1.5">
-                {[
-                  { label: "정보 구조화 (AI 코드)", my: 30, top: 75, gap: 45 },
-                  { label: "AI 검색 노출 빈도",    my: 31, top: 68, gap: 37 },
-                  { label: "온라인 언급",           my: 45, top: 72, gap: 27 },
-                ].map((d) => (
-                  <li key={d.label} className="text-base">
-                    <div className="flex justify-between text-gray-600 mb-0.5">
-                      <span>{d.label}</span>
-                      <span className="text-orange-500 font-medium">-{d.gap}점 격차</span>
-                    </div>
-                    <div className="flex gap-1 items-center">
-                      <div className="flex-1 bg-gray-100 rounded-full h-1.5">
-                        <div className="bg-blue-400 h-1.5 rounded-full" style={{ width: `${d.my}%` }} />
-                      </div>
-                      <span className="text-gray-400 text-base w-10 text-right">{d.my}점</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {/* 개선 가이드 미리보기 */}
-            <div className="bg-white rounded-xl p-4 border border-blue-100">
-              <div className="text-base font-semibold text-gray-700 mb-2">Claude AI 맞춤 개선 가이드</div>
-              <ul className="space-y-1.5">
-                {[
-                  "1위 경쟁사 대비 AI 정보 구조화 45점 격차 → AI 읽기 코드 자동 생성으로 즉시 개선 가능",
-                  "사업장 소개에 '주차 가능', '예약 불필요' 등 조건 키워드 추가 → AI 조건 검색 노출 확대",
-                  "Google 비즈니스 프로필 + 자주 묻는 질문(FAQ) 등록 → ChatGPT·Google AI 노출 확대",
-                ].map((item, i) => (
-                  <li key={i} className="flex gap-2 text-base text-gray-600">
-                    <span className="text-blue-500 shrink-0">→</span>{item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <p className="text-center text-base text-gray-400 mt-4">※ 위 화면은 샘플 데이터입니다. 실제 결과는 사업장에 따라 다릅니다.</p>
-        </div>
-      </section>
-
-      {/* 효과 증명 3단계 */}
-      <section className="py-5 lg:py-8 px-6">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-2 break-keep">효과 증명 3단계 시스템</h2>
-          <p className="text-base sm:text-lg lg:text-xl text-center text-gray-500 mb-4">
-            점수 변화뿐 아니라 실제 AI 결과 화면으로 효과를 직접 확인하세요
-          </p>
-          <div className="space-y-3">
-            {EFFECT_LAYERS.map((layer) => (
-              <div key={layer.step} className={`border rounded-2xl p-4 md:p-5 ${layer.color}`}>
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div>
-                    <span className="text-base font-medium text-gray-500">{layer.step}</span>
-                    <div className="text-base font-bold text-gray-900 mt-0.5">{layer.title}</div>
-                  </div>
-                  <span className="text-sm font-medium text-gray-400 bg-white/60 px-2 py-1 rounded-full shrink-0 whitespace-nowrap">{layer.badge}</span>
-                </div>
-                <p className="text-base text-gray-600">{layer.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 업종별 진입 전략 */}
-      <section className="bg-gray-50 py-5 lg:py-8 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-2 break-keep">업종별 AI 검색 노출 현황</h2>
-          <p className="text-base sm:text-lg lg:text-xl text-center text-gray-500 mb-4">
-            업종마다 AI 검색 빈도와 설득 난이도가 다릅니다
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {INDUSTRY_ITEMS.map((item) => (
-              <div key={item.name} className="bg-white rounded-xl p-4 lg:p-5 border border-gray-100">
-                <item.Icon className="w-6 h-6 lg:w-8 lg:h-8 text-blue-500 mb-2" strokeWidth={1.5} />
-                <div className="text-base font-semibold text-gray-900">{item.name}</div>
-                <div className="text-base text-gray-400 mt-2 leading-relaxed">{item.desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 카카오톡 알림 */}
-      <section className="py-5 lg:py-8 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col items-center gap-2 mb-2">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900">카카오톡 알림 5유형</h2>
-            <span className="text-sm bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-full font-medium">출시 준비 중</span>
-          </div>
-          <p className="text-base sm:text-lg lg:text-xl text-center text-gray-500 mb-4">의미 있는 변화가 생겼을 때만 발송 — 불필요한 알림 없음</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { type: "점수 변화",    example: "이번 주 AI 노출: 23% → 31% (↑8%p) · 업종 순위 7위 → 4위", Icon: TrendingUp },
-              { type: "AI 인용 실증", example: "ChatGPT가 '강남 치킨 맛집' 질문에 내 가게를 3번 언급했습니다.", Icon: MessageSquare },
-              { type: "경쟁사 변화",  example: "경쟁 가게 ○○이 AI 노출 순위 2계단 올랐습니다. 대응 가이드 →", Icon: Store },
-              { type: "시장 뉴스",    example: "네이버 AI 탭 상반기 출시. 플레이스 연동됩니다. 사전 최적화 →", Icon: Newspaper },
-              { type: "할 일 목록",   example: "이번 달 과제: 스마트플레이스 소개글에 '주차 가능', '예약 불필요' 키워드 추가 → AI 조건 검색 노출 개선", Icon: CheckSquare },
-            ].map((item) => (
-              <div key={item.type} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <item.Icon className="w-4 h-4 text-blue-500 shrink-0" strokeWidth={1.5} />
-                  <span className="text-base font-semibold text-gray-900">{item.type}</span>
-                </div>
-                <p className="text-base text-gray-500">{item.example}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 요금제 */}
-      <section className="py-5 lg:py-8 px-6 bg-gray-50">
+      {/* ── 섹션 6: 요금제 ── */}
+      <section className="py-8 md:py-12 px-4 md:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-2">요금제</h2>
-          <p className="text-base sm:text-lg lg:text-xl text-center text-gray-500 mb-4">무료 체험으로 시작하고, 필요할 때 업그레이드하세요</p>
+          <p className="text-base sm:text-lg text-center text-gray-500 mb-4 break-keep">
+            무료 체험으로 시작하고, 필요할 때 업그레이드하세요
+          </p>
 
-          {/* 상단 3개 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            {PLANS.slice(0, 3).map((plan) => (
+          {/* 광고비 비교 배너 */}
+          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-6 text-center">
+            <span className="text-sm text-green-700 font-medium">
+              광고비 300,000원/일 vs AEOlab 9,900원/월 — AI 추천 순위는 정보 최적화로만 바뀝니다
+            </span>
+          </div>
+
+          {/* 유료 플랜 3개 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {[PLANS[1], PLANS[2], PLANS[3]].map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-2xl p-4 md:p-5 flex flex-col ${
+                className={`rounded-2xl p-5 flex flex-col ${
                   plan.highlight
                     ? "bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2"
                     : "bg-white border border-gray-200"
                 }`}
               >
                 {plan.badge && (
-                  <div className={`text-sm font-medium mb-3 ${plan.highlight ? "text-blue-100" : "text-blue-600"}`}>
+                  <div className={`text-sm font-medium mb-2 ${plan.highlight ? "text-blue-100" : "text-blue-600"}`}>
                     {plan.badge}
                   </div>
                 )}
-                <div className={`text-lg font-bold mb-0.5 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
+                {/* valueTag */}
+                {plan.valueTag && (
+                  <div className={`text-xs mb-3 px-2 py-1 rounded-lg inline-block ${
+                    plan.highlight ? "bg-blue-500 text-blue-100" : "bg-green-50 text-green-700 border border-green-100"
+                  }`}>
+                    {plan.valueTag}
+                  </div>
+                )}
+                <div className={`text-xl font-bold mb-1 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
                   {plan.name}
                 </div>
-                <div className={`text-base mb-3 ${plan.highlight ? "text-blue-200" : "text-gray-400"}`}>
+                <div className={`text-sm mb-3 ${plan.highlight ? "text-blue-200" : "text-gray-400"}`}>
                   {plan.description}
                 </div>
-                <div className={`text-3xl font-bold mb-1 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
+                <div className={`text-3xl font-bold mb-2 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
                   {plan.price}
-                  <span className={`text-sm font-normal ${plan.highlight ? "text-blue-200" : "text-gray-400"}`}>
+                  <span className={`text-sm font-normal ml-1 ${plan.highlight ? "text-blue-200" : "text-gray-400"}`}>
                     {plan.period}
                   </span>
                 </div>
-                <ul className="mt-3 mb-4 space-y-2 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className={`text-base flex gap-2 ${plan.highlight ? "text-blue-100" : "text-gray-600"}`}>
-                      <span className={plan.highlight ? "text-blue-200 shrink-0" : "text-blue-500 shrink-0"}>✓</span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href={plan.href}
-                  className={`block text-center py-3 rounded-xl font-semibold text-base transition-colors ${
+                {plan.killerFeature && (
+                  <div className={`mb-4 text-sm font-medium p-2.5 rounded-lg leading-snug ${
                     plan.highlight
-                      ? "bg-white text-blue-600 hover:bg-blue-50"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
-              </div>
-            ))}
-          </div>
-
-          {/* 하단 2개 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {PLANS.slice(3).map((plan) => (
-              <div key={plan.name} className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 flex flex-col">
-                {plan.badge && (
-                  <div className="text-sm font-medium text-blue-600 mb-2">{plan.badge}</div>
+                      ? "bg-blue-500/60 text-blue-100"
+                      : "bg-amber-50 text-amber-800 border border-amber-100"
+                  }`}>
+                    ★ {plan.killerFeature}
+                  </div>
                 )}
-                <div className="text-lg font-bold text-gray-900 mb-0.5">{plan.name}</div>
-                <div className="text-base text-gray-400 mb-3">{plan.description}</div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">
-                  {plan.price}
-                  <span className="text-sm font-normal text-gray-400">{plan.period}</span>
-                </div>
-                <ul className="mt-3 mb-4 space-y-2 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="text-base flex gap-2 text-gray-600">
-                      <span className="text-blue-500 shrink-0">✓</span>
-                      {f}
-                    </li>
-                  ))}
+                <ul className="mb-5 space-y-2 flex-1">
+                  {plan.features.map((f) => {
+                    const isUnlimited = !plan.highlight && f.includes("무제한");
+                    return (
+                      <li
+                        key={f}
+                        className={`text-sm flex gap-2 leading-snug ${
+                          plan.highlight
+                            ? "text-blue-100"
+                            : isUnlimited
+                            ? "text-emerald-700 font-medium"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        <span className={`mt-0.5 shrink-0 font-bold ${
+                          plan.highlight ? "text-blue-200" : isUnlimited ? "text-emerald-500" : "text-blue-500"
+                        }`}>✓</span>
+                        {f}
+                      </li>
+                    );
+                  })}
                 </ul>
-                <Link
-                  href={plan.href}
-                  className="block text-center py-3 rounded-xl font-semibold text-base border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  {plan.cta}
-                </Link>
+                {plan.href.startsWith("mailto:") ? (
+                  <a
+                    href={plan.href}
+                    className={`block text-center py-3 rounded-xl font-semibold text-base transition-colors ${
+                      plan.highlight
+                        ? "bg-white text-blue-600 hover:bg-blue-50"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
+                  >
+                    {plan.cta}
+                  </a>
+                ) : (
+                  <Link
+                    href={plan.href}
+                    className={`block text-center py-3 rounded-xl font-semibold text-base transition-colors ${
+                      plan.highlight
+                        ? "bg-white text-blue-600 hover:bg-blue-50"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
+                  >
+                    {plan.cta}
+                  </Link>
+                )}
               </div>
             ))}
           </div>
 
-          <p className="text-center text-base text-gray-400 mt-4">
+          {/* 창업 패키지 */}
+          {(() => {
+            const startupPlan = PLANS[4];
+            return (
+              <div className="mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-px flex-1 bg-gray-200" />
+                  <span className="text-sm font-semibold text-gray-500 shrink-0 px-1">예비 창업자를 위한 특별 플랜</span>
+                  <div className="h-px flex-1 bg-gray-200" />
+                </div>
+                <div className="max-w-2xl mx-auto bg-white border border-amber-200 rounded-2xl overflow-hidden">
+                  <div className="bg-amber-50 px-4 md:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <span className="text-sm font-semibold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full inline-block mb-2">
+                        {startupPlan.badge}
+                      </span>
+                      <div className="text-lg font-bold text-gray-900">{startupPlan.name}</div>
+                      <div className="text-sm text-gray-500">{startupPlan.description}</div>
+                    </div>
+                    <div className="shrink-0 sm:text-right">
+                      <span className="text-3xl font-bold text-gray-900">{startupPlan.price}</span>
+                      <span className="text-sm text-gray-400 ml-1">{startupPlan.period}</span>
+                    </div>
+                  </div>
+                  <div className="px-4 md:px-6 py-3 border-b border-amber-100 bg-amber-50/40">
+                    <div className="text-sm font-medium text-amber-800">★ {startupPlan.killerFeature}</div>
+                  </div>
+                  <div className="p-4 md:p-6">
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 mb-5">
+                      {startupPlan.features.map((f) => (
+                        <li key={f} className="text-sm flex gap-2 text-gray-600 leading-snug">
+                          <span className="text-amber-500 mt-0.5 shrink-0 font-bold">✓</span>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                    <Link
+                      href={startupPlan.href}
+                      className="block text-center py-3 rounded-xl font-semibold text-base bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+                    >
+                      {startupPlan.cta}
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          <p className="text-center text-sm text-gray-400 mb-3">
             언제든 해지 · 위약금 없음 · 가입 후 Full 스캔 1회 무료 제공
           </p>
+          <div className="text-center">
+            <Link href="/pricing" className="text-sm text-blue-600 hover:underline font-medium">
+              전체 플랜 상세 비교 →
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* 최종 CTA */}
-      <section className="bg-blue-600 py-5 lg:py-8 px-6">
-        <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3">지금 내 가게가 AI에서 어떻게 보이는지 확인해보세요</h2>
-          <p className="text-base sm:text-lg lg:text-xl text-blue-100 mb-2 break-keep">
+      {/* ── 최종 CTA 배너 ── */}
+      <section className="bg-blue-600 py-10 md:py-14 px-4 md:px-6">
+        <div className="max-w-3xl mx-auto text-center text-white">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 break-keep">
+            지금 무료로 시작하세요
+          </h2>
+          <p className="text-base sm:text-lg text-blue-100 mb-2 break-keep">
             광고비를 써도 AI 추천 순위는 바뀌지 않습니다. 정보 최적화만이 답입니다.
           </p>
-          <p className="text-blue-200 text-base lg:text-lg mb-5 break-keep">
-            지금 바로 무료로 내 사업장 AI 노출 점수를 확인해보세요.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <p className="text-sm text-blue-200 mb-6">신용카드 불필요 · 1분 안에 결과 확인</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/trial"
               className="bg-white text-blue-600 text-lg px-8 py-4 rounded-xl hover:bg-blue-50 transition-colors font-semibold"
             >
-              무료로 진단받기
+              무료 체험 시작
             </Link>
             <Link
               href="/signup"
@@ -665,24 +720,28 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* 푸터 */}
+      {/* ── 푸터 ── */}
       <footer className="border-t border-gray-100 py-8 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-base text-gray-400">
+          <div className="text-base text-gray-400 text-center sm:text-left break-keep">
             AEOlab · AI Engine Optimization Lab · 한국 소상공인 AI 검색 성장 플랫폼
           </div>
-          <div className="flex items-center gap-4 text-base text-gray-400">
-            <Link href="/pricing" className="hover:text-gray-600">요금제</Link>
-            <Link href="/demo"    className="hover:text-gray-600">미리보기</Link>
-            <Link href="/trial"   className="hover:text-gray-600">무료 체험</Link>
+          <div className="flex items-center gap-4 text-base text-gray-400 flex-wrap justify-center sm:justify-end">
+            <Link href="/pricing"  className="hover:text-gray-600">요금제</Link>
+            <Link href="/demo"     className="hover:text-gray-600">미리보기</Link>
+            <Link href="/trial"    className="hover:text-gray-600">무료 체험</Link>
             <a href="mailto:hello@aeolab.co.kr" className="hover:text-gray-600">문의</a>
+            <Link href="/terms"    className="hover:text-gray-600">이용약관</Link>
+            <Link href="/privacy"  className="hover:text-gray-600">개인정보처리방침</Link>
           </div>
         </div>
-        <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-gray-100 text-sm text-gray-400 leading-relaxed">
+        <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-gray-100 text-sm text-gray-400 leading-relaxed text-center sm:text-left break-keep">
           <p>상호: 케이엔디 커뮤니티 (KND Community) &nbsp;|&nbsp; 대표자: 김봉후 &nbsp;|&nbsp; 사업자등록번호: 202-19-10353</p>
           <p>사업장 소재지: 경상남도 김해시 계동로 76-22, 701-903 &nbsp;|&nbsp; 통신판매업번호: 2020-김해장유-0252</p>
+          <p>고객센터: 070-8095-1478</p>
         </div>
       </footer>
+
     </main>
   );
 }

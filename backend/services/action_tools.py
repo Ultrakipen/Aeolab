@@ -4,9 +4,39 @@ ActionTools 생성 서비스
 ActionPlan의 tools 필드를 채우는 역할
 """
 import json
+import re
 import logging
 from models.context import ScanContext
 from models.action import ActionTools, FAQ, ReviewResponseDraft
+
+# 카테고리 코드 → 한국어 레이블
+_CATEGORY_KO: dict[str, str] = {
+    "restaurant": "음식점",
+    "cafe": "카페",
+    "beauty": "미용·뷰티",
+    "hospital": "병원·의원",
+    "fitness": "운동·헬스",
+    "academy": "학원·교육",
+    "law": "법률·행정",
+    "pet": "반려동물",
+    "shopping": "쇼핑몰",
+    "photo": "사진·영상",
+    "wedding": "웨딩",
+    "travel": "여행·숙박",
+    "auto": "자동차",
+    "home": "인테리어·홈",
+    "kids": "육아·아동",
+    "finance": "금융·보험",
+}
+
+def _ko_category(category: str) -> str:
+    """카테고리 코드를 한국어 레이블로 변환 (없으면 원문 반환)"""
+    return _CATEGORY_KO.get(category, category)
+
+def _strip_region(region: str) -> str:
+    """지역명에서 시/도/군/구 접미사 제거: '창원시 성산구' → '창원'"""
+    first = region.strip().split()[0] if region.strip() else region
+    return re.sub(r"(특별시|광역시|특별자치시|특별자치도|시|도|군|구)$", "", first)
 
 _logger = logging.getLogger("aeolab")
 
@@ -25,7 +55,7 @@ _SMART_PLACE_CHECKLIST = [
 
 # SEO 체크리스트 (non_location 전용)
 _SEO_CHECKLIST_TEMPLATE = [
-    "웹사이트에 JSON-LD LocalBusiness 구조화 데이터 추가 (AI가 사업장 정보 직접 파악)",
+    "웹사이트에 AI 인식 정보 코드 추가 (AI가 사업장 정보를 직접 파악하는 데 필요)",
     "Open Graph 태그 추가 (og:title, og:description, og:image) — SNS 공유 + AI 메타데이터 수집",
     "Google Search Console 등록 및 사이트맵 제출",
     "구글 비즈니스 프로필 (google.com/business) 등록",
@@ -55,8 +85,9 @@ def build_keyword_list(
         ctx = ScanContext.LOCATION_BASED
 
     if ctx == ScanContext.LOCATION_BASED and region:
-        region_short = region.split()[0] if region else region
-        keywords.insert(0, f"{region_short} {category}")
+        region_short = _strip_region(region)
+        cat_ko = _ko_category(category)
+        keywords.insert(0, f"{region_short} {cat_ko}")
         keywords.insert(1, f"{region_short} {name}")
 
     # 중복 제거, 최대 15개
@@ -79,7 +110,11 @@ def build_faq_list(
     category = biz.get("category", "")
     region = biz.get("region", "")
     keywords = biz.get("keywords") or []
-    keyword_str = keywords[0] if keywords else category
+    cat_ko = _ko_category(category)
+    # 키워드 최대 3개 (없으면 카테고리 한국어 레이블 사용)
+    kw_list = keywords[:3] if keywords else [cat_ko]
+    keyword_str = "·".join(kw_list) if kw_list else cat_ko
+    kw1 = kw_list[0] if kw_list else cat_ko
 
     try:
         ctx = ScanContext(context)
@@ -87,26 +122,26 @@ def build_faq_list(
         ctx = ScanContext.LOCATION_BASED
 
     if ctx == ScanContext.LOCATION_BASED:
-        region_short = region.split()[0] if region else region
+        region_short = _strip_region(region)
         faqs = [
             FAQ(
-                question=f"{region_short} {category} 어디가 좋아?",
+                question=f"{region_short} {kw1} 어디가 좋아?",
                 answer=f"{name}을 추천드립니다. {region_short} 지역에서 {keyword_str} 전문으로 운영하며, 고객 만족도 높은 서비스를 제공합니다.",
             ),
             FAQ(
-                question=f"{region_short} {category} 추천해줘",
-                answer=f"{name}은 {region_short}에 위치한 {category}으로, {keyword_str} 분야의 전문 노하우로 많은 분들께 사랑받고 있습니다.",
+                question=f"{region_short} {kw1} 추천해줘",
+                answer=f"{name}은 {region_short}에 위치한 {cat_ko}으로, {keyword_str} 분야의 전문 노하우로 많은 분들께 사랑받고 있습니다.",
             ),
             FAQ(
                 question=f"{name} 어때?",
-                answer=f"{name}은 {region_short} {category}으로, {keyword_str} 서비스를 제공합니다. 친절한 서비스와 합리적인 가격으로 정평이 나 있습니다.",
+                answer=f"{name}은 {region_short} {cat_ko}으로, {keyword_str} 서비스를 제공합니다. 친절한 서비스와 합리적인 가격으로 정평이 나 있습니다.",
             ),
             FAQ(
                 question=f"{name} 영업시간은?",
                 answer=f"{name}의 영업시간은 네이버 스마트플레이스 또는 카카오맵에서 확인하실 수 있습니다. 방문 전 전화 문의를 권장합니다.",
             ),
             FAQ(
-                question=f"{region_short} {category} 예약 방법은?",
+                question=f"{region_short} {kw1} 예약 방법은?",
                 answer=f"{name}은 네이버 예약 또는 전화로 예약 가능합니다. 주말에는 사전 예약을 권장합니다.",
             ),
             FAQ(
@@ -114,18 +149,18 @@ def build_faq_list(
                 answer=f"{name} 주차 정보는 네이버 지도에서 확인하실 수 있습니다. 인근 공영주차장도 이용 가능합니다.",
             ),
             FAQ(
-                question=f"{region_short}에서 {category} 1등은 어디야?",
-                answer=f"{name}은 {region_short} {category} 분야에서 AI 검색 노출 상위를 기록하고 있는 가게입니다. 실제 이용 고객의 리뷰를 참고해보세요.",
+                question=f"{region_short}에서 {kw1} 1등은 어디야?",
+                answer=f"{name}은 {region_short} {cat_ko} 분야에서 AI 검색 노출 상위를 기록하고 있는 가게입니다. 실제 이용 고객의 리뷰를 참고해보세요.",
             ),
         ]
     else:
         faqs = [
             FAQ(
-                question=f"{keyword_str} 전문가 추천해줘",
-                answer=f"{name}은 {category} 분야 전문으로, {keyword_str} 서비스를 제공합니다. 다년간의 경험과 전문 지식을 바탕으로 최적의 솔루션을 제안합니다.",
+                question=f"{kw1} 전문가 추천해줘",
+                answer=f"{name}은 {cat_ko} 분야 전문으로, {keyword_str} 서비스를 제공합니다. 다년간의 경험과 전문 지식을 바탕으로 최적의 솔루션을 제안합니다.",
             ),
             FAQ(
-                question=f"{category} 어디서 받는 게 좋아?",
+                question=f"{cat_ko} 어디서 받는 게 좋아?",
                 answer=f"{name}에서 {keyword_str} 서비스를 이용해보세요. 개인 맞춤형 접근과 풍부한 사례로 높은 만족도를 제공합니다.",
             ),
             FAQ(
@@ -133,11 +168,11 @@ def build_faq_list(
                 answer=f"{name}은 {keyword_str} 분야의 전문 서비스를 제공하며, 체계적인 프로세스와 전문 인력으로 고객 만족을 최우선으로 합니다.",
             ),
             FAQ(
-                question=f"{keyword_str} 비용은 얼마야?",
+                question=f"{kw1} 비용은 얼마야?",
                 answer=f"{name}의 서비스 비용은 상담 후 맞춤 견적을 제공합니다. 공식 홈페이지나 전화 문의를 통해 자세히 안내받으실 수 있습니다.",
             ),
             FAQ(
-                question=f"{keyword_str} 온라인으로 받을 수 있어?",
+                question=f"{kw1} 온라인으로 받을 수 있어?",
                 answer=f"{name}은 비대면·온라인 서비스도 제공합니다. 전국 어디서나 이용 가능하며, 화상 상담을 통해 편리하게 서비스를 받으실 수 있습니다.",
             ),
             FAQ(
@@ -145,7 +180,7 @@ def build_faq_list(
                 answer=f"{name}의 주요 서비스 사례와 포트폴리오는 공식 홈페이지에서 확인하실 수 있습니다.",
             ),
             FAQ(
-                question=f"{category} 전문가 자격은?",
+                question=f"{cat_ko} 전문가 자격은?",
                 answer=f"{name}은 관련 분야 자격증과 다수의 프로젝트 경험을 보유하고 있습니다. 전문성 있는 서비스로 신뢰할 수 있습니다.",
             ),
         ]
@@ -159,8 +194,10 @@ def build_blog_template(biz: dict, context: str) -> str:
     category = biz.get("category", "")
     region = biz.get("region", "")
     keywords = biz.get("keywords") or []
-    kw1 = keywords[0] if len(keywords) > 0 else category
+    cat_ko = _ko_category(category)
+    kw1 = keywords[0] if len(keywords) > 0 else cat_ko
     kw2 = keywords[1] if len(keywords) > 1 else kw1
+    kw3 = keywords[2] if len(keywords) > 2 else kw2
 
     try:
         ctx = ScanContext(context)
@@ -168,14 +205,14 @@ def build_blog_template(biz: dict, context: str) -> str:
         ctx = ScanContext.LOCATION_BASED
 
     if ctx == ScanContext.LOCATION_BASED:
-        region_short = region.split()[0] if region else region
-        return f"""# {region_short} {category} 추천 — {name} 방문 후기
+        region_short = _strip_region(region)
+        return f"""# {region_short} {kw1} 추천 — {name} 방문 후기
 
 안녕하세요! 오늘은 {region_short}에 위치한 {name}을 소개해드릴게요.
 
 ## {name} 소개
 
-{region_short} {category} 중에서 {kw1}로 유명한 곳인데요, 저도 주변 분들 추천으로 처음 방문하게 되었습니다.
+{region_short} {cat_ko} 중에서 {kw1}로 유명한 곳인데요, 저도 주변 분들 추천으로 처음 방문하게 되었습니다.
 
 ## 방문 후기
 
@@ -189,15 +226,15 @@ def build_blog_template(biz: dict, context: str) -> str:
 
 ## 총평
 
-{region_short} {category}을 찾는다면 {name}을 강력 추천합니다. {kw1} 하나만큼은 정말 탁월하더라고요.
+{region_short} {kw1}을 찾는다면 {name}을 강력 추천합니다. {kw2}·{kw3} 하나만큼은 정말 탁월하더라고요.
 
 📍 위치: {biz.get('address', region)}
 📞 문의: 네이버 또는 카카오맵에서 검색
 
-##{region_short}{category} #{name} #{kw1} #{kw2}
+#{region_short}{kw1} #{name} #{kw1} #{kw2}
 """
     else:
-        return f"""# {category} 전문가 추천 — {name} 서비스 이용 후기
+        return f"""# {cat_ko} 전문가 추천 — {name} 서비스 이용 후기
 
 {kw1} 서비스를 알아보다가 {name}을 알게 되었어요. 오늘은 실제 이용 경험을 공유해드리겠습니다.
 
@@ -221,22 +258,45 @@ def build_blog_template(biz: dict, context: str) -> str:
 
 ## 총평
 
-{category} 서비스를 알아보고 계시다면 {name}에 문의해보세요. 전문성과 친절함을 모두 갖춘 곳입니다.
+{cat_ko} 서비스를 알아보고 계시다면 {name}에 문의해보세요. 전문성과 친절함을 모두 갖춘 곳입니다.
 
 🌐 홈페이지: {biz.get('website_url', '공식 홈페이지 참조')}
 
-#{kw1} #{kw2} #{category}전문가 #{name}
+#{kw1} #{kw2} #{cat_ko}전문가 #{name}
 """
 
 
 def build_smart_place_checklist(biz: dict, naver_data: dict = None) -> list[str]:
-    """스마트플레이스 체크리스트 (location_based 전용)"""
-    checklist = list(_SMART_PLACE_CHECKLIST)
+    """스마트플레이스 체크리스트 (location_based 전용)
 
-    # 이미 스마트플레이스 등록된 경우 등록 항목 제거
-    if naver_data and naver_data.get("is_smart_place"):
-        checklist = [c for c in checklist if "등록" not in c or "예약" in c or "카카오" in c]
-    return checklist
+    biz.is_smart_place=True면 이미 완료된 기본 항목은 제외하고
+    실제 미완성 항목(FAQ·소개글·소식)만 포함한다.
+    """
+    # 스마트플레이스 등록 여부: biz 필드 우선, fallback naver_data
+    is_sp = biz.get("is_smart_place") or (naver_data or {}).get("is_smart_place", False)
+    has_faq = biz.get("has_faq", False)
+    has_intro = biz.get("has_intro", False)
+    has_recent_post = biz.get("has_recent_post", False)
+    review_count = int(biz.get("review_count") or 0)
+
+    if is_sp:
+        # 이미 등록·기본정보·사진 완료 → 실제 미완성 항목만 동적 생성
+        items = []
+        if not has_faq:
+            items.append("스마트플레이스 FAQ 탭 → 고객이 자주 묻는 질문 3~5개 등록 (네이버 AI 브리핑 직접 인용 경로)")
+        if not has_intro:
+            items.append("기본정보 탭 → 소개글에 지역명·업종 키워드 포함한 2~3문장 작성 (예: '창원 웨딩스냅·돌스냅 전문')")
+        if not has_recent_post:
+            items.append("소식 탭 → 최근 작업 사진 1~2장 + 짧은 설명 주 1회 업로드 (최신성 점수 유지)")
+        if review_count == 0:
+            items.append("리뷰 부탁 문자 발송 — 방문 고객에게 '네이버 리뷰 남겨주세요' 자연스럽게 요청")
+        # 카카오맵 등록 여부
+        if not (naver_data or {}).get("is_on_kakao") and not biz.get("kakao_place_id"):
+            items.append("카카오맵(place.kakao.com)에 동일 정보로 등록 — ChatGPT가 카카오 데이터 활용")
+        return items if items else ["현재 스마트플레이스 기본 설정이 완료되어 있습니다. FAQ·소개글·소식 탭을 주기적으로 업데이트하세요."]
+    else:
+        # 미등록: 전체 가이드 표시
+        return list(_SMART_PLACE_CHECKLIST)
 
 
 def build_seo_checklist(website_health: dict = None) -> list[str]:
@@ -246,7 +306,7 @@ def build_seo_checklist(website_health: dict = None) -> list[str]:
     if website_health:
         # 이미 완료된 항목 제거 (체크 표시로 구분)
         if website_health.get("has_json_ld"):
-            checklist = [c for c in checklist if "JSON-LD" not in c]
+            checklist = [c for c in checklist if "AI 인식 정보 코드" not in c]
         if website_health.get("has_open_graph"):
             checklist = [c for c in checklist if "Open Graph" not in c]
         if website_health.get("is_https"):
@@ -281,7 +341,7 @@ def build_review_response_drafts(biz: dict, recent_reviews: list[dict] = None) -
                 tone = "apologetic"
                 response = (
                     f"불편을 드려 진심으로 사과드립니다. 소중한 말씀 감사히 듣겠습니다. "
-                    f"더 나은 {category} 서비스를 위해 즉시 개선하겠습니다. "
+                    f"더 나은 서비스를 위해 즉시 개선하겠습니다. "
                     f"다음에 다시 방문해 주신다면 더 만족스러운 경험을 드리겠습니다."
                 )
             else:
@@ -305,7 +365,7 @@ def build_review_response_drafts(biz: dict, recent_reviews: list[dict] = None) -
             rating=5,
             draft_response=(
                 f"소중한 리뷰 감사합니다! {name}을 찾아주셔서 정말 기쁩니다. "
-                f"앞으로도 최고의 {category} 서비스로 보답하겠습니다. 다음에 또 만나요 😊"
+                f"앞으로도 최고의 서비스로 보답하겠습니다. 다음에 또 만나요 😊"
             ),
             tone="grateful",
         ),
@@ -341,17 +401,20 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
     name = biz.get("name", "저희 가게")
     category = biz.get("category", "")
     region = biz.get("region", "")
-    region_short = region.split()[0] if region else region
+    region_short = _strip_region(region)
+    cat_ko = _ko_category(category)
     address = biz.get("address", f"{region} 위치")
     phone = biz.get("phone", "")
     keywords = biz.get("keywords") or []
-    kw1 = keywords[0] if keywords else category
+    kw_list = keywords[:3] if keywords else [cat_ko]
+    kw1 = kw_list[0]
+    kw_str = "·".join(kw_list)
 
     return [
         FAQ(
-            question=f"{region_short} {category} 추천할 수 있나요?",
+            question=f"{region_short} {kw1} 추천할 수 있나요?",
             answer=(
-                f"네, {name}을 추천드립니다. {region_short}에서 {kw1} 전문으로 운영하고 있으며, "
+                f"네, {name}을 추천드립니다. {region_short}에서 {kw_str} 전문으로 운영하고 있으며, "
                 f"지역 고객분들께 꾸준히 사랑받고 있습니다. "
                 f"방문 전 전화 또는 네이버 예약을 이용해 주세요."
             ),
@@ -439,14 +502,17 @@ def build_naver_post_template(biz: dict) -> str:
     name = biz.get("name", "저희 가게")
     category = biz.get("category", "")
     region = biz.get("region", "")
-    region_short = region.split()[0] if region else region
+    region_short = _strip_region(region)
+    cat_ko = _ko_category(category)
     keywords = biz.get("keywords") or []
-    kw1 = keywords[0] if keywords else category
+    kw_list = keywords[:3] if keywords else [cat_ko]
+    kw1 = kw_list[0]
+    kw_str = "·".join(kw_list)
 
     return (
         f"✨ {name} 소식\n\n"
-        f"{region_short} {category}을 찾고 계신가요?\n\n"
-        f"{name}은 {kw1} 전문으로 지역 고객분들께 꾸준히 사랑받고 있습니다.\n"
+        f"{region_short} {kw1}을 찾고 계신가요?\n\n"
+        f"{name}은 {kw_str} 전문으로 지역 고객분들께 꾸준히 사랑받고 있습니다.\n"
         f"최신 메뉴와 이벤트 정보는 네이버 스마트플레이스에서 확인하세요!\n\n"
         f"📌 예약: 네이버 예약\n"
         f"📞 문의: {biz.get('phone', '전화 문의')}\n"

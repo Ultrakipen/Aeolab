@@ -27,11 +27,22 @@ export interface Business {
   google_place_id?: string;
   kakao_place_id?: string;
 
+  // 카카오맵 완성도 체크리스트 (프론트 체크박스 저장값)
+  kakao_score?: number;
+  kakao_checklist?: Record<string, boolean>;
+  kakao_registered?: boolean;
+
   // 리뷰 메타 (스캔 시 수집)
   review_count: number;
   avg_rating: number;
   keyword_diversity: number;
   receipt_review_count: number;
+
+  // 인스타그램 연동 (선택)
+  instagram_username?: string;
+  instagram_connected?: boolean;
+  instagram_follower_count?: number;
+  instagram_post_count_30d?: number;
 
   is_active: boolean;
   created_at: string;
@@ -44,6 +55,16 @@ export interface Competitor {
   address?: string;
   is_active: boolean;
   created_at?: string;
+
+  // 네이버 플레이스 데이터 (place_synced_at 있을 때 수집됨)
+  naver_place_id?: string;
+  place_review_count?: number | null;
+  place_avg_rating?: number | null;
+  place_has_faq?: boolean;
+  place_has_recent_post?: boolean;
+  place_has_menu?: boolean;
+  place_photo_count?: number | null;
+  place_synced_at?: string | null;
 }
 
 export type SubscriptionStatus =

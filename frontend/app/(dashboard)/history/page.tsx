@@ -39,24 +39,24 @@ export default async function HistoryPage() {
     .select('plan, status')
     .eq('user_id', user.id)
     .maybeSingle()
-  const plan = sub?.status === "active" ? (sub?.plan ?? "free") : "free"
+  const plan = (sub?.status === "active" || sub?.status === "grace_period") ? (sub?.plan ?? "free") : "free"
 
   const [{ data: beforeAfter }, { data: history }] = await Promise.all([
     supabase
       .from('before_after')
-      .select('*')
+      .select('id, business_id, capture_type, image_url, created_at')
       .eq('business_id', business.id)
       .order('created_at', { ascending: false }),
     supabase
       .from('score_history')
-      .select('*')
+      .select('id, business_id, score_date, total_score, unified_score, track1_score, track2_score, exposure_freq, weekly_change, context, created_at')
       .eq('business_id', business.id)
       .order('score_date', { ascending: false })
       .limit(30),
   ])
 
   return (
-    <div className="p-3 md:p-6">
+    <div className="p-4 md:p-8">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">변화 기록</h1>
@@ -72,6 +72,15 @@ export default async function HistoryPage() {
       </div>
 
       <div className="space-y-4">
+        {/* 히스토리 안내 배너 */}
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex gap-3 items-start">
+          <div className="text-blue-400 mt-0.5 shrink-0 text-base">ℹ️</div>
+          <div className="text-sm text-blue-700">
+            <span className="font-medium">스코어 기록</span>은 대시보드에서 AI 스캔을 실행할 때마다 쌓입니다.
+            <span className="font-medium ml-2">Before/After 스크린샷</span>은 사업장 등록 시 자동 촬영되며, 30일·60일·90일 후 비교 사진이 자동 추가됩니다.
+          </div>
+        </div>
+
         <TrendLine data={history ?? []} />
         <BeforeAfterCard items={beforeAfter ?? []} businessName={business.name} />
 
@@ -106,7 +115,8 @@ export default async function HistoryPage() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">날짜</th>
-                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">점수</th>
+                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">통합 점수</th>
+                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">네이버 AI 준비도</th>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">AI 노출 횟수 (100회 중)</th>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">전주 대비</th>
                   </tr>
@@ -117,13 +127,22 @@ export default async function HistoryPage() {
                       <td className="px-4 md:px-6 py-3 text-gray-700 whitespace-nowrap">
                         {new Date(row.score_date).toLocaleDateString('ko-KR')}
                       </td>
-                      <td className="px-4 md:px-6 py-3 font-semibold text-blue-600">{Math.round(row.total_score)}점</td>
+                      <td className="px-4 md:px-6 py-3 font-semibold text-blue-600">
+                        {Math.round(row.unified_score ?? row.total_score)}점
+                      </td>
+                      <td className="px-4 md:px-6 py-3">
+                        {row.track1_score != null ? (
+                          <span className="font-medium text-indigo-600">{Math.round(row.track1_score)}점</span>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
                       <td className="px-4 md:px-6 py-3 text-gray-600">{row.exposure_freq}/100</td>
                       <td className="px-4 md:px-6 py-3">
-                        {row.weekly_change > 0 ? (
-                          <span className="text-green-600">+{row.weekly_change.toFixed(1)}</span>
-                        ) : row.weekly_change < 0 ? (
-                          <span className="text-red-500">{row.weekly_change.toFixed(1)}</span>
+                        {(row.weekly_change ?? 0) > 0 ? (
+                          <span className="text-green-600">+{(row.weekly_change as number).toFixed(1)}</span>
+                        ) : (row.weekly_change ?? 0) < 0 ? (
+                          <span className="text-red-500">{(row.weekly_change as number).toFixed(1)}</span>
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}

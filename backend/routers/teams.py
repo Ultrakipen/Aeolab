@@ -31,10 +31,10 @@ async def _get_plan(user_id: str) -> tuple[str, str]:
 
 @router.get("/members")
 async def list_members(user=Depends(get_current_user)):
+    """팀 멤버 목록 조회 (Biz+ 전용)"""
     x_user_id = user["id"]
-    """팀 멤버 목록 조회"""
     plan, status = await _get_plan(x_user_id)
-    if plan not in ("biz", "enterprise") or status != "active":
+    if plan not in ("biz", "enterprise") or status not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},
@@ -43,7 +43,7 @@ async def list_members(user=Depends(get_current_user)):
     members = (
         await execute(
             supabase.table("team_members")
-            .select("*")
+            .select("id, owner_id, email, role, status, invited_at, joined_at")
             .eq("owner_id", x_user_id)
         )
     ).data or []
@@ -52,10 +52,10 @@ async def list_members(user=Depends(get_current_user)):
 
 @router.post("/invite")
 async def invite_member(req: TeamInviteRequest, user=Depends(get_current_user)):
+    """팀원 초대 이메일 발송 (Biz+ 전용)"""
     x_user_id = user["id"]
-    """팀원 초대 (이메일)"""
     plan, status = await _get_plan(x_user_id)
-    if plan not in ("biz", "enterprise") or status != "active":
+    if plan not in ("biz", "enterprise") or status not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},
@@ -91,8 +91,14 @@ async def invite_member(req: TeamInviteRequest, user=Depends(get_current_user)):
 
 @router.delete("/members/{member_id}")
 async def remove_member(member_id: str, user=Depends(get_current_user)):
+    """팀원 제거 (Biz+ 전용)"""
     x_user_id = user["id"]
-    """팀원 제거"""
+    plan, status = await _get_plan(x_user_id)
+    if plan not in ("biz", "enterprise") or status not in ("active", "grace_period"):
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},
+        )
     supabase = get_client()
     await execute(
         supabase.table("team_members").delete().eq("id", member_id).eq(
@@ -104,8 +110,14 @@ async def remove_member(member_id: str, user=Depends(get_current_user)):
 
 @router.patch("/members/{member_id}/role")
 async def update_member_role(member_id: str, role: str, user=Depends(get_current_user)):
+    """팀원 역할 변경 (member ↔ viewer, Biz+ 전용)"""
     x_user_id = user["id"]
-    """팀원 역할 변경 (member ↔ viewer)"""
+    plan, status = await _get_plan(x_user_id)
+    if plan not in ("biz", "enterprise") or status not in ("active", "grace_period"):
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},
+        )
     if role not in ("member", "viewer"):
         raise HTTPException(status_code=400, detail="role must be member or viewer")
     supabase = get_client()

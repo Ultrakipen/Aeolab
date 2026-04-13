@@ -1,7 +1,10 @@
 import httpx
 import json
+import logging
 import re
 import os
+
+logger = logging.getLogger(__name__)
 
 
 class PerplexityScanner:
@@ -22,7 +25,7 @@ class PerplexityScanner:
                         "Content-Type": "application/json",
                     },
                     json={
-                        "model": "llama-3.1-sonar-small-128k-online",
+                        "model": "sonar",
                         "messages": [{"role": "user", "content": prompt}],
                         "temperature": 0.2,
                     },
@@ -32,7 +35,8 @@ class PerplexityScanner:
                 m = re.search(r"\{.*?\}", text, re.DOTALL)
                 result = json.loads(m.group()) if m else {"mentioned": False}
                 return {"platform": "perplexity", **result}
-        except Exception:
+        except Exception as e:
+            logger.warning("PerplexityScanner.check failed: query=%s target=%s error=%s", query, target, e)
             return {"platform": "perplexity", "mentioned": False}
 
     async def check_mention(self, query: str, target: str) -> dict:
