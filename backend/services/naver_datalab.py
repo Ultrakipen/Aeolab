@@ -287,6 +287,92 @@ class NaverDataLabClient:
         return result
 
 
+    async def get_keyword_trends(
+        self,
+        keywords: list[str],
+        period: str = "1month",
+    ) -> dict:
+        """
+        특정 키워드 목록의 DataLab 트렌드 조회.
+        키워드별 개별 그룹으로 조회해 상대 비교가 가능하도록 합니다.
+
+        Args:
+            keywords: 조회할 키워드 목록 (최대 5개)
+            period: "1month" | "3month" | "6month" | "1year"
+
+        Returns:
+            {
+                "keywords": [
+                    {
+                        "keyword": str,
+                        "trend": [{"period": str, "ratio": float}],
+                        "monthly_volume": int | null   # SearchAd 연동 시 채워짐
+                    }
+                ],
+                "period": str,
+                "start_date": str,
+                "end_date": str,
+                "available": bool
+            }
+        """
+        # 최대 5개 제한 (DataLab API 그룹 최대 5개)
+        keywords = keywords[:5]
+        if not keywords:
+            return {"keywords": [], "available": False, "period": period}
+
+        # 기간 계산
+        now = datetime.now(timezone.utc).replace(day=1)
+        period_map = {"1month": 1, "3month": 3, "6month": 6, "1year": 12}
+        months_back = period_map.get(period, 1)
+        start_dt = now - timedelta(days=months_back * 31)
+        start_date = start_dt.strftime("%Y-%m-%d")
+        end_date = now.strftime("%Y-%m-%d")
+
+        # 키워드별 개별 그룹 생성
+        keyword_groups = [
+            {"groupName": kw, "keywords": [kw]}
+            for kw in keywords
+        ]
+
+        raw = await self.get_search_trend(
+            keyword_groups=keyword_groups,
+            start_date=start_date,
+            end_date=end_date,
+            device="mo",
+            time_unit="month",
+        )
+
+        if not raw or raw.get("error") or not raw.get("results"):
+            return {
+                "keywords": [{"keyword": kw, "trend": [], "monthly_volume": None} for kw in keywords],
+                "period": period,
+                "start_date": start_date,
+                "end_date": end_date,
+                "available": False,
+            }
+
+        result_list: list[dict] = []
+        for item in raw.get("results", []):
+            kw = item.get("title", "")
+            trend = [
+                {"period": d.get("period", ""), "ratio": float(d.get("ratio", 0))}
+                for d in item.get("data", [])
+            ]
+            result_list.append({
+                "keyword": kw,
+                "trend": trend,
+                "monthly_volume": None,  # SearchAd 연동 시 report.py에서 병합
+            })
+
+        return {
+            "keywords": result_list,
+            "period": period,
+            "start_date": start_date,
+            "end_date": end_date,
+            "available": bool(result_list),
+        }
+
+
 # 모듈 레벨 싱글톤
 _datalab_client: NaverDataLabClient | None = None
 

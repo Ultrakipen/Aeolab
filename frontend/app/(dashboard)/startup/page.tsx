@@ -6,10 +6,16 @@ import { BarChart2, MapPin, TrendingUp, Lightbulb } from "lucide-react";
 
 export default async function StartupPage() {
   const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (!user || error) redirect("/login");
+  let user = null;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (!error && data.user) user = data.user;
+  } catch {
+    // Invalid Refresh Token 등
+  }
+  if (!user) redirect("/login");
 
-  // startup/biz/enterprise 플랜 게이트 — 구독 status까지 검증
+  // startup/biz 플랜 게이트 — 구독 status까지 검증
   const { data: sub } = await supabase
     .from("subscriptions")
     .select("plan, status")
@@ -17,7 +23,7 @@ export default async function StartupPage() {
     .maybeSingle();
 
   const activePlan = (sub?.status === "active" || sub?.status === "grace_period") ? (sub?.plan ?? "free") : "free";
-  const STARTUP_PLANS = ["startup", "biz", "enterprise"];
+  const STARTUP_PLANS = ["startup", "biz"];
 
   if (!STARTUP_PLANS.includes(activePlan)) {
     const features = [
@@ -46,7 +52,7 @@ export default async function StartupPage() {
     return (
       <div className="p-4 md:p-8 max-w-2xl">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">창업 시장 분석</h1>
-        <p className="text-sm text-gray-500 mb-6">업종·지역 AI 노출 경쟁 강도 + 진입 전략 (창업 패키지 이상 전용)</p>
+        <p className="text-base text-gray-500 mb-6">업종·지역 AI 노출 경쟁 강도 + 진입 전략 (창업 패키지 이상 전용)</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {features.map((f) => (

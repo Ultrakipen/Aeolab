@@ -45,7 +45,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="text-sm font-semibold text-gray-900 mb-0.5">AI 브리핑 노출 성장 타임라인</div>
-          <p className="text-xs text-gray-400">
+          <p className="text-sm text-gray-400">
             {formatFullDate(first.score_date)} ~ {formatFullDate(latest.score_date)}
           </p>
         </div>
@@ -64,7 +64,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
           >
             {totalChange > 0 ? '+' : ''}{totalChange}점
           </span>
-          <span className="text-xs text-gray-400 ml-1">전체 변화</span>
+          <span className="text-sm text-gray-400 ml-1">전체 변화</span>
         </div>
       </div>
 
@@ -90,7 +90,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
             <div key={p.score_date} className="flex-1 flex flex-col items-center gap-1 group relative">
               {/* 툴팁 */}
               <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center z-10">
-                <div className="bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                <div className="bg-gray-800 text-white text-sm rounded px-2 py-1 whitespace-nowrap">
                   {formatFullDate(p.score_date)}: {p.total_score.toFixed(1)}점
                   {isPeak && ' ★최고'}
                 </div>
@@ -102,7 +102,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
                 className={`w-full rounded-t-sm ${barColor} transition-all`}
                 style={{ height: `${heightPct}%` }}
               />
-              <span className="text-xs text-gray-400 leading-none">{formatDate(p.score_date)}</span>
+              <span className="text-sm text-gray-400 leading-none">{formatDate(p.score_date)}</span>
             </div>
           )
         })}

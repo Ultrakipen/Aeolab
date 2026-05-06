@@ -20,12 +20,11 @@ interface ResultTableProps {
 }
 
 const NAVER_KEYS  = new Set(['naver'])
-const GLOBAL_KEYS = new Set(['gemini', 'chatgpt', 'perplexity', 'google'])
+const GLOBAL_KEYS = new Set(['gemini', 'chatgpt', 'google'])
 
 const PLATFORM_LABELS: Record<string, string> = {
   gemini:     'Gemini AI',
   chatgpt:    'ChatGPT',
-  perplexity: 'Perplexity',
   naver:      '네이버 AI 브리핑',
   google:     'Google AI Overview',
 }
@@ -45,7 +44,7 @@ function StatusBadge({ result, platformKey }: { result: AIResult; platformKey: s
       return (
         <div className="space-y-0.5">
           <span className="text-gray-400 text-sm block">검색 미노출</span>
-          <span className="text-gray-300 text-xs block">AI 브리핑 미포함</span>
+          <span className="text-gray-300 text-sm block">AI 브리핑 미포함</span>
         </div>
       )
     }
@@ -59,11 +58,11 @@ function StatusBadge({ result, platformKey }: { result: AIResult; platformKey: s
           <span className="text-gray-400 text-sm">검색 미노출</span>
         )}
         {inBrief ? (
-          <span className="inline-flex items-center gap-1 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full font-medium w-fit">
+          <span className="inline-flex items-center gap-1 bg-green-600 text-white text-sm px-2 py-0.5 rounded-full font-medium w-fit">
             🤖 AI 브리핑 포함
           </span>
         ) : (
-          <span className="text-gray-400 text-xs">AI 브리핑 미포함</span>
+          <span className="text-gray-400 text-sm">AI 브리핑 미포함</span>
         )}
       </div>
     )
@@ -79,12 +78,12 @@ function StatusBadge({ result, platformKey }: { result: AIResult; platformKey: s
         {result.rank && <span className="text-gray-400 ml-0.5">{result.rank}위</span>}
       </span>
       {result.in_briefing && (
-        <span className="inline-flex items-center gap-1 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+        <span className="inline-flex items-center gap-1 bg-green-600 text-white text-sm px-2 py-0.5 rounded-full font-medium">
           AI 브리핑 포함
         </span>
       )}
       {result.in_ai_overview && (
-        <span className="inline-flex items-center gap-1 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+        <span className="inline-flex items-center gap-1 bg-blue-600 text-white text-sm px-2 py-0.5 rounded-full font-medium">
           AI Overview
         </span>
       )}

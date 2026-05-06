@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { X, ZoomIn, Search } from "lucide-react"
 
 interface BeforeAfterItem {
@@ -18,9 +18,46 @@ interface BeforeAfterCardProps {
 
 const TYPE_LABEL: Record<string, string> = {
   before: "가입 시점",
+  before_naver_ai: "가입 시점",
+  before_google: "가입 시점",
+  after_7d: "1주 후",
+  after_14d: "2주 후",
   after_30d: "30일 후",
+  after_7d_naver_ai: "1주 후",
+  after_14d_naver_ai: "2주 후",
+  after_30d_naver_ai: "30일 후",
+  after_7d_google: "1주 후",
+  after_14d_google: "2주 후",
+  after_30d_google: "30일 후",
+  // 구 데이터 하위호환
   after_60d: "60일 후",
   after_90d: "90일 후",
+}
+
+function getPlatform(captureType: string): "naver_blog" | "naver_ai" | "google" | "other" {
+  if (captureType.includes("naver_ai")) return "naver_ai"
+  if (captureType.includes("google")) return "google"
+  if (
+    captureType === "before" ||
+    captureType === "naver" ||
+    (captureType.startsWith("after_") &&
+      !captureType.includes("_naver_ai") &&
+      !captureType.includes("_google"))
+  )
+    return "naver_blog"
+  return "other"
+}
+
+const PLATFORM_LABEL: Record<string, string> = {
+  naver_blog: "네이버 블로그",
+  naver_ai: "네이버 AI 브리핑",
+  google: "Google 검색",
+}
+
+const PLATFORM_COLOR: Record<string, string> = {
+  naver_blog: "text-green-600 bg-green-50 border-green-200",
+  naver_ai: "text-blue-600 bg-blue-50 border-blue-200",
+  google: "text-orange-600 bg-orange-50 border-orange-200",
 }
 
 interface LightboxProps {
@@ -91,22 +128,46 @@ function ImageThumb({ item, label, isBefore, onClick }: ImageThumbProps) {
   const dateStr = new Date(item.created_at).toLocaleDateString("ko-KR")
   const borderClass = isBefore ? "border-gray-200" : "border-blue-200"
   const labelClass = isBefore ? "text-gray-500" : "text-blue-600 font-medium"
+  const [imgError, setImgError] = useState(false)
+  const [imgLoaded, setImgLoaded] = useState(false)
 
   return (
     <div>
       <div className={`text-sm ${labelClass} mb-1 text-center`}>{label}</div>
-      <div className="relative group cursor-pointer" onClick={onClick}>
-        <img
-          src={item.image_url}
-          alt={label}
-          className={`w-full rounded-lg border ${borderClass} object-cover aspect-video transition-opacity group-hover:opacity-80`}
-        />
-        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/0 group-hover:bg-black/30 transition-all">
-          <div className="flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <ZoomIn className="w-7 h-7 text-white drop-shadow" />
-            <span className="text-white text-xs font-medium drop-shadow">클릭하여 크게 보기</span>
+      <div className="relative group cursor-pointer" onClick={!imgError ? onClick : undefined}>
+        {imgError ? (
+          /* 로딩 실패 fallback */
+          <div
+            className={`w-full rounded-lg border ${borderClass} bg-gray-50 aspect-video flex flex-col items-center justify-center gap-1`}
+          >
+            <span className="text-gray-300 text-2xl">🖼</span>
+            <span className="text-sm text-gray-400 text-center px-2">이미지를 불러올 수 없습니다</span>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* 로딩 중 skeleton */}
+            {!imgLoaded && (
+              <div
+                className={`absolute inset-0 w-full rounded-lg border ${borderClass} bg-gray-100 animate-pulse aspect-video`}
+              />
+            )}
+            <img
+              src={item.image_url}
+              alt={label}
+              className={`w-full rounded-lg border ${borderClass} object-cover aspect-video transition-opacity group-hover:opacity-80 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+              onLoad={() => setImgLoaded(true)}
+              onError={() => setImgError(true)}
+            />
+          </>
+        )}
+        {!imgError && imgLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/0 group-hover:bg-black/30 transition-all">
+            <div className="flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ZoomIn className="w-7 h-7 text-white drop-shadow" />
+              <span className="text-white text-sm font-medium drop-shadow">클릭하여 크게 보기</span>
+            </div>
+          </div>
+        )}
       </div>
       <div className="text-sm text-gray-400 text-center mt-1">{dateStr}</div>
     </div>
@@ -128,6 +189,34 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
     date: string
   } | null>(null)
 
+  // 플랫폼별 탭 상태
+  const platforms = useMemo(() => {
+    const set = new Set<string>()
+    items.forEach((i) => {
+      const p = getPlatform(i.capture_type)
+      if (p !== "other") set.add(p)
+    })
+    // 표시 순서: naver_blog → naver_ai → google
+    const order = ["naver_blog", "naver_ai", "google"]
+    return order.filter((p) => set.has(p))
+  }, [items])
+
+  const [selectedPlatform, setSelectedPlatform] = useState<string>("")
+
+  useEffect(() => {
+    if (platforms.length > 0 && !selectedPlatform) {
+      setSelectedPlatform(platforms[0])
+    }
+  }, [platforms, selectedPlatform])
+
+  const activePlatform = selectedPlatform || platforms[0] || "naver_blog"
+
+  // 현재 플랫폼 항목만 필터
+  const platformItems = useMemo(
+    () => items.filter((i) => getPlatform(i.capture_type) === activePlatform),
+    [items, activePlatform]
+  )
+
   const openLightbox = useCallback((item: BeforeAfterItem, label: string) => {
     setLightbox({
       src: item.image_url,
@@ -139,10 +228,24 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
 
   const closeLightbox = useCallback(() => setLightbox(null), [])
 
-  const befores = items.filter((i) => i.capture_type === "before")
-  const afters = items.filter((i) => i.capture_type.startsWith("after_"))
+  // 플랫폼 내 before / after 분리
+  const befores = platformItems.filter(
+    (i) =>
+      i.capture_type === "before" ||
+      i.capture_type === "before_naver_ai" ||
+      i.capture_type === "before_google"
+  )
+  const afters = platformItems.filter((i) => i.capture_type.startsWith("after_"))
 
-  if (befores.length === 0) {
+  // 전체 before 존재 여부 (플랫폼 무관)
+  const allBefores = items.filter(
+    (i) =>
+      i.capture_type === "before" ||
+      i.capture_type === "before_naver_ai" ||
+      i.capture_type === "before_google"
+  )
+
+  if (allBefores.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
         <div className="text-base font-medium text-gray-700 mb-2">Before / After 비교</div>
@@ -178,6 +281,36 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
           {businessName} — Before / After 변화
         </div>
 
+        {/* 플랫폼 탭 (2개 이상일 때만 표시) */}
+        {platforms.length > 1 && (
+          <div className="flex gap-2 mb-4 flex-wrap">
+            {platforms.map((p) => (
+              <button
+                key={p}
+                onClick={() => setSelectedPlatform(p)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  activePlatform === p
+                    ? PLATFORM_COLOR[p]
+                    : "text-gray-500 bg-white border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                {PLATFORM_LABEL[p] ?? p}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* 단일 플랫폼일 때 라벨 표시 */}
+        {platforms.length === 1 && (
+          <div
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium border mb-3 ${
+              PLATFORM_COLOR[activePlatform] ?? "text-gray-500 bg-gray-50 border-gray-200"
+            }`}
+          >
+            {PLATFORM_LABEL[activePlatform] ?? activePlatform}
+          </div>
+        )}
+
         {isSingleLegacy ? (
           /* 구 데이터 호환 단일 레이아웃 */
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -200,7 +333,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
             {afters.length === 0 && (
               <div className="col-span-3 flex items-center justify-center bg-gray-50 rounded-lg h-24">
                 <p className="text-sm text-gray-400 text-center px-4">
-                  가입 30일 후 After 스크린샷이
+                  가입 1주 후 After 스크린샷이
                   <br />
                   자동으로 생성됩니다.
                 </p>
@@ -248,7 +381,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
                   {idx === 0 && afters.length === 0 && (
                     <div className="col-span-2 md:col-span-3 flex items-center justify-center bg-gray-50 rounded-lg h-20">
                       <p className="text-sm text-gray-400 text-center px-4">
-                        30일 후 After 스크린샷이 자동 생성됩니다.
+                        1주 후 After 스크린샷이 자동 생성됩니다.
                       </p>
                     </div>
                   )}

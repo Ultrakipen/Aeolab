@@ -2,8 +2,40 @@
 
 import { useState } from "react";
 import { updatePhone } from "@/lib/api";
-import { createClient } from "@/lib/supabase/client";
-import { CreditCard, Bell, Phone, Camera, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { getSafeSession } from "@/lib/supabase/client";
+import { CreditCard, Bell, Phone, AlertTriangle, CheckCircle2, X, ArrowRight } from "lucide-react";
+
+// 해지 사유 선택지
+const CANCEL_REASONS = [
+  {
+    id: "complex",
+    label: "사용이 복잡해요",
+    response: "가이드 페이지에서 단계별 사용법을 확인해보세요. 5분이면 핵심 기능을 모두 사용할 수 있습니다.",
+    link: "/guide",
+    linkLabel: "가이드 페이지 보기",
+  },
+  {
+    id: "no_effect",
+    label: "효과를 못 느꼈어요",
+    response: "스캔 결과의 '지금 할 것' 액션을 실행하셨나요? 스마트플레이스 소개글에 Q&A 1개 추가 후 7일 뒤 변화를 확인해보세요.",
+    link: null,
+    linkLabel: null,
+  },
+  {
+    id: "expensive",
+    label: "가격이 부담돼요",
+    response: "Basic 플랜(월 9,900원)으로 다운그레이드하면 핵심 기능을 더 저렴하게 유지할 수 있습니다.",
+    link: "/pricing",
+    linkLabel: "Basic 플랜 보기",
+  },
+  {
+    id: "pause",
+    label: "잠시 쉬려고요",
+    response: "현재 구독 기간 만료일까지는 서비스를 계속 이용할 수 있습니다. 재가입 시 데이터는 그대로 유지됩니다.",
+    link: null,
+    linkLabel: null,
+  },
+] as const;
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -13,9 +45,9 @@ interface Props {
   kakaoCompetitorNotify?: boolean;
   subscriptionStatus?: string;
   userId?: string;
-  instagramUsername?: string;
-  instagramFollowerCount?: number;
-  instagramPostCount30d?: number;
+  subscriptionDays?: number;
+  competitorCount?: number;
+  actionCount?: number;
 }
 
 export function SettingsClient({
@@ -24,13 +56,14 @@ export function SettingsClient({
   kakaoCompetitorNotify = true,
   subscriptionStatus,
   userId,
-  instagramUsername: initIgUsername = "",
-  instagramFollowerCount: initIgFollower,
-  instagramPostCount30d: initIgPost,
+  subscriptionDays = 0,
+  competitorCount = 0,
+  actionCount = 0,
 }: Props) {
   const [cancelling, setCancelling] = useState(false);
   const [cancelled, setCancelled] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState("");
   const [phone, setPhone] = useState(currentPhone ?? "");
   const [phoneSaving, setPhoneSaving] = useState(false);
@@ -41,17 +74,8 @@ export function SettingsClient({
   const [cardChanging, setCardChanging] = useState(false);
   const [cardError, setCardError] = useState("");
 
-  const [igUsername, setIgUsername] = useState(initIgUsername);
-  const [igFollower, setIgFollower] = useState(initIgFollower?.toString() ?? "");
-  const [igPost, setIgPost] = useState(initIgPost?.toString() ?? "");
-  const [igSaving, setIgSaving] = useState(false);
-  const [igSaved, setIgSaved] = useState(false);
-  const [igError, setIgError] = useState("");
-
-  const supabase = createClient();
-
   const getToken = async (): Promise<string> => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const session = await getSafeSession();
     if (!session?.access_token) throw new Error("인증 세션이 만료되었습니다. 다시 로그인해 주세요.");
     return session.access_token;
   };
@@ -102,7 +126,7 @@ export function SettingsClient({
     setCardChanging(true);
     setCardError("");
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await getSafeSession();
       const effectiveUserId = userId ?? session?.user?.id;
       if (!effectiveUserId) {
         setCardError("로그인 정보를 확인할 수 없습니다. 다시 로그인해 주세요.");
@@ -125,61 +149,6 @@ export function SettingsClient({
       }
     } finally {
       setCardChanging(false);
-    }
-  };
-
-  const handleIgSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIgSaving(true);
-    setIgSaved(false);
-    setIgError("");
-    try {
-      const token = await getToken();
-      const body: Record<string, string | number> = {};
-      if (igUsername.trim()) body.instagram_username = igUsername.trim().replace(/^@/, "");
-      if (igFollower.trim()) body.instagram_follower_count = parseInt(igFollower, 10) || 0;
-      if (igPost.trim()) body.instagram_post_count_30d = parseInt(igPost, 10) || 0;
-
-      const res = await fetch(`${BACKEND}/api/settings/me`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
-      });
-      if (res.ok) {
-        setIgSaved(true);
-        setTimeout(() => setIgSaved(false), 3000);
-      } else {
-        setIgError("저장 중 오류가 발생했습니다. 다시 시도해주세요.");
-      }
-    } catch {
-      setIgError("네트워크 오류가 발생했습니다.");
-    } finally {
-      setIgSaving(false);
-    }
-  };
-
-  const handleCancel = async () => {
-    setCancelling(true);
-    try {
-      const token = await getToken();
-      const res = await fetch(`${BACKEND}/api/settings/cancel`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        setCancelled(true);
-        setShowConfirm(false);
-      } else {
-        const err = await res.json().catch(() => ({}));
-        const code = err?.detail?.code ?? "";
-        setCancelError(
-          code === "NO_ACTIVE_SUBSCRIPTION"
-            ? "활성 구독이 없습니다. 이미 해지되었거나 구독 내역이 없습니다."
-            : "해지 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
-        );
-      }
-    } finally {
-      setCancelling(false);
     }
   };
 
@@ -269,74 +238,6 @@ export function SettingsClient({
         </div>
       </div>
 
-      {/* ── 인스타그램 AI 신호 연동 ── */}
-      <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-pink-100 flex items-center justify-center shrink-0">
-            <Camera className="w-4 h-4 text-pink-600" strokeWidth={1.8} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-base font-semibold text-gray-800">인스타그램 AI 신호 연동</h3>
-              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium shrink-0">베타</span>
-            </div>
-            <p className="text-sm text-gray-500">ChatGPT·Perplexity AI 인용 가능성을 측정합니다.</p>
-          </div>
-        </div>
-        <form onSubmit={handleIgSave} className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1.5">
-              계정명 <span className="text-gray-400 font-normal">(@ 없이 입력)</span>
-            </label>
-            <input
-              type="text"
-              value={igUsername}
-              onChange={(e) => setIgUsername(e.target.value)}
-              placeholder="mycafe_seoul"
-              className="w-full border border-gray-200 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-pink-400"
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1.5">팔로워 수</label>
-              <input
-                type="number"
-                min="0"
-                value={igFollower}
-                onChange={(e) => setIgFollower(e.target.value)}
-                placeholder="1200"
-                className="w-full border border-gray-200 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-pink-400"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1.5">월 평균 게시물</label>
-              <input
-                type="number"
-                min="0"
-                value={igPost}
-                onChange={(e) => setIgPost(e.target.value)}
-                placeholder="8"
-                className="w-full border border-gray-200 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-pink-400"
-              />
-            </div>
-          </div>
-          {igError && (
-            <p className="text-sm text-red-500">{igError}</p>
-          )}
-          <button
-            type="submit"
-            disabled={igSaving}
-            className={`w-full sm:w-auto px-5 py-3 text-base font-medium rounded-lg transition-colors disabled:opacity-50 ${
-              igSaved
-                ? "bg-emerald-500 text-white"
-                : "bg-pink-600 text-white hover:bg-pink-700"
-            }`}
-          >
-            {igSaving ? "저장 중..." : igSaved ? "✓ 연동 완료" : "저장"}
-          </button>
-        </form>
-      </div>
-
       {/* ── 결제 카드 변경 ── */}
       {isActiveSubscription && (
         <div className="bg-gray-50 rounded-xl p-4 space-y-3">
@@ -381,44 +282,138 @@ export function SettingsClient({
           <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" strokeWidth={1.8} />
           <h3 className="text-base font-semibold text-red-600">위험 영역</h3>
         </div>
-        {!showConfirm ? (
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <p className="text-sm text-gray-500 flex-1">구독을 해지하면 자동 스캔과 알림이 중단됩니다.</p>
-            <button
-              onClick={() => { setShowConfirm(true); setCancelError(""); }}
-              className="w-full sm:w-auto text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 px-4 py-2.5 rounded-lg hover:bg-red-50 transition-colors"
-            >
-              구독 해지
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="bg-red-50 rounded-lg px-3 py-2.5">
-              <p className="text-sm text-red-700">
-                정말 해지하시겠습니까? 현재 구독 기간 만료일까지는 서비스를 계속 이용할 수 있습니다.
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <p className="text-sm text-gray-500 flex-1">구독을 해지하면 자동 스캔과 알림이 중단됩니다.</p>
+          <button
+            onClick={() => { setShowCancelModal(true); setCancelError(""); setSelectedReason(null); }}
+            className="w-full sm:w-auto text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 px-4 py-2.5 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            구독 해지
+          </button>
+        </div>
+      </div>
+
+      {/* ── 해지 방어 모달 ── */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            {/* 모달 헤더 */}
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">구독을 해지하시겠습니까?</h3>
+                <p className="text-sm text-gray-500 mt-0.5">해지하면 다음 데이터에 접근할 수 없게 됩니다.</p>
+              </div>
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors ml-3 shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* 잃게 되는 데이터 요약 */}
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-4 mb-4 space-y-2">
+              <div className="flex items-center gap-2 text-sm text-red-800">
+                <span className="text-red-500 font-bold shrink-0">•</span>
+                <span>AI 노출 이력 <strong>{subscriptionDays}일</strong> 기록</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-red-800">
+                <span className="text-red-500 font-bold shrink-0">•</span>
+                <span>경쟁사 비교 데이터 <strong>{competitorCount}개</strong> 사업장</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-red-800">
+                <span className="text-red-500 font-bold shrink-0">•</span>
+                <span>행동→점수 변화 기록 <strong>{actionCount}건</strong></span>
+              </div>
+              <p className="text-xs text-red-600 mt-1 pt-2 border-t border-red-100">
+                데이터는 30일간 보관 후 삭제됩니다.
               </p>
             </div>
+
+            {/* 해지 사유 선택 */}
+            <p className="text-sm font-medium text-gray-700 mb-2">불편하신 점이 있으신가요?</p>
+            <div className="space-y-2 mb-4">
+              {CANCEL_REASONS.map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => setSelectedReason(r.id)}
+                  className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
+                    selectedReason === r.id
+                      ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : "border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 선택된 사유 맞춤 응답 */}
+            {selectedReason && (() => {
+              const reason = CANCEL_REASONS.find(r => r.id === selectedReason);
+              if (!reason) return null;
+              return (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-4">
+                  <p className="text-sm text-blue-800 leading-relaxed">{reason.response}</p>
+                  {reason.link && reason.linkLabel && (
+                    <a
+                      href={reason.link}
+                      className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-800 mt-2"
+                    >
+                      {reason.linkLabel}
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              );
+            })()}
+
+            {cancelError && (
+              <p className="text-sm text-red-500 mb-3">{cancelError}</p>
+            )}
+
+            {/* 액션 버튼 — 유지하기가 주 버튼 */}
             <div className="flex flex-col sm:flex-row gap-2">
               <button
-                onClick={handleCancel}
-                disabled={cancelling}
-                className="w-full sm:w-auto text-base bg-red-600 text-white px-5 py-3 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors font-medium"
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 text-base font-bold bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition-colors"
               >
-                {cancelling ? "처리 중..." : "해지 확인"}
+                유지하기
               </button>
               <button
-                onClick={() => setShowConfirm(false)}
-                className="w-full sm:w-auto text-base border border-gray-200 text-gray-600 px-5 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+                onClick={async () => {
+                  setCancelling(true);
+                  try {
+                    const token = await getToken();
+                    const res = await fetch(`${BACKEND}/api/settings/cancel`, {
+                      method: "POST",
+                      headers: { Authorization: `Bearer ${token}` },
+                    });
+                    if (res.ok) {
+                      setCancelled(true);
+                      setShowCancelModal(false);
+                    } else {
+                      const err = await res.json().catch(() => ({}));
+                      const code = err?.detail?.code ?? "";
+                      setCancelError(
+                        code === "NO_ACTIVE_SUBSCRIPTION"
+                          ? "활성 구독이 없습니다. 이미 해지되었거나 구독 내역이 없습니다."
+                          : "해지 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+                      );
+                    }
+                  } finally {
+                    setCancelling(false);
+                  }
+                }}
+                disabled={cancelling}
+                className="w-full sm:w-auto text-sm text-red-500 border border-red-200 px-4 py-3 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50 whitespace-nowrap"
               >
-                취소
+                {cancelling ? "처리 중..." : "그래도 해지"}
               </button>
             </div>
-            {cancelError && (
-              <p className="text-sm text-red-500">{cancelError}</p>
-            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,11 +3,14 @@ import Link from 'next/link'
 interface GlobalAIBannerProps {
   globalScore: number
   hasWebsite: boolean
+  eligibility?: "active" | "likely" | "inactive"
 }
 
-export function GlobalAIBanner({ globalScore, hasWebsite }: GlobalAIBannerProps) {
-  // 글로벌 AI 채널 점수가 30점 미만일 때만 표시
-  if (globalScore >= 30) return null
+export function GlobalAIBanner({ globalScore, hasWebsite, eligibility }: GlobalAIBannerProps) {
+  // INACTIVE 업종은 globalScore 무관 상시 표시 (글로벌 AI가 주 채널이므로)
+  // 그 외 업종은 50점 미만일 때만 표시
+  const isInactive = eligibility === "inactive"
+  if (!isInactive && globalScore >= 50) return null
 
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
@@ -17,7 +20,7 @@ export function GlobalAIBanner({ globalScore, hasWebsite }: GlobalAIBannerProps)
         </div>
         <div className="flex-1">
           <p className="text-sm font-bold text-amber-800 mb-1">
-            ChatGPT · Perplexity에서 이 사업장이 검색되지 않습니다
+            ChatGPT · Gemini에서 이 사업장이 검색되지 않습니다
           </p>
           <p className="text-sm text-amber-700 leading-relaxed mb-3">
             <strong>네이버는 ChatGPT·Gemini의 크롤링을 차단</strong>하고 있습니다.

@@ -7,14 +7,9 @@ import { CheckCircle2, XCircle, AlertTriangle, Minus, FileText, Star, Lightbulb 
 interface PlatformResult {
   mentioned?: boolean;
   exposure_freq?: number;
+  exposure_rate?: number;
   in_briefing?: boolean;
   error?: string;
-}
-
-interface CompetitorItem {
-  name: string;
-  score: number;
-  isMe?: boolean;
 }
 
 interface Props {
@@ -27,10 +22,9 @@ interface Props {
   avgRating: number;
   smartPlaceScore: number;
   naverMentioned: boolean;
-  totalScore: number;
-  competitorItems: CompetitorItem[];
   categoryKo: string;
   inBriefing?: boolean;
+  naverPlaceUrl?: string | null;
 }
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -38,14 +32,16 @@ const PLATFORM_LABELS: Record<string, string> = {
   gemini: "Gemini",
   chatgpt: "ChatGPT",
   google: "Google AI",
-  perplexity: "Perplexity",
 };
 
 // 표시할 플랫폼 순서 고정
-const DISPLAY_PLATFORMS = ["naver", "gemini", "chatgpt", "perplexity", "google"];
+const DISPLAY_PLATFORMS = ["naver", "gemini", "chatgpt", "google"];
+
 
 function eunNeun(name: string): string {
+  if (!name) return "우리 가게은(는)";
   const last = name[name.length - 1];
+  if (!last) return `${name}은(는)`;
   const code = last.charCodeAt(0);
   if (code < 0xac00 || code > 0xd7a3) return `${name}은(는)`;
   const hasJongseong = (code - 0xac00) % 28 !== 0;
@@ -53,7 +49,9 @@ function eunNeun(name: string): string {
 }
 
 function iGa(name: string): string {
+  if (!name) return "우리 가게이(가)";
   const last = name[name.length - 1];
+  if (!last) return `${name}이(가)`;
   const code = last.charCodeAt(0);
   if (code < 0xac00 || code > 0xd7a3) return `${name}이(가)`;
   const hasJongseong = (code - 0xac00) % 28 !== 0;
@@ -61,7 +59,9 @@ function iGa(name: string): string {
 }
 
 function eulReul(name: string): string {
+  if (!name) return "우리 가게을(를)";
   const last = name[name.length - 1];
+  if (!last) return `${name}을(를)`;
   const code = last.charCodeAt(0);
   if (code < 0xac00 || code > 0xd7a3) return `${name}을(를)`;
   const hasJongseong = (code - 0xac00) % 28 !== 0;
@@ -80,12 +80,12 @@ export default function AIDiagnosisCard({
   keywords,
   allPlatformResults,
   reviewCount,
+  avgRating,
   smartPlaceScore,
   naverMentioned,
-  totalScore,
-  competitorItems,
   categoryKo,
   inBriefing,
+  naverPlaceUrl,
 }: Props) {
   const naverInBriefing = inBriefing ?? (allPlatformResults["naver"]?.in_briefing === true);
   const naverMentionedOnly = naverMentioned && !naverInBriefing;
@@ -126,11 +126,6 @@ export default function AIDiagnosisCard({
     return r && !r.error;
   }).length;
 
-  // 경쟁사 + 내 가게 합산 (내 가게 포함 확인)
-  const hasCompetitors = competitorItems.filter((c) => !c.isMe).length > 0;
-  const sortedItems = [...competitorItems].sort((a, b) => b.score - a.score);
-  const maxScore = Math.max(...sortedItems.map((i) => i.score), 1);
-
   // CTA 조건
   const ctaType: "faq" | "review" | "none" =
     smartPlaceScore < 70 ? "faq" : reviewCount === 0 ? "review" : "none";
@@ -157,12 +152,13 @@ export default function AIDiagnosisCard({
                   key={kw}
                   onClick={() => { setFading(false); setKwIdx(i); }}
                   title={kw}
+                  aria-label={`${kw} 키워드 보기`}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     i === kwIdx ? "w-5 bg-blue-400" : "w-1.5 bg-slate-600 hover:bg-slate-400"
                   }`}
                 />
               ))}
-              <span className="text-xs text-slate-500 ml-1">{kwIdx + 1}/{allKeywords.length}</span>
+              <span className="text-sm text-slate-500 ml-1">{kwIdx + 1}/{allKeywords.length}</span>
             </div>
           )}
         </div>
@@ -176,7 +172,7 @@ export default function AIDiagnosisCard({
           </p>
         ) : (
           <p className="text-xl md:text-2xl font-bold text-white leading-snug">
-            {eunNeun(businessName)} 지금 AI 검색에 나오지 않습니다
+            {eunNeun(businessName)} 지금 네이버 AI 브리핑에 나오지 않습니다
           </p>
         )}
         <p className="text-sm md:text-base text-slate-400 mt-3">
@@ -198,6 +194,7 @@ export default function AIDiagnosisCard({
             const r = allPlatformResults[key];
             const label = PLATFORM_LABELS[key] ?? key;
             if (!r) {
+              const weeklyNote = "이번 스캔에서 미확인";
               return (
                 <div
                   key={key}
@@ -205,7 +202,7 @@ export default function AIDiagnosisCard({
                 >
                   <Minus className="w-4 h-4 text-gray-400 shrink-0" />
                   <span className="text-sm font-medium text-gray-400 leading-tight">{label}</span>
-                  <span className="ml-auto text-sm text-gray-400">이번 스캔에서 미확인</span>
+                  <span className="ml-auto text-sm text-gray-400">{weeklyNote}</span>
                 </div>
               );
             }
@@ -233,7 +230,15 @@ export default function AIDiagnosisCard({
                     <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-semibold text-green-800">{label}</span>
-                      <span className="block text-xs text-green-600 mt-0.5">네이버 AI 브리핑에서 내 가게를 직접 추천하고 있습니다</span>
+                      <span className="block text-sm text-green-600 mt-0.5">네이버 AI 브리핑에서 내 가게를 직접 추천하고 있습니다</span>
+                      <a
+                        href={`https://search.naver.com/search.naver?query=${encodeURIComponent(displayRegion + " " + displayKeyword + " 추천")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1 text-sm text-blue-500 hover:underline"
+                      >
+                        네이버에서 직접 확인 →
+                      </a>
                     </div>
                     <span className="text-sm font-bold text-green-700 shrink-0">브리핑 인용</span>
                   </div>
@@ -245,12 +250,20 @@ export default function AIDiagnosisCard({
                     <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-semibold text-amber-800">{label}</span>
-                      <span className="block text-xs text-amber-700 mt-0.5">
+                      <span className="block text-sm text-amber-700 mt-0.5">
                         <strong>AI 브리핑에는 아직 안 나옵니다</strong>
                       </span>
-                      <span className="block text-xs text-amber-600 mt-1">
-                        FAQ 등록과 리뷰를 늘리면 가능성이 높아집니다
+                      <span className="block text-sm text-amber-600 mt-1">
+                        소개글 Q&A 추가와 리뷰를 늘리면 가능성이 높아집니다
                       </span>
+                      <a
+                        href={`https://search.naver.com/search.naver?query=${encodeURIComponent(displayRegion + " " + displayKeyword + " 추천")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1 text-sm text-blue-500 hover:underline"
+                      >
+                        네이버에서 직접 확인 →
+                      </a>
                     </div>
                     <span className="text-sm font-bold text-amber-600 shrink-0">검색만 노출</span>
                   </div>
@@ -262,7 +275,15 @@ export default function AIDiagnosisCard({
                     <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-semibold text-red-800">{label}</span>
-                      <span className="block text-xs text-red-600 mt-0.5">네이버 검색과 AI 브리핑 모두에서 내 가게가 나오지 않습니다</span>
+                      <span className="block text-sm text-red-600 mt-0.5">네이버 검색과 AI 브리핑 모두에서 내 가게가 나오지 않습니다</span>
+                      <a
+                        href={`https://search.naver.com/search.naver?query=${encodeURIComponent(displayRegion + " " + displayKeyword + " 추천")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1 text-sm text-blue-500 hover:underline"
+                      >
+                        네이버에서 직접 확인 →
+                      </a>
                     </div>
                     <span className="text-sm font-bold text-red-600 shrink-0">미노출</span>
                   </div>
@@ -274,6 +295,10 @@ export default function AIDiagnosisCard({
             const known =
               r.mentioned === true ||
               (r.exposure_freq !== undefined && r.exposure_freq > 0);
+            const geminiPct =
+              key === "gemini" && r.exposure_rate !== undefined
+                ? Math.round(r.exposure_rate * 100)
+                : null;
             return (
               <div
                 key={key}
@@ -291,7 +316,7 @@ export default function AIDiagnosisCard({
                   {label}
                 </span>
                 <span className={`ml-auto text-sm font-semibold ${known ? "text-green-700" : "text-red-600"}`}>
-                  {known ? "알고 있음" : "모름"}
+                  {geminiPct !== null ? `${geminiPct}%` : known ? "알고 있음" : "모름"}
                 </span>
               </div>
             );
@@ -311,13 +336,13 @@ export default function AIDiagnosisCard({
               }`}
             >
               {mentionedCount === 0
-                ? `지금 어떤 AI도 ${businessName}을 모릅니다. AI로 오는 신규 손님이 0명인 상태입니다.`
+                ? `테스트한 AI에서 ${businessName}이(가) 확인되지 않았습니다. AI 검색 노출이 없는 상태입니다.`
                 : mentionedCount <= 2
-                ? `${mentionedCount}개 AI만 알고 있습니다. 나머지 AI 손님을 놓치고 있습니다.`
+                ? `${mentionedCount}개 AI에서만 확인됩니다. 나머지 AI에서 노출이 더 필요합니다.`
                 : `절반 이상의 AI가 알고 있습니다. 조금만 더 최적화하세요.`}
             </div>
             {/* 비즈니스 임팩트 번역 */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm text-slate-600">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm md:text-sm text-slate-600">
               {naverInBriefing ? (
                 <span className="flex items-start gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
@@ -388,7 +413,7 @@ export default function AIDiagnosisCard({
                     : "text-green-700"
                 }`}
               >
-                {reviewCount}개
+                {reviewCount}개{avgRating > 0 ? ` · ★${avgRating.toFixed(1)}` : ""}
               </span>
             </div>
             {/* 진행 막대 */}
@@ -428,171 +453,20 @@ export default function AIDiagnosisCard({
                 : "리뷰 수가 충분합니다. AI 추천 기반이 갖춰져 있습니다."}
             </p>
           </div>
-
-          {/* 스마트플레이스 FAQ */}
-          <div
-            className={`rounded-xl p-4 border ${
-              smartPlaceScore < 70
-                ? "bg-red-50 border-red-200"
-                : "bg-green-50 border-green-200"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span
-                className={`text-sm md:text-base font-semibold ${
-                  smartPlaceScore < 70 ? "text-red-800" : "text-green-800"
-                }`}
-              >
-                스마트플레이스 FAQ
-              </span>
-              <span
-                className={`text-sm font-bold flex items-center gap-1 ${
-                  smartPlaceScore < 70 ? "text-red-700" : "text-green-700"
-                }`}
-              >
-                {smartPlaceScore < 70 ? "없음" : (
-                  <><CheckCircle2 className="w-4 h-4" /> 있음</>
-                )}
-              </span>
-            </div>
-            <p
-              className={`text-sm ${
-                smartPlaceScore < 70 ? "text-red-700" : "text-green-700"
-              }`}
-            >
-              {naverInBriefing
-                ? "FAQ가 잘 등록되어 있습니다. 이제 ChatGPT·Gemini도 이 정보를 참고할 수 있도록 웹사이트에도 FAQ Schema를 추가해보세요."
-                : naverMentionedOnly && smartPlaceScore >= 70
-                ? "FAQ는 있습니다. AI 브리핑 인용을 늘리려면 FAQ 내용에 핵심 키워드를 더 구체적으로 포함시키세요."
-                : smartPlaceScore < 70
-                ? "FAQ 없음 — AI 브리핑 인용 경로 차단 상태. AI 브리핑이 가장 자주 직접 인용하는 항목입니다. FAQ가 없으면 AI가 질문에 답할 때 내 가게를 건너뜁니다."
-                : "FAQ 있음. AI 브리핑이 직접 인용할 수 있는 내용이 등록되어 있습니다."}
+          {naverPlaceUrl ? (
+            <p className="text-sm text-gray-400 mt-2">
+              스마트플레이스 세부 항목(FAQ·소개글·소식 등)은 아래{" "}
+              <span className="font-medium text-blue-500">실시간 점검</span>에서 확인하세요.
             </p>
-          </div>
-
-          {/* 스마트플레이스 등록 */}
-          <div
-            className={`rounded-xl p-4 border ${
-              smartPlaceScore < 40
-                ? "bg-red-50 border-red-200"
-                : "bg-green-50 border-green-200"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span
-                className={`text-sm md:text-base font-semibold ${
-                  smartPlaceScore < 40 ? "text-red-800" : "text-green-800"
-                }`}
-              >
-                스마트플레이스 등록
-              </span>
-              <span
-                className={`text-sm font-bold flex items-center gap-1 ${
-                  smartPlaceScore < 40 ? "text-red-700" : "text-green-700"
-                }`}
-              >
-                {smartPlaceScore < 40 ? "미등록" : (
-                  <><CheckCircle2 className="w-4 h-4" /> 등록됨</>
-                )}
-              </span>
-            </div>
-            <p
-              className={`text-sm ${
-                smartPlaceScore < 40 ? "text-red-700" : "text-green-700"
-              }`}
-            >
-              {naverInBriefing
-                ? "스마트플레이스가 잘 등록되어 있습니다. 구글 비즈니스 프로필도 등록하면 글로벌 AI 노출까지 확장할 수 있습니다."
-                : naverMentionedOnly
-                ? "스마트플레이스에는 등록되어 있습니다. AI 브리핑 인용을 위해 소개글과 영업시간을 최신 상태로 유지하세요."
-                : smartPlaceScore < 40
-                ? "스마트플레이스 미등록 — 네이버 AI 브리핑 노출의 가장 기본 조건입니다. 가장 먼저 등록이 필요합니다."
-                : "스마트플레이스에 등록되어 있습니다."}
+          ) : (
+            <p className="text-sm text-gray-400 mt-2">
+              스마트플레이스 세부 항목(FAQ·소개글·소식 등)은{" "}
+              <span className="font-medium text-blue-500">점수 근거 카드</span>에서 확인하세요.{" "}
+              <a href="/onboarding" className="text-blue-400 hover:underline">URL 등록 →</a>
             </p>
-          </div>
+          )}
         </div>
       </div>
-
-      {/* 섹션 4: 경쟁 가게와 비교 */}
-      {hasCompetitors && (
-        <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div>
-              <h2 className="text-base md:text-lg font-bold text-gray-900">
-                경쟁 가게 AI 노출 비교
-              </h2>
-              <p className="text-xs text-gray-400 mt-0.5">AEOlab 분석 기준 점수</p>
-            </div>
-            {/* 직접 확인 링크 */}
-            <a
-              href={`https://search.naver.com/search.naver?query=${encodeURIComponent(displayRegion + " " + displayKeyword + " 추천")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 flex items-center gap-1.5 text-xs font-semibold text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
-            >
-              네이버에서 직접 확인 →
-            </a>
-          </div>
-
-          <div className="space-y-2.5 mb-4">
-            {sortedItems.map((item) => {
-              const barWidth = Math.max(2, Math.round((item.score / maxScore) * 100));
-              return (
-                <div key={item.name} className="flex items-center gap-3">
-                  <span
-                    className={`text-sm font-medium w-28 md:w-36 truncate shrink-0 ${
-                      item.isMe
-                        ? "text-blue-700 font-bold"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    {item.name}
-                    {item.isMe && (
-                      <span className="ml-1 text-xs text-blue-500">(나)</span>
-                    )}
-                  </span>
-                  <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
-                    <div
-                      className={`h-3 rounded-full transition-all ${
-                        item.isMe
-                          ? "bg-blue-500"
-                          : item.score >= totalScore
-                          ? "bg-red-400"
-                          : "bg-gray-300"
-                      }`}
-                      style={{ width: `${barWidth}%` }}
-                    />
-                  </div>
-                  <span
-                    className={`text-sm font-bold w-10 text-right shrink-0 ${
-                      item.isMe ? "text-blue-700" : "text-gray-600"
-                    }`}
-                  >
-                    {Math.round(item.score)}점
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* 안내 박스 */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-            <p className="text-xs text-gray-500 leading-relaxed">
-              이 점수는 AEOlab가 리뷰·FAQ·스마트플레이스 등록 여부를 분석한 AI 노출 가능성 점수입니다.
-              실제 네이버 AI 브리핑에 어떤 가게가 나오는지는{" "}
-              <a
-                href={`https://search.naver.com/search.naver?query=${encodeURIComponent(displayRegion + " " + displayKeyword + " 추천")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline underline-offset-1 font-medium"
-              >
-                직접 검색
-              </a>
-              으로 확인할 수 있습니다.
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* 섹션 5: 지금 당장 할 수 있는 1가지 */}
       {ctaType === "faq" && (
@@ -604,10 +478,10 @@ export default function AIDiagnosisCard({
             <FileText className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
             <div>
               <p className="text-base md:text-lg font-bold text-amber-900 leading-snug">
-                스마트플레이스 Q&amp;A에 FAQ 1개 등록
+                소개글 하단에 Q&amp;A 1개 추가
               </p>
               <p className="text-sm md:text-base text-amber-800 mt-1 leading-relaxed">
-                &ldquo;예약은 어떻게 하나요?&rdquo; 같은 질문 1개만 올려도
+                &ldquo;예약은 어떻게 하나요?&rdquo; 같은 질문 1개만 넣어도
                 AI가 2~4주 안에 인식하기 시작합니다.
               </p>
             </div>
@@ -644,6 +518,10 @@ export default function AIDiagnosisCard({
           </div>
         </div>
       )}
+      <p className="text-xs text-gray-500 mt-3 leading-relaxed">
+        ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
+        측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+      </p>
     </div>
   );
 }

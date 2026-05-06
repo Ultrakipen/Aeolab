@@ -27,15 +27,6 @@ export interface WebsiteCheckResult {
   error: string | null;
 }
 
-export interface InstagramResult {
-  username?: string;
-  follower_count?: number;
-  post_count_30d?: number;
-  keyword_coverage?: number;
-  ai_citation_signal?: number;
-  tips?: string[];
-}
-
 export interface ScanResult {
   id: string;
   business_id: string;
@@ -43,14 +34,10 @@ export interface ScanResult {
   query_used: string;
   gemini_result?: AIResult;
   chatgpt_result?: AIResult;
-  perplexity_result?: AIResult;
-  grok_result?: AIResult;
   naver_result?: NaverResult;
-  claude_result?: AIResult;
   google_result?: AIResult;
   kakao_result?: KakaoVisibilityData;
   website_check_result?: WebsiteCheckResult;
-  instagram_result?: InstagramResult | null;
   exposure_freq: number;
   total_score: number;
   // v3.0 듀얼트랙 점수
@@ -122,7 +109,11 @@ export interface NaverResult extends AIResult {
   top_blogs?: NaverTopBlog[];
   keyword_blog_comparison?: KeywordBlogComparison[];
   keyword_ranks?: KeywordRank[];
+  in_briefing?: boolean;
+  briefing_excerpt?: string | null;
   search_query?: string;
+  captcha_detected?: boolean;
+  error?: string;
 }
 
 export interface ScoreBreakdown {
@@ -158,7 +149,7 @@ export interface ScoreHistory {
 export interface BeforeAfterItem {
   id: string;
   business_id: string;
-  capture_type: "before" | "after_30d" | "after_60d" | "after_90d";
+  capture_type: "before" | "after_7d" | "after_14d" | "after_30d" | "after_60d" | "after_90d";
   image_url: string;
   created_at: string;
 }
@@ -200,15 +191,79 @@ export interface TrialScanRequest {
   is_smart_place?: boolean;  // 사용자 직접 입력 — API 결과보다 우선 적용
   review_text?: string;
   description?: string;
+  // 신뢰도 강화 1라운드: 네이버 지역검색에서 선택한 가게의 place ID
+  naver_place_id?: string;
+  // v3.3-fix: 사용자가 후보를 명시적으로 선택했을 때만 채워서 전달
+  // 백엔드는 이 객체가 있을 때만 응답 place_match를 채운다 (재검색·자동 매칭 금지)
+  place_match?: {
+    title: string;
+    address: string;
+    phone: string | null;
+    naver_place_id: string;
+    naver_place_url: string;
+    category?: string;
+    mapx?: string;
+    mapy?: string;
+  };
 }
 
-export interface NaverCompetitor {
-  rank: number;
+// 신뢰도 강화 1라운드 — 네이버 지역검색 후보 항목
+export interface TrialBusinessCandidate {
+  title: string;
+  address: string;
+  phone: string | null;
+  category: string;
+  naver_place_id: string;
+  naver_place_url: string;
+  mapx?: string;
+  mapy?: string;
+}
+
+// 신뢰도 강화 1라운드 — 검색 응답
+export interface TrialBusinessSearchResponse {
+  results: TrialBusinessCandidate[];
+  fallback_to_manual: boolean;
+}
+
+// 신뢰도 강화 1라운드 — 결과 화면 매칭 카드 데이터
+export interface TrialPlaceMatch {
   name: string;
   address: string;
+  phone: string | null;
+  rating: number | null;
+  review_count: number | null;
   category: string;
-  telephone: string;
-  link: string;
+  business_status: string | null;
+  naver_place_id: string;
+  naver_place_url: string;
+}
+
+// 신뢰도 강화 1라운드 — 스마트플레이스 자동 진단 카드 데이터
+export interface TrialSmartPlaceCheck {
+  is_smart_place: boolean;
+  has_faq: boolean;
+  has_recent_post: boolean;
+  has_intro: boolean;
+  score_loss: number;
+  action_links: {
+    register?: string;
+    faq?: string;
+    post?: string;
+    intro?: string;
+  };
+}
+
+// 신뢰도 강화 2라운드 — AI 응답 원문 증거 카드
+export interface TrialAIEvidenceQuery {
+  query: string;
+  mentioned: boolean;
+  excerpt: string;
+}
+export interface TrialAIEvidence {
+  platform: string;
+  total_queries: number;
+  mentioned_count: number;
+  queries: TrialAIEvidenceQuery[];
 }
 
 export interface NaverBlogPost {
@@ -216,12 +271,6 @@ export interface NaverBlogPost {
   link: string;
   description: string;
   postdate: string;
-}
-
-export interface KeywordRank {
-  query: string;
-  rank: number | null;
-  exposed: boolean;
 }
 
 export interface NaverVisibilityData {
@@ -234,6 +283,8 @@ export interface NaverVisibilityData {
   top_competitor_name: string | null;
   top_competitor_blog_count: number;
   keyword_ranks?: KeywordRank[];
+  in_briefing?: boolean;
+  briefing_excerpt?: string | null;
 }
 
 export interface KakaoCompetitor {
@@ -304,6 +355,13 @@ export interface TrialScanResult {
   website_health?: WebsiteCheckResult;
   message: string;
   context?: string;
+  // 신뢰도 강화 1라운드 — 네이버 place_id 선택 시 자동 진단 결과
+  place_match?: TrialPlaceMatch | null;
+  smart_place_check?: TrialSmartPlaceCheck | null;
+  // 신뢰도 강화 2라운드 — AI 응답 원문 증거
+  ai_evidence?: TrialAIEvidence | null;
+  // Trial Conversion Funnel — 30일 보관용 trial_scans.id
+  trial_id?: string;
 }
 
 export interface RankingItem {
@@ -380,6 +438,7 @@ export interface BusinessSearchResult {
   address: string;
   category: string;
   phone: string;
+  region?: string;
   naver_place_url: string;
   naver_place_id: string;
   kakao_place_id: string;
@@ -415,6 +474,9 @@ export interface SharePageData {
 
 export interface MentionContext {
   platform: string;
+  platform_label?: string;
+  query?: string;
+  mentioned?: boolean;
   sentiment: "positive" | "neutral" | "negative";
   mention_type: "recommendation" | "information" | "comparison" | "warning";
   mentioned_attributes: string[];
@@ -504,6 +566,7 @@ export interface SchemaResult {
 export interface BlogAnalysisResult {
   platform: string;
   post_count: number;
+  total_post_count?: number;
   latest_post_date: string | null;
   keyword_coverage: number;
   covered_keywords: string[];
@@ -531,4 +594,51 @@ export interface IndustryTrend {
   trend_data: Array<{ period: string; ratio: number }>;
   trend_direction: 'rising' | 'falling' | 'stable';
   trend_delta: number;
+}
+
+export type ConversionTipEvidence = "keyword_gap" | "ai_citation" | "smart_place" | "review";
+
+export interface ConversionTip {
+  id: string;
+  title: string;
+  reason: string;
+  evidence_type: ConversionTipEvidence;
+  evidence_badge: string;
+  urgency: "do_now" | "this_week" | "this_month";
+  urgency_label: string;
+  estimated_time: string;
+  impact: string;
+  copy_text: string;
+  action_url: string | null;
+  action_label: string;
+  action_steps?: string[];
+  locked: boolean;
+}
+
+export interface ConversionTipsResponse {
+  business_name: string;
+  plan: string;
+  summary: string;
+  tips: ConversionTip[];
+  missing_platforms: string[];
+  growth_stage: { stage?: string; message?: string } | null;
+  locked_count: number;
+}
+
+export interface IntroGeneratedResult {
+  intro_text: string;
+  char_count: number;
+  qa_count: number;
+  keywords_included: string[];
+}
+
+export interface TalktalkFAQItem {
+  question: string;
+  answer: string;
+  category: string;
+}
+
+export interface TalktalkFAQGeneratedResult {
+  items: TalktalkFAQItem[];
+  chat_menus: string[];
 }

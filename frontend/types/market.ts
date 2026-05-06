@@ -27,7 +27,7 @@ export interface CompetitorProfile {
   strengths?: string[];
   rank?: number;
   // v2.4 추가 — "왜 저 가게가 잘 나오는지" 구체적 근거
-  smart_place_faq_count?: number;     // 스마트플레이스 Q&A 등록 수 (AI 브리핑 직결)
+  smart_place_faq_count?: number;     // 소개글 Q&A 포함 여부 참고용 (Q&A 탭 2026-05 폐기)
   recent_blog_post_count?: number;    // 최근 30일 블로그 언급 수
   response_rate?: number;             // 리뷰 답변율 0.0~1.0 (AI 신뢰도 신호)
   top_review_keywords?: string[];     // 경쟁사 리뷰 핵심 키워드 (최대 5개)

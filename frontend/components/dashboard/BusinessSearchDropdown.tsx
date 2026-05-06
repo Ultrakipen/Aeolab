@@ -13,24 +13,24 @@ export function mapKakaoCategory(kakaoCategory: string): string {
   if (cat.includes("고기") || cat.includes("갈비") || cat.includes("삼겹")) return "bbq";
   if (cat.includes("미용") || cat.includes("헤어") || cat.includes("미장")) return "beauty";
   if (cat.includes("네일")) return "nail";
-  if (cat.includes("병원") || cat.includes("의원") || cat.includes("클리닉")) return "hospital";
-  if (cat.includes("치과")) return "dental";
-  if (cat.includes("한의")) return "oriental";
+  if (cat.includes("병원") || cat.includes("의원") || cat.includes("클리닉")) return "medical";
+  if (cat.includes("치과")) return "medical";
+  if (cat.includes("한의")) return "medical";
   if (cat.includes("약국")) return "pharmacy";
-  if (cat.includes("피부")) return "skincare";
-  if (cat.includes("학원") || cat.includes("교습")) return "academy";
-  if (cat.includes("영어") || cat.includes("어학")) return "language";
-  if (cat.includes("코딩") || cat.includes("컴퓨터")) return "coding";
-  if (cat.includes("법") || cat.includes("변호") || cat.includes("법무")) return "law";
-  if (cat.includes("세무") || cat.includes("회계")) return "tax";
+  if (cat.includes("피부")) return "beauty";
+  if (cat.includes("학원") || cat.includes("교습")) return "education";
+  if (cat.includes("영어") || cat.includes("어학")) return "education";
+  if (cat.includes("코딩") || cat.includes("컴퓨터")) return "education";
+  if (cat.includes("법") || cat.includes("변호") || cat.includes("법무")) return "legal";
+  if (cat.includes("세무") || cat.includes("회계")) return "other";
   if (cat.includes("부동산")) return "realestate";
   if (cat.includes("헬스") || cat.includes("피트니스") || cat.includes("gym")) return "fitness";
   if (cat.includes("요가") || cat.includes("필라테스")) return "yoga";
   if (cat.includes("사진") || cat.includes("스튜디오")) return "photo";
   if (cat.includes("반려") || cat.includes("애견") || cat.includes("펫")) return "pet";
-  if (cat.includes("동물병원")) return "vet";
-  if (cat.includes("꽃") || cat.includes("플라워")) return "flower";
-  if (cat.includes("쇼핑") || cat.includes("마트") || cat.includes("편의점")) return "shop";
+  if (cat.includes("동물병원")) return "pet";
+  if (cat.includes("꽃") || cat.includes("플라워")) return "other";
+  if (cat.includes("쇼핑") || cat.includes("마트") || cat.includes("편의점")) return "shopping";
   if (cat.includes("숙박") || cat.includes("호텔") || cat.includes("펜션")) return "accommodation";
   return "other";
 }
@@ -108,18 +108,19 @@ export default function BusinessSearchDropdown({ region, onSelect }: Props) {
   const handleSelect = (result: BusinessSearchResult) => {
     setQuery(result.name);
     setOpen(false);
-    onSelect(result);
+    // localRegion을 결과에 포함해 전달 — 온보딩 폼의 region 자동 채움
+    onSelect({ ...result, region: result.region || localRegion });
   };
 
   const sourceBadge = (source: BusinessSearchResult["source"]) => {
     if (source === "kakao") return (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">카카오</span>
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-sm font-medium bg-yellow-100 text-yellow-800">카카오</span>
     );
     if (source === "naver") return (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">네이버</span>
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-sm font-medium bg-green-100 text-green-800">네이버</span>
     );
     return (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">네이버+카카오</span>
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-sm font-medium bg-blue-100 text-blue-800">네이버+카카오</span>
     );
   };
 

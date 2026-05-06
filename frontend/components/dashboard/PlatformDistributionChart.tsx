@@ -17,10 +17,9 @@ const NAVER_PLATFORMS: { key: string; label: string; color: string }[] = [
 ]
 
 const GLOBAL_PLATFORMS: { key: string; label: string; color: string }[] = [
-  { key: 'gemini',     label: 'Gemini AI',        color: '#4f46e5' },
-  { key: 'chatgpt',   label: 'ChatGPT',           color: '#10a37f' },
-  { key: 'google',    label: 'Google AI Overview', color: '#ea4335' },
-  { key: 'perplexity',label: 'Perplexity',         color: '#20b2aa' },
+  { key: 'gemini',  label: 'Gemini AI',        color: '#4f46e5' },
+  { key: 'chatgpt', label: 'ChatGPT',           color: '#10a37f' },
+  { key: 'google',  label: 'Google AI Overview', color: '#ea4335' },
 ]
 
 function PlatformRow({
@@ -30,11 +29,55 @@ function PlatformRow({
   platform: { key: string; label: string; color: string }
   result?: AIResult
 }) {
-  const mentioned   = result?.mentioned ?? false
+  const mentioned    = result?.mentioned ?? false
+  const inBriefing   = result?.in_briefing ?? false
+  const inAiOverview = result?.in_ai_overview ?? false
   const exposureFreq = result?.exposure_freq
-  const hasError    = !!result?.error
+  const hasError     = !!result?.error
 
-  // Gemini는 노출 빈도로 바 너비 결정, 나머지는 0 또는 100%
+  // 네이버는 in_briefing 기준으로 별도 처리
+  if (platform.key === 'naver') {
+    const barWidth = inBriefing ? 100 : mentioned ? 50 : 0
+    const barColor = inBriefing ? '#03c75a' : mentioned ? '#f59e0b' : 'transparent'
+    const labelColor = inBriefing ? '#03c75a' : mentioned ? '#d97706' : undefined
+    const statusText = inBriefing
+      ? 'AI 브리핑 노출됨'
+      : mentioned
+      ? '검색만 노출'
+      : '미노출'
+    const statusClass = inBriefing
+      ? 'text-sm font-semibold'
+      : mentioned
+      ? 'text-sm font-semibold text-amber-600'
+      : 'text-sm text-gray-300'
+
+    return (
+      <div className="flex items-center gap-3">
+        <div className="w-32 shrink-0 text-sm text-gray-600 font-medium truncate">
+          {platform.label}
+        </div>
+        <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+          {!hasError && (
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${barWidth}%`, backgroundColor: barColor }}
+            />
+          )}
+        </div>
+        <div className="w-20 text-right shrink-0">
+          {hasError ? (
+            <span className="text-sm text-gray-300">오류</span>
+          ) : (
+            <span className={statusClass} style={inBriefing ? { color: labelColor! } : undefined}>
+              {statusText}
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // 네이버 외 플랫폼 (기존 로직 유지)
   const barWidth = platform.key === 'gemini' && exposureFreq !== undefined
     ? Math.max(3, exposureFreq)
     : mentioned ? 100 : 0
@@ -64,7 +107,7 @@ function PlatformRow({
           </span>
         ) : mentioned ? (
           <span className="text-sm font-semibold" style={{ color: platform.color }}>
-            노출됨 {result?.in_briefing ? '(브리핑)' : result?.in_ai_overview ? '(AI Overview)' : ''}
+            노출됨{inAiOverview ? ' (AI Overview)' : ''}
           </span>
         ) : (
           <span className="text-sm text-gray-300">미노출</span>

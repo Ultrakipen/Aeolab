@@ -4,13 +4,11 @@ import secrets
 from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Header
 from db.supabase_client import get_client, execute
+from config.prices import PLAN_PRICE_MAP
 
 _logger = logging.getLogger("aeolab")
 
 router = APIRouter()
-
-# 플랜별 월정액 (webhook.py PLAN_PRICES와 동일한 가격 — 변경 시 양쪽 동시 수정)
-PLAN_PRICE_MAP = {"basic": 9900, "pro": 22900, "biz": 49900, "startup": 16900, "enterprise": 200000}
 
 
 def verify_admin(x_admin_key: str = Header(None)):
@@ -50,6 +48,9 @@ async def get_stats(_=Depends(verify_admin)):
         supabase.table("scan_results").select("id", count="exact").gte("scanned_at", month_start)
     )
     waitlist = await execute(supabase.table("waitlist").select("id", count="exact"))
+    basic_trial_used = await execute(
+        supabase.table("profiles").select("user_id", count="exact").eq("basic_trial_used", True)
+    )
 
     # 플랜별 이번 달 스캔 수
     user_plan_map = {s["user_id"]: s["plan"] for s in active if s.get("user_id")}
@@ -89,6 +90,7 @@ async def get_stats(_=Depends(verify_admin)):
         "scan_count_today": today_scans.count or 0,
         "scan_count_month": month_scans.count or 0,
         "waitlist_count": waitlist.count or 0,
+        "basic_trial_used_count": basic_trial_used.count or 0,
     }
 
 

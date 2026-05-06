@@ -19,7 +19,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-dashed border-gray-200">
         <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 AI 인식 점검</div>
         <p className="text-sm text-gray-400 mb-4">
-          독립 웹사이트가 없으면 ChatGPT·Perplexity에서 인용되기 어렵습니다.
+          독립 웹사이트가 없으면 ChatGPT에서 인용되기 어렵습니다.
           네이버는 AI 크롤링을 차단하고 있어, 글로벌 AI는 독립 웹사이트를 소스로 사용합니다.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -42,7 +42,12 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
     )
   }
 
-  if (!checkResult) return null
+  if (!checkResult) return (
+    <div className="rounded-xl border border-gray-100 bg-white p-4 md:p-5">
+      <h3 className="font-semibold text-gray-800 mb-2">웹사이트 AI 인식</h3>
+      <p className="text-sm text-gray-500">AI 스캔 실행 후 웹사이트 AI 인식 점수가 표시됩니다.</p>
+    </div>
+  )
 
   if (checkResult.error) {
     return (
@@ -115,7 +120,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
 
       {highFailCount > 0 && (
         <div className="bg-red-50 rounded-xl px-3 py-2 mb-3 text-sm text-red-600">
-          중요 항목 {highFailCount}개 미흡 — ChatGPT·Perplexity 인용 가능성이 낮습니다
+          중요 항목 {highFailCount}개 미흡 — ChatGPT 인용 가능성이 낮습니다
         </div>
       )}
 
@@ -131,7 +136,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
                   {item.label}
                 </span>
                 {!item.ok && item.impact === 'high' && (
-                  <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">중요</span>
+                  <span className="text-sm bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">중요</span>
                 )}
               </div>
               {!item.ok && (

@@ -71,7 +71,7 @@ class Subscription(BaseModel):
 
     id: str
     user_id: str
-    plan: Literal["free", "basic", "pro", "biz", "startup", "enterprise"]
+    plan: Literal["free", "basic", "pro", "biz", "startup"]
     status: Literal["active", "grace_period", "suspended", "cancelled", "expired", "inactive"]
     start_at: Optional[datetime] = None
     end_at: Optional[datetime] = None

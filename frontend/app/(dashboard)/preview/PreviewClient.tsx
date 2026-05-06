@@ -44,7 +44,6 @@ const PLAN_RANK: Record<string, number> = {
   startup: 1.5,
   pro: 2,
   biz: 3,
-  enterprise: 4,
 };
 
 const PLAN_LABEL: Record<string, string> = {
@@ -53,16 +52,14 @@ const PLAN_LABEL: Record<string, string> = {
   startup: "창업패키지",
   pro: "Pro",
   biz: "Biz",
-  enterprise: "Enterprise",
 };
 
 const PLAN_PRICE: Record<string, string> = {
   free: "무료",
   basic: "9,900원/월",
-  startup: "16,900원/월",
-  pro: "22,900원/월",
-  biz: "49,900원/월",
-  enterprise: "200,000원/월",
+  startup: "12,900원/월",
+  pro: "18,900원/월",
+  biz: "39,900원/월",
 };
 
 const PLAN_COLOR: Record<
@@ -237,11 +234,11 @@ function FeatureRow({
           {label}
         </span>
         {note && (
-          <span className="ml-1.5 text-xs text-gray-400 font-normal">({note})</span>
+          <span className="ml-1.5 text-sm text-gray-400 font-normal">({note})</span>
         )}
       </div>
       {!available && (
-        <span className="shrink-0 flex items-center gap-1 text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
+        <span className="shrink-0 flex items-center gap-1 text-sm text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
           <Lock className="w-3 h-3" /> 잠금
         </span>
       )}
@@ -265,7 +262,7 @@ function LockedBlock({ requiredPlan }: { requiredPlan: string }) {
         </p>
         <Link
           href="/pricing"
-          className="text-xs text-blue-600 hover:text-blue-700 underline"
+          className="text-sm text-blue-600 hover:text-blue-700 underline"
         >
           요금제 보기
         </Link>
@@ -297,7 +294,7 @@ function ScoreBarDemo({
           style={{ width: `${Math.min(100, score)}%` }}
         />
       </div>
-      <span className="text-xs text-gray-400">최종 점수의 {Math.round(weight * 100)}%</span>
+      <span className="text-sm text-gray-400">최종 점수의 {Math.round(weight * 100)}%</span>
     </div>
   );
 }
@@ -329,9 +326,7 @@ function SectionTitle({
 const PLATFORM_RESULTS_DEMO = [
   { platform: "Gemini", exposed: true, keywords: "강남 카페, 분위기 좋은 카페" },
   { platform: "ChatGPT", exposed: false, keywords: "—" },
-  { platform: "Perplexity", exposed: true, keywords: "조용한 카페" },
   { platform: "네이버 AI", exposed: true, keywords: "강남역 카페" },
-  { platform: "Grok", exposed: false, keywords: "—" },
   { platform: "Claude", exposed: true, keywords: "카페 추천" },
   { platform: "Google AI", exposed: false, keywords: "—" },
 ];
@@ -346,9 +341,9 @@ function PlatformResultTable({ showAll }: { showAll: boolean }) {
       <table className="w-full min-w-[360px] text-sm">
         <thead>
           <tr className="bg-gray-50 text-left">
-            <th className="py-2 px-3 text-xs font-semibold text-gray-500 w-28">AI 플랫폼</th>
-            <th className="py-2 px-3 text-xs font-semibold text-gray-500 w-24">노출 여부</th>
-            <th className="py-2 px-3 text-xs font-semibold text-gray-500">노출 키워드</th>
+            <th className="py-2 px-3 text-sm font-semibold text-gray-500 w-28">AI 플랫폼</th>
+            <th className="py-2 px-3 text-sm font-semibold text-gray-500 w-24">노출 여부</th>
+            <th className="py-2 px-3 text-sm font-semibold text-gray-500">노출 키워드</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -357,11 +352,11 @@ function PlatformResultTable({ showAll }: { showAll: boolean }) {
               <td className="py-2 px-3 font-medium text-gray-700">{row.platform}</td>
               <td className="py-2 px-3">
                 {row.exposed ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 rounded-full px-2 py-0.5">
+                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-green-700 bg-green-50 rounded-full px-2 py-0.5">
                     <CheckCircle2 className="w-3 h-3" /> 노출
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
+                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
                     <XCircle className="w-3 h-3" /> 미노출
                   </span>
                 )}
@@ -384,7 +379,7 @@ function PlatformResultTable({ showAll }: { showAll: boolean }) {
           </div>
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 gap-1.5 rounded">
             <Lock className="w-4 h-4 text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">Basic 이상에서 전체 공개 (7개 AI)</span>
+            <span className="text-sm font-medium text-gray-500">Basic 이상에서 전체 공개 (AI 전체 채널)</span>
           </div>
         </div>
       )}
@@ -423,7 +418,7 @@ function FreeTab({
         lines={[
           {
             icon: "⚠️",
-            text: `지금 ${d.bizName}이 ChatGPT·Perplexity에서 어떻게 보이는지 모르고 있습니다`,
+            text: `지금 ${d.bizName}이 ChatGPT에서 어떻게 보이는지 모르고 있습니다`,
           },
           {
             icon: "📍",
@@ -485,10 +480,10 @@ function FreeTab({
         />
         <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
           <p className="text-sm font-semibold text-amber-800 mb-0.5">
-            스마트플레이스 FAQ 등록
+            스마트플레이스 소개글 안 Q&A 추가
           </p>
           <p className="text-sm text-amber-700 leading-relaxed">
-            주차 가능 여부, 단체 예약 가능 여부를 FAQ에 등록하면 AI 브리핑 노출 확률이 즉시 높아집니다.
+            주차 가능 여부, 단체 예약 가능 여부를 소개글 안 Q&A에 추가하면 AI 브리핑 인용 후보 가능성이 즉시 높아집니다.
           </p>
         </div>
         <div className="relative rounded-lg overflow-hidden border border-dashed border-gray-300">
@@ -498,7 +493,7 @@ function FreeTab({
           </div>
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 gap-1.5">
             <Lock className="w-4 h-4 text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">Basic 이상에서 전체 공개</span>
+            <span className="text-sm font-medium text-gray-500">Basic 이상에서 전체 공개</span>
           </div>
         </div>
       </div>
@@ -524,7 +519,7 @@ function FreeTab({
       {/* ④ CTA */}
       <div className="rounded-xl bg-blue-600 p-5 text-white text-center space-y-2">
         <p className="text-base font-bold">전체 분석 + 매주 자동 업데이트</p>
-        <p className="text-sm opacity-90">월 9,900원으로 매주 AI 7개 자동 추적</p>
+        <p className="text-sm opacity-90">월 9,900원으로 네이버·ChatGPT·Google AI 자동 추적</p>
         <Link
           href="/signup?plan=basic"
           className="inline-flex items-center gap-1.5 mt-1 bg-white text-blue-600 text-sm font-bold rounded-lg px-5 py-2.5 hover:bg-blue-50 transition-colors"
@@ -615,7 +610,7 @@ function BasicTab({
               {Math.round(unified)}
               <span className="text-sm font-normal text-gray-400">점</span>
             </div>
-            <span className="text-xs text-gray-400">통합 점수</span>
+            <span className="text-sm text-gray-400">통합 점수</span>
           </div>
         </div>
         <ScoreBarDemo
@@ -631,7 +626,7 @@ function BasicTab({
           weight={globalWeight}
         />
         {!scan && (
-          <p className="text-xs text-gray-400 text-center">
+          <p className="text-sm text-gray-400 text-center">
             * 예시 데이터입니다. 실제 스캔 후 내 사업장 점수로 표시됩니다.
           </p>
         )}
@@ -642,10 +637,10 @@ function BasicTab({
         <SectionTitle
           icon={<Globe className="w-4 h-4 text-blue-500" />}
           title="AI 플랫폼별 노출 결과표"
-          subtitle="7개 AI 전체 노출 현황 · 매주 자동 업데이트"
+          subtitle="네이버·ChatGPT·Google AI 전체 노출 현황 · 매주 자동 업데이트"
         />
         <PlatformResultTable showAll={true} />
-        <p className="text-xs text-gray-400 mt-2">* 예시 데이터입니다.</p>
+        <p className="text-sm text-gray-400 mt-2">* 예시 데이터입니다.</p>
       </div>
 
       {/* ② 결과 미리보기 — 리뷰 답변 초안 */}
@@ -656,13 +651,13 @@ function BasicTab({
           subtitle="AI가 키워드를 포함한 답변을 자동 생성"
         />
         <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-          <p className="text-xs font-semibold text-gray-500 mb-1.5">고객 리뷰</p>
+          <p className="text-sm font-semibold text-gray-500 mb-1.5">고객 리뷰</p>
           <p className="text-sm text-gray-700 font-medium mb-3">"{d.reviewText}"</p>
-          <p className="text-xs font-semibold text-gray-500 mb-1.5">AI 생성 답변 초안</p>
+          <p className="text-sm font-semibold text-gray-500 mb-1.5">AI 생성 답변 초안</p>
           <p className="text-sm text-gray-700 leading-relaxed">{d.reviewReply}</p>
           <button
             onClick={handleCopy}
-            className="mt-2.5 inline-flex items-center gap-1.5 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg px-3 py-1.5 font-medium transition-colors"
+            className="mt-2.5 inline-flex items-center gap-1.5 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg px-3 py-1.5 font-medium transition-colors"
           >
             <Copy className="w-3.5 h-3.5" />
             {copied ? "복사됨!" : "복사"}
@@ -670,13 +665,13 @@ function BasicTab({
         </div>
         <div className="relative rounded-lg overflow-hidden border border-dashed border-gray-300">
           <div className="blur-[2px] p-3 space-y-2 pointer-events-none select-none">
-            <p className="text-xs text-gray-400">부정 리뷰 답변 초안</p>
+            <p className="text-sm text-gray-400">부정 리뷰 답변 초안</p>
             <div className="h-3 bg-gray-200 rounded w-full" />
             <div className="h-3 bg-gray-200 rounded w-4/5" />
           </div>
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 gap-1.5">
             <Lock className="w-4 h-4 text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">월 10회 제공 · Basic 포함</span>
+            <span className="text-sm font-medium text-gray-500">월 10회 제공 · Basic 포함</span>
           </div>
         </div>
       </div>
@@ -717,7 +712,7 @@ function BasicTab({
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-xs text-gray-400 text-center mt-1">* 예시 데이터</p>
+        <p className="text-sm text-gray-400 text-center mt-1">* 예시 데이터</p>
       </div>
 
       {/* ② 결과 미리보기 — 경쟁사 비교 (최대 3개) */}
@@ -756,11 +751,11 @@ function BasicTab({
               </div>
             );
           })}
-          <p className="text-xs text-gray-400 mt-1">* 예시 데이터</p>
+          <p className="text-sm text-gray-400 mt-1">* 예시 데이터</p>
         </div>
         <div className="mt-3 pt-3 border-t border-gray-100">
           <LockedBlock requiredPlan="startup" />
-          <p className="text-xs text-gray-400 text-center mt-1.5">
+          <p className="text-sm text-gray-400 text-center mt-1.5">
             경쟁사 5~10개는 창업패키지 / Pro 이상
           </p>
         </div>
@@ -775,7 +770,7 @@ function BasicTab({
         <div className="divide-y divide-gray-50">
           <FeatureRow label="매주 월요일 AI 7개 자동 스캔" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 3곳" />
-          <FeatureRow label="AI 개선 가이드" available={true} note="월 5회" />
+          <FeatureRow label="AI 개선 가이드" available={true} note="월 3회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 10회" />
           <FeatureRow label="30일 성장 추세 그래프" available={true} />
           <FeatureRow label="스마트플레이스 AI 검색 최적화 자동 생성" available={true} />
@@ -848,7 +843,7 @@ function StartupTab({
       {/* ① 설명 */}
       <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
         <p className="text-sm font-semibold text-orange-800 mb-1">
-          창업패키지 — 16,900원/월
+          창업패키지 — 12,900원/월
         </p>
         <p className="text-sm text-orange-700 leading-relaxed">
           오픈 전 이 지역·업종에 경쟁자가 몇 명인지, AI가 누구를 먼저 추천하는지 분석합니다.
@@ -866,22 +861,22 @@ function StartupTab({
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="bg-orange-50 rounded-lg p-3 text-center">
             <p className="text-2xl font-extrabold text-orange-600">{d.competitorCount}</p>
-            <p className="text-xs text-orange-700 mt-0.5">등록 사업자 수</p>
+            <p className="text-sm text-orange-700 mt-0.5">등록 사업자 수</p>
           </div>
           <div className="bg-red-50 rounded-lg p-3 text-center">
             <p className="text-lg font-extrabold text-red-600">★★★★☆</p>
-            <p className="text-xs text-red-700 mt-0.5">진입 난이도 높음</p>
+            <p className="text-sm text-red-700 mt-0.5">진입 난이도 높음</p>
           </div>
           <div className="bg-blue-50 rounded-lg p-3 text-center">
             <p className="text-2xl font-extrabold text-blue-600">71점</p>
-            <p className="text-xs text-blue-700 mt-0.5">상위 10% 평균</p>
+            <p className="text-sm text-blue-700 mt-0.5">상위 10% 평균</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3 text-center">
             <p className="text-lg font-extrabold text-gray-500">?점</p>
-            <p className="text-xs text-gray-500 mt-0.5">내 예상 (스캔 후)</p>
+            <p className="text-sm text-gray-500 mt-0.5">내 예상 (스캔 후)</p>
           </div>
         </div>
-        <p className="text-xs text-gray-400">* 예시 데이터입니다.</p>
+        <p className="text-sm text-gray-400">* 예시 데이터입니다.</p>
       </div>
 
       {/* ② 결과 미리보기 — 틈새 키워드 */}
@@ -900,7 +895,7 @@ function StartupTab({
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="text-sm font-semibold text-gray-800">"{kw}"</span>
-                <span className="ml-2 text-xs font-medium text-emerald-600">
+                <span className="ml-2 text-sm font-medium text-emerald-600">
                   {i === 0 ? "경쟁도 낮음" : i === 1 ? "노출 기회 높음" : "신규 수요 발생 중"}
                 </span>
               </div>
@@ -913,7 +908,7 @@ function StartupTab({
             </div>
             <div className="absolute inset-0 flex items-center justify-center bg-white/70 gap-1.5">
               <Lock className="w-4 h-4 text-gray-400" />
-              <span className="text-xs font-medium text-gray-500">더보기 (창업패키지 전용)</span>
+              <span className="text-sm font-medium text-gray-500">더보기 (창업패키지 전용)</span>
             </div>
           </div>
         </div>
@@ -928,13 +923,13 @@ function StartupTab({
         />
         <div className="space-y-3">
           <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3">
-            <p className="text-xs font-semibold text-emerald-700 mb-1.5">
+            <p className="text-sm font-semibold text-emerald-700 mb-1.5">
               현재 AI 노출 상위 업체 (예시)
             </p>
             <div className="space-y-1.5">
               {d.competitors.slice(0, 3).map((name, i) => (
                 <div key={name} className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-emerald-600 w-4">{i + 1}</span>
+                  <span className="text-sm font-bold text-emerald-600 w-4">{i + 1}</span>
                   <span className="text-sm text-gray-700 flex-1">{name}</span>
                   <span className="text-sm font-bold text-emerald-700">
                     {[71, 65, 58][i]}점
@@ -943,7 +938,7 @@ function StartupTab({
               ))}
             </div>
           </div>
-          <p className="text-xs text-gray-400">* 예시 데이터입니다.</p>
+          <p className="text-sm text-gray-400">* 예시 데이터입니다.</p>
         </div>
       </div>
 
@@ -984,7 +979,7 @@ function StartupTab({
       ) : (
         <div className="rounded-xl bg-orange-500 p-5 text-white text-center space-y-2">
           <p className="text-base font-bold">창업패키지 시작하기</p>
-          <p className="text-sm opacity-90">월 16,900원 · 창업 준비부터 오픈 후까지</p>
+          <p className="text-sm opacity-90">월 12,900원 · 창업 준비부터 오픈 후까지</p>
           <Link
             href="/signup?plan=startup"
             className="inline-flex items-center gap-1.5 mt-1 bg-white text-orange-600 text-sm font-bold rounded-lg px-5 py-2.5 hover:bg-orange-50 transition-colors"
@@ -1014,7 +1009,7 @@ function ProTab({
   const track2 = scan?.track2_score ?? DEMO_TRACK2;
 
   const GUIDE_ACTIONS = [
-    `스마트플레이스 FAQ에 "${d.missingKeyword} 가능한가요?" 등록`,
+    `스마트플레이스 소개글 안 Q&A에 "${d.missingKeyword} 가능한가요?" 추가`,
     `소식 탭에 "${d.keywords[1] ?? d.keywords[0]}" 관련 포스팅`,
   ];
 
@@ -1048,8 +1043,8 @@ function ProTab({
       {/* ① 설명 */}
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-1">
-          <p className="text-sm font-semibold text-indigo-800">Pro — 22,900원/월</p>
-          <span className="text-xs bg-indigo-100 text-indigo-700 rounded-full px-2 py-0.5 font-medium">
+          <p className="text-sm font-semibold text-indigo-800">Pro — 18,900원/월</p>
+          <span className="text-sm bg-indigo-100 text-indigo-700 rounded-full px-2 py-0.5 font-medium">
             ROI 최강
           </span>
         </div>
@@ -1068,7 +1063,7 @@ function ProTab({
         />
         <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-indigo-600 bg-indigo-100 rounded-full px-2 py-0.5">
+            <span className="text-sm font-bold text-indigo-600 bg-indigo-100 rounded-full px-2 py-0.5">
               핵심 목표
             </span>
             <span className="text-sm font-semibold text-indigo-800">
@@ -1076,17 +1071,17 @@ function ProTab({
             </span>
           </div>
           <div className="pt-1 space-y-1.5">
-            <p className="text-xs font-semibold text-gray-500">이번 주 할 것</p>
+            <p className="text-sm font-semibold text-gray-500">이번 주 할 것</p>
             {GUIDE_ACTIONS.map((action, i) => (
               <div
                 key={i}
                 className="flex items-start gap-2 p-2 bg-white rounded-lg border border-indigo-100"
               >
-                <span className="text-xs font-bold text-indigo-600 mt-0.5 shrink-0">{i + 1}.</span>
+                <span className="text-sm font-bold text-indigo-600 mt-0.5 shrink-0">{i + 1}.</span>
                 <span className="text-sm text-gray-700 flex-1 leading-snug">{action}</span>
                 <button
                   onClick={() => handleGuideCopy(i, action)}
-                  className="shrink-0 text-xs text-indigo-500 hover:text-indigo-700 flex items-center gap-0.5"
+                  className="shrink-0 text-sm text-indigo-500 hover:text-indigo-700 flex items-center gap-0.5"
                 >
                   <Copy className="w-3 h-3" />
                   {guideCopied === i ? "복사됨" : "복사"}
@@ -1095,14 +1090,14 @@ function ProTab({
             ))}
           </div>
           <div className="pt-1">
-            <p className="text-xs font-semibold text-red-500 mb-1">하지 말 것</p>
+            <p className="text-sm font-semibold text-red-500 mb-1">하지 말 것</p>
             <div className="flex items-center gap-2 text-sm text-red-600">
               <XCircle className="w-4 h-4 shrink-0" />
               리뷰 이벤트 (네이버 정책 위반)
             </div>
           </div>
         </div>
-        <p className="text-xs text-gray-400">* 예시 데이터입니다. 월 8회 제공.</p>
+        <p className="text-sm text-gray-400">* 예시 데이터입니다. 월 10회 제공.</p>
       </div>
 
       {/* ② 결과 미리보기 — 경쟁사 10곳 비교 */}
@@ -1141,7 +1136,7 @@ function ProTab({
               </div>
             );
           })}
-          <p className="text-xs text-gray-400">+ 5곳 더 (최대 10개) · 예시 데이터</p>
+          <p className="text-sm text-gray-400">+ 5곳 더 (최대 10개) · 예시 데이터</p>
         </div>
       </div>
 
@@ -1156,7 +1151,7 @@ function ProTab({
           <div className="flex items-start gap-3">
             <div className="w-16 h-20 bg-white border border-indigo-100 rounded-lg shadow-sm flex flex-col items-center justify-center gap-1 shrink-0">
               <FileText className="w-6 h-6 text-indigo-400" />
-              <span className="text-xs text-indigo-400 font-medium">PDF</span>
+              <span className="text-sm text-indigo-400 font-medium">PDF</span>
             </div>
             <div className="flex-1 min-w-0 space-y-1">
               <p className="text-sm font-bold text-gray-800">AEOlab AI 분석 리포트</p>
@@ -1166,7 +1161,7 @@ function ProTab({
                 AI 가시성 점수: {Math.round((track1 + track2) / 2)}점
               </p>
               <button
-                className="inline-flex items-center gap-1.5 mt-1 text-xs text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg px-3 py-1.5 font-medium transition-colors opacity-70 cursor-default"
+                className="inline-flex items-center gap-1.5 mt-1 text-sm text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg px-3 py-1.5 font-medium transition-colors opacity-70 cursor-default"
                 disabled
               >
                 <Download className="w-3.5 h-3.5" />
@@ -1193,18 +1188,18 @@ function ProTab({
           ].map((item, i) => (
             <div key={item.month} className="flex items-center gap-1 shrink-0">
               <div className="text-center bg-indigo-50 border border-indigo-100 rounded-lg p-2.5 min-w-[64px]">
-                <p className="text-xs text-gray-500 mb-0.5">{item.month}</p>
+                <p className="text-sm text-gray-500 mb-0.5">{item.month}</p>
                 <p className="text-base font-extrabold text-indigo-700">{item.score}점</p>
                 {item.change !== null && (
-                  <p className="text-xs font-semibold text-green-600">+{item.change}</p>
+                  <p className="text-sm font-semibold text-green-600">+{item.change}</p>
                 )}
               </div>
               {i < 3 && <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />}
             </div>
           ))}
-          <span className="ml-1 text-xs text-indigo-500 font-semibold shrink-0">↑ 성장 중</span>
+          <span className="ml-1 text-sm text-indigo-500 font-semibold shrink-0">↑ 성장 중</span>
         </div>
-        <p className="text-xs text-gray-400 mt-1">* 예시 데이터</p>
+        <p className="text-sm text-gray-400 mt-1">* 예시 데이터</p>
       </div>
 
       {/* ② 결과 미리보기 — ChatGPT 광고 대응 가이드 */}
@@ -1243,13 +1238,13 @@ function ProTab({
               className="flex gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100"
             >
               <div className="shrink-0 text-center">
-                <span className="text-xs font-bold text-gray-500">{item.step}</span>
+                <span className="text-sm font-bold text-gray-500">{item.step}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <p className="text-sm font-bold text-gray-800">{item.title}</p>
                   <span
-                    className={`text-xs font-medium rounded-full px-2 py-0.5 ${item.badgeColor}`}
+                    className={`text-sm font-medium rounded-full px-2 py-0.5 ${item.badgeColor}`}
                   >
                     {item.badge}
                   </span>
@@ -1259,7 +1254,7 @@ function ProTab({
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-400">
+        <p className="text-sm text-gray-400">
           * ChatGPT 한국 광고 도입 시 위 전략으로 대응하는 맞춤 가이드를 매달 제공합니다.
         </p>
       </div>
@@ -1273,7 +1268,7 @@ function ProTab({
         <div className="divide-y divide-gray-50">
           <FeatureRow label="월·수·금 주 3회 AI 7개 자동 스캔" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 10개" />
-          <FeatureRow label="AI 개선 가이드" available={true} note="월 8회" />
+          <FeatureRow label="AI 개선 가이드" available={true} note="월 10회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 50회" />
           <FeatureRow label="CSV 내보내기" available={true} />
           <FeatureRow label="PDF 리포트 다운로드" available={true} />
@@ -1300,7 +1295,7 @@ function ProTab({
         <div className="rounded-xl bg-indigo-600 p-5 text-white text-center space-y-2">
           <p className="text-base font-bold">Pro 시작하기</p>
           <p className="text-sm opacity-90">
-            월 22,900원 · 광고비 하루치로 한 달 AI 노출 전략
+            월 18,900원 · 광고비 하루치로 한 달 AI 노출 전략
           </p>
           <Link
             href="/signup?plan=pro"
@@ -1355,7 +1350,7 @@ function BizTab({
       {/* ① 설명 */}
       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-1">
-          <p className="text-sm font-semibold text-emerald-800">Biz — 49,900원/월</p>
+          <p className="text-sm font-semibold text-emerald-800">Biz — 39,900원/월</p>
           <Crown className="w-4 h-4 text-emerald-600" />
         </div>
         <p className="text-sm text-emerald-700 leading-relaxed">
@@ -1375,9 +1370,9 @@ function BizTab({
           <table className="w-full min-w-[320px] text-sm">
             <thead>
               <tr className="bg-gray-50">
-                <th className="py-2 px-3 text-xs font-semibold text-gray-500 text-left">사업장</th>
-                <th className="py-2 px-3 text-xs font-semibold text-gray-500 text-center">오늘 점수</th>
-                <th className="py-2 px-3 text-xs font-semibold text-gray-500 text-center">변화</th>
+                <th className="py-2 px-3 text-sm font-semibold text-gray-500 text-left">사업장</th>
+                <th className="py-2 px-3 text-sm font-semibold text-gray-500 text-center">오늘 점수</th>
+                <th className="py-2 px-3 text-sm font-semibold text-gray-500 text-center">변화</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -1387,7 +1382,7 @@ function BizTab({
                   <td className="py-2 px-3 text-center font-bold text-emerald-700">{store.score}점</td>
                   <td className="py-2 px-3 text-center">
                     <span
-                      className={`text-xs font-bold ${
+                      className={`text-sm font-bold ${
                         store.change > 0
                           ? "text-green-600"
                           : store.change < 0
@@ -1408,7 +1403,7 @@ function BizTab({
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-gray-400 mt-2">* 예시 데이터입니다.</p>
+        <p className="text-sm text-gray-400 mt-2">* 예시 데이터입니다.</p>
       </div>
 
       {/* ② 결과 미리보기 — 엑셀 내보내기 */}
@@ -1422,17 +1417,17 @@ function BizTab({
           <FileSpreadsheet className="w-8 h-8 text-emerald-500 shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-800">aeolab_스캔데이터_2026-04.csv</p>
-            <p className="text-xs text-gray-500 mt-0.5">7개 AI 플랫폼 × 30일 데이터</p>
+            <p className="text-sm text-gray-500 mt-0.5">AI 플랫폼 × 30일 데이터</p>
           </div>
           <button
-            className="shrink-0 inline-flex items-center gap-1.5 text-xs text-white bg-emerald-500 rounded-lg px-3 py-1.5 font-medium opacity-70 cursor-default"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm text-white bg-emerald-500 rounded-lg px-3 py-1.5 font-medium opacity-70 cursor-default"
             disabled
           >
             <Download className="w-3.5 h-3.5" />
             다운로드
           </button>
         </div>
-        <p className="text-xs text-gray-400 mt-2">Biz 플랜 전용 · 무제한 제공</p>
+        <p className="text-sm text-gray-400 mt-2">Biz 플랜 전용 · 무제한 제공</p>
       </div>
 
       {/* ② 결과 미리보기 — 팀 계정 */}
@@ -1451,14 +1446,14 @@ function BizTab({
               <div className="w-8 h-8 bg-emerald-200 rounded-full flex items-center justify-center mx-auto mb-1.5">
                 <Users className="w-4 h-4 text-emerald-600" />
               </div>
-              <p className="text-xs font-semibold text-emerald-700">{role}</p>
-              <p className="text-xs text-emerald-500 mt-0.5">
+              <p className="text-sm font-semibold text-emerald-700">{role}</p>
+              <p className="text-sm text-emerald-500 mt-0.5">
                 {i === 0 ? "전체 관리" : "조회만"}
               </p>
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-400 mt-2">+ 최대 5명까지 초대 가능</p>
+        <p className="text-sm text-gray-400 mt-2">+ 최대 5명까지 초대 가능</p>
       </div>
 
       {/* ② 결과 미리보기 — API 키 */}
@@ -1469,13 +1464,13 @@ function BizTab({
           subtitle="외부 서비스·자체 시스템 연동"
         />
         <div className="bg-gray-900 rounded-lg p-3 font-mono">
-          <p className="text-xs text-green-400">// API 키 예시</p>
-          <p className="text-xs text-gray-300 mt-1">
+          <p className="text-sm text-green-400">// API 키 예시</p>
+          <p className="text-sm text-gray-300 mt-1">
             <span className="text-blue-300">Authorization</span>:{" "}
             <span className="text-yellow-300">Bearer ael_••••••••••••••••</span>
           </p>
         </div>
-        <p className="text-xs text-gray-500 mt-2">최대 5개 발급 · SHA256 해시 저장</p>
+        <p className="text-sm text-gray-500 mt-2">최대 5개 발급 · SHA256 해시 저장</p>
       </div>
 
       {/* ② 결과 미리보기 — 무제한 항목 강조 */}
@@ -1497,7 +1492,7 @@ function BizTab({
             >
               <div className="text-emerald-600 flex justify-center mb-1">{item.icon}</div>
               <p className="text-sm font-bold text-emerald-800">{item.label}</p>
-              <p className="text-xs text-emerald-600">{item.sub}</p>
+              <p className="text-sm text-emerald-600">{item.sub}</p>
             </div>
           ))}
         </div>
@@ -1626,7 +1621,7 @@ export default function PreviewClient({ currentPlan, businessData, latestScan }:
             </option>
           ))}
         </select>
-        <span className="text-xs text-gray-400 shrink-0 hidden sm:block">선택하면 미리보기가 바뀝니다</span>
+        <span className="text-sm text-gray-400 shrink-0 hidden sm:block">선택하면 미리보기가 바뀝니다</span>
       </div>
 
       {/* 탭 네비게이션 */}
@@ -1647,10 +1642,10 @@ export default function PreviewClient({ currentPlan, businessData, latestScan }:
               >
                 <span>{tabLabels[tab]}</span>
                 {owned && !isActive && (
-                  <span className="text-xs text-green-500 font-medium leading-none">보유</span>
+                  <span className="text-sm text-green-500 font-medium leading-none">보유</span>
                 )}
                 {isCurrentPlan(tab) && (
-                  <span className="text-xs text-blue-500 font-medium leading-none">현재</span>
+                  <span className="text-sm text-blue-500 font-medium leading-none">현재</span>
                 )}
               </button>
             );

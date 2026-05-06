@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS businesses (
   keyword_diversity NUMERIC(3,2) DEFAULT 0,
   mention_score    NUMERIC(5,2) DEFAULT 50,
   freshness_score  NUMERIC(5,2) DEFAULT 50,
+  excluded_keywords TEXT[] DEFAULT ARRAY[]::TEXT[],
+  custom_keywords   TEXT[] DEFAULT ARRAY[]::TEXT[],
   is_active        BOOLEAN DEFAULT true,
   created_at       TIMESTAMPTZ DEFAULT now()
 );
@@ -1290,3 +1292,617 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS onboarding_done BOOLEAN DEFAULT FA
 
 -- v3.1: scan_results 테이블 exposure_freq 컬럼 타입 확인용 주석
 -- (기존 NUMERIC 컬럼 유지, 변경 없음)
+
+-- =============================================
+-- v4.5 competitors.has_intro 컬럼 추가 (2026-04-13)
+-- competitor_place_crawler.py가 저장 시도하나 컬럼 누락으로 fallback만 동작했던 버그 수정
+-- =============================================
+ALTER TABLE competitors
+  ADD COLUMN IF NOT EXISTS has_intro BOOLEAN DEFAULT FALSE;
+
+-- =============================================
+-- v4.5 businesses.blog_mention_count 컬럼 추가 (2026-04-13)
+-- naver_visibility.py에서 수집한 블로그 언급 수를 내 가게에도 저장
+-- =============================================
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS blog_mention_count INTEGER DEFAULT 0;
+
+-- =============================================
+-- v5.0 행동 완료 추적 + 경쟁사 변화 감지 (2026-04-13)
+-- 1. action_completions: 행동 완료 → 7일 재스캔 → Before/After 결과 추적
+-- 2. competitors.prev_*: 경쟁사 주간 변화 감지 기준값
+-- =============================================
+
+-- ── 1. 행동 완료 추적 테이블 ────────────────────────────
+CREATE TABLE IF NOT EXISTS action_completions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES businesses(id) ON DELETE CASCADE,
+  action_type TEXT NOT NULL, -- 'faq_keyword' | 'intro_keyword' | 'review_reply' | 'blog_post'
+  keyword TEXT,              -- 추가한 키워드
+  action_text TEXT,          -- 사용자가 복사해서 쓴 실제 텍스트
+  completed_at TIMESTAMPTZ DEFAULT NOW(),
+  rescan_at TIMESTAMPTZ,     -- 완료 후 7일 뒤 (completed_at + 7일)
+  rescan_done BOOLEAN DEFAULT FALSE,
+  rescan_scan_id UUID,
+  before_score NUMERIC,
+  after_score NUMERIC,
+  before_mentioned BOOLEAN,
+  after_mentioned BOOLEAN,
+  before_screenshot_url TEXT,
+  after_screenshot_url TEXT,
+  result_summary TEXT        -- FAQ 추가 후 AI 브리핑에 노출됨 등
+);
+
+CREATE INDEX IF NOT EXISTS idx_action_completions_biz ON action_completions(business_id);
+CREATE INDEX IF NOT EXISTS idx_action_completions_rescan ON action_completions(rescan_at) WHERE rescan_done = FALSE;
+CREATE INDEX IF NOT EXISTS idx_action_completions_user ON action_completions(user_id);
+
+-- RLS
+ALTER TABLE action_completions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users can manage own actions" ON action_completions
+  FOR ALL USING (auth.uid() = user_id);
+
+-- ── 2. 경쟁사 변화 감지용 컬럼 추가 ────────────────────
+ALTER TABLE competitors
+  ADD COLUMN IF NOT EXISTS prev_has_faq BOOLEAN,
+  ADD COLUMN IF NOT EXISTS prev_has_menu BOOLEAN,
+  ADD COLUMN IF NOT EXISTS prev_has_recent_post BOOLEAN,
+  ADD COLUMN IF NOT EXISTS prev_review_count INTEGER,
+  ADD COLUMN IF NOT EXISTS prev_photo_count INTEGER,
+  ADD COLUMN IF NOT EXISTS change_detected_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS change_summary TEXT;  -- FAQ 신규 등록, 소식 추가
+
+
+-- =============================================
+-- v3.1 행동-결과 타임라인 테이블 (A-3, B-4)
+-- 체크박스 체크/가이드 생성 날짜 저장 → 7일 후 점수 변화 연결
+-- =============================================
+CREATE TABLE IF NOT EXISTS business_action_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  action_type TEXT NOT NULL,
+  -- action_type: faq_registered | intro_updated | post_published | review_replied | guide_generated
+  action_label TEXT NOT NULL,
+  action_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  score_before FLOAT,
+  score_after FLOAT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_business_action_log_biz_date
+  ON business_action_log(business_id, action_date DESC);
+
+-- =============================================
+-- v3.2 blog_analysis_json 컬럼 추가 (2026-04-14)
+-- blog_analyzer.py 결과 저장: {posts, keywords, freshness_days, gap_keywords}
+-- =============================================
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS blog_analysis_json JSONB;
+
+-- =============================================
+-- v3.3 guides.context CHECK 제약 수정 (2026-04-14)
+-- 'faq_draft' 값 추가: FAQ 초안 월별 한도 체크에 필요
+-- guides.context = 'faq_draft' 시 CHECK 위반으로 한도 카운트가 항상 0이었던 버그 수정
+-- =============================================
+ALTER TABLE guides DROP CONSTRAINT IF EXISTS guides_context_check;
+ALTER TABLE guides
+  ADD CONSTRAINT guides_context_check
+  CHECK (context IN ('location_based', 'non_location', 'faq_draft'));
+
+-- =============================================
+-- v3.4 sp_completeness_json 컬럼 추가 (2026-04-16)
+-- naver_place_stats.py check_smart_place_completeness() 결과 저장
+-- {is_smart_place, has_faq, has_recent_post, has_intro, photo_count, review_count, score}
+-- =============================================
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS sp_completeness_json JSONB;
+
+-- =============================================
+-- v3.5 before_after 테이블 — 블로그 키워드 스크린샷 지원 (2026-04-17)
+-- before_after.capture_type CHECK 제약 확장: 'blog_keyword' 추가
+-- before_after.keyword 컬럼 추가: 어떤 키워드로 캡처했는지 저장
+-- =============================================
+ALTER TABLE before_after DROP CONSTRAINT IF EXISTS before_after_capture_type_check;
+ALTER TABLE before_after
+  ADD CONSTRAINT before_after_capture_type_check
+  CHECK (capture_type IN ('before', 'after_30d', 'after_60d', 'after_90d',
+                          'before_naver_ai', 'before_google',
+                          'blog_keyword'));
+ALTER TABLE before_after
+  ADD COLUMN IF NOT EXISTS keyword TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_before_after_blog_keyword
+  ON before_after(business_id, capture_type, keyword, created_at DESC)
+  WHERE capture_type = 'blog_keyword';
+
+-- =============================================
+-- v3.6 blog_analysis 테이블 추가 (2026-04-17)
+-- 키워드별 네이버 블로그 검색 결과 구조화 분석 저장
+-- blog-screenshots 스크린샷 방식 → 구조화 카드 방식 전환
+-- =============================================
+CREATE TABLE IF NOT EXISTS blog_analysis (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id  UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  keyword      TEXT NOT NULL,
+  my_rank      INTEGER,           -- NULL = 상위 10위 내 미노출
+  posts_json   JSONB NOT NULL DEFAULT '[]',  -- 상위 10개 포스팅 배열
+  analyzed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 사업장+키워드 기준 최신 1개만 유지 (UPSERT용 고유 인덱스)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_blog_analysis_biz_kw
+  ON blog_analysis(business_id, keyword);
+
+-- 최신 분석 결과 빠른 조회용
+CREATE INDEX IF NOT EXISTS idx_blog_analysis_analyzed
+  ON blog_analysis(business_id, analyzed_at DESC);
+
+
+-- =============================================
+-- v3.2: first_exposure 알림 추적
+-- =============================================
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS first_exposure_notified_at TIMESTAMPTZ;
+
+
+-- =============================================
+-- v3.2: Basic 1회 무료 체험 (2026-04-22)
+-- =============================================
+-- 회원가입 후 결제 없이 Full Scan(4종 AI) 1회 + 가이드 1회 체험 허용
+-- basic_trial_used: 이미 체험 사용 여부 (true → 차단)
+-- basic_trial_used_at: 체험 사용 시각 (분석·마케팅용)
+-- basic_trial_business_id: 체험 대상 사업장 (가이드 생성 허용 판정용)
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS basic_trial_used         BOOLEAN     DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS basic_trial_used_at      TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS basic_trial_business_id  UUID        REFERENCES businesses(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_profiles_basic_trial_used
+  ON profiles(basic_trial_used)
+  WHERE basic_trial_used = TRUE;
+
+
+-- =============================================
+-- v3.3: 첫 달 50% 할인 추적 (2026-04-22)
+-- =============================================
+-- Basic 신규 가입자에게 첫 달 4,950원(50%) 자동 적용.
+-- first_month_discount_until: 할인 적용 종료일(가입일 +30일). 초과 시 자동결제 정상가.
+-- first_payment_amount: 첫 결제 실제 금액(감사 용도).
+ALTER TABLE subscriptions
+  ADD COLUMN IF NOT EXISTS first_month_discount_until DATE,
+  ADD COLUMN IF NOT EXISTS first_payment_amount       INT;
+
+-- =============================================
+-- billing_cycle 컬럼 추가 (2026-04-27)
+-- =============================================
+-- webhook.py가 결제 확정 시 billing_cycle='monthly'|'yearly' 저장.
+-- 누락 시 settings/page.tsx SELECT 에러 → sub=null → 설정 페이지 "무료 플랜" 오표시.
+ALTER TABLE subscriptions
+  ADD COLUMN IF NOT EXISTS billing_cycle TEXT DEFAULT 'monthly'
+    CHECK (billing_cycle IN ('monthly', 'yearly'));
+
+
+-- =============================================
+-- v3.4: 경쟁사 스마트플레이스 FAQ 수집 (2026-04-23)
+-- =============================================
+-- 경쟁사 사장님이 네이버 스마트플레이스에 등록한 FAQ 질문 텍스트를 주 1회 수집.
+-- "내 가게에 없는 Q&A를 경쟁사는 가지고 있다"는 직접 증거 — ChatGPT로 얻을 수 없는 데이터.
+-- 저작권 이슈를 피하기 위해 답변 본문은 저장하지 않고 질문 텍스트만 보관.
+CREATE TABLE IF NOT EXISTS competitor_faqs (
+  id              UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
+  competitor_id   UUID      NOT NULL REFERENCES competitors(id) ON DELETE CASCADE,
+  naver_place_id  TEXT      NOT NULL,
+  questions       JSONB     NOT NULL DEFAULT '[]'::jsonb,  -- list[str] 질문 텍스트
+  question_count  INT       GENERATED ALWAYS AS (jsonb_array_length(questions)) STORED,
+  collected_at    TIMESTAMPTZ DEFAULT NOW(),
+  error           TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_competitor_faqs_competitor_id ON competitor_faqs(competitor_id);
+CREATE INDEX IF NOT EXISTS idx_competitor_faqs_collected_at  ON competitor_faqs(collected_at DESC);
+ALTER TABLE competitor_faqs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "competitor_faqs_select_via_owner" ON competitor_faqs FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM competitors c JOIN businesses b ON b.id = c.business_id
+    WHERE c.id = competitor_faqs.competitor_id AND b.user_id = auth.uid()
+  )
+);
+
+-- ============================================================
+-- v3.2 — 사용자 맞춤 키워드 (2026-04-23)
+-- 사용자가 블로그 진단·경쟁사 관리에서 키워드를 삭제/추가하면 저장
+-- ============================================================
+
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS excluded_keywords TEXT[] DEFAULT ARRAY[]::TEXT[],
+  ADD COLUMN IF NOT EXISTS custom_keywords TEXT[] DEFAULT ARRAY[]::TEXT[];
+
+CREATE INDEX IF NOT EXISTS idx_businesses_custom_keywords
+  ON businesses USING GIN (custom_keywords);
+
+
+-- ============================================================
+-- v3.3 — 트라이얼 신뢰도 강화 1라운드 (2026-04-23)
+-- 무료 체험 시 (a) 네이버 지역검색으로 매칭된 가게 데이터,
+--                (b) 스마트플레이스 자동 진단 결과를 보존.
+-- 회원가입 → 사업장 등록으로 이어질 때 미리 채워진 정보로 활용 가능.
+-- ============================================================
+
+ALTER TABLE trial_scans
+  ADD COLUMN IF NOT EXISTS place_data        JSONB,
+  ADD COLUMN IF NOT EXISTS smart_place_check JSONB;
+
+
+-- ============================================================
+-- v3.4 — 트라이얼 신뢰도 강화 2라운드 (2026-04-23)
+-- 무료 체험에서 사용된 Gemini 10회 샘플링의 AI 응답 원문
+-- (쿼리·가게명 언급 여부·발췌문)을 보존해 사용자가
+-- "AI가 실제로 내 가게를 인식하는지" 직접 증거로 확인 가능.
+-- ============================================================
+
+ALTER TABLE trial_scans
+  ADD COLUMN IF NOT EXISTS ai_evidence JSONB;
+
+
+-- ============================================================
+-- v3.7 -- 재방문 변화 요약 (2026-04-24)
+-- 대시보드 재방문 시 last_dashboard_visit 이후 점수 변화를
+-- 사용자에게 요약해 보여주기 위한 방문 타임스탬프 컬럼.
+-- ============================================================
+
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS last_dashboard_visit TIMESTAMPTZ;
+
+
+-- =============================================
+-- 테스트 계정 구독 행 삽입 (개발용, 2026-04-27)
+-- =============================================
+-- hoozdev@gmail.com → plan: basic
+-- hoozdev_pro@gmail.com → plan: pro
+-- hoozdev_biz@gmail.com → plan: biz
+--
+-- 실행 전: 이 3개 계정이 Supabase Auth에 가입되어 있는지 확인하세요.
+-- 미가입 시 INSERT ... SELECT에서 0행 삽입됨 (오류 아님).
+INSERT INTO subscriptions (user_id, plan, status, start_at, end_at, billing_cycle)
+SELECT
+  id AS user_id,
+  CASE
+    WHEN email = 'hoozdev@gmail.com'      THEN 'basic'
+    WHEN email = 'hoozdev_pro@gmail.com'  THEN 'pro'
+    WHEN email = 'hoozdev_biz@gmail.com'  THEN 'biz'
+  END AS plan,
+  'active'   AS status,
+  NOW()      AS start_at,
+  NOW() + INTERVAL '10 years' AS end_at,
+  'monthly'  AS billing_cycle
+FROM auth.users
+WHERE email IN (
+  'hoozdev@gmail.com',
+  'hoozdev_pro@gmail.com',
+  'hoozdev_biz@gmail.com'
+)
+ON CONFLICT (user_id) DO UPDATE SET
+  plan       = EXCLUDED.plan,
+  status     = 'active',
+  end_at     = NOW() + INTERVAL '10 years';
+
+-- ===========================================================
+-- v4.0 단계 0: AI 브리핑 노출 설정 추적 + 업종 분류
+-- 2026-04-30 — FAQ 별도 메뉴 없음 확정 (4개 출처 일치)
+--             업종별 AI 브리핑 대상 분리
+-- ===========================================================
+
+-- 사용자가 직접 확인하는 AI 정보 탭 상태
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS ai_info_tab_status TEXT
+    DEFAULT 'unknown'
+    CHECK (ai_info_tab_status IN ('not_visible', 'off', 'on', 'disabled', 'unknown'));
+
+COMMENT ON COLUMN businesses.ai_info_tab_status IS
+  '스마트플레이스 → 업체정보 → AI 정보 탭 상태 (사용자 직접 확인).
+   not_visible=메뉴 없음(비대상), off=OFF, on=ON, disabled=비활성(조건미달), unknown=미확인';
+
+-- ===========================================================
+-- v4.1 (2026-04-30): 프랜차이즈 게이팅 + 생성 콘텐츠 초안 저장
+-- 근거: 네이버 공식(help.naver.com/service/30026/contents/24632)
+--      "프랜차이즈 업종의 경우 현재 제공되지 않으며 추후 확대 예정"
+-- ===========================================================
+
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS is_franchise BOOLEAN DEFAULT FALSE;
+
+COMMENT ON COLUMN businesses.is_franchise IS
+  '프랜차이즈 가맹점 여부. TRUE면 ACTIVE 업종(음식점/카페 등)이어도 AI 브리핑 inactive 처리.
+   네이버 공식 2026-04-30 확인 — 프랜차이즈는 현재 AI 브리핑 제공 대상 제외(추후 확대 예정)';
+
+-- AI 자동 생성 콘텐츠 초안 저장 (재방문 시 재로드용)
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS naver_intro_draft TEXT,
+  ADD COLUMN IF NOT EXISTS naver_intro_generated_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS talktalk_faq_draft JSONB,
+  ADD COLUMN IF NOT EXISTS talktalk_faq_generated_at TIMESTAMPTZ;
+
+COMMENT ON COLUMN businesses.naver_intro_draft IS
+  'Claude Sonnet 자동 생성 소개글 최신 초안 (재생성 시 덮어씀). 사용자 복사용';
+COMMENT ON COLUMN businesses.talktalk_faq_draft IS
+  '톡톡 FAQ + 채팅방 메뉴 자동 생성 최신 초안. JSON: {items: [...], chat_menus: [...]}';
+
+
+-- ===========================================================
+-- 2026-05-01: score_history.score_breakdown 컬럼 추가
+-- score_attribution 엔드포인트가 항목별 변화 분석을 위해 필요.
+-- ALTER 미실행 시 routers/report.py가 graceful fallback으로 unified_score만 사용 (기능 약화).
+-- ===========================================================
+ALTER TABLE score_history
+  ADD COLUMN IF NOT EXISTS score_breakdown JSONB;
+
+COMMENT ON COLUMN score_history.score_breakdown IS
+  '점수 항목별 분해(JSONB). 예: {"keyword_gap_score": 30, "review_quality": 60, ...}.
+   score_attribution 분석 시 행동 전후 항목별 변화 산출에 사용.';
+
+
+-- ===========================================================
+-- 2026-04-30 Phase A: 키워드 순위 추적 + 카카오 자동 점검 + 월별 추천 한도
+-- (graceful fallback 설계 — 미실행 시 서비스 정상 동작, 단 schema 동기화 필요)
+-- ===========================================================
+
+-- businesses: 그룹 분류 + 카카오 자동 점검
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS user_group TEXT,
+  ADD COLUMN IF NOT EXISTS kakao_auto_check_result JSONB,
+  ADD COLUMN IF NOT EXISTS kakao_auto_check_at TIMESTAMPTZ;
+
+COMMENT ON COLUMN businesses.user_group IS
+  'ACTIVE / LIKELY / INACTIVE — briefing_engine.get_briefing_eligibility() 결과 캐시. score_engine.NAVER_TRACK_WEIGHTS_V3_1 분기에 사용';
+COMMENT ON COLUMN businesses.kakao_auto_check_result IS
+  '카카오맵 자동 점검 결과 (JSONB). naver_place_stats.get_kakao_place_info() 반환값 저장';
+
+-- scan_results: 키워드 순위 + 측정 컨텍스트 + 블로그 C-rank
+ALTER TABLE scan_results
+  ADD COLUMN IF NOT EXISTS keyword_ranks JSONB,
+  ADD COLUMN IF NOT EXISTS measurement_context JSONB,
+  ADD COLUMN IF NOT EXISTS blog_crank_score FLOAT;
+
+COMMENT ON COLUMN scan_results.keyword_ranks IS
+  '키워드별 순위 결과 JSONB. [{keyword, pc_rank, mobile_rank, place_rank, measured_at}]';
+COMMENT ON COLUMN scan_results.blog_crank_score IS
+  '블로그 C-rank 추정값 (0~100). blog_analyzer.estimate_crank_score() 산출';
+
+-- score_history: 키워드 순위 평균 + 블로그 C-rank + 그룹 스냅샷
+ALTER TABLE score_history
+  ADD COLUMN IF NOT EXISTS keyword_rank_avg FLOAT,
+  ADD COLUMN IF NOT EXISTS blog_crank_score FLOAT,
+  ADD COLUMN IF NOT EXISTS user_group_snapshot TEXT;
+
+COMMENT ON COLUMN score_history.keyword_rank_avg IS
+  '스캔 시점 키워드 평균 순위 (낮을수록 좋음). 추세 분석용';
+
+-- notifications: 키워드 변동 알림 페이로드
+ALTER TABLE notifications
+  ADD COLUMN IF NOT EXISTS keyword_change_payload JSONB;
+
+COMMENT ON COLUMN notifications.keyword_change_payload IS
+  '키워드 순위 변동 알림 세부 내용. {keyword, prev_rank, curr_rank, delta}';
+
+-- profiles: 키워드 자동 추천 월별 한도 + 리셋 타임스탬프
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS keyword_suggest_count_month INT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS keyword_suggest_reset_at TIMESTAMPTZ;
+
+COMMENT ON COLUMN profiles.keyword_suggest_count_month IS
+  '이번 달 키워드 자동 추천 사용 횟수. 플랜별 한도: Free/Basic 1, Pro 4, Biz 10';
+COMMENT ON COLUMN profiles.keyword_suggest_reset_at IS
+  '키워드 추천 한도 리셋 타임스탬프 (매월 1일 자동 리셋)';
+
+-- trial_scans: 클레임 전환 깔때기 (v3.6)
+ALTER TABLE trial_scans
+  ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS claim_email TEXT,
+  ADD COLUMN IF NOT EXISTS converted_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL;
+
+COMMENT ON COLUMN trial_scans.claimed_at IS
+  '사용자가 Trial 결과를 클레임(저장 요청)한 시각';
+COMMENT ON COLUMN trial_scans.converted_user_id IS
+  'Trial 클레임 후 회원가입·로그인 완료된 사용자 auth.users.id (전환율 측정용)';
+
+
+-- =============================================
+-- §3.2 사진 카테고리 진단 (2026-05-04)
+-- =============================================
+-- 네이버 AI 이미지 필터 카테고리별 사진 수 저장
+-- 예: {"음식-음료": 12, "메뉴": 0, "풍경": 5}
+ALTER TABLE scan_results
+  ADD COLUMN IF NOT EXISTS photo_categories JSONB;
+
+COMMENT ON COLUMN scan_results.photo_categories IS
+  '네이버 AI 이미지 필터 카테고리별 사진 수 {"음식-음료": 12, "메뉴": 0, "풍경": 5}';
+
+
+-- =============================================
+-- Sprint 1: 대행 의뢰 게시판 (2026-05-04)
+-- =============================================
+-- delivery_orders: 대행 의뢰 — 비밀 게시판 글 1행 1글
+-- delivery_messages: 의뢰 내 운영자·사용자 메시지
+
+CREATE TABLE IF NOT EXISTS delivery_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  package_type TEXT NOT NULL CHECK (package_type IN ('smartplace_register','ai_optimization','comprehensive')),
+  amount INT NOT NULL,
+  payment_key TEXT,                   -- 토스 결제 키
+  order_name TEXT,                    -- 토스 orderName
+
+  -- 게시글 본문
+  request_title TEXT NOT NULL,
+  request_body TEXT NOT NULL,
+
+  -- 사용자 노출 상태 (3단계 단순화)
+  status TEXT NOT NULL DEFAULT 'received' CHECK (status IN (
+    'received','in_progress','completed','rework','refunded','cancelled'
+  )),
+
+  -- 위임 동의
+  consent_agreed BOOLEAN DEFAULT FALSE,
+  consent_signed_at TIMESTAMPTZ,
+  consent_ip TEXT,
+
+  -- 자료
+  materials_url JSONB DEFAULT '[]'::jsonb,
+
+  -- 작업 진행
+  work_started_at TIMESTAMPTZ,
+  work_completed_at TIMESTAMPTZ,
+  completion_report JSONB,
+
+  -- 30일 재진단 (패키지 03만)
+  score_before NUMERIC,
+  score_after NUMERIC,
+  followup_scan_id UUID,
+  rework_reason TEXT,
+  rework_count INT DEFAULT 0,
+
+  -- 환불·후기
+  refund_reason TEXT,
+  refund_amount INT,
+  testimonial_consent BOOLEAN DEFAULT FALSE,
+  testimonial_submitted_at TIMESTAMPTZ,
+
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_delivery_user ON delivery_orders(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_delivery_status ON delivery_orders(status, created_at);
+
+ALTER TABLE delivery_orders ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "user_own_orders" ON delivery_orders;
+CREATE POLICY "user_own_orders" ON delivery_orders FOR ALL
+  USING (auth.uid() = user_id);
+
+COMMENT ON TABLE delivery_orders IS '대행 의뢰 — 비밀 게시판 글 1행 1글. 패키지별 가격: smartplace_register=49k, ai_optimization=79k, comprehensive=119k';
+COMMENT ON COLUMN delivery_orders.package_type IS '패키지 타입: smartplace_register(4.9만), ai_optimization(7.9만), comprehensive(11.9만)';
+COMMENT ON COLUMN delivery_orders.amount IS '결제 금액 (원)';
+COMMENT ON COLUMN delivery_orders.status IS 'received→in_progress→completed 또는 rework→refunded/cancelled';
+COMMENT ON COLUMN delivery_orders.consent_agreed IS '위임 동의 여부 (계약)';
+COMMENT ON COLUMN delivery_orders.score_before IS '30일 재진단 시작 전 점수 (comprehensive 패키지만)';
+COMMENT ON COLUMN delivery_orders.score_after IS '30일 재진단 완료 후 점수 (comprehensive 패키지만)';
+COMMENT ON COLUMN delivery_orders.rework_count IS '추가 작업 회차 (최대 2회)';
+
+
+CREATE TABLE IF NOT EXISTS delivery_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID NOT NULL REFERENCES delivery_orders(id) ON DELETE CASCADE,
+  author_type TEXT NOT NULL CHECK (author_type IN ('user','admin')),
+  author_id UUID NOT NULL,
+  body TEXT NOT NULL,
+  attachment_urls JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  read_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_msg_order ON delivery_messages(order_id, created_at);
+
+ALTER TABLE delivery_messages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "user_own_order_messages" ON delivery_messages;
+CREATE POLICY "user_own_order_messages" ON delivery_messages FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM delivery_orders o
+      WHERE o.id = delivery_messages.order_id AND o.user_id = auth.uid()
+    )
+  );
+
+COMMENT ON TABLE delivery_messages IS '의뢰 내 운영자·사용자 메시지';
+COMMENT ON COLUMN delivery_messages.author_type IS 'user(사용자) 또는 admin(운영자)';
+COMMENT ON COLUMN delivery_messages.author_id IS '작성자 auth.users.id (author_type=admin인 경우도 저장)';
+COMMENT ON COLUMN delivery_messages.read_at IS '수신자가 읽은 시각 (null=미읽)';
+
+-- =============================================
+-- Sprint 2 마이그레이션 — Q&A 게시판 (2026-05-04)
+-- =============================================
+
+-- ──────────────────────────────────────────
+-- 1. support_tickets (Q&A 게시판 글)
+-- ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  category TEXT NOT NULL CHECK (category IN ('payment','feature','score','bug','other')),
+  visibility TEXT NOT NULL DEFAULT 'private' CHECK (visibility IN ('private','public')),
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','answered','closed')),
+  attachment_urls JSONB DEFAULT '[]'::jsonb,
+  view_count INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  answered_at TIMESTAMPTZ,
+  closed_at TIMESTAMPTZ
+);
+
+-- 인덱스: 사용자별 글 조회, 상태별 글 조회, 공개된 답변글
+CREATE INDEX IF NOT EXISTS idx_tickets_user ON support_tickets(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_tickets_status ON support_tickets(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_tickets_public ON support_tickets(visibility, status)
+  WHERE visibility = 'public' AND status = 'answered';
+
+-- RLS: 본인 글만 조회 / 공개된 답변글도 조회 가능
+ALTER TABLE support_tickets ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "user_own_tickets" ON support_tickets;
+CREATE POLICY "user_own_tickets" ON support_tickets FOR ALL
+  USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "public_answered_tickets" ON support_tickets;
+CREATE POLICY "public_answered_tickets" ON support_tickets FOR SELECT
+  USING (visibility = 'public' AND status = 'answered');
+
+COMMENT ON TABLE support_tickets IS '사용자 Q&A 게시판 글';
+COMMENT ON COLUMN support_tickets.category IS '카테고리: payment(결제), feature(기능), score(점수), bug(버그), other(기타)';
+COMMENT ON COLUMN support_tickets.visibility IS '공개 범위: private(비공개), public(공개)';
+COMMENT ON COLUMN support_tickets.status IS '상태: open(열림), answered(답변됨), closed(종료)';
+COMMENT ON COLUMN support_tickets.attachment_urls IS '첨부 파일 URL 배열 (Storage 퍼블릭 파일)';
+COMMENT ON COLUMN support_tickets.view_count IS '조회수 (public answered만 증가)';
+
+-- ──────────────────────────────────────────
+-- 2. support_replies (Q&A 답변·코멘트)
+-- ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS support_replies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ticket_id UUID NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+  author_type TEXT NOT NULL CHECK (author_type IN ('user','admin')),
+  author_id UUID NOT NULL,
+  body TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 인덱스: 글 내 답변 조회 (최신순)
+CREATE INDEX IF NOT EXISTS idx_replies_ticket ON support_replies(ticket_id, created_at);
+
+-- RLS: 본인 글 또는 공개된 글의 답변만 조회 / 열린 글에만 댓글 작성
+ALTER TABLE support_replies ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "user_view_ticket_replies" ON support_replies;
+CREATE POLICY "user_view_ticket_replies" ON support_replies FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM support_tickets t
+      WHERE t.id = support_replies.ticket_id
+        AND (t.user_id = auth.uid() OR (t.visibility = 'public' AND t.status = 'answered'))
+    )
+  );
+
+DROP POLICY IF EXISTS "user_insert_reply" ON support_replies;
+CREATE POLICY "user_insert_reply" ON support_replies FOR INSERT
+  WITH CHECK (
+    author_type = 'user' AND author_id = auth.uid() AND
+    EXISTS (
+      SELECT 1 FROM support_tickets t
+      WHERE t.id = support_replies.ticket_id AND t.user_id = auth.uid() AND t.status != 'closed'
+    )
+  );
+
+COMMENT ON TABLE support_replies IS '글 내 답변·코멘트 (사용자 또는 관리자)';
+COMMENT ON COLUMN support_replies.author_type IS 'user(사용자) 또는 admin(운영자)';
+COMMENT ON COLUMN support_replies.author_id IS '작성자 auth.users.id';
+

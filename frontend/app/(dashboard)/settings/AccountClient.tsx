@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, getSafeSession } from "@/lib/supabase/client";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -27,8 +27,6 @@ export function AccountClient({ currentEmail }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState("");
 
-  const supabase = createClient();
-
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPwMsg(null);
@@ -42,7 +40,7 @@ export function AccountClient({ currentEmail }: Props) {
     }
     setPwSaving(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { error } = await createClient().auth.updateUser({ password: newPassword });
       if (error) throw error;
       setPwMsg({ type: "ok", text: "비밀번호가 변경되었습니다." });
       setNewPassword("");
@@ -68,7 +66,7 @@ export function AccountClient({ currentEmail }: Props) {
     }
     setEmailSaving(true);
     try {
-      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      const { error } = await createClient().auth.updateUser({ email: newEmail });
       if (error) throw error;
       setEmailMsg({ type: "ok", text: `${newEmail}으로 확인 메일을 발송했습니다. 메일함을 확인해 주세요.` });
       setNewEmail("");
@@ -84,7 +82,7 @@ export function AccountClient({ currentEmail }: Props) {
     setDeleting(true);
     setDeleteMsg("");
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await getSafeSession();
       const token = session?.access_token;
       if (!token) throw new Error("인증 세션이 만료되었습니다. 다시 로그인해 주세요.");
       const res = await fetch(`${BACKEND}/api/settings/account`, {
@@ -95,7 +93,7 @@ export function AccountClient({ currentEmail }: Props) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.detail || "삭제 중 오류가 발생했습니다.");
       }
-      await supabase.auth.signOut();
+      await createClient().auth.signOut();
       window.location.href = "/";
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "오류가 발생했습니다.";

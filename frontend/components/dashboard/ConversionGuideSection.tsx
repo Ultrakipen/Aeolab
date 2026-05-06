@@ -1,34 +1,49 @@
 "use client";
 
 // ConversionGuideSection.tsx
-// 무료→유료 전환 섹션
-// - 점수 낮은 항목 기반 무료 팁 2개 동적 노출
-// - 나머지 방법은 잠금(blur) 처리 + Basic 플랜 CTA
+// 대시보드 "점수를 올리는 방법" — 스캔 결과 기반 맞춤 개선 팁
+// - 서버에서 맞춤 팁 3~4개 fetch (AI 호출 0)
+// - 각 팁: 진단 근거(reason) + 즉시 복사 가능 초안 + 외부 스마트플레이스 링크
+// - Free 플랜은 상위 2개만 copy_text 공개, 나머지 Basic+ 잠금
 
 import Link from "next/link";
-import { useState } from "react";
-import { Lock, CheckCircle2, Copy, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Lock,
+  Copy,
+  Check,
+  ExternalLink,
+  Zap,
+  AlertTriangle,
+  ArrowRight,
+} from "lucide-react";
+import { getConversionTips } from "@/lib/api";
+import { getSafeSession } from "@/lib/supabase/client";
+import type { ConversionTip, ConversionTipsResponse } from "@/types";
 
 interface Props {
-  breakdown: Record<string, number>;
-  businessName: string;
-  topMissingKeywords: string[];
-  reviewCount: number;
-  plan: string; // 'free' | 'basic' | 'pro' | 'biz' | 'startup' | 'enterprise'
+  bizId: string;
+  plan: string;
 }
 
-interface Tip {
-  key: string;
-  title: string;
-  previewContent: React.ReactNode;
-  actionLabel: string;
-  actionHref: string;
-}
+const URGENCY_COLOR: Record<string, string> = {
+  do_now: "bg-red-100 text-red-700 border-red-200",
+  this_week: "bg-amber-100 text-amber-700 border-amber-200",
+  this_month: "bg-slate-100 text-slate-700 border-slate-200",
+};
 
-function CopyButton({ text }: { text: string }) {
+const EVIDENCE_COLOR: Record<string, string> = {
+  keyword_gap: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  ai_citation: "bg-rose-50 text-rose-700 border-rose-200",
+  smart_place: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  review: "bg-sky-50 text-sky-700 border-sky-200",
+};
+
+function CopyButton({ text, disabled }: { text: string; disabled?: boolean }) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
+    if (!text || disabled) return;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -37,17 +52,19 @@ function CopyButton({ text }: { text: string }) {
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
-      className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-400 px-3 py-1.5 rounded-lg transition-colors mt-2"
+      disabled={disabled}
+      className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-700 hover:text-blue-900 border border-blue-200 hover:border-blue-400 bg-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {copied ? (
         <>
-          <Check className="w-3.5 h-3.5" />
+          <Check className="w-4 h-4" />
           복사됨
         </>
       ) : (
         <>
-          <Copy className="w-3.5 h-3.5" />
+          <Copy className="w-4 h-4" />
           복사하기
         </>
       )}
@@ -55,273 +72,254 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-// 잠금된 더미 항목 목록 (blur 처리)
-const LOCKED_ITEMS = [
-  { icon: "✨", label: "맞춤 FAQ 5개 문구 (바로 복사)" },
-  { icon: "📋", label: "리뷰 유도 카카오 문자 3가지" },
-  { icon: "📝", label: "AI 최적화 소개글 초안" },
-  { icon: "🗓", label: "이번 주 소식 업데이트 템플릿" },
-  { icon: "📊", label: "경쟁사 대비 내가 없는 키워드 분석" },
-];
+function TipCard({ tip }: { tip: ConversionTip }) {
+  const urgencyClass =
+    URGENCY_COLOR[tip.urgency] ?? URGENCY_COLOR["this_week"];
+  const evidenceClass =
+    EVIDENCE_COLOR[tip.evidence_type] ?? EVIDENCE_COLOR["smart_place"];
+  const previewText = tip.locked
+    ? tip.copy_text.slice(0, 60) + " …"
+    : tip.copy_text;
 
-// 항목별 팁 생성 함수
-function buildTips(
-  breakdown: Record<string, number>,
-  businessName: string,
-  topMissingKeywords: string[]
-): Tip[] {
-  const tipPriority: Array<{
-    key: string;
-    threshold: number;
-    buildTip: () => Tip;
-  }> = [
-    {
-      key: "smart_place_completeness",
-      threshold: 70,
-      buildTip: () => ({
-        key: "smart_place_completeness",
-        title: "스마트플레이스 Q&A에 FAQ 1개 등록",
-        previewContent: (
-          <div>
-            <p className="text-sm text-gray-600 mb-2">
-              AI 브리핑이 가장 자주 직접 인용하는 콘텐츠가 바로 Q&A입니다.
-              아래 예시 질문을 그대로 복사해서 등록해보세요.
-            </p>
-            <div className="bg-white border border-green-200 rounded-lg p-3 text-sm text-gray-700">
-              <p className="font-medium mb-1">예시 질문</p>
-              <p className="text-gray-600">&ldquo;예약은 어떻게 하나요?&rdquo;</p>
-              <p className="text-gray-500 text-xs mt-1.5">
-                → 전화 또는 카카오톡 채널로 예약 가능합니다. 당일 예약은 전화로 문의 주세요.
-              </p>
-            </div>
-            <CopyButton text={`Q: 예약은 어떻게 하나요?\nA: 전화 또는 카카오톡 채널로 예약 가능합니다. 당일 예약은 전화로 문의 주세요.`} />
+  return (
+    <div
+      className={`relative rounded-xl border bg-white p-4 md:p-5 ${
+        tip.locked ? "border-gray-200" : "border-green-200 shadow-sm"
+      }`}
+    >
+      {/* 배지 영역 */}
+      <div className="flex flex-wrap items-center gap-1.5 mb-3">
+        <span
+          className={`inline-flex items-center gap-1 text-sm font-semibold px-2.5 py-1 rounded-full border ${urgencyClass}`}
+        >
+          <Zap className="w-3.5 h-3.5" />
+          {tip.urgency_label}
+        </span>
+        <span
+          className={`inline-flex items-center text-sm font-medium px-2.5 py-1 rounded-full border ${evidenceClass}`}
+        >
+          {tip.evidence_badge}
+        </span>
+        <span className="inline-flex items-center text-sm text-gray-500 px-2 py-1">
+          ⏱ {tip.estimated_time}
+        </span>
+      </div>
+
+      {/* 제목 + 근거 */}
+      <h3 className="text-base md:text-lg font-bold text-gray-900 mb-1.5">
+        {tip.title}
+      </h3>
+      <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-3">
+        <AlertTriangle className="inline w-4 h-4 text-amber-500 mr-1 align-text-bottom" />
+        {tip.reason}
+      </p>
+
+      {/* 등록 위치 안내 (action_steps가 있을 때) */}
+      {tip.action_steps && tip.action_steps.length > 0 && (
+        <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-3">
+          <p className="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">
+            어디서 하나요?
+          </p>
+          <ol className="space-y-1">
+            {tip.action_steps.map((step, i) => (
+              <li key={i} className="text-sm text-blue-800 leading-snug">
+                {step}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {/* 복사 가능 본문 */}
+      {tip.copy_text && (
+        <div className="relative">
+          <div
+            className={`bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed ${
+              tip.locked ? "blur-[3px] select-none max-h-20 overflow-hidden" : ""
+            }`}
+          >
+            {previewText}
           </div>
-        ),
-        actionLabel: "스마트플레이스 관리자 바로가기 →",
-        actionHref: "https://smartplace.naver.com",
-      }),
-    },
-    {
-      key: "review_quality",
-      threshold: 40,
-      buildTip: () => {
-        const reviewMsg = `안녕하세요 😊 네이버에서 "${businessName}" 검색 후 별점과 한 줄 후기 남겨주시면 정말 감사드리겠습니다!`;
-        return {
-          key: "review_quality",
-          title: "단골 손님 1명에게 리뷰 요청",
-          previewContent: (
-            <div>
-              <p className="text-sm text-gray-600 mb-2">
-                리뷰 1개는 AI 노출 점수에 즉시 반영됩니다.
-                아래 문구를 카카오톡으로 보내보세요.
-              </p>
-              <div className="bg-white border border-green-200 rounded-lg p-3 text-sm text-gray-700 leading-relaxed">
-                {reviewMsg}
+          {tip.locked && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/70 rounded-lg">
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 bg-white border border-gray-300 px-3 py-1.5 rounded-full shadow-sm">
+                <Lock className="w-4 h-4" />
+                Basic 플랜에서 전체 문구 보기
               </div>
-              <CopyButton text={reviewMsg} />
             </div>
-          ),
-          actionLabel: "리뷰 관리 가이드 보기 →",
-          actionHref: "/guide",
-        };
-      },
-    },
-    {
-      key: "keyword_gap_score",
-      threshold: 50,
-      buildTip: () => {
-        const keywords =
-          topMissingKeywords.length > 0
-            ? topMissingKeywords.slice(0, 2)
-            : ["맛집", "추천"];
-        const exampleIntro = `${businessName}은(는) ${keywords.join(", ")} 키워드로 최적화된 공간입니다. ${keywords[0]} 하면 가장 먼저 생각나는 곳이 되도록 운영하고 있습니다.`;
-        return {
-          key: "keyword_gap_score",
-          title: `소개글에 핵심 키워드 포함 (${keywords.join(", ")})`,
-          previewContent: (
-            <div>
-              <p className="text-sm text-gray-600 mb-2">
-                AI는 소개글에서 키워드를 읽어 브리핑 인용 여부를 결정합니다.
-                아래 예시를 참고해 소개글에 키워드를 자연스럽게 포함해보세요.
-              </p>
-              <div className="bg-white border border-green-200 rounded-lg p-3 text-sm text-gray-700 leading-relaxed">
-                {exampleIntro}
-              </div>
-              <CopyButton text={exampleIntro} />
-            </div>
-          ),
-          actionLabel: "소개글 최적화 도구 →",
-          actionHref: "/schema",
-        };
-      },
-    },
-    {
-      key: "naver_exposure_confirmed",
-      threshold: 60,
-      buildTip: () => ({
-        key: "naver_exposure_confirmed",
-        title: "네이버 AI 브리핑에 내 가게가 나오는지 직접 확인",
-        previewContent: (
-          <div>
-            <p className="text-sm text-gray-600 mb-2">
-              네이버에서 직접 검색해 AI 브리핑(요약 박스)에 내 가게 이름이 나오는지 확인해보세요.
-            </p>
-            <div className="bg-white border border-green-200 rounded-lg p-3 text-sm text-gray-700">
-              <p className="font-medium mb-1">확인 방법</p>
-              <p className="text-gray-600">
-                1. 네이버 검색 → &ldquo;{businessName} 주변 추천&rdquo; 입력
-              </p>
-              <p className="text-gray-600">
-                2. 상단 AI 브리핑 요약 박스에 내 가게 이름 확인
-              </p>
-              <p className="text-gray-500 text-xs mt-1.5">
-                브리핑에 나오지 않으면 FAQ 등록이 가장 빠른 해결책입니다.
-              </p>
-            </div>
-            <a
-              href={`https://search.naver.com/search.naver?query=${encodeURIComponent(businessName + " 추천")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-400 px-3 py-1.5 rounded-lg transition-colors mt-2 w-fit"
-            >
-              네이버 AI 브리핑 직접 확인 →
-            </a>
-          </div>
-        ),
-        actionLabel: "AI 노출 개선 가이드 →",
-        actionHref: "/guide",
-      }),
-    },
-  ];
+          )}
+        </div>
+      )}
 
-  const selected: Tip[] = [];
+      {/* 액션 버튼 */}
+      <div className="flex flex-wrap items-center gap-2 mt-3">
+        {!tip.locked && tip.copy_text && <CopyButton text={tip.copy_text} />}
+        {tip.action_url && (
+          <a
+            href={tip.action_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-400 bg-white px-3 py-1.5 rounded-lg transition-colors"
+          >
+            {tip.action_label}
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        )}
+      </div>
 
-  for (const { key, threshold, buildTip } of tipPriority) {
-    if (selected.length >= 2) break;
-    const score = breakdown[key] ?? 100;
-    if (score < threshold) {
-      selected.push(buildTip());
-    }
-  }
-
-  // 부족한 경우 임계값 무관하게 낮은 항목으로 채움
-  if (selected.length < 2) {
-    for (const { key, buildTip } of tipPriority) {
-      if (selected.length >= 2) break;
-      if (selected.some((t) => t.key === key)) continue;
-      selected.push(buildTip());
-    }
-  }
-
-  return selected.slice(0, 2);
+      {/* 기대 효과 */}
+      {tip.impact && (
+        <p className="text-sm text-green-700 mt-2 font-medium">
+          → {tip.impact}
+        </p>
+      )}
+    </div>
+  );
 }
 
-export default function ConversionGuideSection({
-  breakdown,
-  businessName,
-  topMissingKeywords,
-  reviewCount: _reviewCount,
-  plan,
-}: Props) {
+function TipSkeleton() {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-5 animate-pulse">
+      <div className="flex gap-1.5 mb-3">
+        <div className="h-6 w-16 bg-gray-200 rounded-full" />
+        <div className="h-6 w-20 bg-gray-200 rounded-full" />
+      </div>
+      <div className="h-5 w-3/4 bg-gray-200 rounded mb-2" />
+      <div className="h-4 w-full bg-gray-100 rounded mb-1" />
+      <div className="h-4 w-5/6 bg-gray-100 rounded mb-3" />
+      <div className="h-20 bg-gray-50 rounded-lg" />
+    </div>
+  );
+}
+
+export default function ConversionGuideSection({ bizId, plan }: Props) {
   const isPaid = plan !== "free";
-  const tips = buildTips(breakdown, businessName, topMissingKeywords);
+  const [data, setData] = useState<ConversionTipsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setError(null);
+      const session = await getSafeSession();
+      const token = session?.access_token;
+      if (!token) {
+        if (!cancelled) {
+          setError("로그인 세션이 만료되었습니다.");
+          setLoading(false);
+        }
+        return;
+      }
+      try {
+        const result = await getConversionTips(bizId, token);
+        if (!cancelled) setData(result);
+      } catch (e) {
+        if (!cancelled) {
+          setError(
+            e instanceof Error
+              ? e.message
+              : "맞춤 개선 팁을 불러오지 못했습니다.",
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [bizId]);
 
   return (
     <div className="bg-gradient-to-b from-white to-blue-50 border border-blue-100 rounded-2xl p-4 md:p-6 shadow-sm">
       {/* 헤더 */}
-      <div className="mb-5">
+      <div className="mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
           점수를 올리는 방법
         </h2>
-        <p className="text-sm text-gray-500">
-          지금 바로 할 수 있는 방법{" "}
-          {tips.length}가지를 알려드립니다.
+        <p className="text-sm text-gray-600">
+          {loading
+            ? "내 스캔 결과를 분석하고 있습니다…"
+            : data?.summary ??
+              "스캔 결과 기반으로 가장 효과 큰 행동부터 추천합니다."}
         </p>
+        {!loading && data?.missing_platforms && data.missing_platforms.length > 0 && (
+          <div className="mt-2 inline-flex flex-wrap gap-1.5">
+            {data.missing_platforms.map((p) => (
+              <span
+                key={p}
+                className="inline-flex items-center gap-1 text-sm font-medium bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full"
+              >
+                ⚠ {p} 미노출
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* 무료 팁 카드 2개 */}
-      <div className="space-y-4 mb-6">
-        {tips.map((tip, idx) => (
-          <div
-            key={tip.key}
-            className="bg-green-50 border border-green-200 rounded-xl p-4"
-          >
-            <div className="flex items-start gap-2.5 mb-3">
-              <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
-              <p className="text-base font-semibold text-gray-900">
-                방법 {idx + 1}. {tip.title}
-              </p>
-            </div>
-            <div className="pl-7">{tip.previewContent}</div>
-            <div className="pl-7 mt-3">
-              <a
-                href={tip.actionHref}
-                target={tip.actionHref.startsWith("http") ? "_blank" : undefined}
-                rel={tip.actionHref.startsWith("http") ? "noopener noreferrer" : undefined}
-                className="text-sm text-green-700 hover:text-green-900 font-medium underline underline-offset-2"
-              >
-                {tip.actionLabel}
-              </a>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* 잠금 섹션 */}
-      <div className="relative">
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 overflow-hidden">
-          {/* 잠금 오버레이 */}
-          {!isPaid && (
-            <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-xl z-10 flex flex-col items-center justify-center gap-3 px-4">
-              <Lock className="w-6 h-6 text-gray-400" />
-              <p className="text-sm font-semibold text-gray-600 text-center">
-                Basic 플랜 이상에서 잠금 해제
-              </p>
-              <Link
-                href="/pricing"
-                className="w-full max-w-xs bg-blue-600 hover:bg-blue-700 text-white text-base font-bold px-5 py-3 rounded-xl text-center transition-colors"
-              >
-                Basic 플랜 시작하기 — 월 9,900원
-              </Link>
-              <p className="text-xs text-gray-400 text-center">
-                가입 후 AI가 위 문구를 즉시 자동 생성합니다. 언제든 취소 가능.
-              </p>
-            </div>
-          )}
-
-          {/* 잠금된 항목 목록 (blur 처리) */}
-          <div className={!isPaid ? "blur-sm select-none" : ""}>
-            <p className="text-sm font-semibold text-gray-500 mb-3">
-              더 많은 방법
-            </p>
-            <div className="space-y-3">
-              {LOCKED_ITEMS.map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-center gap-2.5 bg-white border border-gray-100 rounded-lg px-4 py-3"
-                >
-                  <span className="text-base shrink-0">{item.icon}</span>
-                  <span className="text-sm text-gray-700 font-medium">
-                    {businessName} {item.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* 로딩 */}
+      {loading && (
+        <div className="space-y-3">
+          <TipSkeleton />
+          <TipSkeleton />
+          <TipSkeleton />
         </div>
-      </div>
+      )}
 
-      {/* 유료 사용자: 가이드 바로가기 */}
-      {isPaid && (
+      {/* 오류 */}
+      {!loading && error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {/* 팁 리스트 */}
+      {!loading && !error && data && data.tips.length > 0 && (
+        <div className="space-y-3">
+          {data.tips.map((tip) => (
+            <TipCard key={tip.id} tip={tip} />
+          ))}
+        </div>
+      )}
+
+      {/* 팁 없음 (스캔 미실행 등) */}
+      {!loading && !error && data && data.tips.length === 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600">
+          먼저 AI 스캔을 실행해 주세요. 스캔 결과가 있어야 맞춤 개선 팁을 만들 수
+          있습니다.
+        </div>
+      )}
+
+      {/* 플랜별 CTA */}
+      {!loading && !error && data && (
         <div className="mt-4">
-          <Link
-            href="/guide"
-            className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white text-base font-bold px-5 py-3 rounded-xl transition-colors"
-          >
-            AI 개선 가이드에서 맞춤 문구 바로 복사하기 →
-          </Link>
-          <p className="text-xs text-center text-gray-400 mt-2">
-            AI 개선 가이드에서 복사해서 바로 쓸 수 있는 문구를 제공합니다.
+          {!isPaid ? (
+            <Link
+              href="/pricing"
+              className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white text-base font-bold px-5 py-3 rounded-xl transition-colors"
+            >
+              <Lock className="w-4 h-4" />
+              Basic 플랜 시작하기 — 월 9,900원
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          ) : (
+            <Link
+              href="/guide"
+              className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white text-base font-bold px-5 py-3 rounded-xl transition-colors"
+            >
+              더 많은 맞춤 가이드 보기
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          )}
+          <p className="text-sm text-center text-gray-500 mt-2">
+            {isPaid
+              ? "가이드 페이지에서 리뷰 답변 초안·FAQ·소식 초안을 업종별 맞춤으로 받을 수 있습니다."
+              : "가입 후 모든 복사 문구와 경로별 상세 가이드를 바로 사용할 수 있습니다. 언제든 취소 가능."}
           </p>
         </div>
       )}

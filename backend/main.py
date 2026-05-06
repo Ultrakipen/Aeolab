@@ -7,11 +7,19 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from routers import scan, report, guide, schema_gen, webhook, admin, business, competitor, settings, startup, teams, api_keys as api_keys_router
+from routers import actions as actions_router
 from routers import notices as notices_router, faq as faq_router, inquiry as inquiry_router
 from routers import business_search as business_search_router
 from routers import kakao as kakao_router
 from routers import blog as blog_router
 from routers import public_index as public_index_router
+from routers import assistant as assistant_router
+from routers import keywords as keywords_router
+from routers import share as share_router
+from routers import public_briefing as public_briefing_router
+from routers import delivery as delivery_router
+from routers import tools as tools_router
+from routers import support as support_router
 from scheduler.jobs import start_scheduler
 from utils.logger import setup_logging
 import os
@@ -94,6 +102,8 @@ app.include_router(webhook.router,    prefix="/api/webhook", tags=["webhook"])
 app.include_router(admin.router,      prefix="/admin",       tags=["admin"])
 # business_search_router를 business.router보다 먼저 등록 — /search 경로가 /{id} 경로와 충돌하지 않도록
 app.include_router(business_search_router.router, prefix="/api/businesses", tags=["business-search"])
+# keywords_router도 business.router보다 먼저 — /{biz_id}/keywords 경로 충돌 방지
+app.include_router(keywords_router.router, prefix="/api/businesses", tags=["keywords"])
 app.include_router(business.router,   prefix="/api/businesses", tags=["business"])
 app.include_router(competitor.router, prefix="/api/competitors", tags=["competitor"])
 app.include_router(settings.router,       prefix="/api/settings",    tags=["settings"])
@@ -106,6 +116,15 @@ app.include_router(inquiry_router.router, prefix="/api/inquiry", tags=["inquiry"
 app.include_router(kakao_router.router,   prefix="/api/kakao",   tags=["kakao"])
 app.include_router(blog_router.router,    prefix="/api/blog",    tags=["blog"])
 app.include_router(public_index_router.router, prefix="/api/public/index", tags=["public-index"])
+app.include_router(actions_router.router,      prefix="/api/actions",     tags=["actions"])
+app.include_router(assistant_router.router,    prefix="/api/assistant",   tags=["assistant"])
+app.include_router(share_router.router,        prefix="/api/share",       tags=["share"])
+app.include_router(public_briefing_router.router, prefix="/api/public",   tags=["public"])
+app.include_router(delivery_router.router,        prefix="/api/delivery",  tags=["delivery"])
+app.include_router(delivery_router.admin_router,  prefix="/admin/delivery", tags=["admin-delivery"])
+app.include_router(tools_router.router,           prefix="/api/tools",     tags=["tools"])
+app.include_router(support_router.router,         prefix="/api/support",   tags=["support"])
+app.include_router(support_router.admin_router,   prefix="/admin/support", tags=["admin-support"])
 
 
 @app.exception_handler(Exception)

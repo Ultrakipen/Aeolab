@@ -43,10 +43,8 @@ FONT_NAME = _register_korean_font()
 PLATFORM_LABELS = {
     "gemini": "Gemini AI",
     "chatgpt": "ChatGPT",
-    "perplexity": "Perplexity",
-    "grok": "Grok",
     "naver": "네이버 AI 브리핑",
-    "claude": "Claude AI",
+    "google": "Google AI Overview",
 }
 
 
@@ -55,6 +53,7 @@ def generate_pdf_report(
     latest_scan: dict,
     history: list,
     guide: Optional[dict] = None,
+    keyword_ranks_history: Optional[list] = None,
 ) -> bytes:
     """AI Visibility 리포트 PDF 생성 → bytes 반환"""
     buffer = io.BytesIO()
@@ -204,6 +203,58 @@ def generate_pdf_report(
         ]))
         story.append(hist_table)
         story.append(Spacer(1, 10))
+
+    # ── 키워드 노출 현황 ──────────────────────────────────────────────────────
+    if keyword_ranks_history:
+        # keyword_ranks_history: [{"scanned_at": ..., "keyword_ranks": {...}}, ...]
+        from collections import defaultdict
+        kw_data: dict[str, list] = defaultdict(list)
+        for scan_row in keyword_ranks_history:
+            ranks = scan_row.get("keyword_ranks") or {}
+            if isinstance(ranks, dict):
+                for kw, rd in ranks.items():
+                    if isinstance(rd, dict):
+                        kw_data[kw].append(rd)
+
+        if kw_data:
+            story.append(Paragraph("키워드 노출 현황", h2_style))
+            story.append(Paragraph(
+                "※ 측정 시점·기기·로그인 상태에 따라 순위가 달라질 수 있습니다",
+                small_style,
+            ))
+            story.append(Spacer(1, 4))
+
+            def _avg_r(vals: list, key: str) -> str:
+                nums = [int(v[key]) for v in vals if v.get(key) is not None and int(v[key]) < 99]
+                return f"{round(sum(nums)/len(nums),1)}" if nums else "미노출"
+
+            kw_pdf_data = [["키워드", "PC 평균", "모바일 평균", "플레이스 평균", "측정 횟수"]]
+            for kw, entries in sorted(kw_data.items()):
+                kw_pdf_data.append([
+                    kw[:20],
+                    _avg_r(entries, "pc"),
+                    _avg_r(entries, "mobile"),
+                    _avg_r(entries, "place"),
+                    str(len(entries)),
+                ])
+            kw_table = Table(kw_pdf_data, colWidths=[5 * cm, 3 * cm, 3 * cm, 3 * cm, 2 * cm])
+            kw_table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f5f9")),
+                ("FONTNAME", (0, 0), (-1, -1), FONT_NAME),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+                ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e2e8f0")),
+                ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
+            ]))
+            story.append(kw_table)
+            story.append(Spacer(1, 10))
+        else:
+            story.append(Paragraph("키워드 노출 현황", h2_style))
+            story.append(Paragraph("키워드 순위 측정 후 표시됩니다.", body_style))
+            story.append(Spacer(1, 6))
 
     # ── 개선 가이드 요약 ──────────────────────────────────────────────────────
     if guide:

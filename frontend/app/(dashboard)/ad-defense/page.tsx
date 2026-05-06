@@ -18,7 +18,7 @@ export default async function AdDefensePage() {
     .maybeSingle();
 
   const activePlan = (sub?.status === "active" || sub?.status === "grace_period") ? (sub?.plan ?? "free") : "free";
-  const PRO_PLANS = ["pro", "biz", "enterprise"];
+  const PRO_PLANS = ["pro", "biz"];
 
   if (!PRO_PLANS.includes(activePlan)) {
     const features = [
@@ -30,7 +30,7 @@ export default async function AdDefensePage() {
       {
         Icon: TrendingUp,
         title: "유기적 노출 강화 전략",
-        desc: "광고 없이도 AI 검색에 지속 노출되는 콘텐츠·Schema 전략을 제시합니다.",
+        desc: "광고 없이도 AI 검색에 지속 노출되는 콘텐츠·AI 노출 전략을 제시합니다.",
       },
       {
         Icon: BarChart2,

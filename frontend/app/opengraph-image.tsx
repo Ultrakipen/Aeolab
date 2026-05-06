@@ -120,7 +120,7 @@ export default async function Image() {
               display: "flex",
             }}
           >
-            Perplexity
+            Google AI
           </div>
         </div>
 

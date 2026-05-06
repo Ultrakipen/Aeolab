@@ -9,6 +9,29 @@ from datetime import date
 
 _logger = logging.getLogger("aeolab")
 
+# 업종 코드 → 한국어 레이블 (소상공인이 이해할 수 있는 표현)
+_CATEGORY_KO: dict[str, str] = {
+    "restaurant":  "음식점",
+    "cafe":        "카페",
+    "beauty":      "미용·뷰티",
+    "clinic":      "병원·의원",
+    "academy":     "학원·교육",
+    "legal":       "법률·법무",
+    "fitness":     "헬스·피트니스",
+    "pet":         "반려동물",
+    "shopping":    "쇼핑·상점",
+    "photo":       "사진스튜디오",
+    "food":        "음식점",
+    "hair":        "미용실",
+    "medical":     "병원",
+    "education":   "교육",
+    "gym":         "헬스장",
+}
+
+def _category_label(category: str) -> str:
+    """카테고리 코드 → 소상공인 한국어 레이블. 매핑 없으면 원본 반환."""
+    return _CATEGORY_KO.get(category.lower().strip(), category)
+
 # 폰트 경로 — Ubuntu 서버 / Windows 개발 환경 자동 선택
 _BOLD = [
     "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
@@ -92,7 +115,8 @@ def generate_gap_card(
 
     today_str = date.today().strftime("%Y.%m.%d")
     region_label = region.split()[0] if region else region
-    title = f"{region_label} {category} AI 경쟁 현황"
+    category_label = _category_label(category)
+    title = f"{region_label} {category_label} AI 경쟁 현황"
 
     # 제목
     draw.text((MARGIN, 24), title, fill="#06B6D4", font=f_title)
@@ -147,7 +171,7 @@ def generate_gap_card(
     # 개선 힌트
     if hint:
         draw.line([(MARGIN, H - 60), (W - MARGIN, H - 60)], fill="#1E3A5F", width=1)
-        draw.text((MARGIN, H - 46), f"개선 시 예상: {hint}", fill="#FCD34D", font=f_hint)
+        draw.text((MARGIN, H - 46), f"💡 {hint}", fill="#FCD34D", font=f_hint)
 
     # 워터마크
     draw.text((W - MARGIN, H - 16), "Powered by AEOlab", fill="#2E4D70", font=f_water, anchor="rs")

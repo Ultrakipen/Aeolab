@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 /**
  * DualTrackCard — 업종별 듀얼트랙 AI 가시성 카드 (v3.0)
  *
@@ -20,50 +22,69 @@ interface DualTrackCardProps {
   isKeywordEstimated?: boolean; // true → 추정값 배지 표시
   topMissingKeywords?: string[]; // 없는 키워드 (최대 3개)
   benchmarkAvg?: number;        // 업종 평균 점수 (비교 표시용)
+  hasRegisteredKeywords?: boolean; // 사용자 등록 키워드 여부 (문구 분기용)
+  blogContribution?: {          // 블로그 분석 기여 정보
+    active: boolean;
+    postCount: number;
+    keywordCoverage: number;
+    analyzedAt?: string;
+    blogUrl?: string;
+  };
 }
+
+const CATEGORY_LABELS: Record<string, string> = {
+  restaurant: "음식점", cafe: "카페", bakery: "베이커리", bar: "바",
+  beauty: "미용실", nail: "네일샵", medical: "의원/병원",
+  pharmacy: "약국", fitness: "헬스장", yoga: "요가/필라테스",
+  pet: "반려동물", education: "교육/학원", tutoring: "과외",
+  legal: "법률", realestate: "부동산", interior: "인테리어",
+  auto: "자동차", cleaning: "청소", shopping: "온라인쇼핑",
+  fashion: "패션", photo: "사진", video: "영상", design: "디자인",
+  accommodation: "숙박", other: "기타",
+};
 
 // 업종별 맞춤 메시지 (§7.1 기준)
 const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }> = {
   restaurant: {
-    track1Tip: "스마트플레이스 FAQ에 '주차 가능', '단체 예약' 등록",
+    track1Tip: "스마트플레이스 소개글 안 Q&A에 '주차 가능', '단체 예약' 추가",
     track2Tip: "구글 비즈니스 프로필 등록 + AI 검색 최적화 정보",
   },
   cafe: {
-    track1Tip: "공간 용도·분위기 FAQ 등록 (노트북 가능, 반려견 동반)",
+    track1Tip: "공간 용도·분위기 소개글 Q&A 추가 (노트북 가능, 반려견 동반)",
     track2Tip: "스페셜티·비건 콘텐츠 블로그 발행",
   },
   beauty: {
-    track1Tip: "당일 예약·전문 시술 FAQ 등록 (탈모 케어, 웨딩 전문)",
-    track2Tip: "시술 전후 사진 + 웹사이트 Schema 적용",
+    track1Tip: "당일 예약·전문 시술 소개글 Q&A 추가 (탈모 케어, 웨딩 전문)",
+    track2Tip: "시술 전후 사진 + 웹사이트 AI 정보 등록",
   },
   fitness: {
-    track1Tip: "24시간 운영·PT 전문 FAQ 등록",
+    track1Tip: "24시간 운영·PT 전문 소개글 Q&A 추가",
     track2Tip: "체형 교정 결과 사례 콘텐츠 발행 (10-20대 타겟)",
   },
   clinic: {
-    track1Tip: "야간 진료·전문의 직접 진료 FAQ 등록",
+    track1Tip: "야간 진료·전문의 직접 진료 소개글 Q&A 추가",
     track2Tip: "ChatGPT에서 찾히는 전문성 콘텐츠 발행",
   },
   pet: {
-    track1Tip: "CCTV 확인·응급 진료 FAQ 등록",
+    track1Tip: "CCTV 확인·응급 진료 소개글 Q&A 추가",
     track2Tip: "수의사 전문성 콘텐츠 발행",
   },
   academy: {
-    track1Tip: "합격 사례·원어민 강사 FAQ 등록",
-    track2Tip: "Perplexity 추천 블로그 콘텐츠 발행 (10대 AI 검색)",
+    track1Tip: "합격 사례·원어민 강사 소개글 Q&A 추가",
+    track2Tip: "ChatGPT 노출을 위한 블로그·웹사이트 콘텐츠 발행",
   },
   legal: {
-    track1Tip: "전문 분야·무료 상담 FAQ 등록",
+    track1Tip: "전문 분야·무료 상담 소개글 Q&A 추가",
     track2Tip: "블로그 칼럼 + 승소 사례 발행",
   },
   shopping: {
-    track1Tip: "배송·AS 중심 FAQ 등록 (당일 배송, 무료 반품)",
+    track1Tip: "배송·AS 중심 소개글 Q&A 추가 (당일 배송, 무료 반품)",
     track2Tip: "ChatGPT 쇼핑 추천을 위한 AI 검색 최적화",
   },
 };
 
 const DEFAULT_MESSAGE = {
-  track1Tip: "스마트플레이스 FAQ 등록 + 소개글 작성",
+  track1Tip: "스마트플레이스 소개글 안 Q&A 추가 + 소개글 본문 작성",
   track2Tip: "구글 비즈니스 프로필 등록 + 웹사이트 AI 검색 최적화",
 };
 
@@ -142,6 +163,8 @@ export default function DualTrackCard({
   isKeywordEstimated = false,
   topMissingKeywords = [],
   benchmarkAvg,
+  hasRegisteredKeywords = false,
+  blogContribution,
 }: DualTrackCardProps) {
   const msg = CATEGORY_MESSAGES[category] || DEFAULT_MESSAGE;
   const isTrack1Weak = track1Score < 40;
@@ -152,22 +175,31 @@ export default function DualTrackCard({
       {/* 헤더: 통합 점수 + 성장 단계 */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex-1 min-w-0">
-          <h2 className="text-base md:text-lg font-bold text-gray-900">AI 검색 노출 현황</h2>
-          <p className="text-base text-gray-500 mt-0.5 leading-relaxed">
-            네이버 AI 브리핑 + 글로벌 AI (ChatGPT·Gemini 등) 통합 분석
-          </p>
+          <h2 className="text-base md:text-lg font-bold text-gray-900">네이버 AI + 글로벌 AI 노출 점수</h2>
+          {/* 1계층: 업종별 가중치 비율 — 항상 노출 */}
+          <div className="mt-1.5 inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-sm flex-wrap">
+            <span className="text-gray-500">{CATEGORY_LABELS[category] || "이 업종"} 기준</span>
+            <span className="text-gray-300">·</span>
+            <span className="font-semibold text-green-600">네이버 {Math.round(naverWeight * 100)}%</span>
+            <span className="text-gray-400">+</span>
+            <span className="font-semibold text-blue-600">글로벌 AI {Math.round(globalWeight * 100)}%</span>
+          </div>
         </div>
         <div className="text-right shrink-0">
           <div className="text-3xl md:text-4xl font-extrabold text-indigo-600">
             {unifiedScore.toFixed(0)}
             <span className="text-base md:text-lg font-normal text-gray-400">점</span>
           </div>
+          {/* 계산식 1줄 표시 */}
+          <div className="text-xs text-gray-400 font-mono mt-0.5">
+            {track1Score.toFixed(0)}×{Math.round(naverWeight * 100)}% + {track2Score.toFixed(0)}×{Math.round(globalWeight * 100)}%
+          </div>
           {benchmarkAvg && benchmarkAvg > 0 && (
-            <div className="text-xs mt-1">
+            <div className="text-sm mt-1">
               <span className={unifiedScore >= benchmarkAvg ? "text-green-600 font-semibold" : "text-amber-600 font-semibold"}>
                 {unifiedScore >= benchmarkAvg
-                  ? `▲ 업종 평균보다 ${Math.round(unifiedScore - benchmarkAvg)}점 높음`
-                  : `▼ 업종 평균보다 ${Math.round(benchmarkAvg - unifiedScore)}점 낮음`}
+                  ? `▲ 업종 평균보다 ${Math.round(unifiedScore - benchmarkAvg)}점 높습니다 ✓`
+                  : `▼ 업종 평균보다 ${Math.round(benchmarkAvg - unifiedScore)}점 낮습니다 — 개선 여지 있음`}
               </span>
             </div>
           )}
@@ -181,6 +213,8 @@ export default function DualTrackCard({
               <span className="text-gray-400 font-normal ml-1">(추정)</span>
             )}
           </span>
+          {/* 성장 단계 기준 명시 */}
+          <div className="text-xs text-gray-400 mt-0.5">네이버 채널 점수 기준</div>
         </div>
       </div>
 
@@ -189,7 +223,7 @@ export default function DualTrackCard({
         score={track1Score}
         weight={naverWeight}
         label="📍 네이버 AI 브리핑 점수"
-        sublabel="스마트플레이스 완성도·리뷰 키워드·FAQ 등록 여부"
+        sublabel="이 점수가 낮으면 네이버 AI가 내 가게를 잘 모릅니다"
         color="bg-green-500"
         isWeak={isTrack1Weak}
         tip={msg.track1Tip}
@@ -200,7 +234,7 @@ export default function DualTrackCard({
         score={track2Score}
         weight={globalWeight}
         label="🌐 글로벌 AI 노출 점수"
-        sublabel="ChatGPT·Gemini·Perplexity 노출 + 웹사이트 구조화"
+        sublabel="이 점수가 낮으면 ChatGPT·구글 AI에서 내 가게가 안 나옵니다"
         color="bg-blue-500"
         isWeak={isTrack2Weak}
         tip={msg.track2Tip}
@@ -210,20 +244,25 @@ export default function DualTrackCard({
       {topMissingKeywords.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 md:p-4">
           <p className="text-base font-semibold text-amber-800 mb-2 leading-snug">
-            ⚠️ 지금 당장 없는 키워드 — AI 조건 검색에서 제외되는 이유
+            {hasRegisteredKeywords
+              ? "⚠️ 등록 키워드 중 아직 AI 검색에서 확인이 필요한 키워드"
+              : "⚠️ 지금 당장 없는 키워드 — AI 조건 검색에서 제외되는 이유"}
           </p>
           <div className="flex flex-wrap gap-2">
             {topMissingKeywords.map((kw) => (
-              <span
+              <Link
                 key={kw}
-                className="inline-flex items-center gap-1 bg-white border border-amber-300 text-amber-700 text-sm font-medium rounded-full px-3 py-1"
+                href={`/guide?keyword=${encodeURIComponent(kw)}`}
+                className="inline-flex items-center gap-1 bg-white border border-amber-300 text-amber-700 text-sm font-medium rounded-full px-3 py-1 hover:opacity-80 transition-opacity"
               >
-                ❌ {kw}
-              </span>
+                ❌ {kw} →
+              </Link>
             ))}
           </div>
           <p className="text-base text-amber-600 mt-2 leading-relaxed">
-            스마트플레이스 FAQ나 소개글에 위 키워드를 추가하면 AI 브리핑 노출 확률이 높아집니다.
+            {hasRegisteredKeywords
+              ? "이 키워드로 스캔하면 AI 검색 노출 여부를 바로 확인할 수 있습니다."
+              : "스마트플레이스 소개글 안 Q&A에 위 키워드를 추가하면 AI 브리핑 인용 후보 가능성이 높아집니다."}
           </p>
         </div>
       )}
@@ -231,9 +270,35 @@ export default function DualTrackCard({
       {/* 추정값 안내 */}
       {isKeywordEstimated && (
         <p className="text-base text-gray-400 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">
-          💡 리뷰 데이터가 없어 키워드 점수는 업종 평균으로 추정됩니다.
+          리뷰 데이터가 없어 키워드 점수는 업종 평균으로 추정됩니다.
           리뷰 3개를 붙여넣으면 정확한 키워드 갭을 확인할 수 있습니다.
         </p>
+      )}
+
+      {/* 블로그 분석 기여 배지 */}
+      {blogContribution?.active && (
+        <div className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-sm">
+          <span className="text-blue-700 font-medium">
+            블로그 {blogContribution.postCount}개 포스트 분석 반영 · 키워드 커버리지 {Math.round(blogContribution.keywordCoverage)}%
+          </span>
+          <a
+            href="/blog-analysis?reanalyze=1"
+            className="text-blue-500 underline text-sm whitespace-nowrap ml-2"
+            onClick={(e) => { e.currentTarget.textContent = "재분석 중..."; }}
+          >
+            블로그 재분석
+          </a>
+        </div>
+      )}
+
+      {/* 블로그 미등록 안내 (키워드 추정 상태일 때만) */}
+      {isKeywordEstimated && !blogContribution?.active && (
+        <a
+          href="/blog-analysis"
+          className="block text-sm text-blue-600 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors"
+        >
+          블로그를 등록하면 키워드 점수 정확도가 향상됩니다 →
+        </a>
       )}
     </div>
   );

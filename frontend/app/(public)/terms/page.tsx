@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 export const metadata = {
   title: "서비스 이용약관 | AEOlab",
@@ -46,7 +47,7 @@ export default function TermsPage() {
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">제3조 (서비스 제공)</h2>
             <p className="mb-2">회사는 다음의 서비스를 제공합니다.</p>
             <ol className="list-decimal pl-5 space-y-2">
-              <li>AI 검색 플랫폼(네이버, Gemini, ChatGPT, Claude, Perplexity, Google AI 등)에서의 사업장 노출 빈도 분석</li>
+              <li>AI 검색 플랫폼(네이버, Gemini, ChatGPT, Claude, Google AI 등)에서의 사업장 노출 빈도 분석</li>
               <li>경쟁사 AI 노출 현황 비교 및 갭 분석</li>
               <li>AI 검색 노출 개선을 위한 가이드 자동 생성</li>
               <li>스마트플레이스 및 웹사이트 SEO 체크리스트 제공</li>
@@ -81,9 +82,9 @@ export default function TermsPage() {
               <li>서비스 구독 요금은 다음과 같습니다.
                 <ul className="list-disc pl-5 mt-2 space-y-1">
                   <li>Basic: 월 9,900원</li>
-                  <li>창업패키지: 월 16,900원</li>
-                  <li>Pro: 월 22,900원</li>
-                  <li>Biz: 월 49,900원</li>
+                  <li>창업패키지: 월 12,900원</li>
+                  <li>Pro: 월 18,900원</li>
+                  <li>Biz: 월 39,900원</li>
                   <li>Enterprise: 월 200,000원</li>
                 </ul>
               </li>
@@ -154,6 +155,7 @@ export default function TermsPage() {
 
         </div>
       </div>
+      <SiteFooter />
     </main>
   );
 }

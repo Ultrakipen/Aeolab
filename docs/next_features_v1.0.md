@@ -271,3 +271,62 @@ pm2 restart aeolab-backend
 
 *최종 업데이트: 2026-03-31 v1.1 — 8개 기능 전체 구현 완료*
 *참조 문서: CLAUDE.md, docs/model_engine_v3.0.md*
+
+---
+
+## v4.0 요금제별 차등 기능 추가 (2026-04-14)
+
+### 구현 완료
+
+| # | 기능 | 플랜 | 파일 |
+|---|------|------|------|
+| 1 | 스마트플레이스 완성도 UI 대시보드 노출 | Basic+ | dashboard/page.tsx (기존 컴포넌트 연결) |
+| 2 | 스마트플레이스 Q&A FAQ 초안 생성 | Basic+ | guide.py `/smartplace-faq`, guide_generator.py |
+| 3 | 경쟁사 변화 카카오 알림 연결 | Pro+ | scheduler/jobs.py `detect_competitor_changes()` |
+| 4 | 멀티 사업장 통합 대시보드 | Biz+ | report.py `/multi-biz-summary`, MultiBizTable.tsx |
+
+### 플랜별 월 한도 (plan_gate.py 기준)
+- `faq_monthly`: free=0, basic=5, startup=5, pro=20, biz=999
+
+### 중기 구현 예정 (데이터 축적 후)
+- 창업 타이밍 지수 (3개월 이상 score_history 필요)
+- 리뷰 감정 분석 대시보드 (ai_citations.sentiment 배치 처리 필요)
+- 선점 키워드 상세 이유/예시 (API 비용 검토 후)
+- 월간 성장 스토리 카드 프론트 페이지 (기존 Pillow 백엔드 완성, UI만 필요)
+
+---
+
+## v5.0 — 홈페이지 개선 + 전환 깔때기 (2026-04-23~24)
+
+### 구현 완료
+
+| # | 기능 | 일자 | 핵심 파일 |
+|---|------|------|----------|
+| 1 | 홈페이지 5블록 구조 + 헤드라인 교체 | 04-23 | `app/page.tsx`(1021→264줄) |
+| 2 | trial 페이지 분해 (3 step) | 04-23 | `app/(public)/trial/components/Trial{Input,Scanning,Result}Step.tsx` |
+| 3 | GA4 측정 인프라 + 이벤트 트래킹 | 04-23 | `components/analytics/GA4.tsx`, `lib/analytics.ts` (`G-KCZTWYK7QV`) |
+| 4 | /demo 최상단 "오늘 할 일 1개" + 접이식 | 04-23 | `components/demo/TodayOneActionBox.tsx` |
+| 5 | /pricing 상황 질문 추천 | 04-23 | `app/(public)/pricing/PlanRecommender.tsx` |
+| 6 | WCAG AA 보정 (gray-400→500 -115회) | 04-23 | public/landing/trial 전수 |
+| 7 | Trial Conversion Funnel (claim 깔때기) | 04-24 | `routers/scan.py`, `services/trial_conversion.py`, `components/trial/ClaimGate.tsx` |
+| 8 | 7일 액션 카드 (가입자 이탈 방지) | 04-24 | `services/action_tools.pick_top_action()`, `routers/report.py /onboarding-action`, `components/dashboard/Day7ActionCard.tsx`, `scheduler/jobs.new_user_day7_rescan_job` |
+
+### 다음 후보 (BEP 20명 달성 위해 ROI 순)
+
+| 우선 | 기능 | 임팩트 | 예상 시간 |
+|---|---|---|---|
+| 🔴 1 | **모바일 floating CTA** (스크롤 중 화면 하단 고정) | ★★★★★ | 2~3h |
+| 🔴 2 | **결과 페이지 카카오톡 공유** (바이럴 + signup 깔때기) | ★★★★ | 4~5h |
+| 🟡 3 | **PlanRecommender → 직접 결제 흐름** (스크롤만 → CTA 1번 클릭) | ★★★★ | 3~4h |
+| 🟡 4 | **대시보드 첫 진입 온보딩 투어** (3~4 스텝 spotlight) | ★★★ | 6~8h |
+| 🟢 5 | **첫 결제 전환 알림 시퀀스** (가입 7·14·30일 카카오/이메일) | ★★★ | 5~6h |
+| 🟢 6 | **재방문 사용자 변화 요약** (마지막 방문 후 점수 변화) | ★★ | 4~5h |
+
+권고 순서: 1번 → 2번 → 3번 (모두 측정 가능, 1주 내 완료 가능)
+
+### 사용자 영역 (코드 외)
+- GA4 데이터 누적 24~48h → 이후 보고서 분석으로 약점 도출
+- Phase 0 인터뷰 후 베타 후기 1~3개 → `lib/testimonials.ts` quote 교체 + `isPlaceholder: false`
+- 카카오 알림톡 나머지 1종 심사 승인 → `.env` 갱신
+
+*v5.0 업데이트: 2026-04-24*

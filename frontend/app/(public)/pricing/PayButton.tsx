@@ -1,27 +1,52 @@
 "use client";
 
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState } from "react";
+import { createClient, getSafeSession } from "@/lib/supabase/client";
 
 interface Props {
   planName: string;
   amount: number;
   highlight: boolean;
   signupHref: string;
+  firstMonthAmount?: number; // 첫 달 50% 할인가 (있으면 신규 가입자에게 적용)
 }
 
-export function PayButton({ planName, amount, highlight, signupHref }: Props) {
+export function PayButton({ planName, amount, highlight, signupHref, firstMonthAmount }: Props) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isFirstTime, setIsFirstTime] = useState<boolean | null>(null);
+
+  // 모달 열릴 때 구독 이력 확인 — 없으면 첫 달 할인가 적용
+  useEffect(() => {
+    if (!showConfirm || !firstMonthAmount) return;
+    (async () => {
+      const session = await getSafeSession();
+      const user = session?.user ?? null;
+      if (!user) {
+        setIsFirstTime(true); // 비로그인은 신규로 간주 (signup 유도 후 재확인)
+        return;
+      }
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("subscriptions")
+        .select("id")
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      setIsFirstTime(!data);
+    })();
+  }, [showConfirm, firstMonthAmount]);
+
+  const chargeAmount = firstMonthAmount && isFirstTime ? firstMonthAmount : amount;
 
   const handleConfirm = async () => {
     setLoading(true);
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const session = await getSafeSession();
+      const user = session?.user ?? null;
 
       if (!user) {
-        window.location.href = `${signupHref}?plan=${encodeURIComponent(planName)}&amount=${amount}`;
+        window.location.href = `${signupHref}?plan=${encodeURIComponent(planName)}&amount=${chargeAmount}`;
         return;
       }
 
@@ -35,17 +60,11 @@ export function PayButton({ planName, amount, highlight, signupHref }: Props) {
       const { loadTossPayments } = await import("@tosspayments/payment-sdk");
       const tossPayments = await loadTossPayments(clientKey);
 
-      const { data: { user: freshUser } } = await supabase.auth.getUser();
-      if (!freshUser) {
-        window.location.href = `${signupHref}?plan=${encodeURIComponent(planName)}&amount=${amount}`;
-        return;
-      }
-
-      const customerKey = `customer_${freshUser.id}`;
+      const customerKey = `customer_${user.id}`;
 
       await tossPayments.requestBillingAuth("카드", {
         customerKey,
-        successUrl: `${window.location.origin}/payment/success?plan=${encodeURIComponent(planName)}&amount=${amount}`,
+        successUrl: `${window.location.origin}/payment/success?plan=${encodeURIComponent(planName)}&amount=${chargeAmount}`,
         failUrl: `${window.location.origin}/payment/fail`,
       });
     } catch (e: unknown) {
@@ -82,20 +101,39 @@ export function PayButton({ planName, amount, highlight, signupHref }: Props) {
                 <span className="text-gray-500">상품</span>
                 <span className="font-medium text-gray-900">AEOlab {planName} 구독</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">결제 금액</span>
-                <span className="font-bold text-blue-600 text-base">
-                  {amount.toLocaleString()}원 / 월
-                </span>
-              </div>
+              {firstMonthAmount && isFirstTime ? (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">오늘 결제 (첫 달 50%)</span>
+                    <span className="font-bold text-emerald-600 text-base">
+                      {firstMonthAmount.toLocaleString()}원
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">다음 달부터</span>
+                    <span className="text-gray-700">
+                      {amount.toLocaleString()}원 / 월
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">결제 금액</span>
+                  <span className="font-bold text-blue-600 text-base">
+                    {amount.toLocaleString()}원 / 월
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-gray-500">결제 방식</span>
                 <span className="text-gray-700">카드 자동결제 (매월 갱신)</span>
               </div>
             </div>
 
-            <p className="text-xs text-gray-400 mb-5">
-              카드를 등록하면 매월 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다.
+            <p className="text-sm text-gray-500 mb-5">
+              {firstMonthAmount && isFirstTime
+                ? `첫 달 ${firstMonthAmount.toLocaleString()}원 결제 후, 30일 뒤부터 매월 ${amount.toLocaleString()}원이 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다.`
+                : "카드를 등록하면 매월 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다."}
             </p>
 
             <div className="flex gap-2">

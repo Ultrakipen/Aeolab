@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { CATEGORY_GROUPS } from '@/lib/categories'
 import { CATEGORY_ICON_MAP } from '@/lib/categoryIcons'
-import { createClient } from '@/lib/supabase/client'
+import { getSafeSession } from '@/lib/supabase/client'
+import { trackKeywordInput, trackKeywordRecommendClick } from '@/lib/analytics'
 import {
   UtensilsCrossed, Coffee, Croissant, Wine,
   Scissors, Sparkles, Stethoscope, Pill, Dumbbell, PersonStanding,
@@ -17,6 +18,7 @@ import type { LucideIcon } from 'lucide-react'
 import { Search, ChevronLeft, Loader2 } from 'lucide-react'
 import BusinessSearchDropdown, { mapKakaoCategory } from '@/components/dashboard/BusinessSearchDropdown'
 import type { BusinessSearchResult } from '@/types'
+import { getBriefingEligibility } from '@/lib/userGroup'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -127,6 +129,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
     address: '',
     phone: '',
     website_url: '',
+    blog_url: '',
     google_place_id: '',
     kakao_place_id: '',
     naver_place_url: '',
@@ -135,8 +138,22 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
     review_count: '',
     avg_rating: '',
   })
+  const [smartplaceChecks, setSmartplaceChecks] = useState({
+    is_smart_place: false,
+    has_faq: false,
+    has_recent_post: false,
+    has_intro: false,
+  })
+  const [isFranchise, setIsFranchise] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [autoFillMsg, setAutoFillMsg] = useState('')
+
+  // 검색 키워드 (3개 이상 필수 — service_unification_v1.0.md §13 #3)
+  const [trackingKeywords, setTrackingKeywords] = useState<string[]>([])
+  const [newKeyword, setNewKeyword] = useState('')
+  const [suggesting, setSuggesting] = useState(false)
+  const [aiSuggestions, setAiSuggestions] = useState<{keyword: string; rationale: string; source: string}[]>([])
+  const [suggestNote, setSuggestNote] = useState('')
 
   const handleBusinessSelect = (result: BusinessSearchResult) => {
     setForm(prev => ({
@@ -216,11 +233,17 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
       setError('업종을 선택해주세요.')
       return
     }
+    // 키워드 3개 이상 필수 (service_unification_v1.0.md §13 #3)
+    const mergedKeywords = Array.from(new Set([...selectedTags, ...trackingKeywords].map(k => k.trim()).filter(Boolean)))
+    if (mergedKeywords.length < 3) {
+      setError(`검색 키워드 3개 이상 입력이 필요합니다 (현재 ${mergedKeywords.length}개). 자유 입력 또는 AI 자동 추천을 사용해 추가하세요.`)
+      return
+    }
+    trackKeywordInput(mergedKeywords.length)
     setLoading(true)
     setError('')
     try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
+      const session = await getSafeSession()
       const token = session?.access_token
       const res = await fetch(`${BACKEND}/api/businesses`, {
         method: 'POST',
@@ -235,13 +258,19 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           address: form.address,
           phone: form.phone,
           website_url: form.website_url,
+          blog_url: form.blog_url || undefined,
           google_place_id: form.google_place_id || undefined,
           kakao_place_id: form.kakao_place_id || undefined,
           naver_place_url: form.naver_place_url || undefined,
           naver_place_id: form.naver_place_id || undefined,
           category: selectedCategory,
-          keywords: selectedTags,
+          keywords: mergedKeywords,
           business_type: businessType,
+          is_smart_place: smartplaceChecks.is_smart_place,
+          has_faq: smartplaceChecks.has_faq,
+          has_recent_post: smartplaceChecks.has_recent_post,
+          has_intro: smartplaceChecks.has_intro,
+          is_franchise: isFranchise,
           review_sample: form.review_sample || undefined,
           review_count: form.review_count ? parseInt(form.review_count, 10) : undefined,
           avg_rating: form.avg_rating ? parseFloat(form.avg_rating) : undefined,
@@ -331,7 +360,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                     />
                   )}
                 </div>
-                <span className={`text-xs font-semibold text-center leading-tight transition-colors duration-200 ${selected ? colors.icon : 'text-gray-600 group-hover:text-gray-800'}`}>
+                <span className={`text-sm font-semibold text-center leading-tight transition-colors duration-200 ${selected ? colors.icon : 'text-gray-600 group-hover:text-gray-800'}`}>
                   {cat.label}
                 </span>
               </button>
@@ -369,6 +398,39 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             </div>
           )
         })()}
+        {/* 업종별 AI 브리핑 안내 (프랜차이즈 여부 반영) */}
+        {getBriefingEligibility(selectedCategory, isFranchise) !== "active" && (
+          <div className={`p-3 md:p-4 rounded-xl mb-4 ${
+            getBriefingEligibility(selectedCategory, isFranchise) === "inactive"
+              ? "bg-amber-50 border border-amber-200"
+              : "bg-blue-50 border border-blue-200"
+          }`}>
+            <p className="text-sm md:text-base text-gray-800 leading-relaxed">
+              {isFranchise
+                ? "프랜차이즈 가맹점은 현재 네이버 AI 브리핑 제공 대상이 아닙니다(네이버 공식). 추후 확대 예정이며, 그동안 일반 검색·블로그·ChatGPT·Gemini 노출에서 효과를 드립니다."
+                : getBriefingEligibility(selectedCategory) === "inactive"
+                ? "이 업종은 현재 네이버 AI 브리핑 비대상이지만, 일반 검색·블로그·ChatGPT·Gemini 노출에서 효과를 드립니다."
+                : "이 업종은 네이버 AI 브리핑 확대 예상 업종입니다. 지금 가입하면 확대 시 자동으로 활성화됩니다."}
+            </p>
+          </div>
+        )}
+
+        {/* 프랜차이즈 여부 체크박스 (모든 업종 노출) */}
+        <label className="flex items-start gap-3 cursor-pointer group p-3 md:p-4 rounded-xl border border-gray-200 mb-4 hover:bg-gray-50">
+          <input
+            type="checkbox"
+            checked={isFranchise}
+            onChange={(e) => setIsFranchise(e.target.checked)}
+            className="w-4 h-4 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <span className="text-sm md:text-base font-medium text-gray-800">프랜차이즈 가맹점입니다</span>
+            <span className="block text-sm text-gray-500 mt-0.5">
+              네이버 공식: 프랜차이즈는 현재 AI 브리핑 제공 대상에서 제외됩니다(2026-04-30 확인)
+            </span>
+          </div>
+        </label>
+
         <p className="text-sm text-gray-500 mb-4">
           내 사업장과 관련된 서비스를 모두 선택하세요. <span className="text-blue-600">AI가 이 키워드로 검색합니다.</span>
         </p>
@@ -564,6 +626,59 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           </div>
         </div>
 
+        {/* 블로그 URL */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            블로그 주소 <span className="text-gray-400 font-normal">(선택 · 네이버·티스토리·워드프레스 등)</span>
+          </label>
+          <input
+            placeholder="https://blog.naver.com/내계정"
+            value={form.blog_url}
+            onChange={(e) => setForm({ ...form, blog_url: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <p className="text-sm text-gray-400 mt-1">블로그 주소 입력 시 네이버 AI 브리핑 언급 분석에 활용됩니다.</p>
+        </div>
+
+        {/* 스마트플레이스 현황 */}
+        <div className="border border-green-200 rounded-xl p-4 bg-green-50/50 space-y-3">
+          <div>
+            <p className="text-sm font-semibold text-green-800">🏪 스마트플레이스 현황 <span className="font-normal text-green-600">(선택 · AI 노출 점수에 직접 반영)</span></p>
+            <p className="text-sm text-green-700 mt-0.5">지금 알고 있는 항목만 체크하세요. 나중에 설정에서 언제든 수정할 수 있습니다.</p>
+          </div>
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={smartplaceChecks.is_smart_place}
+              onChange={(e) => setSmartplaceChecks(p => ({ ...p, is_smart_place: e.target.checked }))}
+              className="w-4 h-4 mt-0.5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-semibold text-gray-800">네이버 스마트플레이스 등록됨</span>
+              <span className="block text-sm text-gray-500">네이버 지도에서 내 가게가 플레이스 카드로 표시되면 체크</span>
+            </div>
+          </label>
+          <div className="space-y-2 pl-1">
+            {([
+              { key: 'has_recent_post', label: '최근 소식 등록됨 (1개월 내)', desc: '최신성 점수 유지' },
+              { key: 'has_intro', label: '소개글 작성됨', desc: '기본 정보 완성도 (소개글 안에 Q&A 섹션 포함 시 인용 후보)' },
+            ] as const).map(({ key, label, desc }) => (
+              <label key={key} className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={smartplaceChecks[key]}
+                  onChange={(e) => setSmartplaceChecks(p => ({ ...p, [key]: e.target.checked }))}
+                  className="w-4 h-4 mt-0.5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-gray-700">{label}</span>
+                  <span className="block text-sm text-gray-400">{desc}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
         {/* 고객 리뷰 샘플 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -583,7 +698,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           <div>
             <p className="text-sm font-semibold text-blue-700 mb-0.5">글로벌 AI 채널 등록 정보</p>
             <p className="text-sm text-blue-600">
-              ChatGPT·Perplexity에서 노출되려면 구글·카카오 등록이 필요합니다.
+              ChatGPT에서 노출되려면 구글·카카오 등록이 필요합니다.
               <strong> 정보완성도 점수에 반영됩니다.</strong>
             </p>
           </div>
@@ -684,6 +799,161 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
               </div>
             </div>
           )}
+        </div>
+
+        {/* 검색 키워드 입력 (3개 이상 필수 — service_unification_v1.0.md §13 #3) */}
+        <div className="rounded-xl border-2 border-blue-200 bg-blue-50/30 p-4">
+          <div className="flex items-start justify-between mb-2 gap-2">
+            <div>
+              <p className="text-base font-semibold text-gray-900">
+                검색 노출 키워드 <span className="text-red-600">*3개 이상 필수</span>
+              </p>
+              <p className="text-sm text-gray-600 mt-0.5">
+                네이버 검색·AI에 노출되어야 할 핵심 키워드. 합산 {Array.from(new Set([...selectedTags, ...trackingKeywords])).length}개
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={suggesting || !form.name.trim() || !selectedCategory}
+              onClick={async () => {
+                setSuggesting(true)
+                setSuggestNote('')
+                try {
+                  const session = await getSafeSession()
+                  const token = session?.access_token
+                  const r = await fetch(`${BACKEND}/api/businesses/keyword-suggest-preview`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    },
+                    body: JSON.stringify({
+                      name: form.name,
+                      category: selectedCategory,
+                      region: form.region,
+                      count: 10,
+                    }),
+                  })
+                  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+                  const data = await r.json()
+                  setAiSuggestions(data.suggestions || [])
+                  if (data.fallback_used) {
+                    setSuggestNote('AI 자동 추천 일시 사용 불가 — 기본 추천 키워드입니다. 수동 입력을 권장합니다.')
+                  } else if ((data.suggestions || []).length === 0) {
+                    setSuggestNote('추천 결과 없음 — 직접 입력해주세요.')
+                  }
+                } catch (e) {
+                  setAiSuggestions([])
+                  setSuggestNote('자동 추천 실패. 직접 입력해주세요.')
+                } finally {
+                  setSuggesting(false)
+                }
+              }}
+              className="shrink-0 px-3 py-2 text-sm rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              title={!form.name.trim() ? '사업장명을 먼저 입력하세요' : !selectedCategory ? '업종을 먼저 선택하세요' : 'AI가 키워드 추천'}
+            >
+              {suggesting ? '추천 중...' : 'AI 자동 추천'}
+            </button>
+          </div>
+
+          {/* 자유 입력란 (Enter 또는 추가 버튼) */}
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={newKeyword}
+              onChange={(e) => setNewKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  const kw = newKeyword.trim()
+                  if (kw && kw.length <= 25 && !trackingKeywords.includes(kw) && !selectedTags.includes(kw)) {
+                    setTrackingKeywords([...trackingKeywords, kw])
+                    setNewKeyword('')
+                  }
+                }
+              }}
+              placeholder="예: 강남 영어학원 (25자 이내)"
+              maxLength={25}
+              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const kw = newKeyword.trim()
+                if (kw && kw.length <= 25 && !trackingKeywords.includes(kw) && !selectedTags.includes(kw)) {
+                  setTrackingKeywords([...trackingKeywords, kw])
+                  setNewKeyword('')
+                }
+              }}
+              disabled={!newKeyword.trim()}
+              className="px-3 py-2 text-sm rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-800 disabled:opacity-40"
+            >
+              추가
+            </button>
+          </div>
+
+          {/* 등록된 키워드 표시 (selectedTags + trackingKeywords) */}
+          {(selectedTags.length > 0 || trackingKeywords.length > 0) && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {selectedTags.map((t) => (
+                <span key={`tag-${t}`} className="inline-flex items-center gap-1 px-2.5 py-1 text-sm bg-white border border-gray-200 rounded-full text-gray-700">
+                  {t} <span className="text-xs text-gray-400">(서비스)</span>
+                </span>
+              ))}
+              {trackingKeywords.map((t) => (
+                <span key={`kw-${t}`} className="inline-flex items-center gap-1 px-2.5 py-1 text-sm bg-blue-100 text-blue-800 rounded-full">
+                  {t}
+                  <button
+                    type="button"
+                    onClick={() => setTrackingKeywords(trackingKeywords.filter(k => k !== t))}
+                    className="ml-0.5 text-blue-600 hover:text-blue-900 font-bold"
+                    aria-label={`${t} 제거`}
+                  >×</button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* AI 추천 결과 */}
+          {aiSuggestions.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-blue-200">
+              <p className="text-sm text-gray-700 mb-2">추천 키워드 (클릭으로 추가):</p>
+              <div className="flex flex-wrap gap-1.5">
+                {aiSuggestions.map((s) => {
+                  const already = trackingKeywords.includes(s.keyword) || selectedTags.includes(s.keyword)
+                  return (
+                    <button
+                      key={s.keyword}
+                      type="button"
+                      disabled={already}
+                      onClick={() => {
+                        if (!already) {
+                          setTrackingKeywords([...trackingKeywords, s.keyword])
+                          trackKeywordRecommendClick(s.source === 'fallback' ? 'fallback' : 'ai')
+                        }
+                      }}
+                      title={s.rationale + (s.source === 'fallback' ? ' (기본 추천)' : '')}
+                      className={`px-2.5 py-1 text-sm rounded-full border transition-colors ${
+                        already
+                          ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                          : 'bg-white text-blue-700 border-blue-300 hover:bg-blue-50'
+                      }`}
+                    >
+                      {already ? '✓ ' : '+ '}{s.keyword}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {suggestNote && (
+            <p className="text-sm text-amber-700 mt-2">{suggestNote}</p>
+          )}
+
+          <p className="text-xs text-gray-500 mt-2">
+            ※ 측정 시점·기기·검색 환경에 따라 순위는 달라질 수 있습니다 (서울 기준 비로그인 PC/모바일 측정).
+          </p>
         </div>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}

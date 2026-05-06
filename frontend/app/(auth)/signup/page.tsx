@@ -1,15 +1,17 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { SiteFooter } from "@/components/common/SiteFooter";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail } from "lucide-react";
+import { trackSignupComplete } from "@/lib/analytics";
 
 const PLAN_LABELS: Record<string, string> = {
   basic: "Basic (월 9,900원)",
-  startup: "창업 패키지 (월 16,900원)",
-  pro: "Pro (월 22,900원)",
+  startup: "창업 패키지 (월 12,900원)",
+  pro: "Pro (월 18,900원)",
   biz: "Biz (월 49,900원)",
 };
 
@@ -59,7 +61,7 @@ function SignupForm() {
       if (msg.includes("already registered") || msg.includes("User already registered")) {
         setError("이미 가입된 이메일입니다. 로그인해 주세요.");
       } else if (msg.includes("Password should be at least")) {
-        setError("비밀번호는 최소 6자 이상이어야 합니다.");
+        setError("비밀번호는 최소 8자 이상이어야 합니다.");
       } else if (msg.includes("rate limit") || msg.includes("too many")) {
         setError("요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.");
       } else {
@@ -69,6 +71,9 @@ function SignupForm() {
       return;
     }
 
+    // GA4: signup_complete — 이메일 인증 발송 성공 시 1회 발화
+    const trialId = searchParams.get("trial_id") ?? undefined;
+    trackSignupComplete({ method: "email", trial_id: trialId });
     setDone(true);
   };
 
@@ -86,7 +91,7 @@ function SignupForm() {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-6">
         <div className="w-full max-w-sm">
-          <div className="bg-white rounded-2xl p-8 shadow-sm text-center">
+          <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm text-center">
             <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-5">
               <Mail className="w-8 h-8 text-blue-500" strokeWidth={1.5} />
             </div>
@@ -110,10 +115,44 @@ function SignupForm() {
                 {resending ? "발송 중..." : "인증 메일 재발송"}
               </button>
             )}
-            {planParam && amountParam && (
-              <div className="bg-blue-50 text-blue-700 text-base rounded-xl p-4 mb-5">
-                인증 완료 후 <strong>{PLAN_LABELS[planParam]}</strong> 결제가 진행됩니다.
-              </div>
+            {planParam ? (
+              <>
+                <div className="bg-blue-50 text-blue-700 text-base rounded-xl p-4 mb-4">
+                  인증 완료 후 <strong>{PLAN_LABELS[planParam]}</strong> 결제가 진행됩니다.
+                  {planParam === "basic" && (
+                    <p className="text-sm text-emerald-700 mt-2 font-semibold">
+                      신규 가입 혜택: 첫 달 4,950원 (50% 할인) · 이후 월 9,900원
+                    </p>
+                  )}
+                </div>
+                <p className="text-sm text-blue-600 mt-4 font-medium mb-5">
+                  결제까지 2단계 남았습니다: 인증 → 결제
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="bg-emerald-50 text-emerald-700 text-base rounded-xl p-4 mb-4 text-left">
+                  <p className="font-semibold mb-1">가입 축하 혜택</p>
+                  <p className="text-sm leading-relaxed">
+                    사업장을 등록하시면 <strong>전체 AI 분석을 1회 무료</strong>로 체험할 수 있습니다.
+                    ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 4개 채널 모두 확인해 보세요.
+                  </p>
+                </div>
+                <ol className="text-sm text-gray-600 space-y-2 mt-4 mb-5 text-left">
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600 shrink-0">1</span>
+                    <span>받은 이메일에서 인증 링크를 클릭하세요</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600 shrink-0">2</span>
+                    <span>대시보드에서 사업장을 등록하세요</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600 shrink-0">3</span>
+                    <span>AI 전체 분석 1회를 무료로 받으세요</span>
+                  </li>
+                </ol>
+              </>
             )}
             <Link
               href="/login"
@@ -136,8 +175,15 @@ function SignupForm() {
           <Link href="/" className="text-3xl font-bold text-blue-600">AEOlab</Link>
           <p className="text-base text-gray-500 mt-2">AI 검색 노출 관리 서비스</p>
           {planParam && PLAN_LABELS[planParam] && (
-            <div className="mt-3 bg-blue-50 text-blue-700 text-sm px-4 py-2 rounded-full inline-block font-medium">
-              {PLAN_LABELS[planParam]} 가입
+            <div className="mt-3">
+              <div className="bg-blue-50 text-blue-700 text-sm px-4 py-2 rounded-full inline-block font-medium">
+                {PLAN_LABELS[planParam]} 가입
+              </div>
+              {planParam === "basic" && (
+                <p className="text-sm text-emerald-700 font-semibold mt-2">
+                  🎉 첫 달 4,950원 (50% 할인) · 이후 월 9,900원
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -294,6 +340,7 @@ function SignupForm() {
           </Link>
         </p>
       </div>
+      <SiteFooter />
     </main>
   );
 }

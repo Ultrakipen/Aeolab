@@ -31,6 +31,13 @@ export interface ReviewKeywordGap {
   competitor_only_keywords: string[];
   pioneer_keywords: string[];
   coverage_score: number;
+  covered_keywords?: string[];
+  coverage_rate?: number;
+  top_priority_keyword?: string | null;
+  qr_card_message?: string;
+  category_scores?: Record<string, { score: number; covered: number; total: number; weight: number }>;
+  /** 경쟁사별로 내가 없는 키워드 목록 */
+  competitor_keyword_sources?: Record<string, string[]>;
 }
 
 export type GrowthStageCode = "survival" | "stability" | "growth" | "dominance";

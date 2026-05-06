@@ -58,7 +58,7 @@ interface FAQ {
 }
 
 const PLAN_PRICES: Record<string, number> = {
-  basic: 9900, pro: 22900, biz: 49900, startup: 16900, enterprise: 200000,
+  basic: 9900, pro: 18900, biz: 49900, startup: 12900,
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -188,24 +188,24 @@ function NoticesTab() {
               <div key={n.id} className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    {n.is_pinned && <span className="text-xs">📌</span>}
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    {n.is_pinned && <span className="text-sm">📌</span>}
+                    <span className={`text-sm px-2 py-0.5 rounded-full ${
                       n.category === "update" ? "bg-blue-50 text-blue-700" :
                       n.category === "maintenance" ? "bg-amber-50 text-amber-700" :
                       "bg-gray-100 text-gray-600"
                     }`}>
                       {CATEGORY_LABELS[n.category] ?? n.category}
                     </span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-sm text-gray-400">
                       {new Date(n.created_at).toLocaleDateString("ko-KR")}
                     </span>
                   </div>
                   <p className="text-sm font-medium text-gray-800 truncate">{n.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.content}</p>
+                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{n.content}</p>
                 </div>
                 <button
                   onClick={() => handleDelete(n.id)}
-                  className="text-xs text-red-500 hover:text-red-700 whitespace-nowrap"
+                  className="text-sm text-red-500 hover:text-red-700 whitespace-nowrap"
                 >
                   삭제
                 </button>
@@ -338,19 +338,19 @@ function FAQTab() {
           <div className="space-y-4">
             {grouped.map((g) => (
               <div key={g.key}>
-                <p className="text-xs font-semibold text-gray-400 uppercase mb-2">{g.label}</p>
+                <p className="text-sm font-semibold text-gray-400 uppercase mb-2">{g.label}</p>
                 <div className="space-y-2">
                   {g.items.map((f) => (
                     <div key={f.id} className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-800">{f.question}</p>
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{f.answer}</p>
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{f.answer}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400">#{f.order_num}</span>
+                        <span className="text-sm text-gray-400">#{f.order_num}</span>
                         <button
                           onClick={() => handleDelete(f.id)}
-                          className="text-xs text-red-500 hover:text-red-700"
+                          className="text-sm text-red-500 hover:text-red-700"
                         >
                           삭제
                         </button>
@@ -482,7 +482,7 @@ function InquiryTab() {
                     className="w-full flex items-center gap-3 p-4 text-left bg-white hover:bg-gray-50 transition-colors"
                   >
                     <span
-                      className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${
+                      className={`shrink-0 text-sm px-2 py-0.5 rounded-full font-medium ${
                         item.status === "answered"
                           ? "bg-green-50 text-green-700"
                           : "bg-amber-50 text-amber-700"
@@ -493,17 +493,17 @@ function InquiryTab() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium text-gray-800 truncate">{item.subject}</span>
-                        <span className="text-xs text-gray-400 shrink-0">{item.name} ({item.email})</span>
+                        <span className="text-sm text-gray-400 shrink-0">{item.name} ({item.email})</span>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-400 shrink-0">
+                    <span className="text-sm text-gray-400 shrink-0">
                       {new Date(item.created_at).toLocaleDateString("ko-KR")}
                     </span>
                   </button>
                   {isOpen && (
                     <div className="bg-gray-50 border-t border-gray-100">
                       <div className="p-4 border-b border-gray-100">
-                        <p className="text-xs text-gray-400 mb-1">문의 내용</p>
+                        <p className="text-sm text-gray-400 mb-1">문의 내용</p>
                         <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                           {item.content}
                         </p>
@@ -511,13 +511,13 @@ function InquiryTab() {
                       <div className="p-4">
                         {item.answer && (
                           <div className="mb-3 p-3 bg-green-50 rounded-lg">
-                            <p className="text-xs text-green-600 mb-1">
+                            <p className="text-sm text-green-600 mb-1">
                               기존 답변 ({item.answered_at ? new Date(item.answered_at).toLocaleDateString("ko-KR") : ""})
                             </p>
                             <p className="text-sm text-gray-700 whitespace-pre-wrap">{item.answer}</p>
                           </div>
                         )}
-                        <p className="text-xs text-gray-400 mb-1">
+                        <p className="text-sm text-gray-400 mb-1">
                           {item.answer ? "답변 수정" : "답변 입력"}
                         </p>
                         <textarea
@@ -638,7 +638,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   if (!authed) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl p-8 shadow-sm max-w-sm w-full">
+        <div className="bg-white rounded-2xl p-4 md:p-8 shadow-sm max-w-sm w-full">
           <h1 className="text-xl font-bold text-gray-900 mb-6">관리자 접근</h1>
           <input
             type="password"
@@ -679,7 +679,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">AEOlab 관리자</h1>
-            <p className="text-sm text-gray-400">구독자·매출·공지사항·FAQ 관리</p>
+            <p className="text-sm text-gray-400">구독자·매출·공지사항·FAQ·Q&A 관리</p>
           </div>
           <button
             onClick={() => fetchAll()}
@@ -687,6 +687,22 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
           >
             새로고침
           </button>
+        </div>
+
+        {/* 외부 링크 */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <a
+            href="/admin/delivery"
+            className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+          >
+            대행 의뢰 관리 →
+          </a>
+          <a
+            href="/admin/support"
+            className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+          >
+            Q&A 문의 관리 →
+          </a>
         </div>
 
         {/* 탭 */}
@@ -759,7 +775,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="text-left text-xs text-gray-400 border-b border-gray-100">
+                          <tr className="text-left text-sm text-gray-400 border-b border-gray-100">
                             <th className="pb-2 font-medium">플랜</th>
                             <th className="pb-2 font-medium text-right">월정액</th>
                             <th className="pb-2 font-medium text-right">활성 구독자</th>
@@ -770,7 +786,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                         </thead>
                         <tbody>
                           {Object.entries(stats.plan_stats).map(([plan, ps]) => {
-                            const bepTarget: Record<string, number> = { basic: 20, pro: 7, biz: 3, startup: 10, enterprise: 1 };
+                            const bepTarget: Record<string, number> = { basic: 20, pro: 7, biz: 3, startup: 10 };
                             const target = bepTarget[plan] ?? 10;
                             const pct = Math.min(100, Math.round((ps.subscribers / target) * 100));
                             return (
@@ -797,7 +813,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                                         style={{ width: `${pct}%` }}
                                       />
                                     </div>
-                                    <span className={`text-xs ${pct >= 100 ? "text-green-600 font-semibold" : "text-gray-500"}`}>
+                                    <span className={`text-sm ${pct >= 100 ? "text-green-600 font-semibold" : "text-gray-500"}`}>
                                       {pct}%
                                     </span>
                                   </div>
@@ -872,12 +888,12 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                         <tr key={sub.user_id} className="border-b border-gray-50">
                           <td className="py-2 text-gray-700 text-sm">{sub.email ?? sub.user_id.slice(0, 8) + "..."}</td>
                           <td className="py-2">
-                            <span className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full capitalize">
+                            <span className="bg-blue-50 text-blue-700 text-sm px-2 py-0.5 rounded-full capitalize">
                               {sub.plan}
                             </span>
                           </td>
                           <td className="py-2">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            <span className={`text-sm px-2 py-0.5 rounded-full ${
                               sub.status === "active" ? "bg-green-50 text-green-700" :
                               sub.status === "grace_period" ? "bg-yellow-50 text-yellow-700" :
                               "bg-gray-100 text-gray-500"

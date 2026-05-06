@@ -32,7 +32,7 @@ export default async function PreviewPage() {
   const isAdmin = ADMIN_EMAILS.includes((user.email ?? "").toLowerCase());
 
   const activePlan = isAdmin
-    ? "enterprise"
+    ? "biz"
     : (sub?.status === "active" || sub?.status === "grace_period")
     ? (sub?.plan ?? "free")
     : "free";

@@ -4,7 +4,7 @@ Domain 3 — GapAnalysis (격차 분석)
 도메인 모델 v2.4 § 7
 """
 from __future__ import annotations
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
 from datetime import datetime
 from models.context import ScanContext
@@ -43,6 +43,10 @@ class ReviewKeywordGap(BaseModel):
     covered_keywords: List[str]          # 내 리뷰에 이미 있는 키워드
     missing_keywords: List[str]          # 업종 전체 기준 아직 없는 키워드
     competitor_only_keywords: List[str]  # 경쟁사엔 있고 내겐 없는 키워드 (긴급 확보)
+    competitor_keyword_sources: dict = Field(
+        default_factory=dict,
+        description="경쟁사별로 내가 없는 키워드 목록 {'A 가게': ['주차', '배달'], 'B 가게': ['오마카세']}"
+    )
     pioneer_keywords: List[str]          # 경쟁사도 없는 선점 가능 키워드
     coverage_rate: float                 # 업종 전체 키워드 중 보유 비율 (0.0~1.0)
     top_priority_keyword: Optional[str]  # 지금 당장 확보해야 할 1순위 키워드
@@ -78,7 +82,7 @@ class GapAnalysis(BaseModel):
 
     # v2.4 추가 — 글로벌 AI 차단 리스크 명시
     naver_only_risk: bool = False
-    # True = 독립 웹사이트 없음 → ChatGPT·Gemini·Perplexity 완전 비노출
+    # True = 독립 웹사이트 없음 → ChatGPT·Gemini·Google AI 완전 비노출
     # 네이버는 글로벌 AI 크롤러를 robots.txt로 전면 차단 중 (2023~)
     naver_only_risk_score_impact: float = 0.0
     # 독립 웹사이트 + JSON-LD 등록 시 예상 점수 상승폭
@@ -93,3 +97,5 @@ class GapAnalysis(BaseModel):
     blog_diagnosis: Optional[dict] = None
     # platform, post_count, keyword_coverage, ai_readiness_score, freshness,
     # top_recommendation 등 블로그 분석 결과 전체 포함
+    # 경쟁사 데이터 추정 여부 (breakdown 없어 수식 가공한 경우 True)
+    is_competitor_estimated: bool = False

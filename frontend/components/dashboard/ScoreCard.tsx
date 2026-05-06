@@ -18,17 +18,25 @@ const GRADE_COLOR: Record<string, string> = {
   F: 'text-red-500',
 }
 
-const GRADE_INFO: Record<string, { range: string; description: string; percentile: string }> = {
-  A: { range: '80점 이상', description: 'AI 검색 최상위 노출', percentile: '상위 20%' },
-  B: { range: '60~79점', description: 'AI 검색 양호', percentile: '상위 40%' },
-  C: { range: '40~59점', description: 'AI 검색 개선 필요', percentile: '중간 40%' },
-  D: { range: '40점 미만', description: 'AI 검색 미흡', percentile: '하위 20%' },
-  F: { range: '20점 미만', description: 'AI 검색 거의 불가', percentile: '최하위' },
+const GRADE_BG: Record<string, string> = {
+  A: 'bg-green-50 border-green-200 text-green-800',
+  B: 'bg-blue-50 border-blue-200 text-blue-800',
+  C: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+  D: 'bg-orange-50 border-orange-200 text-orange-800',
+  F: 'bg-red-50 border-red-200 text-red-800',
+}
+
+const GRADE_INFO: Record<string, { range: string; description: string; percentile: string; action: string }> = {
+  A: { range: '80점 이상', description: 'AI 검색 최상위 노출', percentile: '상위 20%', action: '현 상태 유지 + 리뷰 꾸준히' },
+  B: { range: '60~79점', description: 'AI 검색 양호', percentile: '상위 40%', action: '키워드 커버리지 집중 개선' },
+  C: { range: '40~59점', description: 'AI 검색 개선 필요', percentile: '중간 40%', action: '스마트플레이스 소개글 + 소식 작성' },
+  D: { range: '40점 미만', description: 'AI 검색 미흡', percentile: '하위 20%', action: '스마트플레이스 기본 정보 완성 우선' },
+  F: { range: '20점 미만', description: 'AI 검색 거의 불가', percentile: '최하위', action: '스마트플레이스 신청부터 시작' },
 }
 
 export function ScoreCard({ score, grade, exposureFreq, prevScore, scannedAt }: ScoreCardProps) {
   const change = prevScore !== undefined ? score - prevScore : null
-  const [showTooltip, setShowTooltip] = useState(false)
+  const [showGradeDetail, setShowGradeDetail] = useState(false)
   const gradeInfo = GRADE_INFO[grade]
 
   return (
@@ -45,24 +53,29 @@ export function ScoreCard({ score, grade, exposureFreq, prevScore, scannedAt }: 
           </div>
         )}
       </div>
-      <div className="flex items-center gap-2 relative">
-        <button
-          className={`text-3xl font-bold ${GRADE_COLOR[grade] ?? 'text-gray-900'} cursor-help`}
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-          aria-label={`${grade}등급 설명`}
-        >
-          {grade}
-        </button>
+
+      {/* 등급 — 클릭하면 상세 펼침 (hover 대신: 모바일 호환) */}
+      <button
+        className="flex items-center gap-2 w-full text-left"
+        onClick={() => setShowGradeDetail(v => !v)}
+        aria-expanded={showGradeDetail}
+        aria-label={`${grade}등급 상세 보기`}
+      >
+        <span className={`text-3xl font-bold ${GRADE_COLOR[grade] ?? 'text-gray-900'}`}>{grade}</span>
         <span className="text-sm text-gray-400">등급</span>
-        {showTooltip && gradeInfo && (
-          <div className="absolute left-0 top-8 z-10 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg w-44">
-            <p className="font-semibold">{gradeInfo.range}</p>
-            <p className="text-gray-300 mt-0.5">{gradeInfo.description}</p>
-            <p className="text-gray-400 mt-0.5">{gradeInfo.percentile} 수준</p>
-          </div>
+        {gradeInfo && (
+          <span className="text-xs text-gray-400 ml-auto">{showGradeDetail ? '▲' : '▼'} {gradeInfo.percentile}</span>
         )}
-      </div>
+      </button>
+
+      {/* 등급 상세 — 클릭 시 펼침 */}
+      {showGradeDetail && gradeInfo && (
+        <div className={`mt-2 border rounded-xl px-3 py-2.5 text-sm space-y-1 ${GRADE_BG[grade] ?? 'bg-gray-50 border-gray-200 text-gray-800'}`}>
+          <p className="font-semibold">{gradeInfo.range} · {gradeInfo.description}</p>
+          <p className="opacity-80">지금 할 것: {gradeInfo.action}</p>
+        </div>
+      )}
+
       <div className="mt-4 pt-4 border-t border-gray-100">
         <div className="text-sm text-gray-500 mb-1">AI 노출 빈도</div>
         <div className="flex items-center gap-2">

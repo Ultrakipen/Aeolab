@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { SiteFooter } from "@/components/common/SiteFooter";
 import { AlertCircle } from "lucide-react";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -29,17 +30,17 @@ function PaymentFailContent() {
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl p-8 shadow-sm max-w-sm w-full text-center">
+      <div className="bg-white rounded-2xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center">
         <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" strokeWidth={1.5} />
         <h1 className="text-xl font-bold text-gray-900 mb-2">결제 실패</h1>
         <p className="text-gray-500 text-sm mb-2">{displayMsg}</p>
         {orderId && (
-          <p className="text-xs text-gray-400 mb-6">주문번호: {orderId}</p>
+          <p className="text-sm text-gray-400 mb-6">주문번호: {orderId}</p>
         )}
 
         <div className="bg-blue-50 rounded-xl p-4 mb-6 text-left">
           <p className="text-sm font-medium text-blue-800 mb-2">이런 경우 확인해보세요</p>
-          <ul className="text-xs text-blue-700 space-y-1">
+          <ul className="text-sm text-blue-700 space-y-1">
             <li>• 카드 한도 초과 여부</li>
             <li>• 카드 번호·유효기간·CVC 정확도</li>
             <li>• 해외 결제 차단 설정</li>
@@ -62,6 +63,7 @@ function PaymentFailContent() {
           </Link>
         </div>
       </div>
+      <SiteFooter />
     </main>
   );
 }

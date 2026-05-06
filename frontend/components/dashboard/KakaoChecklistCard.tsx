@@ -48,7 +48,7 @@ const CHECKLIST_ITEMS: Array<{
     desc: "카카오맵에 내 가게가 등록되어 있나요?",
     weight: 30,
     priority: "high",
-    howtoUrl: "https://place.kakao.com",
+    howtoUrl: "https://map.kakao.com",
   },
   {
     key: "hours",
@@ -56,7 +56,7 @@ const CHECKLIST_ITEMS: Array<{
     desc: "카카오맵 프로필에 영업시간이 정확히 입력되어 있나요?",
     weight: 15,
     priority: "high",
-    howtoUrl: "https://place.kakao.com",
+    howtoUrl: "https://map.kakao.com",
   },
   {
     key: "phone",
@@ -64,7 +64,7 @@ const CHECKLIST_ITEMS: Array<{
     desc: "카카오맵에 연락 가능한 전화번호가 등록되어 있나요?",
     weight: 15,
     priority: "high",
-    howtoUrl: "https://place.kakao.com",
+    howtoUrl: "https://map.kakao.com",
   },
   {
     key: "photos",
@@ -72,7 +72,7 @@ const CHECKLIST_ITEMS: Array<{
     desc: "가게 내·외부 사진이 3장 이상 등록되어 있나요?",
     weight: 15,
     priority: "medium",
-    howtoUrl: "https://place.kakao.com",
+    howtoUrl: "https://map.kakao.com",
   },
   {
     key: "kakao_channel",
@@ -88,7 +88,7 @@ const CHECKLIST_ITEMS: Array<{
     desc: "주요 메뉴나 서비스 정보가 카카오맵에 등록되어 있나요?",
     weight: 10,
     priority: "low",
-    howtoUrl: "https://place.kakao.com",
+    howtoUrl: "https://map.kakao.com",
   },
 ];
 
@@ -126,10 +126,10 @@ function getScoreMessage(score: number): string {
 
 function PriorityBadge({ priority }: { priority: "high" | "medium" | "low" }) {
   if (priority === "high")
-    return <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 border border-red-200 shrink-0">필수</span>;
+    return <span className="text-sm font-semibold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 border border-red-200 shrink-0">필수</span>;
   if (priority === "medium")
-    return <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-600 border border-yellow-200 shrink-0">권장</span>;
-  return <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200 shrink-0">선택</span>;
+    return <span className="text-sm font-semibold px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-600 border border-yellow-200 shrink-0">권장</span>;
+  return <span className="text-sm font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200 shrink-0">선택</span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -289,7 +289,7 @@ export default function KakaoChecklistCard({
                     {item.label}
                   </span>
                   {!checked && <PriorityBadge priority={item.priority} />}
-                  <span className="text-xs text-gray-400 ml-auto shrink-0">+{item.weight}점</span>
+                  <span className="text-sm text-gray-400 ml-auto shrink-0">+{item.weight}점</span>
                 </div>
                 <p className={`text-sm leading-relaxed ${checked ? "text-green-600" : "text-gray-500"}`}>
                   {item.desc}
@@ -302,7 +302,7 @@ export default function KakaoChecklistCard({
                   href={item.howtoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 text-xs text-blue-600 hover:text-blue-800 underline mt-0.5 whitespace-nowrap"
+                  className="shrink-0 text-sm text-blue-600 hover:text-blue-800 underline mt-0.5 whitespace-nowrap"
                   onClick={(e) => e.stopPropagation()}
                 >
                   바로가기
@@ -327,7 +327,7 @@ export default function KakaoChecklistCard({
           {saving ? "저장 중..." : saved ? "✓ 저장 완료!" : "체크리스트 저장"}
         </button>
         <a
-          href="https://place.kakao.com"
+          href="https://map.kakao.com"
           target="_blank"
           rel="noopener noreferrer"
           className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors text-center"
@@ -343,7 +343,7 @@ export default function KakaoChecklistCard({
       )}
 
       {/* 점수 안내 */}
-      <p className="text-xs text-gray-400 leading-relaxed">
+      <p className="text-sm text-gray-400 leading-relaxed">
         카카오맵은 한국 최대 POI DB(지역 정보)로, 등록 완성도가 높을수록 카카오 AI 검색 및 카카오 내비 노출이 향상됩니다.
       </p>
     </div>

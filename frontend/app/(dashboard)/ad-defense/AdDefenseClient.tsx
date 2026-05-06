@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { apiBase } from "@/lib/api";
+import { getSafeSession } from "@/lib/supabase/client";
 
 interface AdDefenseGuide {
   situation_summary?: string;
@@ -41,12 +42,23 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
     setLoading(true);
     setError("");
     try {
+      const session = await getSafeSession();
+      const token = session?.access_token;
+      if (!token) {
+        setError("로그인이 필요합니다. 페이지를 새로고침 후 다시 시도해주세요.");
+        setLoading(false);
+        return;
+      }
       const res = await fetch(
         `${apiBase}/api/guide/ad-defense/${bizId}`,
-        { method: "POST", credentials: "include" }
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       if (res.status === 403) {
-        setError("Basic 이상의 구독이 필요합니다.");
+        setError("Pro 이상 구독이 필요합니다. 요금제 페이지에서 업그레이드하세요.");
+        setLoading(false);
         return;
       }
       if (!res.ok) throw new Error("API 오류");
@@ -60,30 +72,30 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
   }
 
   return (
-    <div className="p-8 max-w-3xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">ChatGPT 광고 대응 가이드</h1>
-      <p className="text-sm text-gray-500 mb-6">
+    <div className="p-4 md:p-8 max-w-3xl">
+      <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">ChatGPT 광고 대응 가이드</h1>
+      <p className="text-base text-gray-500 mb-6">
         ChatGPT SearchGPT 광고 도입 시 유기적 AI 노출을 유지하는 전략을 제공합니다.
       </p>
 
-      <section className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+      <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm mb-6">
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">사업장 선택</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">사업장 선택</label>
           <select
             value={bizId}
             onChange={(e) => setBizId(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
             {businesses.map((b) => (
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
           </select>
         </div>
-        {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+        {error && <p className="text-sm text-red-600 mb-3 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <button
           onClick={handleGenerate}
           disabled={loading || !bizId}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="bg-blue-600 text-white px-6 py-3 rounded-xl text-base font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors min-h-[44px] w-full sm:w-auto"
         >
           {loading ? "가이드 생성 중..." : "광고 대응 가이드 생성"}
         </button>
@@ -92,19 +104,19 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
       {result && (
         <>
           {/* 현황 요약 */}
-          <section className="bg-white rounded-2xl p-6 shadow-sm mb-4">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">현재 상황</h2>
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="text-center p-3 bg-gray-50 rounded-xl">
-                <div className="text-2xl font-bold text-gray-900">{result.current_score.toFixed(0)}</div>
+          <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm mb-4">
+            <h2 className="text-base font-semibold text-gray-700 mb-3">현재 상황</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              <div className="text-center p-4 bg-gray-50 rounded-xl">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{result.current_score.toFixed(0)}</div>
                 <div className="text-sm text-gray-500 mt-1">AI 점수</div>
               </div>
-              <div className="text-center p-3 bg-gray-50 rounded-xl">
-                <div className="text-2xl font-bold text-gray-900">{result.exposure_freq}</div>
+              <div className="text-center p-4 bg-gray-50 rounded-xl">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{result.exposure_freq}</div>
                 <div className="text-sm text-gray-500 mt-1">Gemini 노출(/100)</div>
               </div>
-              <div className={`text-center p-3 rounded-xl ${result.chatgpt_mentioned ? "bg-green-50" : "bg-red-50"}`}>
-                <div className={`text-lg font-bold ${result.chatgpt_mentioned ? "text-green-700" : "text-red-700"}`}>
+              <div className={`text-center p-4 rounded-xl ${result.chatgpt_mentioned ? "bg-green-50" : "bg-red-50"}`}>
+                <div className={`text-xl font-bold ${result.chatgpt_mentioned ? "text-green-700" : "text-red-700"}`}>
                   {result.chatgpt_mentioned ? "언급됨" : "미언급"}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">ChatGPT</div>
@@ -112,11 +124,11 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
             </div>
 
             {result.guide.situation_summary && (
-              <p className="text-sm text-gray-700">{result.guide.situation_summary}</p>
+              <p className="text-sm md:text-base text-gray-700 leading-relaxed">{result.guide.situation_summary}</p>
             )}
             {result.guide.risk_level && (
               <div className="mt-3">
-                <span className={`text-xs font-medium px-2 py-1 rounded-full ${RISK_COLORS[result.guide.risk_level] ?? "bg-gray-100"}`}>
+                <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${RISK_COLORS[result.guide.risk_level] ?? "bg-gray-100"}`}>
                   광고 리스크: {RISK_LABELS[result.guide.risk_level] ?? result.guide.risk_level}
                 </span>
               </div>
@@ -125,16 +137,16 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
 
           {/* 유기적 전략 */}
           {result.guide.organic_strategies && (
-            <section className="bg-white rounded-2xl p-6 shadow-sm mb-4">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">유기적 노출 강화 전략</h2>
+            <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm mb-4">
+              <h2 className="text-base font-semibold text-gray-700 mb-3">유기적 노출 강화 전략</h2>
               <div className="space-y-3">
                 {result.guide.organic_strategies.map((s, i) => (
                   <div
                     key={i}
-                    className={`border-l-4 pl-3 py-1 ${PRIORITY_COLORS[s.priority] ?? "border-l-gray-300"}`}
+                    className={`border-l-4 pl-4 py-2 ${PRIORITY_COLORS[s.priority] ?? "border-l-gray-300"}`}
                   >
-                    <p className="text-sm font-medium text-gray-900">{s.title}</p>
-                    <p className="text-sm text-gray-500 mt-0.5">{s.description}</p>
+                    <p className="text-base font-semibold text-gray-900">{s.title}</p>
+                    <p className="text-sm text-gray-600 mt-0.5 leading-relaxed">{s.description}</p>
                   </div>
                 ))}
               </div>
@@ -142,14 +154,14 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
           )}
 
           {/* 콘텐츠 액션 + 스키마 */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {result.guide.content_actions && (
               <section className="bg-white rounded-2xl p-5 shadow-sm">
-                <h2 className="text-sm font-semibold text-gray-700 mb-3">즉시 실행 액션</h2>
-                <ul className="space-y-2">
+                <h2 className="text-base font-semibold text-gray-700 mb-3">즉시 실행 액션</h2>
+                <ul className="space-y-2.5">
                   {result.guide.content_actions.map((a, i) => (
-                    <li key={i} className="text-sm text-gray-700 flex gap-2">
-                      <span className="text-blue-500 shrink-0">→</span>{a}
+                    <li key={i} className="text-sm md:text-base text-gray-700 flex gap-2 leading-relaxed">
+                      <span className="text-blue-500 shrink-0 mt-0.5">→</span>{a}
                     </li>
                   ))}
                 </ul>
@@ -157,11 +169,11 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
             )}
             {result.guide.schema_recommendations && (
               <section className="bg-white rounded-2xl p-5 shadow-sm">
-                <h2 className="text-sm font-semibold text-gray-700 mb-3">Schema 권장사항</h2>
-                <ul className="space-y-2">
+                <h2 className="text-base font-semibold text-gray-700 mb-3">AI 정보 등록 권장사항</h2>
+                <ul className="space-y-2.5">
                   {result.guide.schema_recommendations.map((r, i) => (
-                    <li key={i} className="text-sm text-gray-700 flex gap-2">
-                      <span className="text-green-500 shrink-0">✓</span>{r}
+                    <li key={i} className="text-sm md:text-base text-gray-700 flex gap-2 leading-relaxed">
+                      <span className="text-green-500 shrink-0 mt-0.5">✓</span>{r}
                     </li>
                   ))}
                 </ul>

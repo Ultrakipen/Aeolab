@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 export const metadata = {
   title: "개인정보처리방침 | AEOlab",
@@ -195,6 +196,7 @@ export default function PrivacyPage() {
 
         </div>
       </div>
+      <SiteFooter />
     </main>
   );
 }

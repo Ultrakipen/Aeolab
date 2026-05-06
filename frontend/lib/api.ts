@@ -3,7 +3,8 @@ import {
   StartupReportRequest, StartupReport, StartupMarket,
   TeamMember, ApiKey, CompetitorSearchResult, CompetitorSuggestion,
   SharePageData, MentionContext, BadgeData, BusinessSearchResult,
-  KeywordVolume, IndustryTrend,
+  KeywordVolume, IndustryTrend, ConversionTipsResponse,
+  TrialBusinessSearchResponse,
 } from "@/types";
 import type { GapAnalysis } from "@/types/gap";
 import type { ActionPlan } from "@/types/action";
@@ -24,12 +25,15 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export class ApiError extends Error {
+  public status?: number;
   constructor(
     public code: string,
     public detail: Record<string, unknown> = {},
+    status?: number,
   ) {
     super(ERROR_MESSAGES[code] || ERROR_MESSAGES["SERVER_ERROR"]);
     this.name = "ApiError";
+    this.status = status;
   }
 }
 
@@ -38,9 +42,17 @@ export async function apiCall<T>(url: string, options?: RequestInit): Promise<T>
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     const code = (err?.detail?.code as string) || "SERVER_ERROR";
-    throw new ApiError(code, err?.detail || {});
+    throw new ApiError(code, err?.detail || {}, res.status);
   }
-  return res.json();
+  // 204 No Content 등 본문 없는 응답 처리
+  if (res.status === 204) return undefined as unknown as T;
+  const text = await res.text();
+  if (!text) return undefined as unknown as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return undefined as unknown as T;
+  }
 }
 
 export async function trialScan(req: TrialScanRequest, adminKey?: string): Promise<TrialScanResult> {
@@ -52,6 +64,28 @@ export async function trialScan(req: TrialScanRequest, adminKey?: string): Promi
     },
     body: JSON.stringify(req),
   });
+}
+
+/**
+ * 신뢰도 강화 1라운드 — 네이버 지역검색으로 후보 5개 조회
+ * 비로그인 호출 가능 (trial 플로우에서만 사용)
+ * 백엔드 응답 키가 `results` 또는 `items`로 들어올 수 있어 둘 다 수용
+ */
+export async function searchTrialBusiness(
+  query: string,
+  region?: string,
+): Promise<TrialBusinessSearchResponse> {
+  const params = new URLSearchParams({ query });
+  if (region) params.set("region", region);
+  const raw = await apiCall<{
+    results?: TrialBusinessSearchResponse["results"];
+    items?: TrialBusinessSearchResponse["results"];
+    fallback_to_manual?: boolean;
+  }>(`${BACKEND_URL}/api/scan/trial-search?${params.toString()}`);
+  return {
+    results: raw?.results ?? raw?.items ?? [],
+    fallback_to_manual: !!raw?.fallback_to_manual,
+  };
 }
 
 /**
@@ -140,7 +174,7 @@ export async function issueBilling(body: {
 export async function createBusiness(
   data: {
     name: string; category: string; region?: string;
-    address?: string; phone?: string; website_url?: string; keywords?: string[];
+    address?: string; phone?: string; website_url?: string; blog_url?: string; keywords?: string[];
     naver_place_id?: string; naver_place_url?: string;
     google_place_id?: string; kakao_place_id?: string;
     business_type?: string;
@@ -454,6 +488,16 @@ export async function getGapAnalysis(bizId: string, authToken: string): Promise<
   });
 }
 
+export async function getConversionTips(
+  bizId: string,
+  authToken: string,
+): Promise<ConversionTipsResponse> {
+  return apiCall<ConversionTipsResponse>(
+    `${BACKEND_URL}/api/report/conversion-tips/${bizId}`,
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+}
+
 // Domain 4: ActionPlan 최신 가이드 조회 (ActionTools 포함)
 export async function getLatestActionPlan(bizId: string, authToken: string): Promise<ActionPlan | null> {
   try {
@@ -634,8 +678,8 @@ export async function analyzeBlog(
   businessId: string,
   blogUrl: string,
   token: string,
-): Promise<import("@/types").BlogAnalysisResult> {
-  return apiCall<import("@/types").BlogAnalysisResult>(`${BACKEND_URL}/api/blog/analyze`, {
+): Promise<unknown> {
+  return apiCall<unknown>(`${BACKEND_URL}/api/blog/analyze`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -677,4 +721,221 @@ export async function updateBillingCard(
     },
     body: JSON.stringify({ authKey, customerKey }),
   });
+}
+
+// ── 행동 완료 기록 / 결과 조회 ───────────────────────────────────────────────
+
+export async function completeAction(data: {
+  business_id: string
+  action_type: string
+  keyword: string
+  action_text: string
+}, token: string): Promise<{ id: string }> {
+  return apiCall<{ id: string }>(`${BACKEND_URL}/api/actions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function getActionResults(bizId: string, token: string): Promise<ActionCompletion[]> {
+  try {
+    return await apiCall<ActionCompletion[]>(`${BACKEND_URL}/api/actions/biz/${bizId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  } catch {
+    return []
+  }
+}
+
+export async function getCompetitorChanges(bizId: string, token: string): Promise<CompetitorChange[]> {
+  try {
+    return await apiCall<CompetitorChange[]>(`${BACKEND_URL}/api/competitors/${bizId}/changes`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  } catch {
+    return []
+  }
+}
+
+export interface ActionCompletion {
+  id: string
+  action_type: string
+  keyword: string
+  completed_at: string
+  rescan_done: boolean
+  before_mentioned: boolean | null
+  after_mentioned: boolean | null
+  before_score: number | null
+  after_score: number | null
+  result_summary: string | null
+}
+
+export interface CompetitorChange {
+  id: string
+  name: string
+  change_summary: string
+  change_detected_at: string
+}
+
+export async function generateSmartplaceFAQ(bizId: string, token: string): Promise<{ faqs: Array<{ question: string; answer: string }>; used: number; limit: number }> {
+  const res = await fetch(`${BACKEND_URL}/api/guide/${bizId}/smartplace-faq`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({})) as { detail?: string }
+    throw new Error(err.detail || 'FAQ 생성 실패')
+  }
+  return res.json()
+}
+
+// ── 리뷰 답변 AI 생성 ────────────────────────────────────────────────────────
+
+export interface ReviewReplyResult {
+  id: string
+  tone: string
+  draft_response: string
+  keywords_used: string[]
+  created_at: string
+}
+
+export async function generateReviewReply(
+  bizId: string,
+  reviewText: string,
+  token: string,
+): Promise<ReviewReplyResult & { used: number; limit: number }> {
+  return apiCall<ReviewReplyResult & { used: number; limit: number }>(
+    `${BACKEND_URL}/api/guide/review-reply`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ business_id: bizId, review_text: reviewText }),
+    },
+  )
+}
+
+export async function getReviewReplies(bizId: string, token: string): Promise<ReviewReplyResult[]> {
+  try {
+    return await apiCall<ReviewReplyResult[]>(
+      `${BACKEND_URL}/api/guide/${bizId}/review-replies`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    )
+  } catch {
+    return []
+  }
+}
+
+export async function deleteReviewReply(bizId: string, replyId: string, token: string): Promise<void> {
+  await apiCall<void>(
+    `${BACKEND_URL}/api/guide/${bizId}/review-replies/${replyId}`,
+    { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } },
+  )
+}
+
+// ── 무료 Basic 1회 체험 ─────────────────────────────────────────────
+
+export interface BasicTrialStatus {
+  used: boolean;
+  used_at: string | null;
+  can_use: boolean;
+  has_active_subscription: boolean;
+}
+
+export async function getBasicTrialStatus(token: string): Promise<BasicTrialStatus> {
+  return apiCall<BasicTrialStatus>(`${BACKEND_URL}/api/scan/basic-trial/status`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function runBasicTrial(
+  token: string,
+  business_id: string,
+): Promise<{ scan_id: string; business_id: string; message: string }> {
+  return apiCall<{ scan_id: string; business_id: string; message: string }>(
+    `${BACKEND_URL}/api/scan/basic-trial`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ business_id }),
+    },
+  );
+}
+
+export async function getMultiBizSummary(token: string): Promise<{ items: Array<{ id: string; name: string; category: string; region: string; unified_score: number; track1_score: number; track2_score: number; competitor_count: number; last_scanned_at: string | null }> }> {
+  try {
+    return await apiCall(`${BACKEND_URL}/api/report/multi-biz-summary`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  } catch {
+    return { items: [] }
+  }
+}
+
+// ── 사용자 맞춤 키워드 관리 ───────────────────────────────────────────────
+export interface UserKeywords {
+  custom: string[];
+  excluded: string[];
+  taxonomy_count: number;
+}
+
+export async function getUserKeywords(bizId: string, token: string): Promise<UserKeywords> {
+  return apiCall<UserKeywords>(`${BACKEND_URL}/api/businesses/${bizId}/keywords`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function addExcludedKeyword(bizId: string, keyword: string, token: string) {
+  return apiCall<{ message?: string; excluded?: string[] }>(
+    `${BACKEND_URL}/api/businesses/${bizId}/keywords/exclude`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ keyword }),
+    },
+  );
+}
+
+export async function removeExcludedKeyword(bizId: string, keyword: string, token: string) {
+  return apiCall<{ message?: string; excluded?: string[] }>(
+    `${BACKEND_URL}/api/businesses/${bizId}/keywords/exclude/${encodeURIComponent(keyword)}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+}
+
+export async function addCustomKeyword(bizId: string, keyword: string, token: string) {
+  return apiCall<{ message?: string; custom?: string[] }>(
+    `${BACKEND_URL}/api/businesses/${bizId}/keywords/custom`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ keyword }),
+    },
+  );
+}
+
+export async function removeCustomKeyword(bizId: string, keyword: string, token: string) {
+  return apiCall<{ message?: string; custom?: string[] }>(
+    `${BACKEND_URL}/api/businesses/${bizId}/keywords/custom/${encodeURIComponent(keyword)}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
 }

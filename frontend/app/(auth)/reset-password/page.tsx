@@ -32,7 +32,7 @@ export default function ResetPasswordPage() {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
-          <div className="bg-white rounded-2xl p-8 shadow-sm">
+          <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm">
             <Mail className="w-10 h-10 text-blue-400 mx-auto mb-4" strokeWidth={1.5} />
             <h2 className="text-lg font-bold text-gray-900 mb-2">이메일을 확인해주세요</h2>
             <p className="text-sm text-gray-500 mb-6">

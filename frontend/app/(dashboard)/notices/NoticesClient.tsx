@@ -121,13 +121,13 @@ export default function NoticesClient({ initialItems, initialTotal }: Props) {
                 {items.map((notice) => (
                   <tr key={notice.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="py-3 pr-3">
-                      <span className={"inline-block px-2 py-0.5 rounded text-xs font-medium " + CATEGORY_BADGE[notice.category]}>
+                      <span className={"inline-block px-2 py-0.5 rounded text-sm font-medium " + CATEGORY_BADGE[notice.category]}>
                         {CATEGORY_LABEL[notice.category]}
                       </span>
                     </td>
                     <td className="py-3">
                       <Link href={"/notices/" + notice.id} className="flex items-center gap-2 hover:text-blue-600 transition-colors">
-                        {notice.is_pinned && <span className="text-red-500 font-bold text-xs shrink-0">📌</span>}
+                        {notice.is_pinned && <span className="text-red-500 font-bold text-sm shrink-0">📌</span>}
                         <span className={notice.is_pinned ? "font-medium" : ""}>{notice.title}</span>
                       </Link>
                     </td>
@@ -148,10 +148,10 @@ export default function NoticesClient({ initialItems, initialTotal }: Props) {
                   <p className={"text-sm text-gray-900 leading-snug " + (notice.is_pinned ? "font-medium" : "")}>{notice.title}</p>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={"inline-block px-2 py-0.5 rounded text-xs font-medium " + CATEGORY_BADGE[notice.category]}>
+                  <span className={"inline-block px-2 py-0.5 rounded text-sm font-medium " + CATEGORY_BADGE[notice.category]}>
                     {CATEGORY_LABEL[notice.category]}
                   </span>
-                  <span className="text-xs text-gray-400">{formatDate(notice.created_at)}</span>
+                  <span className="text-sm text-gray-400">{formatDate(notice.created_at)}</span>
                 </div>
               </Link>
             ))}

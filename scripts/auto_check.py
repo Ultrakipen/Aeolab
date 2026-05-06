@@ -111,10 +111,11 @@ def check_ts_file_level(content: str, filepath: Path) -> list[tuple[str, str]]:
     if "fetch(" in content and "try {" not in content and ".catch(" not in content:
         issues.append(("🟡", "fetch() 사용하지만 try/catch 또는 .catch() 없음 — 네트워크 에러 미처리"))
 
-    # 대시보드 컴포넌트인데 isLoading 상태 없음
+    # 대시보드 컴포넌트인데 로딩 상태 없음 (saving/pending 등 다른 표현도 허용)
     if filepath.parent.name == "dashboard" and "useState" in content:
-        if "loading" not in content.lower() and "isLoading" not in content:
-            issues.append(("🟢", "로딩 상태(isLoading/loading) 없음 — UX 개선 고려"))
+        has_loading = any(kw in content.lower() for kw in ("loading", "issaving", "saving", "pending", "submitting"))
+        if not has_loading:
+            issues.append(("🟢", "로딩 상태(isLoading/saving 등) 없음 — UX 개선 고려"))
 
     return issues
 
@@ -149,8 +150,10 @@ def scan_file(filepath: Path) -> list[tuple[str, str, int | None]]:
 
         for lvl, desc, pattern in rules:
             for i, line in enumerate(lines, 1):
-                # NEXT_PUBLIC_ 체크는 서버 컴포넌트에서만 의미있음
-                if "process.env" in pattern and "use client" not in content[:200]:
+                # NEXT_PUBLIC_ 체크: 클라이언트 컴포넌트("use client")에서만 의미있음
+                # 서버 컴포넌트(use client 없음)에서는 NEXT_PUBLIC_ 없는 env 사용 허용
+                # 패턴이 NEXT_PUBLIC_ 관련이고, 파일이 서버 컴포넌트이면 건너뜀
+                if "NEXT_PUBLIC_" in pattern and '"use client"' not in content[:200]:
                     continue
                 if re.search(pattern, line):
                     issues.append((lvl, desc, i))

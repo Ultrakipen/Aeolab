@@ -18,7 +18,13 @@ async function fetchNotices(): Promise<{ items: Notice[]; total: number; page: n
 
 export default async function NoticesPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (!error && data.user) user = data.user;
+  } catch {
+    // Invalid Refresh Token 등
+  }
   if (!user) redirect("/login");
 
   const { items, total } = await fetchNotices();

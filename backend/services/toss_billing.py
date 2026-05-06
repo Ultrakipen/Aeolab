@@ -2,11 +2,11 @@ import httpx
 import os
 import logging
 from datetime import date
+from config.prices import PLAN_PRICE_MAP
 
 logger = logging.getLogger("aeolab")
 
 TOSS_API_BASE = "https://api.tosspayments.com/v1"
-PLAN_PRICE = {"basic": 9900, "pro": 22900, "biz": 49900, "startup": 16900, "enterprise": 200000}
 
 
 async def issue_billing_key(customer_key: str, auth_key: str) -> str:
@@ -29,7 +29,7 @@ async def retry_billing(subscription: dict) -> bool:
         logger.warning(f"No billing_key for subscription {subscription.get('id')}")
         return False
 
-    amount = PLAN_PRICE.get(subscription.get("plan", "basic"), 9900)
+    amount = PLAN_PRICE_MAP.get(subscription.get("plan", "basic"), 9900)
 
     try:
         async with httpx.AsyncClient(timeout=30) as c:

@@ -81,7 +81,7 @@ export function ChannelScoreCards({
                 {naverGrade === 'good' ? '양호' : naverGrade === 'mid' ? '보통' : '개선 필요'}
               </span>
             </div>
-            <p className="text-base text-gray-400 mb-3">
+            <p className="text-base text-gray-500 mb-3">
               네이버 AI 브리핑 · 카카오맵 생태계 노출
             </p>
             <div className="space-y-1.5">
@@ -97,7 +97,7 @@ export function ChannelScoreCards({
               ))}
             </div>
             {isOnKakao && kakaoCompetitorCount != null && kakaoCompetitorCount > 0 && (
-              <p className="text-base text-gray-400 mt-2">
+              <p className="text-base text-gray-500 mt-2">
                 카카오맵 검색 상위 {kakaoCompetitorCount}곳 중 {kakaoRank ? `${kakaoRank}위` : '포함'}
               </p>
             )}
@@ -120,8 +120,8 @@ export function ChannelScoreCards({
                 {globalGrade === 'good' ? '양호' : globalGrade === 'mid' ? '보통' : '개선 필요'}
               </span>
             </div>
-            <p className="text-base text-gray-400 mb-3">
-              ChatGPT · Perplexity · Google AI 인용
+            <p className="text-base text-gray-500 mb-3">
+              ChatGPT · Google AI 인용
             </p>
             <div className="space-y-1.5">
               {globalItems.map((item) => (
@@ -135,6 +135,9 @@ export function ChannelScoreCards({
                 </div>
               ))}
             </div>
+            <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+              ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
+            </p>
           </div>
         </div>
       </div>

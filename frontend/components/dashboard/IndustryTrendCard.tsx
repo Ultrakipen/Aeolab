@@ -155,7 +155,7 @@ export function IndustryTrendCard({ trend, category, isLoading = false }: Props)
       )}
 
       {/* 주의 문구 */}
-      <p className="text-xs text-gray-400 mt-3">
+      <p className="text-sm text-gray-400 mt-3">
         * 네이버 상대 지수 기준 (절대 검색량 아님). 100 = 최고 검색 시점.
       </p>
     </div>

@@ -23,8 +23,8 @@ const SLIDES: Slide[] = [
   {
     icon: <ClipboardList className="w-6 h-6 text-blue-600" />,
     title: "어떤 가게가 AI에 노출되나요?",
-    body: "AI는 리뷰 수·평점, 스마트플레이스 FAQ, 소개글 키워드, 블로그 언급 수를 분석해서 가장 신뢰할 수 있는 가게를 추천합니다. 광고비와 무관합니다.",
-    highlight: "FAQ 1개 등록 = AI 브리핑 노출 가능성 즉시 상승",
+    body: "AI는 리뷰 수·평점, 스마트플레이스 소개글 안 Q&A, 소개글 키워드, 블로그 언급 수를 분석해서 가장 신뢰할 수 있는 가게를 추천합니다. 광고비와 무관합니다.",
+    highlight: "소개글 Q&A 1개 추가 = AI 브리핑 인용 후보 가능성 즉시 상승",
   },
   {
     icon: <BarChart2 className="w-6 h-6 text-blue-600" />,
@@ -61,7 +61,7 @@ export default function FirstTimeEducationCard() {
     <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 md:p-6 mb-5">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
-          <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide">처음 오셨나요?</span>
+          <span className="text-sm font-semibold text-blue-500 uppercase tracking-wide">처음 오셨나요?</span>
           <h3 className="text-lg md:text-xl font-bold text-blue-900 mt-0.5">
             네이버 AI 브리핑 — 30초 핵심 정리
           </h3>
@@ -101,7 +101,7 @@ export default function FirstTimeEducationCard() {
               aria-label={`슬라이드 ${i + 1}`}
             />
           ))}
-          <span className="text-xs text-blue-400 ml-1">{slide + 1}/{SLIDES.length}</span>
+          <span className="text-sm text-blue-400 ml-1">{slide + 1}/{SLIDES.length}</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -122,7 +122,7 @@ export default function FirstTimeEducationCard() {
           )}
           <button
             onClick={dismiss}
-            className="text-xs text-blue-400 hover:text-blue-600 underline"
+            className="text-sm text-blue-400 hover:text-blue-600 underline"
           >
             다시 보지 않기
           </button>

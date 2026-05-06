@@ -19,9 +19,6 @@ class ProfileUpdate(BaseModel):
     kakao_phone: Optional[str] = None  # 카카오 알림톡 수신 번호
     kakao_scan_notify: Optional[bool] = None   # 스캔 완료 알림
     kakao_competitor_notify: Optional[bool] = None  # 경쟁사 순위변동 알림
-    instagram_username: Optional[str] = None  # 인스타그램 계정명 (@제외)
-    instagram_follower_count: Optional[int] = None  # 팔로워 수 (사용자 직접 입력)
-    instagram_post_count_30d: Optional[int] = None  # 최근 30일 게시물 수 (사용자 직접 입력)
 
 
 @router.get("/me")
@@ -106,25 +103,6 @@ async def update_my_settings(body: ProfileUpdate, user: dict = Depends(get_curre
 
     if body.phone is not None:
         await execute(supabase.table("businesses").update({"phone": body.phone}).eq("user_id", user_id))
-
-    # Instagram 정보 → businesses 테이블 업데이트
-    instagram_biz_update: dict = {}
-    if body.instagram_username is not None:
-        instagram_biz_update["instagram_username"] = body.instagram_username
-    if body.instagram_follower_count is not None:
-        instagram_biz_update["instagram_follower_count"] = body.instagram_follower_count
-    if body.instagram_post_count_30d is not None:
-        instagram_biz_update["instagram_post_count_30d"] = body.instagram_post_count_30d
-
-    if instagram_biz_update:
-        try:
-            await execute(
-                supabase.table("businesses")
-                .update(instagram_biz_update)
-                .eq("user_id", user_id)
-            )
-        except Exception as e:
-            logger.warning(f"businesses instagram 업데이트 실패 (user={user_id}): {e}")
 
     return {"status": "updated"}
 

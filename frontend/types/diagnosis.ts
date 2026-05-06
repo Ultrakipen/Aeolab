@@ -55,7 +55,7 @@ export interface NaverChannelDetail {
   // v2.4 추가 — AI 브리핑 노출 품질 신호
   briefing_keyword?: string;          // 어떤 검색어에서 브리핑 노출됐는지
   briefing_excerpt?: string;          // 브리핑에서 내 가게를 어떻게 소개했는지
-  smart_place_faq_count: number;      // 스마트플레이스 사장님 Q&A 등록 수 (브리핑 직결)
+  smart_place_faq_count: number;      // 소개글 Q&A 포함 여부 참고용 (Q&A 탭 2026-05 폐기)
   smart_place_photo_count: number;    // 스마트플레이스 사진 수
   // v2.4 추가 — 카카오 리뷰 데이터
   kakao_review_count: number;         // 카카오맵 리뷰 수
@@ -103,6 +103,23 @@ export interface ScoreResult {
   total_in_category?: number;
 }
 
+// v단계1 — AI 브리핑 노출 설정 상태
+export type AiInfoTabStatus = "not_visible" | "off" | "on" | "disabled" | "unknown";
+
+export interface BriefingMeta {
+  eligibility: "active" | "likely" | "inactive";
+  ai_info_tab_status: AiInfoTabStatus;
+  explanation: string;
+}
+
+// v단계1 — 스캔 결과 missing 항목 (critical 우선순위 포함)
+export interface MissingItem {
+  item: string;
+  desc: string;
+  gain: number;
+  priority?: "critical" | "high" | "medium" | "low";
+}
+
 export interface DiagnosisReport {
   scan_id: string;
   business_id: string;
@@ -114,4 +131,6 @@ export interface DiagnosisReport {
   website_health?: WebsiteHealth;       // 웹사이트 있을 때만
   customer_signals?: CustomerSignals;   // v2.4 — 스마트플레이스 API 연동 시
   score: ScoreResult;
+  briefing_meta?: BriefingMeta;         // v단계1 — AI 브리핑 노출 설정 상태
+  missing?: MissingItem[];              // v단계1 — critical 포함 missing 항목 목록
 }

@@ -72,7 +72,7 @@ class ActionTools(BaseModel):
 
     smart_place_faq_answers: Optional[List[FAQ]] = None
     # location_based 전용 — 스마트플레이스 '사장님 Q&A' 탭에 바로 등록 가능
-    # 네이버 AI 브리핑 직접 인용 경로 (FAQ 답변이 브리핑에 그대로 노출됨)
+    # 네이버 AI 브리핑 인용 후보 경로 (소개글 Q&A 답변이 브리핑 인용 후보가 됨)
 
     review_request_message: str = ""
     # QR코드·영수증·테이블 카드에 넣을 리뷰 유도 문구
@@ -84,11 +84,12 @@ class ActionTools(BaseModel):
 
     # v2.6 추가 — AI 브리핑 직접 관리 경로
     direct_briefing_paths: List[dict] = []
-    # 소상공인이 오늘 직접 할 수 있는 4가지 AI 브리핑 입력 경로
-    # 고객 리뷰를 기다리지 않고 즉시 AI 신호를 강화하는 방법
-    # [경로B: FAQ, 경로A: 리뷰답변, 경로C: 소식, 경로D: 소개글]
+    # 소상공인이 오늘 직접 할 수 있는 6가지 AI 브리핑 입력 경로
+    # [경로B: FAQ, 경로A: 리뷰답변, 경로C: 소식, 경로D: 소개글, 경로E: TOP5 리스트, 경로F: 커뮤니티]
     briefing_summary: str = ""
     # 대시보드 상단 안내 문구 — 현재 상태 + 지금 할 수 있는 것
+    naver_map_url: str = ""
+    # 네이버 지도 검색 URL — 인스타·카카오채널·블로그에 공유해 찜·저장·길찾기 클릭 신호 생성
 
 
 class ActionProgress(BaseModel):

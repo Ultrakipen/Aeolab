@@ -8,7 +8,7 @@ from middleware.plan_gate import get_current_user
 
 router = APIRouter()
 
-TEAM_LIMIT = {"biz": 5, "enterprise": 20}
+TEAM_LIMIT = {"biz": 5}
 
 
 class TeamInviteRequest(BaseModel):
@@ -37,7 +37,7 @@ async def list_members(user=Depends(get_current_user)):
     if plan not in ("biz", "enterprise") or status not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz"]},
         )
     supabase = get_client()
     members = (
@@ -58,7 +58,7 @@ async def invite_member(req: TeamInviteRequest, user=Depends(get_current_user)):
     if plan not in ("biz", "enterprise") or status not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz"]},
         )
 
     supabase = get_client()
@@ -97,7 +97,7 @@ async def remove_member(member_id: str, user=Depends(get_current_user)):
     if plan not in ("biz", "enterprise") or status not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz"]},
         )
     supabase = get_client()
     await execute(
@@ -116,7 +116,7 @@ async def update_member_role(member_id: str, role: str, user=Depends(get_current
     if plan not in ("biz", "enterprise") or status not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["biz"]},
         )
     if role not in ("member", "viewer"):
         raise HTTPException(status_code=400, detail="role must be member or viewer")

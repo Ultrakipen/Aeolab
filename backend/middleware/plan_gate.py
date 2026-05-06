@@ -1,6 +1,9 @@
 import os
 import logging
 from fastapi import HTTPException, Depends, Header
+
+# DEV_MODE=true 시 수동 스캔 일 한도 검사를 건너뜀.
+_DEV_MODE = os.getenv("DEV_MODE", "").lower() in ("1", "true", "yes")
 from functools import wraps
 from typing import Optional
 from datetime import date
@@ -8,7 +11,7 @@ from db.supabase_client import get_client, execute as _exec
 
 _logger = logging.getLogger(__name__)
 
-# ─── 개발 기간 관리자 이메일 (enterprise 권한 부여) ───────────────────────────────
+# ─── 개발 기간 관리자 이메일 (biz 권한 부여) ────────────────────────────────────
 # .env ADMIN_EMAILS 환경변수로 관리 (쉼표 구분 복수 설정 가능)
 ADMIN_EMAILS: set[str] = {
     e.strip().lower()
@@ -22,7 +25,7 @@ ADMIN_EMAILS: set[str] = {
 #   None     → 자동 스캔 없음 (free)
 #   "basic"  → Gemini(100회) + 네이버 매일 / 나머지 6개 AI 월요일만 (basic)
 #   "pro"    → 8개 AI 전체 스캔 주 3회(월·수·금) / 나머지 날 basic (pro)
-#   "full"   → 8개 AI 매일 (biz / enterprise)
+#   "full"   → 8개 AI 매일 (biz)
 #
 # guide_monthly        : 월 Claude Sonnet 가이드 생성 허용 횟수 (999 = 무제한)
 # manual_scan_daily    : 하루 수동 스캔 허용 횟수 (999 = 무제한)
@@ -42,35 +45,43 @@ PLAN_LIMITS = {
         "businesses": 1,
         "ad_defense": False,
         "review_reply_monthly": 0,
+        "faq_monthly": 0,
+        "blog_monthly": 0,
     },
     "basic": {
+        # v3.4 강화: 경쟁사 3곳, CSV 포함, 리뷰답변 무제한, FAQ 무제한, 히스토리 60일
         "competitors": 3,
-        "guide_monthly": 5,
+        "guide_monthly": 3,
         "manual_scan_daily": 2,
         "auto_scan_mode": "basic",
-        "schema": True, "pdf": False, "csv": False,
+        "schema": True, "pdf": False, "csv": True,
         "startup_report": False, "api_keys": False,
-        "history_days": 30,
+        "history_days": 60,
         "businesses": 1,
         "ad_defense": False,
-        "review_reply_monthly": 10,
+        "review_reply_monthly": 20,
+        "faq_monthly": 5,
+        "blog_monthly": 3,
     },
     "pro": {
-        "competitors": 10,
-        "guide_monthly": 8,
+        # v3.4 강화: 리뷰답변 무제한, 히스토리 90일, FAQ 무제한 (Basic보다 낮으면 안 됨)
+        "competitors": 5,
+        "guide_monthly": 10,
         "manual_scan_daily": 5,
         "auto_scan_mode": "pro",
         "schema": True, "pdf": True, "csv": True,
         "startup_report": False, "api_keys": False,
         "history_days": 90,
-        "businesses": 1,
+        "businesses": 2,
         "ad_defense": True,
-        "review_reply_monthly": 50,
+        "review_reply_monthly": 999,
+        "faq_monthly": 999,
+        "blog_monthly": 10,
     },
     "biz": {
         "competitors": 999,
         "guide_monthly": 20,
-        "manual_scan_daily": 999,
+        "manual_scan_daily": 15,
         "auto_scan_mode": "full",
         "schema": True, "pdf": True, "csv": True,
         "startup_report": True, "api_keys": True,
@@ -78,8 +89,11 @@ PLAN_LIMITS = {
         "businesses": 5,
         "ad_defense": True,
         "review_reply_monthly": 999,
+        "faq_monthly": 999,
+        "blog_monthly": 999,
     },
     "startup": {
+        # v3.4 강화: 리뷰답변 무제한, FAQ 무제한
         "competitors": 5,
         "guide_monthly": 5,
         "manual_scan_daily": 3,
@@ -89,23 +103,13 @@ PLAN_LIMITS = {
         "history_days": 90,
         "businesses": 1,
         "ad_defense": False,
-        "review_reply_monthly": 20,
-    },
-    "enterprise": {
-        "competitors": 999,
-        "guide_monthly": 999,
-        "manual_scan_daily": 999,
-        "auto_scan_mode": "full",
-        "schema": True, "pdf": True, "csv": True,
-        "startup_report": True, "api_keys": True,
-        "history_days": 999,
-        "businesses": 20,
-        "ad_defense": True,
         "review_reply_monthly": 999,
+        "faq_monthly": 999,
+        "blog_monthly": 5,
     },
 }
 
-PLAN_HIERARCHY = {"free": 0, "basic": 1, "startup": 1.5, "pro": 2, "biz": 3, "enterprise": 4}
+PLAN_HIERARCHY = {"free": 0, "basic": 1, "startup": 1.5, "pro": 2, "biz": 3}
 
 
 async def get_user_plan(user_id: str, supabase) -> str:
@@ -114,7 +118,7 @@ async def get_user_plan(user_id: str, supabase) -> str:
     grace_period 상태(자동결제 실패 후 3일 유예)도 active와 동일하게 취급하여
     유예기간 중 유료 기능이 차단되는 버그를 방지한다.
 
-    관리자 이메일(ADMIN_EMAILS)은 개발 기간 동안 enterprise 플랜으로 취급.
+    관리자 이메일(ADMIN_EMAILS)은 개발 기간 동안 biz 플랜으로 취급.
     """
     # ── 관리자 우회: ADMIN_EMAILS 체크 (auth.admin API, 서비스 롤 키 필요) ──────
     if ADMIN_EMAILS:
@@ -122,7 +126,7 @@ async def get_user_plan(user_id: str, supabase) -> str:
             admin_resp = supabase.auth.admin.get_user_by_id(user_id)
             email = (admin_resp.user.email or "").lower() if admin_resp and admin_resp.user else ""
             if email and email in ADMIN_EMAILS:
-                return "enterprise"
+                return "biz"
         except Exception as e:
             _logger.debug(f"Admin user lookup failed (fallback to normal plan): {e}")
 
@@ -241,6 +245,31 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
         raise HTTPException(status_code=401, detail="토큰 검증에 실패했습니다")
 
 
+async def is_basic_trial_user(user_id: str, supabase) -> bool:
+    """Basic 무료 체험 사용자 여부 — profiles.basic_trial_used=True + 활성 구독 없음"""
+    try:
+        prof = await _exec(
+            supabase.table("profiles")
+            .select("basic_trial_used")
+            .eq("user_id", user_id)
+            .maybe_single()
+        )
+        used = bool(prof.data.get("basic_trial_used")) if (prof and prof.data) else False
+        if not used:
+            return False
+        sub = await _exec(
+            supabase.table("subscriptions")
+            .select("status")
+            .eq("user_id", user_id)
+            .in_("status", ["active", "grace_period"])
+            .maybe_single()
+        )
+        return not (sub and sub.data)
+    except Exception as e:
+        _logger.warning(f"is_basic_trial_user lookup failed: {e}")
+        return False
+
+
 async def check_manual_scan_limit(user_id: str, supabase, business_id: Optional[str] = None) -> tuple[bool, int, int]:
     """하루 수동 스캔 한도 체크 (plan_gate PLAN_LIMITS manual_scan_daily 기준).
 
@@ -249,6 +278,9 @@ async def check_manual_scan_limit(user_id: str, supabase, business_id: Optional[
     Returns:
         (allowed, used_count, daily_limit)
     """
+    if _DEV_MODE:
+        return True, 0, 999
+
     plan = await get_user_plan(user_id, supabase)
     limit = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["manual_scan_daily"]
 

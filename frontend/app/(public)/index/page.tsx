@@ -71,7 +71,7 @@ export default async function PublicIndexPage() {
         <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 md:py-12">
           <div className="flex items-center gap-2 mb-3">
             <Link href="/" className="text-lg font-bold text-blue-600">AEOlab</Link>
-            <span className="text-gray-300">/</span>
+            <span className="text-gray-500">/</span>
             <span className="text-sm text-gray-500">AI 노출 현황</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
@@ -108,7 +108,7 @@ export default async function PublicIndexPage() {
         {/* 업종 카드 그리드 */}
         {categories.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-2xl p-10 md:p-16 text-center shadow-sm">
-            <BarChart2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <BarChart2 className="w-12 h-12 text-gray-500 mx-auto mb-4" />
             <h2 className="text-lg font-bold text-gray-700 mb-2">데이터를 수집 중입니다</h2>
             <p className="text-base text-gray-500">
               곧 업종별 AI 검색 노출 현황이 공개됩니다.
@@ -141,7 +141,7 @@ export default async function PublicIndexPage() {
                   <div className="text-sm text-gray-500 mb-0.5">업종 평균 AI 노출 점수</div>
                   <div className={`text-3xl md:text-4xl font-bold ${scoreColor(cat.avg_score)}`}>
                     {Math.round(cat.avg_score)}
-                    <span className="text-base font-normal text-gray-400 ml-1">/ 100</span>
+                    <span className="text-base font-normal text-gray-500 ml-1">/ 100</span>
                   </div>
                 </div>
 
@@ -173,7 +173,7 @@ export default async function PublicIndexPage() {
             AEOlab이 집계한 실제 사업장 데이터 기반 (분기별 업데이트, 개인정보 비포함)
           </p>
           {data?.updated_at && (
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               최근 업데이트: {new Date(data.updated_at).toLocaleDateString("ko-KR")}
             </p>
           )}

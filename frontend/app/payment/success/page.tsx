@@ -3,9 +3,11 @@
 import { Suspense, useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { SiteFooter } from "@/components/common/SiteFooter";
 import { issueBilling, ApiError } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
 import { XCircle, CheckCircle2 } from "lucide-react";
+import { trackSubscriptionActive } from "@/lib/analytics";
 
 type Status = "processing" | "billing" | "waiting" | "success" | "error";
 
@@ -59,6 +61,12 @@ function PaymentSuccessContent() {
         setStatus("waiting");
         const activated = await pollSubscriptionActive(5);
         setStatus("success");
+        // GA4: subscription_active — 구독 확인 후 1회 발화
+        trackSubscriptionActive({
+          plan: plan.toLowerCase(),
+          amount,
+          billing_cycle: "monthly",
+        });
         if (activated) {
           // 구독 확인되면 3초 카운트다운 후 대시보드 이동
           let count = 3;
@@ -107,7 +115,7 @@ function PaymentSuccessContent() {
   if (status === "error") {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl p-8 shadow-sm max-w-sm w-full text-center">
+        <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
           <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" strokeWidth={1.5} />
           <h1 className="text-xl font-bold text-gray-900 mb-2">결제 오류</h1>
           <p className="text-gray-500 text-sm mb-6">{errorMsg}</p>
@@ -125,7 +133,7 @@ function PaymentSuccessContent() {
   // success
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl p-8 shadow-sm max-w-sm w-full text-center">
+      <div className="bg-white rounded-2xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center">
         <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" strokeWidth={1.5} />
         <h1 className="text-2xl font-bold text-gray-900 mb-2">구독 시작!</h1>
         <p className="text-gray-600 mb-1">
@@ -134,7 +142,7 @@ function PaymentSuccessContent() {
         <p className="text-gray-400 text-sm mb-2">
           이제 네이버·카카오·ChatGPT 3채널 자동 스캔과 개선 가이드를 이용할 수 있습니다.
         </p>
-        <p className="text-gray-400 text-xs mb-8">
+        <p className="text-gray-400 text-sm mb-8">
           {countdown}초 후 대시보드로 이동합니다...
         </p>
 
@@ -153,6 +161,7 @@ function PaymentSuccessContent() {
           </Link>
         </div>
       </div>
+      <SiteFooter />
     </main>
   );
 }

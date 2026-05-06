@@ -82,7 +82,7 @@ export default async function SharePage({ params }: Props) {
 
           {/* 헤더 */}
           <div className="bg-blue-600 px-6 py-4 text-center">
-            <p className="text-blue-200 text-xs mb-0.5 font-medium">AI 검색 노출 점수</p>
+            <p className="text-blue-200 text-sm mb-0.5 font-medium">AI 검색 노출 점수</p>
             <h1 className="text-white text-xl font-bold leading-tight">{data.business_name}</h1>
             <p className="text-blue-300 text-sm">{data.region}</p>
           </div>
@@ -102,7 +102,7 @@ export default async function SharePage({ params }: Props) {
           {/* 핵심 수치 */}
           <div className={`mx-4 mb-4 px-4 py-3 rounded-xl border ${gradeBg[data.grade] ?? "bg-gray-50 border-gray-200"}`}>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Gemini AI 100회 중 노출</span>
+              <span className="text-gray-600">Gemini AI 측정 노출 횟수</span>
               <span className="font-bold text-slate-800">{data.gemini_frequency.toFixed(0)}회</span>
             </div>
             {data.scanned_at && (
@@ -118,7 +118,7 @@ export default async function SharePage({ params }: Props) {
             <details className="group">
               <summary className="flex items-center justify-between cursor-pointer text-sm text-blue-600 font-medium list-none select-none">
                 <span>등급 기준 및 점수 계산 방법</span>
-                <span className="text-gray-400 group-open:rotate-180 transition-transform duration-200 text-xs">▼</span>
+                <span className="text-gray-500 group-open:rotate-180 transition-transform duration-200 text-sm">▼</span>
               </summary>
               <div className="mt-3 space-y-2">
                 {([
@@ -132,11 +132,11 @@ export default async function SharePage({ params }: Props) {
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${gradeBg[item.grade] ?? ""} ${data.grade === item.grade ? "ring-2 ring-blue-400" : ""}`}
                   >
                     <span className="font-bold text-slate-700 w-6 shrink-0">{item.grade}</span>
-                    <span className="text-gray-400 text-xs shrink-0">{item.range}</span>
-                    <span className="text-gray-600 text-xs">{item.label}</span>
+                    <span className="text-gray-500 text-sm shrink-0">{item.range}</span>
+                    <span className="text-gray-600 text-sm">{item.label}</span>
                   </div>
                 ))}
-                <p className="text-xs text-gray-400 pt-1 leading-relaxed">
+                <p className="text-sm text-gray-500 pt-1 leading-relaxed">
                   지역에서 &apos;{data.category} 추천&apos; 같은 질문을 AI에 100번 물었을 때 노출 빈도 + 리뷰·정보 완성도로 계산합니다.
                 </p>
               </div>
@@ -164,7 +164,7 @@ export default async function SharePage({ params }: Props) {
           <div className="px-5 pb-4">
             <div className="flex items-center gap-2 my-2">
               <div className="flex-1 h-px bg-gray-100" />
-              <span className="text-xs text-gray-400 shrink-0">이 결과를 공유받으신 분께</span>
+              <span className="text-sm text-gray-500 shrink-0">이 결과를 공유받으신 분께</span>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
             <Link
@@ -176,7 +176,7 @@ export default async function SharePage({ params }: Props) {
           </div>
         </div>
 
-        <p className="text-center text-blue-300/60 text-xs mt-4">
+        <p className="text-center text-blue-300/60 text-sm mt-4">
           <Link href="/" className="underline hover:text-white">AEOlab</Link>
           {" "}— AI 검색 사업장 성장 플랫폼
         </p>

@@ -16,7 +16,7 @@ from services.keyword_taxonomy import analyze_keyword_coverage, build_qr_message
 
 _logger = logging.getLogger("aeolab")
 
-# 항목별 한국어 레이블
+# 항목별 한국어 레이블 (v3.0 + v3.1 신규 6항목)
 _DIMENSION_LABELS = {
     "keyword_gap_score":        "키워드 커버리지",
     "review_quality":           "리뷰 품질",
@@ -24,27 +24,146 @@ _DIMENSION_LABELS = {
     "naver_exposure_confirmed":  "네이버 AI 브리핑 노출",
     "multi_ai_exposure":        "글로벌 AI 노출",
     "schema_seo":               "웹사이트 구조화",
+    # v3.1 신규 (SCORE_MODEL_VERSION=v3_1 토글 시)
+    "keyword_search_rank":      "네이버 키워드 검색 노출",
+    "blog_crank":               "블로그 생태계 (C-rank 추정)",
+    "local_map_score":          "지도/플레이스 + 카카오맵",
+    "ai_briefing_score":        "AI 브리핑 인용",
 }
 
 # context별 gap_reason 템플릿 (dimension_key → callable)
 _GAP_REASONS = {
     ScanContext.LOCATION_BASED: {
-        "keyword_gap_score": lambda gap: f"업종 키워드 커버리지 부족 — 경쟁사 대비 -{gap:.0f}점. 리뷰·소개글에 핵심 키워드 추가 필요",
-        "review_quality": lambda gap: f"리뷰 수·평점이 경쟁사 대비 부족 (-{gap:.0f}점). 키워드 다양성 개선 필요",
-        "smart_place_completeness": lambda gap: "스마트플레이스 FAQ·소개글·소식 미완성 — AI 브리핑 인용 가능성 낮음",
-        "naver_exposure_confirmed": lambda gap: f"네이버 AI 브리핑 미노출 (경쟁사 대비 -{gap:.0f}점). FAQ 등록 및 키워드 강화 필요",
-        "multi_ai_exposure": lambda gap: f"글로벌 AI(Gemini·ChatGPT) 노출 빈도 낮음 (경쟁사 대비 -{gap:.0f}점)",
-        "schema_seo": lambda gap: "웹사이트 AI 인식 정보 코드 미설정 — 글로벌 AI가 사업장 정보 인식 불가",
+        "keyword_gap_score": lambda gap: (
+            f"AI 브리핑에 자주 나오는 업종 키워드가 부족합니다 (경쟁사 대비 -{gap:.0f}점 차이). 리뷰·소개글에 핵심 키워드를 추가하면 조건 검색 노출이 늘어납니다."
+            if gap > 0 else
+            "AI 브리핑 업종 키워드가 아직 분석 중입니다. 리뷰·소개글에 업종 키워드를 추가하세요."
+        ),
+        "review_quality": lambda gap: (
+            f"리뷰 수나 평점이 경쟁사보다 부족합니다 (-{gap:.0f}점 차이). 키워드가 포함된 리뷰를 늘리면 AI 브리핑 노출이 개선됩니다."
+            if gap > 0 else
+            "리뷰를 꾸준히 받아 평점을 높이세요. 키워드가 포함된 리뷰는 AI 브리핑 노출에 직접 영향을 줍니다."
+        ),
+        "smart_place_completeness": lambda gap: "소개글·소식 탭이 비어있습니다. 소개글에 지역명·업종·Q&A 섹션을 추가하고 소식을 30일에 1번 이상 올리면 AI 브리핑 인용 후보에 포함될 가능성이 높아집니다.",
+        "naver_exposure_confirmed": lambda gap: (
+            f"네이버 AI 브리핑에 가게가 아직 나오지 않습니다 (경쟁사 대비 -{gap:.0f}점 차이). 소개글 Q&A 섹션 작성과 소식 업로드가 가장 빠른 방법입니다."
+            if gap > 0 else
+            "네이버 AI 브리핑에 가게가 아직 노출되지 않습니다. 소개글 하단에 고객 자주 묻는 질문 3개와 답변을 추가해 보세요."
+        ),
+        "multi_ai_exposure": lambda gap: (
+            f"ChatGPT·구글 AI에서 가게가 검색되지 않습니다 (경쟁사 대비 -{gap:.0f}점 차이). ① 구글 비즈니스 프로필 등록, ② 네이버 블로그에 가게 소개 글 발행이 홈페이지 없이도 가장 빠른 방법입니다."
+            if gap > 0 else
+            "ChatGPT·구글 AI에서 가게가 아직 검색되지 않습니다. 구글 비즈니스 프로필을 등록하고 네이버 블로그에 가게 소개 글을 올리세요. 가게 홈페이지가 있다면 가이드 탭의 'AI 정보 코드'를 추가하면 더 빠릅니다."
+        ),
+        "schema_seo": lambda gap: (
+            "구글·ChatGPT가 가게 정보를 정확히 인식하려면 'AI 정보 코드' 등록이 필요합니다. 가게 홈페이지가 있다면 가이드 탭에서 자동 생성된 코드를 복사해 붙여넣으세요. 홈페이지가 없다면 구글 비즈니스 프로필 완성 + 스마트플레이스 정보 채우기가 동일한 효과를 냅니다."
+            if gap == 0 else
+            "구글·ChatGPT가 인식하는 가게 정보가 경쟁사보다 부족합니다. 가게 홈페이지가 있다면 가이드 탭의 'AI 정보 코드'를 추가하고, 없다면 구글 비즈니스 프로필을 먼저 완성하세요."
+        ),
+        # v3.1 신규 4개 항목 (SCORE_MODEL_VERSION=v3_1 토글 시 score_breakdown에 포함됨)
+        "keyword_search_rank": lambda gap: (
+            f"네이버 키워드 검색 순위가 경쟁사보다 낮습니다 (경쟁사 대비 -{gap:.0f}점 차이). 스마트플레이스 소개글에 주력 키워드를 2~3개 추가하면 순위 개선에 직접 영향을 줍니다."
+            if gap > 0 else
+            "키워드 검색 순위는 측정 후 표시됩니다. 스마트플레이스 소개글에 업종 핵심 키워드를 포함하면 순위가 안정됩니다."
+        ),
+        "blog_crank": lambda gap: (
+            f"블로그 C-rank 추정 점수가 경쟁사보다 낮습니다 (경쟁사 대비 -{gap:.0f}점 차이). 네이버 블로그에 가게 소개 글을 월 1~2회 꾸준히 발행하면 C-rank가 서서히 올라갑니다."
+            if gap > 0 else
+            "블로그 발행 이력이 확인되지 않습니다. 네이버 블로그를 개설하고 가게 소개 글 1개를 올리는 것이 첫 단계입니다."
+        ),
+        "local_map_score": lambda gap: (
+            f"지도/카카오맵 노출이 경쟁사보다 부족합니다 (경쟁사 대비 -{gap:.0f}점 차이). 카카오맵 사업장 정보를 등록하고 대표 사진 3장 이상을 추가하면 지도 노출이 늘어납니다."
+            if gap > 0 else
+            "카카오맵 사업장 등록 여부를 확인하세요. 등록 후 영업시간·전화번호·사진을 채우면 지도 검색 노출이 시작됩니다."
+        ),
+        "ai_briefing_score": lambda gap: (
+            f"AI 브리핑 인용 점수가 경쟁사보다 낮습니다 (경쟁사 대비 -{gap:.0f}점 차이). 소개글에 Q&A 섹션(자주 묻는 질문 3개)을 추가하는 것이 가장 빠른 인용 개선 방법입니다."
+            if gap > 0 else
+            "AI 브리핑에 아직 인용되지 않습니다. 소개글 Q&A 섹션 작성 후 네이버가 반영하는 시점은 측정으로만 확인 가능하며, 다음 스캔에서 변화를 확인하실 수 있습니다."
+        ),
     },
     ScanContext.NON_LOCATION: {
-        "keyword_gap_score": lambda gap: f"전문 분야 키워드 커버리지 부족 (경쟁사 대비 -{gap:.0f}점). 웹사이트 콘텐츠 보강 필요",
-        "review_quality": lambda gap: f"전문가 리뷰·사례 포트폴리오 부족 (경쟁사 대비 -{gap:.0f}점)",
-        "smart_place_completeness": lambda gap: "온라인 프로필 정보 미완성 — 구글 비즈니스 프로필·소개글 보강 필요",
-        "naver_exposure_confirmed": lambda gap: f"네이버 AI 브리핑 미노출 (경쟁사 대비 -{gap:.0f}점). 네이버 블로그·지식인 콘텐츠 추가 권장",
-        "multi_ai_exposure": lambda gap: f"ChatGPT·Perplexity 미인용. 전문 콘텐츠(블로그·인터뷰·기사) 부족 (경쟁사 대비 -{gap:.0f}점)",
-        "schema_seo": lambda gap: "웹사이트 AI 인식 정보 코드 없음 — AI가 사업장 정보를 구조적으로 파악 불가",
+        "keyword_gap_score": lambda gap: (
+            f"전문 분야 키워드가 경쟁사보다 부족합니다 (경쟁사 대비 -{gap:.0f}점 차이). 웹사이트·블로그 콘텐츠에 전문 키워드를 추가하세요."
+            if gap > 0 else
+            "전문 분야 키워드를 웹사이트·블로그 콘텐츠에 추가하면 AI 검색 노출이 시작됩니다."
+        ),
+        "review_quality": lambda gap: (
+            f"전문가 리뷰·포트폴리오가 경쟁사보다 부족합니다 (경쟁사 대비 -{gap:.0f}점 차이)."
+            if gap > 0 else
+            "고객 사례·포트폴리오를 웹사이트에 추가하면 AI가 전문성을 인식하기 시작합니다."
+        ),
+        "smart_place_completeness": lambda gap: "온라인 프로필(구글 비즈니스·네이버 블로그)이 비어있습니다. 소개글과 대표 서비스 키워드를 채워주세요.",
+        "naver_exposure_confirmed": lambda gap: (
+            f"네이버 AI 브리핑에 아직 노출되지 않습니다 (경쟁사 대비 -{gap:.0f}점 차이). 네이버 블로그·지식인에 전문 콘텐츠를 발행하세요."
+            if gap > 0 else
+            "네이버 AI 브리핑 노출을 위해 네이버 블로그에 전문 콘텐츠를 1주에 1개 이상 발행하세요."
+        ),
+        "multi_ai_exposure": lambda gap: (
+            f"ChatGPT·Gemini·Google AI에서 아직 인용되지 않습니다 (경쟁사 대비 -{gap:.0f}점 차이). 전문 블로그 글·인터뷰·기사가 필요합니다."
+            if gap > 0 else
+            "전문 블로그·인터뷰·기사를 작성하면 ChatGPT·Gemini·Google AI가 인용하기 시작합니다."
+        ),
+        "schema_seo": lambda gap: "구글·ChatGPT가 사업자 정보를 정확히 파악하려면 'AI 정보 코드' 등록이 필요합니다. 홈페이지가 있다면 가이드 탭에서 코드를 복사해 붙여넣으세요. 홈페이지가 없다면 구글 비즈니스 프로필과 네이버 블로그 소개 페이지가 대안입니다.",
+        # v3.1 신규 4개 항목
+        "keyword_search_rank": lambda gap: (
+            f"키워드 검색 순위가 경쟁사보다 낮습니다 (경쟁사 대비 -{gap:.0f}점 차이). 웹사이트 주요 페이지 제목·소개글에 전문 키워드를 2~3개 추가하면 순위 개선에 직접 영향을 줍니다."
+            if gap > 0 else
+            "키워드 검색 순위는 측정 후 표시됩니다. 웹사이트·블로그 소개글에 전문 분야 핵심 키워드를 포함하면 순위가 안정됩니다."
+        ),
+        "blog_crank": lambda gap: (
+            f"블로그 C-rank 추정 점수가 경쟁사보다 낮습니다 (경쟁사 대비 -{gap:.0f}점 차이). 전문 분야 블로그 글을 월 1~2회 꾸준히 발행하면 C-rank가 서서히 올라갑니다."
+            if gap > 0 else
+            "블로그 발행 이력이 확인되지 않습니다. 네이버 블로그나 전문 블로그에 서비스 소개 글 1개를 올리는 것이 첫 단계입니다."
+        ),
+        "local_map_score": lambda gap: (
+            f"지도/카카오맵 노출이 경쟁사보다 부족합니다 (경쟁사 대비 -{gap:.0f}점 차이). 카카오맵 사업장 정보를 등록하고 연락처·서비스 설명을 완성하면 지도 노출이 늘어납니다."
+            if gap > 0 else
+            "카카오맵 사업장 등록 여부를 확인하세요. 등록 후 기본 정보를 채우면 지도 검색 노출이 시작됩니다."
+        ),
+        "ai_briefing_score": lambda gap: (
+            f"AI 검색 인용 점수가 경쟁사보다 낮습니다 (경쟁사 대비 -{gap:.0f}점 차이). 웹사이트에 FAQ 페이지를 추가하거나 네이버 블로그에 자주 묻는 질문 글을 작성하면 AI 인용이 늘어납니다."
+            if gap > 0 else
+            "AI 검색에 아직 인용되지 않습니다. 서비스 FAQ를 온라인에 공개하면 ChatGPT·Gemini가 인용하기 시작하며, 반영 여부는 다음 스캔에서 확인하실 수 있습니다."
+        ),
     },
 }
+
+
+def _build_gap_reason(
+    dimension: str,
+    gap: float,
+    context: "ScanContext",
+    keyword_gap=None,
+) -> str:
+    """dimension별 gap_reason 문자열 반환.
+
+    keyword_gap(ReviewKeywordGap)이 있으면 competitor_only_keywords[:3]을
+    메시지에 포함해 구체적인 조언을 제공한다.
+    없으면 기존 _GAP_REASONS 람다 결과를 그대로 반환한다.
+    """
+    try:
+        base_fn = _GAP_REASONS[context].get(dimension)
+        base = base_fn(gap) if callable(base_fn) else f"{dimension} 개선 필요"
+    except Exception as e:
+        _logger.warning(f"_build_gap_reason {dimension}: {e}")
+        base = f"{dimension} 개선 필요"
+
+    if dimension != "keyword_gap_score" or keyword_gap is None:
+        return base
+
+    try:
+        comp_only = getattr(keyword_gap, "competitor_only_keywords", None) or []
+        if not comp_only:
+            return base
+        kw_str = ", ".join(comp_only[:3])
+        return (
+            f"경쟁사엔 있고 내 리뷰에 없는 키워드: {kw_str} "
+            f"→ 이 키워드를 리뷰/FAQ에 추가하면 AI 브리핑 노출이 늘어납니다."
+        )
+    except Exception as e:
+        _logger.warning("_enrich_with_competitor_keywords 실패: %s", e)
+        return base
 
 
 def _improvement_potential(gap_to_top: float, weight: float) -> str:
@@ -63,17 +182,34 @@ def _build_keyword_gap(
     business_name: str,
     review_excerpts: list[str] | None,
     competitor_review_excerpts: list[str] | None,
+    competitor_excerpts_by_name: dict[str, str] | None = None,
+    business_keywords: list[str] | None = None,
+    excluded_keywords: list[str] | None = None,
+    custom_keywords: list[str] | None = None,
 ) -> ReviewKeywordGap:
     """
     업종별 키워드 분류 체계 기반 리뷰 키워드 격차 분석.
 
     "리뷰 품질 -15점"이 아니라
     "이 키워드들이 리뷰에 없어서 AI 브리핑 조건 검색에 안 나옵니다"를 알려줍니다.
+
+    competitor_excerpts_by_name: {경쟁사명: excerpt 텍스트} — 경쟁사별 키워드 분류에 사용
+    business_keywords: 사업장 등록 키워드 — taxonomy 오버라이드 판단에 사용
+        (예: education 카테고리인데 "녹음", "작곡" → music taxonomy 자동 전환)
     """
+    from services.keyword_taxonomy import get_all_keywords_flat, _infer_taxonomy_key, KEYWORD_TAXONOMY
+
+    # business_keywords는 "taxonomy 오버라이드 감지용", custom_keywords는 "추가될 키워드".
+    # custom_keywords가 명시되지 않으면 business_keywords에서 승계.
+    _bus_kw_for_tax = business_keywords if business_keywords else None
+    _custom_kw = custom_keywords if custom_keywords is not None else (business_keywords or [])
+
     result = analyze_keyword_coverage(
         category=category,
         review_excerpts=review_excerpts or [],
         competitor_review_excerpts=competitor_review_excerpts,
+        business_keywords=_custom_kw,
+        excluded_keywords=excluded_keywords,
     )
 
     top_kw = result["top_priority_keyword"]
@@ -82,6 +218,31 @@ def _build_keyword_gap(
         missing_keywords=result["missing"],
         business_name=business_name,
     )
+
+    # 경쟁사별 키워드 분류: 내 가게에 없고 해당 경쟁사 텍스트에 있는 키워드
+    # taxonomy 오버라이드 반영: business_keywords로 결정된 실제 taxonomy key 사용
+    competitor_keyword_sources: dict[str, list[str]] = {}
+    if competitor_excerpts_by_name:
+        _eff_key = _infer_taxonomy_key(category, _bus_kw_for_tax)
+        _eff_industry = KEYWORD_TAXONOMY.get(_eff_key, KEYWORD_TAXONOMY["restaurant"])
+        all_kws = [kw for cd in sorted(_eff_industry.values(), key=lambda x: x["weight"], reverse=True) for kw in cd["keywords"]]
+        # excluded 키워드는 경쟁사 소스에서도 제외
+        _excl = {k for k in (excluded_keywords or []) if isinstance(k, str) and k.strip()}
+        if _excl:
+            all_kws = [kw for kw in all_kws if kw not in _excl]
+        my_missing_set = set(result["missing"])
+        for comp_name, comp_text in competitor_excerpts_by_name.items():
+            if not comp_text:
+                continue
+            comp_lower = comp_text.lower()
+            comp_nospace = comp_lower.replace(" ", "")
+            found = [
+                kw for kw in all_kws
+                if kw in my_missing_set
+                and (kw.replace(" ", "") in comp_nospace or kw in comp_lower)
+            ]
+            if found:
+                competitor_keyword_sources[comp_name] = found[:6]  # 경쟁사당 최대 6개
 
     return ReviewKeywordGap(
         covered_keywords=result["covered"],
@@ -92,37 +253,46 @@ def _build_keyword_gap(
         top_priority_keyword=top_kw,
         qr_card_message=qr_msg,
         category_scores=result["category_scores"],
+        competitor_keyword_sources=competitor_keyword_sources,
     )
 
 
-# 성장 단계별 설정 (score 기반)
+# 성장 단계별 설정 (score_engine._GROWTH_THRESHOLDS 기준과 동기화)
 _GROWTH_STAGES = [
     {
-        "stage": "survival", "stage_label": "생존기", "score_range": "0~30점",
-        "focus_message": "지금은 스마트플레이스 기본 완성이 최우선입니다. AI 검색보다 네이버 지도에 정확히 나오는 것이 먼저입니다.",
-        "this_week_action": "네이버 스마트플레이스 접속 → 사진 10장 이상 업로드 + 영업시간·주소·전화번호 정확히 입력",
-        "do_not_do": "SNS 광고, 블로그, ChatGPT 최적화에 시간을 쓰지 마세요. 기본이 먼저입니다.",
-        "estimated_weeks_to_next": 3,
+        "stage": "survival",
+        "stage_label": "생존기",
+        "score_range": "0~30점",
+        "focus_message": "지금은 스마트플레이스 기본 완성이 최우선입니다. AI가 내 가게를 인식할 수 있도록 기본 정보를 채워야 합니다.",
+        "this_week_action": "스마트플레이스에서 사진 5장·영업시간·전화번호 완성하기",
+        "do_not_do": "블로그 광고비 지출, SNS 채널 새로 만들기 (기본이 먼저입니다)",
+        "estimated_weeks_to_next": 4,
     },
     {
-        "stage": "stability", "stage_label": "안정기", "score_range": "30~55점",
-        "focus_message": "기본 등록은 됐습니다. 이제 리뷰 키워드 다양성을 확보할 때입니다. 경쟁사가 보유한 키워드를 내 리뷰에도 받아야 AI 브리핑에 나옵니다.",
-        "this_week_action": "이번 주 가장 부족한 키워드 1개를 정해 QR 카드를 테이블에 올려두세요",
-        "do_not_do": "리뷰 이벤트(할인·쿠폰 제공)는 네이버 정책 위반입니다. 자연스러운 부탁 방식만 사용하세요.",
+        "stage": "stability",
+        "stage_label": "안정기",
+        "score_range": "30~55점",
+        "focus_message": "기본은 갖췄습니다. 이제 소개글 Q&A 섹션 작성과 리뷰로 AI 브리핑 노출을 늘릴 차례입니다.",
+        "this_week_action": "소개글 하단에 자주 묻는 질문 3개와 답변 작성하기",
+        "do_not_do": "리뷰 조작·구매, 허위 정보 등록 (네이버 제재 대상)",
         "estimated_weeks_to_next": 6,
     },
     {
-        "stage": "growth", "stage_label": "성장기", "score_range": "55~75점",
-        "focus_message": "리뷰 기반이 만들어졌습니다. 이제 경쟁사가 없는 키워드를 먼저 선점할 때입니다. 조건 검색 확장 예정 키워드를 지금 확보하면 경쟁 우위를 오래 유지할 수 있습니다.",
-        "this_week_action": "선점 가능 키워드 중 가장 가능성 높은 것 1개를 집중 확보하고, 스마트플레이스 '소식' 탭에 새 글을 올리세요",
-        "do_not_do": "모든 키워드를 동시에 추구하지 마세요. 한 번에 하나씩 확실히 잡아야 합니다.",
+        "stage": "growth",
+        "stage_label": "성장기",
+        "score_range": "55~75점",
+        "focus_message": "경쟁사보다 앞서기 시작했습니다. 키워드 다양화와 소식 업로드로 격차를 벌리세요.",
+        "this_week_action": "소식 탭에 최근 작업 사진 1~2장 + 짧은 글 올리기",
+        "do_not_do": "기존에 잘 되는 키워드 갑자기 변경, 운영 중단",
         "estimated_weeks_to_next": 8,
     },
     {
-        "stage": "dominance", "stage_label": "지배기", "score_range": "75~100점",
-        "focus_message": "네이버 AI 브리핑에서 강한 위치에 있습니다. 이제 ChatGPT·Perplexity 등 글로벌 AI에서도 노출되도록 확장할 때입니다.",
-        "this_week_action": "독립 웹사이트에 AI 인식 정보 코드를 추가하거나 구글 비즈니스 프로필을 정비하세요",
-        "do_not_do": "현재 강점(리뷰 키워드, 스마트플레이스)을 방치하지 마세요. 지금까지 쌓은 것을 유지하는 것이 우선입니다.",
+        "stage": "dominance",
+        "stage_label": "지배기",
+        "score_range": "75~100점",
+        "focus_message": "지역 상위권입니다. 지금은 현상 유지와 리뷰 꾸준히 받기가 핵심입니다.",
+        "this_week_action": "신규 리뷰에 키워드 포함 답글 달기 (3분이면 충분)",
+        "do_not_do": "급격한 카테고리 변경, 스마트플레이스 정보 대량 수정",
         "estimated_weeks_to_next": None,
     },
 ]
@@ -132,6 +302,7 @@ def _build_growth_stage(
     total_score: float,
     track1_score: float | None = None,
     biz_data: dict | None = None,
+    competitor_scores: list[dict] | None = None,
 ) -> GrowthStage:
     """성장 단계 판정.
 
@@ -146,6 +317,19 @@ def _build_growth_stage(
     has_faq = (biz_data or {}).get("has_faq", False)
     has_intro = (biz_data or {}).get("has_intro", False)
     has_recent_post = (biz_data or {}).get("has_recent_post", False)
+
+    # 스마트플레이스 미등록: 등록이 최우선 — score/단계 무관하게 조기 반환
+    if biz_data and not is_smart_place:
+        cfg = _GROWTH_STAGES[0]  # 생존기
+        return GrowthStage(
+            stage=cfg["stage"],
+            stage_label=cfg["stage_label"],
+            score_range=cfg["score_range"],
+            focus_message="스마트플레이스를 먼저 등록해야 합니다. 등록 후 AI 브리핑 노출이 시작됩니다.",
+            this_week_action="스마트플레이스 등록하기 (smartplace.naver.com) — AI 브리핑 노출의 첫 번째 조건입니다",
+            do_not_do=cfg["do_not_do"],
+            estimated_weeks_to_next=cfg["estimated_weeks_to_next"],
+        )
 
     # 스마트플레이스 등록 + 리뷰가 있으면 최소 "안정기"로 보정 (생존기 안내 오진단 방지)
     if is_smart_place and review_count > 0 and score < 30:
@@ -165,7 +349,7 @@ def _build_growth_stage(
     if biz_data and is_smart_place:
         missing = []
         if not has_faq:
-            missing.append("스마트플레이스 FAQ 탭에 질문·답변 3개 등록")
+            missing.append("소개글 하단에 Q&A 5개 추가 (네이버 AI 브리핑 인용 후보)")
         if not has_intro:
             missing.append("소개글에 핵심 키워드 2~3개 포함한 2문장 작성")
         if not has_recent_post:
@@ -173,11 +357,37 @@ def _build_growth_stage(
         if missing:
             this_week_action = " → ".join(missing[:2])  # 가장 중요한 2개만
 
+    # 경쟁사 평균 점수를 focus_message에 포함 (데이터 있을 때만)
+    focus_message = cfg["focus_message"]
+    if competitor_scores:
+        try:
+            valid_scores = [
+                float(c.get("score", 0))
+                for c in competitor_scores
+                if isinstance(c, dict) and c.get("score") is not None
+            ]
+            if valid_scores:
+                comp_avg = round(sum(valid_scores) / len(valid_scores), 1)
+                my_rounded = round(score, 1)
+                if my_rounded > comp_avg:
+                    focus_message = (
+                        f"지역 경쟁사 평균 {comp_avg}점 대비 당신은 {my_rounded}점 — "
+                        f"앞서고 있습니다. {cfg['focus_message']}"
+                    )
+                else:
+                    gap_to_avg = round(comp_avg - my_rounded, 1)
+                    focus_message = (
+                        f"지역 경쟁사 평균 {comp_avg}점 대비 당신은 {my_rounded}점 "
+                        f"({gap_to_avg}점 차이). {cfg['focus_message']}"
+                    )
+        except Exception as e:
+            _logger.warning(f"competitor_scores focus_message 주입 실패: {e}")
+
     return GrowthStage(
         stage=cfg["stage"],
         stage_label=cfg["stage_label"],
         score_range=cfg["score_range"],
-        focus_message=cfg["focus_message"],
+        focus_message=focus_message,
         this_week_action=this_week_action,
         do_not_do=cfg["do_not_do"],
         estimated_weeks_to_next=cfg["estimated_weeks_to_next"],
@@ -201,6 +411,12 @@ def analyze_gap(
     # v3.0 추가
     track1_score: float | None = None,
     biz_data: dict | None = None,
+    competitor_excerpts_by_name: dict[str, str] | None = None,
+    # taxonomy 오버라이드용 — 사업장 등록 키워드 (education→music 등 오추천 방지)
+    business_keywords: list[str] | None = None,
+    # v3.2 — 사용자 맞춤 키워드 (keyword_resolver.get_user_keyword_prefs 결과)
+    custom_keywords: list[str] | None = None,
+    excluded_keywords: list[str] | None = None,
 ) -> GapAnalysis:
     """
     GapAnalysis 계산
@@ -234,8 +450,10 @@ def analyze_gap(
     top_score = top_comp["score"] if top_comp else my_total_score
     top_breakdown = top_comp.get("breakdown") or {} if top_comp else {}
 
-    # breakdown이 비어 있으면 총점 기반 차원 추정 (exposure_freq 비중 강조)
-    if top_comp and not top_breakdown and top_score > 0:
+    # breakdown이 비어 있거나 전부 0인 경우 총점 기반 차원 추정
+    _breakdown_has_real_data = bool(top_breakdown) and any(v > 0 for v in top_breakdown.values())
+    _is_competitor_estimated = False
+    if top_comp and not _breakdown_has_real_data and top_score > 0:
         ratio = top_score / 100.0
         top_breakdown = {
             "keyword_gap_score":        round(top_score * 1.1, 1),
@@ -244,7 +462,12 @@ def analyze_gap(
             "naver_exposure_confirmed":  round(top_score * 0.9 * ratio, 1),
             "multi_ai_exposure":        round(top_score * ratio, 1),
             "schema_seo":               round(top_score * 0.85 * ratio, 1),
+            "keyword_search_rank":      round(top_score * ratio, 1),
+            "blog_crank":               round(top_score * 0.8 * ratio, 1),
+            "local_map_score":          round(top_score * ratio, 1),
+            "ai_briefing_score":        round(top_score * 0.9 * ratio, 1),
         }
+        _is_competitor_estimated = True
 
     # 평균 breakdown 계산 (없으면 경쟁사 평균)
     if not avg_breakdown and sorted_comps:
@@ -264,8 +487,7 @@ def analyze_gap(
         gap = max(0.0, top_val - my_val)
         weight = weights.get(key, 0.10)
 
-        reason_fn = reasons.get(key)
-        reason = reason_fn(gap) if callable(reason_fn) else f"{label} 개선 필요"
+        reason = _build_gap_reason(key, gap, ctx, keyword_gap=None)
 
         dimensions.append(DimensionGap(
             dimension_key=key,
@@ -280,22 +502,53 @@ def analyze_gap(
             priority=0,  # 아래에서 재정렬
         ))
 
+    # INACTIVE 업종: 네이버 AI 브리핑 관련 dimension 메시지 분기
+    _eligibility = "active"
+    if biz_data:
+        from services.score_engine import get_briefing_eligibility
+        _eligibility = get_briefing_eligibility(
+            category or biz_data.get("category", ""),
+            bool((biz_data or {}).get("is_franchise")),
+        )
+    if _eligibility == "inactive":
+        _naver_inactive_dims = {"naver_exposure_confirmed", "ai_briefing_score", "smart_place_completeness"}
+        for i, dim in enumerate(dimensions):
+            if dim.dimension_key in _naver_inactive_dims:
+                dimensions[i] = dim.model_copy(update={
+                    "gap_reason": (
+                        f"{dim.dimension_label} 항목은 이 업종({category})에서 네이버 AI 브리핑 대상이 아닙니다. "
+                        "ChatGPT·Gemini·Google AI 노출을 위해 구글 비즈니스 프로필과 소개글 최적화에 집중하세요."
+                    )
+                })
+
     # 우선순위 결정: gap × weight (개선 시 점수 효과 기준) 내림차순
     dimensions.sort(key=lambda d: d.gap_to_top * d.weight, reverse=True)
-    for i, dim in enumerate(dimensions, 1):
-        dimensions[i - 1] = dim.model_copy(update={"priority": i})
+
+    # gap=0인 항목과 실제 격차가 있는 항목 분리
+    dims_with_gap = [d for d in dimensions if d.gap_to_top > 0]
+    dims_zero_gap = [d for d in dimensions if d.gap_to_top == 0]
+
+    # gap 있는 항목 먼저, gap=0 항목 뒤 순서로 우선순위 재부여
+    all_sorted = dims_with_gap + dims_zero_gap
+    for i, dim in enumerate(all_sorted, 1):
+        all_sorted[i - 1] = dim.model_copy(update={"priority": i})
+    dimensions = all_sorted
 
     # 가장 큰 격차 항목
     strongest = max(dimensions, key=lambda d: d.gap_to_top) if dimensions else None
     strongest_label = strongest.dimension_label if strongest else "AI 검색 노출"
 
-    # 우선순위 상위 3개 개선 시 예상 점수
-    top3 = dimensions[:3]
-    estimated_gain = sum(d.gap_to_top * d.weight * 0.7 for d in top3)  # 70% 달성 가정
-    estimated_score = min(100.0, round(my_total_score + estimated_gain, 1))
+    # gap 있는 항목만 상위 3개로 예상 점수 계산 (gap=0 항목이 top3에 섞이면 estimated_gain=0이 되는 문제 방지)
+    top3_with_gap = dims_with_gap[:3]
+    if top3_with_gap:
+        estimated_gain = sum(d.gap_to_top * d.weight * 0.7 for d in top3_with_gap)  # 70% 달성 가정
+        estimated_score = min(100.0, round(my_total_score + estimated_gain, 1))
+    else:
+        # 모든 격차가 0이면 estimated_score=0 반환 → 프론트에서 숨김 처리
+        estimated_score = 0.0
 
-    # closeable_gap: 상위 3개 격차의 합
-    closeable = sum(d.gap_to_top * 0.7 for d in top3)
+    # closeable_gap: gap 있는 상위 3개 격차의 합
+    closeable = sum(d.gap_to_top * 0.7 for d in top3_with_gap)
 
     vs_top = CompetitorGap(
         top_competitor_name=top_name,
@@ -333,6 +586,10 @@ def analyze_gap(
                 business_name=business_name or "사업장",
                 review_excerpts=review_excerpts,
                 competitor_review_excerpts=competitor_review_excerpts,
+                competitor_excerpts_by_name=competitor_excerpts_by_name,
+                business_keywords=business_keywords,
+                custom_keywords=custom_keywords,
+                excluded_keywords=excluded_keywords,
             )
         except Exception as e:
             _logger.warning(f"keyword_gap 계산 실패 (biz={business_id}): {e}")
@@ -344,6 +601,8 @@ def analyze_gap(
                 category=category,
                 business_name=business_name or "사업장",
                 ai_excerpts=review_excerpts,
+                excluded_keywords=excluded_keywords,
+                business_keywords=custom_keywords or business_keywords,
             )
             # ReviewKeywordGap 형식으로 변환 (non_location 호환)
             keyword_gap = ReviewKeywordGap(
@@ -359,7 +618,28 @@ def analyze_gap(
         except Exception as e:
             _logger.warning(f"nonlocation keyword_gap 계산 실패 (biz={business_id}): {e}")
 
-    growth_stage = _build_growth_stage(my_total_score, track1_score=track1_score, biz_data=biz_data)
+    growth_stage = _build_growth_stage(
+        my_total_score,
+        track1_score=track1_score,
+        biz_data=biz_data,
+        competitor_scores=competitor_scores,
+    )
+
+    # keyword_gap 데이터로 keyword_gap_score dimension reason 보강
+    if keyword_gap is not None:
+        try:
+            updated_dims = []
+            for dim in dimensions:
+                if dim.dimension_key == "keyword_gap_score":
+                    new_reason = _build_gap_reason(
+                        "keyword_gap_score", dim.gap_to_top, ctx, keyword_gap=keyword_gap
+                    )
+                    updated_dims.append(dim.model_copy(update={"gap_reason": new_reason}))
+                else:
+                    updated_dims.append(dim)
+            dimensions = updated_dims
+        except Exception as e:
+            _logger.warning(f"keyword_gap reason 보강 실패 (biz={business_id}): {e}")
 
     return GapAnalysis(
         business_id=business_id,
@@ -374,22 +654,29 @@ def analyze_gap(
         naver_only_risk_score_impact=naver_only_impact,
         keyword_gap=keyword_gap,
         growth_stage=growth_stage,
+        is_competitor_estimated=_is_competitor_estimated,
     )
 
 
 async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysis]:
     """DB에서 최신 스캔 + 경쟁사 데이터 로드 후 GapAnalysis 반환"""
     from db.supabase_client import execute
+    from services.keyword_resolver import get_user_keyword_prefs
 
     # 사업장 정보 (category, name, 블로그 분석 결과 + 스마트플레이스 실제 상태 포함)
     biz_row = (await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, business_type, review_sample, keywords, blog_url, blog_keyword_coverage, blog_latest_post_date, blog_analyzed_at, is_smart_place, has_faq, has_intro, has_recent_post, review_count")
+        .select("id, name, category, region, business_type, review_sample, keywords, blog_url, blog_keyword_coverage, blog_analysis_json, blog_post_count, blog_latest_post_date, blog_analyzed_at, is_smart_place, has_faq, has_intro, has_recent_post, review_count")
         .eq("id", business_id)
         .single()
     )).data
     if not biz_row:
         return None
+
+    # 사용자 맞춤 키워드 prefs 조회 (DB 컬럼 없으면 graceful fallback)
+    _prefs = await get_user_keyword_prefs(business_id, supabase)
+    _custom_kw = _prefs.get("custom") or []
+    _excluded_kw = _prefs.get("excluded") or []
 
     context = biz_row.get("business_type") or "location_based"
     category = biz_row.get("category") or ""
@@ -468,6 +755,13 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
             text = blog.get("description") or blog.get("title") or ""
             _add_excerpt(text)
 
+    # 3.5순위: blog_analysis_json.keyword_coverage.present — 실제 블로그 포스트에 등장하는 커버 키워드
+    # 리뷰가 없어도 블로그에 키워드가 있으면 "missing"으로 오분류하지 않기 위해 추가
+    _blog_kw_json = biz_row.get("blog_analysis_json") or {}
+    _blog_covered_list = (_blog_kw_json.get("keyword_coverage") or {}).get("present") or []
+    if isinstance(_blog_covered_list, list) and _blog_covered_list:
+        _add_excerpt(" ".join(_blog_covered_list))
+
     # 4순위: ai_citations 테이블에서 추가 발췌문 (최근 20개)
     try:
         cit_rows = (await execute(
@@ -480,16 +774,18 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
         for row in cit_rows:
             _add_excerpt(row.get("excerpt") or "")
     except Exception as e:
-        _logger.debug(f"ai_citations skip: {e}")
+        _logger.warning(f"ai_citations query failed: {e}")
 
     # 경쟁사 점수 + 리뷰 발췌문 수집 (scan_results.competitor_scores JSONB)
     raw_comp_scores = scan.get("competitor_scores") or {}
     competitor_scores = []
     competitor_review_excerpts: list[str] = []
+    competitor_excerpts_by_name: dict[str, str] = {}  # {경쟁사명: excerpt} 경쟁사별 키워드 분류용
     for comp_id, data in raw_comp_scores.items():
         if isinstance(data, dict):
+            comp_name = data.get("name", comp_id)
             competitor_scores.append({
-                "name": data.get("name", comp_id),
+                "name": comp_name,
                 "score": float(data.get("score", 0)),
                 "breakdown": data.get("breakdown", {}),
             })
@@ -497,6 +793,11 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
             excerpt = data.get("excerpt", "")
             if excerpt and isinstance(excerpt, str):
                 competitor_review_excerpts.append(excerpt)
+                # 경쟁사 이름별로도 저장 (키워드 출처 추적용)
+                if comp_name not in competitor_excerpts_by_name:
+                    competitor_excerpts_by_name[comp_name] = excerpt
+                else:
+                    competitor_excerpts_by_name[comp_name] += " " + excerpt
 
     # 블로그 진단 결과 — DB에 저장된 분석 결과를 GapAnalysis에 포함
     blog_diagnosis: dict | None = None
@@ -561,6 +862,9 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
                     business_name=business_name or "사업장",
                     review_excerpts=review_excerpts or None,
                     competitor_review_excerpts=None,
+                    business_keywords=biz_keywords or None,
+                    custom_keywords=_custom_kw or None,
+                    excluded_keywords=_excluded_kw or None,
                 )
             except Exception as e:
                 _logger.warning(f"keyword_gap fallback 계산 실패 (biz={business_id}): {e}")
@@ -572,6 +876,9 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
                     business_name=business_name or "사업장",
                     review_excerpts=review_excerpts or None,
                     competitor_review_excerpts=None,
+                    business_keywords=biz_keywords or None,
+                    custom_keywords=_custom_kw or None,
+                    excluded_keywords=_excluded_kw or None,
                 )
             except Exception as e:
                 _logger.warning(f"keyword_gap fallback 계산 실패 (biz={business_id}): {e}")
@@ -604,6 +911,83 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
         competitor_review_excerpts=competitor_review_excerpts or None,
         track1_score=my_track1,
         biz_data=biz_row,
+        competitor_excerpts_by_name=competitor_excerpts_by_name or None,
+        business_keywords=biz_keywords or None,
+        custom_keywords=_custom_kw or None,
+        excluded_keywords=_excluded_kw or None,
     )
     # blog_diagnosis는 analyze_gap() 파라미터가 아니므로 반환 후 주입
     return gap_result.model_copy(update={"blog_diagnosis": blog_diagnosis})
+
+
+def analyze_review_keyword_distribution(
+    biz: dict,
+    competitors: list[dict],
+) -> dict:
+    """
+    리뷰 키워드 카테고리별 분포 분석. AI 호출 0회.
+    출처 데이터가 없으면 data_unavailable=True 반환.
+
+    biz:         businesses 테이블 row dict (blog_analysis_json 포함)
+    competitors: competitors 테이블 row dict 목록 (blog_analysis_json 포함)
+    """
+    REVIEW_CATEGORIES: dict[str, list[str]] = {
+        "맛·품질":    ["맛있", "맛", "신선", "품질", "재료", "퀄리티"],
+        "분위기":     ["분위기", "인테리어", "감성", "예쁜", "아늑", "조용"],
+        "서비스":     ["친절", "서비스", "빠른", "응대", "직원", "사장님"],
+        "위치·접근":  ["주차", "접근", "위치", "교통", "가깝", "편리"],
+        "가격·가성비": ["가성비", "저렴", "합리적", "비싸", "가격"],
+    }
+
+    # 내 사업장 리뷰 텍스트 추출 (blog_analysis_json 활용)
+    my_text = ""
+    blog_json = biz.get("blog_analysis_json") or {}
+    if isinstance(blog_json, dict):
+        my_text = (
+            blog_json.get("combined_text")
+            or blog_json.get("review_text")
+            or ""
+        )
+    # blog_analysis_json에 없으면 review_sample fallback
+    if not my_text:
+        my_text = biz.get("review_sample") or ""
+
+    if not my_text:
+        return {"data_unavailable": True, "reason": "no_review_data"}
+
+    my_dist: dict[str, int] = {}
+    for cat, kws in REVIEW_CATEGORIES.items():
+        my_dist[cat] = sum(my_text.count(kw) for kw in kws)
+
+    # 경쟁사 평균 분포
+    comp_dist: dict[str, float] = {cat: 0.0 for cat in REVIEW_CATEGORIES}
+    valid_comps = 0
+    for comp in (competitors or []):
+        comp_text = ""
+        comp_blog = comp.get("blog_analysis_json") or {}
+        if isinstance(comp_blog, dict):
+            comp_text = (
+                comp_blog.get("combined_text")
+                or comp_blog.get("review_text")
+                or ""
+            )
+        if not comp_text:
+            comp_text = comp.get("review_sample") or ""
+        if comp_text:
+            valid_comps += 1
+            for cat, kws in REVIEW_CATEGORIES.items():
+                comp_dist[cat] += sum(comp_text.count(kw) for kw in kws)
+
+    if valid_comps > 0:
+        comp_avg: dict[str, float] = {
+            cat: round(v / valid_comps, 1) for cat, v in comp_dist.items()
+        }
+    else:
+        comp_avg = {cat: 0.0 for cat in REVIEW_CATEGORIES}
+
+    return {
+        "data_unavailable": False,
+        "my_distribution": my_dist,
+        "competitor_avg": comp_avg,
+        "categories": list(REVIEW_CATEGORIES.keys()),
+    }

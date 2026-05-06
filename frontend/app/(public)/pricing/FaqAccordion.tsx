@@ -35,7 +35,7 @@ export function FaqAccordion({ items }: Props) {
                 {q}
               </span>
               <ChevronDown
-                className={`w-5 h-5 shrink-0 text-gray-400 transition-transform duration-200 ${
+                className={`w-5 h-5 shrink-0 text-gray-500 transition-transform duration-200 ${
                   isOpen ? "rotate-180" : ""
                 }`}
               />

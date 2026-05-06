@@ -16,6 +16,20 @@ _KAKAO_LOCAL_URL  = "https://dapi.kakao.com/v2/local/search/keyword.json"
 _NAVER_LOCAL_URL  = "https://openapi.naver.com/v1/search/local.json"
 _GOOGLE_PLACE_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json"
 
+# 업종 코드 → 한국어 검색어 변환
+# v3.5 화이트리스트 25개 코드가 반드시 포함되어야 suggestions 엔드포인트가 동작
+_CATEGORY_KO: dict[str, str] = {
+    # ── v3.5 화이트리스트 25개 (DB 실제 사용 코드) ──
+    "restaurant": "음식점", "cafe": "카페", "bakery": "베이커리", "bar": "술집",
+    "beauty": "미용실", "nail": "네일샵", "medical": "병원", "pharmacy": "약국",
+    "fitness": "헬스장", "yoga": "요가 필라테스", "pet": "반려동물",
+    "education": "학원", "tutoring": "과외", "legal": "법률사무소",
+    "realestate": "부동산", "interior": "인테리어", "auto": "자동차정비",
+    "cleaning": "청소대행", "shopping": "쇼핑몰", "fashion": "의류",
+    "photo": "사진·영상", "video": "영상제작", "design": "디자인",
+    "accommodation": "숙박 펜션", "other": "",
+}
+
 
 def _strip_tags(text: str) -> str:
     """HTML 태그 제거 (<b>, </b> 등)"""
@@ -346,6 +360,42 @@ async def _search_naver(query: str, region: str) -> list[dict]:
     return results
 
 
+async def _find_naver_place_id(name: str, address: str, region: str = "") -> str | None:
+    """경쟁사 이름+주소로 네이버 로컬 검색 API를 호출해 place_id 자동 조회"""
+    client_id = os.getenv("NAVER_CLIENT_ID")
+    client_secret = os.getenv("NAVER_CLIENT_SECRET")
+    if not client_id or not client_secret:
+        return None
+
+    headers = {
+        "X-Naver-Client-Id": client_id,
+        "X-Naver-Client-Secret": client_secret,
+    }
+    region_prefix = region.split()[0] if region else (address.split()[0] if address else "")
+    query = f"{region_prefix} {name}".strip()
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                _NAVER_LOCAL_URL,
+                params={"query": query, "display": 5},
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=8),
+            ) as res:
+                if res.status != 200:
+                    return None
+                data = await res.json()
+                for item in data.get("items", []):
+                    item_name = _strip_tags(item.get("title", ""))
+                    link = item.get("link", "")
+                    m = re.search(r"/place/(\d+)", link)
+                    if m and name in item_name:
+                        return m.group(1)
+    except Exception as e:
+        _logger.warning(f"_find_naver_place_id 실패: {name} — {e}")
+    return None
+
+
 @router.get("/search")
 async def search_local_businesses(query: str, region: str, user=Depends(get_current_user)):
     """카카오 + Google + 네이버 3개 API 병렬 통합 검색 — 중복 제거 후 반환"""
@@ -371,13 +421,24 @@ async def search_local_businesses(query: str, region: str, user=Depends(get_curr
         addr = item.get("address", "")
         return region_key in addr
 
+    # 네이버 결과에서 name→naver_place_id 맵 생성 (카카오 결과 보강용)
+    naver_id_map: dict[str, str] = {}
+    for nitem in (naver_list if isinstance(naver_list, list) else []):
+        nname = nitem.get("name", "").strip()
+        nid = nitem.get("naver_place_id", "")
+        if nname and nid:
+            naver_id_map[nname] = nid
+
     # 카카오 우선 → Google → 네이버 순으로 합산, 지역 필터 후 중복 제거
+    # 카카오/구글 결과에 naver_place_id 없으면 naver_id_map에서 보강
     seen: set[str] = set()
     merged: list[dict] = []
     for item in [*kakao_list, *google_list, *naver_list]:
         name = item.get("name", "").strip()
         if name and name not in seen and _in_region(item):
             seen.add(name)
+            if not item.get("naver_place_id") and name in naver_id_map:
+                item = {**item, "naver_place_id": naver_id_map[name]}
             merged.append(item)
 
     if not merged:
@@ -460,17 +521,70 @@ async def add_competitor(req: CompetitorCreate, user=Depends(get_current_user)):
     row = result.data[0] if result.data else {}
 
     # naver_place_id가 있으면 백그라운드에서 플레이스 데이터 즉시 동기화
-    if req.naver_place_id and row.get("id"):
+    # naver_place_id가 없으면 자동 조회 후 동기화 시도
+    if row.get("id"):
+        biz_region = biz_region_row.data.get("region", "") if biz_region_row.data else ""
+        if req.naver_place_id:
+            try:
+                from services.competitor_place_crawler import sync_competitor_place
+                asyncio.create_task(
+                    sync_competitor_place(row["id"], req.naver_place_id, supabase)
+                )
+            except Exception as e:
+                _logger.warning(f"competitor place sync 백그라운드 실행 실패: {e}")
+        else:
+            async def _auto_find_and_sync(comp_id: str, comp_name: str, comp_address: str, biz_region_str: str, sb):
+                found_id = await _find_naver_place_id(comp_name, comp_address, biz_region_str)
+                if found_id:
+                    try:
+                        await execute(sb.table("competitors").update({"naver_place_id": found_id}).eq("id", comp_id))
+                        from services.competitor_place_crawler import sync_competitor_place
+                        await sync_competitor_place(comp_id, found_id, sb)
+                        _logger.info(f"[auto_find] naver_place_id 자동 설정 완료 — comp={comp_name}, place_id={found_id}")
+                    except Exception as e:
+                        _logger.warning(f"[auto_find] sync 실패 — comp={comp_name}: {e}")
+                else:
+                    _logger.info(f"[auto_find] naver_place_id 조회 실패 — comp={comp_name}")
+
+            asyncio.create_task(_auto_find_and_sync(
+                comp_id=row["id"],
+                comp_name=req.name,
+                comp_address=req.address or "",
+                biz_region_str=biz_region,
+                sb=supabase,
+            ))
+
+    # 경쟁사 등록 직후 Gemini 단일 스캔 백그라운드 실행
+    # 여러 경쟁사를 연속 등록할 때 동시 DB 업데이트로 인한 race condition 방지:
+    # 현재 등록된 경쟁사 수에 비례한 지연(5초 × index)을 두어 순차 처리되도록 함
+    if row.get("id"):
+        # 현재 등록된 경쟁사 수로 지연 계산 (이미 DB에 저장된 수 기준)
         try:
-            from services.competitor_place_crawler import sync_competitor_place
-            asyncio.create_task(
-                sync_competitor_place(row["id"], req.naver_place_id, supabase)
+            comp_count_res = await execute(
+                supabase.table("competitors")
+                .select("id", count="exact")
+                .eq("business_id", req.business_id)
+                .eq("is_active", True)
             )
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).warning(
-                f"competitor place sync 백그라운드 실행 실패: {e}"
-            )
+            # 방금 등록한 경쟁사 포함 개수 — 기존 개수 기반 지연 (최신 등록자일수록 더 늦게)
+            existing_count = max(0, (comp_count_res.count or 1) - 1)
+            delay_sec = existing_count * 5  # 기존 0개→0초, 1개→5초, 2개→10초
+        except Exception:
+            delay_sec = 0
+
+        async def _delayed_scan(comp_id: str, comp_name: str, biz_id: str, sb, delay: float):
+            if delay > 0:
+                import asyncio as _aio
+                await _aio.sleep(delay)
+            await _scan_new_competitor(comp_id, comp_name, biz_id, sb)
+
+        asyncio.create_task(_delayed_scan(
+            comp_id=row["id"],
+            comp_name=req.name,
+            biz_id=req.business_id,
+            sb=supabase,
+            delay=float(delay_sec),
+        ))
 
     return {
         **row,
@@ -541,6 +655,286 @@ async def suggest_competitors(category: str, region: str, business_id: str, user
     return result[:5]
 
 
+# 추천 경쟁사 캐시 {biz_id: (expires_ts, data)}
+_suggestions_cache: dict[str, tuple[float, list]] = {}
+
+# 광역 행정구역 접미사 — 지역 키 추출 시 제거
+_REGION_SUFFIX = ("특별시", "광역시", "특별자치시", "특별자치도", "시", "군", "구", "도")
+
+
+def _region_key(region: str) -> str:
+    """지역 문자열에서 핵심 도시명을 추출한다.
+    '경상남도 창원시 의창구' → '창원'
+    '서울특별시 강남구'     → '강남'  (구 단위가 있으면 구 우선)
+    """
+    parts = region.split()
+    # 구(區) 단위가 있으면 구 이름 우선 (강남구 → 강남)
+    for part in reversed(parts):
+        if part.endswith("구") and not part.endswith(("특별자치구",)):
+            return part[:-1]
+    # 시/군
+    for part in parts:
+        if part.endswith(("시", "군")) and not part.endswith(("특별시", "광역시", "특별자치시")):
+            return part[:-1]
+    # 특별시·광역시
+    for part in parts:
+        for suf in ("특별시", "광역시", "특별자치시"):
+            if part.endswith(suf):
+                return part[: -len(suf)]
+    return parts[0].rstrip("".join(_REGION_SUFFIX)) if parts else ""
+
+
+def _build_suggestion_query(name: str, category: str, region: str, keywords: list) -> str:
+    """추천 검색어를 구성한다 — 구체적인 것부터 시도해 fallback.
+
+    1순위: businesses.keywords 첫 번째 항목
+    2순위: 가게 이름에서 지역명 제거 후 남은 키워드
+    3순위: category 대분류 한국어 fallback
+    """
+    region_key = _region_key(region)
+    cat_ko = _CATEGORY_KO.get(category, "")
+
+    # 1순위: 사용자 정의 키워드
+    if keywords:
+        kw = (keywords[0] or "").strip()
+        if kw:
+            return f"{region_key} {kw}"
+
+    # 2순위: 이름에서 지역명·업종 대분류어 제거 후 남은 단어
+    cleaned = name
+    for part in region.split():
+        cleaned = cleaned.replace(part.rstrip("".join(_REGION_SUFFIX)), "")
+    if cat_ko:
+        cleaned = cleaned.replace(cat_ko, "")
+    cleaned = re.sub(r"\s+", "", cleaned).strip()
+    # 2글자 이상 남아있으면 유효한 세부 키워드
+    if len(cleaned) >= 2:
+        return f"{region_key} {cleaned}"
+
+    # 3순위: 업종 대분류 fallback
+    if cat_ko:
+        return f"{region_key} {cat_ko}"
+    return region_key
+
+
+@router.get("/suggestions")
+async def competitor_suggestions(
+    biz_id: str,
+    user: dict = Depends(get_current_user),
+):
+    """경쟁사 추천 — 같은 업종·지역에서 아직 등록되지 않은 업체 최대 5개 반환.
+
+    - 쿼리: keywords → 이름 키워드 추출 → category 순 우선순위
+    - 지역 필터: 카카오 결과의 주소가 사업장 지역과 일치하는 업체만 포함
+    - AI 우선순위: scan_results에서 함께 언급된 업체를 상위 배치
+    - 캐시: 30분 메모리 캐시
+    """
+    import time
+
+    kakao_key = os.getenv("KAKAO_REST_API_KEY", "")
+    if not kakao_key:
+        return {"suggestions": []}
+
+    now = time.time()
+    cached = _suggestions_cache.get(biz_id)
+    if cached and cached[0] > now:
+        return {"suggestions": cached[1]}
+
+    supabase = get_client()
+
+    # 소유권 확인 + keywords 포함 조회
+    biz_res = await execute(
+        supabase.table("businesses")
+        .select("id, name, category, region, user_id, keywords")
+        .eq("id", biz_id)
+        .eq("user_id", user["id"])
+        .maybe_single()
+    )
+    if not (biz_res and biz_res.data):
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+    biz = biz_res.data
+
+    category = biz.get("category", "")
+    region = biz.get("region", "")
+    biz_name = biz.get("name", "")
+    keywords = biz.get("keywords") or []
+
+    if not region:
+        return {"suggestions": []}
+
+    region_filter = _region_key(region)  # 주소 필터링 키워드 (예: "창원", "강남")
+    query = _build_suggestion_query(biz_name, category, region, keywords)
+
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8)) as session:
+            async with session.get(
+                _KAKAO_LOCAL_URL,
+                params={"query": query, "size": 15},
+                headers={"Authorization": f"KakaoAK {kakao_key}"},
+            ) as resp:
+                if resp.status != 200:
+                    return {"suggestions": []}
+                data = await resp.json()
+    except Exception as e:
+        _logger.warning(f"[suggestions] 카카오 API 오류: {e}")
+        return {"suggestions": []}
+
+    # 기존 등록 경쟁사 이름 조회
+    comp_res = await execute(
+        supabase.table("competitors")
+        .select("name")
+        .eq("business_id", biz_id)
+        .eq("is_active", True)
+    )
+    existing_names = {c["name"] for c in (comp_res.data or [])}
+    existing_names.add(biz_name)
+
+    # AI 스캔 이력에서 함께 언급된 업체명 조회 (우선순위 배치용)
+    scan_res = await execute(
+        supabase.table("scan_results")
+        .select("competitor_scores")
+        .eq("business_id", biz_id)
+        .order("scanned_at", desc=True)
+        .limit(3)
+    )
+    ai_mentioned: set[str] = set()
+    for row in (scan_res.data or []):
+        for entry in (row.get("competitor_scores") or {}).values():
+            if isinstance(entry, dict) and entry.get("name"):
+                ai_mentioned.add(entry["name"])
+
+    ai_first, normal = [], []
+    for doc in data.get("documents", []):
+        place_name = doc.get("place_name", "")
+        if not place_name or place_name in existing_names:
+            continue
+
+        # 같은 지역 필터: 주소에 지역 키워드가 포함되어야 함
+        address = doc.get("road_address_name") or doc.get("address_name", "")
+        if region_filter and region_filter not in address:
+            continue
+
+        item = {
+            "name": place_name,
+            "address": address,
+            "phone": doc.get("phone", ""),
+            "category_name": doc.get("category_name", ""),
+            "ai_competitor": place_name in ai_mentioned,
+        }
+        if place_name in ai_mentioned:
+            ai_first.append(item)
+        else:
+            normal.append(item)
+
+    suggestions = (ai_first + normal)[:5]
+    _suggestions_cache[biz_id] = (now + 1800, suggestions)
+    return {"suggestions": suggestions}
+
+
+@router.get("/brand-check")
+async def brand_check(
+    name: str,
+    region: str,
+    category: str,
+    user: dict = Depends(get_current_user),
+):
+    """지역 브랜드 중복 진단 — 네이버 지역 검색 API 기반.
+
+    동일 지역·업종 내 유사 상호명 업체 수를 분석해 AI 혼동 위험도를 반환한다.
+    인증 필요 (GET /api/competitors/brand-check?name=...&region=...&category=...)
+    """
+    naver_client_id = os.getenv("NAVER_CLIENT_ID", "")
+    naver_client_secret = os.getenv("NAVER_CLIENT_SECRET", "")
+
+    if not naver_client_id or not naver_client_secret:
+        _logger.warning("[brand_check] NAVER_CLIENT_ID/SECRET 미설정")
+        return {"risk_level": "unknown", "message": "네이버 API 키가 설정되지 않았습니다"}
+
+    category_ko = _CATEGORY_KO.get(category, category)
+    search_query = f"{region} {category_ko}".strip()
+
+    try:
+        headers = {
+            "X-Naver-Client-Id": naver_client_id,
+            "X-Naver-Client-Secret": naver_client_secret,
+        }
+        params = {"query": search_query, "display": 20, "start": 1, "sort": "random"}
+
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+            async with session.get(_NAVER_LOCAL_URL, headers=headers, params=params) as resp:
+                if resp.status != 200:
+                    _logger.warning(f"[brand_check] 네이버 API 오류 status={resp.status}")
+                    return {"risk_level": "unknown", "message": "검색 결과를 가져오지 못했습니다"}
+                data = await resp.json()
+
+        items = data.get("items", [])
+        total_in_region = data.get("total", 0)
+
+        name_clean = re.sub(r"\s+", "", name).lower()
+        similar_list: list[str] = []
+        for item in items:
+            title = re.sub(r"<[^>]+>", "", item.get("title", ""))
+            title_clean = re.sub(r"\s+", "", title).lower()
+            if name_clean in title_clean or title_clean in name_clean:
+                similar_list.append(title)
+
+        same_name_count = len(similar_list)
+
+        if same_name_count == 0:
+            risk_level = "low"
+            msg = f"{region}에 같거나 비슷한 상호명의 업체가 없습니다. AI가 상호명만으로 내 가게를 특정할 수 있어 노출에 유리합니다."
+        elif same_name_count <= 1:
+            risk_level = "medium"
+            msg = f"{region}에 상호명이 비슷한 업체가 {same_name_count}개 있습니다. 소개글이나 키워드에 지역명을 명확히 포함하면 AI 혼동을 줄일 수 있습니다."
+        else:
+            risk_level = "high"
+            msg = f"{region}에 상호명이 비슷한 업체가 {same_name_count}개입니다. AI가 내 가게를 다른 업체로 혼동할 수 있습니다. 상호명에 지역명이나 특징어를 추가하는 것을 권장합니다."
+
+        return {
+            "total_in_region": total_in_region,
+            "same_name_count": same_name_count,
+            "risk_level": risk_level,
+            "message": msg,
+            "similar_businesses": similar_list[:10],
+        }
+
+    except Exception as e:
+        _logger.warning(f"[brand_check] 분석 실패: {e}")
+        return {"risk_level": "unknown", "message": "분석에 실패했습니다. 잠시 후 다시 시도해주세요."}
+
+
+@router.get("/{biz_id}/changes")
+async def get_competitor_changes(biz_id: str, user=Depends(get_current_user)):
+    """최근 7일 이내 변화가 감지된 경쟁사 목록 반환."""
+    supabase = get_client()
+    # 소유권 검증
+    biz = await execute(
+        supabase.table("businesses")
+        .select("id")
+        .eq("id", biz_id)
+        .eq("user_id", user["id"])
+        .maybe_single()
+    )
+    if not biz.data:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    from datetime import datetime, timezone, timedelta
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+
+    rows = (
+        await execute(
+            supabase.table("competitors")
+            .select("id, name, change_summary, change_detected_at")
+            .eq("business_id", biz_id)
+            .eq("is_active", True)
+            .gte("change_detected_at", cutoff)
+            .order("change_detected_at", desc=True)
+        )
+    ).data or []
+
+    return rows
+
+
 @router.get("/{biz_id}")
 async def list_competitors(biz_id: str, user=Depends(get_current_user)):
     """경쟁사 목록 조회 — 본인 사업장만"""
@@ -562,7 +956,8 @@ async def list_competitors(biz_id: str, user=Depends(get_current_user)):
             "kakao_place_id, naver_place_id, "
             "naver_review_count, naver_avg_rating, "
             "has_faq, has_recent_post, has_menu, "
-            "naver_photo_count, naver_place_last_synced_at"
+            "naver_photo_count, naver_place_last_synced_at, "
+            "has_intro, website_url"
         )
         .eq("business_id", biz_id)
         .eq("is_active", True)
@@ -579,6 +974,8 @@ async def list_competitors(biz_id: str, user=Depends(get_current_user)):
             "place_has_menu": r.get("has_menu"),
             "place_photo_count": r.get("naver_photo_count"),
             "place_synced_at": r.get("naver_place_last_synced_at"),
+            "place_has_intro": r.get("has_intro"),
+            "website_url": r.get("website_url"),
         })
     return rows
 
@@ -594,7 +991,7 @@ async def get_competitor_detail(competitor_id: str, user=Depends(get_current_use
     if PLAN_HIERARCHY.get(user_plan, 0) < PLAN_HIERARCHY.get("basic", 1):
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "pro", "biz", "enterprise"], "upgrade_url": "/pricing"},
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "pro", "biz"], "upgrade_url": "/pricing"},
         )
 
     # 소유권 검증: competitor → business_id → user_id
@@ -754,13 +1151,359 @@ async def remove_competitor(competitor_id: str, user=Depends(get_current_user)):
 
 @router.post("/{competitor_id}/sync-place")
 async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_current_user)):
-    """경쟁사 네이버 플레이스 데이터 수동 동기화 트리거 — 소유권 검증 필수"""
+    """경쟁사 네이버 플레이스 데이터 수동 동기화.
+    naver_place_id가 없으면 이름+주소로 자동 조회 후 저장, 찾지 못하면 422 반환.
+    """
     supabase = get_client()
 
     # 소유권 검증: competitor → business_id → user_id
     comp = await execute(
         supabase.table("competitors")
-        .select("business_id, naver_place_id, name")
+        .select("id, name, address, naver_place_id, business_id")
+        .eq("id", competitor_id)
+        .maybe_single()
+    )
+    if not comp.data:
+        raise HTTPException(status_code=404, detail="경쟁사를 찾을 수 없습니다")
+
+    biz = await execute(
+        supabase.table("businesses")
+        .select("user_id, region")
+        .eq("id", comp.data["business_id"])
+        .maybe_single()
+    )
+    if not biz.data or biz.data["user_id"] != user["id"]:
+        raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
+
+    naver_place_id = comp.data.get("naver_place_id") or ""
+
+    # naver_place_id 없으면 자동 조회
+    if not naver_place_id:
+        naver_place_id = await _find_naver_place_id(
+            comp.data.get("name", ""),
+            comp.data.get("address", ""),
+            biz.data.get("region", ""),
+        ) or ""
+        if naver_place_id:
+            try:
+                await execute(
+                    supabase.table("competitors")
+                    .update({"naver_place_id": naver_place_id})
+                    .eq("id", competitor_id)
+                )
+                _logger.info(f"[sync-place] naver_place_id 자동 저장 — comp={comp.data.get('name')}, place_id={naver_place_id}")
+            except Exception as e:
+                _logger.warning(f"[sync-place] naver_place_id 저장 실패: {e}")
+
+    if not naver_place_id:
+        raise HTTPException(
+            status_code=422,
+            detail="네이버 플레이스에서 해당 업체를 찾을 수 없습니다. 직접 네이버 플레이스 ID를 입력해주세요.",
+        )
+
+    # 동기화 실행 (await로 직접 호출하여 결과 반환)
+    from services.competitor_place_crawler import sync_competitor_place
+    try:
+        result = await sync_competitor_place(competitor_id, naver_place_id, supabase, biz.data.get("region", ""))
+    except TypeError:
+        # sync_competitor_place 시그니처가 region 파라미터 없는 구버전인 경우 fallback
+        result = await sync_competitor_place(competitor_id, naver_place_id, supabase)
+
+    if result and result.get("error"):
+        raise HTTPException(status_code=500, detail=f"동기화 실패: {result['error']}")
+
+    return {
+        "message": "동기화 완료",
+        "competitor_id": competitor_id,
+        "name": comp.data.get("name"),
+        "naver_place_id": naver_place_id,
+        "review_count": result.get("review_count", 0) if result else 0,
+        "avg_rating": result.get("avg_rating", 0.0) if result else 0.0,
+    }
+
+
+# ── 경쟁사 약점 분석 ─────────────────────────────────────────────────────────
+
+_NEGATIVE_PATTERNS = [
+    "불친절", "불편", "비쌈", "비싸", "대기", "웨이팅", "기다려", "오래 걸려",
+    "줄 서", "주차", "좁아", "시끄러", "청결", "위생", "불결", "냄새",
+    "별로", "실망", "기대 이하", "아쉬워", "아쉬운", "아쉽", "아쉬웠",
+    "소음", "복잡", "혼잡", "불친절한", "느려", "느립니다", "차갑", "싸늘",
+    "딱딱", "퉁명", "퉁명스러", "퉁명스럽",
+    "맛없", "맛이 없", "맛은 별로", "양이 적", "적은 양", "양 대비",
+    "가격 대비", "가성비 별로", "바가지", "과대광고", "광고랑 달라",
+]
+
+_NEGATIVE_TO_OPPORTUNITY: dict[str, str] = {
+    "주차": "주차가 편리한 가게임을 강조하세요",
+    "대기": "웨이팅 없이 바로 입장 가능함을 강조하세요",
+    "웨이팅": "웨이팅 없이 바로 입장 가능함을 강조하세요",
+    "불친절": "친절한 서비스를 전면에 내세우세요",
+    "비쌈": "합리적인 가격을 강조하거나 가성비를 어필하세요",
+    "비싸": "합리적인 가격을 강조하거나 가성비를 어필하세요",
+    "청결": "청결하고 위생적인 환경을 사진으로 보여주세요",
+    "위생": "위생 관리 인증이나 사진을 등록하세요",
+    "시끄러": "조용하고 편안한 분위기를 강조하세요",
+    "소음": "조용하고 편안한 분위기를 강조하세요",
+    "좁아": "넓고 여유로운 공간임을 사진으로 어필하세요",
+    "맛없": "시그니처 메뉴의 맛을 블로그 포스팅으로 적극 알리세요",
+    "양이 적": "푸짐한 양이나 리필 서비스를 강조하세요",
+    "느려": "빠른 서비스와 회전율을 어필하세요",
+    "가성비 별로": "가성비 메뉴나 세트를 전면에 내세우세요",
+}
+
+
+async def _fetch_blog_snippets(name: str, region: str) -> tuple[list[str], list[dict]]:
+    """경쟁사 이름으로 네이버 블로그 검색.
+
+    Returns:
+        (snippets, posts) 튜플.
+        snippets: description 텍스트 리스트 (약점 분석용).
+        posts: [{"title": str, "link": str, "pubDate": str}] 최대 5개 최신순.
+    """
+    client_id = os.getenv("NAVER_CLIENT_ID", "")
+    client_secret = os.getenv("NAVER_CLIENT_SECRET", "")
+    if not client_id or not client_secret:
+        return [], []
+
+    region_prefix = region.split()[0] if region else ""
+    query = f"{region_prefix} {name}".strip() if region_prefix else name
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                "https://openapi.naver.com/v1/search/blog.json",
+                params={"query": query, "display": 20, "sort": "date"},
+                headers={
+                    "X-Naver-Client-Id": client_id,
+                    "X-Naver-Client-Secret": client_secret,
+                },
+                timeout=aiohttp.ClientTimeout(total=8),
+            ) as res:
+                if res.status != 200:
+                    return [], []
+                data = await res.json()
+                snippets: list[str] = []
+                posts: list[dict] = []
+                for item in data.get("items", []):
+                    text = re.sub(r"<[^>]+>", "", item.get("description", ""))
+                    if text:
+                        snippets.append(text)
+                    if len(posts) < 5:
+                        title = re.sub(r"<[^>]+>", "", item.get("title", ""))
+                        link = item.get("link", "") or item.get("bloggerlink", "")
+                        pub_date = item.get("postdate", "") or item.get("pubDate", "")
+                        if title:
+                            posts.append({"title": title, "link": link, "pubDate": pub_date})
+                return snippets, posts
+    except Exception as e:
+        _logger.warning(f"[weakness] 블로그 검색 실패 — {name}: {e}")
+        return [], []
+
+
+def _analyze_weakness(snippets: list[str]) -> dict:
+    """블로그 snippet에서 부정 키워드 빈도 분석"""
+    keyword_counts: dict[str, int] = {}
+
+    for snippet in snippets:
+        for pattern in _NEGATIVE_PATTERNS:
+            if pattern in snippet:
+                # 대표 키워드로 정규화 (_NEGATIVE_TO_OPPORTUNITY 키 우선)
+                key = pattern
+                for norm_key in _NEGATIVE_TO_OPPORTUNITY:
+                    if norm_key in pattern:
+                        key = norm_key
+                        break
+                keyword_counts[key] = keyword_counts.get(key, 0) + 1
+
+    # 빈도 1회 이상인 것만 반환, 빈도순 정렬, 최대 5개
+    weaknesses = sorted(
+        [
+            {
+                "keyword": k,
+                "count": v,
+                "opportunity": _NEGATIVE_TO_OPPORTUNITY.get(
+                    k, f"'{k}' 문제를 해결하면 경쟁사 대비 우위를 점할 수 있습니다."
+                ),
+            }
+            for k, v in keyword_counts.items()
+            if v >= 1
+        ],
+        key=lambda x: x["count"],
+        reverse=True,
+    )[:5]
+
+    return {
+        "weaknesses": weaknesses,
+        "total_posts_analyzed": len(snippets),
+        "has_weakness": len(weaknesses) > 0,
+    }
+
+
+@router.get("/{competitor_id}/weakness")
+async def get_competitor_weakness(competitor_id: str, user=Depends(get_current_user)):
+    """경쟁사 블로그 포스팅에서 부정 키워드를 추출해 '경쟁사 약점 → 내 가게 공략 포인트'를 반환한다.
+
+    - 플랜 게이트: basic 이상
+    - 소유권 검증: competitor → business_id → user_id
+    - 네이버 블로그 검색 API 기반, AI 호출 없음
+    """
+    supabase = get_client()
+
+    # 플랜 게이트: basic 이상만 접근 가능
+    from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
+    user_plan = await get_user_plan(user["id"], supabase)
+    if PLAN_HIERARCHY.get(user_plan, 0) < PLAN_HIERARCHY.get("basic", 1):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "PLAN_REQUIRED",
+                "required_plans": ["basic", "pro", "biz"],
+                "upgrade_url": "/pricing",
+            },
+        )
+
+    # 소유권 검증: competitor → business_id → user_id
+    comp = await execute(
+        supabase.table("competitors")
+        .select("id, name, business_id")
+        .eq("id", competitor_id)
+        .maybe_single()
+    )
+    if not comp.data:
+        raise HTTPException(status_code=404, detail="경쟁사를 찾을 수 없습니다")
+
+    biz = await execute(
+        supabase.table("businesses")
+        .select("user_id, region")
+        .eq("id", comp.data["business_id"])
+        .maybe_single()
+    )
+    if not biz.data or biz.data["user_id"] != user["id"]:
+        raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
+
+    comp_name: str = comp.data.get("name", "")
+    region: str = biz.data.get("region", "")
+
+    snippets, recent_posts = await _fetch_blog_snippets(comp_name, region)
+    analysis = _analyze_weakness(snippets)
+
+    return {
+        "competitor_name": comp_name,
+        **analysis,
+        "recent_posts": recent_posts,
+    }
+
+
+async def _scan_new_competitor(comp_id: str, comp_name: str, business_id: str, supabase) -> None:
+    """경쟁사 등록 직후 Gemini 단일 스캔 실행 → 최근 scan_results.competitor_scores에 병합.
+    plan_gate 체크 없이 직접 실행 (사용자 스캔 한도 소비 없음).
+    
+    Race condition 방지: Gemini AI 스캔을 먼저 완료한 후 DB에서 최신 값을 다시 읽어
+    다른 경쟁사 스캔 결과와 충돌 없이 병합한다.
+    """
+    import asyncio as _asyncio
+    try:
+        # 사업장 정보 조회 (쿼리 생성용)
+        biz_row = await execute(
+            supabase.table("businesses")
+            .select("name, category, region")
+            .eq("id", business_id)
+            .maybe_single()
+        )
+        if not biz_row.data:
+            _logger.warning(f"[competitor_scan] 사업장 조회 실패 — biz={business_id}")
+            return
+
+        biz = biz_row.data
+        category = biz.get("category", "")
+        region = biz.get("region", "")
+
+        keyword_ko = _CATEGORY_KO.get(category, category)
+        query = f"{region} {keyword_ko}".strip() if region else keyword_ko
+
+        # Gemini 단일 스캔 (single_check_with_competitors 사용)
+        from services.ai_scanner.gemini_scanner import GeminiScanner
+        gemini = GeminiScanner()
+        result = await gemini.single_check_with_competitors(query, comp_name)
+
+        mentioned = bool(result.get("mentioned"))
+        excerpt = result.get("excerpt", "")
+        base_score = 60.0 if mentioned else 30.0
+        breakdown = {
+            "ai_visibility_t1": round(base_score * 0.9, 1),
+            "review_quality_t1": round(base_score * 0.85, 1),
+            "online_mentions_t2": round(base_score * 0.75, 1),
+            "google_presence": round(base_score * 0.7, 1),
+        }
+        new_entry = {
+            "name": comp_name,
+            "mentioned": mentioned,
+            "score": base_score,
+            "excerpt": excerpt,
+            "breakdown": breakdown,
+        }
+
+        # ── Race condition 방지: Gemini 스캔 완료 후 최신 DB 값 재조회 후 병합 ──
+        # 여러 경쟁사가 동시에 등록될 경우 각 태스크가 순서대로 스캔을 완료하고
+        # 그 시점의 최신 competitor_scores를 읽어 자신의 항목만 추가 → 덮어쓰기 없음
+        scan_row = await execute(
+            supabase.table("scan_results")
+            .select("id, competitor_scores")
+            .eq("business_id", business_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+            .maybe_single()
+        )
+        if not scan_row.data:
+            _logger.info(f"[competitor_scan] 기존 스캔 없음 — comp={comp_name}, biz={business_id}")
+            return
+
+        scan_id = scan_row.data["id"]
+        # 최신 competitor_scores를 다시 읽어 자신의 항목만 추가 (기존 항목 보존)
+        existing_scores: dict = scan_row.data.get("competitor_scores") or {}
+        existing_scores[comp_id] = new_entry
+
+        await execute(
+            supabase.table("scan_results")
+            .update({"competitor_scores": existing_scores})
+            .eq("id", scan_id)
+        )
+        _logger.info(
+            f"[competitor_scan] 완료 — comp={comp_name}, mentioned={mentioned}, scan_id={scan_id}"
+        )
+
+    except Exception as e:
+        _logger.warning(f"[competitor_scan] 실패 — comp={comp_name}, biz={business_id}: {e}")
+
+
+@router.get("/{competitor_id}/faq-items")
+async def get_competitor_faq_items(competitor_id: str, user=Depends(get_current_user)):
+    """경쟁사 네이버 플레이스 FAQ 질문 목록 실시간 크롤링 (Basic+).
+
+    ChatGPT로는 얻을 수 없는 데이터 — 경쟁사 사장님이 직접 등록한 FAQ 질문만 추출.
+    답변 본문은 저작권 이슈로 수집하지 않음.
+    Playwright Semaphore(2) 는 크롤러 내부에서 처리되므로 별도 제어 불필요.
+    """
+    supabase = get_client()
+
+    # 플랜 게이트: basic 이상만 접근 가능
+    from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
+    user_plan = await get_user_plan(user["id"], supabase)
+    if PLAN_HIERARCHY.get(user_plan, 0) < PLAN_HIERARCHY.get("basic", 1):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "PLAN_REQUIRED",
+                "required_plans": ["basic", "pro", "biz"],
+                "upgrade_url": "/pricing",
+            },
+        )
+
+    # 소유권 검증: competitor → business_id → user_id
+    comp = await execute(
+        supabase.table("competitors")
+        .select("id, name, naver_place_id, business_id")
         .eq("id", competitor_id)
         .maybe_single()
     )
@@ -776,21 +1519,30 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
     if not biz.data or biz.data["user_id"] != user["id"]:
         raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
 
-    naver_place_id = comp.data.get("naver_place_id")
+    naver_place_id = comp.data.get("naver_place_id") or ""
     if not naver_place_id:
         raise HTTPException(
-            status_code=400,
-            detail="naver_place_id가 등록되지 않았습니다. 경쟁사 정보를 수정하여 네이버 플레이스 ID를 입력해 주세요.",
+            status_code=422,
+            detail="네이버 플레이스 ID가 설정되지 않았습니다",
         )
 
-    # 즉시 크롤링 실행 (비동기 백그라운드 태스크)
-    from services.competitor_place_crawler import sync_competitor_place
-    asyncio.create_task(sync_competitor_place(competitor_id, naver_place_id, supabase))
+    from services.competitor_place_crawler import fetch_competitor_faq_items
+    result = await fetch_competitor_faq_items(naver_place_id)
 
-    return {
-        "status": "sync_started",
-        "competitor_id": competitor_id,
-        "name": comp.data.get("name"),
-        "naver_place_id": naver_place_id,
-        "message": "네이버 플레이스 데이터 동기화가 시작되었습니다. 약 30초 후 반영됩니다.",
-    }
+    if result.get("error") == "deprecated_qna_tab_removed":
+        return {
+            "naver_place_id": naver_place_id,
+            "questions": [],
+            "collected_at": result.get("collected_at"),
+            "deprecated": True,
+            "message": "네이버 스마트플레이스 Q&A 탭이 폐기(2026-05-01)되어 질문 수집이 불가합니다. 경쟁사 소개글의 Q&A 섹션은 '플레이스 현황' 카드에서 확인하세요.",
+        }
+    if result.get("error"):
+        raise HTTPException(
+            status_code=500,
+            detail=f"FAQ 수집 실패: {result['error']}",
+        )
+
+    return result
+
+

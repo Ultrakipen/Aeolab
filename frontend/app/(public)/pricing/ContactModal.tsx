@@ -45,10 +45,10 @@ export function ContactModal({ open, onClose }: Props) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-base font-bold text-gray-900">Biz 플랜 문의하기</h2>
-            <p className="text-xs text-gray-400 mt-0.5">다점포·대행사 전용 — 맞춤 견적 안내드립니다</p>
+            <p className="text-sm text-gray-500 mt-0.5">다점포·대행사 전용 — 맞춤 견적 안내드립니다</p>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
-            <X className="w-5 h-5 text-gray-400" />
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
@@ -59,13 +59,13 @@ export function ContactModal({ open, onClose }: Props) {
                 <Check className="w-6 h-6 text-green-500" />
               </div>
               <p className="text-sm font-medium text-gray-900 mb-1">이메일 앱이 열렸습니다</p>
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-500">
                 이메일 앱이 열리지 않으면 아래 주소로 직접 보내주세요.
               </p>
               <div className="mt-4 bg-gray-50 rounded-xl px-4 py-3 flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">{EMAIL}</span>
                 <button onClick={handleCopy} className="ml-2 p-1.5 rounded-lg hover:bg-gray-200 transition-colors">
-                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-500" />}
                 </button>
               </div>
               <button
@@ -78,7 +78,7 @@ export function ContactModal({ open, onClose }: Props) {
           ) : (
             <>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">담당자 이름</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">담당자 이름</label>
                 <input
                   type="text"
                   value={name}
@@ -88,7 +88,7 @@ export function ContactModal({ open, onClose }: Props) {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">회신받을 이메일</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">회신받을 이메일</label>
                 <input
                   type="email"
                   value={email}
@@ -98,7 +98,7 @@ export function ContactModal({ open, onClose }: Props) {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">문의 내용</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">문의 내용</label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
@@ -111,11 +111,11 @@ export function ContactModal({ open, onClose }: Props) {
               {/* 이메일 주소 표시 */}
               <div className="bg-gray-50 rounded-xl px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-gray-400" />
+                  <Mail className="w-4 h-4 text-gray-500" />
                   <span className="text-sm text-gray-600">{EMAIL}</span>
                 </div>
                 <button onClick={handleCopy} className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors" title="이메일 복사">
-                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-500" />}
                 </button>
               </div>
 
@@ -127,7 +127,7 @@ export function ContactModal({ open, onClose }: Props) {
                 <MessageSquare className="w-4 h-4" />
                 이메일로 문의 보내기
               </button>
-              <p className="text-xs text-center text-gray-400">
+              <p className="text-sm text-center text-gray-500">
                 영업일 기준 1일 이내 회신드립니다
               </p>
             </>

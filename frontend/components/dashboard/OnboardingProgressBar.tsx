@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { CheckCircle2, Circle, X } from "lucide-react";
 import Link from "next/link";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface OnboardingStep {
-  key: string;
+  key?: string;
+  id?: string;
   label: string;
   done: boolean;
-  href: string;
+  href?: string;
+  link?: string;
 }
 
 interface OnboardingStatus {
@@ -29,27 +30,24 @@ const DEFAULT_STEPS: Omit<OnboardingStep, "done">[] = [
 
 interface Props {
   userId: string;
+  token: string; // 서버 컴포넌트에서 전달받은 accessToken
 }
 
-export function OnboardingProgressBar({ userId }: Props) {
+export function OnboardingProgressBar({ userId, token }: Props) {
   const [status, setStatus] = useState<OnboardingStatus | null>(null);
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(`onboarding_dismissed_${userId}`) === "true";
+  });
 
   useEffect(() => {
-    // localStorage 기반 닫기 상태 복원
-    const key = `onboarding_dismissed_${userId}`;
-    if (localStorage.getItem(key) === "true") {
-      setDismissed(true);
-      return;
-    }
+    if (dismissed) return;
+
+    if (!token) return;
 
     async function load() {
+      const LS_KEY = `aeolab_onboarding_progress_${userId}`;
       try {
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token;
-        if (!token) return;
-
         const res = await fetch(`${BACKEND}/api/settings/onboarding-status`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",
@@ -58,59 +56,34 @@ export function OnboardingProgressBar({ userId }: Props) {
         if (res.ok) {
           const data: OnboardingStatus = await res.json();
           setStatus(data);
+          try {
+            localStorage.setItem(LS_KEY, JSON.stringify(data));
+          } catch {
+            // localStorage 쓰기 실패 무시
+          }
         } else {
-          // API 없을 경우 Supabase에서 직접 체크
-          const supabase = createClient();
-          const [
-            { data: businesses },
-            { data: scans },
-            { data: competitors },
-            { data: guides },
-            { data: schemas },
-          ] = await Promise.all([
-            supabase.from("businesses").select("id").eq("user_id", userId).limit(1),
-            supabase.from("scan_results")
-              .select("id")
-              .in("business_id",
-                (await supabase.from("businesses").select("id").eq("user_id", userId)).data?.map((b: { id: string }) => b.id) ?? []
-              ).limit(1),
-            supabase.from("competitors")
-              .select("id")
-              .in("business_id",
-                (await supabase.from("businesses").select("id").eq("user_id", userId)).data?.map((b: { id: string }) => b.id) ?? []
-              ).limit(1),
-            supabase.from("guides")
-              .select("id")
-              .in("business_id",
-                (await supabase.from("businesses").select("id").eq("user_id", userId)).data?.map((b: { id: string }) => b.id) ?? []
-              ).limit(1),
-            Promise.resolve({ data: null }),
-          ]);
-
-          const stepsDone: Record<string, boolean> = {
-            business_registered: (businesses?.length ?? 0) > 0,
-            first_scan_done:     (scans?.length ?? 0) > 0,
-            competitor_added:    (competitors?.length ?? 0) > 0,
-            guide_checked:       (guides?.length ?? 0) > 0,
-            schema_generated:    false,
-          };
-          void schemas;
-
-          const steps: OnboardingStep[] = DEFAULT_STEPS.map((s) => ({
-            ...s,
-            done: stepsDone[s.key] ?? false,
-          }));
-
-          const allDone = steps.every((s) => s.done);
-          setStatus({ show: !allDone, steps });
+          // API 실패 시 캐시 사용
+          const cached = localStorage.getItem(LS_KEY);
+          if (cached) {
+            setStatus(JSON.parse(cached) as OnboardingStatus);
+          }
         }
       } catch {
-        // 조용히 실패
+        // 네트워크 오류 시 캐시 사용
+        try {
+          const LS_KEY2 = `aeolab_onboarding_progress_${userId}`;
+          const cached = localStorage.getItem(LS_KEY2);
+          if (cached) {
+            setStatus(JSON.parse(cached) as OnboardingStatus);
+          }
+        } catch {
+          // 캐시도 실패하면 조용히 종료
+        }
       }
     }
 
     load();
-  }, [userId]);
+  }, [userId, token, dismissed]);
 
   function handleDismiss() {
     setDismissed(true);
@@ -147,7 +120,7 @@ export function OnboardingProgressBar({ userId }: Props) {
           <h3 className="text-base font-bold text-blue-900">
             시작 가이드
             <span className="ml-2 text-sm font-normal text-blue-500">
-              (7일 이내 완료 시 Pro 1주일 무료 연장)
+              (완료 시 온보딩 배지 획득)
             </span>
           </h3>
           <span className="text-sm font-semibold text-blue-700">
@@ -164,8 +137,11 @@ export function OnboardingProgressBar({ userId }: Props) {
 
       {/* 체크리스트 */}
       <ul className="space-y-2">
-        {steps.map((step) => (
-          <li key={step.key}>
+        {steps.map((step) => {
+          const stepKey = step.key ?? step.id ?? step.label;
+          const stepHref = step.href ?? step.link ?? "/dashboard";
+          return (
+          <li key={stepKey}>
             {step.done ? (
               <div className="flex items-center gap-2.5 text-sm text-gray-400">
                 <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
@@ -173,7 +149,7 @@ export function OnboardingProgressBar({ userId }: Props) {
               </div>
             ) : (
               <Link
-                href={step.href}
+                href={stepHref}
                 className="flex items-center gap-2.5 text-sm text-blue-700 font-medium hover:text-blue-900 transition-colors group"
               >
                 <Circle className="w-5 h-5 text-blue-300 shrink-0 group-hover:text-blue-500 transition-colors" />
@@ -181,7 +157,8 @@ export function OnboardingProgressBar({ userId }: Props) {
               </Link>
             )}
           </li>
-        ))}
+          );
+        })}
       </ul>
     </div>
   );

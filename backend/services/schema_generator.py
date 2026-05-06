@@ -27,7 +27,7 @@ CATEGORY_KO: dict[str, str] = {
     "consulting": "컨설팅", "translation": "번역통역",
     "beauty": "미용실", "nail": "네일샵", "makeup": "메이크업", "spa": "마사지스파",
     "clothing": "의류", "shoes": "신발", "eyewear": "안경점",
-    "shop": "매장", "grocery": "식자재", "electronics": "전자제품",
+    "shopping": "매장", "grocery": "식자재", "electronics": "전자제품",
     "furniture": "가구", "stationery": "문구점", "book": "서점",
     "supplement": "건강식품", "baby": "유아용품", "interior": "인테리어",
     "auto": "자동차정비", "laundry": "세탁소", "pet": "반려동물용품",
@@ -55,8 +55,8 @@ SMARTPLACE_CHECKLIST = [
      "tip": "번호가 틀리면 AI가 연락 불가능한 가게로 인식해 추천하지 않습니다."},
     {"item": "소개글 500자 이상 작성",
      "tip": "생성된 소개글을 복사해 붙여넣으세요. 키워드가 자연스럽게 포함돼 있습니다."},
-    {"item": "리뷰 답글 최근 3개월 이내 작성",
-     "tip": "답글을 달면 가게 활성도가 높아져 AI 추천 순위가 올라갑니다."},
+    {"item": "리뷰 답글 — 키워드 포함 여부 확인 후 등록",
+     "tip": "네이버 AI 답글 도구로 초안을 만든 뒤, 업종 핵심 키워드가 빠졌다면 한 단어 추가하고 등록하세요. AI 활성도 신호가 강화됩니다."},
     {"item": "스마트플레이스 '소식' 월 1회 이상 발행",
      "tip": "이벤트·신메뉴·계절 정보를 소식으로 올리면 최신성 점수가 올라갑니다."},
     {"item": "네이버 블로그 포스트 연결",
@@ -90,11 +90,11 @@ CATEGORY_TIPS: dict[str, dict[str, str]] = {
     "academy": {
         "smartplace_tip": "수강 대상(성인·초등·중등)과 수업 방식(1:1·그룹·온라인)을 명확히 등록하고 체험 수업 가능 여부를 소개글에 포함하세요.",
         "blog_tip": "수강생 성과 사례(합격·성적 향상) 포스트는 AI 검색 인용률이 높습니다. 실제 후기 기반으로 작성하세요.",
-        "no_website_guide": "네이버 스마트플레이스 FAQ 기능을 적극 활용하면 '강남 영어학원 추천' 등 조건 검색에서 우선 노출됩니다.",
+        "no_website_guide": "네이버 스마트플레이스 소개글 안 Q&A 섹션을 적극 활용하면 '강남 영어학원 추천' 등 조건 검색에서 우선 노출됩니다.",
     },
     "legal": {
         "smartplace_tip": "전문 분야(이혼·부동산·형사 등)를 소개글에 명확히 명시하고, '무료 초기 상담' 가능 여부를 포함하세요.",
-        "blog_tip": "법률 상식 Q&A 형식의 블로그 포스트가 ChatGPT·Perplexity 인용에 효과적입니다. 월 2회 이상 발행을 권장합니다.",
+        "blog_tip": "법률 상식 Q&A 형식의 블로그 포스트가 ChatGPT·Gemini 인용에 효과적입니다. 월 2회 이상 발행을 권장합니다.",
         "no_website_guide": "네이버 블로그를 주요 채널로 운영하면 홈페이지 없이도 AI 검색 노출이 가능합니다. 법률 상식 콘텐츠 10개 이상 축적을 목표로 하세요.",
     },
     "fitness": {
@@ -210,7 +210,7 @@ CATEGORY_TYPE_MAP = {
     "academy": "EducationalOrganization", "language": "EducationalOrganization",
     "law": "LegalService", "tax": "AccountingService", "realestate": "RealEstateAgent",
     "beauty": "HairSalon", "nail": "BeautySalon", "spa": "BeautySalon",
-    "vet": "VeterinaryCare", "flower": "Florist", "shop": "Store",
+    "vet": "VeterinaryCare", "flower": "Florist", "shopping": "Store",
 }
 
 

@@ -52,7 +52,7 @@ export default async function NoticeDetailPage({ params }: { params: { id: strin
       <div className="border-b border-gray-200 pb-4 mb-6">
         <div className="flex items-center gap-2 mb-2">
           {notice.is_pinned && <span className="text-red-500">📌</span>}
-          <span className={"inline-block px-2 py-0.5 rounded text-xs font-medium " + CATEGORY_BADGE[notice.category]}>
+          <span className={"inline-block px-2 py-0.5 rounded text-sm font-medium " + CATEGORY_BADGE[notice.category]}>
             {CATEGORY_LABEL[notice.category]}
           </span>
         </div>

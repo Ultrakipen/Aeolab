@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react'
 const PLATFORM_LABELS: Record<string, string> = {
   gemini: 'Gemini AI',
   chatgpt: 'ChatGPT',
-  perplexity: 'Perplexity',
   naver: '네이버 AI 브리핑',
   google: 'Google AI Overview',
 }

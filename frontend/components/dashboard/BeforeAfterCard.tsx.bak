@@ -1,0 +1,35 @@
+"use client"
+
+import { useState, useEffect, useCallback, useMemo } from "react"
+import { X, ZoomIn, Search } from "lucide-react"
+
+interface BeforeAfterItem {
+  id: string
+  capture_type: string
+  image_url: string
+  created_at: string
+  query_used?: string | null
+}
+
+interface BeforeAfterCardProps {
+  items: BeforeAfterItem[]
+  businessName: string
+}
+
+const TYPE_LABEL: Record<string, string> = {
+  before: "가입 시점",
+  before_naver_ai: "가입 시점",
+  before_google: "가입 시점",
+  after_7d: "1주 후",
+  after_14d: "2주 후",
+  after_30d: "30일 후",
+  after_7d_naver_ai: "1주 후",
+  after_14d_naver_ai: "2주 후",
+  after_30d_naver_ai: "30일 후",
+  after_7d_google: "1주 후",
+  after_14d_google: "2주 후",
+  after_30d_google: "30일 후",
+  // 구 데이터 하위호환
+  after_60d: "60일 후",
+  after_90d: "90일 후",
+}

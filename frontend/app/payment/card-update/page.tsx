@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { updateBillingCard, ApiError } from "@/lib/api";
-import { createClient } from "@/lib/supabase/client";
+import { getSafeSession } from "@/lib/supabase/client";
 import { XCircle, CheckCircle2, CreditCard } from "lucide-react";
 
 type Status = "processing" | "success" | "error";
@@ -27,8 +27,7 @@ function CardUpdateContent() {
 
     (async () => {
       try {
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const session = await getSafeSession();
         if (!session?.access_token) {
           setStatus("error");
           setErrorMsg("로그인 세션이 만료되었습니다. 다시 로그인 후 시도해 주세요.");
@@ -101,7 +100,7 @@ function CardUpdateContent() {
         <p className="text-gray-400 text-sm mb-2">
           다음 결제부터 변경된 카드로 자동 청구됩니다.
         </p>
-        <p className="text-gray-400 text-xs mb-8">3초 후 설정 페이지로 이동합니다...</p>
+        <p className="text-gray-400 text-sm mb-8">3초 후 설정 페이지로 이동합니다...</p>
 
         <div className="space-y-3">
           <Link

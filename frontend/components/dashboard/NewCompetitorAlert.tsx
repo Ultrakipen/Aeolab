@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X, Store, ExternalLink } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, getSafeSession } from '@/lib/supabase/client'
 
 interface Notification {
   id: string
@@ -16,18 +16,23 @@ interface Props {
 
 export function NewCompetitorAlert({ businessId }: Props) {
   const [alerts, setAlerts] = useState<Notification[]>([])
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  const [dismissed, setDismissed] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('dismissed_competitor_alerts')
+      return new Set(JSON.parse(stored ?? '[]'))
+    } catch { return new Set() }
+  })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const load = async () => {
       setLoading(true)
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
+      const session = await getSafeSession().catch(() => null)
       if (!session) return
 
       // 읽지 않은 신규 경쟁사 알림 (최근 7일)
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const supabase = createClient()
       const { data } = await supabase
         .from('notifications')
         .select('id, content, sent_at')
@@ -66,13 +71,17 @@ export function NewCompetitorAlert({ businessId }: Props) {
               </p>
               <a
                 href="/competitors"
-                className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 mt-0.5 font-medium"
+                className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-800 mt-0.5 font-medium"
               >
                 경쟁사로 등록하기 <ExternalLink className="w-3 h-3" />
               </a>
             </div>
             <button
-              onClick={() => setDismissed((prev) => new Set([...prev, alert.id]))}
+              onClick={() => setDismissed((prev) => {
+                const next = new Set([...prev, alert.id])
+                try { localStorage.setItem('dismissed_competitor_alerts', JSON.stringify([...next])) } catch {}
+                return next
+              })}
               className="text-amber-400 hover:text-amber-600 transition-colors shrink-0"
             >
               <X className="w-4 h-4" />

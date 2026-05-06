@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { SiteFooter } from "@/components/common/SiteFooter";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -32,7 +35,7 @@ export default function LoginPage() {
       return;
     }
 
-    window.location.href = "/dashboard";
+    router.push("/dashboard");
   };
 
   return (
@@ -114,6 +117,7 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
+      <SiteFooter />
     </main>
   );
 }

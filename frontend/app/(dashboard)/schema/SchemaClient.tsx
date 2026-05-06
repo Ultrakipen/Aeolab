@@ -276,7 +276,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
     { key: 'blog',        label: '블로그 포스트 초안',      icon: <FileText className="w-4 h-4" /> },
     { key: 'checklist',   label: '최적화 체크리스트',       icon: <ListChecks className="w-4 h-4" /> },
     ...(hasWebsite
-      ? [{ key: 'website' as Tab, label: '홈페이지 코드', icon: <AlertCircle className="w-4 h-4" /> }]
+      ? [{ key: 'website' as Tab, label: '홈페이지 AI 연결', icon: <AlertCircle className="w-4 h-4" /> }]
       : hasNoWebsiteGuide
         ? [{ key: 'nowebsite' as Tab, label: '플레이스 등록 가이드', icon: <Globe className="w-4 h-4" /> }]
         : []),
@@ -295,8 +295,13 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
         <p className="text-gray-500 text-sm mt-1 leading-relaxed">
           가게 정보를 입력하면 스마트플레이스 소개글과 네이버 블로그 포스트 초안을 자동으로 만들어 드립니다.
         </p>
-        <div className="mt-3 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-sm text-blue-700">
-          <strong>홈페이지 없어도 OK.</strong> 대부분의 소상공인은 스마트플레이스와 블로그만으로 AI 검색 노출을 높일 수 있습니다.
+        <div className="mt-3 space-y-2">
+          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800">
+            <strong>✅ 홈페이지 없어도 OK.</strong> 소상공인 대부분은 <strong>스마트플레이스 소개글 탭</strong>만으로 AI 검색 노출을 높일 수 있습니다.
+          </div>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600">
+            홈페이지가 있다면 <strong>홈페이지 AI 연결 탭</strong>에서 JSON-LD 코드를 적용하면 ChatGPT·구글 AI 노출이 추가됩니다.
+          </div>
         </div>
       </div>
 
@@ -665,13 +670,40 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                 </div>
               )}
 
-              {/* ── 홈페이지 코드 탭 (있는 경우만) ── */}
+              {/* ── 홈페이지 AI 연결 탭 (있는 경우만) ── */}
               {tab === 'website' && result.script_tag && (
                 <div className="space-y-4">
+                  {/* 이 코드 어디에 넣나요? 안내 카드 */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <p className="text-sm font-bold text-blue-800 mb-2">📌 이 코드를 어디에 넣나요?</p>
+                    <p className="text-sm text-blue-700 mb-3 leading-relaxed">
+                      홈페이지 HTML 소스에서 <code className="bg-blue-100 px-1 rounded">&lt;/head&gt;</code> 태그 바로 위에 붙여넣으면 됩니다.<br />
+                      홈페이지가 없다면 이 코드 대신 <strong>스마트플레이스 소개글 탭</strong>을 사용하세요.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-blue-700">
+                      <div className="bg-white rounded-lg px-3 py-2 border border-blue-100">
+                        <strong>워드프레스:</strong><br />
+                        외모 → 테마 편집기 → header.php → <code>&lt;/head&gt;</code> 위
+                      </div>
+                      <div className="bg-white rounded-lg px-3 py-2 border border-blue-100">
+                        <strong>카페24 / 고도몰:</strong><br />
+                        쇼핑몰 관리 → HTML 편집 → header 영역에 삽입
+                      </div>
+                      <div className="bg-white rounded-lg px-3 py-2 border border-blue-100">
+                        <strong>Wix / 식스샵:</strong><br />
+                        사이트 설정 → SEO → 커스텀 코드 → head 영역
+                      </div>
+                      <div className="bg-white rounded-lg px-3 py-2 border border-blue-100">
+                        <strong>직접 만든 홈페이지:</strong><br />
+                        모든 페이지 HTML의 &lt;/head&gt; 바로 위
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-sm font-semibold text-gray-800">AI 검색 최적화 코드</div>
-                      <p className="text-sm text-gray-500 mt-0.5">홈페이지 HTML의 &lt;/head&gt; 바로 위에 붙여넣기</p>
+                      <div className="text-sm font-semibold text-gray-800">AI 검색 최적화 코드 (JSON-LD)</div>
+                      <p className="text-sm text-gray-500 mt-0.5">복사 후 홈페이지 &lt;/head&gt; 바로 위에 붙여넣기</p>
                     </div>
                     <CopyButton text={result.script_tag} label="코드 복사" />
                   </div>
@@ -680,9 +712,8 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                       {result.script_tag}
                     </pre>
                   </div>
-                  <div className="text-sm text-gray-400 space-y-1">
-                    <p>• 워드프레스: 외모 → 테마 편집기 → header.php의 &lt;/head&gt; 위</p>
-                    <p>• 카페24: 쇼핑몰 관리 → HTML 편집 → header에 삽입</p>
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+                    💡 적용 후 구글 서치 콘솔(search.google.com/search-console)에서 URL을 검사하면 코드가 인식됐는지 확인할 수 있습니다.
                   </div>
                 </div>
               )}
@@ -705,7 +736,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                   {[
                     {
                       name: '네이버 스마트플레이스',
-                      desc: '네이버 지도·AI 브리핑 노출의 핵심. FAQ·소식·소개글 등록 시 AI 검색 직접 인용됨.',
+                      desc: '네이버 지도·AI 브리핑 노출의 핵심. FAQ·소식·소개글 등록 시 AI 검색 노출 가능성 향상.',
                       url: 'https://smartplace.naver.com',
                       badge: '가장 중요',
                       badgeColor: 'bg-red-100 text-red-700',

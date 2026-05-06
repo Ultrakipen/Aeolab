@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { exportReport, exportPdfReport, ApiError } from '@/lib/api'
-import { createClient } from '@/lib/supabase/client'
+import { getSafeSession } from '@/lib/supabase/client'
 
 interface ExportButtonProps {
   bizId: string
@@ -10,10 +10,10 @@ interface ExportButtonProps {
   plan: string
 }
 
-// CSV: startup+ 이상 가능
+// CSV: basic+ 이상 가능 (v3.4: Basic에 CSV 포함)
 // PDF: pro+ 이상 가능
-const CSV_PLANS  = ['startup', 'pro', 'biz', 'enterprise']
-const PDF_PLANS  = ['pro', 'biz', 'enterprise']
+const CSV_PLANS  = ['basic', 'startup', 'pro', 'biz']
+const PDF_PLANS  = ['pro', 'biz']
 
 export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
   const [loadingCsv, setLoadingCsv] = useState(false)
@@ -22,7 +22,7 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
   const canCsv = CSV_PLANS.includes(plan)
   const canPdf = PDF_PLANS.includes(plan)
 
-  // 둘 다 불가능한 플랜 (free, basic)
+  // 둘 다 불가능한 플랜 (free)
   if (!canCsv && !canPdf) {
     return (
       <div className="relative group">
@@ -31,19 +31,18 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
           className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
         >
           <span>내보내기</span>
-          <span className="text-xs bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">창업패키지+</span>
+          <span className="text-sm bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">Basic+</span>
         </button>
-        <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-56 bg-gray-900 text-white text-xs rounded-lg p-2 text-center">
-          창업패키지(월 16,900원)부터 CSV 내보내기,
-          Pro 플랜(월 22,900원)부터 PDF 리포트 이용 가능합니다
+        <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-56 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">
+          Basic(월 9,900원)부터 CSV 내보내기,
+          Pro 플랜(월 18,900원)부터 PDF 리포트 이용 가능합니다
         </div>
       </div>
     )
   }
 
   const getToken = async (): Promise<string | null> => {
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    const session = await getSafeSession()
     return session?.access_token ?? null
   }
 
@@ -73,7 +72,7 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
 
   return (
     <div className="flex items-center gap-2">
-      {/* CSV 버튼: startup+ */}
+      {/* CSV 버튼: basic+ */}
       {canCsv ? (
         <button
           onClick={handleCsv}
@@ -89,10 +88,10 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
             className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
           >
             <span>CSV</span>
-            <span className="text-xs bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">창업+</span>
+            <span className="text-sm bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">창업+</span>
           </button>
-          <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 text-center">
-            창업패키지(월 16,900원)부터 이용 가능합니다
+          <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-48 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">
+            Basic(월 9,900원)부터 이용 가능합니다
           </div>
         </div>
       )}
@@ -113,10 +112,10 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
             className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
           >
             <span>PDF 리포트</span>
-            <span className="text-xs bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">Pro+</span>
+            <span className="text-sm bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">Pro+</span>
           </button>
-          <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 text-center">
-            Pro 플랜(월 22,900원)부터 이용 가능합니다
+          <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-48 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">
+            Pro 플랜(월 18,900원)부터 이용 가능합니다
           </div>
         </div>
       )}

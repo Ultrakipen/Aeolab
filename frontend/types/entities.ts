@@ -6,7 +6,7 @@
  * frontend/types/index.ts에서 re-export합니다.
  */
 
-export type Plan = "free" | "basic" | "pro" | "biz" | "startup" | "enterprise";
+export type Plan = "free" | "basic" | "pro" | "biz" | "startup";
 
 export type BusinessType = "location_based" | "non_location";
 
@@ -38,11 +38,18 @@ export interface Business {
   keyword_diversity: number;
   receipt_review_count: number;
 
-  // 인스타그램 연동 (선택)
-  instagram_username?: string;
-  instagram_connected?: boolean;
-  instagram_follower_count?: number;
-  instagram_post_count_30d?: number;
+  // 소개글 (스마트플레이스 동기화 시 수집)
+  intro_text?: string;
+
+  // AI 브리핑 노출 메타
+  ai_info_tab_status?: "not_visible" | "off" | "on" | "disabled" | "unknown";
+  is_franchise?: boolean;  // 프랜차이즈 가맹점 여부 (네이버 공식: AI 브리핑 비대상)
+
+  // AI 생성 콘텐츠 초안 (재생성 전까지 유지)
+  naver_intro_draft?: string;
+  naver_intro_generated_at?: string;
+  talktalk_faq_draft?: { items?: unknown[]; chat_menus?: unknown[] };
+  talktalk_faq_generated_at?: string;
 
   is_active: boolean;
   created_at: string;
@@ -63,8 +70,20 @@ export interface Competitor {
   place_has_faq?: boolean;
   place_has_recent_post?: boolean;
   place_has_menu?: boolean;
+  place_has_intro?: boolean;
   place_photo_count?: number | null;
   place_synced_at?: string | null;
+
+  // 신규 필드 (v5.5~v5.6)
+  website_url?: string | null;
+  ai_excerpt?: string | null;
+  faq_questions?: string[] | null;
+  weakness_data?: {
+    competitor_name: string
+    total_posts_analyzed: number
+    has_weakness: boolean
+    weaknesses: Array<{ keyword: string; count: number; opportunity: string }>
+  } | null;
 }
 
 export type SubscriptionStatus =

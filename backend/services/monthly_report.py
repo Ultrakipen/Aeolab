@@ -131,7 +131,7 @@ async def send_monthly_growth_report_to_all():
                 profile = (
                     supabase.table("profiles")
                     .select("phone")
-                    .eq("id", user_id)
+                    .eq("user_id", user_id)
                     .maybe_single()
                     .execute()
                     .data

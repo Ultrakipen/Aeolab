@@ -23,12 +23,12 @@ export default async function SchemaPage() {
     return (
       <div className="p-4 md:p-8 max-w-3xl">
         <div className="mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">스마트플레이스 · 블로그 AI 최적화</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">소개글·콘텐츠 최적화</h1>
           <p className="text-gray-500 text-sm mt-1 leading-relaxed">
             가게 정보를 입력하면 스마트플레이스 소개글과 네이버 블로그 포스트 초안을 자동으로 만들어 드립니다.
           </p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-8 flex flex-col items-center text-center">
+        <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 md:p-8 flex flex-col items-center text-center">
           <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
             <Lock className="w-7 h-7 text-blue-400" strokeWidth={1.5} />
           </div>

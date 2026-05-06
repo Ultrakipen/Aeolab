@@ -5,7 +5,7 @@
 - 모바일 viewport 설정 여부
 - favicon 존재 여부
 - HTTPS 프로토콜 여부
-- ChatGPT·Perplexity 인용 가능성 판단에 사용
+- ChatGPT·Gemini·Google AI 인용 가능성 판단에 사용
 """
 import re
 import logging

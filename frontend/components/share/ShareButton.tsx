@@ -44,19 +44,19 @@ export default function ShareButton({ title, text, url }: ShareButtonProps) {
     <div className="flex items-center gap-2">
       <button
         onClick={handleKakaoShare}
-        className="flex items-center gap-1.5 bg-yellow-400 text-yellow-900 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-yellow-500 transition-colors"
+        className="flex items-center gap-1.5 bg-yellow-400 text-yellow-900 text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-yellow-500 transition-colors"
       >
         <MessageCircle className="w-3.5 h-3.5" /> 카카오 공유
       </button>
       <button
         onClick={handleNativeShare}
-        className="flex items-center gap-1.5 bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+        className="flex items-center gap-1.5 bg-gray-100 text-gray-700 text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors"
       >
         <Share2 className="w-3.5 h-3.5" /> 공유
       </button>
       <button
         onClick={handleCopyLink}
-        className="flex items-center gap-1.5 bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+        className="flex items-center gap-1.5 bg-gray-100 text-gray-700 text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors"
       >
         {copied ? <Check className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
         {copied ? "복사됨" : "링크 복사"}
