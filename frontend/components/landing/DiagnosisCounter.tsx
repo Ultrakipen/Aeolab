@@ -37,9 +37,12 @@ export default function DiagnosisCounter() {
           지금까지 <strong className="text-green-800">{count!.toLocaleString()}개</strong> 사업장이 무료 진단을 받았습니다
         </span>
       </div>
-      <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-100 rounded-full px-3 py-1.5 text-sm text-amber-700">
-        <span>오늘 <strong>{today}건</strong> 진행 중</span>
-      </div>
+      {today !== null && today > 0 && (
+        <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-100 rounded-full px-3 py-1.5 text-sm text-amber-700">
+          <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse shrink-0" />
+          <span>오늘 <strong>{today}건</strong> 진행 중</span>
+        </div>
+      )}
     </div>
   );
 }

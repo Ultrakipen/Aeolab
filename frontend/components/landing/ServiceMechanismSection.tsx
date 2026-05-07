@@ -5,7 +5,7 @@ import { trackDetailsToggle } from "@/lib/analytics";
 
 export default function ServiceMechanismSection() {
   return (
-    <section className="bg-white py-10 md:py-14 px-4 md:px-6">
+    <section className="bg-white py-6 md:py-10 px-4 md:px-6">
       <div className="max-w-5xl mx-auto">
         {/* 섹션 타이틀 */}
         <div className="text-center mb-8 md:mb-10">
@@ -13,7 +13,7 @@ export default function ServiceMechanismSection() {
             AEOlab은 어떤 기준으로 도와드리나요?
           </h2>
           <p className="text-base md:text-lg text-gray-600 mt-2 break-keep">
-            네이버 공식 노출 조건을 점수화하고, 사장님이 5분 안에 실행하도록 AI가 자동 생성합니다
+            네이버 공식 노출 조건을 분석하고, 사장님이 5분 안에 실행하도록 AI가 가이드를 자동 생성합니다
           </p>
         </div>
 
@@ -50,17 +50,17 @@ export default function ServiceMechanismSection() {
         {/* ── 2. 점수 4항목 100점 ───────────────────────────────── */}
         <div className="mb-10">
           <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4 break-keep">
-            <span className="text-blue-600">[2]</span> 콘텐츠 점수 100점
+            <span className="text-blue-600">[2]</span> AI 브리핑 노출을 높이는 4가지 항목
           </h3>
           <div className="rounded-2xl border border-gray-200 bg-gradient-to-br from-blue-50/40 to-white p-4 md:p-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               <ScorePill points={25} title="스마트플레이스 등록" desc="자동 감지" />
               <ScorePill points={30} title="네이버 지역검색 순위" desc="실시간 측정" />
-              <ScorePill points={25} title="소식 최신성 (30일)" desc="AI 자동 초안" />
+              <ScorePill points={25} title="소식·리뷰 활성도" desc="AI 자동 초안" />
               <ScorePill points={20} title="소개글 품질" desc="Q&A 5개 자동 생성" />
             </div>
             <p className="text-base text-gray-600 mt-4 text-center break-keep">
-              점수가 높을수록 AI 브리핑 인용 확률이 높아집니다 —{" "}
+              이 4가지가 갖춰질수록 AI 브리핑 노출 확률이 높아집니다 —{" "}
               <a href="/how-it-works#step2" className="text-blue-600 hover:underline">자세한 내용 보기</a>
             </p>
           </div>
@@ -90,7 +90,7 @@ export default function ServiceMechanismSection() {
                     ✅ 가능
                   </p>
                   <ul className="space-y-2 text-base md:text-lg text-gray-700 leading-relaxed">
-                    <li>• 노출 조건 점수화 + 자동 콘텐츠 생성</li>
+                    <li>• 노출 조건 분석 + 자동 콘텐츠 생성</li>
                     <li>• 비대상 업종도 글로벌 AI 노출 개선</li>
                     <li>• 매주 4개 AI 스캔 + 결과 검증</li>
                     <li>• 경쟁사 비교 + 키워드 갭 분석</li>

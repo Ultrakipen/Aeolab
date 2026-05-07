@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AEOlab 랜딩 v6.0 — 최신 트렌드 + 사용자 이해·편의성 극대화</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+  /* ─── 기본 ─── */
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .break-keep { word-break: keep-all; }
+
+  /* ─── Mesh Gradient Hero ─── */
+  .mesh-hero {
+    background-color: #ffffff;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 20%, rgba(0, 100, 255, 0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, rgba(99, 60, 255, 0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 60% 10%, rgba(0, 180, 255, 0.04) 0%, transparent 50%);
+  }
+
+  /* ─── Mesh Gradient CTA ─── */
+  .mesh-cta {
+    background: linear-gradient(135deg, #0053e0 0%, #0064FF 45%, #2547c4 100%);
+    background-image:
+      radial-gradient(ellipse 70% 80% at 80% 20%, rgba(120, 80, 255, 0.3) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 60% at 10% 80%, rgba(0, 180, 255, 0.2) 0%, transparent 50%),
+      linear-gradient(135deg, #0053e0 0%, #0064FF 45%, #2547c4 100%);
+  }
+
+  /* ─── Floating Card ─── */
+  .card-float {
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04), 0 20px 40px -8px rgba(0, 100, 255, 0.08), 0 8px 16px -4px rgba(0,0,0,0.04);
+    transition: box-shadow .3s ease, transform .3s ease;
+  }
+  .card-float:hover {
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06), 0 28px 56px -8px rgba(0, 100, 255, 0.14), 0 12px 24px -4px rgba(0,0,0,0.06);
+    transform: translateY(-3px);
+  }
+
+  /* ─── Bento Grid ─── */
+  .bento-main {
+    grid-column: span 2;
+  }
+  @media (max-width: 767px) {
+    .bento-main { grid-column: span 1; }
+  }
+
+  /* ─── Scroll-triggered fade-in ─── */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.55s cubic-bezier(.22,1,.36,1), transform 0.55s cubic-bezier(.22,1,.36,1);
+  }
+  .fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .fade-up-d1 { transition-delay: .08s; }
+  .fade-up-d2 { transition-delay: .16s; }
+  .fade-up-d3 { transition-delay: .24s; }
+  .fade-up-d4 { transition-delay: .32s; }
+
+  /* ─── CTA hover ─── */
+  .cta-primary {
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .cta-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(0, 100, 255, .35);
+  }
+
+  /* ─── 기타 ─── */
+  .mega-number { font-weight: 900; letter-spacing: -.04em; line-height: .9; }
+
+  .live-pulse {
+    display: inline-block; width: 7px; height: 7px;
+    background: #10b981; border-radius: 50%;
+    animation: livePulse 1.4s infinite;
+  }
+  @keyframes livePulse { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+
+  @keyframes bounceDown {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+  .scroll-hint { animation: bounceDown 2s infinite; }
+
+  details summary::-webkit-details-marker { display: none; }
+
+  .design-tag {
+    position: fixed; bottom: 20px; right: 20px;
+    background: #0064FF; color: #fff;
+    font-size: 11px; font-weight: 700;
+    padding: 7px 14px; border-radius: 100px;
+    z-index: 200; box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  }
+
+  /* ─── Gate badge ─── */
+  .gate-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700;
+    padding: 4px 10px; border-radius: 100px;
+  }
+</style>
+</head>
+<body class="bg-white text-gray-900">
+
+<div class="design-tag">v6.0 · Mesh + Bento + Scroll</div>
+
+<!-- ═══════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════ -->
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100/80">
+  <div class="max-w-6xl mx-auto px-5 py-3.5 flex items-center justify-between gap-3">
+    <a href="#" class="text-xl font-black tracking-tight" style="color:#0064FF">AEOlab</a>
+    <nav class="flex items-center gap-1">
+      <a href="#how" class="hidden lg:inline-block text-sm font-semibold text-gray-600 hover:text-gray-900 px-3 py-2">서비스</a>
+      <a href="#pricing" class="hidden md:inline-block text-sm font-semibold text-gray-600 hover:text-gray-900 px-3 py-2">요금제</a>
+      <a href="#faq" class="hidden md:inline-block text-sm font-semibold text-gray-600 hover:text-gray-900 px-3 py-2">FAQ</a>
+      <a href="#contact" class="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-yellow-600 px-3 py-2">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3C6.48 3 2 6.58 2 11c0 2.85 1.86 5.34 4.65 6.78l-1.16 4.27c-.1.36.27.66.59.46l4.99-3.3c.31.03.62.04.93.04 5.52 0 10-3.58 10-8S17.52 3 12 3z"/></svg>
+        카톡 상담
+      </a>
+      <a href="#trial" class="ml-2 text-white text-sm font-bold px-4 py-2 rounded-full" style="background:#0064FF">
+        무료 진단
+      </a>
+    </nav>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════
+     BLOCK 1: HERO — Mesh Gradient 배경
+══════════════════════════════════════════════ -->
+<section class="mesh-hero px-5 pt-14 pb-10 md:pt-20 md:pb-14">
+  <div class="max-w-4xl mx-auto text-center">
+
+    <!-- 라벨 -->
+    <p class="fade-up text-xs md:text-sm font-bold tracking-[.18em] mb-5" style="color:#0064FF">
+      네이버 · ChatGPT · Google AI 노출 진단
+    </p>
+
+    <!-- 헤드라인 -->
+    <h1 class="fade-up fade-up-d1 text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-gray-900 leading-[1.2] mb-4 break-keep">
+      손님이 검색했을 때,<br>
+      <span style="color:#0064FF">우리 가게가 답이 되나요?</span>
+    </h1>
+
+    <!-- 서브 -->
+    <p class="fade-up fade-up-d2 text-base sm:text-lg md:text-xl text-gray-600 mb-2 leading-relaxed break-keep max-w-xl mx-auto">
+      네이버 광고 1일치 비용으로,
+      <strong class="text-gray-900">한 달 동안 진단·개선</strong>합니다
+    </p>
+    <p class="fade-up fade-up-d2 text-sm md:text-base text-gray-400 mb-8 md:mb-10">
+      월 9,900원 · 첫 달 <strong class="text-emerald-600">4,950원</strong>
+    </p>
+
+    <!-- CTA -->
+    <div class="fade-up fade-up-d3">
+      <a href="#trial" class="cta-primary inline-flex items-center gap-2 text-white text-base md:text-lg font-bold px-7 py-3.5 rounded-full shadow-lg" style="background:#0064FF">
+        1분 무료로 우리 가게 점검받기
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </a>
+    </div>
+
+    <!-- 면책 카운터 -->
+    <p class="fade-up fade-up-d4 text-xs md:text-sm text-gray-400 mt-5 inline-flex items-center gap-2">
+      <span class="live-pulse"></span>
+      가입 불필요 · 카드 등록 없음 ·
+      <strong class="text-gray-700">12,847</strong>개 가게가 진단 받음
+    </p>
+
+    <!-- 스크롤 유도 -->
+    <div class="mt-12 scroll-hint">
+      <svg class="w-5 h-5 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     BLOCK 1.5: 대시보드 프리뷰 카드 (폰 mockup → 카드형)
+══════════════════════════════════════════════ -->
+<section class="px-5 pb-12 md:pb-16 bg-white">
+  <div class="max-w-2xl mx-auto">
+
+    <div class="fade-up card-float rounded-3xl border border-gray-100 bg-white overflow-hidden">
+      <!-- 카드 상단 헤더 바 -->
+      <div class="flex items-center gap-2 px-5 py-3.5 border-b border-gray-100 bg-gray-50/50">
+        <div class="flex gap-1.5">
+          <div class="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-green-400"></div>
+        </div>
+        <span class="text-xs font-semibold text-gray-400 ml-2">AEOlab 진단 결과 — 예시 · 강남 카페</span>
+      </div>
+
+      <!-- 카드 본문 -->
+      <div class="p-5 md:p-7 grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+        <!-- 점수 -->
+        <div class="sm:col-span-1 bg-gradient-to-br from-blue-50 to-white rounded-2xl p-4 border border-blue-100">
+          <p class="text-xs font-semibold text-gray-500 mb-1">우리 가게 노출 점수</p>
+          <div class="flex items-end gap-2 mb-2">
+            <span class="text-5xl font-black leading-none" style="color:#0064FF">62</span>
+            <span class="text-xs font-bold text-emerald-600 mb-1.5">+8↑</span>
+          </div>
+          <div class="h-1.5 bg-blue-100 rounded-full overflow-hidden">
+            <div class="h-full rounded-full" style="width:62%;background:#0064FF"></div>
+          </div>
+          <p class="text-[11px] text-gray-400 mt-1.5">지난 달보다 8점 올랐어요</p>
+        </div>
+
+        <!-- 노출 채널 -->
+        <div class="sm:col-span-1 bg-white rounded-2xl p-4 border border-gray-100">
+          <p class="text-xs font-semibold text-gray-500 mb-3">손님이 우리 가게를 본 채널</p>
+          <div class="space-y-2.5">
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold text-gray-700 w-12 shrink-0">네이버</span>
+              <div class="flex-1 h-1.5 bg-gray-100 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width:78%"></div></div>
+              <span class="text-[11px] font-bold text-emerald-600 w-7 text-right">78%</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold text-gray-700 w-12 shrink-0">ChatGPT</span>
+              <div class="flex-1 h-1.5 bg-gray-100 rounded-full"><div class="h-full rounded-full" style="width:42%;background:#0064FF"></div></div>
+              <span class="text-[11px] font-bold w-7 text-right" style="color:#0064FF">42%</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold text-gray-700 w-12 shrink-0">Gemini</span>
+              <div class="flex-1 h-1.5 bg-gray-100 rounded-full"><div class="h-full bg-blue-300 rounded-full" style="width:28%"></div></div>
+              <span class="text-[11px] font-bold text-blue-400 w-7 text-right">28%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 빠진 단어 + 할 일 -->
+        <div class="sm:col-span-1 flex flex-col gap-3">
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3.5">
+            <p class="text-[11px] font-bold text-amber-900 mb-1">손님이 찾는데 빠진 단어</p>
+            <p class="text-xs text-amber-800 leading-relaxed">강남 디저트카페 · 분위기 좋은 카페 · 데이트 카페</p>
+          </div>
+          <div class="bg-blue-50 border border-blue-100 rounded-2xl p-3.5">
+            <p class="text-[11px] font-bold text-blue-900 mb-1">오늘 할 일 · 5분</p>
+            <p class="text-xs text-blue-700">소개글에 단어 3개 추가하기</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-100 px-5 md:px-7 py-3 bg-gray-50/30 text-center">
+        <p class="text-xs text-gray-400">이런 진단 결과를 1분 만에 받습니다 · 예시 데이터</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     BLOCK 2: WHY — Before/After + 서비스 원리 토글
+══════════════════════════════════════════════ -->
+<section class="px-5 py-12 md:py-16" style="background:#f7f7f5">
+  <div class="max-w-5xl mx-auto">
+
+    <div class="text-center mb-8 md:mb-10 fade-up">
+      <p class="text-xs md:text-sm font-bold tracking-[.18em] mb-3" style="color:#0064FF">WHY AEOLAB</p>
+      <h2 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-gray-900 leading-[1.2] break-keep">
+        광고비 다 쓰면 끝,<br>
+        <span style="color:#0064FF">AEOlab은 계속 남습니다</span>
+      </h2>
+      <p class="text-base md:text-lg text-gray-600 mt-3 break-keep max-w-xl mx-auto">
+        광고는 끄는 순간 노출 0, AEOlab은 한 번 올라가면 광고 없이도 유지됩니다
+      </p>
+    </div>
+
+    <!-- Before / After 카드 -->
+    <div class="grid md:grid-cols-2 gap-4 md:gap-6 mb-6">
+
+      <!-- Before -->
+      <div class="fade-up fade-up-d1 card-float bg-white rounded-3xl p-7 md:p-8 border border-gray-200">
+        <span class="gate-badge bg-red-50 text-red-700 mb-5 inline-flex">기존 — 네이버 광고</span>
+        <h3 class="text-lg md:text-xl font-bold text-gray-900 mb-1 break-keep">광고비 끄면 즉시 사라짐</h3>
+        <p class="text-sm text-gray-400 mb-5">하루 30,000원 × 한 달 = 90만원</p>
+
+        <svg viewBox="0 0 300 120" class="w-full h-auto">
+          <line x1="0" y1="90" x2="300" y2="90" stroke="#e5e7eb" stroke-width="1"/>
+          <line x1="0" y1="55" x2="300" y2="55" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="0" y1="20" x2="300" y2="20" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3"/>
+          <path d="M 0,38 L 70,35 L 140,36 L 165,35" stroke="#dc2626" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M 165,35 L 172,90" stroke="#dc2626" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="4,4"/>
+          <path d="M 172,90 L 300,90" stroke="#d1d5db" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <line x1="169" y1="8" x2="169" y2="92" stroke="#d1d5db" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="65" y="14" text-anchor="middle" class="text-[10px] fill-red-500 font-semibold" font-size="9" font-family="Pretendard,sans-serif">광고비 ON</text>
+          <text x="230" y="108" text-anchor="middle" class="text-[10px] fill-gray-400" font-size="9" font-family="Pretendard,sans-serif">광고비 OFF → 노출 0</text>
+          <circle cx="169" cy="35" r="4" fill="#dc2626"/>
+        </svg>
+
+        <ul class="mt-5 space-y-1.5 text-sm text-gray-600">
+          <li class="flex items-start gap-2"><span class="text-red-400 font-bold mt-0.5">✕</span> 매달 광고비 지출 (최소 30~90만원)</li>
+          <li class="flex items-start gap-2"><span class="text-red-400 font-bold mt-0.5">✕</span> 끄는 순간 검색 결과에서 사라짐</li>
+          <li class="flex items-start gap-2"><span class="text-red-400 font-bold mt-0.5">✕</span> ChatGPT·Gemini에는 영향 없음</li>
+        </ul>
+      </div>
+
+      <!-- After -->
+      <div class="fade-up fade-up-d2 card-float rounded-3xl p-7 md:p-8 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#0064FF 0%,#003ebd 100%)">
+        <div class="absolute inset-0 pointer-events-none" style="background-image:radial-gradient(ellipse 60% 60% at 80% 10%,rgba(255,255,255,0.12) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 10% 80%,rgba(120,80,255,0.15) 0%,transparent 50%)"></div>
+        <div class="relative">
+          <span class="gate-badge bg-white/20 text-white mb-5 inline-flex">AEOlab 적용 후</span>
+          <h3 class="text-lg md:text-xl font-bold mb-1 break-keep">광고 없이도 꾸준히 추천됨</h3>
+          <p class="text-sm text-blue-200 mb-5">월 9,900원 (광고비의 약 1/91)</p>
+
+          <svg viewBox="0 0 300 120" class="w-full h-auto">
+            <line x1="0" y1="90" x2="300" y2="90" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+            <line x1="0" y1="55" x2="300" y2="55" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="3,3"/>
+            <line x1="0" y1="20" x2="300" y2="20" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="3,3"/>
+            <defs>
+              <linearGradient id="afterG" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stop-color="white" stop-opacity="0"/>
+                <stop offset="100%" stop-color="white" stop-opacity=".2"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,84 L 50,70 L 100,62 L 150,50 L 200,38 L 250,28 L 300,20 L 300,120 L 0,120 Z" fill="url(#afterG)"/>
+            <path d="M 0,84 L 50,70 L 100,62 L 150,50 L 200,38 L 250,28 L 300,20" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="100" cy="62" r="3.5" fill="white"/>
+            <circle cx="200" cy="38" r="3.5" fill="white"/>
+            <circle cx="300" cy="20" r="3.5" fill="white"/>
+            <text x="150" y="12" text-anchor="middle" fill="white" font-size="9" font-family="Pretendard,sans-serif">매달 우상향</text>
+          </svg>
+
+          <ul class="mt-5 space-y-1.5 text-sm text-blue-100">
+            <li class="flex items-start gap-2"><span class="text-emerald-300 font-bold mt-0.5">✓</span> 한 번 올라가면 광고 없이도 유지</li>
+            <li class="flex items-start gap-2"><span class="text-emerald-300 font-bold mt-0.5">✓</span> 네이버·ChatGPT·Gemini·Google 동시</li>
+            <li class="flex items-start gap-2"><span class="text-emerald-300 font-bold mt-0.5">✓</span> 광고비의 약 1% 비용</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 서비스 동작 원리 토글 (사장님이 5초 안에 이해할 정보) -->
+    <details class="fade-up group rounded-2xl border border-gray-200 bg-white overflow-hidden card-float">
+      <summary class="flex items-center justify-between gap-3 cursor-pointer list-none px-5 py-4 md:px-6 md:py-5 hover:bg-gray-50 transition-colors">
+        <div class="flex items-center gap-3">
+          <span class="text-base font-bold text-gray-900 break-keep">어떤 가게에 효과가 있나요? — 노출 조건 + 가능/불가능 확인</span>
+        </div>
+        <span class="shrink-0 w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-lg font-bold transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+      </summary>
+
+      <div class="border-t border-gray-100 px-5 pb-5 md:px-6 md:pb-6 pt-5 space-y-5">
+        <!-- 게이트 3조건 -->
+        <div>
+          <p class="text-sm font-bold text-gray-500 mb-3">네이버 AI 브리핑 노출 가능 조건 (3가지 모두 충족 시)</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
+              <p class="text-xs font-bold text-blue-700 mb-1">① 업종</p>
+              <p class="text-sm font-bold text-gray-900">음식점·카페·베이커리·바·숙박</p>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed">그 외 업종도 ChatGPT·Gemini·Google AI 개선 가능</p>
+            </div>
+            <div class="rounded-xl border border-purple-100 bg-purple-50 p-4">
+              <p class="text-xs font-bold text-purple-700 mb-1">② 가맹점 여부</p>
+              <p class="text-sm font-bold text-gray-900">개인 사업장만 해당</p>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed">프랜차이즈 가맹점은 네이버 공식 정책상 제외</p>
+            </div>
+            <div class="rounded-xl border border-amber-100 bg-amber-50 p-4">
+              <p class="text-xs font-bold text-amber-700 mb-1">③ 리뷰 수</p>
+              <p class="text-sm font-bold text-gray-900">영수증 리뷰 10건 권장</p>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed">부족 시 QR 카드 + 리뷰 답변 자동 생성 지원</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 점수 100점 -->
+        <div class="rounded-xl bg-gray-50 border border-gray-200 p-4">
+          <p class="text-sm font-bold text-gray-700 mb-3">점수 100점 구성</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div class="bg-white rounded-xl border border-blue-100 p-3 text-center">
+              <p class="text-2xl font-black text-blue-600 leading-none">25<span class="text-xs font-normal text-gray-400">점</span></p>
+              <p class="text-xs font-semibold text-gray-700 mt-1 break-keep">스마트플레이스</p>
+            </div>
+            <div class="bg-white rounded-xl border border-blue-100 p-3 text-center">
+              <p class="text-2xl font-black text-blue-600 leading-none">30<span class="text-xs font-normal text-gray-400">점</span></p>
+              <p class="text-xs font-semibold text-gray-700 mt-1 break-keep">지역검색 순위</p>
+            </div>
+            <div class="bg-white rounded-xl border border-blue-100 p-3 text-center">
+              <p class="text-2xl font-black text-blue-600 leading-none">25<span class="text-xs font-normal text-gray-400">점</span></p>
+              <p class="text-xs font-semibold text-gray-700 mt-1 break-keep">소식 최신성</p>
+            </div>
+            <div class="bg-white rounded-xl border border-blue-100 p-3 text-center">
+              <p class="text-2xl font-black text-blue-600 leading-none">20<span class="text-xs font-normal text-gray-400">점</span></p>
+              <p class="text-xs font-semibold text-gray-700 mt-1 break-keep">소개글 품질</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 가능 / 불가능 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <p class="text-sm font-bold text-emerald-800 mb-2">✅ 가능</p>
+            <ul class="space-y-1.5 text-xs text-gray-700 leading-relaxed">
+              <li>• 노출 조건 점수화 + 콘텐츠 자동 생성</li>
+              <li>• 비대상 업종도 글로벌 AI 노출 개선</li>
+              <li>• 매주 4개 AI 스캔 + 결과 검증</li>
+              <li>• 경쟁사 비교 + 키워드 갭 분석</li>
+            </ul>
+          </div>
+          <div class="rounded-xl border border-red-200 bg-red-50 p-4">
+            <p class="text-sm font-bold text-red-800 mb-2">❌ 불가능</p>
+            <ul class="space-y-1.5 text-xs text-gray-700 leading-relaxed">
+              <li>• 노출 100% 보장 (알고리즘 비공개)</li>
+              <li>• 비대상 업종을 대상으로 전환</li>
+              <li>• 네이버 AI 정보 탭 토글 대신 켜기</li>
+              <li>• 네이버 정책 위반 우회</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     BLOCK 3: HOW — STEP 카드 3개
+══════════════════════════════════════════════ -->
+<section id="how" class="px-5 py-12 md:py-16 bg-white">
+  <div class="max-w-5xl mx-auto">
+
+    <div class="text-center mb-8 md:mb-10 fade-up">
+      <p class="text-xs md:text-sm font-bold tracking-[.18em] mb-3" style="color:#0064FF">HOW IT WORKS</p>
+      <h2 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-gray-900 leading-[1.2] mb-3 break-keep">
+        1분 진단, <span style="color:#0064FF">7일 변화</span>
+      </h2>
+      <p class="text-base md:text-lg text-gray-600 break-keep">복잡한 설정 없이 3단계로 시작합니다</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 md:gap-6 max-w-5xl mx-auto">
+
+      <!-- Step 01 -->
+      <div class="fade-up fade-up-d1 text-center">
+        <div class="card-float bg-white rounded-2xl border border-gray-100 p-6 mb-5 text-left">
+          <span class="text-[11px] font-bold tracking-wider" style="color:#0064FF">STEP 01</span>
+          <p class="text-base md:text-lg font-bold text-gray-900 mt-1 mb-4">우리 가게 입력</p>
+          <div class="space-y-2">
+            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+              <p class="text-[10px] text-gray-400 mb-0.5">업종</p>
+              <p class="text-sm font-bold text-gray-800">카페</p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+              <p class="text-[10px] text-gray-400 mb-0.5">우리 가게 이름</p>
+              <p class="text-sm font-bold text-gray-800">○○카페</p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+              <p class="text-[10px] text-gray-400 mb-0.5">동네</p>
+              <p class="text-sm font-bold text-gray-800">강남구</p>
+            </div>
+          </div>
+          <div class="w-full text-white text-sm font-bold py-3 rounded-xl mt-4 text-center" style="background:#0064FF">진단 시작</div>
+          <p class="text-center text-[11px] text-gray-400 mt-2">1분 소요 · 가입 불필요</p>
+        </div>
+        <h3 class="text-base md:text-lg font-bold text-gray-900 mb-2 break-keep">1분 무료 진단</h3>
+        <p class="text-sm md:text-base text-gray-600 leading-relaxed break-keep">
+          업종·가게 이름만 입력하면 네이버·ChatGPT·Google이 어떻게 보는지 알려드립니다
+        </p>
+      </div>
+
+      <!-- Step 02 -->
+      <div class="fade-up fade-up-d2 text-center">
+        <div class="card-float bg-white rounded-2xl border border-gray-100 p-6 mb-5 text-left">
+          <span class="text-[11px] font-bold tracking-wider" style="color:#0064FF">STEP 02</span>
+          <p class="text-base md:text-lg font-bold text-gray-900 mt-1 mb-4">결과 + 할 일 안내</p>
+          <div class="bg-gradient-to-br from-blue-50 to-white rounded-xl p-4 border border-blue-100 mb-3 text-center">
+            <p class="text-5xl font-black leading-none mb-1" style="color:#0064FF">62</p>
+            <p class="text-[11px] text-gray-500">우리 가게 노출 점수 (100점)</p>
+          </div>
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-2">
+            <p class="text-[11px] font-bold text-amber-900 mb-0.5">빠진 단어 3개</p>
+            <p class="text-xs text-amber-800">강남 디저트 외 2개</p>
+          </div>
+          <div class="rounded-xl p-3 bg-blue-50 border border-blue-100">
+            <p class="text-[11px] font-bold text-blue-900 mb-0.5">오늘 할 일 · 5분</p>
+            <p class="text-xs text-blue-700">소개글에 단어 3개 추가</p>
+          </div>
+        </div>
+        <h3 class="text-base md:text-lg font-bold text-gray-900 mb-2 break-keep">결과 + 할 일</h3>
+        <p class="text-sm md:text-base text-gray-600 leading-relaxed break-keep">
+          0~100점 점수와 빠진 단어, 5분 안에 할 수 있는 할 일을 알려드립니다
+        </p>
+      </div>
+
+      <!-- Step 03 -->
+      <div class="fade-up fade-up-d3 text-center">
+        <div class="card-float bg-white rounded-2xl border border-gray-100 p-6 mb-5 text-left">
+          <span class="text-[11px] font-bold tracking-wider text-emerald-600">STEP 03</span>
+          <p class="text-base md:text-lg font-bold text-gray-900 mt-1 mb-4">매주 자동 점검</p>
+          <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100 mb-3 text-center">
+            <p class="text-5xl font-black leading-none mb-1 text-emerald-600">+8</p>
+            <p class="text-[11px] text-gray-500">한 달 전보다</p>
+          </div>
+          <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-3">
+            <p class="text-[11px] text-gray-400 mb-2">한 달 추세</p>
+            <svg viewBox="0 0 100 30" class="w-full h-auto">
+              <path d="M 0,25 L 20,22 L 40,18 L 60,15 L 80,10 L 100,7" stroke="#10b981" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
+            <p class="text-[11px] font-bold text-yellow-900">📩 카톡 알림</p>
+            <p class="text-xs text-yellow-800">우리 가게 노출 +8점 올랐습니다</p>
+          </div>
+        </div>
+        <h3 class="text-base md:text-lg font-bold text-gray-900 mb-2 break-keep">매주 자동 점검</h3>
+        <p class="text-sm md:text-base text-gray-600 leading-relaxed break-keep">
+          매주 자동 재측정. 점수 변화를 카카오 알림톡으로 받습니다
+        </p>
+      </div>
+    </div>
+
+    <div class="text-center mt-10 fade-up">
+      <a href="#trial" class="cta-primary inline-flex items-center gap-2 text-white text-base font-bold px-8 py-4 rounded-full shadow-md" style="background:#0064FF">
+        지금 무료로 시작
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     BLOCK 4: 신뢰 데이터 — Bento Grid
+══════════════════════════════════════════════ -->
+<section class="px-5 py-12 md:py-16" style="background:#fafaf8">
+  <div class="max-w-5xl mx-auto">
+
+    <div class="text-center mb-8 md:mb-10 fade-up">
+      <p class="text-xs md:text-sm font-bold tracking-[.18em] mb-3" style="color:#0064FF">NAVER 공식 발표 데이터</p>
+      <h2 class="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 break-keep">
+        실제로 효과가 있다는 공식 근거
+      </h2>
+    </div>
+
+    <!-- Bento Grid: 큰 카드 1개 + 작은 카드 3개 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+
+      <!-- 메인 카드 — 스팬 2열 -->
+      <div class="fade-up fade-up-d1 bento-main card-float rounded-3xl bg-gradient-to-br p-7 md:p-9 relative overflow-hidden" style="background:linear-gradient(135deg,#0064FF 0%,#1a46d8 100%)">
+        <div class="absolute inset-0 pointer-events-none" style="background-image:radial-gradient(ellipse 70% 70% at 90% 10%,rgba(255,255,255,0.12) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 5% 90%,rgba(120,80,255,0.2) 0%,transparent 50%)"></div>
+        <div class="relative">
+          <p class="text-sm font-bold text-blue-200 mb-2">음식점 적용 후 클릭률 변화</p>
+          <p class="mega-number text-6xl md:text-8xl text-white mb-2">+27.4%</p>
+          <p class="text-base md:text-lg text-blue-100 break-keep mb-1">AI 브리핑에 노출되면 손님 클릭이 늘어납니다</p>
+          <p class="text-xs text-blue-300 mt-4">네이버 2026년 4월 공식 발표 · 음식점 카테고리 기준</p>
+          <p class="text-xs mt-1">
+            <a href="https://www.mt.co.kr/tech/2026/04/07/2026040709261836765" target="_blank" class="text-white/70 underline hover:text-white">머니투데이 보도 원문 →</a>
+          </p>
+          <p class="text-[11px] text-blue-300/80 mt-2 break-keep">측정 시점·지역·업종에 따라 달라질 수 있습니다</p>
+        </div>
+      </div>
+
+      <!-- 보조 카드 3개 (세로 스택) -->
+      <div class="fade-up fade-up-d2 flex flex-col gap-4 md:gap-5">
+
+        <div class="card-float bg-white rounded-2xl border border-gray-100 p-5 flex flex-col gap-1">
+          <p class="text-3xl md:text-4xl font-black text-gray-900 leading-none">3,000<span class="text-lg font-normal text-gray-400">만+</span></p>
+          <p class="text-sm font-semibold text-gray-700">AI 브리핑을 본 사람</p>
+          <p class="text-xs text-gray-400">네이버 공식 발표 2025-2026</p>
+        </div>
+
+        <div class="card-float bg-white rounded-2xl border border-gray-100 p-5 flex flex-col gap-1">
+          <p class="text-3xl md:text-4xl font-black text-gray-900 leading-none">15,000<span class="text-lg font-normal text-gray-400">+</span></p>
+          <p class="text-sm font-semibold text-gray-700">AI 답변에 적용된 숙박업체</p>
+          <p class="text-xs text-gray-400">2026년 기준</p>
+        </div>
+
+        <div class="card-float bg-emerald-50 rounded-2xl border border-emerald-100 p-5 flex flex-col gap-1">
+          <p class="text-3xl md:text-4xl font-black text-emerald-700 leading-none">+8<span class="text-lg font-normal text-emerald-400">%</span></p>
+          <p class="text-sm font-semibold text-gray-700">예약이 늘어난 음식점</p>
+          <p class="text-xs text-gray-400">AI 브리핑 적용 음식점 평균</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     BLOCK 5: 가격 — 일상 비유 + Floating 카드
+══════════════════════════════════════════════ -->
+<section id="pricing" class="px-5 py-12 md:py-16 bg-white">
+  <div class="max-w-2xl mx-auto text-center fade-up">
+
+    <p class="text-xs md:text-sm font-bold tracking-[.18em] mb-3" style="color:#0064FF">PRICING</p>
+    <h2 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-gray-900 leading-[1.2] mb-3 break-keep">
+      네이버 광고 1일치로<br>
+      <span style="color:#0064FF">한 달 동안 진단·개선</span>
+    </h2>
+    <p class="text-sm md:text-base text-gray-500 mb-8 break-keep">
+      광고비 90만원 → AEOlab 9,900원 (약 1/91)
+    </p>
+
+    <!-- 가격 카드 -->
+    <div class="card-float rounded-3xl border border-gray-100 p-7 md:p-10 text-center">
+      <p class="mega-number text-5xl md:text-7xl mb-2" style="color:#0064FF">9,900<span class="text-xl md:text-3xl text-gray-400 font-normal">원</span></p>
+      <p class="text-sm md:text-base text-gray-500 mb-5">한 달 구독료</p>
+
+      <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-6">
+        <p class="text-lg md:text-xl font-bold text-emerald-700">첫 달 4,950원 (50% 할인)</p>
+        <p class="text-sm text-emerald-600">커피 한 잔 값보다 싸게 시작</p>
+      </div>
+
+      <!-- 약속 배지 -->
+      <div class="flex flex-wrap justify-center gap-2 mb-7">
+        <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-100">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          언제든 해지
+        </span>
+        <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-100">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          30일 환불 보장
+        </span>
+        <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-100">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          체험은 카드 등록 없음
+        </span>
+      </div>
+
+      <a href="#trial" class="cta-primary inline-flex items-center gap-2 text-white text-base font-bold px-8 py-4 rounded-full shadow-md" style="background:#0064FF">
+        요금제 자세히 보기
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </a>
+      <p class="text-xs text-gray-400 mt-4">창업패키지 12,900원 · Pro 18,900원 · Biz 49,900원 별도</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     BLOCK 6: 최종 CTA — Mesh Gradient 강화
+══════════════════════════════════════════════ -->
+<section id="trial" class="mesh-cta relative px-5 py-14 md:py-20 text-white overflow-hidden">
+  <!-- 그리드 오버레이 -->
+  <div class="absolute inset-0 opacity-[0.06] pointer-events-none" style="background-image:linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.7) 1px,transparent 1px);background-size:28px 28px" aria-hidden="true"></div>
+
+  <div class="relative max-w-2xl mx-auto text-center fade-up">
+    <h2 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-4 leading-[1.2] break-keep">
+      손님이 우리 가게를<br>먼저 찾게 만들기
+    </h2>
+    <p class="text-base md:text-lg text-blue-100 mb-10 break-keep">
+      가입 불필요 · 카드 등록 없음 · 1분 소요
+    </p>
+    <a href="#" class="cta-primary inline-flex items-center gap-2 bg-white text-base md:text-lg font-bold px-10 py-4.5 rounded-full shadow-2xl hover:bg-blue-50" style="color:#0064FF; padding-top:18px; padding-bottom:18px;">
+      1분 무료 진단 시작
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+    </a>
+    <p class="text-sm text-blue-200 mt-7 break-keep">
+      궁금한 점이 있으세요?
+      <a href="#contact" class="underline font-semibold text-white hover:text-yellow-300 ml-1">카톡 상담으로 문의하기</a>
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     BLOCK 7: FAQ
+══════════════════════════════════════════════ -->
+<section id="faq" class="px-5 py-12 md:py-16 bg-white">
+  <div class="max-w-2xl mx-auto">
+    <div class="text-center mb-8 fade-up">
+      <p class="text-xs md:text-sm font-bold tracking-[.18em] mb-3" style="color:#0064FF">FAQ</p>
+      <h3 class="text-2xl md:text-3xl font-black tracking-tight text-gray-900 break-keep">자주 묻는 질문</h3>
+    </div>
+
+    <div class="space-y-2.5">
+      <details class="fade-up group bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+        <summary class="flex items-center justify-between cursor-pointer list-none px-5 py-4 hover:bg-gray-100/60 transition-colors">
+          <span class="text-sm md:text-base font-semibold text-gray-900 break-keep pr-4">우리 가게 업종도 네이버 AI 답변에 나오나요?</span>
+          <span class="shrink-0 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-base font-bold transition-transform group-open:rotate-45">+</span>
+        </summary>
+        <div class="px-5 pb-5 text-sm text-gray-700 leading-relaxed border-t border-gray-200 pt-4 break-keep">
+          음식점·카페·베이커리·바·숙박 업종이 우선 적용됩니다. 프랜차이즈 가맹점은 현재 제외됩니다. 그 외 업종도 ChatGPT·Gemini·Google AI 노출은 똑같이 개선됩니다.
+        </div>
+      </details>
+
+      <details class="fade-up fade-up-d1 group bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+        <summary class="flex items-center justify-between cursor-pointer list-none px-5 py-4 hover:bg-gray-100/60 transition-colors">
+          <span class="text-sm md:text-base font-semibold text-gray-900 break-keep pr-4">결과는 얼마나 빨리 나오나요?</span>
+          <span class="shrink-0 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-base font-bold transition-transform group-open:rotate-45">+</span>
+        </summary>
+        <div class="px-5 pb-5 text-sm text-gray-700 leading-relaxed border-t border-gray-200 pt-4 break-keep">
+          진단은 1분이면 끝납니다. 할 일을 실행한 후 점수 변화는 보통 2~4주 안에 나타나며, 매주 자동으로 다시 측정됩니다.
+        </div>
+      </details>
+
+      <details class="fade-up fade-up-d2 group bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+        <summary class="flex items-center justify-between cursor-pointer list-none px-5 py-4 hover:bg-gray-100/60 transition-colors">
+          <span class="text-sm md:text-base font-semibold text-gray-900 break-keep pr-4">네이버 광고를 같이 해야 하나요?</span>
+          <span class="shrink-0 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-base font-bold transition-transform group-open:rotate-45">+</span>
+        </summary>
+        <div class="px-5 pb-5 text-sm text-gray-700 leading-relaxed border-t border-gray-200 pt-4 break-keep">
+          아니요. AEOlab은 광고 없이도 검색 결과에서 자연스럽게 추천되도록 돕습니다. 광고비를 줄이거나 끊은 사장님도 결과를 유지할 수 있습니다.
+        </div>
+      </details>
+
+      <details class="fade-up fade-up-d3 group bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+        <summary class="flex items-center justify-between cursor-pointer list-none px-5 py-4 hover:bg-gray-100/60 transition-colors">
+          <span class="text-sm md:text-base font-semibold text-gray-900 break-keep pr-4">100% 노출이 보장되나요?</span>
+          <span class="shrink-0 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-base font-bold transition-transform group-open:rotate-45">+</span>
+        </summary>
+        <div class="px-5 pb-5 text-sm text-gray-700 leading-relaxed border-t border-gray-200 pt-4 break-keep">
+          아니요. 네이버 알고리즘은 비공개여서 100% 보장은 불가능합니다. AEOlab은 공식 노출 조건을 점수로 만들어 사장님이 직접 실행하도록 돕고, 매주 측정으로 결과를 검증합니다.
+        </div>
+      </details>
+
+      <details class="fade-up fade-up-d4 group bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+        <summary class="flex items-center justify-between cursor-pointer list-none px-5 py-4 hover:bg-gray-100/60 transition-colors">
+          <span class="text-sm md:text-base font-semibold text-gray-900 break-keep pr-4">언제든 해지할 수 있나요?</span>
+          <span class="shrink-0 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-base font-bold transition-transform group-open:rotate-45">+</span>
+        </summary>
+        <div class="px-5 pb-5 text-sm text-gray-700 leading-relaxed border-t border-gray-200 pt-4 break-keep">
+          예. 결제 후 30일 안에는 100% 환불됩니다. 그 후에도 언제든 마이페이지에서 해지하실 수 있고, 위약금이나 약정 기간이 없습니다.
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════ -->
+<footer class="border-t border-gray-100 px-5 py-8 bg-white">
+  <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div>
+      <p class="text-base font-black" style="color:#0064FF">AEOlab</p>
+      <p class="text-xs text-gray-400 mt-1">© 2026 AEOlab. AI Engine Optimization Lab.</p>
+    </div>
+    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
+      <a href="/how-it-works" class="hover:text-gray-700">서비스 안내</a>
+      <a href="/pricing" class="hover:text-gray-700">요금제</a>
+      <a href="/faq" class="hover:text-gray-700">자주 묻는 질문</a>
+      <a href="/terms" class="hover:text-gray-700">이용약관</a>
+      <a href="/privacy" class="hover:text-gray-700">개인정보처리방침</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════
+     Scroll-triggered fade-in (Intersection Observer)
+══════════════════════════════════════════════ -->
+<script>
+(function() {
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    },
+    { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+  );
+
+  document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+
+  // Hero 섹션은 즉시 노출 (뷰포트 첫 화면)
+  document.querySelectorAll('section:first-of-type .fade-up').forEach(el => {
+    el.classList.add('visible');
+  });
+})();
+</script>
+
+</body>
+</html>

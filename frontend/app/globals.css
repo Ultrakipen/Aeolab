@@ -131,3 +131,14 @@
     @apply font-sans;
   }
 }
+
+/* Landing scroll fade-in — JS가 활성화될 때만 동작 (no-JS 사용자 보호) */
+body.js-anim .fade-up {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.55s cubic-bezier(.22,1,.36,1), transform 0.55s cubic-bezier(.22,1,.36,1);
+}
+.fade-up.visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}

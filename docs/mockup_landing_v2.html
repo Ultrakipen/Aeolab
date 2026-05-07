@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AEOlab 랜딩 목업 v2 — 실제 구현 코드 기반</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#fafaf8;color:#111827;font-size:16px;line-height:1.6}
+a{text-decoration:none;color:inherit}
+mark{background:#fef08a;color:#713f12;border-radius:3px;padding:0 2px;font-weight:600;font-style:normal}
+
+/* ── 배지 ── */
+.design-tag{position:fixed;bottom:16px;right:16px;background:#1d4ed8;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+
+/* ── HEADER ── */
+header{position:sticky;top:0;z-index:100;background:rgba(250,250,248,.96);backdrop-filter:blur(16px);border-bottom:1px solid #e8e4dc;padding:12px 24px}
+.hdr-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:22px;font-weight:900;color:#1d4ed8;letter-spacing:-.5px}
+.logo-sub{font-size:12px;font-weight:400;color:#6b7280;margin-left:8px}
+nav a{font-size:14px;color:#4b5563;padding:7px 12px;border-radius:6px;display:inline-block}
+nav a:hover{background:#f5f0e8}
+.cta-btn{background:#1d4ed8;color:#fff!important;padding:9px 18px;border-radius:8px;font-weight:700;font-size:14px}
+.cta-btn:hover{background:#1e40af!important}
+
+/* ── HERO ── */
+.hero{background:#f5f0e8;border-bottom:1px solid #e8e4dc;padding:56px 24px 64px}
+.hero-inner{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.hero-left{}
+.eyebrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:6px 14px;border-radius:100px}
+.pill-red{background:#fef2f2;color:#b91c1c}
+.pill-red .dot{width:6px;height:6px;background:#ef4444;border-radius:50%;animation:blink 1.4s infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.pill-blue{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+h1{font-size:28px;font-weight:900;color:#111827;line-height:1.3;letter-spacing:-.4px;margin-bottom:10px;word-break:keep-all}
+.sub-desc{font-size:16px;color:#374151;margin-bottom:12px;word-break:keep-all}
+.channel-box{background:#fff;border-left:4px solid #93c5fd;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:10px 14px;border-radius:0 8px 8px 0;font-size:14px;color:#374151;margin-bottom:16px;word-break:keep-all}
+.channel-box a{color:#1d4ed8;font-weight:600}
+.channel-box a:hover{text-decoration:underline}
+.main-cta{display:inline-flex;align-items:center;justify-content:center;background:#1d4ed8;color:#fff;font-size:16px;font-weight:700;padding:14px 28px;border-radius:12px;cursor:pointer;width:100%;max-width:360px;transition:background .15s;word-break:keep-all}
+.main-cta:hover{background:#1e40af}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:14px;color:#374151;background:#fff;border:1px solid #e8e4dc;padding:6px 14px;border-radius:100px}
+.counter{font-size:13px;color:#6b7280;margin-top:10px}
+.counter strong{color:#1d4ed8;font-weight:700}
+
+/* ── HERO SAMPLE CARD ── */
+.card{background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.1);border:1px solid #f3f4f6;overflow:hidden;width:100%}
+.tab-header{display:flex;border-bottom:1px solid #f3f4f6}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 8px;font-size:11px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:#9ca3af;transition:all .15s}
+.tab-btn.active{color:#1d4ed8;background:#eff6ff;border-bottom-color:#1d4ed8}
+.tab-btn:hover:not(.active){color:#374151;background:#f9fafb}
+.tab-icon{font-size:16px}
+.tab-panel{padding:20px;min-height:340px}
+.tab-panel.hidden{display:none}
+
+/* AI Response Panel */
+.user-bubble{display:inline-block;background:#1d4ed8;color:#fff;font-size:13px;padding:10px 16px;border-radius:16px 16px 16px 4px;font-weight:500;max-width:90%;word-break:keep-all}
+.gpt-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-top:10px}
+.gpt-logo{width:24px;height:24px;background:#10a37f;color:#fff;font-size:11px;font-weight:700;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.gpt-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.gpt-title{font-size:13px;font-weight:700;color:#374151}
+.gpt-sample{font-size:13px;color:#9ca3af;margin-left:auto}
+.gpt-text{font-size:13px;color:#374151;line-height:1.65}
+.badge-red{display:inline-flex;align-items:center;gap:5px;background:#fef2f2;color:#b91c1c;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;border:1px solid #fecaca;margin-top:8px;word-break:keep-all}
+.disclaimer{font-size:10px;color:#9ca3af;margin-top:6px}
+.naver-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-top:8px}
+.naver-logo{width:24px;height:24px;background:#03c75a;color:#fff;font-size:11px;font-weight:700;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.value-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;margin-top:8px}
+.value-box p.title{font-size:13px;font-weight:700;color:#1e40af;margin-bottom:4px}
+.value-box p.body{font-size:12px;color:#1d4ed8;line-height:1.55}
+.panel-cta{display:flex;align-items:center;justify-content:center;background:#1d4ed8;color:#fff;font-size:13px;font-weight:700;padding:12px;border-radius:10px;margin-top:10px;cursor:pointer;transition:background .15s;word-break:keep-all}
+.panel-cta:hover{background:#1e40af}
+.no-cc{font-size:10px;color:#9ca3af;text-align:center;margin-top:4px}
+
+/* Comparison Panel */
+.legend{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.legend-txt{font-size:11px;color:#6b7280}
+.legend-dots{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600}
+.dot-n{width:10px;height:10px;background:#10b981;border-radius:50%;display:inline-block}
+.dot-g{width:10px;height:10px;background:#fb923c;border-radius:50%;display:inline-block}
+.dot-gg{width:10px;height:10px;background:#60a5fa;border-radius:50%;display:inline-block}
+.comp-row{display:flex;align-items:center;gap:8px;border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.comp-row.me{background:#fef2f2;border:1px solid #fecaca}
+.comp-row.other{background:#f9fafb;border:1px solid #f3f4f6}
+.rank{font-size:14px;font-weight:700;width:16px;text-align:center;flex-shrink:0}
+.comp-row.me .rank{color:#ef4444}
+.comp-row.other .rank{color:#9ca3af}
+.comp-info{flex:1;min-width:0}
+.comp-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.comp-row.me .comp-name{color:#b91c1c}
+.comp-row.other .comp-name{color:#374151}
+.sub-txt{font-size:12px;color:#6b7280;margin-top:1px}
+.bar-wrap{position:relative;width:100%;margin-top:4px;padding-bottom:18px}
+.bar-bg{height:6px;background:#e5e7eb;border-radius:100px;position:relative;overflow:visible}
+.bar-fill{height:100%;border-radius:100px}
+.bar-fill.me{background:#f87171}
+.bar-fill.other{background:#3b82f6}
+.avg-line{position:absolute;top:-2px;bottom:-2px;width:1px;background:#6b7280;opacity:.6}
+.avg-label{position:absolute;font-size:10px;color:#9ca3af;white-space:nowrap;transform:translateX(-50%);top:8px}
+.dots-right{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.score-num{font-size:14px;font-weight:700}
+.comp-row.me .score-num{color:#dc2626}
+.comp-row.other .score-num{color:#2563eb}
+.ai-dot{width:10px;height:10px;border-radius:50%}
+.gap-chip{display:flex;align-items:center;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:8px 12px;margin:8px 0}
+.gap-txt{font-size:13px;font-weight:700;color:#b91c1c}
+.gap-pct{font-size:13px;color:#ef4444;margin-left:auto}
+.advice-box{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 14px;margin-top:2px}
+.advice-main{font-size:13px;color:#78350f;font-weight:500;word-break:keep-all}
+.advice-sub{font-size:12px;color:#b45309;margin-top:4px;word-break:keep-all}
+
+/* Score Explain Panel */
+.score-meter{position:relative;height:20px;border-radius:100px;overflow:hidden;background:linear-gradient(to right,#fee2e2,#fef9c3,#d1fae5)}
+.meter-line{position:absolute;top:0;bottom:0;width:2px}
+.before-after{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.ba-box{text-align:center;border-radius:10px;padding:10px}
+.ba-box.before{background:#fef2f2;border:1px solid #fecaca}
+.ba-box.after{background:#f0fdf4;border:1px solid #bbf7d0}
+.ba-label{font-size:11px;font-weight:600;margin-bottom:2px}
+.ba-box.before .ba-label{color:#ef4444}
+.ba-box.after .ba-label{color:#16a34a}
+.ba-score{font-size:24px;font-weight:800}
+.ba-box.before .ba-score{color:#dc2626}
+.ba-box.after .ba-score{color:#15803d}
+.ba-sub{font-size:10px;margin-top:2px}
+.ba-box.before .ba-sub{color:#fca5a5}
+.ba-box.after .ba-sub{color:#86efac}
+.score-items{margin-top:12px}
+.score-items p.label{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px}
+.score-item{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.score-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.score-item-label{font-size:13px;color:#374151;flex:1}
+.score-wt{font-size:13px;font-weight:700;color:#374151}
+.detail-link{display:flex;align-items:center;justify-content:center;border:1px solid #bfdbfe;color:#1d4ed8;font-size:13px;font-weight:600;padding:10px;border-radius:10px;margin-top:12px;cursor:pointer}
+.detail-link:hover{background:#eff6ff}
+
+/* Dot navigator */
+.card-footer{display:flex;align-items:center;gap:6px;padding:10px 20px;background:#f9fafb;border-top:1px solid #f3f4f6}
+.nav-dot{border:none;background:none;cursor:pointer;padding:4px}
+.nav-dot-inner{display:block;border-radius:100px;transition:all .3s}
+.nav-dot-inner.active{width:18px;height:8px;background:#1d4ed8}
+.nav-dot-inner.inactive{width:8px;height:8px;background:#e5e7eb}
+.nav-dot:hover .nav-dot-inner.inactive{background:#d1d5db}
+.nav-label{font-size:11px;color:#9ca3af;margin-left:4px}
+
+/* ── TRUST BAR ── */
+.trust-bar{background:#fff;border-bottom:1px solid #e8e4dc;padding:24px}
+.trust-inner{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.trust-item{text-align:center;padding:8px 16px}
+.trust-item+.trust-item{border-left:1px solid #e8e4dc}
+.trust-num{font-size:28px;font-weight:900;color:#1d4ed8;line-height:1}
+.trust-label{font-size:13px;font-weight:700;color:#1f2937;margin-top:4px}
+.trust-sub{font-size:11px;color:#9ca3af;margin-top:2px}
+
+/* ── SECTION PLACEHOLDERS ── */
+.section-ph{padding:40px 24px;border-bottom:1px solid #e8e4dc;text-align:center}
+.section-ph.alt{background:#f5f0e8}
+.section-ph.orange{background:#fff7ed;border-top:1px solid #fed7aa;border-bottom:1px solid #fed7aa}
+.section-ph.blue{background:linear-gradient(135deg,#1d4ed8,#3730a3);color:#fff}
+.ph-title{font-size:20px;font-weight:800;color:#374151;margin-bottom:6px;word-break:keep-all}
+.ph-desc{font-size:14px;color:#6b7280;word-break:keep-all}
+.section-ph.blue .ph-title{color:#fff}
+.section-ph.blue .ph-desc{color:#bfdbfe}
+
+.section-label{display:inline-block;font-size:11px;font-weight:700;background:#f59e0b;color:#fff;padding:2px 10px;border-radius:4px;margin-bottom:8px;letter-spacing:.04em}
+
+/* ── FOOTER ── */
+footer{background:#1f2937;color:#9ca3af;padding:32px 24px;font-size:13px;text-align:center}
+
+/* IndustryTiles placeholder */
+.industry-tiles{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.industry-tile{background:#fff;border:1px solid #e8e4dc;border-radius:100px;padding:5px 12px;font-size:12px;color:#374151}
+</style>
+</head>
+<body>
+
+<div class="design-tag">목업 v2 — 실제 코드 기반 (배포 전 검토용)</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hdr-inner">
+    <div>
+      <span class="logo">AEOlab</span>
+      <span class="logo-sub">네이버·ChatGPT·Google AI 노출 관리</span>
+    </div>
+    <nav style="display:flex;align-items:center;gap:4px">
+      <a href="#">서비스 안내</a>
+      <a href="#">FAQ</a>
+      <a href="#">요금제</a>
+      <a href="#">로그인</a>
+      <a href="#" class="cta-btn">무료 진단 시작</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ══ 블록 1: 히어로 ══ -->
+<div class="hero">
+  <div class="hero-inner">
+    <!-- 좌측 텍스트 -->
+    <div class="hero-left">
+      <div class="eyebrow">
+        <span class="pill pill-red"><span class="dot"></span>네이버 파워링크 광고 끄면 즉시 사라집니다</span>
+        <span class="pill pill-blue">네이버·ChatGPT·Google AI 종합 가시성</span>
+      </div>
+
+      <h1>AI 검색에 우리 가게,<br>경쟁사는 나오고 우리만 빠집니다</h1>
+      <p class="sub-desc">AI 검색 시대, 광고 없이도 지속되는 노출을 만들어드립니다</p>
+
+      <div class="industry-tiles">
+        <span class="industry-tile">🍽️ 음식점</span>
+        <span class="industry-tile">☕ 카페</span>
+        <span class="industry-tile">✂️ 미용</span>
+        <span class="industry-tile">🏋️ 헬스·요가</span>
+        <span class="industry-tile">🏥 의료·약국</span>
+        <span class="industry-tile">📚 교육·학원</span>
+        <span class="industry-tile">+ 19종</span>
+      </div>
+
+      <div class="channel-box">
+        <span>음식점·카페·베이커리·바·숙박 → 네이버 AI 브리핑</span><br>
+        <span>그 외 업종 → ChatGPT·Gemini·Google AI 노출 개선 <a href="#">자세히 →</a></span>
+      </div>
+
+      <a href="#" class="main-cta">네이버 AI 브리핑 노출 확인하기</a>
+
+      <div class="badges">
+        <span class="badge">✓ 블로그 인용 분석</span>
+        <span class="badge">✓ 스마트플레이스 자동 점검</span>
+        <span class="badge">✓ 경쟁사 비교</span>
+      </div>
+
+      <p class="counter"><strong>1,247명</strong>이 AI 노출 진단을 받았습니다</p>
+    </div>
+
+    <!-- 우측: HeroSampleCard 3탭 -->
+    <div>
+      <div class="card" id="heroCard">
+        <!-- 탭 헤더 -->
+        <div class="tab-header">
+          <button class="tab-btn active" onclick="switchTab(0)" id="tab0">
+            <span class="tab-icon">💬</span>
+            <span>AI가 이렇게 답합니다</span>
+          </button>
+          <button class="tab-btn" onclick="switchTab(1)" id="tab1">
+            <span class="tab-icon">📊</span>
+            <span>노출 현황 비교</span>
+          </button>
+          <button class="tab-btn" onclick="switchTab(2)" id="tab2">
+            <span class="tab-icon">❓</span>
+            <span>점수란?</span>
+          </button>
+        </div>
+
+        <!-- Tab 0: AI 응답 시뮬레이션 -->
+        <div class="tab-panel" id="panel0">
+          <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:6px;margin-bottom:8px">
+            <span style="width:8px;height:8px;background:#10b981;border-radius:50%;display:inline-block"></span>
+            사용자가 ChatGPT에게 물어봅니다
+          </p>
+          <div>
+            <span class="user-bubble">"강남 역삼동 카페 추천해줘, 분위기 좋은 곳으로"</span>
+          </div>
+
+          <div class="gpt-box">
+            <div class="gpt-header">
+              <span class="gpt-logo">G</span>
+              <span class="gpt-title">ChatGPT 답변</span>
+              <span class="gpt-sample">100회 질의 기반</span>
+            </div>
+            <p class="gpt-text">
+              강남 역삼동에서 분위기 좋은 카페를 추천해드릴게요.<br><br>
+              <mark>블루보틀 강남점</mark>은 스페셜티 원두와 모던한 인테리어로 유명하고,
+              <mark>커피빈 역삼점</mark>은 넓은 공간과 편안한 좌석이 장점입니다.
+              <mark>테라로사 역삼점</mark>은 커피 맛이 뛰어나 커피 마니아들에게 인기가 많습니다.
+            </p>
+            <div class="badge-red">
+              <span>❌</span>
+              <span>내 카페는 AI 응답에 포함되지 않음</span>
+            </div>
+            <p class="disclaimer">* ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 검색 결과와 다를 수 있습니다</p>
+          </div>
+
+          <div class="naver-box">
+            <div class="gpt-header">
+              <span class="naver-logo">N</span>
+              <span class="gpt-title">네이버 AI 브리핑</span>
+              <span class="gpt-sample">Playwright 실측</span>
+            </div>
+            <p class="gpt-text">
+              <mark>블루보틀 강남점</mark>, <mark>커피빈 역삼점</mark>이(가)
+              '역삼동 카페 추천' 쿼리에 AI 브리핑으로 노출됨
+            </p>
+            <div class="badge-red">
+              <span>❌</span>
+              <span>내 카페는 AI 브리핑에 미노출</span>
+            </div>
+          </div>
+
+          <div class="value-box">
+            <p class="title">AEOlab이 하는 일</p>
+            <p class="body">내 카페가 위 AI 응답에 포함되도록 — 무엇이 부족한지 진단하고 개선 방향을 찾아드립니다.</p>
+          </div>
+
+          <a href="#" class="panel-cta">내 가게 AI 노출 무료 진단하기 →</a>
+          <p class="no-cc">가입 불필요 · 신용카드 필요 없음</p>
+        </div>
+
+        <!-- Tab 1: 경쟁사 비교 -->
+        <div class="tab-panel hidden" id="panel1">
+          <div class="legend">
+            <span class="legend-txt">AI 노출 순위 (실제 스캔 샘플)</span>
+            <span class="legend-dots">
+              <span class="dot-n"></span><span style="color:#10b981">네이버</span>
+              <span class="dot-g"></span><span style="color:#fb923c">GPT</span>
+              <span class="dot-gg"></span><span style="color:#60a5fa">구글</span>
+            </span>
+          </div>
+
+          <!-- 1위 -->
+          <div class="comp-row other">
+            <span class="rank">1</span>
+            <div class="comp-info">
+              <p class="comp-name">블루보틀 강남점</p>
+              <div class="bar-wrap">
+                <div class="bar-bg">
+                  <div class="avg-line" style="left:51%"></div>
+                  <div class="bar-fill other" style="width:82%"></div>
+                </div>
+                <span class="avg-label" style="left:51%;top:9px">평균</span>
+              </div>
+            </div>
+            <div class="dots-right">
+              <span class="score-num">82</span>
+              <span class="ai-dot" style="background:#10b981"></span>
+              <span class="ai-dot" style="background:#fb923c"></span>
+              <span class="ai-dot" style="background:#60a5fa"></span>
+            </div>
+          </div>
+
+          <!-- 2위 -->
+          <div class="comp-row other">
+            <span class="rank">2</span>
+            <div class="comp-info">
+              <p class="comp-name">커피빈 역삼점</p>
+              <div class="bar-wrap">
+                <div class="bar-bg">
+                  <div class="avg-line" style="left:51%"></div>
+                  <div class="bar-fill other" style="width:73%"></div>
+                </div>
+                <span class="avg-label" style="left:51%;top:9px">평균</span>
+              </div>
+            </div>
+            <div class="dots-right">
+              <span class="score-num">73</span>
+              <span class="ai-dot" style="background:#10b981"></span>
+              <span class="ai-dot" style="background:#fb923c"></span>
+              <span class="ai-dot" style="background:#e5e7eb"></span>
+            </div>
+          </div>
+
+          <!-- 3위 -->
+          <div class="comp-row other">
+            <span class="rank">3</span>
+            <div class="comp-info">
+              <p class="comp-name">테라로사 역삼점</p>
+              <div class="bar-wrap">
+                <div class="bar-bg">
+                  <div class="avg-line" style="left:51%"></div>
+                  <div class="bar-fill other" style="width:64%"></div>
+                </div>
+                <span class="avg-label" style="left:51%;top:9px">평균</span>
+              </div>
+            </div>
+            <div class="dots-right">
+              <span class="score-num">64</span>
+              <span class="ai-dot" style="background:#10b981"></span>
+              <span class="ai-dot" style="background:#e5e7eb"></span>
+              <span class="ai-dot" style="background:#e5e7eb"></span>
+            </div>
+          </div>
+
+          <!-- 4위 (내 카페) -->
+          <div class="comp-row me">
+            <span class="rank">4</span>
+            <div class="comp-info">
+              <p class="comp-name">내 카페 <span style="font-size:11px;color:#fca5a5;font-weight:400">(내 가게)</span></p>
+              <p class="sub-txt">+36점 → 3위 진입 가능</p>
+              <div class="bar-wrap">
+                <div class="bar-bg">
+                  <div class="avg-line" style="left:51%"></div>
+                  <div class="bar-fill me" style="width:28%"></div>
+                </div>
+                <span class="avg-label" style="left:51%;top:9px">평균</span>
+              </div>
+            </div>
+            <div class="dots-right">
+              <span class="score-num">28</span>
+              <span class="ai-dot" style="background:#e5e7eb"></span>
+              <span class="ai-dot" style="background:#e5e7eb"></span>
+              <span class="ai-dot" style="background:#e5e7eb"></span>
+            </div>
+          </div>
+
+          <div class="gap-chip">
+            <span class="gap-txt">1위와 54점 차이</span>
+            <span class="gap-pct">AI 노출 54% 격차</span>
+          </div>
+
+          <div class="advice-box">
+            <div style="display:flex;align-items:flex-start;gap:6px">
+              <span style="font-size:12px;color:#d97706;flex-shrink:0;margin-top:1px">💡</span>
+              <div>
+                <p class="advice-main">3위 테라로사보다 36점 낮습니다.</p>
+                <p class="advice-sub">소개글 Q&A 2개만 추가하면 네이버 AI가 내 카페를 찾기 시작합니다.</p>
+              </div>
+            </div>
+          </div>
+
+          <p style="font-size:10px;color:#9ca3af;margin-top:10px;line-height:1.5">
+            Gemini·ChatGPT 각 50회 (총 100회) 질의 기반 · 평균 51점 (추정) · 2026.05<br>
+            측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+          </p>
+        </div>
+
+        <!-- Tab 2: 점수 설명 -->
+        <div class="tab-panel hidden" id="panel2">
+          <p style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px">AI 노출 점수 구조 (0 ~ 100점)</p>
+          <div class="score-meter">
+            <!-- 내 가게 (28점) -->
+            <div class="meter-line" style="left:28%;background:#ef4444;opacity:.9"></div>
+            <!-- after (72점) -->
+            <div class="meter-line" style="left:72%;background:#16a34a;opacity:.9"></div>
+          </div>
+          <div class="before-after">
+            <div class="ba-box before">
+              <p class="ba-label">현재 (Before)</p>
+              <p class="ba-score">28</p>
+              <p class="ba-sub">AI 미노출 구간</p>
+            </div>
+            <div class="ba-box after">
+              <p class="ba-label">개선 후 (After)</p>
+              <p class="ba-score">72+</p>
+              <p class="ba-sub">AI 노출 시작 구간</p>
+            </div>
+          </div>
+          <div class="score-items">
+            <p class="label">점수 4항목 구성 (합계 100점)</p>
+            <div class="score-item">
+              <span class="score-dot" style="background:#60a5fa"></span>
+              <span class="score-item-label">스마트플레이스 완성도</span>
+              <span class="score-wt">25점</span>
+            </div>
+            <div class="score-item">
+              <span class="score-dot" style="background:#34d399"></span>
+              <span class="score-item-label">네이버 에코시스템</span>
+              <span class="score-wt">30점</span>
+            </div>
+            <div class="score-item">
+              <span class="score-dot" style="background:#fb923c"></span>
+              <span class="score-item-label">AI 멀티채널 노출</span>
+              <span class="score-wt">25점</span>
+            </div>
+            <div class="score-item">
+              <span class="score-dot" style="background:#a78bfa"></span>
+              <span class="score-item-label">웹사이트 &amp; 콘텐츠</span>
+              <span class="score-wt">20점</span>
+            </div>
+          </div>
+          <a href="#" class="detail-link">전체 동작 원리 보기 →</a>
+        </div>
+
+        <!-- 도트 네비게이터 -->
+        <div class="card-footer">
+          <button class="nav-dot" onclick="switchSample(0)" id="dot0"><span class="nav-dot-inner active" id="dot0-inner"></span></button>
+          <button class="nav-dot" onclick="switchSample(1)" id="dot1"><span class="nav-dot-inner inactive" id="dot1-inner"></span></button>
+          <button class="nav-dot" onclick="switchSample(2)" id="dot2"><span class="nav-dot-inner inactive" id="dot2-inner"></span></button>
+          <button class="nav-dot" onclick="switchSample(3)" id="dot3"><span class="nav-dot-inner inactive" id="dot3-inner"></span></button>
+          <button class="nav-dot" onclick="switchSample(4)" id="dot4"><span class="nav-dot-inner inactive" id="dot4-inner"></span></button>
+          <button class="nav-dot" onclick="switchSample(5)" id="dot5"><span class="nav-dot-inner inactive" id="dot5-inner"></span></button>
+          <span class="nav-label" id="navLabel">카페 · 강남구 역삼동</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 블록 2: 신뢰 지표 바 ══ -->
+<div class="trust-bar">
+  <div class="trust-inner">
+    <div class="trust-item">
+      <p class="trust-num">4종</p>
+      <p class="trust-label">AI 플랫폼 동시 측정</p>
+      <p class="trust-sub">네이버·ChatGPT·Gemini·Google</p>
+    </div>
+    <div class="trust-item">
+      <p class="trust-num">100회</p>
+      <p class="trust-label">샘플링 기반 통계</p>
+      <p class="trust-sub">Full 스캔 기준 · 변동성 최소화</p>
+    </div>
+    <div class="trust-item">
+      <p class="trust-num">25종</p>
+      <p class="trust-label">업종 지원</p>
+      <p class="trust-sub">음식점부터 전문직까지</p>
+    </div>
+    <div class="trust-item">
+      <p class="trust-num">7일</p>
+      <p class="trust-label">만에 개선 시작</p>
+      <p class="trust-sub">첫 스캔 → 가이드 → 실행</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 블록 3~4: WhyNot + HowItWorks (기존 섹션 유지) ══ -->
+<div class="section-ph alt">
+  <span class="section-label">블록 3</span>
+  <p class="ph-title">왜 AI 검색에 안 나올까요?</p>
+  <p class="ph-desc">WhyNotShownSection — 기존 컴포넌트 그대로 유지</p>
+</div>
+
+<div class="section-ph">
+  <span class="section-label">블록 4</span>
+  <p class="ph-title">이용 방법 3단계</p>
+  <p class="ph-desc">HowItWorksSection — 기존 컴포넌트 그대로 유지</p>
+</div>
+
+<!-- ══ 블록 5: 추가 도구 + AEO vs 전통 비교 ══ -->
+<div class="section-ph alt" style="background:#fafaf8">
+  <span class="section-label">블록 5</span>
+  <p class="ph-title">추가 진단 도구 · 다른 방식과 비교</p>
+  <p class="ph-desc">DiagnosticToolsSection + AEOvsTraditionalSection — 기존 컴포넌트 그대로 유지</p>
+</div>
+
+<!-- ══ 블록 6: 가격 앵커 ══ -->
+<div class="section-ph orange">
+  <span class="section-label">블록 6</span>
+  <p class="ph-title" style="color:#9a3412">네이버 광고 하루 30,000원 vs AEOlab 한 달 9,900원</p>
+  <p style="font-size:18px;font-weight:800;color:#1d4ed8;margin:8px 0">첫 달 4,950원 · 언제든 해지 가능</p>
+  <p class="ph-desc">PricingAnchor — 기존 컴포넌트 그대로 유지</p>
+</div>
+
+<!-- ══ 블록 7: 동작 원리 / 게이트 + 한계 ══ -->
+<div class="section-ph">
+  <span class="section-label">블록 7</span>
+  <p class="ph-title">AEOlab 동작 기준</p>
+  <p class="ph-desc">ServiceMechanismSection — 기존 컴포넌트 그대로 유지 (게이트 3조건 + 점수 + 한계)</p>
+</div>
+
+<!-- ══ 블록 8~9: 후기 + FAQ ══ -->
+<div class="section-ph alt">
+  <span class="section-label">블록 8~9</span>
+  <p class="ph-title">후기 + FAQ</p>
+  <p class="ph-desc">Testimonials + FAQSection — 기존 컴포넌트 그대로 유지</p>
+</div>
+
+<!-- ══ 블록 10: 최종 CTA ══ -->
+<div class="section-ph blue">
+  <span class="section-label" style="background:#fff;color:#1d4ed8">블록 10</span>
+  <p class="ph-title">지금 우리 가게 AI 노출, 지금 확인됩니다</p>
+  <p class="ph-desc">네이버 광고 하루 30,000원 vs AEOlab 한 달 9,900원</p>
+  <p style="color:#6ee7b7;font-weight:700;font-size:15px;margin:8px 0">첫 달 4,950원 · 언제든 해지 가능</p>
+  <div style="margin-top:12px">
+    <a href="#" style="display:inline-block;background:#fff;color:#1d4ed8;font-size:16px;font-weight:700;padding:14px 36px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.2)">무료로 내 가게 진단받기</a>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 AEOlab · 실제 배포 전 검토용 목업</p>
+</footer>
+
+<script>
+// ── 탭 전환 ──
+function switchTab(n) {
+  [0,1,2].forEach(i => {
+    document.getElementById('tab'+i).classList.toggle('active', i===n);
+    document.getElementById('panel'+i).classList.toggle('hidden', i!==n);
+  });
+}
+
+// ── 샘플 레이블 ──
+const LABELS = [
+  '카페 · 강남구 역삼동',
+  '한식당 · 마포구 연남동',
+  '미용실 · 서초구 방배동',
+  '피부과 · 성남시 분당구',
+  '헬스장 · 송파구 잠실동',
+  '영어학원 · 노원구 중계동',
+];
+
+let currentSample = 0;
+
+function switchSample(n) {
+  currentSample = n;
+  [0,1,2,3,4,5].forEach(i => {
+    const inner = document.getElementById('dot'+i+'-inner');
+    inner.className = 'nav-dot-inner ' + (i===n ? 'active' : 'inactive');
+  });
+  document.getElementById('navLabel').textContent = LABELS[n];
+  switchTab(0); // 샘플 바꾸면 탭0으로 리셋
+}
+
+// ── 자동 순환 (6초) ──
+setInterval(() => {
+  const next = (currentSample + 1) % LABELS.length;
+  switchSample(next);
+}, 6000);
+</script>
+</body>
+</html>
