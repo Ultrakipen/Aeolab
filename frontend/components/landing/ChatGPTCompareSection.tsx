@@ -1,105 +1,152 @@
-"use client";
-
-import Link from "next/link";
-import { MessageCircle, Search, BarChart2, TrendingUp } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-interface CompareRow {
-  question: string;
-  chatgptAnswer: string;
-  aeolabAnswer: string;
-  ChatgptIcon: LucideIcon;
-  AeolabIcon: LucideIcon;
-}
-
-const COMPARE_ROWS: CompareRow[] = [
+const COMPARE_ROWS = [
   {
-    question: "내 가게 네이버 AI 브리핑에 나오나요?",
-    ChatgptIcon: MessageCircle,
-    chatgptAnswer: "소개글 Q&A를 추가하면 노출될 수 있어요",
-    AeolabIcon: Search,
-    aeolabAnswer: "지금 이 순간 100번 중 N번 언급되는지 직접 확인",
+    label: "추적 방식",
+    manual: "매주 25번+ 직접 질문",
+    auto: "자동 추적 + 카카오 알림",
   },
   {
-    question: "경쟁 가게보다 내가 뒤처진 이유가 뭔가요?",
-    ChatgptIcon: MessageCircle,
-    chatgptAnswer: "리뷰 수와 키워드를 늘리세요",
-    AeolabIcon: BarChart2,
-    aeolabAnswer: "경쟁사에 있는 키워드 중 내 가게에 없는 것을 찾아 보여줍니다",
+    label: "신뢰도",
+    manual: "같은 질문, 매번 다른 답",
+    auto: "Gemini·ChatGPT 각 50회 통계",
   },
   {
-    question: "소개글 Q&A를 추가하면 얼마나 효과가 있나요?",
-    ChatgptIcon: MessageCircle,
-    chatgptAnswer: "노출이 늘어날 수 있어요",
-    AeolabIcon: TrendingUp,
-    aeolabAnswer: "등록 시점과 7일 후 점수를 자동 비교해 변화량을 기록합니다",
+    label: "객관성",
+    manual: "개인화된 검색 결과",
+    auto: "객관적 노출 빈도 측정",
+  },
+  {
+    label: "원인 분석",
+    manual: "AI가 이유를 설명 안 함",
+    auto: "경쟁사 갭 + 개선 가이드",
   },
 ];
 
 export default function ChatGPTCompareSection() {
   return (
-    <div className="bg-gradient-to-b from-gray-50 to-white border border-gray-200 rounded-2xl p-5 md:p-8 mb-6">
-      {/* 헤더 */}
-      <div className="text-center mb-6">
-        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
-          ChatGPT vs AEOlab
-        </p>
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
-          ChatGPT한테 이미 물어봤나요?
-        </h2>
-        <p className="text-sm md:text-base text-gray-500">
-          이런 답이 돌아왔을 겁니다
-        </p>
-      </div>
+    <section className="px-4 py-8 md:py-12" style={{ background: "transparent" }}>
+      <div className="max-w-[1020px] mx-auto">
+        {/* 헤더 */}
+        <div className="text-center mb-7 fade-up">
+          <p className="text-xs font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>
+            왜 AEOlab인가요?
+          </p>
+          <h2
+            className="text-xl md:text-2xl font-black tracking-tight break-keep"
+            style={{ color: "#0F172A", letterSpacing: "-0.6px" }}
+          >
+            무료 AI로 직접 하면 되지 않나요?
+          </h2>
+          <p className="text-sm mt-2 break-keep" style={{ color: "#475569" }}>
+            할 수 있습니다. 하지만 이런 차이가 있습니다.
+          </p>
+        </div>
 
-      {/* 비교 행들 */}
-      <div className="space-y-4 mb-6">
-        {COMPARE_ROWS.map((row, i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            {/* 질문 */}
-            <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-100">
-              <p className="text-sm font-semibold text-gray-700">
-                Q. &ldquo;{row.question}&rdquo;
-              </p>
+        {/* 비교 테이블 — PC */}
+        <div
+          className="hidden md:block rounded-2xl overflow-hidden border-2 fade-up"
+          style={{ borderColor: "#2563EB", boxShadow: "var(--aeo-shadow)" }}
+        >
+          {/* 헤더 행 */}
+          <div className="grid grid-cols-3 text-sm font-bold" style={{ background: "#FFFFFF" }}>
+            <div
+              className="px-5 py-3.5 border-r"
+              style={{ color: "#64748B", borderColor: "#E2E8F0" }}
+            >
+              비교 항목
             </div>
-            {/* 답변 비교 — PC: 2열, 모바일: 세로 스택 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-              {/* ChatGPT 답변 */}
-              <div className="p-4 flex gap-3 items-start">
-                <row.ChatgptIcon size={18} strokeWidth={1.8} className="shrink-0 mt-0.5 text-gray-400" aria-hidden />
-                <div>
-                  <p className="text-sm font-semibold text-gray-500 mb-1">ChatGPT 답변</p>
-                  <p className="text-sm text-gray-600 leading-relaxed">&ldquo;{row.chatgptAnswer}&rdquo;</p>
-                  <p className="text-sm text-gray-500 mt-1.5">모든 가게에게 동일한 답변</p>
-                </div>
-              </div>
-              {/* AEOlab 답변 */}
-              <div className="p-4 flex gap-3 items-start bg-blue-50 sm:bg-white">
-                <row.AeolabIcon size={18} strokeWidth={1.8} className="shrink-0 mt-0.5 text-blue-500" aria-hidden />
-                <div>
-                  <p className="text-sm font-semibold text-blue-600 mb-1">AEOlab이 하는 것</p>
-                  <p className="text-sm text-gray-800 font-medium leading-relaxed">{row.aeolabAnswer}</p>
-                  <p className="text-sm text-blue-500 mt-1.5">내 가게만의 실제 측정</p>
-                </div>
-              </div>
+            <div
+              className="px-5 py-3.5 border-r"
+              style={{ color: "#475569", borderColor: "#E2E8F0" }}
+            >
+              무료 AI 직접 측정
+            </div>
+            <div
+              className="px-5 py-3.5"
+              style={{
+                color: "#2563EB",
+                borderBottom: "2px solid #2563EB",
+              }}
+            >
+              AEOlab 자동 관리
             </div>
           </div>
-        ))}
-      </div>
+          {/* 데이터 행 */}
+          {COMPARE_ROWS.map((row, i) => (
+            <div
+              key={i}
+              className="grid grid-cols-3 text-sm border-t"
+              style={{ borderColor: "#E2E8F0" }}
+            >
+              <div
+                className="px-5 py-3.5 font-medium border-r"
+                style={{ color: "#1E293B", borderColor: "#E2E8F0", background: "#F8FAFC" }}
+              >
+                {row.label}
+              </div>
+              <div
+                className="px-5 py-3.5 flex items-center gap-2 border-r"
+                style={{ borderColor: "#E2E8F0", background: "#FEF2F2" }}
+              >
+                <span className="font-bold shrink-0" style={{ color: "#DC2626" }}>✕</span>
+                <span style={{ color: "#475569" }}>{row.manual}</span>
+              </div>
+              <div
+                className="px-5 py-3.5 flex items-center gap-2"
+                style={{ background: "#EFF6FF" }}
+              >
+                <span className="font-bold shrink-0" style={{ color: "#059669" }}>✓</span>
+                <span className="font-medium" style={{ color: "#0F172A" }}>{row.auto}</span>
+              </div>
+            </div>
+          ))}
+        </div>
 
-      {/* CTA */}
-      <div className="text-center">
-        <Link
-          href="/trial"
-          className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base px-8 py-3.5 rounded-xl transition-colors shadow-md"
-        >
-          지금 무료로 측정하기
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
-        <p className="text-sm text-gray-500 mt-2">가입 없이 즉시 체험 · 1분 소요</p>
+        {/* 비교 카드 — 모바일 */}
+        <div className="md:hidden space-y-3 fade-up">
+          {COMPARE_ROWS.map((row, i) => (
+            <div
+              key={i}
+              className="rounded-xl border overflow-hidden"
+              style={{
+                borderColor: "#E2E8F0",
+                background: "#FFFFFF",
+                boxShadow: "var(--aeo-shadow)",
+              }}
+            >
+              <div
+                className="px-4 py-2.5 text-xs font-bold border-b"
+                style={{
+                  background: "#F8FAFC",
+                  borderColor: "#E2E8F0",
+                  color: "#475569",
+                }}
+              >
+                {row.label}
+              </div>
+              <div className="grid grid-cols-2">
+                <div className="px-4 py-3 border-r" style={{ borderColor: "#E2E8F0", background: "#FEF2F2" }}>
+                  <p className="text-xs font-bold mb-1" style={{ color: "#475569" }}>
+                    무료 AI 직접
+                  </p>
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-xs font-bold shrink-0" style={{ color: "#DC2626" }}>✕</span>
+                    <p className="text-xs" style={{ color: "#475569" }}>{row.manual}</p>
+                  </div>
+                </div>
+                <div className="px-4 py-3" style={{ background: "#EFF6FF" }}>
+                  <p className="text-xs font-bold mb-1" style={{ color: "#2563EB" }}>
+                    AEOlab 자동
+                  </p>
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-xs font-bold shrink-0" style={{ color: "#059669" }}>✓</span>
+                    <p className="text-xs font-medium" style={{ color: "#0F172A" }}>{row.auto}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

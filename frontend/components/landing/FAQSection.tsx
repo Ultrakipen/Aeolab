@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 
 const FAQS = [
   {
@@ -35,14 +36,13 @@ const FAQS = [
 ];
 
 export default function FAQSection() {
-  const [open, setOpen] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
-  // 모바일 집중도 개선: 첫 진입 시 핵심 3개만 노출, 펼침 토글로 나머지 4개 공개
-  const visibleFaqs = showAll ? FAQS : FAQS.slice(0, 3);
+  const faqsToShow = showAll ? FAQS : FAQS.slice(0, 3);
 
   return (
-    <section id="faq" className="bg-white py-8 md:py-10 px-4 md:px-6">
-      {/* FAQPage Schema — Google SERP에 FAQ rich result 노출 + AI 검색이 답변 추출 시 인용 가능 */}
+    <section id="faq" className="px-4 py-8 md:py-12" style={{ background: "transparent" }}>
+      {/* FAQPage 구조화 데이터 — Google SERP + AI 검색 인용 */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -57,56 +57,91 @@ export default function FAQSection() {
           }),
         }}
       />
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-2 break-keep">
-          자주 묻는 질문
-        </h2>
-        <p className="text-base md:text-lg text-center text-gray-600 mb-8 break-keep">
-          AI 노출 구조가 처음이신 분들을 위해
-        </p>
-        <div className="space-y-3">
-          {visibleFaqs.map((faq, i) => (
-            <div key={i} className="border border-gray-200 rounded-xl overflow-hidden">
+
+      <div className="max-w-[720px] mx-auto">
+        {/* 헤더 */}
+        <div className="text-center mb-6 md:mb-8 fade-up">
+          <p className="text-xs font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>
+            FAQ
+          </p>
+          <h2
+            className="text-xl md:text-2xl font-black tracking-tight break-keep"
+            style={{ color: "#0F172A", letterSpacing: "-0.6px" }}
+          >
+            자주 묻는 질문
+          </h2>
+          <p className="text-sm mt-2 break-keep" style={{ color: "#475569" }}>
+            AI 노출 구조가 처음이신 분들을 위해
+          </p>
+        </div>
+
+        {/* 연결된 단일 컨테이너 아코디언 */}
+        <div
+          className="rounded-2xl border overflow-hidden fade-up"
+          style={{ borderColor: "#E2E8F0" }}
+        >
+          {faqsToShow.map((faq, i) => (
+            <div
+              key={i}
+              className={i > 0 ? "border-t" : ""}
+              style={i > 0 ? { borderColor: "#E2E8F0" } : {}}
+            >
               <button
-                onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-gray-50 transition-colors min-h-[56px]"
-                aria-expanded={open === i}
+                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                className="w-full flex items-center justify-between p-4 md:p-5 text-left transition-colors hover:bg-[#F8FAFC]"
+                style={{ color: "#0F172A" }}
+                aria-expanded={openIndex === i}
               >
-                <span className="text-base font-semibold text-gray-800 break-keep">
-                  {faq.q}
-                </span>
-                <svg
-                  className={`w-5 h-5 text-gray-500 shrink-0 transition-transform duration-200 ${open === i ? "rotate-180" : ""}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
+                <span className="text-sm md:text-base font-semibold pr-4 break-keep">{faq.q}</span>
+                <ChevronDown
+                  className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 ${openIndex === i ? "rotate-180" : ""}`}
+                  style={{ color: "#2563EB" }}
+                />
               </button>
-              {open === i && (
-                <div className="px-5 pb-5 border-t border-gray-100">
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep pt-4">{faq.a}</p>
+              {openIndex === i && (
+                <div
+                  className="px-4 md:px-5 pb-4 md:pb-5 text-sm leading-relaxed break-keep"
+                  style={{ color: "#475569", backgroundColor: "#EFF6FF" }}
+                >
+                  {faq.a}
                 </div>
               )}
             </div>
           ))}
         </div>
+
+        {/* 더보기 버튼 — ghost 스타일 */}
         {!showAll && FAQS.length > 3 && (
-          <div className="text-center mt-4">
+          <div className="text-center mt-4 fade-up">
             <button
               type="button"
               onClick={() => setShowAll(true)}
-              className="inline-flex items-center gap-1 text-base font-semibold text-blue-600 hover:text-blue-700 px-5 py-2.5 rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors"
+              className="text-sm transition-colors underline-offset-4 hover:underline"
+              style={{ color: "#2563EB" }}
             >
-              + 질문 {FAQS.length - 3}개 더 보기
+              더 보기 ({FAQS.length - 3}개)
             </button>
           </div>
         )}
-        <p className="text-center mt-6">
-          <Link href="/faq" className="text-base text-blue-600 hover:text-blue-700 underline underline-offset-2">
+        {showAll && (
+          <div className="text-center mt-4 fade-up">
+            <button
+              type="button"
+              onClick={() => setShowAll(false)}
+              className="text-sm transition-colors underline-offset-4 hover:underline"
+              style={{ color: "#2563EB" }}
+            >
+              접기
+            </button>
+          </div>
+        )}
+
+        <p className="text-center mt-5 fade-up">
+          <Link
+            href="/faq"
+            className="text-sm hover:underline underline-offset-2 transition-colors hover:text-[#1D4ED8]"
+            style={{ color: "#2563EB" }}
+          >
             전체 FAQ 보기 →
           </Link>
         </p>

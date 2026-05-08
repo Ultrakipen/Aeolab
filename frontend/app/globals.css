@@ -132,6 +132,21 @@
   }
 }
 
+/* ── Fluid Typography ── */
+.hero-headline {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 900;
+  color: #F8FAFC;
+}
+.stat-number-xl {
+  font-size: clamp(2.8rem, 6vw, 4rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-family: "Outfit", sans-serif;
+}
+
 /* Landing scroll fade-in — JS가 활성화될 때만 동작 (no-JS 사용자 보호) */
 body.js-anim .fade-up {
   opacity: 0;
@@ -141,4 +156,146 @@ body.js-anim .fade-up {
 .fade-up.visible {
   opacity: 1 !important;
   transform: translateY(0) !important;
+}
+
+/* ── AEOlab 랜딩페이지 디자인 토큰 ── */
+:root {
+  /* Brand */
+  --aeo-blue:        #2563EB;
+  --aeo-blue-d:      #1D4ED8;
+  --aeo-blue-hover:  #1E40AF;
+  --aeo-blue-pale:   #EFF6FF;
+  --aeo-blue-mid:    #BFDBFE;
+
+  /* Dark Hero */
+  --aeo-hero-bg:      #0A0F1E;
+  --aeo-hero-surface: #111827;
+  --aeo-hero-border:  rgba(255,255,255,0.10);
+  --aeo-hero-text:    #F8FAFC;
+  --aeo-hero-text-muted: #94A3B8;
+
+  /* Text */
+  --aeo-ink:   #0F172A;
+  --aeo-ink2:  #1E293B;
+  --aeo-ink3:  #475569;
+  --aeo-ink4:  #64748B;
+  --aeo-ink5:  #94A3B8;
+
+  /* Surfaces */
+  --aeo-white:   #FFFFFF;
+  --aeo-bg:      #F8FAFC;
+  --aeo-bg-mid:  #F1F5F9;
+
+  /* Borders */
+  --aeo-border:        #E2E8F0;
+  --aeo-border-strong: #CBD5E1;
+
+  /* Status */
+  --aeo-green:      #059669;
+  --aeo-green-pale: #ECFDF5;
+  --aeo-amber:      #D97706;
+  --aeo-amber-pale: #FFFBEB;
+  --aeo-amber-text: #92400E;
+  --aeo-red:        #DC2626;
+  --aeo-red-pale:   #FEF2F2;
+
+  /* Shadows */
+  --aeo-shadow:       0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04);
+  --aeo-shadow-lg:    0 4px 6px rgba(15,23,42,0.07), 0 10px 40px rgba(15,23,42,0.08);
+  --aeo-shadow-float: 0 0 0 1px rgba(37,99,235,0.1), 0 8px 32px rgba(37,99,235,0.12);
+
+  --font-outfit: var(--font-outfit, "Outfit", sans-serif);
+
+  /* 그라디언트 단일 소스 — Final CTA 전용 */
+  --aeo-gradient-blue: linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 100%);
+
+  /* 글래스모피즘 */
+  --aeo-glass-bg:     rgba(255,255,255,0.04);
+  --aeo-glass-border: rgba(255,255,255,0.10);
+  --aeo-glass-blur:   blur(20px);
+}
+
+/* ── 글래스모피즘 카드 (히어로 전용) ── */
+.glass-card {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+/* ── 카드 호버 리프트 (라이트 섹션용) ── */
+.card-hover {
+  transition: transform 0.22s cubic-bezier(.22,1,.36,1), box-shadow 0.22s cubic-bezier(.22,1,.36,1);
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(15,23,42,0.10), 0 2px 8px rgba(15,23,42,0.06);
+}
+
+/* ── 그라디언트 텍스트 유틸 ── */
+.gradient-text-blue {
+  background: linear-gradient(90deg, #60A5FA 0%, #93C5FD 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-brand {
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 60%, #2563EB 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* ── 배경 오브 (히어로 글로우 효과) ── */
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* ── 섹션 구분선 페이드 ── */
+.section-fade-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, #FFFFFF);
+  pointer-events: none;
+}
+
+/* ── 그라디언트 테두리 카드 ── */
+.gradient-border-card {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 1rem;
+}
+.gradient-border-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ── 애니메이션 ── */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% center; }
+  50%       { background-position: 100% center; }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-20px) scale(1.05); }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 0.8; }
 }

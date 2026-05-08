@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { trackCTA } from "@/lib/analytics";
-import type { ReactNode, MouseEvent } from "react";
+import type { ReactNode, MouseEvent, CSSProperties } from "react";
 
 interface Props {
   href: string;
   location: string;
   label: string;
   className?: string;
+  style?: CSSProperties;
   children: ReactNode;
 }
 
@@ -17,7 +18,7 @@ interface Props {
  * - location: 'hero' | 'final' | 'header' 등 위치
  * - label: 'trial_start' | 'sample_view' 등 의미
  */
-export default function TrackedCTA({ href, location, label, className, children }: Props) {
+export default function TrackedCTA({ href, location, label, className, style, children }: Props) {
   const handleClick = (_e: MouseEvent<HTMLAnchorElement>) => {
     const extra: Record<string, unknown> = {};
     // hero CTA는 클릭 시점에 노출 중이던 헤드라인 인덱스를 함께 보내
@@ -34,7 +35,7 @@ export default function TrackedCTA({ href, location, label, className, children 
   };
 
   return (
-    <Link href={href} className={className} onClick={handleClick}>
+    <Link href={href} className={className} style={style} onClick={handleClick}>
       {children}
     </Link>
   );
