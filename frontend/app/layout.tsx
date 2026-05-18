@@ -1,25 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Outfit } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import GA4 from "@/components/analytics/GA4";
 import ReferralTracker from "@/components/analytics/ReferralTracker";
 import KakaoSDKLoader from "@/components/common/KakaoSDKLoader";
 import MobileFloatingCTA from "@/components/common/MobileFloatingCTA";
+import { PLAN_PRICES } from "@/lib/plans";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
+const pretendard = localFont({
+  src: "../public/fonts/PretendardVariable.woff2",
+  variable: "--font-pretendard",
   display: "swap",
+  weight: "100 900",
 });
 
 export const viewport: Viewport = {
@@ -35,7 +27,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://aeolab.co.kr"),
   title: "AEOlab — AI 검색 시대, 내 가게는 보이고 있을까요?",
   description:
-    "네이버 AI 브리핑·ChatGPT·Gemini·Google AI Overview 4채널에서 내 사업장 노출 여부를 자동 진단합니다. 음식점·카페·미용·교육 등 25개 업종 지원. 경쟁사 비교·키워드 갭 분석·AI 개선 가이드 제공. 한국 소상공인 AI 검색 노출 관리 서비스.",
+    "네이버 AI 브리핑·ChatGPT·Gemini·Google AI Overview 4채널에서 내 사업장 노출 여부를 자동 진단합니다. 음식점·카페·미용·교육 등 59개 업종 지원. 경쟁사 비교·키워드 갭 분석·AI 개선 가이드 제공. 한국 소상공인 AI 검색 노출 관리 서비스.",
   keywords: [
     "AI 검색 노출", "네이버 AI 브리핑", "ChatGPT 노출", "AEO", "AI Engine Optimization",
     "소상공인 AI", "스마트플레이스", "지역 검색 최적화", "AI 검색 마케팅",
@@ -74,7 +66,7 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} h-full antialiased`}
+      className={`${pretendard.variable} h-full antialiased light`}
     >
       <head>
         {/* JSON-LD: Organization + Service — SERP rich result + AI 검색 인용 보강 */}
@@ -111,9 +103,9 @@ export default function RootLayout({
                   offers: {
                     "@type": "AggregateOffer",
                     priceCurrency: "KRW",
-                    lowPrice: "9900",
-                    highPrice: "200000",
-                    offerCount: "5",
+                    lowPrice: String(PLAN_PRICES.basic),
+                    highPrice: String(PLAN_PRICES.enterprise),
+                    offerCount: String(Object.keys(PLAN_PRICES).length),
                   },
                 },
               ],

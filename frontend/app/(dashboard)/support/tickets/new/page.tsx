@@ -180,7 +180,7 @@ function SupportNewForm() {
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
             {/* 카테고리 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">

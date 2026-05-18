@@ -306,7 +306,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
       </div>
 
       {/* 입력 폼 */}
-      <form onSubmit={handleGenerate} className="bg-white rounded-2xl p-4 md:p-6 shadow-sm space-y-5 mb-6">
+      <form onSubmit={handleGenerate} className="bg-white rounded-xl p-4 md:p-6 shadow-sm space-y-5 mb-6">
 
         {/* 기본 정보 */}
         <div>
@@ -401,13 +401,13 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
       {/* 결과 */}
       {result && (
         <div id="result-section" className="space-y-4">
-          <div className="bg-green-50 border border-green-100 rounded-2xl p-4 flex items-center gap-3">
+          <div className="bg-green-50 border border-green-100 rounded-xl p-4 flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" strokeWidth={1.5} />
             <span className="text-sm font-medium text-green-800">완성됐습니다! 아래 탭에서 복사해 바로 사용하세요.</span>
           </div>
 
           {/* 탭 */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="flex border-b border-gray-100 overflow-x-auto">
               {tabs.map((t) => (
                 <button key={t.key} onClick={() => setTab(t.key)}

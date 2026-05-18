@@ -22,7 +22,7 @@ export default async function AiInfoTabGuidePage({
 
   const { data: businesses } = await supabase
     .from('businesses')
-    .select('id, name, category, is_franchise, naver_place_url, naver_place_id, has_intro, has_recent_post, ai_info_tab_status, review_count')
+    .select('id, name, category, is_franchise, naver_place_url, naver_place_id, has_intro, has_recent_post, ai_info_tab_status, review_count, blog_mention_count')
     .eq('user_id', user.id)
     .eq('is_active', true)
     .order('created_at', { ascending: true })
@@ -66,10 +66,14 @@ export default async function AiInfoTabGuidePage({
 
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 break-keep">
-          네이버 AI 브리핑 노출 — 5단계 설정 가이드
+          {elig === 'inactive' || (business?.is_franchise)
+            ? 'AI 검색 노출 개선 — 단계별 설정 가이드'
+            : '네이버 AI 브리핑 노출 — 5단계 설정 가이드'}
         </h1>
         <p className="text-base md:text-lg text-gray-700 leading-relaxed break-keep">
-          내 사업장이 네이버 AI 브리핑에 노출되도록 단계별로 안내합니다. 평균 소요 15분.
+          {elig === 'inactive' || (business?.is_franchise)
+            ? '네이버 일반 검색·ChatGPT·Gemini·Google AI 노출을 개선하는 단계별 안내입니다. 평균 소요 10분.'
+            : '내 사업장이 네이버 AI 브리핑에 노출되도록 단계별로 안내합니다. 평균 소요 15분.'}
         </p>
         <p className="mt-2 text-sm md:text-base text-gray-500">
           출처:{" "}
@@ -88,6 +92,7 @@ export default async function AiInfoTabGuidePage({
         business={business}
         eligibility={elig}
         plan={plan}
+        blogMentionCount={(business as { blog_mention_count?: number } | null)?.blog_mention_count ?? 0}
       />
     </div>
   )

@@ -539,7 +539,7 @@ export default function HeroSampleCard({ variant }: Props) {
   if (variant === "pc") {
     return (
       <div className="hidden lg:block">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full">
+        <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden w-full">
           {/* 카드 상단 예시 배지 */}
           <div className="flex items-center justify-between px-5 pt-3 pb-0">
             <span className="text-xs font-semibold text-gray-600">
@@ -608,7 +608,7 @@ export default function HeroSampleCard({ variant }: Props) {
   if (variant === "compact") {
     const compactGap = first && me ? first.score - me.score : 0;
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 w-full max-w-2xl mx-auto" style={{ boxShadow: "0 2px 4px -1px rgba(0,0,0,0.04),0 8px 16px -4px rgba(0,100,255,0.08)" }}>
+      <div className="bg-white rounded-xl border border-gray-200 p-5 w-full max-w-2xl mx-auto" style={{ boxShadow: "0 2px 4px -1px rgba(0,0,0,0.04),0 8px 16px -4px rgba(0,100,255,0.08)" }}>
         {/* 업종 선택 탭 */}
         <div className="flex flex-wrap gap-1.5 mb-4">
           <span className="text-xs text-gray-400 self-center mr-0.5">업종 예시:</span>
@@ -796,7 +796,7 @@ export default function HeroSampleCard({ variant }: Props) {
 
   if (variant === "fullwidth") {
     return (
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-2xl mx-auto">
+      <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-2xl mx-auto">
         {/* 카드 상단 예시 배지 */}
         <div className="flex items-center justify-between px-5 pt-3 pb-0">
           <span className="text-xs font-semibold text-gray-600">
@@ -860,7 +860,7 @@ export default function HeroSampleCard({ variant }: Props) {
 
   // mobile
   return (
-    <div className="lg:hidden bg-white rounded-2xl p-4 border border-gray-100 shadow-md mt-4">
+    <div className="lg:hidden bg-white rounded-xl p-4 border border-gray-100 shadow-md mt-4">
       {industryTabs}
       {cardContent}
     </div>

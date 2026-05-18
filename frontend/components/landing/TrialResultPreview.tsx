@@ -12,7 +12,7 @@ export default function TrialResultPreview() {
         </div>
 
         {/* 목업 카드 */}
-        <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-md bg-white">
+        <div className="border border-gray-200 rounded-xl overflow-hidden shadow-md bg-white">
           {/* 헤더 */}
           <div className="bg-gray-50 px-5 py-4 border-b border-gray-200 flex items-center justify-between">
             <div>

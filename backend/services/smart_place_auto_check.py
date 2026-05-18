@@ -7,6 +7,8 @@
 - has_intro: 소개글 텍스트 50자 이상
 - has_faq: [DEPRECATED 2026-05-01] 스마트플레이스 사장님 Q&A 탭 폐기로 항상 False.
            하위 호환을 위해 키만 유지. 점수 미반영.
+- has_reservation: [P1-B-1] 네이버 예약 연동 여부 추정. 점수 미반영, AI탭 안내용.
+- photo_count: [P1-B-2] 홈 탭에서 추정한 등록 사진 수. 점수 미반영, AI탭 품질 안내용.
 
 Playwright 인스턴스는 RAM 보호용 Semaphore(1)로 직렬화. 실패 시 절대 raise 하지 않고
 모든 항목 False + error 코드 반환 (트라이얼 흐름 보존).
@@ -38,6 +40,7 @@ def _build_action_links(naver_place_id: str, results: dict) -> dict:
     """미통과 항목별 사장님 행동 링크 — 스마트플레이스 백오피스 딥링크.
 
     [2026-05-01] 사장님 Q&A 탭 폐기로 `links["faq"]` 제거. Q&A는 소개글에 포함.
+    [P1-B-1] has_reservation=False 시 partner.naver.com 예약 설정 링크 추가.
     """
     links: dict = {}
     if not results.get("is_smart_place"):
@@ -48,22 +51,27 @@ def _build_action_links(naver_place_id: str, results: dict) -> dict:
         links["post"] = f"{base}/posts"
     if not results.get("has_intro"):
         links["intro"] = f"{base}/profile"
+    if not results.get("has_reservation"):
+        links["reservation"] = "https://partner.naver.com/"
     return links
 
 
 def _calc_score_loss(results: dict) -> int:
-    """미통과 항목별 추정 손실 점수 (Track1 smart_place_completeness 만점 60 기준).
+    """미통과 항목별 추정 손실 점수 (score_engine.calc_smart_place_completeness 기준 동기화).
 
-    [2026-05-01] has_faq 25점 손실 제거 — 사장님 Q&A 탭 폐기로 has_faq는 항상 False가 되므로
-    25점을 소개글 25 + 소식 25 + 등록 10으로 재배분 (합계 60점 보존).
+    score_engine.py calc_smart_place_completeness 배점 (rank=0 기준):
+      is_smart_place: 25점 / has_recent_post: 25점 / has_intro: 20점 → 합계 70점
+    has_faq: [2026-05-01 폐기] 점수 미반영.
+    has_reservation: [P1-B-1] 점수 미반영 — AI탭 개선 행동 안내 전용.
+    photo_count: [P1-B-2] 점수 미반영 — AI탭 품질 향상 안내 전용.
     """
     loss = 0
     if not results.get("is_smart_place"):
-        return 60  # 미등록은 만점 손실
+        return 70  # 미등록: 등록(25) + 소식(25) + 소개글(20) 전부 손실 (rank=0 기준)
     if not results.get("has_recent_post"):
-        loss += 25      # 최신성 점수 (15→25 상향, FAQ 25점 흡수)
+        loss += 25      # 최신성 점수
     if not results.get("has_intro"):
-        loss += 25      # 소개글 (10→25 상향, FAQ 25점 흡수 + AI 브리핑 인용 후보 핵심)
+        loss += 20      # 소개글 (score_engine 20점과 동기화)
     return loss
 
 
@@ -74,9 +82,11 @@ async def auto_check_smart_place(naver_place_id: str) -> dict:
     Returns:
         {
             is_smart_place: bool,
-            has_faq: bool,
+            has_faq: bool,           # [DEPRECATED] 항상 False
             has_recent_post: bool,
             has_intro: bool,
+            has_reservation: bool,   # [P1-B-1] 네이버 예약 연동 여부 (점수 미반영)
+            photo_count: int,        # [P1-B-2] 등록 사진 수 추정 (점수 미반영)
             score_loss: int,
             action_links: dict[str, str],
             error: str | None,
@@ -109,7 +119,9 @@ def _failed_result(error_code: str, naver_place_id: str = "") -> dict:
         "has_faq": False,
         "has_recent_post": False,
         "has_intro": False,
-        "score_loss": 60,
+        "has_reservation": False,
+        "photo_count": 0,
+        "score_loss": 70,
         "action_links": {"register": "https://smartplace.naver.com/"},
         "error": error_code,
     }
@@ -125,6 +137,8 @@ async def _run_check(naver_place_id: str) -> dict:
         "has_faq": False,
         "has_recent_post": False,
         "has_intro": False,
+        "has_reservation": False,
+        "photo_count": 0,
     }
 
     async with async_playwright() as p:
@@ -140,7 +154,7 @@ async def _run_check(naver_place_id: str) -> dict:
         )
         page = await ctx.new_page()
         try:
-            # ── 1단계: 홈 탭 — 페이지 정상 로드 여부 ───────────────────
+            # ── 1단계: 홈 탭 — 페이지 정상 로드 여부 + 예약 감지 + 사진 수 ──
             try:
                 await page.goto(
                     f"{base_url}/home",
@@ -154,6 +168,10 @@ async def _run_check(naver_place_id: str) -> dict:
                     r"(존재하지 않|삭제|찾을 수 없|페이지를 찾을 수 없)", home_text
                 ):
                     results["is_smart_place"] = True
+                # [P1-B-1] 예약 연동 여부 감지 (홈 탭에서 처리 — 별도 탭 이동 불필요)
+                results["has_reservation"] = await _detect_reservation(page, home_text)
+                # [P1-B-2] 사진 수 추정 (홈 탭 텍스트·DOM 기반 — 별도 탭 이동 불필요)
+                results["photo_count"] = await _detect_photo_count(page, home_text)
             except Exception as e:
                 _logger.warning(f"smart_place home tab failed [{naver_place_id}]: {e}")
                 # 홈 탭 실패 = 미등록 판정으로 종료
@@ -272,3 +290,53 @@ def _detect_faq(info_body: str) -> bool:
     항상 False 반환.
     """
     return False
+
+
+# ── P1-B 신규 감지 함수 ──────────────────────────────────────────────────
+
+async def _detect_reservation(page, home_text: str) -> bool:
+    """[P1-B-1] 홈 탭에서 네이버 예약 연동 여부 추정.
+
+    점수 미반영 — AI탭 개선 행동 안내 전용.
+    1. 텍스트에서 강한 신호("네이버 예약" / "예약하기") 검출
+    2. DOM 셀렉터 확인 (추정 셀렉터 — 네이버 스마트플레이스 UI 변경 시 수정 필요)
+    """
+    # 1. 본문 텍스트에서 예약 기능 강한 신호 추출
+    if re.search(r"네이버\s*예약|예약하기", home_text):
+        return True
+    # 2. DOM 셀렉터 (추정 — 실측 후 수정 권장, §5 모니터링 참조)
+    try:
+        for sel in [
+            "a[href*='/booking']",
+            "button[aria-label*='예약']",
+            ".booking_btn",
+            "a[data-type='reservation']",
+        ]:
+            if await page.query_selector(sel):
+                return True
+    except Exception:
+        _logger.warning("smart_place: reservation DOM check failed → text-only result")
+    return False
+
+
+async def _detect_photo_count(page, home_text: str) -> int:
+    """[P1-B-2] 홈 탭에서 등록 사진 수 추정.
+
+    점수 미반영 — 10장 미만 시 AI탭 품질 향상 안내 전용.
+    naver_place_stats.py 동일 방식 재사용.
+    """
+    # 1. 본문 텍스트 "사진 N" 패턴 추출
+    m = re.search(r"사진\s*(\d+)", home_text)
+    if m:
+        try:
+            return int(m.group(1))
+        except ValueError:
+            pass
+    # 2. pstatic.net CDN 이미지 수 카운트 (naver_place_stats.py 동일 방식)
+    try:
+        count = await page.locator("img[src*='pstatic.net']").count()
+        if count > 0:
+            return count
+    except Exception:
+        _logger.warning("smart_place: photo count DOM check failed → 0")
+    return 0

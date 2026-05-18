@@ -91,7 +91,7 @@ export default function PioneerKeywordsCard({ bizId, pioneerKeywords, accessToke
 
   if (visible.length === 0 && excluded.length > 0) {
     return (
-      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 md:p-5">
+      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 md:p-5">
         <div className="flex items-center gap-2 mb-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
           <div className="text-base font-semibold text-emerald-800">나만의 강점 키워드</div>
@@ -111,7 +111,7 @@ export default function PioneerKeywordsCard({ bizId, pioneerKeywords, accessToke
   }
 
   return (
-    <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 md:p-5">
+    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 md:p-5">
       <div className="flex items-center gap-2 mb-2">
         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
         <div className="text-base font-semibold text-emerald-800">나만의 강점 키워드</div>

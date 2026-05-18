@@ -154,7 +154,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, currentSta
     <div className="flex flex-col lg:flex-row gap-5 lg:gap-6">
       {/* 좌측: 메시지 스레드 */}
       <div className="flex-1 min-w-0">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col" style={{ minHeight: "400px" }}>
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col" style={{ minHeight: "400px" }}>
           <div className="px-5 py-4 border-b border-gray-100">
             <h2 className="text-base font-semibold text-gray-800">메시지 스레드</h2>
           </div>
@@ -221,7 +221,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, currentSta
 
       {/* 우측: 상태 변경 패널 */}
       <div className="w-full lg:w-72 shrink-0 space-y-4">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="text-base font-semibold text-gray-800 mb-4">상태 변경</h2>
 
           {statusError && (

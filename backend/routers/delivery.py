@@ -9,6 +9,7 @@
   GET  /api/delivery/orders/{order_id}/messages  — 메시지 목록 (인증 필수)
   POST /api/delivery/orders/{order_id}/messages  — 메시지 작성 (인증 필수)
   GET  /api/delivery/orders/{order_id}/report    — 완료 보고서 (인증 필수)
+  POST /api/delivery/orders/{order_id}/testimonial — 후기 작성 + 쿠폰 발급 (인증 필수)
 
 관리자 라우터 (X-Admin-Key 헤더):
   POST /admin/delivery/{order_id}/status    — 상태 변경 + 카카오 알림톡
@@ -179,31 +180,26 @@ async def _get_order_owned_or_403(order_id: str, user_id: str) -> dict:
 
 
 async def _send_status_kakao(order_id: str, new_status: str) -> None:
-    """상태 변경 시 카카오 알림톡 발송 (환경변수 미설정 시 skip)."""
+    """상태 변경 시 카카오 알림톡 발송 (환경변수 미설정 시 skip).
+
+    kakao_notify.KakaoNotifier의 send_delivery_* 함수를 사용.
+    received(paid 전환)은 confirm_delivery_payment()에서 직접 호출 — 여기서는 처리 안 함.
+    """
+    if new_status not in ("in_progress", "completed"):
+        return
     try:
         from services.kakao_notify import KakaoNotifier
 
-        template_in_progress = os.getenv("KAKAO_TEMPLATE_DELIVERY_IN_PROGRESS", "")
-        template_completed = os.getenv("KAKAO_TEMPLATE_DELIVERY_COMPLETED", "")
-
-        if new_status == "in_progress" and not template_in_progress:
-            _logger.debug(f"[delivery] 진행 중 알림 skip — KAKAO_TEMPLATE_DELIVERY_IN_PROGRESS 미설정")
-            return
-        if new_status == "completed" and not template_completed:
-            _logger.debug(f"[delivery] 완료 알림 skip — KAKAO_TEMPLATE_DELIVERY_COMPLETED 미설정")
-            return
-        if new_status not in ("in_progress", "completed"):
-            return
-
-        # 사용자 전화번호 조회
+        # 주문 + 사용자 전화번호 조회
         supabase = get_client()
         order_res = await execute(
             supabase.table("delivery_orders")
-            .select("user_id, package_type, request_title")
+            .select("user_id, package_type")
             .eq("id", order_id)
             .single()
         )
         if not (order_res and order_res.data):
+            _logger.debug(f"[delivery] _send_status_kakao: 주문 없음 order_id={order_id}")
             return
         order = order_res.data
 
@@ -214,34 +210,49 @@ async def _send_status_kakao(order_id: str, new_status: str) -> None:
             .single()
         )
         if not (profile_res and profile_res.data):
+            _logger.debug(f"[delivery] _send_status_kakao: 프로필 없음 user_id={order['user_id']}")
             return
         phone = (profile_res.data.get("phone") or "").strip()
         if not phone:
             _logger.debug(f"[delivery] 카카오 알림 skip — 전화번호 없음: user_id={order['user_id']}")
             return
 
+        # 사업장명 조회 (없으면 패키지명으로 대체)
+        biz_name = ""
+        try:
+            biz_res = await execute(
+                supabase.table("delivery_orders")
+                .select("businesses(name)")
+                .eq("id", order_id)
+                .single()
+            )
+            if biz_res and biz_res.data:
+                biz_info = biz_res.data.get("businesses") or {}
+                biz_name = biz_info.get("name") or ""
+        except Exception as _e:
+            _logger.debug(f"[delivery] 사업장명 조회 실패 (무시): {_e}")
+
         pkg_name = PACKAGES.get(order["package_type"], {}).get("name", order["package_type"])
+        if not biz_name:
+            biz_name = pkg_name
+
         notifier = KakaoNotifier()
 
         if new_status == "in_progress":
-            message = (
-                f"[AEOlab] 대행 서비스 시작 안내\n\n"
-                f"의뢰: {order['request_title'][:30]}\n"
-                f"패키지: {pkg_name}\n\n"
-                f"운영팀이 작업을 시작했습니다. 진행 상황은 대시보드에서 확인하세요.\n"
-                f"https://aeolab.co.kr/dashboard"
+            await notifier.send_delivery_in_progress(
+                order_id=order_id,
+                user_phone=phone,
+                package_name=pkg_name,
+                business_name=biz_name,
+                expected_days=3,
             )
-            await notifier._send_raw(phone, message, template_code=template_in_progress)
-
         elif new_status == "completed":
-            message = (
-                f"[AEOlab] 대행 서비스 완료 안내\n\n"
-                f"의뢰: {order['request_title'][:30]}\n"
-                f"패키지: {pkg_name}\n\n"
-                f"작업이 완료되었습니다. 완료 보고서를 확인해 주세요.\n"
-                f"https://aeolab.co.kr/dashboard"
+            await notifier.send_delivery_completed(
+                order_id=order_id,
+                user_phone=phone,
+                package_name=pkg_name,
+                business_name=biz_name,
             )
-            await notifier._send_raw(phone, message, template_code=template_completed)
 
     except Exception as e:
         _logger.warning(f"[delivery] 카카오 알림 발송 실패 (order_id={order_id}): {e}")
@@ -548,32 +559,42 @@ async def confirm_delivery_payment(
 
     # 6. 카카오 알림톡 접수 완료 발송 (실패해도 응답에 영향 없음)
     try:
-        template_received = os.getenv("KAKAO_TEMPLATE_DELIVERY_RECEIVED", "")
-        if template_received:
-            from services.kakao_notify import KakaoNotifier
-            profile_res = await execute(
-                supabase.table("profiles")
-                .select("phone")
-                .eq("user_id", user_id)
-                .single()
-            )
-            phone = ""
-            if profile_res and profile_res.data:
-                phone = (profile_res.data.get("phone") or "").strip()
-            if phone:
-                pkg_name = PACKAGES.get(order["package_type"], {}).get("name", order["package_type"])
-                message = (
-                    f"[AEOlab] 대행 서비스 접수 완료\n\n"
-                    f"의뢰: {order['request_title'][:30]}\n"
-                    f"패키지: {pkg_name}\n"
-                    f"결제 금액: {body.amount:,}원\n\n"
-                    f"운영팀이 확인 후 빠르게 작업을 시작합니다.\n"
-                    f"https://aeolab.co.kr/dashboard"
+        from services.kakao_notify import KakaoNotifier
+        profile_res = await execute(
+            supabase.table("profiles")
+            .select("phone")
+            .eq("user_id", user_id)
+            .single()
+        )
+        phone = ""
+        if profile_res and profile_res.data:
+            phone = (profile_res.data.get("phone") or "").strip()
+        if phone:
+            # 사업장명 조회 (실패 시 패키지명 fallback)
+            biz_name = ""
+            try:
+                biz_res = await execute(
+                    supabase.table("businesses")
+                    .select("name")
+                    .eq("id", order.get("business_id", ""))
+                    .single()
                 )
-                notifier = KakaoNotifier()
-                await notifier._send_raw(phone, message, template_code=template_received)
+                if biz_res and biz_res.data:
+                    biz_name = biz_res.data.get("name") or ""
+            except Exception as _e:
+                _logger.debug(f"[delivery/confirm] 사업장명 조회 실패 (무시): {_e}")
+            pkg_name = PACKAGES.get(order["package_type"], {}).get("name", order["package_type"])
+            if not biz_name:
+                biz_name = pkg_name
+            notifier = KakaoNotifier()
+            await notifier.send_delivery_received(
+                order_id=order_id,
+                user_phone=phone,
+                package_name=pkg_name,
+                business_name=biz_name,
+            )
         else:
-            _logger.debug(f"[delivery/confirm] 접수 알림 skip — KAKAO_TEMPLATE_DELIVERY_RECEIVED 미설정")
+            _logger.debug(f"[delivery/confirm] 접수 알림 skip — 전화번호 없음: user_id={user_id}")
     except Exception as e:
         _logger.warning(f"[delivery/confirm] 카카오 알림 발송 실패 (무시): {e}")
 
@@ -640,6 +661,73 @@ async def admin_create_message(
         raise HTTPException(status_code=500, detail="메시지 전송에 실패했습니다")
 
     return {"message": insert_res.data[0]}
+
+
+@router.post("/orders/{order_id}/testimonial")
+async def submit_testimonial(
+    order_id: str,
+    body: dict,
+    user: dict = Depends(get_current_user),
+):
+    """완료 주문 후기 작성 + 무료 코칭 쿠폰 예약 발급.
+
+    - 본인 소유 + completed 상태만 허용
+    - 1건만 허용 (testimonial_submitted_at 체크)
+    - success_stories INSERT (published_at NULL = 관리자 검토 대기)
+    """
+    supabase = get_client()
+    res = await execute(
+        supabase.table("delivery_orders")
+        .select("id, user_id, business_id, package_type, status, testimonial_submitted_at, score_before, score_after, category, region")
+        .eq("id", order_id)
+        .single()
+    )
+    if not (res and res.data):
+        raise HTTPException(status_code=404, detail="의뢰를 찾을 수 없습니다")
+    order = res.data
+
+    if order["user_id"] != user["id"]:
+        raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
+
+    if order.get("status") != "completed":
+        raise HTTPException(status_code=400, detail="완료된 주문만 후기를 작성할 수 있습니다")
+
+    if order.get("testimonial_submitted_at"):
+        raise HTTPException(status_code=409, detail="이미 후기를 작성하셨습니다")
+
+    testimonial_body = (body.get("body") or "").strip()
+    if len(testimonial_body) < 10:
+        raise HTTPException(status_code=422, detail="후기는 10자 이상 입력해주세요")
+
+    # success_stories INSERT (published_at 없음 → 관리자 검토 대기)
+    story_payload = {
+        "delivery_order_id": order_id,
+        "business_id": order.get("business_id"),
+        "category": order.get("category") or "other",
+        "region": order.get("region") or "",
+        "title": body.get("title") or "서비스 후기",
+        "body": testimonial_body,
+        "score_before": order.get("score_before"),
+        "score_after": order.get("score_after"),
+        "is_anonymous": bool(body.get("is_anonymous", True)),
+        "display_name": body.get("display_name"),
+        "published_at": None,
+    }
+    await execute(
+        supabase.table("success_stories").insert(story_payload)
+    )
+
+    # 주문에 후기 제출 타임스탬프
+    now = datetime.now(timezone.utc).isoformat()
+    await execute(
+        supabase.table("delivery_orders")
+        .update({"testimonial_submitted_at": now})
+        .eq("id", order_id)
+    )
+
+    _logger.info(f"[delivery/testimonial] 후기 작성 완료: order={order_id}")
+
+    return {"ok": True, "coupon_message": "코칭 쿠폰은 카카오톡으로 보내드립니다"}
 
 
 @admin_router.post("/{order_id}/complete")

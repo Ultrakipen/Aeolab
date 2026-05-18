@@ -135,7 +135,7 @@ export function ResultTable({ results }: ResultTableProps) {
     ))
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       <div className="px-4 md:px-6 py-4 border-b border-gray-100">
         <div className="text-sm font-medium text-gray-700">AI별 노출 결과</div>
         <div className="text-sm text-gray-400 mt-0.5">

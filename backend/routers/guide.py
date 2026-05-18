@@ -455,7 +455,7 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
     scan = (
         await execute(
             supabase.table("scan_results")
-            .select("id, total_score, score_breakdown, gemini_result, chatgpt_result, naver_result, google_result, perplexity_result, naver_channel_score, global_channel_score")
+            .select("id, total_score, score_breakdown, gemini_result, chatgpt_result, naver_result, google_result, naver_channel_score, global_channel_score")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(1)
@@ -484,7 +484,7 @@ async def _generate_and_save(req: GuideRequest):
 
         scan = (await execute(
             supabase.table("scan_results")
-            .select("id, total_score, score_breakdown, naver_channel_score, global_channel_score, kakao_result, website_check_result, chatgpt_result, naver_result, google_result, perplexity_result, gemini_result, exposure_freq")
+            .select("id, total_score, score_breakdown, naver_channel_score, global_channel_score, kakao_result, website_check_result, chatgpt_result, naver_result, google_result, gemini_result, exposure_freq")
             .eq("id", req.scan_id).single()
         )).data
         if not scan:
@@ -514,6 +514,13 @@ async def _generate_and_save(req: GuideRequest):
         context = biz.get("business_type") or "location_based"
         generator = GuideGenerator()
 
+        # AI 브리핑·AI탭 적합성 (가이드 콘텐츠 분기용)
+        from services.score_engine import get_briefing_eligibility, get_ai_tab_eligibility
+        _category = biz.get("category", "other")
+        _is_franchise = bool(biz.get("is_franchise"))
+        briefing_eligibility = get_briefing_eligibility(_category, _is_franchise)
+        ai_tab_eligibility = get_ai_tab_eligibility(_category)
+
         score_data = {
             "total_score": scan.get("total_score", 0),
             "exposure_freq": scan.get("exposure_freq", 0),
@@ -526,8 +533,9 @@ async def _generate_and_save(req: GuideRequest):
             "chatgpt_result": scan.get("chatgpt_result"),
             "naver_result": scan.get("naver_result"),
             "google_result": scan.get("google_result"),
-            "perplexity_result": scan.get("perplexity_result"),
             "gemini_result": scan.get("gemini_result"),
+            "briefing_eligibility": briefing_eligibility,
+            "ai_tab_eligibility": ai_tab_eligibility,
         }
 
         # gap_analyzer로 keyword_gap 조회 (경쟁사 실데이터 기반 구체 조언 제공)
@@ -620,8 +628,19 @@ async def generate_smartplace_faq(
     keywords 비어있으면 최신 스캔 결과에서 자동 추출
     """
     from middleware.plan_gate import get_user_plan, PLAN_LIMITS
-    from services.guide_generator import generate_faq_drafts
+    from services.guide_generator import generate_talktalk_faq
     from datetime import datetime, timezone
+
+    _CAT_KO = {
+        "restaurant": "음식점", "cafe": "카페", "bakery": "베이커리", "bar": "주점",
+        "beauty": "미용실", "nail": "네일샵", "medical": "의료/병원", "pharmacy": "약국",
+        "fitness": "헬스/피트니스", "yoga": "요가/필라테스", "pet": "반려동물",
+        "education": "교육/학원", "tutoring": "과외", "legal": "법률/법무",
+        "realestate": "부동산", "interior": "인테리어", "auto": "자동차",
+        "cleaning": "청소/세탁", "shopping": "쇼핑", "fashion": "패션",
+        "photo": "사진스튜디오", "video": "영상제작", "design": "디자인",
+        "accommodation": "숙박", "other": "기타",
+    }
 
     user_id = current_user.get("id") or current_user.get("sub")
     if not user_id:
@@ -636,7 +655,7 @@ async def generate_smartplace_faq(
     # 소유권 확인
     biz_row = await execute(
         supabase.table("businesses")
-        .select("id, name, category, user_id, talktalk_faq_draft")
+        .select("id, name, category, region, user_id, talktalk_faq_draft")
         .eq("id", biz_id)
         .single()
     )
@@ -678,12 +697,19 @@ async def generate_smartplace_faq(
             gemini = scan_res.data[0].get("gemini_result") or {}
             final_keywords = gemini.get("top_keywords", []) or []
 
-    faqs = await generate_faq_drafts(
+    category_label = _CAT_KO.get(biz.get("category", ""), biz.get("category", ""))
+    services = ", ".join(final_keywords) if final_keywords else ""
+
+    result = await generate_talktalk_faq(
         biz_name=biz.get("name", ""),
-        category=biz.get("category", ""),
-        keywords=final_keywords,
+        category_label=category_label,
+        region=biz.get("region", ""),
+        services=services,
         count=5,
     )
+
+    items: list = result.get("items") or []
+    chat_menus: list = result.get("chat_menus") or []
 
     # guides 테이블에 저장 (이력용)
     try:
@@ -691,7 +717,7 @@ async def generate_smartplace_faq(
             supabase.table("guides").insert({
                 "business_id": biz_id,
                 "context": "faq_draft",
-                "items_json": faqs,
+                "items_json": items,
                 "generated_at": now.isoformat(),
             })
         )
@@ -703,7 +729,7 @@ async def generate_smartplace_faq(
         await execute(
             supabase.table("businesses")
             .update({
-                "talktalk_faq_draft": {"items": faqs, "chat_menus": []},
+                "talktalk_faq_draft": {"items": items, "chat_menus": chat_menus},
                 "talktalk_faq_generated_at": now.isoformat(),
             })
             .eq("id", biz_id)
@@ -711,7 +737,7 @@ async def generate_smartplace_faq(
     except Exception as biz_save_err:
         _logger.warning(f"FAQ draft businesses 저장 실패 (컬럼 없을 수 있음): {biz_save_err}")
 
-    return {"faqs": faqs, "used": used + 1, "limit": limit, "keywords_used": final_keywords}
+    return {"items": items, "chat_menus": chat_menus, "used": used + 1, "limit": limit, "keywords_used": final_keywords}
 
 
 @router.delete("/{biz_id}/smartplace-faq/{faq_index}")

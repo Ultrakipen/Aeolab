@@ -4,7 +4,9 @@ docs/model_engine_v3.0.md 기준 구현
 
 핵심 변화:
   - WEIGHTS 6항목 단일 점수 → 업종별 DUAL_TRACK_RATIO 기반 통합 점수
-  - Track 1 (네이버 AI 브리핑 준비도): keyword_gap 35% 반영
+  - Track 1 (네이버 AI 검색 준비도 — AI브리핑+AI탭 통합): keyword_gap 35% 반영
+  - AI 브리핑: ACTIVE 업종만 (음식점·카페·숙박 등)
+  - AI탭: 모든 업종 대상 (2026-04-27 베타, 상반기 전체 확대 예정)
   - Track 2 (글로벌 AI 가시성): Gemini 100회 + ChatGPT 100회 + Google AI Overview (월요일 자동 스캔만)
   - unified_score = track1 × naver_weight + track2 × global_weight (업종별 비율)
   - growth_stage: track1_score 기준 (업종별 비율 차이 오진단 방지)
@@ -26,11 +28,26 @@ SCORE_MODEL_VERSION = os.getenv("SCORE_MODEL_VERSION", "v3_0")
 # beauty(미용): "숙박·미용·명소 등으로 확대할 예정"(2025.08 원문) — 예정이지 확정 아님 → LIKELY 유지
 # 주의: bakery/bar는 normalize 시 cafe/restaurant로 변환되나, 둘 다 ACTIVE이므로 결과 동일
 BRIEFING_ACTIVE_CATEGORIES = ["restaurant", "cafe", "bakery", "bar", "accommodation"]
-# beauty: 확대 예정(공식 미확정). nail·pet·fitness·yoga·pharmacy: 공식 발표 없음
-BRIEFING_LIKELY_CATEGORIES = ["beauty", "nail", "pet", "fitness", "yoga", "pharmacy"]
+# beauty: 2026-04-27 AI탭 베타 공개 시작(네이버플러스 우선, 상반기 전체 확대 예정)
+# nail·skincare·massage·pet·fitness·yoga·pharmacy: 공식 발표 없음 — 베타 확대 동향 추적 중
+BRIEFING_LIKELY_CATEGORIES = ["beauty", "nail", "skincare", "massage", "spa", "pet", "fitness", "yoga",
+                              "pharmacy", "dance", "ballet", "semi_permanent"]
+# skincare·massage·spa: 뷰티·웰니스 로컬 서비스, dance·ballet: 피트니스 계열 스튜디오
 BRIEFING_INACTIVE_CATEGORIES = [
-    "medical", "legal", "education", "tutoring", "photo", "video", "design",
-    "realestate", "interior", "auto", "cleaning", "shopping", "fashion", "other"
+    "medical", "legal", "accounting", "education", "tutoring",
+    "photo", "video", "design", "realestate", "interior",
+    "auto", "cleaning", "laundry", "shopping", "fashion", "clothing",
+    "flower", "kids", "study", "workshop", "music_class", "music_lesson",
+    "cooking", "experience", "other",
+    # 신규 14개 중 semi_permanent 제외 13개 (v5.7 — 2026-05-13)
+    "dental", "oriental_medicine", "optics",
+    "martial_arts", "climbing",
+    "art_class", "childcare",
+    "car_wash", "electronics_repair",
+    "footwear", "stationery",
+    "norebang", "billiards",
+    # 2026-05-18 추가 — taxonomy 완비 업종 whitelist 확장 (25→60)
+    "golf", "swim", "jjimjil", "escape",
 ]
 
 
@@ -52,12 +69,32 @@ def get_briefing_eligibility(category: str, is_franchise: bool = False) -> str:
     from services.keyword_taxonomy import normalize_category
     if is_franchise:
         return "inactive"
+    # normalize_category("other") → "restaurant" 이므로 normalize 전에 먼저 처리
+    if (category or "").lower() in ("other", "기타"):
+        return "inactive"
     key = normalize_category(category)
     if key in BRIEFING_ACTIVE_CATEGORIES:
         return "active"
     if key in BRIEFING_LIKELY_CATEGORIES:
         return "likely"
     return "inactive"
+
+
+
+def get_ai_tab_eligibility(category: str) -> str:
+    """네이버 AI탭 노출 가능성 분류.
+
+    AI탭은 AI 브리핑과 달리 업종 제한 없음 (2026-04-27 베타 출시 기준).
+    스마트플레이스 완성도·소개글·예약 연동이 노출 품질에 영향.
+
+    현재 호출처: report.py get_ai_tab_preview (briefing_eligibility 대체 예정)
+    P2 예정: naver_ai_tab_scanner.py 구현 후 Track1 naver_ai_tab_visible 항목 연결.
+    6월 AI탭 전체 확대 이후 활성화.
+
+    Returns:
+        "beta" — 모든 업종, 네이버플러스 구독자 우선 베타 서비스 중
+    """
+    return "beta"
 
 
 # ────────────────────────────────────────────────────────────────
@@ -71,7 +108,7 @@ DUAL_TRACK_RATIO: dict[str, dict[str, float]] = {
     "beauty":     {"naver": 0.65, "global": 0.35},  # 당일예약 네이버, 전문시술 AI 리서치
     "fitness":    {"naver": 0.60, "global": 0.40},  # 10-20대 고객 → AI 네이티브 비중 높음
     "pet":        {"naver": 0.65, "global": 0.35},  # 동물병원 AI 검색 빠르게 증가
-    "clinic":     {"naver": 0.55, "global": 0.45},  # 증상 검색 = ChatGPT, 지식 습득 목적 47.6%
+    "medical":    {"naver": 0.55, "global": 0.45},  # 증상 검색 = ChatGPT, 지식 습득 목적 47.6% ("clinic" → "medical" 로 키 변경)
     "academy":    {"naver": 0.40, "global": 0.60},  # 10대(AI 네이티브), 커리큘럼 비교 AI
     # 위치 무관 업종 (non_location)
     "legal":      {"naver": 0.20, "global": 0.80},  # 전문직 = ChatGPT·Gemini 주전장
@@ -87,6 +124,44 @@ DUAL_TRACK_RATIO: dict[str, dict[str, float]] = {
     "auto":       {"naver": 0.65, "global": 0.35},  # 자동차 정비 = 지역 + 차종 검색 네이버 강세
     # bakery·bar·nail은 _CATEGORY_ALIASES에 의해 cafe/restaurant/beauty로 normalize되므로 별도 키 불필요
     "accommodation": {"naver": 0.70, "global": 0.30},  # 숙박 = 네이버 AI 브리핑 ACTIVE 업종, 즉시예약형
+    # 신규 업종 8개 (2026-05-13)
+    "massage":    {"naver": 0.65, "global": 0.35},  # 마사지·스파 = 당일예약 네이버 강세
+    "skincare":   {"naver": 0.65, "global": 0.35},  # 피부관리실 = 시술 리서치 AI 증가
+    "accounting": {"naver": 0.30, "global": 0.70},  # 세무·회계 = 전문직 = 글로벌 AI 주전장
+    "flower":     {"naver": 0.70, "global": 0.30},  # 꽃집 = 지역 배달·즉시구매 네이버 강세
+    "laundry":    {"naver": 0.70, "global": 0.30},  # 세탁소 = 지역 기반 즉시방문형
+    "kids":       {"naver": 0.70, "global": 0.30},  # 키즈카페 = 지역 근거리 검색 네이버 압도
+    "study":      {"naver": 0.65, "global": 0.35},  # 스터디카페 = 지역+시설 검색 네이버 우세
+    "workshop":   {"naver": 0.55, "global": 0.45},  # 공방·클래스 = 포트폴리오 AI 탐색 비중 증가
+    # 프론트엔드 신규 카테고리 10개 (2026-05-13)
+    "dance":        {"naver": 0.65, "global": 0.35},  # 댄스 = 지역 스튜디오, LIKELY
+    "ballet":       {"naver": 0.65, "global": 0.35},  # 발레 = 지역 스튜디오, LIKELY
+    "golf":         {"naver": 0.65, "global": 0.35},  # 골프연습장 = 지역 기반 즉시방문형
+    "swim":         {"naver": 0.65, "global": 0.35},  # 수영·아쿠아 = 지역 기반
+    "jjimjil":      {"naver": 0.70, "global": 0.30},  # 찜질방·사우나 = 지역 근거리 즉시방문형
+    "music_class":  {"naver": 0.60, "global": 0.40},  # 음악교실 = 지역 기반, AI 정보 탐색 일부
+    "music_lesson": {"naver": 0.55, "global": 0.45},  # 악기레슨 = 개인레슨, AI 매칭 비중 증가
+    "cooking":      {"naver": 0.60, "global": 0.40},  # 요리교실 = 지역+클래스 탐색
+    "escape":       {"naver": 0.60, "global": 0.40},  # 방탈출 = 지역 기반, 테마·후기 AI 탐색
+    "experience":   {"naver": 0.55, "global": 0.45},  # 체험공간 = 콘텐츠 탐색 AI 비중 증가
+    # 쌍 분리 신규 (2026-05-13 v5.7)
+    "spa":          {"naver": 0.65, "global": 0.35},  # 스파 = 고급 웰니스, 네이버 예약 강세
+    "clothing":     {"naver": 0.50, "global": 0.50},  # 의류 = 온라인·오프라인 혼합
+    # 신규 14개 (v5.7 — 2026-05-13)
+    "dental":             {"naver": 0.60, "global": 0.40},  # 치과 = 증상검색 AI, 지역 기반 혼합
+    "oriental_medicine":  {"naver": 0.65, "global": 0.35},  # 한의원 = 지역 기반, 네이버 블로그 강세
+    "optics":             {"naver": 0.70, "global": 0.30},  # 안경원 = 즉시방문형
+    "semi_permanent":     {"naver": 0.65, "global": 0.35},  # 반영구화장 = LIKELY 뷰티 계열
+    "martial_arts":       {"naver": 0.65, "global": 0.35},  # 태권도·무술 = 지역 유소년 중심
+    "climbing":           {"naver": 0.60, "global": 0.40},  # 클라이밍 = 시설 비교 AI 증가
+    "art_class":          {"naver": 0.60, "global": 0.40},  # 미술학원 = 교육 계열
+    "childcare":          {"naver": 0.70, "global": 0.30},  # 어린이집 = 지역 기반 즉시결정형
+    "car_wash":           {"naver": 0.70, "global": 0.30},  # 세차장 = 지역 즉시방문형
+    "electronics_repair": {"naver": 0.65, "global": 0.35},  # 가전수리 = 지역 기반, 후기 중요
+    "footwear":           {"naver": 0.45, "global": 0.55},  # 신발 = 온라인 쇼핑 비중 높음
+    "stationery":         {"naver": 0.60, "global": 0.40},  # 문구 = 지역+온라인 혼합
+    "norebang":           {"naver": 0.75, "global": 0.25},  # 노래방 = 완전 지역 즉시방문형
+    "billiards":          {"naver": 0.70, "global": 0.30},  # 당구장 = 지역 즉시방문형
 }
 
 # 미등록 업종 중립 기본값 (오진단 방지)
@@ -106,6 +181,7 @@ NAVER_TRACK_WEIGHTS: dict[str, float] = {
     "keyword_gap_score":        0.35,  # 업종별 키워드 커버리지 — 조건검색 직결
     "review_quality":           0.25,  # 리뷰 수·평점·최신성·키워드 다양성
     "smart_place_completeness": 0.15,  # FAQ·소개글·소식·부가정보 완성도 (0.25 → 0.15, kakao 10% 분리)
+    # NOTE: AI 브리핑 전용. AI탭 측정은 P2 이후 구현 예정 (naver_ai_tab_visible 별도 항목으로 분리)
     "naver_exposure_confirmed": 0.15,  # 네이버 AI 브리핑 실제 확인
     "kakao_completeness":       0.10,  # 카카오맵 완성도 (사용자 체크리스트 기반)
 }
@@ -230,7 +306,8 @@ def calc_smart_place_completeness(naver_data: dict, biz: dict) -> float:
     스마트플레이스 완성도 점수 (0~100).
     is_smart_place: naver_visibility.py 자동 수집
     naver_place_rank: 지역 검색 순위 (1위=30점, 2~5위=20점, 6~20위=10점)
-    has_faq / has_recent_post / has_intro: 사용자 체크박스 입력
+    has_recent_post / has_intro: 사용자 체크박스 입력
+    has_faq: 2026-05-01 스마트플레이스 Q&A 탭 폐기 이후 가중치 0 — talktalk_faq_draft 호환용으로만 유지
     """
     is_smart_place  = bool(
         naver_data.get("is_smart_place")  # 네이버 검색 결과에서 자동 확인
@@ -275,8 +352,15 @@ def calc_smart_place_completeness(naver_data: dict, biz: dict) -> float:
 
 
 def calc_naver_exposure(scan_result: dict) -> float:
-    """네이버 AI 브리핑 실제 노출 확인 점수 (0~100)"""
+    """네이버 AI 브리핑 실제 노출 확인 점수 (0~100).
+
+    광고 영역(ad_only=True)만 노출된 경우 유기 노출이 아니므로 0점 처리.
+    Q2 광고 출시 전에는 ad_only가 항상 False이므로 점수 변동 없음.
+    """
     naver_result = scan_result.get("naver") or scan_result.get("naver_result") or {}
+    # 광고 영역만 노출 시 유기 노출 아님 → 점수 0
+    if naver_result.get("ad_only"):
+        return 0.0
     return (
         (60 if naver_result.get("mentioned") else 0) +
         (40 if naver_result.get("in_briefing") else 0)
@@ -296,7 +380,8 @@ def calc_kakao_completeness(scan_result: dict, biz: dict) -> float:
         return float(min(100, stored))
 
     # 2순위: scan_result의 kakao_result (스캔 시 저장된 데이터)
-    kakao_result = scan_result.get("kakao_result") or {}
+    # trial은 "kakao" 키로, 정식 스캔은 "kakao_result" 키로 저장 — 양쪽 모두 지원
+    kakao_result = scan_result.get("kakao_result") or scan_result.get("kakao") or {}
     if kakao_result:
         score = 0.0
         if kakao_result.get("mentioned"):
@@ -407,31 +492,18 @@ def calc_track1_score(
         })
 
     # 사진 카테고리 부족 항목 추가 (점수 변경 없음 — 가이드용 missing 힌트)
+    # 단일 진실 소스: services/photo_categories.py
     _photo_categories = naver_data.get("photo_categories") or {}
     if _photo_categories:
+        from services.photo_categories import find_missing as _find_missing_photos
         _eff_cat_for_photo = category or biz.get("category", "restaurant")
-        _EXPECTED_PHOTO_CATS: dict[str, list[str]] = {
-            "restaurant":    ["음식·음료", "음식-음료", "메뉴", "풍경"],
-            "cafe":          ["음식·음료", "음식-음료", "메뉴", "풍경"],
-            "bakery":        ["음식·음료", "음식-음료", "메뉴"],
-            "bar":           ["음식·음료", "음식-음료", "분위기"],
-            "accommodation": ["객실", "전망", "수영장", "부대시설"],
-            "beauty":        ["시술", "헤어", "인테리어"],
-            "nail":          ["네일", "디자인", "인테리어"],
-            "fitness":       ["시설", "운동", "인테리어"],
-            "pet":           ["반려동물", "시설"],
-        }
-        _expected = _EXPECTED_PHOTO_CATS.get(_eff_cat_for_photo, [])
-        for _cat in _expected:
-            # 키 정규화: "음식·음료" / "음식-음료" 둘 다 확인
-            _alt_cat = _cat.replace("·", "-").replace("-", "·")
-            if _photo_categories.get(_cat, 0) == 0 and _photo_categories.get(_alt_cat, 0) == 0:
-                missing.append({
-                    "item": f"사진_{_cat}_없음",
-                    "gain": 0,
-                    "desc": f"'{_cat}' 카테고리 사진을 등록하면 AI 이미지 필터 노출이 늘어납니다.",
-                    "type": "photo_category",
-                })
+        for _cat in _find_missing_photos(_photo_categories, _eff_cat_for_photo):
+            missing.append({
+                "item": f"사진_{_cat}_없음",
+                "gain": 0,
+                "desc": f"'{_cat}' 카테고리 사진을 등록하면 AI 이미지 필터 노출이 늘어납니다.",
+                "type": "photo_category",
+            })
 
     # AI 정보 탭 상태 → missing 리스트 최우선 삽입
     # active: gain 실질적. likely: 현재 미대상 → 미리 준비 안내 (gain 10, 오인 방지)
@@ -623,7 +695,14 @@ def calculate_score(
     # Track 1 계산 (v3.0 / v3.1 토글)
     # 환경변수 SCORE_MODEL_VERSION=v3_1 시 그룹별 6항목 가중치 사용
     # 미설정 시 기존 v3.0 5항목 (하위 호환)
-    if SCORE_MODEL_VERSION == "v3_1":
+    if SCORE_MODEL_VERSION == "v3_2":
+        track1, track1_detail = calc_track1_score_v3_2(
+            scan_result, biz, naver_data, keyword_coverage_rate, category
+        )
+        _sp_item = track1_detail.get("items", {}).get("smart_place_completeness", {})
+        is_estimated = bool(_sp_item.get("kw_gap_estimated", False))
+        kw_gap = float(_sp_item.get("kw_gap_absorbed", 0.0))
+    elif SCORE_MODEL_VERSION == "v3_1":
         track1, track1_detail = calc_track1_score_v3_1(
             scan_result, biz, naver_data, keyword_coverage_rate, category
         )
@@ -669,15 +748,15 @@ def calculate_score(
         "content_freshness":        round(_calc_freshness(biz, scan_result), 1),
     }
 
-    # v3.1 토글 시 신규 항목 평탄화 (briefing_engine·gap_analyzer·guide_generator 호환)
-    if SCORE_MODEL_VERSION == "v3_1" and isinstance(track1_detail, dict):
+    # v3.1/v3.2 토글 시 신규 항목 평탄화 (briefing_engine·gap_analyzer·guide_generator 호환)
+    if SCORE_MODEL_VERSION in ("v3_1", "v3_2") and isinstance(track1_detail, dict):
         items = track1_detail.get("items") or {}
-        for key in ("keyword_search_rank", "blog_crank", "local_map_score", "ai_briefing_score"):
+        for key in ("keyword_search_rank", "blog_crank", "local_map_score", "ai_briefing_score", "naver_ai_tab_visible"):
             item = items.get(key)
             if isinstance(item, dict) and "score" in item:
                 breakdown[key] = item["score"]
         breakdown["user_group"] = track1_detail.get("user_group")
-        breakdown["model_version"] = "v3.1"
+        breakdown["model_version"] = track1_detail.get("model_version", "v3.1")
 
     grade = "A" if unified >= 80 else "B" if unified >= 60 else "C" if unified >= 40 else "D"
 
@@ -840,6 +919,56 @@ def _validate_v3_1_weights() -> None:
 _validate_v3_1_weights()
 
 
+# ════════════════════════════════════════════════════════════════
+# v3.2 그룹별 가중치 점수 모델 (naver_ai_search_optimization_plan_v1.0.md §M3-2)
+# 환경변수 SCORE_MODEL_VERSION=v3_2 활성화 시 사용
+# 6월 AI탭 전체 확대 이후 활성화 권장
+# naver_ai_tab_visible: in_ai_tab 실측 데이터 기반 점수 (M1-1에서 수집 시작)
+# ════════════════════════════════════════════════════════════════
+NAVER_TRACK_WEIGHTS_V3_2: dict[str, dict[str, float]] = {
+    "ACTIVE": {
+        "keyword_search_rank":      0.25,
+        "review_quality":           0.15,
+        "smart_place_completeness": 0.15,
+        "blog_crank":               0.10,
+        "local_map_score":          0.10,
+        "ai_briefing_score":        0.20,  # 0.25 → 0.20 (naver_ai_tab_visible 분리)
+        "naver_ai_tab_visible":     0.05,  # 신규 — AI탭 노출 실측 (A그룹)
+    },
+    "LIKELY": {
+        "keyword_search_rank":      0.25,  # 0.30 → 0.25
+        "review_quality":           0.17,
+        "smart_place_completeness": 0.18,
+        "blog_crank":               0.10,
+        "local_map_score":          0.10,
+        "ai_briefing_score":        0.10,  # 0.15 → 0.10
+        "naver_ai_tab_visible":     0.10,  # 신규 — AI탭 노출 실측 (B그룹)
+    },
+    "INACTIVE": {
+        "keyword_search_rank":      0.25,  # 0.35 → 0.25
+        "review_quality":           0.20,
+        "smart_place_completeness": 0.20,
+        "blog_crank":               0.05,  # 0.10 → 0.05
+        "local_map_score":          0.15,
+        "ai_briefing_score":        0.00,
+        "naver_ai_tab_visible":     0.15,  # 신규 — AI탭 노출 실측 (C·D그룹)
+    },
+}
+
+
+def _validate_v3_2_weights() -> None:
+    """v3.2 가중치 합 100% 자동 검증."""
+    for group, weights in NAVER_TRACK_WEIGHTS_V3_2.items():
+        total = sum(weights.values())
+        if abs(total - 1.0) > 0.001:
+            raise ValueError(
+                f"NAVER_TRACK_WEIGHTS_V3_2[{group}] 합계 {total:.3f} != 1.0"
+            )
+
+
+_validate_v3_2_weights()
+
+
 def get_user_group(category: str, is_franchise: bool = False) -> str:
     """
     사용자 그룹 분류 (ACTIVE / LIKELY / INACTIVE).
@@ -949,6 +1078,23 @@ def calc_keyword_search_rank_score(scan_result: dict) -> tuple[float, bool]:
     return (sum(scores) / len(scores), True)
 
 
+def calc_naver_ai_tab_visible_score(scan_result: dict) -> float:
+    """AI탭 노출 실측 점수 (0~100).
+
+    M3-2: SCORE_MODEL_VERSION=v3_2 활성화 시 Track1에 추가.
+    in_ai_tab=True: 100점. in_ai_tab=False 또는 미측정: 0점.
+    허위 수치 금지 — 미측정 시 반드시 0 반환.
+    """
+    naver_result = scan_result.get("naver_result") or {}
+    if isinstance(naver_result, dict):
+        if naver_result.get("in_ai_tab"):
+            return 100.0
+        kw_results = naver_result.get("keyword_results") or []
+        if any(isinstance(r, dict) and r.get("in_ai_tab") for r in kw_results):
+            return 100.0
+    return 0.0
+
+
 def calc_track1_score_v3_1(
     scan_result: dict,
     biz: dict,
@@ -1007,6 +1153,61 @@ def calc_track1_score_v3_1(
             "blog_crank":               {"score": round(blog_crank, 1), "is_estimated": True},
             "local_map_score":          {"score": round(local_map, 1)},
             "ai_briefing_score":        {"score": round(ai_brief, 1)},
+        },
+    }
+    return (round(score, 2), detail)
+
+
+def calc_track1_score_v3_2(
+    scan_result: dict,
+    biz: dict,
+    naver_data: dict,
+    keyword_coverage_rate: float | None = None,
+    category: str = "",
+) -> tuple[float, dict]:
+    """v3.2 Track1 점수 — v3.1에 naver_ai_tab_visible 항목 추가.
+
+    SCORE_MODEL_VERSION=v3_2 활성화 시 calculate_score()에서 호출.
+    6월 AI탭 전체 확대 이후 활성화 권장.
+    """
+    _eff_category = category or biz.get("category") or ""
+    user_group = get_user_group(_eff_category, bool(biz.get("is_franchise")))
+    weights = NAVER_TRACK_WEIGHTS_V3_2[user_group]
+
+    kw_search, kw_measured = calc_keyword_search_rank_score(scan_result)
+    rv_qual = calc_review_quality(biz)
+    sp_base = calc_smart_place_completeness(naver_data, biz)
+    kw_gap, kw_is_est = _resolve_keyword_gap_score(
+        keyword_coverage_rate, naver_data, biz, _eff_category
+    )
+    sp_comp = sp_base * 0.7 + kw_gap * 0.3
+    blog_crank = calc_blog_crank_score(naver_data, biz)
+    local_map = calc_local_map_score(scan_result, biz, naver_data)
+    ai_brief = calc_naver_exposure(scan_result)
+    ai_tab_visible = calc_naver_ai_tab_visible_score(scan_result)
+
+    score = (
+        kw_search      * weights["keyword_search_rank"] +
+        rv_qual        * weights["review_quality"] +
+        sp_comp        * weights["smart_place_completeness"] +
+        blog_crank     * weights["blog_crank"] +
+        local_map      * weights["local_map_score"] +
+        ai_brief       * weights["ai_briefing_score"] +
+        ai_tab_visible * weights["naver_ai_tab_visible"]
+    )
+
+    detail = {
+        "user_group":    user_group,
+        "model_version": "v3.2",
+        "weights":       weights,
+        "items": {
+            "keyword_search_rank":      {"score": round(kw_search, 1),  "measured": kw_measured},
+            "review_quality":           {"score": round(rv_qual, 1)},
+            "smart_place_completeness": {"score": round(sp_comp, 1),    "kw_gap_absorbed": round(kw_gap, 1), "kw_gap_estimated": kw_is_est},
+            "blog_crank":               {"score": round(blog_crank, 1), "is_estimated": True},
+            "local_map_score":          {"score": round(local_map, 1)},
+            "ai_briefing_score":        {"score": round(ai_brief, 1)},
+            "naver_ai_tab_visible":     {"score": round(ai_tab_visible, 1)},
         },
     }
     return (round(score, 2), detail)

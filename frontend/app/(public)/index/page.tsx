@@ -89,7 +89,7 @@ export default async function PublicIndexPage() {
 
       <div className="max-w-5xl mx-auto px-4 md:px-8 py-8">
         {/* 상단 CTA 배너 */}
-        <div className="mb-8 bg-blue-600 rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="mb-8 bg-blue-600 rounded-xl p-4 md:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex-1">
             <h2 className="text-lg md:text-xl font-bold text-white mb-1">내 가게 AI 노출 점수는?</h2>
             <p className="text-sm text-blue-100">
@@ -107,7 +107,7 @@ export default async function PublicIndexPage() {
 
         {/* 업종 카드 그리드 */}
         {categories.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-2xl p-10 md:p-16 text-center shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-xl p-10 md:p-16 text-center shadow-sm">
             <BarChart2 className="w-12 h-12 text-gray-500 mx-auto mb-4" />
             <h2 className="text-lg font-bold text-gray-700 mb-2">데이터를 수집 중입니다</h2>
             <p className="text-base text-gray-500">
@@ -126,7 +126,7 @@ export default async function PublicIndexPage() {
             {categories.map((cat) => (
               <div
                 key={cat.category}
-                className={`border rounded-2xl p-4 md:p-5 shadow-sm ${scoreBg(cat.avg_score)}`}
+                className={`border rounded-xl p-4 md:p-5 shadow-sm ${scoreBg(cat.avg_score)}`}
               >
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <h3 className="text-base font-bold text-gray-900">
@@ -168,7 +168,7 @@ export default async function PublicIndexPage() {
         )}
 
         {/* 데이터 출처 안내 */}
-        <div className="mt-8 bg-gray-100 border border-gray-200 rounded-2xl p-4 md:p-5 text-center">
+        <div className="mt-8 bg-gray-100 border border-gray-200 rounded-xl p-4 md:p-5 text-center">
           <p className="text-sm text-gray-500">
             AEOlab이 집계한 실제 사업장 데이터 기반 (분기별 업데이트, 개인정보 비포함)
           </p>

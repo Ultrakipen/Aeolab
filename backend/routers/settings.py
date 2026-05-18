@@ -217,25 +217,76 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
 
 @router.delete("/account")
 async def delete_account(user: dict = Depends(get_current_user)):
-    """계정 탈퇴 — 사업장 비활성화 후 Auth 사용자 삭제"""
+    """계정 탈퇴 — 관련 데이터 전체 삭제 후 Auth 사용자 삭제 (개인정보보호법 준수)"""
     user_id = user["id"]
     supabase = get_client()
 
-    # 사업장 비활성화 (스캔 기록 보존)
-    await execute(
-        supabase.table("businesses")
-        .update({"is_active": False})
-        .eq("user_id", user_id)
+    # 1. 사업장 ID 수집 (하위 테이블 삭제 기준)
+    biz_res = await execute(
+        supabase.table("businesses").select("id").eq("user_id", user_id)
     )
+    biz_ids = [b["id"] for b in (biz_res.data or [])]
 
-    # 구독 취소 처리
-    await execute(
-        supabase.table("subscriptions")
-        .update({"status": "cancelled"})
-        .eq("user_id", user_id)
+    if biz_ids:
+        # 2. scan_results를 참조하는 테이블 먼저 삭제 (FK 순서)
+        for table in ("guides", "ai_citations", "score_history", "before_after", "gap_cards", "business_action_log"):
+            try:
+                await execute(supabase.table(table).delete().in_("business_id", biz_ids))
+            except Exception as e:
+                logger.warning(f"delete_account {table} 삭제 실패 (user={user_id}): {e}")
+        # 3. scan_results 삭제
+        try:
+            await execute(supabase.table("scan_results").delete().in_("business_id", biz_ids))
+        except Exception as e:
+            logger.warning(f"delete_account scan_results 삭제 실패 (user={user_id}): {e}")
+        # 4. competitors 삭제
+        try:
+            await execute(supabase.table("competitors").delete().in_("business_id", biz_ids))
+        except Exception as e:
+            logger.warning(f"delete_account competitors 삭제 실패 (user={user_id}): {e}")
+
+    # 5. businesses 삭제
+    await execute(supabase.table("businesses").delete().eq("user_id", user_id))
+
+    # 6. trial_scans 익명화 (IP 해시 집계 데이터는 보존, 개인식별 정보만 제거)
+    try:
+        await execute(
+            supabase.table("trial_scans")
+            .update({"converted_user_id": None, "claim_email": None, "claimed_at": None})
+            .eq("converted_user_id", user_id)
+        )
+    except Exception as e:
+        logger.warning(f"delete_account trial_scans 익명화 실패 (user={user_id}): {e}")
+
+    # 7. user_id FK 테이블 삭제
+    for table in ("profiles", "notifications", "team_members", "api_keys"):
+        try:
+            await execute(supabase.table(table).delete().eq("user_id", user_id))
+        except Exception as e:
+            logger.warning(f"delete_account {table} 삭제 실패 (user={user_id}): {e}")
+
+    # 8. 토스 빌링키 삭제 (자동결제 재시도 방지 — best-effort)
+    sub_res = await execute(
+        supabase.table("subscriptions").select("billing_key").eq("user_id", user_id).maybe_single()
     )
+    billing_key = (sub_res.data or {}).get("billing_key")
+    if billing_key:
+        secret_key = os.getenv("TOSS_SECRET_KEY", "")
+        try:
+            async with httpx.AsyncClient(timeout=15) as c:
+                del_resp = await c.delete(
+                    f"https://api.tosspayments.com/v1/billing/{billing_key}",
+                    auth=(secret_key, ""),
+                )
+            if del_resp.status_code not in (200, 204):
+                logger.warning(f"delete_account 빌링키 삭제 실패 (user={user_id}): {del_resp.status_code}")
+        except Exception as e:
+            logger.warning(f"delete_account 빌링키 삭제 오류 (user={user_id}): {e}")
 
-    # Auth 사용자 삭제 (service role 필요)
+    # 9. subscriptions 삭제
+    await execute(supabase.table("subscriptions").delete().eq("user_id", user_id))
+
+    # 10. Auth 사용자 삭제 (service role 필요)
     url = os.getenv("SUPABASE_URL", "")
     service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
     admin_client = create_client(url, service_key)
@@ -245,6 +296,7 @@ async def delete_account(user: dict = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"계정 삭제 중 오류: {str(e)}")
 
+    logger.info(f"계정 탈퇴 완료 — 전체 데이터 삭제 (user={user_id})")
     return {"status": "deleted"}
 
 

@@ -19,26 +19,26 @@ export default function CompetitorGapHighlightCard({
   const isAhead = myScore >= avgScore;
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-5 mb-4">
-      <p className="text-base md:text-lg font-bold text-amber-900 mb-4">
+    <div className="bg-white border border-slate-200 rounded-xl p-4 md:p-5 mb-4 shadow-sm">
+      <p className="text-base md:text-lg font-bold text-slate-800 mb-4">
         경쟁 업체들과의 격차
       </p>
 
       {/* 숫자 비교 3개 */}
       <div className="grid grid-cols-3 gap-3 text-center mb-4">
-        <div className="bg-white rounded-xl py-3 px-2 border border-amber-100">
+        <div className="bg-slate-50 rounded-xl py-3 px-2 border border-slate-200">
           <p className="text-sm text-gray-500 mb-1">업종 평균</p>
           <p className="text-2xl md:text-3xl font-bold text-gray-700">
             {avgScore.toFixed(1)}점
           </p>
         </div>
-        <div className="bg-amber-100 rounded-xl py-3 px-2 border-2 border-amber-400">
-          <p className="text-sm text-amber-700 font-semibold mb-1">내 가게</p>
-          <p className="text-2xl md:text-3xl font-bold text-amber-800">
+        <div className="bg-blue-50 rounded-xl py-3 px-2 border-2 border-blue-400">
+          <p className="text-sm text-blue-600 font-semibold mb-1">내 가게</p>
+          <p className="text-2xl md:text-3xl font-bold text-blue-700">
             {myScore}점
           </p>
         </div>
-        <div className="bg-white rounded-xl py-3 px-2 border border-amber-100">
+        <div className="bg-slate-50 rounded-xl py-3 px-2 border border-slate-200">
           <p className="text-sm text-gray-500 mb-1">상위 10%</p>
           <p className="text-2xl md:text-3xl font-bold text-emerald-600">
             {top10Score.toFixed(1)}점
@@ -64,7 +64,7 @@ export default function CompetitorGapHighlightCard({
       </div>
 
       {/* 하단 문구 */}
-      <p className="text-sm md:text-base text-amber-800 leading-relaxed text-center break-keep">
+      <p className="text-sm md:text-base text-slate-600 leading-relaxed text-center break-keep">
         상위 10% 업체들은 키워드·리뷰·콘텐츠 최적화로 이 격차를 만들었습니다
       </p>
     </div>

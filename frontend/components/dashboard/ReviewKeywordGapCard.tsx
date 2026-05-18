@@ -109,7 +109,7 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
   return (
     <section
       aria-labelledby="review-keyword-gap-title"
-      className="mb-4 md:mb-6 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden"
+      className="mb-4 md:mb-6 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden"
     >
       {/* 헤더 */}
       <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-4 border-b border-gray-100 bg-gray-50">
@@ -179,9 +179,6 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
             <p className="text-sm text-gray-500 break-keep max-w-xs mx-auto leading-relaxed">
               스캔 후 데이터가 충분히 쌓이면 표시됩니다
             </p>
-            {dist?.reason && (
-              <p className="text-xs text-gray-400">{dist.reason}</p>
-            )}
           </div>
         )}
 
@@ -221,7 +218,7 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
               </ResponsiveContainer>
             </div>
 
-            <p className="mt-3 text-xs text-gray-400 leading-snug">
+            <p className="mt-3 text-xs text-gray-500 leading-snug">
               측정 시점·기기·로그인 상태에 따라 달라질 수 있음. 리뷰 키워드 분류는 AI 분석 기반 추정치입니다.
             </p>
           </>

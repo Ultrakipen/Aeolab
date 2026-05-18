@@ -7,7 +7,9 @@
  * 그룹 판정 규칙:
  *   - 프랜차이즈 → "franchise" (별도 표시)
  *   - restaurant·cafe·bakery·bar·accommodation → "ACTIVE"
- *   - beauty·nail·pet·fitness·yoga·pharmacy → "LIKELY"  (beauty: 확대 예정, 미확정)
+ *   - beauty·nail·skincare·massage·spa·pet·fitness·yoga·pharmacy·dance·ballet → "LIKELY"
+ *     (beauty: 확대 예정, 미확정. skincare·massage·spa: 로컬 서비스 네이버 최적화 대상.
+ *      dance·ballet: 피트니스 계열 스튜디오)
  *   - 그 외 → "INACTIVE"
  */
 
@@ -20,9 +22,12 @@ const ACTIVE_CATEGORIES = new Set([
 ]);
 
 // ⚠️ backend/services/score_engine.py BRIEFING_LIKELY_CATEGORIES와 동기화 필수
-// beauty: 확대 예정(미확정). nail·pet·fitness·yoga·pharmacy: 공식 발표 없음
+// beauty: 확대 예정(미확정). skincare·massage·spa: 로컬 서비스로 네이버 최적화 대상.
+// dance·ballet: 피트니스 계열 스튜디오. nail·pet·fitness·yoga·pharmacy: 기존 유지
+// semi_permanent: 뷰티 계열 로컬 서비스
 const LIKELY_CATEGORIES = new Set([
-  "beauty", "nail", "pet", "fitness", "yoga", "pharmacy",
+  "beauty", "nail", "skincare", "massage", "spa", "pet", "fitness", "yoga", "pharmacy",
+  "dance", "ballet", "semi_permanent",
 ]);
 
 export function getUserGroup(category: string, isFranchise: boolean): UserGroup {

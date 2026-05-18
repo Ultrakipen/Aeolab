@@ -28,6 +28,39 @@ BRIEFING_SELECTORS = [
     "[data-section='ai']",
 ]
 
+# AI탭 셀렉터 (통합검색 내 섹션 — 별도 URL 없음)
+AI_TAB_SELECTORS = [
+    "[data-tab='ai']",
+    "[data-section='ai_tab']",
+    "div[class*='AiTab']",
+    "div[class*='ai_tab']",
+    ".ai_tab_section",
+    "#ai_tab",
+]
+
+# 광고 영역 셀렉터 (Q2 광고 출시 전 — 현재 False 반환 예상)
+AD_BRIEFING_SELECTORS = [
+    "[data-ad='ai_brief']",
+    "[data-section='ad']",
+    "span.ad_marker",
+    "div[class*='AdBrief']",
+    "div[class*='ad_brief']",
+    ".ai_answer_area[data-ad='true']",
+]
+
+
+async def _detect_ad_briefing(page) -> bool:
+    """AI 브리핑이 광고 영역 노출인지 감지. Q2 광고 출시 전엔 False."""
+    for sel in AD_BRIEFING_SELECTORS:
+        try:
+            el = await page.query_selector(sel)
+            if el:
+                return True
+        except Exception:
+            continue
+    return False
+
+
 # 플레이스 결과 셀렉터 (네이버 DOM 변경 대응 — 우선순위 순)
 PLACE_SELECTORS = [
     ".place_bluelink",
@@ -64,11 +97,14 @@ class NaverAIBriefingScanner:
 
     async def _check_single_page(self, page, query: str, target: str) -> dict:
         """단일 페이지에서 AI 브리핑 및 플레이스 결과 확인"""
-        mentioned   = False
-        in_briefing = False
-        excerpt     = ""
-        rank        = None
-        page_text   = ""
+        mentioned      = False
+        in_briefing    = False
+        excerpt        = ""
+        rank           = None
+        page_text      = ""
+        in_ai_tab      = False
+        ai_tab_excerpt = ""
+        ad_only        = False
 
         try:
             url = f"https://search.naver.com/search.naver?query={query}"
@@ -93,6 +129,7 @@ class NaverAIBriefingScanner:
                     "platform": "naver", "mentioned": False, "in_briefing": False,
                     "rank": None, "excerpt": "", "captcha_detected": True,
                     "error": "captcha_or_blocked", "_query_used": query,
+                    "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
                 }
 
             # ── AI 브리핑 영역 확인 ──────────────────────────────
@@ -108,6 +145,24 @@ class NaverAIBriefingScanner:
                         break
                 except Exception:
                     continue
+
+            # ── AI탭 섹션 감지 ──────────────────────────────────
+            for sel in AI_TAB_SELECTORS:
+                try:
+                    el = await page.query_selector(sel)
+                    if el:
+                        text = await el.inner_text()
+                        if _name_in_text(target, text):
+                            in_ai_tab = True
+                            lines = [l for l in text.split("\n") if _name_in_text(target, l)]
+                            ai_tab_excerpt = lines[0][:120] if lines else ""
+                        break
+                except Exception:
+                    continue
+
+            # ── 광고 영역 감지 ───────────────────────────────────
+            if in_briefing:
+                ad_only = await _detect_ad_briefing(page)
 
             # ── 플레이스 결과 순위 확인 ──────────────────────────
             for sel in PLACE_SELECTORS:
@@ -137,12 +192,15 @@ class NaverAIBriefingScanner:
             logger.warning(f"NaverAIBriefingScanner page check error for '{query}': {e}")
 
         return {
-            "platform":    "naver",
-            "mentioned":   mentioned or in_briefing,
-            "in_briefing": in_briefing,
-            "rank":        rank,
-            "excerpt":     excerpt,
-            "_query_used": query,
+            "platform":      "naver",
+            "mentioned":     mentioned or in_briefing,
+            "in_briefing":   in_briefing,
+            "rank":          rank,
+            "excerpt":       excerpt,
+            "_query_used":   query,
+            "in_ai_tab":     in_ai_tab,
+            "ai_tab_excerpt": ai_tab_excerpt,
+            "ad_only":       ad_only,
         }
 
     async def check_mention(self, query: str, target: str) -> dict:
@@ -175,6 +233,7 @@ class NaverAIBriefingScanner:
             return {
                 "platform": "naver", "mentioned": False, "in_briefing": False,
                 "rank": None, "excerpt": "", "keyword_results": [],
+                "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
             }
 
         async with async_playwright() as pw:

@@ -82,7 +82,7 @@ export function StartupClient() {
       <p className="text-sm text-gray-500 mb-6">업종·지역 AI 노출 경쟁 강도 + 진입 전략 (창업 패키지 전용)</p>
 
       {/* 입력 폼 */}
-      <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm mb-6">
+      <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">업종</label>
@@ -129,7 +129,7 @@ export function StartupClient() {
       {report && (
         <>
           {/* 경쟁 강도 */}
-          <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm mb-4">
+          <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-4">
             <h2 className="text-base font-semibold text-gray-700 mb-4">시장 현황</h2>
             <div className="grid grid-cols-3 gap-3 md:gap-4 mb-4">
               <div className="text-center p-3 md:p-4 bg-gray-50 rounded-xl">
@@ -179,7 +179,7 @@ export function StartupClient() {
 
           {/* 진입 전략 */}
           {report.strategy && (
-            <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm mb-4">
+            <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-4">
               <h2 className="text-base font-semibold text-gray-700 mb-3">AI 진입 전략</h2>
               {report.strategy.entry_strategy && (
                 <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">{report.strategy.entry_strategy}</p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getSafeSession } from "@/lib/supabase/client";
 
 interface FAQItem {
   question: string;
@@ -69,12 +70,20 @@ export function TalktalkFAQGeneratorCard({
     setGenerating(true);
     setError("");
     try {
+      const sess = await getSafeSession();
+      const token = sess?.access_token;
+      if (!token) {
+        setError("로그인이 필요합니다. 페이지를 새로고침해주세요.");
+        return;
+      }
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL || ""}/api/guide/${bizId}/smartplace-faq`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({ count: 5 }),
         }
       );
@@ -134,7 +143,7 @@ export function TalktalkFAQGeneratorCard({
   };
 
   return (
-    <div className="rounded-lg border bg-white p-4 md:p-6">
+    <div className="rounded-xl border bg-white p-4 md:p-6">
       {/* 헤더 */}
       <div className="flex items-center gap-2 flex-wrap mb-3">
         <h3 className="text-base md:text-lg font-bold text-gray-900">
@@ -192,7 +201,7 @@ export function TalktalkFAQGeneratorCard({
                 {generated.chat_menus.map((menu, i) => (
                   <div
                     key={i}
-                    className="rounded-lg border bg-gray-50 p-3 flex flex-col gap-2"
+                    className="rounded-xl border bg-gray-50 p-3 flex flex-col gap-2"
                   >
                     {/* 메뉴명 + 배지 */}
                     <div className="flex items-center gap-2 flex-wrap">
@@ -223,7 +232,7 @@ export function TalktalkFAQGeneratorCard({
                         </a>
                         <button
                           onClick={() => copyMenuContent(menu, i)}
-                          className="text-xs text-gray-500 hover:text-gray-700 font-medium shrink-0"
+                          className="text-sm text-gray-500 hover:text-gray-700 font-medium shrink-0"
                         >
                           {copiedMenuIndex === i ? "복사됨!" : "URL 복사"}
                         </button>
@@ -235,7 +244,7 @@ export function TalktalkFAQGeneratorCard({
                         </p>
                         <button
                           onClick={() => copyMenuContent(menu, i)}
-                          className="text-xs text-gray-500 hover:text-gray-700 font-medium shrink-0"
+                          className="text-sm text-gray-500 hover:text-gray-700 font-medium shrink-0"
                         >
                           {copiedMenuIndex === i ? "복사됨!" : "복사"}
                         </button>
@@ -265,7 +274,7 @@ export function TalktalkFAQGeneratorCard({
               </div>
               <div className="space-y-3">
                 {generated.items.map((faq, i) => (
-                  <div key={i} className="p-3 md:p-4 bg-gray-50 rounded border">
+                  <div key={i} className="p-3 md:p-4 bg-gray-50 rounded-xl border">
                     <div className="text-xs md:text-sm text-purple-700 font-medium mb-1">
                       [{faq.category}]
                     </div>

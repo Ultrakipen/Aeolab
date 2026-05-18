@@ -173,7 +173,7 @@ export default async function DeliveryOrderDetailPage({
         <div className="flex-1 min-w-0 space-y-4">
 
           {/* 의뢰 내용 카드 */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <div className="flex items-start justify-between gap-3 mb-4">
               <div>
                 <h1 className="text-lg md:text-xl font-bold text-gray-900">{order.request_title}</h1>
@@ -190,7 +190,7 @@ export default async function DeliveryOrderDetailPage({
 
           {/* 완료 보고서 */}
           {order.status === "completed" && order.completion_report && (
-            <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-5">
               <div className="flex items-center gap-2 mb-3">
                 <CheckCircle2 className="w-5 h-5 text-green-600" />
                 <h2 className="text-base font-semibold text-green-800">완료 보고서</h2>
@@ -232,6 +232,7 @@ export default async function DeliveryOrderDetailPage({
             initialMessages={messages}
             isDisabled={order.status === "completed" || order.status === "cancelled" || order.status === "refunded"}
             token={token}
+            isCompleted={order.status === "completed"}
           />
         </div>
 
@@ -239,7 +240,7 @@ export default async function DeliveryOrderDetailPage({
         <div className="w-full md:w-72 shrink-0 space-y-4">
 
           {/* 진행 상태 스텝 */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-base font-semibold text-gray-800 mb-4">진행 상태</h2>
 
             {/* 정상 스텝 플로우 (received/in_progress/completed) */}
@@ -285,7 +286,7 @@ export default async function DeliveryOrderDetailPage({
           </div>
 
           {/* 패키지 정보 */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-base font-semibold text-gray-800 mb-3">패키지 정보</h2>
             <dl className="space-y-2.5">
               <div className="flex justify-between gap-2">
@@ -318,7 +319,7 @@ export default async function DeliveryOrderDetailPage({
           </div>
 
           {/* 위임 동의 현황 */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-base font-semibold text-gray-800 mb-3">위임 동의 현황</h2>
             <div className={`flex items-center gap-2 text-sm ${order.consent_agreed ? "text-green-700" : "text-red-600"}`}>
               <div className={`w-2 h-2 rounded-full ${order.consent_agreed ? "bg-green-500" : "bg-red-400"}`} />

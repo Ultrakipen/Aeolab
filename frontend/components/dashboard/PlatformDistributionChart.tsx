@@ -126,7 +126,7 @@ export function PlatformDistributionChart({
   const globalMentionCount = GLOBAL_PLATFORMS.filter(p => results[p.key]?.mentioned).length
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm">
+    <div className="bg-white rounded-xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div>
           <div className="text-sm font-medium text-gray-700">AI 플랫폼별 노출 현황</div>

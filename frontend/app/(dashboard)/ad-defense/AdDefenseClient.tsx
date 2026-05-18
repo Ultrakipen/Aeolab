@@ -78,7 +78,7 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
         ChatGPT SearchGPT 광고 도입 시 유기적 AI 노출을 유지하는 전략을 제공합니다.
       </p>
 
-      <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm mb-6">
+      <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-6">
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1.5">사업장 선택</label>
           <select
@@ -104,7 +104,7 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
       {result && (
         <>
           {/* 현황 요약 */}
-          <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm mb-4">
+          <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-4">
             <h2 className="text-base font-semibold text-gray-700 mb-3">현재 상황</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
               <div className="text-center p-4 bg-gray-50 rounded-xl">
@@ -137,7 +137,7 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
 
           {/* 유기적 전략 */}
           {result.guide.organic_strategies && (
-            <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm mb-4">
+            <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-4">
               <h2 className="text-base font-semibold text-gray-700 mb-3">유기적 노출 강화 전략</h2>
               <div className="space-y-3">
                 {result.guide.organic_strategies.map((s, i) => (
@@ -156,7 +156,7 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
           {/* 콘텐츠 액션 + 스키마 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {result.guide.content_actions && (
-              <section className="bg-white rounded-2xl p-5 shadow-sm">
+              <section className="bg-white rounded-xl p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-gray-700 mb-3">즉시 실행 액션</h2>
                 <ul className="space-y-2.5">
                   {result.guide.content_actions.map((a, i) => (
@@ -168,7 +168,7 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
               </section>
             )}
             {result.guide.schema_recommendations && (
-              <section className="bg-white rounded-2xl p-5 shadow-sm">
+              <section className="bg-white rounded-xl p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-gray-700 mb-3">AI 정보 등록 권장사항</h2>
                 <ul className="space-y-2.5">
                   {result.guide.schema_recommendations.map((r, i) => (
@@ -182,7 +182,7 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
           </div>
 
           {result.guide.timeline && (
-            <section className="bg-blue-50 rounded-2xl p-5 shadow-sm">
+            <section className="bg-blue-50 rounded-xl p-5 shadow-sm">
               <h2 className="text-sm font-semibold text-blue-700 mb-2">실행 로드맵</h2>
               <p className="text-sm text-blue-700">{result.guide.timeline}</p>
             </section>

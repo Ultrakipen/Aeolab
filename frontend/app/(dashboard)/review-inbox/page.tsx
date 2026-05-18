@@ -83,7 +83,7 @@ function CrisisGuidePanel({
   }, [reviewText, businessId, token])
 
   return (
-    <div className="mt-3 bg-red-50 border border-red-200 rounded-2xl overflow-hidden">
+    <div className="mt-3 bg-red-50 border border-red-200 rounded-xl overflow-hidden">
       {/* 패널 헤더 */}
       <div className="flex items-center justify-between px-4 py-3 bg-red-600">
         <div className="flex items-center gap-2">
@@ -373,7 +373,7 @@ export default function ReviewInboxPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {features.map((f) => (
-            <div key={f.title} className="bg-white rounded-2xl p-5 shadow-sm flex gap-4">
+            <div key={f.title} className="bg-white rounded-xl p-5 shadow-sm flex gap-4">
               <div className="shrink-0 w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
                 <f.Icon className="w-5 h-5 text-blue-600" />
               </div>
@@ -385,7 +385,7 @@ export default function ReviewInboxPage() {
           ))}
         </div>
 
-        <div className="bg-blue-600 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-blue-600 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="text-white font-semibold text-sm">Basic 플랜부터 이용 가능</p>
             <p className="text-blue-100 text-sm mt-0.5">월 9,900원 · 리뷰 답변 무제한 포함</p>
@@ -414,7 +414,7 @@ export default function ReviewInboxPage() {
       </div>
 
       {/* 입력 폼 */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-5 shadow-sm mb-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl p-5 shadow-sm mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           리뷰 텍스트 붙여넣기
         </label>
@@ -442,7 +442,7 @@ export default function ReviewInboxPage() {
 
       {/* 생성 결과 */}
       {result && (
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-6">
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 mb-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-blue-900">생성된 답변 초안</span>

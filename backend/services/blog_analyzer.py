@@ -217,8 +217,8 @@ def _analyze_single_post(
     elif not issues:
         suggestion = "잘 작성된 포스트입니다. 꾸준히 이 패턴을 유지하세요."
 
-    # 개선 제목 제안
-    improved_title = _improve_title(title, region, category, covered_keywords)
+    # 개선 제목 제안 — issues를 전달해 문제 유형에 맞는 접미사 선택
+    improved_title = _improve_title(title, region, category, covered_keywords, issues=issues)
 
     return {
         "title": title,
@@ -233,26 +233,122 @@ def _analyze_single_post(
     }
 
 
-_CATEGORY_SUFFIX_MAP: dict[str, str] = {
-    "photo":      "스튜디오 추천 | 가격·예약·후기 총정리",
-    "restaurant": "맛집 추천 | 메뉴·주차·예약 총정리",
-    "cafe":       "카페 추천 | 분위기·가격·좌석 총정리",
-    "beauty":     "잘하는 곳 추천 | 가격·예약·후기 비교",
-    "clinic":     "병원 추천 | 진료시간·비용·예약 총정리",
-    "academy":    "학원 추천 | 수강료·체험수업·커리큘럼 비교",
-    "fitness":    "추천 | PT 가격·시설·이용권 총정리",
-    "pet":        "동물병원 추천 | 진료비·후기·예약 총정리",
-    "legal":      "변호사 상담 | 수임료·승소사례 비교",
-    "shopping":   "추천 | 가격·배송·후기 비교",
+# 업종 키워드가 제목에 없을 때 사용하는 범용 의도어 접미사
+# category-specific "수강/레슨" 등이 무관한 제목에 삽입되는 것을 방지
+_GENERIC_INTENT_SUFFIX: list[str] = [
+    "추천 | 후기·비용",
+    "선택 기준 | 가격 비교",
+    "총정리 | 가격·후기",
+    "가격·일정 총정리",
+    "알아보기 | 후기",
+    "비용 총정리",
+]
+
+# 검색 의도어 없음 → 업종별 의도어 변형 목록 (업종 키워드가 제목에 있을 때만 사용)
+# 변형 6개로 확장 — hash 분산 개선으로 포스트별 중복 감소
+_INTENT_SUFFIX: dict[str, list[str]] = {
+    "photo":      [
+        "추천 | 가격·예약·후기", "잘 찍는 곳 | 비용 비교", "선택 기준 | 후기",
+        "촬영 비용 총정리", "예약 방법 | 가격 안내", "후기·비용 비교",
+    ],
+    "restaurant": [
+        "맛집 추천 | 메뉴·주차", "가격·예약 비교", "선택 기준 | 메뉴",
+        "메뉴·가격 총정리", "주차·예약 안내", "후기 | 가격 비교",
+    ],
+    "cafe":       [
+        "카페 추천 | 분위기·가격", "공부하기 좋은 곳 | 와이파이·주차", "가격·메뉴 비교",
+        "분위기·메뉴 총정리", "콘센트·주차 안내", "후기 | 가격 비교",
+    ],
+    "beauty":     [
+        "추천 | 가격·후기", "잘하는 곳 | 시술 비교", "가격·예약 총정리",
+        "시술 가격 비교", "예약 방법 | 후기", "시술 종류·비용 안내",
+    ],
+    "clinic":     [
+        "추천 | 비용·예약", "진료시간·비용 비교", "잘 보는 곳 | 후기",
+        "진료비 총정리", "예약 방법 | 비용 안내", "야간·주말 진료 안내",
+    ],
+    "academy":    [
+        "수강 추천 | 후기·비용", "레슨 추천 | 가격 비교", "클래스 추천 | 커리큘럼·비용",
+        "학원 선택 기준 | 비용 총정리", "수업료 비교 | 후기", "체험 수업 | 비용 안내",
+    ],
+    "fitness":    [
+        "추천 | 가격·시설", "PT 추천 | 비용·후기", "이용권 비교 | 가격",
+        "헬스장 선택 기준", "PT 가격 총정리", "시설·가격 비교",
+    ],
+    "pet":        [
+        "추천 | 진료비·예약", "동물병원 추천 | 후기·비용", "진료비 비교 | 후기",
+        "진료비 총정리", "예약 방법 | 비용 안내", "잘 보는 곳 | 후기",
+    ],
+    "legal":      [
+        "상담 추천 | 비용", "변호사 추천 | 수임료 비교", "무료 상담 | 후기",
+        "상담 비용 총정리", "선택 기준 | 후기", "수임료 비교 안내",
+    ],
+    "shopping":   [
+        "추천 | 가격·후기", "구매 가이드 | 비용 비교", "선택 기준 | 가격",
+        "가격 비교 총정리", "구매 전 확인할 것", "후기·가격 안내",
+    ],
+}
+
+# 홍보성 제목 → 정보형으로 전환 (업종별 핵심 비교 정보 변형 목록)
+# 변형 6개로 확장
+_PROMO_SUFFIX: dict[str, list[str]] = {
+    "photo":      [
+        "가격·준비물 총정리", "비용·예약 총정리", "스튜디오 비교",
+        "촬영 비용 안내", "예약 방법 정리", "후기·비용 비교",
+    ],
+    "restaurant": [
+        "메뉴·가격 총정리", "예약·주차 총정리", "메뉴 비교",
+        "가격·영업시간 안내", "주차 방법 정리", "후기·가격 비교",
+    ],
+    "cafe":       [
+        "분위기·메뉴 총정리", "가격·좌석 총정리", "메뉴 비교",
+        "영업시간·주차 안내", "콘센트·와이파이 정리", "후기·가격 비교",
+    ],
+    "beauty":     [
+        "시술 가격·소요시간 총정리", "가격·예약 총정리", "시술 비교",
+        "시술 종류·비용 안내", "예약 방법 정리", "후기·가격 비교",
+    ],
+    "clinic":     [
+        "진료시간·비용 총정리", "비용·예약 총정리", "진료비 비교",
+        "진료과목·비용 안내", "예약 방법 정리", "야간 진료 안내",
+    ],
+    "academy":    [
+        "수강료·체험수업 비교", "커리큘럼·비용 총정리", "체험수업 신청 방법",
+        "수강료 비교 안내", "커리큘럼 정리", "무료 체험 신청 방법",
+    ],
+    "fitness":    [
+        "가격·이용권 총정리", "PT 비용·시설 비교", "이용권 비교",
+        "PT 가격 안내", "시설 둘러보기 정리", "등록 방법·비용",
+    ],
+    "pet":        [
+        "진료비·후기 총정리", "비용·예약 총정리", "진료비 비교",
+        "진료과목·비용 안내", "예약 방법 정리", "진료시간 안내",
+    ],
+    "legal":      [
+        "비용·상담 총정리", "수임료·후기 비교", "무료 상담 안내",
+        "상담 비용 안내", "수임료 정리", "초기 상담 방법",
+    ],
+    "shopping":   [
+        "가격·배송 총정리", "후기·가격 비교", "구매 가이드",
+        "배송·반품 안내", "가격 비교 정리", "구매 전 확인사항",
+    ],
 }
 
 
-def _improve_title(title: str, region: str, category: str, covered_keywords: list[str]) -> str:
+def _improve_title(
+    title: str,
+    region: str,
+    category: str,
+    covered_keywords: list[str],
+    issues: list[str] | None = None,
+) -> str:
     """
     기존 제목을 AI 인용에 유리하게 개선한 제목 생성.
 
-    전략: 원 제목의 군더더기 수식어를 버리고 "{도시} {업종 키워드} {정보형 접미사}" 로 재구성.
-    (단순 접미사 이어붙이기를 하지 않음 — 긴 원 제목이 그대로 남는 문제 방지)
+    접미사는 각 포스트의 실제 문제(issues)에 따라 선택:
+    - 검색 의도어 없음 → 업종별 의도어 접미사 (_INTENT_SUFFIX)
+    - 홍보성 제목 → 정보형 전환 접미사 (_PROMO_SUFFIX)
+    - 지역명/날짜/본문 문제 → 제목 수정보다 본문 개선이 맞아 접미사 최소화
     """
     if not title:
         return ""
@@ -266,19 +362,46 @@ def _improve_title(title: str, region: str, category: str, covered_keywords: lis
     if region:
         city = re.sub(r"(특별시|광역시|특별자치시|특별자치도|시|도|군|구)$", "", region.strip().split()[0])
 
-    # 제목에 실제 포함된 업종 키워드 추출 (긴 것 우선 — "돌잔치 스냅" > "스냅")
-    matched = sorted(
-        [kw for kw in (covered_keywords or []) if kw and kw in title],
-        key=lambda k: -len(k),
-    )
-
-    # 카테고리별 접미사 — keyword_taxonomy 정규화 거쳐 매칭
+    # 카테고리 정규화
     try:
         from services.keyword_taxonomy import normalize_category
         norm_cat = normalize_category(category)
     except Exception:
         norm_cat = category
-    suffix = _CATEGORY_SUFFIX_MAP.get(norm_cat, "추천 | 가격·후기 비교")
+
+    # 포스트별 문제 파악 — issues를 사용하고, 없으면 제목에서 직접 감지
+    issues = issues or []
+    missing_intent = any("검색 의도어 없음" in iss for iss in issues)
+    is_promo = any("홍보성 제목" in iss for iss in issues)
+
+    # issues가 비어 있을 때(외부 호출) 폴백으로 직접 감지
+    if not issues:
+        intent_kws = ["추천", "리뷰", "후기", "비용", "가격", "비교", "방법", "총정리", "근처"]
+        missing_intent = not any(kw in title for kw in intent_kws)
+        promo_patterns = ["완료", "촬영됐", "다녀왔", "완성", "!!", "💕", "❤️", "🌸"]
+        is_promo = any(p in title for p in promo_patterns)
+
+    # 제목에 실제 포함된 업종 키워드 추출 — suffix 선택보다 먼저 계산 (범용 접미사 분기에 필요)
+    matched = sorted(
+        [kw for kw in (covered_keywords or []) if kw and kw in title],
+        key=lambda k: -len(k),
+    )
+
+    # 문제 유형에 따른 접미사 선택 — 같은 이슈라도 타이틀 해시로 분산해 반복 방지
+    if missing_intent:
+        if matched:
+            # 업종 키워드가 제목에 있으면 category-specific 접미사 사용
+            variants = _INTENT_SUFFIX.get(norm_cat, _GENERIC_INTENT_SUFFIX)
+        else:
+            # 업종 키워드가 없으면 범용 접미사 사용 — "수강/레슨" 등이 무관한 제목에 삽입되는 것 방지
+            variants = _GENERIC_INTENT_SUFFIX
+        suffix = variants[abs(hash(title)) % len(variants)]
+    elif is_promo:
+        variants = _PROMO_SUFFIX.get(norm_cat, ["가격·후기 총정리", "비용 총정리", "비교"])
+        suffix = variants[abs(hash(title)) % len(variants)]
+    else:
+        # 지역명 누락·오래된 글·본문 짧음: 제목 접미사보다 내용 보강이 본질적 해결책
+        suffix = "추천"
 
     # 원 제목 정제 — 이모지·홍보성 수식어·브랜드명(| 뒤쪽) 제거
     clean = re.sub(r"[🌸💕❤️✨~]+", "", title).strip()

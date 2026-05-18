@@ -223,8 +223,8 @@ async def _check_completeness(url: str) -> dict:
                 photo_count = await page.locator("img[src*='pstatic.net']").count()
                 if photo_count == 0:
                     photo_count = max(0, await page.locator("img").count() - 5)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("photo count failed [%s]: %s", url, e)
             if photo_count == 0:
                 photo_match = re.search(r"사진\s*(\d+)", body)
                 photo_count = int(photo_match.group(1)) if photo_match else 0
@@ -328,12 +328,12 @@ async def _check_completeness(url: str) -> dict:
         finally:
             try:
                 await ctx.close()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("ctx.close() failed [%s]: %s", url, e)
             try:
                 await browser.close()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("browser.close() failed [%s]: %s", url, e)
 
 
 def _detect_intro_stats(info_body: str) -> tuple[bool, int]:
@@ -561,8 +561,8 @@ async def _fetch_low_rating_reviews(
                 if review_tab:
                     await review_tab.click()
                     await page.wait_for_timeout(2000)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("review tab click failed [%s]: %s", naver_place_id, e)
 
             # body 텍스트에서 별점+내용 파싱 (정규식 기반)
             body = await target.inner_text("body")

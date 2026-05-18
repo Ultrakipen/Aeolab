@@ -54,7 +54,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
   // Pro가 아니면 잠금 티저 카드 표시
   if (!isPro) {
     return (
-      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
           <MessageSquare className="w-5 h-5 text-gray-400" />
           <h2 className="text-base font-bold text-gray-700">AI 언급 맥락 분석</h2>
@@ -92,7 +92,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
 
   if (citations.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <div className="flex items-center gap-2 mb-2">
           <MessageSquare className="w-5 h-5 text-gray-400" />
           <h2 className="text-base font-bold text-gray-700">AI 언급 맥락 분석</h2>
@@ -105,7 +105,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6">
+    <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900">AI 언급 맥락 분석</h2>
         {summary && (

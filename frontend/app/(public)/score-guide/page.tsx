@@ -32,7 +32,7 @@ export default function ScoreGuidePage() {
       </div>
 
       {/* 2. 30초 핵심 요약 — 이탈 전 반드시 읽히는 카드 */}
-      <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 rounded-2xl p-5 mb-4">
+      <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-5 mb-4">
         <p className="text-sm font-bold text-indigo-700 uppercase tracking-wide mb-3">⚡ 30초 핵심 요약</p>
         <div className="space-y-3">
           <div className="flex items-start gap-3">
@@ -61,7 +61,7 @@ export default function ScoreGuidePage() {
       </div>
 
       {/* 3. 개요 카드 */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <p className="text-sm md:text-base text-gray-700 leading-relaxed">
           AI가 가게를 추천할 때 얼마나 잘 준비돼 있는지를{" "}
           <strong>0~100점</strong>으로 측정합니다. 점수가 높을수록 네이버 AI
@@ -70,7 +70,7 @@ export default function ScoreGuidePage() {
       </div>
 
       {/* v3.1 안내 박스 (향후 적용 예정) */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-5 mb-4">
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-5 mb-4">
         <div className="flex items-center gap-2 mb-2">
           <h2 className="text-base md:text-lg font-bold text-amber-900">
             v3.1 점수 모델 — 향후 적용 예정
@@ -91,7 +91,7 @@ export default function ScoreGuidePage() {
       </div>
 
       {/* 3. 통합 점수 계산 방식 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-4">
         <h2 className="text-base md:text-lg font-bold text-blue-900 mb-3">
           통합 점수 계산 방식
         </h2>
@@ -111,7 +111,7 @@ export default function ScoreGuidePage() {
       </div>
 
       {/* 4. Track 1 — 네이버 AI 채널 */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <div className="flex items-center gap-2 flex-wrap mb-1">
           <h2 className="text-base md:text-lg font-bold text-gray-900">
             Track 1 — 네이버 AI 채널
@@ -185,7 +185,7 @@ export default function ScoreGuidePage() {
       </div>
 
       {/* 4-1. Track 1 v3.1 예정 가중치 표 */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-4">
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-4">
         <div className="flex items-center gap-2 flex-wrap mb-1">
           <h2 className="text-base md:text-lg font-bold text-amber-900">
             Track 1 — 그룹별 가중치 (v3.1 활성화 시 적용 예정)
@@ -230,7 +230,7 @@ export default function ScoreGuidePage() {
       </div>
 
       {/* 5. Track 2 — 글로벌 AI 채널 */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
           Track 2 — 글로벌 AI 채널
         </h2>
@@ -294,7 +294,7 @@ export default function ScoreGuidePage() {
       </div>
 
       {/* 6. 업종별 네이버/글로벌 비율 */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
           업종별 네이버 / 글로벌 비율
         </h2>
@@ -457,7 +457,7 @@ export default function ScoreGuidePage() {
       </div>
 
       {/* 7. 등급 기준 */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-3">
           등급 기준
         </h2>
@@ -527,7 +527,7 @@ export default function ScoreGuidePage() {
       </div>
 
       {/* 8. 성장 단계 */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
           성장 단계
         </h2>
@@ -599,7 +599,7 @@ export default function ScoreGuidePage() {
       </div>
 
       {/* 9. 하단 CTA */}
-      <div className="bg-blue-600 rounded-2xl p-6 text-center">
+      <div className="bg-blue-600 rounded-xl p-6 text-center">
         <p className="text-base md:text-lg font-bold text-white mb-1">
           내 가게의 AI 가시성 점수가 궁금하신가요?
         </p>

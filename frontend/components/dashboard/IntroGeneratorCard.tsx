@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { getSafeSession } from "@/lib/supabase/client";
+import DiaScoreBadge, { type DiaScore } from "./DiaScoreBadge";
 
 interface Props {
   bizId: string;
@@ -15,7 +17,10 @@ interface IntroStats {
   char_count: number;
   qa_count: number;
   keywords: string[];
+  dia_score?: DiaScore | null;
 }
+
+type IntroType = "naver" | "global";
 
 export function IntroGeneratorCard({
   bizId,
@@ -30,6 +35,7 @@ export function IntroGeneratorCard({
   const [stats, setStats] = useState<IntroStats>();
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string>("");
+  const [introType, setIntroType] = useState<IntroType>("naver");
 
   const canGenerate = planMonthlyLimit > 0;
 
@@ -38,26 +44,35 @@ export function IntroGeneratorCard({
     setGenerating(true);
     setError("");
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || ""}/api/businesses/intro-generate`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ biz_id: bizId, style: "qa_focused", target_length: 400 }),
-        }
-      );
+      const sess = await getSafeSession();
+      const token = sess?.access_token;
+      if (!token) {
+        setError("로그인이 필요합니다. 페이지를 새로고침해주세요.");
+        return;
+      }
+      const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+      const endpoint =
+        introType === "global"
+          ? `${BACKEND}/api/businesses/global-ai-intro-generate`
+          : `${BACKEND}/api/businesses/intro-generate`;
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ biz_id: bizId, style: "qa_focused", target_length: 400 }),
+      });
       if (!res.ok) {
         if (res.status === 403) throw new Error("이 기능은 Basic 이상 플랜에서 사용 가능합니다.");
         if (res.status === 429) throw new Error(`이번 달 한도(${planMonthlyLimit}회)에 도달했습니다.`);
         throw new Error("생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
       }
       const data = await res.json();
-      setGenerated(data.intro_text);
+      // global: { intro, char_count, dia_score } / naver: { intro_text, char_count, qa_count, keywords_included, dia_score }
+      setGenerated(data.intro ?? data.intro_text ?? "");
       setStats({
-        char_count: data.char_count,
-        qa_count: data.qa_count,
+        char_count: data.char_count ?? 0,
+        qa_count: data.qa_count ?? 0,
         keywords: data.keywords_included || [],
+        dia_score: (data.dia_score as DiaScore | undefined) ?? null,
       });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
@@ -83,7 +98,7 @@ export function IntroGeneratorCard({
     "bg-blue-100 text-blue-700";
 
   return (
-    <div id="intro-generator" className="rounded-lg border bg-white p-4 md:p-6">
+    <div id="intro-generator" className="rounded-xl border bg-white p-4 md:p-6">
       <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-base md:text-lg font-bold text-gray-900">
@@ -100,10 +115,42 @@ export function IntroGeneratorCard({
         )}
       </div>
 
-      <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
-        Q&A 5개가 포함된 300~500자 소개글을 자동 생성합니다.
-        AI 브리핑 노출의 핵심 텍스트 소스입니다.
-      </p>
+      {/* 네이버용 / 글로벌 AI용 토글 */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <button
+          type="button"
+          onClick={() => { setIntroType("naver"); setGenerated(""); setStats(undefined); setError(""); }}
+          className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+            introType === "naver"
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+          }`}
+        >
+          네이버용
+        </button>
+        <button
+          type="button"
+          onClick={() => { setIntroType("global"); setGenerated(""); setStats(undefined); setError(""); }}
+          className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+            introType === "global"
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+          }`}
+        >
+          글로벌 AI용 (ChatGPT·Gemini)
+        </button>
+      </div>
+
+      {introType === "naver" ? (
+        <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
+          Q&A 5개가 포함된 300~500자 소개글을 자동 생성합니다.
+          AI 브리핑 노출의 핵심 텍스트 소스입니다.
+        </p>
+      ) : (
+        <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
+          ChatGPT·Gemini·Google AI 노출에 최적화된 소개글입니다. FAQ 중심 구조로 AI 인용 가능성을 높입니다.
+        </p>
+      )}
 
       {!canGenerate && (
         <div className="bg-amber-50 border border-amber-200 rounded p-3 mb-4 text-sm md:text-base text-gray-700">
@@ -141,19 +188,41 @@ export function IntroGeneratorCard({
           )}
 
           {stats && (
-            <div className="flex flex-wrap gap-2">
-              <span className="text-xs md:text-sm bg-green-100 text-green-800 px-2 py-1 rounded font-medium">
-                {stats.char_count}자
-              </span>
-              <span className="text-xs md:text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-medium">
-                Q&A {stats.qa_count}개
-              </span>
-              {stats.keywords.length > 0 && (
-                <span className="text-xs md:text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded font-medium">
-                  키워드 {stats.keywords.length}개 포함
+            <>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-sm bg-green-100 text-green-800 px-2.5 py-1 rounded font-medium">
+                  {stats.char_count}자
                 </span>
+                <span className="text-sm bg-blue-100 text-blue-800 px-2.5 py-1 rounded font-medium">
+                  Q&A {stats.qa_count}개
+                </span>
+                {stats.keywords.length > 0 && (
+                  <span className="text-sm bg-purple-100 text-purple-800 px-2.5 py-1 rounded font-medium">
+                    키워드 {stats.keywords.length}개 포함
+                  </span>
+                )}
+                {stats.dia_score && (
+                  <span
+                    className={`text-sm px-2.5 py-1 rounded font-medium ${
+                      stats.dia_score.score >= 80
+                        ? "bg-emerald-100 text-emerald-800"
+                        : stats.dia_score.score >= 50
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    D.I.A. {stats.dia_score.score.toFixed(0)}점
+                  </span>
+                )}
+              </div>
+
+              {stats.dia_score && (
+                <DiaScoreBadge
+                  dia={stats.dia_score}
+                  onRegenerate={canGenerate ? () => { void handleGenerate(); } : undefined}
+                />
               )}
-            </div>
+            </>
           )}
 
           <div className="flex flex-col md:flex-row gap-2">

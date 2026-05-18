@@ -28,13 +28,15 @@ interface Props {
   bizId: string;
   subscriptionPlan: string; // "free" | "basic" | "pro" | "biz"
   category: string;
+  /** blog_analyzer.py에서 오는 블로그 발견 수 (AI탭 UGC 신호) */
+  blogMentionCount?: number;
 }
 
 function isUnavailable(res: ApiResponse): res is AiTabPreviewUnavailable {
   return (res as AiTabPreviewUnavailable).available === false;
 }
 
-export default function AiTabPreviewCard({ bizId, subscriptionPlan, category }: Props) {
+export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, blogMentionCount }: Props) {
   const [data, setData] = useState<AiTabPreviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
@@ -103,13 +105,13 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category }: 
     };
   }, [bizId]);
 
-  // INACTIVE 업종 응답: 카드 숨김
-  if (!loading && unavailable) return null;
+  // INACTIVE 업종 응답: AI탭은 모든 업종 가능(beta)이므로 숨기지 않고
+  // 카드 내 안내 톤만 분기하여 표시 — unavailable 플래그는 배너 전용으로만 사용
 
   return (
     <section
       aria-labelledby="ai-tab-preview-title"
-      className="mb-4 md:mb-6 rounded-2xl border border-blue-200 bg-white shadow-sm overflow-hidden"
+      className="mb-4 md:mb-6 rounded-xl border border-blue-200 bg-white shadow-sm overflow-hidden"
     >
       {/* 헤더 */}
       <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-4 border-b border-blue-100 bg-blue-50">
@@ -187,20 +189,35 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category }: 
           </div>
         )}
 
+        {/* INACTIVE 업종: 카드 숨김 대신 안내 배너 표시 */}
+        {!loading && unavailable && (
+          <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 text-sm text-slate-700">
+            <p className="font-semibold text-slate-800 mb-1">AI탭은 모든 업종에서 노출 가능합니다 (Beta)</p>
+            <p className="leading-relaxed break-keep">
+              네이버 AI 브리핑 대상 업종은 아니지만, AI탭에서는 소개글·사진·리뷰 키워드를 잘 등록한 모든 업종의 사업장이 노출될 수 있습니다.
+              ChatGPT·Gemini 등 글로벌 AI 최적화도 병행하세요.
+            </p>
+          </div>
+        )}
+
         {/* 정상 데이터 */}
         {!loading && !error && !forbidden && !isFree && data && (
-          <div className="flex flex-col md:flex-row gap-5 md:gap-6">
-
-            {/* likely 업종 안내 배너 */}
+          <>
+            {/* likely 업종 안내 배너 — flex-row 밖에 배치해야 레이아웃 붕괴 없음 */}
             {data.eligibility === "likely" && (
-              <div className="md:col-span-2 w-full rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+              <div className="w-full rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800 mb-4">
                 네이버 AI탭 확대 예정 업종입니다. 2026년 상반기 전체 확대 시 바로 적용될 수 있도록 지금부터 키워드를 준비하세요.
               </div>
             )}
 
+          <div className="flex flex-col md:flex-row gap-5 md:gap-6">
+
             {/* 좌측: 시뮬레이션 답변 */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-600 mb-2">예시 답변</p>
+              <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
+                예시 답변
+                <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full font-normal">(추정)</span>
+              </p>
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                 <div className="flex items-start gap-2">
                   <Sparkles className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
@@ -210,8 +227,13 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category }: 
                 </div>
               </div>
               {/* 면책 문구 */}
-              <p className="mt-2 text-xs text-gray-400 leading-snug">
+              <p className="mt-2 text-sm text-gray-500 leading-snug">
                 {data.disclaimer}
+              </p>
+              {/* 예약 연동 감지 미구현 안내 */}
+              <p className="mt-1.5 text-xs text-gray-400 leading-snug">
+                * 예약 연동 여부는 자동 감지되지 않습니다. 직접 확인 후{" "}
+                <a href="https://partner.naver.com/" target="_blank" rel="noopener noreferrer" className="underline">partner.naver.com</a>에서 설정하세요.
               </p>
             </div>
 
@@ -279,8 +301,48 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category }: 
                   </p>
                 </div>
               )}
+
+              {/* matched·missing 모두 빈 경우 폴백 — taxonomy ai_tab_context 미보유 업종 보호 */}
+              {data.matched_contexts.length === 0 && data.missing_contexts.length === 0 && (
+                <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
+                  <p className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-blue-400 shrink-0" />
+                    이 업종의 AI탭 패턴 분석 준비 중
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1 leading-snug break-keep">
+                    소개글·사진·예약 정보를 충실히 등록하면 AI탭 노출 가능성이 높아집니다.
+                  </p>
+                  <Link
+                    href="/guide/ai-info-tab"
+                    className="mt-2 inline-flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                  >
+                    AI탭 최적화 가이드 →
+                  </Link>
+                </div>
+              )}
+
+              {/* 5번째 요소: 외부 블로그 UGC 발견 수 */}
+              <div className="flex items-center justify-between py-2 border-t border-gray-100">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">외부 블로그 언급</span>
+                  <span className="text-sm text-gray-500">AI탭 UGC 신호</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {(blogMentionCount ?? 0) >= 5 ? (
+                    <span className="text-sm font-semibold text-emerald-600">{blogMentionCount}건</span>
+                  ) : (blogMentionCount ?? 0) > 0 ? (
+                    <span className="text-sm font-semibold text-amber-600">{blogMentionCount}건</span>
+                  ) : (
+                    <span className="text-sm text-gray-400">미발견</span>
+                  )}
+                  {(blogMentionCount ?? 0) === 0 && (
+                    <span className="text-sm text-gray-400 ml-1">블로그 후기 유도 권장</span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
+          </>
         )}
       </div>
     </section>

@@ -104,7 +104,7 @@ export default function PostScanModal({
                 </p>
                 {faqCopyText && (
                   <div className="bg-white border border-amber-200 rounded-lg p-3 mb-3">
-                    <p className="text-xs font-semibold text-gray-500 mb-1.5">바로 복사해서 FAQ에 붙여넣기</p>
+                    <p className="text-sm font-semibold text-gray-600 mb-1.5">바로 복사해서 FAQ에 붙여넣기</p>
                     <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{faqCopyText}</p>
                   </div>
                 )}
@@ -170,8 +170,8 @@ export default function PostScanModal({
           {/* 카운트다운 프로그레스 바 */}
           <div className="px-5 pb-4">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-gray-400">{countdown}초 후 자동으로 닫힙니다</span>
-              <button onClick={onClose} className="text-xs text-gray-400 hover:text-gray-600">
+              <span className="text-xs text-gray-500">{countdown}초 후 자동으로 닫힙니다</span>
+              <button onClick={onClose} className="text-xs text-gray-500 hover:text-gray-700">
                 지금 닫기
               </button>
             </div>

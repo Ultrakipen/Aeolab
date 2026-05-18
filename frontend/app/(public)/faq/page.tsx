@@ -16,6 +16,10 @@ export const metadata: Metadata = {
 
 const AI_FAQS = [
   {
+    q: "내 업종도 네이버 AI 브리핑에 노출될 수 있나요?",
+    a: "네이버 AI 브리핑 플레이스형 노출 대상 업종은 음식점·카페·베이커리·주점·숙박입니다. 미용·네일·피트니스·요가·반려동물 업종은 2026년 AI 탭 베타 확대 진행 중입니다. 프랜차이즈 사업장은 업종에 상관없이 네이버 정책상 AI 브리핑 대상에서 제외됩니다. 그 외 업종(학원·병원·법무사·부동산 등)은 ChatGPT·Gemini·Google AI 노출 최적화가 더 효과적이며, AEOlab은 이 채널도 함께 측정합니다. 정확한 업종 여부는 무료 체험에서 바로 확인할 수 있습니다.",
+  },
+  {
     q: "ChatGPT는 어떤 기준으로 가게를 추천하나요?",
     a: "ChatGPT는 웹에 공개된 텍스트 데이터를 학습한 언어 모델입니다. 특정 업종·지역 키워드가 포함된 블로그 후기, 포털 소개글, FAQ 콘텐츠, 리뷰 응답 등 텍스트가 풍부한 사업장을 더 자주 언급하는 경향이 있습니다. 단순한 리뷰 숫자보다 이 업체가 어떤 서비스를 제공하는지 설명하는 구조화된 텍스트가 핵심입니다.",
   },
@@ -40,11 +44,11 @@ const AI_FAQS = [
 const SERVICE_FAQS = [
   {
     q: "AEOlab 점수는 어떻게 계산되나요?",
-    a: "AEOlab은 듀얼트랙 모델을 사용합니다. Track 1(네이버 최적화)은 스마트플레이스 완성도, 네이버 생태계 활동, 리뷰 수, 키워드 커버리지를 측정합니다. Track 2(글로벌 AI 노출)는 ChatGPT·Google AI 언급률, 웹사이트 SEO, 콘텐츠 구조를 평가합니다. 업종별로 두 트랙의 가중치가 달라집니다. 예를 들어 음식점은 네이버 70%, 법률 서비스는 글로벌 AI 80% 비중입니다.",
+    a: "AEOlab은 네이버 점수와 글로벌 AI 점수를 업종별 비중에 맞게 합산합니다. 네이버 점수는 스마트플레이스 완성도, 네이버 생태계 활동, 리뷰 수, 키워드 커버리지를 측정하고, 글로벌 AI 점수는 ChatGPT·Google AI 언급률, 웹사이트 정보 구조, 콘텐츠 품질을 평가합니다. 업종마다 기준 비중이 다릅니다. 예를 들어 음식점은 네이버 70%, 법률 서비스는 글로벌 AI 80% 비중입니다.",
   },
   {
     q: "무료 체험과 유료 구독의 차이는?",
-    a: "무료 체험은 업종·지역을 입력하면 경쟁사 현황과 기본 점수를 한 번 확인할 수 있습니다. 유료 구독(Basic 9,900원/월)은 내 사업장을 등록하고, AI 4종(네이버·ChatGPT·Gemini·Google) 전체 스캔, 경쟁사 비교, 30일 트렌드, 월별 개선 가이드를 이용할 수 있습니다. 첫 달은 4,950원으로 시작할 수 있습니다.",
+    a: "무료 체험은 업종·지역을 입력하면 경쟁사 현황과 기본 점수를 한 번 확인할 수 있습니다. 유료 구독(Basic 9,900원/월)은 내 사업장을 등록하고, AI 4종(네이버·ChatGPT·Gemini·Google) 전체 스캔, 경쟁사 비교, 60일 트렌드, 월별 개선 가이드를 이용할 수 있습니다. 첫 달은 4,950원으로 시작할 수 있습니다.",
   },
   {
     q: "결과가 나오기까지 얼마나 걸리나요?",
@@ -64,19 +68,20 @@ interface FAQItemProps {
 
 function FAQItem({ q, a, index }: FAQItemProps) {
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
-      <div className="px-5 py-4 bg-white">
-        <div className="flex items-start gap-3">
-          <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center mt-0.5">
-            {index + 1}
-          </span>
-          <h3 className="text-base font-semibold text-gray-900 break-keep leading-snug">{q}</h3>
-        </div>
-      </div>
+    <details className="border border-gray-200 rounded-xl overflow-hidden group">
+      <summary className="px-5 py-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer list-none flex items-start gap-3">
+        <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center mt-0.5">
+          {index + 1}
+        </span>
+        <h3 className="text-base font-semibold text-gray-900 break-keep leading-snug flex-1">{q}</h3>
+        <span className="shrink-0 ml-2 text-gray-400 group-open:rotate-180 transition-transform duration-200" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </span>
+      </summary>
       <div className="px-5 py-4 bg-gray-50 border-t border-gray-100">
         <p className="text-sm text-gray-700 leading-relaxed break-keep pl-9">{a}</p>
       </div>
-    </div>
+    </details>
   );
 }
 

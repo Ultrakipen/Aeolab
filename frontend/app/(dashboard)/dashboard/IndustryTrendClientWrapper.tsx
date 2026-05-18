@@ -40,7 +40,7 @@ export function IndustryTrendClientWrapper({ category, categoryCode, region, isP
 
   if (!isPro) {
     return (
-      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
           <TrendingUp className="w-5 h-5 text-gray-400" />
           <h2 className="text-base font-bold text-gray-700">{category} AI 검색 트렌드</h2>

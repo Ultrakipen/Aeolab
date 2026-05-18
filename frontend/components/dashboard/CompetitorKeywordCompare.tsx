@@ -8,7 +8,7 @@ export default function CompetitorKeywordCompare({ competitorKeywordSources }: P
   const entries = Object.entries(competitorKeywordSources ?? {}).filter(([, kws]) => Array.isArray(kws) && kws.length > 0)
 
   if (entries.length === 0) return (
-    <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex items-start gap-3">
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-start gap-3">
       <span className="text-2xl shrink-0">🔍</span>
       <div>
         <p className="text-sm font-semibold text-gray-700">경쟁사 키워드 비교 준비 중</p>
@@ -23,7 +23,7 @@ export default function CompetitorKeywordCompare({ competitorKeywordSources }: P
   )
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xl">🔍</span>
         <div>

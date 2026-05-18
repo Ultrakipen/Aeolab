@@ -300,10 +300,13 @@ export async function exportReport(bizId: string, userId: string, authToken?: st
     throw new ApiError((err?.detail?.code as string) || "SERVER_ERROR", err?.detail || {});
   }
   const blob = await res.blob();
+  const disposition = res.headers.get("content-disposition") ?? "";
+  const match = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';\r\n]+)["']?/i);
+  const csvFilename = match ? decodeURIComponent(match[1]) : "aeolab_report.csv";
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `aeolab_report.csv`;
+  a.download = csvFilename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -322,10 +325,13 @@ export async function exportPdfReport(bizId: string, userId: string, authToken?:
     throw new ApiError((err?.detail?.code as string) || "SERVER_ERROR", err?.detail || {});
   }
   const blob = await res.blob();
+  const disposition = res.headers.get("content-disposition") ?? "";
+  const match = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';\r\n]+)["']?/i);
+  const pdfFilename = match ? decodeURIComponent(match[1]) : "aeolab_report.pdf";
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `aeolab_report.pdf`;
+  a.download = pdfFilename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

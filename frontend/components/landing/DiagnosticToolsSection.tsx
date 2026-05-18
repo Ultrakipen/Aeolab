@@ -15,7 +15,7 @@ export default function DiagnosticToolsSection() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
                 <span className="text-xl" aria-hidden="true">📝</span>
@@ -30,7 +30,7 @@ export default function DiagnosticToolsSection() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
                 <span className="text-xl" aria-hidden="true">🏪</span>

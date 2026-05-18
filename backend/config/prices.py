@@ -2,12 +2,13 @@
 
 PLAN_PRICES: dict[int, str] = {
     # 월정액
-    9900:  "basic",
-    18900: "pro",
-    49900: "biz",
-    12900: "startup",
+    9900:   "basic",
+    18900:  "pro",
+    49900:  "biz",
+    12900:  "startup",
+    200000: "enterprise",
     # 첫 달 50% 할인 (신규 가입자 전용, webhook에서 first-time 검증)
-    4950:  "basic",
+    4950:   "basic",
     # 연간 (10개월치, 17% 할인)
     99000:  "basic",
     189000: "pro",
@@ -18,10 +19,11 @@ PLAN_PRICES: dict[int, str] = {
 YEARLY_AMOUNTS: set[int] = {99000, 189000, 499000, 129000}
 
 PLAN_PRICE_MAP: dict[str, int] = {
-    "basic":   9900,
-    "pro":     18900,
-    "biz":     49900,
-    "startup": 12900,
+    "basic":      9900,
+    "pro":        18900,
+    "biz":        49900,
+    "startup":    12900,
+    "enterprise": 200000,
 }
 
 # 첫 달 50% 할인가 — 신규 가입자 1회에 한해 적용 (webhook에서 검증)

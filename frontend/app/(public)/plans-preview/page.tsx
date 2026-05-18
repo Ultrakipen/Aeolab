@@ -522,7 +522,7 @@ function BasicContent({ d }: { d: MockData }) {
       </LockedCard>
 
       {/* CTA */}
-      <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 md:p-8 text-center">
+      <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-5 md:p-8 text-center">
         <p className="text-lg md:text-xl font-black text-indigo-900 mb-1">Basic으로 시작하기 — 9,900원/월</p>
         <p className="text-sm text-indigo-600 mb-4">&quot;AI 분석 한 번에 커피값입니다&quot;</p>
         <Link href="/signup?plan=basic" className="inline-block bg-indigo-600 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors">
@@ -631,7 +631,7 @@ function ProContent({ d }: { d: MockData }) {
       </LockedCard>
 
       {/* CTA */}
-      <div className="bg-indigo-600 rounded-2xl p-5 md:p-8 text-center text-white">
+      <div className="bg-indigo-600 rounded-xl p-5 md:p-8 text-center text-white">
         <p className="text-lg md:text-xl font-black mb-1">Pro로 업그레이드 — 18,900원/월</p>
         <p className="text-sm text-indigo-200 mb-4">Basic보다 월 8,000원 더. 조건 검색 분석 1개로 새 손님 1명 더 오면 본전입니다</p>
         <Link href="/signup?plan=pro" className="inline-block bg-white text-indigo-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-50 transition-colors">
@@ -785,7 +785,7 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
       </LockedCard>
 
       {/* CTA */}
-      <div className="bg-emerald-600 rounded-2xl p-5 md:p-8 text-center text-white">
+      <div className="bg-emerald-600 rounded-xl p-5 md:p-8 text-center text-white">
         <p className="text-lg md:text-xl font-black mb-1">창업 준비 중이라면 창업패키지 — 12,900원/월</p>
         <p className="text-sm text-emerald-200 mb-4">창업 컨설팅 한 번 비용으로 6개월 AI 데이터 확보</p>
         <Link href="/signup?plan=startup" className="inline-block bg-white text-emerald-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-emerald-50 transition-colors">
@@ -842,7 +842,7 @@ export default function PlansPreviewPage() {
         </div>
 
         {/* 업종 선택 */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
           <p className="text-sm font-bold text-gray-700 mb-3">업종 선택</p>
           <div className="grid grid-cols-4 gap-2">
             {categoryButtons.map(({ key, label, emoji }) => (
@@ -863,7 +863,7 @@ export default function PlansPreviewPage() {
         </div>
 
         {/* 플랜 탭 */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-6">
           <p className="text-sm font-bold text-gray-700 mb-3">요금제별 분석 화면 미리보기</p>
           <div className="flex gap-2">
             {planButtons.map(({ key, label, price }) => (
@@ -899,7 +899,7 @@ export default function PlansPreviewPage() {
         {selectedPlan === "startup" && <StartupContent d={d} category={selectedCategory} />}
 
         {/* 기능 비교표 */}
-        <div className="mt-8 bg-white border border-gray-100 rounded-2xl shadow-sm p-4 md:p-6">
+        <div className="mt-8 bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
           <h2 className="text-base md:text-lg font-black text-gray-900 mb-4 text-center">요금제별 기능 비교</h2>
           <ComparisonTable />
         </div>

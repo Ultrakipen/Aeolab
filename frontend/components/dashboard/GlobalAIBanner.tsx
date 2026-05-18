@@ -13,7 +13,7 @@ export function GlobalAIBanner({ globalScore, hasWebsite, eligibility }: GlobalA
   if (!isInactive && globalScore >= 50) return null
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
       <div className="flex items-start gap-3">
         <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
           <span className="text-amber-600 text-sm">!</span>

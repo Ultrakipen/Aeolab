@@ -49,9 +49,9 @@ function NumberCell({ value, isWeak }: { value: number | null; isWeak: boolean }
 
 function RatingCell({ value, synced, isWeak, noDataText }: { value: number | null; synced?: boolean; isWeak: boolean; noDataText?: string }) {
   if (value === null) {
-    if (noDataText) return <span className="text-gray-400 text-xs">{noDataText}</span>;
-    if (synced) return <span className="text-gray-400 text-xs">별점 없음</span>;
-    return <span className="text-amber-500 text-xs font-medium">동기화 필요</span>;
+    if (noDataText) return <span className="text-gray-500 text-sm">{noDataText}</span>;
+    if (synced) return <span className="text-gray-500 text-sm">별점 없음</span>;
+    return <span className="text-amber-500 text-sm font-medium">동기화 필요</span>;
   }
   return (
     <span className={`font-semibold text-sm ${isWeak ? "text-red-600" : "text-gray-800"}`}>
@@ -157,7 +157,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
   const actionItems = data?.gaps?.filter((g) => g.needs_action) ?? [];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 py-4 border-b border-gray-100">
         <div>
@@ -220,13 +220,13 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
 
         return (
           <div className="overflow-x-auto">
-            <table className="min-w-[540px] w-full text-sm">
+            <table className="min-w-[540px] w-full text-sm md:text-base">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600 w-32">항목</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-700 w-32">항목</th>
                   <th className="text-center px-4 py-3 font-semibold text-blue-700 bg-blue-50">내 가게</th>
                   {visibleComps.map((c) => (
-                    <th key={c.name} className="text-center px-4 py-3 font-semibold text-gray-600">
+                    <th key={c.name} className="text-center px-4 py-3 font-semibold text-gray-700">
                       <div className="flex flex-col items-center gap-1">
                         <span className="leading-tight">{c.name}</span>
                         {c.id && (
@@ -234,7 +234,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                             onClick={() => void syncCompetitor(c.id!)}
                             disabled={syncingIds[c.id]}
                             title="네이버 플레이스 데이터 재스캔"
-                            className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50"
                           >
                             <RefreshCw className={`w-3 h-3 ${syncingIds[c.id] ? 'animate-spin text-blue-500' : ''}`} />
                             {syncingIds[c.id] ? '스캔 중' : '재스캔'}
@@ -267,12 +267,12 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                           <span>{row.label}</span>
                         </div>
                         {isBlogRow && (
-                          <span className="text-xs text-gray-400 mt-0.5 block leading-tight">
+                          <span className="text-sm text-gray-500 mt-0.5 block leading-tight">
                             네이버 블로그 검색 결과 건수
                           </span>
                         )}
                         {isWeak && (
-                          <span className="text-red-500 text-xs font-normal mt-0.5 block">개선 필요</span>
+                          <span className="text-red-500 text-sm font-normal mt-0.5 block">개선 필요</span>
                         )}
                       </td>
 
@@ -284,7 +284,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                               {row.mine !== null ? `${(row.mine as number).toLocaleString()}건` : "-"}
                             </span>
                             {data.mine_name && (
-                              <span className="text-xs text-gray-400 leading-tight">
+                              <span className="text-sm text-gray-500 leading-tight">
                                 &ldquo;{data.mine_name}&rdquo; 검색
                               </span>
                             )}
@@ -306,7 +306,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                               <span className="font-semibold text-sm text-gray-800">
                                 {c.value !== null ? `${(c.value as number).toLocaleString()}건` : "-"}
                               </span>
-                              <span className="text-xs text-gray-400 leading-tight">
+                              <span className="text-sm text-gray-500 leading-tight">
                                 &ldquo;{c.name}&rdquo; 검색
                               </span>
                             </div>
@@ -328,8 +328,8 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
             {/* 블로그 언급 수 데이터 출처 안내 */}
             {data.rows.some((r) => r.field === "blog_mention_count") && (
               <div className="px-4 md:px-6 py-2.5 border-t border-gray-100 bg-gray-50">
-                <p className="text-xs text-gray-400 leading-relaxed">
-                  💡 <strong className="text-gray-500">블로그 언급 수</strong>는 네이버 블로그 API에
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  💡 <strong className="text-gray-600">블로그 언급 수</strong>는 네이버 블로그 API에
                   업체명을 검색한 총 결과 건수입니다. 동명 업체가 있거나 일반 명사와 겹치면 실제보다
                   높게 나올 수 있으며, 경쟁사 간 상대 비교 용도로 활용하세요.
                 </p>

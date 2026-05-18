@@ -133,7 +133,7 @@ export default function AIDiagnosisCard({
   return (
     <div className="space-y-4">
       {/* 섹션 1: 핵심 메시지 히어로 */}
-      <div className="bg-slate-900 rounded-2xl p-5 md:p-7 text-white">
+      <div className="bg-slate-900 rounded-xl p-5 md:p-7 text-white">
         <p className="text-sm md:text-base text-slate-400 mb-2">
           손님이 AI에게 물어봤을 때...
         </p>
@@ -181,7 +181,7 @@ export default function AIDiagnosisCard({
       </div>
 
       {/* 섹션 2: AI별 인식 현황 */}
-      <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-5 md:p-6 shadow-sm border border-gray-100">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
           지금 이 AI들은 {eulReul(businessName)} 알고 있나요?
         </h2>
@@ -200,9 +200,9 @@ export default function AIDiagnosisCard({
                   key={key}
                   className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5"
                 >
-                  <Minus className="w-4 h-4 text-gray-400 shrink-0" />
-                  <span className="text-sm font-medium text-gray-400 leading-tight">{label}</span>
-                  <span className="ml-auto text-sm text-gray-400">{weeklyNote}</span>
+                  <Minus className="w-4 h-4 text-gray-500 shrink-0" />
+                  <span className="text-sm font-medium text-gray-600 leading-tight">{label}</span>
+                  <span className="ml-auto text-sm text-gray-500">{weeklyNote}</span>
                 </div>
               );
             }
@@ -212,9 +212,9 @@ export default function AIDiagnosisCard({
                   key={key}
                   className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5"
                 >
-                  <Minus className="w-4 h-4 text-gray-400 shrink-0" />
-                  <span className="text-sm font-medium text-gray-500 leading-tight">{label}</span>
-                  <span className="ml-auto text-sm text-gray-400">확인 불가</span>
+                  <Minus className="w-4 h-4 text-gray-500 shrink-0" />
+                  <span className="text-sm font-medium text-gray-600 leading-tight">{label}</span>
+                  <span className="ml-auto text-sm text-gray-500">확인 불가</span>
                 </div>
               );
             }
@@ -230,7 +230,7 @@ export default function AIDiagnosisCard({
                     <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-semibold text-green-800">{label}</span>
-                      <span className="block text-sm text-green-600 mt-0.5">네이버 AI 브리핑에서 내 가게를 직접 추천하고 있습니다</span>
+                      <span className="block text-sm text-green-600 mt-0.5">측정 시점 기준, 네이버 AI 브리핑 노출이 확인되었습니다 (시점·로그인 상태에 따라 달라질 수 있음)</span>
                       <a
                         href={`https://search.naver.com/search.naver?query=${encodeURIComponent(displayRegion + " " + displayKeyword + " 추천")}`}
                         target="_blank"
@@ -240,7 +240,7 @@ export default function AIDiagnosisCard({
                         네이버에서 직접 확인 →
                       </a>
                     </div>
-                    <span className="text-sm font-bold text-green-700 shrink-0">브리핑 인용</span>
+                    <span className="text-sm font-bold text-green-700 shrink-0">브리핑 노출</span>
                   </div>
                 );
               } else if (searchMentioned) {
@@ -370,7 +370,7 @@ export default function AIDiagnosisCard({
       </div>
 
       {/* 섹션 3: 상태별 진단 */}
-      <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-5 md:p-6 shadow-sm border border-gray-100">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-4">
           {section3Title}
         </h2>
@@ -470,7 +470,7 @@ export default function AIDiagnosisCard({
 
       {/* 섹션 5: 지금 당장 할 수 있는 1가지 */}
       {ctaType === "faq" && (
-        <div className="bg-amber-50 border border-amber-300 rounded-2xl p-5 md:p-6">
+        <div className="bg-amber-50 border border-amber-300 rounded-xl p-5 md:p-6">
           <p className="text-sm font-semibold text-amber-700 mb-2">
             지금 당장 하면 가장 효과적인 것 1가지
           </p>
@@ -498,7 +498,7 @@ export default function AIDiagnosisCard({
       )}
 
       {ctaType === "review" && (
-        <div className="bg-amber-50 border border-amber-300 rounded-2xl p-5 md:p-6">
+        <div className="bg-amber-50 border border-amber-300 rounded-xl p-5 md:p-6">
           <p className="text-sm font-semibold text-amber-700 mb-2">
             지금 당장 하면 가장 효과적인 것 1가지
           </p>
@@ -518,7 +518,7 @@ export default function AIDiagnosisCard({
           </div>
         </div>
       )}
-      <p className="text-xs text-gray-500 mt-3 leading-relaxed">
+      <p className="text-xs text-gray-600 mt-3 leading-relaxed">
         ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
         측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
       </p>

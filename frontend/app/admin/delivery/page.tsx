@@ -109,7 +109,7 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
       )}
 
       {/* PC 테이블 */}
-      <div className="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         {rows.length === 0 ? (
           <div className="py-16 text-center text-base text-gray-500">
             {statusFilter ? `[${STATUS_META[statusFilter]?.label ?? statusFilter}] 상태의 의뢰가 없습니다.` : "의뢰가 없습니다."}
@@ -171,7 +171,7 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
       {/* 모바일 카드 목록 */}
       <div className="md:hidden space-y-3">
         {rows.length === 0 ? (
-          <div className="py-12 text-center text-base text-gray-500 bg-white rounded-2xl border border-gray-100">
+          <div className="py-12 text-center text-base text-gray-500 bg-white rounded-xl border border-gray-100">
             의뢰가 없습니다.
           </div>
         ) : (
@@ -181,7 +181,7 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
               <Link
                 key={order.id}
                 href={`/admin/delivery/${order.id}`}
-                className="block bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow"
+                className="block bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <span className={`shrink-0 text-sm font-semibold px-2.5 py-1 rounded-full ${sm.color}`}>

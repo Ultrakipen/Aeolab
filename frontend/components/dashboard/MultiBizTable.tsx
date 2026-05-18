@@ -48,7 +48,7 @@ export function MultiBizTable({ token }: Props) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 animate-pulse">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
         <div className="h-5 w-40 bg-gray-200 rounded mb-4" />
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
@@ -62,7 +62,7 @@ export function MultiBizTable({ token }: Props) {
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-4 md:p-6">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
       <div className="flex items-center gap-2 mb-4">
         <Building2 className="w-5 h-5 text-blue-600" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">

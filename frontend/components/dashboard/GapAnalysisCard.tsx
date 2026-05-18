@@ -22,6 +22,9 @@ const DIMENSION_LABELS: Record<string, string> = {
   multi_ai_exposure:          "다중 AI 플랫폼 노출",
   online_mentions_t2:         "온라인 언급 빈도",
   google_presence:            "구글 검색 노출",
+  ai_briefing_score:          "AI 브리핑 노출",
+  local_map_score:            "지도·플레이스 노출",
+  blog_crank:                 "블로그 생태계",
 };
 
 /** 점수 → 수준 레이블 + 색상 */
@@ -40,7 +43,7 @@ function ScoreBasisPanel() {
       <div className="space-y-1.5">
         <div className="flex items-start gap-2">
           <span className="shrink-0 font-medium text-gray-500 w-5">①</span>
-          <span><strong className="text-gray-700">네이버 AI 브리핑 노출</strong> — 스마트플레이스 완성도, 소개글 Q&A, 리뷰 품질 반영</span>
+          <span><strong className="text-gray-700">네이버 AI 브리핑 노출</strong> — 스마트플레이스 완성도, 소개글·사진 완성도, 리뷰 품질 반영</span>
         </div>
         <div className="flex items-start gap-2">
           <span className="shrink-0 font-medium text-gray-500 w-5">②</span>
@@ -95,7 +98,7 @@ export function GapAnalysisCard({ gap }: Props) {
   const myLevel = getScoreLevel(Math.round(myScore));
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm">
+    <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm">
       {/* 헤더 */}
       <div className="flex items-center gap-2 mb-1">
         <TrendingUp className="w-4 h-4 text-orange-500 shrink-0" />

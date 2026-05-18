@@ -39,7 +39,7 @@ export default function WhyNotShownSection() {
           {reasons.map((r) => (
             <div
               key={r.num}
-              className={`flex gap-4 items-start p-4 md:p-5 rounded-2xl border ${r.borderColor} ${r.bgColor}`}
+              className={`flex gap-4 items-start p-4 md:p-5 rounded-xl border ${r.borderColor} ${r.bgColor}`}
             >
               <span className={`text-sm font-bold px-2.5 py-1 rounded-lg shrink-0 mt-0.5 ${r.numColor}`}>
                 {r.num}

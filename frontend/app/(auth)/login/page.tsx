@@ -49,7 +49,7 @@ export default function LoginPage() {
         </div>
 
         {/* 폼 */}
-        <form onSubmit={handleLogin} className="bg-white rounded-2xl p-6 shadow-sm space-y-5">
+        <form onSubmit={handleLogin} className="bg-white rounded-xl p-6 shadow-sm space-y-5">
           <h1 className="text-xl font-bold text-gray-900 text-center">로그인</h1>
 
           <div>

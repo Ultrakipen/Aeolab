@@ -4,36 +4,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { searchBusiness } from "@/lib/api";
 import type { BusinessSearchResult } from "@/types";
+import { mapNaverCategory } from "@/lib/categories";
 
-export function mapKakaoCategory(kakaoCategory: string): string {
-  const cat = kakaoCategory.toLowerCase();
-  if (cat.includes("음식") || cat.includes("한식") || cat.includes("양식") || cat.includes("일식") || cat.includes("중식") || cat.includes("분식")) return "restaurant";
-  if (cat.includes("카페") || cat.includes("커피") || cat.includes("디저트")) return "cafe";
-  if (cat.includes("치킨") || cat.includes("닭")) return "chicken";
-  if (cat.includes("고기") || cat.includes("갈비") || cat.includes("삼겹")) return "bbq";
-  if (cat.includes("미용") || cat.includes("헤어") || cat.includes("미장")) return "beauty";
-  if (cat.includes("네일")) return "nail";
-  if (cat.includes("병원") || cat.includes("의원") || cat.includes("클리닉")) return "medical";
-  if (cat.includes("치과")) return "medical";
-  if (cat.includes("한의")) return "medical";
-  if (cat.includes("약국")) return "pharmacy";
-  if (cat.includes("피부")) return "beauty";
-  if (cat.includes("학원") || cat.includes("교습")) return "education";
-  if (cat.includes("영어") || cat.includes("어학")) return "education";
-  if (cat.includes("코딩") || cat.includes("컴퓨터")) return "education";
-  if (cat.includes("법") || cat.includes("변호") || cat.includes("법무")) return "legal";
-  if (cat.includes("세무") || cat.includes("회계")) return "other";
-  if (cat.includes("부동산")) return "realestate";
-  if (cat.includes("헬스") || cat.includes("피트니스") || cat.includes("gym")) return "fitness";
-  if (cat.includes("요가") || cat.includes("필라테스")) return "yoga";
-  if (cat.includes("사진") || cat.includes("스튜디오")) return "photo";
-  if (cat.includes("반려") || cat.includes("애견") || cat.includes("펫")) return "pet";
-  if (cat.includes("동물병원")) return "pet";
-  if (cat.includes("꽃") || cat.includes("플라워")) return "other";
-  if (cat.includes("쇼핑") || cat.includes("마트") || cat.includes("편의점")) return "shopping";
-  if (cat.includes("숙박") || cat.includes("호텔") || cat.includes("펜션")) return "accommodation";
-  return "other";
-}
+// 하위 호환 — 기존 import { mapKakaoCategory } 사용처가 동작하도록 유지
+export { mapNaverCategory as mapKakaoCategory };
 
 interface Props {
   region: string;          // 폼에서 이미 채워진 지역값 (없으면 빈 문자열)

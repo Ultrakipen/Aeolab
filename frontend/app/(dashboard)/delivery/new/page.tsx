@@ -197,7 +197,7 @@ function DeliveryNewForm() {
 
         <div className="space-y-5">
           {/* 1단계: 패키지 선택 */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-base font-semibold text-gray-800 mb-3">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold mr-2">1</span>
               패키지 선택
@@ -236,7 +236,7 @@ function DeliveryNewForm() {
           </div>
 
           {/* 2단계: 사업장 선택 */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-base font-semibold text-gray-800 mb-3">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold mr-2">2</span>
               사업장 선택
@@ -267,7 +267,7 @@ function DeliveryNewForm() {
           </div>
 
           {/* 3단계: 의뢰 내용 */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-base font-semibold text-gray-800 mb-3">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold mr-2">3</span>
               의뢰 내용
@@ -305,7 +305,7 @@ function DeliveryNewForm() {
           </div>
 
           {/* 4단계: 위임 동의 */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-base font-semibold text-gray-800 mb-3">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold mr-2">4</span>
               위임 동의
@@ -338,7 +338,7 @@ function DeliveryNewForm() {
           )}
 
           {/* 결제 요약 + 버튼 */}
-          <div className="bg-blue-600 rounded-2xl p-5">
+          <div className="bg-blue-600 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-base font-semibold text-white">{pkg.name}</p>

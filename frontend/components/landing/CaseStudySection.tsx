@@ -152,7 +152,7 @@ function CaseCard({ data }: { data: CaseData }) {
   const scoreDelta = data.after.score - data.before.score;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
 
       {/* 헤더 */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-5 py-4 border-b border-gray-100">
@@ -345,7 +345,7 @@ export default function CaseStudySection() {
               key={c.id}
               className={`transition-all duration-200 ${
                 activeTab === c.id
-                  ? "ring-2 ring-blue-400 ring-offset-2 rounded-2xl"
+                  ? "ring-2 ring-blue-400 ring-offset-2 rounded-xl"
                   : "opacity-75 hover:opacity-90 cursor-pointer"
               }`}
               onClick={() => setActiveTab(c.id)}

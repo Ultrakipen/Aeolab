@@ -67,7 +67,7 @@ export function ChannelScoreCards({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* 네이버 AI 채널 */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <div className="flex items-start gap-4">
           <ScoreRing score={naverScore} color={naverColor} />
           <div className="flex-1 min-w-0">
@@ -106,7 +106,7 @@ export function ChannelScoreCards({
       </div>
 
       {/* 글로벌 AI 채널 */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <div className="flex items-start gap-4">
           <ScoreRing score={globalScore} color={globalColor} />
           <div className="flex-1 min-w-0">
@@ -135,7 +135,7 @@ export function ChannelScoreCards({
                 </div>
               ))}
             </div>
-            <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+            <p className="text-sm text-gray-500 mt-3 leading-relaxed">
               ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
             </p>
           </div>

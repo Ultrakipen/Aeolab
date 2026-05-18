@@ -112,25 +112,25 @@ export default function ClaimGate({
   return (
     <section
       aria-labelledby="claim-gate-title"
-      className="mt-6 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-emerald-50 p-4 md:p-8 shadow-sm"
+      className="mt-6 rounded-xl bg-white border-2 border-blue-200 p-4 md:p-8 shadow-sm"
     >
       <header className="mb-4 md:mb-6">
         <h3
           id="claim-gate-title"
-          className="text-xl md:text-2xl font-bold text-blue-900 leading-snug"
+          className="text-xl md:text-2xl font-bold text-slate-900 leading-snug"
         >
-          결과를 저장하지 않으면 7일 후 삭제됩니다
+          이 진단 결과를 지금 저장하세요
         </h3>
-        <p className="mt-2 text-sm md:text-base text-blue-800/90">
-          이메일 하나로 30일 보관 + 점수 변화 알림
+        <p className="mt-2 text-sm md:text-base text-slate-600">
+          저장하지 않으면 탭을 닫을 때 사라집니다. 이메일로 저장하면 30일간 보관되고, 7일 후 점수 변화를 알려드립니다.
         </p>
       </header>
 
       <form onSubmit={onSubmit} className="space-y-3 md:space-y-4" noValidate>
         {claimStats && claimStats.total_claims >= 5 && (
-          <div className="flex items-center gap-2 mb-4 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2 mb-4 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
             <span className="text-lg">👥</span>
-            <p className="text-sm text-blue-800 font-medium">
+            <p className="text-sm text-slate-700 font-medium">
               지금까지 <strong>{claimStats.total_claims.toLocaleString()}명</strong>이 결과를 저장했습니다
             </p>
           </div>
@@ -173,8 +173,8 @@ export default function ClaimGate({
             placeholder="010-1234-5678"
             className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm md:text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
-          <p className="mt-1 text-xs md:text-sm text-gray-500">
-            카카오 알림톡으로 점수 변화를 알려드릴 때 사용합니다.
+          <p className="mt-1 text-sm text-gray-500">
+            카카오 알림톡으로 점수 변화를 알려드립니다. 입력하지 않으면 이메일로만 알림 드립니다.
           </p>
         </div>
 
@@ -205,10 +205,10 @@ export default function ClaimGate({
           disabled={submitting}
           className="w-full rounded-xl bg-blue-600 px-4 py-3 md:py-4 text-sm md:text-base font-bold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
         >
-          {submitting ? "보관 신청 중..." : "30일 보관 + 재진단 알림 받기"}
+          {submitting ? "저장 중..." : "결과 저장 + 7일 후 재진단 알림 받기"}
         </button>
 
-        <p className="text-xs md:text-sm text-gray-500 text-center">
+        <p className="text-sm text-gray-500 text-center">
           가입은 다음 단계에서 진행됩니다. 결과는 30일간 보관됩니다.
         </p>
         <p className="text-center text-sm text-gray-500 mt-2">

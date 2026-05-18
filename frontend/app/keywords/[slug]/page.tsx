@@ -104,7 +104,7 @@ export default async function KeywordPage({
         </div>
 
         {/* 실제 사장님 질문 */}
-        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 mb-8">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-8">
           <p className="text-sm font-bold text-gray-400 mb-2">
             {page.region} {page.category} 사장님 실제 질문
           </p>
@@ -119,7 +119,7 @@ export default async function KeywordPage({
           <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 break-keep">
             AI가 &lsquo;{page.region} {page.category}&rsquo;를 추천하는 방식
           </h2>
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
             <p className="text-sm md:text-base text-blue-900 leading-relaxed break-keep">
               {page.aiPattern}
             </p>
@@ -170,7 +170,7 @@ export default async function KeywordPage({
         </section>
 
         {/* CTA */}
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 md:p-8 text-center text-white mb-10">
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-6 md:p-8 text-center text-white mb-10">
           <h2 className="text-xl md:text-2xl font-bold mb-2 break-keep">
             내 가게가 위 키워드에 노출되는지 확인해보세요
           </h2>

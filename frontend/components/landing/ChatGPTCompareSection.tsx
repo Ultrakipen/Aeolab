@@ -1,7 +1,7 @@
 const COMPARE_ROWS = [
   {
     label: "추적 방식",
-    manual: "매주 25번+ 직접 질문",
+    manual: "매주 수십 회 직접 질문 필요",
     auto: "자동 추적 + 카카오 알림",
   },
   {
@@ -27,11 +27,11 @@ export default function ChatGPTCompareSection() {
       <div className="max-w-[1020px] mx-auto">
         {/* 헤더 */}
         <div className="text-center mb-7 fade-up">
-          <p className="text-xs font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>
+          <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>
             왜 AEOlab인가요?
           </p>
           <h2
-            className="text-xl md:text-2xl font-black tracking-tight break-keep"
+            className="text-2xl md:text-3xl font-black tracking-tight break-keep"
             style={{ color: "#0F172A", letterSpacing: "-0.6px" }}
           >
             무료 AI로 직접 하면 되지 않나요?
@@ -43,7 +43,7 @@ export default function ChatGPTCompareSection() {
 
         {/* 비교 테이블 — PC */}
         <div
-          className="hidden md:block rounded-2xl overflow-hidden border-2 fade-up"
+          className="hidden md:block rounded-xl overflow-hidden border-2 fade-up"
           style={{ borderColor: "#2563EB", boxShadow: "var(--aeo-shadow)" }}
         >
           {/* 헤더 행 */}
@@ -114,7 +114,7 @@ export default function ChatGPTCompareSection() {
               }}
             >
               <div
-                className="px-4 py-2.5 text-xs font-bold border-b"
+                className="px-4 py-2.5 text-sm font-bold border-b"
                 style={{
                   background: "#F8FAFC",
                   borderColor: "#E2E8F0",
@@ -125,27 +125,32 @@ export default function ChatGPTCompareSection() {
               </div>
               <div className="grid grid-cols-2">
                 <div className="px-4 py-3 border-r" style={{ borderColor: "#E2E8F0", background: "#FEF2F2" }}>
-                  <p className="text-xs font-bold mb-1" style={{ color: "#475569" }}>
+                  <p className="text-sm font-bold mb-1" style={{ color: "#475569" }}>
                     무료 AI 직접
                   </p>
                   <div className="flex items-start gap-1.5">
                     <span className="text-xs font-bold shrink-0" style={{ color: "#DC2626" }}>✕</span>
-                    <p className="text-xs" style={{ color: "#475569" }}>{row.manual}</p>
+                    <p className="text-sm" style={{ color: "#475569" }}>{row.manual}</p>
                   </div>
                 </div>
                 <div className="px-4 py-3" style={{ background: "#EFF6FF" }}>
-                  <p className="text-xs font-bold mb-1" style={{ color: "#2563EB" }}>
+                  <p className="text-sm font-bold mb-1" style={{ color: "#2563EB" }}>
                     AEOlab 자동
                   </p>
                   <div className="flex items-start gap-1.5">
                     <span className="text-xs font-bold shrink-0" style={{ color: "#059669" }}>✓</span>
-                    <p className="text-xs font-medium" style={{ color: "#0F172A" }}>{row.auto}</p>
+                    <p className="text-sm font-medium" style={{ color: "#0F172A" }}>{row.auto}</p>
                   </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
+
+        {/* 면책 문구 */}
+        <p className="text-sm text-gray-500 text-center mt-4 fade-up">
+          ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다
+        </p>
       </div>
     </section>
   );

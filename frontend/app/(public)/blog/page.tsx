@@ -69,7 +69,7 @@ export default function BlogIndexPage() {
         {/* 추천 아티클 (첫 번째 게시글 크게 노출) */}
         <Link
           href={`/blog/${featured.slug}`}
-          className="group block mb-10 p-6 md:p-8 border border-gray-200 rounded-2xl hover:border-blue-300 hover:shadow-md transition-all"
+          className="group block mb-10 p-6 md:p-8 border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all"
         >
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span
@@ -103,7 +103,7 @@ export default function BlogIndexPage() {
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
-              className="group block p-5 border border-gray-200 rounded-2xl hover:border-blue-300 hover:shadow-md transition-all"
+              className="group block p-5 border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all"
             >
               <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span
@@ -136,7 +136,7 @@ export default function BlogIndexPage() {
         </div>
 
         {/* CTA */}
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 md:p-8 text-center text-white">
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-6 md:p-8 text-center text-white">
           <h2 className="text-xl md:text-2xl font-bold mb-2 break-keep">
             가이드를 읽었다면, 지금 바로 내 가게를 진단해보세요
           </h2>

@@ -238,7 +238,7 @@ export default function Day7ActionCard({
   return (
     <section
       aria-labelledby="day7-action-title"
-      className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-blue-50 p-4 shadow-sm"
+      className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-blue-50 p-4 shadow-sm"
     >
       <div className="flex items-center justify-between gap-3 mb-2">
         <span

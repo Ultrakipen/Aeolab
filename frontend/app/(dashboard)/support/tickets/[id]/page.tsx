@@ -176,7 +176,7 @@ function TicketDetailInner() {
         </div>
 
         {/* 문의 본문 */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-4">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex-1 min-w-0">
               <h1 className="text-lg md:text-xl font-bold text-gray-900 mb-1">{ticket.title}</h1>
@@ -201,7 +201,7 @@ function TicketDetailInner() {
               <div
                 key={reply.id}
                 className={[
-                  "rounded-2xl border p-4",
+                  "rounded-xl border p-4",
                   reply.sender_type === "admin"
                     ? "bg-blue-50 border-blue-200"
                     : "bg-white border-gray-100 shadow-sm",
@@ -225,7 +225,7 @@ function TicketDetailInner() {
 
         {/* 추가 코멘트 입력창 */}
         {!isClosed && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-base font-semibold text-gray-800 mb-3">추가 코멘트</h2>
             {replyError && (
               <p className="text-sm text-red-500 mb-2">{replyError}</p>

@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { CATEGORY_GROUPS } from "@/lib/categories";
-import BusinessSearchDropdown, { mapKakaoCategory } from "@/components/dashboard/BusinessSearchDropdown";
+import BusinessSearchDropdown from "@/components/dashboard/BusinessSearchDropdown";
+import { mapNaverCategory as mapKakaoCategory } from "@/lib/categories";
 import type { BusinessSearchResult } from "@/types";
 
 const STEPS = [
@@ -357,9 +358,10 @@ export default function OnboardingPage() {
             <div className="border-2 border-blue-500 rounded-xl p-4 relative">
               <span className="absolute -top-3 left-3 bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full">가장 인기</span>
               <div className="text-base font-bold text-gray-900 mb-1 mt-1">Basic</div>
-              <div className="text-2xl font-extrabold text-blue-600 mb-2">
+              <div className="text-2xl font-extrabold text-blue-600 mb-0.5">
                 9,900원<span className="text-sm font-normal text-gray-400">/월</span>
               </div>
+              <p className="text-sm font-semibold text-orange-500 mb-2">첫 달 4,950원 (50% 할인)</p>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-500 shrink-0" />주 1회 자동 AI 스캔</li>
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-500 shrink-0" />경쟁사 5곳 비교</li>
@@ -396,7 +398,7 @@ export default function OnboardingPage() {
             <div className="border border-gray-200 rounded-xl p-4">
               <div className="text-base font-bold text-gray-900 mb-1">Biz</div>
               <div className="text-2xl font-extrabold text-emerald-600 mb-2">
-                39,900원<span className="text-sm font-normal text-gray-400">/월</span>
+                49,900원<span className="text-sm font-normal text-gray-400">/월</span>
               </div>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 shrink-0" />사업장 5개 관리</li>
@@ -457,7 +459,7 @@ export default function OnboardingPage() {
 
         {/* Step 1: 사업장 등록 */}
         {step === 1 && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-8">
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
               <p className="text-sm font-semibold text-blue-800 mb-1">가게 정보를 등록하면 AI가 내 가게를 어떻게 인식하는지 진단해 드립니다.</p>
               <p className="text-sm text-blue-700 leading-relaxed">블로그 URL과 스마트플레이스 URL을 함께 등록하면 블로그 분석·스마트플레이스 완성도 체크 등 더 정확한 분석이 가능합니다.</p>
@@ -528,7 +530,12 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      setForm(f => ({ ...f, name: "", region: "", address: "", phone: "" }));
+                      setForm(f => ({
+                        ...f,
+                        name: "", region: "", address: "", phone: "",
+                        naver_place_id: "", naver_place_url: "", kakao_place_id: "",
+                      }));
+                      setNaverSearchMsg("");
                       setShowManualInput(false);
                     }}
                     className="text-sm text-red-500 hover:text-red-700 underline transition-colors"
@@ -567,7 +574,7 @@ export default function OnboardingPage() {
                       onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                       required
                     />
-                    <p className="text-xs text-gray-500 mt-1">카카오맵·네이버에 등록된 정확한 이름</p>
+                    <p className="text-sm text-gray-500 mt-1">카카오맵·네이버에 등록된 정확한 이름</p>
                   </div>
 
                   {/* 업종 + 지역 */}
@@ -580,7 +587,7 @@ export default function OnboardingPage() {
                         value={form.category}
                         onChange={(v) => setForm(f => ({ ...f, category: v }))}
                       />
-                      <p className="text-xs text-gray-500 mt-1">AI가 업종별 최적 키워드를 자동 선택합니다</p>
+                      <p className="text-sm text-gray-500 mt-1">AI가 업종별 최적 키워드를 자동 선택합니다</p>
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -593,7 +600,7 @@ export default function OnboardingPage() {
                         onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
                         required
                       />
-                      <p className="text-xs text-gray-500 mt-1">읍·면·동 수준으로 입력할수록 정확합니다</p>
+                      <p className="text-sm text-gray-500 mt-1">읍·면·동 수준으로 입력할수록 정확합니다</p>
                     </div>
                   </div>
 
@@ -653,7 +660,7 @@ export default function OnboardingPage() {
                   <span className="ml-1 text-sm font-normal text-gray-400">(네이버·티스토리·워드프레스 등)</span>
                 </label>
                 <input
-                  className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
                   placeholder="https://blog.naver.com/내블로그"
                   value={form.blog_url}
                   onChange={e => setForm(f => ({ ...f, blog_url: e.target.value }))}
@@ -671,7 +678,7 @@ export default function OnboardingPage() {
                   핵심 키워드 <span className="text-gray-400 font-normal">(쉼표로 구분)</span>
                 </label>
                 <input
-                  className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
                   placeholder="예: 가정식, 주차가능, 예약불필요"
                   value={form.keywords}
                   onChange={e => setForm(f => ({ ...f, keywords: e.target.value }))}
@@ -795,7 +802,7 @@ export default function OnboardingPage() {
 
         {/* Step 2: 첫 스캔 안내 */}
         {step === 2 && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-8">
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
                 <Sparkles className="w-8 h-8 text-white" strokeWidth={1.5} />
@@ -912,11 +919,11 @@ export default function OnboardingPage() {
 
         {/* Step 3: 완료 */}
         {step === 3 && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8 text-center">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-8 text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-200">
               <Rocket className="w-8 h-8 text-white" strokeWidth={1.5} />
             </div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">가입 완료! 첫 번째 AI 진단을 시작합니다</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">등록 완료! 첫 번째 AI 진단을 시작합니다</h1>
             <p className="text-base text-gray-500 mb-5">아래 3단계를 순서대로 완료하면 내 가게의 AI 노출 현황을 바로 확인할 수 있습니다.</p>
 
             {/* 3단계 온보딩 진행 흐름 */}
@@ -944,8 +951,8 @@ export default function OnboardingPage() {
                 },
                 {
                   no: "Step 3/3",
-                  title: "FAQ 초안 1개 복사",
-                  desc: "가이드 페이지에서 바로 복사해 스마트플레이스에 붙여넣으세요.",
+                  title: "소개글 Q&A 초안 1개 복사",
+                  desc: "가이드 페이지에서 바로 복사해 스마트플레이스 소개글에 붙여넣으세요.",
                   status: "복사 버튼 제공",
                   done: false,
                   link: "/guide",
@@ -966,8 +973,8 @@ export default function OnboardingPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-gray-500">{s.no}</span>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    <span className="text-sm font-bold text-gray-500">{s.no}</span>
+                    <span className={`text-sm font-semibold px-2 py-0.5 rounded-full ${
                       s.done
                         ? "bg-emerald-200 text-emerald-800"
                         : s.color === "blue"
@@ -1035,7 +1042,7 @@ export default function OnboardingPage() {
                   <span className={`text-base font-medium ${hasCompetitor ? "text-green-700" : "text-gray-700"}`}>
                     경쟁사 최소 1개 등록
                     {!hasCompetitor && <span className="ml-1 text-sm text-gray-400 font-normal">(경쟁사 메뉴에서)</span>}
-                    <span className="block text-xs text-gray-500 mt-0.5 font-normal">경쟁사를 등록하면 비교 분석이 가능합니다</span>
+                    <span className="block text-sm text-gray-500 mt-0.5 font-normal">경쟁사를 등록하면 비교 분석이 가능합니다</span>
                   </span>
                 </li>
                 <li className="flex items-start gap-3">

@@ -43,7 +43,7 @@ export default function UpdatePasswordPage() {
   if (done) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="w-full max-w-sm text-center bg-white rounded-2xl p-4 md:p-8 shadow-sm">
+        <div className="w-full max-w-sm text-center bg-white rounded-xl p-4 md:p-8 shadow-sm">
           <div className="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-7 h-7 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -64,7 +64,7 @@ export default function UpdatePasswordPage() {
           <p className="text-gray-500 mt-2 text-sm">새 비밀번호 설정</p>
         </div>
 
-        <form onSubmit={handleUpdate} className="bg-white rounded-2xl p-6 shadow-sm space-y-5">
+        <form onSubmit={handleUpdate} className="bg-white rounded-xl p-6 shadow-sm space-y-5">
           <h1 className="text-xl font-bold text-gray-900 text-center">비밀번호 변경</h1>
 
           <div>

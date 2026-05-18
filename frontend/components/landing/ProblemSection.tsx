@@ -34,7 +34,7 @@ export default function ProblemSection() {
           {problems.map(({ Icon, text, iconColor, bgColor }) => (
             <div
               key={text}
-              className="bg-white rounded-2xl border border-gray-200 p-5 text-center shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+              className="bg-white rounded-xl border border-gray-200 p-5 text-center shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
             >
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 mx-auto ${bgColor}`}>
                 <Icon size={24} strokeWidth={1.8} className={iconColor} />

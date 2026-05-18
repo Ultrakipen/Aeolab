@@ -232,7 +232,7 @@ export default function GrowthClient({
       {/* 요약 카드 3개 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* 전체 점수 변화 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5">
           <p className="text-sm font-medium text-gray-500 mb-3">전체 AI 노출 점수</p>
           {historyData.length >= 2 ? (
             <>
@@ -280,7 +280,7 @@ export default function GrowthClient({
         </div>
 
         {/* 네이버 AI 노출 점수 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5">
           <p className="text-sm font-medium text-gray-500 mb-3">네이버 AI 노출 점수</p>
           {latest ? (
             <>
@@ -300,7 +300,7 @@ export default function GrowthClient({
         </div>
 
         {/* 구글·챗GPT AI 노출 점수 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5">
           <p className="text-sm font-medium text-gray-500 mb-3">구글·챗GPT AI 노출 점수</p>
           {latest ? (
             <>
@@ -321,7 +321,7 @@ export default function GrowthClient({
       </div>
 
       {/* 섹션 1: AI 노출 점수 변화 차트 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">AI 노출 점수 변화</h2>
         <p className="text-sm text-gray-400 mb-5">
           최근 30일 동안 내 가게가 AI에 노출되는 정도가 어떻게 변했는지 보여줍니다
@@ -475,7 +475,7 @@ export default function GrowthClient({
       </div>
 
       {/* 섹션: 내가 한 행동 기록 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">내가 한 행동 기록</h2>
         <p className="text-sm text-gray-400 mb-4">
           가이드에서 체크한 항목들이 여기에 기록됩니다. 7일 후 점수 변화를 자동으로 측정합니다.
@@ -528,7 +528,7 @@ export default function GrowthClient({
       </div>
 
       {/* 섹션 2: 업종 평균 대비 내 위치 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">
           우리 업종에서 내 위치
         </h2>
@@ -629,7 +629,7 @@ export default function GrowthClient({
       </div>
 
       {/* 섹션 3: 이번 달 성과 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">이번 달 성과</h2>
         <p className="text-sm text-gray-400 mb-5">
           이번 달 가장 높은 점수와 지난달을 비교합니다
@@ -699,7 +699,7 @@ export default function GrowthClient({
       </div>
 
       {/* 섹션 4: 개선 전·후 비교 이미지 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">개선 전·후 비교</h2>
         <p className="text-sm text-gray-400 mb-5">
           스캔을 반복할수록 내 가게의 변화를 사진으로 기록합니다
@@ -736,7 +736,7 @@ export default function GrowthClient({
 
       {/* 섹션 5: 스캔 기록 목록 */}
       {historyData.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
           <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">스캔 기록</h2>
           <p className="text-sm text-gray-400 mb-5">AI 스캔을 할 때마다 점수가 기록됩니다</p>
 
@@ -812,7 +812,7 @@ export default function GrowthClient({
       )}
 
       {/* CTA: 가이드 */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 md:p-6">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-blue-900 mb-2">
           점수를 올리고 싶다면?
         </h2>

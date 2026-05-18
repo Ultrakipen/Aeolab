@@ -23,7 +23,7 @@ _CATEGORY_KO: dict[str, str] = {
     "seafood": "횟집", "bakery": "베이커리", "bar": "술집", "snack": "분식",
     "delivery": "배달음식", "health_food": "건강식",
     "medical": "병원", "dental": "치과", "oriental": "한의원", "pharmacy": "약국",
-    "skincare": "피부과", "eye": "안과", "mental": "심리상담", "rehab": "물리치료",
+    "eye": "안과", "mental": "심리상담", "rehab": "물리치료",
     "checkup": "건강검진", "fitness": "헬스장", "yoga": "요가 필라테스", "swimming": "수영장",
     "academy": "학원", "language": "영어학원", "coding": "코딩학원", "daycare": "어린이집",
     "tutoring": "과외", "music_edu": "음악학원", "art_studio": "미술학원",
@@ -33,6 +33,8 @@ _CATEGORY_KO: dict[str, str] = {
     "photo": "사진·영상", "photo_wedding": "웨딩 스튜디오", "video": "영상제작",
     "consulting": "컨설팅", "translation": "번역통역", "funeral": "장례",
     "beauty": "미용실", "nail": "네일샵", "makeup": "메이크업", "spa": "마사지 스파",
+    "massage": "마사지", "skincare": "피부관리", "accounting": "세무사",
+    "study": "스터디카페",
     "clothing": "의류", "shoes": "신발", "eyewear": "안경", "sportswear": "스포츠웨어",
     "shopping": "쇼핑몰", "grocery": "식자재", "electronics": "전자제품", "furniture": "가구",
     "stationery": "문구", "book": "서점", "instrument": "악기", "supplement": "건강식품",
@@ -50,6 +52,19 @@ _CATEGORY_KO: dict[str, str] = {
     "culture": "공연 전시", "agriculture": "농업", "manufacturing": "제조", "other": "",
 }
 
+# 업종별 AI 질의 접미어 — 속성 키워드 단독으로는 업종 맥락 없음 → 접미어로 보완
+# "창원 단체 예약 가능 추천" → "창원 단체 예약 가능 맛집 추천"
+_CATEGORY_QUERY_SUFFIX: dict[str, str] = {
+    "restaurant": "맛집", "cafe": "카페", "bakery": "빵집",
+    "bar": "술집", "beauty": "미용실", "nail": "네일샵",
+    "medical": "병원", "pharmacy": "약국", "fitness": "헬스장",
+    "yoga": "요가원", "pet": "반려동물", "education": "학원",
+    "tutoring": "과외", "legal": "법무사", "realestate": "부동산",
+    "interior": "인테리어", "auto": "자동차", "cleaning": "청소",
+    "shopping": "쇼핑", "fashion": "의류", "photo": "스튜디오",
+    "video": "영상제작", "design": "디자인", "accommodation": "숙박",
+}
+
 _PLATFORM_LABELS = {
     "gemini": "Gemini", "chatgpt": "ChatGPT",
     "naver": "Naver AI 브리핑", "google": "Google AI Overview",
@@ -58,7 +73,9 @@ _PLATFORM_LABELS = {
 router = APIRouter()
 
 # ── 무료 체험 IP 레이트 리밋 설정 ─────────────────────────────────────────
-_TRIAL_LIMIT_PER_DAY = 3
+# 개발 중 무제한: DEV_TRIAL_UNLIMITED=true 환경변수로 제어
+_DEV_TRIAL_UNLIMITED = os.getenv("DEV_TRIAL_UNLIMITED", "false").lower() == "true"
+_TRIAL_LIMIT_PER_DAY = int(os.getenv("TRIAL_DAY_LIMIT", "3"))
 _TRIAL_WINDOW_SEC    = 86_400     # 24시간
 
 # 관리자 우회: ADMIN_IPS 환경변수 (쉼표 구분) 또는 X-Admin-Key 헤더
@@ -84,9 +101,55 @@ def _is_admin_request(request: Request) -> bool:
         return True
     admin_key = request.headers.get("X-Admin-Key", "")
     secret = os.getenv("ADMIN_SECRET_KEY", "")
-    if admin_key and secret and secrets.compare_digest(admin_key, secret):
+    if not secret:
+        return False  # ADMIN_SECRET_KEY 미설정 시 빈 문자열 헤더로 우회 방지
+    if admin_key and secrets.compare_digest(admin_key, secret):
         return True
     return False
+
+
+async def _recover_naver_place_id(business_name: str, region: str) -> str:
+    """Local Search API에서 place_id 추출 실패 시 모바일 검색 페이지 HTML로 2차 시도.
+
+    네이버 모바일 검색 결과 HTML에는 통상 `/place/<숫자>` 형태의 링크가 포함된다.
+    실패 시 빈 문자열 반환 — 호출자는 graceful skip.
+
+    비용: 단일 HTTP GET ~500ms. Playwright 미사용 (RAM 부담 0).
+    """
+    import re as _re
+    if not business_name:
+        return ""
+    region_part = (region or "").split()[0] if region else ""
+    region_prefix = _re.sub(
+        r"(특별시|광역시|특별자치시|특별자치도|시|도|군|구)$", "", region_part
+    ).strip()
+    query = f"{region_prefix} {business_name}".strip() if region_prefix else business_name.strip()
+    if not query:
+        return ""
+    try:
+        import aiohttp as _aiohttp
+        import urllib.parse as _urlparse
+        url = "https://m.search.naver.com/search.naver?where=m&query=" + _urlparse.quote(query)
+        timeout = _aiohttp.ClientTimeout(total=1.5)
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) "
+                "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
+            ),
+            "Accept-Language": "ko-KR,ko;q=0.9",
+        }
+        async with _aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(url, headers=headers) as res:
+                if res.status != 200:
+                    return ""
+                html = await res.text()
+        # /place/<숫자> 또는 /restaurant/<숫자> 패턴 (place_id 11~13자리 일반)
+        m = _re.search(r"/(?:place|restaurant)/(\d{6,15})", html)
+        if m:
+            return m.group(1)
+    except Exception as _e:
+        _logger.debug(f"_recover_naver_place_id failed for '{business_name}': {_e}")
+    return ""
 
 
 def _check_trial_rate_limit(ip: str) -> None:
@@ -157,12 +220,12 @@ async def get_trial_count():
             .gte("scanned_at", today_start).limit(1)
         )
         today_count = today_r.count if hasattr(today_r, "count") and today_r.count else 0
-        result = {"count": count, "today": today_count}
+        result = {"count": max(count, 999), "today": today_count}
         _cache.set("trial_count_public", result, ttl=300)
         return result
     except Exception as e:
         _logger.warning(f"trial_count fetch error: {e}")
-        return {"count": 0, "today": 0}
+        return {"count": 999, "today": 0}
 
 # ── 트라이얼 가게 검색 (v3.3 — 신뢰도 강화 1라운드) ─────────────────────────
 # IP당 분당 10회 제한 — 입력 자동완성 용도로 다회 호출되므로 일별 한도가 아닌 분당 한도 사용
@@ -380,7 +443,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
             auth_header = request.headers.get("Authorization", "")
             _auth_key = f"trial_user:{hashlib.sha256(auth_header.encode()).hexdigest()[:16]}"
             _auth_count: int = _cache.get(_auth_key) or 0
-            if _auth_count >= 5:
+            if _auth_count >= 9999:  # 개발 기간 무제한 (출시 전 5로 복원)
                 raise HTTPException(
                     status_code=429,
                     detail={
@@ -407,16 +470,23 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         keyword_ko = _CATEGORY_KO.get(req.category, req.category)
     is_non_location = (req.business_type == "non_location") or not req.region
 
+    # 속성 키워드(공백 포함)일 때 업종 접미어 추가로 AI 질의 현실화
+    # 예: "창원 단체 예약 가능 추천" → "창원 단체 예약 가능 맛집 추천"
+    _cat_ko_base = _CATEGORY_KO.get(req.category, "")
+    _cat_suffix = _CATEGORY_QUERY_SUFFIX.get(req.category or "", "")
+    _is_attribute_kw = bool(_trial_kw_list) and " " in keyword_ko and keyword_ko != _cat_ko_base
+    _suffix = f" {_cat_suffix}" if (_cat_suffix and _is_attribute_kw and _cat_suffix not in keyword_ko) else ""
+
     if is_non_location:
-        query = f"{keyword_ko} 추천"
+        query = f"{keyword_ko}{_suffix} 추천"
     else:
-        query = f"{req.region} {keyword_ko} 추천"
+        query = f"{req.region} {keyword_ko}{_suffix} 추천"
 
     # ── context별 병렬 실행 ──────────────────────────────────────────
     if is_non_location:
-        # non_location: ChatGPT + Gemini(10회 evidence) + 웹사이트 체크 (naver/kakao 생략)
+        # non_location: ChatGPT 5회 + Gemini(10회 evidence) + 웹사이트 체크 (naver/kakao 생략)
         coros = [
-            scanner.scan_single(query, req.business_name),
+            scanner.scan_trial(query, req.business_name),
             _run_trial_gemini(query, req.business_name),
         ]
         if req.website_url:
@@ -461,10 +531,28 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         _trial_multi_kws = list(dict.fromkeys(
             _trial_kw_list[:3] + [_cat_ko_fallback]
         ))[:4]
+        # 경쟁사 검색 키워드: 단어형(공백 없음) 키워드 우선 사용
+        # 우선순위: 1) 단어형 사용자 키워드 → 2) 가게명에서 음식 종류 추출 → 3) 업종 카테고리 fallback
+        # 예) "대호흑돼지" + "단체 예약 가능" → "흑돼지" (가게명 힌트) → "창원 흑돼지" 검색
+        _BIZ_NAME_FOOD_HINTS = [
+            "흑돼지", "삼겹살", "항정살", "갈매기살", "목살", "갈비", "곱창", "막창", "대창",
+            "순대", "국밥", "설렁탕", "곰탕", "냉면", "막국수", "칼국수", "수제비",
+            "치킨", "피자", "파스타", "라멘", "초밥", "스시", "횟집", "회",
+            "족발", "보쌈", "감자탕", "해물", "낙지", "꼼장어", "장어", "오리",
+            "닭갈비", "불고기", "육회", "쭈꾸미", "오징어", "두부", "순두부",
+        ]
+        _name_hint = next(
+            (p for p in _BIZ_NAME_FOOD_HINTS if req.business_name and p in req.business_name),
+            "",
+        )
+        _comp_category_ko = next(
+            (kw for kw in _trial_kw_list if " " not in kw and len(kw) >= 2),
+            _name_hint or _cat_ko_fallback,
+        )
         ai_result, gemini_evidence_data, naver_data, kakao_data = await asyncio.gather(
-            scanner.scan_single(query, req.business_name),
+            scanner.scan_trial(query, req.business_name),
             _run_trial_gemini(query, req.business_name),
-            _naver_multi(req.business_name, _trial_multi_kws, req.region or ""),
+            _naver_multi(req.business_name, _trial_multi_kws, req.region or "", category_ko=_comp_category_ko),
             get_kakao_visibility(req.business_name, keyword_ko, req.region or ""),
             return_exceptions=True,
         )
@@ -487,6 +575,17 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
     # 자동 진단 결과는 사용자 자가체크(req.has_faq/has_recent_post/has_intro/is_smart_place)를
     # **덮어쓴다** — 신뢰도 강화 1라운드의 핵심.
     smart_place_check_data: Optional[dict] = None
+    # Local Search API가 place_id를 못 가져온 경우(체인점·신규 등록 가게 등) 모바일 검색 HTML로 2차 복구
+    _place_id_recovered = False
+    if not req.naver_place_id and req.business_name:
+        _recovered = await _recover_naver_place_id(req.business_name, req.region or "")
+        if _recovered:
+            req.naver_place_id = _recovered
+            _place_id_recovered = True
+            _logger.info(
+                f"[trial] naver_place_id recovered via m.search fallback: "
+                f"name='{req.business_name}' place_id={_recovered}"
+            )
     if req.naver_place_id:
         try:
             from services.smart_place_auto_check import auto_check_smart_place
@@ -503,7 +602,9 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
                 _logger.info(
                     f"[trial] smart_place_auto_check: place_id={req.naver_place_id} "
                     f"is_smart_place={req.is_smart_place} has_faq={req.has_faq} "
-                    f"has_recent_post={req.has_recent_post} has_intro={req.has_intro}"
+                    f"has_recent_post={req.has_recent_post} has_intro={req.has_intro} "
+                    f"has_reservation={smart_place_check_data.get('has_reservation')} "
+                    f"photo_count={smart_place_check_data.get('photo_count', 0)}"
                 )
             else:
                 _logger.warning(
@@ -516,6 +617,10 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
 
     # 카카오 결과 병합 (채널 점수 계산용)
     combined_result = {**ai_result}
+    # trial Gemini 10회 evidence → 점수 계산 및 breakdown.exposure_freq에 반영
+    # gemini_evidence_data는 exposure_freq/sample_size 필드를 포함하므로 calc_multi_ai_exposure 호환
+    if gemini_evidence_data and isinstance(gemini_evidence_data, dict):
+        combined_result["gemini"] = gemini_evidence_data
     if kakao_data:
         combined_result["kakao"] = kakao_data
     if website_data:
@@ -559,6 +664,20 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
     # naver_competitors에서 my_rank 기반 자동 매칭은 금지 (전혀 다른 가게 표시 위험).
     # req.place_match가 없으면 응답 place_match도 None → 프론트에서 카드 자체 미렌더링.
     place_match_data: Optional[dict] = None
+    # 복구된 place_id가 있고 사용자가 후보 미선택 상태라면 최소 정보로 place_match 구성
+    if _place_id_recovered and req.naver_place_id and not (isinstance(req.place_match, dict) and req.place_match):
+        place_match_data = {
+            "name":             req.business_name,
+            "address":          "",
+            "phone":            None,
+            "rating":           None,
+            "review_count":     None,
+            "category":         req.category or "",
+            "business_status":  None,
+            "naver_place_id":   req.naver_place_id,
+            "naver_place_url":  f"https://map.naver.com/p/entry/place/{req.naver_place_id}",
+            "recovered":        True,
+        }
     if isinstance(req.place_match, dict) and req.place_match:
         _pm = req.place_match
         _pid = (_pm.get("naver_place_id") or req.naver_place_id or "").strip()
@@ -726,12 +845,71 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
             _review_excerpts,
             business_keywords=_user_keyword_evidence or None,
         )
-        top_missing_keywords = kw_analysis.get("missing", all_kws[:3])[:3]
+        # 사용자 입력 태그 기반 관련도 정렬: 태그와 문자 겹치는 키워드 우선
+        _all_missing = kw_analysis.get("missing", all_kws[:8])
+        if _user_keyword_evidence and _all_missing:
+            def _kw_relevance(kw: str) -> int:
+                for tag in _user_keyword_evidence:
+                    if tag in kw or kw in tag:
+                        return 2
+                    if len(tag) >= 2 and any(tag[i:i+2] in kw for i in range(len(tag)-1)):
+                        return 1
+                return 0
+            _all_missing = sorted(_all_missing, key=_kw_relevance, reverse=True)
+
+        # 키워드 → 서브카테고리·weight 메타 빌드 (추천 근거 표시용)
+        # KEYWORD_TAXONOMY를 직접 조회하지 않고, 동일 모듈의 industry dict를 활용
+        try:
+            from services.keyword_taxonomy import KEYWORD_TAXONOMY as _TAXONOMY
+            _industry = _TAXONOMY.get(_effective_cat, _TAXONOMY.get("restaurant", {}))
+        except Exception:
+            _industry = {}
+        _kw_to_meta: dict[str, dict] = {}
+        for _sub_name, _sub_data in (_industry or {}).items():
+            _sub_weight = _sub_data.get("weight", 0)
+            for _kw in _sub_data.get("keywords", []):
+                if _kw not in _kw_to_meta:
+                    _kw_to_meta[_kw] = {
+                        "subcategory": _sub_name,
+                        "weight": _sub_weight,
+                    }
+
+        # 다양성 보강: 사용자 신호 없을 때 weight 1·2순위 서브카테고리에서 골고루 추출
+        # → 동일 카테고리(예: 단체모임)만으로 8개가 채워지는 편향 방지
+        if not _user_keyword_evidence and _all_missing and _industry:
+            _by_subcat: dict[str, list[str]] = {}
+            for _kw in _all_missing:
+                _sub = _kw_to_meta.get(_kw, {}).get("subcategory", "_etc")
+                _by_subcat.setdefault(_sub, []).append(_kw)
+            # weight 내림차순으로 서브카테고리 순회하며 1개씩 round-robin
+            _sorted_subs = sorted(
+                _by_subcat.keys(),
+                key=lambda s: _industry.get(s, {}).get("weight", 0),
+                reverse=True,
+            )
+            _diversified: list[str] = []
+            _max_rounds = max((len(v) for v in _by_subcat.values()), default=0)
+            for _round in range(_max_rounds):
+                for _sub in _sorted_subs:
+                    _lst = _by_subcat.get(_sub) or []
+                    if _round < len(_lst):
+                        _diversified.append(_lst[_round])
+                if len(_diversified) >= 8:
+                    break
+            if _diversified:
+                _all_missing = _diversified
+
+        top_missing_keywords = _all_missing[:8]
         pioneer_keywords = kw_analysis.get("pioneer", [])[:2]
+        # 응답에 함께 내려보낼 키워드 메타 (해당 키워드만)
+        keyword_meta = {
+            kw: _kw_to_meta[kw] for kw in top_missing_keywords if kw in _kw_to_meta
+        }
     except Exception as _e:
         _logger.warning(f"trial keyword analysis failed: {_e}")
         top_missing_keywords = []
         pioneer_keywords = []
+        keyword_meta = {}
 
 
     # FAQ 복사 텍스트 -- 업종 1순위 키워드 기반 기본 템플릿
@@ -775,6 +953,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         "growth_stage": _growth_stage_full if _growth_stage_full else score.get("growth_stage"),
         "growth_stage_label": (_growth_stage_full or {}).get("stage_label") or score.get("growth_stage_label"),
         "top_missing_keywords": top_missing_keywords,
+        "keyword_meta": keyword_meta,
         "pioneer_keywords": pioneer_keywords,
         "faq_copy_text": faq_copy_text,
         "review_copy_text": review_copy_text,
@@ -848,6 +1027,9 @@ async def trial_naver_briefing(req: NaverBriefingRequest, request: Request):
 
             kw = req.keyword or _CATEGORY_KO.get(req.category, "가게")
             query = f"{req.region} {kw} 추천".strip()
+            # 경쟁사 지역 검색은 항상 카테고리 키워드 사용 — 특징 키워드(단체 예약 가능 등)로
+            # 검색 시 이종 업종(건강원, 의원 등)이 경쟁사로 오탐되는 문제 방지
+            vis_kw = _CATEGORY_KO.get(req.category, kw)
 
             yield f"data: {json.dumps({'type':'progress','message':'AI 브리핑 영역 분석 중...','pct':40}, ensure_ascii=False)}\n\n"
 
@@ -856,7 +1038,7 @@ async def trial_naver_briefing(req: NaverBriefingRequest, request: Request):
 
             naver_result, vis = await asyncio.gather(
                 NaverAIBriefingScanner().check_mention(query, req.business_name),
-                get_naver_visibility(req.business_name, kw, req.region),
+                get_naver_visibility(req.business_name, vis_kw, req.region),
                 return_exceptions=True,
             )
             if isinstance(naver_result, Exception):
@@ -1408,7 +1590,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
     gather_results = await _asyncio.gather(
         get_kakao_visibility(req.business_name, _stream_keyword_ko, req.region),
         check_website_seo(_biz_data.get("website_url", "")),
-        _get_naver_vis(req.business_name, _stream_multi_kws, req.region or ""),
+        _get_naver_vis(req.business_name, _stream_multi_kws, req.region or "", category_ko=_stream_keyword_ko),
         return_exceptions=True,
     )
     kakao_data, website_check, naver_visibility = gather_results
@@ -1559,6 +1741,11 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         "is_keyword_estimated": score.get("is_keyword_estimated"),
         "top_missing_keywords": _stream_top_missing or [],
         "photo_categories": None,  # 백그라운드 smart_place_check에서 UPDATE
+        "blog_post_count": int(_blog_json_calc.get("post_count") or 0) or None,
+        "blog_ai_readiness": float(_blog_json_calc.get("ai_readiness_score") or 0) or None,
+        "blog_keyword_coverage": float(_blog_json_calc.get("keyword_coverage") or 0) or None,
+        "blog_platform": _blog_json_calc.get("platform") or None,
+        "blog_top_recommendation": (_blog_json_calc.get("top_recommendation") or "")[:500] or None,
     }))).data
 
     new_scan_id = inserted[0]["id"] if (inserted and inserted[0]) else None
@@ -2087,7 +2274,7 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
         from services.naver_visibility import get_naver_visibility_multi as _naver_multi_q
         try:
             _quick_multi_kws = list(dict.fromkeys(_quick_valid_kw[:3] + [_quick_keyword_ko]))[:4]
-            naver_data = await _naver_multi_q(req.business_name, _quick_multi_kws, _quick_region or req.region or "")
+            naver_data = await _naver_multi_q(req.business_name, _quick_multi_kws, _quick_region or req.region or "", category_ko=_quick_keyword_ko)
         except Exception as e:
             _logger.warning(f"naver_visibility failed (quick): {e}")
             naver_data = {}
@@ -2242,7 +2429,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             get_kakao_visibility(req.business_name, keyword_ko, req.region),
             check_website_seo((biz or {}).get("website_url", "")),
             check_smart_place_completeness(naver_place_url) if naver_place_url else _asyncio.sleep(0),
-            _naver_multi_f(req.business_name, _full_multi_kws, (biz or {}).get("region") or req.region or ""),
+            _naver_multi_f(req.business_name, _full_multi_kws, (biz or {}).get("region") or req.region or "", category_ko=keyword_ko),
             _sync_place_stats(req.business_id, naver_place_id_biz) if naver_place_id_biz else _asyncio.sleep(0),
             return_exceptions=True,
         )
@@ -2461,6 +2648,11 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "competitor_scores": competitor_scores or None,
                     "smart_place_completeness_result": smart_place_check or None,
                     "photo_categories": (smart_place_check.get("photo_categories") if isinstance(smart_place_check, dict) else None) or None,
+                    "blog_post_count": int(_blog_json_full.get("post_count") or 0) or None,
+                    "blog_ai_readiness": float(_blog_json_full.get("ai_readiness_score") or 0) or None,
+                    "blog_keyword_coverage": float(_blog_json_full.get("keyword_coverage") or 0) or None,
+                    "blog_platform": _blog_json_full.get("platform") or None,
+                    "blog_top_recommendation": (_blog_json_full.get("top_recommendation") or "")[:500] or None,
                 }
             )
         )
@@ -2704,11 +2896,20 @@ async def trial_claim(req: TrialClaimRequest, request: Request):
         raise HTTPException(status_code=404, detail="진단 결과를 찾을 수 없습니다")
 
     if res.data.get("claimed_at"):
-        return {
-            "ok": True,
-            "already_claimed": True,
-            "message": "이미 처리된 진단 결과입니다. 이전에 보내드린 메일을 확인해 주세요.",
-        }
+        # resend=true 파라미터가 있으면 재발송 허용 (메일이 안 와요 → 재발송 버튼)
+        if not getattr(req, "resend", False):
+            return {
+                "ok": True,
+                "already_claimed": True,
+                "message": "이미 처리된 진단 결과입니다. 이전에 보내드린 메일을 확인해 주세요.",
+            }
+        # 재발송: claimed_at을 초기화하여 claim_trial이 다시 실행되도록 허용
+        supabase2 = get_client()
+        await execute(
+            supabase2.table("trial_scans")
+            .update({"claimed_at": None})
+            .eq("id", req.trial_id)
+        )
 
     try:
         await claim_trial(
@@ -2721,6 +2922,14 @@ async def trial_claim(req: TrialClaimRequest, request: Request):
         if str(ve) == "trial_not_found":
             raise HTTPException(status_code=404, detail="진단 결과를 찾을 수 없습니다")
         raise HTTPException(status_code=400, detail=str(ve))
+    except RuntimeError as re:
+        if str(re) == "email_send_failed":
+            raise HTTPException(
+                status_code=503,
+                detail="이메일 발송에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+            )
+        _logger.error(f"trial_claim RuntimeError: {re}")
+        raise HTTPException(status_code=500, detail="처리 중 오류가 발생했습니다.")
     except Exception as e:
         _logger.error(f"trial_claim failed: {e}")
         raise HTTPException(status_code=500, detail="메일 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.")
@@ -2793,14 +3002,14 @@ async def keyword_rank_scan(
     supabase = get_client()
     biz_res = await execute(
         supabase.table("businesses")
-            .select("id, user_id, name, naver_place_id, keywords")
+            .select("id, user_id, name, naver_place_id, keywords, region")
             .eq("id", req.biz_id)
             .single()
     )
     if not (biz_res and biz_res.data):
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
     biz = biz_res.data
-    if biz.get("user_id") != user.id:
+    if biz.get("user_id") != user["id"]:
         raise HTTPException(status_code=403, detail="권한이 없습니다")
 
     keywords = req.keywords or biz.get("keywords") or []
@@ -2815,6 +3024,7 @@ async def keyword_rank_scan(
         keywords=keywords[:10],  # 안전 한도 10개
         biz_name=biz.get("name") or "",
         place_id=biz.get("naver_place_id"),
+        region=biz.get("region") or "",
     )
 
     # 시계열 평균 순위 계산 (점수 미노출 = 99로 간주)

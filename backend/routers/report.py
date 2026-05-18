@@ -365,6 +365,27 @@ async def _query_benchmark_scores(supabase, category: str | None, region: str | 
     return registered + trial
 
 
+@router.get("/photo-guide/{category}")
+async def get_photo_guide(category: str):
+    """업종별 사진 카테고리 촬영 가이드 (정적 사전 — main_engine_optimization_v1.1.md §3.5).
+
+    AI 호출 0회, DB 호출 0회, 인증 불필요. 응답 캐시 가능 (불변 데이터).
+    PhotoCategoryCard 모달에 그대로 전달.
+    """
+    from services.photo_guide import get_guides_for_category
+    from services.photo_categories import is_supported, get_expected_cats
+    # 미지원 업종 — 빈 객체 대신 404 (남용·오타 차단)
+    if not is_supported(category):
+        raise HTTPException(status_code=404, detail="해당 업종의 사진 가이드가 제공되지 않습니다")
+    guides = get_guides_for_category(category)
+    return {
+        "category": category,
+        "supported": True,
+        "expected_categories": get_expected_cats(category),
+        "guides": guides,
+    }
+
+
 @router.get("/benchmark/{category}/{region}")
 async def get_benchmark(category: str, region: str):
     """업종·지역 벤치마크 통계 (평균·상위10%·분포) — 데이터 부족 시 3단계 Fallback (캐시 1시간)"""
@@ -565,11 +586,11 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
     for r in rows:
         bd = r.get("score_breakdown") or {}
         writer.writerow([
-            r["scanned_at"],
+            _csv_safe(r.get("scanned_at", "")),
             r.get("total_score") or r.get("unified_score", ""),
             r.get("track1_score", ""),
             r.get("track2_score", ""),
-            r["query_used"],
+            _csv_safe(r.get("query_used", "")),
             bd.get("keyword_gap_score", ""),
             bd.get("review_quality", ""),
             bd.get("smart_place_completeness", ""),
@@ -628,7 +649,14 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
                 return "미노출"
 
         def _avg_rank(vals: list) -> str:
-            nums = [int(v) for v in vals if v is not None and int(v) < 99]
+            nums = []
+            for v in vals:
+                try:
+                    iv = int(v)
+                    if iv < 99:
+                        nums.append(iv)
+                except (TypeError, ValueError):
+                    pass
             if not nums:
                 return "미노출"
             return str(round(sum(nums) / len(nums), 1))
@@ -684,7 +712,7 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
     biz = (
         await execute(
             supabase.table("businesses")
-            .select("id, name, category, region, address, phone, website_url, keywords")
+            .select("id, name, category, region, address, phone, website_url, keywords, is_franchise, blog_analysis_json")
             .eq("id", biz_id)
             .single()
         )
@@ -736,16 +764,38 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
         )
     ).data or []
 
-    from services.pdf_generator import generate_pdf_report
-    pdf_bytes = generate_pdf_report(
-        biz=biz,
-        latest_scan=latest_scan[0],
-        history=history,
-        guide=guide[0] if guide else None,
-        keyword_ranks_history=kw_rank_history if kw_rank_history else None,
-    )
+    # 스크린샷 조회 — Google 제외 (봇 감지 CAPTCHA 방지)
+    screenshots = (
+        await execute(
+            supabase.table("before_after")
+            .select("keyword, image_url, capture_type, platform, created_at")
+            .eq("business_id", biz_id)
+            .not_.ilike("capture_type", "%google%")
+            .not_.is_("image_url", "null")
+            .order("created_at", desc=True)
+            .limit(4)
+        )
+    ).data or []
 
-    filename = f"aeolab_{biz.get('name', biz_id[:8])}_report.pdf"
+    import urllib.parse
+    from services.pdf_generator import generate_pdf_report
+    try:
+        pdf_bytes = generate_pdf_report(
+            biz=biz,
+            latest_scan=latest_scan[0],
+            history=history,
+            guide=guide[0] if guide else None,
+            keyword_ranks_history=kw_rank_history if kw_rank_history else None,
+            screenshots=screenshots,
+            blog_analysis=biz.get("blog_analysis_json"),
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"PDF generation failed for biz_id={biz_id}: {e}")
+        raise HTTPException(status_code=500, detail={"code": "SERVER_ERROR", "message": "PDF 생성에 실패했습니다"})
+
+    _safe_name = biz.get('name', biz_id[:8]).replace('/', '_').replace(' ', '_')
+    filename = urllib.parse.quote(f"aeolab_{_safe_name}_report.pdf")
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
@@ -764,18 +814,10 @@ async def export_keyword_rank_csv(biz_id: str, user=Depends(get_current_user)):
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    # 플랜 확인 — Pro+ 전용 (basic은 /export에 키워드 섹션이 포함되므로 pro+ 게이트)
-    sub = (
-        await execute(
-            supabase.table("subscriptions")
-            .select("plan, status")
-            .eq("user_id", user["id"])
-            .maybe_single()
-        )
-    ).data
-    plan   = (sub or {}).get("plan", "free")
-    status = (sub or {}).get("status", "")
-    if plan not in ("pro", "biz", "startup", "enterprise") or status not in ("active", "grace_period"):
+    # 플랜 확인 — Pro+ 전용 (get_user_plan 단일 소스: ADMIN_EMAILS 우회 포함)
+    from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
+    plan = await get_user_plan(user["id"], supabase)
+    if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("pro", 1):
         raise HTTPException(
             status_code=403,
             detail={
@@ -1225,13 +1267,13 @@ async def get_gap_analysis(biz_id: str, user=Depends(get_current_user)):
             supabase.table("businesses")
             .select("id, blog_analysis_json, review_sample, category")
             .eq("id", biz_id)
-            .maybe_single()
+            .limit(1)
         )
-        biz_row = biz_res.data if (biz_res and biz_res.data) else {}
+        biz_row = biz_res.data[0] if (biz_res and biz_res.data) else {}
 
         comp_res = await execute(
             supabase.table("competitors")
-            .select("id, blog_analysis_json, review_sample")
+            .select("id, name")
             .eq("business_id", biz_id)
             .eq("is_active", True)
             .limit(10)
@@ -1286,21 +1328,14 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
     biz = biz_res.data
 
-    # ACTIVE/LIKELY 업종 확인 — INACTIVE이면 available=false 반환
+    # AI 브리핑 게이팅 (프론트 UI 분기용 — AI탭은 모든 업종 가능)
+    # AI탭(2026-04-27 베타): 업종 제한 없음. INACTIVE도 available=True.
+    # AI 브리핑과 AI탭은 다른 서비스 — briefing_eligibility는 UI 안내에만 사용.
     from services.score_engine import get_briefing_eligibility
-    eligibility = get_briefing_eligibility(
+    briefing_eligibility = get_briefing_eligibility(
         biz.get("category", ""),
         bool(biz.get("is_franchise", False)),
     )
-    if eligibility == "inactive":
-        result = {
-            "biz_id": biz_id,
-            "available": False,
-            "reason": "inactive_category",
-            "message": "이 업종은 네이버 AI탭 대상이 아닙니다. ChatGPT·Gemini·Google AI 노출 개선에 집중하세요.",
-        }
-        _cache.set(_cache_key, result, ttl=_TTL_BENCHMARK)
-        return result
 
     # 최신 스캔 결과 조회 (옵션)
     scan_res = await execute(
@@ -1318,7 +1353,7 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
     result = {
         "biz_id": biz_id,
         "available": True,
-        "eligibility": eligibility,
+        "briefing_eligibility": briefing_eligibility,  # AI 브리핑 게이팅 (UI 분기용)
         **preview,
     }
     _cache.set(_cache_key, result, ttl=_TTL_BENCHMARK)
@@ -2817,10 +2852,57 @@ async def get_ai_citations(
     user_id = user.get("id")
     supabase = get_client()
 
-    # Basic+ 플랜 확인
+    # Basic+ 플랜 확인 (Free는 ChatGPT 발췌 1건 미리보기 반환)
     plan = await get_user_plan(user_id, supabase)
     if plan == "free":
-        raise _HEac(status_code=403, detail="Basic 이상 플랜 필요")
+        # 소유권 확인
+        _biz_preview = await execute(
+            supabase.table("businesses")
+            .select("id, user_id, keywords")
+            .eq("id", biz_id)
+            .maybe_single()
+        )
+        if not _biz_preview.data or _biz_preview.data.get("user_id") != user_id:
+            raise _HEac(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+        # 최근 스캔 ID
+        _scan_preview = await execute(
+            supabase.table("scan_results")
+            .select("id")
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+        )
+        _scan_ids_preview = [r["id"] for r in (_scan_preview.data or []) if r.get("id")]
+
+        _preview_item = None
+        if _scan_ids_preview:
+            _cit_preview = await execute(
+                supabase.table("ai_citations")
+                .select("platform, query, mentioned, excerpt, sentiment")
+                .in_("scan_id", _scan_ids_preview)
+                .eq("platform", "chatgpt")
+                .eq("mentioned", True)
+                .limit(1)
+            )
+            _rows_preview = _cit_preview.data or []
+            if _rows_preview:
+                _r = _rows_preview[0]
+                _preview_item = {
+                    "platform": "chatgpt",
+                    "platform_label": "ChatGPT",
+                    "query": _r.get("query", ""),
+                    "excerpt": _r.get("excerpt", ""),
+                    "sentiment": _r.get("sentiment", "neutral"),
+                    "mentioned": True,
+                }
+
+        return {
+            "citations": [_preview_item] if _preview_item else [],
+            "is_preview": True,
+            "preview_message": "ChatGPT 인용 1건을 미리보기로 제공합니다. 전체 분석은 Basic 이상에서 확인하세요.",
+            "total_preview": 1,
+        }
 
     # 소유권 확인 + keywords / region 동시 조회
     biz_row = await execute(
@@ -3546,17 +3628,7 @@ async def capture_blog_screenshots(
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    # 플랜 체크 (Basic 이상)
-    sub_res = await execute(
-        supabase.table("subscriptions")
-        .select("plan, status")
-        .eq("user_id", user["id"])
-        .maybe_single()
-    )
-    sub = sub_res.data if sub_res else None
-    plan = sub["plan"] if (sub and sub.get("status") == "active") else "free"
-    if plan not in ("basic", "startup", "pro", "biz", "enterprise"):
-        raise HTTPException(status_code=403, detail="Basic 이상 구독이 필요합니다.")
+    # TODO: 개발 중 플랜 제한 비활성화 — 출시 전 복구 필요
 
     # 사업장 키워드 + 지역 조회
     biz_res = await execute(
@@ -3623,14 +3695,21 @@ async def get_blog_analysis(biz_id: str, user=Depends(get_current_user)):
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    # 현재 naver_blog_id 조회 (is_mine 재판별용)
+    # 현재 naver_blog_id 조회 (is_mine 재판별용) — 없으면 blog_url에서 추출
     biz_res = await execute(
         supabase.table("businesses")
-        .select("naver_blog_id")
+        .select("naver_blog_id, blog_url")
         .eq("id", biz_id)
         .maybe_single()
     )
-    naver_blog_id: str = ((biz_res.data or {}).get("naver_blog_id") or "").strip().lower()
+    _biz_row = biz_res.data or {}
+    naver_blog_id: str = (_biz_row.get("naver_blog_id") or "").strip().lower()
+    if not naver_blog_id:
+        import re as _re_tmp
+        _blog_url = (_biz_row.get("blog_url") or "").strip()
+        _m = _re_tmp.search(r"blog\.naver\.com/([^/?#]+)", _blog_url, _re_tmp.IGNORECASE)
+        if _m:
+            naver_blog_id = _m.group(1).strip().lower()
 
     cache_key = _cache._make_key("blog_analysis", biz_id, naver_blog_id or "none")
     cached = _cache.get(cache_key)
@@ -3708,50 +3787,13 @@ async def run_blog_analysis(
         except Exception as e:
             _logger.warning("admin 이메일 조회 실패 (is_admin=False 유지): %s", e)
 
-    # 플랜 체크 (Basic 이상, 관리자 예외)
-    sub_res = await execute(
-        supabase.table("subscriptions")
-        .select("plan, status")
-        .eq("user_id", user["id"])
-        .maybe_single()
-    )
-    sub = sub_res.data if sub_res else None
-    plan = sub["plan"] if (sub and sub.get("status") == "active") else "free"
-    if not is_admin and plan not in ("basic", "startup", "pro", "biz", "enterprise"):
-        raise HTTPException(status_code=403, detail="Basic 이상 구독이 필요합니다.")
-
-    # 하루 1회 제한 체크 (관리자 예외)
-    if not is_admin:
-        last_res = await execute(
-            supabase.table("blog_analysis")
-            .select("analyzed_at")
-            .eq("business_id", biz_id)
-            .order("analyzed_at", desc=True)
-            .limit(1)
-        )
-        last_rows = last_res.data or []
-        if last_rows:
-            from datetime import datetime, timezone, timedelta
-            last_at_str = last_rows[0].get("analyzed_at", "")
-            try:
-                last_at = datetime.fromisoformat(last_at_str.replace("Z", "+00:00"))
-                if datetime.now(timezone.utc) - last_at < timedelta(hours=24):
-                    remaining = timedelta(hours=24) - (datetime.now(timezone.utc) - last_at)
-                    hours = int(remaining.total_seconds() // 3600)
-                    mins = int((remaining.total_seconds() % 3600) // 60)
-                    raise HTTPException(
-                        status_code=429,
-                        detail=f"블로그 분석은 하루 1회만 가능합니다. {hours}시간 {mins}분 후 다시 시도하세요."
-                    )
-            except HTTPException:
-                raise
-            except Exception as e:
-                _logger.warning("블로그 쿨다운 체크 실패 (쿨다운 미적용): %s", e)
+    # TODO: 개발 중 플랜·횟수 제한 비활성화 — 출시 전 복구 필요
+    # 플랜 체크 및 하루 1회 제한 임시 해제
 
     # 사업장 정보 조회
     biz_res = await execute(
         supabase.table("businesses")
-        .select("name, keywords, region, naver_blog_id")
+        .select("name, keywords, region, naver_blog_id, blog_url")
         .eq("id", biz_id)
         .maybe_single()
     )
@@ -3762,6 +3804,13 @@ async def run_blog_analysis(
     biz_name: str = biz_data.get("name") or ""
     biz_region: str = (biz_data.get("region") or "").strip()
     naver_blog_id: str = (biz_data.get("naver_blog_id") or "").strip().lower()
+    # naver_blog_id 미등록 시 blog_url에서 추출 (블로그 진단 페이지 등록값 활용)
+    if not naver_blog_id:
+        import re as _re_bid
+        _burl = (biz_data.get("blog_url") or "").strip()
+        _bm = _re_bid.search(r"blog\.naver\.com/([^/?#]+)", _burl, _re_bid.IGNORECASE)
+        if _bm:
+            naver_blog_id = _bm.group(1).strip().lower()
     keywords: list[str] = [
         k.strip() for k in (biz_data.get("keywords") or []) if k.strip()
     ][:5]
@@ -3820,8 +3869,8 @@ async def run_blog_analysis(
             # 브라우저 메모리 완전 해제 대기 (Playwright 동시 실행 금지)
             await _asyncio.sleep(5)
 
-        # 캐시 무효화
-        cache_key = _cache._make_key("blog_analysis", _biz_id)
+        # 캐시 무효화 — GET과 동일한 키 패턴으로 삭제 (naver_blog_id 포함 필수)
+        cache_key = _cache._make_key("blog_analysis", _biz_id, _naver_blog_id or "none")
         _cache.delete(cache_key)
 
     background_tasks.add_task(
@@ -3867,7 +3916,7 @@ async def simulate_score(
     scan_res = await execute(
         supabase.table("scan_results")
         .select(
-            "naver_result, gemini_result, chatgpt_result, perplexity_result, "
+            "naver_result, gemini_result, chatgpt_result, "
             "google_result, kakao_result, website_check_result, "
             "track1_score, track2_score, unified_score"
         )
@@ -3885,7 +3934,6 @@ async def simulate_score(
         "naver": scan_data.get("naver_result") or {},
         "gemini": scan_data.get("gemini_result") or {},
         "chatgpt": scan_data.get("chatgpt_result") or {},
-        "perplexity": scan_data.get("perplexity_result") or {},
         "google": scan_data.get("google_result") or {},
         "kakao_result": scan_data.get("kakao_result") or {},
         "website_check": scan_data.get("website_check_result") or {},
@@ -4472,10 +4520,10 @@ async def get_visit_delta(
     # 3. score_history에서 기간 내 첫/마지막 행 조회
     history_res = await execute(
         supabase.table("score_history")
-        .select("unified_score, created_at")
+        .select("unified_score, score_date")
         .eq("business_id", biz_id)
-        .gte("created_at", last_visit_iso)
-        .order("created_at", desc=False)
+        .gte("score_date", last_visit_iso)
+        .order("score_date", desc=False)
     )
     history_rows = (history_res.data or []) if history_res else []
 
@@ -4755,6 +4803,17 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
             "completed": has_action_this_month,
             "priority": 5,
         },
+        {
+            "id": "ai_tab_readiness",
+            "title": "AI탭 준비도 가이드 확인",
+            "description": (
+                "소개글에 Q&A 구조를 추가하면 AI탭 노출 가능성이 높아집니다 — 가이드에서 확인하세요"
+                if not bool(sp_result_raw.get("has_intro"))
+                else "소개글 등록 완료! AI탭 최적화 가이드에서 다음 단계를 확인하세요"
+            ),
+            "completed": bool(sp_result_raw.get("has_intro")),
+            "priority": 6,
+        },
     ]
 
     completed_count = sum(1 for item in checklist if item["completed"])
@@ -4929,6 +4988,12 @@ async def get_competitor_keyword_delta(
 
     current_cov: dict = current_scan.get("keyword_coverage") or {}
     previous_cov: dict = previous_scan.get("keyword_coverage") or {}
+
+    # keyword_coverage가 dict이 아닌 경우 방어 (legacy 데이터 호환)
+    if not isinstance(current_cov, dict):
+        current_cov = {}
+    if not isinstance(previous_cov, dict):
+        previous_cov = {}
 
     current_covered: set[str] = set(current_cov.get("covered_keywords") or [])
     previous_covered: set[str] = set(previous_cov.get("covered_keywords") or [])

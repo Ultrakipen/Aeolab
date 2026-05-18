@@ -41,7 +41,7 @@ export default function PricingPage() {
             <div
               key={plan.name}
               id={`plan-${plan.name.replace(/\s+/g, "-")}`}
-              className={`scroll-mt-20 rounded-2xl p-5 md:p-6 flex flex-col ${
+              className={`scroll-mt-20 rounded-xl p-5 md:p-6 flex flex-col ${
                 plan.highlight
                   ? "bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2"
                   : "bg-white border border-gray-200"
@@ -126,7 +126,7 @@ export default function PricingPage() {
             <div
               key={plan.name}
               id={`plan-${plan.name.replace(/\s+/g, "-")}`}
-              className="scroll-mt-20 bg-white border border-gray-200 rounded-2xl p-5 md:p-6 flex flex-col"
+              className="scroll-mt-20 bg-white border border-gray-200 rounded-xl p-5 md:p-6 flex flex-col"
             >
               {plan.badge && (
                 <div className="text-sm font-semibold text-blue-600 mb-2">{plan.badge}</div>
@@ -188,10 +188,10 @@ export default function PricingPage() {
               {[
                 ["자동 스캔", "주 1회", "주 1회", "주 3회", "매일"],
                 ["수동 스캔", "하루 2회", "하루 3회", "하루 5회", "하루 15회"],
-                ["키워드 순위 측정 주기", "월 1회", "주 1회", "매일", "6시간"],
-                ["키워드 자동 추천 (월)", "1회", "1회", "4회", "10회"],
-                ["톡톡 채팅방 메뉴 자동 생성 (월)", "5건", "무제한", "무제한", "무제한"],
-                ["경쟁사 비교", "3개", "5개", "10개", "무제한"],
+                ["키워드 순위 측정 주기", "주 1회", "매일", "매일", "매일"],
+                ["키워드 자동 추천 (월)", "1회", "4회", "4회", "10회"],
+                ["AI 콘텐츠 자동 생성 (소개글·채팅방메뉴, 월합산)", "5건", "무제한", "무제한", "무제한"],
+                ["경쟁사 비교", "3개", "5개", "5개", "무제한"],
                 ["AI 개선 가이드", "월 3회", "월 5회", "월 10회", "월 20회"],
                 ["리뷰 답변 초안", "월 20회", "무제한", "무제한", "무제한"],
                 ["히스토리 보관", "60일", "90일", "90일", "무제한"],
@@ -218,7 +218,7 @@ export default function PricingPage() {
 
         {/* ─── 포함된 진단 도구 ─── */}
         <div className="mb-14">
-          <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-6">
+          <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-6">
             <div className="flex items-center gap-3 mb-4">
               <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
                 Basic 이상 포함
@@ -257,15 +257,16 @@ export default function PricingPage() {
         </div>
 
         {/* ─── 업종별 노출 범위 안내 (면책 문구) ─── */}
-        <div className="mb-12 rounded-2xl border border-amber-200 bg-amber-50 p-5 md:p-6">
+        <div className="mb-12 rounded-xl border border-amber-200 bg-amber-50 p-5 md:p-6">
           <h3 className="text-base md:text-lg font-bold text-amber-900 mb-2 break-keep">
             업종별 AI 브리핑 노출 범위 안내
           </h3>
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed break-keep">
             네이버 AI 브리핑은 현재 <strong>음식점·카페·베이커리·바·숙박</strong> 등 일부 업종에서만 제공되며,
             <strong> 프랜차이즈 가맹점은 제공 대상에서 제외됩니다</strong>(네이버 공식, 추후 확대 예정).
+            <strong>뷰티·네일·피트니스·약국·반려동물</strong> 등 확대 예상 업종은 네이버 AI탭(베타, 모든 업종 가능)을 통한 노출 개선이 가능합니다.
             병원·법무·교육·쇼핑몰 등 비대상 업종 또는 프랜차이즈는 AEOlab 구독 시{" "}
-            <strong>네이버 일반 검색·블로그·ChatGPT·Gemini·카카오맵 등 글로벌 AI 가시성</strong>이 향상됩니다.
+            <strong>네이버 AI탭·ChatGPT·Gemini·카카오맵 등 글로벌 AI 가시성</strong>이 향상됩니다.
           </p>
           <p className="text-sm md:text-base text-gray-600 leading-relaxed">
             구독 전 자신의 업종이 어디에 해당하는지{" "}
@@ -290,7 +291,7 @@ export default function PricingPage() {
         </div>
 
         {/* ─── ChatGPT·네이버 광고와 비교 (아코디언) ─── */}
-        <details className="group bg-slate-50 border border-slate-200 rounded-2xl mb-12 overflow-hidden">
+        <details className="group bg-slate-50 border border-slate-200 rounded-xl mb-12 overflow-hidden">
           <summary className="flex items-center justify-between cursor-pointer px-6 py-5 select-none list-none">
             <span className="text-base md:text-lg font-bold text-slate-900">
               ChatGPT·네이버 광고와 비교
@@ -362,7 +363,7 @@ export default function PricingPage() {
                 },
                 {
                   icon: "💬",
-                  title: "리뷰 답변·FAQ 초안 글쓰기",
+                  title: "리뷰 답변·소개글 Q&A 초안 글쓰기",
                   why: "ChatGPT도 잘합니다. AEOlab에는 내 가게·경쟁사 모니터링 데이터 기반으로 포함됩니다.",
                   isAmber: true,
                 },

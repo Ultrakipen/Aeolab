@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { CompetitorsClient } from './CompetitorsClient'
 import { NoBusiness } from '@/components/dashboard/NoBusiness'
-import { Store, Search, BarChart2, Target, Zap } from 'lucide-react'
+import { Store, Search, BarChart2, Target, Zap, TrendingUp } from 'lucide-react'
 import type { GapAnalysis } from '@/types/gap'
 import type { Competitor } from '@/types/entities'
 import { getActiveBusinessId } from '@/lib/active-business'
@@ -43,8 +43,8 @@ export default async function CompetitorsPage({
       features={[
         { Icon: Search,    title: "카카오맵 지역 검색",   desc: "카카오 로컬 API로 같은 지역·업종의 실제 경쟁 점포를 검색해 바로 등록하세요." },
         { Icon: BarChart2, title: "AI 노출 순위 비교",    desc: "내 가게와 경쟁사의 AI Visibility Score를 나란히 비교해 경쟁 위치를 파악합니다." },
-        { Icon: BarChart2, title: "경쟁사 점수 추이",     desc: "경쟁사의 점수 변화를 모니터링해 시장 흐름을 선제적으로 파악하세요." },
-        { Icon: Target,    title: "플랜별 경쟁사 관리",   desc: "Basic 3개 · 창업패키지 5개 · Pro 10개 · Biz 무제한으로 경쟁사를 등록할 수 있습니다." },
+        { Icon: TrendingUp, title: "경쟁사 점수 추이",     desc: "경쟁사의 점수 변화를 모니터링해 시장 흐름을 선제적으로 파악하세요." },
+        { Icon: Target,    title: "플랜별 경쟁사 관리",   desc: "Basic 3개 · 창업패키지·Pro 5개 · Biz 무제한으로 경쟁사를 등록할 수 있습니다." },
       ]}
     />
   )
@@ -78,7 +78,7 @@ export default async function CompetitorsPage({
     .maybeSingle()
 
   const COMPETITOR_LIMITS: Record<string, number> = {
-    free: 0, basic: 3, pro: 10, startup: 5, biz: 999,
+    free: 0, basic: 3, pro: 5, startup: 5, biz: 999,
   }
   const currentPlan = (subscription?.status === 'active' || subscription?.status === 'grace_period')
     ? (subscription?.plan ?? 'free')
@@ -199,7 +199,7 @@ export default async function CompetitorsPage({
           { n: 3, label: '결과 확인' },
         ]
         return (
-          <div className="mb-6 flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
+          <div className="mb-6 flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
             {steps.map((s, i) => (
               <div key={s.n} className="flex items-center gap-2 flex-1 min-w-0">
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${

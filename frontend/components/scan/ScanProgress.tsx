@@ -90,7 +90,7 @@ export function ScanProgress({ eventSource, onComplete, onError }: ScanProgressP
   }, [eventSource])
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm">
+    <div className="bg-white rounded-xl p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
         <span className="font-medium text-gray-900">{message}</span>

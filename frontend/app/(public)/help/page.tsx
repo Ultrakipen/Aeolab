@@ -107,7 +107,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
 
         {/* FAQ 목록 */}
         {filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm py-16 text-center">
             <MessageCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <p className="text-base font-medium text-gray-500 mb-1">
               {categoryFilter ? "해당 카테고리의 FAQ가 없습니다." : "아직 공개 FAQ가 없습니다."}
@@ -125,7 +125,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
             {filtered.map((ticket) => {
               const adminReply = (ticket.replies ?? []).find((r) => r.sender_type === "admin");
               return (
-                <div key={ticket.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div key={ticket.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                   {/* 질문 */}
                   <div className="p-5">
                     <div className="flex items-start gap-3 mb-3">

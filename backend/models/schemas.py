@@ -3,11 +3,30 @@ from uuid import UUID
 from typing import Annotated, Literal, Optional, List
 
 _VALID_CATEGORIES = Literal[
-    "restaurant", "cafe", "bakery", "bar", "beauty", "nail",
-    "medical", "pharmacy", "fitness", "yoga", "pet",
-    "education", "tutoring", "legal", "realestate", "interior",
-    "auto", "cleaning", "shopping", "fashion", "photo",
-    "video", "design", "accommodation", "other",
+    # 음식·음료
+    "restaurant", "cafe", "bakery", "bar", "kids",
+    # 뷰티·스파
+    "beauty", "nail", "skincare", "semi_permanent", "massage", "spa", "jjimjil",
+    # 운동·피트니스
+    "fitness", "yoga", "dance", "ballet", "golf", "swim", "martial_arts", "climbing",
+    # 의료·건강
+    "medical", "dental", "oriental_medicine", "optics", "pharmacy",
+    # 반려동물
+    "pet",
+    # 교육
+    "education", "tutoring", "study", "music_class", "music_lesson", "cooking", "art_class", "childcare",
+    # 전문직·서비스
+    "legal", "accounting", "realestate", "interior", "auto", "cleaning", "car_wash", "electronics_repair",
+    # 쇼핑·생활
+    "shopping", "fashion", "clothing", "footwear", "stationery", "flower", "laundry",
+    # 사진·영상·디자인
+    "photo", "video", "design",
+    # 여가·문화
+    "norebang", "billiards", "workshop", "escape", "experience",
+    # 숙박
+    "accommodation",
+    # 기타
+    "other",
 ]
 
 _Keywords = Annotated[List[str], Field(max_length=30)]
@@ -134,6 +153,7 @@ class TrialClaimRequest(BaseModel):
     email: EmailStr = Field(..., description="수신 이메일")
     phone: Optional[str] = Field(None, max_length=20)
     marketing_opt_in: bool = False
+    resend: bool = False
 
     @field_validator("trial_id")
     @classmethod

@@ -179,7 +179,7 @@ export default async function BlogPostPage({
         </article>
 
         {/* 인라인 CTA */}
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 md:p-8 text-center text-white mb-12">
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-6 md:p-8 text-center text-white mb-12">
           <h2 className="text-xl md:text-2xl font-bold mb-2 break-keep">
             가이드를 읽었다면, 지금 내 가게를 진단해보세요
           </h2>

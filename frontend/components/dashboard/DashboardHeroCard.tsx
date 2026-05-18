@@ -18,6 +18,7 @@ interface DashboardHeroCardProps {
   estimatedGain: number | null;
   recentActionLabel: string | null;
   recentActionScoreGain: number | null;
+  eligibility?: "active" | "likely" | "inactive";
 }
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
@@ -57,6 +58,7 @@ export default function DashboardHeroCard({
   estimatedGain,
   recentActionLabel,
   recentActionScoreGain,
+  eligibility = "active",
 }: DashboardHeroCardProps) {
   const showActionResult =
     recentActionLabel !== null &&
@@ -67,7 +69,7 @@ export default function DashboardHeroCard({
     ACTION_TYPE_LABEL[recentActionLabel ?? ""] ?? recentActionLabel;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-5">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-5">
       {/* 상단: 점수 + 변화 */}
       <div className={`px-5 pt-5 pb-4 border-b border-gray-100 flex items-center gap-4 ${scoreBg(unifiedScore)}`}>
         <div className="flex-1 min-w-0">
@@ -112,22 +114,42 @@ export default function DashboardHeroCard({
             className={`w-8 h-8 rounded-full flex items-center justify-center text-base font-bold shrink-0 ${
               naverCaptchaBlocked
                 ? "bg-gray-100 text-gray-400"
+                : eligibility === "inactive"
+                ? "bg-gray-100 text-gray-500"
+                : eligibility === "likely"
+                ? "bg-yellow-100 text-yellow-600"
                 : naverInBriefing
                 ? "bg-emerald-100 text-emerald-700"
                 : "bg-red-100 text-red-600"
             }`}
           >
-            {naverCaptchaBlocked ? "?" : naverInBriefing ? "✓" : "✗"}
+            {naverCaptchaBlocked
+              ? "?"
+              : eligibility === "inactive"
+              ? "−"
+              : eligibility === "likely"
+              ? "△"
+              : naverInBriefing
+              ? "✓"
+              : "✗"}
           </span>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-gray-800 leading-tight">
               {naverCaptchaBlocked
                 ? "AI 노출 확인 불가"
+                : eligibility === "inactive"
+                ? "AI 브리핑 비대상 업종"
+                : eligibility === "likely"
+                ? "AI 브리핑 확대 예정"
                 : naverInBriefing
                 ? "AI 노출 중"
                 : "AI 미노출"}
             </p>
-            <p className="text-sm text-gray-500">네이버 AI 브리핑</p>
+            <p className="text-sm text-gray-500">
+              {eligibility === "inactive"
+                ? "ChatGPT·Gemini 중점 개선"
+                : "네이버 AI 브리핑"}
+            </p>
           </div>
         </div>
 

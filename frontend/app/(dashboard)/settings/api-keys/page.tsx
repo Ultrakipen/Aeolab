@@ -75,7 +75,7 @@ export default function ApiKeysPage() {
       </div>
 
       {/* 새 키 발급 */}
-      <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 mb-4 md:mb-6">
+      <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 mb-4 md:mb-6">
         <h2 className="text-base md:text-lg font-semibold text-gray-700 mb-4">새 API 키 발급</h2>
         <div className="flex flex-col sm:flex-row gap-3 mb-3">
           <input
@@ -104,7 +104,7 @@ export default function ApiKeysPage() {
       </section>
 
       {/* 키 목록 */}
-      <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+      <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <h2 className="text-base md:text-lg font-semibold text-gray-700 mb-3">발급된 키 ({keys.length}/5)</h2>
         {keys.length === 0 ? (
           <div className="text-center py-8">
@@ -135,7 +135,7 @@ export default function ApiKeysPage() {
       </section>
 
       {/* API 문서 안내 */}
-      <section className="bg-gray-50 rounded-2xl p-4 md:p-5 mt-4 border border-gray-100">
+      <section className="bg-gray-50 rounded-xl p-4 md:p-5 mt-4 border border-gray-100">
         <p className="text-sm text-gray-500">
           API 키 사용: <code className="font-mono text-sm bg-white px-1.5 py-0.5 rounded border border-gray-200">Authorization: Bearer &lt;api_key&gt;</code> 헤더로 전송.
         </p>

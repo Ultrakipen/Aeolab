@@ -221,7 +221,7 @@ export default function DailyMissionCard({
   if (!hasReasonSection && !hasBottomSection) return null
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
 
       {/* ── 상단: 이유 영역 (amber 배경) ── */}
       {!dismissed && (
@@ -250,7 +250,7 @@ export default function DailyMissionCard({
                   </Link>
                   <button
                     onClick={handleDismiss}
-                    className="text-xs text-amber-600 underline hover:text-amber-800"
+                    className="text-sm text-amber-600 underline hover:text-amber-800"
                   >
                     오늘 하루 숨기기
                   </button>
@@ -258,7 +258,7 @@ export default function DailyMissionCard({
               </div>
               {improvablePoints != null && (
                 <div className="shrink-0 text-right">
-                  <p className="text-xs text-amber-600">개선 여지</p>
+                  <p className="text-sm text-amber-600">개선 여지</p>
                   <p className="text-2xl font-bold text-amber-700 leading-tight mt-0.5">
                     +{improvablePoints}점
                   </p>
@@ -301,7 +301,7 @@ export default function DailyMissionCard({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-sm font-bold text-gray-700">{task.title}</span>
-                        <span className="text-xs text-gray-400">({task.time})</span>
+                        <span className="text-xs text-gray-500">({task.time})</span>
                       </div>
                       <p className="text-sm text-gray-600">{task.desc}</p>
                     </div>

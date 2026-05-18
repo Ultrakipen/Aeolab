@@ -19,7 +19,6 @@ const CATEGORIES = [
   { value: "pet",           label: "반려동물" },
   { value: "education",     label: "학원/교육" },
   { value: "tutoring",      label: "과외/튜터링" },
-  { value: "music",         label: "음악학원" },
   { value: "legal",         label: "법무사/변호사" },
   { value: "realestate",    label: "부동산" },
   { value: "interior",      label: "인테리어" },
@@ -36,16 +35,32 @@ const CATEGORIES = [
 
 const REGIONS = ["창원시", "강남구", "홍대·마포", "수원시", "부산 해운대", "대구 중구"];
 
+// ── 네이버 AI 브리핑 업종 분류 (score_engine.py BRIEFING_ACTIVE_CATEGORIES 동기화)
+const BRIEFING_ACTIVE   = ["restaurant", "cafe", "bakery", "bar", "accommodation"];
+const BRIEFING_LIKELY   = ["beauty", "nail", "pet", "fitness", "yoga", "pharmacy"];
+// 그 외 전체 = INACTIVE (photo, music, education, legal, realestate, interior 등)
+
 // ── 업종별 목업 데이터 ────────────────────────────────────────────────
 function getMock(category: string, region: string) {
   const benchmarks: Record<string, { avg: number; rank: string }> = {
-    restaurant: { avg: 51, rank: "상위 40%" },
-    cafe:       { avg: 47, rank: "상위 45%" },
-    beauty:     { avg: 43, rank: "상위 45%" },
-    academy:    { avg: 38, rank: "상위 50%" },
-    clinic:     { avg: 50, rank: "상위 40%" },
-    photo:      { avg: 42, rank: "상위 50%" },
-    music:      { avg: 40, rank: "상위 50%" },
+    restaurant: { avg: 38, rank: "상위 45%" },
+    cafe:       { avg: 38, rank: "상위 45%" },
+    bakery:     { avg: 38, rank: "상위 45%" },
+    bar:        { avg: 38, rank: "상위 45%" },
+    beauty:     { avg: 42, rank: "상위 45%" },
+    nail:       { avg: 42, rank: "상위 45%" },
+    fitness:    { avg: 42, rank: "상위 45%" },
+    yoga:       { avg: 42, rank: "상위 45%" },
+    medical:    { avg: 45, rank: "상위 40%" },
+    pharmacy:   { avg: 45, rank: "상위 40%" },
+    legal:      { avg: 51, rank: "상위 35%" },
+    realestate: { avg: 51, rank: "상위 35%" },
+    education:  { avg: 44, rank: "상위 40%" },
+    tutoring:   { avg: 44, rank: "상위 40%" },
+    pet:        { avg: 40, rank: "상위 45%" },
+    accommodation: { avg: 43, rank: "상위 40%" },
+    photo:      { avg: 42, rank: "상위 45%" },
+    music:      { avg: 40, rank: "상위 45%" },
   };
 
   const base = {
@@ -308,7 +323,7 @@ function getMock(category: string, region: string) {
         content_freshness: { label: "최근 활동",        icon: "🗓️", score: 58, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "최근 2개월 내 새 리뷰가 있어 운영 중으로 인식됩니다.", isLow: false },
       },
     },
-    academy: {
+    education: {
       businessName: `${region} 영어학원 제일`,
       query: `${region} 영어학원 추천`,
       aiExcerpt: `${region}에서 영어학원을 찾는다면 '${region} 영어학원 제일'이 자주 추천됩니다. 원어민 강사와 소규모 수업으로 실력 향상에 집중합니다.`,
@@ -346,7 +361,7 @@ function getMock(category: string, region: string) {
         content_freshness: { label: "최근 활동",        icon: "🗓️", score: 60, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "최근 2개월 내 후기가 있어 운영 중으로 인식됩니다.", isLow: false },
       },
     },
-    clinic: {
+    medical: {
       businessName: `${region} 든든 한의원`,
       query: `${region} 한의원 추천`,
       aiExcerpt: `${region}에서 한의원을 찾는다면 '${region} 든든 한의원'이 추천됩니다. 허리 통증과 소화기 질환에 전문화되어 있으며 예약제로 운영됩니다.`,
@@ -426,8 +441,15 @@ export default function DemoPage() {
   };
   const stageColorClass = stageColor[gs.stage] ?? "bg-gray-50 border-gray-200 text-gray-800";
 
-  // 실제 사업장 여부 (photo/music은 창원시 실제 사업장 데이터)
-  const isRealBiz = category === "photo" || category === "music";
+  // 실제 사업장 여부 (photo는 창원시 실제 사업장 데이터)
+  const isRealBiz = category === "photo";
+
+  // 네이버 AI 브리핑 노출 상태
+  const briefingStatus = BRIEFING_ACTIVE.includes(category)
+    ? "active"
+    : BRIEFING_LIKELY.includes(category)
+    ? "likely"
+    : "inactive";
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -452,9 +474,9 @@ export default function DemoPage() {
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto py-4 md:py-8 px-4 md:px-8 space-y-4 md:space-y-5">
+      <div className="max-w-6xl mx-auto py-5 md:py-8 px-4 md:px-8 space-y-5 md:space-y-6">
 
-        {/* ── 실제 사업장 강조 배너 (photo/music 선택 시) ──── */}
+        {/* ── 실제 사업장 강조 배너 (photo 선택 시) ──────────── */}
         {isRealBiz && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
             <p className="text-sm md:text-base font-semibold text-blue-800">
@@ -468,7 +490,7 @@ export default function DemoPage() {
         )}
 
         {/* ── 업종·지역 선택기 (전체 너비) ──────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm px-4 md:px-6 py-4 md:py-5">
+        <div className="bg-white rounded-xl shadow-sm px-4 md:px-6 py-4 md:py-5">
           <p className="text-sm md:text-base font-semibold text-gray-600 mb-3 md:mb-4">내 업종과 지역을 선택하면 비슷한 예시를 보여드립니다</p>
 
           <div className="mb-3 md:mb-4">
@@ -485,7 +507,7 @@ export default function DemoPage() {
                   }`}
                 >
                   {c.label}
-                  {(c.value === "photo" || c.value === "music") && (
+                  {c.value === "photo" && (
                     <span className="ml-1 text-sm text-blue-400 font-normal">실사례</span>
                   )}
                 </button>
@@ -519,16 +541,159 @@ export default function DemoPage() {
           </p>
         </div>
 
+        {/* ── 네이버 AI 브리핑 비대상 업종 상단 안내 배너 ── */}
+        {briefingStatus === "inactive" && (
+          <div className="rounded-xl border-2 border-amber-300 bg-amber-50 px-4 md:px-5 py-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl shrink-0 mt-0.5">⚠️</span>
+              <div>
+                <p className="text-base font-bold text-amber-900 mb-1">
+                  {CATEGORIES.find(c => c.value === category)?.label} 업종은 현재 네이버 AI 브리핑 비대상입니다
+                </p>
+                <p className="text-sm md:text-base text-amber-800 leading-relaxed">
+                  네이버 AI 브리핑은 음식점·카페 등 일부 업종만 대상입니다.
+                  이 업종은 <strong>ChatGPT·Google AI</strong> 노출 개선이 더 효과적입니다.
+                  업종 확대 시 자동으로 안내해드립니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        {briefingStatus === "likely" && (
+          <div className="rounded-xl border-2 border-blue-200 bg-blue-50 px-4 md:px-5 py-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl shrink-0 mt-0.5">📡</span>
+              <div>
+                <p className="text-base font-bold text-blue-900 mb-1">
+                  {CATEGORIES.find(c => c.value === category)?.label} 업종 — 네이버 AI 브리핑 확대 예정
+                </p>
+                <p className="text-sm md:text-base text-blue-800 leading-relaxed">
+                  2026년 상반기 네이버 AI 브리핑 확대 진행 중입니다.
+                  지금 준비해두면 확대 시 바로 유리해집니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ChatGPT 검색 결과 — GPT 답변 스타일 (결론→원인→액션) ──────── */}
+        <div className="rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+          {/* 헤더 */}
+          <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-[#10a37f] flex items-center justify-center shrink-0">
+                <span className="text-white text-xs font-bold leading-none">G</span>
+              </div>
+              <span className="text-sm font-semibold text-gray-700">ChatGPT 검색 결과</span>
+            </div>
+            <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5 shrink-0">
+              Gemini·ChatGPT 각 50회
+            </span>
+          </div>
+
+          {/* 본문 */}
+          <div className="px-4 md:px-5 py-4 space-y-3">
+            {/* 질의 */}
+            <p className="text-sm text-gray-400">질의: &ldquo;{m.query}&rdquo;</p>
+
+            {/* 결론 */}
+            <p className="text-base font-semibold leading-snug text-gray-800">
+              &ldquo;{m.businessName}&rdquo;는 이번 검색에서 추천 목록에{" "}
+              {m.aiExcerptFail ? (
+                <span className="text-red-600">포함되지 않았습니다.</span>
+              ) : (
+                <span className="text-green-700">포함됐습니다.</span>
+              )}
+            </p>
+
+            {/* 포함된 경우: 발췌 + 노출 확률 */}
+            {!m.aiExcerptFail && m.aiExcerpt && (
+              <div className="border-l-2 border-green-400 pl-3">
+                <p className="text-sm text-gray-600 italic leading-relaxed">
+                  &ldquo;{m.aiExcerpt.length > 150 ? m.aiExcerpt.slice(0, 150) + "…" : m.aiExcerpt}&rdquo;
+                </p>
+                <p className="text-xs text-green-600 font-semibold mt-1">
+                  AI 노출 확률 {m.geminiRate}%
+                </p>
+              </div>
+            )}
+
+            {/* 미포함: 원인 */}
+            {m.aiExcerptFail && (
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-1.5">원인</p>
+                <ul className="space-y-1.5">
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 shrink-0 mt-px">•</span>
+                    소개글에 Q&amp;A 형식의 구조화된 정보 없음
+                  </li>
+                  {m.topCompetitorBlogCount > m.blogMentions && (
+                    <li className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="text-gray-400 shrink-0 mt-px">•</span>
+                      블로그 언급 {m.blogMentions}건 — 1위{" "}
+                      <span className="font-medium text-gray-700">{m.topCompetitorName}</span> 대비{" "}
+                      {m.topCompetitorBlogCount - m.blogMentions}건 부족
+                    </li>
+                  )}
+                  {m.naverCompetitors.filter((c: {isMe: boolean}) => !c.isMe).length > 0 && (
+                    <li className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="text-gray-400 shrink-0 mt-px">•</span>
+                      <span>
+                        대신 추천된 가게:{" "}
+                        {m.naverCompetitors
+                          .filter((c: {isMe: boolean}) => !c.isMe)
+                          .slice(0, 3)
+                          .map((c: {name: string}) => c.name)
+                          .join(", ")}
+                      </span>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+
+            {/* 미포함: 지금 할 일 */}
+            {m.aiExcerptFail && (
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-1.5">지금 할 일</p>
+                <ol className="space-y-1.5">
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-500 shrink-0 font-semibold mt-px">1.</span>
+                    {m.growthStage?.this_week_action ?? "소개글 끝에 Q&A 3개 추가"}
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-500 shrink-0 font-semibold mt-px">2.</span>
+                    내 가게 직접 분석으로 정확한 개선 순서 확인
+                  </li>
+                </ol>
+              </div>
+            )}
+          </div>
+
+          {/* 푸터 */}
+          <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-2">
+            <p className="text-xs text-gray-400 leading-relaxed">
+              ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 검색 결과와 다를 수 있습니다.
+            </p>
+            <Link
+              href="/trial"
+              className="text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg px-3 py-1.5 transition-colors whitespace-nowrap shrink-0"
+            >
+              내 가게 확인 →
+            </Link>
+          </div>
+        </div>
+
         {/* ── 2컬럼 레이아웃 (PC) / 단일컬럼 (모바일) ───── */}
-        <div className="flex flex-col md:grid md:grid-cols-[1fr_380px] md:gap-6 gap-4">
+        <div className="flex flex-col md:grid md:grid-cols-[1fr_380px] md:gap-6 gap-5">
 
           {/* ══════════════════════════════════════════════
               오른쪽 사이드바 — 모바일에서 order-first로 먼저 노출
           ══════════════════════════════════════════════ */}
-          <div className="order-first md:order-last space-y-4 md:space-y-5">
+          <div className="order-first md:order-last space-y-5 md:space-y-5">
 
             {/* 핵심 메시지 */}
-            <div className="rounded-2xl px-4 md:px-5 py-4 md:py-5 bg-blue-600">
+            <div className="rounded-xl px-4 md:px-5 py-4 md:py-5 bg-blue-600">
               <p className="text-white/70 text-sm mb-1">
                 {m.businessName} · {isRealBiz ? "창원시 (실제 데이터)" : `${m.region} (예시)`}
               </p>
@@ -557,12 +722,24 @@ export default function DemoPage() {
               </div>
             </div>
 
+            {/* 측정 근거 요약 */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="mb-2 text-sm font-medium text-slate-600">🔍 {isRealBiz ? "이렇게 측정했습니다" : "실제 스캔에서는 이렇게 측정합니다"}</p>
+              <div className="flex flex-wrap gap-x-4 gap-y-1">
+                <span className="text-sm text-slate-700">🤖 ChatGPT·Gemini 각 50회(총 100회) 질의</span>
+                <span className="text-sm text-slate-700">📍 네이버 AI 브리핑 직접 확인</span>
+                <span className="text-sm text-slate-700">📝 블로그 후기 {m.blogMentions}건 발견</span>
+                <span className="text-sm text-slate-700">✅ 스마트플레이스 자동 점검</span>
+              </div>
+            </div>
+
             {/* 종합 점수 */}
-            <div className="bg-white rounded-2xl shadow-sm px-4 md:px-5 py-4 md:py-5">
+            <div className="bg-white rounded-xl shadow-sm px-4 md:px-5 py-4 md:py-5">
               <div className="flex items-center justify-between mb-1">
                 <p className="text-sm md:text-base font-semibold text-gray-700">AI 노출 종합 점수</p>
                 <p className="text-sm text-gray-500">100점 만점</p>
               </div>
+              <p className="text-xs text-gray-400 mb-2 leading-relaxed">ChatGPT·Gemini·네이버 AI 등이 내 업종 키워드로 검색할 때 내 가게가 얼마나 자주 등장하는지 0~100점으로 표현</p>
               <div className="flex items-end gap-3 mb-3">
                 <span className={`text-5xl md:text-6xl font-black ${gradeColor(m.grade)}`}>{m.grade}</span>
                 <span className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">{m.totalScore}점</span>
@@ -573,14 +750,17 @@ export default function DemoPage() {
               <p className="text-sm md:text-base text-gray-500 leading-relaxed">
                 {isRealBiz ? "창원시" : m.region} {CATEGORIES.find(c => c.value === category)?.label} 평균 <strong>{m.benchmark.avg}점</strong> · <strong>{m.benchmark.rank}</strong>
               </p>
-              <p className="text-sm text-gray-500 mt-0.5">개선 여지가 있습니다</p>
+              <div className="mt-2 flex gap-2 flex-wrap">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">70점↑ 잘됨</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">40~69점 개선 여지</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-orange-50 text-orange-700">40점↓ 집중 개선</span>
+              </div>
             </div>
 
             {/* 현재 성장 단계 */}
-            <div className={`rounded-2xl border px-4 md:px-5 py-4 md:py-5 ${stageColorClass}`}>
+            <div className={`rounded-xl border px-4 md:px-5 py-4 md:py-5 ${stageColorClass}`}>
               <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">📈</span>
                   <span className="text-base md:text-lg font-bold">현재 단계: {gs.stage_label}</span>
                 </div>
                 <span className="text-sm opacity-70 font-medium">{gs.score_range}</span>
@@ -589,11 +769,11 @@ export default function DemoPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-2">
                 <div className="bg-white bg-opacity-60 rounded-xl p-3">
                   <div className="text-sm md:text-base font-semibold mb-1">이번 주 집중할 것</div>
-                  <p className="text-sm leading-relaxed">{gs.this_week_action}</p>
+                  <p className="text-sm md:text-base leading-relaxed">{gs.this_week_action}</p>
                 </div>
                 <div className="bg-white bg-opacity-40 rounded-xl p-3">
                   <div className="text-sm md:text-base font-semibold mb-1 opacity-70">지금 하지 말아야 할 것</div>
-                  <p className="text-sm leading-relaxed opacity-80">{gs.do_not_do}</p>
+                  <p className="text-sm md:text-base leading-relaxed opacity-80">{gs.do_not_do}</p>
                 </div>
               </div>
               {gs.estimated_weeks_to_next && (
@@ -603,10 +783,15 @@ export default function DemoPage() {
 
             {/* 채널 분리 점수 */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-2xl shadow-sm px-3 md:px-4 py-4">
+              <div className="bg-white rounded-xl shadow-sm px-3 md:px-4 py-4">
                 <p className="text-sm font-semibold text-gray-600 mb-0.5">네이버 AI 채널</p>
-                <p className="text-sm text-gray-500 mb-2 leading-tight">네이버 브리핑 · 카카오맵</p>
-                <div className={`text-2xl md:text-3xl font-black mb-1 ${m.naverChannelScore >= 70 ? "text-green-500" : m.naverChannelScore >= 40 ? "text-amber-500" : "text-red-400"}`}>
+                <p className="text-sm text-gray-500 mb-1 leading-tight">
+                  {briefingStatus === "active" ? "네이버 브리핑 · 카카오맵" : briefingStatus === "likely" ? "네이버 브리핑(확대예정) · 카카오맵" : "카카오맵 (브리핑 비대상)"}
+                </p>
+                {briefingStatus === "inactive" && (
+                  <span className="inline-block text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full mb-1.5">네이버 AI브리핑 제외업종</span>
+                )}
+                <div className={`text-2xl md:text-3xl font-black mb-1 ${m.naverChannelScore >= 70 ? "text-green-500" : m.naverChannelScore >= 40 ? "text-amber-500" : "text-amber-600"}`}>
                   {m.naverChannelScore}점
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
@@ -618,7 +803,7 @@ export default function DemoPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm px-3 md:px-4 py-4 relative overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm px-3 md:px-4 py-4 relative overflow-hidden">
                 <p className="text-sm font-semibold text-gray-600 mb-0.5">ChatGPT·Google AI</p>
                 <p className="text-sm text-gray-500 mb-2 leading-tight">요즘 손님들이 많이 쓰는 AI</p>
                 <div className="select-none pointer-events-none blur-sm">
@@ -632,7 +817,6 @@ export default function DemoPage() {
                   </div>
                 </div>
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-[1px]">
-                  <span className="text-2xl mb-1">🔒</span>
                   <Link href="/trial" className="text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl px-3 py-2 transition-colors text-center">
                     내 가게로<br className="md:hidden" /> 확인하기
                   </Link>
@@ -640,27 +824,21 @@ export default function DemoPage() {
               </div>
             </div>
 
-            {/* 채널 교육 배너 */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 md:py-4">
-              <p className="text-sm md:text-base font-semibold text-amber-800 mb-1.5">요즘 손님들이 ChatGPT에 맛집 물어보는 거 아시죠?</p>
-              <p className="text-sm text-amber-700 leading-relaxed">
-                네이버 스마트플레이스만 관리하면 ChatGPT에서는 내 가게가 안 나옵니다.
-                <strong> 네이버는 해외 AI의 접근을 막기 때문</strong>입니다.
-                ChatGPT·Google AI 노출엔 <strong>Google 비즈니스 프로필</strong>과
-                <strong> AI 검색 최적화 정보</strong>가 필요합니다.
+            {/* Google 비즈니스 프로필 안내 */}
+            <div className="bg-white border border-gray-200 rounded-xl px-4 md:px-5 py-4">
+              <p className="text-sm font-bold text-gray-800 mb-1.5">
+                ChatGPT·Google AI에도 내 가게가 나오려면?
               </p>
-            </div>
-
-            {/* 지금 당장 할 수 있는 1가지 */}
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 md:px-5 py-4">
-              <p className="text-sm font-bold text-amber-700 mb-1">지금 당장 무료로 할 수 있는 1가지</p>
-              <p className="text-sm md:text-base font-bold text-gray-900 mb-1">Google 비즈니스 프로필 등록</p>
-              <p className="text-sm text-gray-500 mb-3 leading-relaxed">ChatGPT·Google AI는 구글 데이터를 기반으로 가게를 추천합니다. 무료 등록만으로 해외 AI 노출 가능성이 크게 높아집니다. (10분 소요)</p>
+              <p className="text-sm text-gray-600 leading-relaxed mb-3">
+                네이버 스마트플레이스는 해외 AI가 접근할 수 없어요.
+                <strong className="text-gray-800"> Google 비즈니스 프로필</strong>에 등록하면
+                ChatGPT·Google AI 노출 가능성이 크게 높아집니다. 무료, 10분이면 완료됩니다.
+              </p>
               <a
                 href="https://business.google.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between bg-amber-500 text-white rounded-xl px-4 py-2.5 hover:bg-amber-600 transition-colors"
+                className="flex items-center justify-between bg-blue-600 text-white rounded-xl px-4 py-2.5 hover:bg-blue-700 transition-colors"
               >
                 <span className="text-sm font-bold">Google 비즈니스 프로필 무료 등록 →</span>
                 <span className="text-sm opacity-80">무료</span>
@@ -668,14 +846,14 @@ export default function DemoPage() {
             </div>
 
             {/* 지금 가장 약한 부분 */}
-            <div className="bg-red-50 border border-red-200 rounded-2xl px-4 md:px-5 py-4">
-              <p className="text-sm font-bold text-red-600 mb-1">지금 가장 약한 부분 ({m.weakItem.score}점)</p>
-              <p className="text-sm md:text-base font-bold text-gray-900 mb-1.5">{m.weakItem.icon} {m.weakItem.label}</p>
-              <p className="text-sm text-gray-600 leading-relaxed mb-2">{m.weakItem.reason}</p>
-              <div className="w-full bg-red-100 rounded-full h-2.5 mb-1.5">
-                <div className="h-2.5 rounded-full bg-red-400" style={{ width: `${m.weakItem.score}%` }} />
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 md:px-5 py-4">
+              <p className="text-sm font-bold text-amber-700 mb-1">지금 가장 개선 가능한 부분 ({m.weakItem.score}점)</p>
+              <p className="text-sm md:text-base font-bold text-gray-900 mb-1.5">{m.weakItem.label}</p>
+              <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-2">{m.weakItem.reason}</p>
+              <div className="w-full bg-amber-100 rounded-full h-2.5 mb-1.5">
+                <div className="h-2.5 rounded-full bg-amber-400" style={{ width: `${m.weakItem.score}%` }} />
               </div>
-              <p className="text-sm text-red-500 leading-relaxed">{m.weakItem.impact}</p>
+              <p className="text-sm md:text-base text-amber-700 leading-relaxed">{m.weakItem.impact}</p>
             </div>
 
           </div>
@@ -685,12 +863,12 @@ export default function DemoPage() {
           {/* ══════════════════════════════════════════════
               왼쪽 메인 콘텐츠 — 상세 분석
           ══════════════════════════════════════════════ */}
-          <div className="order-last md:order-first space-y-4 md:space-y-5">
+          <div className="order-last md:order-first space-y-5 md:space-y-5">
 
             {/* 손님이 가게를 찾는 과정 */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100">
-                <p className="text-base md:text-lg font-bold text-gray-800">손님이 가게를 찾는 과정</p>
+                <p className="text-base md:text-lg font-bold text-gray-800">손님은 이렇게 가게를 찾습니다</p>
                 <p className="text-sm text-gray-500 mt-0.5">"{m.query}" 로 검색했을 때 예시</p>
               </div>
 
@@ -810,7 +988,7 @@ export default function DemoPage() {
                         <p className="text-sm md:text-base font-semibold text-red-700 mb-1.5">
                           AI가 {m.businessName}를 추천하지 않았습니다
                         </p>
-                        <p className="text-sm text-gray-700 leading-relaxed">
+                        <p className="text-sm md:text-base text-gray-700 leading-relaxed">
                           "{m.query}"으로 Gemini·ChatGPT에 각 50회 질의한 결과,
                           <strong className="text-red-600"> AI 노출 확률 {m.geminiRate}%</strong>입니다.
                           소개글·소식에 구조화된 정보가 없어 AI가 인용할 후보 텍스트를 찾기 어렵습니다.
@@ -818,11 +996,15 @@ export default function DemoPage() {
                       </div>
                       <div className="bg-blue-50 rounded-xl px-4 py-3 border border-blue-100">
                         <p className="text-sm font-semibold text-blue-700 mb-1">소개글 Q&A 섹션 추가 시 기대 효과</p>
-                        <p className="text-sm text-blue-600 leading-relaxed">
+                        <p className="text-sm md:text-base text-blue-600 leading-relaxed">
                           AI는 "Q: 가격이 얼마인가요? A: ..." 형태의 구조화 정보를 인용 후보로 선호합니다.
                           소개글에 Q&A 3~5개를 추가하면 AI 브리핑 후보군 진입 가능성이 올라갑니다.
                         </p>
                       </div>
+                      <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                        이 데모는 <span className="font-medium">Basic 구독 기준 (Gemini·ChatGPT 각 50회)</span>으로 측정한 샘플입니다.
+                        무료 체험은 ChatGPT 5회 질의이며, 구독 후 정밀 측정이 진행됩니다.
+                      </p>
                     </>
                   ) : (
                     <>
@@ -833,10 +1015,10 @@ export default function DemoPage() {
                           Gemini AI 노출 확률: <span className="text-green-800">{m.geminiRate}%</span>
                         </p>
                       </div>
-                      <p className="text-sm text-gray-500 leading-relaxed">무료 체험은 ChatGPT 1회 간이 진단입니다. Basic 자동: Gemini·ChatGPT 각 50회 / Full 스캔: 각 100회 측정 (± 오차 범위 표시).</p>
+                      <p className="text-sm text-gray-500 leading-relaxed">무료 체험은 ChatGPT 5회 질의 + Gemini 10회 간이 진단입니다. Basic 자동: Gemini·ChatGPT 각 50회 / Full 스캔: 각 100회 측정 (± 오차 범위 표시).</p>
                     </>
                   )}
-                  <p className="mt-2 text-xs text-gray-400 leading-relaxed">
+                  <p className="mt-2 text-sm text-gray-400 leading-relaxed">
                     ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
                     측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
                   </p>
@@ -845,25 +1027,25 @@ export default function DemoPage() {
             </div>
 
             {/* 항목별 분석 */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100">
-                <p className="text-base md:text-lg font-bold text-gray-800">항목별 점수 전체 보기</p>
-                <p className="text-sm text-gray-500 mt-0.5">각 항목이 왜 이 점수인지 설명합니다</p>
+                <p className="text-base md:text-lg font-bold text-gray-800">항목별로 왜 이 점수인지 확인하기</p>
+                <p className="text-sm text-gray-500 mt-0.5">점수가 낮은 항목부터 개선하면 됩니다</p>
               </div>
               <div className="divide-y divide-gray-50">
                 {Object.entries(m.breakdown).map(([key, item]) => (
                   <div key={key} className="px-4 md:px-6 py-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{item.icon}</span>
+                        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.score >= 70 ? "bg-green-500" : item.score >= 40 ? "bg-yellow-500" : "bg-amber-400"}`} />
                         <span className="text-sm md:text-base font-semibold text-gray-800">{item.label}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-base md:text-lg font-bold ${item.score >= 70 ? "text-green-600" : item.score >= 40 ? "text-yellow-600" : "text-red-500"}`}>
+                        <span className={`text-base md:text-lg font-bold ${item.score >= 70 ? "text-green-600" : item.score >= 40 ? "text-yellow-600" : "text-amber-600"}`}>
                           {item.score}점
                         </span>
                         {key === "exposure_freq" && (
-                          <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${m.geminiRate === 0 ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700"}`}>
+                          <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${m.geminiRate === 0 ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
                             Gemini {m.geminiRate}%
                           </span>
                         )}
@@ -871,13 +1053,13 @@ export default function DemoPage() {
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
                       <div
-                        className={`h-2 rounded-full ${item.score >= 70 ? "bg-green-500" : item.score >= 40 ? "bg-yellow-400" : "bg-red-400"}`}
+                        className={`h-2 rounded-full ${item.score >= 70 ? "bg-green-500" : item.score >= 40 ? "bg-yellow-400" : "bg-amber-400"}`}
                         style={{ width: `${item.score}%` }}
                       />
                     </div>
-                    <p className="text-sm text-gray-500 leading-relaxed">{item.what}</p>
-                    <p className={`text-sm mt-1 font-medium leading-relaxed ${item.isLow ? "text-red-500" : "text-green-600"}`}>
-                      {item.isLow ? `⚠ ${item.stateMsg}` : `✓ ${item.stateMsg}`}
+                    <p className="text-sm md:text-base text-gray-500 leading-relaxed">{item.what}</p>
+                    <p className={`text-sm md:text-base mt-1 font-medium leading-relaxed ${item.isLow ? "text-amber-600" : "text-green-600"}`}>
+                      {item.isLow ? `개선 필요: ${item.stateMsg}` : `확인: ${item.stateMsg}`}
                     </p>
                   </div>
                 ))}
@@ -885,10 +1067,10 @@ export default function DemoPage() {
             </div>
 
             {/* 스마트플레이스 체크리스트 */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100">
-                <p className="text-base md:text-lg font-bold text-gray-800">손님이 클릭했을 때 보이는 정보 체크리스트</p>
-                <p className="text-sm text-gray-500 mt-0.5">이 정보들이 모두 등록되어 있어야 선택받을 수 있습니다</p>
+                <p className="text-base md:text-lg font-bold text-gray-800">손님이 처음 볼 때 꼭 있어야 할 정보</p>
+                <p className="text-sm text-gray-500 mt-0.5">하나라도 빠지면 손님이 경쟁 가게로 넘어갑니다</p>
               </div>
               <div className="divide-y divide-gray-50">
                 {m.smartPlaceChecklist.map((item, i) => (
@@ -904,7 +1086,7 @@ export default function DemoPage() {
                           {item.impact === "high" ? "필수" : item.impact === "medium" ? "중요" : "권장"}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{item.reason}</p>
+                      <p className="text-sm md:text-base text-gray-500 mt-0.5 leading-relaxed">{item.reason}</p>
                     </div>
                   </div>
                 ))}
@@ -915,42 +1097,34 @@ export default function DemoPage() {
             </div>
 
             {/* 구독하면 달라지는 것 */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden ring-2 ring-blue-100">
               <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100">
-                <p className="text-base md:text-lg font-bold text-gray-800">구독하면 이런 정보를 드립니다</p>
+                <p className="text-base md:text-lg font-bold text-gray-800">구독하면 이것이 달라집니다</p>
               </div>
               <div className="px-4 md:px-6 pt-4 pb-2">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                   <div className="bg-gray-50 rounded-xl p-4">
                     <p className="text-sm font-bold text-gray-500 mb-2">지금 (무료 체험)</p>
                     <ul className="space-y-1.5 text-sm text-gray-500">
-                      <li>· AI 1개 (ChatGPT)</li>
-                      <li>· 검색 1회</li>
-                      <li>· 노출 여부만 확인</li>
-                      <li>· 점수 추이 없음</li>
+                      <li>· ChatGPT 5회 AI 노출 확률(%) 측정</li>
+                      <li>· 종합 점수 + 네이버/글로벌 분리 진단</li>
+                      <li>· 스마트플레이스 항목별 점검</li>
+                      <li>· 업종 평균 대비 내 위치 확인</li>
+                      <li>· 오늘 할 1가지 개선 행동 제안</li>
+                      <li>· 점수 추이 없음 (구독 시 60일 기록)</li>
                     </ul>
                   </div>
                   <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                    <p className="text-sm font-bold text-blue-700 mb-2">구독 후 (Basic 기준)</p>
+                    <p className="text-sm font-bold text-blue-700 mb-2">구독 시작 후 (Basic 기준)</p>
                     <ul className="space-y-1.5 text-sm text-blue-700">
-                      <li>· Gemini+네이버 자동 스캔 매일</li>
-                      <li>· 네이버·ChatGPT·Google AI 풀스캔 주 1회 (월요일)</li>
-                      <li>· Gemini·ChatGPT 각 50회(총 100회) → 노출 확률(%) + ± 오차 범위</li>
-                      <li>· 경쟁사 3개 순위 비교 + 키워드·소개글 텍스트 매주 자동 수집</li>
-                      <li>· 경쟁사 6개 차원 갭 분석</li>
+                      <li>· 매일 AI 자동 스캔 (Gemini·ChatGPT 각 50회 + 네이버)</li>
+                      <li>· 월요일 풀스캔 (Gemini·ChatGPT 각 100회 + Google AI)</li>
+                      <li>· 경쟁사 3곳 추적 + 6개 차원 갭 분석</li>
                       <li>· 업종 시장 순위·분포 확인</li>
-                      <li>· Claude AI 맞춤 개선 가이드</li>
-                      <li>· 체크리스트 완료 후 7일간 점수 변화 자동 기록</li>
+                      <li>· Claude AI 맞춤 개선 가이드 (월 3회)</li>
+                      <li>· 키워드 순위 주 1회 자동 추적</li>
+                      <li>· 점수 60일 추이 자동 기록</li>
                     </ul>
-                  </div>
-                </div>
-                <div className="bg-blue-50 rounded-xl px-4 py-4 mb-4">
-                  <p className="text-sm md:text-base font-bold text-blue-800 mb-2.5">어떻게 개선하나요? — 4단계 분석 흐름</p>
-                  <div className="space-y-2 text-sm md:text-base text-blue-700">
-                    <p>📊 <strong>① 내 가게 진단</strong> — 6개 차원 점수 + 채널별 분리 진단</p>
-                    <p>🗺️ <strong>② 시장 현황 파악</strong> — 업종·지역 내 순위, 경쟁사 분포</p>
-                    <p>🔍 <strong>③ 경쟁사 갭 분석</strong> — 1위 대비 어디서 밀리는지 정확히</p>
-                    <p>✅ <strong>④ 맞춤 액션플랜</strong> — Claude AI 가이드 + 체크리스트</p>
                   </div>
                 </div>
               </div>
@@ -963,7 +1137,7 @@ export default function DemoPage() {
         {/* ── 2컬럼 레이아웃 끝 ── */}
 
         {/* ── CTA (전체 너비) ──────────────────────────── */}
-        <div className="rounded-2xl overflow-hidden bg-blue-600">
+        <div className="rounded-xl overflow-hidden bg-blue-600">
           <div className="px-5 md:px-8 pt-6 pb-5">
             <p className="font-bold text-white text-xl md:text-2xl leading-snug mb-1.5">내 가게는 몇 점일까요?</p>
             {isRealBiz ? (
@@ -973,7 +1147,7 @@ export default function DemoPage() {
               </p>
             ) : (
               <p className="text-sm md:text-base text-white/75 mb-5">
-                업종·지역을 입력하면 1분 안에 무료로 진단해드립니다. 회원가입 없이 바로 확인하세요.
+                업종과 지역만 입력하면 1분 안에 무료로 확인됩니다. 회원가입 없이 바로 시작하세요.
               </p>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
@@ -993,7 +1167,7 @@ export default function DemoPage() {
             <p className="text-sm text-white/50 text-center">Basic 월 9,900원부터 · 언제든 해지 가능</p>
           </div>
           <div className="bg-black/20 px-5 md:px-8 py-5">
-            <p className="text-sm md:text-base font-bold text-white/60 mb-3 uppercase tracking-wide">가입 후 이렇게 진행됩니다</p>
+            <p className="text-sm md:text-base font-bold text-white/60 mb-3 uppercase tracking-wide">시작하면 이렇게 됩니다</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {[
                 { step: "1", label: "1분 회원가입",               desc: "이메일 인증만으로 즉시 시작" },

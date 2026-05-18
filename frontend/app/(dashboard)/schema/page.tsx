@@ -28,7 +28,7 @@ export default async function SchemaPage() {
             가게 정보를 입력하면 스마트플레이스 소개글과 네이버 블로그 포스트 초안을 자동으로 만들어 드립니다.
           </p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 md:p-8 flex flex-col items-center text-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8 flex flex-col items-center text-center">
           <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
             <Lock className="w-7 h-7 text-blue-400" strokeWidth={1.5} />
           </div>

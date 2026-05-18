@@ -202,7 +202,7 @@ export default function KakaoChecklistCard({
     "bg-green-500";
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6 space-y-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 space-y-4">
 
       {/* 헤더 */}
       <div className="flex items-start justify-between gap-3 flex-wrap">

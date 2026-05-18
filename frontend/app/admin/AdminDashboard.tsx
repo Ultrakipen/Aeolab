@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 // 관리자 API는 서버 사이드 프록시를 통해 호출 (키 노출 방지)
+// 가격 정보는 백엔드 plan_stats에서 직접 받음 — lib/plans.ts PLAN_PRICES는 layout.tsx JSON-LD 등 클라이언트 표시용
 const ADMIN_PROXY = "/api/admin-proxy";
 
 interface PlanStat {
@@ -56,10 +57,6 @@ interface FAQ {
   order_num: number;
   is_active: boolean;
 }
-
-const PLAN_PRICES: Record<string, number> = {
-  basic: 9900, pro: 18900, biz: 49900, startup: 12900,
-};
 
 const CATEGORY_LABELS: Record<string, string> = {
   general: "일반", update: "업데이트", maintenance: "점검 안내",
@@ -123,7 +120,7 @@ function NoticesTab() {
   return (
     <div className="space-y-6">
       {/* 작성 폼 */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm">
+      <div className="bg-white rounded-xl p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-gray-700 mb-4">공지사항 작성</h2>
         <form onSubmit={handleCreate} className="space-y-3">
           <div className="flex gap-3">
@@ -176,7 +173,7 @@ function NoticesTab() {
       </div>
 
       {/* 목록 */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm">
+      <div className="bg-white rounded-xl p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-gray-700 mb-4">등록된 공지사항 ({notices.length}개)</h2>
         {loading ? (
           <div className="text-sm text-gray-400">불러오는 중...</div>
@@ -277,7 +274,7 @@ function FAQTab() {
   return (
     <div className="space-y-6">
       {/* 작성 폼 */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm">
+      <div className="bg-white rounded-xl p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-gray-700 mb-4">FAQ 작성</h2>
         <form onSubmit={handleCreate} className="space-y-3">
           <div className="flex gap-3">
@@ -328,7 +325,7 @@ function FAQTab() {
       </div>
 
       {/* 목록 */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm">
+      <div className="bg-white rounded-xl p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-gray-700 mb-4">등록된 FAQ ({faqs.length}개)</h2>
         {loading ? (
           <div className="text-sm text-gray-400">불러오는 중...</div>
@@ -463,7 +460,7 @@ function InquiryTab() {
       </div>
 
       {/* 목록 */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm">
+      <div className="bg-white rounded-xl p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-gray-700 mb-4">
           문의 목록 ({items.length}건)
         </h2>
@@ -638,7 +635,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   if (!authed) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl p-4 md:p-8 shadow-sm max-w-sm w-full">
+        <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full">
           <h1 className="text-xl font-bold text-gray-900 mb-6">관리자 접근</h1>
           <input
             type="password"
@@ -743,7 +740,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                     { label: "BEP 달성도",   value: `${bepPct}%`, sub: `목표 ${BEP_TARGET}명` },
                     { label: "이번 달 스캔", value: `${stats.scan_count_month}회`, sub: `오늘 ${stats.scan_count_today}회` },
                   ].map((item) => (
-                    <div key={item.label} className="bg-white rounded-2xl p-5 shadow-sm">
+                    <div key={item.label} className="bg-white rounded-xl p-5 shadow-sm">
                       <div className="text-sm text-gray-500 mb-1">{item.label}</div>
                       <div className="text-2xl font-bold text-gray-900">{item.value}</div>
                       <div className="text-sm text-gray-400 mt-0.5">{item.sub}</div>
@@ -751,7 +748,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                   ))}
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
+                <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-700">BEP 달성 진행률</span>
                     <span className="text-sm text-gray-500">
@@ -770,7 +767,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                 </div>
 
                 {stats.plan_stats && (
-                  <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
+                  <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
                     <h2 className="text-sm font-semibold text-gray-700 mb-4">플랜별 상세 현황</h2>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
@@ -843,7 +840,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
             )}
 
             {revenue.length > 0 && (
-              <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
+              <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
                 <h2 className="text-sm font-semibold text-gray-700 mb-4">월별 매출 추이</h2>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -869,7 +866,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
             )}
 
             {subs.length > 0 && (
-              <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <div className="bg-white rounded-xl p-5 shadow-sm">
                 <h2 className="text-sm font-semibold text-gray-700 mb-4">
                   구독자 목록 ({subs.length}명)
                 </h2>

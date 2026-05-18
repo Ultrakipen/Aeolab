@@ -767,7 +767,7 @@ export default function ScoreEvidenceCard({
   ];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* 헤더 */}
       <div className="px-4 md:px-6 py-4 border-b border-gray-100 bg-slate-50">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">

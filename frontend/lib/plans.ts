@@ -3,7 +3,7 @@
  * v3.2 소상공인 공감 중심 재설계 (2026-04-02)
  *
  * 자동 스캔 실제 동작 (scheduler/jobs.py 기준):
- *   basic/startup   : 네이버·Gemini 매일 경량 스캔 + 4종 AI 전체 월요일 1회 풀스캔
+ *   basic/startup   : Gemini 50회 + ChatGPT 50회 + 네이버 3종 주 1회 자동 스캔 (A안 50/50 적용)
  *   pro             : 4종 AI 풀스캔 주 3회(월·수·금) + 나머지 날 경량 스캔
  *   biz             : 4종 AI 풀스캔 매일
  *
@@ -25,7 +25,7 @@
  *
  * v3.5 변경 요약 (2026-04-22):
  *   - 가격: Basic 9,900 / Pro 18,900 / Biz 49,900 / 창업 12,900
- *   - Basic: 주 1회(월요일) 자동 풀스캔, 리뷰 답변 무제한, FAQ 월 5건, CSV 포함, 경쟁사 3곳, 60일 히스토리
+ *   - Basic: 주 1회(월요일) 자동 풀스캔, 리뷰 답변 월 20회, FAQ 월 5건, CSV 포함, 경쟁사 3곳, 60일 히스토리
  *   - Pro: 주 3회(월·수·금) 자동 풀스캔, 사업장 2개
  *   - Biz: 매일 풀스캔, 사업장 5개
  */
@@ -153,10 +153,10 @@ export const PLANS: PlanInfo[] = [
     isPay: false,
   },
   {
-    name: "창업 패키지",
+    name: "창업패키지",
     price: "12,900원",
     period: "/ 월",
-    amount: 12900,
+    amount: 12900,  // PLAN_PRICES.startup과 동기화
     highlight: false,
     badge: "예비 창업자 전용",
     description: "창업 전 이 지역 AI 경쟁 현황 — ChatGPT도 모르는 실제 데이터",
@@ -177,3 +177,18 @@ export const PLANS: PlanInfo[] = [
     isPay: true,
   },
 ];
+
+// 가격 단일 소스 — backend/config/prices.py PLAN_PRICES와 일치해야 함
+// AdminDashboard MRR 계산, layout.tsx JSON-LD AggregateOffer 등에서 import해서 사용
+export const PLAN_PRICES: Record<string, number> = {
+  basic:      9900,
+  startup:    12900,
+  pro:        18900,
+  biz:        49900,
+  enterprise: 200000,  // 영업 전용 (PLAN_LIMITS·결제 흐름 미정의)
+};
+
+export const FIRST_MONTH_DISCOUNT_PRICES: Record<string, number> = {
+  basic: 4950,
+};
+

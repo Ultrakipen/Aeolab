@@ -17,8 +17,8 @@ TEMPLATES = {
     "growth_stage_up":      "AEOLAB_GROWTH_01",
     "notice":               "AEOLAB_NOTICE_01",
     # v3.1 키워드 변동 알림 (service_unification_v1.0.md §4.5)
-    # 사용자 직접 비즈센터 신청 후 환경변수 KAKAO_TEMPLATE_KEYWORD_CHANGE로 override 가능
-    "keyword_change":       os.getenv("KAKAO_TEMPLATE_KEYWORD_CHANGE", "AEOLAB_KW_01"),
+    # 비즈센터 신청·승인 후 환경변수 KAKAO_TEMPLATE_KEYWORD_CHANGE 설정 필요. 미설정 시 "" → graceful skip
+    "keyword_change":       os.getenv("KAKAO_TEMPLATE_KEYWORD_CHANGE", ""),
 }
 
 
@@ -51,8 +51,12 @@ class KakaoNotifier:
     ):
         """키워드 순위 변동 알림 (AEOLAB_KW_01).
         prev/curr_rank: 99=미노출, 그 외 1-based 순위.
-        템플릿 신청·승인 후 KAKAO_TEMPLATE_KEYWORD_CHANGE 환경변수로 활성화.
+        KAKAO_TEMPLATE_KEYWORD_CHANGE 미설정 시 graceful skip (비즈센터 승인 전).
         """
+        template_code = TEMPLATES.get("keyword_change", "")
+        if not template_code:
+            logger.debug("[keyword_change] graceful skip — KAKAO_TEMPLATE_KEYWORD_CHANGE 미설정")
+            return
         def _fmt(r: int) -> str:
             return "미노출" if r >= 99 else f"{r}위"
         delta = prev_rank - curr_rank  # 양수=상승
@@ -103,6 +107,21 @@ class KakaoNotifier:
                 "#{사업장명}": biz_name,
                 "#{할일목록}": items_text,
             },
+        )
+
+    async def send_post_remind(self, phone: str, biz_name: str, days: int = 14):
+        """소식 N일 미작성 알림 (action_items 템플릿 재활용).
+
+        AI 브리핑 적시성(Timeliness) 점수 유지 환기 — 14일 미작성 시 발송.
+        """
+        await self.send_action_items(
+            phone,
+            biz_name,
+            [
+                f"스마트플레이스 소식이 {days}일 동안 미작성입니다",
+                "AI 브리핑 적시성 점수 유지를 위해 이번 주 1건 등록 권장",
+                "메뉴 변경·이벤트·시즌 추천 중 하나로 작성하세요",
+            ],
         )
 
     async def send_market_news(self, phone: str, biz_name: str, category: str, news: str):
@@ -229,6 +248,176 @@ class KakaoNotifier:
             f"https://aeolab.co.kr/dashboard"
         )
         await self._send_raw(phone, message, template_code="AEOLAB_MONTHLY_01")
+
+    async def send_delivery_received(
+        self, order_id: str, user_phone: str, package_name: str, business_name: str
+    ) -> None:
+        """대행 서비스 접수 완료 알림 (KAKAO_TEMPLATE_DELIVERY_01).
+
+        결제 확인 후 status → paid 전환 시점에 호출.
+        환경변수 KAKAO_TEMPLATE_DELIVERY_01 미설정 시 graceful skip.
+        """
+        template = os.getenv("KAKAO_TEMPLATE_DELIVERY_01", "")
+        if not template:
+            _logger.debug("[delivery] send_delivery_received skip — KAKAO_TEMPLATE_DELIVERY_01 미설정")
+            return
+        app_key = os.getenv("KAKAO_APP_KEY", "")
+        if not app_key:
+            masked = f"{user_phone[:3]}****{user_phone[-2:]}" if len(user_phone) >= 5 else "***"
+            _logger.debug(f"[delivery] send_delivery_received skip — KAKAO_APP_KEY 미설정 ({masked})")
+            return
+        await self._send_delivery_template(
+            phone=user_phone,
+            template_code=template,
+            params={
+                "#{주문번호}": str(order_id)[:20],
+                "#{패키지명}": package_name,
+                "#{사업장명}": business_name,
+            },
+            log_tag="delivery_received",
+        )
+
+    async def send_delivery_in_progress(
+        self,
+        order_id: str,
+        user_phone: str,
+        package_name: str,
+        business_name: str,
+        expected_days: int = 3,
+    ) -> None:
+        """대행 서비스 작업 시작 알림 (KAKAO_TEMPLATE_DELIVERY_02).
+
+        관리자가 status → in_progress 전환 시 호출.
+        환경변수 KAKAO_TEMPLATE_DELIVERY_02 미설정 시 graceful skip.
+        """
+        template = os.getenv("KAKAO_TEMPLATE_DELIVERY_02", "")
+        if not template:
+            _logger.debug("[delivery] send_delivery_in_progress skip — KAKAO_TEMPLATE_DELIVERY_02 미설정")
+            return
+        app_key = os.getenv("KAKAO_APP_KEY", "")
+        if not app_key:
+            masked = f"{user_phone[:3]}****{user_phone[-2:]}" if len(user_phone) >= 5 else "***"
+            _logger.debug(f"[delivery] send_delivery_in_progress skip — KAKAO_APP_KEY 미설정 ({masked})")
+            return
+        await self._send_delivery_template(
+            phone=user_phone,
+            template_code=template,
+            params={
+                "#{주문번호}": str(order_id)[:20],
+                "#{패키지명}": package_name,
+                "#{사업장명}": business_name,
+                "#{예상일수}": str(expected_days),
+            },
+            log_tag="delivery_in_progress",
+        )
+
+    async def send_delivery_completed(
+        self, order_id: str, user_phone: str, package_name: str, business_name: str
+    ) -> None:
+        """대행 서비스 완료 알림 (KAKAO_TEMPLATE_DELIVERY_03).
+
+        관리자가 status → completed 전환 시 호출.
+        환경변수 KAKAO_TEMPLATE_DELIVERY_03 미설정 시 graceful skip.
+        """
+        template = os.getenv("KAKAO_TEMPLATE_DELIVERY_03", "")
+        if not template:
+            _logger.debug("[delivery] send_delivery_completed skip — KAKAO_TEMPLATE_DELIVERY_03 미설정")
+            return
+        app_key = os.getenv("KAKAO_APP_KEY", "")
+        if not app_key:
+            masked = f"{user_phone[:3]}****{user_phone[-2:]}" if len(user_phone) >= 5 else "***"
+            _logger.debug(f"[delivery] send_delivery_completed skip — KAKAO_APP_KEY 미설정 ({masked})")
+            return
+        await self._send_delivery_template(
+            phone=user_phone,
+            template_code=template,
+            params={
+                "#{주문번호}": str(order_id)[:20],
+                "#{패키지명}": package_name,
+                "#{사업장명}": business_name,
+            },
+            log_tag="delivery_completed",
+        )
+
+    async def send_delivery_rescan(
+        self,
+        order_id: str,
+        user_phone: str,
+        business_name: str,
+        score_before: float,
+        score_after: float,
+    ) -> None:
+        """대행 완료 후 재스캔 결과 알림 (KAKAO_TEMPLATE_DELIVERY_04).
+
+        작업 완료 후 재스캔 점수가 기록된 시점에 호출.
+        환경변수 KAKAO_TEMPLATE_DELIVERY_04 미설정 시 graceful skip.
+        """
+        template = os.getenv("KAKAO_TEMPLATE_DELIVERY_04", "")
+        if not template:
+            _logger.debug("[delivery] send_delivery_rescan skip — KAKAO_TEMPLATE_DELIVERY_04 미설정")
+            return
+        app_key = os.getenv("KAKAO_APP_KEY", "")
+        if not app_key:
+            masked = f"{user_phone[:3]}****{user_phone[-2:]}" if len(user_phone) >= 5 else "***"
+            _logger.debug(f"[delivery] send_delivery_rescan skip — KAKAO_APP_KEY 미설정 ({masked})")
+            return
+        await self._send_delivery_template(
+            phone=user_phone,
+            template_code=template,
+            params={
+                "#{주문번호}": str(order_id)[:20],
+                "#{사업장명}": business_name,
+                "#{점수전}": str(round(score_before, 1)),
+                "#{점수후}": str(round(score_after, 1)),
+            },
+            log_tag="delivery_rescan",
+        )
+
+    async def _send_delivery_template(
+        self,
+        phone: str,
+        template_code: str,
+        params: dict,
+        log_tag: str = "delivery",
+    ) -> None:
+        """대행 서비스 알림톡 발송 내부 공통 헬퍼.
+
+        _send()와 달리 TEMPLATES dict를 사용하지 않고 template_code를 직접 받음.
+        실패 시 _logger.warning 기록 후 silently return (호출자 응답에 영향 없음).
+        """
+        masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
+        status = "sent"
+        try:
+            async with httpx.AsyncClient(timeout=10) as c:
+                r = await c.post(
+                    f"{self.BASE}/messages",
+                    headers={"X-Secret-Key": os.getenv("KAKAO_SECRET_KEY", "")},
+                    json={
+                        "senderKey": os.getenv("KAKAO_SENDER_KEY", ""),
+                        "templateCode": template_code,
+                        "recipientList": [
+                            {"recipientNo": phone, "templateParameter": params}
+                        ],
+                    },
+                )
+            if r.status_code >= 400:
+                status = "failed"
+                logger.warning(
+                    f"[{log_tag}] 알림톡 발송 실패 {r.status_code} "
+                    f"({masked}, template={template_code}): {r.text[:200]}"
+                )
+            else:
+                logger.info(f"[{log_tag}] 알림톡 발송 완료 → {masked}")
+        except Exception as e:
+            status = "failed"
+            logger.warning(f"[{log_tag}] 알림톡 발송 오류 ({masked}): {e}")
+        finally:
+            self._log_notification(
+                None,
+                log_tag,
+                {"phone": masked, **{k: v for k, v in params.items() if "전화" not in k}},
+                status,
+            )
 
     async def send_text(self, phone: str, message: str):
         """단문 텍스트 알림 발송 (SMS fallback)"""

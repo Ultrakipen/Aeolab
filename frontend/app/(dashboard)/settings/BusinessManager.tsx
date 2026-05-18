@@ -10,6 +10,11 @@ import {
   Scale, Building2, Sofa, Car, WashingMachine,
   ShoppingBag, Shirt, BedDouble, Store,
   Camera, Film, Palette, RefreshCw,
+  Baby, Droplets, Hand, Flower2, Hammer, Calculator, Package,
+  // 신규 추가 아이콘
+  Pen, Waves, Thermometer, Music2, Wind, Target, Swords, Mountain,
+  Smile, Leaf, Eye, Music, Headphones, ChefHat, Paintbrush, Heart,
+  Droplet, Wrench, Tag, Footprints, Pencil, Mic, Circle, Lock, Compass,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -54,6 +59,11 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Scale, Building2, Sofa, Car, WashingMachine,
   ShoppingBag, Shirt, BedDouble, Store,
   Camera, Film, Palette,
+  Baby, Droplets, Hand, Flower2, Hammer, Calculator, Package,
+  // 신규
+  Pen, Waves, Thermometer, Music2, Wind, Target, Swords, Mountain,
+  Smile, Leaf, Eye, Music, Headphones, ChefHat, Paintbrush, Heart,
+  Droplet, Wrench, Tag, Footprints, Pencil, Mic, Circle, Lock, Compass,
 };
 
 const COLOR_MAP: Record<string, { bg: string; icon: string; border: string; ring: string; gradient: string }> = {
@@ -82,44 +92,83 @@ const COLOR_MAP: Record<string, { bg: string; icon: string; border: string; ring
 
 const EDIT_CATEGORIES = [
   // 음식·음료
-  { value: "restaurant", label: "음식점",       icon: "UtensilsCrossed", color: "orange" },
-  { value: "cafe",       label: "카페",          icon: "Coffee",          color: "amber"  },
-  { value: "bakery",     label: "베이커리",      icon: "Croissant",       color: "yellow" },
-  { value: "bar",        label: "술집·바",       icon: "Wine",            color: "purple" },
-  // 뷰티·건강
-  { value: "beauty",     label: "미용·헤어",     icon: "Scissors",        color: "pink"   },
-  { value: "nail",       label: "네일·피부",     icon: "Sparkles",        color: "rose"   },
-  { value: "medical",    label: "병원·의원",     icon: "Stethoscope",     color: "blue"   },
-  { value: "pharmacy",   label: "약국",          icon: "Pill",            color: "green"  },
-  { value: "fitness",    label: "헬스·피트니스", icon: "Dumbbell",        color: "red"    },
-  { value: "yoga",       label: "요가·필라테스", icon: "PersonStanding",  color: "teal"   },
+  { value: "restaurant",  label: "음식점",        icon: "UtensilsCrossed", color: "orange"  },
+  { value: "cafe",        label: "카페",           icon: "Coffee",          color: "amber"   },
+  { value: "bakery",      label: "베이커리",       icon: "Croissant",       color: "yellow"  },
+  { value: "bar",         label: "술집·바",        icon: "Wine",            color: "purple"  },
+  { value: "kids",        label: "키즈카페",       icon: "Baby",            color: "yellow"  },
+  // 뷰티
+  { value: "beauty",      label: "미용·헤어",      icon: "Scissors",        color: "pink"    },
+  { value: "nail",        label: "네일",           icon: "Sparkles",        color: "rose"    },
+  { value: "skincare",    label: "피부관리",       icon: "Droplets",        color: "sky"     },
+  { value: "semi_permanent", label: "반영구화장",  icon: "Pen",             color: "rose"    },
+  // 마사지·스파
+  { value: "massage",     label: "마사지",         icon: "Hand",            color: "teal"    },
+  { value: "spa",         label: "스파",           icon: "Waves",           color: "cyan"    },
+  { value: "jjimjil",     label: "찜질방·사우나",  icon: "Thermometer",     color: "orange"  },
+  // 운동·피트니스
+  { value: "fitness",     label: "헬스·피트니스",  icon: "Dumbbell",        color: "red"     },
+  { value: "yoga",        label: "요가·필라테스",  icon: "PersonStanding",  color: "teal"    },
+  { value: "dance",       label: "댄스",           icon: "Music2",          color: "violet"  },
+  { value: "ballet",      label: "발레",           icon: "Wind",            color: "pink"    },
+  { value: "golf",        label: "골프연습장",     icon: "Target",          color: "lime"    },
+  { value: "swim",        label: "수영·아쿠아",    icon: "Waves",           color: "sky"     },
+  { value: "martial_arts",label: "태권도·무술",    icon: "Swords",          color: "red"     },
+  { value: "climbing",    label: "클라이밍",       icon: "Mountain",        color: "stone"   },
+  // 의료·건강
+  { value: "dental",      label: "치과",           icon: "Smile",           color: "blue"    },
+  { value: "oriental_medicine", label: "한의원",   icon: "Leaf",            color: "green"   },
+  { value: "optics",      label: "안경원",         icon: "Eye",             color: "sky"     },
+  { value: "medical",     label: "병원·의원",      icon: "Stethoscope",     color: "blue"    },
+  { value: "pharmacy",    label: "약국",           icon: "Pill",            color: "green"   },
   // 반려동물
-  { value: "pet",        label: "반려동물",      icon: "PawPrint",        color: "lime"   },
-  // 교육
-  { value: "education",  label: "학원·교육",     icon: "BookOpen",        color: "indigo" },
-  { value: "tutoring",   label: "과외·튜터링",   icon: "GraduationCap",   color: "violet" },
+  { value: "pet",         label: "반려동물",       icon: "PawPrint",        color: "lime"    },
+  // 교육·레슨
+  { value: "education",   label: "학원·교육",      icon: "BookOpen",        color: "indigo"  },
+  { value: "tutoring",    label: "과외·튜터링",    icon: "GraduationCap",   color: "violet"  },
+  { value: "study",       label: "스터디카페",     icon: "BookOpen",        color: "indigo"  },
+  { value: "music_class", label: "음악교실",       icon: "Music",           color: "violet"  },
+  { value: "music_lesson",label: "악기레슨",       icon: "Headphones",      color: "purple"  },
+  { value: "cooking",     label: "요리교실",       icon: "ChefHat",         color: "amber"   },
+  { value: "art_class",   label: "미술학원",       icon: "Paintbrush",      color: "rose"    },
+  { value: "childcare",   label: "어린이집·유치원",icon: "Heart",           color: "pink"    },
   // 전문직·서비스
-  { value: "legal",      label: "법률·세무",     icon: "Scale",           color: "slate"  },
-  { value: "realestate", label: "부동산",        icon: "Building2",       color: "sky"    },
-  { value: "interior",   label: "인테리어",      icon: "Sofa",            color: "stone"  },
-  { value: "auto",       label: "자동차·정비",   icon: "Car",             color: "zinc"   },
-  { value: "cleaning",   label: "청소·세탁",     icon: "WashingMachine",  color: "cyan"   },
-  // 쇼핑
-  { value: "shopping",   label: "쇼핑몰",        icon: "ShoppingBag",     color: "fuchsia"},
-  { value: "fashion",    label: "의류·패션",     icon: "Shirt",           color: "emerald"},
+  { value: "legal",       label: "법률",           icon: "Scale",           color: "slate"   },
+  { value: "accounting",  label: "세무·회계",      icon: "Calculator",      color: "slate"   },
+  { value: "realestate",  label: "부동산",         icon: "Building2",       color: "sky"     },
+  { value: "interior",    label: "인테리어",       icon: "Sofa",            color: "stone"   },
+  { value: "auto",        label: "자동차·정비",    icon: "Car",             color: "zinc"    },
+  { value: "car_wash",    label: "세차장",         icon: "Droplet",         color: "cyan"    },
+  { value: "cleaning",    label: "청소",           icon: "WashingMachine",  color: "cyan"    },
+  { value: "electronics_repair", label: "핸드폰·가전수리", icon: "Wrench",  color: "zinc"   },
+  // 쇼핑·생활
+  { value: "shopping",    label: "쇼핑몰",         icon: "ShoppingBag",     color: "fuchsia" },
+  { value: "fashion",     label: "의류·패션",      icon: "Shirt",           color: "emerald" },
+  { value: "clothing",    label: "의류",           icon: "Tag",             color: "emerald" },
+  { value: "footwear",    label: "신발",           icon: "Footprints",      color: "stone"   },
+  { value: "stationery",  label: "문구·사무용품",  icon: "Pencil",          color: "yellow"  },
+  { value: "flower",      label: "꽃집",           icon: "Flower2",         color: "pink"    },
+  { value: "laundry",     label: "세탁소",         icon: "Package",         color: "cyan"    },
   // 사진·영상·디자인
-  { value: "photo",          label: "사진·영상",     icon: "Camera",   color: "indigo" },
-  { value: "video",          label: "영상·드론",     icon: "Film",     color: "red"    },
-  { value: "design",         label: "디자인·인쇄",   icon: "Palette",  color: "violet" },
+  { value: "photo",       label: "사진·영상",      icon: "Camera",          color: "indigo"  },
+  { value: "video",       label: "영상·드론",      icon: "Film",            color: "red"     },
+  { value: "design",      label: "디자인·인쇄",    icon: "Palette",         color: "violet"  },
+  // 여가·오락
+  { value: "norebang",    label: "노래방",         icon: "Mic",             color: "purple"  },
+  { value: "billiards",   label: "당구장",         icon: "Circle",          color: "slate"   },
+  // 공방·체험
+  { value: "workshop",    label: "공방·클래스",    icon: "Hammer",          color: "stone"   },
+  { value: "escape",      label: "방탈출",         icon: "Lock",            color: "gray"    },
+  { value: "experience",  label: "체험공간",       icon: "Compass",         color: "teal"    },
   // 숙박
-  { value: "accommodation",  label: "숙박·펜션",     icon: "BedDouble", color: "blue"  },
+  { value: "accommodation", label: "숙박·펜션",    icon: "BedDouble",       color: "blue"    },
   // 기타 (하위 호환: categories.ts 그룹 값)
-  { value: "food",        label: "음식·식음료",   icon: "UtensilsCrossed", color: "orange" },
-  { value: "health",      label: "의료·건강",     icon: "Stethoscope",     color: "blue"   },
-  { value: "professional",label: "전문직",        icon: "Scale",           color: "slate"  },
-  { value: "living",      label: "생활서비스",    icon: "WashingMachine",  color: "cyan"   },
-  { value: "culture",     label: "문화·여가",     icon: "Palette",         color: "violet" },
-  { value: "other",       label: "기타",          icon: "Store",           color: "gray"   },
+  { value: "food",        label: "음식·식음료",    icon: "UtensilsCrossed", color: "orange"  },
+  { value: "health",      label: "의료·건강",      icon: "Stethoscope",     color: "blue"    },
+  { value: "professional",label: "전문직",         icon: "Scale",           color: "slate"   },
+  { value: "living",      label: "생활서비스",     icon: "WashingMachine",  color: "cyan"    },
+  { value: "culture",     label: "문화·여가",      icon: "Palette",         color: "violet"  },
+  { value: "other",       label: "기타",           icon: "Store",           color: "gray"    },
 ];
 
 /** 카테고리 값 → 표시용 레이블 (새 분류 우선, 구 분류 fallback) */
@@ -246,6 +295,7 @@ function KeywordEditor({
   const addKeyword = (kw: string) => {
     const trimmed = kw.trim();
     if (!trimmed || keywords.includes(trimmed)) return;
+    if (keywords.length >= 10) return;
     onChange([...keywords, trimmed]);
     setInput("");
     inputRef.current?.focus();
@@ -270,7 +320,7 @@ function KeywordEditor({
           <span className="ml-1.5 text-sm font-normal text-gray-400">AI가 이 키워드로 검색합니다</span>
         </label>
         {keywords.length > 0 && (
-          <span className="text-sm text-blue-600 font-medium">{keywords.length}개 등록됨</span>
+          <span className="text-sm text-blue-600 font-medium">{keywords.length}/10개 등록됨</span>
         )}
       </div>
 
@@ -298,7 +348,7 @@ function KeywordEditor({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleInputKeyDown}
           onBlur={() => { if (input.trim()) addKeyword(input); }}
-          placeholder={keywords.length === 0 ? "키워드 입력 후 Enter" : "추가 입력..."}
+          placeholder={keywords.length === 0 ? "키워드 입력 후 Enter" : keywords.length >= 10 ? "최대 10개 등록됨" : "추가 입력..."}
           className="flex-1 min-w-[120px] text-sm outline-none bg-transparent"
         />
       </div>
@@ -514,6 +564,11 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId }: Pr
   };
 
   const handleSave = async (bizId: string) => {
+    const kws = Array.isArray(editForm.keywords) ? editForm.keywords : [];
+    if (kws.length < 3) {
+      setError(`검색 키워드 3개 이상 필요합니다 (현재 ${kws.length}개).`);
+      return;
+    }
     setSaving(true);
     setError("");
     try {
@@ -1003,8 +1058,8 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId }: Pr
 
               <div className="space-y-2">
                 {([
-                  { key: "has_recent_post", label: "최근 소식 등록됨 (1개월 내)", points: "+20점", desc: "최신성 점수 유지" },
-                  { key: "has_intro", label: "소개글 작성됨", points: "+10점", desc: "기본 정보 완성도 (소개글 안에 Q&A 섹션 포함 시 인용 후보)" },
+                  { key: "has_recent_post", label: "최근 소식 등록됨 (1개월 내)", points: "+25점", desc: "최신성 점수 유지" },
+                  { key: "has_intro", label: "소개글 작성됨", points: "+20점", desc: "기본 정보 완성도 (소개글 안에 Q&A 섹션 포함 시 인용 후보)" },
                 ] as const).map(({ key, label, points, desc }) => (
                   <label key={key} className="flex items-start gap-3 cursor-pointer group">
                     <input
@@ -1025,7 +1080,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId }: Pr
               </div>
               <div className="flex items-center justify-between text-sm border-t border-green-100 pt-2">
                 <span className="text-green-700">
-                  현재 추가 점수: <strong>{(editForm.has_recent_post ? 20 : 0) + (editForm.has_intro ? 10 : 0)}점</strong>
+                  현재 추가 점수: <strong>{(editForm.has_recent_post ? 25 : 0) + (editForm.has_intro ? 20 : 0)}점</strong>
                 </span>
                 <button
                   type="button"

@@ -69,48 +69,14 @@ async def analyze_blog_endpoint(
 
     now_utc = datetime.now(timezone.utc)
 
-    # 24시간 쿨다운 — 블로그가 실시간으로 바뀌지 않으므로 동일 결과 반복 방지
-    last_analyzed = biz_row.get("blog_analyzed_at")
-    if last_analyzed:
-        try:
-            last_dt = datetime.fromisoformat(last_analyzed.replace("Z", "+00:00"))
-            delta = now_utc - last_dt
-            if timedelta(0) < delta < timedelta(hours=24):
-                remaining = max(1, 24 - int(delta.total_seconds() // 3600))
-                raise HTTPException(
-                    status_code=429,
-                    detail={
-                        "code": "COOLDOWN",
-                        "message": f"블로그 진단은 24시간에 1회 가능합니다. {remaining}시간 후 다시 시도해 주세요.",
-                    },
-                )
-        except HTTPException:
-            raise
-        except Exception as e:
-            _logger.warning(f"blog cooldown parse failed for biz={request.business_id}: {e}")
-
-    # 월 사용 횟수 체크 (notifications 테이블, type='blog_analysis')
-    if limit < 999:
-        month_start = now_utc.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
-        used_res = (await execute(
-            supabase.table("notifications")
-            .select("id", count="exact")
-            .eq("user_id", user_id)
-            .eq("type", "blog_analysis")
-            .gte("sent_at", month_start)
-        ))
-        used = used_res.count or 0
-        if used >= limit:
-            raise HTTPException(
-                status_code=429,
-                detail={
-                    "code": "MONTHLY_LIMIT",
-                    "message": f"이번 달 블로그 진단 한도({limit}회)에 도달했습니다. Pro 플랜으로 업그레이드하면 월 10회 이용 가능합니다.",
-                    "upgrade_url": "/pricing",
-                    "used": used,
-                    "limit": limit,
-                },
-            )
+    # TODO: 개발 기간 중 24시간 쿨다운 및 월 횟수 제한 비활성화 — 출시 전 복구 필요
+    # # 24시간 쿨다운
+    # last_analyzed = biz_row.get("blog_analyzed_at")
+    # if last_analyzed:
+    #     ...
+    # # 월 사용 횟수 체크
+    # if limit < 999:
+    #     ...
 
     business_name = biz_row.get("name", "")
     category = biz_row.get("category", "restaurant")

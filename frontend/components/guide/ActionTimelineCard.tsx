@@ -119,7 +119,7 @@ function ActionTimelineContent({ businessId, authToken }: { businessId: string; 
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm animate-pulse">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm animate-pulse">
         <div className="h-4 bg-gray-100 rounded w-1/3 mb-3" />
         <div className="h-3 bg-gray-100 rounded w-2/3 mb-2" />
         <div className="h-3 bg-gray-100 rounded w-1/2" />
@@ -132,7 +132,7 @@ function ActionTimelineContent({ businessId, authToken }: { businessId: string; 
   const recentWindows = [...(data.windows ?? [])].slice(0, 3)
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-blue-500" />

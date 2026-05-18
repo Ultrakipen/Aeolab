@@ -1021,6 +1021,16 @@ CREATE TABLE IF NOT EXISTS review_snapshots (
 CREATE INDEX IF NOT EXISTS idx_review_snapshots_biz_date
   ON review_snapshots(business_id, snapped_at DESC);
 
+ALTER TABLE review_snapshots ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "own_review_snapshots" ON review_snapshots
+  USING (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = review_snapshots.business_id AND b.user_id = auth.uid()
+  ));
+CREATE POLICY "own_review_snapshots_insert" ON review_snapshots
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = review_snapshots.business_id AND b.user_id = auth.uid()
+  ));
+
 -- =============================================
 -- v3.7 마이그레이션 (2026-04-07): scan_results v3.0 누락 컬럼 추가
 -- growth_stage, growth_stage_label, is_keyword_estimated,
@@ -1373,6 +1383,16 @@ CREATE TABLE IF NOT EXISTS business_action_log (
 CREATE INDEX IF NOT EXISTS idx_business_action_log_biz_date
   ON business_action_log(business_id, action_date DESC);
 
+ALTER TABLE business_action_log ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "own_business_action_log" ON business_action_log
+  USING (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = business_action_log.business_id AND b.user_id = auth.uid()
+  ));
+CREATE POLICY "own_business_action_log_insert" ON business_action_log
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = business_action_log.business_id AND b.user_id = auth.uid()
+  ));
+
 -- =============================================
 -- v3.2 blog_analysis_json 컬럼 추가 (2026-04-14)
 -- blog_analyzer.py 결과 저장: {posts, keywords, freshness_days, gap_keywords}
@@ -1439,6 +1459,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_blog_analysis_biz_kw
 CREATE INDEX IF NOT EXISTS idx_blog_analysis_analyzed
   ON blog_analysis(business_id, analyzed_at DESC);
 
+ALTER TABLE blog_analysis ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "own_blog_analysis" ON blog_analysis
+  USING (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = blog_analysis.business_id AND b.user_id = auth.uid()
+  ));
+CREATE POLICY "own_blog_analysis_insert" ON blog_analysis
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = blog_analysis.business_id AND b.user_id = auth.uid()
+  ));
 
 -- =============================================
 -- v3.2: first_exposure 알림 추적
@@ -1906,3 +1935,133 @@ COMMENT ON TABLE support_replies IS '글 내 답변·코멘트 (사용자 또는
 COMMENT ON COLUMN support_replies.author_type IS 'user(사용자) 또는 admin(운영자)';
 COMMENT ON COLUMN support_replies.author_id IS '작성자 auth.users.id';
 
+
+-- =============================================
+-- v5.5 마이그레이션 (2026-05-13)
+-- businesses.category CHECK 제약 확장 (25→40개 업종)
+-- =============================================
+-- 배경: 프론트엔드 업종 목록 확장으로 신규 15개 업종 추가
+--       현재 DB에는 CHECK 제약이 없지만(v1.8에서 제거), 데이터 무결성을 위해 40개 업종 명시
+
+ALTER TABLE businesses DROP CONSTRAINT IF EXISTS businesses_category_check;
+ALTER TABLE businesses ADD CONSTRAINT businesses_category_check
+  CHECK (category IN (
+    'restaurant','cafe','bakery','bar',
+    'beauty','nail','skincare','massage','jjimjil',
+    'medical','pharmacy',
+    'fitness','yoga','dance','golf','swim',
+    'pet',
+    'education','tutoring','music_lesson','cooking','kids','study',
+    'legal','realestate','accounting',
+    'interior','auto','cleaning','laundry','flower',
+    'shopping','fashion',
+    'photo','video','design',
+    'accommodation',
+    'workshop','escape',
+    'other'
+  ));
+
+COMMENT ON CONSTRAINT businesses_category_check ON businesses IS
+  'v5.5: 40개 업종 화이트리스트 (2026-05-13). trial_scans.category는 CHECK 없음';
+
+-- =============================================
+-- v5.8 마이그레이션 (2026-05-18)
+-- businesses.category CHECK 제약 확장 (40→60개 업종)
+-- =============================================
+-- 배경: keyword_taxonomy.py에 35개 추가 업종의 taxonomy 완비됨 (2026-05-18)
+--       스캔 엔진·점수 모델 모두 40개 이상 업종 지원 준비 완료
+--       DB 제약을 60개로 확장하여 프론트엔드 업종 등록 가능하도록 개방
+
+ALTER TABLE businesses DROP CONSTRAINT IF EXISTS businesses_category_check;
+ALTER TABLE businesses ADD CONSTRAINT businesses_category_check
+  CHECK (category IN (
+    -- 기존 ACTIVE 5개 + LIKELY 확장 5개 + INACTIVE 25개 + 기타
+    'restaurant','cafe','bakery','bar','accommodation',
+    'beauty','nail','skincare','massage','spa','ballet','semi_permanent',
+    'medical','pharmacy','dental','oriental_medicine',
+    'fitness','yoga','dance','golf','swim','martial_arts','climbing',
+    'pet',
+    'education','tutoring','music_lesson','music_class','cooking','kids','study','art_class',
+    'legal','realestate','accounting',
+    'interior','auto','cleaning','laundry','flower','car_wash','electronics_repair',
+    'shopping','fashion','clothing','footwear','stationery',
+    'photo','video','design','experience',
+    'workshop','escape','optics','norebang','billiards','jjimjil',
+    'childcare',
+    'other'
+  ));
+
+COMMENT ON CONSTRAINT businesses_category_check ON businesses IS
+  'v5.8: 60개 업종 화이트리스트 (2026-05-18). keyword_taxonomy.py 완비에 맞춘 확장';
+
+-- =============================================
+-- v5.6 마이그레이션 (2026-05-17)
+-- main_engine_optimization_v1.1.md §3.3 — 소식 14일 미작성 알림
+-- =============================================
+-- businesses.last_post_at: 스마트플레이스 소식 마지막 작성 시각
+--   has_recent_post=True 체크박스 토글 시 자동 갱신 (routers/business.py:update_business)
+--   inactive_post_alert_job (매일 09:10 KST)에서 14일 경과 사업장 알림 발송
+--   ALTER 미실행 시 routers·scheduler에서 graceful fallback (warning만 남기고 정상 동작)
+
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS last_post_at TIMESTAMPTZ;
+
+COMMENT ON COLUMN businesses.last_post_at IS
+  'v5.6: 스마트플레이스 소식 마지막 작성 시각. has_recent_post=True 토글 시 자동 갱신';
+
+CREATE INDEX IF NOT EXISTS idx_businesses_last_post_at
+  ON businesses (last_post_at);
+
+
+-- ========================================
+-- v5.8: 성공 사례 갤러리 (Sprint 4, 2026-05-17)
+-- ========================================
+CREATE TABLE IF NOT EXISTS success_stories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id UUID REFERENCES businesses(id) ON DELETE CASCADE,
+  delivery_order_id UUID REFERENCES delivery_orders(id) ON DELETE SET NULL,
+  category TEXT NOT NULL,
+  region TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  score_before NUMERIC,
+  score_after NUMERIC,
+  score_delta NUMERIC GENERATED ALWAYS AS (score_after - score_before) STORED,
+  is_anonymous BOOLEAN DEFAULT TRUE,
+  display_name TEXT,
+  consent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  published_at TIMESTAMPTZ DEFAULT NOW(),
+  view_count INT DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_stories_category ON success_stories(category, published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_stories_delta ON success_stories(score_delta DESC) WHERE score_delta IS NOT NULL AND score_delta > 0;
+CREATE INDEX IF NOT EXISTS idx_stories_published ON success_stories(published_at DESC);
+
+ALTER TABLE success_stories ENABLE ROW LEVEL SECURITY;
+CREATE POLICY IF NOT EXISTS "stories_public_select" ON success_stories FOR SELECT USING (TRUE);
+
+-- v5.8: delivery_orders 재스캔 추적 컬럼 (delivery_30day_rescan_job 사용)
+ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS work_completed_at TIMESTAMPTZ;
+ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS followup_scan_id UUID REFERENCES scan_results(id) ON DELETE SET NULL;
+ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS materials_url JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS refund_reason TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_delivery_followup ON delivery_orders(package_type, status, work_completed_at)
+  WHERE followup_scan_id IS NULL;
+
+
+-- ============================================================
+-- v5.7 (P2 준비) — 네이버 AI탭 스캔 결과 컬럼 (2026-05-17)
+-- 실행 시점: 6월 AI탭 전체 확대 후 NAVER_AI_TAB_ENABLED=true 전환 전
+-- 미실행 시: naver_ai_tab_scanner.py는 None 반환으로 graceful skip
+-- ============================================================
+ALTER TABLE scan_results
+  ADD COLUMN IF NOT EXISTS naver_ai_tab_visible    BOOLEAN   DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS naver_ai_tab_rank        SMALLINT  DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS naver_ai_tab_excerpt     TEXT      DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS naver_reservation_linked BOOLEAN   DEFAULT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_scan_results_ai_tab_visible
+  ON scan_results (naver_ai_tab_visible)
+  WHERE naver_ai_tab_visible IS NOT NULL;

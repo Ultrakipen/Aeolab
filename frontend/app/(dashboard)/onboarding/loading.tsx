@@ -19,7 +19,7 @@ export default function OnboardingLoading() {
         </div>
 
         {/* 카드 스켈레톤 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8 animate-pulse">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-8 animate-pulse">
           <div className="h-7 w-48 bg-gray-200 rounded-lg mb-3" />
           <div className="h-4 w-full bg-gray-100 rounded mb-1" />
           <div className="h-4 w-3/4 bg-gray-100 rounded mb-6" />

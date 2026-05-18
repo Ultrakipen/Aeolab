@@ -265,7 +265,7 @@ function InquirySection({
       {/* 문의 폼 */}
       <div className="max-w-2xl mx-auto">
         {success ? (
-          <div className="bg-green-50 border border-green-100 rounded-2xl p-6 text-center">
+          <div className="bg-green-50 border border-green-100 rounded-xl p-6 text-center">
             <div className="text-3xl mb-3 text-green-600 font-bold">✓</div>
             <p className="text-green-700 font-semibold text-base mb-1">
               문의가 접수되었습니다.

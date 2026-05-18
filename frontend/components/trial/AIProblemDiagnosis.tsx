@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { XCircle, Flame, MessageSquare, ChevronDown, Plus, AlertTriangle, Check } from "lucide-react";
 
 interface Props {
   businessName: string;
   category: string;
   track1Score: number;
   track2Score: number;
-  growthStage: string;
   missingKeywords: string[];
   hasFaq: boolean;
   hasRecentPost: boolean;
@@ -19,6 +19,7 @@ interface Props {
   reviewCopyText?: string;
   selectedTags?: string[];
   region?: string;
+  userGroup?: string;
 }
 
 interface Problem {
@@ -38,11 +39,29 @@ interface Solution {
 
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
+    }).catch(() => {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      } catch {
+        setCopyFailed(true);
+        setTimeout(() => setCopyFailed(false), 3000);
+      }
     });
   };
 
@@ -51,11 +70,13 @@ function CopyButton({ text, label }: { text: string; label: string }) {
       onClick={handleCopy}
       className={`inline-flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors ${
         copied
-          ? "bg-gray-600 text-white"
-          : "bg-green-600 hover:bg-green-700 text-white"
+          ? "bg-emerald-600 text-white"
+          : copyFailed
+          ? "bg-amber-500 text-white"
+          : "bg-emerald-600 hover:bg-emerald-700 text-white"
       }`}
     >
-      {copied ? "✓ 복사됐습니다!" : label}
+      {copied ? <><Check className="w-4 h-4" aria-hidden="true" /> 복사됐습니다!</> : copyFailed ? "직접 선택 후 복사하세요" : label}
     </button>
   );
 }
@@ -67,6 +88,22 @@ function iSubject(name: string): string {
   const code = last.charCodeAt(0);
   if (code < 0xac00 || code > 0xd7a3) return `${name}은(는)`;
   return (code - 0xac00) % 28 !== 0 ? `${name}은` : `${name}는`;
+}
+
+// 업종 키 → 템플릿 그룹 키 매핑 (매핑 없으면 cat 그대로 사용)
+const CATEGORY_KEY_MAP: Record<string, string> = {
+  restaurant: "food", bakery: "food", bar: "food",
+  nail: "beauty",
+  medical: "health", pharmacy: "health", fitness: "health", yoga: "health",
+  tutoring: "education",
+  pet: "living", interior: "living", auto: "living", cleaning: "living",
+  legal: "professional", realestate: "professional",
+  fashion: "shopping",
+  photo: "culture", video: "culture", design: "culture",
+};
+
+function resolveCategory(cat: string): string {
+  return CATEGORY_KEY_MAP[cat] ?? cat;
 }
 
 // ── 섹션 A: 소개글 초안 자동 생성 ──
@@ -88,13 +125,12 @@ function buildIntroText(
   category: string,
   tags: string[],
   region: string,
-  missingKws: string[]
+  _missingKws: string[]  // 사용하지 않음 — 검증 없는 키워드 자동 삽입 방지
 ): string {
-  const base = CATEGORY_INTRO[category] ?? "전문 서비스";
+  const base = CATEGORY_INTRO[resolveCategory(category)] ?? "전문 서비스";
   const tagStr = tags.slice(0, 2).join(", ");
-  const kwStr = missingKws.slice(0, 2).join(", ");
   const regionStr = region ? `${region} ` : "";
-  return `${regionStr}${businessName || "저희 가게"}는 ${tagStr ? `${tagStr} 전문 ` : ""}${base}을 제공합니다. ${kwStr ? `${kwStr} 등 ` : ""}고객 만족을 위해 최선을 다하고 있습니다. 편하게 방문해 주세요!`;
+  return `${regionStr}${businessName || "저희 가게"}는 ${tagStr ? `${tagStr} 전문 ` : ""}${base}을 제공합니다. [가게의 특장점 1~2가지 추가] 고객 만족을 위해 최선을 다하고 있습니다. 편하게 방문해 주세요!`;
 }
 
 // ── 섹션 B: 업종별 FAQ Q&A 5쌍 ──
@@ -152,12 +188,8 @@ const REVIEW_TEXT_TEMPLATES: Record<string, string> = {
   education: "안녕하세요! 오늘 수업 어떠셨나요? 도움이 되셨으면 좋겠습니다. 네이버에 짧은 후기 남겨주시면 정말 큰 힘이 됩니다. 수업 방식, 선생님 설명, 수강 효과 중 편하신 내용 한 줄이면 충분합니다. 감사합니다!",
 };
 
-function getReviewText(category: string, businessName: string, missingKws: string[]): string {
-  const base = REVIEW_TEXT_TEMPLATES[category] ?? "안녕하세요! 오늘 방문해 주셔서 감사합니다. 네이버에 짧은 후기 한 줄만 남겨주시면 정말 큰 힘이 됩니다. 감사합니다!";
-  const kwHint = missingKws.length > 0
-    ? ` (${missingKws.slice(0, 2).join(", ")} 관련 내용을 언급해 주시면 더욱 좋습니다)`
-    : "";
-  return base + kwHint;
+function getReviewText(category: string, _businessName: string, _missingKws: string[]): string {
+  return REVIEW_TEXT_TEMPLATES[resolveCategory(category)] ?? "안녕하세요! 오늘 방문해 주셔서 감사합니다. 네이버에 짧은 후기 한 줄만 남겨주시면 정말 큰 힘이 됩니다. 감사합니다!";
 }
 
 export default function AIProblemDiagnosis({
@@ -167,7 +199,6 @@ export default function AIProblemDiagnosis({
   track2Score,
   missingKeywords,
   hasFaq,
-  hasRecentPost,
   hasIntro,
   isSmartPlace,
   blogMentions,
@@ -176,7 +207,9 @@ export default function AIProblemDiagnosis({
   reviewCopyText,
   selectedTags = [],
   region = "",
+  userGroup,
 }: Props) {
+  const isActive = userGroup === "ACTIVE";
   const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(null);
   const [showAllFaq, setShowAllFaq] = useState(false);
 
@@ -194,15 +227,21 @@ export default function AIProblemDiagnosis({
   if (!hasFaq && isSmartPlace) {
     rawProblems.push({
       text: "소개글 Q&A 섹션 없음",
-      impact: "소개글 안 Q&A는 AI 브리핑 인용 후보 경로 중 하나 — 미확보 상태",
+      impact: isActive
+        ? "소개글 안 Q&A는 AI 브리핑 인용 후보 경로 중 하나 — 미확보 상태"
+        : "소개글 Q&A가 없으면 ChatGPT·Gemini가 가게를 파악하기 어려운 상태",
       priority: 1,
     });
   }
 
   if (track1Score < 40) {
     rawProblems.push({
-      text: `네이버 AI 브리핑 노출 준비 미흡 (${track1Score}점)`,
-      impact: "손님이 '근처 맛집 추천' 검색 시 내 가게가 안 나옴",
+      text: isActive
+        ? `네이버 AI 브리핑 노출 준비 미흡 (${track1Score}점)`
+        : `네이버 플레이스·블로그 검색 노출 미흡 (${track1Score}점)`,
+      impact: isActive
+        ? "손님이 '근처 맛집 추천' 검색 시 내 가게가 안 나옴"
+        : "네이버 지역·블로그 검색에서 가게 발견 가능성이 낮음 — 블로그 포스팅과 플레이스 정보 개선으로 노출을 높일 수 있습니다",
       priority: 2,
     });
   }
@@ -231,10 +270,21 @@ export default function AIProblemDiagnosis({
     });
   }
 
+  const AI_SEARCH_TERM: Record<string, string> = {
+    restaurant: "추천 맛집", cafe: "추천 카페", bakery: "근처 베이커리",
+    bar: "추천 술집", beauty: "근처 미용실", nail: "추천 네일샵",
+    medical: "추천 병원", pharmacy: "근처 약국", fitness: "추천 헬스장",
+    yoga: "추천 요가원", pet: "근처 동물병원", education: "추천 학원",
+    tutoring: "추천 과외", legal: "추천 법무사", realestate: "추천 부동산",
+    interior: "추천 인테리어 업체", auto: "근처 자동차 수리", cleaning: "추천 청소 업체",
+    shopping: "근처 쇼핑", fashion: "추천 의류 매장", photo: "추천 사진관",
+    video: "영상 제작 업체", design: "추천 디자인 업체", accommodation: "추천 숙소",
+  };
+  const aiTerm = AI_SEARCH_TERM[category] ?? "관련 업체";
   if (track2Score < 40) {
     rawProblems.push({
       text: `ChatGPT·구글 AI 노출 미흡 (${track2Score}점)`,
-      impact: "ChatGPT·구글에서 '추천 맛집' 검색 시 내 가게가 안 나옴",
+      impact: `ChatGPT·구글에서 '${aiTerm}' 검색 시 내 가게가 안 나옴`,
       priority: 2,
     });
   }
@@ -254,18 +304,20 @@ export default function AIProblemDiagnosis({
       time: "5분",
       tag: "즉시 효과",
       copyText: faqCopyText ?? null,
-      hint: "소개글 하단 Q&A가 AI 브리핑 인용 후보로 가장 효과적입니다",
+      hint: isActive
+        ? "소개글 하단 Q&A가 AI 브리핑 인용 후보로 가장 효과적입니다"
+        : "소개글 Q&A를 추가하면 ChatGPT·Gemini가 가게 정보를 더 잘 파악합니다",
     });
   }
 
   if (missingKeywords.length > 0 && solutions.length < 3) {
     solutions.push({
       num: solutions.length + 1,
-      title: "핵심 키워드 소개글 추가",
+      title: "해당 키워드를 소개글에 추가",
       time: "3분",
       tag: "영구 효과",
-      copyText: missingKeywords.slice(0, 3).join(", ") + " 전문",
-      hint: "소개글에 추가하면 AI가 이 키워드로 내 가게를 연결",
+      copyText: null,  // 자동 복사 텍스트 제거 — 직접 확인 후 작성 유도
+      hint: `경쟁사 분석에서 추출된 키워드: ${missingKeywords.slice(0, 3).join(", ")} — 내 가게에 해당하는 것만 소개글에 자연스럽게 포함하세요.`,
     });
   }
 
@@ -297,17 +349,21 @@ export default function AIProblemDiagnosis({
   // ── 3. 한 줄 결론 자동 생성 ──
   const conclusion =
     problems.length >= 3
-      ? `${iSubject(businessName)} 소개글 Q&A 추가와 키워드 정리만 해도 AI 브리핑 인용 후보 가능성이 크게 높아집니다`
+      ? isActive
+        ? `${iSubject(businessName)} 소개글 Q&A 추가와 키워드 정리만 해도 AI 브리핑 인용 후보 가능성이 크게 높아집니다`
+        : `${iSubject(businessName)} 소개글 Q&A 추가와 키워드 정리만 해도 ChatGPT·Gemini 노출 가능성이 크게 높아집니다`
       : track1Score >= 60
-      ? "네이버 AI 브리핑 기반은 잘 갖춰져 있습니다. 글로벌 AI 노출을 높이면 더 많은 손님이 찾아옵니다"
-      : "AI 브리핑 노출을 막는 핵심 이유를 파악했습니다. 위 순서대로 진행하세요";
+      ? isActive
+        ? "네이버 AI 브리핑 기반은 잘 갖춰져 있습니다. 글로벌 AI 노출을 높이면 더 많은 손님이 찾아옵니다"
+        : "네이버 플레이스 기반은 잘 갖춰져 있습니다. 블로그 포스팅을 늘리면 검색 노출이 더 높아집니다"
+      : "AI 노출을 막는 핵심 이유를 파악했습니다. 위 순서대로 진행하세요";
 
   // ── 소개글 초안 생성 여부 판단 ──
   const showIntroSection = isSmartPlace && !hasIntro;
   const introText = buildIntroText(businessName, category, selectedTags, region, missingKeywords);
 
   // ── FAQ 템플릿 선택 ──
-  const faqList = FAQ_TEMPLATES[category] ?? FAQ_TEMPLATES["default"];
+  const faqList = FAQ_TEMPLATES[resolveCategory(category)] ?? FAQ_TEMPLATES["default"];
   const showFaqSection = true; // 항상 표시 (AI 브리핑 핵심 경로)
 
   // ── 리뷰 요청 문자 ──
@@ -317,11 +373,11 @@ export default function AIProblemDiagnosis({
   const allFaqText = faqList.map((f) => `Q. ${f.q}\nA. ${f.a}`).join("\n\n");
 
   return (
-    <div className="bg-white border-2 border-gray-900 rounded-2xl overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
       {/* 헤더 */}
-      <div className="bg-gray-900 text-white px-5 py-4">
-        <p className="text-sm text-gray-500 mb-1">AI 노출 진단 결과 — {businessName}</p>
-        <h2 className="text-lg font-bold">지금 AI에 안 나오는 이유 + 오늘 당장 할 것</h2>
+      <div className="bg-slate-50 border-b border-slate-200 px-5 py-4">
+        <p className="text-sm text-slate-500 mb-1">AI 노출 진단 결과 — {businessName}</p>
+        <h2 className="text-lg font-bold text-slate-900">지금 AI에 안 나오는 이유 + 오늘 당장 할 것</h2>
       </div>
 
       {/* 섹션 1: 현재 문제 */}
@@ -336,7 +392,7 @@ export default function AIProblemDiagnosis({
                 key={i}
                 className="flex gap-3 p-3 bg-red-50 rounded-xl border border-red-100"
               >
-                <span className="text-red-500 text-base shrink-0">❌</span>
+                <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-gray-800">{p.text}</p>
                   <p className="text-sm text-gray-500 mt-0.5">→ {p.impact}</p>
@@ -361,8 +417,8 @@ export default function AIProblemDiagnosis({
               >
                 <div className="flex items-start justify-between gap-2 mb-2 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <span className="text-base font-black text-green-700">
-                      🔥 {s.num}.
+                    <span className="flex items-center gap-1 font-black text-green-700">
+                      <Flame className="w-4 h-4" />{s.num}.
                     </span>
                     <p className="text-base font-bold text-gray-900">{s.title}</p>
                   </div>
@@ -379,8 +435,9 @@ export default function AIProblemDiagnosis({
                 {s.copyText && (
                   <>
                     {s.copyText.includes("[") && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2 text-sm text-amber-700">
-                        ⚠️ <strong>[ ] 괄호 안</strong>은 내 가게 정보로 바꾼 후 사용하세요
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2 text-sm text-amber-700 flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+                        <span><strong>[ ] 괄호 안</strong>은 내 가게 정보로 바꾼 후 사용하세요</span>
                       </div>
                     )}
                     <div className="bg-white rounded-lg border border-green-200 px-3 py-2 mb-2">
@@ -388,7 +445,7 @@ export default function AIProblemDiagnosis({
                         {s.copyText}
                       </p>
                     </div>
-                    <CopyButton text={s.copyText} label="✅ 복사해서 바로 사용" />
+                    <CopyButton text={s.copyText} label="복사해서 바로 사용" />
                   </>
                 )}
                 {!s.copyText && !hasFaq && isSmartPlace && s.num === 1 && (
@@ -417,13 +474,14 @@ export default function AIProblemDiagnosis({
             아래 텍스트를 복사해 스마트플레이스 &gt; 기본 정보 &gt; 소개 에 붙여넣으세요.
             [ ] 부분만 실제 정보로 바꾸면 됩니다.
           </p>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2 text-sm text-amber-700">
-            ⚠️ <strong>[ ] 괄호 안</strong>을 실제 가게 정보로 바꾼 후 사용하세요
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2 text-sm text-amber-700 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+            <span><strong>[ ] 괄호 안</strong>을 실제 가게 정보로 바꾼 후 사용하세요</span>
           </div>
           <div className="bg-blue-50 rounded-xl border border-blue-200 px-4 py-3 mb-3">
             <p className="text-sm text-gray-800 leading-relaxed">{introText}</p>
           </div>
-          <CopyButton text={introText} label="✅ 소개글 복사하기" />
+          <CopyButton text={introText} label="소개글 복사하기" />
         </div>
       )}
 
@@ -434,7 +492,9 @@ export default function AIProblemDiagnosis({
             <p className="text-sm font-bold text-gray-500">
               소개글에 포함할 Q&amp;A 예시 5쌍
             </p>
-            <span className="text-sm bg-green-600 text-white px-2 py-0.5 rounded-full">AI 브리핑 인용 후보 경로</span>
+            <span className="text-sm bg-green-600 text-white px-2 py-0.5 rounded-full">
+              {isActive ? "AI 브리핑 인용 후보 경로" : "ChatGPT·Gemini 노출 강화"}
+            </span>
           </div>
           <p className="text-sm text-gray-500 mb-3">
             소개글(업체정보 → 소개글)에 아래 Q&amp;A를 자연스럽게 포함하세요.
@@ -456,29 +516,31 @@ export default function AIProblemDiagnosis({
 
           {/* 전체 복사 버튼 */}
           <div className="mb-3">
-            <CopyButton text={allFaqText} label="✅ FAQ 5쌍 전체 복사" />
+            <CopyButton text={allFaqText} label="Q&A 5쌍 전체 복사" />
           </div>
 
           {/* 아코디언 FAQ 목록 */}
           <div className="space-y-2">
-            {faqList.map((faq, idx) => (
+            {(showAllFaq ? faqList : faqList.slice(0, 3)).map((faq, idx) => (
               <div key={idx} className="border border-gray-200 rounded-xl overflow-hidden">
                 <button
                   onClick={() => setOpenFaqIdx(openFaqIdx === idx ? null : idx)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-left bg-white hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3.5 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
                   <span className="text-sm font-semibold text-gray-800 pr-2">
                     Q{idx + 1}. {faq.q}
                   </span>
-                  <span className="text-gray-500 shrink-0 text-lg leading-none">
-                    {openFaqIdx === idx ? "−" : "+"}
-                  </span>
+                  {openFaqIdx === idx
+                    ? <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
+                    : <Plus className="w-4 h-4 text-gray-500 shrink-0" />
+                  }
                 </button>
                 {openFaqIdx === idx && (
                   <div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
                     {faq.a.includes("[") && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-2 text-sm text-amber-700">
-                        ⚠️ <strong>[ ] 부분</strong>을 실제 정보로 바꿔주세요
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-2 text-sm text-amber-700 flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+                        <span><strong>[ ] 부분</strong>을 실제 정보로 바꿔주세요</span>
                       </div>
                     )}
                     <p className="text-sm text-gray-700 leading-relaxed mb-2">{faq.a}</p>
@@ -489,7 +551,7 @@ export default function AIProblemDiagnosis({
             ))}
           </div>
 
-          {!showAllFaq && (
+          {!showAllFaq && faqList.length > 3 && (
             <button
               onClick={() => setShowAllFaq(true)}
               className="mt-2 text-sm text-blue-600 underline"
@@ -509,8 +571,9 @@ export default function AIProblemDiagnosis({
           방문 후 손님에게 카카오톡·문자로 보내세요. 리뷰가 쌓이면 AI 추천 확률이 높아집니다.
         </p>
         {reviewDraftText.includes("[") && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2 text-sm text-amber-700">
-            ⚠️ <strong>[ ] 괄호 안</strong>은 내 가게 정보로 바꾼 후 사용하세요
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2 text-sm text-amber-700 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+            <span><strong>[ ] 괄호 안</strong>은 내 가게 정보로 바꾼 후 사용하세요</span>
           </div>
         )}
         <div className="bg-white rounded-xl border border-gray-200 px-4 py-3 mb-3">
@@ -518,12 +581,14 @@ export default function AIProblemDiagnosis({
             {reviewDraftText}
           </p>
         </div>
-        <CopyButton text={reviewDraftText} label="✅ 문자 초안 복사하기" />
+        <CopyButton text={reviewDraftText} label="문자 초안 복사하기" />
       </div>
 
       {/* 섹션 3: 한 줄 결론 */}
       <div className="px-4 md:px-5 py-4 bg-blue-50">
-        <p className="text-sm font-bold text-blue-700 mb-1">💬 핵심 결론</p>
+        <p className="text-sm font-bold text-blue-700 mb-1 flex items-center gap-1.5">
+          <MessageSquare className="w-4 h-4" />핵심 결론
+        </p>
         <p className="text-base text-gray-800 font-medium">&ldquo;{conclusion}&rdquo;</p>
       </div>
     </div>

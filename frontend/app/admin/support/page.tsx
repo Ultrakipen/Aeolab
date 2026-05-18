@@ -75,7 +75,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
 
   const params = await searchParams;
   const statusFilter = params.status ?? "";
-  const adminKey = process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY ?? "";
+  const adminKey = process.env.ADMIN_SECRET_KEY ?? "";
 
   const { tickets, open_count } = await fetchTickets(statusFilter, adminKey);
 
@@ -126,7 +126,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
       </div>
 
       {/* PC 테이블 */}
-      <div className="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         {tickets.length === 0 ? (
           <div className="py-16 text-center text-base text-gray-500">
             {statusFilter
@@ -189,7 +189,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
       {/* 모바일 카드 목록 */}
       <div className="md:hidden space-y-3">
         {tickets.length === 0 ? (
-          <div className="py-12 text-center text-base text-gray-500 bg-white rounded-2xl border border-gray-100">
+          <div className="py-12 text-center text-base text-gray-500 bg-white rounded-xl border border-gray-100">
             문의가 없습니다.
           </div>
         ) : (
@@ -200,7 +200,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
               <Link
                 key={ticket.id}
                 href={`/admin/support/${ticket.id}`}
-                className="block bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow"
+                className="block bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2 flex-wrap">

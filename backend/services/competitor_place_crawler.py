@@ -154,8 +154,8 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     }
                     return 0;
                 }""") or 0.0
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning("avg_rating JS eval failed [%s]: %s", naver_place_id, e)
 
             # 2) JS 실패 시 CSS selector 시도 (폴백)
             if avg_rating == 0.0:
@@ -173,8 +173,8 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                                 if 1.0 <= val <= 5.0:
                                     avg_rating = val
                                     break
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        _logger.warning("avg_rating CSS selector [%s] failed [%s]: %s", sel, naver_place_id, e)
 
             # 3) 리뷰 탭 이동 후 재시도
             if avg_rating == 0.0:
@@ -197,8 +197,8 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     await page.wait_for_timeout(2000)
                     body_text = await page.inner_text("body")
                     lines = [l.strip() for l in body_text.split("\n") if l.strip()]
-                except Exception:
-                    pass
+                except Exception as e:
+                    _logger.warning("avg_rating review tab retry failed [%s]: %s", naver_place_id, e)
 
             # ── 탭 목록 확인 (네비게이션 영역 텍스트로 탭 추출) ──────────
             # 실측: 홈/소식/리뷰/사진/정보 순서로 탭 배치
@@ -221,15 +221,15 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     feed_text = await page.inner_text("body")
                     # 실제 소식 포스팅이 있으면 body 텍스트가 600자 이상
                     has_recent_post = len(feed_text.strip()) > 600
-                except Exception:
-                    pass
+                except Exception as e:
+                    _logger.warning("feed tab load failed [%s]: %s", naver_place_id, e)
                 # 홈으로 복귀
                 try:
                     await page.goto(f"{base_url}/home", timeout=15000, wait_until="domcontentloaded")
                     await page.wait_for_timeout(3000)
                     body_text = await page.inner_text("body")
-                except Exception:
-                    pass
+                except Exception as e:
+                    _logger.warning("home recovery after feed failed [%s]: %s", naver_place_id, e)
 
             # ── 메뉴/가격표/상품 등록 여부 ──────────────────────────────
             # 탐지 전략:
@@ -246,8 +246,8 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                 ).first
                 if await menu_tab.is_visible(timeout=2000):
                     has_menu = True
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning("menu CSS selector check failed [%s]: %s", naver_place_id, e)
 
             # nav_area 범위를 lines[5:35]로 확장 (탭이 8:20 범위 밖에 있는 케이스 대응)
             nav_area_extended = (
@@ -262,14 +262,14 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     menu_text = await page.inner_text("body")
                     menu_lines = [l.strip() for l in menu_text.split("\n") if l.strip()]
                     has_menu = len(menu_lines) > 20 and len(menu_text.strip()) > 400
-                except Exception:
-                    pass
+                except Exception as e:
+                    _logger.warning("menu tab navigation (nav_area_extended) failed [%s]: %s", naver_place_id, e)
                 try:
                     await page.goto(f"{base_url}/home", timeout=15000, wait_until="domcontentloaded")
                     await page.wait_for_timeout(2000)
                     body_text = await page.inner_text("body")
-                except Exception:
-                    pass
+                except Exception as e:
+                    _logger.warning("home recovery after menu nav (extended) failed [%s]: %s", naver_place_id, e)
 
             # 기존 nav_area("메뉴" in nav_area)도 fallback으로 유지
             if not has_menu and "메뉴" in nav_area:
@@ -279,14 +279,14 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     menu_text = await page.inner_text("body")
                     menu_lines = [l.strip() for l in menu_text.split("\n") if l.strip()]
                     has_menu = len(menu_lines) > 20 and len(menu_text.strip()) > 400
-                except Exception:
-                    pass
+                except Exception as e:
+                    _logger.warning("menu tab navigation (nav_area fallback) failed [%s]: %s", naver_place_id, e)
                 try:
                     await page.goto(f"{base_url}/home", timeout=15000, wait_until="domcontentloaded")
                     await page.wait_for_timeout(2000)
                     body_text = await page.inner_text("body")
-                except Exception:
-                    pass
+                except Exception as e:
+                    _logger.warning("home recovery after menu nav (fallback) failed [%s]: %s", naver_place_id, e)
 
             # 2) 홈 body에 "가격표" 직접 등장 (스튜디오/서비스 업종)
             if not has_menu:
@@ -318,8 +318,8 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     # fallback: 전체 img 수 - UI 아이콘 추정치 5
                     total_imgs = await page.locator("img").count()
                     photo_count = max(0, total_imgs - 5)
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning("photo count failed [%s]: %s", naver_place_id, e)
 
             # ── 소개글 등록 여부 ─────────────────────────────────────
             # /information 탭에 "소개" 섹션 + 30자 이상 본문이 있으면 등록된 것으로 판단
@@ -346,8 +346,8 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     href = await ext_link.get_attribute("href")
                     if href:
                         website_url = href
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning("website URL extraction failed [%s]: %s", naver_place_id, e)
 
             return {
                 "naver_place_id": naver_place_id,

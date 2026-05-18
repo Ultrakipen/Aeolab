@@ -20,7 +20,7 @@ export default async function HistoryPage() {
   const { data: activeBizData } = activeBizId
     ? await supabase
         .from('businesses')
-        .select('id, name, category, region, keywords, is_smart_place, naver_place_id, naver_blog_id')
+        .select('id, name, category, region, keywords, is_smart_place, naver_place_id, naver_blog_id, blog_url')
         .eq('id', activeBizId)
         .eq('user_id', user.id)
         .maybeSingle()
@@ -178,7 +178,7 @@ export default async function HistoryPage() {
         )}
 
         {/* 스캔 히스토리 테이블 */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="px-4 md:px-6 py-4 border-b border-gray-100">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <div className="flex-1">
@@ -280,7 +280,13 @@ export default async function HistoryPage() {
           accessToken={accessToken}
           plan={plan}
           initialShots={initialBlogShots}
-          naverBlogId={business.naver_blog_id ?? ""}
+          naverBlogId={(() => {
+            // naver_blog_id 우선, 없으면 blog_url에서 추출 (블로그 진단 페이지에서 등록된 URL)
+            if (business.naver_blog_id) return business.naver_blog_id
+            const blogUrl: string = (business as { blog_url?: string }).blog_url ?? ''
+            const m = blogUrl.match(/blog\.naver\.com\/([^/?#]+)/i)
+            return m ? m[1] : ''
+          })()}
         />
 
         {/* 히스토리 안내 배너 */}

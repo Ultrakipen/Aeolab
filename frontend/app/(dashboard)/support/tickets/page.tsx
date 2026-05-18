@@ -115,7 +115,7 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
 
         {/* 목록 */}
         {tickets.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm py-16 text-center">
             <MessageCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <p className="text-base font-medium text-gray-500 mb-1">
               {statusFilter ? "해당 상태의 문의가 없습니다." : "아직 문의가 없습니다."}
@@ -132,7 +132,7 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
         ) : (
           <>
             {/* PC 테이블 */}
-            <div className="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[480px]">
                   <thead>
@@ -185,7 +185,7 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
                   <Link
                     key={ticket.id}
                     href={`/support/tickets/${ticket.id}`}
-                    className="block bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow"
+                    className="block bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center justify-between gap-3 mb-2">
                       <span className="text-sm text-gray-500">

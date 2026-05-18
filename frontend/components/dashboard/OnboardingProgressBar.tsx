@@ -104,7 +104,7 @@ export function OnboardingProgressBar({ userId, token }: Props) {
   const progressPct = Math.round((doneCount / total) * 100);
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 md:p-5 mb-5 relative">
+    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 md:p-5 mb-5 relative">
       {/* 닫기 버튼 */}
       <button
         onClick={handleDismiss}

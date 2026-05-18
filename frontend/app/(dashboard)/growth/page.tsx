@@ -44,7 +44,7 @@ export default async function GrowthPage() {
   if ((PLAN_RANK[activePlan] ?? 0) < PLAN_RANK["basic"]) {
     return (
       <div className="p-4 md:p-8 max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8 text-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8 text-center">
           <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Lock className="w-7 h-7 text-gray-400" strokeWidth={1.5} />
           </div>
@@ -82,7 +82,7 @@ export default async function GrowthPage() {
   if (!business) {
     return (
       <div className="p-4 md:p-8 max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8 text-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8 text-center">
           <TrendingUp className="w-10 h-10 text-gray-300 mx-auto mb-4" />
           <h2 className="text-lg md:text-xl font-bold text-gray-700 mb-2">
             사업장을 먼저 등록해주세요
@@ -111,7 +111,7 @@ export default async function GrowthPage() {
   if (!scans || scans.length === 0) {
     return (
       <div className="p-4 md:p-8 max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8 text-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8 text-center">
           <TrendingUp className="w-10 h-10 text-gray-300 mx-auto mb-4" />
           <h2 className="text-lg md:text-xl font-bold text-gray-700 mb-2">
             첫 AI 스캔을 실행해주세요

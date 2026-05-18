@@ -215,7 +215,7 @@ async def share_image_by_trial(trial_id: str, request: Request):
     # supabase-py 2.7.4 패턴: .data 확인 필수 (if not res 는 항상 False)
     if not (res and res.data):
         png = render_placeholder_share_card()
-        _cache_set(_make_cache_key("placeholder", "default"), png)
+        _cache_set(_make_cache_key("trial", trial_id), png)
         return _png_response(png)
 
     row = res.data

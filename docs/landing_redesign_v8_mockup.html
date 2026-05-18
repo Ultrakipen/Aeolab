@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AEOlab 랜딩페이지 v8 — 보수적 정제</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-variable.min.css" rel="stylesheet" />
+<style>
+/* ── CSS 토큰 ── */
+:root {
+  /* 그레이 4단계 */
+  --ink-1: #0F172A;
+  --ink-2: #475569;
+  --ink-3: #94A3B8;
+  --line:  #E2E8F0;
+
+  /* 브랜드 그라디언트 단일 */
+  --grad-brand: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+  /* 다크 히어로 — 절대 변경 금지 */
+  --grad-hero-dark: linear-gradient(160deg, #0C1A3A 0%, #112050 45%, #1A3272 100%);
+  /* Final CTA 다크 */
+  --grad-final: linear-gradient(135deg, #080E20 0%, #1A3272 100%);
+
+  /* OKLCH 브랜드 (hex 폴백 위) */
+  --brand:      #2563EB; /* oklch(0.50 0.20 264.39) */
+  --brand-deep: #1E40AF; /* oklch(0.42 0.21 265) */
+
+  /* 그림자 3단계 */
+  --shadow-1: 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-2: 0 4px 16px rgba(15,23,42,0.06);
+  --shadow-3: 0 12px 40px rgba(15,23,42,0.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-1);
+  background: #FFFFFF;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── 타이포 — 사이즈 동일, letter-spacing·weight 강화 ── */
+.hero-h1 {
+  font-size: clamp(2.1rem, 5.5vw, 3.2rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.18;
+  word-break: keep-all;
+  font-variation-settings: 'wght' 900;
+}
+.section-h2 {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.22;
+  word-break: keep-all;
+  font-variation-settings: 'wght' 850;
+}
+.eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+.eyebrow-ko {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--brand);
+}
+/* 숫자 등폭 */
+.num {
+  font-variation-settings: 'wght' 900;
+  font-feature-settings: 'tnum' on, 'lnum' on;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+/* ── 그라디언트 텍스트 — 브랜드 1종 ── */
+.grad-text {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── 카드 3 tier ── */
+/* Tier 1: Hero·Final CTA */
+.card-t1 {
+  border-radius: 16px;
+  box-shadow: var(--shadow-3);
+  border: 2px solid var(--line);
+}
+/* Tier 2: Feature·Before/After·Step */
+.card-t2 {
+  border-radius: 12px;
+  box-shadow: var(--shadow-2);
+  border: 1px solid var(--line);
+  transition: transform 0.25s cubic-bezier(.22,1,.36,1), box-shadow 0.25s;
+}
+.card-t2:hover {
+  transform: perspective(1000px) rotateX(0.5deg) translateY(-3px);
+  box-shadow: var(--shadow-3);
+}
+/* Tier 3: Inline·칩 컨테이너 */
+.card-t3 {
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+/* ── CTA 버튼 — magnetic hover ── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--grad-brand);
+  color: #FFFFFF;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 13px 26px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s cubic-bezier(.22,1,.36,1), box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(124,58,237,0.20);
+  font-variation-settings: 'wght' 700;
+}
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(124,58,237,0.30);
+}
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  color: var(--ink-1);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  box-shadow: var(--shadow-1);
+}
+.btn-secondary:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: var(--shadow-2);
+  border-color: #BFDBFE;
+}
+.btn-tertiary {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--brand);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1.5px solid #BFDBFE;
+  padding-bottom: 2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.btn-tertiary:hover { color: #7C3AED; border-color: #7C3AED; }
+
+/* ── fade-up ── */
+.fade-up {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s cubic-bezier(.22,1,.36,1), transform 0.55s cubic-bezier(.22,1,.36,1);
+}
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+.fd1 { transition-delay: 0.08s; }
+.fd2 { transition-delay: 0.16s; }
+.fd3 { transition-delay: 0.24s; }
+.fd4 { transition-delay: 0.32s; }
+
+/* ── 섹션 구분선 fade ── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--line) 20%, var(--line) 80%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.section-divider.visible { opacity: 1; }
+
+/* ── 공통 섹션 패딩 ── */
+.section { padding: 48px 0; }
+@media (min-width: 768px) { .section { padding: 80px 0; } }
+
+/* ── 컨테이너 ── */
+.container { max-width: 1020px; margin: 0 auto; padding: 0 16px; }
+@media (min-width: 768px) { .container { padding: 0 28px; } }
+
+/* ── 그리드 ── */
+.grid-2 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 768px) {
+  .grid-2 { grid-template-columns: 1fr 1fr; gap: 18px; }
+  .grid-3 { grid-template-columns: repeat(3,1fr); gap: 18px; }
+}
+
+/* ── 예시 배지 ── */
+.sample-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 600;
+  color: var(--ink-3); background: #F1F5F9;
+  border: 1px solid var(--line); border-radius: 100px; padding: 2px 8px;
+}
+
+/* ── 라이브 펄스 ── */
+.pulse-dot {
+  display: inline-block; width: 7px; height: 7px;
+  background: #10B981; border-radius: 50%;
+  animation: livePulse 1.4s infinite;
+}
+@keyframes livePulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ── 카운트업 ── */
+.count-up { display: inline-block; }
+
+/* ── FAQ details ── */
+details summary::-webkit-details-marker { display: none; }
+
+/* ── 비교 테이블 ── */
+.compare-row { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.compare-row > * { padding: 13px 18px; font-size: 14px; border-bottom: 1px solid var(--line); }
+
+/* ── prefers-reduced-motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .fade-up { transition: none; opacity: 1; transform: none; }
+  .btn-primary, .btn-secondary, .card-t2 { transition: none; }
+  .pulse-dot { animation: none; }
+}
+
+/* ── 메타 박스 ── */
+.meta-box {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  background: #0C1A3A; color: #FFFFFF;
+  font-size: 12px; padding: 10px 20px; line-height: 1.6;
+  border-bottom: 2px solid #2563EB;
+}
+</style>
+</head>
+<body>
+
+<!-- ── 메타 박스 ── -->
+<div class="meta-box">
+  <strong style="color:#93C5FD;">AEOlab 랜딩페이지 v8 — 보수적 정제 (2026-05-08)</strong><br/>
+  유지: 다크 히어로 · 10섹션 구조 · 타이포 사이즈 · 헤드라인 의문형 / 정제: 그레이 7→4단계 · 그라디언트 1종 통일 · 카드 3 tier 위계 · letter-spacing 강화 · magnetic CTA hover<br/>
+  <span style="color:var(--ink-3);">[v7 비교: 라이트 히어로·헤드라인 단정형·타이포 +25% 모두 롤백]</span>
+</div>
+<div style="height:70px;"></div>
+
+<!-- ══════════════════════════════════════
+     HEADER
+══════════════════════════════════════ -->
+<header style="position:sticky;top:70px;z-index:50;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);height:60px;">
+  <div class="container" style="height:100%;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:4px;">
+      <span style="font-size:17px;font-weight:900;color:var(--ink-1);letter-spacing:-0.8px;">AEO</span>
+      <span style="font-size:17px;font-weight:900;color:var(--brand);">lab</span>
+      <span style="display:none;font-size:11px;color:var(--brand);background:#EFF6FF;border:1px solid #BFDBFE;border-radius:100px;padding:2px 9px;font-weight:600;margin-left:6px;" id="nav-badge">AI 노출 관리</span>
+    </div>
+    <nav style="display:flex;align-items:center;gap:2px;">
+      <a href="#how" style="font-size:13px;font-weight:500;color:var(--ink-2);padding:7px 11px;border-radius:8px;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='transparent'">서비스 안내</a>
+      <a href="#price" style="font-size:13px;font-weight:500;color:var(--ink-2);padding:7px 11px;border-radius:8px;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='transparent'">요금제</a>
+      <a href="#faq" style="font-size:13px;font-weight:500;color:var(--ink-2);padding:7px 11px;border-radius:8px;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='transparent'">FAQ</a>
+      <a href="#trial" class="btn-primary" style="font-size:13px;padding:8px 16px;border-radius:10px;margin-left:6px;">1분 무료 진단 시작 →</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════
+     1. HERO — 다크 배경 유지 (절대 변경 금지)
+══════════════════════════════════════ -->
+<section id="hero" style="background:var(--grad-hero-dark);padding:52px 0 56px;position:relative;overflow:hidden;border-bottom:1px solid rgba(255,255,255,0.07);">
+  <!-- 배경 오브 글로우 -->
+  <div style="position:absolute;inset:0;pointer-events:none;" aria-hidden="true">
+    <div style="position:absolute;width:620px;height:520px;top:-120px;left:-80px;background:radial-gradient(ellipse at center,rgba(37,99,235,0.22) 0%,transparent 65%);filter:blur(90px);"></div>
+    <div style="position:absolute;width:380px;height:380px;top:0;right:-40px;background:radial-gradient(ellipse at center,rgba(124,58,237,0.15) 0%,transparent 65%);filter:blur(100px);"></div>
+    <div style="position:absolute;width:200px;height:200px;bottom:40px;left:30%;background:radial-gradient(ellipse at center,rgba(99,102,241,0.10) 0%,transparent 70%);filter:blur(60px);"></div>
+  </div>
+
+  <div class="container" style="position:relative;">
+    <div id="hero-grid" style="display:grid;grid-template-columns:1fr;gap:40px;align-items:start;">
+
+      <!-- 왼쪽 -->
+      <div class="fade-up">
+        <!-- Eyebrow -->
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.20);border-radius:100px;padding:6px 14px;margin-bottom:22px;">
+          <span class="pulse-dot"></span>
+          <span style="font-size:12px;font-weight:700;letter-spacing:0.12em;color:#93C5FD;">네이버 AI 브리핑 노출 진단 서비스</span>
+        </div>
+
+        <!-- 헤드라인 — 의문형 유지 -->
+        <h1 class="hero-h1" style="color:#FFFFFF;margin-bottom:20px;">
+          네이버·ChatGPT가<br/>
+          <span style="background:linear-gradient(90deg,#60A5FA 0%,#A78BFA 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">먼저 추천하는 가게</span>,<br/>
+          누구일까요?
+        </h1>
+
+        <!-- KPI -->
+        <div style="display:flex;align-items:center;gap:0;margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.12);">
+          <div style="flex:1;padding-right:18px;">
+            <p class="num count-up" data-target="27.4" data-suffix="%" data-prefix="+" style="font-size:clamp(1.6rem,3.5vw,2.2rem);color:#60A5FA;">+27.4%</p>
+            <p style="font-size:13px;color:rgba(255,255,255,0.65);margin-top:3px;">AI 브리핑 후 클릭률</p>
+          </div>
+          <div style="flex:1;padding:0 18px;border-left:1px solid rgba(255,255,255,0.12);">
+            <p class="num" style="font-size:clamp(1.6rem,3.5vw,2.2rem);color:#FFFFFF;">+8%</p>
+            <p style="font-size:13px;color:rgba(255,255,255,0.65);margin-top:3px;">예약 전환 증가</p>
+          </div>
+          <div style="flex:1;padding-left:18px;border-left:1px solid rgba(255,255,255,0.12);">
+            <p class="num" style="font-size:clamp(1.6rem,3.5vw,2.2rem);color:#FFFFFF;">9,900원</p>
+            <p style="font-size:13px;color:rgba(255,255,255,0.65);margin-top:3px;">월 최저 요금</p>
+          </div>
+        </div>
+
+        <p style="font-size:15px;line-height:1.65;color:rgba(255,255,255,0.80);margin-bottom:22px;max-width:460px;word-break:keep-all;">
+          <strong style="color:#FFFFFF;">3,000만 명</strong>이 보는 네이버 AI 브리핑 —
+          우리 가게가 거기 있는지, 1분 무료로 확인하세요.
+        </p>
+
+        <!-- 업종 타일 -->
+        <div style="margin-bottom:24px;">
+          <p style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.60);margin-bottom:10px;">업종을 선택하면 예시를 볼 수 있습니다</p>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;" id="tile-container">
+            <button onclick="selectTile(this,'restaurant')" class="tile-btn" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:100px;font-size:13px;font-weight:600;border:1.5px solid rgba(255,255,255,0.20);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);cursor:pointer;transition:all 0.18s;font-family:inherit;">음식점</button>
+            <button onclick="selectTile(this,'cafe')" class="tile-btn" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:100px;font-size:13px;font-weight:600;border:1.5px solid rgba(255,255,255,0.20);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);cursor:pointer;transition:all 0.18s;font-family:inherit;">카페</button>
+            <button onclick="selectTile(this,'beauty')" class="tile-btn" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:100px;font-size:13px;font-weight:600;border:1.5px solid rgba(255,255,255,0.20);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);cursor:pointer;transition:all 0.18s;font-family:inherit;">뷰티</button>
+            <button onclick="selectTile(this,'medical')" class="tile-btn" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:100px;font-size:13px;font-weight:600;border:1.5px solid rgba(255,255,255,0.20);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);cursor:pointer;transition:all 0.18s;font-family:inherit;">의료</button>
+            <button onclick="selectTile(this,'education')" class="tile-btn" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:100px;font-size:13px;font-weight:600;border:1.5px solid rgba(255,255,255,0.20);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);cursor:pointer;transition:all 0.18s;font-family:inherit;">교육</button>
+            <button onclick="selectTile(this,'other')" class="tile-btn" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:100px;font-size:13px;font-weight:600;border:1.5px solid rgba(255,255,255,0.20);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);cursor:pointer;transition:all 0.18s;font-family:inherit;">기타</button>
+          </div>
+          <p style="font-size:12px;color:rgba(255,255,255,0.40);margin-top:8px;">음식점·카페는 네이버 AI 브리핑 대상 · 그 외는 ChatGPT·Gemini·Google AI 노출 개선</p>
+        </div>
+
+        <!-- CTA 3종 -->
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+          <a href="#trial" class="btn-primary">1분 무료 진단 시작 →</a>
+          <a href="#price" class="btn-secondary" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.20);">요금제 보기</a>
+          <a href="#how" class="btn-tertiary" style="color:#93C5FD;border-color:rgba(147,197,253,0.30);">더 알아보기 →</a>
+        </div>
+
+        <!-- 신뢰 카운터 -->
+        <p style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:16px;display:flex;align-items:center;gap:6px;">
+          <span class="pulse-dot"></span>
+          가입 불필요 · 카드 등록 없음 · 지금까지 <strong style="color:rgba(255,255,255,0.75);">12,847</strong>개 가게가 진단받음
+        </p>
+      </div>
+
+      <!-- 오른쪽: 진단 폼 카드 — Tier 1 -->
+      <div class="fade-up fd1" style="position:relative;">
+        <div class="card-t1" style="background:#FFFFFF;padding:22px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <p style="font-size:14px;font-weight:700;color:var(--ink-1);">무료 AI 노출 진단</p>
+            <span style="font-size:11px;font-weight:700;background:#ECFDF5;color:#065F46;border-radius:100px;padding:2px 9px;">무료</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:12px;color:var(--ink-3);display:block;margin-bottom:3px;">업종</label>
+              <div id="industry-display" style="border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;background:#F8FAFC;color:var(--ink-3);">위에서 선택</div>
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--ink-3);display:block;margin-bottom:3px;">지역</label>
+              <input id="region-input" type="text" placeholder="예: 강남구" style="width:100%;border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;background:#F8FAFC;color:var(--ink-1);outline:none;font-family:inherit;transition:border-color 0.15s;" onfocus="this.style.borderColor='#2563EB'" onblur="this.style.borderColor='var(--line)'" />
+            </div>
+          </div>
+
+          <button onclick="runDemo()" style="width:100%;background:var(--grad-brand);color:#FFFFFF;font-size:14px;font-weight:700;padding:13px;border-radius:10px;border:none;cursor:pointer;font-family:inherit;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+            예시 미리보기 →
+          </button>
+          <p style="text-align:center;font-size:12px;color:var(--ink-3);margin-top:8px;">가입 없이 · 카드 없이 · 즉시 결과</p>
+
+          <!-- 결과 패널 -->
+          <div id="demo-panel" style="margin-top:14px;display:none;">
+            <div style="background:var(--grad-brand);border-radius:10px;padding:11px 14px;margin-bottom:10px;">
+              <div style="text-align:center;margin-bottom:7px;">
+                <span class="sample-badge" style="background:rgba(255,255,255,0.18);color:#FFFFFF;border-color:rgba(255,255,255,0.25);">예시 데이터 · 실제와 다를 수 있습니다</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <p style="font-size:13px;font-weight:700;color:#FFFFFF;" id="result-label">음식점 · 강남구</p>
+                <span style="font-size:11px;font-weight:700;background:rgba(255,255,255,0.18);color:#FFFFFF;border-radius:100px;padding:2px 9px;">AI 브리핑 대상</span>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+              <div class="card-t3" style="background:#EFF6FF;border-color:#BFDBFE;padding:12px;">
+                <p style="font-size:10px;font-weight:700;color:var(--brand-deep);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Track 1 · 네이버</p>
+                <p class="num" style="font-size:2rem;color:var(--brand-deep);">52</p>
+                <p style="font-size:11px;color:var(--ink-2);margin-top:2px;">AI 노출 점수</p>
+              </div>
+              <div class="card-t3" style="background:#F5F3FF;border-color:#DDD6FE;padding:12px;">
+                <p style="font-size:10px;font-weight:700;color:#6D28D9;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Track 2 · 글로벌</p>
+                <p class="num" style="font-size:2rem;color:#6D28D9;">38</p>
+                <p style="font-size:11px;color:var(--ink-2);margin-top:2px;">ChatGPT·Gemini</p>
+              </div>
+            </div>
+            <div class="card-t3" style="padding:10px 12px;margin-bottom:8px;">
+              <p style="font-size:11px;font-weight:700;color:var(--ink-2);margin-bottom:6px;">키워드 갭</p>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                <span style="font-size:11px;font-weight:600;background:#FFFBEB;color:#92400E;border-radius:100px;padding:2px 9px;">✗ 주차 가능</span>
+                <span style="font-size:11px;font-weight:600;background:#FFFBEB;color:#92400E;border-radius:100px;padding:2px 9px;">✗ 단체석</span>
+                <span style="font-size:11px;font-weight:600;background:#ECFDF5;color:#065F46;border-radius:100px;padding:2px 9px;">✓ 포장 가능</span>
+              </div>
+            </div>
+            <a href="#trial" class="btn-primary" style="width:100%;justify-content:center;background:linear-gradient(135deg,#059669,#047857);box-shadow:0 4px 16px rgba(5,150,105,0.25);">실제 내 가게 진단하기 →</a>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /hero-grid -->
+  </div>
+</section>
+
+<div class="section-divider fade-up"></div>
+
+<!-- ══════════════════════════════════════
+     2. WHY — Before / After
+══════════════════════════════════════ -->
+<section class="section" style="background:#FFFFFF;" id="why">
+  <div class="container">
+    <div class="text-center fade-up" style="margin-bottom:36px;">
+      <p class="eyebrow-ko" style="margin-bottom:8px;">왜 AEOlab인가</p>
+      <h2 class="section-h2" style="color:var(--ink-1);">
+        광고 끊으면 사라집니다,<br/>
+        <span class="grad-text">AI 브리핑은 다릅니다</span>
+      </h2>
+      <p style="font-size:15px;color:var(--ink-2);margin-top:10px;word-break:keep-all;">네이버 광고는 돈 내는 동안만, AI 브리핑은 한 번 올라가면 광고 없이 유지됩니다</p>
+    </div>
+
+    <div class="grid-2">
+      <!-- Before -->
+      <div class="card-t2 fade-up" style="background:#FFFFFF;padding:22px;">
+        <span style="font-size:12px;font-weight:700;background:#FEF2F2;color:#9F1239;border-radius:100px;padding:3px 11px;display:inline-block;margin-bottom:12px;">네이버 광고만 의존 시</span>
+        <h3 style="font-size:1.05rem;font-weight:700;color:var(--ink-1);margin-bottom:5px;word-break:keep-all;">광고 끊으면 즉시 사라짐</h3>
+        <p style="font-size:14px;color:var(--ink-2);margin-bottom:14px;">월 30만~100만원 · AI 브리핑 노출 0</p>
+        <svg viewBox="0 0 300 100" style="width:100%;height:auto;">
+          <line x1="0" y1="75" x2="300" y2="75" stroke="#E2E8F0" stroke-width="1"/>
+          <path d="M 0,30 L 70,27 L 140,28 L 165,27" stroke="#DC2626" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M 165,27 L 172,75" stroke="#DC2626" stroke-width="2" fill="none" stroke-linecap="round" stroke-dasharray="4,4"/>
+          <path d="M 172,75 L 300,75" stroke="#CBD5E1" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <text x="65" y="18" text-anchor="middle" fill="#DC2626" font-size="9" font-weight="600" font-family="Pretendard,sans-serif">광고비 ON</text>
+          <text x="230" y="90" text-anchor="middle" fill="#94A3B8" font-size="9" font-family="Pretendard,sans-serif">OFF → 노출 0</text>
+          <circle cx="169" cy="27" r="4" fill="#DC2626"/>
+        </svg>
+        <ul style="margin-top:12px;list-style:none;display:flex;flex-direction:column;gap:7px;">
+          <li style="display:flex;align-items:flex-start;gap:7px;font-size:14px;color:var(--ink-2);"><span style="color:#DC2626;font-weight:700;flex-shrink:0;">✕</span>매달 광고비 지출 (수십~수백만원)</li>
+          <li style="display:flex;align-items:flex-start;gap:7px;font-size:14px;color:var(--ink-2);"><span style="color:#DC2626;font-weight:700;flex-shrink:0;">✕</span>끄는 순간 검색 결과에서 사라짐</li>
+          <li style="display:flex;align-items:flex-start;gap:7px;font-size:14px;color:var(--ink-2);"><span style="color:#DC2626;font-weight:700;flex-shrink:0;">✕</span>ChatGPT·Gemini에는 영향 없음</li>
+        </ul>
+      </div>
+
+      <!-- After — grad-brand 배경 -->
+      <div class="card-t2 fade-up fd1" style="background:var(--grad-brand);padding:22px;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 80% 10%,rgba(255,255,255,0.10) 0%,transparent 60%);pointer-events:none;" aria-hidden="true"></div>
+        <div style="position:relative;">
+          <span style="font-size:12px;font-weight:700;background:rgba(255,255,255,0.18);color:#FFFFFF;border-radius:100px;padding:3px 11px;display:inline-block;margin-bottom:12px;">AEOlab → 네이버 AI 브리핑</span>
+          <h3 style="font-size:1.05rem;font-weight:700;color:#FFFFFF;margin-bottom:5px;word-break:keep-all;">AI 브리핑에서 꾸준히 추천됨</h3>
+          <p style="font-size:14px;color:rgba(255,255,255,0.72);margin-bottom:14px;">월 9,900원 (광고비의 약 1/90)</p>
+          <svg viewBox="0 0 300 100" style="width:100%;height:auto;">
+            <defs>
+              <linearGradient id="afterFill" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stop-color="white" stop-opacity="0"/>
+                <stop offset="100%" stop-color="white" stop-opacity=".18"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,80 L 50,66 L 100,55 L 150,42 L 200,30 L 250,20 L 300,13 L 300,100 L 0,100 Z" fill="url(#afterFill)"/>
+            <path d="M 0,80 L 50,66 L 100,55 L 150,42 L 200,30 L 250,20 L 300,13" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="100" cy="55" r="3.5" fill="white"/>
+            <circle cx="200" cy="30" r="3.5" fill="white"/>
+            <circle cx="300" cy="13" r="3.5" fill="white"/>
+            <text x="150" y="10" text-anchor="middle" fill="white" font-size="9" font-weight="600" font-family="Pretendard,sans-serif">매달 우상향</text>
+          </svg>
+          <ul style="margin-top:12px;list-style:none;display:flex;flex-direction:column;gap:7px;">
+            <li style="display:flex;align-items:flex-start;gap:7px;font-size:14px;color:rgba(255,255,255,0.90);"><span style="color:#6EE7B7;font-weight:700;flex-shrink:0;">✓</span>네이버 AI 브리핑 상위 노출 최적화</li>
+            <li style="display:flex;align-items:flex-start;gap:7px;font-size:14px;color:rgba(255,255,255,0.90);"><span style="color:#6EE7B7;font-weight:700;flex-shrink:0;">✓</span>ChatGPT·Gemini·Google AI 동시 관리</li>
+            <li style="display:flex;align-items:flex-start;gap:7px;font-size:14px;color:rgba(255,255,255,0.90);"><span style="color:#6EE7B7;font-weight:700;flex-shrink:0;">✓</span>광고 끊어도 AI 추천은 유지됩니다</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 조건 토글 -->
+    <details class="fade-up card-t2" style="margin-top:18px;background:#FFFFFF;">
+      <summary style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;list-style:none;">
+        <span style="font-size:14px;font-weight:700;color:var(--ink-1);word-break:keep-all;">어떤 가게에 효과가 있나요? — 노출 조건 + 가능/불가능 확인</span>
+        <span style="width:26px;height:26px;border-radius:50%;background:#EFF6FF;color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;transition:transform 0.2s;" id="toggle-icon">+</span>
+      </summary>
+      <div style="border-top:1px solid var(--line);padding:18px 20px 20px;display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <p style="font-size:13px;font-weight:700;color:var(--ink-3);margin-bottom:10px;">네이버 AI 브리핑 노출 가능 조건 (3가지 모두 충족)</p>
+          <div style="display:grid;grid-template-columns:1fr;gap:8px;" id="gate-grid">
+            <div class="card-t3" style="background:#EFF6FF;border-color:#BFDBFE;padding:12px;">
+              <p style="font-size:11px;font-weight:700;color:var(--brand);margin-bottom:3px;">① 업종</p>
+              <p style="font-size:13px;font-weight:700;color:var(--ink-1);">음식점·카페·베이커리·바·숙박</p>
+              <p style="font-size:12px;color:var(--ink-3);margin-top:3px;line-height:1.5;">그 외 업종도 ChatGPT·Gemini·Google AI 개선 가능</p>
+            </div>
+            <div class="card-t3" style="background:#F5F3FF;border-color:#DDD6FE;padding:12px;">
+              <p style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:3px;">② 가맹점 여부</p>
+              <p style="font-size:13px;font-weight:700;color:var(--ink-1);">개인 사업장만 해당</p>
+              <p style="font-size:12px;color:var(--ink-3);margin-top:3px;line-height:1.5;">프랜차이즈 가맹점은 네이버 공식 정책상 제외</p>
+            </div>
+            <div class="card-t3" style="background:#FFFBEB;border-color:#FDE68A;padding:12px;">
+              <p style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:3px;">③ 리뷰 수</p>
+              <p style="font-size:13px;font-weight:700;color:var(--ink-1);">영수증 리뷰 10건 권장</p>
+              <p style="font-size:12px;color:var(--ink-3);margin-top:3px;line-height:1.5;">부족 시 QR 카드 + 리뷰 답변 자동 생성 지원</p>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card-t3" style="background:#ECFDF5;border-color:#6EE7B7;padding:12px;">
+            <p style="font-size:12px;font-weight:700;color:#065F46;margin-bottom:6px;">가능한 것</p>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2);">
+              <li>• 노출 조건 점수화 + 콘텐츠 자동 생성</li>
+              <li>• 비대상 업종도 글로벌 AI 노출 개선</li>
+              <li>• 매주 4개 AI 스캔 + 결과 검증</li>
+              <li>• 경쟁사 비교 + 키워드 갭 분석</li>
+            </ul>
+          </div>
+          <div class="card-t3" style="background:#FEF2F2;border-color:#FECACA;padding:12px;">
+            <p style="font-size:12px;font-weight:700;color:#9F1239;margin-bottom:6px;">불가능한 것</p>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2);">
+              <li>• 노출 100% 보장 (알고리즘 비공개)</li>
+              <li>• 비대상 업종을 대상으로 전환</li>
+              <li>• 네이버 AI 정보 탭 토글 대신 켜기</li>
+              <li>• 네이버 정책 위반 우회</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<div class="section-divider fade-up"></div>
+
+<!-- ══════════════════════════════════════
+     3. PROOF — 신뢰 데이터
+══════════════════════════════════════ -->
+<section class="section" style="background:#F8FAFC;" id="proof">
+  <div class="container">
+    <div class="text-center fade-up" style="margin-bottom:36px;">
+      <p class="eyebrow" style="margin-bottom:8px;">네이버 공식 발표 데이터</p>
+      <h2 class="section-h2" style="color:var(--ink-1);">실제로 효과가 있다는 공식 근거</h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:14px;" id="proof-grid">
+      <!-- 메인 카드 — grad-brand -->
+      <div class="card-t2 fade-up" style="background:var(--grad-brand);padding:26px 28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 90% 0%,rgba(255,255,255,0.10) 0%,transparent 60%);pointer-events:none;" aria-hidden="true"></div>
+        <div style="position:relative;">
+          <p style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.70);margin-bottom:6px;">음식점 적용 후 클릭률 변화</p>
+          <p class="num count-up" data-target="27.4" data-suffix="%" data-prefix="+" style="font-size:clamp(2.8rem,6vw,4rem);color:#FFFFFF;">+27.4%</p>
+          <p style="font-size:15px;color:rgba(255,255,255,0.88);margin-top:6px;word-break:keep-all;">AI 브리핑에 노출되면 손님 클릭이 늘어납니다</p>
+          <p style="font-size:12px;color:rgba(255,255,255,0.60);margin-top:10px;">네이버 2026년 4월 공식 발표 · 음식점 카테고리 기준</p>
+          <a href="https://www.mt.co.kr/tech/2026/04/07/2026040709261836765" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.65);text-decoration:underline;display:inline-block;margin-top:3px;">머니투데이 보도 원문 →</a>
+          <p style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:6px;">측정 시점·지역·업종에 따라 달라질 수 있습니다</p>
+        </div>
+      </div>
+
+      <!-- 보조 카드 3개 -->
+      <div style="display:grid;grid-template-columns:1fr;gap:10px;" id="proof-sub">
+        <div class="card-t2 fade-up" style="background:#FFFFFF;padding:18px;">
+          <p class="num count-up" data-target="3000" data-suffix="만+" style="font-size:clamp(1.8rem,3.5vw,2.4rem);color:var(--ink-1);">3,000만+</p>
+          <p style="font-size:14px;font-weight:600;color:var(--ink-1);margin-top:3px;">AI 브리핑을 본 사람</p>
+          <p style="font-size:12px;color:var(--ink-3);margin-top:2px;">네이버 공식 발표 2025-2026</p>
+        </div>
+        <div class="card-t2 fade-up fd1" style="background:#FFFFFF;padding:18px;">
+          <p class="num count-up" data-target="15000" data-suffix="+" style="font-size:clamp(1.8rem,3.5vw,2.4rem);color:var(--ink-1);">15,000+</p>
+          <p style="font-size:14px;font-weight:600;color:var(--ink-1);margin-top:3px;">네이버 AI 브리핑 적용 숙박업체</p>
+          <p style="font-size:12px;color:var(--ink-3);margin-top:2px;">2026년 기준 · 네이버 공식 발표</p>
+        </div>
+        <div class="card-t2 fade-up fd2" style="background:#ECFDF5;border-color:#6EE7B7;padding:18px;">
+          <p class="num" style="font-size:clamp(1.8rem,3.5vw,2.4rem);color:#065F46;">+8%</p>
+          <p style="font-size:14px;font-weight:600;color:var(--ink-1);margin-top:3px;">예약이 늘어난 음식점</p>
+          <p style="font-size:12px;color:var(--ink-3);margin-top:2px;">AI 브리핑 적용 음식점 평균</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider fade-up"></div>
+
+<!-- ══════════════════════════════════════
+     4. HOW CUSTOMERS — AI 브리핑 3단계
+══════════════════════════════════════ -->
+<section class="section" style="background:#FFFFFF;" id="how-customers">
+  <div class="container">
+    <div class="text-center fade-up" style="margin-bottom:36px;">
+      <p class="eyebrow" style="margin-bottom:8px;">네이버 AI 브리핑</p>
+      <h2 class="section-h2" style="color:var(--ink-1);">요즘 손님은 네이버 AI 추천 목록을 봅니다</h2>
+      <p style="font-size:15px;color:var(--ink-2);margin-top:10px;word-break:keep-all;">
+        네이버 검색 상단 AI 자동 추천 — <strong style="color:var(--ink-1);">3,000만 명+</strong>이 매달 이용 중 (네이버 공식 발표)
+      </p>
+    </div>
+
+    <div class="grid-3 fade-up" style="margin-bottom:16px;">
+      <!-- ① 검색 -->
+      <div class="card-t2" style="background:#FFFFFF;padding:18px;">
+        <p style="font-size:12px;font-weight:700;color:var(--ink-3);margin-bottom:10px;">① 손님이 네이버에서 검색</p>
+        <div class="card-t3" style="background:#F8FAFC;padding:10px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:7px;background:#FFFFFF;border:1px solid var(--line);border-radius:6px;padding:7px 10px;">
+            <span style="color:#059669;font-weight:900;font-size:12px;flex-shrink:0;">N</span>
+            <span style="font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-1);">"강남 분위기 좋은 카페"</span>
+            <span class="sample-badge">예시</span>
+          </div>
+        </div>
+        <p style="font-size:14px;color:var(--ink-2);">매일 수백만 건의 지역 검색 발생</p>
+      </div>
+
+      <!-- ② AI 브리핑 -->
+      <div class="card-t2" style="background:#FFFFFF;border-color:#BFDBFE;padding:18px;">
+        <p style="font-size:12px;font-weight:700;color:var(--brand-deep);margin-bottom:10px;">② 네이버 AI 브리핑에 노출</p>
+        <div class="card-t3" style="background:#EFF6FF;border-color:#BFDBFE;padding:10px;margin-bottom:10px;">
+          <p style="font-size:12px;font-weight:700;color:var(--brand-deep);margin-bottom:8px;">AI 추천 카페 <span style="font-weight:400;color:var(--ink-2);">예시</span></p>
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:#FFFFFF;background:var(--grad-brand);border-radius:6px;padding:7px 10px;margin-bottom:5px;font-weight:700;">
+            <span>1</span><span>○○카페</span><span style="margin-left:auto;color:rgba(255,255,255,0.75);">분위기 최고</span>
+          </div>
+          <div style="font-size:12px;color:var(--ink-2);padding:4px 7px;">2 △△커피</div>
+          <div style="font-size:12px;color:var(--ink-2);padding:4px 7px;">3 □□라운지</div>
+        </div>
+        <p style="font-size:14px;font-weight:700;color:var(--brand-deep);">1위 노출 시 클릭 +27.4%</p>
+        <p style="font-size:12px;color:var(--ink-3);">네이버 공식 발표 · 음식점 기준</p>
+      </div>
+
+      <!-- ③ 방문 -->
+      <div class="card-t2" style="background:#FFFFFF;border-color:#6EE7B7;padding:18px;">
+        <p style="font-size:12px;font-weight:700;color:#059669;margin-bottom:10px;">③ 광고 없이 손님 방문</p>
+        <div class="card-t3" style="background:#ECFDF5;border-color:#6EE7B7;padding:16px;text-align:center;margin-bottom:10px;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" style="margin:0 auto 6px;" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          <p style="font-size:15px;font-weight:900;color:#065F46;">우리 가게 선택!</p>
+          <p style="font-size:13px;color:#059669;margin-top:3px;">AI 추천 → 신뢰 → 방문</p>
+        </div>
+        <p style="font-size:14px;color:var(--ink-2);">광고비 없이 꾸준히 추천됩니다</p>
+      </div>
+    </div>
+
+    <p class="fade-up" style="text-align:center;font-size:12px;color:var(--ink-3);word-break:keep-all;">
+      음식점·카페·베이커리·숙박업 등 네이버 AI 브리핑 대상 업종 기준 · 그 외 업종은 ChatGPT·Gemini·Google AI 노출 진단 제공
+    </p>
+  </div>
+</section>
+
+<div class="section-divider fade-up"></div>
+
+<!-- ══════════════════════════════════════
+     5. HOW AEOLAB — 3단계 프로세스
+══════════════════════════════════════ -->
+<section class="section" style="background:#F8FAFC;" id="how">
+  <div class="container">
+    <div class="text-center fade-up" style="margin-bottom:36px;">
+      <p class="eyebrow-ko" style="margin-bottom:8px;">작동 방식</p>
+      <h2 class="section-h2" style="color:var(--ink-1);">
+        1분 진단,
+        <span class="grad-text">7일 변화</span>
+      </h2>
+      <p style="font-size:15px;color:var(--ink-2);margin-top:10px;">복잡한 설정 없이 3단계로 시작합니다</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:32px;" id="how-steps">
+      <!-- Step 1 -->
+      <div class="card-t2 fade-up" style="background:#EFF6FF;border-color:#BFDBFE;padding:22px;">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--grad-brand);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:13px;font-weight:900;flex-shrink:0;">1</div>
+          <span class="eyebrow" style="font-size:11px;">STEP 01</span>
+        </div>
+        <h3 style="font-size:1rem;font-weight:700;color:var(--ink-1);margin-bottom:7px;">우리 가게 입력</h3>
+        <p style="font-size:14px;color:var(--ink-2);word-break:keep-all;margin-bottom:12px;">업종·가게 이름만 입력하면 네이버 AI 브리핑부터 ChatGPT·Gemini·Google AI까지 한번에 분석합니다</p>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div class="card-t3" style="background:#FFFFFF;padding:9px 12px;">
+            <p style="font-size:11px;color:var(--ink-3);">업종</p><p style="font-size:13px;font-weight:700;color:var(--ink-1);">카페</p>
+          </div>
+          <div class="card-t3" style="background:#FFFFFF;padding:9px 12px;">
+            <p style="font-size:11px;color:var(--ink-3);">가게 이름</p><p style="font-size:13px;font-weight:700;color:var(--ink-1);">○○카페</p>
+          </div>
+          <div style="background:var(--grad-brand);color:#FFFFFF;font-size:13px;font-weight:700;padding:11px;border-radius:8px;text-align:center;">진단 시작 →</div>
+          <p style="text-align:center;font-size:11px;color:var(--ink-3);">1분 소요 · 가입 불필요</p>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="card-t2 fade-up fd1" style="background:#EEF2FF;border-color:#C7D2FE;padding:22px;">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--grad-brand);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:13px;font-weight:900;flex-shrink:0;">2</div>
+          <span class="eyebrow" style="font-size:11px;color:#4F46E5;">STEP 02</span>
+        </div>
+        <h3 style="font-size:1rem;font-weight:700;color:var(--ink-1);margin-bottom:7px;">노출 현황 분석 + 개선 방향</h3>
+        <p style="font-size:14px;color:var(--ink-2);word-break:keep-all;margin-bottom:12px;">네이버 AI 브리핑 노출 현황·빠진 키워드 안내 · ChatGPT·Gemini·Google AI 분석도 함께 제공</p>
+        <div class="card-t3" style="background:#FFFFFF;border-color:#C7D2FE;padding:14px;text-align:center;margin-bottom:8px;">
+          <p style="font-size:11px;font-weight:700;color:#4F46E5;margin-bottom:3px;">AI 노출 점수 <span class="sample-badge">예시</span></p>
+          <p class="num" style="font-size:2.8rem;color:#4F46E5;">62</p>
+          <p style="font-size:13px;color:var(--ink-2);margin-top:3px;">100 기준 · 개선 여지 있음</p>
+        </div>
+        <div class="card-t3" style="background:#FFFBEB;border-color:#FDE68A;padding:9px 12px;">
+          <p style="font-size:12px;font-weight:700;color:#92400E;">빠진 키워드 3개 발견 <span class="sample-badge">예시</span></p>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="card-t2 fade-up fd2" style="background:#F5F3FF;border-color:#DDD6FE;padding:22px;">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--grad-brand);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:13px;font-weight:900;flex-shrink:0;">3</div>
+          <span class="eyebrow" style="font-size:11px;color:#6D28D9;">STEP 03</span>
+        </div>
+        <h3 style="font-size:1rem;font-weight:700;color:var(--ink-1);margin-bottom:7px;">매주 자동 점검 + 카카오 알림</h3>
+        <p style="font-size:14px;color:var(--ink-2);word-break:keep-all;margin-bottom:12px;">매주 자동 재측정. 노출 변화가 생기면 카카오 알림톡으로 바로 알려드립니다</p>
+        <div class="card-t3" style="background:#FAE100;border-color:#D4B800;padding:14px;">
+          <p style="font-size:11px;font-weight:700;color:#5B4A00;margin-bottom:7px;">카카오 알림톡 예시</p>
+          <div style="background:rgba(255,255,255,0.70);border-radius:8px;padding:10px;">
+            <p style="font-size:12px;font-weight:700;color:var(--ink-1);margin-bottom:3px;">AEOlab 주간 리포트</p>
+            <p style="font-size:12px;color:var(--ink-1);line-height:1.6;">이번 주 AI 노출 점수: <strong>78점</strong> (+6점 상승)<br/>ChatGPT 언급: 31회 → 38회</p>
+          </div>
+          <p style="font-size:11px;color:#5B4A00;margin-top:6px;text-align:center;">노출 변화 시 자동 발송 · 예시</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center fade-up">
+      <a href="#trial" class="btn-primary">1분 무료 진단 시작 →</a>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider fade-up"></div>
+
+<!-- ══════════════════════════════════════
+     5-B. DASHBOARD PREVIEW
+══════════════════════════════════════ -->
+<section class="section" style="background:#FFFFFF;" id="dashboard">
+  <div class="container">
+    <div class="text-center fade-up" style="margin-bottom:36px;">
+      <p class="eyebrow-ko" style="margin-bottom:8px;">구독하면 이런 인사이트를 받게 됩니다</p>
+      <h2 class="section-h2" style="color:var(--ink-1);">매주 이런 인사이트를 받게 됩니다</h2>
+      <p style="font-size:15px;color:var(--ink-2);margin-top:10px;">자동 측정 · 카카오 알림 · AI 개선 가이드 — 한 번 설정하면 알아서 관리</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" class="fade-up">
+      <!-- 카카오 전체 -->
+      <div class="card-t2" style="grid-column:1/-1;background:#FAE100;border-color:#D4B800;padding:18px;">
+        <p style="font-size:12px;font-weight:700;color:#5B4A00;margin-bottom:8px;">카카오 알림톡 예시</p>
+        <div style="background:rgba(255,255,255,0.70);border-radius:10px;padding:12px;">
+          <p style="font-size:13px;font-weight:700;color:var(--ink-1);margin-bottom:3px;">AEOlab 주간 리포트</p>
+          <p style="font-size:13px;color:var(--ink-1);line-height:1.6;">이번 주 AI 노출 점수: <strong>78점</strong> (+6점 상승)<br/>ChatGPT 언급: 31회 → 38회<br/>경쟁사 대비: 상위 35%</p>
+        </div>
+        <p style="font-size:11px;color:#5B4A00;margin-top:6px;text-align:center;">노출 변화 시 자동 발송 · 예시</p>
+      </div>
+
+      <!-- Track 1 -->
+      <div class="card-t2" style="background:#EFF6FF;border-color:#BFDBFE;padding:18px;">
+        <p style="font-size:11px;font-weight:700;color:var(--brand-deep);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Track 1 · 네이버</p>
+        <p class="num" style="font-size:2.2rem;color:var(--brand-deep);">52</p>
+        <div style="height:5px;background:#BFDBFE;border-radius:3px;margin:7px 0;">
+          <div style="width:52%;height:100%;background:var(--brand-deep);border-radius:3px;"></div>
+        </div>
+        <p style="font-size:12px;color:var(--ink-2);">AI 노출 점수 · 100점 기준</p>
+        <div style="display:flex;gap:5px;margin-top:7px;">
+          <span style="font-size:11px;font-weight:600;background:#BFDBFE;color:var(--brand-deep);border-radius:100px;padding:2px 9px;">업종 4위</span>
+          <span style="font-size:11px;font-weight:600;background:#ECFDF5;color:#065F46;border-radius:100px;padding:2px 9px;">+6점</span>
+        </div>
+      </div>
+
+      <!-- Track 2 -->
+      <div class="card-t2" style="background:#F8FAFC;padding:18px;">
+        <p style="font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Track 2 · 글로벌 AI</p>
+        <p class="num" style="font-size:2.2rem;color:var(--ink-1);">38</p>
+        <div style="height:5px;background:var(--line);border-radius:3px;margin:7px 0;">
+          <div style="width:38%;height:100%;background:var(--ink-2);border-radius:3px;"></div>
+        </div>
+        <p style="font-size:12px;color:var(--ink-2);">ChatGPT·Gemini · 100점 기준</p>
+        <div style="display:flex;gap:5px;margin-top:7px;">
+          <span style="font-size:11px;font-weight:600;background:var(--line);color:var(--ink-2);border-radius:100px;padding:2px 9px;">업종 5위</span>
+          <span style="font-size:11px;font-weight:600;background:#ECFDF5;color:#065F46;border-radius:100px;padding:2px 9px;">+3점</span>
+        </div>
+      </div>
+
+      <!-- 키워드 갭 -->
+      <div class="card-t2" style="grid-column:1/-1;background:#FFFFFF;padding:18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <p style="font-size:13px;font-weight:700;color:var(--ink-1);">키워드 갭</p>
+          <span class="sample-badge">예시</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;">
+          <span style="font-size:12px;font-weight:600;background:#FFFBEB;color:#92400E;border-radius:100px;padding:4px 11px;">✗ 주차 가능</span>
+          <span style="font-size:12px;font-weight:600;background:#FFFBEB;color:#92400E;border-radius:100px;padding:4px 11px;">✗ 단체석</span>
+          <span style="font-size:12px;font-weight:600;background:#ECFDF5;color:#065F46;border-radius:100px;padding:4px 11px;">✓ 포장 가능</span>
+        </div>
+      </div>
+    </div>
+    <p class="fade-up" style="text-align:center;font-size:13px;color:var(--ink-3);margin-top:14px;">모든 수치는 예시입니다 · 실제 데이터는 내 가게 스캔 후 표시됩니다</p>
+  </div>
+</section>
+
+<div class="section-divider fade-up"></div>
+
+<!-- ══════════════════════════════════════
+     6. WHY NOT DIY
+══════════════════════════════════════ -->
+<section class="section" style="background:#F8FAFC;" id="why-not-diy">
+  <div class="container">
+    <div class="text-center fade-up" style="margin-bottom:36px;">
+      <p class="eyebrow-ko" style="margin-bottom:8px;">왜 AEOlab인가</p>
+      <h2 class="section-h2" style="color:var(--ink-1);">무료 AI로 직접 하면 되지 않나요?</h2>
+      <p style="font-size:15px;color:var(--ink-2);margin-top:10px;">할 수 있습니다. 하지만 이런 차이가 있습니다.</p>
+    </div>
+
+    <div class="fade-up" style="border-radius:12px;overflow:hidden;border:2px solid var(--brand-deep);box-shadow:0 4px 24px rgba(30,64,175,0.12);">
+      <div class="compare-row" style="background:#FFFFFF;">
+        <div style="font-size:13px;font-weight:700;color:var(--ink-3);border-right:1px solid var(--line);border-bottom:2px solid var(--line);">비교 항목</div>
+        <div style="font-size:13px;font-weight:700;color:var(--ink-2);border-right:1px solid var(--line);border-bottom:2px solid var(--line);">무료 AI 직접 측정</div>
+        <div style="font-size:13px;font-weight:700;color:var(--brand-deep);border-bottom:2px solid var(--brand-deep);">AEOlab 자동 관리</div>
+      </div>
+      <div class="compare-row" style="background:#FFFFFF;">
+        <div style="font-size:13px;font-weight:500;color:var(--ink-1);background:#F8FAFC;border-right:1px solid var(--line);">추적 방식</div>
+        <div style="font-size:13px;color:var(--ink-2);background:#FEF2F2;border-right:1px solid var(--line);display:flex;align-items:flex-start;gap:6px;"><span style="color:#DC2626;font-weight:700;flex-shrink:0;">✕</span>매주 25번+ 직접 질문</div>
+        <div style="font-size:13px;color:var(--ink-1);background:#EFF6FF;display:flex;align-items:flex-start;gap:6px;"><span style="color:#059669;font-weight:700;flex-shrink:0;">✓</span><strong>자동 추적 + 카카오 알림</strong></div>
+      </div>
+      <div class="compare-row" style="background:#FFFFFF;">
+        <div style="font-size:13px;font-weight:500;color:var(--ink-1);background:#F8FAFC;border-right:1px solid var(--line);">신뢰도</div>
+        <div style="font-size:13px;color:var(--ink-2);background:#FEF2F2;border-right:1px solid var(--line);display:flex;align-items:flex-start;gap:6px;"><span style="color:#DC2626;font-weight:700;flex-shrink:0;">✕</span>같은 질문, 매번 다른 답</div>
+        <div style="font-size:13px;color:var(--ink-1);background:#EFF6FF;display:flex;align-items:flex-start;gap:6px;"><span style="color:#059669;font-weight:700;flex-shrink:0;">✓</span><strong>Gemini·ChatGPT 각 50회 통계</strong></div>
+      </div>
+      <div class="compare-row" style="background:#FFFFFF;">
+        <div style="font-size:13px;font-weight:500;color:var(--ink-1);background:#F8FAFC;border-right:1px solid var(--line);">객관성</div>
+        <div style="font-size:13px;color:var(--ink-2);background:#FEF2F2;border-right:1px solid var(--line);display:flex;align-items:flex-start;gap:6px;"><span style="color:#DC2626;font-weight:700;flex-shrink:0;">✕</span>개인화된 검색 결과</div>
+        <div style="font-size:13px;color:var(--ink-1);background:#EFF6FF;display:flex;align-items:flex-start;gap:6px;"><span style="color:#059669;font-weight:700;flex-shrink:0;">✓</span><strong>객관적 노출 빈도 측정</strong></div>
+      </div>
+      <div class="compare-row" style="background:#FFFFFF;">
+        <div style="font-size:13px;font-weight:500;color:var(--ink-1);background:#F8FAFC;border-right:1px solid var(--line);border-bottom:none;">원인 분석</div>
+        <div style="font-size:13px;color:var(--ink-2);background:#FEF2F2;border-right:1px solid var(--line);border-bottom:none;display:flex;align-items:flex-start;gap:6px;"><span style="color:#DC2626;font-weight:700;flex-shrink:0;">✕</span>AI가 이유를 설명 안 함</div>
+        <div style="font-size:13px;color:var(--ink-1);background:#EFF6FF;border-bottom:none;display:flex;align-items:flex-start;gap:6px;"><span style="color:#059669;font-weight:700;flex-shrink:0;">✓</span><strong>경쟁사 갭 + 개선 가이드</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider fade-up"></div>
+
+<!-- ══════════════════════════════════════
+     7. vs OTHERS — 서비스 비교
+══════════════════════════════════════ -->
+<section class="section" style="background:#FFFFFF;" id="compare">
+  <div class="container">
+    <div class="text-center fade-up" style="margin-bottom:36px;">
+      <p class="eyebrow" style="margin-bottom:8px;">서비스 비교</p>
+      <h2 class="section-h2" style="color:var(--ink-1);">기존 방법과 무엇이 다른가요?</h2>
+    </div>
+
+    <div class="grid-3 fade-up">
+      <!-- 기존 SEO -->
+      <div class="card-t2" style="background:#F8FAFC;padding:22px;">
+        <p style="font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px;">기존 SEO 서비스</p>
+        <p style="font-size:1rem;font-weight:900;color:var(--ink-3);margin-bottom:18px;">웹 검색 최적화</p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">AI 추천 최적화 <span style="display:inline-block;width:18px;height:1px;background:#CBD5E1;"></span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">AI 브리핑 키워드 갭 <span style="display:inline-block;width:18px;height:1px;background:#CBD5E1;"></span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">경쟁사 AI 노출 비교 <span style="display:inline-block;width:18px;height:1px;background:#CBD5E1;"></span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">주간 자동 추적 <span style="display:inline-block;width:18px;height:1px;background:#CBD5E1;"></span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">ChatGPT·Gemini 관리 <span style="display:inline-block;width:18px;height:1px;background:#CBD5E1;"></span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">검색 키워드 관리 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+        </div>
+      </div>
+
+      <!-- 네이버 플레이스 -->
+      <div class="card-t2" style="background:#F8FAFC;padding:22px;">
+        <p style="font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px;">네이버 플레이스 관리</p>
+        <p style="font-size:1rem;font-weight:900;color:var(--ink-3);margin-bottom:18px;">플레이스 최적화</p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">AI 추천 최적화 <span style="display:inline-block;width:18px;height:1px;background:#CBD5E1;"></span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">AI 브리핑 키워드 갭 <span style="display:inline-block;width:18px;height:1px;background:#CBD5E1;"></span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">경쟁사 AI 노출 비교 <span style="display:inline-block;width:18px;height:1px;background:#CBD5E1;"></span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">주간 자동 추적 <span style="display:inline-block;width:18px;height:1px;background:#CBD5E1;"></span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">ChatGPT·Gemini 관리 <span style="display:inline-block;width:18px;height:1px;background:#CBD5E1;"></span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-3);">네이버 플레이스 관리 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+        </div>
+      </div>
+
+      <!-- AEOlab — Tier 1 강조 -->
+      <div class="card-t1" style="background:linear-gradient(180deg,#FFFFFF 0%,#EFF6FF 100%);border-color:var(--brand-deep);padding:22px;position:relative;">
+        <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--grad-brand);color:#FFFFFF;font-size:12px;font-weight:700;border-radius:100px;padding:3px 13px;white-space:nowrap;">추천</div>
+        <p style="font-size:11px;font-weight:700;color:var(--brand-deep);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px;">AEOlab</p>
+        <p style="font-size:1rem;font-weight:900;color:var(--ink-1);margin-bottom:18px;">AI 노출 통합 관리</p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:500;color:var(--ink-1);">AI 추천 최적화 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:500;color:var(--ink-1);">AI 브리핑 키워드 갭 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:500;color:var(--ink-1);">경쟁사 AI 노출 비교 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:500;color:var(--ink-1);">주간 자동 추적 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:500;color:var(--ink-1);">ChatGPT·Gemini 관리 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:500;color:var(--ink-1);">네이버 플레이스 관리 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+        </div>
+        <a href="#trial" class="btn-primary" style="width:100%;justify-content:center;margin-top:18px;">1분 무료 진단 시작 →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider fade-up"></div>
+
+<!-- ══════════════════════════════════════
+     8. PRICE — 가격 앵커
+══════════════════════════════════════ -->
+<section class="section" style="background:#EFF6FF;border-top:1px solid #BFDBFE;border-bottom:1px solid #BFDBFE;" id="price">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center;max-width:600px;margin:0 auto 28px;" class="fade-up">
+      <!-- 네이버 광고 -->
+      <div style="text-align:center;border-right:1px solid #BFDBFE;padding-right:18px;">
+        <p style="font-size:13px;color:var(--ink-3);font-weight:500;margin-bottom:5px;">네이버 광고</p>
+        <p class="num" style="font-size:clamp(1.4rem,3vw,2rem);color:var(--ink-3);text-decoration:line-through;word-break:keep-all;">월 30~<br/>100만원+</p>
+        <p style="font-size:13px;color:var(--ink-3);margin-top:4px;">끊으면 사라짐</p>
+      </div>
+      <!-- AEOlab -->
+      <div style="text-align:center;padding-left:18px;">
+        <p class="eyebrow-ko" style="margin-bottom:7px;">AEOlab</p>
+        <p class="num" style="font-size:clamp(1.8rem,4vw,2.8rem);color:var(--ink-1);">월 9,900원</p>
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;background:#ECFDF5;color:#065F46;border:1px solid #6EE7B7;border-radius:100px;padding:3px 12px;margin-top:6px;">첫 달 4,950원</span>
+        <p style="font-size:13px;color:var(--ink-2);margin-top:8px;">광고 없이 AI 노출 시작</p>
+      </div>
+    </div>
+    <div class="text-center fade-up">
+      <a href="/pricing" class="btn-primary" style="font-size:15px;padding:14px 32px;">요금제 보기</a>
+      <p style="font-size:12px;color:var(--ink-2);margin-top:8px;">Basic 첫 달 4,950원 · 언제든 해지 가능</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider fade-up"></div>
+
+<!-- ══════════════════════════════════════
+     9. FAQ
+══════════════════════════════════════ -->
+<section class="section" style="background:#F8FAFC;" id="faq">
+  <div class="container" style="max-width:700px;">
+    <div class="text-center fade-up" style="margin-bottom:32px;">
+      <p class="eyebrow" style="margin-bottom:8px;">자주 묻는 질문</p>
+      <h2 class="section-h2" style="color:var(--ink-1);">FAQ</h2>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;" class="fade-up">
+      <details class="card-t2" style="background:#FFFFFF;overflow:hidden;">
+        <summary style="padding:16px 18px;font-size:14px;font-weight:700;color:var(--ink-1);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <span style="word-break:keep-all;">내 업종도 네이버 AI 브리핑에 노출되나요?</span>
+          <svg style="flex-shrink:0;transition:transform 0.2s;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </summary>
+        <div style="padding:0 18px 16px;font-size:14px;color:var(--ink-2);line-height:1.65;border-top:1px solid var(--line);">
+          음식점·카페·베이커리·숙박업 등은 네이버 AI 브리핑 대상입니다. 단, 프랜차이즈는 제외됩니다. 그 외 업종(의료·교육·법률 등)은 ChatGPT·Gemini·Google AI 노출 최적화를 제공합니다.
+        </div>
+      </details>
+
+      <details class="card-t2" style="background:#FFFFFF;overflow:hidden;">
+        <summary style="padding:16px 18px;font-size:14px;font-weight:700;color:var(--ink-1);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <span style="word-break:keep-all;">무료 진단은 어떻게 진행되나요?</span>
+          <svg style="flex-shrink:0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </summary>
+        <div style="padding:0 18px 16px;font-size:14px;color:var(--ink-2);line-height:1.65;border-top:1px solid var(--line);">
+          회원가입 없이 업종·지역 입력 후 1분 내 결과를 확인할 수 있습니다. 실제 가게의 AI 노출 점수, 키워드 갭, 개선 방향을 제공합니다.
+        </div>
+      </details>
+
+      <details class="card-t2" style="background:#FFFFFF;overflow:hidden;">
+        <summary style="padding:16px 18px;font-size:14px;font-weight:700;color:var(--ink-1);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <span style="word-break:keep-all;">직접 ChatGPT에 물어보면 안 되나요?</span>
+          <svg style="flex-shrink:0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </summary>
+        <div style="padding:0 18px 16px;font-size:14px;color:var(--ink-2);line-height:1.65;border-top:1px solid var(--line);">
+          가능합니다. 하지만 ChatGPT는 같은 질문에도 매번 다른 답변을 줍니다. AEOlab은 Gemini·ChatGPT 각 50회 샘플링으로 통계적으로 신뢰할 수 있는 노출 빈도를 측정합니다.
+        </div>
+      </details>
+
+      <details class="card-t2" style="background:#FFFFFF;overflow:hidden;">
+        <summary style="padding:16px 18px;font-size:14px;font-weight:700;color:var(--ink-1);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <span style="word-break:keep-all;">언제든 해지할 수 있나요?</span>
+          <svg style="flex-shrink:0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </summary>
+        <div style="padding:0 18px 16px;font-size:14px;color:var(--ink-2);line-height:1.65;border-top:1px solid var(--line);">
+          네, 위약금 없이 언제든 해지 가능합니다. 결제 후 30일 이내에는 100% 환불됩니다.
+        </div>
+      </details>
+
+      <details class="card-t2" style="background:#FFFFFF;overflow:hidden;">
+        <summary style="padding:16px 18px;font-size:14px;font-weight:700;color:var(--ink-1);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <span style="word-break:keep-all;">점수가 낮으면 어떻게 개선하나요?</span>
+          <svg style="flex-shrink:0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </summary>
+        <div style="padding:0 18px 16px;font-size:14px;color:var(--ink-2);line-height:1.65;border-top:1px solid var(--line);">
+          스캔 후 AI가 구체적인 개선 가이드를 제공합니다. 리뷰 키워드 추가, 소개글 보강, 사진 등록 등 업종별로 최적화된 방법을 안내합니다.
+        </div>
+      </details>
+    </div>
+
+    <div class="fade-up card-t3" style="margin-top:20px;padding:14px 18px;background:#FFFFFF;text-align:center;">
+      <p style="font-size:14px;color:var(--ink-2);">아직 망설이고 있다면, <a href="#trial" style="font-weight:700;color:#7C3AED;text-decoration:underline;">1분 무료 진단</a>은 회원가입 없이 바로 가능합니다</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider fade-up"></div>
+
+<!-- ══════════════════════════════════════
+     10. FINAL CTA — 다크 (grad-final 유지)
+══════════════════════════════════════ -->
+<section class="section" style="background:var(--grad-final);position:relative;overflow:hidden;" id="trial">
+  <div style="position:absolute;inset:0;pointer-events:none;" aria-hidden="true">
+    <div style="position:absolute;width:500px;height:400px;top:-80px;right:-60px;background:radial-gradient(ellipse at center,rgba(124,58,237,0.35) 0%,transparent 70%);filter:blur(60px);"></div>
+    <div style="position:absolute;width:300px;height:300px;bottom:-40px;left:10%;background:radial-gradient(ellipse at center,rgba(37,99,235,0.25) 0%,transparent 70%);filter:blur(50px);"></div>
+  </div>
+
+  <div class="container" style="position:relative;text-align:center;max-width:680px;">
+    <p class="eyebrow" style="color:#93C5FD;margin-bottom:14px;">지금 시작하세요</p>
+    <h2 class="section-h2" style="color:#FFFFFF;margin-bottom:18px;font-size:clamp(1.6rem,3.5vw,2.2rem);">
+      손님이 우리 가게를<br/>먼저 찾게 만들기
+    </h2>
+
+    <div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:28px;">
+      <span style="display:flex;align-items:center;gap:5px;font-size:13px;color:rgba(255,255,255,0.70);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        가입 불필요
+      </span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:13px;color:rgba(255,255,255,0.70);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+        카드 없이
+      </span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:13px;color:rgba(255,255,255,0.70);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        1분 소요
+      </span>
+    </div>
+
+    <!-- Final CTA 버튼 — Tier 1 -->
+    <div class="fade-up card-t1" style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.12);padding:28px 24px;display:inline-block;width:100%;max-width:460px;">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;">
+        <a href="#" style="display:inline-flex;align-items:center;gap:8px;background:#FFFFFF;color:var(--ink-1);font-size:15px;font-weight:700;padding:14px 28px;border-radius:12px;text-decoration:none;box-shadow:0 4px 24px rgba(0,0,0,0.25);transition:transform 0.2s cubic-bezier(.22,1,.36,1),box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px) scale(1.02)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.35)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 24px rgba(0,0,0,0.25)'">
+          1분 무료 진단 시작 →
+        </a>
+        <a href="#price" style="display:inline-flex;align-items:center;gap:7px;color:rgba(255,255,255,0.85);font-size:14px;font-weight:600;padding:13px 22px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.20);text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">
+          요금제 보기
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     FOOTER
+══════════════════════════════════════ -->
+<footer style="background:#0C1A3A;color:rgba(255,255,255,0.55);padding:36px 0;font-size:13px;">
+  <div class="container" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;">
+    <div>
+      <div style="display:flex;align-items:center;gap:3px;margin-bottom:6px;">
+        <span style="font-size:15px;font-weight:900;color:#FFFFFF;letter-spacing:-0.8px;">AEO</span>
+        <span style="font-size:15px;font-weight:900;color:#60A5FA;">lab</span>
+      </div>
+      <p style="font-size:12px;">AI Engine Optimization Lab</p>
+    </div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;">
+      <a href="#how" style="color:rgba(255,255,255,0.55);text-decoration:none;font-size:13px;transition:color 0.15s;" onmouseover="this.style.color='rgba(255,255,255,0.9)'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">서비스 안내</a>
+      <a href="#price" style="color:rgba(255,255,255,0.55);text-decoration:none;font-size:13px;transition:color 0.15s;" onmouseover="this.style.color='rgba(255,255,255,0.9)'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">요금제</a>
+      <a href="#faq" style="color:rgba(255,255,255,0.55);text-decoration:none;font-size:13px;transition:color 0.15s;" onmouseover="this.style.color='rgba(255,255,255,0.9)'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">FAQ</a>
+      <a href="#trial" style="color:rgba(255,255,255,0.55);text-decoration:none;font-size:13px;transition:color 0.15s;" onmouseover="this.style.color='rgba(255,255,255,0.9)'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">무료 진단</a>
+    </div>
+  </div>
+  <div class="container" style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
+    <p style="font-size:11px;color:rgba(255,255,255,0.35);">© 2026 AEOlab. 측정 결과는 시점·지역·기기에 따라 달라질 수 있습니다. 네이버 공식 발표 데이터 출처 포함.</p>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════
+     JavaScript
+══════════════════════════════════════ -->
+<script>
+/* ── 반응형 그리드 ── */
+function applyGrids() {
+  var w = window.innerWidth;
+  var hg = document.getElementById('hero-grid');
+  if (hg) {
+    hg.style.gridTemplateColumns = w >= 1024 ? '1fr 360px' : '1fr';
+    hg.style.gap = w >= 1024 ? '52px' : '36px';
+  }
+  var pg = document.getElementById('proof-grid');
+  if (pg) pg.style.gridTemplateColumns = w >= 768 ? '1fr 1fr' : '1fr';
+  var ps = document.getElementById('proof-sub');
+  if (ps) ps.style.gridTemplateColumns = w >= 768 ? '1fr' : '1fr 1fr';
+  var hs = document.getElementById('how-steps');
+  if (hs) hs.style.gridTemplateColumns = w >= 768 ? 'repeat(3,1fr)' : '1fr';
+  var gg = document.getElementById('gate-grid');
+  if (gg) gg.style.gridTemplateColumns = w >= 640 ? 'repeat(3,1fr)' : '1fr';
+  var nb = document.getElementById('nav-badge');
+  if (nb) nb.style.display = w >= 480 ? 'inline-flex' : 'none';
+}
+applyGrids();
+window.addEventListener('resize', applyGrids);
+
+/* ── IntersectionObserver fade-up ── */
+var io = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+document.querySelectorAll('.fade-up, .section-divider').forEach(function(el) { io.observe(el); });
+
+/* ── Hero 즉시 노출 ── */
+document.querySelectorAll('#hero .fade-up').forEach(function(el) { el.classList.add('visible'); });
+
+/* ── 카운트업 ── */
+function animateCount(el, target, duration, prefix, suffix) {
+  var isFloat = String(target).includes('.');
+  var startTime = null;
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    var p = Math.min((ts - startTime) / duration, 1);
+    var eased = 1 - Math.pow(1 - p, 3);
+    var val = target * eased;
+    el.textContent = prefix + (isFloat ? val.toFixed(1) : Math.floor(val).toLocaleString()) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('.count-up').forEach(function(el) {
+  var t = parseFloat(el.dataset.target);
+  var pre = el.dataset.prefix || '';
+  var suf = el.dataset.suffix || '';
+  var obs = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting) { animateCount(el, t, 1000, pre, suf); obs.disconnect(); }
+  }, { threshold: 0.5 });
+  obs.observe(el);
+});
+
+/* ── 업종 타일 선택 ── */
+var selectedTile = null;
+function selectTile(btn, key) {
+  document.querySelectorAll('.tile-btn').forEach(function(b) {
+    b.style.background = 'rgba(255,255,255,0.08)';
+    b.style.borderColor = 'rgba(255,255,255,0.20)';
+    b.style.color = 'rgba(255,255,255,0.85)';
+  });
+  btn.style.background = 'rgba(255,255,255,0.22)';
+  btn.style.borderColor = 'rgba(255,255,255,0.60)';
+  btn.style.color = '#FFFFFF';
+  selectedTile = key;
+  var labels = { restaurant:'음식점', cafe:'카페', beauty:'뷰티·미용', medical:'의료·약국', education:'교육·학원', other:'기타 업종' };
+  document.getElementById('industry-display').textContent = labels[key] || key;
+  document.getElementById('industry-display').style.color = 'var(--ink-1)';
+}
+
+/* ── 예시 미리보기 ── */
+function runDemo() {
+  var region = document.getElementById('region-input').value.trim() || '강남구';
+  var tile = selectedTile || 'restaurant';
+  var labels = { restaurant:'음식점', cafe:'카페', beauty:'뷰티', medical:'의료', education:'교육', other:'기타' };
+  document.getElementById('result-label').textContent = labels[tile] + ' · ' + region;
+  var panel = document.getElementById('demo-panel');
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ── FAQ 토글 아이콘 (details open/close) ── */
+document.querySelectorAll('details').forEach(function(d) {
+  d.addEventListener('toggle', function() {
+    var icon = d.querySelector('svg');
+    if (icon) icon.style.transform = d.open ? 'rotate(180deg)' : 'rotate(0deg)';
+    var ti = document.getElementById('toggle-icon');
+    if (ti && d.contains(ti)) ti.style.transform = d.open ? 'rotate(45deg)' : 'rotate(0deg)';
+  });
+});
+</script>
+
+</body>
+</html>

@@ -104,7 +104,7 @@ export default function KeywordsIndexPage() {
                   <Link
                     key={page.slug}
                     href={`/keywords/${page.slug}`}
-                    className="group block p-5 border border-gray-200 rounded-2xl hover:border-blue-300 hover:shadow-md transition-all"
+                    className="group block p-5 border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all"
                   >
                     {/* 배지 */}
                     <div className="flex flex-wrap gap-1.5 mb-3">
@@ -150,7 +150,7 @@ export default function KeywordsIndexPage() {
         ))}
 
         {/* CTA */}
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 md:p-10 text-center text-white">
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-6 md:p-10 text-center text-white">
           <h2 className="text-xl md:text-2xl font-bold mb-2 break-keep">
             내 가게 AI 노출 점수를 지금 확인하세요
           </h2>

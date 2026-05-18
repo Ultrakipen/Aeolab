@@ -16,7 +16,7 @@ interface CheckItem {
 export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardProps) {
   if (!websiteUrl) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-dashed border-gray-200">
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-dashed border-gray-200">
         <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 AI 인식 점검</div>
         <p className="text-sm text-gray-400 mb-4">
           독립 웹사이트가 없으면 ChatGPT에서 인용되기 어렵습니다.
@@ -51,7 +51,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
 
   if (checkResult.error) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <div className="bg-white rounded-xl p-6 shadow-sm">
         <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 AI 인식 점검</div>
         <p className="text-sm text-red-400">{checkResult.error} — 사이트 접속 후 재스캔하세요.</p>
       </div>
@@ -102,7 +102,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
   const highFailCount = items.filter((i) => !i.ok && i.impact === 'high').length
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm">
+    <div className="bg-white rounded-xl p-6 shadow-sm">
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="text-sm font-medium text-gray-700">웹사이트 AI 인식 점검</div>

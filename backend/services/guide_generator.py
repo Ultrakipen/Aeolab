@@ -8,7 +8,7 @@ import re
 import uuid
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import anthropic
 
 from models.context import ScanContext
@@ -231,9 +231,9 @@ _DIMENSION_LABELS = {
     "schema_seo":               "Schema/SEO",
     # v3.1 신규 항목
     "keyword_search_rank":      "네이버 키워드 검색 순위",
-    "blog_crank":               "블로그 C-rank 추정",
-    "local_map_score":          "지도/카카오맵 통합",
-    "ai_briefing_score":        "AI 브리핑 인용",
+    "blog_crank":               "블로그 생태계",
+    "local_map_score":          "지도·플레이스 노출",
+    "ai_briefing_score":        "AI 브리핑 노출",
 }
 
 
@@ -670,9 +670,9 @@ class GuideGenerator:
 | ① 네이버 키워드 검색 순위 | {_score_str(kw_rank_score)} | ACTIVE 25% / LIKELY 30% / INACTIVE 35% |
 | ② 리뷰 품질 | {_score_str(breakdown.get('review_quality'))} | ACTIVE 15% / LIKELY 17% / INACTIVE 20% |
 | ③ 스마트플레이스 완성도 | {_score_str(breakdown.get('smart_place_completeness'))} | ACTIVE 15% / LIKELY 18% / INACTIVE 20% |
-| ④ 블로그 C-rank 추정 | {_score_str(blog_cr_score)} | 공통 10% |
-| ⑤ 지도/카카오맵 통합 | {_score_str(local_map_sc)} | ACTIVE 10% / LIKELY 10% / INACTIVE 15% |
-| ⑥ AI 브리핑 인용 | {_score_str(ai_brief_sc)} | ACTIVE 25% / LIKELY 15% / INACTIVE 0% |
+| ④ 블로그 생태계 | {_score_str(blog_cr_score)} | 공통 10% |
+| ⑤ 지도·플레이스 노출 | {_score_str(local_map_sc)} | ACTIVE 10% / LIKELY 10% / INACTIVE 15% |
+| ⑥ AI 브리핑 노출 | {_score_str(ai_brief_sc)} | ACTIVE 25% / LIKELY 15% / INACTIVE 0% |
 - {ai_brief_note}
 - 지시사항: 점수가 "미측정"인 항목은 임의 수치를 만들지 말고 "측정 후 가이드 제공" 안내만 할 것
 - 가이드 우선순위는 이 6항목 점수 기준으로 낮은 항목부터 집중 — 단, INACTIVE는 ⑥ 제외"""
@@ -1206,7 +1206,7 @@ async def generate_faq_drafts(
 
 _INTRO_PROMPT_TMPL = """당신은 네이버 스마트플레이스 소개글 전문 작가입니다.
 
-다음 사업장 정보를 바탕으로 네이버 AI 브리핑 + 일반 검색 노출에 최적화된 소개글을 작성하세요.
+다음 사업장 정보를 바탕으로 네이버 AI 브리핑(C-rank · D.I.A.) + 일반 검색 노출에 최적화된 소개글을 작성하세요.
 
 [사업장 정보]
 - 가게명: {name}
@@ -1214,6 +1214,7 @@ _INTRO_PROMPT_TMPL = """당신은 네이버 스마트플레이스 소개글 전�
 - 지역: {region}
 - 핵심 키워드: {keywords}
 - 주요 서비스: {services}
+- LSI 연관 키워드(자연 배치 권장): {lsi_keywords}
 
 [작성 원칙]
 1. 첫 문장: "{region} {category_label} 전문 {name}입니다." 형태로 시작
@@ -1225,14 +1226,21 @@ _INTRO_PROMPT_TMPL = """당신은 네이버 스마트플레이스 소개글 전�
 6. 추상적 표현 금지 ("최고", "최상" 등 → 구체적 수치·사실로)
 7. 검색 최적화: 핵심 키워드를 소개글 앞부분에 자연스럽게 배치
 
+[D.I.A. 5요소 — 반드시 모두 적용]
+D(Diversity, 다양성): LSI 연관 키워드 중 4개 이상을 본문에 자연스럽게 사용 (단순 나열 금지)
+I(Information, 정보 충실성): 가격대·운영시간·위치·예약방법·결제수단 등 구체 수치를 5개 이상 명시
+A(Authority, 권위): 경력·자격·수상·인증·인기 메뉴 1개 이상 명시 (없으면 "운영 N년" 표기)
+T(Timeliness, 적시성): 마지막 문단 끝에 "[{current_year}년 {current_month}월 기준]" 자동 삽입 (필수)
+O(Originality, 독창성): 다른 가게와 다른 차별점 1개 이상 명시 (분위기·시그니처·가격 정책 등)
+
 [Q&A 5가지 추천 질문 카테고리]
 1. 가격/비용
 2. 운영시간/예약
 3. 위치/주차
-4. 주요 서비스 차별점
+4. 주요 서비스 차별점 (Originality 반영)
 5. 결제/취소 정책
 
-소개글만 출력하세요. 다른 설명·인사말 금지."""
+소개글만 출력하세요. 다른 설명·인사말 금지. 적시성 마커 "[{current_year}년 {current_month}월 기준]"는 반드시 본문 끝에 포함."""
 
 _TALKTALK_FAQ_PROMPT_TMPL = """당신은 네이버 톡톡 챗봇 콘텐츠 전문가입니다.
 
@@ -1270,11 +1278,27 @@ async def generate_naver_intro(
     region: str,
     keywords: list,
     target_length: int = 400,
+    lsi_keywords: list[str] | None = None,
+    category: str | None = None,
 ) -> str:
     """네이버 스마트플레이스 소개글 생성 (Claude Sonnet — guide_generator.py 허용 경로).
 
-    Q&A 5개 포함된 300~500자 소개글 반환.
+    D.I.A. 5요소(다양성·정보·권위·적시성·독창성) 강제 적용된 Q&A 5개 포함 300~500자 소개글 반환.
+
+    Args:
+        lsi_keywords: 자연 배치할 LSI 키워드. None이면 category로부터 자동 추출.
+        category: lsi_keywords가 None일 때 LSI 자동 추출에 사용할 업종 코드.
     """
+    if lsi_keywords is None and category:
+        try:
+            from services.keyword_taxonomy import get_all_keywords_flat
+            lsi_keywords = get_all_keywords_flat(category)[:8]
+        except Exception as e:
+            _logger.warning(f"generate_naver_intro LSI auto extract failed: {e}")
+            lsi_keywords = []
+    lsi_keywords = lsi_keywords or []
+
+    now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
     prompt = _INTRO_PROMPT_TMPL.format(
         name=biz_name,
         category_label=category_label,
@@ -1282,6 +1306,9 @@ async def generate_naver_intro(
         keywords=", ".join(keywords[:8]) if keywords else "미등록",
         services="(미입력 — 업종 기반으로 일반적인 서비스 작성)",
         target_length=max(300, min(500, target_length)),
+        lsi_keywords=", ".join(lsi_keywords) if lsi_keywords else "(없음 — 핵심 키워드만 사용)",
+        current_year=now_kst.year,
+        current_month=now_kst.month,
     )
     try:
         text = await asyncio.to_thread(
@@ -1292,9 +1319,80 @@ async def generate_naver_intro(
                 timeout=60.0,
             ).content[0].text.strip()
         )
+        # 적시성 마커 폴백 (Claude가 누락한 경우 자동 보강)
+        if not re.search(r"\[20\d{2}년\s*\d{1,2}월", text):
+            text = text.rstrip() + f"\n\n[{now_kst.year}년 {now_kst.month}월 기준]"
         return text
     except Exception as e:
         _logger.warning(f"generate_naver_intro failed: {e}")
+        raise
+
+
+_GLOBAL_AI_INTRO_PROMPT_TMPL = """당신은 ChatGPT·Google AI Overview·Gemini 최적화 콘텐츠 전문 작가입니다.
+
+다음 사업장 정보를 바탕으로 글로벌 AI 검색 노출에 최적화된 소개글을 작성하세요.
+(네이버 소개글과 달리, 구조화된 정보·FAQ·권위 신호가 핵심입니다.)
+
+[사업장 정보]
+- 가게명: {name}
+- 업종: {category_label}
+- 지역: {region}
+- 핵심 키워드: {keywords}
+
+[작성 원칙 — ChatGPT·Gemini·Google AI 노출 최적화]
+1. 첫 문단: 사업장 소개를 명사 중심으로 간결하게 (3줄 이내)
+   예: "{name}은 {region}에 위치한 {category_label}입니다. [핵심 서비스 1줄]"
+2. 구조화된 FAQ 섹션 필수 포함 — ChatGPT는 Q&A 형식 콘텐츠를 직접 인용:
+   형식: "Q. [질문]\nA. [구체적 답변]" (5개)
+3. 권위 신호 포함: 운영 기간·자격·수상·인기 메뉴·리뷰 수 중 최소 1개
+4. 수치 포함 필수: 가격대·영업시간·위치 등 구체 수치 3개 이상
+5. 마지막에 "[{current_year}년 {current_month}월 기준]" 삽입 필수
+
+[글자 수]: {target_length}자 ±50자
+
+[차별점 — 네이버 소개글과의 차이]
+- 지역명 반복 최소화 (ChatGPT는 키워드 반복을 낮게 평가)
+- FAQ를 소개글 본문 중간에 배치 (하단 배치보다 인용률 높음)
+- 권위 신호를 첫 문단에 포함 (Authority-first 구조)
+
+소개글만 출력하세요. 다른 설명·인사말 금지."""
+
+
+async def generate_global_ai_intro(
+    biz_name: str,
+    category_label: str,
+    region: str,
+    keywords: list,
+    target_length: int = 400,
+) -> str:
+    """ChatGPT·Gemini·Google AI 노출 최적화 소개글 생성.
+
+    네이버 소개글(generate_naver_intro)과 달리 구조화된 FAQ·권위 신호·수치 중심.
+    """
+    now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
+    prompt = _GLOBAL_AI_INTRO_PROMPT_TMPL.format(
+        name=biz_name,
+        category_label=category_label,
+        region=region,
+        keywords=", ".join(keywords[:8]) if keywords else "미등록",
+        target_length=max(300, min(500, target_length)),
+        current_year=now_kst.year,
+        current_month=now_kst.month,
+    )
+    try:
+        text = await asyncio.to_thread(
+            lambda: _get_client().messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=1500,
+                messages=[{"role": "user", "content": prompt}],
+                timeout=60.0,
+            ).content[0].text.strip()
+        )
+        if not re.search(r"\[20\d{2}년\s*\d{1,2}월", text):
+            text = text.rstrip() + f"\n\n[{now_kst.year}년 {now_kst.month}월 기준]"
+        return text
+    except Exception as e:
+        _logger.warning(f"generate_global_ai_intro failed: {e}")
         raise
 
 

@@ -18,7 +18,7 @@ export default function LandingScrollAnimation() {
     );
 
     requestAnimationFrame(() => {
-      document.querySelectorAll(".fade-up").forEach((el) => io.observe(el));
+      document.querySelectorAll(".fade-up, .slide-left, .slide-right").forEach((el) => io.observe(el));
     });
 
     return () => {

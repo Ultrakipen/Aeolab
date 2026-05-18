@@ -107,7 +107,7 @@ function KeywordCompletenessContent({ businessId, authToken }: { businessId: str
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm animate-pulse">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm animate-pulse">
         <div className="h-4 bg-gray-100 rounded w-1/3 mb-3" />
         <div className="h-3 bg-gray-100 rounded w-full mb-2" />
         <div className="h-3 bg-gray-100 rounded w-2/3" />
@@ -124,7 +124,7 @@ function KeywordCompletenessContent({ businessId, authToken }: { businessId: str
   const topMissing = (data.top_missing ?? []).slice(0, 5)
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <BarChart2 className="w-4 h-4 text-blue-500" />

@@ -75,14 +75,14 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center h-48">
+      <div className="bg-white rounded-xl p-6 shadow-sm flex items-center justify-center h-48">
         <p className="text-gray-400 text-base">30일 추세 데이터가 없습니다.</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+    <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
         <div className="text-base font-medium text-gray-700">30일 점수 추세</div>
         <div className="flex items-center gap-3 text-sm text-gray-400 flex-wrap">

@@ -36,6 +36,8 @@ export default function AICitationCard({ bizId, token }: Props) {
   const [citations, setCitations] = useState<Citation[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(false)
+  const [isPreview, setIsPreview] = useState(false)
+  const [previewMessage, setPreviewMessage] = useState<string>('')
 
   useEffect(() => {
     const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
@@ -45,6 +47,10 @@ export default function AICitationCard({ bizId, token }: Props) {
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.citations?.length > 0) setCitations(data.citations)
+        if (data?.is_preview) {
+          setIsPreview(true)
+          setPreviewMessage(data.preview_message ?? '')
+        }
       })
       .catch((e) => console.warn('[AICitation]', e))
       .finally(() => setLoading(false))
@@ -52,7 +58,7 @@ export default function AICitationCard({ bizId, token }: Props) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 space-y-3">
+      <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 space-y-3">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
           <div className="h-4 bg-gray-200 rounded w-32 animate-pulse" />
@@ -68,7 +74,7 @@ export default function AICitationCard({ bizId, token }: Props) {
 
   if (citations.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
           <MessageSquareQuote className="w-5 h-5 text-blue-400" />
           <h3 className="text-base font-bold text-gray-900">AI 검색 언급 분석</h3>
@@ -89,10 +95,12 @@ export default function AICitationCard({ bizId, token }: Props) {
   }
 
   const INITIAL_VISIBLE = 10
-  const visible = expanded ? citations : citations.slice(0, INITIAL_VISIBLE)
+  // is_preview일 때는 첫 1건만 표시하고 잠금 오버레이를 보여줌
+  const visibleCitations = isPreview ? citations.slice(0, 1) : citations
+  const visible = expanded ? visibleCitations : visibleCitations.slice(0, INITIAL_VISIBLE)
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
       <div className="flex items-center gap-2 mb-4">
         <MessageSquareQuote className="w-5 h-5 text-blue-500" />
         <div>
@@ -117,22 +125,22 @@ export default function AICitationCard({ bizId, token }: Props) {
                   </span>
                 )}
                 <span className="ml-auto flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-2.5 py-0.5">
-                  <Search className="w-3 h-3 text-slate-400 shrink-0" />
-                  <span className="text-xs text-slate-400 font-medium">검색어</span>
-                  <span className="text-xs font-semibold text-slate-700">&ldquo;{c.query}&rdquo;</span>
+                  <Search className="w-3 h-3 text-slate-500 shrink-0" />
+                  <span className="text-sm text-slate-500 font-medium">검색어</span>
+                  <span className="text-sm font-semibold text-slate-700">&ldquo;{c.query}&rdquo;</span>
                 </span>
               </div>
               {c.excerpt && c.excerpt.length > 0 && !c.excerpt.includes('(구체적 인용문 없음)') ? (
                 c.platform === 'naver' ? (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-                    <p className="text-xs text-amber-700 font-semibold mb-1">네이버 브리핑에서 발견된 실제 문장</p>
+                    <p className="text-sm text-amber-700 font-semibold mb-1">네이버 브리핑에서 발견된 실제 문장</p>
                     <p className="text-sm text-gray-800 leading-relaxed italic">
                       &ldquo;{c.excerpt}&rdquo;
                     </p>
                   </div>
                 ) : (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5">
-                    <p className="text-xs text-blue-600 font-semibold mb-1">
+                    <p className="text-sm text-blue-600 font-semibold mb-1">
                       {c.platform === 'gemini' ? 'Gemini가 추천 시 사용할 표현 (50회 샘플 기반)' : 'ChatGPT가 추천 시 사용할 표현 (50회 샘플 기반)'}
                     </p>
                     <p className="text-sm text-gray-800 leading-relaxed italic">
@@ -147,7 +155,7 @@ export default function AICitationCard({ bizId, token }: Props) {
               )}
               {/* 부정 sentiment 인용에 개선 링크 */}
               {c.sentiment === 'negative' && (
-                <Link href="/guide" className="text-xs text-red-600 hover:underline mt-1 block">
+                <Link href="/guide" className="text-sm text-red-600 hover:underline mt-1 block">
                   이 부분 개선 방법 →
                 </Link>
               )}
@@ -156,7 +164,22 @@ export default function AICitationCard({ bizId, token }: Props) {
         })}
       </div>
 
-      {citations.length > INITIAL_VISIBLE && (
+      {/* Free 미리보기 잠금 오버레이 */}
+      {isPreview && (
+        <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-center">
+          <p className="text-sm font-semibold text-blue-800">
+            {previewMessage || 'ChatGPT 인용 전체 분석은 Basic 이상에서 확인하세요'}
+          </p>
+          <Link
+            href="/pricing"
+            className="mt-3 inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+          >
+            업그레이드하기 →
+          </Link>
+        </div>
+      )}
+
+      {!isPreview && citations.length > INITIAL_VISIBLE && (
         <button
           onClick={() => setExpanded(v => !v)}
           className="mt-3 w-full flex items-center justify-center gap-1 text-sm text-blue-600 hover:text-blue-800 py-1"
@@ -174,8 +197,8 @@ export default function AICitationCard({ bizId, token }: Props) {
         {mentionedCount === 0 ? (
           <div className="bg-amber-50 rounded-lg p-3">
             <p className="text-sm font-semibold text-amber-800">AI가 아직 내 가게를 언급하지 않고 있습니다</p>
-            <p className="text-xs text-amber-700 mt-1">소개글 Q&A 추가와 키워드 보강이 가장 효과적입니다.</p>
-            <Link href="/guide" className="mt-2 inline-flex items-center text-xs font-semibold text-amber-800 hover:underline">
+            <p className="text-sm text-amber-700 mt-1">소개글 Q&A 추가와 키워드 보강이 가장 효과적입니다.</p>
+            <Link href="/guide" className="mt-2 inline-flex items-center text-sm font-semibold text-amber-800 hover:underline">
               지금 소개글 편집하러 가기 →
             </Link>
           </div>
@@ -186,7 +209,7 @@ export default function AICitationCard({ bizId, token }: Props) {
           </div>
         )}
       </div>
-      <p className="text-xs text-gray-500 mt-3 leading-relaxed">
+      <p className="text-xs text-gray-600 mt-3 leading-relaxed">
         ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
         측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
       </p>

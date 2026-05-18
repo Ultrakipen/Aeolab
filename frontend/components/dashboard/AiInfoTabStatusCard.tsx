@@ -11,6 +11,8 @@ interface Props {
   accessToken: string;
   currentStatus: AiInfoTabStatus;
   eligibility: "active" | "likely" | "inactive";
+  /** AI탭은 업종 무관 항상 "beta" — get_ai_tab_eligibility() 반환값 */
+  aiTabEligibility?: "beta";
   explanation: string;
   onUpdated?: () => void;
 }
@@ -28,6 +30,7 @@ export function AiInfoTabStatusCard({
   accessToken,
   currentStatus,
   eligibility,
+  aiTabEligibility,
   explanation,
   onUpdated,
 }: Props) {
@@ -35,8 +38,10 @@ export function AiInfoTabStatusCard({
   const [status, setStatus] = useState<AiInfoTabStatus>(currentStatus);
   const [error, setError] = useState<string | null>(null);
 
-  // 비대상 업종은 이 카드 표시 불필요 — IneligibleBusinessNotice가 대신 안내
-  if (eligibility === "inactive") return null;
+  // AI탭은 모든 업종 가능(beta) — INACTIVE여도 카드를 표시하되 안내 톤 분기
+  // 단, aiTabEligibility prop이 없고 eligibility가 inactive일 때는 기존처럼 숨김
+  // (하위 호환: DashboardInsightZone에서 aiTabEligibility 전달 후 제거 가능)
+  if (eligibility === "inactive" && aiTabEligibility !== "beta") return null;
 
   const handleChange = async (newStatus: AiInfoTabStatus) => {
     setSaving(true);
@@ -62,19 +67,38 @@ export function AiInfoTabStatusCard({
 
   const current = STATUS_LABELS[status];
 
+  // 업종별 안내 톤 분기
+  const eligibilityBanner =
+    eligibility === "active" ? (
+      <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-sm text-blue-800">
+        AI 브리핑 + AI탭 양면 최적화 대상 업종입니다. 아래에서 AI 정보 탭 상태를 확인·설정하세요.
+      </div>
+    ) : eligibility === "likely" ? (
+      <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+        AI탭 우선 최적화 업종입니다. AI 브리핑은 네이버 확대 정책에 따라 추가될 예정입니다.
+      </div>
+    ) : eligibility === "inactive" ? (
+      <div className="mb-4 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm text-slate-700">
+        <strong>AI탭 노출은 모든 업종에서 가능합니다(Beta).</strong> AI 브리핑 대상 업종은 아니지만,
+        네이버 AI탭·ChatGPT·Gemini 등 글로벌 AI에서 노출 기회를 높일 수 있습니다.
+      </div>
+    ) : null;
+
   return (
-    <div className="rounded-lg border bg-white p-4 md:p-6">
+    <div className="rounded-xl border bg-white p-4 md:p-6">
       <div className="flex items-start gap-3 mb-4">
         <span className="text-2xl" aria-hidden="true">{current.icon}</span>
         <div className="flex-1">
           <h3 className="text-base md:text-lg font-bold text-gray-900 mb-1">
-            AI 브리핑 노출 설정
+            AI 정보 탭 상태 확인
           </h3>
           <span className={`inline-block px-2 py-1 rounded border text-sm font-medium ${current.color}`}>
             {current.label}
           </span>
         </div>
       </div>
+
+      {eligibilityBanner}
 
       <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
         {explanation}
@@ -92,7 +116,8 @@ export function AiInfoTabStatusCard({
             <li>&quot;AI 브리핑 노출하기&quot; 토글 → ON</li>
           </ol>
           <p className="mt-2 text-amber-700 font-medium">
-            &quot;AI 정보&quot; 탭이 안 보이면 &quot;메뉴 없음&quot;을 선택하세요. 비대상 업종일 가능성이 높습니다.
+            &quot;AI 정보&quot; 탭이 안 보이면 &quot;메뉴 없음&quot;을 선택하세요.
+            리뷰 수 부족·조건 미충족이거나, 확대 예상 업종이면 향후 추가됩니다.
           </p>
           <Link
             href="/guide/ai-info-tab"

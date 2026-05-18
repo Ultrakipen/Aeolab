@@ -84,7 +84,7 @@ export default function TeamPage() {
       </div>
 
       {/* 초대 폼 */}
-      <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 mb-4 md:mb-6">
+      <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 mb-4 md:mb-6">
         <h2 className="text-base md:text-lg font-semibold text-gray-700 mb-4">팀원 초대</h2>
         <div className="flex flex-col sm:flex-row gap-3 mb-3">
           <input
@@ -114,7 +114,7 @@ export default function TeamPage() {
       </section>
 
       {/* 멤버 목록 */}
-      <section className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+      <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <h2 className="text-base md:text-lg font-semibold text-gray-700 mb-3">팀원 목록 ({members.length}명)</h2>
         {members.length === 0 ? (
           <div className="text-center py-8">

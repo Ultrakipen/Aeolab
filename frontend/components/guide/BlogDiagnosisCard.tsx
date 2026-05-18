@@ -137,7 +137,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
 
   if (checking) {
     return (
-      <div className="bg-white rounded-2xl p-5 shadow-sm animate-pulse">
+      <div className="bg-white rounded-xl p-5 shadow-sm animate-pulse">
         <div className="h-4 bg-gray-100 rounded w-1/3 mb-3" />
         <div className="h-3 bg-gray-100 rounded w-2/3" />
       </div>
@@ -148,7 +148,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
   const score = result?.citation_score ?? 0
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+    <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-blue-500" />

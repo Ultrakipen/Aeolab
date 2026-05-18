@@ -29,7 +29,7 @@ interface ChartPoint {
   [key: string]: number | null | string
 }
 
-// Pro 플랜 최대 10개 경쟁사 지원
+// Pro 플랜 최대 5개 경쟁사 지원
 const LINE_COLORS = [
   '#f97316', '#ef4444', '#8b5cf6', '#06b6d4',
   '#10b981', '#f59e0b', '#ec4899', '#3b82f6',
@@ -194,7 +194,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
 
   if (!canView) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mt-6">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mt-6">
         <div className="flex items-center gap-2 mb-2">
           <TrendingUp className="w-5 h-5 text-blue-600" />
           <h2 className="text-base font-bold text-gray-800">경쟁사 AI 노출 변화</h2>
@@ -211,7 +211,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 md:p-5 mt-6">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 md:p-5 mt-6">
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
@@ -389,16 +389,16 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
                 })()}
               </div>
               {compNames.some(n => (lastKnownScore[n] ?? 0) <= 15) && (
-                <p className="mt-1.5 text-xs text-gray-400">※ 15점 = AI 검색 미언급 · 스캔 반복 시 점수 변동</p>
+                <p className="mt-1.5 text-sm text-gray-500">※ 15점 = AI 검색 미언급 · 스캔 반복 시 점수 변동</p>
               )}
             </div>
           )}
 
           {/* 안내 */}
           <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
-            <p className="text-xs text-gray-400">실선 = 내 가게 · 점선 = 경쟁사 추이</p>
+            <p className="text-sm text-gray-500">실선 = 내 가게 · 점선 = 경쟁사 추이</p>
             {compNames.length > 1 && (
-              <p className="text-xs text-gray-400">※ 같은 점수 경쟁사는 시각 구분을 위해 약간 다른 높이로 표시됩니다</p>
+              <p className="text-sm text-gray-500">※ 같은 점수 경쟁사는 시각 구분을 위해 약간 다른 높이로 표시됩니다</p>
             )}
           </div>
         </>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { Camera, Download, ExternalLink, Maximize2, RefreshCw, Search, X } from "lucide-react"
 
 interface BlogPost {
@@ -43,7 +43,8 @@ interface Props {
   naverBlogId?: string
 }
 
-const ALLOWED_PLANS = ["basic", "startup", "pro", "biz", "enterprise"]
+// TODO: 개발 중 플랜 제한 비활성화 — 출시 전 복구 필요
+const ALLOWED_PLANS = ["free", "basic", "startup", "pro", "biz", "enterprise"]
 
 function formatAnalyzedAt(iso: string): string {
   try {
@@ -216,7 +217,7 @@ interface PostItemProps {
 }
 
 function PostItem({ post }: PostItemProps) {
-  let containerCls = "flex items-start gap-3 px-4 py-3 rounded-xl border "
+  let containerCls = "flex items-start gap-3 px-4 py-3.5 rounded-xl border "
   let badge: React.ReactNode = null
 
   if (post.is_mine) {
@@ -242,12 +243,12 @@ function PostItem({ post }: PostItemProps) {
       {/* 순위 번호 */}
       <span
         className={[
-          "shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-sm font-bold",
+          "shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-base font-bold",
           post.is_mine
             ? "bg-green-600 text-white"
             : post.is_competitor
             ? "bg-orange-500 text-white"
-            : "bg-gray-100 text-gray-500",
+            : "bg-gray-100 text-gray-600",
         ].join(" ")}
       >
         {post.rank}
@@ -255,28 +256,20 @@ function PostItem({ post }: PostItemProps) {
 
       {/* 제목 + 메타 */}
       <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
-          {badge}
-        </div>
+        {badge && <div className="mb-1">{badge}</div>}
         <a
           href={post.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm font-medium text-gray-800 hover:text-blue-600 hover:underline break-all leading-snug"
+          className="text-base font-medium text-gray-800 hover:text-blue-600 hover:underline break-all leading-snug"
         >
           {post.title}
         </a>
-        <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-400">
-          <span className="truncate max-w-[140px]">{post.blog_name}</span>
-          {post.blog_id && (
-            <>
-              <span>·</span>
-              <span className="font-mono text-gray-300">{post.blog_id}</span>
-            </>
-          )}
+        <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500">
+          <span className="truncate max-w-[160px]">{post.blog_name}</span>
           {post.date && (
             <>
-              <span>·</span>
+              <span className="text-gray-300">·</span>
               <span className="shrink-0">{post.date}</span>
             </>
           )}
@@ -288,7 +281,7 @@ function PostItem({ post }: PostItemProps) {
         href={post.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="shrink-0 text-gray-300 hover:text-blue-500 transition-colors mt-0.5"
+        className="shrink-0 p-1 text-gray-400 hover:text-blue-500 transition-colors mt-0.5"
         aria-label="새 탭에서 열기"
       >
         <ExternalLink className="w-4 h-4" />
@@ -306,7 +299,7 @@ export default function BlogScreenshotSection({
   naverBlogId: initialBlogId = "",
 }: Props) {
   const [analyses, setAnalyses] = useState<BlogAnalysis[]>([])
-  const [activeTab, setActiveTab] = useState<string>("")
+  const [expandedKeyword, setExpandedKeyword] = useState<string | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState<string | null>(null)
@@ -316,7 +309,32 @@ export default function BlogScreenshotSection({
   const [blogIdSaving, setBlogIdSaving] = useState(false)
   const [blogIdSaved, setBlogIdSaved] = useState(false)
   const [capturing, setCapturing] = useState(false)
+  const [captureTriggered, setCaptureTriggered] = useState(false)
+  const [captureReadyIn, setCaptureReadyIn] = useState(0) // 남은 대기 초
   const [modalImage, setModalImage] = useState<ModalImage>(null)
+
+  // 페이지 이동 후 복귀 시에도 "스크린샷 확인" 버튼 유지 (localStorage v2)
+  // v2 키: 이전 8분 공식으로 생성된 구버전 키(v1) 자동 무효화
+  useEffect(() => {
+    const key = `blog_capture_ready_v2_${bizId}`
+    const stored = localStorage.getItem(key)
+    if (!stored) return
+    try {
+      const { readyAt } = JSON.parse(stored)
+      // 최대 70초 이상은 무시 — 구버전 잔재 방어
+      let remaining = Math.min(70, Math.max(0, Math.ceil((readyAt - Date.now()) / 1000)))
+      setCaptureTriggered(true)
+      setCaptureReadyIn(remaining)
+      if (remaining > 0) {
+        const timer = setInterval(() => {
+          remaining -= 1
+          setCaptureReadyIn(remaining)
+          if (remaining <= 0) clearInterval(timer)
+        }, 1000)
+        return () => clearInterval(timer)
+      }
+    } catch { /* ignore */ }
+  }, [bizId])
 
   const openModal = useCallback((img: ModalImage) => setModalImage(img), [])
   const closeModal = useCallback(() => setModalImage(null), [])
@@ -341,13 +359,12 @@ export default function BlogScreenshotSection({
     })
   }
 
-  // 탭 목록: 분석 결과 우선, 없으면 initialShots에서 추출
-  const tabKeywords: string[] = analyses.length > 0
+  // 키워드 목록: 분석 결과 우선, 없으면 initialShots에서 추출
+  const allKeywords: string[] = analyses.length > 0
     ? analyses.map((a) => a.keyword)
     : (initialShots ?? []).map((s) => s.keyword)
 
   const displayAnalyses = savedBlogId ? applyBlogIdCorrection(analyses, savedBlogId) : analyses
-  const activeAnalysis = displayAnalyses.find((a) => a.keyword === activeTab) ?? null
 
   // 마운트 시 자동 로드
   useEffect(() => {
@@ -365,9 +382,6 @@ export default function BlogScreenshotSection({
       if (res.ok) {
         const data: BlogAnalysis[] = await res.json()
         setAnalyses(Array.isArray(data) ? data : [])
-        if (Array.isArray(data) && data.length > 0 && !activeTab) {
-          setActiveTab(data[0].keyword)
-        }
       }
     } catch {
       // 조용히 처리 — 빈 상태로 유지
@@ -375,13 +389,6 @@ export default function BlogScreenshotSection({
       setLoading(false)
     }
   }
-
-  // 초기 탭 설정 (initialShots 기반 fallback)
-  useEffect(() => {
-    if (!activeTab && tabKeywords.length > 0) {
-      setActiveTab(tabKeywords[0])
-    }
-  }, [tabKeywords.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAnalyze = async () => {
     setAnalyzing(true)
@@ -424,7 +431,23 @@ export default function BlogScreenshotSection({
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (res.ok) {
-        setMessage("블로그 스크린샷 재촬영을 시작했습니다. 약 2~3분 후 페이지를 새로고침하세요.")
+        const data = await res.json().catch(() => ({}))
+        const kwCount: number = (data as { keywords?: string[] }).keywords?.length ?? 3
+        // 실측(2026-05-15): 5개 키워드 31초 완료 → 키워드당 약 8초 + 여유 20초
+        const waitSec = kwCount * 8 + 20
+        const readyAt = Date.now() + waitSec * 1000
+        // 페이지 이동 후 복귀해도 버튼 상태 유지 (v2 키 — 구버전 자동 무효화)
+        localStorage.setItem(`blog_capture_ready_v2_${bizId}`, JSON.stringify({ readyAt }))
+        setCaptureTriggered(true)
+        setCaptureReadyIn(waitSec)
+        setMessage(`키워드 ${kwCount}개 촬영을 시작했습니다 (약 ${Math.ceil(waitSec / 60)}분 소요). 촬영은 서버에서 진행되므로 다른 페이지로 이동하셔도 됩니다. 완료 후 이 페이지로 돌아와 아래 버튼을 누르세요.`)
+        // 카운트다운
+        let remaining = waitSec
+        const timer = setInterval(() => {
+          remaining -= 1
+          setCaptureReadyIn(remaining)
+          if (remaining <= 0) clearInterval(timer)
+        }, 1000)
       } else {
         const data = await res.json().catch(() => ({}))
         setError((data as { detail?: string }).detail || "재촬영 요청에 실패했습니다.")
@@ -464,9 +487,9 @@ export default function BlogScreenshotSection({
   }
 
   // ── 빈 키워드 상태 ────────────────────────────────────────────────────────
-  if (!loading && tabKeywords.length === 0) {
+  if (!loading && allKeywords.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
+      <div className="bg-white rounded-xl shadow-sm p-6 text-center">
         <Search className="w-8 h-8 text-gray-300 mx-auto mb-3" />
         <p className="text-sm font-medium text-gray-600 mb-1">등록된 키워드가 없습니다.</p>
         <p className="text-sm text-gray-400">
@@ -481,7 +504,7 @@ export default function BlogScreenshotSection({
     {/* 이미지 전체화면 모달 */}
     {modalImage && <ImageModal image={modalImage} onClose={closeModal} />}
 
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       {/* ── 헤더 ── */}
       <div className="px-4 md:px-6 py-4 border-b border-gray-100">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -579,171 +602,121 @@ export default function BlogScreenshotSection({
         </div>
       </div>
 
-      {/* ── 키워드 탭 (가로 스크롤) ── */}
-      {tabKeywords.length > 0 && (
-        <div className="border-b border-gray-100 overflow-x-auto">
-          <div className="flex min-w-max px-4 md:px-6">
-            {tabKeywords.map((kw) => {
-              const analysis = displayAnalyses.find((a) => a.keyword === kw)
-              const rankLabel =
-                analysis === undefined
-                  ? null
-                  : analysis.my_rank !== null
-                  ? `${analysis.my_rank}위`
-                  : "미노출"
-
-              return (
-                <button
-                  key={kw}
-                  onClick={() => setActiveTab(kw)}
-                  className={[
-                    "px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
-                    activeTab === kw
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700",
-                  ].join(" ")}
-                >
-                  {kw}
-                  {rankLabel && (
-                    <span
-                      className={[
-                        "ml-1.5 text-sm font-semibold px-1.5 py-0.5 rounded-full",
-                        rankLabel === "미노출"
-                          ? "bg-red-100 text-red-600"
-                          : "bg-green-100 text-green-700",
-                      ].join(" ")}
-                    >
-                      {rankLabel}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── 본문 ── */}
-      <div className="p-4 md:p-6">
-        {/* 로딩 중 skeleton */}
+      {/* ── 요약 표 + 행 클릭 펼침 ── */}
+      <div>
+        {/* 로딩 skeleton */}
         {loading && (
-          <div className="space-y-3 animate-pulse">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-14 bg-gray-100 rounded-xl" />
-            ))}
+          <div className="p-4 space-y-2 animate-pulse">
+            {[1, 2, 3].map((i) => <div key={i} className="h-12 bg-gray-100 rounded-lg" />)}
           </div>
         )}
 
-        {/* 분석 결과 있을 때 */}
-        {!loading && activeAnalysis && (
-          <div className="space-y-4">
-            {/* 상단 배너 */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              {activeAnalysis.my_rank !== null ? (
-                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-700 bg-green-100 px-3 py-1.5 rounded-full">
-                  내 사업장 {activeAnalysis.my_rank}위 노출
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-full">
-                  현재 미노출 (10위 밖)
-                </span>
-              )}
-              <span className="text-sm text-gray-400">
-                분석 시각: {formatAnalyzedAt(activeAnalysis.analyzed_at)}
-              </span>
-            </div>
-
-            {/* 블로그 ID 미등록 경고 */}
-            {activeAnalysis.blog_id_registered === false && activeAnalysis.my_rank === null && (
-              <div className="flex items-start gap-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                <span className="shrink-0 mt-0.5">⚠️</span>
-                <span>
-                  내 블로그가 목록에 있어도 <strong>블로그 ID 미등록</strong> 시 자동 판별이 어렵습니다.
-                  위 입력창에 네이버 블로그 ID를 등록하면 정확히 찾아드립니다.
-                  아래 목록의 회색 글씨(blog ID)를 보고 내 블로그를 직접 확인해 보세요.
-                </span>
-              </div>
-            )}
-
-            {/* 포스팅 리스트 */}
-            {activeAnalysis.posts.length > 0 ? (
-              <div className="space-y-2">
-                {activeAnalysis.posts.map((post) => (
-                  <PostItem key={`${post.rank}-${post.url}`} post={post} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-sm text-gray-400">
-                포스팅 데이터가 없습니다.
-              </div>
-            )}
-
-            {/* 네이버 직접 확인 링크 */}
-            <div className="pt-1 text-right">
-              <a
-                href={`https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(activeTab)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"
-              >
-                네이버에서 직접 확인
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-          </div>
-        )}
-
-        {/* 분석 결과 없을 때 */}
-        {!loading && !activeAnalysis && activeTab && (
-          <div className="text-center py-10">
+        {/* 분석 결과 없음 */}
+        {!loading && displayAnalyses.length === 0 && (
+          <div className="text-center py-10 px-4">
             <Search className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-            <p className="text-sm font-medium text-gray-600 mb-1">
-              아직 분석 결과가 없습니다.
-            </p>
-            <p className="text-sm text-gray-400 mb-4">
-              &apos;지금 분석&apos; 버튼을 눌러 블로그 노출 순위를 확인하세요.
-            </p>
-            {isPlanOk ? (
-              <button
-                onClick={handleAnalyze}
-                disabled={analyzing}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {analyzing ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    분석 중...
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-4 h-4" />
-                    지금 분석
-                  </>
-                )}
-              </button>
-            ) : (
-              <p className="text-sm text-amber-600 font-medium">
-                Basic 이상 구독 시 사용 가능합니다.
-              </p>
-            )}
+            <p className="text-sm font-medium text-gray-600 mb-1">아직 분석 결과가 없습니다.</p>
+            <p className="text-sm text-gray-400 mb-4">"지금 분석" 버튼을 눌러 블로그 노출 순위를 확인하세요.</p>
           </div>
         )}
 
-        {/* 탭 없을 때 */}
-        {!loading && !activeTab && (
-          <div className="text-center py-8 text-sm text-gray-400">
-            키워드 탭을 선택하세요.
+        {/* 요약 표 */}
+        {!loading && displayAnalyses.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="text-left px-4 md:px-6 py-3.5 text-sm font-semibold text-gray-600">키워드</th>
+                  <th className="text-left px-4 md:px-6 py-3.5 text-sm font-semibold text-gray-600">내 순위</th>
+                  <th className="text-left px-4 md:px-6 py-3.5 text-sm font-semibold text-gray-600 hidden sm:table-cell">1위 블로그</th>
+                  <th className="text-left px-4 md:px-6 py-3.5 text-sm font-semibold text-gray-600 hidden md:table-cell">분석 시각</th>
+                  <th className="px-4 md:px-6 py-3.5" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {displayAnalyses.map((analysis) => {
+                  const isOpen = expandedKeyword === analysis.keyword
+                  const top1 = analysis.posts[0]
+                  return (
+                    <React.Fragment key={analysis.keyword}>
+                      <tr
+                        onClick={() => setExpandedKeyword(isOpen ? null : analysis.keyword)}
+                        className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-4 md:px-6 py-4 text-base font-semibold text-gray-800 whitespace-nowrap">
+                          {analysis.keyword}
+                        </td>
+                        <td className="px-4 md:px-6 py-4">
+                          {analysis.my_rank !== null ? (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-700">
+                              {analysis.my_rank}위
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-600">
+                              미노출
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 md:px-6 py-4 text-sm text-gray-600 hidden sm:table-cell max-w-[180px]">
+                          <span className="truncate block">{top1?.blog_name || top1?.title || "—"}</span>
+                        </td>
+                        <td className="px-4 md:px-6 py-4 text-sm text-gray-500 hidden md:table-cell whitespace-nowrap">
+                          {formatAnalyzedAt(analysis.analyzed_at)}
+                        </td>
+                        <td className="px-4 md:px-6 py-4 text-right whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            {isOpen ? "접기 ▲" : `${analysis.posts.length}개 보기 ▼`}
+                          </span>
+                        </td>
+                      </tr>
+
+                      {/* 펼침: 포스팅 목록 */}
+                      {isOpen && (
+                        <tr>
+                          <td colSpan={5} className="px-4 md:px-6 py-4 bg-gray-50">
+                            {/* 블로그 ID 미등록 경고 */}
+                            {analysis.blog_id_registered === false && analysis.my_rank === null && (
+                              <div className="flex items-start gap-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
+                                <span className="shrink-0 mt-0.5">⚠️</span>
+                                <span>블로그 ID 미등록 시 자동 판별이 어렵습니다. 위 입력창에 네이버 블로그 ID를 등록하면 정확히 찾아드립니다.</span>
+                              </div>
+                            )}
+                            {analysis.posts.length > 0 ? (
+                              <div className="space-y-2">
+                                {analysis.posts.map((post) => (
+                                  <PostItem key={`${post.rank}-${post.url}`} post={post} />
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-400 text-center py-4">포스팅 데이터가 없습니다.</p>
+                            )}
+                            <div className="pt-3 text-right">
+                              <a
+                                href={`https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(analysis.keyword)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"
+                              >
+                                네이버에서 직접 확인
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
     </div>
 
-    {/* ── Before / After 스크린샷 섹션 ── */}
-    {initialShots && initialShots.some((s) => s.baseline || s.latest) && (
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden mt-4">
+    {/* ── Before / After 스크린샷 섹션 — 스크린샷 없어도 항상 표시 ── */}
+    {isPlanOk && (
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden mt-4">
         <div className="px-4 md:px-6 py-4 border-b border-gray-100">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex-1">
@@ -752,24 +725,46 @@ export default function BlogScreenshotSection({
                 개선 행동 전후의 네이버 블로그 탭 화면을 비교합니다. 광고 없이 블로그 결과만 표시됩니다.
               </p>
             </div>
-            {isPlanOk && (
+            <div className="flex items-center gap-2 shrink-0">
+              {captureTriggered && (
+                <button
+                  onClick={() => {
+                    localStorage.removeItem(`blog_capture_ready_v2_${bizId}`)
+                    window.location.reload()
+                  }}
+                  disabled={captureReadyIn > 0}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-600 border border-indigo-300 rounded-lg hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title={captureReadyIn > 0 ? `${captureReadyIn}초 후 활성화됩니다` : "클릭하면 새 스크린샷을 확인합니다"}
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  {captureReadyIn > 0
+                    ? `${Math.floor(captureReadyIn / 60)}:${String(captureReadyIn % 60).padStart(2, "0")} 후 확인 가능`
+                    : "스크린샷 확인 (새로고침)"}
+                </button>
+              )}
               <button
                 onClick={handleCapture}
                 disabled={capturing}
-                className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="블로그 스크린샷을 다시 촬영합니다 (기존 이미지 교체)"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="블로그 스크린샷을 촬영합니다"
               >
                 {capturing ? (
                   <><svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>촬영 중...</>
                 ) : (
-                  <><Camera className="w-3.5 h-3.5" />재촬영</>
+                  <><Camera className="w-3.5 h-3.5" />{initialShots.some(s => s.baseline || s.latest) ? "재촬영" : "첫 스크린샷 촬영"}</>
                 )}
               </button>
-            )}
+            </div>
           </div>
         </div>
         <div className="p-4 md:p-6 space-y-6">
-          {initialShots.filter((s) => s.baseline || s.latest).map((shot) => (
+          {!initialShots.some(s => s.baseline || s.latest) ? (
+            <div className="text-center py-10">
+              <Camera className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+              <p className="text-sm font-medium text-gray-600 mb-1">아직 캡처된 스크린샷이 없습니다.</p>
+              <p className="text-sm text-gray-400">"첫 스크린샷 촬영" 버튼을 누르면 현재 네이버 블로그 검색 화면을 저장합니다.<br />약 1~2분 후 새로고침하세요.</p>
+            </div>
+          ) : initialShots.filter((s) => s.baseline || s.latest).map((shot) => (
             <div key={shot.keyword}>
               <div className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-sm">{shot.keyword}</span>
@@ -870,3 +865,4 @@ export default function BlogScreenshotSection({
   </>
   )
 }
+

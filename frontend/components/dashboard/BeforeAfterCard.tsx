@@ -247,7 +247,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
 
   if (allBefores.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+      <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
         <div className="text-base font-medium text-gray-700 mb-2">Before / After 비교</div>
         <p className="text-sm text-gray-400">Before 스크린샷이 아직 준비되지 않았습니다.</p>
       </div>
@@ -276,7 +276,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
 
   return (
     <>
-      <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
+      <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
         <div className="text-base font-medium text-gray-700 mb-4">
           {businessName} — Before / After 변화
         </div>

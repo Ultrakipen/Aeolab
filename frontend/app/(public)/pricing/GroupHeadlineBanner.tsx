@@ -20,7 +20,7 @@ export default function GroupHeadlineBanner() {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 md:px-6 py-4 mb-2">
+    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 md:px-6 py-4 mb-2">
       {/* 셀렉터 행 */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <label className="text-sm font-semibold text-gray-700 shrink-0">

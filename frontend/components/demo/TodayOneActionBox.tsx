@@ -62,7 +62,7 @@ export default function TodayOneActionBox({ category }: Props) {
   };
 
   return (
-    <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 md:p-6 shadow-sm">
+    <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-2xl">👉</span>
         <p className="text-base md:text-lg font-bold text-amber-900">오늘 딱 이거 하나만 하세요</p>

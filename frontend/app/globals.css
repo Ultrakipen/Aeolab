@@ -134,17 +134,23 @@
 
 /* ── Fluid Typography ── */
 .hero-headline {
-  font-size: clamp(2rem, 5vw, 3rem);
-  line-height: 1.15;
+  font-size: clamp(2.1rem, 5.5vw, 3.2rem);
+  line-height: 1.12;
   letter-spacing: -0.03em;
   font-weight: 900;
-  color: #F8FAFC;
+  color: #F1F5FF;
+  font-family: var(--font-pretendard, "Pretendard Variable", "Pretendard", sans-serif);
 }
 .stat-number-xl {
   font-size: clamp(2.8rem, 6vw, 4rem);
   line-height: 0.9;
   letter-spacing: -0.04em;
-  font-family: "Outfit", sans-serif;
+  font-family: var(--font-pretendard, "Pretendard Variable", sans-serif);
+}
+
+/* Hero 폼 입력 — 글래스 배경 위 placeholder 색상 */
+.hero-form-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
 }
 
 /* Landing scroll fade-in — JS가 활성화될 때만 동작 (no-JS 사용자 보호) */
@@ -156,6 +162,51 @@ body.js-anim .fade-up {
 .fade-up.visible {
   opacity: 1 !important;
   transform: translateY(0) !important;
+}
+
+/* 카드 순차 등장 딜레이 유틸 */
+.delay-1 { animation-delay: 0.10s; }
+.delay-2 { animation-delay: 0.20s; }
+.delay-3 { animation-delay: 0.30s; }
+.delay-4 { animation-delay: 0.40s; }
+
+/* 슬라이드인 (WHY 섹션 Before/After용) */
+body.js-anim .slide-left {
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: opacity 0.55s cubic-bezier(.22,1,.36,1), transform 0.55s cubic-bezier(.22,1,.36,1);
+}
+body.js-anim .slide-right {
+  opacity: 0;
+  transform: translateX(24px);
+  transition: opacity 0.55s cubic-bezier(.22,1,.36,1), transform 0.55s cubic-bezier(.22,1,.36,1);
+}
+.slide-left.visible, .slide-right.visible {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+}
+
+/* 숫자 카운트업 (PROOF 섹션용) */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.count-reveal {
+  animation: count-up 0.6s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* 접근성: 모션 감소 설정 대응 */
+@media (prefers-reduced-motion: reduce) {
+  .fade-up, .slide-left, .slide-right, .count-reveal {
+    transition: none !important;
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .step-connector-path {
+    animation: none !important;
+    stroke-dashoffset: 0;
+  }
 }
 
 /* ── AEOlab 랜딩페이지 디자인 토큰 ── */
@@ -204,24 +255,18 @@ body.js-anim .fade-up {
   --aeo-shadow-lg:    0 4px 6px rgba(15,23,42,0.07), 0 10px 40px rgba(15,23,42,0.08);
   --aeo-shadow-float: 0 0 0 1px rgba(37,99,235,0.1), 0 8px 32px rgba(37,99,235,0.12);
 
-  --font-outfit: var(--font-outfit, "Outfit", sans-serif);
-
   /* 그라디언트 단일 소스 — Final CTA 전용 */
   --aeo-gradient-blue: linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 100%);
+
+  /* Phase 3 멀티휴 팔레트 */
+  --color-violet: #7C3AED;
+  --color-indigo: #4F46E5;
+  --color-amber:  #F59E0B;
 
   /* 글래스모피즘 */
   --aeo-glass-bg:     rgba(255,255,255,0.04);
   --aeo-glass-border: rgba(255,255,255,0.10);
   --aeo-glass-blur:   blur(20px);
-}
-
-/* ── 글래스모피즘 카드 (히어로 전용) ── */
-.glass-card {
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 
 /* ── 카드 호버 리프트 (라이트 섹션용) ── */
@@ -240,14 +285,7 @@ body.js-anim .fade-up {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.gradient-text-brand {
-  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 60%, #2563EB 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradient-shift 4s ease infinite;
-}
+/* .gradient-text-brand 미사용 제거 (2026-05-08) */
 
 /* ── 배경 오브 (히어로 글로우 효과) ── */
 .hero-orb {
@@ -291,11 +329,4 @@ body.js-anim .fade-up {
   0%, 100% { background-position: 0% center; }
   50%       { background-position: 100% center; }
 }
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50%       { transform: translateY(-20px) scale(1.05); }
-}
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.5; }
-  50%       { opacity: 0.8; }
-}
+/* @keyframes float-slow, pulse-glow — 미사용 제거 (2026-05-08) */

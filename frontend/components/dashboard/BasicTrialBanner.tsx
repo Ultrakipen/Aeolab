@@ -68,7 +68,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
   // 실행 중 상태
   if (running) {
     return (
-      <div className="rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-green-50 p-5 md:p-6 mb-4">
+      <div className="rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-green-50 p-5 md:p-6 mb-4">
         <div className="flex items-start gap-3">
           <Loader2 className="w-6 h-6 text-emerald-600 animate-spin shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
@@ -78,7 +78,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
             <p className="text-sm md:text-base text-emerald-700 mt-1">
               ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 4개 채널 동시 분석 중 (약 1분 소요)
             </p>
-            <p className="text-xs text-emerald-600 mt-2">
+            <p className="text-sm text-emerald-700 mt-2">
               이 페이지를 닫지 말고 잠시만 기다려 주세요.
             </p>
           </div>
@@ -90,7 +90,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
   // 체험 가능 상태
   if (!status.used && status.can_use) {
     return (
-      <div className="rounded-2xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 p-5 md:p-6 mb-4 shadow-sm">
+      <div className="rounded-xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 p-5 md:p-6 mb-4 shadow-sm">
         <div className="flex items-start gap-3 mb-3">
           <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-emerald-100 shrink-0">
             <Gift className="w-5 h-5 md:w-6 md:h-6 text-emerald-600" />
@@ -104,7 +104,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               <strong>{businessName}</strong>에 대해 4개 AI(ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini)가
               어떻게 소개하는지 확인할 수 있습니다.
             </p>
-            <ul className="text-xs md:text-sm text-emerald-700 mt-2 space-y-0.5 leading-relaxed">
+            <ul className="text-sm text-emerald-700 mt-2 space-y-0.5 leading-relaxed">
               <li>• Gemini·ChatGPT 각 100회 샘플링으로 AI 노출 빈도 측정</li>
               <li>• AI 개선 가이드 1회 자동 생성</li>
               <li>• 약 1분 소요 · 평생 1회 무료</li>
@@ -153,7 +153,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
   // 이미 체험 사용 + 비구독 상태
   if (status.used && !status.has_active_subscription) {
     return (
-      <div className="rounded-2xl border-2 border-slate-300 bg-gradient-to-br from-slate-50 to-gray-50 p-5 md:p-6 mb-4">
+      <div className="rounded-xl border-2 border-slate-300 bg-gradient-to-br from-slate-50 to-gray-50 p-5 md:p-6 mb-4">
         <div className="flex items-start gap-3">
           <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-200 shrink-0">
             <Lock className="w-5 h-5 md:w-6 md:h-6 text-slate-600" />

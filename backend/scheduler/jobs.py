@@ -228,6 +228,42 @@ def start_scheduler():
         id="keyword_rank_pro_daily", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
+    # v1.1 §3.3 — 소식 14일 미작성 알림 (매일 09:10 KST)
+    scheduler.add_job(
+        inactive_post_alert_job, "cron", hour=9, minute=10,
+        id="inactive_post_alert", replace_existing=True,
+        max_instances=1, misfire_grace_time=600,
+    )
+    # v5.8 대행 서비스 — 자료 미제출 7일 자동 취소 (매일 10:30 KST = UTC 01:30)
+    scheduler.add_job(
+        delivery_auto_cancel_job, "cron", hour=1, minute=30,
+        id="delivery_auto_cancel", replace_existing=True,
+        max_instances=1, misfire_grace_time=600,
+    )
+    # v5.8 대행 서비스 — 종합 풀패키지 완료 30일 후 자동 재스캔 (매일 11:00 KST = UTC 02:00)
+    scheduler.add_job(
+        delivery_30day_rescan_job, "cron", hour=2, minute=0,
+        id="delivery_30day_rescan", replace_existing=True,
+        max_instances=1, misfire_grace_time=600,
+    )
+    # [P3] v3.1 readiness check -- daily 09:15 KST (UTC 00:15)
+    scheduler.add_job(
+        _check_v31_readiness_job, "cron", hour=0, minute=15,
+        id="v31_readiness_check_job", replace_existing=True,
+        max_instances=1, misfire_grace_time=600,
+    )
+    # M3-1: AI탭 P2 자동 트리거 감지 — 주 2회(월·목 09:00 KST)
+    scheduler.add_job(
+        ai_tab_trigger_check_job, "cron", day_of_week="mon,thu", hour=9, minute=0,
+        id="ai_tab_trigger_check", replace_existing=True,
+        max_instances=1, misfire_grace_time=600,
+    )
+    # M3-4: 의료·법무·헬스케어 AI 브리핑 업종 확대 감지 — 월 1회(1일 09:30 KST)
+    scheduler.add_job(
+        briefing_category_expansion_monitor_job, "cron", day=1, hour=9, minute=30,
+        id="briefing_expansion_monitor", replace_existing=True,
+        max_instances=1, misfire_grace_time=3600,
+    )
     scheduler.start()
     logger.info("Scheduler started")
 
@@ -426,6 +462,11 @@ async def daily_scan_all():
                             "naver_channel_score": naver_channel,
                             "global_channel_score": global_channel,
                             "competitor_scores": competitor_scores if competitor_scores else None,
+                            "blog_post_count": int(_sched_blog_json.get("post_count") or 0) or None,
+                            "blog_ai_readiness": float(_sched_blog_json.get("ai_readiness_score") or 0) or None,
+                            "blog_keyword_coverage": float(_sched_blog_json.get("keyword_coverage") or 0) or None,
+                            "blog_platform": _sched_blog_json.get("platform") or None,
+                            "blog_top_recommendation": (_sched_blog_json.get("top_recommendation") or "")[:500] or None,
                         }
                     )
                 )
@@ -1079,7 +1120,16 @@ async def after_screenshot_job():
             for biz in businesses:
                 try:
                     queries = build_queries(biz)
-                    after_urls = await capture_batch(biz["id"], queries)
+                    # 네이버 블로그 After 스크린샷 — 올바른 capture_type 사용
+                    # (capture_batch는 내부적으로 "before" 타입으로 저장하는 버그 있어 직접 호출)
+                    after_urls = []
+                    for _aq in queries[:2]:
+                        try:
+                            _au = await capture_ai_result("naver", _aq, biz["id"], f"after_{days}d_naver_blog")
+                            after_urls.append(_au)
+                        except Exception:
+                            after_urls.append(None)
+                        await asyncio.sleep(3)
 
                     _br_res = await _db(
                         supabase.table("before_after")
@@ -1130,35 +1180,30 @@ async def after_screenshot_job():
                         })
                     )
 
-                    # 네이버 AI 브리핑 After 스크린샷 (신규)
-                    try:
-                        for q in queries[:2]:
-                            ai_url = await capture_ai_result("naver_ai", q, biz["id"], f"after_{days}d_naver_ai")
-                            await _db(
-                                supabase.table("before_after").insert({
-                                    "business_id": biz["id"],
-                                    "capture_type": f"after_{days}d_naver_ai",
-                                    "image_url": ai_url,
-                                    "query_used": q,
-                                })
-                            )
-                            await asyncio.sleep(3)
-                    except Exception as e_ai:
-                        logger.warning(f"naver_ai after screenshot failed for {biz.get('name')}: {e_ai}")
+                    # 네이버 AI 브리핑 After 스크린샷 — ACTIVE/LIKELY 업종만
+                    from services.screenshot import _needs_naver_ai_shot
+                    if _needs_naver_ai_shot(biz.get("category", ""), bool(biz.get("is_franchise"))):
+                        try:
+                            for q in queries[:2]:
+                                ai_url = await capture_ai_result("naver_ai", q, biz["id"], f"after_{days}d_naver_ai")
+                                if ai_url:
+                                    await _db(
+                                        supabase.table("before_after").insert({
+                                            "business_id": biz["id"],
+                                            "capture_type": f"after_{days}d_naver_ai",
+                                            "image_url": ai_url,
+                                            "query_used": q,
+                                        })
+                                    )
+                                await asyncio.sleep(3)
+                        except Exception as e_ai:
+                            logger.warning(f"naver_ai after screenshot failed for {biz.get('name')}: {e_ai}")
+                    else:
+                        logger.info(f"naver_ai after screenshot skipped (INACTIVE): {biz.get('name')}")
 
-                    # Google 검색 After 스크린샷 (신규)
-                    try:
-                        g_url = await capture_ai_result("google", queries[0], biz["id"], f"after_{days}d_google")
-                        await _db(
-                            supabase.table("before_after").insert({
-                                "business_id": biz["id"],
-                                "capture_type": f"after_{days}d_google",
-                                "image_url": g_url,
-                                "query_used": queries[0],
-                            })
-                        )
-                    except Exception as e_g:
-                        logger.warning(f"google after screenshot failed for {biz.get('name')}: {e_g}")
+                    # Google After 스크린샷 제거
+                    # 이유: 데이터센터 IP(iwinv) → Google CAPTCHA 100% 감지
+                    # 재도입 기준: 구독자 50명 이후 DataForSEO Screenshot API 연동
 
                     logger.info(f"After card generated: {biz['name']} ({days}d)")
 
@@ -1833,7 +1878,12 @@ async def trial_followup_job():
 
             _tr_res = await _db(
                 supabase.table("trial_scans")
-                .select("id, email, business_name, category, region, total_score, unified_score")
+                .select(
+                    "id, email, business_name, category, region, total_score, unified_score, "
+                    "naver_rank, blog_mentions, top_competitor_name, ai_mentioned, "
+                    "top_missing_keywords, has_recent_post, has_intro, track1_score, "
+                    "track2_score, growth_stage, smart_place_completeness"
+                )
                 .eq(col, False)
                 .not_.is_("email", "null")
                 .lte("scanned_at", target_date + "T23:59:59")
@@ -1853,8 +1903,9 @@ async def trial_followup_job():
                     .update({col: True, "followup_sent_at": today.isoformat()})
                     .eq("id", row["id"])
                     .eq(col, False)
+                    .select("id")
                 )
-                if not (updated.data or []):
+                if not (updated and updated.data):
                     continue  # 다른 프로세스가 먼저 처리한 경우
 
                 sent = await send_trial_followup(
@@ -1864,9 +1915,20 @@ async def trial_followup_job():
                     region=row.get("region", ""),
                     score=float(row.get("unified_score") or row.get("total_score") or 0),
                     day=day,
+                    naver_rank=row.get("naver_rank"),
+                    blog_mentions=row.get("blog_mentions"),
+                    top_competitor_name=row.get("top_competitor_name"),
+                    ai_mentioned=row.get("ai_mentioned"),
+                    top_missing_keywords=row.get("top_missing_keywords") or [],
+                    has_recent_post=row.get("has_recent_post"),
+                    has_intro=row.get("has_intro"),
+                    track1_score=row.get("track1_score"),
+                    track2_score=row.get("track2_score"),
+                    growth_stage=row.get("growth_stage"),
+                    smart_place_completeness=row.get("smart_place_completeness"),
                 )
                 if sent:
-                    logger.info(f"trial_followup day={day} → {email}")
+                    logger.info(f"trial_followup day={day} → {email[:2]}***")
 
     except Exception as e:
         logger.error(f"trial_followup_job failed: {e}")
@@ -3625,7 +3687,8 @@ async def send_monthly_performance_reports():
                         .execute
                     )
                     action_count = actions_r.count or 0
-                except Exception:
+                except Exception as _ace:
+                    logger.warning(f"[monthly_perf] action_count 조회 실패 biz={biz['id']}: {_ace}")
                     action_count = 0
 
                 # 사용자 이메일 (auth.users 직접 접근) — admin_client는 루프 밖에서 1회만 생성
@@ -3664,7 +3727,7 @@ async def send_monthly_performance_reports():
                 subject = f"[{biz_name}] {days_since}일 동안 이렇게 달라졌습니다"
                 ok = await _send_email(user_email, subject, html)
                 if ok:
-                    logger.info(f"[monthly_perf] 발송 완료: {biz_name} ({days_since}일) → {user_email}")
+                    logger.info(f"[monthly_perf] 발송 완료: {biz_name} ({days_since}일) → {user_email[:2]}***")
                 else:
                     logger.warning(f"[monthly_perf] 발송 실패: {biz_name} ({days_since}일)")
 
@@ -3902,6 +3965,22 @@ async def conversion_followup_job():
             phone_by_user = {p["id"]: p.get("phone") for p in target_profiles}
             kakao_by_user = {p["id"]: bool(p.get("kakao_scan_notify")) for p in target_profiles}
 
+            # 사업장명·업종 조회 (개인화 이메일용)
+            biz_by_user: dict[str, dict] = {}
+            try:
+                biz_res = await _db(
+                    supabase.table("businesses")
+                    .select("user_id, name, category")
+                    .in_("user_id", target_user_ids)
+                    .limit(500)
+                )
+                for row in (biz_res.data or []):
+                    uid = row.get("user_id")
+                    if uid:
+                        biz_by_user[uid] = row
+            except Exception as e:
+                logger.warning(f"[conversion_followup] D+{day}: businesses 조회 실패: {e}")
+
             # profiles 테이블에 email 컬럼이 없으므로 businesses → 이메일은
             # trial_scans 또는 profiles.email 컬럼 가용 여부에 따라 폴백 조회
             # 여기서는 auth 이메일 직접 접근이 불가하므로 profiles.email 컬럼 시도 후
@@ -3951,7 +4030,13 @@ async def conversion_followup_job():
 
                 try:
                     # 6-a) 이메일 발송
-                    ok = await send_conversion_followup(email=email, day=day)
+                    biz = biz_by_user.get(uid, {})
+                    ok = await send_conversion_followup(
+                        email=email,
+                        day=day,
+                        biz_name=biz.get("name", ""),
+                        category=biz.get("category", ""),
+                    )
 
                     # 6-b) 카카오 알림 (D+7, D+30만, phone+동의 필요)
                     if send_kakao and _KAKAO_CONFIGURED:
@@ -4001,7 +4086,7 @@ async def conversion_followup_job():
                                 f"[conversion_followup] D+{day}: notifications INSERT 실패 user={uid}: {e}"
                             )
                         sent_count += 1
-                        logger.info(f"[conversion_followup] D+{day} 발송 OK: {email}")
+                        logger.info(f"[conversion_followup] D+{day} 발송 OK: {email[:2]}***")
 
                 except Exception as e:
                     logger.warning(
@@ -4119,10 +4204,10 @@ async def weekly_digest_job():
                 # 3-c) score_history에서 이번 주 / 전주 점수 조회
                 hist_res = await _db(
                     supabase.table("score_history")
-                    .select("unified_score, created_at")
+                    .select("unified_score, score_date")
                     .eq("business_id", biz_id)
-                    .gte("created_at", last_week_start)
-                    .order("created_at", desc=True)
+                    .gte("score_date", last_week_start)
+                    .order("score_date", desc=True)
                     .limit(20)
                 )
                 hist_rows = (hist_res.data or []) if hist_res else []
@@ -4130,7 +4215,7 @@ async def weekly_digest_job():
                 current_score: float | None = None
                 prev_score: float | None = None
                 for row in hist_rows:
-                    row_date = (row.get("created_at") or "")[:10]
+                    row_date = (row.get("score_date") or "")[:10]
                     val = row.get("unified_score")
                     if val is None:
                         continue
@@ -4202,7 +4287,7 @@ async def weekly_digest_job():
                             f"[weekly_digest_job] notifications INSERT 실패 biz_id={biz_id}: {e}"
                         )
                     sent_count += 1
-                    logger.info(f"[weekly_digest_job] 발송 OK biz_id={biz_id} to={email}")
+                    logger.info(f"[weekly_digest_job] 발송 OK biz_id={biz_id} to={email[:2]}***")
 
             except Exception as e:
                 logger.warning(
@@ -4534,4 +4619,529 @@ async def keyword_rank_pro_daily_job() -> None:
         await _run_keyword_rank_for_plans(["pro", "biz", "enterprise", "startup"])
     except Exception as e:
         logger.error(f"[keyword_rank_pro_daily_job] 실패: {e}")
-        await send_slack_alert("keyword_rank_pro_daily_job 실패", str(e), level="error")
+
+
+# ─── 소식 14일 미작성 알림 잡 (v1.1 §3.3) ─────────────────────────────────────────
+async def inactive_post_alert_job() -> None:
+    """14일 이상 소식 미작성 사업장에 카카오 알림 발송 (매일 09:10 KST).
+
+    - last_post_at 컬럼 부재 또는 NULL/14일전 → 알림 대상
+    - 멱등키: post_remind_{biz_id}_{cutoff_date}
+    - has_recent_post=False 이거나 last_post_at is null AND created_at < 14d 전 사업장만
+    - graceful fallback: last_post_at 컬럼 미존재 시 잡 종료 (warning 로그)
+    """
+    if not _KAKAO_CONFIGURED:
+        logger.info("[inactive_post_alert_job] KAKAO 미설정 — 스킵")
+        return
+
+    try:
+        from db.supabase_client import get_supabase
+        from services.kakao_notify import KakaoNotifier
+
+        supabase = get_supabase()
+        notifier = KakaoNotifier()
+        cutoff = datetime.now() - timedelta(days=14)
+        cutoff_iso = cutoff.isoformat()
+        cutoff_date = cutoff.date().isoformat()
+
+        # last_post_at < cutoff OR (last_post_at IS NULL AND created_at < cutoff)
+        try:
+            res = await _db(
+                supabase.table("businesses")
+                .select("id, user_id, name, last_post_at, created_at")
+                .or_(
+                    f"last_post_at.lt.{cutoff_iso},last_post_at.is.null"
+                )
+                .eq("is_active", True)
+                .limit(500)
+            )
+        except Exception as col_err:
+            if "last_post_at" in str(col_err) or "column" in str(col_err).lower():
+                logger.warning(
+                    "[inactive_post_alert_job] last_post_at 컬럼 부재 — ALTER 미실행 가능성. 잡 스킵"
+                )
+                return
+            raise
+
+        rows = (res.data if res and res.data else []) or []
+        if not rows:
+            logger.info("[inactive_post_alert_job] 대상 없음")
+            return
+
+        sent = 0
+        for biz in rows:
+            # last_post_at NULL인 경우 created_at으로 가입한 지 14일+ 인지 확인
+            if not biz.get("last_post_at"):
+                created_at = biz.get("created_at")
+                if created_at:
+                    try:
+                        ca = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                        if ca.replace(tzinfo=None) > cutoff:
+                            continue  # 가입 14일 미만 — 새 사용자, 알림 skip
+                    except Exception:
+                        pass
+
+            # 멱등키 체크 (14일에 1회만)
+            idem_key = f"post_remind_{biz['id']}_{cutoff_date}"
+            already = await _db(
+                supabase.table("notifications")
+                .select("id")
+                .eq("business_id", biz["id"])
+                .eq("type", "post_remind")
+                .eq("idempotency_key", idem_key)
+                .limit(1)
+            )
+            if already and already.data:
+                continue
+
+            # 사용자 폰 번호 조회
+            prof_res = await _db(
+                supabase.table("profiles")
+                .select("phone, kakao_scan_notify")
+                .eq("user_id", biz["user_id"])
+                .maybe_single()
+            )
+            profile = (prof_res.data if prof_res and prof_res.data else None) or {}
+            phone = profile.get("phone")
+            if not phone:
+                continue
+            # 사용자 알림 옵트아웃 존중 (kakao_scan_notify=False면 skip)
+            if profile.get("kakao_scan_notify") is False:
+                continue
+
+            try:
+                await notifier.send_post_remind(phone, biz["name"], days=14)
+                await _db(
+                    supabase.table("notifications").insert({
+                        "business_id": biz["id"],
+                        "type": "post_remind",
+                        "idempotency_key": idem_key,
+                        "payload": {"last_post_at": biz.get("last_post_at"), "days": 14},
+                    })
+                )
+                sent += 1
+            except Exception as send_err:
+                logger.warning(
+                    f"[inactive_post_alert_job] 발송 실패 biz={biz.get('id')}: {send_err}"
+                )
+
+        logger.info(f"[inactive_post_alert_job] 발송 {sent}/{len(rows)}건 완료")
+    except Exception as e:
+        logger.error(f"[inactive_post_alert_job] 잡 실패: {e}")
+        await send_slack_alert("inactive_post_alert_job 실패", str(e), level="error")
+
+
+async def delivery_auto_cancel_job():
+    """결제 완료 후 자료 미제출 7일 경과 주문 자동 취소 (매일 10:30 KST).
+
+    조건:
+    - status = 'received' (결제 완료 + 자료 미제출 상태)
+    - created_at < now() - 7일
+    - materials_url IS NULL 또는 빈 배열 (자료를 제출하지 않은 경우)
+    멱등성: 이미 cancelled 상태인 행은 조회 자체에서 제외됨.
+    """
+    from db.supabase_client import get_client
+
+    try:
+        supabase = get_client()
+        cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+        cutoff_iso = cutoff.isoformat()
+
+        res = await _db(
+            supabase.table("delivery_orders")
+            .select("id, business_id, created_at, materials_url")
+            .eq("status", "received")
+            .lt("created_at", cutoff_iso)
+        )
+        rows = (res.data if res and res.data else []) or []
+
+        if not rows:
+            logger.info("[delivery_auto_cancel_job] 취소 대상 없음")
+            return
+
+        # materials_url 이 null 또는 빈 배열인 행만 대상
+        targets = [
+            r for r in rows
+            if not r.get("materials_url")
+        ]
+
+        if not targets:
+            logger.info("[delivery_auto_cancel_job] 자료 제출 완료 주문 제외 후 취소 대상 없음")
+            return
+
+        cancelled_ids = [r["id"] for r in targets]
+
+        await _db(
+            supabase.table("delivery_orders")
+            .update({
+                "status": "cancelled",
+                "refund_reason": "자료 미제출 7일 경과 자동 취소",
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            })
+            .in_("id", cancelled_ids)
+        )
+
+        logger.warning(
+            f"[delivery_auto_cancel_job] {len(cancelled_ids)}건 자동 취소 완료: {cancelled_ids}"
+        )
+
+    except Exception as e:
+        logger.warning(f"[delivery_auto_cancel_job] 잡 실패: {e}")
+
+
+async def delivery_30day_rescan_job():
+    """종합 풀패키지(comprehensive) 완료 30일 후 자동 재스캔 (매일 11:00 KST).
+
+    조건:
+    - package_type = 'comprehensive'
+    - status = 'completed'
+    - work_completed_at < now() - 30일
+    - followup_scan_id IS NULL (아직 재스캔 미완료)
+
+    재스캔 방식: AI 재스캔(Playwright) 비용 절감을 위해
+    기존 스캔 결과 기반 score만 재계산하여 scan_results 에 INSERT.
+    완료 후 followup_scan_id 에 새 scan_results.id 저장 + 이메일 발송.
+    실패 시 raise 하지 않고 warning 로그만 기록.
+    """
+    from db.supabase_client import get_client
+    from services.score_engine import calculate_score
+
+    try:
+        supabase = get_client()
+        cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+        cutoff_iso = cutoff.isoformat()
+
+        res = await _db(
+            supabase.table("delivery_orders")
+            .select("id, business_id, work_completed_at")
+            .eq("package_type", "comprehensive")
+            .eq("status", "completed")
+            .lt("work_completed_at", cutoff_iso)
+            .is_("followup_scan_id", "null")
+            .limit(50)
+        )
+        rows = (res.data if res and res.data else []) or []
+
+        if not rows:
+            logger.info("[delivery_30day_rescan_job] 재스캔 대상 없음")
+            return
+
+        logger.info(f"[delivery_30day_rescan_job] 재스캔 대상 {len(rows)}건")
+
+        for order in rows:
+            order_id = order["id"]
+            biz_id = order.get("business_id")
+            if not biz_id:
+                logger.warning(f"[delivery_30day_rescan_job] business_id 없음 order={order_id}")
+                continue
+
+            try:
+                # 사업장 기본 정보 조회
+                biz_res = await _db(
+                    supabase.table("businesses")
+                    .select("id, name, category, region, keywords, has_recent_post, has_intro")
+                    .eq("id", biz_id)
+                    .maybe_single()
+                )
+                biz_data = biz_res.data if (biz_res and biz_res.data) else {}
+                if not biz_data:
+                    logger.warning(
+                        f"[delivery_30day_rescan_job] 사업장 없음 biz={biz_id}"
+                    )
+                    continue
+
+                # 가장 최근 scan_results 조회 (기존 AI 스캔 결과 재활용)
+                prev_res = await _db(
+                    supabase.table("scan_results")
+                    .select(
+                        "gemini_result, chatgpt_result, naver_result, google_result, "
+                        "naver_channel_score, global_channel_score, query_used"
+                    )
+                    .eq("business_id", biz_id)
+                    .order("created_at", desc=True)
+                    .limit(1)
+                    .maybe_single()
+                )
+                prev_scan = prev_res.data if (prev_res and prev_res.data) else {}
+
+                # 점수 재계산 (AI 재스캔 없이 기존 결과 기반)
+                score = calculate_score(
+                    scan_result=prev_scan,
+                    biz=biz_data,
+                    context=(
+                        "location_based"
+                        if biz_data.get("category") in (
+                            "restaurant", "cafe", "bakery", "bar", "beauty", "nail",
+                            "medical", "pharmacy", "fitness", "yoga", "pet",
+                            "accommodation",
+                        )
+                        else "non_location"
+                    ),
+                )
+
+                # scan_results INSERT
+                insert_res = await _db(
+                    supabase.table("scan_results").insert({
+                        "business_id": biz_id,
+                        "query_used": prev_scan.get("query_used", ""),
+                        "gemini_result": prev_scan.get("gemini_result"),
+                        "chatgpt_result": prev_scan.get("chatgpt_result"),
+                        "naver_result": prev_scan.get("naver_result"),
+                        "google_result": prev_scan.get("google_result"),
+                        "total_score": score["total_score"],
+                        "unified_score": score.get("unified_score", score["total_score"]),
+                        "track1_score": score.get("track1_score"),
+                        "track2_score": score.get("track2_score"),
+                        "score_breakdown": score.get("breakdown"),
+                        "naver_channel_score": prev_scan.get("naver_channel_score"),
+                        "global_channel_score": prev_scan.get("global_channel_score"),
+                        "scan_type": "followup_rescan",
+                    })
+                )
+                new_scan_id = (
+                    insert_res.data[0]["id"]
+                    if (insert_res and insert_res.data and insert_res.data[0])
+                    else None
+                )
+                if not new_scan_id:
+                    logger.warning(
+                        f"[delivery_30day_rescan_job] scan INSERT 실패 biz={biz_id}"
+                    )
+                    continue
+
+                # followup_scan_id 갱신
+                await _db(
+                    supabase.table("delivery_orders")
+                    .update({"followup_scan_id": new_scan_id})
+                    .eq("id", order_id)
+                )
+
+                # 이메일 발송 — RESEND_API_KEY 미설정 시 graceful skip
+                try:
+                    from services.email_sender import _get_resend, FROM_EMAIL
+                    resend = _get_resend()
+
+                    # 이메일 수신자 조회 (profiles.email 또는 auth users)
+                    prof_res = await _db(
+                        supabase.table("profiles")
+                        .select("email")
+                        .eq("user_id", biz_data.get("user_id", ""))
+                        .maybe_single()
+                    )
+                    recipient_email = (
+                        prof_res.data.get("email") if (prof_res and prof_res.data) else None
+                    )
+                    if recipient_email:
+                        resend.Emails.send({
+                            "from": FROM_EMAIL,
+                            "to": recipient_email,
+                            "subject": f"[AEOlab] {biz_data.get('name', '사업장')} 30일 후 재측정 보고서",
+                            "html": (
+                                f"<h2>30일 후 AI 노출 재측정 결과</h2>"
+                                f"<p>안녕하세요, {biz_data.get('name', '사업장')} 사장님.</p>"
+                                f"<p>종합 풀패키지 완료 후 30일이 지나 재측정을 진행했습니다.</p>"
+                                f"<p>현재 통합 점수: <strong>{score.get('unified_score', 0):.1f}점</strong></p>"
+                                f"<p>대시보드에서 상세 결과를 확인하세요: "
+                                f"<a href='https://aeolab.co.kr/dashboard'>aeolab.co.kr/dashboard</a></p>"
+                            ),
+                        })
+                        logger.info(
+                            f"[delivery_30day_rescan_job] 이메일 발송 완료 order={order_id}"
+                        )
+                except Exception as mail_err:
+                    logger.warning(
+                        f"[delivery_30day_rescan_job] 이메일 발송 실패 order={order_id}: {mail_err}"
+                    )
+
+                logger.info(
+                    f"[delivery_30day_rescan_job] 재스캔 완료 order={order_id} scan={new_scan_id}"
+                )
+
+            except Exception as inner_e:
+                logger.warning(
+                    f"[delivery_30day_rescan_job] 처리 실패 order={order_id}: {inner_e}"
+                )
+
+    except Exception as e:
+        logger.warning(f"[delivery_30day_rescan_job] 잡 실패: {e}")
+
+async def _check_v31_readiness_job():
+    """[P3] beta subscriber count check — triggers v3.1 activation warning.
+
+    Condition: active subscriptions >= 5 AND SCORE_MODEL_VERSION == 'v3_0'
+    Notification: WARNING log only (no email/kakao)
+    """
+    import os
+    from datetime import date
+
+    if os.getenv("SCORE_MODEL_VERSION", "v3_0") != "v3_0":
+        return  # v3.1 already active
+
+    try:
+        from db.supabase_client import get_supabase
+        supabase = get_supabase()
+
+        res = await _db(
+            supabase.table("subscriptions")
+            .select("id", count="exact")
+            .eq("status", "active")
+        )
+        count = res.count if (res and res.count is not None) else 0
+        if count >= 5:
+            today = date.today().isoformat()
+            _logger.warning(
+                f"[P3-READY] {today} -- beta subscriber count={count} -- "
+                "SCORE_MODEL_VERSION=v3_1 activation ready. "
+                "Update .env then: pm2 restart aeolab-backend. "
+                "Verify track1 6-item measurements before activation (service_unification_v1.0.md sec3)"
+            )
+    except Exception as e:
+        _logger.warning(f"[P3-READY] subscriber check failed: {e}")
+
+
+async def ai_tab_trigger_check_job():
+    """M3-1: 주 2회(월·목 09:00 KST) AI탭 비로그인 노출률 측정.
+
+    통합검색 결과에서 AI탭 섹션 노출 여부를 4개 쿼리로 확인.
+    노출률 80%+ 감지 시 [P2-READY] Slack 알림 → P2 작업 시작 신호.
+    수동 모니터링(p2_p3_execution_runbook.md 주 1회 확인)을 자동화로 대체.
+    """
+    try:
+        from playwright.async_api import async_playwright
+        from services.ai_scanner.naver_scanner import NaverAIBriefingScanner
+    except ImportError as e:
+        _logger.warning(f"ai_tab_trigger_check_job: import failed: {e}")
+        return
+
+    queries = ["강남역 맛집", "홍대 카페", "신사동 미용실", "분당 학원"]
+    hit_count = 0
+    scanner = NaverAIBriefingScanner()
+
+    try:
+        async with async_playwright() as pw:
+            browser = await pw.chromium.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+            )
+            ctx = await browser.new_context(
+                locale="ko-KR",
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/124.0.0.0 Safari/537.36"
+                ),
+            )
+            for q in queries:
+                page = await ctx.new_page()
+                try:
+                    result = await scanner._check_single_page(page, q, "")
+                    if result.get("in_ai_tab"):
+                        hit_count += 1
+                        _logger.info(f"[ai_tab_trigger] in_ai_tab=True query='{q}'")
+                except Exception as e:
+                    _logger.warning(f"[ai_tab_trigger] query='{q}' failed: {e}")
+                finally:
+                    await page.close()
+                await asyncio.sleep(1.0)
+            await browser.close()
+    except Exception as e:
+        _logger.warning(f"ai_tab_trigger_check_job playwright failed: {e}")
+        return
+
+    rate = hit_count / len(queries)
+    _logger.info(f"[ai_tab_trigger_check] hit={hit_count}/{len(queries)} rate={rate:.0%}")
+
+    if rate >= 0.8:
+        await send_slack_alert(
+            "[P2-READY] AI탭 전체 확대 감지",
+            (
+                f"비로그인 노출률 {rate*100:.0f}% ({hit_count}/{len(queries)}) — "
+                "P2 작업 시작 필요. "
+                "naver_ai_search_optimization_plan_v1.0.md §P2 참조."
+            ),
+            level="info",
+        )
+        _logger.warning(f"[P2-READY] AI탭 노출률 {rate*100:.0f}% — 전체 확대 감지")
+    elif rate >= 0.5:
+        _logger.info(f"[P2-MONITOR] AI탭 노출률 {rate*100:.0f}% — 확산 중, 추가 관찰 필요")
+
+
+async def briefing_category_expansion_monitor_job():
+    """M3-4: 월 1회(1일 09:30 KST) 의료·법무·헬스케어 AI 브리핑 업종 확대 감지.
+
+    INACTIVE 업종(medical, dental, legal, accounting)의 실제 검색 결과에서
+    AI 브리핑 노출 여부를 확인. 노출 감지 시 Slack 알림 → LIKELY/ACTIVE 승급 검토.
+    """
+    try:
+        from playwright.async_api import async_playwright
+        from services.ai_scanner.naver_scanner import NaverAIBriefingScanner
+    except ImportError as e:
+        _logger.warning(f"briefing_category_expansion_monitor_job: import failed: {e}")
+        return
+
+    # 확대 모니터링 대상 업종 + 테스트 쿼리 (업종별 2개)
+    MONITOR_QUERIES: dict[str, list[str]] = {
+        "medical":    ["강남 내과 추천", "홍대 피부과 추천"],
+        "dental":     ["강남 치과 추천", "송파 치과 추천"],
+        "legal":      ["서울 법무사 추천", "강남 변호사 추천"],
+        "accounting": ["서울 세무사 추천", "강남 회계사 추천"],
+    }
+
+    newly_detected: list[str] = []
+    scanner = NaverAIBriefingScanner()
+
+    try:
+        async with async_playwright() as pw:
+            browser = await pw.chromium.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+            )
+            ctx = await browser.new_context(
+                locale="ko-KR",
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/124.0.0.0 Safari/537.36"
+                ),
+            )
+
+            for cat, queries in MONITOR_QUERIES.items():
+                cat_hit = 0
+                for q in queries:
+                    page = await ctx.new_page()
+                    try:
+                        result = await scanner._check_single_page(page, q, "")
+                        if result.get("in_briefing"):
+                            cat_hit += 1
+                            _logger.info(f"[briefing_expansion] in_briefing=True cat={cat} query='{q}'")
+                    except Exception as e:
+                        _logger.warning(f"[briefing_expansion] cat={cat} q='{q}' failed: {e}")
+                    finally:
+                        await page.close()
+                    await asyncio.sleep(1.0)
+
+                if cat_hit >= len(queries):
+                    newly_detected.append(cat)
+                    _logger.warning(f"[briefing_expansion] {cat} 업종 AI 브리핑 노출 감지!")
+
+            await browser.close()
+    except Exception as e:
+        _logger.warning(f"briefing_category_expansion_monitor_job playwright failed: {e}")
+        return
+
+    if newly_detected:
+        cats_str = ", ".join(newly_detected)
+        await send_slack_alert(
+            "[AI 브리핑 업종 확대 감지]",
+            (
+                f"INACTIVE 업종에서 AI 브리핑 노출 확인: {cats_str}\n"
+                "score_engine.py BRIEFING_LIKELY_CATEGORIES 또는 BRIEFING_ACTIVE_CATEGORIES "
+                "업데이트 필요. naver_gpt_work_standard_v1.0.md 기준으로 검토."
+            ),
+            level="info",
+        )
+    else:
+        _logger.info(
+            f"[briefing_expansion] 신규 업종 확대 없음 "
+            f"(모니터링: {list(MONITOR_QUERIES.keys())})"
+        )

@@ -28,14 +28,22 @@ _CATEGORY_ALIASES: dict[str, str] = {
     # 미용·뷰티
     "beauty": "beauty", "hair": "beauty", "salon": "beauty",
     "미용": "beauty", "미용실": "beauty", "뷰티": "beauty",
-    "네일": "beauty", "피부": "beauty",
+    "네일": "beauty",
+    # 피부관리실·에스테틱 (beauty와 분리 — 피부관리실이 미용실 taxonomy 받는 문제 수정)
+    "skincare": "skincare", "피부관리": "skincare", "에스테틱": "skincare",
+    "스킨케어": "skincare", "피부샵": "skincare", "피부": "skincare",
+    # 마사지·스파
+    "massage": "massage", "마사지": "massage", "스파": "massage",
+    "체형관리": "massage", "안마": "massage", "아로마": "massage", "타이마사지": "massage",
     # 병원·한의원
-    "clinic": "medical", "hospital": "medical", "medical": "medical",
-    "병원": "medical", "한의원": "medical", "치과": "medical",
-    "의원": "medical", "약국": "medical",
+    "clinic": "clinic", "hospital": "clinic", "medical": "clinic",
+    "병원": "clinic", "한의원": "clinic", "치과": "clinic",
+    "의원": "clinic", "약국": "clinic",
     # 학원·교육
     "academy": "academy", "education": "academy", "tutoring": "academy",
     "학원": "academy", "교육": "academy", "과외": "academy",
+    # 스터디카페·독서실
+    "study": "study", "스터디카페": "study", "독서실": "study", "스터디룸": "study",
     # 음악·예체능 교습소 (학원과 구분 — 원어민 키워드 오추천 방지)
     "music": "music", "음악": "music", "음악교습소": "music", "음악학원": "music",
     "피아노": "music", "피아노학원": "music", "피아노교습소": "music",
@@ -43,18 +51,25 @@ _CATEGORY_ALIASES: dict[str, str] = {
     "보컬": "music", "성악": "music", "실용음악": "music", "작곡": "music",
     "미술": "music", "미술학원": "music", "미술교습소": "music",
     "발레": "music", "무용": "music", "댄스": "music",
-    # 법률·세무
-    "legal": "legal", "lawyer": "legal", "tax": "legal", "accounting": "legal",
-    "법률": "legal", "세무": "legal", "변호사": "legal", "회계": "legal",
+    # 법률
+    "legal": "legal", "lawyer": "legal",
+    "법률": "legal", "변호사": "legal",
+    # 세무·회계 (legal에서 분리)
+    "accounting": "accounting", "tax": "accounting",
+    "세무": "accounting", "회계": "accounting",
+    "세무사": "accounting", "세무법인": "accounting", "기장": "accounting",
+    "공인회계사": "accounting",
     # 쇼핑몰·온라인
     "shop": "shopping", "shopping": "shopping", "online": "shopping",
     "쇼핑몰": "shopping", "온라인": "shopping", "이커머스": "shopping",
     # 카페 추가 별칭
     "coffee": "cafe", "coffeeshop": "cafe", "커피숍": "cafe", "디저트카페": "cafe",
     # 헬스장·피트니스
-    "fitness": "fitness", "gym": "fitness", "pilates": "fitness", "yoga": "fitness",
+    "fitness": "fitness", "gym": "fitness", "pilates": "fitness",
     "헬스": "fitness", "헬스장": "fitness", "피트니스": "fitness",
-    "필라테스": "fitness", "요가": "fitness", "pt": "fitness",
+    "필라테스": "fitness", "pt": "fitness",
+    # 요가는 별도 taxonomy — fitness 오분류 방지 (2026-05-18 수정)
+    "yoga": "yoga", "요가": "yoga", "요가원": "yoga", "요가스튜디오": "yoga",
     # 반려동물
     "pet": "pet", "petshop": "pet", "vet": "pet", "grooming": "pet",
     "반려동물": "pet", "펫샵": "pet", "동물병원": "pet", "반려견": "pet", "반려묘": "pet",
@@ -82,8 +97,8 @@ _CATEGORY_ALIASES: dict[str, str] = {
     # 음식 계열 alias
     "bakery": "cafe", "베이커리": "cafe", "빵집": "cafe", "디저트": "cafe",
     "bar": "restaurant", "주점": "restaurant", "술집": "restaurant", "포차": "restaurant",
-    # 미용 alias
-    "nail": "beauty", "네일아트": "beauty", "네일샵": "beauty",
+    # 네일샵 — 별도 taxonomy (beauty 오분류 방지, 2026-05-18 수정)
+    "nail": "nail", "네일아트": "nail", "네일샵": "nail",
     # 약국 (신규 dict)
     "pharmacy": "pharmacy", "약사": "pharmacy",
     # 부동산 (신규 dict)
@@ -93,10 +108,97 @@ _CATEGORY_ALIASES: dict[str, str] = {
     "interior": "interior", "인테리어": "interior", "리모델링": "interior", "시공": "interior",
     # 자동차 (신규 dict)
     "auto": "auto", "자동차": "auto", "정비소": "auto", "카센터": "auto", "수리": "auto",
-    # 청소 alias
-    "cleaning": "living",
-    # 패션 alias (쇼핑몰 분류)
-    "fashion": "shopping", "패션": "shopping", "의류": "shopping", "옷": "shopping",
+    # 청소 — 별도 taxonomy (living 오분류 방지, 2026-05-18 수정)
+    "cleaning": "cleaning", "청소": "cleaning", "청소업체": "cleaning", "가사도우미": "cleaning",
+    # 꽃집
+    "flower": "flower", "꽃집": "flower", "화원": "flower", "플라워": "flower", "꽃": "flower",
+    # 세탁소
+    "laundry": "laundry", "세탁소": "laundry", "드라이클리닝": "laundry",
+    "코인세탁": "laundry",
+    # 키즈카페·어린이
+    "kids": "kids", "키즈카페": "kids", "어린이카페": "kids", "어린이": "kids",
+    # 공방·원데이클래스
+    "workshop": "workshop", "공방": "workshop", "원데이클래스": "workshop",
+    "공예": "workshop", "클래스": "workshop", "아틀리에": "workshop",
+    # 패션·의류 (분리)
+    "fashion": "fashion", "패션": "fashion", "편집샵": "fashion", "브랜드샵": "fashion",
+    "clothing": "clothing", "의류": "clothing", "옷": "clothing", "옷가게": "clothing",
+    "교복": "clothing", "단체복": "clothing",
+    # 댄스 스튜디오 (신규)
+    "dance": "dance", "댄스": "dance", "댄스학원": "dance",
+    "댄스스튜디오": "dance", "방송댄스": "dance", "힙합댄스": "dance",
+    # 발레 (분리)
+    "ballet": "ballet", "발레": "ballet", "발레학원": "ballet", "발레스튜디오": "ballet",
+    "무용": "ballet", "무용학원": "ballet",
+    # 골프연습장 (신규)
+    "golf": "golf", "골프": "golf", "골프연습장": "golf", "스크린골프": "golf",
+    "실내골프": "golf",
+    # 수영·아쿠아 (신규)
+    "swim": "swim", "수영": "swim", "수영장": "swim", "아쿠아": "swim",
+    "아쿠아로빅": "swim",
+    # 찜질방·사우나 (신규)
+    "jjimjil": "jjimjil", "찜질방": "jjimjil", "사우나": "jjimjil", "한증막": "jjimjil",
+    # 스파 (마사지와 분리)
+    "spa": "spa", "스파": "spa", "아로마스파": "spa", "스파센터": "spa", "온천스파": "spa",
+    # 음악교실 (그룹·학원형)
+    "music_class": "music_class", "음악교실": "music_class", "음악학원": "music_class",
+    "피아노학원": "music_class", "바이올린학원": "music_class", "첼로학원": "music_class",
+    # 악기레슨 (개인레슨형)
+    "music_lesson": "music_lesson", "악기레슨": "music_lesson", "음악레슨": "music_lesson",
+    "피아노레슨": "music_lesson", "기타레슨": "music_lesson", "보컬레슨": "music_lesson",
+    # 요리교실·쿠킹클래스 (신규)
+    "cooking": "cooking", "요리교실": "cooking", "쿠킹클래스": "cooking",
+    "베이킹클래스": "cooking", "요리수업": "cooking",
+    # 방탈출 (신규)
+    "escape": "escape", "방탈출": "escape", "탈출게임": "escape",
+    "방탈출카페": "escape", "이스케이프룸": "escape",
+    # 체험공간 (방탈출과 분리)
+    "experience": "experience", "체험공간": "experience", "원데이체험": "experience",
+    "도예체험": "experience", "향수만들기": "experience", "체험형": "experience",
+    # 치과 (신규 — v5.7)
+    "dental": "dental", "치과": "dental", "치과의원": "dental", "치과클리닉": "dental",
+    "임플란트": "dental", "치아교정": "dental",
+    # 한의원 (신규 — v5.7)
+    "oriental_medicine": "oriental_medicine", "한의원": "oriental_medicine",
+    "한방병원": "oriental_medicine", "한의사": "oriental_medicine", "추나": "oriental_medicine",
+    # 안경원 (신규 — v5.7)
+    "optics": "optics", "안경원": "optics", "안경점": "optics", "안경사": "optics",
+    "렌즈": "optics", "라식": "optics",
+    # 반영구화장 (신규 — v5.7)
+    "semi_permanent": "semi_permanent", "반영구": "semi_permanent", "눈썹문신": "semi_permanent",
+    "아이라인문신": "semi_permanent", "입술문신": "semi_permanent",
+    # 태권도·무술 (신규 — v5.7)
+    "martial_arts": "martial_arts", "태권도": "martial_arts", "검도": "martial_arts",
+    "유도": "martial_arts", "합기도": "martial_arts", "무에타이": "martial_arts",
+    "주짓수": "martial_arts", "무술도장": "martial_arts",
+    # 클라이밍 (신규 — v5.7)
+    "climbing": "climbing", "클라이밍": "climbing", "볼더링": "climbing",
+    "암벽등반": "climbing", "클라이밍센터": "climbing",
+    # 미술학원 (신규 — v5.7)
+    "art_class": "art_class", "미술학원": "art_class", "미술교실": "art_class",
+    "입시미술": "art_class", "어린이미술": "art_class",
+    # 어린이집·유치원 (신규 — v5.7)
+    "childcare": "childcare", "어린이집": "childcare", "유치원": "childcare",
+    "보육원": "childcare", "영어유치원": "childcare",
+    # 세차장 (신규 — v5.7)
+    "car_wash": "car_wash", "세차": "car_wash", "세차장": "car_wash",
+    "자동세차": "car_wash", "손세차": "car_wash", "코팅": "car_wash",
+    # 핸드폰·가전수리 (신규 — v5.7)
+    "electronics_repair": "electronics_repair", "핸드폰수리": "electronics_repair",
+    "스마트폰수리": "electronics_repair", "액정교체": "electronics_repair",
+    "가전수리": "electronics_repair", "노트북수리": "electronics_repair",
+    # 신발 (신규 — v5.7)
+    "footwear": "footwear", "신발": "footwear", "구두": "footwear", "운동화": "footwear",
+    "신발가게": "footwear", "슈즈샵": "footwear",
+    # 문구·사무용품 (신규 — v5.7)
+    "stationery": "stationery", "문구점": "stationery", "문구사": "stationery",
+    "사무용품": "stationery", "학용품": "stationery", "문구": "stationery",
+    # 노래방 (신규 — v5.7)
+    "norebang": "norebang", "노래방": "norebang", "코인노래방": "norebang",
+    "노래연습장": "norebang",
+    # 당구장 (신규 — v5.7)
+    "billiards": "billiards", "당구장": "billiards", "포켓볼": "billiards",
+    "당구": "billiards", "3쿠션": "billiards",
     # 기타 (default fallback)
     "other": "restaurant", "기타": "restaurant",
 }
@@ -113,7 +215,7 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             "condition_search_example": "강남 식당 주차 가능",
         },
         "단체모임": {
-            "keywords": ["단체 예약 가능", "회식 장소", "프라이빗룸", "생일 파티 가능", "기업 행사 가능", "30명 수용"],
+            "keywords": ["단체 예약 가능", "회식 장소", "프라이빗룸", "기업 행사 가능", "30명 수용", "단체 이용 가능"],
             "weight": 0.20,
             "condition_search_example": "을지로 회식 단체 예약",
         },
@@ -146,6 +248,18 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             ],
             "weight": 0.05,
             "condition_search_example": "강남 평일 저녁 데이트 분위기 식당",
+        },
+        # 키워드 풀 확장용 (weight=0.0 — 점수 산정 미반영, 조건검색 키워드 갭 분석용)
+        "메뉴종류": {
+            "keywords": [
+                "삼겹살", "흑돼지", "항정살", "곱창", "막창", "갈비",
+                "한식", "중식", "일식", "초밥", "횟집",
+                "파스타", "피자", "스테이크",
+                "냉면", "막국수", "국밥", "순대국", "설렁탕",
+                "치킨", "닭갈비",
+            ],
+            "weight": 0.0,
+            "condition_search_example": "창원 삼겹살 맛집",
         },
     },
 
@@ -190,9 +304,20 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             "weight": 0.05,
             "condition_search_example": "강남 프라이빗 여성 전용 미용실",
         },
+        # 키워드 풀 확장용 (weight=0.0 — 점수 산정 미반영, 조건검색 키워드 갭 분석용)
+        "시술종류": {
+            "keywords": [
+                "헤어커트", "파마", "탈색", "염색",
+                "클리닉파마", "매직", "디지털파마",
+                "케라틴트리트먼트",
+            ],
+            "weight": 0.0,
+            "condition_search_example": "강남 파마 미용실",
+        },
     },
 
     # § 2.3 병원·한의원
+    # 접근편의(0.15) + 전문성(0.30) + 진료경험(0.25) + 운영정보(0.20) + 비용보험(0.05) + ai_tab_context(0.05) = 1.0
     "clinic": {
         "접근편의": {
             "keywords": ["주차 가능", "지하철 도보", "주차 무료", "장애인 접근", "대중교통 편리"],
@@ -216,12 +341,32 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
         "비용보험": {
             "keywords": ["비용 합리적", "건강보험 적용", "비급여 투명 공개", "카드 결제 가능"],
-            "weight": 0.10,
+            "weight": 0.05,
             "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "진료과목", "전문의", "야간진료", "주말진료", "예약방법",
+                "비급여항목", "주차가능", "진료시간", "초진예약", "당일진료",
+                "응급처치", "검사종류", "대기시간", "주차정보", "근처의원",
+            ],
+            "weight": 0.05,
+            "description": "AI탭 플레이스 검색에서 자주 등장하는 의원 관련 질문 키워드",
+        },
+        # 키워드 풀 확장용 (weight=0.0 — 점수 산정 미반영, 조건검색 키워드 갭 분석용)
+        "진료과목": {
+            "keywords": [
+                "내과", "정형외과", "피부과", "한의원",
+                "산부인과", "소아과", "이비인후과", "신경과",
+                "정신건강의학과", "재활의학과",
+            ],
+            "weight": 0.0,
+            "condition_search_example": "강남 피부과 의원",
         },
     },
 
     # § 2.4 학원·교육
+    # 접근편의(0.15) + 교육전문성(0.35) + 대상조건(0.25) + 운영정보(0.15) + 성과결과(0.05) + ai_tab_context(0.05) = 1.0
     "academy": {
         "접근편의": {
             "keywords": ["주차 가능", "지하철 도보", "셔틀버스 운행", "야간 수업"],
@@ -245,8 +390,26 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
         "성과결과": {
             "keywords": ["합격률 높음", "성적 향상 사례", "졸업생 후기", "포트폴리오 있음"],
-            "weight": 0.10,
+            "weight": 0.05,
             "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "수강대상", "커리큘럼", "수업방식", "원장경력", "합격실적",
+                "개인과외", "그룹수업", "온라인수업", "체험수업", "수강료",
+                "시간표", "레벨테스트", "교재비포함", "환불정책", "셔틀운행",
+            ],
+            "weight": 0.05,
+            "description": "AI탭에서 학원 검색 시 자주 나오는 정보 요청 키워드",
+        },
+        # 키워드 풀 확장용 (weight=0.0 — 점수 산정 미반영, 조건검색 키워드 갭 분석용)
+        "과목분야": {
+            "keywords": [
+                "수학", "영어", "과학", "코딩", "국어", "논술",
+                "한국사", "사회", "수능전문", "내신전문",
+            ],
+            "weight": 0.0,
+            "condition_search_example": "강남 수학 학원",
         },
     },
 
@@ -269,7 +432,7 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
         "운영정보": {
             "keywords": ["체험 레슨 가능", "유연한 일정", "보강 가능", "월 단위 등록"],
-            "weight": 0.10,
+            "weight": 0.05,
             "condition_search_example": "",
         },
         "성과결과": {
@@ -285,9 +448,18 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             "weight": 0.25,
             "condition_search_example": "작곡 레슨 녹음 스튜디오",
         },
+        "ai_tab_context": {
+            "keywords": [
+                "악기 종류", "수업 방식", "체험 레슨 가능", "성인 취미반", "어린이 전용",
+                "방과후 수업", "주말 수업", "1대1 개인 레슨", "그룹 수업", "주차 가능",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 피아노 성인 취미 레슨",
+        },
     },
 
     # § 2.5 법률·세무
+    # 접근편의(0.10) + 전문분야(0.40) + 경력신뢰(0.25) + 상담조건(0.15) + 소통신뢰(0.05) + ai_tab_context(0.05) = 1.0
     "legal": {
         "접근편의": {
             "keywords": ["주차 가능", "지하철 도보", "온라인 상담 가능", "야간 상담"],
@@ -295,7 +467,10 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             "condition_search_example": "",
         },
         "전문분야": {
-            "keywords": ["이혼 전문", "부동산 전문", "형사 전문", "노동법 전문", "세무조사 전문"],
+            "keywords": [
+                "이혼 전문", "부동산 전문", "형사 전문", "노동법 전문", "세무조사 전문",
+                "상속", "교통사고", "성범죄", "기업법무", "임대차", "의료분쟁",
+            ],
             "weight": 0.40,
             "condition_search_example": "강남 이혼 전문 변호사",
         },
@@ -311,8 +486,17 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
         "소통신뢰": {
             "keywords": ["친절한 설명", "칼럼 발행", "유튜브 운영", "AI 답변 인용"],
-            "weight": 0.10,
+            "weight": 0.05,
             "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "전문분야", "무료상담", "상담방법", "성공보수", "착수금",
+                "이혼전문", "형사전문", "부동산전문", "노동전문", "상담예약",
+                "방문상담", "전화상담", "야간상담", "경력변호사", "수임사례",
+            ],
+            "weight": 0.05,
+            "description": "AI탭에서 법률 서비스 검색 시 자주 나오는 질문 키워드",
         },
     },
 
@@ -338,8 +522,9 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             "weight": 0.15,
             "condition_search_example": "",
         },
-        "AI검색대비": {
-            "keywords": ["ChatGPT 추천", "AI 쇼핑 연동", "상품 구조화 데이터", "Schema 적용"],
+        "ai_tab_context": {
+            "keywords": ["ChatGPT 추천", "AI 쇼핑 연동", "상품 구조화 데이터", "Schema 적용",
+                         "당일 배송 가능", "무료 반품", "실시간 재고 확인"],
             "weight": 0.10,
             "condition_search_example": "ChatGPT 추천 쇼핑몰",
         },
@@ -381,6 +566,24 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             ],
             "weight": 0.05,
             "condition_search_example": "강남 노트북 가능 조용한 카페",
+        },
+        # 키워드 풀 확장용 (weight=0.0 — 점수 산정 미반영, 조건검색 키워드 갭 분석용)
+        "음료메뉴확장": {
+            "keywords": [
+                "아메리카노", "라떼", "스페셜티", "핸드드립", "콜드브루",
+                "디저트카페", "브런치카페", "베이커리카페", "버블티", "스무디",
+            ],
+            "weight": 0.0,
+            "condition_search_example": "연남동 스페셜티 카페",
+        },
+        # bakery는 cafe taxonomy로 매핑됨 (_CATEGORY_ALIASES 참조)
+        "베이커리종류": {
+            "keywords": [
+                "소금빵", "크루아상", "케이크", "마카롱", "타르트",
+                "식빵", "베이글", "스콘",
+            ],
+            "weight": 0.0,
+            "condition_search_example": "마포 소금빵 베이커리",
         },
     },
 
@@ -495,8 +698,17 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
         "접근편의": {
             "keywords": ["주차 가능", "대중교통 접근", "예약제 운영", "당일 예약 가능", "출장 촬영 가능"],
-            "weight": 0.10,
+            "weight": 0.05,
             "condition_search_example": "스냅 출장 촬영",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "당일 예약 가능", "출장 촬영 가능", "야외 촬영 가능",
+                "웨딩스냅 전문", "증명사진 당일 출력", "어린이 촬영 전문",
+                "가족 사진 전문", "보정 빠름", "원본 제공",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 증명사진 당일 출력",
         },
     },
 
@@ -524,8 +736,17 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
         "포트폴리오": {
             "keywords": ["포트폴리오 공개", "샘플 영상 제공", "레퍼런스 다수"],
-            "weight": 0.10,
+            "weight": 0.05,
             "condition_search_example": "영상 제작 포트폴리오",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "빠른 납품 가능", "당일 편집", "드론 촬영 가능",
+                "유튜브 영상 전문", "기업 홍보 영상", "웨딩 영상 전문",
+                "무료 견적", "포트폴리오 공개",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 기업 홍보영상 빠른 납품",
         },
     },
 
@@ -553,8 +774,17 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
         "포트폴리오": {
             "keywords": ["포트폴리오 공개", "작업 샘플", "다양한 스타일"],
-            "weight": 0.10,
+            "weight": 0.05,
             "condition_search_example": "브랜딩 디자인 포트폴리오",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "당일 제작 가능", "무제한 수정", "빠른 납품",
+                "로고 디자인 전문", "명함 당일 제작", "무료 견적 가능",
+                "소량 인쇄 가능", "온라인 상담 가능",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 로고 디자인 당일 제작",
         },
     },
 
@@ -625,8 +855,17 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
         "value": {
             "keywords": ["합리적 가격", "가성비", "투명한 가격", "추가 비용 없음"],
-            "weight": 0.10,
+            "weight": 0.05,
             "condition_search_example": "가성비 청소 업체",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "당일 방문 가능", "무료 견적", "정기 서비스 가능",
+                "이사 후 청소 전문", "주말 영업", "여성 전담 직원",
+                "특수 청소 전문", "방역 포함",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "당일 이사 후 청소 업체",
         },
     },
 
@@ -668,6 +907,7 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
     },
 
     # § 2.16 부동산 (지역 기반)
+    # 전문분야(0.30) + 지역전문(0.25) + 서비스조건(0.20) + 신뢰경력(0.15) + 운영조건(0.05) + ai_tab_context(0.05) = 1.0
     "realestate": {
         "전문분야": {
             "keywords": ["아파트 매매 전문", "오피스텔 전문", "원룸 전문", "상가 전문", "전세 전문", "월세 전문"],
@@ -691,12 +931,22 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
         "운영조건": {
             "keywords": ["주말 상담 가능", "야간 상담 가능", "현장 동행", "온라인 상담 가능"],
-            "weight": 0.10,
+            "weight": 0.05,
             "condition_search_example": "강남 주말 부동산 상담",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "전문지역", "매물유형", "거래실적", "수수료", "전세매매",
+                "원룸전문", "아파트전문", "상가전문", "투자상담", "갭투자",
+                "시세조회", "분양정보", "임대관리", "학군정보", "재개발정보",
+            ],
+            "weight": 0.05,
+            "description": "AI탭에서 부동산 중개 검색 시 자주 나오는 정보 요청 키워드",
         },
     },
 
     # § 2.17 인테리어·시공 (지역 기반)
+    # 시공분야(0.30) + 공간유형(0.20) + 견적가격(0.20) + 공기품질(0.20) + 포트폴리오(0.05) + ai_tab_context(0.05) = 1.0
     "interior": {
         "시공분야": {
             "keywords": ["전체 리모델링", "부분 리모델링", "주방 시공", "욕실 시공", "도배 장판", "타일 시공"],
@@ -720,8 +970,17 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
         "포트폴리오": {
             "keywords": ["포트폴리오 공개", "시공 사례 다수", "후기 인증", "디자이너 직접 상담"],
-            "weight": 0.10,
+            "weight": 0.05,
             "condition_search_example": "강남 인테리어 포트폴리오",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "시공분야", "평당단가", "견적방법", "시공기간", "포트폴리오",
+                "AS보장", "자재브랜드", "3D설계", "무료견적", "방문견적",
+                "아파트전문", "상업공간전문", "부분시공", "전체시공", "시공사례",
+            ],
+            "weight": 0.05,
+            "description": "AI탭에서 인테리어 업체 검색 시 자주 나오는 정보 요청 키워드",
         },
     },
 
@@ -749,8 +1008,1292 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
         "신뢰경력": {
             "keywords": ["경력 10년+", "정비 자격증", "친절한 설명", "재방문율 높음", "리뷰 우수"],
+            "weight": 0.05,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "당일 수리 가능", "무료 견적", "보험 처리 가능",
+                "수입차 전문", "픽업 서비스", "주말 영업",
+                "정품 부품 사용", "경력 10년 이상",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 당일 자동차 수리 보험 처리",
+        },
+    },
+
+    # § 2.19 마사지·스파
+    "massage": {
+        "전문시술": {
+            "keywords": ["스웨디시", "타이마사지", "아로마마사지", "스포츠마사지", "림프마사지", "딥티슈"],
+            "weight": 0.30,
+            "condition_search_example": "강남 스웨디시 마사지",
+        },
+        "공간환경": {
+            "keywords": ["프라이빗룸", "커플룸", "1:1 전담", "깔끔한 시설", "조용한 분위기"],
+            "weight": 0.20,
+            "condition_search_example": "강남 프라이빗 마사지",
+        },
+        "운영조건": {
+            "keywords": ["당일 예약 가능", "야간 영업", "주차 가능", "365일 운영", "예약 없이 방문"],
+            "weight": 0.25,
+            "condition_search_example": "강남 야간 마사지",
+        },
+        "가격혜택": {
+            "keywords": ["첫방문 할인", "정기권 있음", "합리적 가격", "패키지 할인"],
+            "weight": 0.15,
+            "condition_search_example": "강남 마사지 정기권",
+        },
+        "신뢰전문성": {
+            "keywords": ["자격증 보유", "경력 관리사", "위생 관리 철저", "남성 관리사 가능", "여성 전용"],
+            "weight": 0.05,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "당일 예약 가능", "프라이빗룸 있음", "커플 마사지 가능",
+                "야간 영업", "여성 전용 관리사", "주차 가능",
+                "첫방문 이벤트", "1:1 전담 관리",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 프라이빗 커플 마사지",
+        },
+    },
+
+    # § 2.20 피부관리실·에스테틱
+    "skincare": {
+        "전문시술": {
+            "keywords": ["모공케어", "여드름 관리", "미백 관리", "안티에이징", "수분 케어", "탄력 관리"],
+            "weight": 0.30,
+            "condition_search_example": "강남 모공케어 피부관리",
+        },
+        "기기장비": {
+            "keywords": ["레이저 시술", "RF 리프팅", "LED 테라피", "초음파 기기", "갈바닉"],
+            "weight": 0.20,
+            "condition_search_example": "강남 RF리프팅 피부관리",
+        },
+        "공간환경": {
+            "keywords": ["1:1 전담 관리", "프라이빗룸", "여성 전용", "청결한 시설"],
+            "weight": 0.20,
+            "condition_search_example": "강남 프라이빗 피부관리",
+        },
+        "운영조건": {
+            "keywords": ["당일 예약 가능", "야간 영업", "주차 가능", "정기 관리 프로그램"],
+            "weight": 0.20,
+            "condition_search_example": "강남 피부관리 당일 예약",
+        },
+        "가격혜택": {
+            "keywords": ["첫방문 이벤트", "패키지 할인", "정기권", "합리적 가격"],
+            "weight": 0.05,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "당일 예약 가능", "1:1 전담 관리", "여성 전용",
+                "야간 영업", "첫방문 이벤트", "프라이빗룸",
+                "레이저 시술 가능", "피부 상담 무료",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 여성 전용 피부관리 당일",
+        },
+    },
+
+    # § 2.21 세무·회계
+    "accounting": {
+        "전문분야": {
+            "keywords": ["기장대행", "법인세 신고", "소득세 신고", "부가세 신고", "세무조사 대리", "절세 컨설팅"],
+            "weight": 0.35,
+            "condition_search_example": "강남 기장대행 세무사",
+        },
+        "창업지원": {
+            "keywords": ["법인설립", "사업자등록", "창업 세무 지원", "스타트업 전문"],
+            "weight": 0.25,
+            "condition_search_example": "강남 법인설립 세무사",
+        },
+        "신뢰경력": {
+            "keywords": ["세무사 직접 상담", "공인회계사", "경력 10년+", "대형 기업 경험", "언론 보도"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "상담조건": {
+            "keywords": ["초기 무료 상담", "온라인 상담 가능", "빠른 응대", "명확한 수수료"],
+            "weight": 0.10,
+            "condition_search_example": "강남 무료 세무 상담",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "기장비용", "세무 상담 방법", "법인세 신고", "개인사업자 세무", "창업 세무 지원",
+                "온라인 상담 가능", "방문 상담", "무료 초기 상담", "수수료 투명", "절세 컨설팅",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 소규모 법인 기장대행 세무사",
+        },
+    },
+
+    # § 2.22 꽃집·화원
+    "flower": {
+        "상품구성": {
+            "keywords": ["생화 꽃다발", "드라이플라워", "화환", "화분", "꽃바구니", "프리저브드"],
+            "weight": 0.30,
+            "condition_search_example": "강남 프리저브드 꽃다발",
+        },
+        "서비스": {
+            "keywords": ["당일 배달", "전국 배송", "맞춤 제작", "정기 구독", "픽업 가능"],
+            "weight": 0.30,
+            "condition_search_example": "강남 꽃 당일 배달",
+        },
+        "용도목적": {
+            "keywords": ["생일 선물", "결혼기념일", "프러포즈", "졸업 축하", "장례 화환", "개업 축하"],
+            "weight": 0.25,
+            "condition_search_example": "강남 프러포즈 꽃다발",
+        },
+        "운영정보": {
+            "keywords": ["주차 가능", "당일 제작 가능", "온라인 주문", "카카오 주문"],
             "weight": 0.10,
             "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "꽃 종류", "당일 배달 가능", "전국 배송", "선물 포장 가능", "맞춤 제작",
+                "프러포즈 용품", "생일 꽃다발", "카카오 주문 가능", "결제 방법", "주차 가능",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 프러포즈 꽃다발 당일 배달",
+        },
+    },
+
+    # § 2.23 세탁소
+    "laundry": {
+        "서비스종류": {
+            "keywords": ["드라이클리닝", "이불 세탁", "가죽 세탁", "명품 케어", "운동화 세탁", "카펫 세탁"],
+            "weight": 0.35,
+            "condition_search_example": "강남 드라이클리닝 세탁소",
+        },
+        "편의성": {
+            "keywords": ["수거 배달 세탁", "당일 완성", "빠른 세탁", "24시간 코인세탁", "픽업 서비스"],
+            "weight": 0.30,
+            "condition_search_example": "강남 수거배달 세탁소",
+        },
+        "전문성": {
+            "keywords": ["얼룩 제거", "복원 세탁", "스팀 다림질", "수선 가능", "섬세한 케어"],
+            "weight": 0.25,
+            "condition_search_example": "강남 얼룩제거 세탁소",
+        },
+        "운영정보": {
+            "keywords": ["주차 가능", "주말 영업", "합리적 가격", "오랜 경력"],
+            "weight": 0.05,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "수거 배달 가능", "드라이클리닝 가격", "처리 기간", "픽업 서비스", "당일 완성",
+                "이불 세탁 가능", "명품 케어 가능", "얼룩 제거 전문", "운영시간", "주차 가능",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 이불 수거배달 세탁소",
+        },
+    },
+
+    # § 2.24 키즈카페·어린이
+    "kids": {
+        "시설놀이": {
+            "keywords": ["볼풀장", "미끄럼틀", "클라이밍", "모래놀이", "트램펄린", "역할놀이"],
+            "weight": 0.30,
+            "condition_search_example": "강남 키즈카페 볼풀",
+        },
+        "연령조건": {
+            "keywords": ["영아 가능", "신생아 입장 가능", "36개월 이하", "초등생 가능", "연령 제한 없음"],
+            "weight": 0.25,
+            "condition_search_example": "강남 영아 키즈카페",
+        },
+        "운영서비스": {
+            "keywords": ["생일파티 가능", "단체 예약", "음식 반입 가능", "주차 가능", "수유실"],
+            "weight": 0.25,
+            "condition_search_example": "강남 생일파티 키즈카페",
+        },
+        "안전위생": {
+            "keywords": ["안전요원 상주", "위생 관리", "정기 소독", "CCTV 설치"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "연령 제한", "입장 가능 개월수", "생일파티 가능", "단체 예약", "음식 반입",
+                "주차 가능", "수유실 있음", "유모차 입장 가능", "입장료", "운영시간",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 36개월 이하 키즈카페 주차",
+        },
+    },
+
+    # § 2.25 스터디카페·독서실
+    "study": {
+        "공간시설": {
+            "keywords": ["1인 독립석", "4인 스터디룸", "화상회의실", "프린터 무료", "충전기 비치"],
+            "weight": 0.30,
+            "condition_search_example": "강남 1인 독립석 스터디카페",
+        },
+        "운영조건": {
+            "keywords": ["24시간 운영", "연중무휴", "주차 가능", "예약 없이 방문", "당일 이용 가능"],
+            "weight": 0.30,
+            "condition_search_example": "강남 24시간 스터디카페",
+        },
+        "요금혜택": {
+            "keywords": ["시간권", "월정액", "무제한 커피", "정기권 할인", "첫방문 이벤트"],
+            "weight": 0.25,
+            "condition_search_example": "강남 스터디카페 월정액",
+        },
+        "환경": {
+            "keywords": ["조용한 환경", "쾌적한 공조", "빠른 와이파이", "금식 가능", "음료 반입"],
+            "weight": 0.10,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "좌석 종류", "1인 독립석 여부", "스터디룸 예약", "운영시간", "요금제",
+                "무료 커피 제공", "프린터 이용", "주차 가능", "예약 없이 방문", "와이파이 속도",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 24시간 1인 독립석 스터디카페",
+        },
+    },
+
+    # § 2.26 공방·원데이클래스
+    "workshop": {
+        "분야종류": {
+            "keywords": ["도자기 공방", "가죽공예", "플라워 클래스", "캔들 만들기", "목공", "그림 클래스", "향수 만들기"],
+            "weight": 0.35,
+            "condition_search_example": "강남 도자기 공방 원데이클래스",
+        },
+        "수업형태": {
+            "keywords": ["원데이클래스", "정기수업", "단체 체험", "커플 클래스", "소수정예"],
+            "weight": 0.30,
+            "condition_search_example": "강남 원데이클래스 공방",
+        },
+        "서비스조건": {
+            "keywords": ["재료비 포함", "완성품 가져가기", "초보 환영", "예약 필수", "주차 가능"],
+            "weight": 0.20,
+            "condition_search_example": "강남 공방 재료비 포함",
+        },
+        "운영정보": {
+            "keywords": ["주말 클래스", "야간 수업", "선물 포장", "단체 할인", "기업 체험"],
+            "weight": 0.10,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "체험 종류", "예약 방법", "재료비 포함 여부", "최소 인원", "결과물 가져가기",
+                "커플 클래스", "단체 체험", "초보 환영", "소요 시간", "주차 가능",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 도자기 공방 원데이 커플",
+        },
+    },
+
+    # § 2.27 댄스·발레 스튜디오 (신규 2026-05-13)
+    "dance": {
+        "facility": {
+            "keywords": ["댄스학원", "댄스스튜디오", "발레학원", "연습실", "전용 연습실"],
+            "weight": 0.20,
+            "condition_search_example": "강남 댄스스튜디오",
+        },
+        "style": {
+            "keywords": ["방송댄스", "힙합댄스", "재즈댄스", "발레", "걸스힙합", "왁킹", "스트릿댄스"],
+            "weight": 0.25,
+            "condition_search_example": "강남 방송댄스 학원",
+        },
+        "features": {
+            "keywords": ["소수정예", "초보 환영", "성인 취미반", "어린이반", "1:1 레슨"],
+            "weight": 0.25,
+            "condition_search_example": "강남 성인 취미 댄스 학원",
+        },
+        "booking": {
+            "keywords": ["체험 수업", "월정액", "주차 가능", "당일 예약 가능"],
+            "weight": 0.15,
+            "condition_search_example": "강남 댄스 체험 수업",
+        },
+        "성과결과": {
+            "keywords": ["공연 기회", "발표회 개최", "콩쿠르 참가", "영상 촬영 제공"],
+            "weight": 0.10,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "수업 종류", "성인 취미반", "어린이반", "체험 수업 가능", "월정액 요금",
+                "주차 가능", "샤워실 완비", "유연한 일정", "소수정예", "발표회 기회",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 성인 취미 방송댄스 체험",
+        },
+    },
+
+    # § 2.28 골프연습장 (신규 2026-05-13)
+    "golf": {
+        "facility": {
+            "keywords": ["골프연습장", "스크린골프", "실내골프", "타석 연습"],
+            "weight": 0.25,
+            "condition_search_example": "강남 실내골프 연습장",
+        },
+        "features": {
+            "keywords": ["레슨 가능", "개인 부스", "탄도 분석", "시뮬레이터", "스윙 분석"],
+            "weight": 0.30,
+            "condition_search_example": "강남 탄도 분석 골프 레슨",
+        },
+        "service": {
+            "keywords": ["24시간 운영", "초보 환영", "주차 가능", "PGA 자격 코치"],
+            "weight": 0.25,
+            "condition_search_example": "강남 24시간 골프연습장",
+        },
+        "pricing": {
+            "keywords": ["월정액", "시간권", "1회권", "합리적 가격"],
+            "weight": 0.15,
+            "condition_search_example": "강남 골프연습장 월정액",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "타석 수", "레슨 가능 여부", "운영시간", "예약 방법", "요금제",
+                "주차 가능", "스크린 종류", "탄도 분석 장비", "초보 환영", "1회권 가능",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 초보 레슨 가능 골프연습장",
+        },
+    },
+
+    # § 2.29 수영·아쿠아 (신규 2026-05-13)
+    "swim": {
+        "facility": {
+            "keywords": ["수영장", "아쿠아", "실내수영장", "온수풀"],
+            "weight": 0.15,
+            "condition_search_example": "강남 온수 수영장",
+        },
+        "program": {
+            "keywords": ["수영강습", "아쿠아로빅", "성인 수영", "어린이 수영", "마스터즈 수영"],
+            "weight": 0.30,
+            "condition_search_example": "강남 성인 수영 강습",
+        },
+        "features": {
+            "keywords": ["소수정예", "초보반", "자유수영", "레인 분리"],
+            "weight": 0.25,
+            "condition_search_example": "강남 초보 수영 강습",
+        },
+        "booking": {
+            "keywords": ["연간 등록", "월정액", "주차 가능", "당일 등록 가능"],
+            "weight": 0.25,
+            "condition_search_example": "강남 수영 월정액",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "수업 종류", "어린이 수영 가능", "성인 취미반", "레인 분리 여부", "운영시간",
+                "등록 방법", "샤워실 완비", "주차 가능", "월정액 요금", "자유 수영 가능",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 성인 초보 수영 강습 등록",
+        },
+    },
+
+    # § 2.30 찜질방·사우나 (신규 2026-05-13)
+    "jjimjil": {
+        "facility": {
+            "keywords": ["찜질방", "사우나", "한증막", "황토방", "소금방"],
+            "weight": 0.25,
+            "condition_search_example": "강남 찜질방 황토방",
+        },
+        "features": {
+            "keywords": ["스파풀", "가족실", "커플실", "냉탕", "온탕", "노천탕"],
+            "weight": 0.25,
+            "condition_search_example": "강남 스파풀 찜질방",
+        },
+        "service": {
+            "keywords": ["24시간 운영", "주차 가능", "식사 제공", "수면실", "휴게공간"],
+            "weight": 0.30,
+            "condition_search_example": "강남 24시간 사우나",
+        },
+        "pricing": {
+            "keywords": ["입장료", "정기권", "합리적 가격"],
+            "weight": 0.15,
+            "condition_search_example": "강남 찜질방 정기권",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "시설 종류", "운영시간", "입장료", "정기권 가능", "주차 가능",
+                "식사 제공", "수면실 있음", "가족실 이용", "짐 보관", "수건 제공",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 24시간 찜질방 가족실 주차",
+        },
+    },
+
+    # § 2.31 음악교실·레슨 (신규 2026-05-13 — music taxonomy의 소규모 교습소 특화)
+    "music_lesson": {
+        "instrument": {
+            "keywords": ["피아노 레슨", "기타 레슨", "바이올린", "드럼", "플루트", "우쿨렐레"],
+            "weight": 0.30,
+            "condition_search_example": "강남 피아노 레슨 교습소",
+        },
+        "program": {
+            "keywords": ["보컬 레슨", "입시 준비", "취미반", "성인 레슨"],
+            "weight": 0.25,
+            "condition_search_example": "강남 성인 보컬 레슨",
+        },
+        "features": {
+            "keywords": ["어린이 전용", "성인 가능", "소수정예", "1:1 레슨", "초보 환영"],
+            "weight": 0.25,
+            "condition_search_example": "강남 1대1 음악 레슨",
+        },
+        "service": {
+            "keywords": ["홈레슨 출장", "주차 가능", "체험 수업", "유연한 일정"],
+            "weight": 0.15,
+            "condition_search_example": "강남 음악 교습소 체험 수업",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "악기 종류", "레슨 방식", "체험 레슨 가능", "성인 입문 가능", "어린이 가능",
+                "1대1 개인 레슨", "주차 가능", "요금", "유연한 일정", "홈레슨 출장",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 성인 입문 피아노 레슨 교습소",
+        },
+    },
+
+    # § 2.32 요리교실·쿠킹클래스 (신규 2026-05-13)
+    "cooking": {
+        "program": {
+            "keywords": ["원데이 쿠킹", "베이킹 클래스", "한식 요리", "이탈리안", "일식 요리", "디저트 클래스"],
+            "weight": 0.30,
+            "condition_search_example": "강남 한식 원데이 쿠킹 클래스",
+        },
+        "features": {
+            "keywords": ["소수정예", "재료비 포함", "초보 환영", "정기 수업"],
+            "weight": 0.25,
+            "condition_search_example": "강남 요리교실 재료비 포함",
+        },
+        "special": {
+            "keywords": ["어린이 요리", "커플 클래스", "자격증 과정", "단체 클래스"],
+            "weight": 0.25,
+            "condition_search_example": "강남 커플 쿠킹 클래스",
+        },
+        "service": {
+            "keywords": ["주차 가능", "앞치마 제공", "레시피 제공", "예약 필수"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "요리 종류", "재료비 포함 여부", "예약 방법", "최소 인원", "소요 시간",
+                "커플 클래스", "어린이 요리 가능", "결과물 포장", "주차 가능", "초보 환영",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 커플 쿠킹 클래스 재료 포함",
+        },
+    },
+
+    # § 2.33 스파 (마사지와 분리, 신규 2026-05-13)
+    "spa": {
+        "treatment": {
+            "keywords": ["아로마테라피", "바디랩", "스톤테라피", "스팀사우나", "스파풀", "머드팩"],
+            "weight": 0.30,
+            "condition_search_example": "강남 아로마스파 바디랩",
+        },
+        "course": {
+            "keywords": ["힐링 코스", "커플스파", "프라이빗 패키지", "데이스파", "풀바디 케어"],
+            "weight": 0.25,
+            "condition_search_example": "강남 커플스파 풀패키지",
+        },
+        "facilities": {
+            "keywords": ["프라이빗룸", "스파풀", "사우나", "족욕탕", "온탕·냉탕"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["당일 예약", "고급 케어", "전문 테라피스트", "선물권 구매 가능"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "프로그램 종류", "예약 방법", "프라이빗 룸 여부", "가격대", "소요 시간",
+                "커플 스파 가능", "당일 예약 가능", "선물권 구매", "주차 가능", "드레스 코드",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 커플 프라이빗 스파 당일 예약",
+        },
+    },
+
+    # § 2.34 발레 (댄스와 분리, 신규 2026-05-13)
+    "ballet": {
+        "program": {
+            "keywords": ["클래식 발레", "성인 발레", "어린이 발레", "콩쿠르 준비", "입시반"],
+            "weight": 0.30,
+            "condition_search_example": "강남 성인 발레 취미반",
+        },
+        "level": {
+            "keywords": ["초보 환영", "취미반", "전문반", "심화 과정", "발레리나 전문"],
+            "weight": 0.25,
+            "condition_search_example": "강남 발레 초보 취미반",
+        },
+        "features": {
+            "keywords": ["소수정예", "1:1 레슨", "체험 수업", "유연성 향상", "자세 교정"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["주차 가능", "연습복 대여", "발레 용품 구비", "무료 체험 가능"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "수업 종류", "연령 제한", "체험 수업 가능", "성인 취미반", "발레복 대여",
+                "소수정예", "발표회 참가", "주차 가능", "월정액", "강사 경력",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 성인 취미 발레 체험 수업",
+        },
+    },
+
+    # § 2.35 음악교실 (그룹·학원형, 신규 2026-05-13)
+    "music_class": {
+        "instrument": {
+            "keywords": ["피아노", "바이올린", "첼로", "플루트", "드럼", "기타", "성악"],
+            "weight": 0.30,
+            "condition_search_example": "강남 피아노 학원 초등",
+        },
+        "program": {
+            "keywords": ["입시반", "취미반", "그룹 레슨", "방과후 클래스", "어린이 전용"],
+            "weight": 0.25,
+            "condition_search_example": "강남 음악교실 입시반",
+        },
+        "level": {
+            "keywords": ["성인 가능", "성인 취미", "초보 환영", "전문 강사", "콩쿠르 준비"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["주차 가능", "셔틀버스", "악기 대여 가능", "연습실 개방"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "악기 종류", "연령 대상", "입시반 여부", "성인 취미 가능", "체험 수업",
+                "주차 가능", "악기 대여", "발표회 기회", "수업 방식", "월 수강료",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 초등 바이올린 학원 체험",
+        },
+    },
+
+    # § 2.36 의류 (패션과 분리, 신규 2026-05-13)
+    "clothing": {
+        "target": {
+            "keywords": ["남성 의류", "여성 의류", "아동 의류", "유아 의류", "남녀공용"],
+            "weight": 0.30,
+            "condition_search_example": "강남 여성 의류 맞춤 제작",
+        },
+        "type": {
+            "keywords": ["교복", "단체복", "근무복", "운동복", "캐주얼", "포멀"],
+            "weight": 0.25,
+            "condition_search_example": "강남 교복 수선",
+        },
+        "service": {
+            "keywords": ["맞춤 제작", "수선 가능", "원단 직판", "당일 배송", "정기 세일"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "features": {
+            "keywords": ["친환경 소재", "국내 제조", "사이즈 다양", "무료 반품"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "의류 종류", "사이즈 범위", "맞춤 제작 가능", "수선 가능", "운영시간",
+                "온라인 주문 연동", "당일 픽업", "주차 가능", "결제 방법", "가격대",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 단체복 맞춤 제작 업체",
+        },
+    },
+
+    # § 2.36-B 패션·편집샵 (fashion alias를 위한 섹션 — 2026-05-17 추가)
+    # 브랜드스타일(0.30) + 상품구색(0.25) + 쇼핑경험(0.20) + 운영정보(0.15) + 가격혜택(0.05) + ai_tab_context(0.05) = 1.0
+    "fashion": {
+        "브랜드스타일": {
+            "keywords": ["편집샵", "독립 브랜드", "국내 브랜드", "해외 브랜드", "한정판", "시즌 신상", "빈티지"],
+            "weight": 0.30,
+            "condition_search_example": "강남 편집샵 빈티지 브랜드",
+        },
+        "상품구색": {
+            "keywords": ["남성 의류", "여성 의류", "남녀공용", "아우터", "캐주얼", "스트릿", "포멀", "스포티"],
+            "weight": 0.25,
+            "condition_search_example": "강남 남성 스트릿 편집샵",
+        },
+        "쇼핑경험": {
+            "keywords": ["스타일링 상담", "피팅룸 있음", "시착 가능", "반품 쉬움", "선물 포장", "사이즈 교환"],
+            "weight": 0.20,
+            "condition_search_example": "편집샵 스타일링 상담 가능",
+        },
+        "운영정보": {
+            "keywords": ["온라인 주문 가능", "당일 픽업", "주말 영업", "주차 가능", "직접 수령 가능"],
+            "weight": 0.15,
+            "condition_search_example": "강남 편집샵 당일 픽업",
+        },
+        "가격혜택": {
+            "keywords": ["시즌오프 세일", "멤버십 할인", "첫구매 할인", "포인트 적립"],
+            "weight": 0.05,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "스타일링 상담 가능", "트렌드 코디 추천", "피팅룸 완비", "사이즈 다양",
+                "온라인 주문 후 픽업", "당일 픽업 가능", "반품·교환 쉬움", "선물 포장 가능",
+                "남녀 모두 가능", "빈티지 아이템 구비",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 스타일링 상담 편집샵 남성",
+        },
+    },
+
+    # § 2.37 체험공간 (방탈출과 분리, 신규 2026-05-13)
+    "experience": {
+        "activity": {
+            "keywords": ["도예 체험", "향수 만들기", "초콜릿 공방", "천연 비누", "캔들 공방", "도자기"],
+            "weight": 0.30,
+            "condition_search_example": "강남 도예 체험 원데이",
+        },
+        "occasion": {
+            "keywords": ["가족 체험", "어린이 체험", "커플 체험", "생일파티", "데이트 코스"],
+            "weight": 0.25,
+            "condition_search_example": "강남 가족 체험 주말",
+        },
+        "features": {
+            "keywords": ["소규모", "재료비 포함", "예약 필수", "체험 키트 증정", "원데이 클래스"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["주차 가능", "사진 촬영 가능", "완성품 포장", "선물 포장"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "체험 종류", "예약 방법", "재료비 포함", "최소 인원", "소요 시간",
+                "커플·가족 가능", "어린이 참여", "완성품 증정", "주차 가능", "초보 환영",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 커플 도예 체험 원데이 클래스",
+        },
+    },
+
+    # § 2.38 방탈출 (체험공간과 분리, 신규 2026-05-13)
+    "escape": {
+        "theme": {
+            "keywords": ["방탈출", "공포 테마", "힐링 테마", "스토리 테마", "SF 테마"],
+            "weight": 0.30,
+            "condition_search_example": "강남 방탈출 공포 테마",
+        },
+        "features": {
+            "keywords": ["체험형 게임", "스토리형", "배우 참여형", "몰입형"],
+            "weight": 0.25,
+            "condition_search_example": "강남 배우 참여 방탈출",
+        },
+        "booking": {
+            "keywords": ["단체 예약", "커플 코스", "생일파티", "예약 필수", "2인 이상"],
+            "weight": 0.25,
+            "condition_search_example": "강남 단체 방탈출 예약",
+        },
+        "service": {
+            "keywords": ["주차 가능", "힌트 제공", "사진 촬영 가능", "음료 제공"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "테마 종류", "참가 인원", "예약 방법", "운영시간", "공포 테마 여부",
+                "커플 코스", "생일파티 가능", "가격대", "주차 가능", "힌트 제공",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 2인 커플 방탈출 예약 가능",
+        },
+    },
+
+    # ── 신규 14개 업종 (v5.7 — 2026-05-13) ──────────────────────────────────
+
+    "dental": {
+        "treatment": {
+            "keywords": ["임플란트", "치아교정", "스케일링", "충치 치료", "라미네이트", "사랑니 발치"],
+            "weight": 0.30,
+            "condition_search_example": "강남 임플란트 잘하는 치과",
+        },
+        "speciality": {
+            "keywords": ["소아치과", "어린이치과", "교정 전문", "임플란트 전문", "심미치과"],
+            "weight": 0.25,
+            "condition_search_example": "강남 어린이치과 무통",
+        },
+        "features": {
+            "keywords": ["무통마취", "당일 치료", "야간 진료", "주말 진료", "디지털 장비"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["주차 가능", "당일 예약", "실손 적용", "의료보험 적용"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "진료 분야", "당일 예약 가능", "야간·주말 진료", "무통마취 여부", "어린이치과 가능",
+                "실손 보험 적용", "치료 비용 안내", "주차 가능", "대기 시간", "초진 예약",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 어린이 치과 무통 당일 예약",
+        },
+    },
+
+    "oriental_medicine": {
+        "treatment": {
+            "keywords": ["침", "추나요법", "한약 처방", "뜸", "부항", "약침"],
+            "weight": 0.30,
+            "condition_search_example": "강남 허리 디스크 한의원",
+        },
+        "condition": {
+            "keywords": ["허리 디스크", "한방 다이어트", "성장 클리닉", "산후조리", "두통·편두통", "불면증"],
+            "weight": 0.25,
+            "condition_search_example": "강남 한방 다이어트 한의원",
+        },
+        "features": {
+            "keywords": ["면역력 강화", "자연 치유", "체질 개선", "당일 예약", "여성 전문"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["주차 가능", "야간 진료", "주말 진료", "전화 상담"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "진료 분야", "한약 처방 가능", "예약 방법", "야간·주말 진료", "초진 상담",
+                "건강보험 적용", "치료 비용", "주차 가능", "대기 시간", "전화 상담",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 허리디스크 한의원 당일 예약",
+        },
+    },
+
+    "optics": {
+        "product": {
+            "keywords": ["안경 맞춤", "도수 안경", "선글라스", "초고층 렌즈", "블루라이트 차단"],
+            "weight": 0.30,
+            "condition_search_example": "강남 도수 안경 맞춤",
+        },
+        "service": {
+            "keywords": ["무료 시력검사", "렌즈 처방", "라식 상담", "1시간 제작", "당일 수령"],
+            "weight": 0.25,
+            "condition_search_example": "강남 안경 당일 제작",
+        },
+        "features": {
+            "keywords": ["브랜드 다양", "국산 프레임", "가격 투명", "무료 조정 서비스"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "accessibility": {
+            "keywords": ["주차 가능", "예약 불필요", "어린이 안경 전문"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "안경 종류", "제작 소요 시간", "무료 시력 검사", "가격대", "운영시간",
+                "예약 없이 방문", "어린이 안경 전문", "주차 가능", "라식 상담", "렌즈 처방",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 안경 당일 제작 무료 시력 검사",
+        },
+    },
+
+    "semi_permanent": {
+        "treatment": {
+            "keywords": ["눈썹 문신", "아이라인 반영구", "입술 반영구", "헤어라인", "앞머리 반영구"],
+            "weight": 0.30,
+            "condition_search_example": "강남 눈썹 문신 자연스러운",
+        },
+        "technique": {
+            "keywords": ["엠보 눈썹", "페더링", "콤보 눈썹", "수정 가능", "리무빙 가능"],
+            "weight": 0.25,
+            "condition_search_example": "강남 엠보 눈썹 자연스러운",
+        },
+        "features": {
+            "keywords": ["마취 크림 적용", "전문 아티스트", "위생 철저", "포트폴리오 공개", "지속력 2년+"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["당일 예약", "주차 가능", "프라이빗 공간", "남성 가능"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "시술 종류", "마취 방법", "유지 기간", "가격대", "예약 방법",
+                "포트폴리오 확인", "수정 가능", "리무빙 가능", "남성 가능", "주차 가능",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 눈썹 문신 자연스러운 반영구 예약",
+        },
+    },
+
+    "martial_arts": {
+        "type": {
+            "keywords": ["태권도", "검도", "유도", "합기도", "무에타이", "주짓수", "킥복싱"],
+            "weight": 0.30,
+            "condition_search_example": "강남 태권도 어린이",
+        },
+        "program": {
+            "keywords": ["유소년반", "성인반", "여성 전용반", "단증 취득", "심사 대비", "대회 준비"],
+            "weight": 0.25,
+            "condition_search_example": "강남 검도 성인 취미",
+        },
+        "features": {
+            "keywords": ["체험 수업", "초보 환영", "소수정예", "전문 사범", "안전 장비 구비"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["주차 가능", "방과후 클래스", "셔틀버스", "당일 체험 가능"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "종목 종류", "연령대", "체험 수업 가능", "단증 취득 과정", "시간표",
+                "여성 전용반", "성인 취미", "주차 가능", "월 수강료", "안전 장비 대여",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 성인 태권도 주짓수 체험 수업",
+        },
+    },
+
+    "climbing": {
+        "type": {
+            "keywords": ["볼더링", "리드 클라이밍", "탑로핑", "킬터보드", "캠퍼스보드"],
+            "weight": 0.30,
+            "condition_search_example": "강남 볼더링 초보",
+        },
+        "program": {
+            "keywords": ["초보 강습", "레벨별 수업", "개인 레슨", "그룹 레슨", "대회 준비"],
+            "weight": 0.25,
+            "condition_search_example": "강남 클라이밍 초보 강습",
+        },
+        "features": {
+            "keywords": ["장비 대여", "월정액", "자유 이용", "난이도 다양", "안전 강습 무료"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["주차 가능", "샤워실 완비", "락커 보관", "음료 판매"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "난이도 범위", "장비 대여 가능", "레슨 가능", "초보 강습", "운영시간",
+                "월정액 요금", "자유 이용", "주차 가능", "샤워실 완비", "락커 보관",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 볼더링 초보 강습 장비 대여",
+        },
+    },
+
+    "art_class": {
+        "program": {
+            "keywords": ["어린이 미술", "입시 미술", "취미 미술", "성인 드로잉", "수채화 클래스"],
+            "weight": 0.30,
+            "condition_search_example": "강남 어린이 미술학원",
+        },
+        "technique": {
+            "keywords": ["수채화", "유화", "아크릴화", "드로잉", "소묘·크로키", "일러스트"],
+            "weight": 0.25,
+            "condition_search_example": "강남 수채화 취미 미술",
+        },
+        "features": {
+            "keywords": ["1:1 지도", "소수정예", "전시 참가 기회", "포트폴리오 제작", "입시 합격률"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["주차 가능", "재료비 포함", "체험 수업", "주말 수업"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "수업 종류", "연령 제한", "강사 경력", "체험 수업 가능", "재료비 포함",
+                "입시 미술 가능", "1대1 지도", "발표 기회", "주말 수업", "주차 가능",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 성인 취미 수채화 체험 미술",
+        },
+    },
+
+    "childcare": {
+        "type": {
+            "keywords": ["어린이집", "유치원", "영어유치원", "방과후 교실", "종일반"],
+            "weight": 0.30,
+            "condition_search_example": "강남 영어유치원 추천",
+        },
+        "curriculum": {
+            "keywords": ["놀이중심교육", "체험학습", "예체능 강화", "영어 수업", "코딩 교육"],
+            "weight": 0.25,
+            "condition_search_example": "강남 어린이집 영어 특화",
+        },
+        "features": {
+            "keywords": ["친환경 급식", "CCTV 설치", "소규모 반", "보조교사 운영", "보육료 지원"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["셔틀버스", "안전 놀이터", "부모 참관 가능", "병설 특기학원"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "보육 시간", "급식 여부", "셔틀버스 운행", "연령 제한", "보육료",
+                "부모 참관", "안전 놀이터", "영어 수업", "특기 학원 병설", "CCTV 확인",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 36개월 영어유치원 셔틀버스",
+        },
+    },
+
+    "car_wash": {
+        "service": {
+            "keywords": ["손 세차", "자동 세차", "실내 청소", "광택", "왁스 코팅"],
+            "weight": 0.30,
+            "condition_search_example": "강남 손세차 광택",
+        },
+        "coating": {
+            "keywords": ["유리막 코팅", "PPF 필름", "도장 보호", "세라믹 코팅", "발수 코팅"],
+            "weight": 0.25,
+            "condition_search_example": "강남 유리막 코팅 세차",
+        },
+        "features": {
+            "keywords": ["당일 가능", "예약 가능", "정기권", "기업 차량 가능", "SUV·대형 가능"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "accessibility": {
+            "keywords": ["주차 여유", "대기 없음", "가격 투명", "친환경 세제"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "세차 종류", "코팅 종류", "예약 방법", "소요 시간", "운영시간",
+                "대형 차량 가능", "당일 가능", "가격 안내", "친환경 세제", "주차 여유",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 손세차 예약 가능 당일 가격",
+        },
+    },
+
+    "electronics_repair": {
+        "device": {
+            "keywords": ["아이폰 수리", "갤럭시 수리", "노트북 수리", "태블릿 수리", "애플워치 수리"],
+            "weight": 0.30,
+            "condition_search_example": "강남 아이폰 액정 교체",
+        },
+        "repair_type": {
+            "keywords": ["액정 교체", "배터리 교체", "충전 포트 수리", "카메라 수리", "데이터 복구"],
+            "weight": 0.25,
+            "condition_search_example": "강남 갤럭시 배터리 교체",
+        },
+        "features": {
+            "keywords": ["당일 수리", "공식 부품", "가격 투명", "무상 AS", "출장 수리"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["주차 가능", "무료 진단", "예약 가능", "공식 인증 기사"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "수리 종류", "소요 시간", "가격 안내", "당일 수리 가능", "부품 종류",
+                "출장 수리 가능", "무료 진단", "운영시간", "주차 가능", "보증 기간",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 아이폰 액정 교체 당일 가격",
+        },
+    },
+
+    "footwear": {
+        "product": {
+            "keywords": ["운동화", "구두", "부츠", "샌들", "슬리퍼", "브랜드 스니커즈"],
+            "weight": 0.30,
+            "condition_search_example": "강남 운동화 브랜드 매장",
+        },
+        "features": {
+            "keywords": ["사이즈 다양", "수제 구두", "신발 수선", "맞춤 제작", "반품 쉬움"],
+            "weight": 0.25,
+            "condition_search_example": "강남 넓은 사이즈 구두",
+        },
+        "service": {
+            "keywords": ["무료 배송", "당일 배송", "온라인몰 연동", "가격 비교 가능"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "target": {
+            "keywords": ["남성 신발", "여성 신발", "아동 신발", "임산부 신발", "등산화"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "신발 종류", "사이즈 범위", "수선 가능", "맞춤 제작", "운영시간",
+                "온라인 주문 가능", "당일 픽업", "주차 가능", "가격대", "브랜드",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 넓은 사이즈 운동화 수선 가능",
+        },
+    },
+
+    "stationery": {
+        "product": {
+            "keywords": ["학용품", "필기구", "색연필·사인펜", "미술 재료", "공책·노트"],
+            "weight": 0.30,
+            "condition_search_example": "강남 미술 재료 문구점",
+        },
+        "office": {
+            "keywords": ["복사 용지", "프린터 토너", "파일·바인더", "사무용 소모품", "사무 가구"],
+            "weight": 0.25,
+            "condition_search_example": "강남 사무용품 구매",
+        },
+        "service": {
+            "keywords": ["단체 주문", "학교 납품", "기업 납품", "복사·인쇄 서비스", "당일 구매"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "features": {
+            "keywords": ["가격 저렴", "종류 다양", "문구 전문점", "대량 구매 할인"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "상품 종류", "대량 구매 가능", "배달 서비스", "운영시간", "학교·기업 납품",
+                "복사·인쇄 서비스", "가격대", "주차 가능", "온라인 주문", "당일 구매",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 학교 납품 문구점 대량 주문",
+        },
+    },
+
+    "norebang": {
+        "type": {
+            "keywords": ["코인노래방", "개인 노래방", "연습실 노래방", "파티룸 노래방"],
+            "weight": 0.30,
+            "condition_search_example": "강남 코인노래방 깨끗한",
+        },
+        "features": {
+            "keywords": ["최신곡 업데이트", "대형 스크린", "방음 완비", "탬버린·마라카스", "음식 반입"],
+            "weight": 0.25,
+            "condition_search_example": "강남 24시간 노래방",
+        },
+        "occasion": {
+            "keywords": ["생일파티", "단체 예약", "회식 후", "소모임", "데이트"],
+            "weight": 0.25,
+            "condition_search_example": "강남 생일파티 노래방",
+        },
+        "service": {
+            "keywords": ["24시간 운영", "주차 가능", "음료 판매", "깔끔한 시설"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "룸 종류", "운영시간", "시간당 가격", "예약 방법", "음식 반입 여부",
+                "생일파티 가능", "주류 판매", "주차 가능", "깨끗한 시설", "24시간 운영",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 생일파티 24시간 노래방 예약",
+        },
+    },
+
+    "billiards": {
+        "type": {
+            "keywords": ["3쿠션", "포켓볼", "볼 당구", "스누커", "4구"],
+            "weight": 0.30,
+            "condition_search_example": "강남 3쿠션 당구장",
+        },
+        "program": {
+            "keywords": ["당구 레슨", "초보 강습", "개인 레슨", "동호회 모임 가능"],
+            "weight": 0.25,
+            "condition_search_example": "강남 당구 레슨 초보",
+        },
+        "features": {
+            "keywords": ["개인 큐 보관", "테이블 상태 좋음", "조용한 분위기", "최신 테이블"],
+            "weight": 0.25,
+            "condition_search_example": "",
+        },
+        "service": {
+            "keywords": ["24시간 운영", "월정액", "주차 가능", "음료 판매", "초보 환영"],
+            "weight": 0.15,
+            "condition_search_example": "",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "종목 종류", "레슨 가능 여부", "운영시간", "시간당 요금", "월정액",
+                "초보 환영", "주차 가능", "분위기", "음료 판매", "개인 큐 보관",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 3쿠션 당구 레슨 초보",
+        },
+    },
+
+    # ── normalizer 버그 수정으로 신규 독립 분리된 3개 업종 taxonomy (2026-05-18) ──
+
+    # § 2.39 네일샵 (beauty에서 분리)
+    # 디자인(0.30) + 케어관리(0.25) + 접근편의(0.20) + 가격서비스(0.20) + ai_tab_context(0.05) = 1.0
+    "nail": {
+        "디자인": {
+            "keywords": [
+                "젤네일", "아트네일", "네일아트", "네일연장", "빌더젤",
+                "오로라네일", "글리터네일", "그라데이션", "프렌치네일",
+                "레이스네일", "꽃네일", "캐릭터네일", "시즌아트",
+            ],
+            "weight": 0.30,
+            "condition_search_example": "강남 젤네일 아트 네일샵",
+        },
+        "케어관리": {
+            "keywords": [
+                "케어", "큐티클케어", "손발관리", "발각질제거", "손발케어",
+                "네일 보수", "네일 제거", "오프 서비스", "보습관리",
+            ],
+            "weight": 0.25,
+            "condition_search_example": "강남 큐티클 케어 네일샵",
+        },
+        "접근편의": {
+            "keywords": [
+                "당일예약", "주차가능", "아이랑 네일", "커플네일",
+                "남성 네일 가능", "1인 전담", "프라이빗 공간",
+                "예약 없이 방문",
+            ],
+            "weight": 0.20,
+            "condition_search_example": "강남 당일예약 네일샵",
+        },
+        "가격서비스": {
+            "keywords": [
+                "가격대", "가성비", "이벤트", "첫방문 할인",
+                "정기권", "멤버십", "패키지", "손발 세트",
+            ],
+            "weight": 0.20,
+            "condition_search_example": "강남 합리적 가격 네일샵",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "청결한 시설", "위생 철저", "일회용 도구", "향 없음",
+                "조용한 분위기", "네일 상담", "트렌드 디자인",
+                "빠른 시술", "오래 지속",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 위생 철저 네일샵 당일예약",
+        },
+    },
+
+    # § 2.40 요가원 (fitness에서 분리)
+    # 수업종류(0.30) + 강사자격(0.25) + 접근편의(0.20) + 가격서비스(0.20) + ai_tab_context(0.05) = 1.0
+    "yoga": {
+        "수업종류": {
+            "keywords": [
+                "하타요가", "빈야사", "음요가", "명상요가", "산전요가",
+                "산후요가", "아헹가", "인요가", "아쉬탕가", "쿤달리니",
+                "초급반", "중급반", "고급반", "소수정예",
+            ],
+            "weight": 0.30,
+            "condition_search_example": "강남 하타요가 초급반",
+        },
+        "강사자격": {
+            "keywords": [
+                "전문 강사", "RYT 200", "RYT 500", "자격증 강사",
+                "호흡법 지도", "명상 지도", "수련 경력", "친절한 교정",
+            ],
+            "weight": 0.25,
+            "condition_search_example": "강남 자격증 요가 강사 요가원",
+        },
+        "접근편의": {
+            "keywords": [
+                "당일등록", "체험수업", "첫수업 무료", "주차가능",
+                "지하철 도보", "샤워실 완비", "락커 보관", "요가복 대여",
+            ],
+            "weight": 0.20,
+            "condition_search_example": "강남 체험수업 요가원",
+        },
+        "가격서비스": {
+            "keywords": [
+                "월정액", "10회권", "등록비", "가성비", "이벤트",
+                "필라테스 병행", "명상 포함",
+            ],
+            "weight": 0.20,
+            "condition_search_example": "강남 가성비 요가원 월정액",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "초보 환영", "조용한 수련 공간", "명상 가능", "소수정예 클래스",
+                "아침 수업", "저녁 수업", "주말 수업", "임산부 가능",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 초보 환영 조용한 요가원",
+        },
+    },
+
+    # § 2.41 청소업체 (living에서 분리)
+    # 서비스종류(0.30) + 출장범위(0.25) + 가격서비스(0.20) + 신뢰성(0.20) + ai_tab_context(0.05) = 1.0
+    "cleaning": {
+        "서비스종류": {
+            "keywords": [
+                "입주청소", "이사청소", "에어컨청소", "소파청소",
+                "거실청소", "원룸청소", "공장청소", "방역청소",
+                "욕실청소", "주방청소", "카펫청소", "사무실청소",
+            ],
+            "weight": 0.30,
+            "condition_search_example": "강남 입주청소 업체",
+        },
+        "출장범위": {
+            "keywords": [
+                "출장가능", "당일예약", "전국출장", "지역출장",
+                "빠른 방문", "당일처리", "주말출장",
+            ],
+            "weight": 0.25,
+            "condition_search_example": "강남 당일예약 청소업체",
+        },
+        "가격서비스": {
+            "keywords": [
+                "견적무료", "합리적가격", "정찰제", "패키지할인",
+                "정기구독", "월정기청소", "가격투명",
+            ],
+            "weight": 0.20,
+            "condition_search_example": "강남 견적무료 청소업체",
+        },
+        "신뢰성": {
+            "keywords": [
+                "업체선정방법", "전문청소부", "자격증보유", "보험가입",
+                "친환경세제", "위생관리", "후기많음", "재방문율높음",
+            ],
+            "weight": 0.20,
+            "condition_search_example": "강남 믿을 수 있는 청소업체",
+        },
+        "ai_tab_context": {
+            "keywords": [
+                "냄새제거", "새집증후군제거", "살균소독",
+                "쾌적한 환경", "이사 전 청소", "이사 후 청소",
+                "아이있는집", "반려동물있는집",
+            ],
+            "weight": 0.05,
+            "condition_search_example": "강남 이사 후 청소 당일 가능",
         },
     },
 }

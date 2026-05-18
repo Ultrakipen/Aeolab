@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { trialScan, searchTrialBusiness, ApiError } from "@/lib/api";
+import { mapNaverCategory } from "@/lib/categories";
 import { getSafeSession } from "@/lib/supabase/client";
 import type {
   TrialScanResult,
@@ -21,9 +22,69 @@ import type {
   NaverBriefingCheckResult,
 } from "./components/TrialSharedTypes";
 
+// ── 모듈 레벨 상수 ────────────────────────────────────────────────────
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
+// ── 결과 캐시 (sessionStorage) ─────────────────────────────────────────
+const RESULT_CACHE_KEY = "trial_result_cache";
+const RESULT_CACHE_TTL_MS = 60 * 60 * 1000; // 1시간
+
+interface TrialResultCache {
+  result: TrialScanResult;
+  selectedCategory: string;
+  selectedTags: string[];
+  form: TrialFormState;
+  businessType: BusinessType;
+  hasFaq: boolean;
+  hasRecentPost: boolean;
+  hasIntro: boolean;
+  cachedAt: number;
+}
+
+function saveResultCache(payload: Omit<TrialResultCache, "cachedAt">): void {
+  if (typeof window === "undefined") return;
+  try {
+    const cache: TrialResultCache = { ...payload, cachedAt: Date.now() };
+    sessionStorage.setItem(RESULT_CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // quota 초과 등 저장 실패 시 무시
+  }
+}
+
+function loadResultCache(): TrialResultCache | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(RESULT_CACHE_KEY);
+    if (!raw) return null;
+    const cache: TrialResultCache = JSON.parse(raw);
+    if (Date.now() - cache.cachedAt > RESULT_CACHE_TTL_MS) {
+      sessionStorage.removeItem(RESULT_CACHE_KEY);
+      return null;
+    }
+    return cache;
+  } catch {
+    return null;
+  }
+}
+
+function clearResultCache(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(RESULT_CACHE_KEY);
+  } catch { /* 무시 */ }
+}
+
 // ── 상수 ───────────────────────────────────────────────────────────────
-const SCAN_STEPS = [
+const SCAN_STEPS_LOCATION = [
   "네이버 AI 브리핑 검색 중...",
+  "ChatGPT에서 가게명 확인 중...",
+  "업종 키워드 분석 중...",
+  "경쟁 가게 평균과 비교 중...",
+  "점수 계산 중...",
+];
+
+const SCAN_STEPS_NON_LOCATION = [
+  "웹사이트 SEO 분석 중...",
   "ChatGPT에서 가게명 확인 중...",
   "업종 키워드 분석 중...",
   "경쟁 가게 평균과 비교 중...",
@@ -32,7 +93,7 @@ const SCAN_STEPS = [
 
 const TRIAL_LS_KEY = "aeolab_trial_v2";
 const TRIAL_DAY_MS = 24 * 60 * 60 * 1000;
-const TRIAL_DAY_LIMIT = 3;
+const TRIAL_DAY_LIMIT = 9999; // 개발 중 무제한 — 출시 전 3으로 복원
 
 // ── 무료 체험 횟수 관리 ────────────────────────────────────────────────
 interface TrialStore {
@@ -82,6 +143,9 @@ export default function TrialPage() {
   const [step, setStep] = useState<Step>("category");
   const [result, setResult] = useState<TrialScanResult | null>(null);
   const [error, setError] = useState("");
+  const [isRestored, setIsRestored] = useState(false);
+  // 복원 배너: null=확인 전, true=복원 가능, false=복원 배너 닫힘/불필요
+  const [restoreBanner, setRestoreBanner] = useState<null | "available" | "hidden">(null);
   const [scanStep, setScanStep] = useState(0);
   const [cooldownMs, setCooldownMs] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -94,26 +158,28 @@ export default function TrialPage() {
     email: "",
     is_smart_place: undefined,
   });
-  const [hasFaq, setHasFaq] = useState(false);
-  const [hasRecentPost, setHasRecentPost] = useState(false);
-  const [hasIntro, setHasIntro] = useState(false);
+  const [hasFaq, setHasFaq] = useState<boolean | undefined>(undefined);
+  const [hasRecentPost, setHasRecentPost] = useState<boolean | undefined>(undefined);
+  const [hasIntro, setHasIntro] = useState<boolean | undefined>(undefined);
   const [reviewText, setReviewText] = useState("");
   const [description, setDescription] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isStartupMode, setIsStartupMode] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [primaryKeyword, setPrimaryKeyword] = useState("");
 
   // ── 검색 후보 state ─────────────────────────────────────────────────
   const [candidates, setCandidates] = useState<TrialBusinessCandidate[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [selectedNaverPlaceId, setSelectedNaverPlaceId] = useState<string | null>(
-    null,
-  );
   const [selectedCandidateKey, setSelectedCandidateKey] = useState<string | null>(
     null,
   );
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
+
+  // ── 인라인 스마트플레이스 검색 state ──────────────────────────────────
+  const [inlineSearchResults, setInlineSearchResults] = useState<TrialBusinessCandidate[]>([]);
+  const [inlineSearchLoading, setInlineSearchLoading] = useState(false);
+  const [inlineSelectedCandidate, setInlineSelectedCandidate] = useState<TrialBusinessCandidate | null>(null);
   const [forceManualEntry, setForceManualEntry] = useState(false);
 
   // ── 네이버 AI 브리핑 직접 확인 state ─────────────────────────────────
@@ -141,6 +207,12 @@ export default function TrialPage() {
     );
   };
 
+  // tags → info 이동 시 primaryKeyword 자동 설정
+  const handleMoveToInfo = () => {
+    setPrimaryKeyword((prev) => prev || selectedTags[0] || "");
+    setStep("info");
+  };
+
   const buildKeyword = () => {
     const tags = selectedTags.slice(0, 3).join(" ");
     return form.extra_keyword
@@ -163,11 +235,26 @@ export default function TrialPage() {
     }
   };
 
-  // ── URL params 초기화 (industry, category, region 모두 받음) ──────────
+  // ── URL params 초기화 (industry, category, region, naver_place_id 모두 받음) ──
   useEffect(() => {
     const paramCategory = searchParams.get("category") || searchParams.get("industry");
     const paramName = searchParams.get("business_name");
     const paramRegion = searchParams.get("region");
+    const paramPlaceId = searchParams.get("naver_place_id");
+
+    // naver_place_id 있으면: 이름/지역 채우고 info 단계로 바로 이동
+    if (paramPlaceId && paramName) {
+      setForm((prev) => ({
+        ...prev,
+        business_name: paramName,
+        ...(paramRegion ? { region: paramRegion } : {}),
+      }));
+      if (!paramCategory) setSelectedCategory("restaurant"); // 기본값
+      else setSelectedCategory(paramCategory);
+      setStep("info");
+      return;
+    }
+
     if (paramCategory) {
       setSelectedCategory(paramCategory);
       if (paramName) {
@@ -190,12 +277,32 @@ export default function TrialPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── 쿨다운·세션 초기화 ─────────────────────────────────────────────
+  // ── 쿨다운·세션 초기화 + 캐시 복원 감지 ────────────────────────────
   useEffect(() => {
     setCooldownMs(getTrialCooldownRemaining());
     getSafeSession().then((session) => {
       setIsLoggedIn(!!session);
     });
+    // sessionStorage 캐시 확인 — URL 파라미터 없으면 자동 복원
+    const paramCategory = searchParams.get("category") || searchParams.get("industry");
+    const paramPlaceId = searchParams.get("naver_place_id");
+    if (!paramCategory && !paramPlaceId) {
+      const cached = loadResultCache();
+      if (cached) {
+        setResult(cached.result);
+        setSelectedCategory(cached.selectedCategory);
+        setSelectedTags(cached.selectedTags);
+        setForm(cached.form);
+        setBusinessType(cached.businessType);
+        setHasFaq(cached.hasFaq);
+        setHasRecentPost(cached.hasRecentPost);
+        setHasIntro(cached.hasIntro);
+        setIsRestored(true);
+        setRestoreBanner("hidden");
+        setStep("result");
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── 벤치마크 API 호출 ───────────────────────────────────────────────
@@ -204,14 +311,15 @@ export default function TrialPage() {
     const cat = selectedCategory;
     if (!cat) return;
     const reg = form.region || "전국";
-    const BACKEND_URL =
-      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
     fetch(
       `${BACKEND_URL}/api/report/benchmark/${encodeURIComponent(cat)}/${encodeURIComponent(reg)}`,
     )
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => d && setApiBenchmark(d))
-      .catch(() => {});
+      .then((d) => {
+        if (d?.avg_score) setApiBenchmark(d);
+        else setApiBenchmark(null);
+      })
+      .catch(() => { setApiBenchmark(null); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
 
@@ -225,6 +333,71 @@ export default function TrialPage() {
     }, 60_000);
     return () => clearInterval(id);
   }, [cooldownMs]);
+
+  // ── 인라인 SmartPlace 검색 (가게명 입력 디바운스) ──────────────────────
+  useEffect(() => {
+    if (step !== "info" || businessType !== "location_based" || isStartupMode) {
+      setInlineSearchResults([]);
+      setInlineSearchLoading(false);
+      return;
+    }
+    const name = form.business_name.trim();
+    if (name.length < 2) {
+      setInlineSearchResults([]);
+      setInlineSearchLoading(false);
+      return;
+    }
+    if (inlineSelectedCandidate && inlineSelectedCandidate.title === name) return;
+    setInlineSelectedCandidate(null);
+    const timer = setTimeout(async () => {
+      setInlineSearchLoading(true);
+      try {
+        const data = await searchTrialBusiness(name, form.region || undefined);
+        setInlineSearchResults((data.results || []).slice(0, 4));
+      } catch {
+        setInlineSearchResults([]);
+      } finally {
+        setInlineSearchLoading(false);
+      }
+    }, 700);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.business_name, step, businessType, isStartupMode]);
+
+  const handleInlinePlaceSelect = (candidate: TrialBusinessCandidate) => {
+    setInlineSelectedCandidate(candidate);
+    const addrParts = (candidate.address || "").split(" ");
+    const autoRegion = addrParts.slice(0, 2).join(" ");
+
+    // 네이버 카테고리 자동 매핑
+    const mappedCategory = mapNaverCategory(candidate.category);
+
+    setForm((prev) => ({
+      ...prev,
+      business_name: candidate.title,
+      is_smart_place: true,
+      ...(!prev.region?.trim() && autoRegion ? { region: autoRegion } : {}),
+    }));
+
+    // 유효한 카테고리면 자동 세팅 (other는 사용자가 직접 선택하도록 유지)
+    if (mappedCategory && mappedCategory !== "other") {
+      setSelectedCategory(mappedCategory);
+    }
+
+    setHasIntro(undefined);
+    setHasRecentPost(undefined);
+    setHasFaq(undefined);
+    setInlineSearchResults([]);
+  };
+
+  const handleInlinePlaceClear = () => {
+    setInlineSelectedCandidate(null);
+    setInlineSearchResults([]);
+    setForm((prev) => ({ ...prev, is_smart_place: undefined }));
+    setHasIntro(undefined);
+    setHasRecentPost(undefined);
+    setHasFaq(undefined);
+  };
 
   // ── 검색 핸들러 ─────────────────────────────────────────────────────
   const handleSearch = async (e: React.FormEvent) => {
@@ -243,17 +416,22 @@ export default function TrialPage() {
       isStartupMode ||
       businessType !== "location_based" ||
       forceManualEntry ||
-      !form.business_name.trim();
+      !form.business_name.trim() ||
+      !!inlineSelectedCandidate;
 
     if (skipSearch) {
-      await runScan(null);
+      if (inlineSelectedCandidate) {
+        const realId = (inlineSelectedCandidate.naver_place_id || "").trim();
+        await runScan(realId || null, inlineSelectedCandidate.title, inlineSelectedCandidate);
+      } else {
+        await runScan(null);
+      }
       return;
     }
 
     setSearchLoading(true);
     setSearchError("");
     setCandidates([]);
-    setSelectedNaverPlaceId(null);
     setSelectedCandidateKey(null);
     try {
       const data = await searchTrialBusiness(
@@ -275,7 +453,6 @@ export default function TrialPage() {
   const handlePlaceSelect = async (candidate: TrialBusinessCandidate) => {
     const realId = (candidate.naver_place_id || "").trim();
     setSelectedCandidateKey(getCandidateKey(candidate));
-    setSelectedNaverPlaceId(realId || null);
     setForm((prev) => ({ ...prev, business_name: candidate.title }));
     await runScan(realId || null, candidate.title, candidate);
   };
@@ -291,15 +468,16 @@ export default function TrialPage() {
   ) => {
     setError("");
     setStep("scanning");
+    setRestoreBanner("hidden");
     setScanStep(0);
 
     const stepInterval = setInterval(() => {
       setScanStep((prev) => {
-        if (prev < SCAN_STEPS.length - 1) return prev + 1;
+        if (prev < SCAN_STEPS_LOCATION.length - 1) return prev + 1;
         clearInterval(stepInterval);
         return prev;
       });
-    }, 600);
+    }, 2000);
 
     try {
       const keyword = buildKeyword();
@@ -312,12 +490,17 @@ export default function TrialPage() {
         category: selectedCategory,
         region: form.region || undefined,
         keyword: keyword || undefined,
-        keywords: selectedTags.length > 0 ? selectedTags : undefined,
+        keywords: (() => {
+          const effectiveKeywords = primaryKeyword
+            ? [primaryKeyword, ...selectedTags.filter(t => t !== primaryKeyword)]
+            : selectedTags;
+          return effectiveKeywords.length > 0 ? effectiveKeywords : undefined;
+        })(),
         email: form.email || undefined,
         business_type: businessType,
-        has_faq: hasFaq,
-        has_recent_post: hasRecentPost,
-        has_intro: hasIntro,
+        has_faq: hasFaq ?? false,
+        has_recent_post: hasRecentPost ?? false,
+        has_intro: hasIntro ?? false,
         is_smart_place: form.is_smart_place,
         review_text: reviewText || undefined,
         description: description || undefined,
@@ -336,9 +519,21 @@ export default function TrialPage() {
           : undefined,
       });
       clearInterval(stepInterval);
-      setScanStep(SCAN_STEPS.length - 1);
+      setScanStep(SCAN_STEPS_LOCATION.length - 1);
       recordTrialUse();
       setResult(data);
+      setIsRestored(false);
+      // sessionStorage에 결과 캐시 저장 (뒤로가기 복원용)
+      saveResultCache({
+        result: data,
+        selectedCategory,
+        selectedTags,
+        form,
+        businessType,
+        hasFaq: hasFaq ?? false,
+        hasRecentPost: hasRecentPost ?? false,
+        hasIntro: hasIntro ?? false,
+      });
       try {
         localStorage.setItem(
           "aeolab_trial_result",
@@ -368,6 +563,9 @@ export default function TrialPage() {
   };
 
   const reset = () => {
+    clearResultCache();
+    setIsRestored(false);
+    setRestoreBanner("hidden");
     setStep("category");
     setResult(null);
     setSelectedCategory("");
@@ -385,10 +583,29 @@ export default function TrialPage() {
     setNaverCheckResult(null);
     setNaverCheckError("");
     setCandidates([]);
-    setSelectedNaverPlaceId(null);
     setSearchLoading(false);
     setSearchError("");
     setForceManualEntry(false);
+    setInlineSearchResults([]);
+    setInlineSearchLoading(false);
+    setInlineSelectedCandidate(null);
+  };
+
+  // 캐시에서 결과 복원
+  const restoreFromCache = () => {
+    const cached = loadResultCache();
+    if (!cached) return;
+    setResult(cached.result);
+    setSelectedCategory(cached.selectedCategory);
+    setSelectedTags(cached.selectedTags);
+    setForm(cached.form);
+    setBusinessType(cached.businessType);
+    setHasFaq(cached.hasFaq);
+    setHasRecentPost(cached.hasRecentPost);
+    setHasIntro(cached.hasIntro);
+    setIsRestored(true);
+    setRestoreBanner("hidden");
+    setStep("result");
   };
 
   const handleNaverBriefingCheck = async () => {
@@ -396,8 +613,6 @@ export default function TrialPage() {
     setNaverCheckState("loading");
     setNaverCheckError("");
 
-    const BACKEND_URL =
-      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
     try {
       const keyword = buildKeyword();
       const res = await fetch(`${BACKEND_URL}/api/scan/trial/naver-briefing`, {
@@ -423,12 +638,43 @@ export default function TrialPage() {
         return;
       }
 
-      const data: NaverBriefingCheckResult = await res.json();
-      setNaverCheckResult(data);
-      setNaverCheckState("done");
+      // 백엔드가 SSE(text/event-stream) 스트림으로 응답하므로 line-by-line 파싱
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let finalResult: NaverBriefingCheckResult | null = null;
+      if (reader) {
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            try {
+              const event = JSON.parse(line.slice(6));
+              if (event.type === "result") {
+                finalResult = event as NaverBriefingCheckResult;
+              } else if (event.type === "error") {
+                setNaverCheckError(event.message || "확인 중 오류가 발생했습니다.");
+                setNaverCheckState("error");
+                return;
+              }
+            } catch { /* 불완전 라인 무시 */ }
+          }
+        }
+      }
+      if (finalResult) {
+        setNaverCheckResult(finalResult);
+        setNaverCheckState("done");
+      } else {
+        setNaverCheckError("결과를 받지 못했습니다. 잠시 후 다시 시도해주세요.");
+        setNaverCheckState("error");
+      }
     } catch {
       setNaverCheckError(
-        "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.",
+        "확인 요청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
       );
       setNaverCheckState("error");
     }
@@ -450,6 +696,34 @@ export default function TrialPage() {
           <span className="text-sm text-gray-500">무료 AI 노출 진단</span>
         </div>
       </header>
+
+      {/* 이전 결과 복원 배너 */}
+      {restoreBanner === "available" && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
+          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <p className="text-sm text-amber-900 font-medium">
+              이전 스캔 결과가 저장되어 있습니다. 이어서 보시겠어요?
+            </p>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={restoreFromCache}
+                className="text-sm font-semibold text-amber-900 bg-amber-100 border border-amber-300 rounded-lg px-3 py-1.5 hover:bg-amber-200 transition-colors"
+              >
+                이전 결과 보기
+              </button>
+              <button
+                onClick={() => {
+                  clearResultCache();
+                  setRestoreBanner("hidden");
+                }}
+                className="text-sm text-amber-700 hover:text-amber-900 px-2 py-1.5 transition-colors"
+              >
+                새로 스캔
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 입력 단계 (category / tags / info / search) */}
       {step !== "result" && step !== "scanning" && (
@@ -490,6 +764,14 @@ export default function TrialPage() {
           onPlaceSelect={handlePlaceSelect}
           onSkipPlaceMatch={handleSkipPlaceMatch}
           getCandidateKey={getCandidateKey}
+          primaryKeyword={primaryKeyword}
+          setPrimaryKeyword={setPrimaryKeyword}
+          onMoveToInfo={handleMoveToInfo}
+          inlineSearchResults={inlineSearchResults}
+          inlineSearchLoading={inlineSearchLoading}
+          inlineSelectedCandidate={inlineSelectedCandidate}
+          onInlinePlaceSelect={handleInlinePlaceSelect}
+          onInlinePlaceClear={handleInlinePlaceClear}
         />
       )}
 
@@ -498,7 +780,7 @@ export default function TrialPage() {
         <div className="max-w-2xl mx-auto px-4 py-10">
           <TrialScanningStep
             scanStep={scanStep}
-            scanSteps={SCAN_STEPS}
+            scanSteps={businessType === "non_location" ? SCAN_STEPS_NON_LOCATION : SCAN_STEPS_LOCATION}
             selectedTag={selectedTags[0] ?? ""}
             region={form.region}
           />
@@ -513,9 +795,9 @@ export default function TrialPage() {
           selectedTags={selectedTags}
           form={form}
           businessType={businessType}
-          hasFaq={hasFaq}
-          hasRecentPost={hasRecentPost}
-          hasIntro={hasIntro}
+          hasFaq={hasFaq ?? false}
+          hasRecentPost={hasRecentPost ?? false}
+          hasIntro={hasIntro ?? false}
           isLoggedIn={isLoggedIn}
           apiBenchmark={apiBenchmark}
           naverCheckState={naverCheckState}
@@ -525,6 +807,8 @@ export default function TrialPage() {
           onNaverCheckReset={handleNaverCheckReset}
           onSaveTrialData={saveTrialData}
           onReset={reset}
+          isRestored={isRestored}
+          onRescan={reset}
         />
       )}
       <SiteFooter />

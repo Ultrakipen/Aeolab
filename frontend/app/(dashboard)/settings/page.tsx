@@ -30,9 +30,9 @@ const STATUS_META: Record<string, { label: string; color: string; dot: string }>
 
 const PLAN_LIMITS: Record<string, { scan: string; competitors: string; autoScan: string }> = {
   free:       { scan: "—",          competitors: "—",      autoScan: "—" },
-  basic:      { scan: "하루 2회",   competitors: "3개",    autoScan: "매일 1회" },
-  startup:    { scan: "하루 3회",   competitors: "5개",    autoScan: "매일 1회" },
-  pro:        { scan: "하루 5회",   competitors: "10개",  autoScan: "주 3회" },
+  basic:      { scan: "하루 2회",   competitors: "3개",    autoScan: "주 1회 (월요일)" },
+  startup:    { scan: "하루 3회",   competitors: "5개",    autoScan: "매일" },
+  pro:        { scan: "하루 5회",   competitors: "5개",   autoScan: "주 3회" },
   biz:        { scan: "하루 15회",  competitors: "무제한", autoScan: "매일" },
 };
 
@@ -150,7 +150,7 @@ export default async function SettingsPage({
       <div className="max-w-2xl mx-auto space-y-4 md:space-y-6">
 
           {/* ── 구독 현황 카드 ── */}
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             {/* 그라데이션 배너 */}
             <div className={`bg-gradient-to-r ${planMeta.gradient} px-5 py-4 md:py-5`}>
               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -258,7 +258,7 @@ export default async function SettingsPage({
 
           {/* ── 알림 및 결제 설정 (활성 구독자만) ── */}
           {isActive && (
-            <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-4 md:px-5 py-4 border-b border-gray-100">
                 <h2 className="text-base md:text-lg font-semibold text-gray-800">알림 · 결제 설정</h2>
                 <p className="text-sm text-gray-500 mt-0.5">카카오 알림톡 수신 번호 및 결제 카드를 관리합니다.</p>
@@ -279,7 +279,7 @@ export default async function SettingsPage({
           )}
 
           {/* ── 플랜별 기능 비교 ── */}
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-4 md:px-5 py-4 border-b border-gray-100">
               <h2 className="text-base md:text-lg font-semibold text-gray-800">플랜별 기능 비교</h2>
             </div>
@@ -311,7 +311,7 @@ export default async function SettingsPage({
                   <tbody>
                     {([
                       ["직접 스캔",      "—",  "2회/일",  "하루 3회", "5회/일",  "15회/일"],
-                      ["자동 스캔",      "—",  "매일 1회","매일 1회", "주 3회",  "매일"],
+                      ["자동 스캔",      "—",  "주 1회",  "매일",     "주 3회",  "매일"],
                       ["경쟁사 비교",    "—",  "3개",     "5개",      "5개",     "무제한"],
                       ["AI 개선 가이드", "—",  "월 3회",  "월 5회",   "월 10회", "월 20회"],
                       ["카카오 알림톡",  "—",  "✓",       "✓",        "✓",       "✓"],
@@ -356,7 +356,7 @@ export default async function SettingsPage({
 
           {/* ── 등록된 사업장 ── */}
           {businesses && businesses.length > 0 && (
-            <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-4 md:px-5 py-4 border-b border-gray-100">
                 <h2 className="text-base md:text-lg font-semibold text-gray-800">등록된 사업장</h2>
                 <p className="text-sm text-gray-500 mt-0.5">사업장 정보를 수정하면 AI 분석 정확도가 높아집니다.</p>
@@ -368,7 +368,7 @@ export default async function SettingsPage({
           )}
 
           {/* ── 계정 설정 ── */}
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-4 md:px-5 py-4 border-b border-gray-100">
               <h2 className="text-base md:text-lg font-semibold text-gray-800">계정 설정</h2>
               <p className="text-sm text-gray-500 mt-0.5">
@@ -382,7 +382,7 @@ export default async function SettingsPage({
 
           {/* ── 고급 설정 (Biz+) ── */}
           {currentPlan === "biz" && isActive && (
-            <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-4 md:px-5 py-4 border-b border-gray-100">
                 <h2 className="text-base md:text-lg font-semibold text-gray-800">고급 설정</h2>
               </div>

@@ -150,7 +150,7 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse">
         <div className="h-5 bg-gray-100 rounded w-40 mb-3" />
         <div className="h-4 bg-gray-100 rounded w-full mb-2" />
         <div className="h-4 bg-gray-100 rounded w-3/4" />
@@ -164,7 +164,7 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
 
   if (!attributions || attributions.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-5">
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="text-base font-semibold text-gray-800 mb-2">내 행동이 점수에 미친 영향</h3>
         <p className="text-sm text-gray-500">
           {message || "기록된 행동이 없습니다. 가이드를 실행하고 행동을 기록하면 효과를 확인할 수 있습니다."}
@@ -174,7 +174,7 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       {/* 헤더 */}
       <div className="px-5 pt-5 pb-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-3">

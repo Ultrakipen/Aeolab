@@ -50,7 +50,7 @@ const DIRECTION_CONFIG = {
 
 function Skeleton() {
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-gray-100 animate-pulse">
+    <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 animate-pulse">
       <div className="flex items-center justify-between mb-4">
         <div className="h-5 bg-gray-200 rounded w-28" />
         <div className="h-6 bg-gray-200 rounded-full w-16" />
@@ -82,7 +82,7 @@ export function IndustryTrendCard({ trend, category, isLoading = false }: Props)
       : "text-gray-600";
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
         <div className="flex items-center gap-2">

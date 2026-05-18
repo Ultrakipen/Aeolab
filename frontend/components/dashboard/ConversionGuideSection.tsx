@@ -236,7 +236,7 @@ export default function ConversionGuideSection({ bizId, plan }: Props) {
   }, [bizId]);
 
   return (
-    <div className="bg-gradient-to-b from-white to-blue-50 border border-blue-100 rounded-2xl p-4 md:p-6 shadow-sm">
+    <div className="bg-gradient-to-b from-white to-blue-50 border border-blue-100 rounded-xl p-4 md:p-6 shadow-sm">
       {/* 헤더 */}
       <div className="mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">

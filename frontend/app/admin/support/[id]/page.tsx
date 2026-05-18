@@ -74,7 +74,7 @@ export default async function AdminSupportDetailPage({
     );
   }
 
-  const adminKey = process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY ?? "";
+  const adminKey = process.env.ADMIN_SECRET_KEY ?? "";
   const ticket = await fetchTicket(id, adminKey);
 
   if (!ticket) {
@@ -127,7 +127,7 @@ export default async function AdminSupportDetailPage({
       </div>
 
       {/* 문의 요약 헤더 */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-5">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-5">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1.5">

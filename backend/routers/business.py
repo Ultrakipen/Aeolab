@@ -289,13 +289,29 @@ async def delete_business(biz_id: str, user=Depends(get_current_user)):
 @router.patch("/{biz_id}")
 async def update_business(biz_id: str, updates: dict, user=Depends(get_current_user)):
     import asyncio
+    from datetime import datetime, timezone
     x_user_id = user["id"]
     supabase = get_client()
     allowed = {"name", "category", "address", "phone", "website_url", "blog_url", "naver_place_url", "keywords", "naver_place_id", "google_place_id", "kakao_place_id", "business_type", "region", "receipt_review_count", "visitor_review_count", "review_count", "avg_rating", "kakao_score", "kakao_checklist", "kakao_registered", "is_smart_place", "has_faq", "has_recent_post", "has_intro", "has_photos", "has_review_response", "review_sample", "business_registration_no", "naver_blog_id", "ai_info_tab_status", "is_franchise"}
     filtered = {k: v for k, v in updates.items() if k in allowed}
     if not filtered:
         raise HTTPException(status_code=400, detail="변경할 필드가 없습니다")
-    result = await execute(supabase.table("businesses").update(filtered).eq("id", biz_id).eq("user_id", x_user_id))
+
+    # has_recent_post=True 토글 시 last_post_at 자동 갱신 (소식 14일 알림 잡 연계)
+    # 컬럼 없는 경우 graceful fallback — DB ALTER 미실행 시 에러 무시
+    if filtered.get("has_recent_post") is True:
+        filtered["last_post_at"] = datetime.now(timezone.utc).isoformat()
+
+    try:
+        result = await execute(supabase.table("businesses").update(filtered).eq("id", biz_id).eq("user_id", x_user_id))
+    except Exception as e:
+        # last_post_at 컬럼 미존재 시 폴백 — 재시도
+        if "last_post_at" in filtered and ("column" in str(e).lower() or "last_post_at" in str(e)):
+            logger.warning(f"last_post_at column missing — falling back without it: {e}")
+            filtered.pop("last_post_at", None)
+            result = await execute(supabase.table("businesses").update(filtered).eq("id", biz_id).eq("user_id", x_user_id))
+        else:
+            raise
 
     # naver_blog_id 변경 시 blog_analysis 캐시 무효화 (is_mine 재판별 필요)
     if "naver_blog_id" in filtered:
@@ -304,8 +320,8 @@ async def update_business(biz_id: str, updates: dict, user=Depends(get_current_u
             new_id = (filtered.get("naver_blog_id") or "").strip().lower()
             for suffix in ["none", new_id]:
                 _cache.delete(_cache._make_key("blog_analysis", biz_id, suffix))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"cache delete failed biz_id={biz_id}: {e}")
 
     # blog_url 변경 시 재분석 트리거 (백그라운드)
     if "blog_url" in filtered and filtered["blog_url"]:
@@ -559,41 +575,29 @@ async def _capture_before_screenshot(biz: dict):
                 logger.warning(f"Before screenshot (naver_blog) failed: {q} — {e}")
             await asyncio.sleep(3)
 
-        # 2. 네이버 AI 브리핑 (대표 쿼리 2개)
-        for q in queries[:2]:
-            try:
-                url = await capture_ai_result("naver_ai", q, biz_id, "before_naver_ai")
-                if url:
-                    await execute(
-                        supabase.table("before_after").insert({
-                            "business_id": biz_id,
-                            "capture_type": "before_naver_ai",
-                            "image_url": url,
-                            "query_used": q,
-                        })
-                    )
-                    logger.info(f"Before screenshot (naver_ai) saved: {biz.get('name')} / {q}")
-            except Exception as e:
-                logger.warning(f"Before screenshot (naver_ai) failed: {q} — {e}")
-            await asyncio.sleep(3)
+        # 2. 네이버 AI 브리핑 — ACTIVE/LIKELY 업종만
+        from services.screenshot import _needs_naver_ai_shot
+        if _needs_naver_ai_shot(biz.get("category", ""), bool(biz.get("is_franchise"))):
+            for q in queries[:2]:
+                try:
+                    url = await capture_ai_result("naver_ai", q, biz_id, "before_naver_ai")
+                    if url:
+                        await execute(
+                            supabase.table("before_after").insert({
+                                "business_id": biz_id,
+                                "capture_type": "before_naver_ai",
+                                "image_url": url,
+                                "query_used": q,
+                            })
+                        )
+                        logger.info(f"Before screenshot (naver_ai) saved: {biz.get('name')} / {q}")
+                except Exception as e:
+                    logger.warning(f"Before screenshot (naver_ai) failed: {q} — {e}")
+                await asyncio.sleep(3)
+        else:
+            logger.info(f"naver_ai screenshot skipped (INACTIVE): {biz.get('name')}")
 
-        # 3. Google 검색 (1개)
-        if queries:
-            q = queries[0]
-            try:
-                url = await capture_ai_result("google", q, biz_id, "before_google")
-                if url:
-                    await execute(
-                        supabase.table("before_after").insert({
-                            "business_id": biz_id,
-                            "capture_type": "before_google",
-                            "image_url": url,
-                            "query_used": q,
-                        })
-                    )
-                    logger.info(f"Before screenshot (google) saved: {biz.get('name')} / {q}")
-            except Exception as e:
-                logger.warning(f"Before screenshot (google) failed: {q} — {e}")
+        # Google: 제거 — 데이터센터 IP CAPTCHA 100%, 구독자 50명 이후 DataForSEO API 재도입
 
         logger.info(f"Before screenshot capture completed for: {biz.get('name')}")
     except Exception as e:
@@ -752,6 +756,13 @@ class IntroGenerateResponse(BaseModel):
     char_count: int
     qa_count: int
     keywords_included: list[str]
+    dia_score: dict | None = None  # D.I.A. 5요소 사후 검증 (0~100), AI 호출 0
+
+
+class GlobalAiIntroResponse(BaseModel):
+    intro: str
+    char_count: int
+    dia_score: dict | None = None
 
 
 class TalktalkFAQItem(BaseModel):
@@ -838,6 +849,7 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
             region=biz.get("region", ""),
             keywords=keywords,
             target_length=req.target_length,
+            category=biz.get("category"),  # LSI 키워드 자동 추출용
         )
     except Exception as e:
         logger.warning(f"intro-generate Claude call failed [biz={req.biz_id}]: {e}")
@@ -845,6 +857,16 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
 
     qa_count = _count_qa_pairs(intro_text)
     keywords_included = _count_keyword_matches(intro_text, keywords)
+
+    # D.I.A. 5요소 사후 검증 (AI 호출 0, 실패해도 본 응답 유지)
+    dia_score: dict | None = None
+    try:
+        from services.content_validator import validate_intro_dia
+        from services.keyword_taxonomy import get_all_keywords_flat
+        _lsi = get_all_keywords_flat(biz.get("category", "other"))[:8]
+        dia_score = validate_intro_dia(intro_text, keywords=keywords, lsi_keywords=_lsi)
+    except Exception as dia_err:
+        logger.warning(f"intro-generate D.I.A. validate failed: {dia_err}")
 
     # guides 테이블에 사용 이력 기록 + businesses 테이블에 최신 초안 저장
     try:
@@ -875,6 +897,105 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
         char_count=len(intro_text),
         qa_count=qa_count,
         keywords_included=keywords_included,
+        dia_score=dia_score,
+    )
+
+
+@router.post("/global-ai-intro-generate", response_model=GlobalAiIntroResponse)
+async def generate_global_ai_intro_endpoint(
+    req: IntroGenerateRequest,
+    user=Depends(get_current_user),
+):
+    """글로벌 AI 최적화 소개글 생성 (ChatGPT·Gemini·Google AI 노출 최적화). Basic+."""
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
+    from datetime import datetime, timezone
+
+    user_id = user["id"]
+    supabase = get_client()
+
+    plan = await get_user_plan(user_id, supabase)
+    limit = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"]).get("faq_monthly", 0)
+    if limit == 0:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "message": "글로벌 AI 소개글 생성은 Basic 이상 플랜에서 사용 가능합니다", "upgrade_url": "/pricing"},
+        )
+
+    # 소유권 검증
+    biz_res = await execute(
+        supabase.table("businesses")
+        .select("id, name, category, region, keywords, user_id")
+        .eq("id", req.biz_id)
+        .eq("is_active", True)
+        .single()
+    )
+    if not biz_res.data:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+    biz = biz_res.data
+    if biz["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="접근 권한 없음")
+
+    # 월별 사용 횟수 체크 (intro_draft 공유 한도)
+    if limit < 999:
+        now = datetime.now(timezone.utc)
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+        used_res = await execute(
+            supabase.table("guides")
+            .select("id", count="exact")
+            .eq("business_id", req.biz_id)
+            .eq("context", "intro_draft")
+            .gte("generated_at", month_start)
+        )
+        used = used_res.count or 0
+        if used >= limit:
+            raise HTTPException(
+                status_code=429,
+                detail=f"이번 달 소개글 생성 한도({limit}회)에 도달했습니다",
+            )
+    else:
+        now = datetime.now(timezone.utc)
+
+    from services.guide_generator import generate_global_ai_intro
+    category_label = _CATEGORY_LABELS.get(biz.get("category", "other"), biz.get("category", ""))
+    keywords = biz.get("keywords") or []
+
+    try:
+        intro_text = await generate_global_ai_intro(
+            biz_name=biz.get("name", ""),
+            category_label=category_label,
+            region=biz.get("region", ""),
+            keywords=keywords,
+            target_length=req.target_length,
+        )
+    except Exception as e:
+        logger.warning(f"global-ai-intro-generate Claude call failed [biz={req.biz_id}]: {e}")
+        raise HTTPException(status_code=502, detail="AI 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+
+    # D.I.A. 사후 검증 (AI 호출 0)
+    dia_score: dict | None = None
+    try:
+        from services.content_validator import validate_intro_dia
+        dia_score = validate_intro_dia(intro_text, keywords=keywords)
+    except Exception as dia_err:
+        logger.warning(f"global-ai-intro D.I.A. validate failed: {dia_err}")
+
+    # 사용 이력 기록
+    try:
+        await execute(
+            supabase.table("guides").insert({
+                "business_id": req.biz_id,
+                "context": "intro_draft",
+                "items_json": {"intro_text": intro_text, "type": "global_ai"},
+                "generated_at": now.isoformat(),
+            })
+        )
+    except Exception as save_err:
+        logger.warning(f"global-ai-intro guides 저장 실패: {save_err}")
+
+    return GlobalAiIntroResponse(
+        intro=intro_text,
+        char_count=len(intro_text),
+        dia_score=dia_score,
     )
 
 

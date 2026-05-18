@@ -56,7 +56,7 @@ export default async function StartupPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {features.map((f) => (
-            <div key={f.title} className="bg-white rounded-2xl p-5 shadow-sm flex gap-4">
+            <div key={f.title} className="bg-white rounded-xl p-5 shadow-sm flex gap-4">
               <div className="shrink-0 w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
                 <f.Icon className="w-5 h-5 text-blue-600" />
               </div>
@@ -73,7 +73,7 @@ export default async function StartupPage() {
           currentPlan={activePlan}
           feature="창업 시장 분석"
         >
-          <div className="bg-white rounded-2xl p-6 shadow-sm" />
+          <div className="bg-white rounded-xl p-6 shadow-sm" />
         </PlanGate>
       </div>
     );

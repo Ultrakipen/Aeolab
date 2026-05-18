@@ -91,7 +91,7 @@ function SignupForm() {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-6">
         <div className="w-full max-w-sm">
-          <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm text-center">
+          <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm text-center">
             <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-5">
               <Mail className="w-8 h-8 text-blue-500" strokeWidth={1.5} />
             </div>
@@ -189,7 +189,7 @@ function SignupForm() {
         </div>
 
         {/* 폼 */}
-        <form onSubmit={handleSignup} className="bg-white rounded-2xl p-6 shadow-sm space-y-5">
+        <form onSubmit={handleSignup} className="bg-white rounded-xl p-6 shadow-sm space-y-5">
           <h1 className="text-xl font-bold text-gray-900 text-center">회원가입</h1>
 
           <div>

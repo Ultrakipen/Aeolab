@@ -36,7 +36,7 @@ export function SentimentDashboard({ bizId, token }: Props) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 md:p-6 animate-pulse">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6 animate-pulse">
         <div className="h-5 w-40 bg-gray-200 rounded mb-4" />
         <div className="flex gap-3">
           {[1, 2, 3].map((i) => <div key={i} className="flex-1 h-20 bg-gray-100 rounded-xl" />)}
@@ -47,7 +47,7 @@ export function SentimentDashboard({ bizId, token }: Props) {
 
   if (!data || data.status === "no_data" || data.total === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 md:p-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
         <div className="flex items-center gap-2 mb-3">
           <BarChart3 className="w-5 h-5 text-blue-400" />
           <h3 className="text-base md:text-lg font-bold text-gray-900">리뷰 감정 분석</h3>
@@ -66,7 +66,7 @@ export function SentimentDashboard({ bizId, token }: Props) {
   const negRate = Math.round((data.negative / total) * 100);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-4 md:p-6">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
       <div className="flex items-center gap-2 mb-4">
         <BarChart3 className="w-5 h-5 text-blue-600" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">리뷰 감정 분석</h3>

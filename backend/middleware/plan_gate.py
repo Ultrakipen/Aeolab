@@ -49,7 +49,7 @@ PLAN_LIMITS = {
         "blog_monthly": 0,
     },
     "basic": {
-        # v3.4 강화: 경쟁사 3곳, CSV 포함, 리뷰답변 무제한, FAQ 무제한, 히스토리 60일
+        # v3.4 강화: 경쟁사 3곳, CSV 포함, 리뷰답변 월 20회, FAQ 월 5회(소개글+채팅방메뉴 합산), 히스토리 60일
         "competitors": 3,
         "guide_monthly": 3,
         "manual_scan_daily": 2,
@@ -107,9 +107,24 @@ PLAN_LIMITS = {
         "faq_monthly": 999,
         "blog_monthly": 5,
     },
+    "enterprise": {
+        # 영업 전용 200,000원/월 — Biz 한도 전부 + 사업장 무제한 + 팀 20명 + API 키 무제한
+        "competitors": 999,
+        "guide_monthly": 999,
+        "manual_scan_daily": 999,
+        "auto_scan_mode": "full",
+        "schema": True, "pdf": True, "csv": True,
+        "startup_report": True, "api_keys": True,
+        "history_days": 999,
+        "businesses": 999,
+        "ad_defense": True,
+        "review_reply_monthly": 999,
+        "faq_monthly": 999,
+        "blog_monthly": 999,
+    },
 }
 
-PLAN_HIERARCHY = {"free": 0, "basic": 1, "startup": 1.5, "pro": 2, "biz": 3}
+PLAN_HIERARCHY = {"free": 0, "basic": 1, "startup": 1.5, "pro": 2, "biz": 3, "enterprise": 4}
 
 
 async def get_user_plan(user_id: str, supabase) -> str:

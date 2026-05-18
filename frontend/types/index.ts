@@ -133,6 +133,8 @@ export interface ScoreBreakdown {
   schema_seo?: number;
   online_mentions_t2?: number;
   google_presence?: number;
+  // 카카오맵 완성도 (Trial 점수 산식 투명박스용)
+  kakao_completeness?: number;
 }
 
 export interface ScoreHistory {
@@ -244,13 +246,17 @@ export interface TrialSmartPlaceCheck {
   has_faq: boolean;
   has_recent_post: boolean;
   has_intro: boolean;
+  has_reservation?: boolean;   // [P1-B-1] 네이버 예약 연동 여부 (점수 미반영)
+  photo_count?: number;        // [P1-B-2] 등록 사진 수 추정 (점수 미반영)
   score_loss: number;
   action_links: {
     register?: string;
     faq?: string;
     post?: string;
     intro?: string;
+    reservation?: string;      // [P1-B-1] 예약 설정 링크
   };
+  error?: string;
 }
 
 // 신뢰도 강화 2라운드 — AI 응답 원문 증거 카드
@@ -338,6 +344,8 @@ export interface TrialScanResult {
   growth_stage_label?: string;
   is_keyword_estimated?: boolean;
   top_missing_keywords?: string[];
+  /** trial scan: 키워드 → {서브카테고리, weight} 메타 (추천 근거 표시용) */
+  keyword_meta?: Record<string, { subcategory: string; weight: number }>;
   pioneer_keywords?: string[];
   keyword_coverage_rate?: number;
   faq_copy_text?: string;
@@ -362,6 +370,8 @@ export interface TrialScanResult {
   ai_evidence?: TrialAIEvidence | null;
   // Trial Conversion Funnel — 30일 보관용 trial_scans.id
   trial_id?: string;
+  // 업종별 AI 브리핑 노출 분류 (백엔드 제공 or 프론트 fallback 계산)
+  briefing_category?: "active" | "likely" | "inactive";
 }
 
 export interface RankingItem {

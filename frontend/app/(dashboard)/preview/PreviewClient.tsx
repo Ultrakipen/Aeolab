@@ -59,7 +59,7 @@ const PLAN_PRICE: Record<string, string> = {
   basic: "9,900원/월",
   startup: "12,900원/월",
   pro: "18,900원/월",
-  biz: "39,900원/월",
+  biz: "49,900원/월",
 };
 
 const PLAN_COLOR: Record<
@@ -442,7 +442,7 @@ function FreeTab({
       <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
         <SectionTitle
           icon={<BarChart3 className="w-4 h-4 text-gray-500" />}
-          title="네이버 AI 브리핑 준비도"
+          title="네이버 AI 검색 준비도 (AI브리핑·AI탭)"
           subtitle="Gemini 10회 샘플링 기반 즉시 진단"
         />
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -506,7 +506,7 @@ function FreeTab({
         />
         <div className="divide-y divide-gray-50">
           <FeatureRow label="Gemini AI 1회 스캔" available={true} />
-          <FeatureRow label="네이버 AI 브리핑 준비도 점수" available={true} />
+          <FeatureRow label="네이버 AI 검색 준비도 점수 (AI브리핑·AI탭)" available={true} />
           <FeatureRow label="성장 단계 진단" available={true} />
           <FeatureRow label="개선 방향 1개 공개" available={true} />
           <FeatureRow label="AI 7개 전체 결과" available={false} />
@@ -756,7 +756,7 @@ function BasicTab({
         <div className="mt-3 pt-3 border-t border-gray-100">
           <LockedBlock requiredPlan="startup" />
           <p className="text-sm text-gray-400 text-center mt-1.5">
-            경쟁사 5~10개는 창업패키지 / Pro 이상
+            경쟁사 5개는 창업패키지 / Pro 이상
           </p>
         </div>
       </div>
@@ -771,11 +771,11 @@ function BasicTab({
           <FeatureRow label="매주 월요일 AI 7개 자동 스캔" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 3곳" />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 3회" />
-          <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 10회" />
+          <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 20회" />
           <FeatureRow label="30일 성장 추세 그래프" available={true} />
           <FeatureRow label="스마트플레이스 AI 검색 최적화 자동 생성" available={true} />
           <FeatureRow label="수동 스캔" available={true} note="하루 2회" />
-          <FeatureRow label="CSV 내보내기" available={false} />
+          <FeatureRow label="CSV 내보내기" available={true} />
           <FeatureRow label="PDF 리포트" available={false} />
           <FeatureRow label="팀 계정" available={false} />
           <FeatureRow label="API 키" available={false} />
@@ -954,7 +954,7 @@ function StartupTab({
           <FeatureRow label="경쟁사 비교" available={true} note="최대 5개" />
           <FeatureRow label="매주 월요일 AI 7개 자동 스캔" available={true} />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 5회" />
-          <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 20회" />
+          <FeatureRow label="리뷰 답변 초안 생성" available={true} note="무제한" />
           <FeatureRow label="CSV 내보내기" available={true} />
           <FeatureRow label="90일 성장 추이" available={true} />
           <FeatureRow label="수동 스캔" available={true} note="하루 3회" />
@@ -1049,7 +1049,7 @@ function ProTab({
           </span>
         </div>
         <p className="text-sm text-indigo-700 leading-relaxed">
-          월·수·금 주 3회 전체 AI 분석 + 경쟁사 10곳 비교. 경쟁사 변화를 3일 안에 포착하고
+          월·수·금 주 3회 전체 AI 분석 + 경쟁사 5곳 비교. 경쟁사 변화를 3일 안에 포착하고
           ChatGPT 광고 대응까지 선제 준비합니다.
         </p>
       </div>
@@ -1100,11 +1100,11 @@ function ProTab({
         <p className="text-sm text-gray-400">* 예시 데이터입니다. 월 10회 제공.</p>
       </div>
 
-      {/* ② 결과 미리보기 — 경쟁사 10곳 비교 */}
+      {/* ② 결과 미리보기 — 경쟁사 5곳 비교 */}
       <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
         <SectionTitle
           icon={<BarChart3 className="w-4 h-4 text-indigo-500" />}
-          title="경쟁사 10곳 비교 분석"
+          title="경쟁사 5곳 비교 분석"
           subtitle="키워드 갭 + 순위 변화 3일 주기 업데이트"
         />
         <div className="space-y-1.5">
@@ -1136,7 +1136,7 @@ function ProTab({
               </div>
             );
           })}
-          <p className="text-sm text-gray-400">+ 5곳 더 (최대 10개) · 예시 데이터</p>
+          <p className="text-sm text-gray-400">경쟁사 최대 5개 등록 가능 · 예시 데이터</p>
         </div>
       </div>
 
@@ -1267,9 +1267,9 @@ function ProTab({
         />
         <div className="divide-y divide-gray-50">
           <FeatureRow label="월·수·금 주 3회 AI 7개 자동 스캔" available={true} />
-          <FeatureRow label="경쟁사 비교" available={true} note="최대 10개" />
+          <FeatureRow label="경쟁사 비교" available={true} note="최대 5개" />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 10회" />
-          <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 50회" />
+          <FeatureRow label="리뷰 답변 초안 생성" available={true} note="무제한" />
           <FeatureRow label="CSV 내보내기" available={true} />
           <FeatureRow label="PDF 리포트 다운로드" available={true} />
           <FeatureRow label="ChatGPT 광고 대응 가이드" available={true} />

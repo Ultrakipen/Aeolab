@@ -56,7 +56,7 @@ export default function AEOvsTraditionalSection() {
           {COLUMNS.map((col) => (
             <div
               key={col.title}
-              className={`rounded-2xl border p-3.5 md:p-5 flex flex-col gap-3 ${
+              className={`rounded-xl border p-3.5 md:p-5 flex flex-col gap-3 ${
                 col.highlight
                   ? "ring-2 ring-blue-500 border-blue-200 bg-blue-50/30"
                   : "border-gray-200 bg-gray-50"

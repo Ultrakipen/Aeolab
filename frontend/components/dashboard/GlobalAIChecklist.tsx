@@ -64,7 +64,7 @@ export function GlobalAIChecklist({
   const doneCount = items.filter((i) => i.done).length;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-bold text-gray-900">
           글로벌 AI 노출 체크리스트
@@ -103,14 +103,14 @@ export function GlobalAIChecklist({
                   href={item.actionHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 text-xs text-blue-600 hover:underline whitespace-nowrap"
+                  className="shrink-0 text-sm text-blue-600 hover:underline whitespace-nowrap"
                 >
                   {item.actionLabel}
                 </a>
               ) : (
                 <Link
                   href={item.actionHref}
-                  className="shrink-0 text-xs text-blue-600 hover:underline whitespace-nowrap"
+                  className="shrink-0 text-sm text-blue-600 hover:underline whitespace-nowrap"
                 >
                   {item.actionLabel}
                 </Link>
@@ -126,7 +126,7 @@ export function GlobalAIChecklist({
         </p>
       )}
 
-      <p className="mt-3 text-xs text-gray-400 leading-relaxed">
+      <p className="mt-3 text-xs text-gray-500 leading-relaxed">
         ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
         측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다.
       </p>

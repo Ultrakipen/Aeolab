@@ -5,31 +5,43 @@ import Link from "next/link";
 /**
  * DualTrackCard — 업종별 듀얼트랙 AI 가시성 카드 (v3.0)
  *
- * Track 1: 네이버 AI 브리핑 준비도 (업종별 비중: 40~70%)
+ * Track 1: 네이버 AI 검색 준비도 (AI브리핑·AI탭 통합) — 업종별 비중: 40~70%
+ *   AI 브리핑: 음식점·카페·숙박 등 ACTIVE 업종만
+ *   AI탭: 모든 업종 (2026-04-27 베타, 상반기 전체 확대 예정)
  * Track 2: 글로벌 AI 가시성       (업종별 비중: 30~90%)
  * 성장 단계: track1_score 기준 (시작/성장 중/두각/선도)
  */
 
 interface DualTrackCardProps {
-  track1Score: number;          // 네이버 AI 브리핑 점수 (0~100)
-  track2Score: number;          // 글로벌 AI 노출 점수 (0~100)
-  naverWeight: number;          // naver 비율 (0.0~1.0)
-  globalWeight: number;         // global 비율 (0.0~1.0)
-  unifiedScore: number;         // 통합 점수
-  category: string;             // 업종 코드
-  growthStage: string;          // "survival"|"stability"|"growth"|"dominance"
-  growthStageLabel: string;     // "시작 단계"|"성장 중"|"빠른 성장"|"지역 1등"
-  isKeywordEstimated?: boolean; // true → 추정값 배지 표시
-  topMissingKeywords?: string[]; // 없는 키워드 (최대 3개)
-  benchmarkAvg?: number;        // 업종 평균 점수 (비교 표시용)
-  hasRegisteredKeywords?: boolean; // 사용자 등록 키워드 여부 (문구 분기용)
-  blogContribution?: {          // 블로그 분석 기여 정보
+  track1Score: number;
+  track2Score: number;
+  naverWeight: number;
+  globalWeight: number;
+  unifiedScore: number;
+  category: string;
+  growthStage: string;
+  growthStageLabel: string;
+  isKeywordEstimated?: boolean;
+  topMissingKeywords?: string[];
+  benchmarkAvg?: number;
+  hasRegisteredKeywords?: boolean;
+  blogContribution?: {
     active: boolean;
     postCount: number;
     keywordCoverage: number;
     analyzedAt?: string;
     blogUrl?: string;
   };
+  eligibility?: "active" | "likely" | "inactive";
+  aiExposureData?: {
+    chatgptFreq?: number;
+    chatgptSampleSize?: number;
+    geminiFreq?: number;
+    geminiSampleSize?: number;
+  };
+  smartPlaceStatus?: string;
+  bizId?: string;
+  token?: string;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -86,6 +98,25 @@ const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }
 const DEFAULT_MESSAGE = {
   track1Tip: "스마트플레이스 소개글 안 Q&A 추가 + 소개글 본문 작성",
   track2Tip: "구글 비즈니스 프로필 등록 + 웹사이트 AI 검색 최적화",
+};
+
+// INACTIVE 업종용 네이버 SEO 팁 (블로그 + 스마트플레이스 중심)
+const INACTIVE_NAVER_SEO_TIPS: Record<string, string> = {
+  medical:    "건강 정보 블로그 주 1~2회 발행 + 스마트플레이스 전문의·진료 과목 소개 업데이트",
+  pharmacy:   "약 복용·건강 팁 블로그 발행 + 스마트플레이스 약사 소개·영업시간 업데이트",
+  education:  "합격 사례·학습법 블로그 발행 + 스마트플레이스 강사·커리큘럼 소개 업데이트",
+  tutoring:   "과목별 학습 팁 블로그 발행 + 스마트플레이스 강사 경력·수업 방식 소개",
+  legal:      "법률 칼럼·판례 해설 블로그 발행 + 스마트플레이스 전문 분야·상담 방법 업데이트",
+  realestate: "지역 매물 소식·부동산 정보 블로그 발행 + 스마트플레이스 취급 지역·매물 소개",
+  interior:   "시공 사례·인테리어 팁 블로그 발행 + 스마트플레이스 포트폴리오 사진 추가",
+  auto:       "차량 관리 팁·정비 사례 블로그 발행 + 스마트플레이스 서비스 항목·가격 업데이트",
+  cleaning:   "청소 노하우·사례 블로그 발행 + 스마트플레이스 서비스 범위·가격 소개",
+  shopping:   "상품 리뷰·사용 후기 블로그 발행 + 스마트플레이스 베스트 상품 사진 업데이트",
+  fashion:    "스타일링 팁·신상품 블로그 발행 + 스마트플레이스 신상품 코디 사진 업데이트",
+  photo:      "촬영 사례 포트폴리오 블로그 발행 + 스마트플레이스 대표 작품 사진 업데이트",
+  video:      "영상 제작 사례 블로그 발행 + 스마트플레이스 포트폴리오·서비스 소개",
+  design:     "디자인 사례 포트폴리오 블로그 발행 + 스마트플레이스 작업물 소개 업데이트",
+  other:      "업종 관련 정보성 블로그 주 1~2회 발행 + 스마트플레이스 소개글·사진 업데이트",
 };
 
 const STAGE_COLORS: Record<string, string> = {
@@ -165,13 +196,47 @@ export default function DualTrackCard({
   benchmarkAvg,
   hasRegisteredKeywords = false,
   blogContribution,
+  eligibility,
+  aiExposureData,
 }: DualTrackCardProps) {
   const msg = CATEGORY_MESSAGES[category] || DEFAULT_MESSAGE;
   const isTrack1Weak = track1Score < 40;
   const isTrack2Weak = track2Score < 40;
 
+  const isActive   = eligibility === "active";
+  const isLikely   = eligibility === "likely";
+  const isInactive = eligibility === "inactive";
+
+  const track1Label = isActive
+    ? "📍 네이버 AI 브리핑 점수"
+    : isLikely
+    ? "📍 네이버 검색 점수 (AI 브리핑 확대 예정)"
+    : isInactive
+    ? "📍 네이버 SEO 검색 점수"
+    : "📍 네이버 AI 브리핑 점수";
+
+  const track1Sublabel = isActive
+    ? "이 점수가 낮으면 네이버 AI가 내 가게를 잘 모릅니다"
+    : isLikely
+    ? "블로그·스마트플레이스 관리로 검색 노출을 높이고, AI 브리핑 확대 시 즉시 활성화됩니다"
+    : isInactive
+    ? "블로그·스마트플레이스를 꾸준히 관리하면 네이버 검색 노출을 개선할 수 있습니다"
+    : "이 점수가 낮으면 네이버 AI가 내 가게를 잘 모릅니다";
+
+  const track1Tip = isInactive
+    ? (INACTIVE_NAVER_SEO_TIPS[category] ?? INACTIVE_NAVER_SEO_TIPS.other)
+    : msg.track1Tip;
+
+  const chatgptRate = (aiExposureData?.chatgptFreq !== undefined && aiExposureData?.chatgptSampleSize)
+    ? Math.round(aiExposureData.chatgptFreq / aiExposureData.chatgptSampleSize * 100)
+    : null;
+  const geminiRate = (aiExposureData?.geminiFreq !== undefined && aiExposureData?.geminiSampleSize)
+    ? Math.round(aiExposureData.geminiFreq / aiExposureData.geminiSampleSize * 100)
+    : null;
+  const hasAiData = chatgptRate !== null || geminiRate !== null;
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 space-y-3 md:space-y-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5 space-y-3 md:space-y-4">
       {/* 헤더: 통합 점수 + 성장 단계 */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex-1 min-w-0">
@@ -190,9 +255,9 @@ export default function DualTrackCard({
             {unifiedScore.toFixed(0)}
             <span className="text-base md:text-lg font-normal text-gray-400">점</span>
           </div>
-          {/* 계산식 1줄 표시 */}
-          <div className="text-xs text-gray-400 font-mono mt-0.5">
-            {track1Score.toFixed(0)}×{Math.round(naverWeight * 100)}% + {track2Score.toFixed(0)}×{Math.round(globalWeight * 100)}%
+          {/* 업종별 채널 비중 안내 */}
+          <div className="text-sm text-gray-500 mt-0.5">
+            {CATEGORY_LABELS[category] || "이 업종"} 기준 · 네이버 {Math.round(naverWeight * 100)}% 비중
           </div>
           {benchmarkAvg && benchmarkAvg > 0 && (
             <div className="text-sm mt-1">
@@ -214,20 +279,53 @@ export default function DualTrackCard({
             )}
           </span>
           {/* 성장 단계 기준 명시 */}
-          <div className="text-xs text-gray-400 mt-0.5">네이버 채널 점수 기준</div>
+          <div className="text-sm text-gray-500 mt-0.5">네이버 채널 점수 기준</div>
         </div>
       </div>
 
-      {/* Track 1 — 네이버 AI 브리핑 */}
+      {/* Track 1 */}
       <ScoreBar
         score={track1Score}
         weight={naverWeight}
-        label="📍 네이버 AI 브리핑 점수"
-        sublabel="이 점수가 낮으면 네이버 AI가 내 가게를 잘 모릅니다"
+        label={track1Label}
+        sublabel={track1Sublabel}
         color="bg-green-500"
         isWeak={isTrack1Weak}
-        tip={msg.track1Tip}
+        tip={track1Tip}
       />
+
+      {/* INACTIVE: 네이버 SEO 개선 안내 박스 */}
+      {isInactive && (
+        <div className="bg-green-50 border border-green-100 rounded-xl p-3 md:p-4">
+          <p className="text-sm font-semibold text-green-800 mb-2">
+            📝 네이버 검색 노출 개선 방법
+          </p>
+          <div className="space-y-1.5">
+            {[
+              "블로그 정기 발행 (주 1~2회) → 네이버 검색 결과 상위 노출",
+              "스마트플레이스 소개글·사진 업데이트 → 플레이스 검색 최적화",
+              "리뷰 답글 꾸준히 달기 → 네이버 플레이스 신뢰도 향상",
+            ].map((tip, i) => (
+              <div key={i} className="flex items-start gap-1.5 text-sm text-green-700">
+                <span className="mt-0.5 shrink-0">✓</span>
+                <span>{tip}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* LIKELY: AI 브리핑 확대 예정 안내 */}
+      {isLikely && (
+        <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 md:p-4">
+          <p className="text-sm font-semibold text-yellow-800 mb-1">
+            🔔 네이버 AI 브리핑 확대 예정 업종
+          </p>
+          <p className="text-sm text-yellow-700 leading-relaxed">
+            지금은 블로그·스마트플레이스 관리로 네이버 검색 노출을 높이세요. AI 브리핑 업종 확대 시 자동으로 전환됩니다.
+          </p>
+        </div>
+      )}
 
       {/* Track 2 — 글로벌 AI */}
       <ScoreBar
@@ -239,6 +337,52 @@ export default function DualTrackCard({
         isWeak={isTrack2Weak}
         tip={msg.track2Tip}
       />
+
+      {/* AI 도구별 노출 현황 (실측 데이터) */}
+      {hasAiData && (
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 md:p-4">
+          <p className="text-sm font-semibold text-blue-800 mb-2.5">
+            🤖 AI 도구별 노출 현황 (실측)
+          </p>
+          <div className="space-y-2.5">
+            {chatgptRate !== null && aiExposureData?.chatgptSampleSize && (
+              <div>
+                <div className="flex justify-between text-sm text-gray-700 mb-1">
+                  <span>ChatGPT (GPT-4o)</span>
+                  <span className="font-semibold">
+                    {chatgptRate}%
+                    <span className="text-xs text-gray-500 font-normal ml-1">
+                      ({aiExposureData.chatgptFreq}/{aiExposureData.chatgptSampleSize}회)
+                    </span>
+                  </span>
+                </div>
+                <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, chatgptRate)}%` }} />
+                </div>
+              </div>
+            )}
+            {geminiRate !== null && aiExposureData?.geminiSampleSize && (
+              <div>
+                <div className="flex justify-between text-sm text-gray-700 mb-1">
+                  <span>Google Gemini</span>
+                  <span className="font-semibold">
+                    {geminiRate}%
+                    <span className="text-xs text-gray-500 font-normal ml-1">
+                      ({aiExposureData.geminiFreq}/{aiExposureData.geminiSampleSize}회)
+                    </span>
+                  </span>
+                </div>
+                <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.min(100, geminiRate)}%` }} />
+                </div>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 mt-2.5 leading-relaxed">
+            ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있음
+          </p>
+        </div>
+      )}
 
       {/* 없는 키워드 (최대 3개) */}
       {topMissingKeywords.length > 0 && (

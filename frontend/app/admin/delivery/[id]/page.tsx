@@ -142,7 +142,7 @@ export default async function AdminDeliveryDetailPage({
       </div>
 
       {/* 의뢰 요약 헤더 */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-5">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-5">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
           <div>
             <h1 className="text-lg md:text-xl font-bold text-gray-900">{order.request_title}</h1>

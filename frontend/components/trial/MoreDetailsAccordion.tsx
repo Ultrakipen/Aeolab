@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 
 interface MoreDetailsAccordionProps {
   children: ReactNode;
@@ -21,7 +22,7 @@ export default function MoreDetailsAccordion({
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden mb-4 shadow-sm">
+    <section className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden mb-4 shadow-sm">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -29,9 +30,7 @@ export default function MoreDetailsAccordion({
         className="w-full flex items-center justify-between gap-3 px-4 md:px-6 py-4 md:py-5 text-left hover:bg-gray-50 transition-colors"
       >
         <span className="flex items-center gap-2 text-base md:text-lg font-bold text-gray-800 break-keep">
-          <span className={`text-base md:text-lg transition-transform inline-block ${open ? "rotate-180" : ""}`}>
-            ▼
-          </span>
+          <ChevronDown className={`w-5 h-5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
           {label}
         </span>
         <span className="text-xs md:text-sm text-gray-500 shrink-0">

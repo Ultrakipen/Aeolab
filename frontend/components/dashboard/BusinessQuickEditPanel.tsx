@@ -288,8 +288,8 @@ export default function BusinessQuickEditPanel({
               />
             </div>
             <div className="flex items-center justify-between mt-1.5">
-              <p className="text-xs text-gray-400">Enter 또는 쉼표로 추가 · × 버튼으로 삭제</p>
-              <p className="text-xs text-gray-400">{keywords.length}/10</p>
+              <p className="text-sm text-gray-500">Enter 또는 쉼표로 추가 · × 버튼으로 삭제</p>
+              <p className="text-sm text-gray-500">{keywords.length}/10</p>
             </div>
             {keywords.length < 10 && keywordInput && (
               <button
@@ -371,8 +371,8 @@ export default function BusinessQuickEditPanel({
             <div className="space-y-3">
               {[
                 { label: "소개글 Q&A 포함됨", hint: "(점수 미반영)", value: hasFaq, setter: setHasFaq },
-                { label: "소개글 작성됨", hint: "(+10점)", value: hasIntro, setter: setHasIntro },
-                { label: "최근 소식 등록됨", hint: "(+20점)", value: hasRecentPost, setter: setHasRecentPost },
+                { label: "소개글 작성됨", hint: "(+20점)", value: hasIntro, setter: setHasIntro },
+                { label: "최근 소식 등록됨", hint: "(+25점)", value: hasRecentPost, setter: setHasRecentPost },
               ].map(({ label, hint, value, setter }) => (
                 <label
                   key={label}

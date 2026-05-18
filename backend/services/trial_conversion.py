@@ -87,8 +87,11 @@ async def claim_trial(
     res = await execute(
         supabase.table("trial_scans")
         .select(
-            "id, business_name, category, region, total_score, "
-            "unified_score, grade, claimed_at"
+            "id, business_name, category, region, total_score, unified_score, grade, claimed_at, "
+            "naver_rank, ai_mentioned, top_missing_keywords, track1_score, track2_score, "
+            "has_intro, has_recent_post, smart_place_completeness, "
+            "blog_mentions, top_competitor_name, top_competitor_blog_count, "
+            "growth_stage, kakao_rank, is_on_kakao, is_smart_place"
         )
         .eq("id", trial_id)
         .maybe_single()
@@ -121,15 +124,38 @@ async def claim_trial(
         "region": trial.get("region") or "",
         "score": float(score_val) if score_val is not None else 0.0,
         "grade": trial.get("grade") or "",
+        "naver_rank": trial.get("naver_rank"),
+        "ai_mentioned": trial.get("ai_mentioned"),
+        "top_missing_keywords": trial.get("top_missing_keywords") or [],
+        "track1_score": trial.get("track1_score"),
+        "track2_score": trial.get("track2_score"),
+        "has_intro": trial.get("has_intro"),
+        "has_recent_post": trial.get("has_recent_post"),
+        "smart_place_completeness": trial.get("smart_place_completeness"),
+        "blog_mentions": trial.get("blog_mentions"),
+        "top_competitor_name": trial.get("top_competitor_name"),
+        "top_competitor_blog_count": trial.get("top_competitor_blog_count"),
+        "growth_stage": trial.get("growth_stage"),
+        "kakao_rank": trial.get("kakao_rank"),
+        "is_on_kakao": trial.get("is_on_kakao"),
+        "is_smart_place": trial.get("is_smart_place"),
     }
 
-    # 4) 메일 발송 (실패해도 claimed_at은 기록 — 사용자가 재요청 가능하도록 logs로 추적)
+    # 4) 메일 발송 — 실패 시 claimed_at 미기록(재시도 가능)하고 예외 전파
     try:
-        await send_trial_claim_link(email, magic_link, summary)
+        sent = await send_trial_claim_link(email, magic_link, summary)
     except Exception as e:  # noqa: BLE001
-        logger.warning(f"[trial_conversion] send_trial_claim_link failed: {e}")
+        logger.warning(f"[trial_conversion] send_trial_claim_link exception: {e}")
+        sent = False
 
-    # 5) DB에 claimed 기록
+    if not sent:
+        logger.error(
+            f"[trial_conversion] email send failed — NOT marking claimed "
+            f"(trial_id={trial_id}, email={email[:3]}***) so user can retry"
+        )
+        raise RuntimeError("email_send_failed")
+
+    # 5) DB에 claimed 기록 (이메일 발송 성공 시만)
     update_payload = {
         "claimed_at": "now()",  # supabase는 문자열 'now()' 비허용 — 아래에서 ISO로 변환
         "claim_email": email,

@@ -105,7 +105,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
   }, [bizId, naverPlaceUrl, accessToken])
 
   if (!naverPlaceUrl) return (
-    <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex items-start gap-3">
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-start gap-3">
       <span className="text-2xl shrink-0">🏪</span>
       <div>
         <p className="text-sm font-semibold text-gray-700">스마트플레이스 자동 점검 사용 가능</p>
@@ -130,7 +130,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
       : 0
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
         <div>

@@ -70,7 +70,7 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6">
         <div className="h-40 bg-gray-100 rounded-xl animate-pulse" />
       </div>
     );
@@ -78,7 +78,7 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
 
   if (error || !data || data.action_count === 0) {
     return (
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm font-semibold text-slate-500 uppercase tracking-wide">행동-결과 7일 타임라인</span>
         </div>
@@ -101,7 +101,7 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
       : null;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
           행동-결과 7일 타임라인

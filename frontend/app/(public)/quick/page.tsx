@@ -285,7 +285,7 @@ export default function QuickPage() {
 
             {/* 쿨다운 배너 */}
             {cooldownMs > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-4 mb-5 text-center">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-4 mb-5 text-center">
                 <p className="text-base font-semibold text-amber-800 mb-1">
                   오늘 무료 체험 3회를 모두 이용하셨습니다.
                 </p>
@@ -374,7 +374,7 @@ export default function QuickPage() {
             </form>
 
             {/* 전체 진단 안내 */}
-            <div className="mt-6 bg-blue-50 border border-blue-100 rounded-2xl p-4 text-center">
+            <div className="mt-6 bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
               <p className="text-sm text-blue-700 font-semibold mb-1">
                 더 정밀한 분석이 필요하신가요?
               </p>
@@ -458,7 +458,7 @@ export default function QuickPage() {
             </div>
 
             {/* 점수 카드 */}
-            <div className={`rounded-2xl border-2 p-6 ${scoreBg(score)}`}>
+            <div className={`rounded-xl border-2 p-6 ${scoreBg(score)}`}>
               <p className="text-sm font-semibold text-gray-500 mb-3">
                 {name} · {region} — AI 검색 노출 점수
               </p>
@@ -501,7 +501,7 @@ export default function QuickPage() {
             </div>
 
             {/* 핵심 문제 3가지 */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-5">
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
               <h2 className="text-base font-bold text-gray-900 mb-4">
                 지금 당장 개선할 항목
               </h2>
@@ -520,7 +520,7 @@ export default function QuickPage() {
 
             {/* 없는 키워드 */}
             {result.top_missing_keywords && result.top_missing_keywords.length > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
                 <p className="text-base font-semibold text-amber-800 mb-3">
                   AI 추천에서 빠진 키워드
                 </p>

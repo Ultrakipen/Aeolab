@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
+import { Check, X, Lightbulb } from "lucide-react";
 
 interface SubscriptionValueCompareProps {
   isLoggedIn: boolean;
@@ -15,35 +17,31 @@ interface SubscriptionValueCompareProps {
  * - 하단 큰 CTA: 첫 달 4,950원 시작
  */
 export default function SubscriptionValueCompare({ isLoggedIn, onSave }: SubscriptionValueCompareProps) {
-  if (isLoggedIn) {
-    // 이미 로그인된 사용자에게도 가치 환기는 유지하되 CTA만 변경
-  }
-
   const trialFeatures = [
-    { label: "ChatGPT 1회 확인", icon: "✓" },
-    { label: "FAQ 1개 미리보기", icon: "✓" },
-    { label: "Gemini 10회 샘플링", icon: "✓" },
-    { label: "경쟁사 비교", icon: "✗", locked: true },
-    { label: "매주 자동 추적", icon: "✗", locked: true },
-    { label: "변화 알림 (카톡)", icon: "✗", locked: true },
-    { label: "FAQ 5개 + PDF", icon: "✗", locked: true },
+    { label: "ChatGPT 5회 질의" },
+    { label: "네이버 AI 브리핑 직접 확인" },
+    { label: "소개글 Q&A 1개 미리보기" },
+    { label: "경쟁사 비교", locked: true },
+    { label: "매주 자동 추적", locked: true },
+    { label: "변화 알림 (카톡)", locked: true },
+    { label: "소개글 Q&A 5개 + PDF", locked: true },
   ];
 
   const subscriptionFeatures = [
-    { label: "Gemini·ChatGPT 각 50회 (총 100회)", icon: "✓" },
-    { label: "매주 자동 진단", icon: "✓" },
-    { label: "변화 카톡 알림", icon: "✓" },
-    { label: "경쟁사 3곳 비교", icon: "✓" },
-    { label: "맞춤 FAQ 5개 + 복사", icon: "✓" },
-    { label: "PDF 리포트 (Pro+)", icon: "✓" },
-    { label: "30일 점수 추세", icon: "✓" },
+    { label: "Gemini·ChatGPT 각 50회 (총 100회)" },
+    { label: "매주 자동 진단" },
+    { label: "변화 카톡 알림" },
+    { label: "경쟁사 3곳 비교" },
+    { label: "맞춤 소개글 Q&A 5개 + 복사" },
+    { label: "PDF 리포트 (Pro+ 전용)", locked: true },
+    { label: "30일 점수 추세" },
   ];
 
   return (
-    <section className="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-2xl p-4 md:p-6 mb-4 shadow-sm">
+    <section className="bg-slate-50 border border-slate-200 rounded-xl p-4 md:p-6 mb-4 shadow-sm">
       {/* 헤더 */}
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-2xl md:text-3xl">💡</span>
+        <Lightbulb className="w-6 h-6 text-amber-400 shrink-0" />
         <p className="text-base md:text-lg font-bold text-gray-800">매주 받으려면 (구독 가치)</p>
       </div>
 
@@ -65,9 +63,10 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
                   f.locked ? "text-gray-500 line-through" : "text-gray-700"
                 }`}
               >
-                <span className={`shrink-0 font-bold ${f.locked ? "text-red-300" : "text-emerald-500"}`}>
-                  {f.icon}
-                </span>
+                {f.locked
+                  ? <X className="w-4 h-4 text-red-300 shrink-0 mt-0.5" />
+                  : <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                }
                 <span>{f.label}</span>
               </li>
             ))}
@@ -89,9 +88,12 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
             {subscriptionFeatures.map((f) => (
               <li
                 key={f.label}
-                className="flex items-start gap-2 text-sm md:text-base leading-relaxed text-gray-800 break-keep"
+                className={`flex items-start gap-2 text-sm md:text-base leading-relaxed break-keep ${f.locked ? "text-gray-400 line-through" : "text-gray-800"}`}
               >
-                <span className="shrink-0 font-bold text-emerald-500">{f.icon}</span>
+                {f.locked
+                  ? <X className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                  : <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                }
                 <span>{f.label}</span>
               </li>
             ))}
@@ -106,9 +108,9 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
           onClick={onSave}
           className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-black text-lg md:text-xl py-4 md:py-5 rounded-2xl transition-colors shadow-lg"
         >
-          첫 달 <span className="text-emerald-300">4,950원</span> 시작하기
+          Basic 플랜 — 첫 달 <span className="text-emerald-300">{FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원</span> 시작하기
           <span className="block text-xs md:text-sm font-medium text-blue-200 mt-1">
-            이후 월 9,900원 · 언제든 해지 · 7일간 자동 추적 시작
+            이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지 · 7일간 자동 추적 시작
           </span>
         </Link>
       ) : (

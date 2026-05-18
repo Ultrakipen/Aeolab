@@ -49,7 +49,7 @@ export default function ConditionSearchCard({ bizId, token, isPro }: Props) {
 
   if (!isPro) {
     return (
-      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
           <Search className="w-5 h-5 text-gray-400" />
           <h3 className="text-base font-bold text-gray-700">내 키워드로 AI에서 찾히는지 확인</h3>
@@ -69,7 +69,7 @@ export default function ConditionSearchCard({ bizId, token, isPro }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
       {/* 헤더 */}
       <div className="flex items-start gap-2 mb-4">
         <Search className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />

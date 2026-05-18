@@ -40,7 +40,7 @@ export function ScoreCard({ score, grade, exposureFreq, prevScore, scannedAt }: 
   const gradeInfo = GRADE_INFO[grade]
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm">
+    <div className="bg-white rounded-xl p-6 shadow-sm">
       <div className="text-sm text-gray-500 mb-1">AI Visibility Score</div>
       <div className="flex items-end gap-3 mb-2">
         <div className={`text-5xl font-bold ${GRADE_COLOR[grade] ?? 'text-gray-900'}`}>

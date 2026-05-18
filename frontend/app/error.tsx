@@ -26,7 +26,7 @@ export default function GlobalError({ error, reset }: Props) {
   if (isStaleDeployment) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-12 shadow-sm max-w-md w-full text-center">
+        <div className="bg-white rounded-xl p-4 sm:p-6 md:p-12 shadow-sm max-w-md w-full text-center">
           <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <span className="text-3xl">🔄</span>
           </div>
@@ -60,7 +60,7 @@ export default function GlobalError({ error, reset }: Props) {
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-12 shadow-sm max-w-md w-full text-center">
+      <div className="bg-white rounded-xl p-4 sm:p-6 md:p-12 shadow-sm max-w-md w-full text-center">
         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
           <span className="text-3xl text-red-500">!</span>
         </div>

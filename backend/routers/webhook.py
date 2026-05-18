@@ -170,11 +170,15 @@ async def issue_billing(body: BillingIssueRequest):
     # customerKey 형식: customer_{user_id}
     user_id = body.customerKey.replace("customer_", "", 1)
     # amount 기반으로 플랜 결정 (클라이언트 plan 필드 조작 방지)
+    # PLAN_PRICES에 없는 금액이면 400 거부 — name 폴백 허용하지 않음 (보안)
     plan_by_amount = PLAN_PRICES.get(body.amount)
-    plan_by_name = PLAN_NAME_TO_KEY.get(body.plan, "basic")
-    if plan_by_amount and plan_by_name != plan_by_amount:
+    if not plan_by_amount:
+        logger.warning(f"issue_billing 유효하지 않은 금액: amount={body.amount}, plan={body.plan}")
+        raise HTTPException(status_code=400, detail="유효하지 않은 결제 금액입니다")
+    plan_by_name = PLAN_NAME_TO_KEY.get(body.plan, "")
+    if plan_by_name and plan_by_name != plan_by_amount:
         logger.warning(f"issue_billing 플랜 교차검증 불일치: amount={body.amount} -> {plan_by_amount}, plan={body.plan} -> {plan_by_name}")
-    plan = plan_by_amount or plan_by_name  # amount 우선, amount 없으면 name 기반
+    plan = plan_by_amount
 
     # 첫 달 50% 할인가 검증: 신규 가입자만 허용
     is_discount_amount = body.amount in DISCOUNT_TO_REGULAR

@@ -12,8 +12,8 @@ interface ExportButtonProps {
 
 // CSV: basic+ 이상 가능 (v3.4: Basic에 CSV 포함)
 // PDF: pro+ 이상 가능
-const CSV_PLANS  = ['basic', 'startup', 'pro', 'biz']
-const PDF_PLANS  = ['pro', 'biz']
+const CSV_PLANS  = ['basic', 'startup', 'pro', 'biz', 'enterprise']
+const PDF_PLANS  = ['pro', 'biz', 'enterprise']
 
 export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
   const [loadingCsv, setLoadingCsv] = useState(false)
@@ -88,11 +88,12 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
             className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
           >
             <span>CSV</span>
-            <span className="text-sm bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">창업+</span>
+            <span className="text-sm bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">Basic+</span>
           </button>
           <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-48 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">
             Basic(월 9,900원)부터 이용 가능합니다
           </div>
+
         </div>
       )}
 

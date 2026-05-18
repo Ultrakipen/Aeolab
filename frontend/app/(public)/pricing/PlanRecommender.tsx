@@ -78,7 +78,7 @@ export default function PlanRecommender() {
   };
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 md:p-6 mb-8">
+    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 md:p-6 mb-8">
       <p className="text-base md:text-lg font-bold text-blue-900 mb-2">
         나한테 맞는 플랜 찾기 (15초)
       </p>

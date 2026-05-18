@@ -60,7 +60,7 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm animate-pulse">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm animate-pulse">
         <div className="h-4 bg-gray-100 rounded w-1/3 mb-3" />
         <div className="h-3 bg-gray-100 rounded w-2/3 mb-2" />
         <div className="h-3 bg-gray-100 rounded w-1/2" />
@@ -72,7 +72,7 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
 
   if (!data.has_delta) {
     return (
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
           <AlertTriangle className="w-4 h-4 text-gray-400" />
           <span className="text-sm font-semibold text-gray-900">경쟁사 키워드 위협 분석</span>
@@ -96,7 +96,7 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
   const isAllGood = gained.length > 0 && lost.length === 0 && threats.length === 0
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-orange-500" />

@@ -32,10 +32,8 @@ const CATEGORY_KO: Record<string, string> = {
 };
 
 interface Props {
-  businessName: string;
   score: number;
   category: string;
-  region: string;
   topMissingKeywords?: string[];
 }
 
@@ -49,26 +47,20 @@ export default function TextShareButton({
   const categoryKo = CATEGORY_KO[category] ?? category;
   const missingCount = topMissingKeywords.length;
 
-  const shareText = [
-    `우리 ${categoryKo} AI 진단 해봤는데 점수 ${score}점이에요`,
+  const findingLine =
     missingCount > 0
-      ? `키워드 ${missingCount}개가 부족하다고 나왔어요`
-      : `키워드 현황도 확인해봤어요`,
-    `무료로 확인해보세요 👉 https://aeolab.co.kr/trial`,
+      ? `우리 ${categoryKo} 진단해보니 키워드 ${missingCount}개만 채우면 네이버 AI·ChatGPT에 뜰 수 있대요`
+      : `우리 ${categoryKo} 진단해보니 AI 검색 노출 현황을 한눈에 확인할 수 있었어요`;
+
+  const shareText = [
+    `요즘 손님들, AI로 가게 먼저 검색하는 거 아셨어요?`,
+    findingLine,
+    `진단 결과로 어떤 키워드가 부족한지, 어떻게 개선하면 되는지까지 바로 알려줘요`,
+    `사장님 가게도 30초 무료 진단 👉 https://aeolab.co.kr/trial`,
   ].join("\n");
 
   const handleShare = async () => {
-    // 1순위: navigator.share (모바일)
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({ text: shareText });
-        return;
-      } catch {
-        // 취소 또는 실패 → 클립보드로 폴백
-      }
-    }
-
-    // 2순위: navigator.clipboard
+    // 1순위: 클립보드 직접 복사 (PC/모바일 공통 — 텍스트 복사 버튼의 명시적 목적)
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       try {
         await navigator.clipboard.writeText(shareText);
@@ -76,11 +68,11 @@ export default function TextShareButton({
         setTimeout(() => setCopied(false), 2000);
         return;
       } catch {
-        // 클립보드도 실패 → alert 폴백
+        // 클립보드 실패 → alert 폴백
       }
     }
 
-    // 3순위: alert
+    // 2순위: alert (클립보드 API 미지원 환경)
     alert(shareText);
   };
 

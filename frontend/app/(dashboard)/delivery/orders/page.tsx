@@ -87,7 +87,7 @@ export default async function DeliveryOrdersPage() {
       </div>
 
       {/* 목록 */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         {orders.length === 0 ? (
           <div className="px-5 py-16 text-center">
             <p className="text-base font-medium text-gray-700 mb-2">

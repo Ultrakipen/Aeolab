@@ -59,7 +59,7 @@ export default function HowItWorksSection() {
           {steps.map((step, idx) => (
             <div key={step.number} className="flex flex-col sm:flex-row items-center flex-1 min-w-0">
               {/* 카드 */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6 flex flex-col gap-3 flex-1 w-full h-full">
+              <div className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 flex flex-col gap-3 flex-1 w-full h-full">
                 {/* 번호 배지 */}
                 <span
                   className={`self-start text-sm sm:text-base font-bold px-2.5 py-1 rounded-full ${step.badgeClass}`}

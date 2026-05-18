@@ -4,8 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Send, Eye, EyeOff, XCircle } from "lucide-react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY ?? "";
+// 관리자 키는 서버 측 admin-proxy에서만 사용 — 클라이언트 번들에 노출 금지
+const ADMIN_PROXY = "/api/admin-proxy";
 
 interface Reply {
   id: string;
@@ -49,9 +49,8 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [replies]);
 
-  const adminHeaders = {
+  const proxyHeaders = {
     "Content-Type": "application/json",
-    "X-Admin-Key": ADMIN_KEY,
   };
 
   const handleSendReply = async () => {
@@ -60,9 +59,9 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
     setSendingReply(true);
     setReplyError("");
     try {
-      const res = await fetch(`${BACKEND_URL}/admin/support/${ticketId}/reply`, {
+      const res = await fetch(`${ADMIN_PROXY}?path=${encodeURIComponent(`admin/support/${ticketId}/reply`)}`, {
         method: "POST",
-        headers: adminHeaders,
+        headers: proxyHeaders,
         body: JSON.stringify({ body }),
       });
       if (!res.ok) {
@@ -91,9 +90,9 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
     setTogglingVisibility(true);
     setVisibilityError("");
     try {
-      const res = await fetch(`${BACKEND_URL}/admin/support/${ticketId}/visibility`, {
+      const res = await fetch(`${ADMIN_PROXY}?path=${encodeURIComponent(`admin/support/${ticketId}/visibility`)}`, {
         method: "PATCH",
-        headers: adminHeaders,
+        headers: proxyHeaders,
         body: JSON.stringify({ is_public: !isPublic }),
       });
       if (!res.ok) {
@@ -113,9 +112,9 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
     setChangingStatus(true);
     setStatusError("");
     try {
-      const res = await fetch(`${BACKEND_URL}/admin/support/${ticketId}/status`, {
+      const res = await fetch(`${ADMIN_PROXY}?path=${encodeURIComponent(`admin/support/${ticketId}/status`)}`, {
         method: "PATCH",
-        headers: adminHeaders,
+        headers: proxyHeaders,
         body: JSON.stringify({ status: "closed" }),
       });
       if (!res.ok) {
@@ -137,7 +136,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
       {/* 좌측: 답글 스레드 */}
       <div className="flex-1 min-w-0">
         <div
-          className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col"
+          className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col"
           style={{ minHeight: "400px" }}
         >
           <div className="px-5 py-4 border-b border-gray-100">
@@ -232,7 +231,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
 
       {/* 우측: 액션 패널 */}
       <div className="w-full lg:w-64 shrink-0 space-y-4">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="text-base font-semibold text-gray-800 mb-4">관리 액션</h2>
 
           <div className="space-y-3">

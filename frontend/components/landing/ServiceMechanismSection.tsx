@@ -12,7 +12,7 @@ export default function ServiceMechanismSection() {
 
         {/* 섹션 타이틀 */}
         <div className="text-center mb-8 fade-up">
-          <p className="text-xs font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>
+          <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>
             서비스 기준
           </p>
           <h2
@@ -28,7 +28,7 @@ export default function ServiceMechanismSection() {
 
         {/* ── 1. 게이트 3조건 ── */}
         <div className="mb-8">
-          <p className="text-xs font-bold tracking-widest mb-4 fade-up" style={{ color: "#2563EB" }}>
+          <p className="text-sm font-bold tracking-widest mb-4 fade-up" style={{ color: "#2563EB" }}>
             [1] 노출 가능 여부 — 게이트 3조건
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
@@ -36,7 +36,7 @@ export default function ServiceMechanismSection() {
               num="①"
               title="AI 브리핑 대상 업종"
               active="음식점·카페·베이커리·바·숙박"
-              detail="네일·피트니스·약국 등은 ChatGPT·Gemini·Google AI 노출 개선으로 가치 전달"
+              detail="그 외 업종은 ChatGPT·Gemini·Google AI + 네이버 AI탭(모든 업종 가능, 베타) 노출 개선으로 가치 전달"
               variant="blue"
             />
             <GateCard
@@ -58,11 +58,11 @@ export default function ServiceMechanismSection() {
 
         {/* ── 2. 점수 4항목 100점 ── */}
         <div className="mb-8">
-          <p className="text-xs font-bold tracking-widest mb-4 fade-up" style={{ color: "#2563EB" }}>
-            [2] AI 브리핑 노출을 높이는 4가지 항목
+          <p className="text-sm font-bold tracking-widest mb-4 fade-up" style={{ color: "#2563EB" }}>
+            [2] AI 검색 노출을 높이는 4가지 핵심 항목 (AI 브리핑·AI탭 공통)
           </p>
           <div
-            className="rounded-2xl border p-4 md:p-6 fade-up"
+            className="rounded-xl border p-4 md:p-6 fade-up"
             style={{ background: "#FFFFFF", borderColor: "#BFDBFE", boxShadow: FLOAT_SHADOW }}
           >
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4">
@@ -82,7 +82,7 @@ export default function ServiceMechanismSection() {
 
         {/* ── 3. 접기 — 상세 내용 ── */}
         <details
-          className="group rounded-2xl border overflow-hidden fade-up"
+          className="group rounded-xl border overflow-hidden fade-up"
           style={{ background: "#FFFFFF", borderColor: "#E2E8F0", boxShadow: FLOAT_SHADOW }}
           onToggle={(e) =>
             trackDetailsToggle("service_mechanism", (e.currentTarget as HTMLDetailsElement).open)
@@ -113,7 +113,7 @@ export default function ServiceMechanismSection() {
           >
             {/* 가능 vs 불가능 */}
             <div className="pt-5">
-              <p className="text-xs font-bold tracking-widest mb-4" style={{ color: "#2563EB" }}>
+              <p className="text-sm font-bold tracking-widest mb-4" style={{ color: "#2563EB" }}>
                 [3] 정직한 약속 — 가능 vs 불가능
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
@@ -188,7 +188,7 @@ export default function ServiceMechanismSection() {
 
             {/* 매뉴얼 CTA — 흰색 배경 + 파란 테두리 카드 */}
             <div
-              className="rounded-2xl border-2 p-5 md:p-6 text-center"
+              className="rounded-xl border-2 p-5 md:p-6 text-center"
               style={{ background: "#FFFFFF", borderColor: "#2563EB" }}
             >
               <p className="text-base font-bold mb-1 break-keep" style={{ color: "#0F172A" }}>

@@ -118,10 +118,10 @@ export default function ActionHeroCard({
             <div className="flex items-start gap-2 flex-1 min-w-0">
               <span className="text-base shrink-0">▶</span>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-blue-600 mb-0.5">오늘 할 일</p>
+                <p className="text-sm font-semibold text-blue-600 mb-0.5">오늘 할 일</p>
                 <p className="text-sm text-gray-800 font-medium">{todayActionText}</p>
                 {copyText && (
-                  <p className="text-xs text-gray-400 mt-1 truncate max-w-xs">{copyText}</p>
+                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">{copyText}</p>
                 )}
               </div>
             </div>

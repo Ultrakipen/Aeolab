@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { SiteFooter } from "@/components/common/SiteFooter"
+import { PLAN_PRICES } from "@/lib/plans"
 
 export const metadata: Metadata = {
   title: "AEOlab은 어떻게 네이버 AI 브리핑 노출을 도와주나요? | AEOlab",
@@ -50,7 +51,7 @@ export default function HowItWorksPage() {
         {/* ─── 한 줄 요약 ─── */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-5 md:p-6 mb-6">
           <p className="text-base md:text-lg text-gray-900 leading-relaxed break-keep">
-            <strong>한 줄 요약:</strong> 네이버가 공개한 노출 4요소(소개글·소식·리뷰·블로그)와
+            <strong>한 줄 요약:</strong> 네이버가 공개한 노출 5항목(소개글·소식·리뷰·블로그·키워드)과
             게이트 3조건(업종·프랜차이즈·리뷰수)을 점수화하고, 사장님이 5분 안에 실행할 수
             있도록 AI가 콘텐츠 초안을 자동 생성합니다. 매주 실제 노출 결과를 검증합니다.
           </p>
@@ -66,21 +67,21 @@ export default function HowItWorksPage() {
           </div>
           <div className="divide-y divide-gray-100">
             <div className="flex items-start gap-3 px-4 py-3.5">
-              <span className="shrink-0 text-lg mt-0.5">📍</span>
+              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center mt-0.5">1</span>
               <div>
                 <p className="text-sm md:text-base font-semibold text-gray-800">내 업종에 따라 점수 기준이 다릅니다</p>
                 <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">음식점·카페는 네이버 AI 브리핑 비중이 70%, 법률·교육·온라인몰은 ChatGPT·Google AI 비중이 60~90%입니다. 같은 점수라도 업종이 다르면 개선 방향이 다릅니다.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 px-4 py-3.5">
-              <span className="shrink-0 text-lg mt-0.5">📊</span>
+              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center mt-0.5">2</span>
               <div>
                 <p className="text-sm md:text-base font-semibold text-gray-800">성장 단계는 네이버 채널 점수만으로 결정됩니다</p>
                 <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">대시보드의 통합 점수(예: 62점)와 성장 단계(예: 시작 단계)가 달라 보일 수 있습니다. 업종별 비율 차이를 보정하기 위해 성장 단계는 네이버 채널 점수만 기준으로 판정합니다.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 px-4 py-3.5">
-              <span className="shrink-0 text-lg mt-0.5">⚡</span>
+              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center mt-0.5">3</span>
               <div>
                 <p className="text-sm md:text-base font-semibold text-gray-800">지금 당장 점수를 올리는 가장 빠른 방법</p>
                 <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">스마트플레이스 <strong>소개글 작성(+20점)</strong> + <strong>소식 탭 최근 게시물(+25점)</strong>. 두 항목만 완성해도 최대 +45점 가능합니다. 광고비 없이 콘텐츠만으로 가능한 가장 확실한 개선입니다.</p>
@@ -95,9 +96,10 @@ export default function HowItWorksPage() {
           <ol className="space-y-1.5 text-sm md:text-base text-blue-600">
             <li><a href="#search-intent" className="hover:underline">어떤 검색에서 AI 브리핑이 노출될까?</a></li>
             <li><a href="#step1" className="hover:underline">1단계. 게이트 3조건 (노출 가능 여부)</a></li>
-            <li><a href="#step2" className="hover:underline">2단계. 콘텐츠 점수 100점 (Track1 = 네이버)</a></li>
+            <li><a href="#step2" className="hover:underline">2단계. 콘텐츠 점수 100점 (네이버 채널)</a></li>
             <li><a href="#step3" className="hover:underline">3단계. AI 브리핑 인용 강화 (콘텐츠 품질)</a></li>
             <li><a href="#step4" className="hover:underline">4단계. AI 정보 탭 토글 추적</a></li>
+            <li><a href="#ai-tab" className="hover:underline">네이버 AI탭 — 모든 업종 노출 가능 (베타)</a></li>
             <li><a href="#phase-a" className="hover:underline">Phase A. AI 검색 노출을 위한 통합 측정</a></li>
             <li><a href="#step5" className="hover:underline">5단계. 결과 측정 (실제 노출 확인)</a></li>
             <li><a href="#dia" className="hover:underline">AI가 평가하는 5요소 + 2026 변화</a></li>
@@ -105,6 +107,7 @@ export default function HowItWorksPage() {
             <li><a href="#roles" className="hover:underline">AEOlab vs 사장님 역할 분담</a></li>
             <li><a href="#limits" className="hover:underline">한계와 면책 — 정직한 약속</a></li>
             <li><a href="#start" className="hover:underline">시작하는 법</a></li>
+            <li><a href="#ad-impact" className="hover:underline">2026 Q2: AI 브리핑 광고 도입 영향</a></li>
           </ol>
         </nav>
 
@@ -290,7 +293,7 @@ export default function HowItWorksPage() {
         {/* ─── 2단계: 점수 100점 (현재 v3.0 5항목 / v3.1 6항목 예정) ─── */}
         <section id="step2" className="mb-12 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
-            2단계. 콘텐츠 점수 100점 — Track1(네이버) 5항목 <span className="text-sm font-normal text-gray-400">(v3.1에서 6항목으로 확장 예정)</span>
+            2단계. 콘텐츠 점수 100점 — 네이버 채널 5항목 <span className="text-sm font-normal text-gray-400">(v3.1에서 6항목으로 확장 예정)</span>
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
             현재 v3.0 모델(5항목)이 적용 중입니다. 베타 사용자 5명+ 데이터 확보 후 v3.1 모델로 전환되며,
@@ -391,22 +394,22 @@ export default function HowItWorksPage() {
 
           <div className="space-y-3 mb-4">
             <ContentCard
-              icon="📝"
+              num={1}
               title="소개글"
               detail="Claude Sonnet이 Q&A 5개를 자연스럽게 삽입하고 키워드·USP·서비스를 명시합니다. 네이버 블로그 분석에 따르면 'FAQ 구조 + 즉답형 첫 문단'이 AI 브리핑 인용 후보로 적합합니다. 스마트플레이스 사장님 Q&A 탭이 폐기된 현재(2026-05), 소개글 안의 Q&A 섹션이 사장님이 직접 컨트롤할 수 있는 가장 효과적인 인용 경로입니다."
             />
             <ContentCard
-              icon="📰"
+              num={2}
               title="소식"
               detail="30일 주기로 자동 초안을 작성합니다. 사장님은 1분 만에 복사·등록만 하면 최신성 점수가 유지됩니다."
             />
             <ContentCard
-              icon="⭐"
+              num={3}
               title="리뷰"
               detail="QR 카드(매장 비치용) 자동 생성 + 리뷰 답변 자동 작성으로 리뷰 수·다양성·반응성을 모두 강화합니다."
             />
             <ContentCard
-              icon="📚"
+              num={4}
               title="연계 블로그"
               detail="블로그 URL 입력 시 키워드 매칭·C-rank 평가를 진행해 '이 키워드를 보강하라'는 가이드를 제공합니다."
             />
@@ -444,6 +447,54 @@ export default function HowItWorksPage() {
           </div>
         </section>
 
+        {/* ─── 네이버 AI탭 전용 섹션 ─── */}
+        <section id="ai-tab" className="mb-12 scroll-mt-20">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
+            네이버 AI탭 — 모든 업종 노출 가능 (베타)
+          </h2>
+          <div className="rounded-xl border border-green-200 bg-green-50 p-4 md:p-5 mb-4">
+            <p className="text-sm font-bold text-green-800 mb-1">✅ AI탭은 업종·프랜차이즈 제한 없음</p>
+            <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">
+              2026년 4월 27일 베타 출시된 네이버 AI탭은 <strong>AI 브리핑과 달리 모든 업종</strong>의 사업장이
+              노출될 수 있습니다. 현재 네이버플러스 구독자 대상으로 먼저 운영 중이며,
+              2026년 상반기 전체 이용자 확대 예정입니다.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+              <p className="text-sm font-bold text-blue-800 mb-2">AI 브리핑 vs AI탭 차이</p>
+              <div className="space-y-1.5 text-sm text-gray-700">
+                <div className="flex gap-2">
+                  <span className="shrink-0 font-semibold text-gray-500">브리핑</span>
+                  <span>음식점·카페·숙박 등 지정 업종만, 프랜차이즈 제외</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="shrink-0 font-semibold text-blue-600">AI탭</span>
+                  <span>모든 업종, 프랜차이즈 포함, 대화형 검색으로 진입</span>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-4">
+              <p className="text-sm font-bold text-purple-800 mb-2">노출 가능성을 높이는 방법</p>
+              <ul className="space-y-1 text-sm text-gray-700">
+                <li>• 스마트플레이스 소개글 충실히 작성</li>
+                <li>• 소식 탭 최근 게시물 유지</li>
+                <li>• 업종·지역 키워드 조합 관리</li>
+                <li>• 리뷰 답변 꾸준히 작성</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 leading-relaxed break-keep">
+            <strong>AEOlab 지원:</strong> AI탭 관련 점수는 AI 브리핑·AI탭 공통 4항목(소개글·소식·키워드·리뷰)으로
+            관리됩니다. 별도 설정 없이 기존 스캔·가이드·콘텐츠 생성 기능이 AI탭 노출 개선에도 동시 적용됩니다.
+            <span className="block mt-1 text-gray-500">
+              ※ AI탭 노출 여부는 네이버 비공개 알고리즘으로 결정됩니다. 노출을 100% 보장하지 않습니다.
+            </span>
+          </div>
+        </section>
+
         {/* ─── Phase A: 통합 측정 ─── */}
         <section id="phase-a" className="mb-12 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
@@ -477,8 +528,9 @@ export default function HowItWorksPage() {
                   <tbody className="text-gray-700">
                     <tr className="border-b border-blue-50"><td className="py-2 px-3">Free</td><td className="py-2 px-3 text-center">월 1회</td><td className="py-2 px-3 text-gray-500">수동 스캔 시에만</td></tr>
                     <tr className="border-b border-blue-50"><td className="py-2 px-3">Basic</td><td className="py-2 px-3 text-center">주 1회</td><td className="py-2 px-3 text-gray-500">매주 월요일 04:00 자동</td></tr>
+                    <tr className="border-b border-blue-50"><td className="py-2 px-3">창업패키지</td><td className="py-2 px-3 text-center">매일</td><td className="py-2 px-3 text-gray-500">매일 04:30 자동 (Pro·Biz 동일)</td></tr>
                     <tr className="border-b border-blue-50"><td className="py-2 px-3">Pro</td><td className="py-2 px-3 text-center">매일</td><td className="py-2 px-3 text-gray-500">매일 04:30 자동</td></tr>
-                    <tr><td className="py-2 px-3">Biz / Enterprise</td><td className="py-2 px-3 text-center">6시간 / 시간</td><td className="py-2 px-3 text-gray-500">서버 업그레이드 후 순차 적용</td></tr>
+                    <tr><td className="py-2 px-3">Biz / Enterprise</td><td className="py-2 px-3 text-center">매일</td><td className="py-2 px-3 text-gray-500">서버 업그레이드 후 6시간 단위 예정</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -497,6 +549,7 @@ export default function HowItWorksPage() {
               <div className="flex flex-wrap gap-2 text-sm">
                 <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-600">Free: 월 1회</span>
                 <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700">Basic: 월 1회</span>
+                <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">창업패키지: 월 4회</span>
                 <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-700">Pro: 월 4회</span>
                 <span className="px-3 py-1 rounded-full bg-green-100 text-green-700">Biz: 월 10회</span>
                 <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">Enterprise: 무제한</span>
@@ -601,7 +654,7 @@ export default function HowItWorksPage() {
             네이버 AI 브리핑은 C-rank 위에 <strong>D.I.A.(Deep Intent Analysis)</strong> 알고리즘으로
             콘텐츠의 5가지 측면을 딥러닝으로 평가합니다. 이 5요소가 충족될수록 인용 확률이 높아집니다.
           </p>
-          <p className="text-xs text-gray-500 mb-4 leading-relaxed break-keep bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+          <p className="text-sm text-gray-500 mb-4 leading-relaxed break-keep bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
             ※ D.I.A. 5요소는 네이버 비공개 알고리즘을 외부 분석 기반으로 추정한 것입니다. 실제 평가 방식과 다를 수 있습니다.
           </p>
 
@@ -681,29 +734,35 @@ export default function HowItWorksPage() {
                 <tr className="bg-blue-50">
                   <th className="text-left py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">기능</th>
                   <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Free</th>
-                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Basic<br /><span className="text-xs font-normal">9,900원</span></th>
-                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Pro<br /><span className="text-xs font-normal">18,900원</span></th>
-                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Biz<br /><span className="text-xs font-normal">49,900원</span></th>
+                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Basic<br /><span className="text-xs font-normal">{PLAN_PRICES.basic.toLocaleString()}원</span></th>
+                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">창업패키지<br /><span className="text-xs font-normal">{PLAN_PRICES.startup.toLocaleString()}원</span></th>
+                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Pro<br /><span className="text-xs font-normal">{PLAN_PRICES.pro.toLocaleString()}원</span></th>
+                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Biz<br /><span className="text-xs font-normal">{PLAN_PRICES.biz.toLocaleString()}원</span></th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">무료 진단(1회)</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">매주 자동 스캔 (4개 AI)</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">소개글 AI 자동 생성</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">월 5회</td><td className="text-center py-2.5">월 20회</td><td className="text-center py-2.5">무제한</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">톡톡 채팅방 메뉴 AI 생성</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">월 5회</td><td className="text-center py-2.5">월 20회</td><td className="text-center py-2.5">무제한</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">소식 자동 초안 (매주)</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">리뷰 답변 생성</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">월 10회</td><td className="text-center py-2.5">월 30회</td><td className="text-center py-2.5">무제한</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">QR 리뷰 카드 다운로드</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">경쟁사 분석</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">3개</td><td className="text-center py-2.5">10개</td><td className="text-center py-2.5">무제한</td></tr>
-                <tr><td className="py-2.5 px-3">멀티 사업장</td><td className="text-center py-2.5">1개</td><td className="text-center py-2.5">1개</td><td className="text-center py-2.5">1개</td><td className="text-center py-2.5">5개</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">무료 진단(1회)</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">AI 자동 스캔 (Gemini·ChatGPT·네이버)</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 3회</td><td className="text-center py-2.5 text-sm">매일</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">소개글 AI 자동 생성</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">월 5회 (합산)</td><td className="text-center py-2.5">무제한</td><td className="text-center py-2.5">무제한</td><td className="text-center py-2.5">무제한</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">톡톡 채팅방 메뉴 AI 생성</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">월 5회 (합산)</td><td className="text-center py-2.5">무제한</td><td className="text-center py-2.5">무제한</td><td className="text-center py-2.5">무제한</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">소식 자동 초안 (매주)</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">리뷰 답변 생성</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">월 20회</td><td className="text-center py-2.5">무제한</td><td className="text-center py-2.5">무제한</td><td className="text-center py-2.5">무제한</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">QR 리뷰 카드 다운로드</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">경쟁사 분석</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">3개</td><td className="text-center py-2.5">5개</td><td className="text-center py-2.5">5개</td><td className="text-center py-2.5">무제한</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">창업 시장 분석</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">✅</td></tr>
+                <tr><td className="py-2.5 px-3">멀티 사업장</td><td className="text-center py-2.5">1개</td><td className="text-center py-2.5">1개</td><td className="text-center py-2.5">1개</td><td className="text-center py-2.5">2개</td><td className="text-center py-2.5">5개</td></tr>
               </tbody>
             </table>
           </div>
 
-          <p className="mt-4 text-sm md:text-base text-gray-600 leading-relaxed break-keep">
+          <p className="mt-3 text-xs text-gray-500">
+            * Basic 소개글·채팅방메뉴 AI 생성은 합산 월 5회 한도. 창업패키지·Pro·Biz는 무제한.<br />
+            * 창업패키지는 예비 창업자 전용으로 창업 시장 분석 + Basic 기능 전체 포함.
+          </p>
+          <p className="mt-2 text-sm md:text-base text-gray-600 leading-relaxed break-keep">
             전체 요금제 비교는{" "}
             <Link href="/pricing" className="text-blue-600 hover:underline font-medium">요금제 페이지</Link>를,
-            창업패키지·Enterprise 정보는 직접 문의 부탁드립니다.
+            Enterprise 정보는 직접 문의 부탁드립니다.
           </p>
         </section>
 
@@ -721,9 +780,9 @@ export default function HowItWorksPage() {
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 md:p-5">
               <h3 className="text-base md:text-lg font-bold text-blue-900 mb-3">AEOlab이 하는 일</h3>
               <ul className="space-y-2 text-sm md:text-base text-gray-700 leading-relaxed">
-                <li>✅ 노출 조건 4요소 점수화·시각화</li>
+                <li>✅ 노출 조건 5항목 점수화·시각화</li>
                 <li>✅ AI 콘텐츠 초안 자동 생성 (소개글·채팅방 메뉴 + 소개글 Q&A·소식)</li>
-                <li>✅ 매주 4개 AI 스캔 + 결과 추적</li>
+                <li>✅ 매주 Gemini·ChatGPT·네이버 3종 AI 스캔 + 결과 추적</li>
                 <li>✅ 경쟁사 비교 + 키워드 갭 분석</li>
                 <li>✅ 카카오 알림 + 이메일 다이제스트</li>
                 <li>✅ QR 카드·리뷰 답변 도구 제공</li>
@@ -845,6 +904,47 @@ export default function HowItWorksPage() {
           </div>
         </section>
 
+        {/* ─── 2026 Q2 AI 브리핑 광고 도입 영향 ─── */}
+        <section id="ad-impact" className="mb-8 scroll-mt-20">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
+            2026 Q2: AI 브리핑 광고 도입 예정
+          </h2>
+          <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-4 break-keep">
+            네이버는 2026년 2분기 중 AI 브리핑 결과 내에 광고성 플레이스 카드 노출을 준비하고 있습니다.
+            광고로만 노출되는 플레이스는 <strong>유기적(organic) AI 브리핑 노출과 구분</strong>되며,
+            AEOlab 점수 산정에서 별도로 처리됩니다.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <p className="text-sm font-semibold text-blue-800 mb-1">유기적 노출 (Organic)</p>
+              <p className="text-sm text-blue-700 leading-relaxed break-keep">
+                AI 브리핑이 콘텐츠 품질·리뷰·정보 완성도를 기준으로 자동 선정.
+                AEOlab <strong>Track1 점수에 반영</strong>됩니다.
+              </p>
+            </div>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm font-semibold text-amber-800 mb-1">광고 전용 노출 (Ad-only)</p>
+              <p className="text-sm text-amber-700 leading-relaxed break-keep">
+                네이버 광고비로만 노출. AEOlab은 이를 <code className="bg-amber-100 px-1 rounded text-xs">ad_only</code> 플래그로 감지하며,
+                <strong>AI 브리핑 점수 0점</strong>으로 산정합니다.
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 leading-relaxed break-keep">
+            <strong>AEOlab 감지 방식:</strong> 스캔 시 네이버 AI 브리핑 DOM에서 광고 배지(스폰서드·AD)를
+            자동 파싱합니다. 광고 배지가 감지되면 해당 결과를 <code className="bg-gray-200 px-1 rounded text-xs">ad_only: true</code>로
+            표시하고 유기적 노출 점수에서 제외합니다.
+            광고 도입 이후에도 <strong>유기적 노출 개선이 장기적으로 더 효과적</strong>이며,
+            AEOlab은 유기적 노출 최적화에 집중합니다.
+          </div>
+
+          <p className="text-xs text-gray-400 mt-2 leading-relaxed break-keep">
+            광고 도입 일정·형태는 네이버 공식 발표 전까지 변경될 수 있습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있음.
+          </p>
+        </section>
+
         {/* ─── 더 알아보기 ─── */}
         <section className="border-t border-gray-100 pt-6 mt-8">
           <p className="text-sm font-semibold text-gray-700 mb-3">더 알아보기</p>
@@ -896,15 +996,15 @@ function ScoreCard({ num, title, what, how }: ScoreCardProps) {
 }
 
 interface ContentCardProps {
-  icon: string
+  num: number
   title: string
   detail: string
 }
 
-function ContentCard({ icon, title, detail }: ContentCardProps) {
+function ContentCard({ num, title, detail }: ContentCardProps) {
   return (
     <div className="rounded-xl border bg-white p-4 md:p-5 flex gap-3">
-      <span className="text-2xl shrink-0">{icon}</span>
+      <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center shrink-0 mt-0.5">{num}</span>
       <div className="flex-1 min-w-0">
         <h3 className="text-base md:text-lg font-bold text-gray-900 mb-1">{title}</h3>
         <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">{detail}</p>

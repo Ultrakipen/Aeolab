@@ -52,6 +52,10 @@ export interface TrialResultProps {
   onNaverCheckReset: () => void;
   onSaveTrialData: () => void;
   onReset: () => void;
+  /** sessionStorage에서 복원된 결과인지 여부 */
+  isRestored?: boolean;
+  /** 새로 스캔 시작 (캐시 삭제 후 reset) */
+  onRescan?: () => void;
 }
 
 export interface TrialScanningStepProps {
@@ -73,12 +77,12 @@ export interface TrialInputStepProps {
   setBusinessType: (t: BusinessType) => void;
   form: TrialFormState;
   setForm: React.Dispatch<React.SetStateAction<TrialFormState>>;
-  hasFaq: boolean;
-  setHasFaq: (v: boolean) => void;
-  hasRecentPost: boolean;
-  setHasRecentPost: (v: boolean) => void;
-  hasIntro: boolean;
-  setHasIntro: (v: boolean) => void;
+  hasFaq: boolean | undefined;
+  setHasFaq: (v: boolean | undefined) => void;
+  hasRecentPost: boolean | undefined;
+  setHasRecentPost: (v: boolean | undefined) => void;
+  hasIntro: boolean | undefined;
+  setHasIntro: (v: boolean | undefined) => void;
   reviewText: string;
   setReviewText: (v: string) => void;
   description: string;
@@ -100,4 +104,12 @@ export interface TrialInputStepProps {
   onPlaceSelect: (c: TrialBusinessCandidate) => Promise<void>;
   onSkipPlaceMatch: () => Promise<void>;
   getCandidateKey: (c: TrialBusinessCandidate) => string;
+  primaryKeyword: string;
+  setPrimaryKeyword: (v: string) => void;
+  onMoveToInfo: () => void;
+  inlineSearchResults: TrialBusinessCandidate[];
+  inlineSearchLoading: boolean;
+  inlineSelectedCandidate: TrialBusinessCandidate | null;
+  onInlinePlaceSelect: (c: TrialBusinessCandidate) => void;
+  onInlinePlaceClear: () => void;
 }

@@ -76,7 +76,7 @@ export default function Testimonials() {
           {items.map((t) => (
             <article
               key={t.id}
-              className={`relative rounded-2xl border p-4 md:p-6 shadow-sm ${
+              className={`relative rounded-xl border p-4 md:p-6 shadow-sm ${
                 t.isPlaceholder
                   ? "bg-gray-50 border-gray-200"
                   : "bg-white border-gray-200"

@@ -6,6 +6,9 @@
 .env.production.local
 backend/.env
 
+# 외부 백업 디렉터리 (git 추적 제외 — code_backup_procedure_v1.0.md §1)
+_backup/
+
 # Python
 backend_venv/
 venv/
@@ -36,3 +39,14 @@ Thumbs.db
 # Claude Code
 .claude/
 .gstack/
+
+# 임시 파일 / 스크린샷
+tmp_*.png
+=
+
+# 소스 백업 (docs/backups/ — 코드 백업 절차용, git 추적 불필요)
+docs/backups/
+
+# 백업 파일
+*.bak
+*.bak.*

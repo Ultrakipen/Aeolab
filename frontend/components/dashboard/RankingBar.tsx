@@ -15,7 +15,7 @@ export function RankingBar({ items, title = '경쟁사 비교' }: RankingBarProp
   const max = Math.max(...items.map((i) => i.score), 1)
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm">
+    <div className="bg-white rounded-xl p-6 shadow-sm">
       <div className="text-sm font-medium text-gray-700 mb-4">{title}</div>
       <div className="space-y-3">
         {items

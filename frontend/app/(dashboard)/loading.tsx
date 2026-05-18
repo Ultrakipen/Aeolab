@@ -2,7 +2,7 @@ export default function DashboardLoading() {
   return (
     <div className="flex-1 p-4 md:p-8 min-h-screen bg-gray-50">
       {/* 헤더 스켈레톤 */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 mb-5 shadow-sm animate-pulse">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 mb-5 shadow-sm animate-pulse">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-8 h-8 bg-gray-200 rounded-lg" />
           <div className="h-7 w-40 bg-gray-200 rounded-lg" />
@@ -12,7 +12,7 @@ export default function DashboardLoading() {
       </div>
 
       {/* 점수 카드 스켈레톤 */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 mb-5 shadow-sm animate-pulse">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 mb-5 shadow-sm animate-pulse">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-gray-200 rounded-xl" />
           <div className="h-6 w-48 bg-gray-200 rounded" />

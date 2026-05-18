@@ -12,6 +12,7 @@ type KeywordRankData = {
   mobile_rank?: number | null;
   place_rank?: number | null;
   measured_at?: string;
+  search_query?: string;
   error?: string;
 };
 
@@ -143,7 +144,11 @@ export default function KeywordRankCard({
       });
       if (!res.ok) {
         const detail = await res.json().catch(() => ({}));
-        throw new Error(detail?.detail || `측정 실패 (HTTP ${res.status})`);
+        const detailMsg =
+          typeof detail?.detail === "string"
+            ? detail.detail
+            : `측정 실패 (HTTP ${res.status})`;
+        throw new Error(detailMsg);
       }
       const data = await res.json();
       setRanks(data.keyword_ranks || {});
@@ -155,9 +160,10 @@ export default function KeywordRankCard({
         hasError,
       );
       if (hasError) {
-        setError(
-          `일부 키워드 측정 실패: ${(data.errors || []).slice(0, 2).join(", ")}`
-        );
+        const errMsgs = (data.errors || [])
+          .slice(0, 2)
+          .map((e: unknown) => (typeof e === "string" ? e : JSON.stringify(e)));
+        setError(`일부 키워드 측정 실패: ${errMsgs.join(", ")}`);
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "측정 중 오류";
@@ -168,7 +174,7 @@ export default function KeywordRankCard({
   };
 
   return (
-    <section className="rounded-2xl border border-gray-200 bg-white p-4 md:p-5 shadow-sm">
+    <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-5 shadow-sm">
       {/* 헤더 */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-start gap-2.5 min-w-0">
@@ -226,6 +232,17 @@ export default function KeywordRankCard({
         </button>
       </div>
 
+      {/* 측정 조건 안내 */}
+      <div className="mb-3 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2.5 text-sm text-blue-800 space-y-1">
+        <p className="font-semibold text-blue-900">측정 조건</p>
+        <ul className="space-y-0.5 text-blue-700">
+          <li>· <span className="font-medium">검색어</span>: 지역명 + 키워드 자동 조합 (예: &quot;창원 작곡&quot;) — 아래 표에 실제 검색어 표시</li>
+          <li>· <span className="font-medium">검색 위치</span>: 서울 기준 서버 IP (비로그인, 개인화 없음)</li>
+          <li>· <span className="font-medium">순위 범위</span>: 각 채널 상위 20위 이내 — 20위 밖이면 &apos;미노출&apos; 표시</li>
+          <li>· <span className="font-medium">PC</span> = 네이버 PC 통합검색 &nbsp;·&nbsp; <span className="font-medium">모바일</span> = 네이버 모바일 통합검색 &nbsp;·&nbsp; <span className="font-medium">플레이스</span> = 네이버 플레이스 탭</li>
+        </ul>
+      </div>
+
       {/* 빈 상태 (작업 지침 #7) */}
       {!hasData && !scanning && keywords.length > 0 && (
         <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center">
@@ -253,7 +270,7 @@ export default function KeywordRankCard({
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-gray-500 text-xs sm:text-sm uppercase">
+                <tr className="border-b border-gray-200 text-gray-500 text-sm uppercase">
                   <th className="text-left py-2 font-medium">키워드</th>
                   <th className="text-center py-2 font-medium">PC</th>
                   <th className="text-center py-2 font-medium">모바일</th>
@@ -265,10 +282,11 @@ export default function KeywordRankCard({
                   const pc = rankBadge(data.pc_rank);
                   const mob = rankBadge(data.mobile_rank);
                   const pl = rankBadge(data.place_rank);
+                  const displayKw = data.search_query || kw;
                   return (
                     <tr key={kw} className="border-b border-gray-100 last:border-0">
                       <td className="py-2.5 font-medium text-gray-800 truncate max-w-xs">
-                        {kw}
+                        {displayKw}
                       </td>
                       <td className="py-2.5 text-center">
                         <span className={`inline-block px-2 py-1 text-xs sm:text-sm rounded ${pc.cls}`}>
@@ -298,9 +316,10 @@ export default function KeywordRankCard({
               const pc = rankBadge(data.pc_rank);
               const mob = rankBadge(data.mobile_rank);
               const pl = rankBadge(data.place_rank);
+              const displayKw = data.search_query || kw;
               return (
                 <div key={kw} className="rounded-lg border border-gray-200 p-3">
-                  <p className="font-medium text-gray-800 text-sm mb-2 truncate">{kw}</p>
+                  <p className="font-medium text-gray-800 text-sm mb-2 truncate">{displayKw}</p>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <p className="text-sm text-gray-500 mb-1">PC</p>
@@ -359,11 +378,11 @@ export default function KeywordRankCard({
       {(lastMeasuredAt || hasData) && (
         <div className="mt-3 pt-3 border-t border-gray-100 space-y-1">
           {lastMeasuredAt && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-600">
               마지막 측정: {new Date(lastMeasuredAt).toLocaleString("ko-KR")}
             </p>
           )}
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-600">
             ※ 키워드 순위는 측정 시점·기기·검색 환경에 따라 달라질 수 있습니다.
             AEOlab은 서울 기준 비로그인 PC/모바일로 측정합니다.
           </p>

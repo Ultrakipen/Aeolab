@@ -41,7 +41,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
   const peakPoint = points.find((p) => p.total_score === maxScore)
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm">
+    <div className="bg-white rounded-xl p-5 shadow-sm">
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="text-sm font-semibold text-gray-900 mb-0.5">AI 브리핑 노출 성장 타임라인</div>

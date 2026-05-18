@@ -23,14 +23,11 @@ _QUARTER_MONTHS = {
     "Q4": (10, 12),
 }
 
-# 집계 대상 플랫폼 result 컬럼명
+# 집계 대상 플랫폼 result 컬럼명 (현재 운영 4종)
 _PLATFORM_COLUMNS = [
     "gemini_result",
     "naver_result",
     "chatgpt_result",
-    "perplexity_result",
-    "grok_result",
-    "claude_result",
     "google_result",
 ]
 

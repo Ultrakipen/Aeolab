@@ -26,6 +26,7 @@ interface Props {
   businessId: string
   authToken: string | null
   currentPlan: string
+  isInactive?: boolean
 }
 
 const PLATFORM_COLOR: Record<string, string> = {
@@ -41,7 +42,7 @@ const SENTIMENT_CONFIG: Record<string, { label: string; color: string }> = {
   neutral: { label: '중립', color: 'bg-gray-100 text-gray-500' },
 }
 
-function AICitationContent({ businessId, authToken }: { businessId: string; authToken: string | null }) {
+function AICitationContent({ businessId, authToken, isInactive }: { businessId: string; authToken: string | null; isInactive?: boolean }) {
   const [data, setData] = useState<AICitationResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -69,7 +70,7 @@ function AICitationContent({ businessId, authToken }: { businessId: string; auth
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4 md:p-5 animate-pulse">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 md:p-5 animate-pulse">
         <div className="h-4 bg-blue-100 rounded w-1/3 mb-3" />
         <div className="h-3 bg-blue-100 rounded w-2/3 mb-2" />
         <div className="h-3 bg-blue-100 rounded w-1/2" />
@@ -79,17 +80,31 @@ function AICitationContent({ businessId, authToken }: { businessId: string; auth
 
   if (!data) return null
 
-  const allCitations = data.citations ?? []
+  const rawCitations = data.citations ?? []
+  const allCitations = isInactive ? rawCitations.filter((c) => c.platform !== 'naver') : rawCitations
   const mentionedCitations = allCitations.filter((c) => c.mentioned).slice(0, 3)
   const totalMentioned = allCitations.filter((c) => c.mentioned).length
   const totalNotMentioned = allCitations.filter((c) => !c.mentioned && c.mention_type !== 'synthetic').length
 
+  const title = isInactive
+    ? 'ChatGPT·Gemini가 내 가게를 이렇게 말했습니다'
+    : 'AI가 내 가게를 이렇게 말했습니다'
+
+  const emptyMessage = isInactive
+    ? 'ChatGPT·Gemini에 아직 언급되지 않았습니다. 가이드를 실행하면 노출 가능성이 높아집니다.'
+    : '아직 AI에 언급되지 않았습니다.\n가이드를 실행하고 재스캔하면 언급 가능성이 높아집니다.'
+
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4 md:p-5">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 md:p-5">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-indigo-500" />
-          <span className="text-sm font-semibold text-gray-900">AI가 내 가게를 이렇게 말했습니다</span>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-indigo-500" />
+            <span className="text-sm font-semibold text-gray-900">{title}</span>
+          </div>
+          {isInactive && (
+            <span className="text-xs text-gray-400 pl-6">네이버 AI 브리핑 비대상 업종 · ChatGPT·Gemini·Google 기준</span>
+          )}
         </div>
         {totalMentioned > 0 && (
           <span className="text-sm bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-medium">
@@ -100,10 +115,7 @@ function AICitationContent({ businessId, authToken }: { businessId: string; auth
 
       {totalMentioned === 0 ? (
         <div className="bg-white/70 rounded-xl p-4 text-center">
-          <p className="text-sm text-gray-500 leading-relaxed">
-            아직 AI에 언급되지 않았습니다.<br />
-            가이드를 실행하고 재스캔하면 언급 가능성이 높아집니다.
-          </p>
+          <p className="text-sm text-gray-500 leading-relaxed whitespace-pre-line">{emptyMessage}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -149,14 +161,14 @@ function AICitationContent({ businessId, authToken }: { businessId: string; auth
   )
 }
 
-export function AICitationHighlight({ businessId, authToken, currentPlan }: Props) {
+export function AICitationHighlight({ businessId, authToken, currentPlan, isInactive }: Props) {
   const plan = currentPlan ?? 'free'
   if (plan === 'free') {
     return (
       <PlanGate feature="AI 인용 현황" requiredPlan="basic" currentPlan={currentPlan}>
-        <AICitationContent businessId={businessId} authToken={authToken} />
+        <AICitationContent businessId={businessId} authToken={authToken} isInactive={isInactive} />
       </PlanGate>
     )
   }
-  return <AICitationContent businessId={businessId} authToken={authToken} />
+  return <AICitationContent businessId={businessId} authToken={authToken} isInactive={isInactive} />
 }

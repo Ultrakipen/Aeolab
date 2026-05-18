@@ -18,6 +18,7 @@ from routers import keywords as keywords_router
 from routers import share as share_router
 from routers import public_briefing as public_briefing_router
 from routers import delivery as delivery_router
+from routers import stories as stories_router
 from routers import tools as tools_router
 from routers import support as support_router
 from scheduler.jobs import start_scheduler
@@ -122,6 +123,8 @@ app.include_router(share_router.router,        prefix="/api/share",       tags=[
 app.include_router(public_briefing_router.router, prefix="/api/public",   tags=["public"])
 app.include_router(delivery_router.router,        prefix="/api/delivery",  tags=["delivery"])
 app.include_router(delivery_router.admin_router,  prefix="/admin/delivery", tags=["admin-delivery"])
+app.include_router(stories_router.router,         prefix="/api/stories",   tags=["stories"])
+app.include_router(stories_router.admin_router,   prefix="/admin/stories", tags=["admin-stories"])
 app.include_router(tools_router.router,           prefix="/api/tools",     tags=["tools"])
 app.include_router(support_router.router,         prefix="/api/support",   tags=["support"])
 app.include_router(support_router.admin_router,   prefix="/admin/support", tags=["admin-support"])

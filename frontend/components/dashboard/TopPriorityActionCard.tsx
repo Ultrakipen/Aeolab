@@ -116,7 +116,7 @@ export default function TopPriorityActionCard({ bizId, token, initialDimensions 
 
   if (loading) {
     return (
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-5 animate-pulse">
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-5 animate-pulse">
         <div className="h-4 bg-amber-200 rounded w-1/3 mb-2" />
         <div className="h-5 bg-amber-200 rounded w-2/3 mb-1" />
         <div className="h-4 bg-amber-100 rounded w-1/2" />
@@ -126,7 +126,7 @@ export default function TopPriorityActionCard({ bizId, token, initialDimensions 
 
   if (error) {
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex items-center gap-3">
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center gap-3">
         <AlertCircle className="w-5 h-5 text-gray-400 shrink-0" />
         <p className="text-sm text-gray-500">개선 분석 정보를 가져올 수 없습니다. 새로고침해 주세요.</p>
       </div>
@@ -148,7 +148,7 @@ export default function TopPriorityActionCard({ bizId, token, initialDimensions 
   const improvablePoints = (_gap > 0) ? Math.round(_gap) : null
 
   return (
-    <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 md:p-5">
+    <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 md:p-5">
       <div className="flex flex-col sm:flex-row items-start gap-4">
         <div className="flex-shrink-0 mt-0.5">
           <AlertCircle className="w-6 h-6 text-amber-500" />
@@ -172,7 +172,7 @@ export default function TopPriorityActionCard({ bizId, token, initialDimensions 
             </Link>
             <button
               onClick={handleDismiss}
-              className="text-xs text-amber-600 underline hover:text-amber-800"
+              className="text-sm text-amber-600 underline hover:text-amber-800"
             >
               오늘 하루 숨기기
             </button>
@@ -181,13 +181,13 @@ export default function TopPriorityActionCard({ bizId, token, initialDimensions 
         <div className="flex-shrink-0 text-right">
           {improvablePoints != null ? (
             <>
-              <p className="text-xs text-amber-600">개선 여지</p>
+              <p className="text-sm text-amber-600">개선 여지</p>
               <p className="text-2xl font-bold text-amber-700 leading-tight mt-0.5">
                 +{improvablePoints}점
               </p>
             </>
           ) : (
-            <p className="text-xs text-amber-600">개선 가능</p>
+            <p className="text-sm text-amber-600">개선 가능</p>
           )}
         </div>
       </div>

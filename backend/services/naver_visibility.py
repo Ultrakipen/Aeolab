@@ -190,27 +190,53 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
                     break
 
     # ── 내 가게를 제외한 지역 검색 1위 경쟁사 ────────────────────
+    # 키워드가 "단체 예약 가능" 같은 속성 태그일 때 의원·병원·공공기관 등 이종 업종이 상위에 잡히는 문제 방지
+    _COMP_SKIP_CATEGORIES = {
+        "의원", "병원", "클리닉", "건강검진", "한의원", "치과", "약국",
+        "헌혈", "혈액원", "요양", "노인",
+        "정신건강", "상담센터", "심리상담", "복지관", "사회복지",
+        "학원", "교습", "유치원", "어린이집",
+        "협회", "재단", "공공기관", "관공서", "주민센터",
+        "부동산", "법무", "세무",
+        "교회", "성당", "사찰", "종교",
+    }
+    _COMP_SKIP_NAME_FRAGMENTS = {
+        "건강관리협회", "헌혈의집", "마음건강", "청년마음", "사회복지",
+        "주민센터", "동사무소", "보건소", "정신건강", "심리지원",
+    }
     top_competitor_name = None
     for comp in naver_competitors:
-        if not _name_matches(business_name, comp["name"]):
-            top_competitor_name = comp["name"]
-            break
+        if _name_matches(business_name, comp["name"]):
+            continue
+        comp_cat = comp.get("category", "")
+        comp_name = comp.get("name", "")
+        if any(skip in comp_cat for skip in _COMP_SKIP_CATEGORIES):
+            _logger.debug(f"[naver_visibility] 이종 업종(카테고리) 경쟁사 제외: {comp_name} ({comp_cat})")
+            continue
+        if any(frag in comp_name for frag in _COMP_SKIP_NAME_FRAGMENTS):
+            _logger.debug(f"[naver_visibility] 이종 업종(이름) 경쟁사 제외: {comp_name}")
+            continue
+        top_competitor_name = comp_name
+        break
 
     # ── 2차 호출: 1위 경쟁사 블로그 건수 + 키워드 블로그 건수 (있을 때만) ─────
+    # 경쟁사도 지역+이름으로 검색 — 이름만 검색 시 전국 동명업체+카테고리 포스트까지 합산되어
+    # "제주흑돼지" 같은 공통 음식명이 업체명인 경우 수십만 건 오반환 위험
     top_competitor_blog_count = 0
     competitor_kw_blog_count  = 0
     if top_competitor_name:
+        comp_region_name = f"{region_prefix} {top_competitor_name}".strip() if region_prefix else top_competitor_name
         if _kw_first:
             comp_base, comp_kw = await asyncio.gather(
-                _get("blog.json", {"query": top_competitor_name,                  "display": 1}),
-                _get("blog.json", {"query": f"{top_competitor_name} {_kw_first}", "display": 1}),
+                _get("blog.json", {"query": comp_region_name,                  "display": 1}),
+                _get("blog.json", {"query": f"{comp_region_name} {_kw_first}", "display": 1}),
             )
             if isinstance(comp_base, dict):
                 top_competitor_blog_count = int(comp_base.get("total", 0))
             if isinstance(comp_kw, dict):
                 competitor_kw_blog_count  = int(comp_kw.get("total", 0))
         else:
-            comp_blog_data = await _get("blog.json", {"query": top_competitor_name, "display": 1})
+            comp_blog_data = await _get("blog.json", {"query": comp_region_name, "display": 1})
             if isinstance(comp_blog_data, dict):
                 top_competitor_blog_count = int(comp_blog_data.get("total", 0))
 
@@ -256,6 +282,10 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
         f"blog_mentions={blog_mentions}"
     )
 
+    # 블로그 검색에 실제 사용된 쿼리 계산 (프론트 근거 안내용)
+    _blog_search_query = blog_query_region if (region_prefix and blog_region_count > 0) else blog_query_name
+    _comp_blog_search_query = comp_region_name if top_competitor_name else ""
+
     return {
         "search_query":              search_query,
         "my_rank":                   my_rank,
@@ -265,6 +295,8 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
         "blog_name_count":           blog_name_count,
         "blog_region_count":         blog_region_count,
         "blog_kw_count":             blog_kw_count,
+        "blog_search_query":         _blog_search_query,
+        "comp_blog_search_query":    _comp_blog_search_query,
         "naver_competitors":         naver_competitors,
         "top_blogs":                 top_blogs,
         "top_competitor_name":       top_competitor_name,
@@ -283,12 +315,14 @@ def blog_mention_score(count: int) -> float:
     return 100.0
 
 
-async def get_naver_visibility_multi(business_name: str, keywords: list[str], region: str) -> dict:
+async def get_naver_visibility_multi(business_name: str, keywords: list[str], region: str, category_ko: str = "") -> dict:
     """
     여러 키워드로 네이버 가시성 순차 측정 → 최선 결과 반환
     - 키워드별로 get_naver_visibility 순차 호출 (최대 4개, 0.4초 간격)
     - my_rank 있는 결과 우선, 없으면 blog_mentions 최대 결과 반환
     - blog_mentions는 모든 결과 중 최대값으로 보정
+    - category_ko 지정 시 경쟁사는 해당 카테고리 키워드 결과에서만 선택
+      (속성 키워드 "단체 예약 가능" 등으로 검색하면 이종 업종이 경쟁사로 잡히는 문제 방지)
     """
     import asyncio
 
@@ -297,8 +331,9 @@ async def get_naver_visibility_multi(business_name: str, keywords: list[str], re
         return await get_naver_visibility(business_name, "", region)
 
     # 최대 4개 순차 호출 (병렬 시 Naver API 429 Rate Limit 방지 — 0.4초 간격)
+    kw_list = list(keywords[:4])
     results = []
-    for kw in keywords[:4]:
+    for kw in kw_list:
         r = await get_naver_visibility(business_name, kw, region)
         results.append(r)
         await asyncio.sleep(0.4)
@@ -319,6 +354,24 @@ async def get_naver_visibility_multi(business_name: str, keywords: list[str], re
     best["blog_mentions"] = min(nonzero_blogs) if nonzero_blogs else 0
     best["multi_query_count"] = len(valid)
     best["all_queries"] = [r.get("search_query", "") for r in valid]
+
+    # 경쟁사 오염 방지: category_ko 결과에서 경쟁사 + 순위 리스트를 가져와야 동일 업종 보장
+    # 속성 키워드("단체 예약 가능")가 best로 선택된 경우 이종 업종이 경쟁사·순위 리스트에 표시됨
+    if category_ko:
+        _cat_idx = next((i for i, kw in enumerate(kw_list) if kw == category_ko), -1)
+        if 0 <= _cat_idx < len(results) and isinstance(results[_cat_idx], dict):
+            _cat_res = results[_cat_idx]
+            if _cat_res.get("top_competitor_name"):
+                best["top_competitor_name"] = _cat_res["top_competitor_name"]
+                best["top_competitor_blog_count"] = _cat_res.get("top_competitor_blog_count", 0)
+                best["comp_blog_search_query"] = _cat_res.get("comp_blog_search_query", "")
+                best["competitor_kw_blog_count"] = _cat_res.get("competitor_kw_blog_count", 0)
+                _logger.debug(f"[naver_visibility_multi] 경쟁사 카테고리({category_ko}) 결과로 교체: {_cat_res['top_competitor_name']}")
+            # 순위 리스트도 카테고리 기반으로 교체: 속성 키워드 검색에서는 이종 업종이 상위에 노출됨
+            if _cat_res.get("naver_competitors"):
+                best["naver_competitors"] = _cat_res["naver_competitors"]
+                best["search_query"] = _cat_res.get("search_query", best.get("search_query", ""))
+                _logger.debug(f"[naver_visibility_multi] 순위 리스트 카테고리({category_ko}) 결과로 교체")
     # 키워드별 순위 목록 추가 (UI에서 "키워드별 순위" 표시용)
     best["keyword_ranks"] = [
         {

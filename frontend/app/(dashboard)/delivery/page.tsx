@@ -167,7 +167,7 @@ export default async function DeliveryPage() {
             <div
               key={pkg.id}
               className={[
-                "relative bg-white rounded-2xl border shadow-sm flex flex-col",
+                "relative bg-white rounded-xl border shadow-sm flex flex-col",
                 meta.highlight
                   ? "border-blue-300 shadow-blue-100"
                   : "border-gray-100",
@@ -243,7 +243,7 @@ export default async function DeliveryPage() {
       </div>
 
       {/* 내 의뢰 현황 */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-base md:text-lg font-semibold text-gray-800">내 의뢰 현황</h2>
           {orders.length > 0 && (

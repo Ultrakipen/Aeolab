@@ -222,7 +222,7 @@ function WeeklyActionsCard({ actions }: { actions: WeeklyAction[] }) {
   if (!actions || actions.length === 0) return null;
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 md:p-6 shadow-sm">
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <Target className="w-5 h-5 text-blue-600 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-blue-900">이번 주 할 일</h3>
@@ -270,7 +270,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
   const shown = expanded ? posts : posts.slice(0, 5);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
         <FileText className="w-5 h-5 text-indigo-600 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">포스트별 상세 분석</h3>
@@ -486,7 +486,7 @@ function CompetitorComparisonSection({ comparison, businessName }: { comparison:
   const maxScore = Math.max(comparison.my_score, ...comparison.competitors.map(c => c.score), 1);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">경쟁사 블로그 비교</h3>
@@ -596,7 +596,7 @@ function PostingFrequencyCard({ freq }: { freq: NonNullable<BlogAnalysisResult["
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">발행 주기 분석</h3>
@@ -648,7 +648,7 @@ function PostingFrequencyCard({ freq }: { freq: NonNullable<BlogAnalysisResult["
 /* ── BestCitationCandidateCard ── */
 function BestCitationCandidateCard({ candidate }: { candidate: NonNullable<BlogAnalysisResult["best_citation_candidate"]> }) {
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-6 shadow-sm">
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <Zap className="w-5 h-5 text-amber-500 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-amber-900">AI 검색 인용 가능성 높은 포스트</h3>
@@ -696,7 +696,7 @@ function DuplicateTopicsWarning({ topics, isInactive = false }: { topics: NonNul
   if (!topics || topics.length === 0) return null;
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-6 shadow-sm">
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-amber-900">중복 주제 감지</h3>
@@ -776,7 +776,7 @@ function TitleImprovementSection({ posts, businessId }: { posts: PostDetail[]; b
   };
 
   return (
-    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-4 md:p-6 shadow-sm">
+    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-1 flex-wrap">
         <Zap className="w-5 h-5 text-indigo-600 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-indigo-900">제목 개선 제안</h3>
@@ -1077,7 +1077,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
             <button
               key={biz.id}
               onClick={() => setSelectedBiz(biz)}
-              className="text-left bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md rounded-2xl p-5 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="text-left bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md rounded-xl p-5 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <p className="text-base font-semibold text-gray-900 mb-1 truncate">{biz.name}</p>
               <p className="text-sm text-gray-500 mb-3">
@@ -1146,7 +1146,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
         {/* 블로그 미등록 */}
         {!savedBlogUrl && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-6">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
               <div className="flex-1">
@@ -1169,7 +1169,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
         {/* 블로그 등록됨 */}
         {savedBlogUrl && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <FileText className="w-5 h-5 text-blue-600 shrink-0" />
               <h2 className="text-base md:text-lg font-bold text-gray-900">등록된 블로그</h2>
@@ -1243,7 +1243,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
         {/* 저장된 결과 불러오는 중 */}
         {savedBlogUrl && !result && resultLoading && (
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 md:p-8 text-center">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 md:p-8 text-center">
             <Loader2 className="w-8 h-8 text-blue-400 mx-auto mb-3 animate-spin" />
             <p className="text-base font-semibold text-gray-600 mb-1">이전 분석 결과를 불러오는 중...</p>
           </div>
@@ -1268,7 +1268,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
         {/* 결과 없음 empty state */}
         {savedBlogUrl && !result && !loading && !autoTriggered && !resultLoading && (
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 md:p-8 text-center">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 md:p-8 text-center">
             <Search className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <p className="text-base font-semibold text-gray-600 mb-1">분석 결과가 없습니다</p>
             <p className="text-sm text-gray-500">
@@ -1279,7 +1279,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
         {/* AI 브리핑 게이팅 안내 배너 (v4.1) */}
         {isBlogInactive && (
-          <div className={`rounded-2xl border px-4 md:px-5 py-4 flex items-start gap-3 ${
+          <div className={`rounded-xl border px-4 md:px-5 py-4 flex items-start gap-3 ${
             isBlogLikely ? "bg-blue-50 border-blue-200" : "bg-amber-50 border-amber-200"
           }`}>
             <span className="text-xl shrink-0 mt-0.5">
@@ -1326,7 +1326,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           <div ref={resultSectionRef} className="space-y-5">
 
             {/* 종합 점수 카드 */}
-            <div className={`border rounded-2xl p-4 md:p-6 ${scoreBgColor(result.citation_score ?? 0)}`}>
+            <div className={`border rounded-xl p-4 md:p-6 ${scoreBgColor(result.citation_score ?? 0)}`}>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3 flex-wrap">
                   {platformBadge(result.platform)}
@@ -1378,7 +1378,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
             {/* A. AI 인용 체크리스트 */}
             {result.ai_readiness_items && result.ai_readiness_items.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-sm">
+              <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
                   <h3 className="text-base md:text-lg font-bold text-gray-900">
@@ -1452,7 +1452,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
             {/* 키워드 커버리지 */}
             {result.keyword_coverage && (
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-sm">
+              <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
                   <h3 className="text-base md:text-lg font-bold text-gray-900">키워드 커버리지</h3>
                   <button
@@ -1538,7 +1538,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
             {/* 개선 권고사항 */}
             {result.top_recommendation && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-6">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className="w-4 h-4 text-amber-600 shrink-0" />
                   <h3 className="text-base font-bold text-amber-900">지금 당장 할 수 있는 개선</h3>

@@ -58,7 +58,7 @@ export default function FirstTimeEducationCard() {
   const s = SLIDES[slide];
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 md:p-6 mb-5">
+    <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 md:p-6 mb-5">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
           <span className="text-sm font-semibold text-blue-500 uppercase tracking-wide">처음 오셨나요?</span>

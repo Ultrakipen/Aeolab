@@ -96,11 +96,17 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
     .eq('business_id', business.id)
     .gte('generated_at', monthStart.toISOString())
 
+  let initialToken = ''
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    initialToken = session?.access_token ?? ''
+  } catch { /* initialToken = '' */ }
+
   // Free 사용자 상단 게이트 — 가이드 생성 한도 0이면 업그레이드 안내
   if (guideLimit === 0) {
     return (
       <div className="p-4 md:p-8 max-w-lg mx-auto mt-10">
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 md:p-8 text-center space-y-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 md:p-8 text-center space-y-4">
           <div className="flex justify-center">
             <Lock className="w-10 h-10 text-blue-400" strokeWidth={1.5} />
           </div>
@@ -115,7 +121,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
           >
             플랜 업그레이드 (월 9,900원~) →
           </a>
-          <a href="/dashboard" className="block text-sm text-gray-400 hover:text-gray-600 transition-colors">
+          <a href="/dashboard" className="block text-sm text-gray-500 hover:text-gray-700 transition-colors">
             대시보드로 돌아가기
           </a>
         </div>
@@ -124,7 +130,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
   }
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto">
       <div className="mb-6 md:mb-8">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 개선 가이드</h1>
         <p className="text-gray-500 text-sm mt-1 leading-relaxed">스캔 결과를 바탕으로 AI가 분석한 <strong>지금 당장 실천 가능한</strong> 개선 방법을 알려드립니다.</p>
@@ -153,6 +159,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         guideUsed={guideUsed ?? 0}
         guideLimit={guideLimit}
         latestScanMentioned={latestScanMentioned}
+        initialToken={initialToken}
       />
     </div>
   )

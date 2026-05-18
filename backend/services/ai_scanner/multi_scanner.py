@@ -4,20 +4,29 @@ from .gemini_scanner import GeminiScanner
 from .chatgpt_scanner import ChatGPTScanner
 from .naver_scanner import NaverAIBriefingScanner
 from .google_scanner import GoogleAIOverviewScanner
+from . import naver_ai_tab_scanner as _naver_ai_tab  # P2: NAVER_AI_TAB_ENABLED=true 시 활성화
 
-# 업종 영문 코드 → 한국어 검색 키워드 (scan.py의 _CATEGORY_KO와 동일)
+# 업종 영문 코드 → 한국어 검색 키워드
+# 25개 정규 업종(DB whitelist)을 scan.py와 동일한 값으로 먼저 선언하여 우선 적용
 _CATEGORY_KO: dict[str, str] = {
-    "restaurant": "음식점", "cafe": "카페", "chicken": "치킨", "bbq": "고기집",
-    "seafood": "횟집", "bakery": "베이커리", "bar": "술집", "snack": "분식",
+    # ── 25개 정규 업종 (scan.py와 동기화) ───────────────────────────────
+    "restaurant": "음식점", "cafe": "카페", "bakery": "베이커리", "bar": "술집",
+    "beauty": "미용실", "nail": "네일샵", "medical": "병원", "pharmacy": "약국",
+    "fitness": "헬스장", "yoga": "요가 필라테스", "pet": "반려동물",
+    "education": "학원", "tutoring": "과외", "legal": "법률사무소",
+    "realestate": "부동산", "interior": "인테리어", "auto": "자동차정비",
+    "cleaning": "청소대행", "shopping": "쇼핑몰", "fashion": "의류",
+    "photo": "사진·영상", "video": "영상제작", "design": "디자인",
+    "accommodation": "숙박 펜션", "other": "",
+    # ── 하위 호환 (구버전 카테고리 키) ──────────────────────────────────
+    "chicken": "치킨", "bbq": "고기집", "seafood": "횟집", "snack": "분식",
     "delivery": "배달음식", "health_food": "건강식",
-    "medical": "병원", "dental": "치과", "oriental": "한의원", "pharmacy": "약국",
-    "skincare": "피부과", "eye": "안과", "mental": "심리상담", "rehab": "물리치료",
-    "hair": "미용실", "nail": "네일샵", "massage": "마사지", "spa": "스파",
-    "fitness": "헬스장", "yoga": "요가", "pilates": "필라테스", "golf": "골프",
-    "academy": "학원", "kids": "어린이집", "tutoring": "과외",
-    "legal": "법무사", "tax": "세무사", "real_estate": "부동산",
-    "photo": "사진·영상", "pet": "동물병원", "car": "자동차정비",
-    "shopping": "쇼핑", "interior": "인테리어", "cleaning": "청소",
+    "dental": "치과", "oriental": "한의원", "skincare": "피부과",
+    "eye": "안과", "mental": "심리상담", "rehab": "물리치료",
+    "hair": "미용실", "massage": "마사지", "spa": "스파",
+    "pilates": "필라테스", "golf": "골프",
+    "academy": "학원", "kids": "어린이집",
+    "tax": "세무사", "real_estate": "부동산", "car": "자동차정비",
 }
 
 # Playwright 인스턴스 1개 = RAM 300~500MB → 동시 1개로 제한 (RAM 4GB 서버 OOM 방지)
@@ -38,6 +47,23 @@ class MultiAIScanner:
     async def scan_single(self, query: str, target: str) -> dict:
         """무료 원샷 체험: ChatGPT(GPT-4o-mini) 단일 스캔 — 소상공인 인지도 최고"""
         result = await self.chatgpt.check_mention(query, target)
+        return {"chatgpt": result}
+
+    async def scan_trial(self, query: str, target: str) -> dict:
+        """Trial 체험: ChatGPT(GPT-4o-mini) 5회 샘플링 — 1회 boolean 대비 신뢰도 향상.
+
+        비용: gpt-4o-mini 5회 ≈ 2.5원/회 (1회 ~0.5원 대비 +2원)
+        응답 시간: 5회 병렬 실행이라 1회와 거의 동일 (~2~3초).
+        2026-05-09 Trial 1회 → 5회 격상 (변동성 1/√5 감소, "5회 중 N회 언급" 표시 가능)
+
+        반환값에 `mentioned` 필드를 보정하여 기존 scan_single() 하위 호환 보장:
+        - mentioned = exposure_freq > 0
+        - excerpt = citations[0] (첫 번째 발췌문, 없으면 None)
+        """
+        result = await self.chatgpt.sample_5(query, target)
+        # 하위 호환: mentioned 필드 보정 (exposure_freq 기반)
+        result["mentioned"] = result.get("exposure_freq", 0) > 0
+        result["excerpt"] = (result.get("citations") or [None])[0]
         return {"chatgpt": result}
 
     async def _run_playwright(self, fn, *args):

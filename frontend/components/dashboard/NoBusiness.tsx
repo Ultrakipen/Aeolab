@@ -17,7 +17,7 @@ interface NoBusinessProps {
 
 export function NoBusiness({ Icon, title, description, features, planBadge }: NoBusinessProps) {
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-4 md:p-8 max-w-2xl">
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
@@ -30,7 +30,7 @@ export function NoBusiness({ Icon, title, description, features, planBadge }: No
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         {features.map((f) => (
-          <div key={f.title} className="bg-white rounded-2xl p-5 shadow-sm flex gap-4">
+          <div key={f.title} className="bg-white rounded-xl p-5 shadow-sm flex gap-4">
             <div className="shrink-0 w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
               <f.Icon className="w-5 h-5 text-blue-600" />
             </div>
@@ -42,7 +42,7 @@ export function NoBusiness({ Icon, title, description, features, planBadge }: No
         ))}
       </div>
 
-      <div className="bg-blue-50 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div className="bg-blue-50 rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="shrink-0 w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center">
           <Icon className="w-6 h-6 text-blue-600" />
         </div>

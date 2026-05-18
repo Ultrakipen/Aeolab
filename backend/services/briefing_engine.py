@@ -88,6 +88,16 @@ _ACTION_STEPS = {
         "3. 아래 소개글로 교체 (최대 500자)",
         "4. 저장 — 한 번만 하면 됩니다",
     ],
+    # P1-B-3 추가 (2026-05-17): 예약 연동 설정 안내
+    # TODO(P1-B-1): pick_top_action() 또는 get_briefing_guide()에서
+    # has_reservation=False 조건 감지 시 이 키를 반환하도록 연결 필요.
+    # smart_place_auto_check.py 예약 버튼 셀렉터 실측 완료 후 활성화. 현재 미사용(dead code).
+    "reservation_setup": [
+        "1. partner.naver.com 접속 → '서비스 설정' → '예약 설정'",
+        "2. 서비스 유형 선택 (네이버 예약 직접 설정 / 외부 예약 URL 연결)",
+        "3. 예약 버튼 활성화 저장 — AI탭 검색 결과에 '예약' 버튼이 표시됩니다",
+        "4. 셀렉트스퀘어·캐치테이블 등 외부 예약 시스템은 '외부 URL 연결'로 동일 화면에서 연동",
+    ],
 }
 
 
@@ -1356,14 +1366,22 @@ def build_briefing_summary(
     )
 
 
-def simulate_ai_tab_answer(biz: dict, scan_result: dict | None = None) -> dict:
+def simulate_ai_tab_answer(
+    biz: dict,
+    scan_result: dict | None = None,
+    category: str | None = None,
+) -> dict:
     """
     AI탭이 생성할 가능성이 높은 답변을 추정. AI 호출 0회.
     등록 정보 + 리뷰 키워드 빈도 기반 추정.
 
+    AI탭은 AI 브리핑과 달리 업종 제한 없음 (2026-04-27 베타 기준).
+    INACTIVE 업종도 시뮬레이션 결과를 반환 (모든 업종 beta).
+
     Args:
         biz: businesses 테이블 행 (name, category, region, keywords 등)
         scan_result: scan_results 테이블 최신 행 (옵션, 현재 미사용 — 향후 확장용)
+        category: 업종 코드 override. 미전달 시 biz.get("category") 사용.
 
     Returns:
         simulated_answer: 예상 AI탭 답변 문장
@@ -1374,7 +1392,8 @@ def simulate_ai_tab_answer(biz: dict, scan_result: dict | None = None) -> dict:
     """
     from services.keyword_taxonomy import KEYWORD_TAXONOMY, normalize_category
 
-    category = biz.get("category", "restaurant")
+    # category 파라미터 우선, 없으면 biz에서 추출
+    category = category or biz.get("category", "restaurant")
     biz_name = biz.get("name", "이 업소")
     region = biz.get("region", "")
     keywords: list = biz.get("keywords") or []
@@ -1407,10 +1426,43 @@ def simulate_ai_tab_answer(biz: dict, scan_result: dict | None = None) -> dict:
         parts.append(", ".join(matched[:3]))
     simulated = ". ".join(parts) + "."
 
+    # v2: 실측 in_ai_tab 데이터 존재 여부에 따라 배지 분리
+    has_real_aitab_data = False
+    if scan_result is not None:
+        naver_res = scan_result.get("naver_result") or {}
+        if isinstance(naver_res, dict):
+            if naver_res.get("in_ai_tab") is not None:
+                has_real_aitab_data = True
+            kw_results = naver_res.get("keyword_results") or []
+            if any(isinstance(r, dict) and r.get("in_ai_tab") is not None for r in kw_results):
+                has_real_aitab_data = True
+
+    # 실측 데이터가 있으면 "measured" 배지, 없으면 "estimated" (추정)
+    data_source = "measured" if has_real_aitab_data else "estimated"
+
+    # 실측 AI탭 노출 확인 여부 (measured일 때만 의미 있음)
+    confirmed_in_ai_tab = False
+    if has_real_aitab_data and scan_result is not None:
+        naver_res = scan_result.get("naver_result") or {}
+        if isinstance(naver_res, dict):
+            confirmed_in_ai_tab = bool(naver_res.get("in_ai_tab"))
+            if not confirmed_in_ai_tab:
+                kw_results = naver_res.get("keyword_results") or []
+                confirmed_in_ai_tab = any(
+                    isinstance(r, dict) and r.get("in_ai_tab") for r in kw_results
+                )
+
     return {
-        "simulated_answer": simulated,
-        "matched_contexts": matched[:5],
-        "missing_contexts": missing[:5],
-        "preview_only": True,
-        "disclaimer": "예시 답변은 등록 정보·키워드를 조합한 추정이며 실제 AI탭 답변과 다를 수 있습니다.",
+        "simulated_answer":   simulated,
+        "matched_contexts":   matched[:5],
+        "missing_contexts":   missing[:5],
+        "preview_only":       True,
+        "simulation_version": "v2",
+        "data_source":        data_source,           # "estimated" | "measured"
+        "confirmed_in_ai_tab": confirmed_in_ai_tab,  # 실측 AI탭 노출 확인 여부 (measured일 때만 신뢰)
+        "disclaimer": (
+            "AI탭 노출이 실측 확인되었습니다. 예시 답변은 추정이며 실제 AI탭 내용과 다를 수 있습니다."
+            if data_source == "measured" and confirmed_in_ai_tab
+            else "예시 답변은 등록 정보·키워드를 조합한 추정이며 실제 AI탭 답변과 다를 수 있습니다."
+        ),
     }

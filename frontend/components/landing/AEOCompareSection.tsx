@@ -24,11 +24,11 @@ export default function AEOCompareSection() {
       <div className="max-w-[1020px] mx-auto">
         {/* 헤더 */}
         <div className="text-center mb-7 fade-up">
-          <p className="text-xs font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>
+          <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>
             서비스 비교
           </p>
           <h2
-            className="text-xl md:text-2xl font-black tracking-tight break-keep"
+            className="text-2xl md:text-3xl font-black tracking-tight break-keep"
             style={{ color: "#0F172A", letterSpacing: "-0.6px" }}
           >
             기존 방법과 무엇이 다른가요?
@@ -39,10 +39,10 @@ export default function AEOCompareSection() {
         <div className="hidden md:grid grid-cols-3 gap-3 fade-up">
           {/* 기존 SEO */}
           <div
-            className="card-hover rounded-2xl border p-5"
+            className="card-hover rounded-xl border p-5"
             style={{ borderColor: "#E2E8F0", background: "#F8FAFC" }}
           >
-            <p className="text-xs font-bold tracking-wider mb-1" style={{ color: "#64748B" }}>
+            <p className="text-sm font-bold tracking-wider mb-1" style={{ color: "#64748B" }}>
               기존 SEO 서비스
             </p>
             <p className="text-base font-black mb-4" style={{ color: "#94A3B8" }}>웹 검색 최적화</p>
@@ -58,10 +58,10 @@ export default function AEOCompareSection() {
 
           {/* 네이버 플레이스 */}
           <div
-            className="card-hover rounded-2xl border p-5"
+            className="card-hover rounded-xl border p-5"
             style={{ borderColor: "#E2E8F0", background: "#F8FAFC" }}
           >
-            <p className="text-xs font-bold tracking-wider mb-1" style={{ color: "#64748B" }}>
+            <p className="text-sm font-bold tracking-wider mb-1" style={{ color: "#64748B" }}>
               네이버 플레이스 관리
             </p>
             <p className="text-base font-black mb-4" style={{ color: "#94A3B8" }}>플레이스 최적화</p>
@@ -89,7 +89,7 @@ export default function AEOCompareSection() {
             >
               추천
             </div>
-            <p className="text-xs font-bold tracking-wider mb-1" style={{ color: "#2563EB" }}>
+            <p className="text-sm font-bold tracking-wider mb-1" style={{ color: "#2563EB" }}>
               AEOlab
             </p>
             <p className="text-base font-black mb-4" style={{ color: "#0F172A" }}>AI 노출 통합 관리</p>
@@ -103,18 +103,23 @@ export default function AEOCompareSection() {
             </div>
             <a
               href="/trial"
-              className="block w-full mt-5 py-2.5 rounded-xl text-sm font-bold text-white text-center transition-colors hover:bg-[#1D4ED8]"
-              style={{ background: "#2563EB" }}
+              className="block w-full mt-5 py-2.5 rounded-xl text-sm font-bold text-white text-center transition-all hover:scale-105 hover:opacity-90"
+              style={{ background: "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)", boxShadow: "0 4px 16px rgba(124,58,237,0.25)" }}
             >
               무료로 시작하기 →
             </a>
           </div>
         </div>
 
+        {/* 기준 날짜 — PC 테이블 하단 */}
+        <p className="hidden md:block text-sm text-gray-500 text-center mt-2 fade-up">
+          2026년 5월 기준
+        </p>
+
         {/* 모바일 — 간소화 카드 */}
         <div className="md:hidden fade-up">
           <div
-            className="rounded-2xl p-5"
+            className="rounded-xl p-5"
             style={{
               background: "linear-gradient(180deg, #FFFFFF 0%, #EFF6FF 100%)",
               border: "1.5px solid #2563EB",
@@ -145,12 +150,15 @@ export default function AEOCompareSection() {
             </div>
             <a
               href="/trial"
-              className="block w-full mt-5 py-3 rounded-xl text-sm font-bold text-white text-center transition-colors hover:bg-[#1D4ED8]"
-              style={{ background: "#2563EB" }}
+              className="block w-full mt-5 py-3 rounded-xl text-sm font-bold text-white text-center transition-all hover:scale-105 hover:opacity-90"
+              style={{ background: "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)", boxShadow: "0 4px 16px rgba(124,58,237,0.25)" }}
             >
               무료로 시작하기 →
             </a>
           </div>
+          <p className="text-sm text-gray-500 text-center mt-2">
+            2026년 5월 기준
+          </p>
         </div>
       </div>
     </section>
