@@ -196,6 +196,23 @@ ssh root@115.68.231.57 'pm2 logs aeolab-backend --lines 100 --nostream | grep "n
 ssh root@115.68.231.57 'pm2 logs aeolab-backend --lines 30 --nostream 2>&1 | grep -i error'
 ```
 
+#### Step 8: AD_BRIEFING_SELECTORS 실측 업데이트 (P2-2 잔여 작업)
+
+> `backend/services/naver_scanner.py:42`의 AD_BRIEFING_SELECTORS 6개는 Q2 광고 출시 전 임시 가정값.
+> AI탭 광고 영역이 실서비스에서 노출되기 시작하면 실제 DOM 셀렉터로 교체 필수.
+
+```bash
+# 1) Playwright codegen으로 광고 영역 DOM 캡처 (서버에서 실행)
+ssh root@115.68.231.57 'cd /var/www/aeolab && python3 -m playwright codegen \
+  "https://search.naver.com/search.naver?query=강남역+맛집"'
+
+# 2) AI탭 클릭 → 광고 배지/스폰서 표시가 있는 DOM 노드 우클릭 → Inspector로 셀렉터 복사
+# 3) naver_scanner.py:42 AD_BRIEFING_SELECTORS 배열 갱신
+# 4) 베타 사용자 1명 대상 수동 스캔 → ad_only 분류 정확도 확인
+```
+
+**완료 기준**: `ad_only=true` 분류된 사례가 실제 광고 영역과 일치 (false positive < 5%)
+
 ---
 
 ### P2 선택적 추가 작업 (권장하지만 필수 아님)
@@ -291,6 +308,58 @@ ORDER BY sh.recorded_at DESC LIMIT 10;
 ```bash
 ssh root@115.68.231.57 'sed -i "s/SCORE_MODEL_VERSION=v3_1/SCORE_MODEL_VERSION=v3_0/" /var/www/aeolab/backend/.env && pm2 restart aeolab-backend'
 ```
+
+---
+
+## P4 — 점수 모델 v3.2 활성화 (M3-2 최종 단계)
+
+### 트리거 조건 (모두 충족 필요)
+
+- [ ] P2 AI탭 스캐너 가동 후 최소 30일 경과
+- [ ] `in_ai_tab` 실측 데이터 20건 이상 (베타 5명 × 4주 = 약 20+ 건)
+- [ ] P3 v3.1 활성화 후 점수 안정화 30일 이상 (롤백 없이 유지)
+- [ ] v3.1 → v3.2 시뮬레이션 결과 그룹별 평균 diff < 10점
+
+### P4 실행 순서
+
+#### Step 1: 사전 시뮬레이션
+
+```bash
+# 베타 사용자 최근 30일 데이터로 v3.1 vs v3.2 점수 차이 산출
+ssh root@115.68.231.57 'cd /var/www/aeolab && source venv/bin/activate && python3 -c "
+from services.score_engine import NAVER_TRACK_WEIGHTS, NAVER_TRACK_WEIGHTS_V3_2
+import json
+print(json.dumps({
+    \"v3_1\": NAVER_TRACK_WEIGHTS,
+    \"v3_2\": NAVER_TRACK_WEIGHTS_V3_2,
+}, indent=2, ensure_ascii=False))
+"'
+```
+
+→ 그룹별 diff > 10점이면 P4 보류, < 10점이면 Step 2 진행.
+
+#### Step 2: .env 변경
+
+```bash
+ssh root@115.68.231.57 'sed -i "s/SCORE_MODEL_VERSION=v3_1/SCORE_MODEL_VERSION=v3_2/" /var/www/aeolab/backend/.env'
+```
+
+#### Step 3: 재시작 + 검증
+
+```bash
+ssh root@115.68.231.57 'pm2 restart aeolab-backend'
+ssh root@115.68.231.57 'sleep 30 && pm2 logs aeolab-backend --lines 30 --nostream | grep "v3_2\|SCORE_MODEL"'
+
+# docs/baseline_m1_20260518.md §3 비교 표 갱신
+```
+
+#### Step 4: 롤백 (점수 급락 시)
+
+```bash
+ssh root@115.68.231.57 'sed -i "s/SCORE_MODEL_VERSION=v3_2/SCORE_MODEL_VERSION=v3_1/" /var/www/aeolab/backend/.env && pm2 restart aeolab-backend'
+```
+
+> **주의**: v3.2 가중치는 Group A/B/C/D별 차별화. INACTIVE Group D 업종은 `has_faq=0`이고 글로벌 AI 비중이 높아 v3.1보다 점수 변동폭이 클 수 있음. 사전 시뮬레이션 필수.
 
 ---
 

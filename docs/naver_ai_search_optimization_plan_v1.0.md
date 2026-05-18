@@ -298,6 +298,11 @@ def calc_naver_exposure(scan_result: dict) -> float:
 
 **파일**: `backend/tests/test_category_alias.py` 신규
 
+> **2026-05-18 갱신**: 실제 구현 시 화이트리스트를 25 → 59로 확장(`WHITELIST_59`).
+> 25개 표준 + alias·확장 34개 = 59개 모든 업종에 대해 정합성 보장.
+> 함수명도 명세에서 `_whitelist_` 접두사 제거 (`test_all_have_eligibility` 등).
+> 기능은 명세 그대로 동작.
+
 ```python
 import pytest
 from services.score_engine import (
@@ -306,28 +311,32 @@ from services.score_engine import (
 )
 from services.keyword_taxonomy import normalize_category, get_all_keywords_flat
 
-WHITELIST_25 = [
+# 59개 확장 화이트리스트 (25개 표준 + alias·세분화)
+WHITELIST_59 = [
+    # 25개 표준
     "restaurant", "cafe", "bakery", "bar",
     "beauty", "nail", "medical", "pharmacy", "fitness", "yoga",
     "pet", "education", "tutoring", "legal", "realestate", "interior",
     "auto", "cleaning", "shopping", "fashion",
     "photo", "video", "design", "accommodation", "other",
+    # 34개 alias·세분화 (skincare, massage, clinic, dental, academy 등)
+    # 실제 목록은 frontend/lib/channelGuideData.ts CHANNEL_GUIDE 참조
 ]
 
-def test_all_whitelist_have_eligibility():
-    for cat in WHITELIST_25:
+def test_all_have_eligibility():
+    for cat in WHITELIST_59:
         result = get_briefing_eligibility(cat)
         assert result in ("active", "likely", "inactive"), f"{cat} → {result}"
 
-def test_all_whitelist_have_taxonomy():
-    for cat in WHITELIST_25:
+def test_all_have_taxonomy():
+    for cat in WHITELIST_59:
         if cat == "other":
             continue
         keywords = get_all_keywords_flat(cat)
         assert keywords, f"{cat} taxonomy missing"
 
-def test_ai_tab_eligibility_always_beta():
-    for cat in WHITELIST_25:
+def test_all_have_ai_tab_eligibility():
+    for cat in WHITELIST_59:
         assert get_ai_tab_eligibility(cat) == "beta"
 ```
 

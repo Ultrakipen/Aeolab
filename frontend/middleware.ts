@@ -44,13 +44,19 @@ export async function middleware(request: NextRequest) {
     user = null;
   }
 
+  // 공개 가이드 경로 (비로그인 SEO 페이지) — protected 보다 우선
+  const publicGuidePaths = ["/guide/chatgpt-search"];
+  const isPublicGuide = publicGuidePaths.some((p) =>
+    request.nextUrl.pathname === p || request.nextUrl.pathname.startsWith(p + "/")
+  );
+
   const protectedPaths = [
     "/dashboard", "/guide", "/schema", "/history",
     "/competitors", "/settings", "/startup", "/ad-defense",
     "/onboarding", "/growth", "/review-inbox", "/preview",
     "/notices", "/support",
   ];
-  const isProtected = protectedPaths.some((p) =>
+  const isProtected = !isPublicGuide && protectedPaths.some((p) =>
     request.nextUrl.pathname.startsWith(p)
   );
 

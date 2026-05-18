@@ -7,7 +7,7 @@ import {
   FLAT_CATEGORY_MAP,
   flatToGroup,
 } from "@/lib/categories";
-import { getUserGroup, GROUP_MESSAGES } from "@/lib/userGroup";
+import { getUserGroup, GROUP_MESSAGES, getBriefingEligibility, type BriefingEligibility } from "@/lib/userGroup";
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import TodayOneAction from "@/components/trial/TodayOneAction";
 import SubscriptionValueCompare from "@/components/trial/SubscriptionValueCompare";
@@ -508,18 +508,10 @@ export default function TrialResultStep(props: TrialResultProps) {
   const naverChannelScore = result.score?.naver_channel_score ?? track1;
   const globalChannelScore = result.score?.global_channel_score ?? track2;
 
-  // 업종 AI 브리핑 분류 (백엔드 제공 우선, 없으면 프론트 fallback)
-  const BRIEFING_ACTIVE = ["restaurant", "cafe", "bakery", "bar", "accommodation"];
-  const BRIEFING_LIKELY = ["beauty", "nail", "pet", "fitness", "yoga", "pharmacy"];
-  const briefingCategory: "active" | "likely" | "inactive" =
-    result.briefing_category ??
-    (isFranchise
-      ? "inactive"
-      : BRIEFING_ACTIVE.includes(selectedCategory)
-        ? "active"
-        : BRIEFING_LIKELY.includes(selectedCategory)
-          ? "likely"
-          : "inactive");
+  // 업종 AI 브리핑 분류 (백엔드 제공 우선, 없으면 프론트 단일 소스 헬퍼 사용)
+  const briefingCategory: BriefingEligibility =
+    (result.briefing_category as BriefingEligibility | undefined) ??
+    getBriefingEligibility(selectedCategory, isFranchise);
 
   // 점수 산식 분해 데이터
   const breakdown = result.score?.breakdown;

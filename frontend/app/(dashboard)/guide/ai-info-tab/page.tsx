@@ -22,7 +22,7 @@ export default async function AiInfoTabGuidePage({
 
   const { data: businesses } = await supabase
     .from('businesses')
-    .select('id, name, category, is_franchise, naver_place_url, naver_place_id, has_intro, has_recent_post, ai_info_tab_status, review_count, blog_mention_count')
+    .select('id, name, category, is_franchise, naver_place_url, naver_place_id, has_intro, has_recent_post, ai_info_tab_status, review_count, blog_mention_count, sp_completeness_json')
     .eq('user_id', user.id)
     .eq('is_active', true)
     .order('created_at', { ascending: true })
@@ -93,6 +93,14 @@ export default async function AiInfoTabGuidePage({
         eligibility={elig}
         plan={plan}
         blogMentionCount={(business as { blog_mention_count?: number } | null)?.blog_mention_count ?? 0}
+        hasReservation={(() => {
+          const sp = (business as { sp_completeness_json?: { has_reservation?: boolean } } | null)?.sp_completeness_json
+          return sp && typeof sp.has_reservation === 'boolean' ? sp.has_reservation : null
+        })()}
+        photoCount={(() => {
+          const sp = (business as { sp_completeness_json?: { photo_count?: number } } | null)?.sp_completeness_json
+          return sp && typeof sp.photo_count === 'number' ? sp.photo_count : null
+        })()}
       />
     </div>
   )

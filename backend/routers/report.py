@@ -1320,7 +1320,7 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
     # 사업장 정보 조회
     biz_res = await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, keywords, is_franchise")
+        .select("id, name, category, region, keywords, is_franchise, sp_completeness_json")
         .eq("id", biz_id)
         .maybe_single()
     )
@@ -1386,7 +1386,7 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
     # 사업장 + 최신 스캔 로드
     biz_row = (await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, naver_place_id, keywords, has_faq, has_intro, has_recent_post, review_count")
+        .select("id, name, category, region, naver_place_id, keywords, has_faq, has_intro, has_recent_post, review_count, sp_completeness_json")
         .eq("id", biz_id)
         .single()
     )).data
@@ -1471,12 +1471,19 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
     if not existing_keywords:
         existing_keywords = list(biz_row.get("keywords") or [])[:5]
 
+    # 예약 연동 여부 추출 (sp_completeness_json.has_reservation) — None이면 미측정
+    sp_json = biz_row.get("sp_completeness_json") or {}
+    has_reservation_val: bool | None = None
+    if isinstance(sp_json, dict) and "has_reservation" in sp_json:
+        has_reservation_val = bool(sp_json.get("has_reservation"))
+
     # briefing paths 생성 (AI 호출 없음, 순수 템플릿)
     paths = build_direct_briefing_paths(
         biz=biz_row,
         missing_keywords=missing_keywords,
         competitor_only_keywords=competitor_only,
         existing_keywords=existing_keywords,
+        has_reservation=has_reservation_val,
     )
     paths_by_id = {p["path_id"]: p for p in paths}
 

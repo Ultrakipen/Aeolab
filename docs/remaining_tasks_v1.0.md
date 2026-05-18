@@ -25,6 +25,15 @@
 
 # 소개글 AI 초안 생성기 구현 (BEP 5명+ 후)
 "docs/remaining_tasks_v1.0.md §3 기준으로 소개글 AI 초안 기능 구현해줘"
+
+# M1 완료 후 신규 잔여 작업 (2026-05-18)
+"docs/remaining_tasks_v1.0.md §9 기준으로 신규 잔여 작업 진행해줘"
+
+# 변경분 일괄 git 커밋
+"docs/remaining_tasks_v1.0.md §9-A 기준으로 현재 변경 11개 파일 git 커밋해줘"
+
+# 신규 가이드 페이지 dogfood
+"docs/remaining_tasks_v1.0.md §9-B 기준으로 blog-strategy + chatgpt-search 비로그인 dogfood 해줘"
 ```
 
 ---
@@ -340,7 +349,130 @@ P3 실행 트리거:
 | 대행 서비스 DB 테이블 | ✅ 이미 생성됨 (5개 테이블 확인) |
 | 베타 후기 | ⏳ placeholder 상태 |
 | profiles.intro_draft 컬럼 | ⏳ 미적용 (스키마 v5.8 SQL — Supabase 실행 필요) |
+| `/guide/chatgpt-search` 비로그인 SEO | ✅ 복원 (middleware publicGuidePaths 화이트리스트) |
+| `/guide/blog-strategy` 신규 페이지 | ✅ 배포 (로그인 사용자용) |
+| M1 베이스라인 SQL 실행 | ✅ 완료 (결과는 다음 캡처 시 비교 기록) |
+| git 변경 (uncommitted) | ⏳ 11개 파일 (§9-A) |
 
 ---
 
-*최종 업데이트: 2026-05-18 | 완료: §1 DB ✅ · §4 v4.1 ✅ · §5 git/배포 ✅ | 잔여: §2 체크리스트 · profiles v5.8 컬럼 추가*
+## 9. M1 완료 후 신규 잔여 작업 (2026-05-18 갱신)
+
+> **배경**: `docs/naver_ai_optimization_remaining_tasks_v1.0.md` P0/P1/P2 모두 처리 완료. 그 사이클에서 발견·해결한 chatgpt-search 라우팅 충돌·middleware 화이트리스트 포함. 본 섹션은 다음 작업 사이클의 우선순위 정리.
+
+### 9-A. 🔴 즉시 (당일~3일)
+
+#### 9-A-1. git 커밋 + 푸시 (11개 파일)
+
+```bash
+git -C C:/app_build/aeolab add \
+  backend/scheduler/jobs.py \
+  backend/services/briefing_engine.py \
+  frontend/middleware.ts \
+  "frontend/app/(dashboard)/guide/ai-info-tab/AiInfoTabGuide.tsx" \
+  "frontend/app/(public)/demo/page.tsx" \
+  "frontend/app/(public)/trial/components/TrialResultStep.tsx" \
+  "frontend/app/(dashboard)/guide/blog-strategy/" \
+  docs/naver_ai_optimization_remaining_tasks_v1.0.md \
+  docs/baseline_m1_20260518.md \
+  docs/naver_ai_search_optimization_plan_v1.0.md \
+  docs/p2_p3_execution_runbook.md \
+  docs/remaining_tasks_v1.0.md
+
+# 삭제 파일도 stage (라우팅 충돌 해결)
+git -C C:/app_build/aeolab rm "frontend/app/(dashboard)/guide/chatgpt-search/page.tsx"
+
+git -C C:/app_build/aeolab commit -m "feat: naver AI optimization remaining tasks P0/P1 + middleware public guide whitelist"
+git -C C:/app_build/aeolab push origin main
+```
+
+> GitHub Actions가 자동 배포 트리거. 서버 변경은 이미 SCP로 직접 반영됐으므로 push는 git 이력 동기화 목적.
+
+#### 9-A-2. 신규·복원 가이드 페이지 dogfood
+
+| URL | 기대 | 검증 방법 |
+|-----|------|---------|
+| https://aeolab.co.kr/guide/chatgpt-search | 비로그인 200 (SEO 페이지) | 시크릿 브라우저 |
+| https://aeolab.co.kr/guide/blog-strategy | 비로그인 → /login | 시크릿 브라우저 |
+| `/dashboard` → AI 정보 탭 → 블로그 UGC 카드 → "블로그 후기 늘리기 전략 →" 버튼 | 로그인 사용자 신규 페이지 진입 | 로그인 후 클릭 |
+| SiteFooter "ChatGPT 최적화 가이드" 링크 | 비로그인 200 | 랜딩페이지 푸터 |
+
+#### 9-A-3. 백엔드 simulate_ai_tab_answer 응답 필드 확인
+
+```bash
+ssh root@115.68.231.57 'cd /var/www/aeolab && source venv/bin/activate && python3 -c "
+from services.briefing_engine import simulate_ai_tab_answer
+r = simulate_ai_tab_answer({\"name\":\"테스트\",\"category\":\"legal\",\"region\":\"강남구\",\"keywords\":[\"이혼\"]}, None, \"legal\")
+print(\"ai_tab_eligibility:\", r.get(\"ai_tab_eligibility\"))
+print(\"simulation_version:\", r.get(\"simulation_version\"))
+"'
+# 기대: ai_tab_eligibility: beta / simulation_version: v2
+```
+
+---
+
+### 9-B. 🟡 1주 내
+
+#### 9-B-1. M1 베이스라인 §2 결과 채우기 (다음 캡처 시점)
+
+> 단일 시점 데이터만 있어 비교 가치가 낮음. **M2 적용 후** 또는 **P3 v3.1 활성화 직전** 시점에 동일 SQL을 재실행하여 한 번에 비교 표로 정리.
+>
+> 트리거: 사용자가 결과를 채팅에 공유하거나, `"baseline_m1 결과 채워줘"` 한 줄로 메인 세션이 SQL 재실행 안내.
+
+#### 9-B-2. AI탭 예약 연동 자동 점검 (P1) ✅ 완료 (2026-05-18)
+
+> 근거: `docs/naver_ai_tab_대응_개발계획_v1.0.md` P1 항목
+> 파일: `backend/services/smart_place_auto_check.py`, `backend/services/briefing_engine.py`, `backend/routers/report.py`, `frontend/app/(dashboard)/guide/ai-info-tab/{page,AiInfoTabGuide}.tsx`
+> 작업 완료 내역:
+> - `_detect_reservation()` + `_detect_photo_count()` smart_place_auto_check.py에 구현됨 (선행)
+> - `build_direct_briefing_paths()`에 `has_reservation: bool | None` 파라미터 추가 → False 시 5번째 경로 `reservation_setup` 노출
+> - `routers/report.py` conversion_tips에서 `businesses.sp_completeness_json` SELECT 후 `has_reservation` 추출하여 전달
+> - `ai-info-tab/page.tsx`에서 `sp_completeness_json.has_reservation`/`photo_count` 추출하여 `AiInfoTabGuide`에 전달
+> - `AiInfoTabGuide` INACTIVE/프랜차이즈 분기 ②사진/③예약 항목에 동적 배지(✓ 통과/연동됨/미연동) + "지금 설정하기" 링크
+> 점수 미반영 유지 — AI탭 베타 단계, 정밀 셀렉터 실측 후 v3.2에서 가중치 검토
+> 검증: 서버 build_direct_briefing_paths(has_reservation=False) → 5개 경로 반환 / chatgpt-search 200, ai-info-tab 307(redirect) / PM2 error 0건
+
+#### 9-B-3. `(public)/guide` 추가 가이드 페이지 화이트리스트 검토
+
+> middleware.ts `publicGuidePaths`가 현재 `/guide/chatgpt-search` 1개만 포함. 향후 `/guide/blog-strategy`도 비로그인 SEO 가치 있으면 화이트리스트 추가 검토.
+>
+> 결정 기준: 푸터·랜딩에서 비로그인 사용자가 접근할 가이드인가? blog-strategy는 현재 로그인 사용자용으로만 노출되므로 미추가 유지.
+
+---
+
+### 9-C. 🟢 시기 의존 (조건 충족 시)
+
+| 작업 | 트리거 | 실행 문서 |
+|------|--------|---------|
+| **P2 AI탭 스캐너 활성화** | 6월 네이버 AI탭 비로그인 표시 확인 | `docs/p2_p3_execution_runbook.md` P2 |
+| **P3 v3.1 점수 모델 활성화** | 베타 5명 + `[P3-READY]` 로그 | 같은 문서 P3 |
+| **P4 v3.2 점수 모델 활성화** | P2 가동 30일 + P3 안정화 30일 | 같은 문서 P4 (2026-05-18 신규) |
+| **AD_BRIEFING_SELECTORS 실측** | Q2 광고 영역 첫 노출 시 | 같은 문서 P2 Step 8 (신규) |
+| **briefing_category_expansion_monitor 결과 확인** | 매월 1일 09:00 자동 실행 | `pm2 logs aeolab-backend | grep expansion_monitor` |
+
+---
+
+### 9-D. 🔵 비즈니스 (BEP 20명까지)
+
+| # | 작업 | 우선순위 근거 |
+|---|------|--------------|
+| 1 | 다음 기능 기획 → `next-feature` 에이전트 | `docs/next_features_v1.0.md` 기준 |
+| 2 | 베타 후기 1~3개 확보 → `lib/testimonials.ts` `isPlaceholder: false` | 사회적 증거(랜딩 전환율 직결) |
+| 3 | 랜딩 추가 개선 (P4 잔여) | `memory/project_landing_next.md` |
+| 4 | 대행 서비스 출시 체크리스트 (§2) | 매출 다변화 |
+| 5 | Phase 0 사용자 인터뷰 (베타 1~3명) | 제품 검증 |
+
+---
+
+### 9-E. 회고 — 이번 사이클 발견 사항
+
+| 항목 | 영향 | 재발 방지 |
+|------|------|----------|
+| Deploy 에이전트 무단 변경 (`(public)/guide/chatgpt-search` 폴더 삭제) | SiteFooter 푸터 링크 깨짐, 비로그인 SEO 페이지 손실 | CLAUDE.md "에이전트 보고 검증 의무" 강화. 라우팅 충돌은 메인 세션이 직접 결정 |
+| 베이스라인 SQL 컬럼명 오류 (`created_at`·`track1_score` 사용) | 사용자 첫 실행 실패 | schema.sql을 먼저 확인하고 작성. 추정 컬럼명 금지 |
+| 잔여 작업 문서 P1-1 결함 진단 오인 (22건 → 실제 57개) | 메인 세션 검증으로 스킵 판정 | 에이전트 보고를 코드 grep으로 항상 교차 검증 |
+| Next.js 16 route group 라우팅 충돌 ((public) ↔ (dashboard) 동일 URL) | 빌드 에러 → 한 쪽 폴더 삭제 필요 | 신규 가이드 페이지 추가 시 같은 URL 중복 여부 확인. `(public)/guide/X` + `(dashboard)/guide/X` 중복은 금지 |
+
+---
+
+*최종 업데이트: 2026-05-18 | 완료: §1 DB ✅ · §4 v4.1 ✅ · §5 git/배포 ✅ · §9 신규 잔여 작업 문서화 ✅ | 잔여: §2 체크리스트 · profiles v5.8 컬럼 · §9-A git 커밋 · §9-B-1 베이스라인 결과 채우기*

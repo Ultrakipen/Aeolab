@@ -25,6 +25,7 @@ import urllib.parse
 from datetime import datetime
 from typing import Optional
 from services.keyword_taxonomy import get_industry_keywords, normalize_category
+from services.score_engine import get_ai_tab_eligibility
 
 _logger = logging.getLogger("aeolab")
 
@@ -88,10 +89,8 @@ _ACTION_STEPS = {
         "3. 아래 소개글로 교체 (최대 500자)",
         "4. 저장 — 한 번만 하면 됩니다",
     ],
-    # P1-B-3 추가 (2026-05-17): 예약 연동 설정 안내
-    # TODO(P1-B-1): pick_top_action() 또는 get_briefing_guide()에서
-    # has_reservation=False 조건 감지 시 이 키를 반환하도록 연결 필요.
-    # smart_place_auto_check.py 예약 버튼 셀렉터 실측 완료 후 활성화. 현재 미사용(dead code).
+    # P1-B-3 (2026-05-17 추가, 2026-05-18 연결 완료):
+    # build_direct_briefing_paths(has_reservation=False)에서 "경로 E"로 노출.
     "reservation_setup": [
         "1. partner.naver.com 접속 → '서비스 설정' → '예약 설정'",
         "2. 서비스 유형 선택 (네이버 예약 직접 설정 / 외부 예약 URL 연결)",
@@ -994,9 +993,10 @@ def build_direct_briefing_paths(
     existing_keywords: list[str],
     review_excerpts: list[str] | None = None,
     competitor_keyword_sources: dict[str, list[str]] | None = None,
+    has_reservation: bool | None = None,
 ) -> list[dict]:
     """
-    소상공인이 오늘 당장 실행할 수 있는 AI 브리핑 직접 관리 경로 4개 생성.
+    소상공인이 오늘 당장 실행할 수 있는 AI 브리핑 직접 관리 경로 생성.
 
     Args:
         biz: 사업장 정보
@@ -1004,9 +1004,11 @@ def build_direct_briefing_paths(
         competitor_only_keywords: 경쟁사엔 있고 내겐 없는 키워드 (긴급)
         existing_keywords: 이미 보유한 키워드
         review_excerpts: 실제 리뷰 발췌문 목록 (경로 A 답변 개인화에 사용)
+        has_reservation: 네이버 예약 연동 여부. False 시 `reservation_setup` 경로 추가 노출.
+            None(미측정) 또는 True 시 미노출 (소음 회피).
 
     Returns:
-        경로별 dict 목록 (urgency 순으로 정렬)
+        경로별 dict 목록 (urgency 순으로 정렬). 일반 4건 + has_reservation=False 시 1건 추가.
     """
     name = biz.get("name", "우리 가게")
     category = biz.get("category", "")
@@ -1097,6 +1099,27 @@ def build_direct_briefing_paths(
         "estimated_time": "10분",
         "impact": "영구 키워드 기반 — 한 번 하면 계속 효과",
     })
+
+    # 경로 E: 네이버 예약 연동 (선택, has_reservation=False일 때만 노출)
+    # AI탭 결과에 "예약" 버튼이 추가로 표시되어 전환율 상승.
+    # has_reservation=None(미측정) 또는 True 시 미노출 — 소음 회피.
+    if has_reservation is False:
+        paths.append({
+            "path_id": "reservation_setup",
+            "path_name": "네이버 예약 연동 설정",
+            "urgency": "this_week",
+            "urgency_label": "이번 주",
+            "reason": (
+                "AI탭은 예약 연동이 된 사업장의 결과에 '예약' 버튼을 추가로 노출합니다. "
+                "외부 예약 시스템(셀렉트스퀘어·캐치테이블 등)도 URL 연결로 동일하게 적용됩니다."
+            ),
+            "target_keywords": [],
+            "ready_content": "",
+            "action_url": "https://partner.naver.com/",
+            "action_steps": _ACTION_STEPS["reservation_setup"],
+            "estimated_time": "10분",
+            "impact": "AI탭 결과에 '예약' 버튼 노출 — 전환율 상승",
+        })
 
     return paths
 
@@ -1426,6 +1449,22 @@ def simulate_ai_tab_answer(
         parts.append(", ".join(matched[:3]))
     simulated = ". ".join(parts) + "."
 
+    # has_reservation/photo_count 추출 (sp_completeness_json — UI 안내·시뮬레이션 부가 신호)
+    has_reservation_sig: bool | None = None
+    photo_count_sig: int | None = None
+    sp_json = biz.get("sp_completeness_json")
+    if isinstance(sp_json, dict):
+        if "has_reservation" in sp_json:
+            has_reservation_sig = bool(sp_json.get("has_reservation"))
+        if "photo_count" in sp_json:
+            try:
+                photo_count_sig = int(sp_json.get("photo_count") or 0)
+            except (ValueError, TypeError):
+                photo_count_sig = None
+    # 시뮬레이션 답변에 "예약 가능" 표시 — AI탭은 예약 연동 사업장에 예약 버튼 노출
+    if has_reservation_sig is True:
+        simulated = simulated + " [예약 가능]"
+
     # v2: 실측 in_ai_tab 데이터 존재 여부에 따라 배지 분리
     has_real_aitab_data = False
     if scan_result is not None:
@@ -1460,6 +1499,9 @@ def simulate_ai_tab_answer(
         "simulation_version": "v2",
         "data_source":        data_source,           # "estimated" | "measured"
         "confirmed_in_ai_tab": confirmed_in_ai_tab,  # 실측 AI탭 노출 확인 여부 (measured일 때만 신뢰)
+        "ai_tab_eligibility": get_ai_tab_eligibility(category),  # 항상 "beta" — INACTIVE 업종도 AI탭은 가능
+        "has_reservation":    has_reservation_sig,   # None=미측정, True/False=실측
+        "photo_count":        photo_count_sig,       # None=미측정, int=실측 추정값
         "disclaimer": (
             "AI탭 노출이 실측 확인되었습니다. 예시 답변은 추정이며 실제 AI탭 내용과 다를 수 있습니다."
             if data_source == "measured" and confirmed_in_ai_tab

@@ -60,6 +60,11 @@ interface Props {
   eligibility: Eligibility
   plan: string  // free | basic | startup | pro | biz | enterprise
   blogMentionCount?: number
+  // P1-B-1 (2026-05-18 연결): smart_place_auto_check.py에서 측정된 네이버 예약 연동 여부.
+  // null = 미측정 (스마트플레이스 미연결 또는 스캔 전), boolean = 측정 완료.
+  hasReservation?: boolean | null
+  // P1-B-2: 등록 사진 수 추정값. null = 미측정.
+  photoCount?: number | null
 }
 
 // 플랜별 소개글/FAQ 자동 생성 한도 (faq_monthly 공유, plan_gate.py 기준)
@@ -73,7 +78,7 @@ const PLAN_LIMITS: Record<string, { intro_faq: number; label: string; color: str
   enterprise: { intro_faq: 999, label: "Enterprise", color: "emerald" },
 }
 
-export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount = 0 }: Props) {
+export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount = 0, hasReservation = null, photoCount = null }: Props) {
   const planInfo = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free
   const canGenerate = planInfo.intro_faq > 0
   const isInactive = eligibility === "inactive"
@@ -163,11 +168,46 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 flex-shrink-0 font-bold">②</span>
-                  <span><strong>사진 10장 이상</strong> 등록 — 외관·내부·서비스 현장 사진</span>
+                  <span>
+                    <strong>사진 10장 이상</strong> 등록 — 외관·내부·서비스 현장 사진
+                    {photoCount !== null && (
+                      <span
+                        className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          photoCount >= 10
+                            ? 'bg-green-100 text-green-700 border border-green-200'
+                            : 'bg-amber-100 text-amber-700 border border-amber-200'
+                        }`}
+                      >
+                        {photoCount >= 10 ? '✓ 통과' : `현재 ${photoCount}장`}
+                      </span>
+                    )}
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 flex-shrink-0 font-bold">③</span>
-                  <span><strong>예약 연동</strong> (선택) — AI탭 결과에 예약 버튼이 추가로 표시됨</span>
+                  <span>
+                    <strong>예약 연동</strong> (선택) — AI탭 결과에 예약 버튼이 추가로 표시됨
+                    {hasReservation === true && (
+                      <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 border border-green-200 px-2 py-0.5 text-xs font-semibold">
+                        ✓ 연동됨
+                      </span>
+                    )}
+                    {hasReservation === false && (
+                      <>
+                        <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-xs font-semibold">
+                          미연동
+                        </span>
+                        <a
+                          href="https://partner.naver.com/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 text-xs text-indigo-700 underline hover:text-indigo-900"
+                        >
+                          지금 설정하기 →
+                        </a>
+                      </>
+                    )}
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 flex-shrink-0 font-bold">④</span>
@@ -639,10 +679,10 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               리뷰어 초대, 체험단 운영, 소셜 공유 이벤트를 활용해보세요.
             </p>
             <Link
-              href="/guide/chatgpt-search"
+              href="/guide/blog-strategy"
               className="inline-block mt-1 px-4 py-2 bg-rose-600 text-white text-sm font-semibold rounded-lg hover:bg-rose-700 transition-colors"
             >
-              AI 검색 최적화 가이드 →
+              블로그 후기 늘리기 전략 →
             </Link>
           </div>
         ) : (

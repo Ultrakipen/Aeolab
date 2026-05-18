@@ -258,9 +258,9 @@ def start_scheduler():
         id="ai_tab_trigger_check", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
-    # M3-4: 의료·법무·헬스케어 AI 브리핑 업종 확대 감지 — 월 1회(1일 09:30 KST)
+    # M3-4: 의료·법무·헬스케어 AI 브리핑 업종 확대 감지 — 월 1회(1일 09:00 KST, 계획서 §M3-4)
     scheduler.add_job(
-        briefing_category_expansion_monitor_job, "cron", day=1, hour=9, minute=30,
+        briefing_category_expansion_monitor_job, "cron", day=1, hour=9, minute=0,
         id="briefing_expansion_monitor", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )

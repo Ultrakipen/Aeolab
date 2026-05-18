@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { getBriefingEligibility } from "@/lib/userGroup";
 
 // ── 업종 / 지역 선택지 ────────────────────────────────────────────────
 const CATEGORIES = [
@@ -35,10 +36,7 @@ const CATEGORIES = [
 
 const REGIONS = ["창원시", "강남구", "홍대·마포", "수원시", "부산 해운대", "대구 중구"];
 
-// ── 네이버 AI 브리핑 업종 분류 (score_engine.py BRIEFING_ACTIVE_CATEGORIES 동기화)
-const BRIEFING_ACTIVE   = ["restaurant", "cafe", "bakery", "bar", "accommodation"];
-const BRIEFING_LIKELY   = ["beauty", "nail", "pet", "fitness", "yoga", "pharmacy"];
-// 그 외 전체 = INACTIVE (photo, music, education, legal, realestate, interior 등)
+// 네이버 AI 브리핑 분류는 lib/userGroup.ts getBriefingEligibility 단일 소스 사용
 
 // ── 업종별 목업 데이터 ────────────────────────────────────────────────
 function getMock(category: string, region: string) {
@@ -444,12 +442,8 @@ export default function DemoPage() {
   // 실제 사업장 여부 (photo는 창원시 실제 사업장 데이터)
   const isRealBiz = category === "photo";
 
-  // 네이버 AI 브리핑 노출 상태
-  const briefingStatus = BRIEFING_ACTIVE.includes(category)
-    ? "active"
-    : BRIEFING_LIKELY.includes(category)
-    ? "likely"
-    : "inactive";
+  // 네이버 AI 브리핑 노출 상태 (단일 소스 헬퍼 사용)
+  const briefingStatus = getBriefingEligibility(category);
 
   return (
     <main className="min-h-screen bg-gray-50">
