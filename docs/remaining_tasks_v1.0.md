@@ -174,15 +174,14 @@ CREATE POLICY "published stories are public" ON success_stories
 
 신청 경로: [카카오 비즈니스](https://business.kakao.com/) → 알림톡 채널 관리 → 템플릿 추가
 
-### 2-B. Supabase Storage 버킷 생성
+### 2-B. Supabase Storage 버킷 생성 ✅ 완료 (2026-05-18)
 
-> Supabase 콘솔 → Storage → New Bucket
+> SDK로 자동 생성 완료 — Supabase 콘솔에서 확인 가능
 
-- **버킷명**: `delivery-materials`
-- **공개 여부**: Private (비공개)
-- **파일 크기 제한**: 10MB
-- **허용 MIME**: image/*, application/pdf, application/zip
-- **사인드 URL 유효시간**: 3600초 (1시간)
+- **버킷명**: `delivery-materials` ✅
+- **공개 여부**: Private ✅
+- **파일 크기 제한**: 10MB ✅
+- **허용 MIME**: image/jpeg, image/png, image/webp, image/gif, application/pdf, application/zip ✅
 
 ### 2-C. 토스페이먼츠 1회성 결제 상품 등록
 
