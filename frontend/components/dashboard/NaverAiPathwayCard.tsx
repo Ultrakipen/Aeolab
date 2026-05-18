@@ -3,11 +3,17 @@
 import Link from "next/link";
 import { Sparkles, Info } from "lucide-react";
 
+// M3 사전 작업: Q2 광고 도입 감지 시 true로 변경 → 광고 경고 배너 즉시 활성화
+// AiInfoTabStatusCard의 동일 상수와 함께 변경할 것 (단일 소스는 추후 lib/featureFlags.ts로 이관 가능)
+const NAVER_AD_IN_BRIEFING_ACTIVE = false;
+
 interface Props {
   /** 사용자 업종의 AI 브리핑 노출 가능성 */
   briefingEligibility: "active" | "likely" | "inactive";
   /** 프랜차이즈 가맹점 여부 */
   isFranchise?: boolean;
+  /** 최근 스캔의 naver_result.ad_only — Q2 광고 도입 후 배너 표시용 (M3 사전 작업) */
+  latestAdOnly?: boolean;
 }
 
 /**
@@ -21,7 +27,7 @@ interface Props {
  *
  * 자기 업종 기준으로 "현재 대상" 배지를 자동 표시.
  */
-export default function NaverAiPathwayCard({ briefingEligibility, isFranchise }: Props) {
+export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, latestAdOnly }: Props) {
   const briefingActive = briefingEligibility === "active" && !isFranchise;
   const briefingLikely = briefingEligibility === "likely" && !isFranchise;
   const briefingInactive = briefingEligibility === "inactive" || isFranchise;
@@ -98,6 +104,15 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise }:
               <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
                 프랜차이즈 가맹점은 현재 AI 브리핑 제공 대상에서 제외 (추후 확대 예정)
               </p>
+            )}
+            {/* M3 광고 경고 배너 — NAVER_AD_IN_BRIEFING_ACTIVE=true 시 노출 */}
+            {NAVER_AD_IN_BRIEFING_ACTIVE && latestAdOnly === true && (
+              <div className="mt-2 flex items-start gap-1.5 rounded px-2 py-1.5 bg-orange-50 border border-orange-200">
+                <span className="text-orange-500 text-sm shrink-0">⚠️</span>
+                <p className="text-xs text-orange-800 leading-snug break-keep">
+                  최근 스캔 결과 <strong>광고 영역</strong>에서 노출됨 — 유기 점수에 미반영. 자연 노출 강화가 필요합니다.
+                </p>
+              </div>
             )}
           </div>
 

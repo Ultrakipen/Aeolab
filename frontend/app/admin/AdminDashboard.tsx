@@ -31,6 +31,13 @@ interface RevenueRow {
   subscriber_count: number;
 }
 
+interface CategoryDist {
+  total: number;
+  groups: { active: number; likely: number; inactive: number };
+  ratios: { active: number; likely: number; inactive: number };
+  per_category: Record<string, number>;
+}
+
 interface SubRow {
   user_id: string;
   email?: string;
@@ -560,6 +567,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [revenue, setRevenue] = useState<RevenueRow[]>([]);
   const [subs, setSubs] = useState<SubRow[]>([]);
+  const [catDist, setCatDist] = useState<CategoryDist | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -570,10 +578,11 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
     setLoading(true);
     setError("");
     try {
-      const [statsRes, revenueRes, subsRes] = await Promise.all([
+      const [statsRes, revenueRes, subsRes, catRes] = await Promise.all([
         fetch(`${ADMIN_PROXY}?path=admin/stats`),
         fetch(`${ADMIN_PROXY}?path=admin/revenue`),
         fetch(`${ADMIN_PROXY}?path=admin/subscriptions`),
+        fetch(`${ADMIN_PROXY}?path=admin/category-distribution`),
       ]);
       if (!statsRes.ok) {
         if (statsRes.status === 403) {
@@ -586,6 +595,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
       setStats(await statsRes.json());
       setRevenue(await revenueRes.json());
       setSubs(await subsRes.json());
+      if (catRes.ok) setCatDist(await catRes.json());
       setAuthed(true);
     } catch {
       setError("데이터를 불러오는 중 오류가 발생했습니다.");
@@ -610,12 +620,14 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
       if (!res.ok) throw new Error("API 오류");
       setStats(await res.json());
       // 나머지 데이터 로드
-      const [revenueRes, subsRes] = await Promise.all([
+      const [revenueRes, subsRes, catRes2] = await Promise.all([
         fetch(`${ADMIN_PROXY}?path=admin/revenue`),
         fetch(`${ADMIN_PROXY}?path=admin/subscriptions`),
+        fetch(`${ADMIN_PROXY}?path=admin/category-distribution`),
       ]);
       setRevenue(await revenueRes.json());
       setSubs(await subsRes.json());
+      if (catRes2.ok) setCatDist(await catRes2.json());
       setAuthed(true);
       // 세션 유지 (새로고침 대응)
       try { localStorage.setItem("aeolab_admin_authed", "1"); } catch { /* ignore */ }
@@ -905,6 +917,39 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            )}
+
+            {/* 업종 그룹 분포 (P2-4) — AI 브리핑 ACTIVE/LIKELY/INACTIVE 비율 */}
+            {catDist && catDist.total > 0 && (
+              <div className="bg-white rounded-xl p-5 shadow-sm mt-6">
+                <h2 className="text-sm font-semibold text-gray-700 mb-1">업종 그룹 분포</h2>
+                <p className="text-xs text-gray-400 mb-4">
+                  AI 브리핑 게이팅 기준 · INACTIVE 비율이 높으면 해당 UX 개선 우선순위 ↑ (총 {catDist.total}개 사업장)
+                </p>
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  {([
+                    { key: "active", label: "ACTIVE", desc: "AI 브리핑 대상", color: "text-green-700", bg: "bg-green-50 border-green-200" },
+                    { key: "likely", label: "LIKELY", desc: "베타·확대 예정", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
+                    { key: "inactive", label: "INACTIVE", desc: "AI탭·글로벌 AI", color: "text-gray-600", bg: "bg-gray-50 border-gray-200" },
+                  ] as const).map(({ key, label, desc, color, bg }) => (
+                    <div key={key} className={`rounded-xl p-3 border ${bg}`}>
+                      <div className={`text-xs font-semibold ${color} mb-0.5`}>{label}</div>
+                      <div className={`text-xl font-bold ${color}`}>{catDist.ratios[key]}%</div>
+                      <div className="text-xs text-gray-500">{catDist.groups[key]}개 · {desc}</div>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-2">업종별 상세</p>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(catDist.per_category).slice(0, 20).map(([cat, cnt]) => (
+                      <span key={cat} className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2.5 py-1 text-xs">
+                        {cat} <span className="font-semibold text-gray-500">{cnt}</span>
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

@@ -928,6 +928,9 @@ def _find_lsi_cluster(target_keyword: str, category: str) -> list[str]:
     for cat_data in taxonomy.values():
         if not isinstance(cat_data, dict):
             continue
+        # in_ai_tab=False 카테고리(확장 풀·광고 전용)는 AI탭 콘텐츠 신호에서 제외
+        if not cat_data.get("in_ai_tab", True):
+            continue
         kws = cat_data.get("keywords") or []
         if not isinstance(kws, list):
             continue

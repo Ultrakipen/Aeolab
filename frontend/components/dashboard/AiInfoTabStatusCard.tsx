@@ -6,6 +6,10 @@ import { apiBase } from "@/lib/api";
 
 export type AiInfoTabStatus = "not_visible" | "off" | "on" | "disabled" | "unknown";
 
+// M3 사전 작업: Q2 광고 도입 감지 시 true로 변경 → 광고/자연 배지 즉시 활성화
+// 트리거: docs/remaining_tasks_v1.0.md §9-C 수동 모니터링 명령으로 광고 감지 후 변경
+const NAVER_AD_IN_BRIEFING_ACTIVE = false;
+
 interface Props {
   bizId: string;
   accessToken: string;
@@ -15,6 +19,8 @@ interface Props {
   aiTabEligibility?: "beta";
   explanation: string;
   onUpdated?: () => void;
+  /** 최근 스캔의 naver_result.ad_only — 광고 영역 노출 여부 (M3 사전 작업) */
+  adOnly?: boolean;
 }
 
 const STATUS_LABELS: Record<AiInfoTabStatus, { label: string; color: string; icon: string }> = {
@@ -33,6 +39,7 @@ export function AiInfoTabStatusCard({
   aiTabEligibility,
   explanation,
   onUpdated,
+  adOnly,
 }: Props) {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<AiInfoTabStatus>(currentStatus);
@@ -95,9 +102,25 @@ export function AiInfoTabStatusCard({
           <p className="text-sm text-gray-500 mb-1.5">
             스마트플레이스 &gt; <strong className="text-gray-700">&quot;AI 정보&quot; 탭</strong> 토글로 ON/OFF 변경
           </p>
-          <span className={`inline-block px-2 py-1 rounded border text-sm font-medium ${current.color}`}>
-            {current.label}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`inline-block px-2 py-1 rounded border text-sm font-medium ${current.color}`}>
+              {current.label}
+            </span>
+            {/* M3 광고/자연 구분 배지 — NAVER_AD_IN_BRIEFING_ACTIVE=true 시 노출 */}
+            {NAVER_AD_IN_BRIEFING_ACTIVE && adOnly !== undefined && (
+              adOnly ? (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded border text-sm font-medium bg-gray-100 border-gray-300 text-gray-600">
+                  <span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />
+                  광고 영역 (점수 0점)
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded border text-sm font-medium bg-green-50 border-green-300 text-green-700">
+                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                  자연 영역
+                </span>
+              )
+            )}
+          </div>
         </div>
       </div>
 

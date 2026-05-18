@@ -317,6 +317,7 @@ export default async function DashboardPage({
             gapCloseable={gapCloseable}
             recentActionType={actionLogs[0]?.action_type ?? null}
             recentScoreGain={scoreChangeDiff !== null && scoreChangeDiff > 0 ? scoreChangeDiff : null}
+            userCreatedAt={user.created_at ?? null}
           />
 
           <DashboardActionZone
@@ -348,6 +349,8 @@ export default async function DashboardPage({
             blogMentionCount={(latestScan?.naver_result as { blog_mentions?: number } | null | undefined)?.blog_mentions ?? 0}
             isFranchise={isFranchise}
             keywordCount={bizBase.keywords?.length ?? 0}
+            latestAdOnly={(latestScan?.naver_result as { ad_only?: boolean } | null | undefined)?.ad_only ?? false}
+            userCreatedAt={user.created_at ?? null}
           />
 
           <DashboardGeneratorZone

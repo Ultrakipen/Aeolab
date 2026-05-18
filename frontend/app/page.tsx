@@ -525,7 +525,7 @@ export default async function LandingPage() {
           >
             <p className="text-sm md:text-base font-bold leading-relaxed break-keep text-center" style={{ color: "#92400E" }}>
               AI 브리핑은 이미 <span style={{ color: "#B45309" }}>네이버 검색 5건 중 1건</span> (2025-12 약 20% · 미디어 보도 기준).
-              {" "}<span style={{ color: "#B45309" }}>2026 Q2 광고화 예정</span> — 자연 노출 자리 선점이 유리한 시점입니다.
+              {" "}<span style={{ color: "#B45309" }}>2026 Q2 광고화 시작</span> — 자연 노출 자리 선점이 <strong>마지막 기회</strong>입니다.
             </p>
             <p className="text-sm mt-2 break-keep text-center" style={{ color: "#A16207" }}>
               출처: 네이트 2025-12 · Daum 2026-04-30 미디어 보도 · 네이버 공식 발표 아님 · 시점·기기에 따라 달라질 수 있음

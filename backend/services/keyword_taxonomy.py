@@ -268,6 +268,7 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             ],
             "weight": 0.0,
             "condition_search_example": "창원 삼겹살 맛집",
+            "in_ai_tab": False,
         },
     },
 
@@ -321,6 +322,7 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             ],
             "weight": 0.0,
             "condition_search_example": "강남 파마 미용실",
+            "in_ai_tab": False,
         },
     },
 
@@ -370,6 +372,7 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             ],
             "weight": 0.0,
             "condition_search_example": "강남 피부과 의원",
+            "in_ai_tab": False,
         },
     },
 
@@ -418,6 +421,7 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             ],
             "weight": 0.0,
             "condition_search_example": "강남 수학 학원",
+            "in_ai_tab": False,
         },
     },
 
@@ -524,6 +528,7 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             "keywords": ["최저가 보장", "정기 구독 할인", "대량 구매 할인", "포인트 적립"],
             "weight": 0.20,
             "condition_search_example": "",
+            "ad_only": True,
         },
         "신뢰AS": {
             "keywords": ["교환 환불 쉬움", "CS 빠른 응대", "인증 획득", "리뷰 많음"],
@@ -583,6 +588,7 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             ],
             "weight": 0.0,
             "condition_search_example": "연남동 스페셜티 카페",
+            "in_ai_tab": False,
         },
         # bakery는 cafe taxonomy로 매핑됨 (_CATEGORY_ALIASES 참조)
         "베이커리종류": {
@@ -592,6 +598,7 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             ],
             "weight": 0.0,
             "condition_search_example": "마포 소금빵 베이커리",
+            "in_ai_tab": False,
         },
     },
 
@@ -2353,18 +2360,43 @@ def get_industry_keywords(category: str) -> dict[str, KeywordCategory]:
 def get_category_flags(category: str, cat_key: str) -> dict[str, bool]:
     """카테고리 단위 전역 플래그 조회 (P2-1 신설).
 
-    in_ai_tab: 이 카테고리 키워드가 AI탭 답변 생성 신호로 활용 가능 (기본 True)
+    in_ai_tab: 이 카테고리 키워드가 AI탭 답변 생성 신호로 활용 가능
+      - 명시값 우선, 없으면 자동 규칙:
+        weight=0.0 → False (키워드 풀·갭 분석 전용, 점수 미반영 → AI탭 신호 아님)
+        그 외 → True
     ad_only: 이 키워드는 광고 영역에서 주로 노출 — 유기 점수에서 제외 (기본 False)
 
     naver_scanner 실측 결과(`in_ai_tab`/`ad_only`)와 교차 검증해 점수·UI 분기 정합성 확보.
-    카테고리 항목이 명시값을 갖지 않으면 기본값 반환 — 점진적 명시 가능.
     """
     industry = get_industry_keywords(category)
     cat_data = industry.get(cat_key, {})
+    if "in_ai_tab" in cat_data:
+        in_ai_tab = bool(cat_data["in_ai_tab"])
+    elif cat_data.get("weight", 1.0) == 0.0:
+        # weight=0.0 카테고리 = 키워드 확장 풀, 점수 미반영 → AI탭 신호 제외
+        in_ai_tab = False
+    else:
+        in_ai_tab = True
     return {
-        "in_ai_tab": bool(cat_data.get("in_ai_tab", True)),
+        "in_ai_tab": in_ai_tab,
         "ad_only": bool(cat_data.get("ad_only", False)),
     }
+
+
+def get_ai_tab_eligible_keywords(category: str) -> list[str]:
+    """AI탭 답변 신호로 활용 가능한 키워드만 반환 (in_ai_tab=True 카테고리).
+
+    briefing_engine·naver_scanner 교차 검증에 사용.
+    """
+    industry = get_industry_keywords(category)
+    result: list[str] = []
+    for cat_key, cat_data in industry.items():
+        if not isinstance(cat_data, dict):
+            continue
+        flags = get_category_flags(category, cat_key)
+        if flags["in_ai_tab"] and not flags["ad_only"]:
+            result.extend(cat_data.get("keywords") or [])
+    return result
 
 
 def get_all_keywords_flat(category: str) -> list[str]:

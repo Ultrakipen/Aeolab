@@ -163,6 +163,12 @@ class NaverAIBriefingScanner:
             # ── 광고 영역 감지 ───────────────────────────────────
             if in_briefing:
                 ad_only = await _detect_ad_briefing(page)
+                if ad_only:
+                    logger.debug(
+                        "[P2-1 ad_only] DOM 감지: ad_only=True (query=%r) — "
+                        "taxonomy get_category_flags()로 업종별 사전 분류와 교차 검증 가능",
+                        query,
+                    )
 
             # ── 플레이스 결과 순위 확인 ──────────────────────────
             for sel in PLACE_SELECTORS:
