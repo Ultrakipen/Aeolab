@@ -24,6 +24,7 @@ import { Search, ChevronLeft, Loader2 } from 'lucide-react'
 import BusinessSearchDropdown, { mapKakaoCategory } from '@/components/dashboard/BusinessSearchDropdown'
 import type { BusinessSearchResult } from '@/types'
 import { getBriefingEligibility } from '@/lib/userGroup'
+import ChannelDifferentiationCard from '@/components/common/ChannelDifferentiationCard'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -448,7 +449,17 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           )
         })()}
         {/* 업종별 AI 브리핑 안내 (프랜차이즈 여부 반영) */}
-        {getBriefingEligibility(selectedCategory, isFranchise) !== "active" && (
+        {/* 채널 분기 안내 — 업종 선택 직후 실시간 갱신 */}
+        {selectedCategory && (
+          <div className="mb-4">
+            <ChannelDifferentiationCard
+              category={selectedCategory}
+              isFranchise={isFranchise}
+              variant="compact"
+            />
+          </div>
+        )}
+        {!selectedCategory && getBriefingEligibility(selectedCategory, isFranchise) !== "active" && (
           <div className={`p-3 md:p-4 rounded-xl mb-4 ${
             getBriefingEligibility(selectedCategory, isFranchise) === "inactive"
               ? "bg-amber-50 border border-amber-200"

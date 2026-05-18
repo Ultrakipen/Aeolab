@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { GuideClient } from './GuideClient'
 import { NoBusiness } from '@/components/dashboard/NoBusiness'
-import { Lightbulb, Bot, ListChecks, RefreshCw, CheckSquare, Lock } from 'lucide-react'
+import { Lightbulb, Bot, ListChecks, RefreshCw, CheckSquare, Lock, Sparkles, FileSearch } from 'lucide-react'
 import { getActiveBusinessId } from '@/lib/active-business'
+import { getBriefingEligibility } from '@/lib/userGroup'
 
 export default async function GuidePage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const supabase = await createClient()
@@ -129,12 +131,79 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
     )
   }
 
+  // 두 노출 경로 가이드 진입점 분기 — AI 브리핑(업종 제한) vs AI탭(모든 업종)
+  const briefingElig = getBriefingEligibility(business.category, !!business.is_franchise)
+  const briefingActive = briefingElig === 'active' && !business.is_franchise
+  const briefingLikely = briefingElig === 'likely' && !business.is_franchise
+
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
       <div className="mb-6 md:mb-8">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 개선 가이드</h1>
         <p className="text-gray-500 text-sm mt-1 leading-relaxed">스캔 결과를 바탕으로 AI가 분석한 <strong>지금 당장 실천 가능한</strong> 개선 방법을 알려드립니다.</p>
       </div>
+
+      {/* 네이버 두 노출 경로 가이드 진입점 — AI 브리핑 vs AI탭 명확 분리 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
+        {/* AI 브리핑 가이드 */}
+        <Link
+          href={`/guide/ai-info-tab?biz_id=${business.id}`}
+          className={`group rounded-xl border p-4 md:p-5 transition-all hover:shadow-md ${
+            briefingActive
+              ? 'bg-blue-50 border-blue-300 hover:border-blue-500'
+              : briefingLikely
+              ? 'bg-blue-50 border-blue-200 hover:border-blue-400'
+              : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <FileSearch className="w-5 h-5 text-blue-600" />
+              <span className="text-base md:text-lg font-bold text-blue-900">네이버 AI 브리핑 가이드</span>
+            </div>
+            {briefingActive && (
+              <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5 text-xs font-bold">
+                내 업종 대상
+              </span>
+            )}
+            {briefingLikely && (
+              <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-xs font-semibold">
+                확대 예정
+              </span>
+            )}
+            {!briefingActive && !briefingLikely && (
+              <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-xs font-semibold">
+                비대상
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
+            검색결과 상단 AI 자동 추천 박스. 음식점·카페·숙박업 등 ACTIVE 업종 대상.
+          </p>
+          <p className="text-sm font-semibold text-blue-700 group-hover:underline">5단계 설정 가이드 →</p>
+        </Link>
+
+        {/* AI탭 가이드 */}
+        <Link
+          href={`/guide/ai-tab?biz_id=${business.id}`}
+          className="group rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5 transition-all hover:shadow-md hover:border-indigo-400"
+        >
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-indigo-600" />
+              <span className="text-base md:text-lg font-bold text-indigo-900">네이버 AI탭 가이드</span>
+            </div>
+            <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-xs font-bold">
+              모든 업종 Beta
+            </span>
+          </div>
+          <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
+            검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-27 베타, 업종 제한 없음.
+          </p>
+          <p className="text-sm font-semibold text-indigo-700 group-hover:underline">5항목 설정 가이드 →</p>
+        </Link>
+      </div>
+
       {businesses && businesses.length > 1 && (
         <div className="flex items-center gap-2 mt-2 md:mt-4 pt-4 md:pt-6 border-t border-gray-200 mb-8 md:mb-10 overflow-x-auto pb-1">
           {businesses.map(b => (

@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/server";
 import { LandingLogout } from "./LandingLogout";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import LandingScrollAnimation from "@/components/landing/LandingScrollAnimation";
+import ChannelDifferentiationCard from "@/components/common/ChannelDifferentiationCard";
 
 const FLOAT_SHADOW = "var(--aeo-shadow-float)";
 
@@ -116,6 +117,13 @@ export default async function LandingPage() {
 
       {/* ── 1. HERO ── */}
       <HeroSection />
+
+      {/* ── 1-A. CHANNEL DIFFERENTIATION — 이탈 방지 (비로그인 방문자) ── */}
+      <section className="px-4 py-8 md:py-12" style={{ background: "#FFFFFF", borderBottom: "1px solid #E2E8F0" }}>
+        <div className="max-w-[1020px] mx-auto">
+          <ChannelDifferentiationCard variant="landing" />
+        </div>
+      </section>
 
       {/* ── 1-B. INLINE KEYWORD WIDGET — 가입 없이 즉시 체험 ── */}
       <InlineKeywordWidget />
@@ -345,7 +353,7 @@ export default async function LandingPage() {
               {[
                 { num: "3,000만+", label: "AI 브리핑을 본 사람", sub: "네이버 공식 발표 2025-2026", delay: "delay-1" },
                 { num: "15,000+", label: "네이버 AI 브리핑 적용 숙박업체", sub: "2026년 기준 · 네이버 공식 발표", delay: "delay-2" },
-                { num: "25종", label: "지원 업종 수", sub: "음식점부터 전문직까지", delay: "delay-3" },
+                { num: "25종+", label: "모든 업종 측정 가능", sub: "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기", delay: "delay-3" },
               ].map((item) => (
                 <div
                   key={item.label}
@@ -482,6 +490,128 @@ export default async function LandingPage() {
 
           <p className="text-center text-sm fade-up break-keep" style={{ color: "#64748B" }}>
             음식점·카페·베이커리·바·숙박업 등 네이버 AI 브리핑 대상 업종 기준 · 그 외 업종은 ChatGPT·Gemini·Google AI 노출 진단 제공
+          </p>
+          <p className="text-center text-sm mt-2 fade-up break-keep" style={{ color: "#94A3B8" }}>
+            AI 브리핑 노출은 네이버 알고리즘 기준으로 보장되지 않으며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+          </p>
+        </div>
+      </section>
+
+      {/* ── 4-B. AI탭 — 모든 업종 가능 (#FFFFFF) ──
+            AI 브리핑(§4)이 업종 제한이 있어 비대상 업종 방문자가 이탈하는 문제를 보완하는 섹션.
+            네이버 AI 브리핑과 네이버 AI탭은 다른 노출 경로임을 명확히 안내. */}
+      <section className="px-4 py-12 md:py-16" style={{ background: "#FFFFFF" }}>
+        <div className="max-w-[1020px] mx-auto">
+          <div className="text-center mb-6 md:mb-8 fade-up">
+            <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#6366F1" }}>
+              네이버 AI탭 (검색결과 새 탭)
+            </p>
+            <h2
+              className="text-2xl md:text-3xl font-black tracking-tight break-keep"
+              style={{ color: "#0F172A", letterSpacing: "-0.6px" }}
+            >
+              모든 업종 노출 가능 — AI 브리핑과 다른 경로
+            </h2>
+            <p className="text-sm mt-2 break-keep max-w-2xl mx-auto" style={{ color: "#475569" }}>
+              2026-04-27 베타 출시 · 네이버플러스 구독자 우선 · 상반기 전체 확대 예정 ·{" "}
+              <strong style={{ color: "#0F172A" }}>업종·프랜차이즈 제한 없음</strong>
+            </p>
+          </div>
+
+          {/* 침투율·광고화 시의성 카피 — 자연 노출 선점 동기 부여 (출처: 네이트 2025-12, Daum 2026-04-30) */}
+          <div
+            className="rounded-xl p-4 md:p-5 border mb-6 fade-up"
+            style={{ borderColor: "#FCD34D", background: "#FFFBEB" }}
+          >
+            <p className="text-sm md:text-base font-bold leading-relaxed break-keep text-center" style={{ color: "#92400E" }}>
+              AI 브리핑은 이미 <span style={{ color: "#B45309" }}>네이버 검색 5건 중 1건</span> (2025-12 약 20% · 미디어 보도 기준).
+              {" "}<span style={{ color: "#B45309" }}>2026 Q2 광고화 예정</span> — 자연 노출 자리 선점이 유리한 시점입니다.
+            </p>
+            <p className="text-sm mt-2 break-keep text-center" style={{ color: "#A16207" }}>
+              출처: 네이트 2025-12 · Daum 2026-04-30 미디어 보도 · 네이버 공식 발표 아님 · 시점·기기에 따라 달라질 수 있음
+            </p>
+          </div>
+
+          {/* AI 브리핑 vs AI탭 비교 표 — 데스크톱 2-컬럼, 모바일 세로 적층 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
+            {/* 좌측: AI 브리핑 */}
+            <div
+              className="rounded-xl p-5 md:p-6 border fade-up"
+              style={{ borderColor: "#BFDBFE", background: "#EFF6FF", boxShadow: FLOAT_SHADOW }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span
+                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-sm font-black"
+                  style={{ background: "#2563EB", color: "#fff" }}
+                  aria-hidden="true"
+                >
+                  A
+                </span>
+                <h3 className="text-base md:text-lg font-bold" style={{ color: "#1E40AF" }}>
+                  네이버 AI 브리핑
+                </h3>
+              </div>
+              <p className="text-sm font-semibold mb-1" style={{ color: "#1E40AF" }}>
+                검색 결과 상단 AI 자동 추천 박스
+              </p>
+              <ul className="space-y-1.5 text-sm leading-relaxed" style={{ color: "#475569" }}>
+                <li>• 음식점·카페·베이커리·바·숙박 (확대 중)</li>
+                <li>• 프랜차이즈 가맹점 제외 (네이버 공식)</li>
+                <li>• 핵심: C-rank·D.I.A.·리뷰 10건+·소식·소개글</li>
+                <li>• 2025.08 정식 출시</li>
+              </ul>
+            </div>
+
+            {/* 우측: AI탭 */}
+            <div
+              className="rounded-xl p-5 md:p-6 border fade-up"
+              style={{ borderColor: "#C7D2FE", background: "#EEF2FF", boxShadow: FLOAT_SHADOW }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span
+                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-sm font-black"
+                  style={{ background: "#6366F1", color: "#fff" }}
+                  aria-hidden="true"
+                >
+                  T
+                </span>
+                <h3 className="text-base md:text-lg font-bold" style={{ color: "#4338CA" }}>
+                  네이버 AI탭
+                </h3>
+                <span
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold"
+                  style={{ background: "#6366F1", color: "#fff" }}
+                >
+                  Beta
+                </span>
+              </div>
+              <p className="text-sm font-semibold mb-1" style={{ color: "#4338CA" }}>
+                검색 결과 상단 &quot;AI&quot; 탭 메뉴
+              </p>
+              <ul className="space-y-1.5 text-sm leading-relaxed" style={{ color: "#475569" }}>
+                <li>• <strong>모든 업종 노출 가능</strong> (프랜차이즈 포함)</li>
+                <li>• 네이버플러스 구독자 우선 베타</li>
+                <li>• 핵심: 소개글 200자·사진 10장·예약 연동·블로그 UGC</li>
+                <li>• 2026-04-27 베타 → 상반기 전체 확대 예정</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* 안내 박스: AEOlab은 두 경로 모두 측정·가이드 */}
+          <div
+            className="rounded-xl p-4 md:p-5 border text-center fade-up"
+            style={{ borderColor: "#E2E8F0", background: "#F8FAFC" }}
+          >
+            <p className="text-sm md:text-base font-bold mb-1" style={{ color: "#0F172A" }}>
+              AEOlab은 두 경로를 모두 자동 측정합니다
+            </p>
+            <p className="text-sm break-keep" style={{ color: "#475569" }}>
+              내 업종이 AI 브리핑 대상이면 5단계 가이드 · 비대상이면 AI탭 + ChatGPT·Gemini 가이드를 자동으로 분기합니다.
+            </p>
+          </div>
+
+          <p className="text-center text-sm mt-4 fade-up break-keep" style={{ color: "#94A3B8" }}>
+            AI 브리핑·AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
           </p>
         </div>
       </section>

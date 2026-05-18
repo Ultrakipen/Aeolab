@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Header
 from db.supabase_client import get_client, execute
 from config.prices import PLAN_PRICE_MAP
+from services.score_engine import BRIEFING_ACTIVE_CATEGORIES, BRIEFING_LIKELY_CATEGORIES
 
 _logger = logging.getLogger("aeolab")
 
@@ -134,6 +135,48 @@ async def get_revenue(_=Depends(verify_admin)):
         {"month": m, "revenue": v["revenue"], "subscriber_count": v["subscriber_count"]}
         for m, v in sorted(monthly.items())[-12:]
     ]
+
+
+@router.get("/category-distribution")
+async def get_category_distribution(_=Depends(verify_admin)):
+    """가입자 사업장의 ACTIVE/LIKELY/INACTIVE 업종 그룹 분포 (P2-4 신설).
+
+    AI 브리핑 게이팅 기준(score_engine.BRIEFING_ACTIVE/LIKELY_CATEGORIES)으로 분류해
+    INACTIVE 비율이 큰 경우 UX 우선순위 조정의 근거로 사용.
+    """
+    supabase = get_supabase()
+    rows = (
+        await execute(
+            supabase.table("businesses").select("id, category")
+        )
+    ).data or []
+
+    ACTIVE = set(BRIEFING_ACTIVE_CATEGORIES)
+    LIKELY = set(BRIEFING_LIKELY_CATEGORIES)
+
+    groups: dict[str, int] = {"active": 0, "likely": 0, "inactive": 0}
+    per_category: dict[str, int] = {}
+    for r in rows:
+        cat = (r.get("category") or "").lower().strip()
+        per_category[cat] = per_category.get(cat, 0) + 1
+        if cat in ACTIVE:
+            groups["active"] += 1
+        elif cat in LIKELY:
+            groups["likely"] += 1
+        else:
+            groups["inactive"] += 1
+
+    total = len(rows)
+    return {
+        "total": total,
+        "groups": groups,
+        "ratios": {
+            "active": round(groups["active"] / total * 100, 1) if total else 0,
+            "likely": round(groups["likely"] / total * 100, 1) if total else 0,
+            "inactive": round(groups["inactive"] / total * 100, 1) if total else 0,
+        },
+        "per_category": dict(sorted(per_category.items(), key=lambda x: -x[1])),
+    }
 
 
 @router.get("/scan-logs")

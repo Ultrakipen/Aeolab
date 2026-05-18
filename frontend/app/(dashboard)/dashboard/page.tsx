@@ -346,6 +346,8 @@ export default async function DashboardPage({
             websiteUrl={bizBase.website_url}
             websiteCheckResult={websiteCheckResult}
             blogMentionCount={(latestScan?.naver_result as { blog_mentions?: number } | null | undefined)?.blog_mentions ?? 0}
+            isFranchise={isFranchise}
+            keywordCount={bizBase.keywords?.length ?? 0}
           />
 
           <DashboardGeneratorZone

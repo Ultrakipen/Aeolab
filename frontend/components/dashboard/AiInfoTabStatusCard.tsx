@@ -89,9 +89,12 @@ export function AiInfoTabStatusCard({
       <div className="flex items-start gap-3 mb-4">
         <span className="text-2xl" aria-hidden="true">{current.icon}</span>
         <div className="flex-1">
-          <h3 className="text-base md:text-lg font-bold text-gray-900 mb-1">
-            AI 정보 탭 상태 확인
+          <h3 className="text-base md:text-lg font-bold text-gray-900 mb-0.5">
+            네이버 AI 브리핑 노출 설정
           </h3>
+          <p className="text-sm text-gray-500 mb-1.5">
+            스마트플레이스 &gt; <strong className="text-gray-700">&quot;AI 정보&quot; 탭</strong> 토글로 ON/OFF 변경
+          </p>
           <span className={`inline-block px-2 py-1 rounded border text-sm font-medium ${current.color}`}>
             {current.label}
           </span>

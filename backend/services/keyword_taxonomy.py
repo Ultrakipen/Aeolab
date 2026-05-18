@@ -10,10 +10,18 @@
 from typing import TypedDict
 
 
-class KeywordCategory(TypedDict):
+class _KeywordCategoryRequired(TypedDict):
     keywords: list[str]
     weight: float
     condition_search_example: str
+
+
+class KeywordCategory(_KeywordCategoryRequired, total=False):
+    # 전역 플래그 (M1·P2-1 신설, 옵셔널 — 미명시 시 기본값 사용)
+    # in_ai_tab=True(기본): 이 카테고리 키워드가 AI탭 답변 생성 신호로 활용 가능
+    # ad_only=True: 이 키워드는 광고 영역에서 주로 노출 — 유기 점수에서 제외 필요
+    in_ai_tab: bool
+    ad_only: bool
 
 
 # DB 카테고리 값 → taxonomy 키 정규화
@@ -2340,6 +2348,23 @@ def get_industry_keywords(category: str) -> dict[str, KeywordCategory]:
     """업종별 키워드 분류 사전 반환"""
     key = normalize_category(category)
     return KEYWORD_TAXONOMY.get(key, KEYWORD_TAXONOMY["restaurant"])
+
+
+def get_category_flags(category: str, cat_key: str) -> dict[str, bool]:
+    """카테고리 단위 전역 플래그 조회 (P2-1 신설).
+
+    in_ai_tab: 이 카테고리 키워드가 AI탭 답변 생성 신호로 활용 가능 (기본 True)
+    ad_only: 이 키워드는 광고 영역에서 주로 노출 — 유기 점수에서 제외 (기본 False)
+
+    naver_scanner 실측 결과(`in_ai_tab`/`ad_only`)와 교차 검증해 점수·UI 분기 정합성 확보.
+    카테고리 항목이 명시값을 갖지 않으면 기본값 반환 — 점진적 명시 가능.
+    """
+    industry = get_industry_keywords(category)
+    cat_data = industry.get(cat_key, {})
+    return {
+        "in_ai_tab": bool(cat_data.get("in_ai_tab", True)),
+        "ad_only": bool(cat_data.get("ad_only", False)),
+    }
 
 
 def get_all_keywords_flat(category: str) -> list[str]:

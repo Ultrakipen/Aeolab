@@ -30,13 +30,15 @@ interface Props {
   category: string;
   /** blog_analyzer.py에서 오는 블로그 발견 수 (AI탭 UGC 신호) */
   blogMentionCount?: number;
+  /** businesses.keywords 길이 — 0이면 키워드 등록 유도 분기 노출 */
+  keywordCount?: number;
 }
 
 function isUnavailable(res: ApiResponse): res is AiTabPreviewUnavailable {
   return (res as AiTabPreviewUnavailable).available === false;
 }
 
-export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, blogMentionCount }: Props) {
+export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, blogMentionCount, keywordCount }: Props) {
   const [data, setData] = useState<AiTabPreviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
@@ -114,31 +116,36 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
       className="mb-4 md:mb-6 rounded-xl border border-blue-200 bg-white shadow-sm overflow-hidden"
     >
       {/* 헤더 */}
-      <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-4 border-b border-blue-100 bg-blue-50">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-blue-600 shrink-0" />
-          <h2
-            id="ai-tab-preview-title"
-            className="text-base md:text-lg font-bold text-blue-900 break-keep"
-          >
-            AI탭 답변 미리보기
-          </h2>
-          {data?.eligibility === "likely" ? (
-            <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-sm font-semibold">
-              확대 예정
-            </span>
-          ) : (
-            <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-sm font-semibold">
-              Beta
-            </span>
+      <div className="px-4 py-3 md:px-6 md:py-4 border-b border-blue-100 bg-blue-50">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-blue-600 shrink-0" />
+            <h2
+              id="ai-tab-preview-title"
+              className="text-base md:text-lg font-bold text-blue-900 break-keep"
+            >
+              네이버 AI탭 답변 미리보기
+            </h2>
+            {data?.eligibility === "likely" ? (
+              <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-sm font-semibold">
+                확대 예정
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-sm font-semibold">
+                Beta
+              </span>
+            )}
+          </div>
+          {isFree && (
+            <div className="flex items-center gap-1 text-sm text-gray-500 shrink-0">
+              <Lock className="w-4 h-4" />
+              <span className="hidden sm:inline">Basic 이상</span>
+            </div>
           )}
         </div>
-        {isFree && (
-          <div className="flex items-center gap-1 text-sm text-gray-500 shrink-0">
-            <Lock className="w-4 h-4" />
-            <span className="hidden sm:inline">Basic 이상</span>
-          </div>
-        )}
+        <p className="mt-1 text-xs md:text-sm text-blue-700/80 leading-snug break-keep">
+          네이버 검색결과 상단 &quot;AI&quot; 탭 (2026-04-27 베타 · <strong>모든 업종 노출 가능</strong>) — AI 브리핑과는 다른 노출 경로입니다.
+        </p>
       </div>
 
       {/* 본문 */}
@@ -302,8 +309,27 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 </div>
               )}
 
+              {/* 사용자 키워드 미등록 분기 — matched=0 + keywordCount=0 시 우선 노출 */}
+              {data.matched_contexts.length === 0 && keywordCount === 0 && (
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-3">
+                  <p className="text-sm font-semibold text-amber-800 flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    키워드 미등록 — 정확한 AI탭 시뮬레이션 위해 등록 필요
+                  </p>
+                  <p className="text-sm text-amber-700 mt-1 leading-snug break-keep">
+                    사업장 핵심 키워드 3~5개를 등록하면 AI탭 답변 추정이 정확해집니다.
+                  </p>
+                  <Link
+                    href="/settings"
+                    className="mt-2 inline-flex items-center text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors"
+                  >
+                    키워드 등록하러 가기 →
+                  </Link>
+                </div>
+              )}
+
               {/* matched·missing 모두 빈 경우 폴백 — taxonomy ai_tab_context 미보유 업종 보호 */}
-              {data.matched_contexts.length === 0 && data.missing_contexts.length === 0 && (
+              {data.matched_contexts.length === 0 && data.missing_contexts.length === 0 && (keywordCount === undefined || keywordCount > 0) && (
                 <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
                   <p className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4 text-blue-400 shrink-0" />

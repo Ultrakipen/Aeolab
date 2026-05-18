@@ -36,6 +36,16 @@ import {
   ClipboardList,
 } from "lucide-react";
 import type { ScanResult } from "@/types";
+import ChannelDifferentiationCard from "@/components/common/ChannelDifferentiationCard";
+import { getUserGroup } from "@/lib/userGroup";
+
+// ── 업종별 Track1 레이블 헬퍼 ───────────────────────────────────────
+function getTrack1Label(category: string, isFranchise: boolean): string {
+  const group = getUserGroup(category, isFranchise);
+  if (group === "ACTIVE") return "네이버 AI 검색 준비도 (AI브리핑·AI탭 통합)";
+  if (group === "LIKELY") return "네이버 AI 검색 준비도 (AI탭 중심, AI브리핑 확대 예정)";
+  return "네이버 AI 탭 준비도";
+}
 
 // ── 플랜 메타데이터 ──────────────────────────────────────────────
 const PLAN_RANK: Record<string, number> = {
@@ -614,7 +624,7 @@ function BasicTab({
           </div>
         </div>
         <ScoreBarDemo
-          label="네이버 AI 브리핑 점수"
+          label={getTrack1Label(industry, false)}
           score={Math.round(track1)}
           color="bg-green-500"
           weight={naverWeight}
@@ -1622,6 +1632,15 @@ export default function PreviewClient({ currentPlan, businessData, latestScan }:
           ))}
         </select>
         <span className="text-sm text-gray-400 shrink-0 hidden sm:block">선택하면 미리보기가 바뀝니다</span>
+      </div>
+
+      {/* 채널 분기 안내 — 업종별 "0채널 없음" 이탈 방지 */}
+      <div className="mb-4">
+        <ChannelDifferentiationCard
+          category={industry}
+          isFranchise={false}
+          variant="preview"
+        />
       </div>
 
       {/* 탭 네비게이션 */}

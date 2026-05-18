@@ -1,5 +1,6 @@
 import { AiInfoTabStatusCard } from "@/components/dashboard/AiInfoTabStatusCard";
 import AiTabPreviewCard from "@/components/dashboard/AiTabPreviewCard";
+import NaverAiPathwayCard from "@/components/dashboard/NaverAiPathwayCard";
 import PhotoCategoryCard from "@/components/dashboard/PhotoCategoryCard";
 import ReviewKeywordGapCard from "@/components/dashboard/ReviewKeywordGapCard";
 import SchemaCheckCard from "@/components/dashboard/SchemaCheckCard";
@@ -32,6 +33,10 @@ interface Props {
   websiteCheckResult?: WebsiteCheckResult | null;
   /** blog_analyzer.py에서 파생된 블로그 발견 수 (naver_result.blog_mentions) */
   blogMentionCount?: number;
+  /** 프랜차이즈 가맹점 여부 — AI 브리핑 제외 안내용 */
+  isFranchise?: boolean;
+  /** businesses.keywords 길이 — AI탭 시뮬레이션 0개 분기용 */
+  keywordCount?: number;
 }
 
 export default function DashboardInsightZone({
@@ -47,11 +52,21 @@ export default function DashboardInsightZone({
   websiteUrl,
   websiteCheckResult,
   blogMentionCount,
+  isFranchise,
+  keywordCount,
 }: Props) {
   const isPhotoSupported = PHOTO_SUPPORTED_CATEGORIES.includes(category);
 
   return (
     <>
+      {/* 네이버 AI 검색 두 경로 비교 — AI 브리핑 vs AI탭 (사용자 노출 화면 명확 구분) */}
+      {briefingMeta && (
+        <NaverAiPathwayCard
+          briefingEligibility={briefingMeta.eligibility}
+          isFranchise={isFranchise}
+        />
+      )}
+
       {/* AI 브리핑 노출 설정 (모든 업종 — AI탭은 업종 무관 beta 노출 가능) */}
       {accessToken && briefingMeta && (
         <AiInfoTabStatusCard
@@ -70,6 +85,7 @@ export default function DashboardInsightZone({
         subscriptionPlan={subscriptionPlan}
         category={category}
         blogMentionCount={blogMentionCount}
+        keywordCount={keywordCount}
       />
 
       {/* 스마트플레이스 사진 카테고리 현황 */}

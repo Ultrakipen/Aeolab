@@ -5,6 +5,7 @@ import { BizContactButton } from "./BizContactButton";
 import PlanRecommender from "./PlanRecommender";
 import GroupHeadlineBanner from "./GroupHeadlineBanner";
 import { PLANS } from "@/lib/plans";
+import ChannelDifferentiationCard from "@/components/common/ChannelDifferentiationCard";
 
 export default function PricingPage() {
   return (
@@ -169,6 +170,14 @@ export default function PricingPage() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* ─── 채널 분기 안내 ─── */}
+        <div className="mb-8">
+          <p className="text-center text-sm font-semibold text-gray-600 mb-4">
+            어떤 요금제든 당신의 업종에 맞는 채널을 측정합니다.
+          </p>
+          <ChannelDifferentiationCard variant="compact" />
         </div>
 
         {/* ─── 플랜 기능 비교표 ─── */}

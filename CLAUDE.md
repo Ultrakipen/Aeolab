@@ -41,6 +41,15 @@
 - **잠재 root flat 잔재 점검** — 서버에 같은 이름의 파일이 여러 위치에 존재할 수 있음(`backend/<file>.py` vs `backend/routers/<file>.py` 등). `main.py`의 `from routers import ...` `from scheduler import ...` import 경로가 정답이며, 그 경로의 파일이 실제로 수정됐는지 우선 확인.
 - **거짓 보고 발견 시** — 즉시 메인 세션에서 직접 수정. 에이전트 재위임 금지. 향후 동일 패턴 작업도 직접 처리 우선.
 
+### 문제 분류 검증 의무 (2026-05-18 신설)
+
+> 2026-05-18 P0/P1 분류에서 옛 주석·부분 grep 결과만으로 단정한 **오판 3건** 발생 (라우터 차단 의심·taxonomy 누락 의심·PlanGate 영문 키 누락 의심). 모두 반증 시도로 막을 수 있었음.
+
+- **"P0/P1 문제다"라고 보고하기 직전**, 메인 세션이 **단정 근거 라인 + 반증 시도 라인** 각 1개 이상을 직접 본 적이 있어야 함
+- **반증 시도** — 호출처 grep / 실제 반환값 Read / 옛 주석 vs 실제 코드 일치 / 전체 grep 카운트 — 중 최소 1개
+- **보고 형식** — "P1 — [근거 file:line, 반증 file:line] 문제 확인"
+- **적용 대상** — 메인 세션 자체 분석 + 에이전트 보고 양쪽 모두. 단정 근거만으로 P0/P1 분류 금지.
+
 ---
 
 ## 토큰 효율 작업 지침 (Claude Max 5x — $100/월)
@@ -518,6 +527,20 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
+### 2026-05-18 — 네이버 AI 브리핑 vs AI탭 명확 구분 (P0+P1)
+> 명세 → `docs/ai_briefing_vs_ai_tab_clarification_v1.0.md`
+- **문제**: 백엔드는 `get_briefing_eligibility` / `get_ai_tab_eligibility` 분리됐으나 사용자 노출 화면에서 두 개념 혼재 → 비대상 업종 방문자 "내 업종은 안 됨" 오해 이탈
+- **변경 9건 (frontend-only, backend·DB 무변경)**:
+  - 랜딩 §4-B 신규: "AI탭은 모든 업종 가능 (2026-04-27 베타)" 2-컬럼 비교 표 (`page.tsx:500~`)
+  - 대시보드 신규 카드: `NaverAiPathwayCard.tsx` AI 브리핑 vs AI탭 비교 + 자기 업종 자동 배지 (DashboardInsightZone 상단)
+  - `AiInfoTabStatusCard` 제목 명시: "AI 정보 탭 상태 확인" → **"네이버 AI 브리핑 노출 설정"** + 부제 (스마트플레이스 메뉴명 구분)
+  - `AiTabPreviewCard` 헤더 부제: "네이버 AI탭 답변 미리보기" + "검색결과 AI탭·베타·모든 업종"
+  - **신규 페이지** `/guide/ai-tab`: AI탭 5항목 가이드 (소개글·사진·예약·리뷰·블로그 UGC). 모든 업종 대상
+  - `/guide/ai-info-tab` 상단: AI 브리핑 분기 안내 박스 + AI탭 가이드 링크
+  - `/guide` 허브: 두 가이드 진입점 카드 명확 분리 (AI 브리핑·AI탭) + 자기 업종 배지
+- **용어 표준**: "AI탭"(검색결과 화면) ≠ "AI 정보 탭"(스마트플레이스 내부 토글 메뉴) 명확 구분 적용
+- 검증: SSH grep 6개 핵심 라인 메인 세션 직접 확인. PM2 both online
+
 ### 2026-05-18 — P2 버그 수정 + 랜딩 대행 서비스 섹션 신규
 - **P2 버그**: `competitor_place_crawler.py` 12개 + `naver_place_stats.py` 4개 `except Exception: pass` → `logger.warning()` 교체. SSH 직접 검증: 두 파일 `except Exception:$` 0건
 - **랜딩 대행 서비스 섹션**: `AgencyServiceSection.tsx` 신규 생성 + `page.tsx` §8-B FREE TOOLS 직후 삽입. 패키지 3종(49,000/79,000/119,000원) 정적 카드, API 호출 0, Server Component. 빌드 성공 + PM2 반영
@@ -694,4 +717,4 @@ async def capture_google_via_dataforseo(query: str) -> Optional[bytes]:
 
 ---
 
-*최종 업데이트: 2026-05-18 | 네이버 AI 검색 최적화 M1~M3 + 랜딩 리드젠 A·B·C 배포*
+*최종 업데이트: 2026-05-18 | AI 브리핑 vs AI탭 명확 구분 (P0+P1) + 네이버 AI 검색 최적화 M1~M3 + 랜딩 리드젠 A·B·C 배포*

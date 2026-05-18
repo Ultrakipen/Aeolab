@@ -1296,7 +1296,8 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
     """AI탭 답변 시뮬레이션 — Basic+ 전용, AI 호출 0회.
 
     네이버 AI탭이 생성할 가능성이 높은 답변을 등록 정보·키워드 기반으로 추정합니다.
-    ACTIVE/LIKELY 업종만 반환. INACTIVE 업종은 available=false.
+    AI탭(2026-04-27 베타): 업종 제한 없음. INACTIVE 업종도 available=True 반환.
+    briefing_eligibility는 AI 브리핑 분리 안내(UI 분기)용으로만 사용.
     1시간 캐시 적용.
     """
     supabase = get_client()

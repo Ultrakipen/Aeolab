@@ -56,12 +56,36 @@ export default async function AiInfoTabGuidePage({
         >
           <ChevronLeft className="w-4 h-4" /> 가이드로 돌아가기
         </Link>
-        <Link
-          href="/how-it-works"
-          className="inline-flex items-center gap-1 text-sm md:text-base text-blue-600 hover:underline font-medium"
-        >
-          서비스 안내 매뉴얼 (전체 동작 원리) →
-        </Link>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Link
+            href="/guide/ai-tab"
+            className="inline-flex items-center gap-1 text-sm md:text-base text-indigo-600 hover:underline font-medium"
+          >
+            AI탭 5항목 가이드 →
+          </Link>
+          <Link
+            href="/how-it-works"
+            className="inline-flex items-center gap-1 text-sm md:text-base text-blue-600 hover:underline font-medium"
+          >
+            서비스 안내 매뉴얼 →
+          </Link>
+        </div>
+      </div>
+
+      {/* 두 경로 분기 안내 — 가이드 진입 직후 명확화 */}
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 md:p-5">
+        <p className="text-sm md:text-base font-bold text-blue-900 mb-1.5">
+          📘 네이버 AI 브리핑 — 검색결과 상단 AI 자동 추천 박스 (2025.08 정식)
+        </p>
+        <p className="text-sm md:text-base text-blue-800 leading-relaxed break-keep">
+          AI탭(검색결과 &quot;AI&quot; 탭 메뉴)과는 다른 노출 경로입니다.
+          AI 브리핑은 <strong>음식점·카페·베이커리·바·숙박업 등 ACTIVE 업종</strong>만 대상이며,
+          프랜차이즈 가맹점은 현재 제외됩니다(네이버 공식 정책).
+        </p>
+        <p className="mt-2 text-sm text-blue-700 bg-white border border-blue-100 rounded px-2.5 py-1.5">
+          ℹ️ AI탭은 모든 업종 노출 가능합니다.{' '}
+          <Link href="/guide/ai-tab" className="underline font-semibold">AI탭 5항목 가이드 →</Link>
+        </p>
       </div>
 
       <div>
