@@ -2065,3 +2065,12 @@ ALTER TABLE scan_results
 CREATE INDEX IF NOT EXISTS idx_scan_results_ai_tab_visible
   ON scan_results (naver_ai_tab_visible)
   WHERE naver_ai_tab_visible IS NOT NULL;
+
+-- ============================================================
+-- v5.8 — 소개글 AI 초안 월 사용량 카운터 (§3, Phase 2 준비)
+-- 실행 시점: 구독자 5명+ 후 소개글 AI 초안 기능 출시 전
+-- 미실행 시: intro_draft 엔드포인트 graceful fallback (count=0 처리)
+-- ============================================================
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS intro_draft_count_month INTEGER     DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS intro_draft_reset_at     TIMESTAMPTZ DEFAULT NULL;

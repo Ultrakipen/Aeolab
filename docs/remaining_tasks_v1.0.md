@@ -260,22 +260,11 @@ ALTER TABLE businesses ADD COLUMN IF NOT EXISTS talktalk_faq_generated_at TIMEST
 
 ---
 
-## 5. git 커밋 (현재 uncommitted 80+ 파일)
+## 5. git 커밋 ✅ 완료 (2026-05-18)
 
-> **현재 상태**: main 브랜치에 v3.0 이후 모든 작업이 uncommitted 상태  
-> **마지막 커밋**: `f2232fa` (2026-05-08 랜딩 페이지 백업)
-
-```bash
-# 현재 변경 파일 확인
-git status --short
-
-# 스테이징 후 커밋
-git add -A
-git commit -m "feat: v3.0~v5.5 accumulated work — naver AI optimization, landing enhancements, agency service, bug fixes"
-```
-
-> **주의**: `.env` 파일이 `.gitignore`에 포함되어 있는지 먼저 확인.  
-> commit 후 GitHub Actions 자동 배포가 트리거됨 (main 브랜치 push 시).
+> **커밋**: `057d62e` — 300파일, +37,733/-9,094 라인  
+> **배포**: GitHub Actions → 서버 자동 배포 완료 (PM2 both online, error.log 0건)  
+> **검증**: `/api/delivery/packages` 200 OK, 서버 `057d62e` 확인
 
 ---
 
@@ -349,9 +338,10 @@ P3 실행 트리거:
 | 카카오 알림톡 5종 | ✅ 승인 완료 |
 | GA4 G-KCZTWYK7QV | ✅ 라이브 |
 | 결제 TOSS_SECRET_KEY | ⏳ test_ 상태 (실결제 전환 필요) |
-| 대행 서비스 DB 테이블 | ❌ 미생성 (§1 실행 필요) |
+| 대행 서비스 DB 테이블 | ✅ 이미 생성됨 (5개 테이블 확인) |
 | 베타 후기 | ⏳ placeholder 상태 |
+| profiles.intro_draft 컬럼 | ⏳ 미적용 (스키마 v5.8 SQL — Supabase 실행 필요) |
 
 ---
 
-*최종 업데이트: 2026-05-18 | 다음 우선순위: §1 DB 테이블 생성 → §2 체크리스트 → §5 git 커밋*
+*최종 업데이트: 2026-05-18 | 완료: §1 DB ✅ · §4 v4.1 ✅ · §5 git/배포 ✅ | 잔여: §2 체크리스트 · profiles v5.8 컬럼 추가*
