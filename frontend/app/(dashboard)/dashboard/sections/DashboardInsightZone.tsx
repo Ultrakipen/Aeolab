@@ -1,5 +1,6 @@
 import { AiInfoTabStatusCard } from "@/components/dashboard/AiInfoTabStatusCard";
 import AiTabPreviewCard from "@/components/dashboard/AiTabPreviewCard";
+import InactiveUserBanner from "@/components/dashboard/InactiveUserBanner";
 import NaverAiPathwayCard from "@/components/dashboard/NaverAiPathwayCard";
 import PhotoCategoryCard from "@/components/dashboard/PhotoCategoryCard";
 import ReviewKeywordGapCard from "@/components/dashboard/ReviewKeywordGapCard";
@@ -39,7 +40,7 @@ interface Props {
   keywordCount?: number;
   /** 최근 스캔 naver_result.ad_only — M3 광고/자연 배지용 */
   latestAdOnly?: boolean;
-  /** user.created_at — INACTIVE 업종 7일 이내 배너용 */
+  /** 가입일 ISO 문자열 — INACTIVE 7일 배너 표시 조건 계산용 */
   userCreatedAt?: string | null;
 }
 
@@ -63,21 +64,11 @@ export default function DashboardInsightZone({
 }: Props) {
   const isPhotoSupported = PHOTO_SUPPORTED_CATEGORIES.includes(category);
 
-  const daysSinceSignup = userCreatedAt
-    ? Math.floor((Date.now() - new Date(userCreatedAt).getTime()) / 86400000)
-    : null;
-  const showInactiveBanner =
-    briefingMeta?.eligibility === "inactive" &&
-    daysSinceSignup !== null &&
-    daysSinceSignup <= 7;
-
   return (
     <>
-      {/* INACTIVE 업종 신규 가입자(7일 이내) — AI 브리핑 비대상 오해 방지 1줄 배너 */}
-      {showInactiveBanner && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm md:text-base text-blue-800 leading-snug break-keep">
-          <strong>AI 브리핑</strong>은 일부 업종만 대상이지만, <strong>AI탭(모든 업종 베타)</strong>과 <strong>ChatGPT·Gemini 노출</strong>은 지금 바로 측정·개선할 수 있습니다.
-        </div>
+      {/* INACTIVE 업종 가입자 첫 7일 한정 안내 배너 */}
+      {briefingMeta?.eligibility === "inactive" && userCreatedAt && (
+        <InactiveUserBanner userCreatedAt={userCreatedAt} />
       )}
 
       {/* 네이버 AI 검색 두 경로 비교 — AI 브리핑 vs AI탭 (사용자 노출 화면 명확 구분) */}

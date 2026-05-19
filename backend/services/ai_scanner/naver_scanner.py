@@ -3,6 +3,8 @@ import asyncio
 import logging
 import re
 
+from services.keyword_taxonomy import log_ad_only_mismatch
+
 logger = logging.getLogger("aeolab")
 
 # AI 브리핑 셀렉터 (네이버 DOM 변경 대응 — 우선순위 순, 2026-04-14 업데이트)
@@ -95,7 +97,7 @@ class NaverAIBriefingScanner:
     Playwright로 실제 검색 결과를 렌더링 후 DOM 파싱
     """
 
-    async def _check_single_page(self, page, query: str, target: str) -> dict:
+    async def _check_single_page(self, page, query: str, target: str, category: str = "") -> dict:
         """단일 페이지에서 AI 브리핑 및 플레이스 결과 확인"""
         mentioned      = False
         in_briefing    = False
@@ -160,15 +162,17 @@ class NaverAIBriefingScanner:
                 except Exception:
                     continue
 
-            # ── 광고 영역 감지 ───────────────────────────────────
+            # ── 광고 영역 감지 + taxonomy 교차 검증 ─────────────
             if in_briefing:
                 ad_only = await _detect_ad_briefing(page)
                 if ad_only:
                     logger.debug(
-                        "[P2-1 ad_only] DOM 감지: ad_only=True (query=%r) — "
-                        "taxonomy get_category_flags()로 업종별 사전 분류와 교차 검증 가능",
+                        "[P2-1 ad_only] DOM 감지: ad_only=True (query=%r, category=%r)",
                         query,
+                        category,
                     )
+                    if category:
+                        log_ad_only_mismatch(category, scanned_ad_only=True)
 
             # ── 플레이스 결과 순위 확인 ──────────────────────────
             for sel in PLACE_SELECTORS:
@@ -209,7 +213,7 @@ class NaverAIBriefingScanner:
             "ad_only":       ad_only,
         }
 
-    async def check_mention(self, query: str, target: str) -> dict:
+    async def check_mention(self, query: str, target: str, category: str = "") -> dict:
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(
                 headless=True,
@@ -225,12 +229,12 @@ class NaverAIBriefingScanner:
             )
             page = await ctx.new_page()
             try:
-                result = await self._check_single_page(page, query, target)
+                result = await self._check_single_page(page, query, target, category=category)
             finally:
                 await browser.close()
         return result
 
-    async def check_mention_multi(self, queries: list[str], target: str) -> dict:
+    async def check_mention_multi(self, queries: list[str], target: str, category: str = "") -> dict:
         """여러 키워드를 하나의 브라우저 세션에서 순차 실행 (RAM 절약)
 
         Returns: 최선 결과 + keyword_results 리스트
@@ -259,7 +263,7 @@ class NaverAIBriefingScanner:
             for q in queries:
                 page = await ctx.new_page()
                 try:
-                    r = await self._check_single_page(page, q, target)
+                    r = await self._check_single_page(page, q, target, category=category)
                 finally:
                     await page.close()
                 keyword_results.append(r)

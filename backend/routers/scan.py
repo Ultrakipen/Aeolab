@@ -1037,7 +1037,7 @@ async def trial_naver_briefing(req: NaverBriefingRequest, request: Request):
             from services.naver_visibility import get_naver_visibility
 
             naver_result, vis = await asyncio.gather(
-                NaverAIBriefingScanner().check_mention(query, req.business_name),
+                NaverAIBriefingScanner().check_mention(query, req.business_name, category=req.category),
                 get_naver_visibility(req.business_name, vis_kw, req.region),
                 return_exceptions=True,
             )

@@ -1494,6 +1494,19 @@ def simulate_ai_tab_answer(
                     isinstance(r, dict) and r.get("in_ai_tab") for r in kw_results
                 )
 
+    # 실측 ad_only — 광고 영역 노출 여부 (taxonomy 교차 검증 결과와 함께 프론트엔드에 전달)
+    # Q2 광고 출시 전에는 False가 기본값. 실측 True 시 점수 제외 여부를 UI에서 안내.
+    scanned_ad_only = False
+    if scan_result is not None:
+        naver_res = scan_result.get("naver_result") or {}
+        if isinstance(naver_res, dict):
+            scanned_ad_only = bool(naver_res.get("ad_only", False))
+            if not scanned_ad_only:
+                kw_results = naver_res.get("keyword_results") or []
+                scanned_ad_only = any(
+                    isinstance(r, dict) and r.get("ad_only") for r in kw_results
+                )
+
     return {
         "simulated_answer":   simulated,
         "matched_contexts":   matched[:5],
@@ -1502,6 +1515,7 @@ def simulate_ai_tab_answer(
         "simulation_version": "v2",
         "data_source":        data_source,           # "estimated" | "measured"
         "confirmed_in_ai_tab": confirmed_in_ai_tab,  # 실측 AI탭 노출 확인 여부 (measured일 때만 신뢰)
+        "ad_only":            scanned_ad_only,       # 실측 광고 영역 노출 여부 (True 시 유기 점수 제외 안내)
         "ai_tab_eligibility": get_ai_tab_eligibility(category),  # 항상 "beta" — INACTIVE 업종도 AI탭은 가능
         "has_reservation":    has_reservation_sig,   # None=미측정, True/False=실측
         "photo_count":        photo_count_sig,       # None=미측정, int=실측 추정값

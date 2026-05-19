@@ -7,7 +7,11 @@
 업종 추가 시 반드시 이 파일에 먼저 정의 후 개발 적용.
 """
 
+import logging
+
 from typing import TypedDict
+
+_logger = logging.getLogger("aeolab")
 
 
 class _KeywordCategoryRequired(TypedDict):
@@ -2397,6 +2401,38 @@ def get_ai_tab_eligible_keywords(category: str) -> list[str]:
         if flags["in_ai_tab"] and not flags["ad_only"]:
             result.extend(cat_data.get("keywords") or [])
     return result
+
+
+def log_ad_only_mismatch(category: str, scanned_ad_only: bool) -> None:
+    """naver_scanner 실측 ad_only 결과와 taxonomy 메타를 교차 검증.
+
+    실측 ad_only=True 이고 taxonomy에 ad_only=False(기본값)인 경우 WARNING 로그를 남긴다.
+    Q2 광고 도입 후 taxonomy 메타 업데이트의 근거 데이터로 활용.
+
+    KEYWORD_TAXONOMY 데이터 항목을 직접 수정하지 않는다 —
+    실측 축적 후 업종별 메타를 업데이트하는 구조를 유지.
+    """
+    if not scanned_ad_only:
+        return  # 광고 미감지 시 검증 불필요
+
+    industry = get_industry_keywords(category)
+    # 업종 전체 카테고리 중 하나라도 taxonomy ad_only=True 이면 사전 분류와 일치
+    taxonomy_any_ad_only = any(
+        get_category_flags(category, cat_key).get("ad_only", False)
+        for cat_key in industry
+        if isinstance(industry.get(cat_key), dict)
+    )
+    if not taxonomy_any_ad_only:
+        _logger.warning(
+            "[P2-1 ad_only] taxonomy 불일치: category=%s naver_scanner=True taxonomy=False"
+            " — 실측 ad_only 발생. Q2 광고 출시 후 taxonomy 메타 업데이트 필요",
+            category,
+        )
+    else:
+        _logger.debug(
+            "[P2-1 ad_only] taxonomy 일치: category=%s naver_scanner=True taxonomy=True",
+            category,
+        )
 
 
 def get_all_keywords_flat(category: str) -> list[str]:
