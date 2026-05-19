@@ -28,6 +28,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, field_validator
 
+from config.prices import DELIVERY_PRICES
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
 
@@ -39,21 +40,21 @@ admin_router = APIRouter()
 # 토스 API 호출 timeout (무한 대기 방지)
 _TOSS_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
-# ── 패키지 정의 ────────────────────────────────────────────────────────────────
+# ── 패키지 정의 (금액은 config/prices.py DELIVERY_PRICES 단일 소스) ──────────
 PACKAGES: dict[str, dict] = {
     "smartplace_register": {
         "name": "스마트플레이스 등록 대행",
-        "amount": 49000,
+        "amount": DELIVERY_PRICES["smartplace_register"],
         "description": "네이버 스마트플레이스 신규 등록부터 기본 최적화까지 대행합니다.",
     },
     "ai_optimization": {
         "name": "AI 검색 최적화",
-        "amount": 79000,
+        "amount": DELIVERY_PRICES["ai_optimization"],
         "description": "AI 검색 노출을 위한 키워드·콘텐츠·정보 최적화를 대행합니다.",
     },
     "comprehensive": {
         "name": "종합 풀패키지",
-        "amount": 119000,
+        "amount": DELIVERY_PRICES["comprehensive"],
         "description": "스마트플레이스 등록 + AI 최적화 + 모니터링 종합 관리를 대행합니다.",
     },
 }
