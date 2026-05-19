@@ -348,7 +348,7 @@ P3 실행 트리거:
 | 결제 TOSS_SECRET_KEY | ⏳ test_ 상태 (실결제 전환 필요) |
 | 대행 서비스 DB 테이블 | ✅ 이미 생성됨 (5개 테이블 확인) |
 | 베타 후기 | ⏳ placeholder 상태 |
-| profiles.intro_draft 컬럼 | ⏳ 미적용 (스키마 v5.8 SQL — Supabase 실행 필요) |
+| profiles.intro_draft 컬럼 | ✅ 적용 완료 (intro_draft_count_month / intro_draft_reset_at 존재 확인 2026-05-18) |
 | `/guide/chatgpt-search` 비로그인 SEO | ✅ 복원 (middleware publicGuidePaths 화이트리스트) |
 | `/guide/blog-strategy` 신규 페이지 | ✅ 배포 (로그인 사용자용) |
 | M1 베이스라인 SQL 실행 | ✅ 완료 (결과는 다음 캡처 시 비교 기록) |

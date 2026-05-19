@@ -5067,7 +5067,7 @@ async def ai_tab_trigger_check_job():
 
 
 async def briefing_category_expansion_monitor_job():
-    """M3-4: 월 1회(1일 09:30 KST) 의료·법무·헬스케어 AI 브리핑 업종 확대 감지.
+    """M3-4: 월 1회(1일 09:00 KST) 의료·법무·헬스케어 AI 브리핑 업종 확대 감지.
 
     INACTIVE 업종(medical, dental, legal, accounting)의 실제 검색 결과에서
     AI 브리핑 노출 여부를 확인. 노출 감지 시 Slack 알림 → LIKELY/ACTIVE 승급 검토.
