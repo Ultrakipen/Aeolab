@@ -1,4 +1,3 @@
-import os
 import logging
 from datetime import datetime, timezone
 from typing import Optional
@@ -8,17 +7,10 @@ from pydantic import BaseModel, EmailStr
 
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
+from utils.admin_auth import verify_admin
 
 router = APIRouter()
 _logger = logging.getLogger("aeolab.inquiry")
-
-
-# ── 관리자 검증 ────────────────────────────────────────────────────────────────
-
-def _verify_admin(x_admin_key: str = Header(None)) -> None:
-    key = os.getenv("ADMIN_SECRET_KEY", "")
-    if not key or x_admin_key != key:
-        raise HTTPException(status_code=403, detail="관리자 권한 필요")
 
 
 # ── Pydantic 모델 ──────────────────────────────────────────────────────────────
@@ -108,9 +100,8 @@ async def admin_list_inquiries(
     status: Optional[str] = Query("all", description="pending | answered | all"),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
-    x_admin_key: str = Header(None),
+    _: None = Depends(verify_admin),
 ):
-    _verify_admin(x_admin_key)
     try:
         supabase = get_client()
         offset = (page - 1) * limit
@@ -142,9 +133,8 @@ async def admin_list_inquiries(
 async def admin_answer_inquiry(
     inquiry_id: int,
     body: AdminAnswerBody,
-    x_admin_key: str = Header(None),
+    _: None = Depends(verify_admin),
 ):
-    _verify_admin(x_admin_key)
     if not body.answer.strip():
         raise HTTPException(status_code=422, detail="답변 내용을 입력해 주세요.")
 

@@ -3266,7 +3266,8 @@ async def get_action_timeline(
     try:
         earliest_dt = _date.fromisoformat(str(earliest))
         history_since = (earliest_dt - _td(days=7)).isoformat()
-    except Exception:
+    except Exception as _e:
+        _logger.warning("[action_timeline] history_since 파싱 실패: %s", _e)
         history_since = since
 
     try:
@@ -3290,7 +3291,8 @@ async def get_action_timeline(
             continue
         try:
             center = _date.fromisoformat(str(a_date))
-        except Exception:
+        except Exception as _e:
+            _logger.warning("[action_timeline] action_date 파싱 실패 (value=%r): %s", a_date, _e)
             continue
         lo = (center - _td(days=2)).isoformat()
         hi = (center + _td(days=7)).isoformat()

@@ -49,15 +49,15 @@ export function ContextTipBanner({ section, industry }: Props) {
   };
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-start gap-3">
-      <Lightbulb className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+    <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-3 flex items-start gap-3">
+      <Lightbulb className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-blue-800">{tip.title}</p>
-        <p className="text-sm text-blue-700 mt-0.5 leading-relaxed">{tip.body}</p>
+        <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">{tip.title}</p>
+        <p className="text-sm text-blue-700 dark:text-blue-300 mt-0.5 leading-relaxed">{tip.body}</p>
         {tip.cta_label && tip.cta_url && (
           <a
             href={tip.cta_url}
-            className="text-sm font-medium text-blue-600 hover:underline mt-1 inline-block"
+            className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline mt-1 inline-block"
           >
             {tip.cta_label} →
           </a>
@@ -65,7 +65,7 @@ export function ContextTipBanner({ section, industry }: Props) {
       </div>
       <button
         onClick={handleDismiss}
-        className="text-blue-400 hover:text-blue-600 shrink-0 transition-colors"
+        className="text-blue-400 dark:text-blue-500 hover:text-blue-600 dark:hover:text-blue-300 shrink-0 transition-colors"
         aria-label="팁 닫기"
       >
         <X className="w-4 h-4" />

@@ -14,6 +14,8 @@ interface Props {
   isFranchise?: boolean;
   /** 최근 스캔의 naver_result.ad_only — Q2 광고 도입 후 배너 표시용 (M3 사전 작업) */
   latestAdOnly?: boolean;
+  /** 글로벌 AI 비중 (0~1). global < 0.65이면 채널별 측정 원리 미니 섹션 표시 */
+  globalWeight?: number;
 }
 
 /**
@@ -27,7 +29,7 @@ interface Props {
  *
  * 자기 업종 기준으로 "현재 대상" 배지를 자동 표시.
  */
-export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, latestAdOnly }: Props) {
+export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, latestAdOnly, globalWeight }: Props) {
   const briefingActive = briefingEligibility === "active" && !isFranchise;
   const briefingLikely = briefingEligibility === "likely" && !isFranchise;
   const briefingInactive = briefingEligibility === "inactive" || isFranchise;
@@ -160,6 +162,29 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             AI탭 5항목 가이드 →
           </Link>
         </div>
+
+        {/* 채널별 측정 원리 — GlobalAiFocusCard 미표시 업종(global < 0.65)에만 노출 */}
+        {globalWeight !== undefined && globalWeight < 0.65 && (
+          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">
+              채널별 측정 원리
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/30 p-3">
+                <p className="font-semibold text-emerald-900 dark:text-emerald-100">네이버 AI 브리핑·AI탭</p>
+                <p className="text-emerald-800 dark:text-emerald-300 leading-snug mt-1">
+                  실시간 검색 결과 + 스마트플레이스 신호. 사진·예약·리뷰가 핵심.
+                </p>
+              </div>
+              <div className="rounded-lg bg-violet-50 dark:bg-violet-900/30 p-3">
+                <p className="font-semibold text-violet-900 dark:text-violet-100">ChatGPT·Gemini</p>
+                <p className="text-violet-800 dark:text-violet-300 leading-snug mt-1">
+                  학습 데이터·웹 검색 기반. 블로그·후기·구조화 데이터가 핵심.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <p className="mt-3 text-sm text-gray-500 leading-snug break-keep">
           AI 브리핑·AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.

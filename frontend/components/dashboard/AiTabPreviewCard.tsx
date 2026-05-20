@@ -7,6 +7,13 @@ import { getSafeSession } from "@/lib/supabase/client";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
+interface ChecklistItem {
+  item: string;
+  weight: number; // 0.0~1.0
+  ai_tab_signal: string;
+  guide_url?: string;
+}
+
 interface AiTabPreviewResponse {
   biz_id: string;
   simulated_answer: string;
@@ -25,6 +32,8 @@ interface AiTabPreviewResponse {
   has_reservation?: boolean | null;
   /** 사진 수 실측 추정값 — null=미측정, int=추정 수 */
   photo_count?: number | null;
+  /** 업종별 AI탭 준비 체크리스트 (ai_tab_checklists.py 단일 소스) */
+  checklist?: ChecklistItem[];
 }
 
 interface AiTabPreviewUnavailable {
@@ -400,10 +409,10 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               )}
 
               {/* 5번째 요소: 외부 블로그 UGC 발견 수 */}
-              <div className="flex items-center justify-between py-2 border-t border-gray-100">
+              <div className="flex items-center justify-between py-2 border-t border-gray-100 dark:border-gray-700">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">외부 블로그 언급</span>
-                  <span className="text-sm text-gray-500">AI탭 블로그·SNS 후기 신호</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">외부 블로그 언급</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">AI탭 블로그·SNS 후기 신호</span>
                 </div>
                 <div className="flex items-center gap-1">
                   {(blogMentionCount ?? 0) >= 5 ? (
@@ -420,6 +429,35 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               </div>
             </div>
           </div>
+
+          {/* 업종별 AI탭 준비 체크리스트 */}
+          {data.checklist && data.checklist.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+              <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1">
+                내 업종 AI탭 준비 체크리스트
+              </h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                가중치 높은 항목부터 작업하면 효과가 큽니다.
+              </p>
+              <ul className="space-y-2">
+                {[...data.checklist]
+                  .sort((a, b) => b.weight - a.weight)
+                  .map((it, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm">
+                      <span className="inline-flex items-center justify-center min-w-[2.5rem] h-5 px-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold shrink-0 mt-0.5">
+                        {Math.round(it.weight * 100)}%
+                      </span>
+                      <span className="flex-1 text-gray-700 dark:text-gray-200 leading-relaxed">
+                        <span className="font-medium">{it.item}</span>
+                        <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          {it.ai_tab_signal}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
           </>
         )}
       </div>

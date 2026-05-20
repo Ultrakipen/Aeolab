@@ -1863,6 +1863,29 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
 
     new_scan_id = inserted[0]["id"] if (inserted and inserted[0]) else None
 
+    # ── v3.1 Shadow 점수 계산 + scan_results v31 컬럼 업데이트 ─────────────
+    if new_scan_id:
+        try:
+            from services.score_engine import calc_shadow_v3_1 as _calc_shadow_v31
+            _shadow = _calc_shadow_v31(
+                scan_result=results,
+                biz=biz or {},
+                naver_data=naver_data or {},
+                keyword_coverage_rate=_stream_kw_rate,
+            )
+            await execute(
+                supabase.table("scan_results").update({
+                    "track1_score_v31": _shadow["track1_score_v31"],
+                    "unified_score_v31": _shadow["unified_score_v31"],
+                    "user_group_v31": _shadow["user_group_v31"],
+                }).eq("id", new_scan_id)
+            )
+        except Exception as _sh_err:
+            _logger.warning(
+                f"[scan] v3.1 shadow 저장 실패 biz={business_id}: {_sh_err}"
+            )
+    # ─────────────────────────────────────────────────────────────────────────
+
     # ai_citations 저장 (언급 여부 관계없이 모든 플랫폼 저장)
     if new_scan_id:
         citation_rows = []

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Header
 from db.supabase_client import get_client
+from utils.admin_auth import verify_admin
 from typing import Optional
 import logging
 
@@ -38,7 +39,10 @@ async def submit_feedback(
 
 
 @router.get("/summary")
-async def get_feedback_summary(supabase=Depends(get_client)):
+async def get_feedback_summary(
+    supabase=Depends(get_client),
+    _: None = Depends(verify_admin),
+):
     """Admin 전용: 이벤트별 만족도 집계"""
     try:
         res = supabase.table("user_feedback").select("event_type,rating").execute()

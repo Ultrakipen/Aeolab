@@ -1,10 +1,12 @@
 import { AiInfoTabStatusCard } from "@/components/dashboard/AiInfoTabStatusCard";
 import AiTabPreviewCard from "@/components/dashboard/AiTabPreviewCard";
+import GlobalAiFocusCard from "@/components/dashboard/GlobalAiFocusCard";
 import InactiveUserBanner from "@/components/dashboard/InactiveUserBanner";
 import NaverAiPathwayCard from "@/components/dashboard/NaverAiPathwayCard";
 import PhotoCategoryCard from "@/components/dashboard/PhotoCategoryCard";
 import ReviewKeywordGapCard from "@/components/dashboard/ReviewKeywordGapCard";
 import SchemaCheckCard from "@/components/dashboard/SchemaCheckCard";
+import { CATEGORY_LABEL } from "@/lib/categories";
 import { SUPPORTED_CATEGORIES as PHOTO_SUPPORTED_CATEGORIES } from "@/lib/photoCategories";
 import type { WebsiteCheckResult } from "@/types";
 
@@ -42,6 +44,8 @@ interface Props {
   latestAdOnly?: boolean;
   /** 가입일 ISO 문자열 — INACTIVE 7일 배너 표시 조건 계산용 */
   userCreatedAt?: string | null;
+  /** 글로벌 AI 비중 (0~1). DUAL_TRACK_RATIO[category].global — global ≥0.65 업종에 ChatGPT·Gemini 주전장 카드 표시 */
+  globalWeight?: number;
 }
 
 export default function DashboardInsightZone({
@@ -61,6 +65,7 @@ export default function DashboardInsightZone({
   keywordCount,
   latestAdOnly,
   userCreatedAt,
+  globalWeight,
 }: Props) {
   const isPhotoSupported = PHOTO_SUPPORTED_CATEGORIES.includes(category);
 
@@ -77,6 +82,16 @@ export default function DashboardInsightZone({
           briefingEligibility={briefingMeta.eligibility}
           isFranchise={isFranchise}
           latestAdOnly={latestAdOnly}
+          globalWeight={globalWeight}
+        />
+      )}
+
+      {/* 글로벌 AI 주전장 안내 — legal·shopping·accounting 등 globalWeight ≥0.65 업종 */}
+      {globalWeight !== undefined && globalWeight >= 0.65 && (
+        <GlobalAiFocusCard
+          globalWeight={globalWeight}
+          categoryLabel={CATEGORY_LABEL[category] ?? category}
+          category={category}
         />
       )}
 

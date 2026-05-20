@@ -521,6 +521,30 @@ async def daily_scan_all():
                         except Exception as _cit_err:
                             logger.warning(f"[scheduler] ai_citations insert 실패 biz={biz['id']}: {_cit_err}")
 
+                # ── v3.1 Shadow 점수 계산 + scan_results v31 컬럼 업데이트 ──────
+                _shadow_v31: dict = {}
+                if _new_scan_id:
+                    try:
+                        from services.score_engine import calc_shadow_v3_1 as _calc_shadow
+                        _shadow_v31 = _calc_shadow(
+                            scan_result=result,
+                            biz=biz,
+                            naver_data=result.get("naver") or {},
+                            keyword_coverage_rate=_sched_kw_rate,
+                        )
+                        await _db(
+                            supabase.table("scan_results").update({
+                                "track1_score_v31": _shadow_v31["track1_score_v31"],
+                                "unified_score_v31": _shadow_v31["unified_score_v31"],
+                                "user_group_v31": _shadow_v31["user_group_v31"],
+                            }).eq("id", _new_scan_id)
+                        )
+                    except Exception as _sv_err:
+                        logger.warning(
+                            f"[daily_scan_all] v3.1 shadow 저장 실패 biz={biz.get('id')}: {_sv_err}"
+                        )
+                # ─────────────────────────────────────────────────────────────────
+
                 # score_history 기록 (30일 추세용)
                 today_str = str(date.today())
                 _prev_res = await _db(
@@ -534,23 +558,45 @@ async def daily_scan_all():
                 weekly_change = 0.0
                 if prev_history:
                     weekly_change = round(score["total_score"] - prev_history[0]["total_score"], 2)
-                await _db(
-                    supabase.table("score_history").upsert(
-                        {
-                            "business_id": biz["id"],
-                            "score_date": today_str,
-                            "total_score": score["total_score"],
-                            "unified_score": score.get("unified_score", score["total_score"]),
-                            "track1_score": score.get("track1_score"),
-                            "track2_score": score.get("track2_score"),
-                            "exposure_freq": result.get("gemini", {}).get("exposure_freq", 0),
-                            "weekly_change": weekly_change,
-                            "naver_channel_score": naver_channel,
-                            "global_channel_score": global_channel,
-                        },
-                        on_conflict="business_id,score_date",
+                _history_row: dict = {
+                    "business_id": biz["id"],
+                    "score_date": today_str,
+                    "total_score": score["total_score"],
+                    "unified_score": score.get("unified_score", score["total_score"]),
+                    "track1_score": score.get("track1_score"),
+                    "track2_score": score.get("track2_score"),
+                    "exposure_freq": result.get("gemini", {}).get("exposure_freq", 0),
+                    "weekly_change": weekly_change,
+                    "naver_channel_score": naver_channel,
+                    "global_channel_score": global_channel,
+                }
+                # v31 Shadow 점수 — DB 컬럼 미존재 시 graceful fallback
+                if _shadow_v31:
+                    _history_row["track1_score_v31"] = _shadow_v31.get("track1_score_v31")
+                    _history_row["unified_score_v31"] = _shadow_v31.get("unified_score_v31")
+                try:
+                    await _db(
+                        supabase.table("score_history").upsert(
+                            _history_row,
+                            on_conflict="business_id,score_date",
+                        )
                     )
-                )
+                except Exception as _sh_err:
+                    if "v31" in str(_sh_err).lower() or "column" in str(_sh_err).lower():
+                        # v31 컬럼 미존재 — 제외 후 재시도
+                        logger.warning(
+                            f"[daily_scan_all] score_history v31 컬럼 없음, 제외 재시도 biz={biz.get('id')}: {_sh_err}"
+                        )
+                        _history_row.pop("track1_score_v31", None)
+                        _history_row.pop("unified_score_v31", None)
+                        await _db(
+                            supabase.table("score_history").upsert(
+                                _history_row,
+                                on_conflict="business_id,score_date",
+                            )
+                        )
+                    else:
+                        raise
 
                 # GrowthStage 변화 감지 — 단계 업그레이드 시 로그 + 향후 카카오 알림 연동
                 try:

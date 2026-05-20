@@ -10,8 +10,12 @@ from playwright.async_api import async_playwright, Page
 
 logger = logging.getLogger("aeolab")
 
-# RAM 보호: vCPU2/RAM4GB 환경에서 Playwright 동시 실행 한도 2개
-_PLAYWRIGHT_SEM = asyncio.Semaphore(2)
+# RAM 보호: multi_scanner의 PLAYWRIGHT_SEMAPHORE(1)를 공유 — 동시 Playwright 최대 1개 보장
+# (2026-05-20 통합 완료: 이전 Semaphore(2) 독립 세마포어 제거)
+def _get_playwright_sem():
+    """순환 import 방지를 위한 lazy import 패턴."""
+    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+    return PLAYWRIGHT_SEMAPHORE
 
 
 class NaverPlaceStatsService:
@@ -20,7 +24,7 @@ class NaverPlaceStatsService:
         if not naver_place_id:
             return {"error": "naver_place_id required"}
         try:
-            async with _PLAYWRIGHT_SEM:
+            async with _get_playwright_sem():
                 return await asyncio.wait_for(self._run(naver_place_id), timeout=30)
         except asyncio.TimeoutError:
             logger.warning(f"NaverPlaceStats timeout: {naver_place_id}")
@@ -146,7 +150,7 @@ async def check_smart_place_completeness(naver_place_url: str) -> dict:
     }
 
     try:
-        async with _PLAYWRIGHT_SEM:
+        async with _get_playwright_sem():
             return await asyncio.wait_for(_check_completeness(naver_place_url), timeout=43)
     except asyncio.TimeoutError:
         logger.warning(f"check_smart_place_completeness timeout: {naver_place_url}")
@@ -501,10 +505,11 @@ async def get_recent_low_rating_reviews(
         return []
 
     try:
-        return await asyncio.wait_for(
-            _fetch_low_rating_reviews(naver_place_id, min_rating, max_reviews),
-            timeout=35,
-        )
+        async with _get_playwright_sem():
+            return await asyncio.wait_for(
+                _fetch_low_rating_reviews(naver_place_id, min_rating, max_reviews),
+                timeout=35,
+            )
     except asyncio.TimeoutError:
         logger.warning(f"get_recent_low_rating_reviews timeout: {naver_place_id}")
         return []

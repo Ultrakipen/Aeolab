@@ -34,8 +34,8 @@ def _load_font(paths: list[str], size: int):
     if path:
         try:
             return ImageFont.truetype(path, size)
-        except Exception:
-            pass
+        except Exception as _e:
+            logger.warning("[qr_generator] 폰트 로드 실패: %s", _e)
     return ImageFont.load_default()
 
 

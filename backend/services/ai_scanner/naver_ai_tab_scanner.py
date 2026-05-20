@@ -50,8 +50,12 @@ async def _get_ai_tab_enabled() -> bool:
     _ai_tab_enabled_cache["ts"] = now
     return val
 
-# Playwright RAM 보호: 동시 1개 제한 (별도 세마포어 — multi_scanner의 PLAYWRIGHT_SEMAPHORE와 공유하지 않음)
-_AI_TAB_SEMAPHORE = asyncio.Semaphore(1)
+# Playwright RAM 보호: multi_scanner의 PLAYWRIGHT_SEMAPHORE(1)를 공유 (통합 완료 2026-05-20)
+# multi_scanner가 이 모듈을 상단 import하므로 순환 참조 방지를 위해 lazy import 패턴 사용
+def _get_ai_tab_semaphore() -> asyncio.Semaphore:
+    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+    return PLAYWRIGHT_SEMAPHORE
+
 
 # TODO(P2, 6월 확대 후): 네이버 AI탭 실제 DOM 셀렉터 검증 및 업데이트
 # 현재는 베타 기간 기준 예상 셀렉터. 전체 확대 후 실측으로 교체 필요.
@@ -86,7 +90,7 @@ async def scan(query: str, business_name: str) -> Optional[dict]:
         return None
 
     try:
-        async with _AI_TAB_SEMAPHORE:
+        async with _get_ai_tab_semaphore():
             return await asyncio.wait_for(
                 _run_scan(query, business_name),
                 timeout=30.0,

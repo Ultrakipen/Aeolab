@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { GuideClient } from './GuideClient'
 import { NoBusiness } from '@/components/dashboard/NoBusiness'
-import { Lightbulb, Bot, ListChecks, RefreshCw, CheckSquare, Lock, Sparkles, FileSearch } from 'lucide-react'
+import { Lightbulb, Bot, ListChecks, RefreshCw, CheckSquare, Lock, Sparkles, FileSearch, BarChart2 } from 'lucide-react'
 import { getActiveBusinessId } from '@/lib/active-business'
 import { getBriefingEligibility } from '@/lib/userGroup'
 
@@ -221,6 +221,19 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
             글로벌 AI가 내 가게를 언급하게 만드는 소개글·Q&amp;A 최적화.
           </p>
           <p className="text-sm font-semibold text-purple-700 group-hover:underline">소개글 최적화 가이드 →</p>
+        </Link>
+      </div>
+
+      {/* 점수 모델 v3.1 변경 사항 안내 — 베타 진입점 (작게 표시) */}
+      <div className="mb-4">
+        <Link
+          href="/guide/score-model-v3-1"
+          className="group inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 hover:border-blue-300 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
+        >
+          <BarChart2 className="w-4 h-4 flex-shrink-0" />
+          점수 모델 v3.1 변경 사항 안내
+          <span className="ml-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded">준비 중</span>
+          <span className="group-hover:underline">→</span>
         </Link>
       </div>
 

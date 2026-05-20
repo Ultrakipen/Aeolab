@@ -27,15 +27,15 @@ export function MaintenanceBanner() {
   if (!status?.maintenance) return null;
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3">
-      <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+    <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 flex items-start gap-3">
+      <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
       <div>
-        <p className="text-sm font-semibold text-amber-800">시스템 점검 중</p>
+        <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">시스템 점검 중</p>
         {status.maintenance_message && (
-          <p className="text-sm text-amber-700 mt-0.5">{status.maintenance_message}</p>
+          <p className="text-sm text-amber-700 dark:text-amber-300 mt-0.5">{status.maintenance_message}</p>
         )}
         {!status.maintenance_message && (
-          <p className="text-sm text-amber-700 mt-0.5">
+          <p className="text-sm text-amber-700 dark:text-amber-300 mt-0.5">
             일시적으로 일부 기능이 제한될 수 있습니다. 이용에 불편을 드려 죄송합니다.
           </p>
         )}

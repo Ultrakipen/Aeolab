@@ -1393,6 +1393,46 @@ def build_briefing_summary(
     )
 
 
+# ── AI탭 답변 시뮬레이션: 업종 그룹별 6종 템플릿 ──────────────────────────
+# {region} {name} {ctx0} {ctx1} {ctx2} 치환. 빈 ctx는 후처리로 제거.
+_AI_TAB_ANSWER_TEMPLATES: dict[str, str] = {
+    # Group 1: 음식점·카페·베이커리·바·숙박
+    "restaurant_group": "{region} {name}은 {ctx0}, {ctx1}이 특징입니다. {ctx2}.",
+    # Group 2: 미용·네일·마사지·스파·피부
+    "beauty_group": "{region} {name}은 {ctx0} 전문 매장입니다. {ctx1}, {ctx2}이 강점입니다.",
+    # Group 3: 의료·한의·치과·약국·클리닉
+    "medical_group": "{region} {name}은 {ctx0} 진료를 제공합니다. {ctx1}, {ctx2} 환경입니다.",
+    # Group 4: 법무·세무·부동산·교육·학원
+    "professional_group": "{region} {name}은 {ctx0} 전문입니다. {ctx1}, {ctx2}로 신뢰성을 입증합니다.",
+    # Group 5: 피트니스·요가·필라테스·댄스·발레
+    "fitness_group": "{region} {name}은 {ctx0} 수업을 운영합니다. {ctx1}, {ctx2}이 특징입니다.",
+    # Group 6: 그 외 기본 (default)
+    "default": "{region} {name}은 {ctx0}, {ctx1}이 특징입니다.",
+}
+
+_CATEGORY_TO_TEMPLATE_GROUP: dict[str, str] = {
+    "restaurant": "restaurant_group", "cafe": "restaurant_group",
+    "bakery": "restaurant_group", "bar": "restaurant_group",
+    "accommodation": "restaurant_group",
+    "beauty": "beauty_group", "nail": "beauty_group", "massage": "beauty_group",
+    "spa": "beauty_group", "skincare": "beauty_group", "semi_permanent": "beauty_group",
+    "medical": "medical_group", "dental": "medical_group",
+    "oriental_medicine": "medical_group", "pharmacy": "medical_group",
+    "clinic": "medical_group",
+    "legal": "professional_group", "accounting": "professional_group",
+    "realestate": "professional_group", "education": "professional_group",
+    "tutoring": "professional_group", "academy": "professional_group",
+    "fitness": "fitness_group", "yoga": "fitness_group", "dance": "fitness_group",
+    "ballet": "fitness_group", "martial_arts": "fitness_group",
+}
+
+
+def _select_answer_template(category: str) -> str:
+    """업종 코드 → 6종 답변 템플릿 그룹 선택. 미매핑 업종은 default 반환."""
+    group = _CATEGORY_TO_TEMPLATE_GROUP.get(category, "default")
+    return _AI_TAB_ANSWER_TEMPLATES.get(group, _AI_TAB_ANSWER_TEMPLATES["default"])
+
+
 def simulate_ai_tab_answer(
     biz: dict,
     scan_result: dict | None = None,
@@ -1445,13 +1485,34 @@ def simulate_ai_tab_answer(
         if kw.replace(" ", "").lower() not in matched_set
     ]
 
-    # 단순 답변 문장 조합 (AI 호출 없이 — 지역 + 업소명 + 상위 3개 매칭 컨텍스트)
+    # 업종 그룹별 6종 템플릿으로 답변 문장 조합 (AI 호출 없이)
     region_short = _extract_region_short(region) if region else ""
-    name_part = f"{region_short} {biz_name}".strip()
-    parts = [name_part]
-    if matched:
-        parts.append(", ".join(matched[:3]))
-    simulated = ". ".join(parts) + "."
+    ctx0 = matched[0] if len(matched) > 0 else ""
+    ctx1 = matched[1] if len(matched) > 1 else ""
+    ctx2 = matched[2] if len(matched) > 2 else ""
+
+    template = _select_answer_template(normalize_category(category))
+    simulated = template.format(
+        region=region_short,
+        name=biz_name,
+        ctx0=ctx0,
+        ctx1=ctx1,
+        ctx2=ctx2,
+    ).strip()
+    # 빈 ctx로 인한 어색한 공백·쉼표·마침표 정리
+    for _ in range(3):
+        simulated = (
+            simulated
+            .replace(". .", ".")
+            .replace(",,", ",")
+            .replace(" ,", ",")
+            .replace(", ,", ",")
+            .replace(",.", ".")
+            .replace("은 ,", "은 ")
+            .replace("은 이 강점입니다", "이 특징입니다")
+            .replace("  ", " ")
+        )
+    simulated = simulated.strip(", ").strip()
 
     # has_reservation/photo_count 추출 (sp_completeness_json — UI 안내·시뮬레이션 부가 신호)
     has_reservation_sig: bool | None = None
@@ -1508,6 +1569,10 @@ def simulate_ai_tab_answer(
                     isinstance(r, dict) and r.get("ad_only") for r in kw_results
                 )
 
+    # AI탭 준비 체크리스트 — ai_tab_checklists 단일 소스 연결 (M2-2)
+    from services.ai_tab_checklists import get_checklist as _get_checklist
+    checklist = _get_checklist(category)
+
     return {
         "simulated_answer":   simulated,
         "matched_contexts":   matched[:5],
@@ -1520,6 +1585,7 @@ def simulate_ai_tab_answer(
         "ai_tab_eligibility": get_ai_tab_eligibility(category),  # 항상 "beta" — INACTIVE 업종도 AI탭은 가능
         "has_reservation":    has_reservation_sig,   # None=미측정, True/False=실측
         "photo_count":        photo_count_sig,       # None=미측정, int=실측 추정값
+        "checklist":          checklist,             # 업종별 AI탭 준비 체크리스트 (ai_tab_checklists.py 단일 소스)
         "disclaimer": (
             "AI탭 노출이 실측 확인되었습니다. 예시 답변은 추정이며 실제 AI탭 내용과 다를 수 있습니다."
             if data_source == "measured" and confirmed_in_ai_tab

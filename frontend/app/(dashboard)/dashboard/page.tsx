@@ -26,6 +26,7 @@ import {
   castWebsiteCheckResult,
   extractMissingItems,
 } from "./sections/pageHelpers";
+import { getDefaultGlobalWeight } from "@/lib/dualTrack";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -209,8 +210,10 @@ export default async function DashboardPage({
   const track1Score = (latestScan?.track1_score as number | null) ?? naverChannelScore ?? 0;
   const track2Score = (latestScan?.track2_score as number | null) ?? globalChannelScore ?? (latestScan?.total_score as number | null) ?? 0;
   const unifiedScore = (latestScan?.unified_score as number | null) ?? (latestScan?.total_score as number | null) ?? 0;
-  const naverWeight = (latestScan?.naver_weight as number | null) ?? 0.65;
-  const globalWeight = (latestScan?.global_weight as number | null) ?? 0.35;
+  const naverWeight = (latestScan?.naver_weight as number | null)
+    ?? (1 - getDefaultGlobalWeight((business?.category as string | null | undefined) ?? "other"));
+  const globalWeight = (latestScan?.global_weight as number | null)
+    ?? getDefaultGlobalWeight((business?.category as string | null | undefined) ?? "other");
   const growthStage = (latestScan?.growth_stage as string | null) ?? "stability";
   const growthStageLabel = (latestScan?.growth_stage_label as string | null) ?? "성장 중";
   const isKeywordEstimated = (latestScan?.is_keyword_estimated as boolean | null) ?? false;
@@ -374,6 +377,7 @@ export default async function DashboardPage({
             keywordCount={bizBase.keywords?.length ?? 0}
             latestAdOnly={(latestScan?.naver_result as { ad_only?: boolean } | null | undefined)?.ad_only ?? false}
             userCreatedAt={user.created_at ?? null}
+            globalWeight={globalWeight}
           />
 
           <DashboardGeneratorZone

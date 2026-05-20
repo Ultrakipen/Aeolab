@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from db.supabase_client import get_client
+from utils.admin_auth import verify_admin
 import logging
 
 router = APIRouter(prefix="/api/system", tags=["system"])
@@ -34,7 +35,12 @@ async def get_system_status(supabase=Depends(get_client)):
 
 
 @router.post("/status/{key}")
-async def set_system_status(key: str, body: dict, supabase=Depends(get_client)):
+async def set_system_status(
+    key: str,
+    body: dict,
+    supabase=Depends(get_client),
+    _: None = Depends(verify_admin),
+):
     """Admin 전용: 시스템 상태 설정. body: {value, message}"""
     try:
         supabase.table("system_status").upsert(

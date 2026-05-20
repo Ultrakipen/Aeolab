@@ -292,14 +292,17 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 아래 3·4·5단계를 진행하세요.
               </div>
             )}
-            {business?.id && (
-              <Link
-                href="/dashboard"
-                className="inline-block mt-3 px-4 py-2 bg-blue-600 text-white text-sm md:text-base rounded font-medium hover:bg-blue-700"
+            <div className="mt-3">
+              <a
+                href="https://smartplace.naver.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-4 py-2 bg-blue-600 text-white text-sm md:text-base rounded font-medium hover:bg-blue-700"
               >
-                대시보드에서 토글 상태 보고하기 →
-              </Link>
-            )}
+                스마트플레이스 &rarr; AI 정보 탭에서 토글을 ON으로 설정 &#8599;
+              </a>
+              <p className="text-sm text-gray-500 mt-1">설정 후 24시간 내 반영됩니다</p>
+            </div>
           </Step>
         )}
 

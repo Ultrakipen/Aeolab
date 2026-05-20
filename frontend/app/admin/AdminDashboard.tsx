@@ -712,6 +712,24 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
           >
             Q&A 문의 관리 →
           </a>
+          <a
+            href="/admin/feedback"
+            className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+          >
+            피드백 현황 →
+          </a>
+          <a
+            href="/admin/notices"
+            className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+          >
+            공지사항 관리 →
+          </a>
+          <a
+            href="/admin/score-comparison"
+            className="text-sm text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
+          >
+            점수 모델 v3.1 비교 →
+          </a>
         </div>
 
         {/* 탭 */}

@@ -23,21 +23,26 @@ export function NotificationBell() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getSession().then(({ data }) => {
-      const t = data.session?.access_token ?? null;
-      setToken(t);
-      if (!t) return;
-      fetch(`${BACKEND}/api/messages/unread`, {
-        headers: { Authorization: `Bearer ${t}` },
-      })
-        .then((r) => (r.ok ? r.json() : null))
-        .catch(() => null)
-        .then((res) => {
-          if (res) {
-            setUnreadCount((res as { unread_count?: number }).unread_count ?? 0);
-            setMessages((res as { messages?: Message[] }).messages ?? []);
-          }
-        });
+    // getUser()로 인증 검증 먼저 (Invalid Refresh Token 방지)
+    supabase.auth.getUser().then(({ data: userData, error }) => {
+      if (error || !userData?.user) return;
+      // 인증 통과 후 API 토큰 획득
+      supabase.auth.getSession().then(({ data }) => {
+        const t = data.session?.access_token ?? null;
+        setToken(t);
+        if (!t) return;
+        fetch(`${BACKEND}/api/messages/unread`, {
+          headers: { Authorization: `Bearer ${t}` },
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null)
+          .then((res) => {
+            if (res) {
+              setUnreadCount((res as { unread_count?: number }).unread_count ?? 0);
+              setMessages((res as { messages?: Message[] }).messages ?? []);
+            }
+          });
+      });
     });
   }, []);
 
@@ -74,39 +79,39 @@ export function NotificationBell() {
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+          <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center leading-none">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-1 w-72 bg-white rounded-xl shadow-lg border border-gray-100 z-50 max-h-80 overflow-y-auto">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
-            <p className="text-sm font-semibold text-gray-700">알림</p>
-            <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600">
+        <div className="absolute top-full right-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 max-h-80 overflow-y-auto">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 dark:border-gray-700">
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">알림</p>
+            <button onClick={() => setOpen(false)} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
               <X className="w-4 h-4" />
             </button>
           </div>
           {messages.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">새 알림이 없습니다</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">새 알림이 없습니다</p>
           ) : (
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-gray-50 dark:divide-gray-700">
               {messages.map((msg) => (
-                <div key={msg.id} className="p-3 hover:bg-gray-50 transition-colors">
-                  <p className="text-sm font-semibold text-gray-800">{msg.title}</p>
-                  <p className="text-sm text-gray-600 mt-0.5 leading-snug">{msg.body}</p>
+                <div key={msg.id} className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{msg.title}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5 leading-snug">{msg.body}</p>
                   {msg.cta_label && msg.cta_url && (
                     <a
                       href={msg.cta_url}
-                      className="text-sm text-blue-600 hover:underline mt-1 inline-block"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline mt-1 inline-block"
                     >
                       {msg.cta_label} →
                     </a>
                   )}
                   <button
                     onClick={() => markRead(msg.id)}
-                    className="text-xs text-gray-400 hover:text-gray-600 mt-1 transition-colors"
+                    className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 mt-1 transition-colors"
                   >
                     읽음으로 표시
                   </button>

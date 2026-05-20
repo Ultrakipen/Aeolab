@@ -1168,6 +1168,69 @@ def calc_track1_score_v3_1(
     return (round(score, 2), detail)
 
 
+# ════════════════════════════════════════════════════════════════
+# Shadow 모드 — v3.0 운영 중 v3.1 점수 병렬 계산 (비교 데이터 누적)
+# 환경변수 SCORE_MODEL_VERSION 무관, 항상 v3.1 로직 적용
+# 호출처: daily_scan_all 잡, scan.py 사용자 트리거 스캔
+# ════════════════════════════════════════════════════════════════
+
+def calc_shadow_v3_1(
+    scan_result: dict,
+    biz: dict,
+    naver_data: dict | None = None,
+    keyword_coverage_rate: float | None = None,
+) -> dict:
+    """v3.0 운영 중에도 v3.1 점수를 동시 계산 (Shadow 모드).
+
+    환경변수 SCORE_MODEL_VERSION 무관, 항상 v3.1 로직 적용.
+    호출처: daily_scan_all, scan.py 에서 v3.0 점수 계산 직후 별도 호출.
+
+    Args:
+        scan_result: AI 스캐너 결과 dict (gemini/chatgpt/naver/google 키 포함)
+        biz: 사업장 정보 dict (category, is_franchise, keywords 등)
+        naver_data: naver_result dict. None 이면 scan_result["naver"] 에서 자동 추출
+        keyword_coverage_rate: blog keyword coverage (0.0~1.0), None 이면 cold start
+
+    Returns:
+        {
+            "track1_score_v31": float,
+            "unified_score_v31": float,
+            "user_group_v31": str,  # "ACTIVE"|"LIKELY"|"INACTIVE" (대문자)
+            "track1_detail_v31": dict,  # 6항목 세부 점수
+        }
+    """
+    if biz is None:
+        biz = {}
+    _naver_data = naver_data if naver_data is not None else (scan_result.get("naver") or {})
+    category = biz.get("category") or ""
+
+    # v3.1 Track1 계산 (기존 함수 사용)
+    track1_v31, track1_detail_v31 = calc_track1_score_v3_1(
+        scan_result=scan_result,
+        biz=biz,
+        naver_data=_naver_data,
+        keyword_coverage_rate=keyword_coverage_rate,
+        category=category,
+    )
+
+    # Track2 는 v3.0/v3.1 공통 (AI 노출 점수 — 모델 버전 무관)
+    track2_score = calc_track2_score(scan_result, biz, _naver_data)
+
+    # 업종별 듀얼트랙 비율 적용
+    ratio = DUAL_TRACK_RATIO.get(normalize_category(category), DEFAULT_DUAL_TRACK_RATIO)
+    unified_v31 = round(track1_v31 * ratio["naver"] + track2_score * ratio["global"], 1)
+
+    # 사용자 그룹 분류 (프랜차이즈 → INACTIVE)
+    user_group = get_user_group(category, bool(biz.get("is_franchise", False)))
+
+    return {
+        "track1_score_v31": round(track1_v31, 2),
+        "unified_score_v31": unified_v31,
+        "user_group_v31": user_group,
+        "track1_detail_v31": track1_detail_v31,
+    }
+
+
 def calc_track1_score_v3_2(
     scan_result: dict,
     biz: dict,

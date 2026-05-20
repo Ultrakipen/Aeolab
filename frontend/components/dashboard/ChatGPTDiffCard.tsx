@@ -124,8 +124,8 @@ export default function ChatGPTDiffCard({
             </li>
           )}
         </ul>
-        <p className="mt-2 text-sm text-indigo-400">
-          ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다
+        <p className="mt-2 text-sm text-indigo-400 leading-snug">
+          <strong>측정 원리 차이:</strong> ChatGPT는 학습 데이터(컷오프 2026.01) 기반, Gemini는 Google 실시간 검색을 일부 반영. 두 측정값이 다를 수 있습니다.
         </p>
       </div>
     </div>

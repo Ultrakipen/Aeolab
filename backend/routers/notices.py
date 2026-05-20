@@ -1,20 +1,12 @@
-import os
 import logging
-from fastapi import APIRouter, HTTPException, Header, Query
+from fastapi import APIRouter, Depends, HTTPException, Header, Query
 from pydantic import BaseModel
 from typing import Optional
 from db.supabase_client import get_client, execute
+from utils.admin_auth import verify_admin
 
 router = APIRouter()
 _logger = logging.getLogger("aeolab.notices")
-
-
-# ── 관리자 검증 ──────────────────────────────────────────────────────────────
-
-def _verify_admin(x_admin_key: str = Header(None)):
-    key = os.getenv("ADMIN_SECRET_KEY", "")
-    if not key or x_admin_key != key:
-        raise HTTPException(status_code=403, detail="관리자 권한 필요")
 
 
 # ── Pydantic 모델 ─────────────────────────────────────────────────────────────
@@ -99,8 +91,7 @@ async def get_notice(notice_id: int):
 
 
 @router.post("", summary="공지사항 작성 (관리자 전용)", status_code=201)
-async def create_notice(body: NoticeCreate, x_admin_key: str = Header(None)):
-    _verify_admin(x_admin_key)
+async def create_notice(body: NoticeCreate, _: None = Depends(verify_admin)):
     try:
         supabase = get_client()
         ins = await execute(
@@ -126,8 +117,7 @@ async def create_notice(body: NoticeCreate, x_admin_key: str = Header(None)):
 
 
 @router.patch("/{notice_id}", summary="공지사항 수정 (관리자 전용)")
-async def update_notice(notice_id: int, body: NoticeUpdate, x_admin_key: str = Header(None)):
-    _verify_admin(x_admin_key)
+async def update_notice(notice_id: int, body: NoticeUpdate, _: None = Depends(verify_admin)):
     try:
         supabase = get_client()
 
@@ -162,8 +152,7 @@ async def update_notice(notice_id: int, body: NoticeUpdate, x_admin_key: str = H
 
 
 @router.delete("/{notice_id}", summary="공지사항 삭제 (관리자 전용)")
-async def delete_notice(notice_id: int, x_admin_key: str = Header(None)):
-    _verify_admin(x_admin_key)
+async def delete_notice(notice_id: int, _: None = Depends(verify_admin)):
     try:
         supabase = get_client()
 

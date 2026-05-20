@@ -1,8 +1,9 @@
 import logging
 import os
 import secrets
+import statistics
 from datetime import date, datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Query
 from db.supabase_client import get_client, execute
 from config.prices import PLAN_PRICE_MAP
 from services.score_engine import BRIEFING_ACTIVE_CATEGORIES, BRIEFING_LIKELY_CATEGORIES
@@ -217,3 +218,188 @@ async def broadcast_kakao(message: str, _=Depends(verify_admin)):
             except Exception as e:
                 _logger.warning("kakao broadcast failed phone=%s: %s", f"{str(phone)[:3]}****{str(phone)[-2:]}", e)
     return {"sent": sent}
+
+
+# ────────────────────────────────────────────────────────────────
+# v3.0 vs v3.1 점수 비교 — Admin 활성화 의사결정 지원 API
+# Rate limit: 1분당 10회 (무거운 집계 쿼리 방지)
+# ────────────────────────────────────────────────────────────────
+_score_cmp_request_times: list = []
+
+
+def _check_score_cmp_rate_limit() -> None:
+    """Admin 점수 비교 엔드포인트 1분당 10회 제한."""
+    import time
+    now = time.time()
+    _score_cmp_request_times[:] = [t for t in _score_cmp_request_times if now - t < 60]
+    if len(_score_cmp_request_times) >= 10:
+        raise HTTPException(status_code=429, detail="1분당 최대 10회 요청 가능합니다")
+    _score_cmp_request_times.append(now)
+
+
+@router.get("/score-comparison")
+async def get_score_comparison(
+    days: int = Query(30, ge=7, le=90, description="최근 N일 데이터 기간"),
+    _: None = Depends(verify_admin),
+):
+    """v3.0 vs v3.1 점수 비교 데이터 — v3.1 활성화 의사결정 지원.
+
+    scan_results에서 최근 N일치 + track1_score_v31 IS NOT NULL 데이터를
+    그룹별로 집계하여 점수 변동폭·이상치·안전 진단 결과를 반환합니다.
+
+    안전 진단 기준:
+      GREEN  — 모든 그룹 diff_avg ≤ 5점, 이상치 비율 < 10%
+      YELLOW — 일부 그룹 5 < diff_avg ≤ 10, 또는 이상치 10~20%
+      RED    — 어느 그룹이든 diff_avg > 10, 또는 이상치 > 20%
+
+    Returns:
+        {
+            "total_scans": int,
+            "shadow_scans": int,        # v31 데이터 존재 건수
+            "period_days": int,
+            "groups": {
+                "ACTIVE": {"count", "v30_avg", "v31_avg", "diff_avg", "diff_stddev"},
+                "LIKELY": {...},
+                "INACTIVE": {...},
+            },
+            "outliers": [{biz_id, category, user_group_v31, v30, v31, diff}],
+            "scatter": [{v30, v31, user_group}],    # max 200건
+            "safety_diagnosis": "green"|"yellow"|"red",
+            "diagnosis_reason": str,
+        }
+    """
+    _check_score_cmp_rate_limit()
+    supabase = get_supabase()
+
+    cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+
+    # shadow 데이터 존재 행만 조회 (v31 컬럼 NULL 제외)
+    _res = await execute(
+        supabase.table("scan_results")
+        .select(
+            "id, business_id, unified_score, track1_score, "
+            "track1_score_v31, unified_score_v31, user_group_v31, "
+            "scanned_at, businesses(category, name)"
+        )
+        .gte("scanned_at", cutoff)
+        .not_.is_("unified_score_v31", "null")
+        .order("scanned_at", desc=True)
+        .limit(2000)
+    )
+    rows = _res.data or []
+
+    if not rows:
+        return {
+            "total_scans": 0,
+            "shadow_scans": 0,
+            "period_days": days,
+            "groups": {},
+            "outliers": [],
+            "scatter": [],
+            "safety_diagnosis": "green",
+            "diagnosis_reason": "Shadow 데이터 없음 — v3.1 비교 데이터 누적 대기 중",
+        }
+
+    # 전체 기간 스캔 수 (v31 유무 무관)
+    _total_res = await execute(
+        supabase.table("scan_results")
+        .select("id", count="exact")
+        .gte("scanned_at", cutoff)
+    )
+    total_scans = _total_res.count or len(rows)
+
+    # 그룹별 집계
+    group_data: dict[str, list[dict]] = {"ACTIVE": [], "LIKELY": [], "INACTIVE": []}
+    all_outliers = []
+    scatter_items = []
+
+    for row in rows:
+        v30 = float(row.get("unified_score") or 0)
+        v31 = float(row.get("unified_score_v31") or 0)
+        grp = (row.get("user_group_v31") or "INACTIVE").upper()
+        if grp not in group_data:
+            grp = "INACTIVE"
+
+        diff = v31 - v30
+        biz_info = row.get("businesses") or {}
+        category = biz_info.get("category") or ""
+
+        item = {"v30": v30, "v31": v31, "diff": round(diff, 2)}
+        group_data[grp].append(item)
+
+        # 이상치: 차이 절대값 20점 이상
+        if abs(diff) >= 20:
+            all_outliers.append({
+                "biz_id": row.get("business_id"),
+                "biz_name": biz_info.get("name") or "",
+                "category": category,
+                "user_group_v31": grp,
+                "v30": round(v30, 1),
+                "v31": round(v31, 1),
+                "diff": round(diff, 2),
+            })
+
+        # 산점도 데이터 (최대 200건)
+        if len(scatter_items) < 200:
+            scatter_items.append({"v30": round(v30, 1), "v31": round(v31, 1), "user_group": grp})
+
+    # 그룹별 통계
+    groups_result: dict = {}
+    all_diff_avgs: list[float] = []
+    for grp, items in group_data.items():
+        if not items:
+            groups_result[grp] = {
+                "count": 0,
+                "v30_avg": None,
+                "v31_avg": None,
+                "diff_avg": None,
+                "diff_stddev": None,
+            }
+            continue
+        diffs = [it["diff"] for it in items]
+        v30s  = [it["v30"] for it in items]
+        v31s  = [it["v31"] for it in items]
+        diff_avg = statistics.mean(diffs)
+        diff_std = statistics.stdev(diffs) if len(diffs) > 1 else 0.0
+        all_diff_avgs.append(abs(diff_avg))
+        groups_result[grp] = {
+            "count": len(items),
+            "v30_avg": round(statistics.mean(v30s), 2),
+            "v31_avg": round(statistics.mean(v31s), 2),
+            "diff_avg": round(diff_avg, 2),
+            "diff_stddev": round(diff_std, 2),
+        }
+
+    # 안전 진단
+    outlier_ratio = len(all_outliers) / max(len(rows), 1)
+    max_diff_avg = max(all_diff_avgs) if all_diff_avgs else 0.0
+
+    if max_diff_avg > 10 or outlier_ratio > 0.20:
+        safety = "red"
+        reason = (
+            f"주의: diff_avg 최대 {max_diff_avg:.1f}점, 이상치 비율 {outlier_ratio*100:.1f}% — "
+            "활성화 전 그룹별 원인 분석 필요"
+        )
+    elif max_diff_avg > 5 or outlier_ratio > 0.10:
+        safety = "yellow"
+        reason = (
+            f"검토 권장: diff_avg 최대 {max_diff_avg:.1f}점, 이상치 비율 {outlier_ratio*100:.1f}% — "
+            "이상치 사업장 개별 확인 후 활성화 권장"
+        )
+    else:
+        safety = "green"
+        reason = (
+            f"활성화 안전: diff_avg 최대 {max_diff_avg:.1f}점, 이상치 비율 {outlier_ratio*100:.1f}% — "
+            "v3.1 활성화 시 점수 변동이 예측 범위 내"
+        )
+
+    return {
+        "total_scans": total_scans,
+        "shadow_scans": len(rows),
+        "period_days": days,
+        "groups": groups_result,
+        "outliers": all_outliers[:50],     # 최대 50건
+        "scatter": scatter_items,
+        "safety_diagnosis": safety,
+        "diagnosis_reason": reason,
+    }

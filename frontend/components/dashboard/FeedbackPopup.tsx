@@ -49,22 +49,22 @@ export function FeedbackPopup({ eventType, trigger, accessToken }: Props) {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-24 right-4 lg:bottom-8 lg:right-8 z-50 bg-white rounded-2xl shadow-lg border border-gray-100 p-4 w-72">
+    <div className="fixed bottom-24 right-4 lg:bottom-8 lg:right-8 z-50 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-4 w-72">
       <button
         onClick={() => setVisible(false)}
-        className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+        className="absolute top-3 right-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         aria-label="닫기"
       >
         <X className="w-4 h-4" />
       </button>
 
       {submitted ? (
-        <p className="text-sm font-medium text-green-600 text-center py-2">
+        <p className="text-sm font-medium text-green-600 dark:text-green-400 text-center py-2">
           감사합니다! 피드백이 전송됐어요.
         </p>
       ) : (
         <>
-          <p className="text-sm font-semibold text-gray-800 mb-3 pr-5">
+          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3 pr-5">
             {eventType === "guide_generated"
               ? "가이드가 도움이 됐나요?"
               : "스캔 결과에 만족하셨나요?"}
@@ -72,14 +72,14 @@ export function FeedbackPopup({ eventType, trigger, accessToken }: Props) {
           <div className="flex gap-2 justify-center">
             <button
               onClick={() => submit(1)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-green-50 text-green-700 rounded-xl text-sm font-medium hover:bg-green-100 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-xl text-sm font-medium hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors"
             >
               <ThumbsUp className="w-4 h-4" />
               도움됐어요
             </button>
             <button
               onClick={() => submit(0)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gray-50 text-gray-500 rounded-xl text-sm font-medium hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
             >
               <ThumbsDown className="w-4 h-4" />
               아쉬워요
