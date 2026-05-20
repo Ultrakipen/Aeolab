@@ -617,14 +617,18 @@ class GuideGenerator:
             f"\n## AI 브리핑 채널 안내\n{briefing_header}" if briefing_header else ""
         )
 
-        # INACTIVE 업종 Track2 집중 섹션 — 글로벌 AI 비중 업종별 명시
+        # INACTIVE 업종 Track2 집중 섹션
+        # 조건: DUAL_TRACK_RATIO에 등록된 카테고리이면서 global 비중 > 50%인 경우에만 적용
+        # (등록 안 된 카테고리는 DEFAULT naver 60% 폴백 → 글로벌 집중 지시 금지)
         track2_focus_section = ""
         if eligibility == "inactive":
             category = biz.get("category", "")
-            ratio = DUAL_TRACK_RATIO.get(category, DEFAULT_DUAL_TRACK_RATIO)
-            global_pct = int(ratio.get("global", 0.40) * 100)
-            naver_pct  = int(ratio.get("naver",  0.60) * 100)
-            track2_focus_section = f"""
+            ratio = DUAL_TRACK_RATIO.get(category)  # 미등록이면 None
+            if ratio is not None:
+                global_pct = int(ratio.get("global", 0.40) * 100)
+                naver_pct  = int(ratio.get("naver",  0.60) * 100)
+                if global_pct > 50:
+                    track2_focus_section = f"""
 ## Track2(글로벌 AI) 집중 지시 — 이 업종은 글로벌 AI 비중 {global_pct}% (네이버 {naver_pct}%)
 - 이 업종 사용자는 ChatGPT·Gemini·Google AI에서 업체 정보를 검색하는 비율이 높음
 - 가이드의 priority_items 최상위 2개는 반드시 아래 Track2 액션 중에서 선정할 것:

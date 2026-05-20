@@ -339,7 +339,7 @@ export default function DashboardDetailZone({
             chatgptMentioned={!!chatgptResult?.mentioned}
             hasWebsite={!!business.website_url}
             googlePlaceRegistered={!!business.google_place_id}
-            naverWeight={naverWeight}
+            naverWeight={hasLatestScan ? naverWeight : undefined}
           />
           <GlobalAIBanner
             globalScore={track2Score}
