@@ -1629,7 +1629,7 @@ async def detect_new_competitors():
                 )
                 profile = _dnc_prof_res.data
                 phone = (profile or {}).get("phone")
-                notify_on = (profile or {}).get("kakao_competitor_notify", True)
+                notify_on = (profile or {}).get("kakao_competitor_notify", False)
 
                 if not phone or not notify_on:
                     continue
@@ -1816,7 +1816,7 @@ async def keyword_alert_job():
                 )
                 profile = _ka_prof_res.data
                 phone = (profile or {}).get("phone")
-                notify_on = (profile or {}).get("kakao_scan_notify", True)
+                notify_on = (profile or {}).get("kakao_scan_notify", False)
                 if not phone or not notify_on:
                     continue
 
@@ -2117,7 +2117,7 @@ async def weekly_post_draft_job():
                 )
                 profile = _wpd_prof_res.data
                 phone = (profile or {}).get("phone")
-                if phone and (profile or {}).get("kakao_scan_notify", True):
+                if phone and (profile or {}).get("kakao_scan_notify", False):
                     await notifier.send_text(
                         phone=phone,
                         message=(

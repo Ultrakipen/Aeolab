@@ -5,7 +5,6 @@ import { Plus, Trash2, Eye, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-const ADMIN_SECRET_KEY = process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY || "";
 
 interface StoryItem {
   id: string;
@@ -115,12 +114,9 @@ export default function AdminStoriesPage() {
         display_name: form.is_anonymous ? null : (form.display_name.trim() || null),
       };
 
-      const res = await fetch(`${BACKEND_URL}/admin/stories`, {
+      const res = await fetch(`/api/admin-proxy?path=admin/stories`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Admin-Key": ADMIN_SECRET_KEY,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 

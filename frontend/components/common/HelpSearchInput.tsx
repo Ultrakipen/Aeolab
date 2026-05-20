@@ -2,11 +2,17 @@
 
 /**
  * HelpSearchInput — FAQ 검색 드롭다운 컴포넌트
- * /api/faq/search?q= 엔드포인트 호출 (백엔드 작업 7에서 구현 예정)
- * 사이트 헤더 통합은 별도 세션에서 진행
+ * /api/faq/search?q= 엔드포인트 호출
+ *
+ * Props:
+ *   onQuery         — 검색어 확정 시 호출 (GA4 등)
+ *   onResultClick   — 결과 클릭 시 호출 (faqId, category)
+ *   onNoResult      — 결과 0건 시 호출
+ *   showFallback    — true일 때 결과 없음 → /support 링크 표시 (default: false)
  */
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Search, X } from "lucide-react";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? "";
@@ -22,17 +28,26 @@ interface Props {
   placeholder?: string;
   maxResults?: number;
   className?: string;
+  showFallback?: boolean;
+  onQuery?: (q: string) => void;
+  onResultClick?: (faqId: number, category: string) => void;
+  onNoResult?: (q: string) => void;
 }
 
 export default function HelpSearchInput({
   placeholder = "도움말 검색...",
   maxResults = 10,
   className = "",
+  showFallback = false,
+  onQuery,
+  onResultClick,
+  onNoResult,
 }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<FaqResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [searched, setSearched] = useState(false); // 마지막 검색 완료 여부
   const [activeIndex, setActiveIndex] = useState(-1);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -59,6 +74,7 @@ export default function HelpSearchInput({
       if (!trimmed) {
         setResults([]);
         setOpen(false);
+        setSearched(false);
         return;
       }
 
@@ -70,21 +86,34 @@ export default function HelpSearchInput({
         const data = await res.json();
         const items: FaqResult[] = data.items ?? [];
         setResults(items);
-        setOpen(items.length > 0);
-        setActiveIndex(-1);
+        setSearched(true);
+
+        // 결과 있으면 드롭다운 열기
+        if (items.length > 0) {
+          setOpen(true);
+          setActiveIndex(-1);
+        } else {
+          setOpen(false);
+          onNoResult?.(trimmed);
+        }
+
+        // 쿼리 이벤트 (결과 유무 관계없이 발화)
+        onQuery?.(trimmed);
       } catch {
         setResults([]);
+        setSearched(true);
         setOpen(false);
       } finally {
         setLoading(false);
       }
     },
-    [maxResults]
+    [maxResults, onQuery, onNoResult]
   );
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
     setQuery(val);
+    setSearched(false);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => search(val), 280);
   }
@@ -93,6 +122,7 @@ export default function HelpSearchInput({
     setQuery("");
     setResults([]);
     setOpen(false);
+    setSearched(false);
     setActiveIndex(-1);
     inputRef.current?.focus();
   }
@@ -108,7 +138,10 @@ export default function HelpSearchInput({
     } else if (e.key === "Escape") {
       setOpen(false);
     } else if (e.key === "Enter" && activeIndex >= 0) {
-      // 선택된 항목 — 향후 FAQ 상세 페이지 링크 연결
+      const item = results[activeIndex];
+      if (item) {
+        onResultClick?.(item.id, item.category);
+      }
       setOpen(false);
     }
   }
@@ -119,6 +152,10 @@ export default function HelpSearchInput({
     scan: "스캔",
     guide: "개선 가이드",
   };
+
+  // 결과 없음 + fallback 노출 조건: 검색 완료 + 빈 결과 + query 있음 + showFallback=true
+  const showNoResultFallback =
+    showFallback && searched && query.trim().length > 0 && results.length === 0 && !loading;
 
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
@@ -168,7 +205,10 @@ export default function HelpSearchInput({
               role="option"
               aria-selected={idx === activeIndex}
               onMouseEnter={() => setActiveIndex(idx)}
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                onResultClick?.(item.id, item.category);
+                setOpen(false);
+              }}
               className={`w-full text-left px-4 py-3 border-b border-gray-50 dark:border-gray-700 last:border-0 transition-colors ${
                 idx === activeIndex
                   ? "bg-blue-50 dark:bg-blue-900/20"
@@ -176,7 +216,7 @@ export default function HelpSearchInput({
               }`}
             >
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-sm px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                <span className="text-sm px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 shrink-0">
                   {CATEGORY_LABELS[item.category] ?? item.category}
                 </span>
                 <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
@@ -188,6 +228,22 @@ export default function HelpSearchInput({
               </p>
             </button>
           ))}
+        </div>
+      )}
+
+      {/* 결과 없음 fallback */}
+      {showNoResultFallback && (
+        <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50 px-4 py-3">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+            찾는 답변이 없으신가요?
+          </p>
+          <Link
+            href="/support"
+            className="text-sm font-medium text-blue-600 hover:underline"
+            onClick={() => setOpen(false)}
+          >
+            Q&A 게시판에 문의하기 →
+          </Link>
         </div>
       )}
     </div>

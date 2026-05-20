@@ -591,27 +591,34 @@ async def _generate_and_save(req: GuideRequest):
             "competitor_count": len(competitor_data or []),
         }
 
-        # D.I.A. 5요소 사후 검증 — 2026-05-19 P1 §5.3 (사용자 미반영, WARNING 로그용)
-        # 가이드 본문 품질이 90점 미만이면 로그 후 운영팀이 프롬프트 보완
-        try:
-            from services.content_validator import validate_intro_dia
-            guide_text = " ".join(
-                [action_plan.summary or ""] +
-                [item.get("title", "") + " " + item.get("description", "") for item in base_payload["items_json"]]
-            )
-            biz_keywords = biz.get("keywords") or []
-            dia = validate_intro_dia(guide_text, keywords=biz_keywords, lsi_keywords=biz_keywords)
-            tools_data["dia_score"] = dia.get("score")
-            if (dia.get("score") or 0) < 90:
-                _logger.warning(
-                    "[D.I.A. 검증] guide biz=%s score=%s diversity=%s information=%s timeliness=%s",
-                    req.business_id, dia.get("score"),
-                    dia.get("diversity", {}).get("score"),
-                    dia.get("information", {}).get("score"),
-                    dia.get("timeliness", {}).get("score"),
+        # D.I.A. 점수 — generate_action_plan()이 재생성 후 이미 검증 완료한 점수 우선 사용
+        # generate_action_plan() 미실행(하위호환 경로) 시 사후 검증 폴백
+        if action_plan.dia_score is not None:
+            tools_data["dia_score"] = action_plan.dia_score
+            tools_data["dia_regenerated"] = action_plan.dia_regenerated or 0
+            if action_plan.dia_improvement_hints:
+                tools_data["dia_improvement_hints"] = action_plan.dia_improvement_hints
+        else:
+            try:
+                from services.content_validator import validate_intro_dia
+                guide_text = " ".join(
+                    [action_plan.summary or ""] +
+                    [item.get("title", "") + " " + item.get("description", "") for item in base_payload["items_json"]]
                 )
-        except Exception as dia_exc:
-            _logger.warning("guide_generator: D.I.A. 검증 실패 (%s)", dia_exc)
+                biz_keywords = biz.get("keywords") or []
+                dia = validate_intro_dia(guide_text, keywords=biz_keywords, lsi_keywords=biz_keywords)
+                tools_data["dia_score"] = dia.get("score")
+                tools_data["dia_regenerated"] = 0
+                if (dia.get("score") or 0) < 90:
+                    _logger.warning(
+                        "[D.I.A. 검증] guide biz=%s score=%s diversity=%s information=%s timeliness=%s",
+                        req.business_id, dia.get("score"),
+                        dia.get("diversity", {}).get("score"),
+                        dia.get("information", {}).get("score"),
+                        dia.get("timeliness", {}).get("score"),
+                    )
+            except Exception as dia_exc:
+                _logger.warning("guide_generator: D.I.A. 검증 실패 (%s)", dia_exc)
 
         try:
             await execute(

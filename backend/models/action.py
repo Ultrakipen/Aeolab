@@ -116,3 +116,6 @@ class ActionPlan(BaseModel):
     progress: Optional[ActionProgress] = None  # 프론트에서 주입
     weekly_roadmap: Optional[list] = None       # 4주 로드맵 (Claude 생성)
     this_week_mission: Optional[dict] = None    # 이번 주 미션 (Claude 생성)
+    dia_score: Optional[float] = None           # D.I.A. 품질 점수 (0~100, None=검증 미실행)
+    dia_regenerated: Optional[int] = None       # 재생성 횟수 (0=초회 통과)
+    dia_improvement_hints: Optional[list] = None  # 70~89점 구간 낮은 요소 리스트 (최대 2개)

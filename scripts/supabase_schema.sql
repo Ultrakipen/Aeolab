@@ -2074,3 +2074,28 @@ CREATE INDEX IF NOT EXISTS idx_scan_results_ai_tab_visible
 ALTER TABLE profiles
   ADD COLUMN IF NOT EXISTS intro_draft_count_month INTEGER     DEFAULT 0,
   ADD COLUMN IF NOT EXISTS intro_draft_reset_at     TIMESTAMPTZ DEFAULT NULL;
+
+-- ============================================================
+-- v5.9 — 카카오 알림 옵트인 기본값 수정 + 트리거 개선 (2026-05-21)
+-- 목적: 미동의 사용자에게 카카오 알림 발송 방지 (정보통신망법 준수)
+-- 실행: Supabase SQL Editor에서 즉시 실행 (기존 사용자 영향 없음)
+-- ============================================================
+-- 1. 신규 가입자 기본값 false로 변경 (명시 동의자만 true)
+ALTER TABLE profiles
+  ALTER COLUMN kakao_scan_notify      SET DEFAULT false,
+  ALTER COLUMN kakao_competitor_notify SET DEFAULT false;
+
+-- 2. 가입 트리거 개선: user_metadata.marketing_agreed를 kakao 알림 동의로 반영
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (user_id, kakao_scan_notify, kakao_competitor_notify)
+  VALUES (
+    NEW.id,
+    COALESCE((NEW.raw_user_meta_data->>'marketing_agreed')::boolean, false),
+    COALESCE((NEW.raw_user_meta_data->>'marketing_agreed')::boolean, false)
+  )
+  ON CONFLICT (user_id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

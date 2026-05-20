@@ -14,41 +14,41 @@ interface Props {
 // ─── 그룹별 변경 내용 ───────────────────────────────────────────────────────────
 const GROUP_CONTENT = {
   ACTIVE: {
-    label: "ACTIVE 업종 (음식점·카페·베이커리·바·숙박)",
+    label: "AI 브리핑 노출 업종 (음식점·카페·베이커리·바·숙박)",
     color: "bg-emerald-50 border-emerald-200 dark:bg-emerald-950 dark:border-emerald-700",
     titleColor: "text-emerald-800 dark:text-emerald-200",
     badge: "bg-emerald-600 text-white",
     badgeText: "AI 브리핑 대상",
     changes: [
-      "네이버 AI 브리핑 노출 가중치 강화 — 실제 브리핑 노출 사업장의 점수가 더 정확하게 반영됩니다.",
-      "스마트플레이스 완성도 비중이 소폭 상향되어 사진·소개글·영업시간 등 기본 정보의 중요도가 커집니다.",
-      "리뷰 수·응답률이 Track1 기여도에 더 직접 반영되도록 산식이 세분화됩니다.",
+      "네이버 AI 브리핑 노출 비중 강화 — 실제 브리핑에 노출되는 사업장 점수가 더 정확하게 반영됩니다.",
+      "스마트플레이스 완성도 비중이 소폭 올라 사진·소개글·영업시간 등 기본 정보의 중요도가 커집니다.",
+      "리뷰 수·응답률이 네이버 점수에 더 직접 반영되도록 계산 방식이 세밀해집니다.",
     ],
     impact: "AI 브리핑에 실제로 노출되고 있는 사장님은 점수 상승이 예상됩니다. 스마트플레이스를 완성하지 않은 경우 점수 하락이 있을 수 있습니다.",
   },
   LIKELY: {
-    label: "LIKELY 업종 (미용·네일·피트니스·요가·반려·약국)",
+    label: "AI탭 베타 준비 업종 (미용·네일·피트니스·요가·반려·약국)",
     color: "bg-indigo-50 border-indigo-200 dark:bg-indigo-950 dark:border-indigo-700",
     titleColor: "text-indigo-800 dark:text-indigo-200",
     badge: "bg-indigo-600 text-white",
     badgeText: "AI탭 베타 대상",
     changes: [
-      "네이버 AI탭(베타) 노출 기여도가 신규 추가됩니다 — 2026-04-27 전체 업종 베타 적용 기준.",
-      "ChatGPT·Gemini 인용 신호가 Track2 비중에서 더 세분화 반영됩니다.",
-      "네이버 지도 순위·리뷰 응답 가중치가 해당 업종 특성에 맞게 재조정됩니다.",
+      "네이버 AI탭(베타) 노출 반영이 새로 추가됩니다 — 2026년 4월 전체 업종 베타 적용 기준.",
+      "ChatGPT·Gemini 인용 신호가 글로벌 AI 점수에 더 세밀하게 반영됩니다.",
+      "네이버 지도 순위·리뷰 응답 비중이 해당 업종 특성에 맞게 재조정됩니다.",
     ],
-    impact: "네이버 AI탭 노출 최적화가 점수에 새로 반영되어 AI탭 최적화 사업장은 점수 상승이 예상됩니다.",
+    impact: "네이버 AI탭 최적화가 점수에 새로 반영되어 AI탭에 맞게 관리된 사업장은 점수 상승이 예상됩니다.",
   },
   INACTIVE: {
-    label: "INACTIVE 업종 (법무·세무·교육·쇼핑·인테리어 등)",
+    label: "글로벌 AI 집중 업종 (법무·세무·교육·쇼핑·인테리어 등)",
     color: "bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-700",
     titleColor: "text-amber-800 dark:text-amber-200",
     badge: "bg-amber-500 text-white",
     badgeText: "글로벌 AI 집중",
     changes: [
-      "네이버 AI 브리핑 비중(Track1)이 0으로 조정됩니다 — 비대상 업종에 불필요한 가중치를 제거합니다.",
-      "ChatGPT·Gemini·Google AI 인용(Track2) 비중이 대폭 상향되어 실제 노출 채널에 집중합니다.",
-      "웹사이트 SEO·콘텐츠 구조화 가중치가 강화되어 글로벌 AI 학습 신호가 더 잘 반영됩니다.",
+      "네이버 AI 브리핑 항목 비중이 0으로 조정됩니다 — 해당 없는 업종에 불필요한 항목을 제거합니다.",
+      "ChatGPT·Gemini·Google AI 인용 비중이 대폭 올라 실제 노출 채널에 집중합니다.",
+      "웹사이트 검색 최적화·콘텐츠 구조화 비중이 강화되어 글로벌 AI 학습 신호가 더 잘 반영됩니다.",
     ],
     impact: "글로벌 AI(ChatGPT·Gemini)에서 실제로 언급되고 있는 사업장은 점수 상승이 예상됩니다. 웹사이트·콘텐츠가 부족한 경우 점수 하락이 있을 수 있습니다.",
   },
@@ -59,26 +59,26 @@ const GROUP_CONTENT = {
     badge: "bg-purple-600 text-white",
     badgeText: "프랜차이즈 맞춤",
     changes: [
-      "네이버 AI 브리핑 비중이 제외됩니다(본사 정책에 따라 가맹점은 AI 브리핑 비대상).",
-      "네이버 일반 검색·지도·블로그 UGC 가중치가 강화됩니다.",
-      "ChatGPT·Gemini·Google AI 채널 비중이 상향 조정됩니다.",
+      "네이버 AI 브리핑 항목이 제외됩니다(본사 정책에 따라 가맹점은 AI 브리핑 대상이 아닙니다).",
+      "네이버 일반 검색·지도·블로그 후기 비중이 강화됩니다.",
+      "ChatGPT·Gemini·Google AI 채널 비중이 높아집니다.",
     ],
-    impact: "프랜차이즈 특성에 맞게 조정되어 가맹점이 관리 가능한 채널에 점수가 집중됩니다.",
+    impact: "프랜차이즈 특성에 맞게 조정되어 가맹점이 직접 관리할 수 있는 채널에 점수가 집중됩니다.",
   },
 };
 
 const FAQ_DATA = [
   {
     q: "점수가 떨어졌는데 사업장에 문제가 있나요?",
-    a: "v3.1 점수 변동은 실제 노출 상태를 더 정확하게 반영하도록 가중치가 보정된 결과입니다. 내 사업장의 실제 AI 노출이나 네이버 지도 순위가 변한 것이 아닙니다. 변동 사유가 궁금하다면 대시보드의 '채널별 점수' 항목을 확인해 주세요.",
+    a: "이번 점수 변동은 실제 노출 상태를 더 정확하게 반영하도록 계산 방식이 개선된 결과입니다. 내 사업장의 실제 AI 노출이나 네이버 지도 순위가 바뀐 것이 아닙니다. 변동 이유가 궁금하다면 대시보드의 '채널별 점수' 항목을 확인해 주세요.",
   },
   {
-    q: "다시 v3.0으로 돌아갈 수 있나요?",
-    a: "v3.0 점수는 히스토리에 별도 보관됩니다. 운영 중에는 v3.1 점수를 기준으로 개선 가이드가 생성되며, v3.0으로 롤백하는 기능은 제공하지 않습니다. 점수 변동에 의문이 있으면 Q&A 게시판에 문의해 주세요.",
+    q: "이전 버전 점수로 돌아갈 수 있나요?",
+    a: "이전 점수는 기록으로 별도 보관됩니다. 현재는 개선된 점수 기준으로 가이드가 생성되며, 이전 방식으로 되돌리는 기능은 제공하지 않습니다. 점수 변동에 의문이 있으면 Q&A 게시판에 문의해 주세요.",
   },
   {
-    q: "내 업종 가중치를 더 자세히 보려면?",
-    a: "대시보드의 '점수 상세' 섹션에서 Track1(네이버)·Track2(글로벌) 각 항목별 기여도를 확인할 수 있습니다. 업종별 가중치 비율(Naver/Global 비율)은 설계 문서(docs/model_engine_v3.0.md)에 공개되어 있으며, 추후 UI에서 직접 확인할 수 있도록 개선 예정입니다.",
+    q: "내 업종 점수 계산 비중을 더 자세히 보려면?",
+    a: "대시보드의 '점수 상세' 섹션에서 네이버 점수·글로벌 AI 점수 각 항목별 기여도를 확인할 수 있습니다. 업종별 네이버/글로벌 비중은 추후 화면에서 직접 확인할 수 있도록 개선 예정입니다.",
   },
 ];
 
@@ -116,9 +116,9 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
           </div>
         )}
         <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm leading-relaxed break-keep">
-          v3.1은 업종별 가중치를 정교화하여 사장님 업종 특성에 맞는 진단을 제공합니다.
-          AI 브리핑 대상(ACTIVE)·AI탭 베타(LIKELY)·글로벌 AI 집중(INACTIVE) 세 그룹이
-          각각 다른 가중치로 분리됩니다.
+          이번 업그레이드는 업종별 계산 비중을 세밀하게 조정해 사장님 업종 특성에 맞는 진단을 제공합니다.
+          'AI 브리핑 대상'·'AI탭 베타 준비'·'글로벌 AI 집중' 세 유형으로 나뉘어
+          각 유형에 실제로 의미 있는 채널에 더 높은 비중이 적용됩니다.
         </p>
       </div>
 
@@ -126,9 +126,9 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
       <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 rounded-xl p-4 md:p-5 mb-6">
         <h2 className="text-base font-bold text-blue-800 dark:text-blue-200 mb-2">왜 업그레이드되었나?</h2>
         <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed break-keep">
-          v3.0은 업종 구분 없이 단일 가중치를 적용해 음식점과 법무사 사무소가 동일한 기준으로 평가되는 문제가 있었습니다.
-          v3.1은 AI 브리핑 대상 여부, 프랜차이즈 여부, 글로벌 AI 노출 중요도에 따라
-          9개 그룹으로 세분화하여 사장님 업종에 실제로 의미 있는 채널에 더 높은 가중치를 부여합니다.
+          이전 버전은 업종 구분 없이 같은 기준을 적용해 음식점과 법무사 사무소가 동일하게 평가되는 문제가 있었습니다.
+          이번 업그레이드는 AI 브리핑 노출 여부, 프랜차이즈 여부, 글로벌 AI 중요도에 따라
+          세 유형으로 나눠 사장님 업종에 실제로 의미 있는 채널에 더 높은 비중을 부여합니다.
         </p>
       </div>
 
@@ -172,7 +172,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
                 </div>
                 <ul className="space-y-1">
                   {c.changes.slice(0, 2).map((ch, i) => (
-                    <li key={i} className="text-xs text-gray-600 dark:text-gray-400 break-keep">
+                    <li key={i} className="text-sm text-gray-600 dark:text-gray-400 break-keep">
                       • {ch}
                     </li>
                   ))}

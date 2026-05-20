@@ -403,3 +403,94 @@ async def get_score_comparison(
         "safety_diagnosis": safety,
         "diagnosis_reason": reason,
     }
+
+
+# ────────────────────────────────────────────────────────────────
+# D.I.A. 점수 분포 — 가이드 품질 모니터링
+# ────────────────────────────────────────────────────────────────
+
+@router.get("/dia-stats")
+async def get_dia_stats(
+    days: int = Query(30, ge=1, le=90, description="최근 N일 데이터 기간"),
+    _: None = Depends(verify_admin),
+):
+    """D.I.A. 품질 점수 분포 — 가이드 생성 품질 모니터링.
+
+    guides.tools_json 내 dia_score 필드(JSONB)를 집계합니다.
+    DB에 dia_score 데이터가 없으면 count=0으로 반환 (에러 없음).
+
+    Returns:
+        {
+            "period_days": int,
+            "total_guides": int,          # dia_score 있는 가이드 수
+            "bins": [
+                {"range": "90-100", "count": N},
+                {"range": "70-89",  "count": N},
+                {"range": "<70",    "count": N},
+            ],
+            "avg_score": float | null,
+            "regenerated_count": int,     # dia_regenerated >= 1인 가이드 수
+            "regenerated_success_rate": float | null,  # 재생성 후 70점+ 비율
+        }
+    """
+    supabase = get_supabase()
+    since = (datetime.now() - timedelta(days=days)).isoformat()
+
+    try:
+        rows = (
+            await execute(
+                supabase.table("guides")
+                .select("tools_json, generated_at")
+                .gte("generated_at", since)
+                .limit(2000)
+            )
+        ).data or []
+    except Exception as e:
+        _logger.warning("dia-stats: guides 조회 실패 — %s", e)
+        rows = []
+
+    scores: list[float] = []
+    regenerated_total = 0
+    regenerated_success = 0
+
+    for row in rows:
+        tools = row.get("tools_json") or {}
+        raw_score = tools.get("dia_score")
+        if raw_score is None:
+            continue
+        try:
+            score = float(raw_score)
+        except (TypeError, ValueError):
+            continue
+        scores.append(score)
+
+        regen = tools.get("dia_regenerated", 0)
+        try:
+            regen_int = int(regen)
+        except (TypeError, ValueError):
+            regen_int = 0
+        if regen_int >= 1:
+            regenerated_total += 1
+            if score >= 70:
+                regenerated_success += 1
+
+    total = len(scores)
+    bins = [
+        {"range": "90-100", "count": sum(1 for s in scores if s >= 90)},
+        {"range": "70-89",  "count": sum(1 for s in scores if 70 <= s < 90)},
+        {"range": "<70",    "count": sum(1 for s in scores if s < 70)},
+    ]
+    avg_score = round(sum(scores) / total, 1) if total > 0 else None
+    regen_success_rate = (
+        round(regenerated_success / regenerated_total * 100, 1)
+        if regenerated_total > 0 else None
+    )
+
+    return {
+        "period_days": days,
+        "total_guides": total,
+        "bins": bins,
+        "avg_score": avg_score,
+        "regenerated_count": regenerated_total,
+        "regenerated_success_rate": regen_success_rate,
+    }

@@ -217,3 +217,26 @@ export function trackPricingAnchorView(): void {
   if (!claimSessionFlag("pricing_anchor_view")) return;
   trackEvent("pricing_anchor_view");
 }
+
+// ── FAQ 도움말 검색 이벤트 ────────────────────────────────────────────
+
+/**
+ * 헤더/floating 검색창에서 쿼리 발생 (디바운스 280ms 후).
+ */
+export function trackHelpSearchQuery(q: string): void {
+  trackEvent("help_search_query", { q: q.slice(0, 100) });
+}
+
+/**
+ * 검색 결과 항목 클릭.
+ */
+export function trackHelpSearchResultClick(faqId: number, category: string): void {
+  trackEvent("help_search_result_click", { faq_id: faqId, category });
+}
+
+/**
+ * 검색어 입력 후 결과 0건.
+ */
+export function trackHelpSearchNoResult(q: string): void {
+  trackEvent("help_search_no_result", { q: q.slice(0, 100) });
+}

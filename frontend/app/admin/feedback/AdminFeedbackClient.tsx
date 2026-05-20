@@ -11,7 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { ThumbsUp, ThumbsDown, RefreshCw } from "lucide-react";
+import { ThumbsUp, ThumbsDown, RefreshCw, Star } from "lucide-react";
 
 const ADMIN_PROXY = "/api/admin-proxy";
 
@@ -20,6 +20,53 @@ const PERIOD_OPTIONS = [
   { label: "30일", value: "30" },
   { label: "전체", value: "all" },
 ] as const;
+
+// D.I.A. 점수 분포 타입
+interface DiaBin {
+  range: string;
+  count: number;
+}
+
+interface DiaStats {
+  period_days: number;
+  total_guides: number;
+  bins: DiaBin[];
+  avg_score: number | null;
+  regenerated_count: number;
+  regenerated_success_rate: number | null;
+}
+
+const DIA_BIN_COLORS: Record<string, string> = {
+  "90-100": "bg-green-500",
+  "70-89":  "bg-yellow-400",
+  "<70":    "bg-red-400",
+};
+
+const DIA_BIN_TEXT: Record<string, string> = {
+  "90-100": "text-green-700 dark:text-green-300",
+  "70-89":  "text-yellow-700 dark:text-yellow-300",
+  "<70":    "text-red-700 dark:text-red-300",
+};
+
+function DiaBinBar({ bin, max }: { bin: DiaBin; max: number }) {
+  const pct = max > 0 ? Math.round((bin.count / max) * 100) : 0;
+  const colorClass = DIA_BIN_COLORS[bin.range] ?? "bg-blue-400";
+  const textClass = DIA_BIN_TEXT[bin.range] ?? "text-blue-700 dark:text-blue-300";
+  return (
+    <div className="flex items-center gap-3">
+      <span className={`w-14 text-sm font-medium shrink-0 ${textClass}`}>{bin.range}</span>
+      <div className="flex-1 h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div
+          className={`h-full ${colorClass} rounded-full transition-all`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className="text-sm text-gray-600 dark:text-gray-400 w-8 text-right shrink-0">
+        {bin.count}
+      </span>
+    </div>
+  );
+}
 
 type Period = (typeof PERIOD_OPTIONS)[number]["value"];
 
@@ -79,6 +126,11 @@ export default function AdminFeedbackClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // D.I.A. 통계 상태
+  const [diaStats, setDiaStats] = useState<DiaStats | null>(null);
+  const [diaLoading, setDiaLoading] = useState(false);
+  const [diaError, setDiaError] = useState("");
+
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -102,9 +154,33 @@ export default function AdminFeedbackClient() {
     }
   }, [period]);
 
+  const loadDia = useCallback(async () => {
+    setDiaLoading(true);
+    setDiaError("");
+    try {
+      const daysParam = period === "all" ? "90" : period;
+      const params = new URLSearchParams({ path: "admin/dia-stats", days: daysParam });
+      const res = await fetch(`${ADMIN_PROXY}?${params.toString()}`);
+      if (!res.ok) {
+        if (res.status === 403) {
+          setDiaError("관리자 권한이 필요합니다.");
+          return;
+        }
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const json = await res.json();
+      setDiaStats(json);
+    } catch (e) {
+      setDiaError(e instanceof Error ? e.message : "D.I.A. 데이터를 불러오지 못했습니다.");
+    } finally {
+      setDiaLoading(false);
+    }
+  }, [period]);
+
   useEffect(() => {
     load();
-  }, [load]);
+    loadDia();
+  }, [load, loadDia]);
 
   const entries = data
     ? Object.entries(data.summary).sort((a, b) => {
@@ -314,6 +390,114 @@ export default function AdminFeedbackClient() {
             )}
           </>
         )}
+
+        {/* D.I.A. 점수 분포 카드 */}
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 text-yellow-500" aria-hidden="true" />
+              <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
+                D.I.A. 가이드 품질 점수 분포
+              </h2>
+            </div>
+            <button
+              onClick={loadDia}
+              disabled={diaLoading}
+              className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              aria-label="D.I.A. 통계 새로고침"
+            >
+              <RefreshCw
+                className={`w-4 h-4 text-gray-500 dark:text-gray-400 ${diaLoading ? "animate-spin" : ""}`}
+              />
+            </button>
+          </div>
+
+          {diaError && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-3 text-sm text-red-700 dark:text-red-300">
+              {diaError}
+            </div>
+          )}
+
+          {diaLoading && !diaStats && (
+            <div className="flex items-center justify-center py-10">
+              <div className="w-6 h-6 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+
+          {diaStats && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 shadow-sm">
+              {/* 요약 수치 */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                {[
+                  {
+                    label: "집계 가이드",
+                    value: diaStats.total_guides === 0 ? "데이터 없음" : `${diaStats.total_guides}건`,
+                    color: "text-gray-900 dark:text-gray-100",
+                  },
+                  {
+                    label: "평균 점수",
+                    value: diaStats.avg_score !== null ? `${diaStats.avg_score}점` : "N/A",
+                    color:
+                      diaStats.avg_score !== null && diaStats.avg_score >= 90
+                        ? "text-green-600 dark:text-green-400"
+                        : diaStats.avg_score !== null && diaStats.avg_score >= 70
+                        ? "text-yellow-600 dark:text-yellow-400"
+                        : "text-red-500 dark:text-red-400",
+                  },
+                  {
+                    label: "재생성 건수",
+                    value: `${diaStats.regenerated_count}건`,
+                    color: diaStats.regenerated_count > 0 ? "text-orange-600 dark:text-orange-400" : "text-gray-900 dark:text-gray-100",
+                  },
+                  {
+                    label: "재생성 성공률",
+                    value:
+                      diaStats.regenerated_success_rate !== null
+                        ? `${diaStats.regenerated_success_rate}%`
+                        : "N/A",
+                    color:
+                      diaStats.regenerated_success_rate !== null && diaStats.regenerated_success_rate >= 80
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-yellow-600 dark:text-yellow-400",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3"
+                  >
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                      {item.label}
+                    </div>
+                    <div className={`text-lg font-bold ${item.color}`}>{item.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 구간별 막대 */}
+              {diaStats.total_guides > 0 ? (
+                <div className="space-y-2.5">
+                  {diaStats.bins.map((bin) => (
+                    <DiaBinBar
+                      key={bin.range}
+                      bin={bin}
+                      max={diaStats.total_guides}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
+                  아직 D.I.A. 점수가 기록된 가이드가 없습니다.
+                  <br />
+                  <span className="text-xs">가이드 생성 후 tools_json.dia_score 필드가 저장되면 표시됩니다.</span>
+                </p>
+              )}
+
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
+                최근 {diaStats.period_days}일 기준 · 90점+ 초회 통과 · 70~89점 조건부 통과 · 70점 미만 재생성 트리거
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

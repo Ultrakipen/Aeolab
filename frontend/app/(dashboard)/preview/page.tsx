@@ -26,7 +26,7 @@ export default async function PreviewPage() {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "hoozdev@gmail.com")
+  const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com")
     .split(",")
     .map((e) => e.trim().toLowerCase());
   const isAdmin = ADMIN_EMAILS.includes((user.email ?? "").toLowerCase());

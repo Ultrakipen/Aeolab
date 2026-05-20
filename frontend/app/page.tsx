@@ -15,6 +15,8 @@ import { createClient } from "@/lib/supabase/server";
 import { LandingLogout } from "./LandingLogout";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import LandingScrollAnimation from "@/components/landing/LandingScrollAnimation";
+import HeaderHelpSearch from "@/components/landing/HeaderHelpSearch";
+import HelpFAQFloat from "@/components/landing/HelpFAQFloat";
 
 const FLOAT_SHADOW = "var(--aeo-shadow-float)";
 
@@ -81,6 +83,10 @@ export default async function LandingPage() {
             >
               FAQ
             </Link>
+            {/* PC 전용 도움말 검색창 — lg:flex (lg 미만에서 숨김) */}
+            <div className="hidden lg:flex items-center ml-2">
+              <HeaderHelpSearch />
+            </div>
             {user ? (
               <>
                 <Link
@@ -1195,6 +1201,9 @@ export default async function LandingPage() {
       </section>
 
       <SiteFooter />
+
+      {/* 모바일 전용 FAQ floating 버튼 (랜딩 페이지 한정) */}
+      <HelpFAQFloat />
     </main>
   );
 }

@@ -8,7 +8,7 @@ export default async function AdminPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   const isAdmin = !!(user?.email && ADMIN_EMAILS.includes(user.email));
-  const adminKey = isAdmin ? (process.env.ADMIN_SECRET_KEY ?? "") : "";
+  if (!isAdmin) return null;
 
-  return <AdminDashboard initialKey={adminKey} />;
+  return <AdminDashboard />;
 }

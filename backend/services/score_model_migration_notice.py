@@ -199,6 +199,104 @@ async def send_v3_1_activation_notice(
     }
 
 
+async def send_v3_1_kakao_only(supabase) -> dict:
+    """v3.1 활성화 카카오 알림톡만 별도 발송 (인앱 메시지 이미 발송된 경우).
+
+    선결 조건:
+    - 카카오 비즈센터 `AEOLAB_SCORE_MODEL_01` 템플릿 승인 완료
+    - 환경변수 `KAKAO_TEMPLATE_SCORE_MODEL=AEOLAB_SCORE_MODEL_01` 설정
+
+    Returns:
+        {target_count, kakao_sent, kakao_failed, error?}
+    """
+    from db.supabase_client import execute
+    import os
+
+    _tmpl_key = os.getenv("KAKAO_TEMPLATE_SCORE_MODEL", "").strip()
+    if not _tmpl_key:
+        _logger.warning(
+            "[v3.1 kakao only] KAKAO_TEMPLATE_SCORE_MODEL 미설정 — "
+            "비즈센터 승인 후 .env에 추가 필요"
+        )
+        return {
+            "target_count": 0,
+            "kakao_sent": 0,
+            "kakao_failed": 0,
+            "error": "KAKAO_TEMPLATE_SCORE_MODEL 환경변수 미설정",
+        }
+
+    _subs_res = await execute(
+        supabase.table("subscriptions")
+        .select("user_id, plan")
+        .in_("status", ["active", "grace_period"])
+        .limit(5000)
+    )
+    subs = _subs_res.data or []
+    _user_ids = [s["user_id"] for s in subs if s.get("user_id")]
+    if not _user_ids:
+        return {"target_count": 0, "kakao_sent": 0, "kakao_failed": 0}
+
+    _profiles_res = await execute(
+        supabase.table("profiles")
+        .select("user_id, phone, full_name, kakao_scan_notify")
+        .in_("user_id", _user_ids)
+        .not_.is_("phone", "null")
+    )
+    _profiles = _profiles_res.data or []
+    # 카카오 수신 동의자만 (kakao_scan_notify=False 명시 거부자 제외)
+    _eligible = [p for p in _profiles if p.get("kakao_scan_notify") is not False and p.get("phone")]
+    target_count = len(_eligible)
+    if target_count == 0:
+        return {
+            "target_count": 0,
+            "kakao_sent": 0,
+            "kakao_failed": 0,
+            "note": "수신 동의자·전화번호 등록자 0명",
+        }
+
+    kakao_sent = 0
+    kakao_failed = 0
+    try:
+        from services.kakao_notify import KakaoNotifier
+        _notifier = KakaoNotifier()
+        for _p in _eligible:
+            _phone = _p.get("phone")
+            _name = _p.get("full_name") or "사장님"
+            _msg = (
+                f"[AEOlab] 점수 산정 방식 개선 안내\n\n"
+                f"안녕하세요, {_name}님.\n"
+                f"AEOlab 점수 모델이 v3.1로 업그레이드되었습니다.\n\n"
+                f"업종별 가중치가 더 정교화되어, 사장님의 업종 특성에 맞는 진단을 받으실 수 있습니다.\n\n"
+                f"▶ 변경 내용 자세히 보기: https://aeolab.co.kr/guide/score-model-v3-1"
+            )
+            try:
+                await _notifier._send_raw(_phone, _msg, template_code=_tmpl_key)
+                kakao_sent += 1
+            except Exception as _ke:
+                kakao_failed += 1
+                _logger.warning(
+                    f"[v3.1 kakao only] 발송 실패 phone={str(_phone)[:3]}****: {_ke}"
+                )
+    except Exception as _kae:
+        _logger.warning(f"[v3.1 kakao only] 전체 실패: {_kae}")
+        return {
+            "target_count": target_count,
+            "kakao_sent": kakao_sent,
+            "kakao_failed": kakao_failed,
+            "error": str(_kae),
+        }
+
+    _logger.info(
+        f"[v3.1 kakao only] 완료 — 대상 {target_count}명, "
+        f"성공 {kakao_sent}건 / 실패 {kakao_failed}건"
+    )
+    return {
+        "target_count": target_count,
+        "kakao_sent": kakao_sent,
+        "kakao_failed": kakao_failed,
+    }
+
+
 def get_activation_summary() -> dict:
     """활성화 전 미리 확인용 — 발송 예정 메시지 미리보기."""
     return {

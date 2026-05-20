@@ -23,7 +23,7 @@ import type {
   TrialSmartPlaceCheck,
 } from "@/types";
 import type { TrialResultProps } from "./TrialSharedTypes";
-import { trackTrialComplete } from "@/lib/analytics";
+import { trackTrialComplete, trackEvent } from "@/lib/analytics";
 import {
   Info,
   Store,
@@ -505,6 +505,26 @@ export default function TrialResultStep(props: TrialResultProps) {
   const isFranchise = (form as { is_franchise?: boolean }).is_franchise === true;
   const userGroupValue = getUserGroup(selectedCategory, isFranchise);
 
+  function getSignupCTALabel(group: string): string {
+    if (group === "ACTIVE") return "가입하고 네이버 AI 브리핑 노출 시작하기";
+    if (group === "LIKELY") return "가입하고 AI탭 노출 + 확대 예정 대비하기";
+    if (group === "franchise") return "가입하고 글로벌 AI 노출 시작하기";
+    return "가입하고 ChatGPT·Gemini 최적화 진단 받기";
+  }
+
+  function handleSignupCTAClick(group: string) {
+    const dimMap: Record<string, string> = {
+      ACTIVE: "signup_cta_clicked_active",
+      LIKELY: "signup_cta_clicked_likely",
+      INACTIVE: "signup_cta_clicked_inactive",
+      franchise: "signup_cta_clicked_franchise",
+    };
+    trackEvent(dimMap[group] ?? "signup_cta_clicked_inactive", {
+      category: selectedCategory,
+      group,
+    });
+  }
+
   const naverChannelScore = result.score?.naver_channel_score ?? track1;
   const globalChannelScore = result.score?.global_channel_score ?? track2;
 
@@ -695,10 +715,10 @@ export default function TrialResultStep(props: TrialResultProps) {
             </p>
             <Link
               href="/signup"
-              onClick={onSaveTrialData}
+              onClick={() => { onSaveTrialData(); handleSignupCTAClick(userGroupValue); }}
               className="shrink-0 bg-white text-blue-600 text-base font-bold px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
             >
-              회원가입
+              {getSignupCTALabel(userGroupValue)}
             </Link>
           </div>
         </div>
@@ -1053,10 +1073,10 @@ export default function TrialResultStep(props: TrialResultProps) {
           {!isLoggedIn && (
             <Link
               href="/signup"
-              onClick={onSaveTrialData}
+              onClick={() => { onSaveTrialData(); handleSignupCTAClick(userGroupValue); }}
               className="flex-1 text-center bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors text-sm md:text-base"
             >
-              가입하고 정밀 진단받기
+              {getSignupCTALabel(userGroupValue)}
             </Link>
           )}
           <button

@@ -458,7 +458,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
             auth_header = request.headers.get("Authorization", "")
             _auth_key = f"trial_user:{hashlib.sha256(auth_header.encode()).hexdigest()[:16]}"
             _auth_count: int = _cache.get(_auth_key) or 0
-            if _auth_count >= 9999:  # 개발 기간 무제한 (출시 전 5로 복원)
+            if _auth_count >= 5:
                 raise HTTPException(
                     status_code=429,
                     detail={
@@ -2084,7 +2084,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                 )
             ).data
             phone = (profile or {}).get("phone")
-            notify_on = (profile or {}).get("kakao_scan_notify", True)
+            notify_on = (profile or {}).get("kakao_scan_notify", False)
             if phone and notify_on:
                 mention_platforms = [
                     ("Gemini", (results.get("gemini") or {}).get("mentioned", False)),

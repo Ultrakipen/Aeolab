@@ -42,7 +42,7 @@ export default async function DashboardLayout({
   ]);
 
   // 관리자 이메일 → 개발 기간 biz 플랜 부여
-  const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "hoozdev@gmail.com")
+  const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com")
     .split(",").map((e) => e.trim().toLowerCase());
   const isAdmin = ADMIN_EMAILS.includes(userEmail.toLowerCase());
 
