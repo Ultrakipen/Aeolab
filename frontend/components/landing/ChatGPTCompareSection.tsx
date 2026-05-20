@@ -37,7 +37,8 @@ export default function ChatGPTCompareSection() {
             무료 AI로 직접 하면 되지 않나요?
           </h2>
           <p className="text-sm mt-2 break-keep" style={{ color: "#475569" }}>
-            할 수 있습니다. 하지만 이런 차이가 있습니다.
+            &ldquo;강남 카페 추천해줘&rdquo; — ChatGPT가 답할 때 내 가게가 언급되는지,
+            AEOlab은 이걸 수백 회 자동 측정합니다.
           </p>
         </div>
 

@@ -58,7 +58,7 @@ def _is_ssrf_blocked(url: str) -> bool:
     """
     try:
         parsed = urlparse(url)
-    except Exception:
+    except Exception:  # noqa: intentional-fallback — URL 파싱 실패 시 SSRF 차단 유지
         return True
 
     # 1. 스킴 검사
@@ -366,7 +366,8 @@ def _improve_title(
     try:
         from services.keyword_taxonomy import normalize_category
         norm_cat = normalize_category(category)
-    except Exception:
+    except Exception as exc:
+        _logger.warning("blog_analyzer: normalize_category 실패 → 원본 키 사용 (%s)", exc)
         norm_cat = category
 
     # 포스트별 문제 파악 — issues를 사용하고, 없으면 제목에서 직접 감지
@@ -1078,8 +1079,8 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int]:
             try:
                 dt = parsedate_to_datetime(pub_date_str)
                 postdate = dt.strftime("%Y%m%d")
-            except Exception:
-                pass
+            except Exception as exc:
+                _logger.warning("blog_analyzer: RSS 날짜 파싱 실패 → 빈 postdate (%s)", exc)
         if title or link:
             items.append({
                 "title": title,

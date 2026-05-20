@@ -128,7 +128,7 @@ function ClaimedContent() {
             </button>
           </div>
 
-          <p className="mt-4 text-xs md:text-sm text-gray-500 text-center">
+          <p className="mt-4 text-sm text-gray-500 text-center">
             진단 결과는 30일간 보관됩니다. 가입을 완료하시면 영구 보관됩니다.
           </p>
         </div>

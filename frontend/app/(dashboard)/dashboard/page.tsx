@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SUPPORTED_CATEGORIES as PHOTO_SUPPORTED_CATEGORIES } from "@/lib/photoCategories";
 import { getBriefingEligibility } from "@/lib/userGroup";
+import { fetchBriefingCategories } from "@/lib/briefingCategoriesServer";
 import { getActiveBusinessId } from "@/lib/active-business";
 import type { WebsiteCheckResult } from "@/types";
 import DashboardHeader from "./sections/DashboardHeader";
@@ -238,7 +239,13 @@ export default async function DashboardPage({
   const myRankInList = [...rankingItems].sort((a, b) => b.score - a.score).findIndex((r) => (r as { isMe?: boolean }).isMe) + 1;
   const topCompetitor = rankingItems.filter((r) => !(r as { isMe?: boolean }).isMe).sort((a, b) => b.score - a.score)[0] ?? null;
 
-  const briefingEligibility = getBriefingEligibility(business?.category ?? "", !!v41Extra?.is_franchise);
+  const briefingCats = await fetchBriefingCategories();
+  const briefingEligibility = getBriefingEligibility(
+    business?.category ?? "",
+    !!v41Extra?.is_franchise,
+    briefingCats.active,
+    briefingCats.likely,
+  );
   const aiTabEligibility: "beta" | "available" = "beta";
   const isFranchise = !!v41Extra?.is_franchise;
 

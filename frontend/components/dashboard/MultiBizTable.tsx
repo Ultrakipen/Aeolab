@@ -89,7 +89,7 @@ export function MultiBizTable({ token }: Props) {
               <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                 <td className="py-3 px-3">
                   <div className="font-medium text-gray-900">{item.name}</div>
-                  <div className="text-xs text-gray-400">{item.region} · {item.category}</div>
+                  <div className="text-sm text-gray-400">{item.region} · {item.category}</div>
                 </td>
                 <td className={`text-center py-3 px-3 text-base ${scoreColor(item.unified_score)}`}>
                   {item.unified_score}
@@ -103,7 +103,7 @@ export function MultiBizTable({ token }: Props) {
                 <td className="text-center py-3 px-3 text-gray-600">
                   {item.competitor_count}개
                 </td>
-                <td className="text-center py-3 px-3 text-gray-400 text-xs">
+                <td className="text-center py-3 px-3 text-gray-400 text-sm">
                   {formatDate(item.last_scanned_at)}
                 </td>
               </tr>
@@ -119,13 +119,13 @@ export function MultiBizTable({ token }: Props) {
             <div className="flex items-center justify-between mb-2">
               <div>
                 <div className="font-medium text-gray-900 text-sm">{item.name}</div>
-                <div className="text-xs text-gray-400">{item.region} · {item.category}</div>
+                <div className="text-sm text-gray-400">{item.region} · {item.category}</div>
               </div>
               <span className={`text-lg ${scoreColor(item.unified_score)}`}>
                 {item.unified_score}점
               </span>
             </div>
-            <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+            <div className="flex flex-wrap gap-3 text-sm text-gray-500">
               <span>네이버 <span className={scoreColor(item.track1_score)}>{item.track1_score}</span></span>
               <span>글로벌 <span className={scoreColor(item.track2_score)}>{item.track2_score}</span></span>
               <span>경쟁사 {item.competitor_count}개</span>

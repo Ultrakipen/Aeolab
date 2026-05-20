@@ -33,11 +33,12 @@ BRIEFING_ACTIVE_CATEGORIES = ["restaurant", "cafe", "bakery", "bar", "accommodat
 BRIEFING_LIKELY_CATEGORIES = ["beauty", "nail", "skincare", "massage", "spa", "pet", "fitness", "yoga",
                               "pharmacy", "dance", "ballet", "semi_permanent"]
 # skincare·massage·spa: 뷰티·웰니스 로컬 서비스, dance·ballet: 피트니스 계열 스튜디오
+# 2026-05-19: normalize_category alias로 변환되는 정규화 키도 함께 포함 (clinic/academy/music) — P0 alias miss 수정
 BRIEFING_INACTIVE_CATEGORIES = [
-    "medical", "legal", "accounting", "education", "tutoring",
+    "medical", "clinic", "legal", "accounting", "education", "tutoring", "academy",
     "photo", "video", "design", "realestate", "interior",
     "auto", "cleaning", "laundry", "shopping", "fashion", "clothing",
-    "flower", "kids", "study", "workshop", "music_class", "music_lesson",
+    "flower", "kids", "study", "workshop", "music", "music_class", "music_lesson",
     "cooking", "experience", "other",
     # 신규 14개 중 semi_permanent 제외 13개 (v5.7 — 2026-05-13)
     "dental", "oriental_medicine", "optics",
@@ -107,9 +108,12 @@ DUAL_TRACK_RATIO: dict[str, dict[str, float]] = {
     "cafe":       {"naver": 0.65, "global": 0.35},  # 분위기 탐색 AI 증가, 20대 고객 多
     "beauty":     {"naver": 0.65, "global": 0.35},  # 당일예약 네이버, 전문시술 AI 리서치
     "fitness":    {"naver": 0.60, "global": 0.40},  # 10-20대 고객 → AI 네이티브 비중 높음
+    "yoga":       {"naver": 0.60, "global": 0.40},  # 요가 스튜디오 = fitness 계열, LIKELY (2026-05-19 누락 수정)
     "pet":        {"naver": 0.65, "global": 0.35},  # 동물병원 AI 검색 빠르게 증가
     "medical":    {"naver": 0.55, "global": 0.45},  # 증상 검색 = ChatGPT, 지식 습득 목적 47.6% ("clinic" → "medical" 로 키 변경)
+    "clinic":     {"naver": 0.55, "global": 0.45},  # normalize_category alias 후 키 (medical 동일 비율, 2026-05-19 P0)
     "academy":    {"naver": 0.40, "global": 0.60},  # 10대(AI 네이티브), 커리큘럼 비교 AI
+    "music":      {"naver": 0.55, "global": 0.45},  # 음악교습소 alias 정규화 키 (2026-05-19 P0)
     # 위치 무관 업종 (non_location)
     "legal":      {"naver": 0.20, "global": 0.80},  # 전문직 = ChatGPT·Gemini 주전장
     "shopping":   {"naver": 0.10, "global": 0.90},  # 온라인 = 글로벌 AI 압도적
@@ -163,6 +167,9 @@ DUAL_TRACK_RATIO: dict[str, dict[str, float]] = {
     "norebang":           {"naver": 0.75, "global": 0.25},  # 노래방 = 완전 지역 즉시방문형
     "billiards":          {"naver": 0.70, "global": 0.30},  # 당구장 = 지역 즉시방문형
 }
+
+# NOTE: cleaning·fashion은 BRIEFING_INACTIVE 업종으로 전략적 중요도 낮음
+# → DEFAULT_DUAL_TRACK_RATIO(naver:0.60, global:0.40) 의도적 폴백 사용 (별도 키 불필요)
 
 # 미등록 업종 중립 기본값 (오진단 방지)
 DEFAULT_DUAL_TRACK_RATIO: dict[str, float] = {"naver": 0.60, "global": 0.40}

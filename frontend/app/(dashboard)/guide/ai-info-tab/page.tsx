@@ -75,11 +75,11 @@ export default async function AiInfoTabGuidePage({
       {/* 두 경로 분기 안내 — 가이드 진입 직후 명확화 */}
       <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 md:p-5">
         <p className="text-sm md:text-base font-bold text-blue-900 mb-1.5">
-          📘 네이버 AI 브리핑 — 검색결과 상단 AI 자동 추천 박스 (2025.08 정식)
+          📘 네이버 AI 브리핑 — 검색결과 상단 AI 자동 추천 박스 (2025.03 정식)
         </p>
         <p className="text-sm md:text-base text-blue-800 leading-relaxed break-keep">
           AI탭(검색결과 &quot;AI&quot; 탭 메뉴)과는 다른 노출 경로입니다.
-          AI 브리핑은 <strong>음식점·카페·베이커리·바·숙박업 등 ACTIVE 업종</strong>만 대상이며,
+          AI 브리핑은 <strong>음식점·카페·베이커리·바·숙박업 등 AI 브리핑 대상 업종</strong>만 대상이며,
           프랜차이즈 가맹점은 현재 제외됩니다(네이버 공식 정책).
         </p>
         <p className="mt-2 text-sm text-blue-700 bg-white border border-blue-100 rounded px-2.5 py-1.5">

@@ -15,6 +15,16 @@ interface AiTabPreviewResponse {
   preview_only: boolean;
   disclaimer: string;
   eligibility?: "active" | "likely";
+  /** "measured" = 실측 in_ai_tab 데이터 존재, "estimated" = 추정 (기본값) */
+  data_source?: "measured" | "estimated";
+  /** 실측 AI탭 노출 확인 여부 (data_source==="measured" 일 때만 신뢰) */
+  confirmed_in_ai_tab?: boolean;
+  /** 광고 영역 노출 여부 — true 시 유기 점수 제외 안내 */
+  ad_only?: boolean;
+  /** 예약 연동 여부 — null=미측정, true=연동됨, false=미연동 */
+  has_reservation?: boolean | null;
+  /** 사진 수 실측 추정값 — null=미측정, int=추정 수 */
+  photo_count?: number | null;
 }
 
 interface AiTabPreviewUnavailable {
@@ -143,7 +153,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             </div>
           )}
         </div>
-        <p className="mt-1 text-xs md:text-sm text-blue-700/80 leading-snug break-keep">
+        <p className="mt-1 text-sm text-blue-700/80 leading-snug break-keep">
           네이버 검색결과 상단 &quot;AI&quot; 탭 (2026-04-27 베타 · <strong>모든 업종 노출 가능</strong>) — AI 브리핑과는 다른 노출 경로입니다.
         </p>
       </div>
@@ -213,7 +223,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             {/* likely 업종 안내 배너 — flex-row 밖에 배치해야 레이아웃 붕괴 없음 */}
             {data.eligibility === "likely" && (
               <div className="w-full rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800 mb-4">
-                네이버 AI탭 확대 예정 업종입니다. 2026년 상반기 전체 확대 시 바로 적용될 수 있도록 지금부터 키워드를 준비하세요.
+                AI 브리핑 확대 예상 업종입니다. AI탭은 이미 모든 업종 베타 대상이므로 지금부터 소개글·사진·리뷰를 준비해두세요.
               </div>
             )}
 
@@ -221,10 +231,30 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
 
             {/* 좌측: 시뮬레이션 답변 */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
+              <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2 flex-wrap">
                 예시 답변
-                <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full font-normal">(추정)</span>
+                {data.data_source === "measured" ? (
+                  data.confirmed_in_ai_tab ? (
+                    <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full font-semibold">
+                      AI탭 노출 실측 확인
+                    </span>
+                  ) : (
+                    <span className="text-xs text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full font-semibold">
+                      실측 데이터 기반
+                    </span>
+                  )
+                ) : (
+                  <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full font-normal">(추정)</span>
+                )}
               </p>
+              {data.ad_only && (
+                <div className="mb-3 flex items-start gap-1.5 rounded-lg px-3 py-2 bg-orange-50 border border-orange-200">
+                  <AlertCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+                  <p className="text-sm text-orange-800 leading-snug break-keep">
+                    최근 스캔에서 <strong>광고 영역</strong>으로 감지되었습니다. 유기 노출 점수에는 반영되지 않습니다.
+                  </p>
+                </div>
+              )}
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                 <div className="flex items-start gap-2">
                   <Sparkles className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
@@ -237,11 +267,33 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               <p className="mt-2 text-sm text-gray-500 leading-snug">
                 {data.disclaimer}
               </p>
-              {/* 예약 연동 감지 미구현 안내 */}
-              <p className="mt-1.5 text-xs text-gray-400 leading-snug">
-                * 예약 연동 여부는 자동 감지되지 않습니다. 직접 확인 후{" "}
-                <a href="https://partner.naver.com/" target="_blank" rel="noopener noreferrer" className="underline">partner.naver.com</a>에서 설정하세요.
-              </p>
+              {/* 실측 정보 — has_reservation / photo_count */}
+              {(data.has_reservation !== null && data.has_reservation !== undefined) || data.photo_count !== null && data.photo_count !== undefined ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {data.has_reservation !== null && data.has_reservation !== undefined && (
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold border ${
+                      data.has_reservation
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-orange-50 text-orange-700 border-orange-200"
+                    }`}>
+                      {data.has_reservation ? "✓ 예약 연동 확인" : "⚠ 예약 미연동"}
+                    </span>
+                  )}
+                  {data.photo_count !== null && data.photo_count !== undefined && (
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold border ${
+                      data.photo_count >= 10
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-orange-50 text-orange-700 border-orange-200"
+                    }`}>
+                      {data.photo_count >= 10 ? `✓ 사진 ${data.photo_count}장+` : `⚠ 사진 ${data.photo_count}장 (10장 권장)`}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <p className="mt-1.5 text-sm text-gray-400 leading-snug">
+                  * 예약 연동·사진 수는 스캔 시 자동 감지됩니다.
+                </p>
+              )}
             </div>
 
             {/* 우측: 매칭/부족 컨텍스트 */}
@@ -351,7 +403,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               <div className="flex items-center justify-between py-2 border-t border-gray-100">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">외부 블로그 언급</span>
-                  <span className="text-sm text-gray-500">AI탭 UGC 신호</span>
+                  <span className="text-sm text-gray-500">AI탭 블로그·SNS 후기 신호</span>
                 </div>
                 <div className="flex items-center gap-1">
                   {(blogMentionCount ?? 0) >= 5 ? (

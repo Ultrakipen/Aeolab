@@ -144,7 +144,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
       </div>
 
       {/* 네이버 두 노출 경로 가이드 진입점 — AI 브리핑 vs AI탭 명확 분리 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
         {/* AI 브리핑 가이드 */}
         <Link
           href={`/guide/ai-info-tab?biz_id=${business.id}`}
@@ -178,7 +178,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
             )}
           </div>
           <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
-            검색결과 상단 AI 자동 추천 박스. 음식점·카페·숙박업 등 ACTIVE 업종 대상.
+            검색결과 상단 AI 자동 추천 박스. 음식점·카페·숙박업 등 AI 브리핑 대상 업종.
           </p>
           <p className="text-sm font-semibold text-blue-700 group-hover:underline">5단계 설정 가이드 →</p>
         </Link>
@@ -201,6 +201,26 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
             검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-27 베타, 업종 제한 없음.
           </p>
           <p className="text-sm font-semibold text-indigo-700 group-hover:underline">5항목 설정 가이드 →</p>
+        </Link>
+
+        {/* ChatGPT·Gemini 노출 가이드 — 모든 업종 */}
+        <Link
+          href="/guide/chatgpt-search"
+          className="group rounded-xl border border-purple-200 bg-purple-50 p-4 md:p-5 transition-all hover:shadow-md hover:border-purple-400"
+        >
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <Bot className="w-5 h-5 text-purple-600" />
+              <span className="text-base md:text-lg font-bold text-purple-900">ChatGPT·Gemini 노출 가이드</span>
+            </div>
+            <span className="inline-flex items-center rounded-full bg-purple-600 text-white px-2 py-0.5 text-xs font-bold">
+              모든 업종
+            </span>
+          </div>
+          <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
+            글로벌 AI가 내 가게를 언급하게 만드는 소개글·Q&amp;A 최적화.
+          </p>
+          <p className="text-sm font-semibold text-purple-700 group-hover:underline">소개글 최적화 가이드 →</p>
         </Link>
       </div>
 

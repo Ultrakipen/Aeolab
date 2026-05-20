@@ -518,7 +518,7 @@ export default function AIDiagnosisCard({
           </div>
         </div>
       )}
-      <p className="text-xs text-gray-600 mt-3 leading-relaxed">
+      <p className="text-sm text-gray-600 mt-3 leading-relaxed">
         ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
         측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
       </p>

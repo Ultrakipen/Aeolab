@@ -918,7 +918,8 @@ def _find_lsi_cluster(target_keyword: str, category: str) -> list[str]:
         return []
     try:
         taxonomy = get_industry_keywords(category)
-    except Exception:
+    except Exception as e:
+        _logger.warning("keyword taxonomy lookup failed category=%s: %s", category, e)
         return []
 
     target_clean = _clean_keyword(target_keyword)

@@ -5,12 +5,13 @@ import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail } from "lucide-react";
+import { PLAN_PRICES } from "@/lib/plans";
 
 const PLAN_LABELS: Record<string, string> = {
-  basic: "Basic (월 9,900원)",
-  startup: "창업 패키지 (월 12,900원)",
-  pro: "Pro (월 18,900원)",
-  biz: "Biz (월 39,900원)",
+  basic: `Basic (월 ${PLAN_PRICES.basic.toLocaleString()}원)`,
+  startup: `창업 패키지 (월 ${PLAN_PRICES.startup.toLocaleString()}원)`,
+  pro: `Pro (월 ${PLAN_PRICES.pro.toLocaleString()}원)`,
+  biz: `Biz (월 ${PLAN_PRICES.biz.toLocaleString()}원)`,
 };
 
 function SignupForm() {

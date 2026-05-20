@@ -284,6 +284,8 @@ def _detect_intro(info_body: str) -> bool:
     return len(cleaned) >= 50
 
 
+# DEPRECATED 2026-05-01: 스마트플레이스 Q&A 탭 폐기로 미사용. 호출처 0건.
+# 재도입 시 /profile 경로 사용할 것.
 def _detect_faq(info_body: str) -> bool:
     """[DEPRECATED 2026-05-01] FAQ 감지 — 호출 제거됨.
     스마트플레이스 사장님 Q&A 탭(/qna) 폐기로 인해 사용처 제거. 함수만 하위 호환을 위해 잔존.

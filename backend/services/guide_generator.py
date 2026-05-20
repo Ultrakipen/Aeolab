@@ -316,6 +316,18 @@ class GuideGenerator:
         raw = await asyncio.to_thread(self._call_claude, prompt, system_prompt)
         guide = self._parse_response(raw)
 
+        # §C D.I.A. 점수 로깅 게이트 — 70점 미만 시 경고 (가이드 생성 직후)
+        try:
+            from services.content_validator import validate_intro_dia
+            _dia_text = raw or ""
+            _biz_keywords = biz.get("keywords") or []
+            validation = validate_intro_dia(_dia_text, keywords=_biz_keywords, lsi_keywords=_biz_keywords)
+            score = validation.get("score", 0)
+            if score < 70:
+                _logger.warning(f"[guide_generator] D.I.A. 검증 점수 낮음: {score}/100 — {validation}")
+        except Exception as _dia_e:
+            _logger.warning(f"[guide_generator] D.I.A. 검증 실패 — {_dia_e}")
+
         # ActionItem 목록 구성
         items = self._build_action_items(guide, ctx)
         quick_wins = [item for item in items if item.is_quick_win]
@@ -329,8 +341,8 @@ class GuideGenerator:
                     _kw_gap_dict = keyword_gap.model_dump()
                 elif isinstance(keyword_gap, dict):
                     _kw_gap_dict = keyword_gap
-            except Exception:
-                pass
+            except Exception as exc:  # 파싱 실패 시 컨텍스트 부족 가이드 생성 → 로그 필수
+                _logger.warning("guide_generator: keyword_gap 파싱 실패 → 빈 dict 사용 (%s)", exc)
         tools = await build_action_tools(
             biz=biz,
             context=context,
@@ -691,7 +703,8 @@ class GuideGenerator:
         if isinstance(_blog_raw, str):
             try:
                 _blog_raw = json.loads(_blog_raw)
-            except Exception:
+            except Exception as _e:
+                _logger.warning(f"[guide_generator] blog_analysis_json 파싱 실패 — {_e}")
                 _blog_raw = {}
         blog_json = _blog_raw
         if blog_json and not blog_json.get("error"):
@@ -733,7 +746,8 @@ class GuideGenerator:
         if isinstance(_sp_raw, str):
             try:
                 _sp_raw = json.loads(_sp_raw)
-            except Exception:
+            except Exception as _e:
+                _logger.warning(f"[guide_generator] sp_completeness_json 파싱 실패 — {_e}")
                 _sp_raw = {}
         sp_json = _sp_raw
         if sp_json and not sp_json.get("error"):
@@ -757,7 +771,8 @@ class GuideGenerator:
         try:
             from services.keyword_taxonomy import build_location_service_keywords
             location_kws = build_location_service_keywords(biz.get("region", ""), biz.get("category", ""))
-        except Exception:
+        except Exception as _e:
+            _logger.warning(f"[guide_generator] build_location_service_keywords 실패 — {_e}")
             location_kws = []
         biz_name_for_ext = biz.get("name", "우리 가게")
         first_loc_kw = location_kws[0] if location_kws else "업종 키워드"
@@ -773,7 +788,8 @@ class GuideGenerator:
                     keyword=first_loc_kw,
                     biz_name=biz_name_for_ext,
                 )
-            except Exception:
+            except Exception as _e:
+                _logger.warning(f"[guide_generator] ch_action.format 실패 — {_e}")
                 ch_action_formatted = ch_action
             channel_lines_ext.append(f"  {i}. {ch_name}: {ch_action_formatted}")
         external_section = "\n".join([

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { exportReport, exportPdfReport, ApiError } from '@/lib/api'
 import { getSafeSession } from '@/lib/supabase/client'
+import { PLAN_PRICES } from '@/lib/plans'
 
 interface ExportButtonProps {
   bizId: string
@@ -34,8 +35,8 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
           <span className="text-sm bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">Basic+</span>
         </button>
         <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-56 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">
-          Basic(월 9,900원)부터 CSV 내보내기,
-          Pro 플랜(월 18,900원)부터 PDF 리포트 이용 가능합니다
+          Basic(월 {PLAN_PRICES.basic.toLocaleString()}원)부터 CSV 내보내기,
+          Pro 플랜(월 {PLAN_PRICES.pro.toLocaleString()}원)부터 PDF 리포트 이용 가능합니다
         </div>
       </div>
     )
@@ -91,7 +92,7 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
             <span className="text-sm bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">Basic+</span>
           </button>
           <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-48 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">
-            Basic(월 9,900원)부터 이용 가능합니다
+            Basic(월 {PLAN_PRICES.basic.toLocaleString()}원)부터 이용 가능합니다
           </div>
 
         </div>
@@ -116,7 +117,7 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
             <span className="text-sm bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">Pro+</span>
           </button>
           <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-48 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">
-            Pro 플랜(월 18,900원)부터 이용 가능합니다
+            Pro 플랜(월 {PLAN_PRICES.pro.toLocaleString()}원)부터 이용 가능합니다
           </div>
         </div>
       )}

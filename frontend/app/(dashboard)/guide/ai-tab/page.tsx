@@ -16,8 +16,8 @@ import { getActiveBusinessId } from '@/lib/active-business'
  *  1. 소개글 200자 이상 (Q&A 구조 포함 권장)
  *  2. 사진 10장 이상 (외관·내부·서비스)
  *  3. 예약 연동 (선택, AI탭 결과에 예약 버튼 추가)
- *  4. 리뷰 10건 이상 (업종 키워드 포함)
- *  5. 영업시간·가격·서비스 항목 완성
+ *  4. 리뷰 10건 이상 (업종 키워드 포함, 권장값)
+ *  5. 블로그·SNS 후기 유도
  */
 export default async function AiTabGuidePage({
   searchParams,
@@ -58,7 +58,7 @@ export default async function AiTabGuidePage({
     {
       num: 1,
       title: '소개글 200자 이상 (Q&A 구조 권장)',
-      desc: '네이버 AI탭은 Q&A 구조의 소개글을 우선 인용합니다. 자주 묻는 질문 3~5개를 답변과 함께 포함하세요.',
+      desc: 'Q&A 구조의 소개글이 AI탭 인용 가능성이 높습니다 (실측 기반 권장값, 알고리즘 미공개). 자주 묻는 질문 3~5개를 답변과 함께 포함하세요.',
       example: '예: "Q. 주차 가능한가요? A. 건물 지하 1층 무료 주차 10대 가능합니다."',
       status: '직접 확인',
     },
@@ -81,15 +81,15 @@ export default async function AiTabGuidePage({
     },
     {
       num: 4,
-      title: '리뷰 10건 이상 (업종 키워드 포함)',
-      desc: '업종 핵심 키워드가 포함된 리뷰가 AI탭 인용 가능성을 높입니다. 영수증 리뷰·블로그 리뷰 유도.',
+      title: '리뷰 확보 (10건 이상 권장, 업종 키워드 포함)',
+      desc: '업종 핵심 키워드가 포함된 리뷰가 AI탭 인용 가능성을 높입니다. 영수증 리뷰·블로그 리뷰 유도. 공식 임계값은 비공개이며 10건은 권장 기준입니다.',
       example: '음식점 → "분위기·맛·재방문" 키워드, 미용 → "시술·만족도·서비스" 키워드',
       status: reviewCount >= 10 ? `✓ ${reviewCount}건` : `현재 ${reviewCount}건`,
       statusOk: reviewCount >= 10,
     },
     {
       num: 5,
-      title: '블로그 후기 유도 (외부 UGC)',
+      title: '블로그·SNS 후기 유도',
       desc: 'AI탭은 외부 블로그 언급도 신호로 사용합니다. 손님 블로그 후기 유도 + 사장님 직접 운영 블로그.',
       example: '리뷰 인증 이벤트, 블로그 체험단, 메뉴 출시 공지 등',
       status: blogMentionCount >= 5 ? `✓ ${blogMentionCount}건 발견` : blogMentionCount > 0 ? `${blogMentionCount}건 발견` : '미발견',
@@ -147,9 +147,9 @@ export default async function AiTabGuidePage({
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
           >
-            네이버 검색 (AI탭 베타)
+            네이버 AI탭 베타 출시 2026-04-27
           </a>{" "}
-          · 네이버 공식 발표 2026-04-27
+          · 항목 기준은 실측 기반 권장값
         </p>
       </div>
 

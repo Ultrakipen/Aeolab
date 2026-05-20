@@ -232,7 +232,7 @@ function CategoryIconGrid({ value, onChange }: CategoryGridProps) {
                   />
                 )}
               </div>
-              <span className={`text-xs font-semibold text-center leading-tight transition-colors duration-200 ${selected ? colors.icon : "text-gray-600 group-hover:text-gray-800"}`}>
+              <span className={`text-sm font-semibold text-center leading-tight transition-colors duration-200 ${selected ? colors.icon : "text-gray-600 group-hover:text-gray-800"}`}>
                 {cat.label}
               </span>
             </button>
@@ -1017,7 +1017,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId }: Pr
               <div>
                 <div className="text-sm font-semibold text-green-800">스마트플레이스 현황</div>
                 <div className="text-sm text-green-600 mt-0.5">
-                  아래 항목이 AI 노출 점수(Track 1)에 직접 반영됩니다. 직접 확인 후 체크하세요.
+                  아래 항목이 AI 노출 점수(네이버 채널)에 직접 반영됩니다. 직접 확인 후 체크하세요.
                 </div>
               </div>
 
@@ -1052,7 +1052,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId }: Pr
                   <span className="block text-sm text-gray-400">네이버 지도·검색에서 가게가 플레이스 카드로 표시되면 체크</span>
                 </div>
                 <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded shrink-0">
-                  Track 1 기반
+                  네이버 채널 점수 기반
                 </span>
               </label>
 

@@ -1293,7 +1293,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
                     프랜차이즈는 현재 네이버 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정).
-                    블로그 분석은 <strong>ChatGPT·Gemini·Google AI 검색 노출 및 C-rank 신호</strong> 강화에 동일하게 효과적입니다.
+                    블로그 분석은 <strong>ChatGPT·Gemini·Google AI 검색 노출 및 콘텐츠 품질 점수</strong> 강화에 동일하게 효과적입니다.
                   </p>
                 </>
               ) : isBlogLikely ? (
@@ -1302,7 +1302,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                     AI 브리핑 확대 예상 업종
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    미리 블로그 최적화를 완료해두면 확대 즉시 인용됩니다.
+                    미리 블로그 최적화를 완료해두면 확대 시 인용 가능성이 높아집니다 (알고리즘 기준, 100% 보장 아님).
                     현재도 ChatGPT·Gemini·Google AI 검색 노출에 직접 효과적입니다.
                   </p>
                 </>
@@ -1313,7 +1313,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
                     네이버 AI 브리핑 비대상이지만, 아래 분석 결과는
-                    <strong> ChatGPT·Gemini·Google·네이버 일반 검색 노출</strong> 및 C-rank 신호 강화에 동일하게 활용하세요.
+                    <strong> ChatGPT·Gemini·Google·네이버 일반 검색 노출</strong> 및 콘텐츠 품질 점수 강화에 동일하게 활용하세요.
                   </p>
                 </>
               )}

@@ -786,9 +786,9 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
     """소개글 AI 자동 생성 — Claude Sonnet 사용.
 
     Q&A 5개 포함된 300~500자 소개글 생성.
-    플랜 게이트: free=불가, basic=월 5회(faq_monthly 공유), pro/biz=무제한.
+    플랜 게이트: free=불가, basic=월 5회(faq_monthly 공유), pro/biz=한도 내.
     """
-    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS, _DEV_MODE
     from datetime import datetime, timezone
 
     user_id = user["id"]
@@ -817,25 +817,24 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
     if biz["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="접근 권한 없음")
 
-    # 월별 사용 횟수 체크 (guides 테이블 context="intro_draft")
-    if limit < 999:
-        now = datetime.now(timezone.utc)
+    # 월별 사용 횟수 체크 — intro_draft + faq_draft 합산 (plan_gate faq_monthly 공유 한도)
+    # DEV_MODE=true 시 한도 검사 전체 우회
+    now = datetime.now(timezone.utc)
+    if limit < 999 and not _DEV_MODE:
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
         used_res = await execute(
             supabase.table("guides")
             .select("id", count="exact")
             .eq("business_id", req.biz_id)
-            .eq("context", "intro_draft")
+            .in_("context", ["intro_draft", "faq_draft"])
             .gte("generated_at", month_start)
         )
         used = used_res.count or 0
         if used >= limit:
             raise HTTPException(
                 status_code=429,
-                detail=f"이번 달 소개글 생성 한도({limit}회)에 도달했습니다",
+                detail=f"이번 달 소개글·FAQ 합산 한도({limit}회)에 도달했습니다",
             )
-    else:
-        now = datetime.now(timezone.utc)
 
     # Claude Sonnet 호출 — guide_generator.py 허용 경로로 위임
     from services.guide_generator import generate_naver_intro
@@ -907,7 +906,7 @@ async def generate_global_ai_intro_endpoint(
     user=Depends(get_current_user),
 ):
     """글로벌 AI 최적화 소개글 생성 (ChatGPT·Gemini·Google AI 노출 최적화). Basic+."""
-    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS, _DEV_MODE
     from datetime import datetime, timezone
 
     user_id = user["id"]
@@ -935,25 +934,24 @@ async def generate_global_ai_intro_endpoint(
     if biz["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="접근 권한 없음")
 
-    # 월별 사용 횟수 체크 (intro_draft 공유 한도)
-    if limit < 999:
-        now = datetime.now(timezone.utc)
+    # 월별 사용 횟수 체크 — intro_draft + faq_draft 합산 (plan_gate faq_monthly 공유 한도)
+    # DEV_MODE=true 시 한도 검사 전체 우회
+    now = datetime.now(timezone.utc)
+    if limit < 999 and not _DEV_MODE:
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
         used_res = await execute(
             supabase.table("guides")
             .select("id", count="exact")
             .eq("business_id", req.biz_id)
-            .eq("context", "intro_draft")
+            .in_("context", ["intro_draft", "faq_draft"])
             .gte("generated_at", month_start)
         )
         used = used_res.count or 0
         if used >= limit:
             raise HTTPException(
                 status_code=429,
-                detail=f"이번 달 소개글 생성 한도({limit}회)에 도달했습니다",
+                detail=f"이번 달 소개글·FAQ 합산 한도({limit}회)에 도달했습니다",
             )
-    else:
-        now = datetime.now(timezone.utc)
 
     from services.guide_generator import generate_global_ai_intro
     category_label = _CATEGORY_LABELS.get(biz.get("category", "other"), biz.get("category", ""))

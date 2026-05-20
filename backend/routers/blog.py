@@ -69,14 +69,17 @@ async def analyze_blog_endpoint(
 
     now_utc = datetime.now(timezone.utc)
 
-    # TODO: 개발 기간 중 24시간 쿨다운 및 월 횟수 제한 비활성화 — 출시 전 복구 필요
-    # # 24시간 쿨다운
-    # last_analyzed = biz_row.get("blog_analyzed_at")
-    # if last_analyzed:
-    #     ...
-    # # 월 사용 횟수 체크
-    # if limit < 999:
-    #     ...
+    # 24시간 쿨다운 — 사업장별 마지막 분석 시각 기준
+    last_analyzed = biz_row.get("blog_analyzed_at")
+    if last_analyzed and limit < 999:
+        last_dt = datetime.fromisoformat(last_analyzed.replace("Z", "+00:00"))
+        elapsed = now_utc - last_dt
+        if elapsed < timedelta(hours=24):
+            remaining_h = 24 - int(elapsed.total_seconds() / 3600)
+            raise HTTPException(
+                status_code=429,
+                detail=f"블로그 분석은 24시간에 1회 가능합니다. 약 {remaining_h}시간 후 다시 시도해 주세요.",
+            )
 
     business_name = biz_row.get("name", "")
     category = biz_row.get("category", "restaurant")

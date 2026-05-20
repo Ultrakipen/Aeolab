@@ -57,7 +57,7 @@ export default function ScoreGuidePage() {
             </p>
           </div>
         </div>
-        <p className="text-xs text-indigo-400 mt-4">아래 전체 설명은 더 자세히 알고 싶은 분을 위한 내용입니다.</p>
+        <p className="text-sm text-indigo-400 mt-4">아래 전체 설명은 더 자세히 알고 싶은 분을 위한 내용입니다.</p>
       </div>
 
       {/* 3. 개요 카드 */}
@@ -80,7 +80,7 @@ export default function ScoreGuidePage() {
           </span>
         </div>
         <p className="text-sm md:text-base text-amber-800 leading-relaxed mb-2">
-          업종 그룹(네이버 브리핑 대상 / 확대 예정 / 글로벌 AI 중심)에 따라 Track1 6항목의 비중을 자동 재분배합니다.
+          업종 그룹(네이버 브리핑 대상 / 확대 예정 / 글로벌 AI 중심)에 따라 네이버 채널 점수 6항목의 비중을 자동 재분배합니다.
           AI 브리핑 비대상 업종(예: 학원·법무)이라도 점수상 불이익이 없도록 키워드 검색·스마트플레이스 비중을 자동 상향합니다.
           현재는 v3.0 기준(아래 표)이 적용 중입니다.
         </p>
@@ -114,7 +114,7 @@ export default function ScoreGuidePage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <div className="flex items-center gap-2 flex-wrap mb-1">
           <h2 className="text-base md:text-lg font-bold text-gray-900">
-            Track 1 — 네이버 AI 채널
+            네이버 채널 점수 — 네이버 AI 채널
           </h2>
           <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
             현재 적용 중 (v3.0)
@@ -188,7 +188,7 @@ export default function ScoreGuidePage() {
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-4">
         <div className="flex items-center gap-2 flex-wrap mb-1">
           <h2 className="text-base md:text-lg font-bold text-amber-900">
-            Track 1 — 그룹별 가중치 (v3.1 활성화 시 적용 예정)
+            네이버 채널 점수 — 그룹별 가중치 (v3.1 활성화 시 적용 예정)
           </h2>
           <span className="text-xs px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 font-medium">
             현재 미적용
@@ -226,13 +226,13 @@ export default function ScoreGuidePage() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-amber-600 mt-2">네이버 대상: 음식점·카페·베이커리·바·숙박 / 확대 예정: 뷰티·네일·피트니스·요가·반려동물·약국 / 글로벌 중심: 그 외</p>
+        <p className="text-sm text-amber-600 mt-2">네이버 대상: 음식점·카페·베이커리·바·숙박 / 확대 예정: 뷰티·네일·피트니스·요가·반려동물·약국 / 글로벌 중심: 그 외</p>
       </div>
 
       {/* 5. Track 2 — 글로벌 AI 채널 */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
-          Track 2 — 글로벌 AI 채널
+          글로벌 AI 점수 — 글로벌 AI 채널
         </h2>
         <p className="text-sm text-gray-500 mb-3">
           ChatGPT·Gemini·Google AI 등 글로벌 AI 검색 최적화 지표 (4개 항목)
@@ -519,8 +519,8 @@ export default function ScoreGuidePage() {
               <div className={`text-sm font-bold mb-1 ${g.textRange}`}>
                 {g.range}
               </div>
-              <div className="text-xs text-gray-600 mb-1">{g.label}</div>
-              <div className="text-xs text-gray-400">{g.rank}</div>
+              <div className="text-sm text-gray-600 mb-1">{g.label}</div>
+              <div className="text-sm text-gray-400">{g.rank}</div>
             </div>
           ))}
         </div>
@@ -534,7 +534,7 @@ export default function ScoreGuidePage() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-4">
           <p className="text-sm text-amber-800">
             <strong>주의:</strong> 성장 단계는 통합 점수가 아닌{" "}
-            <strong>네이버 AI 채널 점수(Track 1) 기준</strong>으로 결정됩니다.
+            <strong>네이버 채널 점수 기준</strong>으로 결정됩니다.
             업종별 비율 차이로 인한 오판을 방지하기 위해서입니다.
           </p>
         </div>
@@ -561,7 +561,7 @@ export default function ScoreGuidePage() {
             {
               stage: "빠른 성장",
               range: "55~74점",
-              desc: "AI 브리핑 노출이 시작되는 구간입니다. 꾸준히 유지하세요",
+              desc: "AI 검색 최적화가 효과를 내기 시작하는 구간입니다. 음식점·카페 등 AI 브리핑 대상 업종은 이 구간부터 노출 기회가 높아집니다.",
               color: "bg-blue-100",
               textColor: "text-blue-700",
               pct: 75,

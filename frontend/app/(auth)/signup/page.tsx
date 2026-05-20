@@ -7,12 +7,13 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { trackSignupComplete } from "@/lib/analytics";
+import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 
 const PLAN_LABELS: Record<string, string> = {
-  basic: "Basic (월 9,900원)",
-  startup: "창업 패키지 (월 12,900원)",
-  pro: "Pro (월 18,900원)",
-  biz: "Biz (월 49,900원)",
+  basic: `Basic (월 ${PLAN_PRICES.basic.toLocaleString()}원)`,
+  startup: `창업 패키지 (월 ${PLAN_PRICES.startup.toLocaleString()}원)`,
+  pro: `Pro (월 ${PLAN_PRICES.pro.toLocaleString()}원)`,
+  biz: `Biz (월 ${PLAN_PRICES.biz.toLocaleString()}원)`,
 };
 
 function SignupForm() {
@@ -121,7 +122,7 @@ function SignupForm() {
                   인증 완료 후 <strong>{PLAN_LABELS[planParam]}</strong> 결제가 진행됩니다.
                   {planParam === "basic" && (
                     <p className="text-sm text-emerald-700 mt-2 font-semibold">
-                      신규 가입 혜택: 첫 달 4,950원 (50% 할인) · 이후 월 9,900원
+                      신규 가입 혜택: 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원
                     </p>
                   )}
                 </div>
@@ -181,7 +182,7 @@ function SignupForm() {
               </div>
               {planParam === "basic" && (
                 <p className="text-sm text-emerald-700 font-semibold mt-2">
-                  🎉 첫 달 4,950원 (50% 할인) · 이후 월 9,900원
+                  🎉 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원
                 </p>
               )}
             </div>

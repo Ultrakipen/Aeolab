@@ -23,8 +23,8 @@ export function GlobalAIBanner({ globalScore, hasWebsite, eligibility }: GlobalA
             ChatGPT · Gemini에서 이 사업장이 검색되지 않습니다
           </p>
           <p className="text-sm text-amber-700 leading-relaxed mb-3">
-            <strong>네이버는 ChatGPT·Gemini의 크롤링을 차단</strong>하고 있습니다.
-            네이버 스마트플레이스·블로그를 잘 관리해도 ChatGPT에서는 노출되지 않는 이유입니다.
+            <strong>네이버 스마트플레이스 데이터는 ChatGPT·Gemini가 직접 참조하지 않습니다.</strong>
+            네이버만 최적화해도 ChatGPT에서 노출되지 않는 이유입니다.
             글로벌 AI에서 인용되려면 <strong>독립 웹사이트</strong>와{' '}
             <strong>Google 비즈니스 프로필</strong>이 필요합니다.
           </p>

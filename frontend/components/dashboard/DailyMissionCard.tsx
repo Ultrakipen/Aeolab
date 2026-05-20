@@ -301,7 +301,7 @@ export default function DailyMissionCard({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-sm font-bold text-gray-700">{task.title}</span>
-                        <span className="text-xs text-gray-500">({task.time})</span>
+                        <span className="text-sm text-gray-500">({task.time})</span>
                       </div>
                       <p className="text-sm text-gray-600">{task.desc}</p>
                     </div>

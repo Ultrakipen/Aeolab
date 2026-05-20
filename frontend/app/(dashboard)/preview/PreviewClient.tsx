@@ -38,11 +38,12 @@ import {
 import type { ScanResult } from "@/types";
 import ChannelDifferentiationCard from "@/components/common/ChannelDifferentiationCard";
 import { getUserGroup } from "@/lib/userGroup";
+import { PLAN_PRICES } from "@/lib/plans";
 
 // ── 업종별 Track1 레이블 헬퍼 ───────────────────────────────────────
 function getTrack1Label(category: string, isFranchise: boolean): string {
   const group = getUserGroup(category, isFranchise);
-  if (group === "ACTIVE") return "네이버 AI 검색 준비도 (AI브리핑·AI탭 통합)";
+  if (group === "ACTIVE") return "네이버 AI 검색 준비도 (AI 브리핑·AI탭 통합)";
   if (group === "LIKELY") return "네이버 AI 검색 준비도 (AI탭 중심, AI브리핑 확대 예정)";
   return "네이버 AI 탭 준비도";
 }
@@ -66,10 +67,10 @@ const PLAN_LABEL: Record<string, string> = {
 
 const PLAN_PRICE: Record<string, string> = {
   free: "무료",
-  basic: "9,900원/월",
-  startup: "12,900원/월",
-  pro: "18,900원/월",
-  biz: "49,900원/월",
+  basic: `${PLAN_PRICES.basic.toLocaleString()}원/월`,
+  startup: `${PLAN_PRICES.startup.toLocaleString()}원/월`,
+  pro: `${PLAN_PRICES.pro.toLocaleString()}원/월`,
+  biz: `${PLAN_PRICES.biz.toLocaleString()}원/월`,
 };
 
 const PLAN_COLOR: Record<
@@ -529,7 +530,7 @@ function FreeTab({
       {/* ④ CTA */}
       <div className="rounded-xl bg-blue-600 p-5 text-white text-center space-y-2">
         <p className="text-base font-bold">전체 분석 + 매주 자동 업데이트</p>
-        <p className="text-sm opacity-90">월 9,900원으로 네이버·ChatGPT·Google AI 자동 추적</p>
+        <p className="text-sm opacity-90">월 {PLAN_PRICES.basic.toLocaleString()}원으로 네이버·ChatGPT·Google AI 자동 추적</p>
         <Link
           href="/signup?plan=basic"
           className="inline-flex items-center gap-1.5 mt-1 bg-white text-blue-600 text-sm font-bold rounded-lg px-5 py-2.5 hover:bg-blue-50 transition-colors"
@@ -599,7 +600,7 @@ function BasicTab({
       {/* ① 설명 */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
         <p className="text-sm font-semibold text-blue-800 mb-1">
-          Basic — 9,900원/월
+          Basic — {PLAN_PRICES.basic.toLocaleString()}원/월
         </p>
         <p className="text-sm text-blue-700 leading-relaxed">
           매주 월요일 AI 7개 자동 스캔 + 경쟁사 3곳 비교. 커피 한 잔 값으로 내 가게가 AI에서
@@ -803,7 +804,7 @@ function BasicTab({
       ) : (
         <div className="rounded-xl bg-blue-600 p-5 text-white text-center space-y-2">
           <p className="text-base font-bold">Basic 시작하기</p>
-          <p className="text-sm opacity-90">월 9,900원 · 언제든 해지 가능</p>
+          <p className="text-sm opacity-90">월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지 가능</p>
           <Link
             href="/signup?plan=basic"
             className="inline-flex items-center gap-1.5 mt-1 bg-white text-blue-600 text-sm font-bold rounded-lg px-5 py-2.5 hover:bg-blue-50 transition-colors"
@@ -853,7 +854,7 @@ function StartupTab({
       {/* ① 설명 */}
       <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
         <p className="text-sm font-semibold text-orange-800 mb-1">
-          창업패키지 — 12,900원/월
+          창업패키지 — {PLAN_PRICES.startup.toLocaleString()}원/월
         </p>
         <p className="text-sm text-orange-700 leading-relaxed">
           오픈 전 이 지역·업종에 경쟁자가 몇 명인지, AI가 누구를 먼저 추천하는지 분석합니다.
@@ -989,7 +990,7 @@ function StartupTab({
       ) : (
         <div className="rounded-xl bg-orange-500 p-5 text-white text-center space-y-2">
           <p className="text-base font-bold">창업패키지 시작하기</p>
-          <p className="text-sm opacity-90">월 12,900원 · 창업 준비부터 오픈 후까지</p>
+          <p className="text-sm opacity-90">월 {PLAN_PRICES.startup.toLocaleString()}원 · 창업 준비부터 오픈 후까지</p>
           <Link
             href="/signup?plan=startup"
             className="inline-flex items-center gap-1.5 mt-1 bg-white text-orange-600 text-sm font-bold rounded-lg px-5 py-2.5 hover:bg-orange-50 transition-colors"
@@ -1053,7 +1054,7 @@ function ProTab({
       {/* ① 설명 */}
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-1">
-          <p className="text-sm font-semibold text-indigo-800">Pro — 18,900원/월</p>
+          <p className="text-sm font-semibold text-indigo-800">Pro — {PLAN_PRICES.pro.toLocaleString()}원/월</p>
           <span className="text-sm bg-indigo-100 text-indigo-700 rounded-full px-2 py-0.5 font-medium">
             ROI 최강
           </span>
@@ -1305,7 +1306,7 @@ function ProTab({
         <div className="rounded-xl bg-indigo-600 p-5 text-white text-center space-y-2">
           <p className="text-base font-bold">Pro 시작하기</p>
           <p className="text-sm opacity-90">
-            월 18,900원 · 광고비 하루치로 한 달 AI 노출 전략
+            월 {PLAN_PRICES.pro.toLocaleString()}원 · 광고비 하루치로 한 달 AI 노출 전략
           </p>
           <Link
             href="/signup?plan=pro"
@@ -1360,7 +1361,7 @@ function BizTab({
       {/* ① 설명 */}
       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-1">
-          <p className="text-sm font-semibold text-emerald-800">Biz — 39,900원/월</p>
+          <p className="text-sm font-semibold text-emerald-800">Biz — {PLAN_PRICES.biz.toLocaleString()}원/월</p>
           <Crown className="w-4 h-4 text-emerald-600" />
         </div>
         <p className="text-sm text-emerald-700 leading-relaxed">
@@ -1616,6 +1617,15 @@ export default function PreviewClient({ currentPlan, businessData, latestScan }:
             : "각 요금제에서 볼 수 있는 기능을 미리 확인하세요. 사업장을 등록하면 실제 데이터로 표시됩니다."}
         </p>
       </div>
+
+      {/* 스캔 데이터 없음 안내 */}
+      {businessData && !latestScan && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-sm text-amber-700">
+            아직 스캔 데이터가 없어 아래 점수는 예시값입니다. 첫 스캔 후 실제 점수가 반영됩니다.
+          </p>
+        </div>
+      )}
 
       {/* 업종 선택 드롭다운 */}
       <div className="flex items-center gap-2 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200">

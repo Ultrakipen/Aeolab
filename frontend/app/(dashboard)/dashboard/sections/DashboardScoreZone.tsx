@@ -2,7 +2,7 @@ import DashboardHeroCard from "@/components/dashboard/DashboardHeroCard";
 import KeywordRankCard from "@/components/dashboard/KeywordRankCard";
 import { IneligibleBusinessNotice } from "@/components/dashboard/IneligibleBusinessNotice";
 import { CATEGORY_LABEL } from "@/lib/categories";
-import { getBriefingEligibility } from "@/lib/userGroup";
+import { getBriefingEligibility, getUserGroup } from "@/lib/userGroup";
 
 interface BusinessShape {
   id: string;
@@ -59,13 +59,8 @@ export default function DashboardScoreZone({
   const daysSinceSignup = userCreatedAt
     ? Math.floor((Date.now() - new Date(userCreatedAt).getTime()) / 86_400_000)
     : null;
-  const userGroup: "ACTIVE" | "LIKELY" | "INACTIVE" = (() => {
-    const cat = business.category ?? "";
-    if (isFranchise) return "INACTIVE";
-    if (["restaurant", "cafe", "bakery", "bar", "accommodation"].includes(cat)) return "ACTIVE";
-    if (["beauty", "nail", "pet", "fitness", "yoga", "pharmacy"].includes(cat)) return "LIKELY";
-    return "INACTIVE";
-  })();
+  const rawGroup = getUserGroup(business.category ?? "", isFranchise);
+  const userGroup: "ACTIVE" | "LIKELY" | "INACTIVE" = rawGroup === "franchise" ? "INACTIVE" : rawGroup;
 
   return (
     <>
@@ -106,7 +101,7 @@ export default function DashboardScoreZone({
                   </p>
                 </div>
               </div>
-              <a href="/guide/ai-info-tab" className="mt-2 inline-block text-xs text-indigo-600 underline hover:text-indigo-800">
+              <a href="/guide/ai-info-tab" className="mt-2 inline-block text-sm text-indigo-600 underline hover:text-indigo-800">
                 AI탭 대응 5단계 가이드 →
               </a>
             </div>

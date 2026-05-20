@@ -79,10 +79,10 @@ export default function BlogIndexPage() {
             >
               {featured.category}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-sm text-gray-400">
               {formatDate(featured.publishedAt)}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-sm text-gray-400">
               읽기 {featured.readTime}분
             </span>
           </div>
@@ -113,7 +113,7 @@ export default function BlogIndexPage() {
                 >
                   {post.category}
                 </span>
-                <span className="text-xs text-gray-400">
+                <span className="text-sm text-gray-400">
                   읽기 {post.readTime}분
                 </span>
               </div>
@@ -124,7 +124,7 @@ export default function BlogIndexPage() {
                 {post.description}
               </p>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-400">
+                <span className="text-sm text-gray-400">
                   {formatDate(post.publishedAt)}
                 </span>
                 <span className="text-sm font-semibold text-blue-600 group-hover:underline">
@@ -150,7 +150,7 @@ export default function BlogIndexPage() {
           >
             내 가게 무료 진단 시작
           </Link>
-          <p className="text-xs text-blue-200 mt-3">
+          <p className="text-sm text-blue-200 mt-3">
             가입 없이 · 카드 없이 · 30초
           </p>
         </div>

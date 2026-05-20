@@ -187,7 +187,7 @@ export default function KeywordRankCard({
               내가 입력한 키워드의 PC·모바일·플레이스 1페이지 순위
               {userGroup && (
                 <span className="ml-1.5 inline-flex px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-600">
-                  {userGroup === "INACTIVE" ? "글로벌 AI 중심" : userGroup === "LIKELY" ? "AI탭 확대 예정" : "네이버 AI 브리핑"} 가중치{" "}
+                  {userGroup === "INACTIVE" ? "글로벌 AI 중심" : userGroup === "LIKELY" ? "AI 브리핑 확대 예정" : "네이버 AI 브리핑"} 가중치{" "}
                   {userGroup === "INACTIVE" ? "35%" : userGroup === "LIKELY" ? "30%" : "25%"}
                 </span>
               )}
@@ -378,11 +378,11 @@ export default function KeywordRankCard({
       {(lastMeasuredAt || hasData) && (
         <div className="mt-3 pt-3 border-t border-gray-100 space-y-1">
           {lastMeasuredAt && (
-            <p className="text-xs text-gray-600">
+            <p className="text-sm text-gray-600">
               마지막 측정: {new Date(lastMeasuredAt).toLocaleString("ko-KR")}
             </p>
           )}
-          <p className="text-xs text-gray-600">
+          <p className="text-sm text-gray-600">
             ※ 키워드 순위는 측정 시점·기기·검색 환경에 따라 달라질 수 있습니다.
             AEOlab은 서울 기준 비로그인 PC/모바일로 측정합니다.
           </p>

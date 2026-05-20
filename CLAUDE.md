@@ -129,6 +129,7 @@
 | `docs/phase_a_completion_report.md` | Phase A 완료 보고서 — 17건 작업 + 검증 결과 |
 | `docs/changelog_archive.md` | v1.2~v3.5 완료 내역 아카이브 |
 | **`docs/remaining_tasks_v1.0.md`** ⭐ | **잔여 작업 런북 — DB 테이블 생성 SQL·대행 서비스 체크리스트·git 커밋·P2/P3 트리거 명령 전체 정리 (2026-05-18)** |
+| **`docs/inspection_fixes_runbook_v1.0.md`** ⭐ | **출시 전 점검 수정 런북 — §1~§15 전 영역 점검 결과 기반. P0 except 42건·content_validator 게이트·Claude 호출 상한·세마포어 등 §A~§I 수정 순서 정리 (2026-05-19)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 
@@ -242,7 +243,7 @@
 | DB | Supabase Cloud Free Tier (PostgreSQL + Auth + Storage) | |
 | AI 스캔 | Gemini 2.0 Flash + OpenAI gpt-4o-mini (Basic 자동 50/50 분할, Full 각 100회) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Playwright) | 4종 운영 |
 | AI 가이드 | Claude sonnet-4-6 (가이드 전용) + Claude Haiku (FAQ/감정분석) | |
-| 스크린샷 | Playwright 1.44+ | Semaphore(2) RAM 보호 |
+| 스크린샷 | Playwright 1.44+ | Semaphore(1) 독립 × 2 (브리핑·AI탭) — 공유 통합 예정 |
 | 결제 | 토스페이먼츠 v2 (현재 test_ 키) | 실결제 전 live_ 교체 필요 |
 | 알림 | 카카오 비즈API v2 알림톡 5유형 | |
 | 서버 | iwinv vCPU2/RAM4GB, Ubuntu 24.04 LTS, Nginx + PM2 | aeolab.co.kr |
@@ -440,9 +441,12 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 ## 운영 서버 주의사항
 
 - **현재 사양:** iwinv vCPU2 / RAM4GB (`/var/www/aeolab/`)
-- **🆙 업그레이드 예정:** 홈페이지 개발 완성 후 1단계 상위 사양으로 전환. RAM 8GB 기대 → Playwright 동시 실행 한도 `Semaphore(2)` → `Semaphore(3~4)` 검토 가능. 단, 업그레이드 직전까지는 기존 `Semaphore(2)` 유지하여 안정성 우선
+- **🆙 업그레이드 예정:** 홈페이지 개발 완성 후 1단계 상위 사양으로 전환. RAM 8GB 기대 → Playwright 공유 세마포어 `Semaphore(2~3)` 상향 검토 가능. 단, 업그레이드 직전까지는 현행 독립 `Semaphore(1)` × 2 유지
 - **개발 시 가정**: "현재 vCPU2/RAM4GB에서도 안정 동작" + "업그레이드 후 측정 주기 단축·동시성 증가" 양쪽 모두 가능하도록 설계 (예: 측정 주기·동시성 한도를 환경변수로 분리)
-- **Playwright RAM:** 인스턴스 1개 = 300~500MB. 동시 2개 이상 금지, 큐 방식 순차 처리 (`Semaphore(2)`)
+- **Playwright RAM:** 인스턴스 1개 = 300~500MB. 동시 2개 이상 금지.
+  - `multi_scanner.py`: `PLAYWRIGHT_SEMAPHORE = Semaphore(1)` (네이버 브리핑)
+  - `naver_ai_tab_scanner.py`: `_AI_TAB_SEMAPHORE = Semaphore(1)` (AI탭) — 독립 세마포어
+  - ⚠️ 두 세마포어 독립이므로 동시 최대 Playwright 2개 가능. P2 AI탭 스캐너 활성화 전 공유 세마포어 통합 필요
 - **CORS:** `allow_origins=['https://aeolab.co.kr','http://localhost:3000']`, `allow_methods` 명시적 5개
 - **Nginx:** `/api/` 경로 SSE 스트리밍 위해 `proxy_buffering off` 필수
 - **Phase 2+ 전환:** Vercel(Next.js) + Railway(FastAPI) 분리는 구독자 100명 이후
@@ -626,14 +630,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 ## 남은 작업
 
 ### 사용자가 직접 해야 할 것
-- ⏳ **v4.1 ALTER 실행 (선택)** — Supabase SQL Editor에서 5건 실행 시 프랜차이즈 게이팅·초안 자동 로드 활성화. 미실행 시 graceful fallback으로 모든 기능 정상 동작:
-```sql
-ALTER TABLE businesses ADD COLUMN IF NOT EXISTS is_franchise BOOLEAN DEFAULT FALSE;
-ALTER TABLE businesses ADD COLUMN IF NOT EXISTS naver_intro_draft TEXT;
-ALTER TABLE businesses ADD COLUMN IF NOT EXISTS naver_intro_generated_at TIMESTAMPTZ;
-ALTER TABLE businesses ADD COLUMN IF NOT EXISTS talktalk_faq_draft JSONB;
-ALTER TABLE businesses ADD COLUMN IF NOT EXISTS talktalk_faq_generated_at TIMESTAMPTZ;
-```
+- ✅ **v4.1 ALTER 5건 완료** — 실DB 직접 확인 (2026-05-19): is_franchise·naver_intro_draft·naver_intro_generated_at·talktalk_faq_draft·talktalk_faq_generated_at 모두 존재. 프랜차이즈 게이팅·초안 자동 로드 활성화됨.
 - ✅ **2026-04 DB 컬럼 모두 완료** — v3.2/v3.3/v3.5/v3.6/v4.1/profiles.email 전체 적용. 상세 → `docs/changelog_archive.md`
 - ✅ **카카오 알림톡 5종 전체 승인 완료** — .env 키 4개 정상 설정
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)

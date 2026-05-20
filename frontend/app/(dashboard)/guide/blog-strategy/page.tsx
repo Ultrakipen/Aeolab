@@ -133,7 +133,7 @@ export default function BlogStrategyGuidePage() {
           외부 블로그 후기 늘리기 전략
         </h1>
         <p className="text-base md:text-lg text-gray-700 leading-relaxed break-keep">
-          네이버 AI 브리핑 · AI탭 노출에 가장 강한 신호는 외부 블로그 언급입니다. 월 3건 이상 꾸준한 UGC 확보 방법
+          네이버 AI 브리핑 · AI탭 노출에 가장 강한 신호는 외부 블로그 언급입니다. 월 3건 이상 꾸준한 블로그·SNS 후기 확보 방법
         </p>
 
         {/* 면책 배너 */}
@@ -165,8 +165,8 @@ export default function BlogStrategyGuidePage() {
               desc: "네이버 AI 브리핑은 외부 블로그 언급을 사업장 신뢰도의 핵심 지표로 사용합니다. 5건 이상 확보 시 노출 우선순위 상승.",
             },
             {
-              title: "AI탭 UGC 풍부도",
-              desc: "AI탭은 사용자 생성 콘텐츠(UGC)가 풍부한 플레이스를 우선 노출합니다. 블로그 후기 = UGC 풍부도의 대표 신호.",
+              title: "AI탭 블로그·SNS 후기 풍부도",
+              desc: "AI탭은 블로그·SNS 후기가 풍부한 플레이스를 우선 노출합니다. 블로그 후기가 많을수록 노출 우선순위가 높아집니다.",
             },
             {
               title: "ChatGPT·Gemini 학습 소스",
@@ -320,7 +320,7 @@ export default function BlogStrategyGuidePage() {
         <div className="space-y-3">
           <FaqItem
             q="블로그 후기 몇 건부터 효과가 있나요?"
-            a="네이버 AI 브리핑·AI탭 노출 가능성이 의미 있게 상승하는 기준선은 5건 이상으로 추정됩니다. 단, 측정 시점·업종·지역 경쟁 강도에 따라 달라질 수 있습니다. 음식·카페·숙박은 10건 이상, 의원·법무 등 LIKELY·INACTIVE 업종은 3건만 있어도 차별화 효과가 있는 편입니다."
+            a="네이버 AI 브리핑·AI탭 노출 가능성이 의미 있게 상승하는 기준선은 5건 이상으로 추정됩니다. 단, 측정 시점·업종·지역 경쟁 강도에 따라 달라질 수 있습니다. 음식·카페·숙박은 10건 이상, 의원·법무 등 AI 브리핑 확대 예정·비대상 업종은 3건만 있어도 차별화 효과가 있는 편입니다."
           />
           <FaqItem
             q="체험단을 운영해도 효과가 없으면 어떻게 하나요?"
@@ -332,7 +332,7 @@ export default function BlogStrategyGuidePage() {
           />
           <FaqItem
             q="블로그 외에 인스타그램·유튜브 후기도 효과가 있나요?"
-            a="네이버 AI 브리핑은 네이버 블로그를 우선 신호로 보며, 인스타·유튜브는 보조 신호입니다. 단, 글로벌 AI(ChatGPT·Gemini)는 인스타·유튜브 콘텐츠도 학습 소스로 활용할 수 있어 LIKELY·INACTIVE 업종은 SNS 후기도 가치가 있습니다."
+            a="네이버 AI 브리핑은 네이버 블로그를 우선 신호로 보며, 인스타·유튜브는 보조 신호입니다. 단, 글로벌 AI(ChatGPT·Gemini)는 인스타·유튜브 콘텐츠도 학습 소스로 활용할 수 있어 AI 브리핑 확대 예정·비대상 업종은 SNS 후기도 가치가 있습니다."
           />
         </div>
       </section>

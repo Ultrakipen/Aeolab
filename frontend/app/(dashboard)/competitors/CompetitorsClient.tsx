@@ -13,6 +13,7 @@ import { LineChart, Line, ResponsiveContainer } from 'recharts'
 import { CompetitorPlaceCard } from '@/components/competitors/CompetitorPlaceCard'
 import { ScanProgress } from '@/components/scan/ScanProgress'
 import { syncCompetitorPlace } from '@/lib/api'
+import { PLAN_PRICES } from '@/lib/plans'
 import CompetitorTimeline from '@/components/dashboard/CompetitorTimeline'
 import { KeywordManagerModal } from '@/components/dashboard/KeywordManagerModal'
 import { Settings as SettingsIcon } from 'lucide-react'
@@ -249,7 +250,7 @@ function FreePlanPreview() {
           <div className="bg-blue-600 px-4 py-3 flex items-center gap-2">
             <Shield className="w-4 h-4 text-white" />
             <span className="text-white font-bold text-sm">Basic 플랜</span>
-            <span className="ml-auto text-blue-200 text-sm font-medium">월 9,900원</span>
+            <span className="ml-auto text-blue-200 text-sm font-medium">월 {PLAN_PRICES.basic.toLocaleString()}원</span>
           </div>
           <div className="p-4">
             <p className="text-sm font-semibold text-gray-800 mb-3">경쟁 가게 AI 노출 점수 비교</p>
@@ -277,7 +278,7 @@ function FreePlanPreview() {
           <div className="bg-purple-600 px-4 py-3 flex items-center gap-2">
             <Zap className="w-4 h-4 text-white" />
             <span className="text-white font-bold text-sm">Pro 플랜</span>
-            <span className="ml-auto text-purple-200 text-sm font-medium">월 18,900원</span>
+            <span className="ml-auto text-purple-200 text-sm font-medium">월 {PLAN_PRICES.pro.toLocaleString()}원</span>
           </div>
           <div className="p-4">
             <p className="text-sm font-semibold text-gray-800 mb-3">키워드 차이 분석 + 성장 단계 비교</p>
@@ -307,7 +308,7 @@ function FreePlanPreview() {
           <div className="bg-gradient-to-r from-orange-500 to-yellow-500 px-4 py-3 flex items-center gap-2">
             <Crown className="w-4 h-4 text-white" />
             <span className="text-white font-bold text-sm">Biz 플랜</span>
-            <span className="ml-auto text-yellow-100 text-sm font-medium">월 49,900원</span>
+            <span className="ml-auto text-yellow-100 text-sm font-medium">월 {PLAN_PRICES.biz.toLocaleString()}원</span>
           </div>
           <div className="p-4">
             <p className="text-sm font-semibold text-gray-800 mb-3">전체 경쟁 지형도 + AI 채널별 분석</p>

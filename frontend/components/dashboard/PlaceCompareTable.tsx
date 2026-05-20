@@ -328,7 +328,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
             {/* 블로그 언급 수 데이터 출처 안내 */}
             {data.rows.some((r) => r.field === "blog_mention_count") && (
               <div className="px-4 md:px-6 py-2.5 border-t border-gray-100 bg-gray-50">
-                <p className="text-xs text-gray-500 leading-relaxed">
+                <p className="text-sm text-gray-500 leading-relaxed">
                   💡 <strong className="text-gray-600">블로그 언급 수</strong>는 네이버 블로그 API에
                   업체명을 검색한 총 결과 건수입니다. 동명 업체가 있거나 일반 명사와 겹치면 실제보다
                   높게 나올 수 있으며, 경쟁사 간 상대 비교 용도로 활용하세요.

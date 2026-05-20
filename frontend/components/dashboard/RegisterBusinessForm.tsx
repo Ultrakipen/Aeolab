@@ -1013,7 +1013,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             <p className="text-sm text-amber-700 mt-2">{suggestNote}</p>
           )}
 
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-sm text-gray-500 mt-2">
             ※ 측정 시점·기기·검색 환경에 따라 순위는 달라질 수 있습니다 (서울 기준 비로그인 PC/모바일 측정).
           </p>
         </div>

@@ -211,7 +211,7 @@ export function IntroGeneratorCard({
                         : "bg-red-100 text-red-800"
                     }`}
                   >
-                    D.I.A. {stats.dia_score.score.toFixed(0)}점
+                    품질 {stats.dia_score.score.toFixed(0)}점
                   </span>
                 )}
               </div>

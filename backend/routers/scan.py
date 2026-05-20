@@ -204,8 +204,21 @@ def _josa(word: str, josa_pair: tuple) -> str:
 
 
 @router.get("/trial-count")
-async def get_trial_count():
-    """무료 체험 누적 건수 (공개, 캐시 5분) — 랜딩 페이지 소셜 프루프용"""
+async def get_trial_count(request: Request):
+    """무료 체험 누적 건수 (공개, 캐시 5분) — 랜딩 페이지 소셜 프루프용.
+
+    Rate limit: IP당 분당 30회 (5분 캐시이므로 일반 사용에는 충분, 남용 방지) — 2026-05-19 P1
+    """
+    if not _is_admin_request(request):
+        ip = _get_client_ip(request)
+        key = f"trial_count_ip:{ip}"
+        count: int = _cache.get(key) or 0
+        if count >= 30:
+            raise HTTPException(
+                status_code=429,
+                detail={"code": "TRIAL_COUNT_RATE_LIMIT", "message": "잠시 후 다시 시도해 주세요.", "retry_after": 60},
+            )
+        _cache.set(key, count + 1, 60)
     cached = _cache.get("trial_count_public")
     if cached:
         return cached
@@ -503,7 +516,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
                         return addr.is_global
                     except ValueError:
                         return True  # 도메인명 — 허용
-                except Exception:
+                except Exception:  # noqa: intentional-fallback — URL 파싱 오류 시 안전하게 차단
                     return False
             if _is_safe_url(req.website_url):
                 coros.append(check_website_seo(req.website_url))
@@ -862,7 +875,8 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         try:
             from services.keyword_taxonomy import KEYWORD_TAXONOMY as _TAXONOMY
             _industry = _TAXONOMY.get(_effective_cat, _TAXONOMY.get("restaurant", {}))
-        except Exception:
+        except Exception as _e:
+            _logger.warning(f"[scan] KEYWORD_TAXONOMY import failed — {_e}")
             _industry = {}
         _kw_to_meta: dict[str, dict] = {}
         for _sub_name, _sub_data in (_industry or {}).items():

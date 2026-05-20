@@ -141,7 +141,7 @@ export default function HeroSection() {
                 className="w-1.5 h-1.5 rounded-full animate-pulse"
                 style={{ background: "#2563EB" }}
               />
-              네이버 AI 브리핑 노출 진단 서비스 (자동추천)
+              AI 검색 노출 최적화 서비스 — 네이버·ChatGPT·Gemini
             </div>
 
             {/* 메인 타이틀 */}
@@ -220,7 +220,7 @@ export default function HeroSection() {
                   </p>
                   {source && (
                     <p
-                      className="hidden sm:block text-xs mt-0.5"
+                      className="hidden sm:block text-sm mt-0.5"
                       style={{ color: "rgba(255,255,255,0.75)" }}
                     >
                       {source}
@@ -237,22 +237,32 @@ export default function HeroSection() {
             </p>
 
             {/* 서브텍스트 */}
-            <p
-              className="text-sm md:text-base leading-relaxed mb-4 max-w-md break-keep"
-              style={{ color: "rgba(255,255,255,0.88)" }}
-            >
-              <strong style={{ color: "#FFFFFF" }}>3,000만 명</strong>이 보는
-              네이버 AI 브리핑 — 우리 가게가 거기 있는지, 1분 무료로
-              확인하세요.
-            </p>
-
-            {/* 추가 안내 문구 */}
-            <p
-              className="text-sm leading-relaxed mb-5 max-w-md break-keep"
-              style={{ color: "rgba(255,255,255,0.65)" }}
-            >
-              업종·지역·경쟁 환경을 분석합니다 — 가입 없이 1분
-            </p>
+            <div className="mb-5 max-w-md space-y-2">
+              <p
+                className="text-sm md:text-base leading-relaxed break-keep"
+                style={{ color: "rgba(255,255,255,0.95)" }}
+              >
+                <span
+                  className="inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-md mr-1"
+                  style={{ background: "rgba(37,99,235,0.35)", color: "#93C5FD" }}
+                >
+                  음식점·카페·숙박업 등
+                </span>
+                검색 상단에 자동으로 뜨는{" "}
+                <strong style={{ color: "#FFFFFF" }}>네이버 AI 브리핑</strong>에
+                우리 가게가 나오는지 확인하세요.
+              </p>
+              <p
+                className="text-sm leading-relaxed break-keep"
+                style={{ color: "rgba(255,255,255,0.70)" }}
+              >
+                학원·병원·미용실 등 모든 업종은{" "}
+                <strong style={{ color: "rgba(255,255,255,0.90)" }}>
+                  네이버 AI탭·ChatGPT
+                </strong>
+                으로 노출 — 업종 자동 감지 · 가입 없이 1분
+              </p>
+            </div>
 
             {/* 실시간 체험 카운터 */}
             {trialCount !== null && trialCount >= 10 && (

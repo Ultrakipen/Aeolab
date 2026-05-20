@@ -36,7 +36,7 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
       <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-5">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm font-semibold text-gray-800">AI 검색 등록 (JSON-LD)</span>
-          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">Track 2</span>
+          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">글로벌 AI 점수</span>
         </div>
         <p className="text-sm text-gray-500">첫 스캔 후 웹사이트 AI 인식 점수가 표시됩니다.</p>
       </div>
@@ -75,7 +75,7 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-800">AI 검색 등록 (JSON-LD)</span>
-          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">Track 2</span>
+          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">글로벌 AI 점수</span>
         </div>
         <span className={`text-lg font-bold ${scoreColor(score)}`}>{score}점</span>
       </div>
@@ -92,7 +92,7 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
             <div key={item.key} className="flex items-center gap-2">
               <span className="text-red-400 text-sm shrink-0">✕</span>
               <span className="text-sm text-gray-600">{item.label}</span>
-              <span className="text-xs text-red-400 ml-auto shrink-0">−{item.points}점</span>
+              <span className="text-sm text-red-400 ml-auto shrink-0">−{item.points}점</span>
             </div>
           ))}
           <p className="text-sm text-gray-500 pt-1">

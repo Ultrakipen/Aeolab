@@ -925,7 +925,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
             {catDist && catDist.total > 0 && (
               <div className="bg-white rounded-xl p-5 shadow-sm mt-6">
                 <h2 className="text-sm font-semibold text-gray-700 mb-1">업종 그룹 분포</h2>
-                <p className="text-xs text-gray-400 mb-4">
+                <p className="text-sm text-gray-400 mb-4">
                   AI 브리핑 게이팅 기준 · INACTIVE 비율이 높으면 해당 UX 개선 우선순위 ↑ (총 {catDist.total}개 사업장)
                 </p>
                 <div className="grid grid-cols-3 gap-3 mb-4">
@@ -935,14 +935,14 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                     { key: "inactive", label: "INACTIVE", desc: "AI탭·글로벌 AI", color: "text-gray-600", bg: "bg-gray-50 border-gray-200" },
                   ] as const).map(({ key, label, desc, color, bg }) => (
                     <div key={key} className={`rounded-xl p-3 border ${bg}`}>
-                      <div className={`text-xs font-semibold ${color} mb-0.5`}>{label}</div>
+                      <div className={`text-sm font-semibold ${color} mb-0.5`}>{label}</div>
                       <div className={`text-xl font-bold ${color}`}>{catDist.ratios[key]}%</div>
-                      <div className="text-xs text-gray-500">{catDist.groups[key]}개 · {desc}</div>
+                      <div className="text-sm text-gray-500">{catDist.groups[key]}개 · {desc}</div>
                     </div>
                   ))}
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-2">업종별 상세</p>
+                  <p className="text-sm text-gray-500 mb-2">업종별 상세</p>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(catDist.per_category).slice(0, 20).map(([cat, cnt]) => (
                       <span key={cat} className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2.5 py-1 text-xs">

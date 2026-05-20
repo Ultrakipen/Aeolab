@@ -131,7 +131,7 @@ export default function DiaScoreBadge({ dia, onRegenerate }: { dia: DiaScore; on
       >
         <div>
           <h4 id="dia-score-title" className="text-base md:text-lg font-bold text-gray-900">
-            D.I.A. 5요소 점수
+            네이버 고품질 콘텐츠 기준 5요소 점수
           </h4>
           <p className="text-sm text-gray-600 mt-0.5">
             AI 브리핑 인용 가능성 — 정규식 기반 사후 검증 (AI 호출 0회)
@@ -177,7 +177,7 @@ export default function DiaScoreBadge({ dia, onRegenerate }: { dia: DiaScore; on
 
       <div className="px-4 py-3 md:px-5 md:py-4 bg-gray-50 space-y-2">
         <p className="text-sm text-gray-500 leading-snug">
-          D.I.A. 점수가 70점 미만이면 다시 생성 또는 부족 요소 수동 보완을 권장합니다.
+          콘텐츠 품질 점수가 70점 미만이면 다시 생성 또는 부족 요소 수동 보완을 권장합니다.
           실제 네이버 AI 브리핑 노출은 측정 시점·경쟁사·키워드 조합에 따라 달라질 수 있습니다.
         </p>
         {dia.score < 70 && (
@@ -194,7 +194,7 @@ export default function DiaScoreBadge({ dia, onRegenerate }: { dia: DiaScore; on
               href="/guide/ai-info-tab#dia-score"
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              D.I.A. 개선 가이드 →
+              콘텐츠 품질 개선 가이드 →
             </Link>
           </div>
         )}

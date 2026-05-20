@@ -65,7 +65,7 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
             <span className="line-through text-gray-400">수동 스캔 0회/일</span>
             {" → "}
             <span className="font-medium text-emerald-700">2회/일</span>
-            <span className="text-gray-500 text-xs ml-1">(스캔 버튼 비활성화 이유)</span>
+            <span className="text-gray-500 text-sm ml-1">(스캔 버튼 비활성화 이유)</span>
           </span>
         </li>
         <li className="flex items-start gap-2">
@@ -101,7 +101,7 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
         Basic 시작하기 — 첫 달 {discountPrice}원
         <ArrowRight className="w-4 h-4" />
       </Link>
-      <p className="text-xs text-gray-500 mt-2">첫 달 50% 할인 · 언제든 해지 가능</p>
+      <p className="text-sm text-gray-500 mt-2">첫 달 50% 할인 · 언제든 해지 가능</p>
     </div>
   );
 }

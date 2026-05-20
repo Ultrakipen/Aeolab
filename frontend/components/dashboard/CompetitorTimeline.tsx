@@ -355,7 +355,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
           {/* 현재 점수 순위 — 차트에서 겹쳐 보이지 않는 경쟁사도 명확히 표시 */}
           {compNames.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-100">
-              <div className="text-xs font-semibold text-gray-500 mb-2">최근 스캔 기준 점수 순위</div>
+              <div className="text-sm font-semibold text-gray-500 mb-2">최근 스캔 기준 점수 순위</div>
               <div className="space-y-1.5">
                 {(() => {
                   const latestMy = sortedFiltered.length > 0
@@ -373,17 +373,17 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
                   const maxScore = Math.max(...rows.map(r => r.score), 10)
                   return rows.map((row, rank) => (
                     <div key={row.name} className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-5 shrink-0">#{rank + 1}</span>
+                      <span className="text-sm text-gray-400 w-5 shrink-0">#{rank + 1}</span>
                       <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all"
                           style={{ width: `${Math.round((row.score / maxScore) * 100)}%`, backgroundColor: row.color }}
                         />
                       </div>
-                      <span className={`text-xs truncate max-w-[130px] ${row.isMe ? 'font-bold text-blue-700' : 'text-gray-600'}`}>
+                      <span className={`text-sm truncate max-w-[130px] ${row.isMe ? 'font-bold text-blue-700' : 'text-gray-600'}`}>
                         {row.isMe ? `${row.name} (내 가게)` : row.name}
                       </span>
-                      <span className="text-xs font-semibold shrink-0 text-gray-500">{row.score}점</span>
+                      <span className="text-sm font-semibold shrink-0 text-gray-500">{row.score}점</span>
                     </div>
                   ))
                 })()}

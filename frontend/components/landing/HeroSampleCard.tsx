@@ -216,7 +216,7 @@ function CompetitorRow({ item, nextRankScore }: { item: Competitor; nextRankScor
           {item.me && <span className="ml-1 text-xs text-red-400 font-normal">(내 가게)</span>}
         </p>
         {item.me && exposureGap > 0 && (
-          <p className="text-xs text-gray-500 leading-tight">{item.rank - 1}위까지 {exposureGap} 차이</p>
+          <p className="text-sm text-gray-500 leading-tight">{item.rank - 1}위까지 {exposureGap} 차이</p>
         )}
         <div className="relative w-full mt-1 pb-5">
           <div className="relative w-full bg-gray-200 rounded-full h-1.5">
@@ -308,7 +308,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
           <p className="text-xs font-bold text-amber-800">
             ⚡ 네이버 AI탭 2026년 확장 예정 업종
           </p>
-          <p className="text-xs text-amber-700 mt-0.5">
+          <p className="text-sm text-amber-700 mt-0.5">
             현재는 ChatGPT·Gemini·Google AI 노출이 핵심 채널입니다. 네이버 AI탭 베타(2026년 상반기 전체 확대 예정) 노출도 추적합니다.
           </p>
         </div>
@@ -333,7 +333,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
           <span>❌</span>
           <span>{myComp.name}는 AI 응답에 포함되지 않음</span>
         </div>
-        <p className="text-xs text-gray-400 mt-1.5">
+        <p className="text-sm text-gray-400 mt-1.5">
           * ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 검색 결과와 다를 수 있습니다
         </p>
       </div>
@@ -352,7 +352,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
       >
         내 가게 AI 추천 현황 무료 진단하기 →
       </Link>
-      <p className="text-xs text-gray-400 text-center">가입 불필요 · 신용카드 필요 없음</p>
+      <p className="text-sm text-gray-400 text-center">가입 불필요 · 신용카드 필요 없음</p>
     </div>
   );
 }
@@ -419,7 +419,7 @@ function ComparisonPanel({ sample }: { sample: SampleData }) {
         </div>
       </div>
 
-      <p className="text-xs text-gray-400 leading-relaxed">
+      <p className="text-sm text-gray-400 leading-relaxed">
         Gemini·ChatGPT 각 50회 (총 100회) 질의 기반 · 업종 평균 {INDUSTRY_AVG_SCORE} (추정) · 2026.05
         <br />
         ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
@@ -473,14 +473,14 @@ function ScoreExplainPanel({ sample }: { sample: SampleData }) {
         {/* Before / After 비교 */}
         <div className="grid grid-cols-2 gap-2 mt-2">
           <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2.5 text-center">
-            <p className="text-xs text-red-500 font-semibold mb-0.5">현재 (Before)</p>
+            <p className="text-sm text-red-500 font-semibold mb-0.5">현재 (Before)</p>
             <p className="text-2xl font-extrabold text-red-600">{myScore}</p>
-            <p className="text-xs text-red-400 mt-0.5">AI 미추천 구간</p>
+            <p className="text-sm text-red-400 mt-0.5">AI 미추천 구간</p>
           </div>
           <div className="bg-green-50 border border-green-100 rounded-xl px-3 py-2.5 text-center">
-            <p className="text-xs text-green-600 font-semibold mb-0.5">개선 후 (After)</p>
+            <p className="text-sm text-green-600 font-semibold mb-0.5">개선 후 (After)</p>
             <p className="text-2xl font-extrabold text-green-600">{afterScore}+</p>
-            <p className="text-xs text-green-500 mt-0.5">AI 추천 시작 구간</p>
+            <p className="text-sm text-green-500 mt-0.5">AI 추천 시작 구간</p>
           </div>
         </div>
         <p className="text-xs text-gray-400 mt-1.5 text-center">위 수치는 예시입니다. 실제 진단 결과는 내 가게에 따라 다릅니다.</p>
@@ -488,7 +488,7 @@ function ScoreExplainPanel({ sample }: { sample: SampleData }) {
 
       {/* 4가지 노출 요소 */}
       <div>
-        <p className="text-xs font-bold text-gray-500 mb-2">AI 추천을 결정하는 4가지 요소</p>
+        <p className="text-sm font-bold text-gray-500 mb-2">AI 추천을 결정하는 4가지 요소</p>
         <div className="space-y-2">
           {exposureItems.map((item) => (
             <div key={item.label} className="flex items-center gap-2">
@@ -678,7 +678,7 @@ export default function HeroSampleCard({ variant }: Props) {
             전체 데모 보기 →
           </Link>
         </p>
-        <p className="text-xs text-gray-400 text-center mt-1.5">
+        <p className="text-sm text-gray-400 text-center mt-1.5">
           위 수치는 예시입니다. 실제 결과는 가게마다 다릅니다.
         </p>
       </div>
@@ -688,7 +688,7 @@ export default function HeroSampleCard({ variant }: Props) {
   // ── mobile / fullwidth: 기존 단일 컬럼 구조 유지 ──
   const industryTabs = (
     <div className="mb-2.5">
-      <p className="text-xs text-gray-400 mb-1.5">업종별 예시 보기</p>
+      <p className="text-sm text-gray-400 mb-1.5">업종별 예시 보기</p>
       <div className="flex flex-wrap gap-1.5">
         {SAMPLES.map((s, i) => (
           <button
@@ -784,10 +784,10 @@ export default function HeroSampleCard({ variant }: Props) {
       >
         우리 동네 AI 추천 현황 확인하기 →
       </Link>
-      <p className="text-xs text-gray-500 mt-1.5 text-center">
+      <p className="text-sm text-gray-500 mt-1.5 text-center">
         업종 평균 {INDUSTRY_AVG_SCORE} (추정) · Full 스캔 기준 · 2026.05 (예시)
       </p>
-      <p className="text-xs text-gray-500 mt-0.5 text-center leading-relaxed">
+      <p className="text-sm text-gray-500 mt-0.5 text-center leading-relaxed">
         ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
         측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
       </p>

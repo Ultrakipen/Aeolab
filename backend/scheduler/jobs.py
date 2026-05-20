@@ -1127,7 +1127,8 @@ async def after_screenshot_job():
                         try:
                             _au = await capture_ai_result("naver", _aq, biz["id"], f"after_{days}d_naver_blog")
                             after_urls.append(_au)
-                        except Exception:
+                        except Exception as _e:
+                            logger.warning(f"[after_screenshot_job] capture_ai_result failed — {_e}")
                             after_urls.append(None)
                         await asyncio.sleep(3)
 
@@ -1238,6 +1239,8 @@ async def monthly_market_news_job():
         # 업종별 카테고리 집계 후 Claude로 뉴스 생성 (카테고리당 1회 API 호출로 비용 절감)
         category_news: dict = {}
         client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+        MAX_CLAUDE_CALLS = int(os.getenv("MAX_CLAUDE_CALLS_PER_JOB", "50"))
+        _claude_call_count = 0
 
         for user in users:
             try:
@@ -1254,6 +1257,10 @@ async def monthly_market_news_job():
                 cache_key = f"{category}_{region}"
 
                 if cache_key not in category_news:
+                    if _claude_call_count >= MAX_CLAUDE_CALLS:
+                        logger.warning(f"[monthly_market_news_job] MAX_CLAUDE_CALLS({MAX_CLAUDE_CALLS}) 도달 — 조기 종료")
+                        break
+                    _claude_call_count += 1
                     msg = await client.messages.create(
                         model="claude-haiku-4-5-20251001",
                         max_tokens=300,
@@ -1971,6 +1978,8 @@ async def weekly_post_draft_job():
             .eq("is_active", True)
         )
         businesses = _wpd_biz_res.data or []
+        MAX_CLAUDE_CALLS = int(os.getenv("MAX_CLAUDE_CALLS_PER_JOB", "50"))
+        _claude_call_count = 0
 
         _CATEGORY_KO: dict[str, str] = {
             "restaurant": "음식점", "cafe": "카페", "beauty": "미용실",
@@ -2012,6 +2021,10 @@ async def weekly_post_draft_job():
                     f"초안만 출력 (설명 없이):"
                 )
 
+                if _claude_call_count >= MAX_CLAUDE_CALLS:
+                    logger.warning(f"[weekly_post_draft_job] MAX_CLAUDE_CALLS({MAX_CLAUDE_CALLS}) 도달 — 조기 종료")
+                    break
+                _claude_call_count += 1
                 msg = await client.messages.create(
                     model="claude-haiku-4-5-20251001",
                     max_tokens=200,
@@ -4678,8 +4691,8 @@ async def inactive_post_alert_job() -> None:
                         ca = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
                         if ca.replace(tzinfo=None) > cutoff:
                             continue  # 가입 14일 미만 — 새 사용자, 알림 skip
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        logger.warning(f"[inactive_post_alert_job] created_at 파싱 실패 — {_e}")
 
             # 멱등키 체크 (14일에 1회만)
             idem_key = f"post_remind_{biz['id']}_{cutoff_date}"

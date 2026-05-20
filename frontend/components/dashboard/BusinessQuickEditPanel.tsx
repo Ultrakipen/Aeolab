@@ -295,7 +295,7 @@ export default function BusinessQuickEditPanel({
               <button
                 type="button"
                 onClick={() => addKeyword(keywordInput)}
-                className="mt-1.5 flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                className="mt-1.5 flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
               >
                 <Plus className="w-3 h-3" /> "{keywordInput}" 추가
               </button>
@@ -304,7 +304,7 @@ export default function BusinessQuickEditPanel({
             {/* AI 자동 추천 (Phase A) */}
             <div className="mt-3 pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-gray-500">{keywords.length < 3 ? <span className="text-red-600 font-medium">3개 이상 필수</span> : "AI 추천으로 키워드 보강"}</p>
+                <p className="text-sm text-gray-500">{keywords.length < 3 ? <span className="text-red-600 font-medium">3개 이상 필수</span> : "AI 추천으로 키워드 보강"}</p>
                 <button
                   type="button"
                   disabled={suggesting || keywords.length >= 10}
@@ -408,7 +408,7 @@ export default function BusinessQuickEditPanel({
               href="https://smartplace.naver.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2.5 inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+              className="mt-2.5 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
             >
               스마트플레이스 바로 가기 <ExternalLink className="w-3 h-3" />
             </a>
@@ -436,7 +436,7 @@ export default function BusinessQuickEditPanel({
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">방문자 리뷰 수</label>
+                  <label className="block text-sm text-gray-500 mb-1">방문자 리뷰 수</label>
                   <input
                     type="number"
                     min={0}
@@ -446,7 +446,7 @@ export default function BusinessQuickEditPanel({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">영수증 리뷰 수</label>
+                  <label className="block text-sm text-gray-500 mb-1">영수증 리뷰 수</label>
                   <input
                     type="number"
                     min={0}
@@ -457,7 +457,7 @@ export default function BusinessQuickEditPanel({
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">평균 별점 (0.0 ~ 5.0)</label>
+                <label className="block text-sm text-gray-500 mb-1">평균 별점 (0.0 ~ 5.0)</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="range"
@@ -486,7 +486,7 @@ export default function BusinessQuickEditPanel({
               placeholder="https://map.naver.com/v5/entry/..."
               className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 placeholder-gray-400"
             />
-            <p className="text-xs text-gray-400 mt-1.5">
+            <p className="text-sm text-gray-400 mt-1.5">
               네이버 지도에서 내 가게 페이지 주소를 입력하세요
             </p>
           </section>

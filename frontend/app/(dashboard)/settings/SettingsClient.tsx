@@ -325,7 +325,7 @@ export function SettingsClient({
                 <span className="text-red-500 font-bold shrink-0">•</span>
                 <span>행동→점수 변화 기록 <strong>{actionCount}건</strong></span>
               </div>
-              <p className="text-xs text-red-600 mt-1 pt-2 border-t border-red-100">
+              <p className="text-sm text-red-600 mt-1 pt-2 border-t border-red-100">
                 데이터는 30일간 보관 후 삭제됩니다.
               </p>
             </div>

@@ -3030,3 +3030,35 @@ def get_seasonal_keywords(category: str, month: int) -> list[str]:
         if len(result) >= 5:
             break
     return result
+
+
+# ─── weight 합계 검증 (2026-05-19 P0 §5.1) ─────────────────────────────────
+def _validate_taxonomy_weights() -> dict[str, float]:
+    """업종별 weight 합계가 1.0 ± 0.01 인지 모듈 로드 시 검증.
+
+    weight=0.0 그룹(키워드 확장 풀, 점수 미반영)은 합계에서 제외.
+    합계 1.0 이탈 시 WARNING 로그 — 신규 업종 추가 시 합계 초과 방지.
+
+    Returns:
+        업종별 weight 합계 dict (테스트·디버깅용).
+    """
+    sums: dict[str, float] = {}
+    for industry_key, groups in KEYWORD_TAXONOMY.items():
+        if not isinstance(groups, dict):
+            continue
+        total = sum(
+            float(g.get("weight", 0.0))
+            for g in groups.values()
+            if isinstance(g, dict) and float(g.get("weight", 0.0)) > 0
+        )
+        sums[industry_key] = round(total, 4)
+        if abs(total - 1.0) >= 0.01:
+            _logger.warning(
+                "[taxonomy weight] %s weight 합계 1.0 이탈: sum=%.3f (그룹 weight 재배분 필요)",
+                industry_key, total,
+            )
+    return sums
+
+
+# 모듈 로드 시 자동 실행
+_validate_taxonomy_weights()

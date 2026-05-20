@@ -4,9 +4,9 @@ import { SiteFooter } from "@/components/common/SiteFooter"
 import { PLAN_PRICES } from "@/lib/plans"
 
 export const metadata: Metadata = {
-  title: "AEOlab은 어떻게 네이버 AI 브리핑 노출을 도와주나요? | AEOlab",
+  title: "AI 브리핑·AI탭·ChatGPT 노출 완전 설명 | AEOlab",
   description:
-    "AEOlab의 네이버 AI 브리핑 노출 지원 기준을 처음부터 끝까지 설명합니다. 게이트 3조건, 점수 100점 4항목, 5단계 행동, AEOlab과 사장님 역할 분담, 요금제별 기능, 한계까지.",
+    "네이버 AI 브리핑·AI탭·ChatGPT에서 내 가게가 노출되는 원리를 업종별로 설명합니다. 게이트 조건·점수 기준·5단계 행동·한계까지.",
 }
 
 export default function HowItWorksPage() {
@@ -29,12 +29,11 @@ export default function HowItWorksPage() {
 
         {/* ─── Hero ─── */}
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 leading-tight break-keep">
-          AEOlab은 어떻게 내 가게의<br className="hidden md:block" />
-          네이버 AI 브리핑 노출을 도와주나요?
+          AEOlab 서비스 완전 설명<br className="hidden md:block" />
+          — AI 브리핑·AI탭·ChatGPT 노출
         </h1>
         <p className="text-base md:text-lg text-gray-600 mb-2 leading-relaxed break-keep">
-          이 페이지는 <strong>AEOlab의 동작 원리·도움 범위·한계</strong>를 빠짐없이 설명하는 매뉴얼입니다.
-          소상공인이 5분 안에 서비스 가치를 정확히 이해할 수 있도록 작성했습니다.
+          AI 브리핑(음식점·카페 등)·AI탭(모든 업종)·ChatGPT 세 채널에서 내 가게가 노출되는 원리와 개선 방법을 설명합니다.
         </p>
         <p className="text-sm md:text-base text-gray-500 mb-8">
           마지막 업데이트: 2026-05-01 · 출처:{" "}
@@ -51,9 +50,7 @@ export default function HowItWorksPage() {
         {/* ─── 한 줄 요약 ─── */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-5 md:p-6 mb-6">
           <p className="text-base md:text-lg text-gray-900 leading-relaxed break-keep">
-            <strong>한 줄 요약:</strong> 네이버가 공개한 노출 5항목(소개글·소식·리뷰·블로그·키워드)과
-            게이트 3조건(업종·프랜차이즈·리뷰수)을 점수화하고, 사장님이 5분 안에 실행할 수
-            있도록 AI가 콘텐츠 초안을 자동 생성합니다. 매주 실제 노출 결과를 검증합니다.
+            <strong>한 줄 요약:</strong> 네이버 AI 브리핑(음식점·카페 등)·AI탭(모든 업종)·ChatGPT — 세 채널의 노출 조건을 점수화하고, 사장님이 5분 안에 실행할 수 있도록 AI가 콘텐츠 초안을 자동 생성합니다.
           </p>
           <p className="text-sm md:text-base text-gray-700 mt-3 leading-relaxed break-keep">
             광고처럼 노출을 사는 게 아니라, <strong>노출 조건을 채우는 일을 자동화</strong>하는 서비스입니다.
@@ -269,7 +266,7 @@ export default function HowItWorksPage() {
                     <strong>② 프랜차이즈 가맹점 아님?</strong>
                     <p className="text-sm text-gray-500 mt-1 leading-relaxed">네이버 공식: 프랜차이즈는 현재 제외</p>
                   </td>
-                  <td className="py-3 px-3 align-top text-gray-700">체크하면 자동 INACTIVE 처리 + 대체 채널(글로벌 AI) 노출 개선으로 전환</td>
+                  <td className="py-3 px-3 align-top text-gray-700">체크하면 AI 브리핑 비대상으로 전환 + 대체 채널(글로벌 AI) 노출 개선으로 전환</td>
                   <td className="py-3 px-3 align-top text-gray-700">사업장 등록 시 체크박스로 답변</td>
                 </tr>
                 <tr>
@@ -297,18 +294,18 @@ export default function HowItWorksPage() {
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
             현재 v3.0 모델(5항목)이 적용 중입니다. 베타 사용자 5명+ 데이터 확보 후 v3.1 모델로 전환되며,
-            사용자 그룹(ACTIVE/LIKELY/INACTIVE)에 따라 가중치를 자동 재분배할 예정입니다.
+            업종 그룹(AI 브리핑 대상/확대 예정/글로벌 AI 중심)에 따라 가중치를 자동 재분배할 예정입니다.
             AI 브리핑 비대상 업종이라도 점수상 불이익이 없도록 키워드 검색·스마트플레이스로 보강합니다.
           </p>
 
           <div className="overflow-x-auto mb-4">
             <table className="w-full text-sm border border-gray-200 rounded-lg">
               <thead className="bg-gray-50">
-                <tr className="text-left text-xs sm:text-sm uppercase text-gray-500">
+                <tr className="text-left text-sm uppercase text-gray-500">
                   <th className="px-3 py-2 font-medium">항목</th>
-                  <th className="px-3 py-2 font-medium text-center">ACTIVE</th>
-                  <th className="px-3 py-2 font-medium text-center">LIKELY</th>
-                  <th className="px-3 py-2 font-medium text-center">INACTIVE</th>
+                  <th className="px-3 py-2 font-medium text-center">AI 브리핑 대상</th>
+                  <th className="px-3 py-2 font-medium text-center">AI 브리핑 확대 예정</th>
+                  <th className="px-3 py-2 font-medium text-center">글로벌 AI 중심</th>
                   <th className="px-3 py-2 font-medium hidden md:table-cell">측정 방법</th>
                 </tr>
               </thead>
@@ -335,7 +332,7 @@ export default function HowItWorksPage() {
                   <td className="px-3 py-2 hidden md:table-cell text-sm text-gray-500">소개글·소식·메뉴·사진·영업시간 + 키워드 콘텐츠 매칭</td>
                 </tr>
                 <tr className="border-t border-gray-100 bg-gray-50/40">
-                  <td className="px-3 py-2 font-medium">블로그 생태계 (C-rank 추정)</td>
+                  <td className="px-3 py-2 font-medium">블로그 생태계 (콘텐츠 품질 추정)</td>
                   <td className="px-3 py-2 text-center">10%</td>
                   <td className="px-3 py-2 text-center">10%</td>
                   <td className="px-3 py-2 text-center">10%</td>
@@ -411,7 +408,7 @@ export default function HowItWorksPage() {
             <ContentCard
               num={4}
               title="연계 블로그"
-              detail="블로그 URL 입력 시 키워드 매칭·C-rank 평가를 진행해 '이 키워드를 보강하라'는 가이드를 제공합니다."
+              detail="블로그 URL 입력 시 키워드 매칭·콘텐츠 품질 평가를 진행해 '이 키워드를 보강하라'는 가이드를 제공합니다."
             />
           </div>
         </section>
@@ -577,18 +574,18 @@ export default function HowItWorksPage() {
               </div>
             </div>
 
-            {/* 4. 블로그 C-rank 추정 */}
+            {/* 4. 블로그 콘텐츠 품질 추정 */}
             <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 md:p-5">
               <div className="flex items-start gap-3 mb-2">
                 <span className="shrink-0 w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">4</span>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-base md:text-lg font-bold text-gray-900 break-keep">블로그 C-rank 추정</h3>
+                  <h3 className="text-base md:text-lg font-bold text-gray-900 break-keep">블로그 콘텐츠 품질 추정</h3>
                   <span className="px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded-full font-medium">(추정)</span>
                 </div>
               </div>
               <p className="text-sm md:text-base text-gray-700 mb-2 leading-relaxed break-keep">
-                네이버 블로그 C-rank는 비공개 지수입니다. AEOlab은 <strong>30일 발행 빈도·외부 인용·업체명 매칭</strong>
-                3가지를 실측해 C-rank를 추정합니다. 실제 C-rank와 오차가 발생할 수 있습니다.
+                네이버 블로그 콘텐츠 품질 점수는 비공개 지수입니다. AEOlab은 <strong>30일 발행 빈도·외부 인용·업체명 매칭</strong>
+                3가지를 실측해 품질 점수를 추정합니다. 실제 네이버 내부 점수와 오차가 발생할 수 있습니다.
               </p>
               <ul className="list-disc list-inside space-y-1 text-sm md:text-base text-gray-700 mb-2">
                 <li>30일 내 블로그 발행 건수 (직접 발행 + 체험단)</li>
@@ -596,7 +593,7 @@ export default function HowItWorksPage() {
                 <li>업체명이 키워드로 포함된 포스트 비율</li>
               </ul>
               <p className="text-sm text-amber-800 bg-amber-100 rounded px-3 py-2 leading-relaxed">
-                이 수치에는 <strong>(추정)</strong> 배지가 표시됩니다. 실제 네이버 C-rank와 다를 수 있으며,
+                이 수치에는 <strong>(추정)</strong> 배지가 표시됩니다. 실제 네이버 내부 기준과 다를 수 있으며,
                 참고 지표로만 활용하세요.
               </p>
             </div>
@@ -648,14 +645,14 @@ export default function HowItWorksPage() {
         {/* ─── D.I.A. 5요소 + 2026 변화 ─── */}
         <section id="dia" className="mb-12 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
-            AI가 평가하는 5요소(D.I.A.) + 2026 변화
+            네이버 품질 기준 5요소 + 2026 변화
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            네이버 AI 브리핑은 C-rank 위에 <strong>D.I.A.(Deep Intent Analysis)</strong> 알고리즘으로
-            콘텐츠의 5가지 측면을 딥러닝으로 평가합니다. 이 5요소가 충족될수록 인용 확률이 높아집니다.
+            네이버 AI 브리핑은 콘텐츠 품질 점수(네이버 고품질 콘텐츠 기준) 위에 딥러닝 알고리즘으로
+            콘텐츠의 5가지 측면을 평가합니다. 이 5요소가 충족될수록 AI 브리핑 인용 확률이 높아집니다.
           </p>
           <p className="text-sm text-gray-500 mb-4 leading-relaxed break-keep bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-            ※ D.I.A. 5요소는 네이버 비공개 알고리즘을 외부 분석 기반으로 추정한 것입니다. 실제 평가 방식과 다를 수 있습니다.
+            ※ 이 5요소는 네이버 비공개 알고리즘을 외부 분석 기반으로 추정한 것입니다. 실제 평가 방식과 다를 수 있습니다.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
@@ -734,10 +731,10 @@ export default function HowItWorksPage() {
                 <tr className="bg-blue-50">
                   <th className="text-left py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">기능</th>
                   <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Free</th>
-                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Basic<br /><span className="text-xs font-normal">{PLAN_PRICES.basic.toLocaleString()}원</span></th>
-                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">창업패키지<br /><span className="text-xs font-normal">{PLAN_PRICES.startup.toLocaleString()}원</span></th>
-                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Pro<br /><span className="text-xs font-normal">{PLAN_PRICES.pro.toLocaleString()}원</span></th>
-                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Biz<br /><span className="text-xs font-normal">{PLAN_PRICES.biz.toLocaleString()}원</span></th>
+                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Basic<br /><span className="text-sm font-normal">{PLAN_PRICES.basic.toLocaleString()}원</span></th>
+                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">창업패키지<br /><span className="text-sm font-normal">{PLAN_PRICES.startup.toLocaleString()}원</span></th>
+                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Pro<br /><span className="text-sm font-normal">{PLAN_PRICES.pro.toLocaleString()}원</span></th>
+                  <th className="text-center py-2.5 px-3 font-semibold text-gray-800 border-b border-blue-200">Biz<br /><span className="text-sm font-normal">{PLAN_PRICES.biz.toLocaleString()}원</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -755,7 +752,7 @@ export default function HowItWorksPage() {
             </table>
           </div>
 
-          <p className="mt-3 text-xs text-gray-500">
+          <p className="mt-3 text-sm text-gray-500">
             * Basic 소개글·채팅방메뉴 AI 생성은 합산 월 5회 한도. 창업패키지·Pro·Biz는 무제한.<br />
             * 창업패키지는 예비 창업자 전용으로 창업 시장 분석 + Basic 기능 전체 포함.
           </p>
@@ -828,7 +825,7 @@ export default function HowItWorksPage() {
                 </tr>
                 <tr className="border-b border-gray-100">
                   <td className="py-2.5 px-3 align-top">비대상 업종에 대해 글로벌 AI 노출 개선</td>
-                  <td className="py-2.5 px-3 align-top text-gray-700">비대상 업종을 ACTIVE로 만들기</td>
+                  <td className="py-2.5 px-3 align-top text-gray-700">비대상 업종을 AI 브리핑 대상으로 만들기</td>
                 </tr>
                 <tr className="border-b border-gray-100">
                   <td className="py-2.5 px-3 align-top">사장님 5단계 행동 가이드</td>
@@ -839,7 +836,7 @@ export default function HowItWorksPage() {
                   <td className="py-2.5 px-3 align-top text-gray-700">리뷰 수 조작</td>
                 </tr>
                 <tr>
-                  <td className="py-2.5 px-3 align-top">콘텐츠 품질 개선 (C-rank 향상)</td>
+                  <td className="py-2.5 px-3 align-top">콘텐츠 품질 개선 (블로그·소개글 완성도 향상)</td>
                   <td className="py-2.5 px-3 align-top text-gray-700">네이버 정책 위반 우회</td>
                 </tr>
               </tbody>
@@ -920,7 +917,7 @@ export default function HowItWorksPage() {
               <p className="text-sm font-semibold text-blue-800 mb-1">유기적 노출 (Organic)</p>
               <p className="text-sm text-blue-700 leading-relaxed break-keep">
                 AI 브리핑이 콘텐츠 품질·리뷰·정보 완성도를 기준으로 자동 선정.
-                AEOlab <strong>Track1 점수에 반영</strong>됩니다.
+                AEOlab <strong>네이버 채널 점수에 반영</strong>됩니다.
               </p>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
@@ -940,7 +937,7 @@ export default function HowItWorksPage() {
             AEOlab은 유기적 노출 최적화에 집중합니다.
           </div>
 
-          <p className="text-xs text-gray-400 mt-2 leading-relaxed break-keep">
+          <p className="text-sm text-gray-400 mt-2 leading-relaxed break-keep">
             광고 도입 일정·형태는 네이버 공식 발표 전까지 변경될 수 있습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있음.
           </p>
         </section>

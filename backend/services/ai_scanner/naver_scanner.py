@@ -58,7 +58,8 @@ async def _detect_ad_briefing(page) -> bool:
             el = await page.query_selector(sel)
             if el:
                 return True
-        except Exception:
+        except Exception as _e:
+            logger.debug(f"[naver_scanner] ad_briefing selector failed — {_e}")
             continue
     return False
 
@@ -115,7 +116,8 @@ class NaverAIBriefingScanner:
 
             try:
                 page_text = await page.inner_text("body") or ""
-            except Exception:
+            except Exception as _e:
+                logger.warning(f"[naver_scanner] page inner_text failed — {_e}")
                 page_text = ""
 
             # ── 캡챠 / 차단 감지 ─────────────────────────────────
@@ -145,7 +147,8 @@ class NaverAIBriefingScanner:
                             lines = [l for l in text.split("\n") if _name_in_text(target, l)]
                             excerpt = lines[0][:120] if lines else ""
                         break
-                except Exception:
+                except Exception as _e:
+                    logger.debug(f"[naver_scanner] briefing selector failed — {_e}")
                     continue
 
             # ── AI탭 섹션 감지 ──────────────────────────────────
@@ -159,7 +162,8 @@ class NaverAIBriefingScanner:
                             lines = [l for l in text.split("\n") if _name_in_text(target, l)]
                             ai_tab_excerpt = lines[0][:120] if lines else ""
                         break
-                except Exception:
+                except Exception as _e:
+                    logger.debug(f"[naver_scanner] ai_tab selector failed — {_e}")
                     continue
 
             # ── 광고 영역 감지 + taxonomy 교차 검증 ─────────────
@@ -183,7 +187,8 @@ class NaverAIBriefingScanner:
                     for i, item in enumerate(items[:15]):
                         try:
                             name = await item.inner_text()
-                        except Exception:
+                        except Exception as _e:
+                            logger.debug(f"[naver_scanner] place item text failed — {_e}")
                             name = ""
                         if _name_in_text(target, name):
                             mentioned = True
@@ -191,7 +196,8 @@ class NaverAIBriefingScanner:
                             break
                     if mentioned:
                         break
-                except Exception:
+                except Exception as _e:
+                    logger.debug(f"[naver_scanner] place selector failed — {_e}")
                     continue
 
             # ── 셀렉터 전부 실패 시 전체 텍스트로 fallback ────────

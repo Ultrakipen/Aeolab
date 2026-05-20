@@ -170,8 +170,8 @@ export default function PostScanModal({
           {/* 카운트다운 프로그레스 바 */}
           <div className="px-5 pb-4">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-gray-500">{countdown}초 후 자동으로 닫힙니다</span>
-              <button onClick={onClose} className="text-xs text-gray-500 hover:text-gray-700">
+              <span className="text-sm text-gray-500">{countdown}초 후 자동으로 닫힙니다</span>
+              <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700">
                 지금 닫기
               </button>
             </div>

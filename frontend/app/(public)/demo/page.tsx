@@ -546,7 +546,8 @@ export default function DemoPage() {
                 </p>
                 <p className="text-sm md:text-base text-amber-800 leading-relaxed">
                   네이버 AI 브리핑은 음식점·카페 등 일부 업종만 대상입니다.
-                  이 업종은 <strong>ChatGPT·Google AI</strong> 노출 개선이 더 효과적입니다.
+                  이 업종은 <strong>ChatGPT·Google AI</strong> 노출 개선이 더 효과적이며,
+                  <strong>네이버 AI탭(모든 업종 베타)</strong>도 이용 가능합니다.
                   업종 확대 시 자동으로 안내해드립니다.
                 </p>
               </div>
@@ -580,7 +581,7 @@ export default function DemoPage() {
               </div>
               <span className="text-sm font-semibold text-gray-700">ChatGPT 검색 결과</span>
             </div>
-            <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5 shrink-0">
+            <span className="text-sm text-gray-400 bg-gray-100 rounded-full px-2 py-0.5 shrink-0">
               Gemini·ChatGPT 각 50회
             </span>
           </div>
@@ -606,7 +607,7 @@ export default function DemoPage() {
                 <p className="text-sm text-gray-600 italic leading-relaxed">
                   &ldquo;{m.aiExcerpt.length > 150 ? m.aiExcerpt.slice(0, 150) + "…" : m.aiExcerpt}&rdquo;
                 </p>
-                <p className="text-xs text-green-600 font-semibold mt-1">
+                <p className="text-sm text-green-600 font-semibold mt-1">
                   AI 노출 확률 {m.geminiRate}%
                 </p>
               </div>
@@ -666,7 +667,7 @@ export default function DemoPage() {
 
           {/* 푸터 */}
           <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-2">
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <p className="text-sm text-gray-400 leading-relaxed">
               ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 검색 결과와 다를 수 있습니다.
             </p>
             <Link
@@ -733,7 +734,7 @@ export default function DemoPage() {
                 <p className="text-sm md:text-base font-semibold text-gray-700">AI 노출 종합 점수</p>
                 <p className="text-sm text-gray-500">100점 만점</p>
               </div>
-              <p className="text-xs text-gray-400 mb-2 leading-relaxed">ChatGPT·Gemini·네이버 AI 등이 내 업종 키워드로 검색할 때 내 가게가 얼마나 자주 등장하는지 0~100점으로 표현</p>
+              <p className="text-sm text-gray-400 mb-2 leading-relaxed">ChatGPT·Gemini·네이버 AI 등이 내 업종 키워드로 검색할 때 내 가게가 얼마나 자주 등장하는지 0~100점으로 표현</p>
               <div className="flex items-end gap-3 mb-3">
                 <span className={`text-5xl md:text-6xl font-black ${gradeColor(m.grade)}`}>{m.grade}</span>
                 <span className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">{m.totalScore}점</span>
@@ -780,7 +781,7 @@ export default function DemoPage() {
               <div className="bg-white rounded-xl shadow-sm px-3 md:px-4 py-4">
                 <p className="text-sm font-semibold text-gray-600 mb-0.5">네이버 AI 채널</p>
                 <p className="text-sm text-gray-500 mb-1 leading-tight">
-                  {briefingStatus === "active" ? "네이버 브리핑 · 카카오맵" : briefingStatus === "likely" ? "네이버 브리핑(확대예정) · 카카오맵" : "카카오맵 (브리핑 비대상)"}
+                  {briefingStatus === "active" ? "AI브리핑 · AI탭 · 카카오맵" : briefingStatus === "likely" ? "AI브리핑(확대예정) · AI탭베타 · 카카오맵" : "AI탭베타 · 카카오맵 (브리핑 비대상)"}
                 </p>
                 {briefingStatus === "inactive" && (
                   <span className="inline-block text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full mb-1.5">네이버 AI브리핑 제외업종</span>

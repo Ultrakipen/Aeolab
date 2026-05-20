@@ -67,7 +67,7 @@ export default function HeroInlineForm() {
           무료로 확인하기
         </button>
       </div>
-      <p className="text-xs text-gray-500 mt-1.5 text-center lg:text-left">
+      <p className="text-sm text-gray-500 mt-1.5 text-center lg:text-left">
         이름이 없어도 됩니다 — 업종만 선택해도 업종 평균 확인 가능
       </p>
     </form>

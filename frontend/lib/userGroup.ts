@@ -46,14 +46,23 @@ export const BRIEFING_ACTIVE_CATEGORIES: ReadonlyArray<string> = [
 
 export type BriefingEligibility = "active" | "likely" | "inactive";
 
+/**
+ * @param activeOverride — fetchBriefingCategories()로 가져온 동적 목록. 미전달 시 하드코딩 fallback.
+ * @param likelyOverride — fetchBriefingCategories()로 가져온 동적 목록. 미전달 시 하드코딩 fallback.
+ */
 export function getBriefingEligibility(
   category: string | undefined,
   isFranchise: boolean = false,
+  activeOverride?: readonly string[],
+  likelyOverride?: readonly string[],
 ): BriefingEligibility {
   if (isFranchise) return "inactive";
-  const group = getUserGroup(category ?? "", isFranchise);
-  if (group === "ACTIVE") return "active";
-  if (group === "LIKELY") return "likely";
+  const cat = (category ?? "").toLowerCase();
+  if (!cat || cat === "other") return "inactive";
+  const activeSet = activeOverride ? new Set(activeOverride) : ACTIVE_CATEGORIES;
+  const likelySet = likelyOverride ? new Set(likelyOverride) : LIKELY_CATEGORIES;
+  if (activeSet.has(cat)) return "active";
+  if (likelySet.has(cat)) return "likely";
   return "inactive";
 }
 

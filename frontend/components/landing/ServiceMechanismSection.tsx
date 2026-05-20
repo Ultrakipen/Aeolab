@@ -172,7 +172,7 @@ export default function ServiceMechanismSection() {
                   숙박 <strong>1만 5천 개</strong> 업체 적용 (2026년 기준)
                 </li>
               </ul>
-              <p className="text-xs break-keep" style={{ color: "#475569" }}>
+              <p className="text-sm break-keep" style={{ color: "#475569" }}>
                 네이버 공식 발표 기준 · 실제 결과는 업종·지역에 따라 다를 수 있습니다.{" "}
                 <a
                   href="https://www.mt.co.kr/tech/2026/04/07/2026040709261836765"

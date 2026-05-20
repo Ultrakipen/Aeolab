@@ -5,6 +5,7 @@ import { trackPlanRecommend, trackEvent } from "@/lib/analytics";
 import { PayButton } from "./PayButton";
 import Link from "next/link";
 import { getSafeSession } from "@/lib/supabase/client";
+import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 
 interface Option {
   value: string;
@@ -21,37 +22,37 @@ const OPTIONS: Option[] = [
     label: "가게 1개를 운영하고 있어요 (음식점·카페·법무·의료·교육 등 모든 업종)",
     recommend: "Basic",
     planKey: "basic",
-    amount: 9900,
-    firstMonthAmount: 4950,
+    amount: PLAN_PRICES.basic,
+    firstMonthAmount: FIRST_MONTH_DISCOUNT_PRICES.basic,
   },
   {
     value: "pro",
     label: "경쟁사 변화를 매일 빠르게 알고 싶어요",
     recommend: "Pro",
     planKey: "pro",
-    amount: 18900,
+    amount: PLAN_PRICES.pro,
   },
   {
     value: "biz",
     label: "가게가 2개 이상이거나 대행사예요",
     recommend: "Biz",
     planKey: "biz",
-    amount: 49900,
+    amount: PLAN_PRICES.biz,
   },
   {
     value: "startup",
     label: "아직 창업 전이에요",
     recommend: "창업 패키지",
     planKey: "startup",
-    amount: 12900,
+    amount: PLAN_PRICES.startup,
   },
   {
     value: "global",
     label: "네이버보다 ChatGPT·Gemini 노출이 더 중요해요",
     recommend: "Basic",
     planKey: "basic",
-    amount: 9900,
-    firstMonthAmount: 4950,
+    amount: PLAN_PRICES.basic,
+    firstMonthAmount: FIRST_MONTH_DISCOUNT_PRICES.basic,
   },
 ];
 

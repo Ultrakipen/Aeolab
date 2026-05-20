@@ -96,7 +96,7 @@ export default function QuickDiagnosisForm() {
           >
             내 가게 AI 노출 지금 확인 →
           </button>
-          <p className="text-xs text-gray-400 text-center mt-2">
+          <p className="text-sm text-gray-400 text-center mt-2">
             가입 불필요 · 무료
           </p>
         </form>

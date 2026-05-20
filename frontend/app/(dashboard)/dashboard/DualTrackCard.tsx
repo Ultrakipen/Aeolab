@@ -351,7 +351,7 @@ export default function DualTrackCard({
                   <span>ChatGPT (GPT-4o)</span>
                   <span className="font-semibold">
                     {chatgptRate}%
-                    <span className="text-xs text-gray-500 font-normal ml-1">
+                    <span className="text-sm text-gray-500 font-normal ml-1">
                       ({aiExposureData.chatgptFreq}/{aiExposureData.chatgptSampleSize}회)
                     </span>
                   </span>
@@ -367,7 +367,7 @@ export default function DualTrackCard({
                   <span>Google Gemini</span>
                   <span className="font-semibold">
                     {geminiRate}%
-                    <span className="text-xs text-gray-500 font-normal ml-1">
+                    <span className="text-sm text-gray-500 font-normal ml-1">
                       ({aiExposureData.geminiFreq}/{aiExposureData.geminiSampleSize}회)
                     </span>
                   </span>
@@ -378,7 +378,7 @@ export default function DualTrackCard({
               </div>
             )}
           </div>
-          <p className="text-xs text-gray-500 mt-2.5 leading-relaxed">
+          <p className="text-sm text-gray-500 mt-2.5 leading-relaxed">
             ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있음
           </p>
         </div>

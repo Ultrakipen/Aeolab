@@ -175,7 +175,7 @@ function MyInquiryList() {
                 </span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-xs text-gray-400">
+                <span className="text-sm text-gray-400">
                   {new Date(item.created_at).toLocaleDateString("ko-KR")}
                 </span>
                 {isOpen ? (
@@ -188,13 +188,13 @@ function MyInquiryList() {
             {isOpen && (
               <div className="bg-gray-50 border-t border-gray-100">
                 <div className="p-4 border-b border-gray-100">
-                  <p className="text-xs text-gray-400 mb-1">문의 내용</p>
+                  <p className="text-sm text-gray-400 mb-1">문의 내용</p>
                   <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                     {item.content}
                   </p>
                 </div>
                 <div className="p-4">
-                  <p className="text-xs text-gray-400 mb-1">
+                  <p className="text-sm text-gray-400 mb-1">
                     {item.status === "answered" && item.answered_at
                       ? `답변 (${new Date(item.answered_at).toLocaleDateString("ko-KR")})`
                       : "답변"}

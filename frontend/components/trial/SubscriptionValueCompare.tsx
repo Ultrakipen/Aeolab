@@ -51,7 +51,7 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
         <div className="bg-white rounded-xl border-2 border-red-200 p-4 md:p-5">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <p className="text-base md:text-lg font-bold text-gray-700">지금 받은 결과</p>
-            <span className="text-xs md:text-sm font-bold text-red-700 bg-red-100 border border-red-200 px-2.5 py-1 rounded-full">
+            <span className="text-sm font-bold text-red-700 bg-red-100 border border-red-200 px-2.5 py-1 rounded-full">
               체험 = 1회
             </span>
           </div>
@@ -75,12 +75,12 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
 
         {/* 우측 — 구독은 매주 */}
         <div className="bg-white rounded-xl border-2 border-emerald-300 p-4 md:p-5 shadow-md relative">
-          <div className="absolute -top-2 -right-2 bg-emerald-500 text-white text-xs md:text-sm font-bold px-2.5 py-1 rounded-full shadow-md">
+          <div className="absolute -top-2 -right-2 bg-emerald-500 text-white text-sm font-bold px-2.5 py-1 rounded-full shadow-md">
             추천
           </div>
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <p className="text-base md:text-lg font-bold text-gray-900">구독 후 받는 것</p>
-            <span className="text-xs md:text-sm font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-full">
+            <span className="text-sm font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-full">
               구독 = 매주
             </span>
           </div>
@@ -109,7 +109,7 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
           className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-black text-lg md:text-xl py-4 md:py-5 rounded-2xl transition-colors shadow-lg"
         >
           Basic 플랜 — 첫 달 <span className="text-emerald-300">{FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원</span> 시작하기
-          <span className="block text-xs md:text-sm font-medium text-blue-200 mt-1">
+          <span className="block text-sm font-medium text-blue-200 mt-1">
             이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지 · 7일간 자동 추적 시작
           </span>
         </Link>

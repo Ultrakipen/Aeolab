@@ -124,7 +124,7 @@ export default function ChatGPTDiffCard({
             </li>
           )}
         </ul>
-        <p className="mt-2 text-xs text-indigo-400">
+        <p className="mt-2 text-sm text-indigo-400">
           ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다
         </p>
       </div>

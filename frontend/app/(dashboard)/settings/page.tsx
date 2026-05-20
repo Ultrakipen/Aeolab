@@ -5,6 +5,7 @@ import { Crown, Zap, Users, Key, ChevronRight, Calendar, Clock } from "lucide-re
 import { SettingsClient } from "./SettingsClient";
 import { BusinessManager } from "./BusinessManager";
 import { AccountClient } from "./AccountClient";
+import { PLAN_PRICES } from "@/lib/plans";
 
 const PLAN_META: Record<string, { name: string; color: string; gradient: string; badge: string }> = {
   free:       { name: "무료 플랜",      color: "text-gray-600",    gradient: "from-gray-400 to-slate-500",    badge: "bg-gray-100 text-gray-600" },
@@ -15,8 +16,11 @@ const PLAN_META: Record<string, { name: string; color: string; gradient: string;
 };
 
 const PLAN_PRICE: Record<string, string> = {
-  free: "무료", basic: "월 9,900원", startup: "월 12,900원",
-  pro: "월 18,900원", biz: "월 49,900원",
+  free: "무료",
+  basic: `월 ${PLAN_PRICES.basic.toLocaleString()}원`,
+  startup: `월 ${PLAN_PRICES.startup.toLocaleString()}원`,
+  pro: `월 ${PLAN_PRICES.pro.toLocaleString()}원`,
+  biz: `월 ${PLAN_PRICES.biz.toLocaleString()}원`,
 };
 
 const STATUS_META: Record<string, { label: string; color: string; dot: string }> = {

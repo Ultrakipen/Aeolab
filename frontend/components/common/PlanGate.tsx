@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Lock } from 'lucide-react'
+import { PLAN_PRICES } from '@/lib/plans'
 
 const PLAN_HIERARCHY: Record<string, number> = {
   free: 0,
@@ -13,10 +14,10 @@ const PLAN_HIERARCHY: Record<string, number> = {
 }
 
 const PLAN_PRICE: Record<string, string> = {
-  basic: '월 9,900원',
-  startup: '월 12,900원',
-  pro: '월 18,900원',
-  biz: '월 49,900원',
+  basic: `월 ${PLAN_PRICES.basic.toLocaleString()}원`,
+  startup: `월 ${PLAN_PRICES.startup.toLocaleString()}원`,
+  pro: `월 ${PLAN_PRICES.pro.toLocaleString()}원`,
+  biz: `월 ${PLAN_PRICES.biz.toLocaleString()}원`,
 }
 
 // 기능별 구체적 손실 표현 메시지 매핑
@@ -37,7 +38,7 @@ const FEATURE_LOSS_MESSAGES: Record<string, string> = {
   '경쟁사 키워드 모니터링': '경쟁사 키워드 변화 알림은 Basic부터 — 매일 자동 추적 + 카카오 알림',
   'AI 인용 현황':           'ChatGPT·Gemini 실제 인용 문장은 Basic부터 — 이번 달부터 잠금 해제',
   '행동·점수 타임라인':     '행동-결과 타임라인은 Basic부터 — 무엇이 점수를 올렸는지 한눈에',
-  '블로그 AI 진단':         '블로그 AI 진단은 Basic부터 — D.I.A. 5요소 자동 채점',
+  '블로그 AI 진단':         '블로그 AI 진단은 Basic부터 — 네이버 고품질 콘텐츠 기준 5요소 자동 채점',
   'ChatGPT 광고 대응 가이드': 'ChatGPT 광고 영역 대응 가이드는 Pro부터 — 2026 Q2 광고화 대비',
   '창업 시장 분석':         '창업 시장 분석은 Startup 패키지 — 업종 트렌드·창업 타이밍 지수',
 }

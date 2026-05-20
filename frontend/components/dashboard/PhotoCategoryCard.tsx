@@ -143,7 +143,7 @@ export default function PhotoCategoryCard({
                 })}
               </div>
 
-              <p className="mt-3 text-xs text-gray-500 leading-snug">
+              <p className="mt-3 text-sm text-gray-500 leading-snug">
                 측정 시점·기기·로그인 상태에 따라 달라질 수 있음. 스마트플레이스 관리자에서 직접 확인을 권장합니다.
               </p>
             </>

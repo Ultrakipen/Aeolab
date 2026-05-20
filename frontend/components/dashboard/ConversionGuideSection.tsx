@@ -117,7 +117,7 @@ function TipCard({ tip }: { tip: ConversionTip }) {
       {/* 등록 위치 안내 (action_steps가 있을 때) */}
       {tip.action_steps && tip.action_steps.length > 0 && (
         <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-3">
-          <p className="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">
+          <p className="text-sm font-semibold text-blue-700 mb-2 uppercase tracking-wide">
             어디서 하나요?
           </p>
           <ol className="space-y-1">

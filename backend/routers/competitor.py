@@ -354,7 +354,8 @@ async def _search_naver(query: str, region: str) -> list[dict]:
                         results.append(item)
             if len(results) >= 25:
                 break
-    except Exception:
+    except Exception as e:
+        _logger.warning("competitor search failed: %s", e)
         results = []
 
     return results
@@ -569,7 +570,8 @@ async def add_competitor(req: CompetitorCreate, user=Depends(get_current_user)):
             # 방금 등록한 경쟁사 포함 개수 — 기존 개수 기반 지연 (최신 등록자일수록 더 늦게)
             existing_count = max(0, (comp_count_res.count or 1) - 1)
             delay_sec = existing_count * 5  # 기존 0개→0초, 1개→5초, 2개→10초
-        except Exception:
+        except Exception as e:
+            _logger.warning("competitor count query failed, delay=0: %s", e)
             delay_sec = 0
 
         async def _delayed_scan(comp_id: str, comp_name: str, biz_id: str, sb, delay: float):

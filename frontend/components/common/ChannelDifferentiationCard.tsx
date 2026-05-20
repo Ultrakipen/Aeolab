@@ -170,8 +170,8 @@ export default function ChannelDifferentiationCard({
           title="네이버 AI 브리핑"
           badge={briefingBadgeText}
           badgeVariant={briefingBadge}
-          description="네이버 검색 상단에 자동 노출되는 AI 추천 목록. restaurant·cafe·bakery·bar·accommodation 업종 대상 (프랜차이즈 제외)."
-          disclaimer="노출은 보장되지 않으며 네이버 알고리즘 기준으로 결정됩니다."
+          description="검색 결과 상단 AI 자동 추천. 음식점·카페·숙박 등 대상 (프랜차이즈 제외)"
+          disclaimer="노출 보장 없음 · 네이버 알고리즘 기준"
           highlight={group === "ACTIVE"}
           compact={isCompact}
         />
@@ -182,8 +182,8 @@ export default function ChannelDifferentiationCard({
           title="네이버 AI 탭"
           badge="참여 가능"
           badgeVariant="all"
-          description="2026-04-27 베타 오픈. 모든 업종, 프랜차이즈 포함 노출 가능. 콘텐츠 최적화로 노출 기회를 높일 수 있습니다."
-          disclaimer="베타 서비스로 업종 확대 진행 중. 노출은 콘텐츠 품질에 따라 다릅니다."
+          description="검색 'AI' 탭. 업종 제한 없이 모두 노출 가능 (2026 베타)"
+          disclaimer="베타 · 확대 진행 중 · 콘텐츠 품질에 따라 다름"
           highlight={group !== "ACTIVE"}
           compact={isCompact}
         />
@@ -194,8 +194,8 @@ export default function ChannelDifferentiationCard({
           title="ChatGPT·Gemini·Google AI"
           badge="측정 중"
           badgeVariant="all"
-          description="모든 업종, 모든 사업장 대상. Gemini 50회 + ChatGPT 50회 병렬 측정으로 글로벌 AI 노출을 수치화합니다."
-          disclaimer="AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다."
+          description="ChatGPT·Gemini에 가게가 언급되는지 자동 측정. 네이버 검색과 별개의 채널"
+          disclaimer="ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다"
           highlight={true}
           compact={isCompact}
         />

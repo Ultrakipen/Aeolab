@@ -22,7 +22,7 @@ interface Props {
  * 사용자 노출 화면 전체에서 두 개념이 혼재되어 있어 발생하는 오해를 방지하기 위해
  * 대시보드 상단에 명확한 비교 표를 노출.
  *
- * - AI 브리핑: 업종 제한 있음 (음식점·카페 등), 프랜차이즈 제외, 2025.08 정식
+ * - AI 브리핑: 업종 제한 있음 (음식점·카페 등), 프랜차이즈 제외, 2025.03 정식
  * - AI탭: 모든 업종 가능, 2026-04-27 베타, 상반기 전체 확대 예정
  *
  * 자기 업종 기준으로 "현재 대상" 배지를 자동 표시.
@@ -97,11 +97,11 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             <ul className="space-y-1 text-sm text-slate-700 leading-snug">
               <li>• 음식점·카페·베이커리·바·숙박 (+ 확대 중)</li>
               <li>• 프랜차이즈 가맹점 제외 (네이버 공식)</li>
-              <li>• 핵심: C-rank·D.I.A., 리뷰 10건+, 소식·소개글</li>
-              <li>• 2025.08 정식 출시</li>
+              <li>• 핵심: 네이버 품질 기준, 리뷰 확보(권장), 소식·소개글</li>
+              <li>• 2025.03 정식 출시 (외식 중심)</li>
             </ul>
             {isFranchise && (
-              <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+              <p className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
                 프랜차이즈 가맹점은 현재 AI 브리핑 제공 대상에서 제외 (추후 확대 예정)
               </p>
             )}
@@ -109,7 +109,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             {NAVER_AD_IN_BRIEFING_ACTIVE && latestAdOnly === true && (
               <div className="mt-2 flex items-start gap-1.5 rounded px-2 py-1.5 bg-orange-50 border border-orange-200">
                 <span className="text-orange-500 text-sm shrink-0">⚠️</span>
-                <p className="text-xs text-orange-800 leading-snug break-keep">
+                <p className="text-sm text-orange-800 leading-snug break-keep">
                   최근 스캔 결과 <strong>광고 영역</strong>에서 노출됨 — 유기 점수에 미반영. 자연 노출 강화가 필요합니다.
                 </p>
               </div>
@@ -140,7 +140,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             <ul className="space-y-1 text-sm text-slate-700 leading-snug">
               <li>• <strong>모든 업종 가능</strong> (프랜차이즈 포함)</li>
               <li>• 네이버플러스 구독자 우선 베타</li>
-              <li>• 핵심: 소개글 200자·사진 10장·예약 연동·블로그 UGC</li>
+              <li>• 핵심: 소개글 200자·사진 10장·예약 연동·블로그 후기</li>
               <li>• 2026-04-27 베타 → 상반기 전체 확대 예정</li>
             </ul>
           </div>
@@ -161,7 +161,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
           </Link>
         </div>
 
-        <p className="mt-3 text-xs text-gray-500 leading-snug break-keep">
+        <p className="mt-3 text-sm text-gray-500 leading-snug break-keep">
           AI 브리핑·AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
         </p>
       </div>

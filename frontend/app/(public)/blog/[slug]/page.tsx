@@ -158,10 +158,10 @@ export default async function BlogPostPage({
             >
               {post.category}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-sm text-gray-400">
               {formatDate(post.publishedAt)}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-sm text-gray-400">
               읽기 {post.readTime}분
             </span>
           </div>
@@ -193,7 +193,7 @@ export default async function BlogPostPage({
           >
             내 가게 AI 노출 확인하기
           </Link>
-          <p className="text-xs text-blue-200 mt-3">
+          <p className="text-sm text-blue-200 mt-3">
             가입 없이 · 카드 없이 · 30초
           </p>
         </div>
@@ -222,7 +222,7 @@ export default async function BlogPostPage({
                     <p className="text-sm font-semibold text-gray-800 break-keep group-hover:text-blue-700 transition-colors line-clamp-2 mb-1">
                       {r.title}
                     </p>
-                    <p className="text-xs text-gray-400">읽기 {r.readTime}분</p>
+                    <p className="text-sm text-gray-400">읽기 {r.readTime}분</p>
                   </Link>
                 );
               })}

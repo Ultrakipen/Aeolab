@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { CATEGORY_GROUPS } from "@/lib/categories";
+import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import BusinessSearchDropdown from "@/components/dashboard/BusinessSearchDropdown";
 import { mapNaverCategory as mapKakaoCategory } from "@/lib/categories";
 import type { BusinessSearchResult } from "@/types";
@@ -359,7 +360,7 @@ export default function OnboardingPage() {
               <span className="absolute -top-3 left-3 bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full">가장 인기</span>
               <div className="text-base font-bold text-gray-900 mb-1 mt-1">Basic</div>
               <div className="text-2xl font-extrabold text-blue-600 mb-0.5">
-                9,900원<span className="text-sm font-normal text-gray-400">/월</span>
+                {PLAN_PRICES.basic.toLocaleString()}원<span className="text-sm font-normal text-gray-400">/월</span>
               </div>
               <p className="text-sm font-semibold text-orange-500 mb-2">첫 달 4,950원 (50% 할인)</p>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
@@ -379,7 +380,7 @@ export default function OnboardingPage() {
             <div className="border border-gray-200 rounded-xl p-4">
               <div className="text-base font-bold text-gray-900 mb-1">Pro</div>
               <div className="text-2xl font-extrabold text-indigo-600 mb-2">
-                18,900원<span className="text-sm font-normal text-gray-400">/월</span>
+                {PLAN_PRICES.pro.toLocaleString()}원<span className="text-sm font-normal text-gray-400">/월</span>
               </div>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-indigo-400 shrink-0" />경쟁사 10곳 비교</li>
@@ -398,7 +399,7 @@ export default function OnboardingPage() {
             <div className="border border-gray-200 rounded-xl p-4">
               <div className="text-base font-bold text-gray-900 mb-1">Biz</div>
               <div className="text-2xl font-extrabold text-emerald-600 mb-2">
-                49,900원<span className="text-sm font-normal text-gray-400">/월</span>
+                {PLAN_PRICES.biz.toLocaleString()}원<span className="text-sm font-normal text-gray-400">/월</span>
               </div>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 shrink-0" />사업장 5개 관리</li>
@@ -477,7 +478,7 @@ export default function OnboardingPage() {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   가게 검색
-                  <span className="text-blue-600 font-semibold ml-1 text-xs bg-blue-50 px-2 py-0.5 rounded-full">카카오맵 + 네이버 동시 검색</span>
+                  <span className="text-blue-600 font-semibold ml-1 text-sm bg-blue-50 px-2 py-0.5 rounded-full">카카오맵 + 네이버 동시 검색</span>
                 </label>
                 <p className="text-sm text-gray-500 mb-2 leading-relaxed">
                   지역과 가게 이름을 입력하면 <strong>카카오맵·네이버</strong>에서 동시에 검색하여 이름·주소·업종을 자동으로 채워줍니다. 네이버 스마트플레이스 ID는 아래 안내를 참고해 직접 입력해 주세요.

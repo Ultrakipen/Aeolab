@@ -218,7 +218,7 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
               </ResponsiveContainer>
             </div>
 
-            <p className="mt-3 text-xs text-gray-500 leading-snug">
+            <p className="mt-3 text-sm text-gray-500 leading-snug">
               측정 시점·기기·로그인 상태에 따라 달라질 수 있음. 리뷰 키워드 분류는 AI 분석 기반 추정치입니다.
             </p>
           </>

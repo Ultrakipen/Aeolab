@@ -14,14 +14,15 @@
  *   창업패키지 12,900원/월  ← 특수 목적 플랜 (마지막 배치)
  *
  * 기능 한도 (plan_gate.py PLAN_LIMITS 기준):
- *   경쟁사:      Basic 3 / 창업 5 / Pro 5 / Biz 무제한
- *   가이드/월:   Basic 3 / 창업 5 / Pro 10 / Biz 20
- *   리뷰답변/월: Basic 20회 / 창업 무제한 / Pro 무제한 / Biz 무제한
- *   히스토리:    Basic 60일 / 창업·Pro 90일 / Biz 무제한
- *   CSV:         Basic·창업·Pro·Biz (전 플랜 포함)
- *   PDF:         Pro·Biz (Basic·창업 제외)
- *   광고대응:    Pro·Biz
- *   창업분석:    창업·Biz
+ *   경쟁사:         Basic 3 / 창업 5 / Pro 5 / Biz 무제한
+ *   가이드/월:      Basic 3 / 창업 5 / Pro 10 / Biz 20
+ *   리뷰답변/월:    Basic 20회 / 창업 무제한 / Pro 무제한 / Biz 무제한
+ *   소개글+FAQ/월:  Basic 5건 / 창업 20건 / Pro 30건 / Biz 60건  ← 남용 방지, DEV_MODE=true 시 우회
+ *   히스토리:       Basic 60일 / 창업·Pro 90일 / Biz 무제한
+ *   CSV:            Basic·창업·Pro·Biz (전 플랜 포함)
+ *   PDF:            Pro·Biz (Basic·창업 제외)
+ *   광고대응:       Pro·Biz
+ *   창업분석:       창업·Biz
  *
  * v3.5 변경 요약 (2026-04-22):
  *   - 가격: Basic 9,900 / Pro 18,900 / Biz 49,900 / 창업 12,900

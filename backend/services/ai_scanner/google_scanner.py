@@ -52,7 +52,8 @@ class GoogleAIOverviewScanner:
                                 lines = [l for l in text.split("\n") if target in l]
                                 excerpt = lines[0][:100] if lines else ""
                             break
-                    except Exception:
+                    except Exception as _e:
+                        logger.debug(f"[google_scanner] ai_overview selector failed — {_e}")
                         continue
 
                 # 일반 검색 결과에서 순위 파악
@@ -64,8 +65,8 @@ class GoogleAIOverviewScanner:
                             mentioned = True
                             rank = i + 1
                             break
-                except Exception:
-                    pass
+                except Exception as _e:
+                    logger.warning(f"[google_scanner] h3 ranking check failed — {_e}")
 
             except Exception as e:
                 logger.warning(f"GoogleAIOverviewScanner error: {e}")

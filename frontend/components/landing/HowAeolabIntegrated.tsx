@@ -112,7 +112,7 @@ export function HowAeolabIntegrated() {
           className="text-sm font-bold uppercase tracking-wider mb-2"
           style={{ color: "#2563EB" }}
         >
-          Track 1 · 네이버
+          네이버 채널 점수
         </p>
         <p
           className="text-3xl font-black mb-0.5"
@@ -139,7 +139,7 @@ export function HowAeolabIntegrated() {
           className="text-sm font-bold uppercase tracking-wider mb-2"
           style={{ color: "#7C3AED" }}
         >
-          Track 2 · 글로벌 AI
+          글로벌 AI 점수
         </p>
         <p
           className="text-3xl font-black mb-0.5"

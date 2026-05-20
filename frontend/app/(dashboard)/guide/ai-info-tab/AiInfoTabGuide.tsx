@@ -163,7 +163,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 flex-shrink-0 font-bold">①</span>
                   <span><strong>소개글 200자 이상</strong> + 자주 묻는 질문 3~5개 Q&amp;A 형식 포함
-                    <span className="ml-1 text-indigo-400">(AI탭은 Q&amp;A 구조를 우선 인용)</span>
+                    <span className="ml-1 text-indigo-400">(Q&amp;A 구조가 AI탭 인용 가능성 높음 — 실측 기반 권장)</span>
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -201,7 +201,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                           href="https://partner.naver.com/"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="ml-2 text-xs text-indigo-700 underline hover:text-indigo-900"
+                          className="ml-2 text-sm text-indigo-700 underline hover:text-indigo-900"
                         >
                           지금 설정하기 →
                         </a>
@@ -218,7 +218,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                   <span><strong>영업시간·가격·서비스 항목</strong> 완성</span>
                 </li>
               </ul>
-              <p className="mt-3 text-xs text-indigo-600">
+              <p className="mt-3 text-sm text-indigo-600">
                 * AI탭은 베타 서비스 중이며 실제 노출 여부는 확인하기 어렵습니다. 전체 확대 후 측정 기능이 추가됩니다.
               </p>
             </div>
@@ -326,7 +326,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                     소개글에 Q&amp;A 형식 포함
                   </p>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    AI탭은 Q&amp;A 콘텐츠를 우선 인용합니다. 자주 묻는 질문 3~5개를 소개글 안에 넣으세요.
+                    Q&amp;A 콘텐츠가 AI탭 인용 가능성이 높습니다 (실측 기반 권장값, 알고리즘 미공개). 자주 묻는 질문 3~5개를 소개글 안에 넣으세요.
                   </p>
                 </div>
               </li>
@@ -597,10 +597,10 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
       {/* ── §3.8 C-rank 4요소 체크리스트 카드 ────────────────────── */}
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 md:p-6">
         <h3 className="text-base md:text-lg font-bold text-gray-900 mb-1 break-keep">
-          C-rank 영향 요소 4가지
+          네이버 콘텐츠 품질 영향 요소 4가지
         </h3>
         <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed break-keep">
-          네이버 블로그·콘텐츠 노출에 영향을 주는 C-rank 요소입니다. 각 항목을 콘텐츠 작성 시 체크해보세요.
+          네이버 블로그·콘텐츠 노출에 영향을 주는 품질 요소입니다. 각 항목을 콘텐츠 작성 시 체크해보세요.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
           {CRANK_ITEMS.map((item) => (
@@ -641,7 +641,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           ))}
         </div>
         <p className="text-sm text-gray-400 leading-relaxed break-keep">
-          C-rank 점수는 네이버 비공개 알고리즘이며, 위 항목은 영향 요소 추정입니다.
+          네이버 콘텐츠 품질 점수는 비공개 알고리즘이며, 위 항목은 영향 요소 추정입니다.
         </p>
       </div>
 
@@ -661,14 +661,14 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             <h3 className={`text-base md:text-lg font-bold mb-0.5 break-keep ${
               blogMentionCount === 0 ? "text-rose-900" : "text-green-900"
             }`}>
-              블로그 UGC (사용자 생성 콘텐츠)
+              블로그·SNS 후기
             </h3>
             <p className={`text-sm md:text-base leading-relaxed break-keep ${
               blogMentionCount === 0 ? "text-rose-700" : "text-green-700"
             }`}>
               {blogMentionCount === 0
                 ? "아직 블로그 후기가 감지되지 않았습니다. AI 검색 노출에 블로그 언급은 핵심 신호입니다."
-                : `${blogMentionCount}건의 블로그 언급이 감지되었습니다. AI 탭은 UGC가 풍부한 플레이스를 우선 노출합니다.`}
+                : `${blogMentionCount}건의 블로그 언급이 감지되었습니다. AI 탭은 블로그·SNS 후기가 풍부한 플레이스를 우선 노출합니다.`}
             </p>
           </div>
         </div>
@@ -691,7 +691,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             목표: <strong>월 3건 이상</strong> 신규 블로그 후기 유지.
           </p>
         )}
-        <p className="text-xs text-gray-400 mt-3 leading-relaxed break-keep">
+        <p className="text-sm text-gray-400 mt-3 leading-relaxed break-keep">
           블로그 언급 수는 스캔 시점 기준이며, 측정 방식에 따라 실제와 차이가 있을 수 있습니다.
         </p>
       </div>

@@ -110,7 +110,7 @@ function FindingsCard({
   } else if (!hasFaq) {
     findings.push({ icon: "📝", positive: false,
       title: "소개글에 Q&A 섹션이 없습니다",
-      desc: "AI 브리핑은 소개글의 Q&A 텍스트를 직접 인용합니다. 3개만 추가해도 인용 확률이 높아집니다.",
+      desc: "소개글 Q&A 텍스트는 네이버 AI 브리핑이 참고하는 핵심 콘텐츠입니다. 3개 이상 작성하면 AI 인용 가능성이 높아집니다 (네이버 알고리즘 기준, 100% 보장 아님).",
     });
   } else if (!hasIntro) {
     findings.push({ icon: "✏️", positive: false,
@@ -281,13 +281,13 @@ function ScoreSummaryCard({
           )}
         </div>
         <div className="flex justify-between mt-1">
-          <span className="text-xs text-slate-400">0점</span>
+          <span className="text-sm text-slate-400">0점</span>
           {benchmarkAvg > 0 && (
-            <span className="text-xs text-slate-400">
+            <span className="text-sm text-slate-400">
               {categoryLabel} 평균 {benchmarkAvg}점{isEstimatedBenchmark ? " (추정)" : ""}
             </span>
           )}
-          <span className="text-xs text-slate-400">100점</span>
+          <span className="text-sm text-slate-400">100점</span>
         </div>
       </div>
 
@@ -311,7 +311,7 @@ function ScoreSummaryCard({
         )}
       </div>
 
-      <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+      <p className="text-sm text-slate-400 mt-3 leading-relaxed">
         AEOlab AI 가시성 점수 · ChatGPT·네이버 실측 기반 · 측정 시점·기기에 따라 ±5점 변동 가능
       </p>
     </div>
@@ -616,12 +616,13 @@ export default function TrialResultStep(props: TrialResultProps) {
           </div>
           <p className="text-sm text-amber-800 leading-relaxed mb-2 break-keep">
             {group === "franchise"
-              ? "네이버 본사 정책에 따라 프랜차이즈 가맹점은 AI 브리핑 노출이 제한됩니다. 대신 ChatGPT·Google AI 노출 최적화에 집중합니다."
-              : "ChatGPT·Gemini·Google AI 검색에서 먼저 찾히도록 최적화하는 것이 가장 효과적입니다."}
+              ? "네이버 본사 정책에 따라 프랜차이즈 가맹점은 AI 브리핑 노출이 제한됩니다. 단, 네이버 AI탭(모든 업종 베타)은 이용 가능합니다."
+              : "ChatGPT·Gemini·Google AI 노출 최적화에 집중합니다. 또한 네이버 AI탭(모든 업종 베타)도 이용 가능합니다."}
           </p>
           <div className="flex flex-wrap gap-2">
             {[
-              { label: "ChatGPT", desc: "OpenAI 학습 데이터 + Bing 검색 기반" },
+              { label: "네이버 AI탭", desc: "모든 업종 베타 대상" },
+              { label: "ChatGPT", desc: "OpenAI 학습 데이터 + Bing 검색" },
               { label: "Gemini", desc: "Google 검색 혼합" },
               { label: "Google AI", desc: "구글 SGE 인용" },
             ].map((ch) => (
@@ -1566,7 +1567,7 @@ function BriefingBadgeChip({
     return (
       <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-200 bg-white/20 border border-amber-300/60 rounded-full px-3 py-1">
         <Clock className="w-3.5 h-3.5 shrink-0" />
-        ChatGPT·Gemini + AI탭 확대 예정
+        ChatGPT·Gemini + AI 브리핑 확대 예정
       </span>
     );
   }
@@ -1768,7 +1769,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
       {/* AI탭 품질 향상 참고 사항 — 점수 미반영, advisory only */}
       {(check.has_reservation !== undefined || check.photo_count !== undefined) && (
         <div className="mt-3 border-t border-gray-100 pt-3">
-          <p className="text-xs text-gray-500 mb-2">AI탭 품질 향상 참고 사항 (점수 미반영)</p>
+          <p className="text-sm text-gray-500 mb-2">AI탭 품질 향상 참고 사항 (점수 미반영)</p>
           <div className="flex flex-col gap-2">
             {check.has_reservation !== undefined && (
               <div

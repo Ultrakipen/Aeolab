@@ -184,7 +184,7 @@ export default async function KeywordPage({
           >
             내 가게 AI 노출 확인하기
           </Link>
-          <p className="text-xs text-blue-200 mt-3">가입 없이 · 카드 없이 · 30초</p>
+          <p className="text-sm text-blue-200 mt-3">가입 없이 · 카드 없이 · 30초</p>
         </div>
 
         {/* 관련 페이지 */}
@@ -200,7 +200,7 @@ export default async function KeywordPage({
                   href={`/keywords/${r.slug}`}
                   className="block p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-sm transition-all"
                 >
-                  <span className="text-xs font-semibold text-blue-600 mb-1 block">
+                  <span className="text-sm font-semibold text-blue-600 mb-1 block">
                     {r.region} · {r.category}
                   </span>
                   <p className="text-sm font-semibold text-gray-800 break-keep line-clamp-2">

@@ -591,6 +591,28 @@ async def _generate_and_save(req: GuideRequest):
             "competitor_count": len(competitor_data or []),
         }
 
+        # D.I.A. 5요소 사후 검증 — 2026-05-19 P1 §5.3 (사용자 미반영, WARNING 로그용)
+        # 가이드 본문 품질이 90점 미만이면 로그 후 운영팀이 프롬프트 보완
+        try:
+            from services.content_validator import validate_intro_dia
+            guide_text = " ".join(
+                [action_plan.summary or ""] +
+                [item.get("title", "") + " " + item.get("description", "") for item in base_payload["items_json"]]
+            )
+            biz_keywords = biz.get("keywords") or []
+            dia = validate_intro_dia(guide_text, keywords=biz_keywords, lsi_keywords=biz_keywords)
+            tools_data["dia_score"] = dia.get("score")
+            if (dia.get("score") or 0) < 90:
+                _logger.warning(
+                    "[D.I.A. 검증] guide biz=%s score=%s diversity=%s information=%s timeliness=%s",
+                    req.business_id, dia.get("score"),
+                    dia.get("diversity", {}).get("score"),
+                    dia.get("information", {}).get("score"),
+                    dia.get("timeliness", {}).get("score"),
+                )
+        except Exception as dia_exc:
+            _logger.warning("guide_generator: D.I.A. 검증 실패 (%s)", dia_exc)
+
         try:
             await execute(
                 supabase.table("guides").insert({
@@ -627,7 +649,7 @@ async def generate_smartplace_faq(
     body(optional): {"keywords": ["키워드1", "키워드2"]}
     keywords 비어있으면 최신 스캔 결과에서 자동 추출
     """
-    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS, _DEV_MODE
     from services.guide_generator import generate_talktalk_faq
     from datetime import datetime, timezone
 
@@ -664,22 +686,24 @@ async def generate_smartplace_faq(
 
     biz = biz_row.data
 
-    # 월별 사용 횟수 체크
+    # 월별 사용 횟수 체크 — intro_draft + faq_draft 합산 (plan_gate faq_monthly 공유 한도)
+    # DEV_MODE=true 시 한도 검사 전체 우회
     now = datetime.now(timezone.utc)
-    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
-    used_res = await execute(
-        supabase.table("guides")
-        .select("id", count="exact")
-        .eq("business_id", biz_id)
-        .eq("context", "faq_draft")
-        .gte("generated_at", month_start)
-    )
-    used = used_res.count or 0
-    if used >= limit:
-        raise HTTPException(
-            status_code=429,
-            detail=f"이번 달 FAQ 초안 생성 한도({limit}회)에 도달했습니다",
+    if not _DEV_MODE:
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+        used_res = await execute(
+            supabase.table("guides")
+            .select("id", count="exact")
+            .eq("business_id", biz_id)
+            .in_("context", ["intro_draft", "faq_draft"])
+            .gte("generated_at", month_start)
         )
+        used = used_res.count or 0
+        if used >= limit:
+            raise HTTPException(
+                status_code=429,
+                detail=f"이번 달 소개글·FAQ 합산 한도({limit}회)에 도달했습니다",
+            )
 
     # 키워드 결정: 사용자 제공 키워드 우선, 없으면 최신 스캔에서 자동 추출
     if req.keywords:

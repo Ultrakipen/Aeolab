@@ -226,7 +226,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
               <span className="text-gray-600 font-medium">완성도</span>
               <div className="flex items-center gap-2">
                 {result.checkedAt && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-sm text-gray-400">
                     마지막 점검: {formatCheckedAt(result.checkedAt)}
                   </span>
                 )}

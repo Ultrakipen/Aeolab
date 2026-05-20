@@ -164,7 +164,7 @@ export default function KeywordsIndexPage() {
           >
             내 가게 무료 진단 시작
           </Link>
-          <p className="text-xs text-blue-200 mt-3">
+          <p className="text-sm text-blue-200 mt-3">
             가입 없이 · 카드 없이 · 30초
           </p>
         </div>

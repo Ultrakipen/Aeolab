@@ -262,7 +262,7 @@ export default function FactEvidenceSection({
               .slice(0, 2)
               .map((q, i) => (
                 <div key={i} className="mt-2 bg-white border border-blue-200 rounded-lg px-3 py-2">
-                  <p className="text-xs text-blue-600 font-semibold mb-0.5 truncate">
+                  <p className="text-sm text-blue-600 font-semibold mb-0.5 truncate">
                     질문: &ldquo;{q.query}&rdquo;
                   </p>
                   <p className="text-sm text-gray-700 leading-relaxed italic break-words">

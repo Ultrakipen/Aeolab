@@ -162,7 +162,7 @@ export default function IndustryRotator() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* ChatGPT 한계 */}
           <div className="bg-white/80 rounded-xl p-4 border border-amber-100">
-            <div className="text-xs font-semibold text-gray-500 mb-2">
+            <div className="text-sm font-semibold text-gray-500 mb-2">
               손님이 ChatGPT에 물어보면
             </div>
             <div className="bg-gray-50 rounded-lg px-3 py-2.5 mb-3 text-sm text-gray-700 font-medium border border-gray-100">
@@ -176,17 +176,17 @@ export default function IndustryRotator() {
 
           {/* AEOlab 해결 */}
           <div className="flex-1">
-            <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">AEOlab이라면</div>
+            <div className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">AEOlab이라면</div>
             <div className="space-y-2">
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
-                <div className="text-xs text-amber-700 font-semibold mb-1">ChatGPT 조언</div>
+                <div className="text-sm text-amber-700 font-semibold mb-1">ChatGPT 조언</div>
                 <div className="text-sm text-gray-600">{industry.chatgptAdvice}</div>
-                <div className="text-xs text-amber-600 mt-1">→ 맞는 말, 그런데 내 가게 상황은 모름</div>
+                <div className="text-sm text-amber-600 mt-1">→ 맞는 말, 그런데 내 가게 상황은 모름</div>
               </div>
               <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
-                <div className="text-xs text-blue-700 font-semibold mb-1">AEOlab 측정 결과</div>
+                <div className="text-sm text-blue-700 font-semibold mb-1">AEOlab 측정 결과</div>
                 <div className="text-sm font-semibold text-blue-800">{industry.aeolabAnswer}</div>
-                <div className="text-xs text-blue-600 mt-1">→ 지금 바로 붙여넣기 가능한 문구 제공</div>
+                <div className="text-sm text-blue-600 mt-1">→ 지금 바로 붙여넣기 가능한 문구 제공</div>
               </div>
             </div>
           </div>

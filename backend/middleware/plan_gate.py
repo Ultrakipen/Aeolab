@@ -23,7 +23,7 @@ ADMIN_EMAILS: set[str] = {
 #
 # auto_scan_mode:
 #   None     → 자동 스캔 없음 (free)
-#   "basic"  → Gemini(100회) + 네이버 매일 / 나머지 6개 AI 월요일만 (basic)
+#   "basic"  → Gemini 50회 + ChatGPT 50회 + 네이버 주 1회(월요일) 자동 스캔 (A안 50/50)
 #   "pro"    → 8개 AI 전체 스캔 주 3회(월·수·금) / 나머지 날 basic (pro)
 #   "full"   → 8개 AI 매일 (biz)
 #
@@ -75,7 +75,7 @@ PLAN_LIMITS = {
         "businesses": 2,
         "ad_defense": True,
         "review_reply_monthly": 999,
-        "faq_monthly": 999,
+        "faq_monthly": 30,  # 소개글+FAQ 합산 — 남용 방지. DEV_MODE=true 시 우회.
         "blog_monthly": 10,
     },
     "biz": {
@@ -89,7 +89,7 @@ PLAN_LIMITS = {
         "businesses": 5,
         "ad_defense": True,
         "review_reply_monthly": 999,
-        "faq_monthly": 999,
+        "faq_monthly": 60,  # 5사업장 합산 — 남용 방지. DEV_MODE=true 시 우회.
         "blog_monthly": 999,
     },
     "startup": {
@@ -104,7 +104,7 @@ PLAN_LIMITS = {
         "businesses": 1,
         "ad_defense": False,
         "review_reply_monthly": 999,
-        "faq_monthly": 999,
+        "faq_monthly": 20,  # 소개글+FAQ 합산 — 남용 방지. DEV_MODE=true 시 우회.
         "blog_monthly": 5,
     },
     "enterprise": {

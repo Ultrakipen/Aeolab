@@ -29,7 +29,6 @@ import ConversionGuideSection from "@/components/dashboard/ConversionGuideSectio
 import ProUpgradePreview from "@/components/dashboard/ProUpgradePreview";
 import { MultiBizTable } from "@/components/dashboard/MultiBizTable";
 import { CATEGORY_LABEL } from "@/lib/categories";
-import { getBriefingEligibility } from "@/lib/userGroup";
 import type { MissingItem } from "@/types/diagnosis";
 import type { WebsiteCheckResult } from "@/types";
 
@@ -326,9 +325,9 @@ export default function DashboardDetailZone({
           <GlobalAIBanner
             globalScore={track2Score}
             hasWebsite={!!business.website_url}
-            eligibility={getBriefingEligibility(business.category, isFranchise)}
+            eligibility={briefingEligibility}
           />
-          {getBriefingEligibility(business.category, isFranchise) === "inactive" && (
+          {briefingEligibility === "inactive" && (
             <GlobalAIChecklist
               hasWebsite={!!business.website_url}
               googlePlaceRegistered={!!business.google_place_id}

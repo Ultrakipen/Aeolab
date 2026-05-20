@@ -66,7 +66,7 @@ export default function OneLineConclusion({
         </span>
       </div>
 
-      <p className="text-xs md:text-sm text-gray-500 italic leading-relaxed break-keep border-t border-gray-200 pt-2 mt-1">
+      <p className="text-sm text-gray-500 italic leading-relaxed break-keep border-t border-gray-200 pt-2 mt-1">
         &lsquo;<strong className="not-italic text-gray-700">{analyzedKeyword}</strong>&rsquo; 키워드 기준 분석 · 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다
       </p>
     </section>

@@ -366,7 +366,7 @@ function V31SixItems({
               <WeightBadge pct={weights["blog_crank"]} color="text-purple-700 bg-purple-50 border-purple-200" />
               <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">(추정)</span>
             </div>
-            <p className="text-sm text-gray-500">블로그 발행 빈도·외부 인용·업체명 매칭으로 C-rank를 추정합니다</p>
+            <p className="text-sm text-gray-500">블로그 발행 빈도·외부 인용·업체명 매칭으로 콘텐츠 품질을 추정합니다</p>
           </div>
           <ScoreBadge value={blogItem?.score ?? 0} />
         </div>

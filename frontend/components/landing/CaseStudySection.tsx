@@ -191,15 +191,15 @@ function CaseCard({ data }: { data: CaseData }) {
           <div className="grid grid-cols-3 gap-2 mb-3">
             <div className="text-center">
               <p className="text-xl font-bold text-red-600">{data.before.exposure}%</p>
-              <p className="text-xs text-gray-500 mt-0.5 break-keep">AI 노출률</p>
+              <p className="text-sm text-gray-500 mt-0.5 break-keep">AI 노출률</p>
             </div>
             <div className="text-center border-x border-red-100">
               <p className="text-xl font-bold text-red-600">{data.before.score}점</p>
-              <p className="text-xs text-gray-500 mt-0.5">AEO 점수</p>
+              <p className="text-sm text-gray-500 mt-0.5">AEO 점수</p>
             </div>
             <div className="text-center">
               <p className="text-xl font-bold text-red-600">{data.before.gaps}개</p>
-              <p className="text-xs text-gray-500 mt-0.5 break-keep">키워드 공백</p>
+              <p className="text-sm text-gray-500 mt-0.5 break-keep">키워드 공백</p>
             </div>
           </div>
           <ScoreBar value={data.before.score} color="bg-red-400" />
@@ -261,15 +261,15 @@ function CaseCard({ data }: { data: CaseData }) {
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div className="text-center">
               <p className="text-2xl font-bold text-emerald-700">{data.after.exposure}%</p>
-              <p className="text-xs text-gray-500 mt-0.5 break-keep">AI 노출률</p>
-              <p className="text-xs text-emerald-600 font-semibold mt-0.5">
+              <p className="text-sm text-gray-500 mt-0.5 break-keep">AI 노출률</p>
+              <p className="text-sm text-emerald-600 font-semibold mt-0.5">
                 +{exposureDelta}%p 상승
               </p>
             </div>
             <div className="text-center border-l border-emerald-200">
               <p className="text-2xl font-bold text-emerald-700">{data.after.score}점</p>
-              <p className="text-xs text-gray-500 mt-0.5">AEO 점수</p>
-              <p className="text-xs text-emerald-600 font-semibold mt-0.5">
+              <p className="text-sm text-gray-500 mt-0.5">AEO 점수</p>
+              <p className="text-sm text-emerald-600 font-semibold mt-0.5">
                 +{scoreDelta}점 향상
               </p>
             </div>

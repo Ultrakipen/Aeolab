@@ -4683,7 +4683,8 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
         import json as _json
         try:
             sp_result_raw = _json.loads(sp_result_raw)
-        except Exception:
+        except Exception as e:
+            _logger.warning("sp_result_raw JSON parse failed: %s", e)
             sp_result_raw = {}
     photo_count = int(sp_result_raw.get("photo_count") or 0)
 
@@ -4871,7 +4872,8 @@ async def get_score_attribution(
             .single()
         )
         category = (biz_res.data or {}).get("category", "other")
-    except Exception:
+    except Exception as e:
+        _logger.warning("business category query failed biz_id=%s: %s", biz_id, e)
         category = "other"
 
     ratio = get_dual_track_ratio(category)

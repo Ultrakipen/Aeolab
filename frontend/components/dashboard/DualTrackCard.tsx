@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sprout, TrendingUp, Flame, Trophy, MapPin, Globe, Zap, Lightbulb, Info } from "lucide-react";
+import { Sprout, TrendingUp, Flame, Trophy, MapPin, Globe, Zap, Lightbulb, Info, Target } from "lucide-react";
 import Link from "next/link";
 import type { JSX } from "react";
 import { SCORE_LABELS } from "@/lib/score-labels";
@@ -266,6 +266,54 @@ function buildTrack2Tip(category: string, sp?: SmartPlaceStatus): string {
   return catMsg ? catMsg.track2Tip : "웹사이트에 AI 검색 최적화 코드 적용 + 글로벌 AI 노출 강화";
 }
 
+// 업종별 집중 채널 추천 — naverWeight + 현재 점수 갭 조합
+function FocusRecommendation({
+  naverWeight,
+  track1Score,
+  track2Score,
+}: {
+  naverWeight: number;
+  track1Score: number;
+  track2Score: number;
+}) {
+  const naverPct = Math.round(naverWeight * 100);
+  const globalPct = 100 - naverPct;
+
+  let msg: string;
+  if (naverWeight >= 0.6) {
+    if (track1Score < 50)
+      msg = `네이버 채널 집중 — 업종 비중 ${naverPct}%이고 현재 점수 개선 여지가 큽니다`;
+    else if (track1Score >= 70 && track2Score < 50)
+      msg = `글로벌 AI도 함께 — 네이버는 양호, ChatGPT·Gemini 노출을 지금 강화하세요`;
+    else
+      msg = `네이버 채널 우선, 글로벌 AI 병행 — 업종 비중 네이버 ${naverPct}% / 글로벌 ${globalPct}%`;
+  } else if (globalPct >= 60) {
+    if (track2Score < 50)
+      msg = `글로벌 AI 채널 집중 — 업종 비중 ${globalPct}%이고 ChatGPT·Gemini 개선이 핵심입니다`;
+    else if (track2Score >= 70 && track1Score < 50)
+      msg = `네이버도 함께 — 글로벌 AI는 양호, 네이버 검색 노출을 함께 강화하세요`;
+    else
+      msg = `글로벌 AI 채널 우선, 네이버 병행 — 업종 비중 글로벌 ${globalPct}% / 네이버 ${naverPct}%`;
+  } else {
+    if (track1Score < track2Score - 15)
+      msg = `네이버 먼저 — 두 채널 균등 비중이지만 현재 네이버 점수가 더 약합니다`;
+    else if (track2Score < track1Score - 15)
+      msg = `글로벌 AI 먼저 — 두 채널 균등이지만 현재 ChatGPT·Gemini 점수가 더 약합니다`;
+    else
+      msg = `두 채널 균등 강화 — 네이버 ${naverPct}% / 글로벌 ${globalPct}% 비중으로 함께 개선하세요`;
+  }
+
+  return (
+    <div className="flex items-start gap-2 rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2.5">
+      <Target className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-indigo-800 mb-0.5">지금 집중할 채널</p>
+        <p className="text-sm text-indigo-700 leading-snug">{msg}</p>
+      </div>
+    </div>
+  );
+}
+
 // 성장 단계 진행률 계산
 const STAGE_RANGES: Record<string, { min: number; max: number; next: string }> = {
   survival:  { min: 0,  max: 30,  next: "성장 중" },
@@ -505,6 +553,13 @@ export default function DualTrackCard({
         opportunityMsg="글로벌 AI에 아직 노출되지 않아 경쟁이 적습니다. 소개글 Q&A 추가로 시작하세요"
       />
 
+      {/* 집중 채널 추천 */}
+      <FocusRecommendation
+        naverWeight={naverWeight}
+        track1Score={track1Score}
+        track2Score={track2Score}
+      />
+
       {/* AI 도구별 노출 현황 (실측) */}
       {hasAiData && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 md:p-4">
@@ -543,7 +598,7 @@ export default function DualTrackCard({
               </div>
             )}
           </div>
-          <p className="text-xs text-gray-400 mt-2.5 leading-relaxed">
+          <p className="text-sm text-gray-400 mt-2.5 leading-relaxed">
             ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있음
           </p>
         </div>

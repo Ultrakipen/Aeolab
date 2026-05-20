@@ -126,7 +126,7 @@ export function GlobalAIChecklist({
         </p>
       )}
 
-      <p className="mt-3 text-xs text-gray-500 leading-relaxed">
+      <p className="mt-3 text-sm text-gray-500 leading-relaxed">
         ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
         측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다.
       </p>

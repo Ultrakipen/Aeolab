@@ -64,7 +64,7 @@ export function ScoreCard({ score, grade, exposureFreq, prevScore, scannedAt }: 
         <span className={`text-3xl font-bold ${GRADE_COLOR[grade] ?? 'text-gray-900'}`}>{grade}</span>
         <span className="text-sm text-gray-400">등급</span>
         {gradeInfo && (
-          <span className="text-xs text-gray-400 ml-auto">{showGradeDetail ? '▲' : '▼'} {gradeInfo.percentile}</span>
+          <span className="text-sm text-gray-400 ml-auto">{showGradeDetail ? '▲' : '▼'} {gradeInfo.percentile}</span>
         )}
       </button>
 

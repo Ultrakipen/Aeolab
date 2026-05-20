@@ -40,7 +40,7 @@ export default function SearchChangeSection() {
                 </div>
               ))}
             </div>
-            <p className="text-xs text-blue-600 font-semibold mt-4 break-keep">
+            <p className="text-sm text-blue-600 font-semibold mt-4 break-keep">
               → AI에 정보가 없으면 추천받을 수 없습니다
             </p>
           </div>
