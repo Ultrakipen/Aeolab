@@ -248,6 +248,14 @@ async def capture_ai_result(
                     timeout=30000,
                 )
                 await page.wait_for_timeout(3000)
+            elif platform == "naver_ai_tab":
+                import urllib.parse as _urlparse
+                _enc_q_ait = _urlparse.quote(query)
+                await page.goto(
+                    f"https://search.naver.com/search.naver?where=nexearch&query={_enc_q_ait}",
+                    timeout=30000,
+                )
+                await page.wait_for_timeout(3000)
             elif platform == "google":
                 # DataForSEO 실패 후 Playwright 폴백
                 await page.goto(
@@ -276,7 +284,7 @@ async def capture_ai_result(
                 _pil.crop((0, _cy0, _pw, _cy1)).save(_buf, format='PNG')
                 img_bytes = _buf.getvalue()
             else:
-                if platform == "naver_ai":
+                if platform in ("naver_ai", "naver_ai_tab"):
                     capture_height = 2500
                 else:
                     capture_height = 1200

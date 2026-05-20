@@ -2470,6 +2470,24 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             if place_stats_fresh.get("avg_rating"):
                 biz = {**biz, "avg_rating": place_stats_fresh["avg_rating"]}
 
+        # AI탭 스캔 (P2 — NAVER_AI_TAB_ENABLED=true 시 실행, 별도 세마포어 _AI_TAB_SEMAPHORE)
+        from services.ai_scanner import naver_ai_tab_scanner as _naver_ai_tab
+        _ai_tab_visible: "bool | None" = None
+        _ai_tab_excerpt: "str | None" = None
+        if _naver_ai_tab.NAVER_AI_TAB_ENABLED:
+            try:
+                _ai_tab_res = await _naver_ai_tab.scan_batch(_scan_queries[:2], req.business_name)
+                if _ai_tab_res:
+                    _ai_tab_visible = any(
+                        bool((r or {}).get("mentioned")) for r in _ai_tab_res.values()
+                    )
+                    _ai_tab_excerpt = next(
+                        ((r or {}).get("excerpt") for r in _ai_tab_res.values() if (r or {}).get("excerpt")),
+                        None,
+                    )
+            except Exception as _e_tab:
+                _logger.warning(f"naver_ai_tab scan_batch failed (full biz={req.business_id}): {_e_tab}")
+
         # naver_data: naver_visibility_multi 결과 + AI 브리핑 스캔 결과 병합
         naver_scanner_result_full = result.get("naver") or {}
         naver_data_full = {**(naver_visibility_full if isinstance(naver_visibility_full, dict) else {}), **naver_scanner_result_full}
@@ -2667,6 +2685,9 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "blog_keyword_coverage": float(_blog_json_full.get("keyword_coverage") or 0) or None,
                     "blog_platform": _blog_json_full.get("platform") or None,
                     "blog_top_recommendation": (_blog_json_full.get("top_recommendation") or "")[:500] or None,
+                    "naver_ai_tab_visible": _ai_tab_visible,
+                    "naver_ai_tab_excerpt": _ai_tab_excerpt or None,
+                    "naver_reservation_linked": (smart_place_check.get("has_reservation") if isinstance(smart_place_check, dict) else None),
                 }
             )
         )

@@ -1202,6 +1202,25 @@ async def after_screenshot_job():
                     else:
                         logger.info(f"naver_ai after screenshot skipped (INACTIVE): {biz.get('name')}")
 
+                    # AI탭 After 스크린샷 — 모든 업종 (P2 — NAVER_AI_TAB_ENABLED=true 시 실행)
+                    import os as _os_tab
+                    if _os_tab.getenv("NAVER_AI_TAB_ENABLED", "false").lower() == "true":
+                        try:
+                            for q in queries[:2]:
+                                ai_tab_url = await capture_ai_result("naver_ai_tab", q, biz["id"], f"after_{days}d_ai_tab")
+                                if ai_tab_url:
+                                    await _db(
+                                        supabase.table("before_after").insert({
+                                            "business_id": biz["id"],
+                                            "capture_type": f"after_{days}d_ai_tab",
+                                            "image_url": ai_tab_url,
+                                            "query_used": q,
+                                        })
+                                    )
+                                await asyncio.sleep(3)
+                        except Exception as e_tab:
+                            logger.warning(f"naver_ai_tab after screenshot failed for {biz.get('name')}: {e_tab}")
+
                     # Google After 스크린샷 제거
                     # 이유: 데이터센터 IP(iwinv) → Google CAPTCHA 100% 감지
                     # 재도입 기준: 구독자 50명 이후 DataForSEO Screenshot API 연동
