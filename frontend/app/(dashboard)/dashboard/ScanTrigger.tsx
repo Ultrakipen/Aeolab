@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { ScanProgress } from '@/components/scan/ScanProgress'
 import { useRouter } from 'next/navigation'
 import { getSafeSession } from '@/lib/supabase/client'
+import { getScanErrorInfo, SCAN_TIMEOUT_MESSAGE } from '@/lib/scanErrorMessages'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -88,24 +89,25 @@ export function ScanTrigger({
       }
       setScannedKeyword(kwToSend)
 
-      const prepRes = await fetch(prepUrl.toString(), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
+      let prepRes: Response
+      try {
+        prepRes = await fetch(prepUrl.toString(), {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+      } catch {
+        // 네트워크 오류
+        const info = getScanErrorInfo(0)
+        setError(info.message)
+        setLoading(false)
+        return
+      }
+
       if (!prepRes.ok) {
         const err = await prepRes.json().catch(() => ({}))
-        const code = err?.detail?.code
-        if (code === 'SCAN_IN_PROGRESS') {
-          setError('이미 스캔이 진행 중입니다. 잠시 후 다시 시도해주세요.')
-        } else if (code === 'SCAN_LIMIT' || code === 'SCAN_DAILY_LIMIT') {
-          setError('오늘 수동 스캔 횟수를 모두 사용했습니다.')
-        } else if (code === 'PLAN_REQUIRED') {
-          setError('무료 체험 스캔 1회를 이미 사용했습니다. 계속 이용하려면 Basic 플랜으로 업그레이드하세요.')
-        } else if (code === 'BIZ_NOT_FOUND') {
-          setError('사업장 정보를 찾을 수 없습니다. 페이지를 새로고침해주세요.')
-        } else {
-          setError('스캔을 시작할 수 없습니다. 잠시 후 다시 시도해주세요.')
-        }
+        const code = (err?.detail?.code as string) ?? ''
+        const info = getScanErrorInfo(prepRes.status, code)
+        setError(info.message)
         setLoading(false)
         return
       }
@@ -117,6 +119,19 @@ export function ScanTrigger({
       eventSourceRef.current = es
       setEventSource(es)
       setScanning(true)
+
+      // 60초 타임아웃: 응답 없으면 사용자 안내
+      const timeoutId = setTimeout(() => {
+        if (eventSourceRef.current) {
+          eventSourceRef.current.close()
+          eventSourceRef.current = null
+          setEventSource(null)
+          setScanning(false)
+          setError(SCAN_TIMEOUT_MESSAGE)
+        }
+      }, 60_000)
+      es.addEventListener('close', () => clearTimeout(timeoutId))
+      es.addEventListener('error', () => clearTimeout(timeoutId))
     } catch {
       setError('스캔 시작 중 오류가 발생했습니다.')
     } finally {
@@ -255,7 +270,28 @@ export function ScanTrigger({
         </div>
       )}
 
-      {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+      {error && (
+        <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm text-red-600 font-medium">{error}</p>
+          <div className="mt-2 flex flex-wrap gap-3">
+            {/* 재시도 버튼 — 타임아웃·네트워크·500 오류에서만 표시 */}
+            {!limitReached && !error.includes('업그레이드') && !error.includes('무료 체험') && (
+              <button
+                onClick={startScan}
+                className="text-sm font-semibold text-red-700 underline hover:text-red-900 transition-colors"
+              >
+                다시 시도
+              </button>
+            )}
+            <a
+              href="mailto:hello@aeolab.co.kr"
+              className="text-sm font-semibold text-gray-500 underline hover:text-gray-700 transition-colors"
+            >
+              문제 지속 시 문의하기
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

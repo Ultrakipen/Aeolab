@@ -6,9 +6,12 @@ interface ChannelScoreCardsProps {
   kakaoRank?: number | null
   kakaoCompetitorCount?: number
   naverMentioned?: boolean
+  aiTabMentioned?: boolean
   chatgptMentioned?: boolean
   hasWebsite?: boolean
   googlePlaceRegistered?: boolean
+  /** 업종 네이버 비중 (DUAL_TRACK_RATIO 기반). 0.55 초과 → 네이버 주력, 0.45 미만 → 글로벌 주력 */
+  naverWeight?: number
 }
 
 function ScoreRing({ score, color }: { score: number; color: string }) {
@@ -40,12 +43,17 @@ export function ChannelScoreCards({
   kakaoRank,
   kakaoCompetitorCount,
   naverMentioned,
+  aiTabMentioned,
   chatgptMentioned,
   hasWebsite,
   googlePlaceRegistered,
+  naverWeight,
 }: ChannelScoreCardsProps) {
   const naverGrade  = naverScore  >= 70 ? 'good'  : naverScore  >= 40 ? 'mid' : 'low'
   const globalGrade = globalScore >= 70 ? 'good'  : globalScore >= 40 ? 'mid' : 'low'
+
+  const isPrimaryNaver  = naverWeight !== undefined && naverWeight  > 0.55
+  const isPrimaryGlobal = naverWeight !== undefined && naverWeight  < 0.45
 
   const naverColor  = naverGrade  === 'good' ? '#22c55e' : naverGrade  === 'mid' ? '#f59e0b' : '#ef4444'
   const globalColor = globalGrade === 'good' ? '#22c55e' : globalGrade === 'mid' ? '#3b82f6' : '#ef4444'
@@ -54,9 +62,10 @@ export function ChannelScoreCards({
     ? `카카오맵 ${kakaoRank ? `${kakaoRank}위 노출` : '등록됨'}`
     : '카카오맵 등록 필요'
   const naverItems = [
-    { label: '네이버 AI 브리핑 노출', ok: !!naverMentioned },
-    { label: '스마트플레이스 등록',   ok: !!isSmartPlace },
-    { label: kakaoLabel,              ok: !!isOnKakao },
+    { label: '네이버 AI 브리핑 노출',              ok: !!naverMentioned },
+    { label: '네이버 AI탭 노출 (모든 업종 베타)', ok: !!aiTabMentioned },
+    { label: '스마트플레이스 등록',                ok: !!isSmartPlace },
+    { label: kakaoLabel,                           ok: !!isOnKakao },
   ]
   const globalItems = [
     { label: 'ChatGPT 노출',           ok: !!chatgptMentioned },
@@ -71,7 +80,7 @@ export function ChannelScoreCards({
         <div className="flex items-start gap-4">
           <ScoreRing score={naverScore} color={naverColor} />
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
               <span className="text-sm font-bold text-gray-900">네이버 AI 채널</span>
               <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${
                 naverGrade === 'good' ? 'bg-green-100 text-green-700'
@@ -80,9 +89,14 @@ export function ChannelScoreCards({
               }`}>
                 {naverGrade === 'good' ? '양호' : naverGrade === 'mid' ? '보통' : '개선 필요'}
               </span>
+              {isPrimaryNaver && (
+                <span className="text-sm px-2 py-0.5 rounded-full font-semibold bg-blue-600 text-white">
+                  ★ 이 업종 주력
+                </span>
+              )}
             </div>
             <p className="text-base text-gray-500 mb-3">
-              네이버 AI 브리핑 · 카카오맵 생태계 노출
+              네이버 AI 브리핑·AI탭·카카오맵 생태계 노출
             </p>
             <div className="space-y-1.5">
               {naverItems.map((item) => (
@@ -110,7 +124,7 @@ export function ChannelScoreCards({
         <div className="flex items-start gap-4">
           <ScoreRing score={globalScore} color={globalColor} />
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
               <span className="text-sm font-bold text-gray-900">글로벌 AI 채널</span>
               <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${
                 globalGrade === 'good' ? 'bg-green-100 text-green-700'
@@ -119,6 +133,11 @@ export function ChannelScoreCards({
               }`}>
                 {globalGrade === 'good' ? '양호' : globalGrade === 'mid' ? '보통' : '개선 필요'}
               </span>
+              {isPrimaryGlobal && (
+                <span className="text-sm px-2 py-0.5 rounded-full font-semibold bg-purple-600 text-white">
+                  ★ 이 업종 주력
+                </span>
+              )}
             </div>
             <p className="text-base text-gray-500 mb-3">
               ChatGPT · Google AI 인용

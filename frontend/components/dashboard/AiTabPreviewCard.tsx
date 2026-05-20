@@ -138,7 +138,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             </h2>
             {data?.eligibility === "likely" ? (
               <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-sm font-semibold">
-                확대 예정
+                AI 브리핑 확대 예정
               </span>
             ) : (
               <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-sm font-semibold">

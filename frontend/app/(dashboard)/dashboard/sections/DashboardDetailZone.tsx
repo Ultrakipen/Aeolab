@@ -29,6 +29,7 @@ import ConversionGuideSection from "@/components/dashboard/ConversionGuideSectio
 import ProUpgradePreview from "@/components/dashboard/ProUpgradePreview";
 import { MultiBizTable } from "@/components/dashboard/MultiBizTable";
 import { CATEGORY_LABEL } from "@/lib/categories";
+import { calcScoreVariation } from "@/lib/scoreVariation";
 import type { MissingItem } from "@/types/diagnosis";
 import type { WebsiteCheckResult } from "@/types";
 
@@ -301,6 +302,22 @@ export default function DashboardDetailZone({
             bizId={business.id}
             token={accessToken ?? undefined}
           />
+          {/* 점수 변동 폭 안내 — 실측 7일 이상 데이터 기반 (CLAUDE.md 원칙: 임의 수치 금지) */}
+          {(() => {
+            const variation = calcScoreVariation(history ?? []);
+            if (variation.hasData) {
+              return (
+                <p className="text-sm text-gray-400 mt-1 px-1">
+                  지난 30일 변동 폭: ±{Math.round((variation.range ?? 0) / 2)}점 (측정 조건 따라 자연 변동)
+                </p>
+              );
+            }
+            return (
+              <p className="text-sm text-gray-400 mt-1 px-1">
+                측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다 (실측 데이터 축적 후 변동 폭 표시)
+              </p>
+            );
+          })()}
           {Object.keys(allPlatformResults).length > 0 && (
             <ResultTable results={allPlatformResults} />
           )}
@@ -318,9 +335,11 @@ export default function DashboardDetailZone({
             isOnKakao={!!(kakaoResult as { is_on_kakao?: boolean } | null)?.is_on_kakao}
             kakaoRank={(kakaoResult as { my_rank?: number | null } | null)?.my_rank ?? null}
             naverMentioned={!!naverResult?.in_briefing}
+            aiTabMentioned={undefined}
             chatgptMentioned={!!chatgptResult?.mentioned}
             hasWebsite={!!business.website_url}
             googlePlaceRegistered={!!business.google_place_id}
+            naverWeight={naverWeight}
           />
           <GlobalAIBanner
             globalScore={track2Score}

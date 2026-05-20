@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { SidebarBusinessSwitcher } from "@/components/dashboard/SidebarBusinessSwitcher";
 import { SidebarSearchBox } from "@/components/dashboard/SidebarSearchBox";
+import { NotificationBell } from "@/components/dashboard/NotificationBell";
 
 // 메뉴 그룹 정의
 interface NavItem {
@@ -144,9 +145,12 @@ export function DashboardSidebar({
       <div className="flex flex-col h-full">
         {/* 상단 로고 + 플랜 */}
         <div className="px-6 py-5 border-b border-gray-100">
-          <Link href="/" className="text-xl font-bold text-blue-600" onClick={() => setOpen(false)}>
-            AEOlab
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-xl font-bold text-blue-600" onClick={() => setOpen(false)}>
+              AEOlab
+            </Link>
+            <NotificationBell />
+          </div>
           <div className="mt-1 flex items-center gap-1">
             <span className="text-sm bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">
               {PLAN_LABEL[planKey] ?? "무료"} 요금제

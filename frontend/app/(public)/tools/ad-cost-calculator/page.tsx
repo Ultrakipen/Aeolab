@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, TrendingDown, Calculator } from "lucide-react";
+import { PLAN_PRICES } from "@/lib/plans";
 
-const AEOLAB_MONTHLY = 9900;
+const AEOLAB_MONTHLY = PLAN_PRICES.basic;
 const AI_REPLACE_RATIO = 0.3; // 광고비의 30%를 AI 노출로 대체 가정
 
 export default function AdCostCalculatorPage() {

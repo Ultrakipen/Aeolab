@@ -172,8 +172,8 @@ async def _is_google_captcha(page) -> bool:
         try:
             if await page.query_selector(sel):
                 return True
-        except Exception:
-            pass
+        except Exception as _e:
+            _logger.debug("captcha selector check failed: sel=%s err=%s", sel, _e)
     return False
 
 

@@ -6,6 +6,9 @@ import { fetchBriefingCategories } from "@/lib/briefingCategoriesServer";
 import { getActiveBusinessId } from "@/lib/active-business";
 import type { WebsiteCheckResult } from "@/types";
 import DashboardHeader from "./sections/DashboardHeader";
+import FirstScanBanner from "@/components/onboarding/FirstScanBanner";
+import { MaintenanceBanner } from "@/components/dashboard/MaintenanceBanner";
+import { ContextTipBanner } from "@/components/dashboard/ContextTipBanner";
 import DashboardScoreZone from "./sections/DashboardScoreZone";
 import DashboardActionZone from "./sections/DashboardActionZone";
 import DashboardInsightZone from "./sections/DashboardInsightZone";
@@ -30,11 +33,12 @@ const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ rescan?: string; biz_id?: string }>;
+  searchParams: Promise<{ rescan?: string; biz_id?: string; onboarding?: string }>;
 }) {
   // ── 인증 ─────────────────────────────────────────────────────
   const params = await searchParams;
   const showRescanNotice = params.rescan === "1";
+  const isFromOnboarding = params.onboarding === "1";
   const selectedBizId = params.biz_id ?? null;
 
   const supabase = await createClient();
@@ -246,7 +250,7 @@ export default async function DashboardPage({
     briefingCats.active,
     briefingCats.likely,
   );
-  const aiTabEligibility: "beta" | "available" = "beta";
+  const aiTabEligibility = (process.env.NEXT_PUBLIC_AI_TAB_STATUS ?? "beta") as "beta" | "available";
   const isFranchise = !!v41Extra?.is_franchise;
 
   const briefingMeta = (latestScan?.briefing_meta as {
@@ -290,6 +294,7 @@ export default async function DashboardPage({
   // ── 렌더링 ───────────────────────────────────────────────────
   return (
     <div className="p-4 pb-24 md:p-8 md:pb-12 max-w-4xl mx-auto space-y-6 md:space-y-10">
+      <MaintenanceBanner />
       <DashboardHeader
         user={user}
         businesses={businesses ? businesses.map((b) => ({ ...b, naver_place_url: b.naver_place_url ?? undefined })) : null}
@@ -307,6 +312,15 @@ export default async function DashboardPage({
         lastQueryUsed={(latestScan?.query_used as string | undefined)}
         displayCity={displayCity}
       />
+
+      {isFromOnboarding && bizBase && (
+        <FirstScanBanner
+          businessId={bizBase.id}
+          businessName={bizBase.name}
+          plan={plan}
+          hasScanResult={!!latestScan}
+        />
+      )}
 
       {bizBase && (
         <>
@@ -326,6 +340,8 @@ export default async function DashboardPage({
             recentScoreGain={scoreChangeDiff !== null && scoreChangeDiff > 0 ? scoreChangeDiff : null}
             userCreatedAt={user.created_at ?? null}
           />
+
+          <ContextTipBanner section="score" industry={bizBase.category} />
 
           <DashboardActionZone
             bizId={bizBase.id}

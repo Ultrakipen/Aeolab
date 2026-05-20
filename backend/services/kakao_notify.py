@@ -4,6 +4,104 @@ import logging
 
 logger = logging.getLogger("aeolab")
 
+# ── 카카오 알림톡 실패 시 이메일 fallback (AEOLAB_SCORE_01 우선 적용) ─────────
+# 카카오 템플릿 코드 → 이메일 제목/본문 매핑
+# 본문 템플릿 변수: {user_name}, {score_before}, {score_after}, {biz_name}
+EMAIL_TEMPLATES: dict[str, dict] = {
+    "AEOLAB_SCORE_01": {
+        "subject": "[AEOlab] {biz_name} 점수 변화 알림",
+        "body_template": (
+            "<div style='font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1e293b;'>"
+            "<h2 style='color:#1d4ed8;margin-bottom:8px;'>{biz_name} AI 노출 점수 변화</h2>"
+            "<p style='font-size:16px;'>점수가 <strong>{score_before}점</strong> → "
+            "<strong style='color:#16a34a;'>{score_after}점</strong>으로 변동했습니다.</p>"
+            "<p style='font-size:13px;color:#64748b;'>자세한 내용은 대시보드에서 확인하세요.<br>"
+            "<a href='https://aeolab.co.kr/dashboard'>https://aeolab.co.kr/dashboard</a></p>"
+            "<hr style='border:none;border-top:1px solid #e2e8f0;margin:20px 0;'>"
+            "<p style='font-size:11px;color:#94a3b8;'>카카오 알림톡 발송 실패로 이메일로 대체 발송됩니다.<br>"
+            "AEOlab · hello@aeolab.co.kr</p>"
+            "</div>"
+        ),
+    },
+}
+
+
+async def _email_fallback(
+    user_id: str,
+    template_code: str,
+    payload: dict,
+) -> None:
+    """카카오 알림톡 발송 실패 시 이메일로 대체 발송.
+
+    현재 AEOLAB_SCORE_01 템플릿만 지원. 나머지 4종은 다음 스프린트.
+    실패 시 logger.warning만 남기고 호출자에 예외 전파하지 않음.
+    """
+    tmpl = EMAIL_TEMPLATES.get(template_code)
+    if not tmpl:
+        logger.debug("[email_fallback] template %s 미지원 — fallback 건너뜀", template_code)
+        return
+
+    # profiles 테이블에서 이메일 조회
+    try:
+        from db.supabase_client import get_client
+        supabase = get_client()
+        prof = supabase.table("profiles").select("email").eq("user_id", user_id).maybe_single().execute()
+        to_email = (prof.data or {}).get("email") if (prof and prof.data) else None
+        if not to_email:
+            # profiles.email 없으면 auth.users 조회 (supabase admin API)
+            try:
+                from db.supabase_client import get_service_client
+                service_sb = get_service_client()
+                user_info = service_sb.auth.admin.get_user_by_id(user_id)
+                to_email = (user_info.user.email if user_info and user_info.user else None)
+            except Exception as _auth_e:
+                logger.warning("[email_fallback] auth.users 이메일 조회 실패: %s", _auth_e)
+    except Exception as db_e:
+        logger.warning("[email_fallback] profiles 이메일 조회 실패: %s", db_e)
+        return
+
+    if not to_email:
+        logger.warning("[email_fallback] user_id=%s 이메일 없음 — fallback 불가", user_id)
+        return
+
+    # 이메일 제목·본문 렌더링
+    biz_name = payload.get("#{사업장명}", "")
+    score_before = payload.get("#{이전점수}", "")
+    score_after = payload.get("#{현재점수}", "")
+    subject = tmpl["subject"].format(biz_name=biz_name)
+    html_body = tmpl["body_template"].format(
+        biz_name=biz_name,
+        score_before=score_before,
+        score_after=score_after,
+        user_name=biz_name,
+    )
+
+    # 이메일 발송 (email_sender.send_email 사용)
+    try:
+        from services.email_sender import send_email, _mask_email
+        sent = await send_email(to=to_email, subject=subject, html=html_body)
+        if sent:
+            logger.info(
+                "[email_fallback] 발송 완료: to=%s template=%s",
+                _mask_email(to_email), template_code,
+            )
+            # notifications 테이블에 email_fallback 채널로 기록
+            try:
+                supabase.table("notifications").insert({
+                    "user_id": user_id,
+                    "type": "score_change",
+                    "content": {"template": template_code, **payload},
+                    "channel": "email_fallback",
+                    "status": "sent",
+                }).execute()
+            except Exception as log_e:
+                logger.debug("[email_fallback] notifications 기록 실패: %s", log_e)
+        else:
+            logger.warning("[email_fallback] 발송 실패: to=%s template=%s", _mask_email(to_email), template_code)
+    except Exception as send_e:
+        logger.warning("[email_fallback] send_email 예외: %s", send_e)
+
+
 TEMPLATES = {
     "score_change":         "AEOLAB_SCORE_01",
     "ai_citation":          "AEOLAB_CITE_01",
@@ -30,8 +128,10 @@ class KakaoNotifier:
         return self._BASE_TMPL.format(appkey=os.getenv("KAKAO_APP_KEY", ""))
 
     async def send_score_change(
-        self, phone: str, biz_name: str, prev: float, curr: float, prev_r: int, curr_r: int
+        self, phone: str, biz_name: str, prev: float, curr: float, prev_r: int, curr_r: int,
+        user_id: str | None = None,
     ):
+        """점수 변화 알림. user_id 전달 시 카카오 실패 → 이메일 fallback 자동 실행."""
         sign = "↑" if curr > prev else "↓"
         await self._send(
             phone,
@@ -44,6 +144,7 @@ class KakaoNotifier:
                 "#{이전순위}": str(prev_r),
                 "#{현재순위}": str(curr_r),
             },
+            user_id=user_id,
         )
 
     async def send_keyword_change(
@@ -512,14 +613,25 @@ class KakaoNotifier:
         finally:
             self._log_notification(None, "notice", {"phone": masked, "text": text[:200]}, status)
 
-    async def _send(self, phone: str, ttype: str, params: dict):
+    async def _send(self, phone: str, ttype: str, params: dict, user_id: str | None = None):
+        """알림톡 발송. AEOLAB_SCORE_01 실패 시 이메일 fallback 자동 실행.
+
+        Args:
+            user_id: 이메일 fallback에 필요한 사용자 ID (None이면 fallback 불가).
+        """
         app_key = os.getenv("KAKAO_APP_KEY", "")
         if not app_key:
             masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
             logger.warning(f"_send skipped: KAKAO_APP_KEY 미설정 ({masked}, ttype={ttype})")
             self._log_notification(None, ttype, {"phone": masked, **params}, "skipped")
+            # KAKAO_APP_KEY 미설정 시에도 score_change는 이메일 fallback 시도
+            if ttype == "score_change" and user_id:
+                template_code = TEMPLATES.get(ttype, "")
+                if template_code:
+                    await _email_fallback(user_id, template_code, params)
             return None
         status = "sent"
+        kakao_failed = False
         try:
             async with httpx.AsyncClient(timeout=10) as c:
                 r = await c.post(
@@ -535,14 +647,29 @@ class KakaoNotifier:
                 )
             if r.status_code >= 400:
                 status = "failed"
+                kakao_failed = True
                 logger.warning(f"Kakao _send failed {r.status_code} ({ttype}): {r.text[:200]}")
+                # AEOLAB_SCORE_01 발송 실패 시 이메일 fallback
+                if ttype == "score_change" and user_id:
+                    template_code = TEMPLATES.get(ttype, "")
+                    if template_code:
+                        await _email_fallback(user_id, template_code, params)
             else:
                 masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
                 logger.info(f"Kakao notify ({ttype}) -> {masked}")
             return r
         except Exception as e:
             status = "failed"
+            kakao_failed = True
             logger.warning(f"Kakao send failed ({ttype}): {e}")
+            # 예외 발생 시에도 score_change 이메일 fallback
+            if ttype == "score_change" and user_id:
+                try:
+                    template_code = TEMPLATES.get(ttype, "")
+                    if template_code:
+                        await _email_fallback(user_id, template_code, params)
+                except Exception as fb_e:
+                    logger.warning("[email_fallback] fallback 예외: %s", fb_e)
             raise
         finally:
             self._log_notification(None, ttype, {"phone": phone[:4] + "****", **params}, status)

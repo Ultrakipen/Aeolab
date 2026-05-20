@@ -67,13 +67,21 @@ async def get_score(biz_id: str, user=Depends(get_current_user)):
     if not row:
         raise HTTPException(status_code=404, detail="No scan results found")
 
-    # 블로그 분석 기여 여부 조회 (blog_url + blog_analyzed_at 존재 여부)
-    biz_blog_row = (await execute(
+    # 블로그 분석 기여 여부 + 사업장 업종·프랜차이즈 여부 조회
+    biz_meta_row = (await execute(
         supabase.table("businesses")
-        .select("blog_url, blog_analyzed_at, blog_post_count, blog_keyword_coverage")
+        .select("blog_url, blog_analyzed_at, blog_post_count, blog_keyword_coverage, category, is_franchise")
         .eq("id", biz_id)
         .single()
     )).data or {}
+    biz_blog_row = biz_meta_row  # 하위 호환 별칭
+
+    # AI 브리핑·AI탭 게이팅 (프론트 UI 분기용)
+    from services.score_engine import get_briefing_eligibility, get_ai_tab_eligibility
+    _category = biz_meta_row.get("category", "")
+    _is_franchise = bool(biz_meta_row.get("is_franchise", False))
+    briefing_eligibility = get_briefing_eligibility(_category, _is_franchise)
+    ai_tab_eligibility = get_ai_tab_eligibility(_category)
 
     r = row[0]
     total = float(r.get("total_score") or 0)
@@ -147,6 +155,9 @@ async def get_score(biz_id: str, user=Depends(get_current_user)):
         "track2_score":     r.get("track2_score"),
         "unified_score":    r.get("unified_score"),
         "keyword_coverage": r.get("keyword_coverage"),
+        # AI 브리핑·AI탭 분기용 (환경변수 AI_TAB_STATUS로 자동 반영)
+        "briefing_eligibility": briefing_eligibility,
+        "ai_tab_eligibility":   ai_tab_eligibility,
     }
 
 

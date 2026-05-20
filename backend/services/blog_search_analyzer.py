@@ -180,8 +180,8 @@ async def analyze_blog_search(
         if browser:
             try:
                 await browser.close()
-            except Exception:
-                pass
+            except Exception as _e:
+                _logger.warning("blog browser close failed: %s", _e)
 
     # is_mine / is_competitor 판별
     biz_tokens = _normalize_tokens(biz_name)

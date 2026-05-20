@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getSafeSession } from "@/lib/supabase/client";
 import DiaScoreBadge, { type DiaScore } from "./DiaScoreBadge";
+import { FeedbackPopup } from "./FeedbackPopup";
 
 interface Props {
   bizId: string;
@@ -36,6 +37,7 @@ export function IntroGeneratorCard({
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string>("");
   const [introType, setIntroType] = useState<IntroType>("naver");
+  const [feedbackTriggered, setFeedbackTriggered] = useState(false);
 
   const canGenerate = planMonthlyLimit > 0;
 
@@ -74,6 +76,7 @@ export function IntroGeneratorCard({
         keywords: data.keywords_included || [],
         dia_score: (data.dia_score as DiaScore | undefined) ?? null,
       });
+      setFeedbackTriggered(true);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
     } finally {
@@ -256,6 +259,8 @@ export function IntroGeneratorCard({
           </p>
         </div>
       )}
+
+      <FeedbackPopup eventType="guide_generated" trigger={feedbackTriggered} />
     </div>
   );
 }

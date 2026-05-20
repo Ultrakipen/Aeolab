@@ -324,7 +324,9 @@ export default function OnboardingPage() {
         .in("status", ["active", "grace_period"])
         .maybeSingle();
       if (sub) {
-        const dest = registeredBizId ? `/dashboard?biz_id=${registeredBizId}` : "/dashboard";
+        const dest = registeredBizId
+          ? `/dashboard?biz_id=${registeredBizId}&onboarding=1`
+          : "/dashboard?onboarding=1";
         router.push(dest);
         return;
       }
@@ -334,7 +336,9 @@ export default function OnboardingPage() {
 
   const handleGoToDashboard = () => {
     setShowPlanModal(false);
-    const dest = registeredBizId ? `/dashboard?biz_id=${registeredBizId}` : "/dashboard";
+    const dest = registeredBizId
+      ? `/dashboard?biz_id=${registeredBizId}&onboarding=1`
+      : "/dashboard?onboarding=1";
     router.push(dest);
   };
 

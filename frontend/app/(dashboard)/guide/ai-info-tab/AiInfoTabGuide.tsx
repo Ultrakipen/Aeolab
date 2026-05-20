@@ -120,7 +120,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 : isInactive
                 ? "이 업종은 AI 브리핑 비대상이지만, 네이버 AI탭(2026-04-27 베타)은 모든 업종 노출 가능합니다. 아래 단계로 AI탭 대비 + 일반 검색 노출을 동시에 준비하세요."
                 : isLikely
-                ? "이 업종은 AI 브리핑 확대 예상 업종입니다. 미리 5단계를 완료해두면 확대 즉시 노출됩니다."
+                ? "이 업종은 AI 브리핑 확대 예상 업종입니다. 미리 5단계를 완료해두면 확대 즉시 노출됩니다. (네이버 AI탭은 지금 모든 업종 베타 이용 가능 → 아래 AI탭 가이드 참고)"
                 : "이 업종은 현재 AI 브리핑 노출 대상입니다. 5단계를 완료해 노출 확률을 높이세요."}
             </p>
           </>
@@ -240,7 +240,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             </ol>
             {isLikely && (
               <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm md:text-base text-gray-700 mb-2">
-                <strong>확대 예상 업종:</strong> 현재 일부 계정에만 AI 정보 탭이 노출됩니다.
+                <strong>AI 브리핑 확대 예상 업종:</strong> 현재 일부 계정에만 AI 정보 탭이 노출됩니다.
                 탭이 없더라도 3~5단계를 미리 완료해두면 확대 즉시 노출됩니다.
               </div>
             )}

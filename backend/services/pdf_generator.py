@@ -497,7 +497,8 @@ def _history_chart(history: list) -> Optional[Drawing]:
         raw = r.get("scanned_at") or r.get("created_at") or ""
         try:
             return raw[5:10]  # MM-DD
-        except Exception:
+        except Exception as _e:
+            _logger.warning("pdf date parse failed: raw=%s err=%s", raw, _e)
             return ""
 
     # 오래된 것부터 최근 순 (최대 12회)

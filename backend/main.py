@@ -21,6 +21,10 @@ from routers import delivery as delivery_router
 from routers import stories as stories_router
 from routers import tools as tools_router
 from routers import support as support_router
+from routers import tips as tips_router
+from routers import messages as messages_router
+from routers import feedback as feedback_router
+from routers import system_status as system_status_router
 from scheduler.jobs import start_scheduler
 from utils.logger import setup_logging
 import os
@@ -128,6 +132,10 @@ app.include_router(stories_router.admin_router,   prefix="/admin/stories", tags=
 app.include_router(tools_router.router,           prefix="/api/tools",     tags=["tools"])
 app.include_router(support_router.router,         prefix="/api/support",   tags=["support"])
 app.include_router(support_router.admin_router,   prefix="/admin/support", tags=["admin-support"])
+app.include_router(tips_router.router,            tags=["tips"])
+app.include_router(messages_router.router,        tags=["messages"])
+app.include_router(feedback_router.router,        tags=["feedback"])
+app.include_router(system_status_router.router,   tags=["system"])
 
 
 @app.exception_handler(Exception)

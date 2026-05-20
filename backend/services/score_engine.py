@@ -90,12 +90,15 @@ def get_ai_tab_eligibility(category: str) -> str:
 
     현재 호출처: report.py get_ai_tab_preview (briefing_eligibility 대체 예정)
     P2 예정: naver_ai_tab_scanner.py 구현 후 Track1 naver_ai_tab_visible 항목 연결.
-    6월 AI탭 전체 확대 이후 활성화.
+
+    환경변수 AI_TAB_STATUS(기본값 "beta")로 제어.
+    6월 AI탭 전체 확대 후 운영 서버에서 AI_TAB_STATUS=available 로 변경.
 
     Returns:
-        "beta" — 모든 업종, 네이버플러스 구독자 우선 베타 서비스 중
+        "beta"      — 네이버플러스 구독자 우선 베타 서비스 중 (기본값)
+        "available" — 6월 전체 확대 후 (환경변수로 전환)
     """
-    return "beta"
+    return os.getenv("AI_TAB_STATUS", "beta")
 
 
 # ────────────────────────────────────────────────────────────────

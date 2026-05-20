@@ -1,0 +1,103 @@
+from fastapi import APIRouter, Depends, Header
+from db.supabase_client import get_client
+from typing import Optional
+import logging
+
+router = APIRouter(prefix="/api/messages", tags=["messages"])
+_logger = logging.getLogger("aeolab")
+
+
+@router.get("/unread")
+async def get_unread_messages(
+    authorization: Optional[str] = Header(None),
+    supabase=Depends(get_client),
+):
+    """로그인 사용자의 미확인 인앱 메시지 조회"""
+    if not authorization:
+        return {"messages": [], "unread_count": 0}
+    token = authorization.replace("Bearer ", "")
+    try:
+        user_res = supabase.auth.get_user(token)
+        user_id = user_res.user.id if (user_res and user_res.user) else None
+        if not user_id:
+            return {"messages": [], "unread_count": 0}
+
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc).isoformat()
+
+        msgs_res = (
+            supabase.table("in_app_messages")
+            .select("id,title,body,cta_label,cta_url,target_segment,created_at")
+            .eq("is_active", True)
+            .or_(f"expires_at.is.null,expires_at.gt.{now}")
+            .execute()
+        )
+
+        reads_res = (
+            supabase.table("message_reads")
+            .select("message_id")
+            .eq("user_id", user_id)
+            .execute()
+        )
+        read_ids = {r["message_id"] for r in (reads_res.data or [])}
+
+        # 미확인 메시지 필터 (target_segment 체크는 추후 플랜 연동 시 확장)
+        unread = [m for m in (msgs_res.data or []) if m["id"] not in read_ids]
+        return {"messages": unread, "unread_count": len(unread)}
+    except Exception as _e:
+        _logger.warning(f"[messages] get_unread_messages 실패 — {_e}")
+        return {"messages": [], "unread_count": 0}
+
+
+@router.post("/{message_id}/read")
+async def mark_read(
+    message_id: str,
+    authorization: Optional[str] = Header(None),
+    supabase=Depends(get_client),
+):
+    """메시지 읽음 처리"""
+    if not authorization:
+        return {"ok": False}
+    token = authorization.replace("Bearer ", "")
+    try:
+        user_res = supabase.auth.get_user(token)
+        user_id = user_res.user.id if (user_res and user_res.user) else None
+        if not user_id:
+            return {"ok": False}
+        supabase.table("message_reads").upsert(
+            {"message_id": message_id, "user_id": user_id}
+        ).execute()
+        return {"ok": True}
+    except Exception as _e:
+        _logger.warning(f"[messages] mark_read 실패 — {_e}")
+        return {"ok": False}
+
+
+@router.post("")
+async def create_message(body: dict, supabase=Depends(get_client)):
+    """Admin 전용 메시지 생성"""
+    try:
+        res = supabase.table("in_app_messages").insert(body).execute()
+        return {"message": (res.data or [{}])[0]}
+    except Exception as _e:
+        _logger.warning(f"[messages] create_message 실패 — {_e}")
+        return {"error": str(_e)}
+
+
+@router.patch("/{message_id}")
+async def update_message(
+    message_id: str,
+    body: dict,
+    supabase=Depends(get_client),
+):
+    try:
+        res = (
+            supabase.table("in_app_messages")
+            .update(body)
+            .eq("id", message_id)
+            .execute()
+        )
+        return {"message": (res.data or [{}])[0]}
+    except Exception as _e:
+        _logger.warning(f"[messages] update_message 실패 — {_e}")
+        return {"error": str(_e)}

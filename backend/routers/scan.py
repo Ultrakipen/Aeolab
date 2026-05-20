@@ -13,6 +13,7 @@ from services.ai_scanner.multi_scanner import MultiAIScanner
 from services.score_engine import calculate_score
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
+from utils.scan_errors import make_scan_error, classify_exception
 import utils.cache as _cache
 
 _logger = logging.getLogger("aeolab")
@@ -448,6 +449,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
     도메인 모델 v2.1 § 10.1 — ScanContext별 분기
     """
     import asyncio, hashlib
+    _endpoint = "trial"
 
     _is_authenticated = bool(request.headers.get("Authorization", "").startswith("Bearer "))
     if not _is_admin_request(request):
@@ -526,11 +528,21 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
             coros.append(asyncio.sleep(0))  # placeholder
 
         results = await asyncio.gather(*coros, return_exceptions=True)
+        _ai_exc = results[0] if isinstance(results[0], Exception) else None
         ai_result = results[0] if not isinstance(results[0], Exception) else {}
         gemini_evidence_data = results[1] if not isinstance(results[1], Exception) else None
         website_data = results[2] if (req.website_url and not isinstance(results[2], Exception)) else None
         naver_data = None
         kakao_data = None
+
+        # AI 완전 실패(ChatGPT + Gemini 모두 예외) 시 503 반환
+        if _ai_exc and not ai_result and gemini_evidence_data is None:
+            raise make_scan_error(
+                classify_exception(_ai_exc),
+                endpoint=_endpoint,
+                biz_id=None,
+                original_exc=_ai_exc,
+            )
     else:
         # location_based: Gemini + 네이버(멀티쿼리) + 카카오
         from services.naver_visibility import get_naver_visibility_multi as _naver_multi
@@ -562,21 +574,35 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
             (kw for kw in _trial_kw_list if " " not in kw and len(kw) >= 2),
             _name_hint or _cat_ko_fallback,
         )
-        ai_result, gemini_evidence_data, naver_data, kakao_data = await asyncio.gather(
+        _gather_results = await asyncio.gather(
             scanner.scan_trial(query, req.business_name),
             _run_trial_gemini(query, req.business_name),
             _naver_multi(req.business_name, _trial_multi_kws, req.region or "", category_ko=_comp_category_ko),
             get_kakao_visibility(req.business_name, keyword_ko, req.region or ""),
             return_exceptions=True,
         )
+        ai_result, gemini_evidence_data, naver_data, kakao_data = _gather_results
+        _ai_exc_loc = ai_result if isinstance(ai_result, Exception) else None
         if isinstance(ai_result, Exception):
+            _logger.warning("[scan/trial] location_based AI scan exception: %s", ai_result)
             ai_result = {}
         if isinstance(gemini_evidence_data, Exception):
             gemini_evidence_data = None
         if isinstance(naver_data, Exception):
+            _logger.warning("[scan/trial] naver_visibility exception: %s", naver_data)
             naver_data = None
         if isinstance(kakao_data, Exception):
+            _logger.warning("[scan/trial] kakao_visibility exception: %s", kakao_data)
             kakao_data = None
+
+        # AI 완전 실패(ChatGPT + Gemini 모두 예외) 시 503 반환
+        if _ai_exc_loc and not ai_result and gemini_evidence_data is None:
+            raise make_scan_error(
+                classify_exception(_ai_exc_loc),
+                endpoint=_endpoint,
+                original_exc=_ai_exc_loc,
+            )
+
         website_data = None
 
         # 사용자 직접 체크 → Naver API 결과보다 우선 적용
@@ -1284,20 +1310,60 @@ async def full_scan(req: ScanRequest, bg: BackgroundTasks, user=Depends(get_curr
     - 전 플랜 quick scan으로 통일 (Gemini 10회 + 네이버, 비용 ~3원)
     - 자동 스캔(scheduler)만 full scan 유지
     """
+    _endpoint = "full"
     if not req.business_id:
-        raise HTTPException(status_code=400, detail="business_id required")
+        raise make_scan_error(
+            "BUSINESS_NOT_FOUND",
+            message="business_id가 필요합니다.",
+            endpoint=_endpoint,
+        )
 
     x_user_id = str(user["id"])
     supabase = get_client()
-    from middleware.rate_limit import check_monthly_scan_limit
-    await check_monthly_scan_limit(x_user_id, supabase)
-    from middleware.plan_gate import check_manual_scan_limit
-    await check_manual_scan_limit(x_user_id, supabase, business_id=req.business_id)
+
+    # 사업장 소유권 검증
+    _biz_check = (await execute(
+        supabase.table("businesses").select("id").eq("id", req.business_id).eq("user_id", x_user_id).maybe_single()
+    )).data
+    if not _biz_check:
+        raise make_scan_error(
+            "BUSINESS_NOT_FOUND",
+            endpoint=_endpoint,
+            biz_id=req.business_id,
+        )
+
+    try:
+        from middleware.rate_limit import check_monthly_scan_limit
+        await check_monthly_scan_limit(x_user_id, supabase)
+    except HTTPException as e:
+        _logger.warning("[scan/full] rate_limit blocked: user=%s detail=%s", x_user_id, e.detail)
+        raise make_scan_error(
+            "PLAN_LIMIT_EXCEEDED",
+            message="월간 스캔 한도에 도달했습니다.",
+            endpoint=_endpoint,
+            biz_id=req.business_id,
+        )
+
+    try:
+        from middleware.plan_gate import check_manual_scan_limit
+        await check_manual_scan_limit(x_user_id, supabase, business_id=req.business_id)
+    except HTTPException as e:
+        _logger.warning("[scan/full] manual_scan_limit blocked: user=%s detail=%s", x_user_id, e.detail)
+        raise make_scan_error(
+            "PLAN_LIMIT_EXCEEDED",
+            message="일별 수동 스캔 한도에 도달했습니다. 내일 다시 시도해 주세요.",
+            endpoint=_endpoint,
+            biz_id=req.business_id,
+        )
 
     # 중복 스캔 방지
     scan_key = f"{x_user_id}:{req.business_id}"
     if scan_key in _active_scans:
-        raise HTTPException(status_code=409, detail="이미 스캔이 진행 중입니다. 잠시 후 다시 시도해주세요.")
+        raise make_scan_error(
+            "SCAN_IN_PROGRESS",
+            endpoint=_endpoint,
+            biz_id=req.business_id,
+        )
 
     _active_scans.add(scan_key)
     scan_id = str(uuid.uuid4())
@@ -1305,6 +1371,11 @@ async def full_scan(req: ScanRequest, bg: BackgroundTasks, user=Depends(get_curr
     async def _scan_and_cleanup():
         try:
             await _run_quick_scan(scan_id, req)
+        except Exception as e:
+            _logger.error(
+                "[scan/full] background scan failed: endpoint=%s biz_id=%s scan_id=%s exc=%s",
+                _endpoint, req.business_id, scan_id, repr(e),
+            )
         finally:
             _active_scans.discard(scan_key)
 
@@ -1407,10 +1478,12 @@ async def stream_scan(stream_token: str):
     )
 
     async def gen():
+        _stream_endpoint = "stream"
         # 중복 스캔 방지
         scan_key = f"{user_id}:{biz_id}"
         if scan_key in _active_scans:
-            yield f"data: {json.dumps({'error': '이미 스캔이 진행 중입니다'}, ensure_ascii=False)}\n\n"
+            _err = {"code": "SCAN_IN_PROGRESS", "message": "이미 스캔이 진행 중입니다. 완료 후 다시 시도해 주세요.", "support": "hello@aeolab.co.kr"}
+            yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
             return
         _active_scans.add(scan_key)
 
@@ -1419,13 +1492,17 @@ async def stream_scan(stream_token: str):
             try:
                 await check_monthly_scan_limit(user_id, get_client())
             except HTTPException as e:
-                yield f"data: {json.dumps({'error': e.detail}, ensure_ascii=False)}\n\n"
+                _logger.warning("[scan/stream] rate_limit blocked: user=%s detail=%s", user_id, e.detail)
+                _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "월간 스캔 한도에 도달했습니다.", "support": "hello@aeolab.co.kr"}
+                yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
                 return
             from middleware.plan_gate import check_manual_scan_limit
             try:
                 await check_manual_scan_limit(user_id, get_client(), business_id=biz_id)
             except HTTPException as e:
-                yield f"data: {json.dumps({'error': e.detail}, ensure_ascii=False)}\n\n"
+                _logger.warning("[scan/stream] manual_limit blocked: user=%s detail=%s", user_id, e.detail)
+                _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "일별 수동 스캔 한도에 도달했습니다. 내일 다시 시도해 주세요.", "support": "hello@aeolab.co.kr"}
+                yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
                 return
 
             scanner = MultiAIScanner(mode="quick")
@@ -1433,13 +1510,32 @@ async def stream_scan(stream_token: str):
             # 전 플랜 quick scan으로 통일 (수동 스캔 정책 변경 2026-04-03)
             progress_iter = scanner.scan_quick_with_progress(req)
 
-            async for progress in progress_iter:
-                if progress.get("step") == "complete":
-                    # complete는 DB 저장 완료 후 전송 — 먼저 넘어가지 않음
-                    continue
-                yield f"data: {json.dumps(progress, ensure_ascii=False)}\n\n"
-                if progress.get("status") == "done" and "result" in progress:
-                    scan_results[progress["step"]] = progress["result"]
+            try:
+                async for progress in progress_iter:
+                    if progress.get("step") == "complete":
+                        # complete는 DB 저장 완료 후 전송 — 먼저 넘어가지 않음
+                        continue
+                    yield f"data: {json.dumps(progress, ensure_ascii=False)}\n\n"
+                    if progress.get("status") == "done" and "result" in progress:
+                        scan_results[progress["step"]] = progress["result"]
+            except Exception as scan_exc:
+                _err_code = classify_exception(scan_exc)
+                _logger.error(
+                    "[scan/stream] scanner exception: endpoint=%s biz_id=%s code=%s exc=%s",
+                    _stream_endpoint, biz_id, _err_code, repr(scan_exc),
+                )
+                _msg_map = {
+                    "PLAYWRIGHT_TIMEOUT": "네이버·Google 페이지 로딩 시간이 초과됐습니다. 잠시 후 다시 시도해 주세요.",
+                    "AI_SERVICE_UNAVAILABLE": "AI 서비스 일시 응답 지연입니다. 잠시 후 다시 시도해 주세요.",
+                    "INTERNAL_ERROR": "스캔 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+                }
+                _err = {
+                    "code": _err_code,
+                    "message": _msg_map.get(_err_code, "일시적인 오류가 발생했습니다."),
+                    "support": "hello@aeolab.co.kr",
+                }
+                yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
+                return
 
             # DB 저장 중 표시 (progress 90%)
             yield f"data: {json.dumps({'step': 'saving', 'status': 'running', 'message': '결과를 저장하는 중...', 'progress': 90}, ensure_ascii=False)}\n\n"
@@ -1449,7 +1545,10 @@ async def stream_scan(stream_token: str):
                 try:
                     await _save_scan_results(biz_id, req, scan_results, selected_keyword=_stream_selected_kw)
                 except Exception as e:
-                    _logger.error(f"Scan save failed: {e}")
+                    _logger.error(
+                        "[scan/stream] save failed: endpoint=%s biz_id=%s exc=%s",
+                        _stream_endpoint, biz_id, repr(e),
+                    )
 
             # complete 이벤트 전송
             yield f"data: {json.dumps({'step': 'complete', 'status': 'done', 'progress': 100, 'scan_type': 'quick'}, ensure_ascii=False)}\n\n"

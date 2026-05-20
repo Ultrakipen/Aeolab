@@ -4,7 +4,7 @@ import { PayButton } from "./PayButton";
 import { BizContactButton } from "./BizContactButton";
 import PlanRecommender from "./PlanRecommender";
 import GroupHeadlineBanner from "./GroupHeadlineBanner";
-import { PLANS } from "@/lib/plans";
+import { PLANS, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import ChannelDifferentiationCard from "@/components/common/ChannelDifferentiationCard";
 
 export default function PricingPage() {
@@ -95,7 +95,7 @@ export default function PricingPage() {
                   amount={plan.amount}
                   highlight={plan.highlight}
                   signupHref={plan.href}
-                  firstMonthAmount={plan.name === "Basic" ? 4950 : undefined}
+                  firstMonthAmount={plan.name === "Basic" ? FIRST_MONTH_DISCOUNT_PRICES.basic : undefined}
                 />
               ) : (
                 <Link
@@ -419,7 +419,7 @@ export default function PricingPage() {
               },
               {
                 q: "구독은 언제든지 해지할 수 있나요?",
-                a: "네. 언제든지 해지 가능하며, 해지 시 현재 결제 기간 만료일까지 서비스를 계속 이용할 수 있습니다. 환불은 이용약관에 따라 처리됩니다.",
+                a: "네. 언제든지 해지 가능합니다. 결제일로부터 7일 이내 + 서비스 미이용 상태(스캔·가이드 생성 전)인 경우 전액 환불됩니다. 7일 경과 또는 서비스 이용 후에는 현재 결제 기간 만료일까지 계속 이용 가능하며, 잔여 기간 환불은 제공되지 않습니다. 자세한 내용은 이용약관 §3을 참고해 주세요.",
               },
               {
                 q: "첫 달 50% 할인은 어떻게 적용되나요?",

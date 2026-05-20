@@ -20,11 +20,13 @@ _logger = logging.getLogger("aeolab")
 
 # 네이버 AI 브리핑 게이팅 (v4.1) — import 실패 시 fallback "active"
 try:
-    from services.score_engine import get_briefing_eligibility as _get_eligibility
+    from services.score_engine import get_briefing_eligibility as _get_eligibility, DUAL_TRACK_RATIO, DEFAULT_DUAL_TRACK_RATIO
 except Exception as _elig_import_err:
     _logger.warning(f"get_briefing_eligibility import 실패, fallback active 처리: {_elig_import_err}")
     def _get_eligibility(category: str, is_franchise: bool = False) -> str:  # type: ignore[misc]
         return "active"
+    DUAL_TRACK_RATIO: dict = {}
+    DEFAULT_DUAL_TRACK_RATIO: dict = {"naver": 0.60, "global": 0.40}
 
 
 def _briefing_strategy_header(eligibility: str, is_franchise: bool) -> str:
@@ -615,6 +617,24 @@ class GuideGenerator:
             f"\n## AI 브리핑 채널 안내\n{briefing_header}" if briefing_header else ""
         )
 
+        # INACTIVE 업종 Track2 집중 섹션 — 글로벌 AI 비중 업종별 명시
+        track2_focus_section = ""
+        if eligibility == "inactive":
+            category = biz.get("category", "")
+            ratio = DUAL_TRACK_RATIO.get(category, DEFAULT_DUAL_TRACK_RATIO)
+            global_pct = int(ratio.get("global", 0.40) * 100)
+            naver_pct  = int(ratio.get("naver",  0.60) * 100)
+            track2_focus_section = f"""
+## Track2(글로벌 AI) 집중 지시 — 이 업종은 글로벌 AI 비중 {global_pct}% (네이버 {naver_pct}%)
+- 이 업종 사용자는 ChatGPT·Gemini·Google AI에서 업체 정보를 검색하는 비율이 높음
+- 가이드의 priority_items 최상위 2개는 반드시 아래 Track2 액션 중에서 선정할 것:
+  1. JSON-LD 구조화 데이터 추가 (schema.org/LocalBusiness — AI가 사업장 데이터 직접 파싱)
+  2. 웹사이트 또는 블로그에 영문 요약 1단락 작성 (ChatGPT 학습 데이터·Google AI Overview 인식)
+  3. Google 비즈니스 프로필 등록·최적화 (Google AI Overview 노출 전제 조건)
+  4. 외부 권위 링크 획득 (블로그 포스팅·언론 노출·카카오채널 — AI 신뢰도 지표)
+  5. 자주 묻는 질문(FAQ) Schema 마크업 (ChatGPT가 즉답 인용)
+- 네이버 스마트플레이스 가이드는 참고용으로만 제공하되 우선순위 최하위로 배치"""
+
         # LIKELY 업종은 "가장 먼저 해결" 톤 → "준비 권장" 톤 다운 지시
         sp_tone_note = ""
         if eligibility == "likely":
@@ -849,7 +869,7 @@ class GuideGenerator:
 - 네이버 AI 브리핑 노출: {_naver_briefing_exposure_msg(naver_in_briefing, eligibility)}
 - ChatGPT 노출: {'있음' if ((scan_result.get('chatgpt_result') or {}).get('mentioned') or (scan_result.get('chatgpt_result') or {}).get('exposure_freq', 0) > 0) else '없음'}
 
-{channel_section}{cross_ai_section}{website_section}{kakao_section}{keyword_section}{v3_1_section}{stage_section}{blog_section}{sp_detail_section}{external_section}{seasonal_section}
+{channel_section}{cross_ai_section}{track2_focus_section}{website_section}{kakao_section}{keyword_section}{v3_1_section}{stage_section}{blog_section}{sp_detail_section}{external_section}{seasonal_section}
 
 ## 경쟁사 대비 취약 점수 (gap 큰 순)
 {_format_competitor_gaps(breakdown, top_comp)}
