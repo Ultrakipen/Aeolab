@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, Header
+import os
+import secrets
+from fastapi import APIRouter, Depends, Header, HTTPException
 from db.supabase_client import get_client
 from typing import Optional
 import logging
@@ -7,12 +9,18 @@ router = APIRouter(prefix="/api/messages", tags=["messages"])
 _logger = logging.getLogger("aeolab")
 
 
+def _verify_admin(x_admin_key: str = Header(None)) -> None:
+    key = os.getenv("ADMIN_SECRET_KEY", "")
+    if not key or not x_admin_key or not secrets.compare_digest(x_admin_key, key):
+        raise HTTPException(status_code=403, detail="Admin only")
+
+
 @router.get("/unread")
 async def get_unread_messages(
     authorization: Optional[str] = Header(None),
     supabase=Depends(get_client),
 ):
-    """로그인 사용자의 미확인 인앱 메시지 조회"""
+    """로그인 사용자의 미확인 인앱 메시지 조회"""  # public (Bearer token 인증)
     if not authorization:
         return {"messages": [], "unread_count": 0}
     token = authorization.replace("Bearer ", "")
@@ -41,7 +49,6 @@ async def get_unread_messages(
         )
         read_ids = {r["message_id"] for r in (reads_res.data or [])}
 
-        # 미확인 메시지 필터 (target_segment 체크는 추후 플랜 연동 시 확장)
         unread = [m for m in (msgs_res.data or []) if m["id"] not in read_ids]
         return {"messages": unread, "unread_count": len(unread)}
     except Exception as _e:
@@ -55,7 +62,7 @@ async def mark_read(
     authorization: Optional[str] = Header(None),
     supabase=Depends(get_client),
 ):
-    """메시지 읽음 처리"""
+    """메시지 읽음 처리"""  # public (Bearer token 인증)
     if not authorization:
         return {"ok": False}
     token = authorization.replace("Bearer ", "")
@@ -73,8 +80,31 @@ async def mark_read(
         return {"ok": False}
 
 
+@router.get("")
+async def list_messages_admin(
+    supabase=Depends(get_client),
+    _: None = Depends(_verify_admin),
+):
+    """Admin 전용 전체 메시지 목록"""
+    try:
+        res = (
+            supabase.table("in_app_messages")
+            .select("id,title,body,cta_label,cta_url,target_segment,is_active,expires_at,created_at")
+            .order("created_at", desc=True)
+            .execute()
+        )
+        return {"messages": res.data or []}
+    except Exception as _e:
+        _logger.warning(f"[messages] list_messages_admin 실패 — {_e}")
+        return {"messages": []}
+
+
 @router.post("")
-async def create_message(body: dict, supabase=Depends(get_client)):
+async def create_message(
+    body: dict,
+    supabase=Depends(get_client),
+    _: None = Depends(_verify_admin),
+):
     """Admin 전용 메시지 생성"""
     try:
         res = supabase.table("in_app_messages").insert(body).execute()
@@ -89,6 +119,7 @@ async def update_message(
     message_id: str,
     body: dict,
     supabase=Depends(get_client),
+    _: None = Depends(_verify_admin),
 ):
     try:
         res = (
@@ -100,4 +131,18 @@ async def update_message(
         return {"message": (res.data or [{}])[0]}
     except Exception as _e:
         _logger.warning(f"[messages] update_message 실패 — {_e}")
+        return {"error": str(_e)}
+
+
+@router.delete("/{message_id}")
+async def delete_message(
+    message_id: str,
+    supabase=Depends(get_client),
+    _: None = Depends(_verify_admin),
+):
+    try:
+        supabase.table("in_app_messages").delete().eq("id", message_id).execute()
+        return {"ok": True}
+    except Exception as _e:
+        _logger.warning(f"[messages] delete_message 실패 — {_e}")
         return {"error": str(_e)}

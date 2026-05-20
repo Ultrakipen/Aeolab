@@ -1,9 +1,17 @@
-from fastapi import APIRouter, Depends, Query
+import os
+import secrets
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from db.supabase_client import get_client
 import logging
 
 router = APIRouter(prefix="/api/tips", tags=["tips"])
 _logger = logging.getLogger("aeolab")
+
+
+def _verify_admin(x_admin_key: str = Header(None)) -> None:
+    key = os.getenv("ADMIN_SECRET_KEY", "")
+    if not key or not x_admin_key or not secrets.compare_digest(x_admin_key, key):
+        raise HTTPException(status_code=403, detail="Admin only")
 
 
 @router.get("")
@@ -12,7 +20,7 @@ async def get_tips(
     industry: str = Query(""),
     supabase=Depends(get_client),
 ):
-    """대시보드 섹션별 운영자 작성 컨텍스트 팁 조회 (인증 불필요, 캐시 5분)"""
+    """대시보드 섹션별 운영자 작성 컨텍스트 팁 조회 (인증 불필요)"""  # public
     try:
         q = (
             supabase.table("context_tips")
@@ -26,7 +34,6 @@ async def get_tips(
         for row in (res.data or []):
             filters = row.get("industry_filter") or []
             if not filters or industry in filters:
-                # 클라이언트에 불필요한 필드 제거
                 tips.append({k: v for k, v in row.items() if k != "industry_filter"})
         return {"tips": tips}
     except Exception as _e:
@@ -34,10 +41,32 @@ async def get_tips(
         return {"tips": []}
 
 
+@router.get("/admin/list")
+async def list_tips_admin(
+    supabase=Depends(get_client),
+    _: None = Depends(_verify_admin),
+):
+    """Admin 전용 전체 팁 목록 (비활성 포함)"""
+    try:
+        res = (
+            supabase.table("context_tips")
+            .select("id,section,title,body,cta_label,cta_url,is_active,priority,industry_filter,created_at")
+            .order("priority", desc=False)
+            .execute()
+        )
+        return {"tips": res.data or []}
+    except Exception as _e:
+        _logger.warning(f"[tips] list_tips_admin 실패 — {_e}")
+        return {"tips": []}
+
+
 @router.post("")
-async def create_tip(body: dict, supabase=Depends(get_client)):
+async def create_tip(
+    body: dict,
+    supabase=Depends(get_client),
+    _: None = Depends(_verify_admin),
+):
     """Admin 전용 팁 생성"""
-    # TODO: admin 인증 추가 (현재 admin_required 미들웨어 패턴 확인 후 적용)
     try:
         res = supabase.table("context_tips").insert(body).execute()
         return {"tip": (res.data or [{}])[0]}
@@ -47,7 +76,12 @@ async def create_tip(body: dict, supabase=Depends(get_client)):
 
 
 @router.patch("/{tip_id}")
-async def update_tip(tip_id: str, body: dict, supabase=Depends(get_client)):
+async def update_tip(
+    tip_id: str,
+    body: dict,
+    supabase=Depends(get_client),
+    _: None = Depends(_verify_admin),
+):
     try:
         res = supabase.table("context_tips").update(body).eq("id", tip_id).execute()
         return {"tip": (res.data or [{}])[0]}
@@ -57,7 +91,11 @@ async def update_tip(tip_id: str, body: dict, supabase=Depends(get_client)):
 
 
 @router.delete("/{tip_id}")
-async def delete_tip(tip_id: str, supabase=Depends(get_client)):
+async def delete_tip(
+    tip_id: str,
+    supabase=Depends(get_client),
+    _: None = Depends(_verify_admin),
+):
     try:
         supabase.table("context_tips").delete().eq("id", tip_id).execute()
         return {"ok": True}

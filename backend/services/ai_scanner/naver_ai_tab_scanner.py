@@ -14,12 +14,41 @@
 import asyncio
 import logging
 import os
+import time
 from typing import Optional
 
 _logger = logging.getLogger("aeolab")
 
-# 환경변수로 활성화 여부 결정 — 기본값 false (6월 확대 후 true로 전환)
+# 환경변수 fallback — DB 조회 실패 시에만 사용
 NAVER_AI_TAB_ENABLED: bool = os.getenv("NAVER_AI_TAB_ENABLED", "false").lower() == "true"
+
+# system_status DB 조회 캐시 (1분 TTL)
+_ai_tab_enabled_cache: dict = {"value": None, "ts": 0.0}
+_CACHE_TTL = 60.0
+
+
+async def _get_ai_tab_enabled() -> bool:
+    """system_status 테이블에서 ai_tab_enabled 값을 읽는다 (1분 캐시).
+
+    DB 조회 실패 시 환경변수 NAVER_AI_TAB_ENABLED fallback.
+    ai_tab_trigger_check_job이 P2 조건 감지 시 DB를 true로 자동 업데이트 →
+    pm2 restart 없이 실시간 활성화됨.
+    """
+    global _ai_tab_enabled_cache
+    now = time.monotonic()
+    if _ai_tab_enabled_cache["value"] is not None and now - _ai_tab_enabled_cache["ts"] < _CACHE_TTL:
+        return _ai_tab_enabled_cache["value"]
+    try:
+        from db.supabase_client import get_client
+        supabase = get_client()
+        res = supabase.table("system_status").select("value").eq("key", "ai_tab_enabled").execute()
+        val = bool((res.data or [{}])[0].get("value", "false") == "true")
+    except Exception as e:
+        _logger.debug(f"[naver_ai_tab] system_status 조회 실패, env fallback: {e}")
+        val = NAVER_AI_TAB_ENABLED
+    _ai_tab_enabled_cache["value"] = val
+    _ai_tab_enabled_cache["ts"] = now
+    return val
 
 # Playwright RAM 보호: 동시 1개 제한 (별도 세마포어 — multi_scanner의 PLAYWRIGHT_SEMAPHORE와 공유하지 않음)
 _AI_TAB_SEMAPHORE = asyncio.Semaphore(1)
@@ -52,8 +81,8 @@ async def scan(query: str, business_name: str) -> Optional[dict]:
         }
         오류 시: None
     """
-    if not NAVER_AI_TAB_ENABLED:
-        _logger.debug(f"[naver_ai_tab] scan skip — NAVER_AI_TAB_ENABLED=false (query={query!r})")
+    if not await _get_ai_tab_enabled():
+        _logger.debug(f"[naver_ai_tab] scan skip — ai_tab_enabled=false (query={query!r})")
         return None
 
     try:
@@ -165,8 +194,8 @@ async def scan_batch(queries: list[str], business_name: str) -> dict:
     Returns:
         {query: result_dict} 형태. 오류 발생 쿼리는 None 값으로 포함.
     """
-    if not NAVER_AI_TAB_ENABLED:
-        _logger.debug("[naver_ai_tab] scan_batch skip — NAVER_AI_TAB_ENABLED=false")
+    if not await _get_ai_tab_enabled():
+        _logger.debug("[naver_ai_tab] scan_batch skip — ai_tab_enabled=false")
         return {}
 
     results: dict = {}

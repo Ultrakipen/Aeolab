@@ -5094,6 +5094,23 @@ async def ai_tab_trigger_check_job():
             level="info",
         )
         _logger.warning(f"[P2-READY] AI탭 노출률 {rate*100:.0f}% — 전체 확대 감지")
+        # system_status 자동 활성화 (pm2 restart 불필요)
+        try:
+            from db.supabase_client import get_client
+            from datetime import datetime
+            _supabase = get_client()
+            _supabase.table("system_status").upsert({
+                "key": "ai_tab_enabled",
+                "value": "true",
+                "message": f"P2 자동 활성화 {datetime.now().strftime('%Y-%m-%d')} — 노출률 {rate*100:.0f}%",
+                "updated_at": datetime.now().isoformat(),
+            }).execute()
+            # 캐시 무효화
+            from services.ai_scanner.naver_ai_tab_scanner import _ai_tab_enabled_cache
+            _ai_tab_enabled_cache["ts"] = 0.0
+            _logger.warning("[P2-ACTIVATED] system_status.ai_tab_enabled=true 자동 설정 완료")
+        except Exception as _e_p2:
+            _logger.warning(f"[P2] system_status 자동 업데이트 실패 (수동 설정 필요): {_e_p2}")
     elif rate >= 0.5:
         _logger.info(f"[P2-MONITOR] AI탭 노출률 {rate*100:.0f}% — 확산 중, 추가 관찰 필요")
 

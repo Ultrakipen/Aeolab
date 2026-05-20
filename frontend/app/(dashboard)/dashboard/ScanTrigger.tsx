@@ -5,6 +5,7 @@ import { ScanProgress } from '@/components/scan/ScanProgress'
 import { useRouter } from 'next/navigation'
 import { getSafeSession } from '@/lib/supabase/client'
 import { getScanErrorInfo, SCAN_TIMEOUT_MESSAGE } from '@/lib/scanErrorMessages'
+import { FeedbackPopup } from '@/components/dashboard/FeedbackPopup'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -46,6 +47,7 @@ export function ScanTrigger({
   const [error, setError] = useState('')
   const [completed, setCompleted] = useState(false)
   const [scannedKeyword, setScannedKeyword] = useState<string>('')
+  const [feedbackTriggered, setFeedbackTriggered] = useState(false)
 
   const hasKeywords = (keywords?.length ?? 0) >= 1
   const _lastUsedKw = keywords?.find(kw => lastQueryUsed?.includes(kw)) ?? keywords?.[0] ?? ''
@@ -144,6 +146,7 @@ export function ScanTrigger({
     eventSourceRef.current = null
     setEventSource(null)
     setCompleted(true)
+    setFeedbackTriggered(true)
     if (onScanComplete) {
       onScanComplete({
         topMissingKeyword: scanData?.top_missing_keywords?.[0] ?? undefined,
@@ -269,6 +272,8 @@ export function ScanTrigger({
           </div>
         </div>
       )}
+
+      <FeedbackPopup eventType="scan_complete" trigger={feedbackTriggered} />
 
       {error && (
         <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">

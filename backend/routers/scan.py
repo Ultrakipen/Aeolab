@@ -2573,7 +2573,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         from services.ai_scanner import naver_ai_tab_scanner as _naver_ai_tab
         _ai_tab_visible: "bool | None" = None
         _ai_tab_excerpt: "str | None" = None
-        if _naver_ai_tab.NAVER_AI_TAB_ENABLED:
+        if await _naver_ai_tab._get_ai_tab_enabled():
             try:
                 _ai_tab_res = await _naver_ai_tab.scan_batch(_scan_queries[:2], req.business_name)
                 if _ai_tab_res:
