@@ -125,30 +125,22 @@ async def send_v3_1_activation_notice(
             "dry_run": True,
         }
 
-    # 2. notifications 테이블 인앱 알림 일괄 INSERT
+    # 2. in_app_messages 테이블에 target_segment="all" 1건 INSERT
+    #    (NotificationBell이 조회하는 정답 테이블. 사용자별 읽음 처리는 message_reads로 분리됨)
     in_app_inserted = 0
-    notification_rows = [
-        {
-            "user_id": sub["user_id"],
-            "title": V3_1_ACTIVATION_NOTICE["title"],
-            "body": V3_1_ACTIVATION_NOTICE["body"],
-            "cta_label": V3_1_ACTIVATION_NOTICE["cta_label"],
-            "cta_url": V3_1_ACTIVATION_NOTICE["cta_url"],
-            "severity": V3_1_ACTIVATION_NOTICE["severity"],
-            "is_read": False,
-        }
-        for sub in subs
-        if sub.get("user_id")
-    ]
-    if notification_rows:
-        try:
-            # 500건씩 분할 INSERT (Supabase 단건 제한 우회)
-            for _chunk_start in range(0, len(notification_rows), 500):
-                chunk = notification_rows[_chunk_start:_chunk_start + 500]
-                _ins = await execute(supabase.table("notifications").insert(chunk))
-                in_app_inserted += len(_ins.data or [])
-        except Exception as _ie:
-            _logger.warning(f"[v3.1 notice] notifications INSERT 실패: {_ie}")
+    notification_row = {
+        "title": V3_1_ACTIVATION_NOTICE["title"],
+        "body": V3_1_ACTIVATION_NOTICE["body"],
+        "cta_label": V3_1_ACTIVATION_NOTICE["cta_label"],
+        "cta_url": V3_1_ACTIVATION_NOTICE["cta_url"],
+        "target_segment": V3_1_ACTIVATION_NOTICE.get("target_segment", "all"),
+        "is_active": True,
+    }
+    try:
+        _ins = await execute(supabase.table("in_app_messages").insert(notification_row))
+        in_app_inserted = len(_ins.data or [])
+    except Exception as _ie:
+        _logger.warning(f"[v3.1 notice] in_app_messages INSERT 실패: {_ie}")
 
     # 3. 카카오 알림톡 발송 (AEOLAB_SCORE_MODEL_01 템플릿 승인 후 활성화)
     kakao_sent = 0
