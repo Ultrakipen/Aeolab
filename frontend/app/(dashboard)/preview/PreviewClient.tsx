@@ -1550,7 +1550,7 @@ function BizTab({
             사업장 1개당 9,980원 · 다점포·컨설턴트 최적화
           </p>
           <a
-            href="mailto:hello@aeolab.co.kr"
+            href="mailto:contact@aeolab.co.kr"
             className="inline-flex items-center gap-1.5 mt-1 bg-white text-emerald-600 text-sm font-bold rounded-lg px-5 py-2.5 hover:bg-emerald-50 transition-colors"
           >
             이메일 문의 <ChevronRight className="w-4 h-4" />

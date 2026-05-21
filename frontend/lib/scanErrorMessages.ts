@@ -53,7 +53,7 @@ export function getScanErrorInfo(status: number, code = ""): ScanErrorInfo {
   if (status >= 500) {
     return {
       message:
-        "AI 서비스 일시 응답 지연입니다. 잠시 후 다시 시도해 주세요. 문제 지속 시 hello@aeolab.co.kr로 연락 주세요.",
+        "AI 서비스 일시 응답 지연입니다. 잠시 후 다시 시도해 주세요. 문제 지속 시 contact@aeolab.co.kr로 연락 주세요.",
       retryable: true,
     };
   }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { trialScan, searchTrialBusiness, ApiError } from "@/lib/api";
 import { mapNaverCategory } from "@/lib/categories";
+import { getBriefingEligibility } from "@/lib/userGroup";
 import { getSafeSession } from "@/lib/supabase/client";
 import type {
   TrialScanResult,
@@ -93,7 +94,7 @@ const SCAN_STEPS_NON_LOCATION = [
 
 const TRIAL_LS_KEY = "aeolab_trial_v2";
 const TRIAL_DAY_MS = 24 * 60 * 60 * 1000;
-const TRIAL_DAY_LIMIT = 9999; // 개발 중 무제한 — 출시 전 3으로 복원
+const TRIAL_DAY_LIMIT = 3;
 
 // ── 무료 체험 횟수 관리 ────────────────────────────────────────────────
 interface TrialStore {
@@ -783,6 +784,7 @@ export default function TrialPage() {
             scanSteps={businessType === "non_location" ? SCAN_STEPS_NON_LOCATION : SCAN_STEPS_LOCATION}
             selectedTag={selectedTags[0] ?? ""}
             region={form.region}
+            briefingCategory={getBriefingEligibility(selectedCategory)}
           />
         </div>
       )}

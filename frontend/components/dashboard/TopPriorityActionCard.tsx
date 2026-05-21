@@ -12,25 +12,25 @@ const DIMENSION_MESSAGES: Record<string, {
   linkLabel: string
 }> = {
   keyword_gap_score: {
-    reason: '업종 핵심 키워드가 부족해 AI 브리핑 조건 검색 노출이 안 됩니다',
-    action: 'FAQ·소개글에 없는 키워드를 추가하면 AI 브리핑 노출이 올라갑니다',
+    reason: '업종 핵심 키워드가 부족해 AI 검색 노출이 안 됩니다',
+    action: '소개글·FAQ에 빠진 키워드를 추가하면 AI 검색 노출이 올라갑니다',
     link: '/guide',
     linkLabel: '없는 키워드 확인하기',
   },
   review_quality: {
-    reason: '리뷰 수나 키워드 다양성이 경쟁사보다 부족합니다',
-    action: '리뷰 답변에 핵심 키워드를 포함시키면 됩니다',
+    reason: '리뷰 수나 키워드 다양성이 경쟁 가게보다 부족합니다',
+    action: '리뷰 답변에 가게 특징 키워드를 한 줄 추가하면 됩니다',
     link: '/guide',
     linkLabel: '리뷰 답변 초안 보기',
   },
   smart_place_completeness: {
     reason: '스마트플레이스 정보가 부족해서 AI가 내 가게를 잘 모릅니다',
-    action: '소개글 Q&A·소식을 추가하면 AI 브리핑 노출이 올라갑니다',
+    action: '소개글·FAQ·소식을 채우면 AI가 가게를 더 잘 추천합니다',
     link: '/guide',
     linkLabel: '소개글 편집하러 가기',
   },
   naver_exposure_confirmed: {
-    reason: '네이버 AI 브리핑에 아직 가게가 나오지 않습니다',
+    reason: '네이버 AI 검색에 아직 내 가게가 안 나옵니다',
     action: '소개글 하단에 Q&A 3개를 추가하는 것이 가장 빠른 방법입니다',
     link: '/guide',
     linkLabel: '소개글 Q&A 복사하러 가기',
@@ -155,7 +155,7 @@ export default function TopPriorityActionCard({ bizId, token, initialDimensions 
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-amber-900 mb-1">
-            지금 AI 브리핑에 잘 안 나오는 이유
+            지금 AI 검색에 잘 안 나오는 이유
           </p>
           <p className="text-base font-semibold text-amber-800 mb-1">{msg.reason}</p>
           <p className="text-sm text-amber-700 mb-3">{msg.action}</p>

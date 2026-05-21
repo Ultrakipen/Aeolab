@@ -9,10 +9,10 @@ interface Props {
 }
 
 const ITEMS = [
-  { key: "has_json_ld",              label: "AI 인식 정보 코드 (JSON-LD)", points: 40 },
-  { key: "has_schema_local_business", label: "가게 유형 정보 (LocalBusiness)",  points: 20 },
-  { key: "has_open_graph",            label: "SNS 공유 설정 (OG 태그)",         points: 20 },
-  { key: "is_mobile_friendly",        label: "모바일 최적화 (viewport)",         points: 10 },
+  { key: "has_json_ld",              label: "AI가 읽는 가게 정보 코드",    points: 40 },
+  { key: "has_schema_local_business", label: "가게 종류·위치 등록",          points: 20 },
+  { key: "has_open_graph",            label: "SNS 공유 시 가게 이름·사진 표시", points: 20 },
+  { key: "is_mobile_friendly",        label: "모바일 화면 최적화",           points: 10 },
 ] as const;
 
 function scoreColor(score: number): string {
@@ -35,7 +35,7 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-sm font-semibold text-gray-800">AI 검색 등록 (JSON-LD)</span>
+          <span className="text-sm font-semibold text-gray-800">AI에 가게 정보 등록</span>
           <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">글로벌 AI 점수</span>
         </div>
         <p className="text-sm text-gray-500">첫 스캔 후 웹사이트 AI 인식 점수가 표시됩니다.</p>
@@ -48,7 +48,7 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 md:p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-sm font-semibold text-gray-800">AI 검색 등록 (JSON-LD)</span>
+          <span className="text-sm font-semibold text-gray-800">AI에 가게 정보 등록</span>
           <span className="text-xs text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">홈페이지 없음</span>
         </div>
         <p className="text-sm text-gray-600 leading-relaxed break-keep">
@@ -74,7 +74,7 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-gray-800">AI 검색 등록 (JSON-LD)</span>
+          <span className="text-sm font-semibold text-gray-800">AI에 가게 정보 등록</span>
           <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">글로벌 AI 점수</span>
         </div>
         <span className={`text-lg font-bold ${scoreColor(score)}`}>{score}점</span>

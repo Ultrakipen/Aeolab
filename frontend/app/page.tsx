@@ -39,7 +39,7 @@ export default async function LandingPage() {
       >
         <div className="max-w-[1020px] mx-auto px-4 md:px-7 h-full flex items-center justify-between">
           {/* 로고 */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <span
               className="text-lg font-black"
               style={{ color: "#0F172A", fontFamily: "var(--font-pretendard,'Pretendard Variable',sans-serif)", letterSpacing: "-0.8px" }}
@@ -53,7 +53,7 @@ export default async function LandingPage() {
               lab
             </span>
             <span
-              className="hidden sm:flex items-center text-sm ml-2 px-2 py-0.5 rounded-full font-medium"
+              className="hidden sm:flex items-center text-sm ml-2 px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
               style={{ color: "#2563EB", background: "#EFF6FF", border: "1px solid #BFDBFE" }}
             >
               AI 노출 관리
@@ -61,24 +61,24 @@ export default async function LandingPage() {
           </div>
 
           {/* 네비게이션 */}
-          <nav className="flex items-center gap-0.5">
+          <nav className="flex items-center gap-0.5 shrink-0">
             <Link
               href="/how-it-works"
-              className="hidden lg:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50"
+              className="hidden lg:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
               style={{ color: "#475569" }}
             >
               서비스 안내
             </Link>
             <Link
               href="/pricing"
-              className="hidden md:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50"
+              className="hidden md:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
               style={{ color: "#475569" }}
             >
               요금제
             </Link>
             <Link
               href="/faq"
-              className="hidden md:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50"
+              className="hidden md:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
               style={{ color: "#475569" }}
             >
               FAQ
@@ -91,7 +91,7 @@ export default async function LandingPage() {
               <>
                 <Link
                   href="/dashboard"
-                  className="text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50"
+                  className="text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
                   style={{ color: "#475569" }}
                 >
                   대시보드
@@ -102,14 +102,14 @@ export default async function LandingPage() {
               <>
                 <Link
                   href="/login"
-                  className="hidden sm:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50"
+                  className="hidden sm:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
                   style={{ color: "#475569" }}
                 >
                   로그인
                 </Link>
                 <Link
                   href="/trial"
-                  className="ml-1.5 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors hover:bg-[#1D4ED8]"
+                  className="ml-1.5 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors hover:bg-[#1D4ED8] whitespace-nowrap"
                   style={{ background: "#2563EB" }}
                 >
                   무료 진단
@@ -281,8 +281,11 @@ export default async function LandingPage() {
                 aria-hidden="true"
               />
               <div className="relative">
-                <p className="text-sm font-bold mb-1.5" style={{ color: "rgba(255,255,255,0.75)" }}>음식점 적용 후 클릭률 변화</p>
-                <p className="stat-number-xl text-white mb-1.5">+27.4%</p>
+                <p className="text-sm font-bold mb-1.5" style={{ color: "rgba(255,255,255,0.95)" }}>음식점 적용 후 클릭률 변화</p>
+                <p className="stat-number-xl text-white mb-1.5">
+                  +27.4%
+                  <span className="text-xs font-bold ml-2 px-2 py-0.5 rounded-full align-middle" style={{ background: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.95)" }}>음식점 기준</span>
+                </p>
                 <p className="text-sm md:text-base break-keep mb-1" style={{ color: "rgba(255,255,255,0.88)" }}>
                   AI 브리핑에 노출되면 손님 클릭이 늘어납니다
                 </p>
@@ -306,26 +309,33 @@ export default async function LandingPage() {
             {/* 보조 카드 3개 */}
             <div className="fade-up flex flex-col gap-3">
               {[
-                { num: "3,000만+", label: "AI 브리핑을 본 사람", sub: "네이버 공식 발표 기반 추정치", delay: "delay-1" },
-                { num: "15,000+", label: "네이버 AI 브리핑 적용 숙박업체", sub: "2026년 기준 · 네이버 공식 발표", delay: "delay-2" },
-                { num: "25종+", label: "모든 업종 측정 가능", sub: "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기", delay: "delay-3" },
+                { num: "3,000만+", label: "AI 브리핑을 본 사람", sub: "네이버 공식 발표 기반 추정치", delay: "delay-1", isAiTab: false },
+                { num: "15,000+", label: "네이버 AI 브리핑 적용 숙박업체", sub: "2026년 기준 · 네이버 공식 발표", delay: "delay-2", isAiTab: false },
+                { num: "25종+", label: "모든 업종 측정 가능", sub: "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기", delay: "delay-3", isAiTab: true },
               ].map((item) => (
                 <div
                   key={item.label}
-                  className={`card-hover count-reveal ${item.delay} bg-white rounded-xl border p-3.5 flex flex-col gap-0.5`}
-                  style={{ borderColor: "#E2E8F0", boxShadow: FLOAT_SHADOW }}
+                  className={`card-hover count-reveal ${item.delay} rounded-xl border p-3.5 flex flex-col gap-0.5`}
+                  style={{
+                    background: item.isAiTab ? "#F5F3FF" : "#FFFFFF",
+                    borderColor: item.isAiTab ? "#A5B4FC" : "#E2E8F0",
+                    boxShadow: FLOAT_SHADOW,
+                  }}
                 >
+                  {item.isAiTab && (
+                    <p className="text-xs font-bold mb-0.5" style={{ color: "#6366F1" }}>AI탭 · 글로벌 AI</p>
+                  )}
                   <p
                     className="text-2xl md:text-3xl font-black leading-none"
                     style={{
-                      color: "#0F172A",
+                      color: item.isAiTab ? "#4F46E5" : "#0F172A",
                       fontFamily: "var(--font-pretendard,'Pretendard Variable',sans-serif)",
                     }}
                   >
                     {item.num}
                   </p>
                   <p className="text-sm font-semibold" style={{ color: "#1E293B" }}>{item.label}</p>
-                  <p className="text-sm" style={{ color: "#64748B" }}>{item.sub}</p>
+                  <p className="text-sm" style={{ color: "#64748B" }}>{item.isAiTab ? "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기" : item.sub}</p>
                 </div>
               ))}
             </div>
@@ -1029,7 +1039,7 @@ export default async function LandingPage() {
                 연 <span style={{ fontSize: "1.4em" }}>347만원</span> 절감 예상
               </p>
               <p className="text-sm" style={{ color: "#64748B" }}>
-                광고비 30만원 × 30% × 12개월 − AEOlab 연 118,800원 기준 추정
+                광고비 30만원 × 12개월 − AEOlab 연 118,800원 기준 추정
               </p>
               <p className="text-sm mt-1" style={{ color: "#94A3B8" }}>
                 절감 효과는 업종·지역·경쟁 강도에 따라 다릅니다

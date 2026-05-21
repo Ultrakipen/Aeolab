@@ -6,6 +6,14 @@
 .env.production.local
 backend/.env
 
+# E2E 테스트 실 계정 환경변수 (example 파일만 커밋)
+e2e/.env.test
+e2e/.biz_id
+
+# E2E 테스트 결과물
+e2e/playwright-report/
+e2e/test-results/
+
 # 외부 백업 디렉터리 (git 추적 제외 — code_backup_procedure_v1.0.md §1)
 _backup/
 

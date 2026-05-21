@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { trackPlanRecommend, trackEvent } from "@/lib/analytics";
 import { PayButton } from "./PayButton";
+import { ContactModal } from "./ContactModal";
 import Link from "next/link";
 import { getSafeSession } from "@/lib/supabase/client";
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
@@ -59,6 +60,7 @@ const OPTIONS: Option[] = [
 export default function PlanRecommender() {
   const [picked, setPicked] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [showBizModal, setShowBizModal] = useState(false);
 
   useEffect(() => {
     getSafeSession().then((s) => setIsLoggedIn(!!s?.user));
@@ -153,12 +155,12 @@ export default function PlanRecommender() {
           <div onClick={() => handleCtaClick(selectedOption.planKey)}>
             {/* Biz는 문의 전용 (isPay: false) */}
             {selectedOption.planKey === "biz" ? (
-              <a
-                href="mailto:hello@aeolab.co.kr"
+              <button
+                onClick={() => setShowBizModal(true)}
                 className="block text-center w-full py-3 rounded-xl font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm md:text-base"
               >
                 도입 문의하기 →
-              </a>
+              </button>
             ) : isLoggedIn ? (
               /* 로그인 상태 → PayButton 직접 사용 */
               <PayButton
@@ -192,6 +194,7 @@ export default function PlanRecommender() {
           위에서 내 상황을 선택하면 맞춤 플랜과 결제 버튼이 나타납니다
         </p>
       )}
+      <ContactModal open={showBizModal} onClose={() => setShowBizModal(false)} />
     </div>
   );
 }

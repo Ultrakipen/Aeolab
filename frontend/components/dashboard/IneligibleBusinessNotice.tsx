@@ -13,23 +13,23 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
   const isInactive = eligibility === "inactive";
 
   const title = isFranchise
-    ? "프랜차이즈 가맹점 — 글로벌 AI 채널 집중 관리"
+    ? "프랜차이즈 가맹점 — AI탭(전 업종) + 글로벌 AI 채널 집중 관리"
     : isInactive
-    ? `${categoryLabel} 업종 고객은 ChatGPT·Gemini·Google AI에서 먼저 검색합니다`
+    ? `${categoryLabel} 업종 — 네이버 AI탭(전 업종 베타) + ChatGPT·Gemini 노출 최적화`
     : `${categoryLabel} 업종 — AI 브리핑 확대 예정 + 글로벌 AI 최적화 병행`;
 
   const description = isFranchise
-    ? "네이버 AI 브리핑은 프랜차이즈 가맹점을 현재 지원하지 않습니다(추후 확대 예정). 대신 ChatGPT·Gemini·Google AI 노출을 집중 측정·개선합니다."
+    ? "네이버 AI 브리핑은 프랜차이즈 가맹점을 현재 지원하지 않습니다(추후 확대 예정). 대신 네이버 AI탭(모든 업종 가능, 베타)과 ChatGPT·Gemini·Google AI 노출을 집중 측정·개선합니다."
     : isInactive
-    ? `${categoryLabel} 업종 고객은 전문성·서비스 비교를 AI에서 먼저 합니다. AEOlab이 4개 AI 채널 노출 현황을 자동 측정하고 개선 방향을 제시합니다.`
+    ? `${categoryLabel} 업종도 네이버 AI탭(2026-04-27 베타, 모든 업종 가능)을 통해 네이버에 노출될 수 있습니다. AEOlab이 AI탭 포함 4개 채널 노출 현황을 자동 측정하고 개선 방향을 제시합니다.`
     : "네이버 AI 브리핑 확대 시 즉시 활성화됩니다. 지금은 글로벌 AI 채널 데이터를 누적 중입니다.";
 
   const channels = isInactive || isFranchise
     ? [
+        "네이버 AI 탭 — 2026-04-27 베타 공개, 전 업종 대상 대화형 검색 노출",
         "ChatGPT — 전문성 질문 시 사업장 추천 최적화",
         "Gemini — 서비스 비교 검색 시 노출 강화",
         "Google AI Overview — 구조화 데이터로 인용 후보 등록",
-        "네이버 AI 탭 — 2026-04-27 베타 공개, 전 업종 대상 대화형 검색 노출",
         "네이버 블로그 · 일반 검색 — 지역 키워드 노출",
       ]
     : [

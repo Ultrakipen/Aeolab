@@ -194,16 +194,16 @@ export default function DashboardHeader({
                     {displayCity} · {CATEGORY_LABEL[business.category] ?? business.category}
                   </p>
                   {briefingEligibility === "active" ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 whitespace-nowrap">
                       ✓ AI 브리핑 대상 업종
                     </span>
                   ) : briefingEligibility === "likely" ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 whitespace-nowrap">
                       △ AI 브리핑 확대 예정
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 whitespace-nowrap">
-                      ChatGPT·Gemini 중점
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 whitespace-nowrap">
+                      AI탭·ChatGPT·Gemini
                     </span>
                   )}
                 </div>
@@ -212,7 +212,7 @@ export default function DashboardHeader({
                   <span className="break-keep">{scanInfo.label}</span>
                 </p>
                 {lastScannedLabel && (
-                  <p className="text-sm text-gray-400">마지막 분석: {lastScannedLabel}</p>
+                  <p className="text-sm text-gray-600">마지막 분석: {lastScannedLabel}</p>
                 )}
               </div>
             </div>

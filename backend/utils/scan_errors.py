@@ -40,7 +40,7 @@ _SCAN_ERROR_CATALOG: dict[str, tuple[int, str]] = {
     ),
 }
 
-_SUPPORT_EMAIL = "hello@aeolab.co.kr"
+_SUPPORT_EMAIL = "contact@aeolab.co.kr"
 
 
 def make_scan_error(

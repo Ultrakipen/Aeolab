@@ -147,7 +147,7 @@ export default function DashboardHeroCard({
             </p>
             <p className="text-sm text-gray-500">
               {eligibility === "inactive"
-                ? "ChatGPT·Gemini 중점 개선"
+                ? "AI탭·ChatGPT·Gemini"
                 : "네이버 AI 브리핑"}
             </p>
           </div>

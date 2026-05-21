@@ -14,6 +14,7 @@ export default function TrialScanningStep({
   scanSteps,
   selectedTag,
   region,
+  briefingCategory = undefined,
 }: TrialScanningStepProps) {
   return (
     <div className="max-w-md mx-auto px-4 py-8 md:py-12 text-center">
@@ -42,7 +43,7 @@ export default function TrialScanningStep({
           &ldquo;{[region, selectedTag].filter(Boolean).join(" ") || "이 업종"} 추천&rdquo;
         </span>
         을<br />
-        ChatGPT·네이버 AI에게 직접 물어보고 있습니다
+        ChatGPT·Gemini·네이버 AI에게 직접 물어보고 있습니다
       </p>
       <p className="text-sm text-slate-400 mb-8">보통 30~60초 소요됩니다</p>
 
@@ -74,16 +75,28 @@ export default function TrialScanningStep({
                 />
               )}
             </span>
-            <span className="text-base">{s}</span>
+            <span className="text-base">
+              {i < scanStep
+                ? s.replace(/중\.{2,3}$/, "완료")
+                : s}
+            </span>
           </div>
         ))}
       </div>
 
+      {/* 체험 스캔 범위 안내 (ACTIVE 업종) */}
+      {briefingCategory === "active" && (
+        <p className="text-sm text-slate-400 mt-6 leading-relaxed bg-slate-50 rounded-xl px-4 py-3 text-left">
+          💡 <span className="font-semibold text-slate-600">체험 스캔 범위:</span> ChatGPT·스마트플레이스 자동 점검을 진행합니다.
+          네이버 AI 브리핑 실측 확인은 구독 후 정식 스캔에서 제공됩니다.
+        </p>
+      )}
+
       {/* 하단 안심 메시지 */}
-      <p className="text-sm text-slate-400 mt-8 leading-relaxed">
+      <p className="text-sm text-slate-400 mt-4 leading-relaxed">
         실제로 AI에게 질문을 보내고 응답을 분석합니다.
         <br />
-        창을 닫으면 결과가 사라질 수 있습니다.
+        스캔 중에는 이 탭을 유지해 주세요.
       </p>
     </div>
   );

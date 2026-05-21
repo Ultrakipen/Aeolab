@@ -28,7 +28,7 @@ export function SiteFooter({ activePage }: { activePage?: string }) {
               {label}
             </Link>
           ))}
-          <a href="mailto:hello@aeolab.co.kr" className="hover:text-gray-700">문의</a>
+          <a href="mailto:contact@aeolab.co.kr" className="hover:text-gray-700">문의</a>
         </div>
       </div>
       <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-gray-100 text-sm text-gray-500 leading-relaxed text-center sm:text-left break-keep">

@@ -280,7 +280,7 @@ export function SettingsClient({
       <div className="border border-red-100 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
           <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" strokeWidth={1.8} />
-          <h3 className="text-base font-semibold text-red-600">위험 영역</h3>
+          <h3 className="text-base font-semibold text-red-600">구독 해지</h3>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <p className="text-sm text-gray-500 flex-1">구독을 해지하면 자동 스캔과 알림이 중단됩니다.</p>

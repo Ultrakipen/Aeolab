@@ -91,7 +91,7 @@ export default function TermsPage() {
               <li>결제는 토스페이먼츠를 통한 신용카드·체크카드 자동결제(빌링키 방식)로 이루어집니다.</li>
               <li>구독은 매월 결제일에 자동으로 갱신됩니다.</li>
               <li>요금은 부가세(VAT) 포함 금액입니다.</li>
-              <li><strong>청약철회(구독 취소):</strong> 이용자는 구독 시작일로부터 7일 이내에 청약철회를 신청할 수 있습니다. 단, 서비스를 이용(스캔·가이드 생성 등)한 경우에는 전자상거래법 제17조에 따라 청약철회가 제한될 수 있습니다. 청약철회 신청은 이메일(<a href="mailto:hello@aeolab.co.kr" className="text-blue-600 hover:underline">hello@aeolab.co.kr</a>) 또는 서비스 내 해지 신청으로 가능하며, 신청 접수 후 영업일 기준 3일 이내에 처리됩니다.</li>
+              <li><strong>청약철회(구독 취소):</strong> 이용자는 구독 시작일로부터 7일 이내에 청약철회를 신청할 수 있습니다. 단, 서비스를 이용(스캔·가이드 생성 등)한 경우에는 전자상거래법 제17조에 따라 청약철회가 제한될 수 있습니다. 청약철회 신청은 이메일(<a href="mailto:contact@aeolab.co.kr" className="text-blue-600 hover:underline">contact@aeolab.co.kr</a>) 또는 서비스 내 해지 신청으로 가능하며, 신청 접수 후 영업일 기준 3일 이내에 처리됩니다.</li>
               <li>청약철회 기간 경과 후 구독 해지 신청 시, 해당 월 구독 기간 만료 후 해지가 처리되며 잔여 기간에 대한 환불은 제공되지 않습니다.</li>
               <li>회사는 사전 고지 후 요금 정책을 변경할 수 있습니다.</li>
             </ol>
@@ -151,7 +151,7 @@ export default function TermsPage() {
           <section className="border-t border-gray-200 pt-6">
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">부칙</h2>
             <p>이 약관은 2026년 4월 1일부터 시행합니다.</p>
-            <p className="mt-2">문의: <a href="mailto:hello@aeolab.co.kr" className="text-blue-600 hover:underline">hello@aeolab.co.kr</a></p>
+            <p className="mt-2">문의: <a href="mailto:contact@aeolab.co.kr" className="text-blue-600 hover:underline">contact@aeolab.co.kr</a></p>
           </section>
 
         </div>

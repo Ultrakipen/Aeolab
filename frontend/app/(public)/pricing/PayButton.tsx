@@ -9,9 +9,10 @@ interface Props {
   highlight: boolean;
   signupHref: string;
   firstMonthAmount?: number; // 첫 달 50% 할인가 (있으면 신규 가입자에게 적용)
+  ctaText?: string;
 }
 
-export function PayButton({ planName, amount, highlight, signupHref, firstMonthAmount }: Props) {
+export function PayButton({ planName, amount, highlight, signupHref, firstMonthAmount, ctaText }: Props) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isFirstTime, setIsFirstTime] = useState<boolean | null>(null);
@@ -87,7 +88,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
             : "bg-blue-600 text-white hover:bg-blue-700"
         }`}
       >
-        시작하기
+        {ctaText ?? "시작하기"}
       </button>
 
       {showConfirm && (

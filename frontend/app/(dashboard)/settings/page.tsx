@@ -35,7 +35,7 @@ const STATUS_META: Record<string, { label: string; color: string; dot: string }>
 const PLAN_LIMITS: Record<string, { scan: string; competitors: string; autoScan: string }> = {
   free:       { scan: "—",          competitors: "—",      autoScan: "—" },
   basic:      { scan: "하루 2회",   competitors: "3개",    autoScan: "주 1회 (월요일)" },
-  startup:    { scan: "하루 3회",   competitors: "5개",    autoScan: "매일" },
+  startup:    { scan: "하루 3회",   competitors: "5개",    autoScan: "주 1회 (월요일)" },
   pro:        { scan: "하루 5회",   competitors: "5개",   autoScan: "주 3회" },
   biz:        { scan: "하루 15회",  competitors: "무제한", autoScan: "매일" },
 };
@@ -228,6 +228,16 @@ export default async function SettingsPage({
                         <div className="text-sm text-gray-500 mt-0.5">{label}</div>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="pt-3 border-t border-gray-100">
+                    <a
+                      href="/pricing"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                      <Zap className="w-4 h-4" />
+                      플랜 변경 · 업그레이드
+                    </a>
                   </div>
                 </div>
               ) : (

@@ -151,7 +151,7 @@ export const PLANS: PlanInfo[] = [
       "히스토리 무제한 + 엑셀·PDF 무제한",
     ],
     cta: "문의하기",
-    href: "mailto:hello@aeolab.co.kr",
+    href: "mailto:contact@aeolab.co.kr",
     isPay: false,
   },
   {

@@ -121,7 +121,7 @@ export default function OnboardingPage() {
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     name: "",
-    category: "food",
+    category: "",
     region: "",
     address: "",
     phone: "",
@@ -238,6 +238,10 @@ export default function OnboardingPage() {
     e.preventDefault();
     if (!form.name || !form.region) {
       setError("사업장명과 지역은 필수입니다.");
+      return;
+    }
+    if (!form.category) {
+      setError("업종을 선택해주세요.");
       return;
     }
     setLoading(true);

@@ -728,6 +728,30 @@ export default function TrialResultStep(props: TrialResultProps) {
 
       <div className="max-w-5xl mx-auto py-6 px-4 pb-28">
 
+        {/* ── 0. 핵심 요약 (처음 접속자 즉시 파악) ───────────────── */}
+        <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 mb-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="flex-1 min-w-0">
+            <p className="text-base font-bold text-slate-800">
+              {score >= benchmarkAvg
+                ? `업종 평균(${Math.round(benchmarkAvg)}점) 이상입니다`
+                : `업종 평균(${Math.round(benchmarkAvg)}점)보다 낮습니다 — 개선 여지 있음`}
+            </p>
+            <p className="text-sm text-slate-600 mt-0.5 break-keep">
+              {missingKws.length > 0
+                ? `개선 포인트: '${missingKws[0]}' 키워드가 소개글에 없습니다`
+                : chatgptMentioned === false
+                  ? "ChatGPT 답변에 아직 내 가게가 등장하지 않습니다"
+                  : "아래 발견 항목을 확인하세요"}
+            </p>
+          </div>
+          <a
+            href="#today-action"
+            className="shrink-0 text-sm font-bold text-blue-600 hover:text-blue-700 whitespace-nowrap"
+          >
+            오늘 할 일 보기 ↓
+          </a>
+        </div>
+
         {/* ── 1. 가게 헤더 (업종 배지 인라인 통합) ───────────────── */}
         {form.business_name ? (
           <div className="rounded-xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-5 py-5 mb-4 shadow-lg border border-white/10">
@@ -875,6 +899,7 @@ export default function TrialResultStep(props: TrialResultProps) {
         />
 
         {/* ── 7. 지금 바로 할 핵심 액션 ──────────────────────────── */}
+        <div id="today-action" />
         <TodayOneAction
           key={effectiveMissingKws[0] ?? "no-kw"}
           isSmartPlace={isSmartPlace}
@@ -1049,7 +1074,7 @@ export default function TrialResultStep(props: TrialResultProps) {
             같은 동네 사장님께도 알려주세요
           </p>
           <p className="text-sm text-slate-500 mb-4 leading-relaxed break-keep">
-            결과 카드를 공유해 친구 가게도 30초 진단받게 하세요
+            결과 카드를 공유해 친구 가게도 무료 진단받게 하세요
           </p>
           <div className="flex flex-col sm:flex-row gap-2">
             <KakaoShareButton
@@ -1109,14 +1134,14 @@ function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number })
             이번 체험 스캔 기준
           </p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            ChatGPT <strong className="text-white font-semibold">{chatgptSampleSize}회 질의</strong> + 네이버 스마트플레이스 자동 점검으로 측정한 결과입니다.
+            Gemini <strong className="text-white font-semibold">10회</strong> + ChatGPT <strong className="text-white font-semibold">{chatgptSampleSize}회 질의</strong> + 네이버 스마트플레이스 자동 점검으로 측정한 결과입니다.
           </p>
         </div>
       </div>
       <div className="bg-slate-600 rounded-lg px-3 py-2 mb-3">
         <p className="text-sm text-slate-300 leading-relaxed">
-          <span className="text-white font-semibold">정식 구독</span>에서는 Gemini·ChatGPT 각{" "}
-          <span className="text-white font-semibold">50회씩(총 100회)</span> + Google AI Overview까지 주기적으로 측정합니다.
+          <span className="text-white font-semibold">Basic 구독</span>에서는 Gemini·ChatGPT 각{" "}
+          <span className="text-white font-semibold">50회씩(총 100회)</span> + 네이버 스마트플레이스 주기 측정. Pro 이상에서 Google AI Overview 추가 측정합니다.
         </p>
       </div>
       <div className="border-t border-slate-500 pt-2.5 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
@@ -1577,7 +1602,7 @@ function BriefingBadgeChip({
 }) {
   if (category === "active") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-sm font-bold text-green-700 bg-white rounded-full px-3 py-1 shadow-sm">
+      <span className="inline-flex items-center gap-1.5 text-sm font-bold text-green-700 bg-white rounded-full px-3 py-1 shadow-sm whitespace-nowrap">
         <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
         네이버 AI 브리핑 대상
       </span>
@@ -1585,14 +1610,14 @@ function BriefingBadgeChip({
   }
   if (category === "likely") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-200 bg-white/20 border border-amber-300/60 rounded-full px-3 py-1">
+      <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-200 bg-white/20 border border-amber-300/60 rounded-full px-3 py-1 whitespace-nowrap">
         <Clock className="w-3.5 h-3.5 shrink-0" />
         ChatGPT·Gemini + AI 브리핑 확대 예정
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-white/20 border border-white/40 rounded-full px-3 py-1">
+    <span className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-white/20 border border-white/40 rounded-full px-3 py-1 whitespace-nowrap">
       <Globe className="w-3.5 h-3.5 shrink-0" />
       ChatGPT·Gemini + 네이버 검색 노출
     </span>

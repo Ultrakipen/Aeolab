@@ -194,10 +194,11 @@ function SignupForm() {
           <h1 className="text-xl font-bold text-gray-900 text-center">회원가입</h1>
 
           <div>
-            <label className="block text-base font-medium text-gray-700 mb-1.5">
+            <label htmlFor="signup-email" className="block text-base font-medium text-gray-700 mb-1.5">
               이메일 <span className="text-blue-600">*</span>
             </label>
             <input
+              id="signup-email"
               type="email"
               required
               autoComplete="email"
@@ -209,11 +210,12 @@ function SignupForm() {
           </div>
 
           <div>
-            <label className="block text-base font-medium text-gray-700 mb-1.5">
+            <label htmlFor="signup-password" className="block text-base font-medium text-gray-700 mb-1.5">
               비밀번호 <span className="text-blue-600">*</span>
               <span className="text-sm font-normal text-gray-400 ml-1">(8자 이상)</span>
             </label>
             <input
+              id="signup-password"
               type="password"
               required
               minLength={8}
@@ -226,10 +228,11 @@ function SignupForm() {
           </div>
 
           <div>
-            <label className="block text-base font-medium text-gray-700 mb-1.5">
+            <label htmlFor="signup-password-confirm" className="block text-base font-medium text-gray-700 mb-1.5">
               비밀번호 확인 <span className="text-blue-600">*</span>
             </label>
             <input
+              id="signup-password-confirm"
               type="password"
               required
               minLength={8}

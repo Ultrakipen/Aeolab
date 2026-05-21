@@ -63,6 +63,7 @@ export interface TrialScanningStepProps {
   scanSteps: string[];
   selectedTag: string;
   region: string;
+  briefingCategory?: "active" | "likely" | "inactive";
 }
 
 export interface TrialInputStepProps {

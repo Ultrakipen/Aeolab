@@ -91,12 +91,12 @@ export default async function AiInfoTabGuidePage({
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 break-keep">
           {elig === 'inactive' || (business?.is_franchise)
-            ? 'AI 검색 노출 개선 — 단계별 설정 가이드'
+            ? '네이버 AI탭 최적화 + 글로벌 AI 노출 가이드'
             : '네이버 AI 브리핑 노출 — 5단계 설정 가이드'}
         </h1>
         <p className="text-base md:text-lg text-gray-700 leading-relaxed break-keep">
           {elig === 'inactive' || (business?.is_franchise)
-            ? '네이버 일반 검색·ChatGPT·Gemini·Google AI 노출을 개선하는 단계별 안내입니다. 평균 소요 10분.'
+            ? '네이버 AI탭(모든 업종 노출 가능, 현재 베타)을 1순위로 최적화하고 ChatGPT·Gemini·Google AI 노출을 함께 개선합니다. 평균 소요 10분.'
             : '내 사업장이 네이버 AI 브리핑에 노출되도록 단계별로 안내합니다. 평균 소요 15분.'}
         </p>
         <p className="mt-2 text-sm md:text-base text-gray-500">

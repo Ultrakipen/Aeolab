@@ -90,20 +90,25 @@ export default function DashboardScoreZone({
               </p>
               <div className="mt-2 space-y-2">
                 <div className="flex items-start gap-2">
-                  <span className="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700 flex-shrink-0">AI 브리핑</span>
+                  <span className="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-sm text-gray-700 flex-shrink-0">AI 브리핑</span>
                   <p className="text-sm text-indigo-700">음식점·카페·숙박 전용 — 이 업종은 대상 외</p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="inline-flex items-center rounded-full bg-indigo-600 px-2 py-0.5 text-xs text-white flex-shrink-0">AI탭 (신규)</span>
+                  <span className="inline-flex items-center rounded-full bg-indigo-600 px-2 py-0.5 text-sm text-white flex-shrink-0">AI탭 (신규)</span>
                   <p className="text-sm text-indigo-700">
                     <strong>모든 업종 노출 가능</strong> — 스마트플레이스 완성도·소개글·예약 연동이 핵심.
                     현재 네이버플러스 구독자 대상 베타, 상반기 전체 확대 예정.
                   </p>
                 </div>
               </div>
-              <a href="/guide/ai-info-tab" className="mt-2 inline-block text-sm text-indigo-600 underline hover:text-indigo-800">
-                AI탭 대응 5단계 가이드 →
-              </a>
+              <div className="mt-2 flex flex-wrap gap-3">
+                <a href="/guide/ai-tab" className="text-sm text-indigo-600 underline hover:text-indigo-800 font-semibold">
+                  AI탭 최적화 가이드 →
+                </a>
+                <a href="/guide/ai-info-tab" className="text-sm text-indigo-500 underline hover:text-indigo-700">
+                  전체 AI 노출 가이드
+                </a>
+              </div>
             </div>
           </div>
         </div>

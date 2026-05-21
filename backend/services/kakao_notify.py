@@ -19,7 +19,7 @@ EMAIL_TEMPLATES: dict[str, dict] = {
             "<a href='https://aeolab.co.kr/dashboard'>https://aeolab.co.kr/dashboard</a></p>"
             "<hr style='border:none;border-top:1px solid #e2e8f0;margin:20px 0;'>"
             "<p style='font-size:11px;color:#94a3b8;'>카카오 알림톡 발송 실패로 이메일로 대체 발송됩니다.<br>"
-            "AEOlab · hello@aeolab.co.kr</p>"
+            "AEOlab · contact@aeolab.co.kr</p>"
             "</div>"
         ),
     },

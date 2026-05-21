@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronDown, ChevronUp, CheckCircle2, Search, Target, Mail, Store, Laptop, Rocket, MapPin, Phone, Info, AlertTriangle } from "lucide-react";
 import {
@@ -71,6 +71,11 @@ export default function TrialInputStep(props: TrialInputStepProps) {
 
   const [keywordError, setKeywordError] = useState(false);
   const [regionError, setRegionError] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("");
+
+  useEffect(() => {
+    if (step === "category") setCategorySearch("");
+  }, [step]);
   const keywordInputRef = useRef<HTMLInputElement>(null);
   const regionInputRef = useRef<HTMLInputElement>(null);
 
@@ -143,7 +148,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 {
                   Icon: Mail,
                   title: "7일 뒤 변화 알림",
-                  desc: "개선 후 효과를 자동으로 측정해 알려 드립니다",
+                  desc: "가입 후 개선 효과를 자동 측정해 알려 드립니다",
                 },
               ].map((item) => (
                 <div
@@ -221,15 +226,37 @@ export default function TrialInputStep(props: TrialInputStepProps) {
               ))}
             </div>
 
+            {/* 업종 검색 입력 */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" aria-hidden="true" />
+              <input
+                type="text"
+                placeholder="업종 검색 (예: 카페, 네일, 학원)"
+                value={categorySearch}
+                onChange={(e) => setCategorySearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+              />
+            </div>
+
             {/* 59개 평면 업종 (그룹별) */}
             <div className="space-y-5">
-              {FLAT_CATEGORY_GROUPS.map((group) => (
+              {FLAT_CATEGORY_GROUPS.map((group) => {
+                const q = categorySearch.trim().toLowerCase();
+                const filteredItems = q
+                  ? group.items.filter(
+                      (cat) =>
+                        cat.label.toLowerCase().includes(q) ||
+                        cat.groupLabel.toLowerCase().includes(q),
+                    )
+                  : group.items;
+                if (filteredItems.length === 0) return null;
+                return (
                 <div key={group.groupLabel}>
                   <p className="text-sm font-semibold text-slate-500 mb-2 px-1">
                     {group.groupLabel}
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 md:gap-3">
-                    {group.items.map((cat) => {
+                    {filteredItems.map((cat) => {
                       const cfg = CATEGORY_ICON_MAP[cat.value];
                       const Icon = cfg?.Icon;
                       const selected = selectedCategory === cat.value;
@@ -238,7 +265,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                         grp === "ACTIVE"
                           ? { text: "AI 브리핑", cls: "bg-green-100 text-green-700", dot: "bg-green-500" }
                           : grp === "LIKELY"
-                          ? { text: "AI 확대 예정", cls: "bg-blue-100 text-blue-700", dot: "bg-blue-400" }
+                          ? { text: "AI 탭 확대 예정", cls: "bg-blue-100 text-blue-700", dot: "bg-blue-400" }
                           : { text: "글로벌 AI", cls: "bg-violet-50 text-violet-700", dot: "bg-violet-400" };
                       return (
                         <button
@@ -276,7 +303,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           >
                             {cat.label}
                           </span>
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${aiBadge.cls}`}>
+                          <span className={`text-sm font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${aiBadge.cls}`}>
                             <span className={`w-2 h-2 rounded-full ${aiBadge.dot} inline-block shrink-0`} aria-hidden="true" />
                             {aiBadge.text}
                           </span>
@@ -285,7 +312,21 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                     })}
                   </div>
                 </div>
-              ))}
+              );
+            })}
+            {categorySearch.trim() &&
+              FLAT_CATEGORY_GROUPS.every(
+                (g) =>
+                  !g.items.some(
+                    (c) =>
+                      c.label.toLowerCase().includes(categorySearch.trim().toLowerCase()) ||
+                      c.groupLabel.toLowerCase().includes(categorySearch.trim().toLowerCase()),
+                  ),
+              ) && (
+                <p className="text-center text-sm text-slate-400 py-6">
+                  일치하는 업종이 없습니다. 다른 단어로 검색해 보세요.
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -347,6 +388,12 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                             <span className="text-blue-500 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
                               <strong>스마트플레이스·소개글</strong> 개선 → 네이버 지도 상위 노출 가능
+                            </p>
+                          </li>
+                          <li className="flex items-start gap-1.5">
+                            <span className="text-blue-500 shrink-0 mt-0.5">•</span>
+                            <p className="text-sm text-blue-800">
+                              <strong>네이버 AI탭</strong>은 모든 업종 대상(2026 베타) — 업종 무관하게 이용 가능
                             </p>
                           </li>
                         </ul>
@@ -435,7 +482,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           인가요?
                         </p>
                         <span
-                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          className={`text-sm px-2 py-0.5 rounded-full font-medium ${
                             hasTypeSelected
                               ? "bg-green-100 text-green-700"
                               : "bg-red-100 text-red-600"
@@ -628,16 +675,16 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 "대표 키워드 입력";
               const previewKeyword = primaryKeyword || selectedTags[0];
               return (
-                <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 mb-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" aria-hidden="true" />
-                    <p className="text-base font-bold text-amber-900">분석 기준 키워드 — 꼭 확인하세요</p>
+                    <Info className="w-5 h-5 text-blue-500 shrink-0" aria-hidden="true" />
+                    <p className="text-base font-bold text-blue-900">분석 기준 키워드 확인</p>
                   </div>
-                  <p className="text-sm text-amber-800 mb-1 leading-relaxed">
+                  <p className="text-sm text-blue-700 mb-1 leading-relaxed">
                     이 키워드로 ChatGPT·Gemini·네이버 AI에 <strong>&ldquo;[지역] [키워드] 추천&rdquo;</strong> 형식으로 실제 쿼리를 날려 경쟁사와 비교 측정합니다.
                   </p>
-                  <p className="text-sm font-semibold text-amber-900 mb-3">
-                    키워드가 잘못되면 의도하지 않은 업종의 경쟁사와 비교됩니다. 내 가게의 대표 서비스·업종명으로 수정하세요.
+                  <p className="text-sm font-semibold text-blue-800 mb-3">
+                    내 가게의 대표 서비스·업종명이 맞는지 확인하세요.
                   </p>
                   <input
                     ref={keywordInputRef}

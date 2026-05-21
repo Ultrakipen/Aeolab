@@ -1,0 +1,27 @@
+{
+  "name": "aeolab-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AEOlab E2E 테스트 (Playwright) — 실서버 https://aeolab.co.kr 대상",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "test:headed": "playwright test --headed",
+    "test:public": "playwright test tests/01_public.spec.ts",
+    "test:trial": "playwright test tests/02_trial.spec.ts",
+    "test:dashboard": "playwright test tests/03_dashboard.spec.ts",
+    "test:competitors": "playwright test tests/04_competitors.spec.ts",
+    "test:blog": "playwright test tests/05_blog.spec.ts",
+    "test:guide": "playwright test tests/06_guide.spec.ts",
+    "test:gates": "playwright test tests/07_plan_gates.spec.ts",
+    "test:setup": "playwright test tests/00_setup.spec.ts",
+    "test:all-plans": "playwright test tests/08_all_plans_features.spec.ts",
+    "install:browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.0.0",
+    "dotenv": "^16.0.0"
+  }
+}

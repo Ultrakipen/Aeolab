@@ -150,7 +150,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-3">
               권리 행사는 서비스 내 &ldquo;설정&rdquo; 페이지에서 직접 하시거나,{" "}
-              <a href="mailto:hello@aeolab.co.kr" className="text-blue-600 hover:underline">hello@aeolab.co.kr</a>으로
+              <a href="mailto:contact@aeolab.co.kr" className="text-blue-600 hover:underline">contact@aeolab.co.kr</a>으로
               이메일 요청 시 10일 이내 처리합니다.
             </p>
           </section>
@@ -172,7 +172,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">8. 개인정보 보호책임자</h2>
             <div className="bg-gray-50 rounded-lg p-4 space-y-1">
               <p><strong>성명:</strong> AEOlab 운영자</p>
-              <p><strong>이메일:</strong> <a href="mailto:hello@aeolab.co.kr" className="text-blue-600 hover:underline">hello@aeolab.co.kr</a></p>
+              <p><strong>이메일:</strong> <a href="mailto:contact@aeolab.co.kr" className="text-blue-600 hover:underline">contact@aeolab.co.kr</a></p>
               <p className="text-sm text-gray-500 mt-2">
                 개인정보 처리에 관한 문의, 불만, 피해 구제 등은 위 연락처로 문의해 주시기 바랍니다.
               </p>

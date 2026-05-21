@@ -161,7 +161,7 @@ export default function ServiceMechanismSection() {
               <ul className="space-y-2 text-sm leading-relaxed mb-3" style={{ color: "#1E293B" }}>
                 <li className="flex gap-2">
                   <span className="shrink-0 font-bold" style={{ color: "#2563EB" }}>•</span>
-                  AI 브리핑 사용자 <strong>3,000만명+</strong>, 통합검색 질의 약 <strong>20%</strong> 적용
+                  AI 브리핑 사용자 <strong>3,000만명+</strong> <span style={{ color: "#64748B", fontSize: "0.75rem" }}>(추정치)</span>, 통합검색 질의 약 <strong>20%</strong> 적용
                 </li>
                 <li className="flex gap-2">
                   <span className="shrink-0 font-bold" style={{ color: "#2563EB" }}>•</span>

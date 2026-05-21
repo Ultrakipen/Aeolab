@@ -96,6 +96,7 @@ export default function PricingPage() {
                   highlight={plan.highlight}
                   signupHref={plan.href}
                   firstMonthAmount={plan.name === "Basic" ? FIRST_MONTH_DISCOUNT_PRICES.basic : undefined}
+                  ctaText={plan.cta}
                 />
               ) : (
                 <Link
@@ -223,6 +224,7 @@ export default function PricingPage() {
               ))}
             </tbody>
           </table>
+          <p className="text-sm text-gray-400 mt-2 text-right">— : 해당 플랜에 포함되지 않음</p>
         </div>
 
         {/* ─── 포함된 진단 도구 ─── */}
