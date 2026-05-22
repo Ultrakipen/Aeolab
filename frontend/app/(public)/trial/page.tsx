@@ -26,7 +26,7 @@ import type {
 // ── 모듈 레벨 상수 ────────────────────────────────────────────────────
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
-// ── 결과 캐시 (sessionStorage) ─────────────────────────────────────────
+// ── 결과 캐시 (sessionStorage + localStorage fallback) ────────────────
 const RESULT_CACHE_KEY = "trial_result_cache";
 const RESULT_CACHE_TTL_MS = 60 * 60 * 1000; // 1시간
 
@@ -44,35 +44,33 @@ interface TrialResultCache {
 
 function saveResultCache(payload: Omit<TrialResultCache, "cachedAt">): void {
   if (typeof window === "undefined") return;
-  try {
-    const cache: TrialResultCache = { ...payload, cachedAt: Date.now() };
-    sessionStorage.setItem(RESULT_CACHE_KEY, JSON.stringify(cache));
-  } catch {
-    // quota 초과 등 저장 실패 시 무시
-  }
+  const cache: TrialResultCache = { ...payload, cachedAt: Date.now() };
+  const json = JSON.stringify(cache);
+  try { sessionStorage.setItem(RESULT_CACHE_KEY, json); } catch { /* 무시 */ }
+  try { localStorage.setItem(RESULT_CACHE_KEY, json); } catch { /* 무시 */ }
 }
 
 function loadResultCache(): TrialResultCache | null {
   if (typeof window === "undefined") return null;
-  try {
-    const raw = sessionStorage.getItem(RESULT_CACHE_KEY);
-    if (!raw) return null;
-    const cache: TrialResultCache = JSON.parse(raw);
-    if (Date.now() - cache.cachedAt > RESULT_CACHE_TTL_MS) {
-      sessionStorage.removeItem(RESULT_CACHE_KEY);
-      return null;
-    }
-    return cache;
-  } catch {
-    return null;
+  for (const storage of [sessionStorage, localStorage]) {
+    try {
+      const raw = storage.getItem(RESULT_CACHE_KEY);
+      if (!raw) continue;
+      const cache: TrialResultCache = JSON.parse(raw);
+      if (Date.now() - cache.cachedAt > RESULT_CACHE_TTL_MS) {
+        storage.removeItem(RESULT_CACHE_KEY);
+        continue;
+      }
+      return cache;
+    } catch { /* 무시 */ }
   }
+  return null;
 }
 
 function clearResultCache(): void {
   if (typeof window === "undefined") return;
-  try {
-    sessionStorage.removeItem(RESULT_CACHE_KEY);
-  } catch { /* 무시 */ }
+  try { sessionStorage.removeItem(RESULT_CACHE_KEY); } catch { /* 무시 */ }
+  try { localStorage.removeItem(RESULT_CACHE_KEY); } catch { /* 무시 */ }
 }
 
 // ── 상수 ───────────────────────────────────────────────────────────────
@@ -525,7 +523,7 @@ export default function TrialPage() {
       recordTrialUse();
       setResult(data);
       setIsRestored(false);
-      // sessionStorage에 결과 캐시 저장 (뒤로가기 복원용)
+      // sessionStorage + localStorage 양쪽에 결과 캐시 저장 (탭 닫아도 1시간 내 복원)
       saveResultCache({
         result: data,
         selectedCategory,
@@ -536,18 +534,6 @@ export default function TrialPage() {
         hasRecentPost: hasRecentPost ?? false,
         hasIntro: hasIntro ?? false,
       });
-      try {
-        localStorage.setItem(
-          "aeolab_trial_result",
-          JSON.stringify({
-            result: data,
-            timestamp: Date.now(),
-            business_name: form.business_name,
-          }),
-        );
-      } catch {
-        // localStorage 접근 실패 시 무시
-      }
       setStep("result");
     } catch (err: unknown) {
       clearInterval(stepInterval);
