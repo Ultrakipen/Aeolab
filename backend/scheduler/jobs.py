@@ -83,9 +83,10 @@ def start_scheduler():
         _cleanup_memory_stores, "interval", minutes=10, id="memory_cleanup",
         replace_existing=True,
     )
-    # 경쟁사 리뷰 발췌문 저장 보조 (competitor_scores excerpt 업데이트, 일 1회 오전 4시)
+    # 경쟁사 keyword_gap excerpt 보강 (매주 일요일 02:00 KST, 트래픽 최저점)
     scheduler.add_job(
-        _enrich_competitor_excerpts, "cron", hour=4, minute=0, id="competitor_excerpts",
+        _enrich_competitor_excerpts, "cron", day_of_week="sun", hour=2, minute=0,
+        id="enrich_competitor_keywords_job",
         replace_existing=True, max_instances=1, misfire_grace_time=300,
     )
     # 신규 경쟁사 감지 (월요일 오전 4시)
@@ -1496,22 +1497,32 @@ async def _enrich_competitor_excerpts():
         scans = _scans_res.data or []
 
         gemini = GeminiScanner()
+        max_calls = int(os.getenv("MAX_CLAUDE_CALLS_PER_JOB", "50"))
         enriched = 0
+        failed = 0
+        api_calls = 0
         for scan in scans:
+            if api_calls >= max_calls:
+                logger.warning(f"[keyword_gap_enrich] API 상한 도달 ({max_calls}회), 중단")
+                break
             comp_scores = scan.get("competitor_scores") or {}
             needs_update = False
             for comp_id, data in comp_scores.items():
+                if api_calls >= max_calls:
+                    break
                 if isinstance(data, dict) and not data.get("excerpt"):
                     name = data.get("name", "")
                     query = scan.get("query_used", "")
                     if name and query:
                         try:
                             r = await gemini.single_check(query, name)
+                            api_calls += 1
                             excerpt = r.get("excerpt", "")
                             if excerpt:
                                 comp_scores[comp_id]["excerpt"] = excerpt[:300]
                                 needs_update = True
                         except Exception as _exc:
+                            failed += 1
                             logger.warning(f"competitor excerpt enrich skip [{comp_id}]: {_exc}")
             if needs_update:
                 await _db(
@@ -1521,8 +1532,7 @@ async def _enrich_competitor_excerpts():
                 )
                 enriched += 1
 
-        if enriched:
-            logger.info(f"competitor_excerpts enriched: {enriched} scans updated")
+        logger.info(f"[keyword_gap_enrich] 완료 {enriched}건 / 실패 {failed}건 (API {api_calls}회)")
     except Exception as e:
         logger.warning(f"_enrich_competitor_excerpts failed: {e}")
         await send_slack_alert("_enrich_competitor_excerpts 실패", str(e), level="error")
