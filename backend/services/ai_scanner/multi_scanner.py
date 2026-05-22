@@ -105,6 +105,26 @@ class MultiAIScanner:
 
         all_keys = api_keys + playwright_keys
         all_results = list(api_results) + playwright_results
+
+        # ── AI탭 스캐너 (P2) ──────────────────────────────────────────────
+        # 트리거: 6월 네이버 AI탭 전체 확대 후 NAVER_AI_TAB_ENABLED=true 설정
+        # PLAYWRIGHT_SEMAPHORE 공유 — naver_ai_tab_scanner.scan()이 내부에서 동일 세마포어 획득하므로
+        # 여기서는 세마포어를 직접 획득하지 않고 scan()에 위임 (중복 acquire 방지)
+        if os.getenv("NAVER_AI_TAB_ENABLED", "false").lower() == "true":
+            _queries = queries if isinstance(queries, list) else [queries]
+            _ai_tab_results: dict = {}
+            for _q in _queries[:4]:
+                try:
+                    _r = await _naver_ai_tab.scan(_q, target)
+                    if _r:
+                        _ai_tab_results[_q] = _r
+                    await asyncio.sleep(2)
+                except Exception as _tab_e:
+                    logger.warning(f"[multi_scanner] ai_tab scan skip [{_q!r}]: {_tab_e}")
+            if _ai_tab_results:
+                all_keys.append("naver_ai_tab")
+                all_results.append(_ai_tab_results)
+
         return {
             k: (v if not isinstance(v, Exception) else {"platform": k, "mentioned": False, "error": str(v)})
             for k, v in zip(all_keys, all_results)

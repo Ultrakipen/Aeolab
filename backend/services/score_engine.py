@@ -366,15 +366,24 @@ def calc_naver_exposure(scan_result: dict) -> float:
 
     광고 영역(ad_only=True)만 노출된 경우 유기 노출이 아니므로 0점 처리.
     Q2 광고 출시 전에는 ad_only가 항상 False이므로 점수 변동 없음.
+
+    P2 보너스 (NAVER_AI_TAB_ENABLED=true):
+        naver_ai_tab_visible=True 실측 시 +20점 (상한 100점).
+        미측정(False 또는 키 없음) 시 보너스 없음 — 허위 수치 금지.
     """
     naver_result = scan_result.get("naver") or scan_result.get("naver_result") or {}
     # 광고 영역만 노출 시 유기 노출 아님 → 점수 0
     if naver_result.get("ad_only"):
         return 0.0
-    return (
+    briefing_score = float(
         (60 if naver_result.get("mentioned") else 0) +
         (40 if naver_result.get("in_briefing") else 0)
     )
+    # AI탭 보너스 (P2 활성화 시, 실측 데이터 있을 때만 적용)
+    if os.getenv("NAVER_AI_TAB_ENABLED", "false").lower() == "true":
+        if scan_result.get("naver_ai_tab_visible") is True:
+            briefing_score = min(100.0, briefing_score + 20.0)
+    return briefing_score
 
 
 def calc_kakao_completeness(scan_result: dict, biz: dict) -> float:
