@@ -193,6 +193,7 @@ export default function TrialPage() {
     count: number;
     avg_score: number;
     top10_score: number;
+    fallback?: string;
   } | null>(null);
 
   // ── 헬퍼 ────────────────────────────────────────────────────────────

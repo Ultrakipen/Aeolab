@@ -194,7 +194,7 @@ export default async function GrowthPage() {
   } | null = null;
   if (benchmarkRes?.ok) {
     const raw = await benchmarkRes.json().catch(() => null);
-    if (raw) {
+    if (raw && !raw.fallback) {
       const latestScore = historyData.length > 0
         ? (historyData[historyData.length - 1].unified_score ?? 0)
         : 0;

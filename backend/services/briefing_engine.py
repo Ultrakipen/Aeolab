@@ -1394,20 +1394,37 @@ def build_briefing_summary(
 
 
 # ── AI탭 답변 시뮬레이션: 업종 그룹별 6종 템플릿 ──────────────────────────
-# {region} {name} {ctx0} {ctx1} {ctx2} 치환. 빈 ctx는 후처리로 제거.
+# {region} {name} {eun_neun} {ctx0} {ctx1} {ctx2} 치환. 빈 ctx는 후처리로 제거.
+# {eun_neun}: 사업장명 끝 받침 여부에 따라 "은"/"는" 자동 선택 (_select_josa 사용)
+
+
+def _has_batchim(char: str) -> bool:
+    code = ord(char)
+    if 0xAC00 <= code <= 0xD7A3:
+        return (code - 0xAC00) % 28 > 0
+    return False
+
+
+def _select_josa(word: str, with_batchim: str, without_batchim: str) -> str:
+    """단어 끝 글자 받침 여부로 조사 선택. 비한글·빈 문자열은 받침 없음으로 처리."""
+    if not word:
+        return without_batchim
+    return with_batchim if _has_batchim(word[-1]) else without_batchim
+
+
 _AI_TAB_ANSWER_TEMPLATES: dict[str, str] = {
     # Group 1: 음식점·카페·베이커리·바·숙박
-    "restaurant_group": "{region} {name}은 {ctx0}, {ctx1}이 특징입니다. {ctx2}.",
+    "restaurant_group": "{region} {name}{eun_neun} {ctx0}, {ctx1}이 특징입니다. {ctx2}.",
     # Group 2: 미용·네일·마사지·스파·피부
-    "beauty_group": "{region} {name}은 {ctx0} 전문 매장입니다. {ctx1}, {ctx2}이 강점입니다.",
+    "beauty_group": "{region} {name}{eun_neun} {ctx0} 전문 매장입니다. {ctx1}, {ctx2}이 강점입니다.",
     # Group 3: 의료·한의·치과·약국·클리닉
-    "medical_group": "{region} {name}은 {ctx0} 진료를 제공합니다. {ctx1}, {ctx2} 환경입니다.",
+    "medical_group": "{region} {name}{eun_neun} {ctx0} 진료를 제공합니다. {ctx1}, {ctx2} 환경입니다.",
     # Group 4: 법무·세무·부동산·교육·학원
-    "professional_group": "{region} {name}은 {ctx0} 전문입니다. {ctx1}, {ctx2}로 신뢰성을 입증합니다.",
+    "professional_group": "{region} {name}{eun_neun} {ctx0} 전문입니다. {ctx1}, {ctx2}로 신뢰성을 입증합니다.",
     # Group 5: 피트니스·요가·필라테스·댄스·발레
-    "fitness_group": "{region} {name}은 {ctx0} 수업을 운영합니다. {ctx1}, {ctx2}이 특징입니다.",
+    "fitness_group": "{region} {name}{eun_neun} {ctx0} 수업을 운영합니다. {ctx1}, {ctx2}이 특징입니다.",
     # Group 6: 그 외 기본 (default)
-    "default": "{region} {name}은 {ctx0}, {ctx1}이 특징입니다.",
+    "default": "{region} {name}{eun_neun} {ctx0}, {ctx1}이 특징입니다.",
 }
 
 _CATEGORY_TO_TEMPLATE_GROUP: dict[str, str] = {
@@ -1495,6 +1512,7 @@ def simulate_ai_tab_answer(
     simulated = template.format(
         region=region_short,
         name=biz_name,
+        eun_neun=_select_josa(biz_name, "은", "는"),
         ctx0=ctx0,
         ctx1=ctx1,
         ctx2=ctx2,

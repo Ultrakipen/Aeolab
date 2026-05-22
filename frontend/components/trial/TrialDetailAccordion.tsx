@@ -45,6 +45,8 @@ interface KeywordCardProps {
   onDismiss: (kw: string) => void;
   keywordMeta?: Record<string, { subcategory: string; weight: number }>;
   userGroup?: string;
+  introAnalyzed?: boolean;
+  isPaidUser?: boolean;
 }
 
 interface GlobalAiActionCardProps {
@@ -178,7 +180,7 @@ export default function TrialDetailAccordion({
 }: TrialDetailAccordionProps) {
   const { userGroup } = naverTrackCardProps;
   const isGlobalFocus = userGroup === "INACTIVE" || userGroup === "franchise";
-  const [showDiagnosis, setShowDiagnosis] = useState(false);
+  const [showDiagnosis, setShowDiagnosis] = useState(true);
 
   const {
     naverChannelScore,
@@ -231,6 +233,8 @@ export default function TrialDetailAccordion({
                 onDismiss={keywordCardProps.onDismiss}
                 keywordMeta={keywordCardProps.keywordMeta}
                 userGroup={userGroup}
+                introAnalyzed={keywordCardProps.introAnalyzed}
+                isPaidUser={keywordCardProps.isPaidUser}
               />
             )}
           </div>
@@ -314,6 +318,8 @@ export default function TrialDetailAccordion({
               onDismiss={keywordCardProps.onDismiss}
               keywordMeta={keywordCardProps.keywordMeta}
               userGroup={userGroup}
+              introAnalyzed={keywordCardProps.introAnalyzed}
+              isPaidUser={keywordCardProps.isPaidUser}
             />
           )}
         </div>

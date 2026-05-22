@@ -1132,10 +1132,10 @@ async def get_keyword_completeness(
             detail={"code": "PLAN_REQUIRED", "message": "Basic 이상 플랜이 필요합니다", "upgrade_url": "/pricing"},
         )
 
-    # 사업장 category, keywords 조회
+    # 사업장 category, keywords, blog_analysis_json 조회
     biz_row = await execute(
         supabase.table("businesses")
-        .select("category, keywords")
+        .select("category, keywords, blog_analysis_json")
         .eq("id", biz_id)
         .maybe_single()
     )
@@ -1145,6 +1145,12 @@ async def get_keyword_completeness(
     biz = biz_row.data
     category: str = biz.get("category") or "restaurant"
     my_keywords: list[str] = biz.get("keywords") or []
+
+    # 블로그 분석에서 이미 발견된 키워드도 "보유" 키워드로 포함
+    blog_covered: list[str] = []
+    blog_json = biz.get("blog_analysis_json")
+    if isinstance(blog_json, dict):
+        blog_covered = blog_json.get("covered_keywords") or []
 
     # taxonomy 키 정규화 (없으면 "restaurant" fallback)
     taxonomy_key: str = _CATEGORY_ALIASES.get(category, "restaurant")
@@ -1166,8 +1172,8 @@ async def get_keyword_completeness(
         if isinstance(kw_cov, dict):
             scan_covered = kw_cov.get("covered_keywords") or []
 
-    # 전체 covered 키워드 집합 (내 키워드 + 스캔 covered)
-    all_covered_set: set[str] = set(my_keywords) | set(scan_covered)
+    # 전체 covered 키워드 집합 (내 키워드 + 스캔 covered + 블로그 분석 covered)
+    all_covered_set: set[str] = set(my_keywords) | set(scan_covered) | set(blog_covered)
 
     # 카테고리별 covered/missing 분류
     category_results = []

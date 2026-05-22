@@ -91,10 +91,10 @@ export default function HowItWorksPage() {
         <nav className="bg-gray-50 rounded-xl p-5 mb-10">
           <p className="text-sm font-semibold text-gray-700 mb-3">목차</p>
           <ol className="space-y-1.5 text-sm md:text-base text-blue-600">
-            <li><a href="#search-intent" className="hover:underline">어떤 검색에서 AI 브리핑이 노출될까?</a></li>
+            <li><a href="#search-intent" className="hover:underline">어떤 검색에서 AI 가게 추천이 될까? (네이버·ChatGPT)</a></li>
             <li><a href="#step1" className="hover:underline">1단계. 게이트 3조건 (노출 가능 여부)</a></li>
             <li><a href="#step2" className="hover:underline">2단계. 콘텐츠 점수 100점 (네이버 채널)</a></li>
-            <li><a href="#step3" className="hover:underline">3단계. AI 브리핑 인용 강화 (콘텐츠 품질)</a></li>
+            <li><a href="#step3" className="hover:underline">3단계. AI 인용 강화 — 네이버·ChatGPT 공통 콘텐츠 품질</a></li>
             <li><a href="#step4" className="hover:underline">4단계. AI 정보 탭 토글 추적</a></li>
             <li><a href="#ai-tab" className="hover:underline">네이버 AI탭 — 모든 업종 노출 가능 (베타)</a></li>
             <li><a href="#phase-a" className="hover:underline">Phase A. AI 검색 노출을 위한 통합 측정</a></li>
@@ -111,10 +111,10 @@ export default function HowItWorksPage() {
         {/* ─── §3.7 검색 의도 분류 ─── */}
         <section id="search-intent" className="mb-12 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
-            어떤 검색에서 AI 브리핑이 노출될까?
+            어떤 검색에서 AI가 가게를 추천할까?
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            모든 검색 쿼리에서 AI 브리핑이 노출되는 것은 아닙니다. 검색 의도(Intent)에 따라 노출 여부가 달라집니다.
+            모든 검색 쿼리에서 AI 추천이 노출되는 것은 아닙니다. 검색 의도(Intent)에 따라 노출 여부가 달라집니다.
           </p>
 
           {/* PC: 테이블 / 모바일: 카드 */}
@@ -193,7 +193,7 @@ export default function HowItWorksPage() {
           </div>
 
           <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 md:p-4 text-sm md:text-base text-gray-700 leading-relaxed break-keep">
-            따라서 AEOlab은 <strong>정보형 검색 쿼리에서의 노출을 집중 분석합니다.</strong>
+            따라서 AEOlab은 <strong>정보형 검색 쿼리에서의 AI 검색 노출을 집중 분석합니다.</strong>
             "우리 동네 맛집", "근처 카페 추천"처럼 AI가 다양한 옵션을 제안하는 검색에서 사업장이 먼저 언급되도록 최적화합니다.
           </div>
         </section>
@@ -877,7 +877,7 @@ export default function HowItWorksPage() {
             </li>
             <li>
               <strong>3.</strong>{" "}
-              가입 후 대시보드 → <strong>AI 브리핑 5단계 가이드</strong>를 따라 15분간 설정
+              가입 후 대시보드 → <strong>내 업종에 맞는 AI 노출 가이드</strong>를 따라 15분간 설정
             </li>
             <li>
               <strong>4.</strong>{" "}

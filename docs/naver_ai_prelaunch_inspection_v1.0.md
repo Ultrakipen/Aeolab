@@ -27,6 +27,7 @@ docs/naver_ai_prelaunch_inspection_v1.0.md §3-A (AI 브리핑 단일 소스)만
 | 2 | `docs/naver_gpt_work_standard_v1.0.md` | 업종 분류·스캐너 4종·쿼리·점수 가중치·콘텐츠 구조·UI 분기·면책 문구 전 영역 |
 | 3 | `docs/ai_briefing_redesign_v2.0.md` | AI 브리핑 노출 기준 v2.0 최신 설계 |
 | 4 | `docs/naver_ai_tab_대응_개발계획_v1.0.md` | AI탭 분리 대응 개발 계획 |
+post_briefing_ad_strategy_v1.0.md
 
 > 충돌 시 우선순위: 본 문서 < CLAUDE.md < 위 참고 문서(항상 최신 실측 반영)
 

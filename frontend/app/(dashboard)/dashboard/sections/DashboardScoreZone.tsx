@@ -69,7 +69,7 @@ export default function DashboardScoreZone({
         <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5">
           <span className="text-amber-500 text-base">💡</span>
           <p className="text-sm text-amber-800 break-keep">
-            AI 브리핑은 비대상 업종이지만,{" "}
+            네이버 AI 브리핑은 음식점·카페 등 일부 업종만 해당되지만,{" "}
             <strong>AI탭(모든 업종 베타) + ChatGPT·Gemini 노출은 정상 측정 중</strong>입니다.
           </p>
         </div>
@@ -91,7 +91,7 @@ export default function DashboardScoreZone({
               <div className="mt-2 space-y-2">
                 <div className="flex items-start gap-2">
                   <span className="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-sm text-gray-700 flex-shrink-0">AI 브리핑</span>
-                  <p className="text-sm text-indigo-700">음식점·카페·숙박 전용 — 이 업종은 대상 외</p>
+                  <p className="text-sm text-indigo-700">음식점·카페·숙박 등 일부 업종만 해당 (이 업종은 아직 미대상)</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="inline-flex items-center rounded-full bg-indigo-600 px-2 py-0.5 text-sm text-white flex-shrink-0">AI탭 (신규)</span>

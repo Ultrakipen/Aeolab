@@ -16,6 +16,8 @@ interface Props {
   onDismiss: (kw: string) => void;
   keywordMeta?: Record<string, KeywordMetaEntry>;
   userGroup?: string;
+  introAnalyzed?: boolean;
+  isPaidUser?: boolean;
 }
 
 // 백엔드 keyword_taxonomy 서브카테고리 키 → 사용자 노출 한글 라벨
@@ -44,7 +46,7 @@ const SUBCAT_LABEL: Record<string, string> = {
   가격: "가격",
 };
 
-export default function TrialKeywordRecommendCard({ missingKws, faqText, categoryLabel, dismissed, onDismiss, keywordMeta, userGroup }: Props) {
+export default function TrialKeywordRecommendCard({ missingKws, faqText, categoryLabel, dismissed, onDismiss, keywordMeta, userGroup, introAnalyzed = false, isPaidUser = false }: Props) {
   const [copied, setCopied] = useState<string | null>(null);
 
   const visible = missingKws.filter(k => !dismissed.includes(k));
@@ -97,16 +99,49 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
         <Bookmark className="w-4 h-4 text-gray-500 shrink-0" />
         <p className="text-sm font-bold text-gray-800">소개글에 추가하면 좋은 키워드</p>
       </div>
+      {/* 분석 기준 배지 */}
+      {introAnalyzed ? (
+        <div className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5 mb-2">
+          <span className="text-emerald-600 text-xs">✓</span>
+          <span className="text-xs font-medium text-emerald-700">소개글 분석 완료</span>
+        </div>
+      ) : (
+        <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 mb-2">
+          <span className="text-xs">⚠</span>
+          <span className="text-xs font-medium text-amber-700">업종 표준 기준 추천</span>
+        </div>
+      )}
       <p className="text-sm text-gray-600 mb-1 leading-relaxed font-medium">
         AI가 {categoryLabel}을 검색할 때 자주 쓰는 업종 표준 키워드입니다.
       </p>
       <p className="text-sm text-gray-500 mb-2 leading-relaxed">
         소개글·리뷰에 아직 없는 키워드만 표시합니다. 내 가게에 해당되는 것만 골라 소개글에 추가하세요 — 모두 추가할 필요는 없습니다.
       </p>
-      <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
-        <p className="text-sm text-amber-800 leading-relaxed">
-          이 키워드들은 업종 전체 평균 기준입니다. 내 가게 특성과 다른 항목은 무시해도 됩니다.
-        </p>
+      <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 mb-3 space-y-1.5">
+        {introAnalyzed ? (
+          <>
+            <p className="text-sm text-amber-800 leading-relaxed font-medium">
+              내 소개글을 직접 분석해 <span className="font-semibold">아직 없는 키워드만</span> 추려냈습니다.
+            </p>
+            <p className="text-sm text-amber-700 leading-relaxed">
+              내 가게 특성과 맞는 것만 골라 소개글에 자연스럽게 추가하세요. 모두 넣을 필요는 없습니다.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-amber-800 leading-relaxed font-medium">
+              업종 전체 평균 기준으로 추린 키워드입니다 — 내 소개글을 직접 분석하지 않았습니다.
+            </p>
+            <p className="text-sm text-amber-700 leading-relaxed">
+              내 가게 특성과 다른 항목은 무시하세요.
+              {!isPaidUser && (
+                <span className="block mt-1 text-blue-700 font-medium">
+                  💡 소개글 직접 분석은 Basic 플랜부터 지원됩니다.
+                </span>
+              )}
+            </p>
+          </>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -143,9 +178,15 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
         })}
       </div>
 
-      <p className="text-sm text-gray-400 mt-2.5 leading-relaxed">
-        키워드 전체 목록 + 월별 변화 추적은 Basic 플랜에서 제공합니다
-      </p>
+      {isPaidUser ? (
+        <p className="text-sm text-gray-500 mt-2.5 leading-relaxed">
+          키워드 전체 목록과 월별 변화 추적은 대시보드 → 갭 분석에서 확인하세요.
+        </p>
+      ) : (
+        <p className="text-sm text-gray-400 mt-2.5 leading-relaxed">
+          키워드 전체 목록 + 월별 변화 추적 + 소개글 직접 분석은 Basic 플랜에서 제공합니다.
+        </p>
+      )}
     </div>
   );
 }

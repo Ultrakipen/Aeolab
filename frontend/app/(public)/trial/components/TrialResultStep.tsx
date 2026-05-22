@@ -250,7 +250,7 @@ function ScoreSummaryCard({
               message: "AI 검색 최적화가 아직 시작 전입니다. 지금 시작하면 경쟁 가게보다 먼저 자리 잡을 수 있습니다.",
             };
 
-  const vsAvg = score - benchmarkAvg;
+  const vsAvg = Math.round(score - benchmarkAvg);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 mb-4 shadow-sm">
@@ -263,7 +263,16 @@ function ScoreSummaryCard({
       </div>
 
       {/* 메시지 */}
-      <p className="text-base md:text-lg text-slate-700 leading-relaxed break-keep mb-4">{stage.message}</p>
+      <p className="text-base md:text-lg text-slate-700 leading-relaxed break-keep mb-3">{stage.message}</p>
+
+      {/* 점수→매출 인과관계 안내 (장기 기대치 설정) */}
+      <div className="flex items-start gap-2 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 mb-4">
+        <span className="text-slate-400 text-sm mt-0.5">→</span>
+        <p className="text-sm text-slate-500 leading-relaxed break-keep">
+          점수가 오를수록 AI가 내 가게를 더 자주 추천 → 새 손님이 가게를 발견할 가능성이 높아집니다.
+          <span className="ml-1 text-slate-400">(점수 개선이 매출을 보장하지는 않으며, AI 노출 접점을 늘리는 지표입니다)</span>
+        </p>
+      </div>
 
       {/* 점수 바 + 업종 평균선 */}
       <div className="mb-1">
@@ -311,9 +320,17 @@ function ScoreSummaryCard({
         )}
       </div>
 
-      <p className="text-sm text-slate-400 mt-3 leading-relaxed">
-        AEOlab AI 가시성 점수 · ChatGPT·네이버 실측 기반 · 측정 시점·기기에 따라 ±5점 변동 가능
-      </p>
+      <div className="flex items-center justify-between mt-3 gap-2 flex-wrap">
+        <p className="text-sm text-slate-400 leading-relaxed">
+          AEOlab AI 가시성 점수 · ChatGPT·네이버 실측 기반 · AI 샘플링 특성상 ±10~15점 변동 가능
+        </p>
+        <a
+          href="#score-breakdown"
+          className="text-sm text-blue-500 hover:text-blue-700 underline underline-offset-2 whitespace-nowrap shrink-0"
+        >
+          점수 근거 보기 ↓
+        </a>
+      </div>
     </div>
   );
 }
@@ -435,8 +452,10 @@ export default function TrialResultStep(props: TrialResultProps) {
   const benchmarkData =
     CATEGORY_BENCHMARKS[flatToGroup(selectedCategory)] ??
     CATEGORY_BENCHMARKS[selectedCategory] ?? { avg: 50, top30: 65 };
+  // Level 1(업종+지역 ≥5건) 실측만 신뢰 가능 — fallback 응답은 비교에 사용 안 함
+  const hasReliableBenchmark = !!(apiBenchmark?.avg_score && !apiBenchmark?.fallback);
   const benchmarkAvg = apiBenchmark?.avg_score ?? benchmarkData.avg;
-  const isEstimatedBenchmark = !apiBenchmark?.avg_score;
+  const isEstimatedBenchmark = !hasReliableBenchmark;
 
   const chatgptResult = (
     result as {
@@ -732,13 +751,17 @@ export default function TrialResultStep(props: TrialResultProps) {
         <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 mb-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div className="flex-1 min-w-0">
             <p className="text-base font-bold text-slate-800">
-              {score >= benchmarkAvg
-                ? `업종 평균(${Math.round(benchmarkAvg)}점) 이상입니다`
-                : `업종 평균(${Math.round(benchmarkAvg)}점)보다 낮습니다 — 개선 여지 있음`}
+              {hasReliableBenchmark
+                ? score >= benchmarkAvg
+                  ? `업종 평균(${Math.round(benchmarkAvg)}점) 이상입니다`
+                  : `업종 평균(${Math.round(benchmarkAvg)}점)보다 낮습니다 — 개선 여지 있음`
+                : missingKws.length > 0
+                  ? `개선 포인트 ${missingKws.length}개 발견됨`
+                  : "점수 개선 여지 확인됨"}
             </p>
             <p className="text-sm text-slate-600 mt-0.5 break-keep">
               {missingKws.length > 0
-                ? `개선 포인트: '${missingKws[0]}' 키워드가 소개글에 없습니다`
+                ? `'${missingKws[0]}' 키워드가 소개글에 없습니다`
                 : chatgptMentioned === false
                   ? "ChatGPT 답변에 아직 내 가게가 등장하지 않습니다"
                   : "아래 발견 항목을 확인하세요"}
@@ -992,6 +1015,8 @@ export default function TrialResultStep(props: TrialResultProps) {
                   onDismiss: (kw) => setDismissedKws((prev) => [...prev, kw]),
                   keywordMeta: (result as { keyword_meta?: Record<string, { subcategory: string; weight: number }> }).keyword_meta,
                   userGroup: userGroupValue,
+                  introAnalyzed: !!(result as { intro_analyzed?: boolean }).intro_analyzed,
+                  isPaidUser: false,
                 }
               : null
           }
@@ -1315,7 +1340,7 @@ function ScoreBreakdownBox({
       <div className="flex items-start gap-1.5 mt-3">
         <AlertTriangle className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
         <p className="text-sm text-slate-500 leading-relaxed">
-          AEOlab 자체 측정값 · 네이버 공식 노출 점수 아님 · 측정 시점·기기·로그인 상태에 따라 ±5점 변동 가능
+          AEOlab 자체 측정값 · 네이버 공식 노출 점수 아님 · AI 샘플링 특성상 측정 시점·질의 구성에 따라 ±10~15점 변동 가능
         </p>
       </div>
     </div>

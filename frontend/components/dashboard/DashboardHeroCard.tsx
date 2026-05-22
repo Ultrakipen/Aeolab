@@ -138,7 +138,7 @@ export default function DashboardHeroCard({
               {naverCaptchaBlocked
                 ? "AI 노출 확인 불가"
                 : eligibility === "inactive"
-                ? "AI 브리핑 비대상 업종"
+                ? "AI탭·ChatGPT·Gemini 노출 관리"
                 : eligibility === "likely"
                 ? "AI 브리핑 확대 예정"
                 : naverInBriefing

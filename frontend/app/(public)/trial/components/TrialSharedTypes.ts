@@ -44,7 +44,7 @@ export interface TrialResultProps {
   hasRecentPost: boolean;
   hasIntro: boolean;
   isLoggedIn: boolean;
-  apiBenchmark: { count: number; avg_score: number; top10_score: number } | null;
+  apiBenchmark: { count: number; avg_score: number; top10_score: number; fallback?: string } | null;
   naverCheckState: NaverBriefingCheckState;
   naverCheckResult: NaverBriefingCheckResult | null;
   naverCheckError: string;

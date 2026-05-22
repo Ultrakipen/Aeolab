@@ -315,11 +315,12 @@ function FocusRecommendation({
 }
 
 // 성장 단계 진행률 계산
+// 백엔드 _GROWTH_THRESHOLDS 와 일치: survival<30 / stability<55 / growth<75 / dominance>=75
 const STAGE_RANGES: Record<string, { min: number; max: number; next: string }> = {
-  survival:  { min: 0,  max: 30,  next: "성장 중" },
-  stability: { min: 31, max: 60,  next: "빠른 성장" },
-  growth:    { min: 61, max: 85,  next: "지역 1등" },
-  dominance: { min: 86, max: 100, next: "" },
+  survival:  { min: 0,  max: 29,  next: "성장 중" },
+  stability: { min: 30, max: 54,  next: "빠른 성장" },
+  growth:    { min: 55, max: 74,  next: "지역 1등" },
+  dominance: { min: 75, max: 100, next: "" },
 };
 
 function GrowthProgressBar({ stage, score }: { stage: string; score: number }) {
@@ -599,7 +600,7 @@ export default function DualTrackCard({
             )}
           </div>
           <p className="text-sm text-gray-400 mt-2.5 leading-relaxed">
-            ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있음
+            ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다. AI 샘플링 특성상 측정 시점·질의 구성에 따라 ±10~15점 변동 가능
           </p>
         </div>
       )}

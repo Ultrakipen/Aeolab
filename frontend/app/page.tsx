@@ -199,7 +199,7 @@ export default async function LandingPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold shrink-0" style={{ color: "#DC2626" }}>✕</span>
-                  ChatGPT·Gemini에는 영향 없음
+                  AI 검색(ChatGPT·Gemini·네이버 AI탭·AI 브리핑)엔 전혀 효과 없음
                 </li>
               </ul>
             </div>
@@ -395,9 +395,6 @@ export default async function LandingPage() {
                 </div>
               </div>
 
-              <p className="text-sm text-emerald-700 bg-emerald-100 rounded-lg px-3 py-2">
-                * 프랜차이즈 가맹점은 AI 브리핑 제외 (네이버 공식 정책)
-              </p>
             </div>
 
             {/* 그룹 B */}
@@ -445,38 +442,7 @@ export default async function LandingPage() {
             <h3 className="text-lg md:text-xl font-black text-gray-900 text-center mb-2">
               개선 방법은 업종 관계없이 같습니다
             </h3>
-            <p className="text-sm text-gray-500 text-center mb-6">스마트플레이스 설정부터 시작하면, AI 채널이 자동으로 커버됩니다</p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              <div className="rounded-xl bg-white border border-blue-100 p-4 text-center">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
-                  <span className="text-blue-600 text-base font-black">1</span>
-                </div>
-                <p className="text-sm font-bold text-gray-800 mb-1">스마트플레이스</p>
-                <p className="text-sm text-gray-500 break-keep">소개글·사진·소식·예약 연동</p>
-              </div>
-              <div className="rounded-xl bg-white border border-blue-100 p-4 text-center">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
-                  <span className="text-blue-600 text-base font-black">2</span>
-                </div>
-                <p className="text-sm font-bold text-gray-800 mb-1">리뷰</p>
-                <p className="text-sm text-gray-500 break-keep">리뷰 수 + 사장님 답변</p>
-              </div>
-              <div className="rounded-xl bg-white border border-blue-100 p-4 text-center">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
-                  <span className="text-blue-600 text-base font-black">3</span>
-                </div>
-                <p className="text-sm font-bold text-gray-800 mb-1">키워드</p>
-                <p className="text-sm text-gray-500 break-keep">업종 관련 키워드 포함 여부</p>
-              </div>
-              <div className="rounded-xl bg-white border border-blue-100 p-4 text-center">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
-                  <span className="text-blue-600 text-base font-black">4</span>
-                </div>
-                <p className="text-sm font-bold text-gray-800 mb-1">블로그·외부 콘텐츠</p>
-                <p className="text-sm text-gray-500 break-keep">온라인 언급량</p>
-              </div>
-            </div>
+            <p className="text-sm text-gray-500 text-center mb-4">스마트플레이스 설정부터 시작하면, AI 채널이 자동으로 커버됩니다</p>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl bg-white border border-blue-200 px-5 py-4">
               <p className="text-sm md:text-base font-bold text-gray-800 break-keep text-center sm:text-left">
@@ -492,9 +458,6 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          <p className="text-center text-sm text-gray-400 break-keep mt-5">
-            네이버 AI탭은 2026-04-27 베타 출시 · 네이버플러스 구독자 우선 · 상반기 전체 확대 예정
-          </p>
         </div>
       </section>
 
@@ -581,7 +544,7 @@ export default async function LandingPage() {
                 <div className="rounded-xl border border-green-100 bg-green-50 p-3 w-full text-left">
                   <p className="text-sm font-semibold text-green-700 mb-1.5">개선 후 결과</p>
                   <div className="space-y-1">
-                    {["네이버 AI 브리핑 상단 노출 (음식점·카페 등)", "네이버 AI탭 답변에 내 가게 등장", "ChatGPT·Gemini 추천 빈도 상승", "광고비 없이 꾸준한 신규 방문자", "경쟁사보다 먼저 손님에게 노출"].map(item => (
+                    {["네이버 AI 브리핑 상단 노출 (음식점·카페 등)", "네이버 AI탭 답변에 내 가게 등장", "ChatGPT·Gemini 추천 빈도 상승", "매주 자동 점검으로 노출 지속 유지", "경쟁사보다 먼저 손님에게 노출"].map(item => (
                       <div key={item} className="flex items-center gap-1.5">
                         <span className="text-green-500 text-sm flex-shrink-0">✓</span>
                         <span className="text-sm text-gray-700">{item}</span>
@@ -626,8 +589,7 @@ export default async function LandingPage() {
               요즘 손님은 네이버 AI 추천 목록을 봅니다
             </h2>
             <p className="text-sm mt-2 break-keep max-w-xl mx-auto" style={{ color: "#475569" }}>
-              네이버 검색 상단 AI 자동 추천 —{" "}
-              <strong style={{ color: "#0F172A" }}>3,000만 명+</strong>이 매달 이용 중 (추정치)
+              네이버 검색 상단에 자동으로 노출되는 AI 추천 박스 — 음식점·카페·베이커리·바·숙박 전용
             </p>
           </div>
 
@@ -718,7 +680,7 @@ export default async function LandingPage() {
                 <p className="text-sm font-black" style={{ color: "#065F46" }}>우리 가게 선택!</p>
                 <p className="text-sm mt-0.5" style={{ color: "#059669" }}>AI 추천 → 신뢰 → 방문</p>
               </div>
-              <p className="text-sm" style={{ color: "#64748B" }}>광고비 없이 꾸준히 추천됩니다</p>
+              <p className="text-sm" style={{ color: "#64748B" }}>신뢰 있는 가게로 AI가 먼저 찾습니다</p>
             </div>
           </div>
 
@@ -812,7 +774,6 @@ export default async function LandingPage() {
                     {[
                       { icon: "📍", text: "검색 결과 최상단 — 광고 영역 위에 자동 표시" },
                       { icon: "🚫", text: "광고비 없이 지속 노출 (알고리즘 기반)" },
-                      { icon: "📊", text: "클릭률 +27.4% — 네이버 공식 발표 (음식점 기준)" },
                       { icon: "📝", text: "핵심 조건: 소개글·소식·리뷰 확보 (임계값 네이버 비공개)" },
                     ].map(({ icon, text }) => (
                       <div key={text} className="flex items-start gap-2">

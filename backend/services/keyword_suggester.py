@@ -36,6 +36,7 @@ _PROMPT_TMPL = """당신은 한국 소상공인의 네이버 검색·AI 노출 �
 위 사업장이 네이버 통합검색·플레이스·AI 브리핑·ChatGPT 등에서 노출되어야 할
 핵심 검색 키워드 {count}개를 추천해주세요.
 
+{existing_block}
 [작성 원칙]
 1. 한국 소비자가 실제로 검색하는 표현 (격식체 X)
 2. "지역명 + 업종" 조합 우선 (예: "강남 영어학원")
@@ -48,6 +49,12 @@ _PROMPT_TMPL = """당신은 한국 소상공인의 네이버 검색·AI 노출 �
   {{"keyword": "키워드1", "rationale": "추천 이유 (15자 이내)"}},
   ...
 ]
+"""
+
+_EXISTING_BLOCK_TMPL = """[이미 등록된 키워드 — 제외 대상]
+아래 키워드는 사장님이 이미 보유 중이므로 추천 목록에서 반드시 제외하세요:
+{existing_list}
+
 """
 
 
@@ -86,6 +93,7 @@ async def generate_keyword_suggestions(
     category: str,
     region: str,
     count: int = 10,
+    existing_keywords: list[str] | None = None,
 ) -> dict:
     """키워드 자동 추천.
 
@@ -94,6 +102,7 @@ async def generate_keyword_suggestions(
         category: 업종 키 (restaurant, cafe 등)
         region: 지역 (예: "서울시 강남구")
         count: 추천 키워드 개수 (기본 10)
+        existing_keywords: 이미 보유한 키워드 목록 — 추천에서 제외
 
     Returns:
         {
@@ -122,11 +131,24 @@ async def generate_keyword_suggestions(
     category_label = cat_key  # 추후 한글 라벨 매핑 가능
     region_clean = (region or "").strip() or "전국"
 
+    # 기존 키워드 정규화 (소문자, 공백 제거)
+    existing_set: set[str] = set()
+    if existing_keywords:
+        existing_set = {k.strip().lower() for k in existing_keywords if k and k.strip()}
+
+    if existing_set:
+        existing_block = _EXISTING_BLOCK_TMPL.format(
+            existing_list=", ".join(sorted(existing_set))
+        )
+    else:
+        existing_block = ""
+
     prompt = _PROMPT_TMPL.format(
         name=name,
         category_label=category_label,
         region=region_clean,
         count=count,
+        existing_block=existing_block,
     )
 
     api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -153,7 +175,7 @@ async def generate_keyword_suggestions(
         if not isinstance(parsed, list):
             raise ValueError("응답이 리스트가 아님")
 
-        # 정규화 + 사업장명 자체 제외
+        # 정규화 + 사업장명 자체 제외 + 기존 키워드 중복 제외
         suggestions: list[dict] = []
         biz_name_low = name.lower()
         for item in parsed:
@@ -163,6 +185,10 @@ async def generate_keyword_suggestions(
             if not kw or len(kw) > 25:
                 continue
             if biz_name_low and biz_name_low in kw.lower():
+                continue
+            # 이미 보유한 키워드 제외 (부분 일치 포함)
+            kw_low = kw.lower()
+            if any(ex in kw_low or kw_low in ex for ex in existing_set if len(ex) >= 2):
                 continue
             suggestions.append({
                 "keyword": kw,

@@ -121,6 +121,7 @@ def _failed_result(error_code: str, naver_place_id: str = "") -> dict:
         "has_intro": False,
         "has_reservation": False,
         "photo_count": 0,
+        "intro_text": "",
         "score_loss": 70,
         "action_links": {"register": "https://smartplace.naver.com/"},
         "error": error_code,
@@ -139,6 +140,7 @@ async def _run_check(naver_place_id: str) -> dict:
         "has_intro": False,
         "has_reservation": False,
         "photo_count": 0,
+        "intro_text": "",
     }
 
     async with async_playwright() as p:
@@ -207,6 +209,7 @@ async def _run_check(naver_place_id: str) -> dict:
                 await page.wait_for_timeout(1500)
                 info_text = (await page.inner_text("body")) or ""
                 results["has_intro"] = _detect_intro(info_text)
+                results["intro_text"] = _extract_intro_text(info_text)
                 # has_faq는 _calc_score_loss/_build_action_links에서 미사용. 항상 False.
             except Exception as e:
                 _logger.warning(f"smart_place information tab skipped [{naver_place_id}]: {e}")
@@ -282,6 +285,19 @@ def _detect_intro(info_body: str) -> bool:
     cleaned = re.sub(r"(업체\s*소개|소개)\s*", "", block, count=1)
     cleaned = re.sub(r"\s+", "", cleaned)
     return len(cleaned) >= 50
+
+
+def _extract_intro_text(info_body: str) -> str:
+    """정보 탭 본문에서 소개글 텍스트 추출. 없으면 빈 문자열 반환."""
+    if not info_body:
+        return ""
+    m = re.search(r"(업체\s*소개|소개)[\s\S]{0,1500}", info_body)
+    if not m:
+        return ""
+    block = m.group(0)
+    cleaned = re.sub(r"(업체\s*소개|소개)\s*", "", block, count=1).strip()
+    # 1500자 이상이면 잘라내기 (분석용으로 충분)
+    return cleaned[:1500]
 
 
 # DEPRECATED 2026-05-01: 스마트플레이스 Q&A 탭 폐기로 미사용. 호출처 0건.

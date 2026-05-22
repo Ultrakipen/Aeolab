@@ -331,7 +331,7 @@ export function HowAeolabIntegrated() {
                 backgroundClip: "text",
               }}
             >
-              7일 변화
+              7일 추적
             </span>
           </h2>
           <p className="text-sm mt-2 break-keep" style={{ color: "#475569" }}>

@@ -44,10 +44,10 @@ export default function DashboardPreview() {
                       <p className="font-bold mb-1" style={{ color: "#0F172A" }}>[AEOlab] 주간 노출 리포트 <span className="text-xs font-normal text-gray-400">(예시)</span></p>
                       <div className="mb-1.5 pb-1.5 border-b" style={{ borderColor: "#E2E8F0" }}>
                         <p style={{ color: "#475569" }}>이번 주 AI 노출 점수</p>
-                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>78점 ↑ <span className="text-xs text-green-600">(+6점)</span></p>
+                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>84점 ↑ <span className="text-xs text-green-600">(+8점)</span></p>
                       </div>
-                      <p style={{ color: "#475569" }}>ChatGPT: <span className="font-bold text-gray-800">31→38회</span></p>
-                      <p style={{ color: "#475569" }}>경쟁사 대비: <span className="font-bold text-indigo-600">상위 35%</span></p>
+                      <p style={{ color: "#475569" }}>ChatGPT: <span className="font-bold text-gray-800">45→53회</span></p>
+                      <p style={{ color: "#475569" }}>경쟁사 대비: <span className="font-bold text-indigo-600">상위 19%</span></p>
                     </div>
                     <div className="mt-1 rounded-xl overflow-hidden" style={{ maxWidth: "200px" }}>
                       <div className="w-full py-1.5 text-sm font-bold text-center" style={{ background: "#FAE100", color: "#3B2800" }}>
@@ -73,10 +73,10 @@ export default function DashboardPreview() {
               className="text-3xl font-black mb-0.5"
               style={{ color: "#2563EB", fontFamily: "var(--font-pretendard, 'Pretendard Variable', sans-serif)", letterSpacing: "-1px" }}
             >
-              52
+              61
             </p>
             <div className="w-full rounded-full h-1.5 mb-1" style={{ background: "#BFDBFE" }}>
-              <div className="h-1.5 rounded-full" style={{ width: "52%", background: "#2563EB" }} />
+              <div className="h-1.5 rounded-full" style={{ width: "61%", background: "#2563EB" }} />
             </div>
             <p className="text-sm" style={{ color: "#475569" }}>AI 브리핑 노출도 · 100점 기준 · 예시</p>
             <div className="mt-2 flex items-center gap-1">
@@ -84,13 +84,13 @@ export default function DashboardPreview() {
                 className="text-xs font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#BFDBFE", color: "#1D4ED8" }}
               >
-                업종 4위
+                업종 2위
               </span>
               <span
                 className="text-xs font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#ECFDF5", color: "#065F46" }}
               >
-                +6점
+                +9점
               </span>
             </div>
           </div>
@@ -107,10 +107,10 @@ export default function DashboardPreview() {
               className="text-3xl font-black mb-0.5"
               style={{ color: "#0F172A", fontFamily: "var(--font-pretendard, 'Pretendard Variable', sans-serif)", letterSpacing: "-1px" }}
             >
-              38
+              47
             </p>
             <div className="w-full rounded-full h-1.5 mb-1" style={{ background: "#E2E8F0" }}>
-              <div className="h-1.5 rounded-full" style={{ width: "38%", background: "#475569" }} />
+              <div className="h-1.5 rounded-full" style={{ width: "47%", background: "#475569" }} />
             </div>
             <p className="text-sm" style={{ color: "#475569" }}>ChatGPT·Gemini · 100점 기준 · 예시</p>
             <div className="mt-2 flex items-center gap-1">
@@ -118,13 +118,13 @@ export default function DashboardPreview() {
                 className="text-xs font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#E2E8F0", color: "#475569" }}
               >
-                업종 5위
+                업종 3위
               </span>
               <span
                 className="text-xs font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#ECFDF5", color: "#065F46" }}
               >
-                +3점
+                +6점
               </span>
             </div>
           </div>
@@ -137,7 +137,7 @@ export default function DashboardPreview() {
             <div className="flex items-center justify-between mb-1">
               <p className="text-sm font-bold" style={{ color: "#0F172A" }}>7주 추세 · 통합 점수</p>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "#ECFDF5", color: "#065F46" }}>+21점</span>
+                <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "#ECFDF5", color: "#065F46" }}>+28점</span>
                 <span className="text-xs text-gray-400">(예시)</span>
               </div>
             </div>
@@ -170,8 +170,8 @@ export default function DashboardPreview() {
                   fill={i === 6 ? "#2563EB" : "#FFFFFF"} stroke="#2563EB" strokeWidth="1.5" />
               ))}
               {/* 시작·끝 점수 레이블 */}
-              <text x="15" y="44" textAnchor="middle" fontSize="8" fill="#94A3B8">42</text>
-              <text x="273" y="13" textAnchor="middle" fontSize="8" fontWeight="bold" fill="#2563EB">63</text>
+              <text x="15" y="44" textAnchor="middle" fontSize="8" fill="#94A3B8">48</text>
+              <text x="273" y="13" textAnchor="middle" fontSize="8" fontWeight="bold" fill="#2563EB">76</text>
               {/* 주차 레이블 */}
               {["1주", "2주", "3주", "4주", "5주", "6주", "7주"].map((label, i) => (
                 <text key={i} x={15 + i * 43} y="78" textAnchor="middle" fontSize="8" fill="#94A3B8">{label}</text>

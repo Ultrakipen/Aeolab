@@ -144,7 +144,7 @@ export default async function DashboardPage({
 
   // ── 데이터 조합 ──────────────────────────────────────────────
   const photoGuides = (photoGuideRes as { guides?: Record<string, { description: string; examples: string[]; tips: string[] }> } | null)?.guides ?? null;
-  const benchmark = (benchmarkRes ?? null) as { avg_score?: number } | null;
+  const benchmark = (benchmarkRes ?? null) as { avg_score?: number; fallback?: string } | null;
   const actionLogs = ((actionLogRes as { logs?: unknown[] } | null)?.logs ?? []) as Array<{
     action_type: string; action_label: string; action_date: string;
     score_before: number | null; score_after: number | null;
@@ -417,7 +417,7 @@ export default async function DashboardPage({
             growthStageLabel={growthStageLabel}
             isKeywordEstimated={isKeywordEstimated}
             topMissingKeywords={topMissingKeywords}
-            benchmarkAvg={benchmark?.avg_score}
+            benchmarkAvg={benchmark?.fallback ? undefined : benchmark?.avg_score}
             smartPlaceStatus={smartPlaceStatus}
             allPlatformResults={allPlatformResults}
             naverChannelScore={naverChannelScore}

@@ -848,6 +848,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         _logger.warning(f"trial growth_stage build failed: {_gse}")
         _growth_stage_full = None
 
+    _intro_analyzed: bool = False  # 소개글 분석 여부 — try 블록 전 초기화 (except/응답 참조용)
     try:
         from services.keyword_taxonomy import get_all_keywords_flat, analyze_keyword_coverage, _CATEGORY_ALIASES
         import re as _re
@@ -865,11 +866,34 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         _effective_cat = _inferred_cat or "restaurant"
 
         all_kws = get_all_keywords_flat(_effective_cat)
+
+        # 소개글 텍스트 수집 — 4계층 폴백
+        # 1순위: 스마트플레이스 크롤링 결과 (smart_place_check_data)
+        # 2순위: req.description (trial 폼 사업 설명)
+        # 3순위: req.review_text (사용자 수동 입력 리뷰)
+        # 4순위: 없음 (evidence only)
+        _intro_text_raw: str = ""
+        _intro_analyzed: bool = False  # 소개글 실제 분석 여부 플래그
+        if smart_place_check_data and smart_place_check_data.get("intro_text"):
+            _intro_text_raw = smart_place_check_data["intro_text"]
+            _intro_analyzed = True
+        elif getattr(req, "description", None) and str(req.description).strip():
+            _intro_text_raw = str(req.description).strip()
+            _intro_analyzed = True
+        elif req.review_text and req.review_text.strip():
+            _intro_text_raw = req.review_text.strip()
+            # review_text는 소개글이 아니므로 intro_analyzed=False 유지
+
         # review_text를 문장 단위로 분리해 발췌문 리스트 생성 (cold start 방지)
         _review_excerpts: list = []
-        if req.review_text:
+        # 소개글 텍스트를 covered 분석에 포함 (가장 중요한 신호)
+        if _intro_text_raw:
+            _intro_sentences = _re.split(r"[.\n!?]+", _intro_text_raw)
+            _review_excerpts.extend([s.strip() for s in _intro_sentences if len(s.strip()) > 5])
+        # 리뷰 텍스트가 별도로 있으면 추가 (소개글과 중복 허용)
+        if req.review_text and req.review_text.strip() and req.review_text.strip() != _intro_text_raw:
             _sentences = _re.split(r"[.\n!?]+", req.review_text)
-            _review_excerpts = [s.strip() for s in _sentences if len(s.strip()) > 5]
+            _review_excerpts.extend([s.strip() for s in _sentences if len(s.strip()) > 5])
         # 사용자가 선택/직접 입력한 키워드는 가게가 보유한 핵심 강점 키워드로 간주
         # → 분석 시 covered로 인식되도록 review_excerpts 끝에 합류 (cold start 시 유일한 신호)
         _user_keyword_evidence: list[str] = []
@@ -939,6 +963,18 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
             if _diversified:
                 _all_missing = _diversified
 
+        # 서브카테고리별 최대 2개 제한 — 동일 카테고리 편향 방지
+        # _etc(taxonomy 미등록 커스텀 키워드)는 제한 없이 통과
+        _subcat_count: dict[str, int] = {}
+        _capped: list[str] = []
+        for _kw in _all_missing:
+            _sub = _kw_to_meta.get(_kw, {}).get("subcategory", "_etc")
+            if _sub == "_etc" or _subcat_count.get(_sub, 0) < 2:
+                _capped.append(_kw)
+                if _sub != "_etc":
+                    _subcat_count[_sub] = _subcat_count.get(_sub, 0) + 1
+        _all_missing = _capped
+
         top_missing_keywords = _all_missing[:8]
         pioneer_keywords = kw_analysis.get("pioneer", [])[:2]
         # 응답에 함께 내려보낼 키워드 메타 (해당 키워드만)
@@ -950,6 +986,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         top_missing_keywords = []
         pioneer_keywords = []
         keyword_meta = {}
+        _intro_analyzed = False  # 예외 시 False 확정
 
 
     # FAQ 복사 텍스트 -- 업종 1순위 키워드 기반 기본 템플릿
@@ -995,6 +1032,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         "top_missing_keywords": top_missing_keywords,
         "keyword_meta": keyword_meta,
         "pioneer_keywords": pioneer_keywords,
+        "intro_analyzed": _intro_analyzed,
         "faq_copy_text": faq_copy_text,
         "review_copy_text": review_copy_text,
         # AI 플랫폼별 결과 (프론트엔드 플랫폼 카드에서 직접 참조)
@@ -1823,7 +1861,31 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                     _stream_kw_analysis.get("covered", []), max_count=5,
                 )
             else:
-                _stream_top_missing = _stream_kw_analysis.get("missing", [])[:5]
+                _stream_missing_all = _stream_kw_analysis.get("missing", [])
+                # 서브카테고리별 최대 2개 제한 — 동일 카테고리 편향 방지
+                try:
+                    from services.keyword_taxonomy import KEYWORD_TAXONOMY as _STREAM_TAX, normalize_category as _stream_norm_cat
+                    _stream_industry = _STREAM_TAX.get(
+                        _stream_norm_cat((biz or {}).get("category", req.category)), {}
+                    )
+                    _stream_kw_meta_s: dict[str, str] = {}
+                    for _sn_s, _sd_s in (_stream_industry or {}).items():
+                        for _k_s in _sd_s.get("keywords", []):
+                            if _k_s not in _stream_kw_meta_s:
+                                _stream_kw_meta_s[_k_s] = _sn_s
+                except Exception:
+                    _stream_kw_meta_s = {}
+                _stream_subcat_count: dict[str, int] = {}
+                _stream_capped: list[str] = []
+                for _kw_s in _stream_missing_all:
+                    _sub_s = _stream_kw_meta_s.get(_kw_s, "_etc")
+                    if _sub_s == "_etc" or _stream_subcat_count.get(_sub_s, 0) < 2:
+                        _stream_capped.append(_kw_s)
+                        if _sub_s != "_etc":
+                            _stream_subcat_count[_sub_s] = _stream_subcat_count.get(_sub_s, 0) + 1
+                    if len(_stream_capped) >= 5:
+                        break
+                _stream_top_missing = _stream_capped
     except Exception as e:
         _logger.warning(f"keyword_taxonomy failed (stream): {e}")
 
@@ -2768,7 +2830,33 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 business_keywords=_full_custom_kw,
                 excluded_keywords=_full_excluded_kw or None,
             )
-            _full_top_missing = _full_kw_analysis.get("missing", [])[:5]
+            _full_missing_all = _full_kw_analysis.get("missing", [])
+            # 서브카테고리별 최대 2개 제한
+            try:
+                from services.keyword_taxonomy import KEYWORD_TAXONOMY as _FULL_TAX, normalize_category as _full_norm_cat
+                _full_industry = _FULL_TAX.get(
+                    _full_norm_cat(req.category),
+                    {}
+                )
+                _full_kw_meta: dict[str, str] = {}
+                for _sn, _sd in (_full_industry or {}).items():
+                    for _k in _sd.get("keywords", []):
+                        if _k not in _full_kw_meta:
+                            _full_kw_meta[_k] = _sn
+            except Exception:
+                _full_kw_meta = {}
+
+            _full_subcat_count: dict[str, int] = {}
+            _full_capped: list[str] = []
+            for _kw in _full_missing_all:
+                _sub = _full_kw_meta.get(_kw, "_etc")
+                if _sub == "_etc" or _full_subcat_count.get(_sub, 0) < 2:
+                    _full_capped.append(_kw)
+                    if _sub != "_etc":
+                        _full_subcat_count[_sub] = _full_subcat_count.get(_sub, 0) + 1
+                if len(_full_capped) >= 5:
+                    break
+            _full_top_missing = _full_capped
         except Exception as e:
             _logger.warning(f"keyword_taxonomy failed (full): {e}")
 

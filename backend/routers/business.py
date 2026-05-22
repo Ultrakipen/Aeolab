@@ -1383,7 +1383,7 @@ async def keyword_suggest(
     supabase = get_client()
     res = await execute(
         supabase.table("businesses")
-            .select("id, user_id, name, category, region")
+            .select("id, user_id, name, category, region, keywords")
             .eq("id", req.biz_id)
             .single()
     )
@@ -1399,6 +1399,7 @@ async def keyword_suggest(
         category=biz.get("category") or "",
         region=biz.get("region") or "",
         count=max(1, min(int(req.count or 10), 20)),
+        existing_keywords=biz.get("keywords") or [],
     )
 
     ctx = result.get("_context", {})

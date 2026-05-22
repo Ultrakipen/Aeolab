@@ -69,6 +69,40 @@ export default function ScoreGuidePage() {
         </p>
       </div>
 
+      {/* 3-1. 점수와 매출의 관계 — 인과관계 명시 (장기 기대치 설정) */}
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-4">
+        <h2 className="text-base md:text-lg font-bold text-slate-800 mb-3">
+          점수가 높으면 손님이 더 오나요?
+        </h2>
+        <div className="space-y-3">
+          <div className="flex items-start gap-3">
+            <span className="shrink-0 text-slate-400 font-bold mt-0.5">→</span>
+            <p className="text-sm md:text-base text-slate-700 leading-relaxed">
+              <strong>점수 향상</strong>은 AI 검색 노출 가능성을 높이는 지표입니다.
+              점수가 오르면 AI가 내 가게를 더 자주 추천하고,
+              그 결과 새 손님이 가게를 발견할 접점이 늘어납니다.
+            </p>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
+            <p className="text-sm text-slate-600 font-semibold mb-1.5">인과 경로</p>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="bg-blue-100 text-blue-800 font-medium px-2.5 py-1 rounded-lg">점수 개선</span>
+              <span className="text-slate-400">→</span>
+              <span className="bg-blue-100 text-blue-800 font-medium px-2.5 py-1 rounded-lg">AI 검색 노출 증가</span>
+              <span className="text-slate-400">→</span>
+              <span className="bg-blue-100 text-blue-800 font-medium px-2.5 py-1 rounded-lg">잠재 고객 발견</span>
+              <span className="text-slate-400">→</span>
+              <span className="bg-emerald-100 text-emerald-800 font-medium px-2.5 py-1 rounded-lg">방문·구매 가능성↑</span>
+            </div>
+          </div>
+          <p className="text-sm text-slate-500 leading-relaxed">
+            단, 점수 향상이 매출을 직접 보장하지는 않습니다.
+            AI 노출은 잠재 고객이 가게를 발견하는 첫 단계일 뿐이며,
+            실제 방문은 가격·서비스·위치 등 다른 요인에도 영향을 받습니다.
+          </p>
+        </div>
+      </div>
+
       {/* v3.1 안내 박스 (향후 적용 예정) */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-5 mb-4">
         <div className="flex items-center gap-2 mb-2">
@@ -458,9 +492,12 @@ export default function ScoreGuidePage() {
 
       {/* 7. 등급 기준 */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
-        <h2 className="text-base md:text-lg font-bold text-gray-900 mb-3">
+        <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
           등급 기준
         </h2>
+        <p className="text-sm text-slate-500 mb-3">
+          상위/하위 백분위는 초기 서비스 추정값입니다. 사용자 데이터가 쌓이면 실측 기반으로 자동 갱신됩니다.
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
           {[
             {

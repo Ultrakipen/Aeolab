@@ -2,7 +2,8 @@ import { Check as CheckIcon } from "lucide-react";
 
 const FEATURES = [
   { label: "AI 추천 최적화", seo: false, naver: false, aeo: true },
-  { label: "AI 브리핑 키워드 갭", seo: false, naver: false, aeo: true },
+  { label: "네이버 AI 브리핑 키워드 갭", seo: false, naver: false, aeo: true },
+  { label: "네이버 AI탭 최적화", seo: false, naver: false, aeo: true },
   { label: "경쟁사 AI 노출 비교", seo: false, naver: false, aeo: true },
   { label: "주간 자동 추적", seo: false, naver: false, aeo: true },
   { label: "ChatGPT·Gemini 관리", seo: false, naver: false, aeo: true },
