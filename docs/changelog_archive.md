@@ -1,7 +1,39 @@
 # AEOlab 변경 이력 아카이브 (v1.2 ~ v3.7)
 
 > CLAUDE.md 토큰 절약용 아카이브. 필요 시에만 이 파일 참조. 현재 상태·코드 패턴은 CLAUDE.md 본문 참조.
-> 최종 갱신: 2026-04-24
+> 최종 갱신: 2026-05-22
+
+---
+
+## Google 스크린샷 재도입 상세 (구독자 50명 이후 — CLAUDE.md에서 이관)
+
+**현재 상태 (2026-05-14 제거)**: iwinv 데이터센터 IP → Google 봇 감지 CAPTCHA 100% 발생.
+`capture_batch()` 및 `after_screenshot_job`에서 Google 캡처 블록 제거 완료.
+`screenshot.py:_is_google_captcha()` 감지 함수는 유지 (재도입 시 재활용).
+
+**재도입 방법 — DataForSEO Screenshot API:**
+```python
+# capture_ai_result("google", ...) 대신 DataForSEO API 호출
+import httpx
+
+async def capture_google_via_dataforseo(query: str) -> Optional[bytes]:
+    url = "https://api.dataforseo.com/v3/serp/google/organic/live/advanced"
+    payload = [{"keyword": query, "language_code": "ko", "location_code": 2410,
+                "calculate_rectangles": True, "screenshot": True}]
+    async with httpx.AsyncClient() as client:
+        r = await client.post(url, json=payload,
+                              auth=(DATAFORSEO_LOGIN, DATAFORSEO_PASSWORD))
+        data = r.json()
+        screenshot_b64 = data["tasks"][0]["result"][0].get("screenshot")
+        if screenshot_b64:
+            import base64
+            return base64.b64decode(screenshot_b64)
+    return None
+```
+
+- 비용 예측: 약 $0.002/건 → 50명 × 월 1회 = 월 $0.10 수준
+- 환경변수 추가: `DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD`
+- 작업 위치: `services/screenshot.py:capture_ai_result()` Google 분기에 복원
 
 ---
 

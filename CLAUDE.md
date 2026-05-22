@@ -589,44 +589,28 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - `inactive_post_alert_job` (14일 미작성 시 카카오 알림). `photo_guide.py` 9업종 × 3~4카테고리 모달 UI
 - v5.6 DB: `businesses.last_post_at TIMESTAMPTZ` (graceful fallback 가능, Supabase SQL 실행 권장)
 
-### 2026-05-04 — Basic 자동 스캔 A안 50/50 분할 (Gemini + ChatGPT 동등 측정)
-- Basic: Gemini 50회 + ChatGPT 50회 + Naver 병렬. 점수: Gemini 45점 + ChatGPT 45점 = 90점 → 100점 재배분
-- `sample_n(n=50)` 일반화. `calc_multi_ai_exposure` sample_size 기반 비율 계산. boolean 폴백 유지(Quick)
-- Quick 수동 ChatGPT 5회 격상. `daily_scan_all` → ai_citations INSERT 추가. 수학적 기법 도입 보류(`memory/project_quant_methods.md`)
-
 ### 2026-05-16 — 네이버 AI탭 대응 P0 (AI 브리핑 ≠ AI탭 분리)
-- **근거 문서**: `docs/naver_ai_tab_대응_개발계획_v1.0.md` — 실제 네이버 서비스 기준, 기획서 기준 아님
-- **핵심 수정**: AI탭(2026-04-27 베타)은 모든 업종 노출 가능 — 기존 코드가 AI 브리핑 업종 제한을 AI탭에도 잘못 적용한 버그 수정
-- **백엔드**: `score_engine.py:82` — `get_ai_tab_eligibility()` 함수 추가 (항상 "beta" 반환, 업종 무관)
-- **프론트엔드**:
-  - `dashboard/page.tsx` — `eligibility` → `briefingEligibility` + `aiTabEligibility="beta"` 분리
-  - `dashboard/page.tsx:714` — INACTIVE 배너: "AI 브리핑 대상 아님"만 → "AI탭은 모든 업종 가능" 추가 안내
-  - `DualTrackCard.tsx` — Track 1 레이블: "AI 브리핑 준비도" → "AI 검색 준비도 (AI브리핑·AI탭 통합)"
-  - `PreviewClient.tsx:445,509` — 동일 레이블 수정
-- **검증**: SSH grep 5개 핵심 라인 확인, 프론트 빌드 TypeScript 에러 0건, PM2 both online
-- **P1 예정 (1-2주)**: `smart_place_auto_check.py` 예약 연동 체크 + `AiInfoTabGuide.tsx` INACTIVE AI탭 가이드 추가
-- **P2 예정 (6월 AI탭 전체 확대 후)**: `naver_ai_tab_scanner.py` 신규 + DB 컬럼 추가
+> 근거 → `docs/naver_ai_tab_대응_개발계획_v1.0.md`
+- AI탭(2026-04-27 베타)은 모든 업종 노출 가능. `score_engine.get_ai_tab_eligibility()` 신규(항상 "beta" 반환)
+- `dashboard/page.tsx` `eligibility` → `briefingEligibility` + `aiTabEligibility="beta"` 분리. `DualTrackCard` Track1 레이블 "AI 검색 준비도(AI브리핑·AI탭 통합)"
+- P2 예정(6월 전체 확대 후): `naver_ai_tab_scanner.py` 신규 + DB 컬럼
 
-### 2026-05-04 — 네이버 AI 브리핑 2026-05 개선 v1.0 (8개 항목)
-> 상세 → `docs/naver_ai_briefing_2026_05_improvements_v1.0.md`
-- AI탭 답변 시뮬레이션: `briefing_engine.simulate_ai_tab_answer()` + `GET /api/report/ai-tab-preview/{biz_id}` (Basic+)
-- 사진 카테고리 진단: `_parse_photo_categories()` + `scan_results.photo_categories JSONB` + `PhotoCategoryCard.tsx`
-- 숙박 키워드 4그룹 재편 (`keyword_taxonomy.py`). C-rank 체크리스트·리뷰 갭 카드·검색 의도 안내·ai_tab_context 추가
+### 2026-05-04 — Basic 자동 스캔 A안 50/50 + AI 브리핑 2026-05 개선 v1.0
+> 상세 → `docs/naver_ai_briefing_2026_05_improvements_v1.0.md`, `memory/project_quant_methods.md`
+- Basic: Gemini 50회 + ChatGPT 50회 + Naver 병렬. 점수 45+45=90→100 재배분. `sample_n(n=50)` 일반화
+- AI탭 답변 시뮬레이션 + 사진 카테고리 진단(JSONB) + 숙박 키워드 4그룹 재편 + C-rank 체크리스트
+- 수학적 기법(Wilson CI·베이지안 등) 도입은 베타 10/30/50명 이후 단계적
 
 ### 2026-05-01 — 톡톡 채팅방 메뉴 개편 + 스마트플레이스 Q&A 탭 폐기 대응 v1.0
 > 상세 → `docs/naver_talktalk_redesign_v1.0.md`
 - `/qna` 완전 폐기: `_SMARTPLACE_PATHS["faq"]` 제거, `_detect_faq()` 폐기, `/qna` goto 0건, deeplink → `/profile`
 - `has_faq` 0점, 소식 25점·소개글 20점 재배분. "톡톡 채팅방 메뉴" 명칭 17개 화면 일관. 하위 호환 `_compat_chat_menus()` + `normalizeChatMenus()`
 
-### 2026-04-30 — Phase A 서비스 통합 재편 v1.2 (점수 모델 v3.1 + 키워드 측정 인프라)
-> 상세 → `docs/service_unification_v1.0.md` v1.2
-- DB v3.1: 12컬럼 추가(user_group/keyword_ranks/keyword_suggest_count_month 등). 미실행 시 graceful fallback
-- v3.1 가중치: ACTIVE 25+15+15+10+10+25 / LIKELY 30+17+18+10+10+15 / INACTIVE 35+20+20+10+15+0. 환경변수 `SCORE_MODEL_VERSION=v3_1` (베타 5명+ 후 활성화)
-- 신규: `naver_keyword_rank.py` + `keyword_suggester.py` + `KeywordRankCard.tsx`. 스케줄: 주1/일1(Pro)
-- 환경변수: `BACKEND_MAX_CONCURRENCY=2`, `KEYWORD_SUGGEST_MODEL=claude-haiku-4-5-20251001`, `KAKAO_TEMPLATE_KEYWORD_CHANGE` (비즈센터 승인 후)
-
-### 2026-04-23~30 — v3.x/v4.1/v5.1~5.4 완료 (아카이브)
-> 상세 내역 → `docs/changelog_archive.md`. 핵심: 프랜차이즈 게이팅, how-it-works 페이지, 모바일 CTA, trial claim 깔때기, 온보딩 투어, 전환 알림 시퀀스, 주간 다이제스트, DB v3.5/v3.6/v4.1 컬럼, GA4 G-KCZTWYK7QV 라이브
+### 2026-04-30 — Phase A 서비스 통합 재편 v1.2 + v3.x/v4.1/v5.1~5.4
+> 상세 → `docs/service_unification_v1.0.md` v1.2 + `docs/changelog_archive.md`
+- DB v3.1: 12컬럼(user_group/keyword_ranks 등) graceful fallback. 가중치 ACTIVE/LIKELY/INACTIVE 그룹별 분기. 환경변수 `SCORE_MODEL_VERSION=v3_1` (베타 5명+ 후)
+- 신규: `naver_keyword_rank.py` + `keyword_suggester.py` + `KeywordRankCard.tsx`. 환경변수: `BACKEND_MAX_CONCURRENCY=2`, `KEYWORD_SUGGEST_MODEL=claude-haiku-4-5-20251001`
+- v3.x/v4.1/v5.1~5.4 핵심: 프랜차이즈 게이팅·how-it-works·모바일 CTA·trial claim·온보딩 투어·전환 알림·주간 다이제스트·DB v3.5/v3.6/v4.1·GA4 라이브
 
 ---
 
@@ -687,35 +671,9 @@ ssh root@115.68.231.57 'pm2 logs aeolab-backend --lines 500 --nostream | grep "P
 - 경쟁사 keyword_gap 실시간 자동화 (`_enrich_competitor_excerpts` 잡 이미 구현됨)
 
 ### Google 스크린샷 재도입 계획 (구독자 50명 이후)
-
-> **현재 상태 (2026-05-14 제거)**: iwinv 데이터센터 IP → Google 봇 감지 CAPTCHA 100% 발생.
-> `capture_batch()` 및 `after_screenshot_job`에서 Google 캡처 블록 제거 완료.
-> `screenshot.py:_is_google_captcha()` 감지 함수는 유지 (재도입 시 재활용).
-
-**재도입 방법 — DataForSEO Screenshot API:**
-```python
-# capture_ai_result("google", ...) 대신 DataForSEO API 호출
-import httpx
-
-async def capture_google_via_dataforseo(query: str) -> Optional[bytes]:
-    url = "https://api.dataforseo.com/v3/serp/google/organic/live/advanced"
-    payload = [{"keyword": query, "language_code": "ko", "location_code": 2410,
-                "calculate_rectangles": True, "screenshot": True}]
-    async with httpx.AsyncClient() as client:
-        r = await client.post(url, json=payload,
-                              auth=(DATAFORSEO_LOGIN, DATAFORSEO_PASSWORD))
-        data = r.json()
-        screenshot_b64 = data["tasks"][0]["result"][0].get("screenshot")
-        if screenshot_b64:
-            import base64
-            return base64.b64decode(screenshot_b64)
-    return None
-```
-
-**비용 예측**: 약 $0.002/건 → 50명 × 월 1회 = **월 $0.10 수준**
-**환경변수 추가**: `DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD`
-**작업 위치**: `services/screenshot.py:capture_ai_result()` Google 분기에 복원
+- 2026-05-14 Google 캡처 제거됨 (iwinv IP → CAPTCHA 100%). `screenshot.py:_is_google_captcha()` 감지 함수만 유지
+- 재도입 시 DataForSEO Screenshot API 사용 (~$0.002/건, 50명 × 월 1회 ≈ 월 $0.10). 환경변수 `DATAFORSEO_LOGIN/PASSWORD`. 상세 → `docs/changelog_archive.md`
 
 ---
 
-*최종 업데이트: 2026-05-18 | AI 브리핑 vs AI탭 명확 구분 (P0+P1) + 네이버 AI 검색 최적화 M1~M3 + 랜딩 리드젠 A·B·C 배포*
+*최종 업데이트: 2026-05-22 | 스캔 결과 화면 종합 점검 v1.0 (P0 4건·P1 6건·P2 4건·P3 1건) + 신뢰도 개선 (점수 절댓값 → 상태 라벨) + CLAUDE.md 700줄 한도 복귀*
