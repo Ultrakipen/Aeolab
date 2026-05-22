@@ -92,7 +92,7 @@ const SCAN_STEPS_NON_LOCATION = [
 
 const TRIAL_LS_KEY = "aeolab_trial_v2";
 const TRIAL_DAY_MS = 24 * 60 * 60 * 1000;
-const TRIAL_DAY_LIMIT = 3;
+const TRIAL_DAY_LIMIT = 999; // 개발 중 무제한
 
 // ── 무료 체험 횟수 관리 ────────────────────────────────────────────────
 interface TrialStore {

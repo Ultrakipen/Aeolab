@@ -97,9 +97,16 @@ export default function DashboardHeroCard({
               </span>
             )}
           </div>
+          <div className="flex items-start gap-1.5 mt-2 bg-white/60 rounded-lg px-2.5 py-1.5">
+            <span className="text-gray-400 text-sm shrink-0 mt-0.5">→</span>
+            <p className="text-sm text-gray-500 leading-relaxed break-keep">
+              점수가 오를수록 AI가 내 가게를 더 자주 추천 → 새 손님이 발견할 가능성이 높아집니다.
+              <span className="text-gray-400 ml-1">(점수 개선이 매출을 보장하지는 않으며, AI 노출 접점을 늘리는 지표입니다)</span>
+            </p>
+          </div>
           <Link
             href="/score-guide"
-            className="text-sm text-blue-500 hover:text-blue-700 hover:underline mt-1 inline-flex items-center gap-0.5"
+            className="text-sm text-blue-500 hover:text-blue-700 hover:underline mt-1.5 inline-flex items-center gap-0.5"
           >
             점수 계산 방식 보기 →
           </Link>

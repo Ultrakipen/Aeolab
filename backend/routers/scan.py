@@ -155,6 +155,8 @@ async def _recover_naver_place_id(business_name: str, region: str) -> str:
 
 def _check_trial_rate_limit(ip: str) -> None:
     """IP 기반 무료 체험 횟수 초과 시 429 반환"""
+    if _DEV_TRIAL_UNLIMITED:
+        return
     key = f"trial_ip:{ip}"
     count: int = _cache.get(key) or 0
     if count >= _TRIAL_LIMIT_PER_DAY:
@@ -452,7 +454,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
     _endpoint = "trial"
 
     _is_authenticated = bool(request.headers.get("Authorization", "").startswith("Bearer "))
-    if not _is_admin_request(request):
+    if not _is_admin_request(request) and not _DEV_TRIAL_UNLIMITED:
         if _is_authenticated:
             # 로그인 사용자: user_id 기반 일별 5회 한도 (API 비용 보호)
             auth_header = request.headers.get("Authorization", "")

@@ -9,7 +9,7 @@ import type { TrialScanResult } from "@/types";
 
 const QUICK_LS_KEY   = "aeolab_trial_v2";
 const TRIAL_DAY_MS   = 24 * 60 * 60 * 1000;
-const TRIAL_DAY_LIMIT = 3;
+const TRIAL_DAY_LIMIT = 999; // 개발 중 무제한
 
 interface TrialStore { count: number; resetAt: number }
 

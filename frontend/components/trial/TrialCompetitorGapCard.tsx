@@ -195,7 +195,7 @@ export default function TrialCompetitorGapCard({
           {(topCompetitorBlogCount ?? 0) <= 50000 && (topCompetitorBlogCount ?? 0) > blogCount && (
             <p className="text-sm text-red-600 mt-2">
               {(topCompetitorBlogCount ?? 0) > 1500
-                ? <>1위보다 약 <strong>{(topCompetitorBlogCount ?? 0) - blogCount}건</strong> 차이 (추정치 포함 가능)</>
+                ? <>경쟁사 블로그 언급이 <strong>훨씬 많습니다</strong> — 가게명에 지역·업종 키워드가 포함돼 합산 부풀림 가능성 있음</>
                 : <>1위보다 <strong>{(topCompetitorBlogCount ?? 0) - blogCount}건</strong> 적습니다</>}
               {" "}— 리뷰 답변에 키워드를 넣으면 좁힐 수 있습니다
             </p>
