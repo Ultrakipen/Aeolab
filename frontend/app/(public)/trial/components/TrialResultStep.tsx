@@ -10,6 +10,7 @@ import {
 import { getUserGroup, GROUP_MESSAGES, getBriefingEligibility, type BriefingEligibility } from "@/lib/userGroup";
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import TodayOneAction from "@/components/trial/TodayOneAction";
+import NaverAiPathwayCard from "@/components/dashboard/NaverAiPathwayCard";
 import SubscriptionValueCompare from "@/components/trial/SubscriptionValueCompare";
 import SubscriptionScreenshotPreview from "@/components/trial/SubscriptionScreenshotPreview";
 import ClaimGate from "@/components/trial/ClaimGate";
@@ -191,14 +192,14 @@ function LockedScoreCard({ score, track1, track2 }: { score: number; track1: num
         </div>
         <p className="text-xs text-slate-400 mt-1.5">항목별 분해 (5가지) + 경쟁사 비교 + 매주 추적은 구독 후 확인</p>
       </div>
-      {/* 블러 처리된 항목 분석 바 — 수치 표시 없음(더미 수치 금지 원칙) */}
+      {/* 블러 처리된 항목 분석 바 — 수치 표시 없음(더미 수치 금지 원칙), barW 균일(50) */}
       <div className="px-4 py-5 blur-sm select-none pointer-events-none opacity-60" aria-hidden="true">
         {[
-          { label: "핵심 키워드 보유", pct: "35%", barW: 60 },
-          { label: "고객 후기 신뢰도", pct: "25%", barW: 45 },
+          { label: "핵심 키워드 보유", pct: "35%", barW: 50 },
+          { label: "고객 후기 신뢰도", pct: "25%", barW: 50 },
           { label: "네이버 프로필 완성도", pct: "15%", barW: 50 },
-          { label: "AI 브리핑 노출", pct: "15%", barW: 55 },
-          { label: "카카오맵 등록", pct: "10%", barW: 40 },
+          { label: "AI 브리핑 노출", pct: "15%", barW: 50 },
+          { label: "카카오맵 등록", pct: "10%", barW: 50 },
         ].map((item) => (
           <div key={item.label} className="mb-3">
             <div className="flex justify-between mb-1">
@@ -244,6 +245,7 @@ function ScoreSummaryCard({
   benchmarkAvg,
   categoryLabel,
   isEstimatedBenchmark,
+  gsLabel,
 }: {
   score: number;
   track1: number;
@@ -251,6 +253,7 @@ function ScoreSummaryCard({
   benchmarkAvg: number;
   categoryLabel: string;
   isEstimatedBenchmark: boolean;
+  gsLabel?: string;
 }) {
   // 등급 대신 성장 여정 단계로 표현 — 낙제 감각 없이 가능성 중심
   const stage =
@@ -286,10 +289,10 @@ function ScoreSummaryCard({
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 mb-4 shadow-sm">
-      {/* 단계 태그 */}
+      {/* 단계 태그 — 백엔드 gsLabel 우선, 없으면 로컬 stage.label */}
       <div className="flex items-center gap-2 mb-3">
         <span className={`text-sm font-bold px-3 py-1 rounded-full ${stage.tagBg}`}>
-          {stage.label}
+          {gsLabel ?? stage.label}
         </span>
         <span className="text-sm text-slate-400">현재 AI 노출 단계</span>
       </div>
@@ -859,6 +862,13 @@ export default function TrialResultStep(props: TrialResultProps) {
           benchmarkAvg={benchmarkAvg}
           categoryLabel={categoryLabel}
           isEstimatedBenchmark={isEstimatedBenchmark}
+          gsLabel={gsLabel}
+        />
+
+        {/* ── 1.6 AI 검색 채널 5종 매트릭스 ─────────────────────────────── */}
+        <NaverAiPathwayCard
+          briefingEligibility={briefingCategory}
+          isFranchise={isFranchise}
         />
 
         {/* ── 2. 채널별 AI 검색 결과 (업종별 순서 분기)
@@ -1240,7 +1250,7 @@ function BriefingCategoryBadge({
       <div className="bg-green-50 border border-green-300 rounded-xl px-4 py-2.5 mb-3 flex items-center gap-2">
         <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
         <p className="text-sm font-semibold text-green-800">
-          네이버 AI 브리핑 노출 대상 업종입니다
+          네이버 AI 브리핑 + AI탭 + ChatGPT·Gemini·Google AI — 5채널 모두 노출 가능 업종입니다
         </p>
       </div>
     );
@@ -1251,10 +1261,10 @@ function BriefingCategoryBadge({
         <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-bold text-amber-800">
-            ChatGPT·Gemini + 네이버 플레이스 검색 노출이 가능합니다
+            AI탭 + ChatGPT·Gemini·Google AI — 4채널 노출이 가능합니다
           </p>
           <p className="text-sm text-amber-700 mt-0.5">
-            네이버 AI 브리핑은 현재 공식 대상이 아닙니다 (2026 상반기 확대 예정)
+            네이버 AI 브리핑은 현재 공식 대상이 아닙니다 (확대 검토 중)
           </p>
         </div>
       </div>
@@ -1265,7 +1275,7 @@ function BriefingCategoryBadge({
       <Globe className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
       <div>
         <p className="text-sm font-bold text-blue-800">
-          ChatGPT·Gemini·Google AI + 네이버 플레이스·블로그 검색 노출이 가능합니다
+          AI탭 + ChatGPT·Gemini·Google AI — 4채널 노출이 가능합니다
         </p>
         <p className="text-sm text-blue-700 mt-0.5">
           네이버 AI 브리핑 대상 업종이 아닙니다
@@ -1315,8 +1325,11 @@ function ScoreBreakdownBox({
         </div>
       </div>
 
-      <p className="text-sm font-bold text-gray-800 mb-3">
-        채널별 측정 결과
+      <p className="text-sm font-bold text-gray-800 mb-0.5">
+        네이버 트랙 내 항목 비중
+      </p>
+      <p className="text-xs text-slate-400 mb-3">
+        네이버 검색 준비도 점수 내 기여 비중 (업종별 네이버/글로벌 비율 적용 전)
       </p>
       <div className="space-y-3">
         {breakdownItems.map((item) => {
@@ -1743,7 +1756,7 @@ function BriefingBadgeChip({
     return (
       <span className="inline-flex items-center gap-1.5 text-sm font-bold text-green-700 bg-white rounded-full px-3 py-1 shadow-sm whitespace-nowrap">
         <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-        네이버 AI 브리핑 대상
+        AI 브리핑·AI탭 5채널 대상
       </span>
     );
   }
@@ -1751,14 +1764,14 @@ function BriefingBadgeChip({
     return (
       <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-200 bg-white/20 border border-amber-300/60 rounded-full px-3 py-1 whitespace-nowrap">
         <Clock className="w-3.5 h-3.5 shrink-0" />
-        ChatGPT·Gemini + AI 브리핑 확대 예정
+        AI탭·ChatGPT·Gemini 4채널
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-white/20 border border-white/40 rounded-full px-3 py-1 whitespace-nowrap">
       <Globe className="w-3.5 h-3.5 shrink-0" />
-      ChatGPT·Gemini + 네이버 검색 노출
+      AI탭·ChatGPT·Gemini 4채널
     </span>
   );
 }

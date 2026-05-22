@@ -2862,6 +2862,12 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         except Exception as e:
             _logger.warning(f"keyword_taxonomy failed (full): {e}")
 
+        # naver_result에 AI탭 측정 결과 주입 — briefing_engine.simulate_ai_tab_answer()가
+        # naver_result["in_ai_tab"] 키로 measured/estimated 배지를 판정하므로 필수
+        _naver_result_full = {**(result.get("naver") or {})}
+        if _ai_tab_visible is not None:
+            _naver_result_full["in_ai_tab"] = _ai_tab_visible
+
         await execute(
             supabase.table("scan_results").insert(
                 {
@@ -2870,7 +2876,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "query_used": query,
                     "gemini_result": result.get("gemini"),
                     "chatgpt_result": result.get("chatgpt"),
-                    "naver_result": result.get("naver"),
+                    "naver_result": _naver_result_full,
                     "google_result": result.get("google"),
                     "kakao_result": kakao_data or None,
                     "website_check_result": website_check or None,

@@ -342,6 +342,7 @@ export default async function DashboardPage({
             recentActionType={actionLogs[0]?.action_type ?? null}
             recentScoreGain={scoreChangeDiff !== null && scoreChangeDiff > 0 ? scoreChangeDiff : null}
             userCreatedAt={user.created_at ?? null}
+            lastScannedLabel={lastScannedLabel}
           />
 
           <ContextTipBanner section="score" industry={bizBase.category} />

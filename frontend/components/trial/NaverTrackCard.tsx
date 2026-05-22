@@ -109,12 +109,17 @@ export default function NaverTrackCard({
   );
 
   const score = Math.round(track1Score);
+  // DualTrackCard와 동일한 5단계 척도 (25/45/65/80)
   const scoreColorClass =
-    score >= 70
-      ? "text-green-600"
-      : score >= 40
+    score >= 80
+      ? "text-emerald-600"
+      : score >= 65
         ? "text-blue-600"
-        : "text-red-500";
+        : score >= 45
+          ? "text-amber-600"
+          : score >= 25
+            ? "text-orange-500"
+            : "text-red-500";
 
   const isNonBriefing = isGlobal || userGroup === "LIKELY";
 
@@ -127,8 +132,8 @@ export default function NaverTrackCard({
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true" />
           <p className="text-sm font-bold text-amber-900 break-keep">
             {userGroup === "LIKELY"
-              ? "현재 네이버 AI 브리핑 공식 대상 업종이 아닙니다 (2026 확대 예정)"
-              : "이 업종은 네이버 AI 브리핑 대상이 아닙니다"}
+              ? "현재 네이버 AI 브리핑 공식 대상 업종이 아닙니다 (확대 검토 중) — AI탭은 지금도 가능"
+              : "이 업종은 네이버 AI 브리핑 대상이 아닙니다 — AI탭은 모든 업종 가능"}
           </p>
         </div>
       )}

@@ -35,6 +35,7 @@ interface DualTrackCardProps {
   isKeywordEstimated?: boolean;
   topMissingKeywords?: string[];
   benchmarkAvg?: number;
+  isEstimatedBenchmark?: boolean;
   smartPlaceStatus?: SmartPlaceStatus;
   hasRegisteredKeywords?: boolean;
   blogContribution?: {
@@ -364,6 +365,7 @@ export default function DualTrackCard({
   isKeywordEstimated = false,
   topMissingKeywords = [],
   benchmarkAvg,
+  isEstimatedBenchmark = false,
   smartPlaceStatus,
   blogContribution,
   hasRegisteredKeywords = false,
@@ -385,16 +387,16 @@ export default function DualTrackCard({
   const isInactive = eligibility === "inactive";
 
   const track1LabelText = isInactive
-    ? "네이버 SEO 검색 점수"
+    ? "네이버 검색 준비도 (AI탭 포함)"
     : isLikely
-    ? "네이버 검색 점수 (AI 브리핑 확대 예정)"
-    : "네이버 AI 브리핑 점수";
+    ? "네이버 AI 검색 점수 (AI탭 가능·AI 브리핑 확대 검토 중)"
+    : "네이버 AI 브리핑·AI탭 점수";
 
   const track1Sublabel = isInactive
-    ? "블로그·스마트플레이스를 꾸준히 관리하면 네이버 검색 노출을 개선할 수 있습니다"
+    ? "블로그·스마트플레이스를 꾸준히 관리하면 AI탭·네이버 검색 노출을 개선할 수 있습니다"
     : isLikely
-    ? "블로그·스마트플레이스 관리로 검색 노출을 높이고, AI 브리핑 확대 시 즉시 활성화됩니다"
-    : "이 점수가 낮으면 네이버 AI가 내 가게를 잘 모릅니다";
+    ? "AI탭은 지금도 가능합니다. 블로그·스마트플레이스 관리로 AI탭 노출을 높이세요"
+    : "이 점수가 낮으면 네이버 AI 브리핑·AI탭에서 내 가게를 잘 모릅니다";
 
   const track1TipFinal = isInactive
     ? (INACTIVE_NAVER_SEO_TIPS[category] ?? INACTIVE_NAVER_SEO_TIPS.other)
@@ -464,7 +466,7 @@ export default function DualTrackCard({
               ? "업종 중위권 — 개선 여지 있음"
               : "AI 노출 개선 여지 큼"}
           </div>
-          {benchmarkAvg && benchmarkAvg > 0 && (
+          {benchmarkAvg && benchmarkAvg > 0 && !isEstimatedBenchmark && (
             <div className={`px-2 py-1 rounded-lg text-sm font-semibold ${
               unifiedScore >= benchmarkAvg
                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200"

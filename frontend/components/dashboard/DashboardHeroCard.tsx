@@ -147,7 +147,7 @@ export default function DashboardHeroCard({
                 : eligibility === "inactive"
                 ? "AI탭·ChatGPT·Gemini 노출 관리"
                 : eligibility === "likely"
-                ? "AI 브리핑 확대 예정"
+                ? "AI탭 노출 가능 · AI 브리핑 확대 검토 중"
                 : naverInBriefing
                 ? "AI 노출 중"
                 : "AI 미노출"}
@@ -155,7 +155,7 @@ export default function DashboardHeroCard({
             <p className="text-sm text-gray-500">
               {eligibility === "inactive"
                 ? "AI탭·ChatGPT·Gemini"
-                : "네이버 AI 브리핑"}
+                : "네이버 AI 브리핑·AI탭"}
             </p>
           </div>
         </div>

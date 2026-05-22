@@ -38,6 +38,7 @@ interface Props {
   recentActionType: string | null;
   recentScoreGain: number | null;
   userCreatedAt?: string | null;
+  lastScannedLabel?: string | null;
 }
 
 export default function DashboardScoreZone({
@@ -55,6 +56,7 @@ export default function DashboardScoreZone({
   recentActionType,
   recentScoreGain,
   userCreatedAt,
+  lastScannedLabel,
 }: Props) {
   const daysSinceSignup = userCreatedAt
     ? Math.floor((Date.now() - new Date(userCreatedAt).getTime()) / 86_400_000)
@@ -115,6 +117,11 @@ export default function DashboardScoreZone({
       )}
 
       {/* Hero 카드 — 스캔 결과 있을 때만 표시 */}
+      {latestScan && lastScannedLabel && (
+        <p className="text-sm text-slate-400 mb-1.5">
+          마지막 측정: <span className="font-semibold text-slate-600">{lastScannedLabel}</span>
+        </p>
+      )}
       {latestScan && (
         <DashboardHeroCard
           businessName={business.name}

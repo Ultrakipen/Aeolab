@@ -1558,6 +1558,9 @@ def simulate_ai_tab_answer(
             kw_results = naver_res.get("keyword_results") or []
             if any(isinstance(r, dict) and r.get("in_ai_tab") is not None for r in kw_results):
                 has_real_aitab_data = True
+        # top-level 컬럼 fallback: scan_results.naver_ai_tab_visible (기존 레코드 호환)
+        if not has_real_aitab_data and scan_result.get("naver_ai_tab_visible") is not None:
+            has_real_aitab_data = True
 
     # 실측 데이터가 있으면 "measured" 배지, 없으면 "estimated" (추정)
     data_source = "measured" if has_real_aitab_data else "estimated"
@@ -1573,6 +1576,10 @@ def simulate_ai_tab_answer(
                 confirmed_in_ai_tab = any(
                     isinstance(r, dict) and r.get("in_ai_tab") for r in kw_results
                 )
+    # top-level 컬럼 fallback (JSONB에 in_ai_tab 없는 기존 레코드)
+    if has_real_aitab_data and not confirmed_in_ai_tab and scan_result is not None:
+        if scan_result.get("naver_ai_tab_visible") is not None:
+            confirmed_in_ai_tab = bool(scan_result.get("naver_ai_tab_visible"))
 
     # 실측 ad_only — 광고 영역 노출 여부 (taxonomy 교차 검증 결과와 함께 프론트엔드에 전달)
     # Q2 광고 출시 전에는 False가 기본값. 실측 True 시 점수 제외 여부를 UI에서 안내.

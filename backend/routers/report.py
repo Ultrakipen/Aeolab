@@ -1352,7 +1352,7 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
     # 최신 스캔 결과 조회 (옵션)
     scan_res = await execute(
         supabase.table("scan_results")
-        .select("id, keyword_coverage, score_breakdown")
+        .select("id, keyword_coverage, score_breakdown, naver_result, naver_ai_tab_visible")
         .eq("business_id", biz_id)
         .order("scanned_at", desc=True)
         .limit(1)

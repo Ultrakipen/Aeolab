@@ -45,13 +45,13 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
           id="naver-ai-pathway-title"
           className="text-base md:text-lg font-bold text-slate-800 break-keep"
         >
-          네이버 AI 검색 노출 경로 — 두 가지 다른 화면
+          AI 검색 채널 5종 — 내 가게가 노출될 수 있는 곳
         </h2>
       </div>
 
       <div className="p-4 md:p-6">
         <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-          AEOlab은 네이버의 두 가지 AI 노출 경로를 모두 측정합니다. 각각 노출 조건과 대상 업종이 다릅니다.
+          AEOlab은 5가지 AI 채널 노출을 측정합니다. 네이버 2채널은 업종 조건이 있고, 글로벌 3채널은 모든 업종 가능합니다.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
@@ -145,6 +145,73 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               <li>• 핵심: 소개글 200자·사진 10장·예약 연동·블로그 후기</li>
               <li>• 2026-04-27 베타 → 상반기 전체 확대 예정</li>
             </ul>
+          </div>
+        </div>
+
+        {/* 글로벌 AI 3채널 — 모든 업종 가능 */}
+        <div className="mt-3 md:mt-4">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">글로벌 AI 3채널 — 모든 업종</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* ChatGPT */}
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span
+                  className="inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-black bg-emerald-600 text-white"
+                  aria-hidden="true"
+                >
+                  C
+                </span>
+                <h3 className="text-sm font-bold text-emerald-900">ChatGPT</h3>
+                <span className="ml-auto inline-flex items-center rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 text-xs font-semibold">
+                  모든 업종
+                </span>
+              </div>
+              <ul className="space-y-0.5 text-xs text-slate-600 leading-snug">
+                <li>• 학습 데이터 기반 (GPT-4o)</li>
+                <li>• 블로그·리뷰·구조화 데이터 핵심</li>
+                <li>• 면책: 실시간 검색과 다를 수 있음</li>
+              </ul>
+            </div>
+            {/* Gemini */}
+            <div className="rounded-xl border border-violet-200 bg-violet-50 p-3">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span
+                  className="inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-black bg-violet-600 text-white"
+                  aria-hidden="true"
+                >
+                  G
+                </span>
+                <h3 className="text-sm font-bold text-violet-900">Gemini</h3>
+                <span className="ml-auto inline-flex items-center rounded-full bg-violet-100 text-violet-700 border border-violet-200 px-1.5 py-0.5 text-xs font-semibold">
+                  모든 업종
+                </span>
+              </div>
+              <ul className="space-y-0.5 text-xs text-slate-600 leading-snug">
+                <li>• Google 데이터 기반 (Gemini Flash)</li>
+                <li>• 100회 샘플링 → 노출 빈도 측정</li>
+                <li>• 웹 구조화·위치 정보 중요</li>
+              </ul>
+            </div>
+            {/* Google AI */}
+            <div className="rounded-xl border border-orange-200 bg-orange-50 p-3">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span
+                  className="inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-black bg-orange-500 text-white"
+                  aria-hidden="true"
+                >
+                  O
+                </span>
+                <h3 className="text-sm font-bold text-orange-900">Google AI</h3>
+                <span className="ml-auto inline-flex items-center rounded-full bg-orange-100 text-orange-700 border border-orange-200 px-1.5 py-0.5 text-xs font-semibold">
+                  모든 업종
+                </span>
+              </div>
+              <ul className="space-y-0.5 text-xs text-slate-600 leading-snug">
+                <li>• Google AI Overview (SGE)</li>
+                <li>• 한국 내 노출 빈도 증가 중</li>
+                <li>• 구조화 데이터(Schema.org) 핵심</li>
+              </ul>
+            </div>
           </div>
         </div>
 
