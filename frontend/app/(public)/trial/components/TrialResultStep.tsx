@@ -616,7 +616,7 @@ export default function TrialResultStep(props: TrialResultProps) {
       label: isFranchise || userGroupValue === "INACTIVE"
         ? "네이버 지역·블로그 검색 노출 여부"
         : userGroupValue === "LIKELY"
-          ? "네이버 AI 브리핑 노출 여부 (확대 예정)"
+          ? "네이버 AI 브리핑 노출 여부 (확대 검토 중)"
           : "실제 네이버 AI 브리핑 노출 여부",
       weight: 15,
       value: breakdown?.naver_exposure_confirmed,
@@ -723,8 +723,8 @@ export default function TrialResultStep(props: TrialResultProps) {
             2026 AI탭 베타 공개·확대 진행 중
           </p>
           <p className="text-sm text-amber-800 leading-relaxed">
-            이 업종은 네이버 AI 브리핑 확대 예상 대상입니다. 2026-04-27 네이버플러스
-            우선 베타 공개 후 상반기 전체 확대 예정입니다.
+            네이버 AI탭은 2026-04-27 베타 공개 후 상반기 전체 확대 예정입니다 (모든 업종 가능).
+            AI 브리핑 업종 확대는 네이버 공식 발표 후 적용 예정이며 현재 확대 검토 중입니다.
           </p>
         </div>
       )}
@@ -919,7 +919,7 @@ export default function TrialResultStep(props: TrialResultProps) {
               <div className="flex-1">
                 <p className="text-sm font-bold text-blue-900 leading-snug mb-1">
                   {briefingCategory === "likely"
-                    ? "네이버 AI 브리핑은 현재 공식 대상이 아닙니다 (2026 확대 예정)"
+                    ? "네이버 AI 브리핑은 현재 공식 대상이 아닙니다 (확대 검토 중)"
                     : "네이버 AI 브리핑 대상 업종이 아닙니다"}
                 </p>
                 <p className="text-sm text-blue-700 leading-relaxed mb-3">
@@ -1425,7 +1425,7 @@ function NaverBriefingResultCard({
           <span className="text-sm font-semibold text-gray-700">네이버 AI 브리핑 검색 결과</span>
         </div>
         {isLikely && (
-          <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">2026 확대 예정</span>
+          <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">확대 검토 중</span>
         )}
       </div>
 
@@ -1466,10 +1466,10 @@ function NaverBriefingResultCard({
           ) : (
             /* LIKELY 업종 — 확대 예정 안내 */
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-              <p className="text-sm font-semibold text-amber-800 mb-1">2026 확대 예정 업종</p>
+              <p className="text-sm font-semibold text-amber-800 mb-1">AI 브리핑 업종 확대 검토 중</p>
               <p className="text-sm text-amber-700 leading-relaxed">
-                현재 네이버 AI 브리핑 공식 대상이 아니지만 2026년 상반기 확대 예정입니다.
-                정식 스캔에서 노출 가능 여부를 주기적으로 모니터링합니다.
+                현재 네이버 AI 브리핑 공식 대상이 아닙니다. 업종 확대는 검토 중이며,
+                AI탭(베타)은 지금도 가능합니다. 정식 스캔에서 노출 여부를 모니터링합니다.
               </p>
             </div>
           )

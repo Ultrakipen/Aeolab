@@ -145,17 +145,19 @@ export default function DashboardHeroCard({
               {naverCaptchaBlocked
                 ? "AI 노출 확인 불가"
                 : eligibility === "inactive"
-                ? "AI탭·ChatGPT·Gemini 노출 관리"
+                ? "AI탭·ChatGPT·Gemini·Google AI 노출 관리"
                 : eligibility === "likely"
-                ? "AI탭 노출 가능 · AI 브리핑 확대 검토 중"
+                ? "AI탭 가능 · ChatGPT·Gemini·Google AI — 4채널"
                 : naverInBriefing
-                ? "AI 노출 중"
-                : "AI 미노출"}
+                ? "AI 브리핑 노출 중 — 5채널 모두 가능"
+                : "AI 미노출 — 5채널 최적화 필요"}
             </p>
             <p className="text-sm text-gray-500">
               {eligibility === "inactive"
-                ? "AI탭·ChatGPT·Gemini"
-                : "네이버 AI 브리핑·AI탭"}
+                ? "AI탭·ChatGPT·Gemini·Google AI (4채널)"
+                : eligibility === "likely"
+                ? "네이버 AI탭 + 글로벌 AI 3채널"
+                : "네이버 AI 브리핑·AI탭 + 글로벌 AI 3채널"}
             </p>
           </div>
         </div>
