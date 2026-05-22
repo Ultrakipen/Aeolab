@@ -1,4 +1,5 @@
 import asyncio
+import os
 from typing import AsyncIterator
 from .gemini_scanner import GeminiScanner
 from .chatgpt_scanner import ChatGPTScanner
@@ -29,8 +30,9 @@ _CATEGORY_KO: dict[str, str] = {
     "tax": "세무사", "real_estate": "부동산", "car": "자동차정비",
 }
 
-# Playwright 인스턴스 1개 = RAM 300~500MB → 동시 1개로 제한 (RAM 4GB 서버 OOM 방지)
-PLAYWRIGHT_SEMAPHORE = asyncio.Semaphore(1)
+# Playwright 동시성 — PLAYWRIGHT_MAX_CONCURRENCY 환경변수로 제어 (기본 1)
+# RAM 4GB 서버: 1 유지. 업그레이드 후 서버 .env에 PLAYWRIGHT_MAX_CONCURRENCY=2 추가
+PLAYWRIGHT_SEMAPHORE = asyncio.Semaphore(int(os.getenv("PLAYWRIGHT_MAX_CONCURRENCY", "1")))
 
 
 class MultiAIScanner:
