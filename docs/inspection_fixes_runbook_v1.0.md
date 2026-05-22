@@ -289,7 +289,7 @@ echo | openssl s_client -connect aeolab.co.kr:443 2>/dev/null | openssl x509 -no
 - [x] §E: `_detect_faq()` deprecated 주석 추가 + 배포 ✅ 2026-05-20
 - [x] §F: cleaning/fashion 주석 추가 + 배포 ✅ 2026-05-20
 - [x] §G: CLAUDE.md Semaphore 표기 수정 ✅ 2026-05-20
-- [ ] §H: text-xs 주요 정보 전달 요소 교체 (별도 세션)
+- [x] §H: text-xs 주요 정보 전달 요소 교체 ✅ 2026-05-22 — TrialResultStep 3곳 + NaverAiPathwayCard 3곳
 - [ ] §I: SSH PM2 + SSL 만료일 확인 (사용자 직접)
 
 ---

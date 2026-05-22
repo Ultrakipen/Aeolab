@@ -166,20 +166,22 @@ post_briefing_ad_strategy_v1.0.md
 
 | # | 항목 | 결과 | 비고 |
 |---|------|------|------|
-| A-1 | ACTIVE 목록 동기화 | | |
-| A-2 | LIKELY 목록 동기화 | | |
-| A-3 | 프랜차이즈 게이팅 | | |
-| A-4 | INACTIVE UX | | |
-| A-5 | /qna 실제 참조 0건 | | |
-| B-6 | AI탭 분리 | | |
-| B-7 | AI탭 시뮬레이션 배지 | | |
-| B-8 | 용어 통일 | | |
-| C-9 | ChatGPT 면책 문구 | | |
-| C-10 | 50/50 분할 | | |
-| C-11 | 에러 폴백 | | |
-| D-12 | 실측 원칙 | | |
-| D-13 | 점수 모델 버전 | | |
-| D-14 | briefing-categories API | | |
+| A-1 | ACTIVE 목록 동기화 | ✅ | 5개 완전 일치 (score_engine.py:30 ↔ userGroup.ts:20) |
+| A-2 | LIKELY 목록 동기화 | ✅ | 12개 완전 일치 (score_engine.py:33 ↔ userGroup.ts:28) |
+| A-3 | 프랜차이즈 게이팅 | ✅ | is_franchise=True → "inactive" 반환 (score_engine.py:71) |
+| A-4 | INACTIVE UX | ✅ | AI탭 안내 배너·AiTabPreviewCard 비대상 안내 존재 |
+| A-5 | /qna 실제 참조 0건 | ✅ | grep 실 코드 참조 0건 확인 |
+| B-6 | AI탭 분리 | ✅ | get_ai_tab_eligibility() → os.getenv("AI_TAB_STATUS","beta") |
+| B-7 | AI탭 시뮬레이션 배지 | ✅ | AiTabPreviewCard.tsx:245 measured/estimated 분기·면책 문구 |
+| B-8 | 용어 통일 | ✅ | "AI 정보 탭"(스마트플레이스 내부)·"AI탭"(검색화면) 혼용 없음 |
+| C-9 | ChatGPT 면책 문구 | ✅ | 19개 주요 화면 확인 (Trial·대시보드·가이드·데모·프라이싱) |
+| C-10 | 50/50 분할 | ✅ | sample_n(n=50) + 45+45=90→100 재배분 확인 |
+| C-11 | 에러 폴백 | ✅ | Math.random() 0건, chatgptResult ?? null 처리 |
+| D-12 | 실측 원칙 | ✅ | 더미 수치 0건, LockedScoreCard barW=50 균일 (P0-2 수정됨) |
+| D-13 | 점수 모델 버전 | ⚠️ | default v3_0 정상. v3_1 베타 5명+ 후 활성화 (환경변수 SCORE_MODEL_VERSION) |
+| D-14 | briefing-categories API | ✅ | briefingCategoriesServer.ts → /api/public/briefing-categories 호출 |
+
+> 점검일: 2026-05-22 | 14개 전항목 점검 완료. 이상 0건 (D-13은 의도적 보류).
 
 ---
 
