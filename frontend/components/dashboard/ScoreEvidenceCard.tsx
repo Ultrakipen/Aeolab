@@ -16,6 +16,14 @@ const V3_1_WEIGHTS: Record<string, Record<string, number>> = {
   INACTIVE: { keyword_search_rank: 35, review_quality: 20, smart_place_completeness: 20, blog_crank: 10, local_map_score: 15, ai_briefing_score: 0  },
 };
 
+// ── v3.2 가중치 상수 (백엔드 NAVER_TRACK_WEIGHTS_V3_2와 동기화 필수)
+// naver_ai_tab_visible 항목 추가. ai_briefing_score 일부 분리.
+const V3_2_WEIGHTS: Record<string, Record<string, number>> = {
+  ACTIVE:   { keyword_search_rank: 25, review_quality: 15, smart_place_completeness: 15, blog_crank: 10, local_map_score: 10, ai_briefing_score: 20, naver_ai_tab_visible:  5 },
+  LIKELY:   { keyword_search_rank: 25, review_quality: 17, smart_place_completeness: 18, blog_crank: 10, local_map_score: 10, ai_briefing_score: 10, naver_ai_tab_visible: 10 },
+  INACTIVE: { keyword_search_rank: 25, review_quality: 20, smart_place_completeness: 20, blog_crank:  5, local_map_score: 15, ai_briefing_score:  0, naver_ai_tab_visible: 15 },
+};
+
 const USER_GROUP_LABEL: Record<string, string> = {
   ACTIVE:   "AI 브리핑 대상 업종",
   LIKELY:   "AI 브리핑 확대 예정 업종",
@@ -180,8 +188,10 @@ function V31SixItems({
   bizId?: string;
   token?: string;
 }) {
-  const ug = detail.user_group in V3_1_WEIGHTS ? detail.user_group : "ACTIVE";
-  const weights = V3_1_WEIGHTS[ug];
+  const isV32 = detail.model_version === "v3.2";
+  const weightsTable = isV32 ? V3_2_WEIGHTS : V3_1_WEIGHTS;
+  const ug = detail.user_group in weightsTable ? detail.user_group : "ACTIVE";
+  const weights = weightsTable[ug];
   const items = detail.items;
 
   const finalReviewCount = kakaoResult?.review_count ?? reviewCount ?? naverResult?.review_count ?? 0;
@@ -195,6 +205,7 @@ function V31SixItems({
   const blogItem     = items["blog_crank"];
   const mapItem      = items["local_map_score"];
   const aiItem       = items["ai_briefing_score"];
+  const aiTabItem    = items["naver_ai_tab_visible"];
 
   const spc = spItem?.score ?? 0;
   const spDecoded = decodeSmartPlace(Math.round(spc));
@@ -207,6 +218,7 @@ function V31SixItems({
 
   // INACTIVE 그룹은 AI 브리핑 가중치 0 → 항목 표시 시 별도 안내
   const aiBriefingApplicable = weights["ai_briefing_score"] > 0;
+  const aiTabApplicable = isV32 && (weights["naver_ai_tab_visible"] ?? 0) > 0;
 
   return (
     <div className="space-y-4">
@@ -482,6 +494,45 @@ function V31SixItems({
           </>
         )}
       </div>
+
+      {/* ⑦ 네이버 AI탭 노출 (v3.2 전용) */}
+      {isV32 && (
+        <div className="rounded-xl border border-gray-100 p-4 bg-gray-50">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <span className="text-sm md:text-base font-semibold text-gray-800">
+                  ⑦ 네이버 AI탭 노출
+                </span>
+                {aiTabApplicable ? (
+                  <WeightBadge pct={weights["naver_ai_tab_visible"]} color="text-indigo-700 bg-indigo-50 border-indigo-200" />
+                ) : (
+                  <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
+                    가중치 0%
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-500">
+                네이버 AI탭(베타)에 사업장 답변이 노출됐는지 실측 확인합니다
+              </p>
+            </div>
+            <ScoreBadge value={aiTabItem?.score ?? 0} />
+          </div>
+          {aiTabApplicable && (
+            <div className="flex items-center gap-2">
+              <ScoreBar value={aiTabItem?.score ?? 0} color={barColor(aiTabItem?.score ?? 0)} />
+            </div>
+          )}
+          <div className="flex items-start gap-2 bg-indigo-50 rounded-lg p-3 mt-2">
+            <span className="text-indigo-500 text-sm shrink-0 mt-0.5">ℹ️</span>
+            <p className="text-sm text-indigo-700">
+              {(aiTabItem?.score ?? 0) > 0
+                ? "AI탭에 노출됩니다. 소개글·사진·키워드 최적화를 유지하세요."
+                : "AI탭 노출이 확인되지 않았습니다. 소개글 200자 이상·사진 10장 이상을 권장합니다."}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -752,9 +803,11 @@ export default function ScoreEvidenceCard({
   token,
   missingItems,
 }: Props) {
-  // v3.1 판별: score_breakdown.track1_detail?.model_version === "v3.1"
+  // v3.1/v3.2 판별: score_breakdown.track1_detail?.model_version
   const track1Detail = breakdown["track1_detail"] as unknown as V31Detail | undefined;
-  const isV31 = track1Detail?.model_version === "v3.1";
+  const _mv = track1Detail?.model_version ?? "";
+  const isV31 = _mv === "v3.1" || _mv === "v3.2";
+  const isV32Parent = _mv === "v3.2";
   const userGroup = isV31 ? (track1Detail?.user_group ?? "ACTIVE") : null;
 
   const globalWeight = Math.round((1 - naverWeight) * 100);
@@ -773,11 +826,11 @@ export default function ScoreEvidenceCard({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h2 className="text-base md:text-lg font-bold text-gray-900">
-              {isV31 ? "점수 근거 (v3.1 · 6항목)" : "네이버 기반 점수 근거"}
+              {isV32Parent ? "점수 근거 (v3.2 · 7항목)" : isV31 ? "점수 근거 (v3.1 · 6항목)" : "네이버 기반 점수 근거"}
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">
               {isV31
-                ? `왜 이 점수인지 6가지 항목으로 설명합니다`
+                ? `왜 이 점수인지 ${isV32Parent ? "7" : "6"}가지 항목으로 설명합니다`
                 : "왜 이 점수인지 4가지 항목으로 설명합니다"
               }
             </p>

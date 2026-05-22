@@ -97,10 +97,10 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               검색 결과 상단 AI 자동 추천 박스
             </p>
             <ul className="space-y-1 text-sm text-slate-700 leading-snug">
-              <li>• 음식점·카페·베이커리·바·숙박 (+ 확대 중)</li>
-              <li>• 프랜차이즈 가맹점 제외 (네이버 공식)</li>
-              <li>• 핵심: 네이버 품질 기준, 리뷰 확보(권장), 소식·소개글</li>
-              <li>• 2025.03 정식 출시 (외식 중심)</li>
+              <li className="text-sm">• 음식점·카페·베이커리·바·숙박 (+ 확대 중)</li>
+              <li className="text-sm">• 프랜차이즈 가맹점 제외 (네이버 공식)</li>
+              <li className="text-sm">• 핵심: 네이버 품질 기준, 리뷰 확보(권장), 소식·소개글</li>
+              <li className="text-sm">• 2025.03 정식 출시 (외식 중심)</li>
             </ul>
             {isFranchise && (
               <p className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
@@ -166,7 +166,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                   모든 업종
                 </span>
               </div>
-              <ul className="space-y-0.5 text-xs text-slate-600 leading-snug">
+              <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
                 <li>• 학습 데이터 기반 (GPT-4o)</li>
                 <li>• 블로그·리뷰·구조화 데이터 핵심</li>
                 <li>• 면책: 실시간 검색과 다를 수 있음</li>
@@ -186,7 +186,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                   모든 업종
                 </span>
               </div>
-              <ul className="space-y-0.5 text-xs text-slate-600 leading-snug">
+              <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
                 <li>• Google 데이터 기반 (Gemini Flash)</li>
                 <li>• 100회 샘플링 → 노출 빈도 측정</li>
                 <li>• 웹 구조화·위치 정보 중요</li>
@@ -206,7 +206,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                   모든 업종
                 </span>
               </div>
-              <ul className="space-y-0.5 text-xs text-slate-600 leading-snug">
+              <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
                 <li>• Google AI Overview (SGE)</li>
                 <li>• 한국 내 노출 빈도 증가 중</li>
                 <li>• 구조화 데이터(Schema.org) 핵심</li>

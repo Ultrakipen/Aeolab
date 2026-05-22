@@ -175,22 +175,22 @@ function LockedScoreCard({ score, track1, track2 }: { score: number; track1: num
       </div>
       {/* 채널 점수 실측 — 블러 없이 공개 */}
       <div className="px-4 pt-4 pb-3 border-b border-slate-100">
-        <p className="text-xs text-slate-500 mb-2">이번 스캔 채널별 점수 (실측)</p>
+        <p className="text-sm text-slate-500 mb-2">이번 스캔 채널별 점수 (실측)</p>
         <div className="flex gap-2">
           <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-center">
-            <p className="text-xs text-slate-500 mb-0.5">네이버</p>
+            <p className="text-sm text-slate-500 mb-0.5">네이버</p>
             <p className="text-lg font-black text-slate-800">{track1}<span className="text-sm font-normal text-slate-400">점</span></p>
           </div>
           <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-center">
-            <p className="text-xs text-slate-500 mb-0.5">글로벌 AI</p>
+            <p className="text-sm text-slate-500 mb-0.5">글로벌 AI</p>
             <p className="text-lg font-black text-slate-800">{track2}<span className="text-sm font-normal text-slate-400">점</span></p>
           </div>
           <div className="flex-1 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-center">
-            <p className="text-xs text-blue-500 mb-0.5">종합</p>
+            <p className="text-sm text-blue-500 mb-0.5">종합</p>
             <p className="text-lg font-black text-blue-700">{score}<span className="text-sm font-normal text-blue-400">점</span></p>
           </div>
         </div>
-        <p className="text-xs text-slate-400 mt-1.5">항목별 분해 (5가지) + 경쟁사 비교 + 매주 추적은 구독 후 확인</p>
+        <p className="text-sm text-slate-400 mt-1.5">항목별 분해 (5가지) + 경쟁사 비교 + 매주 추적은 구독 후 확인</p>
       </div>
       {/* 블러 처리된 항목 분석 바 — 수치 표시 없음(더미 수치 금지 원칙), barW 균일(50) */}
       <div className="px-4 py-5 blur-sm select-none pointer-events-none opacity-60" aria-hidden="true">
@@ -1328,7 +1328,7 @@ function ScoreBreakdownBox({
       <p className="text-sm font-bold text-gray-800 mb-0.5">
         네이버 트랙 내 항목 비중
       </p>
-      <p className="text-xs text-slate-400 mb-3">
+      <p className="text-sm text-slate-400 mb-3">
         네이버 검색 준비도 점수 내 기여 비중 (업종별 네이버/글로벌 비율 적용 전)
       </p>
       <div className="space-y-3">
