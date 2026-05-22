@@ -119,6 +119,14 @@ const INACTIVE_NAVER_SEO_TIPS: Record<string, string> = {
   other:      "업종 관련 정보성 블로그 주 1~2회 발행 + 스마트플레이스 소개글·사진 업데이트",
 };
 
+function getScoreStatusLabel(score: number): { text: string; color: string } {
+  if (score < 25) return { text: "주의 필요", color: "text-red-600" };
+  if (score < 45) return { text: "미흡",     color: "text-amber-600" };
+  if (score < 65) return { text: "보통",     color: "text-yellow-600" };
+  if (score < 80) return { text: "양호",     color: "text-blue-600" };
+  return             { text: "우수",         color: "text-emerald-600" };
+}
+
 const STAGE_COLORS: Record<string, string> = {
   survival:  "bg-red-100 text-red-700 border border-red-200",
   stability: "bg-yellow-100 text-yellow-700 border border-yellow-200",
@@ -161,12 +169,8 @@ function ScoreBar({
   const pct = Math.round(weight * 100);
   const barWidth = Math.min(100, Math.max(0, score));
 
-  // 점수대별 색상: 0~29 amber, 30~59 yellow, 60+ green
-  const scoreColor = score < 30
-    ? "text-amber-600"
-    : score < 60
-    ? "text-yellow-600"
-    : "text-emerald-600";
+  // scoreColor — isWeak/isVeryLow ring 로직에서 간접 활용 가능하나 현재 span은 getScoreStatusLabel로 대체
+  void (score < 30 ? "text-amber-600" : score < 60 ? "text-yellow-600" : "text-emerald-600");
 
   // ring 색상: 30 미만은 amber (기회 프레임), 30~59는 yellow
   const ringClass = isVeryLow
@@ -184,8 +188,8 @@ function ScoreBar({
             전체 점수 중 {pct}% 비중
           </span>
         </div>
-        <span className={`text-xl md:text-2xl font-bold shrink-0 ${scoreColor}`}>
-          {score.toFixed(0)}점
+        <span className={`text-base md:text-lg font-bold shrink-0 ${getScoreStatusLabel(score).color}`}>
+          {getScoreStatusLabel(score).text}
         </span>
       </div>
       <div className="h-3 bg-gray-200 rounded-full overflow-hidden mb-2">
@@ -328,14 +332,12 @@ function GrowthProgressBar({ stage, score }: { stage: string; score: number }) {
   const pct = Math.round(
     Math.min(100, Math.max(0, ((score - range.min) / (range.max - range.min)) * 100))
   );
-  const pointsLeft = Math.max(0, range.max + 1 - Math.round(score));
-
   return (
     <div className="mt-2">
       <div className="flex items-center justify-between text-sm mb-1">
         <span className="text-gray-500">현재 단계 진행률</span>
         {range.next ? (
-          <span className="text-gray-500">다음 단계까지 <span className="font-bold text-indigo-600">+{pointsLeft}점</span></span>
+          <span className="text-gray-500">다음 단계: <span className="font-bold text-indigo-600">{range.next}</span></span>
         ) : (
           <span className="text-emerald-600 font-bold">최고 단계 달성!</span>
         )}
@@ -469,8 +471,8 @@ export default function DualTrackCard({
                 : "bg-red-50 text-red-600 border border-red-200"
             }`}>
               {unifiedScore >= benchmarkAvg
-                ? `▲ 평균보다 ${Math.round(unifiedScore - benchmarkAvg)}점 높음`
-                : `▼ 평균보다 ${Math.round(benchmarkAvg - unifiedScore)}점 낮음`}
+                ? "▲ 업종 평균 이상"
+                : "▼ 업종 평균 미만"}
             </div>
           )}
           <span className={`inline-flex items-center gap-1 text-sm font-semibold rounded-full px-2 py-0.5 ${
@@ -600,7 +602,7 @@ export default function DualTrackCard({
             )}
           </div>
           <p className="text-sm text-gray-400 mt-2.5 leading-relaxed">
-            ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다. AI 샘플링 특성상 측정 시점·질의 구성에 따라 ±10~15점 변동 가능
+            ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다. 측정 시점·질의 구성에 따라 결과가 달라질 수 있습니다
           </p>
         </div>
       )}

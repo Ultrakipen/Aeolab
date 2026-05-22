@@ -132,6 +132,7 @@
 | `docs/changelog_archive.md` | v1.2~v3.5 완료 내역 아카이브 |
 | **`docs/remaining_tasks_v1.0.md`** ⭐ | **잔여 작업 런북 — DB 테이블 생성 SQL·대행 서비스 체크리스트·git 커밋·P2/P3 트리거 명령 전체 정리 (2026-05-18)** |
 | **`docs/inspection_fixes_runbook_v1.0.md`** ⭐ | **출시 전 점검 수정 런북 — §1~§15 전 영역 점검 결과 기반. P0 except 42건·content_validator 게이트·Claude 호출 상한·세마포어 등 §A~§I 수정 순서 정리 (2026-05-19)** |
+| **`docs/scan_result_screens_inspection_v1.0.md`** ⭐ | **스캔 결과 화면 종합 점검 — 무료 체험·대시보드 5채널 인식·AI탭 measured 파이프 3중 단절·LockedScoreCard 더미·ScoreBreakdownBox 레이블·LIKELY 단정 분리. P0 4건·P1 6건·P2 4건·P3 1건 (2026-05-22, 5단계 메타 점검)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 

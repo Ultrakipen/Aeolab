@@ -227,6 +227,15 @@ function LockedScoreCard({ score, track1, track2 }: { score: number; track1: num
   );
 }
 
+// ── 채널 상태 텍스트 헬퍼 ─────────────────────────────────────────────
+function getChannelStatus(score: number): { text: string; bg: string; text_color: string } {
+  if (score < 25) return { text: "주의 필요", bg: "bg-red-50 border-red-200",     text_color: "text-red-600" };
+  if (score < 45) return { text: "미흡",     bg: "bg-amber-50 border-amber-200",  text_color: "text-amber-600" };
+  if (score < 65) return { text: "보통",     bg: "bg-yellow-50 border-yellow-200", text_color: "text-yellow-600" };
+  if (score < 80) return { text: "양호",     bg: "bg-blue-50 border-blue-200",    text_color: "text-blue-600" };
+  return             { text: "우수",         bg: "bg-emerald-50 border-emerald-200", text_color: "text-emerald-600" };
+}
+
 // ── 점수 요약 카드 (성장 단계 중심 — 거부감 없이 기회 전달) ─────────────
 function ScoreSummaryCard({
   score,
@@ -235,8 +244,6 @@ function ScoreSummaryCard({
   benchmarkAvg,
   categoryLabel,
   isEstimatedBenchmark,
-  track1Estimated,
-  track2Estimated,
 }: {
   score: number;
   track1: number;
@@ -244,8 +251,6 @@ function ScoreSummaryCard({
   benchmarkAvg: number;
   categoryLabel: string;
   isEstimatedBenchmark: boolean;
-  track1Estimated?: boolean;
-  track2Estimated?: boolean;
 }) {
   // 등급 대신 성장 여정 단계로 표현 — 낙제 감각 없이 가능성 중심
   const stage =
@@ -292,12 +297,12 @@ function ScoreSummaryCard({
       {/* 메시지 */}
       <p className="text-base md:text-lg text-slate-700 leading-relaxed break-keep mb-3">{stage.message}</p>
 
-      {/* 점수→매출 인과관계 안내 (장기 기대치 설정) */}
+      {/* AI 노출 단계→매출 인과관계 안내 (장기 기대치 설정) */}
       <div className="flex items-start gap-2 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 mb-4">
         <span className="text-slate-400 text-sm mt-0.5">→</span>
         <p className="text-sm text-slate-500 leading-relaxed break-keep">
-          점수가 오를수록 AI가 내 가게를 더 자주 추천 → 새 손님이 가게를 발견할 가능성이 높아집니다.
-          <span className="ml-1 text-slate-400">(점수 개선이 매출을 보장하지는 않으며, AI 노출 접점을 늘리는 지표입니다)</span>
+          AI 노출 단계가 높아질수록 AI가 내 가게를 더 자주 추천 → 새 손님이 가게를 발견할 가능성이 높아집니다.
+          <span className="ml-1 text-slate-400">(AI 최적화가 매출을 보장하지는 않으며, 노출 접점을 늘리는 진단입니다)</span>
         </p>
       </div>
 
@@ -312,53 +317,53 @@ function ScoreSummaryCard({
             <div
               className="absolute top-0 bottom-0 w-0.5 bg-slate-400 rounded-full"
               style={{ left: `${benchmarkAvg}%` }}
-              title={`${categoryLabel} 평균 ${benchmarkAvg}점`}
+              title={`${categoryLabel} 업종 평균`}
             />
           )}
         </div>
         <div className="flex justify-between mt-1">
-          <span className="text-sm text-slate-400">0점</span>
+          <span className="text-sm text-slate-400">시작</span>
           {!isEstimatedBenchmark && benchmarkAvg > 0 && (
-            <span className="text-sm text-slate-400">
-              {categoryLabel} 평균 {benchmarkAvg}점
-            </span>
+            <span className="text-sm text-slate-400">{categoryLabel} 업종 평균</span>
           )}
-          <span className="text-sm text-slate-400">100점</span>
+          <span className="text-sm text-slate-400">최적화</span>
         </div>
       </div>
 
-      {/* 채널별 점수 */}
+      {/* 채널별 상태 */}
       <div className="flex flex-wrap gap-2 mt-3">
-        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
-          <span className="text-sm text-slate-500">네이버</span>
-          <span className="text-base font-bold text-slate-700">{track1}점</span>
-          {track1Estimated && <span className="text-xs text-slate-400">(추정)</span>}
-        </div>
-        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
-          <span className="text-sm text-slate-500">글로벌 AI</span>
-          <span className="text-base font-bold text-slate-700">{track2}점</span>
-          {track2Estimated && <span className="text-xs text-slate-400">(추정)</span>}
-        </div>
+        {(() => {
+          const t1 = getChannelStatus(track1);
+          return (
+            <div className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 ${t1.bg}`}>
+              <span className="text-sm text-slate-500">네이버</span>
+              <span className={`text-sm font-bold ${t1.text_color}`}>{t1.text}</span>
+            </div>
+          );
+        })()}
+        {(() => {
+          const t2 = getChannelStatus(track2);
+          return (
+            <div className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 ${t2.bg}`}>
+              <span className="text-sm text-slate-500">글로벌 AI</span>
+              <span className={`text-sm font-bold ${t2.text_color}`}>{t2.text}</span>
+            </div>
+          );
+        })()}
         {!isEstimatedBenchmark && Math.abs(vsAvg) >= 1 && (
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
+          <div className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 ${vsAvg >= 0 ? "bg-blue-50 border-blue-200" : "bg-slate-50 border-slate-200"}`}>
             <span className="text-sm text-slate-500">업종 평균 대비</span>
             <span className={`text-sm font-bold ${vsAvg >= 0 ? "text-blue-600" : "text-slate-500"}`}>
-              {vsAvg >= 0 ? `+${vsAvg}점` : `${vsAvg}점`}
+              {vsAvg >= 0 ? "높음 ↑" : "낮음 ↓"}
             </span>
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between mt-3 gap-2 flex-wrap">
+      <div className="mt-3">
         <p className="text-sm text-slate-400 leading-relaxed">
-          AEOlab AI 가시성 점수 · ChatGPT·네이버 실측 기반 · AI 샘플링 특성상 ±10~15점 변동 가능
+          AEOlab AI 가시성 진단 · ChatGPT·네이버 실측 기반 · 측정 시점에 따라 결과가 달라질 수 있습니다
         </p>
-        <a
-          href="#score-breakdown"
-          className="text-sm text-blue-500 hover:text-blue-700 underline underline-offset-2 whitespace-nowrap shrink-0"
-        >
-          점수 근거 보기 ↓
-        </a>
       </div>
     </div>
   );
@@ -432,8 +437,9 @@ export default function TrialResultStep(props: TrialResultProps) {
 
   // 점수 계산
   const totalScore = Math.round(result.score?.total_score ?? 0);
-  const track1Estimated = result.track1_score == null && result.score?.track1_score == null && result.score?.naver_channel_score == null;
-  const track2Estimated = result.track2_score == null && result.score?.track2_score == null && result.score?.global_channel_score == null;
+  // track1Estimated / track2Estimated — ScoreSummaryCard 숫자 점수 제거로 렌더링 미사용, 향후 다른 UI에 재활용 가능
+  void (result.track1_score == null && result.score?.track1_score == null && result.score?.naver_channel_score == null);
+  void (result.track2_score == null && result.score?.track2_score == null && result.score?.global_channel_score == null);
   const track1 =
     result.track1_score ??
     result.score?.track1_score ??
@@ -626,10 +632,10 @@ export default function TrialResultStep(props: TrialResultProps) {
   const isInactiveGroup = userGroupValue !== "ACTIVE";
   const scoreInterpretation =
     unifiedScore >= 60
-      ? { text: isInactiveGroup ? "네이버·글로벌 AI 검색 노출 안정권 (60점 이상)" : "AI 브리핑 노출 안정권 (60점 이상)", color: "text-green-700", bg: "bg-green-50 border-green-200" }
+      ? { text: isInactiveGroup ? "네이버·글로벌 AI 검색 노출 안정권" : "AI 브리핑 노출 안정권", color: "text-green-700", bg: "bg-green-50 border-green-200" }
       : unifiedScore >= 40
-        ? { text: isInactiveGroup ? "기반 구축 중 — 플레이스·블로그 보완 필요 (40~60점)" : "기반 구축 중 — 콘텐츠 보완 필요 (40~60점)", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" }
-        : { text: isInactiveGroup ? "네이버 검색 노출 낮음 — 블로그·플레이스 개선 필요 (40점 미만)" : "노출 확률 낮음 — 지금 바로 개선 필요 (40점 미만)", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" };
+        ? { text: isInactiveGroup ? "기반 구축 중 — 플레이스·블로그 보완 필요" : "기반 구축 중 — 콘텐츠 보완 필요", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" }
+        : { text: isInactiveGroup ? "네이버 검색 노출 낮음 — 블로그·플레이스 개선 필요" : "노출 확률 낮음 — 지금 바로 개선 필요", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" };
 
   // 7일 후 날짜 계산
   const nextScanDate = (() => {
@@ -853,8 +859,6 @@ export default function TrialResultStep(props: TrialResultProps) {
           benchmarkAvg={benchmarkAvg}
           categoryLabel={categoryLabel}
           isEstimatedBenchmark={isEstimatedBenchmark}
-          track1Estimated={track1Estimated}
-          track2Estimated={track2Estimated}
         />
 
         {/* ── 2. 채널별 AI 검색 결과 (업종별 순서 분기)
@@ -1311,27 +1315,8 @@ function ScoreBreakdownBox({
         </div>
       </div>
 
-      {/* 점수 근거 안내 */}
-      <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-4">
-        <p className="text-sm md:text-base font-bold text-slate-700 mb-2">이 점수는 어떻게 계산하나요?</p>
-        <ul className="space-y-1.5">
-          <li className="text-sm md:text-base text-slate-600 flex items-start gap-2">
-            <span className="text-slate-400 shrink-0 mt-0.5">•</span>
-            <span><strong className="text-slate-700">0~100점</strong>으로 표현한 AI 검색 노출 가능성 — 점수가 높을수록 AI가 내 가게를 더 잘 추천합니다</span>
-          </li>
-          <li className="text-sm md:text-base text-slate-600 flex items-start gap-2">
-            <span className="text-slate-400 shrink-0 mt-0.5">•</span>
-            <span>네이버·ChatGPT 두 채널을 직접 측정한 실측값입니다 (체험 기준)</span>
-          </li>
-          <li className="text-sm md:text-base text-slate-600 flex items-start gap-2">
-            <span className="text-slate-400 shrink-0 mt-0.5">•</span>
-            <span>아래 5가지 항목을 각각 측정한 뒤 비율에 따라 합산합니다</span>
-          </li>
-        </ul>
-      </div>
-
       <p className="text-sm font-bold text-gray-800 mb-3">
-        항목별 측정 결과
+        채널별 측정 결과
       </p>
       <div className="space-y-3">
         {breakdownItems.map((item) => {
@@ -1352,14 +1337,22 @@ function ScoreBreakdownBox({
                       ? "text-slate-400"
                       : item.value === undefined
                         ? "text-slate-400"
-                        : val >= 50
+                        : val >= 65
                           ? "text-blue-700"
-                          : val >= 30
+                          : val >= 40
                             ? "text-amber-700"
-                            : "text-amber-600"
+                            : "text-red-600"
                   }`}
                 >
-                  {isUnmeasured ? "미측정" : item.value === undefined ? "N/A" : `${Math.round(val)}/100`}
+                  {isUnmeasured
+                    ? "미측정"
+                    : item.value === undefined
+                      ? "확인 필요"
+                      : val >= 65
+                        ? "양호"
+                        : val >= 40
+                          ? "보완 필요"
+                          : "주의"}
                 </span>
               </div>
               {isUnmeasured ? (
@@ -1384,7 +1377,7 @@ function ScoreBreakdownBox({
       <div className="flex items-start gap-1.5 mt-3">
         <AlertTriangle className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
         <p className="text-sm text-slate-500 leading-relaxed">
-          AEOlab 자체 측정값 · 네이버 공식 노출 점수 아님 · AI 샘플링 특성상 측정 시점·질의 구성에 따라 ±10~15점 변동 가능
+          AEOlab 자체 측정값 · 네이버 공식 노출 지표 아님 · 측정 시점·질의 구성에 따라 결과가 달라질 수 있습니다
         </p>
       </div>
     </div>

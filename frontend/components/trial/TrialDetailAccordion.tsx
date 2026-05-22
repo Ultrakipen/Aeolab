@@ -158,7 +158,7 @@ function DiagnosisAccordionHeader({
         {isOpen
           ? <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
           : <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />}
-        <span className="text-base font-bold text-gray-900">심층 진단 · 점수 근거</span>
+        <span className="text-base font-bold text-gray-900">심층 진단 · 측정 상세</span>
       </span>
       <span className="text-sm text-gray-400 shrink-0 ml-2">
         {isOpen ? "접기" : "자세히 보기"}
@@ -180,7 +180,7 @@ export default function TrialDetailAccordion({
 }: TrialDetailAccordionProps) {
   const { userGroup } = naverTrackCardProps;
   const isGlobalFocus = userGroup === "INACTIVE" || userGroup === "franchise";
-  const [showDiagnosis, setShowDiagnosis] = useState(true);
+  const [showDiagnosis, setShowDiagnosis] = useState(false);
 
   const {
     naverChannelScore,
@@ -325,7 +325,7 @@ export default function TrialDetailAccordion({
         </div>
       </div>
 
-      {/* ─── 심층 진단 · 점수 근거 (접기/펼치기) ────────────────── */}
+      {/* ─── 심층 진단 · 측정 상세 (접기/펼치기) ────────────────── */}
       <div>
         <DiagnosisAccordionHeader
           isOpen={showDiagnosis}
