@@ -134,7 +134,7 @@ export default function DashboardScoreZone({
             (topMissingKeywords[0] ? `'${topMissingKeywords[0]}' 키워드를 FAQ에 추가` : null)
           }
           todayActionLink="/guide"
-          estimatedGain={gapCloseable !== null ? Math.round(gapCloseable * 0.3) : null}
+          estimatedGain={null}
           recentActionLabel={recentActionType}
           recentActionScoreGain={recentScoreGain}
           eligibility={briefingEligibility}

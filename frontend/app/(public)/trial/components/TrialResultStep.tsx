@@ -53,6 +53,7 @@ function FindingsCard({
   categoryLabel,
   benchmarkAvg,
   score,
+  isEstimatedBenchmark = false,
 }: {
   chatgptMentioned: boolean | undefined;
   inBriefing: boolean | null;
@@ -66,6 +67,7 @@ function FindingsCard({
   categoryLabel: string;
   benchmarkAvg: number;
   score: number;
+  isEstimatedBenchmark?: boolean;
 }) {
   const findings: { icon: string; title: string; desc: string; positive: boolean }[] = [];
 
@@ -132,9 +134,11 @@ function FindingsCard({
     });
   }
 
-  const positionMsg = score >= benchmarkAvg
-    ? `${categoryLabel} 업종 평균보다 나은 상태`
-    : `${categoryLabel} 업종 평균 대비 개선 여지 있음`;
+  const positionMsg = isEstimatedBenchmark
+    ? `${categoryLabel} AI 노출 분석 완료`
+    : score >= benchmarkAvg
+      ? `${categoryLabel} 업종 평균보다 나은 상태`
+      : `${categoryLabel} 업종 평균 대비 개선 여지 있음`;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden mb-4">
@@ -168,22 +172,41 @@ function LockedScoreCard({ score, track1, track2 }: { score: number; track1: num
         <p className="text-base font-bold text-slate-700">📊 항목별 상세 분석 (구독 후 확인)</p>
         <p className="text-sm text-slate-500 mt-0.5">5가지 항목 개별 점수 + 경쟁사 비교 + 매주 자동 측정</p>
       </div>
-      {/* 블러 처리된 항목 분석 바 */}
+      {/* 채널 점수 실측 — 블러 없이 공개 */}
+      <div className="px-4 pt-4 pb-3 border-b border-slate-100">
+        <p className="text-xs text-slate-500 mb-2">이번 스캔 채널별 점수 (실측)</p>
+        <div className="flex gap-2">
+          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-center">
+            <p className="text-xs text-slate-500 mb-0.5">네이버</p>
+            <p className="text-lg font-black text-slate-800">{track1}<span className="text-sm font-normal text-slate-400">점</span></p>
+          </div>
+          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-center">
+            <p className="text-xs text-slate-500 mb-0.5">글로벌 AI</p>
+            <p className="text-lg font-black text-slate-800">{track2}<span className="text-sm font-normal text-slate-400">점</span></p>
+          </div>
+          <div className="flex-1 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-center">
+            <p className="text-xs text-blue-500 mb-0.5">종합</p>
+            <p className="text-lg font-black text-blue-700">{score}<span className="text-sm font-normal text-blue-400">점</span></p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-400 mt-1.5">항목별 분해 (5가지) + 경쟁사 비교 + 매주 추적은 구독 후 확인</p>
+      </div>
+      {/* 블러 처리된 항목 분석 바 — 수치 표시 없음(더미 수치 금지 원칙) */}
       <div className="px-4 py-5 blur-sm select-none pointer-events-none opacity-60" aria-hidden="true">
         {[
-          { label: "핵심 키워드 보유", val: Math.round(score * 0.35) },
-          { label: "고객 후기 신뢰도", val: Math.round(score * 0.25) },
-          { label: "네이버 프로필 완성도", val: Math.round(score * 0.15) },
-          { label: "AI 브리핑 노출", val: Math.round(score * 0.15) },
-          { label: "카카오맵 등록", val: Math.round(score * 0.10) },
+          { label: "핵심 키워드 보유", pct: "35%", barW: 60 },
+          { label: "고객 후기 신뢰도", pct: "25%", barW: 45 },
+          { label: "네이버 프로필 완성도", pct: "15%", barW: 50 },
+          { label: "AI 브리핑 노출", pct: "15%", barW: 55 },
+          { label: "카카오맵 등록", pct: "10%", barW: 40 },
         ].map((item) => (
           <div key={item.label} className="mb-3">
             <div className="flex justify-between mb-1">
               <span className="text-sm text-slate-600">{item.label}</span>
-              <span className="text-sm font-bold text-slate-700">{item.val}/100</span>
+              <span className="text-sm text-slate-400">{item.pct}</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="h-2 rounded-full bg-blue-400" style={{ width: `${item.val}%` }} />
+              <div className="h-2 rounded-full bg-blue-400" style={{ width: `${item.barW}%` }} />
             </div>
           </div>
         ))}
@@ -212,6 +235,8 @@ function ScoreSummaryCard({
   benchmarkAvg,
   categoryLabel,
   isEstimatedBenchmark,
+  track1Estimated,
+  track2Estimated,
 }: {
   score: number;
   track1: number;
@@ -219,6 +244,8 @@ function ScoreSummaryCard({
   benchmarkAvg: number;
   categoryLabel: string;
   isEstimatedBenchmark: boolean;
+  track1Estimated?: boolean;
+  track2Estimated?: boolean;
 }) {
   // 등급 대신 성장 여정 단계로 표현 — 낙제 감각 없이 가능성 중심
   const stage =
@@ -281,7 +308,7 @@ function ScoreSummaryCard({
             className={`h-2.5 rounded-full ${stage.bar} transition-all duration-700`}
             style={{ width: `${score}%` }}
           />
-          {benchmarkAvg > 0 && benchmarkAvg <= 100 && (
+          {!isEstimatedBenchmark && benchmarkAvg > 0 && benchmarkAvg <= 100 && (
             <div
               className="absolute top-0 bottom-0 w-0.5 bg-slate-400 rounded-full"
               style={{ left: `${benchmarkAvg}%` }}
@@ -291,9 +318,9 @@ function ScoreSummaryCard({
         </div>
         <div className="flex justify-between mt-1">
           <span className="text-sm text-slate-400">0점</span>
-          {benchmarkAvg > 0 && (
+          {!isEstimatedBenchmark && benchmarkAvg > 0 && (
             <span className="text-sm text-slate-400">
-              {categoryLabel} 평균 {benchmarkAvg}점{isEstimatedBenchmark ? " (추정)" : ""}
+              {categoryLabel} 평균 {benchmarkAvg}점
             </span>
           )}
           <span className="text-sm text-slate-400">100점</span>
@@ -305,12 +332,14 @@ function ScoreSummaryCard({
         <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
           <span className="text-sm text-slate-500">네이버</span>
           <span className="text-base font-bold text-slate-700">{track1}점</span>
+          {track1Estimated && <span className="text-xs text-slate-400">(추정)</span>}
         </div>
         <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
           <span className="text-sm text-slate-500">글로벌 AI</span>
           <span className="text-base font-bold text-slate-700">{track2}점</span>
+          {track2Estimated && <span className="text-xs text-slate-400">(추정)</span>}
         </div>
-        {Math.abs(vsAvg) >= 1 && (
+        {!isEstimatedBenchmark && Math.abs(vsAvg) >= 1 && (
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
             <span className="text-sm text-slate-500">업종 평균 대비</span>
             <span className={`text-sm font-bold ${vsAvg >= 0 ? "text-blue-600" : "text-slate-500"}`}>
@@ -403,6 +432,8 @@ export default function TrialResultStep(props: TrialResultProps) {
 
   // 점수 계산
   const totalScore = Math.round(result.score?.total_score ?? 0);
+  const track1Estimated = result.track1_score == null && result.score?.track1_score == null && result.score?.naver_channel_score == null;
+  const track2Estimated = result.track2_score == null && result.score?.track2_score == null && result.score?.global_channel_score == null;
   const track1 =
     result.track1_score ??
     result.score?.track1_score ??
@@ -822,6 +853,8 @@ export default function TrialResultStep(props: TrialResultProps) {
           benchmarkAvg={benchmarkAvg}
           categoryLabel={categoryLabel}
           isEstimatedBenchmark={isEstimatedBenchmark}
+          track1Estimated={track1Estimated}
+          track2Estimated={track2Estimated}
         />
 
         {/* ── 2. 채널별 AI 검색 결과 (업종별 순서 분기)
@@ -833,6 +866,9 @@ export default function TrialResultStep(props: TrialResultProps) {
             businessName={form.business_name || "내 가게"}
             inBriefing={inBriefing}
             isLikely={false}
+            hasFaq={hasFaq}
+            hasIntro={hasIntro}
+            isSmartPlace={isSmartPlace}
           />
         )}
 
@@ -843,6 +879,10 @@ export default function TrialResultStep(props: TrialResultProps) {
             mentioned={chatgptMentioned}
             excerpt={chatgptResult?.excerpt}
             sampleSize={chatgptSampleSize}
+            hasFaq={hasFaq}
+            hasIntro={hasIntro}
+            isSmartPlace={isSmartPlace}
+            missingKws={effectiveMissingKws}
           />
         )}
 
@@ -851,6 +891,9 @@ export default function TrialResultStep(props: TrialResultProps) {
             businessName={form.business_name || "내 가게"}
             inBriefing={inBriefing}
             isLikely={true}
+            hasFaq={hasFaq}
+            hasIntro={hasIntro}
+            isSmartPlace={isSmartPlace}
           />
         )}
 
@@ -919,6 +962,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           categoryLabel={categoryLabel}
           benchmarkAvg={benchmarkAvg}
           score={score}
+          isEstimatedBenchmark={isEstimatedBenchmark}
         />
 
         {/* ── 7. 지금 바로 할 핵심 액션 ──────────────────────────── */}
@@ -1353,10 +1397,16 @@ function NaverBriefingResultCard({
   businessName,
   inBriefing,
   isLikely,
+  hasFaq,
+  hasIntro,
+  isSmartPlace,
 }: {
   businessName: string;
   inBriefing: boolean | null;
   isLikely?: boolean;
+  hasFaq?: boolean;
+  hasIntro?: boolean;
+  isSmartPlace?: boolean;
 }) {
   return (
     <div className="rounded-xl bg-white border border-gray-200 shadow-sm mb-4 overflow-hidden">
@@ -1438,39 +1488,69 @@ function NaverBriefingResultCard({
           </div>
         )}
 
-        {/* 미노출 — 원인 */}
-        {inBriefing === false && (
-          <div>
-            <p className="text-sm font-semibold text-gray-700 mb-1.5">주요 원인</p>
-            <ul className="space-y-1.5">
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="text-gray-400 shrink-0 mt-px">•</span>
-                소개글에 Q&A 형식의 구조화된 정보 없음 — AI가 인용할 텍스트 부족
-              </li>
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="text-gray-400 shrink-0 mt-px">•</span>
-                리뷰 키워드 다양성 부족 — 업종 대표 키워드가 리뷰에 충분히 쌓이지 않음
-              </li>
-            </ul>
-          </div>
-        )}
+        {/* 미노출 — 원인 (실측 데이터 기반 분기) */}
+        {inBriefing === false && (() => {
+          const confirmedReasons: string[] = [];
+          const isSpConfirmed = isSmartPlace !== undefined;
+          const isIntroConfirmed = hasIntro !== undefined;
+          const isFaqConfirmed = hasFaq !== undefined;
 
-        {/* 미노출 — 지금 할 일 */}
-        {inBriefing === false && (
-          <div>
-            <p className="text-sm font-semibold text-gray-700 mb-1.5">지금 할 일</p>
-            <ol className="space-y-1.5">
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="text-gray-500 shrink-0 font-semibold mt-px">1.</span>
-                소개글 끝에 Q&A 3개 추가 — &ldquo;가격은?&rdquo; &ldquo;예약은?&rdquo; &ldquo;주차는?&rdquo;
-              </li>
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="text-gray-500 shrink-0 font-semibold mt-px">2.</span>
-                2주에 1회 소식 업로드로 최신성 점수 유지
-              </li>
-            </ol>
-          </div>
-        )}
+          if (isSpConfirmed && !isSmartPlace) confirmedReasons.push("스마트플레이스 미확인 — 미등록이거나 스캔에서 찾지 못했습니다. 플레이스 등록 및 소개글 완성도를 점검하세요");
+          if (isIntroConfirmed && !hasIntro) confirmedReasons.push("소개글 미작성 — AI가 인용할 텍스트가 없습니다 (이번 스캔에서 확인됨)");
+          else if (isFaqConfirmed && !hasFaq) confirmedReasons.push("소개글에 Q&A 섹션 없음 — 구조화된 정보 부족 (이번 스캔에서 확인됨)");
+
+          const hasConfirmed = confirmedReasons.length > 0;
+
+          return (
+            <div>
+              <p className="text-sm font-semibold text-gray-700 mb-1.5">주요 원인</p>
+              <ul className="space-y-1.5">
+                {confirmedReasons.map((reason, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                    <span className="text-gray-400 shrink-0 mt-px">•</span>
+                    {reason}
+                  </li>
+                ))}
+                {!hasConfirmed && (
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 shrink-0 mt-px">•</span>
+                    리뷰 키워드 다양성 부족 — 업종 대표 키워드가 리뷰에 충분히 쌓이지 않음
+                  </li>
+                )}
+                {!hasConfirmed && (
+                  <li className="flex items-start gap-2 text-sm text-gray-500">
+                    <span className="text-gray-400 shrink-0 mt-px">•</span>
+                    정확한 원인은 구독 후 상세 분석에서 확인 가능합니다
+                  </li>
+                )}
+              </ul>
+            </div>
+          );
+        })()}
+
+        {/* 미노출 — 지금 할 일 (실측 데이터 기반 분기) */}
+        {inBriefing === false && (() => {
+          const actions: string[] = [];
+          if (isSmartPlace !== undefined && !isSmartPlace) actions.push("스마트플레이스 등록 확인 — 미등록이면 등록, 이미 등록됐다면 소개글·사진 완성도 점검");
+          if ((hasIntro !== undefined && !hasIntro) || (hasFaq !== undefined && !hasFaq)) actions.push("소개글 끝에 Q&A 3개 추가 — \"가격은?\" \"예약은?\" \"주차는?\"");
+          if (actions.length === 0) {
+            actions.push("소개글 끝에 Q&A 3개 추가 — \"가격은?\" \"예약은?\" \"주차는?\"");
+            actions.push("2주에 1회 소식 업로드로 최신성 점수 유지");
+          }
+          return (
+            <div>
+              <p className="text-sm font-semibold text-gray-700 mb-1.5">지금 할 일</p>
+              <ol className="space-y-1.5">
+                {actions.map((action, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-500 shrink-0 font-semibold mt-px">{i + 1}.</span>
+                    {action}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          );
+        })()}
 
       </div>
 
@@ -1491,12 +1571,20 @@ function ChatGPTResultCard({
   mentioned,
   excerpt,
   sampleSize,
+  hasFaq,
+  hasIntro,
+  isSmartPlace,
+  missingKws,
 }: {
   businessName: string;
   queries: string[];
   mentioned: boolean;
   excerpt?: string;
   sampleSize: number;
+  hasFaq?: boolean;
+  hasIntro?: boolean;
+  isSmartPlace?: boolean;
+  missingKws?: string[];
 }) {
   return (
     <div className="rounded-xl bg-white border border-gray-200 shadow-sm mb-4 overflow-hidden">
@@ -1519,6 +1607,7 @@ function ChatGPTResultCard({
         <div>
           <p className="text-sm text-gray-400 mb-1.5 leading-snug">
             실제 손님이 AI에게 묻는 방식으로 {sampleSize}회 테스트했습니다
+            <span className="ml-1 text-slate-400">(정식 스캔은 50회 — 표본이 많을수록 정확도 높아짐)</span>
           </p>
           <ul className="space-y-0.5 mb-2">
             {queries.map((q, i) => (
@@ -1552,39 +1641,71 @@ function ChatGPTResultCard({
           </div>
         )}
 
-        {/* 미포함: 원인 */}
-        {!mentioned && (
-          <div>
-            <p className="text-sm font-semibold text-gray-700 mb-1.5">원인</p>
-            <ul className="space-y-1.5">
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="text-gray-400 shrink-0 mt-px">•</span>
-                소개글에 Q&amp;A 형식의 구조화된 정보 없음
-              </li>
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="text-gray-400 shrink-0 mt-px">•</span>
-                AI가 인용할 키워드 텍스트 부족 — 인용 후보 탈락
-              </li>
-            </ul>
-          </div>
-        )}
+        {/* 미포함: 원인 (실측 데이터 기반 분기) */}
+        {!mentioned && (() => {
+          const diagnosedReasons: string[] = [];
+          const isSpConfirmed = isSmartPlace !== undefined;
+          const isIntroConfirmed = hasIntro !== undefined;
+          const isFaqConfirmed = hasFaq !== undefined;
 
-        {/* 미포함: 지금 할 일 */}
-        {!mentioned && (
-          <div>
-            <p className="text-sm font-semibold text-gray-700 mb-1.5">지금 할 일</p>
-            <ol className="space-y-1.5">
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="text-gray-500 shrink-0 font-semibold mt-px">1.</span>
-                소개글 끝에 Q&amp;A 3개 추가 — &ldquo;가격은?&rdquo; &ldquo;예약은?&rdquo; &ldquo;주차는?&rdquo;
-              </li>
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="text-gray-500 shrink-0 font-semibold mt-px">2.</span>
-                아래 개선 가이드에서 키워드별 대응 방법 확인
-              </li>
-            </ol>
-          </div>
-        )}
+          if (isSpConfirmed && !isSmartPlace) diagnosedReasons.push("스마트플레이스 미확인 — 미등록이거나 스캔에서 찾지 못했습니다. 플레이스 등록 및 소개글 완성도를 점검하세요");
+          if (isIntroConfirmed && !hasIntro) diagnosedReasons.push("소개글 미작성 — AI가 인용할 텍스트가 없습니다 (이번 스캔에서 확인됨)");
+          else if (isFaqConfirmed && !hasFaq) diagnosedReasons.push("소개글에 Q&A 섹션 없음 — 구조화된 정보 부족 (이번 스캔에서 확인됨)");
+          if (missingKws && missingKws.length > 0) diagnosedReasons.push(`경쟁 가게가 쓰는 키워드 '${missingKws.slice(0, 2).join("', '")}' 등 ${missingKws.length}개가 소개글에 없습니다`);
+
+          const hasConfirmed = diagnosedReasons.length > 0;
+
+          return (
+            <div>
+              <p className="text-sm font-semibold text-gray-700 mb-1.5">원인</p>
+              <ul className="space-y-1.5">
+                {diagnosedReasons.map((reason, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                    <span className="text-gray-400 shrink-0 mt-px">•</span>
+                    {reason}
+                  </li>
+                ))}
+                {!hasConfirmed && (
+                  <>
+                    <li className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="text-gray-400 shrink-0 mt-px">•</span>
+                      소개글·리뷰 키워드 데이터가 아직 AI 학습에 충분히 반영되지 않았을 수 있습니다
+                    </li>
+                    <li className="flex items-start gap-2 text-sm text-gray-500">
+                      <span className="text-gray-400 shrink-0 mt-px">•</span>
+                      정확한 원인은 구독 후 상세 분석에서 확인 가능합니다
+                    </li>
+                  </>
+                )}
+              </ul>
+            </div>
+          );
+        })()}
+
+        {/* 미포함: 지금 할 일 (실측 데이터 기반 분기) */}
+        {!mentioned && (() => {
+          const actions: string[] = [];
+          if (isSmartPlace !== undefined && !isSmartPlace) actions.push("스마트플레이스 등록 확인 — 미등록이면 등록, 이미 등록됐다면 소개글·사진 완성도 점검");
+          if ((hasIntro !== undefined && !hasIntro) || (hasFaq !== undefined && !hasFaq)) actions.push("소개글 끝에 Q&A 3개 추가 — \"가격은?\" \"예약은?\" \"주차는?\"");
+          if (missingKws && missingKws.length > 0) actions.push(`'${missingKws[0]}' 키워드를 소개글·리뷰에 추가하기`);
+          if (actions.length === 0) {
+            actions.push("소개글 끝에 Q&A 3개 추가 — \"가격은?\" \"예약은?\" \"주차는?\"");
+            actions.push("아래 개선 가이드에서 키워드별 대응 방법 확인");
+          }
+          return (
+            <div>
+              <p className="text-sm font-semibold text-gray-700 mb-1.5">지금 할 일</p>
+              <ol className="space-y-1.5">
+                {actions.map((action, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-500 shrink-0 font-semibold mt-px">{i + 1}.</span>
+                    {action}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          );
+        })()}
       </div>
 
       {/* 면책 */}
