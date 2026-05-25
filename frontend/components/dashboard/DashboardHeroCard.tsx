@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react";
 interface DashboardHeroCardProps {
   businessName: string;
   unifiedScore: number;
+  track1Score?: number;   // GrowthStage 계산 기준 (CLAUDE.md: track1_score 기준)
   scoreChangeDiff: number | null;
   naverInBriefing: boolean;
   naverCaptchaBlocked: boolean;
@@ -19,6 +20,7 @@ interface DashboardHeroCardProps {
   recentActionLabel: string | null;
   recentActionScoreGain: number | null;
   eligibility?: "active" | "likely" | "inactive";
+  lastScannedLabel?: string | null;
 }
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
@@ -31,21 +33,47 @@ const ACTION_TYPE_LABEL: Record<string, string> = {
   website_updated: "웹사이트 개선",
 };
 
-function scoreColor(score: number): string {
-  if (score >= 70) return "text-emerald-600";
-  if (score >= 40) return "text-amber-500";
-  return "text-red-500";
-}
-
-function scoreBg(score: number): string {
-  if (score >= 70) return "bg-emerald-50 border-emerald-200";
-  if (score >= 40) return "bg-amber-50 border-amber-200";
-  return "bg-red-50 border-red-200";
+function getStage(score: number): {
+  label: string;
+  tagBg: string;
+  bar: string;
+  bg: string;
+  message: string;
+} {
+  if (score >= 75) return {
+    label: "안정 궤도",
+    tagBg: "bg-blue-100 text-blue-700",
+    bar: "bg-blue-500",
+    bg: "bg-blue-50 border-blue-100",
+    message: "경쟁 가게 대비 AI 검색 노출이 잘 되어 있습니다. 이 상태를 꾸준히 유지하세요.",
+  };
+  if (score >= 55) return {
+    label: "성장 진행 중",
+    tagBg: "bg-blue-100 text-blue-700",
+    bar: "bg-blue-500",
+    bg: "bg-blue-50 border-blue-100",
+    message: "기반이 갖춰져 있습니다. 아래 개선 항목 2~3가지 보완으로 노출을 더 늘릴 수 있습니다.",
+  };
+  if (score >= 30) return {
+    label: "성장 준비 중",
+    tagBg: "bg-slate-100 text-slate-600",
+    bar: "bg-slate-400",
+    bg: "bg-slate-50 border-slate-200",
+    message: "핵심 항목 몇 가지를 보완하면 AI 검색 노출이 빠르게 늘어납니다.",
+  };
+  return {
+    label: "시작 단계",
+    tagBg: "bg-slate-100 text-slate-600",
+    bar: "bg-slate-400",
+    bg: "bg-slate-50 border-slate-200",
+    message: "AI 검색 최적화가 아직 시작 전입니다. 지금 시작하면 경쟁 가게보다 먼저 자리 잡을 수 있습니다.",
+  };
 }
 
 export default function DashboardHeroCard({
   businessName,
   unifiedScore,
+  track1Score,
   scoreChangeDiff,
   naverInBriefing,
   naverCaptchaBlocked,
@@ -59,6 +87,7 @@ export default function DashboardHeroCard({
   recentActionLabel,
   recentActionScoreGain,
   eligibility = "active",
+  lastScannedLabel,
 }: DashboardHeroCardProps) {
   const showActionResult =
     recentActionLabel !== null &&
@@ -68,48 +97,62 @@ export default function DashboardHeroCard({
   const actionLabel =
     ACTION_TYPE_LABEL[recentActionLabel ?? ""] ?? recentActionLabel;
 
+  const stage = getStage(track1Score ?? unifiedScore);
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-5">
-      {/* 상단: 점수 + 변화 */}
-      <div className={`px-5 pt-5 pb-4 border-b border-gray-100 flex items-center gap-4 ${scoreBg(unifiedScore)}`}>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-500 mb-0.5 truncate">{businessName}</p>
-          <div className="flex items-end gap-2 flex-wrap">
-            <span className={`text-4xl md:text-5xl font-black leading-none ${scoreColor(unifiedScore)}`}>
-              {unifiedScore}점
+      {/* 상단: 성장 단계 + 점수 바 */}
+      <div className={`px-5 pt-5 pb-4 border-b border-gray-100 ${stage.bg}`}>
+        <p className="text-sm font-medium text-gray-500 mb-2 truncate">{businessName}</p>
+
+        {/* 단계 태그 + 점수 변화 */}
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <span className={`text-sm font-bold px-3 py-1 rounded-full ${stage.tagBg}`}>
+            {stage.label}
+          </span>
+          <span className="text-sm text-gray-400">현재 AI 노출 단계</span>
+          {scoreChangeDiff !== null && scoreChangeDiff !== 0 && (
+            <span
+              className={`text-sm font-semibold ml-auto shrink-0 px-2 py-0.5 rounded-full ${
+                scoreChangeDiff > 0
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-red-100 text-red-600"
+              }`}
+            >
+              {scoreChangeDiff > 0 ? "↑ 개선됨" : "↓ 하락"}
+              <span className="text-xs font-normal ml-1 opacity-75">지난 스캔 대비</span>
             </span>
-            {scoreChangeDiff !== null && (
-              <span
-                className={`text-base font-bold mb-0.5 ${
-                  scoreChangeDiff > 0
-                    ? "text-emerald-600"
-                    : scoreChangeDiff < 0
-                    ? "text-red-500"
-                    : "text-gray-400"
-                }`}
-              >
-                {scoreChangeDiff > 0
-                  ? `↑ +${scoreChangeDiff}점`
-                  : scoreChangeDiff < 0
-                  ? `↓ ${scoreChangeDiff}점`
-                  : "변화 없음"}
-                <span className="text-sm font-normal text-gray-400 ml-1">지난 스캔 대비</span>
-              </span>
-            )}
+          )}
+        </div>
+
+        {/* 단계 메시지 */}
+        <p className="text-sm text-gray-600 leading-relaxed mb-3 break-keep">{stage.message}</p>
+
+        {/* 점수 바 */}
+        <div className="mb-2">
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className={`h-2 rounded-full ${stage.bar} transition-all duration-700`}
+              style={{ width: `${Math.min(unifiedScore, 100)}%` }}
+            />
           </div>
-          <div className="flex items-start gap-1.5 mt-2 bg-white/60 rounded-lg px-2.5 py-1.5">
-            <span className="text-gray-400 text-sm shrink-0 mt-0.5">→</span>
-            <p className="text-sm text-gray-500 leading-relaxed break-keep">
-              점수가 오를수록 AI가 내 가게를 더 자주 추천 → 새 손님이 발견할 가능성이 높아집니다.
-              <span className="text-gray-400 ml-1">(점수 개선이 매출을 보장하지는 않으며, AI 노출 접점을 늘리는 지표입니다)</span>
-            </p>
+          <div className="flex justify-between mt-1">
+            <span className="text-xs text-gray-400">시작</span>
+            <span className="text-xs text-gray-500 font-medium">현재 위치</span>
+            <span className="text-xs text-gray-400">최적화</span>
           </div>
+        </div>
+
+        <div className="flex items-center justify-between mt-1">
           <Link
             href="/score-guide"
-            className="text-sm text-blue-500 hover:text-blue-700 hover:underline mt-1.5 inline-flex items-center gap-0.5"
+            className="text-sm text-blue-500 hover:text-blue-700 hover:underline inline-flex items-center gap-0.5"
           >
-            점수 계산 방식 보기 →
+            지수 계산 방식 보기 →
           </Link>
+          {lastScannedLabel && (
+            <span className="text-sm text-gray-400">마지막 측정: {lastScannedLabel}</span>
+          )}
         </div>
       </div>
 
@@ -141,20 +184,20 @@ export default function DashboardHeroCard({
               : "✗"}
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-800 leading-tight">
+            <p className="text-sm font-semibold text-gray-800 leading-tight line-clamp-2">
               {naverCaptchaBlocked
                 ? "AI 노출 확인 불가"
                 : eligibility === "inactive"
-                ? "AI탭·ChatGPT·Gemini·Google AI 노출 관리"
+                ? "네이버 AI탭·ChatGPT·Gemini·Google AI 노출 관리"
                 : eligibility === "likely"
-                ? "AI탭 가능 · ChatGPT·Gemini·Google AI — 4채널"
+                ? "네이버 AI탭 가능 · ChatGPT·Gemini·Google AI — 4채널"
                 : naverInBriefing
                 ? "AI 브리핑 노출 중 — 5채널 모두 가능"
                 : "AI 미노출 — 5채널 최적화 필요"}
             </p>
             <p className="text-sm text-gray-500">
               {eligibility === "inactive"
-                ? "AI탭·ChatGPT·Gemini·Google AI (4채널)"
+                ? "네이버 AI탭·ChatGPT·Gemini·Google AI (4채널)"
                 : eligibility === "likely"
                 ? "네이버 AI탭 + 글로벌 AI 3채널"
                 : "네이버 AI 브리핑·AI탭 + 글로벌 AI 3채널"}
@@ -176,7 +219,7 @@ export default function DashboardHeroCard({
             {totalCompetitors <= 1 ? "-" : `${myRankInList}위`}
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-800 leading-tight">
+            <p className="text-sm font-semibold text-gray-800 leading-tight line-clamp-2">
               {totalCompetitors <= 1
                 ? "경쟁사 없음"
                 : `경쟁 ${myRankInList}위 / ${totalCompetitors}곳`}
@@ -200,12 +243,12 @@ export default function DashboardHeroCard({
             <p className="text-sm font-semibold text-gray-800 leading-tight">
               {topMissingKeywordCount === 0
                 ? "키워드 양호"
-                : `AI 키워드 ${topMissingKeywordCount}개 미확보`}
+                : `AI 노출 보강 필요 ${topMissingKeywordCount}개`}
             </p>
-            <p className="text-sm text-gray-500">업종별 조건검색 기준</p>
+            <p className="text-sm text-gray-500">소개글·FAQ 강조 부족 키워드</p>
             {topMissingKeywordCount > 0 && topMissingKeyword && (
               <p className="text-sm text-orange-600 font-medium mt-0.5">
-                예: &apos;{topMissingKeyword}&apos; 등
+                보강 권장: &apos;{topMissingKeyword}&apos; 등
               </p>
             )}
           </div>

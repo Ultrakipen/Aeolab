@@ -113,7 +113,7 @@ export default async function DashboardPage({
   ] = business
     ? await Promise.all([
         supabase.from("scan_results")
-          .select("id, scanned_at, query_used, gemini_result, chatgpt_result, naver_result, google_result, kakao_result, website_check_result, smart_place_completeness_result, exposure_freq, total_score, unified_score, track1_score, track2_score, naver_weight, global_weight, growth_stage, growth_stage_label, is_keyword_estimated, keyword_coverage, score_breakdown, naver_channel_score, global_channel_score, rank_in_query, competitor_scores, top_missing_keywords, keyword_ranks, photo_categories")
+          .select("id, scanned_at, query_used, gemini_result, chatgpt_result, naver_result, google_result, kakao_result, website_check_result, smart_place_completeness_result, exposure_freq, total_score, unified_score, track1_score, track2_score, naver_weight, global_weight, growth_stage, growth_stage_label, is_keyword_estimated, keyword_coverage, score_breakdown, naver_channel_score, global_channel_score, rank_in_query, competitor_scores, top_missing_keywords, keyword_ranks, photo_categories, naver_ai_tab_visible, naver_ai_tab_excerpt")
           .eq("business_id", business.id).order("scanned_at", { ascending: false }).limit(1),
         supabase.from("competitors").select("id, name").eq("business_id", business.id).eq("is_active", true),
         supabase.from("score_history")
@@ -256,17 +256,23 @@ export default async function DashboardPage({
   const aiTabEligibility = (process.env.NEXT_PUBLIC_AI_TAB_STATUS ?? "beta") as "beta" | "available";
   const isFranchise = !!v41Extra?.is_franchise;
 
-  const briefingMeta = (latestScan?.briefing_meta as {
-    eligibility: "active" | "likely" | "inactive";
-    ai_info_tab_status: "not_visible" | "off" | "on" | "disabled" | "unknown";
-    explanation: string;
-  } | undefined);
+  const briefingMeta = (((latestScan?.score_breakdown as Record<string, unknown>)
+    ?.track1_detail as Record<string, unknown> | undefined)
+    ?.briefing_meta as {
+      eligibility: "active" | "likely" | "inactive";
+      ai_info_tab_status: "not_visible" | "off" | "on" | "disabled" | "unknown";
+      explanation: string;
+    } | undefined) ?? {
+      eligibility: briefingEligibility,
+      ai_info_tab_status: "unknown" as const,
+      explanation: "",
+    };
 
   const aiExposureData = latestScan ? {
-    chatgptFreq: latestScan.chatgpt_result ? Number((latestScan.chatgpt_result as Record<string,unknown>).exposure_freq ?? undefined) : undefined,
-    chatgptSampleSize: latestScan.chatgpt_result ? Number((latestScan.chatgpt_result as Record<string,unknown>).sample_size ?? undefined) : undefined,
-    geminiFreq: latestScan.gemini_result ? Number((latestScan.gemini_result as Record<string,unknown>).exposure_freq ?? undefined) : undefined,
-    geminiSampleSize: latestScan.gemini_result ? Number((latestScan.gemini_result as Record<string,unknown>).sample_size ?? undefined) : undefined,
+    chatgptFreq: latestScan.chatgpt_result ? Number((latestScan.chatgpt_result as Record<string,unknown>).exposure_freq ?? 0) : undefined,
+    chatgptSampleSize: latestScan.chatgpt_result ? Number((latestScan.chatgpt_result as Record<string,unknown>).sample_size ?? 0) : undefined,
+    geminiFreq: latestScan.gemini_result ? Number((latestScan.gemini_result as Record<string,unknown>).exposure_freq ?? 0) : undefined,
+    geminiSampleSize: latestScan.gemini_result ? Number((latestScan.gemini_result as Record<string,unknown>).sample_size ?? 0) : undefined,
   } : undefined;
 
   const photoCategories = (latestScan?.photo_categories as Record<string, number> | null) ?? null;
@@ -281,7 +287,8 @@ export default async function DashboardPage({
     blogUrl: blogBiz.blog_url,
   } : undefined;
 
-  const dimensions = (gapRes as { dimensions?: Array<{ dimension_key: string; dimension_label: string; current_score: number; max_score: number; gap_to_top: number; gap_reason: string; priority: number }> } | null)?.dimensions;
+  const dimensions = (gapRes as { dimensions?: Array<{ dimension_key: string; dimension_label: string; current_score: number; max_score: number; gap_to_top: number; gap_reason: string; priority: number }>; is_competitor_estimated?: boolean } | null)?.dimensions;
+  const isCompetitorEstimated = !!(gapRes as { is_competitor_estimated?: boolean } | null)?.is_competitor_estimated;
 
   // ── 타입 단순화 헬퍼 ─────────────────────────────────────────
   const bizBase = business as {
@@ -296,7 +303,7 @@ export default async function DashboardPage({
 
   // ── 렌더링 ───────────────────────────────────────────────────
   return (
-    <div className="p-4 pb-24 md:p-8 md:pb-12 max-w-4xl mx-auto space-y-6 md:space-y-10">
+    <div className="p-4 pb-24 md:p-8 md:pb-12 max-w-5xl mx-auto space-y-6 md:space-y-10">
       <MaintenanceBanner />
       <DashboardHeader
         user={user}
@@ -359,6 +366,8 @@ export default async function DashboardPage({
             unifiedScore={unifiedScore}
             isSmartPlace={!!(business?.naver_place_id)}
             plan={plan}
+            category={bizBase.category}
+            isCompetitorEstimated={isCompetitorEstimated}
           />
 
           <DashboardInsightZone
@@ -379,6 +388,7 @@ export default async function DashboardPage({
             latestAdOnly={(latestScan?.naver_result as { ad_only?: boolean } | null | undefined)?.ad_only ?? false}
             userCreatedAt={user.created_at ?? null}
             globalWeight={globalWeight}
+            googlePlaceRegistered={!!bizBase.google_place_id}
           />
 
           <DashboardGeneratorZone
