@@ -437,7 +437,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 - ✅ v3.2/v3.3~v5.5 SQL 전체 실행 완료 + git `057d62e` 배포 완료 (2026-05-18)
 - ✅ Supabase Storage `delivery-materials` 버킷 생성 완료 (Private, 10MB)
 - ✅ 대행 서비스 DB 5개 테이블 존재 확인 (delivery_orders/messages, support_tickets/replies, success_stories)
-- ⏳ `profiles` v5.8 컬럼 (intro_draft) — Supabase SQL Editor 실행 필요 (Phase 2 조건부)
+- ✅ `profiles` v5.8 컬럼 (intro_draft) — 실행 완료 (2026-05-25)
 
 ---
 

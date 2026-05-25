@@ -156,7 +156,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               </p>
               <p className="text-sm text-indigo-700 mb-3 leading-relaxed">
                 네이버 AI탭(2026-04-27 베타)은 AI 브리핑과 달리 <strong>업종·프랜차이즈 제한 없이</strong> 모든 사업장이
-                노출될 수 있습니다. 현재 네이버플러스 구독자 대상 베타이며, 상반기 전체 확대 예정입니다.
+                노출될 수 있습니다. 현재 네이버플러스 구독자 대상 베타이며, 6월 전체 확대 예정입니다 (네이버 공식).
                 지금 아래 항목을 준비해두면 전체 확대 즉시 노출 우위를 가집니다.
               </p>
               <ul className="space-y-2 text-sm text-indigo-700">

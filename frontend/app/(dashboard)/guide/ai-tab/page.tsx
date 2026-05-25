@@ -122,7 +122,7 @@ export default async function AiTabGuidePage({
         <p className="text-sm md:text-base text-indigo-800 leading-relaxed break-keep">
           AI 브리핑(검색결과 상단 자동 추천 박스)과는 다른 노출 경로입니다.
           AI탭은 <strong>업종·프랜차이즈 제한 없이 모든 사업장</strong>이 노출 가능합니다.
-          현재 네이버플러스 구독자 우선 베타이며, 2026년 상반기 전체 확대 예정입니다.
+          현재 네이버플러스 구독자 우선 베타이며, 2026년 6월 전체 확대 예정입니다 (네이버 공식).
         </p>
         {briefingElig === 'active' && (
           <p className="mt-2 text-sm text-indigo-700 bg-white border border-indigo-100 rounded px-2.5 py-1.5">

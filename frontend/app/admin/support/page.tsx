@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata = { title: "Q&A 문의 관리 | AEOlab Admin" };
 
 const ADMIN_EMAILS = ["hoozdev@gmail.com"];
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
   open:     { label: "미답변",   color: "bg-orange-100 text-orange-700" },

@@ -6,7 +6,7 @@ import { AdminSupportClient } from "./AdminSupportClient";
 export const metadata = { title: "문의 상세 | AEOlab Admin" };
 
 const ADMIN_EMAILS = ["hoozdev@gmail.com"];
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
   open:     { label: "미답변",   color: "bg-orange-100 text-orange-700" },

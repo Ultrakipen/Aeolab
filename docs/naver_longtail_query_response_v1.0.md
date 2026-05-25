@@ -72,6 +72,7 @@
 | 제로클릭 **광고환산 금액** 표시 | 임의 추정 = 실측 원칙 위반(CLAUDE.md) | **구현 금지**. "AI 답변 N회 인용" 실측 횟수만 허용 |
 | P2 AI탭 스캐너 활성화 | `NAVER_AI_TAB_ENABLED` env 게이트, 6월 전체 확대 후 | `docs/p2_p3_execution_runbook.md` 주 1회 트리거 확인 |
 | P3 카페·지식인 멀티채널 점수 | 크롤링 비용·구독자 확보 우선 | 구독자 20명 이후 |
+| **stream scan 롱테일 적용** (`scan_quick_with_progress`) | Gemini `sample_10` + ChatGPT `sample_5` → 5쿼리 분산 시 쿼리당 1~2회 = 통계 노이즈 증가. Full 스캔·자동 스캔에서 이미 적용 중이므로 수동 스캔은 현행 단일 쿼리 유지. | `sample_n ≥ 25` 이상으로 올릴 때 같이 적용 (구독자 30명 이후, `multi_scanner.py:246` 수정 필요) |
 
 ---
 

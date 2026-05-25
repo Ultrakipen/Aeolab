@@ -6,13 +6,19 @@ import { AdminDeliveryDetailClient } from "./AdminDeliveryDetailClient";
 export const metadata = { title: "의뢰 상세 | AEOlab Admin" };
 
 const ADMIN_EMAILS = ["hoozdev@gmail.com"];
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 interface Message {
   id: string;
   sender_type: "user" | "admin";
   body: string;
   created_at: string;
+}
+
+interface MaterialEntry {
+  url: string;
+  filename: string;
+  added_at?: string;
 }
 
 interface OrderDetail {
@@ -35,6 +41,7 @@ const PACKAGE_DISPLAY: Record<string, string> = {
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
   received: { label: "접수", color: "bg-blue-100 text-blue-700" },
+  paid: { label: "결제완료", color: "bg-indigo-100 text-indigo-700" },
   in_progress: { label: "진행중", color: "bg-orange-100 text-orange-700" },
   completed: { label: "완료", color: "bg-green-100 text-green-700" },
   rework: { label: "재작업", color: "bg-purple-100 text-purple-700" },
@@ -65,6 +72,20 @@ async function fetchAdminMessages(id: string, adminKey: string): Promise<Message
     if (!res.ok) return [];
     const data = await res.json();
     return data.messages ?? data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchAdminMaterials(id: string, adminKey: string): Promise<MaterialEntry[]> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/admin/delivery/${id}`, {
+      headers: { "X-Admin-Key": adminKey },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.order ?? data)?.materials_url ?? [];
   } catch {
     return [];
   }
@@ -120,7 +141,10 @@ export default async function AdminDeliveryDetailPage({
     );
   }
 
-  const messages = await fetchAdminMessages(id, adminKey);
+  const [messages, materials] = await Promise.all([
+    fetchAdminMessages(id, adminKey),
+    fetchAdminMaterials(id, adminKey),
+  ]);
   const statusMeta = STATUS_META[order.status] ?? { label: order.status, color: "bg-gray-100 text-gray-600" };
 
   const formatDate = (iso?: string) => {
@@ -170,6 +194,7 @@ export default async function AdminDeliveryDetailPage({
       <AdminDeliveryDetailClient
         orderId={order.id}
         initialMessages={messages}
+        initialMaterials={materials}
         currentStatus={order.status}
       />
     </div>

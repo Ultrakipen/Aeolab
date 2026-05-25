@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { ChevronRight, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ChevronRight, AlertCircle, CheckCircle2, Download } from "lucide-react";
 import DeliveryOrderClient from "./DeliveryOrderClient";
 
 export const metadata = { title: "의뢰 상세 | AEOlab" };
@@ -41,9 +41,10 @@ const PACKAGE_DISPLAY: Record<string, string> = {
   comprehensive: "종합 풀패키지",
 };
 
-const STATUS_STEPS = ["received", "in_progress", "completed"];
+const STATUS_STEPS = ["received", "paid", "in_progress", "completed"];
 const STATUS_LABELS: Record<string, string> = {
   received: "접수",
+  paid: "결제완료",
   in_progress: "진행중",
   completed: "완료",
   rework: "재작업",
@@ -52,6 +53,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 const STATUS_META: Record<string, { label: string; color: string }> = {
   received: { label: "접수", color: "bg-blue-100 text-blue-700" },
+  paid: { label: "결제완료", color: "bg-indigo-100 text-indigo-700" },
   in_progress: { label: "진행중", color: "bg-orange-100 text-orange-700" },
   completed: { label: "완료", color: "bg-green-100 text-green-700" },
   rework: { label: "재작업", color: "bg-purple-100 text-purple-700" },
@@ -87,6 +89,26 @@ async function fetchMessages(id: string, token: string): Promise<Message[]> {
   }
 }
 
+interface MaterialEntry {
+  url: string;
+  filename: string;
+  added_at?: string;
+}
+
+async function fetchMaterials(id: string, token: string): Promise<MaterialEntry[]> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/delivery/orders/${id}/materials`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.materials_url ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function DeliveryOrderDetailPage({
   params,
   searchParams,
@@ -109,9 +131,10 @@ export default async function DeliveryOrderDetailPage({
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token ?? "";
 
-  const [order, messages] = await Promise.all([
+  const [order, messages, materials] = await Promise.all([
     fetchOrder(id, token),
     fetchMessages(id, token),
+    fetchMaterials(id, token),
   ]);
 
   if (!order) {
@@ -224,6 +247,33 @@ export default async function DeliveryOrderDetailPage({
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* 납품 파일 다운로드 */}
+          {materials.length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Download className="w-4 h-4 text-blue-500" />
+                <h2 className="text-base font-semibold text-gray-800">납품 파일</h2>
+              </div>
+              <ul className="space-y-2">
+                {materials.map((m, i) => (
+                  <li key={i}>
+                    <a
+                      href={m.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors group"
+                    >
+                      <Download className="w-4 h-4 text-blue-500 shrink-0" />
+                      <span className="text-sm font-medium text-blue-700 group-hover:underline truncate">
+                        {m.filename}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

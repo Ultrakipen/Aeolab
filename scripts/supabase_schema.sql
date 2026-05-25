@@ -1822,8 +1822,8 @@ COMMENT ON COLUMN delivery_orders.rework_count IS '추가 작업 회차 (최대 
 CREATE TABLE IF NOT EXISTS delivery_messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id UUID NOT NULL REFERENCES delivery_orders(id) ON DELETE CASCADE,
-  author_type TEXT NOT NULL CHECK (author_type IN ('user','admin')),
-  author_id UUID NOT NULL,
+  sender_type TEXT NOT NULL CHECK (sender_type IN ('user','admin')),
+  sender_id TEXT NOT NULL,
   body TEXT NOT NULL,
   attachment_urls JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -1843,8 +1843,8 @@ CREATE POLICY "user_own_order_messages" ON delivery_messages FOR ALL
   );
 
 COMMENT ON TABLE delivery_messages IS '의뢰 내 운영자·사용자 메시지';
-COMMENT ON COLUMN delivery_messages.author_type IS 'user(사용자) 또는 admin(운영자)';
-COMMENT ON COLUMN delivery_messages.author_id IS '작성자 auth.users.id (author_type=admin인 경우도 저장)';
+COMMENT ON COLUMN delivery_messages.sender_type IS 'user(사용자) 또는 admin(운영자)';
+COMMENT ON COLUMN delivery_messages.sender_id IS '작성자 ID (user: auth.uid, admin: "admin" 문자열)';
 COMMENT ON COLUMN delivery_messages.read_at IS '수신자가 읽은 시각 (null=미읽)';
 
 -- =============================================

@@ -12,6 +12,8 @@
   POST /api/delivery/orders/{order_id}/testimonial — 후기 작성 + 쿠폰 발급 (인증 필수)
 
 관리자 라우터 (X-Admin-Key 헤더):
+  GET  /admin/delivery/{order_id}           — 주문 상세 조회
+  GET  /admin/delivery/{order_id}/messages  — 메시지 목록 조회
   POST /admin/delivery/{order_id}/status    — 상태 변경 + 카카오 알림톡
   POST /admin/delivery/{order_id}/messages  — 운영자 메시지
   POST /admin/delivery/{order_id}/complete  — 완료 보고서 등록
@@ -60,7 +62,7 @@ PACKAGES: dict[str, dict] = {
 }
 
 # 유효한 주문 상태 목록
-VALID_STATUSES = {"received", "paid", "in_progress", "completed", "cancelled"}
+VALID_STATUSES = {"received", "paid", "in_progress", "completed", "cancelled", "rework", "refunded"}
 
 
 # ── 관리자 인증 ────────────────────────────────────────────────────────────────
@@ -163,7 +165,7 @@ async def _get_order_or_404(order_id: str) -> dict:
     supabase = get_client()
     res = await execute(
         supabase.table("delivery_orders")
-        .select("id, user_id, business_id, package_type, request_title, request_body, status, amount, consent_agreed, consent_signed_at, consent_ip, completion_report, created_at, updated_at")
+        .select("id, user_id, business_id, package_type, request_title, request_body, status, amount, consent_agreed, consent_signed_at, consent_ip, completion_report, created_at")
         .eq("id", order_id)
         .single()
     )
@@ -319,8 +321,6 @@ async def create_order(
         "amount": pkg["amount"],
         "consent_agreed": True,
         "consent_signed_at": now,
-        "created_at": now,
-        "updated_at": now,
     }
 
     insert_res = await execute(
@@ -341,7 +341,7 @@ async def list_my_orders(user: dict = Depends(get_current_user)):
     supabase = get_client()
     res = await execute(
         supabase.table("delivery_orders")
-        .select("id, package_type, request_title, status, amount, created_at, updated_at")
+        .select("id, package_type, request_title, status, amount, created_at")
         .eq("user_id", user["id"])
         .order("created_at", desc=True)
         .limit(20)
@@ -393,7 +393,6 @@ async def sign_consent(
             "consent_agreed": True,
             "consent_signed_at": now,
             "consent_ip": client_ip,
-            "updated_at": now,
         })
         .eq("id", order_id)
     )
@@ -551,7 +550,6 @@ async def confirm_delivery_payment(
         .update({
             "status": "paid",
             "payment_key": body.payment_key,
-            "updated_at": now,
         })
         .eq("id", order_id)
     )
@@ -619,6 +617,35 @@ async def confirm_delivery_payment(
 
 # ── 관리자 엔드포인트 ───────────────────────────────────────────────────────────
 
+@admin_router.get("/{order_id}")
+async def admin_get_order(
+    order_id: str,
+    _: None = Depends(verify_admin),
+):
+    """주문 상세 조회 (관리자)."""
+    order = await _get_order_or_404(order_id)
+    pkg_type = order.get("package_type", "")
+    order["package_name"] = PACKAGES.get(pkg_type, {}).get("name", pkg_type)
+    return {"order": order}
+
+
+@admin_router.get("/{order_id}/messages")
+async def admin_get_messages(
+    order_id: str,
+    _: None = Depends(verify_admin),
+):
+    """메시지 목록 조회 (관리자)."""
+    await _get_order_or_404(order_id)
+    supabase = get_client()
+    res = await execute(
+        supabase.table("delivery_messages")
+        .select("id, sender_type, body, created_at")
+        .eq("order_id", order_id)
+        .order("created_at", desc=False)
+    )
+    return {"order_id": order_id, "messages": res.data or []}
+
+
 @admin_router.post("/{order_id}/status")
 async def admin_update_status(
     order_id: str,
@@ -633,7 +660,7 @@ async def admin_update_status(
     now = datetime.now(timezone.utc).isoformat()
     await execute(
         supabase.table("delivery_orders")
-        .update({"status": body.status, "updated_at": now})
+        .update({"status": body.status})
         .eq("id", order_id)
     )
 
@@ -760,7 +787,6 @@ async def admin_complete_order(
         .update({
             "completion_report": body.completion_report,
             "status": "completed",
-            "updated_at": now,
         })
         .eq("id", order_id)
     )
@@ -774,3 +800,58 @@ async def admin_complete_order(
         _logger.warning(f"[admin/delivery] 완료 카카오 알림 실패 (무시): {e}")
 
     return {"order_id": order_id, "status": "completed"}
+
+
+# ── 납품 파일 관리 ───────────────────────────────────────────────────────────────
+
+@admin_router.post("/{order_id}/materials")
+async def admin_upload_material(
+    order_id: str,
+    body: dict,
+    _: None = Depends(verify_admin),
+):
+    """납품 파일 URL 등록 (관리자).
+
+    Supabase Storage에 업로드된 파일의 공개 URL 또는 서명 URL을 body.url로 전달.
+    delivery_orders.materials_url JSONB 배열에 추가.
+    body: { "url": "https://...", "filename": "소개글_초안.pdf" }
+    """
+    await _get_order_or_404(order_id)
+
+    url = (body.get("url") or "").strip()
+    filename = (body.get("filename") or "파일").strip()
+    if not url:
+        raise HTTPException(status_code=422, detail="url 필드가 필요합니다")
+
+    supabase = get_client()
+    # 기존 배열 조회
+    res = await execute(
+        supabase.table("delivery_orders")
+        .select("materials_url")
+        .eq("id", order_id)
+        .single()
+    )
+    existing = (res.data or {}).get("materials_url") or []
+    if not isinstance(existing, list):
+        existing = []
+
+    new_entry = {"url": url, "filename": filename, "added_at": datetime.now(timezone.utc).isoformat()}
+    existing.append(new_entry)
+
+    await execute(
+        supabase.table("delivery_orders")
+        .update({"materials_url": existing})
+        .eq("id", order_id)
+    )
+    _logger.info(f"[admin/delivery] 납품 파일 등록: order_id={order_id}, filename={filename}")
+    return {"ok": True, "materials_url": existing}
+
+
+@router.get("/orders/{order_id}/materials")
+async def get_materials(
+    order_id: str,
+    user: dict = Depends(get_current_user),
+):
+    """납품 파일 목록 조회 (사용자 — 본인 소유 검증)."""
+    order = await _get_order_owned_or_403(order_id, user["id"])
+    return {"order_id": order_id, "materials_url": order.get("materials_url") or []}

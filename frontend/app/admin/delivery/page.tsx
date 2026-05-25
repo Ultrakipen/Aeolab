@@ -7,6 +7,7 @@ const ADMIN_EMAILS = ["hoozdev@gmail.com"];
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
   received: { label: "접수", color: "bg-blue-100 text-blue-700" },
+  paid: { label: "결제완료", color: "bg-indigo-100 text-indigo-700" },
   in_progress: { label: "진행중", color: "bg-orange-100 text-orange-700" },
   completed: { label: "완료", color: "bg-green-100 text-green-700" },
   rework: { label: "재작업", color: "bg-purple-100 text-purple-700" },
@@ -23,6 +24,7 @@ const PACKAGE_DISPLAY: Record<string, string> = {
 const STATUS_FILTERS = [
   { value: "", label: "전체" },
   { value: "received", label: "접수" },
+  { value: "paid", label: "결제완료" },
   { value: "in_progress", label: "진행중" },
   { value: "completed", label: "완료" },
   { value: "cancelled", label: "취소" },

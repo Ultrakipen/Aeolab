@@ -723,7 +723,7 @@ export default function TrialResultStep(props: TrialResultProps) {
             2026 AI탭 베타 공개·확대 진행 중
           </p>
           <p className="text-sm text-amber-800 leading-relaxed">
-            네이버 AI탭은 2026-04-27 베타 공개 후 상반기 전체 확대 예정입니다 (모든 업종 가능).
+            네이버 AI탭은 2026-04-27 베타 공개 후 2026년 6월 전체 확대 예정입니다 (모든 업종 가능, 네이버 공식).
             AI 브리핑 업종 확대는 네이버 공식 발표 후 적용 예정이며 현재 확대 검토 중입니다.
           </p>
         </div>

@@ -454,7 +454,7 @@ export default function HowItWorksPage() {
             <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">
               2026년 4월 27일 베타 출시된 네이버 AI탭은 <strong>AI 브리핑과 달리 모든 업종</strong>의 사업장이
               노출될 수 있습니다. 현재 네이버플러스 구독자 대상으로 먼저 운영 중이며,
-              2026년 상반기 전체 이용자 확대 예정입니다.
+              2026년 6월 전체 이용자 확대 예정입니다 (네이버 공식).
             </p>
           </div>
 
@@ -702,7 +702,7 @@ export default function HowItWorksPage() {
             </li>
             <li>
               <strong>네이버 통합검색 별도 &lsquo;AI 탭&rsquo; 2026년 4월 베타 공개</strong> — 연속적 대화형 검색이 별도 탭으로 분리되어 AI 브리핑 노출 영역이 더 커집니다.
-              현재 네이버플러스 멤버십 우선 공개 중이며, 상반기 내 전체 이용자 확대 예정입니다.
+              현재 네이버플러스 멤버십 우선 공개 중이며, 2026년 6월 전체 이용자 확대 예정입니다 (네이버 공식).
             </li>
             <li>
               <strong>인용 콘텐츠 배지</strong> — AI 브리핑에 인용된 블로그·콘텐츠에 배지가 표시되어

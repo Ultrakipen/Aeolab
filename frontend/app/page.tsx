@@ -309,7 +309,7 @@ export default async function LandingPage() {
             {/* 보조 카드 3개 */}
             <div className="fade-up flex flex-col gap-3">
               {[
-                { num: "3,000만+", label: "AI 브리핑을 본 사람", sub: "네이버 공식 발표 기반 추정치", delay: "delay-1", isAiTab: false },
+                { num: "3,000만+", label: "AI 브리핑을 본 사람", sub: "월간 사용자 · 네이버 공식 발표 (2026.3)", delay: "delay-1", isAiTab: false },
                 { num: "15,000+", label: "네이버 AI 브리핑 적용 숙박업체", sub: "2026년 기준 · 네이버 공식 발표", delay: "delay-2", isAiTab: false },
                 { num: "25종+", label: "모든 업종 측정 가능", sub: "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기", delay: "delay-3", isAiTab: true },
               ].map((item) => (
@@ -591,6 +591,10 @@ export default async function LandingPage() {
             <p className="text-sm mt-2 break-keep max-w-xl mx-auto" style={{ color: "#475569" }}>
               네이버 검색 상단에 자동으로 노출되는 AI 추천 박스 — 음식점·카페·베이커리·바·숙박 전용
             </p>
+            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold" style={{ background: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }}>
+              <span>📈</span>
+              <span>롱테일 자연어 검색 쿼리 전년 대비 <strong>2.5배 증가</strong> — 네이버 공식 발표 (2026.3)</span>
+            </div>
           </div>
 
           <div className="relative grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-5">
@@ -710,7 +714,7 @@ export default async function LandingPage() {
               모든 업종 노출 가능 — AI 브리핑과 다른 경로
             </h2>
             <p className="text-sm mt-2 break-keep max-w-2xl mx-auto" style={{ color: "#475569" }}>
-              2026-04-27 베타 출시 · 네이버플러스 구독자 우선 · 상반기 전체 확대 예정 ·{" "}
+              2026-04-27 베타 출시 · 네이버플러스 구독자 우선 · 6월 전체 확대 예정 (네이버 공식) ·{" "}
               <strong style={{ color: "#0F172A" }}>업종·프랜차이즈 제한 없음</strong>
             </p>
           </div>
@@ -724,7 +728,7 @@ export default async function LandingPage() {
               학원·병원·미용실·헬스장·법무사 등 — AI 브리핑 비대상이어도 <span style={{ color: "#6366F1" }}>AI탭</span>으로 노출됩니다
             </p>
             <p className="text-sm mt-1.5 break-keep text-center" style={{ color: "#4338CA" }}>
-              AI탭은 업종 제한 없음 · 2026-04-27 베타 출시 · 전체 확대 진행 중
+              AI탭은 업종 제한 없음 · 2026-04-27 베타 출시 · 6월 전체 확대 예정 (네이버 공식)
             </p>
           </div>
 
@@ -820,7 +824,7 @@ export default async function LandingPage() {
                     {[
                       { icon: "👆", text: "검색 결과 탭에서 'AI' 클릭 시 답변에 내 가게 등장" },
                       { icon: "🌐", text: "업종·프랜차이즈 구분 없이 모두 노출 가능" },
-                      { icon: "🚀", text: "2026년 4월 베타 출시 · 상반기 전체 확대 예정" },
+                      { icon: "🚀", text: "2026년 4월 베타 출시 · 6월 전체 확대 예정 (네이버 공식)" },
                       { icon: "📝", text: "노출 기준: 소개글, 사진, 예약 연동, 블로그 UGC" },
                     ].map(({ icon, text }) => (
                       <div key={text} className="flex items-start gap-2">

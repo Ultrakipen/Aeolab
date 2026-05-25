@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Loader2, Send, CheckCircle2 } from "lucide-react";
+import { Loader2, Send, CheckCircle2, Upload, Download } from "lucide-react";
 
 // 서버사이드 프록시를 통해 admin API 호출 — ADMIN_SECRET_KEY를 클라이언트에 노출하지 않음
 const ADMIN_PROXY = "/api/admin-proxy";
@@ -18,9 +18,16 @@ interface CompletionReport {
   summary?: string;
 }
 
+interface MaterialEntry {
+  url: string;
+  filename: string;
+  added_at?: string;
+}
+
 interface Props {
   orderId: string;
   initialMessages: Message[];
+  initialMaterials?: MaterialEntry[];
   currentStatus: string;
   adminKey?: string; // 더 이상 클라이언트에서 사용하지 않음 — 프록시 경유
 }
@@ -37,7 +44,7 @@ const formatDate = (iso: string) =>
     month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
   });
 
-export function AdminDeliveryDetailClient({ orderId, initialMessages, currentStatus, adminKey }: Props) {
+export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMaterials = [], currentStatus, adminKey }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [msgInput, setMsgInput] = useState("");
   const [sendingMsg, setSendingMsg] = useState(false);
@@ -54,6 +61,13 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, currentSta
   const [completing, setCompleting] = useState(false);
   const [completeError, setCompleteError] = useState("");
 
+  // 납품 파일
+  const [materials, setMaterials] = useState<MaterialEntry[]>(initialMaterials);
+  const [matUrl, setMatUrl] = useState("");
+  const [matFilename, setMatFilename] = useState("");
+  const [uploadingMat, setUploadingMat] = useState(false);
+  const [matError, setMatError] = useState("");
+
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -61,6 +75,36 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, currentSta
   }, [messages]);
 
   const proxyHeaders = { "Content-Type": "application/json" };
+
+  const handleAddMaterial = async () => {
+    const url = matUrl.trim();
+    const filename = matFilename.trim() || "파일";
+    if (!url) return;
+    setUploadingMat(true);
+    setMatError("");
+    try {
+      const res = await fetch(
+        `${ADMIN_PROXY}?path=admin/delivery/${orderId}/materials`,
+        {
+          method: "POST",
+          headers: proxyHeaders,
+          body: JSON.stringify({ url, filename }),
+        },
+      );
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.detail ?? "등록 실패");
+      }
+      const data = await res.json();
+      setMaterials(data.materials_url ?? []);
+      setMatUrl("");
+      setMatFilename("");
+    } catch (err: unknown) {
+      setMatError((err as Error).message);
+    } finally {
+      setUploadingMat(false);
+    }
+  };
 
   const handleStatusChange = async (newStatus: string) => {
     if (newStatus === "completed") {
@@ -229,7 +273,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, currentSta
           )}
 
           <div className="space-y-2">
-            {currentStatus === "received" && (
+            {(currentStatus === "received" || currentStatus === "paid") && (
               <button
                 onClick={() => handleStatusChange("in_progress")}
                 disabled={changingStatus === "in_progress"}
@@ -240,7 +284,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, currentSta
               </button>
             )}
 
-            {(currentStatus === "received" || currentStatus === "in_progress") && (
+            {(currentStatus === "received" || currentStatus === "paid" || currentStatus === "in_progress") && (
               <button
                 onClick={() => handleStatusChange("completed")}
                 disabled={!!changingStatus || completing}
@@ -248,6 +292,27 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, currentSta
               >
                 <CheckCircle2 className="w-4 h-4" />
                 완료 처리
+              </button>
+            )}
+
+            {currentStatus === "in_progress" && (
+              <button
+                onClick={() => handleStatusChange("rework")}
+                disabled={!!changingStatus}
+                className="w-full py-3 rounded-xl bg-purple-100 text-purple-700 text-sm font-semibold hover:bg-purple-200 transition-colors disabled:opacity-50"
+              >
+                재작업 요청
+              </button>
+            )}
+
+            {currentStatus === "rework" && (
+              <button
+                onClick={() => handleStatusChange("in_progress")}
+                disabled={changingStatus === "in_progress"}
+                className="w-full py-3 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {changingStatus === "in_progress" ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                재진행
               </button>
             )}
 
@@ -261,12 +326,78 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, currentSta
               </button>
             )}
 
+            {!isDone && (
+              <button
+                onClick={() => handleStatusChange("refunded")}
+                disabled={!!changingStatus}
+                className="w-full py-3 rounded-xl bg-gray-50 text-gray-500 text-sm font-medium hover:bg-gray-100 transition-colors disabled:opacity-50 border border-gray-200"
+              >
+                환불 처리
+              </button>
+            )}
+
             {isDone && (
               <p className="text-sm text-gray-400 text-center py-2">
                 이미 종료된 의뢰입니다.
               </p>
             )}
           </div>
+        </div>
+
+        {/* 납품 파일 관리 패널 */}
+        <div className="mt-5 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Upload className="w-4 h-4 text-blue-500" />
+          <h2 className="text-base font-semibold text-gray-800">납품 파일 등록</h2>
+        </div>
+
+        {matError && <p className="text-sm text-red-500 mb-3">{matError}</p>}
+
+        <div className="space-y-2 mb-3">
+          <input
+            type="text"
+            value={matFilename}
+            onChange={(e) => setMatFilename(e.target.value)}
+            placeholder="파일명 (예: 소개글_초안.pdf)"
+            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+          <input
+            type="url"
+            value={matUrl}
+            onChange={(e) => setMatUrl(e.target.value)}
+            placeholder="파일 URL (Supabase Storage 또는 외부 링크)"
+            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+          <button
+            onClick={handleAddMaterial}
+            disabled={uploadingMat || !matUrl.trim()}
+            className="w-full py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {uploadingMat ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            파일 등록
+          </button>
+        </div>
+
+        {materials.length > 0 && (
+          <ul className="space-y-2 border-t border-gray-100 pt-3">
+            {materials.map((m, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <a
+                  href={m.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 flex-1 min-w-0 text-sm text-blue-600 hover:underline"
+                >
+                  <Download className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{m.filename}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+        {materials.length === 0 && (
+          <p className="text-sm text-gray-400 text-center py-2">등록된 납품 파일이 없습니다.</p>
+        )}
         </div>
       </div>
 
