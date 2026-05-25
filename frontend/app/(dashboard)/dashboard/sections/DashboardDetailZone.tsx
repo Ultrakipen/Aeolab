@@ -382,7 +382,12 @@ export default function DashboardDetailZone({
             chatgptSampleSize={
               chatgptResult?.sample_size !== undefined ? Number(chatgptResult.sample_size) : undefined
             }
-            competitorCount={0}
+            competitorCount={rankingItems.filter(r => !r.isMe).length}
+            topCompetitorGap={
+              topCompetitor && unifiedScore > 0
+                ? Math.max(0, Math.round((topCompetitor.score ?? 0) - unifiedScore))
+                : undefined
+            }
             naverBriefing={!!naverResult?.in_briefing}
             topMissingKeywords={
               Array.isArray(scan.top_missing_keywords)

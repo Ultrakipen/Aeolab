@@ -74,7 +74,7 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
             <ul className="space-y-1 text-sm text-slate-700 dark:text-gray-300 leading-snug">
               <li>• 1년 이상 누적된 웹 콘텐츠 인식</li>
               <li>• 블로그·뉴스·전문지 인용이 중요</li>
-              <li>• 학습 데이터 컷오프 2026.01</li>
+              <li>• 학습 데이터 컷오프 2024.06</li>
             </ul>
           </div>
 

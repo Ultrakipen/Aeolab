@@ -87,9 +87,21 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
   const filteredCitations = isNaverInactive
     ? citations.filter(c => !isNaverBriefingItem(c))
     : citations
-  const mentionedCount = filteredCitations.filter(c => c.excerpt && c.excerpt.length > 0).length
 
-  if (filteredCitations.length === 0) {
+  // (platform + query) 조합 기준 최신 1건만 유지 — 반복 스캔 시 중복 제거
+  const dedupedCitations = (() => {
+    const seen = new Set<string>();
+    return filteredCitations.filter(c => {
+      const key = `${c.platform}||${c.query}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  })();
+
+  const mentionedCount = dedupedCitations.filter(c => c.excerpt && c.excerpt.length > 0).length
+
+  if (dedupedCitations.length === 0) {
     return (
       <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
@@ -118,7 +130,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
 
   const INITIAL_VISIBLE = 10
   // is_preview일 때는 첫 1건만 표시하고 잠금 오버레이를 보여줌
-  const visibleCitations = isPreview ? filteredCitations.slice(0, 1) : filteredCitations
+  const visibleCitations = isPreview ? dedupedCitations.slice(0, 1) : dedupedCitations
   const visible = expanded ? visibleCitations : visibleCitations.slice(0, INITIAL_VISIBLE)
 
   return (
@@ -207,7 +219,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
         </div>
       )}
 
-      {!isPreview && citations.length > INITIAL_VISIBLE && (
+      {!isPreview && dedupedCitations.length > INITIAL_VISIBLE && (
         <button
           onClick={() => setExpanded(v => !v)}
           className="mt-3 w-full flex items-center justify-center gap-1 text-sm text-blue-600 hover:text-blue-800 py-1"
@@ -215,7 +227,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
           {expanded ? (
             <><ChevronUp className="w-4 h-4" />접기</>
           ) : (
-            <><ChevronDown className="w-4 h-4" />더 보기 ({citations.length - INITIAL_VISIBLE}개 더)</>
+            <><ChevronDown className="w-4 h-4" />더 보기 ({dedupedCitations.length - INITIAL_VISIBLE}개 더)</>
           )}
         </button>
       )}

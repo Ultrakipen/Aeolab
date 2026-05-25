@@ -5,6 +5,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import date, datetime, timedelta
 from utils.alert import send_slack_alert
 from db.supabase_client import execute as _db
+from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_queries
 
 # 카카오 알림 키 설정 여부 — 미설정 시 알림 발송 시도 자체를 스킵해 에러 로그 누적 방지
 _KAKAO_CONFIGURED = bool(os.getenv("KAKAO_APP_KEY") and os.getenv("KAKAO_SENDER_KEY"))
@@ -335,7 +336,6 @@ async def daily_scan_all():
                 valid_kws = [k.strip() for k in keywords if k.strip() and len(k.strip()) >= 2]
                 weekday = datetime.now().weekday()  # 0=월, 1=화, ..., 6=일
                 # 짧은 변형 + 긴 자연어 질의(롱테일 2.5배 대응) 단일 소스 — 첫 요소는 짧은 쿼리(naver용)
-                from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_queries
                 _scan_kw = valid_kws[weekday % len(valid_kws)] if valid_kws else biz["category"]
                 _scan_queries = _build_ai_scan_queries(biz["region"], _scan_kw)
                 query = _scan_queries[0]  # 단일 쿼리 문자열 — naver·single_check·query_used 저장용
@@ -4864,7 +4864,6 @@ async def delivery_auto_cancel_job():
             .update({
                 "status": "cancelled",
                 "refund_reason": "자료 미제출 7일 경과 자동 취소",
-                "updated_at": datetime.now(timezone.utc).isoformat(),
             })
             .in_("id", cancelled_ids)
         )

@@ -110,6 +110,26 @@ _FIND_BLOG_START_JS = """
 })()
 """
 
+# 블로그 포스트 가시 텍스트만 추출 (raw HTML 전체 검색 시 허위양성 방지)
+_EXTRACT_BLOG_TEXT_JS = """
+(function() {
+    var selectors = [
+        '.title_link', '.dsc_txt_s', '.api_txt_lines',
+        '.user_txt', '.txt_block', '.total_tit',
+        '.sub_txt', '.link_tit', '.lst_total .title',
+        'a[href*="blog.naver.com"]'
+    ];
+    var texts = [];
+    selectors.forEach(function(sel) {
+        document.querySelectorAll(sel).forEach(function(el) {
+            var t = el.innerText || el.textContent || '';
+            if (t.trim()) texts.push(t.trim());
+        });
+    });
+    return texts.join(' ');
+})()
+"""
+
 
 async def capture_naver_results(
     query: str,
@@ -156,8 +176,8 @@ async def capture_naver_results(
                     await page.wait_for_timeout(2000)
                     await page.evaluate(_AD_REMOVE_JS)
 
-                    content = await page.content()
-                    is_mentioned = business_name in content
+                    visible_text = await page.evaluate(_EXTRACT_BLOG_TEXT_JS)
+                    is_mentioned = bool(visible_text and business_name in visible_text)
 
                     if tab_type == "blog":
                         # 쇼핑·플레이스 DOM 제거 → 블로그 포스트 위치 탐지 → 스크롤

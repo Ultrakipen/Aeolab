@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from models.schemas import ScanRequest, TrialScanRequest, TrialClaimRequest, TrialAttachRequest
 from services.ai_scanner.multi_scanner import MultiAIScanner
 from services.score_engine import calculate_score
+from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_queries
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
 from utils.scan_errors import make_scan_error, classify_exception
@@ -2380,7 +2381,7 @@ async def _enrich_scan_background(
                 _g_freq = int(_gemini_r.get("exposure_freq") or 0)
                 ai_screenshots.append({
                     "platform": "gemini",
-                    "query": "Gemini AI 100회 샘플링",
+                    "query": query,
                     "is_mentioned": bool(_gemini_r.get("mentioned")),
                     "exposure_freq": _g_freq,
                     "url": None,
@@ -2616,7 +2617,6 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         keyword_ko = _CATEGORY_KO.get((biz or {}).get("category", req.category), req.category)
 
         # 쿼리 생성: 짧은 변형 + 긴 자연어 질의(롱테일 2.5배 대응) 단일 소스
-        from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_queries
         _full_biz_keywords = (biz or {}).get("keywords") or req.keywords or []
         _full_valid_kw = [k.strip() for k in _full_biz_keywords if k.strip() and len(k.strip()) >= 2]
         _full_region = (biz or {}).get("region") or req.region or ""

@@ -29,17 +29,26 @@ export default function ChatGPTDiffCard({
   const gN = geminiSampleSize && geminiSampleSize > 0 ? geminiSampleSize : 100;
   const cN = chatgptSampleSize && chatgptSampleSize > 0 ? chatgptSampleSize : 0;
   const chatgptHasSamples = cN >= 10 && chatgptCount !== undefined;
+  const isQuickScan = gN <= 15;
   const items = [
     {
-      label: `Gemini AI에 ${gN}회 자동 질의한 결과`,
+      label: isQuickScan
+        ? `Gemini AI 빠른 진단 (${gN}회)`
+        : `Gemini AI에 ${gN}회 자동 질의한 결과`,
       value: `${gN}회 중 ${geminiCount}회 언급`,
-      detail: `AEOlab이 Gemini API를 ${gN}회 프로그래매틱 호출해 측정한 수치입니다`,
+      detail: isQuickScan
+        ? `수동 스캔 빠른 진단 결과 (${gN}회). 자동 스캔 시 50회 정밀 측정됩니다`
+        : `AEOlab이 Gemini API를 ${gN}회 프로그래매틱 호출해 측정한 수치입니다`,
       highlight: geminiCount > 0,
     },
     ...(chatgptHasSamples ? [{
-      label: `ChatGPT에 ${cN}회 자동 질의한 결과`,
+      label: cN <= 15
+        ? `ChatGPT 빠른 진단 (${cN}회)`
+        : `ChatGPT에 ${cN}회 자동 질의한 결과`,
       value: `${cN}회 중 ${chatgptCount}회 언급`,
-      detail: `OpenAI GPT-4.1-mini를 ${cN}회 호출해 ChatGPT가 내 가게를 얼마나 자주 추천하는지 직접 측정했습니다`,
+      detail: cN <= 15
+        ? `수동 스캔 빠른 진단 결과 (${cN}회). 자동 스캔 시 50회 정밀 측정됩니다`
+        : `OpenAI GPT-4.1-mini를 ${cN}회 호출해 ChatGPT가 내 가게를 얼마나 자주 추천하는지 직접 측정했습니다`,
       highlight: (chatgptCount ?? 0) > 0,
     }] : []),
     {
@@ -55,10 +64,10 @@ export default function ChatGPTDiffCard({
     },
     {
       label: "네이버 AI탭 노출 확인",
-      value: "베타 측정 준비 중",
+      value: "6월 전체 확대 후 자동 측정",
       detail: "6월 AI탭 전체 확대 후 실시간 자동 측정됩니다. ChatGPT는 네이버 AI탭 결과를 알 수 없습니다",
       highlight: false,
-      inactive: false,
+      inactive: true,
     },
     {
       label: "경쟁사 비교 분석",
@@ -76,7 +85,7 @@ export default function ChatGPTDiffCard({
         ? topMissingKeywords.map((kw) => `'${kw}'`).join(" · ") + " 누락"
         : "업종별 키워드 분석 완료",
       detail: topMissingKeywords.length > 0
-        ? "업종 핵심 키워드 중 소개글·리뷰에서 발견되지 않은 키워드입니다. 소개글·소식에 추가하면 키워드 점수가 다음 스캔에서 즉시 오르고, 네이버 AI 브리핑 노출 가능성이 1~4주 내 높아집니다."
+        ? "업종 핵심 키워드 중 소개글·리뷰에서 발견되지 않은 키워드입니다. 소개글·소식에 추가하면 키워드 점수가 다음 스캔에서 오르고, 네이버 AI 브리핑 노출 가능성도 개선됩니다."
         : "ChatGPT는 내 가게에 '어떤 키워드가 없는지' 구체적으로 알 수 없습니다",
       highlight: topMissingKeywords.length > 0,
     },
@@ -142,7 +151,7 @@ export default function ChatGPTDiffCard({
           )}
         </ul>
         <p className="mt-2 text-sm text-indigo-400 leading-snug">
-          <strong>측정 원리 차이:</strong> ChatGPT는 학습 데이터(컷오프 2026.01) 기반, Gemini는 Google 실시간 검색을 일부 반영. 두 측정값이 다를 수 있습니다.
+          <strong>측정 원리 차이:</strong> ChatGPT(gpt-4.1-mini)는 학습 데이터(컷오프 2024.06) 기반, Gemini는 Google 검색 색인을 일부 반영. 두 측정값이 다를 수 있습니다.
         </p>
       </div>
     </div>
