@@ -3,6 +3,7 @@ import AiTabPreviewCard from "@/components/dashboard/AiTabPreviewCard";
 import GlobalAiFocusCard from "@/components/dashboard/GlobalAiFocusCard";
 import InactiveUserBanner from "@/components/dashboard/InactiveUserBanner";
 import NaverAiPathwayCard from "@/components/dashboard/NaverAiPathwayCard";
+import NaverMultiChannelCard from "@/components/dashboard/NaverMultiChannelCard";
 import PhotoCategoryCard from "@/components/dashboard/PhotoCategoryCard";
 import ReviewKeywordGapCard from "@/components/dashboard/ReviewKeywordGapCard";
 import SchemaCheckCard from "@/components/dashboard/SchemaCheckCard";
@@ -46,6 +47,12 @@ interface Props {
   userCreatedAt?: string | null;
   /** 글로벌 AI 비중 (0~1). DUAL_TRACK_RATIO[category].global — global ≥0.65 업종에 ChatGPT·Gemini 주전장 카드 표시 */
   globalWeight?: number;
+  /** Google Business 프로필 등록 여부 — SchemaCheckCard 10점 항목 표시용 */
+  googlePlaceRegistered?: boolean;
+  /** naver_result.cafe_result — NAVER_MULTICH_ENABLED=true 시 포함 */
+  cafeResult?: { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null;
+  /** naver_result.jisik_result — NAVER_MULTICH_ENABLED=true 시 포함 */
+  jisikResult?: { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null;
 }
 
 export default function DashboardInsightZone({
@@ -66,6 +73,9 @@ export default function DashboardInsightZone({
   latestAdOnly,
   userCreatedAt,
   globalWeight,
+  googlePlaceRegistered,
+  cafeResult,
+  jisikResult,
 }: Props) {
   const isPhotoSupported = PHOTO_SUPPORTED_CATEGORIES.includes(category);
 
@@ -117,6 +127,11 @@ export default function DashboardInsightZone({
         keywordCount={keywordCount}
       />
 
+      {/* 네이버 카페·지식인 언급 현황 — NAVER_MULTICH_ENABLED=true 시 자동 표시 */}
+      {(cafeResult || jisikResult) && (
+        <NaverMultiChannelCard cafeResult={cafeResult ?? null} jisikResult={jisikResult ?? null} />
+      )}
+
       {/* 스마트플레이스 사진 카테고리 현황 */}
       {isPhotoSupported && (
         <PhotoCategoryCard
@@ -135,6 +150,7 @@ export default function DashboardInsightZone({
         websiteUrl={websiteUrl}
         websiteCheckResult={websiteCheckResult}
         plan={plan}
+        googlePlaceRegistered={googlePlaceRegistered}
       />
 
       {/* 5단계 가이드 + 매뉴얼 링크 */}
@@ -145,13 +161,13 @@ export default function DashboardInsightZone({
         <div className="flex flex-col md:flex-row gap-2">
           <a
             href={`/guide/ai-info-tab?biz_id=${bizId}`}
-            className="inline-block px-4 py-2 bg-blue-600 text-white text-sm md:text-base rounded font-medium hover:bg-blue-700 text-center"
+            className="block w-full md:w-auto text-center px-4 py-2 bg-blue-600 text-white text-sm md:text-base rounded font-medium hover:bg-blue-700"
           >
             5단계 가이드 열기 →
           </a>
           <a
             href="/how-it-works"
-            className="inline-block px-4 py-2 border border-blue-600 text-blue-600 text-sm md:text-base rounded font-medium hover:bg-blue-100 text-center"
+            className="block w-full md:w-auto text-center px-4 py-2 border border-blue-600 text-blue-600 text-sm md:text-base rounded font-medium hover:bg-blue-100"
           >
             AEOlab 동작 원리 보기 (매뉴얼)
           </a>

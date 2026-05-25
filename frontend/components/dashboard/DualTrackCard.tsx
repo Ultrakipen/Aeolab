@@ -54,6 +54,7 @@ interface DualTrackCardProps {
   };
   bizId?: string;
   token?: string;
+  plan?: string;
 }
 
 // 업종별 맞춤 메시지 (§7.1 기준)
@@ -186,7 +187,7 @@ function ScoreBar({
         <div className="flex-1 min-w-0">
           <span className="font-semibold text-gray-800 text-base leading-tight block">{label}</span>
           <span className="text-sm text-gray-500 bg-gray-200 rounded-full px-2 py-0.5 inline-block mt-0.5">
-            전체 점수 중 {pct}% 비중
+            전체 진단 {pct}% 반영
           </span>
         </div>
         <span className={`text-base md:text-lg font-bold shrink-0 ${getScoreStatusLabel(score).color}`}>
@@ -373,6 +374,7 @@ export default function DualTrackCard({
   aiExposureData,
   bizId,
   token,
+  plan,
 }: DualTrackCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const isTrack1Weak = track1Score < 40;
@@ -389,14 +391,14 @@ export default function DualTrackCard({
   const track1LabelText = isInactive
     ? "네이버 검색 준비도 (AI탭 포함)"
     : isLikely
-    ? "네이버 AI 검색 점수 (AI탭 가능·AI 브리핑 확대 검토 중)"
-    : "네이버 AI 브리핑·AI탭 점수";
+    ? "네이버 AI 검색 지수 (AI탭 가능·AI 브리핑 확대 검토 중)"
+    : "네이버 AI 노출 지수";
 
   const track1Sublabel = isInactive
     ? "블로그·스마트플레이스를 꾸준히 관리하면 AI탭·네이버 검색 노출을 개선할 수 있습니다"
     : isLikely
     ? "AI탭은 지금도 가능합니다. 블로그·스마트플레이스 관리로 AI탭 노출을 높이세요"
-    : "이 점수가 낮으면 네이버 AI 브리핑·AI탭에서 내 가게를 잘 모릅니다";
+    : "이 지수가 낮으면 네이버 AI 브리핑·AI탭에서 내 가게를 잘 모릅니다";
 
   const track1TipFinal = isInactive
     ? (INACTIVE_NAVER_SEO_TIPS[category] ?? INACTIVE_NAVER_SEO_TIPS.other)
@@ -441,7 +443,7 @@ export default function DualTrackCard({
             </button>
             {showTooltip && (
               <div className="absolute right-0 top-7 z-10 w-64 bg-gray-900 text-white text-sm rounded-xl p-3 shadow-xl leading-relaxed">
-                <p className="font-semibold mb-1">통합 점수 계산 방식</p>
+                <p className="font-semibold mb-1">AI 노출 종합 지수 계산 방식</p>
                 <p className="text-gray-300">
                   = 네이버 AI 채널 × {naverPct}%<br />
                   + 글로벌 AI 채널 × {globalPct}%
@@ -515,24 +517,41 @@ export default function DualTrackCard({
         immediateAction={track1ImmediateAction}
       />
 
-      {/* INACTIVE: 네이버 SEO 검색 노출 개선 안내 */}
-      {isInactive && (
-        <div className="bg-green-50 border border-green-100 rounded-xl p-3 md:p-4">
-          <p className="text-sm font-semibold text-green-800 mb-2">📝 네이버 검색 노출 개선 방법</p>
-          <div className="space-y-1.5">
-            {[
-              "블로그 정기 발행 (주 1~2회) → 네이버 검색 결과 상위 노출",
-              "스마트플레이스 소개글·사진 업데이트 → 플레이스 검색 최적화",
-              "리뷰 답글 꾸준히 달기 → 네이버 플레이스 신뢰도 향상",
-            ].map((tip, i) => (
-              <div key={i} className="flex items-start gap-1.5 text-sm text-green-700">
-                <span className="mt-0.5 shrink-0">✓</span>
-                <span>{tip}</span>
-              </div>
-            ))}
+      {/* INACTIVE: 네이버 SEO 검색 노출 개선 안내 (실측 데이터 기반 필터링) */}
+      {isInactive && (() => {
+        const blogDone = blogContribution?.active && (blogContribution?.postCount ?? 0) >= 2;
+        const introDone = smartPlaceStatus?.hasIntro;
+        const remainingTips = [
+          !blogDone && "블로그 정기 발행 (주 1~2회) → 네이버 검색 결과 상위 노출",
+          !introDone && "스마트플레이스 소개글·사진 업데이트 → 플레이스 검색 최적화",
+          "리뷰 답글 꾸준히 달기 → 네이버 플레이스 신뢰도 향상",
+        ].filter((t): t is string => typeof t === "string");
+
+        const allManaged = blogDone && introDone && track1Score >= 60;
+
+        if (allManaged) {
+          return (
+            <div className="bg-green-50 border border-green-100 rounded-xl p-3 md:p-4">
+              <p className="text-sm font-semibold text-green-800 mb-1">✅ 네이버 기본 관리가 잘 되고 있습니다</p>
+              <p className="text-sm text-green-700">리뷰 답글을 꾸준히 유지하면서 블로그 키워드 다양화로 다음 단계를 노려보세요.</p>
+            </div>
+          );
+        }
+
+        return (
+          <div className="bg-green-50 border border-green-100 rounded-xl p-3 md:p-4">
+            <p className="text-sm font-semibold text-green-800 mb-2">📝 네이버 검색 노출 개선 방법</p>
+            <div className="space-y-1.5">
+              {remainingTips.map((tip, i) => (
+                <div key={i} className="flex items-start gap-1.5 text-sm text-green-700">
+                  <span className="mt-0.5 shrink-0">✓</span>
+                  <span>{tip}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* LIKELY: AI 브리핑 확대 예정 안내 */}
       {isLikely && (
@@ -548,8 +567,8 @@ export default function DualTrackCard({
       <ScoreBar
         score={track2Score}
         weight={globalWeight}
-        label={<span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 inline-block" /> 글로벌 AI 노출 점수</span>}
-        sublabel="이 점수가 낮으면 ChatGPT·구글 AI에서 내 가게가 안 나옵니다"
+        label={<span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 inline-block" /> 글로벌 AI 노출 지수</span>}
+        sublabel="이 지수가 낮으면 ChatGPT·구글 AI에서 내 가게가 안 나옵니다"
         sourceNote={hasAiData ? "ChatGPT·Gemini 실측 샘플링 기반" : "ChatGPT·Gemini 등 각 AI 테스트 기반 추정 점수"}
         color="bg-blue-500"
         isWeak={isTrack2Weak}
@@ -570,10 +589,10 @@ export default function DualTrackCard({
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 md:p-4">
           <p className="text-sm font-semibold text-blue-800 mb-2.5">🤖 AI 도구별 노출 현황 (실측)</p>
           <div className="space-y-2.5">
-            {chatgptRate !== null && aiExposureData?.chatgptSampleSize && (
+            {chatgptRate !== null && aiExposureData?.chatgptSampleSize ? (
               <div>
                 <div className="flex justify-between text-sm text-gray-700 mb-1">
-                  <span>ChatGPT (GPT-4o)</span>
+                  <span>ChatGPT</span>
                   <span className="font-semibold">
                     {chatgptRate}%
                     <span className="text-xs text-gray-400 font-normal ml-1">
@@ -585,8 +604,13 @@ export default function DualTrackCard({
                   <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, chatgptRate)}%` }} />
                 </div>
               </div>
+            ) : (
+              <div className="flex justify-between text-sm text-gray-400">
+                <span>ChatGPT</span>
+                <span className="text-xs">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
+              </div>
             )}
-            {geminiRate !== null && aiExposureData?.geminiSampleSize && (
+            {geminiRate !== null && aiExposureData?.geminiSampleSize ? (
               <div>
                 <div className="flex justify-between text-sm text-gray-700 mb-1">
                   <span>Google Gemini</span>
@@ -601,6 +625,11 @@ export default function DualTrackCard({
                   <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.min(100, geminiRate)}%` }} />
                 </div>
               </div>
+            ) : (
+              <div className="flex justify-between text-sm text-gray-400">
+                <span>Google Gemini</span>
+                <span className="text-xs">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
+              </div>
             )}
           </div>
           <p className="text-sm text-gray-400 mt-2.5 leading-relaxed">
@@ -612,7 +641,7 @@ export default function DualTrackCard({
       {/* 추정값 안내 — 강조 배너 */}
       {isKeywordEstimated && (
         <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-700">
-          ⚠️ 키워드 데이터가 부족해 <strong>일부 점수는 업종 평균으로 추정</strong>됩니다.
+          ⚠️ 키워드 데이터가 부족해 <strong>일부 지수는 업종 평균으로 추정</strong>됩니다.
           리뷰 텍스트를 입력하면 더 정확해집니다.
           <Link href="/guide" className="underline ml-1">가이드에서 입력하기 →</Link>
         </div>
@@ -640,7 +669,7 @@ export default function DualTrackCard({
           href="/blog-analysis"
           className="mt-2 block text-sm text-blue-600 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors"
         >
-          블로그를 등록하면 키워드 점수 정확도가 향상됩니다 →
+          블로그를 등록하면 키워드 지수 정확도가 향상됩니다 →
         </Link>
       )}
     </div>

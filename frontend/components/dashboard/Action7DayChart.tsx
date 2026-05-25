@@ -181,12 +181,12 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
         </div>
       ) : (
         <p className="text-sm text-gray-500 text-center py-6">
-          아직 일별 점수 데이터가 쌓이지 않았습니다. 매일 새벽 자동 스캔 후 일별 점수가 누적됩니다.
+          아직 일별 분석 기록이 쌓이지 않았습니다. 매일 새벽 자동 스캔 후 분석 이력이 누적됩니다.
         </p>
       )}
 
       <p className="text-sm text-gray-400 mt-3 text-center">
-        행동 시점 기준 -2일 ~ +7일 일별 점수 · 대화형 ChatGPT로는 측정 불가능한 영역
+        행동 시점 기준 -2일 ~ +7일 일별 측정값 · 대화형 ChatGPT로는 측정 불가능한 영역
       </p>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { CheckCircle2, XCircle, AlertTriangle, Minus, FileText, Star, Lightbulb } from "lucide-react";
 
 interface PlatformResult {
@@ -25,6 +25,7 @@ interface Props {
   categoryKo: string;
   inBriefing?: boolean;
   naverPlaceUrl?: string | null;
+  briefingEligibility?: "active" | "likely" | "inactive";
 }
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -86,7 +87,9 @@ export default function AIDiagnosisCard({
   categoryKo,
   inBriefing,
   naverPlaceUrl,
+  briefingEligibility,
 }: Props) {
+  const isNaverBriefingInactive = briefingEligibility === "inactive";
   const naverInBriefing = inBriefing ?? (allPlatformResults["naver"]?.in_briefing === true);
   const naverMentionedOnly = naverMentioned && !naverInBriefing;
 
@@ -114,17 +117,31 @@ export default function AIDiagnosisCard({
   }, [allKeywords.length]);
 
   const displayKeyword = allKeywords[kwIdx];
-  // 노출된 AI 개수 계산
-  const mentionedCount = DISPLAY_PLATFORMS.filter((key) => {
+  const PLATFORM_SHORT: Record<string, string> = {
+    naver: "네이버", gemini: "Gemini", chatgpt: "ChatGPT", google: "Google AI",
+  };
+
+  // 노출된 AI 목록 및 개수 계산
+  const mentionedPlatforms = DISPLAY_PLATFORMS.filter((key) => {
     const r = allPlatformResults[key];
     if (!r || r.error) return false;
     return r.mentioned === true || (r.exposure_freq !== undefined && r.exposure_freq > 0);
-  }).length;
+  });
+  const notMentionedPlatforms = DISPLAY_PLATFORMS.filter((key) => {
+    const r = allPlatformResults[key];
+    if (!r || r.error) return false;
+    return !(r.mentioned === true || (r.exposure_freq !== undefined && r.exposure_freq > 0));
+  });
+  const mentionedCount = mentionedPlatforms.length;
 
   const totalPlatforms = DISPLAY_PLATFORMS.filter((key) => {
     const r = allPlatformResults[key];
     return r && !r.error;
   }).length;
+
+  // "N개 AI에서만 확인" 메시지에 플랫폼 명 포함
+  const mentionedNames = mentionedPlatforms.map(k => PLATFORM_SHORT[k] ?? k);
+  const notMentionedNames = notMentionedPlatforms.map(k => PLATFORM_SHORT[k] ?? k);
 
   // CTA 조건
   const ctaType: "faq" | "review" | "none" =
@@ -162,7 +179,11 @@ export default function AIDiagnosisCard({
             </div>
           )}
         </div>
-        {naverInBriefing ? (
+        {isNaverBriefingInactive ? (
+          <p className="text-xl md:text-2xl font-bold text-slate-300 leading-snug">
+            이 업종은 네이버 AI 브리핑 미지원입니다. 네이버 AI탭, ChatGPT·Gemini 채널을 집중 최적화하세요.
+          </p>
+        ) : naverInBriefing ? (
           <p className="text-xl md:text-2xl font-bold text-green-400 leading-snug">
             {iGa(businessName)} 네이버 AI 브리핑에 나오고 있습니다!
           </p>
@@ -221,6 +242,33 @@ export default function AIDiagnosisCard({
 
             // 네이버는 "검색 언급"과 "AI 브리핑 직접 인용"을 구분
             if (key === "naver") {
+              // INACTIVE 업종: 네이버 AI 브리핑 미지원 안내 + AI탭 준비 중 카드
+              if (isNaverBriefingInactive) {
+                return (
+                  <Fragment key={key}>
+                    <div className="col-span-2 flex items-start gap-2 rounded-xl px-3 py-3 border bg-gray-50 border-gray-200">
+                      <Minus className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-semibold text-gray-600">네이버 검색 노출</span>
+                        <span className="block text-sm text-gray-500 mt-0.5">
+                          AI 브리핑 미지원 업종 — 대신 네이버 AI탭·ChatGPT·Gemini 최적화 권장
+                        </span>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-400 shrink-0">AI 브리핑 제외</span>
+                    </div>
+                    <div className="col-span-2 flex items-start gap-2 rounded-xl px-3 py-3 border bg-indigo-50 border-indigo-200">
+                      <Minus className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-semibold text-indigo-700">네이버 AI탭 (베타 · 모든 업종)</span>
+                        <span className="block text-sm text-indigo-500 mt-0.5">
+                          AI 브리핑과 달리 모든 업종 노출 가능 — 전체 확대 감지 시 자동으로 측정 시작됩니다
+                        </span>
+                      </div>
+                      <span className="text-sm font-semibold text-indigo-400 shrink-0">자동 감지 중</span>
+                    </div>
+                  </Fragment>
+                );
+              }
               const searchMentioned = r.mentioned === true;
               const inBriefing = r.in_briefing === true;
               if (inBriefing) {
@@ -336,14 +384,19 @@ export default function AIDiagnosisCard({
               }`}
             >
               {mentionedCount === 0
-                ? `테스트한 AI에서 ${businessName}이(가) 확인되지 않았습니다. AI 검색 노출이 없는 상태입니다.`
+                ? `테스트한 AI(${DISPLAY_PLATFORMS.map(k => PLATFORM_SHORT[k]).join("·")})에서 ${businessName}이(가) 확인되지 않았습니다.`
                 : mentionedCount <= 2
-                ? `${mentionedCount}개 AI에서만 확인됩니다. 나머지 AI에서 노출이 더 필요합니다.`
-                : `절반 이상의 AI가 알고 있습니다. 조금만 더 최적화하세요.`}
+                ? `${mentionedNames.join("·")}에서만 확인됩니다. ${notMentionedNames.join("·")} 노출이 더 필요합니다.`
+                : `${mentionedNames.join("·")} 등 절반 이상의 AI가 알고 있습니다.`}
             </div>
             {/* 비즈니스 임팩트 번역 */}
             <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm md:text-sm text-slate-600">
-              {naverInBriefing ? (
+              {isNaverBriefingInactive ? (
+                <span className="flex items-start gap-1.5">
+                  <Lightbulb className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                  <span>네이버 AI탭, ChatGPT·Gemini 최적화에 집중하세요 — 이 업종은 네이버 AI 브리핑 대상이 아닙니다</span>
+                </span>
+              ) : naverInBriefing ? (
                 <span className="flex items-start gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
                   <span>네이버 AI 브리핑 노출 = 지금 이 순간에도 &ldquo;{displayRegion} {displayKeyword} 추천해줘&rdquo;를 검색한 손님에게 노출 중</span>
@@ -351,7 +404,7 @@ export default function AIDiagnosisCard({
               ) : naverMentionedOnly ? (
                 <span className="flex items-start gap-1.5">
                   <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <span>AI 브리핑 미인용 = AI 결과 1위 자리를 경쟁 가게에 빼앗기고 있습니다 — FAQ 1개 등록으로 개선 가능</span>
+                  <span>AI 브리핑 미인용 = AI 결과 1위 자리를 경쟁 가게에 빼앗기고 있습니다 — 소개글 Q&A 1개 추가로 개선 가능</span>
                 </span>
               ) : mentionedCount === 0 ? (
                 <span className="flex items-start gap-1.5">
@@ -445,22 +498,35 @@ export default function AIDiagnosisCard({
                 : naverMentionedOnly && reviewCount < 10
                 ? "네이버 검색에는 나오지만, AI 브리핑에 인용되려면 리뷰가 최소 10개 이상 필요합니다."
                 : naverMentionedOnly && reviewCount >= 10
-                ? `리뷰 ${reviewCount}개로 충분합니다. AI 브리핑 인용을 높이려면 FAQ와 소개글에 핵심 키워드를 보강하세요.`
+                ? `리뷰 ${reviewCount}개로 충분합니다. AI 브리핑 인용을 높이려면 소개글 Q&A에 핵심 키워드를 보강하세요.`
                 : reviewCount === 0
-                ? "리뷰가 없으면 AI는 이 가게를 거의 추천하지 않습니다."
+                ? (naverPlaceUrl
+                    ? "스캔 시 자동 수집되지만 이번에 가져오지 못했습니다. 재스캔하면 최신 리뷰 수가 반영됩니다."
+                    : "네이버 플레이스 연동이 안 되어 리뷰를 자동 수집할 수 없습니다.")
                 : reviewCount < 10
                 ? "AI는 리뷰가 많은 가게를 더 자주 추천합니다. 리뷰 10개 이상이면 추천 빈도가 크게 증가합니다."
                 : "리뷰 수가 충분합니다. AI 추천 기반이 갖춰져 있습니다."}
             </p>
+            {reviewCount === 0 && (
+              <p className="mt-1.5 text-sm text-red-600">
+                {naverPlaceUrl ? (
+                  <>실제 리뷰가 있다면 상단 <strong>스캔 실행</strong>으로 다시 측정하세요.</>
+                ) : (
+                  <Link href="/settings" className="underline font-medium text-red-700 hover:text-red-900">
+                    설정에서 네이버 플레이스 연동 →
+                  </Link>
+                )}
+              </p>
+            )}
           </div>
           {naverPlaceUrl ? (
             <p className="text-sm text-gray-400 mt-2">
-              스마트플레이스 세부 항목(FAQ·소개글·소식 등)은 아래{" "}
+              스마트플레이스 세부 항목(소개글 Q&A·소식 등)은 아래{" "}
               <span className="font-medium text-blue-500">실시간 점검</span>에서 확인하세요.
             </p>
           ) : (
             <p className="text-sm text-gray-400 mt-2">
-              스마트플레이스 세부 항목(FAQ·소개글·소식 등)은{" "}
+              스마트플레이스 세부 항목(소개글 Q&A·소식 등)은{" "}
               <span className="font-medium text-blue-500">점수 근거 카드</span>에서 확인하세요.{" "}
               <a href="/onboarding" className="text-blue-400 hover:underline">URL 등록 →</a>
             </p>

@@ -1,11 +1,16 @@
 import asyncio
+import logging
 import os
 from typing import AsyncIterator
+
+_logger = logging.getLogger("aeolab")
 from .gemini_scanner import GeminiScanner
 from .chatgpt_scanner import ChatGPTScanner
 from .naver_scanner import NaverAIBriefingScanner
 from .google_scanner import GoogleAIOverviewScanner
 from . import naver_ai_tab_scanner as _naver_ai_tab  # P2: NAVER_AI_TAB_ENABLED=true 시 활성화
+from .naver_cafe_scanner import NaverCafeScanner as _NaverCafeScanner  # P3: NAVER_MULTICH_ENABLED=true 시 활성화
+from .naver_jisik_scanner import NaverJisikScanner as _NaverJisikScanner  # P3: NAVER_MULTICH_ENABLED=true 시 활성화
 
 # 업종 영문 코드 → 한국어 검색 키워드
 # 25개 정규 업종(DB whitelist)을 scan.py와 동일한 값으로 먼저 선언하여 우선 적용
@@ -120,10 +125,35 @@ class MultiAIScanner:
                         _ai_tab_results[_q] = _r
                     await asyncio.sleep(2)
                 except Exception as _tab_e:
-                    logger.warning(f"[multi_scanner] ai_tab scan skip [{_q!r}]: {_tab_e}")
+                    _logger.warning("[multi_scanner] ai_tab scan skip [%r]: %s", _q, _tab_e)
             if _ai_tab_results:
                 all_keys.append("naver_ai_tab")
                 all_results.append(_ai_tab_results)
+
+        # ── 멀티채널 스캐너 (P3) — 카페·지식인 ───────────────────────────────
+        # 트리거: 구독자 20명 도달 후 NAVER_MULTICH_ENABLED=true 설정
+        # API 기반 (Playwright 없음) — RAM 추가 부담 없음, 일 25,000건 공유 한도 주의
+        if os.getenv("NAVER_MULTICH_ENABLED", "false").lower() == "true":
+            _cafe = _NaverCafeScanner()
+            _jisik = _NaverJisikScanner()
+            try:
+                _cafe_result, _jisik_result = await asyncio.gather(
+                    _cafe.scan(queries, target),
+                    _jisik.scan(queries, target),
+                    return_exceptions=True,
+                )
+                if not isinstance(_cafe_result, Exception):
+                    all_keys.append("naver_cafe")
+                    all_results.append(_cafe_result)
+                else:
+                    _logger.warning("[multi_scanner] cafe scan failed: %s", _cafe_result)
+                if not isinstance(_jisik_result, Exception):
+                    all_keys.append("naver_jisik")
+                    all_results.append(_jisik_result)
+                else:
+                    _logger.warning("[multi_scanner] jisik scan failed: %s", _jisik_result)
+            except Exception as _mc_e:
+                _logger.warning("[multi_scanner] multich scan failed: %s", _mc_e)
 
         return {
             k: (v if not isinstance(v, Exception) else {"platform": k, "mentioned": False, "error": str(v)})

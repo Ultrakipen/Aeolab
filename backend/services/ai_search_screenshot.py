@@ -252,7 +252,7 @@ async def capture_chatgpt_result(
                 "https://api.openai.com/v1/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}"},
                 json={
-                    "model": "gpt-4o-mini",
+                    "model": "gpt-4.1-mini",
                     "messages": [{"role": "user", "content": prompt}],
                     "max_tokens": 200,
                 },

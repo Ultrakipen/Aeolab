@@ -16,11 +16,11 @@ interface CheckItem {
 export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardProps) {
   if (!websiteUrl) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-dashed border-gray-200">
-        <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 AI 인식 점검</div>
-        <p className="text-sm text-gray-400 mb-4">
-          독립 웹사이트가 없으면 ChatGPT에서 인용되기 어렵습니다.
-          네이버는 AI 크롤링을 차단하고 있어, 글로벌 AI는 독립 웹사이트를 소스로 사용합니다.
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 AI 인식</div>
+        <p className="text-sm text-gray-500 mb-4">
+          독립 웹사이트가 없어도 네이버·카카오맵 채널로 서비스 이용이 가능합니다.
+          ChatGPT·Gemini 노출을 더 높이려면 독립 웹사이트를 추가하면 도움이 됩니다.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <a
@@ -38,6 +38,11 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
             AI 검색 등록 →
           </Link>
         </div>
+        <div className="mt-2">
+          <Link href="/settings?tab=business&field=website_url" className="text-sm text-blue-600 hover:underline">
+            이미 웹사이트가 있다면 → 설정에서 주소 등록하기
+          </Link>
+        </div>
       </div>
     )
   }
@@ -51,9 +56,19 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
 
   if (checkResult.error) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow-sm">
-        <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 AI 인식 점검</div>
-        <p className="text-sm text-red-400">{checkResult.error} — 사이트 접속 후 재스캔하세요.</p>
+      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div className="text-sm font-medium text-gray-700 mb-2">웹사이트 AI 인식</div>
+        <p className="text-sm text-gray-600 font-medium mb-1">등록된 웹사이트에 일시적으로 접속이 안 됩니다</p>
+        <p className="text-sm text-gray-400 mb-3">
+          서비스 이용에는 문제 없습니다. 사이트가 복구되면 다음 스캔 시 자동으로 반영됩니다.
+          주소가 잘못됐다면 설정에서 수정할 수 있습니다.
+        </p>
+        <Link
+          href="/settings?tab=business&field=website_url"
+          className="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+        >
+          웹사이트 주소 확인 →
+        </Link>
       </div>
     )
   }

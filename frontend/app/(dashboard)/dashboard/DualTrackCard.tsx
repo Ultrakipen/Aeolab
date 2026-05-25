@@ -208,20 +208,20 @@ export default function DualTrackCard({
   const isInactive = eligibility === "inactive";
 
   const track1Label = isActive
-    ? "📍 네이버 AI 브리핑 점수"
+    ? "📍 네이버 AI 브리핑 노출 지수"
     : isLikely
-    ? "📍 네이버 검색 점수 (AI 브리핑 확대 예정)"
+    ? "📍 네이버 검색 지수 (AI 브리핑 확대 예정)"
     : isInactive
-    ? "📍 네이버 SEO 검색 점수"
-    : "📍 네이버 AI 브리핑 점수";
+    ? "📍 네이버 SEO 검색 지수"
+    : "📍 네이버 AI 브리핑 노출 지수";
 
   const track1Sublabel = isActive
-    ? "이 점수가 낮으면 네이버 AI가 내 가게를 잘 모릅니다"
+    ? "이 지수가 낮으면 네이버 AI가 내 가게를 잘 모릅니다"
     : isLikely
     ? "블로그·스마트플레이스 관리로 검색 노출을 높이고, AI 브리핑 확대 시 즉시 활성화됩니다"
     : isInactive
     ? "블로그·스마트플레이스를 꾸준히 관리하면 네이버 검색 노출을 개선할 수 있습니다"
-    : "이 점수가 낮으면 네이버 AI가 내 가게를 잘 모릅니다";
+    : "이 지수가 낮으면 네이버 AI가 내 가게를 잘 모릅니다";
 
   const track1Tip = isInactive
     ? (INACTIVE_NAVER_SEO_TIPS[category] ?? INACTIVE_NAVER_SEO_TIPS.other)
@@ -240,7 +240,7 @@ export default function DualTrackCard({
       {/* 헤더: 통합 점수 + 성장 단계 */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex-1 min-w-0">
-          <h2 className="text-base md:text-lg font-bold text-gray-900">네이버 AI + 글로벌 AI 노출 점수</h2>
+          <h2 className="text-base md:text-lg font-bold text-gray-900">AI 노출 종합 지수</h2>
           {/* 1계층: 업종별 가중치 비율 — 항상 노출 */}
           <div className="mt-1.5 inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-sm flex-wrap">
             <span className="text-gray-500">{CATEGORY_LABELS[category] || "이 업종"} 기준</span>
@@ -331,8 +331,8 @@ export default function DualTrackCard({
       <ScoreBar
         score={track2Score}
         weight={globalWeight}
-        label="🌐 글로벌 AI 노출 점수"
-        sublabel="이 점수가 낮으면 ChatGPT·구글 AI에서 내 가게가 안 나옵니다"
+        label="🌐 글로벌 AI 노출 지수"
+        sublabel="이 지수가 낮으면 ChatGPT·구글 AI에서 내 가게가 안 나옵니다"
         color="bg-blue-500"
         isWeak={isTrack2Weak}
         tip={msg.track2Tip}
@@ -345,10 +345,10 @@ export default function DualTrackCard({
             🤖 AI 도구별 노출 현황 (실측)
           </p>
           <div className="space-y-2.5">
-            {chatgptRate !== null && aiExposureData?.chatgptSampleSize && (
+            {chatgptRate !== null && aiExposureData?.chatgptSampleSize ? (
               <div>
                 <div className="flex justify-between text-sm text-gray-700 mb-1">
-                  <span>ChatGPT (GPT-4o)</span>
+                  <span>ChatGPT</span>
                   <span className="font-semibold">
                     {chatgptRate}%
                     <span className="text-sm text-gray-500 font-normal ml-1">
@@ -360,8 +360,13 @@ export default function DualTrackCard({
                   <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, chatgptRate)}%` }} />
                 </div>
               </div>
+            ) : (
+              <div className="flex justify-between text-sm text-gray-400">
+                <span>ChatGPT</span>
+                <span className="text-sm text-gray-500">정식 스캔(Basic+) 후 확인</span>
+              </div>
             )}
-            {geminiRate !== null && aiExposureData?.geminiSampleSize && (
+            {geminiRate !== null && aiExposureData?.geminiSampleSize ? (
               <div>
                 <div className="flex justify-between text-sm text-gray-700 mb-1">
                   <span>Google Gemini</span>
@@ -376,8 +381,23 @@ export default function DualTrackCard({
                   <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.min(100, geminiRate)}%` }} />
                 </div>
               </div>
+            ) : (
+              <div className="flex justify-between text-sm text-gray-400">
+                <span>Google Gemini</span>
+                <span className="text-sm text-gray-500">정식 스캔(Basic+) 후 확인</span>
+              </div>
             )}
           </div>
+          {(() => {
+            const isFastDiagnosis =
+              (aiExposureData?.chatgptSampleSize != null && aiExposureData.chatgptSampleSize <= 10) ||
+              (aiExposureData?.geminiSampleSize != null && aiExposureData.geminiSampleSize <= 10);
+            return isFastDiagnosis ? (
+              <p className="text-xs text-gray-400 mt-2">
+                빠른 진단 결과 (10/5회) · 정밀 자동 스캔 (50회)은 스케줄러가 오늘 실행합니다
+              </p>
+            ) : null;
+          })()}
           <p className="text-sm text-gray-500 mt-2.5 leading-relaxed">
             ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있음
           </p>
@@ -414,7 +434,7 @@ export default function DualTrackCard({
       {/* 추정값 안내 */}
       {isKeywordEstimated && (
         <p className="text-base text-gray-400 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">
-          리뷰 데이터가 없어 키워드 점수는 업종 평균으로 추정됩니다.
+          리뷰 데이터가 없어 키워드 지수는 업종 평균으로 추정됩니다.
           리뷰 3개를 붙여넣으면 정확한 키워드 갭을 확인할 수 있습니다.
         </p>
       )}
@@ -441,7 +461,7 @@ export default function DualTrackCard({
           href="/blog-analysis"
           className="block text-sm text-blue-600 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors"
         >
-          블로그를 등록하면 키워드 점수 정확도가 향상됩니다 →
+          블로그를 등록하면 키워드 지수 정확도가 향상됩니다 →
         </a>
       )}
     </div>

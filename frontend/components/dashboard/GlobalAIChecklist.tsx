@@ -42,9 +42,9 @@ export function GlobalAIChecklist({
       actionHref: "/how-it-works#track2",
     },
     {
-      label: "AI 검색 구조화 데이터(JSON-LD) 설치",
+      label: "홈페이지 AI 인식 코드 설치",
       done: websiteSeoScore >= 40,
-      actionLabel: "JSON-LD 자동 생성 →",
+      actionLabel: "AI 인식 코드 자동 생성 →",
       actionHref: "/schema",
     },
     {

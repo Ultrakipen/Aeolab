@@ -19,3 +19,14 @@ export async function getSafeSession() {
     return null;
   }
 }
+
+// 401 발생 후 세션 강제 정리 — 로컬 캐시만 제거 (네트워크 불필요)
+export async function clearLocalSession(): Promise<void> {
+  try {
+    const client = createClient();
+    if (!client?.auth) return;
+    await client.auth.signOut({ scope: "local" });
+  } catch {
+    // ignore
+  }
+}

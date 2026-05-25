@@ -110,7 +110,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
       <div>
         <p className="text-sm font-semibold text-gray-700">스마트플레이스 자동 점검 사용 가능</p>
         <p className="text-sm text-gray-500 mt-0.5">
-          네이버 플레이스 URL을 등록하면 FAQ·소개글·소식 등 AI 브리핑 영향 항목을 자동으로 점검해 드립니다
+          네이버 플레이스 URL을 등록하면 소개글·소식·사진 등 AI 브리핑 영향 항목을 자동으로 점검해 드립니다
         </p>
         <a
           href="/onboarding"
@@ -141,12 +141,14 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {result && (
-            <span
-              className={`text-2xl md:text-3xl font-bold ${
-                scorePct >= 70 ? 'text-emerald-600' : scorePct >= 40 ? 'text-amber-600' : 'text-red-600'
-              }`}
-            >
-              {scorePct}점
+            <span className={`text-sm font-semibold px-3 py-1.5 rounded-full border ${
+              scorePct >= 70
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : scorePct >= 40
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-red-50 text-red-600 border-red-200'
+            }`}>
+              {scorePct >= 70 ? '양호' : scorePct >= 40 ? '보통' : '개선 필요'}
             </span>
           )}
           <button
@@ -230,8 +232,8 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
                     마지막 점검: {formatCheckedAt(result.checkedAt)}
                   </span>
                 )}
-                <span className="text-gray-500">
-                  {result.total_score} / {result.max_score}점
+                <span className="text-sm text-gray-400">
+                  {passedItems.length}/{failedItems.length + passedItems.length}항목 완료
                 </span>
               </div>
             </div>
@@ -261,7 +263,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800">{item.label}</p>
                       <p className="text-sm text-red-600 mt-0.5">
-                        -{item.score_impact}점 손실 중
+                        {item.score_impact >= 5 ? '⚡ 우선 개선 권장' : '개선 권장'}
                       </p>
                     </div>
                     {item.action_url && (
@@ -296,7 +298,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
                     <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
                     <p className="text-sm font-medium text-gray-800 flex-1">{item.label}</p>
                     <span className="text-sm text-emerald-600 font-semibold shrink-0">
-                      +{item.score_impact}점
+                      ✓ 완료
                     </span>
                   </div>
                 ))}

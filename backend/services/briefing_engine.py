@@ -1423,9 +1423,12 @@ _AI_TAB_ANSWER_TEMPLATES: dict[str, str] = {
     "professional_group": "{region} {name}{eun_neun} {ctx0} 전문입니다. {ctx1}, {ctx2}로 신뢰성을 입증합니다.",
     # Group 5: 피트니스·요가·필라테스·댄스·발레
     "fitness_group": "{region} {name}{eun_neun} {ctx0} 수업을 운영합니다. {ctx1}, {ctx2}이 특징입니다.",
-    # Group 6: 그 외 기본 (default)
+    # Group 6: 사진·영상·디자인 (ctx0에 "전문" 포함 키워드 많아 별도 템플릿)
+    "photo_group": "{region} {name}{eun_neun} {ctx0}입니다. {ctx1}, {ctx2}이 특징입니다.",
+    # Group 7: 그 외 기본 (default)
     "default": "{region} {name}{eun_neun} {ctx0}, {ctx1}이 특징입니다.",
 }
+
 
 _CATEGORY_TO_TEMPLATE_GROUP: dict[str, str] = {
     "restaurant": "restaurant_group", "cafe": "restaurant_group",
@@ -1441,7 +1444,9 @@ _CATEGORY_TO_TEMPLATE_GROUP: dict[str, str] = {
     "tutoring": "professional_group", "academy": "professional_group",
     "fitness": "fitness_group", "yoga": "fitness_group", "dance": "fitness_group",
     "ballet": "fitness_group", "martial_arts": "fitness_group",
+    "photo": "photo_group", "video": "photo_group", "design": "photo_group",
 }
+
 
 
 def _select_answer_template(category: str) -> str:
@@ -1464,7 +1469,7 @@ def simulate_ai_tab_answer(
 
     Args:
         biz: businesses 테이블 행 (name, category, region, keywords 등)
-        scan_result: scan_results 테이블 최신 행 (옵션, 현재 미사용 — 향후 확장용)
+        scan_result: scan_results 테이블 최신 행 (옵션, 외부 블로그 후기 체크리스트 판정에 사용)
         category: 업종 코드 override. 미전달 시 biz.get("category") 사용.
 
     Returns:
@@ -1528,6 +1533,20 @@ def simulate_ai_tab_answer(
             .replace(",.", ".")
             .replace("은 ,", "은 ")
             .replace("은 이 강점입니다", "이 특징입니다")
+            # ctx1/ctx2 빈 값으로 인한 조사 단독 노출 처리
+            .replace(", 이 특징입니다", "이 특징입니다")
+            .replace(", 이 강점입니다", "이 강점입니다")
+            .replace(", 이 환경입니다", "이 환경입니다")
+            .replace(", 으로 신뢰성을 입증합니다", "으로 신뢰성을 입증합니다")
+            .replace(". , ", ". ")
+            .replace(". ,", ".")
+            # photo_group: ctx1 없을 때 "입니다.이 특징입니다." 패턴 (공백 유무 모두 처리)
+            .replace("입니다. , 이 특징입니다.", "입니다.")
+            .replace("입니다.  이 특징입니다.", "입니다.")
+            .replace("입니다. 이 특징입니다.", "입니다.")
+            .replace("입니다.이 특징입니다.", "입니다.")
+            .replace("입니다.,이 특징입니다.", "입니다.")
+            .replace("입니다. .", "입니다.")
             .replace("  ", " ")
         )
     simulated = simulated.strip(", ").strip()
@@ -1594,9 +1613,42 @@ def simulate_ai_tab_answer(
                     isinstance(r, dict) and r.get("ad_only") for r in kw_results
                 )
 
-    # AI탭 준비 체크리스트 — ai_tab_checklists 단일 소스 연결 (M2-2)
+    # AI탭 준비 체크리스트 — completed 상태 판단 포함 (ai_tab_checklists 단일 소스)
+    import re as _re
     from services.ai_tab_checklists import get_checklist as _get_checklist
-    checklist = _get_checklist(category)
+
+    # 외부 블로그 후기 = 네이버 블로그 언급 수 (businesses.blog_mention_count — 스캔 시 업데이트)
+    # blog_analysis_json.post_count는 사장님 직접 운영 블로그이므로 사용 금지
+    # naver_result.blog_mentions는 scan_results JSONB에 저장되지 않으므로 사용 불가
+    _blog_count: int = int(biz.get("blog_mention_count") or 0)
+
+    _has_intro: bool | None = biz.get("has_intro")  # None=미측정
+
+    checklist: list[dict] = []
+    for _it in _get_checklist(category):
+        _d = dict(_it)
+        _txt = _d["item"]
+        _completed: bool | None = None
+
+        if ("사진" in _txt or "포트폴리오" in _txt) and photo_count_sig is not None:
+            _m = _re.search(r"(\d+)장", _txt)
+            _threshold = int(_m.group(1)) if _m else 10
+            _completed = photo_count_sig >= _threshold
+
+        elif "예약 연동" in _txt and has_reservation_sig is not None:
+            _completed = has_reservation_sig
+
+        elif "소개글" in _txt and _has_intro is not None:
+            _completed = bool(_has_intro)
+
+        elif ("블로그 후기" in _txt or "외부 블로그" in _txt) and _blog_count > 0:
+            _m = _re.search(r"(\d+)개", _txt)
+            _threshold = int(_m.group(1)) if _m else 5
+            _completed = _blog_count >= _threshold
+
+        if _completed is not None:
+            _d["completed"] = _completed
+        checklist.append(_d)
 
     return {
         "simulated_answer":   simulated,

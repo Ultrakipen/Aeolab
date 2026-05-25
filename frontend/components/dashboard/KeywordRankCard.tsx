@@ -29,6 +29,8 @@ interface KeywordRankCardProps {
   userGroup?: "ACTIVE" | "LIKELY" | "INACTIVE";
   /** 현재 활성 플랜 — CSV 다운로드 Pro+ 게이트 */
   plan?: string;
+  /** 사업장 지역 — 측정 조건 예시 동적 생성용 */
+  region?: string;
 }
 
 function isKeywordRankData(v: unknown): v is KeywordRankData {
@@ -60,6 +62,7 @@ export default function KeywordRankCard({
   initialKeywordRanks,
   userGroup,
   plan,
+  region,
 }: KeywordRankCardProps) {
   const [ranks, setRanks] = useState<KeywordRanksMap>(() => {
     if (!initialKeywordRanks || typeof initialKeywordRanks !== "object") return {};
@@ -236,7 +239,7 @@ export default function KeywordRankCard({
       <div className="mb-3 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2.5 text-sm text-blue-800 space-y-1">
         <p className="font-semibold text-blue-900">측정 조건</p>
         <ul className="space-y-0.5 text-blue-700">
-          <li>· <span className="font-medium">검색어</span>: 지역명 + 키워드 자동 조합 (예: &quot;창원 작곡&quot;) — 아래 표에 실제 검색어 표시</li>
+          <li>· <span className="font-medium">검색어</span>: 지역명 + 키워드 자동 조합{region && keywords.length > 0 ? ` (예: "${region} ${keywords[0]}")` : ""} — 아래 표에 실제 검색어 표시</li>
           <li>· <span className="font-medium">검색 위치</span>: 서울 기준 서버 IP (비로그인, 개인화 없음)</li>
           <li>· <span className="font-medium">순위 범위</span>: 각 채널 상위 20위 이내 — 20위 밖이면 &apos;미노출&apos; 표시</li>
           <li>· <span className="font-medium">PC</span> = 네이버 PC 통합검색 &nbsp;·&nbsp; <span className="font-medium">모바일</span> = 네이버 모바일 통합검색 &nbsp;·&nbsp; <span className="font-medium">플레이스</span> = 네이버 플레이스 탭</li>

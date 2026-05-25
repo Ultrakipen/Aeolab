@@ -55,6 +55,7 @@ export default async function DeliveryOrdersPage() {
   } catch {}
   if (!user) redirect("/login");
 
+  // 토큰 추출 전용 — 인증 검증은 위 getUser()로 완료됨
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token ?? "";
 

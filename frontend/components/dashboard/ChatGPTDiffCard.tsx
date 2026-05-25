@@ -10,6 +10,7 @@ interface Props {
   naverBriefing: boolean     // 네이버 AI 브리핑 노출 여부
   topMissingKeywords?: string[] // 없는 키워드 목록
   chatgptTopQuery?: string   // 신규: ChatGPT에서 실제로 언급된 대표 쿼리
+  briefingEligibility?: "active" | "likely" | "inactive"
 }
 
 export default function ChatGPTDiffCard({
@@ -22,7 +23,9 @@ export default function ChatGPTDiffCard({
   naverBriefing,
   topMissingKeywords = [],
   chatgptTopQuery,
+  briefingEligibility,
 }: Props) {
+  const isNaverInactive = briefingEligibility === "inactive"
   const gN = geminiSampleSize && geminiSampleSize > 0 ? geminiSampleSize : 100;
   const cN = chatgptSampleSize && chatgptSampleSize > 0 ? chatgptSampleSize : 0;
   const chatgptHasSamples = cN >= 10 && chatgptCount !== undefined;
@@ -36,14 +39,26 @@ export default function ChatGPTDiffCard({
     ...(chatgptHasSamples ? [{
       label: `ChatGPT에 ${cN}회 자동 질의한 결과`,
       value: `${cN}회 중 ${chatgptCount}회 언급`,
-      detail: `OpenAI GPT-4o-mini를 ${cN}회 호출해 ChatGPT가 내 가게를 얼마나 자주 추천하는지 직접 측정했습니다`,
+      detail: `OpenAI GPT-4.1-mini를 ${cN}회 호출해 ChatGPT가 내 가게를 얼마나 자주 추천하는지 직접 측정했습니다`,
       highlight: (chatgptCount ?? 0) > 0,
     }] : []),
     {
       label: "네이버 AI 브리핑 실시간 확인",
-      value: naverBriefing ? "현재 노출 중" : "현재 미노출",
-      detail: "실제 네이버 검색 결과를 직접 파싱합니다. ChatGPT는 네이버 결과를 볼 수 없습니다",
-      highlight: naverBriefing,
+      value: isNaverInactive
+        ? "이 업종 해당 없음"
+        : naverBriefing ? "현재 노출 중" : "현재 미노출",
+      detail: isNaverInactive
+        ? "이 업종은 네이버 AI 브리핑 노출 대상이 아닙니다. 글로벌 AI 채널 중심으로 최적화하세요."
+        : "실제 네이버 검색 결과를 직접 파싱합니다. ChatGPT는 네이버 결과를 볼 수 없습니다",
+      highlight: !isNaverInactive && naverBriefing,
+      inactive: isNaverInactive,
+    },
+    {
+      label: "네이버 AI탭 노출 확인",
+      value: "베타 측정 준비 중",
+      detail: "6월 AI탭 전체 확대 후 실시간 자동 측정됩니다. ChatGPT는 네이버 AI탭 결과를 알 수 없습니다",
+      highlight: false,
+      inactive: false,
     },
     {
       label: "경쟁사 비교 분석",
@@ -58,9 +73,11 @@ export default function ChatGPTDiffCard({
     {
       label: "없는 키워드 특정",
       value: topMissingKeywords.length > 0
-        ? topMissingKeywords.map((kw) => `'${kw}'`).join(" · ") + " 미보유"
+        ? topMissingKeywords.map((kw) => `'${kw}'`).join(" · ") + " 누락"
         : "업종별 키워드 분석 완료",
-      detail: "ChatGPT는 내 가게에 '어떤 키워드가 없는지' 구체적으로 알 수 없습니다",
+      detail: topMissingKeywords.length > 0
+        ? "업종 핵심 키워드 중 소개글·리뷰에서 발견되지 않은 키워드입니다. 소개글·소식에 추가하면 키워드 점수가 다음 스캔에서 즉시 오르고, 네이버 AI 브리핑 노출 가능성이 1~4주 내 높아집니다."
+        : "ChatGPT는 내 가게에 '어떤 키워드가 없는지' 구체적으로 알 수 없습니다",
       highlight: topMissingKeywords.length > 0,
     },
   ];
@@ -79,10 +96,10 @@ export default function ChatGPTDiffCard({
         {items.map((item) => (
           <div
             key={item.label}
-            className="bg-white rounded-xl border border-slate-100 p-3 flex flex-col gap-1"
+            className={`rounded-xl border p-3 flex flex-col gap-1 ${'inactive' in item && item.inactive ? 'bg-gray-50 border-gray-100' : 'bg-white border-slate-100'}`}
           >
-            <p className="text-sm font-semibold text-slate-600">{item.label}</p>
-            <p className={`text-sm font-bold ${item.highlight ? "text-blue-700" : "text-slate-700"}`}>
+            <p className={`text-sm font-semibold ${'inactive' in item && item.inactive ? 'text-gray-400' : 'text-slate-600'}`}>{item.label}</p>
+            <p className={`text-sm font-bold ${'inactive' in item && item.inactive ? 'text-gray-400' : item.highlight ? 'text-blue-700' : 'text-slate-700'}`}>
               {item.value}
             </p>
             <p className="text-sm text-slate-500 leading-relaxed">{item.detail}</p>
@@ -91,7 +108,7 @@ export default function ChatGPTDiffCard({
       </div>
 
       <p className="text-sm text-slate-500 mt-3 text-center">
-        Gemini·ChatGPT 자동 측정 · 네이버 AI 브리핑 DOM 파싱 · 경쟁사 자동 비교 — 대화형 ChatGPT로는 자동화할 수 없는 영역입니다
+        Gemini·ChatGPT 자동 측정 · 네이버 AI 브리핑·AI탭 DOM 파싱 · 경쟁사 자동 비교 — 대화형 ChatGPT로는 자동화할 수 없는 영역입니다
       </p>
 
       {/* ChatGPT 대비 차별화 — 실측 데이터 강조 */}

@@ -5,7 +5,7 @@ import { Sparkles, Info } from "lucide-react";
 
 // M3 사전 작업: Q2 광고 도입 감지 시 true로 변경 → 광고 경고 배너 즉시 활성화
 // AiInfoTabStatusCard의 동일 상수와 함께 변경할 것 (단일 소스는 추후 lib/featureFlags.ts로 이관 가능)
-const NAVER_AD_IN_BRIEFING_ACTIVE = false;
+const NAVER_AD_IN_BRIEFING_ACTIVE = true;
 
 interface Props {
   /** 사용자 업종의 AI 브리핑 노출 가능성 */
@@ -84,7 +84,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               )}
               {briefingLikely && (
                 <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-xs font-semibold">
-                  확대 예정
+                  확대 예정 (네이버 공식 발표 기준)
                 </span>
               )}
               {briefingInactive && (
@@ -167,7 +167,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                 </span>
               </div>
               <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
-                <li>• 학습 데이터 기반 (GPT-4o)</li>
+                <li>• 학습 데이터 기반 (GPT-4.1-mini)</li>
                 <li>• 블로그·리뷰·구조화 데이터 핵심</li>
                 <li>• 면책: 실시간 검색과 다를 수 있음</li>
               </ul>
@@ -211,6 +211,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                 <li>• 한국 내 노출 빈도 증가 중</li>
                 <li>• 구조화 데이터(Schema.org) 핵심</li>
               </ul>
+              <p className="mt-2 text-xs text-orange-600 font-medium">Pro 이상 스캔에서 측정</p>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, ChevronDown, ChevronUp, Copy, Loader2, X } from "lucide-react";
 import { getSafeSession } from "@/lib/supabase/client";
 import { trackOnboardingAction } from "@/lib/analytics";
@@ -72,6 +73,7 @@ export default function Day7ActionCard({
   createdAt,
 }: Day7ActionCardProps) {
   const mode = getCardMode(userCreatedAt, createdAt);
+  const router = useRouter();
 
   const [data, setData] = useState<OnboardingActionResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -188,6 +190,7 @@ export default function Day7ActionCard({
         }),
       });
       setCompleted(true);
+      router.refresh();
       trackOnboardingAction("completed", {
         biz_id: bizId,
         action_type: data.action_type,

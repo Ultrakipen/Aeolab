@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { getSafeSession } from "@/lib/supabase/client";
+import { authFetch } from "@/lib/api";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -66,10 +67,13 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
           return;
         }
 
-        const res = await fetch(
-          `${BACKEND}/api/report/gap/${bizId}`,
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
+        let res: Response;
+        try {
+          res = await authFetch(`${BACKEND}/api/report/gap/${bizId}`, token);
+        } catch {
+          // SESSION_EXPIRED → authFetch가 /login으로 리다이렉트 처리
+          return;
+        }
 
         if (cancelled) return;
 
@@ -105,6 +109,11 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
   })();
 
   const dataUnavailable = !dist || dist.data_unavailable;
+  // 경쟁사 데이터가 모두 0이면 수집 전으로 판단
+  const competitorDataMissing =
+    !dataUnavailable &&
+    chartData.length > 0 &&
+    chartData.every((row) => row.competitor === 0);
 
   return (
     <section
@@ -218,6 +227,11 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
               </ResponsiveContainer>
             </div>
 
+            {competitorDataMissing && (
+              <p className="mt-3 text-sm text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+                경쟁사 리뷰 데이터가 아직 수집되지 않았습니다. 경쟁사 스캔 후 비교 그래프가 표시됩니다.
+              </p>
+            )}
             <p className="mt-3 text-sm text-gray-500 leading-snug">
               측정 시점·기기·로그인 상태에 따라 달라질 수 있음. 리뷰 키워드 분류는 AI 분석 기반 추정치입니다.
             </p>

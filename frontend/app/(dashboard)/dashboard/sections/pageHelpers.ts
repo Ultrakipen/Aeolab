@@ -15,8 +15,8 @@ export const BREAKDOWN_ACTIONS: Record<string, { action: string; link: string }>
   info_completeness:        { action: "전화번호·영업시간·주소 정보를 확인하고 채워주세요",        link: "/schema" },
   content_freshness:        { action: "최근 공지나 메뉴 변경 사항을 스마트플레이스에 등록하세요",  link: "/schema" },
   keyword_gap_score:        { action: "부족한 키워드를 소개글·톡톡 채팅방 메뉴에 추가하세요",    link: "/guide" },
-  smart_place_completeness: { action: "스마트플레이스 소개글 안의 Q&A 섹션에 자주 묻는 질문을 추가하세요", link: "/guide" },
-  naver_exposure_confirmed: { action: "스마트플레이스 소개글 본문·Q&A 섹션·키워드를 함께 보강하세요",       link: "/guide" },
+  smart_place_completeness: { action: "스마트플레이스 소개글에 자주 묻는 질문을 추가하세요", link: "/guide" },
+  naver_exposure_confirmed: { action: "스마트플레이스 소개글 본문·키워드를 함께 보강하세요",       link: "/guide" },
 };
 
 // ── 다음 스캔 레이블 ──────────────────────────────────────────
@@ -75,18 +75,49 @@ export type PlatformResult = {
   in_briefing?: boolean;
   in_ai_overview?: boolean;
   error?: string;
+  // naver_ai_tab 전용 — null: 스캐너 미활성(P2 대기), boolean: 실측값
+  _naver_ai_tab_visible?: boolean | null;
+  excerpt?: string | null;
 };
 
 export function buildAllPlatformResults(
   latestScan: Record<string, unknown> | null | undefined,
 ): Record<string, PlatformResult> {
   if (!latestScan) return {};
+  const aiTabVisible = Object.prototype.hasOwnProperty.call(latestScan, "naver_ai_tab_visible")
+    ? (latestScan.naver_ai_tab_visible as boolean | null)
+    : null;
   return {
     ...(latestScan.gemini_result  ? { gemini:  latestScan.gemini_result as PlatformResult  } : {}),
     ...(latestScan.chatgpt_result ? { chatgpt: latestScan.chatgpt_result as PlatformResult } : {}),
     ...(latestScan.naver_result   ? { naver:   latestScan.naver_result as PlatformResult   } : {}),
+    naver_ai_tab: {
+      mentioned: aiTabVisible === true,
+      _naver_ai_tab_visible: aiTabVisible,
+      excerpt: latestScan.naver_ai_tab_excerpt as string | null ?? null,
+    },
     ...(latestScan.google_result  ? { google:  latestScan.google_result as PlatformResult  } : {}),
   };
+}
+
+// ── 독립 웹사이트 판별 ───────────────────────────────────────
+// 네이버·카카오·구글 플레이스 등 플랫폼 URL은 독립 웹사이트 아님
+const _PLATFORM_DOMAINS = [
+  'naver.com', 'kakao.com', 'daum.net', 'google.com',
+  'instagram.com', 'facebook.com', 'youtube.com',
+  'tistory.com', 'blog.me',
+];
+
+export function isIndependentWebsite(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    const hostname = new URL(
+      url.startsWith('http') ? url : 'https://' + url,
+    ).hostname.toLowerCase();
+    return !_PLATFORM_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d));
+  } catch {
+    return false;
+  }
 }
 
 // ── 스마트플레이스 상태 ──────────────────────────────────────
@@ -106,7 +137,7 @@ export function buildSmartPlaceStatus(
     hasFaq:         !!(spAuto?.has_faq)         || !!(biz.has_faq),
     hasIntro:       !!(spAuto?.has_intro)        || !!(biz.has_intro),
     hasRecentPost:  !!(spAuto?.has_recent_post)  || !!(biz.has_recent_post),
-    hasWebsite:     !!(biz.website_url),
+    hasWebsite:     isIndependentWebsite(biz.website_url),
   };
 }
 

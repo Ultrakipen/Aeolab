@@ -535,6 +535,13 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
+### 2026-05-25 — 롱테일 자연어 질의 대응 P1 (`docs/naver_longtail_query_response_v1.0.md`)
+> 근거: 네이버 공식 롱테일 질의 전년比 2.5배(학술대회 2026-05-22). 유료 스캔이 짧은 키워드만 측정하던 갭 해소.
+- `keyword_taxonomy.build_ai_scan_queries(region, kw)` 단일 소스 신규 — 짧은 변형 3 + 긴 자연어 변형 2 = 5쿼리. 첫 요소는 짧은 쿼리(naver 회귀 방지)
+- `scan.py:2624`(온디맨드) + `jobs.py:340`(일일 자동) 배선. `sample_n` 균등분산이라 **총 샘플·API 비용 불변**, 점수 산식 불변
+- 제로클릭 실측 표시: `AICitationCard.tsx` 하단 "AI 답변에서 N건 인용 발견" + 제로클릭 맥락(금액 환산 금지 — 실측 건수만)
+- 검증: 서버 grep 반영·import 5·error.log 0건. 보류: P2 AI탭 스캐너(6월 env 게이트)·P3 카페·지식인 멀티채널(구독자 20명 후)
+
 ### 2026-05-18 — 네이버 AI 브리핑 vs AI탭 명확 구분 (P0+P1)
 > 명세 → `docs/ai_briefing_vs_ai_tab_clarification_v1.0.md`
 - **문제**: 백엔드는 `get_briefing_eligibility` / `get_ai_tab_eligibility` 분리됐으나 사용자 노출 화면에서 두 개념 혼재 → 비대상 업종 방문자 "내 업종은 안 됨" 오해 이탈
@@ -676,4 +683,4 @@ ssh root@115.68.231.57 'pm2 logs aeolab-backend --lines 500 --nostream | grep "P
 
 ---
 
-*최종 업데이트: 2026-05-22 | 스캔 결과 화면 종합 점검 v1.0 (P0 4건·P1 6건·P2 4건·P3 1건) + 신뢰도 개선 (점수 절댓값 → 상태 라벨) + CLAUDE.md 700줄 한도 복귀*
+*최종 업데이트: 2026-05-25 | 롱테일 자연어 질의 대응 P1 (build_ai_scan_queries 단일 소스 + 긴 질의 2개 추가, 비용·점수 불변) + 제로클릭 실측 표시 (AICitationCard, 금액 환산 금지)*

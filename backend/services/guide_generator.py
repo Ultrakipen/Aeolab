@@ -20,11 +20,13 @@ _logger = logging.getLogger("aeolab")
 
 # 네이버 AI 브리핑 게이팅 (v4.1) — import 실패 시 fallback "active"
 try:
-    from services.score_engine import get_briefing_eligibility as _get_eligibility, DUAL_TRACK_RATIO, DEFAULT_DUAL_TRACK_RATIO
+    from services.score_engine import get_briefing_eligibility as _get_eligibility, DUAL_TRACK_RATIO, DEFAULT_DUAL_TRACK_RATIO, normalize_category as _normalize_category
 except Exception as _elig_import_err:
     _logger.warning(f"get_briefing_eligibility import 실패, fallback active 처리: {_elig_import_err}")
     def _get_eligibility(category: str, is_franchise: bool = False) -> str:  # type: ignore[misc]
         return "active"
+    def _normalize_category(cat: str) -> str:  # type: ignore[misc]
+        return cat
     DUAL_TRACK_RATIO: dict = {}
     DEFAULT_DUAL_TRACK_RATIO: dict = {"naver": 0.60, "global": 0.40}
 
@@ -696,7 +698,8 @@ class GuideGenerator:
         track2_focus_section = ""
         if eligibility == "inactive":
             category = biz.get("category", "")
-            ratio = DUAL_TRACK_RATIO.get(category)  # 미등록이면 None
+            # normalize_category 적용 — education→academy 등 alias 업종도 정확히 lookup
+            ratio = DUAL_TRACK_RATIO.get(_normalize_category(category)) or DUAL_TRACK_RATIO.get(category)
             if ratio is not None:
                 global_pct = int(ratio.get("global", 0.40) * 100)
                 naver_pct  = int(ratio.get("naver",  0.60) * 100)

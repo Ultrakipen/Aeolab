@@ -84,11 +84,11 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
   return (
     <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
-        <div className="text-base font-medium text-gray-700">30일 점수 추세</div>
+        <div className="text-base font-medium text-gray-700">30일 AI 노출 추세</div>
         <div className="flex items-center gap-3 text-sm text-gray-400 flex-wrap">
           <span className="flex items-center gap-1">
             <span className="inline-block w-6 h-px bg-blue-200 border-dashed border-t-2 border-blue-300" />
-            일별 점수
+            일별 측정값
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-6 h-0.5 bg-blue-600 rounded" />
@@ -103,7 +103,7 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
         </div>
       </div>
       <p className="text-sm text-gray-400 mb-4">
-        일별 점수는 통계 변동이 있으므로 <strong className="text-gray-500">7일 평균선</strong>으로 실제 추세를 확인하세요.
+        일별 측정값은 통계 변동이 있으므로 <strong className="text-gray-500">7일 평균선</strong>으로 실제 추세를 확인하세요.
         {logsForChart.length > 0 && (
           <span className="ml-1 text-amber-600">점선은 행동을 기록한 날짜입니다.</span>
         )}
@@ -117,7 +117,7 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
             contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: 12 }}
             formatter={(val: unknown, name: unknown) => {
               if (val === null || val === undefined) return ['—', String(name)]
-              const label = name === 'score' ? '일별 점수' : '7일 평균'
+              const label = name === 'score' ? '일별 측정값' : '7일 평균'
               return [`${val}점`, label]
             }}
           />
@@ -138,7 +138,7 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
               }}
             />
           ))}
-          {/* 일별 점수 — 연한 점선, 배경 정보 */}
+          {/* 일별 측정값 — 연한 점선, 배경 정보 */}
           <Line
             type="monotone"
             dataKey="score"

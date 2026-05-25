@@ -94,6 +94,8 @@ interface Props {
   bizId?: string;
   token?: string;
   missingItems?: MissingItem[];
+  naverPlaceUrl?: string | null;
+  briefingEligibility?: "active" | "likely" | "inactive";
 }
 
 // ── 공통 서브 컴포넌트
@@ -110,13 +112,19 @@ function ScoreBar({ value, color }: { value: number; color: string }) {
 }
 
 function ScoreBadge({ value }: { value: number }) {
-  const color =
-    value >= 70 ? "text-green-600" :
-    value >= 40 ? "text-yellow-600" :
-    "text-red-500";
+  if (value >= 70) return (
+    <span className="text-sm font-semibold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full shrink-0">
+      양호
+    </span>
+  );
+  if (value >= 40) return (
+    <span className="text-sm font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
+      보통
+    </span>
+  );
   return (
-    <span className={`text-base md:text-lg font-bold w-12 text-right shrink-0 ${color}`}>
-      {Math.round(value)}
+    <span className="text-sm font-semibold text-red-500 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full shrink-0">
+      개선 필요
     </span>
   );
 }
@@ -187,6 +195,7 @@ function V31SixItems({
   avgRating?: number;
   bizId?: string;
   token?: string;
+  naverPlaceUrl?: string | null;
 }) {
   const isV32 = detail.model_version === "v3.2";
   const weightsTable = isV32 ? V3_2_WEIGHTS : V3_1_WEIGHTS;
@@ -283,7 +292,7 @@ function V31SixItems({
           <span className="text-sm text-gray-700">
             {finalReviewCount > 0
               ? `리뷰 ${finalReviewCount}개 확인됨${finalAvgRating > 0 ? ` · 평균 ${finalAvgRating.toFixed(1)}점` : ""}`
-              : "리뷰 없음 — 아직 리뷰가 수집되지 않았습니다"
+              : "리뷰 수 미수집 — 재스캔하면 자동으로 가져옵니다"
             }
           </span>
         </div>
@@ -292,7 +301,7 @@ function V31SixItems({
             <span className="text-blue-500 text-sm shrink-0 mt-0.5">→</span>
             <p className="text-sm text-blue-800 font-medium">
               {finalReviewCount === 0
-                ? "단골 손님 1명에게 네이버 지도 리뷰를 요청하세요"
+                ? "재스캔하면 리뷰 수가 자동으로 갱신됩니다. 그래도 0이면 단골 손님 1명에게 네이버 지도 리뷰를 요청하세요"
                 : "리뷰 답변에 업종 키워드를 포함하면 키워드 다양성이 높아집니다"
               }
             </p>
@@ -431,31 +440,38 @@ function V31SixItems({
         </div>
       </div>
 
-      {/* ⑥ AI 브리핑 인용 */}
-      <div className="rounded-xl border border-gray-100 p-4 bg-gray-50">
+      {/* ⑥ AI 브리핑 인용 (ACTIVE·LIKELY) / AI탭 안내 (INACTIVE) */}
+      <div className={`rounded-xl border p-4 ${aiBriefingApplicable ? "border-gray-100 bg-gray-50" : "border-indigo-100 bg-indigo-50"}`}>
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <span className="text-sm md:text-base font-semibold text-gray-800">
-                ⑥ AI 브리핑 인용
+              <span className={`text-sm md:text-base font-semibold ${aiBriefingApplicable ? "text-gray-800" : "text-indigo-900"}`}>
+                {aiBriefingApplicable ? "⑥ AI 브리핑 인용" : "⑥ 네이버 AI탭 (베타·모든 업종)"}
               </span>
               {aiBriefingApplicable ? (
                 <WeightBadge pct={weights["ai_briefing_score"]} color="text-blue-700 bg-blue-50 border-blue-200" />
               ) : (
-                <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
-                  이 업종 미적용 (가중치 0%)
+                <span className="text-sm text-indigo-700 bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-full font-medium">
+                  모든 업종 가능
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-500">
+            <p className={`text-sm ${aiBriefingApplicable ? "text-gray-500" : "text-indigo-700"}`}>
               {aiBriefingApplicable
                 ? "실제 네이버 AI 브리핑에 노출됐는지 확인합니다"
-                : "현재 업종 그룹은 네이버 AI 브리핑 대상이 아닙니다 — 글로벌 AI 노출에 집중하세요"
-              }
+                : "네이버 AI탭은 업종 제한 없이 모든 가게가 노출될 수 있습니다 (2026-04-27 베타)"}
             </p>
           </div>
-          <ScoreBadge value={aiItem?.score ?? 0} />
+          {aiBriefingApplicable && <ScoreBadge value={aiItem?.score ?? 0} />}
         </div>
+        {!aiBriefingApplicable && (
+          <div className="flex items-start gap-2 bg-white rounded-lg p-3 border border-indigo-100">
+            <span className="text-indigo-400 text-sm shrink-0 mt-0.5">→</span>
+            <p className="text-sm text-indigo-800">
+              소개글 200자 이상 · 사진 10장 이상 · 예약 연동 · 블로그 후기 확보가 AI탭 노출에 직결됩니다
+            </p>
+          </div>
+        )}
         {aiBriefingApplicable && (
           <>
             <div className="flex items-center gap-2 mb-2">
@@ -552,6 +568,7 @@ function V30FourItems({
   avgRating,
   bizId,
   token,
+  briefingEligibility,
 }: {
   breakdown: Record<string, number | object>;
   naverResult: NaverResult | null;
@@ -566,6 +583,7 @@ function V30FourItems({
   avgRating?: number;
   bizId?: string;
   token?: string;
+  briefingEligibility?: "active" | "likely" | "inactive";
 }) {
   const kws = (breakdown["keyword_gap_score"] as number) ?? 0;
   const rqs = (breakdown["review_quality"] as number) ?? 0;
@@ -600,7 +618,7 @@ function V30FourItems({
               )}
             </div>
             <p className="text-sm text-gray-500 leading-relaxed">
-              리뷰·블로그에서 업종 핵심 키워드가 얼마나 언급됐는지 측정합니다
+              소개글·리뷰·블로그 등 사업장 콘텐츠에서 업종 핵심 키워드가 얼마나 포함됐는지 측정합니다
             </p>
           </div>
           <ScoreBadge value={kws} />
@@ -618,13 +636,13 @@ function V30FourItems({
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               <p className="text-sm text-gray-700">
-                리뷰·블로그에서 업종 키워드가 {kws < 30 ? "거의 발견되지 않았습니다" : "부족하게 발견됩니다"}
+                아래 업종 핵심 키워드가 소개글·리뷰·블로그에서 {kws < 30 ? "거의 발견되지 않았습니다" : "부족하게 발견됩니다"}
               </p>
             </div>
             {topMissingKeywords.length > 0 && (
               <div className="bg-amber-50 border border-amber-100 rounded-lg p-3">
                 <p className="text-sm font-semibold text-amber-700 mb-2">
-                  지금 없는 키워드 (소개글·소식에 추가하면 즉시 개선)
+                  아직 부족한 키워드 — 소개글·소식에 추가하면 다음 스캔부터 반영
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {bizId ? (
@@ -676,7 +694,7 @@ function V30FourItems({
           <span className="text-sm text-gray-700">
             {finalReviewCount > 0
               ? `리뷰 ${finalReviewCount}개 확인됨${finalAvgRating > 0 ? ` · 평균 ${finalAvgRating.toFixed(1)}점` : ""}`
-              : "리뷰 없음 — 아직 리뷰가 수집되지 않았습니다"
+              : "리뷰 수 미수집 — 재스캔하면 자동으로 가져옵니다"
             }
           </span>
         </div>
@@ -685,7 +703,7 @@ function V30FourItems({
             <span className="text-blue-500 text-sm shrink-0 mt-0.5">→</span>
             <p className="text-sm text-blue-800 font-medium">
               {finalReviewCount === 0
-                ? "단골 손님 1명에게 네이버 지도 리뷰를 요청하세요. 리뷰 1개만 있어도 점수가 올라갑니다"
+                ? "재스캔하면 리뷰 수가 자동 갱신됩니다. 그래도 0이면 단골 손님 1명에게 네이버 지도 리뷰를 요청하세요"
                 : "리뷰 답변에 업종 키워드를 포함하면 키워드 다양성이 높아집니다"
               }
             </p>
@@ -744,40 +762,64 @@ function V30FourItems({
         )}
       </div>
 
-      {/* 4. 네이버 AI 브리핑 노출 */}
-      <div className="rounded-xl border border-gray-100 p-4 bg-gray-50">
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap mb-1">
-              <span className="text-sm md:text-base font-semibold text-gray-800">4. 네이버 AI 브리핑 노출</span>
-              <span className="text-sm text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full font-medium">
-                영향도 ★ (전체 점수의 15%)
-              </span>
+      {/* 4. 네이버 AI탭 (INACTIVE) / AI 브리핑 노출 (ACTIVE·LIKELY) */}
+      {briefingEligibility === "inactive" ? (
+        <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <span className="text-sm md:text-base font-semibold text-indigo-900">4. 네이버 AI탭 (베타·모든 업종)</span>
+                <span className="text-sm text-indigo-700 bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-full font-medium">
+                  모든 업종 가능
+                </span>
+              </div>
+              <p className="text-sm text-indigo-700 leading-relaxed">
+                네이버 AI탭은 업종 제한 없이 모든 가게가 노출될 수 있습니다 (2026-04-27 베타)
+              </p>
             </div>
-            <p className="text-sm text-gray-500 leading-relaxed">실제 네이버 AI 브리핑에 노출됐는지 확인합니다</p>
           </div>
-          <ScoreBadge value={nec} />
-        </div>
-        <div className="flex items-center gap-2 mb-3">
-          <ScoreBar value={nec} color={barColor(nec)} />
-        </div>
-        {!inBriefing && (
-          <div className="flex items-start gap-2 bg-gray-100 rounded-lg p-3">
-            <span className="text-gray-500 text-sm shrink-0 mt-0.5">→</span>
-            <p className="text-sm text-gray-700">
-              위 1~3번이 개선되면 AI 브리핑 노출이 자연스럽게 따라옵니다. 이 항목은 직접 조작할 수 없습니다.
+          <div className="flex items-start gap-2 bg-white rounded-lg p-3 border border-indigo-100">
+            <span className="text-indigo-400 text-sm shrink-0 mt-0.5">→</span>
+            <p className="text-sm text-indigo-800">
+              소개글 200자 이상 · 사진 10장 이상 · 예약 연동 · 블로그 후기 확보가 AI탭 노출에 직결됩니다
             </p>
           </div>
-        )}
-        {naverResult?.excerpt && (
-          <div className="mt-2 bg-green-50 border border-green-100 rounded-lg p-3">
-            <p className="text-sm font-semibold text-green-700 mb-1">네이버 AI 인용 발췌</p>
-            <p className="text-sm text-green-900 italic leading-relaxed">
-              &ldquo;{naverResult.excerpt}&rdquo;
-            </p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-gray-100 p-4 bg-gray-50">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <span className="text-sm md:text-base font-semibold text-gray-800">4. 네이버 AI 브리핑 노출</span>
+                <span className="text-sm text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full font-medium">
+                  영향도 ★ (전체 점수의 15%)
+                </span>
+              </div>
+              <p className="text-sm text-gray-500 leading-relaxed">실제 네이버 AI 브리핑에 노출됐는지 확인합니다</p>
+            </div>
+            <ScoreBadge value={nec} />
           </div>
-        )}
-      </div>
+          <div className="flex items-center gap-2 mb-3">
+            <ScoreBar value={nec} color={barColor(nec)} />
+          </div>
+          {!inBriefing && (
+            <div className="flex items-start gap-2 bg-gray-100 rounded-lg p-3">
+              <span className="text-gray-500 text-sm shrink-0 mt-0.5">→</span>
+              <p className="text-sm text-gray-700">
+                위 1~3번이 개선되면 AI 브리핑 노출이 자연스럽게 따라옵니다. 이 항목은 직접 조작할 수 없습니다.
+              </p>
+            </div>
+          )}
+          {naverResult?.excerpt && (
+            <div className="mt-2 bg-green-50 border border-green-100 rounded-lg p-3">
+              <p className="text-sm font-semibold text-green-700 mb-1">네이버 AI 인용 발췌</p>
+              <p className="text-sm text-green-900 italic leading-relaxed">
+                &ldquo;{naverResult.excerpt}&rdquo;
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -802,6 +844,8 @@ export default function ScoreEvidenceCard({
   bizId,
   token,
   missingItems,
+  naverPlaceUrl,
+  briefingEligibility,
 }: Props) {
   // v3.1/v3.2 판별: score_breakdown.track1_detail?.model_version
   const track1Detail = breakdown["track1_detail"] as unknown as V31Detail | undefined;
@@ -809,6 +853,13 @@ export default function ScoreEvidenceCard({
   const isV31 = _mv === "v3.1" || _mv === "v3.2";
   const isV32Parent = _mv === "v3.2";
   const userGroup = isV31 ? (track1Detail?.user_group ?? "ACTIVE") : null;
+  // v3.0 모드이거나 user_group이 없을 때 briefingEligibility로 보완
+  const effectiveGroup: "ACTIVE" | "LIKELY" | "INACTIVE" | null =
+    userGroup as "ACTIVE" | "LIKELY" | "INACTIVE" | null ??
+    (briefingEligibility === "inactive" ? "INACTIVE"
+     : briefingEligibility === "likely" ? "LIKELY"
+     : briefingEligibility === "active" ? "ACTIVE"
+     : null);
 
   const globalWeight = Math.round((1 - naverWeight) * 100);
   const naverWeightPct = Math.round(naverWeight * 100);
@@ -826,12 +877,12 @@ export default function ScoreEvidenceCard({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h2 className="text-base md:text-lg font-bold text-gray-900">
-              {isV32Parent ? "점수 근거 (v3.2 · 7항목)" : isV31 ? "점수 근거 (v3.1 · 6항목)" : "네이버 기반 점수 근거"}
+              {isV32Parent ? "AI 노출 지수 산출 근거 (v3.2 · 7항목)" : isV31 ? "AI 노출 지수 산출 근거 (v3.1 · 6항목)" : "네이버 기반 AI 노출 지수 산출 근거"}
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">
               {isV31
-                ? `왜 이 점수인지 ${isV32Parent ? "7" : "6"}가지 항목으로 설명합니다`
-                : "왜 이 점수인지 4가지 항목으로 설명합니다"
+                ? `왜 이 지수인지 ${isV32Parent ? "7" : "6"}가지 항목으로 설명합니다`
+                : "왜 이 지수인지 4가지 항목으로 설명합니다"
               }
             </p>
           </div>
@@ -857,15 +908,40 @@ export default function ScoreEvidenceCard({
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-sm font-semibold text-blue-700 uppercase tracking-wide mb-0.5">
-                네이버 AI 브리핑 준비 상태
+                {effectiveGroup === "INACTIVE"
+                  ? "네이버 검색 최적화 준비 상태"
+                  : effectiveGroup === "LIKELY"
+                  ? "네이버 AI탭 준비 상태"
+                  : "네이버 AI 브리핑 준비 상태"}
               </div>
               <div className="text-sm text-gray-500">업종 점수의 {naverWeightPct}% 반영</div>
             </div>
-            <div className={`text-2xl md:text-3xl font-bold ${track1Score >= 70 ? "text-green-600" : track1Score >= 40 ? "text-yellow-600" : "text-red-500"}`}>
-              {Math.round(track1Score)}
-              <span className="text-sm text-gray-400 font-normal ml-1">/ 100</span>
-            </div>
+            {effectiveGroup === "INACTIVE" ? (
+              <span className="text-sm px-3 py-1 rounded-full font-semibold border bg-gray-100 text-gray-500 border-gray-200">
+                AI 브리핑 비대상
+              </span>
+            ) : (
+              <span className={`text-sm px-3 py-1 rounded-full font-semibold border ${
+                track1Score >= 70 ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                : track1Score >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
+                : "bg-red-50 text-red-500 border-red-100"
+              }`}>
+                {track1Score >= 70 ? "양호" : track1Score >= 40 ? "보통" : "개선 필요"}
+              </span>
+            )}
           </div>
+
+          {/* INACTIVE 업종 AI탭 안내 배너 */}
+          {effectiveGroup === "INACTIVE" && (
+            <div className="mb-3 rounded-lg border border-indigo-100 bg-indigo-50 p-3 flex items-start gap-2">
+              <span className="text-indigo-400 text-sm shrink-0 mt-0.5">ℹ️</span>
+              <p className="text-sm text-indigo-800 leading-relaxed">
+                이 업종은 <strong>네이버 AI 브리핑</strong> 노출 대상이 아닙니다.{" "}
+                대신 <strong>네이버 AI탭</strong>(베타·모든 업종)을 통해 노출될 수 있습니다.{" "}
+                소개글 200자 이상·사진 10장 이상·블로그 후기 확보가 핵심입니다.
+              </p>
+            </div>
+          )}
 
           {/* v3.1 / v3.0 분기 렌더링 */}
           {isV31 && track1Detail ? (
@@ -899,6 +975,7 @@ export default function ScoreEvidenceCard({
               avgRating={avgRating}
               bizId={bizId}
               token={token}
+              briefingEligibility={briefingEligibility}
             />
           )}
         </div>
@@ -912,10 +989,13 @@ export default function ScoreEvidenceCard({
               </div>
               <div className="text-sm text-gray-500">업종 점수의 {globalWeight}% 반영</div>
             </div>
-            <div className={`text-xl md:text-2xl font-bold ${track2Score >= 70 ? "text-green-600" : track2Score >= 40 ? "text-yellow-600" : "text-red-500"}`}>
-              {Math.round(track2Score)}
-              <span className="text-sm text-gray-400 font-normal ml-1">/ 100</span>
-            </div>
+            <span className={`text-sm px-3 py-1 rounded-full font-semibold border ${
+              track2Score >= 70 ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+              : track2Score >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
+              : "bg-red-50 text-red-500 border-red-100"
+            }`}>
+              {track2Score >= 70 ? "양호" : track2Score >= 40 ? "보통" : "개선 필요"}
+            </span>
           </div>
 
           {/* 모바일: 카드형 / PC: 그리드 */}
@@ -971,7 +1051,7 @@ export default function ScoreEvidenceCard({
         {missingItems && missingItems.length > 0 && (
           <div className="border-t border-gray-100 pt-5">
             <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-              점수 올리는 빠른 항목
+              빠른 지수 상승 항목
             </div>
             <div className="space-y-2">
               {missingItems.map((m, i) => (

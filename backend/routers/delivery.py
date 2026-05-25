@@ -599,6 +599,19 @@ async def confirm_delivery_payment(
     except Exception as e:
         _logger.warning(f"[delivery/confirm] 카카오 알림 발송 실패 (무시): {e}")
 
+    # 7. 운영자 이메일 알림 (contact@aeolab.co.kr)
+    try:
+        from services.email_sender import send_operator_delivery_notification
+        pkg_name = PACKAGES.get(order["package_type"], {}).get("name", order["package_type"])
+        await send_operator_delivery_notification(
+            order_id=order_id,
+            package_name=pkg_name,
+            amount=body.amount,
+            user_id=user_id,
+        )
+    except Exception as _email_e:
+        _logger.warning(f"[delivery/confirm] 운영자 이메일 발송 실패 (무시): {_email_e}")
+
     # 업데이트된 order 반환
     updated_order = {**order, "status": "paid", "payment_key": body.payment_key}
     return {"order": updated_order}

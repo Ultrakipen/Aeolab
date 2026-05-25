@@ -114,7 +114,7 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
             <ul className="space-y-1 text-sm text-slate-700 dark:text-gray-300 leading-snug">
               <li>• SGE 기반 자연 검색 노출</li>
               <li>• 독립 웹사이트 SEO 핵심</li>
-              <li>• JSON-LD 스키마 필수</li>
+              <li>• AI 인식 정보 코드 등록 필수</li>
             </ul>
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
             href="/schema"
             className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-300 dark:border-emerald-600 bg-white dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-gray-600 text-emerald-700 dark:text-emerald-300 text-sm md:text-base font-semibold px-3 py-2 transition-colors"
           >
-            JSON-LD 스키마 자동 생성 →
+            AI 인식 코드 자동 생성 →
           </Link>
           <a
             href="https://business.google.com"

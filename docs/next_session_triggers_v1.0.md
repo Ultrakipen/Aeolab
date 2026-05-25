@@ -1,8 +1,8 @@
 # AEOlab 다음 세션 권장 트리거 v1.0
 
-> 작성일: 2026-05-20
+> 작성일: 2026-05-20 | 최종 갱신: 2026-05-23
 > 용도: 새 대화창에서 1줄 트리거 명령으로 즉시 작업 시작 가능하도록 사전 작성
-> 마지막 본 세션: 콘텐츠 맞춤화 깊이 강화(P1 2 + P2 4) 배포 완료. 서비스 핵심 가치 도달도 "상" 등급 달성.
+> 마지막 본 세션: §1~§13 전체 점검 완료 (2026-05-23). 즉시 가능 항목 전부 완료. 트리거 대기: §5(P2 AI탭), §6(P3 구독자 4/5명). 사용자 직접: §7.
 
 ---
 
@@ -200,6 +200,105 @@ ssh root@115.68.231.57 'sed -i "s/SCORE_MODEL_VERSION=v3_1/SCORE_MODEL_VERSION=v
 
 ---
 
+## §9. 경쟁사 keyword_gap 자동화
+
+> **트리거 명령**: `docs/next_session_triggers_v1.0.md §9 경쟁사 keyword_gap 자동화 진행해줘`
+> **예상 공수**: 2~3시간
+> **우선순위**: 즉시 가능 (구독자 0명도 가능)
+> **현재 상태**: `backend/scheduler/jobs.py` `_enrich_competitor_excerpts` 함수 구현됨, APScheduler 미등록
+
+### 작업 범위
+
+1. `backend/scheduler/jobs.py`에서 `_enrich_competitor_excerpts` 잡을 APScheduler에 등록
+   - 주기: 매주 일요일 02:00 KST (트래픽 최저점)
+   - 대상: 최근 30일 내 스캔된 사업장의 경쟁사
+2. 에러 핸들링: 실패 시 `logger.warning()` 후 다음 경쟁사로 continue (전체 중단 방지)
+3. API 비용 상한: 잡당 최대 Claude 호출 `MAX_CLAUDE_CALLS_PER_JOB` 환경변수 적용
+4. 로그: `[keyword_gap_enrich] 완료 N건 / 실패 M건` 형태로 요약 출력
+
+### 검증
+
+- APScheduler job list에 `enrich_competitor_keywords_job` 등록 확인
+- SSH: `pm2 logs aeolab-backend --lines 100 | grep keyword_gap`
+
+---
+
+## §10. 대행 서비스 주문 플로우 완성
+
+> **트리거 명령**: `docs/next_session_triggers_v1.0.md §10 대행 서비스 주문 플로우 진행해줘`
+> **예상 공수**: 4~5시간
+> **우선순위**: 즉시 가능 — BEP 달성에 직결
+> **현재 상태**: `AgencyServiceSection.tsx` 정적 카드만 존재. 주문 플로우 미연결.
+> **참고 문서**: `docs/agency_service_and_iboss_improvements_v1.0.md`
+
+### 작업 범위
+
+1. **주문 생성 API** — `POST /api/agency/order` (인증 필요, Basic+ 플랜 게이트)
+   - `delivery_orders` 테이블에 INSERT (service_type, amount, status="pending")
+   - 토스페이먼츠 단건 결제 confirm API 연동 (`/api/payments/confirm`)
+2. **주문 완료 UI** — 결제 성공 시 주문 번호 + "영업일 3일 내 연락드립니다" 안내
+3. **카카오 알림톡** — `AEOLAB_DELIVERY_01`(주문접수) 발송 (사업자 → 운영자 이메일도 동시)
+4. **운영자 알림** — `contact@aeolab.co.kr` 새 주문 이메일 알림
+5. **주문 내역 페이지** — `(dashboard)/delivery/orders/page.tsx` 신규 (주문 목록 + 상태)
+
+### 사전 필요 (사용자 직접)
+
+- 토스페이먼츠 대시보드에서 1회성 결제 상품 등록
+- 카카오 비즈센터 `AEOLAB_DELIVERY_01~04` 템플릿 신청
+
+---
+
+## §11. 신규 기능 기획 및 구현
+
+> **트리거 명령**: `CLAUDE.md와 docs/next_features_v1.0.md를 읽을 것. next-feature 에이전트를 사용해서 BEP 20명 달성에 가장 직접적으로 기여하는 다음 기능을 선택하고 백엔드·프론트엔드·DB 변경 범위를 설계한 후 구현 순서를 제시할 것.`
+> **예상 공수**: 기능에 따라 2~8시간
+> **우선순위**: §10 완료 후
+
+### 후보 기능 (next_features_v1.0.md 기준)
+
+| 기능 | BEP 기여도 | 공수 |
+|------|-----------|------|
+| Growth Card 이미지 공유 | 중 (바이럴) | 3h |
+| 경쟁사 실시간 모니터링 알림 | 상 (재방문) | 4h |
+| 월간 시장 리포트 이메일 | 상 (유지율) | 3h |
+| 키워드 순위 30일 트렌드 차트 | 중 (깊이) | 2h |
+
+---
+
+## §12. 소개글 AI 초안 생성기
+
+> **트리거 명령**: `docs/next_session_triggers_v1.0.md §12 소개글 AI 초안 생성기 진행해줘`
+> **트리거 조건**: 유료 구독자 5명 이상 (BEP 도달 전후)
+> **예상 공수**: 3~4시간
+> **참고 문서**: `docs/remaining_tasks_v1.0.md §3`
+
+### 작업 범위
+
+1. **백엔드** — `POST /api/tools/intro-draft` (Basic+ 플랜 게이트, Claude Haiku)
+   - 입력: 업종, 사업장명, 키워드 3~5개, 특징 텍스트
+   - 출력: 소개글 초안 200자 이내 (네이버 스마트플레이스 기준)
+   - 월 한도: `faq_monthly` 플랜 게이트 공유 (기존 가이드 생성 한도와 합산)
+   - 결과 저장: `businesses.naver_intro_draft` 업데이트
+2. **프론트엔드** — 가이드 페이지 또는 대시보드 내 버튼 + 결과 미리보기 + 복사 버튼
+3. **graceful fallback** — 컬럼 미존재 시 0건 처리 (Supabase v4.1 적용됨)
+
+---
+
+## §13. 서버 업그레이드 후 Playwright 동시성 상향
+
+> **트리거 명령**: `docs/next_session_triggers_v1.0.md §13 Playwright 동시성 상향 진행해줘`
+> **트리거 조건**: iwinv 서버 업그레이드 완료 (vCPU2/RAM4GB → 상위 사양)
+> **예상 공수**: 1시간
+
+### 작업 범위
+
+1. `backend/services/multi_scanner.py` `PLAYWRIGHT_SEMAPHORE = Semaphore(1)` → `Semaphore(int(os.getenv("PLAYWRIGHT_MAX_CONCURRENCY", "1")))`
+2. `backend/services/naver_ai_tab_scanner.py` `_AI_TAB_SEMAPHORE = Semaphore(1)` → 동일 환경변수 또는 공유 세마포어로 통합
+3. 서버 `.env`에 `PLAYWRIGHT_MAX_CONCURRENCY=2` 추가 (RAM 8GB 기준)
+4. 배포 후 `pm2 logs`에서 동시 Playwright 2개 동작 확인
+
+---
+
 ## §7. 비즈니스 KPI 작업 (사용자 직접)
 
 > 코드 변경 불필요. 사용자가 외부 시스템에서 진행.
@@ -208,9 +307,12 @@ ssh root@115.68.231.57 'sed -i "s/SCORE_MODEL_VERSION=v3_1/SCORE_MODEL_VERSION=v
 |------|------|------|
 | 베타 후기 1~3개 확보 | Phase 0 인터뷰 후 | `frontend/lib/testimonials.ts` `isPlaceholder: false` 처리 |
 | TOSS_SECRET_KEY live_ 전환 | 실결제 시작 직전 | 서버 `.env` 수정 + `pm2 restart aeolab-backend` |
+| 카카오 비즈센터 `AEOLAB_DELIVERY_01~04` 신청 | §10 대행 서비스 주문 플로우 진행 전 | 비즈센터 → 알림톡 채널 → 템플릿 추가 |
+| 토스페이먼츠 1회성 결제 상품 등록 | §10 진행 전 | 토스 대시보드 → 상품 등록 |
 | 카카오 비즈센터 `AEOLAB_KW_01` 신청 | 키워드 순위 알림 활성화 시 | 비즈센터 → 알림톡 채널 → 템플릿 추가 |
 | 카카오 비즈센터 `AEOLAB_SCORE_MODEL_01` 신청 | §4 Option C 진행 시 | 동일 |
 | 점수 모델 v3.1 활성화 결정 | §4·§6 완료 후 | §6 1줄 명령 |
+| 서버 업그레이드 | 구독자 확보 + 서버 비용 감당 가능 시 | iwinv 대시보드 → 사양 업그레이드 → §13 진행 |
 
 ---
 
@@ -231,7 +333,17 @@ ssh root@115.68.231.57 'sed -i "s/SCORE_MODEL_VERSION=v3_1/SCORE_MODEL_VERSION=v
 ## 새 대화창 빠른 시작 명령 모음
 
 ```
-# 출시 직후 1주 내 권장 (운영 안정화 + 전환율)
+# ─── 즉시 가능 (구독자 0명도 가능) ──────────────────────────────
+# BEP 달성 직결 — 대행 서비스 주문 플로우
+docs/next_session_triggers_v1.0.md §10 대행 서비스 주문 플로우 진행해줘
+
+# 경쟁사 keyword_gap 자동화
+docs/next_session_triggers_v1.0.md §9 경쟁사 keyword_gap 자동화 진행해줘
+
+# 다음 신규 기능 기획
+CLAUDE.md와 docs/next_features_v1.0.md를 읽을 것. next-feature 에이전트를 사용해서 BEP 20명 달성에 가장 직접적으로 기여하는 다음 기능을 선택하고 설계·구현 순서를 제시할 것.
+
+# 운영 안정화 + 전환율
 docs/next_session_triggers_v1.0.md §1 챗봇 UI 헤더 통합 진행해줘
 docs/next_session_triggers_v1.0.md §3 트라이얼 CTA 업종 분기 진행해줘
 docs/next_session_triggers_v1.0.md §2 D.I.A. 차단 로직 진행해줘
@@ -239,9 +351,18 @@ docs/next_session_triggers_v1.0.md §2 D.I.A. 차단 로직 진행해줘
 # v3.1 사전 준비 (선택 - 사용자가 옵션 결정)
 docs/next_session_triggers_v1.0.md §4 v3.1 사전 준비 [A/B/C] 진행해줘
 
-# 시기 의존 (자동 알림 받은 후)
+# ─── 조건부 (트리거 대기) ───────────────────────────────────────
+# 유료 구독자 5명+ 달성 시
+docs/next_session_triggers_v1.0.md §12 소개글 AI 초안 생성기 진행해줘
+
+# 6월 네이버 AI탭 비로그인 표시 확인 후
 docs/p2_p3_execution_runbook.md 기준으로 P2 실행할 것
+
+# pm2 logs에서 [P3-READY] 확인 후
 docs/p2_p3_execution_runbook.md 기준으로 P3 실행할 것
+
+# 서버 업그레이드 완료 후
+docs/next_session_triggers_v1.0.md §13 Playwright 동시성 상향 진행해줘
 ```
 
 ---
@@ -266,4 +387,62 @@ docs/p2_p3_execution_runbook.md 기준으로 P3 실행할 것
 
 ---
 
-*최종 업데이트: 2026-05-20 | 다음 갱신: §1·§2·§3 작업 완료 시 또는 v3.1·P2 활성화 시*
+## 본 세션 작업 완료 내역 (2026-05-22)
+
+### inspection_fixes_runbook §A~§I + scan_result_screens P0~P3 + prelaunch 14개 점검
+
+| 완료 항목 | 커밋 |
+|----------|------|
+| §H text-xs → text-sm (TrialResultStep + NaverAiPathwayCard) | `c879278` |
+| P2-1 ScoreEvidenceCard V3_2_WEIGHTS + ⑦ AI탭 블록 | `c879278` |
+| 프리런치 점검 14개 체크포인트 전항목 ✅ (docs 기록) | `b4f5f5f` |
+| P1-3 AI 브리핑 LIKELY "확대 예정" → "확대 검토 중" | `6ad05e4` |
+| P1-4 DashboardHeroCard Google AI 추가 + 5채널 표기 | `6ad05e4` |
+| P1-6 TrialResultStep AI탭(확대 예정) ↔ AI 브리핑(검토 중) 분리 | `6ad05e4` |
+| 9-A-2 가이드 페이지 동작 확인 (chatgpt-search·blog-strategy) | 확인만 |
+| 9-A-3 simulate_ai_tab_answer v2 필드 확인 | 확인만 |
+
+---
+
+## 본 세션 작업 완료 내역 (2026-05-23 추가)
+
+### §1~§13 전체 점검 + P2 사전 코드 통합
+
+| 완료 항목 | 커밋 |
+|----------|------|
+| §9 keyword_gap 자동화: 주기 일요일 02:00 + 비용상한 + 로그 | `7ccb04c` |
+| §13 Playwright 동시성 환경변수 분리 (PLAYWRIGHT_MAX_CONCURRENCY) | `51aa644` |
+| P2 multi_scanner.scan_all() AI탭 통합 (NAVER_AI_TAB_ENABLED 분기) | `068ee62` |
+| P2 score_engine.calc_naver_exposure() AI탭 +20점 보너스 | `068ee62` |
+| §1~§4·§10~§12 기구현 확인, §5 DB 5테이블·RESEND·qrcode 설치 확인 | 확인만 |
+
+### 현재 상태 요약
+
+| 항목 | 상태 |
+|------|------|
+| §1~§4, §9~§13 즉시 가능 전체 | ✅ 완료 |
+| 팔로업 이메일 (RESEND_API_KEY 설정 완료) | ✅ 매일 10:00 자동 실행 중 |
+| 대행 서비스 DB 5테이블 | ✅ 존재 확인 |
+| §5 P2 AI탭 스캐너 활성화 | ⏳ AI탭 비로그인 노출 확인 후 `.env NAVER_AI_TAB_ENABLED=true` |
+| §6 P3 v3.1 활성화 | ⏳ 구독자 4/5명 — 1명 달성 후 `.env SCORE_MODEL_VERSION=v3_1` |
+| §7 비즈니스 KPI | 사용자 직접 |
+| §8 자동화 잡 | ✅ 5개 전부 등록·실행 중 |
+
+---
+
+## 본 세션 작업 완료 내역 (2026-05-23 §11)
+
+### §11 Growth Card 카카오 공유 + 공개 공유 랜딩 (신규 기능)
+
+| 완료 항목 | 파일 |
+|----------|------|
+| GrowthClient.tsx 카카오 공유 버튼 + handleGrowthShare | `growth/GrowthClient.tsx:148,207,791` |
+| `/share/growth` 공개 공유 랜딩 페이지 (OG 메타) | `(public)/share/growth/page.tsx` |
+| GrowthShareClient.tsx (링크 복사 fallback) | `(public)/share/growth/GrowthShareClient.tsx` |
+| 서버 빌드 성공 + PM2 both online | 배포 완료 |
+
+공유 URL 형태: `https://aeolab.co.kr/share/growth?img=...&biz=...&score=...`
+
+---
+
+*최종 업데이트: 2026-05-23 | 다음 갱신: P2 트리거 충족 시 또는 P3 [P3-READY] 로그 발생 시*

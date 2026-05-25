@@ -75,7 +75,7 @@ export default function CompetitorFAQCard({ bizId, accessToken }: Props) {
         </div>
         <p className="text-sm text-gray-500">
           {data?.message ||
-            "경쟁사 Q&A 수집 데이터가 아직 없습니다. (네이버 스마트플레이스 Q&A 탭은 2026년 폐기됨 — 경쟁사 리뷰·소개글 기반 분석으로 대체 예정)"}
+            "경쟁사 Q&A 수집 데이터가 아직 없습니다. 경쟁사 리뷰·소개글 키워드를 분석해 보여드립니다."}
         </p>
       </div>
     );

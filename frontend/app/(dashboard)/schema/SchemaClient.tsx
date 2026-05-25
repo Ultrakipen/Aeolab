@@ -291,16 +291,16 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
     <div className="p-4 md:p-8 max-w-3xl">
       {/* 헤더 */}
       <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900">스마트플레이스 · 블로그 AI 최적화</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 검색 최적화 도구</h1>
         <p className="text-gray-500 text-sm mt-1 leading-relaxed">
-          가게 정보를 입력하면 스마트플레이스 소개글과 네이버 블로그 포스트 초안을 자동으로 만들어 드립니다.
+          스마트플레이스 소개글의 AI 핵심 키워드 점수를 확인하고, 최적화된 소개글·블로그 초안을 자동으로 만들어 드립니다.
         </p>
         <div className="mt-3 space-y-2">
-          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800">
-            <strong>✅ 홈페이지 없어도 OK.</strong> 소상공인 대부분은 <strong>스마트플레이스 소개글 탭</strong>만으로 AI 검색 노출을 높일 수 있습니다.
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-800">
+            <strong>📋 이미 스마트플레이스·블로그를 운영 중이라면</strong> — 현재 소개글이 AI 검색 키워드를 충분히 포함하는지 점검할 수 있습니다. 가게 이름과 메뉴를 입력해 보세요.
           </div>
           <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600">
-            홈페이지가 있다면 <strong>홈페이지 AI 연결 탭</strong>에서 JSON-LD 코드를 적용하면 ChatGPT·구글 AI 노출이 추가됩니다.
+            홈페이지가 있다면 <strong>홈페이지 AI 연결 탭</strong>에서 AI 인식 코드를 추가하면 ChatGPT·구글 AI 노출이 높아집니다.
           </div>
         </div>
       </div>
@@ -702,7 +702,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
 
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-sm font-semibold text-gray-800">AI 검색 최적화 코드 (JSON-LD)</div>
+                      <div className="text-sm font-semibold text-gray-800">AI 검색 최적화 코드</div>
                       <p className="text-sm text-gray-500 mt-0.5">복사 후 홈페이지 &lt;/head&gt; 바로 위에 붙여넣기</p>
                     </div>
                     <CopyButton text={result.script_tag} label="코드 복사" />

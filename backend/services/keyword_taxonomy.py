@@ -2493,6 +2493,18 @@ def get_missing_keywords_for_query(
     return result
 
 
+def _any_shared_root(kw1: str, kw2: str, min_len: int = 2) -> bool:
+    """두 키워드가 min_len자 이상의 공통 부분 문자열을 가지면 True.
+    예: ("스냅촬영", "웨딩스냅") → "스냅" 공유 → True
+    """
+    if len(kw1) < min_len or len(kw2) < min_len:
+        return False
+    for i in range(len(kw1) - min_len + 1):
+        if kw1[i:i + min_len] in kw2:
+            return True
+    return False
+
+
 def analyze_keyword_coverage(
     category: str,
     review_excerpts: list[str],
@@ -2579,9 +2591,13 @@ def analyze_keyword_coverage(
     missing: list[str] = []
     for kw in all_keywords:
         kw_nospace = kw.replace(" ", "").lower()
-        # 등록 키워드가 taxonomy 키워드의 부분 문자열인 경우 covered 처리
-        # 예: 등록="작곡" → taxonomy="작곡 레슨" 매칭
-        reg_hit = any(reg_kw in kw_nospace for reg_kw in registered_kw_nospace if len(reg_kw) >= 2)
+        # 등록 키워드가 taxonomy 키워드의 부분 문자열이거나
+        # 2자 이상 공통 어근을 가지는 경우 covered 처리
+        # 예: 등록="작곡" → taxonomy="작곡 레슨", 등록="웨딩스냅" → taxonomy="스냅촬영"/"웨딩 사진"
+        reg_hit = any(
+            reg_kw in kw_nospace or _any_shared_root(kw_nospace, reg_kw)
+            for reg_kw in registered_kw_nospace if len(reg_kw) >= 2
+        )
         if kw_nospace in my_text_nospace or kw in my_text or reg_hit:
             covered.append(kw)
         else:
@@ -2913,6 +2929,40 @@ def build_location_service_keywords(region: str, category: str) -> list[str]:
     # 상위 6개 키워드로 지역+서비스 조합 생성
     unique = list(dict.fromkeys(base_keywords))[:6]
     return [f"{city} {kw}" for kw in unique if kw]
+
+
+def build_ai_scan_queries(region: str, keyword: str) -> list[str]:
+    """AI 노출 스캔용 쿼리 리스트 단일 소스.
+
+    근거: 네이버 공식 — 롱테일/긴 자연어 질의 전년比 2.5배 증가(2026.3).
+    짧은 키워드형(기존)에 긴 자연어 다중조건 변형을 추가해 측정 범위를 현실에 맞춘다.
+
+    규칙:
+      - 첫 요소는 항상 짧은 쿼리 — naver/google Playwright 단일쿼리(_scan_queries[0])용 회귀 방지.
+      - sample_n이 N회를 쿼리별 균등 분산하므로 쿼리 수만 늘 뿐 총 샘플·API 호출 수 불변(비용 동일).
+      - 사실 안전: 사업장이 보유하지 않은 속성(조용함·주차 등)을 쿼리에 날조하지 않음. 일반 의도 표현만.
+    """
+    kw = (keyword or "").strip()
+    reg = (region or "").strip()
+    if not kw:
+        return [reg] if reg else [""]
+    if reg:
+        queries = [
+            f"{reg} {kw} 추천",            # 짧은(기존) — [0] naver용 유지
+            f"{reg} {kw}",
+            f"{kw} 잘하는 {reg}",
+            f"{reg}에서 {kw} 잘하는 곳 추천해줘",   # 긴 자연어(신규)
+            f"{reg} {kw} 중에 어디가 제일 괜찮아?",
+        ]
+    else:
+        queries = [
+            f"{kw} 추천",                  # 짧은(기존) — [0]
+            f"{kw}",
+            f"{kw} 잘하는 곳",
+            f"{kw} 잘하는 곳 추천해줘",      # 긴 자연어(신규)
+            f"{kw} 어디가 제일 괜찮아?",
+        ]
+    return list(dict.fromkeys(queries))
 
 
 # ─── 계절별 키워드 ─────────────────────────────────────────────────────────────

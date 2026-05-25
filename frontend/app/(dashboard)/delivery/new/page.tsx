@@ -103,13 +103,14 @@ function DeliveryNewForm() {
     setLoading(true);
     try {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const { data: { user: currentUser }, error: authErr } = await supabase.auth.getUser();
+      if (authErr || !currentUser) {
         setError("로그인 세션이 만료되었습니다. 다시 로그인해 주세요.");
         setLoading(false);
         return;
       }
-      const token = session.access_token;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token ?? "";
 
       // 의뢰 생성
       const res = await fetch(`${BACKEND_URL}/api/delivery/orders`, {

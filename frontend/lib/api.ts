@@ -13,6 +13,31 @@ import type { MarketLandscape } from "@/types/market";
 export const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 const BACKEND_URL = apiBase;
 
+// 401 전용 fetch 래퍼 — 세션 만료 시 로컬 캐시 정리 후 /login으로 이동
+// 컴포넌트에서 raw fetch 대신 이걸 쓰면 401 처리가 자동화됨
+export async function authFetch(url: string, token: string, init?: RequestInit): Promise<Response> {
+  const res = await fetch(url, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(init?.headers ?? {}),
+    },
+  });
+  if (res.status === 401) {
+    // 로컬 세션만 정리 (네트워크 오류 무시)
+    import("@/lib/supabase/client")
+      .then(({ clearLocalSession }) => clearLocalSession())
+      .catch(() => {})
+      .finally(() => {
+        if (typeof window !== "undefined") {
+          window.location.href = "/login?reason=session_expired";
+        }
+      });
+    throw new Error("SESSION_EXPIRED");
+  }
+  return res;
+}
+
 // API 에러 코드별 사용자 메시지 매핑
 const ERROR_MESSAGES: Record<string, string> = {
   TRIAL_LIMIT:      "하루 무료 체험 한도(3회)에 도달했습니다. 내일 다시 시도하거나 회원가입 후 이용하세요.",

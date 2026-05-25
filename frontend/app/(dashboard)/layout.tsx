@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "./DashboardShell";
 import { PageHeader } from "./PageHeader";
+import HelpFAQFloat from "@/components/landing/HelpFAQFloat";
 
 export default async function DashboardLayout({
   children,
@@ -69,6 +70,8 @@ export default async function DashboardLayout({
       {/* 데스크톱 페이지 헤더 (lg+ 에서만 표시) */}
       <PageHeader email={userEmail} plan={activePlan} />
       {children}
+      {/* 모바일 FAQ 플로팅 버튼 (md:hidden — 모바일 전용) */}
+      <HelpFAQFloat />
     </DashboardShell>
   );
 }

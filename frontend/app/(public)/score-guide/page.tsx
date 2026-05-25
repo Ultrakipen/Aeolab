@@ -195,6 +195,11 @@ export default function ScoreGuidePage() {
                   desc: "실제 네이버 AI 브리핑에 가게가 인용됐는지",
                 },
                 {
+                  item: "↳ 비대상 업종(학원·법무 등)",
+                  weight: "0%",
+                  desc: "음식점·카페 등 일부 업종만 해당 (공식: help.naver.com/service/30026/contents/24632). 비대상 업종은 나머지 항목 비중이 자동 상향됩니다.",
+                },
+                {
                   item: "카카오맵 완성도",
                   weight: "10%",
                   desc: "카카오맵 정보 완성도 (사용자 체크리스트 기반)",
@@ -296,7 +301,7 @@ export default function ScoreGuidePage() {
                 {
                   item: "웹사이트 SEO",
                   weight: "30%",
-                  desc: "JSON-LD 구조화 데이터 + Open Graph + 웹사이트 최적화",
+                  desc: "AI 인식 정보 코드 + SNS 공유 태그 + 웹사이트 최적화",
                 },
                 {
                   item: "온라인 언급",

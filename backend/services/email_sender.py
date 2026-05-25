@@ -1393,3 +1393,48 @@ async def send_v31_migration_email(profile_email: str, business_data: dict) -> b
     except Exception as e:
         logger.warning(f"send_v31_migration_email 예외 ({_mask_email(profile_email)}): {e}")
         return False
+
+
+async def send_operator_delivery_notification(
+    order_id: str,
+    package_name: str,
+    amount: int,
+    user_id: str,
+) -> bool:
+    """새 대행 서비스 주문 결제 완료 시 운영자(contact@aeolab.co.kr)에게 이메일 알림."""
+    operator_email = os.getenv("OPERATOR_EMAIL", "contact@aeolab.co.kr")
+    subject = f"[AEOlab 대행] 새 주문 접수 — {package_name} ({amount:,}원)"
+    html = f"""
+<div style="font-family: 'Apple SD Gothic Neo', sans-serif; max-width:480px; margin:0 auto; padding:24px; color:#1e293b;">
+  <div style="background:#1d4ed8; border-radius:10px; padding:16px 20px; margin-bottom:20px; text-align:center;">
+    <p style="color:#bfdbfe; font-size:12px; margin:0 0 4px;">대행 서비스 신규 주문</p>
+    <h1 style="color:#fff; font-size:18px; font-weight:700; margin:0;">{package_name}</h1>
+    <p style="color:#93c5fd; font-size:22px; font-weight:800; margin:6px 0 0;">{amount:,}원</p>
+  </div>
+  <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+    <tr>
+      <td style="padding:8px 0; border-bottom:1px solid #f1f5f9; color:#64748b; font-size:13px; width:90px;">주문 ID</td>
+      <td style="padding:8px 0; border-bottom:1px solid #f1f5f9; font-size:13px; font-weight:600; word-break:break-all;">{order_id}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 0; border-bottom:1px solid #f1f5f9; color:#64748b; font-size:13px;">사용자 ID</td>
+      <td style="padding:8px 0; border-bottom:1px solid #f1f5f9; font-size:13px;">{user_id[:8]}…</td>
+    </tr>
+  </table>
+  <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:12px 16px; margin-bottom:20px;">
+    <p style="font-size:13px; color:#166534; margin:0; font-weight:600;">영업일 3일 내 사용자에게 연락해 주세요.</p>
+  </div>
+  <div style="text-align:center;">
+    <a href="https://aeolab.co.kr/admin" style="background:#1d4ed8; color:#fff; text-decoration:none; padding:10px 24px; border-radius:8px; font-size:14px; font-weight:600; display:inline-block;">관리자 페이지에서 확인</a>
+  </div>
+  <p style="font-size:11px; color:#94a3b8; margin-top:20px; text-align:center;">AEOlab · contact@aeolab.co.kr</p>
+</div>
+"""
+    try:
+        ok = await send_email(operator_email, subject, html)
+        if ok:
+            logger.info(f"send_operator_delivery_notification OK: order_id={order_id}")
+        return ok
+    except Exception as e:
+        logger.warning(f"send_operator_delivery_notification 예외 (order_id={order_id}): {e}")
+        return False

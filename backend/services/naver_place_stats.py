@@ -64,15 +64,22 @@ class NaverPlaceStatsService:
 
                 body_text = await target.inner_text("body")
 
-                # 방문자 리뷰 수 파싱 — "방문자 리뷰 16" 또는 "리뷰 16개" 형식 지원
+                # 방문자 리뷰 수 파싱 — 다양한 네이버 플레이스 UI 포맷 지원
                 visitor_review_count = 0
-                review_match = re.search(r"방문자\s*리뷰\s*(\d[\d,]*)", body_text)
-                if review_match:
-                    visitor_review_count = int(review_match.group(1).replace(",", ""))
-                else:
-                    review_match2 = re.search(r"리뷰\s*(\d[\d,]+)\s*개?", body_text)
-                    if review_match2:
-                        visitor_review_count = int(review_match2.group(1).replace(",", ""))
+                _review_patterns = [
+                    r"방문자\s*리뷰\s*(\d[\d,]*)",          # "방문자 리뷰 16"
+                    r"방문자리뷰\s*(\d[\d,]*)",              # 공백 없는 변형
+                    r"리뷰\s*(\d[\d,]+)\s*개",              # "리뷰 16개"
+                    r"(\d[\d,]+)\s*개\s*리뷰",              # "16개 리뷰"
+                    r'"visitorReviewCount"\s*:\s*(\d+)',    # JSON 내장 포맷
+                    r'"reviewCount"\s*:\s*(\d+)',           # JSON 내장 포맷 변형
+                    r"방문자\s+(\d[\d,]+)",                  # "방문자 16"
+                ]
+                for _pat in _review_patterns:
+                    _m = re.search(_pat, body_text)
+                    if _m:
+                        visitor_review_count = int(_m.group(1).replace(",", ""))
+                        break
 
                 # 영수증 리뷰 수 파싱
                 receipt_review_count = 0

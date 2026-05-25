@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
+import { trackKakaoShareClick } from "@/lib/analytics";
 import {
   LineChart,
   Line,
@@ -144,6 +145,7 @@ export default function GrowthClient({
   actionLogs = [],
 }: Props) {
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [shareToast, setShareToast] = useState<string | null>(null);
 
   const categoryLabel = CATEGORY_LABEL[category] ?? category;
 
@@ -200,6 +202,69 @@ export default function GrowthClient({
     thisMonthBest !== null && lastMonthBest !== null
       ? thisMonthBest - lastMonthBest
       : null;
+
+  // 성장 카드 카카오 공유 핸들러 (currentScore 이후 선언)
+  const handleGrowthShare = useCallback(async () => {
+    if (!growthCardUrl) return;
+
+    trackKakaoShareClick({ score: currentScore });
+
+    const shareUrl = `https://aeolab.co.kr/share/growth?img=${encodeURIComponent(growthCardUrl)}&biz=${encodeURIComponent(businessName)}&score=${currentScore}`;
+    const trialUrl = "https://aeolab.co.kr/trial?ref=growth_share";
+    const title = `${businessName} AI 노출 점수 ${currentScore}점`;
+    const description = "이달 가게 AI 노출 성장 기록 · AEOlab";
+
+    // 1) Kakao SDK
+    try {
+      if (
+        typeof window !== "undefined" &&
+        window.Kakao &&
+        window.Kakao.isInitialized() &&
+        window.Kakao.Share
+      ) {
+        window.Kakao.Share.sendDefault({
+          objectType: "feed",
+          content: {
+            title,
+            description,
+            imageUrl: growthCardUrl,
+            imageWidth: 600,
+            imageHeight: 400,
+            link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
+          },
+          buttons: [
+            {
+              title: "내 가게도 무료 진단",
+              link: { mobileWebUrl: trialUrl, webUrl: trialUrl },
+            },
+          ],
+        });
+        return;
+      }
+    } catch {
+      // SDK 실패 → fallback
+    }
+
+    // 2) navigator.share
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title, text: description, url: shareUrl });
+        return;
+      }
+    } catch {
+      // 취소 또는 미지원 → 클립보드
+    }
+
+    // 3) 클립보드 폴백
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareToast("링크가 클립보드에 복사되었습니다");
+      window.setTimeout(() => setShareToast(null), 2200);
+    } catch {
+      setShareToast("공유에 실패했습니다. 링크를 직접 복사해 주세요.");
+      window.setTimeout(() => setShareToast(null), 2200);
+    }
+  }, [growthCardUrl, businessName, currentScore]);
 
   // 표시할 이력 (최신 5개 또는 전체)
   const displayHistory = showAllHistory ? [...historyData].reverse() : [...historyData].reverse().slice(0, 5);
@@ -712,7 +777,7 @@ export default function GrowthClient({
               alt="개선 전후 비교 이미지"
               className="w-full max-w-sm mx-auto rounded-xl shadow-md"
             />
-            <div className="mt-4 text-center">
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
               <a
                 href={growthCardUrl}
                 download="aeolab-growth-card.png"
@@ -720,7 +785,24 @@ export default function GrowthClient({
               >
                 이미지 다운로드
               </a>
-              <p className="text-sm text-gray-400 mt-1">카카오톡·SNS에 공유해 보세요</p>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={handleGrowthShare}
+                  aria-label="카카오톡으로 성장 카드 공유"
+                  className="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm"
+                >
+                  카톡으로 공유
+                </button>
+                {shareToast && (
+                  <div
+                    role="status"
+                    className="absolute left-1/2 -translate-x-1/2 top-[calc(100%+8px)] whitespace-nowrap bg-gray-900 text-white text-sm px-3 py-1.5 rounded-lg shadow-lg z-50"
+                  >
+                    {shareToast}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ) : (

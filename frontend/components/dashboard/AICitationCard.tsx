@@ -30,14 +30,20 @@ interface Citation {
 interface Props {
   bizId: string
   token: string
+  briefingEligibility?: "active" | "likely" | "inactive"
 }
 
-export default function AICitationCard({ bizId, token }: Props) {
+export default function AICitationCard({ bizId, token, briefingEligibility }: Props) {
   const [citations, setCitations] = useState<Citation[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(false)
   const [isPreview, setIsPreview] = useState(false)
   const [previewMessage, setPreviewMessage] = useState<string>('')
+  // prop(대시보드에서 계산된 값)을 우선, API 응답은 prop이 없을 때만 fallback
+  const [apiEligibility, setApiEligibility] = useState<"active" | "likely" | "inactive" | null>(null)
+
+  const eligibility = briefingEligibility ?? apiEligibility ?? "active"
+  const isNaverInactive = eligibility === "inactive"
 
   useEffect(() => {
     const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
@@ -47,6 +53,7 @@ export default function AICitationCard({ bizId, token }: Props) {
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.citations?.length > 0) setCitations(data.citations)
+        if (data?.eligibility) setApiEligibility(data.eligibility)
         if (data?.is_preview) {
           setIsPreview(true)
           setPreviewMessage(data.preview_message ?? '')
@@ -70,19 +77,34 @@ export default function AICitationCard({ bizId, token }: Props) {
     )
   }
 
-  const mentionedCount = citations.filter(c => c.excerpt && c.excerpt.length > 0).length
+  // naver 계열 플랫폼 판별 (platform 값이 null·다른 형태여도 platform_label로 이중 방어)
+  const isNaverBriefingItem = (c: Citation) =>
+    (c.platform ?? '').toLowerCase().startsWith('naver') ||
+    (c.platform_label ?? '').includes('브리핑') ||
+    (c.platform_label ?? '').toLowerCase().includes('naver');
 
-  if (citations.length === 0) {
+  // INACTIVE 업종은 네이버 AI 브리핑 인용 필터링 (이중 방어)
+  const filteredCitations = isNaverInactive
+    ? citations.filter(c => !isNaverBriefingItem(c))
+    : citations
+  const mentionedCount = filteredCitations.filter(c => c.excerpt && c.excerpt.length > 0).length
+
+  if (filteredCitations.length === 0) {
     return (
       <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
           <MessageSquareQuote className="w-5 h-5 text-blue-400" />
           <h3 className="text-base font-bold text-gray-900">AI 검색 언급 분석</h3>
         </div>
+        {isNaverInactive && (
+          <div className="mb-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            <p className="text-sm font-semibold text-amber-800">이 업종은 네이버 AI 브리핑 대상이 아닙니다</p>
+            <p className="text-sm text-amber-700 mt-0.5">네이버 AI탭(모든 업종 베타) · ChatGPT · Gemini 노출 현황을 확인합니다.</p>
+          </div>
+        )}
         <p className="text-sm text-gray-500 leading-relaxed">
           아직 AI 인용 데이터가 없습니다. 스캔을 완료하면 자동으로 분석됩니다.
         </p>
-        {/* 행동 유도 */}
         <div className="mt-4 bg-amber-50 rounded-lg p-3">
           <p className="text-sm font-semibold text-amber-800">AI가 아직 내 가게를 언급하지 않고 있습니다</p>
           <p className="text-sm text-amber-700 mt-1">소개글 Q&A 추가와 키워드 보강이 가장 효과적입니다.</p>
@@ -96,7 +118,7 @@ export default function AICitationCard({ bizId, token }: Props) {
 
   const INITIAL_VISIBLE = 10
   // is_preview일 때는 첫 1건만 표시하고 잠금 오버레이를 보여줌
-  const visibleCitations = isPreview ? citations.slice(0, 1) : citations
+  const visibleCitations = isPreview ? filteredCitations.slice(0, 1) : filteredCitations
   const visible = expanded ? visibleCitations : visibleCitations.slice(0, INITIAL_VISIBLE)
 
   return (
@@ -105,12 +127,18 @@ export default function AICitationCard({ bizId, token }: Props) {
         <MessageSquareQuote className="w-5 h-5 text-blue-500" />
         <div>
           <h3 className="text-base font-bold text-gray-900">AI 검색 언급 분석</h3>
-          <p className="text-sm text-gray-500">네이버 AI 브리핑 실제 문장 · Gemini/ChatGPT 추천 시뮬레이션</p>
+          <p className="text-sm text-gray-500">
+            {isNaverInactive
+              ? "AI탭 · Gemini · ChatGPT 추천 시뮬레이션 (이 업종은 네이버 AI 브리핑 대상 아님)"
+              : "네이버 AI 브리핑 실제 문장 · Gemini/ChatGPT 추천 시뮬레이션"}
+          </p>
         </div>
       </div>
 
       <div className="space-y-3">
         {visible.map((c, i) => {
+          // INACTIVE 업종: 렌더링 레벨에서 네이버 카드 제거 (filteredCitations 이중 방어)
+          if (isNaverInactive && isNaverBriefingItem(c)) return null;
           const colorCls = PLATFORM_COLORS[c.platform] ?? PLATFORM_COLORS.default
           const sent = c.sentiment ? SENTIMENT_BADGE[c.sentiment] : null
           return (
@@ -204,8 +232,11 @@ export default function AICitationCard({ bizId, token }: Props) {
           </div>
         ) : (
           <div className="bg-blue-50 rounded-lg p-3">
-            <p className="text-sm font-semibold text-blue-800">AI가 내 가게를 언급하고 있습니다</p>
-            <p className="text-sm text-blue-700 mt-1">언급된 키워드를 FAQ와 소개글에 더 자주 넣으면 노출 빈도가 높아집니다.</p>
+            <p className="text-sm font-semibold text-blue-800">AI 답변에서 내 가게 언급 {mentionedCount}건 발견</p>
+            <p className="text-sm text-blue-700 mt-1">
+              검색 후 클릭 없이 AI 답변만 보고 끝나는 비중이 빠르게 늘고 있습니다. 답변 안에 내 가게가 등장하는 것 자체가 노출입니다.
+            </p>
+            <p className="text-sm text-blue-700 mt-1">언급된 키워드를 소개글 Q&A와 본문에 더 자주 넣으면 노출 빈도가 높아집니다.</p>
           </div>
         )}
       </div>

@@ -1332,7 +1332,7 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
     # 사업장 정보 조회
     biz_res = await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, keywords, is_franchise, sp_completeness_json")
+        .select("id, name, category, region, keywords, is_franchise, sp_completeness_json, has_intro, blog_analysis_json, checklist_overrides")
         .eq("id", biz_id)
         .maybe_single()
     )
@@ -1360,16 +1360,105 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
     scan_row = (scan_res.data[0] if scan_res and scan_res.data else None)
 
     from services.briefing_engine import simulate_ai_tab_answer
+    from services.score_engine import calc_ai_tab_readiness, get_ai_tab_readiness_label
     preview = simulate_ai_tab_answer(biz, scan_row)
+
+    readiness_score = calc_ai_tab_readiness(
+        biz.get("category", ""),
+        biz.get("checklist_overrides") or {},
+        biz.get("sp_completeness_json") or {},
+    )
+    readiness_label = get_ai_tab_readiness_label(readiness_score)
 
     result = {
         "biz_id": biz_id,
         "available": True,
         "briefing_eligibility": briefing_eligibility,  # AI 브리핑 게이팅 (UI 분기용)
+        "readiness_label": readiness_label,   # {"short": "준비 중", "description": "..."}
         **preview,
     }
     _cache.set(_cache_key, result, ttl=_TTL_BENCHMARK)
     return result
+
+
+# ── 체크리스트 완료 확인 저장 ────────────────────────────────────────────────
+
+@router.post("/ai-tab-checklist-confirm/{biz_id}")
+async def confirm_ai_tab_checklist(
+    biz_id: str,
+    payload: dict,
+    user=Depends(get_current_user),
+):
+    """AI탭 체크리스트 항목 수동 완료 확인 저장.
+
+    payload: {"item": "포트폴리오 사진 30장 이상 (다양한 분야)", "completed": true}
+    Basic+ 전용.
+    """
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
+    plan = await get_user_plan(user["id"], supabase)
+    if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PLAN_REQUIRED", "message": "Basic 이상 플랜에서 이용할 수 있습니다"},
+        )
+
+    item_text = (payload.get("item") or "").strip()
+    completed = bool(payload.get("completed", True))
+    if not item_text:
+        raise HTTPException(status_code=422, detail="item 필드가 필요합니다")
+
+    # 기존 overrides 불러와서 해당 항목만 업데이트 (나머지 보존)
+    biz_res = await execute(
+        supabase.table("businesses")
+        .select("checklist_overrides")
+        .eq("id", biz_id)
+        .maybe_single()
+    )
+    existing = (biz_res.data or {}).get("checklist_overrides") or {}
+    if not isinstance(existing, dict):
+        existing = {}
+
+    existing[item_text] = completed
+
+    await execute(
+        supabase.table("businesses")
+        .update({"checklist_overrides": existing})
+        .eq("id", biz_id)
+    )
+
+    # 캐시 무효화
+    _cache_key = f"ai_tab_preview:{biz_id}"
+    if hasattr(_cache, "delete"):
+        _cache.delete(_cache_key)
+    else:
+        _cache.set(_cache_key, None, ttl=1)
+
+    from services.score_engine import calc_ai_tab_readiness, get_ai_tab_readiness_label
+
+    # 최신 sp_completeness_json 조회
+    biz_full = await execute(
+        supabase.table("businesses")
+        .select("category, sp_completeness_json, checklist_overrides")
+        .eq("id", biz_id)
+        .maybe_single()
+    )
+    biz_data = biz_full.data or {}
+    readiness_score = calc_ai_tab_readiness(
+        biz_data.get("category", ""),
+        biz_data.get("checklist_overrides") or {},
+        biz_data.get("sp_completeness_json") or {},
+    )
+    label = get_ai_tab_readiness_label(readiness_score)
+
+    return {
+        "ok": True,
+        "item": item_text,
+        "completed": completed,
+        "readiness_label": label,
+    }
 
 
 # ── 대시보드 전환 섹션: 스캔 기반 맞춤 개선 팁 ───────────────────────────────
@@ -2923,10 +3012,10 @@ async def get_ai_citations(
             "total_preview": 1,
         }
 
-    # 소유권 확인 + keywords / region 동시 조회
+    # 소유권 확인 + keywords / region / category / is_franchise 동시 조회
     biz_row = await execute(
         supabase.table("businesses")
-        .select("id, user_id, keywords, region")
+        .select("id, user_id, keywords, region, category, is_franchise")
         .eq("id", biz_id)
         .maybe_single()
     )
@@ -2936,6 +3025,11 @@ async def get_ai_citations(
     biz_data = biz_row.data
     registered_keywords: list = biz_data.get("keywords") or []
     region: str = biz_data.get("region") or ""
+    category: str = biz_data.get("category") or "other"
+    is_franchise: bool = bool(biz_data.get("is_franchise"))
+
+    from services.score_engine import get_briefing_eligibility
+    eligibility: str = get_briefing_eligibility(category, is_franchise)
 
     # 최근 3회 스캔 ID 조회
     scan_res = await execute(
@@ -2970,10 +3064,14 @@ async def get_ai_citations(
 
     enriched_real = []
     for c in real_rows:
+        platform = c.get("platform", "")
+        # INACTIVE 업종(네이버 AI 브리핑 비대상)은 naver 인용 제외
+        if eligibility == "inactive" and platform == "naver":
+            continue
         enriched_real.append({
             "id": None,
-            "platform": c.get("platform", ""),
-            "platform_label": PLATFORM_LABELS.get(c.get("platform", ""), c.get("platform", "")),
+            "platform": platform,
+            "platform_label": PLATFORM_LABELS.get(platform, platform),
             "query": c.get("query", ""),
             "excerpt": c.get("excerpt", ""),
             "sentiment": c.get("sentiment", "neutral"),
@@ -2987,7 +3085,8 @@ async def get_ai_citations(
     cited_queries: set = {c["query"] for c in enriched_real if c.get("query")}
 
     synthetic_rows = []
-    if registered_keywords:
+    if registered_keywords and eligibility in ("active", "likely"):
+        # INACTIVE 업종은 네이버 AI 브리핑 합성 행 생성 안 함 (이중 방어: in whitelist)
         for kw in registered_keywords:
             # 이 키워드가 포함된 query가 이미 실제 데이터에 있으면 합성 생략
             kw_already_present = any(kw in q for q in cited_queries)
@@ -3014,6 +3113,7 @@ async def get_ai_citations(
         "citations": combined,
         "total": len(combined),
         "has_data": any(r.get("mentioned") for r in combined),
+        "eligibility": eligibility,
     }
 
 
@@ -4302,15 +4402,8 @@ async def post_smartplace_check(
         )
 
     # 항목별 결과 구성 (label / passed / score_impact / action_url)
-    # [2026-05-01] 사장님 Q&A 탭 폐기 — FAQ 항목 → 소개글 Q&A 섹션 안내. score_impact 0 (점수 미반영).
+    # [2026-05-01] Q&A 탭 폐기 — FAQ 항목 제거. 소개글·소식·사진·메뉴·영업시간 5개 항목만 유지.
     items = [
-        {
-            "label": "소개글에 Q&A 섹션 포함",
-            "passed": bool(raw.get("has_intro")),
-            "score_impact": 0,
-            "detail": "소개글이 작성되어 있다면 Q&A 5개를 자연스럽게 포함하세요" if raw.get("has_intro") else None,
-            "action_url": _sp_url("profile"),
-        },
         {
             "label": "최근 소식 업데이트",
             "passed": bool(raw.get("has_recent_post")),
@@ -4805,9 +4898,9 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
         },
         {
             "id": "weekly_scan",
-            "title": "이번 주 AI 스캔 완료",
+            "title": "이번 주 AI 스캔 완료" if has_recent_scan else "이번 주 AI 스캔하기",
             "description": (
-                "이번 주 스캔 기록이 없습니다 — 스캔하면 변화를 바로 확인할 수 있어요"
+                "대시보드에서 AI 스캔을 실행하면 이번 주 변화를 바로 확인할 수 있어요"
                 if not has_recent_scan
                 else "이번 주 AI 스캔 완료!"
             ),

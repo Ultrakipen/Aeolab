@@ -18,6 +18,7 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
   const r = 28
   const circ = 2 * Math.PI * r
   const dash = (score / 100) * circ
+  const icon = score >= 70 ? "✓" : score >= 40 ? "~" : "!"
   return (
     <svg width="72" height="72" className="shrink-0">
       <circle cx="36" cy="36" r={r} fill="none" stroke="#f1f5f9" strokeWidth="6" />
@@ -28,8 +29,8 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
         strokeLinecap="round"
         transform="rotate(-90 36 36)"
       />
-      <text x="36" y="41" textAnchor="middle" fontSize="14" fontWeight="700" fill={color}>
-        {Math.round(score)}
+      <text x="36" y="41" textAnchor="middle" fontSize="16" fontWeight="700" fill={color}>
+        {icon}
       </text>
     </svg>
   )
@@ -68,9 +69,9 @@ export function ChannelScoreCards({
     { label: kakaoLabel,                           ok: !!isOnKakao },
   ]
   const globalItems = [
-    { label: 'ChatGPT 노출',           ok: !!chatgptMentioned },
-    { label: '독립 웹사이트 보유',     ok: !!hasWebsite },
-    { label: 'Google Business 등록',   ok: !!googlePlaceRegistered },
+    { label: 'ChatGPT 노출',                              ok: !!chatgptMentioned, optional: false },
+    { label: hasWebsite ? '독립 웹사이트 보유' : '독립 웹사이트 없음 (선택)', ok: !!hasWebsite, optional: !hasWebsite },
+    { label: 'Google Business 등록',                      ok: !!googlePlaceRegistered, optional: false },
   ]
 
   return (
@@ -145,10 +146,10 @@ export function ChannelScoreCards({
             <div className="space-y-1.5">
               {globalItems.map((item) => (
                 <div key={item.label} className="flex items-center gap-2 text-sm">
-                  <span className={item.ok ? 'text-green-500' : 'text-gray-300'}>
+                  <span className={item.ok ? 'text-green-500' : item.optional ? 'text-gray-200' : 'text-gray-300'}>
                     {item.ok ? '✓' : '○'}
                   </span>
-                  <span className={item.ok ? 'text-gray-700' : 'text-gray-400'}>
+                  <span className={item.ok ? 'text-gray-700' : item.optional ? 'text-gray-300' : 'text-gray-400'}>
                     {item.label}
                   </span>
                 </div>

@@ -13,14 +13,14 @@ class ChatGPTScanner:
         self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     async def check_citation(self, query: str, target: str) -> dict:
-        """ChatGPT에서 사업장 인용 여부 확인 (gpt-4o-mini 저비용, 1회 호출)"""
+        """ChatGPT에서 사업장 인용 여부 확인 (gpt-4.1-mini 저비용, 1회 호출)"""
         prompt = f"""검색어: {query}
 다음 사업장이 추천 목록에 포함되는지 확인하고 JSON으로만 답하세요: {target}
 {{"mentioned": true/false, "rank": 순위또는null, "excerpt": "인용된텍스트"}}"""
 
         try:
             response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1-mini",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=1.0,
                 max_tokens=200,
@@ -45,7 +45,7 @@ class ChatGPTScanner:
         try:
             resp = await asyncio.wait_for(
                 self.client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-4.1-mini",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=1.0,
                     max_tokens=200,
@@ -75,7 +75,7 @@ class ChatGPTScanner:
     async def sample_n(self, queries: "str | list[str]", target: str, n: int = 50) -> dict:
         """n회 샘플링으로 ChatGPT 노출 빈도 측정 (일반화 버전).
 
-        비용: gpt-4o-mini n회 (50회 ≈ 25원/회, 100회 ≈ 50원/회)
+        비용: gpt-4.1-mini n회 (50회 ≈ 25원/회, 100회 ≈ 50원/회)
         queries가 list인 경우 균등 분산 (Gemini와 동형).
         batch_size는 10 고정.
         """
@@ -124,7 +124,7 @@ class ChatGPTScanner:
     async def sample_5(self, query: str, target: str) -> dict:
         """5회 샘플링 — Quick 수동 스캔 전용 (1회 → 5회 격상으로 변동성 1/√5 감소).
 
-        비용: gpt-4o-mini 5회 ≈ 2.5원/회 (1회 ~0.5원 대비 +2원)
+        비용: gpt-4.1-mini 5회 ≈ 2.5원/회 (1회 ~0.5원 대비 +2원)
         응답 시간: 5회 병렬 호출이라 1회와 거의 동일 (~2~3초).
         """
         return await self.sample_n(query, target, n=5)

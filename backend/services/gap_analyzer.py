@@ -44,7 +44,11 @@ _GAP_REASONS = {
             if gap > 0 else
             "리뷰를 꾸준히 받아 평점을 높이세요. 키워드가 포함된 리뷰는 AI 브리핑 노출에 직접 영향을 줍니다."
         ),
-        "smart_place_completeness": lambda gap: "소개글·소식 탭이 비어있습니다. 소개글에 지역명·업종·Q&A 섹션을 추가하고 소식을 30일에 1번 이상 올리면 AI 브리핑 인용 후보에 포함될 가능성이 높아집니다.",
+        "smart_place_completeness": lambda gap: (
+            "소개글·소식 탭이 비어있습니다. 소개글에 지역명·업종 키워드를 추가하고 소식을 30일에 1번 이상 올리면 AI 브리핑 인용 후보에 포함될 가능성이 높아집니다."
+            if gap > 0 else
+            "스마트플레이스 완성도가 경쟁사 수준에 도달했습니다. 소식 탭을 꾸준히 업데이트해 상위권을 유지하세요."
+        ),
         "naver_exposure_confirmed": lambda gap: (
             f"네이버 AI 브리핑에 가게가 아직 나오지 않습니다 (경쟁사 대비 -{gap:.0f}점 차이). 소개글 Q&A 섹션 작성과 소식 업로드가 가장 빠른 방법입니다."
             if gap > 0 else
@@ -348,8 +352,7 @@ def _build_growth_stage(
     this_week_action = cfg["this_week_action"]
     if biz_data and is_smart_place:
         missing = []
-        if not has_faq:
-            missing.append("소개글 하단에 Q&A 5개 추가 (네이버 AI 브리핑 인용 후보)")
+        # [2026-05-01] Q&A 탭 폐기 — has_faq 항상 False이므로 이 분기 제거
         if not has_intro:
             missing.append("소개글에 핵심 키워드 2~3개 포함한 2문장 작성")
         if not has_recent_post:
@@ -456,9 +459,9 @@ def analyze_gap(
     if top_comp and not _breakdown_has_real_data and top_score > 0:
         ratio = top_score / 100.0
         top_breakdown = {
-            "keyword_gap_score":        round(top_score * 1.1, 1),
+            "keyword_gap_score":        min(100.0, round(top_score * 1.1, 1)),
             "review_quality":           round(top_score * ratio, 1),
-            "smart_place_completeness": round(top_score * 1.05 * ratio, 1),
+            "smart_place_completeness": min(100.0, round(top_score * 1.05 * ratio, 1)),
             "naver_exposure_confirmed":  round(top_score * 0.9 * ratio, 1),
             "multi_ai_exposure":        round(top_score * ratio, 1),
             "schema_seo":               round(top_score * 0.85 * ratio, 1),
@@ -511,10 +514,13 @@ def analyze_gap(
             bool((biz_data or {}).get("is_franchise")),
         )
     if _eligibility == "inactive":
-        _naver_inactive_dims = {"naver_exposure_confirmed", "ai_briefing_score", "smart_place_completeness"}
+        # INACTIVE 업종: 네이버 AI 브리핑 전용 항목은 gap_to_top=0 처리 → 우선순위 최하위
+        # smart_place_completeness는 AI탭·일반 노출에 여전히 유효하므로 제외
+        _naver_only_dims = {"naver_exposure_confirmed", "ai_briefing_score"}
         for i, dim in enumerate(dimensions):
-            if dim.dimension_key in _naver_inactive_dims:
+            if dim.dimension_key in _naver_only_dims:
                 dimensions[i] = dim.model_copy(update={
+                    "gap_to_top": 0.0,
                     "gap_reason": (
                         f"{dim.dimension_label} 항목은 이 업종({category})에서 네이버 AI 브리핑 대상이 아닙니다. "
                         "ChatGPT·Gemini·Google AI 노출을 위해 구글 비즈니스 프로필과 소개글 최적화에 집중하세요."
@@ -666,7 +672,7 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
     # 사업장 정보 (category, name, 블로그 분석 결과 + 스마트플레이스 실제 상태 포함)
     biz_row = (await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, business_type, review_sample, keywords, blog_url, blog_keyword_coverage, blog_analysis_json, blog_post_count, blog_latest_post_date, blog_analyzed_at, is_smart_place, has_faq, has_intro, has_recent_post, review_count")
+        .select("id, name, category, region, business_type, review_sample, keywords, blog_url, blog_keyword_coverage, blog_analysis_json, blog_post_count, blog_latest_post_date, blog_analyzed_at, is_smart_place, has_faq, has_intro, has_recent_post, review_count, naver_intro_draft")
         .eq("id", business_id)
         .single()
     )).data
@@ -727,6 +733,12 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
     biz_keywords = biz_row.get("keywords") or []
     if isinstance(biz_keywords, list) and biz_keywords:
         _add_excerpt(" ".join(biz_keywords))  # 공백으로 연결해 단일 텍스트로 처리
+
+    # 1c순위: naver_intro_draft — AI가 생성하거나 사용자가 입력한 스마트플레이스 소개글
+    # 소개글에 키워드가 있으면 Naver 색인에도 반영되므로 covered로 처리
+    _naver_intro = (biz_row.get("naver_intro_draft") or "").strip()
+    if _naver_intro:
+        _add_excerpt(_naver_intro)
 
     # 2순위: naver_result / gemini_result 스캔 결과에서 텍스트 추출
     for result_key in ("naver_result", "gemini_result"):

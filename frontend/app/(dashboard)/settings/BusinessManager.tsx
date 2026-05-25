@@ -425,9 +425,10 @@ interface Props {
   userId: string;
   autoEdit?: boolean;
   autoEditId?: string | null;
+  autoField?: string | null;
 }
 
-export function BusinessManager({ businesses, userId, autoEdit, autoEditId }: Props) {
+export function BusinessManager({ businesses, userId, autoEdit, autoEditId, autoField }: Props) {
   const router = useRouter();
 
   // 탭 초기값: autoEditId → 해당 사업장, 없으면 첫 번째
@@ -500,6 +501,20 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId }: Pr
       }, 300);
     }
   }, [autoEdit]);
+
+  // autoField: 특정 필드로 스크롤+포커스
+  useEffect(() => {
+    if (autoField) {
+      setTimeout(() => {
+        const el = document.getElementById(`field-${autoField}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          const input = el.querySelector("input");
+          if (input) input.focus();
+        }
+      }, 500);
+    }
+  }, [autoField]);
 
   const handleSyncReviews = async (bizId: string) => {
     setSyncingReviews(true);
@@ -819,7 +834,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId }: Pr
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div>
+            <div id="field-website_url">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">웹사이트</label>
               <input
                 value={editForm.website_url ?? ""}

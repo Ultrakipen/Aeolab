@@ -86,7 +86,7 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 max-h-80 overflow-y-auto">
+        <div className="absolute top-full left-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 max-h-80 overflow-y-auto">
           <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 dark:border-gray-700">
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">알림</p>
             <button onClick={() => setOpen(false)} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">

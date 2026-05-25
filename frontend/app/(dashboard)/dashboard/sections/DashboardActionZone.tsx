@@ -29,6 +29,8 @@ interface Props {
   unifiedScore?: number | null;
   isSmartPlace?: boolean;
   plan?: string;
+  category?: string;
+  isCompetitorEstimated?: boolean;
 }
 
 /**
@@ -76,6 +78,7 @@ export default function DashboardActionZone({
   accessToken,
   hasLatestScan,
   userCreatedAt,
+  isCompetitorEstimated,
   dimensions,
   todayTasks,
   actionCopyText,
@@ -83,14 +86,22 @@ export default function DashboardActionZone({
   unifiedScore,
   isSmartPlace = false,
   plan = "free",
+  category,
 }: Props) {
   return (
     <section aria-label="액션 가이드" className="flex flex-col gap-3">
       {/* 무료 플랜 업그레이드 유도 — 최상단 */}
       <UpgradeNudgeCard plan={plan} hasLatestScan={hasLatestScan} />
 
+      {/* 경쟁사 실측 데이터 없음 — 추정값 기반 안내 */}
+      {isCompetitorEstimated && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-sm text-amber-800">
+          <strong>개선 우선순위는 업종 평균 추정값 기반입니다.</strong> 경쟁사를 등록하면 실측 데이터로 정확도가 높아집니다.
+        </div>
+      )}
+
       {/* 시즌 키워드 배너 */}
-      <SeasonalKeywordBanner />
+      <SeasonalKeywordBanner category={category} />
 
       {/* ① 오늘 — 시급 */}
       {hasLatestScan && accessToken && (
@@ -127,27 +138,11 @@ export default function DashboardActionZone({
       />
       <Day7ActionCard bizId={bizId} userCreatedAt={userCreatedAt} />
 
-      {/* ③ 점수 변화 회고 — 분석 */}
-      {hasLatestScan && accessToken && (
-        <>
-          <ZoneHeader
-            step={3}
-            icon={<TrendingUp className="w-3.5 h-3.5" />}
-            label="내 행동의 효과"
-            description="지난 행동 후 점수 변화 — 효과가 큰 행동 우선"
-            accent="bg-slate-500"
-            badgeBg="bg-slate-100"
-            badgeText="text-slate-800"
-          />
-          <ScoreAttributionCard bizId={bizId} authToken={accessToken} />
-        </>
-      )}
-
-      {/* ④ 이번 달 — 장기 체크리스트 */}
+      {/* ③ 이번 달 — 장기 체크리스트 */}
       {accessToken && (
         <>
           <ZoneHeader
-            step={4}
+            step={3}
             icon={<ListChecks className="w-3.5 h-3.5" />}
             label="이달의 체크리스트"
             description="한 달 동안 꾸준히 달성하는 5개 항목"
@@ -156,6 +151,22 @@ export default function DashboardActionZone({
             badgeText="text-emerald-800"
           />
           <MonthlyChecklistCard bizId={bizId} authToken={accessToken} />
+        </>
+      )}
+
+      {/* ④ 점수 변화 회고 — 행동 효과 확인 (장기 행동 목록 이후, 결과 되돌아보기) */}
+      {hasLatestScan && accessToken && (
+        <>
+          <ZoneHeader
+            step={4}
+            icon={<TrendingUp className="w-3.5 h-3.5" />}
+            label="내 행동의 효과"
+            description="지난 행동 후 점수 변화 — 효과가 큰 행동 우선"
+            accent="bg-slate-500"
+            badgeBg="bg-slate-100"
+            badgeText="text-slate-800"
+          />
+          <ScoreAttributionCard bizId={bizId} authToken={accessToken} />
         </>
       )}
 

@@ -166,7 +166,7 @@ function FindingsCard({
 }
 
 // ── 잠긴 상세 분석 카드 (점수는 위에서 공개, 여기서는 항목별 분석 유도) ────
-function LockedScoreCard({ score, track1, track2 }: { score: number; track1: number; track2: number }) {
+function LockedScoreCard({ score, track1, track2, userGroup }: { score: number; track1: number; track2: number; userGroup?: string }) {
   return (
     <div className="rounded-xl border-2 border-blue-100 bg-white overflow-hidden relative mb-4">
       <div className="px-4 py-3 border-b border-blue-100">
@@ -198,7 +198,7 @@ function LockedScoreCard({ score, track1, track2 }: { score: number; track1: num
           { label: "핵심 키워드 보유", pct: "35%", barW: 50 },
           { label: "고객 후기 신뢰도", pct: "25%", barW: 50 },
           { label: "네이버 프로필 완성도", pct: "15%", barW: 50 },
-          { label: "AI 브리핑 노출", pct: "15%", barW: 50 },
+          { label: userGroup === "INACTIVE" ? "키워드·리뷰 최적화" : "AI 브리핑 노출", pct: "15%", barW: 50 },
           { label: "카카오맵 등록", pct: "10%", barW: 50 },
         ].map((item) => (
           <div key={item.label} className="mb-3">
@@ -1136,7 +1136,7 @@ export default function TrialResultStep(props: TrialResultProps) {
 
         {/* ── 12. 잠긴 점수 카드 — 구독 유도 ────────────────────── */}
         {!isLoggedIn && (
-          <LockedScoreCard score={score} track1={track1} track2={track2} />
+          <LockedScoreCard score={score} track1={track1} track2={track2} userGroup={userGroupValue} />
         )}
 
         {/* ── 13. ClaimGate — 근거 확인 후 저장 유도 ──────────── */}
@@ -1764,7 +1764,7 @@ function BriefingBadgeChip({
     return (
       <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-200 bg-white/20 border border-amber-300/60 rounded-full px-3 py-1 whitespace-nowrap">
         <Clock className="w-3.5 h-3.5 shrink-0" />
-        AI탭·ChatGPT·Gemini 4채널
+        네이버 AI탭·ChatGPT·Gemini 4채널
       </span>
     );
   }

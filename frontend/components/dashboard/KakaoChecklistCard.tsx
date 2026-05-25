@@ -222,17 +222,14 @@ export default function KakaoChecklistCard({
           </p>
         </div>
 
-        {/* 점수 + 등급 뱃지 */}
+        {/* 등급 뱃지 (숫자 제거 — 텍스트 상태 우선) */}
         <div className="text-right shrink-0">
-          <div className="text-3xl md:text-4xl font-extrabold" style={{ color: "#3C1E1E" }}>
-            {score}
-            <span className="text-base md:text-lg font-normal text-gray-400">점</span>
-          </div>
           <span
-            className={`inline-flex items-center text-sm font-semibold rounded-full px-2.5 py-0.5 mt-1 border ${grade.bg} ${grade.color}`}
+            className={`inline-flex items-center text-base font-bold rounded-full px-4 py-1.5 border ${grade.bg} ${grade.color}`}
           >
             {grade.label}
           </span>
+          <p className="text-xs text-gray-400 mt-1">{completedCount}/{CHECKLIST_ITEMS.length} 항목 완료</p>
         </div>
       </div>
 
@@ -240,7 +237,6 @@ export default function KakaoChecklistCard({
       <div>
         <div className="flex items-center justify-between text-sm text-gray-500 mb-1.5">
           <span>{getScoreMessage(score)}</span>
-          <span>{completedCount} / {CHECKLIST_ITEMS.length} 항목 완료</span>
         </div>
         <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
           <div
@@ -289,7 +285,15 @@ export default function KakaoChecklistCard({
                     {item.label}
                   </span>
                   {!checked && <PriorityBadge priority={item.priority} />}
-                  <span className="text-sm text-gray-400 ml-auto shrink-0">+{item.weight}점</span>
+                  {!checked && (
+                    <span className={`text-xs font-medium ml-auto shrink-0 px-1.5 py-0.5 rounded-full ${
+                      item.weight >= 25 ? 'bg-red-50 text-red-600' :
+                      item.weight >= 15 ? 'bg-amber-50 text-amber-600' :
+                      'bg-gray-100 text-gray-500'
+                    }`}>
+                      {item.weight >= 25 ? '매우 중요' : item.weight >= 15 ? '중요' : '권장'}
+                    </span>
+                  )}
                 </div>
                 <p className={`text-sm leading-relaxed ${checked ? "text-green-600" : "text-gray-500"}`}>
                   {item.desc}

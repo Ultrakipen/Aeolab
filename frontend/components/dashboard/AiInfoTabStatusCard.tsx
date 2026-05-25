@@ -8,7 +8,7 @@ export type AiInfoTabStatus = "not_visible" | "off" | "on" | "disabled" | "unkno
 
 // M3 사전 작업: Q2 광고 도입 감지 시 true로 변경 → 광고/자연 배지 즉시 활성화
 // 트리거: docs/remaining_tasks_v1.0.md §9-C 수동 모니터링 명령으로 광고 감지 후 변경
-const NAVER_AD_IN_BRIEFING_ACTIVE = false;
+const NAVER_AD_IN_BRIEFING_ACTIVE = true;
 
 interface Props {
   bizId: string;

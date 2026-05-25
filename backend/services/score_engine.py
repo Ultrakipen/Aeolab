@@ -55,8 +55,10 @@ BRIEFING_INACTIVE_CATEGORIES = [
 def get_briefing_eligibility(category: str, is_franchise: bool = False) -> str:
     """업종별 AI 브리핑 노출 가능성 분류 반환.
 
-    네이버 공식(2026-04-30 확인): 프랜차이즈 업종은 현재 AI 브리핑 제공 대상에서 제외됨
-    (출처: help.naver.com/service/30026/contents/24632 — "프랜차이즈 업종의 경우 현재 제공되지 않으며 추후 확대 예정").
+    네이버 공식(2026-04-30 확인, help.naver.com/service/30026/contents/24632):
+    - 프랜차이즈 업종: "현재 제공되지 않으며 추후 확대 예정" ✅ 공식 확인
+    - 리뷰 수 기준 미달: "서비스가 제공되지 않습니다" ✅ 공식 확인
+    - 대상 업종: "음식점, 카페 등 일부 업종" (bakery·bar는 "등"에 포함으로 해석)
 
     Args:
         category: 업종 키 (restaurant, cafe 등)
@@ -64,14 +66,18 @@ def get_briefing_eligibility(category: str, is_franchise: bool = False) -> str:
 
     Returns:
         "active"   — 음식점·카페 등 현재 대상 업종
-        "likely"   — 베이커리·미용 등 확대 예상 업종
+        "likely"   — 미용·네일 등 확대 예상 업종 (베이커리·바는 ACTIVE 분류)
         "inactive" — 사진·법무 등 비대상 업종 (네이버 정책) 또는 프랜차이즈
     """
-    from services.keyword_taxonomy import normalize_category
+    from services.keyword_taxonomy import normalize_category, _CATEGORY_ALIASES
     if is_franchise:
         return "inactive"
     # normalize_category("other") → "restaurant" 이므로 normalize 전에 먼저 처리
     if (category or "").lower() in ("other", "기타"):
+        return "inactive"
+    # normalize_category fallback = "restaurant" (ACTIVE) — alias 미등록 업종이 ACTIVE로 오분류되는 것을 방지
+    cat_lower = (category or "").lower().strip()
+    if cat_lower not in _CATEGORY_ALIASES:
         return "inactive"
     key = normalize_category(category)
     if key in BRIEFING_ACTIVE_CATEGORIES:
@@ -188,13 +194,85 @@ def get_dual_track_ratio(category: str) -> dict[str, float]:
 # Track 1 — 네이버 AI 브리핑 준비도 가중치
 # ────────────────────────────────────────────────────────────────
 NAVER_TRACK_WEIGHTS: dict[str, float] = {
-    "keyword_gap_score":        0.35,  # 업종별 키워드 커버리지 — 조건검색 직결
+    "keyword_gap_score":        0.30,  # 업종별 키워드 커버리지 — 조건검색 직결 (0.35→0.30, ai_tab_readiness 분리)
     "review_quality":           0.25,  # 리뷰 수·평점·최신성·키워드 다양성
-    "smart_place_completeness": 0.15,  # FAQ·소개글·소식·부가정보 완성도 (0.25 → 0.15, kakao 10% 분리)
-    # NOTE: AI 브리핑 전용. AI탭 측정은 P2 이후 구현 예정 (naver_ai_tab_visible 별도 항목으로 분리)
+    "smart_place_completeness": 0.15,  # FAQ·소개글·소식·부가정보 완성도
     "naver_exposure_confirmed": 0.15,  # 네이버 AI 브리핑 실제 확인
     "kakao_completeness":       0.10,  # 카카오맵 완성도 (사용자 체크리스트 기반)
+    "ai_tab_readiness":         0.05,  # AI탭 체크리스트 준비도 (사용자 확인 + 스캔 확인)
 }
+
+# ────────────────────────────────────────────────────────────────
+# AI탭 준비도 텍스트 레이블 (숫자 점수 → 사용자 친화적 표현)
+# ────────────────────────────────────────────────────────────────
+_AI_TAB_READINESS_LABELS: list[tuple[float, str, str]] = [
+    (0.0,  "아직 시작 전",   "AI탭 노출 준비가 아직 시작되지 않았습니다"),
+    (20.0, "기초 준비 단계", "AI탭 노출을 위한 기초 준비 단계입니다"),
+    (40.0, "준비 중",        "AI탭 노출 가능성이 점점 높아지고 있습니다"),
+    (65.0, "거의 완료",      "AI탭에 자주 노출될 준비가 거의 됐습니다"),
+    (85.0, "최적화 완료",    "AI탭 노출에 최적화된 상태입니다"),
+]
+
+
+def get_ai_tab_readiness_label(score: float) -> dict[str, str]:
+    """AI탭 준비도 점수(0~100) → 텍스트 레이블 반환.
+
+    Returns: {"short": 단어, "description": 문장}
+    """
+    label = _AI_TAB_READINESS_LABELS[0]
+    for threshold, short, desc in _AI_TAB_READINESS_LABELS:
+        if score >= threshold:
+            label = (threshold, short, desc)
+    return {"short": label[1], "description": label[2]}
+
+
+def calc_ai_tab_readiness(
+    category: str,
+    checklist_overrides: dict | None,
+    sp_completeness_json: dict | None,
+) -> float:
+    """AI탭 준비도 점수 (0~100).
+
+    스캔 자동 확인(photo_count, has_reservation) + 사용자 수동 확인(checklist_overrides)
+    두 소스를 합산. 중복 항목은 한 번만 카운트.
+    """
+    import re as _re
+    from services.ai_tab_checklists import get_checklist as _get_checklist
+    from services.ai_tab_checklists import get_checklist_score as _get_score
+
+    items = _get_checklist(category)
+    if not items:
+        return 0.0
+
+    completed_texts: set[str] = set()
+
+    # 1) 스캔 자동 확인 — sp_completeness_json 기반
+    sp = sp_completeness_json or {}
+    photo_count = int(sp.get("photo_count") or 0)
+    has_reservation = sp.get("has_reservation")
+    has_intro = sp.get("has_intro")
+
+    for it in items:
+        txt = it["item"]
+        if ("사진" in txt or "포트폴리오" in txt) and photo_count > 0:
+            m = _re.search(r"(\d+)장", txt)
+            threshold = int(m.group(1)) if m else 10
+            if photo_count >= threshold:
+                completed_texts.add(txt)
+        elif "예약 연동" in txt and has_reservation is True:
+            completed_texts.add(txt)
+        elif "소개글" in txt and has_intro:
+            completed_texts.add(txt)
+
+    # 2) 사용자 수동 확인 — checklist_overrides 기반
+    overrides = checklist_overrides or {}
+    for txt, done in overrides.items():
+        if done:
+            completed_texts.add(txt)
+
+    # 3) 점수 계산
+    return _get_score(category, list(completed_texts))
+
 
 # ────────────────────────────────────────────────────────────────
 # Track 2 — 글로벌 AI 가시성 가중치
@@ -268,11 +346,14 @@ def _resolve_keyword_gap_score(
         if isinstance(b, dict)
     ]
     auto_excerpts = [t for t in auto_excerpts if t]
-    # 우선순위: 리뷰샘플 > 블로그 covered 키워드 > 등록 키워드 > naver top_blogs
+    # 우선순위: 리뷰샘플 > 소개글 > 블로그 covered 키워드 > 등록 키워드 > naver top_blogs
+    _naver_intro = (biz.get("naver_intro_draft") or "").strip()
     if biz_kw_text:
         auto_excerpts = [biz_kw_text] + auto_excerpts
     if blog_covered_kw:
         auto_excerpts = [blog_covered_kw] + auto_excerpts
+    if _naver_intro:
+        auto_excerpts = [_naver_intro] + auto_excerpts
     if biz_review_sample:
         auto_excerpts = [biz_review_sample] + auto_excerpts
 
@@ -446,11 +527,12 @@ def calc_track1_score(
     kw_gap을 함께 반환해 calculate_score()에서 재사용 (이중 호출 방지)
 
     구성 (합계 1.0):
-      keyword_gap_score        35%
+      keyword_gap_score        30%  (← 0.35에서 축소, ai_tab_readiness 5% 분리)
       review_quality           25%
       smart_place_completeness 15%  (← 0.25에서 축소, kakao 10% 분리)
       naver_exposure_confirmed 15%
       kakao_completeness       10%  (← 카카오맵 완성도 신규)
+      ai_tab_readiness          5%  (← AI탭 체크리스트 준비도)
     """
     kw_gap, is_estimated = _resolve_keyword_gap_score(
         keyword_coverage_rate, naver_data, biz, category
@@ -460,19 +542,41 @@ def calc_track1_score(
     nv_exp    = calc_naver_exposure(scan_result)
     kakao_com = calc_kakao_completeness(scan_result, biz)
 
-    score = (
-        kw_gap    * NAVER_TRACK_WEIGHTS["keyword_gap_score"] +
-        rv_qual   * NAVER_TRACK_WEIGHTS["review_quality"] +
-        sp_comp   * NAVER_TRACK_WEIGHTS["smart_place_completeness"] +
-        nv_exp    * NAVER_TRACK_WEIGHTS["naver_exposure_confirmed"] +
-        kakao_com * NAVER_TRACK_WEIGHTS["kakao_completeness"]
+    _eff_cat = category or biz.get("category") or ""
+    ai_tab_ready = calc_ai_tab_readiness(
+        _eff_cat,
+        biz.get("checklist_overrides") or {},
+        biz.get("sp_completeness_json") or {},
     )
 
-    # AI 정보 탭 상태 — 점수 왜곡 없이 meta + missing 리스트로만 반영
+    # eligibility를 score 계산 전에 먼저 확정 (INACTIVE 분기에서 사용)
     # category 파라미터가 빈 문자열이면 biz dict에서 fallback
     _eff_category = category or biz.get("category") or ""
     ai_status    = biz.get("ai_info_tab_status", "unknown")
     eligibility  = get_briefing_eligibility(_eff_category, bool(biz.get("is_franchise")))
+
+    # INACTIVE 업종: naver_exposure_confirmed는 항상 0 (AI 브리핑 비대상)
+    # → 해당 15% 가중치를 제외하고 나머지 85%로 정규화해 구조적 손실 방지
+    # (출처: help.naver.com/service/30026/contents/24632 "음식점, 카페 등 일부 업종")
+    # LIKELY 업종은 nv_exp가 일부 업체에서 0이 아닐 수 있으므로 이 분기에 포함하지 않음
+    if eligibility == "inactive":
+        _inactive_w = 1.0 - NAVER_TRACK_WEIGHTS["naver_exposure_confirmed"]  # 0.85
+        score = (
+            kw_gap        * NAVER_TRACK_WEIGHTS["keyword_gap_score"] +
+            rv_qual       * NAVER_TRACK_WEIGHTS["review_quality"] +
+            sp_comp       * NAVER_TRACK_WEIGHTS["smart_place_completeness"] +
+            kakao_com     * NAVER_TRACK_WEIGHTS["kakao_completeness"] +
+            ai_tab_ready  * NAVER_TRACK_WEIGHTS["ai_tab_readiness"]
+        ) / _inactive_w
+    else:
+        score = (
+            kw_gap        * NAVER_TRACK_WEIGHTS["keyword_gap_score"] +
+            rv_qual       * NAVER_TRACK_WEIGHTS["review_quality"] +
+            sp_comp       * NAVER_TRACK_WEIGHTS["smart_place_completeness"] +
+            nv_exp        * NAVER_TRACK_WEIGHTS["naver_exposure_confirmed"] +
+            kakao_com     * NAVER_TRACK_WEIGHTS["kakao_completeness"] +
+            ai_tab_ready  * NAVER_TRACK_WEIGHTS["ai_tab_readiness"]
+        )
 
     # 항목별 감점 근거 — TrendLine 이벤트 오버레이 및 score_breakdown JSONB 저장용
     is_sp       = bool(
@@ -582,6 +686,10 @@ def calc_track1_score(
             "ai_info_tab_status": ai_status,
             "explanation":        _briefing_explanation(eligibility, ai_status),
         },
+        "ai_tab_readiness": {
+            "score": round(ai_tab_ready, 1),
+            "label": get_ai_tab_readiness_label(ai_tab_ready),
+        },
     }
 
     return (round(score, 1), is_estimated, kw_gap, track1_detail)
@@ -632,7 +740,7 @@ def calc_schema_seo(scan_result: dict, biz: dict) -> float:
         (40 if website_check.get("has_json_ld")                else 0) +
         (20 if website_check.get("has_schema_local_business")  else 0) +
         (20 if website_check.get("has_open_graph")             else 0) +
-        (10 if website_check.get("has_viewport")               else 0) +
+        (10 if website_check.get("is_mobile_friendly")          else 0) +
         (10 if biz.get("google_place_id")                      else 0)
     )
     return float(score)
@@ -714,7 +822,14 @@ def calculate_score(
     # Track 1 계산 (v3.0 / v3.1 토글)
     # 환경변수 SCORE_MODEL_VERSION=v3_1 시 그룹별 6항목 가중치 사용
     # 미설정 시 기존 v3.0 5항목 (하위 호환)
-    if SCORE_MODEL_VERSION == "v3_2":
+    if SCORE_MODEL_VERSION == "v3_3":
+        track1, track1_detail = calc_track1_score_v3_3(
+            scan_result, biz, naver_data, keyword_coverage_rate, category
+        )
+        _sp_item = track1_detail.get("items", {}).get("smart_place_completeness", {})
+        is_estimated = bool(_sp_item.get("kw_gap_estimated", False))
+        kw_gap = float(_sp_item.get("kw_gap_absorbed", 0.0))
+    elif SCORE_MODEL_VERSION == "v3_2":
         track1, track1_detail = calc_track1_score_v3_2(
             scan_result, biz, naver_data, keyword_coverage_rate, category
         )
@@ -868,25 +983,31 @@ def get_weights_for_context(context: str) -> dict:
       content_freshness ← 점수 배분 없음 (최신성 보조 지표, 0.05 고정)
     """
     if context == "non_location":
-        # non_location: 글로벌 AI 위주 → Track2 가중치 중심
-        return {
-            "keyword_gap_score":        NAVER_TRACK_WEIGHTS["keyword_gap_score"] * 0.5,   # 0.175
-            "review_quality":           NAVER_TRACK_WEIGHTS["review_quality"] * 0.5,      # 0.125
-            "smart_place_completeness": NAVER_TRACK_WEIGHTS["smart_place_completeness"] * 0.5,  # 0.125
-            "naver_exposure_confirmed":  NAVER_TRACK_WEIGHTS["naver_exposure_confirmed"] * 0.5,  # 0.075
-            "multi_ai_exposure":        GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"],         # 0.40
-            "schema_seo":               GLOBAL_TRACK_WEIGHTS["schema_seo"],               # 0.30
+        # non_location: 글로벌 AI 위주 → Track2 가중치 중심. 합계 1.00 정규화
+        raw_nl = {
+            "keyword_gap_score":        NAVER_TRACK_WEIGHTS["keyword_gap_score"] * 0.5,
+            "review_quality":           NAVER_TRACK_WEIGHTS["review_quality"] * 0.5,
+            "smart_place_completeness": NAVER_TRACK_WEIGHTS["smart_place_completeness"] * 0.5,
+            "naver_exposure_confirmed": NAVER_TRACK_WEIGHTS["naver_exposure_confirmed"] * 0.5,
+            "multi_ai_exposure":        GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"],
+            "schema_seo":               GLOBAL_TRACK_WEIGHTS["schema_seo"],
         }
+        total_nl = sum(raw_nl.values())
+        return {k: round(v / total_nl, 4) for k, v in raw_nl.items()}
     else:
-        # location_based (기본): 네이버 중심 → Track1 + Track2 가중치 혼합
-        return {
-            "keyword_gap_score":        NAVER_TRACK_WEIGHTS["keyword_gap_score"],          # 0.35
+        # location_based (기본): 네이버 중심 → Track1 전체 + Track2 혼합. 합계 1.00 정규화
+        raw = {
+            "keyword_gap_score":        NAVER_TRACK_WEIGHTS["keyword_gap_score"],          # 0.30
             "review_quality":           NAVER_TRACK_WEIGHTS["review_quality"],             # 0.25
-            "smart_place_completeness": NAVER_TRACK_WEIGHTS["smart_place_completeness"],   # 0.25
-            "naver_exposure_confirmed":  NAVER_TRACK_WEIGHTS["naver_exposure_confirmed"],   # 0.15
-            "multi_ai_exposure":        GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"] * 0.5,   # 0.20
+            "smart_place_completeness": NAVER_TRACK_WEIGHTS["smart_place_completeness"],   # 0.15
+            "naver_exposure_confirmed": NAVER_TRACK_WEIGHTS["naver_exposure_confirmed"],   # 0.15
+            "kakao_completeness":       NAVER_TRACK_WEIGHTS["kakao_completeness"],         # 0.10
+            "ai_tab_readiness":         NAVER_TRACK_WEIGHTS["ai_tab_readiness"],           # 0.05
+            "multi_ai_exposure":        GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"] * 0.5,  # 0.20
             "schema_seo":               GLOBAL_TRACK_WEIGHTS["schema_seo"] * 0.5,         # 0.15
         }
+        total = sum(raw.values())  # 1.35 → 정규화
+        return {k: round(v / total, 4) for k, v in raw.items()}
 
 
 # ════════════════════════════════════════════════════════════════
@@ -1293,3 +1414,71 @@ def calc_track1_score_v3_2(
         },
     }
     return (round(score, 2), detail)
+
+
+def calc_naver_multich_score(scan_result: dict) -> dict:
+    """P3 멀티채널(카페·지식인) 언급 점수 유틸 (선행 구현 — 2026-05-25).
+
+    NAVER_MULTICH_ENABLED=true + 구독자 20명 이후 v3.3에서 Track1에 연결 예정.
+    현재는 score에 미반영 — 진단 보조 데이터로만 사용.
+    """
+    naver_result = scan_result.get("naver_result") or {}
+    cafe_data = naver_result.get("cafe_result") or {}
+    jisik_data = naver_result.get("jisik_result") or {}
+
+    cafe_mentioned = bool(cafe_data.get("mentioned"))
+    cafe_count = int(cafe_data.get("mention_count") or 0)
+    cafe_score = float(cafe_data.get("exposure_score") or 0.0)
+
+    jisik_mentioned = bool(jisik_data.get("mentioned"))
+    jisik_count = int(jisik_data.get("mention_count") or 0)
+    jisik_score = float(jisik_data.get("exposure_score") or 0.0)
+
+    # 보너스: 카페 5점 + 지식인 5점 상한 (v3.3 Track1 연결 시 가중치로 대체 예정)
+    cafe_bonus = min(5.0, cafe_score * 0.05)
+    jisik_bonus = min(5.0, jisik_score * 0.05)
+    multich_bonus = round(cafe_bonus + jisik_bonus, 2)
+
+    return {
+        "cafe_mentioned": cafe_mentioned,
+        "cafe_mention_count": cafe_count,
+        "cafe_score": cafe_score,
+        "jisik_mentioned": jisik_mentioned,
+        "jisik_mention_count": jisik_count,
+        "jisik_score": jisik_score,
+        "multich_bonus": multich_bonus,
+    }
+
+
+def calc_track1_score_v3_3(
+    scan_result: dict,
+    biz: dict,
+    naver_data: dict,
+    keyword_coverage_rate: float | None = None,
+    category: str = "",
+) -> tuple[float, dict]:
+    """v3.3 Track1 점수 — v3.2 기반 + 카페·지식인 멀티채널 보너스.
+
+    활성화 조건: NAVER_MULTICH_ENABLED=true AND SCORE_MODEL_VERSION=v3_3
+    구독자 20명 도달 후 calculate_score()에서 호출.
+    보너스 최대 +10점 (카페 5 + 지식인 5), 상한 100점.
+    """
+    base_score, base_detail = calc_track1_score_v3_2(
+        scan_result, biz, naver_data, keyword_coverage_rate, category
+    )
+    multich = calc_naver_multich_score(scan_result)
+    bonus = multich["multich_bonus"]
+    final_score = round(min(100.0, base_score + bonus), 2)
+
+    detail = {
+        **base_detail,
+        "model_version": "v3.3",
+        "multich_bonus": bonus,
+        "multich_detail": {
+            "cafe_mentioned": multich["cafe_mentioned"],
+            "cafe_mention_count": multich["cafe_mention_count"],
+            "jisik_mentioned": multich["jisik_mentioned"],
+            "jisik_mention_count": multich["jisik_mention_count"],
+        },
+    }
+    return (final_score, detail)

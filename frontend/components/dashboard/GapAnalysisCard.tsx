@@ -39,7 +39,7 @@ function getScoreLevel(score: number): { label: string; color: string } {
 function ScoreBasisPanel() {
   return (
     <div className="mt-1 mb-3 bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600 space-y-2">
-      <p className="font-semibold text-gray-700 mb-1">점수 산출 근거 (100점 만점)</p>
+      <p className="font-semibold text-gray-700 mb-1">AI 노출 지수 산출 근거 (100점 만점)</p>
       <div className="space-y-1.5">
         <div className="flex items-start gap-2">
           <span className="shrink-0 font-medium text-gray-500 w-5">①</span>
@@ -112,8 +112,7 @@ export function GapAnalysisCard({ gap }: Props) {
           : "최고 점수 경쟁사 대비 나의 부족한 항목을 우선순위 순으로 보여줍니다."}
         {gap.vs_top?.top_competitor_name && (
           <span className="ml-1 text-gray-500">
-            (비교 대상: <strong>{gap.vs_top.top_competitor_name}</strong>{" "}
-            {gap.vs_top.top_competitor_score}점{iAmAhead ? `, 내 가게 ${Math.round(myScore)}점` : ""})
+            (비교 대상: <strong>{gap.vs_top.top_competitor_name}</strong>)
           </span>
         )}
       </p>
@@ -124,7 +123,7 @@ export function GapAnalysisCard({ gap }: Props) {
         className="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-700 mb-3 transition-colors"
       >
         <Info className="w-3.5 h-3.5" />
-        점수가 어떻게 계산되나요?
+        지수가 어떻게 계산되나요?
         {showBasis ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
       </button>
       {showBasis && <ScoreBasisPanel />}
@@ -179,19 +178,29 @@ export function GapAnalysisCard({ gap }: Props) {
                       <CheckCircle className="w-4 h-4 shrink-0" />
                       이 경쟁사보다 AI 노출 점수가 높습니다
                     </div>
-                    {/* 점수 비교 */}
+                    {/* 상태 비교 */}
                     <div className="flex items-center gap-6 mb-3">
                       <div className="text-center">
-                        <div className="text-3xl font-bold text-emerald-700">{Math.round(myScore)}</div>
-                        <div className="text-sm text-gray-400">/ 100점</div>
-                        <div className={`text-sm font-semibold mt-0.5 ${myLevel.color}`}>{myLevel.label}</div>
+                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${
+                          myScore >= 70 ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                          : myScore >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
+                          : "bg-red-50 text-red-500 border-red-100"
+                        }`}>
+                          {myScore >= 70 ? "양호" : myScore >= 40 ? "보통" : "개선 필요"}
+                        </span>
+                        <div className={`text-sm font-semibold mt-1 ${myLevel.color}`}>{myLevel.label}</div>
                         <div className="text-sm text-gray-500 mt-0.5">내 가게</div>
                       </div>
                       <div className="text-gray-300 text-xl">&gt;</div>
                       <div className="text-center">
-                        <div className="text-3xl font-bold text-gray-400">{Math.round(competitorScore)}</div>
-                        <div className="text-sm text-gray-400">/ 100점</div>
-                        <div className={`text-sm font-semibold mt-0.5 ${compLevel.color}`}>{compLevel.label}</div>
+                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${
+                          competitorScore >= 70 ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                          : competitorScore >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
+                          : "bg-red-50 text-red-500 border-red-100"
+                        }`}>
+                          {competitorScore >= 70 ? "양호" : competitorScore >= 40 ? "보통" : "개선 필요"}
+                        </span>
+                        <div className={`text-sm font-semibold mt-1 ${compLevel.color}`}>{compLevel.label}</div>
                         <div className="text-sm text-gray-500 mt-0.5">{competitorName}</div>
                       </div>
                     </div>
@@ -207,19 +216,29 @@ export function GapAnalysisCard({ gap }: Props) {
                       <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
                       항목별 비교 데이터 수집 중
                     </div>
-                    {/* 점수 비교 — /100 기준 + 수준 표시 */}
+                    {/* 상태 비교 */}
                     <div className="flex items-center gap-6 mb-3">
                       <div className="text-center">
-                        <div className="text-3xl font-bold text-amber-700">{Math.round(myScore)}</div>
-                        <div className="text-sm text-gray-400">/ 100점</div>
-                        <div className={`text-sm font-semibold mt-0.5 ${myLevel.color}`}>{myLevel.label}</div>
+                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${
+                          myScore >= 70 ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                          : myScore >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
+                          : "bg-red-50 text-red-500 border-red-100"
+                        }`}>
+                          {myScore >= 70 ? "양호" : myScore >= 40 ? "보통" : "개선 필요"}
+                        </span>
+                        <div className={`text-sm font-semibold mt-1 ${myLevel.color}`}>{myLevel.label}</div>
                         <div className="text-sm text-gray-500 mt-0.5">내 가게</div>
                       </div>
                       <div className="text-gray-300 text-xl">&lt;</div>
                       <div className="text-center">
-                        <div className="text-3xl font-bold text-gray-500">{Math.round(competitorScore)}</div>
-                        <div className="text-sm text-gray-400">/ 100점</div>
-                        <div className={`text-sm font-semibold mt-0.5 ${compLevel.color}`}>{compLevel.label}</div>
+                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${
+                          competitorScore >= 70 ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                          : competitorScore >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
+                          : "bg-red-50 text-red-500 border-red-100"
+                        }`}>
+                          {competitorScore >= 70 ? "양호" : competitorScore >= 40 ? "보통" : "개선 필요"}
+                        </span>
+                        <div className={`text-sm font-semibold mt-1 ${compLevel.color}`}>{compLevel.label}</div>
                         <div className="text-sm text-gray-500 mt-0.5">{competitorName}</div>
                       </div>
                     </div>
@@ -270,9 +289,9 @@ export function GapAnalysisCard({ gap }: Props) {
           {/* 예상 점수 */}
           {showEstimate && (
             <div className="mt-4 bg-blue-50 rounded-xl p-3 text-sm text-blue-700">
-              위 항목 개선 시 예상 점수:{" "}
-              <strong className="text-blue-900">{Math.round(estimatedScore)}점</strong>{" "}
-              <span className="text-blue-500 text-sm">(현재 {Math.round(myScore)}점 → {getScoreLevel(Math.round(estimatedScore)).label})</span>
+              위 항목 개선 시 예상 수준:{" "}
+              <strong className={getScoreLevel(Math.round(estimatedScore)).color}>{getScoreLevel(Math.round(estimatedScore)).label}</strong>{" "}
+              <span className="text-blue-500 text-sm">(현재 {myLevel.label} → {getScoreLevel(Math.round(estimatedScore)).label})</span>
             </div>
           )}
         </>

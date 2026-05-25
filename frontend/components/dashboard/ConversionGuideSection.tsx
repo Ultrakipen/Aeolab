@@ -240,7 +240,7 @@ export default function ConversionGuideSection({ bizId, plan }: Props) {
       {/* 헤더 */}
       <div className="mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
-          점수를 올리는 방법
+          AI 노출 지수를 높이는 방법
         </h2>
         <p className="text-sm text-gray-600">
           {loading

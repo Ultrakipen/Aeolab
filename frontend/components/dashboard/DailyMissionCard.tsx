@@ -17,7 +17,7 @@ const DIMENSION_MESSAGES: Record<string, {
 }> = {
   keyword_gap_score: {
     reason: '업종 핵심 키워드가 부족해 AI 검색 노출이 안 됩니다',
-    action: '소개글·FAQ에 빠진 키워드를 추가하면 AI 검색 노출이 올라갑니다',
+    action: '소개글 Q&A에 빠진 키워드를 추가하면 AI 검색 노출이 올라갑니다',
     link: '/guide',
     linkLabel: '없는 키워드 확인하기',
   },
@@ -29,7 +29,7 @@ const DIMENSION_MESSAGES: Record<string, {
   },
   smart_place_completeness: {
     reason: '스마트플레이스 정보가 부족해서 AI가 내 가게를 잘 모릅니다',
-    action: '소개글·FAQ·소식을 채우면 AI가 가게를 더 잘 추천합니다',
+    action: '소개글 Q&A·소식을 채우면 AI가 가게를 더 잘 추천합니다',
     link: '/guide',
     linkLabel: '소개글 편집하러 가기',
   },
@@ -37,7 +37,7 @@ const DIMENSION_MESSAGES: Record<string, {
     reason: '네이버 AI 검색에 아직 내 가게가 안 나옵니다',
     action: '소개글 하단에 Q&A 3개를 추가하는 것이 가장 빠른 방법입니다',
     link: '/guide',
-    linkLabel: 'FAQ 복사하러 가기',
+    linkLabel: '소개글 Q&A 복사하러 가기',
   },
   multi_ai_exposure: {
     reason: 'ChatGPT·구글 AI에서 내 가게가 검색되지 않습니다',
@@ -46,10 +46,10 @@ const DIMENSION_MESSAGES: Record<string, {
     linkLabel: '개선 가이드 보기',
   },
   schema_seo: {
-    reason: '구글·ChatGPT가 가게 정보를 정확히 인식하지 못하고 있습니다',
-    action: '가이드 탭의 AI 정보 코드를 가게 홈페이지에 추가하면 됩니다',
+    reason: '소개글 키워드 추가 최적화 또는 홈페이지 AI 정보 코드 등록으로 노출을 더 높일 수 있습니다',
+    action: '소개글에 업종 핵심 키워드를 추가 점검하거나, 홈페이지가 있다면 AI 가게 정보 코드를 등록하세요.',
     link: '/schema',
-    linkLabel: 'AI 정보 코드 생성하기',
+    linkLabel: 'AI 최적화 도구 열기',
   },
 }
 
@@ -259,8 +259,14 @@ export default function DailyMissionCard({
               {improvablePoints != null && (
                 <div className="shrink-0 text-right">
                   <p className="text-sm text-amber-600">개선 여지</p>
-                  <p className="text-2xl font-bold text-amber-700 leading-tight mt-0.5">
-                    +{improvablePoints}점
+                  <p className={`text-base font-bold leading-tight mt-0.5 px-2 py-1 rounded-full ${
+                    improvablePoints >= 10
+                      ? "bg-red-100 text-red-700"
+                      : improvablePoints >= 5
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}>
+                    {improvablePoints >= 10 ? "높음" : improvablePoints >= 5 ? "중간" : "있음"}
                   </p>
                 </div>
               )}

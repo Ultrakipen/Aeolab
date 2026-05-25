@@ -43,11 +43,12 @@ const PLAN_LIMITS: Record<string, { scan: string; competitors: string; autoScan:
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; biz_id?: string }>;
+  searchParams: Promise<{ tab?: string; biz_id?: string; field?: string }>;
 }) {
   const params = await searchParams;
   const autoEditBiz = params.tab === "business";
   const autoEditBizId = params.biz_id ?? null;
+  const autoEditField = params.field ?? null;
 
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
@@ -376,7 +377,7 @@ export default async function SettingsPage({
                 <p className="text-sm text-gray-500 mt-0.5">사업장 정보를 수정하면 AI 분석 정확도가 높아집니다.</p>
               </div>
               <div className="p-4 md:p-5">
-                <BusinessManager businesses={businesses} userId={user.id} autoEdit={autoEditBiz} autoEditId={autoEditBizId} />
+                <BusinessManager businesses={businesses} userId={user.id} autoEdit={autoEditBiz} autoEditId={autoEditBizId} autoField={autoEditField} />
               </div>
             </section>
           )}

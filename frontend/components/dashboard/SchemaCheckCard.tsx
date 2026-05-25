@@ -1,33 +1,30 @@
 import Link from "next/link";
 import type { WebsiteCheckResult } from "@/types";
 
+const GOOGLE_BUSINESS_URL = "https://business.google.com";
+
 interface Props {
   schemaSeoScore: number | null;
   websiteUrl?: string | null;
   websiteCheckResult?: WebsiteCheckResult | null;
   plan: string;
+  googlePlaceRegistered?: boolean;
 }
 
 const ITEMS = [
-  { key: "has_json_ld",              label: "AI가 읽는 가게 정보 코드",    points: 40 },
-  { key: "has_schema_local_business", label: "가게 종류·위치 등록",          points: 20 },
-  { key: "has_open_graph",            label: "SNS 공유 시 가게 이름·사진 표시", points: 20 },
-  { key: "is_mobile_friendly",        label: "모바일 화면 최적화",           points: 10 },
+  { key: "has_json_ld",               label: "AI가 읽는 가게 정보 코드",       priority: "필수" as const },
+  { key: "has_schema_local_business",  label: "가게 종류·위치 등록",             priority: "필수" as const },
+  { key: "has_open_graph",             label: "SNS 공유 시 가게 이름·사진 표시", priority: "권장" as const },
+  { key: "is_mobile_friendly",         label: "모바일 화면 최적화",              priority: "권장" as const },
 ] as const;
 
-function scoreColor(score: number): string {
-  if (score >= 80) return "text-emerald-600";
-  if (score >= 50) return "text-amber-600";
-  return "text-red-500";
-}
+const PRIORITY_STYLE = {
+  필수: "bg-red-100 text-red-700",
+  권장: "bg-amber-100 text-amber-700",
+  선택: "bg-gray-100 text-gray-500",
+};
 
-function barColor(score: number): string {
-  if (score >= 80) return "bg-emerald-500";
-  if (score >= 50) return "bg-amber-400";
-  return "bg-red-400";
-}
-
-export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteCheckResult, plan }: Props) {
+export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteCheckResult, plan, googlePlaceRegistered }: Props) {
   const canGenerate = plan !== "free";
 
   // 스캔 데이터 없음
@@ -36,9 +33,9 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
       <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-5">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm font-semibold text-gray-800">AI에 가게 정보 등록</span>
-          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">글로벌 AI 점수</span>
+          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">설정 현황</span>
         </div>
-        <p className="text-sm text-gray-500">첫 스캔 후 웹사이트 AI 인식 점수가 표시됩니다.</p>
+        <p className="text-sm text-gray-500">첫 스캔 후 웹사이트 AI 인식 설정 현황이 표시됩니다.</p>
       </div>
     );
   }
@@ -52,8 +49,8 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
           <span className="text-xs text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">홈페이지 없음</span>
         </div>
         <p className="text-sm text-gray-600 leading-relaxed break-keep">
-          독립 웹사이트가 없으면 ChatGPT·Gemini 인용이 어렵습니다.
-          홈페이지 없이는 카카오맵 비즈니스 채널 등록으로 Google AI Overview 노출 가능성을 높일 수 있습니다.
+          독립 웹사이트가 없어도 네이버·카카오맵 채널로 이용이 가능합니다.
+          ChatGPT·Gemini 노출을 더 높이려면 웹사이트를 추가하거나 카카오맵 비즈니스 채널을 등록하면 됩니다.
         </p>
         <Link
           href="/schema"
@@ -65,49 +62,76 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
     );
   }
 
-  const score = Math.round(schemaSeoScore);
-  const missingItems = ITEMS.filter((item) => websiteCheckResult && !websiteCheckResult[item.key]);
-  const missingPoints = missingItems.reduce((s, i) => s + i.points, 0);
+  const websiteMissingItems = ITEMS.filter(
+    (item) => websiteCheckResult && !websiteCheckResult[item.key],
+  );
+  const googleMissing = !googlePlaceRegistered;
+
+  const allItems: { label: string; priority: "필수" | "권장" | "선택"; done: boolean }[] = [
+    ...ITEMS.map((item) => ({
+      label: item.label,
+      priority: item.priority,
+      done: !!(websiteCheckResult && websiteCheckResult[item.key]),
+    })),
+    { label: "Google Business 프로필 등록", priority: "선택" as const, done: !googleMissing },
+  ];
+
+  const doneCount = allItems.filter((i) => i.done).length;
+  const totalCount = allItems.length;
+  const allDone = doneCount === totalCount;
+  const missingItems = allItems.filter((i) => !i.done);
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-5">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-800">AI에 가게 정보 등록</span>
-          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">글로벌 AI 점수</span>
+          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">설정 현황</span>
         </div>
-        <span className={`text-lg font-bold ${scoreColor(score)}`}>{score}점</span>
+        <span className={`text-sm font-semibold ${allDone ? "text-emerald-600" : "text-gray-500"}`}>
+          {doneCount} / {totalCount} 설정 완료
+        </span>
       </div>
 
-      {/* 점수 진행바 */}
-      <div className="w-full bg-gray-100 rounded-full h-2 mb-4" role="progressbar" aria-valuenow={score} aria-valuemin={0} aria-valuemax={100}>
-        <div className={`h-2 rounded-full transition-all ${barColor(score)}`} style={{ width: `${score}%` }} />
+      {/* 항목 목록 */}
+      <div className="space-y-2 mb-4">
+        {allItems.map((item) => (
+          <div key={item.label} className="flex items-center gap-2">
+            <span className={`shrink-0 text-sm ${item.done ? "text-emerald-500" : "text-gray-300"}`}>
+              {item.done ? "✓" : "✕"}
+            </span>
+            <span className={`text-sm flex-1 break-keep ${item.done ? "text-gray-400 line-through" : "text-gray-700"}`}>
+              {item.label}
+            </span>
+            {!item.done && item.label === "Google Business 프로필 등록" && (
+              <a
+                href={GOOGLE_BUSINESS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 text-xs font-medium text-blue-600 hover:underline"
+              >
+                등록하기 →
+              </a>
+            )}
+            {!item.done && item.label !== "Google Business 프로필 등록" && (
+              <span className={`shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full ${PRIORITY_STYLE[item.priority]}`}>
+                {item.priority}
+              </span>
+            )}
+          </div>
+        ))}
       </div>
 
-      {/* 누락 항목 */}
-      {missingItems.length > 0 ? (
-        <div className="space-y-1.5 mb-4">
-          {missingItems.map((item) => (
-            <div key={item.key} className="flex items-center gap-2">
-              <span className="text-red-400 text-sm shrink-0">✕</span>
-              <span className="text-sm text-gray-600">{item.label}</span>
-              <span className="text-sm text-red-400 ml-auto shrink-0">−{item.points}점</span>
-            </div>
-          ))}
-          <p className="text-sm text-gray-500 pt-1">
-            코드 적용 시 최대 <strong className="text-gray-700">+{missingPoints}점</strong> 상승 가능
-          </p>
-        </div>
-      ) : (
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-emerald-500 text-sm">✓</span>
-          <span className="text-sm text-gray-600">모든 AI 인식 항목 등록 완료</span>
-        </div>
+      {/* 미설정 안내 */}
+      {!allDone && (
+        <p className="text-sm text-gray-500 mb-4 leading-relaxed break-keep">
+          설정 시 ChatGPT·구글 AI 검색에서 가게 정보 노출 가능성이 높아집니다.
+        </p>
       )}
 
       {/* CTA */}
-      {missingItems.length > 0 && (
+      {!allDone && (
         canGenerate ? (
           <Link
             href="/schema"
@@ -125,9 +149,11 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
         )
       )}
 
-      {/* 점수 설명 */}
-      {missingItems.length === 0 && score >= 80 && (
-        <p className="text-sm text-gray-500">웹사이트 AI 인식 설정이 잘 갖춰져 있습니다. 정기 스캔으로 유지하세요.</p>
+      {/* 완료 상태 */}
+      {allDone && (
+        <p className="text-sm text-emerald-700 font-semibold text-center">
+          AI 검색 인식 설정이 모두 완료됐습니다!
+        </p>
       )}
     </div>
   );

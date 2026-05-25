@@ -1,9 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Lock, Sparkles, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Lock, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { getSafeSession } from "@/lib/supabase/client";
+import { authFetch } from "@/lib/api";
+
+// ai_tab_signal 값 → 사용자 친화적 설명
+const SIGNAL_USER_LABELS: Record<string, string> = {
+  "결과 시각화": "AI탭에서 사진·포트폴리오를 직접 보여줄 수 있어요",
+  "예약 버튼 노출": "AI탭에서 예약 버튼이 바로 표시돼요",
+  "가격 투명성": "고객이 AI탭에서 가격을 바로 확인할 수 있어요",
+  "서비스 정보": "AI가 서비스 과정을 상세히 설명할 수 있어요",
+  "UGC 풍부도": "외부 후기가 많을수록 AI탭 노출 신뢰도가 높아져요",
+  "위치 정보": "AI탭에서 내 위치가 정확히 표시돼요",
+  "영업 정보": "영업시간·연락처를 AI탭에서 바로 볼 수 있어요",
+  "메뉴 정보": "AI탭에서 메뉴·가격을 미리 확인할 수 있어요",
+  "전문성 신호": "전문 분야를 강조할수록 AI탭에서 신뢰도가 높아져요",
+  "콘텐츠 풍부도": "소개글이 풍부할수록 AI탭 답변이 구체적으로 나와요",
+};
+
+function getPriorityBadge(weight: number): { label: string; className: string } {
+  if (weight >= 0.25) return { label: "매우 중요", className: "bg-red-50 text-red-700 border-red-200" };
+  if (weight >= 0.15) return { label: "중요", className: "bg-amber-50 text-amber-700 border-amber-200" };
+  return { label: "권장", className: "bg-blue-50 text-blue-700 border-blue-200" };
+}
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -12,6 +33,8 @@ interface ChecklistItem {
   weight: number; // 0.0~1.0
   ai_tab_signal: string;
   guide_url?: string;
+  /** true=스캔 확인 완료, false=미완료, undefined=직접 확인 필요(미측정) */
+  completed?: boolean;
 }
 
 interface AiTabPreviewResponse {
@@ -34,6 +57,11 @@ interface AiTabPreviewResponse {
   photo_count?: number | null;
   /** 업종별 AI탭 준비 체크리스트 (ai_tab_checklists.py 단일 소스) */
   checklist?: ChecklistItem[];
+  /** AI탭 노출 가능성 텍스트 레이블 */
+  readiness_label?: {
+    short: string;       // "준비 중", "거의 완료" 등
+    description: string; // 상세 설명 문장
+  };
 }
 
 interface AiTabPreviewUnavailable {
@@ -63,6 +91,9 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
   const [forbidden, setForbidden] = useState(false);
   const [error, setError] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+  const [confirmingItem, setConfirmingItem] = useState<string | null>(null);
+  const [readinessLabel, setReadinessLabel] = useState<{ short: string; description: string } | null>(null);
 
   const isFree = subscriptionPlan === "free";
 
@@ -82,10 +113,13 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
           return;
         }
 
-        const res = await fetch(
-          `${BACKEND}/api/report/ai-tab-preview/${bizId}`,
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
+        let res: Response;
+        try {
+          res = await authFetch(`${BACKEND}/api/report/ai-tab-preview/${bizId}`, token);
+        } catch {
+          // SESSION_EXPIRED → authFetch가 /login으로 리다이렉트 처리
+          return;
+        }
 
         if (cancelled) return;
 
@@ -112,6 +146,9 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         }
 
         setData(json);
+        if (json.readiness_label) {
+          setReadinessLabel(json.readiness_label);
+        }
         setLoading(false);
       } catch {
         if (!cancelled) {
@@ -125,6 +162,36 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
       cancelled = true;
     };
   }, [bizId]);
+
+  const handleConfirm = async (itemText: string, completed: boolean) => {
+    setConfirmingItem(itemText);
+    try {
+      const session = await getSafeSession();
+      const token = session?.access_token;
+      if (!token) return;
+
+      const res = await fetch(
+        `${BACKEND}/api/report/ai-tab-checklist-confirm/${bizId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ item: itemText, completed }),
+        }
+      );
+      if (res.ok) {
+        const json = await res.json();
+        setOverrides(prev => ({ ...prev, [itemText]: completed }));
+        if (json.readiness_label) {
+          setReadinessLabel(json.readiness_label);
+        }
+      }
+    } finally {
+      setConfirmingItem(null);
+    }
+  };
 
   // INACTIVE 업종 응답: AI탭은 모든 업종 가능(beta)이므로 숨기지 않고
   // 카드 내 안내 톤만 분기하여 표시 — unavailable 플래그는 배너 전용으로만 사용
@@ -163,7 +230,8 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
           )}
         </div>
         <p className="mt-1 text-sm text-blue-700/80 leading-snug break-keep">
-          네이버 검색결과 상단 &quot;AI&quot; 탭 (2026-04-27 베타 · <strong>모든 업종 노출 가능</strong>) — AI 브리핑과는 다른 노출 경로입니다.
+          고객이 네이버에서 검색할 때 <strong>AI탭에 내 가게가 어떻게 소개되는지</strong> 미리 볼 수 있습니다.
+          네이버 AI 브리핑과는 별개로, <strong>모든 업종</strong>에서 노출 가능합니다.
         </p>
       </div>
 
@@ -236,26 +304,31 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               </div>
             )}
 
-          <div className="flex flex-col md:flex-row gap-5 md:gap-6">
+          <div className="flex flex-col md:flex-row gap-5 md:gap-6 md:items-start">
 
             {/* 좌측: 시뮬레이션 답변 */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2 flex-wrap">
-                예시 답변
-                {data.data_source === "measured" ? (
-                  data.confirmed_in_ai_tab ? (
-                    <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full font-semibold">
-                      AI탭 노출 실측 확인
-                    </span>
+              <div className="mb-2">
+                <p className="text-sm font-semibold text-gray-700 flex items-center gap-2 flex-wrap">
+                  AI탭이 이렇게 소개해요
+                  {data.data_source === "measured" ? (
+                    data.confirmed_in_ai_tab ? (
+                      <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full font-semibold">
+                        ✓ 실제 AI탭 노출 확인
+                      </span>
+                    ) : (
+                      <span className="text-xs text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full font-semibold">
+                        실측 데이터 기반
+                      </span>
+                    )
                   ) : (
-                    <span className="text-xs text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full font-semibold">
-                      실측 데이터 기반
-                    </span>
-                  )
-                ) : (
-                  <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full font-normal">(추정)</span>
+                    <span className="text-xs text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-full font-medium">추정 예시</span>
+                  )}
+                </p>
+                {data.data_source !== "measured" && (
+                  <p className="text-xs text-gray-400 mt-0.5">등록된 정보를 바탕으로 AI가 어떻게 답변할지 시뮬레이션한 결과입니다</p>
                 )}
-              </p>
+              </div>
               {data.ad_only && (
                 <div className="mb-3 flex items-start gap-1.5 rounded-lg px-3 py-2 bg-orange-50 border border-orange-200">
                   <AlertCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
@@ -311,10 +384,11 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               {/* 매칭된 컨텍스트 */}
               {data.matched_contexts.length > 0 && (
                 <div>
-                  <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1.5">
+                  <p className="text-sm font-semibold text-gray-700 mb-0.5 flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                    답변에 포함된 정보
+                    AI가 파악한 내 가게 정보
                   </p>
+                  <p className="text-xs text-gray-400 mb-2">이 정보들이 AI탭 답변에 반영됩니다</p>
                   <div className="flex flex-wrap gap-1.5">
                     {data.matched_contexts.map((ctx, i) => (
                       <span
@@ -331,10 +405,11 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               {/* 부족한 컨텍스트 */}
               {data.missing_contexts.length > 0 && (
                 <div>
-                  <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1.5">
+                  <p className="text-sm font-semibold text-gray-700 mb-0.5 flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4 text-orange-500 shrink-0" />
-                    아직 부족한 정보
+                    보완하면 더 잘 노출돼요
                   </p>
+                  <p className="text-xs text-gray-400 mb-2">아래 정보를 채우면 AI탭 답변이 더 풍부해집니다</p>
                   <div className="flex flex-wrap gap-1.5">
                     {data.missing_contexts.map((ctx, i) => (
                       <span
@@ -345,14 +420,11 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                       </span>
                     ))}
                   </div>
-                  <p className="mt-2 text-sm text-orange-700 leading-snug break-keep">
-                    등록 키워드에 추가하면 노출 확률이 높아집니다.
-                  </p>
                   <Link
                     href="/settings?tab=business"
-                    className="mt-2 inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                    className="mt-3 inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
                   >
-                    키워드 추가하기 →
+                    키워드·소개글 보완하기 →
                   </Link>
                 </div>
               )}
@@ -408,54 +480,211 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 </div>
               )}
 
-              {/* 5번째 요소: 외부 블로그 UGC 발견 수 */}
-              <div className="flex items-center justify-between py-2 border-t border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">외부 블로그 언급</span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">AI탭 블로그·SNS 후기 신호</span>
+              {/* 고객 블로그 후기 UGC */}
+              <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-gray-700">고객 블로그 후기</span>
+                    <span className="block text-xs text-gray-500 mt-0.5 break-keep leading-relaxed">
+                      방문 고객이 네이버 블로그에 직접 쓴 후기 수<br />
+                      <span className="text-gray-400">사장님 블로그 포스팅과는 별개로 측정됩니다</span>
+                    </span>
+                  </div>
+                  <div className="text-right shrink-0">
+                    {(blogMentionCount ?? 0) >= 5 ? (
+                      <>
+                        <span className="text-base font-bold text-emerald-600">{blogMentionCount}건</span>
+                        <span className="block text-xs text-emerald-600 mt-0.5">충분해요!</span>
+                      </>
+                    ) : (blogMentionCount ?? 0) > 0 ? (
+                      <>
+                        <span className="text-base font-bold text-amber-600">{blogMentionCount}건</span>
+                        <span className="block text-xs text-gray-400 mt-0.5">5건 이상 권장</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-sm text-gray-400">아직 없음</span>
+                        <span className="block text-xs text-gray-400 mt-0.5">5건 이상 권장</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  {(blogMentionCount ?? 0) >= 5 ? (
-                    <span className="text-sm font-semibold text-emerald-600">{blogMentionCount}건</span>
-                  ) : (blogMentionCount ?? 0) > 0 ? (
-                    <span className="text-sm font-semibold text-amber-600">{blogMentionCount}건</span>
-                  ) : (
-                    <span className="text-sm text-gray-400">미발견</span>
-                  )}
-                  {(blogMentionCount ?? 0) === 0 && (
-                    <span className="text-sm text-gray-400 ml-1">블로그 후기 유도 권장</span>
-                  )}
-                </div>
+                {(blogMentionCount ?? 0) < 5 && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <p className="text-xs text-gray-500 break-keep leading-relaxed">
+                      💡 방문 고객에게 <strong>네이버 블로그</strong>에 후기를 남겨달라고 요청해 보세요.
+                      고객 후기가 많을수록 AI탭에서 신뢰도 있는 정보로 인식됩니다.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* 업종별 AI탭 준비 체크리스트 */}
-          {data.checklist && data.checklist.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-              <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1">
-                내 업종 AI탭 준비 체크리스트
-              </h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                가중치 높은 항목부터 작업하면 효과가 큽니다.
-              </p>
-              <ul className="space-y-2">
-                {[...data.checklist]
-                  .sort((a, b) => b.weight - a.weight)
-                  .map((it, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm">
-                      <span className="inline-flex items-center justify-center min-w-[2.5rem] h-5 px-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold shrink-0 mt-0.5">
-                        {Math.round(it.weight * 100)}%
-                      </span>
-                      <span className="flex-1 text-gray-700 dark:text-gray-200 leading-relaxed">
-                        <span className="font-medium">{it.item}</span>
-                        <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                          {it.ai_tab_signal}
+          {/* 업종별 AI탭 노출 높이는 방법 */}
+          {data.checklist && data.checklist.length > 0 && (() => {
+            const verifiedItems = data.checklist!.filter(it => it.completed !== undefined);
+            const completedItems = data.checklist!.filter(it => it.completed === true);
+            const pendingItems = data.checklist!.filter(it => it.completed === false);
+            const unknownItems = data.checklist!.filter(it => it.completed === undefined);
+            // 정렬: 미완료 → 미측정 → 완료
+            const sorted = [...pendingItems, ...unknownItems, ...completedItems];
+            return (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                  <h4 className="text-sm font-semibold text-gray-800">
+                    네이버 AI탭 노출 높이는 방법
+                  </h4>
+                  {verifiedItems.length > 0 && (
+                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                      ✓ {completedItems.length}/{verifiedItems.length}개 자동 확인
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-500 mb-2 break-keep">
+                  아래 항목을 채울수록 AI탭에 더 자주, 더 풍부하게 노출됩니다.
+                </p>
+
+                {/* AI탭 노출 가능성 텍스트 레이블 */}
+                {readinessLabel && (
+                  <div className="mb-3 rounded-lg bg-indigo-50 border border-indigo-200 px-4 py-3">
+                    <p className="text-sm font-bold text-indigo-900">
+                      AI탭 노출 가능성 — {readinessLabel.short}
+                    </p>
+                    <p className="text-sm text-indigo-700 mt-0.5 leading-snug break-keep">
+                      {readinessLabel.description}
+                    </p>
+                  </div>
+                )}
+
+                {/* 안내 배너 — 실측 데이터가 있을 때만 표시 */}
+                {verifiedItems.length > 0 && (
+                  <div className="mb-3 flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2">
+                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-blue-800 leading-relaxed break-keep">
+                      <strong>✓ 표시 항목</strong>은 마지막 스캔에서 자동으로 확인된 완료 상태입니다.
+                      나머지 항목은 스마트플레이스에서 직접 확인이 필요합니다.
+                      스캔을 다시 실행하면 최신 상태로 업데이트됩니다.
+                    </p>
+                  </div>
+                )}
+
+                <ul className="space-y-2">
+                  {sorted.map((it, idx) => {
+                    const badge = getPriorityBadge(it.weight);
+                    const signal = SIGNAL_USER_LABELS[it.ai_tab_signal] ?? it.ai_tab_signal;
+                    const isDone = it.completed === true || overrides[it.item] === true;
+                    const isUserConfirmed = overrides[it.item] === true && it.completed !== true;
+                    const isUnknown = it.completed === undefined && !overrides[it.item];
+                    return (
+                      <li
+                        key={idx}
+                        className={`flex items-start gap-3 rounded-lg px-3 py-2.5 ${
+                          isDone
+                            ? isUserConfirmed
+                              ? "bg-blue-50 border border-blue-100"
+                              : "bg-emerald-50 border border-emerald-100"
+                            : it.completed === false
+                            ? "bg-white border border-gray-200"
+                            : "bg-gray-50 border border-gray-100"
+                        }`}
+                      >
+                        {isDone ? (
+                          <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${isUserConfirmed ? "text-blue-500" : "text-emerald-500"}`} />
+                        ) : isUnknown ? (
+                          <span className="w-4 h-4 rounded-full border-2 border-gray-300 shrink-0 mt-0.5 flex-none" />
+                        ) : (
+                          <span className={`inline-flex items-center justify-center shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold mt-0.5 ${badge.className}`}>
+                            {badge.label}
+                          </span>
+                        )}
+                        <span className="flex-1 min-w-0">
+                          <span className={`block text-sm font-medium leading-snug ${
+                            isDone
+                              ? isUserConfirmed
+                                ? "text-blue-800 line-through decoration-blue-400"
+                                : "text-emerald-800 line-through decoration-emerald-400"
+                              : "text-gray-800"
+                          }`}>
+                            {it.item}
+                          </span>
+                          <span className={`block text-xs mt-0.5 leading-snug ${
+                            isDone
+                              ? isUserConfirmed
+                                ? "text-blue-600"
+                                : "text-emerald-600"
+                              : isUnknown
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                          }`}>
+                            {isDone
+                              ? isUserConfirmed
+                                ? "직접 확인 완료"
+                                : "스캔에서 확인 완료"
+                              : isUnknown
+                              ? `직접 확인 필요 — ${signal}`
+                              : signal}
+                          </span>
                         </span>
-                      </span>
-                    </li>
-                  ))}
-              </ul>
+                        {isUnknown && (
+                          <button
+                            onClick={() => handleConfirm(it.item, true)}
+                            disabled={confirmingItem === it.item}
+                            className="shrink-0 text-xs font-semibold text-blue-600 border border-blue-300 rounded-full px-3 py-1 hover:bg-blue-50 transition-colors disabled:opacity-50 mt-0.5"
+                          >
+                            {confirmingItem === it.item ? "저장 중…" : "완료했어요"}
+                          </button>
+                        )}
+                        {isDone && !isUserConfirmed && (
+                          <span className="text-xs text-emerald-600 font-semibold shrink-0 mt-0.5">완료</span>
+                        )}
+                        {isUserConfirmed && (
+                          <button
+                            onClick={() => handleConfirm(it.item, false)}
+                            disabled={confirmingItem === it.item}
+                            className="shrink-0 text-xs text-gray-400 hover:text-red-500 transition-colors mt-0.5"
+                          >
+                            취소
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+                {unknownItems.length > 0 && (
+                  <p className="mt-2 text-xs text-gray-400 leading-relaxed break-keep">
+                    ○ 원형 표시 항목은 자동 측정이 어렵습니다. 스마트플레이스 관리자에서 직접 확인해주세요.
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* 네이버 로컬 에이전트 준비 안내 — 예약 미연동 시 노출 */}
+          {data.has_reservation === false && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="rounded-xl bg-indigo-50 border border-indigo-200 p-3 md:p-4">
+                <div className="flex items-start gap-2">
+                  <span className="text-base shrink-0">🤖</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-indigo-900">
+                      네이버 로컬 에이전트 준비 (H2 2026 예정)
+                    </p>
+                    <p className="text-sm text-indigo-700 mt-0.5 leading-snug break-keep">
+                      네이버가 2026년 하반기 AI 에이전트를 통해 <strong>예약 → 결제까지</strong> 자동 처리하는 기능을 출시할 예정입니다.
+                      지금 예약 연동을 완료해 두면 출시 즉시 노출 우위를 가져갈 수 있습니다.
+                    </p>
+                    <a
+                      href="https://partner.naver.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                    >
+                      네이버 예약 연동 설정하기 →
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           </>

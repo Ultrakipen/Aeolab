@@ -34,10 +34,10 @@ export function MultiBizTable({ token }: Props) {
       .finally(() => setLoading(false));
   }, [token]);
 
-  function scoreColor(score: number) {
-    if (score >= 70) return "text-emerald-600 font-bold";
-    if (score >= 50) return "text-amber-600 font-semibold";
-    return "text-red-500 font-semibold";
+  function scoreStatusLabel(score: number) {
+    if (score >= 70) return { text: "양호",     cls: "bg-emerald-50 text-emerald-700 border-emerald-100" };
+    if (score >= 40) return { text: "보통",     cls: "bg-amber-50 text-amber-700 border-amber-200" };
+    return              { text: "개선 필요", cls: "bg-red-50 text-red-600 border-red-100" };
   }
 
   function formatDate(iso: string | null) {
@@ -77,7 +77,7 @@ export function MultiBizTable({ token }: Props) {
           <thead>
             <tr className="border-b border-gray-100">
               <th className="text-left py-2 px-3 text-gray-500 font-medium">사업장</th>
-              <th className="text-center py-2 px-3 text-gray-500 font-medium">통합 점수</th>
+              <th className="text-center py-2 px-3 text-gray-500 font-medium">AI 노출 종합 지수</th>
               <th className="text-center py-2 px-3 text-gray-500 font-medium">네이버</th>
               <th className="text-center py-2 px-3 text-gray-500 font-medium">글로벌</th>
               <th className="text-center py-2 px-3 text-gray-500 font-medium">경쟁사</th>
@@ -91,14 +91,20 @@ export function MultiBizTable({ token }: Props) {
                   <div className="font-medium text-gray-900">{item.name}</div>
                   <div className="text-sm text-gray-400">{item.region} · {item.category}</div>
                 </td>
-                <td className={`text-center py-3 px-3 text-base ${scoreColor(item.unified_score)}`}>
-                  {item.unified_score}
+                <td className="text-center py-3 px-3">
+                  {(() => { const s = scoreStatusLabel(item.unified_score); return (
+                    <span className={`text-sm px-2.5 py-1 rounded-full border font-semibold ${s.cls}`}>{s.text}</span>
+                  );})()}
                 </td>
-                <td className={`text-center py-3 px-3 ${scoreColor(item.track1_score)}`}>
-                  {item.track1_score}
+                <td className="text-center py-3 px-3">
+                  {(() => { const s = scoreStatusLabel(item.track1_score); return (
+                    <span className={`text-sm px-2.5 py-1 rounded-full border font-semibold ${s.cls}`}>{s.text}</span>
+                  );})()}
                 </td>
-                <td className={`text-center py-3 px-3 ${scoreColor(item.track2_score)}`}>
-                  {item.track2_score}
+                <td className="text-center py-3 px-3">
+                  {(() => { const s = scoreStatusLabel(item.track2_score); return (
+                    <span className={`text-sm px-2.5 py-1 rounded-full border font-semibold ${s.cls}`}>{s.text}</span>
+                  );})()}
                 </td>
                 <td className="text-center py-3 px-3 text-gray-600">
                   {item.competitor_count}개
@@ -121,13 +127,13 @@ export function MultiBizTable({ token }: Props) {
                 <div className="font-medium text-gray-900 text-sm">{item.name}</div>
                 <div className="text-sm text-gray-400">{item.region} · {item.category}</div>
               </div>
-              <span className={`text-lg ${scoreColor(item.unified_score)}`}>
-                {item.unified_score}점
-              </span>
+              {(() => { const s = scoreStatusLabel(item.unified_score); return (
+                <span className={`text-sm px-2.5 py-0.5 rounded-full border font-semibold ${s.cls}`}>{s.text}</span>
+              );})()}
             </div>
             <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-              <span>네이버 <span className={scoreColor(item.track1_score)}>{item.track1_score}</span></span>
-              <span>글로벌 <span className={scoreColor(item.track2_score)}>{item.track2_score}</span></span>
+              <span>네이버 <span className={`text-sm px-1.5 py-0.5 rounded-full border font-semibold ${scoreStatusLabel(item.track1_score).cls}`}>{scoreStatusLabel(item.track1_score).text}</span></span>
+              <span>글로벌 <span className={`text-sm px-1.5 py-0.5 rounded-full border font-semibold ${scoreStatusLabel(item.track2_score).cls}`}>{scoreStatusLabel(item.track2_score).text}</span></span>
               <span>경쟁사 {item.competitor_count}개</span>
               <span className="ml-auto">{formatDate(item.last_scanned_at)}</span>
             </div>

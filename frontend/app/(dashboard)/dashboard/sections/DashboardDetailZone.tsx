@@ -30,6 +30,7 @@ import ProUpgradePreview from "@/components/dashboard/ProUpgradePreview";
 import { MultiBizTable } from "@/components/dashboard/MultiBizTable";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { calcScoreVariation } from "@/lib/scoreVariation";
+import { isIndependentWebsite } from "./pageHelpers";
 import type { MissingItem } from "@/types/diagnosis";
 import type { WebsiteCheckResult } from "@/types";
 
@@ -66,6 +67,8 @@ interface PlatformResult {
   in_briefing?: boolean;
   in_ai_overview?: boolean;
   error?: string;
+  _naver_ai_tab_visible?: boolean | null;
+  excerpt?: string | null;
 }
 
 interface BlogContribution {
@@ -226,8 +229,8 @@ export default function DashboardDetailZone({
           <ul className="space-y-2 text-base text-blue-700">
             <li>→ 네이버·카카오·ChatGPT 3채널에서 내 가게가 나오는지</li>
             <li>→ 네이버 AI 브리핑에 내 가게가 포함되는지</li>
-            <li>→ 경쟁 가게와의 AI 노출 점수 비교</li>
-            <li>→ 점수를 올리는 맞춤 개선 가이드</li>
+            <li>→ 경쟁 가게와의 AI 노출 지수 비교</li>
+            <li>→ AI 노출 지수를 높이는 맞춤 개선 가이드</li>
           </ul>
         </div>
         <p className="text-base text-gray-500">
@@ -301,6 +304,7 @@ export default function DashboardDetailZone({
             aiExposureData={aiExposureData}
             bizId={business.id}
             token={accessToken ?? undefined}
+            plan={subscriptionPlan}
           />
           {/* 점수 변동 폭 안내 — 실측 7일 이상 데이터 기반 (CLAUDE.md 원칙: 임의 수치 금지) */}
           {(() => {
@@ -319,13 +323,14 @@ export default function DashboardDetailZone({
             );
           })()}
           {Object.keys(allPlatformResults).length > 0 && (
-            <ResultTable results={allPlatformResults} />
+            <ResultTable results={allPlatformResults} briefingEligibility={briefingEligibility} />
           )}
           {Object.keys(allPlatformResults).length > 0 && (
             <PlatformDistributionChart
               results={allPlatformResults}
               naverChannelScore={naverChannelScore ?? undefined}
               globalChannelScore={globalChannelScore ?? undefined}
+              briefingEligibility={briefingEligibility}
             />
           )}
           <ChannelScoreCards
@@ -337,18 +342,18 @@ export default function DashboardDetailZone({
             naverMentioned={!!naverResult?.in_briefing}
             aiTabMentioned={undefined}
             chatgptMentioned={!!chatgptResult?.mentioned}
-            hasWebsite={!!business.website_url}
+            hasWebsite={isIndependentWebsite(business.website_url)}
             googlePlaceRegistered={!!business.google_place_id}
             naverWeight={hasLatestScan ? naverWeight : undefined}
           />
           <GlobalAIBanner
             globalScore={track2Score}
-            hasWebsite={!!business.website_url}
+            hasWebsite={isIndependentWebsite(business.website_url)}
             eligibility={briefingEligibility}
           />
           {briefingEligibility === "inactive" && (
             <GlobalAIChecklist
-              hasWebsite={!!business.website_url}
+              hasWebsite={isIndependentWebsite(business.website_url)}
               googlePlaceRegistered={!!business.google_place_id}
               websiteSeoScore={channelScores?.website_seo ?? 0}
               chatgptMentioned={!!chatgptResult?.mentioned}
@@ -364,7 +369,7 @@ export default function DashboardDetailZone({
             />
           )}
           {["basic", "startup", "pro", "biz"].includes(plan) && accessToken && (
-            <AICitationCard bizId={business.id} token={accessToken} />
+            <AICitationCard bizId={business.id} token={accessToken} briefingEligibility={briefingEligibility} />
           )}
           <ChatGPTDiffCard
             geminiCount={Number(geminiResult?.exposure_freq ?? 0)}
@@ -384,6 +389,7 @@ export default function DashboardDetailZone({
                 ? (scan.top_missing_keywords as unknown[]).map(String)
                 : []
             }
+            briefingEligibility={briefingEligibility}
           />
           {history && history.length >= 2 && (
             <BriefingTimeline history={history} businessName={business.name} />
@@ -440,7 +446,7 @@ export default function DashboardDetailZone({
             ) : (
               <div className="text-center py-6">
                 <p className="text-sm text-gray-500 mb-3">
-                  경쟁 가게를 등록하면 AI 노출 점수를 비교할 수 있습니다
+                  경쟁 가게를 등록하면 AI 노출 지수를 비교할 수 있습니다
                 </p>
                 <Link
                   href="/competitors"
@@ -478,6 +484,7 @@ export default function DashboardDetailZone({
             categoryKo={CATEGORY_LABEL[business.category] ?? business.category}
             inBriefing={naverResult?.in_briefing ?? false}
             naverPlaceUrl={business.naver_place_url ?? null}
+            briefingEligibility={briefingEligibility}
           />
           {scoreBreakdown && (
             <ScoreEvidenceCard
@@ -499,6 +506,8 @@ export default function DashboardDetailZone({
               bizId={business.id}
               token={accessToken ?? undefined}
               missingItems={missingItems}
+              naverPlaceUrl={business.naver_place_url ?? null}
+              briefingEligibility={briefingEligibility}
             />
           )}
           {accessToken && business.naver_place_url && (
@@ -545,18 +554,18 @@ export default function DashboardDetailZone({
                           &ldquo;{kbc.keyword}&rdquo; 키워드
                         </p>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm text-gray-500 w-24 truncate">
+                          <span className="text-sm text-gray-500 w-20 sm:w-24 truncate">
                             {kbc.competitor_name ?? "경쟁 1위"}
                           </span>
                           <div className="flex-1 bg-gray-100 rounded-full h-2.5">
                             <div className="bg-gray-400 h-2.5 rounded-full" style={{ width: `${compPct}%` }} />
                           </div>
-                          <span className="text-sm text-gray-600 w-14 text-right">
+                          <span className="text-sm text-gray-600 w-12 sm:w-14 text-right">
                             {kbc.competitor_count.toLocaleString()}건
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-blue-700 w-24 truncate">내 가게</span>
+                          <span className="text-sm font-bold text-blue-700 w-20 sm:w-24 truncate">내 가게</span>
                           <div className="flex-1 bg-gray-100 rounded-full h-2.5">
                             <div
                               className={`h-2.5 rounded-full ${

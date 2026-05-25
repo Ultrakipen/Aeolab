@@ -133,7 +133,7 @@ export default async function DeliveryPage() {
   } catch {}
   if (!user) redirect("/login");
 
-  // 세션 토큰 획득
+  // 토큰 추출 전용 — 인증 검증은 위 getUser()로 완료됨
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token ?? "";
 

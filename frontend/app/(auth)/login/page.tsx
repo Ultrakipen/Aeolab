@@ -1,17 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("reason") === "session_expired") {
+      setSessionExpired(true);
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +55,15 @@ export default function LoginPage() {
           <Link href="/" className="text-3xl font-bold text-blue-600">AEOlab</Link>
           <p className="text-base text-gray-500 mt-2">AI 검색 노출 관리 서비스</p>
         </div>
+
+        {/* 세션 만료 배너 */}
+        {sessionExpired && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
+            <p className="text-sm text-amber-700 text-center">
+              세션이 만료되어 자동으로 로그아웃되었습니다. 다시 로그인해주세요.
+            </p>
+          </div>
+        )}
 
         {/* 폼 */}
         <form onSubmit={handleLogin} className="bg-white rounded-xl p-6 shadow-sm space-y-5">

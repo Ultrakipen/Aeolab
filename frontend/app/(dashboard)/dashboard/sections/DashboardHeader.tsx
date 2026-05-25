@@ -103,7 +103,7 @@ export default function DashboardHeader({
 
       {/* 사업장 탭 */}
       {businesses && (businesses.length > 1 || businesses.length < (PLAN_BIZ_LIMITS[plan] ?? 1)) && (
-        <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-1">
+        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-2">
           {businesses.map((b) => (
             <a
               key={b.id}
@@ -203,7 +203,7 @@ export default function DashboardHeader({
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 whitespace-nowrap">
-                      AI탭·ChatGPT·Gemini
+                      🌐 네이버 AI탭·ChatGPT·Gemini 노출 가능
                     </span>
                   )}
                 </div>

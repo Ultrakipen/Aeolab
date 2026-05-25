@@ -1920,7 +1920,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         "photo_categories": None,  # 백그라운드 smart_place_check에서 UPDATE
         "blog_post_count": int(_blog_json_calc.get("post_count") or 0) or None,
         "blog_ai_readiness": float(_blog_json_calc.get("ai_readiness_score") or 0) or None,
-        "blog_keyword_coverage": float(_blog_json_calc.get("keyword_coverage") or 0) or None,
+        "blog_keyword_coverage": _blog_kw_cov or None,
         "blog_platform": _blog_json_calc.get("platform") or None,
         "blog_top_recommendation": (_blog_json_calc.get("top_recommendation") or "")[:500] or None,
     }))).data
@@ -1952,10 +1952,19 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
 
     # ai_citations 저장 (언급 여부 관계없이 모든 플랫폼 저장)
     if new_scan_id:
+        # INACTIVE 업종은 naver 인용 저장 안 함 — GET 필터와 이중 방어
+        from services.score_engine import get_briefing_eligibility as _get_elig
+        _biz_category = (biz or {}).get("category") or "other"
+        _biz_franchise = bool((biz or {}).get("is_franchise"))
+        _biz_eligibility = _get_elig(_biz_category, _biz_franchise)
+
         citation_rows = []
         for key, label in _PLATFORM_LABELS.items():
             r = results.get(key) or {}
             if not r:
+                continue
+            # INACTIVE 업종: naver 인용 DB 저장 생략 (잘못된 데이터 누적 방지)
+            if key == "naver" and _biz_eligibility == "inactive":
                 continue
             # Naver: keyword_results가 있으면 키워드별 개별 저장 (in_briefing 여부 모두)
             if key == "naver" and r.get("keyword_results"):
@@ -2245,6 +2254,13 @@ async def _enrich_scan_background(
 
     # ── 1.5 네이버 플레이스 통계 동기화 (review_count/avg_rating 자동 갱신) ─────
     naver_place_id_bg = (biz or {}).get("naver_place_id", "") or ""
+    # naver_place_id 없으면 naver_place_url에서 숫자 ID 추출 시도
+    if not naver_place_id_bg:
+        import re as _re_bg
+        _place_url_bg = (biz or {}).get("naver_place_url", "") or ""
+        _m_bg = _re_bg.search(r"place/(\d+)", _place_url_bg)
+        if _m_bg:
+            naver_place_id_bg = _m_bg.group(1)
     if naver_place_id_bg:
         try:
             from services.naver_place_stats import sync_naver_place_stats as _sync_bg
@@ -2599,24 +2615,14 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         # AI 스캔 + 카카오 가시성 + 웹사이트 SEO + 스마트플레이스 병렬 실행
         keyword_ko = _CATEGORY_KO.get((biz or {}).get("category", req.category), req.category)
 
-        # 쿼리 생성: DB 등록 키워드 + 변형 패턴으로 최대 3개 쿼리 (검색 의도 다양성)
+        # 쿼리 생성: 짧은 변형 + 긴 자연어 질의(롱테일 2.5배 대응) 단일 소스
+        from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_queries
         _full_biz_keywords = (biz or {}).get("keywords") or req.keywords or []
         _full_valid_kw = [k.strip() for k in _full_biz_keywords if k.strip() and len(k.strip()) >= 2]
         _full_region = (biz or {}).get("region") or req.region or ""
         _primary_kw = _full_valid_kw[0] if _full_valid_kw else keyword_ko
-        if _full_region:
-            _scan_queries = list(dict.fromkeys([
-                f"{_full_region} {_primary_kw} 추천",
-                f"{_full_region} {_primary_kw}",
-                f"{_primary_kw} 잘하는 {_full_region}",
-            ]))
-        else:
-            _scan_queries = list(dict.fromkeys([
-                f"{_primary_kw} 추천",
-                f"{_primary_kw}",
-                f"{_primary_kw} 잘하는 곳",
-            ]))
-        query = _scan_queries[0]  # Playwright·네이버 단일 쿼리용
+        _scan_queries = _build_ai_scan_queries(_full_region, _primary_kw)
+        query = _scan_queries[0]  # Playwright·네이버 단일 쿼리용 (짧은 쿼리 유지)
         naver_place_url = (biz or {}).get("naver_place_url", "") or ""
         naver_place_id_biz = (biz or {}).get("naver_place_id", "") or ""
         if not naver_place_url and naver_place_id_biz:
@@ -2655,6 +2661,13 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 biz = {**(biz or {}), "review_count": place_stats_fresh["review_count"]}
             if place_stats_fresh.get("avg_rating"):
                 biz = {**biz, "avg_rating": place_stats_fresh["avg_rating"]}
+        # SmartPlace 체크 결과를 biz에 즉시 반영 — DB 업데이트(하단) 전에 점수 계산이 먼저 실행되므로
+        # has_recent_post/has_intro를 여기서 병합해야 스캔 시점 실측값이 점수에 반영된다
+        if isinstance(smart_place_check, dict) and not smart_place_check.get("error"):
+            if "has_recent_post" in smart_place_check:
+                biz = {**(biz or {}), "has_recent_post": smart_place_check["has_recent_post"]}
+            if "has_intro" in smart_place_check:
+                biz = {**biz, "has_intro": smart_place_check["has_intro"]}
 
         # AI탭 스캔 (P2 — NAVER_AI_TAB_ENABLED=true 시 실행, 별도 세마포어 _AI_TAB_SEMAPHORE)
         from services.ai_scanner import naver_ai_tab_scanner as _naver_ai_tab
@@ -2867,6 +2880,11 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         _naver_result_full = {**(result.get("naver") or {})}
         if _ai_tab_visible is not None:
             _naver_result_full["in_ai_tab"] = _ai_tab_visible
+        # P3 멀티채널 결과 — NAVER_MULTICH_ENABLED=true 시 naver_result에 포함 (DB 컬럼 추가 없음)
+        if result.get("naver_cafe"):
+            _naver_result_full["cafe_result"] = result["naver_cafe"]
+        if result.get("naver_jisik"):
+            _naver_result_full["jisik_result"] = result["naver_jisik"]
 
         await execute(
             supabase.table("scan_results").insert(
@@ -2900,7 +2918,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "photo_categories": (smart_place_check.get("photo_categories") if isinstance(smart_place_check, dict) else None) or None,
                     "blog_post_count": int(_blog_json_full.get("post_count") or 0) or None,
                     "blog_ai_readiness": float(_blog_json_full.get("ai_readiness_score") or 0) or None,
-                    "blog_keyword_coverage": float(_blog_json_full.get("keyword_coverage") or 0) or None,
+                    "blog_keyword_coverage": _blog_kw_cov_full or None,
                     "blog_platform": _blog_json_full.get("platform") or None,
                     "blog_top_recommendation": (_blog_json_full.get("top_recommendation") or "")[:500] or None,
                     "naver_ai_tab_visible": _ai_tab_visible,

@@ -276,6 +276,8 @@ export default async function DashboardPage({
   } : undefined;
 
   const photoCategories = (latestScan?.photo_categories as Record<string, number> | null) ?? null;
+  const cafeResult = (latestScan?.naver_result as Record<string, unknown> | null | undefined)?.cafe_result as { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null ?? null;
+  const jisikResult = (latestScan?.naver_result as Record<string, unknown> | null | undefined)?.jisik_result as { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null ?? null;
   const gapCloseable = (gapRes as { vs_top?: { closeable_gap?: number } } | null)?.vs_top?.closeable_gap ?? null;
 
   const blogBiz = business as { blog_url?: string; blog_analyzed_at?: string; blog_post_count?: number; blog_keyword_coverage?: number } | null;
@@ -389,6 +391,8 @@ export default async function DashboardPage({
             userCreatedAt={user.created_at ?? null}
             globalWeight={globalWeight}
             googlePlaceRegistered={!!bizBase.google_place_id}
+            cafeResult={cafeResult}
+            jisikResult={jisikResult}
           />
 
           <DashboardGeneratorZone

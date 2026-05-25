@@ -180,7 +180,7 @@ export default function TrialDetailAccordion({
 }: TrialDetailAccordionProps) {
   const { userGroup } = naverTrackCardProps;
   const isGlobalFocus = userGroup === "INACTIVE" || userGroup === "franchise";
-  const [showDiagnosis, setShowDiagnosis] = useState(false);
+  const [showDiagnosis, setShowDiagnosis] = useState(true);
 
   const {
     naverChannelScore,

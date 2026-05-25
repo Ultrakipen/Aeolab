@@ -334,22 +334,22 @@ async def daily_scan_all():
                 # → 월=keyword[0], 화=keyword[1], 수=keyword[2] ... 모든 키워드가 주 1회 이상 스캔
                 valid_kws = [k.strip() for k in keywords if k.strip() and len(k.strip()) >= 2]
                 weekday = datetime.now().weekday()  # 0=월, 1=화, ..., 6=일
-                if valid_kws:
-                    kw_index = weekday % len(valid_kws)
-                    query = f"{biz['region']} {valid_kws[kw_index]} 추천"
-                else:
-                    query = f"{biz['region']} {biz['category']} 추천"
+                # 짧은 변형 + 긴 자연어 질의(롱테일 2.5배 대응) 단일 소스 — 첫 요소는 짧은 쿼리(naver용)
+                from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_queries
+                _scan_kw = valid_kws[weekday % len(valid_kws)] if valid_kws else biz["category"]
+                _scan_queries = _build_ai_scan_queries(biz["region"], _scan_kw)
+                query = _scan_queries[0]  # 단일 쿼리 문자열 — naver·single_check·query_used 저장용
 
                 # 플랜별 스캐너 선택 (plan_gate.py auto_scan_mode 기준)
                 # basic/startup: 월요일 → 풀스캔 / 나머지 → 경량 스캔 (주 1회 풀스캔)
                 # pro:           월·수·금 → 풀스캔 / 나머지 → 경량 스캔 (주 3회 풀스캔)
                 # biz: 매일 풀스캔
                 if plan in ("basic", "startup") and not is_monday:
-                    result = await basic_scanner.scan_basic(query, biz["name"])
+                    result = await basic_scanner.scan_basic(_scan_queries, biz["name"])
                 elif plan == "pro" and not is_pro_scan_day:
-                    result = await basic_scanner.scan_basic(query, biz["name"])
+                    result = await basic_scanner.scan_basic(_scan_queries, biz["name"])
                 else:
-                    result = await full_scanner.scan_all(query, biz["name"])
+                    result = await full_scanner.scan_all(_scan_queries, biz["name"])
 
                 # 블로그 covered 키워드를 biz에 병합해 keyword_gap 정확도 향상
                 _sched_blog_json = biz.get("blog_analysis_json") or {}

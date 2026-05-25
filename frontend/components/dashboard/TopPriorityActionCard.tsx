@@ -13,7 +13,7 @@ const DIMENSION_MESSAGES: Record<string, {
 }> = {
   keyword_gap_score: {
     reason: '업종 핵심 키워드가 부족해 AI 검색 노출이 안 됩니다',
-    action: '소개글·FAQ에 빠진 키워드를 추가하면 AI 검색 노출이 올라갑니다',
+    action: '소개글 Q&A에 빠진 키워드를 추가하면 AI 검색 노출이 올라갑니다',
     link: '/guide',
     linkLabel: '없는 키워드 확인하기',
   },
@@ -25,7 +25,7 @@ const DIMENSION_MESSAGES: Record<string, {
   },
   smart_place_completeness: {
     reason: '스마트플레이스 정보가 부족해서 AI가 내 가게를 잘 모릅니다',
-    action: '소개글·FAQ·소식을 채우면 AI가 가게를 더 잘 추천합니다',
+    action: '소개글 Q&A·소식을 채우면 AI가 가게를 더 잘 추천합니다',
     link: '/guide',
     linkLabel: '소개글 편집하러 가기',
   },

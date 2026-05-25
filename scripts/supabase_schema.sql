@@ -2099,3 +2099,21 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- ============================================================
+-- v6.0 — 사진 카테고리 체크리스트 오버라이드 (2026-05-24)
+-- 목적: 업종별 기본 체크리스트 항목 수동 체크/언체크 상태 저장
+-- 예시: photo/video 업종에서 "포트폴리오 사진 30장 이상 (다양한 분야)" 체크 여부
+-- 구조: { "항목명": true/false, ... }
+-- 실행 시점: 사진·비디오 업종 체크리스트 기능 출시 전
+-- 미실행 시: 백엔드 graceful fallback (JSONB 컬럼 부재 시 {} 반환)
+-- ============================================================
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS checklist_overrides JSONB DEFAULT '{}'::jsonb;
+
+COMMENT ON COLUMN businesses.checklist_overrides IS
+  'v6.0: 사진/비디오 업종 체크리스트 항목별 수동 체크 상태. 형식: {"항목명": true/false, ...}. 기본값 {}::jsonb';
+
+CREATE INDEX IF NOT EXISTS idx_businesses_checklist_overrides
+  ON businesses USING GIN (checklist_overrides);
