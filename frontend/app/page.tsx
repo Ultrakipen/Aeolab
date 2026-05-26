@@ -123,6 +123,19 @@ export default async function LandingPage() {
       {/* ── 1. HERO ── */}
       <HeroSection />
 
+      {/* ── 1-B. 3중 효과 배너 — Hero 직후 ── */}
+      <div className="bg-blue-50 border-b border-blue-100 py-3 px-4">
+        <div className="max-w-[1020px] mx-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-6 text-sm text-gray-700 text-center">
+          <span className="font-semibold text-gray-800 break-keep">스마트플레이스·블로그 개선 방법을 알면</span>
+          <span className="hidden sm:block text-gray-400">→</span>
+          <span className="break-keep">🔍 <strong className="text-blue-700">네이버 검색 상위노출</strong> 가능성 ↑</span>
+          <span className="hidden sm:block text-gray-400">·</span>
+          <span className="break-keep">🤖 <strong className="text-purple-700">AI 브리핑·AI탭</strong> 노출 가능성 ↑</span>
+          <span className="hidden sm:block text-gray-400">·</span>
+          <span className="break-keep">💬 <strong className="text-green-700">ChatGPT·Gemini</strong> 인식도 ↑</span>
+        </div>
+      </div>
+
       {/* ── 2. WHY — Before / After (#FFFFFF) ── */}
       <section className="px-4 py-12 md:py-20" style={{ background: "#FFFFFF" }}>
         <div className="max-w-[1020px] mx-auto">
