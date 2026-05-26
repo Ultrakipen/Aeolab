@@ -192,7 +192,7 @@ export default function NaverTrackCard({
       {userGroup === "LIKELY" && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 mb-3">
           <p className="text-sm text-blue-700 leading-relaxed break-keep">
-            스마트플레이스 정보를 잘 갖추면 네이버 플레이스 노출과 ChatGPT·Gemini의 가게 인식에 도움이 됩니다.
+            스마트플레이스 정보를 잘 갖추면 네이버 플레이스 노출과 네이버 AI탭 검색에 효과적입니다. ChatGPT·Gemini 노출은 구글 비즈니스 프로필 등록이 더 직접적입니다.
           </p>
         </div>
       )}

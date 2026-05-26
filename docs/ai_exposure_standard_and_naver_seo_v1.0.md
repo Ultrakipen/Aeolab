@@ -1,7 +1,7 @@
 # AI 노출 기준 표준 + 네이버 일반 검색 개선 계획 v1.0
 
 > AEOlab 작업 기준 문서 — 5개 AI 채널 노출 판정 기준 + 네이버 일반 검색 개선 안내 설계
-> 작성: 2026-05-26 | 근거: score_engine.py · naver_scanner.py · chatgpt_scanner.py · gemini_scanner.py · google_scanner.py · gap_analyzer.py · keyword_taxonomy.py
+> 작성: 2026-05-26 | 최종 갱신: 2026-05-26 v1.1 | 근거: score_engine.py · naver_scanner.py · chatgpt_scanner.py · gemini_scanner.py · google_scanner.py · gap_analyzer.py · keyword_taxonomy.py
 
 ---
 
@@ -67,7 +67,7 @@ restaurant, cafe, bakery, bar, accommodation
 - 스마트플레이스 AI 브리핑 플레이스형 노출 대상
 - **프랜차이즈는 ACTIVE 업종이라도 제외** (네이버 공식 정책)
 
-#### LIKELY — 확대 예정 (12개 업종)
+#### LIKELY — 확대 예정 (12개 코드 등록, 실효 6개)
 ```
 beauty, nail, skincare, massage, spa, pet, fitness, yoga, pharmacy,
 dance, ballet, semi_permanent
@@ -75,6 +75,7 @@ dance, ballet, semi_permanent
 - 2026-04-27 AI탭 베타 공개(네이버플러스 우선) 이후 확대 동향 추적 중
 - 사용자 안내 톤: "확대 가능성 높음, 현재 베타"
 - 점수 계산: ACTIVE보다 낮은 가중치 적용 (ai_briefing_score × 0.5)
+- **⚠️ 주의**: businesses.category 화이트리스트(25개)에 등록된 LIKELY 업종은 `beauty, nail, pet, fitness, yoga, pharmacy` 6개뿐. `skincare, massage, spa, dance, ballet, semi_permanent` 6개는 코드에는 있으나 사용자 등록 경로 없음 → 실질적 dead code. 화이트리스트 확장 전까지 UI 안내에 12개를 전부 열거하지 말 것.
 
 #### INACTIVE — 현재 비대상
 ```
@@ -190,10 +191,20 @@ NAVER_AI_TAB_ENABLED=true 시: in_ai_tab=True → +20 보너스
 
 ## §3 ChatGPT — 노출 기준
 
-### 3.1 서비스 개요
+### 3.1 서비스 개요 — 스캐너 측정 vs 실사용자 경험 구분 필수
 
-ChatGPT(GPT-4o 계열)는 사용자 질문에 대해 학습 데이터 기반으로 사업장을 추천한다.
-**실시간 웹 검색이 아닌 학습 데이터 기반**이므로 즉각 개선 효과가 나타나지 않는다.
+**AEOlab 스캐너가 측정하는 것 (chatgpt_scanner.py)**:
+- `gpt-4.1-mini` API 호출, `tools` 없음 → **학습 데이터(컷오프 2024.06) 기반**
+- 실시간 웹 검색 없음 → 훈련 데이터에 포함된 정도를 50~100회 샘플링으로 측정
+- 개선 효과 반영까지 **수개월~1년** (모델 재학습 주기)
+
+**실사용자가 ChatGPT.com에서 경험하는 것**:
+- ChatGPT Plus/Free 사용자: **Bing 웹 검색 기본 활성화** (SearchGPT 통합)
+- "강남 맛집 추천" 검색 시 → Bing이 크롤링한 최신 웹 콘텐츠 기반 답변
+- **네이버 스마트플레이스·블로그는 Bing 인덱싱 대상 아님** → ChatGPT 웹 검색에서 직접 참조 안 됨
+- 구글 비즈니스 프로필은 Bing도 인덱싱 → 가장 빠른 경로
+
+> **대시보드 안내 원칙**: 스캐너 점수 = "AI 학습 데이터 인식 현황" 표시. 개선 방법은 Bing 웹 검색 기준으로 안내.
 
 ### 3.2 노출 자격
 
@@ -201,54 +212,69 @@ ChatGPT(GPT-4o 계열)는 사용자 질문에 대해 학습 데이터 기반으�
 - **지역 제한 없음** — 전 세계 대상 (단, 한국어 쿼리는 한국 데이터 우선)
 - **프랜차이즈 가능** — 개별 점포도 언급 가능 (브랜드 인지도 의존)
 
-### 3.3 노출 가능성을 높이는 요인 (실증 기반)
+### 3.3 노출 가능성을 높이는 요인 (실사용 기준 — Bing 웹 검색 우선)
 
-| 요인 | 설명 | 측정 여부 |
+| 요인 | 효과 | 측정 여부 |
 |------|------|---------|
-| **온라인 언급 총량** | 블로그·SNS·뉴스·리뷰 플랫폼 언급 수 | ✅ blog_mention_score |
-| **네이버 블로그 후기** | 한국어 학습 데이터에서 블로그 가중 높음 | ✅ blog_analysis_json |
-| **FAQ·Q&A 콘텐츠** | "~에서 뭐가 맛있어?" 형태 질문-답변 구조 | Partial (소개글) |
-| **구글 비즈니스 프로필** | 영어권 학습 데이터 포함 | ✅ schema_seo |
-| **구조화된 정보** | JSON-LD, 메타태그 — AI가 파싱 용이 | ✅ schema_seo |
-| **일관된 사업장명** | 모든 플랫폼에서 동일한 이름 사용 | 부분 측정 |
+| **구글 비즈니스 프로필** | Bing도 구글 데이터를 참조 — 가장 빠른 경로 | ✅ schema_seo |
+| **자체 웹사이트 + JSON-LD** | Bing·OAI-SearchBot 직접 크롤링 대상 | ✅ schema_seo |
+| **트립어드바이저·망고플레이트 등 외부 플랫폼** | Bing 인덱싱 우수한 영어권·글로벌 플랫폼 | 부분 측정 |
+| **언론·뉴스 기사** | 권위 신호, Bing 인덱싱 양호 | ✅ blog_mention_score |
+| 네이버 블로그 후기 | Bing 인덱싱 거의 안 됨 → ChatGPT에 직접 효과 없음 | ✅ blog_analysis_json (네이버 AI 브리핑·AI탭 전용) |
 
 ### 3.4 측정 방법 (chatgpt_scanner.py)
 
 ```
-모델: gpt-4.1-mini (비용 최적화)
+모델: gpt-4.1-mini (비용 최적화, tools 없음 — web search 미사용)
 샘플링: 50회(Basic) / 100회(Full) / 5회(Trial)
 쿼리: build_ai_scan_queries()로 생성한 5개 쿼리 균등 분산
 점수 산식: (언급 횟수 / 총 샘플) × 45 → 100점 재배분
 신뢰구간: Wilson 95% CI
+측정 의미: 훈련 데이터 인식도 (실시간 웹 검색 결과 아님)
 ```
 
 ### 3.5 개선 방향 (사용자 안내)
 
 ```
-단기 (1~4주):
-  1. 네이버 블로그 후기 5개+ 확보 — 한국어 AI 학습 데이터 가장 빠른 경로
-  2. 소개글에 Q&A 형식 문장 추가 ("주차 공간이 있나요? → 있습니다...")
+즉시 (1~4주, 실사용자 ChatGPT 기준):
+  1. 구글 비즈니스 프로필 등록·완성 (business.google.com) — Bing 인덱싱 가장 빠름
+  2. 자체 웹사이트에 사업장명·주소·운영시간·Q&A 구조화 (JSON-LD 추가)
   3. 모든 플랫폼 사업장명 통일
 
-장기 (1~6개월):
-  4. 구글 비즈니스 프로필 등록·완성
-  5. 블로그 UGC 꾸준히 생성 (월 2회+)
-  6. JSON-LD 구조화 데이터 웹사이트 적용
+장기 (스캐너 점수 반영 기준 — 수개월~1년):
+  4. 트립어드바이저·망고플레이트 등 Bing 인덱싱 플랫폼 등록
+  5. 언론 보도·블로그 협업 기사 확보
+  ※ 네이버 블로그는 네이버 AI 브리핑·AI탭에 효과적. ChatGPT 점수 직접 개선 안 됨.
 ```
 
 ### 3.6 면책 문구 (모든 UI에 필수)
 
-> "ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
-> 측정 시점에 따라 결과가 달라질 수 있습니다."
+> "ChatGPT 측정은 AI 학습 데이터(컷오프 2024.06) 기반입니다. 실제 ChatGPT.com에서의 검색 결과와 다를 수 있으며, 단기 콘텐츠 변경으로 점수가 즉시 변동되지 않습니다."
+
+**구현 완료 (2026-05-26)**:
+- `ChatGPTDiffCard.tsx` — "ChatGPT 인식은 학습 데이터(컷오프 2024.06) 기반" 경고 배너 추가
+- `GlobalAIBanner.tsx` — "ChatGPT는 학습 데이터 기반 장기 전략, Gemini는 구글 비즈니스 프로필로 수주 내 개선 가능" 분리 안내
+- `chatgpt-search/page.tsx` — "Bing 검색 기반" 개편, 네이버 블로그 효과 없음 명시
+- `gap_analyzer.py` — "ChatGPT는 Bing 검색 기반이라 네이버 블로그는 직접 도움 안 됨" 안내 반영
+- `AIProblemDiagnosis.tsx` — 소개글 Q&A → 네이버 AI탭 효과, ChatGPT·Gemini에 구글 비즈니스 프로필 유도로 분리
 
 ---
 
 ## §4 Gemini — 노출 기준
 
-### 4.1 서비스 개요
+### 4.1 서비스 개요 — 스캐너 측정 vs 실사용자 경험 구분 필수
 
-Google Gemini는 구글 생태계(구글 지도·비즈니스 프로필·유튜브)와 연동된 학습 데이터를 사용한다.
-ChatGPT보다 **구글 플랫폼 최적화가 더 직접적으로 영향**을 준다.
+**AEOlab 스캐너가 측정하는 것 (gemini_scanner.py)**:
+- `gemini-2.0-flash-001` API 호출, `tools=["google_search"]` 없음 → **학습 데이터 기반**
+- Google Search 그라운딩 미사용 → 훈련 데이터에 포함된 정도를 측정
+- ChatGPT와 달리 학습 데이터에 구글 생태계 가중이 더 높음
+
+**실사용자가 gemini.google.com에서 경험하는 것**:
+- **Google Search 그라운딩 기본 활성화** → 구글 인덱스 최신 정보 실시간 참조
+- 구글 비즈니스 프로필 → **수주 내 반영** (훈련 데이터 갱신 불필요)
+- ChatGPT보다 **즉각적인 개선 효과** 가능
+
+> **대시보드 안내 원칙**: "Gemini는 구글 비즈니스 프로필·웹사이트 등록으로 수주 내 개선 가능"으로 안내.
 
 ### 4.2 노출 자격
 
@@ -259,19 +285,21 @@ ChatGPT보다 **구글 플랫폼 최적화가 더 직접적으로 영향**을 �
 
 | 요인 | ChatGPT 대비 차이점 |
 |------|------------------|
-| **구글 비즈니스 프로필 완성도** | Gemini 고유 — 직접 연동됨 |
+| **구글 비즈니스 프로필 완성도** | Gemini 전용 — 수주 내 반영 (ChatGPT보다 훨씬 빠름) |
 | **구글 지도 리뷰** | Gemini가 구글 리뷰를 직접 참조 |
+| **자체 웹사이트 (구글 색인)** | 구글 검색 색인 콘텐츠 → Gemini 그라운딩에 즉시 반영 |
 | **유튜브 영상 언급** | 구글 계열 콘텐츠 가중 높음 |
-| 네이버 블로그 언급 | ChatGPT와 공통 |
-| JSON-LD 구조화 데이터 | ChatGPT와 공통 |
+| JSON-LD 구조화 데이터 | ChatGPT와 공통 (구글 색인 속도가 더 빠름) |
+| 네이버 블로그 언급 | **네이버 AI 브리핑·AI탭에 효과적. Gemini 직접 효과 낮음** |
 
 ### 4.4 측정 방법 (gemini_scanner.py)
 
 ```
-모델: gemini-2.0-flash-001
+모델: gemini-2.0-flash-001 (tools 없음 — Google Search 그라운딩 미사용)
 샘플링: 50회(Basic) / 100회(Full) / 10회(Quick)
 쿼리: build_ai_scan_queries() 5개 쿼리 균등 분산 (ChatGPT와 동일)
 점수 산식: (언급 횟수 / 총 샘플) × 45 → 100점 재배분
+측정 의미: 훈련 데이터 인식도 (실사용 Gemini의 그라운딩 결과와 다를 수 있음)
 ```
 
 **ChatGPT·Gemini 합산 점수 산식**:
@@ -279,18 +307,27 @@ ChatGPT보다 **구글 플랫폼 최적화가 더 직접적으로 영향**을 �
 (gemini_score × 45) + (chatgpt_score × 45) = 90점 → × (100/90) = 100점 재배분
 ```
 
-### 4.5 개선 방향 (ChatGPT와 분리)
+### 4.5 개선 방향 (ChatGPT와 명확 분리)
 
 ```
-ChatGPT 공통 개선 항목 외 Gemini 전용:
-  1. 구글 비즈니스 프로필 등록 → 운영시간·사진·메뉴 완성
+Gemini 전용 (즉각 효과):
+  1. 구글 비즈니스 프로필 등록 → 운영시간·사진·메뉴 완성 (수주 내 Gemini 반영)
   2. 구글 지도 리뷰 최소 10개 확보
-  3. 유튜브에 업장 관련 영상 1개+ (직접 또는 협업)
+  3. 자체 웹사이트 구글 색인 확인 (Search Console 등록)
+  4. 유튜브에 업장 관련 영상 1개+ (직접 또는 협업)
+
+ChatGPT·Gemini 공통 (장기):
+  5. JSON-LD 구조화 데이터 웹사이트 적용
+  ※ 네이버 블로그는 네이버 AI 브리핑·AI탭에 효과적. Gemini 직접 개선 경로 아님.
 ```
 
 ### 4.6 면책 문구
 
-> "Gemini 측정은 AI 학습 데이터 기반이며 구글 플랫폼 데이터 업데이트 주기에 따라 결과가 달라질 수 있습니다."
+> "Gemini 스캐너 측정은 AI 학습 데이터 기반입니다. 실제 Gemini 앱은 Google Search 그라운딩으로 최신 정보를 참조하므로, 구글 비즈니스 프로필 등록 후 수주 내 반영될 수 있습니다."
+
+**구현 완료 (2026-05-26)**:
+- `GlobalAIBanner.tsx` — "Gemini는 구글 비즈니스 프로필로 수주 내 개선 가능" 명시
+- `TrialDetailAccordion.tsx` — "Gemini·ChatGPT 인식 현황" 헤더 + "Gemini는 콘텐츠로 개선 가능·ChatGPT는 장기 전략" 부제 분리
 
 ---
 
@@ -301,25 +338,28 @@ ChatGPT 공통 개선 항목 외 Gemini 전용:
 Google AI Overview(SGE)는 구글 검색 결과 상단에 AI 요약을 표시한다.
 **현재 iwinv 서버 IP → 구글 CAPTCHA 100% 차단 상태**로 실측 불가.
 
-### 5.2 현재 측정 상태 및 P0 버그
+### 5.2 현재 측정 상태
 
 | 구분 | 내용 |
 |------|------|
 | 측정 방식 | Playwright → `www.google.com/search` |
 | 현재 상태 | **CAPTCHA 차단 100%** — 측정 불가 |
-| 버그 | CAPTCHA 감지 로직 없음 → 항상 `mentioned=False` → 허위 0점 |
-| 수정 필요 | `google_scanner.py`에 CAPTCHA 감지 + `score_engine`에서 `None` 처리 |
 | 재도입 예정 | 구독자 50명 이후 DataForSEO Screenshot API ($0.002/건) |
 
-**즉시 수정 필요 (P0)**:
+**✅ P0 수정 완료 (2026-05-26, commit c416899)**:
 ```python
-# google_scanner.py에 추가할 CAPTCHA 감지
-if "captcha" in page.url or "sorry" in page.url:
-    return {"mentioned": False, "captcha_detected": True, "error": "captcha_blocked"}
+# google_scanner.py:54–62 — CAPTCHA 감지 구현됨
+if (any(kw in current_url for kw in ["captcha", "sorry", "recaptcha"]) or ...):
+    return {"mentioned": False, "in_ai_overview": False, "captcha_detected": True, "error": "captcha_blocked"}
 
-# score_engine.calc_google_presence()에 추가
-if google.get("captcha_detected"):
-    return None   # 0점이 아닌 None → 점수 미부과
+# score_engine.py:757–792 — _is_google_captcha() + calc_track2_score() CAPTCHA 분기
+# CAPTCHA 시 나머지 3개 항목(0.90)으로 재배분 → 100점 만점 유지
+# breakdown에 google_captcha_blocked=True 플래그 추가됨
+```
+
+**재배분 산식 (CAPTCHA 시, 이미 적용됨)**:
+```
+score = (ai_exp × 0.40 + schema × 0.30 + mentions × 0.20) / 0.90
 ```
 
 ### 5.3 노출 가능성을 높이는 요인 (측정 가능해진 후 적용)
@@ -339,6 +379,8 @@ if google.get("captcha_detected"):
  구글 비즈니스 프로필 완성도와 JSON-LD 구조화 데이터를 개선하면
  노출 가능성이 높아집니다."
 ```
+
+**스코어 처리**: CAPTCHA 시 `google_captcha_blocked=True` 플래그 + 나머지 3개 항목으로 재배분 → 사용자에게 "Google AI Overview 측정 불가 (서버 환경)" 안내 필요.
 
 ---
 
@@ -486,23 +528,26 @@ PC 통합검색:   search.naver.com
 
 ### 7.1 개선 행동 → 채널별 효과 매트릭스
 
-| 개선 행동 | 플레이스탭 | AI 브리핑 | AI탭 | ChatGPT | Gemini | Google AI |
+> **ChatGPT 열 해석 주의**: "ChatGPT"는 스캐너(학습 데이터) 기준. 실사용자 ChatGPT.com(Bing 검색)은 구글 비즈니스 프로필이 훨씬 빠름.
+> **Gemini 열 해석**: 스캐너(학습 데이터) 기준이나, 실사용 Gemini 앱은 구글 그라운딩으로 수주 내 반영.
+
+| 개선 행동 | 플레이스탭 | AI 브리핑 | AI탭 | ChatGPT (스캐너) | Gemini (스캐너) | Google AI |
 |----------|---------|---------|------|---------|--------|-----------|
 | 소개글 Q&A 완성 (500자+) | ✅ 즉시 | ✅ 2~4주 | ✅ 즉시 | — | — | — |
 | 리뷰 10개+ | ✅ 즉시 | ✅ 2~4주 | ✅ 즉시 | — | — | — |
 | 사진 10장+ (카테고리별) | ✅ 즉시 | ✅ 2~4주 | ✅ 즉시 | — | — | — |
-| 네이버 블로그 후기 5개+ | ✅ 2~4주 | — | ✅ 2~4주 | ✅ 3~12개월 | ✅ 3~12개월 | — |
+| 네이버 블로그 후기 5개+ | ✅ 2~4주 | — | ✅ 2~4주 | — (Bing 미인덱싱) | — | — |
 | 14일 이내 소식 게시 | ✅ 즉시 | ✅ 2~4주 | ✅ 즉시 | — | — | — |
 | 예약 연동 | ✅ 즉시 | ✅ 2~4주 | ✅ 즉시 | — | — | — |
 | JSON-LD 구조화 데이터 | — | — | — | ✅ 3~12개월 | ✅ 3~12개월 | ✅ 즉시 |
-| 구글 비즈니스 프로필 | — | — | — | ✅ 3~12개월 | ✅ 즉시 | ✅ 즉시 |
+| 구글 비즈니스 프로필 | — | — | — | ✅ 수주 (Bing 경로) | ✅ 수주 (그라운딩) | ✅ 즉시 |
 
 ### 7.2 우선순위 결정 원칙
 
 ```
-ACTIVE 업종 → 스마트플레이스 최적화 우선 (AI 브리핑 직결)
-LIKELY 업종 → 스마트플레이스 + 블로그 병행 (AI탭 대비)
-INACTIVE 업종 → 블로그 + 구글 비즈니스 프로필 (ChatGPT·Gemini 장기)
+ACTIVE 업종    → 스마트플레이스 최적화 우선 (AI 브리핑 직결)
+LIKELY 업종    → 스마트플레이스 + 구글 비즈니스 프로필 병행 (AI탭·Gemini 대비)
+INACTIVE 업종  → 구글 비즈니스 프로필 최우선 (Gemini 수주 효과) + ChatGPT는 장기 전략
 ```
 
 ---
@@ -520,10 +565,12 @@ AI탭:
 "네이버 AI탭은 현재 베타 서비스 중이며, 전체 확대 시 기준이 변경될 수 있습니다."
 
 ChatGPT:
-"ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다."
+"ChatGPT 측정은 AI 학습 데이터(컷오프 2024.06) 기반입니다. 실제 ChatGPT.com은
+ Bing 웹 검색을 사용하므로 측정 결과와 다를 수 있으며, 단기 개선이 점수에 즉시 반영되지 않습니다."
 
 Gemini:
-"Gemini 측정은 AI 학습 데이터 기반이며 구글 플랫폼 데이터 업데이트 주기에 따라 달라질 수 있습니다."
+"Gemini 스캐너 측정은 AI 학습 데이터 기반입니다. 실제 Gemini 앱은 Google 검색 그라운딩을
+ 사용하므로, 구글 비즈니스 프로필 등록 후 수주 내 실사용 결과가 개선될 수 있습니다."
 
 Google AI Overview:
 "Google AI Overview는 현재 서버 환경상 직접 측정이 어렵습니다."
@@ -541,7 +588,8 @@ LIKELY 업종 사용자:
 
 INACTIVE 업종 사용자:
 "현재 AI 브리핑은 음식점·카페 업종에 집중 제공됩니다.
- ChatGPT·Gemini 노출과 AI탭 준비를 중심으로 최적화를 진행하세요."
+ Gemini는 구글 비즈니스 프로필 등록으로 수주 내 개선이 가능합니다.
+ AI탭(전 업종 대상) 준비와 구글 비즈니스 프로필을 중심으로 최적화를 진행하세요."
 ```
 
 ### 8.3 "measured" vs "estimated" 배지 기준 (scan_result_screens_inspection_v1.0.md 기준)
@@ -556,31 +604,37 @@ N/A:       측정 불가 (Google CAPTCHA, 데이터 없음)
 
 ## §9 구현 우선순위 로드맵
 
-### 즉시 (P0) — 2026-05-26 구현
+### ✅ 완료 (P0) — 2026-05-26, commit c416899
 
-| 작업 | 파일 | 내용 |
+| 작업 | 파일 | 결과 |
 |------|------|------|
-| Google CAPTCHA 감지 | `google_scanner.py` | CAPTCHA 시 `captcha_detected=True, error="captcha_blocked"` 반환. `import re` 추가 |
-| Google 점수 미부과 | `score_engine.py` | `_is_google_captcha()` 헬퍼 추가. `calc_track2_score()`에서 CAPTCHA 시 나머지 3개 항목(가중치 0.90)으로 재배분 → 100점 만점 유지. breakdown에 `google_captcha_blocked` 플래그 추가 |
+| Google CAPTCHA 감지 | `google_scanner.py:42–62` | CAPTCHA URL/제목/본문 감지 → `captcha_detected=True, error="captcha_blocked"` 반환 |
+| Google 점수 재배분 | `score_engine.py:757–792` | `_is_google_captcha()` 헬퍼 + CAPTCHA 시 나머지 3개 항목(0.90)으로 재배분. `google_captcha_blocked` 플래그 breakdown 추가 |
 
-**재배분 산식 (CAPTCHA 시)**:
-```
-score = (ai_exp × 0.40 + schema × 0.30 + mentions × 0.20) / 0.90
-```
-→ Google(0.10) 제외 후 나머지 합계(0.90)로 나눠 100점 만점 유지
+### ✅ 완료 (P1-A) — 2026-05-26, commit c416899
 
-### 단기 (P1) — 2026-05-26 구현
+| 작업 | 파일 | 결과 |
+|------|------|------|
+| 키워드 순위 카드 AI 연결 문구 | `KeywordRankCard.tsx` | "플레이스 탭 순위 ↑ → AI 브리핑·AI탭 노출 가능성 ↑" 1줄 추가 |
+| /guide 네이버 검색 기반 섹션 | `GuideClient.tsx` | `NaverSearchBaseSection` 신규: 6개 체크리스트 + 채널별 효과 배지 |
 
-| 작업 | 파일 | 실제 상태 확인 후 수정 내용 |
-|------|------|--------------------------|
-| 키워드 순위 카드 AI 연결 문구 | `KeywordRankCard.tsx` | 이미 구현됨. 면책 문구 하단에 "플레이스 탭 순위 ↑ → AI 브리핑·AI탭 노출 가능성 ↑" 1줄 추가 |
-| /guide 네이버 검색 기반 섹션 | `GuideClient.tsx` | `NaverSearchBaseSection` 신규 컴포넌트 + ListContentSection 뒤 삽입. 6개 체크리스트 + 채널별 효과 배지 |
+**검증된 오판 (설계 의도로 확인됨)**:
+- "네이버 일반 검색 안내 카드 신규 필요" → 카드 이미 존재, 연결 문구만 없었음 (수정 완료)
+- "롱테일 쿼리 네이버 미전달 버그" → `scan.py:2625` 의도된 설계. 짧은 쿼리[0]만 네이버에 전달이 정책
 
-**실제 코드 검증 결과 (2026-05-26):**
-- `KeywordRankCard` — `DashboardScoreZone.tsx:102-108`에 이미 렌더링됨. PC·모바일·플레이스 탭 순위 표시 완비.
-- "네이버 일반 검색 안내 카드 신규" 주장 → **오판**. 카드는 이미 존재. 연결 문구만 없음.
-- `GuideClient.tsx` 탭3(전체 가이드): `ListContentSection` 뒤 `SmartPlaceStatusCard` 앞이 최적 삽입 위치.
-- 에이전트 P1 #7 (롱테일 쿼리 네이버 미전달) → **오판**. `scan.py:2625` 주석으로 의도된 설계 확인. 짧은 쿼리를 네이버에 전달하는 것이 정책.
+### ✅ 완료 (P1-B) — 2026-05-26, 미커밋 (commit 대기)
+
+| 작업 | 파일 | 결과 |
+|------|------|------|
+| ChatGPT Bing 검색 기반 재작성 | `chatgpt-search/page.tsx` | "Bing 검색 기반" + 구글 비즈니스 프로필 최우선 + 네이버 블로그 직접 효과 없음 명시 |
+| ChatGPT 학습 데이터 배너 | `ChatGPTDiffCard.tsx` | "학습 데이터 컷오프 2024.06 기반, 단기 변동 없음" 경고 배너 |
+| Gemini·ChatGPT 분리 안내 | `GlobalAIBanner.tsx` | Gemini(수주 내 개선 가능) vs ChatGPT(장기 전략) 명확 분리 |
+| 소개글 Q&A → AI탭 분리 | `AIProblemDiagnosis.tsx` | INACTIVE 업종 소개글 Q&A 힌트를 "AI탭 효과"로 수정, ChatGPT·Gemini는 구글 비즈니스 프로필 유도 |
+| 소개글 → AI탭 효과 수정 | `guide_generator.py:62` | `_intro_missing_msg()` INACTIVE 분기 수정 |
+| gap 안내 수정 | `gap_analyzer.py:55–63` | `multi_ai_exposure` 갭 문구: "ChatGPT는 Bing 검색 기반, 네이버 블로그 직접 도움 안 됨" |
+| 키워드 제외어 정규화 | `keyword_taxonomy.py` | `_norm_kw()` 유틸 + 전체 excluded 비교에 띄어쓰기 차이 흡수 적용 |
+| INACTIVE 업종 AI 카운트 수정 | `AIDiagnosisCard.tsx:127–156` | INACTIVE 업종에서 naver를 AI 노출 카운트·CTA 대상에서 제외 |
+| Trial 헤더 분리 | `TrialDetailAccordion.tsx` | "Gemini·ChatGPT 인식 현황" + "Gemini는 콘텐츠로 개선 가능·ChatGPT는 장기 전략" 부제 |
 
 ### 중기 (P2 — 6월 AI탭 전체 확대 후)
 
@@ -596,15 +650,17 @@ score = (ai_exp × 0.40 + schema × 0.30 + mentions × 0.20) / 0.90
 |------|------|------|
 | Google AI Overview 재도입 | `google_scanner.py` | DataForSEO API 교체 ($0.002/건) |
 | 네이버 키워드 순위 자동화 | `naver_keyword_rank.py` | 일일 순위 추이 대시보드 표시 |
-| ChatGPT·Gemini 프롬프트 차별화 | `chatgpt_scanner.py`, `gemini_scanner.py` | Gemini용 "구글 최신 정보 기준" 맥락 추가 |
+| Gemini 스캐너 Google Search 그라운딩 | `gemini_scanner.py` | `tools=["google_search"]` 활성화 옵션 (비용 검토 필요) |
+| LIKELY 화이트리스트 확장 | `CLAUDE.md` + businesses 등록 UI | skincare·massage·spa·dance·ballet·semi_permanent 6개 추가 시 LIKELY 실효 12개 |
 
 ---
 
 ## 변경 이력
 
-| 날짜 | 내용 |
-|------|------|
-| 2026-05-26 | v1.0 최초 작성 — 5채널 노출 기준 + 네이버 일반 검색 개선 계획 통합 |
+| 날짜 | 버전 | 내용 |
+|------|------|------|
+| 2026-05-26 | v1.0 | 최초 작성 — 5채널 노출 기준 + 네이버 일반 검색 개선 계획 통합 |
+| 2026-05-26 | v1.1 | 구현 결과 반영 + 오판 정정<br>**P0 완료 확인**: google_scanner.py CAPTCHA 감지, score_engine.py 재배분<br>**P1 완료 확인**: KeywordRankCard 연결 문구, GuideClient NaverSearchBaseSection<br>**§3 ChatGPT 전면 수정**: "학습 데이터 기반" → "스캐너=학습 데이터(컷오프 2024.06) / 실사용=Bing 검색" 이분법 도입. 네이버 블로그 ChatGPT 직접 효과 없음 명시<br>**§4 Gemini 전면 수정**: "스캐너=학습 데이터 / 실사용=Google Search 그라운딩(수주 내 반영)" 분리<br>**§7 매트릭스 수정**: 네이버 블로그→ChatGPT 효과 "—"로 정정. 구글 비즈니스 프로필→Gemini "수주" 추가<br>**§1 LIKELY 주석 추가**: 12개 중 실효 6개 (6개 화이트리스트 미등록)<br>**P1-B 미커밋 항목 9개 문서화** |
 
 ---
 

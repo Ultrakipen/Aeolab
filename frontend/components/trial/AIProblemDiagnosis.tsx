@@ -229,7 +229,7 @@ export default function AIProblemDiagnosis({
       text: "소개글 Q&A 섹션 없음",
       impact: isActive
         ? "소개글 안 Q&A는 AI 브리핑 인용 후보 경로 중 하나 — 미확보 상태"
-        : "소개글 Q&A가 없으면 ChatGPT·Gemini가 가게를 파악하기 어려운 상태",
+        : "소개글 Q&A가 없으면 네이버 AI탭 인용 후보에서 불리한 상태",
       priority: 1,
     });
   }
@@ -306,7 +306,7 @@ export default function AIProblemDiagnosis({
       copyText: faqCopyText ?? null,
       hint: isActive
         ? "소개글 하단 Q&A가 AI 브리핑 인용 후보로 가장 효과적입니다"
-        : "소개글 Q&A를 추가하면 ChatGPT·Gemini가 가게 정보를 더 잘 파악합니다",
+        : "소개글 Q&A를 추가하면 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.",
     });
   }
 
@@ -351,7 +351,7 @@ export default function AIProblemDiagnosis({
     problems.length >= 3
       ? isActive
         ? `${iSubject(businessName)} 소개글 Q&A 추가와 키워드 정리만 해도 AI 브리핑 인용 후보 가능성이 크게 높아집니다`
-        : `${iSubject(businessName)} 소개글 Q&A 추가와 키워드 정리만 해도 ChatGPT·Gemini 노출 가능성이 크게 높아집니다`
+        : `${iSubject(businessName)} 소개글 Q&A 추가로 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 핵심입니다.`
       : track1Score >= 60
       ? isActive
         ? "네이버 AI 브리핑 기반은 잘 갖춰져 있습니다. 글로벌 AI 노출을 높이면 더 많은 손님이 찾아옵니다"

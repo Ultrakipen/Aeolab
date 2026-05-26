@@ -19,16 +19,59 @@ router = APIRouter()
 
 
 async def _is_first_time_subscriber(user_id: str) -> bool:
-    """이전에 구독한 이력이 전혀 없는 사용자인지 확인 — 첫 달 할인 자격 검증용"""
+    """첫 달 할인 자격 검증 — 계정 기준 + 사업장(naver_place_id) 기준 이중 차단"""
     supabase = get_client()
+
+    # 1단계: 현재 계정 구독 이력 확인
     res = await execute(
         supabase.table("subscriptions")
-        .select("id, status, plan")
+        .select("id")
         .eq("user_id", user_id)
         .limit(1)
     )
-    rows = res.data or []
-    return len(rows) == 0
+    if res.data:
+        return False
+
+    # 2단계: 현재 계정의 사업장 naver_place_id 조회
+    biz_res = await execute(
+        supabase.table("businesses")
+        .select("naver_place_id")
+        .eq("user_id", user_id)
+        .eq("is_active", True)
+        .not_.is_("naver_place_id", "null")
+        .limit(1)
+    )
+    if not (biz_res.data and biz_res.data[0].get("naver_place_id")):
+        return True  # place_id 없으면 계정 기준만 적용
+
+    naver_place_id = biz_res.data[0]["naver_place_id"]
+
+    # 3단계: 같은 naver_place_id를 가진 다른 계정의 구독 이력 확인
+    same_place_res = await execute(
+        supabase.table("businesses")
+        .select("user_id")
+        .eq("naver_place_id", naver_place_id)
+        .neq("user_id", user_id)
+        .limit(20)
+    )
+    for row in (same_place_res.data or []):
+        other_uid = row.get("user_id")
+        if not other_uid:
+            continue
+        sub_res = await execute(
+            supabase.table("subscriptions")
+            .select("id")
+            .eq("user_id", other_uid)
+            .limit(1)
+        )
+        if sub_res.data:
+            logger.warning(
+                f"사업장 기준 할인 차단 — naver_place_id={naver_place_id}, "
+                f"신청 user={user_id}, 기존 구독 user={other_uid}"
+            )
+            return False
+
+    return True
 
 
 def _verify_toss_auth(request: Request) -> None:

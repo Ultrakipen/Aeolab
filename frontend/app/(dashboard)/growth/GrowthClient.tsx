@@ -376,7 +376,7 @@ export default function GrowthClient({
                 <span className="text-sm text-gray-500 mb-1">점</span>
               </div>
               <p className="text-sm text-gray-400 mt-1">
-                구글·ChatGPT 기반 · 이 점수가 낮으면 해외 AI에서 내 가게가 안 나옵니다
+                Gemini·ChatGPT가 현재 이 사업장을 인식하는 수준입니다
               </p>
             </>
           ) : (

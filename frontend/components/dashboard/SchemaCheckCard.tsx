@@ -56,7 +56,7 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
           href="/schema"
           className="mt-3 inline-block text-sm text-blue-600 font-medium underline"
         >
-          소개글 · 블로그 초안 만들기 →
+          AI 최적화 소개글 · 블로그 초안 만들기 →
         </Link>
       </div>
     );

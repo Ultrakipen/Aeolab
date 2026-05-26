@@ -146,7 +146,7 @@ export default async function LandingPage() {
               }}>AI 검색은 다릅니다</span>
             </h2>
             <p className="text-sm md:text-base mt-2 break-keep max-w-xl mx-auto" style={{ color: "#475569" }}>
-              네이버 광고는 돈 내는 동안만, AI 검색(브리핑·AI탭·ChatGPT)은 한 번 올라가면 광고 없이 유지됩니다
+              네이버 광고는 돈 내는 동안만, AI 검색(브리핑·AI탭)은 조건을 갖추면 광고 없이 지속될 수 있습니다
             </p>
           </div>
 
@@ -216,12 +216,12 @@ export default async function LandingPage() {
               />
               <div className="relative">
                 <span className="inline-flex items-center text-sm font-bold bg-white/20 text-white px-2.5 py-0.5 rounded-full mb-3">
-                  AEOlab → AI 검색 전채널 최적화
+                  AEOlab → AI 검색 준비도 체계 관리
                 </span>
                 <h3 className="text-base md:text-lg font-bold mb-0.5 break-keep">
-                  AI 검색에서 꾸준히 추천됩니다
+                  AI 검색 노출 조건을 체계적으로 관리합니다
                 </h3>
-                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.75)" }}>월 9,900원 (광고비의 약 1/90) · 모든 업종</p>
+                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.75)" }}>월 9,900원 (광고비 30만원 기준의 약 1/30) · 모든 업종</p>
                 <svg viewBox="0 0 300 100" className="w-full h-auto">
                   <line x1="0" y1="75" x2="300" y2="75" stroke="rgba(255,255,255,.15)" strokeWidth="1" />
                   <path d="M 0,70 L 50,57 L 100,50 L 150,40 L 200,30 L 250,22 L 300,15 L 300,100 L 0,100 Z" fill="rgba(255,255,255,0.08)" />
@@ -238,11 +238,11 @@ export default async function LandingPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-bold shrink-0">✓</span>
-                    ChatGPT·Gemini 동시 관리 — 모든 업종
+                    ChatGPT·Gemini 현황 정기 측정 — 모든 업종
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-bold shrink-0">✓</span>
-                    광고 끊어도 AI 추천은 유지됩니다
+                    광고 없이도 AI 추천 조건을 쌓아드립니다
                   </li>
                 </ul>
               </div>
@@ -309,8 +309,8 @@ export default async function LandingPage() {
             {/* 보조 카드 3개 */}
             <div className="fade-up flex flex-col gap-3">
               {[
-                { num: "3,000만+", label: "AI 브리핑을 본 사람", sub: "월간 사용자 · 네이버 공식 발표 (2026.3)", delay: "delay-1", isAiTab: false },
-                { num: "15,000+", label: "네이버 AI 브리핑 적용 숙박업체", sub: "2026년 기준 · 네이버 공식 발표", delay: "delay-2", isAiTab: false },
+                { num: "3,000만+", label: "AI 브리핑 서비스 월 이용자", sub: "뉴스·검색·플레이스 전체 합산 · 네이버 공식 발표 (2025.11)", delay: "delay-1", isAiTab: false },
+                { num: "2026.04", label: "네이버 AI탭 베타 출시", sub: "모든 업종 대상 · 네이버 공식 발표", delay: "delay-2", isAiTab: false },
                 { num: "25종+", label: "모든 업종 측정 가능", sub: "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기", delay: "delay-3", isAiTab: true },
               ].map((item) => (
                 <div
@@ -365,7 +365,6 @@ export default async function LandingPage() {
             <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-5 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-sm font-bold text-emerald-800 mb-0.5">그룹 A</p>
                   <p className="text-base font-black text-gray-800 break-keep">음식점·카페·베이커리·바·숙박</p>
                 </div>
                 <span className="flex-shrink-0 ml-3 px-3 py-1 rounded-full text-sm font-bold bg-emerald-600 text-white whitespace-nowrap">3채널 전부</span>
@@ -390,7 +389,8 @@ export default async function LandingPage() {
                   <span className="text-emerald-500 text-base font-bold mt-0.5 flex-shrink-0">✅</span>
                   <div>
                     <p className="text-sm font-bold text-gray-800">ChatGPT·Gemini 답변</p>
-                    <p className="text-sm text-gray-500">글로벌 AI에게 직접 질문했을 때 언급</p>
+                    <p className="text-sm text-gray-500">글로벌 AI 인용 여부를 측정합니다 (노출 보장 아님)</p>
+                    <p className="text-xs text-gray-400 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
                   </div>
                 </div>
               </div>
@@ -401,7 +401,6 @@ export default async function LandingPage() {
             <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-5 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-sm font-bold text-blue-800 mb-0.5">그룹 B</p>
                   <p className="text-base font-black text-gray-800 break-keep">학원·병원·법무사·부동산·쇼핑 등</p>
                 </div>
                 <span className="flex-shrink-0 ml-3 px-3 py-1 rounded-full text-sm font-bold bg-blue-600 text-white whitespace-nowrap">2채널</span>
@@ -426,13 +425,14 @@ export default async function LandingPage() {
                   <span className="text-blue-500 text-base font-bold mt-0.5 flex-shrink-0">✅</span>
                   <div>
                     <p className="text-sm font-bold text-gray-800">ChatGPT·Gemini 답변</p>
-                    <p className="text-sm text-gray-500">글로벌 AI에게 직접 질문했을 때 언급</p>
+                    <p className="text-sm text-gray-500">글로벌 AI 인용 여부를 측정합니다 (노출 보장 아님)</p>
+                    <p className="text-xs text-gray-400 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
                   </div>
                 </div>
               </div>
 
               <p className="text-sm text-blue-700 bg-blue-100 rounded-lg px-3 py-2 font-medium">
-                모든 업종이 AI 검색 노출 대상입니다
+                모든 업종의 AI 노출 준비도를 진단합니다
               </p>
             </div>
           </div>
@@ -540,11 +540,11 @@ export default async function LandingPage() {
                   </div>
                   <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white" style={{ background: "#059669" }}>③</span>
                 </div>
-                <h3 className="text-base font-bold text-gray-900 mb-2">개선하면 AI 추천에 올라갑니다</h3>
+                <h3 className="text-base font-bold text-gray-900 mb-2">개선하면 AI 추천 가능성이 높아집니다</h3>
                 <div className="rounded-xl border border-green-100 bg-green-50 p-3 w-full text-left">
                   <p className="text-sm font-semibold text-green-700 mb-1.5">개선 후 결과</p>
                   <div className="space-y-1">
-                    {["네이버 AI 브리핑 상단 노출 (음식점·카페 등)", "네이버 AI탭 답변에 내 가게 등장", "ChatGPT·Gemini 추천 빈도 상승", "매주 자동 점검으로 노출 지속 유지", "경쟁사보다 먼저 손님에게 노출"].map(item => (
+                    {["네이버 AI 브리핑 상단 노출 (음식점·카페 등)", "네이버 AI탭 답변에 내 가게 등장", "ChatGPT·Gemini 현황 정기 모니터링", "매주 자동 점검으로 노출 지속 유지", "경쟁사 대비 AI 노출 준비도 우위 확보"].map(item => (
                       <div key={item} className="flex items-center gap-1.5">
                         <span className="text-green-500 text-sm flex-shrink-0">✓</span>
                         <span className="text-sm text-gray-700">{item}</span>
@@ -559,7 +559,7 @@ export default async function LandingPage() {
           {/* 요약 + CTA */}
           <div className="mt-8 rounded-2xl p-5 md:p-6 text-center" style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #4F46E5 100%)" }}>
             <p className="text-base md:text-lg font-black text-white mb-1 break-keep">
-              스마트플레이스·리뷰·키워드·블로그를 함께 관리하면 AI가 먼저 추천합니다
+              스마트플레이스·리뷰·키워드·블로그를 함께 관리하면 AI 추천 가능성이 높아집니다
             </p>
             <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.75)" }}>
               AEOlab이 4가지 기준을 자동 점검하고 개선 순서를 알려드립니다 — 1분 무료 진단
@@ -593,7 +593,7 @@ export default async function LandingPage() {
             </p>
             <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold" style={{ background: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }}>
               <span>📈</span>
-              <span>롱테일 자연어 검색 쿼리 전년 대비 <strong>2.5배 증가</strong> — 네이버 공식 발표 (2026.3)</span>
+              <span>"강남 점심 혼밥 한식당" 같은 자세한 검색 전년 대비 <strong>약 2.5배 증가</strong> — 네이버 발표 (2026-05-22 학술대회)</span>
             </div>
           </div>
 
@@ -684,7 +684,7 @@ export default async function LandingPage() {
                 <p className="text-sm font-black" style={{ color: "#065F46" }}>우리 가게 선택!</p>
                 <p className="text-sm mt-0.5" style={{ color: "#059669" }}>AI 추천 → 신뢰 → 방문</p>
               </div>
-              <p className="text-sm" style={{ color: "#64748B" }}>신뢰 있는 가게로 AI가 먼저 찾습니다</p>
+              <p className="text-sm" style={{ color: "#64748B" }}>신뢰 있는 가게일수록 AI 추천 가능성이 높아집니다</p>
             </div>
           </div>
 
@@ -714,7 +714,7 @@ export default async function LandingPage() {
               모든 업종 노출 가능 — AI 브리핑과 다른 경로
             </h2>
             <p className="text-sm mt-2 break-keep max-w-2xl mx-auto" style={{ color: "#475569" }}>
-              2026-04-27 베타 출시 · 네이버플러스 구독자 우선 · 6월 전체 확대 예정 (네이버 공식) ·{" "}
+              2026-04-27 베타 출시 · 네이버플러스 구독자 우선 · 전체 확대 진행 중 (네이버 공식) ·{" "}
               <strong style={{ color: "#0F172A" }}>업종·프랜차이즈 제한 없음</strong>
             </p>
           </div>
@@ -728,7 +728,7 @@ export default async function LandingPage() {
               학원·병원·미용실·헬스장·법무사 등 — AI 브리핑 비대상이어도 <span style={{ color: "#6366F1" }}>AI탭</span>으로 노출됩니다
             </p>
             <p className="text-sm mt-1.5 break-keep text-center" style={{ color: "#4338CA" }}>
-              AI탭은 업종 제한 없음 · 2026-04-27 베타 출시 · 6월 전체 확대 예정 (네이버 공식)
+              AI탭은 업종 제한 없음 · 2026-04-27 베타 출시 · 전체 확대 진행 중 (네이버 공식)
             </p>
           </div>
 
@@ -824,7 +824,7 @@ export default async function LandingPage() {
                     {[
                       { icon: "👆", text: "검색 결과 탭에서 'AI' 클릭 시 답변에 내 가게 등장" },
                       { icon: "🌐", text: "업종·프랜차이즈 구분 없이 모두 노출 가능" },
-                      { icon: "🚀", text: "2026년 4월 베타 출시 · 6월 전체 확대 예정 (네이버 공식)" },
+                      { icon: "🚀", text: "2026년 4월 베타 출시 · 전체 확대 진행 중 (네이버 공식)" },
                       { icon: "📝", text: "노출 기준: 소개글, 사진, 예약 연동, 블로그 UGC" },
                     ].map(({ icon, text }) => (
                       <div key={text} className="flex items-start gap-2">

@@ -94,7 +94,7 @@ function FindingsCard({
     if (blogCount < 5) {
       findings.push({ icon: "📝", positive: false,
         title: `블로그 후기가 ${blogCount}건으로 적습니다`,
-        desc: "네이버 검색 노출과 ChatGPT 학습 데이터 모두 블로그 언급 수가 영향을 줍니다.",
+        desc: "블로그 언급 수는 네이버 검색·AI탭 노출에 직접 영향을 줍니다. ChatGPT·Gemini는 구글 비즈니스 프로필과 자체 웹사이트가 주요 참조 소스입니다.",
       });
     } else {
       findings.push({ icon: "✅", positive: true,
@@ -1957,7 +1957,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
           </p>
           <p className="text-sm text-amber-700 mt-1 leading-relaxed">
             {isActive
-              ? "빨간색 항목을 등록하면 네이버 AI 브리핑 노출 점수가 즉시 올라갑니다."
+              ? "빨간색 항목을 등록하면 네이버 AI 브리핑 노출 점수가 올라갑니다."
               : "빨간색 항목을 등록하면 네이버 플레이스 노출과 ChatGPT·Gemini의 가게 인식이 향상됩니다."}
           </p>
         </div>

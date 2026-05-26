@@ -96,7 +96,7 @@ function getContextSentence(score: number, userGroup: string): {
   if (score >= 40) {
     return {
       text: "일부 AI에서 노출되지만 아직 개선이 필요합니다",
-      sub: "ChatGPT·Gemini에서 내 가게를 잘 모르는 상태 — 콘텐츠 보완으로 노출 확률을 높일 수 있습니다",
+      sub: "ChatGPT·Gemini에서 내 가게를 잘 모르는 상태 — 구글 비즈니스 프로필 등록이 노출 가능성을 높이는 첫 단계입니다",
       bg: "bg-amber-50 border-amber-200",
       textColor: "text-amber-800",
       subColor: "text-amber-700",
@@ -126,7 +126,7 @@ function getConclusion(params: {
     return "네이버 AI탭(모든 업종 가능, 베타) + ChatGPT·Gemini 최적화에 집중하세요.";
   }
   if (userGroup === "LIKELY") {
-    return "스마트플레이스 등록·소개글 작성이 네이버 플레이스와 ChatGPT·Gemini 노출 향상의 핵심입니다.";
+    return "스마트플레이스 등록·소개글 작성이 네이버 플레이스와 AI탭 노출 향상의 핵심입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.";
   }
   if (!isSmartPlace) {
     return "스마트플레이스 등록이 네이버 AI 브리핑 노출의 첫 단계입니다.";

@@ -2885,36 +2885,23 @@ async def get_review_sentiment(biz_id: str, user=Depends(get_current_user)):
     if cached is not None:
         return cached
     biz_name = biz_row.data.get("name", "")
-    cit_res = await execute(
-        supabase.table("ai_citations").select("excerpt, sentiment")
-        .eq("business_id", biz_id).eq("mentioned", True)
-        .order("created_at", desc=True).limit(50)
+    # ai_citations.sentiment는 스캐너에서 채우지 않아 항상 "neutral" 고정
+    # → labeled>=2 분기 제거, 항상 실제 리뷰 텍스트(scan_results) 기반 분석
+    scan_res = await execute(
+        supabase.table("scan_results")
+        .select("gemini_result, naver_result")
+        .eq("business_id", biz_id)
+        .order("scanned_at", desc=True).limit(1)
     )
-    rows = cit_res.data or []
-    labeled = [r for r in rows if r.get("sentiment") in ("positive", "neutral", "negative")]
-    if len(labeled) >= 2:
-        pos = sum(1 for r in labeled if r["sentiment"] == "positive")
-        neu = sum(1 for r in labeled if r["sentiment"] == "neutral")
-        neg = sum(1 for r in labeled if r["sentiment"] == "negative")
-        result = {"positive": pos, "neutral": neu, "negative": neg,
-                  "top_positive": [], "top_negative": [], "total": len(labeled), "status": "ok"}
-    else:
-        excerpts = [r["excerpt"] for r in rows if r.get("excerpt")]
-        if not excerpts:
-            scan_res = await execute(
-                supabase.table("scan_results")
-                .select("gemini_result, naver_result")
-                .eq("business_id", biz_id)
-                .order("scanned_at", desc=True).limit(1)
-            )
-            if scan_res.data:
-                sr = scan_res.data[0]
-                gemini = sr.get("gemini_result") or {}
-                naver = sr.get("naver_result") or {}
-                excerpts += gemini.get("review_excerpts", []) or []
-                excerpts += naver.get("review_excerpts", []) or []
-        from services.review_sentiment import analyze_review_sentiment
-        result = await analyze_review_sentiment(biz_id, excerpts, biz_name)
+    excerpts: list[str] = []
+    if scan_res.data:
+        sr = scan_res.data[0]
+        gemini = sr.get("gemini_result") or {}
+        naver = sr.get("naver_result") or {}
+        excerpts += gemini.get("review_excerpts", []) or []
+        excerpts += naver.get("review_excerpts", []) or []
+    from services.review_sentiment import analyze_review_sentiment
+    result = await analyze_review_sentiment(biz_id, excerpts, biz_name)
     _cache.set(cache_key, result, 3600)
     return result
 

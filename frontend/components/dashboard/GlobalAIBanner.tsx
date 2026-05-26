@@ -20,13 +20,12 @@ export function GlobalAIBanner({ globalScore, hasWebsite, eligibility }: GlobalA
         </div>
         <div className="flex-1">
           <p className="text-sm font-bold text-amber-800 mb-1">
-            ChatGPT · Gemini에서 이 사업장이 검색되지 않습니다
+            Gemini·Google AI 인식도 개선 기회가 있습니다
           </p>
           <p className="text-sm text-amber-700 leading-relaxed mb-3">
-            <strong>네이버 스마트플레이스 데이터는 ChatGPT·Gemini가 직접 참조하지 않습니다.</strong>
-            네이버만 최적화해도 ChatGPT에서 노출되지 않는 이유입니다.
-            글로벌 AI에서 인용되려면 <strong>독립 웹사이트</strong>와{' '}
-            <strong>Google 비즈니스 프로필</strong>이 필요합니다.
+            <strong>Gemini는 Google 비즈니스 프로필과 웹사이트 등록으로 수주 내 개선 가능합니다.</strong>{' '}
+            ChatGPT는 학습 데이터(컷오프 2024.06) 기반으로 단기 변동이 없으며, 장기 콘텐츠 전략으로 접근하세요.
+            지금 바로 할 수 있는 것: <strong>Google 비즈니스 프로필 등록</strong>
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {!hasWebsite && (

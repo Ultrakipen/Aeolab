@@ -255,7 +255,7 @@ export default function PricingPage() {
                   <p className="font-semibold text-gray-900 text-sm">스마트플레이스 자동 점검</p>
                 </div>
                 <p className="text-sm text-gray-500 leading-relaxed break-keep">
-                  FAQ·소개글·최근 소식 누락 자동 확인 · 즉시 쓸 수 있는 초안 제공
+                  채팅방 메뉴·소개글·최근 소식 누락 자동 확인 · 즉시 쓸 수 있는 초안 제공
                 </p>
               </div>
             </div>
@@ -274,7 +274,7 @@ export default function PricingPage() {
           </h3>
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed break-keep">
             네이버 AI 브리핑은 현재 <strong>음식점·카페·베이커리·바·숙박</strong> 등 일부 업종에서만 제공되며,
-            <strong> 프랜차이즈 가맹점은 제공 대상에서 제외됩니다</strong>(네이버 공식, 추후 확대 예정).
+            <strong> 프랜차이즈 가맹점은 제공 대상에서 제외됩니다</strong>(네이버 정책 기준, 추후 확대 예정).
             <strong>뷰티·네일·피트니스·약국·반려동물</strong> 등 확대 예상 업종은 네이버 AI탭(베타, 모든 업종 가능)을 통한 노출 개선이 가능합니다.
             병원·법무·교육·쇼핑몰 등 비대상 업종 또는 프랜차이즈는 AEOlab 구독 시{" "}
             <strong>네이버 AI탭·ChatGPT·Gemini·카카오맵 등 글로벌 AI 가시성</strong>이 향상됩니다.
@@ -349,8 +349,8 @@ export default function PricingPage() {
                 },
                 {
                   icon: "🔍",
-                  title: "옆집 스마트플레이스 소개글 Q&A에 뭐 달려있는지",
-                  why: "매주 월요일 05:00 경쟁사 FAQ 자동 수집 → 내 가게에 없는 질문 목록 제공 (ChatGPT는 네이버 스마트플레이스 접근 불가)",
+                  title: "경쟁사 스마트플레이스 소개글·채팅방 메뉴에 뭐 있는지",
+                  why: "매주 월요일 05:00 경쟁사 소개글·채팅방 메뉴 자동 수집 → 내 가게에 없는 항목 목록 제공 (ChatGPT는 네이버 스마트플레이스 접근 불가)",
                 },
                 {
                   icon: "📝",
@@ -425,7 +425,7 @@ export default function PricingPage() {
               },
               {
                 q: "환불 정책은 어떻게 되나요?",
-                a: "결제 후 7일 이내 서비스를 사용하지 않으셨다면 전액 환불해 드립니다. 7일 이후 사용 내역이 있을 경우 잔여 일수 기준 일할 계산 환불이 가능합니다. 환불 신청은 Q&A 게시판 또는 네이버 톡톡(partner.talk.naver.com 검색 후 AEOlab 채널) 통해 접수해 주세요.",
+                a: "결제 후 7일 이내 서비스를 사용하지 않으셨다면 전액 환불해 드립니다. 7일 경과 또는 서비스 이용(스캔·가이드 생성) 후에는 현재 결제 기간 만료일까지 서비스를 이용하실 수 있으며, 잔여 기간 환불은 제공되지 않습니다(이용약관 §3 기준). 환불 신청은 네이버 톡톡(partner.talk.naver.com 검색 후 AEOlab 채널) 통해 접수해 주세요.",
               },
               {
                 q: "첫 달 50% 할인은 어떻게 적용되나요?",

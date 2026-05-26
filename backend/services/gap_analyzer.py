@@ -55,9 +55,9 @@ _GAP_REASONS = {
             "네이버 AI 브리핑에 가게가 아직 노출되지 않습니다. 소개글 하단에 고객 자주 묻는 질문 3개와 답변을 추가해 보세요."
         ),
         "multi_ai_exposure": lambda gap: (
-            f"ChatGPT·구글 AI에서 가게가 검색되지 않습니다 (경쟁사 대비 -{gap:.0f}점 차이). ① 구글 비즈니스 프로필 등록, ② 네이버 블로그에 가게 소개 글 발행이 홈페이지 없이도 가장 빠른 방법입니다."
+            f"ChatGPT·구글 AI에서 가게가 검색되지 않습니다 (경쟁사 대비 -{gap:.0f}점 차이). ① 구글 비즈니스 프로필 등록이 가장 빠른 방법입니다. ChatGPT는 Bing 검색 기반이라 네이버 블로그는 직접 도움이 되지 않습니다."
             if gap > 0 else
-            "ChatGPT·구글 AI에서 가게가 아직 검색되지 않습니다. 구글 비즈니스 프로필을 등록하고 네이버 블로그에 가게 소개 글을 올리세요. 가게 홈페이지가 있다면 가이드 탭의 'AI 정보 코드'를 추가하면 더 빠릅니다."
+            "ChatGPT·구글 AI에서 가게가 아직 검색되지 않습니다. 구글 비즈니스 프로필을 먼저 등록하세요. 가게 홈페이지가 있다면 가이드 탭의 'AI 정보 코드'를 추가하면 더 빠릅니다."
         ),
         "schema_seo": lambda gap: (
             "구글·ChatGPT가 가게 정보를 정확히 인식하려면 'AI 정보 코드' 등록이 필요합니다. 가게 홈페이지가 있다면 가이드 탭에서 자동 생성된 코드를 복사해 붙여넣으세요. 홈페이지가 없다면 구글 비즈니스 프로필 완성 + 스마트플레이스 정보 채우기가 동일한 효과를 냅니다."
@@ -108,7 +108,7 @@ _GAP_REASONS = {
             if gap > 0 else
             "전문 블로그·인터뷰·기사를 작성하면 ChatGPT·Gemini·Google AI가 인용하기 시작합니다."
         ),
-        "schema_seo": lambda gap: "구글·ChatGPT가 사업자 정보를 정확히 파악하려면 'AI 정보 코드' 등록이 필요합니다. 홈페이지가 있다면 가이드 탭에서 코드를 복사해 붙여넣으세요. 홈페이지가 없다면 구글 비즈니스 프로필과 네이버 블로그 소개 페이지가 대안입니다.",
+        "schema_seo": lambda gap: "구글·ChatGPT가 사업자 정보를 정확히 파악하려면 'AI 정보 코드' 등록이 필요합니다. 홈페이지가 있다면 가이드 탭에서 코드를 복사해 붙여넣으세요. 홈페이지가 없다면 구글 비즈니스 프로필 완성이 ChatGPT·Google AI 대안으로 가장 효과적입니다.",
         # v3.1 신규 4개 항목
         "keyword_search_rank": lambda gap: (
             f"키워드 검색 순위가 경쟁사보다 낮습니다 (경쟁사 대비 -{gap:.0f}점 차이). 웹사이트 주요 페이지 제목·소개글에 전문 키워드를 2~3개 추가하면 순위 개선에 직접 영향을 줍니다."
@@ -230,10 +230,10 @@ def _build_keyword_gap(
         _eff_key = _infer_taxonomy_key(category, _bus_kw_for_tax)
         _eff_industry = KEYWORD_TAXONOMY.get(_eff_key, KEYWORD_TAXONOMY["restaurant"])
         all_kws = [kw for cd in sorted(_eff_industry.values(), key=lambda x: x["weight"], reverse=True) for kw in cd["keywords"]]
-        # excluded 키워드는 경쟁사 소스에서도 제외
-        _excl = {k for k in (excluded_keywords or []) if isinstance(k, str) and k.strip()}
+        # excluded 키워드는 경쟁사 소스에서도 제외 (띄어쓰기 차이 흡수)
+        _excl = {k.strip().replace(" ", "").lower() for k in (excluded_keywords or []) if isinstance(k, str) and k.strip()}
         if _excl:
-            all_kws = [kw for kw in all_kws if kw not in _excl]
+            all_kws = [kw for kw in all_kws if kw.replace(" ", "").lower() not in _excl]
         my_missing_set = set(result["missing"])
         for comp_name, comp_text in competitor_excerpts_by_name.items():
             if not comp_text:

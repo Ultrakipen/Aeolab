@@ -14,6 +14,11 @@ from typing import TypedDict
 _logger = logging.getLogger("aeolab")
 
 
+def _norm_kw(kw: str) -> str:
+    """키워드 정규화: 공백 제거 + 소문자. 비교 시 양쪽에 적용해 띄어쓰기 차이 흡수."""
+    return kw.strip().replace(" ", "").lower()
+
+
 class _KeywordCategoryRequired(TypedDict):
     keywords: list[str]
     weight: float
@@ -2538,7 +2543,7 @@ def analyze_keyword_coverage(
         category_scores: 카테고리별 {"score": 80, "covered": 4, "total": 5, "weight": 0.2}
     """
     excluded_set: set = {
-        k.strip() for k in (excluded_keywords or []) if isinstance(k, str) and k.strip()
+        _norm_kw(k) for k in (excluded_keywords or []) if isinstance(k, str) and k.strip()
     }
 
     _taxonomy_key = _infer_taxonomy_key(category, business_keywords)
@@ -2573,8 +2578,9 @@ def analyze_keyword_coverage(
     all_keywords = deduped_keywords
 
     # excluded 키워드는 분석 대상 전체에서 제거 (category_scores 포함)
+    # _norm_kw 양방향 적용으로 "웨딩본식" ↔ "웨딩 본식" 같은 띄어쓰기 차이 흡수
     if excluded_set:
-        all_keywords = [kw for kw in all_keywords if kw not in excluded_set]
+        all_keywords = [kw for kw in all_keywords if _norm_kw(kw) not in excluded_set]
 
     # 내 리뷰 키워드 검색 (공백 제거 후 부분 매칭)
     my_text = " ".join(review_excerpts).lower() if review_excerpts else ""
@@ -2645,12 +2651,12 @@ def analyze_keyword_coverage(
 
     # excluded 최종 방어 필터 (all_keywords에서 이미 제거되었지만, 상류에서 우회로 들어온 경우 대비)
     if excluded_set:
-        covered = [k for k in covered if k not in excluded_set]
-        missing = [k for k in missing if k not in excluded_set]
-        competitor_only = [k for k in competitor_only if k not in excluded_set]
-        pioneer = [k for k in pioneer if k not in excluded_set]
-        if top_priority and top_priority in excluded_set:
-            top_priority = next((k for k in missing if k not in excluded_set), None)
+        covered = [k for k in covered if _norm_kw(k) not in excluded_set]
+        missing = [k for k in missing if _norm_kw(k) not in excluded_set]
+        competitor_only = [k for k in competitor_only if _norm_kw(k) not in excluded_set]
+        pioneer = [k for k in pioneer if _norm_kw(k) not in excluded_set]
+        if top_priority and _norm_kw(top_priority) in excluded_set:
+            top_priority = next((k for k in missing if _norm_kw(k) not in excluded_set), None)
 
     return {
         "covered": covered,
@@ -2743,10 +2749,10 @@ def analyze_nonlocation_keywords(
                 kws.append(ck.strip())
 
     excluded_set = {
-        k.strip() for k in (excluded_keywords or []) if isinstance(k, str) and k.strip()
+        _norm_kw(k) for k in (excluded_keywords or []) if isinstance(k, str) and k.strip()
     }
     if excluded_set:
-        kws = [kw for kw in kws if kw not in excluded_set]
+        kws = [kw for kw in kws if _norm_kw(kw) not in excluded_set]
 
     joined = " ".join(ai_excerpts).lower() if ai_excerpts else ""
     covered = [kw for kw in kws if kw.lower() in joined]

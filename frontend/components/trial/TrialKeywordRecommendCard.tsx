@@ -170,7 +170,7 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
                 <p className="text-sm text-gray-500 mt-1.5 leading-relaxed break-keep">
                   {userGroup === "ACTIVE"
                     ? "소개글 Q&A 형식으로 추가하면 AI 브리핑 인용 후보가 됩니다. 복사 후 실제 가게 특징에 맞게 수정하세요."
-                    : "소개글에 키워드를 자연스럽게 포함하면 ChatGPT·Gemini 검색에서 발견될 가능성이 높아집니다. 복사 후 실제 가게 특징에 맞게 수정하세요."}
+                    : "소개글에 키워드를 자연스럽게 포함하면 네이버 AI탭 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 더 직접적입니다. 복사 후 실제 가게 특징에 맞게 수정하세요."}
                 </p>
               )}
             </div>

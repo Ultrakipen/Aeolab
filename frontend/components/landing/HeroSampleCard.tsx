@@ -69,7 +69,7 @@ const SAMPLES: SampleData[] = [
     ],
     myWeakness: "소식 업데이트 없음 · 방문자리뷰 28건 · 단체예약 정보 없음",
     advice: "3위보다 AI 노출 격차 28 차이입니다.",
-    adviceSub: "소개글에 '단체예약·주차 가능' 추가 시 ChatGPT 언급이 시작됩니다.",
+    adviceSub: "소개글에 '단체예약·주차 가능' 추가 시 네이버 AI탭 노출 가능성이 높아집니다.",
   },
   {
     region: "서초구 방배동",
@@ -81,14 +81,14 @@ const SAMPLES: SampleData[] = [
     naverActiveCategory: false,
     likelyCategory: true,
     competitors: [
-      { name: "준오헤어 방배점", score: 84, rank: 1, me: false, ai: { naver: true,  chatgpt: true,  google: true  } },
-      { name: "이철헤어 방배점", score: 76, rank: 2, me: false, ai: { naver: true,  chatgpt: true,  google: false } },
-      { name: "박준뷰티랩",      score: 68, rank: 3, me: false, ai: { naver: true,  chatgpt: false, google: false } },
+      { name: "준오헤어 방배점", score: 84, rank: 1, me: false, ai: { naver: false, chatgpt: true,  google: true  } },
+      { name: "이철헤어 방배점", score: 76, rank: 2, me: false, ai: { naver: false, chatgpt: true,  google: false } },
+      { name: "박준뷰티랩",      score: 68, rank: 3, me: false, ai: { naver: false, chatgpt: false, google: false } },
       { name: "내 헤어샵",       score: 31, rank: 4, me: true,  ai: { naver: false, chatgpt: false, google: false } },
     ],
     myWeakness: "소개글 키워드 부족 · 리뷰 답변률 12% · 시술 카테고리 1개",
     advice: "3위 박준뷰티랩보다 AI 노출 격차 37 차이입니다.",
-    adviceSub: "소개글 키워드 다양화 + 리뷰 답변률 개선 시 ChatGPT·Google AI 노출 가능성이 높아집니다.",
+    adviceSub: "소개글 키워드 다양화 + 리뷰 답변률 개선 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 핵심입니다.",
   },
   {
     region: "성남시 분당구",
@@ -106,7 +106,7 @@ const SAMPLES: SampleData[] = [
     ],
     myWeakness: "소개글 부족 · 진료 시간 미등록 · 영수증리뷰 0건",
     advice: "3위보다 AI 노출 격차 24 차이입니다.",
-    adviceSub: "소개글 강화 + 진료 시간 등록 시 ChatGPT·Google AI 노출 가능성이 높아집니다.",
+    adviceSub: "소개글 강화 + 진료 시간 등록 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 핵심입니다.",
   },
   {
     region: "송파구 잠실동",
@@ -125,7 +125,7 @@ const SAMPLES: SampleData[] = [
     ],
     myWeakness: "소개글 없음 · PT 정보 없음 · 운영시간 미등록",
     advice: "3위 파워짐보다 AI 노출 격차 35 차이입니다.",
-    adviceSub: "운영시간·PT 정보 소개글에 추가 시 ChatGPT·Gemini AI 노출 가능성이 높아집니다.",
+    adviceSub: "운영시간·PT 정보 소개글에 추가 시 네이버 AI탭 노출 가능성이 높아집니다.",
   },
   {
     region: "노원구 중계동",
@@ -143,7 +143,7 @@ const SAMPLES: SampleData[] = [
     ],
     myWeakness: "소개글 부족 · 수강 후기 8건 · 학년별 커리큘럼 없음",
     advice: "3위보다 AI 노출 격차 32 차이입니다.",
-    adviceSub: "학년별 커리큘럼 소개글에 추가 시 ChatGPT·Google AI 노출 가능성이 높아집니다.",
+    adviceSub: "학년별 커리큘럼 소개글에 추가 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 핵심입니다.",
   },
 ];
 
@@ -309,7 +309,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
             ⚡ 네이버 AI탭 2026년 확장 예정 업종
           </p>
           <p className="text-sm text-amber-700 mt-0.5">
-            현재는 ChatGPT·Gemini·Google AI 노출이 핵심 채널입니다. 네이버 AI탭 베타(2026년 6월 전체 확대 예정, 네이버 공식) 노출도 추적합니다.
+            현재는 ChatGPT·Gemini·Google AI 노출이 핵심 채널입니다. 네이버 AI탭 베타(전체 확대 진행 중, 네이버 공식) 노출도 추적합니다.
           </p>
         </div>
       )}

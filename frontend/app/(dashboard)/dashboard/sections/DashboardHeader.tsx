@@ -156,7 +156,7 @@ export default function DashboardHeader({
                   <CheckCircle2 className="w-4 h-4 shrink-0" /> 경쟁 사업장과 비교
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" /> AI 브리핑 노출 개선 가이드
+                  <CheckCircle2 className="w-4 h-4 shrink-0" /> AI 브리핑 노출 현황 진단 및 개선 방향 제시
                 </li>
               </ul>
             </div>
@@ -244,7 +244,7 @@ export default function DashboardHeader({
           </div>
 
           {/* 스캔 섹션 */}
-          <div className="mb-5" data-onboarding-tour="scan-button">
+          <div className="mb-2" data-onboarding-tour="scan-button">
             <ScanWithModal
               businessId={business.id}
               businessName={business.name}
@@ -257,6 +257,11 @@ export default function DashboardHeader({
               lastQueryUsed={lastQueryUsed}
             />
           </div>
+
+          {/* 기대치 1줄 안내 */}
+          <p className="text-sm text-slate-500 mb-3 leading-snug">
+            분석 결과는 현재 상태를 진단합니다. AI 노출 개선 효과는 수주~수개월의 꾸준한 실행 후 나타납니다.
+          </p>
 
           {/* 키워드 미등록 안내 */}
           {!business.keywords?.length && (

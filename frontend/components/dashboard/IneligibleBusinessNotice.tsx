@@ -15,7 +15,7 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
   const title = isFranchise
     ? "프랜차이즈 가맹점 — AI탭(전 업종) + 글로벌 AI 채널 집중 관리"
     : isInactive
-    ? `${categoryLabel} 업종 — 네이버 AI탭(전 업종 베타) + ChatGPT·Gemini 노출 최적화`
+    ? `${categoryLabel} 업종 — 네이버 AI탭(전 업종 베타) + ChatGPT·Gemini 장기 최적화 지원`
     : `${categoryLabel} 업종 — AI 브리핑 확대 예정 + 글로벌 AI 최적화 병행`;
 
   const description = isFranchise
@@ -26,17 +26,17 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
 
   const channels = isInactive || isFranchise
     ? [
-        "네이버 AI 탭 — 2026-04-27 베타 공개, 전 업종 대상 대화형 검색 노출",
-        "ChatGPT — 전문성 질문 시 사업장 추천 최적화",
-        "Gemini — 서비스 비교 검색 시 노출 강화",
-        "Google AI Overview — 구조화 데이터로 인용 후보 등록",
-        "네이버 블로그 · 일반 검색 — 지역 키워드 노출",
+        { icon: "✅", text: "네이버 AI 탭 — 2026-04-27 베타 공개, 전 업종 대상 대화형 검색 노출" },
+        { icon: "🎯", text: "ChatGPT — 콘텐츠 구조화로 언급 가능성 장기 축적 (현재 측정 지원)" },
+        { icon: "🎯", text: "Gemini — 사업장 정보 구조화 + 글로벌 웹 노출 기반 마련 (측정 지원)" },
+        { icon: "🎯", text: "Google AI Overview — JSON-LD 구조화 데이터 생성 지원" },
+        { icon: "✅", text: "네이버 블로그 · 일반 검색 — 지역 키워드 노출" },
       ]
     : [
-        "네이버 AI 브리핑 (확대 즉시 활성화)",
-        "ChatGPT · Gemini · Google AI 글로벌 채널",
-        "네이버 AI 탭 — 전 업종 대상 대화형 검색",
-        "네이버 블로그 · 일반 검색",
+        { icon: "✅", text: "네이버 AI 브리핑 (확대 즉시 활성화)" },
+        { icon: "🎯", text: "ChatGPT · Gemini · Google AI — 글로벌 채널 측정 지원" },
+        { icon: "✅", text: "네이버 AI 탭 — 전 업종 대상 대화형 검색" },
+        { icon: "✅", text: "네이버 블로그 · 일반 검색" },
       ];
 
   return (
@@ -60,9 +60,14 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
           </p>
           <ul className="space-y-1.5 text-sm md:text-base text-gray-700">
             {channels.map((ch) => (
-              <li key={ch}>✅ {ch}</li>
+              <li key={ch.text}>{ch.icon} {ch.text}</li>
             ))}
           </ul>
+          {(isInactive || isFranchise) && (
+            <p className="mt-3 text-xs text-gray-400 leading-relaxed">
+              🎯 ChatGPT·Gemini·Google AI Overview 노출은 AI 학습 데이터 기반이며 즉각적인 노출을 보장하지 않습니다. 콘텐츠·구조화 데이터 최적화를 통해 장기적 노출 가능성을 높입니다.
+            </p>
+          )}
           {isFranchise && (
             <p className="mt-3 text-sm text-gray-500 leading-relaxed">
               출처:{" "}

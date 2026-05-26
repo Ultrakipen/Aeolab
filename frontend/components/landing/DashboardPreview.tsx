@@ -101,7 +101,7 @@ export default function DashboardPreview() {
             style={{ background: "#F8FAFC", borderColor: "#E2E8F0", boxShadow: "var(--aeo-shadow)" }}
           >
             <p className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: "#475569" }}>
-              글로벌 AI 점수
+              글로벌 AI 인식 현황
             </p>
             <p
               className="text-3xl font-black mb-0.5"

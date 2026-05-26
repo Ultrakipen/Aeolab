@@ -73,10 +73,12 @@ export default function ChatGPTDiffCard({
       label: "경쟁사 비교 분석",
       value: competitorCount > 0
         ? topCompetitorGap !== undefined
-          ? `1위보다 ${topCompetitorGap}점 부족`
+          ? topCompetitorGap === 0
+            ? "경쟁사 중 1위!"
+            : `1위보다 ${topCompetitorGap}점 부족`
           : `경쟁사 ${competitorCount}곳 비교 중`
         : "경쟁사를 등록하면 비교 시작",
-      detail: "ChatGPT는 경쟁 가게들의 AI 노출 점수를 알 수 없습니다",
+      detail: "ChatGPT는 경쟁 가게들의 AI 인식도를 알 수 없습니다",
       highlight: competitorCount > 0,
     },
     {
@@ -99,6 +101,15 @@ export default function ChatGPTDiffCard({
         </span>
         <div className="h-px flex-1 bg-slate-200" />
         <span className="text-sm text-slate-500">AEOlab 자동 측정</span>
+      </div>
+
+      {/* ChatGPT 단기 개선 불가 안내 */}
+      <div className="mb-3 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+        <span className="text-amber-500 text-sm mt-0.5 shrink-0">⚠</span>
+        <p className="text-sm text-amber-800 leading-snug">
+          <span className="font-semibold">ChatGPT 인식은 학습 데이터(컷오프 2024.06) 기반입니다.</span>{" "}
+          블로그·소개글 작성으로 단기 변동이 없으며, 수개월~1년 후 모델 업데이트 시 반영됩니다. <span className="font-medium">현재 인식 현황 파악 목적으로 활용하세요.</span>
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -150,7 +161,7 @@ export default function ChatGPTDiffCard({
             </li>
           )}
         </ul>
-        <p className="mt-2 text-sm text-indigo-400 leading-snug">
+        <p className="mt-2 text-sm text-indigo-600 leading-snug">
           <strong>측정 원리 차이:</strong> ChatGPT(gpt-4.1-mini)는 학습 데이터(컷오프 2024.06) 기반, Gemini는 Google 검색 색인을 일부 반영. 두 측정값이 다를 수 있습니다.
         </p>
       </div>

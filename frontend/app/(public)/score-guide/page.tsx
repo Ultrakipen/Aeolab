@@ -78,8 +78,9 @@ export default function ScoreGuidePage() {
           <div className="flex items-start gap-3">
             <span className="shrink-0 text-slate-400 font-bold mt-0.5">→</span>
             <p className="text-sm md:text-base text-slate-700 leading-relaxed">
-              <strong>점수 향상</strong>은 AI 검색 노출 가능성을 높이는 지표입니다.
-              점수가 오르면 AI가 내 가게를 더 자주 추천하고,
+              <strong>지표 개선</strong>은 AI 검색 노출 가능성을 높이는 방향입니다.
+              네이버 AI·Gemini는 콘텐츠 개선 후 수주 내 반영되며,
+              ChatGPT는 학습 데이터 업데이트(수개월~1년) 후 반영됩니다.
               그 결과 새 손님이 가게를 발견할 접점이 늘어납니다.
             </p>
           </div>

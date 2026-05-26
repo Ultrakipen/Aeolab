@@ -170,7 +170,7 @@ export default function BlogStrategyGuidePage() {
             },
             {
               title: "ChatGPT·Gemini 학습 소스",
-              desc: "공개 블로그 포스팅은 ChatGPT·Gemini의 학습 데이터에 포함될 수 있습니다. 외부 언급 → 글로벌 AI 노출 가능성 동시 상승.",
+              desc: "외부 공개 블로그(티스토리·자체 블로그 등, 네이버 블로그 제외)는 ChatGPT·Gemini 학습 데이터에 포함될 수 있습니다. 네이버 블로그는 Bing에 인덱싱되지 않아 ChatGPT 참조 소스가 되지 않습니다.",
             },
           ].map(({ title, desc }) => (
             <div

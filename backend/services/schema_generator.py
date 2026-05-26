@@ -94,8 +94,8 @@ CATEGORY_TIPS: dict[str, dict[str, str]] = {
     },
     "legal": {
         "smartplace_tip": "전문 분야(이혼·부동산·형사 등)를 소개글에 명확히 명시하고, '무료 초기 상담' 가능 여부를 포함하세요.",
-        "blog_tip": "법률 상식 Q&A 형식의 블로그 포스트가 ChatGPT·Gemini 인용에 효과적입니다. 월 2회 이상 발행을 권장합니다.",
-        "no_website_guide": "네이버 블로그를 주요 채널로 운영하면 홈페이지 없이도 AI 검색 노출이 가능합니다. 법률 상식 콘텐츠 10개 이상 축적을 목표로 하세요.",
+        "blog_tip": "법률 상식 Q&A 형식의 블로그 포스트(자체 도메인·티스토리 등 Bing 인덱싱 가능 플랫폼)가 ChatGPT·Gemini 인용에 효과적입니다. 네이버 블로그는 Bing에 인덱싱되지 않아 ChatGPT에 직접 참조되지 않습니다.",
+        "no_website_guide": "구글 비즈니스 프로필을 완성하면 ChatGPT·Google AI 노출에 가장 직접적입니다. 네이버 AI탭 노출을 위해서는 스마트플레이스 소개글에 전문 분야를 명확히 등록하세요.",
     },
     "fitness": {
         "smartplace_tip": "PT·필라테스·요가 등 프로그램 종류와 '첫 달 프로모션', '1:1 PT' 가능 여부를 소개글에 명시하세요.",

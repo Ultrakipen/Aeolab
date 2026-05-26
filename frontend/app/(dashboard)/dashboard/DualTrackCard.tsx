@@ -75,7 +75,7 @@ const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }
   },
   clinic: {
     track1Tip: "야간 진료·전문의 직접 진료 소개글 Q&A 추가",
-    track2Tip: "ChatGPT에서 찾히는 전문성 콘텐츠 발행",
+    track2Tip: "자체 웹사이트·구글 비즈니스 프로필에 전문성 콘텐츠 등록 (ChatGPT·Gemini 참조 소스)",
   },
   pet: {
     track1Tip: "CCTV 확인·응급 진료 소개글 Q&A 추가",
@@ -83,7 +83,7 @@ const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }
   },
   academy: {
     track1Tip: "합격 사례·원어민 강사 소개글 Q&A 추가",
-    track2Tip: "ChatGPT 노출을 위한 블로그·웹사이트 콘텐츠 발행",
+    track2Tip: "ChatGPT·Gemini 노출을 위한 자체 웹사이트·구글 비즈니스 프로필 최적화",
   },
   legal: {
     track1Tip: "전문 분야·무료 상담 소개글 Q&A 추가",
@@ -331,8 +331,8 @@ export default function DualTrackCard({
       <ScoreBar
         score={track2Score}
         weight={globalWeight}
-        label="🌐 글로벌 AI 노출 지수"
-        sublabel="이 지수가 낮으면 ChatGPT·구글 AI에서 내 가게가 안 나옵니다"
+        label="🌐 글로벌 AI 인식 현황"
+        sublabel="ChatGPT·Gemini가 현재 이 사업장을 인식하는 수준입니다"
         color="bg-blue-500"
         isWeak={isTrack2Weak}
         tip={msg.track2Tip}

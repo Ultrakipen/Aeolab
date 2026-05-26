@@ -116,7 +116,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             </p>
             <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">
               {business.is_franchise
-                ? "프랜차이즈 가맹점은 현재 네이버 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정). 그동안 일반 검색·블로그·ChatGPT·Gemini 노출에서 효과를 드립니다."
+                ? "프랜차이즈 가맹점은 현재 네이버 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정). 그동안 일반 검색·AI탭 노출과 ChatGPT·Gemini 현황 측정에서 효과를 드립니다."
                 : isInactive
                 ? "이 업종은 AI 브리핑 비대상이지만, 네이버 AI탭(2026-04-27 베타)은 모든 업종 노출 가능합니다. 아래 단계로 AI탭 대비 + 일반 검색 노출을 동시에 준비하세요."
                 : isLikely
@@ -384,7 +384,8 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         >
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed">
             {isInactive
-              ? <>ChatGPT·Gemini·Google AI는 소개글의 <strong>핵심 정보를 학습 소스로 활용</strong>합니다.</>
+              ? <>ChatGPT·Gemini·Google AI는 <strong>자체 웹사이트·구글 비즈니스 프로필</strong>을 주요 학습 소스로 활용합니다. 아래 소개글을 홈페이지에도 활용하세요.</>
+
               : <>AI 브리핑은 소개글의 <strong>핵심 정보를 학습 소스로 활용</strong>합니다.</>}
             {" "}150~500자 분량에 사업장의 강점·서비스·키워드를 자연스럽게 포함하세요.
           </p>
@@ -517,7 +518,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         >
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed">
             {isInactive
-              ? <>리뷰 수와 품질은 네이버 일반 검색 순위·ChatGPT·Gemini 언급 빈도에 직접 영향을 줍니다.
+              ? <>리뷰 수와 품질은 네이버 일반 검색 순위에 영향을 줍니다. ChatGPT·Gemini는 구글 비즈니스 프로필의 리뷰가 더 직접적입니다.
                   영수증 리뷰 <strong>10건 이상</strong>을 목표로 하세요.</>
               : <>네이버 공식 안내: <strong>리뷰수가 기준에 맞지 않을 경우 AI 브리핑 서비스 제공 안 됨.</strong>
                   정확한 임계값은 비공개이나, 영수증 리뷰 10건 이상이면 안전합니다.</>}

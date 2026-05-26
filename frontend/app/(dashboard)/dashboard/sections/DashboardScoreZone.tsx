@@ -1,6 +1,7 @@
 import DashboardHeroCard from "@/components/dashboard/DashboardHeroCard";
 import KeywordRankCard from "@/components/dashboard/KeywordRankCard";
 import { IneligibleBusinessNotice } from "@/components/dashboard/IneligibleBusinessNotice";
+import { ExpectationBanner } from "@/components/dashboard/ExpectationBanner";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { getUserGroup } from "@/lib/userGroup";
 
@@ -65,6 +66,9 @@ export default function DashboardScoreZone({
 
   return (
     <>
+      {/* 기대치 안내 배너 — 최초 1회만 표시 */}
+      <ExpectationBanner />
+
       {/* Hero 카드 — 스캔 결과 있을 때만 표시 */}
       {latestScan && (
         <DashboardHeroCard

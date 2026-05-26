@@ -237,7 +237,7 @@ export default function TodayOneAction({
         title: `소개글에 '${missingKws[0]}' Q&A 추가하기`,
         desc: isActiveGroup
           ? `스마트플레이스 → 업체정보 → 소개글에 '${missingKws[0]}' 관련 Q&A를 자연스럽게 포함하면 됩니다. 소개글 안의 Q&A 섹션이 네이버 AI 브리핑 인용 후보로 가장 효과적입니다.`
-          : `스마트플레이스 → 업체정보 → 소개글에 '${missingKws[0]}' 관련 Q&A를 자연스럽게 포함하면 됩니다. 소개글에 키워드를 자연스럽게 포함하면 ChatGPT·Gemini 검색에서 발견될 가능성이 높아집니다.`,
+          : `스마트플레이스 → 업체정보 → 소개글에 '${missingKws[0]}' 관련 Q&A를 자연스럽게 포함하면 됩니다. 소개글 최적화는 네이버 AI탭 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 더 직접적입니다.`,
         copy:
           faqText ??
           `Q. ${missingKws[0]}${p(missingKws[0], "은는")} 어떤가요?\nA. 저희 가게의 ${missingKws[0]} ${bw}${p(bw, "을를")} 경험해 보세요. 궁금한 점은 네이버 채팅으로 편하게 문의해 주세요.`,

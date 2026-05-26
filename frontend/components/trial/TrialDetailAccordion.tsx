@@ -390,10 +390,10 @@ export default function TrialDetailAccordion({
               </div>
               <div className="bg-white rounded-xl border border-gray-200 px-3 md:px-4 py-4">
                 <p className="text-sm font-semibold text-gray-600 mb-0.5">
-                  ChatGPT·구글 AI 노출 점수
+                  Gemini·ChatGPT 인식 현황
                 </p>
                 <p className="text-sm text-gray-500 mb-2 leading-tight">
-                  요즘 손님이 많이 쓰는 AI
+                  Gemini는 콘텐츠로 개선 가능 · ChatGPT는 장기 전략
                 </p>
                 <div
                   className={`text-2xl md:text-3xl font-black mb-1 ${

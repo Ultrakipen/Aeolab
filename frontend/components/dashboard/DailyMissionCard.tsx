@@ -17,7 +17,7 @@ const DIMENSION_MESSAGES: Record<string, {
 }> = {
   keyword_gap_score: {
     reason: '업종 핵심 키워드가 부족해 AI 검색 노출이 안 됩니다',
-    action: '소개글 Q&A에 빠진 키워드를 추가하면 AI 검색 노출이 올라갑니다',
+    action: '소개글 Q&A에 빠진 키워드를 추가하면 AI 검색 노출 가능성이 높아집니다',
     link: '/guide',
     linkLabel: '없는 키워드 확인하기',
   },
@@ -40,8 +40,8 @@ const DIMENSION_MESSAGES: Record<string, {
     linkLabel: '소개글 Q&A 복사하러 가기',
   },
   multi_ai_exposure: {
-    reason: 'ChatGPT·구글 AI에서 내 가게가 검색되지 않습니다',
-    action: '구글 비즈니스 프로필 등록 + 네이버 블로그 소개 글이 가장 빠른 방법입니다',
+    reason: 'Gemini·Google AI에서 이 사업장 인식도를 높일 수 있습니다',
+    action: 'Google 비즈니스 프로필 등록이 Gemini 노출의 가장 빠른 방법입니다. ChatGPT는 장기 콘텐츠 전략으로 접근하세요',
     link: '/guide',
     linkLabel: '개선 가이드 보기',
   },

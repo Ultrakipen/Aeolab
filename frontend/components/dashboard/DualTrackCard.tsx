@@ -77,7 +77,7 @@ const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }
   },
   clinic: {
     track1Tip: "소개글 하단에 야간 진료·전문의 직접 진료 Q&A 추가",
-    track2Tip: "ChatGPT에서 찾히는 전문성 콘텐츠 발행",
+    track2Tip: "자체 웹사이트·구글 비즈니스 프로필에 전문성 콘텐츠 등록 (ChatGPT·Gemini 참조 소스)",
   },
   pet: {
     track1Tip: "소개글 하단에 CCTV 확인·응급 진료 Q&A 추가",
@@ -85,7 +85,7 @@ const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }
   },
   academy: {
     track1Tip: "소개글 하단에 합격 사례·원어민 강사 Q&A 추가",
-    track2Tip: "ChatGPT 노출을 위한 블로그·웹사이트 콘텐츠 발행",
+    track2Tip: "ChatGPT·Gemini 노출을 위한 자체 웹사이트·구글 비즈니스 프로필 최적화",
   },
   legal: {
     track1Tip: "소개글 하단에 전문 분야·무료 상담 Q&A 추가",
@@ -304,7 +304,7 @@ function FocusRecommendation({
     if (track1Score < track2Score - 15)
       msg = `네이버 먼저 — 두 채널 균등 비중이지만 현재 네이버 점수가 더 약합니다`;
     else if (track2Score < track1Score - 15)
-      msg = `글로벌 AI 먼저 — 두 채널 균등이지만 현재 ChatGPT·Gemini 점수가 더 약합니다`;
+      msg = `글로벌 AI 먼저 — 두 채널 균등이지만 현재 ChatGPT·Gemini 인식도가 더 낮습니다`;
     else
       msg = `두 채널 균등 강화 — 네이버 ${naverPct}% / 글로벌 ${globalPct}% 비중으로 함께 개선하세요`;
   }
@@ -567,14 +567,14 @@ export default function DualTrackCard({
       <ScoreBar
         score={track2Score}
         weight={globalWeight}
-        label={<span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 inline-block" /> 글로벌 AI 노출 지수</span>}
-        sublabel="이 지수가 낮으면 ChatGPT·구글 AI에서 내 가게가 안 나옵니다"
-        sourceNote={hasAiData ? "ChatGPT·Gemini 실측 샘플링 기반" : "ChatGPT·Gemini 등 각 AI 테스트 기반 추정 점수"}
+        label={<span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 inline-block" /> 글로벌 AI 인식 현황</span>}
+        sublabel="ChatGPT·Gemini가 현재 이 사업장을 인식하는 수준입니다"
+        sourceNote={hasAiData ? "ChatGPT·Gemini 실측 샘플링 기반" : "ChatGPT·Gemini 인식도 추정"}
         color="bg-blue-500"
         isWeak={isTrack2Weak}
         isVeryLow={isTrack2VeryLow}
         tip={buildTrack2Tip(category, smartPlaceStatus)}
-        opportunityMsg="글로벌 AI에 아직 노출되지 않아 경쟁이 적습니다. 소개글 Q&A 추가로 시작하세요"
+        opportunityMsg="Gemini는 Google 비즈니스 프로필 등록으로 개선 가능합니다. ChatGPT는 장기 콘텐츠 전략이 필요합니다"
       />
 
       {/* 집중 채널 추천 */}

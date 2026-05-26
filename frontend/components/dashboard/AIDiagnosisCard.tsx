@@ -122,12 +122,17 @@ export default function AIDiagnosisCard({
   };
 
   // 노출된 AI 목록 및 개수 계산
+  // INACTIVE 업종은 naver "mentioned"가 일반 검색 결과이지 AI 브리핑이 아님.
+  // 요약 배너 "네이버에서만 확인됩니다"는 사용자에게 혼란을 주므로 naver를 AI 노출 카운트에서 제외.
+  // (naver 채널 카드는 별도 Fragment로 정상 표시됨)
   const mentionedPlatforms = DISPLAY_PLATFORMS.filter((key) => {
+    if (isNaverBriefingInactive && key === "naver") return false;
     const r = allPlatformResults[key];
     if (!r || r.error) return false;
     return r.mentioned === true || (r.exposure_freq !== undefined && r.exposure_freq > 0);
   });
   const notMentionedPlatforms = DISPLAY_PLATFORMS.filter((key) => {
+    if (isNaverBriefingInactive && key === "naver") return false;
     const r = allPlatformResults[key];
     if (!r || r.error) return false;
     return !(r.mentioned === true || (r.exposure_freq !== undefined && r.exposure_freq > 0));
@@ -143,9 +148,15 @@ export default function AIDiagnosisCard({
   const mentionedNames = mentionedPlatforms.map(k => PLATFORM_SHORT[k] ?? k);
   const notMentionedNames = notMentionedPlatforms.map(k => PLATFORM_SHORT[k] ?? k);
 
-  // CTA 조건
+  // CTA 조건 — INACTIVE 업종은 AI 브리핑 대상 아님, 소개글 Q&A CTA 표시 안 함
   const ctaType: "faq" | "review" | "none" =
-    smartPlaceScore < 70 ? "faq" : reviewCount === 0 ? "review" : "none";
+    isNaverBriefingInactive
+      ? "none"
+      : smartPlaceScore < 70
+      ? "faq"
+      : reviewCount === 0
+      ? "review"
+      : "none";
 
   return (
     <div className="space-y-4">
@@ -494,10 +505,10 @@ export default function AIDiagnosisCard({
               }`}
             >
               {naverInBriefing
-                ? "이미 잘 되고 있습니다. 리뷰를 꾸준히 유지하면 ChatGPT·Gemini 등 글로벌 AI에도 노출 확률이 높아집니다."
-                : naverMentionedOnly && reviewCount < 10
+                ? "이미 잘 되고 있습니다. 구글 비즈니스 프로필도 등록하면 ChatGPT·Gemini 노출 가능성이 함께 높아집니다."
+                : !isNaverBriefingInactive && naverMentionedOnly && reviewCount < 10
                 ? "네이버 검색에는 나오지만, AI 브리핑에 인용되려면 리뷰가 최소 10개 이상 필요합니다."
-                : naverMentionedOnly && reviewCount >= 10
+                : !isNaverBriefingInactive && naverMentionedOnly && reviewCount >= 10
                 ? `리뷰 ${reviewCount}개로 충분합니다. AI 브리핑 인용을 높이려면 소개글 Q&A에 핵심 키워드를 보강하세요.`
                 : reviewCount === 0
                 ? (naverPlaceUrl

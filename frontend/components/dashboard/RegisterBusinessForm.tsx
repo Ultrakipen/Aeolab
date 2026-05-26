@@ -467,9 +467,9 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           }`}>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               {isFranchise
-                ? "프랜차이즈 가맹점은 현재 네이버 AI 브리핑 제공 대상이 아닙니다(네이버 공식). 추후 확대 예정이며, 그동안 일반 검색·블로그·ChatGPT·Gemini 노출에서 효과를 드립니다."
+                ? "프랜차이즈 가맹점은 현재 네이버 AI 브리핑 제공 대상이 아닙니다(네이버 정책 기준). 추후 확대 예정이며, 그동안 일반 검색·AI탭 노출과 ChatGPT·Gemini 현황 측정에서 효과를 드립니다."
                 : getBriefingEligibility(selectedCategory) === "inactive"
-                ? "이 업종은 현재 네이버 AI 브리핑 비대상이지만, 일반 검색·블로그·ChatGPT·Gemini 노출에서 효과를 드립니다."
+                ? "이 업종은 현재 네이버 AI 브리핑 비대상이지만, 일반 검색·AI탭 노출과 ChatGPT·Gemini 현황 측정에서 효과를 드립니다."
                 : "이 업종은 네이버 AI 브리핑 확대 예상 업종입니다. 지금 가입하면 확대 시 자동으로 활성화됩니다."}
             </p>
           </div>

@@ -169,7 +169,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
                 <li>• 학습 데이터 기반 (GPT-4.1-mini)</li>
                 <li>• 블로그·리뷰·구조화 데이터 핵심</li>
-                <li>• 면책: 실시간 검색과 다를 수 있음</li>
+                <li>• 실시간 검색 결과와 다를 수 있음</li>
               </ul>
             </div>
             {/* Gemini */}
@@ -187,9 +187,9 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                 </span>
               </div>
               <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
-                <li>• Google 데이터 기반 (Gemini Flash)</li>
-                <li>• 100회 샘플링 → 노출 빈도 측정</li>
-                <li>• 웹 구조화·위치 정보 중요</li>
+                <li>• 학습 데이터 기반 (Gemini Flash)</li>
+                <li>• 50~100회 샘플링 → 노출 빈도 측정</li>
+                <li>• 구조화 데이터·위치 정보 중요</li>
               </ul>
             </div>
             {/* Google AI */}
@@ -207,8 +207,8 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                 </span>
               </div>
               <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
-                <li>• Google AI Overview (SGE)</li>
-                <li>• 한국 내 노출 빈도 증가 중</li>
+                <li>• Google AI Overviews (한국 확대 중)</li>
+                <li>• Playwright 실측 — Pro+ 스캔에서 제공</li>
                 <li>• 구조화 데이터(Schema.org) 핵심</li>
               </ul>
               <p className="mt-2 text-xs text-orange-600 font-medium">Pro 이상 스캔에서 측정</p>

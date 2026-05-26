@@ -60,7 +60,7 @@ def _faq_missing_msg(eligibility: str) -> str:
 
 def _intro_missing_msg(eligibility: str) -> str:
     if eligibility == "inactive":
-        return "소개글은 ChatGPT·Google AI Overview가 업체 정보를 추출하는 1차 소스입니다"
+        return "소개글 핵심 정보 구조화는 AI탭 노출에 효과적입니다. ChatGPT·Gemini 노출은 구글 비즈니스 프로필 등록이 더 직접적입니다"
     return "소개글(인트로) 없음 — 키워드 3~5개 포함한 2~3문장 소개글 필요"
 
 

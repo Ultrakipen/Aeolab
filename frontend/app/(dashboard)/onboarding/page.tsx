@@ -711,7 +711,7 @@ export default function OnboardingPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div className="bg-white rounded-lg p-3 border border-blue-100">
                       <p className="text-sm font-bold text-blue-700 mb-1">아직 등록하지 않으셨나요?</p>
-                      <p className="text-sm text-blue-600 mb-2">지금 바로 무료로 등록하세요. 네이버 검색 노출이 크게 올라갑니다.</p>
+                      <p className="text-sm text-blue-600 mb-2">지금 바로 무료로 등록하세요. 네이버 검색 노출 가능성이 높아집니다.</p>
                       <a
                         href="https://smartplace.naver.com"
                         target="_blank"

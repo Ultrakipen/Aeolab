@@ -4,40 +4,40 @@ import { SiteFooter } from "@/components/common/SiteFooter"
 import { ChatGptChecklist } from "./ChatGptChecklist"
 
 export const metadata: Metadata = {
-  title: "ChatGPT에서 내 가게를 노출시키는 방법 | AEOlab",
+  title: "ChatGPT에서 내 가게가 언급되는 조건 | AEOlab",
   description:
-    "ChatGPT 학습 데이터 기반 소개글 최적화, Q&A 구조 작성법, 노출 체크리스트까지. AEOlab이 ChatGPT 검색 노출 방법을 정리합니다.",
+    "ChatGPT는 Bing 검색 기반으로 구글 비즈니스 프로필·자체 웹사이트·영문 플랫폼을 참조합니다. 네이버 블로그·스마트플레이스와는 직접 연결되지 않는 이유를 정리합니다.",
 }
 
 const LEARN_SOURCES = [
   {
     icon: "🌐",
-    title: "공개 웹페이지·블로그",
-    desc: "구글 인덱스에 등재된 모든 공개 페이지. 네이버 블로그·티스토리·자사 홈페이지 모두 포함됩니다.",
+    title: "자체 웹사이트 (가장 효과적)",
+    desc: "Bing·OAI-SearchBot이 직접 크롤링하는 외부 URL. JSON-LD 구조화 마크업이 있으면 인용 가능성이 높아집니다. 티스토리·워드프레스도 포함됩니다.",
   },
   {
     icon: "📍",
-    title: "네이버 스마트플레이스 소개글",
-    desc: "스마트플레이스 소개 텍스트는 ChatGPT 학습 소스 중 가장 접근 빈도가 높습니다.",
+    title: "구글 비즈니스 프로필",
+    desc: "Google 데이터를 기반으로 하는 ChatGPT 웹 검색에서 가장 직접적으로 참조됩니다. business.google.com 무료 등록만으로 즉시 효과가 있습니다.",
   },
   {
     icon: "📰",
-    title: "뉴스·언론 기사",
-    desc: "언론에 소개된 사업장 기사는 권위 신호로 인식되어 인용 가능성이 높아집니다.",
+    title: "뉴스·언론 기사·영문 플랫폼",
+    desc: "언론 보도, 트립어드바이저 등 Bing 인덱싱이 잘 되는 외부 플랫폼은 권위 신호로 인식되어 인용 가능성이 높아집니다.",
   },
   {
-    icon: "📱",
-    title: "SNS 공개 게시물",
-    desc: "인스타그램·페이스북·트위터 등 공개 게시물이 학습 데이터로 활용됩니다.",
+    icon: "⚠️",
+    title: "네이버 블로그·스마트플레이스는 ChatGPT에 직접 잡히지 않습니다",
+    desc: "ChatGPT는 Bing 검색 엔진을 기반으로 합니다. 네이버 생태계(블로그·스마트플레이스)는 Bing에 인덱싱되지 않아 ChatGPT가 직접 읽지 못합니다. 네이버 최적화는 네이버 AI 브리핑·AI탭에 효과적입니다.",
   },
 ]
 
 const CHECKLIST_ITEMS = [
-  { id: "qa", label: "소개글 Q&A 5개 이상 포함" },
+  { id: "google_biz", label: "구글 비즈니스 프로필 등록 완료 (business.google.com)" },
+  { id: "qa", label: "자체 웹사이트·홈페이지에 Q&A 5개 이상 포함" },
   { id: "specific", label: "가격·운영시간·위치 구체 수치 명시" },
   { id: "authority", label: "권위 신호 포함 (경력·자격·수상)" },
-  { id: "blog", label: "네이버 블로그 포스팅 월 2회 이상" },
-  { id: "google_biz", label: "구글 비즈니스 프로필 등록" },
+  { id: "tripadvisor", label: "트립어드바이저·망고플레이트 등 외부 플랫폼 등록" },
 ]
 
 export default function ChatGptSearchGuidePage() {
@@ -80,7 +80,7 @@ export default function ChatGptSearchGuidePage() {
             ChatGPT에서 내 가게를 노출시키는 방법
           </h1>
           <p className="text-base md:text-lg text-gray-600 mb-4 leading-relaxed break-keep">
-            ChatGPT는 학습 데이터 기반 — 구조화된 콘텐츠가 핵심입니다
+            ChatGPT는 Bing 검색 기반 — 구글 비즈니스 프로필과 자체 웹사이트가 핵심입니다
           </p>
           {/* 면책 문구 */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">

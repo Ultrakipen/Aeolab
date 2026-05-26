@@ -131,7 +131,7 @@ export default function FactEvidenceSection({
               <p className="text-sm text-gray-500 leading-relaxed">
                 {isActive
                   ? "소개글에 Q&A를 포함하면 AI 브리핑 인용 후보가 됩니다. 6~8주 안에 노출 가능성이 높아집니다."
-                  : "소개글에 키워드를 포함하면 ChatGPT·Gemini 검색에서 발견될 가능성이 높아집니다."}
+                  : "소개글에 키워드를 포함하면 네이버 AI탭 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 더 직접적입니다."}
               </p>
             ) : null}
             <p className="text-sm text-gray-500 italic mt-2">

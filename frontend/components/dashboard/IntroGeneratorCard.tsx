@@ -151,7 +151,7 @@ export function IntroGeneratorCard({
         </p>
       ) : (
         <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
-          ChatGPT·Gemini·Google AI 노출에 최적화된 소개글입니다. FAQ 중심 구조로 AI 인용 가능성을 높입니다.
+          AI 인용 가능성 높은 구조로 작성된 소개글입니다. 자체 웹사이트·구글 비즈니스 프로필에 활용하면 ChatGPT·Gemini 노출에도 효과적입니다.
         </p>
       )}
 

@@ -293,7 +293,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 검색 최적화 도구</h1>
         <p className="text-gray-500 text-sm mt-1 leading-relaxed">
-          스마트플레이스 소개글의 AI 핵심 키워드 점수를 확인하고, 최적화된 소개글·블로그 초안을 자동으로 만들어 드립니다.
+          AI 검색 등록 코드(JSON-LD) 생성, 스마트플레이스 소개글 AI 키워드 점수 확인, 블로그 초안 3종을 한 번에 만들어 드립니다.
         </p>
         <div className="mt-3 space-y-2">
           <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-800">
@@ -394,7 +394,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               AI가 소개글과 블로그 초안을 작성하는 중...
             </>
-          ) : '스마트플레이스 · 블로그 최적화 글 만들기'}
+          ) : 'AI 검색 코드 · 소개글 · 블로그 초안 생성하기'}
         </button>
       </form>
 
@@ -779,6 +779,10 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
             </div>
           </div>
 
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-800 leading-relaxed">
+            <strong>대시보드 상태 업데이트 방법</strong><br />
+            생성된 AI 검색 코드를 홈페이지 <code className="bg-blue-100 px-1 rounded">&lt;/head&gt;</code> 위에 붙여넣은 뒤, 대시보드에서 스캔을 다시 실행하면 &ldquo;AI에 가게 정보 등록&rdquo; 항목이 완료로 표시됩니다.
+          </div>
           <p className="text-sm text-center text-gray-400">
             적용 후 2~4주 뒤 AEOlab 스캔에서 점수 변화를 확인하세요.
           </p>

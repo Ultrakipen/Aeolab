@@ -131,10 +131,10 @@ async def generate_keyword_suggestions(
     category_label = cat_key  # 추후 한글 라벨 매핑 가능
     region_clean = (region or "").strip() or "전국"
 
-    # 기존 키워드 정규화 (소문자, 공백 제거)
+    # 기존 키워드 정규화 (소문자, 공백 제거) — 띄어쓰기 차이 흡수
     existing_set: set[str] = set()
     if existing_keywords:
-        existing_set = {k.strip().lower() for k in existing_keywords if k and k.strip()}
+        existing_set = {k.strip().replace(" ", "").lower() for k in existing_keywords if k and k.strip()}
 
     if existing_set:
         existing_block = _EXISTING_BLOCK_TMPL.format(
@@ -186,8 +186,8 @@ async def generate_keyword_suggestions(
                 continue
             if biz_name_low and biz_name_low in kw.lower():
                 continue
-            # 이미 보유한 키워드 제외 (부분 일치 포함)
-            kw_low = kw.lower()
+            # 이미 보유한 키워드 제외 (부분 일치 + 띄어쓰기 차이 흡수)
+            kw_low = kw.lower().replace(" ", "")
             if any(ex in kw_low or kw_low in ex for ex in existing_set if len(ex) >= 2):
                 continue
             suggestions.append({

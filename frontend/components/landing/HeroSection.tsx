@@ -141,12 +141,12 @@ export default function HeroSection() {
                 className="w-1.5 h-1.5 rounded-full animate-pulse"
                 style={{ background: "#2563EB" }}
               />
-              AI 검색 노출 최적화 서비스 — 네이버·ChatGPT·Gemini
+              AI 검색 준비도 진단 서비스 — 네이버·AI탭·ChatGPT
             </div>
 
             {/* 메인 타이틀 */}
             <h1 className="hero-headline mb-4 break-keep">
-              네이버·ChatGPT가
+              내 가게는 AI 검색에
               <br />
               <span
                 style={{
@@ -157,10 +157,10 @@ export default function HeroSection() {
                   backgroundClip: "text",
                 }}
               >
-                먼저 추천하는 가게
+                나올 준비가
               </span>
-              ,<br />
-              누구일까요?
+              <br />
+              됐나요?
             </h1>
 
             {/* KPI 지표 */}
@@ -171,19 +171,19 @@ export default function HeroSection() {
               {[
                 {
                   num: "+27.4%",
-                  label: "AI브리핑 후 클릭률",
+                  label: "AI브리핑 후 가게 클릭",
                   highlight: true,
                   source: "네이버 공식 발표 기준",
                 },
                 {
                   num: "+10.4%",
-                  label: "체류시간 증가",
+                  label: "가게 페이지 체류시간",
                   highlight: false,
                   source: "네이버 공식 발표 기준",
                 },
                 {
                   num: "+8%",
-                  label: "예약 전환 증가",
+                  label: "예약·전화 전환",
                   highlight: false,
                   source: "네이버 공식 발표 기준",
                 },
@@ -256,11 +256,11 @@ export default function HeroSection() {
                 className="text-sm leading-relaxed break-keep"
                 style={{ color: "rgba(255,255,255,0.70)" }}
               >
-                학원·병원·미용실 등 모든 업종은{" "}
+                학원·병원·미용실 등 모든 업종의{" "}
                 <strong style={{ color: "rgba(255,255,255,0.90)" }}>
                   네이버 AI탭·ChatGPT
                 </strong>
-                으로 노출 — 업종 자동 감지 · 가입 없이 1분
+                {" "}준비도를 진단합니다 — 업종 자동 감지 · 가입 없이 1분
               </p>
             </div>
 

@@ -264,7 +264,7 @@ export default function HowItWorksPage() {
                 <tr className="border-b border-gray-100">
                   <td className="py-3 px-3 align-top">
                     <strong>② 프랜차이즈 가맹점 아님?</strong>
-                    <p className="text-sm text-gray-500 mt-1 leading-relaxed">네이버 공식: 프랜차이즈는 현재 제외</p>
+                    <p className="text-sm text-gray-500 mt-1 leading-relaxed">네이버 정책 기준: 프랜차이즈는 현재 제외</p>
                   </td>
                   <td className="py-3 px-3 align-top text-gray-700">체크하면 AI 브리핑 비대상으로 전환 + 대체 채널(글로벌 AI) 노출 개선으로 전환</td>
                   <td className="py-3 px-3 align-top text-gray-700">사업장 등록 시 체크박스로 답변</td>
@@ -290,11 +290,10 @@ export default function HowItWorksPage() {
         {/* ─── 2단계: 점수 100점 (현재 v3.0 5항목 / v3.1 6항목 예정) ─── */}
         <section id="step2" className="mb-12 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
-            2단계. 콘텐츠 점수 100점 — 네이버 채널 5항목 <span className="text-sm font-normal text-gray-400">(v3.1에서 6항목으로 확장 예정)</span>
+            2단계. 콘텐츠 점수 100점 — 네이버 채널 6항목
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            현재 v3.0 모델(5항목)이 적용 중입니다. 베타 사용자 5명+ 데이터 확보 후 v3.1 모델로 전환되며,
-            업종 그룹(AI 브리핑 대상/확대 예정/글로벌 AI 중심)에 따라 가중치를 자동 재분배할 예정입니다.
+            현재 v3.0 모델(6항목)이 적용 중입니다. 업종 그룹(AI 브리핑 대상/확대 예정/글로벌 AI 중심)에 따라 가중치를 자동 재분배합니다.
             AI 브리핑 비대상 업종이라도 점수상 불이익이 없도록 키워드 검색·스마트플레이스로 보강합니다.
           </p>
 
@@ -904,37 +903,36 @@ export default function HowItWorksPage() {
         {/* ─── 2026 Q2 AI 브리핑 광고 도입 영향 ─── */}
         <section id="ad-impact" className="mb-8 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
-            2026 Q2: AI 브리핑 광고 도입 예정
+            2026 Q2~: AI 브리핑 광고 도입 (모니터링 중)
           </h2>
           <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-4 break-keep">
-            네이버는 2026년 2분기 중 AI 브리핑 결과 내에 광고성 플레이스 카드 노출을 준비하고 있습니다.
-            광고로만 노출되는 플레이스는 <strong>유기적(organic) AI 브리핑 노출과 구분</strong>되며,
+            네이버는 2026년 2분기 중 AI 브리핑 결과 내에 광고성 플레이스 카드 노출을 예고했으며, 공식 출시 일정은 모니터링 중입니다.
+            광고로만 노출되는 플레이스는 <strong>AI가 콘텐츠를 보고 자동 선택하는 노출과 구분</strong>되며,
             AEOlab 점수 산정에서 별도로 처리됩니다.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <p className="text-sm font-semibold text-blue-800 mb-1">유기적 노출 (Organic)</p>
+              <p className="text-sm font-semibold text-blue-800 mb-1">AI 자동 선택 노출 (광고 아님)</p>
               <p className="text-sm text-blue-700 leading-relaxed break-keep">
                 AI 브리핑이 콘텐츠 품질·리뷰·정보 완성도를 기준으로 자동 선정.
                 AEOlab <strong>네이버 채널 점수에 반영</strong>됩니다.
               </p>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-semibold text-amber-800 mb-1">광고 전용 노출 (Ad-only)</p>
+              <p className="text-sm font-semibold text-amber-800 mb-1">광고 전용 노출 (돈 내야만 나옴)</p>
               <p className="text-sm text-amber-700 leading-relaxed break-keep">
-                네이버 광고비로만 노출. AEOlab은 이를 <code className="bg-amber-100 px-1 rounded text-xs">ad_only</code> 플래그로 감지하며,
+                네이버 광고비를 지불한 경우에만 노출. AEOlab은 광고 배지를 자동 감지하여
                 <strong>AI 브리핑 점수 0점</strong>으로 산정합니다.
               </p>
             </div>
           </div>
 
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 leading-relaxed break-keep">
-            <strong>AEOlab 감지 방식:</strong> 스캔 시 네이버 AI 브리핑 DOM에서 광고 배지(스폰서드·AD)를
-            자동 파싱합니다. 광고 배지가 감지되면 해당 결과를 <code className="bg-gray-200 px-1 rounded text-xs">ad_only: true</code>로
-            표시하고 유기적 노출 점수에서 제외합니다.
-            광고 도입 이후에도 <strong>유기적 노출 개선이 장기적으로 더 효과적</strong>이며,
-            AEOlab은 유기적 노출 최적화에 집중합니다.
+            <strong>AEOlab 감지 방식:</strong> 스캔할 때 네이버 AI 브리핑 화면에서 광고 표시(스폰서드·AD 배지)를
+            자동으로 확인합니다. 광고 배지가 있으면 해당 노출을 점수에서 제외합니다.
+            광고 도입 이후에도 <strong>AI가 콘텐츠를 보고 자연스럽게 선택하는 노출이 장기적으로 더 효과적</strong>이며,
+            AEOlab은 이 방식의 최적화에 집중합니다.
           </div>
 
           <p className="text-sm text-gray-400 mt-2 leading-relaxed break-keep">
