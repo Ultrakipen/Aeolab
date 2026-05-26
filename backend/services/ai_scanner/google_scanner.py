@@ -1,5 +1,6 @@
 from playwright.async_api import async_playwright
 import logging
+import re
 
 logger = logging.getLogger("aeolab")
 
@@ -41,6 +42,25 @@ class GoogleAIOverviewScanner:
                 await page.goto(url, wait_until="networkidle", timeout=30000)
                 await page.wait_for_timeout(2000)
 
+                # ── CAPTCHA / 차단 감지 ─────────────────────────────────
+                current_url = page.url
+                page_title = await page.title()
+                body_head = ""
+                try:
+                    body_head = (await page.inner_text("body") or "")[:500]
+                except Exception:
+                    pass
+                if (
+                    any(kw in current_url for kw in ["captcha", "sorry", "recaptcha"]) or
+                    any(kw in page_title.lower() for kw in ["captcha", "unusual traffic"]) or
+                    bool(re.search(r"unusual traffic|automated queries|보안문자|로봇이 아님", body_head, re.IGNORECASE))
+                ):
+                    logger.warning(f"[google_scanner] captcha/block detected for query: {query}")
+                    return {
+                        "platform": "google", "mentioned": False, "in_ai_overview": False,
+                        "rank": None, "excerpt": "", "captcha_detected": True, "error": "captcha_blocked",
+                    }
+
                 # AI Overview 영역 검색
                 for sel in AI_OVERVIEW_SELECTORS:
                     try:
@@ -79,4 +99,5 @@ class GoogleAIOverviewScanner:
             "in_ai_overview": in_ai_overview,
             "rank": rank,
             "excerpt": excerpt,
+            "captcha_detected": False,
         }

@@ -275,6 +275,75 @@ interface Props {
   initialToken?: string
 }
 
+// ── 네이버 검색 기반 → AI 노출 연결 체크리스트 ────────────────────────────────
+function NaverSearchBaseSection({ category }: { category?: string }) {
+  const ACTIVE_CATS = ["restaurant", "cafe", "bakery", "bar", "accommodation"]
+  const isActive = ACTIVE_CATS.includes(category ?? "")
+  const isLikely = ["beauty", "nail", "pet", "fitness", "yoga", "pharmacy"].includes(category ?? "")
+
+  const checks: { icon: string; label: string; effect: string; priority: "high" | "mid" }[] = [
+    { icon: "✏️", label: "소개글 500자+ + Q&A 형식 3개 이상", effect: "AI 브리핑 · AI탭", priority: "high" },
+    { icon: "📸", label: "카테고리별 사진 10장 이상", effect: "플레이스탭 · AI탭", priority: "high" },
+    { icon: "💬", label: "리뷰 10개+ (영수증 리뷰 포함)", effect: "플레이스탭 · AI 브리핑", priority: "high" },
+    { icon: "📅", label: "14일 이내 소식 1개 이상 게시", effect: "플레이스탭 · AI탭", priority: "mid" },
+    { icon: "📆", label: "네이버 예약 연동", effect: "플레이스탭 · AI탭", priority: "mid" },
+    { icon: "📝", label: "네이버 블로그 후기 5개 이상 확보", effect: "ChatGPT · Gemini (3~12개월)", priority: "mid" },
+  ]
+
+  return (
+    <section className="rounded-xl border border-green-200 bg-green-50 p-4 md:p-5">
+      <div className="flex items-start gap-2.5 mb-4">
+        <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center shrink-0 text-lg">
+          🔍
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-semibold text-gray-900">네이버 검색 기반 강화 체크리스트</h3>
+          <p className="text-sm text-green-800 mt-0.5">
+            플레이스 탭 순위가 오를수록{" "}
+            {isActive
+              ? "AI 브리핑·AI탭 노출 가능성도 함께 높아집니다."
+              : isLikely
+              ? "AI탭 노출 가능성도 함께 높아집니다."
+              : "AI탭·ChatGPT·Gemini 노출 가능성도 함께 높아집니다."}
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-2 mb-4">
+        {checks.map((c, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between rounded-lg bg-white border border-green-100 px-3 py-2.5 gap-2"
+          >
+            <span className="text-sm text-gray-800 flex items-center gap-1.5">
+              {c.priority === "high" && (
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+              )}
+              {c.icon} {c.label}
+            </span>
+            <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
+              {c.effect}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded-lg bg-white border border-green-100 px-3 py-2.5">
+        <p className="text-sm font-medium text-gray-700 mb-1">개선 순서 원칙</p>
+        <p className="text-sm text-gray-600">
+          소개글 → 리뷰 → 사진 → 소식 순으로 먼저 완성하세요.
+          이 4가지가 네이버 AI 브리핑·AI탭 노출의 직접 조건입니다.
+          블로그 후기는 ChatGPT·Gemini에 3~12개월 후 반영됩니다.
+        </p>
+      </div>
+
+      <p className="text-xs text-gray-500 mt-3">
+        ※ 네이버 검색 순위는 기기·지역·로그인 상태에 따라 다를 수 있습니다.
+      </p>
+    </section>
+  )
+}
+
 // ── 스마트플레이스 현황 업데이트 카드 ─────────────────────────────────────────
 function SmartPlaceStatusCard({
   bizId,
@@ -3253,8 +3322,8 @@ function GuideTabView({
         <p className="text-sm text-blue-700 leading-relaxed">
           복사 버튼을 눌러 스마트플레이스 → <strong>업체정보 → 소개글</strong>에 바로 붙여넣기 하세요.
           {isTabInactive
-            ? " 실천할수록 ChatGPT·Gemini·Google·네이버 AI 검색 노출이 올라갑니다."
-            : " 실천할수록 네이버 AI 브리핑 노출이 올라갑니다."}
+            ? " 실천할수록 네이버 AI탭·일반 검색 노출 가능성이 높아집니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 더 직접적입니다."
+            : " 실천할수록 네이버 AI 브리핑 노출 가능성이 높아집니다."}
           {" "}<a href="https://smartplace.naver.com" target="_blank" rel="noopener noreferrer" className="underline font-medium">스마트플레이스 바로 가기 →</a>
         </p>
       </div>
@@ -3884,6 +3953,9 @@ function GuideTabView({
             bizName={business.name}
           />
 
+          {/* 네이버 검색 기반 → AI 노출 연결 체크리스트 */}
+          <NaverSearchBaseSection category={category} />
+
           {/* 스마트플레이스 현황 업데이트 */}
           <SmartPlaceStatusCard
             bizId={business.id}
@@ -4434,7 +4506,7 @@ export function GuideClient({
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
                     네이버 공식: 프랜차이즈 업종은 현재 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정).
-                    그동안 아래 가이드는 <strong>ChatGPT·Gemini·Google·네이버 일반 검색 노출</strong>에 동일하게 효과적입니다.
+                    그동안 아래 가이드는 <strong>네이버 AI탭·일반 검색 노출</strong>에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
                   </p>
                 </>
               ) : isBriefingLikely ? (
@@ -4444,7 +4516,7 @@ export function GuideClient({
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
                     미리 아래 가이드를 완료해두면 확대 즉시 노출됩니다.
-                    현재도 ChatGPT·Gemini·Google AI 노출에 직접 효과적입니다.
+                    현재도 네이버 AI탭·일반 검색 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
                   </p>
                 </>
               ) : (
@@ -4454,7 +4526,7 @@ export function GuideClient({
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
                     네이버 AI 브리핑은 음식점·카페·숙박 중심이지만, 아래 개선 항목은
-                    <strong> ChatGPT·Gemini·Google·카카오맵 노출</strong>에 동일하게 효과적입니다.
+                    <strong>네이버 AI탭·카카오맵·일반 검색 노출</strong>에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
                   </p>
                 </>
               )}

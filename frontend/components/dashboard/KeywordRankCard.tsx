@@ -389,6 +389,9 @@ export default function KeywordRankCard({
             ※ 키워드 순위는 측정 시점·기기·검색 환경에 따라 달라질 수 있습니다.
             AEOlab은 서울 기준 비로그인 PC/모바일로 측정합니다.
           </p>
+          <p className="text-sm text-blue-700 font-medium">
+            플레이스 탭 순위가 오를수록 네이버 AI 브리핑·AI탭 노출 가능성도 함께 높아집니다.
+          </p>
         </div>
       )}
     </section>

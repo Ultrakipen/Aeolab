@@ -125,6 +125,7 @@
 | **`docs/naver_ai_prelaunch_inspection_v1.0.md`** ⭐ | **상업 서비스 전 AI 브리핑·AI탭·ChatGPT 차별화 14개 체크포인트 점검 (2026-05-19 재검토 확정본)** |
 | **`docs/agency_service_and_iboss_improvements_v1.0.md`** ⭐ | **대행 서비스(3종) + Q&A 게시판 + 아이보스 착안 개선안 — 5 Sprint 구현 기획. 새 대화창에서 §0 트리거 명령으로 즉시 작업 시작 가능** |
 | **`docs/naver_gpt_work_standard_v1.0.md`** ⭐ | **네이버·GPT 관련 기능 작업 전 필수 — 업종 분류·점수 가중치·스캐너·콘텐츠 구조·UI 분기 전 영역** |
+| **`docs/ai_exposure_standard_and_naver_seo_v1.0.md`** ⭐ | **5채널 AI 노출 판정 기준 단일 소스 + 네이버 일반 검색 개선 안내 설계 — 스캔 엔진·갭 분석·가이드·UI 수정 전 필수** |
 | `docs/model_engine_v3.0.md` | 듀얼트랙 모델 엔진 설계 (단일 참조 문서) |
 | `docs/next_features_v1.0.md` | 다음 구현할 추천 기능 목록 |
 | `docs/service_unification_v1.0.md` | 서비스 통합 재편 기획서 — 점수 모델 v3.1, 그룹 분기, KPI |
@@ -244,7 +245,7 @@
 | 프론트엔드 | Next.js 16.2.1 App Router + Tailwind + shadcn/ui + Recharts | 포트 3000 |
 | 백엔드 | Python FastAPI + Pydantic v2 + APScheduler + aiohttp | 포트 8000 |
 | DB | Supabase Cloud Free Tier (PostgreSQL + Auth + Storage) | |
-| AI 스캔 | Gemini 2.0 Flash + OpenAI gpt-4o-mini (Basic 자동 50/50 분할, Full 각 100회) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Playwright) | 4종 운영 |
+| AI 스캔 | Gemini 2.0 Flash + OpenAI gpt-4.1-mini (Basic 자동 50/50 분할, Full 각 100회) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Playwright) | 4종 운영 |
 | AI 가이드 | Claude sonnet-4-6 (가이드 전용) + Claude Haiku (FAQ/감정분석) | |
 | 스크린샷 | Playwright 1.44+ | Semaphore(1) 독립 × 2 (브리핑·AI탭) — 공유 통합 예정 |
 | 결제 | 토스페이먼츠 v2 (현재 test_ 키) | 실결제 전 live_ 교체 필요 |
@@ -413,7 +414,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 | API | 단가 | 월 비용 | 용도 |
 |-----|------|--------|------|
 | Gemini 2.0 Flash | $0.075/1M in, $0.30/1M out | ~$1.5 | Basic 자동 50회 / Full 100회 |
-| OpenAI gpt-4o-mini | $0.15/1M in, $0.60/1M out | ~$2 | Basic 자동 50회 / Full 100회 (A안 신규) |
+| OpenAI gpt-4.1-mini | $0.15/1M in, $0.60/1M out | ~$2 | Basic 자동 50회 / Full 100회 (A안 신규) |
 | Claude Sonnet | $3/1M | ~$3 | 가이드 생성 시만 |
 | 카카오 알림톡 | 8~15원/건 | ~800원 | 변화 있을 때 |
 | iwinv 서버 | 고정 | 27,800원 | |

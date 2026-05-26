@@ -754,6 +754,12 @@ def calc_online_mentions(naver_data: dict) -> float:
     return 5.0  # 데이터 없을 때 최소값
 
 
+def _is_google_captcha(scan_result: dict) -> bool:
+    """Google 스캐너가 CAPTCHA 차단을 감지했는지 확인"""
+    google = scan_result.get("google") or scan_result.get("google_result") or {}
+    return bool(google.get("captcha_detected"))
+
+
 def calc_google_presence(scan_result: dict) -> float:
     """Google AI Overview 노출 점수 (0~100)"""
     google = scan_result.get("google") or scan_result.get("google_result") or {}
@@ -765,14 +771,24 @@ def calc_track2_score(scan_result: dict, biz: dict, naver_data: dict) -> float:
     ai_exp   = calc_multi_ai_exposure(scan_result)
     schema   = calc_schema_seo(scan_result, biz)
     mentions = calc_online_mentions(naver_data)
-    google   = calc_google_presence(scan_result)
 
-    score = (
-        ai_exp   * GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"] +
-        schema   * GLOBAL_TRACK_WEIGHTS["schema_seo"] +
-        mentions * GLOBAL_TRACK_WEIGHTS["online_mentions"] +
-        google   * GLOBAL_TRACK_WEIGHTS["google_presence"]
-    )
+    if _is_google_captcha(scan_result):
+        # Google 측정 불가(CAPTCHA 차단) → 나머지 3개 항목 가중치 합(0.90)으로 재배분해 100점 만점 유지
+        google_w = GLOBAL_TRACK_WEIGHTS["google_presence"]  # 0.10
+        base_w   = 1.0 - google_w                           # 0.90
+        score = (
+            ai_exp   * GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"] +
+            schema   * GLOBAL_TRACK_WEIGHTS["schema_seo"] +
+            mentions * GLOBAL_TRACK_WEIGHTS["online_mentions"]
+        ) / base_w
+    else:
+        google = calc_google_presence(scan_result)
+        score = (
+            ai_exp   * GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"] +
+            schema   * GLOBAL_TRACK_WEIGHTS["schema_seo"] +
+            mentions * GLOBAL_TRACK_WEIGHTS["online_mentions"] +
+            google   * GLOBAL_TRACK_WEIGHTS["google_presence"]
+        )
     return round(score, 1)
 
 
@@ -872,6 +888,7 @@ def calculate_score(
         "schema_seo":               round(calc_schema_seo(scan_result, biz), 1),
         "online_mentions_t2":       round(calc_online_mentions(naver_data), 1),
         "google_presence":          round(calc_google_presence(scan_result), 1),
+        "google_captcha_blocked":   _is_google_captcha(scan_result),
         # 항목별 감점 근거 (score_breakdown JSONB 저장, TrendLine 이벤트용)
         "track1_detail":            track1_detail,
         # 하위호환 필드
