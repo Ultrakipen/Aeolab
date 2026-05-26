@@ -1,7 +1,7 @@
 # AI 노출 기준 표준 + 네이버 일반 검색 개선 계획 v1.0
 
 > AEOlab 작업 기준 문서 — 5개 AI 채널 노출 판정 기준 + 네이버 일반 검색 개선 안내 설계
-> 작성: 2026-05-26 | 최종 갱신: 2026-05-26 v1.1 | 근거: score_engine.py · naver_scanner.py · chatgpt_scanner.py · gemini_scanner.py · google_scanner.py · gap_analyzer.py · keyword_taxonomy.py
+> 작성: 2026-05-26 | 최종 갱신: 2026-05-26 v1.2 | 근거: score_engine.py · naver_scanner.py · chatgpt_scanner.py · gemini_scanner.py · google_scanner.py · gap_analyzer.py · keyword_taxonomy.py
 
 ---
 
@@ -137,14 +137,16 @@ AI탭은 네이버 통합검색 결과 내 별도 탭으로, 검색어에 대한
 | 시기 | 상태 |
 |------|------|
 | 2026-04-27 | 네이버플러스 구독자 대상 베타 출시 |
-| 2026-06 (예정) | 전체 사용자 확대 (P2 활성화 트리거) |
-| 환경변수 | `NAVER_AI_TAB_ENABLED=false` (기본) → 6월 확대 후 `true` |
+| 2026-05-20 | **`system_status.ai_tab_enabled='true'`** — 수동 활성화. 스캔 이미 실행 중 |
+| 2026-06 (예정) | 전체 사용자 확대 → 비로그인 노출 확인 후 DOM 셀렉터 실측 검증 권장 |
 
-**P2 트리거 확인 명령** (주 1회):
-```bash
-ssh root@115.68.231.57 '...' # CLAUDE.md §남은 작업 참조
-# "AI" 탭 보이면 P2 실행
+**활성화 우선순위 (코드 로직)**:
 ```
+1순위: system_status.ai_tab_enabled (DB, 1분 캐시)
+2순위: 환경변수 NAVER_AI_TAB_ENABLED (DB 조회 실패 시 fallback)
+```
+> **현재 DB 값이 `'true'`이므로 env var 설정과 무관하게 AI탭 스캔이 활성화된 상태.**  
+> 6월 전체 확대 후 비로그인 브라우저에서 AI탭 노출 확인 → `_AI_TAB_SELECTORS` 실측 검증 권장.
 
 ### 2.3 업종 자격 (단일 소스: score_engine.get_ai_tab_eligibility())
 
@@ -183,8 +185,8 @@ def get_ai_tab_eligibility(category: str) -> str:
 
 ```
 Track1 ai_tab_readiness 가중치: 0.05 (5점 만점)
-NAVER_AI_TAB_ENABLED=true 시: in_ai_tab=True → +20 보너스
-현재 false → 점수 미반영 (6월 활성화 후 반영)
+ai_tab_enabled='true' (현재 DB 상태): in_ai_tab=True → +20 보너스 반영 중
+6월 전체 확대 후: DOM 셀렉터 실측 검증 → 필요시 _AI_TAB_SELECTORS 추가 보완
 ```
 
 ---
@@ -622,7 +624,7 @@ N/A:       측정 불가 (Google CAPTCHA, 데이터 없음)
 - "네이버 일반 검색 안내 카드 신규 필요" → 카드 이미 존재, 연결 문구만 없었음 (수정 완료)
 - "롱테일 쿼리 네이버 미전달 버그" → `scan.py:2625` 의도된 설계. 짧은 쿼리[0]만 네이버에 전달이 정책
 
-### ✅ 완료 (P1-B) — 2026-05-26, 미커밋 (commit 대기)
+### ✅ 완료 (P1-B) — 2026-05-26, commit 4ae6990
 
 | 작업 | 파일 | 결과 |
 |------|------|------|
@@ -636,22 +638,45 @@ N/A:       측정 불가 (Google CAPTCHA, 데이터 없음)
 | INACTIVE 업종 AI 카운트 수정 | `AIDiagnosisCard.tsx:127–156` | INACTIVE 업종에서 naver를 AI 노출 카운트·CTA 대상에서 제외 |
 | Trial 헤더 분리 | `TrialDetailAccordion.tsx` | "Gemini·ChatGPT 인식 현황" + "Gemini는 콘텐츠로 개선 가능·ChatGPT는 장기 전략" 부제 |
 
-### 중기 (P2 — 6월 AI탭 전체 확대 후)
+### ✅ 완료 (P2 인프라) — 2026-05-26, commit 902327d
+
+| 작업 | 파일 | 결과 |
+|------|------|------|
+| AI탭 DOM 셀렉터 강화 | `naver_ai_tab_scanner.py` | 6 → 15개 (5패턴 그룹) + `page.inner_text("body")` 전체 텍스트 폴백 |
+| `_name_in_text()` 헬퍼 추가 | `naver_ai_tab_scanner.py` | 공백·특수문자 무시 업체명 매칭 |
+| `AiTabPreviewCard.tsx` 3-state 배지 | `AiTabPreviewCard.tsx` | measured·estimated·측정 대기 3상태 분기 완성 |
+| `system_status` DB 테이블 | `scripts/supabase_schema.sql` | v6.1 — key/value 런타임 플래그 (ai_tab_enabled 등) |
+| `system_status` 마이그레이션 | Supabase SQL Editor | ✅ 2026-05-26 실행 완료. `ai_tab_enabled='true'` (2026-05-20 수동 활성화 유지) |
+
+> **현재 상태**: AI탭 스캔 **이미 활성 중** (`ai_tab_enabled='true'`, DB 기준). 6월 전체 확대 후 비로그인 환경에서 DOM 셀렉터 실측 검증만 남음.
+
+### ✅ 완료 (P3 인프라) — 2026-05-26, commit 902327d
+
+| 작업 | 파일 | 결과 |
+|------|------|------|
+| Google DataForSEO 게이트 | `google_scanner.py` | `GOOGLE_SCANNER_BACKEND=dataforseo` env var + `_scan_via_dataforseo()` 구현 완료 |
+| Gemini 그라운딩 게이트 | `gemini_scanner.py` | `GEMINI_GROUNDING_ENABLED=true` env var + lazy import Tool 구현 완료 |
+| `KeywordRankCard.tsx` 30일 트렌드 | `KeywordRankCard.tsx` | Recharts LineChart + 접기/펼치기 토글, PC 160px / 모바일 120px |
+
+**P3 활성화 절차 (구독자 목표 달성 시)**:
+```
+Google DataForSEO (구독자 50명 이후):
+  1. DataForSEO 계정 생성 + 크레덴셜 확보
+  2. 서버 .env: DATAFORSEO_LOGIN=xxx DATAFORSEO_PASSWORD=xxx GOOGLE_SCANNER_BACKEND=dataforseo
+  3. pm2 restart aeolab-backend
+
+Gemini 그라운딩 (비용 검토 후):
+  1. Gemini API 단가 상승분 확인 (그라운딩 활성화 시 과금 증가 가능)
+  2. 서버 .env: GEMINI_GROUNDING_ENABLED=true
+  3. pm2 restart aeolab-backend
+```
+
+### 장기 (잔여 — 구현 미착수)
 
 | 작업 | 파일 | 내용 |
 |------|------|------|
-| AI탭 스캐너 활성화 | `NAVER_AI_TAB_ENABLED=true` | 셀렉터 실측 검증 후 활성화 |
-| AI탭 점수 반영 | `score_engine.py` | `ai_tab_readiness` 가중치 0.05 → 실측값 반영 |
-| AI탭 노출 카드 | `AiTabPreviewCard.tsx` | `measured` 배지 활성화 |
-
-### 장기 (P3 — 구독자 20명 이후)
-
-| 작업 | 파일 | 내용 |
-|------|------|------|
-| Google AI Overview 재도입 | `google_scanner.py` | DataForSEO API 교체 ($0.002/건) |
-| 네이버 키워드 순위 자동화 | `naver_keyword_rank.py` | 일일 순위 추이 대시보드 표시 |
-| Gemini 스캐너 Google Search 그라운딩 | `gemini_scanner.py` | `tools=["google_search"]` 활성화 옵션 (비용 검토 필요) |
 | LIKELY 화이트리스트 확장 | `CLAUDE.md` + businesses 등록 UI | skincare·massage·spa·dance·ballet·semi_permanent 6개 추가 시 LIKELY 실효 12개 |
+| 네이버 키워드 순위 대시보드 자동화 | `naver_keyword_rank.py` | 일일 순위 추이 차트 (기본 인프라 완성, 스케줄러 잡 이미 존재) |
 
 ---
 
@@ -660,7 +685,8 @@ N/A:       측정 불가 (Google CAPTCHA, 데이터 없음)
 | 날짜 | 버전 | 내용 |
 |------|------|------|
 | 2026-05-26 | v1.0 | 최초 작성 — 5채널 노출 기준 + 네이버 일반 검색 개선 계획 통합 |
-| 2026-05-26 | v1.1 | 구현 결과 반영 + 오판 정정<br>**P0 완료 확인**: google_scanner.py CAPTCHA 감지, score_engine.py 재배분<br>**P1 완료 확인**: KeywordRankCard 연결 문구, GuideClient NaverSearchBaseSection<br>**§3 ChatGPT 전면 수정**: "학습 데이터 기반" → "스캐너=학습 데이터(컷오프 2024.06) / 실사용=Bing 검색" 이분법 도입. 네이버 블로그 ChatGPT 직접 효과 없음 명시<br>**§4 Gemini 전면 수정**: "스캐너=학습 데이터 / 실사용=Google Search 그라운딩(수주 내 반영)" 분리<br>**§7 매트릭스 수정**: 네이버 블로그→ChatGPT 효과 "—"로 정정. 구글 비즈니스 프로필→Gemini "수주" 추가<br>**§1 LIKELY 주석 추가**: 12개 중 실효 6개 (6개 화이트리스트 미등록)<br>**P1-B 미커밋 항목 9개 문서화** |
+| 2026-05-26 | v1.1 | 구현 결과 반영 + 오판 정정<br>**P0 완료 확인**: google_scanner.py CAPTCHA 감지, score_engine.py 재배분<br>**P1 완료 확인**: KeywordRankCard 연결 문구, GuideClient NaverSearchBaseSection<br>**§3 ChatGPT 전면 수정**: "학습 데이터 기반" → "스캐너=학습 데이터(컷오프 2024.06) / 실사용=Bing 검색" 이분법 도입<br>**§4 Gemini 전면 수정**: "스캐너=학습 데이터 / 실사용=Google Search 그라운딩(수주 내 반영)" 분리<br>**§7 매트릭스 수정**: 네이버 블로그→ChatGPT 효과 "—"로 정정<br>**§1 LIKELY 주석 추가**: 12개 중 실효 6개 (6개 화이트리스트 미등록)<br>**P1-B 미커밋 항목 9개 문서화** |
+| 2026-05-26 | v1.2 | P1-B·P2·P3 구현 완료 반영<br>**P1-B 커밋 확정**: commit 4ae6990 (ChatGPT·Gemini 노출 기준 정정 + 전사 UI 일관화)<br>**P2 인프라 완료**: commit 902327d — AI탭 셀렉터 6→15, body 폴백, AiTabPreviewCard 3-state, system_status DB v6.1<br>**P3 인프라 완료**: commit 902327d — DataForSEO 게이트, Gemini 그라운딩 게이트, KeywordRankCard Recharts 30일 트렌드<br>**§2.2 현황 수정**: `ai_tab_enabled='true'` (2026-05-20 이후 이미 활성 중) → env var 우선순위 문서화<br>**§9 재구성**: P1-B/P2/P3 인프라 완료 섹션 분리 + 잔여 장기 작업 정리 |
 
 ---
 
