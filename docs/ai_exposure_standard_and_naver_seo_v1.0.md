@@ -73,6 +73,8 @@ beauty, nail, skincare, massage, spa, pet, fitness, yoga, pharmacy,
 dance, ballet, semi_permanent
 ```
 - 2026-04-27 AI탭 베타 공개(네이버플러스 우선) 이후 확대 동향 추적 중
+- **⭐ 2026년 내 ACTIVE 전환 공식 예고**: 네이버 최수연 대표 컨퍼런스콜(2026.02.06, 뉴시스·뉴스핌) — "연내 AI 브리핑 2배 확대, **미용(beauty) 업종 포함**"  
+  `briefing_category_expansion_monitor_job`(매월 1일 자동 체크)이 정상 작동 중이면 ACTIVE 승급 자동 감지 가능. beauty 업종 사용자에게 "곧 AI 브리핑 대상이 될 예정" 안내 권장.
 - 사용자 안내 톤: "확대 가능성 높음, 현재 베타"
 - 점수 계산: ACTIVE보다 낮은 가중치 적용 (ai_briefing_score × 0.5)
 - **⚠️ 주의**: businesses.category 화이트리스트(25개)에 등록된 LIKELY 업종은 `beauty, nail, pet, fitness, yoga, pharmacy` 6개뿐. `skincare, massage, spa, dance, ballet, semi_permanent` 6개는 코드에는 있으나 사용자 등록 경로 없음 → 실질적 dead code. 화이트리스트 확장 전까지 UI 안내에 12개를 전부 열거하지 말 것.
@@ -686,6 +688,7 @@ Gemini 그라운딩 (비용 검토 후):
 |------|------|------|
 | 2026-05-26 | v1.0 | 최초 작성 — 5채널 노출 기준 + 네이버 일반 검색 개선 계획 통합 |
 | 2026-05-26 | v1.1 | 구현 결과 반영 + 오판 정정<br>**P0 완료 확인**: google_scanner.py CAPTCHA 감지, score_engine.py 재배분<br>**P1 완료 확인**: KeywordRankCard 연결 문구, GuideClient NaverSearchBaseSection<br>**§3 ChatGPT 전면 수정**: "학습 데이터 기반" → "스캐너=학습 데이터(컷오프 2024.06) / 실사용=Bing 검색" 이분법 도입<br>**§4 Gemini 전면 수정**: "스캐너=학습 데이터 / 실사용=Google Search 그라운딩(수주 내 반영)" 분리<br>**§7 매트릭스 수정**: 네이버 블로그→ChatGPT 효과 "—"로 정정<br>**§1 LIKELY 주석 추가**: 12개 중 실효 6개 (6개 화이트리스트 미등록)<br>**P1-B 미커밋 항목 9개 문서화** |
+| 2026-05-26 | v1.3 | 교차검증 수정 — beauty 업종 ACTIVE 전환 공식 예고(2026.02 컨콜) 추가. 네이버 블로그→Bing 영향 표현 "인덱싱 안 됨→영향 제한적"으로 완화(7개 파일). AIDiagnosisCard "AI 2~4주" 채널별 분리. GlobalAiActionCard "네이버·구글 리뷰" → "구글 리뷰" 분리. FAQSection "2~4주 점수 변화" 채널별 분리. pdf_generator Google AI 노출 보장 표현 제거. |
 | 2026-05-26 | v1.2 | P1-B·P2·P3 구현 완료 반영<br>**P1-B 커밋 확정**: commit 4ae6990 (ChatGPT·Gemini 노출 기준 정정 + 전사 UI 일관화)<br>**P2 인프라 완료**: commit 902327d — AI탭 셀렉터 6→15, body 폴백, AiTabPreviewCard 3-state, system_status DB v6.1<br>**P3 인프라 완료**: commit 902327d — DataForSEO 게이트, Gemini 그라운딩 게이트, KeywordRankCard Recharts 30일 트렌드<br>**§2.2 현황 수정**: `ai_tab_enabled='true'` (2026-05-20 이후 이미 활성 중) → env var 우선순위 문서화<br>**§9 재구성**: P1-B/P2/P3 인프라 완료 섹션 분리 + 잔여 장기 작업 정리 |
 
 ---

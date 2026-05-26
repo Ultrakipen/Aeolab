@@ -38,7 +38,7 @@ export default function ChatGPTCompareSection() {
           </h2>
           <p className="text-sm mt-2 break-keep" style={{ color: "#475569" }}>
             &ldquo;강남 카페 추천해줘&rdquo; — ChatGPT가 답할 때 내 가게가 언급되는지,
-            AEOlab은 이걸 수백 회 자동 측정합니다.
+            AEOlab은 이걸 50~100회 자동 측정합니다.
           </p>
         </div>
 

@@ -287,7 +287,7 @@ function NaverSearchBaseSection({ category }: { category?: string }) {
     { icon: "💬", label: "리뷰 10개+ (영수증 리뷰 포함)", effect: "플레이스탭 · AI 브리핑", priority: "high" },
     { icon: "📅", label: "14일 이내 소식 1개 이상 게시", effect: "플레이스탭 · AI탭", priority: "mid" },
     { icon: "📆", label: "네이버 예약 연동", effect: "플레이스탭 · AI탭", priority: "mid" },
-    { icon: "📝", label: "네이버 블로그 후기 5개 이상 확보", effect: "ChatGPT · Gemini (3~12개월)", priority: "mid" },
+    { icon: "📝", label: "네이버 블로그 후기 5개 이상 확보", effect: "AI탭 · AI 브리핑 (2~4주)", priority: "mid" },
   ]
 
   return (

@@ -66,7 +66,9 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
     businessName,
     category,
     region,
+    userGroup,
   } = props;
+  const isGlobalFocus = userGroup === "INACTIVE" || userGroup === "franchise";
 
   const candidates: Array<{ action: Action; score: number }> = [];
 
@@ -78,7 +80,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
       timeLabel: "10분",
       effectLabel: "즉시~1개월 (추정)",
       description:
-        "ChatGPT·Google AI는 구글 공식 데이터를 학습합니다. business.google.com 무료 등록이 글로벌 AI 노출의 첫 단계입니다.",
+        "Google 비즈니스 프로필은 ChatGPT가 사용하는 Bing 검색과 Gemini 그라운딩 모두에서 참조됩니다. business.google.com 무료 등록이 글로벌 AI 노출의 첫 단계입니다.",
       copyText: null,
       copyLabel: null,
       externalLink: "https://business.google.com",
@@ -88,6 +90,27 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
     },
     score: 10,
   });
+
+  // 액션 1-B: Bing Places 등록 (INACTIVE/franchise 우선 — ChatGPT가 Bing 실시간 검색 사용)
+  if (isGlobalFocus) {
+    candidates.push({
+      action: {
+        id: "bing_places",
+        title: "Bing Places 비즈니스 등록",
+        timeLabel: "10분",
+        effectLabel: "수일~2주 (Bing 인덱싱 후)",
+        description:
+          "ChatGPT는 로컬 검색 시 Bing을 실시간으로 검색합니다. Bing Places에 등록하면 ChatGPT가 가게 정보(이름·위치·업종·영업시간)를 직접 참조합니다.",
+        copyText: null,
+        copyLabel: null,
+        externalLink: "https://www.bing.com/places",
+        externalLinkLabel: "→ Bing Places 바로가기",
+        isSubscriptionCta: false,
+        subscriptionCtaLabel: null,
+      },
+      score: 9.5,
+    });
+  }
 
   // 액션 2: 구조화 콘텐츠 작성 (missingKeywords 기반 동적)
   const keyword = missingKeywords.length > 0 ? missingKeywords[0] : null;
@@ -150,7 +173,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
         timeLabel: "2분 (리뷰 요청 문자 발송)",
         effectLabel: "2~4개월 (추정)",
         description:
-          "ChatGPT는 외부 웹 콘텐츠(블로그 후기, 뉴스)를 학습합니다. 손님에게 네이버·구글 리뷰를 요청하면 AI가 가게를 신뢰하게 됩니다.",
+          "ChatGPT는 로컬 검색 시 Bing을 실시간으로 검색합니다. 구글 리뷰·외부 블로그 후기를 확보하면 Bing 인덱스에 포함되어 ChatGPT 노출 가능성이 높아집니다. 네이버 리뷰·블로그는 네이버 AI 브리핑·AI탭에 효과적입니다.",
         copyText: reviewText,
         copyLabel: "리뷰 요청 문자 복사하기",
         externalLink: null,
@@ -433,7 +456,9 @@ export default function GlobalAiActionCard({
 
       {/* 섹션 제목 */}
       <p className="text-sm md:text-base font-bold text-gray-800 mb-3">
-        이 점수를 높이는 방법 {actions.length}가지
+        {isGlobal
+          ? `ChatGPT·Gemini·Google AI 노출 개선 방법 ${actions.length}가지`
+          : `이 점수를 높이는 방법 ${actions.length}가지`}
       </p>
 
       {/* 액션 카드 목록 — 모바일 단열 / PC 3열 */}

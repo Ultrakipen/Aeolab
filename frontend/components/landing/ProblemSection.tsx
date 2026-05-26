@@ -28,7 +28,7 @@ export default function ProblemSection() {
           혹시 이런 상황인가요?
         </h2>
         <p className="text-sm text-center text-gray-500 mb-7 break-keep">
-          광고 문제가 아닙니다 — AI 추천 구조 문제입니다
+          광고 문제가 아닙니다 — 네이버 검색 순위와 AI 추천, 두 가지 모두 같은 곳에서 막히고 있습니다
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {problems.map(({ Icon, text, iconColor, bgColor }) => (
@@ -45,6 +45,9 @@ export default function ProblemSection() {
             </div>
           ))}
         </div>
+        <p className="text-center text-sm text-gray-600 mt-5 break-keep">
+          스마트플레이스·블로그 개선 하나로 <strong>네이버 검색 상위노출</strong>과 <strong>AI 브리핑·AI탭 노출</strong>을 함께 높일 수 있습니다
+        </p>
       </div>
     </section>
   );

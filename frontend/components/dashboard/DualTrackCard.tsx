@@ -541,7 +541,7 @@ export default function DualTrackCard({
         return (
           <div className="bg-green-50 border border-green-100 rounded-xl p-3 md:p-4">
             <p className="text-sm font-semibold text-green-800 mb-2">📝 네이버 검색 노출 개선 방법</p>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 mb-2">
               {remainingTips.map((tip, i) => (
                 <div key={i} className="flex items-start gap-1.5 text-sm text-green-700">
                   <span className="mt-0.5 shrink-0">✓</span>
@@ -549,6 +549,9 @@ export default function DualTrackCard({
                 </div>
               ))}
             </div>
+            <p className="text-xs text-green-600 border-t border-green-100 pt-2">
+              네이버 검색 상위노출이 올라갈수록 네이버 AI탭 노출 가능성도 함께 높아집니다
+            </p>
           </div>
         );
       })()}
@@ -558,7 +561,7 @@ export default function DualTrackCard({
         <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 md:p-4">
           <p className="text-sm font-semibold text-yellow-800 mb-1">🔔 네이버 AI 브리핑 확대 예정 업종</p>
           <p className="text-sm text-yellow-700 leading-relaxed">
-            지금은 블로그·스마트플레이스 관리로 네이버 검색 노출을 높이세요. AI 브리핑 업종 확대 시 자동으로 전환됩니다.
+            지금은 블로그·스마트플레이스 관리로 네이버 검색 노출을 높이세요. 이 개선이 AI 브리핑·AI탭 노출의 기반이 됩니다. AI 브리핑 업종 확대 시 자동으로 전환됩니다.
           </p>
         </div>
       )}

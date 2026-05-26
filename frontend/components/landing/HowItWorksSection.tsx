@@ -33,7 +33,7 @@ const steps = [
     iconColor: "text-emerald-500",
     title: "AI 가이드로 꾸준히 개선",
     description:
-      "7일마다 자동 재측정, AI 맞춤 개선 가이드로 지속 개선합니다. 개선 조치 후 보통 2~4주 안에 점수 변화가 나타납니다.",
+      "7일마다 자동 재측정, AI 맞춤 개선 가이드로 지속 개선합니다. 네이버 관련 점수는 2~4주, ChatGPT·Gemini는 수주~수개월 안에 변화가 나타납니다.",
     tags: ["7일 자동 재측정", "AI 개선 가이드"],
     emphasis: "월 9,900원 · 언제든 해지",
     emphasisClass: "text-emerald-600",

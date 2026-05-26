@@ -536,6 +536,13 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
+### 2026-05-26 — AI 노출 기준 교차검증 + 안내문 전사 수정 (13개 파일)
+> 인터넷 최신 문서 기반 교차검증 → 오류·과장 표현 전사 수정 + 2차 배포
+- **교차검증 확인**: GPT-4.1-mini 컷오프 2024.06 ✅ / ChatGPT 웹검색=Bing 기반 ✅ / 네이버 블로그→Bing "완전 차단" 과장 → "영향 제한적"으로 전사 수정 / beauty 업종 AI 브리핑 2026 연내 ACTIVE 전환 공식 예고(네이버 CEO 컨콜 2026.02) 신규 발견
+- **핵심 수정 3종**: ① "2~4주 점수 변화" → 네이버(2~4주)/ChatGPT·Gemini(수개월) 채널별 분리 ② 네이버 블로그 effect `"ChatGPT·Gemini"` → `"AI탭·AI 브리핑"` ③ `pdf_generator.py` "Google AI 노출 시작" 허위 보장 제거
+- **수정 파일 13개**: `AIDiagnosisCard.tsx`×2, `GlobalAiActionCard.tsx`, `FAQSection.tsx`×2, `HowItWorksSection.tsx`, `GuideClient.tsx`, `chatgpt-search/page.tsx`(title+desc), `blog-strategy/page.tsx`, `gap_analyzer.py`, `pdf_generator.py`, `ai_exposure_standard_and_naver_seo_v1.0.md`(v1.3)
+- **beauty 업종**: LIKELY 유지, `ai_exposure_standard_and_naver_seo_v1.0.md §1.2` "2026 연내 ACTIVE 공식 예고" 추가 — `briefing_category_expansion_monitor_job` 자동 감지 대기 중
+
 ### 2026-05-25 — 롱테일 자연어 질의 대응 P1 (`docs/naver_longtail_query_response_v1.0.md`)
 > 근거: 네이버 공식 롱테일 질의 전년比 2.5배(학술대회 2026-05-22). 유료 스캔이 짧은 키워드만 측정하던 갭 해소.
 - `keyword_taxonomy.build_ai_scan_queries(region, kw)` 단일 소스 신규 — 짧은 변형 3 + 긴 자연어 변형 2 = 5쿼리. 첫 요소는 짧은 쿼리(naver 회귀 방지)
@@ -684,4 +691,4 @@ ssh root@115.68.231.57 'pm2 logs aeolab-backend --lines 500 --nostream | grep "P
 
 ---
 
-*최종 업데이트: 2026-05-25 | 롱테일 자연어 질의 대응 P1 (build_ai_scan_queries 단일 소스 + 긴 질의 2개 추가, 비용·점수 불변) + 제로클릭 실측 표시 (AICitationCard, 금액 환산 금지)*
+*최종 업데이트: 2026-05-26 | AI 노출 기준 인터넷 교차검증 + 안내문 전사 수정 13개 파일 배포 (채널별 개선 기간 분리·Bing 표현 완화·beauty 업종 ACTIVE 예고 반영)*

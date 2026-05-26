@@ -127,6 +127,39 @@ export default function DashboardInsightZone({
         keywordCount={keywordCount}
       />
 
+      {/* 네이버 일반 검색 → AI 노출 연결 안내 (ACTIVE/LIKELY 업종) */}
+      {(briefingMeta?.eligibility === "active" || briefingMeta?.eligibility === "likely") && (
+        <div className="rounded-xl border border-green-200 bg-green-50 px-4 md:px-5 py-4">
+          <div className="flex items-start gap-2.5 mb-3">
+            <span className="text-xl shrink-0">🔍</span>
+            <div className="min-w-0">
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                네이버 검색 기반이 강할수록 AI 브리핑·AI탭 노출도 함께 올라갑니다
+              </p>
+              <p className="text-sm text-green-800 mt-0.5">
+                스마트플레이스·블로그 관리가 AI 노출의 토대입니다
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+            {[
+              { action: "소개글 500자+ · Q&A 3개", effect: "AI 브리핑·AI탭 ↑", icon: "✏️" },
+              { action: "리뷰 10개+ (영수증 포함)", effect: "플레이스탭·AI 브리핑 ↑", icon: "💬" },
+              { action: "카테고리별 사진 10장+", effect: "플레이스탭·AI탭 ↑", icon: "📸" },
+              { action: "블로그 후기 5건+ 확보", effect: "AI탭·VIEW탭 ↑", icon: "📝" },
+            ].map(({ action, effect, icon }) => (
+              <div key={action} className="flex items-center justify-between rounded-lg bg-white border border-green-100 px-3 py-2 gap-2">
+                <span className="text-sm text-gray-800">{icon} {action}</span>
+                <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">{effect}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500">
+            ※ 네이버 검색 순위는 기기·지역·로그인 상태에 따라 다를 수 있습니다.
+          </p>
+        </div>
+      )}
+
       {/* 네이버 카페·지식인 언급 현황 — NAVER_MULTICH_ENABLED=true 시 자동 표시 */}
       {(cafeResult || jisikResult) && (
         <NaverMultiChannelCard cafeResult={cafeResult ?? null} jisikResult={jisikResult ?? null} />
@@ -153,26 +186,54 @@ export default function DashboardInsightZone({
         googlePlaceRegistered={googlePlaceRegistered}
       />
 
-      {/* 5단계 가이드 + 매뉴얼 링크 */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 md:p-5">
-        <p className="text-sm md:text-base text-gray-800 mb-3 leading-relaxed break-keep">
-          <strong>네이버 AI 검색 노출 5단계 가이드</strong> — AI 브리핑·AI탭 대응 체크리스트로 직접 설정하세요 (15분).
-        </p>
-        <div className="flex flex-col md:flex-row gap-2">
-          <a
-            href={`/guide/ai-info-tab?biz_id=${bizId}`}
-            className="block w-full md:w-auto text-center px-4 py-2 bg-blue-600 text-white text-sm md:text-base rounded font-medium hover:bg-blue-700"
-          >
-            5단계 가이드 열기 →
-          </a>
-          <a
-            href="/how-it-works"
-            className="block w-full md:w-auto text-center px-4 py-2 border border-blue-600 text-blue-600 text-sm md:text-base rounded font-medium hover:bg-blue-100"
-          >
-            AEOlab 동작 원리 보기 (매뉴얼)
-          </a>
-        </div>
-      </div>
+      {/* 채널별 맞춤 가이드 링크 */}
+      {(() => {
+        const eligibility = briefingMeta?.eligibility;
+        const isInactive = eligibility === "inactive";
+        const isLikely = eligibility === "likely";
+        const guideHref = isInactive
+          ? "/guide/chatgpt-search"
+          : isLikely
+          ? `/guide/ai-tab?biz_id=${bizId}`
+          : `/guide/ai-info-tab?biz_id=${bizId}`;
+        const guideLabel = isInactive
+          ? "ChatGPT·Gemini 가이드 보기 →"
+          : isLikely
+          ? "AI탭 가이드 열기 →"
+          : "5단계 가이드 열기 →";
+        const guideTitle = isInactive
+          ? "ChatGPT·Gemini·Google AI 노출 가이드"
+          : "네이버 AI 검색 노출 5단계 가이드";
+        const guideDesc = isInactive
+          ? "글로벌 AI 채널 최적화 체크리스트로 ChatGPT·Gemini 노출을 높이세요."
+          : "AI 브리핑·AI탭 대응 체크리스트로 직접 설정하세요 (15분).";
+        const colorMain = isInactive ? "bg-purple-600 hover:bg-purple-700" : "bg-blue-600 hover:bg-blue-700";
+        const colorBorder = isInactive ? "border-purple-200 bg-purple-50" : "border-blue-200 bg-blue-50";
+        const colorOutline = isInactive
+          ? "border-purple-600 text-purple-600 hover:bg-purple-100"
+          : "border-blue-600 text-blue-600 hover:bg-blue-100";
+        return (
+          <div className={`rounded-lg border p-4 md:p-5 ${colorBorder}`}>
+            <p className="text-sm md:text-base text-gray-800 mb-3 leading-relaxed break-keep">
+              <strong>{guideTitle}</strong> — {guideDesc}
+            </p>
+            <div className="flex flex-col md:flex-row gap-2">
+              <a
+                href={guideHref}
+                className={`block w-full md:w-auto text-center px-4 py-2 text-white text-sm md:text-base rounded font-medium ${colorMain}`}
+              >
+                {guideLabel}
+              </a>
+              <a
+                href="/how-it-works"
+                className={`block w-full md:w-auto text-center px-4 py-2 border text-sm md:text-base rounded font-medium ${colorOutline}`}
+              >
+                AEOlab 동작 원리 보기 (매뉴얼)
+              </a>
+            </div>
+          </div>
+        );
+      })()}
     </>
   );
 }

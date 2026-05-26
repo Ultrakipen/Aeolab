@@ -313,7 +313,7 @@ export default function AIDiagnosisCard({
                         <strong>AI 브리핑에는 아직 안 나옵니다</strong>
                       </span>
                       <span className="block text-sm text-amber-600 mt-1">
-                        소개글 Q&A 추가와 리뷰를 늘리면 가능성이 높아집니다
+                        소개글·리뷰를 늘리면 네이버 검색 상위노출 가능성이 높아지고, 검색 순위가 오를수록 AI 브리핑·AI탭 노출 가능성도 함께 높아집니다
                       </span>
                       <a
                         href={`https://search.naver.com/search.naver?query=${encodeURIComponent(displayRegion + " " + displayKeyword + " 추천")}`}
@@ -334,7 +334,7 @@ export default function AIDiagnosisCard({
                     <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-semibold text-red-800">{label}</span>
-                      <span className="block text-sm text-red-600 mt-0.5">네이버 검색과 AI 브리핑 모두에서 내 가게가 나오지 않습니다</span>
+                      <span className="block text-sm text-red-600 mt-0.5">네이버 검색과 AI 브리핑 모두에서 내 가게가 나오지 않습니다 — 스마트플레이스 정보를 채울수록 네이버 검색 순위와 AI 노출이 함께 오릅니다</span>
                       <a
                         href={`https://search.naver.com/search.naver?query=${encodeURIComponent(displayRegion + " " + displayKeyword + " 추천")}`}
                         target="_blank"
@@ -420,7 +420,7 @@ export default function AIDiagnosisCard({
               ) : mentionedCount === 0 ? (
                 <span className="flex items-start gap-1.5">
                   <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                  <span>AI 브리핑 미노출 = AI로 가게 찾는 손님에게 지금 노출되지 않고 있습니다 — 지금 시작하면 2~4주 내 변화</span>
+                  <span>AI 브리핑 미노출 = AI로 가게 찾는 손님에게 지금 노출되지 않고 있습니다 — 지금 시작하면 2~4주 내 AI 브리핑 노출 변화 가능</span>
                 </span>
               ) : (
                 <span className="flex items-start gap-1.5">
@@ -559,7 +559,7 @@ export default function AIDiagnosisCard({
               </p>
               <p className="text-sm md:text-base text-amber-800 mt-1 leading-relaxed">
                 &ldquo;예약은 어떻게 하나요?&rdquo; 같은 질문 1개만 넣어도
-                AI가 2~4주 안에 인식하기 시작합니다.
+                네이버 AI탭·AI 브리핑 인식에 2~4주 소요됩니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 더 빠른 경로입니다.
               </p>
             </div>
           </div>

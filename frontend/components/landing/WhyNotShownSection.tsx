@@ -51,9 +51,21 @@ export default function WhyNotShownSection() {
             </div>
           ))}
         </div>
+        {/* 해결책 연결 박스 */}
+        <div className="mt-4 rounded-xl p-4 border border-green-200 bg-green-50">
+          <p className="text-sm font-bold text-green-800 mb-1.5 break-keep">그럼 무엇이 효과가 있을까요?</p>
+          <p className="text-sm text-green-700 leading-relaxed break-keep">
+            스마트플레이스 소개글·사진·리뷰·소식을 꾸준히 관리하면{" "}
+            <strong>네이버 검색 상위노출</strong>(플레이스 탭)이 먼저 오르고,
+            정보 완성도가 높아질수록{" "}
+            <strong>네이버 AI 브리핑·AI탭 노출</strong> 가능성도 함께 올라갑니다.
+            하나의 노력으로 두 가지 효과입니다.
+          </p>
+        </div>
+
         <div className="text-center mt-6">
           <p className="text-base text-gray-600 mb-3 break-keep">
-            내 가게의 네이버 AI 브리핑 노출 상태를 —{" "}
+            내 가게의 네이버 검색·AI 브리핑 노출 상태를 —{" "}
             <span className="font-semibold text-blue-600">지금 바로 확인하세요</span>
           </p>
           <a

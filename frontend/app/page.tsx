@@ -242,6 +242,10 @@ export default async function LandingPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-bold shrink-0">✓</span>
+                    스마트플레이스·블로그 개선 → 네이버 검색 노출도 함께 상승
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold shrink-0">✓</span>
                     광고 없이도 AI 추천 조건을 쌓아드립니다
                   </li>
                 </ul>
@@ -444,6 +448,16 @@ export default async function LandingPage() {
             </h3>
             <p className="text-sm text-gray-500 text-center mb-4">스마트플레이스 설정부터 시작하면, AI 채널이 자동으로 커버됩니다</p>
 
+            {/* SEO + AI 연결 메시지 */}
+            <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 mb-4 text-center">
+              <p className="text-sm font-semibold text-green-800 break-keep">
+                스마트플레이스·블로그를 잘 관리하면 <strong>네이버 검색 상위노출</strong>에도 효과가 있습니다
+              </p>
+              <p className="text-xs text-green-700 mt-1 break-keep">
+                스마트플레이스 → 네이버 플레이스 탭 순위 상승 / 블로그 → VIEW탭 상위 노출 → AI 브리핑·AI탭 노출 가능성도 함께 높아집니다
+              </p>
+            </div>
+
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl bg-white border border-blue-200 px-5 py-4">
               <p className="text-sm md:text-base font-bold text-gray-800 break-keep text-center sm:text-left">
                 AEOlab이 4가지를 자동 점검하고 개선 순서를 알려드립니다
@@ -560,6 +574,9 @@ export default async function LandingPage() {
           <div className="mt-8 rounded-2xl p-5 md:p-6 text-center" style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #4F46E5 100%)" }}>
             <p className="text-base md:text-lg font-black text-white mb-1 break-keep">
               스마트플레이스·리뷰·키워드·블로그를 함께 관리하면 AI 추천 가능성이 높아집니다
+            </p>
+            <p className="text-sm mb-2" style={{ color: "rgba(255,255,255,0.88)" }}>
+              스마트플레이스·블로그 개선은 네이버 검색 노출에도 효과가 있습니다
             </p>
             <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.75)" }}>
               AEOlab이 4가지 기준을 자동 점검하고 개선 순서를 알려드립니다 — 1분 무료 진단
