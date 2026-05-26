@@ -9,11 +9,33 @@ from typing import Optional
 
 _logger = logging.getLogger(__name__)
 
+# Google Search 그라운딩 게이트 (기본값 false — 현재 서비스 동작 불변)
+# 활성화 시: GEMINI_GROUNDING_ENABLED=true 환경변수 설정
+# 그라운딩 활성화 → 실시간 웹 검색 결과 반영 (학습 데이터 단독 사용에서 전환)
+# 비용 주의: 그라운딩 활성화 시 API 단가 상승 가능. 구독자 확보 후 검토 권장.
+_GROUNDING_ENABLED: bool = os.getenv("GEMINI_GROUNDING_ENABLED", "false").lower() == "true"
+
 
 class GeminiScanner:
     def __init__(self):
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = genai.GenerativeModel("gemini-2.0-flash-001")
+        _logger.info("[gemini] grounding=%s", _GROUNDING_ENABLED)
+        if _GROUNDING_ENABLED:
+            # google-generativeai 0.8.x 그라운딩 방식:
+            # Tool(google_search_retrieval=GoogleSearchRetrieval()) 사용
+            # google_search={} 방식은 0.8.x에서 지원되지 않음
+            from google.generativeai.types import Tool
+            import google.ai.generativelanguage as glm
+            _google_search_tool = Tool(
+                google_search_retrieval=glm.GoogleSearchRetrieval()
+            )
+            self.model = genai.GenerativeModel(
+                "gemini-2.0-flash-001",
+                tools=[_google_search_tool],
+            )
+            _logger.info("[gemini] Google Search 그라운딩 활성화 (gemini-2.0-flash-001)")
+        else:
+            self.model = genai.GenerativeModel("gemini-2.0-flash-001")
 
     async def sample_n(self, queries: "str | list[str]", target: str, n: int = 50) -> dict:
         """n회 샘플링으로 AI 노출 빈도 측정 (일반화 버전).

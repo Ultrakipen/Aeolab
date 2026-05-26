@@ -57,16 +57,48 @@ def _get_ai_tab_semaphore() -> asyncio.Semaphore:
     return PLAYWRIGHT_SEMAPHORE
 
 
-# TODO(P2, 6월 확대 후): 네이버 AI탭 실제 DOM 셀렉터 검증 및 업데이트
-# 현재는 베타 기간 기준 예상 셀렉터. 전체 확대 후 실측으로 교체 필요.
+# AI탭 DOM 셀렉터 목록 (P2 강화 2026-05-26)
+# 네이버 AI탭은 베타→전체 확대 과정에서 DOM 구조가 변동될 수 있음.
+# 순서대로 시도하며 첫 번째로 매칭된 셀렉터를 사용.
+# 마지막 fallback: page body 전체 텍스트에서 사업장명 부분매칭 (_name_in_text).
 _AI_TAB_SELECTORS = [
-    "div[data-tab='ai']",       # 예상 AI탭 컨테이너
-    "#ai_answer",                # AI 답변 영역 (네이버 AI브리핑 공유 가능)
-    ".ai_tab_answer",            # AI탭 전용 예상 클래스
-    "div[class*='AiTab']",      # camelCase 변형
-    "div[class*='ai_tab']",     # snake_case 변형
-    "[data-section='ai_tab']",  # data 속성 변형
+    # --- 네이버 AI탭 / AI Overview 직접 지시자 ---
+    "#ai_overview",                    # 통합검색 AI Overview 컨테이너 (가장 신뢰)
+    "div[id*='ai_overview']",          # id에 ai_overview 포함
+    "[data-cr-tab]",                   # AI탭 전환 크롬 렌더링 속성
+    "div[data-tab='ai']",              # 예상 AI탭 컨테이너
+    "[data-section='ai_tab']",         # data-section 변형
+    # --- class 기반 셀렉터 (네이버 BEM / camelCase) ---
+    "div[class*='answer_ai']",         # answer_ai* 패턴
+    "div[class*='AiAnswer']",          # AiAnswer* camelCase
+    "div[class*='AiTab']",             # AiTab* camelCase
+    "div[class*='ai_tab']",            # ai_tab* snake_case
+    "div[class*='wrap_ai']",           # wrap_ai* 래퍼
+    "section[class*='ai']",            # section 기반 AI 섹션
+    # --- id 기반 셀렉터 ---
+    "#ai_answer",                      # AI 답변 영역 (AI브리핑·AI탭 공유 가능)
+    "div[id*='ai']",                   # id에 'ai' 포함하는 div
+    # --- aria/role 기반 접근성 셀렉터 ---
+    "[aria-label*='AI']",              # aria-label에 AI 포함
+    ".ai_tab_answer",                  # AI탭 전용 예상 클래스 (베타 잔재)
 ]
+
+
+def _normalize(text: str) -> str:
+    """공백·특수문자를 제거하고 소문자로 변환한 문자열 반환."""
+    import re as _re
+    return _re.sub(r"[\s\W]", "", text).lower()
+
+
+def _name_in_text(business_name: str, text: str) -> bool:
+    """사업장명이 텍스트에 포함되는지 공백·특수문자 무시하고 부분매칭.
+
+    길이 2자 미만이면 False 반환 (단음절 오매칭 방지).
+    """
+    name_norm = _normalize(business_name)
+    if len(name_norm) < 2:
+        return False
+    return name_norm in _normalize(text)
 
 
 async def scan(query: str, business_name: str) -> Optional[dict]:
@@ -80,8 +112,9 @@ async def scan(query: str, business_name: str) -> Optional[dict]:
         NAVER_AI_TAB_ENABLED=false: None (비활성 상태)
         활성화 시: {
             "mentioned": bool,
-            "excerpt": str,       # 언급된 문장 (미언급 시 "")
-            "tab_available": bool # AI탭 섹션 DOM 존재 여부
+            "excerpt": str,          # 언급된 문장 (미언급 시 "")
+            "tab_available": bool,   # AI탭 섹션 DOM 존재 여부
+            "selector_matched": str | None  # 매칭된 셀렉터 (로깅용, fallback 시 "body_text")
         }
         오류 시: None
     """
@@ -132,53 +165,81 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
             await page.goto(url, timeout=25000)
             await page.wait_for_timeout(3000)
 
-            # TODO(P2, 6월 확대 후): AI탭 클릭 또는 직접 탭 URL 파라미터 확인
-            # 현재는 통합검색 결과 페이지에서 AI탭 섹션 직접 탐색
+            # AI탭 섹션 탐색: _AI_TAB_SELECTORS 순서대로 시도
             tab_available = False
             ai_text = ""
+            selector_matched: Optional[str] = None
 
             for selector in _AI_TAB_SELECTORS:
                 try:
                     el = await page.query_selector(selector)
                     if el:
-                        tab_available = True
-                        ai_text = (await el.inner_text()) or ""
-                        break
+                        text_candidate = (await el.inner_text()) or ""
+                        if text_candidate.strip():
+                            tab_available = True
+                            ai_text = text_candidate
+                            selector_matched = selector
+                            break
                 except Exception:
                     continue
 
+            # Fallback: 모든 셀렉터 실패 시 body 전체 텍스트에서 사업장명 부분매칭
+            # 네이버 DOM 구조 변경으로 셀렉터가 전부 미스 나도 AI 답변에 사업장명이
+            # 있으면 감지할 수 있도록 보강. tab_available은 False로 유지.
+            body_fallback_mentioned = False
             if not tab_available:
-                _logger.debug(
-                    f"[naver_ai_tab] AI탭 섹션 미발견 (DOM 미존재 또는 셀렉터 불일치): "
-                    f"query={query!r}"
-                )
-                return {
-                    "mentioned": False,
-                    "excerpt": "",
-                    "tab_available": False,
-                }
+                try:
+                    body_text = await page.inner_text("body")
+                    if body_text and _name_in_text(business_name, body_text):
+                        body_fallback_mentioned = True
+                        selector_matched = "body_text"
+                        # body_text에서 사업장명 포함 라인 발췌
+                        for line in body_text.split("\n"):
+                            if _name_in_text(business_name, line):
+                                ai_text = line.strip()[:200]
+                                break
+                except Exception as e:
+                    _logger.debug(f"[naver_ai_tab] body fallback 실패: {e}")
 
-            # 사업장명 언급 여부 판단
-            normalized_name = _normalize(business_name)
-            normalized_text = _normalize(ai_text)
-            mentioned = normalized_name in normalized_text and len(normalized_name) >= 2
+                if not body_fallback_mentioned:
+                    _logger.debug(
+                        f"[naver_ai_tab] AI탭 섹션 미발견 (DOM 미존재 또는 셀렉터 불일치): "
+                        f"query={query!r}"
+                    )
+                    return {
+                        "mentioned": False,
+                        "excerpt": "",
+                        "tab_available": False,
+                        "selector_matched": None,
+                    }
 
-            # 언급된 문장 추출 (언급 시 해당 문장 반환)
-            excerpt = ""
-            if mentioned:
-                for line in ai_text.split("\n"):
-                    if normalized_name in _normalize(line):
-                        excerpt = line.strip()[:200]
-                        break
+            # 사업장명 언급 여부 판단 (셀렉터 매칭 or body fallback)
+            if body_fallback_mentioned:
+                mentioned = True
+                excerpt = ai_text  # 이미 발췌 완료
+            else:
+                normalized_name = _normalize(business_name)
+                normalized_text = _normalize(ai_text)
+                mentioned = normalized_name in normalized_text and len(normalized_name) >= 2
+
+                # 언급된 문장 추출 (언급 시 해당 문장 반환)
+                excerpt = ""
+                if mentioned:
+                    for line in ai_text.split("\n"):
+                        if normalized_name in _normalize(line):
+                            excerpt = line.strip()[:200]
+                            break
 
             _logger.info(
                 f"[naver_ai_tab] 스캔 완료: query={query!r}, "
-                f"mentioned={mentioned}, tab_available={tab_available}"
+                f"mentioned={mentioned}, tab_available={tab_available}, "
+                f"selector_matched={selector_matched!r}"
             )
             return {
                 "mentioned": mentioned,
                 "excerpt": excerpt,
                 "tab_available": tab_available,
+                "selector_matched": selector_matched,
             }
 
         finally:

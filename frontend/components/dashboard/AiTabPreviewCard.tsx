@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Lock, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
+import { Lock, Sparkles, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import Link from "next/link";
 import { getSafeSession } from "@/lib/supabase/client";
 import { authFetch } from "@/lib/api";
+
+// 환경변수 게이트: false이면 "측정 준비 중" UI 표시
+const NAVER_AI_TAB_ENABLED = process.env.NEXT_PUBLIC_NAVER_AI_TAB_ENABLED !== "false";
 
 // ai_tab_signal 값 → 사용자 친화적 설명
 const SIGNAL_USER_LABELS: Record<string, string> = {
@@ -196,6 +199,10 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
   // INACTIVE 업종 응답: AI탭은 모든 업종 가능(beta)이므로 숨기지 않고
   // 카드 내 안내 톤만 분기하여 표시 — unavailable 플래그는 배너 전용으로만 사용
 
+  // measured/estimated 배지 계산 (naver_result.in_ai_tab 기반)
+  const isMeasured = data ? typeof data.confirmed_in_ai_tab === "boolean" || data.data_source === "measured" : false;
+  const isVisible = data?.confirmed_in_ai_tab === true;
+
   return (
     <section
       aria-labelledby="ai-tab-preview-title"
@@ -212,13 +219,25 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             >
               네이버 AI탭 답변 미리보기
             </h2>
+            {/* 데이터 소스 배지: measured / estimated */}
+            {!isFree && !loading && data && (
+              isMeasured ? (
+                <span className="inline-flex items-center rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-sm font-semibold border border-emerald-200">
+                  실측
+                </span>
+              ) : (
+                <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-600 px-2 py-0.5 text-sm font-medium border border-gray-200">
+                  추정
+                </span>
+              )
+            )}
             {data?.eligibility === "likely" ? (
               <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-sm font-semibold">
                 AI 브리핑 확대 예정
               </span>
             ) : (
               <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-sm font-semibold">
-                Beta
+                베타 · 전 업종 가능
               </span>
             )}
           </div>
@@ -233,12 +252,42 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
           고객이 네이버에서 검색할 때 <strong>AI탭에 내 가게가 어떻게 소개되는지</strong> 미리 볼 수 있습니다.
           네이버 AI 브리핑과는 별개로, <strong>모든 업종</strong>에서 노출 가능합니다.
         </p>
+        {/* 베타 상태 안내 문구 */}
+        <p className="mt-1 text-sm text-blue-600 font-medium break-keep">
+          현재 네이버플러스 구독자 대상 베타 서비스 중 · 6월 전체 확대 예정
+        </p>
       </div>
 
       {/* 본문 */}
       <div className="p-4 md:p-6">
+        {/* 환경변수 게이트: NAVER_AI_TAB_ENABLED=false 시 측정 준비 중 UI */}
+        {!NAVER_AI_TAB_ENABLED && (
+          <div className="flex flex-col items-center gap-4 py-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center">
+              <Clock className="w-6 h-6 text-orange-400" />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-gray-800 mb-1">
+                AI탭 측정 준비 중
+              </p>
+              <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed break-keep">
+                네이버 AI탭이 현재 베타 서비스 중입니다. 6월 전체 확대 후 실측 측정이 시작됩니다.
+              </p>
+              <p className="mt-2 text-sm text-orange-600 font-medium break-keep">
+                현재 네이버플러스 구독자 대상 베타 서비스 중 · 6월 전체 확대 예정
+              </p>
+            </div>
+            <Link
+              href="/guide/ai-info-tab"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold px-5 py-2.5 transition-colors border border-blue-200"
+            >
+              AI탭 최적화 가이드 미리 보기 →
+            </Link>
+          </div>
+        )}
+
         {/* 스켈레톤 로딩 */}
-        {loading && (
+        {NAVER_AI_TAB_ENABLED && loading && (
           <div className="space-y-3 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-3/4" />
             <div className="h-4 bg-gray-200 rounded w-1/2" />
@@ -251,7 +300,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         )}
 
         {/* 에러 상태 */}
-        {!loading && error && !forbidden && (
+        {NAVER_AI_TAB_ENABLED && !loading && error && !forbidden && (
           <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
             <AlertCircle className="w-4 h-4 text-gray-400 shrink-0" />
             잠시 후 다시 시도해주세요.
@@ -259,7 +308,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         )}
 
         {/* Free 플랜: 잠금 오버레이 */}
-        {!loading && (forbidden || isFree) && (
+        {NAVER_AI_TAB_ENABLED && !loading && (forbidden || isFree) && (
           <div className="flex flex-col items-center gap-4 py-6 text-center">
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
               <Lock className="w-6 h-6 text-gray-400" />
@@ -284,7 +333,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         )}
 
         {/* INACTIVE 업종: 카드 숨김 대신 안내 배너 표시 */}
-        {!loading && unavailable && (
+        {NAVER_AI_TAB_ENABLED && !loading && unavailable && (
           <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 text-sm text-slate-700">
             <p className="font-semibold text-slate-800 mb-1">AI탭은 모든 업종에서 노출 가능합니다 (Beta)</p>
             <p className="leading-relaxed break-keep">
@@ -294,8 +343,57 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
           </div>
         )}
 
+        {/* 정상 데이터 — 측정 상태 분기 배너 */}
+        {NAVER_AI_TAB_ENABLED && !loading && !error && !forbidden && !isFree && data && (
+          <div className="mb-4">
+            {isMeasured && isVisible && (
+              <div className="flex items-start gap-2.5 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-emerald-800">AI탭 노출 확인됨</p>
+                  <p className="text-sm text-emerald-700 mt-0.5 leading-snug break-keep">
+                    마지막 스캔에서 네이버 AI탭에 내 사업장이 실제로 노출된 것을 확인했습니다.
+                  </p>
+                  <span className="inline-flex items-center mt-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-sm font-semibold">
+                    실측 확인
+                  </span>
+                </div>
+              </div>
+            )}
+            {isMeasured && !isVisible && (
+              <div className="flex items-start gap-2.5 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
+                <AlertCircle className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-gray-700">AI탭 미노출</p>
+                  <p className="text-sm text-gray-600 mt-0.5 leading-snug break-keep">
+                    마지막 스캔에서 AI탭 노출이 확인되지 않았습니다. 아래 체크리스트를 완료하면 노출 가능성이 높아집니다.
+                  </p>
+                  <span className="inline-flex items-center mt-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200 px-2 py-0.5 text-sm font-medium">
+                    실측 기반
+                  </span>
+                </div>
+              </div>
+            )}
+            {!isMeasured && (
+              <div className="flex items-start gap-2.5 rounded-xl bg-orange-50 border border-orange-200 px-4 py-3">
+                <Clock className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-orange-800">측정 대기 중</p>
+                  <p className="text-sm text-orange-700 mt-0.5 leading-snug break-keep">
+                    AI탭 실측 데이터가 아직 없습니다. 아래는 등록 정보 기반 추정 시뮬레이션입니다.
+                    6월 전체 확대 후 실측 측정이 시작됩니다.
+                  </p>
+                  <span className="inline-flex items-center mt-1 rounded-full bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 text-sm font-medium">
+                    추정 예시
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* 정상 데이터 */}
-        {!loading && !error && !forbidden && !isFree && data && (
+        {NAVER_AI_TAB_ENABLED && !loading && !error && !forbidden && !isFree && data && (
           <>
             {/* likely 업종 안내 배너 — flex-row 밖에 배치해야 레이아웃 붕괴 없음 */}
             {data.eligibility === "likely" && (
@@ -348,6 +446,10 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               {/* 면책 문구 */}
               <p className="mt-2 text-sm text-gray-500 leading-snug">
                 {data.disclaimer}
+              </p>
+              {/* AI탭 베타 면책 문구 */}
+              <p className="mt-1 text-sm text-gray-400 leading-snug break-keep">
+                네이버 AI탭은 현재 베타 서비스 중이며, 전체 확대 시 기준이 변경될 수 있습니다.
               </p>
               {/* 실측 정보 — has_reservation / photo_count */}
               {(data.has_reservation !== null && data.has_reservation !== undefined) || data.photo_count !== null && data.photo_count !== undefined ? (

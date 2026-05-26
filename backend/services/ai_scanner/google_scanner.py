@@ -1,8 +1,17 @@
 from playwright.async_api import async_playwright
 import logging
 import re
+import os
+import aiohttp
+import base64
 
 logger = logging.getLogger("aeolab")
+
+GOOGLE_SCANNER_BACKEND = os.getenv("GOOGLE_SCANNER_BACKEND", "playwright")
+DATAFORSEO_LOGIN = os.getenv("DATAFORSEO_LOGIN", "")
+DATAFORSEO_PASSWORD = os.getenv("DATAFORSEO_PASSWORD", "")
+
+logger.info("[google_scanner] backend=%s", GOOGLE_SCANNER_BACKEND)
 
 AI_OVERVIEW_SELECTORS = [
     "[data-attrid='wa:/description']",
@@ -13,10 +22,96 @@ AI_OVERVIEW_SELECTORS = [
 ]
 
 
+def _name_in_text(business_name: str, text: str) -> bool:
+    """공백·특수문자 제거 후 사업장명 부분매칭."""
+    if not business_name or not text:
+        return False
+    normalized_name = re.sub(r"[\s\W]", "", business_name).lower()
+    normalized_text = re.sub(r"[\s\W]", "", text).lower()
+    return normalized_name in normalized_text
+
+
+async def _scan_via_dataforseo(query: str, business_name: str) -> dict:
+    """DataForSEO SERP API로 Google AI Overview 확인 ($0.002/건)."""
+    if not DATAFORSEO_LOGIN or not DATAFORSEO_PASSWORD:
+        logger.warning("[google_scanner] dataforseo credentials missing — fallback to 0점")
+        return {
+            "platform": "google", "mentioned": False, "in_ai_overview": False,
+            "rank": None, "excerpt": "", "captcha_detected": False,
+            "error": "dataforseo_credentials_missing",
+        }
+
+    creds = base64.b64encode(f"{DATAFORSEO_LOGIN}:{DATAFORSEO_PASSWORD}".encode()).decode()
+    url = "https://api.dataforseo.com/v3/serp/google/organic/live/advanced"
+    payload = [{
+        "keyword": query,
+        "location_code": 2410,   # 대한민국
+        "language_code": "ko",
+        "device": "desktop",
+        "os": "windows",
+        "depth": 10,
+    }]
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                url,
+                headers={
+                    "Authorization": f"Basic {creds}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp:
+                data = await resp.json()
+
+        # AI Overview 항목 파싱
+        items = (data.get("tasks") or [{}])[0].get("result") or []
+        in_ai_overview = False
+        excerpt = ""
+        rank = None
+        mentioned = False
+
+        for result in items:
+            for item in (result.get("items") or []):
+                item_type = item.get("type", "")
+                # AI Overview / featured snippet 타입 확인
+                if item_type in ("featured_snippet", "answer_box", "knowledge_graph"):
+                    text = item.get("description") or item.get("text") or ""
+                    if _name_in_text(business_name, text):
+                        in_ai_overview = True
+                        mentioned = True
+                        excerpt = text[:200]
+                        break
+                # 일반 유기 결과에서 순위 파악
+                if item_type == "organic" and rank is None:
+                    item_title = item.get("title") or ""
+                    if _name_in_text(business_name, item_title):
+                        mentioned = True
+                        rank = item.get("rank_absolute")
+
+        return {
+            "platform": "google",
+            "mentioned": mentioned,
+            "in_ai_overview": in_ai_overview,
+            "rank": rank,
+            "excerpt": excerpt,
+            "captcha_detected": False,
+        }
+    except Exception as e:
+        logger.warning(f"[google_scanner] dataforseo error: {e}")
+        return {
+            "platform": "google", "mentioned": False, "in_ai_overview": False,
+            "rank": None, "excerpt": "", "captcha_detected": False, "error": str(e),
+        }
+
+
 class GoogleAIOverviewScanner:
     """Google AI Overview (SGE)에서 사업장 노출 여부 파싱"""
 
     async def check_mention(self, query: str, target: str) -> dict:
+        if GOOGLE_SCANNER_BACKEND == "dataforseo":
+            return await _scan_via_dataforseo(query, target)
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(
                 headless=True,

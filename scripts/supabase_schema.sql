@@ -2117,3 +2117,39 @@ COMMENT ON COLUMN businesses.checklist_overrides IS
 
 CREATE INDEX IF NOT EXISTS idx_businesses_checklist_overrides
   ON businesses USING GIN (checklist_overrides);
+
+
+-- ============================================================
+-- v6.1 — 시스템 런타임 기능 플래그 (2026-05-26)
+-- 목적: pm2 restart 없이 실시간 기능 활성화/비활성화
+-- 용도: P2 AI탭 스캐너, P3 Gemini Grounding, P3 Google DataForSEO 등
+-- 사용: backend 환경변수 대체 (시스템 다운타임 제로)
+-- 실행 시점: 기능 플래그 인프라 도입 시
+-- 미실행 시: 모든 기능은 환경변수로만 제어 (기존 방식 유지)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS system_status (
+  key        TEXT PRIMARY KEY,
+  value      TEXT NOT NULL DEFAULT 'false',
+  description TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_by TEXT DEFAULT 'system'
+);
+
+COMMENT ON TABLE system_status IS
+  'v6.1: 런타임 기능 플래그. key는 코드 참조 값과 완전 일치해야 함.';
+
+-- 초기 기능 플래그 (충돌 무시)
+-- 키 이름은 각 스캐너 코드의 DB 조회 key와 반드시 일치해야 함:
+--   naver_ai_tab_scanner.py:44 → "ai_tab_enabled"
+--   gemini_scanner.py → env var GEMINI_GROUNDING_ENABLED (DB 조회 없음, 참조용)
+--   google_scanner.py → env var GOOGLE_SCANNER_BACKEND (DB 조회 없음, 참조용)
+INSERT INTO system_status (key, value, description, updated_by) VALUES
+  ('ai_tab_enabled',            'false', 'P2: 네이버 AI탭 스캔 활성화 (naver_ai_tab_scanner.py:44)', 'init'),
+  ('gemini_grounding_enabled',  'false', 'P3: Gemini Grounding 참조용 (env GEMINI_GROUNDING_ENABLED)', 'init'),
+  ('google_dataforseo_enabled', 'false', 'P3: Google DataForSEO 참조용 (env GOOGLE_SCANNER_BACKEND)', 'init')
+ON CONFLICT (key) DO NOTHING;
+
+-- RLS: 서비스 롤은 전체 접근, anon은 읽기 전용 (관리자 UI에서 수정)
+ALTER TABLE system_status ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_all" ON system_status
+  FOR ALL USING (true) WITH CHECK (true);

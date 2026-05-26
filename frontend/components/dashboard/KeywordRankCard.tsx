@@ -1,9 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Loader2, RefreshCw, Download } from "lucide-react";
+import { Search, Loader2, RefreshCw, Download, ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
 import { getSafeSession } from "@/lib/supabase/client";
 import { trackKeywordMeasureStart, trackKeywordMeasureComplete } from "@/lib/analytics";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
@@ -14,6 +23,27 @@ type KeywordRankData = {
   measured_at?: string;
   search_query?: string;
   error?: string;
+};
+
+// keyword-trend 엔드포인트 응답 타입
+type KeywordTrendItem = {
+  keyword: string;
+  trend: { period: string; ratio: number }[];
+  monthly_volume?: number | null;
+};
+
+type KeywordTrendResponse = {
+  keywords: KeywordTrendItem[];
+  category: string;
+  region: string;
+  period: string;
+  available: boolean;
+};
+
+// 차트 데이터: period별로 키워드들의 ratio를 병합
+type ChartDataPoint = {
+  period: string;
+  [keyword: string]: string | number;
 };
 
 type KeywordRanksMap = Record<string, KeywordRankData>;
@@ -56,6 +86,31 @@ function isProPlan(plan?: string): boolean {
   return PRO_PLANS.includes((plan ?? "").toLowerCase());
 }
 
+// Recharts 커스텀 Tooltip
+const TrendTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: { name: string; value: number; color: string }[];
+  label?: string;
+}) => {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg shadow-md px-3 py-2 text-sm">
+      <p className="font-semibold text-gray-700 mb-1">{label}</p>
+      {payload.map((entry) => (
+        <p key={entry.name} style={{ color: entry.color }} className="text-sm">
+          {entry.name}: {entry.value.toFixed(1)}
+        </p>
+      ))}
+    </div>
+  );
+};
+
+const LINE_COLORS = ["#2563eb", "#16a34a", "#d97706", "#dc2626", "#7c3aed"];
+
 export default function KeywordRankCard({
   bizId,
   keywords,
@@ -85,8 +140,61 @@ export default function KeywordRankCard({
     return null;
   });
 
+  // 30일 추이 그래프 상태
+  const [trendOpen, setTrendOpen] = useState(false);
+  const [trendData, setTrendData] = useState<KeywordTrendResponse | null>(null);
+  const [trendLoading, setTrendLoading] = useState(false);
+  const [trendError, setTrendError] = useState(false);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [chartKeywords, setChartKeywords] = useState<string[]>([]);
+
   const hasData = Object.keys(ranks).length > 0;
   const canDownload = isProPlan(plan);
+
+  const fetchTrend = async () => {
+    if (trendData || trendLoading) return;
+    setTrendLoading(true);
+    setTrendError(false);
+    try {
+      const session = await getSafeSession();
+      const token = session?.access_token;
+      const res = await fetch(`${BACKEND}/api/report/keyword-trend/${bizId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json: KeywordTrendResponse = await res.json();
+      setTrendData(json);
+
+      // 차트 데이터 변환: period 기준으로 키워드별 ratio 병합
+      if (json.available && json.keywords && json.keywords.length > 0) {
+        const allPeriods = Array.from(
+          new Set(json.keywords.flatMap((kw) => kw.trend.map((t) => t.period)))
+        ).sort();
+        const merged: ChartDataPoint[] = allPeriods.map((period) => {
+          const point: ChartDataPoint = { period: period.slice(0, 7) }; // YYYY-MM
+          for (const kw of json.keywords) {
+            const t = kw.trend.find((x) => x.period === period);
+            point[kw.keyword] = t ? Math.round(t.ratio * 10) / 10 : 0;
+          }
+          return point;
+        });
+        setChartData(merged);
+        setChartKeywords(json.keywords.map((kw) => kw.keyword));
+      }
+    } catch {
+      setTrendError(true);
+    } finally {
+      setTrendLoading(false);
+    }
+  };
+
+  const handleTrendToggle = () => {
+    const next = !trendOpen;
+    setTrendOpen(next);
+    if (next && !trendData && !trendLoading) {
+      fetchTrend();
+    }
+  };
 
   const downloadCsv = async () => {
     if (!canDownload) {
@@ -394,6 +502,145 @@ export default function KeywordRankCard({
           </p>
         </div>
       )}
+
+      {/* 30일 키워드 검색량 추이 — 접기/펼치기 */}
+      <div className="mt-3 pt-3 border-t border-gray-100">
+        <button
+          type="button"
+          onClick={handleTrendToggle}
+          className="w-full flex items-center justify-between gap-2 text-left px-1 py-1 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-blue-500 shrink-0" />
+            <span className="text-sm font-semibold text-gray-800">30일 검색량 추이</span>
+            <span className="text-sm text-gray-400 hidden sm:inline">네이버 DataLab 기준</span>
+          </div>
+          {trendOpen ? (
+            <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
+          )}
+        </button>
+
+        {trendOpen && (
+          <div className="mt-2">
+            {/* 로딩 */}
+            {trendLoading && (
+              <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                추이 데이터 불러오는 중…
+              </div>
+            )}
+
+            {/* 에러 */}
+            {!trendLoading && trendError && (
+              <p className="text-sm text-amber-700 py-3 px-2 bg-amber-50 rounded-lg">
+                추이 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+              </p>
+            )}
+
+            {/* 데이터 없음 */}
+            {!trendLoading && !trendError && trendData && !trendData.available && (
+              <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center">
+                <p className="text-sm text-gray-700 font-medium">30일 추이 데이터 수집 중</p>
+                <p className="text-sm text-gray-500 mt-1 break-keep">
+                  네이버 DataLab 연동 후 키워드 데이터가 누적되면 추이 그래프가 표시됩니다.
+                </p>
+              </div>
+            )}
+
+            {/* 그래프 */}
+            {!trendLoading && !trendError && trendData?.available && chartData.length > 0 && (
+              <div>
+                {/* PC 그래프 */}
+                <div className="hidden md:block">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <LineChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                      <XAxis
+                        dataKey="period"
+                        tick={{ fontSize: 11, fill: "#6b7280" }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: "#6b7280" }}
+                        tickLine={false}
+                        axisLine={false}
+                        width={40}
+                      />
+                      <Tooltip content={<TrendTooltip />} />
+                      <Legend
+                        wrapperStyle={{ fontSize: "12px", paddingTop: "6px" }}
+                      />
+                      {chartKeywords.map((kw, idx) => (
+                        <Line
+                          key={kw}
+                          type="monotone"
+                          dataKey={kw}
+                          stroke={LINE_COLORS[idx % LINE_COLORS.length]}
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 4 }}
+                        />
+                      ))}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* 모바일 그래프 */}
+                <div className="md:hidden">
+                  <ResponsiveContainer width="100%" height={120}>
+                    <LineChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+                      <XAxis
+                        dataKey="period"
+                        tick={{ fontSize: 10, fill: "#6b7280" }}
+                        tickLine={false}
+                        axisLine={false}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: "#6b7280" }}
+                        tickLine={false}
+                        axisLine={false}
+                        width={36}
+                      />
+                      <Tooltip content={<TrendTooltip />} />
+                      {chartKeywords.map((kw, idx) => (
+                        <Line
+                          key={kw}
+                          type="monotone"
+                          dataKey={kw}
+                          stroke={LINE_COLORS[idx % LINE_COLORS.length]}
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 3 }}
+                        />
+                      ))}
+                    </LineChart>
+                  </ResponsiveContainer>
+                  {/* 모바일: 범례 별도 표시 */}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {chartKeywords.map((kw, idx) => (
+                      <span key={kw} className="flex items-center gap-1 text-sm text-gray-600">
+                        <span
+                          className="inline-block w-3 h-0.5 rounded"
+                          style={{ backgroundColor: LINE_COLORS[idx % LINE_COLORS.length] }}
+                        />
+                        {kw}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 면책 문구 */}
+                <p className="mt-2 text-sm text-gray-400 break-keep leading-snug">
+                  검색 순위는 기기·지역·로그인 상태에 따라 다를 수 있습니다. 위 그래프는 네이버 DataLab 기준 상대 검색량 추이입니다.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
