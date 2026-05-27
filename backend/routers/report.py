@@ -1221,7 +1221,7 @@ async def get_gap_card(biz_id: str, user=Depends(get_current_user)):
     breakdown = scan.get("score_breakdown") or {}
     HINT_MESSAGES = {
         "keyword_gap_score":        "리뷰·소개글에 업종 키워드를 추가하세요",
-        "review_quality":           "리뷰를 늘리면 AI 노출이 올라갑니다",
+        "review_quality":           "리뷰가 쌓일수록 AI 노출 가능성이 높아집니다",
         "smart_place_completeness": "스마트플레이스 소개글·소식을 채우세요",
         "naver_exposure_confirmed":  "네이버 AI 브리핑에 아직 노출되지 않았습니다",
         "multi_ai_exposure":        "구글 비즈니스 프로필을 등록해보세요",
@@ -4840,8 +4840,8 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
     _review_desc_suffix = "20개 이상이면 네이버 노출이 유리해집니다"
     if _comp_avg_score is not None:
         _review_desc_suffix = (
-            f"지역 경쟁사 평균 점수 {_comp_avg_score}점 기준 — "
-            "리뷰를 늘리면 AI 노출 점수가 빠르게 올라갑니다"
+            "지역 경쟁사보다 리뷰가 적습니다 — "
+            "꾸준히 쌓을수록 네이버 AI 노출 가능성이 높아집니다"
         )
 
     # 6. 체크리스트 항목 생성
