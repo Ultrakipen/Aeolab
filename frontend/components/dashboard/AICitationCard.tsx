@@ -111,7 +111,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
         {isNaverInactive && (
           <div className="mb-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             <p className="text-sm font-semibold text-amber-800">이 업종은 네이버 AI 브리핑 대상이 아닙니다</p>
-            <p className="text-sm text-amber-700 mt-0.5">네이버 AI탭(음식점·쇼핑 업종 우선 베타) · ChatGPT · Gemini 노출 현황을 확인합니다.</p>
+            <p className="text-sm text-amber-700 mt-0.5">네이버 AI탭(업종 공식 제한 없음, 2026-04-27 베타) · ChatGPT · Gemini 노출 현황을 확인합니다.</p>
           </div>
         )}
         <p className="text-sm text-gray-500 leading-relaxed">
@@ -159,7 +159,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
                 <span className={`text-sm font-semibold px-2 py-0.5 rounded-full ${colorCls}`}>
                   {c.platform_label || c.platform}
                 </span>
-                {sent && (
+                {sent && c.excerpt && c.excerpt.length > 0 && !c.excerpt.includes('(구체적 인용문 없음)') && (
                   <span className={`text-sm px-2 py-0.5 rounded-full ${sent.cls}`}>
                     {sent.label}
                   </span>
@@ -188,6 +188,20 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
                     </p>
                   </div>
                 )
+              ) : c.platform === 'google' ? (
+                <p className="text-sm text-gray-400 italic">
+                  Google AI Overview는 현재 자동 측정이 보류 중입니다.
+                </p>
+              ) : c.platform === 'chatgpt' ? (
+                <p className="text-sm text-gray-400 italic">
+                  ChatGPT 학습 데이터에 아직 포함되지 않았습니다.
+                  한국 소상공인 평균 노출률 1~3% — 현재 수준이 정상입니다.
+                </p>
+              ) : c.platform === 'gemini' ? (
+                <p className="text-sm text-gray-400 italic">
+                  이번 스캔에서 Gemini가 가게를 언급하지 않았습니다.
+                  구글 비즈니스 프로필 등록 시 개선 가능합니다.
+                </p>
               ) : (
                 <p className="text-sm text-gray-400 italic">
                   이번 스캔에서 인용 문장이 감지되지 않았습니다.
@@ -235,11 +249,16 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
       {/* 인용 후 행동 유도 */}
       <div className="mt-4 pt-4 border-t border-gray-100">
         {mentionedCount === 0 ? (
-          <div className="bg-amber-50 rounded-lg p-3">
+          <div className="bg-amber-50 rounded-lg p-3 space-y-2">
             <p className="text-sm font-semibold text-amber-800">AI가 아직 내 가게를 언급하지 않고 있습니다</p>
-            <p className="text-sm text-amber-700 mt-1">소개글 Q&A 추가와 키워드 보강이 가장 효과적입니다.</p>
-            <Link href="/guide" className="mt-2 inline-flex items-center text-sm font-semibold text-amber-800 hover:underline">
-              지금 소개글 편집하러 가기 →
+            <p className="text-sm text-amber-700">
+              <strong>Gemini 개선</strong> — 구글 비즈니스 프로필 등록 후 수주~수개월 내 반영됩니다.
+            </p>
+            <p className="text-sm text-amber-700">
+              <strong>ChatGPT</strong> — 학습 데이터(컷오프 2024.06) 기반으로 단기 개선이 어렵습니다. 블로그·미디어 언급이 장기적으로 누적되어야 반영됩니다.
+            </p>
+            <Link href="/guide" className="mt-1 inline-flex items-center text-sm font-semibold text-amber-800 hover:underline">
+              Gemini 노출 설정 가이드 →
             </Link>
           </div>
         ) : (

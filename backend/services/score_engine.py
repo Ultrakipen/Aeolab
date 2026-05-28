@@ -747,11 +747,20 @@ def calc_schema_seo(scan_result: dict, biz: dict) -> float:
 
 
 def calc_online_mentions(naver_data: dict) -> float:
-    """온라인 언급 점수 (0~100) — naver_visibility.blog_mention_score() 활용"""
+    """온라인 언급 점수 (0~100) — naver_visibility.blog_mention_score() 활용
+
+    blog_count 값 구분:
+      - None  : 측정 불가(스캔 미실행·API 오류 등) → fallback 5.0 반환
+      - 0     : 실측 0건(블로그 언급 없음) → blog_mention_score(0) = 5.0 반환
+                (None과 같은 점수지만 의미가 다름: 실측 결과로 처리)
+      - 1 이상 : 실측 건수 → blog_mention_score()로 0~100점 매핑
+    """
     blog_count = naver_data.get("blog_mentions")
     if blog_count is not None:
+        # 실측값 사용 (0건 포함) — blog_mention_score(0)=5.0, 1~5건=20.0, ...
         return blog_mention_score(blog_count)
-    return 5.0  # 데이터 없을 때 최소값
+    # None = 측정 불가 fallback (스캔 미실행 또는 API 오류)
+    return 5.0
 
 
 def _is_google_captcha(scan_result: dict) -> bool:

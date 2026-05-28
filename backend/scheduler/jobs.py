@@ -266,6 +266,16 @@ def start_scheduler():
         id="briefing_expansion_monitor", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
+    # AI탭 정식 출시일 당일 선제 점검 — 2026-06-01 10:00 KST 일회성
+    # 기존 월/목 09:00 잡과 별도로 출시 당일 1시간 빠른 시점에 즉시 점검.
+    # 감지 시 ai_tab_enabled=true 자동 설정 (pm2 restart 불필요).
+    scheduler.add_job(
+        ai_tab_trigger_check_job, "date",
+        run_date=datetime(2026, 6, 1, 10, 0, 0),
+        id="ai_tab_june1_launch_check",
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
     scheduler.start()
     logger.info("Scheduler started")
 

@@ -16,7 +16,7 @@ interface PlatformDistributionChartProps {
 
 const NAVER_PLATFORMS: { key: string; label: string; color: string }[] = [
   { key: 'naver',        label: '네이버 AI 브리핑',            color: '#03c75a' },
-  { key: 'naver_ai_tab', label: '네이버 AI탭 (Beta · 순차 확대 중)', color: '#0ea5e9' },
+  { key: 'naver_ai_tab', label: '네이버 AI탭 (Beta · 2026-04-27 출시)', color: '#0ea5e9' },
 ]
 
 const GLOBAL_PLATFORMS: { key: string; label: string; color: string }[] = [
@@ -88,7 +88,7 @@ function PlatformRow({
       ? 'AI탭 노출됨'
       : tabVisible === false
       ? '미노출'
-      : '측정 준비 중'
+      : '측정 예정 (6월+)'
     const statusClass = tabVisible === true
       ? 'text-sm font-semibold'
       : tabVisible === null || tabVisible === undefined
@@ -142,7 +142,11 @@ function PlatformRow({
       </div>
       <div className="w-20 text-right shrink-0">
         {hasError ? (
-          <span className="text-sm text-gray-300">오류</span>
+          platform.key === 'google' ? (
+            <span className="text-sm text-gray-400">측정 보류</span>
+          ) : (
+            <span className="text-sm text-gray-300">오류</span>
+          )
         ) : platform.key === 'gemini' && exposureFreq !== undefined ? (
           <span className={`text-sm font-semibold ${mentioned ? 'text-indigo-600' : 'text-gray-400'}`}>
             {exposureFreq}회/100
@@ -212,8 +216,11 @@ export function PlatformDistributionChart({
                   <span className="text-sm text-gray-400">이 업종 해당 없음</span>
                 </div>
               </div>
+              <p className="text-sm text-gray-400 pl-1">
+                → 네이버 일반 검색 상위노출(C-Rank · 리뷰·소식 최적화) 집중 권장
+              </p>
               <PlatformRow
-                platform={{ key: 'naver_ai_tab', label: '네이버 AI탭 (Beta · 순차 확대 중)', color: '#0ea5e9' }}
+                platform={{ key: 'naver_ai_tab', label: '네이버 AI탭 (Beta · 2026-04-27 출시)', color: '#0ea5e9' }}
                 result={results['naver_ai_tab']}
               />
             </>
@@ -239,10 +246,50 @@ export function PlatformDistributionChart({
           </span>
         </div>
         <div className="space-y-2 pl-4">
-          {GLOBAL_PLATFORMS.map((p) => (
-            <PlatformRow key={p.key} platform={p} result={results[p.key]} />
-          ))}
+          {GLOBAL_PLATFORMS.map((p) => {
+            const result = results[p.key]
+            const isMentioned = result?.mentioned ?? false
+            const hasError = !!result?.error
+
+            // 수정 C: 미노출 시 채널별 성격 라벨 추가 (Gemini·ChatGPT만 해당)
+            const showChannelHint = !isMentioned && !hasError && (p.key === 'gemini' || p.key === 'chatgpt')
+            const channelHint = p.key === 'gemini'
+              ? '구글 비즈니스 등록 시 개선 가능'
+              : p.key === 'chatgpt'
+              ? '학습 데이터 기반·단기 개선 어려움'
+              : null
+
+            return (
+              <div key={p.key}>
+                <PlatformRow platform={p} result={result} />
+                {showChannelHint && channelHint && (
+                  <div className="pl-[140px] mt-0.5">
+                    <span className="text-sm text-gray-400">{channelHint}</span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
+
+        {/* 수정 D: 글로벌 채널 전체 미노출 시 안내 박스 */}
+        {(() => {
+          const chatgptNotExposed = !(results['chatgpt']?.mentioned)
+          const geminiNotExposed  = !(results['gemini']?.mentioned)
+          const googleNotExposed  = !(results['google']?.mentioned) || !!results['google']?.error
+          if (chatgptNotExposed && geminiNotExposed && googleNotExposed) {
+            return (
+              <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg p-3">
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  ChatGPT·Gemini 미노출은 한국 소상공인의 일반적인 현재 상태입니다.<br />
+                  Gemini는 구글 비즈니스 프로필 등록 후 수주 내 개선 가능합니다.<br />
+                  ChatGPT는 학습 데이터 기반으로 단기 개선이 어렵습니다.
+                </p>
+              </div>
+            )
+          }
+          return null
+        })()}
       </div>
     </div>
   )

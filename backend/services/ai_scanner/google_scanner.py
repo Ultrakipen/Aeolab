@@ -10,6 +10,7 @@ logger = logging.getLogger("aeolab")
 GOOGLE_SCANNER_BACKEND = os.getenv("GOOGLE_SCANNER_BACKEND", "playwright")
 DATAFORSEO_LOGIN = os.getenv("DATAFORSEO_LOGIN", "")
 DATAFORSEO_PASSWORD = os.getenv("DATAFORSEO_PASSWORD", "")
+SERPER_API_KEY = os.getenv("SERPER_API_KEY", "")
 
 logger.info("[google_scanner] backend=%s", GOOGLE_SCANNER_BACKEND)
 
@@ -76,10 +77,16 @@ async def _scan_via_dataforseo(query: str, business_name: str) -> dict:
             for item in (result.get("items") or []):
                 item_type = item.get("type", "")
                 # AI Overview / featured snippet 타입 확인
-                if item_type in ("featured_snippet", "answer_box", "knowledge_graph"):
+                # ai_overview: DataForSEO v3 정식 타입 (2024+)
+                if item_type in ("ai_overview", "featured_snippet", "answer_box", "knowledge_graph"):
                     text = item.get("description") or item.get("text") or ""
+                    # ai_overview는 items[] 하위에 text 블록이 중첩될 수 있음
+                    if not text and item_type == "ai_overview":
+                        for block in (item.get("items") or []):
+                            text += (block.get("text") or "") + " "
+                        text = text.strip()
                     if _name_in_text(business_name, text):
-                        in_ai_overview = True
+                        in_ai_overview = (item_type == "ai_overview")
                         mentioned = True
                         excerpt = text[:200]
                         break
@@ -106,10 +113,121 @@ async def _scan_via_dataforseo(query: str, business_name: str) -> dict:
         }
 
 
+async def _scan_via_serper(query: str, business_name: str) -> dict:
+    """Serper.dev Google Search API로 AI Overview 확인 ($0.001/건, 가입 시 2,500회 무료).
+
+    엔드포인트: POST https://google.serper.dev/search
+    인증: X-API-KEY 헤더
+    응답 필드: organic[], answerBox, knowledgeGraph, aiOverview(베타)
+    """
+    if not SERPER_API_KEY:
+        logger.warning("[google_scanner] serper API key missing")
+        return {
+            "platform": "google", "mentioned": False, "in_ai_overview": False,
+            "rank": None, "excerpt": "", "captcha_detected": False,
+            "error": "serper_key_missing",
+        }
+
+    payload = {
+        "q": query,
+        "gl": "kr",   # 한국 지역 결과
+        "hl": "ko",   # 한국어
+        "num": 10,
+    }
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                "https://google.serper.dev/search",
+                headers={
+                    "X-API-KEY": SERPER_API_KEY,
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp:
+                if resp.status != 200:
+                    body = await resp.text()
+                    logger.warning(f"[google_scanner] serper HTTP {resp.status}: {body[:200]}")
+                    return {
+                        "platform": "google", "mentioned": False, "in_ai_overview": False,
+                        "rank": None, "excerpt": "", "captcha_detected": False,
+                        "error": f"serper_http_{resp.status}",
+                    }
+                data = await resp.json()
+
+        in_ai_overview = False
+        mentioned = False
+        excerpt = ""
+        rank = None
+
+        # 1. AI Overview 필드 (Serper 베타 — aiOverview 또는 answerBox)
+        ai_overview = data.get("aiOverview") or {}
+        if ai_overview:
+            text = ai_overview.get("text") or ai_overview.get("answer") or ""
+            if _name_in_text(business_name, text):
+                in_ai_overview = True
+                mentioned = True
+                excerpt = text[:200]
+
+        # 2. answerBox (featured snippet — AI Overview 대체 경로)
+        if not mentioned:
+            answer_box = data.get("answerBox") or {}
+            ab_text = (
+                answer_box.get("answer") or
+                answer_box.get("snippet") or
+                answer_box.get("title") or ""
+            )
+            if ab_text and _name_in_text(business_name, ab_text):
+                mentioned = True
+                excerpt = ab_text[:200]
+
+        # 3. knowledgeGraph
+        if not mentioned:
+            kg = data.get("knowledgeGraph") or {}
+            kg_text = (kg.get("description") or kg.get("title") or "")
+            if kg_text and _name_in_text(business_name, kg_text):
+                mentioned = True
+                excerpt = kg_text[:200]
+
+        # 4. 일반 유기 검색 결과에서 순위 파악
+        for item in (data.get("organic") or []):
+            title = item.get("title") or ""
+            snippet = item.get("snippet") or ""
+            if _name_in_text(business_name, title) or _name_in_text(business_name, snippet):
+                mentioned = True
+                rank = item.get("position")
+                if not excerpt:
+                    excerpt = snippet[:200]
+                break
+
+        logger.info(
+            f"[google_scanner/serper] query={query!r} mentioned={mentioned} "
+            f"in_ai_overview={in_ai_overview} rank={rank}"
+        )
+        return {
+            "platform": "google",
+            "mentioned": mentioned,
+            "in_ai_overview": in_ai_overview,
+            "rank": rank,
+            "excerpt": excerpt,
+            "captcha_detected": False,
+        }
+
+    except Exception as e:
+        logger.warning(f"[google_scanner] serper error: {e}")
+        return {
+            "platform": "google", "mentioned": False, "in_ai_overview": False,
+            "rank": None, "excerpt": "", "captcha_detected": False, "error": str(e),
+        }
+
+
 class GoogleAIOverviewScanner:
     """Google AI Overview (SGE)에서 사업장 노출 여부 파싱"""
 
     async def check_mention(self, query: str, target: str) -> dict:
+        if GOOGLE_SCANNER_BACKEND == "serper":
+            return await _scan_via_serper(query, target)
         if GOOGLE_SCANNER_BACKEND == "dataforseo":
             return await _scan_via_dataforseo(query, target)
         async with async_playwright() as pw:

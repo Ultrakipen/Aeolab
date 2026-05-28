@@ -118,8 +118,8 @@ function NaverSection({
           <td className="px-4 md:px-6 py-3">
             {aiTabVisible === null || aiTabVisible === undefined ? (
               <div className="space-y-1">
-                <span className="text-gray-600 text-sm font-medium block">측정 준비 중</span>
-                <span className="text-gray-500 text-sm block">6월 전체 확대 후 자동 측정됩니다</span>
+                <span className="text-gray-600 text-sm font-medium block">측정 예정 (6월+)</span>
+                <span className="text-gray-500 text-sm block">네이버 AI탭 정식 출시 후 자동 측정됩니다</span>
               </div>
             ) : aiTabVisible ? (
               <span className="inline-flex items-center gap-1 text-green-600 font-medium text-sm">
@@ -151,7 +151,11 @@ function GlobalRow({ platformKey, result }: { platformKey: string; result: AIRes
   }
 
   const statusCell = () => {
-    if (result.error) return <span className="text-gray-400 text-sm">오류</span>
+    if (result.error) return (
+      platformKey === 'google'
+        ? <span className="text-gray-400 text-sm">측정 보류</span>
+        : <span className="text-gray-400 text-sm">오류</span>
+    )
     if (!result.mentioned) return <span className="text-gray-500 text-sm">미노출</span>
     return (
       <div className="flex items-center flex-wrap gap-1.5">
