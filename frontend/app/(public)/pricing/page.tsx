@@ -231,7 +231,7 @@ export default function PricingPage() {
         <div className="mb-14">
           <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
+              <span className="inline-block bg-blue-100 text-blue-700 text-sm font-bold px-2.5 py-1 rounded-full">
                 Basic 이상 포함
               </span>
               <h2 className="text-base md:text-lg font-bold text-gray-900">추가 진단 도구</h2>
@@ -275,7 +275,7 @@ export default function PricingPage() {
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed break-keep">
             네이버 AI 브리핑은 현재 <strong>음식점·카페·베이커리·바·숙박</strong> 등 일부 업종에서만 제공되며,
             <strong> 프랜차이즈 가맹점은 제공 대상에서 제외됩니다</strong>(네이버 정책 기준, 추후 확대 예정).
-            <strong>뷰티·네일·피트니스·약국·반려동물</strong> 등 확대 예상 업종은 네이버 AI탭(베타, 모든 업종 가능)을 통한 노출 개선이 가능합니다.
+            <strong>뷰티·네일·피트니스·약국·반려동물</strong> 등 확대 예상 업종은 네이버 AI탭(베타, 음식점·쇼핑 업종 우선 지원) 업종 확대를 대비해 소개글·사진을 미리 준비할 수 있습니다.
             병원·법무·교육·쇼핑몰 등 비대상 업종 또는 프랜차이즈는 AEOlab 구독 시{" "}
             <strong>네이버 AI탭·ChatGPT·Gemini·카카오맵 등 글로벌 AI 가시성</strong>이 향상됩니다.
           </p>

@@ -402,10 +402,35 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 ## AI Visibility Score 가중치 (v3.0 듀얼트랙)
 
-- Track1 (네이버): smart_place_completeness, naver_ecosystem, review_count, keyword_gap
-- Track2 (글로벌): ai_exposure (Gemini+ChatGPT+Google), website_seo, content_structure
+> **⚠️ 점수 체계 개편 주의 (2026-05-27 사고 등록)**: `ai_tab_readiness` 항목 분리로 `keyword_gap_score` 0.35→0.30 변경됨. UI·가이드·문서에 가중치 숫자를 기재할 때 **반드시 `backend/services/score_engine.py:NAVER_TRACK_WEIGHTS`를 직접 열어 확인 후 기재**. CLAUDE.md·기획 문서만 보고 기재 금지 — score-guide 35%→30% 오기재 사고 재발 방지.
 
-> 과거 6항목 단일 WEIGHTS는 `DUAL_TRACK_RATIO` + `NAVER_TRACK_WEIGHTS` + `GLOBAL_TRACK_WEIGHTS`로 완전 교체됨.
+### Track 1 — 네이버 AI 채널 (`NAVER_TRACK_WEIGHTS`, **6개 항목**, 합계 1.0)
+
+| 키 | 가중치 | 설명 |
+|----|--------|------|
+| `keyword_gap_score` | **30%** | 업종별 키워드 커버리지 (구버전 35% 아님) |
+| `review_quality` | 25% | 리뷰 수·평점·최신성·키워드 다양성 |
+| `smart_place_completeness` | 15% | 톡톡 채팅방 메뉴·소개글·소식·부가정보 |
+| `naver_exposure_confirmed` | 15% | 네이버 AI 브리핑 실제 확인 (INACTIVE=0점) |
+| `kakao_completeness` | 10% | 카카오맵 완성도 |
+| `ai_tab_readiness` | **5%** | AI탭 체크리스트 준비도 (모든 업종 대상, 2026-05-18 신설) |
+
+### Track 2 — 글로벌 AI 채널 (`GLOBAL_TRACK_WEIGHTS`, 4개 항목, 합계 1.0)
+
+| 키 | 가중치 | 설명 |
+|----|--------|------|
+| `multi_ai_exposure` | 40% | Gemini·ChatGPT 각 50회(Basic) / 100회(Full) 샘플링 |
+| `schema_seo` | 30% | JSON-LD + 웹사이트 SEO + Open Graph |
+| `online_mentions` | 20% | 블로그·뉴스·미디어 언급 |
+| `google_presence` | 10% | Google AI Overview (현재 CAPTCHA 차단·측정 보류) |
+
+### 개편 이력 및 핵심 규칙
+
+- 과거 6항목 단일 WEIGHTS → `DUAL_TRACK_RATIO` + `NAVER_TRACK_WEIGHTS` + `GLOBAL_TRACK_WEIGHTS` 완전 교체
+- `ai_tab_readiness` 분리(2026-05-18)로 `keyword_gap_score` **0.35→0.30** 하향. 이 변경이 score-guide에 미반영돼 오기재 사고 발생
+- GrowthStage 기준: **`track1_score`** (unified 아님) — 업종별 비율 차이 오판 방지
+- v3.1/v3.2/v3.3: `NAVER_TRACK_WEIGHTS_V3_1/V3_2/V3_3` — 환경변수 `SCORE_MODEL_VERSION`으로 토글
+- **채널별 노출 소요 기간**: 네이버 AI 브리핑·AI탭 2~4주 / Gemini 수주(구글 비즈니스 프로필 기준) / ChatGPT·Gemini 스캐너 점수 수개월~1년
 
 ---
 

@@ -321,7 +321,7 @@ function NaverSearchBaseSection({ category }: { category?: string }) {
               )}
               {c.icon} {c.label}
             </span>
-            <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
+            <span className="text-sm text-green-700 bg-green-100 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
               {c.effect}
             </span>
           </div>
@@ -337,7 +337,7 @@ function NaverSearchBaseSection({ category }: { category?: string }) {
         </p>
       </div>
 
-      <p className="text-xs text-gray-500 mt-3">
+      <p className="text-sm text-gray-500 mt-3">
         ※ 네이버 검색 순위는 기기·지역·로그인 상태에 따라 다를 수 있습니다.
       </p>
     </section>
@@ -401,8 +401,18 @@ function SmartPlaceStatusCard({
             newlyChecked.map(k => {
               const meta = ACTION_LOG_MAP[k as string]
               return fetch(
-                `${BACKEND}/api/report/action-log/${bizId}?action_type=${encodeURIComponent(meta.action_type)}&action_label=${encodeURIComponent(meta.action_label)}`,
-                { method: 'POST', headers: { Authorization: `Bearer ${authToken}` } },
+                `${BACKEND}/api/report/action-log/${bizId}`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${authToken}`,
+                  },
+                  body: JSON.stringify({
+                    action_type: meta.action_type,
+                    action_label: meta.action_label,
+                  }),
+                },
               )
             })
           )

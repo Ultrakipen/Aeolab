@@ -46,22 +46,22 @@ export default function OneLineConclusion({
         업종 평균{" "}
         <strong>{benchmarkAvg}점</strong>
         {isEstimatedBenchmark && (
-          <span className="ml-1 text-xs text-gray-400 font-normal">(추정 · 실측 누적 후 갱신)</span>
+          <span className="ml-1 text-sm text-gray-400 font-normal">(추정 · 실측 누적 후 갱신)</span>
         )}{" "}
         vs 내 점수{" "}
         <strong className={isAboveAvg ? "text-emerald-700" : "text-red-700"}>{myScore}점</strong>
       </p>
 
       <div className="flex flex-wrap gap-2 mb-3">
-        <span className="inline-flex items-center gap-1 text-xs md:text-sm font-semibold text-blue-800 bg-blue-100 border border-blue-200 rounded-full px-3 py-1">
+        <span className="inline-flex items-center gap-1 text-sm md:text-sm font-semibold text-blue-800 bg-blue-100 border border-blue-200 rounded-full px-3 py-1">
           <span className="text-blue-500">●</span>
           네이버 트랙 {Math.round(track1)}점
         </span>
-        <span className="inline-flex items-center gap-1 text-xs md:text-sm font-semibold text-slate-700 bg-slate-100 border border-slate-200 rounded-full px-3 py-1">
+        <span className="inline-flex items-center gap-1 text-sm md:text-sm font-semibold text-slate-700 bg-slate-100 border border-slate-200 rounded-full px-3 py-1">
           <span className="text-slate-500">●</span>
           글로벌 트랙 {Math.round(track2)}점
         </span>
-        <span className="inline-flex items-center gap-1 text-xs md:text-sm font-bold text-gray-900 bg-white border-2 border-gray-300 rounded-full px-3 py-1">
+        <span className="inline-flex items-center gap-1 text-sm md:text-sm font-bold text-gray-900 bg-white border-2 border-gray-300 rounded-full px-3 py-1">
           통합 {Math.round(unified)}점
         </span>
       </div>

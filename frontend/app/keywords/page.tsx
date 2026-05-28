@@ -109,11 +109,11 @@ export default function KeywordsIndexPage() {
                     {/* 배지 */}
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       <span
-                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badgeClass}`}
+                        className={`text-sm font-semibold px-2 py-0.5 rounded-full ${badgeClass}`}
                       >
                         경쟁 {page.competitionLevel}
                       </span>
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                      <span className="text-sm font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
                         {page.category}
                       </span>
                     </div>
@@ -133,12 +133,12 @@ export default function KeywordsIndexPage() {
                       {page.keywords.slice(0, 3).map((kw) => (
                         <span
                           key={kw}
-                          className="text-xs bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200"
+                          className="text-sm bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200"
                         >
                           {kw}
                         </span>
                       ))}
-                      <span className="text-xs text-gray-400 px-1 py-0.5">
+                      <span className="text-sm text-gray-400 px-1 py-0.5">
                         +{page.keywords.length - 3}
                       </span>
                     </div>

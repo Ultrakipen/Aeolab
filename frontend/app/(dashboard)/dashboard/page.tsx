@@ -276,6 +276,14 @@ export default async function DashboardPage({
   } : undefined;
 
   const photoCategories = (latestScan?.photo_categories as Record<string, number> | null) ?? null;
+  const spCompleteness = (latestScan?.smart_place_completeness_result as { has_reservation?: boolean; photo_count?: number } | null) ?? null;
+  const hasReservationVal: boolean | null = spCompleteness?.has_reservation ?? null;
+  // photo_categories가 빈 {}이면 0이 되므로, 내용이 있을 때만 합산. 없으면 completeness 홈탭 실측값 폴백
+  const photoCountTotal: number | null = photoCategories && Object.keys(photoCategories).length > 0
+    ? Object.values(photoCategories).reduce((sum, v) => sum + (v as number), 0)
+    : spCompleteness?.photo_count != null
+      ? spCompleteness.photo_count
+      : null;
   const cafeResult = (latestScan?.naver_result as Record<string, unknown> | null | undefined)?.cafe_result as { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null ?? null;
   const jisikResult = (latestScan?.naver_result as Record<string, unknown> | null | undefined)?.jisik_result as { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null ?? null;
   const gapCloseable = (gapRes as { vs_top?: { closeable_gap?: number } } | null)?.vs_top?.closeable_gap ?? null;
@@ -385,6 +393,11 @@ export default async function DashboardPage({
             websiteUrl={bizBase.website_url}
             websiteCheckResult={websiteCheckResult}
             blogMentionCount={(latestScan?.naver_result as { blog_mentions?: number } | null | undefined)?.blog_mentions ?? 0}
+            reviewCount={bizBase.review_count ?? 0}
+            hasIntro={!!(bizBase.has_intro)}
+            hasRecentPost={!!(bizBase.has_recent_post)}
+            hasReservation={hasReservationVal}
+            photoCount={photoCountTotal}
             isFranchise={isFranchise}
             keywordCount={bizBase.keywords?.length ?? 0}
             latestAdOnly={(latestScan?.naver_result as { ad_only?: boolean } | null | undefined)?.ad_only ?? false}

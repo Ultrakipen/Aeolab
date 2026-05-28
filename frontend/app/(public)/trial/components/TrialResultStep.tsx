@@ -695,12 +695,12 @@ export default function TrialResultStep(props: TrialResultProps) {
           </div>
           <p className="text-sm text-amber-800 leading-relaxed mb-2 break-keep">
             {group === "franchise"
-              ? "네이버 본사 정책에 따라 프랜차이즈 가맹점은 AI 브리핑 노출이 제한됩니다. 단, 네이버 AI탭(모든 업종 베타)은 이용 가능합니다."
-              : "ChatGPT·Gemini·Google AI 노출 최적화에 집중합니다. 또한 네이버 AI탭(모든 업종 베타)도 이용 가능합니다."}
+              ? "네이버 본사 정책에 따라 프랜차이즈 가맹점은 AI 브리핑 노출이 제한됩니다. 단, 네이버 AI탭(음식점·쇼핑 업종 우선 베타)도 확인하세요."
+              : "ChatGPT·Gemini·Google AI 노출 최적화에 집중합니다. 또한 네이버 AI탭(음식점·쇼핑 업종 우선 베타)도 확인하세요."}
           </p>
           <div className="flex flex-wrap gap-2">
             {[
-              { label: "네이버 AI탭", desc: "모든 업종 베타 대상" },
+              { label: "네이버 AI탭", desc: "음식점·쇼핑 업종 우선 · 순차 확대 중" },
               { label: "ChatGPT", desc: "OpenAI 학습 데이터 + Bing 검색" },
               { label: "Gemini", desc: "Google 검색 혼합" },
               { label: "Google AI", desc: "구글 SGE 인용" },
@@ -723,7 +723,7 @@ export default function TrialResultStep(props: TrialResultProps) {
             2026 AI탭 베타 공개·확대 진행 중
           </p>
           <p className="text-sm text-amber-800 leading-relaxed">
-            네이버 AI탭은 2026-04-27 베타 공개 후 2026년 6월 전체 확대 예정입니다 (모든 업종 가능, 네이버 공식).
+            네이버 AI탭은 2026-04-27 베타 공개 후 음식점·카페·쇼핑 업종 중심으로 순차 확대 중입니다.
             AI 브리핑 업종 확대는 네이버 공식 발표 후 적용 예정이며 현재 확대 검토 중입니다.
           </p>
         </div>
@@ -1420,12 +1420,12 @@ function NaverBriefingResultCard({
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100" style={{ background: "rgba(3,199,90,0.08)" }}>
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: "#03c75a" }}>
-            <span className="text-white text-xs font-bold leading-none">N</span>
+            <span className="text-white text-sm font-bold leading-none">N</span>
           </div>
           <span className="text-sm font-semibold text-gray-700">네이버 AI 브리핑 검색 결과</span>
         </div>
         {isLikely && (
-          <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">확대 검토 중</span>
+          <span className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">확대 검토 중</span>
         )}
       </div>
 
@@ -1598,7 +1598,7 @@ function ChatGPTResultCard({
       <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-[#10a37f] flex items-center justify-center shrink-0">
-            <span className="text-white text-xs font-bold leading-none">G</span>
+            <span className="text-white text-sm font-bold leading-none">G</span>
           </div>
           <span className="text-sm font-semibold text-gray-700">ChatGPT 검색 결과</span>
         </div>
@@ -1991,7 +1991,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
                     href={check.action_links.reservation}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="shrink-0 text-xs font-semibold text-blue-600 hover:text-blue-800 whitespace-nowrap transition-colors"
+                    className="shrink-0 text-sm font-semibold text-blue-600 hover:text-blue-800 whitespace-nowrap transition-colors"
                   >
                     설정하기 →
                   </a>

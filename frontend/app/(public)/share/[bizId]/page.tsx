@@ -127,7 +127,7 @@ export default async function SharePage({ params }: Props) {
                   style={{ width: `${Math.min(data.score, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1 text-right">현재 {data.score.toFixed(0)}점 기준</p>
+              <p className="text-sm text-gray-400 mt-1 text-right">현재 {data.score.toFixed(0)}점 기준</p>
             </div>
           </div>
 

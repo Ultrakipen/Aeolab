@@ -251,7 +251,7 @@ export default function AIDiagnosisCard({
               );
             }
 
-            // 네이버는 "검색 언급"과 "AI 브리핑 직접 인용"을 구분
+            // 네이버는 "검색 언급"과 "AI 브리핑 노출 확인"을 구분
             if (key === "naver") {
               // INACTIVE 업종: 네이버 AI 브리핑 미지원 안내 + AI탭 준비 중 카드
               if (isNaverBriefingInactive) {
@@ -270,9 +270,9 @@ export default function AIDiagnosisCard({
                     <div className="col-span-2 flex items-start gap-2 rounded-xl px-3 py-3 border bg-indigo-50 border-indigo-200">
                       <Minus className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm font-semibold text-indigo-700">네이버 AI탭 (베타 · 모든 업종)</span>
+                        <span className="text-sm font-semibold text-indigo-700">네이버 AI탭 (Beta · 순차 확대 중)</span>
                         <span className="block text-sm text-indigo-500 mt-0.5">
-                          AI 브리핑과 달리 모든 업종 노출 가능 — 전체 확대 감지 시 자동으로 측정 시작됩니다
+                          음식점·카페·쇼핑 업종 우선 지원 — 전체 확대 감지 시 자동으로 측정 시작됩니다
                         </span>
                       </div>
                       <span className="text-sm font-semibold text-indigo-400 shrink-0">자동 감지 중</span>
@@ -283,7 +283,7 @@ export default function AIDiagnosisCard({
               const searchMentioned = r.mentioned === true;
               const inBriefing = r.in_briefing === true;
               if (inBriefing) {
-                // 최상위: AI 브리핑 직접 인용
+                // 최상위: AI 브리핑 노출 확인
                 return (
                   <div key={key} className="col-span-2 flex items-start gap-2 rounded-xl px-3 py-3 border bg-green-50 border-green-300">
                     <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
@@ -596,8 +596,7 @@ export default function AIDiagnosisCard({
         </div>
       )}
       <p className="text-sm text-gray-600 mt-3 leading-relaxed">
-        ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
-        측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+        ChatGPT 측정은 학습 데이터(컷오프 2024.06) 기반이며 실시간 웹 검색 결과와 다릅니다. 한국 지역 소상공인은 학습 데이터 포함률이 낮아 낮은 점수가 일반적입니다. Gemini는 Google Search 실시간 그라운딩으로 현재 웹 콘텐츠를 반영합니다.
       </p>
     </div>
   );

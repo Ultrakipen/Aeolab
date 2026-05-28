@@ -229,7 +229,7 @@ export default function KakaoChecklistCard({
           >
             {grade.label}
           </span>
-          <p className="text-xs text-gray-400 mt-1">{completedCount}/{CHECKLIST_ITEMS.length} 항목 완료</p>
+          <p className="text-sm text-gray-400 mt-1">{completedCount}/{CHECKLIST_ITEMS.length} 항목 완료</p>
         </div>
       </div>
 
@@ -286,7 +286,7 @@ export default function KakaoChecklistCard({
                   </span>
                   {!checked && <PriorityBadge priority={item.priority} />}
                   {!checked && (
-                    <span className={`text-xs font-medium ml-auto shrink-0 px-1.5 py-0.5 rounded-full ${
+                    <span className={`text-sm font-medium ml-auto shrink-0 px-1.5 py-0.5 rounded-full ${
                       item.weight >= 25 ? 'bg-red-50 text-red-600' :
                       item.weight >= 15 ? 'bg-amber-50 text-amber-600' :
                       'bg-gray-100 text-gray-500'

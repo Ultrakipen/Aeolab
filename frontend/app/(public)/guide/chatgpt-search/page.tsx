@@ -91,10 +91,10 @@ export default function ChatGptSearchGuidePage() {
           </div>
         </section>
 
-        {/* ── 2. ChatGPT가 학습하는 정보 4가지 ── */}
+        {/* ── 2. ChatGPT가 참조하는 정보 ── */}
         <section>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 break-keep">
-            ChatGPT가 학습하는 정보 4가지
+            실사용자 ChatGPT가 참조하는 정보 — Bing 웹검색 기반
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {LEARN_SOURCES.map((item) => (
@@ -136,7 +136,7 @@ export default function ChatGptSearchGuidePage() {
                 2
               </span>
               <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                직접 인용 가능한 <strong>명확한 문장 구조</strong>는 AI가 출처를 특정할 수 있어
+                AI가 인용하기 좋은 <strong>명확한 문장 구조</strong>는 출처를 특정할 수 있어
                 인용 가능성이 높아집니다.
               </p>
             </div>
@@ -165,6 +165,32 @@ export default function ChatGptSearchGuidePage() {
           </div>
         </section>
 
+        {/* ── 개선 후 반영까지 걸리는 시간 ── */}
+        <section>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
+            개선 후 ChatGPT에 반영되기까지
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <p className="text-sm font-semibold text-blue-800 mb-1">실사용자 ChatGPT (Bing 웹검색 기준)</p>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                구글 비즈니스 프로필 등록·업데이트 → Bing 인덱싱 후 반영<br />
+                <strong>약 1~4주</strong> 소요
+              </p>
+            </div>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm font-semibold text-amber-800 mb-1">AEOlab 스캐너 점수 (ChatGPT 학습 데이터 기준)</p>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                ChatGPT 모델 재학습 주기에 의존<br />
+                <strong>수개월~1년</strong> 이상 소요
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+            ※ AEOlab 점수는 학습 데이터 기반 측정이며, 실사용자 ChatGPT 웹검색 결과와 다를 수 있습니다.
+          </p>
+        </section>
+
         {/* ── 4. ChatGPT 노출 체크리스트 ── */}
         <section>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
@@ -182,7 +208,7 @@ export default function ChatGptSearchGuidePage() {
             AEOlab에서 ChatGPT 소개글 자동 생성
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            FAQ 중심 구조로 ChatGPT·Gemini 인용 가능성을 높인 소개글을 30초 안에 생성합니다.
+            FAQ 중심 구조로 네이버 AI 브리핑·AI탭 인용 가능성을 높인 소개글을 30초 안에 생성합니다. ChatGPT·Gemini 최적화는 구글 비즈니스 프로필·자체 웹사이트가 핵심 경로입니다.
           </p>
           <Link
             href="/dashboard"

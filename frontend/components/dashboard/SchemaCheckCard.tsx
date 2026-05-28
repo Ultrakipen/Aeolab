@@ -33,7 +33,7 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
       <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-5">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm font-semibold text-gray-800">AI에 가게 정보 등록</span>
-          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">설정 현황</span>
+          <span className="text-sm text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">설정 현황</span>
         </div>
         <p className="text-sm text-gray-500">첫 스캔 후 웹사이트 AI 인식 설정 현황이 표시됩니다.</p>
       </div>
@@ -46,7 +46,7 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 md:p-5">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm font-semibold text-gray-800">AI에 가게 정보 등록</span>
-          <span className="text-xs text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">홈페이지 없음</span>
+          <span className="text-sm text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">홈페이지 없음</span>
         </div>
         <p className="text-sm text-gray-600 leading-relaxed break-keep">
           독립 웹사이트가 없어도 네이버·카카오맵 채널로 이용이 가능합니다.
@@ -87,7 +87,7 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-800">AI에 가게 정보 등록</span>
-          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">설정 현황</span>
+          <span className="text-sm text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">설정 현황</span>
         </div>
         <span className={`text-sm font-semibold ${allDone ? "text-emerald-600" : "text-gray-500"}`}>
           {doneCount} / {totalCount} 설정 완료
@@ -109,13 +109,13 @@ export default function SchemaCheckCard({ schemaSeoScore, websiteUrl, websiteChe
                 href={GOOGLE_BUSINESS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 text-xs font-medium text-blue-600 hover:underline"
+                className="shrink-0 text-sm font-medium text-blue-600 hover:underline"
               >
                 등록하기 →
               </a>
             )}
             {!item.done && item.label !== "Google Business 프로필 등록" && (
-              <span className={`shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full ${PRIORITY_STYLE[item.priority]}`}>
+              <span className={`shrink-0 text-sm font-medium px-1.5 py-0.5 rounded-full ${PRIORITY_STYLE[item.priority]}`}>
                 {item.priority}
               </span>
             )}

@@ -393,7 +393,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           <li className="flex items-start gap-1.5">
                             <span className="text-blue-500 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
-                              <strong>네이버 AI탭</strong>은 모든 업종 대상(2026 베타) — 업종 무관하게 이용 가능
+                              <strong>네이버 AI탭</strong>은 음식점·카페·쇼핑 업종 우선 지원(2026 베타) — 업종 순차 확대 중
                             </p>
                           </li>
                         </ul>

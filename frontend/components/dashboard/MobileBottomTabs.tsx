@@ -45,7 +45,7 @@ export function MobileBottomTabs({ onMoreClick }: Props) {
           : false;
         const cls = [
           "flex-1 flex flex-col items-center justify-center gap-0.5",
-          "min-h-[56px] text-xs font-medium transition-colors",
+          "min-h-[56px] text-sm font-medium transition-colors",
           active
             ? "text-blue-600"
             : "text-gray-500 hover:text-gray-900",

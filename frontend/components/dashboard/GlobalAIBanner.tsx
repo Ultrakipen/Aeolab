@@ -23,8 +23,9 @@ export function GlobalAIBanner({ globalScore, hasWebsite, eligibility }: GlobalA
             Gemini·Google AI 인식도 개선 기회가 있습니다
           </p>
           <p className="text-sm text-amber-700 leading-relaxed mb-3">
-            <strong>Gemini는 Google 비즈니스 프로필과 웹사이트 등록으로 수주 내 개선 가능합니다.</strong>{' '}
-            ChatGPT는 학습 데이터(컷오프 2024.06) 기반으로 단기 변동이 없으며, 장기 콘텐츠 전략으로 접근하세요.
+            <strong>Gemini는 Google Search 실시간 그라운딩으로 측정합니다.</strong>{' '}
+            Google 비즈니스 프로필·웹사이트 등록 후 수일~수주 내 Gemini 점수에 반영됩니다.
+            ChatGPT는 학습 데이터(컷오프 2024.06) 기반으로 단기 변동이 없으며, 한국 지역 소상공인은 낮은 점수가 일반적입니다.
             지금 바로 할 수 있는 것: <strong>Google 비즈니스 프로필 등록</strong>
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

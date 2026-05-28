@@ -138,10 +138,10 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
           <h2 className={`text-base md:text-lg font-bold ${groupContent.titleColor}`}>
             {groupContent.label}
           </h2>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${groupContent.badge}`}>
+          <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${groupContent.badge}`}>
             {groupContent.badgeText}
           </span>
-          {userGroup && <span className="text-xs text-gray-400">(내 업종)</span>}
+          {userGroup && <span className="text-sm text-gray-400">(내 업종)</span>}
         </div>
         <ul className="space-y-2 mb-4">
           {groupContent.changes.map((change, i) => (
@@ -168,7 +168,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
               <div key={k} className={`rounded-xl border p-4 ${c.color}`}>
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <span className={`text-sm font-bold ${c.titleColor}`}>{c.label}</span>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${c.badge}`}>{c.badgeText}</span>
+                  <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${c.badge}`}>{c.badgeText}</span>
                 </div>
                 <ul className="space-y-1">
                   {c.changes.slice(0, 2).map((ch, i) => (

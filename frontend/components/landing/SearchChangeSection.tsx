@@ -11,11 +11,11 @@ export default function SearchChangeSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
           {/* 예전 */}
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
-            <p className="text-xs font-bold text-gray-400 tracking-widest mb-3">예전</p>
+            <p className="text-sm font-bold text-gray-400 tracking-widest mb-3">예전</p>
             <div className="space-y-3">
               {["네이버 검색", "블로그 광고 클릭", "가게 방문"].map((step, i) => (
                 <div key={step} className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-500 text-xs font-bold flex items-center justify-center shrink-0">
+                  <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-500 text-sm font-bold flex items-center justify-center shrink-0">
                     {i + 1}
                   </span>
                   <span className="text-sm text-gray-600">{step}</span>
@@ -25,7 +25,7 @@ export default function SearchChangeSection() {
           </div>
           {/* 지금 */}
           <div className="rounded-xl border border-blue-200 bg-blue-50 p-5">
-            <p className="text-xs font-bold text-blue-500 tracking-widest mb-3">지금</p>
+            <p className="text-sm font-bold text-blue-500 tracking-widest mb-3">지금</p>
             <div className="space-y-3">
               {[
                 '"근처 맛집 추천해줘" (ChatGPT)',
@@ -33,7 +33,7 @@ export default function SearchChangeSection() {
                 "AI가 가게를 손님에게 추천",
               ].map((step, i) => (
                 <div key={step} className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center shrink-0">
                     {i + 1}
                   </span>
                   <span className="text-sm text-blue-800 font-medium break-keep">{step}</span>

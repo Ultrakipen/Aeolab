@@ -959,7 +959,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             <div className="flex flex-wrap gap-1.5 mb-2">
               {selectedTags.map((t) => (
                 <span key={`tag-${t}`} className="inline-flex items-center gap-1 px-2.5 py-1 text-sm bg-white border border-gray-200 rounded-full text-gray-700">
-                  {t} <span className="text-xs text-gray-400">(서비스)</span>
+                  {t} <span className="text-sm text-gray-400">(서비스)</span>
                 </span>
               ))}
               {trackingKeywords.map((t) => (

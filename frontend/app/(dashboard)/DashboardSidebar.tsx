@@ -215,7 +215,7 @@ export function DashboardSidebar({
                       <item.Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
                       <span className="flex-1 font-medium truncate min-w-0">{item.label}</span>
                       {item.badge && !locked && (
-                        <span className="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-semibold shrink-0">{item.badge}</span>
+                        <span className="text-sm bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-semibold shrink-0">{item.badge}</span>
                       )}
                       {locked && !needsBiz && <Lock className="w-3.5 h-3.5 text-gray-300 shrink-0" />}
                       {needsBiz && !locked && (
@@ -233,7 +233,7 @@ export function DashboardSidebar({
             <div className="mb-6 mt-2 pt-4 border-t border-gray-200">
               <div className="flex items-center gap-2 px-2 mb-2">
                 <span className="w-1.5 h-4 rounded-full bg-blue-500 shrink-0" aria-hidden="true" />
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">기타</p>
+                <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">기타</p>
               </div>
               <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-2 space-y-1">
                 {filteredFooter.map((item) => {

@@ -13,7 +13,7 @@ export function HowAeolabIntegrated() {
   const KakaoCard = (
     <div className="relative rounded-xl overflow-hidden border border-gray-200" style={{ boxShadow: FLOAT_SHADOW, background: "#fff" }}>
       {/* 예시 배지 */}
-      <span className="absolute top-2 right-2 text-xs px-1.5 py-0.5 rounded-full z-10" style={{ background: "rgba(0,0,0,0.12)", color: "#5B4A00" }}>
+      <span className="absolute top-2 right-2 text-sm px-1.5 py-0.5 rounded-full z-10" style={{ background: "rgba(0,0,0,0.12)", color: "#5B4A00" }}>
         예시
       </span>
 
@@ -25,7 +25,7 @@ export function HowAeolabIntegrated() {
           </svg>
         </button>
         <div className="flex-1 flex items-center gap-1.5">
-          <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-black" style={{ background: "linear-gradient(135deg,#2563EB,#7C3AED)" }}>
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-sm font-black" style={{ background: "linear-gradient(135deg,#2563EB,#7C3AED)" }}>
             A
           </div>
           <span className="text-sm font-bold" style={{ color: "#3B2800" }}>AEOlab</span>
@@ -42,7 +42,7 @@ export function HowAeolabIntegrated() {
         {/* 날짜 구분선 */}
         <div className="flex items-center gap-2 mb-3">
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.5)" }} />
-          <span className="text-xs px-2" style={{ color: "rgba(255,255,255,0.85)" }}>오늘</span>
+          <span className="text-sm px-2" style={{ color: "rgba(255,255,255,0.85)" }}>오늘</span>
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.5)" }} />
         </div>
 
@@ -50,7 +50,7 @@ export function HowAeolabIntegrated() {
         <div className="flex items-start gap-2">
           {/* 프로필 아이콘 */}
           <div className="shrink-0 mt-0.5">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-black" style={{ background: "linear-gradient(135deg,#2563EB,#7C3AED)" }}>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-black" style={{ background: "linear-gradient(135deg,#2563EB,#7C3AED)" }}>
               AE
             </div>
           </div>
@@ -93,7 +93,7 @@ export function HowAeolabIntegrated() {
             </div>
 
             {/* 시간 */}
-            <p className="text-right mt-1 text-xs" style={{ color: "rgba(255,255,255,0.8)", maxWidth: "220px" }}>
+            <p className="text-right mt-1 text-sm" style={{ color: "rgba(255,255,255,0.8)", maxWidth: "220px" }}>
               오전 9:41
             </p>
           </div>
@@ -170,7 +170,7 @@ export function HowAeolabIntegrated() {
         <p className="text-sm font-bold" style={{ color: "#0F172A" }}>
           키워드 갭 + 7주 추세
         </p>
-        <span className="text-xs text-gray-400">(예시)</span>
+        <span className="text-sm text-gray-400">(예시)</span>
       </div>
       <div className="space-y-1.5 mb-3">
         {[
@@ -354,7 +354,7 @@ export function HowAeolabIntegrated() {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <div
-                    className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-black shrink-0"
+                    className="flex items-center justify-center w-6 h-6 rounded-full text-white text-sm font-black shrink-0"
                     style={{ background: color }}
                   >
                     {step}
@@ -401,7 +401,7 @@ export function HowAeolabIntegrated() {
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className="flex items-center justify-center w-5 h-5 rounded-full text-white text-xs font-black shrink-0"
+                    className="flex items-center justify-center w-5 h-5 rounded-full text-white text-sm font-black shrink-0"
                     style={{ background: color }}
                   >
                     {step}

@@ -36,7 +36,7 @@ export default function ServiceMechanismSection() {
               num="①"
               title="AI 브리핑 대상 업종"
               active="음식점·카페·베이커리·바·숙박"
-              detail="그 외 업종은 ChatGPT·Gemini·Google AI + 네이버 AI탭(모든 업종 가능, 베타) 노출 개선으로 가치 전달"
+              detail="그 외 업종은 ChatGPT·Gemini·Google AI + 네이버 AI탭(음식점·쇼핑 우선 베타) 노출 개선으로 가치 전달"
               variant="blue"
             />
             <GateCard
@@ -267,7 +267,7 @@ function ScorePill({ points, title, desc }: ScorePillProps) {
         {points}
         <span className="text-sm font-normal" style={{ color: "#475569" }}>점</span>
       </p>
-      <p className="text-xs font-bold mb-0.5 break-keep" style={{ color: "#0F172A" }}>{title}</p>
+      <p className="text-sm font-bold mb-0.5 break-keep" style={{ color: "#0F172A" }}>{title}</p>
       <p className="text-sm break-keep" style={{ color: "#475569" }}>{desc}</p>
     </div>
   );

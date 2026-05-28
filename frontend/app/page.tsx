@@ -301,7 +301,7 @@ export default async function LandingPage() {
                 <p className="text-sm font-bold mb-1.5" style={{ color: "rgba(255,255,255,0.95)" }}>음식점 적용 후 클릭률 변화</p>
                 <p className="stat-number-xl text-white mb-1.5">
                   +27.4%
-                  <span className="text-xs font-bold ml-2 px-2 py-0.5 rounded-full align-middle" style={{ background: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.95)" }}>음식점 기준</span>
+                  <span className="text-sm font-bold ml-2 px-2 py-0.5 rounded-full align-middle" style={{ background: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.95)" }}>음식점 기준</span>
                 </p>
                 <p className="text-sm md:text-base break-keep mb-1" style={{ color: "rgba(255,255,255,0.88)" }}>
                   AI 브리핑에 노출되면 손님 클릭이 늘어납니다
@@ -327,7 +327,7 @@ export default async function LandingPage() {
             <div className="fade-up flex flex-col gap-3">
               {[
                 { num: "3,000만+", label: "AI 브리핑 서비스 월 이용자", sub: "뉴스·검색·플레이스 전체 합산 · 네이버 공식 발표 (2025.11)", delay: "delay-1", isAiTab: false },
-                { num: "2026.04", label: "네이버 AI탭 베타 출시", sub: "모든 업종 대상 · 네이버 공식 발표", delay: "delay-2", isAiTab: false },
+                { num: "2026.04", label: "네이버 AI탭 베타 출시", sub: "음식점·쇼핑 우선 · 순차 확대 · 네이버 공식", delay: "delay-2", isAiTab: false },
                 { num: "25종+", label: "모든 업종 측정 가능", sub: "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기", delay: "delay-3", isAiTab: true },
               ].map((item) => (
                 <div
@@ -340,7 +340,7 @@ export default async function LandingPage() {
                   }}
                 >
                   {item.isAiTab && (
-                    <p className="text-xs font-bold mb-0.5" style={{ color: "#6366F1" }}>AI탭 · 글로벌 AI</p>
+                    <p className="text-sm font-bold mb-0.5" style={{ color: "#6366F1" }}>AI탭 · 글로벌 AI</p>
                   )}
                   <p
                     className="text-2xl md:text-3xl font-black leading-none"
@@ -407,7 +407,7 @@ export default async function LandingPage() {
                   <div>
                     <p className="text-sm font-bold text-gray-800">ChatGPT·Gemini 답변</p>
                     <p className="text-sm text-gray-500">글로벌 AI 인용 여부를 측정합니다 (노출 보장 아님)</p>
-                    <p className="text-xs text-gray-400 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
+                    <p className="text-sm text-gray-400 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
                   </div>
                 </div>
               </div>
@@ -443,7 +443,7 @@ export default async function LandingPage() {
                   <div>
                     <p className="text-sm font-bold text-gray-800">ChatGPT·Gemini 답변</p>
                     <p className="text-sm text-gray-500">글로벌 AI 인용 여부를 측정합니다 (노출 보장 아님)</p>
-                    <p className="text-xs text-gray-400 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
+                    <p className="text-sm text-gray-400 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
                   </div>
                 </div>
               </div>
@@ -466,7 +466,7 @@ export default async function LandingPage() {
               <p className="text-sm font-semibold text-green-800 break-keep">
                 스마트플레이스·블로그를 잘 관리하면 <strong>네이버 검색 상위노출</strong>에도 효과가 있습니다
               </p>
-              <p className="text-xs text-green-700 mt-1 break-keep">
+              <p className="text-sm text-green-700 mt-1 break-keep">
                 스마트플레이스 → 네이버 플레이스 탭 순위 상승 / 블로그 → VIEW탭 상위 노출 → AI 브리핑·AI탭 노출 가능성도 함께 높아집니다
               </p>
             </div>
@@ -512,9 +512,9 @@ export default async function LandingPage() {
                 <div className="relative mb-4">
                   <div className="w-[104px] h-[104px] rounded-2xl flex flex-col items-center justify-center gap-1.5 shadow-md" style={{ background: "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)", border: "2px solid #BFDBFE" }}>
                     <span className="text-2xl">📋</span>
-                    <span className="text-xs font-bold text-blue-700">스마트플레이스</span>
+                    <span className="text-sm font-bold text-blue-700">스마트플레이스</span>
                   </div>
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white" style={{ background: "#2563EB" }}>①</span>
+                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#2563EB" }}>①</span>
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-2">AI는 4가지 기준으로 가게를 판단합니다</h3>
                 <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 w-full text-left">
@@ -540,9 +540,9 @@ export default async function LandingPage() {
                 <div className="relative mb-4">
                   <div className="w-[104px] h-[104px] rounded-2xl flex flex-col items-center justify-center gap-1.5 shadow-md" style={{ background: "linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)", border: "2px solid #A5B4FC" }}>
                     <span className="text-2xl">🔍</span>
-                    <span className="text-xs font-bold text-indigo-700">AEOlab 진단</span>
+                    <span className="text-sm font-bold text-indigo-700">AEOlab 진단</span>
                   </div>
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white" style={{ background: "#6366F1" }}>②</span>
+                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#6366F1" }}>②</span>
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-2">AEOlab이 내 가게를 자동 점검합니다</h3>
                 <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 w-full text-left">
@@ -563,9 +563,9 @@ export default async function LandingPage() {
                 <div className="relative mb-4">
                   <div className="w-[104px] h-[104px] rounded-2xl flex flex-col items-center justify-center gap-1.5 shadow-md" style={{ background: "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)", border: "2px solid #6EE7B7" }}>
                     <span className="text-2xl">📈</span>
-                    <span className="text-xs font-bold text-green-700">AI 노출 증가</span>
+                    <span className="text-sm font-bold text-green-700">AI 노출 증가</span>
                   </div>
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white" style={{ background: "#059669" }}>③</span>
+                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#059669" }}>③</span>
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-2">개선하면 AI 추천 가능성이 높아집니다</h3>
                 <div className="rounded-xl border border-green-100 bg-green-50 p-3 w-full text-left">
@@ -610,7 +610,7 @@ export default async function LandingPage() {
           <div className="text-center mb-6 md:mb-8 fade-up">
             <span className="inline-flex items-center gap-2 mb-3">
               <span className="text-sm font-bold tracking-widest" style={{ color: "#2563EB" }}>네이버 AI 브리핑 상세</span>
-              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">음식점·카페·베이커리·바·숙박 전용</span>
+              <span className="text-sm bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">음식점·카페·베이커리·바·숙박 전용</span>
             </span>
             <h2
               className="text-2xl md:text-3xl font-black tracking-tight break-keep"
@@ -660,9 +660,9 @@ export default async function LandingPage() {
               </p>
               <div className="rounded-xl p-3 border mb-2" style={{ background: "#F8FAFC", borderColor: "#E2E8F0" }}>
                 <div className="flex items-center gap-2 bg-white border rounded-lg px-2.5 py-1.5" style={{ borderColor: "#E2E8F0" }}>
-                  <span className="text-green-600 font-black text-xs shrink-0">N</span>
+                  <span className="text-green-600 font-black text-sm shrink-0">N</span>
                   <span className="text-sm flex-1 truncate" style={{ color: "#1E293B" }}>"강남 분위기 좋은 카페"</span>
-                  <span className="text-xs shrink-0" style={{ color: "#64748B" }}>예시</span>
+                  <span className="text-sm shrink-0" style={{ color: "#64748B" }}>예시</span>
                 </div>
               </div>
               <p className="text-sm" style={{ color: "#64748B" }}>매일 수백만 건의 지역 검색 발생</p>
@@ -679,7 +679,7 @@ export default async function LandingPage() {
               <div className="rounded-xl p-3 border mb-2" style={{ background: "#EFF6FF", borderColor: "#BFDBFE" }}>
                 <p className="text-sm font-bold mb-1.5" style={{ color: "#2563EB" }}>
                   AI 추천 카페{" "}
-                  <span className="text-xs font-normal" style={{ color: "#475569" }}>예시</span>
+                  <span className="text-sm font-normal" style={{ color: "#475569" }}>예시</span>
                 </p>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-white rounded-lg px-2.5 py-1.5" style={{ background: "#2563EB" }}>
@@ -720,7 +720,7 @@ export default async function LandingPage() {
 
           <p className="text-center text-sm fade-up break-keep" style={{ color: "#64748B" }}>
             음식점·카페·베이커리·바·숙박업 등 네이버 AI 브리핑 대상 업종 기준 ·{" "}
-            <strong style={{ color: "#6366F1" }}>그 외 업종은 AI탭(모든 업종 가능) + ChatGPT·Gemini 가이드 자동 제공</strong>
+            <strong style={{ color: "#6366F1" }}>그 외 업종은 AI탭(음식점·쇼핑 업종 우선 지원) + ChatGPT·Gemini 가이드 자동 제공</strong>
           </p>
           <p className="text-center text-sm mt-2 fade-up break-keep" style={{ color: "#94A3B8" }}>
             AI 브리핑 노출은 네이버 알고리즘 기준으로 보장되지 않으며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
@@ -741,11 +741,10 @@ export default async function LandingPage() {
               className="text-2xl md:text-3xl font-black tracking-tight break-keep"
               style={{ color: "#0F172A", letterSpacing: "-0.6px" }}
             >
-              모든 업종 노출 가능 — AI 브리핑과 다른 경로
+              음식점·쇼핑 업종 우선 지원 — AI 브리핑과 다른 경로
             </h2>
             <p className="text-sm mt-2 break-keep max-w-2xl mx-auto" style={{ color: "#475569" }}>
-              2026-04-27 베타 출시 · 네이버플러스 구독자 우선 · 전체 확대 진행 중 (네이버 공식) ·{" "}
-              <strong style={{ color: "#0F172A" }}>업종·프랜차이즈 제한 없음</strong>
+              2026-04-27 베타 출시 · 네이버플러스 구독자 우선 · 음식점·카페·쇼핑 업종 중심 순차 확대 중 (네이버 공식)
             </p>
           </div>
 
@@ -755,10 +754,10 @@ export default async function LandingPage() {
             style={{ borderColor: "#A5B4FC", background: "#EEF2FF" }}
           >
             <p className="text-sm md:text-base font-bold break-keep text-center" style={{ color: "#3730A3" }}>
-              학원·병원·미용실·헬스장·법무사 등 — AI 브리핑 비대상이어도 <span style={{ color: "#6366F1" }}>AI탭</span>으로 노출됩니다
+              학원·병원·미용실·헬스장·법무사 등 — AI 브리핑 비대상이어도 <span style={{ color: "#6366F1" }}>AI탭</span> 노출을 준비할 수 있습니다
             </p>
             <p className="text-sm mt-1.5 break-keep text-center" style={{ color: "#4338CA" }}>
-              AI탭은 업종 제한 없음 · 2026-04-27 베타 출시 · 전체 확대 진행 중 (네이버 공식)
+              AI탭은 음식점·카페·쇼핑 우선 지원 · 2026-04-27 베타 출시 · 순차 확대 중 (네이버 공식)
             </p>
           </div>
 
@@ -790,7 +789,7 @@ export default async function LandingPage() {
                       { icon: "🍺", label: "바·주점" },
                       { icon: "🏨", label: "숙박" },
                     ].map(({ icon, label }) => (
-                      <span key={label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold" style={{ background: "#DBEAFE", color: "#1E40AF" }}>
+                      <span key={label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-semibold" style={{ background: "#DBEAFE", color: "#1E40AF" }}>
                         {icon} {label}
                       </span>
                     ))}
@@ -827,7 +826,7 @@ export default async function LandingPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">🟣</span>
                   <h3 className="text-base font-black text-white">네이버 AI탭</h3>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.25)", color: "#fff" }}>Beta</span>
+                  <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.25)", color: "#fff" }}>Beta</span>
                 </div>
                 <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
                   검색 탭에서 &apos;AI&apos;를 클릭하면 나오는 AI 답변
@@ -839,11 +838,11 @@ export default async function LandingPage() {
                 <div className="mb-4">
                   <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">노출 대상 업종</p>
                   <div className="rounded-lg px-3 py-2.5" style={{ background: "#E0E7FF" }}>
-                    <p className="text-sm font-black text-indigo-800">🏢 모든 업종 가능</p>
-                    <p className="text-sm text-indigo-600 mt-0.5">음식점·학원·미용실·병원·헬스장·법무사·쇼핑 등 업종 무관</p>
+                    <p className="text-sm font-black text-indigo-800">🏢 음식점·카페·쇼핑 우선 지원 · 순차 확대 중</p>
+                    <p className="text-sm text-indigo-600 mt-0.5">음식점·카페·쇼핑 업종 중심 베타 운영 · 업종 확대 예정</p>
                   </div>
                   <div className="mt-2 flex items-center gap-1.5">
-                    <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: "#D1FAE5", color: "#065F46" }}>✓ 프랜차이즈 가맹점도 가능</span>
+                    <span className="text-sm px-2 py-0.5 rounded-full font-semibold" style={{ background: "#D1FAE5", color: "#065F46" }}>✓ 프랜차이즈 가맹점도 가능</span>
                   </div>
                 </div>
 
@@ -853,8 +852,8 @@ export default async function LandingPage() {
                   <div className="space-y-2">
                     {[
                       { icon: "👆", text: "검색 결과 탭에서 'AI' 클릭 시 답변에 내 가게 등장" },
-                      { icon: "🌐", text: "업종·프랜차이즈 구분 없이 모두 노출 가능" },
-                      { icon: "🚀", text: "2026년 4월 베타 출시 · 전체 확대 진행 중 (네이버 공식)" },
+                      { icon: "🌐", text: "음식점·카페·쇼핑 업종 우선 지원 · 업종 확대 예정" },
+                      { icon: "🚀", text: "2026년 4월 베타 출시 · 음식점·쇼핑 중심 순차 확대 (네이버 공식)" },
                       { icon: "📝", text: "노출 기준: 소개글, 사진, 예약 연동, 블로그 UGC" },
                     ].map(({ icon, text }) => (
                       <div key={text} className="flex items-start gap-2">
@@ -961,7 +960,7 @@ export default async function LandingPage() {
                 <div className="flex items-start justify-between mb-3">
                   <span className="text-2xl">{icon}</span>
                   {badge && (
-                    <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ background: badgeColor }}>
+                    <span className="text-sm font-bold px-2 py-0.5 rounded-full text-white" style={{ background: badgeColor }}>
                       {badge}
                     </span>
                   )}
@@ -1100,7 +1099,7 @@ export default async function LandingPage() {
               <p className="text-sm mt-2" style={{ color: "#475569" }}>광고 없이<br className="sm:hidden" /> AI 노출 시작</p>
               <div className="flex items-center gap-1 mt-2 flex-wrap justify-center">
                 <span
-                  className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full border"
+                  className="inline-flex items-center gap-1 text-sm px-2 py-1 rounded-full border"
                   style={{ color: "#065F46", background: "#ECFDF5", borderColor: "#6EE7B7" }}
                 >
                   <Check size={10} strokeWidth={2.5} />언제든 해지

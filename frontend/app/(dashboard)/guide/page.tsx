@@ -162,17 +162,17 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
               <span className="text-base md:text-lg font-bold text-blue-900">네이버 AI 브리핑 가이드</span>
             </div>
             {briefingActive && (
-              <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5 text-xs font-bold">
+              <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5 text-sm font-bold">
                 내 업종 대상
               </span>
             )}
             {briefingLikely && (
-              <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-xs font-semibold">
+              <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-sm font-semibold">
                 확대 예정
               </span>
             )}
             {!briefingActive && !briefingLikely && (
-              <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-xs font-semibold">
+              <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-sm font-semibold">
                 비대상
               </span>
             )}
@@ -193,12 +193,12 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
               <Sparkles className="w-5 h-5 text-indigo-600" />
               <span className="text-base md:text-lg font-bold text-indigo-900">네이버 AI탭 가이드</span>
             </div>
-            <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-xs font-bold">
-              모든 업종 Beta
+            <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-sm font-bold">
+              Beta · 순차 확대 중
             </span>
           </div>
           <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
-            검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-27 베타, 업종 제한 없음.
+            검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-27 베타, 음식점·카페·쇼핑 업종 우선 지원.
           </p>
           <p className="text-sm font-semibold text-indigo-700 group-hover:underline">5항목 설정 가이드 →</p>
         </Link>
@@ -213,7 +213,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
               <Bot className="w-5 h-5 text-purple-600" />
               <span className="text-base md:text-lg font-bold text-purple-900">ChatGPT·Gemini 노출 가이드</span>
             </div>
-            <span className="inline-flex items-center rounded-full bg-purple-600 text-white px-2 py-0.5 text-xs font-bold">
+            <span className="inline-flex items-center rounded-full bg-purple-600 text-white px-2 py-0.5 text-sm font-bold">
               모든 업종
             </span>
           </div>
@@ -232,7 +232,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         >
           <BarChart2 className="w-4 h-4 flex-shrink-0" />
           점수 모델 v3.1 변경 사항 안내
-          <span className="ml-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded">준비 중</span>
+          <span className="ml-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded">준비 중</span>
           <span className="group-hover:underline">→</span>
         </Link>
       </div>

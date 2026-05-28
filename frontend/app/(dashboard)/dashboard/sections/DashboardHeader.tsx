@@ -260,7 +260,7 @@ export default function DashboardHeader({
 
           {/* 기대치 1줄 안내 */}
           <p className="text-sm text-slate-500 mb-3 leading-snug">
-            분석 결과는 현재 상태를 진단합니다. AI 노출 개선 효과는 수주~수개월의 꾸준한 실행 후 나타납니다.
+            분석 결과는 현재 상태를 진단합니다. 스마트플레이스 변경은 1~2일, AI탭·블로그 개선은 2~4주 후 반영됩니다. AEOlab이 매주 변화를 추적합니다.
           </p>
 
           {/* 키워드 미등록 안내 */}

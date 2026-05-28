@@ -68,7 +68,7 @@ export function MultiBizTable({ token }: Props) {
         <h3 className="text-base md:text-lg font-bold text-gray-900">
           전체 사업장 현황
         </h3>
-        <span className="ml-auto text-xs text-gray-400">{items.length}개 사업장</span>
+        <span className="ml-auto text-sm text-gray-400">{items.length}개 사업장</span>
       </div>
 
       {/* PC 테이블 */}

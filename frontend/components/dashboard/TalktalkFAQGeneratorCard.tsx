@@ -149,7 +149,7 @@ export function TalktalkFAQGeneratorCard({
         <h3 className="text-base md:text-lg font-bold text-gray-900">
           톡톡 채팅방 메뉴 자동 생성
         </h3>
-        <span className={`text-xs md:text-sm px-2 py-0.5 rounded-full font-medium ${planBadgeColor}`}>
+        <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${planBadgeColor}`}>
           {planLabel} 플랜 · 월 {planMonthlyLimit >= 999 ? "무제한" : `${planMonthlyLimit}회`}
         </span>
       </div>
@@ -195,7 +195,7 @@ export function TalktalkFAQGeneratorCard({
             <div>
               <h4 className="text-sm md:text-base font-bold text-gray-900 mb-3">
                 채팅방 메뉴 {generated.chat_menus.length}개
-                <span className="ml-2 text-xs md:text-sm text-gray-500 font-normal">(메뉴명 6자 이내)</span>
+                <span className="ml-2 text-sm text-gray-500 font-normal">(메뉴명 6자 이내)</span>
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {generated.chat_menus.map((menu, i) => (
@@ -209,11 +209,11 @@ export function TalktalkFAQGeneratorCard({
                         {menu.menu_name}
                       </span>
                       {menu.link_type === "url" ? (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                        <span className="px-2 py-0.5 rounded-full text-sm font-medium bg-purple-100 text-purple-700">
                           URL
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
+                        <span className="px-2 py-0.5 rounded-full text-sm font-medium bg-gray-200 text-gray-600">
                           메시지
                         </span>
                       )}
@@ -226,7 +226,7 @@ export function TalktalkFAQGeneratorCard({
                           href={menu.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs md:text-sm text-blue-600 hover:underline truncate max-w-[160px]"
+                          className="text-sm text-blue-600 hover:underline truncate max-w-[160px]"
                         >
                           {menu.url}
                         </a>
@@ -239,7 +239,7 @@ export function TalktalkFAQGeneratorCard({
                       </div>
                     ) : (
                       <div className="flex items-start gap-2">
-                        <p className="text-xs md:text-sm text-gray-600 leading-relaxed flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 leading-relaxed flex-1 min-w-0">
                           {menu.message ?? ""}
                         </p>
                         <button
@@ -275,7 +275,7 @@ export function TalktalkFAQGeneratorCard({
               <div className="space-y-3">
                 {generated.items.map((faq, i) => (
                   <div key={i} className="p-3 md:p-4 bg-gray-50 rounded-xl border">
-                    <div className="text-xs md:text-sm text-purple-700 font-medium mb-1">
+                    <div className="text-sm text-purple-700 font-medium mb-1">
                       [{faq.category}]
                     </div>
                     <div className="text-sm md:text-base font-medium text-gray-900 mb-1">
@@ -286,7 +286,7 @@ export function TalktalkFAQGeneratorCard({
                     </div>
                     <button
                       onClick={() => copyFaqOne(faq, i)}
-                      className="text-xs md:text-sm text-blue-700 hover:underline font-medium"
+                      className="text-sm text-blue-700 hover:underline font-medium"
                     >
                       {copiedFaqIndex === i ? "복사됨!" : "이 Q&A 복사"}
                     </button>

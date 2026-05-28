@@ -84,14 +84,14 @@ export default async function KeywordPage({
         <div className="mb-8">
           <div className="flex flex-wrap gap-2 mb-3">
             <span
-              className={`text-xs font-bold px-2.5 py-1 rounded-full ${badgeClass}`}
+              className={`text-sm font-bold px-2.5 py-1 rounded-full ${badgeClass}`}
             >
               경쟁 강도: {page.competitionLevel}
             </span>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
+            <span className="text-sm font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
               {page.region}
             </span>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
+            <span className="text-sm font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
               {page.category}
             </span>
           </div>
@@ -158,7 +158,7 @@ export default async function KeywordPage({
                 key={i}
                 className="flex gap-3 items-start p-4 bg-white border border-gray-200 rounded-xl"
               >
-                <span className="w-6 h-6 bg-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-6 h-6 bg-blue-600 text-white text-sm font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">
                   {i + 1}
                 </span>
                 <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">

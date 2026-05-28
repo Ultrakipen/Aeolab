@@ -16,7 +16,7 @@ interface PlatformDistributionChartProps {
 
 const NAVER_PLATFORMS: { key: string; label: string; color: string }[] = [
   { key: 'naver',        label: '네이버 AI 브리핑',            color: '#03c75a' },
-  { key: 'naver_ai_tab', label: '네이버 AI탭 (베타·모든 업종)', color: '#0ea5e9' },
+  { key: 'naver_ai_tab', label: '네이버 AI탭 (Beta · 순차 확대 중)', color: '#0ea5e9' },
 ]
 
 const GLOBAL_PLATFORMS: { key: string; label: string; color: string }[] = [
@@ -213,7 +213,7 @@ export function PlatformDistributionChart({
                 </div>
               </div>
               <PlatformRow
-                platform={{ key: 'naver_ai_tab', label: '네이버 AI탭 (베타·모든 업종)', color: '#0ea5e9' }}
+                platform={{ key: 'naver_ai_tab', label: '네이버 AI탭 (Beta · 순차 확대 중)', color: '#0ea5e9' }}
                 result={results['naver_ai_tab']}
               />
             </>

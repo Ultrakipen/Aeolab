@@ -118,9 +118,9 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               {business.is_franchise
                 ? "프랜차이즈 가맹점은 현재 네이버 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정). 그동안 일반 검색·AI탭 노출과 ChatGPT·Gemini 현황 측정에서 효과를 드립니다."
                 : isInactive
-                ? "이 업종은 AI 브리핑 비대상이지만, 네이버 AI탭(2026-04-27 베타)은 모든 업종 노출 가능합니다. 아래 단계로 AI탭 대비 + 일반 검색 노출을 동시에 준비하세요."
+                ? "이 업종은 AI 브리핑 비대상이지만, 네이버 AI탭(2026-04-27 베타, 음식점·쇼핑 업종 우선 지원) 업종 확대를 대비해 아래 단계로 준비하세요. 일반 검색 노출과 병행 가능합니다."
                 : isLikely
-                ? "이 업종은 AI 브리핑 확대 예상 업종입니다. 미리 5단계를 완료해두면 확대 즉시 노출됩니다. (네이버 AI탭은 지금 모든 업종 베타 이용 가능 → 아래 AI탭 가이드 참고)"
+                ? "이 업종은 AI 브리핑 확대 예상 업종입니다. 미리 5단계를 완료해두면 확대 즉시 노출됩니다. (네이버 AI탭은 음식점·쇼핑 업종 우선 베타 → 아래 AI탭 가이드 참고)"
                 : "이 업종은 현재 AI 브리핑 노출 대상입니다. 5단계를 완료해 노출 확률을 높이세요."}
             </p>
           </>
@@ -152,12 +152,11 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             {/* AI탭 준비 안내 — INACTIVE/프랜차이즈도 AI탭은 모든 업종 가능 */}
             <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5">
               <p className="text-sm md:text-base font-semibold text-indigo-800 mb-2">
-                🆕 네이버 AI탭 준비 — 이 업종도 노출 가능합니다
+                🆕 네이버 AI탭 준비 — 업종 확대를 미리 대비하세요
               </p>
               <p className="text-sm text-indigo-700 mb-3 leading-relaxed">
-                네이버 AI탭(2026-04-27 베타)은 AI 브리핑과 달리 <strong>업종·프랜차이즈 제한 없이</strong> 모든 사업장이
-                노출될 수 있습니다. 현재 네이버플러스 구독자 대상 베타이며, 6월 전체 확대 예정입니다 (네이버 공식).
-                지금 아래 항목을 준비해두면 전체 확대 즉시 노출 우위를 가집니다.
+                네이버 AI탭(2026-04-27 베타)은 현재 음식점·카페·쇼핑 업종 중심으로 운영 중이며 업종 순차 확대가 진행되고 있습니다 (네이버 공식).
+                지금 아래 항목을 준비해두면 이 업종으로 확대 시 즉시 노출 우위를 가질 수 있습니다.
               </p>
               <ul className="space-y-2 text-sm text-indigo-700">
                 <li className="flex items-start gap-2">
@@ -172,7 +171,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                     <strong>사진 10장 이상</strong> 등록 — 외관·내부·서비스 현장 사진
                     {photoCount !== null && (
                       <span
-                        className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-sm font-semibold ${
                           photoCount >= 10
                             ? 'bg-green-100 text-green-700 border border-green-200'
                             : 'bg-amber-100 text-amber-700 border border-amber-200'
@@ -188,13 +187,13 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                   <span>
                     <strong>예약 연동</strong> (선택) — AI탭 결과에 예약 버튼이 추가로 표시됨
                     {hasReservation === true && (
-                      <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 border border-green-200 px-2 py-0.5 text-xs font-semibold">
+                      <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 border border-green-200 px-2 py-0.5 text-sm font-semibold">
                         ✓ 연동됨
                       </span>
                     )}
                     {hasReservation === false && (
                       <>
-                        <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-xs font-semibold">
+                        <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-sm font-semibold">
                           미연동
                         </span>
                         <a
@@ -311,10 +310,10 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-6 space-y-4">
             <div>
               <p className="text-sm md:text-base font-semibold text-indigo-900 mb-1">
-                이 업종은 네이버 AI 브리핑 비대상이지만, AI탭은 모든 업종 가능합니다
+                이 업종은 네이버 AI 브리핑 비대상이지만, AI탭 업종 확대를 미리 준비할 수 있습니다
               </p>
               <p className="text-sm text-indigo-700 leading-relaxed">
-                네이버 AI탭(2026-04-27 베타)은 업종·프랜차이즈 제한 없이 모든 사업장이 노출될 수 있습니다.
+                네이버 AI탭(2026-04-27 베타)은 현재 음식점·카페·쇼핑 업종 중심으로 운영 중이며 업종 확대가 순차 진행되고 있습니다.
                 아래 3단계로 AI탭 노출을 미리 준비하세요.
               </p>
             </div>
@@ -542,6 +541,68 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             </Link>
           )}
         </Step>
+
+        {/* ── 스마트플레이스 AI 부가 기능 안내 ────────────────────── */}
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 md:p-5">
+          <p className="text-sm md:text-base font-semibold text-emerald-900 mb-3">
+            🤖 스마트플레이스 AI 부가 기능 — 추가로 활용하세요
+          </p>
+          <div className="space-y-4">
+            {business?.category === "restaurant" && (
+              <div className="flex items-start gap-3">
+                <span className="shrink-0 text-lg mt-0.5">💬</span>
+                <div>
+                  <p className="text-sm md:text-base font-medium text-gray-900">
+                    플레이스 플러스(beta) AI 리뷰 답글 초안
+                    <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5 font-normal">
+                      음식점 전용
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-600 leading-relaxed mt-1">
+                    스마트플레이스 자체 AI가 리뷰 등록 시 답글 초안을 자동 생성합니다.
+                    답글 스타일·길이 설정이 가능하며, 네이버플러스 구독 계정 대상 베타 서비스입니다.
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    * AEOlab{" "}
+                    <Link href="/review-inbox" className="underline">리뷰 답변 관리</Link>
+                    는 Claude AI 기반으로 모든 업종을 지원하는 별개 서비스입니다.
+                  </p>
+                  <a
+                    href="https://smartplace.naver.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-2 text-sm text-emerald-700 font-medium hover:text-emerald-900 underline underline-offset-2"
+                  >
+                    스마트플레이스 → 업체 홈 → 리뷰 →
+                  </a>
+                </div>
+              </div>
+            )}
+            <div className="flex items-start gap-3">
+              <span className="shrink-0 text-lg mt-0.5">🔔</span>
+              <div>
+                <p className="text-sm md:text-base font-medium text-gray-900">
+                  리뷰 민감 이슈 알림
+                  <span className="ml-2 text-xs bg-gray-100 text-gray-600 border border-gray-200 rounded-full px-2 py-0.5 font-normal">
+                    전 업종
+                  </span>
+                </p>
+                <p className="text-sm text-gray-600 leading-relaxed mt-1">
+                  부정·민감 이슈가 포함된 리뷰가 등록되면 스마트플레이스 앱으로 즉시 알림을 받을 수 있습니다.
+                  빠른 답글 응대는 플레이스 신뢰도 신호에 긍정적 영향을 줍니다.
+                </p>
+                <a
+                  href="https://smartplace.naver.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-2 text-sm text-emerald-700 font-medium hover:text-emerald-900 underline underline-offset-2"
+                >
+                  스마트플레이스 → 설정 → 알림 설정 →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── §3.4 필수 사진 5종 체크리스트 카드 ────────────────────── */}

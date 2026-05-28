@@ -213,7 +213,7 @@ function CompetitorRow({ item, nextRankScore }: { item: Competitor; nextRankScor
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-semibold truncate ${item.me ? "text-red-700" : "text-gray-700"}`}>
           {item.name}
-          {item.me && <span className="ml-1 text-xs text-red-400 font-normal">(내 가게)</span>}
+          {item.me && <span className="ml-1 text-sm text-red-400 font-normal">(내 가게)</span>}
         </p>
         {item.me && exposureGap > 0 && (
           <p className="text-sm text-gray-500 leading-tight">{item.rank - 1}위까지 {exposureGap} 차이</p>
@@ -232,7 +232,7 @@ function CompetitorRow({ item, nextRankScore }: { item: Competitor; nextRankScor
           </div>
           <span
             aria-hidden
-            className="absolute text-xs leading-none text-gray-400 whitespace-nowrap"
+            className="absolute text-sm leading-none text-gray-400 whitespace-nowrap"
             style={{ left: `${INDUSTRY_AVG_SCORE}%`, transform: "translateX(-50%)", top: "9px" }}
           >
             평균
@@ -261,7 +261,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
     <div className="space-y-3">
       {/* 질문 버블 */}
       <div>
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+        <p className="text-sm font-bold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
           <span className="w-2 h-2 bg-blue-400 rounded-full inline-block" />
           사용자가 AI에게 물어봅니다
           <span className="ml-auto normal-case font-normal text-gray-400">(예시)</span>
@@ -280,9 +280,9 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
             </span>
             <div>
               <span className="text-sm font-bold text-emerald-800">네이버 AI 브리핑</span>
-              <span className="ml-2 text-xs bg-emerald-200 text-emerald-800 font-semibold px-1.5 py-0.5 rounded-full">핵심 채널</span>
+              <span className="ml-2 text-sm bg-emerald-200 text-emerald-800 font-semibold px-1.5 py-0.5 rounded-full">핵심 채널</span>
             </div>
-            <span className="text-xs text-gray-400 ml-auto">(예시)</span>
+            <span className="text-sm text-gray-400 ml-auto">(예시)</span>
           </div>
           <p className="text-sm text-gray-700 leading-relaxed">
             {naverMentioned.map((c, i) => (
@@ -295,7 +295,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
             ))}
             {" "}이(가) &lsquo;{sample.region.split(" ").slice(-1)[0]} {sample.category} 추천&rsquo; 쿼리에 AI 브리핑으로 노출됨
           </p>
-          <div className="mt-2 inline-flex items-center gap-1.5 bg-red-50 text-red-700 text-xs font-bold px-2.5 py-1 rounded-full border border-red-100">
+          <div className="mt-2 inline-flex items-center gap-1.5 bg-red-50 text-red-700 text-sm font-bold px-2.5 py-1 rounded-full border border-red-100">
             <span>❌</span>
             <span>{myComp.name}는 AI 브리핑에 미노출</span>
           </div>
@@ -305,7 +305,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
       {/* LIKELY 업종 배지 */}
       {!sample.naverActiveCategory && sample.likelyCategory && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
-          <p className="text-xs font-bold text-amber-800">
+          <p className="text-sm font-bold text-amber-800">
             ⚡ 네이버 AI탭 2026년 확장 예정 업종
           </p>
           <p className="text-sm text-amber-700 mt-0.5">
@@ -317,19 +317,19 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
       {/* ChatGPT 응답 — SECONDARY */}
       <div className={`bg-gray-50 border rounded-xl p-3.5 ${sample.naverActiveCategory ? "border-gray-200" : "border-gray-200"}`}>
         <div className="flex items-center gap-2 mb-2">
-          <span className="w-6 h-6 bg-[#10a37f] text-white text-xs font-bold rounded-md flex items-center justify-center flex-shrink-0" style={{fontSize: "9px"}}>
+          <span className="w-6 h-6 bg-[#10a37f] text-white text-sm font-bold rounded-md flex items-center justify-center flex-shrink-0" style={{fontSize: "9px"}}>
             GPT
           </span>
           <span className="text-sm font-bold text-gray-700">ChatGPT 답변</span>
           {!sample.naverActiveCategory && (
-            <span className="ml-1 text-xs bg-orange-100 text-orange-700 font-semibold px-1.5 py-0.5 rounded-full">핵심 채널</span>
+            <span className="ml-1 text-sm bg-orange-100 text-orange-700 font-semibold px-1.5 py-0.5 rounded-full">핵심 채널</span>
           )}
-          <span className="text-xs text-gray-400 ml-auto">50회 질의 기반 (예시)</span>
+          <span className="text-sm text-gray-400 ml-auto">50회 질의 기반 (예시)</span>
         </div>
         <p className="text-sm text-gray-700 leading-relaxed">
           {renderHighlighted(sample.chatgptTemplate, nonMe.map((c) => c.name))}
         </p>
-        <div className="mt-2 inline-flex items-center gap-1.5 bg-red-50 text-red-700 text-xs font-bold px-2.5 py-1 rounded-full border border-red-100">
+        <div className="mt-2 inline-flex items-center gap-1.5 bg-red-50 text-red-700 text-sm font-bold px-2.5 py-1 rounded-full border border-red-100">
           <span>❌</span>
           <span>{myComp.name}는 AI 응답에 포함되지 않음</span>
         </div>
@@ -369,8 +369,8 @@ function ComparisonPanel({ sample }: { sample: SampleData }) {
     <div className="space-y-3">
       {/* 범례 — 네이버 PRIMARY 강조 */}
       <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-500">AI 추천 현황 비교 <span className="text-gray-400">(예시)</span></p>
-        <span className="flex items-center gap-2 text-xs font-semibold">
+        <p className="text-sm text-gray-500">AI 추천 현황 비교 <span className="text-gray-400">(예시)</span></p>
+        <span className="flex items-center gap-2 text-sm font-semibold">
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-600 inline-block" />
             <span className="text-emerald-700 font-bold">네이버</span>
@@ -448,7 +448,7 @@ function ScoreExplainPanel({ sample }: { sample: SampleData }) {
     <div className="space-y-4">
       {/* 노출 현황 미터 */}
       <div>
-        <p className="text-xs font-bold text-gray-500 mb-2">AI 브리핑 노출 현황 분석</p>
+        <p className="text-sm font-bold text-gray-500 mb-2">AI 브리핑 노출 현황 분석</p>
         <div
           className="relative h-5 rounded-full overflow-hidden"
           style={{ background: "linear-gradient(to right, #fee2e2, #fef9c3, #d1fae5)" }}
@@ -483,7 +483,7 @@ function ScoreExplainPanel({ sample }: { sample: SampleData }) {
             <p className="text-sm text-green-500 mt-0.5">AI 추천 시작 구간</p>
           </div>
         </div>
-        <p className="text-xs text-gray-400 mt-1.5 text-center">위 수치는 예시입니다. 실제 진단 결과는 내 가게에 따라 다릅니다.</p>
+        <p className="text-sm text-gray-400 mt-1.5 text-center">위 수치는 예시입니다. 실제 진단 결과는 내 가게에 따라 다릅니다.</p>
       </div>
 
       {/* 4가지 노출 요소 */}
@@ -494,7 +494,7 @@ function ScoreExplainPanel({ sample }: { sample: SampleData }) {
             <div key={item.label} className="flex items-center gap-2">
               <span className={`w-2.5 h-2.5 rounded-full ${item.color} shrink-0`} />
               <span className="text-sm text-gray-700 flex-1">{item.label}</span>
-              <span className="text-xs font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">{item.weight}%</span>
+              <span className="text-sm font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">{item.weight}%</span>
             </div>
           ))}
         </div>
@@ -542,10 +542,10 @@ export default function HeroSampleCard({ variant }: Props) {
         <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden w-full">
           {/* 카드 상단 예시 배지 */}
           <div className="flex items-center justify-between px-5 pt-3 pb-0">
-            <span className="text-xs font-semibold text-gray-600">
+            <span className="text-sm font-semibold text-gray-600">
               {sample.region} &middot; {sample.category}
             </span>
-            <span className="text-xs bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded-full border border-gray-200">예시 데이터</span>
+            <span className="text-sm bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded-full border border-gray-200">예시 데이터</span>
           </div>
           {/* 3탭 헤더 */}
           <div className="flex border-b border-gray-100 mt-2">
@@ -560,7 +560,7 @@ export default function HeroSampleCard({ variant }: Props) {
                 key={i}
                 type="button"
                 onClick={() => setTab(i as CardTab)}
-                className={`flex-1 flex flex-col items-center gap-0.5 py-3 px-2 text-xs font-bold border-b-2 transition-all ${
+                className={`flex-1 flex flex-col items-center gap-0.5 py-3 px-2 text-sm font-bold border-b-2 transition-all ${
                   tab === i
                     ? "border-blue-600 text-blue-600 bg-blue-50"
                     : "border-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-50"
@@ -568,7 +568,7 @@ export default function HeroSampleCard({ variant }: Props) {
               >
                 <span className="text-base">{t.icon}</span>
                 <span>{t.label}</span>
-                <span className={`text-xs font-normal ${tab === i ? "text-blue-400" : "text-gray-300"}`}>{t.sub}</span>
+                <span className={`text-sm font-normal ${tab === i ? "text-blue-400" : "text-gray-300"}`}>{t.sub}</span>
               </button>
             ))}
           </div>
@@ -582,14 +582,14 @@ export default function HeroSampleCard({ variant }: Props) {
 
           {/* 업종 탭 네비게이터 */}
           <div className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-50 border-t border-gray-100 overflow-x-auto">
-            <span className="text-xs text-gray-400 shrink-0 mr-1">업종 예시:</span>
+            <span className="text-sm text-gray-400 shrink-0 mr-1">업종 예시:</span>
             {SAMPLES.map((s, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => { setIdx(i); setTab(0); }}
                 aria-label={s.category}
-                className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-all shrink-0 ${
+                className={`text-sm px-2.5 py-1 rounded-full border font-medium transition-all shrink-0 ${
                   i === idx
                     ? "bg-blue-600 text-white border-blue-600 shadow-sm"
                     : "bg-white text-gray-500 border-gray-200 hover:border-blue-300 hover:text-blue-600"
@@ -611,13 +611,13 @@ export default function HeroSampleCard({ variant }: Props) {
       <div className="bg-white rounded-xl border border-gray-200 p-5 w-full max-w-2xl mx-auto" style={{ boxShadow: "0 2px 4px -1px rgba(0,0,0,0.04),0 8px 16px -4px rgba(0,100,255,0.08)" }}>
         {/* 업종 선택 탭 */}
         <div className="flex flex-wrap gap-1.5 mb-4">
-          <span className="text-xs text-gray-400 self-center mr-0.5">업종 예시:</span>
+          <span className="text-sm text-gray-400 self-center mr-0.5">업종 예시:</span>
           {SAMPLES.map((s, i) => (
             <button
               key={i}
               type="button"
               onClick={() => setIdx(i)}
-              className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${
+              className={`text-sm px-2.5 py-1 rounded-full border font-medium transition-colors ${
                 i === idx
                   ? "bg-blue-600 text-white border-blue-600"
                   : "bg-white text-gray-500 border-gray-200 hover:border-blue-300 hover:text-blue-600"
@@ -631,7 +631,7 @@ export default function HeroSampleCard({ variant }: Props) {
         {/* 점수 + 지역 */}
         <div className="flex items-center justify-between mb-2">
           <div>
-            <p className="text-xs text-gray-500">
+            <p className="text-sm text-gray-500">
               {sample.region} · {sample.category}{" "}
               <span className="text-gray-400">(예시)</span>
             </p>
@@ -639,7 +639,7 @@ export default function HeroSampleCard({ variant }: Props) {
           </div>
           <div className="text-right shrink-0">
             <p className="text-3xl font-black text-red-500 leading-none">{me?.score ?? 28}</p>
-            <p className="text-xs text-gray-400">/ 100점</p>
+            <p className="text-sm text-gray-400">/ 100점</p>
           </div>
         </div>
 
@@ -647,7 +647,7 @@ export default function HeroSampleCard({ variant }: Props) {
         <div className="relative w-full bg-gray-100 rounded-full h-2 mb-3">
           <div className="h-2 rounded-full bg-red-400 transition-all" style={{ width: `${me?.score ?? 28}%` }} />
           <div className="absolute top-0 bottom-0 w-px bg-gray-500 opacity-40" style={{ left: `${INDUSTRY_AVG_SCORE}%` }} />
-          <span className="absolute text-xs text-gray-400 leading-none" style={{ left: `${INDUSTRY_AVG_SCORE}%`, transform: "translateX(-50%)", top: "10px" }}>
+          <span className="absolute text-sm text-gray-400 leading-none" style={{ left: `${INDUSTRY_AVG_SCORE}%`, transform: "translateX(-50%)", top: "10px" }}>
             평균
           </span>
         </div>
@@ -674,7 +674,7 @@ export default function HeroSampleCard({ variant }: Props) {
           내 가게 무료 진단하기 →
         </Link>
         <p className="text-center mt-2">
-          <Link href="/demo" className="text-xs text-blue-500 hover:underline hover:text-blue-600">
+          <Link href="/demo" className="text-sm text-blue-500 hover:underline hover:text-blue-600">
             전체 데모 보기 →
           </Link>
         </p>
@@ -717,13 +717,13 @@ export default function HeroSampleCard({ variant }: Props) {
           </p>
           <p className="text-sm font-bold text-gray-900">우리 동네 경쟁 현황</p>
         </div>
-        <span className="text-xs bg-red-50 text-red-600 font-semibold px-2 py-1 rounded-full border border-red-100 shrink-0">
+        <span className="text-sm bg-red-50 text-red-600 font-semibold px-2 py-1 rounded-full border border-red-100 shrink-0">
           {sample.badge}
         </span>
       </div>
 
       {/* 범례 — 네이버 PRIMARY 강조 */}
-      <div className="flex items-center justify-end gap-2 text-xs font-semibold mb-1.5">
+      <div className="flex items-center justify-end gap-2 text-sm font-semibold mb-1.5">
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-600 inline-block" />
           <span className="text-emerald-700 font-bold">네이버</span>
@@ -799,10 +799,10 @@ export default function HeroSampleCard({ variant }: Props) {
       <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-2xl mx-auto">
         {/* 카드 상단 예시 배지 */}
         <div className="flex items-center justify-between px-5 pt-3 pb-0">
-          <span className="text-xs font-semibold text-gray-600">
+          <span className="text-sm font-semibold text-gray-600">
             {sample.region} &middot; {sample.category}
           </span>
-          <span className="text-xs bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded-full border border-gray-200">예시 데이터</span>
+          <span className="text-sm bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded-full border border-gray-200">예시 데이터</span>
         </div>
         {/* 3탭 헤더 */}
         <div className="flex border-b border-gray-100 mt-2">
@@ -817,7 +817,7 @@ export default function HeroSampleCard({ variant }: Props) {
               key={i}
               type="button"
               onClick={() => setTab(i as CardTab)}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-3 px-2 text-xs font-bold border-b-2 transition-all ${
+              className={`flex-1 flex flex-col items-center gap-0.5 py-3 px-2 text-sm font-bold border-b-2 transition-all ${
                 tab === i
                   ? "border-blue-600 text-blue-600 bg-blue-50"
                   : "border-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-50"
@@ -825,7 +825,7 @@ export default function HeroSampleCard({ variant }: Props) {
             >
               <span className="text-base">{t.icon}</span>
               <span>{t.label}</span>
-              <span className={`text-xs font-normal ${tab === i ? "text-blue-400" : "text-gray-300"}`}>{t.sub}</span>
+              <span className={`text-sm font-normal ${tab === i ? "text-blue-400" : "text-gray-300"}`}>{t.sub}</span>
             </button>
           ))}
         </div>
@@ -837,14 +837,14 @@ export default function HeroSampleCard({ variant }: Props) {
         </div>
         {/* 업종 탭 네비게이터 */}
         <div className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-50 border-t border-gray-100 overflow-x-auto">
-          <span className="text-xs text-gray-400 shrink-0 mr-1">업종 예시:</span>
+          <span className="text-sm text-gray-400 shrink-0 mr-1">업종 예시:</span>
           {SAMPLES.map((s, i) => (
             <button
               key={i}
               type="button"
               onClick={() => { setIdx(i); setTab(0); }}
               aria-label={s.category}
-              className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-all shrink-0 ${
+              className={`text-sm px-2.5 py-1 rounded-full border font-medium transition-all shrink-0 ${
                 i === idx
                   ? "bg-blue-600 text-white border-blue-600 shadow-sm"
                   : "bg-white text-gray-500 border-gray-200 hover:border-blue-300 hover:text-blue-600"

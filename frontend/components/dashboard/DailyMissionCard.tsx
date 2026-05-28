@@ -41,7 +41,7 @@ const DIMENSION_MESSAGES: Record<string, {
   },
   multi_ai_exposure: {
     reason: 'Gemini·Google AI에서 이 사업장 인식도를 높일 수 있습니다',
-    action: 'Google 비즈니스 프로필 등록이 Gemini 노출의 가장 빠른 방법입니다. ChatGPT는 장기 콘텐츠 전략으로 접근하세요',
+    action: 'Google 비즈니스 프로필 등록이 Gemini·ChatGPT(Bing 검색) 노출의 첫 단계입니다. Gemini는 수 주 이내 노출이 시작될 수 있으며, ChatGPT 학습 반영은 수개월이 소요됩니다.',
     link: '/guide',
     linkLabel: '개선 가이드 보기',
   },

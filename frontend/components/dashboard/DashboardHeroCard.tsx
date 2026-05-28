@@ -120,7 +120,7 @@ export default function DashboardHeroCard({
               }`}
             >
               {scoreChangeDiff > 0 ? "↑ 개선됨" : "↓ 하락"}
-              <span className="text-xs font-normal ml-1 opacity-75">지난 스캔 대비</span>
+              <span className="text-sm font-normal ml-1 opacity-75">지난 스캔 대비</span>
             </span>
           )}
         </div>
@@ -137,9 +137,9 @@ export default function DashboardHeroCard({
             />
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-xs text-gray-400">시작</span>
-            <span className="text-xs text-gray-500 font-medium">현재 위치</span>
-            <span className="text-xs text-gray-400">최적화</span>
+            <span className="text-sm text-gray-400">시작</span>
+            <span className="text-sm text-gray-500 font-medium">현재 위치</span>
+            <span className="text-sm text-gray-400">최적화</span>
           </div>
         </div>
 

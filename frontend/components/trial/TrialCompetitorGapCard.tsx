@@ -89,7 +89,7 @@ export default function TrialCompetitorGapCard({
           <div className="flex items-center gap-2 mb-2">
             <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">같은 업종 경쟁 현황</p>
             {searchQuery && (
-              <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">&ldquo;{searchQuery}&rdquo; 기준</span>
+              <span className="text-sm text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">&ldquo;{searchQuery}&rdquo; 기준</span>
             )}
           </div>
           <p className="text-sm text-gray-400 mb-2 leading-relaxed">
@@ -110,7 +110,7 @@ export default function TrialCompetitorGapCard({
                 key={comp.rank}
                 className={`flex items-center gap-3 rounded-xl px-3 py-2 ${isMe ? "bg-blue-50 border border-blue-200" : "bg-gray-50"}`}
               >
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
                   comp.rank === 1 ? "bg-yellow-300 text-yellow-900"
                   : comp.rank === 2 ? "bg-gray-300 text-gray-700"
                   : comp.rank === 3 ? "bg-orange-200 text-orange-800"
@@ -120,7 +120,7 @@ export default function TrialCompetitorGapCard({
                 </span>
                 <span className={`text-sm font-medium flex-1 truncate max-w-[120px] sm:max-w-[200px] ${isMe ? "text-blue-700" : "text-gray-800"}`}>
                   {comp.name}
-                  {isMe && <span className="ml-1.5 text-xs bg-blue-600 text-white px-1.5 py-0.5 rounded-full">내 가게</span>}
+                  {isMe && <span className="ml-1.5 text-sm bg-blue-600 text-white px-1.5 py-0.5 rounded-full">내 가게</span>}
                 </span>
               </div>
             );

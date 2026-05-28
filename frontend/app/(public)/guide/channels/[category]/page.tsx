@@ -61,10 +61,10 @@ function getChannelCards(entry: ChannelGuideEntry) {
       id: "aitab",
       title: "네이버 AI탭",
       subtitle: "2026 베타 공개",
-      status: "모든 업종 가능",
+      status: "음식점·쇼핑 우선 · 순차 확대",
       statusColor: "bg-violet-100 text-violet-800",
       detail:
-        "2026-04-27 베타 공개. 업종 제한 없이 AI탭에서 노출될 수 있습니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
+        "2026-04-27 베타 공개. 음식점·카페·쇼핑 업종 중심으로 운영 중이며 순차 확대 예정입니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
       icon: "✨",
       weight: entry.naverRatio,
     },
@@ -134,11 +134,11 @@ export default async function ChannelGuidePage({
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span
-              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${groupColor}`}
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold border ${groupColor}`}
             >
               그룹 {entry.group} — {groupLabel}
             </span>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${BRIEFING_LABELS[entry.briefing].color}`}>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold ${BRIEFING_LABELS[entry.briefing].color}`}>
               {BRIEFING_LABELS[entry.briefing].label}
             </span>
           </div>
@@ -190,7 +190,7 @@ export default async function ChannelGuidePage({
                     <p className="text-sm text-gray-500">{card.subtitle}</p>
                   </div>
                 </div>
-                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${card.statusColor}`}>
+                <span className={`inline-block px-2 py-0.5 rounded-full text-sm font-semibold ${card.statusColor}`}>
                   {card.status}
                 </span>
                 <p className="text-sm text-gray-600 leading-relaxed break-keep">{card.detail}</p>

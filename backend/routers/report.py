@@ -4712,13 +4712,14 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
     # 1. businesses에서 review_count, keywords 가져오기
     biz_res = await execute(
         supabase.table("businesses")
-        .select("review_count, keywords, category")
+        .select("review_count, keywords, category, naver_place_id")
         .eq("id", biz_id)
         .limit(1)
     )
     biz_rows = (biz_res.data or []) if biz_res else []
     biz_row = biz_rows[0] if biz_rows else {}
     review_count = int((biz_row.get("review_count") if biz_row else None) or 0)
+    naver_place_id = str(biz_row.get("naver_place_id") or "").strip()
     registered_keywords = [k for k in (biz_row.get("keywords") or []) if k and str(k).strip()]
 
     # 경쟁사 평균 점수 조회 (monthly-checklist 기준값 개인화)
@@ -4755,6 +4756,7 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
     )
     scan_rows = (scan_res.data or []) if scan_res else []
     latest = scan_rows[0] if scan_rows else {}
+    has_any_scan = bool(scan_rows)  # 스캔 이력 유무
 
     # --- Bug 2 수정: keyword_coverage 0% 오표시 방지 ---
     score_breakdown = (latest.get("score_breakdown") or {})
@@ -4837,12 +4839,10 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
 
     # 경쟁사 평균 점수 기반 리뷰 목표 기준값 결정
     _review_target = 20  # 기본값
-    _review_desc_suffix = "20개 이상이면 네이버 노출이 유리해집니다"
     if _comp_avg_score is not None:
-        _review_desc_suffix = (
-            "지역 경쟁사보다 리뷰가 적습니다 — "
-            "꾸준히 쌓을수록 네이버 AI 노출 가능성이 높아집니다"
-        )
+        _review_desc_suffix = "꾸준히 쌓을수록 네이버 AI 노출 가능성이 높아집니다"
+    else:
+        _review_desc_suffix = "20개 이상이면 네이버 노출이 유리해집니다"
 
     # 6. 체크리스트 항목 생성
     checklist = [
@@ -4850,7 +4850,13 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
             "id": "review_count",
             "title": f"리뷰 {_review_target}개 달성하기",
             "description": (
-                f"현재 리뷰 {review_count}개 — {_review_desc_suffix}"
+                (
+                    "리뷰 수 미확인 — 스마트플레이스 연동 후 스캔하면 자동으로 확인됩니다"
+                    if (review_count == 0 and not naver_place_id)
+                    else "리뷰 수 미확인 — AI 스캔을 실행하면 자동으로 확인됩니다"
+                    if (review_count == 0 and not has_any_scan)
+                    else f"현재 리뷰 {review_count}개 — {_review_desc_suffix}"
+                )
                 if review_count < _review_target
                 else f"리뷰 {review_count}개 달성 완료!"
             ),

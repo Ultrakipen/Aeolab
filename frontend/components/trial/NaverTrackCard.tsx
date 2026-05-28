@@ -63,7 +63,7 @@ function getDeficiencyMessage(
   userGroup: string,
 ): string | null {
   if (userGroup === "INACTIVE" || userGroup === "franchise") {
-    return "이 업종은 네이버 AI 브리핑 대상이 아닙니다. 네이버 AI탭(모든 업종 베타)과 GPT/Gemini 개선 방안을 함께 실행하세요.";
+    return "이 업종은 네이버 AI 브리핑 대상이 아닙니다. 네이버 AI탭(음식점·쇼핑 업종 우선 베타)과 GPT/Gemini 개선 방안을 함께 실행하세요.";
   }
   if (!isSmartPlace) {
     return "스마트플레이스 미등록 → 네이버 AI 브리핑 노출 불가. 아래 할 일에서 등록 방법을 확인하세요.";
@@ -133,7 +133,7 @@ export default function NaverTrackCard({
           <p className="text-sm font-bold text-amber-900 break-keep">
             {userGroup === "LIKELY"
               ? "현재 네이버 AI 브리핑 공식 대상 업종이 아닙니다 (확대 검토 중) — AI탭은 지금도 가능"
-              : "이 업종은 네이버 AI 브리핑 대상이 아닙니다 — AI탭은 모든 업종 가능"}
+              : "이 업종은 네이버 AI 브리핑 대상이 아닙니다 — AI탭은 음식점·쇼핑 업종 우선 지원"}
           </p>
         </div>
       )}
@@ -210,7 +210,7 @@ export default function NaverTrackCard({
       {isGlobal && (
         <div className="bg-amber-100 border border-amber-200 rounded-xl px-3 py-2.5 mb-3">
           <p className="text-sm font-semibold text-amber-900 leading-relaxed break-keep">
-            이 업종의 주요 노출 채널은 네이버 AI탭(모든 업종 베타) + ChatGPT·Gemini입니다. 아래 섹션에서 개선 방법을 확인하세요.
+            이 업종의 주요 노출 채널은 네이버 AI탭(음식점·쇼핑 업종 우선 베타) + ChatGPT·Gemini입니다. 아래 섹션에서 개선 방법을 확인하세요.
           </p>
         </div>
       )}

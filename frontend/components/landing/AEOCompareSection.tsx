@@ -7,7 +7,8 @@ const FEATURES = [
   { label: "경쟁사 AI 노출 비교", seo: false, naver: false, aeo: true },
   { label: "주간 자동 추적", seo: false, naver: false, aeo: true },
   { label: "ChatGPT·Gemini 관리", seo: false, naver: false, aeo: true },
-  { label: "네이버 플레이스 관리", seo: false, naver: true, aeo: true },
+  { label: "네이버 플레이스 탭 순위 개선", seo: false, naver: true, aeo: true },
+  { label: "블로그→VIEW탭 검색 노출 안내", seo: false, naver: false, aeo: true },
   { label: "검색 키워드 관리", seo: true, naver: false, aeo: true },
 ];
 
@@ -85,7 +86,7 @@ export default function AEOCompareSection() {
             }}
           >
             <div
-              className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full"
+              className="absolute -top-3 left-1/2 -translate-x-1/2 text-sm font-bold px-3 py-1 rounded-full"
               style={{ background: "#2563EB", color: "#FFFFFF" }}
             >
               추천
@@ -112,6 +113,16 @@ export default function AEOCompareSection() {
           </div>
         </div>
 
+        {/* 네이버 검색 SEO 연결 안내 */}
+        <div className="hidden md:block mt-4 rounded-xl border border-green-200 bg-green-50 px-5 py-3 fade-up">
+          <p className="text-sm font-semibold text-green-800 text-center break-keep">
+            💡 스마트플레이스·블로그를 개선하면 <strong>네이버 플레이스 탭 검색 순위</strong>와 <strong>AI 브리핑·AI탭 노출</strong> 가능성이 함께 높아집니다
+          </p>
+          <p className="text-sm text-green-700 text-center mt-1 break-keep">
+            기존 SEO 서비스(웹사이트 최적화)와 달리 AEOlab은 네이버 로컬 검색 순위·AI 노출을 동시에 다룹니다
+          </p>
+        </div>
+
         {/* 기준 날짜 — PC 테이블 하단 */}
         <p className="hidden md:block text-sm text-gray-500 text-center mt-2 fade-up">
           2026년 5월 기준
@@ -129,7 +140,7 @@ export default function AEOCompareSection() {
           >
             <div className="flex items-center gap-2 mb-4">
               <span
-                className="text-xs font-bold px-2 py-0.5 rounded-full"
+                className="text-sm font-bold px-2 py-0.5 rounded-full"
                 style={{ background: "#2563EB", color: "#FFFFFF" }}
               >
                 AEOlab만의 기능

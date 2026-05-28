@@ -76,12 +76,12 @@ function PlatformCard({ screenshot }: { screenshot: Screenshot }) {
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 mb-2">
         <div className="flex items-center gap-2 flex-wrap min-w-0">
           <span className={`text-base font-bold whitespace-nowrap ${meta.headerColor}`}>{displayLabel}</span>
-          <span className="text-xs text-gray-500 bg-white border border-gray-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+          <span className="text-sm text-gray-500 bg-white border border-gray-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">
             {meta.badge}
           </span>
         </div>
         {checkedAt && (
-          <span className="text-xs text-gray-500 whitespace-nowrap shrink-0">{formatDate(checkedAt)} 확인</span>
+          <span className="text-sm text-gray-500 whitespace-nowrap shrink-0">{formatDate(checkedAt)} 확인</span>
         )}
       </div>
 

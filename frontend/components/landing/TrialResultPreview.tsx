@@ -78,7 +78,7 @@ export default function TrialResultPreview() {
         </div>
 
         <p className="text-center mt-4">
-          <span className="inline-block text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200 rounded-full px-3 py-1">
+          <span className="inline-block text-sm font-bold bg-amber-100 text-amber-700 border border-amber-200 rounded-full px-3 py-1">
             샘플 화면 — 내 가게 이름을 입력하면 실제 결과를 받습니다
           </span>
         </p>

@@ -33,10 +33,10 @@ export default function HowItWorksPage() {
           — AI 브리핑·AI탭·ChatGPT 노출
         </h1>
         <p className="text-base md:text-lg text-gray-600 mb-2 leading-relaxed break-keep">
-          AI 브리핑(음식점·카페 등)·AI탭(모든 업종)·ChatGPT 세 채널에서 내 가게가 노출되는 원리와 개선 방법을 설명합니다.
+          AI 브리핑(음식점·카페 등)·AI탭(음식점·쇼핑 우선 베타)·ChatGPT 세 채널에서 내 가게가 노출되는 원리와 개선 방법을 설명합니다.
         </p>
         <p className="text-sm md:text-base text-gray-500 mb-8">
-          마지막 업데이트: 2026-05-01 · 출처:{" "}
+          마지막 업데이트: 2026-05-27 · 출처:{" "}
           <a
             href="https://help.naver.com/service/30026/contents/24632"
             target="_blank"
@@ -50,7 +50,7 @@ export default function HowItWorksPage() {
         {/* ─── 한 줄 요약 ─── */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-5 md:p-6 mb-6">
           <p className="text-base md:text-lg text-gray-900 leading-relaxed break-keep">
-            <strong>한 줄 요약:</strong> 네이버 AI 브리핑(음식점·카페 등)·AI탭(모든 업종)·ChatGPT — 세 채널의 노출 조건을 점수화하고, 사장님이 5분 안에 실행할 수 있도록 AI가 콘텐츠 초안을 자동 생성합니다.
+            <strong>한 줄 요약:</strong> 네이버 AI 브리핑(음식점·카페 등)·AI탭(음식점·쇼핑 우선 베타)·ChatGPT — 세 채널의 노출 조건을 점수화하고, 사장님이 5분 안에 실행할 수 있도록 AI가 콘텐츠 초안을 자동 생성합니다.
           </p>
           <p className="text-sm md:text-base text-gray-700 mt-3 leading-relaxed break-keep">
             광고처럼 노출을 사는 게 아니라, <strong>노출 조건을 채우는 일을 자동화</strong>하는 서비스입니다.
@@ -64,21 +64,21 @@ export default function HowItWorksPage() {
           </div>
           <div className="divide-y divide-gray-100">
             <div className="flex items-start gap-3 px-4 py-3.5">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center mt-0.5">1</span>
+              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center mt-0.5">1</span>
               <div>
                 <p className="text-sm md:text-base font-semibold text-gray-800">내 업종에 따라 점수 기준이 다릅니다</p>
                 <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">음식점·카페는 네이버 AI 브리핑 비중이 70%, 법률·교육·온라인몰은 ChatGPT·Google AI 비중이 60~90%입니다. 같은 점수라도 업종이 다르면 개선 방향이 다릅니다.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 px-4 py-3.5">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center mt-0.5">2</span>
+              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center mt-0.5">2</span>
               <div>
                 <p className="text-sm md:text-base font-semibold text-gray-800">성장 단계는 네이버 채널 점수만으로 결정됩니다</p>
                 <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">대시보드의 통합 점수(예: 62점)와 성장 단계(예: 시작 단계)가 달라 보일 수 있습니다. 업종별 비율 차이를 보정하기 위해 성장 단계는 네이버 채널 점수만 기준으로 판정합니다.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 px-4 py-3.5">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center mt-0.5">3</span>
+              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center mt-0.5">3</span>
               <div>
                 <p className="text-sm md:text-base font-semibold text-gray-800">지금 당장 점수를 올리는 가장 빠른 방법</p>
                 <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">스마트플레이스 <strong>소개글 작성(+20점)</strong> + <strong>소식 탭 최근 게시물(+25점)</strong>. 두 항목만 완성해도 최대 +45점 가능합니다. 광고비 없이 콘텐츠만으로 가능한 가장 확실한 개선입니다.</p>
@@ -94,9 +94,9 @@ export default function HowItWorksPage() {
             <li><a href="#search-intent" className="hover:underline">어떤 검색에서 AI 가게 추천이 될까? (네이버·ChatGPT)</a></li>
             <li><a href="#step1" className="hover:underline">1단계. 게이트 3조건 (노출 가능 여부)</a></li>
             <li><a href="#step2" className="hover:underline">2단계. 콘텐츠 점수 100점 (네이버 채널)</a></li>
-            <li><a href="#step3" className="hover:underline">3단계. AI 인용 강화 — 네이버·ChatGPT 공통 콘텐츠 품질</a></li>
+            <li><a href="#step3" className="hover:underline">3단계. AI 브리핑 노출 강화 — 콘텐츠 품질 (네이버 채널)</a></li>
             <li><a href="#step4" className="hover:underline">4단계. AI 정보 탭 토글 추적</a></li>
-            <li><a href="#ai-tab" className="hover:underline">네이버 AI탭 — 모든 업종 노출 가능 (베타)</a></li>
+            <li><a href="#ai-tab" className="hover:underline">네이버 AI탭 — 음식점·쇼핑 업종 우선 지원 (베타)</a></li>
             <li><a href="#phase-a" className="hover:underline">Phase A. AI 검색 노출을 위한 통합 측정</a></li>
             <li><a href="#step5" className="hover:underline">5단계. 결과 측정 (실제 노출 확인)</a></li>
             <li><a href="#dia" className="hover:underline">AI가 평가하는 5요소 + 2026 변화</a></li>
@@ -293,8 +293,8 @@ export default function HowItWorksPage() {
             2단계. 콘텐츠 점수 100점 — 네이버 채널 6항목
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            현재 v3.0 모델(6항목)이 적용 중입니다. 업종 그룹(AI 브리핑 대상/확대 예정/글로벌 AI 중심)에 따라 가중치를 자동 재분배합니다.
-            AI 브리핑 비대상 업종이라도 점수상 불이익이 없도록 키워드 검색·스마트플레이스로 보강합니다.
+            아래 표는 v3.1 그룹별 가중치(향후 적용 예정)입니다. 현재는 v3.0 단일 가중치(키워드 35%·리뷰 25%·스마트플레이스 15%·AI브리핑 15%·카카오맵 10%)가 적용 중이며, 베타 사용자 5명+ 데이터 확보 후 v3.1로 전환됩니다.
+            AI 브리핑 비대상 업종이라도 v3.1 전환 시 키워드 검색·스마트플레이스 비중이 자동 상향되어 점수상 불이익이 없도록 설계됩니다.
           </p>
 
           <div className="overflow-x-auto mb-4">
@@ -349,7 +349,7 @@ export default function HowItWorksPage() {
                   <td className="px-3 py-2 text-center font-bold text-emerald-700">25%</td>
                   <td className="px-3 py-2 text-center">15%</td>
                   <td className="px-3 py-2 text-center text-gray-400">0%</td>
-                  <td className="px-3 py-2 hidden md:table-cell text-sm text-gray-500">Gemini·Naver 스캐너 실측 + 토글 ON 여부</td>
+                  <td className="px-3 py-2 hidden md:table-cell text-sm text-gray-500">Naver 스캐너 실측(Playwright DOM 파싱) + 스마트플레이스 AI 정보 탭 ON 여부</td>
                 </tr>
                 <tr className="border-t-2 border-gray-300 font-semibold bg-blue-50">
                   <td className="px-3 py-2">합계</td>
@@ -412,6 +412,37 @@ export default function HowItWorksPage() {
           </div>
         </section>
 
+        {/* ─── ChatGPT·Gemini 전용 개선 경로 ─── */}
+        <section className="mb-12 scroll-mt-20">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
+            ChatGPT·Gemini 개선 — 네이버와 별개 경로
+          </h2>
+          <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
+            소개글·소식·리뷰(3단계)는 네이버 AI 채널에 효과적입니다.
+            ChatGPT·Gemini는 구글·Bing 생태계 기반이므로 별도 경로가 필요합니다.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-4">
+              <p className="text-sm font-bold text-purple-800 mb-2">Gemini — 수주 내 반영 가능</p>
+              <ul className="space-y-1 text-sm text-gray-700">
+                <li>• 구글 비즈니스 프로필 등록·완성 (우선 순위 1위)</li>
+                <li>• 구글 지도 리뷰 10개+ 확보</li>
+                <li>• 자체 웹사이트 구글 색인 확인</li>
+              </ul>
+              <p className="text-sm text-purple-700 mt-2">Google Search 그라운딩 기반 → 색인 완료 후 수 주 이내 반영 가능</p>
+            </div>
+            <div className="rounded-xl border border-orange-200 bg-orange-50/50 p-4">
+              <p className="text-sm font-bold text-orange-800 mb-2">ChatGPT — 장기 전략 (수개월~1년)</p>
+              <ul className="space-y-1 text-sm text-gray-700">
+                <li>• 자체 웹사이트에 JSON-LD 구조화 데이터 추가</li>
+                <li>• 구글 비즈니스 프로필 (Bing도 참조)</li>
+                <li>• 트립어드바이저·망고플레이트 등 외부 플랫폼</li>
+              </ul>
+              <p className="text-sm text-orange-700 mt-2">Bing 웹검색 기반 — 네이버 블로그는 ChatGPT에 직접 효과 없음</p>
+            </div>
+          </div>
+        </section>
+
         {/* ─── 4단계: 토글 추적 ─── */}
         <section id="step4" className="mb-12 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
@@ -446,14 +477,14 @@ export default function HowItWorksPage() {
         {/* ─── 네이버 AI탭 전용 섹션 ─── */}
         <section id="ai-tab" className="mb-12 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
-            네이버 AI탭 — 모든 업종 노출 가능 (베타)
+            네이버 AI탭 — 음식점·쇼핑 업종 우선 지원 (베타)
           </h2>
           <div className="rounded-xl border border-green-200 bg-green-50 p-4 md:p-5 mb-4">
-            <p className="text-sm font-bold text-green-800 mb-1">✅ AI탭은 업종·프랜차이즈 제한 없음</p>
+            <p className="text-sm font-bold text-green-800 mb-1">현재 음식점·카페·쇼핑 업종 중심 베타 운영 중</p>
             <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">
-              2026년 4월 27일 베타 출시된 네이버 AI탭은 <strong>AI 브리핑과 달리 모든 업종</strong>의 사업장이
-              노출될 수 있습니다. 현재 네이버플러스 구독자 대상으로 먼저 운영 중이며,
-              2026년 6월 전체 이용자 확대 예정입니다 (네이버 공식).
+              2026년 4월 27일 베타 출시된 네이버 AI탭은 AI 브리핑과 별개 경로로,
+              현재 음식점·카페·쇼핑 업종 중심으로 운영 중입니다. 현재 네이버플러스 구독자 대상으로 먼저 운영 중이며,
+              업종 확대가 순차 진행되고 있습니다 (네이버 공식).
             </p>
           </div>
 
@@ -467,7 +498,7 @@ export default function HowItWorksPage() {
                 </div>
                 <div className="flex gap-2">
                   <span className="shrink-0 font-semibold text-blue-600">AI탭</span>
-                  <span>모든 업종, 프랜차이즈 포함, 대화형 검색으로 진입</span>
+                  <span>음식점·카페·쇼핑 우선, 업종 순차 확대 중, 대화형 검색으로 진입</span>
                 </div>
               </div>
             </div>
@@ -579,7 +610,7 @@ export default function HowItWorksPage() {
                 <span className="shrink-0 w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">4</span>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-base md:text-lg font-bold text-gray-900 break-keep">블로그 콘텐츠 품질 추정</h3>
-                  <span className="px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded-full font-medium">(추정)</span>
+                  <span className="px-2 py-0.5 text-sm bg-gray-200 text-gray-600 rounded-full font-medium">(추정)</span>
                 </div>
               </div>
               <p className="text-sm md:text-base text-gray-700 mb-2 leading-relaxed break-keep">
@@ -610,7 +641,7 @@ export default function HowItWorksPage() {
             5단계. 결과 측정 — 실제 노출 확인
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            매주 자동으로 다음을 확인해 <strong>실제로 노출되었는지 객관적으로 측정</strong>합니다.
+            플랜에 따라 주 1회~매일 자동으로 다음을 확인해 <strong>실제로 노출되었는지 객관적으로 측정</strong>합니다(Free는 월 1회 수동).
             점수만 올리는 게 아니라 결과를 검증합니다.
           </p>
           <ul className="space-y-3 text-sm md:text-base text-gray-700 leading-relaxed">

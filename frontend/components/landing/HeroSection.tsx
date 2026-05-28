@@ -268,7 +268,7 @@ export default function HeroSection() {
             {trialCount !== null && trialCount >= 10 && (
               <div className="flex items-center gap-1.5">
                 <span
-                  className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full"
+                  className="inline-flex items-center gap-1 text-sm font-semibold px-2.5 py-1 rounded-full"
                   style={{
                     background: "rgba(96,165,250,0.18)",
                     color: "#93C5FD",
@@ -346,7 +346,7 @@ export default function HeroSection() {
                     </p>
                   </div>
                   <span
-                    className="text-xs font-bold px-3 py-1.5 rounded-full mt-0.5 shrink-0"
+                    className="text-sm font-bold px-3 py-1.5 rounded-full mt-0.5 shrink-0"
                     style={{
                       background: "rgba(34,197,94,0.18)",
                       color: "#4ADE80",
@@ -463,7 +463,7 @@ export default function HeroSection() {
                   {["가입 없음", "카드 없음", "즉시 결과"].map((t) => (
                     <span
                       key={t}
-                      className="flex items-center gap-1.5 text-xs"
+                      className="flex items-center gap-1.5 text-sm"
                       style={{ color: "rgba(255,255,255,0.60)" }}
                     >
                       <svg

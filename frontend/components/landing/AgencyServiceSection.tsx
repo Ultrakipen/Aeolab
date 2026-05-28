@@ -99,14 +99,14 @@ export default function AgencyServiceSection() {
               {/* 패키지 번호 + 추천 배지 */}
               <div className="flex items-center justify-between">
                 <span
-                  className="text-xs font-bold"
+                  className="text-sm font-bold"
                   style={{ color: pkg.highlight ? "#2563EB" : "#94A3B8" }}
                 >
                   {pkg.num}
                 </span>
                 {pkg.badge && (
                   <span
-                    className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                    className="text-sm font-semibold px-2 py-0.5 rounded-full"
                     style={{ background: "#2563EB", color: "#FFFFFF" }}
                   >
                     {pkg.badge}

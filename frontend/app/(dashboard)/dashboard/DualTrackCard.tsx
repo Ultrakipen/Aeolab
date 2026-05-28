@@ -393,7 +393,7 @@ export default function DualTrackCard({
               (aiExposureData?.chatgptSampleSize != null && aiExposureData.chatgptSampleSize <= 10) ||
               (aiExposureData?.geminiSampleSize != null && aiExposureData.geminiSampleSize <= 10);
             return isFastDiagnosis ? (
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-sm text-gray-400 mt-2">
                 빠른 진단 결과 (10/5회) · 정밀 자동 스캔 (50회)은 스케줄러가 오늘 실행합니다
               </p>
             ) : null;

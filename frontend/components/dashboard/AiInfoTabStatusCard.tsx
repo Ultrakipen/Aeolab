@@ -86,8 +86,7 @@ export function AiInfoTabStatusCard({
       </div>
     ) : eligibility === "inactive" ? (
       <div className="mb-4 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm text-slate-700">
-        <strong>AI탭 노출은 모든 업종에서 가능합니다(Beta).</strong> AI 브리핑 대상 업종은 아니지만,
-        네이버 AI탭·ChatGPT·Gemini 등 글로벌 AI에서 노출 기회를 높일 수 있습니다.
+        <strong>AI탭은 현재 음식점·카페·쇼핑 업종 중심 베타 운영 중입니다.</strong> ChatGPT·Gemini 글로벌 AI 채널 최적화가 이 업종에 더 효과적입니다.
       </div>
     ) : null;
 
@@ -99,9 +98,11 @@ export function AiInfoTabStatusCard({
           <h3 className="text-base md:text-lg font-bold text-gray-900 mb-0.5">
             네이버 AI 브리핑 노출 설정
           </h3>
-          <p className="text-sm text-gray-500 mb-1.5">
-            스마트플레이스 &gt; <strong className="text-gray-700">&quot;AI 정보&quot; 탭</strong> 토글로 ON/OFF 변경
-          </p>
+          {eligibility !== "inactive" && (
+            <p className="text-sm text-gray-500 mb-1.5">
+              스마트플레이스 &gt; <strong className="text-gray-700">&quot;AI 정보&quot; 탭</strong> 토글로 ON/OFF 변경
+            </p>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             <span className={`inline-block px-2 py-1 rounded border text-sm font-medium ${current.color}`}>
               {current.label}
@@ -130,6 +131,7 @@ export function AiInfoTabStatusCard({
         {explanation}
       </p>
 
+      {eligibility !== "inactive" && (
       <details className="mb-4">
         <summary className="text-sm md:text-base font-medium text-blue-700 cursor-pointer hover:text-blue-900 select-none">
           확인 방법 보기 (1분)
@@ -153,7 +155,9 @@ export function AiInfoTabStatusCard({
           </Link>
         </div>
       </details>
+      )}
 
+      {eligibility !== "inactive" && (
       <div className="space-y-2">
         <label htmlFor={`ai-info-tab-${bizId}`} className="block text-sm md:text-base font-medium text-gray-900">
           확인하신 상태:
@@ -174,6 +178,7 @@ export function AiInfoTabStatusCard({
         {saving && <p className="text-sm text-gray-500">저장 중...</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
+      )}
     </div>
   );
 }

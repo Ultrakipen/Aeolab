@@ -11,7 +11,7 @@ export default function DashboardPreview() {
             className="col-span-2 md:col-span-1 relative rounded-xl overflow-hidden border border-gray-200"
             style={{ boxShadow: "var(--aeo-shadow)", background: "#fff" }}
           >
-            <span className="absolute top-2 right-2 text-xs px-1.5 py-0.5 rounded-full z-10" style={{ background: "rgba(0,0,0,0.10)", color: "#5B4A00" }}>
+            <span className="absolute top-2 right-2 text-sm px-1.5 py-0.5 rounded-full z-10" style={{ background: "rgba(0,0,0,0.10)", color: "#5B4A00" }}>
               예시
             </span>
             {/* 카카오톡 헤더 */}
@@ -20,7 +20,7 @@ export default function DashboardPreview() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
               <div className="flex-1 flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-black" style={{ background: "linear-gradient(135deg,#2563EB,#7C3AED)" }}>A</div>
+                <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-sm font-black" style={{ background: "linear-gradient(135deg,#2563EB,#7C3AED)" }}>A</div>
                 <span className="text-sm font-bold" style={{ color: "#3B2800" }}>AEOlab</span>
               </div>
               <svg className="w-3.5 h-3.5" fill="none" stroke="#5B4A00" viewBox="0 0 24 24">
@@ -31,20 +31,20 @@ export default function DashboardPreview() {
             <div className="px-3 py-2.5" style={{ background: "#B2C4D8" }}>
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.5)" }} />
-                <span className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>오늘</span>
+                <span className="text-sm" style={{ color: "rgba(255,255,255,0.85)" }}>오늘</span>
                 <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.5)" }} />
               </div>
               <div className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-white text-xs font-black" style={{ background: "linear-gradient(135deg,#2563EB,#7C3AED)" }}>AE</div>
+                <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-white text-sm font-black" style={{ background: "linear-gradient(135deg,#2563EB,#7C3AED)" }}>AE</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold mb-1" style={{ color: "#3B3B3B" }}>AEOlab</p>
                   <div className="relative">
                     <div className="absolute -left-1.5 top-2.5 w-0 h-0" style={{ borderTop: "4px solid transparent", borderBottom: "4px solid transparent", borderRight: "6px solid #fff" }} />
                     <div className="rounded-2xl rounded-tl-sm p-2.5 text-sm" style={{ background: "#fff", maxWidth: "200px" }}>
-                      <p className="font-bold mb-1" style={{ color: "#0F172A" }}>[AEOlab] 주간 노출 리포트 <span className="text-xs font-normal text-gray-400">(예시)</span></p>
+                      <p className="font-bold mb-1" style={{ color: "#0F172A" }}>[AEOlab] 주간 노출 리포트 <span className="text-sm font-normal text-gray-400">(예시)</span></p>
                       <div className="mb-1.5 pb-1.5 border-b" style={{ borderColor: "#E2E8F0" }}>
                         <p style={{ color: "#475569" }}>이번 주 AI 노출 점수</p>
-                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>84점 ↑ <span className="text-xs text-green-600">(+8점)</span></p>
+                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>84점 ↑ <span className="text-sm text-green-600">(+8점)</span></p>
                       </div>
                       <p style={{ color: "#475569" }}>ChatGPT: <span className="font-bold text-gray-800">45→53회</span></p>
                       <p style={{ color: "#475569" }}>경쟁사 대비: <span className="font-bold text-indigo-600">상위 19%</span></p>
@@ -55,7 +55,7 @@ export default function DashboardPreview() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-right mt-0.5 text-xs" style={{ color: "rgba(255,255,255,0.8)", maxWidth: "200px" }}>오전 9:41</p>
+                  <p className="text-right mt-0.5 text-sm" style={{ color: "rgba(255,255,255,0.8)", maxWidth: "200px" }}>오전 9:41</p>
                 </div>
               </div>
             </div>
@@ -81,13 +81,13 @@ export default function DashboardPreview() {
             <p className="text-sm" style={{ color: "#475569" }}>AI 브리핑 노출도 · 100점 기준 · 예시</p>
             <div className="mt-2 flex items-center gap-1">
               <span
-                className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                className="text-sm font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#BFDBFE", color: "#1D4ED8" }}
               >
                 업종 2위
               </span>
               <span
-                className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                className="text-sm font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#ECFDF5", color: "#065F46" }}
               >
                 +9점
@@ -115,13 +115,13 @@ export default function DashboardPreview() {
             <p className="text-sm" style={{ color: "#475569" }}>ChatGPT·Gemini · 100점 기준 · 예시</p>
             <div className="mt-2 flex items-center gap-1">
               <span
-                className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                className="text-sm font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#E2E8F0", color: "#475569" }}
               >
                 업종 3위
               </span>
               <span
-                className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                className="text-sm font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#ECFDF5", color: "#065F46" }}
               >
                 +6점
@@ -138,7 +138,7 @@ export default function DashboardPreview() {
               <p className="text-sm font-bold" style={{ color: "#0F172A" }}>7주 추세 · 통합 점수</p>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "#ECFDF5", color: "#065F46" }}>+28점</span>
-                <span className="text-xs text-gray-400">(예시)</span>
+                <span className="text-sm text-gray-400">(예시)</span>
               </div>
             </div>
             <svg viewBox="0 0 300 82" className="w-full h-auto" aria-hidden="true">

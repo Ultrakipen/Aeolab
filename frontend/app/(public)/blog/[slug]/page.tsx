@@ -154,7 +154,7 @@ export default async function BlogPostPage({
         <div className="mb-8">
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <span
-              className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badgeClass}`}
+              className={`text-sm font-semibold px-2.5 py-1 rounded-full ${badgeClass}`}
             >
               {post.category}
             </span>
@@ -215,7 +215,7 @@ export default async function BlogPostPage({
                     className="group block p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-sm transition-all"
                   >
                     <span
-                      className={`text-xs font-semibold px-2 py-0.5 rounded-full mb-2 inline-block ${rBadge}`}
+                      className={`text-sm font-semibold px-2 py-0.5 rounded-full mb-2 inline-block ${rBadge}`}
                     >
                       {r.category}
                     </span>

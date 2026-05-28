@@ -128,7 +128,7 @@ export default function IndustryRotator() {
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-4 md:p-6">
       {/* 상단 레이블 */}
       <div className="flex items-center justify-between mb-4">
-        <span className="text-xs font-semibold bg-gray-100 text-gray-500 px-3 py-1 rounded-full">
+        <span className="text-sm font-semibold bg-gray-100 text-gray-500 px-3 py-1 rounded-full">
           업종별 AI 검색 현실
         </span>
         <div className="flex items-center gap-2">

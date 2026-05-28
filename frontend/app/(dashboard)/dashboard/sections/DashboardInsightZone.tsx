@@ -4,6 +4,7 @@ import GlobalAiFocusCard from "@/components/dashboard/GlobalAiFocusCard";
 import InactiveUserBanner from "@/components/dashboard/InactiveUserBanner";
 import NaverAiPathwayCard from "@/components/dashboard/NaverAiPathwayCard";
 import NaverMultiChannelCard from "@/components/dashboard/NaverMultiChannelCard";
+import NaverSeoBaseCard from "@/components/dashboard/NaverSeoBaseCard";
 import PhotoCategoryCard from "@/components/dashboard/PhotoCategoryCard";
 import ReviewKeywordGapCard from "@/components/dashboard/ReviewKeywordGapCard";
 import SchemaCheckCard from "@/components/dashboard/SchemaCheckCard";
@@ -37,6 +38,16 @@ interface Props {
   websiteCheckResult?: WebsiteCheckResult | null;
   /** blog_analyzer.py에서 파생된 블로그 발견 수 (naver_result.blog_mentions) */
   blogMentionCount?: number;
+  /** 리뷰 수 — NaverSeoBaseCard 체크리스트 */
+  reviewCount?: number;
+  /** 소개글 작성 여부 */
+  hasIntro?: boolean;
+  /** 14일 이내 소식 게시 여부 */
+  hasRecentPost?: boolean;
+  /** 예약 연동 여부 (null=미측정) */
+  hasReservation?: boolean | null;
+  /** 총 사진 수 (photo_categories 합계, null=스캔 없음) */
+  photoCount?: number | null;
   /** 프랜차이즈 가맹점 여부 — AI 브리핑 제외 안내용 */
   isFranchise?: boolean;
   /** businesses.keywords 길이 — AI탭 시뮬레이션 0개 분기용 */
@@ -68,6 +79,11 @@ export default function DashboardInsightZone({
   websiteUrl,
   websiteCheckResult,
   blogMentionCount,
+  reviewCount,
+  hasIntro,
+  hasRecentPost,
+  hasReservation,
+  photoCount,
   isFranchise,
   keywordCount,
   latestAdOnly,
@@ -127,38 +143,16 @@ export default function DashboardInsightZone({
         keywordCount={keywordCount}
       />
 
-      {/* 네이버 일반 검색 → AI 노출 연결 안내 (ACTIVE/LIKELY 업종) */}
-      {(briefingMeta?.eligibility === "active" || briefingMeta?.eligibility === "likely") && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 md:px-5 py-4">
-          <div className="flex items-start gap-2.5 mb-3">
-            <span className="text-xl shrink-0">🔍</span>
-            <div className="min-w-0">
-              <p className="text-sm md:text-base font-semibold text-gray-900">
-                네이버 검색 기반이 강할수록 AI 브리핑·AI탭 노출도 함께 올라갑니다
-              </p>
-              <p className="text-sm text-green-800 mt-0.5">
-                스마트플레이스·블로그 관리가 AI 노출의 토대입니다
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-            {[
-              { action: "소개글 500자+ · Q&A 3개", effect: "AI 브리핑·AI탭 ↑", icon: "✏️" },
-              { action: "리뷰 10개+ (영수증 포함)", effect: "플레이스탭·AI 브리핑 ↑", icon: "💬" },
-              { action: "카테고리별 사진 10장+", effect: "플레이스탭·AI탭 ↑", icon: "📸" },
-              { action: "블로그 후기 5건+ 확보", effect: "AI탭·VIEW탭 ↑", icon: "📝" },
-            ].map(({ action, effect, icon }) => (
-              <div key={action} className="flex items-center justify-between rounded-lg bg-white border border-green-100 px-3 py-2 gap-2">
-                <span className="text-sm text-gray-800">{icon} {action}</span>
-                <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">{effect}</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-gray-500">
-            ※ 네이버 검색 순위는 기기·지역·로그인 상태에 따라 다를 수 있습니다.
-          </p>
-        </div>
-      )}
+      {/* 네이버 검색 기반 강화 현황 — 플레이스탭 노출 준비도 + 블로그 언급 + AI 노출 연결 */}
+      <NaverSeoBaseCard
+        reviewCount={reviewCount ?? 0}
+        hasIntro={hasIntro ?? false}
+        hasRecentPost={hasRecentPost ?? false}
+        hasReservation={hasReservation ?? null}
+        photoCount={photoCount ?? null}
+        blogMentionCount={blogMentionCount ?? 0}
+        eligibility={briefingMeta?.eligibility ?? "inactive"}
+      />
 
       {/* 네이버 카페·지식인 언급 현황 — NAVER_MULTICH_ENABLED=true 시 자동 표시 */}
       {(cafeResult || jisikResult) && (

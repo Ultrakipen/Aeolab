@@ -130,7 +130,7 @@ export default function ChatGPTCompareSection() {
                     무료 AI 직접
                   </p>
                   <div className="flex items-start gap-1.5">
-                    <span className="text-xs font-bold shrink-0" style={{ color: "#DC2626" }}>✕</span>
+                    <span className="text-sm font-bold shrink-0" style={{ color: "#DC2626" }}>✕</span>
                     <p className="text-sm" style={{ color: "#475569" }}>{row.manual}</p>
                   </div>
                 </div>
@@ -139,7 +139,7 @@ export default function ChatGPTCompareSection() {
                     AEOlab 자동
                   </p>
                   <div className="flex items-start gap-1.5">
-                    <span className="text-xs font-bold shrink-0" style={{ color: "#059669" }}>✓</span>
+                    <span className="text-sm font-bold shrink-0" style={{ color: "#059669" }}>✓</span>
                     <p className="text-sm font-medium" style={{ color: "#0F172A" }}>{row.auto}</p>
                   </div>
                 </div>

@@ -334,7 +334,7 @@ export default function BusinessQuickEditPanel({
                       setSuggesting(false);
                     }
                   }}
-                  className="text-xs px-2 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40"
+                  className="text-sm px-2 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40"
                 >
                   {suggesting ? "추천 중..." : "AI 자동 추천"}
                 </button>
@@ -350,7 +350,7 @@ export default function BusinessQuickEditPanel({
                         disabled={already || keywords.length >= 10}
                         onClick={() => addKeyword(s.keyword)}
                         title={s.rationale}
-                        className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
+                        className={`text-sm px-2 py-0.5 rounded-full border transition-colors ${
                           already
                             ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                             : "bg-white text-blue-700 border-blue-300 hover:bg-blue-50"
@@ -400,7 +400,7 @@ export default function BusinessQuickEditPanel({
                     </div>
                   </div>
                   <span className="text-sm text-gray-800">{label}</span>
-                  <span className="text-xs text-emerald-600 font-semibold">{hint}</span>
+                  <span className="text-sm text-emerald-600 font-semibold">{hint}</span>
                 </label>
               ))}
             </div>
@@ -422,7 +422,7 @@ export default function BusinessQuickEditPanel({
                 type="button"
                 onClick={handleSync}
                 disabled={syncing || syncCooldown}
-                className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
+                className={`flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-lg border transition-colors ${
                   syncCooldown
                     ? "border-gray-200 text-gray-400 cursor-not-allowed"
                     : "border-blue-300 text-blue-600 hover:bg-blue-50"

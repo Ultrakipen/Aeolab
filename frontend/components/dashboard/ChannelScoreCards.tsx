@@ -64,7 +64,7 @@ export function ChannelScoreCards({
     : '카카오맵 등록 필요'
   const naverItems = [
     { label: '네이버 AI 브리핑 노출',              ok: !!naverMentioned },
-    { label: '네이버 AI탭 노출 (모든 업종 베타)', ok: !!aiTabMentioned },
+    { label: '네이버 AI탭 노출 (Beta · 순차 확대 중)', ok: !!aiTabMentioned },
     { label: '스마트플레이스 등록',                ok: !!isSmartPlace },
     { label: kakaoLabel,                           ok: !!isOnKakao },
   ]

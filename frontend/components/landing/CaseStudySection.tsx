@@ -251,7 +251,7 @@ function CaseCard({ data }: { data: CaseData }) {
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm font-bold text-emerald-700 uppercase tracking-wide">After 결과</span>
-            <span className="bg-emerald-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            <span className="bg-emerald-600 text-white text-sm font-bold px-2 py-0.5 rounded-full">
               {data.after.weeks}주 후
             </span>
             <div className="flex-1 h-px bg-emerald-200" />

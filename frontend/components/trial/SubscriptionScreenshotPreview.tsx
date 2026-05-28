@@ -61,7 +61,7 @@ export default function SubscriptionScreenshotPreview({
             {/* 플랫폼 헤더 */}
             <div className={`${s.headerBg} px-3 py-2 flex items-center justify-between gap-2`}>
               <span className="text-sm font-bold text-white shrink-0">{s.label}</span>
-              <span className="text-xs text-white/70 truncate">{s.queryLabel}</span>
+              <span className="text-sm text-white/70 truncate">{s.queryLabel}</span>
             </div>
 
             {/* 블러 처리된 콘텐츠 */}

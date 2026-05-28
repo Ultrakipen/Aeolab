@@ -161,17 +161,19 @@ class MultiAIScanner:
         }
 
     async def scan_basic(self, queries: "str | list[str]", target: str) -> dict:
-        """A안 50/50 분할: Gemini 50회 + ChatGPT 50회 + 네이버 AI 브리핑.
+        """A안 50/50 분할: Gemini 50회 + ChatGPT 50회 + 네이버 AI 브리핑 + Google AI Overview.
 
-        비용: ~25원/회 (Gemini 50회 ~5원 + ChatGPT 50회 ~10원 + 네이버 0원)
+        비용: ~25원/회 (Gemini 50회 ~5원 + ChatGPT 50회 ~10원 + 네이버 0원 + Google DataForSEO ~0.3원)
         용도: Basic 플랜 평일 자동 스캔.
         queries가 list인 경우 각 모델 50회를 쿼리별 균등 분산.
+        Google은 DataForSEO 백엔드 사용 (GOOGLE_SCANNER_BACKEND=dataforseo).
         """
         primary_query = queries if isinstance(queries, str) else (queries[0] if queries else "")
-        gemini_result, chatgpt_result, naver_result = await asyncio.gather(
+        gemini_result, chatgpt_result, naver_result, google_result = await asyncio.gather(
             self.gemini.sample_50(queries, target),
             self.chatgpt.sample_50(queries, target),
             self._run_playwright(self.naver.check_mention, primary_query, target),
+            self.google.check_mention(primary_query, target),
             return_exceptions=True,
         )
         return {
@@ -181,6 +183,8 @@ class MultiAIScanner:
                        else {"platform": "chatgpt", "mentioned": False, "error": str(chatgpt_result)},
             "naver":  naver_result  if not isinstance(naver_result,  Exception)
                       else {"platform": "naver",  "mentioned": False, "error": str(naver_result)},
+            "google": google_result if not isinstance(google_result, Exception)
+                      else {"platform": "google", "mentioned": False, "error": str(google_result)},
         }
 
     async def scan_quick(self, query: str, target: str) -> dict:

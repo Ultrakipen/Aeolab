@@ -96,7 +96,7 @@ function ActionCard({
       {/* 액션 제목 + 순번 */}
       <div className="flex items-start gap-3 mb-2">
         <span
-          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5 ${
+          className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-black shrink-0 mt-0.5 ${
             action.primary ? "bg-emerald-600 text-white" : "bg-emerald-200 text-emerald-700"
           }`}
         >

@@ -532,6 +532,52 @@ export default function ReviewInboxPage() {
           </div>
         )}
       </div>
+
+      {/* 스마트플레이스 리뷰 AI 기능 안내 */}
+      <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <p className="text-sm font-semibold text-slate-700 mb-3">
+          💡 스마트플레이스 리뷰 관련 AI 기능도 있어요
+        </p>
+        <div className="space-y-3">
+          <div className="flex items-start gap-2.5">
+            <span className="shrink-0 text-base mt-0.5">💬</span>
+            <div>
+              <p className="text-sm font-medium text-gray-800">
+                플레이스 플러스(beta) AI 리뷰 답글
+                <span className="ml-1.5 text-xs bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-1.5 py-0.5 font-normal">
+                  음식점 전용
+                </span>
+              </p>
+              <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
+                스마트플레이스 자체 AI가 리뷰 등록 시 답글 초안을 자동 생성합니다.
+                <span className="block text-gray-400 text-xs mt-0.5">
+                  스마트플레이스 → 업체 홈 → 리뷰 (네이버플러스 구독 계정 beta)
+                </span>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <span className="shrink-0 text-base mt-0.5">🔔</span>
+            <div>
+              <p className="text-sm font-medium text-gray-800">
+                리뷰 민감 이슈 알림
+                <span className="ml-1.5 text-xs bg-gray-100 text-gray-600 border border-gray-200 rounded-full px-1.5 py-0.5 font-normal">
+                  전 업종
+                </span>
+              </p>
+              <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
+                부정·민감 리뷰 등록 시 스마트플레이스 앱 알림을 즉시 받을 수 있습니다.
+                <span className="block text-gray-400 text-xs mt-0.5">
+                  스마트플레이스 → 설정 → 알림 설정 → ON
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-slate-200">
+          AEOlab 리뷰 답변 생성은 Claude AI 기반으로 모든 업종·다양한 톤 설정을 지원하는 별개 서비스입니다.
+        </p>
+      </div>
     </div>
   )
 }

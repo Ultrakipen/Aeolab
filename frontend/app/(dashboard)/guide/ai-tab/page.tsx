@@ -157,7 +157,7 @@ export default async function AiTabGuidePage({
       <div className="rounded-xl p-4 md:p-5 bg-slate-50 border border-slate-200">
         {business ? (
           <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">
-            <strong>{business.name}</strong>: AI탭은 모든 업종이 노출 가능하며, 아래 5개 항목을 충실히 갖출수록 노출 확률이 높아집니다.
+            <strong>{business.name}</strong>: AI탭은 현재 음식점·카페·쇼핑 업종 중심으로 운영 중이며 업종 확대가 순차 진행되고 있습니다. 아래 5개 항목을 충실히 갖출수록 노출 확률이 높아집니다.
           </p>
         ) : (
           <p className="text-sm md:text-base text-gray-700">

@@ -23,7 +23,7 @@ export function ExpectationBanner() {
         <p className="text-sm text-blue-700 mt-0.5 leading-relaxed">
           스마트플레이스 설정 변경은 1일 이내 반영되지만, 콘텐츠 최적화 효과는 수주~수개월 후 나타납니다.
           AEOlab은 그 과정을 매주 추적해 변화를 알려드립니다.
-          <span className="block mt-1 text-blue-500 text-xs">
+          <span className="block mt-1 text-blue-500 text-sm">
             네이버는 AI 브리핑 개선 소요 기간을 공식 발표하지 않습니다. 업종·지역·경쟁도에 따라 다릅니다.
           </span>
         </p>

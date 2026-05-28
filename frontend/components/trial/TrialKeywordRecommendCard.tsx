@@ -102,13 +102,13 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
       {/* 분석 기준 배지 */}
       {introAnalyzed ? (
         <div className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5 mb-2">
-          <span className="text-emerald-600 text-xs">✓</span>
-          <span className="text-xs font-medium text-emerald-700">소개글 분석 완료</span>
+          <span className="text-emerald-600 text-sm">✓</span>
+          <span className="text-sm font-medium text-emerald-700">소개글 분석 완료</span>
         </div>
       ) : (
         <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 mb-2">
-          <span className="text-xs">⚠</span>
-          <span className="text-xs font-medium text-amber-700">업종 표준 기준 추천</span>
+          <span className="text-sm">⚠</span>
+          <span className="text-sm font-medium text-amber-700">업종 표준 기준 추천</span>
         </div>
       )}
       <p className="text-sm text-gray-600 mb-1 leading-relaxed font-medium">

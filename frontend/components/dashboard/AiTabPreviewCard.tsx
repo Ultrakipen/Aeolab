@@ -237,7 +237,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               </span>
             ) : (
               <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-sm font-semibold">
-                베타 · 전 업종 가능
+                Beta · 순차 확대 중
               </span>
             )}
           </div>
@@ -250,7 +250,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         </div>
         <p className="mt-1 text-sm text-blue-700/80 leading-snug break-keep">
           고객이 네이버에서 검색할 때 <strong>AI탭에 내 가게가 어떻게 소개되는지</strong> 미리 볼 수 있습니다.
-          네이버 AI 브리핑과는 별개로, <strong>모든 업종</strong>에서 노출 가능합니다.
+          네이버 AI 브리핑과는 별개 경로로, <strong>음식점·카페·쇼핑 업종 우선 지원</strong> 중이며 업종 확대 예정입니다.
         </p>
         {/* 베타 상태 안내 문구 */}
         <p className="mt-1 text-sm text-blue-600 font-medium break-keep">
@@ -335,9 +335,9 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         {/* INACTIVE 업종: 카드 숨김 대신 안내 배너 표시 */}
         {NAVER_AI_TAB_ENABLED && !loading && unavailable && (
           <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 text-sm text-slate-700">
-            <p className="font-semibold text-slate-800 mb-1">AI탭은 모든 업종에서 노출 가능합니다 (Beta)</p>
+            <p className="font-semibold text-slate-800 mb-1">AI탭은 현재 음식점·카페·쇼핑 업종 중심 베타 운영 중입니다</p>
             <p className="leading-relaxed break-keep">
-              네이버 AI 브리핑 대상 업종은 아니지만, AI탭에서는 소개글·사진·리뷰 키워드를 잘 등록한 모든 업종의 사업장이 노출될 수 있습니다.
+              네이버 AI 브리핑 대상 업종은 아니지만, AI탭 업종 확대를 대비해 소개글·사진·리뷰 키워드를 미리 준비할 수 있습니다.
               ChatGPT·Gemini 등 글로벌 AI 최적화도 병행하세요.
             </p>
           </div>
@@ -398,7 +398,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             {/* likely 업종 안내 배너 — flex-row 밖에 배치해야 레이아웃 붕괴 없음 */}
             {data.eligibility === "likely" && (
               <div className="w-full rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800 mb-4">
-                AI 브리핑 확대 예상 업종입니다. AI탭은 이미 모든 업종 베타 대상이므로 지금부터 소개글·사진·리뷰를 준비해두세요.
+                AI 브리핑 확대 예상 업종입니다. AI탭은 음식점·쇼핑 업종 우선 지원 중이므로 지금부터 소개글·사진·리뷰를 준비해두세요.
               </div>
             )}
 
@@ -411,20 +411,20 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                   AI탭이 이렇게 소개해요
                   {data.data_source === "measured" ? (
                     data.confirmed_in_ai_tab ? (
-                      <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full font-semibold">
+                      <span className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full font-semibold">
                         ✓ 실제 AI탭 노출 확인
                       </span>
                     ) : (
-                      <span className="text-xs text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full font-semibold">
+                      <span className="text-sm text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full font-semibold">
                         실측 데이터 기반
                       </span>
                     )
                   ) : (
-                    <span className="text-xs text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-full font-medium">추정 예시</span>
+                    <span className="text-sm text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-full font-medium">추정 예시</span>
                   )}
                 </p>
                 {data.data_source !== "measured" && (
-                  <p className="text-xs text-gray-400 mt-0.5">등록된 정보를 바탕으로 AI가 어떻게 답변할지 시뮬레이션한 결과입니다</p>
+                  <p className="text-sm text-gray-400 mt-0.5">등록된 정보를 바탕으로 AI가 어떻게 답변할지 시뮬레이션한 결과입니다</p>
                 )}
               </div>
               {data.ad_only && (
@@ -455,7 +455,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               {(data.has_reservation !== null && data.has_reservation !== undefined) || data.photo_count !== null && data.photo_count !== undefined ? (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {data.has_reservation !== null && data.has_reservation !== undefined && (
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold border ${
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-semibold border ${
                       data.has_reservation
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                         : "bg-orange-50 text-orange-700 border-orange-200"
@@ -464,7 +464,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                     </span>
                   )}
                   {data.photo_count !== null && data.photo_count !== undefined && (
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold border ${
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-semibold border ${
                       data.photo_count >= 10
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                         : "bg-orange-50 text-orange-700 border-orange-200"
@@ -490,7 +490,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                     <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
                     AI가 파악한 내 가게 정보
                   </p>
-                  <p className="text-xs text-gray-400 mb-2">이 정보들이 AI탭 답변에 반영됩니다</p>
+                  <p className="text-sm text-gray-400 mb-2">이 정보들이 AI탭 답변에 반영됩니다</p>
                   <div className="flex flex-wrap gap-1.5">
                     {data.matched_contexts.map((ctx, i) => (
                       <span
@@ -511,7 +511,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                     <AlertCircle className="w-4 h-4 text-orange-500 shrink-0" />
                     보완하면 더 잘 노출돼요
                   </p>
-                  <p className="text-xs text-gray-400 mb-2">아래 정보를 채우면 AI탭 답변이 더 풍부해집니다</p>
+                  <p className="text-sm text-gray-400 mb-2">아래 정보를 채우면 AI탭 답변이 더 풍부해집니다</p>
                   <div className="flex flex-wrap gap-1.5">
                     {data.missing_contexts.map((ctx, i) => (
                       <span
@@ -587,7 +587,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-gray-700">고객 블로그 후기</span>
-                    <span className="block text-xs text-gray-500 mt-0.5 break-keep leading-relaxed">
+                    <span className="block text-sm text-gray-500 mt-0.5 break-keep leading-relaxed">
                       방문 고객이 네이버 블로그에 직접 쓴 후기 수<br />
                       <span className="text-gray-400">사장님 블로그 포스팅과는 별개로 측정됩니다</span>
                     </span>
@@ -596,24 +596,24 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                     {(blogMentionCount ?? 0) >= 5 ? (
                       <>
                         <span className="text-base font-bold text-emerald-600">{blogMentionCount}건</span>
-                        <span className="block text-xs text-emerald-600 mt-0.5">충분해요!</span>
+                        <span className="block text-sm text-emerald-600 mt-0.5">충분해요!</span>
                       </>
                     ) : (blogMentionCount ?? 0) > 0 ? (
                       <>
                         <span className="text-base font-bold text-amber-600">{blogMentionCount}건</span>
-                        <span className="block text-xs text-gray-400 mt-0.5">5건 이상 권장</span>
+                        <span className="block text-sm text-gray-400 mt-0.5">5건 이상 권장</span>
                       </>
                     ) : (
                       <>
                         <span className="text-sm text-gray-400">아직 없음</span>
-                        <span className="block text-xs text-gray-400 mt-0.5">5건 이상 권장</span>
+                        <span className="block text-sm text-gray-400 mt-0.5">5건 이상 권장</span>
                       </>
                     )}
                   </div>
                 </div>
                 {(blogMentionCount ?? 0) < 5 && (
                   <div className="mt-2 pt-2 border-t border-gray-200">
-                    <p className="text-xs text-gray-500 break-keep leading-relaxed">
+                    <p className="text-sm text-gray-500 break-keep leading-relaxed">
                       💡 방문 고객에게 <strong>네이버 블로그</strong>에 후기를 남겨달라고 요청해 보세요.
                       고객 후기가 많을수록 AI탭에서 신뢰도 있는 정보로 인식됩니다.
                     </p>
@@ -638,7 +638,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                     네이버 AI탭 노출 높이는 방법
                   </h4>
                   {verifiedItems.length > 0 && (
-                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                    <span className="text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
                       ✓ {completedItems.length}/{verifiedItems.length}개 자동 확인
                     </span>
                   )}
@@ -663,7 +663,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 {verifiedItems.length > 0 && (
                   <div className="mb-3 flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2">
                     <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-                    <p className="text-xs text-blue-800 leading-relaxed break-keep">
+                    <p className="text-sm text-blue-800 leading-relaxed break-keep">
                       <strong>✓ 표시 항목</strong>은 마지막 스캔에서 자동으로 확인된 완료 상태입니다.
                       나머지 항목은 스마트플레이스에서 직접 확인이 필요합니다.
                       스캔을 다시 실행하면 최신 상태로 업데이트됩니다.
@@ -696,7 +696,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                         ) : isUnknown ? (
                           <span className="w-4 h-4 rounded-full border-2 border-gray-300 shrink-0 mt-0.5 flex-none" />
                         ) : (
-                          <span className={`inline-flex items-center justify-center shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold mt-0.5 ${badge.className}`}>
+                          <span className={`inline-flex items-center justify-center shrink-0 rounded-full border px-2 py-0.5 text-sm font-semibold mt-0.5 ${badge.className}`}>
                             {badge.label}
                           </span>
                         )}
@@ -710,7 +710,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                           }`}>
                             {it.item}
                           </span>
-                          <span className={`block text-xs mt-0.5 leading-snug ${
+                          <span className={`block text-sm mt-0.5 leading-snug ${
                             isDone
                               ? isUserConfirmed
                                 ? "text-blue-600"
@@ -732,19 +732,19 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                           <button
                             onClick={() => handleConfirm(it.item, true)}
                             disabled={confirmingItem === it.item}
-                            className="shrink-0 text-xs font-semibold text-blue-600 border border-blue-300 rounded-full px-3 py-1 hover:bg-blue-50 transition-colors disabled:opacity-50 mt-0.5"
+                            className="shrink-0 text-sm font-semibold text-blue-600 border border-blue-300 rounded-full px-3 py-1 hover:bg-blue-50 transition-colors disabled:opacity-50 mt-0.5"
                           >
                             {confirmingItem === it.item ? "저장 중…" : "완료했어요"}
                           </button>
                         )}
                         {isDone && !isUserConfirmed && (
-                          <span className="text-xs text-emerald-600 font-semibold shrink-0 mt-0.5">완료</span>
+                          <span className="text-sm text-emerald-600 font-semibold shrink-0 mt-0.5">완료</span>
                         )}
                         {isUserConfirmed && (
                           <button
                             onClick={() => handleConfirm(it.item, false)}
                             disabled={confirmingItem === it.item}
-                            className="shrink-0 text-xs text-gray-400 hover:text-red-500 transition-colors mt-0.5"
+                            className="shrink-0 text-sm text-gray-400 hover:text-red-500 transition-colors mt-0.5"
                           >
                             취소
                           </button>
@@ -754,7 +754,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                   })}
                 </ul>
                 {unknownItems.length > 0 && (
-                  <p className="mt-2 text-xs text-gray-400 leading-relaxed break-keep">
+                  <p className="mt-2 text-sm text-gray-400 leading-relaxed break-keep">
                     ○ 원형 표시 항목은 자동 측정이 어렵습니다. 스마트플레이스 관리자에서 직접 확인해주세요.
                   </p>
                 )}

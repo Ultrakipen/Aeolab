@@ -81,6 +81,22 @@ class NaverPlaceStatsService:
                         visitor_review_count = int(_m.group(1).replace(",", ""))
                         break
 
+                # 데스크탑 아이프레임에서 미감지 시 모바일 URL로 재시도
+                if visitor_review_count == 0:
+                    try:
+                        mobile_url = f"https://m.place.naver.com/place/{naver_place_id}/home"
+                        await page.goto(mobile_url, timeout=12000, wait_until="domcontentloaded")
+                        await page.wait_for_timeout(2000)
+                        mobile_body = await page.inner_text("body")
+                        for _pat in _review_patterns:
+                            _m = re.search(_pat, mobile_body)
+                            if _m:
+                                visitor_review_count = int(_m.group(1).replace(",", ""))
+                                break
+                        logger.info(f"[place_stats] mobile fallback review_count={visitor_review_count} for {naver_place_id}")
+                    except Exception as _e:
+                        logger.warning("review mobile fallback failed [%s]: %s", naver_place_id, _e)
+
                 # 영수증 리뷰 수 파싱
                 receipt_review_count = 0
                 receipt_match = re.search(r"영수증\s*리뷰\s*(\d[\d,]*)", body_text)

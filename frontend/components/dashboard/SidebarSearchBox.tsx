@@ -41,7 +41,7 @@ export function SidebarSearchBox({ value, onChange }: Props) {
       {/* 데스크톱 단축키 힌트 — lg+ 에서만 표시 */}
       {!value && (
         <span
-          className="hidden lg:flex absolute right-2.5 items-center text-xs text-gray-500 font-mono bg-gray-100 rounded px-1 py-0.5 pointer-events-none select-none"
+          className="hidden lg:flex absolute right-2.5 items-center text-sm text-gray-500 font-mono bg-gray-100 rounded px-1 py-0.5 pointer-events-none select-none"
           aria-hidden="true"
         >
           {typeof window !== "undefined" && navigator.platform.includes("Mac") ? "⌘K" : "Ctrl K"}

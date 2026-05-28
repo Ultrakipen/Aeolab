@@ -60,7 +60,7 @@ function ZoneHeader({ step, icon, label, description, accent, badgeBg, badgeText
       <div className="flex flex-col gap-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`inline-flex items-center gap-1 ${badgeBg} ${badgeText} text-sm font-bold px-2.5 py-1 rounded-full`}>
-            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/70 text-current text-xs">
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/70 text-current text-sm">
               {step}
             </span>
             {icon}
@@ -154,8 +154,8 @@ export default function DashboardActionZone({
         </>
       )}
 
-      {/* ④ 점수 변화 회고 — 행동 효과 확인 (장기 행동 목록 이후, 결과 되돌아보기) */}
-      {hasLatestScan && accessToken && (
+      {/* ④ 점수 변화 회고 — 행동 효과 확인 (Basic+, 장기 행동 목록 이후) */}
+      {hasLatestScan && accessToken && plan && plan !== 'free' && (
         <>
           <ZoneHeader
             step={4}

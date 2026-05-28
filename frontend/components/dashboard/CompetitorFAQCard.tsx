@@ -108,7 +108,7 @@ export default function CompetitorFAQCard({ bizId, accessToken }: Props) {
               <p className="text-sm text-amber-700 mt-1">
                 {row.asked_by.slice(0, 3).join(" · ")}
                 {row.asked_by.length > 3 && ` 외 ${row.asked_by.length - 3}곳`}
-                {row.count >= 2 && <span className="ml-2 bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded text-xs font-bold">{row.count}곳 공통</span>}
+                {row.count >= 2 && <span className="ml-2 bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded text-sm font-bold">{row.count}곳 공통</span>}
               </p>
             </div>
             <button

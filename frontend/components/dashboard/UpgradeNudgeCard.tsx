@@ -49,7 +49,7 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
       </button>
 
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-bold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
+        <span className="text-sm font-bold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
           현재 무료 플랜
         </span>
       </div>

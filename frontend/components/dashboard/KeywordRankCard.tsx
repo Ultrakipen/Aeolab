@@ -297,7 +297,7 @@ export default function KeywordRankCard({
             <p className="text-sm text-gray-500 mt-0.5">
               내가 입력한 키워드의 PC·모바일·플레이스 1페이지 순위
               {userGroup && (
-                <span className="ml-1.5 inline-flex px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-600">
+                <span className="ml-1.5 inline-flex px-1.5 py-0.5 text-sm rounded bg-gray-100 text-gray-600">
                   {userGroup === "INACTIVE" ? "글로벌 AI 중심" : userGroup === "LIKELY" ? "AI 브리핑 확대 예정" : "네이버 AI 브리핑"} 가중치{" "}
                   {userGroup === "INACTIVE" ? "35%" : userGroup === "LIKELY" ? "30%" : "25%"}
                 </span>
@@ -347,7 +347,7 @@ export default function KeywordRankCard({
       <div className="mb-3 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2.5 text-sm text-blue-800 space-y-1">
         <p className="font-semibold text-blue-900">측정 조건</p>
         <ul className="space-y-0.5 text-blue-700">
-          <li>· <span className="font-medium">검색어</span>: 지역명 + 키워드 자동 조합{region && keywords.length > 0 ? ` (예: "${region} ${keywords[0]}")` : ""} — 아래 표에 실제 검색어 표시</li>
+          <li>· <span className="font-medium">검색어</span>: 지역명 + 등록 키워드 자동 조합{keywords.length > 0 ? ` (등록된 키워드 ${keywords.length}개 각각 측정)` : ""} — 아래 표에 실제 검색어 표시</li>
           <li>· <span className="font-medium">검색 위치</span>: 서울 기준 서버 IP (비로그인, 개인화 없음)</li>
           <li>· <span className="font-medium">순위 범위</span>: 각 채널 상위 20위 이내 — 20위 밖이면 &apos;미노출&apos; 표시</li>
           <li>· <span className="font-medium">PC</span> = 네이버 PC 통합검색 &nbsp;·&nbsp; <span className="font-medium">모바일</span> = 네이버 모바일 통합검색 &nbsp;·&nbsp; <span className="font-medium">플레이스</span> = 네이버 플레이스 탭</li>
@@ -400,17 +400,17 @@ export default function KeywordRankCard({
                         {displayKw}
                       </td>
                       <td className="py-2.5 text-center">
-                        <span className={`inline-block px-2 py-1 text-xs sm:text-sm rounded ${pc.cls}`}>
+                        <span className={`inline-block px-2 py-1 text-sm sm:text-sm rounded ${pc.cls}`}>
                           {pc.text}
                         </span>
                       </td>
                       <td className="py-2.5 text-center">
-                        <span className={`inline-block px-2 py-1 text-xs sm:text-sm rounded ${mob.cls}`}>
+                        <span className={`inline-block px-2 py-1 text-sm sm:text-sm rounded ${mob.cls}`}>
                           {mob.text}
                         </span>
                       </td>
                       <td className="py-2.5 text-center">
-                        <span className={`inline-block px-2 py-1 text-xs sm:text-sm rounded ${pl.cls}`}>
+                        <span className={`inline-block px-2 py-1 text-sm sm:text-sm rounded ${pl.cls}`}>
                           {pl.text}
                         </span>
                       </td>

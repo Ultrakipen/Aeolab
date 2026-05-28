@@ -547,7 +547,7 @@ export default function DemoPage() {
                 <p className="text-sm md:text-base text-amber-800 leading-relaxed">
                   네이버 AI 브리핑은 음식점·카페 등 일부 업종만 대상입니다.
                   이 업종은 <strong>ChatGPT·Google AI</strong> 노출 개선이 더 효과적이며,
-                  <strong>네이버 AI탭(모든 업종 베타)</strong>도 이용 가능합니다.
+                  <strong>네이버 AI탭(음식점·쇼핑 업종 우선 베타)</strong>도 확인하세요.
                   업종 확대 시 자동으로 안내해드립니다.
                 </p>
               </div>
@@ -577,7 +577,7 @@ export default function DemoPage() {
           <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-100">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-[#10a37f] flex items-center justify-center shrink-0">
-                <span className="text-white text-xs font-bold leading-none">G</span>
+                <span className="text-white text-sm font-bold leading-none">G</span>
               </div>
               <span className="text-sm font-semibold text-gray-700">ChatGPT 검색 결과</span>
             </div>
@@ -746,9 +746,9 @@ export default function DemoPage() {
                 {isRealBiz ? "창원시" : m.region} {CATEGORIES.find(c => c.value === category)?.label} 평균 <strong>{m.benchmark.avg}점</strong> · <strong>{m.benchmark.rank}</strong>
               </p>
               <div className="mt-2 flex gap-2 flex-wrap">
-                <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">70점↑ 잘됨</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">40~69점 개선 여지</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-orange-50 text-orange-700">40점↓ 집중 개선</span>
+                <span className="text-sm px-2 py-0.5 rounded-full bg-green-50 text-green-700">70점↑ 잘됨</span>
+                <span className="text-sm px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">40~69점 개선 여지</span>
+                <span className="text-sm px-2 py-0.5 rounded-full bg-orange-50 text-orange-700">40점↓ 집중 개선</span>
               </div>
             </div>
 
@@ -784,7 +784,7 @@ export default function DemoPage() {
                   {briefingStatus === "active" ? "AI브리핑 · AI탭 · 카카오맵" : briefingStatus === "likely" ? "AI브리핑(확대예정) · AI탭베타 · 카카오맵" : "AI탭베타 · 카카오맵 (브리핑 비대상)"}
                 </p>
                 {briefingStatus === "inactive" && (
-                  <span className="inline-block text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full mb-1.5">네이버 AI브리핑 제외업종</span>
+                  <span className="inline-block text-sm bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full mb-1.5">네이버 AI브리핑 제외업종</span>
                 )}
                 <div className={`text-2xl md:text-3xl font-black mb-1 ${m.naverChannelScore >= 70 ? "text-green-500" : m.naverChannelScore >= 40 ? "text-amber-500" : "text-amber-600"}`}>
                   {m.naverChannelScore}점

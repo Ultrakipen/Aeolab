@@ -13,23 +13,23 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
   const isInactive = eligibility === "inactive";
 
   const title = isFranchise
-    ? "프랜차이즈 가맹점 — AI탭(전 업종) + 글로벌 AI 채널 집중 관리"
+    ? "프랜차이즈 가맹점 — 네이버 AI탭(음식점·쇼핑 우선) + 글로벌 AI 채널 집중 관리"
     : isInactive
-    ? `${categoryLabel} 업종 — 네이버 AI탭(전 업종 베타) + ChatGPT·Gemini 장기 최적화 지원`
+    ? `${categoryLabel} 업종 — ChatGPT·Gemini 장기 최적화 + 네이버 AI탭 확대 대비`
     : `${categoryLabel} 업종 — AI 브리핑 확대 예정 + 글로벌 AI 최적화 병행`;
 
   const description = isFranchise
-    ? "네이버 AI 브리핑은 프랜차이즈 가맹점을 현재 지원하지 않습니다(추후 확대 예정). 대신 네이버 AI탭(모든 업종 가능, 베타)과 ChatGPT·Gemini·Google AI 노출을 집중 측정·개선합니다."
+    ? "네이버 AI 브리핑은 프랜차이즈 가맹점을 현재 지원하지 않습니다(추후 확대 예정). 네이버 AI탭(음식점·쇼핑 업종 우선 베타)도 확인하고, ChatGPT·Gemini·Google AI 노출을 집중 측정·개선합니다."
     : isInactive
-    ? `${categoryLabel} 업종도 네이버 AI탭(2026-04-27 베타, 모든 업종 가능)을 통해 네이버에 노출될 수 있습니다. AEOlab이 AI탭 포함 4개 채널 노출 현황을 자동 측정하고 개선 방향을 제시합니다.`
+    ? `${categoryLabel} 업종은 네이버 AI탭(2026-04-27 베타, 음식점·쇼핑 업종 우선 지원) 대상 업종 확대를 준비할 수 있습니다. AEOlab이 4개 채널 노출 현황을 자동 측정하고 개선 방향을 제시합니다.`
     : "네이버 AI 브리핑 확대 시 즉시 활성화됩니다. 지금은 글로벌 AI 채널 데이터를 누적 중입니다.";
 
   const channels = isInactive || isFranchise
     ? [
-        { icon: "✅", text: "네이버 AI 탭 — 2026-04-27 베타 공개, 전 업종 대상 대화형 검색 노출" },
+        { icon: "✅", text: "네이버 AI 탭 — 2026-04-27 베타 공개, 음식점·쇼핑 업종 우선 · 순차 확대 중" },
         { icon: "🎯", text: "ChatGPT — 콘텐츠 구조화로 언급 가능성 장기 축적 (현재 측정 지원)" },
         { icon: "🎯", text: "Gemini — 사업장 정보 구조화 + 글로벌 웹 노출 기반 마련 (측정 지원)" },
-        { icon: "🎯", text: "Google AI Overview — JSON-LD 구조화 데이터 생성 지원" },
+        { icon: "🎯", text: "Google AI Overview — 홈페이지가 있으면 AI 검색에 노출되도록 인식 코드 자동 생성" },
         { icon: "✅", text: "네이버 블로그 · 일반 검색 — 지역 키워드 노출" },
       ]
     : [
@@ -64,8 +64,8 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
             ))}
           </ul>
           {(isInactive || isFranchise) && (
-            <p className="mt-3 text-xs text-gray-400 leading-relaxed">
-              🎯 ChatGPT·Gemini·Google AI Overview 노출은 AI 학습 데이터 기반이며 즉각적인 노출을 보장하지 않습니다. 콘텐츠·구조화 데이터 최적화를 통해 장기적 노출 가능성을 높입니다.
+            <p className="mt-3 text-sm md:text-base text-gray-600 leading-relaxed">
+              🎯 ChatGPT·Gemini·Google AI Overview 노출은 AI 학습 데이터 기반이며 즉각적인 노출을 보장하지 않습니다. <span className="font-medium text-blue-700">Google 비즈니스 프로필을 등록하면 Gemini·Google AI 노출이 수 주 내로 시작될 수 있습니다.</span> 콘텐츠·구조화 데이터 최적화를 통해 장기적 노출 가능성을 높입니다.
             </p>
           )}
           {isFranchise && (

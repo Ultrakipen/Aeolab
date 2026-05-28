@@ -73,7 +73,7 @@ export default function BlogIndexPage() {
         >
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span
-              className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+              className={`text-sm font-semibold px-2.5 py-1 rounded-full ${
                 categoryColors[featured.category] ?? "bg-gray-100 text-gray-600"
               }`}
             >
@@ -107,7 +107,7 @@ export default function BlogIndexPage() {
             >
               <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span
-                  className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                  className={`text-sm font-semibold px-2.5 py-1 rounded-full ${
                     categoryColors[post.category] ?? "bg-gray-100 text-gray-600"
                   }`}
                 >

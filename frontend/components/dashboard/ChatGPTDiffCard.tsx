@@ -154,7 +154,7 @@ export default function ChatGPTDiffCard({
               <span className="mt-0.5 text-emerald-500 shrink-0">🔍</span>
               <span>
                 <span className="font-semibold">실측 인용 쿼리:</span>{" "}
-                <span className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-indigo-200">
+                <span className="font-mono text-sm bg-white px-1.5 py-0.5 rounded border border-indigo-200">
                   {chatgptTopQuery}
                 </span>
               </span>
@@ -162,7 +162,7 @@ export default function ChatGPTDiffCard({
           )}
         </ul>
         <p className="mt-2 text-sm text-indigo-600 leading-snug">
-          <strong>측정 원리 차이:</strong> ChatGPT(gpt-4.1-mini)는 학습 데이터(컷오프 2024.06) 기반, Gemini는 Google 검색 색인을 일부 반영. 두 측정값이 다를 수 있습니다.
+          <strong>측정 원리 차이:</strong> ChatGPT(gpt-4.1-mini)는 학습 데이터(컷오프 2024.06) 기반 — 한국 지역 소상공인은 데이터 포함률이 낮아 낮은 점수가 일반적입니다. Gemini는 Google Search 실시간 그라운딩 기반으로 현재 웹 콘텐츠를 반영합니다.
         </p>
       </div>
     </div>

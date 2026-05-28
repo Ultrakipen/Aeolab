@@ -36,21 +36,21 @@ export default function ScoreGuidePage() {
         <p className="text-sm font-bold text-indigo-700 uppercase tracking-wide mb-3">⚡ 30초 핵심 요약</p>
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center mt-0.5">1</span>
+            <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">1</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               <strong>점수 = 네이버 채널 × 업종 비율 + 글로벌 AI × 업종 비율</strong><br />
               <span className="text-gray-500">음식점·카페는 네이버 70%, 법률·교육·온라인몰은 글로벌 AI 60~90%</span>
             </p>
           </div>
           <div className="flex items-start gap-3">
-            <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center mt-0.5">2</span>
+            <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">2</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               <strong>성장 단계(시작/성장 중/빠른 성장/지역 1등)는 네이버 채널 점수만으로 결정</strong><br />
               <span className="text-gray-500">통합 점수와 다를 수 있음 — 업종별 비율 차이를 보정하기 위해</span>
             </p>
           </div>
           <div className="flex items-start gap-3">
-            <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center mt-0.5">3</span>
+            <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">3</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               <strong>지금 가장 빠른 점수 향상 → 스마트플레이스 소개글 + 소식 탭</strong><br />
               <span className="text-gray-500">두 항목만 완성해도 최대 +45점 가능 (소식 25점 + 소개글 20점)</span>
@@ -65,7 +65,7 @@ export default function ScoreGuidePage() {
         <p className="text-sm md:text-base text-gray-700 leading-relaxed">
           AI가 가게를 추천할 때 얼마나 잘 준비돼 있는지를{" "}
           <strong>0~100점</strong>으로 측정합니다. 점수가 높을수록 네이버 AI
-          브리핑·ChatGPT·Google AI에 가게 이름이 더 자주 노출됩니다.
+          브리핑·AI탭·ChatGPT·Gemini·Google AI에 가게 이름이 더 자주 노출됩니다.
         </p>
       </div>
 
@@ -79,8 +79,10 @@ export default function ScoreGuidePage() {
             <span className="shrink-0 text-slate-400 font-bold mt-0.5">→</span>
             <p className="text-sm md:text-base text-slate-700 leading-relaxed">
               <strong>지표 개선</strong>은 AI 검색 노출 가능성을 높이는 방향입니다.
-              네이버 AI·Gemini는 콘텐츠 개선 후 수주 내 반영되며,
-              ChatGPT는 학습 데이터 업데이트(수개월~1년) 후 반영됩니다.
+              채널별 반영 속도가 다릅니다 — 네이버 AI 브리핑·AI탭은 콘텐츠 개선 후
+              <strong>2~4주</strong> 내 반영되며, Gemini는 구글 비즈니스 프로필 기준
+              <strong>수주 내</strong> 반영 가능합니다. ChatGPT는 AI 학습 데이터 업데이트
+              주기(컷오프 기준 <strong>수개월~1년</strong>) 후 스캐너 점수에 반영됩니다.
               그 결과 새 손님이 가게를 발견할 접점이 늘어납니다.
             </p>
           </div>
@@ -110,7 +112,7 @@ export default function ScoreGuidePage() {
           <h2 className="text-base md:text-lg font-bold text-amber-900">
             v3.1 점수 모델 — 향후 적용 예정
           </h2>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 font-medium">
+          <span className="text-sm px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 font-medium">
             베타 5명+ 측정 후 활성화
           </span>
         </div>
@@ -151,12 +153,12 @@ export default function ScoreGuidePage() {
           <h2 className="text-base md:text-lg font-bold text-gray-900">
             네이버 채널 점수 — 네이버 AI 채널
           </h2>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+          <span className="text-sm px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
             현재 적용 중 (v3.0)
           </span>
         </div>
         <p className="text-sm text-gray-500 mb-3">
-          네이버 생태계 내 AI 검색 최적화 지표 (5개 항목)
+          네이버 생태계 내 AI 검색 최적화 지표 (6개 항목)
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse min-w-[480px]">
@@ -177,7 +179,7 @@ export default function ScoreGuidePage() {
               {[
                 {
                   item: "키워드 커버리지",
-                  weight: "35%",
+                  weight: "30%",
                   desc: "리뷰·블로그에서 업종 핵심 키워드가 얼마나 언급됐는지",
                 },
                 {
@@ -188,7 +190,7 @@ export default function ScoreGuidePage() {
                 {
                   item: "스마트플레이스 완성도",
                   weight: "15%",
-                  desc: "FAQ·소개글·소식·부가정보 완성도",
+                  desc: "톡톡 채팅방 메뉴·소개글·소식·부가정보 완성도",
                 },
                 {
                   item: "네이버 AI 브리핑 노출",
@@ -204,6 +206,11 @@ export default function ScoreGuidePage() {
                   item: "카카오맵 완성도",
                   weight: "10%",
                   desc: "카카오맵 정보 완성도 (사용자 체크리스트 기반)",
+                },
+                {
+                  item: "AI탭 준비도",
+                  weight: "5%",
+                  desc: "네이버 AI탭 노출 체크리스트 완성도 — 음식점·쇼핑 업종 우선 지원 (2026-04-27 베타)",
                 },
               ].map((row, i) => (
                 <tr
@@ -230,12 +237,12 @@ export default function ScoreGuidePage() {
           <h2 className="text-base md:text-lg font-bold text-amber-900">
             네이버 채널 점수 — 그룹별 가중치 (v3.1 활성화 시 적용 예정)
           </h2>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 font-medium">
+          <span className="text-sm px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 font-medium">
             현재 미적용
           </span>
         </div>
         <p className="text-sm text-amber-700 mb-3">
-          베타 사용자 5명+ 측정 데이터 확보 후 활성화. 환경변수 <code className="bg-amber-100 px-1 rounded text-xs">SCORE_MODEL_VERSION=v3_1</code> 로 토글.
+          베타 사용자 5명+ 측정 데이터 확보 후 활성화. 환경변수 <code className="bg-amber-100 px-1 rounded text-sm">SCORE_MODEL_VERSION=v3_1</code> 로 토글.
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse min-w-[520px]">
@@ -297,7 +304,7 @@ export default function ScoreGuidePage() {
                 {
                   item: "AI 노출 빈도",
                   weight: "40%",
-                  desc: "Gemini·ChatGPT 각 50회 (총 100회) + Google AI 반복 측정",
+                  desc: "Gemini·ChatGPT 각 50회 (총 100회, Basic 기준); Google AI Overview는 현재 서버 환경상 측정 보류",
                 },
                 {
                   item: "웹사이트 SEO",
@@ -312,7 +319,7 @@ export default function ScoreGuidePage() {
                 {
                   item: "Google AI Overview",
                   weight: "10%",
-                  desc: "구글 AI 검색 결과 노출 여부",
+                  desc: "구글 AI 검색 결과 노출 여부 (현재 서버 CAPTCHA 차단으로 측정 일시 제한 — 자동 재배분 처리)",
                 },
               ].map((row, i) => (
                 <tr
@@ -404,10 +411,17 @@ export default function ScoreGuidePage() {
                   naverDominant: true,
                 },
                 {
-                  category: "의원·병원·치과",
+                  category: "의원·병원",
                   naver: 55,
                   global: 45,
                   reason: "증상 검색 = ChatGPT 비중 증가",
+                  naverDominant: true,
+                },
+                {
+                  category: "치과",
+                  naver: 60,
+                  global: 40,
+                  reason: "지역 기반 + 증상 AI 탐색 혼합",
                   naverDominant: true,
                 },
                 {
@@ -446,10 +460,17 @@ export default function ScoreGuidePage() {
                   naverDominant: false,
                 },
                 {
-                  category: "법률·세무·회계",
+                  category: "법률",
                   naver: 20,
                   global: 80,
                   reason: "ChatGPT·Gemini 주전장",
+                  naverDominant: false,
+                },
+                {
+                  category: "세무·회계",
+                  naver: 30,
+                  global: 70,
+                  reason: "전문직 AI 리서치 중심",
                   naverDominant: false,
                 },
                 {
@@ -460,10 +481,17 @@ export default function ScoreGuidePage() {
                   naverDominant: false,
                 },
                 {
-                  category: "숙박·청소·기타",
+                  category: "숙박",
+                  naver: 70,
+                  global: 30,
+                  reason: "네이버 AI 브리핑 ACTIVE 업종, 즉시예약형",
+                  naverDominant: true,
+                },
+                {
+                  category: "청소·기타",
                   naver: 60,
                   global: 40,
-                  reason: "기본값",
+                  reason: "기본값 (미등록 업종 포함)",
                   naverDominant: true,
                 },
               ].map((row, i) => (
@@ -504,7 +532,7 @@ export default function ScoreGuidePage() {
         <p className="text-sm text-slate-500 mb-3">
           상위/하위 백분위는 초기 서비스 추정값입니다. 사용자 데이터가 쌓이면 실측 기반으로 자동 갱신됩니다.
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
           {[
             {
               grade: "A",
@@ -535,18 +563,9 @@ export default function ScoreGuidePage() {
             },
             {
               grade: "D",
-              range: "20~39점",
-              label: "AI 검색 미흡",
+              range: "40점 미만",
+              label: "AI 검색 미흡 — 기초 작업 필요",
               rank: "하위 20%",
-              bg: "bg-orange-50 border-orange-200",
-              textGrade: "text-orange-700",
-              textRange: "text-orange-600",
-            },
-            {
-              grade: "F",
-              range: "20점 미만",
-              label: "AI 검색 거의 불가",
-              rank: "최하위",
               bg: "bg-red-50 border-red-200",
               textGrade: "text-red-700",
               textRange: "text-red-600",

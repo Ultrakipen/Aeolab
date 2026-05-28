@@ -501,7 +501,7 @@ export default function DualTrackCard({
             <MapPin className="w-3.5 h-3.5 inline-block" />
             {track1LabelText}
             {isKeywordEstimated && (
-              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full ml-2">키워드 추정값</span>
+              <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full ml-2">키워드 추정값</span>
             )}
           </span>
         }
@@ -549,7 +549,7 @@ export default function DualTrackCard({
                 </div>
               ))}
             </div>
-            <p className="text-xs text-green-600 border-t border-green-100 pt-2">
+            <p className="text-sm text-green-600 border-t border-green-100 pt-2">
               네이버 검색 상위노출이 올라갈수록 네이버 AI탭 노출 가능성도 함께 높아집니다
             </p>
           </div>
@@ -598,7 +598,7 @@ export default function DualTrackCard({
                   <span>ChatGPT</span>
                   <span className="font-semibold">
                     {chatgptRate}%
-                    <span className="text-xs text-gray-400 font-normal ml-1">
+                    <span className="text-sm text-gray-400 font-normal ml-1">
                       ({aiExposureData.chatgptFreq}/{aiExposureData.chatgptSampleSize}회)
                     </span>
                   </span>
@@ -610,7 +610,7 @@ export default function DualTrackCard({
             ) : (
               <div className="flex justify-between text-sm text-gray-400">
                 <span>ChatGPT</span>
-                <span className="text-xs">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
+                <span className="text-sm">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
               </div>
             )}
             {geminiRate !== null && aiExposureData?.geminiSampleSize ? (
@@ -619,7 +619,7 @@ export default function DualTrackCard({
                   <span>Google Gemini</span>
                   <span className="font-semibold">
                     {geminiRate}%
-                    <span className="text-xs text-gray-400 font-normal ml-1">
+                    <span className="text-sm text-gray-400 font-normal ml-1">
                       ({aiExposureData.geminiFreq}/{aiExposureData.geminiSampleSize}회)
                     </span>
                   </span>
@@ -631,12 +631,12 @@ export default function DualTrackCard({
             ) : (
               <div className="flex justify-between text-sm text-gray-400">
                 <span>Google Gemini</span>
-                <span className="text-xs">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
+                <span className="text-sm">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
               </div>
             )}
           </div>
           <p className="text-sm text-gray-400 mt-2.5 leading-relaxed">
-            ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다. 측정 시점·질의 구성에 따라 결과가 달라질 수 있습니다
+            ChatGPT 측정은 학습 데이터(컷오프 2024.06) 기반이며 실시간 웹 검색 결과와 다릅니다. 한국 지역 소상공인은 학습 데이터 포함률이 낮아 낮은 점수가 일반적입니다. Gemini는 Google Search 실시간 그라운딩으로 현재 웹 콘텐츠를 반영합니다.
           </p>
         </div>
       )}

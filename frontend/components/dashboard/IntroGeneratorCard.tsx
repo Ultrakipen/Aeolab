@@ -107,12 +107,12 @@ export function IntroGeneratorCard({
           <h3 className="text-base md:text-lg font-bold text-gray-900">
             소개글 AI 자동 생성
           </h3>
-          <span className={`text-xs md:text-sm px-2 py-0.5 rounded-full font-medium ${planBadgeColor}`}>
+          <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${planBadgeColor}`}>
             {planLabel} 플랜 · 월 {planMonthlyLimit >= 999 ? "무제한" : `${planMonthlyLimit}회`}
           </span>
         </div>
         {isShort && (
-          <span className="shrink-0 text-xs md:text-sm bg-amber-100 text-amber-800 px-2 py-1 rounded font-medium">
+          <span className="shrink-0 text-sm bg-amber-100 text-amber-800 px-2 py-1 rounded font-medium">
             현재 {currentLength}자
           </span>
         )}
@@ -254,7 +254,7 @@ export function IntroGeneratorCard({
             )}
           </div>
 
-          <p className="text-xs md:text-sm text-gray-600">
+          <p className="text-sm text-gray-600">
             스마트플레이스 → 업체정보 → &quot;소개&quot; 항목에 붙여넣기 하세요.
           </p>
         </div>
