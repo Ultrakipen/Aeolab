@@ -2153,3 +2153,23 @@ ON CONFLICT (key) DO NOTHING;
 ALTER TABLE system_status ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_all" ON system_status
   FOR ALL USING (true) WITH CHECK (true);
+
+-- ========================================
+-- assistant_logs (AI 어시스턴트 대화 이력 — 월별 사용 횟수 추적)
+-- ========================================
+CREATE TABLE IF NOT EXISTS assistant_logs (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES businesses(id) ON DELETE SET NULL,
+  question    TEXT NOT NULL,
+  answer      TEXT NOT NULL,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_assistant_logs_user_month
+  ON assistant_logs(user_id, created_at DESC);
+
+ALTER TABLE assistant_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "own_assistant_logs_select" ON assistant_logs
+  FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "own_assistant_logs_insert" ON assistant_logs
+  FOR INSERT WITH CHECK (user_id = auth.uid());
