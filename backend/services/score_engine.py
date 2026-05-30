@@ -1163,6 +1163,9 @@ def calc_blog_crank_score(naver_data: dict, biz: dict) -> float:
     if blog_count == 0 and not top_blogs:
         return 0.0  # 블로그 미발견
 
+    # blog_count=0이지만 top_blogs가 있는 경우: publish_freq·external_cite=0 → name_match만 반영 (최대 30점)
+    # naver_visibility API가 총 건수 집계에 실패해도 포스트 목록은 가져온 경우 발생 가능
+
     # 발행 빈도 — blog_mentions 실측 총 건수 기반 (100건 이상 = 만점)
     publish_freq = min(1.0, blog_count / 100.0)
 

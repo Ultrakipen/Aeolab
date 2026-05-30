@@ -435,9 +435,9 @@ function V31SixItems({
           <ScoreBar value={mapItem?.score ?? 0} color={barColor(mapItem?.score ?? 0)} />
         </div>
         <div className="flex items-center gap-2 mb-1">
-          <StatusIcon ok={!!(naverResult?.is_smart_place || naverPlaceUrl)} />
+          <StatusIcon ok={!!(naverResult?.is_smart_place || naverPlaceUrl?.startsWith("http"))} />
           <span className="text-sm text-gray-700">
-            {(naverResult?.is_smart_place || naverPlaceUrl) ? "네이버 지도 플레이스 등록됨" : "네이버 지도 플레이스 미확인"}
+            {(naverResult?.is_smart_place || naverPlaceUrl?.startsWith("http")) ? "네이버 지도 플레이스 등록됨" : "네이버 지도 플레이스 미확인"}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -604,7 +604,7 @@ function V30FourItems({
 
   const spDecoded = decodeSmartPlace(Math.round(spc));
   const spActual = {
-    registered: hasSmartPlace ?? (naverPlaceUrl ? true : spDecoded.registered),
+    registered: hasSmartPlace ?? (naverPlaceUrl?.startsWith("http") ? true : spDecoded.registered),
     faq:        hasFaq        ?? spDecoded.faq,
     recentPost: hasRecentPost ?? spDecoded.recentPost,
     intro:      hasIntro      ?? spDecoded.intro,

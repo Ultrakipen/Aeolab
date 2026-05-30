@@ -49,7 +49,7 @@ const AI_FAQS = [
   },
   {
     q: "Google AI 스캔은 어떻게 진행되나요?",
-    a: "Google AI Overview(SGE)는 구글 검색 결과를 실시간으로 조회하는 방식으로 측정됩니다. 스캔 쿼리별로 Google 검색 결과의 AI Overview 포함 여부를 직접 확인해 Google 점수를 산출합니다. 안정적인 실측이 가능하며 CAPTCHA 차단 없이 정상 측정됩니다.",
+    a: "Google AI Overview(SGE)는 Google 검색 API를 통해 실제 검색 결과를 조회해 측정합니다. 스캔 쿼리별로 AI Overview 영역에 내 사업장이 포함되는지 직접 확인하며, 안정적으로 측정되고 CAPTCHA 차단 없이 정상 작동합니다.",
   },
 ];
 
