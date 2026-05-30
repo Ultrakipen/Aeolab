@@ -1064,11 +1064,15 @@ export default function ScoreEvidenceCard({
             })}
           </div>
           {track2Score < 30 && (
-            <div className="mt-3 bg-purple-50 border border-purple-100 rounded-lg p-3">
+            <div className="mt-3 bg-purple-50 border border-purple-100 rounded-lg p-3 space-y-1.5">
               <p className="text-sm text-purple-800">
-                <span className="font-semibold">글로벌 AI 노출이 낮습니다.</span>{" "}
-                사장님의 가게 정보를 AI가 이해하는 형식으로 등록하면, ChatGPT와 Gemini에 더 잘 노출됩니다.
-                최적화 정보는 <a href="/schema" className="underline font-medium">스마트플레이스 최적화</a> 메뉴에서 자동으로 생성할 수 있습니다.
+                <span className="font-semibold">지금 노출 안 되는 건 정상입니다.</span>{" "}
+                ChatGPT·Gemini는 학습 데이터 기반이라 소상공인이 노출되기까지 수개월~1년 이상 걸립니다.
+              </p>
+              <p className="text-sm text-purple-700">
+                <span className="font-medium">지금 할 수 있는 것:</span>{" "}
+                <a href="/schema" className="underline font-medium">AI 인식 코드(JSON-LD) 등록</a>으로
+                Google AI Overview 노출 가능성을 높이고, 블로그·뉴스 후기를 꾸준히 쌓으면 ChatGPT·Gemini에도 서서히 반영됩니다.
               </p>
             </div>
           )}
