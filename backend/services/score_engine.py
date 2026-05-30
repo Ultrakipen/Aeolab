@@ -1151,34 +1151,40 @@ def get_user_group(category: str, is_franchise: bool = False) -> str:
 def calc_blog_crank_score(naver_data: dict, biz: dict) -> float:
     """
     블로그 C-rank 추정 점수 (0~100).
-    초기 가중치(베타 데이터 후 조정): 발행 빈도 0.4 + 외부 인용 0.3 + 업체명 매칭 0.3.
+    가중치: 발행 빈도 0.4 + 외부 인용 0.3 + 업체명 매칭 0.3.
     실제 C-rank는 네이버 비공개 — 사용자 화면에 "(추정)" 명시 필수.
 
-    naver_visibility.blog_mention_score()와 충돌 방지 (서로 다른 측정 목적).
+    발행 빈도·외부 인용: blog_mentions 실측 총 건수 기반 (100건=만점, 300건=외부인용 만점).
+    업체명 매칭: top_blogs 5건에서 업체명 포함 여부 확인.
     """
-    top_blogs = naver_data.get("top_blogs") or []
-    if not top_blogs:
-        return 0.0  # 빈 상태: UI에서 "블로그 미발견" 안내
+    top_blogs   = naver_data.get("top_blogs") or []
+    blog_count  = int(naver_data.get("blog_mentions") or 0)
 
-    # 발행 빈도 (단순화: 최대 30개까지 카운트)
-    publish_freq = min(1.0, len(top_blogs) / 30.0)
+    if blog_count == 0 and not top_blogs:
+        return 0.0  # 블로그 미발견
 
-    # 업체명 매칭률
+    # 발행 빈도 — blog_mentions 실측 총 건수 기반 (100건 이상 = 만점)
+    publish_freq = min(1.0, blog_count / 100.0)
+
+    # 외부 인용 추정 — blog_mentions 기반 (300건 이상 = 만점)
+    external_cite = min(1.0, blog_count / 300.0)
+
+    # 업체명 매칭률 — top_blogs에서 확인
     biz_name = (biz.get("name") or "").lower()
-    if biz_name:
+    if biz_name and top_blogs:
         match_count = sum(
-            1 for b in top_blogs[:30]
+            1 for b in top_blogs
             if isinstance(b, dict)
             and biz_name in (
                 str(b.get("title", "")) + str(b.get("description", ""))
             ).lower()
         )
-        name_match = match_count / max(len(top_blogs[:30]), 1)
+        name_match = match_count / max(len(top_blogs), 1)
+    elif biz_name and blog_count > 0:
+        # top_blogs 없으면 건수로 매칭 추정 (5건 이상이면 매칭 있다고 가정)
+        name_match = min(1.0, blog_count / 5.0)
     else:
         name_match = 0.0
-
-    # 외부 인용 추정
-    external_cite = min(1.0, len(top_blogs) / 100.0)
 
     score = (publish_freq * 0.4 + external_cite * 0.3 + name_match * 0.3) * 100
     return min(100.0, score)
