@@ -136,6 +136,37 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
           </a>
         </div>
 
+        {/* 네이버도 놓치지 마세요 */}
+        <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 p-3">
+          <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+            🔍 네이버도 놓치지 마세요
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-blue-800 dark:text-blue-200">
+            <div className="flex items-start gap-1.5">
+              <span className="shrink-0 mt-0.5">•</span>
+              <span>
+                <strong>네이버 스마트플레이스 SEO</strong> — 리뷰·키워드 최적화로
+                네이버 일반 검색 상위 노출 가능
+              </span>
+            </div>
+            <div className="flex items-start gap-1.5">
+              <span className="shrink-0 mt-0.5">•</span>
+              <span>
+                <strong>네이버 AI탭</strong> (베타) — 업종 제한 없이 노출 가능.
+                소개글 200자·사진 10장·블로그 후기가 핵심
+              </span>
+            </div>
+          </div>
+          <div className="mt-2">
+            <Link
+              href="/guide/ai-tab"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:underline"
+            >
+              네이버 AI탭 준비 가이드 →
+            </Link>
+          </div>
+        </div>
+
         <div className="mt-3 flex items-start gap-1.5 text-sm text-gray-500 dark:text-gray-400">
           <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
           <p className="leading-snug break-keep">

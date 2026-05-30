@@ -314,7 +314,7 @@ export default function HowItWorksPage() {
                   <td className="px-3 py-2 text-center">25%</td>
                   <td className="px-3 py-2 text-center">30%</td>
                   <td className="px-3 py-2 text-center font-bold text-blue-700">35%</td>
-                  <td className="px-3 py-2 hidden md:table-cell text-sm text-gray-500">사장님이 등록한 키워드 PC/모바일/플레이스 순위 (Playwright 실측)</td>
+                  <td className="px-3 py-2 hidden md:table-cell text-sm text-gray-500">등록한 키워드로 네이버 PC·모바일·플레이스 탭 순위를 자동 측정</td>
                 </tr>
                 <tr className="border-t border-gray-100 bg-gray-50/40">
                   <td className="px-3 py-2 font-medium">리뷰 품질</td>
@@ -349,7 +349,7 @@ export default function HowItWorksPage() {
                   <td className="px-3 py-2 text-center font-bold text-emerald-700">25%</td>
                   <td className="px-3 py-2 text-center">15%</td>
                   <td className="px-3 py-2 text-center text-gray-400">0%</td>
-                  <td className="px-3 py-2 hidden md:table-cell text-sm text-gray-500">Naver 스캐너 실측(Playwright DOM 파싱) + 스마트플레이스 AI 정보 탭 ON 여부</td>
+                  <td className="px-3 py-2 hidden md:table-cell text-sm text-gray-500">네이버 AI 브리핑 노출 여부 자동 확인 + 스마트플레이스 AI 정보 탭 ON 여부</td>
                 </tr>
                 <tr className="border-t-2 border-gray-300 font-semibold bg-blue-50">
                   <td className="px-3 py-2">합계</td>
@@ -540,7 +540,7 @@ export default function HowItWorksPage() {
                 <h3 className="text-base md:text-lg font-bold text-gray-900 break-keep">네이버 키워드 검색 순위 추적</h3>
               </div>
               <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed break-keep">
-                사장님이 등록한 키워드를 Playwright로 PC·모바일·플레이스 탭에서 각각 실측합니다.
+                사장님이 등록한 키워드로 네이버 PC·모바일·플레이스 탭을 직접 검색해 순위를 측정합니다.
                 순위가 ±3 이상 변동하거나 TOP10 진입·이탈 시 카카오 알림을 발송합니다.
               </p>
               <div className="overflow-x-auto">
@@ -648,7 +648,7 @@ export default function HowItWorksPage() {
             <li className="flex gap-3">
               <span className="text-blue-500 shrink-0">●</span>
               <div>
-                <strong>네이버 AI 브리핑 DOM 파싱</strong> (Playwright) — 가게명 검색 시 브리핑 영역에 노출되는지 직접 확인
+                <strong>네이버 AI 브리핑 노출 자동 확인</strong> — 가게명 검색 시 AI 브리핑 영역에 노출되는지 직접 확인
               </div>
             </li>
             <li className="flex gap-3">

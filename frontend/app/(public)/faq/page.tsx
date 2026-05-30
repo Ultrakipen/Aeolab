@@ -49,7 +49,7 @@ const AI_FAQS = [
   },
   {
     q: "Google AI 스캔은 어떻게 진행되나요?",
-    a: "Google AI Overview(SGE)는 Serper.dev API를 통해 실측됩니다. 스캔 쿼리별로 Google 검색 결과의 AI Overview 포함 여부를 직접 확인하여 Google 점수를 산출합니다. Playwright 직접 크롤링 방식의 CAPTCHA 차단 문제를 해소하여 안정적인 실측이 가능해졌습니다.",
+    a: "Google AI Overview(SGE)는 구글 검색 결과를 실시간으로 조회하는 방식으로 측정됩니다. 스캔 쿼리별로 Google 검색 결과의 AI Overview 포함 여부를 직접 확인해 Google 점수를 산출합니다. 안정적인 실측이 가능하며 CAPTCHA 차단 없이 정상 측정됩니다.",
   },
 ];
 

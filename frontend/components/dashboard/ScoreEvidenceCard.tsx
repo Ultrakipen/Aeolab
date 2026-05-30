@@ -241,7 +241,7 @@ function V31SixItems({
               </span>
               <WeightBadge pct={weights["keyword_search_rank"]} color="text-amber-700 bg-amber-50 border-amber-200" />
             </div>
-            <p className="text-sm text-gray-500">네이버 검색 결과 순위를 Playwright로 직접 측정합니다</p>
+            <p className="text-sm text-gray-500">등록한 키워드로 네이버에서 직접 검색해 내 사업장이 몇 위에 나오는지 확인합니다</p>
           </div>
           {kwSearchItem?.measured === false ? (
             <span className="text-sm text-gray-400 font-medium w-28 text-right shrink-0">측정 대기</span>
@@ -331,26 +331,35 @@ function V31SixItems({
         <div className="flex items-center gap-2 mb-2">
           <ScoreBar value={spc} color={barColor(spc)} />
         </div>
-        <div className="space-y-1.5 mb-2">
-          <div className="flex items-center gap-2">
-            <StatusIcon ok={spActual.registered} />
+        {spActual.registered && spActual.recentPost && spActual.intro ? (
+          <div className="flex items-center gap-2 mb-2">
+            <StatusIcon ok={true} />
             <span className="text-sm text-gray-700">
-              {spActual.registered ? "스마트플레이스 등록됨 (+40점)" : "스마트플레이스 미등록 — 등록 즉시 40점 획득"}
+              스마트플레이스 등록 (+40점) · 소식 (+20점) · 소개글 (+20점) — 3항목 모두 완료
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <StatusIcon ok={spActual.recentPost} />
-            <span className="text-sm text-gray-700">
-              {spActual.recentPost ? "소식 등록됨 (+20점)" : "소식 없음 (+20점)"}
-            </span>
+        ) : (
+          <div className="space-y-1.5 mb-2">
+            <div className="flex items-center gap-2">
+              <StatusIcon ok={spActual.registered} />
+              <span className="text-sm text-gray-700">
+                {spActual.registered ? "스마트플레이스 등록됨 (+40점)" : "스마트플레이스 미등록 — 등록 즉시 40점 획득"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <StatusIcon ok={spActual.recentPost} />
+              <span className="text-sm text-gray-700">
+                {spActual.recentPost ? "소식 등록됨 (+20점)" : "소식 없음 (+20점)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <StatusIcon ok={spActual.intro} />
+              <span className="text-sm text-gray-700">
+                {spActual.intro ? "소개글 있음 (+20점)" : "소개글 없음 (+20점)"}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <StatusIcon ok={spActual.intro} />
-            <span className="text-sm text-gray-700">
-              {spActual.intro ? "소개글 있음 (+20점)" : "소개글 없음 (+20점)"}
-            </span>
-          </div>
-        </div>
+        )}
         {topMissingKeywords.length > 0 && (
           <div className="bg-amber-50 border border-amber-100 rounded-lg p-3">
             <p className="text-sm font-semibold text-amber-700 mb-2">
@@ -730,26 +739,35 @@ function V30FourItems({
         <div className="flex items-center gap-2 mb-3">
           <ScoreBar value={spc} color={barColor(spc)} />
         </div>
-        <div className="space-y-1.5 mb-3">
-          <div className="flex items-center gap-2">
-            <StatusIcon ok={spActual.registered} />
+        {spActual.registered && spActual.recentPost && spActual.intro ? (
+          <div className="flex items-center gap-2 mb-3">
+            <StatusIcon ok={true} />
             <span className="text-sm text-gray-700">
-              {spActual.registered ? "스마트플레이스 등록됨 (+40점)" : "스마트플레이스 미등록 — 등록 즉시 40점 획득"}
+              스마트플레이스 등록 (+40점) · 소식 (+20점) · 소개글 (+20점) — 3항목 모두 완료
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <StatusIcon ok={spActual.recentPost} />
-            <span className="text-sm text-gray-700">
-              {spActual.recentPost ? "소식 등록됨 (+20점)" : "소식 없음 — 최신성 점수 유지에 필요 (+20점)"}
-            </span>
+        ) : (
+          <div className="space-y-1.5 mb-3">
+            <div className="flex items-center gap-2">
+              <StatusIcon ok={spActual.registered} />
+              <span className="text-sm text-gray-700">
+                {spActual.registered ? "스마트플레이스 등록됨 (+40점)" : "스마트플레이스 미등록 — 등록 즉시 40점 획득"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <StatusIcon ok={spActual.recentPost} />
+              <span className="text-sm text-gray-700">
+                {spActual.recentPost ? "소식 등록됨 (+20점)" : "소식 없음 — 최신성 점수 유지에 필요 (+20점)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <StatusIcon ok={spActual.intro} />
+              <span className="text-sm text-gray-700">
+                {spActual.intro ? "소개글 있음 (+20점)" : "소개글 없음 (+20점)"}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <StatusIcon ok={spActual.intro} />
-            <span className="text-sm text-gray-700">
-              {spActual.intro ? "소개글 있음 (+20점)" : "소개글 없음 (+20점)"}
-            </span>
-          </div>
-        </div>
+        )}
         {spc < 100 && (
           <div className="bg-blue-50 rounded-lg p-3">
             <p className="text-sm font-semibold text-blue-800 mb-1">
@@ -877,27 +895,27 @@ export default function ScoreEvidenceCard({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h2 className="text-base md:text-lg font-bold text-gray-900">
-              {isV32Parent ? "AI 노출 지수 산출 근거 (v3.2 · 7항목)" : isV31 ? "AI 노출 지수 산출 근거 (v3.1 · 6항목)" : "네이버 기반 AI 노출 지수 산출 근거"}
+              AI 노출 지수 구성 ({isV32Parent ? "7" : isV31 ? "6" : "4"}가지 항목)
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">
-              {isV31
-                ? `왜 이 지수인지 ${isV32Parent ? "7" : "6"}가지 항목으로 설명합니다`
-                : "왜 이 지수인지 4가지 항목으로 설명합니다"
-              }
+              내 점수가 어떻게 계산됐는지 항목별로 설명합니다
             </p>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {isV31 && userGroup && (
-              <span className={`text-sm border px-2.5 py-1 rounded-full font-semibold ${USER_GROUP_COLOR[userGroup] ?? "bg-gray-100 text-gray-700 border-gray-200"}`}>
-                {USER_GROUP_LABEL[userGroup] ?? userGroup}
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              {isV31 && userGroup && (
+                <span className={`text-sm border px-2.5 py-1 rounded-full font-semibold ${USER_GROUP_COLOR[userGroup] ?? "bg-gray-100 text-gray-700 border-gray-200"}`}>
+                  {USER_GROUP_LABEL[userGroup] ?? userGroup}
+                </span>
+              )}
+              <span className="text-sm bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-semibold">
+                네이버 {naverWeightPct}%
               </span>
-            )}
-            <span className="text-sm bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-semibold">
-              네이버 {naverWeightPct}%
-            </span>
-            <span className="text-sm bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-semibold">
-              글로벌 {globalWeight}%
-            </span>
+              <span className="text-sm bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-semibold">
+                글로벌 AI {globalWeight}%
+              </span>
+            </div>
+            <p className="text-xs text-gray-400">이 업종 고객의 AI 검색 경로 비중</p>
           </div>
         </div>
       </div>
@@ -931,15 +949,27 @@ export default function ScoreEvidenceCard({
             )}
           </div>
 
-          {/* INACTIVE 업종 AI탭 안내 배너 */}
+          {/* INACTIVE 업종 안내 배너 */}
           {effectiveGroup === "INACTIVE" && (
-            <div className="mb-3 rounded-lg border border-indigo-100 bg-indigo-50 p-3 flex items-start gap-2">
-              <span className="text-indigo-400 text-sm shrink-0 mt-0.5">ℹ️</span>
-              <p className="text-sm text-indigo-800 leading-relaxed">
-                이 업종은 <strong>네이버 AI 브리핑</strong> 노출 대상이 아닙니다.{" "}
-                대신 <strong>네이버 AI탭</strong>(업종 공식 제한 없음, 2026-04-28 베타, 2026년 6월 정식 출시 예정)도 확인하세요.{" "}
-                소개글 200자 이상·사진 10장 이상·블로그 후기 확보가 핵심입니다.
-              </p>
+            <div className="mb-3 space-y-2">
+              {/* 네이버 SEO 검색 노출 안내 */}
+              <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 flex items-start gap-2">
+                <span className="text-blue-500 text-sm shrink-0 mt-0.5">🔍</span>
+                <p className="text-sm text-blue-900 leading-relaxed">
+                  <strong>네이버 일반 검색 상위 노출은 가능합니다.</strong>{" "}
+                  AI 브리핑 대상은 아니지만, <strong>스마트플레이스 최적화·블로그 후기·키워드 관리</strong>로
+                  네이버 검색 결과 상위에 노출될 수 있습니다.
+                  이 항목 점수가 높을수록 네이버 검색 클릭이 늘어납니다.
+                </p>
+              </div>
+              {/* AI탭 안내 */}
+              <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 flex items-start gap-2">
+                <span className="text-indigo-400 text-sm shrink-0 mt-0.5">ℹ️</span>
+                <p className="text-sm text-indigo-800 leading-relaxed">
+                  <strong>네이버 AI탭</strong>은 업종 제한 없이 노출 가능합니다 (2026-04-28 베타, 6월 정식 출시 예정).{" "}
+                  소개글 200자 이상·사진 10장 이상·블로그 후기 확보가 핵심입니다.
+                </p>
+              </div>
             </div>
           )}
 
