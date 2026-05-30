@@ -118,9 +118,9 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               {business.is_franchise
                 ? "프랜차이즈 가맹점은 현재 네이버 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정). 그동안 일반 검색·AI탭 노출과 ChatGPT·Gemini 현황 측정에서 효과를 드립니다."
                 : isInactive
-                ? "이 업종은 AI 브리핑 비대상이지만, 네이버 AI탭(2026-04-27 베타, 음식점·쇼핑 업종 우선 지원) 업종 확대를 대비해 아래 단계로 준비하세요. 일반 검색 노출과 병행 가능합니다."
+                ? "이 업종은 AI 브리핑 비대상이지만, 네이버 AI탭(2026-04-28 베타, 2026년 6월 정식 출시 예정, 업종 공식 제한 없음)을 통한 노출을 준비할 수 있습니다. 아래 단계로 준비하세요. 일반 검색 노출과 병행 가능합니다."
                 : isLikely
-                ? "이 업종은 AI 브리핑 확대 예상 업종입니다. 미리 5단계를 완료해두면 확대 즉시 노출됩니다. (네이버 AI탭은 음식점·쇼핑 업종 우선 베타 → 아래 AI탭 가이드 참고)"
+                ? "이 업종은 AI 브리핑 확대 예상 업종입니다. 미리 5단계를 완료해두면 확대 즉시 노출됩니다. (네이버 AI탭은 2026-04-28 베타, 2026년 6월 정식 출시 예정 → 아래 AI탭 가이드 참고)"
                 : "이 업종은 현재 AI 브리핑 노출 대상입니다. 5단계를 완료해 노출 확률을 높이세요."}
             </p>
           </>
@@ -155,8 +155,8 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 🆕 네이버 AI탭 준비 — 업종 확대를 미리 대비하세요
               </p>
               <p className="text-sm text-indigo-700 mb-3 leading-relaxed">
-                네이버 AI탭(2026-04-27 베타)은 현재 음식점·카페·쇼핑 업종 중심으로 운영 중이며 업종 순차 확대가 진행되고 있습니다 (네이버 공식).
-                지금 아래 항목을 준비해두면 이 업종으로 확대 시 즉시 노출 우위를 가질 수 있습니다.
+                네이버 AI탭(2026-04-28 베타, 2026년 6월 정식 출시 예정)은 업종 공식 제한 없이 모든 사업장이 노출 가능합니다.
+                지금 아래 항목을 준비해두면 노출 우위를 가질 수 있습니다.
               </p>
               <ul className="space-y-2 text-sm text-indigo-700">
                 <li className="flex items-start gap-2">
@@ -313,7 +313,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 이 업종은 네이버 AI 브리핑 비대상이지만, AI탭 업종 확대를 미리 준비할 수 있습니다
               </p>
               <p className="text-sm text-indigo-700 leading-relaxed">
-                네이버 AI탭(2026-04-27 베타)은 현재 음식점·카페·쇼핑 업종 중심으로 운영 중이며 업종 확대가 순차 진행되고 있습니다.
+                네이버 AI탭(2026-04-28 베타, 2026년 6월 정식 출시 예정)은 업종 공식 제한이 없습니다.
                 아래 3단계로 AI탭 노출을 미리 준비하세요.
               </p>
             </div>

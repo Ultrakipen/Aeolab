@@ -1,7 +1,7 @@
 # AI 노출 기준 표준 + 네이버 일반 검색 개선 계획 v1.0
 
 > AEOlab 작업 기준 문서 — 5개 AI 채널 노출 판정 기준 + 네이버 일반 검색 개선 안내 설계
-> 작성: 2026-05-26 | 최종 갱신: 2026-05-26 v1.2 | 근거: score_engine.py · naver_scanner.py · chatgpt_scanner.py · gemini_scanner.py · google_scanner.py · gap_analyzer.py · keyword_taxonomy.py
+> 작성: 2026-05-26 | 최종 갱신: 2026-05-30 v1.4 | 근거: score_engine.py · naver_scanner.py · chatgpt_scanner.py · gemini_scanner.py · google_scanner.py · gap_analyzer.py · keyword_taxonomy.py + 딥리서치 8개 소스
 
 ---
 
@@ -274,11 +274,13 @@ ai_tab_enabled='true' (현재 DB 상태): in_ai_tab=True → +20 보너스 반�
 - ChatGPT와 달리 학습 데이터에 구글 생태계 가중이 더 높음
 
 **실사용자가 gemini.google.com에서 경험하는 것**:
-- **Google Search 그라운딩 기본 활성화** → 구글 인덱스 최신 정보 실시간 참조
-- 구글 비즈니스 프로필 → **수주 내 반영** (훈련 데이터 갱신 불필요)
+- **Gemini 모델 학습 컷오프: 2025년 1월** — 그라운딩 없이는 이후 정보 부재
+- **Google Search 그라운딩 기본 활성화** → 구글 인덱스 최신 정보 실시간 참조 가능
+- 구글 비즈니스 프로필 변경 → **2~4주 내 Gemini 반영** (그라운딩 경로)
+- 안정적 AI 인용 권위 확보까지: **3~6개월** (교차검증 소스 누적 필요)
 - ChatGPT보다 **즉각적인 개선 효과** 가능
 
-> **대시보드 안내 원칙**: "Gemini는 구글 비즈니스 프로필·웹사이트 등록으로 수주 내 개선 가능"으로 안내.
+> **대시보드 안내 원칙**: "Gemini는 구글 비즈니스 프로필·웹사이트 등록 후 2~4주 내 개선 시작, 3~6개월 안정화"로 안내.
 
 ### 4.2 노출 자격
 
@@ -314,20 +316,34 @@ ai_tab_enabled='true' (현재 DB 상태): in_ai_tab=True → +20 보너스 반�
 ### 4.5 개선 방향 (ChatGPT와 명확 분리)
 
 ```
-Gemini 전용 (즉각 효과):
-  1. 구글 비즈니스 프로필 등록 → 운영시간·사진·메뉴 완성 (수주 내 Gemini 반영)
-  2. 구글 지도 리뷰 최소 10개 확보
-  3. 자체 웹사이트 구글 색인 확인 (Search Console 등록)
-  4. 유튜브에 업장 관련 영상 1개+ (직접 또는 협업)
+[반영 대기 기간(2~4주) 중 지금 할 수 있는 것 — Gemini 조기 노출 가능성 높이는 방법]
 
-ChatGPT·Gemini 공통 (장기):
-  5. JSON-LD 구조화 데이터 웹사이트 적용
+즉시 착수 (크롤 신호 가속):
+  1. 구글 비즈니스 프로필 완성 — 운영시간·사진(10장+)·메뉴·Q&A 100% 채우기
+     ※ 사진·포스트 업데이트 = 구글에 "활성 사업장" 신호 → 재크롤 주기 단축
+  2. Google Search Console 등록 → URL 검사 → "색인 요청"으로 크롤 대기 단축
+  3. 모든 플랫폼(네이버·카카오·배달앱·자체 웹사이트) 사업장명·주소·전화 일치
+     ※ NAP 불일치 시 Gemini 교차검증 실패 → AI 노출 지연 또는 차단
+  4. 구글 비즈니스 프로필 포스트 주 1회 발행
+     ※ 30일 이상 미발행 시 GBP 가시성 급락 실측됨 (AgencyJet 2026)
+
+단기 2~4주 (크롤 이후 AI 처리 가속):
+  5. 자체 웹사이트 JSON-LD (LocalBusiness 스키마) 적용
+  6. 구글 지도 리뷰 응답 활성화 (리뷰 신선도 = freshness 신호)
+  7. 웹사이트 블로그에 업장 관련 글 1개+ 발행 (최근 30일 콘텐츠 = AI 인용 3.2배 높음)
+
+장기 3~6개월 (안정적 인용 권위 구축):
+  8. 외부 언론·디렉토리·리뷰 플랫폼에서 업장 언급 축적
+  9. 유튜브에 업장 관련 영상 1개+ (구글 생태계 가중)
+ 10. JSON-LD 구조화 데이터 지속 최신화
+
+ChatGPT·Gemini 공통:
   ※ 네이버 블로그는 네이버 AI 브리핑·AI탭에 효과적. Gemini 직접 개선 경로 아님.
 ```
 
 ### 4.6 면책 문구
 
-> "Gemini 스캐너 측정은 AI 학습 데이터 기반입니다. 실제 Gemini 앱은 Google Search 그라운딩으로 최신 정보를 참조하므로, 구글 비즈니스 프로필 등록 후 수주 내 반영될 수 있습니다."
+> "Gemini 스캐너 측정은 AI 학습 데이터(컷오프 2025.01) 기반입니다. 실제 Gemini 앱은 Google Search 그라운딩을 사용하므로, 구글 비즈니스 프로필·웹사이트 개선 후 **2~4주 내 반영 시작, 안정적 인용까지 3~6개월** 소요될 수 있습니다. (SEO 실무 측정 기준, Google 공식 기간 미발표)"
 
 **구현 완료 (2026-05-26)**:
 - `GlobalAIBanner.tsx` — "Gemini는 구글 비즈니스 프로필로 수주 내 개선 가능" 명시
@@ -337,54 +353,94 @@ ChatGPT·Gemini 공통 (장기):
 
 ## §5 Google AI Overview — 노출 기준
 
-### 5.1 서비스 개요
+### 5.1 서비스 개요 및 데이터 구조
 
 Google AI Overview(SGE)는 구글 검색 결과 상단에 AI 요약을 표시한다.
-**현재 iwinv 서버 IP → 구글 CAPTCHA 100% 차단 상태**로 실측 불가.
+**2026-05-30 Serper.dev API 측정 활성화** — CAPTCHA 없이 정상 측정 중 (`GOOGLE_SCANNER_BACKEND=serper`).
 
-### 5.2 현재 측정 상태
+**핵심 구조 — AI Overview는 실시간 색인 기반 (학습 컷오프와 무관)**:
+- RAG(검색 증강 생성) 방식 — 쿼리 시점의 구글 검색 인덱스를 직접 참조
+- Gemini 앱의 학습 컷오프(2025.01)와 **별개** — 색인만 되면 즉시 인용 가능
+- 2025년 초 Deindex/수동조치 페이지의 AI Overview 지연(수 일) → **현재 표준 색인 파이프라인과 동기화 완료** (Search Engine Roundtable 확인)
+
+**반영 기간 (SEO 실무 측정 기준, Google 공식 미발표)**:
+
+| 단계 | 소요 시간 | 조건 |
+|------|---------|------|
+| GBP/웹사이트 변경 → 구글 재크롤 | **수 시간 ~ 수 일** | 권위 도메인은 24~48시간 내 |
+| 색인 완료 → AI Overview 첫 반영 | **2~4주** | 일반 소상공인 기준 |
+| 안정적 AI 인용 권위 확보 | **3~6개월** | 교차 소스 검증 누적 후 |
+| GBP 30일 미업데이트 | **가시성 급락** | 실측 확인됨 (AgencyJet 2026) |
+
+**콘텐츠 신선도 vs AI 인용 가능성 (AuthorityTech 2026 측정)**:
+```
+0~30일:   기준 대비 3.2배 높음 (피크 구간)
+30~90일:  여전히 강함
+3~6개월:  감소 시작
+12개월+:  AI 인용 가능성 50% 이상 감소
+전체 AI 인용의 약 50%가 최근 13주(3개월) 이내 콘텐츠에서 발생
+```
+
+### 5.2 현재 측정 상태 (2026-05-30 업데이트)
 
 | 구분 | 내용 |
 |------|------|
-| 측정 방식 | Playwright → `www.google.com/search` |
-| 현재 상태 | **CAPTCHA 차단 100%** — 측정 불가 |
-| 재도입 예정 | 구독자 50명 이후 DataForSEO Screenshot API ($0.002/건) |
+| 측정 방식 | **Serper.dev API** (`https://google.serper.dev/search`) |
+| 현재 상태 | ✅ **정상 측정 중** — CAPTCHA 없음, `captcha_detected=false` 확인 |
+| 비용 | $0.001/건 (가입 시 2,500회 무료 포함) |
+| 환경변수 | `GOOGLE_SCANNER_BACKEND=serper`, `SERPER_API_KEY` 설정 완료 |
+| 시각 증거(스크린샷) | Playwright 캡처는 여전히 CAPTCHA 차단 → 구독자 50명 이후 DataForSEO Screenshot API 재도입 예정 |
 
-**✅ P0 수정 완료 (2026-05-26, commit c416899)**:
-```python
-# google_scanner.py:54–62 — CAPTCHA 감지 구현됨
-if (any(kw in current_url for kw in ["captcha", "sorry", "recaptcha"]) or ...):
-    return {"mentioned": False, "in_ai_overview": False, "captcha_detected": True, "error": "captcha_blocked"}
-
-# score_engine.py:757–792 — _is_google_captcha() + calc_track2_score() CAPTCHA 분기
-# CAPTCHA 시 나머지 3개 항목(0.90)으로 재배분 → 100점 만점 유지
-# breakdown에 google_captcha_blocked=True 플래그 추가됨
+**탐지 우선순위 (google_scanner.py `_scan_via_serper`)**:
+```
+1. aiOverview 필드 (Serper 베타) → in_ai_overview=True
+2. answerBox (featured snippet)
+3. knowledgeGraph
+4. 유기 검색 결과 순위 (rank 필드)
 ```
 
-**재배분 산식 (CAPTCHA 시, 이미 적용됨)**:
+**CAPTCHA 재배분 산식 (captcha_detected=True 시, 현재 미적용)**:
 ```
 score = (ai_exp × 0.40 + schema × 0.30 + mentions × 0.20) / 0.90
 ```
 
-### 5.3 노출 가능성을 높이는 요인 (측정 가능해진 후 적용)
+### 5.3 노출 가능성을 높이는 요인 + 반영 대기 중 할 수 있는 것
 
-| 요인 | 설명 |
-|------|------|
-| **E-E-A-T** | 경험·전문성·권위·신뢰 신호 — 리뷰·자격증·언론 보도 |
-| **JSON-LD 구조화 데이터** | `LocalBusiness`, `Restaurant`, `Product` 스키마 |
-| **구글 비즈니스 프로필** | 구글 지도 등록·완성도 |
-| **Core Web Vitals** | 페이지 로딩 속도·안정성 |
-| **HTTPS + 모바일 최적화** | 기본 기술 요건 |
+**[반영 대기 기간(2~4주) 동안 AI Overview 노출 가능성을 높이는 방법]**
 
-### 5.4 사용자 안내 (현재 측정 불가 상태)
+| 요인 | 효과 | 즉시 가능 여부 |
+|------|------|-------------|
+| **구글 비즈니스 프로필 완성** | 가장 빠른 AI Overview 진입 경로 | ✅ 즉시 |
+| **GBP 포스트 주 1회 발행** | 활성 사업장 신호 → 재크롤 주기 단축 | ✅ 즉시 |
+| **Search Console 색인 요청** | 크롤 대기 기간 단축 | ✅ 즉시 |
+| **NAP 일치** (모든 플랫폼 동일) | 교차검증 통과 → AI 인용 차단 해제 | ✅ 즉시 |
+| **JSON-LD 구조화 데이터** | `LocalBusiness`·`Restaurant` 스키마 | ✅ 즉시 |
+| **최근 콘텐츠 발행** (30일 이내) | AI 인용 가능성 3.2배 (AuthorityTech) | ✅ 즉시 |
+| **구글 지도 리뷰 응답** | freshness 신호, AI 신뢰도 ↑ | ✅ 즉시 |
+| **E-E-A-T 신호** | 리뷰·자격증·언론 보도 | ⏳ 장기 |
+| **Core Web Vitals** | 페이지 로딩 속도·안정성 | ⏳ 기술 적용 후 |
+| **HTTPS + 모바일 최적화** | 기본 기술 요건 | ✅ 즉시 |
+
+**5단계 반영 지연(Update Lag) 모델 — 소상공인이 "왜 아직 안 바뀌지?" 느끼는 이유 (Risosa/AI100)**:
+```
+① 발행 지연     — 웹사이트/GBP 변경 실제 공개까지
+② 발견 지연     — Googlebot 재방문까지 (Search Console 색인 요청으로 단축 가능)
+③ 색인 지연     — 크롤된 내용이 색인 처리까지
+④ 답변 조립 지연 — AI Overview 응답 생성 파이프라인
+⑤ 교차검증 지연  — 타 사이트 인용·NAP 일치 확인 후 안정적 노출
+```
+→ ②번 단축(Search Console) + ⑤번 단축(NAP 일치, 외부 언급 축적)이 소상공인이 할 수 있는 핵심.
+
+### 5.4 사용자 안내 (Serper.dev 측정 활성 이후)
 
 ```
-"Google AI Overview는 현재 서버 환경상 직접 측정이 어렵습니다.
- 구글 비즈니스 프로필 완성도와 JSON-LD 구조화 데이터를 개선하면
- 노출 가능성이 높아집니다."
+"Google AI Overview에서의 노출 여부를 측정했습니다.
+ 구글 비즈니스 프로필·웹사이트·JSON-LD를 개선하면 2~4주 내 반영이 시작되며,
+ 안정적인 AI 인용까지는 3~6개월이 소요됩니다.
+ (SEO 실무 측정 기준 — Google 공식 발표 기간은 없습니다.)"
 ```
 
-**스코어 처리**: CAPTCHA 시 `google_captcha_blocked=True` 플래그 + 나머지 3개 항목으로 재배분 → 사용자에게 "Google AI Overview 측정 불가 (서버 환경)" 안내 필요.
+**스코어 처리**: Serper 정상 시 `google_presence` 10% 정상 반영. CAPTCHA 발생 시(예비) `google_captcha_blocked=True` + 재배분 로직 유지.
 
 ---
 
@@ -540,11 +596,15 @@ PC 통합검색:   search.naver.com
 | 소개글 Q&A 완성 (500자+) | ✅ 즉시 | ✅ 2~4주 | ✅ 즉시 | — | — | — |
 | 리뷰 10개+ | ✅ 즉시 | ✅ 2~4주 | ✅ 즉시 | — | — | — |
 | 사진 10장+ (카테고리별) | ✅ 즉시 | ✅ 2~4주 | ✅ 즉시 | — | — | — |
-| 네이버 블로그 후기 5개+ | ✅ 2~4주 | — | ✅ 2~4주 | — (Bing 미인덱싱) | — | — |
+| 네이버 블로그 후기 5개+ | ✅ 2~4주 | — | ✅ 2~4주 | — (Bing 영향 제한적) | — | — |
 | 14일 이내 소식 게시 | ✅ 즉시 | ✅ 2~4주 | ✅ 즉시 | — | — | — |
 | 예약 연동 | ✅ 즉시 | ✅ 2~4주 | ✅ 즉시 | — | — | — |
-| JSON-LD 구조화 데이터 | — | — | — | ✅ 3~12개월 | ✅ 3~12개월 | ✅ 즉시 |
-| 구글 비즈니스 프로필 | — | — | — | ✅ 수주 (Bing 경로) | ✅ 수주 (그라운딩) | ✅ 즉시 |
+| JSON-LD 구조화 데이터 | — | — | — | ✅ 3~12개월 | ✅ 3~6개월 | ✅ 2~4주 |
+| 구글 비즈니스 프로필 완성 | — | — | — | ✅ 수주 (Bing 경로) | ✅ **2~4주** (그라운딩) | ✅ **2~4주** |
+| GBP 포스트 주 1회 | — | — | — | — | ✅ 재크롤 단축 | ✅ 재크롤 단축 |
+| Search Console 색인 요청 | — | — | — | — | ✅ 크롤 대기 단축 | ✅ 크롤 대기 단축 |
+| NAP 전 플랫폼 일치 | — | — | — | ✅ 신뢰도 ↑ | ✅ 교차검증 통과 | ✅ 교차검증 통과 |
+| 구글 지도 리뷰 응답 | — | — | — | — | ✅ freshness 신호 | ✅ freshness 신호 |
 
 ### 7.2 우선순위 결정 원칙
 
@@ -573,11 +633,14 @@ ChatGPT:
  Bing 웹 검색을 사용하므로 측정 결과와 다를 수 있으며, 단기 개선이 점수에 즉시 반영되지 않습니다."
 
 Gemini:
-"Gemini 스캐너 측정은 AI 학습 데이터 기반입니다. 실제 Gemini 앱은 Google 검색 그라운딩을
- 사용하므로, 구글 비즈니스 프로필 등록 후 수주 내 실사용 결과가 개선될 수 있습니다."
+"Gemini 스캐너 측정은 AI 학습 데이터(컷오프 2025.01) 기반입니다. 실제 Gemini 앱은 Google
+ Search 그라운딩을 사용하므로, 구글 비즈니스 프로필·웹사이트 개선 후 2~4주 내 반영이 시작되며
+ 안정적 인용까지 3~6개월 소요됩니다. (SEO 실무 측정 기준, Google 공식 기간 미발표)"
 
 Google AI Overview:
-"Google AI Overview는 현재 서버 환경상 직접 측정이 어렵습니다."
+"Google AI Overview는 현재 서버 환경상 직접 측정이 어렵습니다.
+ 구글 비즈니스 프로필·JSON-LD·최신 콘텐츠 개선 후 2~4주 내 반영이 시작되며,
+ 안정적 AI 인용까지 3~6개월이 소요됩니다. (SEO 실무 측정 기준, Google 공식 기간 미발표)"
 
 네이버 일반 검색:
 "검색 순위는 기기·지역·로그인 상태에 따라 다를 수 있으며, 본 서비스의 측정은 참고용입니다."
@@ -682,6 +745,47 @@ Gemini 그라운딩 (비용 검토 후):
 
 ---
 
+---
+
+## §10 조사 출처 (반영 기간·개선 효과 수치 근거)
+
+> §4 Gemini·§5 Google AI Overview 반영 기간 및 개선 효과 수치는 아래 출처 기반.
+> **Google 공식 문서는 "수 일~수 개월 소요 가능"만 명시 — 구체적 AI 반영 기간은 공식 미발표.**
+
+### 공식 문서 (1차 소스)
+
+| 출처 | URL | 확인 내용 |
+|------|-----|---------|
+| Google Search Central | `developers.google.com/search/docs/appearance/ai-features` | "AI Overviews에 추가 최적화 불필요. 크롤은 수 일~수 개월 소요" |
+| Gemini API 공식 문서 | `ai.google.dev/gemini-api/docs/interactions/google-search` | Grounding with Google Search — 학습 컷오프 넘어 실시간 색인 참조 메커니즘 |
+| Google I/O 2026 공식 블로그 | `blog.google/products-and-platforms/products/search/search-io-2026/` | AI 에이전트 블로그·뉴스·SNS·실시간 데이터 스캔 방향 확인 |
+
+### SEO 실무자 측정 보고서 (2차 소스)
+
+| 출처 | URL | 확인 내용 | 발행일 |
+|------|-----|---------|------|
+| **Stackmatix** | `stackmatix.com/blog/google-ai-overview-update-frequency` | **2~4주 반영 핵심 수치** + 24~48시간(권위 도메인) + 60~90일 미니 리프레시 권장 | 2026 |
+| **MapRanks** | `mapranks.com/2026/05/25/our-google-business-profile-for-ai-overview` | GBP 개선 후 30~60일 내 초기 가시성 + 3~6개월 안정 인용 | 2026-05-25 |
+| **AgencyJet** | `agencyjet.com/blog/google-business-profile-optimization-guide` | **30일 미업데이트 시 AI Overview 가시성 급락 실측** + 콘텐츠 3개월 이내 3배 인용 | 2026 |
+| **AuthorityTech** | `authoritytech.io/blog/content-freshness-seo-ai-2026` | **최근 30일 콘텐츠 3.2배 인용** + 전체 인용의 50%가 최근 13주 이내 | 2026-05-27 |
+| **LocalFalcon** | `localfalcon.com/blog/whitepaper-studies-the-impact-of-google-ai-overviews-on-local-business-search-visibility` | GBP+리뷰+JSON-LD 교차검증 필요. 30일+ 활동 공백 시 측정 가능 가시성 감소 | 2025 |
+| **Risosa/AI100** | `risosa.com/knowledge-base/update-lag` | **5단계 Update Lag 모델** (발행→발견→색인→조립→교차검증) | 2025 |
+| **Search Engine Roundtable** | `seroundtable.com/google-ai-overview-lag-gone-41368.html` | 표준 색인 파이프라인과 AI Overview 동기화 확인 (구 지연 해소) | 2025 |
+| **LocalDataExchange** | `localdataexchange.com/google-ai-vs-gemini/` | AI Overview(실시간 색인 RAG) vs Gemini 앱(컷오프+선택적 그라운딩) 구조 비교 | 2025 |
+
+### 조사 한계 및 주의사항
+
+```
+1. "2~4주", "3~6개월" 수치는 Google 공식 발표가 아닌 SEO 실무자 실측 기반.
+   개별 사업장의 도메인 권위·업종·경쟁도에 따라 실제 소요 기간 크게 다를 수 있음.
+2. AI Overview 반영률은 쿼리 유형에 따라 큰 차이:
+   정보성 쿼리 58% vs 상업적 쿼리 17% (LocalFalcon, 2025-05-21, 60,000쿼리 기준)
+3. Gemini 학습 컷오프(2025년 1월)는 공식 확인. 이후 정보는 Search Grounding 의존.
+4. 이 수치는 2026-05-30 기준이며, Google의 AI Overview 정책 변경에 따라 갱신 필요.
+```
+
+---
+
 ## 변경 이력
 
 | 날짜 | 버전 | 내용 |
@@ -689,6 +793,7 @@ Gemini 그라운딩 (비용 검토 후):
 | 2026-05-26 | v1.0 | 최초 작성 — 5채널 노출 기준 + 네이버 일반 검색 개선 계획 통합 |
 | 2026-05-26 | v1.1 | 구현 결과 반영 + 오판 정정<br>**P0 완료 확인**: google_scanner.py CAPTCHA 감지, score_engine.py 재배분<br>**P1 완료 확인**: KeywordRankCard 연결 문구, GuideClient NaverSearchBaseSection<br>**§3 ChatGPT 전면 수정**: "학습 데이터 기반" → "스캐너=학습 데이터(컷오프 2024.06) / 실사용=Bing 검색" 이분법 도입<br>**§4 Gemini 전면 수정**: "스캐너=학습 데이터 / 실사용=Google Search 그라운딩(수주 내 반영)" 분리<br>**§7 매트릭스 수정**: 네이버 블로그→ChatGPT 효과 "—"로 정정<br>**§1 LIKELY 주석 추가**: 12개 중 실효 6개 (6개 화이트리스트 미등록)<br>**P1-B 미커밋 항목 9개 문서화** |
 | 2026-05-26 | v1.3 | 교차검증 수정 — beauty 업종 ACTIVE 전환 공식 예고(2026.02 컨콜) 추가. 네이버 블로그→Bing 영향 표현 "인덱싱 안 됨→영향 제한적"으로 완화(7개 파일). AIDiagnosisCard "AI 2~4주" 채널별 분리. GlobalAiActionCard "네이버·구글 리뷰" → "구글 리뷰" 분리. FAQSection "2~4주 점수 변화" 채널별 분리. pdf_generator Google AI 노출 보장 표현 제거. |
+| 2026-05-30 | v1.4 | **Gemini·Google AI Overview 반영 기간 인터넷 최신 자료 기반 수정** (딥리서치, 8개 소스 교차검증)<br>**§4.1**: Gemini 학습 컷오프 2025.01 명시. "수주 내" → "2~4주 반영 시작, 3~6개월 안정화" 수치화<br>**§4.5**: 반영 대기 기간(2~4주) 중 할 수 있는 조기 노출 방법 단계별 추가 (크롤 신호 가속·NAP 일치·GBP 포스트·Search Console 색인 요청)<br>**§4.6**: 면책 문구 수치화 + "Google 공식 기간 미발표" 명시<br>**§5.1**: Google AI Overview 데이터 구조(RAG, 실시간 색인 기반) + 반영 기간 단계표 + 콘텐츠 신선도 vs AI 인용 가능성 데이터 추가<br>**§5.3**: 반영 대기 중 할 수 있는 행동 매트릭스 + 5단계 Update Lag 모델 추가<br>**§5.4**: 사용자 안내 문구 수치화<br>**§7 매트릭스**: Gemini/Google AI 열에 구체적 기간 + GBP 포스트·Search Console·NAP·리뷰 응답 행 신규 추가<br>**§8.1**: Gemini·Google AI Overview 면책 문구 수치화<br>**§10 신규**: 조사 출처 섹션 (공식 문서 3개 + SEO 실무 보고서 8개 + 조사 한계 명시) |
 | 2026-05-26 | v1.2 | P1-B·P2·P3 구현 완료 반영<br>**P1-B 커밋 확정**: commit 4ae6990 (ChatGPT·Gemini 노출 기준 정정 + 전사 UI 일관화)<br>**P2 인프라 완료**: commit 902327d — AI탭 셀렉터 6→15, body 폴백, AiTabPreviewCard 3-state, system_status DB v6.1<br>**P3 인프라 완료**: commit 902327d — DataForSEO 게이트, Gemini 그라운딩 게이트, KeywordRankCard Recharts 30일 트렌드<br>**§2.2 현황 수정**: `ai_tab_enabled='true'` (2026-05-20 이후 이미 활성 중) → env var 우선순위 문서화<br>**§9 재구성**: P1-B/P2/P3 인프라 완료 섹션 분리 + 잔여 장기 작업 정리 |
 
 ---

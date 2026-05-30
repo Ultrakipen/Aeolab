@@ -28,9 +28,9 @@ export default function TrialResultPreview() {
             {/* 점수 3칸 */}
             <div className="grid grid-cols-3 gap-3 mb-5">
               <div className="text-center bg-red-50 rounded-xl p-3 border border-red-100">
-                <p className="text-2xl font-bold text-red-600">32점</p>
-                <p className="text-sm text-gray-500 mt-0.5">AI 노출 점수</p>
-                <p className="text-sm text-red-500 mt-0.5">업종 평균 61점</p>
+                <p className="text-base font-bold text-red-600">AI 노출 낮음</p>
+                <p className="text-sm text-gray-500 mt-0.5">AI 노출 현황</p>
+                <p className="text-sm text-red-500 mt-0.5">업종 평균 이하</p>
               </div>
               <div className="text-center bg-orange-50 rounded-xl p-3 border border-orange-100">
                 <p className="text-2xl font-bold text-orange-600">3%</p>

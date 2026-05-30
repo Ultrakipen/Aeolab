@@ -210,7 +210,7 @@ export default function ScoreGuidePage() {
                 {
                   item: "AI탭 준비도",
                   weight: "5%",
-                  desc: "네이버 AI탭 노출 체크리스트 완성도 — 음식점·쇼핑 업종 우선 지원 (2026-04-27 베타)",
+                  desc: "네이버 AI탭 노출 체크리스트 완성도 — 업종 공식 제한 없음 (2026-04-28 베타, 2026년 6월 정식 출시 예정)",
                 },
               ].map((row, i) => (
                 <tr

@@ -83,7 +83,7 @@ export default async function AiInfoTabGuidePage({
           프랜차이즈 가맹점은 현재 제외됩니다(네이버 공식 정책).
         </p>
         <p className="mt-2 text-sm text-blue-700 bg-white border border-blue-100 rounded px-2.5 py-1.5">
-          ℹ️ AI탭은 음식점·카페·쇼핑 업종 우선 지원 중이며 순차 확대 예정입니다.{' '}
+          ℹ️ AI탭은 업종 공식 제한이 없습니다 (2026-04-28 베타, 2026년 6월 정식 출시 예정).{' '}
           <Link href="/guide/ai-tab" className="underline font-semibold">AI탭 5항목 가이드 →</Link>
         </p>
       </div>
@@ -96,7 +96,7 @@ export default async function AiInfoTabGuidePage({
         </h1>
         <p className="text-base md:text-lg text-gray-700 leading-relaxed break-keep">
           {elig === 'inactive' || (business?.is_franchise)
-            ? 'ChatGPT·Gemini·Google AI 노출 개선을 1순위로 진행하며, 네이버 AI탭(음식점·쇼핑 업종 우선 베타) 확대에도 대비합니다. 평균 소요 10분.'
+            ? 'ChatGPT·Gemini·Google AI 노출 개선을 1순위로 진행하며, 네이버 AI탭(업종 공식 제한 없음, 2026-04-28 베타, 2026년 6월 정식 출시 예정) 확대에도 대비합니다. 평균 소요 10분.'
             : '내 사업장이 네이버 AI 브리핑에 노출되도록 단계별로 안내합니다. 평균 소요 15분.'}
         </p>
         <p className="mt-2 text-sm md:text-base text-gray-500">

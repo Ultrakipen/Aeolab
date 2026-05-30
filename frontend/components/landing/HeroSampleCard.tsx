@@ -50,7 +50,7 @@ const SAMPLES: SampleData[] = [
       { name: "내 카페",         score: 28, rank: 4, me: true,  ai: { naver: false, chatgpt: false, google: false } },
     ],
     myWeakness: "소식 발행 0건 · 방문자리뷰 14건 · 대표사진 3장",
-    advice: "3위 테라로사보다 AI 노출 격차 36 차이입니다.",
+    advice: "3위 테라로사보다 AI 노출 격차가 큽니다.",
     adviceSub: "소식 1건 발행 + 소개글 메뉴·분위기 키워드 강화하면 네이버 AI가 내 카페를 찾기 시작합니다.",
   },
   {
@@ -68,7 +68,7 @@ const SAMPLES: SampleData[] = [
       { name: "내 식당",      score: 33, rank: 4, me: true,  ai: { naver: false, chatgpt: false, google: false } },
     ],
     myWeakness: "소식 업데이트 없음 · 방문자리뷰 28건 · 단체예약 정보 없음",
-    advice: "3위보다 AI 노출 격차 28 차이입니다.",
+    advice: "3위보다 AI 노출 격차가 상당합니다.",
     adviceSub: "소개글에 '단체예약·주차 가능' 추가 시 네이버 AI탭 노출 가능성이 높아집니다.",
   },
   {
@@ -87,7 +87,7 @@ const SAMPLES: SampleData[] = [
       { name: "내 헤어샵",       score: 31, rank: 4, me: true,  ai: { naver: false, chatgpt: false, google: false } },
     ],
     myWeakness: "소개글 키워드 부족 · 리뷰 답변률 12% · 시술 카테고리 1개",
-    advice: "3위 박준뷰티랩보다 AI 노출 격차 37 차이입니다.",
+    advice: "3위 박준뷰티랩보다 AI 노출 격차가 큽니다.",
     adviceSub: "소개글 키워드 다양화 + 리뷰 답변률 개선 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 핵심입니다.",
   },
   {
@@ -105,7 +105,7 @@ const SAMPLES: SampleData[] = [
       { name: "내 피부과",         score: 42, rank: 4, me: true,  ai: { naver: false, chatgpt: false, google: false } },
     ],
     myWeakness: "소개글 부족 · 진료 시간 미등록 · 영수증리뷰 0건",
-    advice: "3위보다 AI 노출 격차 24 차이입니다.",
+    advice: "3위보다 AI 노출 격차가 있습니다.",
     adviceSub: "소개글 강화 + 진료 시간 등록 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 핵심입니다.",
   },
   {
@@ -124,7 +124,7 @@ const SAMPLES: SampleData[] = [
       { name: "내 헬스장",       score: 26, rank: 4, me: true,  ai: { naver: false, chatgpt: false, google: false } },
     ],
     myWeakness: "소개글 없음 · PT 정보 없음 · 운영시간 미등록",
-    advice: "3위 파워짐보다 AI 노출 격차 35 차이입니다.",
+    advice: "3위 파워짐보다 AI 노출 격차가 큽니다.",
     adviceSub: "운영시간·PT 정보 소개글에 추가 시 네이버 AI탭 노출 가능성이 높아집니다.",
   },
   {
@@ -142,7 +142,7 @@ const SAMPLES: SampleData[] = [
       { name: "내 영어학원",     score: 37, rank: 4, me: true,  ai: { naver: false, chatgpt: false, google: false } },
     ],
     myWeakness: "소개글 부족 · 수강 후기 8건 · 학년별 커리큘럼 없음",
-    advice: "3위보다 AI 노출 격차 32 차이입니다.",
+    advice: "3위보다 AI 노출 격차가 상당합니다.",
     adviceSub: "학년별 커리큘럼 소개글에 추가 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 핵심입니다.",
   },
 ];
@@ -216,7 +216,7 @@ function CompetitorRow({ item, nextRankScore }: { item: Competitor; nextRankScor
           {item.me && <span className="ml-1 text-sm text-red-400 font-normal">(내 가게)</span>}
         </p>
         {item.me && exposureGap > 0 && (
-          <p className="text-sm text-gray-500 leading-tight">{item.rank - 1}위까지 {exposureGap} 차이</p>
+          <p className="text-sm text-gray-500 leading-tight">{item.rank - 1}위까지 격차 있음</p>
         )}
         <div className="relative w-full mt-1 pb-5">
           <div className="relative w-full bg-gray-200 rounded-full h-1.5">
@@ -241,7 +241,7 @@ function CompetitorRow({ item, nextRankScore }: { item: Competitor; nextRankScor
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
         <p className={`text-sm font-bold leading-tight ${item.me ? "text-red-600" : "text-blue-600"}`}>
-          {item.score}
+          {item.score >= 70 ? "높음" : item.score >= 50 ? "보통" : item.score >= 40 ? "낮음" : "매우 낮음"}
         </p>
         <AIPlatformDots ai={item.ai} />
       </div>
@@ -403,8 +403,8 @@ function ComparisonPanel({ sample }: { sample: SampleData }) {
       {/* 갭 칩 */}
       {exposureGap > 0 && (
         <div className="flex items-center gap-1.5 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
-          <p className="text-sm font-bold text-red-700">1위와 AI 노출 격차 {exposureGap}</p>
-          <p className="text-sm text-red-500 ml-auto">{exposureGap}% 차이</p>
+          <p className="text-sm font-bold text-red-700">1위와 AI 노출 격차 있음</p>
+          <p className="text-sm text-red-500 ml-auto">{exposureGap > 30 ? "큰 격차" : "일정 격차"}</p>
         </div>
       )}
 
@@ -420,7 +420,7 @@ function ComparisonPanel({ sample }: { sample: SampleData }) {
       </div>
 
       <p className="text-sm text-gray-400 leading-relaxed">
-        Gemini·ChatGPT 각 50회 (총 100회) 질의 기반 · 업종 평균 {INDUSTRY_AVG_SCORE} (추정) · 2026.05
+        Gemini·ChatGPT 각 50회 (총 100회) 질의 기반 · 업종 평균 기준 · 2026.05
         <br />
         ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
         측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
@@ -453,7 +453,7 @@ function ScoreExplainPanel({ sample }: { sample: SampleData }) {
           className="relative h-5 rounded-full overflow-hidden"
           style={{ background: "linear-gradient(to right, #fee2e2, #fef9c3, #d1fae5)" }}
           role="img"
-          aria-label={`내 가게 현재 AI 노출 현황 ${myScore}`}
+          aria-label="내 가게 현재 AI 노출 현황"
         >
           {/* 내 가게 포인터 (빨간) */}
           <div
@@ -474,13 +474,13 @@ function ScoreExplainPanel({ sample }: { sample: SampleData }) {
         <div className="grid grid-cols-2 gap-2 mt-2">
           <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2.5 text-center">
             <p className="text-sm text-red-500 font-semibold mb-0.5">현재 (Before)</p>
-            <p className="text-2xl font-extrabold text-red-600">{myScore}</p>
-            <p className="text-sm text-red-400 mt-0.5">AI 미추천 구간</p>
+            <p className="text-base font-extrabold text-red-600">AI 미노출 구간</p>
+            <p className="text-sm text-red-400 mt-0.5">개선 필요</p>
           </div>
           <div className="bg-green-50 border border-green-100 rounded-xl px-3 py-2.5 text-center">
             <p className="text-sm text-green-600 font-semibold mb-0.5">개선 후 (After)</p>
-            <p className="text-2xl font-extrabold text-green-600">{afterScore}+</p>
-            <p className="text-sm text-green-500 mt-0.5">AI 추천 시작 구간</p>
+            <p className="text-base font-extrabold text-green-600">AI 추천 시작 구간</p>
+            <p className="text-sm text-green-500 mt-0.5">노출 가능</p>
           </div>
         </div>
         <p className="text-sm text-gray-400 mt-1.5 text-center">위 수치는 예시입니다. 실제 진단 결과는 내 가게에 따라 다릅니다.</p>
@@ -638,26 +638,21 @@ export default function HeroSampleCard({ variant }: Props) {
             <p className="text-sm font-bold text-gray-800 mt-0.5">우리 동네 AI 노출 현황</p>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-3xl font-black text-red-500 leading-none">{me?.score ?? 28}</p>
-            <p className="text-sm text-gray-400">/ 100점</p>
+            <p className="text-base font-black leading-none" style={{ color: me && me.score >= 60 ? "#16A34A" : me && me.score >= 40 ? "#D97706" : "#DC2626" }}>
+              {me && me.score >= 60 ? "AI 노출 양호" : me && me.score >= 40 ? "AI 노출 보통" : "AI 노출 낮음"}
+            </p>
+            <p className="text-sm text-gray-400">
+              {me && me.score >= 60 ? "현상 유지" : me && me.score >= 40 ? "개선 여지 있음" : "개선 필요"}
+            </p>
           </div>
         </div>
 
-        {/* 진행바 */}
-        <div className="relative w-full bg-gray-100 rounded-full h-2 mb-3">
-          <div className="h-2 rounded-full bg-red-400 transition-all" style={{ width: `${me?.score ?? 28}%` }} />
-          <div className="absolute top-0 bottom-0 w-px bg-gray-500 opacity-40" style={{ left: `${INDUSTRY_AVG_SCORE}%` }} />
-          <span className="absolute text-sm text-gray-400 leading-none" style={{ left: `${INDUSTRY_AVG_SCORE}%`, transform: "translateX(-50%)", top: "10px" }}>
-            평균
-          </span>
-        </div>
-
         {/* 핵심 발견 2개 */}
-        <div className="space-y-1.5 mb-4 mt-5">
+        <div className="space-y-1.5 mb-4 mt-2">
           {compactGap > 0 && (
             <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">
               <span className="shrink-0">⚠</span>
-              <span>경쟁사 1위 대비 <strong>{compactGap}점</strong> 뒤처짐</span>
+              <span>경쟁사 1위 대비 <strong>{compactGap > 30 ? "큰 격차" : "일정 격차"}</strong> 있음</span>
             </div>
           )}
           <div className="flex items-center gap-2 text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2">

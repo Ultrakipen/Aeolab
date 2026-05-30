@@ -194,11 +194,11 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
               <span className="text-base md:text-lg font-bold text-indigo-900">네이버 AI탭 가이드</span>
             </div>
             <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-sm font-bold">
-              Beta · 순차 확대 중
+              Beta · 2026년 6월 정식 출시 예정
             </span>
           </div>
           <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
-            검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-27 베타, 음식점·카페·쇼핑 업종 우선 지원.
+            검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-28 베타, 업종 공식 제한이 없습니다 (2026-04-28 베타, 2026년 6월 정식 출시 예정).
           </p>
           <p className="text-sm font-semibold text-indigo-700 group-hover:underline">5항목 설정 가이드 →</p>
         </Link>

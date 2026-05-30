@@ -270,9 +270,9 @@ export default function AIDiagnosisCard({
                     <div className="col-span-2 flex items-start gap-2 rounded-xl px-3 py-3 border bg-indigo-50 border-indigo-200">
                       <Minus className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm font-semibold text-indigo-700">네이버 AI탭 (Beta · 순차 확대 중)</span>
+                        <span className="text-sm font-semibold text-indigo-700">네이버 AI탭 (Beta · 2026년 6월 정식 출시 예정)</span>
                         <span className="block text-sm text-indigo-500 mt-0.5">
-                          음식점·카페·쇼핑 업종 우선 지원 — 전체 확대 감지 시 자동으로 측정 시작됩니다
+                          업종 공식 제한 없음 — 전체 확대 감지 시 자동으로 측정 시작됩니다
                         </span>
                       </div>
                       <span className="text-sm font-semibold text-indigo-400 shrink-0">자동 감지 중</span>
@@ -354,8 +354,13 @@ export default function AIDiagnosisCard({
             const known =
               r.mentioned === true ||
               (r.exposure_freq !== undefined && r.exposure_freq > 0);
-            const geminiPct =
-              key === "gemini" && r.exposure_rate !== undefined
+            // sample_n 결과는 mentioned 없이 exposure_freq만 존재 → 스캔 여부는 둘 다 확인
+            const scanned =
+              (r.mentioned !== undefined && r.mentioned !== null) ||
+              r.exposure_freq !== undefined;
+            // Gemini·ChatGPT 모두 exposure_rate 보유 → 동일하게 % 표시
+            const exposurePct =
+              (key === "gemini" || key === "chatgpt") && r.exposure_rate !== undefined
                 ? Math.round(r.exposure_rate * 100)
                 : null;
             return (
@@ -364,18 +369,20 @@ export default function AIDiagnosisCard({
                 className={`flex items-center gap-2 rounded-xl px-3 py-2.5 border ${
                   known
                     ? "bg-green-50 border-green-200"
-                    : "bg-red-50 border-red-200"
+                    : scanned
+                    ? "bg-red-50 border-red-200"
+                    : "bg-gray-50 border-gray-200"
                 }`}
               >
                 {known
                   ? <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-                  : <XCircle className="w-4 h-4 text-red-500 shrink-0" />
+                  : <XCircle className={`w-4 h-4 shrink-0 ${scanned ? "text-red-500" : "text-gray-400"}`} />
                 }
-                <span className={`text-sm font-medium leading-tight ${known ? "text-green-800" : "text-red-800"}`}>
+                <span className={`text-sm font-medium leading-tight ${known ? "text-green-800" : scanned ? "text-red-800" : "text-gray-500"}`}>
                   {label}
                 </span>
-                <span className={`ml-auto text-sm font-semibold ${known ? "text-green-700" : "text-red-600"}`}>
-                  {geminiPct !== null ? `${geminiPct}%` : known ? "알고 있음" : "모름"}
+                <span className={`ml-auto text-sm font-semibold ${known ? "text-green-700" : scanned ? "text-red-600" : "text-gray-400"}`}>
+                  {exposurePct !== null ? `${exposurePct}%` : known ? "노출됨" : scanned ? "미노출" : "미측정"}
                 </span>
               </div>
             );
@@ -395,7 +402,7 @@ export default function AIDiagnosisCard({
               }`}
             >
               {mentionedCount === 0
-                ? `테스트한 AI(${DISPLAY_PLATFORMS.map(k => PLATFORM_SHORT[k]).join("·")})에서 ${businessName}이(가) 확인되지 않았습니다.`
+                ? `점검한 AI 채널(${DISPLAY_PLATFORMS.map(k => PLATFORM_SHORT[k]).join("·")})에서 ${businessName}이(가) 노출되지 않았습니다.`
                 : mentionedCount <= 2
                 ? `${mentionedNames.join("·")}에서만 확인됩니다. ${notMentionedNames.join("·")} 노출이 더 필요합니다.`
                 : `${mentionedNames.join("·")} 등 절반 이상의 AI가 알고 있습니다.`}

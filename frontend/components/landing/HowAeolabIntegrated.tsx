@@ -71,9 +71,9 @@ export function HowAeolabIntegrated() {
                   [AEOlab] 주간 노출 리포트
                 </p>
                 <div className="mb-2 pb-2 border-b" style={{ borderColor: "#E2E8F0" }}>
-                  <p className="mb-0.5" style={{ color: "#475569" }}>이번 주 AI 노출 점수</p>
+                  <p className="mb-0.5" style={{ color: "#475569" }}>이번 주 AI 노출 현황</p>
                   <p className="text-base font-black" style={{ color: "#2563EB" }}>
-                    78점 ↑ <span className="text-sm text-green-600 font-bold">(+6점 상승)</span>
+                    노출 늘었어요 ↑ <span className="text-sm text-green-600 font-bold">(양호 단계 진입)</span>
                   </p>
                 </div>
                 <p className="mb-0.5" style={{ color: "#475569" }}>ChatGPT 언급: <span className="font-bold text-gray-800">31회 → 38회</span></p>
@@ -115,20 +115,16 @@ export function HowAeolabIntegrated() {
           네이버 채널 점수
         </p>
         <p
-          className="text-3xl font-black mb-0.5"
-          style={{
-            color: "#2563EB",
-            fontFamily: "var(--font-pretendard,'Pretendard Variable',sans-serif)",
-            letterSpacing: "-1px",
-          }}
+          className="text-lg font-black mb-1"
+          style={{ color: "#2563EB" }}
         >
-          52
+          일부 노출 중
         </p>
-        <div className="w-full rounded-full h-1.5 mb-1" style={{ background: "#BFDBFE" }}>
-          <div className="h-1.5 rounded-full" style={{ width: "52%", background: "#2563EB" }} />
-        </div>
+        <p className="text-sm font-semibold mb-1" style={{ color: "#3B82F6" }}>
+          보통 단계
+        </p>
         <p className="text-sm" style={{ color: "#475569" }}>
-          AI 브리핑 노출도 · 100점 기준 · 예시
+          AI 브리핑 노출 현황 · 예시
         </p>
       </div>
       <div
@@ -142,20 +138,16 @@ export function HowAeolabIntegrated() {
           글로벌 AI 점수
         </p>
         <p
-          className="text-3xl font-black mb-0.5"
-          style={{
-            color: "#7C3AED",
-            fontFamily: "var(--font-pretendard,'Pretendard Variable',sans-serif)",
-            letterSpacing: "-1px",
-          }}
+          className="text-lg font-black mb-1"
+          style={{ color: "#7C3AED" }}
         >
-          38
+          인식 시작 단계
         </p>
-        <div className="w-full rounded-full h-1.5 mb-1" style={{ background: "#DDD6FE" }}>
-          <div className="h-1.5 rounded-full" style={{ width: "38%", background: "#7C3AED" }} />
-        </div>
+        <p className="text-sm font-semibold mb-1" style={{ color: "#8B5CF6" }}>
+          낮음 단계
+        </p>
         <p className="text-sm" style={{ color: "#475569" }}>
-          ChatGPT·Gemini · 100점 기준 · 예시
+          ChatGPT·Gemini 노출 현황 · 예시
         </p>
       </div>
     </div>
@@ -246,20 +238,34 @@ export function HowAeolabIntegrated() {
       desc: "네이버 AI 브리핑 노출 현황·빠진 키워드 안내 · ChatGPT·Gemini·Google AI 분석도 함께 제공",
       ui: (
         <div className="space-y-2 mb-3">
+          {/* AI 노출 현황 카드 */}
           <div
-            className="rounded-lg p-3 border text-center"
+            className="rounded-lg p-3 border"
             style={{ background: "#EEF2FF", borderColor: "#C7D2FE" }}
           >
-            <p className="text-sm font-bold mb-0.5" style={{ color: "#4F46E5" }}>
-              AI 노출 통합 점수 · 예시
-            </p>
-            <p className="text-4xl font-black leading-none mb-0.5" style={{ color: "#4F46E5" }}>
-              62
-            </p>
-            <p className="text-sm" style={{ color: "#475569" }}>
-              100 기준 · 개선 여지 있음
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-bold" style={{ color: "#4F46E5" }}>
+                AI 노출 현황 · 예시
+              </p>
+              <span className="text-sm px-2 py-0.5 rounded-full font-bold" style={{ background: "#C7D2FE", color: "#3730A3" }}>
+                개선 여지 있음
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {[
+                { label: "네이버 AI 브리핑·AI탭", status: "일부 노출 중", color: "#16A34A", bg: "#DCFCE7" },
+                { label: "ChatGPT 언급", status: "언급 낮음", color: "#D97706", bg: "#FEF3C7" },
+                { label: "Gemini 언급", status: "인식 시작 단계", color: "#7C3AED", bg: "#EDE9FE" },
+                { label: "키워드 커버리지", status: "3개 공백 있음", color: "#DC2626", bg: "#FEE2E2" },
+              ].map(({ label, status, color, bg }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-sm" style={{ color: "#475569" }}>{label}</span>
+                  <span className="text-sm font-semibold px-2 py-0.5 rounded-full" style={{ color, background: bg }}>{status}</span>
+                </div>
+              ))}
+            </div>
           </div>
+          {/* 빠진 키워드 */}
           <div
             className="rounded-lg p-2.5 border"
             style={{ background: "#FFFBEB", borderColor: "#FDE68A" }}
@@ -286,11 +292,11 @@ export function HowAeolabIntegrated() {
             className="rounded-lg p-3 border text-center"
             style={{ background: "#F5F3FF", borderColor: "#DDD6FE" }}
           >
-            <p className="text-4xl font-black leading-none mb-0.5" style={{ color: "#7C3AED" }}>
-              +8점
+            <p className="text-xl font-black leading-none mb-0.5" style={{ color: "#7C3AED" }}>
+              AI 노출 1단계 성장 ↑
             </p>
             <p className="text-sm" style={{ color: "#475569" }}>
-              AI 노출 점수 상승 · 예시
+              노출 상태 개선 · 예시
             </p>
             <p className="text-sm mt-1" style={{ color: "#94A3B8" }}>
               실제 변화는 업종·지역에 따라 다릅니다

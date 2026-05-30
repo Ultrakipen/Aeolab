@@ -471,8 +471,8 @@ export default function GlobalAiActionCard({
       {/* 면책 문구 */}
       <div className="border-t border-gray-100 pt-3">
         <p className="text-sm text-gray-500 leading-relaxed">
-          ※ ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
-          GPT/Gemini 노출 개선은 수주~수개월이 소요되며, 결과는 보장되지 않습니다.
+          ※ ChatGPT 측정은 AI 학습 데이터(컷오프 2024.06) 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
+          Gemini는 구글 비즈니스 프로필 개선 후 2~4주 내 반영 시작(안정화 3~6개월), ChatGPT는 3개월~1년 소요됩니다. 결과는 보장되지 않습니다.
         </p>
       </div>
     </div>

@@ -7,7 +7,7 @@ import Link from "next/link";
  *
  * Track 1: 네이버 AI 검색 준비도 (AI브리핑·AI탭 통합) — 업종별 비중: 40~70%
  *   AI 브리핑: 음식점·카페·숙박 등 ACTIVE 업종만
- *   AI탭: 모든 업종 (2026-04-27 베타, 6월 전체 확대 예정 — 네이버 공식)
+ *   AI탭: 모든 업종 (2026-04-28 베타, 6월 전체 확대 예정 — 네이버 공식)
  * Track 2: 글로벌 AI 가시성       (업종별 비중: 30~90%)
  * 성장 단계: track1_score 기준 (시작/성장 중/두각/선도)
  */
@@ -159,7 +159,7 @@ function ScoreBar({
         <div className="flex-1 min-w-0">
           <span className="font-semibold text-gray-800 text-base leading-tight block">{label}</span>
           <span className="text-sm text-gray-500 bg-gray-200 rounded-full px-2 py-0.5 inline-block mt-0.5">
-            최종 점수의 {pct}%
+            진단 비중 {pct}%
           </span>
         </div>
         <span className={`text-xl md:text-2xl font-bold shrink-0 ${isWeak ? "text-red-600" : "text-gray-800"}`}>
@@ -212,7 +212,7 @@ export default function DualTrackCard({
     : isLikely
     ? "📍 네이버 검색 지수 (AI 브리핑 확대 예정)"
     : isInactive
-    ? "📍 네이버 SEO 검색 지수"
+    ? "📍 네이버 검색 노출 지수"
     : "📍 네이버 AI 브리핑 노출 지수";
 
   const track1Sublabel = isActive

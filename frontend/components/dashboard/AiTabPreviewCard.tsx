@@ -237,7 +237,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               </span>
             ) : (
               <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-sm font-semibold">
-                Beta · 순차 확대 중
+                Beta · 2026년 6월 정식 출시 예정
               </span>
             )}
           </div>
@@ -250,7 +250,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         </div>
         <p className="mt-1 text-sm text-blue-700/80 leading-snug break-keep">
           고객이 네이버에서 검색할 때 <strong>AI탭에 내 가게가 어떻게 소개되는지</strong> 미리 볼 수 있습니다.
-          네이버 AI 브리핑과는 별개 경로로, <strong>음식점·카페·쇼핑 업종 우선 지원</strong> 중이며 업종 확대 예정입니다.
+          네이버 AI 브리핑과는 별개 경로로, <strong>업종 공식 제한 없음</strong> 중이며 업종 확대 예정입니다.
         </p>
         {/* 베타 상태 안내 문구 */}
         <p className="mt-1 text-sm text-blue-600 font-medium break-keep">
@@ -335,10 +335,11 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         {/* INACTIVE 업종: 카드 숨김 대신 안내 배너 표시 */}
         {NAVER_AI_TAB_ENABLED && !loading && unavailable && (
           <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 text-sm text-slate-700">
-            <p className="font-semibold text-slate-800 mb-1">AI탭은 현재 음식점·카페·쇼핑 업종 중심 베타 운영 중입니다</p>
+            <p className="font-semibold text-slate-800 mb-1">네이버 AI 브리핑 비대상 업종 — AI탭은 모든 업종 가능</p>
             <p className="leading-relaxed break-keep">
-              네이버 AI 브리핑 대상 업종은 아니지만, AI탭 업종 확대를 대비해 소개글·사진·리뷰 키워드를 미리 준비할 수 있습니다.
-              ChatGPT·Gemini 등 글로벌 AI 최적화도 병행하세요.
+              AI탭은 업종 공식 제한 없이 2026년 6월 전체 출시 예정입니다.
+              소개글 200자·사진 10장·리뷰 키워드를 미리 최적화하면 플레이스 에이전트를 통한 AI탭 노출에 유리합니다.
+              ChatGPT·Gemini 등 글로벌 AI 최적화도 함께 진행하세요.
             </p>
           </div>
         )}
@@ -398,7 +399,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             {/* likely 업종 안내 배너 — flex-row 밖에 배치해야 레이아웃 붕괴 없음 */}
             {data.eligibility === "likely" && (
               <div className="w-full rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800 mb-4">
-                AI 브리핑 확대 예상 업종입니다. AI탭은 음식점·쇼핑 업종 우선 지원 중이므로 지금부터 소개글·사진·리뷰를 준비해두세요.
+                AI 브리핑 확대 예상 업종입니다. AI탭은 업종 공식 제한이 없으므로 지금부터 소개글·사진·리뷰를 준비해두세요.
               </div>
             )}
 
@@ -478,6 +479,34 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                   * 예약 연동·사진 수는 스캔 시 자동 감지됩니다.
                 </p>
               )}
+
+              {/* AI탭 준비도 요약 — 빈 공간 활용 + 즉시 행동 유도 */}
+              {readinessLabel && (
+                <div className="mt-3 rounded-lg bg-indigo-50 border border-indigo-200 px-3 py-2.5">
+                  <p className="text-sm font-bold text-indigo-900">
+                    AI탭 준비도 — {readinessLabel.short}
+                  </p>
+                  <p className="text-sm text-indigo-700 mt-0.5 leading-snug break-keep">
+                    {readinessLabel.description}
+                  </p>
+                </div>
+              )}
+              {data.checklist && data.checklist.filter(it => it.completed === false).length > 0 && (
+                <div className="mt-3">
+                  <p className="text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 text-orange-400 shrink-0" />
+                    지금 할 수 있는 개선
+                  </p>
+                  <ul className="space-y-1.5">
+                    {data.checklist.filter(it => it.completed === false).slice(0, 3).map((it, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                        <span className="mt-1 w-3.5 h-3.5 rounded-full border-2 border-orange-300 shrink-0" />
+                        <span className="leading-snug break-keep">{it.item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* 우측: 매칭/부족 컨텍스트 */}
@@ -506,27 +535,38 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
 
               {/* 부족한 컨텍스트 */}
               {data.missing_contexts.length > 0 && (
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-0.5 flex items-center gap-1.5">
+                <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50 p-3">
+                  <p className="text-sm font-semibold text-orange-800 mb-1 flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4 text-orange-500 shrink-0" />
-                    보완하면 더 잘 노출돼요
+                    아직 AI탭에 소개되지 않은 서비스
                   </p>
-                  <p className="text-sm text-gray-400 mb-2">아래 정보를 채우면 AI탭 답변이 더 풍부해집니다</p>
-                  <div className="flex flex-wrap gap-1.5">
+                  <p className="text-sm text-orange-700 mb-2 leading-snug break-keep">
+                    아래 항목을 <strong>네이버 스마트플레이스 → 소개글</strong>에 자연스러운 문장으로 추가하면 AI탭 노출이 늘어납니다.
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
                     {data.missing_contexts.map((ctx, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center rounded-full bg-orange-50 border border-orange-200 text-orange-800 px-2.5 py-1 text-sm font-medium"
+                        className="inline-flex items-center rounded-full bg-white border border-orange-300 text-orange-800 px-2.5 py-1 text-sm font-medium"
                       >
                         {ctx}
                       </span>
                     ))}
                   </div>
+                  {/* 어디에 입력하는지 3단계 안내 */}
+                  <div className="rounded bg-white border border-orange-100 px-3 py-2 mb-3">
+                    <p className="text-sm font-semibold text-gray-700 mb-1">📍 입력 위치</p>
+                    <ol className="text-sm text-gray-600 space-y-0.5 leading-snug">
+                      <li>① <a href="https://smartplace.naver.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">smartplace.naver.com</a> 접속</li>
+                      <li>② 업체정보 → <strong>소개글 (200자)</strong> 수정</li>
+                      <li>③ 위 항목들을 문장 안에 자연스럽게 포함</li>
+                    </ol>
+                  </div>
                   <Link
-                    href="/settings?tab=business"
-                    className="mt-3 inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                    href="/guide/ai-tab"
+                    className="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
                   >
-                    키워드·소개글 보완하기 →
+                    소개글 작성 예시 보기 →
                   </Link>
                 </div>
               )}

@@ -74,6 +74,12 @@ export function AiInfoTabStatusCard({
 
   const current = STATUS_LABELS[status];
 
+  // INACTIVE 업종은 "아직 확인 안함" 배지 대신 비대상 안내로 덮어쓰기
+  const displayBadge =
+    eligibility === "inactive"
+      ? { label: "AI 브리핑 비대상 업종", color: "text-gray-500 bg-gray-50 border-gray-200", icon: "ℹ️" }
+      : current;
+
   // 업종별 안내 톤 분기
   const eligibilityBanner =
     eligibility === "active" ? (
@@ -86,14 +92,16 @@ export function AiInfoTabStatusCard({
       </div>
     ) : eligibility === "inactive" ? (
       <div className="mb-4 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm text-slate-700">
-        <strong>AI탭은 현재 음식점·카페·쇼핑 업종 중심 베타 운영 중입니다.</strong> ChatGPT·Gemini 글로벌 AI 채널 최적화가 이 업종에 더 효과적입니다.
+        <strong>네이버 AI 브리핑 비대상 업종입니다.</strong>{" "}
+        단, <strong>AI탭은 업종 공식 제한 없음</strong> — 2026년 6월 전체 출시 예정이며 모든 업종이 플레이스 에이전트를 통해 노출될 수 있습니다.
+        ChatGPT·Gemini 글로벌 AI 채널 최적화도 함께 진행하세요.
       </div>
     ) : null;
 
   return (
     <div className="rounded-xl border bg-white p-4 md:p-6">
       <div className="flex items-start gap-3 mb-4">
-        <span className="text-2xl" aria-hidden="true">{current.icon}</span>
+        <span className="text-2xl" aria-hidden="true">{displayBadge.icon}</span>
         <div className="flex-1">
           <h3 className="text-base md:text-lg font-bold text-gray-900 mb-0.5">
             네이버 AI 브리핑 노출 설정
@@ -104,11 +112,11 @@ export function AiInfoTabStatusCard({
             </p>
           )}
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-block px-2 py-1 rounded border text-sm font-medium ${current.color}`}>
-              {current.label}
+            <span className={`inline-block px-2 py-1 rounded border text-sm font-medium ${displayBadge.color}`}>
+              {displayBadge.label}
             </span>
-            {/* M3 광고/자연 구분 배지 — NAVER_AD_IN_BRIEFING_ACTIVE=true 시 노출 */}
-            {NAVER_AD_IN_BRIEFING_ACTIVE && adOnly !== undefined && (
+            {/* M3 광고/자연 구분 배지 — INACTIVE 업종에는 표시 안 함 */}
+            {NAVER_AD_IN_BRIEFING_ACTIVE && adOnly !== undefined && eligibility !== "inactive" && (
               adOnly ? (
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded border text-sm font-medium bg-gray-100 border-gray-300 text-gray-600">
                   <span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />

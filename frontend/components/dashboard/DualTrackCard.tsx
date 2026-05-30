@@ -288,7 +288,7 @@ function FocusRecommendation({
   let msg: string;
   if (naverWeight >= 0.6) {
     if (track1Score < 50)
-      msg = `네이버 채널 집중 — 업종 비중 ${naverPct}%이고 현재 점수 개선 여지가 큽니다`;
+      msg = `네이버 채널 집중 — 업종 비중 ${naverPct}%이고 지금 바로 노출을 높일 수 있습니다`;
     else if (track1Score >= 70 && track2Score < 50)
       msg = `글로벌 AI도 함께 — 네이버는 양호, ChatGPT·Gemini 노출을 지금 강화하세요`;
     else
@@ -302,7 +302,7 @@ function FocusRecommendation({
       msg = `글로벌 AI 채널 우선, 네이버 병행 — 업종 비중 글로벌 ${globalPct}% / 네이버 ${naverPct}%`;
   } else {
     if (track1Score < track2Score - 15)
-      msg = `네이버 먼저 — 두 채널 균등 비중이지만 현재 네이버 점수가 더 약합니다`;
+      msg = `네이버 먼저 — 두 채널 균등 비중이지만 현재 네이버 검색 노출이 더 낮습니다`;
     else if (track2Score < track1Score - 15)
       msg = `글로벌 AI 먼저 — 두 채널 균등이지만 현재 ChatGPT·Gemini 인식도가 더 낮습니다`;
     else
@@ -426,10 +426,10 @@ export default function DualTrackCard({
             <h2 className="text-base md:text-lg font-bold text-gray-900">AI 검색 노출 현황</h2>
             <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">
               {isInactive
-                ? "네이버 SEO + 글로벌 AI (ChatGPT·Gemini 등) 통합"
+                ? "네이버 검색 노출 + ChatGPT·Gemini 통합 진단"
                 : isLikely
-                ? "네이버 SEO + AI 브리핑(확대 예정) + 글로벌 AI 통합"
-                : "네이버 AI 브리핑 + 글로벌 AI (ChatGPT·Gemini 등) 통합"}
+                ? "네이버 검색 + AI 브리핑(확대 예정) + ChatGPT·Gemini 통합 진단"
+                : "네이버 AI 브리핑 + ChatGPT·Gemini 통합 진단"}
             </p>
           </div>
           <div className="relative shrink-0">

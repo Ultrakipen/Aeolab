@@ -111,7 +111,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
         {isNaverInactive && (
           <div className="mb-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             <p className="text-sm font-semibold text-amber-800">이 업종은 네이버 AI 브리핑 대상이 아닙니다</p>
-            <p className="text-sm text-amber-700 mt-0.5">네이버 AI탭(업종 공식 제한 없음, 2026-04-27 베타) · ChatGPT · Gemini 노출 현황을 확인합니다.</p>
+            <p className="text-sm text-amber-700 mt-0.5">네이버 AI탭(업종 공식 제한 없음, 2026-04-28 베타) · ChatGPT · Gemini 노출 현황을 확인합니다.</p>
           </div>
         )}
         <p className="text-sm text-gray-500 leading-relaxed">
@@ -252,7 +252,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
           <div className="bg-amber-50 rounded-lg p-3 space-y-2">
             <p className="text-sm font-semibold text-amber-800">AI가 아직 내 가게를 언급하지 않고 있습니다</p>
             <p className="text-sm text-amber-700">
-              <strong>Gemini 개선</strong> — 구글 비즈니스 프로필 등록 후 수주~수개월 내 반영됩니다.
+              <strong>Gemini 개선</strong> — 구글 비즈니스 프로필 등록 후 <strong>2~4주 내 반영 시작</strong>, 안정적 인용까지 3~6개월 소요됩니다.
             </p>
             <p className="text-sm text-amber-700">
               <strong>ChatGPT</strong> — 학습 데이터(컷오프 2024.06) 기반으로 단기 개선이 어렵습니다. 블로그·미디어 언급이 장기적으로 누적되어야 반영됩니다.

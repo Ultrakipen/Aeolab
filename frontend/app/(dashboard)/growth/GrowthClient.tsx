@@ -346,7 +346,7 @@ export default function GrowthClient({
 
         {/* 네이버 AI 노출 점수 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5">
-          <p className="text-sm font-medium text-gray-500 mb-3">네이버 AI 노출 점수</p>
+          <p className="text-sm font-medium text-gray-500 mb-3">네이버 AI 검색 노출도</p>
           {latest ? (
             <>
               <div className="flex items-end gap-1 mb-1">
@@ -356,7 +356,7 @@ export default function GrowthClient({
                 <span className="text-sm text-gray-500 mb-1">점</span>
               </div>
               <p className="text-sm text-gray-400 mt-1">
-                스마트플레이스 기반 · 이 점수가 낮으면 네이버 AI가 내 가게를 잘 모릅니다
+                스마트플레이스 기반 · 낮을수록 네이버 AI 검색에서 덜 보입니다
               </p>
             </>
           ) : (
@@ -366,7 +366,7 @@ export default function GrowthClient({
 
         {/* 구글·챗GPT AI 노출 점수 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5">
-          <p className="text-sm font-medium text-gray-500 mb-3">구글·챗GPT AI 노출 점수</p>
+          <p className="text-sm font-medium text-gray-500 mb-3">ChatGPT·Gemini 노출도</p>
           {latest ? (
             <>
               <div className="flex items-end gap-1 mb-1">

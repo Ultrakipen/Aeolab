@@ -36,7 +36,7 @@ export default function ServiceMechanismSection() {
               num="①"
               title="AI 브리핑 대상 업종"
               active="음식점·카페·베이커리·바·숙박"
-              detail="그 외 업종은 ChatGPT·Gemini·Google AI + 네이버 AI탭(음식점·쇼핑 우선 베타) 노출 개선으로 가치 전달"
+              detail="그 외 업종은 ChatGPT·Gemini·Google AI + 네이버 AI탭(업종 공식 제한 없음, 2026-04-28 베타) 노출 개선으로 가치 전달"
               variant="blue"
             />
             <GateCard
@@ -72,7 +72,7 @@ export default function ServiceMechanismSection() {
               <ScorePill points={20} title="소개글 품질" desc="AI 소개글 자동 생성" />
             </div>
             <p className="text-sm text-center break-keep" style={{ color: "#475569" }}>
-              이 4가지가 갖춰질수록 AI 브리핑 노출 확률이 높아집니다 —{" "}
+              이 4가지가 갖춰질수록 <strong style={{ color: "#0F172A" }}>네이버 일반 검색(플레이스 탭) 상위노출</strong>이 먼저 오르고, <strong style={{ color: "#0F172A" }}>AI 브리핑·AI탭 노출</strong> 가능성도 함께 높아집니다 —{" "}
               <a href="/how-it-works#step2" style={{ color: "#2563EB" }} className="hover:underline">
                 자세한 내용 보기
               </a>

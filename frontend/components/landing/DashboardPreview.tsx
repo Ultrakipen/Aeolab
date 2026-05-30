@@ -43,11 +43,11 @@ export default function DashboardPreview() {
                     <div className="rounded-2xl rounded-tl-sm p-2.5 text-sm" style={{ background: "#fff", maxWidth: "200px" }}>
                       <p className="font-bold mb-1" style={{ color: "#0F172A" }}>[AEOlab] 주간 노출 리포트 <span className="text-sm font-normal text-gray-400">(예시)</span></p>
                       <div className="mb-1.5 pb-1.5 border-b" style={{ borderColor: "#E2E8F0" }}>
-                        <p style={{ color: "#475569" }}>이번 주 AI 노출 점수</p>
-                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>84점 ↑ <span className="text-sm text-green-600">(+8점)</span></p>
+                        <p style={{ color: "#475569" }}>이번 주 AI 노출 등급</p>
+                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>보통 → 양호 <span className="text-sm text-green-600">↑ 한 단계 성장!</span></p>
                       </div>
-                      <p style={{ color: "#475569" }}>ChatGPT: <span className="font-bold text-gray-800">45→53회</span></p>
-                      <p style={{ color: "#475569" }}>경쟁사 대비: <span className="font-bold text-indigo-600">상위 19%</span></p>
+                      <p style={{ color: "#475569" }}>ChatGPT 언급: <span className="font-bold text-gray-800">+8회 증가</span></p>
+                      <p style={{ color: "#475569" }}>경쟁사 대비: <span className="font-bold text-indigo-600">업종 3위 → 2위</span></p>
                     </div>
                     <div className="mt-1 rounded-xl overflow-hidden" style={{ maxWidth: "200px" }}>
                       <div className="w-full py-1.5 text-sm font-bold text-center" style={{ background: "#FAE100", color: "#3B2800" }}>
@@ -63,23 +63,29 @@ export default function DashboardPreview() {
 
           {/* 네이버 점수 */}
           <div
-            className="rounded-xl p-4 border"
+            className="rounded-xl p-4 border flex flex-col"
             style={{ background: "#EFF6FF", borderColor: "#BFDBFE", boxShadow: "var(--aeo-shadow)" }}
           >
             <p className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: "#2563EB" }}>
               네이버 채널 점수
             </p>
             <p
-              className="text-3xl font-black mb-0.5"
-              style={{ color: "#2563EB", fontFamily: "var(--font-pretendard, 'Pretendard Variable', sans-serif)", letterSpacing: "-1px" }}
+              className="text-lg font-black mb-1"
+              style={{ color: "#2563EB" }}
             >
-              61
+              AI 브리핑 노출 중
             </p>
-            <div className="w-full rounded-full h-1.5 mb-1" style={{ background: "#BFDBFE" }}>
-              <div className="h-1.5 rounded-full" style={{ width: "61%", background: "#2563EB" }} />
-            </div>
-            <p className="text-sm" style={{ color: "#475569" }}>AI 브리핑 노출도 · 100점 기준 · 예시</p>
-            <div className="mt-2 flex items-center gap-1">
+            <span
+              className="text-sm font-bold px-2 py-0.5 rounded-full mb-1.5 self-start"
+              style={{ background: "#DBEAFE", color: "#1D4ED8" }}
+            >
+              양호
+            </span>
+            <p className="text-sm mb-1" style={{ color: "#1D4ED8", fontWeight: 600 }}>
+              ✓ 업종 평균보다 높은 노출
+            </p>
+            <p className="text-sm" style={{ color: "#475569" }}>AI 브리핑 노출 현황 · 예시</p>
+            <div className="mt-2 flex items-center gap-1 mb-2">
               <span
                 className="text-sm font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#BFDBFE", color: "#1D4ED8" }}
@@ -90,30 +96,38 @@ export default function DashboardPreview() {
                 className="text-sm font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#ECFDF5", color: "#065F46" }}
               >
-                +9점
+                노출 증가
               </span>
+            </div>
+            {/* 개선 소요 기간 안내 */}
+            <div className="mt-auto rounded-lg px-2.5 py-2" style={{ background: "#DBEAFE" }}>
+              <p className="text-sm font-semibold mb-0.5" style={{ color: "#1E40AF" }}>⏱ 개선 효과 확인까지</p>
+              <p className="text-sm" style={{ color: "#1D4ED8" }}>소개글·소식 업데이트 후 <strong>2~4주</strong> 내 변화</p>
             </div>
           </div>
 
-          {/* ChatGPT 점수 */}
+          {/* 글로벌 AI 점수 */}
           <div
-            className="rounded-xl p-4 border"
+            className="rounded-xl p-4 border flex flex-col"
             style={{ background: "#F8FAFC", borderColor: "#E2E8F0", boxShadow: "var(--aeo-shadow)" }}
           >
             <p className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: "#475569" }}>
               글로벌 AI 인식 현황
             </p>
             <p
-              className="text-3xl font-black mb-0.5"
-              style={{ color: "#0F172A", fontFamily: "var(--font-pretendard, 'Pretendard Variable', sans-serif)", letterSpacing: "-1px" }}
+              className="text-lg font-black mb-1"
+              style={{ color: "#0F172A" }}
             >
-              47
+              인식 시작 단계
             </p>
-            <div className="w-full rounded-full h-1.5 mb-1" style={{ background: "#E2E8F0" }}>
-              <div className="h-1.5 rounded-full" style={{ width: "47%", background: "#475569" }} />
-            </div>
-            <p className="text-sm" style={{ color: "#475569" }}>ChatGPT·Gemini · 100점 기준 · 예시</p>
-            <div className="mt-2 flex items-center gap-1">
+            <span
+              className="text-sm font-bold px-2 py-0.5 rounded-full mb-1.5 self-start"
+              style={{ background: "#FEF9C3", color: "#92400E" }}
+            >
+              보통
+            </span>
+            <p className="text-sm" style={{ color: "#475569" }}>ChatGPT·Gemini 노출 현황 · 예시</p>
+            <div className="mt-2 flex items-center gap-1 mb-2">
               <span
                 className="text-sm font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#E2E8F0", color: "#475569" }}
@@ -124,8 +138,23 @@ export default function DashboardPreview() {
                 className="text-sm font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#ECFDF5", color: "#065F46" }}
               >
-                +6점
+                노출 증가
               </span>
+            </div>
+            {/* 채널별 현실 안내 */}
+            <div className="mt-auto rounded-lg px-2.5 py-2 space-y-1" style={{ background: "#F1F5F9" }}>
+              <p className="text-sm font-semibold" style={{ color: "#475569" }}>📌 현실적인 기대치</p>
+              <p className="text-sm" style={{ color: "#475569" }}>
+                <span className="font-semibold" style={{ color: "#4F46E5" }}>Gemini</span>
+                {" — "}Google Search 그라운딩: <strong>수 주</strong> / 학습 데이터: <strong>수개월~1년</strong>
+              </p>
+              <p className="text-sm" style={{ color: "#475569" }}>
+                <span className="font-semibold" style={{ color: "#10A37F" }}>ChatGPT</span>
+                {" — "}학습 데이터 기반 · 노출까지 <strong>수개월~1년</strong> 소요
+              </p>
+              <p className="text-sm" style={{ color: "#64748B" }}>
+                🌱 대부분의 가게가 아직 준비 중 — 지금 시작하면 선점 유리
+              </p>
             </div>
           </div>
 
@@ -134,66 +163,72 @@ export default function DashboardPreview() {
             className="col-span-2 md:col-span-3 rounded-xl p-4 border"
             style={{ background: "#FFFFFF", borderColor: "#E2E8F0", boxShadow: "var(--aeo-shadow)" }}
           >
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-sm font-bold" style={{ color: "#0F172A" }}>7주 추세 · 통합 점수</p>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "#ECFDF5", color: "#065F46" }}>+28점</span>
+            {/* 헤더: 스토리 텍스트로 점수 의미 전달 */}
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="text-sm font-bold mb-1" style={{ color: "#0F172A" }}>7주 추세 · 통합 점수</p>
+                <p className="text-sm" style={{ color: "#475569" }}>
+                  <span className="font-semibold px-1.5 py-0.5 rounded" style={{ background: "#FEF9C3", color: "#92400E" }}>보통</span>
+                  <span className="mx-1.5 text-gray-400">→ 7주 후 →</span>
+                  <span className="font-semibold px-1.5 py-0.5 rounded" style={{ background: "#DBEAFE", color: "#1D4ED8" }}>양호</span>
+                  <span className="ml-1.5 text-green-600 font-semibold">↑ 한 단계 성장</span>
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "#ECFDF5", color: "#065F46" }}>한 단계 성장</span>
                 <span className="text-sm text-gray-400">(예시)</span>
               </div>
             </div>
-            <svg viewBox="0 0 300 82" className="w-full h-auto" aria-hidden="true">
+            {/* 납작한 스파크라인 — viewBox 가로:세로 = 8:1로 높이 최소화 */}
+            <svg viewBox="0 0 400 50" className="w-full h-auto" aria-hidden="true">
               <defs>
-                <linearGradient id="trend-fill" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="trend-fill2" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#2563EB" stopOpacity="0.15" />
-                  <stop offset="100%" stopColor="#2563EB" stopOpacity="0.02" />
+                  <stop offset="100%" stopColor="#2563EB" stopOpacity="0.01" />
                 </linearGradient>
               </defs>
-              {/* 배경 가이드라인 */}
-              {[20, 40, 60].map((y) => (
-                <line key={y} x1="8" y1={y} x2="292" y2={y} stroke="#F1F5F9" strokeWidth="1" />
-              ))}
-              {/* 면 채우기 */}
+              {/* 가이드라인 1개 (중간선) */}
+              <line x1="0" y1="25" x2="400" y2="25" stroke="#F1F5F9" strokeWidth="1" />
+              {/* 면 채우기 — y 정규화: score48→y=38, score76→y=5 */}
               <path
-                d="M 15,47 L 58,38 L 101,43 L 144,32 L 187,28 L 230,23 L 273,16 L 273,65 L 15,65 Z"
-                fill="url(#trend-fill)"
+                d="M 20,38 L 83,33 L 146,36 L 209,25 L 272,22 L 335,17 L 385,5 L 385,43 L 20,43 Z"
+                fill="url(#trend-fill2)"
               />
               {/* 라인 */}
               <path
-                d="M 15,47 L 58,38 L 101,43 L 144,32 L 187,28 L 230,23 L 273,16"
+                d="M 20,38 L 83,33 L 146,36 L 209,25 L 272,22 L 335,17 L 385,5"
                 stroke="#2563EB" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"
               />
-              {/* 점 */}
-              {[
-                [15, 47], [58, 38], [101, 43], [144, 32], [187, 28], [230, 23], [273, 16],
-              ].map(([x, y], i) => (
-                <circle key={i} cx={x} cy={y} r={i === 0 || i === 6 ? 3.5 : 2.5}
-                  fill={i === 6 ? "#2563EB" : "#FFFFFF"} stroke="#2563EB" strokeWidth="1.5" />
-              ))}
-              {/* 시작·끝 점수 레이블 */}
-              <text x="15" y="44" textAnchor="middle" fontSize="8" fill="#94A3B8">48</text>
-              <text x="273" y="13" textAnchor="middle" fontSize="8" fontWeight="bold" fill="#2563EB">76</text>
+              {/* 시작·끝 점만 강조 */}
+              <circle cx="20"  cy="38" r="3" fill="#FFFFFF" stroke="#94A3B8" strokeWidth="1.5" />
+              <circle cx="385" cy="5"  r="4" fill="#2563EB" stroke="#2563EB" strokeWidth="1.5" />
               {/* 주차 레이블 */}
               {["1주", "2주", "3주", "4주", "5주", "6주", "7주"].map((label, i) => (
-                <text key={i} x={15 + i * 43} y="78" textAnchor="middle" fontSize="8" fill="#94A3B8">{label}</text>
+                <text key={i} x={20 + i * 60.8} y="50" textAnchor="middle" fontSize="7" fill="#CBD5E1">{label}</text>
               ))}
             </svg>
           </div>
 
-          {/* 키워드 갭 */}
+          {/* 키워드 갭 — 전체 너비 */}
           <div
-            className="rounded-xl p-4 border"
+            className="col-span-2 md:col-span-3 rounded-xl p-4 border"
             style={{ background: "#FFFFFF", borderColor: "#E2E8F0", boxShadow: "var(--aeo-shadow)" }}
           >
-            <p className="text-sm font-bold mb-2.5" style={{ color: "#0F172A" }}>키워드 갭</p>
-            <div className="space-y-1.5">
+            <div className="flex items-center justify-between mb-2.5">
+              <p className="text-sm font-bold" style={{ color: "#0F172A" }}>키워드 갭</p>
+              <span className="text-sm text-gray-400">AI 검색에서 누락된 키워드 · 예시</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
               {[
                 { kw: "주차 가능", type: "missing" },
                 { kw: "단체석", type: "missing" },
+                { kw: "반려동물 동반", type: "missing" },
                 { kw: "포장 가능", type: "owned" },
+                { kw: "예약 가능", type: "owned" },
               ].map(({ kw, type }) => (
                 <span
                   key={kw}
-                  className="inline-flex mr-1.5 text-sm font-semibold px-2 py-0.5 rounded-full"
+                  className="inline-flex items-center gap-1 text-sm font-semibold px-3 py-1 rounded-full"
                   style={
                     type === "missing"
                       ? { background: "#FFFBEB", color: "#92400E" }

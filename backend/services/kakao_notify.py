@@ -4,6 +4,35 @@ import logging
 
 logger = logging.getLogger("aeolab")
 
+
+# ── 점수 → 텍스트 등급 변환 헬퍼 ────────────────────────────────────────────
+def _grade(score: float) -> str:
+    """점수를 사용자 친화적 등급 텍스트로 변환."""
+    if score >= 80: return "우수"
+    if score >= 60: return "양호"
+    if score >= 40: return "보통"
+    return "개선 필요"
+
+
+def _grade_label(score: float, rank: int = 0) -> str:
+    """등급 + 순위 조합 레이블. rank=0이면 등급만."""
+    g = _grade(score)
+    if rank > 0:
+        return f"{g} · 업종 {rank}위"
+    return g
+
+
+def _grade_change(prev: float, curr: float) -> str:
+    """등급 변화 방향 텍스트."""
+    pg, cg = _grade(prev), _grade(curr)
+    if pg != cg and curr > prev:
+        return f"↑ {pg} → {cg} 한 단계 성장!"
+    if curr > prev:
+        return f"↑ {cg} 등급 내 상승"
+    if curr < prev:
+        return f"↓ {pg} 등급 하락 — 점검 권장"
+    return "→ 변동 없음"
+
 # ── 카카오 알림톡 실패 시 이메일 fallback (AEOLAB_SCORE_01 우선 적용) ─────────
 # 카카오 템플릿 코드 → 이메일 제목/본문 매핑
 # 본문 템플릿 변수: {user_name}, {score_before}, {score_after}, {biz_name}
@@ -131,18 +160,17 @@ class KakaoNotifier:
         self, phone: str, biz_name: str, prev: float, curr: float, prev_r: int, curr_r: int,
         user_id: str | None = None,
     ):
-        """점수 변화 알림. user_id 전달 시 카카오 실패 → 이메일 fallback 자동 실행."""
-        sign = "↑" if curr > prev else "↓"
+        """점수 변화 알림. 점수 수치 대신 등급+순위 텍스트로 발송."""
         await self._send(
             phone,
             "score_change",
             {
                 "#{사업장명}": biz_name,
-                "#{이전점수}": str(prev),
-                "#{현재점수}": str(curr),
-                "#{변화}": f"{sign}{abs(curr - prev):.1f}",
-                "#{이전순위}": str(prev_r),
-                "#{현재순위}": str(curr_r),
+                "#{이전점수}": _grade_label(prev, prev_r),
+                "#{현재점수}": _grade_label(curr, curr_r),
+                "#{변화}": _grade_change(prev, curr),
+                "#{이전순위}": str(prev_r) if prev_r else "-",
+                "#{현재순위}": str(curr_r) if curr_r else "-",
             },
             user_id=user_id,
         )
@@ -274,10 +302,10 @@ class KakaoNotifier:
         """경쟁사 역전 알림 (템플릿 코드: AEOLAB_COMP_02)"""
         message = (
             f"[AEOlab] {biz_name}\n\n"
-            f"경쟁사 '{comp_name}'이(가) AI 검색 점수에서 앞섰습니다!\n\n"
-            f"내 점수: {int(my_score)}점\n"
-            f"{comp_name}: {int(comp_score)}점 (차이: +{int(gap)}점)\n\n"
-            f"지금 바로 개선 가이드를 확인하고 점수를 역전하세요."
+            f"경쟁사 '{comp_name}'이(가) AI 검색에서 앞섰습니다!\n\n"
+            f"내 등급: {_grade(my_score)}\n"
+            f"{comp_name}: {_grade(comp_score)} (차이: {int(gap)}점)\n\n"
+            f"지금 바로 개선 가이드를 확인하고 역전하세요."
         )
         await self._send_raw(phone, message, template_code="AEOLAB_COMP_02")
 
@@ -286,12 +314,15 @@ class KakaoNotifier:
         weekly_change: float, top_platform: str, top_improvement: str,
     ):
         """스캔 완료 즉시 알림 (템플릿 코드: AEOLAB_SCAN_01)"""
-        change_sign = "+" if weekly_change > 0 else ""
+        curr_grade = _grade(score)
         change_emoji = "📈" if weekly_change > 0 else "📉" if weekly_change < 0 else "➡️"
+        grade_change_note = (
+            f"({grade} → {curr_grade})" if grade and grade != curr_grade else ""
+        )
         message = (
             f"[AEOlab] {biz_name} AI 스캔 완료\n\n"
-            f"📊 현재 점수: {int(score)}점 ({grade}등급)\n"
-            f"{change_emoji} 지난주 대비: {change_sign}{weekly_change:.1f}점\n"
+            f"📊 AI 노출 등급: {curr_grade} {grade_change_note}\n"
+            f"{change_emoji} 지난주 대비: {_grade_change(score - weekly_change, score)}\n"
             f"✅ {top_platform}에서 가장 많이 언급됨\n"
             f"💡 {top_improvement}\n\n"
             f"aeolab.co.kr 에서 자세한 결과 확인"
@@ -687,14 +718,15 @@ class KakaoNotifier:
         매주 월요일 오전 9시 scheduler에서 호출.
         KAKAO_APP_KEY 미설정 시 로그만 남기고 True 반환 (graceful degradation).
         """
-        diff = round(current_score - prev_score, 1)
-        direction = "▲" if diff > 0 else ("▼" if diff < 0 else "→")
-        abs_diff = abs(diff)
+        curr_grade = _grade(current_score)
+        prev_grade = _grade(prev_score)
+        grade_note = f"{prev_grade} → {curr_grade}" if curr_grade != prev_grade else curr_grade
+        direction = "▲" if current_score > prev_score else ("▼" if current_score < prev_score else "→")
 
         message = (
             f"[AEOlab 주간 성적표]\n"
             f"{business_name}\n\n"
-            f"이번 주 AI 노출 점수: {int(current_score)}점 ({direction}{abs_diff})\n\n"
+            f"이번 주 AI 노출 등급: {grade_note} {direction}\n\n"
             f"이번 주 할 일:\n{top_action}\n\n"
             f"자세한 분석 보기 → https://aeolab.co.kr/dashboard"
         )

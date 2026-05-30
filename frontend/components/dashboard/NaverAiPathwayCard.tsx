@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Sparkles, Info } from "lucide-react";
+import ChannelTimelineBox from "@/components/common/ChannelTimelineBox";
 
 // M3 사전 작업: Q2 광고 도입 감지 시 true로 변경 → 광고 경고 배너 즉시 활성화
 // AiInfoTabStatusCard의 동일 상수와 함께 변경할 것 (단일 소스는 추후 lib/featureFlags.ts로 이관 가능)
@@ -25,7 +26,7 @@ interface Props {
  * 대시보드 상단에 명확한 비교 표를 노출.
  *
  * - AI 브리핑: 업종 제한 있음 (음식점·카페 등), 프랜차이즈 제외, 2025.03 정식
- * - AI탭: 모든 업종 가능, 2026-04-27 베타, 6월 전체 확대 예정 (네이버 공식)
+ * - AI탭: 모든 업종 가능, 2026-04-28 베타, 6월 전체 확대 예정 (네이버 공식)
  *
  * 자기 업종 기준으로 "현재 대상" 배지를 자동 표시.
  */
@@ -133,17 +134,17 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                 </h3>
               </div>
               <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-sm font-bold gap-1">
-                <Sparkles className="w-3 h-3" /> Beta · 순차 확대 중
+                <Sparkles className="w-3 h-3" /> 2026년 6월 전체 출시 예정
               </span>
             </div>
             <p className="text-sm font-semibold text-indigo-900 mb-1.5 break-keep">
               검색 결과 상단 &quot;AI&quot; 탭 메뉴
             </p>
             <ul className="space-y-1 text-sm text-slate-700 leading-snug">
-              <li>• <strong>음식점·카페·쇼핑 업종 우선 지원</strong> · 업종 확대 예정</li>
-              <li>• 네이버플러스 구독자 우선 베타</li>
+              <li>• <strong>업종 공식 제한 없음</strong> — 장소 기반 모든 업종 가능</li>
+              <li>• 플레이스·쇼핑 에이전트 통합 검색 (2026년 6월 전체 출시 예정)</li>
               <li>• 핵심: 소개글 200자·사진 10장·예약 연동·블로그 후기</li>
-              <li>• 2026-04-27 베타 → 순차 확대 중</li>
+              <li>• 베타 1개월 누적 사용자 300만명 돌파</li>
             </ul>
           </div>
         </div>
@@ -208,12 +209,16 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               </div>
               <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
                 <li>• Google AI Overviews (한국 확대 중)</li>
-                <li>• 현재 측정 준비 중 (구독자 확보 후 제공 예정)</li>
+                <li>• 스캔 시 AI Overview 포함 여부 실측</li>
                 <li>• 구조화 데이터(Schema.org) 핵심</li>
               </ul>
-              <p className="mt-2 text-sm text-orange-600 font-medium">측정 준비 중</p>
             </div>
           </div>
+        </div>
+
+        {/* 채널별 노출 소요 기간 */}
+        <div className="mt-3 md:mt-4">
+          <ChannelTimelineBox briefingEligibility={briefingEligibility} globalOnly compact />
         </div>
 
         <div className="mt-4 flex flex-col sm:flex-row gap-2">

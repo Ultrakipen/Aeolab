@@ -1,7 +1,7 @@
 import csv
 import io
 import logging
-from datetime import date
+from datetime import date, timedelta
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, Header, HTTPException
 from fastapi.responses import StreamingResponse, Response
 from db.supabase_client import get_client, execute
@@ -4517,15 +4517,18 @@ async def get_onboarding_action(biz_id: str, user=Depends(get_current_user)):
         _logger.warning(f"[onboarding_action] pick_top_action 실패: {e}")
         raise HTTPException(status_code=500, detail="추천 행동을 계산할 수 없습니다")
 
-    # business_action_log INSERT (auto_recommended) — 같은 날 중복 방지
+    # business_action_log INSERT (auto_recommended) — 7일 내 동일 라벨 중복 방지
     today_iso = date.today().isoformat()
+    seven_days_ago = (date.today() - timedelta(days=7)).isoformat()
+    action_title = action.get("title") or "추천 행동"
     try:
         existing = await execute(
             supabase.table("business_action_log")
             .select("id")
             .eq("business_id", biz_id)
             .eq("action_type", "auto_recommended")
-            .eq("action_date", today_iso)
+            .eq("action_label", action_title)
+            .gte("action_date", seven_days_ago)
             .limit(1)
         )
         if not (existing and existing.data):
@@ -4534,7 +4537,8 @@ async def get_onboarding_action(biz_id: str, user=Depends(get_current_user)):
                 .insert({
                     "business_id": biz_id,
                     "action_type": "auto_recommended",
-                    "action_label": action.get("title") or "추천 행동",
+                    "action_label": action_title,
+                    "action_date": today_iso,
                 })
             )
     except Exception as e:  # noqa: BLE001

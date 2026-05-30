@@ -34,7 +34,8 @@ const COLUMNS = [
     items: [
       { text: "질문-답변 구조화", good: true },
       { text: "경쟁사 갭 분석", good: true },
-      { text: "네이버 AI 브리핑 노출 측정", good: true },
+      { text: "네이버 AI 브리핑·AI탭 노출 측정", good: true },
+      { text: "스마트플레이스 개선 → 일반 검색 SEO 동시 상승", good: true },
       { text: "월 9,900원 · 광고비 없음", good: true },
     ],
   },

@@ -245,7 +245,7 @@
 | 프론트엔드 | Next.js 16.2.1 App Router + Tailwind + shadcn/ui + Recharts | 포트 3000 |
 | 백엔드 | Python FastAPI + Pydantic v2 + APScheduler + aiohttp | 포트 8000 |
 | DB | Supabase Cloud Free Tier (PostgreSQL + Auth + Storage) | |
-| AI 스캔 | Gemini 2.0 Flash + OpenAI gpt-4.1-mini (Basic 자동 50/50 분할, Full 각 100회) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Playwright) | 4종 운영 |
+| AI 스캔 | Gemini 2.0 Flash + OpenAI gpt-4.1-mini (Basic 자동 50/50 분할, Full 각 100회) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Serper.dev API) | 4종 운영 |
 | AI 가이드 | Claude sonnet-4-6 (가이드 전용) + Claude Haiku (FAQ/감정분석) | |
 | 스크린샷 | Playwright 1.44+ | Semaphore(1) 독립 × 2 (브리핑·AI탭) — 공유 통합 예정 |
 | 결제 | 토스페이먼츠 v2 (현재 test_ 키) | 실결제 전 live_ 교체 필요 |
@@ -260,7 +260,7 @@
 | Gemini 2.0 Flash | `gemini_scanner.py` | API | sample_n(n=50/100) — Basic 자동 50회, Full 100회, Trial 10회 |
 | ChatGPT GPT-4o-mini | `chatgpt_scanner.py` | API | sample_n(n=50/100) — Basic 자동 50회, Full 100회, Quick/Trial 1회 |
 | 네이버 AI 브리핑 | `naver_scanner.py` | Playwright | 네이버 AI 브리핑 DOM 파싱 |
-| Google AI Overview | `google_scanner.py` | Playwright | 구글 SGE 노출 확인 |
+| Google AI Overview | `google_scanner.py` | Serper.dev API | 구글 SGE + AI Overview 노출 확인 ($0.001/건, CAPTCHA 없음) |
 
 **제거됨:** Perplexity(미사용), Grok, Claude 스캐너, 뤼튼/Zeta (비용·ROI 이유)
 
@@ -422,7 +422,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 | `multi_ai_exposure` | 40% | Gemini·ChatGPT 각 50회(Basic) / 100회(Full) 샘플링 |
 | `schema_seo` | 30% | JSON-LD + 웹사이트 SEO + Open Graph |
 | `online_mentions` | 20% | 블로그·뉴스·미디어 언급 |
-| `google_presence` | 10% | Google AI Overview (현재 CAPTCHA 차단·측정 보류) |
+| `google_presence` | 10% | Google AI Overview — Serper.dev API 측정 활성 ($0.001/건, 2026-05-30) |
 
 ### 개편 이력 및 핵심 규칙
 
@@ -710,9 +710,10 @@ ssh root@115.68.231.57 'pm2 logs aeolab-backend --lines 500 --nostream | grep "P
 - `smart_place_completeness` Playwright 완전 자동화 — 50명 이후
 - 경쟁사 keyword_gap 실시간 자동화 (`_enrich_competitor_excerpts` 잡 이미 구현됨)
 
-### Google 스크린샷 재도입 계획 (구독자 50명 이후)
-- 2026-05-14 Google 캡처 제거됨 (iwinv IP → CAPTCHA 100%). `screenshot.py:_is_google_captcha()` 감지 함수만 유지
-- 재도입 시 DataForSEO Screenshot API 사용 (~$0.002/건, 50명 × 월 1회 ≈ 월 $0.10). 환경변수 `DATAFORSEO_LOGIN/PASSWORD`. 상세 → `docs/changelog_archive.md`
+### Google AI Overview 측정 현황 (2026-05-30 Serper.dev 활성)
+- **AI Overview 노출 측정**: `GOOGLE_SCANNER_BACKEND=serper` + `SERPER_API_KEY` 설정 완료. `captcha_detected=false`로 정상 측정 중
+- **스크린샷(시각 증거)은 별도**: Playwright 캡처는 여전히 CAPTCHA 차단 상태. 50명 이후 DataForSEO Screenshot API($0.002/건) 재도입 예정
+- 환경변수: `GOOGLE_SCANNER_BACKEND=serper|dataforseo|playwright` 토글 가능
 
 ---
 

@@ -547,7 +547,7 @@ export default function DemoPage() {
                 <p className="text-sm md:text-base text-amber-800 leading-relaxed">
                   네이버 AI 브리핑은 음식점·카페 등 일부 업종만 대상입니다.
                   이 업종은 <strong>ChatGPT·Google AI</strong> 노출 개선이 더 효과적이며,
-                  <strong>네이버 AI탭(음식점·쇼핑 업종 우선 베타)</strong>도 확인하세요.
+                  <strong>네이버 AI탭(업종 공식 제한 없음, 2026-04-28 베타, 2026년 6월 정식 출시 예정)</strong>도 확인하세요.
                   업종 확대 시 자동으로 안내해드립니다.
                 </p>
               </div>

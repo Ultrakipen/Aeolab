@@ -141,7 +141,7 @@ export default function HeroSection() {
                 className="w-1.5 h-1.5 rounded-full animate-pulse"
                 style={{ background: "#2563EB" }}
               />
-              AI 검색 준비도 진단 서비스 — 네이버·AI탭·ChatGPT
+              AI 검색 준비도 진단 서비스 — AI브리핑·AI탭·SEO·ChatGPT
             </div>
 
             {/* 메인 타이틀 */}
@@ -173,19 +173,19 @@ export default function HeroSection() {
                   num: "+27.4%",
                   label: "AI브리핑 후 가게 클릭",
                   highlight: true,
-                  source: "네이버 공식 발표 기준",
+                  source: "네이버 플레이스 분석 기준",
                 },
                 {
                   num: "+10.4%",
                   label: "가게 페이지 체류시간",
                   highlight: false,
-                  source: "네이버 공식 발표 기준",
+                  source: "네이버 플레이스 분석 기준",
                 },
                 {
                   num: "+8%",
-                  label: "예약·전화 전환",
+                  label: "예약·주문 증가",
                   highlight: false,
-                  source: "네이버 공식 발표 기준",
+                  source: "네이버 플레이스 분석 기준",
                 },
                 {
                   num: "9,900원",
@@ -237,7 +237,7 @@ export default function HeroSection() {
             </p>
 
             {/* 서브텍스트 */}
-            <div className="mb-5 max-w-md space-y-2">
+            <div className="mb-4 max-w-lg space-y-2">
               <p
                 className="text-sm md:text-base leading-relaxed break-keep"
                 style={{ color: "rgba(255,255,255,0.95)" }}
@@ -254,14 +254,39 @@ export default function HeroSection() {
               </p>
               <p
                 className="text-sm leading-relaxed break-keep"
-                style={{ color: "rgba(255,255,255,0.70)" }}
+                style={{ color: "rgba(255,255,255,0.80)" }}
               >
-                학원·병원·미용실 등 모든 업종의{" "}
-                <strong style={{ color: "rgba(255,255,255,0.90)" }}>
-                  네이버 AI탭·ChatGPT
-                </strong>
-                {" "}준비도를 진단합니다 — 업종 자동 감지 · 가입 없이 1분
+                <strong style={{ color: "#A5F3FC" }}>네이버 AI탭</strong> 답변 준비도와{" "}
+                <strong style={{ color: "#A5F3FC" }}>일반 검색 상위 노출</strong> 최적화 진단 —
+                모든 업종 대상 · 가입 없이 1분
               </p>
+            </div>
+
+            {/* 진단 채널 배지 */}
+            <div className="flex flex-wrap gap-2 mb-5">
+              {[
+                { label: "네이버 AI브리핑", color: "#22C55E" },
+                { label: "네이버 AI탭", color: "#22C55E" },
+                { label: "네이버 SEO", color: "#22C55E" },
+                { label: "ChatGPT", color: "#60A5FA" },
+                { label: "Gemini", color: "#60A5FA" },
+              ].map(({ label, color }) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium px-2.5 py-1 rounded-full"
+                  style={{
+                    background: "rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    color: "rgba(255,255,255,0.85)",
+                  }}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ background: color }}
+                  />
+                  {label}
+                </span>
+              ))}
             </div>
 
             {/* 실시간 체험 카운터 */}

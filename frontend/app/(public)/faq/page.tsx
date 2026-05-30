@@ -49,7 +49,7 @@ const AI_FAQS = [
   },
   {
     q: "Google AI 스캔은 어떻게 진행되나요?",
-    a: "Google AI Overview(SGE)는 AEOlab 서버 환경상 구글 CAPTCHA 차단으로 현재 실측이 일시 제한됩니다. CAPTCHA 감지 시 Google 점수는 제외되고 나머지 3개 채널(네이버·ChatGPT·Gemini) 기준으로 점수가 재산출됩니다. 구독자 50명 이후 외부 스크린샷 API를 통한 실측 재도입을 준비 중입니다.",
+    a: "Google AI Overview(SGE)는 Serper.dev API를 통해 실측됩니다. 스캔 쿼리별로 Google 검색 결과의 AI Overview 포함 여부를 직접 확인하여 Google 점수를 산출합니다. Playwright 직접 크롤링 방식의 CAPTCHA 차단 문제를 해소하여 안정적인 실측이 가능해졌습니다.",
   },
 ];
 

@@ -2,7 +2,7 @@
 
 import {
   ComposedChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine,
+  Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea,
 } from 'recharts'
 
 interface TrendPoint {
@@ -81,10 +81,27 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
     )
   }
 
+  const latestScore = chartData.length > 0 ? chartData[chartData.length - 1].score : null
+  const latestGrade = latestScore == null ? null
+    : latestScore >= 80 ? { label: '우수', color: '#16a34a', bg: 'bg-green-100' }
+    : latestScore >= 60 ? { label: '양호', color: '#2563eb', bg: 'bg-blue-100' }
+    : latestScore >= 40 ? { label: '보통', color: '#d97706', bg: 'bg-yellow-100' }
+    : { label: '개선 필요', color: '#dc2626', bg: 'bg-red-100' }
+
   return (
     <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
-        <div className="text-base font-medium text-gray-700">30일 AI 노출 추세</div>
+        <div className="flex items-center gap-2">
+          <div className="text-base font-medium text-gray-700">30일 AI 노출 추세</div>
+          {latestScore != null && latestGrade && (
+            <span
+              className={`text-sm font-semibold px-2 py-0.5 rounded-full ${latestGrade.bg}`}
+              style={{ color: latestGrade.color }}
+            >
+              현재 {latestScore}점 · {latestGrade.label}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-3 text-sm text-gray-400 flex-wrap">
           <span className="flex items-center gap-1">
             <span className="inline-block w-6 h-px bg-blue-200 border-dashed border-t-2 border-blue-300" />
@@ -110,15 +127,39 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
       </p>
       <ResponsiveContainer width="100%" height={200}>
         <ComposedChart data={chartData}>
+          {/* 점수 구간 배경 — 우수/양호/보통/개선 필요 */}
+          <ReferenceArea y1={80} y2={100} fill="#f0fdf4" fillOpacity={0.6} ifOverflow="hidden" />
+          <ReferenceArea y1={60} y2={80}  fill="#eff6ff" fillOpacity={0.6} ifOverflow="hidden" />
+          <ReferenceArea y1={40} y2={60}  fill="#fefce8" fillOpacity={0.6} ifOverflow="hidden" />
+          <ReferenceArea y1={0}  y2={40}  fill="#fef2f2" fillOpacity={0.6} ifOverflow="hidden" />
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} />
-          <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+          <YAxis
+            domain={[0, 100]}
+            tickLine={false}
+            axisLine={false}
+            ticks={[0, 40, 60, 80, 100]}
+            tick={(props: { x: string | number; y: string | number; payload?: { value: number } }) => {
+              const x = typeof props.x === 'string' ? parseInt(props.x) : props.x
+              const y = typeof props.y === 'string' ? parseInt(props.y) : props.y
+              const v = props.payload?.value ?? 0
+              const grade = v === 100 ? '' : v === 80 ? '우수▲' : v === 60 ? '양호▲' : v === 40 ? '보통▲' : ''
+              return (
+                <g>
+                  <text x={x} y={y} dy={4} textAnchor="end" fontSize={10} fill="#94a3b8">{v}</text>
+                  {grade && <text x={x} y={y + 11} textAnchor="end" fontSize={9} fill="#94a3b8">{grade}</text>}
+                </g>
+              )
+            }}
+          />
           <Tooltip
             contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: 12 }}
             formatter={(val: unknown, name: unknown) => {
               if (val === null || val === undefined) return ['—', String(name)]
+              const n = Number(val)
+              const grade = n >= 80 ? '우수' : n >= 60 ? '양호' : n >= 40 ? '보통' : '개선 필요'
               const label = name === 'score' ? '일별 측정값' : '7일 평균'
-              return [`${val}점`, label]
+              return [`${n}점 (${grade})`, label]
             }}
           />
           {/* 행동 기록 세로 점선 오버레이 */}
