@@ -181,6 +181,7 @@ function V31SixItems({
   avgRating,
   bizId,
   token,
+  naverPlaceUrl,
 }: {
   detail: V31Detail;
   naverResult: NaverResult | null;
@@ -434,9 +435,9 @@ function V31SixItems({
           <ScoreBar value={mapItem?.score ?? 0} color={barColor(mapItem?.score ?? 0)} />
         </div>
         <div className="flex items-center gap-2 mb-1">
-          <StatusIcon ok={!!naverResult?.is_smart_place} />
+          <StatusIcon ok={!!(naverResult?.is_smart_place || naverPlaceUrl)} />
           <span className="text-sm text-gray-700">
-            {naverResult?.is_smart_place ? "네이버 지도 플레이스 등록됨" : "네이버 지도 플레이스 미확인"}
+            {(naverResult?.is_smart_place || naverPlaceUrl) ? "네이버 지도 플레이스 등록됨" : "네이버 지도 플레이스 미확인"}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -989,6 +990,7 @@ export default function ScoreEvidenceCard({
               avgRating={avgRating}
               bizId={bizId}
               token={token}
+              naverPlaceUrl={naverPlaceUrl}
             />
           ) : (
             <V30FourItems
