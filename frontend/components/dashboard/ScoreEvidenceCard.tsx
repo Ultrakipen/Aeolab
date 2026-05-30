@@ -579,6 +579,7 @@ function V30FourItems({
   bizId,
   token,
   briefingEligibility,
+  naverPlaceUrl,
 }: {
   breakdown: Record<string, number | object>;
   naverResult: NaverResult | null;
@@ -594,6 +595,7 @@ function V30FourItems({
   bizId?: string;
   token?: string;
   briefingEligibility?: "active" | "likely" | "inactive";
+  naverPlaceUrl?: string | null;
 }) {
   const kws = (breakdown["keyword_gap_score"] as number) ?? 0;
   const rqs = (breakdown["review_quality"] as number) ?? 0;
@@ -602,7 +604,7 @@ function V30FourItems({
 
   const spDecoded = decodeSmartPlace(Math.round(spc));
   const spActual = {
-    registered: hasSmartPlace ?? spDecoded.registered,
+    registered: hasSmartPlace ?? (naverPlaceUrl ? true : spDecoded.registered),
     faq:        hasFaq        ?? spDecoded.faq,
     recentPost: hasRecentPost ?? spDecoded.recentPost,
     intro:      hasIntro      ?? spDecoded.intro,
@@ -916,7 +918,7 @@ export default function ScoreEvidenceCard({
                 글로벌 AI {globalWeight}%
               </span>
             </div>
-            <p className="text-xs text-gray-400">이 업종 고객의 AI 검색 경로 비중</p>
+            <p className="text-sm text-gray-400">이 업종 고객이 네이버 vs 글로벌 AI를 사용하는 비율</p>
           </div>
         </div>
       </div>
@@ -960,7 +962,7 @@ export default function ScoreEvidenceCard({
                   <strong>네이버 일반 검색 상위 노출은 가능합니다.</strong>{" "}
                   AI 브리핑 대상은 아니지만, <strong>스마트플레이스 최적화·블로그 후기·키워드 관리</strong>로
                   네이버 검색 결과 상위에 노출될 수 있습니다.
-                  이 항목 점수가 높을수록 네이버 검색 클릭이 늘어납니다.
+                  아래 ①~⑤ 항목 점수를 높이면 네이버 검색 클릭이 늘어납니다.
                 </p>
               </div>
               {/* AI탭 안내 */}
@@ -1008,6 +1010,7 @@ export default function ScoreEvidenceCard({
               bizId={bizId}
               token={token}
               briefingEligibility={briefingEligibility}
+              naverPlaceUrl={naverPlaceUrl}
             />
           )}
         </div>
