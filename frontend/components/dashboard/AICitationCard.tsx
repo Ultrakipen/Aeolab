@@ -111,7 +111,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
         {isNaverInactive && (
           <div className="mb-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             <p className="text-sm font-semibold text-amber-800">이 업종은 네이버 AI 브리핑 대상이 아닙니다</p>
-            <p className="text-sm text-amber-700 mt-0.5">네이버 AI탭(업종 공식 제한 없음, 2026-04-28 베타) · ChatGPT · Gemini 노출 현황을 확인합니다.</p>
+            <p className="text-sm text-amber-700 mt-0.5">네이버 AI탭(업종 공식 제한 없음, 2026-04-27 베타) · ChatGPT · Gemini 노출 현황을 확인합니다.</p>
           </div>
         )}
         <p className="text-sm text-gray-500 leading-relaxed">
@@ -181,7 +181,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
                 ) : (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5">
                     <p className="text-sm text-blue-600 font-semibold mb-1">
-                      {c.platform === 'gemini' ? 'Gemini가 추천 시 사용할 표현 (50회 샘플 기반)' : 'ChatGPT가 추천 시 사용할 표현 (50회 샘플 기반)'}
+                      {c.platform === 'gemini' ? 'Gemini가 추천 시 사용할 표현 (샘플링 기반)' : 'ChatGPT가 추천 시 사용할 표현 (샘플링 기반)'}
                     </p>
                     <p className="text-sm text-gray-800 leading-relaxed italic">
                       &ldquo;{c.excerpt}&rdquo;
@@ -190,7 +190,8 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
                 )
               ) : c.platform === 'google' ? (
                 <p className="text-sm text-gray-400 italic">
-                  Google AI Overview는 현재 자동 측정이 보류 중입니다.
+                  이번 스캔에서 Google AI Overview에 노출되지 않았습니다.
+                  구글 비즈니스 프로필 등록 시 2~4주 내 인식이 개선될 수 있습니다.
                 </p>
               ) : c.platform === 'chatgpt' ? (
                 <p className="text-sm text-gray-400 italic">
