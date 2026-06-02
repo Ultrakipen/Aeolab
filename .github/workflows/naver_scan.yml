@@ -1,0 +1,68 @@
+name: Naver Nightly Scan (IP Rotation)
+
+# 매일 새벽 1:00 KST (= 16:00 UTC 전날) GitHub 호스팅 서버에서 실행
+# → 매 실행마다 다른 GitHub 서버 IP 사용 (iwinv 단일 IP 차단 방어)
+# → 결과는 Supabase naver_prescan 테이블에 저장
+# → 서버 daily_scan_all (2:00 KST)이 prescan 결과를 재사용 (Naver 재스캔 불필요)
+#
+# 선행 조건:
+#   1. Supabase SQL Editor에서 naver_prescan 테이블 생성 (아래 SQL)
+#   2. GitHub Secrets에 SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY 추가
+#      (Settings → Secrets and variables → Actions → New repository secret)
+#
+# naver_prescan 테이블 생성 SQL:
+#   CREATE TABLE IF NOT EXISTS naver_prescan (
+#     business_id UUID REFERENCES businesses(id) ON DELETE CASCADE,
+#     scan_date   DATE NOT NULL,
+#     naver_result JSONB,
+#     PRIMARY KEY (business_id, scan_date)
+#   );
+
+on:
+  schedule:
+    - cron: "0 16 * * *"   # 매일 16:00 UTC = 다음날 01:00 KST
+  workflow_dispatch:         # 수동 실행 버튼
+
+jobs:
+  naver-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90       # 구독자 60명 기준 약 60분, 여유 30분
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install \
+            playwright==1.47.0 \
+            playwright-stealth==1.0.6 \
+            supabase==2.7.4 \
+            python-dotenv==1.0.1 \
+            aiohttp==3.10.5
+
+      - name: Install Chromium
+        run: playwright install chromium --with-deps
+
+      - name: Run Naver prescan
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+        run: |
+          python scripts/github_naver_scan.py
+
+      - name: Upload scan log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: naver-scan-log-${{ github.run_id }}
+          path: /tmp/naver_scan_*.log
+          retention-days: 7
