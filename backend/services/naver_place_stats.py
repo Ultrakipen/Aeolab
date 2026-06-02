@@ -244,17 +244,28 @@ async def _check_completeness(url: str) -> dict:
             body = await page.inner_text("body")
             logger.info(f"[sp_check] home body_len={len(body)} sample={body[:300]!r}")
 
-            # 사진 수
-            photo_count = 0
-            try:
-                photo_count = await page.locator("img[src*='pstatic.net']").count()
-                if photo_count == 0:
-                    photo_count = max(0, await page.locator("img").count() - 5)
-            except Exception as e:
-                logger.warning("photo count failed [%s]: %s", url, e)
-            if photo_count == 0:
-                photo_match = re.search(r"사진\s*(\d+)", body)
-                photo_count = int(photo_match.group(1)) if photo_match else 0
+            # 사진 수 — 텍스트 패턴("사진 N") 우선
+            # img.count() 폴백은 제거 — 내비게이션 아이콘 등 무관한 이미지까지 카운트해 오류 발생
+            photo_count: int | None = None
+            photo_match = re.search(r"사진\s*(\d[\d,]*)", body)
+            if photo_match:
+                try:
+                    _pc = int(photo_match.group(1).replace(",", ""))
+                    if _pc > 0:
+                        photo_count = _pc
+                except ValueError:
+                    pass
+
+            # 예약 연동 여부 — 홈 탭 텍스트·DOM 기반
+            has_reservation = bool(re.search(r"네이버\s*예약|예약하기", body))
+            if not has_reservation:
+                try:
+                    for _sel in ["a[href*='/booking']", "button[aria-label*='예약']", ".booking_btn", "a[data-type='reservation']"]:
+                        if await page.query_selector(_sel):
+                            has_reservation = True
+                            break
+                except Exception:
+                    pass
 
             # 메뉴·서비스 — 홈탭 또는 메뉴탭에서 감지
             has_menu = bool(
@@ -326,15 +337,24 @@ async def _check_completeness(url: str) -> dict:
             # ── 4단계: 사진 탭 — AI 이미지 필터 카테고리 파싱 ──────────────
             photo_categories: dict = {}
             try:
-                photo_categories = await _parse_photo_categories(page)
+                photo_categories, photo_tab_total = await _parse_photo_categories(page)
+                if photo_tab_total is None:
+                    # 사진 탭 네트워크 오류 — 측정 불가, 홈 텍스트 추정값도 0이면 None 유지
+                    if not photo_count:
+                        photo_count = None
+                    logger.warning(f"[sp_check] photo tab unavailable, photo_count={photo_count}")
+                elif photo_tab_total > 0:
+                    photo_count = photo_tab_total
+                    logger.info(f"[sp_check] photo_count updated from tab total: {photo_count}")
             except Exception as e:
                 logger.warning(f"_parse_photo_categories call failed: {e}")
 
+            _pc_for_score = photo_count or 0  # None → 0 (점수 계산용)
             score = sum([
                 0,                        # has_faq 25점 → 0 (Q&A 탭 폐기, score_engine과 일치)
                 has_recent_post * 25,     # 소식 15→25점 재배분 (score_engine v4.1 일치)
                 has_intro * 20,
-                min(photo_count, 5) * 2,
+                min(_pc_for_score, 5) * 2,
                 has_menu * 15,
                 has_hours * 5,
             ])
@@ -349,6 +369,7 @@ async def _check_completeness(url: str) -> dict:
                 "photo_count": photo_count,
                 "has_menu": has_menu,
                 "has_hours": has_hours,
+                "has_reservation": has_reservation,
                 "completeness_score": min(score, 100),
                 "photo_categories": photo_categories,  # AI 이미지 필터 카테고리별 사진 수 (실패 시 {})
             }
@@ -398,20 +419,47 @@ def _detect_hours_stats(info_body: str) -> bool:
 
 
 
-async def _parse_photo_categories(page) -> dict:
+async def _parse_photo_categories(page) -> tuple[dict, int | None]:
     """
     네이버 플레이스 사진탭에서 AI 이미지 필터 카테고리 파싱.
     이미 열려 있는 page 객체를 재활용 (별도 Playwright 인스턴스 생성 금지).
-    실패 시 {} 반환 (silent fallback 금지 — warning 로그 남김).
+
+    Returns:
+        (카테고리별 사진 수 dict, 전체 사진 수 int | None)
+        None: 사진 탭 네트워크 오류 등 측정 불가 (0과 구분 — UI에서 "스캔 후 확인" 표시)
+        전체 사진 수 = "전체" 버튼 숫자 우선, 없으면 카테고리 합계, 없으면 텍스트 패턴 사용.
     """
     try:
-        # 사진 탭 클릭 시도 (여러 셀렉터 순차 시도)
-        photo_tab = page.locator('a[data-tab="photo"], button:has-text("사진"), a:has-text("사진")')
-        if await photo_tab.count() > 0:
-            await photo_tab.first.click()
-            await page.wait_for_timeout(1500)
+        # URL 직접 이동 방식 (클릭보다 안정적 — 네이버 탭 버튼 셀렉터 변경에 무관)
+        cur = page.url
+        m_url = re.match(r"(https?://m\.place\.naver\.com/[^/]+/\d+)", cur)
+        if m_url:
+            await page.goto(f"{m_url.group(1)}/photo", timeout=10000, wait_until="domcontentloaded")
+            await page.wait_for_timeout(3000)  # 1500 → 3000ms: JS 렌더 대기 충분히
+        else:
+            # URL 추출 실패 시 기존 클릭 방식 fallback
+            photo_tab = page.locator('a[data-tab="photo"], button:has-text("사진"), a:has-text("사진")')
+            if await photo_tab.count() > 0:
+                await photo_tab.first.click()
+                await page.wait_for_timeout(3000)
 
         result = {}
+        total_from_btn = 0  # "전체" 버튼에 표시된 총 사진 수
+        total_from_text = 0  # 페이지 텍스트에서 추출한 총 사진 수 (필터 버튼 실패 대비)
+
+        # 텍스트 기반 total fallback — 필터 버튼 파싱 전에 미리 추출
+        # 네트워크 오류 감지: 사진 탭이 서버 차단/오류 시 None 반환 (잘못된 숫자 방지)
+        try:
+            page_text = await page.inner_text("body")
+            if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", page_text or ""):
+                logger.warning("[photo_tab] network error detected — photo_count=None")
+                return {}, None
+            m_text = re.search(r"전체\s*([\d,]+)", page_text)
+            if m_text:
+                total_from_text = int(m_text.group(1).replace(",", ""))
+        except Exception:
+            pass
+
         # AI 이미지 필터 버튼 셀렉터 (네이버 플레이스 UI 구조 다양성 대응)
         filter_btns = page.locator(
             '.place_photo_filter_item, '
@@ -429,20 +477,29 @@ async def _parse_photo_categories(page) -> dict:
                 if m:
                     label = m.group(1).strip()
                     num = int(m.group(2))
-                    if label not in ('전체', 'ALL', '전체보기', '전체 보기'):
+                    if label in ('전체', 'ALL', '전체보기', '전체 보기'):
+                        total_from_btn = num  # 전체 사진 수 따로 저장
+                    else:
                         result[label] = num
             except Exception as _btn_e:
                 logger.warning(f"_parse_photo_categories btn[{i}] parse failed: {_btn_e}")
                 continue
 
-        return result
+        # 전체 버튼 없는 경우 카테고리 합계 → 텍스트 패턴 순으로 fallback
+        total = total_from_btn if total_from_btn > 0 else sum(result.values())
+        if total == 0 and total_from_text > 0:
+            total = total_from_text
+        return result, total if total > 0 else None
     except Exception as e:
         logger.warning(f"_parse_photo_categories failed: {e}")
-        return {}
+        return {}, None
+
+
+_RECENT_POST_DAYS = 90  # 소식 유효 기간 (30일→90일: 소식 있어도 30일 초과 시 미감지 방지)
 
 
 def _detect_recent_post_stats(feed_body: str) -> tuple[bool, str | None]:
-    """소식 탭에서 최근 30일 게시물 여부와 날짜 반환."""
+    """소식 탭에서 최근 90일 게시물 여부와 날짜 반환."""
     from datetime import datetime, timedelta, timezone
     if not feed_body:
         return False, None
@@ -456,20 +513,20 @@ def _detect_recent_post_stats(feed_body: str) -> tuple[bool, str | None]:
         r"오늘\s*(영업|운영|휴무|휴일|오픈|닫|쉬)", feed_body
     ):
         return True, None
-    m_day = re.search(r"(\d+)\s*일\s*전", feed_body)
-    if m_day:
-        try:
-            recent = int(m_day.group(1)) <= 30
-            return recent, None
-        except ValueError:
-            pass
+    days = [int(d) for d in re.findall(r"(\d+)\s*일\s*전", feed_body)]
+    if days:
+        return any(d <= _RECENT_POST_DAYS for d in days), None
+    # "N개월 전" — 1개월=30일, 2개월=60일, 3개월=90일 이내 → True
+    months = [int(m) for m in re.findall(r"(\d+)\s*개월\s*전", feed_body)]
+    if months:
+        return any(m * 30 <= _RECENT_POST_DAYS for m in months), None
 
     today = datetime.now(timezone.utc).date()
     for m in re.finditer(r"(20\d{2})[./\-](\d{1,2})[./\-](\d{1,2})", feed_body):
         try:
             from datetime import datetime as dt
             d = dt(int(m.group(1)), int(m.group(2)), int(m.group(3)), tzinfo=timezone.utc).date()
-            if (today - d).days <= 30:
+            if (today - d).days <= _RECENT_POST_DAYS:
                 date_str = f"{m.group(1)}-{m.group(2).zfill(2)}-{m.group(3).zfill(2)}"
                 return True, date_str
         except (ValueError, OverflowError):

@@ -3,7 +3,7 @@
 
 `naver_place_id` 하나만으로 항목을 자동 판정 — 사용자 자가체크 대체:
 - is_smart_place: 페이지 정상 로드 여부
-- has_recent_post: 소식 탭에 최근 30일 내 게시물 1개 이상
+- has_recent_post: 소식 탭에 최근 90일 내 게시물 1개 이상
 - has_intro: 소개글 텍스트 50자 이상
 - has_faq: [DEPRECATED 2026-05-01] 스마트플레이스 사장님 Q&A 탭 폐기로 항상 False.
            하위 호환을 위해 키만 유지. 점수 미반영.
@@ -164,7 +164,7 @@ async def _run_check(naver_place_id: str) -> dict:
                     wait_until="domcontentloaded",
                 )
                 await page.wait_for_timeout(1500)
-                home_text = (await page.inner_text("body"))[:5000] or ""
+                home_text = (await page.inner_text("body"))[:15000] or ""
                 # "삭제된 업체" / "존재하지 않는" 메시지 차단 — 그 외엔 등록된 것으로 판정
                 if home_text and not re.search(
                     r"(존재하지 않|삭제|찾을 수 없|페이지를 찾을 수 없)", home_text
@@ -184,7 +184,7 @@ async def _run_check(naver_place_id: str) -> dict:
                     "error": "home_load_failed",
                 }
 
-            # ── 2단계: 소식 탭 — 최근 30일 내 게시물 ───────────────────
+            # ── 2단계: 소식 탭 — 최근 90일 내 게시물 ───────────────────
             try:
                 await page.goto(
                     f"{base_url}/feed",
@@ -214,6 +214,42 @@ async def _run_check(naver_place_id: str) -> dict:
             except Exception as e:
                 _logger.warning(f"smart_place information tab skipped [{naver_place_id}]: {e}")
 
+            # ── 4단계: 사진 탭 — 전체 사진 수 정확 파악 ────────────────────────
+            # 홈 탭 미리보기(일부)가 아닌 사진 탭 전체 수 사용
+            try:
+                await page.goto(
+                    f"{base_url}/photo",
+                    timeout=_PAGE_TIMEOUT_MS,
+                    wait_until="domcontentloaded",
+                )
+                await page.wait_for_timeout(3000)  # 1500 → 3000ms
+                photo_body = (await page.inner_text("body")) or ""
+                # 네트워크 오류 감지 — 오류 시 기존 값 유지 (잘못된 숫자 방지)
+                if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", photo_body):
+                    _logger.warning(f"[smart_place] photo tab network error [{naver_place_id}]")
+                else:
+                    # "전체 N" 패턴 (사진 탭 필터 버튼)
+                    m_total = re.search(r"전체\s*([\d,]+)", photo_body)
+                    if m_total:
+                        tab_total = int(m_total.group(1).replace(",", ""))
+                        if tab_total > 0:
+                            results["photo_count"] = tab_total
+                            _logger.info(
+                                f"[smart_place] photo_count updated from photo tab: {tab_total} [{naver_place_id}]"
+                            )
+                    elif not results["photo_count"]:
+                        # "사진 N" 패턴 fallback
+                        m_photo = re.search(r"사진\s*([\d,]+)", photo_body)
+                        if m_photo:
+                            tab_total = int(m_photo.group(1).replace(",", ""))
+                            if tab_total > 0:
+                                results["photo_count"] = tab_total
+                                _logger.info(
+                                    f"[smart_place] photo_count from photo tab text: {tab_total} [{naver_place_id}]"
+                                )
+            except Exception as e:
+                _logger.warning(f"smart_place photo tab skipped [{naver_place_id}]: {e}")
+
         finally:
             try:
                 await ctx.close()
@@ -234,12 +270,15 @@ async def _run_check(naver_place_id: str) -> dict:
 
 # ── 텍스트 기반 휴리스틱 ──────────────────────────────────────────────────
 
+_RECENT_POST_DAYS = 90  # naver_place_stats.py와 동일 기준
+
+
 def _detect_recent_post(feed_body: str) -> bool:
-    """소식 탭 본문에서 최근 30일 내 게시물 존재 여부 추정.
+    """소식 탭 본문에서 최근 90일 내 게시물 존재 여부 추정.
 
     - "N일 전" / "N시간 전" 표시: 최근 = True
-    - "N개월 전" / "N년 전": 오래됨 = False
-    - 절대 날짜(YYYY.MM.DD): 30일 이내 판정
+    - "N개월 전": N*30 <= 90이면 True (1·2·3개월 전 포함), "N년 전": 오래됨 = False
+    - 절대 날짜(YYYY.MM.DD): 90일 이내 판정
     - "등록된 소식이 없습니다" / "최근 소식이 없습니다": False
     """
     if not feed_body:
@@ -247,24 +286,30 @@ def _detect_recent_post(feed_body: str) -> bool:
     if re.search(r"(등록된 소식이 없|소식이 없|게시물이 없)", feed_body):
         return False
 
-    # "N일 전" / "N시간 전" / "방금" / "어제" / "오늘" → 최근
-    if re.search(r"(\d+\s*시간\s*전|\d+\s*분\s*전|방금|오늘|어제)", feed_body):
+    # "N시간 전" / "N분 전" / "방금" → 무조건 최근
+    if re.search(r"(\d+\s*시간\s*전|\d+\s*분\s*전|방금)", feed_body):
         return True
-    m_day = re.search(r"(\d+)\s*일\s*전", feed_body)
-    if m_day:
-        try:
-            return int(m_day.group(1)) <= 30
-        except ValueError:
-            return False
+    # "오늘" / "어제" — 영업시간 문구 오탐 방지
+    if re.search(r"오늘|어제", feed_body) and not re.search(
+        r"오늘\s*(영업|운영|휴무|휴일|오픈|닫|쉬)", feed_body
+    ):
+        return True
+    days = [int(d) for d in re.findall(r"(\d+)\s*일\s*전", feed_body)]
+    if days:
+        return any(d <= _RECENT_POST_DAYS for d in days)
+    # "N개월 전" — 1개월=30일, 2개월=60일, 3개월=90일 이내 → True
+    months = [int(m) for m in re.findall(r"(\d+)\s*개월\s*전", feed_body)]
+    if months:
+        return any(m * 30 <= _RECENT_POST_DAYS for m in months)
 
-    # 절대 날짜 (YYYY.MM.DD 또는 YYYY-MM-DD) — 30일 이내면 최근
+    # 절대 날짜 (YYYY.MM.DD 또는 YYYY-MM-DD) — 90일 이내면 최근
     today = datetime.now(timezone.utc).date()
     for m in re.finditer(r"(20\d{2})[./\-](\d{1,2})[./\-](\d{1,2})", feed_body):
         try:
             d = datetime(
                 int(m.group(1)), int(m.group(2)), int(m.group(3)), tzinfo=timezone.utc
             ).date()
-            if (today - d) <= timedelta(days=30):
+            if (today - d) <= timedelta(days=_RECENT_POST_DAYS):
                 return True
         except (ValueError, OverflowError):
             continue
@@ -341,20 +386,25 @@ async def _detect_photo_count(page, home_text: str) -> int:
     """[P1-B-2] 홈 탭에서 등록 사진 수 추정.
 
     점수 미반영 — 10장 미만 시 AI탭 품질 향상 안내 전용.
-    naver_place_stats.py 동일 방식 재사용.
+    우선순위: 탭 버튼 "사진 N" 텍스트 → "N장" 패턴
+    (img.count() 폴백 제거 — 내비게이션 아이콘 등 무관 이미지 카운트로 오류 발생)
     """
-    # 1. 본문 텍스트 "사진 N" 패턴 추출
-    m = re.search(r"사진\s*(\d+)", home_text)
+    # 1. 탭 버튼에 표시된 사진 수 "사진 N" 패턴 추출 (콤마 포함 숫자 지원)
+    m = re.search(r"사진\s*(\d[\d,]*)", home_text)
     if m:
         try:
-            return int(m.group(1))
+            val = int(m.group(1).replace(",", ""))
+            if val > 0:
+                return val
         except ValueError:
             pass
-    # 2. pstatic.net CDN 이미지 수 카운트 (naver_place_stats.py 동일 방식)
-    try:
-        count = await page.locator("img[src*='pstatic.net']").count()
-        if count > 0:
-            return count
-    except Exception:
-        _logger.warning("smart_place: photo count DOM check failed → 0")
+    # 2. "N장" 형태 (예: "15장 등록")
+    m2 = re.search(r"(\d[\d,]+)\s*장", home_text)
+    if m2:
+        try:
+            val = int(m2.group(1).replace(",", ""))
+            if val > 0:
+                return val
+        except ValueError:
+            pass
     return 0
