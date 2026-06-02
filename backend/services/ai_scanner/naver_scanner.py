@@ -1,9 +1,17 @@
 from playwright.async_api import async_playwright
 import asyncio
 import logging
+import random
 import re
 
 from services.keyword_taxonomy import log_ad_only_mismatch
+from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua
+
+
+def _get_playwright_sem():
+    """PLAYWRIGHT_SEMAPHORE lazy import — 순환 import 방지."""
+    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+    return PLAYWRIGHT_SEMAPHORE
 
 logger = logging.getLogger("aeolab")
 
@@ -220,24 +228,24 @@ class NaverAIBriefingScanner:
         }
 
     async def check_mention(self, query: str, target: str, category: str = "") -> dict:
-        async with async_playwright() as pw:
-            browser = await pw.chromium.launch(
-                headless=True,
-                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-            )
-            ctx = await browser.new_context(
-                locale="ko-KR",
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/124.0.0.0 Safari/537.36"
-                ),
-            )
-            page = await ctx.new_page()
-            try:
-                result = await self._check_single_page(page, query, target, category=category)
-            finally:
-                await browser.close()
+        proxy = get_proxy_config()
+        async with _get_playwright_sem():
+            async with async_playwright() as pw:
+                browser = await pw.chromium.launch(
+                    headless=True,
+                    args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+                    proxy=proxy,
+                )
+                ctx = await browser.new_context(
+                    locale="ko-KR",
+                    user_agent=get_random_ua(),
+                )
+                page = await ctx.new_page()
+                await apply_stealth(page)
+                try:
+                    result = await self._check_single_page(page, query, target, category=category)
+                finally:
+                    await browser.close()
         return result
 
     async def check_mention_multi(self, queries: list[str], target: str, category: str = "") -> dict:
@@ -252,22 +260,21 @@ class NaverAIBriefingScanner:
                 "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
             }
 
+        proxy = get_proxy_config()
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(
                 headless=True,
                 args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+                proxy=proxy,
             )
             ctx = await browser.new_context(
                 locale="ko-KR",
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/124.0.0.0 Safari/537.36"
-                ),
+                user_agent=get_random_ua(),
             )
             keyword_results = []
             for q in queries:
                 page = await ctx.new_page()
+                await apply_stealth(page)
                 try:
                     r = await self._check_single_page(page, q, target, category=category)
                 finally:
@@ -275,7 +282,7 @@ class NaverAIBriefingScanner:
                 keyword_results.append(r)
                 if r.get("captcha_detected"):
                     break
-                await asyncio.sleep(0.8)
+                await asyncio.sleep(random.uniform(2, 4))
             await browser.close()
 
         # 최선 결과: in_briefing+excerpt > in_briefing > mentioned > first

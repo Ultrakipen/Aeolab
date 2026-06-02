@@ -61,7 +61,7 @@ _GAP_REASONS = {
             (
                 f"Gemini·ChatGPT AI에서 가게가 검색되지 않습니다 (경쟁사 대비 -{gap:.0f}점 차이). "
                 "Gemini는 구글 비즈니스 프로필 등록 후 2~4주 내 반영이 시작되며, 안정적 인용까지 3~6개월 소요됩니다. "
-                "ChatGPT는 학습 데이터(2024.06 컷오프) 기반으로 지금 당장 개선할 방법이 없으며, "
+                "ChatGPT는 학습 데이터 기반으로 지금 당장 개선할 방법이 없으며, "
                 "블로그·미디어 언급이 장기적으로 누적돼야 반영됩니다(3개월~1년)."
             )
             if gap > 0 else
@@ -127,7 +127,7 @@ _GAP_REASONS = {
             if gap > 0 else
             (
                 "전문 블로그·인터뷰·기사를 작성하면 Gemini가 인용하기 시작합니다. "
-                "ChatGPT는 학습 데이터(2024.06 컷오프) 기반으로 단기 개선이 어려우며, "
+                "ChatGPT는 학습 데이터 기반으로 단기 개선이 어려우며, "
                 "장기적인 온라인 언급 누적이 필요합니다."
             )
         ),
@@ -889,6 +889,24 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
             d.model_copy(update={"priority": i + 1})
             for i, d in enumerate(_raw_fallback_dims)
         ]
+        # INACTIVE 업종: fallback dims에서도 AI 브리핑 전용 항목 메시지 교체
+        from services.score_engine import get_briefing_eligibility
+        _fb_eligibility = get_briefing_eligibility(
+            category or (biz_row or {}).get("category", ""),
+            bool((biz_row or {}).get("is_franchise")),
+        )
+        if _fb_eligibility == "inactive":
+            _naver_only_fb = {"naver_exposure_confirmed", "ai_briefing_score"}
+            fallback_dims = [
+                d.model_copy(update={
+                    "gap_to_top": 0.0,
+                    "gap_reason": (
+                        f"{d.dimension_label} 항목은 이 업종에서 네이버 AI 브리핑 대상이 아닙니다. "
+                        "ChatGPT·Gemini·Google AI 노출을 위해 구글 비즈니스 프로필과 소개글 최적화에 집중하세요."
+                    )
+                }) if d.dimension_key in _naver_only_fb else d
+                for d in fallback_dims
+            ]
         keyword_gap_result = None
         if category and ScanContext(context) == ScanContext.LOCATION_BASED:
             try:
@@ -1020,6 +1038,38 @@ _REVIEW_CATEGORIES_BY_TYPE: dict[str, dict[str, list[str]]] = {
         "신뢰도":     ["믿음", "신뢰", "추천", "재방문", "안전", "경험"],
         "가격·가성비": ["가성비", "저렴", "합리적", "비싸", "가격"],
     },
+    # 자동차·카센터·세차
+    "auto": {
+        "기술·전문성": ["전문", "실력", "정확", "꼼꼼", "경험", "노하우"],
+        "서비스·응대": ["친절", "설명", "소통", "빠른", "사장님", "직원"],
+        "품질·신뢰":   ["깔끔", "완성도", "믿음", "튼튼", "재방문", "추천"],
+        "시간·편의":   ["신속", "당일", "예약", "대기", "빠른", "편리"],
+        "가격·가성비": ["가성비", "저렴", "합리적", "비싸", "가격"],
+    },
+    # 청소·청소업체
+    "cleaning": {
+        "청결도·결과": ["깨끗", "청결", "반짝", "먼지", "냄새", "말끔"],
+        "꼼꼼함·전문": ["꼼꼼", "구석", "완벽", "정성", "세밀", "전문"],
+        "서비스·친절": ["친절", "응대", "연락", "빠른", "사장님", "직원"],
+        "시간·편의":   ["신속", "당일", "예약", "시간", "빠른", "편리"],
+        "가격·가성비": ["가성비", "저렴", "합리적", "비싸", "가격"],
+    },
+    # 쇼핑·소매·마트
+    "shopping": {
+        "상품·품질":   ["품질", "신선", "정품", "좋은", "신뢰", "퀄리티"],
+        "구성·다양성": ["다양", "종류", "구비", "취급", "선택", "풍부"],
+        "서비스·응대": ["친절", "빠른", "포장", "배송", "직원", "응대"],
+        "위치·편의":   ["위치", "주차", "접근", "교통", "가깝", "편리"],
+        "가격·가성비": ["가성비", "저렴", "합리적", "비싸", "가격"],
+    },
+    # 패션·의류·액세서리
+    "fashion": {
+        "품질·디자인": ["품질", "예쁜", "디자인", "소재", "퀄리티", "완성도"],
+        "트렌드·스타일": ["트렌디", "스타일", "감각", "코디", "유행", "독특"],
+        "서비스·상담": ["친절", "추천", "상담", "배려", "코디", "직원"],
+        "핏·착용감":   ["핏", "사이즈", "편안", "잘맞", "착용감", "여유"],
+        "가격·가성비": ["가성비", "저렴", "합리적", "비싸", "가격"],
+    },
 }
 
 # 업종 → 리뷰 카테고리 그룹 매핑
@@ -1033,6 +1083,10 @@ _CATEGORY_TO_REVIEW_TYPE: dict[str, str] = {
     "photo": "photo", "video": "photo",
     "accommodation": "accommodation",
     "pet": "pet",
+    "auto": "auto",
+    "cleaning": "cleaning",
+    "shopping": "shopping",
+    "fashion": "fashion",
 }
 
 _REVIEW_CATEGORIES_GENERIC: dict[str, list[str]] = {
@@ -1072,9 +1126,19 @@ def analyze_review_keyword_distribution(
             or blog_json.get("review_text")
             or ""
         )
-    # blog_analysis_json에 없으면 review_sample fallback
+    # review_sample fallback
     if not my_text:
         my_text = biz.get("review_sample") or ""
+    # blog_analysis_json.covered_keywords fallback (블로그 분석 후 저장되는 키워드 목록)
+    if not my_text and isinstance(blog_json, dict):
+        covered = blog_json.get("covered_keywords") or []
+        if covered:
+            my_text = " ".join(covered)
+    # 사업장 등록 키워드 fallback
+    if not my_text:
+        biz_keywords = biz.get("keywords") or []
+        if isinstance(biz_keywords, list) and biz_keywords:
+            my_text = " ".join(str(k) for k in biz_keywords)
 
     if not my_text:
         return {"data_unavailable": True, "reason": "no_review_data"}

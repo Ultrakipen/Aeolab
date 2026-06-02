@@ -22,14 +22,12 @@ from playwright.async_api import async_playwright
 
 _logger = logging.getLogger("aeolab")
 
-# Playwright 동시 실행 제한 (iwinv 4GB RAM, 인스턴스당 300~500MB)
-_PLAYWRIGHT_SEM = asyncio.Semaphore(1)
+# Playwright 세마포어: multi_scanner.PLAYWRIGHT_SEMAPHORE 공유 (동시 Playwright 전역 1개 보장)
+def _get_playwright_sem():
+    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+    return PLAYWRIGHT_SEMAPHORE
 
-_USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/124.0.0.0 Safari/537.36"
-)
+from services.ai_scanner import apply_stealth as _apply_stealth, get_proxy_config as _get_proxy_config, get_random_ua as _get_random_ua
 
 _PAGE_TIMEOUT_MS = 8000          # 단일 페이지 로드 타임아웃
 _TOTAL_TIMEOUT_S = 30            # 전체 진단 타임아웃 (홈/소식/정보 3탭 + 마진)
@@ -99,7 +97,7 @@ async def auto_check_smart_place(naver_place_id: str) -> dict:
     place_id = str(naver_place_id).strip()
 
     try:
-        async with _PLAYWRIGHT_SEM:
+        async with _get_playwright_sem():
             return await asyncio.wait_for(
                 _run_check(place_id),
                 timeout=_TOTAL_TIMEOUT_S,
@@ -137,6 +135,7 @@ async def _run_check(naver_place_id: str) -> dict:
         "is_smart_place": False,
         "has_faq": False,
         "has_recent_post": False,
+        "recent_post_measured": True,   # False = 차단으로 측정 불가
         "has_intro": False,
         "has_reservation": False,
         "photo_count": 0,
@@ -147,14 +146,16 @@ async def _run_check(naver_place_id: str) -> dict:
         browser = await p.chromium.launch(
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+            proxy=_get_proxy_config(),
         )
         ctx = await browser.new_context(
             locale="ko-KR",
             timezone_id="Asia/Seoul",
-            user_agent=_USER_AGENT,
+            user_agent=_get_random_ua(),
             viewport={"width": 412, "height": 915},
         )
         page = await ctx.new_page()
+        await _apply_stealth(page)
         try:
             # ── 1단계: 홈 탭 — 페이지 정상 로드 여부 + 예약 감지 + 사진 수 ──
             try:
@@ -185,6 +186,7 @@ async def _run_check(naver_place_id: str) -> dict:
                 }
 
             # ── 2단계: 소식 탭 — 최근 90일 내 게시물 ───────────────────
+            _NAVER_IP_BLOCK = "플레이스 서비스 이용이 제한"
             try:
                 await page.goto(
                     f"{base_url}/feed",
@@ -193,7 +195,11 @@ async def _run_check(naver_place_id: str) -> dict:
                 )
                 await page.wait_for_timeout(1500)
                 feed_text = (await page.inner_text("body")) or ""
-                results["has_recent_post"] = _detect_recent_post(feed_text)
+                if _NAVER_IP_BLOCK in feed_text:
+                    _logger.warning(f"smart_place feed tab blocked (IP restriction) [{naver_place_id}]")
+                    results["recent_post_measured"] = False
+                else:
+                    results["has_recent_post"] = _detect_recent_post(feed_text)
             except Exception as e:
                 _logger.warning(f"smart_place feed tab skipped [{naver_place_id}]: {e}")
 

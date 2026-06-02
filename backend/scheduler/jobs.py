@@ -144,7 +144,7 @@ def start_scheduler():
     #     id="competitor_faq_sync", replace_existing=True, misfire_grace_time=3600,
     # )
     scheduler.add_job(
-        competitor_place_sync_job, "cron", day_of_week="mon", hour=3, minute=30,
+        competitor_place_sync_job, "cron", day_of_week="tue", hour=3, minute=30,
         id="competitor_place_sync", replace_existing=True, max_instances=1, misfire_grace_time=600,
     )
     # 경쟁사 상세 정보 보강 — 블로그 언급 수·웹사이트 SEO (매주 목요일 03:00)
@@ -337,6 +337,8 @@ async def daily_scan_all():
         basic_scanner = MultiAIScanner(mode="basic")
         full_scanner  = MultiAIScanner(mode="full")
 
+        _naver_captcha_count = 0  # 연속 캡챠 감지 카운터 — 2회 이상 시 당일 네이버 스캔 중단
+
         for i, biz in enumerate(businesses):
             try:
                 plan = (biz.get("subscriptions") or {}).get("plan", "basic")
@@ -350,6 +352,20 @@ async def daily_scan_all():
                 _scan_queries = _build_ai_scan_queries(biz["region"], _scan_kw)
                 query = _scan_queries[0]  # 단일 쿼리 문자열 — naver·single_check·query_used 저장용
 
+                # GitHub Actions prescan 결과 재사용 (naver_prescan 테이블, 있으면 네이버 재스캔 생략)
+                # github_naver_scan.py가 01:00 KST에 실행 → 이 함수(02:00 KST) 도달 시 이미 저장됨
+                _prescan_naver: dict = {}
+                try:
+                    _ps = supabase.table("naver_prescan").select("naver_result").eq(
+                        "business_id", biz["id"]
+                    ).eq("scan_date", str(today)).execute()
+                    if _ps and _ps.data:
+                        _prescan_naver = _ps.data[0].get("naver_result") or {}
+                        if _prescan_naver:
+                            logger.debug("[daily_scan_all] naver prescan 재사용 biz=%s", biz.get("id"))
+                except Exception as _pe:
+                    logger.debug("[daily_scan_all] naver_prescan 조회 실패 (테이블 없으면 무시): %s", _pe)
+
                 # 플랜별 스캐너 선택 (plan_gate.py auto_scan_mode 기준)
                 # basic/startup: 월요일 → 풀스캔 / 나머지 → 경량 스캔 (주 1회 풀스캔)
                 # pro:           월·수·금 → 풀스캔 / 나머지 → 경량 스캔 (주 3회 풀스캔)
@@ -360,6 +376,28 @@ async def daily_scan_all():
                     result = await basic_scanner.scan_basic(_scan_queries, biz["name"])
                 else:
                     result = await full_scanner.scan_all(_scan_queries, biz["name"])
+
+                # GitHub Actions prescan 결과가 있으면 서버 스캔 결과를 덮어쓰기
+                if _prescan_naver:
+                    result["naver"] = _prescan_naver
+
+                # 네이버 캡챠 연속 감지 시 당일 네이버 스캔 조기 중단
+                _naver_result = result.get("naver") or {}
+                if _naver_result.get("captcha_detected"):
+                    _naver_captcha_count += 1
+                    if _naver_captcha_count >= 2:
+                        logger.warning(
+                            "[daily_scan_all] 네이버 캡챠 연속 %d회 감지 — 당일 네이버 스캔 중단 (IP 차단 방어)",
+                            _naver_captcha_count,
+                        )
+                        await send_slack_alert(
+                            "네이버 스캔 IP 차단 감지",
+                            f"연속 {_naver_captcha_count}회 captcha 감지 — 남은 사업장 네이버 스캔 건너뜀. 내일 재시도.",
+                            level="warning",
+                        )
+                        break
+                else:
+                    _naver_captcha_count = 0  # 정상 응답 시 카운터 리셋
 
                 # 블로그 covered 키워드를 biz에 병합해 keyword_gap 정확도 향상
                 _sched_blog_json = biz.get("blog_analysis_json") or {}
@@ -2635,12 +2673,19 @@ async def competitor_place_sync_job():
 
         total_synced = 0
         total_errors = 0
+        ip_banned = False
         for biz_id in business_ids:
+            if ip_banned:
+                break
             try:
                 results = await sync_all_competitor_places(biz_id, supabase)
                 errors = [r for r in results if r.get("error")]
                 total_synced += len(results) - len(errors)
                 total_errors += len(errors)
+                # 배치 내 ip_blocked 발생 시 남은 사업장 전체 중단
+                if any(r.get("error") == "ip_blocked" for r in results):
+                    ip_banned = True
+                    logger.warning("competitor_place_sync_job: IP 차단 감지, 전체 잡 조기 종료")
             except Exception as e:
                 logger.warning(f"competitor_place_sync_job [{biz_id}] 오류: {e}")
                 total_errors += 1
@@ -2648,6 +2693,7 @@ async def competitor_place_sync_job():
         logger.info(
             f"competitor_place_sync_job 완료: "
             f"성공={total_synced}, 오류={total_errors}"
+            + (" [IP 차단으로 조기 종료]" if ip_banned else "")
         )
 
     except Exception as e:
@@ -2748,11 +2794,15 @@ async def enrich_competitor_details_job():
         ).data or []
         region_map: dict[str, str] = {b["id"]: b.get("region", "") for b in biz_rows}
 
+        import random as _random
         logger.info(f"enrich_competitor_details_job: {len(rows)}개 경쟁사 상세 보강 시작")
         total_ok = 0
         total_err = 0
+        ip_banned = False
 
         for row in rows:
+            if ip_banned:
+                break
             competitor_id   = row["id"]
             naver_place_id  = row.get("naver_place_id", "")
             biz_id          = row.get("business_id", "")
@@ -2760,9 +2810,15 @@ async def enrich_competitor_details_job():
 
             try:
                 result = await sync_competitor_place(
-                    competitor_id, naver_place_id, supabase, region=region
+                    competitor_id, naver_place_id, supabase, region=region,
+                    registered_name=row.get("name", ""),
                 )
-                if result.get("error"):
+                if result.get("error") == "ip_blocked":
+                    logger.warning("enrich_competitor_details_job: IP 차단 감지, 전체 잡 조기 종료")
+                    ip_banned = True
+                    total_err += 1
+                    break
+                elif result.get("error"):
                     logger.warning(
                         f"enrich_competitor_details [{competitor_id}] 크롤링 실패: {result['error']}"
                     )
@@ -2778,11 +2834,12 @@ async def enrich_competitor_details_job():
                 logger.warning(f"enrich_competitor_details [{competitor_id}] 스킵: {e}")
                 total_err += 1
 
-            # Playwright 크롤링 간 2초 간격 유지
-            await asyncio.sleep(2)
+            # 크롤링 간 랜덤 딜레이 (균일 패턴 차단 회피)
+            await asyncio.sleep(_random.uniform(7, 15))
 
         logger.info(
             f"enrich_competitor_details_job 완료: 성공={total_ok}, 오류={total_err}"
+            + (" [IP 차단으로 조기 종료]" if ip_banned else "")
         )
 
     except Exception as e:
@@ -4419,7 +4476,7 @@ async def weekly_competitor_sync_job():
         # 7일 이상 미갱신 또는 한 번도 동기화 안 된 경쟁사 조회
         _res = await _db(
             supabase.table("competitors")
-            .select("id, naver_place_id, business_id, naver_place_last_synced_at")
+            .select("id, name, naver_place_id, business_id, naver_place_last_synced_at")
             .eq("is_active", True)
             .not_.is_("naver_place_id", "null")
         )
@@ -4444,18 +4501,32 @@ async def weekly_competitor_sync_job():
             biz_id = comp["business_id"]
             biz_groups.setdefault(biz_id, []).append(comp)
 
+        import random as _random
         total_synced = 0
         total_errors = 0
+        ip_banned = False
 
         for biz_id, comps in biz_groups.items():
+            if ip_banned:
+                break
             for comp in comps:
+                if ip_banned:
+                    break
                 comp_id = comp.get("id")
                 naver_place_id = comp.get("naver_place_id")
                 if not comp_id or not naver_place_id:
                     continue
                 try:
-                    result = await sync_competitor_place(comp_id, naver_place_id, supabase)
-                    if result and result.get("error"):
+                    result = await sync_competitor_place(
+                        comp_id, naver_place_id, supabase,
+                        registered_name=comp.get("name", ""),
+                    )
+                    if result and result.get("error") == "ip_blocked":
+                        logger.warning("[weekly_competitor_sync] IP 차단 감지, 전체 잡 조기 종료")
+                        ip_banned = True
+                        total_errors += 1
+                        break
+                    elif result and result.get("error"):
                         logger.warning(
                             f"[weekly_competitor_sync] 동기화 오류 comp={comp_id}: {result['error']}"
                         )
@@ -4466,13 +4537,15 @@ async def weekly_competitor_sync_job():
                 except Exception as e:
                     logger.warning(f"[weekly_competitor_sync] 예외 comp={comp_id}: {e}")
                     total_errors += 1
-                # 경쟁사 간 2초 sleep (서버 부하 방지)
-                await asyncio.sleep(2)
-            # 사업장 그룹 간 5초 sleep
-            await asyncio.sleep(5)
+                # 경쟁사 간 랜덤 딜레이 (균일 패턴 차단 회피)
+                await asyncio.sleep(_random.uniform(7, 15))
+            if not ip_banned:
+                # 사업장 그룹 간 딜레이
+                await asyncio.sleep(_random.uniform(10, 20))
 
         logger.info(
             f"[weekly_competitor_sync] 완료 — 성공={total_synced}, 오류={total_errors}"
+            + (" [IP 차단으로 조기 종료]" if ip_banned else "")
         )
 
     except Exception as e:
@@ -5125,7 +5198,7 @@ async def ai_tab_trigger_check_job():
                 user_agent=(
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/124.0.0.0 Safari/537.36"
+                    "Chrome/131.0.0.0 Safari/537.36"
                 ),
             )
             for q in queries:
@@ -5215,7 +5288,7 @@ async def briefing_category_expansion_monitor_job():
                 user_agent=(
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/124.0.0.0 Safari/537.36"
+                    "Chrome/131.0.0.0 Safari/537.36"
                 ),
             )
 

@@ -6,23 +6,45 @@ Playwright 인스턴스는 순차 실행 (asyncio.Semaphore(1)) — RAM 보호
 import asyncio
 import logging
 import os
+import random
 import re
 from datetime import datetime, timezone
 from typing import Optional
 
 import aiohttp
 from playwright.async_api import async_playwright
+from services.ai_scanner import apply_stealth as _apply_stealth, get_proxy_config as _get_proxy_config
 
 _logger = logging.getLogger(__name__)
 
-# Playwright 동시 실행 제한: 1개 (RAM 300~500MB/인스턴스, iwinv 4GB RAM 보호)
-_PLAYWRIGHT_SEM = asyncio.Semaphore(1)
+# Playwright 세마포어: multi_scanner.PLAYWRIGHT_SEMAPHORE 공유 (동시 Playwright 전역 1개 보장)
+# naver_place_stats.py와 동일한 lazy import 패턴 — 순환 import 방지
+def _get_playwright_sem():
+    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+    return PLAYWRIGHT_SEMAPHORE
 
-_USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/124.0.0.0 Safari/537.36"
-)
+# place_name 검증: pcmap 페이지 헤더에 나타나는 비정상 값 목록
+_INVALID_PLACE_NAMES: set[str] = {"플레이스", "네이버", "지도", "place", "naver", "map"}
+
+# User-Agent 로테이션 (Chrome 최신 버전 교대 — 단일 UA 봇 패턴 탐지 회피)
+_USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+]
+
+# 뷰포트 후보 (일반적인 데스크탑 해상도 3종)
+_VIEWPORTS = [
+    {"width": 1366, "height": 768},
+    {"width": 1920, "height": 1080},
+    {"width": 1440, "height": 900},
+]
+
+# 경쟁사 간 크롤링 간격 (초) — 균일 패턴 차단 회피
+_CRAWL_DELAY_MIN = 7
+_CRAWL_DELAY_MAX = 15
 
 
 async def fetch_competitor_place_data(naver_place_id: str) -> dict:
@@ -59,7 +81,7 @@ async def fetch_competitor_place_data(naver_place_id: str) -> dict:
     }
 
     try:
-        async with _PLAYWRIGHT_SEM:
+        async with _get_playwright_sem():
             return await asyncio.wait_for(_run_place_crawl(naver_place_id), timeout=30)
     except asyncio.TimeoutError:
         _logger.warning(f"competitor_place_crawler timeout: {naver_place_id}")
@@ -82,17 +104,36 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
     """
     base_url = f"https://pcmap.place.naver.com/place/{naver_place_id}"
 
+    # _run_place_crawl 스코프용 default — IP 차단 등 조기 반환 시 사용
+    default = {
+        "naver_place_id": naver_place_id,
+        "place_name": "",
+        "review_count": 0,
+        "avg_rating": 0.0,
+        "has_faq": False,
+        "has_recent_post": False,
+        "has_menu": False,
+        "has_intro": False,
+        "photo_count": 0,
+        "error": None,
+    }
+
+    _ua = random.choice(_USER_AGENTS)
+    _vp = random.choice(_VIEWPORTS)
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+            proxy=_get_proxy_config(),
         )
         ctx = await browser.new_context(
             locale="ko-KR",
             timezone_id="Asia/Seoul",
-            user_agent=_USER_AGENT,
+            user_agent=_ua,
+            viewport=_vp,
         )
         page = await ctx.new_page()
+        await _apply_stealth(page)
         try:
             # ── 1단계: 홈 탭 로드 ─────────────────────────────────────
             await page.goto(f"{base_url}/home", timeout=20000, wait_until="domcontentloaded")
@@ -100,24 +141,35 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
 
             body_text = await page.inner_text("body")
 
+            # ── IP 차단 감지 ──────────────────────────────────────────
+            if "서비스 이용이 제한되었습니다" in body_text or "과도한 접근 요청" in body_text:
+                _logger.warning(f"competitor_place_crawler IP blocked [{naver_place_id}]")
+                await browser.close()
+                return {**default, "error": "ip_blocked"}
+
             # ── 사업장명 파싱 ─────────────────────────────────────────
             place_name = ""
             lines = [l.strip() for l in body_text.split("\n") if l.strip()]
             # 홈 탭에서 두 번째 비어있지 않은 라인이 업체명 (실측: lines[1] = '글래드스냅')
+            # 단, pcmap 헤더 텍스트("플레이스" 등)가 잡히는 경우 무효 처리
             if len(lines) >= 2:
-                place_name = lines[1]
+                candidate = lines[1]
+                if candidate.lower() not in _INVALID_PLACE_NAMES and len(candidate) > 1:
+                    place_name = candidate
 
             # ── 리뷰 수 파싱 ─────────────────────────────────────────
-            # 실측: "블로그 리뷰 8" 또는 리뷰 탭에서 "리뷰8" (숫자 붙어있음)
+            # 패턴 우선순위: 블로그 리뷰 → 방문자 리뷰 → 리뷰N (붙음)
             review_count = 0
-            m = re.search(r"블로그\s*리뷰\s*(\d[\d,]*)", body_text)
-            if m:
-                review_count = int(m.group(1).replace(",", ""))
-            else:
-                # 리뷰탭에서 "리뷰N" (숫자 바로 붙음) 패턴 시도
-                m2 = re.search(r"리뷰(\d[\d,]+)", body_text)
-                if m2:
-                    review_count = int(m2.group(1).replace(",", ""))
+            _review_patterns = [
+                r"블로그\s*리뷰\s*(\d[\d,]*)",
+                r"방문자\s*리뷰\s*(\d[\d,]*)",
+                r"리뷰(\d[\d,]+)",
+            ]
+            for _pat in _review_patterns:
+                _m = re.search(_pat, body_text)
+                if _m:
+                    review_count = int(_m.group(1).replace(",", ""))
+                    break
 
             # ── 별점 파싱 ─────────────────────────────────────────────
             avg_rating = 0.0
@@ -201,9 +253,8 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     _logger.warning("avg_rating review tab retry failed [%s]: %s", naver_place_id, e)
 
             # ── 탭 목록 확인 (네비게이션 영역 텍스트로 탭 추출) ──────────
-            # 실측: 홈/소식/리뷰/사진/정보 순서로 탭 배치
-            # 탭 이름들은 lines[10:16] 범위에 주로 위치
-            nav_area = "\n".join(lines[8:20]) if len(lines) > 20 else "\n".join(lines)
+            # lines[5:35]로 넓게 잡아 업종별 UI 구조 차이 대응 (구: lines[8:20])
+            nav_area = "\n".join(lines[5:35]) if len(lines) > 35 else "\n".join(lines)
 
             # ── FAQ(Q&A) 소개글 섹션 존재 여부 ──────────────────────────
             # [2026-05-01] 사장님 Q&A 탭(/qna) 폐기 — nav_area에서는 더 이상 감지 불가.
@@ -390,7 +441,7 @@ async def fetch_competitor_faq_items(naver_place_id: str) -> dict:
         return {**default, "error": "naver_place_id required"}
 
     try:
-        async with _PLAYWRIGHT_SEM:
+        async with _get_playwright_sem():
             return await asyncio.wait_for(_run_faq_crawl(naver_place_id), timeout=25)
     except asyncio.TimeoutError:
         _logger.warning(f"competitor_faq_crawler timeout: {naver_place_id}")
@@ -506,10 +557,13 @@ async def sync_competitor_place(
     naver_place_id: str,
     supabase,
     region: str = "",
+    registered_name: str = "",
 ) -> dict:
     """
     경쟁사 네이버 플레이스 크롤링 후 competitors 테이블 업데이트.
     blog_mention_count, website_seo_score, website_seo_result, detail_synced_at 포함.
+
+    registered_name: DB에 등록된 경쟁사 이름. place_name 파싱 실패 시 블로그 검색 fallback으로 사용.
 
     Returns:
         크롤링 결과 dict (error 키 포함 여부로 성공/실패 판단)
@@ -545,7 +599,9 @@ async def sync_competitor_place(
         )
         return data
 
-    competitor_name = data.get("place_name", "")
+    parsed_place_name = data.get("place_name", "")
+    # place_name 파싱 실패(헤더 텍스트 등) 시 DB 등록명 fallback
+    competitor_name = parsed_place_name if parsed_place_name else registered_name
 
     # 블로그 언급 수 + 웹사이트 SEO 병렬 실행
     async def _zero() -> int:
@@ -668,10 +724,22 @@ async def sync_all_competitor_places(business_id: str, supabase) -> list[dict]:
         _logger.info(
             f"경쟁사 플레이스 동기화: {row['name']} ({naver_place_id})"
         )
-        result = await sync_competitor_place(competitor_id, naver_place_id, supabase)
+        result = await sync_competitor_place(
+            competitor_id, naver_place_id, supabase,
+            registered_name=row.get("name", ""),
+        )
         results.append({"competitor_id": competitor_id, "name": row["name"], **result})
 
-        # 순차 처리 — 네이버 크롤링 간 2초 간격
-        await asyncio.sleep(2)
+        # IP 차단 감지 → 배치 전체 조기 중단
+        if result.get("error") == "ip_blocked":
+            _logger.warning(
+                f"sync_all_competitor_places: IP 차단 감지, 배치 중단 "
+                f"[biz={business_id}] (완료={len(results)-1}, 남음={len(rows)-len(results)})"
+            )
+            break
+
+        # 순차 처리 — 네이버 크롤링 간 랜덤 딜레이 (균일 패턴 차단 회피)
+        _delay = random.uniform(_CRAWL_DELAY_MIN, _CRAWL_DELAY_MAX)
+        await asyncio.sleep(_delay)
 
     return results
