@@ -52,6 +52,21 @@
 - **보고 형식** — "P1 — [근거 file:line, 반증 file:line] 문제 확인"
 - **적용 대상** — 메인 세션 자체 분석 + 에이전트 보고 양쪽 모두. 단정 근거만으로 P0/P1 분류 금지.
 
+### 에이전트 수정 권장 → 구현 전 필수 절차 (2026-06-02 신설)
+
+> 2026-06-02 에이전트가 권장한 `check_mention()` 세마포어 추가를 호출 그래프 확인 없이 적용 → `_run_playwright()` 중첩 획득으로 asyncio 데드락 발생. 에이전트는 **"발견"만**, 수정 방향 결정은 메인 세션이 코드를 직접 보고 판단.
+
+**P0/P1 수정 구현 전 필수 3단계 (건너뛰기 금지):**
+
+1. **모든 호출처 확인** — `grep -rn "<대상 함수명>" backend/` 로 호출 그래프 전체 추적. 세마포어·락·비동기 패턴 수정은 중첩 획득 여부 반드시 체크.
+2. **반증 케이스 먼저** — "이 수정이 틀렸다면 어떤 경로에서?" 시나리오 1개 이상 직접 확인 후 구현.
+3. **에이전트 권장 조치는 방향만** — 구체 구현 방법은 메인 세션이 코드를 직접 보고 결정. 에이전트 권장을 코드 확인 없이 그대로 적용 금지.
+
+**CLAUDE.md·문서 신뢰도 원칙:**
+- CLAUDE.md는 스냅샷 — 수치·패턴 기재 내용은 항상 실제 코드로 검증 우선
+- 문서에 수치/패턴 기재 시 `file:line` 명시 권장 (예: `PLAYWRIGHT_SEMAPHORE`: `multi_scanner.py:40`)
+- 에이전트 보고·문서 기반 판단 전 실제 코드 경로를 직접 추적
+
 ---
 
 ## 토큰 효율 작업 지침 (Claude Max 5x — $100/월)
@@ -174,7 +189,7 @@
 ### 1. AI 브리핑 노출 게이팅 (단일 진실)
 
 - **ACTIVE 업종**: restaurant, cafe, bakery, bar, accommodation — 네이버 AI 브리핑 플레이스형 노출 대상 (beauty·nail은 LIKELY, 코드 score_engine.py:28 기준)
-- **LIKELY 업종**: beauty, nail, pet, fitness, yoga, pharmacy — 2026년 AI 탭 베타 공개(2026-04-27, 네이버플러스 우선) + 업종 확대 진행 중, 안내 톤 분기
+- **LIKELY 업종**: beauty, nail, pet, fitness, yoga, pharmacy — **AI 브리핑 플레이스형** 노출 확대 예정 업종 (안내 톤 분기). ※ AI탭(대화형 검색)은 업종 무관 — 2026-04-27 네이버플러스 베타 → **2026-06 전체 로그인 사용자 확대** (사용자 확대이며 업종 확대 아님)
 - **INACTIVE 업종**: 그 외 모든 업종 → 글로벌 AI(ChatGPT·Gemini·Google AI) 중심 안내
 - **프랜차이즈는 ACTIVE 업종이라도 제외** (네이버 공식 정책) — `get_briefing_eligibility(category, is_franchise)` 사용
 - **단일 소스 동기화**: backend `briefing_engine.BRIEFING_ACTIVE_CATEGORIES` ↔ frontend `BRIEFING_ACTIVE` — 한쪽 변경 시 양쪽 동시 수정 필수 (RegisterBusinessForm.tsx, dashboard/page.tsx)
@@ -245,7 +260,7 @@
 | 프론트엔드 | Next.js 16.2.1 App Router + Tailwind + shadcn/ui + Recharts | 포트 3000 |
 | 백엔드 | Python FastAPI + Pydantic v2 + APScheduler + aiohttp | 포트 8000 |
 | DB | Supabase Cloud Free Tier (PostgreSQL + Auth + Storage) | |
-| AI 스캔 | Gemini 2.0 Flash + OpenAI gpt-4.1-mini (Basic 자동 50/50 분할, Full 각 100회) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Serper.dev API) | 4종 운영 |
+| AI 스캔 | Gemini 2.5 Flash + OpenAI gpt-4.1-mini (Basic 자동 50/50 분할, Full 각 100회) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Serper.dev API) | 4종 운영 |
 | AI 가이드 | Claude sonnet-4-6 (가이드 전용) + Claude Haiku (FAQ/감정분석) | |
 | 스크린샷 | Playwright 1.44+ | Semaphore(1) 독립 × 2 (브리핑·AI탭) — 공유 통합 예정 |
 | 결제 | 토스페이먼츠 v2 (현재 test_ 키) | 실결제 전 live_ 교체 필요 |
@@ -257,7 +272,7 @@
 
 | 스캐너 | 파일 | 방식 | 용도 |
 |--------|------|------|------|
-| Gemini 2.0 Flash | `gemini_scanner.py` | API | sample_n(n=50/100) — Basic 자동 50회, Full 100회, Trial 10회 |
+| Gemini 2.5 Flash | `gemini_scanner.py` | API | sample_n(n=50/100) — Basic 자동 50회, Full 100회, Trial 10회 |
 | ChatGPT GPT-4o-mini | `chatgpt_scanner.py` | API | sample_n(n=50/100) — Basic 자동 50회, Full 100회, Quick/Trial 1회 |
 | 네이버 AI 브리핑 | `naver_scanner.py` | Playwright | 네이버 AI 브리핑 DOM 파싱 |
 | Google AI Overview | `google_scanner.py` | Serper.dev API | 구글 SGE + AI Overview 노출 확인 ($0.001/건, CAPTCHA 없음) |
@@ -438,7 +453,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 | API | 단가 | 월 비용 | 용도 |
 |-----|------|--------|------|
-| Gemini 2.0 Flash | $0.075/1M in, $0.30/1M out | ~$1.5 | Basic 자동 50회 / Full 100회 |
+| Gemini 2.5 Flash | $0.15/1M in, $0.60/1M out | ~$3 | Basic 자동 50회 / Full 100회 (2026-05-31 2.0→2.5 마이그레이션) |
 | OpenAI gpt-4.1-mini | $0.15/1M in, $0.60/1M out | ~$2 | Basic 자동 50회 / Full 100회 (A안 신규) |
 | Claude Sonnet | $3/1M | ~$3 | 가이드 생성 시만 |
 | 카카오 알림톡 | 8~15원/건 | ~800원 | 변화 있을 때 |
@@ -506,6 +521,31 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 ---
 
+## 코드 수정 요청 시 필수 절차 (자동 적용)
+
+> 수정 요청을 받으면 아래 순서를 반드시 따를 것. 건너뛰기 금지.
+
+### Step 1 — 현재 상태 파악 (수정 전)
+- `Read`로 대상 파일 전체 구조 확인
+- `Grep`으로 동일 패턴의 다른 파일 영향 범위 확인
+- 서버 파일과 로컬 파일 중 어느 쪽이 최신인지 SSH로 확인
+
+### Step 2 — 외부 사양 변경 의심 시
+- 네이버·ChatGPT·Google 정책 관련이면 `WebSearch`로 최신 공식 자료 먼저 확인
+- CLAUDE.md의 기존 기준과 충돌 시 → 실측 우선, CLAUDE.md 즉시 갱신
+
+### Step 3 — 수정
+- 최소 변경 원칙 (필요한 라인만, 불필요한 리팩터링 금지)
+- PC/모바일 분리 레이아웃 유지
+- `text-sm` 이상 가독성 준수
+
+### Step 4 — 검증 (수정 후)
+- SSH grep으로 서버 반영 1줄 이상 직접 확인
+- `pm2 logs --lines 60 --nostream` error.log 0건 확인
+- 에이전트 "완료" 보고만 신뢰 금지 — 메인 세션 직접 확인 필수
+
+---
+
 ## 필수 코드 패턴 (과거 버그 재발 방지)
 
 ### Next.js 16 + Supabase Auth
@@ -568,98 +608,27 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - **수정 파일 13개**: `AIDiagnosisCard.tsx`×2, `GlobalAiActionCard.tsx`, `FAQSection.tsx`×2, `HowItWorksSection.tsx`, `GuideClient.tsx`, `chatgpt-search/page.tsx`(title+desc), `blog-strategy/page.tsx`, `gap_analyzer.py`, `pdf_generator.py`, `ai_exposure_standard_and_naver_seo_v1.0.md`(v1.3)
 - **beauty 업종**: LIKELY 유지, `ai_exposure_standard_and_naver_seo_v1.0.md §1.2` "2026 연내 ACTIVE 공식 예고" 추가 — `briefing_category_expansion_monitor_job` 자동 감지 대기 중
 
-### 2026-05-25 — 롱테일 자연어 질의 대응 P1 (`docs/naver_longtail_query_response_v1.0.md`)
-> 근거: 네이버 공식 롱테일 질의 전년比 2.5배(학술대회 2026-05-22). 유료 스캔이 짧은 키워드만 측정하던 갭 해소.
-- `keyword_taxonomy.build_ai_scan_queries(region, kw)` 단일 소스 신규 — 짧은 변형 3 + 긴 자연어 변형 2 = 5쿼리. 첫 요소는 짧은 쿼리(naver 회귀 방지)
-- `scan.py:2624`(온디맨드) + `jobs.py:340`(일일 자동) 배선. `sample_n` 균등분산이라 **총 샘플·API 비용 불변**, 점수 산식 불변
-- 제로클릭 실측 표시: `AICitationCard.tsx` 하단 "AI 답변에서 N건 인용 발견" + 제로클릭 맥락(금액 환산 금지 — 실측 건수만)
-- 검증: 서버 grep 반영·import 5·error.log 0건. 보류: P2 AI탭 스캐너(6월 env 게이트)·P3 카페·지식인 멀티채널(구독자 20명 후)
+### 2026-05-25 — 롱테일 자연어 질의 대응 P1
+`keyword_taxonomy.build_ai_scan_queries()` 단일 소스(짧은 변형 3 + 자연어 변형 2 = 5쿼리). `scan.py`·`jobs.py` 배선. 비용 불변. `AICitationCard.tsx` 제로클릭 실측 표시. 상세 → `docs/naver_longtail_query_response_v1.0.md`
 
-### 2026-05-18 — 네이버 AI 브리핑 vs AI탭 명확 구분 (P0+P1)
-> 명세 → `docs/ai_briefing_vs_ai_tab_clarification_v1.0.md`
-- **문제**: 백엔드는 `get_briefing_eligibility` / `get_ai_tab_eligibility` 분리됐으나 사용자 노출 화면에서 두 개념 혼재 → 비대상 업종 방문자 "내 업종은 안 됨" 오해 이탈
-- **변경 9건 (frontend-only, backend·DB 무변경)**:
-  - 랜딩 §4-B 신규: "AI탭은 모든 업종 가능 (2026-04-27 베타)" 2-컬럼 비교 표 (`page.tsx:500~`)
-  - 대시보드 신규 카드: `NaverAiPathwayCard.tsx` AI 브리핑 vs AI탭 비교 + 자기 업종 자동 배지 (DashboardInsightZone 상단)
-  - `AiInfoTabStatusCard` 제목 명시: "AI 정보 탭 상태 확인" → **"네이버 AI 브리핑 노출 설정"** + 부제 (스마트플레이스 메뉴명 구분)
-  - `AiTabPreviewCard` 헤더 부제: "네이버 AI탭 답변 미리보기" + "검색결과 AI탭·베타·모든 업종"
-  - **신규 페이지** `/guide/ai-tab`: AI탭 5항목 가이드 (소개글·사진·예약·리뷰·블로그 UGC). 모든 업종 대상
-  - `/guide/ai-info-tab` 상단: AI 브리핑 분기 안내 박스 + AI탭 가이드 링크
-  - `/guide` 허브: 두 가이드 진입점 카드 명확 분리 (AI 브리핑·AI탭) + 자기 업종 배지
-- **용어 표준**: "AI탭"(검색결과 화면) ≠ "AI 정보 탭"(스마트플레이스 내부 토글 메뉴) 명확 구분 적용
-- 검증: SSH grep 6개 핵심 라인 메인 세션 직접 확인. PM2 both online
+### 2026-05-18 — AI 브리핑·AI탭 구분 + M1~M3 + 리드젠 + 버그수정
+- **AI 브리핑 vs AI탭 9건**: `NaverAiPathwayCard.tsx` 신규·`/guide/ai-tab` 신규·용어 표준화("AI탭"≠"AI 정보 탭"). 상세 → `docs/ai_briefing_vs_ai_tab_clarification_v1.0.md`
+- **M1~M3**: WHITELIST 59개·`in_ai_tab`/`ad_only` 플래그·AI탭 체크리스트 25종·`NAVER_TRACK_WEIGHTS_V3_2`·`simulate_ai_tab_answer` v2(measured/estimated). 상세 → `docs/naver_ai_search_optimization_plan_v1.0.md`
+- **리드젠**: `FreeToolsSection.tsx`·메뉴 Excel(`/api/tools/menu-template.xlsx`)·`InlineKeywordWidget.tsx` 신규
+- **P2 버그**: `competitor_place_crawler.py`+`naver_place_stats.py` `except pass`→`warning()`. `AgencyServiceSection.tsx` 신규
 
-### 2026-05-18 — P2 버그 수정 + 랜딩 대행 서비스 섹션 신규
-- **P2 버그**: `competitor_place_crawler.py` 12개 + `naver_place_stats.py` 4개 `except Exception: pass` → `logger.warning()` 교체. SSH 직접 검증: 두 파일 `except Exception:$` 0건
-- **랜딩 대행 서비스 섹션**: `AgencyServiceSection.tsx` 신규 생성 + `page.tsx` §8-B FREE TOOLS 직후 삽입. 패키지 3종(49,000/79,000/119,000원) 정적 카드, API 호출 0, Server Component. 빌드 성공 + PM2 반영
-
-### 2026-05-18 — 랜딩 리드젠 강화 + 메뉴 엑셀 양식 (A·B·C 전체 완료)
-- **기능 A: `FreeToolsSection.tsx` 신규** — 랜딩 §8(가격) 직후 초록 배경 섹션. 이미 구현된 `/tools/keyword`·`/tools/ad-cost-calculator` 두 도구를 카드 2개로 노출. "가입 없이 지금 바로" 배지. BEP 전환율 직결 — 비로그인 방문자 첫 체험 유도
-- **기능 B: 메뉴 일괄 등록 Excel 양식** — `backend/services/menu_template.py` 신규(openpyxl, 8열 50행, 틀 고정, 헤더 서식). `GET /api/tools/menu-template.xlsx` Basic+ 엔드포인트. `GuideClient.tsx` QuickToolsSection에 에메랄드 버튼 추가. `requirements.txt` openpyxl>=3.1.0 추가. AI 호출 0회
-- **기능 C: `InlineKeywordWidget.tsx` 신규** — 랜딩 Hero 직후 삽입. 업종 선택 + 사업장명 입력 → `/api/businesses/keyword-suggest-preview` 호출 → 키워드 최대 10개 표시. 10초 쿨다운. 클릭 복사. 면책 문구 포함. 가입 불필요
-- **검증 완료**: SSH grep 7개 핵심 라인 메인 세션 직접 확인, openpyxl 3.1.5 설치, 신규 4개 파일 서버 존재 확인, PM2 both online, error.log 0건
-
-### 2026-05-18 — 네이버 AI 검색 최적화 M1~M3 완료 (`docs/naver_ai_search_optimization_plan_v1.0.md`)
-- **M1: 키워드 화이트리스트 + 전역 플래그 + alias 검증**
-  - WHITELIST 59개 업종 키워드 정비 (25개 업종 × 평균 2.4개)
-  - `in_ai_tab` / `ad_only` 전역 플래그 신설 — AI탭 광고 영역 오인 방지 (Critical S3 대응)
-  - `blogMentionCount` 필드 추가 — `blog_analyzer.py` 결과를 Track1 점수에 반영
-  - taxonomy ↔ 업종 alias 자동 테스트 구현 (N5 무음 버그 방지)
-- **M2: Group D 콘텐츠 매핑 완성 + 채널별 가이드 SSG**
-  - Group D ~10개 업종 `ai_tab_context` 그룹 추가 (미완성 → 완성)
-  - `backend/services/ai_tab_checklists.py` 신규 — 업종별 AI탭 체크리스트 25종 단일 소스
-  - 블로그 UGC 가이드 신규 — `blog_analyzer.py` 결과 → `AiTabPreviewCard`·`AiInfoTabGuide` 노출 (N4 대응)
-  - `/guide/channels/` SSG 신규 — 업종 × 채널 매트릭스 정적 페이지 (AI 호출 0)
-  - 광고 공지 배너 — AI탭 광고 영역 경고 UI + `ad_only=true` 시 점수 제외 안내
-- **M3: 스케줄러 + 점수 모델 v3.2 + 시뮬레이션 v2**
-  - `ai_tab_trigger_check_job` (월·목 09:00 KST) — AI탭 노출 트리거 조건 자동 점검 + 카카오 알림
-  - `NAVER_TRACK_WEIGHTS_V3_2` — v3_2 환경변수 토글 (`SCORE_MODEL_VERSION=v3_2`). Group A/B/C/D별 가중치 차별화
-  - `simulate_ai_tab_answer` v2 — `measured` / `estimated` 배지 분리. 실측 데이터 있으면 measured, 없으면 estimated + 면책 문구 자동 표시
-  - `briefing_category_expansion_monitor_job` (매월 1일 09:00 KST) — LIKELY 업종 AI 브리핑 공식 확대 여부 자동 감지 → ACTIVE 승급 후보 로그 + 카카오 알림
-
-### 2026-05-17 — UI 최적화 1~3차 일괄 배포 (가독성·접근성·구조 개선)
-- 1차: `content_validator.py:33` 정규식 수정(적시성 인식 복구), `text-xs`→`text-sm` 일괄(~120파일), `rounded-xl` 통일(42 예외 유지), `DiaScoreBadge.tsx` 신규(D.I.A. 5요소 진행바), photo-guide 미지원 404
-- 2차: `dashboard/page.tsx` 1,453→412줄(-72%). `sections/` 8개 파일 분리(DashboardHeader/Score/Action/Insight/Generator/Detail/Footer + pageHelpers.ts). SSR 페칭은 page.tsx 단일
-- 3차: `EmptyState.tsx` + `ThemeToggle.tsx` + `COLOR_GUIDE.md` + `DARK_MODE_GUIDE.md` 신규. 다크모드 인프라 이미 완비(globals.css)
-
-### 2026-05-17 — 메인 엔진 최적화 v1.1 Phase 1 (5건 일괄 배포)
-> 상세 → `docs/main_engine_optimization_v1.1.md`
-- 사진 카테고리 단일 소스: `photo_categories.py` 신규 + `photoCategories.ts` 미러 (백 9업종 = 프 9업종)
-- D.I.A./LSI: `guide_generator.py` 5요소 강제 + `content_validator.py` 사후 검증(0~100점, AI 0회). 실측 90.0/100
-- `inactive_post_alert_job` (14일 미작성 시 카카오 알림). `photo_guide.py` 9업종 × 3~4카테고리 모달 UI
-- v5.6 DB: `businesses.last_post_at TIMESTAMPTZ` (graceful fallback 가능, Supabase SQL 실행 권장)
+### 2026-05-17 — UI 최적화 + 메인 엔진 v1.1 Phase 1
+`text-xs`→`text-sm` 일괄·`DiaScoreBadge.tsx` 신규·`dashboard/page.tsx` 1453→412줄(-72%) `sections/` 8파일 분리·다크모드 인프라. 사진 카테고리 단일 소스(`photo_categories.py`)·D.I.A./LSI 5요소·`inactive_post_alert_job`. 상세 → `docs/main_engine_optimization_v1.1.md`
 
 ### 2026-05-16 — 네이버 AI탭 대응 P0 (AI 브리핑 ≠ AI탭 분리)
-> 근거 → `docs/naver_ai_tab_대응_개발계획_v1.0.md`
-- AI탭(2026-04-27 베타)은 모든 업종 노출 가능. `score_engine.get_ai_tab_eligibility()` 신규(항상 "beta" 반환)
-- `dashboard/page.tsx` `eligibility` → `briefingEligibility` + `aiTabEligibility="beta"` 분리. `DualTrackCard` Track1 레이블 "AI 검색 준비도(AI브리핑·AI탭 통합)"
-- P2 예정(6월 전체 확대 후): `naver_ai_tab_scanner.py` 신규 + DB 컬럼
+AI탭(2026-04-27 베타, 모든 업종) ≠ AI 브리핑(ACTIVE 업종만). `get_ai_tab_eligibility()` 신규. `briefingEligibility`·`aiTabEligibility` 분리. P2(AI탭 스캐너) 6월 대기.
 
-### 2026-05-04 — Basic 자동 스캔 A안 50/50 + AI 브리핑 2026-05 개선 v1.0
-> 상세 → `docs/naver_ai_briefing_2026_05_improvements_v1.0.md`, `memory/project_quant_methods.md`
-- Basic: Gemini 50회 + ChatGPT 50회 + Naver 병렬. 점수 45+45=90→100 재배분. `sample_n(n=50)` 일반화
-- AI탭 답변 시뮬레이션 + 사진 카테고리 진단(JSONB) + 숙박 키워드 4그룹 재편 + C-rank 체크리스트
-- 수학적 기법(Wilson CI·베이지안 등) 도입은 베타 10/30/50명 이후 단계적
-
-### 2026-05-01 — 톡톡 채팅방 메뉴 개편 + 스마트플레이스 Q&A 탭 폐기 대응 v1.0
-> 상세 → `docs/naver_talktalk_redesign_v1.0.md`
-- `/qna` 완전 폐기: `_SMARTPLACE_PATHS["faq"]` 제거, `_detect_faq()` 폐기, `/qna` goto 0건, deeplink → `/profile`
-- `has_faq` 0점, 소식 25점·소개글 20점 재배분. "톡톡 채팅방 메뉴" 명칭 17개 화면 일관. 하위 호환 `_compat_chat_menus()` + `normalizeChatMenus()`
-
-### 2026-04-30 — Phase A 서비스 통합 재편 v1.2 + v3.x/v4.1/v5.1~5.4
-> 상세 → `docs/service_unification_v1.0.md` v1.2 + `docs/changelog_archive.md`
-- DB v3.1: 12컬럼(user_group/keyword_ranks 등) graceful fallback. 가중치 ACTIVE/LIKELY/INACTIVE 그룹별 분기. 환경변수 `SCORE_MODEL_VERSION=v3_1` (베타 5명+ 후)
-- 신규: `naver_keyword_rank.py` + `keyword_suggester.py` + `KeywordRankCard.tsx`. 환경변수: `BACKEND_MAX_CONCURRENCY=2`, `KEYWORD_SUGGEST_MODEL=claude-haiku-4-5-20251001`
-- v3.x/v4.1/v5.1~5.4 핵심: 프랜차이즈 게이팅·how-it-works·모바일 CTA·trial claim·온보딩 투어·전환 알림·주간 다이제스트·DB v3.5/v3.6/v4.1·GA4 라이브
 
 ---
 
 ## 남은 작업
 
 ### 사용자가 직접 해야 할 것
-- ✅ **v4.1 ALTER 5건 완료** — 실DB 직접 확인 (2026-05-19): is_franchise·naver_intro_draft·naver_intro_generated_at·talktalk_faq_draft·talktalk_faq_generated_at 모두 존재. 프랜차이즈 게이팅·초안 자동 로드 활성화됨.
-- ✅ **2026-04 DB 컬럼 모두 완료** — v3.2/v3.3/v3.5/v3.6/v4.1/profiles.email 전체 적용. 상세 → `docs/changelog_archive.md`
-- ✅ **카카오 알림톡 5종 전체 승인 완료** — .env 키 4개 정상 설정
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
 - **실결제 전환 시**: `TOSS_SECRET_KEY` test_ → live_ 교체 + pm2 restart
 - `NEXT_PUBLIC_ADMIN_SECRET_KEY` 향후 서버 컴포넌트로 분리 권장
@@ -671,7 +640,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 | 작업 | 트리거 | 자동 알림 |
 |------|--------|---------|
-| **P2 AI탭 스캐너 활성화** | 6월 네이버 AI탭 전체 확대 후 비로그인 탭 표시 확인 | 없음 — 주 1회 수동 확인 필요 |
+| **P2 AI탭 스캐너 활성화** | 6월 전체 사용자 공개 후 **비로그인** 상태에서도 AI탭 탭이 보이는지 확인 (로그인 사용자 확대 ≠ 비로그인 노출 확인) | 없음 — 주 1회 수동 확인 필요 |
 | **P2 DB v5.7 컬럼** | P2와 동시 실행 (Supabase SQL Editor) | — |
 | **P3 점수 모델 v3.1** | 백엔드 로그 `[P3-READY]` WARNING 발생 시 | ✅ 매일 09:15 KST 자동 체크 중 |
 
@@ -717,4 +686,4 @@ ssh root@115.68.231.57 'pm2 logs aeolab-backend --lines 500 --nostream | grep "P
 
 ---
 
-*최종 업데이트: 2026-05-26 | AI 노출 기준 인터넷 교차검증 + 안내문 전사 수정 13개 파일 배포 (채널별 개선 기간 분리·Bing 표현 완화·beauty 업종 ACTIVE 예고 반영)*
+*최종 업데이트: 2026-05-31 | CLAUDE.md 압축 정리 (674줄) + 코드 수정 필수 절차 섹션 추가. 2026-04-30~05-04 이관 → changelog_archive.md*
