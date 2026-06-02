@@ -48,6 +48,8 @@ interface Props {
   hasReservation?: boolean | null;
   /** 총 사진 수 (photo_categories 합계, null=스캔 없음) */
   photoCount?: number | null;
+  /** 네이버 플레이스 ID — 사진 측정 불가 시 직접 확인 링크용 */
+  naverPlaceId?: string | null;
   /** 프랜차이즈 가맹점 여부 — AI 브리핑 제외 안내용 */
   isFranchise?: boolean;
   /** businesses.keywords 길이 — AI탭 시뮬레이션 0개 분기용 */
@@ -84,6 +86,7 @@ export default function DashboardInsightZone({
   hasRecentPost,
   hasReservation,
   photoCount,
+  naverPlaceId,
   isFranchise,
   keywordCount,
   latestAdOnly,
@@ -152,9 +155,10 @@ export default function DashboardInsightZone({
         photoCount={photoCount ?? null}
         blogMentionCount={blogMentionCount ?? 0}
         eligibility={briefingMeta?.eligibility ?? "inactive"}
+        naverPlaceId={naverPlaceId}
       />
 
-      {/* 네이버 카페·지식인 언급 현황 — NAVER_MULTICH_ENABLED=true 시 자동 표시 */}
+      {/* Naver Cafe & Jisik mention status — auto display when NAVER_MULTICH_ENABLED=true */}
       {(cafeResult || jisikResult) && (
         <NaverMultiChannelCard cafeResult={cafeResult ?? null} jisikResult={jisikResult ?? null} />
       )}
@@ -199,8 +203,8 @@ export default function DashboardInsightZone({
           ? "ChatGPT·Gemini·Google AI 노출 가이드"
           : "네이버 AI 검색 노출 5단계 가이드";
         const guideDesc = isInactive
-          ? "글로벌 AI 채널 최적화 체크리스트로 ChatGPT·Gemini 노출을 높이세요."
-          : "AI 브리핑·AI탭 대응 체크리스트로 직접 설정하세요 (15분).";
+          ? "Gemini·Google AI는 구글 비즈니스 프로필 등록 후 2~4주 내 변화가 시작됩니다. ChatGPT는 수개월~1년 소요되지만, 지금 준비할수록 노출 기회가 쌓입니다."
+          : "AI 브리핑·AI탭 대응 체크리스트로 직접 설정하세요 (15분). 개선 시작 후 2~4주 내 변화가 나타납니다.";
         const colorMain = isInactive ? "bg-purple-600 hover:bg-purple-700" : "bg-blue-600 hover:bg-blue-700";
         const colorBorder = isInactive ? "border-purple-200 bg-purple-50" : "border-blue-200 bg-blue-50";
         const colorOutline = isInactive

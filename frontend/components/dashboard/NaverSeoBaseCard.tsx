@@ -6,6 +6,7 @@ interface NaverSeoBaseCardProps {
   photoCount: number | null;
   blogMentionCount: number;
   eligibility: "active" | "likely" | "inactive";
+  naverPlaceId?: string | null;
 }
 
 interface CheckItemProps {
@@ -45,6 +46,7 @@ export default function NaverSeoBaseCard({
   photoCount,
   blogMentionCount,
   eligibility,
+  naverPlaceId,
 }: NaverSeoBaseCardProps) {
   const isActiveOrLikely = eligibility === "active" || eligibility === "likely";
 
@@ -52,7 +54,7 @@ export default function NaverSeoBaseCard({
   const checkItems: CheckItemProps[] = [
     {
       checked: hasIntro,
-      action: "소개글 Q&A 포함",
+      action: "소개글 작성",
       effect: isActiveOrLikely ? "AI 브리핑·AI탭 ↑" : "AI탭 ↑",
     },
     {
@@ -118,14 +120,38 @@ export default function NaverSeoBaseCard({
           플레이스 탭 노출 준비도
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-          {checkItems.map((item) => (
-            <CheckItem
-              key={item.action}
-              checked={item.checked}
-              action={item.action}
-              effect={item.effect}
-            />
-          ))}
+          {checkItems.map((item) => {
+            // 사진 항목이 null(측정 불가)이면 직접 확인 링크 행으로 대체
+            if (item.action.startsWith("사진") && item.checked === null) {
+              const photoUrl = naverPlaceId
+                ? `https://m.place.naver.com/place/${naverPlaceId}/photo`
+                : "https://smartplace.naver.com/";
+              return (
+                <a
+                  key={item.action}
+                  href={photoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 gap-2 hover:bg-amber-100 transition-colors"
+                >
+                  <span className="text-sm text-amber-800">
+                    📸 사진 10장+ 직접 확인 →
+                  </span>
+                  <span className="text-sm px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap bg-amber-100 text-amber-700">
+                    {item.effect}
+                  </span>
+                </a>
+              );
+            }
+            return (
+              <CheckItem
+                key={item.action}
+                checked={item.checked}
+                action={item.action}
+                effect={item.effect}
+              />
+            );
+          })}
         </div>
       </div>
 

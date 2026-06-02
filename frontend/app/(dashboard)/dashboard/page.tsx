@@ -159,7 +159,8 @@ export default async function DashboardPage({
   const plan = isAdmin ? "biz"
     : subscription?.status === "active" || subscription?.status === "grace_period"
     ? subscription?.plan ?? "free" : "free";
-  const subscriptionPlan = subscription?.status === "active" || subscription?.status === "grace_period"
+  const subscriptionPlan = isAdmin ? "biz"
+    : subscription?.status === "active" || subscription?.status === "grace_period"
     ? subscription?.plan ?? "free" : "free";
   const devMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
   const scanLimit = (isAdmin || devMode) ? 999 : SCAN_DAILY_LIMITS[plan] ?? 0;
@@ -233,9 +234,10 @@ export default async function DashboardPage({
   const kakaoResult = (latestScan?.kakao_result ?? null) as Record<string, unknown> | null;
   const kakaoScore = (business as { kakao_score?: number })?.kakao_score;
   const kakaoChecklist = (business as { kakao_checklist?: Record<string, boolean> })?.kakao_checklist;
+  // OR 로직: 어느 소스든 true면 등록 확인. ?? 대신 || 사용 — false ?? true = false 버그 방지
   const kakaoRegistered =
-    (business as { kakao_registered?: boolean })?.kakao_registered ??
-    (kakaoResult as { is_on_kakao?: boolean } | null)?.is_on_kakao ??
+    !!((kakaoResult as { is_on_kakao?: boolean } | null)?.is_on_kakao) ||
+    !!((business as { kakao_registered?: boolean })?.kakao_registered) ||
     !!(business?.kakao_place_id);
 
   const competitorScores = (latestScan?.competitor_scores as Record<string, { name: string; score: number }> | null) ?? {};
@@ -394,10 +396,11 @@ export default async function DashboardPage({
             websiteCheckResult={websiteCheckResult}
             blogMentionCount={(latestScan?.naver_result as { blog_mentions?: number } | null | undefined)?.blog_mentions ?? 0}
             reviewCount={bizBase.review_count ?? 0}
-            hasIntro={!!(bizBase.has_intro)}
-            hasRecentPost={!!(bizBase.has_recent_post)}
+            hasIntro={smartPlaceStatus.hasIntro}
+            hasRecentPost={smartPlaceStatus.hasRecentPost}
             hasReservation={hasReservationVal}
             photoCount={photoCountTotal}
+            naverPlaceId={bizBase.naver_place_id ?? null}
             isFranchise={isFranchise}
             keywordCount={bizBase.keywords?.length ?? 0}
             latestAdOnly={(latestScan?.naver_result as { ad_only?: boolean } | null | undefined)?.ad_only ?? false}
