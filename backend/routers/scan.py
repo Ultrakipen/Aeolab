@@ -1116,17 +1116,28 @@ async def trial_naver_briefing(req: NaverBriefingRequest, request: Request):
 
             from services.ai_scanner.naver_scanner import NaverAIBriefingScanner
             from services.naver_visibility import get_naver_visibility
+            from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
 
-            naver_result, vis = await asyncio.gather(
-                NaverAIBriefingScanner().check_mention(query, req.business_name, category=req.category),
-                get_naver_visibility(req.business_name, vis_kw, req.region),
-                return_exceptions=True,
+            # get_naver_visibility는 Playwright 미사용 — create_task로 병렬 시작
+            # check_mention은 PLAYWRIGHT_SEMAPHORE로 보호 (multi_scanner._run_playwright와 동일 패턴)
+            vis_task = asyncio.create_task(
+                get_naver_visibility(req.business_name, vis_kw, req.region)
             )
-            if isinstance(naver_result, Exception):
-                _logger.warning(f"naver_briefing scanner error: {naver_result}")
+            try:
+                async with PLAYWRIGHT_SEMAPHORE:
+                    naver_result = await asyncio.wait_for(
+                        NaverAIBriefingScanner().check_mention(
+                            query, req.business_name, category=req.category
+                        ),
+                        timeout=40.0,
+                    )
+            except Exception as e:
+                _logger.warning(f"naver_briefing scanner error: {e}")
                 naver_result = {"mentioned": False, "in_briefing": False, "rank": None}
-            if isinstance(vis, Exception):
-                _logger.warning(f"naver_briefing visibility error: {vis}")
+            try:
+                vis = await vis_task
+            except Exception as e:
+                _logger.warning(f"naver_briefing visibility error: {e}")
                 vis = {}
 
             yield f"data: {json.dumps({'type':'progress','message':'결과 정리 중...','pct':85}, ensure_ascii=False)}\n\n"
@@ -2269,9 +2280,9 @@ async def _enrich_scan_background(
             _bg_biz_update: dict = {
                 "smart_place_auto_checked_at": datetime.now(_tz.utc).isoformat(),
             }
-            if "has_recent_post" in smart_place_check:
+            if smart_place_check.get("recent_post_measured"):
                 _bg_biz_update["has_recent_post"] = smart_place_check["has_recent_post"]
-            if "has_intro" in smart_place_check:
+            if smart_place_check.get("intro_measured"):
                 _bg_biz_update["has_intro"] = smart_place_check["has_intro"]
             await execute(
                 supabase.table("businesses").update(_bg_biz_update).eq("id", business_id)
@@ -2988,9 +2999,9 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 # has_faq / has_recent_post / has_intro 동기화
                 if "has_faq" in smart_place_check:
                     sp_update["has_faq"] = smart_place_check["has_faq"]
-                if "has_recent_post" in smart_place_check:
+                if smart_place_check.get("recent_post_measured"):
                     sp_update["has_recent_post"] = smart_place_check["has_recent_post"]
-                if "has_intro" in smart_place_check:
+                if smart_place_check.get("intro_measured"):
                     sp_update["has_intro"] = smart_place_check["has_intro"]
                 # sp_completeness_json 전체 저장 (가이드 프롬프트에서 활용)
                 try:

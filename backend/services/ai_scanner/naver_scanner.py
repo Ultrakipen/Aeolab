@@ -7,12 +7,6 @@ import re
 from services.keyword_taxonomy import log_ad_only_mismatch
 from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua
 
-
-def _get_playwright_sem():
-    """PLAYWRIGHT_SEMAPHORE lazy import — 순환 import 방지."""
-    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
-    return PLAYWRIGHT_SEMAPHORE
-
 logger = logging.getLogger("aeolab")
 
 # AI 브리핑 셀렉터 (네이버 DOM 변경 대응 — 우선순위 순, 2026-04-14 업데이트)
@@ -229,23 +223,22 @@ class NaverAIBriefingScanner:
 
     async def check_mention(self, query: str, target: str, category: str = "") -> dict:
         proxy = get_proxy_config()
-        async with _get_playwright_sem():
-            async with async_playwright() as pw:
-                browser = await pw.chromium.launch(
-                    headless=True,
-                    args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-                    proxy=proxy,
-                )
-                ctx = await browser.new_context(
-                    locale="ko-KR",
-                    user_agent=get_random_ua(),
-                )
-                page = await ctx.new_page()
-                await apply_stealth(page)
-                try:
-                    result = await self._check_single_page(page, query, target, category=category)
-                finally:
-                    await browser.close()
+        async with async_playwright() as pw:
+            browser = await pw.chromium.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+                proxy=proxy,
+            )
+            ctx = await browser.new_context(
+                locale="ko-KR",
+                user_agent=get_random_ua(),
+            )
+            page = await ctx.new_page()
+            await apply_stealth(page)
+            try:
+                result = await self._check_single_page(page, query, target, category=category)
+            finally:
+                await browser.close()
         return result
 
     async def check_mention_multi(self, queries: list[str], target: str, category: str = "") -> dict:
