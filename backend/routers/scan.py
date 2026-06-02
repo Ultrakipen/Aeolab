@@ -237,12 +237,12 @@ async def get_trial_count(request: Request):
             .gte("scanned_at", today_start).limit(1)
         )
         today_count = today_r.count if hasattr(today_r, "count") and today_r.count else 0
-        result = {"count": max(count, 999), "today": today_count}
+        result = {"count": count, "today": today_count}
         _cache.set("trial_count_public", result, ttl=300)
         return result
     except Exception as e:
         _logger.warning(f"trial_count fetch error: {e}")
-        return {"count": 999, "today": 0}
+        return {"count": 0, "today": 0}
 
 # ── 트라이얼 가게 검색 (v3.3 — 신뢰도 강화 1라운드) ─────────────────────────
 # IP당 분당 10회 제한 — 입력 자동완성 용도로 다회 호출되므로 일별 한도가 아닌 분당 한도 사용
@@ -1892,6 +1892,26 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
     except Exception as e:
         _logger.warning(f"keyword_taxonomy failed (stream): {e}")
 
+    # 이전 스캔의 smart_place_completeness_result를 초기값으로 사용
+    # → 재스캔 직후 백그라운드 잡 완료 전 null 상태 방지. 백그라운드 잡이 덮어씀.
+    _prev_sp_result = None
+    _prev_photo_cats = None
+    try:
+        _prev_sp_row = (await execute(
+            supabase.table("scan_results")
+            .select("smart_place_completeness_result, photo_categories")
+            .eq("business_id", business_id)
+            .not_.is_("smart_place_completeness_result", "null")
+            .order("scanned_at", desc=True)
+            .limit(1)
+            .maybe_single()
+        )).data
+        if _prev_sp_row:
+            _prev_sp_result = _prev_sp_row.get("smart_place_completeness_result")
+            _prev_photo_cats = _prev_sp_row.get("photo_categories")
+    except Exception as _sp_prev_err:
+        _logger.debug(f"prev sp_result lookup failed: {_sp_prev_err}")
+
     inserted = (await execute(supabase.table("scan_results").insert({
         "business_id": business_id,
         "query_used": query,
@@ -1913,12 +1933,12 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         "global_weight": score.get("global_weight"),
         "keyword_coverage": score.get("breakdown", {}).get("keyword_gap_score", 0.0) / 100,
         "competitor_scores": None,              # 백그라운드 enrich에서 UPDATE
-        "smart_place_completeness_result": None,  # 백그라운드 enrich에서 UPDATE
+        "smart_place_completeness_result": _prev_sp_result,  # 이전 스캔 폴백, 백그라운드 잡에서 갱신
         "growth_stage": score.get("growth_stage"),
         "growth_stage_label": score.get("growth_stage_label"),
         "is_keyword_estimated": score.get("is_keyword_estimated"),
         "top_missing_keywords": _stream_top_missing or [],
-        "photo_categories": None,  # 백그라운드 smart_place_check에서 UPDATE
+        "photo_categories": _prev_photo_cats,  # 이전 스캔 폴백, 백그라운드 잡에서 갱신
         "blog_post_count": int(_blog_json_calc.get("post_count") or 0) or None,
         "blog_ai_readiness": float(_blog_json_calc.get("ai_readiness_score") or 0) or None,
         "blog_keyword_coverage": _blog_kw_cov or None,
@@ -1927,6 +1947,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
     }))).data
 
     new_scan_id = inserted[0]["id"] if (inserted and inserted[0]) else None
+    _cache.delete(f"sentiment:{business_id}")
 
     # ── v3.1 Shadow 점수 계산 + scan_results v31 컬럼 업데이트 ─────────────
     if new_scan_id:
@@ -2245,10 +2266,15 @@ async def _enrich_scan_background(
             _logger.warning(f"smart_place UPDATE failed (bg scan_id={scan_id}): {e}")
         try:
             from datetime import datetime, timezone as _tz
+            _bg_biz_update: dict = {
+                "smart_place_auto_checked_at": datetime.now(_tz.utc).isoformat(),
+            }
+            if "has_recent_post" in smart_place_check:
+                _bg_biz_update["has_recent_post"] = smart_place_check["has_recent_post"]
+            if "has_intro" in smart_place_check:
+                _bg_biz_update["has_intro"] = smart_place_check["has_intro"]
             await execute(
-                supabase.table("businesses").update({
-                    "smart_place_auto_checked_at": datetime.now(_tz.utc).isoformat(),
-                }).eq("id", business_id)
+                supabase.table("businesses").update(_bg_biz_update).eq("id", business_id)
             )
         except Exception as e:
             _logger.warning(f"smart_place_auto_checked_at update failed (bg): {e}")
@@ -2270,18 +2296,26 @@ async def _enrich_scan_background(
             _logger.warning(f"sync_naver_place_stats failed (bg biz={business_id}): {e}")
 
     # ── 1.6 블로그 언급 수 → businesses.blog_mention_count 저장 ────────────
-    # naver_visibility에서 수집한 blog_mentions를 businesses 테이블에도 기록
-    # (get_place_compare API에서 내 가게 블로그 언급 수 비교에 사용)
+    # 경쟁사와 동일한 측정 방식(업체명+지역 단독 쿼리)으로 정규화해 저장
+    # → _advantage_lists 비교 시 측정 기준 일치 보장
     try:
-        _naver_res_bg = results.get("naver") or {}
-        _blog_mentions_bg = int(_naver_res_bg.get("blog_mentions") or 0)
-        if _blog_mentions_bg > 0:
+        from services.competitor_place_crawler import fetch_competitor_blog_mentions as _fetch_blog_norm
+        _biz_name_bg = (biz or {}).get("name", "")
+        _biz_region_bg = (biz or {}).get("region", "")
+        _blog_normalized_bg = 0
+        if _biz_name_bg:
+            _blog_normalized_bg = await _fetch_blog_norm(_biz_name_bg, _biz_region_bg)
+        # fallback: naver_visibility multi-query 결과 사용
+        if not _blog_normalized_bg:
+            _naver_res_bg = results.get("naver") or {}
+            _blog_normalized_bg = int(_naver_res_bg.get("blog_mentions") or 0)
+        if _blog_normalized_bg > 0:
             await execute(
                 supabase.table("businesses").update({
-                    "blog_mention_count": _blog_mentions_bg,
+                    "blog_mention_count": _blog_normalized_bg,
                 }).eq("id", business_id)
             )
-            _logger.info(f"blog_mention_count updated [{business_id}]: {_blog_mentions_bg}")
+            _logger.info(f"blog_mention_count updated (normalized) [{business_id}]: {_blog_normalized_bg}")
     except Exception as e:
         _logger.warning(f"blog_mention_count update failed (bg biz={business_id}): {e}")
 
@@ -2349,7 +2383,7 @@ async def _enrich_scan_background(
                     "category": (biz or {}).get("category", req.category),
                     "region": (biz or {}).get("region", req.region),
                     "mentioned": bool(comp_data.get("mentioned")),
-                    "score": comp_data.get("score"),
+                    "score": int(comp_data["score"]) if comp_data.get("score") is not None else None,
                     "review_count": None,
                     "avg_rating": None,
                 })
@@ -2375,15 +2409,27 @@ async def _enrich_scan_background(
                 keywords=_biz_kws_ss or None,
                 selected_keyword=_selected_kw or None,
             )
-            # Gemini 결과 주입 (추가 API 호출 없이 이미 완료된 스캔 결과 재사용)
-            _gemini_r = results.get("gemini") or {}
-            if isinstance(_gemini_r, dict) and not _gemini_r.get("error"):
-                _g_freq = int(_gemini_r.get("exposure_freq") or 0)
+            # Gemini + ChatGPT 듀얼 측정 결과 주입 (스캔 완료 결과 재사용, 추가 API 호출 없음)
+            _gemini_r  = results.get("gemini")  or {}
+            _chatgpt_r = results.get("chatgpt") or {}
+            _g_ok = isinstance(_gemini_r,  dict) and not _gemini_r.get("error")
+            _c_ok = isinstance(_chatgpt_r, dict) and not _chatgpt_r.get("error")
+            if _g_ok or _c_ok:
+                _g_freq   = int(_gemini_r.get("exposure_freq")  or 0) if _g_ok else 0
+                _c_freq   = int(_chatgpt_r.get("exposure_freq") or 0) if _c_ok else 0
+                _g_sample = int(_gemini_r.get("sample_size")    or 50) if _g_ok else 0
+                _c_sample = int(_chatgpt_r.get("sample_size")   or 50) if _c_ok else 0
+                # chatgpt(1회) 항목은 제거하고 50회 샘플 합산 결과로 교체
+                ai_screenshots = [s for s in ai_screenshots if s.get("platform") != "chatgpt"]
                 ai_screenshots.append({
                     "platform": "gemini",
                     "query": query,
-                    "is_mentioned": bool(_gemini_r.get("mentioned")),
-                    "exposure_freq": _g_freq,
+                    "is_mentioned": bool(
+                        (_gemini_r.get("mentioned") if _g_ok else False)
+                        or (_chatgpt_r.get("mentioned") if _c_ok else False)
+                    ),
+                    "exposure_freq": _g_freq + _c_freq,
+                    "sample_size":   _g_sample + _c_sample,
                     "url": None,
                     "captured_at": datetime.today().date().isoformat(),
                     "label": "Gemini AI",
@@ -2518,6 +2564,7 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
                 "business_id": req.business_id,
                 "query_used": query,
                 "gemini_result": result.get("gemini"),
+                "chatgpt_result": result.get("chatgpt"),
                 "naver_result": result.get("naver"),
                 "exposure_freq": (result.get("gemini") or {}).get("exposure_freq", 0),
                 "total_score": score["total_score"],
@@ -2562,6 +2609,8 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
                     _logger.warning(f"score_history full-scan fallback failed: {_sh_err2}")
             else:
                 _logger.warning(f"score_history full-scan upsert failed (biz={req.business_id}): {_sh_err}")
+
+        _cache.delete(f"sentiment:{req.business_id}")
 
     except Exception as e:
         _logger.error(f"Quick scan failed (biz={req.business_id}): {e}")
@@ -2768,7 +2817,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "category": (biz or {}).get("category", req.category),
                     "region": (biz or {}).get("region", req.region),
                     "mentioned": bool(comp_data.get("mentioned")),
-                    "score": comp_data.get("score"),
+                    "score": int(comp_data["score"]) if comp_data.get("score") is not None else None,
                     "review_count": None,   # 경쟁사 리뷰는 현재 Gemini 단일체크로 미수집 → None
                     "avg_rating": None,
                 })
@@ -2927,6 +2976,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 }
             )
         )
+        _cache.delete(f"sentiment:{req.business_id}")
 
         # smart_place 자동 분석 결과 DB 업데이트 (스마트플레이스 URL 있는 경우)
         if naver_place_url and smart_place_check and not smart_place_check.get("error"):
