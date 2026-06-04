@@ -11,11 +11,18 @@ from playwright.async_api import async_playwright, Page
 logger = logging.getLogger("aeolab")
 
 # RAM 보호: multi_scanner의 PLAYWRIGHT_SEMAPHORE(1)를 공유 — 동시 Playwright 최대 1개 보장
-# (2026-05-20 통합 완료: 이전 Semaphore(2) 독립 세마포어 제거)
+# GitHub Actions 등 multi_scanner import 불가 환경에서는 독립 Semaphore(1) fallback 사용
 def _get_playwright_sem():
-    """순환 import 방지를 위한 lazy import 패턴."""
-    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
-    return PLAYWRIGHT_SEMAPHORE
+    """순환 import 방지를 위한 lazy import 패턴. ImportError 시 독립 세마포어 fallback."""
+    try:
+        from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+        return PLAYWRIGHT_SEMAPHORE
+    except Exception:
+        # GitHub Actions 환경 (google-generativeai 등 미설치) — 자체 Semaphore 사용
+        if not hasattr(_get_playwright_sem, "_fallback"):
+            import asyncio
+            _get_playwright_sem._fallback = asyncio.Semaphore(1)
+        return _get_playwright_sem._fallback
 
 
 class NaverPlaceStatsService:

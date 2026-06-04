@@ -531,6 +531,7 @@ async def daily_scan_all():
                             "blog_keyword_coverage": float(_sched_blog_json.get("keyword_coverage") or 0) or None,
                             "blog_platform": _sched_blog_json.get("platform") or None,
                             "blog_top_recommendation": (_sched_blog_json.get("top_recommendation") or "")[:500] or None,
+                            "smart_place_completeness_result": (_prescan_sp if _prescan_sp and not _prescan_sp.get("error") else None),
                         }
                     )
                 )

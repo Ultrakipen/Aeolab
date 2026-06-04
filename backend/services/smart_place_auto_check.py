@@ -23,9 +23,16 @@ from playwright.async_api import async_playwright
 _logger = logging.getLogger("aeolab")
 
 # Playwright 세마포어: multi_scanner.PLAYWRIGHT_SEMAPHORE 공유 (동시 Playwright 전역 1개 보장)
+# GitHub Actions 등 multi_scanner import 불가 환경에서는 독립 Semaphore(1) fallback 사용
 def _get_playwright_sem():
-    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
-    return PLAYWRIGHT_SEMAPHORE
+    try:
+        from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+        return PLAYWRIGHT_SEMAPHORE
+    except Exception:
+        if not hasattr(_get_playwright_sem, "_fallback"):
+            import asyncio
+            _get_playwright_sem._fallback = asyncio.Semaphore(1)
+        return _get_playwright_sem._fallback
 
 from services.ai_scanner import apply_stealth as _apply_stealth, get_proxy_config as _get_proxy_config, get_random_ua as _get_random_ua
 
