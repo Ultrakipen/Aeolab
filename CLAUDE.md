@@ -189,7 +189,7 @@
 ### 1. AI 브리핑 노출 게이팅 (단일 진실)
 
 - **ACTIVE 업종**: restaurant, cafe, bakery, bar, accommodation — 네이버 AI 브리핑 플레이스형 노출 대상 (beauty·nail은 LIKELY, 코드 score_engine.py:28 기준)
-- **LIKELY 업종**: beauty, nail, pet, fitness, yoga, pharmacy — **AI 브리핑 플레이스형** 노출 확대 예정 업종 (안내 톤 분기). ※ AI탭(대화형 검색)은 업종 무관 — 2026-04-27 네이버플러스 베타 → **2026-06 전체 로그인 사용자 확대** (사용자 확대이며 업종 확대 아님)
+- **LIKELY 업종**: beauty, nail, pet, fitness, yoga, pharmacy — **AI 브리핑 플레이스형** 노출 확대 예정 업종 (안내 톤 분기). ※ AI탭(대화형 검색)은 업종 무관 — 2026-04-27 네이버플러스 멤버십 베타 → **2026-06 전체 네이버 사용자 확대 예정** (사용자 확대이며 업종 확대 아님, 네이버 공식 발표 기준)
 - **INACTIVE 업종**: 그 외 모든 업종 → 글로벌 AI(ChatGPT·Gemini·Google AI) 중심 안내
 - **프랜차이즈는 ACTIVE 업종이라도 제외** (네이버 공식 정책) — `get_briefing_eligibility(category, is_franchise)` 사용
 - **단일 소스 동기화**: backend `briefing_engine.BRIEFING_ACTIVE_CATEGORIES` ↔ frontend `BRIEFING_ACTIVE` — 한쪽 변경 시 양쪽 동시 수정 필수 (RegisterBusinessForm.tsx, dashboard/page.tsx)
@@ -544,6 +544,16 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 - `pm2 logs --lines 60 --nostream` error.log 0건 확인
 - 에이전트 "완료" 보고만 신뢰 금지 — 메인 세션 직접 확인 필수
 
+#### 프론트엔드 파일 변경 시 추가 필수 3단계 (2026-06-04 신설)
+
+> 2026-06-04 사고: 배포 에이전트가 "완료" 보고했으나 `CompetitorFAQCard.tsx`가 서버에 미반영된 채 방치. 빌드 미실행으로 구버전이 서비스됨. 메인 세션 grep 미확인이 원인.
+
+1. **파일 내용 확인** — `ssh root@115.68.231.57 "grep -n '<핵심패턴>' /var/www/aeolab/frontend/components/<경로>"` — 수정 키워드가 서버 파일에 실제로 있는지 1줄 이상 직접 확인
+2. **빌드 완료 확인** — `ssh root@115.68.231.57 "cd /var/www/aeolab/frontend && npm run build 2>&1 | tail -5"` — 빌드 성공 로그 확인. **파일 업로드만으로 반영 안 됨 — 빌드 필수**
+3. **PM2 재시작 + 에러 확인** — `pm2 restart aeolab-frontend` 후 `pm2 logs aeolab-frontend --lines 30 --nostream` 에러 0건
+
+> **백엔드는 파일 교체 즉시 반영, 프론트엔드는 반드시 빌드(npm run build) 후 재시작해야 반영됨 — 이 차이를 항상 구분할 것**
+
 ---
 
 ## 필수 코드 패턴 (과거 버그 재발 방지)
@@ -640,7 +650,7 @@ AI탭(2026-04-27 베타, 모든 업종) ≠ AI 브리핑(ACTIVE 업종만). `get
 
 | 작업 | 트리거 | 자동 알림 |
 |------|--------|---------|
-| **P2 AI탭 스캐너 활성화** | 6월 전체 사용자 공개 후 **비로그인** 상태에서도 AI탭 탭이 보이는지 확인 (로그인 사용자 확대 ≠ 비로그인 노출 확인) | 없음 — 주 1회 수동 확인 필요 |
+| **P2 AI탭 스캐너 활성화** | 6월 **전체 네이버 사용자** 공개 후 비로그인(헤드리스) 상태에서 AI탭 탭이 보이는지 확인 — 네이버 일반 검색은 비로그인도 가능하므로 전체 공개 시 비로그인에서도 노출 예상 | 없음 — 주 1회 수동 확인 필요 |
 | **P2 DB v5.7 컬럼** | P2와 동시 실행 (Supabase SQL Editor) | — |
 | **P3 점수 모델 v3.1** | 백엔드 로그 `[P3-READY]` WARNING 발생 시 | ✅ 매일 09:15 KST 자동 체크 중 |
 

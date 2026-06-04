@@ -21,6 +21,7 @@ interface FAQGapResponse {
   competitors: CompetitorRow[];
   pooled_questions: PooledQ[];
   message?: string;
+  source?: "competitor_faqs" | "keyword_gap";
 }
 
 interface Props {
@@ -69,13 +70,13 @@ export default function CompetitorFAQCard({ bizId, accessToken }: Props) {
       <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">
-            경쟁사 FAQ 갭 분석
+            경쟁사 소개글 Q&A 분석
           </span>
-          <span className="ml-auto text-sm text-slate-500">매주 월요일 자동 수집</span>
+          <span className="ml-auto text-sm text-slate-500">스캔마다 갱신</span>
         </div>
         <p className="text-sm text-gray-500">
           {data?.message ||
-            "경쟁사 Q&A 수집 데이터가 아직 없습니다. 경쟁사 리뷰·소개글 키워드를 분석해 보여드립니다."}
+            "첫 스캔이 완료되면 경쟁사 키워드 기반 Q&A 제안이 표시됩니다."}
         </p>
       </div>
     );
@@ -85,14 +86,18 @@ export default function CompetitorFAQCard({ bizId, accessToken }: Props) {
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">
-          경쟁사가 올린 FAQ 질문 {data.gap_count}개
+          {data.source === "keyword_gap"
+            ? `경쟁사 키워드 기반 Q&A 제안 ${data.gap_count}개`
+            : `경쟁사 소개글 Q&A ${data.gap_count}개`}
         </span>
         <div className="h-px flex-1 bg-slate-200" />
-        <span className="text-sm text-slate-500">ChatGPT로 얻을 수 없는 데이터</span>
+        <span className="text-sm text-slate-500">스캔마다 갱신</span>
       </div>
 
       <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-        주변 경쟁사가 등록한 Q&amp;A 질문입니다. 아래 문구를 복사해 스마트플레이스 소개글 하단이나 톡톡 채팅방 메뉴에 추가하세요.
+        {data.source === "keyword_gap"
+          ? "경쟁사에 있고 내 소개글에 없는 키워드 기반 Q&A 제안입니다. 추가하면 AI 브리핑 인용 가능성이 높아집니다."
+          : "주변 경쟁사가 등록한 Q&A 질문입니다. 아래 문구를 복사해 스마트플레이스 소개글 하단이나 톡톡 채팅방 메뉴에 추가하세요."}
       </p>
 
       <div className="space-y-2">

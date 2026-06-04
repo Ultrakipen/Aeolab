@@ -1,0 +1,362 @@
+"use client";
+
+import { Suspense, useState } from "react";
+import { SiteFooter } from "@/components/common/SiteFooter";
+import { createClient } from "@/lib/supabase/client";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { Mail } from "lucide-react";
+import { trackSignupComplete } from "@/lib/analytics";
+import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
+
+const PLAN_LABELS: Record<string, string> = {
+  basic: `Basic (월 ${PLAN_PRICES.basic.toLocaleString()}원)`,
+  startup: `창업 패키지 (월 ${PLAN_PRICES.startup.toLocaleString()}원)`,
+  pro: `Pro (월 ${PLAN_PRICES.pro.toLocaleString()}원)`,
+  biz: `Biz (월 ${PLAN_PRICES.biz.toLocaleString()}원)`,
+};
+
+function SignupForm() {
+  const searchParams = useSearchParams();
+  const planParam = searchParams.get("plan") ?? "";
+  const amountParam = searchParams.get("amount") ?? "";
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [agreeMarketing, setAgreeMarketing] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendDone, setResendDone] = useState(false);
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (password !== passwordConfirm) {
+      setError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    if (!agreeTerms || !agreePrivacy) {
+      setError("필수 약관에 동의해주세요.");
+      return;
+    }
+
+    setLoading(true);
+    const supabase = createClient();
+    const { error: signupError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${location.origin}/onboarding`,
+        data: { marketing_agreed: agreeMarketing },
+      },
+    });
+
+    if (signupError) {
+      const msg = signupError.message;
+      if (msg.includes("already registered") || msg.includes("User already registered")) {
+        setError("이미 가입된 이메일입니다. 로그인해 주세요.");
+      } else if (msg.includes("Password should be at least")) {
+        setError("비밀번호는 최소 8자 이상이어야 합니다.");
+      } else if (msg.includes("rate limit") || msg.includes("too many")) {
+        setError("요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.");
+      } else {
+        setError("회원가입 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      }
+      setLoading(false);
+      return;
+    }
+
+    // GA4: signup_complete — 이메일 인증 발송 성공 시 1회 발화
+    const trialId = searchParams.get("trial_id") ?? undefined;
+    trackSignupComplete({ method: "email", trial_id: trialId });
+    setDone(true);
+  };
+
+  const handleResend = async () => {
+    setResending(true);
+    const supabase = createClient();
+    await supabase.auth.resend({ type: "signup", email });
+    setResending(false);
+    setResendDone(true);
+    setTimeout(() => setResendDone(false), 10000);
+  };
+
+  // 이메일 인증 발송 완료 화면
+  if (done) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-6">
+        <div className="w-full max-w-sm">
+          <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm text-center">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-5">
+              <Mail className="w-8 h-8 text-blue-500" strokeWidth={1.5} />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-3">이메일을 확인해주세요</h2>
+            <p className="text-base text-gray-600 mb-2">
+              <span className="font-medium text-gray-900 break-all">{email}</span>
+            </p>
+            <p className="text-base text-gray-500 mb-2">으로 인증 링크를 발송했습니다.</p>
+            <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+              링크를 클릭하면 자동으로 로그인됩니다.<br />
+              메일이 오지 않으면 스팸함을 확인해주세요.
+            </p>
+            {resendDone ? (
+              <p className="text-sm text-green-600 font-medium mb-4">✓ 인증 메일을 다시 발송했습니다.</p>
+            ) : (
+              <button
+                onClick={handleResend}
+                disabled={resending}
+                className="text-sm text-blue-500 hover:underline disabled:opacity-50 mb-4"
+              >
+                {resending ? "발송 중..." : "인증 메일 재발송"}
+              </button>
+            )}
+            {planParam ? (
+              <>
+                <div className="bg-blue-50 text-blue-700 text-base rounded-xl p-4 mb-4">
+                  인증 완료 후 <strong>{PLAN_LABELS[planParam]}</strong> 결제가 진행됩니다.
+                  {planParam === "basic" && (
+                    <p className="text-sm text-emerald-700 mt-2 font-semibold">
+                      신규 가입 혜택: 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원
+                    </p>
+                  )}
+                </div>
+                <p className="text-sm text-blue-600 mt-4 font-medium mb-5">
+                  결제까지 2단계 남았습니다: 인증 → 결제
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="bg-emerald-50 text-emerald-700 text-base rounded-xl p-4 mb-4 text-left">
+                  <p className="font-semibold mb-1">가입 축하 혜택</p>
+                  <p className="text-sm leading-relaxed">
+                    사업장을 등록하시면 <strong>전체 AI 분석을 1회 무료</strong>로 체험할 수 있습니다.
+                    ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 4개 채널 모두 확인해 보세요.
+                  </p>
+                </div>
+                <ol className="text-sm text-gray-600 space-y-2 mt-4 mb-5 text-left">
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600 shrink-0">1</span>
+                    <span>받은 이메일에서 인증 링크를 클릭하세요</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600 shrink-0">2</span>
+                    <span>대시보드에서 사업장을 등록하세요</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600 shrink-0">3</span>
+                    <span>AI 전체 분석 1회를 무료로 받으세요</span>
+                  </li>
+                </ol>
+              </>
+            )}
+            <Link
+              href="/login"
+              className="block w-full bg-blue-600 text-white py-4 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors"
+            >
+              로그인 페이지로
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-6">
+      <div className="w-full max-w-sm">
+
+        {/* 로고 */}
+        <div className="text-center mb-8">
+          <Link href="/" className="text-3xl font-bold text-blue-600">AEOlab</Link>
+          <p className="text-base text-gray-500 mt-2">AI 검색 노출 관리 서비스</p>
+          {planParam && PLAN_LABELS[planParam] && (
+            <div className="mt-3">
+              <div className="bg-blue-50 text-blue-700 text-sm px-4 py-2 rounded-full inline-block font-medium">
+                {PLAN_LABELS[planParam]} 가입
+              </div>
+              {planParam === "basic" && (
+                <p className="text-sm text-emerald-700 font-semibold mt-2">
+                  🎉 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 폼 */}
+        <form onSubmit={handleSignup} className="bg-white rounded-xl p-6 shadow-sm space-y-5">
+          <h1 className="text-xl font-bold text-gray-900 text-center">회원가입</h1>
+
+          <div>
+            <label htmlFor="signup-email" className="block text-base font-medium text-gray-700 mb-1.5">
+              이메일 <span className="text-blue-600">*</span>
+            </label>
+            <input
+              id="signup-email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="example@email.com"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="signup-password" className="block text-base font-medium text-gray-700 mb-1.5">
+              비밀번호 <span className="text-blue-600">*</span>
+              <span className="text-sm font-normal text-gray-400 ml-1">(8자 이상)</span>
+            </label>
+            <input
+              id="signup-password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="8자 이상 입력"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="signup-password-confirm" className="block text-base font-medium text-gray-700 mb-1.5">
+              비밀번호 확인 <span className="text-blue-600">*</span>
+            </label>
+            <input
+              id="signup-password-confirm"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
+              placeholder="비밀번호를 다시 입력"
+              className={`w-full border rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400 ${
+                passwordConfirm && password !== passwordConfirm
+                  ? "border-red-400 bg-red-50"
+                  : "border-gray-300"
+              }`}
+            />
+            {passwordConfirm && password !== passwordConfirm && (
+              <p className="text-base text-red-500 mt-1.5">비밀번호가 일치하지 않습니다.</p>
+            )}
+          </div>
+
+          {/* 약관 동의 */}
+          <div className="border border-gray-100 rounded-xl p-4 space-y-3.5 bg-gray-50">
+            {/* 전체 동의 */}
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreeTerms && agreePrivacy && agreeMarketing}
+                onChange={(e) => {
+                  setAgreeTerms(e.target.checked);
+                  setAgreePrivacy(e.target.checked);
+                  setAgreeMarketing(e.target.checked);
+                }}
+                className="w-5 h-5 accent-blue-600 shrink-0"
+              />
+              <span className="text-base font-semibold text-gray-800">전체 동의</span>
+            </label>
+
+            <div className="border-t border-gray-200" />
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(e) => setAgreeTerms(e.target.checked)}
+                className="w-5 h-5 accent-blue-600 shrink-0"
+              />
+              <span className="text-base text-gray-700 flex-1">
+                <span className="text-blue-600 font-medium">[필수]</span>{" "}
+                <Link href="/terms" target="_blank" className="underline hover:text-blue-600">
+                  이용약관
+                </Link>{" "}
+                동의
+              </span>
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreePrivacy}
+                onChange={(e) => setAgreePrivacy(e.target.checked)}
+                className="w-5 h-5 accent-blue-600 shrink-0"
+              />
+              <span className="text-base text-gray-700 flex-1">
+                <span className="text-blue-600 font-medium">[필수]</span>{" "}
+                <Link href="/privacy" target="_blank" className="underline hover:text-blue-600">
+                  개인정보처리방침
+                </Link>{" "}
+                동의
+              </span>
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreeMarketing}
+                onChange={(e) => setAgreeMarketing(e.target.checked)}
+                className="w-5 h-5 accent-blue-600 shrink-0"
+              />
+              <span className="text-base text-gray-700 leading-snug">
+                <span className="text-gray-400 font-medium">[선택]</span>{" "}
+                AI 노출 분석 리포트·서비스 소식 수신 동의
+              </span>
+            </label>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+              <p className="text-base text-red-600">{error}</p>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-4 rounded-xl text-base font-semibold hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:opacity-50"
+          >
+            {loading ? "가입 중..." : planParam ? "가입 후 결제하기" : "무료로 시작하기"}
+          </button>
+        </form>
+
+        {/* 하단 링크 */}
+        <p className="text-center text-base text-gray-500 mt-5">
+          이미 계정이 있으신가요?{" "}
+          <Link href="/login" className="text-blue-600 font-medium hover:underline">
+            로그인
+          </Link>
+        </p>
+        <p className="text-center mt-3">
+          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
+            ← 홈으로
+          </Link>
+        </p>
+      </div>
+      <SiteFooter />
+    </main>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full" />
+      </div>
+    }>
+      <SignupForm />
+    </Suspense>
+  );
+}

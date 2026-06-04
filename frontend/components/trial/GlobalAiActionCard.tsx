@@ -80,7 +80,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
       timeLabel: "10분",
       effectLabel: "즉시~1개월 (추정)",
       description:
-        "Google 비즈니스 프로필은 ChatGPT가 사용하는 Bing 검색과 Gemini 그라운딩 모두에서 참조됩니다. business.google.com 무료 등록이 글로벌 AI 노출의 첫 단계입니다.",
+        "Google 비즈니스 프로필은 ChatGPT가 사용하는 Bing 검색과 Gemini 실시간 검색 연동 모두에서 참조됩니다. business.google.com 무료 등록이 글로벌 AI 노출의 첫 단계입니다.",
       copyText: null,
       copyLabel: null,
       externalLink: "https://business.google.com",
@@ -471,7 +471,7 @@ export default function GlobalAiActionCard({
       {/* 면책 문구 */}
       <div className="border-t border-gray-100 pt-3">
         <p className="text-sm text-gray-500 leading-relaxed">
-          ※ ChatGPT 측정은 AI 학습 데이터(컷오프 2024.06) 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
+          ※ ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
           Gemini는 구글 비즈니스 프로필 개선 후 2~4주 내 반영 시작(안정화 3~6개월), ChatGPT는 3개월~1년 소요됩니다. 결과는 보장되지 않습니다.
         </p>
       </div>

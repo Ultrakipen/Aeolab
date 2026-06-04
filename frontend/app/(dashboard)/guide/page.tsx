@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { GuideClient } from './GuideClient'
 import { NoBusiness } from '@/components/dashboard/NoBusiness'
-import { Lightbulb, Bot, ListChecks, RefreshCw, CheckSquare, Lock, Sparkles, FileSearch, BarChart2 } from 'lucide-react'
+import { Lightbulb, Bot, ListChecks, RefreshCw, CheckSquare, Lock, Sparkles, FileSearch } from 'lucide-react'
 import { getActiveBusinessId } from '@/lib/active-business'
 import { getBriefingEligibility } from '@/lib/userGroup'
 
@@ -194,11 +194,11 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
               <span className="text-base md:text-lg font-bold text-indigo-900">네이버 AI탭 가이드</span>
             </div>
             <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-sm font-bold">
-              Beta · 2026년 6월 정식 출시 예정
+              Beta · 2026년 6월 전체 출시 예정
             </span>
           </div>
           <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
-            검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-28 베타, 업종 공식 제한이 없습니다 (2026-04-28 베타, 2026년 6월 정식 출시 예정).
+            검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-27 베타 출시, 업종 공식 제한 없음 (2026년 6월 전체 출시 예정).
           </p>
           <p className="text-sm font-semibold text-indigo-700 group-hover:underline">5항목 설정 가이드 →</p>
         </Link>
@@ -230,9 +230,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
           href="/guide/score-model-v3-1"
           className="group inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 hover:border-blue-300 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
         >
-          <BarChart2 className="w-4 h-4 flex-shrink-0" />
-          점수 모델 v3.1 변경 사항 안내
-          <span className="ml-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded">준비 중</span>
+          업종별 맞춤 점수 기준 개선 안내
           <span className="group-hover:underline">→</span>
         </Link>
       </div>

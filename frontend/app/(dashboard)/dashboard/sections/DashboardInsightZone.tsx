@@ -42,14 +42,18 @@ interface Props {
   reviewCount?: number;
   /** 소개글 작성 여부 */
   hasIntro?: boolean;
-  /** 14일 이내 소식 게시 여부 */
-  hasRecentPost?: boolean;
+  /** 90일 이내 소식 게시 여부 (null=IP 차단으로 측정 불가) */
+  hasRecentPost?: boolean | null;
   /** 예약 연동 여부 (null=미측정) */
   hasReservation?: boolean | null;
   /** 총 사진 수 (photo_categories 합계, null=스캔 없음) */
   photoCount?: number | null;
   /** 네이버 플레이스 ID — 사진 측정 불가 시 직접 확인 링크용 */
   naverPlaceId?: string | null;
+  /** checklist_overrides.__photo_sufficient — 사진 탭 차단 시 사용자 직접 확인값 */
+  photoSufficient?: boolean;
+  /** checklist_overrides.__recent_post_confirmed_at — 소식 탭 수동 확인 일시 */
+  recentPostConfirmedAt?: string | null;
   /** 프랜차이즈 가맹점 여부 — AI 브리핑 제외 안내용 */
   isFranchise?: boolean;
   /** businesses.keywords 길이 — AI탭 시뮬레이션 0개 분기용 */
@@ -87,6 +91,8 @@ export default function DashboardInsightZone({
   hasReservation,
   photoCount,
   naverPlaceId,
+  photoSufficient,
+  recentPostConfirmedAt,
   isFranchise,
   keywordCount,
   latestAdOnly,
@@ -150,12 +156,16 @@ export default function DashboardInsightZone({
       <NaverSeoBaseCard
         reviewCount={reviewCount ?? 0}
         hasIntro={hasIntro ?? false}
-        hasRecentPost={hasRecentPost ?? false}
+        hasRecentPost={hasRecentPost ?? null}
         hasReservation={hasReservation ?? null}
         photoCount={photoCount ?? null}
         blogMentionCount={blogMentionCount ?? 0}
         eligibility={briefingMeta?.eligibility ?? "inactive"}
         naverPlaceId={naverPlaceId}
+        photoSufficient={photoSufficient}
+        recentPostConfirmedAt={recentPostConfirmedAt}
+        bizId={bizId}
+        accessToken={accessToken}
       />
 
       {/* Naver Cafe & Jisik mention status — auto display when NAVER_MULTICH_ENABLED=true */}

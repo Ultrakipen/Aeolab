@@ -344,6 +344,33 @@ _FAQ_TEMPLATES: dict[str, list[dict[str, str]]] = {
             "keyword": "수업료",
         },
     ],
+    "accommodation": [
+        {
+            "q": "체크인·체크아웃 시간이 어떻게 되나요?",
+            "a": "체크인은 [오후 3시], 체크아웃은 [오전 11시]입니다. 얼리 체크인·레이트 체크아웃은 당일 상황에 따라 가능하며, 사전에 요청해 주시면 최대한 맞춰드립니다. 체크아웃 후 짐 보관 서비스도 운영합니다.",
+            "keyword": "체크인",
+        },
+        {
+            "q": "조식이 포함되나요?",
+            "a": "[조식은 1인 OO원으로 별도 제공]합니다. 예약 시 조식 포함 패키지를 선택하시면 할인된 가격에 이용 가능합니다. 객실에서 드실 수 있는 간단한 조식 세트와 레스토랑 뷔페형 조식을 선택하실 수 있습니다.",
+            "keyword": "조식",
+        },
+        {
+            "q": "주차는 무료인가요?",
+            "a": "투숙객 전용 [무료 주차장]을 운영합니다. 주차 공간은 [OO대]이며, 선착순 배정됩니다. 만차 시 인근 유료 주차장을 안내해 드립니다. 체크인 시 차량 번호를 프런트에 알려 주세요.",
+            "keyword": "주차",
+        },
+        {
+            "q": "예약 취소·환불은 어떻게 되나요?",
+            "a": "체크인 [3일 전] 취소 시 전액 환불, [1~2일 전] 취소 시 50% 환불, 당일 취소 및 노쇼는 환불이 어렵습니다. 성수기·연휴 기간은 별도 환불 정책이 적용될 수 있으니 예약 시 꼭 확인해 주세요.",
+            "keyword": "취소",
+        },
+        {
+            "q": "반려동물 동반이 가능한가요?",
+            "a": "[소형견(5kg 이하) 1마리]에 한해 반려동물 동반이 가능한 객실을 운영합니다. 반려동물 동반 시 추가 청소비 [OO원]이 발생하며, 예약 시 반드시 사전에 알려 주세요. 반려동물 전용 객실은 수량이 한정되어 있습니다.",
+            "keyword": "반려동물",
+        },
+    ],
     "default": [
         {
             "q": "영업시간이 어떻게 되나요?",
@@ -511,6 +538,8 @@ def _map_category_to_faq_key(category: str) -> str:
         return "fitness"
     if any(k in cat for k in ["반려", "펫", "동물병원", "pet", "grooming", "vet"]):
         return "pet"
+    if any(k in cat for k in ["숙박", "펜션", "호텔", "게스트하우스", "민박", "모텔", "accommodation"]):
+        return "accommodation"
     return "default"
 
 
@@ -605,7 +634,6 @@ _CATEGORY_TO_FAQ_KEY: dict[str, str] = {
     "clinic": "clinic",
     "medical": "clinic",
     "dental": "clinic",
-    "pharmacy": "clinic",
     "academy": "academy",
     "education": "academy",
     "tutoring": "academy",
@@ -665,6 +693,11 @@ def _clean_keyword(kw: str) -> str:
     return re.sub(r"(이며|이고|있음|입니다|이오니|합니다)$", "", kw).strip()
 
 
+def _hashtag_safe(text: str) -> str:
+    """해시태그에 사용 불가한 문자(중간점·공백·특수문자)를 제거."""
+    return re.sub(r"[·\s\-./,]", "", text)
+
+
 def _make_review_response_content(
     target_keywords: list[str],
     business_name: str,
@@ -684,39 +717,57 @@ def _make_review_response_content(
         review_excerpts: 실제 리뷰 발췌문 목록 (있으면 개인화된 답변 생성, 없으면 키워드 기반 fallback)
     """
     category_ko = _to_ko_category(category)
+    eun_neun_biz = _select_josa(business_name, "은", "는")
 
     # 실제 리뷰 발췌문이 있으면 개인화된 답변 생성
     if review_excerpts:
-        # 가장 첫 번째 리뷰 발췌문에서 핵심 언급 내용 추출 (최대 30자)
         first_review = review_excerpts[0].strip()[:60] if review_excerpts[0].strip() else ""
-        # 리뷰 내용에서 긍정적 표현 감지
         positive_words = ["맛있", "좋았", "친절", "빠르", "깔끔", "추천", "만족", "예뻤", "편했"]
         is_positive = any(w in first_review for w in positive_words)
 
         kw1 = _clean_keyword(target_keywords[0]) if target_keywords else ""
-        kw_sentence = (
-            f"저희 {business_name}은 {kw1} 서비스를 운영하고 있으니 다음에도 편하게 방문해 주세요."
-            if kw1 else f"다음에 또 방문해 주시면 더 좋은 서비스로 맞이하겠습니다."
-        )
+        kw2 = _clean_keyword(target_keywords[1]) if len(target_keywords) > 1 else ""
+
+        if kw2:
+            kw_sentence = (
+                f"저희 {business_name}{eun_neun_biz} {kw1}·{kw2} 서비스를 함께 운영하고 있어 "
+                f"다양한 상황에서 편리하게 이용하실 수 있습니다."
+            )
+        elif kw1:
+            kw_sentence = (
+                f"저희 {business_name}{eun_neun_biz} {kw1} 서비스를 운영하고 있으니 "
+                f"다음에도 편하게 방문해 주세요."
+            )
+        else:
+            kw_sentence = "다음에 또 방문해 주시면 더 좋은 서비스로 맞이하겠습니다."
 
         if is_positive and first_review:
-            opening = f"고객님께서 '{first_review[:30]}' 부분을 좋게 봐주셨군요, 정말 감사합니다! "
+            opening = (
+                f"소중한 리뷰 남겨주셔서 진심으로 감사합니다!\n\n"
+                f"'{first_review[:30]}' 부분을 좋게 봐주셔서 저희도 정말 기쁩니다. "
+                f"고객님의 방문이 저희에게 큰 힘이 됩니다."
+            )
         else:
-            opening = "소중한 리뷰 남겨주셔서 정말 감사합니다! "
+            opening = (
+                "소중한 리뷰 남겨주셔서 진심으로 감사합니다! "
+                "고객님의 방문이 저희에게 큰 힘이 됩니다."
+            )
 
         return (
-            f"{opening}"
-            f"{kw_sentence} "
+            f"{opening}\n\n"
+            f"{kw_sentence}\n\n"
             f"앞으로도 더 좋은 {category_ko} 서비스로 보답하겠습니다. "
-            f"다음 방문도 기다리고 있겠습니다."
+            f"다음 방문도 항상 반갑게 맞이하겠습니다."
         )
 
     # fallback: 키워드 기반 일반 답변
     if not target_keywords:
         return (
-            f"방문해 주셔서 진심으로 감사합니다! "
-            f"{business_name}에서 좋은 경험을 하셨다니 기쁩니다. "
-            f"다음에 또 방문해 주시면 더 좋은 서비스로 맞이하겠습니다."
+            f"방문해 주셔서 진심으로 감사합니다!\n\n"
+            f"{business_name}에서 좋은 경험을 하셨다니 정말 기쁩니다. "
+            f"고객님의 소중한 방문이 저희에게 큰 힘이 됩니다.\n\n"
+            f"다음에 또 방문해 주시면 더 좋은 서비스로 맞이하겠습니다. "
+            f"항상 감사드립니다."
         )
 
     kw1 = _clean_keyword(target_keywords[0])
@@ -724,17 +775,21 @@ def _make_review_response_content(
 
     if kw2:
         kw_sentence = (
-            f"저희 {business_name}은 {kw1}과 {kw2} 서비스를 함께 운영하고 있어 "
-            f"다양한 상황에서 편리하게 방문하실 수 있습니다."
+            f"저희 {business_name}{eun_neun_biz} {kw1}·{kw2} 서비스를 함께 운영하고 있어 "
+            f"다양한 상황에서 편리하게 이용하실 수 있습니다."
         )
     else:
-        kw_sentence = f"저희 {business_name}은 {kw1} 서비스를 운영하고 있으니 다음에도 편하게 방문해 주세요."
+        kw_sentence = (
+            f"저희 {business_name}{eun_neun_biz} {kw1} 서비스를 운영하고 있으니 "
+            f"다음에도 편하게 방문해 주세요."
+        )
 
     return (
-        f"소중한 리뷰 남겨주셔서 정말 감사합니다! "
-        f"{kw_sentence} "
+        f"소중한 리뷰 남겨주셔서 진심으로 감사합니다! "
+        f"고객님의 방문이 저희에게 큰 힘이 됩니다.\n\n"
+        f"{kw_sentence}\n\n"
         f"앞으로도 더 좋은 {category_ko} 서비스로 보답하겠습니다. "
-        f"다음 방문도 기다리고 있겠습니다."
+        f"다음 방문도 항상 반갑게 맞이하겠습니다."
     )
 
 
@@ -866,37 +921,115 @@ def _make_post_content(
     category_ko = _to_ko_category(category)
     region_short = _extract_region_short(region)
 
+    _FALLBACK_CTA: dict[str, str] = {
+        "legal": "상담 예약을 진행해 보세요.",
+        "realestate": "매물 상담을 시작해 보세요.",
+        "medical": "진료 예약을 해주세요.",
+        "clinic": "진료 예약을 해주세요.",
+        "dental": "진료 예약을 해주세요.",
+        "pharmacy": "방문해 주세요.",
+        "interior": "무료 견적 상담을 받아보세요.",
+        "auto": "방문 점검을 예약해 보세요.",
+        "cleaning": "서비스 예약을 해주세요.",
+        "education": "수강 문의를 주세요.",
+        "tutoring": "수강 문의를 주세요.",
+        "academy": "무료 체험 수업 신청해 보세요.",
+        "accommodation": "예약해 보세요.",
+        "beauty": "예약해 보세요.",
+        "nail": "예약해 보세요.",
+        "fitness": "무료 체험권 신청해 보세요.",
+        "yoga": "체험 수업 신청해 보세요.",
+        "pilates": "체험 수업 신청해 보세요.",
+        "pet": "미용 예약해 보세요.",
+    }
+    cta = _FALLBACK_CTA.get(category.lower(), "방문해 보세요.")
+
+    _CATEGORY_EMOJI: dict[str, str] = {
+        "restaurant": "🍽️", "cafe": "☕", "bakery": "🥐", "bar": "🍺",
+        "beauty": "✂️", "nail": "💅", "fitness": "💪", "yoga": "🧘",
+        "pet": "🐾", "accommodation": "🏨", "medical": "🏥", "clinic": "🏥",
+        "pharmacy": "💊", "education": "📚", "academy": "📚", "tutoring": "✏️",
+        "realestate": "🏠", "interior": "🛋️", "auto": "🔧", "cleaning": "🧹",
+    }
+    emoji = _CATEGORY_EMOJI.get(category.lower(), "📢")
+
     if not target_keywords:
         return (
-            f"{business_name} 소식\n\n"
-            f"{region_short} {category_ko}을 찾으시나요? "
-            f"{business_name}에서 편안한 시간 보내세요.\n\n"
-            f"문의 및 예약: 네이버 예약 또는 전화"
+            f"{emoji} {business_name} 소식\n\n"
+            f"{region_short}에서 {category_ko}{_select_josa(category_ko, '을', '를')} 찾고 계신가요? "
+            f"{business_name}에서 {cta}\n\n"
+            f"📌 네이버 예약으로 원하는 시간 직접 선택 가능\n"
+            f"📞 전화·카카오톡 문의도 언제든지 환영합니다\n\n"
+            f"#{region_short}{_hashtag_safe(category_ko)} #{_hashtag_safe(business_name)} "
+            f"#{region_short}{_hashtag_safe(category_ko)}추천"
         )
 
     kw1_clean = _clean_keyword(target_keywords[0])
-    kw_phrase = " · ".join(_clean_keyword(kw) for kw in target_keywords[:2])
+    kw2_clean = _clean_keyword(target_keywords[1]) if len(target_keywords) > 1 else ""
+    kw3_clean = _clean_keyword(target_keywords[2]) if len(target_keywords) > 2 else ""
+
+    # 키워드 bullet list 구성
+    kw_bullets = [f"✔ {kw1_clean}"]
+    if kw2_clean:
+        kw_bullets.append(f"✔ {kw2_clean}")
+    if kw3_clean:
+        kw_bullets.append(f"✔ {kw3_clean}")
+    kw_bullets.append("✔ 네이버 예약 가능")
+    kw_bullet_str = "\n".join(kw_bullets)
+
+    # 해시태그 구성 (4~5개)
+    tags = [f"#{region_short}{_hashtag_safe(category_ko)}", f"#{_hashtag_safe(kw1_clean)}"]
+    if kw2_clean:
+        tags.append(f"#{_hashtag_safe(kw2_clean)}")
+    tags.append(f"#{region_short}{_hashtag_safe(category_ko)}추천")
+    tags.append(f"#{_hashtag_safe(business_name)}")
 
     return (
-        f"{business_name} 안내\n\n"
-        f"{region_short}에서 {kw_phrase}을 찾고 계신가요?\n\n"
-        f"{business_name}에서는 {kw1_clean} 서비스를 운영하고 있어 "
-        f"다양한 상황에서 편리하게 이용하실 수 있습니다.\n\n"
-        f"방문 전 네이버 예약 또는 전화로 미리 확인해 주세요.\n\n"
-        f"#{region_short}{category_ko} #{kw1_clean.replace(' ', '')}"
+        f"{emoji} {business_name} 안내\n\n"
+        f"{region_short}에서 {kw1_clean}{_select_josa(kw1_clean, '을', '를')} 찾고 계신가요?\n\n"
+        f"{kw_bullet_str}\n\n"
+        f"방문 전 네이버 예약 또는 전화로 미리 확인해 주시면\n"
+        f"기다리는 시간 없이 편하게 이용하실 수 있습니다.\n\n"
+        f"{' '.join(tags)}"
     )
 
 
 _CATEGORY_KO: dict[str, str] = {
-    "restaurant": "음식점·카페", "cafe": "카페", "food": "음식점",
+    # 음식·음료
+    "restaurant": "음식점", "cafe": "카페", "food": "음식점",
+    "bakery": "베이커리·디저트",
+    "bar": "주점·술집",
+    # 미용·뷰티
     "beauty": "미용실", "hair": "미용실", "salon": "뷰티살롱",
+    "nail": "네일샵",
+    # 의료·약국
     "clinic": "병원", "medical": "의원",
+    "pharmacy": "약국",
+    # 교육
     "academy": "학원", "education": "교육",
+    "tutoring": "학원·과외",
+    # 전문직·서비스
     "legal": "법률사무소", "lawyer": "변호사", "tax": "세무사",
+    "realestate": "부동산",
+    "interior": "인테리어",
+    "auto": "자동차 서비스",
+    "cleaning": "청소 서비스",
+    # 쇼핑·패션
     "shopping": "쇼핑몰", "online": "온라인몰",
+    "fashion": "패션·의류",
+    # 피트니스·웰니스
     "fitness": "헬스·필라테스", "gym": "헬스장", "pilates": "필라테스",
+    "yoga": "요가",
+    # 반려동물
     "pet": "반려동물", "grooming": "펫미용",
+    # 사진·영상·디자인
     "photo": "사진관·스튜디오", "studio": "스튜디오",
+    "video": "영상 스튜디오",
+    "design": "디자인",
+    # 숙박
+    "accommodation": "숙박",
+    # 기타
+    "other": "업체",
 }
 
 
@@ -947,6 +1080,23 @@ def _find_lsi_cluster(target_keyword: str, category: str) -> list[str]:
     return []
 
 
+_BIZ_NOUN: dict[str, str] = {
+    "clinic": "의원", "medical": "의원", "dental": "치과",
+    "pharmacy": "약국",
+    "legal": "사무소", "lawyer": "사무소",
+    "realestate": "부동산",
+    "auto": "정비소",
+    "accommodation": "숙소",
+    "interior": "사업장",
+    "cleaning": "업체",
+}
+
+
+def _biz_noun(category: str) -> str:
+    """업종별 사업장 명칭 반환. 소개글·커뮤니티 초안의 '저희 가게' 분기에 사용."""
+    return _BIZ_NOUN.get(category.lower().strip(), "가게")
+
+
 def _make_intro_content(
     target_keywords: list[str],
     business_name: str,
@@ -966,10 +1116,10 @@ def _make_intro_content(
     clean_target = [_clean_keyword(kw) for kw in target_keywords[:3]]
     clean_existing = [_clean_keyword(kw) for kw in (existing_keywords or [])[:3]]
     all_kws = clean_existing + [kw for kw in clean_target if kw not in clean_existing]
-    kw_str = ", ".join(all_kws[:5]) if all_kws else category
 
     region_short = _extract_region_short(region)
     category_ko = _to_ko_category(category)
+    noun = _biz_noun(category)
 
     # LSI 묶음: 첫 목표 키워드의 연관 키워드 추출
     lsi_keywords: list[str] = []
@@ -978,14 +1128,24 @@ def _make_intro_content(
     lsi_sentence = ""
     if lsi_keywords:
         lsi_sentence = (
-            f"{', '.join(lsi_keywords)} 등 함께 자주 찾으시는 조건도 같은 공간에서 충족됩니다.\n\n"
+            f"{', '.join(lsi_keywords)} 등도 함께 제공하여 "
+            f"한 곳에서 편리하게 이용하실 수 있습니다.\n\n"
         )
+
+    # 주요 서비스 항목 (상위 4개 키워드 · 구분자)
+    feature_kws = all_kws[:4]
+    feature_str = " · ".join(feature_kws) if feature_kws else f"{category_ko} 전문 서비스"
 
     return (
         f"{region_short} {category_ko} {business_name}입니다.\n\n"
-        f"저희 가게는 {kw_str} 등 다양한 상황에 맞춰 편리하게 이용하실 수 있습니다.\n\n"
+        f"■ 주요 서비스\n"
+        f"· {feature_str}\n\n"
         f"{lsi_sentence}"
-        f"{region_short}에서 {category_ko}을 찾으신다면 {business_name}을 추천드립니다. "
+        f"■ 이용 안내\n"
+        f"· 네이버 예약으로 원하는 시간 직접 선택 가능\n"
+        f"· 방문 전 전화·카카오톡 문의 환영\n\n"
+        f"{region_short}에서 {category_ko}{_select_josa(category_ko, '을', '를')} 찾으신다면 "
+        f"{business_name}{_select_josa(business_name, '을', '를')} 추천드립니다. "
         f"네이버 예약으로 간편하게 방문 예약하세요."
     )
 
@@ -1014,6 +1174,12 @@ def build_direct_briefing_paths(
     Returns:
         경로별 dict 목록 (urgency 순으로 정렬). 일반 4건 + has_reservation=False 시 1건 추가.
     """
+    import re as _re_ph
+
+    def _placeholder_count(text: str) -> int:
+        """[전화번호], [위치], [대표 메뉴명] 등 사장님이 직접 채워야 할 미완성 항목 수."""
+        return len(_re_ph.findall(r'\[(?!예:)[^\]]{2,20}\]', text))
+
     name = biz.get("name", "우리 가게")
     category = biz.get("category", "")
     region = biz.get("region", "")
@@ -1028,80 +1194,90 @@ def build_direct_briefing_paths(
 
     paths = []
 
-    # 경로 B: 소개글 Q&A 섹션 — 사장님이 직접 작성하는 인용 후보 텍스트 (즉시)
-    # [2026-05-01] 스마트플레이스 사장님 Q&A 탭 폐기 — 소개글 안 Q&A 섹션으로 전환
-    paths.append({
-        "path_id": "intro_qa",
-        "path_name": "소개글에 Q&A 섹션 추가",
-        "urgency": "do_now",
-        "urgency_label": "지금 당장",
-        "reason": (
-            "소개글의 Q&A 섹션은 AI 브리핑 인용 후보 텍스트입니다. "
-            f"'{top2[0] if top2 else ''}' 관련 질문을 자연스럽게 포함하면 "
-            "해당 조건 검색에 내 가게가 노출될 가능성이 올라갑니다."
-        ),
-        "target_keywords": top2,
-        "ready_content": _make_faq_content(top2, name, category, region, competitor_keyword_sources),
-        "action_url": smartplace_url("intro"),
-        "action_steps": _ACTION_STEPS["intro_qa"],
-        "estimated_time": "5분",
-        "impact": "소개글 Q&A 섹션 — AI 브리핑 인용 후보 경로",
-    })
-
-    # 경로 A: 리뷰 답변 (즉시, 효과 높음)
+    # 경로 A: 리뷰 답변 (즉시, 3분 — 가장 빠른 효과)
+    _rc_review = _make_review_response_content(top2, name, category, review_excerpts)
     paths.append({
         "path_id": "review_response",
         "path_name": "미답변 리뷰에 키워드 담아 답변",
         "urgency": "do_now",
         "urgency_label": "지금 당장",
         "reason": (
-            "사장님 답변에도 키워드를 포함하면 AI 브리핑 신호가 강화됩니다. "
-            "미답변 리뷰가 있을 경우 오늘 답변하면서 목표 키워드를 자연스럽게 포함하세요."
+            "사장님 답변에 목표 키워드를 포함하면 네이버 AI 검색에서 "
+            "내 가게가 노출될 가능성이 높아집니다. "
+            "미답변 리뷰가 있다면 오늘 답변하면서 자연스럽게 키워드를 넣어 보세요."
         ),
         "target_keywords": top2,
-        "ready_content": _make_review_response_content(top2, name, category, review_excerpts),
+        "ready_content": _rc_review,
+        "placeholder_count": _placeholder_count(_rc_review),
         "action_url": smartplace_url("review_response"),
         "action_steps": _ACTION_STEPS["review_response"],
         "estimated_time": "3분",
-        "impact": "리뷰 답변율 100% → AI 브리핑 가중치 상승",
+        "impact": "리뷰 답변 완료 → 네이버 AI 검색 노출 점수 향상",
+    })
+
+    # 경로 B: 소개글 Q&A 섹션 (즉시, 5분)
+    # [2026-05-01] 스마트플레이스 사장님 Q&A 탭 폐기 — 소개글 안 Q&A 섹션으로 전환
+    _rc_faq = _make_faq_content(top2, name, category, region, competitor_keyword_sources)
+    paths.append({
+        "path_id": "intro_qa",
+        "path_name": "소개글에 Q&A 섹션 추가",
+        "urgency": "do_now",
+        "urgency_label": "지금 당장",
+        "reason": (
+            "소개글에 Q&A를 추가하면 네이버 AI 검색에서 "
+            "내 가게 소개로 노출될 수 있는 글이 됩니다. "
+            f"'{top2[0] if top2 else ''}' 관련 질문을 포함하면 "
+            "해당 조건으로 검색할 때 내 가게가 나올 가능성이 올라갑니다."
+        ),
+        "target_keywords": top2,
+        "ready_content": _rc_faq,
+        "placeholder_count": _placeholder_count(_rc_faq),
+        "action_url": smartplace_url("intro"),
+        "action_steps": _ACTION_STEPS["intro_qa"],
+        "estimated_time": "5분",
+        "impact": "소개글 Q&A → 네이버 AI 검색에서 내 가게 소개로 노출 가능",
     })
 
     # 경로 C: 소식 업데이트 (이번 주)
+    _rc_post = _make_post_content(top2, name, category, region)
     paths.append({
         "path_id": "post",
         "path_name": "스마트플레이스 소식 업데이트",
         "urgency": "this_week",
         "urgency_label": "이번 주",
         "reason": (
-            "소식을 7일 이상 업데이트하지 않으면 AI 브리핑 최신성 점수가 떨어집니다. "
+            "소식을 7일 이상 올리지 않으면 네이버 AI 검색에서 "
+            "'오래된 가게'로 인식되어 노출 빈도가 줄어듭니다. "
             "이번 주 소식에 목표 키워드를 포함하면 두 가지를 동시에 해결합니다."
         ),
         "target_keywords": top2,
-        "ready_content": _make_post_content(top2, name, category, region),
+        "ready_content": _rc_post,
+        "placeholder_count": _placeholder_count(_rc_post),
         "action_url": smartplace_url("post"),
         "action_steps": _ACTION_STEPS["post"],
         "estimated_time": "5분",
-        "impact": "최신성 점수 유지 + 키워드 커버리지 확장",
+        "impact": "최신 가게로 인식 유지 + 키워드 노출 범위 확장",
     })
 
     # 경로 D: 소개글 수정 (이번 달, 한 번만)
+    _rc_intro = _make_intro_content(missing_keywords[:3], name, category, region, existing_keywords)
     paths.append({
         "path_id": "intro",
         "path_name": "스마트플레이스 소개글 키워드 보강",
         "urgency": "this_month",
         "urgency_label": "이번 달 중",
         "reason": (
-            "소개글은 한 번 잘 써두면 영구적으로 AI 브리핑 키워드 기반이 됩니다. "
-            "현재 소개글에 목표 키워드가 빠져 있다면 지금이 수정할 때입니다."
+            "소개글은 한 번 잘 써두면 네이버 AI 검색에서 "
+            "내 가게를 꾸준히 소개해 주는 기반이 됩니다. "
+            "지금 목표 키워드가 빠져 있다면 이번 달 중에 수정해 두세요."
         ),
         "target_keywords": missing_keywords[:4],
-        "ready_content": _make_intro_content(
-            missing_keywords[:3], name, category, region, existing_keywords
-        ),
+        "ready_content": _rc_intro,
+        "placeholder_count": _placeholder_count(_rc_intro),
         "action_url": smartplace_url("intro"),
         "action_steps": _ACTION_STEPS["intro"],
         "estimated_time": "10분",
-        "impact": "영구 키워드 기반 — 한 번 하면 계속 효과",
+        "impact": "한 번만 작성하면 계속 효과 — 네이버 AI 검색 기반 텍스트",
     })
 
     # 경로 E: 네이버 예약 연동 (선택, has_reservation=False일 때만 노출)
@@ -1114,7 +1290,7 @@ def build_direct_briefing_paths(
             "urgency": "this_week",
             "urgency_label": "이번 주",
             "reason": (
-                "AI탭은 예약 연동이 된 사업장의 결과에 '예약' 버튼을 추가로 노출합니다. "
+                "AI 검색 결과에 '예약' 버튼이 붙으면 방문 전환율이 높아집니다. "
                 "외부 예약 시스템(셀렉트스퀘어·캐치테이블 등)도 URL 연결로 동일하게 적용됩니다."
             ),
             "target_keywords": [],
@@ -1122,7 +1298,7 @@ def build_direct_briefing_paths(
             "action_url": "https://partner.naver.com/",
             "action_steps": _ACTION_STEPS["reservation_setup"],
             "estimated_time": "10분",
-            "impact": "AI탭 결과에 '예약' 버튼 노출 — 전환율 상승",
+            "impact": "AI 검색 결과에 '예약' 버튼 노출 — 방문 전환율 향상",
         })
 
     return paths
@@ -1130,34 +1306,43 @@ def build_direct_briefing_paths(
 
 # 업종 코드 → 한국어 표현 (리스트 블로그·커뮤니티 초안용)
 _CATEGORY_KO_MAP: dict[str, str] = {
-    "restaurant": "맛집",
-    "food": "맛집",
-    "cafe": "카페",
-    "coffee": "카페",
-    "beauty": "미용실",
-    "hair": "미용실",
-    "salon": "뷰티살롱",
+    # 음식·음료
+    "restaurant": "맛집", "food": "맛집",
+    "cafe": "카페", "coffee": "카페",
+    "bakery": "베이커리",
+    "bar": "주점·술집",
+    # 미용·뷰티
+    "beauty": "미용실", "hair": "미용실", "salon": "뷰티살롱",
     "nail": "네일샵",
     "skin": "피부관리",
-    "clinic": "병원",
-    "medical": "의원",
-    "dental": "치과",
+    # 의료·약국
+    "clinic": "병원", "medical": "의원", "dental": "치과",
     "pharmacy": "약국",
-    "academy": "학원",
-    "education": "교육",
-    "fitness": "헬스·필라테스",
-    "gym": "헬스장",
-    "pilates": "필라테스",
+    # 교육
+    "academy": "학원", "education": "교육",
+    "tutoring": "학원·과외",
+    # 피트니스·웰니스
+    "fitness": "헬스·필라테스", "gym": "헬스장", "pilates": "필라테스",
     "yoga": "요가",
-    "pet": "반려동물 미용",
-    "grooming": "펫미용",
-    "vet": "동물병원",
-    "legal": "법률사무소",
-    "lawyer": "변호사",
-    "tax": "세무사",
+    # 반려동물
+    "pet": "반려동물", "grooming": "펫미용", "vet": "동물병원",
+    # 전문직·서비스
+    "legal": "법률사무소", "lawyer": "변호사", "tax": "세무사",
+    "realestate": "부동산",
+    "interior": "인테리어",
+    "auto": "자동차 서비스",
+    "cleaning": "청소 서비스",
+    # 쇼핑·패션
     "shopping": "쇼핑몰",
-    "photo": "사진관",
-    "studio": "스튜디오",
+    "fashion": "패션·의류",
+    # 사진·영상·디자인
+    "photo": "사진관", "studio": "스튜디오",
+    "video": "영상 스튜디오",
+    "design": "디자인",
+    # 숙박
+    "accommodation": "숙박",
+    # 기타
+    "other": "업체",
 }
 
 
@@ -1259,22 +1444,48 @@ def _make_community_drafts(
     keyword1 = kw_list[0] if kw_list else f"{category_ko} 서비스"
     keyword2 = kw_list[1] if len(kw_list) > 1 else keyword1
 
+    # 업종별 커뮤니티 채널 — 타겟 고객이 실제로 모이는 곳으로 분기
+    _COMMUNITY_CHANNEL: dict[str, str] = {
+        "restaurant": "맘카페 / 지역카페",
+        "cafe": "맘카페 / 지역카페",
+        "bakery": "맘카페 / 지역카페",
+        "bar": "지역카페",
+        "beauty": "맘카페 / 지역카페",
+        "nail": "맘카페 / 지역카페",
+        "pet": "반려동물 카페 / 지역카페",
+        "accommodation": "여행 커뮤니티 / 지역카페",
+        "fitness": "운동 커뮤니티 / 지역카페",
+        "yoga": "운동 커뮤니티 / 지역카페",
+        "academy": "학부모 카페 / 맘카페",
+        "education": "학부모 카페 / 맘카페",
+        "medical": "건강 커뮤니티 / 지역카페",
+        "clinic": "건강 커뮤니티 / 지역카페",
+        "dental": "건강 커뮤니티 / 지역카페",
+        "pharmacy": "건강 커뮤니티 / 지역카페",
+        "legal": "법률 커뮤니티 / 지역카페",
+        "realestate": "지역 아파트 카페 / 부동산 커뮤니티",
+        "interior": "인테리어 커뮤니티 / 지역카페",
+        "auto": "자동차 카페 / 지역카페",
+    }
+    channel = _COMMUNITY_CHANNEL.get(category.lower().strip(), "지역카페 / 맘카페")
+    noun = _biz_noun(category)
+
     cafe_text = (
         f"안녕하세요~ {region_short}에서 {category_ko} 운영 중인 {business_name} 사장입니다!\n"
-        f"저희 가게는 {keyword1} · {keyword2} 서비스를 제공하고 있어요.\n"
+        f"저희 {noun}{_select_josa(noun, '은', '는')} {keyword1} · {keyword2} 서비스를 제공하고 있어요.\n"
         f"{region_short}에서 {category_ko} 찾고 계신 분들께 안내드립니다 :)\n"
         f"네이버 예약으로 간편하게 방문하실 수 있습니다."
     )
 
     jiskin_text = (
         f"안녕하세요, {business_name} 운영자입니다.\n"
-        f"{region_short}에서 {category_ko}를 찾으신다면 저희 가게를 추천드립니다.\n"
+        f"{region_short}에서 {category_ko}를 찾으신다면 저희 {noun}{_select_josa(noun, '을', '를')} 추천드립니다.\n"
         f"{keyword1} · {keyword2} 전문으로 운영하고 있으며, {region_short} 위치라 접근하기 편합니다.\n"
         f"궁금한 점은 네이버 예약 또는 전화로 문의해 주세요."
     )
 
     ready_text = (
-        f"## 맘카페 / 지역카페\n{cafe_text}\n\n"
+        f"## {channel}\n{cafe_text}\n\n"
         f"## 네이버 지식인\n{jiskin_text}"
     )
 
@@ -1284,8 +1495,9 @@ def _make_community_drafts(
         "urgency": "this_week",
         "urgency_label": "이번 주",
         "time_required": "15분",
-        "what_to_do": f"사업주 신분을 밝히고 아래 초안을 참고해 맘카페·지식인에 올려주세요 (직접 쓴 글처럼 꾸미지 마세요)",
-        "effect": "사업주가 직접 가게를 소개하는 커뮤니티 글이 쌓이면 ChatGPT 신뢰도 점수에 긍정적으로 반영됩니다",
+        "community_channel": channel,
+        "what_to_do": f"사업주 신분을 밝히고 아래 초안을 참고해 {channel}·지식인에 올려주세요 (직접 쓴 글처럼 꾸미지 마세요)",
+        "effect": "사업주가 직접 소개하는 커뮤니티 글이 쌓이면 ChatGPT·Gemini AI 검색 신뢰도 점수에 긍정적으로 반영됩니다",
         "ready_text": ready_text,
     }
 
@@ -1375,21 +1587,21 @@ def build_briefing_summary(
     coverage_pct = round(coverage_rate * 100)
 
     if coverage_pct < 20:
-        state = "아직 AI 브리핑에 내 가게가 잘 나오지 않습니다"
+        state = "아직 네이버 AI 검색에서 내 가게가 잘 보이지 않습니다"
     elif coverage_pct < 50:
-        state = "AI 브리핑에 일부 조건 검색에서 나오고 있습니다"
+        state = "네이버 AI 검색에서 일부 조건으로 검색할 때 내 가게가 나오고 있습니다"
     else:
-        state = "AI 브리핑에 다양한 조건 검색에서 노출되고 있습니다"
+        state = "네이버 AI 검색에서 다양한 조건으로 검색할 때 내 가게가 노출되고 있습니다"
 
     kw_msg = (
-        f" '{_clean_keyword(top_priority_keyword)}' 키워드를 먼저 확보하는 것이 가장 급합니다."
+        f" '{_clean_keyword(top_priority_keyword)}' 키워드를 먼저 등록하는 것이 가장 급합니다."
         if top_priority_keyword else ""
     )
 
     return (
         f"{state}.{kw_msg} "
         f"지금 당장 할 수 있는 {do_now_count}가지 방법이 있습니다 — "
-        f"고객 없이, 오늘 10분 안에 AI 브리핑 신호를 강화할 수 있습니다."
+        f"고객 없이, 오늘 10분 안에 AI 검색에서 내 가게가 더 잘 보이도록 만들 수 있습니다."
     )
 
 
@@ -1417,15 +1629,19 @@ _AI_TAB_ANSWER_TEMPLATES: dict[str, str] = {
     "restaurant_group": "{region} {name}{eun_neun} {ctx0}, {ctx1}이 특징입니다. {ctx2}.",
     # Group 2: 미용·네일·마사지·스파·피부
     "beauty_group": "{region} {name}{eun_neun} {ctx0} 전문 매장입니다. {ctx1}, {ctx2}이 강점입니다.",
-    # Group 3: 의료·한의·치과·약국·클리닉
+    # Group 3: 의료·한의·치과·클리닉 (진료 중심)
     "medical_group": "{region} {name}{eun_neun} {ctx0} 진료를 제공합니다. {ctx1}, {ctx2} 환경입니다.",
+    # Group 3-B: 약국 (조제·복약지도 중심 — "진료" 오표현 방지)
+    "pharmacy_group": "{region} {name}{eun_neun} {ctx0} 조제 서비스를 제공합니다. {ctx1} 상담도 가능합니다.",
     # Group 4: 법무·세무·부동산·교육·학원
     "professional_group": "{region} {name}{eun_neun} {ctx0} 전문입니다. {ctx1}, {ctx2}로 신뢰성을 입증합니다.",
     # Group 5: 피트니스·요가·필라테스·댄스·발레
     "fitness_group": "{region} {name}{eun_neun} {ctx0} 수업을 운영합니다. {ctx1}, {ctx2}이 특징입니다.",
     # Group 6: 사진·영상·디자인 (ctx0에 "전문" 포함 키워드 많아 별도 템플릿)
     "photo_group": "{region} {name}{eun_neun} {ctx0}입니다. {ctx1}, {ctx2}이 특징입니다.",
-    # Group 7: 그 외 기본 (default)
+    # Group 7: 반려동물
+    "pet_group": "{region} {name}{eun_neun} {ctx0} 전문입니다. {ctx1}, {ctx2} 서비스를 제공합니다.",
+    # Group 8: 그 외 기본 (default)
     "default": "{region} {name}{eun_neun} {ctx0}, {ctx1}이 특징입니다.",
 }
 
@@ -1437,8 +1653,9 @@ _CATEGORY_TO_TEMPLATE_GROUP: dict[str, str] = {
     "beauty": "beauty_group", "nail": "beauty_group", "massage": "beauty_group",
     "spa": "beauty_group", "skincare": "beauty_group", "semi_permanent": "beauty_group",
     "medical": "medical_group", "dental": "medical_group",
-    "oriental_medicine": "medical_group", "pharmacy": "medical_group",
-    "clinic": "medical_group",
+    "oriental_medicine": "medical_group", "clinic": "medical_group",
+    "pharmacy": "pharmacy_group",
+    "pet": "pet_group", "grooming": "pet_group", "vet": "pet_group",
     "legal": "professional_group", "accounting": "professional_group",
     "realestate": "professional_group", "education": "professional_group",
     "tutoring": "professional_group", "academy": "professional_group",
@@ -1513,15 +1730,23 @@ def simulate_ai_tab_answer(
     ctx1 = matched[1] if len(matched) > 1 else ""
     ctx2 = matched[2] if len(matched) > 2 else ""
 
-    template = _select_answer_template(normalize_category(category))
-    simulated = template.format(
-        region=region_short,
-        name=biz_name,
-        eun_neun=_select_josa(biz_name, "은", "는"),
-        ctx0=ctx0,
-        ctx1=ctx1,
-        ctx2=ctx2,
-    ).strip()
+    # ctx0 빈 경우 — 매칭 키워드 없음. 템플릿 적용 시 "은이"/"는이" 문법 오류 방지.
+    if not ctx0:
+        category_ko_sim = _to_ko_category(normalize_category(category))
+        simulated = (
+            f"{region_short} {biz_name}{_select_josa(biz_name, '은', '는')} "
+            f"{category_ko_sim} 전문입니다."
+        )
+    else:
+        template = _select_answer_template(normalize_category(category))
+        simulated = template.format(
+            region=region_short,
+            name=biz_name,
+            eun_neun=_select_josa(biz_name, "은", "는"),
+            ctx0=ctx0,
+            ctx1=ctx1,
+            ctx2=ctx2,
+        ).strip()
     # 빈 ctx로 인한 어색한 공백·쉼표·마침표 정리
     for _ in range(3):
         simulated = (

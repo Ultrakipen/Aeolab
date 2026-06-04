@@ -2,7 +2,7 @@ import csv
 import io
 import logging
 from datetime import date, timedelta
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, Header, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, Header, HTTPException, Query
 from fastapi.responses import StreamingResponse, Response
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
@@ -1103,18 +1103,10 @@ async def get_mention_context(biz_id: str, user=Depends(get_current_user)):
     x_user_id = user["id"]
     await _verify_biz_ownership(supabase, biz_id, x_user_id)
 
-    # 플랜 확인
-    sub = (
-        await execute(
-            supabase.table("subscriptions")
-            .select("plan")
-            .eq("user_id", x_user_id)
-            .in_("status", ["active", "grace_period"])
-            .maybe_single()
-        )
-    ).data
-    plan = (sub or {}).get("plan", "free")
-    if plan not in ("pro", "biz"):
+    # 플랜 확인 (get_user_plan 사용 — 어드민 바이패스 포함)
+    from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
+    plan = await get_user_plan(x_user_id, supabase)
+    if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("pro", 0):
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz"]},
@@ -1141,21 +1133,35 @@ async def get_mention_context(biz_id: str, user=Depends(get_current_user)):
             .select("id, platform, query, mentioned, excerpt, sentiment, mention_type, created_at")
             .in_("scan_id", scan_ids)
             .order("created_at", desc=True)
-            .limit(20)
+            .limit(40)
         )).data or []
+
+    # 플랫폼 중복 제거 — 3회 스캔 누적으로 같은 platform이 중복 등장할 수 있음
+    # mentioned=True 항목 우선 유지, 없으면 가장 최신 항목(첫 번째) 유지
+    _by_platform: dict = {}
+    for c in raw:
+        plat = c.get("platform", "")
+        prev = _by_platform.get(plat)
+        if prev is None or (c.get("mentioned") and not prev.get("mentioned")):
+            _by_platform[plat] = c
+    deduped = list(_by_platform.values())
 
     citations = [
         {**c, "platform_label": _PLABEL.get(c.get("platform", ""), c.get("platform", ""))}
-        for c in raw
-        if not (c.get("excerpt") or "").strip().endswith("(구체적 인용문 없음)")
+        for c in deduped
+        # mentioned=True 항목은 excerpt 내용 무관하게 항상 포함
+        if c.get("mentioned") or not (c.get("excerpt") or "").strip().endswith("(구체적 인용문 없음)")
     ]
+    mentioned = [c for c in citations if c.get("mentioned")]
+    not_mentioned_count = len(citations) - len(mentioned)
     return {
         "biz_id": biz_id,
         "platforms": citations,
         "summary": {
-            "positive_count": sum(1 for c in citations if c.get("sentiment") == "positive"),
-            "negative_count": sum(1 for c in citations if c.get("sentiment") == "negative"),
-            "neutral_count": sum(1 for c in citations if c.get("sentiment") == "neutral"),
+            "positive_count": sum(1 for c in mentioned if c.get("sentiment") == "positive"),
+            "negative_count": sum(1 for c in mentioned if c.get("sentiment") == "negative"),
+            "neutral_count": sum(1 for c in mentioned if c.get("sentiment") == "neutral"),
+            "not_mentioned_count": not_mentioned_count,
             "total": len(citations),
         },
     }
@@ -1276,7 +1282,7 @@ async def get_gap_analysis(biz_id: str, user=Depends(get_current_user)):
     try:
         biz_res = await execute(
             supabase.table("businesses")
-            .select("id, blog_analysis_json, review_sample, category")
+            .select("id, blog_analysis_json, review_sample, category, keywords")
             .eq("id", biz_id)
             .limit(1)
         )
@@ -1422,6 +1428,13 @@ async def confirm_ai_tab_checklist(
         existing = {}
 
     existing[item_text] = completed
+    # 소식 수동 확인 시 날짜 함께 저장 (90일 만료 계산용)
+    if item_text == "__recent_post_sufficient":
+        import datetime
+        if completed:
+            existing["__recent_post_confirmed_at"] = datetime.date.today().isoformat()
+        else:
+            existing.pop("__recent_post_confirmed_at", None)
 
     await execute(
         supabase.table("businesses")
@@ -1603,7 +1616,7 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
             reason = "네이버 AI 브리핑 스캔에서 내 가게가 확인되지 않았습니다. 소개글 안 Q&A 섹션은 AI 브리핑 인용 후보로 가장 자주 활용되는 콘텐츠입니다."
         else:
             sp_score = float(breakdown.get("smart_place_completeness", 100))
-            reason = f"스마트플레이스 완성도 {sp_score:.0f}점 — FAQ 미등록이 가장 큰 감점 요인입니다." if sp_score < 70 else "FAQ에 5개 이상 답변이 있으면 AI 브리핑 인용 확률이 크게 올라갑니다."
+            reason = f"스마트플레이스 완성도가 {'낮습니다' if sp_score < 40 else '보통 수준입니다'} — FAQ 미등록이 가장 큰 감점 요인입니다." if sp_score < 70 else "FAQ에 5개 이상 답변이 있으면 AI 브리핑 인용 확률이 크게 올라갑니다."
         tips.append({
             "id": "faq_from_gap",
             "title": faq_path["path_name"],
@@ -1627,7 +1640,7 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
         review_count = int(biz_row.get("review_count") or 0)
         review_quality = float(breakdown.get("review_quality", 0))
         if review_count > 0 and review_quality < 60:
-            reason = f"리뷰 {review_count}건이 쌓여 있는데 답변 품질 점수({review_quality:.0f}점)가 낮습니다. 답변에 키워드를 자연스럽게 포함하면 AI 신호가 강화됩니다."
+            reason = f"리뷰 {review_count}건이 쌓여 있는데 답변 품질이 {'낮은' if review_quality < 40 else '보통'} 수준입니다. 답변에 키워드를 자연스럽게 포함하면 AI 신호가 강화됩니다."
             evidence = f"리뷰 {review_count}건"
         elif review_count == 0:
             reason = "아직 리뷰가 없습니다. 단골에게 리뷰 1건만 요청하고, 받은 리뷰에 즉시 키워드 답변을 다세요."
@@ -1666,7 +1679,7 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
             evidence_type = "keyword_gap"
         else:
             ic = float(breakdown.get("info_completeness", 100))
-            reason = f"정보 완성도 {ic:.0f}점 — 소개글 키워드 보강이 가장 가성비 좋은 개선입니다." if ic < 80 else "소개글을 한 번 손보면 영구적으로 AI 브리핑 신호가 유지됩니다."
+            reason = f"정보 완성도가 {'낮습니다' if ic < 40 else '보통 수준입니다'} — 소개글 키워드 보강이 가장 가성비 좋은 개선입니다." if ic < 80 else "소개글을 한 번 손보면 영구적으로 AI 브리핑 신호가 유지됩니다."
             evidence = "정보 완성도"
             evidence_type = "smart_place"
         tips.append({
@@ -1723,7 +1736,7 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
     if missing_platforms_ko:
         summary = f"{', '.join(missing_platforms_ko[:2])}에서 아직 내 가게가 확인되지 않았습니다. 아래 {len(tips)}가지로 AI가 읽을 신호를 바로 만들 수 있습니다."
     elif low_items:
-        summary = f"{', '.join(low_items[:2])} 점수가 낮아 아래 {len(tips)}가지가 가장 빠르게 반영됩니다."
+        summary = f"{', '.join(low_items[:2])} 항목이 아직 낮아 아래 {len(tips)}가지가 가장 빠르게 반영됩니다."
     else:
         summary = f"스캔 결과 기반으로 가장 효과 큰 {len(tips)}가지를 골랐습니다."
 
@@ -2849,15 +2862,17 @@ async def get_multi_biz_summary(user=Depends(get_current_user)):
     for biz in biz_list:
         bid = biz["id"]
         scan = scan_map.get(bid, {})
-        score = scan.get("unified_score") or scan.get("total_score") or 0
+        raw_unified = scan.get("unified_score") or scan.get("total_score")
+        raw_t1 = scan.get("track1_score")
+        raw_t2 = scan.get("track2_score")
         items.append({
             "id": bid,
             "name": biz["name"],
             "category": biz.get("category", ""),
             "region": biz.get("region", ""),
-            "unified_score": round(float(score), 1),
-            "track1_score": round(float(scan.get("track1_score") or 0), 1),
-            "track2_score": round(float(scan.get("track2_score") or 0), 1),
+            "unified_score": round(float(raw_unified), 1) if raw_unified is not None else None,
+            "track1_score": round(float(raw_t1), 1) if raw_t1 is not None else None,
+            "track2_score": round(float(raw_t2), 1) if raw_t2 is not None else None,
             "competitor_count": comp_count.get(bid, 0),
             "last_scanned_at": scan.get("scanned_at"),
         })
@@ -3212,15 +3227,47 @@ async def get_action_log(
     return {"logs": (logs.data if logs and hasattr(logs, "data") else logs) or []}
 
 
+# 키워드 → 소개글 Q&A 질문 변환 매핑 (competitor_faqs 미수집 시 폴백용)
+_KW_TO_QA: dict[str, str] = {
+    "주차": "주차 가능한가요?",
+    "주차장": "주차 가능한가요?",
+    "예약": "예약은 어떻게 하나요?",
+    "배달": "배달 가능한가요?",
+    "포장": "포장 가능한가요?",
+    "단체": "단체 예약·단체석이 있나요?",
+    "단체석": "단체석이 있나요?",
+    "주말": "주말·공휴일에도 운영하나요?",
+    "할인": "할인·멤버십 혜택이 있나요?",
+    "반려동물": "반려동물 동반이 가능한가요?",
+    "키즈존": "어린이 놀이 공간(키즈존)이 있나요?",
+    "노키즈존": "노키즈존인가요?",
+    "와이파이": "Wi-Fi를 제공하나요?",
+    "콘센트": "콘센트 사용이 가능한가요?",
+    "웨이팅": "웨이팅이 얼마나 걸리나요?",
+    "영업시간": "영업시간이 어떻게 되나요?",
+    "브레이크타임": "브레이크타임이 있나요?",
+    "혼밥": "혼자 방문해도 괜찮나요?",
+    "테라스": "테라스 자리가 있나요?",
+    "룸": "프라이빗 룸이 있나요?",
+    "회식": "단체 회식 예약이 가능한가요?",
+    "기념일": "기념일 이벤트 요청이 가능한가요?",
+    "쿠폰": "쿠폰·할인 혜택이 있나요?",
+    "포인트": "포인트 적립이 되나요?",
+}
+
+def _kw_to_qa_question(kw: str) -> str:
+    return _KW_TO_QA.get(kw.strip(), f"{kw.strip()}에 대해 알고 싶어요.")
+
+
 @router.get("/competitor-faq-gap/{biz_id}")
 async def get_competitor_faq_gap(
     biz_id: str,
     user: dict = Depends(get_current_user),
 ):
-    """경쟁사 FAQ 갭: 경쟁사 스마트플레이스에 등록된 질문 중 내 가게에 없는 Q 목록.
+    """경쟁사 소개글 Q&A 갭.
 
-    v3.4 신규 — 주 1회 수집된 competitor_faqs 데이터로 차이 분석.
-    "ChatGPT로는 얻을 수 없는 데이터" 직접 증거.
+    1순위: competitor_faqs 테이블 (2026-05-01 네이버 Q&A 탭 폐기로 현재 미수집).
+    2순위: keyword_gap.competitor_only_keywords → Q&A 질문 형식 변환 (DB 읽기만, Naver 요청 없음).
     """
     user_id = user["id"]
     supabase = get_client()
@@ -3249,7 +3296,7 @@ async def get_competitor_faq_gap(
 
     comp_ids = [c.get("id") for c in comps if c.get("id")]
     if not comp_ids:
-        return {"gap_count": 0, "competitors": [], "pooled_questions": [], "message": "경쟁사를 등록하면 FAQ 갭 분석이 시작됩니다."}
+        return {"gap_count": 0, "competitors": [], "pooled_questions": [], "message": "경쟁사를 등록하면 키워드 기반 Q&A 제안이 시작됩니다."}
 
     try:
         faqs_resp = await execute(
@@ -3270,39 +3317,85 @@ async def get_competitor_faq_gap(
         if cid and cid not in latest_by_comp:
             latest_by_comp[cid] = f
 
-    # 경쟁사별 이름과 질문 매핑 + 전체 풀
-    comp_map = {c["id"]: c for c in comps}
-    competitor_rows = []
-    pooled: dict[str, list[str]] = {}
-    for cid, f in latest_by_comp.items():
-        qs = f.get("questions") or []
-        if not isinstance(qs, list):
-            continue
-        cname = comp_map.get(cid, {}).get("name", "경쟁사")
-        competitor_rows.append({
-            "competitor_id": cid,
-            "competitor_name": cname,
-            "questions": qs,
-            "collected_at": f.get("collected_at"),
-        })
-        for q in qs:
-            q_norm = str(q).strip()
-            if not q_norm:
+    # ── 1순위: competitor_faqs 데이터 있으면 그대로 반환 ──────────────
+    if latest_by_comp:
+        comp_map = {c["id"]: c for c in comps}
+        competitor_rows = []
+        pooled: dict[str, list[str]] = {}
+        for cid, f in latest_by_comp.items():
+            qs = f.get("questions") or []
+            if not isinstance(qs, list):
                 continue
-            pooled.setdefault(q_norm, []).append(cname)
+            cname = comp_map.get(cid, {}).get("name", "경쟁사")
+            competitor_rows.append({
+                "competitor_id": cid,
+                "competitor_name": cname,
+                "questions": qs,
+                "collected_at": f.get("collected_at"),
+            })
+            for q in qs:
+                q_norm = str(q).strip()
+                if not q_norm:
+                    continue
+                pooled.setdefault(q_norm, []).append(cname)
 
-    # 경쟁사 2곳 이상 공통 질문 우선순위
-    pooled_rows = [
-        {"question": q, "asked_by": list(dict.fromkeys(names)), "count": len(set(names))}
-        for q, names in pooled.items()
-    ]
-    pooled_rows.sort(key=lambda r: (-r["count"], r["question"]))
+        pooled_rows = [
+            {"question": q, "asked_by": list(dict.fromkeys(names)), "count": len(set(names))}
+            for q, names in pooled.items()
+        ]
+        pooled_rows.sort(key=lambda r: (-r["count"], r["question"]))
+        return {
+            "business_name": biz.data.get("name"),
+            "gap_count": len(pooled_rows),
+            "competitors": competitor_rows,
+            "pooled_questions": pooled_rows[:20],
+            "source": "competitor_faqs",
+        }
+
+    # ── 2순위: keyword_gap.competitor_only_keywords → Q&A 변환 ──────────
+    _had_scan = False
+    try:
+        from services.gap_analyzer import analyze_gap_from_db
+        gap = await analyze_gap_from_db(biz_id, supabase)
+        _had_scan = gap is not None
+        kgap = getattr(gap, "keyword_gap", None) if gap else None
+        comp_only = list(getattr(kgap, "competitor_only_keywords", []) or []) if kgap else []
+        comp_kw_sources: dict = getattr(kgap, "competitor_keyword_sources", {}) or {} if kgap else {}
+
+        if comp_only:
+            pooled_rows = []
+            for kw in comp_only[:10]:
+                sources = comp_kw_sources.get(kw) or []
+                pooled_rows.append({
+                    "question": _kw_to_qa_question(kw),
+                    "asked_by": sources[:3] if sources else ["경쟁사"],
+                    "count": len(sources) if sources else 1,
+                    "keyword": kw,
+                })
+            pooled_rows.sort(key=lambda r: -r["count"])
+            return {
+                "business_name": biz.data.get("name"),
+                "gap_count": len(pooled_rows),
+                "competitors": [],
+                "pooled_questions": pooled_rows,
+                "source": "keyword_gap",
+            }
+    except Exception as e:
+        _logger.warning("[competitor_faq_gap] keyword_gap 폴백 실패: %s", e)
+
+    if _had_scan:
+        return {
+            "gap_count": 0,
+            "competitors": [],
+            "pooled_questions": [],
+            "message": "경쟁사 대비 추가할 키워드가 없습니다. 소개글 키워드 관리가 잘 되고 있어요.",
+        }
 
     return {
-        "business_name": biz.data.get("name"),
-        "gap_count": len(pooled_rows),
-        "competitors": competitor_rows,
-        "pooled_questions": pooled_rows[:20],
+        "gap_count": 0,
+        "competitors": [],
+        "pooled_questions": [],
+        "message": "첫 스캔이 완료되면 경쟁사 키워드 기반 Q&A 제안이 표시됩니다.",
     }
 
 
@@ -3419,13 +3512,16 @@ async def get_action_timeline(
 @router.get("/condition-search/{biz_id}")
 async def get_condition_search(
     biz_id: str,
+    force: bool = Query(False),
+    cache_only: bool = Query(False),
     user=Depends(get_current_user),
 ):
-    """조건검색 시뮬레이션 -- 실제 고객 검색 방식으로 AI 노출 확인 (Pro+).
+    """조건검색 시뮬레이션 -- 소개글·키워드 기반 AI 추천 적합성 확인 (Pro+).
 
-    "강남 주차 가능 식당" 처럼 조건이 붙은 검색어로 내 가게가
-    Gemini AI 응답에 언급되는지 업종별 상위 5개 쿼리로 확인합니다.
-    결과는 1시간 캐시됩니다.
+    소개글·등록 키워드를 Gemini에 제공해 업종별 조건 검색어에서
+    추천될 자격이 있는지 확인합니다. 결과는 1시간 캐시됩니다.
+    force=true 전달 시 캐시를 무시하고 재측정합니다.
+    cache_only=true 전달 시 캐시가 없으면 404 반환 (AI 호출 없음).
     """
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
     user_id = user["id"]
@@ -3439,7 +3535,7 @@ async def get_condition_search(
     # 소유권 검증
     biz_row = await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, keywords")
+        .select("id, name, category, region, keywords, naver_intro_draft")
         .eq("id", biz_id)
         .eq("user_id", user_id)
         .maybe_single()
@@ -3449,11 +3545,16 @@ async def get_condition_search(
 
     biz_data = biz_row.data
 
-    # 1시간 캐시 확인
+    # 1시간 캐시 확인 (force=true 시 스킵)
     cache_key = f"condition_search:{biz_id}"
-    cached = _cache.get(cache_key)
-    if cached is not None:
-        return cached
+    if not force:
+        cached = _cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+    # cache_only 모드: 캐시 없으면 AI 호출 없이 404 반환
+    if cache_only:
+        raise HTTPException(status_code=404, detail="캐시된 결과가 없습니다")
 
     # 사업장 등록 키워드로 쿼리 생성 (없으면 카테고리 기반 폴백)
     _biz_keywords = [k.strip() for k in (biz_data.get("keywords") or []) if k.strip() and len(k.strip()) >= 2]
@@ -3474,12 +3575,15 @@ async def get_condition_search(
         _keyword_queries = None  # 폴백: category 기반
 
     from services.condition_search_scanner import run_condition_search
+    _intro = biz_data.get("naver_intro_draft") or ""
     results = await run_condition_search(
         business_name=biz_data.get("name", ""),
         category=biz_data.get("category", ""),
         region=_region,
         queries=_keyword_queries,
         business_id=biz_id,
+        intro=_intro,
+        keywords=_biz_keywords or None,
     )
 
     response = {
@@ -3560,22 +3664,22 @@ async def get_score_explanation(biz_id: str, user=Depends(get_current_user)):
     if sp_score < 30:
         missing = []
         if not biz.get("has_faq"):
-            missing.append("FAQ 미등록 (-15점)")
+            missing.append("FAQ 미등록")
         if not biz.get("has_recent_post"):
-            missing.append("최근 소식 없음 (-10점)")
+            missing.append("최근 소식 없음")
         if not biz.get("has_intro"):
-            missing.append("소개글 없음 (-8점)")
+            missing.append("소개글 없음")
         if missing:
             t1_parts.append("스마트플레이스 미완성: " + ", ".join(missing))
     elif sp_score < 60:
-        t1_parts.append(f"스마트플레이스 일부 완성 (점수 {sp_score:.0f}/100)")
+        t1_parts.append("스마트플레이스 일부 완성 — 보통")
     else:
-        t1_parts.append(f"스마트플레이스 잘 완성됨 (점수 {sp_score:.0f}/100)")
+        t1_parts.append("스마트플레이스 잘 완성됨 — 양호")
 
     kw_cov = float(r.get("keyword_coverage") or 0)
     if kw_cov < 0.3:
         kw_score = breakdown.get("keyword_gap_score", 0)
-        t1_parts.append(f"리뷰 키워드 커버리지 낮음 (현재 {kw_cov*100:.0f}%, 목표 70%+, 점수 {kw_score:.0f}/100)")
+        t1_parts.append(f"리뷰 키워드 커버리지 낮음 (현재 {kw_cov*100:.0f}%, 목표 70%+)")
     elif kw_cov < 0.6:
         t1_parts.append(f"리뷰 키워드 커버리지 보통 ({kw_cov*100:.0f}%)")
     else:
@@ -3623,11 +3727,11 @@ async def get_score_explanation(biz_id: str, user=Depends(get_current_user)):
         if seo_issues:
             t2_parts.append("웹사이트 SEO 문제: " + ", ".join(seo_issues))
         else:
-            t2_parts.append(f"웹사이트 SEO 점수 낮음 ({schema_seo:.0f}/100)")
+            t2_parts.append("웹사이트 SEO 낮음 — 개선 필요")
     elif schema_seo < 60:
-        t2_parts.append(f"웹사이트 SEO 개선 중 ({schema_seo:.0f}/100)")
+        t2_parts.append("웹사이트 SEO 개선 중 — 보통")
     else:
-        t2_parts.append(f"웹사이트 SEO 양호 ({schema_seo:.0f}/100)")
+        t2_parts.append("웹사이트 SEO 양호")
 
     track2_reason = " / ".join(t2_parts) if t2_parts else "트랙 2 데이터 부족"
 
@@ -4518,6 +4622,7 @@ async def get_onboarding_action(biz_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="추천 행동을 계산할 수 없습니다")
 
     # business_action_log INSERT (auto_recommended) — 7일 내 동일 라벨 중복 방지
+    from datetime import timedelta
     today_iso = date.today().isoformat()
     seven_days_ago = (date.today() - timedelta(days=7)).isoformat()
     action_title = action.get("title") or "추천 행동"
@@ -4785,14 +4890,21 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
         except Exception as e:
             _logger.warning("sp_result_raw JSON parse failed: %s", e)
             sp_result_raw = {}
-    photo_count = int(sp_result_raw.get("photo_count") or 0)
+    photo_count_raw = sp_result_raw.get("photo_count")  # None = 측정 불가, 0 = 실제 없음
+    photo_count = int(photo_count_raw or 0)
 
-    # smart_place_score는 photo_count == 0 && 스캔 결과 없을 때 fallback용으로만 사용
+    # smart_place_score는 photo_count 측정 실패 시 fallback용으로만 사용
     smart_place_score = float(score_breakdown.get("smart_place_completeness") or 0)
 
-    # photo_count가 0이고 smart_place_completeness_result가 없는 경우(Playwright 미실행)
-    # → smart_place_score >= 70이면 사실상 사진 있는 것으로 간주
-    photo_done = (photo_count >= 3) or (photo_count == 0 and smart_place_score >= 70 and sp_result_raw == {})
+    # 완료 조건:
+    # 1) 실측 3장 이상
+    # 2) photo_count None(측정 불가) 또는 0(IP 차단으로 파싱 실패) → score >= 70이면 있는 것으로 간주
+    #    calc_smart_place_completeness에 사진 점수 없으므로 score >= 70은 등록·순위·소식·소개글 양호 = 사진도 있는 것으로 추정
+    photo_done = (
+        photo_count >= 3
+        or (photo_count_raw is None and smart_place_score >= 70)
+        or (photo_count == 0 and smart_place_score >= 70)
+    )
 
     # 3. 최근 7일 내 스캔 여부
     seven_days_ago = (now_utc - timedelta(days=7)).isoformat()
@@ -4887,7 +4999,7 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
                 else (
                     f"대표 사진 {photo_count}장 등록 완료!"
                     if photo_count >= 3
-                    else f"스마트플레이스 완성도 {int(smart_place_score)}점 — 목표 달성!"
+                    else "스마트플레이스 완성도 양호 — 목표 달성!"
                 )
             ),
             "completed": photo_done,
@@ -5249,3 +5361,258 @@ async def get_v31_migration_status(biz_id: str, user=Depends(get_current_user)):
     except Exception as e:
         _logger.warning(f"[v31_migration_status] biz_id={biz_id}: {e}")
         return {"show": False, "model_version": model_ver}
+
+
+# ---------------------------------------------------------------------------
+# 경쟁사 특징 비교 분석 (v3.5 신규)
+# ---------------------------------------------------------------------------
+
+_COMPARE_FIELDS = [
+    # (내 stat 키,           경쟁사 컬럼,         표시 레이블,  타입)
+    ("review_count",       "naver_review_count",  "리뷰 수",    "numeric"),
+    ("avg_rating",         "naver_avg_rating",    "별점",       "numeric"),
+    ("photo_count",        "naver_photo_count",   "사진 수",    "numeric"),
+    ("blog_mention_count", "blog_mention_count",  "블로그 언급", "numeric"),
+]
+_DISPLAY_FIELDS = ["has_menu", "has_recent_post", "has_intro"]
+
+
+def _advantage_lists(my_stats: dict, comp: dict) -> tuple[list[str], list[str]]:
+    """numeric 필드 4개에 대해 advantage 목록 반환.
+
+    10% 초과 차이만 우세 판정, None 값은 제외.
+    반환: (competitor_leads, my_leads)
+    """
+    comp_leads: list[str] = []
+    my_leads: list[str] = []
+    for my_key, comp_key, _label, _type in _COMPARE_FIELDS:
+        my_val = my_stats.get(my_key)
+        comp_val = comp.get(comp_key)
+
+        # 0 vs None 구분: has_place_data=False면 0도 None으로 취급
+        # blog_mention_count도 포함 — 미크롤링 경쟁사의 기본값 0과 비교하면 항상 내가 앞서는 오판 발생
+        if not comp.get("has_place_data") and comp_key in (
+            "naver_review_count",
+            "naver_avg_rating",
+            "naver_photo_count",
+            "blog_mention_count",
+        ):
+            comp_val = None
+
+        if my_val is None or comp_val is None:
+            continue
+        try:
+            mv, cv = float(my_val), float(comp_val)
+        except (TypeError, ValueError):
+            continue
+        if cv > mv * 1.1:
+            comp_leads.append(my_key)
+        elif mv > cv * 1.1:
+            my_leads.append(my_key)
+    return comp_leads, my_leads
+
+
+def _overall_advantages(comp_list: list[dict]) -> tuple[list[str], list[str]]:
+    """전체 경쟁사 중 과반(50%↑) 대비 우세·열세 항목 집계."""
+    if not comp_list:
+        return [], []
+    n = len(comp_list)
+    threshold = n * 0.5
+    my_counts: dict[str, int] = {}
+    comp_counts: dict[str, int] = {}
+    for comp in comp_list:
+        for k in comp.get("my_leads", []):
+            my_counts[k] = my_counts.get(k, 0) + 1
+        for k in comp.get("competitor_leads", []):
+            comp_counts[k] = comp_counts.get(k, 0) + 1
+    overall_my = [k for k, cnt in my_counts.items() if cnt >= threshold]
+    overall_comp = [k for k, cnt in comp_counts.items() if cnt >= threshold]
+    return overall_my, overall_comp
+
+
+@router.get("/competitor-profile/{biz_id}")
+async def get_competitor_profile(
+    biz_id: str,
+    user: dict = Depends(get_current_user),
+):
+    """경쟁사 특징 비교 분석 — 내 사업장과 경쟁사 실측 수치 비교 (Basic+).
+
+    - 리뷰 수·별점·사진 수·블로그 언급 4개 numeric 비교 (has_faq 제외)
+    - boolean 필드(has_menu / has_recent_post / has_intro) 현황 표시
+    - 최신 스캔의 competitor_scores에서 AI 언급 여부 매핑
+    - show_ai_mention: ACTIVE/LIKELY 업종만 True
+    """
+    from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
+
+    user_id = user["id"]
+    supabase = get_client()
+
+    # --- 플랜 게이트: Basic+ ---
+    plan = await get_user_plan(user_id, supabase)
+    if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 0):
+        raise HTTPException(
+            status_code=403,
+            detail="Basic 이상 플랜에서 이용할 수 있습니다",
+        )
+
+    # --- 내 사업장 조회 + 소유권 검증 ---
+    biz_resp = await execute(
+        supabase.table("businesses")
+        .select(
+            "id, name, category, review_count, avg_rating, "
+            "blog_mention_count, sp_completeness_json, naver_place_id"
+        )
+        .eq("id", biz_id)
+        .eq("user_id", user_id)
+        .maybe_single()
+    )
+    if not (biz_resp and biz_resp.data):
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+    biz = biz_resp.data
+    sp_json: dict = biz.get("sp_completeness_json") or {}
+
+    # 내 사업장 통계 — has_faq는 비교 대상 제외
+    my_stats = {
+        "review_count":       biz.get("review_count"),
+        "avg_rating":         biz.get("avg_rating"),
+        "photo_count":        sp_json.get("photo_count"),
+        "blog_mention_count": biz.get("blog_mention_count") or 0,
+        "has_menu":           sp_json.get("has_menu"),
+        "has_recent_post":    sp_json.get("has_recent_post"),
+        "has_intro":          sp_json.get("has_intro"),
+    }
+
+    # --- show_ai_mention 판정 ---
+    try:
+        from services.score_engine import BRIEFING_ACTIVE_CATEGORIES, BRIEFING_LIKELY_CATEGORIES
+    except ImportError:
+        BRIEFING_ACTIVE_CATEGORIES = ["restaurant", "cafe", "bakery", "bar", "accommodation"]
+        BRIEFING_LIKELY_CATEGORIES = [
+            "beauty", "nail", "skincare", "massage", "spa",
+            "pet", "fitness", "yoga", "pharmacy", "dance",
+            "ballet", "semi_permanent",
+        ]
+    category = biz.get("category", "")
+    show_ai_mention = (
+        category in BRIEFING_ACTIVE_CATEGORIES
+        or category in BRIEFING_LIKELY_CATEGORIES
+    )
+
+    # --- 경쟁사 조회 ---
+    try:
+        comps_resp = await execute(
+            supabase.table("competitors")
+            .select(
+                "id, name, naver_place_id, "
+                "naver_review_count, naver_avg_rating, "
+                "has_faq, has_recent_post, has_menu, has_intro, "
+                "naver_photo_count, blog_mention_count, website_seo_score, "
+                "naver_place_last_synced_at"
+            )
+            .eq("business_id", biz_id)
+            .eq("is_active", True)
+        )
+        comps: list[dict] = (comps_resp.data if comps_resp and hasattr(comps_resp, "data") else comps_resp) or []
+    except Exception as e:
+        _logger.warning("[competitor_profile] 경쟁사 조회 실패 biz_id=%s: %s", biz_id, e)
+        comps = []
+
+    # --- 최신 스캔 competitor_scores 조회 ---
+    ai_scores: dict = {}
+    try:
+        scan_resp = await execute(
+            supabase.table("scan_results")
+            .select("competitor_scores, score_breakdown")
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+        )
+        if scan_resp and scan_resp.data:
+            raw_cs = scan_resp.data[0].get("competitor_scores") or {}
+            if isinstance(raw_cs, dict):
+                ai_scores = raw_cs
+    except Exception as e:
+        _logger.warning("[competitor_profile] 스캔 조회 실패 biz_id=%s: %s", biz_id, e)
+
+    # --- 경쟁사별 비교 구성 ---
+    result_comps: list[dict] = []
+    for c in comps:
+        comp_id = c.get("id", "")
+        has_place_data = c.get("naver_place_last_synced_at") is not None
+
+        # 0 값 신뢰 조건: has_place_data=True AND avg_rating이 있음 (page_parse 성공 지표)
+        # page_parse 실패 시 review=0·photo=0이 기본값으로 저장되므로 None 처리
+        page_parsed_ok = has_place_data and (c.get("naver_avg_rating") is not None)
+
+        review_count = c.get("naver_review_count")
+        if not page_parsed_ok and review_count == 0:
+            review_count = None
+
+        avg_rating = c.get("naver_avg_rating")
+        if not has_place_data and avg_rating == 0:
+            avg_rating = None
+
+        photo_count = c.get("naver_photo_count")
+        if not page_parsed_ok and photo_count == 0:
+            photo_count = None
+
+        # AI 언급 정보 — str·UUID 키 양쪽 모두 탐색
+        ai_info = ai_scores.get(str(comp_id)) or ai_scores.get(comp_id) or {}
+        ai_mentioned: bool | None = None
+        ai_excerpt: str | None = None
+        ai_score_val: float | None = None
+        if ai_info:
+            ai_mentioned = bool(ai_info.get("mentioned"))
+            raw_excerpt = ai_info.get("excerpt")
+            if raw_excerpt:
+                ai_excerpt = str(raw_excerpt)[:500]
+            raw_score = ai_info.get("score")
+            if raw_score is not None:
+                try:
+                    ai_score_val = float(raw_score)
+                except (TypeError, ValueError):
+                    pass
+
+        # numeric 필드 advantage 판정용 — has_place_data 컨텍스트 포함
+        comp_for_adv = dict(c)
+        comp_for_adv["naver_review_count"] = review_count
+        comp_for_adv["naver_avg_rating"]   = avg_rating
+        comp_for_adv["naver_photo_count"]  = photo_count
+        comp_for_adv["has_place_data"]     = has_place_data
+        competitor_leads, my_leads = _advantage_lists(my_stats, comp_for_adv)
+
+        result_comps.append({
+            "id":               comp_id,
+            "name":             c.get("name", ""),
+            "naver_place_id":   c.get("naver_place_id"),
+            "has_place_data":   has_place_data,
+            "synced_at":        c.get("naver_place_last_synced_at"),
+            "review_count":     review_count,
+            "avg_rating":       avg_rating,
+            "has_faq":          bool(c.get("has_faq")),
+            "has_recent_post":  bool(c.get("has_recent_post")),
+            "has_menu":         bool(c.get("has_menu")),
+            "has_intro":        bool(c.get("has_intro")),
+            "photo_count":      photo_count,
+            "blog_mention_count": c.get("blog_mention_count"),
+            "website_seo_score": c.get("website_seo_score"),
+            "ai_mentioned":     ai_mentioned,
+            "ai_excerpt":       ai_excerpt,
+            "ai_score":         ai_score_val,
+            "competitor_leads": competitor_leads,
+            "my_leads":         my_leads,
+        })
+
+    overall_my, overall_comp = _overall_advantages(result_comps)
+    synced_count = sum(1 for c in result_comps if c["has_place_data"])
+
+    return {
+        "my_stats":                      my_stats,
+        "show_ai_mention":               show_ai_mention,
+        "competitors":                   result_comps,
+        "overall_my_advantages":         overall_my,
+        "overall_competitor_advantages": overall_comp,
+        "total_competitors":             len(result_comps),
+        "synced_competitors":            synced_count,
+    }

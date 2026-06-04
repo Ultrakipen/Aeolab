@@ -118,9 +118,9 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               {business.is_franchise
                 ? "프랜차이즈 가맹점은 현재 네이버 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정). 그동안 일반 검색·AI탭 노출과 ChatGPT·Gemini 현황 측정에서 효과를 드립니다."
                 : isInactive
-                ? "이 업종은 AI 브리핑 비대상이지만, 네이버 AI탭(2026-04-28 베타, 2026년 6월 정식 출시 예정, 업종 공식 제한 없음)을 통한 노출을 준비할 수 있습니다. 아래 단계로 준비하세요. 일반 검색 노출과 병행 가능합니다."
+                ? "이 업종은 AI 브리핑 비대상이지만, 네이버 AI탭(2026-04-27 베타, 2026년 6월 전체 출시 예정, 업종 공식 제한 없음)을 통한 노출을 준비할 수 있습니다. 아래 단계로 준비하세요. 일반 검색 노출과 병행 가능합니다."
                 : isLikely
-                ? "이 업종은 AI 브리핑 확대 예상 업종입니다. 미리 5단계를 완료해두면 확대 즉시 노출됩니다. (네이버 AI탭은 2026-04-28 베타, 2026년 6월 정식 출시 예정 → 아래 AI탭 가이드 참고)"
+                ? "이 업종은 AI 브리핑 확대 예상 업종입니다. 미리 5단계를 완료해두면 확대 즉시 노출됩니다. (네이버 AI탭은 2026-04-27 베타, 2026년 6월 전체 출시 예정 → 아래 AI탭 가이드 참고)"
                 : "이 업종은 현재 AI 브리핑 노출 대상입니다. 5단계를 완료해 노출 확률을 높이세요."}
             </p>
           </>
@@ -152,10 +152,10 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             {/* AI탭 준비 안내 — INACTIVE/프랜차이즈도 AI탭은 모든 업종 가능 */}
             <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5">
               <p className="text-sm md:text-base font-semibold text-indigo-800 mb-2">
-                🆕 네이버 AI탭 준비 — 업종 확대를 미리 대비하세요
+                🆕 네이버 AI탭 준비 — 지금 바로 노출 가능 (업종 공식 제한 없음)
               </p>
               <p className="text-sm text-indigo-700 mb-3 leading-relaxed">
-                네이버 AI탭(2026-04-28 베타, 2026년 6월 정식 출시 예정)은 업종 공식 제한 없이 모든 사업장이 노출 가능합니다.
+                네이버 AI탭(2026-04-27 베타, 2026년 6월 전체 출시 예정)은 업종 공식 제한 없이 모든 사업장이 노출 가능합니다.
                 지금 아래 항목을 준비해두면 노출 우위를 가질 수 있습니다.
               </p>
               <ul className="space-y-2 text-sm text-indigo-700">
@@ -278,7 +278,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           >
             <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed">
               AI 정보 탭에서 <strong>AI 브리핑 노출</strong> 스위치를 ON으로 설정합니다.
-              저장 후 <strong>1일 이내</strong> 검색 결과에 반영됩니다.
+              저장은 즉시되며, AI 브리핑 노출 반영까지는 <strong>2~4주</strong> 소요될 수 있습니다.
             </p>
             {isLikely ? (
               <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm md:text-base text-gray-700">
@@ -300,7 +300,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               >
                 스마트플레이스 &rarr; AI 정보 탭에서 토글을 ON으로 설정 &#8599;
               </a>
-              <p className="text-sm text-gray-500 mt-1">설정 후 24시간 내 반영됩니다</p>
+              <p className="text-sm text-gray-500 mt-1">저장은 즉시. 실제 노출 반영까지 2~4주 소요될 수 있습니다</p>
             </div>
           </Step>
         )}
@@ -310,10 +310,10 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-6 space-y-4">
             <div>
               <p className="text-sm md:text-base font-semibold text-indigo-900 mb-1">
-                이 업종은 네이버 AI 브리핑 비대상이지만, AI탭 업종 확대를 미리 준비할 수 있습니다
+                이 업종은 네이버 AI 브리핑 비대상이지만, AI탭(업종 공식 제한 없음)을 통한 노출을 지금 바로 준비할 수 있습니다
               </p>
               <p className="text-sm text-indigo-700 leading-relaxed">
-                네이버 AI탭(2026-04-28 베타, 2026년 6월 정식 출시 예정)은 업종 공식 제한이 없습니다.
+                네이버 AI탭(2026-04-27 베타, 2026년 6월 전체 출시 예정)은 업종 공식 제한이 없습니다.
                 아래 3단계로 AI탭 노출을 미리 준비하세요.
               </p>
             </div>
@@ -377,7 +377,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         {/* 단계 3: 소개글 작성 (150~500자) */}
         <Step
           num={3}
-          title="🖊️ 소개글 작성 — 150~500자 + 키워드 + USP"
+          title="🖊️ 소개글 작성 — 200자 이상 + 키워드 + USP"
           time="5분"
           done={!!business?.has_intro}
         >
@@ -386,7 +386,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               ? <>ChatGPT·Gemini·Google AI는 <strong>자체 웹사이트·구글 비즈니스 프로필</strong>을 주요 학습 소스로 활용합니다. 아래 소개글을 홈페이지에도 활용하세요.</>
 
               : <>AI 브리핑은 소개글의 <strong>핵심 정보를 학습 소스로 활용</strong>합니다.</>}
-            {" "}150~500자 분량에 사업장의 강점·서비스·키워드를 자연스럽게 포함하세요.
+            {" "}200자 이상(AI 브리핑은 500자 이상 권장) 분량에 사업장의 강점·서비스·키워드를 자연스럽게 포함하세요.
           </p>
           <ul className="list-disc list-inside space-y-1 text-sm md:text-base text-gray-700 mb-3">
             <li>키워드를 단순 나열이 아닌 문장 안에 자연스럽게 배치</li>
@@ -554,7 +554,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 <div>
                   <p className="text-sm md:text-base font-medium text-gray-900">
                     플레이스 플러스(beta) AI 리뷰 답글 초안
-                    <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5 font-normal">
+                    <span className="ml-2 text-sm bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5 font-normal">
                       음식점 전용
                     </span>
                   </p>
@@ -562,7 +562,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                     스마트플레이스 자체 AI가 리뷰 등록 시 답글 초안을 자동 생성합니다.
                     답글 스타일·길이 설정이 가능하며, 네이버플러스 구독 계정 대상 베타 서비스입니다.
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-sm text-gray-500 mt-1">
                     * AEOlab{" "}
                     <Link href="/review-inbox" className="underline">리뷰 답변 관리</Link>
                     는 Claude AI 기반으로 모든 업종을 지원하는 별개 서비스입니다.
@@ -583,7 +583,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               <div>
                 <p className="text-sm md:text-base font-medium text-gray-900">
                   리뷰 민감 이슈 알림
-                  <span className="ml-2 text-xs bg-gray-100 text-gray-600 border border-gray-200 rounded-full px-2 py-0.5 font-normal">
+                  <span className="ml-2 text-sm bg-gray-100 text-gray-600 border border-gray-200 rounded-full px-2 py-0.5 font-normal">
                     전 업종
                   </span>
                 </p>

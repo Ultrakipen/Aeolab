@@ -208,7 +208,7 @@ export default function ChatGptSearchGuidePage() {
             AEOlab에서 ChatGPT 소개글 자동 생성
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            FAQ 중심 구조로 네이버 AI 브리핑·AI탭 인용 가능성을 높인 소개글을 30초 안에 생성합니다. ChatGPT·Gemini 최적화는 구글 비즈니스 프로필·자체 웹사이트가 핵심 경로입니다.
+            ChatGPT·Gemini가 내 사업장을 언급하도록 FAQ 중심 소개글·Q&A를 30초 안에 자동 생성합니다. 구글 비즈니스 프로필·자체 웹사이트에 바로 활용하세요.
           </p>
           <Link
             href="/dashboard"

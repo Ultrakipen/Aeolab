@@ -82,7 +82,7 @@ export default function ScoreGuidePage() {
               채널별 반영 속도가 다릅니다 — 네이버 AI 브리핑·AI탭은 콘텐츠 개선 후
               <strong>2~4주</strong> 내 반영되며, Gemini는 구글 비즈니스 프로필 기준
               <strong>수주 내</strong> 반영 가능합니다. ChatGPT는 AI 학습 데이터 업데이트
-              주기(컷오프 기준 <strong>수개월~1년</strong>) 후 스캐너 점수에 반영됩니다.
+              AI 재학습 주기 특성상 <strong>수개월~1년</strong> 후 스캐너 점수에 반영됩니다.
               그 결과 새 손님이 가게를 발견할 접점이 늘어납니다.
             </p>
           </div>
@@ -106,26 +106,6 @@ export default function ScoreGuidePage() {
         </div>
       </div>
 
-      {/* v3.1 안내 박스 (향후 적용 예정) */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-5 mb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <h2 className="text-base md:text-lg font-bold text-amber-900">
-            v3.1 점수 모델 — 향후 적용 예정
-          </h2>
-          <span className="text-sm px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 font-medium">
-            베타 5명+ 측정 후 활성화
-          </span>
-        </div>
-        <p className="text-sm md:text-base text-amber-800 leading-relaxed mb-2">
-          업종 그룹(네이버 브리핑 대상 / 확대 예정 / 글로벌 AI 중심)에 따라 네이버 채널 점수 6항목의 비중을 자동 재분배합니다.
-          AI 브리핑 비대상 업종(예: 학원·법무)이라도 점수상 불이익이 없도록 키워드 검색·스마트플레이스 비중을 자동 상향합니다.
-          현재는 v3.0 기준(아래 표)이 적용 중입니다.
-        </p>
-        <p className="text-sm md:text-base text-amber-700 leading-relaxed">
-          v3.1 상세 가중치 표:{" "}
-          <a href="/how-it-works#step2" className="underline font-medium">매뉴얼 §2단계</a> 참고.
-        </p>
-      </div>
 
       {/* 3. 통합 점수 계산 방식 */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-4">
@@ -154,11 +134,11 @@ export default function ScoreGuidePage() {
             네이버 채널 점수 — 네이버 AI 채널
           </h2>
           <span className="text-sm px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
-            현재 적용 중 (v3.0)
+            현재 적용 중
           </span>
         </div>
         <p className="text-sm text-gray-500 mb-3">
-          네이버 생태계 내 AI 검색 최적화 지표 (6개 항목)
+          네이버 생태계 내 AI 검색 최적화 지표 (6개 항목) — 업종 그룹에 따라 아래 비중이 자동 적용됩니다
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse min-w-[480px]">
@@ -166,9 +146,6 @@ export default function ScoreGuidePage() {
               <tr className="bg-gray-50">
                 <th className="text-left py-2.5 px-3 font-semibold text-gray-700 border-b border-gray-200">
                   항목
-                </th>
-                <th className="text-center py-2.5 px-3 font-semibold text-gray-700 border-b border-gray-200 w-16">
-                  비중
                 </th>
                 <th className="text-left py-2.5 px-3 font-semibold text-gray-700 border-b border-gray-200">
                   설명
@@ -178,50 +155,36 @@ export default function ScoreGuidePage() {
             <tbody>
               {[
                 {
-                  item: "키워드 커버리지",
-                  weight: "30%",
-                  desc: "리뷰·블로그에서 업종 핵심 키워드가 얼마나 언급됐는지",
+                  item: "키워드 검색 순위",
+                  desc: "Playwright로 네이버에서 직접 측정한 키워드별 검색 순위",
                 },
                 {
                   item: "리뷰 품질",
-                  weight: "25%",
                   desc: "리뷰 수·평점·최신성·키워드 다양성",
                 },
                 {
                   item: "스마트플레이스 완성도",
-                  weight: "15%",
-                  desc: "톡톡 채팅방 메뉴·소개글·소식·부가정보 완성도",
+                  desc: "등록정보·소개글·소식 + 키워드 매칭도",
+                },
+                {
+                  item: "블로그 생태계",
+                  desc: "블로그 발행 빈도·외부 인용·업체명 매칭으로 C-rank 추정",
+                },
+                {
+                  item: "지도·카카오맵",
+                  desc: "네이버 지도 등록 + 카카오맵 리뷰·평점 통합",
                 },
                 {
                   item: "네이버 AI 브리핑 노출",
-                  weight: "15%",
-                  desc: "실제 네이버 AI 브리핑에 가게가 인용됐는지",
-                },
-                {
-                  item: "↳ 비대상 업종(학원·법무 등)",
-                  weight: "0%",
-                  desc: "음식점·카페 등 일부 업종만 해당 (공식: help.naver.com/service/30026/contents/24632). 비대상 업종은 나머지 항목 비중이 자동 상향됩니다.",
-                },
-                {
-                  item: "카카오맵 완성도",
-                  weight: "10%",
-                  desc: "카카오맵 정보 완성도 (사용자 체크리스트 기반)",
-                },
-                {
-                  item: "AI탭 준비도",
-                  weight: "5%",
-                  desc: "네이버 AI탭 노출 체크리스트 완성도 — 업종 공식 제한 없음 (2026-04-28 베타, 2026년 6월 정식 출시 예정)",
+                  desc: "실제 네이버 AI 브리핑에 가게가 인용됐는지 (비대상 업종 0% — 음식점·카페 등 일부 업종만 해당)",
                 },
               ].map((row, i) => (
                 <tr
                   key={i}
                   className="border-b border-gray-100 last:border-0 hover:bg-gray-50"
                 >
-                  <td className="py-2.5 px-3 font-medium text-gray-800">
+                  <td className="py-2.5 px-3 font-medium text-gray-800 w-44">
                     {row.item}
-                  </td>
-                  <td className="py-2.5 px-3 text-center font-bold text-blue-600">
-                    {row.weight}
                   </td>
                   <td className="py-2.5 px-3 text-gray-600">{row.desc}</td>
                 </tr>
@@ -231,39 +194,39 @@ export default function ScoreGuidePage() {
         </div>
       </div>
 
-      {/* 4-1. Track 1 v3.1 예정 가중치 표 */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-4">
+      {/* 4-1. Track 1 그룹별 가중치 표 */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5 mb-4">
         <div className="flex items-center gap-2 flex-wrap mb-1">
-          <h2 className="text-base md:text-lg font-bold text-amber-900">
-            네이버 채널 점수 — 그룹별 가중치 (v3.1 활성화 시 적용 예정)
+          <h2 className="text-base md:text-lg font-bold text-gray-900">
+            네이버 채널 점수 — 업종 그룹별 비중
           </h2>
-          <span className="text-sm px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 font-medium">
-            현재 미적용
+          <span className="text-sm px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+            현재 적용 중
           </span>
         </div>
-        <p className="text-sm text-amber-700 mb-3">
-          베타 사용자 5명+ 측정 데이터 확보 후 활성화. 환경변수 <code className="bg-amber-100 px-1 rounded text-sm">SCORE_MODEL_VERSION=v3_1</code> 로 토글.
+        <p className="text-sm text-gray-500 mb-3">
+          업종 그룹에 따라 아래 비중이 자동 적용됩니다.
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse min-w-[520px]">
             <thead>
-              <tr className="bg-amber-100">
-                <th className="text-left py-2.5 px-3 font-semibold text-amber-900 border-b border-amber-200">항목</th>
-                <th className="text-center py-2.5 px-3 font-semibold text-amber-900 border-b border-amber-200 w-20">네이버 대상</th>
-                <th className="text-center py-2.5 px-3 font-semibold text-amber-900 border-b border-amber-200 w-20">확대 예정</th>
-                <th className="text-center py-2.5 px-3 font-semibold text-amber-900 border-b border-amber-200 w-24">글로벌 중심</th>
+              <tr className="bg-gray-50">
+                <th className="text-left py-2.5 px-3 font-semibold text-gray-700 border-b border-gray-200">항목</th>
+                <th className="text-center py-2.5 px-3 font-semibold text-green-700 border-b border-gray-200 w-20">AI브리핑 대상</th>
+                <th className="text-center py-2.5 px-3 font-semibold text-blue-700 border-b border-gray-200 w-20">확대 예정</th>
+                <th className="text-center py-2.5 px-3 font-semibold text-gray-600 border-b border-gray-200 w-24">글로벌 중심</th>
               </tr>
             </thead>
             <tbody>
               {[
-                { item: "키워드 순위", active: "25%", likely: "30%", inactive: "35%" },
-                { item: "리뷰 품질",   active: "15%", likely: "17%", inactive: "20%" },
+                { item: "키워드 검색 순위", active: "25%", likely: "30%", inactive: "35%" },
+                { item: "리뷰 품질",        active: "15%", likely: "17%", inactive: "20%" },
                 { item: "스마트플레이스 완성도", active: "15%", likely: "18%", inactive: "20%" },
-                { item: "카카오맵 완성도",      active: "10%", likely: "10%", inactive: "10%" },
-                { item: "블로그 크랭크",        active: "10%", likely: "10%", inactive: "15%" },
-                { item: "AI 브리핑 노출",       active: "25%", likely: "15%", inactive: "0%" },
+                { item: "지도·카카오맵",    active: "10%", likely: "10%", inactive: "15%" },
+                { item: "블로그 생태계",    active: "10%", likely: "10%", inactive: "10%" },
+                { item: "AI 브리핑 노출",   active: "25%", likely: "15%", inactive: "0%" },
               ].map((row, i) => (
-                <tr key={i} className="border-b border-amber-100 last:border-0 hover:bg-amber-50/60">
+                <tr key={i} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                   <td className="py-2.5 px-3 font-medium text-gray-800">{row.item}</td>
                   <td className="py-2.5 px-3 text-center font-bold text-green-700">{row.active}</td>
                   <td className="py-2.5 px-3 text-center font-bold text-blue-700">{row.likely}</td>
@@ -273,7 +236,7 @@ export default function ScoreGuidePage() {
             </tbody>
           </table>
         </div>
-        <p className="text-sm text-amber-600 mt-2">네이버 대상: 음식점·카페·베이커리·바·숙박 / 확대 예정: 뷰티·네일·피트니스·요가·반려동물·약국 / 글로벌 중심: 그 외</p>
+        <p className="text-sm text-gray-500 mt-2">AI브리핑 대상: 음식점·카페·베이커리·바·숙박 / 확대 예정: 뷰티·네일·피트니스·요가·반려동물·약국 / 글로벌 중심: 그 외</p>
       </div>
 
       {/* 5. Track 2 — 글로벌 AI 채널 */}
@@ -304,7 +267,7 @@ export default function ScoreGuidePage() {
                 {
                   item: "AI 노출 빈도",
                   weight: "40%",
-                  desc: "Gemini·ChatGPT 각 50회 (총 100회, Basic 기준); Google AI Overview는 현재 서버 환경상 측정 보류",
+                  desc: "Gemini·ChatGPT 각 50회 (총 100회, Basic 기준)",
                 },
                 {
                   item: "웹사이트 SEO",
@@ -319,7 +282,7 @@ export default function ScoreGuidePage() {
                 {
                   item: "Google AI Overview",
                   weight: "10%",
-                  desc: "구글 AI 검색 결과 노출 여부 (현재 서버 CAPTCHA 차단으로 측정 일시 제한 — 자동 재배분 처리)",
+                  desc: "구글 AI 검색 결과 노출 여부 (Serper.dev API로 측정, 2026-05-30 활성화)",
                 },
               ].map((row, i) => (
                 <tr

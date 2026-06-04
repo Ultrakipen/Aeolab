@@ -159,7 +159,7 @@ export function GlobalAIChecklist({
           <div className="flex items-start gap-2">
             <span className="text-amber-500 text-base shrink-0 mt-0.5">⚠</span>
             <p className="text-sm text-amber-800 leading-relaxed">
-              ChatGPT는 학습 데이터(2024.06 컷오프) 기반으로 측정합니다.
+              ChatGPT는 학습 데이터 기반으로 측정합니다.
             </p>
           </div>
           <p className="text-sm text-amber-700 leading-relaxed pl-6">

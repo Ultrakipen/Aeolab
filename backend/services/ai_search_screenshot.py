@@ -302,18 +302,9 @@ async def capture_ai_search_results(
     keywords: list | None = None,
     selected_keyword: str | None = None,
 ) -> list:
-    """네이버 블로그 + ChatGPT 결과 캡처"""
+    """네이버 블로그 + 카페 캡처. ChatGPT는 scan.py에서 50회 샘플 합산 결과로 주입."""
     query = _build_query(category, business_name, region, keywords=keywords, selected_keyword=selected_keyword)
 
-    naver_results, chatgpt_result = await asyncio.gather(
-        capture_naver_results(query, business_name, biz_id),
-        capture_chatgpt_result(query, business_name, biz_id),
-        return_exceptions=True,
-    )
+    naver_results = await capture_naver_results(query, business_name, biz_id)
 
-    output = []
-    if isinstance(naver_results, list):
-        output.extend(naver_results)
-    if isinstance(chatgpt_result, dict):
-        output.append(chatgpt_result)
-    return output
+    return naver_results if isinstance(naver_results, list) else []

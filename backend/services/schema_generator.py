@@ -70,7 +70,7 @@ CATEGORY_TIPS: dict[str, dict[str, str]] = {
     "restaurant": {
         "smartplace_tip": "메뉴 사진을 10장 이상 등록하면 AI 브리핑 인용률이 높아집니다. '배달 가능', '주차 가능' 등 검색 조건 키워드를 소개글에 포함하세요.",
         "blog_tip": "월 2회 이상 신메뉴·이벤트 포스트를 올리면 네이버 AI가 최신성 높은 정보로 인식합니다.",
-        "no_website_guide": "홈페이지 없이도 카카오맵 비즈니스 채널에 메뉴·영업시간·사진을 등록하면 Google AI Overview 노출에 동일한 효과를 낼 수 있습니다.",
+        "no_website_guide": "홈페이지 없이도 구글 비즈니스 프로필 등록이 Google AI Overview 노출에 가장 직접적입니다. 카카오맵 비즈니스 채널에도 메뉴·영업시간·사진을 등록해 두면 카카오 검색 노출과 AI 신뢰도 향상에 도움이 됩니다.",
     },
     "cafe": {
         "smartplace_tip": "음료 메뉴와 가격을 모두 등록하고 '공부 가능', '노트북 사용 가능', '24시간 운영' 등 조건 키워드를 소개글에 명시하세요.",
@@ -94,7 +94,7 @@ CATEGORY_TIPS: dict[str, dict[str, str]] = {
     },
     "legal": {
         "smartplace_tip": "전문 분야(이혼·부동산·형사 등)를 소개글에 명확히 명시하고, '무료 초기 상담' 가능 여부를 포함하세요.",
-        "blog_tip": "법률 상식 Q&A 형식의 블로그 포스트(자체 도메인·티스토리 등 Bing 인덱싱 가능 플랫폼)가 ChatGPT·Gemini 인용에 효과적입니다. 네이버 블로그는 Bing에 인덱싱되지 않아 ChatGPT에 직접 참조되지 않습니다.",
+        "blog_tip": "법률 상식 Q&A 형식의 블로그 포스트(자체 도메인·티스토리 등 Bing 인덱싱 가능 플랫폼)가 ChatGPT·Gemini 인용에 효과적입니다. 네이버 블로그는 Bing 인덱싱 영향이 제한적이어서 ChatGPT에 직접 참조되기 어렵습니다.",
         "no_website_guide": "구글 비즈니스 프로필을 완성하면 ChatGPT·Google AI 노출에 가장 직접적입니다. 네이버 AI탭 노출을 위해서는 스마트플레이스 소개글에 전문 분야를 명확히 등록하세요.",
     },
     "fitness": {

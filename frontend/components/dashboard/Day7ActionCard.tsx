@@ -235,7 +235,7 @@ export default function Day7ActionCard({
 
   const metaInline = [
     data.estimated_time_min != null ? `소요 ${data.estimated_time_min}분` : null,
-    data.expected_impact ? `효과 ${data.expected_impact}` : null,
+    data.expected_impact || null,
   ].filter(Boolean).join(" · ");
 
   return (
@@ -291,6 +291,9 @@ export default function Day7ActionCard({
           </button>
           {copyOpen && (
             <div className="px-3 pb-3 border-t border-gray-100">
+              <p className="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 leading-relaxed">
+                ✏️ 내 가게 상황에 맞게 수정 후 붙여넣으세요. <span className="font-semibold">[ ] 표시 항목</span>과 <span className="font-semibold">두 선택지 중 하나</span>를 골라 나머지를 지우세요.
+              </p>
               <p className="mt-2 text-sm text-gray-900 whitespace-pre-line break-words">
                 {data.copy_template}
               </p>

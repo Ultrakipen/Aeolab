@@ -75,10 +75,16 @@ export default function ChatGPTDiffCard({
         ? topCompetitorGap !== undefined
           ? topCompetitorGap === 0
             ? "경쟁사 중 1위!"
-            : `1위보다 ${topCompetitorGap}점 부족`
+            : topCompetitorGap <= 10
+              ? `1위까지 ${topCompetitorGap}점 — 따라잡기 가능한 거리`
+              : `1위보다 ${topCompetitorGap}점 차이 — 집중 개선 필요`
           : `경쟁사 ${competitorCount}곳 비교 중`
         : "경쟁사를 등록하면 비교 시작",
-      detail: "ChatGPT는 경쟁 가게들의 AI 인식도를 알 수 없습니다",
+      detail: competitorCount > 0 && topCompetitorGap !== undefined && topCompetitorGap > 0
+        ? topCompetitorGap <= 10
+          ? `소개글 키워드 보강·리뷰 답글 작성으로 ${topCompetitorGap}점 차이를 좁힐 수 있습니다. ChatGPT는 경쟁 가게들의 실시간 AI 인식도를 알 수 없습니다.`
+          : `리뷰 품질·키워드 커버리지·소개글을 전반적으로 개선해 격차를 줄이세요. ChatGPT는 경쟁 가게들의 실시간 AI 인식도를 알 수 없습니다.`
+        : "ChatGPT는 경쟁 가게들의 AI 인식도를 알 수 없습니다",
       highlight: competitorCount > 0,
     },
     {
@@ -107,7 +113,7 @@ export default function ChatGPTDiffCard({
       <div className="mb-3 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
         <span className="text-amber-500 text-sm mt-0.5 shrink-0">⚠</span>
         <p className="text-sm text-amber-800 leading-snug">
-          <span className="font-semibold">ChatGPT 인식은 학습 데이터(컷오프 2024.06) 기반입니다.</span>{" "}
+          <span className="font-semibold">ChatGPT 인식은 학습 데이터 기반입니다.</span>{" "}
           블로그·소개글 작성으로 단기 변동이 없으며, 수개월~1년 후 모델 업데이트 시 반영됩니다. <span className="font-medium">현재 인식 현황 파악 목적으로 활용하세요.</span>
         </p>
       </div>
@@ -162,7 +168,7 @@ export default function ChatGPTDiffCard({
           )}
         </ul>
         <p className="mt-2 text-sm text-indigo-600 leading-snug">
-          <strong>측정 원리 차이:</strong> ChatGPT(gpt-4.1-mini)는 학습 데이터(컷오프 2024.06) 기반 — 한국 지역 소상공인은 데이터 포함률이 낮아 낮은 점수가 일반적입니다. Gemini는 Google Search 실시간 그라운딩 기반으로 현재 웹 콘텐츠를 반영합니다.
+          <strong>측정 원리 차이:</strong> ChatGPT는 과거 학습 데이터 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
         </p>
       </div>
     </div>

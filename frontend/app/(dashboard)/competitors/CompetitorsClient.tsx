@@ -119,6 +119,8 @@ const TRACK1_LABELS: Record<string, string> = {
   review_quality:           '리뷰·평점 (추정)',
   smart_place_completeness: '스마트플레이스 완성도 (추정)',
   naver_exposure_confirmed: '네이버 AI 브리핑 노출 (추정)',
+  kakao_completeness:       '카카오맵 완성도 (추정)',
+  ai_tab_readiness:         'AI탭 준비도 (추정)',
 }
 const TRACK2_LABELS: Record<string, string> = {
   multi_ai_exposure:  'AI 검색 노출 (추정)',
@@ -179,6 +181,14 @@ function getScoreBadgeCls(score: number): string {
   if (score >= 70) return 'bg-emerald-50 text-emerald-700 border-emerald-200'
   if (score >= 40) return 'bg-amber-50 text-amber-700 border-amber-200'
   return 'bg-red-50 text-red-600 border-red-200'
+}
+
+// GrowthStage 텍스트 헬퍼 (score_engine.py 기준)
+function getGrowthStageText(score: number): { label: string; cls: string } {
+  if (score >= 75) return { label: '지역 1등', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+  if (score >= 55) return { label: '빠른 성장', cls: 'bg-blue-50 text-blue-700 border-blue-200' }
+  if (score >= 30) return { label: '성장 중',  cls: 'bg-amber-50 text-amber-700 border-amber-200' }
+  return { label: '시작 단계', cls: 'bg-gray-100 text-gray-500 border-gray-200' }
 }
 
 // 순위 배지
@@ -294,7 +304,7 @@ function FreePlanPreview() {
                 ))}
               </div>
               <div className="bg-gray-50 rounded-lg p-2 text-sm text-gray-500">
-                성장 단계: <span className="font-semibold text-amber-600">안정기</span> → <span className="font-semibold text-emerald-600">성장기</span> 진입 가능
+                성장 단계: <span className="font-semibold text-amber-600">성장 중</span> → <span className="font-semibold text-emerald-600">빠른 성장</span> 진입 가능
               </div>
             </div>
             <a href="/pricing" className="mt-4 block w-full text-center bg-purple-600 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-purple-700 transition-colors">
@@ -331,8 +341,8 @@ function FreePlanPreview() {
       </div>
 
       <div className="bg-gray-900 rounded-xl p-5 md:p-6 text-center">
-        <p className="text-white font-bold text-base md:text-lg mb-1">지금 시작하면 14일 무료 체험</p>
-        <p className="text-gray-400 text-sm mb-4">신용카드 없이 시작, 언제든지 취소 가능</p>
+        <p className="text-white font-bold text-base md:text-lg mb-1">무료 체험으로 지금 바로 시작</p>
+        <p className="text-gray-400 text-sm mb-4">신용카드 없이 무료 진단 후, 유료 구독 첫 달 50% 할인</p>
         <a href="/pricing" className="inline-flex items-center gap-2 bg-white text-gray-900 font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-gray-100 transition-colors">
           요금제 보기 <ArrowRight className="w-4 h-4" />
         </a>
@@ -812,6 +822,9 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
                   }`}>
                     {e.score}점
                   </span>
+                  <span className={`hidden sm:inline text-sm font-semibold px-1.5 py-0.5 rounded-full border ${getGrowthStageText(e.score).cls}`}>
+                    {getGrowthStageText(e.score).label}
+                  </span>
                 </div>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -834,7 +847,12 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
         ) ? (
           <p className="text-sm text-blue-500">※ 스캔 미완료 경쟁사는 다음 스캔 후 그래프에 나타납니다.</p>
         ) : null}
-        <p className="text-sm text-gray-500">막대 길이 = 최신 점수 · 숫자 변화량 = 이전 스캔 대비</p>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <p className="text-sm text-gray-500">막대 길이 = 최신 점수 · 숫자 변화량 = 이전 스캔 대비</p>
+          <a href="/guide" className="text-sm text-blue-600 font-medium hover:underline flex items-center gap-1 shrink-0">
+            점수 올리는 방법 보기 <ArrowRight className="w-3.5 h-3.5" />
+          </a>
+        </div>
       </div>
     </div>
   )
@@ -1148,6 +1166,8 @@ const COMPARE_BREAKDOWN_LABELS: Record<string, string> = {
   review_quality:           '리뷰·평점 (추정)',
   smart_place_completeness: '스마트플레이스 (추정)',
   naver_exposure_confirmed: '네이버 AI 브리핑 (추정)',
+  kakao_completeness:       '카카오맵 완성도 (추정)',
+  ai_tab_readiness:         'AI탭 준비도 (추정)',
   multi_ai_exposure:        'ChatGPT/Gemini 노출 (추정)',
   schema_seo:               '웹사이트 구조화 (추정)',
   online_mentions_t2:       '온라인 언급 (추정)',
@@ -1205,14 +1225,19 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                   { name: competitor.name, label: '경쟁사', score: compTotal, isMe: false },
                 ].map(e => (
                   <div key={e.name} className="mb-3">
-                    <div className="flex items-center justify-between text-sm mb-1.5">
-                      <span className={`font-semibold truncate max-w-[180px] ${e.isMe ? 'text-blue-700' : 'text-gray-700'}`}>
+                    <div className="flex items-center justify-between text-sm mb-1.5 gap-2">
+                      <span className={`font-semibold truncate max-w-[140px] ${e.isMe ? 'text-blue-700' : 'text-gray-700'}`}>
                         <span className="text-sm text-gray-400 mr-1">{e.label}</span>{e.name}
                       </span>
-                      <span className={`font-bold px-2 py-0.5 rounded-lg border text-sm shrink-0 ml-2 ${e.isMe
-                        ? 'bg-blue-50 text-blue-700 border-blue-200'
-                        : e.score > myTotal ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      }`}>{e.score}점</span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className={`font-bold px-2 py-0.5 rounded-lg border text-sm ${e.isMe
+                          ? 'bg-blue-50 text-blue-700 border-blue-200'
+                          : e.score > myTotal ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        }`}>{e.score}점</span>
+                        <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(e.score).cls}`}>
+                          {getGrowthStageText(e.score).label}
+                        </span>
+                      </div>
                     </div>
                     <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                       <div
@@ -1228,10 +1253,10 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                   'bg-gray-50 text-gray-400'
                 }`}>
                   {compTotal > myTotal
-                    ? `경쟁사가 ${compTotal - myTotal}점 앞서 있습니다`
+                    ? `경쟁사가 ${getGrowthStageText(compTotal).label} 단계로 앞서 있습니다 (${compTotal - myTotal}점 차)`
                     : compTotal < myTotal
-                    ? `내 가게가 ${myTotal - compTotal}점 앞서 있습니다`
-                    : '두 가게 동점'}
+                    ? `내 가게가 ${getGrowthStageText(myTotal).label} 단계로 앞서 있습니다 (${myTotal - compTotal}점 차)`
+                    : '두 가게 같은 성장 단계'}
                 </div>
               </div>
 
@@ -1976,11 +2001,19 @@ export function CompetitorsClient({
                               변화 감지
                             </span>
                           )}
-                          {cs && (
-                            <span className={`text-sm font-bold px-2 py-0.5 rounded-lg border ${getScoreBadgeCls(cs.score)}`}>
-                              {Math.round(cs.score)}점
-                            </span>
-                          )}
+                          {cs && (() => {
+                            const { label, cls } = getGrowthStageText(cs.score)
+                            return (
+                              <>
+                                <span className={`text-sm font-bold px-2 py-0.5 rounded-lg border ${getScoreBadgeCls(cs.score)}`}>
+                                  {Math.round(cs.score)}점
+                                </span>
+                                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${cls}`}>
+                                  {label}
+                                </span>
+                              </>
+                            )
+                          })()}
                           {csDelta !== null && csDelta !== 0 && (
                             <span className={`text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}
                               title={csDelta > 0 ? `지난 스캔 대비 +${csDelta}점 상승` : `지난 스캔 대비 ${csDelta}점 하락`}>
@@ -2078,33 +2111,53 @@ export function CompetitorsClient({
 
                         {cs ? (
                           <>
-                            {/* AI 채널별 노출 배지 */}
+                            {/* AI 채널별 노출 배지 — 경쟁사는 Gemini 단일 스캔 추정값 */}
                             {cs.breakdown && (() => {
                               const naverOn = (cs.breakdown.naver_exposure_confirmed ?? 0) >= 50
                               const globalOn = (cs.breakdown.multi_ai_exposure ?? 0) >= 50
                               return (
                                 <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                                  <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${naverOn ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
-                                    네이버 AI {naverOn ? '노출됨' : '미노출'}
+                                  <span
+                                    className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${naverOn ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}
+                                    title="경쟁사 노출 여부는 Gemini AI 단일 스캔 기반 추정값입니다"
+                                  >
+                                    네이버 AI {naverOn ? '노출됨' : '미노출'} <span className="font-normal opacity-70">(추정)</span>
                                   </span>
-                                  <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${globalOn ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
-                                    ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'}
+                                  <span
+                                    className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${globalOn ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}
+                                    title="경쟁사 노출 여부는 Gemini AI 단일 스캔 기반 추정값입니다"
+                                  >
+                                    ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'} <span className="font-normal opacity-70">(추정)</span>
                                   </span>
                                 </div>
                               )
                             })()}
-                            {/* 점수 격차 1줄 */}
+                            {/* 점수 격차 1줄 — GrowthStage 단계 비교 포함 */}
                             {myScore > 0 && (
-                              <div className="mt-1.5">
+                              <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                                 {cs.score > myScore ? (
-                                  <span className="text-sm text-red-500 font-medium">
-                                    내 가게보다 <strong>{Math.round(cs.score - myScore)}점 높음</strong>
-                                    <a href="/guide" className="ml-1.5 text-sm text-red-600 underline underline-offset-2">가이드 →</a>
-                                  </span>
+                                  <>
+                                    <span className="text-sm text-red-500 font-medium">
+                                      내 가게보다 <strong>{Math.round(cs.score - myScore)}점 높음</strong>
+                                    </span>
+                                    {getGrowthStageText(cs.score).label !== getGrowthStageText(myScore).label && (
+                                      <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(cs.score).cls}`}>
+                                        {getGrowthStageText(cs.score).label} 단계
+                                      </span>
+                                    )}
+                                    <a href="/guide" className="text-sm text-red-600 underline underline-offset-2">가이드 →</a>
+                                  </>
                                 ) : cs.score < myScore ? (
-                                  <span className="text-sm text-emerald-600 font-medium">내 가게보다 <strong>{Math.round(myScore - cs.score)}점 낮음</strong></span>
+                                  <>
+                                    <span className="text-sm text-emerald-600 font-medium">내 가게보다 <strong>{Math.round(myScore - cs.score)}점 낮음</strong></span>
+                                    {getGrowthStageText(cs.score).label !== getGrowthStageText(myScore).label && (
+                                      <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(cs.score).cls}`}>
+                                        {getGrowthStageText(cs.score).label} 단계
+                                      </span>
+                                    )}
+                                  </>
                                 ) : (
-                                  <span className="text-sm text-gray-400 font-medium">내 가게와 동점</span>
+                                  <span className="text-sm text-gray-400 font-medium">내 가게와 같은 단계</span>
                                 )}
                               </div>
                             )}
@@ -2116,17 +2169,20 @@ export function CompetitorsClient({
                             )}
                           </>
                         ) : (
-                          <div className="mt-2 flex items-center gap-2 flex-wrap">
-                            <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 text-sm font-semibold">
-                              <Clock className="w-3 h-3" />
-                              스캔 대기
-                            </span>
-                            <button
-                              onClick={() => setShowInlineScan(true)}
-                              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 transition-colors"
-                            >
-                              <Zap className="w-3 h-3" />지금 스캔하기
-                            </button>
+                          <div className="mt-2 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 text-sm font-semibold">
+                                <Clock className="w-3 h-3" />
+                                스캔 대기
+                              </span>
+                              <button
+                                onClick={() => setShowInlineScan(true)}
+                                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 transition-colors"
+                              >
+                                <Zap className="w-3 h-3" />지금 스캔하기
+                              </button>
+                            </div>
+                            <p className="text-sm text-gray-400">스캔 후 AI 노출 여부·성장 단계·점수 격차를 확인할 수 있습니다</p>
                           </div>
                         )}
                       </div>
@@ -2755,7 +2811,7 @@ export function CompetitorsClient({
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-amber-800">웹사이트 없음 — ChatGPT·Gemini 노출 제한</p>
             <p className="text-sm text-amber-700 mt-0.5 leading-relaxed">
-              네이버는 글로벌 AI 크롤러를 차단합니다. 독립 웹사이트가 없으면 ChatGPT·Gemini에서 내 가게를 찾지 못합니다.
+              네이버 콘텐츠는 글로벌 AI 크롤러에 잘 인덱싱되지 않습니다. 독립 웹사이트가 없으면 ChatGPT·Gemini에서 내 가게를 찾기 어렵습니다.
               {gapAnalysis.naver_only_risk_score_impact > 0 && (
                 <span className="font-semibold"> 웹사이트 구축 시 최대 +{gapAnalysis.naver_only_risk_score_impact.toFixed(1)}점 상승 예상.</span>
               )}
@@ -2911,7 +2967,7 @@ export function CompetitorsClient({
           {/* 상황 요약 + topTip */}
           <div className="flex-1 min-w-0">
             <p className="text-base md:text-lg font-bold text-gray-900">
-              {isEstimated ? '스캔 전 임시 순위' : myRank === 1 ? '현재 1위입니다!' : `${leader?.name}에 ${gap}점 뒤처져 있어요`}
+              {isEstimated ? '스캔 전 임시 순위' : myRank === 1 ? '현재 1위입니다!' : `${leader?.name}이(가) 현재 앞서 있습니다`}
             </p>
             <p className="text-sm text-gray-500 mt-0.5">
               {isEstimated
@@ -2935,13 +2991,23 @@ export function CompetitorsClient({
         {/* 점수 진행바 — 1위 대비 내 위치 */}
         {!isEstimated && total > 1 && (
           <div className="mt-3 pt-3 border-t border-black/5">
-            <div className="flex items-center justify-between text-sm mb-1.5">
-              <span className={`font-semibold ${myRank === 1 ? 'text-emerald-700' : gap > 15 ? 'text-red-600' : 'text-amber-700'}`}>
-                내 점수 <strong className="text-base">{Math.round(myScore)}</strong>점
+            <div className="flex items-center justify-between text-sm mb-1.5 gap-2 flex-wrap">
+              <span className="flex items-center gap-1.5 flex-wrap">
+                <span className={`font-semibold ${myRank === 1 ? 'text-emerald-700' : gap > 15 ? 'text-red-600' : 'text-amber-700'}`}>
+                  내 가게
+                </span>
+                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(Math.round(myScore)).cls}`}>
+                  {getGrowthStageText(Math.round(myScore)).label}
+                </span>
+                <span className="text-gray-400 text-sm">({Math.round(myScore)}점)</span>
               </span>
               {!leader.isMe && (
-                <span className="text-gray-500">
-                  1위({leader.name}) <strong className="text-gray-700">{leader.score}</strong>점
+                <span className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-gray-500 text-sm">1위 {leader.name}</span>
+                  <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(leader.score).cls}`}>
+                    {getGrowthStageText(leader.score).label}
+                  </span>
+                  <span className="text-gray-400 text-sm">({leader.score}점)</span>
                 </span>
               )}
             </div>
@@ -2953,7 +3019,9 @@ export function CompetitorsClient({
             </div>
             {!leader.isMe && gap > 0 && (
               <p className="text-sm mt-1 text-gray-500">
-                1위까지 <strong className={gap > 15 ? 'text-red-600' : 'text-amber-600'}>{gap}점</strong> 격차 — 가이드 항목을 개선하면 점수를 높일 수 있습니다
+                {gap > 15
+                  ? <>격차가 큽니다. <strong className="text-red-600">가이드</strong>에서 우선순위 높은 항목부터 개선하세요.</>
+                  : <>조금만 더 노력하면 1위에 올라갈 수 있습니다. <a href="/guide" className="text-blue-600 font-semibold underline underline-offset-2">가이드 →</a></>}
               </p>
             )}
           </div>

@@ -270,6 +270,12 @@ def calc_ai_tab_readiness(
         if done:
             completed_texts.add(txt)
 
+    # 사진 탭 서버 IP 차단 시 사용자 직접 확인 대체
+    if overrides.get("__photo_sufficient"):
+        for it in items:
+            if "사진" in it["item"] or "포트폴리오" in it["item"]:
+                completed_texts.add(it["item"])
+
     # 3) 점수 계산
     return _get_score(category, list(completed_texts))
 
@@ -414,6 +420,18 @@ def calc_smart_place_completeness(naver_data: dict, biz: dict) -> float:
         _has_faq_draft = False
     has_faq         = bool(biz.get("has_faq")) or _has_faq_draft
     has_recent_post = bool(biz.get("has_recent_post"))
+    # IP 차단 시 수동 확인 대체 (90일 만료)
+    if not has_recent_post:
+        _overrides = biz.get("checklist_overrides") or {}
+        if _overrides.get("__recent_post_sufficient"):
+            _confirmed_at = _overrides.get("__recent_post_confirmed_at")
+            if _confirmed_at:
+                try:
+                    from datetime import date, timedelta
+                    _confirmed_date = date.fromisoformat(str(_confirmed_at))
+                    has_recent_post = (date.today() - _confirmed_date).days <= 90
+                except (ValueError, TypeError):
+                    pass
     has_intro       = bool(biz.get("has_intro")) or bool((biz.get("naver_intro_draft") or "").strip())
 
     # 네이버 지역 검색 순위 반영 — 검색 노출 = 소상공인에게 가장 직접적 성과

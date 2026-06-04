@@ -63,7 +63,7 @@ export function SentimentDashboard({ bizId, token }: Props) {
   const total = data.positive + data.neutral + data.negative || 1;
   const posRate = Math.round((data.positive / total) * 100);
   const neuRate = Math.round((data.neutral / total) * 100);
-  const negRate = Math.round((data.negative / total) * 100);
+  const negRate = 100 - posRate - neuRate;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
@@ -144,7 +144,7 @@ export function SentimentDashboard({ bizId, token }: Props) {
       {(data.top_positive?.length ?? 0) > 0 && (
         <div className="mt-3 bg-emerald-50 rounded-lg p-3">
           <p className="text-sm text-emerald-700">
-            💡 &ldquo;{data.top_positive.slice(0, 2).join('", "')}&rdquo; 키워드를 FAQ와 소개글에 넣으면 AI가 더 자주 인용합니다.
+            💡 &ldquo;{data.top_positive.slice(0, 2).join('", "')}&rdquo; 키워드를 소개글·Q&A 섹션에 넣으면 AI가 더 자주 인용합니다.
           </p>
         </div>
       )}

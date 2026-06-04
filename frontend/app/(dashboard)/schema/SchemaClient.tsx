@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { generateSchema } from '@/lib/api'
-import { CATEGORY_GROUPS } from '@/lib/categories'
+import { FLAT_CATEGORY_GROUPS } from '@/lib/categories'
 import type { SchemaResult, IntroScore, BlogDraft } from '@/types'
 import {
   CheckCircle2, ClipboardCopy, Check, ChevronDown, ChevronUp,
@@ -189,10 +189,10 @@ function IntroScoreGauge({ introScore }: { introScore: IntroScore }) {
           />
         </div>
         {introScore.grade === 'A' ? (
-          <p className="text-sm text-green-700 font-medium">AI 브리핑 최적화 우수! 현재 소개글이 잘 작성되어 있습니다.</p>
+          <p className="text-sm text-green-700 font-medium">키워드 커버리지 우수! 생성된 소개글에 AI 검색 핵심 키워드가 충분히 포함되어 있습니다.</p>
         ) : (
           <p className="text-sm text-gray-600 leading-relaxed">
-            아래 부족한 키워드를 소개글에 추가하면 <span className="font-semibold text-blue-600">AI 브리핑 노출 가능성이 높아집니다.</span>
+            아래 부족한 키워드를 소개글에 추가하면 <span className="font-semibold text-blue-600">네이버 AI탭·AI 브리핑(대상 업종) 및 글로벌 AI 키워드 커버리지가 높아집니다.</span>
           </p>
         )}
       </div>
@@ -240,6 +240,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
     setLoading(true)
     try {
       const opening_hours = buildOpeningHoursString(hoursRows)
+      try { localStorage.removeItem(checklistStorageKey) } catch {}
       const data = await generateSchema({ ...form, opening_hours }, userId) as SchemaResult
       setResult(data)
       setTab('briefing')
@@ -270,15 +271,15 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
   const hasWebsite = !!result?.script_tag
   const hasNoWebsiteGuide = !!result?.no_website_guide
 
-  const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: 'briefing',    label: 'AI 브리핑 최적화 점수', icon: <BarChart2 className="w-4 h-4" /> },
-    { key: 'smartplace',  label: '스마트플레이스 소개글',  icon: <MapPin className="w-4 h-4" /> },
-    { key: 'blog',        label: '블로그 포스트 초안',      icon: <FileText className="w-4 h-4" /> },
-    { key: 'checklist',   label: '최적화 체크리스트',       icon: <ListChecks className="w-4 h-4" /> },
+  const tabs: { key: Tab; label: string; mobileLabel: string; icon: React.ReactNode }[] = [
+    { key: 'briefing',    label: 'AI 브리핑 최적화 점수', mobileLabel: 'AI점수',    icon: <BarChart2 className="w-4 h-4" /> },
+    { key: 'smartplace',  label: '스마트플레이스 소개글',  mobileLabel: '소개글',    icon: <MapPin className="w-4 h-4" /> },
+    { key: 'blog',        label: '블로그 포스트 초안',      mobileLabel: '블로그',    icon: <FileText className="w-4 h-4" /> },
+    { key: 'checklist',   label: '최적화 체크리스트',       mobileLabel: '체크리스트', icon: <ListChecks className="w-4 h-4" /> },
     ...(hasWebsite
-      ? [{ key: 'website' as Tab, label: '홈페이지 AI 연결', icon: <AlertCircle className="w-4 h-4" /> }]
+      ? [{ key: 'website' as Tab,   label: '홈페이지 AI 연결',     mobileLabel: 'AI코드',    icon: <AlertCircle className="w-4 h-4" /> }]
       : hasNoWebsiteGuide
-        ? [{ key: 'nowebsite' as Tab, label: '플레이스 등록 가이드', icon: <Globe className="w-4 h-4" /> }]
+        ? [{ key: 'nowebsite' as Tab, label: '플레이스 등록 가이드', mobileLabel: '등록가이드', icon: <Globe className="w-4 h-4" /> }]
         : []),
   ]
 
@@ -297,10 +298,10 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
         </p>
         <div className="mt-3 space-y-2">
           <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-800">
-            <strong>📋 이미 스마트플레이스·블로그를 운영 중이라면</strong> — 현재 소개글이 AI 검색 키워드를 충분히 포함하는지 점검할 수 있습니다. 가게 이름과 메뉴를 입력해 보세요.
+            <strong>📋 이미 스마트플레이스·블로그를 운영 중이라면</strong> — 가게 이름·메뉴를 입력하면 AI가 소개글 초안을 만들고, 업종 핵심 키워드 포함 여부를 점수로 확인해 드립니다. 현재 소개글과 비교해 부족한 키워드만 추가하세요.
           </div>
           <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600">
-            홈페이지가 있다면 <strong>홈페이지 AI 연결 탭</strong>에서 AI 인식 코드를 추가하면 ChatGPT·구글 AI 노출이 높아집니다.
+            홈페이지가 있다면 <strong>홈페이지 AI 연결 탭</strong>에서 AI 인식 코드(JSON-LD)를 추가하면 구글 AI Overview·Rich Results 노출이 높아집니다. ChatGPT는 학습 데이터 기반이라 JSON-LD 직접 효과는 제한적입니다.
           </div>
         </div>
       </div>
@@ -322,7 +323,13 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">업종 *</label>
               <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                {CATEGORY_GROUPS.map((g) => <option key={g.value} value={g.value}>{g.emoji} {g.label}</option>)}
+                {FLAT_CATEGORY_GROUPS.map((group) => (
+                  <optgroup key={group.groupLabel} label={group.groupLabel}>
+                    {group.items.map((cat) => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
           </div>
@@ -414,7 +421,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                   className={`flex items-center gap-1.5 px-3 md:px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${tab === t.key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
                   {t.icon}
                   <span className="hidden sm:inline">{t.label}</span>
-                  <span className="sm:hidden">{t.label.slice(0, 4)}</span>
+                  <span className="sm:hidden">{t.mobileLabel}</span>
                 </button>
               ))}
             </div>
@@ -466,7 +473,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                         ))}
                       </div>
                       <p className="text-sm text-gray-500 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
-                        위 키워드를 스마트플레이스 소개글에 자연스럽게 포함하면 AI 브리핑 노출 가능성이 높아집니다.
+                        위 키워드를 스마트플레이스 소개글에 자연스럽게 포함하면 네이버 AI 브리핑(음식점·카페·숙박 등 대상 업종) 및 AI탭 노출 가능성이 높아집니다. 법률·IT·부동산 등 비대상 업종은 ChatGPT·Gemini·Google AI 노출 개선에 동일하게 효과적입니다.
                       </p>
                     </div>
                   )}
@@ -511,6 +518,9 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                   <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border border-gray-100">
                     {result.smartplace_intro}
                   </div>
+                  <div className="text-sm text-right text-gray-400">
+                    {result.smartplace_intro.length}자 (500자 이상 권장)
+                  </div>
 
                   {/* 스마트플레이스 적용 경로 */}
                   <div className="bg-blue-50 rounded-xl p-4 space-y-1.5">
@@ -547,6 +557,13 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                       </button>
                     ))}
                   </div>
+
+                  {/* 리뷰 모음 선택 시 경고 */}
+                  {blogDraftType === 'review' && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+                      ⚠️ 이 초안은 AI가 작성한 <strong>샘플 후기</strong>입니다. 실제 고객 방문 경험을 바탕으로 수정한 뒤 사용하세요. 가상 후기를 그대로 올리면 허위 정보로 처리될 수 있습니다.
+                    </div>
+                  )}
 
                   {/* 선택된 초안 */}
                   {selectedDraft ? (
@@ -617,8 +634,8 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                     {[
                       '사진 5장 이상 첨부 — 내부·메뉴·외부 골고루',
                       '포스트 발행 후 스마트플레이스 관리 → [블로그 연결] 등록',
-                      '월 1~2회 꾸준히 올리면 AI 검색 최신성 점수 상승',
-                      '리뷰 답글과 동일한 키워드 사용 권장',
+                      '월 1~2회 꾸준히 올리면 네이버 AI 브리핑·AI탭 최신성 점수 상승 (ChatGPT·Gemini는 수개월 소요)',
+                      '리뷰 답글과 동일한 키워드 사용 권장 (네이버 AI 브리핑 활성도 강화)',
                     ].map((tip) => (
                       <p key={tip} className="text-sm text-amber-700 flex items-start gap-1.5">
                         <span className="shrink-0">•</span>{tip}
@@ -723,7 +740,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                 <div className="space-y-4">
                   <div>
                     <div className="text-sm font-semibold text-gray-800 mb-1">홈페이지 없이 AI 검색 노출 높이는 방법</div>
-                    <p className="text-sm text-gray-500">홈페이지가 없어도 아래 3가지 플랫폼 등록만으로 AI 검색 노출을 높일 수 있습니다.</p>
+                    <p className="text-sm text-gray-500">홈페이지가 없어도 아래 3가지 플랫폼에 정보를 충실히 등록하면 AI 검색 노출을 높일 수 있습니다.</p>
                   </div>
 
                   {result.no_website_guide && (
@@ -736,7 +753,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                   {[
                     {
                       name: '네이버 스마트플레이스',
-                      desc: '네이버 지도·AI 브리핑 노출의 핵심. FAQ·소식·소개글 등록 시 AI 검색 노출 가능성 향상.',
+                      desc: '네이버 지도·AI 브리핑 노출의 핵심. 소식·소개글 Q&A 형식 작성·메뉴 등록 시 AI 검색 노출 가능성 향상.',
                       url: 'https://smartplace.naver.com',
                       badge: '가장 중요',
                       badgeColor: 'bg-red-100 text-red-700',
@@ -781,10 +798,13 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-800 leading-relaxed">
             <strong>대시보드 상태 업데이트 방법</strong><br />
-            생성된 AI 검색 코드를 홈페이지 <code className="bg-blue-100 px-1 rounded">&lt;/head&gt;</code> 위에 붙여넣은 뒤, 대시보드에서 스캔을 다시 실행하면 &ldquo;AI에 가게 정보 등록&rdquo; 항목이 완료로 표시됩니다.
+            {hasWebsite
+              ? <>생성된 AI 검색 코드를 홈페이지 <code className="bg-blue-100 px-1 rounded">&lt;/head&gt;</code> 위에 붙여넣은 뒤, 대시보드에서 스캔을 다시 실행하면 &ldquo;AI에 가게 정보 등록&rdquo; 항목이 완료로 표시됩니다.</>
+              : <>스마트플레이스 소개글과 블로그 초안을 적용한 뒤, 대시보드에서 스캔을 다시 실행하면 변화된 점수를 확인할 수 있습니다.</>
+            }
           </div>
           <p className="text-sm text-center text-gray-400">
-            적용 후 2~4주 뒤 AEOlab 스캔에서 점수 변화를 확인하세요.
+            적용 후 네이버 AI 브리핑·AI탭은 2~4주, ChatGPT·Gemini는 수개월 후 AEOlab 스캔에서 점수 변화를 확인하세요.
           </p>
         </div>
       )}

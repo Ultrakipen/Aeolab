@@ -1,0 +1,332 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --brand: oklch(0.50 0.20 250);
+  --brand-light: oklch(0.96 0.05 250);
+  --brand-dark: oklch(0.38 0.20 250);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ── Fluid Typography ── */
+.hero-headline {
+  font-size: clamp(2.1rem, 5.5vw, 3.2rem);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  font-weight: 900;
+  color: #F1F5FF;
+  font-family: var(--font-pretendard, "Pretendard Variable", "Pretendard", sans-serif);
+}
+.stat-number-xl {
+  font-size: clamp(2.8rem, 6vw, 4rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-family: var(--font-pretendard, "Pretendard Variable", sans-serif);
+}
+
+/* Hero 폼 입력 — 글래스 배경 위 placeholder 색상 */
+.hero-form-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Landing scroll fade-in — JS가 활성화될 때만 동작 (no-JS 사용자 보호) */
+body.js-anim .fade-up {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.55s cubic-bezier(.22,1,.36,1), transform 0.55s cubic-bezier(.22,1,.36,1);
+}
+.fade-up.visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* 카드 순차 등장 딜레이 유틸 */
+.delay-1 { animation-delay: 0.10s; }
+.delay-2 { animation-delay: 0.20s; }
+.delay-3 { animation-delay: 0.30s; }
+.delay-4 { animation-delay: 0.40s; }
+
+/* 슬라이드인 (WHY 섹션 Before/After용) */
+body.js-anim .slide-left {
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: opacity 0.55s cubic-bezier(.22,1,.36,1), transform 0.55s cubic-bezier(.22,1,.36,1);
+}
+body.js-anim .slide-right {
+  opacity: 0;
+  transform: translateX(24px);
+  transition: opacity 0.55s cubic-bezier(.22,1,.36,1), transform 0.55s cubic-bezier(.22,1,.36,1);
+}
+.slide-left.visible, .slide-right.visible {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+}
+
+/* 숫자 카운트업 (PROOF 섹션용) */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.count-reveal {
+  animation: count-up 0.6s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* 접근성: 모션 감소 설정 대응 */
+@media (prefers-reduced-motion: reduce) {
+  .fade-up, .slide-left, .slide-right, .count-reveal {
+    transition: none !important;
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .step-connector-path {
+    animation: none !important;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ── AEOlab 랜딩페이지 디자인 토큰 ── */
+:root {
+  /* Brand */
+  --aeo-blue:        #2563EB;
+  --aeo-blue-d:      #1D4ED8;
+  --aeo-blue-hover:  #1E40AF;
+  --aeo-blue-pale:   #EFF6FF;
+  --aeo-blue-mid:    #BFDBFE;
+
+  /* Dark Hero */
+  --aeo-hero-bg:      #0A0F1E;
+  --aeo-hero-surface: #111827;
+  --aeo-hero-border:  rgba(255,255,255,0.10);
+  --aeo-hero-text:    #F8FAFC;
+  --aeo-hero-text-muted: #94A3B8;
+
+  /* Text */
+  --aeo-ink:   #0F172A;
+  --aeo-ink2:  #1E293B;
+  --aeo-ink3:  #475569;
+  --aeo-ink4:  #64748B;
+  --aeo-ink5:  #94A3B8;
+
+  /* Surfaces */
+  --aeo-white:   #FFFFFF;
+  --aeo-bg:      #F8FAFC;
+  --aeo-bg-mid:  #F1F5F9;
+
+  /* Borders */
+  --aeo-border:        #E2E8F0;
+  --aeo-border-strong: #CBD5E1;
+
+  /* Status */
+  --aeo-green:      #059669;
+  --aeo-green-pale: #ECFDF5;
+  --aeo-amber:      #D97706;
+  --aeo-amber-pale: #FFFBEB;
+  --aeo-amber-text: #92400E;
+  --aeo-red:        #DC2626;
+  --aeo-red-pale:   #FEF2F2;
+
+  /* Shadows */
+  --aeo-shadow:       0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04);
+  --aeo-shadow-lg:    0 4px 6px rgba(15,23,42,0.07), 0 10px 40px rgba(15,23,42,0.08);
+  --aeo-shadow-float: 0 0 0 1px rgba(37,99,235,0.1), 0 8px 32px rgba(37,99,235,0.12);
+
+  /* 그라디언트 단일 소스 — Final CTA 전용 */
+  --aeo-gradient-blue: linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 100%);
+
+  /* Phase 3 멀티휴 팔레트 */
+  --color-violet: #7C3AED;
+  --color-indigo: #4F46E5;
+  --color-amber:  #F59E0B;
+
+  /* 글래스모피즘 */
+  --aeo-glass-bg:     rgba(255,255,255,0.04);
+  --aeo-glass-border: rgba(255,255,255,0.10);
+  --aeo-glass-blur:   blur(20px);
+}
+
+/* ── 카드 호버 리프트 (라이트 섹션용) ── */
+.card-hover {
+  transition: transform 0.22s cubic-bezier(.22,1,.36,1), box-shadow 0.22s cubic-bezier(.22,1,.36,1);
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(15,23,42,0.10), 0 2px 8px rgba(15,23,42,0.06);
+}
+
+/* ── 그라디언트 텍스트 유틸 ── */
+.gradient-text-blue {
+  background: linear-gradient(90deg, #60A5FA 0%, #93C5FD 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+/* .gradient-text-brand 미사용 제거 (2026-05-08) */
+
+/* ── 배경 오브 (히어로 글로우 효과) ── */
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* ── 섹션 구분선 페이드 ── */
+.section-fade-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, #FFFFFF);
+  pointer-events: none;
+}
+
+/* ── 그라디언트 테두리 카드 ── */
+.gradient-border-card {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 1rem;
+}
+.gradient-border-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ── 애니메이션 ── */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% center; }
+  50%       { background-position: 100% center; }
+}
+/* @keyframes float-slow, pulse-glow — 미사용 제거 (2026-05-08) */

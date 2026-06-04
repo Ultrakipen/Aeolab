@@ -117,7 +117,7 @@ export default function BlogStrategyGuidePage() {
           href="/guide/ai-info-tab"
           className="inline-flex items-center gap-1 text-sm md:text-base text-gray-500 hover:text-rose-600"
         >
-          <ChevronLeft className="w-4 h-4" /> AI 정보 탭 가이드로
+          <ChevronLeft className="w-4 h-4" /> AI 브리핑 5단계 가이드로
         </Link>
         <Link
           href="/how-it-works"

@@ -2542,7 +2542,24 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
         else:
             query = f"{_quick_region} {_quick_keyword_ko} 추천" if _quick_region else f"{_quick_keyword_ko} 추천"
 
+        # naver_prescan 당일 결과 조회 (GitHub Actions 야간 스캔 재사용 → 프록시 소진 방지)
+        _prescan_naver_q: dict = {}
+        try:
+            _ps_q = supabase.table("naver_prescan").select("naver_result").eq(
+                "business_id", req.business_id
+            ).eq("scan_date", str(_date.today())).execute()
+            if _ps_q and _ps_q.data:
+                _prescan_naver_q = _ps_q.data[0].get("naver_result") or {}
+                if _prescan_naver_q:
+                    _logger.debug("[scan/quick] naver prescan 재사용 biz=%s", req.business_id)
+        except Exception as _pe_q:
+            _logger.debug("[scan/quick] naver_prescan 조회 실패 (무시): %s", _pe_q)
+
         result = await scanner.scan_quick(query, req.business_name)
+
+        # prescan 결과가 있으면 덮어쓰기
+        if _prescan_naver_q:
+            result["naver"] = _prescan_naver_q
 
         # 카카오·웹사이트 결과 없이 점수 계산 (quick scan은 2개 AI만)
         from services.naver_visibility import get_naver_visibility_multi as _naver_multi_q
@@ -2690,6 +2707,20 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         from services.naver_place_stats import check_smart_place_completeness, sync_naver_place_stats as _sync_place_stats
         from services.naver_visibility import get_naver_visibility_multi as _naver_multi_f
         _full_multi_kws = list(dict.fromkeys(_full_valid_kw[:3] + [keyword_ko]))[:4]
+
+        # naver_prescan 당일 결과 조회 (GitHub Actions 야간 스캔 재사용 → 프록시 소진 방지)
+        _prescan_naver_f: dict = {}
+        try:
+            _ps_f = supabase.table("naver_prescan").select("naver_result").eq(
+                "business_id", req.business_id
+            ).eq("scan_date", str(_date.today())).execute()
+            if _ps_f and _ps_f.data:
+                _prescan_naver_f = _ps_f.data[0].get("naver_result") or {}
+                if _prescan_naver_f:
+                    _logger.debug("[scan/full] naver prescan 재사용 biz=%s", req.business_id)
+        except Exception as _pe_f:
+            _logger.debug("[scan/full] naver_prescan 조회 실패 (무시): %s", _pe_f)
+
         result, kakao_data, website_check, smart_place_check, naver_visibility_full, place_stats_fresh = await _asyncio.gather(
             scanner.scan_all(_scan_queries, req.business_name),
             get_kakao_visibility(req.business_name, keyword_ko, req.region),
@@ -2701,6 +2732,9 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         )
         if isinstance(result, Exception):
             raise result
+        # prescan 결과가 있으면 scan_all의 naver 결과 덮어쓰기
+        if _prescan_naver_f:
+            result["naver"] = _prescan_naver_f
         if isinstance(kakao_data, Exception):
             _logger.warning(f"kakao_visibility failed (full): {kakao_data}")
             kakao_data = None

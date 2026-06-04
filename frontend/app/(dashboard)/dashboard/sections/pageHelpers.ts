@@ -72,6 +72,8 @@ export function calcTodayAction(
 export type PlatformResult = {
   mentioned: boolean;
   exposure_freq?: number;
+  exposure_rate?: number;
+  sample_size?: number;
   in_briefing?: boolean;
   in_ai_overview?: boolean;
   error?: string;
@@ -124,20 +126,54 @@ export function isIndependentWebsite(url: string | null | undefined): boolean {
 export interface SmartPlaceStatus {
   hasFaq: boolean;
   hasIntro: boolean;
-  hasRecentPost: boolean;
+  hasRecentPost: boolean | null;  // null = 차단으로 측정 불가
   hasWebsite: boolean;
+  recentPostConfirmedAt?: string | null;
 }
 
 export function buildSmartPlaceStatus(
   scan: Record<string, unknown> | null | undefined,
-  biz: { has_faq?: boolean | null; has_intro?: boolean | null; has_recent_post?: boolean | null; website_url?: string | null },
+  biz: {
+    has_faq?: boolean | null;
+    has_intro?: boolean | null;
+    has_recent_post?: boolean | null;
+    website_url?: string | null;
+    checklist_overrides?: Record<string, unknown> | null;
+  },
 ): SmartPlaceStatus {
   const spAuto = scan?.smart_place_completeness_result as Record<string, unknown> | null;
+  const recentPostMeasured = spAuto?.recent_post_measured;
+
+  // 자동 크롤링 결과 (IP 차단 시 recent_post_measured=false)
+  let hasRecentPost: boolean | null =
+    recentPostMeasured === false
+      ? null
+      : (!!(spAuto?.has_recent_post) || !!(biz.has_recent_post));
+
+  // 수동 확인 대체 (90일 만료 체크)
+  if (!hasRecentPost) {
+    const overrides = biz.checklist_overrides ?? {};
+    if (overrides['__recent_post_sufficient']) {
+      const confirmedAt = overrides['__recent_post_confirmed_at'];
+      if (confirmedAt && typeof confirmedAt === 'string') {
+        const confirmed = new Date(confirmedAt);
+        const diffDays = (Date.now() - confirmed.getTime()) / (1000 * 60 * 60 * 24);
+        hasRecentPost = diffDays <= 90;
+      } else {
+        hasRecentPost = true; // 날짜 없으면 일단 true (구버전 호환)
+      }
+    }
+  }
+
+  const overrides = biz.checklist_overrides ?? {};
+  const recentPostConfirmedAt = (overrides['__recent_post_confirmed_at'] as string | null | undefined) ?? null;
+
   return {
-    hasFaq:         !!(spAuto?.has_faq)         || !!(biz.has_faq),
-    hasIntro:       !!(spAuto?.has_intro)        || !!(biz.has_intro),
-    hasRecentPost:  !!(spAuto?.has_recent_post)  || !!(biz.has_recent_post),
-    hasWebsite:     isIndependentWebsite(biz.website_url),
+    hasFaq:       !!(spAuto?.has_faq)   || !!(biz.has_faq),
+    hasIntro:     !!(spAuto?.has_intro) || !!(biz.has_intro),
+    hasRecentPost,
+    hasWebsite:   isIndependentWebsite(biz.website_url),
+    recentPostConfirmedAt,
   };
 }
 

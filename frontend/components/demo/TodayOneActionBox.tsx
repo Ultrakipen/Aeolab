@@ -4,9 +4,9 @@ import { useState } from "react";
 
 const FAQ_BY_CATEGORY: Record<string, { q: string; a: string; tip: string }> = {
   restaurant: {
-    q: "주차 가능한가요?",
-    a: "네, 매장 앞에 무료 주차장이 있습니다. (5대 가능)",
-    tip: "예약·단체 가능 여부도 함께 적으면 AI 노출 확률이 더 높아집니다.",
+    q: "예약 가능한가요?",
+    a: "네이버 예약 또는 전화로 가능합니다. 단체 방문(10인 이상)은 3일 전 미리 연락 주세요.",
+    tip: "주차·영업시간·단체석 여부도 함께 적으면 AI 노출 확률이 더 높아집니다.",
   },
   cafe: {
     q: "노트북 작업 가능한가요?",

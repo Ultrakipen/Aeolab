@@ -17,6 +17,8 @@ import os
 import time
 from typing import Optional
 
+from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua
+
 _logger = logging.getLogger("aeolab")
 
 # 환경변수 fallback — DB 조회 실패 시에만 사용
@@ -144,22 +146,21 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
     encoded_q = urllib.parse.quote(query)
     url = f"https://search.naver.com/search.naver?query={encoded_q}"
 
+    proxy = get_proxy_config()
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+            proxy=proxy,
         )
         ctx = await browser.new_context(
             viewport={"width": 1280, "height": 800},
             locale="ko-KR",
             timezone_id="Asia/Seoul",
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0.0.0 Safari/537.36"
-            ),
+            user_agent=get_random_ua(),
         )
         page = await ctx.new_page()
+        await apply_stealth(page)
 
         try:
             await page.goto(url, timeout=25000)

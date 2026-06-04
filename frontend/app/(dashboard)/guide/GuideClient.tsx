@@ -277,17 +277,17 @@ interface Props {
 
 // ── 네이버 검색 기반 → AI 노출 연결 체크리스트 ────────────────────────────────
 function NaverSearchBaseSection({ category }: { category?: string }) {
-  const ACTIVE_CATS = ["restaurant", "cafe", "bakery", "bar", "accommodation"]
-  const isActive = ACTIVE_CATS.includes(category ?? "")
-  const isLikely = ["beauty", "nail", "pet", "fitness", "yoga", "pharmacy"].includes(category ?? "")
+  const eligibility = getBriefingEligibility(category, false)
+  const isActive = eligibility === "active"
+  const isLikely = eligibility === "likely"
 
   const checks: { icon: string; label: string; effect: string; priority: "high" | "mid" }[] = [
-    { icon: "✏️", label: "소개글 500자+ + Q&A 형식 3개 이상", effect: "AI 브리핑 · AI탭", priority: "high" },
+    { icon: "✏️", label: "소개글 500자+ + Q&A 형식 3개 이상", effect: isActive ? "AI 브리핑 · AI탭" : "AI탭", priority: "high" },
     { icon: "📸", label: "카테고리별 사진 10장 이상", effect: "플레이스탭 · AI탭", priority: "high" },
-    { icon: "💬", label: "리뷰 10개+ (영수증 리뷰 포함)", effect: "플레이스탭 · AI 브리핑", priority: "high" },
+    { icon: "💬", label: "리뷰 10개+ (영수증 리뷰 포함)", effect: isActive ? "플레이스탭 · AI 브리핑" : "플레이스탭", priority: "high" },
     { icon: "📅", label: "14일 이내 소식 1개 이상 게시", effect: "플레이스탭 · AI탭", priority: "mid" },
     { icon: "📆", label: "네이버 예약 연동", effect: "플레이스탭 · AI탭", priority: "mid" },
-    { icon: "📝", label: "네이버 블로그 후기 5개 이상 확보", effect: "AI탭 · AI 브리핑 (2~4주)", priority: "mid" },
+    { icon: "📝", label: "네이버 블로그 후기 5개 이상 확보", effect: isActive ? "AI탭 · AI 브리핑 (2~4주)" : "AI탭 · ChatGPT · Gemini", priority: "mid" },
   ]
 
   return (
@@ -331,9 +331,12 @@ function NaverSearchBaseSection({ category }: { category?: string }) {
       <div className="rounded-lg bg-white border border-green-100 px-3 py-2.5">
         <p className="text-sm font-medium text-gray-700 mb-1">개선 순서 원칙</p>
         <p className="text-sm text-gray-600">
-          소개글 → 리뷰 → 사진 → 소식 순으로 먼저 완성하세요.
-          이 4가지가 네이버 AI 브리핑·AI탭 노출의 직접 조건입니다.
-          블로그 후기는 ChatGPT·Gemini에 3~12개월 후 반영됩니다.
+          소개글 → 리뷰 → 사진 → 소식 순으로 먼저 완성하세요.{" "}
+          {isActive
+            ? "이 4가지가 네이버 AI 브리핑·AI탭 노출의 직접 조건입니다. 블로그 후기는 네이버 AI 브리핑·AI탭에 효과적입니다. ChatGPT·Gemini는 Bing 인덱싱 경로가 달라 직접 효과가 낮습니다."
+            : isLikely
+            ? "이 4가지가 네이버 AI탭 노출의 직접 기반입니다. 블로그 후기는 AI탭 노출에 효과적이며 ChatGPT·Gemini 장기 노출에도 도움이 됩니다."
+            : "이 4가지가 네이버 검색 순위를 높이고 AI탭·ChatGPT·Gemini 노출 가능성을 함께 높입니다. 블로그 후기는 AI탭·ChatGPT·Gemini 노출에 장기적으로 도움이 됩니다."}
         </p>
       </div>
 
@@ -600,6 +603,8 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
   const scoreColor = score >= 70 ? 'text-green-700' : score >= 50 ? 'text-yellow-700' : 'text-red-600'
   const scoreBg   = score >= 70 ? 'bg-green-50 border-green-200' : score >= 50 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'
   const freqColor = freq >= 30 ? 'text-blue-700' : freq >= 10 ? 'text-yellow-700' : 'text-red-600'
+  const scoreLabel = score >= 70 ? '높음' : score >= 50 ? '보통' : '개선 필요'
+  const freqLabel  = freq >= 30 ? '자주 노출' : freq >= 10 ? '가끔 노출' : '미노출'
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5">
@@ -608,14 +613,12 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
         {/* AI 노출 점수 */}
         <div className={`rounded-xl border p-3 ${scoreBg}`}>
           <div className="text-sm md:text-base text-gray-500 mb-1">AI 노출 종합점수</div>
-          <div className={`text-2xl font-bold ${scoreColor}`}>{score.toFixed(1)}</div>
-          <div className="text-sm md:text-base text-gray-500 mt-0.5">/ 100점</div>
+          <div className={`text-lg font-bold ${scoreColor}`}>{scoreLabel}</div>
         </div>
         {/* 노출 빈도 */}
         <div className="rounded-xl border border-blue-200 bg-blue-50 p-3">
           <div className="text-sm md:text-base text-gray-500 mb-1">AI 검색 노출</div>
-          <div className={`text-2xl font-bold ${freqColor}`}>{freq}</div>
-          <div className="text-sm md:text-base text-gray-500 mt-0.5">/ 100회 쿼리</div>
+          <div className={`text-lg font-bold ${freqColor}`}>{freqLabel}</div>
         </div>
         {/* 네이버 AI 브리핑 / 비대상 업종은 AI 검색으로 표시 */}
         <div className={`rounded-xl border p-3 ${isInactive ? 'bg-gray-50 border-gray-200' : naverOk ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
@@ -955,7 +958,7 @@ const CONTENT_CALENDAR: Record<string, { theme: string; ideas: string[] }[]> = {
     { theme: '9~10월: 가을·추석', ideas: ['추석 연휴 영업 안내', '가을 제철 재료 신메뉴', '단풍 시즌 데이트 코스'] },
     { theme: '11~12월: 연말·겨울', ideas: ['연말 모임 예약 안내', '연말 특선 세트 메뉴', '연말 감사 이벤트'] },
   ],
-  hair: [
+  beauty_nail: [
     { theme: '1~2월: 새해 변신', ideas: ['새해 헤어스타일 추천 TOP5', '설 명절 전 방문 고객 할인', '겨울 두피 관리 팁'] },
     { theme: '3~4월: 봄 헤어', ideas: ['봄 트렌드 헤어컬러 소개', '입학·입사 헤어스타일 추천', '봄 펌 시술 전후 사진'] },
     { theme: '5~6월: 여름 준비', ideas: ['여름 앞두고 탈색·염색 타이밍', '장마철 헤어 관리법', '가정의 달 엄마 헤어 변신'] },
@@ -977,7 +980,7 @@ function getCalendarKey(category?: string): keyof typeof CONTENT_CALENDAR {
   if (!category) return 'default'
   const c = category.toLowerCase()
   if (c.includes('restaurant') || c.includes('cafe') || c.includes('음식') || c.includes('카페') || c.includes('식당')) return 'restaurant'
-  if (c.includes('hair') || c.includes('nail') || c.includes('beauty') || c.includes('미용') || c.includes('헤어') || c.includes('네일')) return 'hair'
+  if (c.includes('hair') || c.includes('nail') || c.includes('beauty') || c.includes('미용') || c.includes('헤어') || c.includes('네일')) return 'beauty_nail'
   return 'default'
 }
 
@@ -1357,12 +1360,11 @@ function GrowthStageCard({ stage }: { stage: GrowthStage }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-start mb-3">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4" />
           <span className="text-base font-semibold">지금 내 가게 단계: {simplify(stage.stage_label)}</span>
         </div>
-        <span className="text-sm md:text-base opacity-70">{stage.score_range}</span>
       </div>
       <p className="text-sm md:text-base mb-4 leading-relaxed">{simplify(stage.focus_message)}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2039,11 +2041,10 @@ function CommunityDraftsSection({ paths }: { paths: BriefingPath[] }) {
     }
     if (sections.length > 0) return sections
 
-    // fallback: 기본 3개 채널 목록 생성
+    // fallback: 기본 2개 채널 목록 생성
     return [
       { channel: '네이버 카페 (지역 맘카페)', label: '후기 게시판', text: text },
       { channel: '네이버 지식인', label: '질문 답변', text: text },
-      { channel: '인스타그램', label: '위치 태그 게시물', text: text },
     ]
   }
 
@@ -2154,7 +2155,7 @@ function MapLinkBox({
         <p className="text-sm font-bold text-blue-800">내 네이버 지도 링크</p>
       </div>
       <p className="text-sm text-gray-600 mb-3 break-keep leading-relaxed">
-        이 링크를 인스타그램 프로필·스토리·카카오채널에 넣으면 찜·저장·길찾기 클릭이 늘어납니다
+        이 링크를 카카오채널·SNS 소개란에 공유하면 찜·저장·길찾기 클릭이 늘어납니다
       </p>
       <div className="flex gap-2">
         <input
@@ -2175,7 +2176,7 @@ function MapLinkBox({
         </button>
       </div>
       <p className="text-sm text-gray-400 mt-2">
-        💡 인스타 프로필 링크, 카카오채널 홈, SNS 소개란에 꼭 넣어두세요
+        💡 카카오채널 홈·SNS 소개란에 꼭 넣어두세요
       </p>
     </div>
   )
@@ -2193,10 +2194,6 @@ function BrandNameCheckBox({ bizName, bizRegion }: { bizName?: string; bizRegion
     {
       label: '구글맵 확인',
       url: `https://www.google.com/maps/search/${encodeURIComponent((region + ' ' + name).trim())}`,
-    },
-    {
-      label: '인스타 확인',
-      url: `https://www.instagram.com/explore/search/?q=${encodeURIComponent(name)}`,
     },
   ]
 
@@ -2231,7 +2228,6 @@ const PLATFORM_LIST = [
   { key: 'naver_smartplace', label: '네이버 스마트플레이스', hint: '기본 등록 · AI 브리핑 직접 연결', icon: 'N', required: true,  link: 'https://smartplace.naver.com', linkLabel: '등록 방법' },
   { key: 'kakao_map',        label: '카카오맵',             hint: '카카오맵 사장님 서비스 등록',   icon: 'K', required: false, link: 'https://biz.kakao.com',         linkLabel: '등록 방법' },
   { key: 'google_map',       label: '구글 지도',            hint: 'Google Business Profile 등록', icon: 'G', required: false, link: 'https://business.google.com',   linkLabel: '등록 방법' },
-  { key: 'instagram',        label: '인스타그램',           hint: '업체 계정 운영',               icon: 'I', required: false, link: 'https://www.instagram.com',     linkLabel: '시작하기' },
   { key: 'youtube',          label: '유튜브',               hint: '짧은 영상 1개라도 업로드',     icon: 'Y', required: false, link: 'https://www.youtube.com',       linkLabel: '시작하기' },
 ]
 
@@ -2878,7 +2874,7 @@ A. ${a}`).catch(() => {})
                 ⚠️ <strong>[ ] 괄호 안 내용은 실제 정보로 바꿔주세요</strong> — 그대로 복사하면 괄호가 노출됩니다
               </div>
               <p className="text-sm text-gray-400 text-center mt-2">
-                네이버 스마트플레이스 파트너센터 → Q&A 관리에서 붙여넣기 하세요
+                네이버 스마트플레이스 → 업체정보 → 소개글 Q&A 섹션에 붙여넣기 하세요
               </p>
             </div>
           )}
@@ -3131,7 +3127,7 @@ function TodayKeywordHero({
           <p className="text-sm font-semibold text-amber-700 mb-1">지금 바로 할 것 1가지</p>
           <p className="text-base font-bold text-gray-900 mb-1">부족한 키워드를 선택해 소개글 안 Q&A에 추가하세요</p>
           <p className="text-sm text-gray-500 mb-3 leading-relaxed">
-            이 키워드들이 없어서 AI 브리핑 노출 기회를 놓치고 있습니다. 키워드를 선택하면 FAQ 문구가 자동 생성됩니다.
+            이 키워드들이 없으면 AI 브리핑 인용 후보에서 누락될 가능성이 있습니다. 키워드를 선택하면 FAQ 문구가 자동 생성됩니다.
             관련 없는 키워드는 <strong>✕</strong>로 제외하세요.
           </p>
 
@@ -3420,7 +3416,7 @@ function GuideTabView({
 
           {/* 블로그 AI 최적화 진단 — 전용 페이지 링크 */}
           <a
-            href="/blog"
+            href="/blog-analysis"
             className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-400 hover:bg-blue-50 transition-colors group"
           >
             <div className="flex items-center gap-2">
@@ -3540,7 +3536,7 @@ function GuideTabView({
             </div>
           )}
 
-          {/* 외부 언급 3채널 — 맘카페·지식인·인스타 (각각 다른 접근법) */}
+          {/* 외부 언급 채널 — 맘카페·지식인 등 (각각 다른 접근법) */}
           {(() => {
             const topKeyword = keywordGap?.missing_keywords?.[0]
             const bizRegion = region || '우리 지역'
@@ -3602,14 +3598,6 @@ function GuideTabView({
                   text: `안녕하세요, ${bizRegion} ${bizCategory} ${bizName}입니다. ${topKeyword ? `${topKeyword} 관련 시술 정보를 공유드립니다.` : '다양한 스타일 시술이 가능합니다.'} 상담 및 예약은 지도 검색 '${bizName}'으로 문의해 주세요. (사업주 작성)`,
                 },
                 {
-                  key: 'instagram',
-                  icon: '📸',
-                  title: '인스타그램 — Before/After 시술 사진',
-                  approach: '시술 전후 사진은 뷰티 업종 최강 콘텐츠 — 고객 동의 후 업로드, Google 이미지 검색에 반영',
-                  hint: `고객 동의 받고 시술 전후 사진 → 위치 태그 + #${(topKeyword || bizCategory).replace(/\s+/g, '')} #${bizRegion.replace(/\s+/g, '')}미용`,
-                  text: `${bizName} ${topKeyword || bizCategory} 시술 ✂️\n\n고객님 동의 후 공개합니다.\n\n📍위치: ${bizRegion} ${bizName}\n\n#${bizRegion.replace(/\s+/g, '')}미용 #${(topKeyword || bizCategory).replace(/\s+/g, '')} #${bizName.replace(/\s+/g, '')}`,
-                },
-                {
                   key: 'knowledge',
                   icon: '💬',
                   title: '네이버 지식인 — 뷰티 전문 답변',
@@ -3629,14 +3617,6 @@ function GuideTabView({
                   approach: '운동 관심사 카페에서 운동 팁 공유 형식으로 자연스럽게 참여',
                   hint: topKeyword ? `"${topKeyword} 운동법" 정보 공유 후 ${bizName} 소개` : `"${bizRegion} 운동" 관련 카페 참여`,
                   text: `안녕하세요, ${bizRegion} ${bizCategory} ${bizName}입니다. ${topKeyword ? `${topKeyword} 운동에 관심 있는 분들께 도움이 될 것 같아 공유합니다.` : '운동 관련 궁금한 점 있으시면 도움드릴게요.'} 체험 수업 문의는 지도에서 '${bizName}' 검색해 주세요. (사업주 작성)`,
-                },
-                {
-                  key: 'instagram',
-                  icon: '📸',
-                  title: '인스타그램 — 운동 인증·클래스 분위기',
-                  approach: '클래스 분위기·운동 인증 사진·영상 — 피트니스 업종 필수 채널',
-                  hint: `클래스 분위기 사진 + 위치 태그 + #${(topKeyword || '운동').replace(/\s+/g, '')} #${bizRegion.replace(/\s+/g, '')}헬스`,
-                  text: `${bizName} 클래스 소개 💪\n\n${topKeyword ? `${topKeyword} 전문 수업` : '다양한 운동 프로그램'} 운영 중입니다.\n\n첫 체험 수업 문의: 📍${bizRegion} ${bizName}\n\n#${bizRegion.replace(/\s+/g, '')}헬스 #${(topKeyword || '운동').replace(/\s+/g, '')} #${bizName.replace(/\s+/g, '')}`,
                 },
                 {
                   key: 'knowledge',
@@ -3689,14 +3669,6 @@ function GuideTabView({
                   text: `안녕하세요, ${bizRegion} ${bizName}입니다. ${topKeyword ? `${topKeyword} 전문 서비스` : '반려동물 전문'}으로 운영 중입니다. 소중한 반려동물 관련 궁금한 점 있으시면 지도 검색 '${bizName}'으로 문의해 주세요. (사업주 작성)`,
                 },
                 {
-                  key: 'instagram',
-                  icon: '📸',
-                  title: '인스타그램 — 반려동물 사진',
-                  approach: '반려동물 사진은 인스타그램 최고 인기 콘텐츠 — 고객 동의 후 귀여운 사진 공유',
-                  hint: `고객 반려동물 사진 (동의 후) + 위치 태그 + #${bizRegion.replace(/\s+/g, '')}반려동물 #${(topKeyword || '펫').replace(/\s+/g, '')}`,
-                  text: `${bizName} 방문 고객 🐾\n\n${topKeyword ? topKeyword + ' 전문 서비스 제공' : '전문적인 반려동물 관리'}\n\n📍${bizRegion} ${bizName}\n\n#${bizRegion.replace(/\s+/g, '')}반려동물 #${(topKeyword || '펫').replace(/\s+/g, '')} #${bizName.replace(/\s+/g, '')}`,
-                },
-                {
                   key: 'knowledge',
                   icon: '💬',
                   title: '네이버 지식인 — 반려동물 전문 답변',
@@ -3734,22 +3706,6 @@ function GuideTabView({
                     ? `${bizRegion}에서 ${topKeyword}을(를) 잘하는 ${bizCategory}을(를) 찾으신다면 '${bizName}' 추천드립니다. ${bizRegion} 내에 위치하고 있으며 지도에서 바로 검색 가능합니다. (답변자: 해당 가게 사업주)`
                     : `${bizRegion} ${bizCategory}을(를) 찾으신다면 '${bizName}' 참고해보세요. 지도 검색으로 바로 찾을 수 있습니다. (답변자: 해당 가게 사업주)`,
                 },
-                {
-                  key: 'instagram',
-                  icon: '📸',
-                  title: isCreative ? '인스타그램 — 포트폴리오' : isFashion ? '인스타그램 — 스타일 룩북' : isService ? '인스타그램 — 작업 전후 사진' : '인스타그램 위치 태그',
-                  approach: isCreative
-                    ? '작업물 포트폴리오 — 실력이 곧 마케팅, Google 이미지 검색에 반영'
-                    : isFashion
-                      ? '착용 사진 + 아이템 태그 — 패션 업종 필수 채널'
-                      : isService
-                        ? '작업 전후 사진 — 고객 신뢰 구축에 효과적'
-                        : '위치 태그 + 해시태그 조합 — Google 이미지 검색에 반영',
-                  hint: '가게 위치를 태그하고 지역 해시태그 3개 이상 포함',
-                  text: topKeyword
-                    ? `${bizRegion} ${bizCategory} ${bizName} 🏪\n\n${topKeyword} 찾으시는 분들께 추천드려요.\n\n위치 태그 📍${bizName}\n\n#${bizRegion.replace(/\s+/g, '')} #${bizCategory} #${topKeyword.replace(/\s+/g, '')} #${bizName.replace(/\s+/g, '')}`
-                    : `${bizRegion} ${bizCategory} ${bizName} 🏪\n\n지역 주민들이 자주 찾는 가게입니다.\n\n위치 태그 📍${bizName}\n\n#${bizRegion.replace(/\s+/g, '')} #${bizCategory} #${bizName.replace(/\s+/g, '')}`,
-                },
               ]
             }
 
@@ -3759,12 +3715,12 @@ function GuideTabView({
                   <Share2 className="w-4 h-4 text-indigo-500" />
                   <div className="text-sm font-semibold text-gray-900">
                     {isMedical ? '외부 언급 3채널 (지식인·건강 카페·블로그)' :
-                     isBeauty ? '외부 언급 3채널 (뷰티 카페·인스타·지식인)' :
-                     isFitness ? '외부 언급 3채널 (운동 카페·인스타·지식인)' :
+                     isBeauty ? '외부 언급 2채널 (뷰티 카페·지식인)' :
+                     isFitness ? '외부 언급 2채널 (운동 카페·지식인)' :
                      isEducation ? '외부 언급 3채널 (학부모 카페·지식인·블로그)' :
-                     isPet ? '외부 언급 3채널 (반려동물 카페·인스타·지식인)' :
-                     isFoodDrink ? '외부 언급 3채널 (맘카페·지식인·인스타)' :
-                     '외부 언급 3채널 (지역 카페·지식인·인스타)'}
+                     isPet ? '외부 언급 2채널 (반려동물 카페·지식인)' :
+                     isFoodDrink ? '외부 언급 2채널 (맘카페·지식인)' :
+                     '외부 언급 2채널 (지역 카페·지식인)'}
                   </div>
                   <span className="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">이번 달</span>
                 </div>
@@ -4492,7 +4448,6 @@ export function GuideClient({
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <span className="text-base font-semibold text-gray-700">내 사업장 현황 분석</span>
-            <span className="text-sm bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium">NEW</span>
           </div>
           <AICitationHighlight businessId={business.id} authToken={authToken} currentPlan={currentPlan} isInactive={isBriefingInactive} />
           <KeywordCompletenessGauge businessId={business.id} authToken={authToken} currentPlan={currentPlan} />

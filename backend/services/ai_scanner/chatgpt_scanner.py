@@ -8,6 +8,9 @@ from openai import AsyncOpenAI
 _logger = logging.getLogger(__name__)
 
 
+_CHATGPT_SEM = asyncio.Semaphore(5)  # OpenAI rate limit 대응: 동시 호출 5개 상한
+
+
 class ChatGPTScanner:
     def __init__(self):
         self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -42,25 +45,26 @@ class ChatGPTScanner:
         prompt = f"""검색어: {query}
 다음 사업장이 추천되는지 JSON으로만 답하세요: {target}
 {{"mentioned": true/false, "rank": 순위또는null, "excerpt": "인용텍스트"}}"""
-        try:
-            resp = await asyncio.wait_for(
-                self.client.chat.completions.create(
-                    model="gpt-4.1-mini",
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=1.0,
-                    max_tokens=200,
-                ),
-                timeout=15.0,
-            )
-            text = resp.choices[0].message.content or ""
-            m = re.search(r"\{.*?\}", text, re.DOTALL)
-            return json.loads(m.group()) if m else {"mentioned": False}
-        except asyncio.TimeoutError:
-            _logger.debug("chatgpt _check timed out (15s): query=%s", query[:50])
-            return {"mentioned": False}
-        except Exception as e:
-            _logger.debug("chatgpt _check failed: %s", e)
-            return {"mentioned": False}
+        async with _CHATGPT_SEM:
+            try:
+                resp = await asyncio.wait_for(
+                    self.client.chat.completions.create(
+                        model="gpt-4.1-mini",
+                        messages=[{"role": "user", "content": prompt}],
+                        temperature=1.0,
+                        max_tokens=200,
+                    ),
+                    timeout=20.0,
+                )
+                text = resp.choices[0].message.content or ""
+                m = re.search(r"\{.*?\}", text, re.DOTALL)
+                return json.loads(m.group()) if m else {"mentioned": False}
+            except asyncio.TimeoutError:
+                _logger.debug("chatgpt _check timed out (20s): query=%s", query[:50])
+                return {"mentioned": False}
+            except Exception as e:
+                _logger.debug("chatgpt _check failed: %s", e)
+                return {"mentioned": False}
 
     def _wilson_ci(self, k: int, n: int) -> dict:
         """Wilson 신뢰구간 (95%)"""
@@ -101,7 +105,7 @@ class ChatGPTScanner:
                     mention_count += 1
                     if r.get("excerpt"):
                         citations.append(r["excerpt"])
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1.0)
 
         return {
             "platform": "chatgpt",

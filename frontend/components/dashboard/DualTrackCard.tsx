@@ -5,6 +5,7 @@ import { Sprout, TrendingUp, Flame, Trophy, MapPin, Globe, Zap, Lightbulb, Info,
 import Link from "next/link";
 import type { JSX } from "react";
 import { SCORE_LABELS } from "@/lib/score-labels";
+import type { SmartPlaceStatus } from "@/app/(dashboard)/dashboard/sections/pageHelpers";
 
 void SCORE_LABELS; // 미사용 경고 방지 (향후 dynamic rendering 시 활용)
 
@@ -15,13 +16,6 @@ void SCORE_LABELS; // 미사용 경고 방지 (향후 dynamic rendering 시 활�
  * Track 2: 글로벌 AI 가시성       (업종별 비중: 30~90%)
  * 성장 단계: track1_score 기준 (시작/성장 중/두각/선도)
  */
-
-interface SmartPlaceStatus {
-  hasFaq?: boolean;
-  hasIntro?: boolean;
-  hasRecentPost?: boolean;
-  hasWebsite?: boolean;
-}
 
 interface DualTrackCardProps {
   track1Score: number;
@@ -121,7 +115,14 @@ const INACTIVE_NAVER_SEO_TIPS: Record<string, string> = {
   other:      "업종 관련 정보성 블로그 주 1~2회 발행 + 스마트플레이스 소개글·사진 업데이트",
 };
 
-function getScoreStatusLabel(score: number): { text: string; color: string } {
+function getScoreStatusLabel(score: number, channelType: 'naver' | 'global' = 'naver'): { text: string; color: string } {
+  if (channelType === 'global') {
+    if (score < 10) return { text: "미측정 수준",   color: "text-red-600" };
+    if (score < 35) return { text: "낮음 (일반적)", color: "text-amber-600" };
+    if (score < 60) return { text: "보통",          color: "text-yellow-600" };
+    if (score < 80) return { text: "양호",          color: "text-blue-600" };
+    return             { text: "우수",              color: "text-emerald-600" };
+  }
   if (score < 25) return { text: "주의 필요", color: "text-red-600" };
   if (score < 45) return { text: "미흡",     color: "text-amber-600" };
   if (score < 65) return { text: "보통",     color: "text-yellow-600" };
@@ -155,6 +156,7 @@ function ScoreBar({
   tip,
   opportunityMsg,
   immediateAction,
+  channelType = 'naver',
 }: {
   score: number;
   weight: number;
@@ -167,6 +169,7 @@ function ScoreBar({
   tip: string;
   opportunityMsg?: string;
   immediateAction?: string;
+  channelType?: 'naver' | 'global';
 }) {
   const pct = Math.round(weight * 100);
   const barWidth = Math.min(100, Math.max(0, score));
@@ -190,8 +193,8 @@ function ScoreBar({
             전체 진단 {pct}% 반영
           </span>
         </div>
-        <span className={`text-base md:text-lg font-bold shrink-0 ${getScoreStatusLabel(score).color}`}>
-          {getScoreStatusLabel(score).text}
+        <span className={`text-base md:text-lg font-bold shrink-0 ${getScoreStatusLabel(score, channelType).color}`}>
+          {getScoreStatusLabel(score, channelType).text}
         </span>
       </div>
       <div className="h-3 bg-gray-200 rounded-full overflow-hidden mb-2">
@@ -208,7 +211,7 @@ function ScoreBar({
       {isVeryLow && opportunityMsg && (
         <div className="mt-2 flex items-start gap-2 text-sm text-amber-700 font-medium bg-amber-100 rounded-lg px-3 py-2 leading-relaxed">
           <Lightbulb className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
-          <span>{opportunityMsg}</span>
+          <span className="whitespace-pre-line">{opportunityMsg}</span>
         </div>
       )}
       {/* 30점 이상 약점: 행동 가이드 */}
@@ -216,7 +219,7 @@ function ScoreBar({
         <div className="mt-2 bg-yellow-100 rounded-lg px-3 py-2.5 space-y-1">
           <div className="flex items-center gap-2 text-sm font-bold text-yellow-800">
             <Zap className="w-4 h-4 shrink-0" />
-            지금 할 것
+            {channelType === 'global' ? "장기 개선 방향" : "지금 할 것"}
           </div>
           <p className="text-sm text-yellow-700 leading-relaxed pl-6">{tip}</p>
           <p className="text-sm text-yellow-600 pl-6 font-medium">
@@ -229,7 +232,7 @@ function ScoreBar({
         <div className="mt-2 bg-amber-100 rounded-lg px-3 py-2.5 space-y-1">
           <div className="flex items-center gap-2 text-sm font-bold text-amber-800">
             <Zap className="w-4 h-4 shrink-0" />
-            지금 할 것
+            {channelType === 'global' ? "장기 개선 방향" : "지금 할 것"}
           </div>
           <p className="text-sm text-amber-700 leading-relaxed pl-6">{tip}</p>
           <p className="text-sm text-amber-600 pl-6 font-medium">
@@ -577,8 +580,14 @@ export default function DualTrackCard({
         isWeak={isTrack2Weak}
         isVeryLow={isTrack2VeryLow}
         tip={buildTrack2Tip(category, smartPlaceStatus)}
-        opportunityMsg="Gemini는 Google 비즈니스 프로필 등록으로 개선 가능합니다. ChatGPT는 장기 콘텐츠 전략이 필요합니다"
+        opportunityMsg={"Google AI Overview — 구글 비즈니스 프로필 등록으로 수 주 내 개선 가능.\nGemini 앱 — 구글 비즈니스 프로필 기반, 수 주~수개월 소요.\nChatGPT — 블로그·소개글 누적으로 수개월~1년 소요."}
+        immediateAction="구글 비즈니스 프로필 등록 (무료) — Google AI Overview·Gemini 개선 가장 빠른 경로"
+        channelType="global"
       />
+      {/* Track 2 면책 문구 — AI 데이터 유무와 무관하게 항상 표시 */}
+      <p className="text-xs text-gray-400 -mt-1 leading-relaxed px-1">
+        ChatGPT·Gemini 스캐너 점수는 AI 학습 데이터 기반 — 한국 소상공인 포함률이 낮아 낮은 점수가 일반적, 스캐너 점수 개선 반영 수개월~1년. 단, Google AI Overview(구글 검색 상단 AI 요약)는 구글 비즈니스 프로필 등록 후 수 주 내 개선 시작 가능.
+      </p>
 
       {/* 집중 채널 추천 */}
       <FocusRecommendation
@@ -591,6 +600,7 @@ export default function DualTrackCard({
       {hasAiData && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 md:p-4">
           <p className="text-sm font-semibold text-blue-800 mb-2.5">🤖 AI 도구별 노출 현황 (실측)</p>
+          <p className="text-xs text-blue-600 mb-2.5 -mt-1">업종 키워드로 AI에 직접 질의했을 때 가게명이 언급된 횟수입니다</p>
           <div className="space-y-2.5">
             {chatgptRate !== null && aiExposureData?.chatgptSampleSize ? (
               <div>
@@ -598,8 +608,8 @@ export default function DualTrackCard({
                   <span>ChatGPT</span>
                   <span className="font-semibold">
                     {chatgptRate}%
-                    <span className="text-sm text-gray-400 font-normal ml-1">
-                      ({aiExposureData.chatgptFreq}/{aiExposureData.chatgptSampleSize}회)
+                    <span className="text-xs text-gray-400 font-normal ml-1">
+                      ({aiExposureData.chatgptSampleSize}번 질의 중 {aiExposureData.chatgptFreq}번 가게명 언급)
                     </span>
                   </span>
                 </div>
@@ -619,8 +629,8 @@ export default function DualTrackCard({
                   <span>Google Gemini</span>
                   <span className="font-semibold">
                     {geminiRate}%
-                    <span className="text-sm text-gray-400 font-normal ml-1">
-                      ({aiExposureData.geminiFreq}/{aiExposureData.geminiSampleSize}회)
+                    <span className="text-xs text-gray-400 font-normal ml-1">
+                      ({aiExposureData.geminiSampleSize}번 질의 중 {aiExposureData.geminiFreq}번 가게명 언급)
                     </span>
                   </span>
                 </div>
@@ -636,7 +646,7 @@ export default function DualTrackCard({
             )}
           </div>
           <p className="text-sm text-gray-400 mt-2.5 leading-relaxed">
-            ChatGPT 측정은 학습 데이터(컷오프 2024.06) 기반이며 실시간 웹 검색 결과와 다릅니다. 한국 지역 소상공인은 학습 데이터 포함률이 낮아 낮은 점수가 일반적입니다. Gemini는 Google Search 실시간 그라운딩으로 현재 웹 콘텐츠를 반영합니다.
+            ChatGPT는 과거 학습 데이터 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
           </p>
         </div>
       )}

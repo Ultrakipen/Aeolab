@@ -1,12 +1,21 @@
+import PhotoConfirmButton from "./PhotoConfirmButton";
+import RecentPostConfirmButton from "./RecentPostConfirmButton";
+
 interface NaverSeoBaseCardProps {
   reviewCount: number;
   hasIntro: boolean;
-  hasRecentPost: boolean;
+  hasRecentPost: boolean | null;
   hasReservation: boolean | null;
   photoCount: number | null;
   blogMentionCount: number;
   eligibility: "active" | "likely" | "inactive";
   naverPlaceId?: string | null;
+  /** checklist_overrides.__photo_sufficient — 사진 탭 차단 시 사용자 직접 확인값 */
+  photoSufficient?: boolean;
+  bizId?: string;
+  accessToken?: string;
+  /** checklist_overrides.__recent_post_confirmed_at — 소식 탭 수동 확인 일시 */
+  recentPostConfirmedAt?: string | null;
 }
 
 interface CheckItemProps {
@@ -47,10 +56,18 @@ export default function NaverSeoBaseCard({
   blogMentionCount,
   eligibility,
   naverPlaceId,
+  photoSufficient,
+  bizId,
+  accessToken,
+  recentPostConfirmedAt,
 }: NaverSeoBaseCardProps) {
   const isActiveOrLikely = eligibility === "active" || eligibility === "likely";
 
-  // 체크리스트 항목 5개
+  // photoSufficient가 true면 사진 충분 처리 (자동 측정 불가 대체)
+  const effectivePhotoCount = photoSufficient ? 10 : photoCount;
+
+  const recentPostEffect = "AI탭 ↑";
+
   const checkItems: CheckItemProps[] = [
     {
       checked: hasIntro,
@@ -66,19 +83,14 @@ export default function NaverSeoBaseCard({
       effect: isActiveOrLikely ? "플레이스탭·AI 브리핑 ↑" : "플레이스탭 ↑",
     },
     {
-      checked: photoCount === null ? null : photoCount >= 10,
+      checked: effectivePhotoCount === null ? null : effectivePhotoCount >= 10,
       action:
-        photoCount === null
-          ? "사진 10장+ (스캔 후 확인)"
-          : photoCount < 10
-          ? `사진 ${photoCount}장 (10장 목표)`
-          : `사진 ${photoCount}장`,
+        effectivePhotoCount === null
+          ? "사진 10장+ (직접 확인)"
+          : effectivePhotoCount < 10
+          ? `사진 ${effectivePhotoCount}장 (10장 목표)`
+          : `사진 ${effectivePhotoCount}장`,
       effect: "플레이스탭·AI탭 ↑",
-    },
-    {
-      checked: hasRecentPost,
-      action: "14일 이내 소식 게시",
-      effect: "AI탭 ↑",
     },
     {
       checked: hasReservation,
@@ -121,8 +133,21 @@ export default function NaverSeoBaseCard({
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
           {checkItems.map((item) => {
-            // 사진 항목이 null(측정 불가)이면 직접 확인 링크 행으로 대체
+            // 사진 항목이 null(측정 불가)이면 PhotoConfirmButton으로 대체
             if (item.action.startsWith("사진") && item.checked === null) {
+              if (bizId && accessToken) {
+                return (
+                  <PhotoConfirmButton
+                    key="photo-confirm"
+                    bizId={bizId}
+                    accessToken={accessToken}
+                    naverPlaceId={naverPlaceId}
+                    effect={item.effect}
+                    alreadyConfirmed={false}
+                  />
+                );
+              }
+              // accessToken 없음(비로그인 등) — 링크만 표시
               const photoUrl = naverPlaceId
                 ? `https://m.place.naver.com/place/${naverPlaceId}/photo`
                 : "https://smartplace.naver.com/";
@@ -135,7 +160,7 @@ export default function NaverSeoBaseCard({
                   className="flex items-center justify-between rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 gap-2 hover:bg-amber-100 transition-colors"
                 >
                   <span className="text-sm text-amber-800">
-                    📸 사진 10장+ 직접 확인 →
+                    📸 사진 탭 직접 확인 →
                   </span>
                   <span className="text-sm px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap bg-amber-100 text-amber-700">
                     {item.effect}
@@ -152,6 +177,41 @@ export default function NaverSeoBaseCard({
               />
             );
           })}
+
+          {/* 소식 항목 — null(IP 차단 측정 불가)이면 수동 확인 버튼 표시 */}
+          {hasRecentPost === null ? (
+            bizId && accessToken ? (
+              <RecentPostConfirmButton
+                key="recent-post-confirm"
+                bizId={bizId}
+                accessToken={accessToken}
+                naverPlaceId={naverPlaceId}
+                effect={recentPostEffect}
+                alreadyConfirmed={false}
+                confirmedAt={recentPostConfirmedAt}
+              />
+            ) : (
+              <a
+                key="recent-post-link"
+                href={naverPlaceId ? `https://m.place.naver.com/place/${naverPlaceId}/feed` : "https://smartplace.naver.com/"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 gap-2 hover:bg-amber-100 transition-colors"
+              >
+                <span className="text-sm text-amber-800">📢 소식 탭 직접 확인 →</span>
+                <span className="text-sm px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap bg-amber-100 text-amber-700">
+                  {recentPostEffect}
+                </span>
+              </a>
+            )
+          ) : (
+            <CheckItem
+              key="recent-post"
+              checked={hasRecentPost}
+              action="90일 이내 소식 게시"
+              effect={recentPostEffect}
+            />
+          )}
         </div>
       </div>
 

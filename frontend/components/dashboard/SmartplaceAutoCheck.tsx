@@ -214,7 +214,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
       {!loading && !result && !checkError && (
         <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">
           <p className="text-sm text-gray-500">
-            점검 시작 버튼을 누르면 FAQ·소개글·소식·영업시간 항목을 자동으로 확인합니다.
+            점검 시작 버튼을 누르면 소개글·소식·영업시간 항목을 자동으로 확인합니다.
           </p>
         </div>
       )}

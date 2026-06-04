@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { Fragment, useState, useEffect } from "react";
-import { CheckCircle2, XCircle, AlertTriangle, Minus, FileText, Star, Lightbulb } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Minus, FileText, Star, Lightbulb, Globe } from "lucide-react";
 
 interface PlatformResult {
   mentioned?: boolean;
   exposure_freq?: number;
   exposure_rate?: number;
+  sample_size?: number;
   in_briefing?: boolean;
+  in_ai_overview?: boolean;
   error?: string;
 }
 
@@ -122,36 +124,38 @@ export default function AIDiagnosisCard({
   };
 
   // 노출된 AI 목록 및 개수 계산
-  // INACTIVE 업종은 naver "mentioned"가 일반 검색 결과이지 AI 브리핑이 아님.
-  // 요약 배너 "네이버에서만 확인됩니다"는 사용자에게 혼란을 주므로 naver를 AI 노출 카운트에서 제외.
-  // (naver 채널 카드는 별도 Fragment로 정상 표시됨)
-  const mentionedPlatforms = DISPLAY_PLATFORMS.filter((key) => {
-    if (isNaverBriefingInactive && key === "naver") return false;
-    const r = allPlatformResults[key];
-    if (!r || r.error) return false;
+  // naver: in_briefing 기준 (mentioned는 일반 검색 포함이라 AI 브리핑 오판 방지)
+  // google: in_ai_overview 기준 (mentioned는 일반 유기 검색 포함이라 "Google AI" 오판 방지)
+  // INACTIVE 업종은 naver 제외
+  function _isAiExposed(key: string, r: PlatformResult): boolean {
+    if (key === "naver") return r.in_briefing === true;
+    if (key === "google") return r.in_ai_overview === true;
     return r.mentioned === true || (r.exposure_freq !== undefined && r.exposure_freq > 0);
-  });
-  const notMentionedPlatforms = DISPLAY_PLATFORMS.filter((key) => {
+  }
+  const activePlatformsForSummary = DISPLAY_PLATFORMS.filter((key) => {
     if (isNaverBriefingInactive && key === "naver") return false;
-    const r = allPlatformResults[key];
-    if (!r || r.error) return false;
-    return !(r.mentioned === true || (r.exposure_freq !== undefined && r.exposure_freq > 0));
-  });
-  const mentionedCount = mentionedPlatforms.length;
-
-  const totalPlatforms = DISPLAY_PLATFORMS.filter((key) => {
     const r = allPlatformResults[key];
     return r && !r.error;
-  }).length;
+  });
+  const mentionedPlatforms = activePlatformsForSummary.filter((key) => {
+    const r = allPlatformResults[key];
+    return _isAiExposed(key, r);
+  });
+  const notMentionedPlatforms = activePlatformsForSummary.filter((key) => {
+    const r = allPlatformResults[key];
+    return !_isAiExposed(key, r);
+  });
+  const mentionedCount = mentionedPlatforms.length;
+  const totalPlatforms = activePlatformsForSummary.length;
 
   // "N개 AI에서만 확인" 메시지에 플랫폼 명 포함
   const mentionedNames = mentionedPlatforms.map(k => PLATFORM_SHORT[k] ?? k);
   const notMentionedNames = notMentionedPlatforms.map(k => PLATFORM_SHORT[k] ?? k);
 
-  // CTA 조건 — INACTIVE 업종은 AI 브리핑 대상 아님, 소개글 Q&A CTA 표시 안 함
-  const ctaType: "faq" | "review" | "none" =
+  // CTA 조건 — INACTIVE 업종은 구글 비즈니스 프로필 등록 CTA
+  const ctaType: "faq" | "review" | "gbp" | "none" =
     isNaverBriefingInactive
-      ? "none"
+      ? "gbp"
       : smartPlaceScore < 70
       ? "faq"
       : reviewCount === 0
@@ -191,8 +195,8 @@ export default function AIDiagnosisCard({
           )}
         </div>
         {isNaverBriefingInactive ? (
-          <p className="text-xl md:text-2xl font-bold text-slate-300 leading-snug">
-            이 업종은 네이버 AI 브리핑 미지원입니다. 네이버 AI탭, ChatGPT·Gemini 채널을 집중 최적화하세요.
+          <p className="text-xl md:text-2xl font-bold text-white leading-snug">
+            {eunNeun(businessName)} 네이버 AI 브리핑 비대상 업종입니다. AI탭·ChatGPT·Gemini는 소개글·리뷰 개선으로 노출을 시작할 수 있습니다.
           </p>
         ) : naverInBriefing ? (
           <p className="text-xl md:text-2xl font-bold text-green-400 leading-snug">
@@ -262,7 +266,7 @@ export default function AIDiagnosisCard({
                       <div className="flex-1 min-w-0">
                         <span className="text-sm font-semibold text-gray-600">네이버 검색 노출</span>
                         <span className="block text-sm text-gray-500 mt-0.5">
-                          AI 브리핑 미지원 업종 — 대신 네이버 AI탭·ChatGPT·Gemini 최적화 권장
+                          AI 브리핑은 이 업종에 미적용 — AI탭·ChatGPT·Gemini는 동일한 개선 방법으로 노출 가능
                         </span>
                       </div>
                       <span className="text-sm font-semibold text-gray-400 shrink-0">AI 브리핑 제외</span>
@@ -270,12 +274,12 @@ export default function AIDiagnosisCard({
                     <div className="col-span-2 flex items-start gap-2 rounded-xl px-3 py-3 border bg-indigo-50 border-indigo-200">
                       <Minus className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm font-semibold text-indigo-700">네이버 AI탭 (Beta · 2026년 6월 정식 출시 예정)</span>
+                        <span className="text-sm font-semibold text-indigo-700">네이버 AI탭 (현재 네이버플러스 멤버십 한정 · 6월 전체 공개 예정)</span>
                         <span className="block text-sm text-indigo-500 mt-0.5">
-                          업종 공식 제한 없음 — 전체 확대 감지 시 자동으로 측정 시작됩니다
+                          업종 제한 없음 — 전체 공개 감지 즉시 자동 측정 시작 (월·목 자동 확인 중)
                         </span>
                       </div>
-                      <span className="text-sm font-semibold text-indigo-400 shrink-0">자동 감지 중</span>
+                      <span className="text-sm font-semibold text-indigo-400 shrink-0">공개 대기 중</span>
                     </div>
                   </Fragment>
                 );
@@ -350,7 +354,41 @@ export default function AIDiagnosisCard({
               }
             }
 
-            // 네이버 외 플랫폼
+            // Google AI Overview 분기 — mentioned는 일반 유기 검색도 포함하므로 in_ai_overview로 구분
+            if (key === "google") {
+              const inAiOverview = r.in_ai_overview === true;
+              const googleMentioned = r.mentioned === true && !inAiOverview;
+              const scanned = r.mentioned !== undefined;
+              return (
+                <div
+                  key={key}
+                  className={`flex items-center gap-2 rounded-xl px-3 py-2.5 border ${
+                    inAiOverview
+                      ? "bg-green-50 border-green-200"
+                      : googleMentioned
+                      ? "bg-amber-50 border-amber-200"
+                      : scanned
+                      ? "bg-red-50 border-red-200"
+                      : "bg-gray-50 border-gray-200"
+                  }`}
+                >
+                  {inAiOverview
+                    ? <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                    : googleMentioned
+                    ? <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                    : <XCircle className={`w-4 h-4 shrink-0 ${scanned ? "text-red-500" : "text-gray-400"}`} />
+                  }
+                  <span className={`text-sm font-medium leading-tight ${inAiOverview ? "text-green-800" : googleMentioned ? "text-amber-800" : scanned ? "text-red-800" : "text-gray-500"}`}>
+                    {label}
+                  </span>
+                  <span className={`ml-auto text-sm font-semibold ${inAiOverview ? "text-green-700" : googleMentioned ? "text-amber-700" : scanned ? "text-red-600" : "text-gray-400"}`}>
+                    {inAiOverview ? "AI 노출" : googleMentioned ? "검색만 노출" : scanned ? "미노출" : "미측정"}
+                  </span>
+                </div>
+              );
+            }
+
+            // Gemini·ChatGPT
             const known =
               r.mentioned === true ||
               (r.exposure_freq !== undefined && r.exposure_freq > 0);
@@ -358,9 +396,9 @@ export default function AIDiagnosisCard({
             const scanned =
               (r.mentioned !== undefined && r.mentioned !== null) ||
               r.exposure_freq !== undefined;
-            // Gemini·ChatGPT 모두 exposure_rate 보유 → 동일하게 % 표시
+            // exposure_rate 보유 시 % 표시
             const exposurePct =
-              (key === "gemini" || key === "chatgpt") && r.exposure_rate !== undefined
+              r.exposure_rate !== undefined
                 ? Math.round(r.exposure_rate * 100)
                 : null;
             return (
@@ -383,6 +421,11 @@ export default function AIDiagnosisCard({
                 </span>
                 <span className={`ml-auto text-sm font-semibold ${known ? "text-green-700" : scanned ? "text-red-600" : "text-gray-400"}`}>
                   {exposurePct !== null ? `${exposurePct}%` : known ? "노출됨" : scanned ? "미노출" : "미측정"}
+                  {r.exposure_freq !== undefined && r.sample_size ? (
+                    <span className="text-xs font-normal text-gray-400 ml-1">
+                      ({r.sample_size}번 중 {r.exposure_freq}번)
+                    </span>
+                  ) : null}
                 </span>
               </div>
             );
@@ -402,7 +445,7 @@ export default function AIDiagnosisCard({
               }`}
             >
               {mentionedCount === 0
-                ? `점검한 AI 채널(${DISPLAY_PLATFORMS.map(k => PLATFORM_SHORT[k]).join("·")})에서 ${businessName}이(가) 노출되지 않았습니다.`
+                ? `점검한 AI 채널(${activePlatformsForSummary.map(k => PLATFORM_SHORT[k]).join("·")})에서 ${businessName}이(가) 노출되지 않았습니다.`
                 : mentionedCount <= 2
                 ? `${mentionedNames.join("·")}에서만 확인됩니다. ${notMentionedNames.join("·")} 노출이 더 필요합니다.`
                 : `${mentionedNames.join("·")} 등 절반 이상의 AI가 알고 있습니다.`}
@@ -412,7 +455,7 @@ export default function AIDiagnosisCard({
               {isNaverBriefingInactive ? (
                 <span className="flex items-start gap-1.5">
                   <Lightbulb className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-                  <span>네이버 AI탭, ChatGPT·Gemini 최적화에 집중하세요 — 이 업종은 네이버 AI 브리핑 대상이 아닙니다</span>
+                  <span>이 업종은 네이버 AI 브리핑 비대상입니다. AI탭·ChatGPT·Gemini는 소개글·구글 비즈니스 프로필 개선으로 노출을 시작할 수 있습니다</span>
                 </span>
               ) : naverInBriefing ? (
                 <span className="flex items-start gap-1.5">
@@ -553,6 +596,33 @@ export default function AIDiagnosisCard({
       </div>
 
       {/* 섹션 5: 지금 당장 할 수 있는 1가지 */}
+      {ctaType === "gbp" && (
+        <div className="bg-blue-50 border border-blue-300 rounded-xl p-5 md:p-6">
+          <p className="text-sm font-semibold text-blue-700 mb-2">
+            지금 당장 하면 가장 효과적인 것 1가지
+          </p>
+          <div className="flex items-start gap-3 mb-3">
+            <Globe className="w-6 h-6 text-blue-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-base md:text-lg font-bold text-blue-900 leading-snug">
+                구글 비즈니스 프로필 등록
+              </p>
+              <p className="text-sm md:text-base text-blue-800 mt-1 leading-relaxed">
+                구글 비즈니스 프로필 정보가 Gemini(구글 AI)에 반영됩니다. 지금 등록하면 2~4주 내 Gemini 노출이 개선될 수 있습니다. 네이버 AI탭은 스마트플레이스 소개글·리뷰를 채울수록 노출 가능성이 높아집니다.
+              </p>
+            </div>
+          </div>
+          <a
+            href="https://business.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-sm md:text-base px-4 py-2.5 rounded-xl transition-colors"
+          >
+            구글 비즈니스 프로필 등록 →
+          </a>
+        </div>
+      )}
+
       {ctaType === "faq" && (
         <div className="bg-amber-50 border border-amber-300 rounded-xl p-5 md:p-6">
           <p className="text-sm font-semibold text-amber-700 mb-2">
@@ -603,7 +673,7 @@ export default function AIDiagnosisCard({
         </div>
       )}
       <p className="text-sm text-gray-600 mt-3 leading-relaxed">
-        ChatGPT 측정은 학습 데이터(컷오프 2024.06) 기반이며 실시간 웹 검색 결과와 다릅니다. 한국 지역 소상공인은 학습 데이터 포함률이 낮아 낮은 점수가 일반적입니다. Gemini는 Google Search 실시간 그라운딩으로 현재 웹 콘텐츠를 반영합니다.
+        ChatGPT는 과거 학습 데이터 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
       </p>
     </div>
   );

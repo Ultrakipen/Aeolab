@@ -301,11 +301,12 @@ ai_tab_enabled='true' (현재 DB 상태): in_ai_tab=True → +20 보너스 반�
 ### 4.4 측정 방법 (gemini_scanner.py)
 
 ```
-모델: gemini-2.0-flash-001 (tools 없음 — Google Search 그라운딩 미사용)
+모델: gemini-2.5-flash (tools 없음 — Google Search 그라운딩 미사용, 학습 컷오프 2025.01)
 샘플링: 50회(Basic) / 100회(Full) / 10회(Quick)
 쿼리: build_ai_scan_queries() 5개 쿼리 균등 분산 (ChatGPT와 동일)
 점수 산식: (언급 횟수 / 총 샘플) × 45 → 100점 재배분
 측정 의미: 훈련 데이터 인식도 (실사용 Gemini의 그라운딩 결과와 다를 수 있음)
+※ 2026-05-31: gemini-2.0-flash-001(컷오프 2024.06) → gemini-2.5-flash 마이그레이션 (6월 1일 deprecated 대응)
 ```
 
 **ChatGPT·Gemini 합산 점수 산식**:

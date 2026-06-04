@@ -381,6 +381,21 @@ async def daily_scan_all():
                 if _prescan_naver:
                     result["naver"] = _prescan_naver
 
+                # prescan의 SmartPlace 완성도 결과 적용 (피드·정보 탭 차단 우회)
+                _prescan_sp = _prescan_naver.get("smart_place_check") or {}
+                if _prescan_sp and not _prescan_sp.get("error"):
+                    _sp_biz_upd: dict = {}
+                    if _prescan_sp.get("recent_post_measured"):
+                        _sp_biz_upd["has_recent_post"] = _prescan_sp["has_recent_post"]
+                    if _prescan_sp.get("intro_measured"):
+                        _sp_biz_upd["has_intro"] = _prescan_sp["has_intro"]
+                    if _sp_biz_upd:
+                        try:
+                            supabase.table("businesses").update(_sp_biz_upd).eq("id", biz["id"]).execute()
+                            logger.debug("[daily_scan_all] SmartPlace prescan businesses 업데이트 biz=%s", biz.get("id"))
+                        except Exception as _sp_upd_err:
+                            logger.warning("[daily_scan_all] SmartPlace prescan DB 업데이트 실패: %s", _sp_upd_err)
+
                 # 네이버 캡챠 연속 감지 시 당일 네이버 스캔 조기 중단
                 _naver_result = result.get("naver") or {}
                 if _naver_result.get("captcha_detected"):
@@ -5170,11 +5185,12 @@ async def _check_v31_readiness_job():
 
 
 async def ai_tab_trigger_check_job():
-    """M3-1: 주 2회(월·목 09:00 KST) AI탭 비로그인 노출률 측정.
+    """M3-1: 주 2회(월·목 09:00 KST) AI탭 전체 공개 여부 자동 감지.
 
-    통합검색 결과에서 AI탭 섹션 노출 여부를 4개 쿼리로 확인.
-    노출률 80%+ 감지 시 [P2-READY] Slack 알림 → P2 작업 시작 신호.
-    수동 모니터링(p2_p3_execution_runbook.md 주 1회 확인)을 자동화로 대체.
+    헤드리스(비로그인) 상태로 통합검색 4개 쿼리에서 AI탭 섹션 DOM 존재 확인.
+    - 베타(현재): 네이버플러스 멤버십 한정 → 비로그인 노출 0%
+    - 전체 공개 후: 전체 네이버 사용자 대상 → 비로그인에서도 노출 예상
+    노출률 80%+ 감지 시 system_status.ai_tab_enabled=true 자동 설정 + Slack 알림.
     """
     try:
         from playwright.async_api import async_playwright

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""GitHub Actions 전용 네이버 AI 브리핑 야간 스캔.
+"""GitHub Actions 전용 네이버 야간 스캔.
 
 GitHub 호스팅 서버에서 실행 → 매 실행마다 다른 IP → iwinv 단일 IP 차단 회피.
+① 네이버 AI 브리핑 언급 여부 체크
+② 스마트플레이스 소식(피드)·소개글(정보) 탭 완성도 체크 — iwinv 차단 탭 우회
 결과는 Supabase naver_prescan 테이블에 저장.
 서버 daily_scan_all이 이 결과를 읽어 네이버 재스캔 생략.
 
@@ -18,7 +20,7 @@ import logging
 import os
 import random
 import sys
-from datetime import date
+from datetime import date, datetime, timezone, timedelta
 
 # backend 디렉토리를 Python 경로에 추가 (Actions checkout 루트 기준)
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -49,7 +51,7 @@ async def main() -> None:
     # 활성 구독자 사업장만 조회
     res = (
         supabase.table("businesses")
-        .select("id, name, category, region, keywords")
+        .select("id, name, category, region, keywords, naver_place_id, naver_place_url")
         .execute()
     )
     businesses = res.data or []
@@ -57,9 +59,11 @@ async def main() -> None:
 
     from services.ai_scanner.naver_scanner import NaverAIBriefingScanner
     from services.keyword_taxonomy import build_ai_scan_queries
+    from services.naver_place_stats import check_smart_place_completeness
 
     scanner = NaverAIBriefingScanner()
-    today_str = str(date.today())
+    # KST 날짜 사용 — 서버(Asia/Seoul)와 날짜 기준 일치 (UTC 사용 시 1일 불일치)
+    today_str = str(datetime.now(tz=timezone(timedelta(hours=9))).date())
     weekday = date.today().weekday()
 
     success = 0
@@ -79,6 +83,25 @@ async def main() -> None:
             if result.get("captcha_detected"):
                 logger.warning("[%s] CAPTCHA 감지 — 남은 스캔 중단", biz_name)
                 break
+
+            # ── 스마트플레이스 완성도 체크 (피드·정보 탭 — iwinv IP 차단 우회) ──
+            # GitHub Actions IP는 매 실행마다 다름 → 네이버 차단 없음
+            place_url = biz.get("naver_place_url") or (
+                f"https://map.naver.com/p/entry/place/{biz['naver_place_id']}"
+                if biz.get("naver_place_id") else None
+            )
+            if place_url:
+                try:
+                    sp_check = await check_smart_place_completeness(place_url)
+                    result["smart_place_check"] = sp_check
+                    logger.info(
+                        "[%d/%d] %s — sp: recent_post=%s(measured=%s) intro=%s(measured=%s)",
+                        i + 1, len(businesses), biz_name,
+                        sp_check.get("has_recent_post"), sp_check.get("recent_post_measured"),
+                        sp_check.get("has_intro"), sp_check.get("intro_measured"),
+                    )
+                except Exception as sp_err:
+                    logger.warning("[%s] SmartPlace check 실패 (스킵): %s", biz_name, sp_err)
 
             supabase.table("naver_prescan").upsert(
                 {

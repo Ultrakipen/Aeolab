@@ -55,18 +55,16 @@ function getChannelCards(entry: ChannelGuideEntry) {
           ? "2026 AI탭 베타 공개 중. 업종 확대 시 즉시 대상이 됩니다."
           : "현재 AI 브리핑 대상 업종이 아닙니다. AI탭과 글로벌 AI에 집중하세요.",
       icon: "🤖",
-      weight: entry.naverRatio,
     },
     {
       id: "aitab",
       title: "네이버 AI탭",
       subtitle: "2026 베타 공개",
-      status: "2026-04-28 베타 · 2026년 6월 정식 출시 예정",
+      status: "2026-04-27 베타 · 2026년 6월 전체 출시 예정",
       statusColor: "bg-violet-100 text-violet-800",
       detail:
-        "2026-04-28 베타, 2026년 6월 정식 출시 예정. 업종 공식 제한이 없습니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
+        "2026-04-27 베타, 2026년 6월 전체 출시 예정. 업종 공식 제한이 없습니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
       icon: "✨",
-      weight: entry.naverRatio,
     },
     {
       id: "global",
@@ -79,7 +77,6 @@ function getChannelCards(entry: ChannelGuideEntry) {
           ? "이 업종은 글로벌 AI 노출 비중이 높습니다. ChatGPT·Gemini 최적화를 우선 진행하세요."
           : "글로벌 AI 노출도 꾸준히 관리하세요. 소개글 품질과 Schema.org 구조화 데이터가 핵심입니다.",
       icon: "🌐",
-      weight: entry.globalRatio,
     },
   ]
 }

@@ -256,7 +256,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
               <strong>Gemini 개선</strong> — 구글 비즈니스 프로필 등록 후 <strong>2~4주 내 반영 시작</strong>, 안정적 인용까지 3~6개월 소요됩니다.
             </p>
             <p className="text-sm text-amber-700">
-              <strong>ChatGPT</strong> — 학습 데이터(컷오프 2024.06) 기반으로 단기 개선이 어렵습니다. 블로그·미디어 언급이 장기적으로 누적되어야 반영됩니다.
+              <strong>ChatGPT</strong> — 학습 데이터 기반으로 단기 개선이 어렵습니다. 블로그·미디어 언급이 장기적으로 누적되어야 반영됩니다.
             </p>
             <Link href="/guide" className="mt-1 inline-flex items-center text-sm font-semibold text-amber-800 hover:underline">
               Gemini 노출 설정 가이드 →

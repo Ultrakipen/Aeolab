@@ -230,8 +230,8 @@ async def _run_check(naver_place_id: str) -> dict:
                 )
                 await page.wait_for_timeout(3000)  # 1500 → 3000ms
                 photo_body = (await page.inner_text("body")) or ""
-                # 네트워크 오류 감지 — 오류 시 기존 값 유지 (잘못된 숫자 방지)
-                if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", photo_body):
+                # 네트워크 오류·IP 차단 감지 — 오류 시 기존 값 유지 (잘못된 숫자 방지)
+                if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", photo_body) or _NAVER_IP_BLOCK in photo_body:
                     _logger.warning(f"[smart_place] photo tab network error [{naver_place_id}]")
                 else:
                     # "전체 N" 패턴 (사진 탭 필터 버튼)

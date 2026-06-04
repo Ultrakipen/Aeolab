@@ -20,11 +20,11 @@ _logger = logging.getLogger("aeolab")
 # 인앱 알림 메시지 (notifications 테이블 INSERT용)
 # ────────────────────────────────────────────────────────────────
 V3_1_ACTIVATION_NOTICE: dict = {
-    "title": "점수 산정 방식 개선 안내 (v3.1)",
+    "title": "업종별 맞춤 점수 기준으로 개선되었습니다",
     "body": (
-        "AEOlab 점수 모델이 v3.1로 업그레이드되었습니다. "
-        "업종별 가중치가 더 정교화되어, 사장님의 업종 특성에 맞는 정확한 진단을 "
-        "받으실 수 있습니다. 점수 변동은 일시적이며 실제 노출 상태와 일치하도록 "
+        "사장님 업종에 실제로 의미 있는 채널에 더 높은 비중이 부여되도록 "
+        "점수 산정 기준이 업그레이드되었습니다. "
+        "점수 변동은 일시적이며 실제 노출 상태와 일치하도록 "
         "보정된 결과입니다."
     ),
     "cta_label": "변경 내용 자세히 보기",
@@ -38,12 +38,12 @@ V3_1_ACTIVATION_NOTICE: dict = {
 KAKAO_TEMPLATE_CODE = "AEOLAB_SCORE_MODEL_01"
 
 # 카카오 알림톡 본문 (비즈센터 신청용 레퍼런스)
-KAKAO_TEMPLATE_BODY = """[AEOlab] 점수 산정 방식 개선 안내
+KAKAO_TEMPLATE_BODY = """[AEOlab] 점수 기준 개선 안내
 
 안녕하세요, #{name}님.
-AEOlab 점수 모델이 v3.1로 업그레이드되었습니다.
+사장님 업종에 맞는 점수 기준으로 업그레이드되었습니다.
 
-업종별 가중치가 더 정교화되어, 사장님의 업종 특성에 맞는 진단을 받으실 수 있습니다.
+실제로 노출 효과가 있는 채널에 더 높은 비중이 적용되어 보다 정확한 진단을 받으실 수 있습니다.
 
 ▶ 변경 내용 자세히 보기: https://aeolab.co.kr/guide/score-model-v3-1"""
 
@@ -263,10 +263,10 @@ async def send_v3_1_kakao_only(supabase) -> dict:
             _phone = _p.get("phone")
             _name = _p.get("full_name") or "사장님"
             _msg = (
-                f"[AEOlab] 점수 산정 방식 개선 안내\n\n"
+                f"[AEOlab] 점수 기준 개선 안내\n\n"
                 f"안녕하세요, {_name}님.\n"
-                f"AEOlab 점수 모델이 v3.1로 업그레이드되었습니다.\n\n"
-                f"업종별 가중치가 더 정교화되어, 사장님의 업종 특성에 맞는 진단을 받으실 수 있습니다.\n\n"
+                f"사장님 업종에 맞는 점수 기준으로 업그레이드되었습니다.\n\n"
+                f"실제로 노출 효과가 있는 채널에 더 높은 비중이 적용되어 보다 정확한 진단을 받으실 수 있습니다.\n\n"
                 f"▶ 변경 내용 자세히 보기: https://aeolab.co.kr/guide/score-model-v3-1"
             )
             try:

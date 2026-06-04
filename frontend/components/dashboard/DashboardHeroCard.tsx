@@ -245,7 +245,7 @@ export default function DashboardHeroCard({
                 ? "키워드 양호"
                 : `AI 노출 보강 필요 ${topMissingKeywordCount}개`}
             </p>
-            <p className="text-sm text-gray-500">소개글·FAQ 강조 부족 키워드</p>
+            <p className="text-sm text-gray-500">소개글·Q&A 강조 부족 키워드</p>
             {topMissingKeywordCount > 0 && topMissingKeyword && (
               <p className="text-sm text-orange-600 font-medium mt-0.5">
                 보강 권장: &apos;{topMissingKeyword}&apos; 등

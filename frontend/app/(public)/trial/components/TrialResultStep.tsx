@@ -597,7 +597,7 @@ export default function TrialResultStep(props: TrialResultProps) {
   const breakdownItems = [
     {
       label: "AI 질문에 내 가게가 나오는 핵심 키워드 보유",
-      weight: 35,
+      weight: 30,
       value: breakdown?.keyword_gap_score,
     },
     {
@@ -1717,8 +1717,7 @@ function ChatGPTResultCard({
       {/* 면책 */}
       <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100">
         <p className="text-sm text-gray-400 leading-relaxed">
-          ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
-          측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+          ChatGPT 측정은 AI 학습 데이터 기반입니다. 실제 ChatGPT 앱의 검색 결과와 다를 수 있으며, 단기 콘텐츠 변경으로 점수가 즉시 변동되지 않습니다.
         </p>
       </div>
     </div>
@@ -1947,7 +1946,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
           <p className="text-sm text-emerald-700 mt-1 leading-relaxed">
             {isActive
               ? "네이버 AI 브리핑 노출에 필요한 기본 조건은 갖추셨습니다. 이제 키워드와 리뷰로 점수를 더 올려보세요."
-              : "네이버 플레이스 기본 조건은 갖추셨습니다. ChatGPT·Gemini도 네이버 플레이스 정보를 참고합니다."}
+              : "네이버 플레이스 기본 조건은 갖추셨습니다. ChatGPT·Gemini 최적화는 구글 비즈니스 프로필과 자체 웹사이트가 핵심 경로입니다."}
           </p>
         </div>
       ) : (
@@ -1958,7 +1957,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
           <p className="text-sm text-amber-700 mt-1 leading-relaxed">
             {isActive
               ? "빨간색 항목을 등록하면 네이버 AI 브리핑 노출 점수가 올라갑니다."
-              : "빨간색 항목을 등록하면 네이버 플레이스 노출과 ChatGPT·Gemini의 가게 인식이 향상됩니다."}
+              : "빨간색 항목을 등록하면 네이버 플레이스 노출이 향상됩니다. ChatGPT·Gemini는 구글 비즈니스 프로필·자체 웹사이트 최적화로 별도 개선하세요."}
           </p>
         </div>
       )}

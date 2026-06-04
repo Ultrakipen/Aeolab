@@ -310,7 +310,7 @@ def build_smart_place_checklist(biz: dict, naver_data: dict = None) -> list[str]
         # 카카오맵 등록 여부
         if not (naver_data or {}).get("is_on_kakao") and not biz.get("kakao_place_id"):
             items.append("카카오맵(map.kakao.com)에 동일 정보로 등록 — ChatGPT가 카카오 데이터 활용")
-        return items if items else ["현재 스마트플레이스 기본 설정이 완료되어 있습니다. FAQ·소개글·소식 탭을 주기적으로 업데이트하세요."]
+        return items if items else ["현재 스마트플레이스 기본 설정이 완료되어 있습니다. 소개글·소식 탭을 주기적으로 업데이트하세요."]
     else:
         # 미등록: 전체 가이드 표시
         return list(_SMART_PLACE_CHECKLIST)
@@ -949,8 +949,8 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
             "action_type":      "smartplace_faq" | "review_reply" | "blog_keyword" | "smart_place" | "intro",
             "title":            "스마트플레이스 소개글에 Q&A 1개 추가하기",
             "description":      "...",
-            "expected_impact":  "+12점 예상 (7일 후 측정)",
-            "estimated_time_min": 2,
+            "expected_impact":  "AI 브리핑 인용 후보 진입 가능 — 7일 후 확인 권장",
+            "estimated_time_min": 5,
             "copy_template":    "Q: ...\nA: ..."
         }
     """
@@ -976,8 +976,8 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
                 "AI 검색 노출의 가장 기본인 네이버 스마트플레이스가 비어있거나 미등록 상태입니다. "
                 "주소·전화번호·영업시간·대표 사진을 채우면 점수의 절반 이상이 즉시 올라갑니다."
             ),
-            "expected_impact": "+15~25점 예상 (7일 후 측정)",
-            "estimated_time_min": 10,
+            "expected_impact": "AI 검색 노출 기반 조성 — 모든 항목의 첫 단계",
+            "estimated_time_min": 15,
             "copy_template": (
                 "[ ] 업종 카테고리 2~3개 정확히 설정\n"
                 "[ ] 영업시간·주소·전화번호 입력\n"
@@ -992,11 +992,14 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
         # keyword_gap.competitor_only_keywords 있으면 구체 키워드 포함
         faq_kw_hint = ""
         faq_copy = (
-            "▶ 소개글 하단에 아래 Q&A를 추가하세요\n\n"
+            "▶ 소개글 하단에 아래 Q&A를 추가하세요\n"
+            "※ 수정 방법: [ ] 안 내용을 바꾸고, 선택지가 있는 줄은 해당하는 1줄만 남긴 뒤 나머지를 삭제하세요\n\n"
             "Q: 주차 가능한가요?\n"
-            "A: 매장 앞 무료 주차 2대 가능합니다. 공영주차장(도보 1분)도 이용하실 수 있습니다.\n\n"
+            "A (주차 가능): 매장 앞 무료 주차 [X]대 가능합니다. 인근 공영주차장도 이용하실 수 있습니다.\n"
+            "A (주차 불가): 전용 주차공간은 없으며, 인근 공영주차장(도보 [X분])을 이용하실 수 있습니다.\n"
+            "→ 위 두 줄 중 해당하는 1줄만 남기고 나머지 삭제\n\n"
             "Q: 예약 가능한가요?\n"
-            "A: 네이버 예약으로 가능합니다. 전화(02-XXX-XXXX)로도 예약을 받습니다."
+            "A: 네이버 예약으로 가능합니다. 전화([전화번호])로도 예약을 받습니다."
         )
         try:
             if keyword_gap is not None:
@@ -1007,11 +1010,16 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
                     top_kw = comp_only[0]
                     faq_kw_hint = f" 특히 경쟁사가 사용 중인 '{top_kw}' 키워드를 소개글 Q&A에 포함하면 AI 브리핑 인용 후보 가능성이 높아집니다."
                     faq_copy = (
-                        "▶ 소개글 하단에 아래 Q&A를 추가하세요\n\n"
+                        "▶ 소개글 하단에 아래 Q&A를 추가하세요\n"
+                        "※ 수정 방법: [ ] 안 내용을 바꾸고, 선택지가 있는 줄은 해당하는 1줄만 남긴 뒤 나머지를 삭제하세요\n\n"
                         f"Q: {top_kw} 관련 질문 (예: '{top_kw}도 가능한가요?')\n"
-                        f"A: 네, {top_kw} 가능합니다. 자세한 내용은 전화 또는 네이버 예약으로 문의해 주세요.\n\n"
+                        f"A: 네, {top_kw} 가능합니다. [구체적인 내용을 추가하세요]. 자세한 내용은 전화 또는 네이버 예약으로 문의해 주세요.\n\n"
+                        "Q: 주차 가능한가요?\n"
+                        "A (주차 가능): 매장 앞 무료 주차 [X]대 가능합니다.\n"
+                        "A (주차 불가): 전용 주차공간은 없으며, 인근 공영주차장(도보 [X분])을 이용하실 수 있습니다.\n"
+                        "→ 위 두 줄 중 해당하는 1줄만 남기고 나머지 삭제\n\n"
                         "Q: 예약 가능한가요?\n"
-                        "A: 네이버 예약으로 가능합니다. 전화(02-XXX-XXXX)로도 예약을 받습니다."
+                        "A: 네이버 예약으로 가능합니다. 전화([전화번호])로도 예약을 받습니다."
                     )
         except Exception as e:
             _logger.warning(f"pick_top_action 소개글 Q&A 키워드 주입 실패: {e}")
@@ -1023,8 +1031,8 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
                 f"{cat_ko}에서 손님이 자주 묻는 질문 1개만 소개글에 추가해도 AI 노출 후보에 포함될 수 있습니다."
                 f"{faq_kw_hint}"
             ),
-            "expected_impact": "+10~15점 예상 (7일 후 측정)",
-            "estimated_time_min": 2,
+            "expected_impact": "AI 브리핑 인용 후보 진입 가능 — 7일 후 확인 권장",
+            "estimated_time_min": 5,
             "copy_template": faq_copy,
             "action_url": "https://smartplace.naver.com",
         }
@@ -1040,7 +1048,7 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
                 "업종 핵심 키워드가 포함됐는지 확인하고 등록해 주세요. "
                 "(AI 초안에는 키워드가 빠질 수 있으니 직접 한 단어 추가가 효과적입니다.)"
             ),
-            "expected_impact": "+5~10점 예상 (7일 후 측정)",
+            "expected_impact": "AI 브리핑 신호 강화 — 효과 3~7일 이내",
             "estimated_time_min": 3,
             "copy_template": (
                 "안녕하세요, {업장명}입니다.\n"
@@ -1060,8 +1068,8 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
                 "소개글은 AI가 가게의 정체성을 파악하는 첫 정보입니다. "
                 "지역명+업종+우리만의 강점 키워드를 200~300자로 작성해 주세요."
             ),
-            "expected_impact": "+5~8점 예상 (7일 후 측정)",
-            "estimated_time_min": 5,
+            "expected_impact": "AI 가게 인식 개선 — 효과 2~4주",
+            "estimated_time_min": 10,
             "copy_template": (
                 "{지역명} {업종명} 전문점입니다.\n"
                 "주력 메뉴/서비스: ...\n"
@@ -1080,7 +1088,7 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
                 "소식이 7일 이상 끊기면 AI 브리핑 최신성 점수가 떨어집니다. "
                 "이번 주 신메뉴·이벤트·휴무 안내 중 하나를 짧게 올려주세요."
             ),
-            "expected_impact": "+5~7점 예상 (7일 후 측정)",
+            "expected_impact": "최신성 점수 유지 — 효과 3~7일",
             "estimated_time_min": 3,
             "copy_template": (
                 "📢 이번 주 안내\n"
@@ -1127,8 +1135,8 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
             "action_type": "blog_keyword",
             "title": "블로그 1편으로 누락된 키워드 보강",
             "description": f"기본기는 갖춰졌습니다. {blog_kw_desc}",
-            "expected_impact": "+3~6점 예상 (7일 후 측정)",
-            "estimated_time_min": 15,
+            "expected_impact": "키워드 커버리지 확장 — 효과 3~8주",
+            "estimated_time_min": 30,
             "copy_template": blog_copy,
             "action_url": "https://blog.naver.com",
         }
@@ -1140,7 +1148,7 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
         "description": (
             "기본 항목이 모두 갖춰졌습니다. 주 1회 리뷰 답변만 유지하면 AI 신호가 안정됩니다."
         ),
-        "expected_impact": "+2~4점 예상 (7일 후 측정)",
+        "expected_impact": "AI 신호 안정 유지 — 주 1회 권장",
         "estimated_time_min": 3,
         "copy_template": (
             "안녕하세요, {업장명}입니다.\n"

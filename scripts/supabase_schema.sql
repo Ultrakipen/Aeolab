@@ -2173,3 +2173,20 @@ CREATE POLICY "own_assistant_logs_select" ON assistant_logs
   FOR SELECT USING (user_id = auth.uid());
 CREATE POLICY "own_assistant_logs_insert" ON assistant_logs
   FOR INSERT WITH CHECK (user_id = auth.uid());
+
+-- ========================================
+-- naver_prescan (GitHub Actions 야간 스캔 결과 — IP 로테이션 차단 방어)
+-- ========================================
+-- GitHub Actions (01:00 KST) → 저장 → daily_scan_all·수동 스캔 재사용 (Playwright 재실행 방지)
+CREATE TABLE IF NOT EXISTS naver_prescan (
+  business_id  UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  scan_date    DATE NOT NULL,
+  naver_result JSONB,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (business_id, scan_date)
+);
+CREATE INDEX IF NOT EXISTS idx_naver_prescan_date ON naver_prescan(scan_date DESC);
+
+ALTER TABLE naver_prescan ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_naver_prescan_all" ON naver_prescan
+  USING (true) WITH CHECK (true);

@@ -94,7 +94,26 @@ async def check_website_seo(url: str) -> dict:
     if json_ld_blocks:
         result["has_json_ld"] = True
         for block in json_ld_blocks:
-            if re.search(r'"@type"\s*:\s*"(LocalBusiness|Restaurant|Store|FoodEstablishment|MedicalBusiness|HealthAndBeautyBusiness|AutoRepair|HomeAndConstructionBusiness)', block, re.IGNORECASE):
+            if re.search(
+                r'"@type"\s*:\s*"('
+                r'LocalBusiness|Restaurant|FoodEstablishment|Bakery|Cafe|CafeOrCoffeeShop|BarOrPub|'
+                r'Store|ClothingStore|ShoppingCenter|'
+                r'BeautySalon|HairSalon|NailSalon|DaySpa|'
+                r'MedicalBusiness|Physician|Dentist|MedicalClinic|'
+                r'Pharmacy|'
+                r'SportsActivityLocation|ExerciseGym|'
+                r'VeterinaryCare|AnimalShelter|'
+                r'EducationalOrganization|School|'
+                r'Attorney|LegalService|'
+                r'RealEstateAgent|'
+                r'HomeAndConstructionBusiness|HousePainter|Plumber|Electrician|RoofingContractor|'
+                r'AutoRepair|AutoDealer|'
+                r'LodgingBusiness|Hotel|BedAndBreakfast|'
+                r'TouristAttraction|EntertainmentBusiness|AmusementPark|'
+                r'Florist|PetStore|MovieTheater|PhotographyBusiness'
+                r')',
+                block, re.IGNORECASE,
+            ):
                 result["has_schema_local_business"] = True
                 break
 

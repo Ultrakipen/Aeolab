@@ -89,7 +89,7 @@ interface Props {
   avgRating?: number;
   hasSmartPlace?: boolean;
   hasFaq?: boolean;
-  hasRecentPost?: boolean;
+  hasRecentPost?: boolean | null;
   hasIntro?: boolean;
   bizId?: string;
   token?: string;
@@ -150,19 +150,14 @@ function WeightBadge({ pct, color }: { pct: number; color: string }) {
 }
 
 // smart_place_completeness 역산
-function decodeSmartPlace(completeness: number) {
-  const KNOWN_COMBOS: Record<number, { registered: boolean; faq: boolean; recentPost: boolean; intro: boolean }> = {
-    0:   { registered: false, faq: false, recentPost: false, intro: false },
-    40:  { registered: true,  faq: false, recentPost: false, intro: false },
-    50:  { registered: true,  faq: false, recentPost: false, intro: true  },
-    60:  { registered: true,  faq: false, recentPost: true,  intro: false },
-    70:  { registered: true,  faq: true,  recentPost: false, intro: false },
-    80:  { registered: true,  faq: true,  recentPost: false, intro: true  },
-    90:  { registered: true,  faq: true,  recentPost: true,  intro: false },
-    100: { registered: true,  faq: true,  recentPost: true,  intro: true  },
-  };
-  if (completeness in KNOWN_COMBOS) return KNOWN_COMBOS[completeness];
-  if (completeness < 40) return { registered: false, faq: false, recentPost: false, intro: false };
+// 배점: is_smart_place(25) + has_recent_post(25) + has_intro(20) + rank_score(0~30)
+// rank_score가 포함되어 정확한 역산 불가 → threshold 기반 근사치.
+// hasSmartPlace/hasRecentPost/hasIntro prop이 직접 전달될 때는 이 함수 결과를 덮어씀.
+function decodeSmartPlace(completeness: number): { registered: boolean; faq: boolean; recentPost: boolean; intro: boolean } {
+  if (completeness < 25) return { registered: false, faq: false, recentPost: false, intro: false };
+  if (completeness >= 70) return { registered: true, faq: false, recentPost: true, intro: true };
+  if (completeness >= 50) return { registered: true, faq: false, recentPost: false, intro: false };
+  if (completeness >= 45) return { registered: true, faq: false, recentPost: false, intro: true };
   return { registered: true, faq: false, recentPost: false, intro: false };
 }
 
@@ -190,7 +185,7 @@ function V31SixItems({
   isKeywordEstimated: boolean;
   hasSmartPlace?: boolean;
   hasFaq?: boolean;
-  hasRecentPost?: boolean;
+  hasRecentPost?: boolean | null;
   hasIntro?: boolean;
   reviewCount?: number;
   avgRating?: number;
@@ -324,7 +319,7 @@ function V31SixItems({
               )}
             </div>
             <p className="text-sm text-gray-500">
-              등록(40)+소식(20)+소개글(20) 기반, 키워드 매칭 흡수 포함
+              등록·소식·소개글 완성도 기반, 순위·키워드 매칭 반영
             </p>
           </div>
           <ScoreBadge value={spc} />
@@ -336,7 +331,7 @@ function V31SixItems({
           <div className="flex items-center gap-2 mb-2">
             <StatusIcon ok={true} />
             <span className="text-sm text-gray-700">
-              스마트플레이스 등록 (+40점) · 소식 (+20점) · 소개글 (+20점) — 3항목 모두 완료
+              스마트플레이스 등록 · 소식 · 소개글 — 3항목 모두 완료
             </span>
           </div>
         ) : (
@@ -344,19 +339,19 @@ function V31SixItems({
             <div className="flex items-center gap-2">
               <StatusIcon ok={spActual.registered} />
               <span className="text-sm text-gray-700">
-                {spActual.registered ? "스마트플레이스 등록됨 (+40점)" : "스마트플레이스 미등록 — 등록 즉시 40점 획득"}
+                {spActual.registered ? "스마트플레이스 등록됨" : "스마트플레이스 미등록 — 지금 등록 필요"}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <StatusIcon ok={spActual.recentPost} />
               <span className="text-sm text-gray-700">
-                {spActual.recentPost ? "소식 등록됨 (+20점)" : "소식 없음 (+20점)"}
+                {spActual.recentPost ? "소식 등록됨" : "최근 90일 내 소식 없음 — 핵심 개선 항목"}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <StatusIcon ok={spActual.intro} />
               <span className="text-sm text-gray-700">
-                {spActual.intro ? "소개글 있음 (+20점)" : "소개글 없음 (+20점)"}
+                {spActual.intro ? "소개글 있음" : "소개글 없음 — 개선 필요"}
               </span>
             </div>
           </div>
@@ -456,20 +451,20 @@ function V31SixItems({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className={`text-sm md:text-base font-semibold ${aiBriefingApplicable ? "text-gray-800" : "text-indigo-900"}`}>
-                {aiBriefingApplicable ? "⑥ AI 브리핑 인용" : "⑥ 네이버 AI탭 (Beta · 2026년 6월 정식 출시 예정)"}
+                {aiBriefingApplicable ? "⑥ AI 브리핑 인용" : "⑥ 네이버 AI탭 (Beta · 2026년 6월 전체 출시 예정)"}
               </span>
               {aiBriefingApplicable ? (
                 <WeightBadge pct={weights["ai_briefing_score"]} color="text-blue-700 bg-blue-50 border-blue-200" />
               ) : (
                 <span className="text-sm text-indigo-700 bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-full font-medium">
-                  Beta · 2026년 6월 정식 출시 예정
+                  Beta · 2026년 6월 전체 출시 예정
                 </span>
               )}
             </div>
             <p className={`text-sm ${aiBriefingApplicable ? "text-gray-500" : "text-indigo-700"}`}>
               {aiBriefingApplicable
                 ? "실제 네이버 AI 브리핑에 노출됐는지 확인합니다"
-                : "네이버 AI탭은 업종 공식 제한이 없습니다 (2026-04-28 베타, 2026년 6월 정식 출시 예정)"}
+                : "네이버 AI탭은 업종 공식 제한이 없습니다 (2026-04-27 베타, 2026년 6월 전체 출시 예정)"}
             </p>
           </div>
           {aiBriefingApplicable && <ScoreBadge value={aiItem?.score ?? 0} />}
@@ -588,7 +583,7 @@ function V30FourItems({
   isKeywordEstimated: boolean;
   hasSmartPlace?: boolean;
   hasFaq?: boolean;
-  hasRecentPost?: boolean;
+  hasRecentPost?: boolean | null;
   hasIntro?: boolean;
   reviewCount?: number;
   avgRating?: number;
@@ -623,7 +618,7 @@ function V30FourItems({
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="text-sm md:text-base font-semibold text-gray-800">1. 키워드 커버리지</span>
               <span className="text-sm text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
-                영향도 ★★★ (전체 점수의 35%)
+                영향도 ★★★ (전체 점수의 30%)
               </span>
               {isKeywordEstimated && (
                 <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">(추정값)</span>
@@ -730,11 +725,11 @@ function V30FourItems({
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="text-sm md:text-base font-semibold text-gray-800">3. 스마트플레이스 완성도</span>
               <span className="text-sm text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-medium">
-                영향도 ★★ (전체 점수의 25%)
+                영향도 ★★ (전체 점수의 15%)
               </span>
             </div>
             <p className="text-sm text-gray-500 leading-relaxed">
-              마지막 스캔 기준 · 등록(40)+소식(20)+소개글(20)
+              마지막 스캔 기준 · 등록·소식·소개글 완성도
             </p>
           </div>
           <ScoreBadge value={spc} />
@@ -746,7 +741,7 @@ function V30FourItems({
           <div className="flex items-center gap-2 mb-3">
             <StatusIcon ok={true} />
             <span className="text-sm text-gray-700">
-              스마트플레이스 등록 (+40점) · 소식 (+20점) · 소개글 (+20점) — 3항목 모두 완료
+              스마트플레이스 등록 · 소식 · 소개글 — 3항목 모두 완료
             </span>
           </div>
         ) : (
@@ -754,19 +749,19 @@ function V30FourItems({
             <div className="flex items-center gap-2">
               <StatusIcon ok={spActual.registered} />
               <span className="text-sm text-gray-700">
-                {spActual.registered ? "스마트플레이스 등록됨 (+40점)" : "스마트플레이스 미등록 — 등록 즉시 40점 획득"}
+                {spActual.registered ? "스마트플레이스 등록됨" : "스마트플레이스 미등록 — 지금 등록 필요"}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <StatusIcon ok={spActual.recentPost} />
               <span className="text-sm text-gray-700">
-                {spActual.recentPost ? "소식 등록됨 (+20점)" : "소식 없음 — 최신성 점수 유지에 필요 (+20점)"}
+                {spActual.recentPost ? "소식 등록됨" : "최근 90일 내 소식 없음 — 지금 업데이트 필요"}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <StatusIcon ok={spActual.intro} />
               <span className="text-sm text-gray-700">
-                {spActual.intro ? "소개글 있음 (+20점)" : "소개글 없음 (+20점)"}
+                {spActual.intro ? "소개글 있음" : "소개글 없음 — 개선 필요"}
               </span>
             </div>
           </div>
@@ -775,9 +770,9 @@ function V30FourItems({
           <div className="bg-blue-50 rounded-lg p-3">
             <p className="text-sm font-semibold text-blue-800 mb-1">
               지금 할 일:
-              {!spActual.registered && " 스마트플레이스 등록 (40점)"}
-              {spActual.registered && !spActual.recentPost && " 소식 업데이트 (+20점)"}
-              {spActual.registered && spActual.recentPost && !spActual.intro && " 소개글 추가 (+20점)"}
+              {!spActual.registered && " 스마트플레이스 등록"}
+              {spActual.registered && !spActual.recentPost && " 소식 업데이트"}
+              {spActual.registered && spActual.recentPost && !spActual.intro && " 소개글 추가"}
             </p>
           </div>
         )}
@@ -789,13 +784,13 @@ function V30FourItems({
           <div className="flex items-start justify-between gap-3 mb-2">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-1">
-                <span className="text-sm md:text-base font-semibold text-indigo-900">4. 네이버 AI탭 (Beta · 2026년 6월 정식 출시 예정)</span>
+                <span className="text-sm md:text-base font-semibold text-indigo-900">4. 네이버 AI탭 (Beta · 2026년 6월 전체 출시 예정)</span>
                 <span className="text-sm text-indigo-700 bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-full font-medium">
-                  Beta · 2026년 6월 정식 출시 예정
+                  Beta · 2026년 6월 전체 출시 예정
                 </span>
               </div>
               <p className="text-sm text-indigo-700 leading-relaxed">
-                네이버 AI탭은 업종 공식 제한이 없습니다 (2026-04-28 베타, 2026년 6월 정식 출시 예정)
+                네이버 AI탭은 업종 공식 제한이 없습니다 (2026-04-27 베타, 2026년 6월 전체 출시 예정)
               </p>
             </div>
           </div>
@@ -969,7 +964,7 @@ export default function ScoreEvidenceCard({
               <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 flex items-start gap-2">
                 <span className="text-indigo-400 text-sm shrink-0 mt-0.5">ℹ️</span>
                 <p className="text-sm text-indigo-800 leading-relaxed">
-                  <strong>네이버 AI탭</strong>은 업종 제한 없이 노출 가능합니다 (2026-04-28 베타, 6월 정식 출시 예정).{" "}
+                  <strong>네이버 AI탭</strong>은 업종 제한 없이 노출 가능합니다 (2026-04-27 베타, 2026년 6월 전체 출시 예정).{" "}
                   소개글 200자 이상·사진 10장 이상·블로그 후기 확보가 핵심입니다.
                 </p>
               </div>
@@ -1070,7 +1065,7 @@ export default function ScoreEvidenceCard({
             <div className="mt-3 bg-purple-50 border border-purple-100 rounded-lg p-3 space-y-1.5">
               <p className="text-sm text-purple-800">
                 <span className="font-semibold">지금 노출 안 되는 건 정상입니다.</span>{" "}
-                ChatGPT·Gemini는 학습 데이터 기반이라 소상공인이 노출되기까지 수개월~1년 이상 걸립니다.
+                ChatGPT는 학습 데이터 기반이라 수개월~1년 소요됩니다. Gemini는 구글 비즈니스 프로필 등록 후 2~4주 내 개선이 시작될 수 있습니다.
               </p>
               <p className="text-sm text-purple-700">
                 <span className="font-medium">지금 할 수 있는 것:</span>{" "}

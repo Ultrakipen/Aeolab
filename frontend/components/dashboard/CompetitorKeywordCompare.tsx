@@ -48,7 +48,7 @@ export default function CompetitorKeywordCompare({ competitorKeywordSources }: P
               ))}
             </div>
             <p className="text-sm text-red-600 mt-2">
-              → FAQ나 소개글에 위 키워드를 추가해 보세요
+              → 소개글·Q&A 섹션에 위 키워드를 추가해 보세요
             </p>
           </div>
         ))}

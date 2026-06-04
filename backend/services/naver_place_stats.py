@@ -34,22 +34,21 @@ class NaverPlaceStatsService:
             return {"error": str(e), "naver_place_id": naver_place_id}
 
     async def _run(self, naver_place_id: str) -> dict:
+        from services.ai_scanner import apply_stealth as _as, get_proxy_config as _gpc, get_random_ua as _gua2
         url = f"https://map.naver.com/p/entry/place/{naver_place_id}"
         async with async_playwright() as p:
             browser = await p.chromium.launch(
                 headless=True,
                 args=["--no-sandbox", "--disable-setuid-sandbox"],
+                proxy=_gpc(),
             )
             ctx = await browser.new_context(
                 locale="ko-KR",
                 timezone_id="Asia/Seoul",
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/124.0.0.0 Safari/537.36"
-                ),
+                user_agent=_gua2(),
             )
             page = await ctx.new_page()
+            await _as(page)
             try:
                 await page.goto(url, timeout=20000, wait_until="domcontentloaded")
                 await page.wait_for_timeout(4000)
@@ -216,11 +215,7 @@ async def _check_completeness(url: str) -> dict:
     base_url = _normalize_place_base_url(url)
     logger.info(f"[sp_check] base_url={base_url!r} from url={url!r}")
 
-    _USER_AGENT = (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    )
+    from services.ai_scanner import apply_stealth as _as2, get_proxy_config as _gpc2, get_random_ua as _gua
     _TAB_TIMEOUT = 12000   # 탭당 타임아웃 (ms)
     _TAB_WAIT   = 4000     # 탭당 JS 렌더 대기 (ms)
 
@@ -228,14 +223,16 @@ async def _check_completeness(url: str) -> dict:
         browser = await p.chromium.launch(
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+            proxy=_gpc2(),
         )
         ctx = await browser.new_context(
             locale="ko-KR",
             timezone_id="Asia/Seoul",
-            user_agent=_USER_AGENT,
+            user_agent=_gua(),
             viewport={"width": 412, "height": 915},
         )
         page = await ctx.new_page()
+        await _as2(page)
         try:
             # ── 1단계: 홈 탭 — 사진·메뉴·is_smart_place ─────────────────
             home_url = f"{base_url}/home" if base_url else url
@@ -283,22 +280,26 @@ async def _check_completeness(url: str) -> dict:
                 except Exception as e:
                     logger.warning(f"check_completeness menu tab skipped: {e}")
 
-            # ── 2단계: 소식 탭 — 최근 30일 게시물 ───────────────────────
-            has_recent_post = False
+            # ── 2단계: 소식 탭 — 최근 90일 내 게시물 ───────────────────────
+            _NAVER_BLOCK = "플레이스 서비스 이용이 제한"
+            has_recent_post: bool | None = None  # None = 측정 불가(차단)
             recent_post_date = None
             if base_url:
                 try:
                     await page.goto(f"{base_url}/feed", timeout=_TAB_TIMEOUT, wait_until="domcontentloaded")
                     await page.wait_for_timeout(_TAB_WAIT)
                     feed_body = await page.inner_text("body")
-                    has_recent_post, recent_post_date = _detect_recent_post_stats(feed_body)
+                    if _NAVER_BLOCK in feed_body:
+                        logger.warning(f"[sp_check] feed tab blocked (IP restriction) [{base_url}]")
+                    else:
+                        has_recent_post, recent_post_date = _detect_recent_post_stats(feed_body)
                 except Exception as e:
                     logger.warning(f"check_completeness feed tab skipped: {e}")
             else:
                 has_recent_post, recent_post_date = _detect_recent_post_stats(body)
 
             # ── 3단계: 정보 탭 — 소개글·영업시간·FAQ ────────────────────
-            has_intro = False
+            has_intro: bool | None = None  # None = 측정 불가(차단)
             has_hours = False
             has_faq   = False
             faq_count = 0
@@ -309,18 +310,21 @@ async def _check_completeness(url: str) -> dict:
                     await page.wait_for_timeout(_TAB_WAIT)
                     info_body = await page.inner_text("body")
                     logger.info(f"[sp_check] info body_len={len(info_body)} sample={info_body[:400]!r}")
-                    # 정보 탭이 제대로 안 로드된 경우 /home 탭과 거의 같은 내용 → /info 재시도
-                    if len(info_body) < 200:
-                        logger.warning(f"[sp_check] info_body too short ({len(info_body)}), retrying /info")
-                        await page.goto(f"{base_url}/info", timeout=_TAB_TIMEOUT, wait_until="domcontentloaded")
-                        await page.wait_for_timeout(_TAB_WAIT)
-                        info_body = await page.inner_text("body")
-                        logger.info(f"[sp_check] /info retry body_len={len(info_body)} sample={info_body[:300]!r}")
-                    has_intro, intro_char_count = _detect_intro_stats(info_body)
-                    has_hours = _detect_hours_stats(info_body)
-                    # [2026-05-01] Q&A 탭 폐기. [2026-05-03] _detect_faq_stats CSS 오탐 위험으로 호출 제거.
-                    has_faq, faq_count = False, 0
-                    logger.info(f"[sp_check] info results: intro={has_intro}({intro_char_count}자) hours={has_hours} faq={has_faq}({faq_count}개)")
+                    if _NAVER_BLOCK in info_body:
+                        logger.warning(f"[sp_check] info tab blocked (IP restriction) [{base_url}]")
+                    else:
+                        # 정보 탭이 너무 짧으면 /info 경로 재시도
+                        if len(info_body) < 200:
+                            logger.warning(f"[sp_check] info_body too short ({len(info_body)}), retrying /info")
+                            await page.goto(f"{base_url}/info", timeout=_TAB_TIMEOUT, wait_until="domcontentloaded")
+                            await page.wait_for_timeout(_TAB_WAIT)
+                            info_body = await page.inner_text("body")
+                            logger.info(f"[sp_check] /info retry body_len={len(info_body)} sample={info_body[:300]!r}")
+                        has_intro, intro_char_count = _detect_intro_stats(info_body)
+                        has_hours = _detect_hours_stats(info_body)
+                        # [2026-05-01] Q&A 탭 폐기. [2026-05-03] _detect_faq_stats CSS 오탐 위험으로 호출 제거.
+                        has_faq, faq_count = False, 0
+                        logger.info(f"[sp_check] info results: intro={has_intro}({intro_char_count}자) hours={has_hours}")
                 except Exception as e:
                     logger.warning(f"check_completeness information tab skipped: {e}")
             else:
@@ -350,10 +354,12 @@ async def _check_completeness(url: str) -> dict:
                 logger.warning(f"_parse_photo_categories call failed: {e}")
 
             _pc_for_score = photo_count or 0  # None → 0 (점수 계산용)
+            _has_rp = bool(has_recent_post)   # None(차단) = False
+            _has_intro = bool(has_intro)       # None(차단) = False
             score = sum([
-                0,                        # has_faq 25점 → 0 (Q&A 탭 폐기, score_engine과 일치)
-                has_recent_post * 25,     # 소식 15→25점 재배분 (score_engine v4.1 일치)
-                has_intro * 20,
+                0,                            # has_faq 25점 → 0 (Q&A 탭 폐기, score_engine과 일치)
+                _has_rp * 25,                 # 소식 15→25점 재배분 (score_engine v4.1 일치)
+                _has_intro * 20,
                 min(_pc_for_score, 5) * 2,
                 has_menu * 15,
                 has_hours * 5,
@@ -362,9 +368,11 @@ async def _check_completeness(url: str) -> dict:
             return {
                 "has_faq": has_faq,
                 "faq_count": faq_count,
-                "has_recent_post": has_recent_post,
+                "has_recent_post": _has_rp,            # bool (차단 시 False)
+                "recent_post_measured": has_recent_post is not None,  # 실제 측정 여부
                 "recent_post_date": recent_post_date,
-                "has_intro": has_intro,
+                "has_intro": _has_intro,               # bool (차단 시 False)
+                "intro_measured": has_intro is not None,              # 실제 측정 여부
                 "intro_char_count": intro_char_count,
                 "photo_count": photo_count,
                 "has_menu": has_menu,
@@ -451,8 +459,8 @@ async def _parse_photo_categories(page) -> tuple[dict, int | None]:
         # 네트워크 오류 감지: 사진 탭이 서버 차단/오류 시 None 반환 (잘못된 숫자 방지)
         try:
             page_text = await page.inner_text("body")
-            if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", page_text or ""):
-                logger.warning("[photo_tab] network error detected — photo_count=None")
+            if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류|플레이스 서비스 이용이 제한", page_text or ""):
+                logger.warning("[photo_tab] network error or IP block detected — photo_count=None")
                 return {}, None
             m_text = re.search(r"전체\s*([\d,]+)", page_text)
             if m_text:
@@ -489,6 +497,17 @@ async def _parse_photo_categories(page) -> tuple[dict, int | None]:
         total = total_from_btn if total_from_btn > 0 else sum(result.values())
         if total == 0 and total_from_text > 0:
             total = total_from_text
+
+        # pstatic.net img 수 fallback — 필터 버튼·텍스트 패턴 모두 실패한 경우
+        if total == 0:
+            try:
+                img_count = await page.locator("img[src*='pstatic.net']").count()
+                if img_count > 0:
+                    logger.info(f"[photo_tab] pstatic img fallback: {img_count}장")
+                    return result, img_count
+            except Exception as _img_e:
+                logger.warning(f"[photo_tab] pstatic img fallback failed: {_img_e}")
+
         return result, total if total > 0 else None
     except Exception as e:
         logger.warning(f"_parse_photo_categories failed: {e}")
@@ -605,21 +624,20 @@ async def _fetch_low_rating_reviews(
     url = f"https://map.naver.com/p/entry/place/{naver_place_id}"
     low_reviews: list[dict] = []
 
+    from services.ai_scanner import apply_stealth as _as3, get_proxy_config as _gpc3, get_random_ua as _gua3
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+            proxy=_gpc3(),
         )
         ctx = await browser.new_context(
             locale="ko-KR",
             timezone_id="Asia/Seoul",
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0.0.0 Safari/537.36"
-            ),
+            user_agent=_gua3(),
         )
         page = await ctx.new_page()
+        await _as3(page)
         try:
             await page.goto(url, timeout=20000, wait_until="domcontentloaded")
             await page.wait_for_timeout(3000)

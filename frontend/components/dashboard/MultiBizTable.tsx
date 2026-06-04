@@ -8,9 +8,9 @@ interface BizSummaryItem {
   name: string;
   category: string;
   region: string;
-  unified_score: number;
-  track1_score: number;
-  track2_score: number;
+  unified_score: number | null;
+  track1_score: number | null;
+  track2_score: number | null;
   competitor_count: number;
   last_scanned_at: string | null;
 }
@@ -34,10 +34,11 @@ export function MultiBizTable({ token }: Props) {
       .finally(() => setLoading(false));
   }, [token]);
 
-  function scoreStatusLabel(score: number) {
-    if (score >= 70) return { text: "양호",     cls: "bg-emerald-50 text-emerald-700 border-emerald-100" };
-    if (score >= 40) return { text: "보통",     cls: "bg-amber-50 text-amber-700 border-amber-200" };
-    return              { text: "개선 필요", cls: "bg-red-50 text-red-600 border-red-100" };
+  function scoreStatusLabel(score: number | null) {
+    if (score === null) return { text: "–",      cls: "bg-gray-50 text-gray-400 border-gray-200" };
+    if (score >= 70)   return { text: "양호",    cls: "bg-emerald-50 text-emerald-700 border-emerald-100" };
+    if (score >= 40)   return { text: "보통",    cls: "bg-amber-50 text-amber-700 border-amber-200" };
+    return                    { text: "개선 필요", cls: "bg-red-50 text-red-600 border-red-100" };
   }
 
   function formatDate(iso: string | null) {

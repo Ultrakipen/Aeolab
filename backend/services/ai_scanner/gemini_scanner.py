@@ -30,12 +30,12 @@ class GeminiScanner:
                 google_search_retrieval=glm.GoogleSearchRetrieval()
             )
             self.model = genai.GenerativeModel(
-                "gemini-2.0-flash-001",
+                "gemini-2.5-flash",
                 tools=[_google_search_tool],
             )
-            _logger.info("[gemini] Google Search 그라운딩 활성화 (gemini-2.0-flash-001)")
+            _logger.info("[gemini] Google Search 그라운딩 활성화 (gemini-2.5-flash)")
         else:
-            self.model = genai.GenerativeModel("gemini-2.0-flash-001")
+            self.model = genai.GenerativeModel("gemini-2.5-flash")
 
     async def sample_n(self, queries: "str | list[str]", target: str, n: int = 50) -> dict:
         """n회 샘플링으로 AI 노출 빈도 측정 (일반화 버전).
@@ -102,6 +102,48 @@ class GeminiScanner:
             return {"mentioned": False}
         except Exception as e:
             _logger.debug("gemini _check failed: %s", e)
+            return {"mentioned": False}
+
+    async def _check_with_context(
+        self,
+        query: str,
+        target: str,
+        intro: str = "",
+        keywords: list | None = None,
+    ) -> dict:
+        """소개글·키워드 컨텍스트 기반 AI 추천 적합성 판단 (condition_search 전용).
+
+        학습 데이터가 없는 지역 소규모 사업체도 소개글·키워드를 제공하면
+        Gemini가 해당 쿼리에 추천될 자격이 있는지 판단할 수 있다.
+        """
+        kw_str = ", ".join((keywords or [])[:10])
+        intro_short = (intro or "")[:400]
+
+        context = f"\n사업장명: {target}"
+        if intro_short:
+            context += f"\n소개글: {intro_short}"
+        if kw_str:
+            context += f"\n주요 키워드: {kw_str}"
+
+        prompt = f"""검색어: "{query}"
+{context}
+
+소개글·키워드 내용이 이 검색어의 의도와 관련이 있는지 판단하세요.
+주의: AI가 실제로 이 사업장을 학습했는지와 무관합니다. 오직 소개글 내용 기준으로만 판단하세요.
+관련 있으면 true, 전혀 무관하면 false.
+JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거 한 문장"}}"""
+        try:
+            resp = await asyncio.wait_for(
+                asyncio.to_thread(self.model.generate_content, prompt),
+                timeout=15.0,
+            )
+            m = re.search(r"\{.*?\}", resp.text, re.DOTALL)
+            return json.loads(m.group()) if m else {"mentioned": False}
+        except asyncio.TimeoutError:
+            _logger.debug("gemini _check_with_context timed out: query=%s", query[:50])
+            return {"mentioned": False}
+        except Exception as e:
+            _logger.debug("gemini _check_with_context failed: %s", e)
             return {"mentioned": False}
 
     def _wilson_ci(self, k: int, n: int) -> dict:

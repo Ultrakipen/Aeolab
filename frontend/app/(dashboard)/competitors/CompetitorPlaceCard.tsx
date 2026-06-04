@@ -230,7 +230,7 @@ function BlogMentionBar({
         )}
       </div>
       <p className="text-sm text-gray-400 leading-relaxed">
-        블로그 포스팅이 많을수록 AI 검색에서 더 자주 인용됩니다.
+        블로그 포스팅이 많을수록 네이버 AI 브리핑·AI탭에서 해당 가게를 신뢰도 있는 곳으로 인식합니다.
       </p>
     </div>
   );
@@ -511,7 +511,7 @@ export function CompetitorPlaceCard({
           <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">자동 수집</span>
         </div>
         <p className="text-sm text-gray-400 mb-2 leading-relaxed">
-          네이버 블로그에서 경쟁사 이름으로 검색해 포스팅 수를 확인합니다 (최근 블로그 검색 기준). 블로그 언급이 많을수록 AI가 해당 가게를 신뢰도 있는 가게로 인식합니다.
+          네이버 블로그에서 경쟁사 이름으로 검색해 포스팅 수를 확인합니다 (최근 블로그 검색 기준). 블로그 언급이 많을수록 네이버 AI 브리핑·AI탭에서 해당 가게를 신뢰도 있는 곳으로 판단합니다.
         </p>
         {competitor.blog_mention_count == null ? (
           <p className="text-sm text-gray-400 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">

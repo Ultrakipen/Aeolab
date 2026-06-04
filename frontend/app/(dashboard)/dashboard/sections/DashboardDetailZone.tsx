@@ -19,7 +19,7 @@ import AISearchScreenshotCard from "@/components/dashboard/AISearchScreenshotCar
 import { RankingBar } from "@/components/dashboard/RankingBar";
 import { TrendLine } from "@/components/dashboard/TrendLine";
 import CompetitorKeywordCompare from "@/components/dashboard/CompetitorKeywordCompare";
-import CompetitorFAQCard from "@/components/dashboard/CompetitorFAQCard";
+import CompetitorProfileCard from "@/components/dashboard/CompetitorFAQCard";
 import AIDiagnosisCard from "@/components/dashboard/AIDiagnosisCard";
 import ScoreEvidenceCard from "../ScoreEvidenceCard";
 import SmartplaceAutoCheck from "@/components/dashboard/SmartplaceAutoCheck";
@@ -30,7 +30,7 @@ import ProUpgradePreview from "@/components/dashboard/ProUpgradePreview";
 import { MultiBizTable } from "@/components/dashboard/MultiBizTable";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { calcScoreVariation } from "@/lib/scoreVariation";
-import { isIndependentWebsite } from "./pageHelpers";
+import { isIndependentWebsite, type SmartPlaceStatus } from "./pageHelpers";
 import type { MissingItem } from "@/types/diagnosis";
 import type { WebsiteCheckResult } from "@/types";
 
@@ -64,6 +64,7 @@ interface RankingItem {
 interface PlatformResult {
   mentioned: boolean;
   exposure_freq?: number;
+  sample_size?: number;
   in_briefing?: boolean;
   in_ai_overview?: boolean;
   error?: string;
@@ -77,13 +78,6 @@ interface BlogContribution {
   keywordCoverage: number;
   analyzedAt?: string;
   blogUrl?: string;
-}
-
-interface SmartPlaceStatus {
-  hasFaq: boolean;
-  hasIntro: boolean;
-  hasRecentPost: boolean;
-  hasWebsite: boolean;
 }
 
 interface Props {
@@ -411,7 +405,18 @@ export default function DashboardDetailZone({
             />
           )}
           {accessToken && ["pro", "biz"].includes(plan) && (
-            <ConditionSearchCard bizId={business.id} token={accessToken} isPro={true} />
+            <ConditionSearchCard
+              bizId={business.id}
+              token={accessToken}
+              isPro={true}
+              googlePlaceRegistered={!!business.google_place_id}
+              schemaMarkupApplied={
+                business.website_url && websiteCheckResult
+                  ? !!(websiteCheckResult.has_json_ld || websiteCheckResult.has_schema_local_business)
+                  : undefined
+              }
+              blogMentions={naverResult?.blog_mentions ?? undefined}
+            />
           )}
           {["basic", "startup", "pro", "biz", "enterprise"].includes(plan) && accessToken && (
             <AISearchScreenshotCard bizId={business.id} plan={plan} authToken={accessToken} />
@@ -440,11 +445,15 @@ export default function DashboardDetailZone({
                   <p className={`text-4xl font-bold ${myRankInList === 1 ? "text-emerald-700" : "text-amber-700"}`}>
                     {myRankInList}위
                   </p>
-                  {topCompetitor && myRankInList > 1 && (
-                    <p className="text-sm text-gray-600 mt-1">
-                      1위 {topCompetitor.name} 대비 {Math.ceil(topCompetitor.score - unifiedScore)}점 부족
-                    </p>
-                  )}
+                  {topCompetitor && myRankInList > 1 && (() => {
+                    const gap = Math.ceil(topCompetitor.score - unifiedScore);
+                    const msg = gap <= 5
+                      ? `1위 ${topCompetitor.name}과 거의 비슷한 수준이에요`
+                      : gap <= 20
+                      ? `1위 ${topCompetitor.name}이 AI에 더 많이 노출되고 있어요`
+                      : `1위 ${topCompetitor.name}이 AI에 훨씬 더 노출되고 있어요`;
+                    return <p className="text-sm text-gray-600 mt-1">{msg}</p>;
+                  })()}
                 </div>
                 <RankingBar items={rankingItems} />
               </div>
@@ -470,7 +479,7 @@ export default function DashboardDetailZone({
           )}
           <CompetitorKeywordCompare competitorKeywordSources={competitorKeywordSources} />
           {["basic", "startup", "pro", "biz"].includes(plan) && accessToken && (
-            <CompetitorFAQCard bizId={business.id} accessToken={accessToken} />
+            <CompetitorProfileCard bizId={business.id} accessToken={accessToken} />
           )}
         </div>
       }
@@ -504,7 +513,7 @@ export default function DashboardDetailZone({
               allPlatformResults={allPlatformResults}
               reviewCount={business.review_count ?? 0}
               avgRating={business.avg_rating ?? 0}
-              hasSmartPlace={smartPlaceStatus.hasFaq || smartPlaceStatus.hasIntro || smartPlaceStatus.hasRecentPost}
+              hasSmartPlace={!!(business.naver_place_id) || smartPlaceStatus.hasIntro || (smartPlaceStatus.hasRecentPost ?? false)}
               hasFaq={smartPlaceStatus.hasFaq}
               hasRecentPost={smartPlaceStatus.hasRecentPost}
               hasIntro={smartPlaceStatus.hasIntro}

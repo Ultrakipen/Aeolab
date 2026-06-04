@@ -2880,6 +2880,20 @@ CONDITION_SEARCH_QUERIES: dict[str, list[str]] = {
         "{region} 보험 처리 카센터",
         "{region} 24시간 정비소",
     ],
+    "photo": [
+        "{region} 웨딩스냅 촬영",
+        "{region} 돌스냅 스튜디오",
+        "{region} 행사촬영 추천",
+        "{region} 웨딩본식 스냅",
+        "{region} 프로필 사진 스튜디오",
+    ],
+    "video": [
+        "{region} 유튜브 영상 제작",
+        "{region} 광고 영상 촬영",
+        "{region} 행사 영상 촬영",
+        "{region} 드론 촬영",
+        "{region} 기업 홍보 영상",
+    ],
     "default": [
         "{region} 주차 가능",
         "{region} 예약 가능",

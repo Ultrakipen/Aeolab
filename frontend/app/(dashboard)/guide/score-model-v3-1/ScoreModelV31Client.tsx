@@ -33,11 +33,11 @@ const GROUP_CONTENT = {
     badge: "bg-indigo-600 text-white",
     badgeText: "AI탭 베타 대상",
     changes: [
-      "네이버 AI탭(베타) 노출 반영이 새로 추가됩니다 — 2026년 4월 전체 업종 베타 적용 기준.",
+      "네이버 AI탭(베타) 노출 반영이 새로 추가됩니다 — 2026-04-27 베타 출시(네이버플러스 우선), 2026년 6월 전체 출시 예정 기준.",
+      "미용 업종은 2026년 내 AI 브리핑 ACTIVE 전환이 공식 예고되어 있습니다 (네이버 컨퍼런스콜 2026.02 기준). 소개글·리뷰를 미리 완성해두면 전환 시 즉시 노출 우위를 가질 수 있습니다.",
       "ChatGPT·Gemini 인용 신호가 글로벌 AI 점수에 더 세밀하게 반영됩니다.",
-      "네이버 지도 순위·리뷰 응답 비중이 해당 업종 특성에 맞게 재조정됩니다.",
     ],
-    impact: "네이버 AI탭 최적화가 점수에 새로 반영되어 AI탭에 맞게 관리된 사업장은 점수 상승이 예상됩니다.",
+    impact: "네이버 AI탭 최적화가 점수에 새로 반영되어 AI탭에 맞게 관리된 사업장은 점수 상승이 예상됩니다. 미용 업종은 AI 브리핑 확대 시 추가 점수 상승이 기대됩니다.",
   },
   INACTIVE: {
     label: "글로벌 AI 집중 업종 (법무·세무·교육·쇼핑·인테리어 등)",
@@ -73,7 +73,7 @@ const FAQ_DATA = [
     a: "이번 점수 변동은 실제 노출 상태를 더 정확하게 반영하도록 계산 방식이 개선된 결과입니다. 내 사업장의 실제 AI 노출이나 네이버 지도 순위가 바뀐 것이 아닙니다. 변동 이유가 궁금하다면 대시보드의 '채널별 점수' 항목을 확인해 주세요.",
   },
   {
-    q: "이전 버전 점수로 돌아갈 수 있나요?",
+    q: "이전 기준으로 돌아갈 수 있나요?",
     a: "이전 점수는 기록으로 별도 보관됩니다. 현재는 개선된 점수 기준으로 가이드가 생성되며, 이전 방식으로 되돌리는 기능은 제공하지 않습니다. 점수 변동에 의문이 있으면 Q&A 게시판에 문의해 주세요.",
   },
   {
@@ -103,10 +103,10 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
             ← 가이드 허브
           </Link>
           <span className="text-gray-400">/</span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">점수 모델 v3.1</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">점수 기준 개선 안내</span>
         </div>
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
-          점수 모델 v3.1 업그레이드 안내
+          업종별 맞춤 점수 기준 개선 안내
         </h1>
         {userCategory && userGroup && (
           <div className="mt-2 inline-flex items-center gap-2">
@@ -116,7 +116,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
           </div>
         )}
         <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm leading-relaxed break-keep">
-          이번 업그레이드는 업종별 계산 비중을 세밀하게 조정해 사장님 업종 특성에 맞는 진단을 제공합니다.
+          업종별 계산 비중을 세밀하게 조정해 사장님 업종 특성에 맞는 진단을 제공합니다.
           'AI 브리핑 대상'·'AI탭 베타 준비'·'글로벌 AI 집중' 세 유형으로 나뉘어
           각 유형에 실제로 의미 있는 채널에 더 높은 비중이 적용됩니다.
         </p>
@@ -124,11 +124,11 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
 
       {/* 변경 개요 */}
       <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 rounded-xl p-4 md:p-5 mb-6">
-        <h2 className="text-base font-bold text-blue-800 dark:text-blue-200 mb-2">왜 업그레이드되었나?</h2>
+        <h2 className="text-base font-bold text-blue-800 dark:text-blue-200 mb-2">왜 업종마다 기준이 다른가요?</h2>
         <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed break-keep">
-          이전 버전은 업종 구분 없이 같은 기준을 적용해 음식점과 법무사 사무소가 동일하게 평가되는 문제가 있었습니다.
-          이번 업그레이드는 AI 브리핑 노출 여부, 프랜차이즈 여부, 글로벌 AI 중요도에 따라
-          세 유형으로 나눠 사장님 업종에 실제로 의미 있는 채널에 더 높은 비중을 부여합니다.
+          이전에는 업종 구분 없이 같은 기준을 적용해 음식점과 법무사 사무소가 동일하게 평가되는 문제를 해결했습니다.
+          AI 브리핑 노출 여부, 프랜차이즈 여부, 글로벌 AI 중요도에 따라
+          세 유형으로 나눠 사장님 업종에 실제로 의미 있는 채널에 더 높은 비중이 적용됩니다.
         </p>
       </div>
 
@@ -153,7 +153,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
         </ul>
         <div className="bg-white dark:bg-gray-800 bg-opacity-60 rounded-lg p-3">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 break-keep">
-            예상 영향: {groupContent.impact}
+            적용 영향: {groupContent.impact}
           </p>
         </div>
       </div>
@@ -186,7 +186,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
       <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 md:p-5 mb-6">
         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-keep">
           점수 변동은 일시적이며 실제 노출 상태와 일치하도록 보정된 결과입니다.
-          활성화 시점에 카카오 알림톡으로 추가 안내드립니다.
+          업종별 맞춤 기준이 현재 적용 중입니다. 점수 변동 관련 문의는 Q&A 게시판을 이용해 주세요.
         </p>
       </div>
 

@@ -53,7 +53,7 @@ export default async function DashboardPage({
   // ── 사업장 목록 ──────────────────────────────────────────────
   const { data: businesses } = await supabase
     .from("businesses")
-    .select("id, name, category, region, business_type, website_url, naver_place_id, google_place_id, kakao_place_id, kakao_score, kakao_checklist, kakao_registered, is_active, naver_place_url, review_count, avg_rating, keywords, is_smart_place, has_faq, has_recent_post, has_intro, visitor_review_count, receipt_review_count, blog_url, blog_keyword_coverage, blog_post_count, blog_analyzed_at")
+    .select("id, name, category, region, business_type, website_url, naver_place_id, google_place_id, kakao_place_id, kakao_score, kakao_checklist, kakao_registered, is_active, naver_place_url, review_count, avg_rating, keywords, is_smart_place, has_faq, has_recent_post, has_intro, visitor_review_count, receipt_review_count, blog_url, blog_keyword_coverage, blog_post_count, blog_analyzed_at, checklist_overrides")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .order("created_at", { ascending: true })
@@ -226,7 +226,7 @@ export default async function DashboardPage({
   const lastScannedLabel = calcLastScannedLabel(latestScan?.scanned_at as string | null | undefined);
   const displayCity = calcDisplayCity(business?.region);
 
-  const smartPlaceStatus = buildSmartPlaceStatus(latestScan, business ?? { has_faq: false, has_intro: false, has_recent_post: false });
+  const smartPlaceStatus = buildSmartPlaceStatus(latestScan, business ?? { has_faq: false, has_intro: false, has_recent_post: false, checklist_overrides: null });
   const allPlatformResults = buildAllPlatformResults(latestScan);
   const websiteCheckResult = castWebsiteCheckResult(latestScan?.website_check_result);
   const missingItems = extractMissingItems(latestScan);
@@ -311,7 +311,10 @@ export default async function DashboardPage({
     has_faq?: boolean | null; has_intro?: boolean | null; has_recent_post?: boolean | null;
     visitor_review_count?: number; receipt_review_count?: number;
     blog_url?: string; blog_analyzed_at?: string; blog_post_count?: number; blog_keyword_coverage?: number;
+    checklist_overrides?: Record<string, unknown> | null;
   } | null;
+
+  const photoSufficient = !!(bizBase?.checklist_overrides?.['__photo_sufficient']);
 
   // ── 렌더링 ───────────────────────────────────────────────────
   return (
@@ -401,6 +404,8 @@ export default async function DashboardPage({
             hasReservation={hasReservationVal}
             photoCount={photoCountTotal}
             naverPlaceId={bizBase.naver_place_id ?? null}
+            photoSufficient={photoSufficient}
+            recentPostConfirmedAt={smartPlaceStatus.recentPostConfirmedAt}
             isFranchise={isFranchise}
             keywordCount={bizBase.keywords?.length ?? 0}
             latestAdOnly={(latestScan?.naver_result as { ad_only?: boolean } | null | undefined)?.ad_only ?? false}

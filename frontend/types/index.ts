@@ -489,9 +489,9 @@ export interface MentionContext {
   mentioned?: boolean;
   sentiment: "positive" | "neutral" | "negative";
   mention_type: "recommendation" | "information" | "comparison" | "warning";
-  mentioned_attributes: string[];
+  mentioned_attributes?: string[];
   excerpt: string;
-  position: "top3" | "middle" | "bottom";
+  position?: "top3" | "middle" | "bottom";
 }
 
 export interface BadgeData {

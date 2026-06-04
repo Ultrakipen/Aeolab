@@ -104,7 +104,7 @@ export default function PostScanModal({
                 </p>
                 {faqCopyText && (
                   <div className="bg-white border border-amber-200 rounded-lg p-3 mb-3">
-                    <p className="text-sm font-semibold text-gray-600 mb-1.5">바로 복사해서 FAQ에 붙여넣기</p>
+                    <p className="text-sm font-semibold text-gray-600 mb-1.5">바로 복사해서 소개글 Q&A에 붙여넣기</p>
                     <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{faqCopyText}</p>
                   </div>
                 )}
@@ -125,7 +125,7 @@ export default function PostScanModal({
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
-                      FAQ 문구 복사
+                      소개글 Q&A 복사
                     </>
                   )}
                 </button>

@@ -570,13 +570,13 @@ export function CompetitorPlaceCard({
         )}
       </div>
 
-      {/* ── FAQ 질문 목록 ── */}
+      {/* ── 소개글 Q&A 목록 ── */}
       {competitor.place_has_faq && (
         <div>
           <div className="flex items-center gap-1.5 mb-2">
             <span>❓</span>
-            <span className="text-sm font-medium text-gray-600">경쟁사 FAQ 질문</span>
-            <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">내 FAQ 작성 참고용</span>
+            <span className="text-sm font-medium text-gray-600">경쟁사 소개글 Q&A</span>
+            <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">내 소개글 Q&A 참고용</span>
           </div>
           {(!competitor.faq_questions || competitor.faq_questions.length === 0) ? (
             <button
@@ -585,7 +585,7 @@ export function CompetitorPlaceCard({
               className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 transition-colors disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isFetchingFaq ? 'animate-spin' : ''}`} />
-              {isFetchingFaq ? 'FAQ 수집 중...' : '경쟁사 FAQ 질문 불러오기'}
+              {isFetchingFaq ? 'Q&A 수집 중...' : '경쟁사 소개글 Q&A 불러오기'}
             </button>
           ) : (
             <div className="space-y-1.5">
@@ -595,7 +595,7 @@ export function CompetitorPlaceCard({
                   <p className="text-sm text-gray-700 leading-relaxed">{q}</p>
                 </div>
               ))}
-              <p className="text-sm text-gray-400 mt-2">위 질문들을 참고해 내 가게 FAQ를 작성하면 AI 검색 노출에 유리합니다.</p>
+              <p className="text-sm text-gray-400 mt-2">위 질문들을 참고해 소개글 Q&A를 작성하면 AI 검색 노출에 유리합니다.</p>
             </div>
           )}
         </div>
