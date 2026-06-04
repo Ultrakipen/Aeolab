@@ -113,8 +113,8 @@ class NaverAIBriefingScanner:
 
         try:
             url = f"https://search.naver.com/search.naver?query={query}"
-            await page.goto(url, wait_until="networkidle", timeout=30000)
-            await page.wait_for_timeout(3000)  # AI 브리핑 로딩 대기
+            await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            await page.wait_for_timeout(random.randint(2800, 4800))  # 인간 편차 딜레이
 
             try:
                 page_text = await page.inner_text("body") or ""
