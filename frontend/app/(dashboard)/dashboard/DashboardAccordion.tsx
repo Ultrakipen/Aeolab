@@ -59,9 +59,8 @@ export default function DashboardAccordion({ tab1Content, tab2Content, tab3Conte
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-5 pt-5 pb-3 flex items-center gap-2">
+      <div className="px-5 pt-5 pb-3">
         <h2 className="text-lg font-bold text-gray-900">더 자세히 보기</h2>
-        <span className="text-sm text-white bg-blue-500 rounded-full px-2 py-0.5 font-medium">탭을 눌러 펼치기</span>
       </div>
       <div className="px-4 pb-4 flex flex-col gap-2">
         {SECTIONS.map((section) => {

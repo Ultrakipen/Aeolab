@@ -158,14 +158,14 @@ export default function DashboardHeroCard({
 
       {/* 3개 핵심 지표 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 border-b border-gray-100">
-        {/* 지표1: AI 노출 */}
+        {/* 지표1: 네이버 AI 노출 현황 */}
         <div className="px-5 py-3 flex items-center gap-2">
           <span
             className={`w-8 h-8 rounded-full flex items-center justify-center text-base font-bold shrink-0 ${
               naverCaptchaBlocked
                 ? "bg-gray-100 text-gray-400"
                 : eligibility === "inactive"
-                ? "bg-gray-100 text-gray-500"
+                ? "bg-blue-100 text-blue-700"
                 : eligibility === "likely"
                 ? "bg-yellow-100 text-yellow-600"
                 : naverInBriefing
@@ -176,7 +176,7 @@ export default function DashboardHeroCard({
             {naverCaptchaBlocked
               ? "?"
               : eligibility === "inactive"
-              ? "−"
+              ? "↑"
               : eligibility === "likely"
               ? "△"
               : naverInBriefing
@@ -184,23 +184,27 @@ export default function DashboardHeroCard({
               : "✗"}
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-800 leading-tight line-clamp-2">
+            <p className="text-sm font-semibold text-gray-800 leading-tight">
               {naverCaptchaBlocked
-                ? "AI 노출 확인 불가"
+                ? "측정 불가 (봇 차단)"
                 : eligibility === "inactive"
-                ? "네이버 검색 노출·AI탭 + ChatGPT·Gemini·Google AI 관리"
+                ? "네이버 검색·AI탭 노출 집중"
                 : eligibility === "likely"
-                ? "네이버 AI탭 가능 · ChatGPT·Gemini·Google AI — 4채널"
+                ? "AI탭 + 글로벌 AI 4채널"
                 : naverInBriefing
-                ? "AI 브리핑 노출 중 — 5채널 모두 가능"
-                : "AI 미노출 — 5채널 최적화 필요"}
+                ? "AI 브리핑 노출 중"
+                : "AI 미노출 — 개선 필요"}
             </p>
             <p className="text-sm text-gray-500">
-              {eligibility === "inactive"
-                ? "네이버 검색 노출·AI탭 우선 + 글로벌 AI (4채널)"
+              {naverCaptchaBlocked
+                ? "재스캔 시 정상 측정"
+                : eligibility === "inactive"
+                ? "스마트플레이스·블로그 최적화 우선"
                 : eligibility === "likely"
-                ? "네이버 AI탭 + 글로벌 AI 3채널"
-                : "네이버 AI 브리핑·AI탭 + 글로벌 AI 3채널"}
+                ? "AI 브리핑 확대 예정 — 지금 준비"
+                : naverInBriefing
+                ? "5채널 최적화 유지 중"
+                : "소개글·키워드 보강 필요"}
             </p>
           </div>
         </div>

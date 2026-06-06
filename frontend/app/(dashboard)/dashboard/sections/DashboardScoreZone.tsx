@@ -71,6 +71,7 @@ export default function DashboardScoreZone({
 
       {/* Hero 카드 — 스캔 결과 있을 때만 표시 */}
       {latestScan && (
+        <div id="section-score">
         <DashboardHeroCard
           businessName={business.name}
           unifiedScore={unifiedScore}
@@ -96,9 +97,11 @@ export default function DashboardScoreZone({
           eligibility={briefingEligibility}
           lastScannedLabel={lastScannedLabel}
         />
+        </div>
       )}
 
       {/* 키워드 검색 노출 카드 */}
+      <div id="section-keyword">
       <KeywordRankCard
         bizId={business.id}
         keywords={business.keywords ?? []}
@@ -106,6 +109,7 @@ export default function DashboardScoreZone({
         userGroup={userGroup}
         region={business.region}
       />
+      </div>
 
       {/* AI 브리핑 비대상 업종 안내 (프랜차이즈 포함) */}
       {briefingEligibility !== "active" && business.category && (

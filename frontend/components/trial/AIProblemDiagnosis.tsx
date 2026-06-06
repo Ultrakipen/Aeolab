@@ -70,10 +70,10 @@ function CopyButton({ text, label }: { text: string; label: string }) {
       onClick={handleCopy}
       className={`inline-flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors ${
         copied
-          ? "bg-emerald-600 text-white"
+          ? "bg-emerald-500 text-white"
           : copyFailed
           ? "bg-amber-500 text-white"
-          : "bg-emerald-600 hover:bg-emerald-700 text-white"
+          : "bg-blue-600 hover:bg-blue-700 text-white"
       }`}
     >
       {copied ? <><Check className="w-4 h-4" aria-hidden="true" /> 복사됐습니다!</> : copyFailed ? "직접 선택 후 복사하세요" : label}

@@ -897,22 +897,22 @@ export default function TrialResultStep(props: TrialResultProps) {
 
         {/* ── 1. 가게 헤더 (업종 배지 인라인 통합) ───────────────── */}
         {form.business_name ? (
-          <div className="rounded-xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-5 py-5 mb-4 shadow-lg border border-white/10">
+          <div className="rounded-xl bg-white border border-slate-200 px-5 py-4 mb-4 shadow-sm">
             {/* 레이블 */}
-            <p className="text-sm font-bold text-blue-200 tracking-widest uppercase mb-3 flex items-center gap-1.5">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-300"></span>
+            <p className="text-sm font-bold text-slate-400 tracking-widest uppercase mb-3 flex items-center gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-300"></span>
               진단 대상 가게
             </p>
             <div className="flex items-center gap-4">
-              <div className="shrink-0 w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shadow-inner">
-                <Store className="w-7 h-7 text-white" />
+              <div className="shrink-0 w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center shadow-inner">
+                <Store className="w-7 h-7 text-slate-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-2xl font-black text-white truncate leading-tight tracking-tight">
+                <p className="text-2xl font-black text-slate-900 truncate leading-tight tracking-tight">
                   {form.business_name}
                 </p>
                 {form.region && (
-                  <p className="text-base text-blue-200 mt-0.5 font-medium">{form.region}</p>
+                  <p className="text-base text-slate-500 mt-0.5 font-medium">{form.region}</p>
                 )}
                 <div className="mt-2">
                   <BriefingBadgeChip category={briefingCategory} />
@@ -923,7 +923,7 @@ export default function TrialResultStep(props: TrialResultProps) {
                   href={result.place_match.naver_place_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 text-sm font-bold text-blue-700 bg-white hover:bg-blue-50 px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap shadow-md"
+                  className="shrink-0 text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap shadow-md"
                 >
                   네이버 플레이스 →
                 </a>
@@ -934,18 +934,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           <BriefingCategoryBadge category={briefingCategory} />
         )}
 
-        {/* ── 1.5. 즉시 파악 현황 요약 바 ───────────────────────────── */}
-        <ScanStatusBar
-          chatgptMentioned={chatgptMentioned}
-          chatgptExposureFreq={chatgptResult?.exposure_freq}
-          chatgptSampleSize={chatgptSampleSize}
-          geminiExposureFreq={geminiExposureFreq}
-          inBriefing={inBriefing}
-          briefingCategory={briefingCategory}
-          smartPlaceCheck={result.smart_place_check ?? null}
-        />
-
-        {/* ── 2. 핵심 결론 (실측 데이터만, 스크롤 없이 즉시 파악) ────── */}
+        {/* ── 1. 핵심 결론 (실측 데이터만, 스크롤 없이 즉시 파악) ────── */}
         <ScanConclusionCard
           businessName={form.business_name || "내 가게"}
           chatgptMentioned={chatgptMentioned}
@@ -958,7 +947,37 @@ export default function TrialResultStep(props: TrialResultProps) {
           briefingCategory={briefingCategory}
         />
 
-        {/* ── 3. 스마트플레이스 실측 점검 ───────────────────────── */}
+        {/* ── 2. 지금 바로 할 핵심 액션 ──────────────────────────── */}
+        <div id="today-action" />
+        <TodayOneAction
+          key={effectiveMissingKws[0] ?? "no-kw"}
+          isSmartPlace={isSmartPlace}
+          missingKws={effectiveMissingKws}
+          hasFaq={hasFaq}
+          inBriefing={inBriefing}
+          faqText={effectiveFaqText}
+          selectedTags={selectedTags}
+          categoryLabel={categoryLabel}
+          userGroup={userGroupValue}
+          category={selectedCategory}
+          isLoggedIn={isLoggedIn}
+          onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
+        />
+
+        {/* ── 3. 성장단계 이번 주 액션 ──────────────────────────── */}
+        {gs?.this_week_action && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-3">
+            <TrendingUp className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-amber-800 mb-0.5 break-keep">
+                이번 주 집중할 것 <span className="font-normal text-amber-600">({gsLabel})</span>
+              </p>
+              <p className="text-sm text-amber-700 leading-relaxed break-keep">{gs.this_week_action}</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── 4. 스마트플레이스 실측 점검 ───────────────────────── */}
         {result.smart_place_check && (
           <SmartPlaceCheckCard check={result.smart_place_check} userGroup={userGroupValue} />
         )}
@@ -975,7 +994,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           </div>
         )}
 
-        {/* ── 4. 채널별 AI 검색 결과 (업종별 순서 분기)
+        {/* ── 5. 채널별 AI 검색 결과 (업종별 순서 분기)
              ACTIVE 업종: 네이버 AI 브리핑 먼저 → ChatGPT
              LIKELY/INACTIVE: ChatGPT 먼저 → 네이버는 섹션 9 안내로 대체 ── */}
 
@@ -1021,7 +1040,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         )}
 
-        {/* ── 5. 네이버 검색 순위 + 블로그 격차 ─────────────────────── */}
+        {/* ── 6. 네이버 검색 순위 + 블로그 격차 ─────────────────────── */}
         <TrialCompetitorGapCard
           businessName={form.business_name || "내 가게"}
           searchQuery={(naver as { search_query?: string } | null)?.search_query}
@@ -1035,7 +1054,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           keywordRanks={(result as { keyword_ranks?: Array<{ query: string; rank: number | null; exposed: boolean }> }).keyword_ranks}
         />
 
-        {/* ── 6. 종합 점수 요약 ─────────────────────────────────────── */}
+        {/* ── 7. 종합 점수 요약 ─────────────────────────────────────── */}
         <ScoreSummaryCard
           score={score}
           track1={track1}
@@ -1046,53 +1065,18 @@ export default function TrialResultStep(props: TrialResultProps) {
           gsLabel={gsLabel}
         />
 
-        {/* ── 7. 지금 바로 할 핵심 액션 ──────────────────────────── */}
-        <div id="today-action" />
-        <TodayOneAction
-          key={effectiveMissingKws[0] ?? "no-kw"}
-          isSmartPlace={isSmartPlace}
-          missingKws={effectiveMissingKws}
-          hasFaq={hasFaq}
+        {/* ── 8. 즉시 파악 현황 요약 바 ───────────────────────────── */}
+        <ScanStatusBar
+          chatgptMentioned={chatgptMentioned}
+          chatgptExposureFreq={chatgptResult?.exposure_freq}
+          chatgptSampleSize={chatgptSampleSize}
+          geminiExposureFreq={geminiExposureFreq}
           inBriefing={inBriefing}
-          faqText={effectiveFaqText}
-          selectedTags={selectedTags}
-          categoryLabel={categoryLabel}
-          userGroup={userGroupValue}
-          category={selectedCategory}
-          isLoggedIn={isLoggedIn}
-          onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
+          briefingCategory={briefingCategory}
+          smartPlaceCheck={result.smart_place_check ?? null}
         />
 
-        {/* ── 8. 성장단계 이번 주 액션 ──────────────────────────── */}
-        {gs?.this_week_action && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-3">
-            <TrendingUp className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-bold text-amber-800 mb-0.5 break-keep">
-                이번 주 집중할 것 <span className="font-normal text-amber-600">({gsLabel})</span>
-              </p>
-              <p className="text-sm text-amber-700 leading-relaxed break-keep">{gs.this_week_action}</p>
-            </div>
-          </div>
-        )}
-
-        {/* ── 9. 채널 안내 (NaverAiPathwayCard + 노출 채널 안내) ────── */}
-        <NaverAiPathwayCard
-          briefingEligibility={briefingCategory}
-          isFranchise={isFranchise}
-        />
-        {(briefingCategory === "inactive" || briefingCategory === "likely") && (
-          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 mb-4 flex items-start gap-2">
-            <Globe className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" aria-hidden="true" />
-            <p className="text-sm text-blue-800 leading-relaxed break-keep">
-              {briefingCategory === "likely"
-                ? "네이버 AI 브리핑 확대 검토 중 — 지금은 ChatGPT·Gemini 최적화와 스마트플레이스 완성에 집중하세요."
-                : "AI 브리핑 비대상이지만 스마트플레이스·소개글 개선으로 ChatGPT·Gemini 추천 가능성을 높일 수 있습니다."}
-            </p>
-          </div>
-        )}
-
-        {/* ── 10. 트랙별 상세 아코디언 ───────────────────────────── */}
+        {/* ── 9. 트랙별 상세 아코디언 ───────────────────────────── */}
         <TrialDetailAccordion
           naverTrackCardProps={{
             track1Score: track1,
@@ -1196,6 +1180,22 @@ export default function TrialResultStep(props: TrialResultProps) {
             groupBannerNode,
           }}
         />
+
+        {/* ── 10. 채널 안내 (NaverAiPathwayCard + 노출 채널 안내) ────── */}
+        <NaverAiPathwayCard
+          briefingEligibility={briefingCategory}
+          isFranchise={isFranchise}
+        />
+        {(briefingCategory === "inactive" || briefingCategory === "likely") && (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 mb-4 flex items-start gap-2">
+            <Globe className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" aria-hidden="true" />
+            <p className="text-sm text-blue-800 leading-relaxed break-keep">
+              {briefingCategory === "likely"
+                ? "네이버 AI 브리핑 확대 검토 중 — 지금은 ChatGPT·Gemini 최적화와 스마트플레이스 완성에 집중하세요."
+                : "AI 브리핑 비대상이지만 스마트플레이스·소개글 개선으로 ChatGPT·Gemini 추천 가능성을 높일 수 있습니다."}
+            </p>
+          </div>
+        )}
 
         {/* ── 11. 측정 방법 + 스캔 기준 ───────────────────────────── */}
         <MergedScanInfoBox chatgptSampleSize={chatgptSampleSize} />
@@ -1529,8 +1529,7 @@ function NaverBriefingResultCard({
               {/* CTA */}
               <a
                 href="/pricing"
-                className="flex items-center justify-center gap-1.5 w-full text-center font-semibold text-sm px-4 py-3 rounded-xl text-white transition-colors"
-                style={{ background: "#03c75a" }}
+                className="flex items-center justify-center gap-1.5 w-full text-center font-semibold text-sm px-4 py-3 rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-colors"
               >
                 내 가게 AI 브리핑 노출 확인하기 → Basic 시작 (첫 달 4,950원)
               </a>
@@ -1833,14 +1832,14 @@ function BriefingBadgeChip({
   }
   if (category === "likely") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-200 bg-white/20 border border-amber-300/60 rounded-full px-3 py-1 whitespace-nowrap">
+      <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-700 bg-amber-50 border border-amber-300 rounded-full px-3 py-1 whitespace-nowrap">
         <Clock className="w-3.5 h-3.5 shrink-0" />
         네이버 AI탭·ChatGPT·Gemini 4채널
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-white/20 border border-white/40 rounded-full px-3 py-1 whitespace-nowrap">
+    <span className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-600 bg-slate-100 border border-slate-300 rounded-full px-3 py-1 whitespace-nowrap">
       <Globe className="w-3.5 h-3.5 shrink-0" />
       AI탭·ChatGPT·Gemini 4채널
     </span>
@@ -1877,7 +1876,7 @@ function ScanStatusBar({
     {
       label: "Gemini",
       status: geminiExposureFreq === undefined ? "unknown" : geminiOk ? "ok" : "warn",
-      detail: geminiOk ? `${geminiExposureFreq}/${10}회 노출` : "미노출",
+      detail: geminiExposureFreq === undefined ? "미측정" : geminiOk ? `${geminiExposureFreq}/${10}회 노출` : "미노출",
     },
     {
       label: "네이버 AI브리핑",
@@ -2072,18 +2071,18 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
             className={`flex items-center justify-between gap-3 rounded-xl px-3 py-3 border ${
               item.checked
                 ? "bg-emerald-50 border-emerald-200"
-                : "bg-red-50 border-red-200"
+                : "bg-amber-50 border-amber-200"
             }`}
           >
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
               {item.checked ? (
                 <Check className="w-5 h-5 text-emerald-600 shrink-0" />
               ) : (
-                <X className="w-5 h-5 text-red-500 shrink-0" />
+                <X className="w-5 h-5 text-amber-500 shrink-0" />
               )}
               <span
                 className={`text-sm md:text-base font-semibold break-keep ${
-                  item.checked ? "text-emerald-800" : "text-red-800"
+                  item.checked ? "text-emerald-800" : "text-amber-800"
                 }`}
               >
                 {item.label}
@@ -2094,7 +2093,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 text-sm font-bold text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                className="shrink-0 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
               >
                 지금 등록하기 →
               </a>
@@ -2121,8 +2120,8 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
           </p>
           <p className="text-sm text-amber-700 mt-1 leading-relaxed">
             {isActive
-              ? "빨간색 항목을 등록하면 네이버 AI 브리핑 노출 점수가 올라갑니다."
-              : "빨간색 항목을 등록하면 네이버 플레이스 노출이 향상됩니다. ChatGPT·Gemini는 구글 비즈니스 프로필·자체 웹사이트 최적화로 별도 개선하세요."}
+              ? "노란색 항목을 등록하면 네이버 AI 브리핑 노출 점수가 올라갑니다."
+              : "노란색 항목을 등록하면 네이버 플레이스 노출이 향상됩니다. ChatGPT·Gemini는 구글 비즈니스 프로필·자체 웹사이트 최적화로 별도 개선하세요."}
           </p>
         </div>
       )}

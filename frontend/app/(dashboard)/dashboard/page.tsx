@@ -8,6 +8,7 @@ import type { WebsiteCheckResult } from "@/types";
 import DashboardHeader from "./sections/DashboardHeader";
 import FirstScanBanner from "@/components/onboarding/FirstScanBanner";
 import { MaintenanceBanner } from "@/components/dashboard/MaintenanceBanner";
+import ScanResultNavBar from "@/components/dashboard/ScanResultNavBar";
 import { ContextTipBanner } from "@/components/dashboard/ContextTipBanner";
 import DashboardScoreZone from "./sections/DashboardScoreZone";
 import { ScoreDeltaBanner } from "@/components/dashboard/ScoreDeltaBanner";
@@ -331,6 +332,23 @@ export default async function DashboardPage({
 
       {bizBase && (
         <>
+          {latestScan && (
+            <ScanResultNavBar
+              eligibility={briefingEligibility}
+              naverInBriefing={!!(latestScan.naver_result as { in_briefing?: boolean } | null)?.in_briefing}
+              naverCaptchaBlocked={
+                (latestScan.naver_result as { captcha_detected?: boolean; error?: string } | null)?.captcha_detected === true ||
+                (latestScan.naver_result as { captcha_detected?: boolean; error?: string } | null)?.error === "captcha_or_blocked"
+              }
+              myRankInList={myRankInList}
+              totalCompetitors={rankingItems.length}
+              topMissingKeywordCount={topMissingKeywords.length}
+              todayAction={todayTasks[0]?.desc ?? null}
+              unifiedScore={unifiedScore}
+              isFranchise={isFranchise}
+            />
+          )}
+
           <DashboardScoreZone
             business={{ id: bizBase.id, name: bizBase.name, category: bizBase.category, region: bizBase.region, keywords: bizBase.keywords, is_franchise: isFranchise }}
             latestScan={latestScan ?? null}

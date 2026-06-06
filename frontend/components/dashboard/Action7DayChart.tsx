@@ -164,7 +164,7 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
       {/* 차트 */}
       {chartData.length > 0 ? (
         <div style={{ width: "100%", height: 220 }}>
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
               <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#6b7280" }} />

@@ -90,7 +90,7 @@ export default function DashboardActionZone({
   category,
 }: Props) {
   return (
-    <section aria-label="액션 가이드" className="flex flex-col gap-3">
+    <section id="section-action" aria-label="액션 가이드" className="flex flex-col gap-3">
       {/* 무료 플랜 업그레이드 유도 — 최상단 */}
       <UpgradeNudgeCard plan={plan} hasLatestScan={hasLatestScan} />
 

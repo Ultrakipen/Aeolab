@@ -52,7 +52,7 @@ function ResultBadge({ ok }: { ok: boolean }) {
       <Check className="w-4 h-4" /> 노출됨
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 text-sm font-bold text-red-700 bg-red-100 px-2.5 py-0.5 rounded-full">
+    <span className="inline-flex items-center gap-1 text-sm font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full">
       <X className="w-4 h-4" /> 미노출
     </span>
   );
@@ -99,7 +99,7 @@ export default function FactEvidenceSection({
       <div className="divide-y divide-slate-100">
         {/* 카드 1: 네이버 AI 브리핑 */}
         {hasNaver && (
-          <div className={`p-4 md:p-6 ${naver!.in_briefing ? "bg-emerald-50/40" : "bg-red-50/40"}`}>
+          <div className={`p-4 md:p-6 ${naver!.in_briefing ? "bg-emerald-50/40" : "bg-slate-50/40"}`}>
             <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
               <div className="flex items-center gap-2">
                 <span className="text-base md:text-lg font-bold text-gray-900">네이버 AI 브리핑</span>
@@ -113,7 +113,7 @@ export default function FactEvidenceSection({
             </div>
             <p
               className={`text-base md:text-lg font-bold leading-snug mb-3 ${
-                naver!.in_briefing ? "text-emerald-800" : "text-red-800"
+                naver!.in_briefing ? "text-emerald-800" : "text-slate-700"
               }`}
             >
               {naver!.in_briefing
@@ -142,7 +142,7 @@ export default function FactEvidenceSection({
 
         {/* 카드 2: ChatGPT */}
         {hasChatgpt && (
-          <div className={`p-4 md:p-6 ${chatgptResult!.mentioned ? "bg-emerald-50/40" : "bg-red-50/40"}`}>
+          <div className={`p-4 md:p-6 ${chatgptResult!.mentioned ? "bg-emerald-50/40" : "bg-slate-50/40"}`}>
             <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
               <div className="flex items-center gap-2">
                 <span className="text-base md:text-lg font-bold text-gray-900">ChatGPT</span>
@@ -151,7 +151,7 @@ export default function FactEvidenceSection({
             </div>
             <p
               className={`text-base md:text-lg font-bold leading-snug mb-2 ${
-                chatgptResult!.mentioned ? "text-emerald-800" : "text-red-800"
+                chatgptResult!.mentioned ? "text-emerald-800" : "text-slate-700"
               }`}
             >
               {chatgptResult!.mentioned
@@ -167,7 +167,7 @@ export default function FactEvidenceSection({
                     className={
                       chatgptResult!.exposure_freq > 0
                         ? "text-emerald-700"
-                        : "text-red-600"
+                        : "text-amber-600"
                     }
                   >
                     {chatgptResult!.exposure_freq}회 언급
@@ -221,7 +221,7 @@ export default function FactEvidenceSection({
             </div>
             <p
               className={`text-base md:text-lg font-bold leading-snug mb-3 ${
-                exposureFreq! > 0 ? "text-emerald-800" : "text-red-800"
+                exposureFreq! > 0 ? "text-emerald-800" : "text-slate-700"
               }`}
             >
               {totalSamples}번 중 <span className="text-2xl md:text-3xl">{exposureFreq}</span>번 추천됨
@@ -233,7 +233,7 @@ export default function FactEvidenceSection({
                     ? "bg-emerald-500"
                     : (exposureFreq! / totalSamples) >= 0.2
                     ? "bg-amber-400"
-                    : "bg-red-400"
+                    : "bg-amber-300"
                 }`}
                 style={{ width: `${Math.min((exposureFreq! / totalSamples) * 100, 100)}%` }}
               />

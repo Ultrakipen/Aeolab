@@ -248,9 +248,9 @@ export default function TrialDetailAccordion({
           icon={<Bot className="w-5 h-5 text-white" />}
           title="글로벌 AI 트랙"
           subtitle="ChatGPT · Gemini · Google AI 노출 현황 및 개선"
-          bgColor="bg-purple-600"
+          bgColor="bg-blue-600"
           textColor="text-white"
-          borderColor="border-purple-700"
+          borderColor="border-blue-700"
         />
         <div className="space-y-3">
           <GlobalAiActionCard
@@ -384,7 +384,7 @@ export default function TrialDetailAccordion({
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
                   <div
-                    className="h-2 rounded-full bg-purple-400"
+                    className="h-2 rounded-full bg-blue-400"
                     style={{ width: `${Math.round(globalChannelScore)}%` }}
                   />
                 </div>

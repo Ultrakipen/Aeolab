@@ -119,7 +119,7 @@ export default function DashboardInsightZone({
   const isPhotoSupported = PHOTO_SUPPORTED_CATEGORIES.includes(category);
 
   return (
-    <>
+    <div id="section-insight">
       {/* INACTIVE 업종 가입자 첫 7일 한정 안내 배너 */}
       {briefingMeta?.eligibility === "inactive" && userCreatedAt && (
         <InactiveUserBanner userCreatedAt={userCreatedAt} />
@@ -270,6 +270,6 @@ export default function DashboardInsightZone({
           </div>
         );
       })()}
-    </>
+    </div>
   );
 }

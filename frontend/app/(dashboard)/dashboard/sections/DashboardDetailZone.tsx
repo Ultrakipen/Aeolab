@@ -276,6 +276,7 @@ export default function DashboardDetailZone({
     ?.channel_scores;
 
   return (
+    <div id="section-detail">
     <DashboardAccordion
       tab1Content={
         <div className="space-y-5">
@@ -671,5 +672,6 @@ export default function DashboardDetailZone({
         </div>
       }
     />
+    </div>
   );
 }

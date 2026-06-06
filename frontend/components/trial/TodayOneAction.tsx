@@ -138,10 +138,10 @@ function ActionCard({
             onClick={handleCopy}
             className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-all ${
               copied
-                ? "bg-emerald-400 text-white"
+                ? "bg-emerald-500 text-white"
                 : copyFailed
-                ? "bg-red-400 text-white"
-                : "bg-emerald-600 text-white hover:bg-emerald-700"
+                ? "bg-amber-500 text-white"
+                : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
           >
             {copied ? "✓ 복사됨!" : copyFailed ? "직접 선택 후 복사하세요" : action.copyLabel}
