@@ -394,6 +394,8 @@ export default function GlobalAiActionCard({
       : score >= 40
         ? "text-blue-600"
         : "text-red-500";
+  const scoreLabel =
+    score >= 80 ? "우수" : score >= 65 ? "양호" : score >= 45 ? "보통" : score >= 25 ? "미흡" : "시작 단계";
 
   const chatgptLabel =
     chatgptMentioned === true
@@ -444,10 +446,9 @@ export default function GlobalAiActionCard({
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-sm text-gray-500 mb-0.5">점수</p>
+          <p className="text-sm text-gray-500 mb-0.5">AI 노출 현황</p>
           <p className={`text-2xl font-black ${scoreColorClass}`}>
-            {score}
-            <span className="text-sm font-normal text-gray-400">/100</span>
+            {scoreLabel}
           </p>
         </div>
       </div>

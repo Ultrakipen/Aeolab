@@ -11,6 +11,20 @@ import SchemaCheckCard from "@/components/dashboard/SchemaCheckCard";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { SUPPORTED_CATEGORIES as PHOTO_SUPPORTED_CATEGORIES } from "@/lib/photoCategories";
 import type { WebsiteCheckResult } from "@/types";
+import { AlertCircle, BarChart2 } from "lucide-react";
+
+function SectionLabel({ icon, label, description }: { icon: React.ReactNode; label: string; description: string }) {
+  return (
+    <div className="flex items-center gap-2 mt-5 mb-1 first:mt-0">
+      <div className="flex items-center gap-1.5 text-gray-700">
+        {icon}
+        <span className="text-sm font-bold">{label}</span>
+      </div>
+      <div className="flex-1 h-px bg-gray-200" />
+      <span className="text-xs text-gray-400 shrink-0">{description}</span>
+    </div>
+  );
+}
 
 interface BriefingMeta {
   eligibility: "active" | "likely" | "inactive";
@@ -111,6 +125,13 @@ export default function DashboardInsightZone({
         <InactiveUserBanner userCreatedAt={userCreatedAt} />
       )}
 
+      {/* ─── 핵심 설정 확인 ─── */}
+      <SectionLabel
+        icon={<AlertCircle className="w-4 h-4 text-rose-500" />}
+        label="핵심 설정 확인"
+        description="지금 바로 점검·설정하세요"
+      />
+
       {/* 네이버 AI 검색 두 경로 비교 — AI 브리핑 vs AI탭 (사용자 노출 화면 명확 구분) */}
       {briefingMeta && (
         <NaverAiPathwayCard
@@ -142,6 +163,13 @@ export default function DashboardInsightZone({
           adOnly={latestAdOnly}
         />
       )}
+
+      {/* ─── 채널별 심층 분석 ─── */}
+      <SectionLabel
+        icon={<BarChart2 className="w-4 h-4 text-blue-500" />}
+        label="채널별 분석"
+        description="현황 파악 및 참고"
+      />
 
       {/* AI탭 답변 미리보기 (모든 업종, Basic+) */}
       <AiTabPreviewCard

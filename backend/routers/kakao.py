@@ -79,7 +79,7 @@ async def check_kakao_registration_endpoint(
     API 키 미설정 또는 오류 시 is_registered=False로 graceful fallback.
     """
     supabase = get_client()
-    biz = _verify_biz_ownership(biz_id, user["sub"], supabase)
+    biz = _verify_biz_ownership(biz_id, user["id"], supabase)
 
     try:
         is_registered = await check_kakao_registration(biz["name"], biz.get("region", ""))
@@ -121,7 +121,7 @@ async def save_kakao_checklist(
     - 점수 결과는 businesses.kakao_score / kakao_checklist 컬럼에 저장
     """
     supabase = get_client()
-    biz = _verify_biz_ownership(biz_id, user["sub"], supabase)
+    biz = _verify_biz_ownership(biz_id, user["id"], supabase)
 
     user_checklist = body.model_dump()
 
@@ -178,7 +178,7 @@ async def get_kakao_score(
     체크리스트가 아직 입력되지 않았다면 score=0, empty 체크리스트를 반환합니다.
     """
     supabase = get_client()
-    biz = _verify_biz_ownership(biz_id, user["sub"], supabase)
+    biz = _verify_biz_ownership(biz_id, user["id"], supabase)
 
     stored_checklist: dict = biz.get("kakao_checklist") or {}
     stored_score: int      = biz.get("kakao_score") or 0

@@ -1850,7 +1850,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
             _blog_json_s = (biz or {}).get("blog_analysis_json") or {}
             _blog_covered_s = (_blog_json_s.get("keyword_coverage") or {}).get("present") or []
             _blog_covered_text_s = " ".join(_blog_covered_s) if isinstance(_blog_covered_s, list) else ""
-            _stream_combined_text = " ".join(filter(None, [_selected_kw, _stream_biz_kw_text, _stream_review_text, _blog_covered_text_s]))
+            _intro_draft_s = ((biz or {}).get("naver_intro_draft") or "").strip()
+            _stream_combined_text = " ".join(filter(None, [_selected_kw, _stream_biz_kw_text, _stream_review_text, _intro_draft_s, _blog_covered_text_s]))
             # 사용자 맞춤 키워드 prefs 반영 (DB 컬럼 없으면 graceful)
             _stream_excluded_kw: list[str] = []
             _stream_custom_kw: list[str] = list(_stream_biz_kw_list)
@@ -1876,7 +1877,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                 )
             else:
                 _stream_missing_all = _stream_kw_analysis.get("missing", [])
-                # 서브카테고리별 최대 2개 제한 — 동일 카테고리 편향 방지
+                # 서브카테고리 메타 빌드 (weight 순 이미 정렬돼 있음 — analyze_keyword_coverage가 보장)
                 try:
                     from services.keyword_taxonomy import KEYWORD_TAXONOMY as _STREAM_TAX, normalize_category as _stream_norm_cat
                     _stream_industry = _STREAM_TAX.get(
@@ -1888,7 +1889,23 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                             if _k_s not in _stream_kw_meta_s:
                                 _stream_kw_meta_s[_k_s] = _sn_s
                 except Exception:
+                    _stream_industry = {}
                     _stream_kw_meta_s = {}
+                # round-robin: 서브카테고리에서 1개씩 순환 — 블록 편향 방지 (dict 삽입 순서 = weight 순)
+                if _stream_missing_all:
+                    _s_by_sub: dict[str, list[str]] = {}
+                    for _kw_s in _stream_missing_all:
+                        _s_by_sub.setdefault(_stream_kw_meta_s.get(_kw_s, "_etc"), []).append(_kw_s)
+                    _s_div: list[str] = []
+                    _s_max = max(len(v) for v in _s_by_sub.values())
+                    for _r in range(_s_max):
+                        for _sub_s, _lst in _s_by_sub.items():
+                            if _r < len(_lst):
+                                _s_div.append(_lst[_r])
+                        if len(_s_div) >= 8:
+                            break
+                    _stream_missing_all = _s_div
+                # 서브카테고리별 최대 2개 제한 (round-robin 이후 안전망)
                 _stream_subcat_count: dict[str, int] = {}
                 _stream_capped: list[str] = []
                 for _kw_s in _stream_missing_all:
@@ -1897,7 +1914,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                         _stream_capped.append(_kw_s)
                         if _sub_s != "_etc":
                             _stream_subcat_count[_sub_s] = _stream_subcat_count.get(_sub_s, 0) + 1
-                    if len(_stream_capped) >= 5:
+                    if len(_stream_capped) >= 8:
                         break
                 _stream_top_missing = _stream_capped
     except Exception as e:
@@ -2443,7 +2460,7 @@ async def _enrich_scan_background(
                     "sample_size":   _g_sample + _c_sample,
                     "url": None,
                     "captured_at": datetime.today().date().isoformat(),
-                    "label": "Gemini AI",
+                    "label": "Gemini·ChatGPT 듀얼" if (_g_ok and _c_ok) else ("Gemini AI" if _g_ok else "ChatGPT"),
                 })
             if ai_screenshots:
                 await execute(
@@ -2920,8 +2937,9 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             _blog_kw_json = (biz or {}).get("blog_analysis_json") or {}
             _blog_covered_kws = ((_blog_kw_json.get("keyword_coverage") or {}).get("present") or [])
             _full_blog_kw_text = " ".join(_blog_covered_kws) if isinstance(_blog_covered_kws, list) else ""
+            _full_intro_draft = ((biz or {}).get("naver_intro_draft") or "").strip()
             # 등록 키워드 앞에 추가 (우선순위 높음)
-            _full_combined_text = " ".join(filter(None, [_full_biz_kw_text, _full_review_text, _full_blog_kw_text]))
+            _full_combined_text = " ".join(filter(None, [_full_biz_kw_text, _full_review_text, _full_intro_draft, _full_blog_kw_text]))
             # 사용자 맞춤 키워드 prefs 반영
             _full_excluded_kw: list[str] = []
             _full_custom_kw: list[str] = list(_full_biz_kw_list)
@@ -2940,7 +2958,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 excluded_keywords=_full_excluded_kw or None,
             )
             _full_missing_all = _full_kw_analysis.get("missing", [])
-            # 서브카테고리별 최대 2개 제한
+            # 서브카테고리 메타 빌드 (weight 순 이미 정렬돼 있음 — analyze_keyword_coverage가 보장)
             try:
                 from services.keyword_taxonomy import KEYWORD_TAXONOMY as _FULL_TAX, normalize_category as _full_norm_cat
                 _full_industry = _FULL_TAX.get(
@@ -2953,8 +2971,23 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                         if _k not in _full_kw_meta:
                             _full_kw_meta[_k] = _sn
             except Exception:
+                _full_industry = {}
                 _full_kw_meta = {}
-
+            # round-robin: 서브카테고리에서 1개씩 순환 — 블록 편향 방지 (dict 삽입 순서 = weight 순)
+            if _full_missing_all:
+                _f_by_sub: dict[str, list[str]] = {}
+                for _kw in _full_missing_all:
+                    _f_by_sub.setdefault(_full_kw_meta.get(_kw, "_etc"), []).append(_kw)
+                _f_div: list[str] = []
+                _f_max = max(len(v) for v in _f_by_sub.values())
+                for _r in range(_f_max):
+                    for _sub, _lst in _f_by_sub.items():
+                        if _r < len(_lst):
+                            _f_div.append(_lst[_r])
+                    if len(_f_div) >= 8:
+                        break
+                _full_missing_all = _f_div
+            # 서브카테고리별 최대 2개 제한 (round-robin 이후 안전망)
             _full_subcat_count: dict[str, int] = {}
             _full_capped: list[str] = []
             for _kw in _full_missing_all:
@@ -2963,7 +2996,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     _full_capped.append(_kw)
                     if _sub != "_etc":
                         _full_subcat_count[_sub] = _full_subcat_count.get(_sub, 0) + 1
-                if len(_full_capped) >= 5:
+                if len(_full_capped) >= 8:
                     break
             _full_top_missing = _full_capped
         except Exception as e:

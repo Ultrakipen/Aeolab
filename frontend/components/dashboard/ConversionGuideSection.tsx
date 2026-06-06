@@ -1,10 +1,11 @@
 "use client";
 
 // ConversionGuideSection.tsx
-// 대시보드 "점수를 올리는 방법" — 스캔 결과 기반 맞춤 개선 팁
+// 대시보드 "AI 노출 지수를 높이는 방법" — 스캔 결과 기반 맞춤 개선 팁
 // - 서버에서 맞춤 팁 3~4개 fetch (AI 호출 0)
-// - 각 팁: 진단 근거(reason) + 즉시 복사 가능 초안 + 외부 스마트플레이스 링크
+// - 각 팁: 진단 근거(reason) + 즉시 복사·수정 가능 초안 + 외부 스마트플레이스 링크
 // - Free 플랜은 상위 2개만 copy_text 공개, 나머지 Basic+ 잠금
+// - 편집 내용은 localStorage에 저장 (key: aeolab_tip_{bizId}_{tip.id})
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -12,10 +13,13 @@ import {
   Lock,
   Copy,
   Check,
+  CheckCheck,
   ExternalLink,
   Zap,
   AlertTriangle,
   ArrowRight,
+  Pencil,
+  RotateCcw,
 } from "lucide-react";
 import { getConversionTips } from "@/lib/api";
 import { getSafeSession } from "@/lib/supabase/client";
@@ -72,14 +76,46 @@ function CopyButton({ text, disabled }: { text: string; disabled?: boolean }) {
   );
 }
 
-function TipCard({ tip }: { tip: ConversionTip }) {
-  const urgencyClass =
-    URGENCY_COLOR[tip.urgency] ?? URGENCY_COLOR["this_week"];
+function TipCard({ tip, bizId }: { tip: ConversionTip; bizId: string }) {
+  const storageKey = `aeolab_tip_${bizId}_${tip.id}`;
+  const urgencyClass = URGENCY_COLOR[tip.urgency] ?? URGENCY_COLOR["this_week"];
   const evidenceClass =
     EVIDENCE_COLOR[tip.evidence_type] ?? EVIDENCE_COLOR["smart_place"];
-  const previewText = tip.locked
-    ? tip.copy_text.slice(0, 60) + " …"
-    : tip.copy_text;
+
+  const [editedText, setEditedText] = useState(tip.copy_text);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // localStorage에서 사용자 편집 내용 복원 (잠금 카드는 제외)
+  useEffect(() => {
+    if (tip.locked) return;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) setEditedText(saved);
+    } catch {
+      // 시크릿 모드 등 localStorage 접근 불가 시 무시
+    }
+  }, [storageKey, tip.locked]);
+
+  const isModified = editedText !== tip.copy_text;
+
+  function handleTextChange(val: string) {
+    setEditedText(val);
+    try {
+      localStorage.setItem(storageKey, val);
+    } catch {
+      // ignore
+    }
+  }
+
+  function handleReset() {
+    setEditedText(tip.copy_text);
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      // ignore
+    }
+    setIsEditing(false);
+  }
 
   return (
     <div
@@ -133,19 +169,45 @@ function TipCard({ tip }: { tip: ConversionTip }) {
       {/* 복사 가능 본문 */}
       {tip.copy_text && (
         <div className="relative">
-          <div
-            className={`bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed ${
-              tip.locked ? "blur-[3px] select-none max-h-20 overflow-hidden" : ""
-            }`}
-          >
-            {previewText}
-          </div>
-          {tip.locked && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/70 rounded-lg">
-              <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 bg-white border border-gray-300 px-3 py-1.5 rounded-full shadow-sm">
-                <Lock className="w-4 h-4" />
-                Basic 플랜에서 전체 문구 보기
+          {tip.locked ? (
+            /* 잠금: blur 처리 */
+            <div className="relative">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed blur-[3px] select-none max-h-20 overflow-hidden">
+                {tip.copy_text.slice(0, 60) + " …"}
               </div>
+              <div className="absolute inset-0 flex items-center justify-center bg-white/70 rounded-lg">
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 bg-white border border-gray-300 px-3 py-1.5 rounded-full shadow-sm">
+                  <Lock className="w-4 h-4" />
+                  Basic 플랜에서 전체 문구 보기
+                </div>
+              </div>
+            </div>
+          ) : isEditing ? (
+            /* 편집 모드: textarea */
+            <div className="relative">
+              <textarea
+                value={editedText}
+                onChange={(e) => handleTextChange(e.target.value)}
+                rows={6}
+                className="w-full bg-white border border-blue-300 rounded-lg p-3 text-sm text-gray-800 leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-blue-200 min-h-[100px]"
+              />
+              {isModified && (
+                <span className="absolute top-2 right-2 text-xs text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded pointer-events-none">
+                  편집됨
+                </span>
+              )}
+            </div>
+          ) : (
+            /* 표시 모드 */
+            <div className="relative">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                {editedText}
+              </div>
+              {isModified && (
+                <span className="absolute top-2 right-2 text-xs text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded pointer-events-none">
+                  편집됨
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -153,7 +215,40 @@ function TipCard({ tip }: { tip: ConversionTip }) {
 
       {/* 액션 버튼 */}
       <div className="flex flex-wrap items-center gap-2 mt-3">
-        {!tip.locked && tip.copy_text && <CopyButton text={tip.copy_text} />}
+        {!tip.locked && tip.copy_text && (
+          <>
+            {isEditing ? (
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-green-700 hover:text-green-900 border border-green-200 hover:border-green-400 bg-white px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <CheckCheck className="w-4 h-4" />
+                완료
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 border border-gray-200 hover:border-gray-400 bg-white px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                수정
+              </button>
+            )}
+            <CopyButton text={editedText} />
+            {isModified && !isEditing && (
+              <button
+                type="button"
+                onClick={handleReset}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-gray-600 border border-gray-200 hover:border-gray-300 bg-white px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                원래대로
+              </button>
+            )}
+          </>
+        )}
         {tip.action_url && (
           <a
             href={tip.action_url}
@@ -222,11 +317,12 @@ export default function ConversionGuideSection({ bizId, plan }: Props) {
         }
       } catch (e) {
         if (cancelled) return;
-        // 502/503 등 일시적 서버 오류는 1회 자동 재시도 (2초 후, 로딩 유지)
         const isTransient =
           e instanceof Error && e.message.includes("서버 오류");
         if (isTransient && attempt === 0) {
-          setTimeout(() => { if (!cancelled) load(1); }, 2000);
+          setTimeout(() => {
+            if (!cancelled) load(1);
+          }, 2000);
           return;
         }
         setError(
@@ -242,7 +338,6 @@ export default function ConversionGuideSection({ bizId, plan }: Props) {
     return () => {
       cancelled = true;
     };
-  // retryCount를 의존성에 포함해 수동 재시도 버튼이 작동하도록
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bizId, retryCount]);
 
@@ -300,7 +395,7 @@ export default function ConversionGuideSection({ bizId, plan }: Props) {
       {!loading && !error && data && data.tips.length > 0 && (
         <div className="space-y-3">
           {data.tips.map((tip) => (
-            <TipCard key={tip.id} tip={tip} />
+            <TipCard key={tip.id} tip={tip} bizId={bizId} />
           ))}
         </div>
       )}

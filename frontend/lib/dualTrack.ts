@@ -46,7 +46,7 @@ const GLOBAL_WEIGHTS: Record<string, number> = {
   // 인테리어·디자인·미디어
   interior: 0.50,
   design: 0.65,
-  photo: 0.55,
+  photo: 0.35,
   video: 0.60,
   // 자동차·생활
   auto: 0.40,

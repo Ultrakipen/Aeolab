@@ -110,6 +110,15 @@ export interface TrialDetailAccordionProps {
   scoreBreakdownProps: ScoreBreakdownProps;
 }
 
+// ── 점수 텍스트 헬퍼 ─────────────────────────────────────────────────
+function scoreToLabel(score: number): string {
+  if (score >= 80) return "우수";
+  if (score >= 65) return "양호";
+  if (score >= 45) return "보통";
+  if (score >= 25) return "미흡";
+  return "시작 단계";
+}
+
 // ── 트랙 섹션 헤더 ───────────────────────────────────────────────────
 
 function TrackSectionHeader({
@@ -213,17 +222,7 @@ export default function TrialDetailAccordion({
               userGroup={naverTrackCardProps.userGroup}
               businessName={naverTrackCardProps.businessName}
             />
-            <TrialCompetitorGapCard
-              businessName={competitorGapCardProps.businessName}
-              searchQuery={competitorGapCardProps.searchQuery}
-              myRank={competitorGapCardProps.myRank}
-              blogCount={competitorGapCardProps.blogCount}
-              topCompetitorName={competitorGapCardProps.topCompetitorName}
-              topCompetitorBlogCount={competitorGapCardProps.topCompetitorBlogCount}
-              naverCompetitors={competitorGapCardProps.naverCompetitors}
-              blogSearchQuery={competitorGapCardProps.blogSearchQuery}
-              compBlogSearchQuery={competitorGapCardProps.compBlogSearchQuery}
-            />
+            {/* TrialCompetitorGapCard는 결과 상단 섹션 5에 이미 표시됩니다 */}
             {keywordCardProps && (
               <TrialKeywordRecommendCard
                 missingKws={keywordCardProps.missingKws}
@@ -241,30 +240,7 @@ export default function TrialDetailAccordion({
         </div>
       )}
 
-      {/* INACTIVE/프랜차이즈: 네이버 트랙 축약 (경쟁 순위만) */}
-      {isGlobalFocus && (competitorGapCardProps.naverCompetitors?.length || competitorGapCardProps.topCompetitorName) && (
-        <div>
-          <TrackSectionHeader
-            icon={<MapPin className="w-5 h-5 text-white" />}
-            title="네이버 순위 참고"
-            subtitle="글로벌 AI 최적화가 핵심이지만, 네이버 순위도 확인합니다"
-            bgColor="bg-slate-500"
-            textColor="text-white"
-            borderColor="border-slate-600"
-          />
-          <TrialCompetitorGapCard
-            businessName={competitorGapCardProps.businessName}
-            searchQuery={competitorGapCardProps.searchQuery}
-            myRank={competitorGapCardProps.myRank}
-            blogCount={competitorGapCardProps.blogCount}
-            topCompetitorName={competitorGapCardProps.topCompetitorName}
-            topCompetitorBlogCount={competitorGapCardProps.topCompetitorBlogCount}
-            naverCompetitors={competitorGapCardProps.naverCompetitors}
-            blogSearchQuery={competitorGapCardProps.blogSearchQuery}
-            compBlogSearchQuery={competitorGapCardProps.compBlogSearchQuery}
-          />
-        </div>
-      )}
+      {/* INACTIVE/프랜차이즈: TrialCompetitorGapCard는 결과 상단 섹션 5에 이미 표시됩니다 */}
 
       {/* ─── 글로벌 AI 트랙 ──────────────────────────────────────── */}
       <div>
@@ -373,7 +349,7 @@ export default function TrialDetailAccordion({
                         : "text-red-400"
                   }`}
                 >
-                  {Math.round(naverChannelScore)}점
+                  {scoreToLabel(naverChannelScore)}
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
                   <div
@@ -404,7 +380,7 @@ export default function TrialDetailAccordion({
                         : "text-red-400"
                   }`}
                 >
-                  {Math.round(globalChannelScore)}점
+                  {scoreToLabel(globalChannelScore)}
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
                   <div

@@ -58,7 +58,7 @@ function getBriefingBadge(
 function getDeficiencyMessage(
   inBriefing: boolean | null,
   isSmartPlace: boolean,
-  hasFaq: boolean,
+  hasIntro: boolean,
   blogCount: number,
   userGroup: string,
 ): string | null {
@@ -69,16 +69,16 @@ function getDeficiencyMessage(
     return "스마트플레이스 미등록 → 네이버 AI 브리핑 노출 불가. 아래 할 일에서 등록 방법을 확인하세요.";
   }
   if (inBriefing === true) {
-    return null; // 노출 중이면 결핍 메시지 없음
+    return null;
   }
-  if (inBriefing === false && !hasFaq) {
-    return "소개글에 Q&A가 없습니다. AI 브리핑 인용 후보 경로 중 가장 먼저 채워야 할 항목입니다.";
+  if (inBriefing === false && !hasIntro) {
+    return "소개글이 없습니다. AI 브리핑 인용 후보 경로 중 가장 먼저 채워야 할 항목입니다.";
   }
-  if (inBriefing === false && hasFaq && blogCount < 3) {
-    return "Q&A는 있지만 블로그 언급이 부족합니다. 리뷰 요청으로 외부 신뢰 신호를 쌓으세요.";
+  if (inBriefing === false && blogCount < 3) {
+    return "블로그 언급이 부족합니다. 리뷰 요청으로 외부 신뢰 신호를 쌓으세요.";
   }
   if (inBriefing === null && isSmartPlace) {
-    return null; // 별도 파란 안내 박스로 처리 (아래 render 참조)
+    return null; // 별도 파란 안내 박스로 처리
   }
   return null;
 }
@@ -103,7 +103,7 @@ export default function NaverTrackCard({
   const deficiency = getDeficiencyMessage(
     inBriefing,
     isSmartPlace,
-    hasFaq,
+    hasIntro,
     blogCount,
     userGroup,
   );
@@ -120,6 +120,8 @@ export default function NaverTrackCard({
           : score >= 25
             ? "text-orange-500"
             : "text-red-500";
+  const scoreLabel =
+    score >= 80 ? "우수" : score >= 65 ? "양호" : score >= 45 ? "보통" : score >= 25 ? "미흡" : "시작 단계";
 
   const isNonBriefing = isGlobal || userGroup === "LIKELY";
 
@@ -149,10 +151,9 @@ export default function NaverTrackCard({
           </p>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-sm text-gray-500 mb-0.5">네이버 점수</p>
+          <p className="text-sm text-gray-500 mb-0.5">네이버 현황</p>
           <p className={`text-2xl font-black ${scoreColorClass}`}>
-            {score}
-            <span className="text-sm font-normal text-gray-400">/100</span>
+            {scoreLabel}
           </p>
         </div>
       </div>
@@ -253,18 +254,13 @@ export default function NaverTrackCard({
         </div>
       )}
 
-      {/* 이미지 완성도 힌트 (isSmartPlace이고 ACTIVE/LIKELY인 경우) */}
+      {/* 스마트플레이스 완성도 힌트 (ACTIVE/LIKELY) */}
       {isSmartPlace && !isGlobal && (
         <div className="flex items-center gap-2 mt-2 flex-wrap">
           <span
-            className={`inline-flex items-center gap-1 text-sm px-2 py-0.5 rounded-full ${hasFaq ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+            className={`inline-flex items-center gap-1 text-sm px-2 py-0.5 rounded-full ${hasIntro ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
           >
-            {hasFaq ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />} 소개글 Q&A
-          </span>
-          <span
-            className={`inline-flex items-center gap-1 text-sm px-2 py-0.5 rounded-full ${hasIntro ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}
-          >
-            {hasIntro ? <Check className="w-4 h-4" /> : <Minus className="w-4 h-4" />} 소개글
+            {hasIntro ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />} 소개글
           </span>
           <span
             className={`inline-flex items-center gap-1 text-sm px-2 py-0.5 rounded-full ${blogCount >= 3 ? "bg-green-100 text-green-700" : blogCount > 0 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}

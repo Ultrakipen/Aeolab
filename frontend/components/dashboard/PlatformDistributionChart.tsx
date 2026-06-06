@@ -1,6 +1,7 @@
 interface AIResult {
   mentioned: boolean
   exposure_freq?: number
+  sample_size?: number
   in_briefing?: boolean
   in_ai_overview?: boolean
   _naver_ai_tab_visible?: boolean | null
@@ -120,8 +121,9 @@ function PlatformRow({
   }
 
   // 네이버 외 플랫폼 (기존 로직 유지)
+  const sampleSize = result?.sample_size ?? 100
   const barWidth = platform.key === 'gemini' && exposureFreq !== undefined
-    ? Math.max(3, exposureFreq)
+    ? Math.max(sampleSize > 0 && exposureFreq > 0 ? 3 : 0, Math.round(exposureFreq / sampleSize * 100))
     : mentioned ? 100 : 0
 
   return (
@@ -149,7 +151,7 @@ function PlatformRow({
           )
         ) : platform.key === 'gemini' && exposureFreq !== undefined ? (
           <span className={`text-sm font-semibold ${mentioned ? 'text-indigo-600' : 'text-gray-400'}`}>
-            {exposureFreq}회/100
+            {exposureFreq}회/{sampleSize}
           </span>
         ) : mentioned ? (
           <span className="text-sm font-semibold" style={{ color: platform.color }}>

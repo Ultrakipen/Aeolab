@@ -70,6 +70,7 @@ interface PlatformResult {
   error?: string;
   _naver_ai_tab_visible?: boolean | null;
   excerpt?: string | null;
+  queries_used?: string[];
 }
 
 interface BlogContribution {
@@ -240,6 +241,7 @@ export default function DashboardDetailZone({
   const naverResult = scan.naver_result as {
     in_briefing?: boolean;
     mentioned?: boolean;
+    captcha_detected?: boolean;
     is_smart_place?: boolean;
     blog_mentions?: number;
     keyword_blog_comparison?: Array<{
@@ -260,6 +262,7 @@ export default function DashboardDetailZone({
     mentioned?: boolean;
     exposure_freq?: number;
     sample_size?: number;
+    queries_used?: string[];
   } | null;
 
   const geminiResult = scan.gemini_result as {
@@ -333,7 +336,11 @@ export default function DashboardDetailZone({
             isSmartPlace={!!(naverResult?.is_smart_place || business.naver_place_id)}
             isOnKakao={!!(kakaoResult as { is_on_kakao?: boolean } | null)?.is_on_kakao}
             kakaoRank={(kakaoResult as { my_rank?: number | null } | null)?.my_rank ?? null}
-            naverMentioned={!!naverResult?.in_briefing}
+            naverMentioned={
+              naverResult == null || naverResult.captcha_detected
+                ? undefined
+                : (naverResult.in_briefing ?? false)
+            }
             aiTabMentioned={undefined}
             chatgptMentioned={!!chatgptResult?.mentioned}
             hasWebsite={isIndependentWebsite(business.website_url)}
@@ -363,7 +370,7 @@ export default function DashboardDetailZone({
             />
           )}
           {["basic", "startup", "pro", "biz"].includes(plan) && accessToken && (
-            <AICitationCard bizId={business.id} token={accessToken} briefingEligibility={briefingEligibility} />
+            <AICitationCard bizId={business.id} token={accessToken} briefingEligibility={briefingEligibility} platformResults={allPlatformResults} />
           )}
           <ChatGPTDiffCard
             geminiCount={Number(geminiResult?.exposure_freq ?? 0)}
@@ -377,17 +384,22 @@ export default function DashboardDetailZone({
               chatgptResult?.sample_size !== undefined ? Number(chatgptResult.sample_size) : undefined
             }
             competitorCount={rankingItems.filter(r => !r.isMe).length}
-            topCompetitorGap={
-              topCompetitor && unifiedScore > 0
-                ? Math.max(0, Math.round((topCompetitor.score ?? 0) - unifiedScore))
-                : undefined
-            }
+            topCompetitorGap={(() => {
+              if (!topCompetitor) return undefined;
+              // rankingItems의 내 점수(total_score 기반)와 경쟁사 점수를 같은 기준으로 비교
+              const myScore = rankingItems.find(r => (r as { isMe?: boolean }).isMe)?.score ?? 0;
+              if (myScore === 0 && (topCompetitor.score ?? 0) === 0) return undefined;
+              return Math.max(0, Math.round((topCompetitor.score ?? 0) - myScore));
+            })()}
             naverBriefing={!!naverResult?.in_briefing}
-            topMissingKeywords={
-              Array.isArray(scan.top_missing_keywords)
-                ? (scan.top_missing_keywords as unknown[]).map(String)
-                : []
-            }
+            topMissingKeywords={topMissingKeywords}
+            chatgptTopQuery={chatgptResult?.queries_used?.[0]}
+            googleAIOverview={(() => {
+              const g = allPlatformResults.google;
+              if (!g) return undefined;
+              if (g.error) return null;
+              return !!(g.in_ai_overview ?? g.mentioned);
+            })()}
             briefingEligibility={briefingEligibility}
           />
           {history && history.length >= 2 && (
@@ -536,6 +548,7 @@ export default function DashboardDetailZone({
             initialScore={kakaoScore}
             initialChecklist={kakaoChecklist}
             kakaoRegistered={kakaoRegistered}
+            authToken={accessToken}
           />
           <WebsiteCheckCard websiteUrl={business.website_url ?? undefined} checkResult={websiteCheckResult} />
 

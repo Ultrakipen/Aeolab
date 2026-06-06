@@ -80,6 +80,8 @@ export type PlatformResult = {
   // naver_ai_tab 전용 — null: 스캐너 미활성(P2 대기), boolean: 실측값
   _naver_ai_tab_visible?: boolean | null;
   excerpt?: string | null;
+  // Gemini/ChatGPT 다중 쿼리 목록 (단일 쿼리 플랫폼은 없거나 1개)
+  queries_used?: string[];
 };
 
 export function buildAllPlatformResults(

@@ -2498,17 +2498,6 @@ def get_missing_keywords_for_query(
     return result
 
 
-def _any_shared_root(kw1: str, kw2: str, min_len: int = 2) -> bool:
-    """두 키워드가 min_len자 이상의 공통 부분 문자열을 가지면 True.
-    예: ("스냅촬영", "웨딩스냅") → "스냅" 공유 → True
-    """
-    if len(kw1) < min_len or len(kw2) < min_len:
-        return False
-    for i in range(len(kw1) - min_len + 1):
-        if kw1[i:i + min_len] in kw2:
-            return True
-    return False
-
 
 def analyze_keyword_coverage(
     category: str,
@@ -2597,11 +2586,13 @@ def analyze_keyword_coverage(
     missing: list[str] = []
     for kw in all_keywords:
         kw_nospace = kw.replace(" ", "").lower()
-        # 등록 키워드가 taxonomy 키워드의 부분 문자열이거나
-        # 2자 이상 공통 어근을 가지는 경우 covered 처리
-        # 예: 등록="작곡" → taxonomy="작곡 레슨", 등록="웨딩스냅" → taxonomy="스냅촬영"/"웨딩 사진"
+        # 등록 키워드 prefix 매칭: taxonomy가 등록KW로 시작하거나 그 반대
+        # 예: 등록="주차" → covered: "주차 가능", "주차 무료" / 등록="당일예약" → covered: "당일 예약 가능"
+        # 반대 방향 오탐 차단: 등록="보정"이 "무보정 가능"을 covered로 처리하던 버그 수정
         reg_hit = any(
-            reg_kw in kw_nospace or _any_shared_root(kw_nospace, reg_kw)
+            kw_nospace == reg_kw
+            or kw_nospace.startswith(reg_kw)
+            or reg_kw.startswith(kw_nospace)
             for reg_kw in registered_kw_nospace if len(reg_kw) >= 2
         )
         if kw_nospace in my_text_nospace or kw in my_text or reg_hit:

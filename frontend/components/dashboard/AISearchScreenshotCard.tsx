@@ -124,7 +124,9 @@ function PlatformCard({ screenshot }: { screenshot: Screenshot }) {
             </span>
           </div>
           <p className="text-sm text-blue-500 mt-2 text-center">
-            Gemini·ChatGPT 각 50회씩 반복 질문하여 언급 횟수로 노출률을 측정합니다
+            {(screenshot.sample_size ?? 100) <= 20
+              ? `체험 스캔 — Gemini·ChatGPT 합산 ${screenshot.sample_size ?? 15}회 측정`
+              : `Gemini·ChatGPT 각 ${Math.round((screenshot.sample_size ?? 100) / 2)}회씩 반복 질문하여 언급 횟수로 노출률을 측정합니다`}
           </p>
         </div>
       ) : screenshot.platform === "chatgpt" ? (

@@ -10,6 +10,7 @@ import FirstScanBanner from "@/components/onboarding/FirstScanBanner";
 import { MaintenanceBanner } from "@/components/dashboard/MaintenanceBanner";
 import { ContextTipBanner } from "@/components/dashboard/ContextTipBanner";
 import DashboardScoreZone from "./sections/DashboardScoreZone";
+import { ScoreDeltaBanner } from "@/components/dashboard/ScoreDeltaBanner";
 import DashboardActionZone from "./sections/DashboardActionZone";
 import DashboardInsightZone from "./sections/DashboardInsightZone";
 import DashboardGeneratorZone from "./sections/DashboardGeneratorZone";
@@ -53,35 +54,15 @@ export default async function DashboardPage({
   // ── 사업장 목록 ──────────────────────────────────────────────
   const { data: businesses } = await supabase
     .from("businesses")
-    .select("id, name, category, region, business_type, website_url, naver_place_id, google_place_id, kakao_place_id, kakao_score, kakao_checklist, kakao_registered, is_active, naver_place_url, review_count, avg_rating, keywords, is_smart_place, has_faq, has_recent_post, has_intro, visitor_review_count, receipt_review_count, blog_url, blog_keyword_coverage, blog_post_count, blog_analyzed_at, checklist_overrides")
+    .select("id, name, category, region, business_type, website_url, naver_place_id, google_place_id, kakao_place_id, kakao_score, kakao_checklist, kakao_registered, is_active, naver_place_url, review_count, avg_rating, keywords, is_smart_place, has_faq, has_recent_post, has_intro, visitor_review_count, receipt_review_count, blog_url, blog_keyword_coverage, blog_post_count, blog_analyzed_at, checklist_overrides, is_franchise, ai_info_tab_status, naver_intro_draft, naver_intro_generated_at, talktalk_faq_draft, talktalk_faq_generated_at")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .order("created_at", { ascending: true })
     .limit(5);
 
-  // v4.1 컬럼 별도 SELECT
-  const businessIds = (businesses ?? []).map((b) => b.id);
-  let v41ExtraMap: Record<string, {
-    is_franchise?: boolean; ai_info_tab_status?: string;
-    naver_intro_draft?: string; naver_intro_generated_at?: string;
-    talktalk_faq_draft?: unknown; talktalk_faq_generated_at?: string;
-  }> = {};
-  if (businessIds.length > 0) {
-    try {
-      const v41Res = await supabase
-        .from("businesses")
-        .select("id, is_franchise, ai_info_tab_status, naver_intro_draft, naver_intro_generated_at, talktalk_faq_draft, talktalk_faq_generated_at")
-        .in("id", businessIds);
-      if (!v41Res.error && v41Res.data) {
-        v41ExtraMap = Object.fromEntries(v41Res.data.map((r: Record<string, unknown>) => [r.id as string, r]));
-      }
-    } catch { /* v4.1 컬럼 미존재 — 무시 */ }
-  }
-
   const business = (activeBizId
     ? businesses?.find((b) => b.id === activeBizId)
     : businesses?.[0]) ?? null;
-  const v41Extra = business ? v41ExtraMap[business.id] : undefined;
   const todayISO = new Date().toISOString().split("T")[0];
 
   // ── 구독 ─────────────────────────────────────────────────────
@@ -176,7 +157,7 @@ export default async function DashboardPage({
   const briefingPathLabel = guideData?.tools_json?.direct_briefing_paths?.[0]?.path_label ?? null;
   const faqQuestion = guideData?.tools_json?.faq_list?.[0]?.question ?? null;
   const topMissingKeywords: string[] = Array.isArray(latestScan?.top_missing_keywords)
-    ? (latestScan!.top_missing_keywords as string[]).slice(0, 5) : [];
+    ? (latestScan!.top_missing_keywords as string[]).slice(0, 8) : [];
 
   const todayActionText = calcTodayAction(
     guideTopAction,
@@ -251,12 +232,12 @@ export default async function DashboardPage({
   const briefingCats = await fetchBriefingCategories();
   const briefingEligibility = getBriefingEligibility(
     business?.category ?? "",
-    !!v41Extra?.is_franchise,
+    !!business?.is_franchise,
     briefingCats.active,
     briefingCats.likely,
   );
   const aiTabEligibility = (process.env.NEXT_PUBLIC_AI_TAB_STATUS ?? "beta") as "beta" | "available";
-  const isFranchise = !!v41Extra?.is_franchise;
+  const isFranchise = !!business?.is_franchise;
 
   const briefingMeta = (((latestScan?.score_breakdown as Record<string, unknown>)
     ?.track1_detail as Record<string, unknown> | undefined)
@@ -311,6 +292,7 @@ export default async function DashboardPage({
     has_faq?: boolean | null; has_intro?: boolean | null; has_recent_post?: boolean | null;
     visitor_review_count?: number; receipt_review_count?: number;
     blog_url?: string; blog_analyzed_at?: string; blog_post_count?: number; blog_keyword_coverage?: number;
+    blog_mention_count?: number;
     checklist_overrides?: Record<string, unknown> | null;
   } | null;
 
@@ -367,6 +349,10 @@ export default async function DashboardPage({
             lastScannedLabel={lastScannedLabel}
           />
 
+          {latestScan && (
+            <ScoreDeltaBanner bizId={bizBase.id} accessToken={accessToken} />
+          )}
+
           <ContextTipBanner section="score" industry={bizBase.category} />
 
           <DashboardActionZone
@@ -397,7 +383,7 @@ export default async function DashboardPage({
             schemaSeoScore={(latestScan?.score_breakdown as Record<string, number> | null | undefined)?.schema_seo ?? null}
             websiteUrl={bizBase.website_url}
             websiteCheckResult={websiteCheckResult}
-            blogMentionCount={(latestScan?.naver_result as { blog_mentions?: number } | null | undefined)?.blog_mentions ?? 0}
+            blogMentionCount={bizBase?.blog_mention_count ?? 0}
             reviewCount={bizBase.review_count ?? 0}
             hasIntro={smartPlaceStatus.hasIntro}
             hasRecentPost={smartPlaceStatus.hasRecentPost}
@@ -420,10 +406,10 @@ export default async function DashboardPage({
             bizId={bizBase.id}
             planLabel={planLabel}
             planFaqLimit={planFaqLimit}
-            naver_intro_draft={v41Extra?.naver_intro_draft}
-            naver_intro_generated_at={v41Extra?.naver_intro_generated_at}
-            talktalk_faq_draft={v41Extra?.talktalk_faq_draft as { items: Array<{ question: string; answer: string; category: string }>; chat_menus: string[] } | null | undefined}
-            talktalk_faq_generated_at={v41Extra?.talktalk_faq_generated_at}
+            naver_intro_draft={business?.naver_intro_draft}
+            naver_intro_generated_at={business?.naver_intro_generated_at}
+            talktalk_faq_draft={business?.talktalk_faq_draft as { items: Array<{ question: string; answer: string; category: string }>; chat_menus: string[] } | null | undefined}
+            talktalk_faq_generated_at={business?.talktalk_faq_generated_at}
           />
 
           <DashboardDetailZone

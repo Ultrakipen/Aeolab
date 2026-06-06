@@ -9,8 +9,10 @@ interface Props {
   topCompetitorGap?: number  // 1위 경쟁사와의 점수 차 (없으면 undefined)
   naverBriefing: boolean     // 네이버 AI 브리핑 노출 여부
   topMissingKeywords?: string[] // 없는 키워드 목록
-  chatgptTopQuery?: string   // 신규: ChatGPT에서 실제로 언급된 대표 쿼리
+  chatgptTopQuery?: string   // ChatGPT에서 실제로 언급된 대표 쿼리
   briefingEligibility?: "active" | "likely" | "inactive"
+  // undefined: Full 스캔 아님(미측정), null: 측정 오류, true/false: 실측
+  googleAIOverview?: boolean | null
 }
 
 export default function ChatGPTDiffCard({
@@ -24,6 +26,7 @@ export default function ChatGPTDiffCard({
   topMissingKeywords = [],
   chatgptTopQuery,
   briefingEligibility,
+  googleAIOverview,
 }: Props) {
   const isNaverInactive = briefingEligibility === "inactive"
   const gN = geminiSampleSize && geminiSampleSize > 0 ? geminiSampleSize : 100;
@@ -50,7 +53,13 @@ export default function ChatGPTDiffCard({
         ? `수동 스캔 빠른 진단 결과 (${cN}회). 자동 스캔 시 50회 정밀 측정됩니다`
         : `OpenAI GPT-4.1-mini를 ${cN}회 호출해 ChatGPT가 내 가게를 얼마나 자주 추천하는지 직접 측정했습니다`,
       highlight: (chatgptCount ?? 0) > 0,
-    }] : []),
+    }] : [{
+      label: "ChatGPT 자동 질의",
+      value: "자동 스캔 시 50회 측정",
+      detail: "자동 스캔(Basic 이상)에서 ChatGPT GPT-4.1-mini 50회 측정이 추가됩니다. 빠른 진단은 Gemini만 포함됩니다",
+      highlight: false,
+      inactive: true,
+    }]),
     {
       label: "네이버 AI 브리핑 실시간 확인",
       value: isNaverInactive
@@ -64,11 +73,24 @@ export default function ChatGPTDiffCard({
     },
     {
       label: "네이버 AI탭 노출 확인",
-      value: "6월 전체 확대 후 자동 측정",
-      detail: "6월 AI탭 전체 확대 후 실시간 자동 측정됩니다. ChatGPT는 네이버 AI탭 결과를 알 수 없습니다",
+      value: "전체 공개 확인 후 자동 측정",
+      detail: "네이버 AI탭 전체 사용자 공개 확인 후 실시간 자동 측정이 시작됩니다. ChatGPT는 네이버 AI탭 결과를 알 수 없습니다",
       highlight: false,
       inactive: true,
     },
+    ...(googleAIOverview !== undefined ? [{
+      label: "Google AI Overview 노출",
+      value: googleAIOverview === null
+        ? "측정 오류"
+        : googleAIOverview
+        ? "현재 노출 중"
+        : "현재 미노출",
+      detail: googleAIOverview === null
+        ? "Google AI Overview 측정 중 오류가 발생했습니다. 다음 스캔에서 재측정됩니다"
+        : "Serper.dev API로 Google AI Overview 노출 여부를 직접 측정합니다. ChatGPT는 Google 검색 결과를 실시간으로 알 수 없습니다",
+      highlight: googleAIOverview === true,
+      inactive: googleAIOverview === null,
+    }] : []),
     {
       label: "경쟁사 비교 분석",
       value: competitorCount > 0
@@ -90,7 +112,8 @@ export default function ChatGPTDiffCard({
     {
       label: "없는 키워드 특정",
       value: topMissingKeywords.length > 0
-        ? topMissingKeywords.map((kw) => `'${kw}'`).join(" · ") + " 누락"
+        ? topMissingKeywords.slice(0, 3).map((kw) => `'${kw}'`).join(" · ")
+          + (topMissingKeywords.length > 3 ? ` 외 ${topMissingKeywords.length - 3}개 누락` : " 누락")
         : "업종별 키워드 분석 완료",
       detail: topMissingKeywords.length > 0
         ? "업종 핵심 키워드 중 소개글·리뷰에서 발견되지 않은 키워드입니다. 소개글·소식에 추가하면 키워드 점수가 다음 스캔에서 오르고, 네이버 AI 브리핑 노출 가능성도 개선됩니다."
@@ -149,7 +172,7 @@ export default function ChatGPTDiffCard({
           </li>
           <li className="flex items-start gap-1.5">
             <span className="mt-0.5 text-indigo-400 shrink-0">✓</span>
-            <span>매주 자동 측정 + 점수 변화 알림</span>
+            <span>정기 자동 측정 + 점수 변화 알림 (플랜별 주기)</span>
           </li>
           <li className="flex items-start gap-1.5">
             <span className="mt-0.5 text-indigo-400 shrink-0">✓</span>

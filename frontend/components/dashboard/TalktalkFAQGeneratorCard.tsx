@@ -57,6 +57,7 @@ export function TalktalkFAQGeneratorCard({
   const [copiedFaqIndex, setCopiedFaqIndex] = useState<number | null>(null);
   const [copiedMenuIndex, setCopiedMenuIndex] = useState<number | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
+  const [copiedAllMenus, setCopiedAllMenus] = useState(false);
   const [error, setError] = useState<string>("");
 
   const canGenerate = planMonthlyLimit > 0;
@@ -142,6 +143,25 @@ export function TalktalkFAQGeneratorCard({
     }
   };
 
+  const copyAllMenus = async () => {
+    if (!generated) return;
+    const text = generated.chat_menus
+      .map((menu) => {
+        const content = menu.link_type === "url"
+          ? (menu.url ?? menu.menu_name)
+          : (menu.message ?? menu.menu_name);
+        return `메뉴명: ${menu.menu_name}\n유형: ${menu.link_type === "url" ? "URL" : "메시지"}\n내용: ${content}`;
+      })
+      .join("\n\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedAllMenus(true);
+      setTimeout(() => setCopiedAllMenus(false), 2000);
+    } catch {
+      alert("복사에 실패했습니다.");
+    }
+  };
+
   return (
     <div className="rounded-xl border bg-white p-4 md:p-6">
       {/* 헤더 */}
@@ -193,10 +213,18 @@ export function TalktalkFAQGeneratorCard({
           {/* ── 채팅방 메뉴 6개 카드 ── */}
           {generated.chat_menus.length > 0 && (
             <div>
-              <h4 className="text-sm md:text-base font-bold text-gray-900 mb-3">
-                채팅방 메뉴 {generated.chat_menus.length}개
-                <span className="ml-2 text-sm text-gray-500 font-normal">(메뉴명 6자 이내)</span>
-              </h4>
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <h4 className="text-sm md:text-base font-bold text-gray-900">
+                  채팅방 메뉴 {generated.chat_menus.length}개
+                  <span className="ml-2 text-sm text-gray-500 font-normal">(메뉴명 6자 이내)</span>
+                </h4>
+                <button
+                  onClick={copyAllMenus}
+                  className="text-sm px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded font-medium transition-colors"
+                >
+                  {copiedAllMenus ? "복사됨!" : "전체 복사"}
+                </button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {generated.chat_menus.map((menu, i) => (
                   <div
@@ -238,17 +266,9 @@ export function TalktalkFAQGeneratorCard({
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-start gap-2">
-                        <p className="text-sm text-gray-600 leading-relaxed flex-1 min-w-0">
-                          {menu.message ?? ""}
-                        </p>
-                        <button
-                          onClick={() => copyMenuContent(menu, i)}
-                          className="text-sm text-gray-500 hover:text-gray-700 font-medium shrink-0"
-                        >
-                          {copiedMenuIndex === i ? "복사됨!" : "복사"}
-                        </button>
-                      </div>
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        {menu.message ?? ""}
+                      </p>
                     )}
                   </div>
                 ))}

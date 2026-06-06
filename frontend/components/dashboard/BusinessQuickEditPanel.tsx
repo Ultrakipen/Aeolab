@@ -17,6 +17,7 @@ interface Props {
     visitor_review_count: number;
     receipt_review_count: number;
     avg_rating: number;
+    naver_place_id: string;
     naver_place_url: string;
   };
   authToken: string;
@@ -133,14 +134,19 @@ export default function BusinessQuickEditPanel({
 
   // 자동 불러오기
   async function handleSync() {
-    if (syncCooldown || syncing) return;
+    if (syncCooldown || syncing || !initialData.naver_place_id) return;
     setSyncing(true);
     try {
       const res = await fetch(`${BACKEND}/api/businesses/${bizId}/sync-review-stats`, {
         method: "POST",
         headers: { Authorization: `Bearer ${authToken}` },
       });
-      if (!res.ok) throw new Error("동기화 실패");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const msg = errBody?.detail ?? "자동 불러오기에 실패했습니다. 직접 입력해 주세요.";
+        showToast("error", msg);
+        return;
+      }
       const data = await res.json();
       if (data.visitor_review_count !== undefined) setVisitorReviewCount(data.visitor_review_count);
       if (data.receipt_review_count !== undefined) setReceiptReviewCount(data.receipt_review_count);
@@ -370,10 +376,10 @@ export default function BusinessQuickEditPanel({
             <p className="text-sm font-semibold text-gray-500 mb-3">스마트플레이스 현황</p>
             <div className="space-y-3">
               {[
-                { label: "소개글 Q&A 포함됨", hint: "(점수 미반영)", value: hasFaq, setter: setHasFaq },
-                { label: "소개글 작성됨", hint: "(+20점)", value: hasIntro, setter: setHasIntro },
-                { label: "최근 소식 등록됨", hint: "(+25점)", value: hasRecentPost, setter: setHasRecentPost },
-              ].map(({ label, hint, value, setter }) => (
+                { label: "소개글 Q&A 포함됨", hint: "(점수 미반영)", hintClass: "text-gray-400", value: hasFaq, setter: setHasFaq },
+                { label: "소개글 작성됨", hint: "(AI 노출 핵심 조건)", hintClass: "text-emerald-600 font-semibold", value: hasIntro, setter: setHasIntro },
+                { label: "최근 소식 등록됨", hint: "(검색 신선도 향상)", hintClass: "text-emerald-600 font-semibold", value: hasRecentPost, setter: setHasRecentPost },
+              ].map(({ label, hint, hintClass, value, setter }) => (
                 <label
                   key={label}
                   className="flex items-center gap-3 cursor-pointer group"
@@ -400,7 +406,7 @@ export default function BusinessQuickEditPanel({
                     </div>
                   </div>
                   <span className="text-sm text-gray-800">{label}</span>
-                  <span className="text-sm text-emerald-600 font-semibold">{hint}</span>
+                  <span className={`text-sm ${hintClass}`}>{hint}</span>
                 </label>
               ))}
             </div>
@@ -421,13 +427,19 @@ export default function BusinessQuickEditPanel({
               <button
                 type="button"
                 onClick={handleSync}
-                disabled={syncing || syncCooldown}
+                disabled={syncing || syncCooldown || !initialData.naver_place_id}
                 className={`flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-lg border transition-colors ${
-                  syncCooldown
+                  syncing || syncCooldown || !initialData.naver_place_id
                     ? "border-gray-200 text-gray-400 cursor-not-allowed"
                     : "border-blue-300 text-blue-600 hover:bg-blue-50"
                 }`}
-                title={syncCooldown ? "1시간 후 다시 시도할 수 있습니다" : "네이버 플레이스에서 자동으로 불러오기"}
+                title={
+                  !initialData.naver_place_id
+                    ? "설정 메뉴에서 네이버 플레이스 ID를 먼저 등록해주세요"
+                    : syncCooldown
+                      ? "1시간 후 다시 시도할 수 있습니다"
+                      : "네이버 플레이스에서 자동으로 불러오기"
+                }
               >
                 <RefreshCw className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} />
                 {syncing ? "불러오는 중..." : syncCooldown ? "1시간 후 가능" : "자동 불러오기"}

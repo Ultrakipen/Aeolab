@@ -928,7 +928,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-3">
               <div>
                 <div className="text-sm font-semibold text-amber-800">네이버 리뷰 현황</div>
-                <div className="text-sm text-amber-700 mt-0.5">리뷰 수·별점이 AI 노출 점수(리뷰 품질 20%)에 반영됩니다</div>
+                <div className="text-sm text-amber-700 mt-0.5">리뷰 수·별점이 AI 노출 점수(리뷰 품질 25%)에 반영됩니다</div>
               </div>
 
               {/* 확인 방법 안내 */}
@@ -1001,7 +1001,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   type="button"
                   onClick={() => handleSyncReviews(activeBiz.id)}
                   disabled={syncingReviews || !editForm.naver_place_id}
-                  title={!editForm.naver_place_id ? "네이버 플레이스 ID를 먼저 등록해주세요" : undefined}
+                  title={!editForm.naver_place_id ? "위의 '네이버 스마트플레이스 ID' 항목을 먼저 입력하세요" : "네이버 플레이스에서 리뷰 수·별점을 자동으로 불러옵니다 (1시간 1회 제한)"}
                   className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {syncingReviews ? (
@@ -1040,9 +1040,8 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               <div className="bg-white border border-green-200 rounded-lg px-3 py-2.5 space-y-1.5">
                 <div className="text-sm font-semibold text-green-800">확인 및 등록 방법</div>
                 <div className="text-sm text-green-700 space-y-1">
-                  <p><strong>① Q&A(질문/답변)</strong> — 스마트플레이스 관리 → [기본정보] → 업체 소개 하단에 Q&A 삽입 (Q&A 탭 2026년 폐기됨)</p>
-                  <p><strong>② 최근 소식</strong> — 스마트플레이스 관리 → [소식] → 소식 작성 (1개월 이내)</p>
-                  <p><strong>③ 소개글</strong> — 스마트플레이스 관리 → [기본정보] → 업체 소개 입력</p>
+                  <p><strong>① 최근 소식</strong> — 스마트플레이스 관리 → [소식] → 소식 작성 (1개월 이내)</p>
+                  <p><strong>② 소개글</strong> — 스마트플레이스 관리 → [기본정보] → 업체 소개 입력 (50자 이상)</p>
                 </div>
                 <a
                   href="https://smartplace.naver.com"
@@ -1073,9 +1072,9 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
 
               <div className="space-y-2">
                 {([
-                  { key: "has_recent_post", label: "최근 소식 등록됨 (1개월 내)", points: "+25점", desc: "최신성 점수 유지" },
-                  { key: "has_intro", label: "소개글 작성됨", points: "+20점", desc: "기본 정보 완성도 (소개글 안에 Q&A 섹션 포함 시 인용 후보)" },
-                ] as const).map(({ key, label, points, desc }) => (
+                  { key: "has_recent_post", label: "최근 소식 등록됨 (1개월 내)", points: "고영향", desc: "최신성 점수 — 없으면 감점 높음" },
+                  { key: "has_intro", label: "소개글 작성됨", points: "중요", desc: "기본 정보 완성도 · 소개글 안에 Q&A 섹션 포함 권장" },
+                ] as { key: "has_recent_post" | "has_intro"; label: string; points: string; desc: string }[]).map(({ key, label, points, desc }) => (
                   <label key={key} className="flex items-start gap-3 cursor-pointer group">
                     <input
                       type="checkbox"
@@ -1087,7 +1086,11 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                       <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{label}</span>
                       <span className="block text-sm text-gray-400">{desc}</span>
                     </div>
-                    <span className="text-sm font-semibold text-green-600 bg-green-100 px-1.5 py-0.5 rounded shrink-0">
+                    <span className={`text-sm font-semibold px-1.5 py-0.5 rounded shrink-0 ${
+                      points === "고영향"
+                        ? "text-red-600 bg-red-50"
+                        : "text-amber-600 bg-amber-50"
+                    }`}>
                       {points}
                     </span>
                   </label>
@@ -1095,12 +1098,25 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               </div>
               <div className="flex items-center justify-between text-sm border-t border-green-100 pt-2">
                 <span className="text-green-700">
-                  현재 추가 점수: <strong>{(editForm.has_recent_post ? 25 : 0) + (editForm.has_intro ? 20 : 0)}점</strong>
+                  달성:{" "}
+                  <strong>
+                    {[editForm.has_recent_post ? "최근 소식" : null, editForm.has_intro ? "소개글" : null]
+                      .filter((v): v is string => v !== null)
+                      .join(" · ") || "미달성"}
+                  </strong>
+                  {(!editForm.has_recent_post || !editForm.has_intro) && (
+                    <span className="text-amber-600 ml-1.5">
+                      · {[!editForm.has_recent_post ? "소식" : null, !editForm.has_intro ? "소개글" : null]
+                        .filter((v): v is string => v !== null)
+                        .join("·")} 미완성
+                    </span>
+                  )}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleSyncSmartplace(activeBiz.id)}
                   disabled={syncingSmartplace || !editForm.naver_place_id}
+                  title={!editForm.naver_place_id ? "위의 '네이버 스마트플레이스 ID' 항목을 먼저 입력하세요" : "네이버 스마트플레이스에서 소식·소개글 등록 여부를 자동 확인합니다 (1시간 1회 제한 · IP 차단 시 실패 가능)"}
                   className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {syncingSmartplace ? (

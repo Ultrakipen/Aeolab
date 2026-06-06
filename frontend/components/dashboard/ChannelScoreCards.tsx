@@ -62,8 +62,10 @@ export function ChannelScoreCards({
   const kakaoLabel = isOnKakao
     ? `카카오맵 ${kakaoRank ? `${kakaoRank}위 노출` : '등록됨'}`
     : '카카오맵 등록 필요'
+  const naverBriefingLabel =
+    naverMentioned === undefined ? '네이버 AI 브리핑 측정 불가 (재스캔 권장)' : '네이버 AI 브리핑 노출'
   const naverItems = [
-    { label: '네이버 AI 브리핑 노출',              ok: !!naverMentioned },
+    { label: naverBriefingLabel, ok: !!naverMentioned, unmeasured: naverMentioned === undefined },
     { label: '네이버 AI탭 노출 (Beta · 2026년 6월 전체 출시 예정)', ok: !!aiTabMentioned },
     { label: '스마트플레이스 등록',                ok: !!isSmartPlace },
     { label: kakaoLabel,                           ok: !!isOnKakao },
@@ -102,10 +104,10 @@ export function ChannelScoreCards({
             <div className="space-y-1.5">
               {naverItems.map((item) => (
                 <div key={item.label} className="flex items-center gap-2 text-sm">
-                  <span className={item.ok ? 'text-green-500' : 'text-gray-300'}>
-                    {item.ok ? '✓' : '○'}
+                  <span className={item.ok ? 'text-green-500' : item.unmeasured ? 'text-gray-200' : 'text-gray-300'}>
+                    {item.ok ? '✓' : item.unmeasured ? '—' : '○'}
                   </span>
-                  <span className={item.ok ? 'text-gray-700' : 'text-gray-400'}>
+                  <span className={item.ok ? 'text-gray-700' : item.unmeasured ? 'text-gray-300' : 'text-gray-400'}>
                     {item.label}
                   </span>
                 </div>

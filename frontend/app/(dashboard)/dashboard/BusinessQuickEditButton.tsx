@@ -12,6 +12,7 @@ interface InitialData {
   visitor_review_count: number;
   receipt_review_count: number;
   avg_rating: number;
+  naver_place_id: string;
   naver_place_url: string;
 }
 

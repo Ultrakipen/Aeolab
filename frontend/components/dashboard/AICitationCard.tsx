@@ -31,9 +31,10 @@ interface Props {
   bizId: string
   token: string
   briefingEligibility?: "active" | "likely" | "inactive"
+  platformResults?: Record<string, { queries_used?: string[] }>
 }
 
-export default function AICitationCard({ bizId, token, briefingEligibility }: Props) {
+export default function AICitationCard({ bizId, token, briefingEligibility, platformResults }: Props) {
   const [citations, setCitations] = useState<Citation[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(false)
@@ -164,11 +165,29 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
                     {sent.label}
                   </span>
                 )}
-                <span className="ml-auto flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-2.5 py-0.5">
-                  <Search className="w-3 h-3 text-slate-500 shrink-0" />
-                  <span className="text-sm text-slate-500 font-medium">검색어</span>
-                  <span className="text-sm font-semibold text-slate-700">&ldquo;{c.query}&rdquo;</span>
-                </span>
+                {(() => {
+                  const qList = platformResults?.[c.platform]?.queries_used
+                  const qCount = qList?.length ?? 0
+                  if (qCount > 1) {
+                    return (
+                      <span
+                        className="ml-auto flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-2.5 py-0.5"
+                        title={qList!.join(', ')}
+                      >
+                        <Search className="w-3 h-3 text-slate-500 shrink-0" />
+                        <span className="text-sm text-slate-500 font-medium">{qCount}개 검색어 중</span>
+                        <span className="text-sm font-semibold text-slate-700">&ldquo;{c.query}&rdquo;</span>
+                      </span>
+                    )
+                  }
+                  return (
+                    <span className="ml-auto flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-2.5 py-0.5">
+                      <Search className="w-3 h-3 text-slate-500 shrink-0" />
+                      <span className="text-sm text-slate-500 font-medium">검색어</span>
+                      <span className="text-sm font-semibold text-slate-700">&ldquo;{c.query}&rdquo;</span>
+                    </span>
+                  )
+                })()}
               </div>
               {c.excerpt && c.excerpt.length > 0 && !c.excerpt.includes('(구체적 인용문 없음)') ? (
                 c.platform === 'naver' ? (
@@ -196,7 +215,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility }: Pr
               ) : c.platform === 'chatgpt' ? (
                 <p className="text-sm text-gray-400 italic">
                   ChatGPT 학습 데이터에 아직 포함되지 않았습니다.
-                  한국 소상공인 평균 노출률 1~3% — 현재 수준이 정상입니다.
+                  한국 소상공인 ChatGPT 평균 언급률 약 1~3%(추정) — 현재 수준이 일반적입니다.
                 </p>
               ) : c.platform === 'gemini' ? (
                 <p className="text-sm text-gray-400 italic">

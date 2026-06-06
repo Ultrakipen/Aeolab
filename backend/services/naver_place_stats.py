@@ -109,24 +109,36 @@ class NaverPlaceStatsService:
                 if receipt_match:
                     receipt_review_count = int(receipt_match.group(1).replace(",", ""))
 
-                # 별점 파싱 — 소수점 선택 사항, 정수형 평점도 수집
+                # 별점 파싱 — 1차: body_text 텍스트 / 2차: HTML JSON VisitorReviewStats
+                # 네이버는 2021.10 방문자 별점 기능 종료 → 대부분 0. 0이면 None 반환(DB 기존값 유지).
                 avg_rating = 0.0
                 rating_patterns = [
-                    r"별점\s*(\d+(?:\.\d{1,2})?)",          # "별점 4" / "별점 4.5"
-                    r"평점\s*(\d+(?:\.\d{1,2})?)",           # "평점 4" / "평점4.5"
-                    r"(\d+(?:\.\d{1,2})?)\s*(?:점|★)",      # "4점" / "4.5점" / "4.5★"
-                    r"★\s*(\d+(?:\.\d{1,2})?)",             # "★ 4" / "★ 4.5"
-                    r"(\d+(?:\.\d{1,2})?)\s*/\s*5",         # "4 / 5" / "4.5 / 5"
-                    r"score[:\s]+(\d+(?:\.\d{1,2})?)",      # 영문 "score: 4.5"
-                    r"리뷰.{0,50}?(\d+(?:\.\d{1,2})?점)",   # 리뷰 근처 "4.5점"
+                    r"별점\s*(\d+(?:\.\d{1,2})?)",      # "별점 4" / "별점 4.5"
+                    r"평점\s*(\d+(?:\.\d{1,2})?)",       # "평점 4.5"
+                    r"★\s*(\d+(?:\.\d{1,2})?)",         # "★ 4.5"
+                    r"(\d+(?:\.\d{1,2})?)\s*/\s*5",     # "4.5 / 5"
                 ]
                 for pat in rating_patterns:
-                    m = re.search(pat, body_text)
-                    if m:
-                        val = float(m.group(1))
+                    _m = re.search(pat, body_text)
+                    if _m:
+                        val = float(_m.group(1))
                         if 0.0 < val <= 5.0:
                             avg_rating = val
                             break
+
+                # 2차: HTML 내장 JSON에서 VisitorReviewStats.avgRating 파싱
+                if avg_rating == 0.0:
+                    try:
+                        _html = await page.content()
+                        _m_json = re.search(
+                            r'"VisitorReviewStats"[^}]{0,200}"avgRating"\s*:\s*([\d.]+)', _html
+                        )
+                        if _m_json:
+                            val = float(_m_json.group(1))
+                            if 0.0 < val <= 5.0:
+                                avg_rating = val
+                    except Exception:
+                        pass
 
                 # 사업장명 파싱
                 name_el = None
@@ -148,7 +160,7 @@ class NaverPlaceStatsService:
                     "review_count": review_count,
                     "visitor_review_count": visitor_review_count,
                     "receipt_review_count": receipt_review_count,
-                    "avg_rating": avg_rating,
+                    "avg_rating": avg_rating if avg_rating > 0 else None,
                     "source": "naver_place_public",
                 }
             finally:
@@ -449,8 +461,8 @@ async def _parse_photo_categories(page) -> tuple[dict, int | None]:
         cur = page.url
         m_url = re.match(r"(https?://m\.place\.naver\.com/[^/]+/\d+)", cur)
         if m_url:
-            await page.goto(f"{m_url.group(1)}/photo", timeout=10000, wait_until="domcontentloaded")
-            await page.wait_for_timeout(3000)  # 1500 → 3000ms: JS 렌더 대기 충분히
+            await page.goto(f"{m_url.group(1)}/photo", timeout=12000, wait_until="domcontentloaded")
+            await page.wait_for_timeout(5000)  # 3000 → 5000ms: 사진 API JS 렌더 대기
         else:
             # URL 추출 실패 시 기존 클릭 방식 fallback
             photo_tab = page.locator('a[data-tab="photo"], button:has-text("사진"), a:has-text("사진")')
@@ -468,6 +480,10 @@ async def _parse_photo_categories(page) -> tuple[dict, int | None]:
             page_text = await page.inner_text("body")
             if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류|플레이스 서비스 이용이 제한", page_text or ""):
                 logger.warning("[photo_tab] network error or IP block detected — photo_count=None")
+                return {}, None
+            # 사진 탭 JS 콘텐츠 미로딩 감지 — body가 너무 짧거나 "로딩중" 상태 (headless 감지)
+            if len(page_text or "") < 200 or (page_text and "로딩중" in page_text and len(page_text) < 300):
+                logger.warning("[photo_tab] photo tab not rendered (loading state) — photo_count=None")
                 return {}, None
             m_text = re.search(r"전체\s*([\d,]+)", page_text)
             if m_text:

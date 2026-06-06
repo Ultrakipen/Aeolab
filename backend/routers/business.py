@@ -234,7 +234,7 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
     return biz
 
 
-_BIZ_BASE_COLS = "id, name, category, region, address, phone, website_url, blog_url, naver_place_url, keywords, business_type, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, receipt_review_count, visitor_review_count, is_active, created_at, has_faq, has_recent_post, has_intro, is_smart_place, review_sample, kakao_score, kakao_checklist, kakao_registered, business_registration_no"
+_BIZ_BASE_COLS = "id, name, category, region, address, phone, website_url, blog_url, naver_place_url, keywords, business_type, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, receipt_review_count, visitor_review_count, is_active, created_at, has_faq, has_recent_post, has_intro, is_smart_place, review_sample, kakao_score, kakao_checklist, kakao_registered, business_registration_no, blog_mention_count"
 _BIZ_OPTIONAL_COLS = ["ai_info_tab_status", "is_franchise", "naver_intro_draft", "naver_intro_generated_at", "talktalk_faq_draft", "talktalk_faq_generated_at"]
 
 

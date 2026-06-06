@@ -14,12 +14,12 @@ import { useState, useCallback } from "react";
 // ---------------------------------------------------------------------------
 
 export interface KakaoChecklist {
-  registered: boolean;       // 카카오맵 등록 여부         (30점)
-  hours: boolean;            // 영업시간 입력               (15점)
-  phone: boolean;            // 전화번호 등록               (15점)
-  photos: boolean;           // 사진 3장 이상 등록          (15점)
-  kakao_channel: boolean;    // 카카오톡 채널 연결          (15점)
-  menu_info: boolean;        // 메뉴/서비스 정보 등록       (10점)
+  is_registered: boolean;    // 카카오맵 등록 여부         (25점) — 백엔드 API 자동 확인
+  has_hours: boolean;        // 영업시간 입력               (15점)
+  has_phone: boolean;        // 전화번호 등록               (15점)
+  has_photos: boolean;       // 사진 3장 이상 등록          (20점)
+  has_kakao_channel: boolean; // 카카오톡 채널 연결         (15점)
+  has_menu_info: boolean;    // 메뉴/서비스 정보 등록       (10점)
 }
 
 interface KakaoChecklistCardProps {
@@ -38,20 +38,20 @@ const CHECKLIST_ITEMS: Array<{
   key: keyof KakaoChecklist;
   label: string;
   desc: string;
-  weight: number;             // 점수 가중치
+  weight: number;             // 점수 가중치 (백엔드 kakao_checker.py와 동일)
   priority: "high" | "medium" | "low";
-  howtoUrl: string;           // 안내 링크
+  howtoUrl: string;
 }> = [
   {
-    key: "registered",
+    key: "is_registered",
     label: "카카오맵 등록",
     desc: "카카오맵에 내 가게가 등록되어 있나요?",
-    weight: 30,
+    weight: 25,
     priority: "high",
     howtoUrl: "https://map.kakao.com",
   },
   {
-    key: "hours",
+    key: "has_hours",
     label: "영업시간 입력",
     desc: "카카오맵 프로필에 영업시간이 정확히 입력되어 있나요?",
     weight: 15,
@@ -59,7 +59,7 @@ const CHECKLIST_ITEMS: Array<{
     howtoUrl: "https://map.kakao.com",
   },
   {
-    key: "phone",
+    key: "has_phone",
     label: "전화번호 등록",
     desc: "카카오맵에 연락 가능한 전화번호가 등록되어 있나요?",
     weight: 15,
@@ -67,15 +67,15 @@ const CHECKLIST_ITEMS: Array<{
     howtoUrl: "https://map.kakao.com",
   },
   {
-    key: "photos",
+    key: "has_photos",
     label: "사진 3장 이상 등록",
     desc: "가게 내·외부 사진이 3장 이상 등록되어 있나요?",
-    weight: 15,
+    weight: 20,
     priority: "medium",
     howtoUrl: "https://map.kakao.com",
   },
   {
-    key: "kakao_channel",
+    key: "has_kakao_channel",
     label: "카카오톡 채널 연결",
     desc: "카카오톡 채널이 카카오맵 프로필에 연결되어 있나요?",
     weight: 15,
@@ -83,7 +83,7 @@ const CHECKLIST_ITEMS: Array<{
     howtoUrl: "https://business.kakao.com/dashboard/",
   },
   {
-    key: "menu_info",
+    key: "has_menu_info",
     label: "메뉴/서비스 정보 등록",
     desc: "주요 메뉴나 서비스 정보가 카카오맵에 등록되어 있나요?",
     weight: 10,
@@ -146,12 +146,12 @@ export default function KakaoChecklistCard({
   authToken,
 }: KakaoChecklistCardProps) {
   const [checklist, setChecklist] = useState<KakaoChecklist>({
-    registered: !!(kakaoRegistered || initialChecklist?.registered),
-    hours:         initialChecklist?.hours         ?? false,
-    phone:         initialChecklist?.phone         ?? false,
-    photos:        initialChecklist?.photos        ?? false,
-    kakao_channel: initialChecklist?.kakao_channel ?? false,
-    menu_info:     initialChecklist?.menu_info     ?? false,
+    is_registered:    !!(kakaoRegistered || initialChecklist?.is_registered),
+    has_hours:         initialChecklist?.has_hours         ?? false,
+    has_phone:         initialChecklist?.has_phone         ?? false,
+    has_photos:        initialChecklist?.has_photos        ?? false,
+    has_kakao_channel: initialChecklist?.has_kakao_channel ?? false,
+    has_menu_info:     initialChecklist?.has_menu_info     ?? false,
   });
 
   const [saving, setSaving]   = useState(false);
@@ -180,7 +180,13 @@ export default function KakaoChecklistCard({
           "Content-Type": "application/json",
           ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         },
-        body: JSON.stringify({ checklist, score }),
+        body: JSON.stringify({
+          has_hours:         checklist.has_hours,
+          has_phone:         checklist.has_phone,
+          has_photos:        checklist.has_photos,
+          has_kakao_channel: checklist.has_kakao_channel,
+          has_menu_info:     checklist.has_menu_info,
+        }),
       });
       if (!res.ok) throw new Error("저장 실패");
       setSaved(true);
@@ -208,13 +214,6 @@ export default function KakaoChecklistCard({
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span
-              className="text-xl font-black"
-              style={{ color: "#3A1D1D" }}
-              aria-label="카카오맵 아이콘"
-            >
-              K
-            </span>
             <h2 className="text-base md:text-lg font-bold text-gray-900">카카오맵 완성도</h2>
           </div>
           <p className="text-sm text-gray-500 leading-relaxed">

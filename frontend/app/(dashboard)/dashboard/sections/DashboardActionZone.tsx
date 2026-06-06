@@ -5,7 +5,8 @@ import MonthlyChecklistCard from "@/components/dashboard/MonthlyChecklistCard";
 import SeasonalKeywordBanner from "@/components/dashboard/SeasonalKeywordBanner";
 import DeliveryRecommendCard from "@/components/dashboard/DeliveryRecommendCard";
 import UpgradeNudgeCard from "@/components/dashboard/UpgradeNudgeCard";
-import { Calendar, Target, TrendingUp, ListChecks } from "lucide-react";
+import Link from "next/link";
+import { Calendar, Target, TrendingUp, ListChecks, Zap } from "lucide-react";
 
 interface Dimension {
   dimension_key: string;
@@ -104,26 +105,42 @@ export default function DashboardActionZone({
       <SeasonalKeywordBanner category={category} />
 
       {/* ① 오늘 — 시급 */}
-      {hasLatestScan && accessToken && (
-        <>
-          <ZoneHeader
-            step={1}
-            icon={<Target className="w-3.5 h-3.5" />}
-            label="오늘 할 일"
-            description="가장 시급한 1개 미션 — 지금 바로 실행"
-            accent="bg-rose-500"
-            badgeBg="bg-rose-100"
-            badgeText="text-rose-800"
-          />
-          <DailyMissionCard
-            bizId={bizId}
-            token={accessToken}
-            initialDimensions={dimensions}
-            todayTasks={todayTasks}
-            actionCopyText={actionCopyText}
-            topMissingKeyword={topMissingKeyword}
-          />
-        </>
+      <ZoneHeader
+        step={1}
+        icon={<Target className="w-3.5 h-3.5" />}
+        label="오늘 할 일"
+        description="가장 시급한 1개 미션 — 지금 바로 실행"
+        accent="bg-rose-500"
+        badgeBg="bg-rose-100"
+        badgeText="text-rose-800"
+      />
+      {hasLatestScan && accessToken ? (
+        <DailyMissionCard
+          bizId={bizId}
+          token={accessToken}
+          initialDimensions={dimensions}
+          todayTasks={todayTasks}
+          actionCopyText={actionCopyText}
+          topMissingKeyword={topMissingKeyword}
+        />
+      ) : (
+        <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-4 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+            <Zap className="w-4 h-4 text-rose-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-800 leading-snug">
+              첫 스캔 후 AI 노출 개선 미션이 표시됩니다
+            </p>
+            <p className="text-sm text-gray-500 mt-0.5">스캔하면 경쟁 가게 대비 부족한 항목부터 안내합니다</p>
+          </div>
+          <Link
+            href="/scan"
+            className="shrink-0 text-sm font-semibold text-white bg-rose-500 hover:bg-rose-600 px-3 py-1.5 rounded-lg"
+          >
+            스캔하기
+          </Link>
+        </div>
       )}
 
       {/* ② 이번 주 — 단기 */}

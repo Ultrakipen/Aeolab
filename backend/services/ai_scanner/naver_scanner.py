@@ -136,6 +136,7 @@ class NaverAIBriefingScanner:
                     "rank": None, "excerpt": "", "captcha_detected": True,
                     "error": "captcha_or_blocked", "_query_used": query,
                     "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
+                    "queries_used": [query],
                 }
 
             # ── AI 브리핑 영역 확인 ──────────────────────────────
@@ -219,6 +220,7 @@ class NaverAIBriefingScanner:
             "in_ai_tab":     in_ai_tab,
             "ai_tab_excerpt": ai_tab_excerpt,
             "ad_only":       ad_only,
+            "queries_used":  [query],
         }
 
     async def check_mention(self, query: str, target: str, category: str = "") -> dict:
@@ -251,6 +253,7 @@ class NaverAIBriefingScanner:
                 "platform": "naver", "mentioned": False, "in_briefing": False,
                 "rank": None, "excerpt": "", "keyword_results": [],
                 "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
+                "queries_used": [],
             }
 
         proxy = get_proxy_config()
@@ -285,4 +288,4 @@ class NaverAIBriefingScanner:
             or next((r for r in keyword_results if r.get("mentioned")), None)
             or keyword_results[0]
         )
-        return {**best, "keyword_results": keyword_results}
+        return {**best, "keyword_results": keyword_results, "queries_used": queries}

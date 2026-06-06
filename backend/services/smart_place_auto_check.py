@@ -126,11 +126,50 @@ def _failed_result(error_code: str, naver_place_id: str = "") -> dict:
         "has_intro": False,
         "has_reservation": False,
         "photo_count": 0,
+        "visitor_review_count": 0,
+        "avg_rating": 0.0,
         "intro_text": "",
         "score_loss": 70,
         "action_links": {"register": "https://smartplace.naver.com/"},
         "error": error_code,
     }
+
+
+def _detect_visitor_review_count(home_text: str) -> int:
+    """홈 탭 텍스트에서 방문자 리뷰 수를 추출. 0이면 미감지."""
+    _patterns = [
+        r"방문자\s*리뷰\s*(\d[\d,]*)",
+        r"방문자리뷰\s*(\d[\d,]*)",
+        r"리뷰\s*(\d[\d,]+)\s*개",
+        r"(\d[\d,]+)\s*개\s*리뷰",
+        r"방문자\s+(\d[\d,]+)",
+    ]
+    for pat in _patterns:
+        m = re.search(pat, home_text)
+        if m:
+            try:
+                return int(m.group(1).replace(",", ""))
+            except ValueError:
+                pass
+    return 0
+
+
+def _detect_avg_rating(home_text: str) -> float:
+    """홈 탭 텍스트에서 별점/평점을 추출. 0.0이면 미감지."""
+    _patterns = [
+        r"별점\s*(\d+(?:\.\d{1,2})?)",
+        r"평점\s*(\d+(?:\.\d{1,2})?)",
+    ]
+    for pat in _patterns:
+        m = re.search(pat, home_text)
+        if m:
+            try:
+                val = float(m.group(1))
+                if 0.0 < val <= 5.0:
+                    return val
+            except ValueError:
+                pass
+    return 0.0
 
 
 async def _run_check(naver_place_id: str) -> dict:
@@ -146,6 +185,8 @@ async def _run_check(naver_place_id: str) -> dict:
         "has_intro": False,
         "has_reservation": False,
         "photo_count": 0,
+        "visitor_review_count": 0,
+        "avg_rating": 0.0,
         "intro_text": "",
     }
 
@@ -182,6 +223,9 @@ async def _run_check(naver_place_id: str) -> dict:
                 results["has_reservation"] = await _detect_reservation(page, home_text)
                 # [P1-B-2] 사진 수 추정 (홈 탭 텍스트·DOM 기반 — 별도 탭 이동 불필요)
                 results["photo_count"] = await _detect_photo_count(page, home_text)
+                # 방문자 리뷰 수·별점 추출 (홈 탭 텍스트 — Playwright 추가 호출 없음)
+                results["visitor_review_count"] = _detect_visitor_review_count(home_text)
+                results["avg_rating"] = _detect_avg_rating(home_text)
             except Exception as e:
                 _logger.warning(f"smart_place home tab failed [{naver_place_id}]: {e}")
                 # 홈 탭 실패 = 미등록 판정으로 종료

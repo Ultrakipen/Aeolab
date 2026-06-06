@@ -163,7 +163,7 @@ export function GlobalAIChecklist({
             </p>
           </div>
           <p className="text-sm text-amber-700 leading-relaxed pl-6">
-            지금 당장 개선할 수 있는 방법이 없으며, 한국 소상공인 평균 노출률은 <strong>1~3%</strong>입니다.
+            지금 당장 개선할 수 있는 방법이 없으며, 한국 소상공인 ChatGPT 평균 언급률은 약 <strong>1~3%</strong>(추정)입니다.
           </p>
           <p className="text-sm text-amber-700 leading-relaxed pl-6">
             미디어·블로그 언급이 장기적으로 누적되어야 반영됩니다 (수개월~1년+).

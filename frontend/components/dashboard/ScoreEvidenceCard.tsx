@@ -55,6 +55,7 @@ interface V31Detail {
 interface NaverResult {
   mentioned?: boolean;
   in_briefing?: boolean;
+  captcha_detected?: boolean;
   excerpt?: string | null;
   top_blogs?: Array<{ title?: string; description?: string }>;
   is_smart_place?: boolean;
@@ -135,7 +136,8 @@ function barColor(value: number): string {
   return "bg-red-400";
 }
 
-function StatusIcon({ ok }: { ok: boolean }) {
+function StatusIcon({ ok }: { ok: boolean | null }) {
+  if (ok === null) return <span className="w-4 h-4 text-gray-300 shrink-0 inline-flex items-center justify-center text-xs">—</span>;
   return ok
     ? <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
     : <XCircle className="w-4 h-4 text-red-500 shrink-0" />;
@@ -201,8 +203,10 @@ function V31SixItems({
 
   const finalReviewCount = kakaoResult?.review_count ?? reviewCount ?? naverResult?.review_count ?? 0;
   const finalAvgRating   = kakaoResult?.avg_rating   ?? avgRating   ?? naverResult?.avg_rating   ?? 0;
-  const inBriefing = naverResult?.in_briefing ?? false;
-  const naverMentioned = naverResult?.mentioned ?? false;
+  // null = 측정 불가(naver_result 없음 or captcha 차단) / false = 실측 미노출 / true = 실측 노출
+  const _naverMeasured = naverResult != null && !naverResult.captcha_detected;
+  const inBriefing: boolean | null = _naverMeasured ? (naverResult!.in_briefing ?? false) : null;
+  const naverMentioned: boolean | null = _naverMeasured ? (naverResult!.mentioned ?? false) : null;
 
   const kwSearchItem = items["keyword_search_rank"];
   const rvItem       = items["review_quality"];
@@ -486,13 +490,21 @@ function V31SixItems({
               <div className="flex items-center gap-2">
                 <StatusIcon ok={naverMentioned} />
                 <span className="text-sm text-gray-700">
-                  {naverMentioned ? "네이버 검색에서 언급됨" : "네이버 검색에서 미언급"}
+                  {naverMentioned === null
+                    ? "네이버 검색 측정 불가 (재스캔 권장)"
+                    : naverMentioned
+                      ? "네이버 검색에서 언급됨"
+                      : "네이버 검색에서 미언급"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <StatusIcon ok={inBriefing} />
                 <span className="text-sm text-gray-700">
-                  {inBriefing ? "네이버 AI 브리핑 인용됨" : "네이버 AI 브리핑 미노출"}
+                  {inBriefing === null
+                    ? "네이버 AI 브리핑 측정 불가 (재스캔 권장)"
+                    : inBriefing
+                      ? "네이버 AI 브리핑 인용됨"
+                      : "네이버 AI 브리핑 미노출"}
                 </span>
               </div>
             </div>
@@ -938,11 +950,13 @@ export default function ScoreEvidenceCard({
               </span>
             ) : (
               <span className={`text-sm px-3 py-1 rounded-full font-semibold border ${
-                track1Score >= 70 ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                : track1Score >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
+                track1Score >= 80 ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                : track1Score >= 65 ? "bg-blue-50 text-blue-600 border-blue-100"
+                : track1Score >= 45 ? "bg-yellow-50 text-yellow-600 border-yellow-200"
+                : track1Score >= 25 ? "bg-amber-50 text-amber-600 border-amber-200"
                 : "bg-red-50 text-red-500 border-red-100"
               }`}>
-                {track1Score >= 70 ? "양호" : track1Score >= 40 ? "보통" : "개선 필요"}
+                {track1Score >= 80 ? "우수" : track1Score >= 65 ? "양호" : track1Score >= 45 ? "보통" : track1Score >= 25 ? "미흡" : "주의 필요"}
               </span>
             )}
           </div>
@@ -1020,11 +1034,13 @@ export default function ScoreEvidenceCard({
               <div className="text-sm text-gray-500">업종 점수의 {globalWeight}% 반영</div>
             </div>
             <span className={`text-sm px-3 py-1 rounded-full font-semibold border ${
-              track2Score >= 70 ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-              : track2Score >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
+              track2Score >= 80 ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+              : track2Score >= 60 ? "bg-blue-50 text-blue-600 border-blue-100"
+              : track2Score >= 35 ? "bg-yellow-50 text-yellow-600 border-yellow-200"
+              : track2Score >= 10 ? "bg-amber-50 text-amber-600 border-amber-200"
               : "bg-red-50 text-red-500 border-red-100"
             }`}>
-              {track2Score >= 70 ? "양호" : track2Score >= 40 ? "보통" : "개선 필요"}
+              {track2Score >= 80 ? "우수" : track2Score >= 60 ? "양호" : track2Score >= 35 ? "보통" : track2Score >= 10 ? "낮음" : "측정 대기"}
             </span>
           </div>
 

@@ -656,6 +656,7 @@ class GuideGenerator:
         has_recent_post = biz.get("has_recent_post")
         review_count = biz.get("review_count") or 0
         avg_rating = biz.get("avg_rating") or 0
+        avg_rating_str = f"{avg_rating}점" if avg_rating > 0 else "정보 없음 (네이버 방문자 별점 2021년 종료)"
         visitor_reviews = biz.get("visitor_review_count") or 0
         receipt_reviews = biz.get("receipt_review_count") or 0
 
@@ -940,7 +941,7 @@ class GuideGenerator:
 - 지역: {biz.get('region', '온라인/전문직')}
 - 등록 키워드: {keywords_str}
 - 웹사이트: {'있음 (' + biz.get('website_url') + ')' if biz.get('website_url') else '없음'}
-- 평점: {avg_rating}점
+- 평점: {avg_rating_str}
 {context_note}{briefing_header_section}
 {smart_place_section}
 

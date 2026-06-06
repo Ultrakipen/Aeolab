@@ -326,9 +326,9 @@ function FocusRecommendation({
 // 성장 단계 진행률 계산
 // 백엔드 _GROWTH_THRESHOLDS 와 일치: survival<30 / stability<55 / growth<75 / dominance>=75
 const STAGE_RANGES: Record<string, { min: number; max: number; next: string }> = {
-  survival:  { min: 0,  max: 29,  next: "성장 중" },
-  stability: { min: 30, max: 54,  next: "빠른 성장" },
-  growth:    { min: 55, max: 74,  next: "지역 1등" },
+  survival:  { min: 0,  max: 29,  next: "성장 준비 중" },
+  stability: { min: 30, max: 54,  next: "성장 진행 중" },
+  growth:    { min: 55, max: 74,  next: "안정 궤도" },
   dominance: { min: 75, max: 100, next: "" },
 };
 
@@ -463,12 +463,16 @@ export default function DualTrackCard({
               ? "bg-emerald-50 text-emerald-700"
               : unifiedScore >= 50
               ? "bg-amber-50 text-amber-700"
+              : benchmarkAvg && unifiedScore >= benchmarkAvg
+              ? "bg-amber-50 text-amber-700"
               : "bg-red-50 text-red-700"
           }`}>
             {unifiedScore >= 70
               ? "업종 상위권"
               : unifiedScore >= 50
               ? "업종 중위권 — 개선 여지 있음"
+              : benchmarkAvg && unifiedScore >= benchmarkAvg
+              ? "평균 이상 — 추가 개선 가능"
               : "AI 노출 개선 여지 큼"}
           </div>
           {benchmarkAvg && benchmarkAvg > 0 && !isEstimatedBenchmark && (
@@ -509,7 +513,7 @@ export default function DualTrackCard({
           </span>
         }
         sublabel={track1Sublabel}
-        sourceNote="네이버 블로그·리뷰·스마트플레이스 실측 기반"
+        sourceNote={isKeywordEstimated ? "네이버 블로그·리뷰·스마트플레이스 (일부 키워드 추정 포함)" : "네이버 블로그·리뷰·스마트플레이스 실측 기반"}
         color="bg-green-500"
         isWeak={isTrack1Weak}
         isVeryLow={isTrack1VeryLow}

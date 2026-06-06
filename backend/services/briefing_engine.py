@@ -730,12 +730,12 @@ def _make_review_response_content(
 
         if kw2:
             kw_sentence = (
-                f"저희 {business_name}{eun_neun_biz} {kw1}·{kw2} 서비스를 함께 운영하고 있어 "
-                f"다양한 상황에서 편리하게 이용하실 수 있습니다."
+                f"저희는 {kw1}·{kw2} 서비스를 운영하고 있습니다. "
+                f"다음에도 편하게 방문해 주세요."
             )
         elif kw1:
             kw_sentence = (
-                f"저희 {business_name}{eun_neun_biz} {kw1} 서비스를 운영하고 있으니 "
+                f"저희 {business_name}에서 {kw1} 서비스도 운영하고 있으니 "
                 f"다음에도 편하게 방문해 주세요."
             )
         else:
@@ -775,12 +775,12 @@ def _make_review_response_content(
 
     if kw2:
         kw_sentence = (
-            f"저희 {business_name}{eun_neun_biz} {kw1}·{kw2} 서비스를 함께 운영하고 있어 "
-            f"다양한 상황에서 편리하게 이용하실 수 있습니다."
+            f"저희는 {kw1}·{kw2} 서비스를 운영하고 있습니다. "
+            f"다음에도 편하게 방문해 주세요."
         )
     else:
         kw_sentence = (
-            f"저희 {business_name}{eun_neun_biz} {kw1} 서비스를 운영하고 있으니 "
+            f"저희 {business_name}에서 {kw1} 서비스도 운영하고 있으니 "
             f"다음에도 편하게 방문해 주세요."
         )
 
@@ -968,15 +968,6 @@ def _make_post_content(
     kw2_clean = _clean_keyword(target_keywords[1]) if len(target_keywords) > 1 else ""
     kw3_clean = _clean_keyword(target_keywords[2]) if len(target_keywords) > 2 else ""
 
-    # 키워드 bullet list 구성
-    kw_bullets = [f"✔ {kw1_clean}"]
-    if kw2_clean:
-        kw_bullets.append(f"✔ {kw2_clean}")
-    if kw3_clean:
-        kw_bullets.append(f"✔ {kw3_clean}")
-    kw_bullets.append("✔ 네이버 예약 가능")
-    kw_bullet_str = "\n".join(kw_bullets)
-
     # 해시태그 구성 (4~5개)
     tags = [f"#{region_short}{_hashtag_safe(category_ko)}", f"#{_hashtag_safe(kw1_clean)}"]
     if kw2_clean:
@@ -984,12 +975,20 @@ def _make_post_content(
     tags.append(f"#{region_short}{_hashtag_safe(category_ko)}추천")
     tags.append(f"#{_hashtag_safe(business_name)}")
 
+    # 본문 문장 구성 (자연스러운 소식 형식)
+    body_lines = [
+        f"{kw1_clean}{_select_josa(kw1_clean, '을', '를')} 전문으로 하는 {region_short} {business_name}입니다.",
+    ]
+    if kw2_clean:
+        body_lines.append(f"{kw2_clean}도 함께 선보이고 있습니다.")
+    if kw3_clean:
+        body_lines.append(f"{kw3_clean}도 이용하실 수 있습니다.")
+    body_str = "\n".join(body_lines)
+
     return (
-        f"{emoji} {business_name} 안내\n\n"
-        f"{region_short}에서 {kw1_clean}{_select_josa(kw1_clean, '을', '를')} 찾고 계신가요?\n\n"
-        f"{kw_bullet_str}\n\n"
-        f"방문 전 네이버 예약 또는 전화로 미리 확인해 주시면\n"
-        f"기다리는 시간 없이 편하게 이용하실 수 있습니다.\n\n"
+        f"{emoji} {business_name} 소식\n\n"
+        f"{body_str}\n\n"
+        f"방문 전 네이버 예약으로 원하는 시간에 편하게 오실 수 있습니다.\n\n"
         f"{' '.join(tags)}"
     )
 

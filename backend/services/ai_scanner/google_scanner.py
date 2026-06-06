@@ -40,6 +40,7 @@ async def _scan_via_dataforseo(query: str, business_name: str) -> dict:
             "platform": "google", "mentioned": False, "in_ai_overview": False,
             "rank": None, "excerpt": "", "captcha_detected": False,
             "error": "dataforseo_credentials_missing",
+            "queries_used": [query],
         }
 
     creds = base64.b64encode(f"{DATAFORSEO_LOGIN}:{DATAFORSEO_PASSWORD}".encode()).decode()
@@ -104,12 +105,14 @@ async def _scan_via_dataforseo(query: str, business_name: str) -> dict:
             "rank": rank,
             "excerpt": excerpt,
             "captcha_detected": False,
+            "queries_used": [query],
         }
     except Exception as e:
         logger.warning(f"[google_scanner] dataforseo error: {e}")
         return {
             "platform": "google", "mentioned": False, "in_ai_overview": False,
             "rank": None, "excerpt": "", "captcha_detected": False, "error": str(e),
+            "queries_used": [query],
         }
 
 
@@ -126,6 +129,7 @@ async def _scan_via_serper(query: str, business_name: str) -> dict:
             "platform": "google", "mentioned": False, "in_ai_overview": False,
             "rank": None, "excerpt": "", "captcha_detected": False,
             "error": "serper_key_missing",
+            "queries_used": [query],
         }
 
     payload = {
@@ -153,6 +157,7 @@ async def _scan_via_serper(query: str, business_name: str) -> dict:
                         "platform": "google", "mentioned": False, "in_ai_overview": False,
                         "rank": None, "excerpt": "", "captcha_detected": False,
                         "error": f"serper_http_{resp.status}",
+                        "queries_used": [query],
                     }
                 data = await resp.json()
 
@@ -212,6 +217,7 @@ async def _scan_via_serper(query: str, business_name: str) -> dict:
             "rank": rank,
             "excerpt": excerpt,
             "captcha_detected": False,
+            "queries_used": [query],
         }
 
     except Exception as e:
@@ -219,6 +225,7 @@ async def _scan_via_serper(query: str, business_name: str) -> dict:
         return {
             "platform": "google", "mentioned": False, "in_ai_overview": False,
             "rank": None, "excerpt": "", "captcha_detected": False, "error": str(e),
+            "queries_used": [query],
         }
 
 
@@ -272,6 +279,7 @@ class GoogleAIOverviewScanner:
                     return {
                         "platform": "google", "mentioned": False, "in_ai_overview": False,
                         "rank": None, "excerpt": "", "captcha_detected": True, "error": "captcha_blocked",
+                        "queries_used": [query],
                     }
 
                 # AI Overview 영역 검색
@@ -313,4 +321,5 @@ class GoogleAIOverviewScanner:
             "rank": rank,
             "excerpt": excerpt,
             "captcha_detected": False,
+            "queries_used": [query],
         }

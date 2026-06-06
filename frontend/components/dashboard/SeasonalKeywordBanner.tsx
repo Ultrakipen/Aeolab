@@ -243,11 +243,10 @@ export default function SeasonalKeywordBanner({ category }: Props) {
   const groupKeywords = group ? (SEASONAL_BY_GROUP[currentMonth]?.[group] ?? []) : [];
   const groupLabel = group ? GROUP_LABELS[group] : undefined;
 
-  // 업종별 최대 5개 + 공통 최대 3개 = 최대 8개
   const displayGroupKeywords = groupKeywords.slice(0, 5);
-  const displayGeneralKeywords = generalKeywords.slice(0, 3);
+  const displayGeneralKeywords = groupKeywords.length > 0 ? [] : generalKeywords.slice(0, 5);
 
-  if (generalKeywords.length === 0) return null;
+  if (displayGroupKeywords.length === 0 && displayGeneralKeywords.length === 0) return null;
 
   // 헤더 레이블 결정
   const headerLabel = groupLabel

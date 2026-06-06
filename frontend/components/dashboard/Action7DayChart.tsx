@@ -13,6 +13,14 @@ import {
   Legend,
 } from "recharts";
 
+function scoreToLabel(score: number | null | undefined): string {
+  if (score == null) return "측정 중";
+  if (score < 30) return "낮음";
+  if (score < 55) return "보통";
+  if (score < 75) return "성장 중";
+  return "우수";
+}
+
 interface TimelinePoint {
   date: string;
   score: number | null;
@@ -134,19 +142,21 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
         <p className="text-sm font-semibold text-blue-900 mb-1">{activeWindow.action_label}</p>
         <p className="text-sm text-blue-700">
           {activeWindow.action_date} 실행 ·{" "}
-          {activeWindow.score_before != null && <>시점 점수 {activeWindow.score_before.toFixed(1)}</>}
+          {activeWindow.score_before != null && (
+            <>시점 <span className="font-semibold">{scoreToLabel(activeWindow.score_before)}</span></>
+          )}
           {delta != null && (
             <>
               {" → "}
               7일 후{" "}
               <span className={delta >= 0 ? "font-bold text-emerald-700" : "font-bold text-red-600"}>
-                {delta >= 0 ? "+" : ""}
-                {delta}점
+                <span className="font-semibold">{scoreToLabel(activeWindow.score_after)}</span>
+                {" "}({delta >= 0 ? "+" : ""}{delta}점)
               </span>
             </>
           )}
           {activeWindow.score_after == null && activeWindow.score_before != null && (
-            <> · 7일 후 점수 측정 대기 중</>
+            <> · 7일 후 측정 대기 중</>
           )}
         </p>
       </div>
@@ -158,8 +168,18 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
             <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
               <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#6b7280" }} />
-              <YAxis tick={{ fontSize: 12, fill: "#6b7280" }} domain={["dataMin - 5", "dataMax + 5"]} />
-              <Tooltip />
+              <YAxis
+                tick={{ fontSize: 11, fill: "#6b7280" }}
+                domain={["dataMin - 5", "dataMax + 5"]}
+                tickFormatter={(v: number) => scoreToLabel(v)}
+                width={52}
+              />
+              <Tooltip
+                formatter={(value: unknown) => {
+                  if (typeof value !== 'number') return ["—", "점수"];
+                  return [`${scoreToLabel(value)} (${value.toFixed(1)}점)`, "점수"];
+                }}
+              />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <ReferenceLine
                 x={activeWindow.action_date.slice(5)}

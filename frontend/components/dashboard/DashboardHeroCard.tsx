@@ -188,7 +188,7 @@ export default function DashboardHeroCard({
               {naverCaptchaBlocked
                 ? "AI 노출 확인 불가"
                 : eligibility === "inactive"
-                ? "네이버 AI탭·ChatGPT·Gemini·Google AI 노출 관리"
+                ? "네이버 검색 노출·AI탭 + ChatGPT·Gemini·Google AI 관리"
                 : eligibility === "likely"
                 ? "네이버 AI탭 가능 · ChatGPT·Gemini·Google AI — 4채널"
                 : naverInBriefing
@@ -197,7 +197,7 @@ export default function DashboardHeroCard({
             </p>
             <p className="text-sm text-gray-500">
               {eligibility === "inactive"
-                ? "네이버 AI탭·ChatGPT·Gemini·Google AI (4채널)"
+                ? "네이버 검색 노출·AI탭 우선 + 글로벌 AI (4채널)"
                 : eligibility === "likely"
                 ? "네이버 AI탭 + 글로벌 AI 3채널"
                 : "네이버 AI 브리핑·AI탭 + 글로벌 AI 3채널"}
@@ -284,8 +284,7 @@ export default function DashboardHeroCard({
         <div className="px-5 py-3 bg-emerald-50 border-t border-emerald-100 flex items-center gap-2">
           <span className="text-emerald-600 text-base font-black shrink-0">✓</span>
           <p className="text-sm text-emerald-800 font-medium break-keep">
-            지난주 <span className="font-bold">{actionLabel}</span> 후 점수{" "}
-            <span className="font-black text-emerald-700">+{recentActionScoreGain}점</span> 상승
+            지난주 <span className="font-bold">{actionLabel}</span> 후 점수 ↑ 개선됨
           </p>
         </div>
       )}

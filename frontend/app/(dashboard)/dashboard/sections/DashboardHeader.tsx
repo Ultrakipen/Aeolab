@@ -25,6 +25,7 @@ interface BusinessShape {
   visitor_review_count?: number;
   receipt_review_count?: number;
   avg_rating?: number;
+  naver_place_id?: string | null;
   naver_place_url?: string | null;
 }
 
@@ -229,6 +230,7 @@ export default function DashboardHeader({
                   visitor_review_count: business.visitor_review_count ?? 0,
                   receipt_review_count: business.receipt_review_count ?? 0,
                   avg_rating: business.avg_rating ?? 0,
+                  naver_place_id: business.naver_place_id ?? "",
                   naver_place_url: business.naver_place_url ?? "",
                 }}
               />

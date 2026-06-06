@@ -51,9 +51,30 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
       </div>
 
       <div className="p-4 md:p-6">
-        <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-          AEOlab은 5가지 AI 채널 노출을 측정합니다. 네이버 2채널은 업종 조건이 있고, 글로벌 3채널은 모든 업종 가능합니다.
-        </p>
+        {briefingInactive ? (
+          <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
+            이 업종은 <strong>네이버 플레이스탭·검색 상위노출</strong>이 가장 실질적인 고객 유입 경로입니다. 여기에 네이버 AI탭(2026년 6월 전체 출시)을 더하면 노출을 확장할 수 있습니다. 글로벌 AI(ChatGPT·Gemini·Google AI)는 장기 과제입니다.
+          </p>
+        ) : (
+          <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
+            AEOlab은 5가지 AI 채널 노출을 측정합니다. 네이버 2채널은 업종 조건이 있고, 글로벌 3채널은 모든 업종 가능합니다.
+          </p>
+        )}
+
+        {briefingInactive && (
+          <div className="mb-3 rounded-xl border border-green-300 bg-green-50 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-green-600 text-white">N</span>
+              <h3 className="text-sm md:text-base font-bold text-green-900">네이버 검색 상위노출 ★ 핵심</h3>
+              <span className="ml-auto inline-flex items-center rounded-full bg-green-600 text-white px-2 py-0.5 text-sm font-bold">지금 바로 가능</span>
+            </div>
+            <ul className="space-y-1 text-sm text-slate-700 leading-snug">
+              <li>• 스마트플레이스 소개글·사진·소식 업데이트 → 플레이스탭 상위 노출</li>
+              <li>• 블로그 정기 발행 (주 1~2회) → 네이버 검색 결과 상위 노출</li>
+              <li>• 리뷰 답글 꾸준히 달기 → 플레이스 신뢰도·C-Rank 향상</li>
+            </ul>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           {/* 좌측: AI 브리핑 */}
@@ -221,20 +242,37 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
           <ChannelTimelineBox briefingEligibility={briefingEligibility} globalOnly compact />
         </div>
 
-        <div className="mt-4 flex flex-col sm:flex-row gap-2">
-          <Link
-            href="/guide/ai-info-tab"
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-white hover:bg-blue-50 text-blue-700 text-sm md:text-base font-semibold px-3 py-2 transition-colors"
-          >
-            AI 브리핑 5단계 가이드 →
-          </Link>
-          <Link
-            href="/guide/ai-tab"
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-indigo-200 bg-white hover:bg-indigo-50 text-indigo-700 text-sm md:text-base font-semibold px-3 py-2 transition-colors"
-          >
-            AI탭 5항목 가이드 →
-          </Link>
-        </div>
+        {briefingInactive ? (
+          <div className="mt-4 flex flex-col sm:flex-row gap-2">
+            <Link
+              href="/guide/ai-tab"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-indigo-200 bg-white hover:bg-indigo-50 text-indigo-700 text-sm md:text-base font-semibold px-3 py-2 transition-colors"
+            >
+              AI탭 5항목 가이드 →
+            </Link>
+            <Link
+              href="/guide/chatgpt-search"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm md:text-base font-semibold px-3 py-2 transition-colors"
+            >
+              ChatGPT·Gemini 가이드 →
+            </Link>
+          </div>
+        ) : (
+          <div className="mt-4 flex flex-col sm:flex-row gap-2">
+            <Link
+              href="/guide/ai-info-tab"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-white hover:bg-blue-50 text-blue-700 text-sm md:text-base font-semibold px-3 py-2 transition-colors"
+            >
+              AI 브리핑 5단계 가이드 →
+            </Link>
+            <Link
+              href="/guide/ai-tab"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-indigo-200 bg-white hover:bg-indigo-50 text-indigo-700 text-sm md:text-base font-semibold px-3 py-2 transition-colors"
+            >
+              AI탭 5항목 가이드 →
+            </Link>
+          </div>
+        )}
 
         {/* 채널별 측정 원리 — GlobalAiFocusCard 미표시 업종(global < 0.65)에만 노출 */}
         {globalWeight !== undefined && globalWeight < 0.65 && (

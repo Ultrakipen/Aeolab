@@ -44,7 +44,9 @@ export default function TrialCompetitorGapCard({
     (r) => r.query.includes(" ") && r.query.split(" ").length >= 2
   );
 
-  const maxBlog = Math.max(blogCount, topCompetitorBlogCount ?? 0, 1);
+  // 1500건 초과 시 바 그래프 상한선 적용 (부풀린 수치로 바가 압도되는 것 방지)
+  const cappedCompBlog = Math.min(topCompetitorBlogCount ?? 0, 1500);
+  const maxBlog = Math.max(blogCount, cappedCompBlog, 1);
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 mb-4 shadow-sm">
@@ -175,10 +177,17 @@ export default function TrialCompetitorGapCard({
               <div>
                 <div className="flex justify-between text-sm mb-0.5">
                   <span className="text-gray-600 font-semibold truncate max-w-[160px]">{topCompetitorName} (1위)</span>
-                  <span className="text-gray-700 font-bold shrink-0">{topCompetitorBlogCount ?? 0}건</span>
+                  <span className="text-gray-700 font-bold shrink-0">
+                    {(topCompetitorBlogCount ?? 0) > 1500
+                      ? `${(topCompetitorBlogCount ?? 0).toLocaleString()}건 (추정)`
+                      : `${(topCompetitorBlogCount ?? 0).toLocaleString()}건`}
+                  </span>
                 </div>
                 <div className="w-full bg-white rounded-full h-2.5">
-                  <div className="h-2.5 rounded-full bg-gray-400 w-full" />
+                  <div
+                    className="h-2.5 rounded-full bg-gray-400"
+                    style={{ width: `${Math.round((cappedCompBlog / maxBlog) * 100)}%` }}
+                  />
                 </div>
               </div>
               <div className="pt-1 space-y-0.5">

@@ -1491,7 +1491,7 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
 
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
     from services.gap_analyzer import analyze_gap_from_db
-    from services.briefing_engine import build_direct_briefing_paths, _clean_keyword
+    from services.briefing_engine import build_direct_briefing_paths, _clean_keyword, _make_intro_content
 
     plan = await get_user_plan(user["id"], supabase)
     plan_rank = PLAN_HIERARCHY.get(plan, 0)
@@ -1500,7 +1500,7 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
     # 사업장 + 최신 스캔 로드
     biz_row = (await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, naver_place_id, keywords, has_faq, has_intro, has_recent_post, review_count, sp_completeness_json")
+        .select("id, name, category, region, naver_place_id, keywords, has_faq, has_intro, has_recent_post, review_count, sp_completeness_json, review_sample")
         .eq("id", biz_id)
         .single()
     )).data
@@ -1592,12 +1592,14 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
         has_reservation_val = bool(sp_json.get("has_reservation"))
 
     # briefing paths 생성 (AI 호출 없음, 순수 템플릿)
+    review_sample_val = biz_row.get("review_sample") or None
     paths = build_direct_briefing_paths(
         biz=biz_row,
         missing_keywords=missing_keywords,
         competitor_only_keywords=competitor_only,
         existing_keywords=existing_keywords,
         has_reservation=has_reservation_val,
+        review_excerpts=[review_sample_val] if review_sample_val else None,
     )
     paths_by_id = {p["path_id"]: p for p in paths}
 
@@ -1682,6 +1684,17 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
             reason = f"정보 완성도가 {'낮습니다' if ic < 40 else '보통 수준입니다'} — 소개글 키워드 보강이 가장 가성비 좋은 개선입니다." if ic < 80 else "소개글을 한 번 손보면 영구적으로 AI 브리핑 신호가 유지됩니다."
             evidence = "정보 완성도"
             evidence_type = "smart_place"
+        # pioneer_keywords가 있을 때 copy_text는 pioneer 키워드를 앞세워 재생성
+        if pioneer_keywords:
+            intro_copy = _make_intro_content(
+                target_keywords=pioneer_keywords[:1] + missing_keywords[:2],
+                business_name=business_name,
+                category=biz_row.get("category", ""),
+                region=biz_row.get("region", ""),
+                existing_keywords=existing_keywords,
+            )
+        else:
+            intro_copy = intro_path.get("ready_content", "")
         tips.append({
             "id": "intro_rewrite",
             "title": intro_path["path_name"],
@@ -1692,7 +1705,7 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
             "urgency_label": intro_path.get("urgency_label", "이번 달 중"),
             "estimated_time": intro_path.get("estimated_time", "10분"),
             "impact": intro_path.get("impact", ""),
-            "copy_text": intro_path.get("ready_content", ""),
+            "copy_text": intro_copy,
             "action_url": intro_path.get("action_url"),
             "action_label": "기본 정보 편집",
             "locked": not is_paid,
@@ -1703,7 +1716,11 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
         post_path = paths_by_id.get("post")
         missed = [p for p in missing_platforms_ko if p in ("ChatGPT", "구글 AI Overview")]
         kw_clean = _clean_keyword(missing_keywords[0]) if missing_keywords else ""
-        reason = f"{', '.join(missed)} 스캔에서 내 가게가 검출되지 않았습니다. 소식 업데이트로 최신성 신호를 주 1회 발신하세요."
+        reason = (
+            f"{', '.join(missed)} 스캔에서 내 가게가 검출되지 않았습니다. "
+            f"소식 발행 → 네이버 크롤링 → Bing 인덱스 → ChatGPT 학습 경로로 "
+            f"최신성 신호가 쌓입니다 (반영까지 수 주~수개월 소요). 주 1회 꾸준히 발행하세요."
+        )
         tips.append({
             "id": "post_global",
             "title": (post_path or {}).get("path_name", "스마트플레이스 소식 업데이트"),
@@ -4200,6 +4217,155 @@ async def simulate_score(
     }
 
 
+# ── 프로필 변경 점수 델타 ──────────────────────────────────────────────────────
+
+async def _get_scan_remaining(user_id: str, supabase) -> tuple[int, int]:
+    """오늘 수동 스캔 잔여 횟수 조회 (side effect 없음 — free 스캔 마킹 안 함)."""
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
+    plan = await get_user_plan(user_id, supabase)
+    limit = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"]).get("manual_scan_daily", 0)
+    if limit >= 999:
+        return 999, 999
+    if limit == 0:
+        return 0, 0
+    today_str = date.today().isoformat() + "T00:00:00"
+    biz_res = await execute(supabase.table("businesses").select("id").eq("user_id", user_id))
+    biz_ids = [b["id"] for b in (biz_res.data or [])]
+    if not biz_ids:
+        return limit, limit
+    result = await execute(
+        supabase.table("scan_results")
+        .select("id", count="exact")
+        .in_("business_id", biz_ids)
+        .gte("scanned_at", today_str)
+    )
+    used = result.count or 0
+    return max(0, limit - used), limit
+
+
+@router.get("/score-delta/{biz_id}")
+async def get_score_delta(biz_id: str, user=Depends(get_current_user)):
+    """마지막 스캔 이후 프로필 변경으로 인한 점수 변화 추정.
+
+    Naver Playwright 호출 없음 — 마지막 스캔 데이터 + 현재 biz 프로필로 재계산.
+    keyword_gap(30%)·AI브리핑 노출(15%)은 마지막 스캔 데이터 고정.
+    """
+    from datetime import datetime, timezone, timedelta as _td
+    from services.score_engine import calculate_score, NAVER_TRACK_WEIGHTS
+
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    # 다음 자동 스캔 시각 계산 (매일 02:00 KST = UTC 17:00)
+    kst = timezone(_td(hours=9))
+    now_kst = datetime.now(timezone.utc).astimezone(kst)
+    next_scan_kst = now_kst.replace(hour=2, minute=0, second=0, microsecond=0)
+    if now_kst.hour >= 2:
+        next_scan_kst += _td(days=1)
+    next_auto_scan = next_scan_kst.isoformat()
+
+    # 수동 스캔 잔여 횟수 (side effect 없음)
+    remaining, daily_limit = await _get_scan_remaining(user["id"], supabase)
+
+    # 마지막 스캔 조회
+    scan_res = await execute(
+        supabase.table("scan_results")
+        .select(
+            "naver_result, gemini_result, chatgpt_result, "
+            "google_result, kakao_result, website_check_result, "
+            "score_breakdown, track1_score, scanned_at"
+        )
+        .eq("business_id", biz_id)
+        .order("scanned_at", desc=True)
+        .limit(1)
+    )
+    if not (scan_res and scan_res.data):
+        return {
+            "measured_score": None,
+            "measured_at": None,
+            "estimated_score": None,
+            "delta": None,
+            "changed_items": [],
+            "next_auto_scan": next_auto_scan,
+            "manual_scan_remaining": remaining,
+            "manual_scan_daily_limit": daily_limit,
+            "note": "스캔 이력이 없습니다. 첫 스캔을 실행해 주세요.",
+        }
+
+    scan_data = scan_res.data[0]
+    stored_track1 = float(scan_data.get("track1_score") or 0)
+    stored_breakdown = scan_data.get("score_breakdown") or {}
+    measured_at = scan_data.get("scanned_at")
+
+    # 현재 biz 정보 조회
+    biz_res = await execute(
+        supabase.table("businesses")
+        .select(
+            "id, category, has_faq, has_recent_post, has_intro, is_smart_place, "
+            "naver_place_id, kakao_place_id, review_count, avg_rating, "
+            "keywords, receipt_review_count, kakao_score, checklist_overrides, "
+            "naver_intro_draft, sp_completeness_json, talktalk_faq_draft"
+        )
+        .eq("id", biz_id)
+        .maybe_single()
+    )
+    if not (biz_res and biz_res.data):
+        raise HTTPException(status_code=404, detail="사업장 정보 없음")
+    biz = biz_res.data
+
+    # 마지막 스캔 데이터 정규화 (Naver 재요청 없음)
+    normalized_scan = {
+        "naver":          scan_data.get("naver_result") or {},
+        "gemini":         scan_data.get("gemini_result") or {},
+        "chatgpt":        scan_data.get("chatgpt_result") or {},
+        "google":         scan_data.get("google_result") or {},
+        "kakao_result":   scan_data.get("kakao_result") or {},
+        "website_check":  scan_data.get("website_check_result") or {},
+    }
+
+    # 현재 프로필로 점수 재계산
+    current_result = calculate_score(normalized_scan, biz)
+    current_breakdown = current_result.get("breakdown") or {}
+    current_track1 = float(current_result.get("track1_score") or 0)
+
+    # 사용자 직접 입력으로 변경 가능한 항목만 비교
+    # review_quality(리뷰 수·평점)는 스캔 시 자동 갱신 — 사용자 입력 불가이므로 제외
+    USER_INPUT_ITEMS = {
+        "smart_place_completeness": "스마트플레이스 완성도",  # has_intro, has_recent_post
+        "kakao_completeness":       "카카오맵 완성도",        # kakao_score 체크리스트
+        "ai_tab_readiness":         "AI탭 준비도",            # checklist_overrides
+    }
+    changed_items = []
+    for key, label in USER_INPUT_ITEMS.items():
+        old_val = float(stored_breakdown.get(key) or 0)
+        new_val = float(current_breakdown.get(key) or 0)
+        raw_diff = new_val - old_val
+        if abs(raw_diff) >= 0.5:
+            weight = NAVER_TRACK_WEIGHTS.get(key, 0)
+            changed_items.append({
+                "key":            key,
+                "label":          label,
+                "old_score":      round(old_val, 1),
+                "new_score":      round(new_val, 1),
+                "weighted_delta": round(raw_diff * weight, 1),
+                "source":         "추정",
+            })
+
+    delta = round(current_track1 - stored_track1, 1)
+
+    return {
+        "measured_score":        round(stored_track1, 1),
+        "measured_at":           measured_at,
+        "estimated_score":       round(current_track1, 1),
+        "delta":                 delta,
+        "changed_items":         changed_items,
+        "next_auto_scan":        next_auto_scan,
+        "manual_scan_remaining": remaining,
+        "manual_scan_daily_limit": daily_limit,
+        "note": "keyword_gap(30%)·AI브리핑 노출(15%)은 마지막 스캔 기준 고정값입니다.",
+    }
+
+
 # ── AI 검색 화면 스크린샷 ────────────────────────────────────────────────────
 
 @router.get("/ai-search-screenshots/{biz_id}")
@@ -4748,10 +4914,10 @@ async def get_visit_delta(
         # 기간 내 행이 1개뿐 -> 이전 기록을 before로 사용
         before_res = await execute(
             supabase.table("score_history")
-            .select("unified_score, created_at")
+            .select("unified_score, score_date")
             .eq("business_id", biz_id)
-            .lt("created_at", last_visit_iso)
-            .order("created_at", desc=True)
+            .lt("score_date", last_visit_iso[:10])
+            .order("score_date", desc=True)
             .limit(1)
         )
         before_rows = (before_res.data or []) if before_res else []
@@ -4821,7 +4987,7 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
     # 1. businesses에서 review_count, keywords 가져오기
     biz_res = await execute(
         supabase.table("businesses")
-        .select("review_count, keywords, category, naver_place_id")
+        .select("review_count, keywords, category, naver_place_id, naver_place_url")
         .eq("id", biz_id)
         .limit(1)
     )
@@ -4829,6 +4995,7 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
     biz_row = biz_rows[0] if biz_rows else {}
     review_count = int((biz_row.get("review_count") if biz_row else None) or 0)
     naver_place_id = str(biz_row.get("naver_place_id") or "").strip()
+    naver_place_url = str(biz_row.get("naver_place_url") or "").strip()
     registered_keywords = [k for k in (biz_row.get("keywords") or []) if k and str(k).strip()]
 
     # 경쟁사 평균 점수 조회 (monthly-checklist 기준값 개인화)
@@ -4994,7 +5161,13 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
             "id": "smart_place_photo",
             "title": "대표 사진 3장 업데이트하기",
             "description": (
-                f"현재 사진 {photo_count}장 — 3장 이상이면 스마트플레이스 노출이 유리해집니다"
+                (
+                    "사진 수 측정 불가 — 스마트플레이스 연동 후 스캔하면 자동으로 확인됩니다"
+                    if (photo_count_raw is None and not naver_place_id and not naver_place_url)
+                    else "사진 수 측정 불가 — 다음 AI 스캔 시 자동으로 확인됩니다"
+                    if photo_count_raw is None
+                    else f"현재 사진 {photo_count}장 — 3장 이상이면 스마트플레이스 노출이 유리해집니다"
+                )
                 if not photo_done
                 else (
                     f"대표 사진 {photo_count}장 등록 완료!"
@@ -5116,7 +5289,7 @@ async def get_score_attribution(
     try:
         hist_res = await execute(
             supabase.table("score_history")
-            .select("score_date,unified_score,score_breakdown,created_at")
+            .select("score_date,unified_score,score_breakdown")
             .eq("business_id", biz_id)
             .gte("score_date", since[:10])
             .order("score_date", desc=False)
@@ -5129,7 +5302,7 @@ async def get_score_attribution(
             try:
                 hist_res = await execute(
                     supabase.table("score_history")
-                    .select("score_date,unified_score,created_at")
+                    .select("score_date,unified_score")
                     .eq("business_id", biz_id)
                     .gte("score_date", since[:10])
                     .order("score_date", desc=False)
