@@ -557,7 +557,7 @@ export default function DemoPage() {
                 <p className="text-sm md:text-base text-slate-600 leading-relaxed">
                   네이버 AI 브리핑은 음식점·카페 등 일부 업종만 대상입니다.
                   이 업종은 <strong className="text-slate-800">ChatGPT·Google AI</strong> 노출 개선이 더 효과적이며,
-                  <strong className="text-slate-800"> 네이버 AI탭</strong>(모든 업종, 2026년 6월 전체 출시 예정)도 확인하세요.
+                  <strong className="text-slate-800"> 네이버 AI탭</strong>(모든 업종, 베타 확대 중)도 확인하세요.
                 </p>
               </div>
             </div>
@@ -1035,7 +1035,7 @@ export default function DemoPage() {
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">네이버 AI탭</span>
-                        <span>2026-04-27 베타 오픈, 모든 업종 대상 (2026년 6월 전체 출시 예정)</span>
+                        <span>2026-04-27 베타 오픈, 모든 업종 대상 (베타 확대 중)</span>
                       </li>
                     </ul>
                   </div>

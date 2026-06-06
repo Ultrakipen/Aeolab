@@ -455,20 +455,20 @@ function V31SixItems({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className={`text-sm md:text-base font-semibold ${aiBriefingApplicable ? "text-gray-800" : "text-indigo-900"}`}>
-                {aiBriefingApplicable ? "⑥ AI 브리핑 인용" : "⑥ 네이버 AI탭 (Beta · 2026년 6월 전체 출시 예정)"}
+                {aiBriefingApplicable ? "⑥ AI 브리핑 인용" : "⑥ 네이버 AI탭 (Beta · 베타 확대 중)"}
               </span>
               {aiBriefingApplicable ? (
                 <WeightBadge pct={weights["ai_briefing_score"]} color="text-blue-700 bg-blue-50 border-blue-200" />
               ) : (
                 <span className="text-sm text-indigo-700 bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-full font-medium">
-                  Beta · 2026년 6월 전체 출시 예정
+                  Beta · 베타 확대 중
                 </span>
               )}
             </div>
             <p className={`text-sm ${aiBriefingApplicable ? "text-gray-500" : "text-indigo-700"}`}>
               {aiBriefingApplicable
                 ? "실제 네이버 AI 브리핑에 노출됐는지 확인합니다"
-                : "네이버 AI탭은 업종 공식 제한이 없습니다 (2026-04-27 베타, 2026년 6월 전체 출시 예정)"}
+                : "네이버 AI탭은 업종 공식 제한이 없습니다 (2026-04-27 베타, 베타 확대 중)"}
             </p>
           </div>
           {aiBriefingApplicable && <ScoreBadge value={aiItem?.score ?? 0} />}
@@ -796,13 +796,13 @@ function V30FourItems({
           <div className="flex items-start justify-between gap-3 mb-2">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-1">
-                <span className="text-sm md:text-base font-semibold text-indigo-900">4. 네이버 AI탭 (Beta · 2026년 6월 전체 출시 예정)</span>
+                <span className="text-sm md:text-base font-semibold text-indigo-900">4. 네이버 AI탭 (Beta · 베타 확대 중)</span>
                 <span className="text-sm text-indigo-700 bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-full font-medium">
-                  Beta · 2026년 6월 전체 출시 예정
+                  Beta · 베타 확대 중
                 </span>
               </div>
               <p className="text-sm text-indigo-700 leading-relaxed">
-                네이버 AI탭은 업종 공식 제한이 없습니다 (2026-04-27 베타, 2026년 6월 전체 출시 예정)
+                네이버 AI탭은 업종 공식 제한이 없습니다 (2026-04-27 베타, 베타 확대 중)
               </p>
             </div>
           </div>
@@ -978,7 +978,7 @@ export default function ScoreEvidenceCard({
               <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 flex items-start gap-2">
                 <span className="text-indigo-400 text-sm shrink-0 mt-0.5">ℹ️</span>
                 <p className="text-sm text-indigo-800 leading-relaxed">
-                  <strong>네이버 AI탭</strong>은 업종 제한 없이 노출 가능합니다 (2026-04-27 베타, 2026년 6월 전체 출시 예정).{" "}
+                  <strong>네이버 AI탭</strong>은 업종 제한 없이 노출 가능합니다 (2026-04-27 베타, 베타 확대 중).{" "}
                   소개글 200자 이상·사진 10장 이상·블로그 후기 확보가 핵심입니다.
                 </p>
               </div>

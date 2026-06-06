@@ -122,7 +122,7 @@ export default async function AiTabGuidePage({
         <p className="text-sm md:text-base text-indigo-800 leading-relaxed break-keep">
           AI 브리핑(검색결과 상단 자동 추천 박스)과는 다른 노출 경로입니다.
           AI탭은 <strong>업종·프랜차이즈 제한 없이 모든 사업장</strong>이 노출 가능합니다.
-          2026-04-27 베타 출시, 2026년 6월 전체 출시 예정입니다 (현재 베타 서비스 중).
+          2026-04-27 베타 출시, 현재 베타 확대 중입니다.
         </p>
         {briefingElig === 'active' && (
           <p className="mt-2 text-sm text-indigo-700 bg-white border border-indigo-100 rounded px-2.5 py-1.5">
@@ -157,7 +157,7 @@ export default async function AiTabGuidePage({
       <div className="rounded-xl p-4 md:p-5 bg-slate-50 border border-slate-200">
         {business ? (
           <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">
-            <strong>{business.name}</strong>: AI탭은 업종 공식 제한 없이 모든 사업장이 노출 가능합니다 (2026-04-27 베타, 2026년 6월 전체 출시 예정). 아래 5개 항목을 충실히 갖출수록 노출 확률이 높아집니다.
+            <strong>{business.name}</strong>: AI탭은 업종 공식 제한 없이 모든 사업장이 노출 가능합니다 (2026-04-27 베타, 베타 확대 중). 아래 5개 항목을 충실히 갖출수록 노출 확률이 높아집니다.
           </p>
         ) : (
           <p className="text-sm md:text-base text-gray-700">
@@ -224,7 +224,7 @@ export default async function AiTabGuidePage({
       {/* 면책 문구 */}
       <p className="text-sm text-gray-500 leading-snug break-keep">
         AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
-        AI탭은 2026-04-27 베타 출시 · 2026년 6월 전체 출시 예정이며, 노출 조건은 정식 출시 후 변경될 수 있습니다.
+        AI탭은 2026-04-27 베타 출시 · 베타 확대 중이며, 노출 조건은 향후 변경될 수 있습니다.
       </p>
 
       <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 md:p-5">

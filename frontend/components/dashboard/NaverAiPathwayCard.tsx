@@ -26,7 +26,7 @@ interface Props {
  * 대시보드 상단에 명확한 비교 표를 노출.
  *
  * - AI 브리핑: 업종 제한 있음 (음식점·카페 등), 프랜차이즈 제외, 2025.03 정식
- * - AI탭: 모든 업종 가능, 2026-04-27 베타, 6월 전체 확대 예정 (네이버 공식)
+ * - AI탭: 모든 업종 가능, 2026-04-27 베타, 베타 확대 중 (네이버 공식)
  *
  * 자기 업종 기준으로 "현재 대상" 배지를 자동 표시.
  */
@@ -53,7 +53,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
       <div className="p-4 md:p-6">
         {briefingInactive ? (
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            이 업종은 <strong>네이버 플레이스탭·검색 상위노출</strong>이 가장 실질적인 고객 유입 경로입니다. 여기에 네이버 AI탭(2026년 6월 전체 출시)을 더하면 노출을 확장할 수 있습니다. 글로벌 AI(ChatGPT·Gemini·Google AI)는 장기 과제입니다.
+            이 업종은 <strong>네이버 플레이스탭·검색 상위노출</strong>이 가장 실질적인 고객 유입 경로입니다. 여기에 네이버 AI탭(베타 확대 중)을 더하면 노출을 확장할 수 있습니다. 글로벌 AI(ChatGPT·Gemini·Google AI)는 장기 과제입니다.
           </p>
         ) : (
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
@@ -155,7 +155,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                 </h3>
               </div>
               <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-sm font-bold gap-1">
-                <Sparkles className="w-3 h-3" /> 2026년 6월 전체 출시 예정
+                <Sparkles className="w-3 h-3" /> 베타 확대 중
               </span>
             </div>
             <p className="text-sm font-semibold text-indigo-900 mb-1.5 break-keep">
@@ -163,7 +163,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             </p>
             <ul className="space-y-1 text-sm text-slate-700 leading-snug">
               <li>• <strong>업종 공식 제한 없음</strong> — 장소 기반 모든 업종 가능</li>
-              <li>• 플레이스·쇼핑 에이전트 통합 검색 (2026년 6월 전체 출시 예정)</li>
+              <li>• 플레이스·쇼핑 에이전트 통합 검색 (베타 확대 중)</li>
               <li>• 핵심: 소개글 Q&A 포함·사진 10장+·예약 연동·블로그 후기</li>
               <li>• 베타 1개월 누적 사용자 300만명 돌파</li>
             </ul>

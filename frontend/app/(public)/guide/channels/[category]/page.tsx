@@ -60,10 +60,10 @@ function getChannelCards(entry: ChannelGuideEntry) {
       id: "aitab",
       title: "네이버 AI탭",
       subtitle: "2026 베타 공개",
-      status: "2026-04-27 베타 · 2026년 6월 전체 출시 예정",
+      status: "2026-04-27 베타 · 베타 확대 중",
       statusColor: "bg-violet-100 text-violet-800",
       detail:
-        "2026-04-27 베타, 2026년 6월 전체 출시 예정. 업종 공식 제한이 없습니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
+        "2026-04-27 베타, 베타 확대 중. 업종 공식 제한이 없습니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
       icon: "✨",
     },
     {
