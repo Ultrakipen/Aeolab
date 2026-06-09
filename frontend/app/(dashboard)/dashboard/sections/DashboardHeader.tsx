@@ -203,12 +203,12 @@ export default function DashboardHeader({
                       △ AI 브리핑 확대 예정
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 whitespace-nowrap">
-                      🌐 네이버 AI탭·ChatGPT·Gemini 노출 가능
+                    <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 whitespace-nowrap">
+                      ChatGPT·AI탭·Gemini 노출 지원 업종
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 flex items-center gap-1">
+                <p className="text-sm text-gray-500 flex items-center gap-1 hidden sm:flex">
                   <RefreshCw className="w-3 h-3 shrink-0" />
                   <span className="break-keep">{scanInfo.label}</span>
                 </p>
@@ -261,7 +261,7 @@ export default function DashboardHeader({
           </div>
 
           {/* 기대치 1줄 안내 */}
-          <p className="text-sm text-slate-500 mb-3 leading-snug">
+          <p className="text-sm text-slate-500 mb-3 leading-snug hidden sm:block">
             분석 결과는 현재 상태를 진단합니다. 스마트플레이스 변경은 1~2일, AI탭·블로그 개선은 2~4주 후 반영됩니다. AEOlab이 매주 변화를 추적합니다.
           </p>
 

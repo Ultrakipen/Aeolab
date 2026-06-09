@@ -213,13 +213,13 @@ export function ScanTrigger({
           {!limitReached && hasKeywords && keywords && (
             <div className="flex-1 flex flex-col gap-2">
               <span className="text-sm font-semibold text-gray-600">검색 키워드 선택</span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:pb-0">
                 {keywords.map((kw) => (
                   <button
                     key={kw}
                     type="button"
                     onClick={() => setSelectedKeyword(kw)}
-                    className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
+                    className={`text-sm px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap ${
                       selectedKeyword === kw
                         ? 'bg-blue-600 text-white border-blue-600'
                         : 'border-gray-300 text-gray-700 hover:border-blue-400 hover:text-blue-600 bg-white'
@@ -235,7 +235,7 @@ export function ScanTrigger({
                   <p className="text-sm text-blue-600 font-medium break-keep">
                     검색어: &quot;{regionFirst} {activeKw} 추천&quot;
                   </p>
-                  <p className="text-sm text-gray-400 mt-0.5 break-keep">
+                  <p className="text-sm text-gray-400 mt-0.5 break-keep hidden sm:block">
                     수동: 선택 키워드 스캔 · 자동(새벽 2시): 키워드 순환 스캔
                   </p>
                 </div>
