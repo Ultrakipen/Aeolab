@@ -82,7 +82,7 @@ async def fetch_competitor_place_data(naver_place_id: str) -> dict:
 
     try:
         async with _get_playwright_sem():
-            return await asyncio.wait_for(_run_place_crawl(naver_place_id), timeout=30)
+            return await asyncio.wait_for(_run_place_crawl(naver_place_id), timeout=90)
     except asyncio.TimeoutError:
         _logger.warning(f"competitor_place_crawler timeout: {naver_place_id}")
         return {**default, "error": "timeout"}
