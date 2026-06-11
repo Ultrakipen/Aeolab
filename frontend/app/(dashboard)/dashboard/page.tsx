@@ -1,22 +1,30 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SUPPORTED_CATEGORIES as PHOTO_SUPPORTED_CATEGORIES } from "@/lib/photoCategories";
-import { getBriefingEligibility } from "@/lib/userGroup";
+import { getBriefingEligibility, getUserGroup } from "@/lib/userGroup";
 import { fetchBriefingCategories } from "@/lib/briefingCategoriesServer";
 import { getActiveBusinessId } from "@/lib/active-business";
 import type { WebsiteCheckResult } from "@/types";
 import DashboardHeader from "./sections/DashboardHeader";
+import ScanWithModal from "./ScanWithModal";
 import FirstScanBanner from "@/components/onboarding/FirstScanBanner";
 import { MaintenanceBanner } from "@/components/dashboard/MaintenanceBanner";
-import ScanResultNavBar from "@/components/dashboard/ScanResultNavBar";
-import { ContextTipBanner } from "@/components/dashboard/ContextTipBanner";
 import DashboardScoreZone from "./sections/DashboardScoreZone";
-import { ScoreDeltaBanner } from "@/components/dashboard/ScoreDeltaBanner";
 import DashboardActionZone from "./sections/DashboardActionZone";
 import DashboardInsightZone from "./sections/DashboardInsightZone";
-import DashboardGeneratorZone from "./sections/DashboardGeneratorZone";
+
 import DashboardDetailZone from "./sections/DashboardDetailZone";
+import DashboardGuidanceZone from "./sections/DashboardGuidanceZone";
+import DashboardGlobalAiZone from "./sections/DashboardGlobalAiZone";
+import DashboardContentZone from "./sections/DashboardContentZone";
+import CollapseSectionWrapper from "./sections/CollapseSectionWrapper";
 import DashboardFooter from "./sections/DashboardFooter";
+import NaverAiPathwayCard from "@/components/dashboard/NaverAiPathwayCard";
+import ScanResultNavBar from "@/components/dashboard/ScanResultNavBar";
+import DashboardDeliverableSignal from "@/components/dashboard/DashboardDeliverableSignal";
+import DashboardEvidencePreview from "@/components/dashboard/DashboardEvidencePreview";
+import { IneligibleBusinessNotice } from "@/components/dashboard/IneligibleBusinessNotice";
+import { CATEGORY_LABEL } from "@/lib/categories";
 import {
   SCAN_DAILY_LIMITS,
   nextScanLabel,
@@ -55,7 +63,7 @@ export default async function DashboardPage({
   // ── 사업장 목록 ──────────────────────────────────────────────
   const { data: businesses } = await supabase
     .from("businesses")
-    .select("id, name, category, region, business_type, website_url, naver_place_id, google_place_id, kakao_place_id, kakao_score, kakao_checklist, kakao_registered, is_active, naver_place_url, review_count, avg_rating, keywords, is_smart_place, has_faq, has_recent_post, has_intro, visitor_review_count, receipt_review_count, blog_url, blog_keyword_coverage, blog_post_count, blog_analyzed_at, checklist_overrides, is_franchise, ai_info_tab_status, naver_intro_draft, naver_intro_generated_at, talktalk_faq_draft, talktalk_faq_generated_at")
+    .select("id, name, category, region, business_type, website_url, naver_place_id, google_place_id, kakao_place_id, kakao_score, kakao_checklist, kakao_registered, is_active, naver_place_url, review_count, avg_rating, keywords, is_smart_place, has_faq, has_recent_post, has_intro, visitor_review_count, receipt_review_count, blog_url, blog_keyword_coverage, blog_post_count, blog_analyzed_at, checklist_overrides, is_franchise, ai_info_tab_status, naver_intro_draft, naver_intro_generated_at, global_intro_draft, global_intro_generated_at, talktalk_faq_draft, talktalk_faq_generated_at")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .order("created_at", { ascending: true })
@@ -205,7 +213,14 @@ export default async function DashboardPage({
     ? Math.round(((history[0]?.unified_score ?? history[0]?.total_score ?? 0) as number) - ((history[1]?.unified_score ?? history[1]?.total_score ?? 0) as number))
     : null;
 
-  const lastScannedLabel = calcLastScannedLabel(latestScan?.scanned_at as string | null | undefined);
+  const latestScannedAt = latestScan?.scanned_at as string | null | undefined;
+  const daysSinceScan = latestScannedAt
+    ? Math.floor((Date.now() - new Date(latestScannedAt).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+  const showRescanIsStale = !showRescanNotice && daysSinceScan !== null && daysSinceScan >= 7;
+  const showRescanNoticeFinal = showRescanNotice || showRescanIsStale;
+
+  const lastScannedLabel = calcLastScannedLabel(latestScannedAt);
   const displayCity = calcDisplayCity(business?.region);
 
   const smartPlaceStatus = buildSmartPlaceStatus(latestScan, business ?? { has_faq: false, has_intro: false, has_recent_post: false, checklist_overrides: null });
@@ -259,6 +274,16 @@ export default async function DashboardPage({
     geminiSampleSize: latestScan.gemini_result ? Number((latestScan.gemini_result as Record<string,unknown>).sample_size ?? 0) : undefined,
   } : undefined;
 
+  // 🔎 실측 증거 — ChatGPT가 내 가게를 실제 언급한 인용문 (없으면 미표시)
+  const chatgptCitation: string | null = (() => {
+    const cites = (latestScan?.chatgpt_result as { citations?: unknown[] } | null)?.citations;
+    if (Array.isArray(cites)) {
+      const first = cites.find((c) => typeof c === "string" && (c as string).trim().length > 0);
+      if (first) return first as string;
+    }
+    return null;
+  })();
+
   const photoCategories = (latestScan?.photo_categories as Record<string, number> | null) ?? null;
   const spCompleteness = (latestScan?.smart_place_completeness_result as { has_reservation?: boolean; photo_count?: number } | null) ?? null;
   const hasReservationVal: boolean | null = spCompleteness?.has_reservation ?? null;
@@ -270,8 +295,6 @@ export default async function DashboardPage({
       : null;
   const cafeResult = (latestScan?.naver_result as Record<string, unknown> | null | undefined)?.cafe_result as { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null ?? null;
   const jisikResult = (latestScan?.naver_result as Record<string, unknown> | null | undefined)?.jisik_result as { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null ?? null;
-  const gapCloseable = (gapRes as { vs_top?: { closeable_gap?: number } } | null)?.vs_top?.closeable_gap ?? null;
-
   const blogBiz = business as { blog_url?: string; blog_analyzed_at?: string; blog_post_count?: number; blog_keyword_coverage?: number } | null;
   const blogContribution = blogBiz?.blog_url ? {
     active: !!(blogBiz.blog_analyzed_at) && !isKeywordEstimated,
@@ -283,6 +306,12 @@ export default async function DashboardPage({
 
   const dimensions = (gapRes as { dimensions?: Array<{ dimension_key: string; dimension_label: string; current_score: number; max_score: number; gap_to_top: number; gap_reason: string; priority: number }>; is_competitor_estimated?: boolean } | null)?.dimensions;
   const isCompetitorEstimated = !!(gapRes as { is_competitor_estimated?: boolean } | null)?.is_competitor_estimated;
+
+  // ── 최근 행동 로그 파생 ───────────────────────────────────────
+  const recentActionType = actionLogs[0]?.action_label ?? null;
+  const recentScoreGain = (actionLogs[0]?.score_after != null && actionLogs[0]?.score_before != null)
+    ? Math.round(actionLogs[0].score_after - actionLogs[0].score_before)
+    : null;
 
   // ── 타입 단순화 헬퍼 ─────────────────────────────────────────
   const bizBase = business as {
@@ -299,9 +328,22 @@ export default async function DashboardPage({
 
   const photoSufficient = !!(bizBase?.checklist_overrides?.['__photo_sufficient']);
 
+  // 🎁 "받은 것" 신호 — AI 생성 산출물(실측, 없으면 미표시)
+  const deliverableBiz = business as { naver_intro_draft?: string; global_intro_draft?: string; talktalk_faq_draft?: unknown } | null;
+  const naverIntroReady = !!(deliverableBiz?.naver_intro_draft && String(deliverableBiz.naver_intro_draft).trim().length > 0);
+  const globalIntroReady = !!(deliverableBiz?.global_intro_draft && String(deliverableBiz.global_intro_draft).trim().length > 0);
+  const _ttDraft = deliverableBiz?.talktalk_faq_draft as { items?: unknown[]; chat_menus?: unknown[] } | unknown[] | null | undefined;
+  const talktalkMenuCount = Array.isArray(_ttDraft)
+    ? _ttDraft.length
+    : Array.isArray((_ttDraft as { items?: unknown[] })?.items)
+    ? (_ttDraft as { items: unknown[] }).items.length
+    : Array.isArray((_ttDraft as { chat_menus?: unknown[] })?.chat_menus)
+    ? (_ttDraft as { chat_menus: unknown[] }).chat_menus.length
+    : 0;
+
   // ── 렌더링 ───────────────────────────────────────────────────
   return (
-    <div className="p-4 pb-24 md:p-8 md:pb-12 max-w-5xl mx-auto space-y-6 md:space-y-10">
+    <div className="p-4 pb-24 md:p-8 md:pb-12 space-y-6 md:space-y-10 max-w-6xl mx-auto">
       <MaintenanceBanner />
       <DashboardHeader
         user={user}
@@ -316,7 +358,8 @@ export default async function DashboardPage({
         lastScannedLabel={lastScannedLabel}
         scanUsed={scanUsed}
         scanLimit={scanLimit}
-        showRescanNotice={showRescanNotice}
+        showRescanNotice={showRescanNoticeFinal}
+        rescanIsStale={showRescanIsStale}
         lastQueryUsed={(latestScan?.query_used as string | undefined)}
         displayCity={displayCity}
       />
@@ -332,152 +375,274 @@ export default async function DashboardPage({
 
       {bizBase && (
         <>
+          {/* ① 진단 Hero + 스캔 트리거 — lg(≥1024) 2단(좌 진단·우 스캔).
+              그 미만 세로: 스캔 이력 있으면(재방문) 진단(현황) 먼저, 없으면(신규) 스캔 먼저 — 사장님 "현황 먼저" 철학 반영.
+              md(768~1023)에서 2단을 막는 이유: 사이드바 w-60(240px)+스캔 340px를 빼면 hero가 너무 좁아 3채널 그리드가 깨짐 */}
+          <div className="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-5">
+            {/* 스캔 트리거 — 모바일: 진단 있으면 order-2(진단 뒤), 없으면 order-1(먼저). lg에서 항상 order-2(우측 고정폭) */}
+            <div className={`${latestScan ? "order-2" : "order-1"} lg:order-2 w-full lg:w-[340px] lg:shrink-0`} data-onboarding-tour="scan-button">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                <ScanWithModal
+                  businessId={bizBase.id}
+                  businessName={bizBase.name}
+                  category={bizBase.category}
+                  region={bizBase.region}
+                  keywords={bizBase.keywords}
+                  scanUsed={scanUsed}
+                  scanLimit={scanLimit}
+                  plan={plan}
+                  lastQueryUsed={(latestScan?.query_used as string | undefined)}
+                  stacked
+                />
+                <p className="text-sm text-slate-500 mt-3 pt-3 border-t border-gray-100 leading-snug">
+                  반영 기간: 스마트플레이스 1~2일 · AI탭·블로그 2~4주
+                </p>
+              </div>
+            </div>
+
+            {/* 진단 hero — 모바일: 스캔 있으면 order-1(먼저), 없으면 order-2(스캔 다음). lg에서 항상 order-1(좌측 flex-1) */}
+            <div className={`${latestScan ? "order-1" : "order-2"} lg:order-1 lg:flex-1 min-w-0`}>
+              {latestScan ? (
+                <DashboardScoreZone
+                  business={{
+                    id: bizBase.id, name: bizBase.name, category: bizBase.category, region: bizBase.region,
+                    keywords: bizBase.keywords, is_franchise: isFranchise,
+                  }}
+                  latestScan={{
+                    naver_result: (latestScan.naver_result as { in_briefing?: boolean; captcha_detected?: boolean; error?: string; ad_only?: boolean } | null) ?? null,
+                    chatgpt_result: (latestScan.chatgpt_result as { mentioned?: boolean; exposure_freq?: number; sample_size?: number } | null) ?? null,
+                    gemini_result: (latestScan.gemini_result as { exposure_freq?: number; sample_size?: number } | null) ?? null,
+                    google_result: (latestScan.google_result as { mentioned?: boolean; exposure_freq?: number; sample_size?: number } | null) ?? null,
+                    keyword_ranks: (latestScan.keyword_ranks as Record<string, unknown> | null) ?? null,
+                    track1_score: latestScan.track1_score as number | null,
+                    naver_ai_tab_visible: latestScan.naver_ai_tab_visible as boolean | null,
+                  }}
+                  briefingEligibility={briefingEligibility}
+                  unifiedScore={unifiedScore}
+                  scoreChangeDiff={scoreChangeDiff}
+                  topMissingKeywords={topMissingKeywords}
+                  todayTasks={todayTasks}
+                  lastScannedLabel={lastScannedLabel}
+                  myRankInList={myRankInList}
+                  totalCompetitors={rankingItems.length}
+                  benchmarkAvg={benchmark?.fallback ? undefined : benchmark?.avg_score}
+                  showStaleRescan={showRescanIsStale}
+                />
+              ) : (
+                <div className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-6 md:p-8 text-center">
+                  <p className="text-base font-semibold text-slate-600">아직 스캔 데이터가 없습니다</p>
+                  <p className="text-sm text-slate-400 mt-1.5 leading-snug">
+                    오른쪽에서 키워드를 선택하고 AI 스캔을 시작하면 진단 결과가 여기에 표시됩니다
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 🔎 실측 증거 미리보기 — ChatGPT 실제 인용문 (실측, 없으면 미표시) */}
           {latestScan && (
-            <ScanResultNavBar
-              eligibility={briefingEligibility}
-              naverInBriefing={!!(latestScan.naver_result as { in_briefing?: boolean } | null)?.in_briefing}
-              naverCaptchaBlocked={
-                (latestScan.naver_result as { captcha_detected?: boolean; error?: string } | null)?.captcha_detected === true ||
-                (latestScan.naver_result as { captcha_detected?: boolean; error?: string } | null)?.error === "captcha_or_blocked"
-              }
+            <DashboardEvidencePreview
+              chatgptCitation={chatgptCitation}
               myRankInList={myRankInList}
               totalCompetitors={rankingItems.length}
-              topMissingKeywordCount={topMissingKeywords.length}
-              todayAction={todayTasks[0]?.desc ?? null}
-              unifiedScore={unifiedScore}
-              isFranchise={isFranchise}
             />
           )}
 
-          <DashboardScoreZone
-            business={{ id: bizBase.id, name: bizBase.name, category: bizBase.category, region: bizBase.region, keywords: bizBase.keywords, is_franchise: isFranchise }}
-            latestScan={latestScan ?? null}
-            briefingEligibility={briefingEligibility}
-            isFranchise={isFranchise}
-            unifiedScore={unifiedScore}
-            scoreChangeDiff={scoreChangeDiff}
-            myRankInList={myRankInList}
-            totalCompetitors={rankingItems.length}
-            topMissingKeywords={topMissingKeywords}
-            todayTasks={todayTasks}
-            gapCloseable={gapCloseable}
-            recentActionType={actionLogs[0]?.action_type ?? null}
-            recentScoreGain={scoreChangeDiff !== null && scoreChangeDiff > 0 ? scoreChangeDiff : null}
-            userCreatedAt={user.created_at ?? null}
-            lastScannedLabel={lastScannedLabel}
+          {/* 🎁 받은 것 신호 — AI 생성 산출물 (실측, 없으면 미표시) */}
+          <DashboardDeliverableSignal
+            naverIntroReady={naverIntroReady}
+            talktalkMenuCount={talktalkMenuCount}
+            globalIntroReady={globalIntroReady}
           />
 
-          {latestScan && (
-            <ScoreDeltaBanner bizId={bizBase.id} accessToken={accessToken} />
-          )}
+          {/* ② 네이버 현황 — NavBar·Notice 포함, 기본 펼침 */}
+          <CollapseSectionWrapper id="section-naver" title="네이버 채널별 개선 방법" description="노출 높이는 구체적 방법 — 요약 상태는 위 진단 카드 참고" iconColor="text-green-600" defaultOpen={true} highlight={true}>
+            <>
+              {/* 4타일 NavBar — 섹션 최상단 */}
+              {latestScan && (
+                <div className="mb-4">
+                  <ScanResultNavBar
+                    eligibility={briefingEligibility}
+                    naverInBriefing={
+                      (latestScan.naver_result as { in_briefing?: boolean } | null)?.in_briefing ?? false
+                    }
+                    naverCaptchaBlocked={
+                      (latestScan.naver_result as { captcha_detected?: boolean } | null)?.captcha_detected ?? false
+                    }
+                    myRankInList={myRankInList}
+                    totalCompetitors={rankingItems.length}
+                    topMissingKeywordCount={topMissingKeywords.length}
+                    latestAdOnly={
+                      (latestScan.naver_result as { ad_only?: boolean } | null)?.ad_only ?? false
+                    }
+                    naverAiTabVisible={latestScan.naver_ai_tab_visible as boolean | null ?? null}
+                    isFranchise={isFranchise}
+                  />
+                </div>
+              )}
+              {/* 비해당 업종 안내 */}
+              {briefingEligibility !== "active" && bizBase?.category && (
+                <div className="mb-4">
+                  <IneligibleBusinessNotice
+                    category={bizBase.category}
+                    categoryLabel={CATEGORY_LABEL[bizBase.category] ?? bizBase.category}
+                    eligibility={briefingEligibility}
+                    isFranchise={isFranchise}
+                  />
+                </div>
+              )}
+              <DashboardInsightZone
+                bizId={bizBase.id}
+                accessToken={accessToken}
+                subscriptionPlan={subscriptionPlan}
+                plan={plan}
+                category={bizBase.category}
+                briefingMeta={briefingMeta}
+                photoCategories={photoCategories}
+                photoGuides={photoGuides}
+                blogMentionCount={bizBase?.blog_mention_count ?? 0}
+                reviewCount={bizBase.review_count ?? 0}
+                hasIntro={smartPlaceStatus.hasIntro}
+                hasRecentPost={smartPlaceStatus.hasRecentPost}
+                hasReservation={hasReservationVal}
+                photoCount={photoCountTotal}
+                naverPlaceId={bizBase.naver_place_id ?? null}
+                photoSufficient={photoSufficient}
+                recentPostConfirmedAt={smartPlaceStatus.recentPostConfirmedAt}
+                isFranchise={isFranchise}
+                keywordCount={bizBase.keywords?.length ?? 0}
+                latestAdOnly={(latestScan?.naver_result as { ad_only?: boolean } | null | undefined)?.ad_only ?? false}
+                cafeResult={cafeResult}
+                jisikResult={jisikResult}
+                keywords={bizBase.keywords ?? []}
+                initialKeywordRanks={(latestScan?.keyword_ranks as Record<string, unknown> | null) ?? null}
+                userGroup={(() => { const rawGroup = getUserGroup(bizBase.category, isFranchise); return rawGroup === "franchise" ? "INACTIVE" : rawGroup as "ACTIVE" | "LIKELY" | "INACTIVE"; })()}
+                region={bizBase.region}
+                />
+            </>
+          </CollapseSectionWrapper>
 
-          <ContextTipBanner section="score" industry={bizBase.category} />
+          {/* ③ 콘텐츠 생성 도구 — 소개글·톡톡 메뉴 (유료 핵심 기능) */}
+          <CollapseSectionWrapper id="section-content" title="콘텐츠 생성 도구" description="AI 맞춤 소개글 · 톡톡 채팅방 메뉴 초안" iconColor="text-purple-600" defaultOpen={true}>
+            <DashboardContentZone
+              bizId={bizBase.id}
+              plan={plan}
+              planLabel={planLabel}
+              planFaqLimit={planFaqLimit}
+              naverIntroDraft={business?.naver_intro_draft}
+              naverIntroGeneratedAt={business?.naver_intro_generated_at}
+              talktalkFaqDraft={business?.talktalk_faq_draft as { items: Array<{ question: string; answer: string; category: string }>; chat_menus: string[] } | null | undefined}
+              talktalkFaqGeneratedAt={business?.talktalk_faq_generated_at}
+            />
+          </CollapseSectionWrapper>
 
-          <DashboardActionZone
-            bizId={bizBase.id}
-            accessToken={accessToken}
-            hasLatestScan={!!latestScan}
-            userCreatedAt={user.created_at ?? null}
-            dimensions={dimensions}
-            todayTasks={todayTasks}
-            actionCopyText={actionCopyText}
-            topMissingKeyword={topMissingKeywords[0] ?? null}
-            unifiedScore={unifiedScore}
-            isSmartPlace={!!(business?.naver_place_id)}
-            plan={plan}
-            category={bizBase.category}
-            isCompetitorEstimated={isCompetitorEstimated}
-          />
+          {/* ④ 오늘 할 일 — 기본 펼침 */}
+          <CollapseSectionWrapper id="section-action" title="오늘 할 일" description="지금 바로 실행할 액션" iconColor="text-rose-500" defaultOpen={true}>
+            <DashboardActionZone
+              bizId={bizBase.id}
+              accessToken={accessToken}
+              hasLatestScan={!!latestScan}
+              userCreatedAt={user.created_at ?? null}
+              dimensions={dimensions}
+              todayTasks={todayTasks}
+              actionCopyText={actionCopyText}
+              topMissingKeyword={topMissingKeywords[0] ?? null}
+              unifiedScore={unifiedScore}
+              isSmartPlace={!!(business?.naver_place_id)}
+              plan={plan}
+            />
+          </CollapseSectionWrapper>
 
-          <DashboardInsightZone
-            bizId={bizBase.id}
-            accessToken={accessToken}
-            subscriptionPlan={subscriptionPlan}
-            plan={plan}
-            category={bizBase.category}
-            briefingMeta={briefingMeta}
-            photoCategories={photoCategories}
-            photoGuides={photoGuides}
-            schemaSeoScore={(latestScan?.score_breakdown as Record<string, number> | null | undefined)?.schema_seo ?? null}
-            websiteUrl={bizBase.website_url}
-            websiteCheckResult={websiteCheckResult}
-            blogMentionCount={bizBase?.blog_mention_count ?? 0}
-            reviewCount={bizBase.review_count ?? 0}
-            hasIntro={smartPlaceStatus.hasIntro}
-            hasRecentPost={smartPlaceStatus.hasRecentPost}
-            hasReservation={hasReservationVal}
-            photoCount={photoCountTotal}
-            naverPlaceId={bizBase.naver_place_id ?? null}
-            photoSufficient={photoSufficient}
-            recentPostConfirmedAt={smartPlaceStatus.recentPostConfirmedAt}
-            isFranchise={isFranchise}
-            keywordCount={bizBase.keywords?.length ?? 0}
-            latestAdOnly={(latestScan?.naver_result as { ad_only?: boolean } | null | undefined)?.ad_only ?? false}
-            userCreatedAt={user.created_at ?? null}
-            globalWeight={globalWeight}
-            googlePlaceRegistered={!!bizBase.google_place_id}
-            cafeResult={cafeResult}
-            jisikResult={jisikResult}
-          />
+          {/* ⑤ 상세 분석 데이터 — 접힘 */}
+          <CollapseSectionWrapper id="section-detail" title="상세 분석 데이터" description="점수 근거 · 경쟁사 비교 · AI 인용" iconColor="text-indigo-600">
+            <DashboardDetailZone
+              business={{
+                id: bizBase.id, name: bizBase.name, category: bizBase.category, region: bizBase.region,
+                website_url: bizBase.website_url, keywords: bizBase.keywords,
+                review_count: bizBase.review_count, avg_rating: bizBase.avg_rating,
+                naver_place_id: bizBase.naver_place_id, naver_place_url: bizBase.naver_place_url,
+                google_place_id: bizBase.google_place_id,
+                blog_url: bizBase.blog_url, blog_analyzed_at: bizBase.blog_analyzed_at,
+                blog_post_count: bizBase.blog_post_count, blog_keyword_coverage: bizBase.blog_keyword_coverage,
+                is_franchise: isFranchise,
+              }}
+              latestScan={latestScan}
+              hasLatestScan={!!latestScan}
+              accessToken={accessToken}
+              plan={plan}
+              subscriptionPlan={subscriptionPlan}
+              briefingEligibility={briefingEligibility}
+              isFranchise={isFranchise}
+              track1Score={track1Score}
+              track2Score={track2Score}
+              naverWeight={naverWeight}
+              globalWeight={globalWeight}
+              unifiedScore={unifiedScore}
+              growthStage={growthStage}
+              growthStageLabel={growthStageLabel}
+              isKeywordEstimated={isKeywordEstimated}
+              topMissingKeywords={topMissingKeywords}
+              benchmarkAvg={benchmark?.fallback ? undefined : benchmark?.avg_score}
+              smartPlaceStatus={smartPlaceStatus}
+              allPlatformResults={allPlatformResults}
+              naverChannelScore={naverChannelScore}
+              globalChannelScore={globalChannelScore}
+              kakaoResult={kakaoResult}
+              kakaoScore={kakaoScore}
+              kakaoChecklist={kakaoChecklist}
+              kakaoRegistered={kakaoRegistered}
+              websiteCheckResult={websiteCheckResult}
+              history={history ? history.map((h) => ({ ...h, exposure_freq: (h.exposure_freq as number | null) ?? 0 })) : null}
+              actionLogs={actionLogs}
+              rankingItems={rankingItems}
+              myRankInList={myRankInList}
+              topCompetitor={topCompetitor}
+              competitorKeywordSources={competitorKeywordSources}
+              missingItems={missingItems}
+              aiExposureData={aiExposureData}
+              blogContribution={blogContribution}
+              scoreChangeDiff={scoreChangeDiff}
+            />
+          </CollapseSectionWrapper>
 
-          <DashboardGeneratorZone
-            bizId={bizBase.id}
-            planLabel={planLabel}
-            planFaqLimit={planFaqLimit}
-            naver_intro_draft={business?.naver_intro_draft}
-            naver_intro_generated_at={business?.naver_intro_generated_at}
-            talktalk_faq_draft={business?.talktalk_faq_draft as { items: Array<{ question: string; answer: string; category: string }>; chat_menus: string[] } | null | undefined}
-            talktalk_faq_generated_at={business?.talktalk_faq_generated_at}
-          />
+          {/* ⑥ 글로벌 AI — 접힘, 글로벌 소개글 포함 */}
+          <CollapseSectionWrapper id="section-global" title="글로벌 AI 현황" description="ChatGPT · Gemini · Google AI · 글로벌 소개글" iconColor="text-blue-500">
+            <DashboardGlobalAiZone
+              category={bizBase.category}
+              plan={plan}
+              schemaSeoScore={(latestScan?.score_breakdown as Record<string, number> | null | undefined)?.schema_seo ?? null}
+              websiteUrl={bizBase.website_url}
+              websiteCheckResult={websiteCheckResult}
+              globalWeight={globalWeight}
+              googlePlaceRegistered={!!bizBase.google_place_id}
+              bizId={bizBase.id}
+              planLabel={planLabel}
+              planFaqLimit={planFaqLimit}
+              globalIntroDraft={business?.global_intro_draft}
+              globalIntroGeneratedAt={business?.global_intro_generated_at}
+            />
+          </CollapseSectionWrapper>
 
-          <DashboardDetailZone
-            business={{
-              id: bizBase.id, name: bizBase.name, category: bizBase.category, region: bizBase.region,
-              website_url: bizBase.website_url, keywords: bizBase.keywords,
-              review_count: bizBase.review_count, avg_rating: bizBase.avg_rating,
-              naver_place_id: bizBase.naver_place_id, naver_place_url: bizBase.naver_place_url,
-              google_place_id: bizBase.google_place_id,
-              blog_url: bizBase.blog_url, blog_analyzed_at: bizBase.blog_analyzed_at,
-              blog_post_count: bizBase.blog_post_count, blog_keyword_coverage: bizBase.blog_keyword_coverage,
-              is_franchise: isFranchise,
-            }}
-            latestScan={latestScan}
-            hasLatestScan={!!latestScan}
-            accessToken={accessToken}
-            plan={plan}
-            subscriptionPlan={subscriptionPlan}
-            briefingEligibility={briefingEligibility}
-            isFranchise={isFranchise}
-            track1Score={track1Score}
-            track2Score={track2Score}
-            naverWeight={naverWeight}
-            globalWeight={globalWeight}
-            unifiedScore={unifiedScore}
-            growthStage={growthStage}
-            growthStageLabel={growthStageLabel}
-            isKeywordEstimated={isKeywordEstimated}
-            topMissingKeywords={topMissingKeywords}
-            benchmarkAvg={benchmark?.fallback ? undefined : benchmark?.avg_score}
-            smartPlaceStatus={smartPlaceStatus}
-            allPlatformResults={allPlatformResults}
-            naverChannelScore={naverChannelScore}
-            globalChannelScore={globalChannelScore}
-            kakaoResult={kakaoResult}
-            kakaoScore={kakaoScore}
-            kakaoChecklist={kakaoChecklist}
-            kakaoRegistered={kakaoRegistered}
-            websiteCheckResult={websiteCheckResult}
-            history={history ? history.map((h) => ({ ...h, exposure_freq: (h.exposure_freq as number | null) ?? 0 })) : null}
-            actionLogs={actionLogs}
-            rankingItems={rankingItems}
-            myRankInList={myRankInList}
-            topCompetitor={topCompetitor}
-            competitorKeywordSources={competitorKeywordSources}
-            missingItems={missingItems}
-            aiExposureData={aiExposureData}
-            blogContribution={blogContribution}
-            scoreChangeDiff={scoreChangeDiff}
-          />
+          {/* ⑧ AI 채널 안내 · 심화 가이드 — 접힘, 최하단 */}
+          <CollapseSectionWrapper id="section-guidance" title="AI 채널 안내 · 심화 가이드" description="채널 노출 조건 · 단계 가이드 · 경쟁사 분석" iconColor="text-gray-400">
+            <>
+              <NaverAiPathwayCard
+                briefingEligibility={briefingEligibility}
+                isFranchise={isFranchise}
+                latestAdOnly={(latestScan?.naver_result as { ad_only?: boolean } | null | undefined)?.ad_only ?? false}
+                globalWeight={globalWeight}
+              />
+              <DashboardGuidanceZone
+                bizId={bizBase.id}
+                eligibility={briefingEligibility}
+                plan={plan}
+                hasLatestScan={!!latestScan}
+                isCompetitorEstimated={isCompetitorEstimated}
+                userCreatedAt={user.created_at ?? null}
+                category={bizBase.category}
+              />
+            </>
+          </CollapseSectionWrapper>
 
           <DashboardFooter
             bizId={bizBase.id}

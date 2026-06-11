@@ -1,190 +1,190 @@
 "use client";
 
+import { RefreshCw } from "lucide-react";
+
 interface DashboardHeroCardProps {
-  businessName: string;
   unifiedScore: number;
   track1Score?: number;
   scoreChangeDiff: number | null;
-  myRankInList: number;
-  totalCompetitors: number;
   topMissingKeywordCount: number;
-  topMissingKeyword?: string | null;
-  todayAction: string | null;
-  todayActionLink: string;
-  recentActionLabel: string | null;
-  recentActionScoreGain: number | null;
   lastScannedLabel?: string | null;
+  naverInBriefing?: boolean;
+  naverCaptchaBlocked?: boolean;
+  latestAdOnly?: boolean;
+  briefingEligibility?: "active" | "likely" | "inactive";
+  isFranchise?: boolean;
+  naverAiTabVisible?: boolean | null;
+  todayAction?: string | null;
+  todayActionLink?: string;
+  myRankInList?: number;
+  totalCompetitors?: number;
+  benchmarkAvg?: number;
+  staleRescan?: boolean;
 }
 
-const ACTION_TYPE_LABEL: Record<string, string> = {
-  faq_registered: "소개글 Q&A 추가",
-  review_requested: "리뷰 요청",
-  keyword_added: "키워드 추가",
-  post_published: "포스트 등록",
-  intro_updated: "소개글 수정",
-  schema_updated: "스마트플레이스 수정",
-  website_updated: "웹사이트 개선",
-};
-
-function getStage(score: number): {
-  label: string;
-  tagBg: string;
-  bg: string;
-  message: string;
-} {
-  if (score >= 75) return {
-    label: "AI 검색 노출 양호",
-    tagBg: "bg-emerald-100 text-emerald-700",
-    bg: "bg-emerald-50 border-emerald-100",
-    message: "네이버·ChatGPT 검색에서 경쟁 가게보다 잘 노출되고 있습니다. 꾸준히 유지하세요.",
-  };
-  if (score >= 55) return {
-    label: "AI 검색 노출 개선 중",
-    tagBg: "bg-blue-100 text-blue-700",
-    bg: "bg-blue-50 border-blue-100",
-    message: "기본 설정은 갖춰져 있습니다. 아래 개선 항목 2~3가지만 보완하면 노출이 더 늘어납니다.",
-  };
-  if (score >= 30) return {
-    label: "AI 검색 노출 미흡",
-    tagBg: "bg-amber-100 text-amber-700",
-    bg: "bg-amber-50 border-amber-200",
-    message: "지금 AI 검색에 제대로 노출되지 않고 있습니다. 아래 '오늘 할 일'부터 시작하세요.",
-  };
-  return {
-    label: "AI 검색 노출 시작 전",
-    tagBg: "bg-slate-100 text-slate-600",
-    bg: "bg-slate-50 border-slate-200",
-    message: "아직 AI 검색에 노출되지 않고 있습니다. 지금 시작하면 경쟁 가게보다 먼저 자리 잡을 수 있습니다.",
-  };
+function getStage(score: number): { label: string; labelColor: string; bg: string; cardBorder: string } {
+  if (score >= 75) return { label: "AI 검색 노출 양호",    labelColor: "text-emerald-700", bg: "bg-emerald-50", cardBorder: "border-emerald-300" };
+  if (score >= 55) return { label: "AI 검색 노출 개선 중", labelColor: "text-blue-700",    bg: "bg-blue-50",    cardBorder: "border-blue-300"    };
+  if (score >= 30) return { label: "AI 검색 노출 미흡",    labelColor: "text-amber-700",   bg: "bg-amber-50",   cardBorder: "border-amber-300"   };
+  return                   { label: "AI 검색 노출 시작 전", labelColor: "text-slate-600",   bg: "bg-slate-50",   cardBorder: "border-slate-300"   };
 }
 
 export default function DashboardHeroCard({
-  businessName,
   unifiedScore,
   track1Score,
   scoreChangeDiff,
-  myRankInList,
-  totalCompetitors,
   topMissingKeywordCount,
-  topMissingKeyword = null,
+  lastScannedLabel,
+  naverInBriefing,
+  naverCaptchaBlocked,
+  latestAdOnly,
+  briefingEligibility,
+  isFranchise,
+  naverAiTabVisible,
   todayAction,
   todayActionLink,
-  recentActionLabel,
-  recentActionScoreGain,
-  lastScannedLabel,
+  myRankInList,
+  totalCompetitors,
+  benchmarkAvg,
+  staleRescan,
 }: DashboardHeroCardProps) {
-  const showActionResult =
-    recentActionLabel !== null &&
-    recentActionScoreGain !== null &&
-    recentActionScoreGain > 0;
-
-  const actionLabel =
-    ACTION_TYPE_LABEL[recentActionLabel ?? ""] ?? recentActionLabel;
-
   const stage = getStage(track1Score ?? unifiedScore);
+  const isInactiveOrFranchise = briefingEligibility === "inactive" || !!isFranchise;
 
-  /* ── 경쟁사 순위 ── */
-  const rankStatus = (() => {
-    if (totalCompetitors <= 1) return { icon: "−", bg: "bg-gray-100 text-gray-400", label: "경쟁사 미등록", sub: "경쟁사 추가 후 비교" };
-    if (myRankInList === 1) return { icon: "1위", bg: "bg-emerald-100 text-emerald-700", label: `${totalCompetitors}곳 중 1위`, sub: "경쟁사 대비 선두" };
-    return { icon: `${myRankInList}위`, bg: "bg-amber-100 text-amber-700", label: `${totalCompetitors}곳 중 ${myRankInList}위`, sub: "개선 여지 있음" };
+  // INACTIVE/프랜차이즈는 네이버 AI 브리핑 비대상 — 부정 점수 레이블("노출 미흡") 대신
+  // 네이버 검색·플레이스가 핵심 무기임을 긍정 리드로. 실제 채널 상태는 아래 3채널 그리드가 정직하게 표시.
+  const headerView = isInactiveOrFranchise
+    ? {
+        label: "네이버 검색·플레이스가 핵심 무기",
+        labelColor: "text-green-800",
+        bg: "bg-green-50",
+        cardBorder: "border-green-300",
+        sub: isFranchise
+          ? "프랜차이즈는 AI 브리핑 비대상 — 검색·플레이스·AI탭 상위노출로 노출을 키웁니다"
+          : "AI 브리핑 비대상 업종 — 검색·플레이스·AI탭 상위노출로 노출을 키웁니다",
+      }
+    : { label: stage.label, labelColor: stage.labelColor, bg: stage.bg, cardBorder: stage.cardBorder, sub: null as string | null };
+
+  // 점수 숫자 대신 실측 근거(경쟁사 순위·키워드 보강 수)로 단계 레이블을 뒷받침 — 신뢰도 확보
+  const evidenceText = (() => {
+    const parts: string[] = [];
+    if (myRankInList && totalCompetitors && totalCompetitors > 1) {
+      parts.push(`경쟁사 ${totalCompetitors}곳 중 ${myRankInList}위`);
+    } else if (benchmarkAvg != null) {
+      parts.push(unifiedScore >= benchmarkAvg ? "업종 평균 이상" : "업종 평균 미달");
+    }
+    parts.push(topMissingKeywordCount === 0 ? "키워드 모두 포함" : `키워드 ${topMissingKeywordCount}개 보강 필요`);
+    return parts.join(" · ");
   })();
 
+  const naverSeoCard = naverCaptchaBlocked
+    ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",       statusClass: "text-gray-400",    detail: "일시적으로 확인 어려움" }
+    : (latestAdOnly ?? false)
+    ? { icon: "!", iconClass: "bg-amber-500 text-white",   status: "광고만 노출",      statusClass: "text-amber-700",   detail: "유료광고 결과만 노출" }
+    : topMissingKeywordCount === 0
+    ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 양호",       statusClass: "text-emerald-700", detail: "키워드 모두 포함됨" }
+    : { icon: "!", iconClass: "bg-amber-500 text-white",   status: "키워드 보강 필요", statusClass: "text-amber-700",   detail: `${topMissingKeywordCount}개 키워드 추가 필요` };
+
+  const naverAiTabCard =
+    naverAiTabVisible === true
+      ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 중",  statusClass: "text-emerald-700", detail: "AI탭 답변 있음" }
+      : naverAiTabVisible === false
+      ? { icon: "✗", iconClass: "bg-red-500 text-white",     status: "미노출",   statusClass: "text-red-600",     detail: "설정 개선 필요" }
+      : { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "준비 중",  statusClass: "text-gray-400",    detail: "정식 공개 후 측정" };
+
+  const naverBriefingCard = naverCaptchaBlocked
+    ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",        statusClass: "text-gray-400",    detail: "일시적으로 확인 어려움" }
+    : isInactiveOrFranchise
+    ? { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "이 업종 해당 없음", statusClass: "text-gray-400",    detail: "네이버 검색·AI탭으로 노출 가능" }
+    : briefingEligibility === "likely"
+    ? { icon: "△", iconClass: "bg-yellow-400 text-white",  status: "확대 예정",        statusClass: "text-yellow-700",  detail: "지금 준비 중" }
+    : (naverInBriefing ?? false)
+    ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 중",          statusClass: "text-emerald-700", detail: "브리핑 노출 확인됨" }
+    : { icon: "✗", iconClass: "bg-red-500 text-white",     status: "미노출",           statusClass: "text-red-600",     detail: "소개글 보강 필요" };
+
+  const naverChannels = [
+    { id: "naver-seo",      platform: "네이버 검색", ...naverSeoCard },
+    { id: "naver-aitab",    platform: "네이버 AI탭", ...naverAiTabCard },
+    { id: "naver-briefing", platform: "AI 브리핑",   ...naverBriefingCard },
+  ];
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-5">
+    <div className={`bg-white rounded-xl border-2 shadow-md overflow-hidden mb-5 ${headerView.cardBorder}`}>
 
-      {/* ── 상단: 종합 결론 ── */}
-      <div className={`px-5 pt-5 pb-4 border-b border-gray-100 ${stage.bg}`}>
-        {/* 사업장명 + 스캔 날짜 */}
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <p className="text-sm font-semibold text-gray-700 truncate">{businessName}</p>
-          {lastScannedLabel && (
-            <p className="text-xs text-gray-400 shrink-0">{lastScannedLabel}</p>
-          )}
-        </div>
-
-        {/* 종합 진단: stage.label */}
-        <div className="flex items-center gap-3 mb-2 flex-wrap">
-          <span className="text-3xl font-black text-gray-900 leading-tight">{stage.label}</span>
+      {/* ── 종합 상태 헤더 — 단계 메시지(INACTIVE는 네이버 SEO 긍정 리드) ── */}
+      <div className={`px-5 pt-4 pb-4 border-b border-gray-100 ${headerView.bg}`}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className={`text-xl font-black leading-tight break-keep ${headerView.labelColor}`}>{headerView.label}</p>
+            {headerView.sub && (
+              <p className="text-sm font-semibold text-green-700 mt-1 break-keep">{headerView.sub}</p>
+            )}
+            {evidenceText && (
+              <p className="text-xs font-medium text-gray-600 mt-1 break-keep">{evidenceText}</p>
+            )}
+            {(lastScannedLabel || staleRescan) && (
+              <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                {lastScannedLabel && <span>{lastScannedLabel}</span>}
+                {staleRescan && (
+                  <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-100 font-semibold px-1.5 py-0.5 rounded">
+                    <RefreshCw className="w-3 h-3 shrink-0" /> 재스캔 권장
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
           {scoreChangeDiff !== null && scoreChangeDiff !== 0 && (
-            <span
-              className={`text-sm font-semibold px-2.5 py-0.5 rounded-full ${
-                scoreChangeDiff > 0
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-red-100 text-red-600"
-              }`}
-            >
-              {scoreChangeDiff > 0 ? "↑ 지난 스캔보다 개선됨" : "↓ 지난 스캔보다 하락"}
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+              scoreChangeDiff > 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
+            }`}>
+              {scoreChangeDiff > 0 ? "↑ 개선됨" : "↓ 하락"}
             </span>
           )}
         </div>
-        <p className="text-sm text-gray-600 leading-relaxed break-keep">{stage.message}</p>
       </div>
 
-      {/* ── 지금 해야 할 가장 중요한 한 가지 (todayAction 있을 때) ── */}
-      {todayAction && (
-        <div className="border-b border-gray-100 px-4 py-3 bg-amber-50">
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="text-amber-500 text-base font-bold shrink-0">💡</span>
-            <span className="text-sm font-bold text-amber-800">지금 해야 할 가장 중요한 한 가지</span>
-          </div>
-          <p className="text-sm text-amber-900 leading-relaxed break-keep pl-6">{todayAction}</p>
-          {todayActionLink && (
-            <a
-              href={todayActionLink}
-              className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 hover:text-amber-900 mt-1.5 pl-6"
+      {/* ── 네이버 AI 채널 (소상공인 핵심) ── */}
+      <div className="px-4 pt-4 pb-3">
+        <div className="flex items-center gap-1.5 mb-3">
+          <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" aria-hidden="true" />
+          <p className="text-sm font-bold text-gray-700">네이버 AI 현황</p>
+          <span className="ml-1 text-xs text-gray-400 hidden sm:inline">소상공인 핵심 채널</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {naverChannels.map((card) => (
+            <div
+              key={card.id}
+              className="bg-white rounded-xl border border-gray-200 shadow-sm px-2 py-3 flex flex-col items-center gap-1.5 text-center"
             >
-              가이드 보기 <span className="text-base">→</span>
-            </a>
-          )}
-        </div>
-      )}
-
-      {/* ── 보조 정보: 키워드 보강 + 경쟁사 순위 ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[1px] bg-gray-100 border-b border-gray-100">
-
-        {/* 키워드 보강 */}
-        <div className="bg-white px-4 py-3 flex items-center gap-2">
-          <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${
-            topMissingKeywordCount === 0
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-orange-100 text-orange-600"
-          }`}>
-            {topMissingKeywordCount === 0 ? "✓" : "부족"}
-          </span>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-800 leading-tight break-keep">
-              {topMissingKeywordCount === 0 ? "키워드 양호" : `키워드 ${topMissingKeywordCount}개 부족`}
-            </p>
-            {topMissingKeywordCount > 0 && topMissingKeyword ? (
-              <p className="text-xs text-orange-600 font-medium break-keep">
-                &apos;{topMissingKeyword}&apos; 먼저 추가
-              </p>
-            ) : (
-              <p className="text-xs text-gray-500 break-keep">AI 노출 기반 완비</p>
-            )}
-          </div>
-        </div>
-
-        {/* 경쟁사 순위 */}
-        <div className="bg-white px-4 py-3 flex items-center gap-2">
-          <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${rankStatus.bg}`}>
-            {rankStatus.icon}
-          </span>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-800 leading-tight break-keep">{rankStatus.label}</p>
-            <p className="text-xs text-gray-500 break-keep">{rankStatus.sub}</p>
-          </div>
+              <span className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${card.iconClass}`}>
+                {card.icon}
+              </span>
+              <div>
+                <p className="text-sm font-medium text-gray-500 leading-tight break-keep">{card.platform}</p>
+                <p className={`text-sm font-bold mt-0.5 leading-tight ${card.statusClass}`}>{card.status}</p>
+                <p className="text-xs text-gray-400 mt-0.5 leading-tight break-keep hidden sm:block">{card.detail}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* 행동→결과 (조건부) */}
-      {showActionResult && (
-        <div className="px-5 py-3 bg-emerald-50 flex items-center gap-2">
-          <span className="text-emerald-600 text-base font-black shrink-0">✓</span>
-          <p className="text-sm text-emerald-800 font-medium break-keep">
-            지난주 <span className="font-bold">{actionLabel}</span> 후 개선됨
-          </p>
+      {/* ── 오늘 할 일 요약 CTA ── */}
+      {todayAction && (
+        <div className="px-4 pb-4 border-t border-gray-100 pt-3">
+          <a
+            href={todayActionLink ?? "/guide"}
+            className="flex items-center justify-between gap-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl px-4 py-3 transition-colors group"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-rose-500 text-base shrink-0">↳</span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-rose-600 leading-tight">지금 할 일</p>
+                <p className="text-sm font-semibold text-gray-800 leading-snug break-keep line-clamp-2 mt-0.5">{todayAction}</p>
+              </div>
+            </div>
+            <span className="text-sm font-bold text-rose-500 group-hover:text-rose-700 shrink-0 whitespace-nowrap">실행 →</span>
+          </a>
         </div>
       )}
     </div>
