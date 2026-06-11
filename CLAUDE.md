@@ -149,8 +149,10 @@
 | **`docs/remaining_tasks_v1.0.md`** ⭐ | **잔여 작업 런북 — DB 테이블 생성 SQL·대행 서비스 체크리스트·git 커밋·P2/P3 트리거 명령 전체 정리 (2026-05-18)** |
 | **`docs/inspection_fixes_runbook_v1.0.md`** ⭐ | **출시 전 점검 수정 런북 — §1~§15 전 영역 점검 결과 기반. P0 except 42건·content_validator 게이트·Claude 호출 상한·세마포어 등 §A~§I 수정 순서 정리 (2026-05-19)** |
 | **`docs/scan_result_screens_inspection_v1.0.md`** ⭐ | **스캔 결과 화면 종합 점검 — 무료 체험·대시보드 5채널 인식·AI탭 measured 파이프 3중 단절·LockedScoreCard 더미·ScoreBreakdownBox 레이블·LIKELY 단정 분리. P0 4건·P1 6건·P2 4건·P3 1건 (2026-05-22, 5단계 메타 점검)** |
+| **`docs/dashboard_top_redesign_handoff_v1.0.md`** ⭐ | **대시보드 상단 임팩트 개선 핸드오프 (2026-06-11) — 리뷰 P1버그·카피 수정 완료(scp 라이브). 남은 C(hero 45%→상단 레이아웃 재배치) 트리거. ⚠️§1 git push 금지(deploy reset --hard·서버 미커밋 46개)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
+> **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
@@ -188,11 +190,11 @@
 
 ### 1. AI 브리핑 노출 게이팅 (단일 진실)
 
-- **ACTIVE 업종**: restaurant, cafe, bakery, bar, accommodation — 네이버 AI 브리핑 플레이스형 노출 대상 (beauty·nail은 LIKELY, 코드 score_engine.py:28 기준)
+- **ACTIVE 업종**: restaurant, cafe, bakery, bar, accommodation — 네이버 AI 브리핑 플레이스형 노출 대상 (beauty·nail은 LIKELY, 코드 `score_engine.py:30` 기준)
 - **LIKELY 업종**: beauty, nail, pet, fitness, yoga, pharmacy — **AI 브리핑 플레이스형** 노출 확대 예정 업종 (안내 톤 분기). ※ AI탭(대화형 검색)은 업종 무관 — 2026-04-27 네이버플러스 멤버십 베타 → **2026-06 전체 네이버 사용자 확대 예정** (사용자 확대이며 업종 확대 아님, 네이버 공식 발표 기준)
 - **INACTIVE 업종**: 그 외 모든 업종 → 글로벌 AI(ChatGPT·Gemini·Google AI) 중심 안내
 - **프랜차이즈는 ACTIVE 업종이라도 제외** (네이버 공식 정책) — `get_briefing_eligibility(category, is_franchise)` 사용
-- **단일 소스 동기화**: backend `briefing_engine.BRIEFING_ACTIVE_CATEGORIES` ↔ frontend `BRIEFING_ACTIVE` — 한쪽 변경 시 양쪽 동시 수정 필수 (RegisterBusinessForm.tsx, dashboard/page.tsx)
+- **단일 소스 동기화**: backend `score_engine.py:30` `BRIEFING_ACTIVE_CATEGORIES` ↔ frontend `lib/userGroup.ts:43` `BRIEFING_ACTIVE_CATEGORIES` — 한쪽 변경 시 양쪽 동시 수정 필수 (RegisterBusinessForm.tsx·dashboard/page.tsx는 userGroup.ts를 import)
 - **점수 모델 v3.1**: ACTIVE/LIKELY/INACTIVE 그룹별 Track1 가중치 (`NAVER_TRACK_WEIGHTS_V3_1`) 사용. INACTIVE는 `has_faq=0`점
 
 ### 2. 톡톡 채팅방 메뉴 (구 FAQ 개편, 2024.02.14)
@@ -223,7 +225,7 @@
 > `docs/naver_gpt_work_standard_v1.0.md` — 업종 분류·스캐너 4종·쿼리 3변형·점수 가중치·콘텐츠 구조·UI 분기·면책 문구 전 영역 포함
 
 **핵심 원칙 3가지**
-- ACTIVE/LIKELY/INACTIVE 업종 분류 + 프랜차이즈 제외는 `score_engine.py:28` 단일 소스
+- ACTIVE/LIKELY/INACTIVE 업종 분류 + 프랜차이즈 제외는 `score_engine.py:30` 단일 소스
 - ChatGPT UI 면책 문구 필수: "ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다"
 - `/qna` 경로 사용 금지 (2026-05-01 폐기) → `/profile` 대체
 
@@ -243,11 +245,11 @@
 
 `Unified Score = Track1 × naver_weight + Track2 × global_weight`
 
-- `DUAL_TRACK_RATIO`: 9개 업종 × naver/global 비율 (restaurant 70/30, legal 20/80, shopping 10/90 등)
-- fallback: restaurant `{naver: 0.60, global: 0.40}` 중립
+- `DUAL_TRACK_RATIO`: 42개+ 업종 × naver/global 비율 (`score_engine.py:114`; restaurant 70/30, legal 20/80, shopping 10/90 등)
+- fallback: `DEFAULT_DUAL_TRACK_RATIO = {naver: 0.60, global: 0.40}` — 미등록 업종 중립 기본값 (restaurant 자체는 70/30)
 - GrowthStage 기준: **`track1_score`** (unified 아님 — 업종 비율 차이로 오판 방지)
 - keyword_gap cold start: 리뷰 → 블로그 자동 추출 → fallback 30.0
-- trial Gemini: 10회 샘플링 (full 100회와 분리)
+- trial: **ChatGPT 5회** (`multi_scanner.scan_trial()` → `chatgpt.sample_5()`, Gemini 미사용)
 
 모델 엔진 관련 작업 시 `docs/model_engine_v3.0.md`를 먼저 읽고 개선 사항을 알릴 것.
 
@@ -262,7 +264,7 @@
 | DB | Supabase Cloud Free Tier (PostgreSQL + Auth + Storage) | |
 | AI 스캔 | Gemini 2.5 Flash + OpenAI gpt-4.1-mini (Basic 자동 50/50 분할, Full 각 100회) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Serper.dev API) | 4종 운영 |
 | AI 가이드 | Claude sonnet-4-6 (가이드 전용) + Claude Haiku (FAQ/감정분석) | |
-| 스크린샷 | Playwright 1.44+ | Semaphore(1) 독립 × 2 (브리핑·AI탭) — 공유 통합 예정 |
+| 스크린샷 | Playwright 1.44+ | `PLAYWRIGHT_SEMAPHORE = Semaphore(int(os.getenv("PLAYWRIGHT_MAX_CONCURRENCY","1")))` 전역 공유 (6개 파일 통합 완료 2026-05-20) |
 | 결제 | 토스페이먼츠 v2 (현재 test_ 키) | 실결제 전 live_ 교체 필요 |
 | 알림 | 카카오 비즈API v2 알림톡 5유형 | |
 | 서버 | iwinv vCPU2/RAM4GB, Ubuntu 24.04 LTS, Nginx + PM2 | aeolab.co.kr |
@@ -272,8 +274,8 @@
 
 | 스캐너 | 파일 | 방식 | 용도 |
 |--------|------|------|------|
-| Gemini 2.5 Flash | `gemini_scanner.py` | API | sample_n(n=50/100) — Basic 자동 50회, Full 100회, Trial 10회 |
-| ChatGPT GPT-4o-mini | `chatgpt_scanner.py` | API | sample_n(n=50/100) — Basic 자동 50회, Full 100회, Quick/Trial 1회 |
+| Gemini 2.5 Flash | `gemini_scanner.py` | API | sample_n(n=50/100) — Basic 자동 50회, Full 100회 |
+| ChatGPT gpt-4.1-mini | `chatgpt_scanner.py` | API | sample_n(n=50/100) — Basic 자동 50회, Full 100회, **Trial 5회** |
 | 네이버 AI 브리핑 | `naver_scanner.py` | Playwright | 네이버 AI 브리핑 DOM 파싱 |
 | Google AI Overview | `google_scanner.py` | Serper.dev API | 구글 SGE + AI Overview 노출 확인 ($0.001/건, CAPTCHA 없음) |
 
@@ -364,8 +366,8 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 | gap_cards | 갭 분석 카드 |
 | weekly_scores | 주간 점수 뷰 |
 
-### 업종 화이트리스트 25개 (v3.5)
-`restaurant·cafe·bakery·bar·beauty·nail·medical·pharmacy·fitness·yoga·pet·education·tutoring·legal·realestate·interior·auto·cleaning·shopping·fashion·photo·video·design·accommodation·other`
+### 업종 화이트리스트 59개 (v5.8, 2026-05-18 확장)
+> 전체 목록은 `backend/tests/test_category_alias.py:WHITELIST_59` 참조 (25개→59개로 확장됨, alias 포함)
 
 > 과거 코드 `hospital→medical`, `law→legal`, `shop→shopping` 마이그레이션 완료.
 
@@ -375,7 +377,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 | Method | Endpoint | 역할 |
 |--------|----------|------|
-| POST | /api/scan/trial | 무료 원샷 (비로그인, Gemini 10회) |
+| POST | /api/scan/trial | 무료 원샷 (비로그인, ChatGPT 5회 + 네이버) |
 | GET | /api/scan/trial-search | 네이버 지역검색 후보 (IP당 분당 10회) |
 | GET | /api/scan/trial-count | 공개 누적 체험 카운터 |
 | POST | /api/scan/full | 전체 4개 AI 병렬 (구독자) |
@@ -445,7 +447,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 - `ai_tab_readiness` 분리(2026-05-18)로 `keyword_gap_score` **0.35→0.30** 하향. 이 변경이 score-guide에 미반영돼 오기재 사고 발생
 - GrowthStage 기준: **`track1_score`** (unified 아님) — 업종별 비율 차이 오판 방지
 - v3.1/v3.2/v3.3: `NAVER_TRACK_WEIGHTS_V3_1/V3_2/V3_3` — 환경변수 `SCORE_MODEL_VERSION`으로 토글
-- **채널별 노출 소요 기간**: 네이버 AI 브리핑·AI탭 2~4주 / Gemini 수주(구글 비즈니스 프로필 기준) / ChatGPT·Gemini 스캐너 점수 수개월~1년
+- **채널별 노출 소요 기간**: 네이버 AI 브리핑·AI탭 2~4주 / ChatGPT·Gemini 스캐너 점수 수개월~1년 (구글 비즈니스 프로필 최적화로 Gemini 가속 가능)
 
 ---
 
@@ -485,12 +487,12 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 ## 운영 서버 주의사항
 
 - **현재 사양:** iwinv vCPU2 / RAM4GB (`/var/www/aeolab/`)
-- **🆙 업그레이드 예정:** 홈페이지 개발 완성 후 1단계 상위 사양으로 전환. RAM 8GB 기대 → Playwright 공유 세마포어 `Semaphore(2~3)` 상향 검토 가능. 단, 업그레이드 직전까지는 현행 독립 `Semaphore(1)` × 2 유지
+- **🆙 업그레이드 예정:** 홈페이지 개발 완성 후 1단계 상위 사양으로 전환. RAM 8GB 기대 → `PLAYWRIGHT_MAX_CONCURRENCY` 환경변수로 `Semaphore(2~3)` 상향 검토 가능 (현재 1)
 - **개발 시 가정**: "현재 vCPU2/RAM4GB에서도 안정 동작" + "업그레이드 후 측정 주기 단축·동시성 증가" 양쪽 모두 가능하도록 설계 (예: 측정 주기·동시성 한도를 환경변수로 분리)
 - **Playwright RAM:** 인스턴스 1개 = 300~500MB. 동시 2개 이상 금지.
-  - `multi_scanner.py`: `PLAYWRIGHT_SEMAPHORE = Semaphore(1)` (네이버 브리핑)
-  - `naver_ai_tab_scanner.py`: `_AI_TAB_SEMAPHORE = Semaphore(1)` (AI탭) — 독립 세마포어
-  - ⚠️ 두 세마포어 독립이므로 동시 최대 Playwright 2개 가능. P2 AI탭 스캐너 활성화 전 공유 세마포어 통합 필요
+  - `ai_scanner/multi_scanner.py:40`: `PLAYWRIGHT_SEMAPHORE = Semaphore(int(os.getenv("PLAYWRIGHT_MAX_CONCURRENCY","1")))` 선언
+  - 공유 파일 6개: multi_scanner, naver_ai_tab_scanner, competitor_place_crawler, naver_place_stats, smart_place_auto_check, scan.py — **2026-05-20 전역 공유 통합 완료**
+  - ⚠️ P2 AI탭 스캐너 활성화 시 추가 세마포어 작업 불필요 (이미 통합됨)
 - **CORS:** `allow_origins=['https://aeolab.co.kr','http://localhost:3000']`, `allow_methods` 명시적 5개
 - **Nginx:** `/api/` 경로 SSE 스트리밍 위해 `proxy_buffering off` 필수
 - **Phase 2+ 전환:** Vercel(Next.js) + Railway(FastAPI) 분리는 구독자 100명 이후
@@ -513,11 +515,14 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 **모든 코드 수정은 실제 서버에 직접 반영하는 것이 기준. 로컬은 서버 복사본.**
 
+> **⚠️ 편집 전 md5 선확인 필수 (2026-06-11 신설).** "무작정 로컬 수정 → scp 업로드"는 **금지** — 로컬이 구버전이면 서버 최신본을 덮어쓴다(2026-06-11 `ScanResultNavBar.tsx` 로컬이 서버보다 구버전이라 오판한 사고). TSX 멀티라인은 SSH 직접편집이 비현실적이라 **"md5 선확인 → 로컬편집 → scp"가 현실적 안전경로**이며, 핵심은 *편집 직전 로컬==서버 일치 확인*이다.
+
 **작업 순서:**
-1. SSH로 서버 파일 직접 수정 또는 `scp` 업로드
+0. **md5 선확인** — `ssh root@115.68.231.57 "md5sum /var/www/aeolab/<경로>"` vs 로컬 `md5sum`. **다르면 서버가 진실 → 먼저 `scp 서버→로컬`로 받은 뒤** 편집. 같을 때만 바로 편집.
+1. 로컬 편집 후 `scp 로컬→서버` (또는 SSH 직접 수정)
 2. 프론트엔드 변경 시 서버에서 `npm run build`
 3. `pm2 restart aeolab-frontend` / `pm2 restart aeolab-backend`
-4. `scp 서버 → 로컬`로 동기화
+4. 라이브 검증(`https://aeolab.co.kr`, PC+모바일) 후 `scp 서버 → 로컬` 동기화 + **md5 재일치 확인**
 
 ---
 
@@ -528,7 +533,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 ### Step 1 — 현재 상태 파악 (수정 전)
 - `Read`로 대상 파일 전체 구조 확인
 - `Grep`으로 동일 패턴의 다른 파일 영향 범위 확인
-- 서버 파일과 로컬 파일 중 어느 쪽이 최신인지 SSH로 확인
+- **서버 파일과 로컬 파일 md5 비교 필수** (어느 쪽이 최신인지 SSH로 확인). 다르면 서버가 진실 → `scp 서버→로컬` 먼저. 이 단계 건너뛰면 구버전 로컬로 오판·클로버 발생 (§"작업 기준 — 실제 서버 우선" 0번 참조)
 
 ### Step 2 — 외부 사양 변경 의심 시
 - 네이버·ChatGPT·Google 정책 관련이면 `WebSearch`로 최신 공식 자료 먼저 확인
@@ -570,7 +575,7 @@ try {
   if (!error && data.user) user = data.user;
 } catch { /* AuthApiError → 비로그인 처리 → /login redirect */ }
 ```
-- Next.js 16: `middleware.ts` → **`proxy.ts`**, `middleware` → **`proxy`**, `cookies()` **async**, `createClient()` **async**
+- Next.js 16: `middleware.ts` 파일명 그대로 유지 (`proxy.ts`로 변경 금지 — 실제 코드 `frontend/middleware.ts` 사용 중), `cookies()` **async**, `createClient()` **async**
 - `@supabase/auth-helpers-nextjs` **Deprecated** → `@supabase/ssr` 사용
 
 ### supabase-py 2.7.4 응답 객체 (필수)
@@ -582,7 +587,7 @@ if not (res and res.data):      # NOT `if not res:` (항상 False)
 row = res.data[0]               # NOT `res[0]` or `res.get()`
 ```
 - 2026-04-14 Critical 버그: `if not biz:` 소유권 검증 우회 전면 수정함
-- `latest_score.data.get()`, `logs.data or []` 패턴 유지
+- `res.data[0]` (list 접근), `logs.data or []` 패턴 유지 (`res.data.get()` 금지 — list에 get() 없음)
 
 ### Supabase HTTP/2 연결 끊김 방어 (`backend/db/supabase_client.py`)
 - `execute()`에 `RemoteProtocolError` / `Server disconnected` 감지 시 `_reset_client()` 후 1회 자동 재시도
@@ -599,6 +604,20 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 ### 로컬 Python venv 경로
 - Windows: `backend_venv\Scripts\activate`
 - pip: `backend_venv/Scripts/pip install -r backend/requirements.txt`
+
+### 점수 표시 원칙 (2026-06-10 확정, 2026-06-10 적용 범위 명확화)
+
+> **⚠️ 점수 수치(숫자)는 사용자에게 직접 표시하지 않는다.** 모든 점수는 텍스트 레이블로만 노출. 대시보드 전 컴포넌트에 적용됨.
+
+- **금지**: `72점`, `track1Score: 68` 등 숫자 직접 노출 — HeroCard·DualTrackCard·ChannelScoreCards·**CompetitorTimeline** 모든 컴포넌트에 적용
+- **티저 UI 더미 숫자도 금지**: 잠금(Lock) UI 뒤에 표시하는 샘플도 임의 숫자(`43점`·`51점`·`78점` 등) 사용 금지 → `--` 또는 의미 텍스트로 대체
+- **허용**: `"양호"`, `"보통"`, `"주의 필요"`, `"업종 상위권"`, `"AI 검색 노출 개선 중"` 등 의미 레이블; 진행률 바(%) 시각 보조 — 단, 숫자 레이블 없이
+- **구현 완료 파일 (텍스트 레이블 적용됨)**:
+  - `DualTrackCard.tsx` → `getScoreStatusLabel()` (양호/보통/주의 필요)
+  - `DashboardHeroCard.tsx` → `getStage()` (AI 검색 노출 양호/개선 중/미흡/시작 전)
+- **미수정 파일**: 현재 없음 (2026-06-10 기준 전체 적용 완료)
+- **이유**: 낮은 점수 숫자가 사용자에게 불안감을 주고, 절대 수치보다 상대적 위치(업종 평균 대비, 단계)가 더 유용하다는 UX 판단
+- **주의**: 점수 수치 추가를 "개선"이라고 판단하지 말 것 — 의도적 설계 결정임
 
 ### 작업 시 피해야 할 패턴
 - `except Exception: pass` — 반드시 `warning` 로그 남길 것
@@ -626,12 +645,6 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - **M1~M3**: WHITELIST 59개·`in_ai_tab`/`ad_only` 플래그·AI탭 체크리스트 25종·`NAVER_TRACK_WEIGHTS_V3_2`·`simulate_ai_tab_answer` v2(measured/estimated). 상세 → `docs/naver_ai_search_optimization_plan_v1.0.md`
 - **리드젠**: `FreeToolsSection.tsx`·메뉴 Excel(`/api/tools/menu-template.xlsx`)·`InlineKeywordWidget.tsx` 신규
 - **P2 버그**: `competitor_place_crawler.py`+`naver_place_stats.py` `except pass`→`warning()`. `AgencyServiceSection.tsx` 신규
-
-### 2026-05-17 — UI 최적화 + 메인 엔진 v1.1 Phase 1
-`text-xs`→`text-sm` 일괄·`DiaScoreBadge.tsx` 신규·`dashboard/page.tsx` 1453→412줄(-72%) `sections/` 8파일 분리·다크모드 인프라. 사진 카테고리 단일 소스(`photo_categories.py`)·D.I.A./LSI 5요소·`inactive_post_alert_job`. 상세 → `docs/main_engine_optimization_v1.1.md`
-
-### 2026-05-16 — 네이버 AI탭 대응 P0 (AI 브리핑 ≠ AI탭 분리)
-AI탭(2026-04-27 베타, 모든 업종) ≠ AI 브리핑(ACTIVE 업종만). `get_ai_tab_eligibility()` 신규. `briefingEligibility`·`aiTabEligibility` 분리. P2(AI탭 스캐너) 6월 대기.
 
 
 ---
