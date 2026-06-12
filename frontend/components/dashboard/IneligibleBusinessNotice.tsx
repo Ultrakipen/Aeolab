@@ -18,15 +18,11 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
     const label = isFranchise ? "프랜차이즈 가맹점" : `${categoryLabel} 업종`;
     return (
       <div className="rounded-xl border border-green-200 bg-green-50 p-4">
-        <p className="text-sm md:text-base font-bold text-green-900 mb-1 break-keep">
-          📍 {label} — <span className="underline decoration-green-400 decoration-2 underline-offset-2">네이버 검색·플레이스 상위노출</span>이 노출을 키우는 가장 빠른 길입니다
+        {/* 메시지 반복 제거 — '네이버 검색·플레이스가 핵심'은 상단 Hero가 유일 소스.
+            이 카드는 실행 리스트(①②③④)만 담당해 같은 말 4회→2회로 축소 (점검 기준 #4) */}
+        <p className="text-sm md:text-base font-bold text-green-900 mb-2.5 break-keep">
+          📍 {label} — 네이버 노출 키우려면 지금 바로 할 것
         </p>
-        <p className="text-xs md:text-sm text-gray-600 mb-3 leading-relaxed break-keep">
-          {isFranchise
-            ? "프랜차이즈 가맹점은 네이버 AI 브리핑 대상이 아니지만(네이버 공식), 네이버 검색·플레이스와 AI탭으로 노출을 키울 수 있습니다."
-            : `${categoryLabel} 업종은 네이버 AI 브리핑 대상이 아니지만, 네이버 검색·플레이스와 AI탭으로 노출을 충분히 키울 수 있습니다.`}
-        </p>
-        <p className="text-xs font-semibold text-green-800 mb-1.5">지금 바로 할 것</p>
         <ul className="space-y-1 mb-3">
           <li className="flex items-start gap-2 text-sm text-gray-700">
             <span className="text-green-600 font-bold shrink-0">①</span>
