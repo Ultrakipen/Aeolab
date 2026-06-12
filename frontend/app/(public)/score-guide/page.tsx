@@ -424,10 +424,10 @@ export default function ScoreGuidePage() {
                   naverDominant: true,
                 },
                 {
-                  category: "사진·영상 스튜디오",
+                  category: "사진 스튜디오",
                   naver: 65,
                   global: 35,
-                  reason: "지역 기반 네이버 강세",
+                  reason: "지역 기반 네이버 강세 (영상·제작 스튜디오는 55/45 내외)",
                   naverDominant: true,
                 },
                 {
@@ -455,7 +455,7 @@ export default function ScoreGuidePage() {
                   category: "온라인몰·종합쇼핑",
                   naver: 10,
                   global: 90,
-                  reason: "온라인 = 글로벌 AI 압도적 (의류·신발 매장은 50/50 내외)",
+                  reason: "온라인 = 글로벌 AI 압도적 (의류·패션·신발 오프라인 매장은 네이버 45~60%로 다름)",
                   naverDominant: false,
                 },
                 {
