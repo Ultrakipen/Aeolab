@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { getBriefingEligibility } from "@/lib/userGroup";
+import ResultSummaryHero from "@/components/common/ResultSummaryHero";
+import { aiTabTile, briefingTile, rankTile, makeTile, type ChannelTile } from "@/lib/scoreLabels";
 
 // ── 업종 / 지역 선택지 ────────────────────────────────────────────────
 const CATEGORIES = [
@@ -404,23 +406,6 @@ function getMock(category: string, region: string) {
   return { ...base, ...tpl };
 }
 
-// ── 채널 상태 텍스트 헬퍼 (trial 화면과 동일 체계) ──────────────────────
-function getChannelStatus(score: number): { text: string; bg: string; textColor: string } {
-  if (score < 25) return { text: "주의 필요", bg: "bg-red-50 border-red-200",       textColor: "text-red-600" };
-  if (score < 45) return { text: "미흡",      bg: "bg-amber-50 border-amber-200",   textColor: "text-amber-600" };
-  if (score < 65) return { text: "보통",      bg: "bg-yellow-50 border-yellow-200", textColor: "text-yellow-600" };
-  if (score < 80) return { text: "양호",      bg: "bg-blue-50 border-blue-200",     textColor: "text-blue-600" };
-  return             { text: "우수",          bg: "bg-emerald-50 border-emerald-200", textColor: "text-emerald-600" };
-}
-
-// ── 성장 단계 레이블 (trial 화면 ScoreSummaryCard와 동일) ─────────────────
-function getStageLabel(score: number): { label: string; tagBg: string; message: string } {
-  if (score >= 70) return { label: "안정 궤도",   tagBg: "bg-blue-100 text-blue-700",   message: "경쟁 가게 대비 AI 검색 노출이 잘 되어 있습니다. 꾸준히 유지하세요." };
-  if (score >= 50) return { label: "성장 진행 중", tagBg: "bg-blue-100 text-blue-700",   message: "기반이 갖춰져 있습니다. 아래 개선 항목 2~3가지 보완으로 노출을 크게 늘릴 수 있습니다." };
-  if (score >= 30) return { label: "성장 준비 중", tagBg: "bg-slate-100 text-slate-600", message: "핵심 항목 몇 가지를 보완하면 AI 검색 노출이 빠르게 늘어납니다." };
-  return           { label: "시작 단계",          tagBg: "bg-slate-100 text-slate-600", message: "AI 검색 최적화가 아직 시작 전입니다. 지금 시작하면 경쟁 가게보다 먼저 자리 잡을 수 있습니다." };
-}
-
 // ── 타입 ─────────────────────────────────────────────────────────────
 type BreakdownItem = { label: string; icon: string; score: number; what: string; stateMsg: string; isLow: boolean };
 type Mock = ReturnType<typeof getMock>;
@@ -451,6 +436,79 @@ export default function DemoPage() {
 
   // 네이버 AI 브리핑 노출 상태 (단일 소스 헬퍼 사용)
   const briefingStatus = getBriefingEligibility(category);
+
+  // ── 종합 결론 히어로 (대시보드 HeroCard 구조 복제) ──────────────────────
+  // 네이버 검색 타일: demo는 키워드 커버리지 대신 지역검색 순위(실측 신호)로 표시
+  const naverSeoDemoTile: ChannelTile = m.naverRank
+    ? makeTile("naver-seo", "네이버 검색", "good", "노출 중", `지역검색 ${m.naverRank}위`)
+    : makeTile("naver-seo", "네이버 검색", "pending", "확인 필요", "검색 노출 미확인");
+  // AI탭은 demo에서 측정하지 않음 → "준비 중" (정식 공개 후 측정)
+  const heroTiles: ChannelTile[] = briefingStatus === "inactive"
+    ? [naverSeoDemoTile, aiTabTile(null), rankTile({ myRank: m.naverRank, totalCompetitors: m.naverCompetitors.length })]
+    : [naverSeoDemoTile, aiTabTile(null), briefingTile({ eligibility: briefingStatus, inBriefing: false })];
+  const heroEvidence = `경쟁 ${m.naverCompetitors.length}곳 중 ${m.naverRank}위 · 블로그 ${m.blogMentions}건`;
+
+  // ── 항목별 분석을 채널 구조로 재배치 (대시보드 채널 taxonomy) ────────────────
+  // 6차원 데이터는 그대로 유지하고 렌더 그룹만 채널별로 묶는다.
+  const NAVER_SEARCH_KEYS = ["review_quality", "info_completeness", "content_freshness"];
+  const GLOBAL_KEYS = ["exposure_freq", "schema_score", "online_mentions"];
+  const pickItems = (keys: string[]) =>
+    keys.filter((k) => m.breakdown[k]).map((k) => [k, m.breakdown[k]] as [string, BreakdownItem]);
+  const naverSearchItems = pickItems(NAVER_SEARCH_KEYS);
+  const globalItems = pickItems(GLOBAL_KEYS);
+  const briefingNote =
+    briefingStatus === "active"
+      ? "네이버 AI 브리핑 대상 업종 — 소개글 Q&A·소식·리뷰를 보강하면 브리핑 인용 후보에 진입합니다 (업데이트 후 2~4주)."
+      : briefingStatus === "likely"
+      ? "네이버 AI 브리핑 확대 예정 업종 — 지금 준비해두면 확대 시 바로 유리합니다."
+      : "이 업종은 네이버 AI 브리핑 비대상입니다. 네이버 일반검색·AI탭 노출에 집중하세요.";
+
+  type ChannelDef = { icon: string; label: string; border: string; items?: [string, BreakdownItem][]; note?: string };
+  const channelDefs: Record<string, ChannelDef> = {
+    briefing:    { icon: "✨", label: "네이버 AI 브리핑", border: "border-purple-400", note: briefingNote },
+    naverSearch: { icon: "🔍", label: "네이버 일반검색", border: "border-green-400", items: naverSearchItems },
+    aitab:       { icon: "🤖", label: "네이버 AI탭", border: "border-blue-400", note: "네이버 AI탭은 모든 업종 대상(2026-04 베타 오픈, 확대 중). 소개글·리뷰 키워드를 보강하면 AI탭 답변 후보에 들어갑니다." },
+    global:      { icon: "🌐", label: "글로벌 AI (ChatGPT·Gemini)", border: "border-slate-400", items: globalItems },
+  };
+  // 업종그룹 순서분기 — 대시보드 InsightZone과 동일
+  const channelOrder: string[] = briefingStatus === "inactive"
+    ? ["naverSearch", "aitab", "global", "briefing"]
+    : ["briefing", "naverSearch", "aitab", "global"];
+
+  // 항목 1개 렌더 (기존 6차원 행 마크업 재사용)
+  const renderBreakdownRow = ([key, item]: [string, BreakdownItem]) => (
+    <div key={key} className="py-3 first:pt-0 last:pb-0 border-b border-gray-50 last:border-0">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.isLow ? "bg-amber-400" : "bg-green-500"}`} />
+          <span className="text-sm md:text-base font-semibold text-gray-800">{item.icon} {item.label}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-bold px-2.5 py-1 rounded-full ${item.isLow ? "bg-amber-50 text-amber-700" : "bg-green-50 text-green-700"}`}>
+            {item.isLow ? "⚠ 개선 필요" : "✓ 양호"}
+          </span>
+          {key === "exposure_freq" && (
+            <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${m.geminiRate === 0 ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
+              AI노출 {m.geminiRate}%
+            </span>
+          )}
+        </div>
+      </div>
+      {/* 바 그래프 (숫자 미표시) */}
+      <div className="flex items-center gap-3 mb-2">
+        <div className="flex-1 bg-gray-100 rounded-full h-2">
+          <div
+            className={`h-2 rounded-full ${item.isLow ? "bg-amber-400" : "bg-green-500"}`}
+            style={{ width: `${item.score}%` }}
+          />
+        </div>
+      </div>
+      <p className="text-sm md:text-base text-gray-500 leading-relaxed">{item.what}</p>
+      <p className={`text-sm md:text-base mt-1 font-medium leading-relaxed ${item.isLow ? "text-amber-600" : "text-green-600"}`}>
+        {item.stateMsg}
+      </p>
+    </div>
+  );
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -710,34 +768,19 @@ export default function DemoPage() {
           ══════════════════════════════════════════════ */}
           <div className="order-first md:order-last space-y-5 md:space-y-5">
 
-            {/* 핵심 메시지 */}
-            <div className="rounded-xl px-4 md:px-5 py-4 md:py-5 bg-blue-600">
-              <p className="text-white/70 text-sm mb-1">
+            {/* 종합 결론 — 대시보드 HeroCard 구조 복제 (성장단계+네이버 3채널 그리드+실측근거+오늘할일) */}
+            <div>
+              <p className="text-sm text-gray-500 mb-2 px-1">
                 {m.businessName} · {isRealBiz ? "창원시 (실제 데이터)" : `${m.region} (예시)`}
               </p>
-              <p className="text-white font-bold text-base md:text-lg leading-snug mb-3">
-                {m.aiExcerptFail
-                  ? "AI에 노출되지 않고 있습니다. 경쟁 가게에 밀리는 중입니다."
-                  : "손님에게 일부는 보이지만 경쟁 가게에 밀리고 있습니다"}
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: "AI 검색 노출",  ok: !m.aiExcerptFail,      desc: m.aiExcerptFail ? "AI 미노출 상태" : "AI 답변에 등장" },
-                  { label: "네이버 지도",   ok: m.naverRank !== null,  desc: `지역 검색 ${m.naverRank}위` },
-                  { label: "카카오맵",      ok: m.isOnKakao,           desc: `카카오 ${m.kakaoRank}위` },
-                  { label: "블로그 후기",   ok: m.blogMentions > 5,    desc: `${m.blogMentions}건` },
-                ].map((item) => (
-                  <div key={item.label} className={`rounded-xl px-3 py-2.5 flex items-center gap-2 ${item.ok ? "bg-white/20" : "bg-black/20"}`}>
-                    <span className={`text-base shrink-0 ${item.ok ? "text-white" : "text-white/40"}`}>
-                      {item.ok ? "✓" : "✕"}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-white/90 leading-tight">{item.label}</p>
-                      <p className={`text-sm leading-tight mt-0.5 ${item.ok ? "text-white/70" : "text-white/40"}`}>{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ResultSummaryHero
+                stageScore={m.totalScore}
+                inactive={briefingStatus === "inactive"}
+                evidenceText={heroEvidence}
+                tiles={heroTiles}
+                todayAction={gs.this_week_action}
+                todayActionLink="/trial"
+              />
             </div>
 
             {/* 측정 근거 요약 */}
@@ -752,120 +795,31 @@ export default function DemoPage() {
               <p className="text-sm text-slate-500">⏱ 개선 반영 기간: 네이버 2~4주 · Gemini 수 주 · ChatGPT 수개월~1년</p>
             </div>
 
-            {/* 종합 점수 + 성장 단계 (통합) */}
-            {(() => {
-              const stageInfo = getStageLabel(m.totalScore);
-              const naverStatus = getChannelStatus(m.naverChannelScore);
-              const globalScore = Math.round(m.totalScore * 0.4);
-              const globalStatus = getChannelStatus(globalScore);
-              const vsAvg = m.totalScore - m.benchmark.avg;
-              return (
-                <div className="bg-white rounded-xl shadow-sm px-4 md:px-5 py-4 md:py-5">
-                  {/* 현재 단계 태그 */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-sm font-bold px-3 py-1 rounded-full ${stageInfo.tagBg}`}>
-                      {gs.stage_label || stageInfo.label}
-                    </span>
-                    <span className="text-sm text-gray-400">현재 AI 노출 단계</span>
-                  </div>
-                  {/* 맞춤 메시지 (gs.focus_message 우선) */}
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-3">{gs.focus_message}</p>
-                  {/* 점수 바 */}
-                  <div className="mb-2">
-                    <div className="w-full bg-gray-100 rounded-full h-2.5 relative">
-                      <div className="h-2.5 rounded-full bg-blue-400 transition-all" style={{ width: `${m.totalScore}%` }} />
-                      <div
-                        className="absolute top-0 bottom-0 w-0.5 bg-gray-400 rounded-full"
-                        style={{ left: `${m.benchmark.avg}%` }}
-                        title={`${CATEGORIES.find(c => c.value === category)?.label} 업종 평균`}
-                      />
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span className="text-sm text-gray-400">시작</span>
-                      <span className="text-sm text-gray-400">{CATEGORIES.find(c => c.value === category)?.label} 업종 평균</span>
-                      <span className="text-sm text-gray-400">최적화</span>
-                    </div>
-                  </div>
-                  {/* 보조 상태 (상대 위치) */}
-                  <p className="text-sm text-gray-400 mb-3">
-                    내 가게 AI 검색 노출은 {isRealBiz ? "창원시" : m.region} {CATEGORIES.find(c => c.value === category)?.label} 업종 평균 {m.totalScore >= m.benchmark.avg ? "이상입니다" : "대비 개선 여지가 있습니다"}.
-                    <span className="ml-1 text-sm bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">추정</span>
-                  </p>
-                  {/* 채널 상태 태그 */}
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <div className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 ${naverStatus.bg}`}>
-                      <span className="text-sm text-gray-500">네이버</span>
-                      <span className={`text-sm font-bold ${naverStatus.textColor}`}>{naverStatus.text}</span>
-                    </div>
-                    <div className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 ${globalStatus.bg}`}>
-                      <span className="text-sm text-gray-500">글로벌 AI</span>
-                      <span className={`text-sm font-bold ${globalStatus.textColor}`}>{globalStatus.text}</span>
-                    </div>
-                    {Math.abs(vsAvg) >= 1 && (
-                      <div className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 ${vsAvg >= 0 ? "bg-blue-50 border-blue-200" : "bg-slate-50 border-slate-200"}`}>
-                        <span className="text-sm text-gray-500">업종 평균 대비</span>
-                        <span className={`text-sm font-bold ${vsAvg >= 0 ? "text-blue-600" : "text-slate-500"}`}>
-                          {vsAvg >= 0 ? "높음 ↑" : "낮음 ↓"}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {/* 이번 주 할 일 */}
-                  <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5">
-                    <p className="text-sm font-semibold text-blue-800 mb-1">이번 주 집중할 것</p>
-                    <p className="text-sm text-blue-700 leading-relaxed">{gs.this_week_action}</p>
-                  </div>
-                  <p className="text-sm text-gray-400 mt-2">업종 평균은 참고용 추정치이며 실측 기반으로 계속 개선됩니다</p>
+            {/* 업종 평균 대비 내 위치 (교육용 보조 — 성장단계·채널·오늘할일은 위 종합결론 히어로에 표시) */}
+            <div className="bg-white rounded-xl shadow-sm px-4 md:px-5 py-4 md:py-5">
+              <p className="text-sm font-bold text-gray-700 mb-2">업종 평균 대비 내 위치</p>
+              <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-3">{gs.focus_message}</p>
+              {/* 점수 바 (숫자 미표시 — 상대 위치만) */}
+              <div className="mb-2">
+                <div className="w-full bg-gray-100 rounded-full h-2.5 relative">
+                  <div className="h-2.5 rounded-full bg-blue-400 transition-all" style={{ width: `${m.totalScore}%` }} />
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-gray-400 rounded-full"
+                    style={{ left: `${m.benchmark.avg}%` }}
+                    title={`${CATEGORIES.find(c => c.value === category)?.label} 업종 평균`}
+                  />
                 </div>
-              );
-            })()}
-
-            {/* 채널 분리 점수 */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-xl shadow-sm px-3 md:px-4 py-4">
-                <p className="text-sm font-semibold text-gray-600 mb-0.5">네이버 AI 채널</p>
-                <p className="text-sm text-gray-500 mb-1 leading-tight">
-                  {briefingStatus === "active" ? "AI브리핑 · AI탭 · 카카오맵" : briefingStatus === "likely" ? "AI브리핑(확대예정) · AI탭베타 · 카카오맵" : "AI탭베타 · 카카오맵 (브리핑 비대상)"}
-                </p>
-                {briefingStatus === "inactive" && (
-                  <span className="inline-block text-sm bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full mb-1.5">네이버 AI브리핑 제외업종</span>
-                )}
-                {(() => {
-                  const ns = getChannelStatus(m.naverChannelScore);
-                  return (
-                    <div className={`inline-flex items-center gap-1.5 border rounded-lg px-3 py-1.5 mb-1 ${ns.bg}`}>
-                      <span className={`text-base font-bold ${ns.textColor}`}>{ns.text}</span>
-                    </div>
-                  );
-                })()}
-                <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
-                  <div className="h-2 rounded-full bg-amber-500" style={{ width: `${m.naverChannelScore}%` }} />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 text-sm"><span className="text-green-500">✓</span><span className="text-gray-600">스마트플레이스</span></div>
-                  <div className="flex items-center gap-1.5 text-sm"><span className="text-green-500">✓</span><span className="text-gray-600">카카오맵</span></div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-sm text-gray-400">시작</span>
+                  <span className="text-sm text-gray-400">{CATEGORIES.find(c => c.value === category)?.label} 업종 평균</span>
+                  <span className="text-sm text-gray-400">최적화</span>
                 </div>
               </div>
-
-              <div className="bg-white rounded-xl shadow-sm px-3 md:px-4 py-4 relative overflow-hidden">
-                <p className="text-sm font-semibold text-gray-600 mb-0.5">ChatGPT·Google AI</p>
-                <p className="text-sm text-gray-500 mb-2 leading-tight">요즘 손님들이 많이 쓰는 AI</p>
-                <div className="select-none pointer-events-none blur-sm">
-                  <div className="text-base font-bold text-blue-500 mb-1">확인 필요</div>
-                  <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
-                    <div className="h-2 rounded-full bg-blue-400" style={{ width: "45%" }} />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 text-sm"><span className="text-gray-500">○</span><span className="text-gray-500">ChatGPT 노출</span></div>
-                    <div className="flex items-center gap-1.5 text-sm"><span className="text-gray-500">○</span><span className="text-gray-500">Google AI 노출</span></div>
-                  </div>
-                </div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-[1px]">
-                  <Link href="/trial" className="text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl px-3 py-2 transition-colors text-center">
-                    내 가게로<br className="md:hidden" /> 확인하기
-                  </Link>
-                </div>
-              </div>
+              <p className="text-sm text-gray-400">
+                내 가게 AI 검색 노출은 {isRealBiz ? "창원시" : m.region} {CATEGORIES.find(c => c.value === category)?.label} 업종 평균 {m.totalScore >= m.benchmark.avg ? "이상입니다" : "대비 개선 여지가 있습니다"}.
+                <span className="ml-1 text-sm bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">추정</span>
+              </p>
+              <p className="text-sm text-gray-400 mt-2">업종 평균은 참고용 추정치이며 실측 기반으로 계속 개선됩니다</p>
             </div>
 
             {/* Google 비즈니스 프로필 안내 — 컴팩트 버전 */}
@@ -1084,48 +1038,29 @@ export default function DemoPage() {
               </div>
             </div>
 
-            {/* 항목별 분석 */}
+            {/* 항목별 분석 — 채널 구조로 재배치 (대시보드 채널 taxonomy와 일치) */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100">
-                <p className="text-base md:text-lg font-bold text-gray-800">항목별로 왜 이 점수인지 확인하기</p>
-                <p className="text-sm text-gray-500 mt-0.5">점수가 낮은 항목부터 개선하면 됩니다</p>
+                <p className="text-base md:text-lg font-bold text-gray-800">채널별로 어디를 개선할지 확인하기</p>
+                <p className="text-sm text-gray-500 mt-0.5">네이버·글로벌 AI 채널별로 약한 항목부터 개선하면 됩니다</p>
               </div>
-              <div className="divide-y divide-gray-50">
-                {Object.entries(m.breakdown).map(([key, item]) => (
-                  <div key={key} className="px-4 md:px-6 py-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.isLow ? "bg-amber-400" : "bg-green-500"}`} />
-                        <span className="text-sm md:text-base font-semibold text-gray-800">{item.icon} {item.label}</span>
+              <div className="divide-y divide-gray-100">
+                {channelOrder.map((cid) => {
+                  const ch = channelDefs[cid];
+                  return (
+                    <div key={cid} className="px-4 md:px-6 py-4">
+                      <div className={`flex items-center gap-2 pb-2 mb-3 border-b-2 ${ch.border}`}>
+                        <span className="text-base" aria-hidden="true">{ch.icon}</span>
+                        <span className="text-sm font-bold text-gray-700">{ch.label}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {/* 주표시: 텍스트 상태 */}
-                        <span className={`text-sm font-bold px-2.5 py-1 rounded-full ${item.isLow ? "bg-amber-50 text-amber-700" : "bg-green-50 text-green-700"}`}>
-                          {item.isLow ? "⚠ 개선 필요" : "✓ 양호"}
-                        </span>
-                        {/* AI 노출 항목: 합산 노출률 배지 */}
-                        {key === "exposure_freq" && (
-                          <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${m.geminiRate === 0 ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
-                            AI노출 {m.geminiRate}%
-                          </span>
-                        )}
-                      </div>
+                      {ch.items && ch.items.length > 0 ? (
+                        <div>{ch.items.map(renderBreakdownRow)}</div>
+                      ) : (
+                        <p className="text-sm md:text-base text-gray-500 leading-relaxed">{ch.note}</p>
+                      )}
                     </div>
-                    {/* 바 그래프 + 보조 숫자 */}
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="flex-1 bg-gray-100 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full ${item.isLow ? "bg-amber-400" : "bg-green-500"}`}
-                          style={{ width: `${item.score}%` }}
-                        />
-                      </div>
-                    </div>
-                    <p className="text-sm md:text-base text-gray-500 leading-relaxed">{item.what}</p>
-                    <p className={`text-sm md:text-base mt-1 font-medium leading-relaxed ${item.isLow ? "text-amber-600" : "text-green-600"}`}>
-                      {item.stateMsg}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

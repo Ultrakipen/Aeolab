@@ -18,6 +18,8 @@ import KakaoShareButton from "@/components/common/KakaoShareButton";
 import TextShareButton from "@/components/trial/TextShareButton";
 import TrialCompetitorGapCard from "@/components/trial/TrialCompetitorGapCard";
 import TrialDetailAccordion from "@/components/trial/TrialDetailAccordion";
+import ResultSummaryHero from "@/components/common/ResultSummaryHero";
+import { naverSeoTile, aiTabTile, briefingTile, rankTile, type ChannelTile } from "@/lib/scoreLabels";
 import type {
   TrialScanResult,
   TrialPlaceMatch,
@@ -141,15 +143,6 @@ function LockedScoreCard({
       </div>
     </div>
   );
-}
-
-// ── 채널 상태 텍스트 헬퍼 ─────────────────────────────────────────────
-function getChannelStatus(score: number): { text: string; bg: string; text_color: string } {
-  if (score < 25) return { text: "주의 필요", bg: "bg-red-50 border-red-200",     text_color: "text-red-600" };
-  if (score < 45) return { text: "미흡",     bg: "bg-amber-50 border-amber-200",  text_color: "text-amber-600" };
-  if (score < 65) return { text: "보통",     bg: "bg-yellow-50 border-yellow-200", text_color: "text-yellow-600" };
-  if (score < 80) return { text: "양호",     bg: "bg-blue-50 border-blue-200",    text_color: "text-blue-600" };
-  return             { text: "우수",         bg: "bg-emerald-50 border-emerald-200", text_color: "text-emerald-600" };
 }
 
 // ── ChatGPT/Gemini 노출 빈도 텍스트 헬퍼 ────────────────────────────
@@ -386,71 +379,27 @@ function ScanConclusionCard({
 // ── 점수 요약 카드 (성장 단계 중심 — 거부감 없이 기회 전달) ─────────────
 function ScoreSummaryCard({
   score,
-  track1,
-  track2,
   benchmarkAvg,
   categoryLabel,
   isEstimatedBenchmark,
-  gsLabel,
 }: {
   score: number;
-  track1: number;
-  track2: number;
   benchmarkAvg: number;
   categoryLabel: string;
   isEstimatedBenchmark: boolean;
-  gsLabel?: string;
 }) {
-  // 등급 대신 성장 여정 단계로 표현 — 낙제 감각 없이 가능성 중심
-  const stage =
-    score >= 70
-      ? {
-          label: "안정 궤도",
-          tagBg: "bg-blue-100 text-blue-700",
-          bar: "bg-blue-500",
-          message: "AI 검색 노출이 안정적입니다. 이 상태를 유지하세요.",
-        }
-      : score >= 50
-        ? {
-            label: "성장 진행 중",
-            tagBg: "bg-blue-100 text-blue-700",
-            bar: "bg-blue-500",
-            message: "AI 검색 기반이 갖춰진 상태입니다.",
-          }
-        : score >= 30
-          ? {
-              label: "성장 준비 중",
-              tagBg: "bg-slate-100 text-slate-600",
-              bar: "bg-slate-400",
-              message: "AI 검색 노출을 시작하는 단계입니다.",
-            }
-          : {
-              label: "시작 단계",
-              tagBg: "bg-slate-100 text-slate-600",
-              bar: "bg-slate-400",
-              message: "AI 검색 최적화가 아직 시작 전 단계입니다.",
-            };
-
   const vsAvg = Math.round(score - benchmarkAvg);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 mb-4 shadow-sm">
-      {/* 단계 태그 — 백엔드 gsLabel 우선, 없으면 로컬 stage.label */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className={`text-sm font-bold px-3 py-1 rounded-full ${stage.tagBg}`}>
-          {gsLabel ?? stage.label}
-        </span>
-        <span className="text-sm text-slate-400">현재 AI 노출 단계</span>
-      </div>
+      {/* 업종 평균 대비 내 위치 — 성장단계·채널 상태는 상단 종합결론 히어로에 표시 */}
+      <p className="text-sm font-bold text-slate-700 mb-3">업종 평균 대비 내 위치</p>
 
-      {/* 메시지 */}
-      <p className="text-base md:text-lg text-slate-700 leading-relaxed break-keep mb-3">{stage.message}</p>
-
-      {/* 점수 바 + 업종 평균선 */}
+      {/* 점수 바 + 업종 평균선 (숫자 미표시 — 상대 위치만) */}
       <div className="mb-1">
         <div className="w-full bg-slate-100 rounded-full h-2.5 relative">
           <div
-            className={`h-2.5 rounded-full ${stage.bar} transition-all duration-700`}
+            className="h-2.5 rounded-full bg-blue-400 transition-all duration-700"
             style={{ width: `${score}%` }}
           />
           {!isEstimatedBenchmark && benchmarkAvg > 0 && benchmarkAvg <= 100 && (
@@ -470,35 +419,11 @@ function ScoreSummaryCard({
         </div>
       </div>
 
-      {/* 채널별 상태 */}
-      <div className="flex flex-wrap gap-2 mt-3">
-        {(() => {
-          const t1 = getChannelStatus(track1);
-          return (
-            <div className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 ${t1.bg}`}>
-              <span className="text-sm text-slate-500">네이버</span>
-              <span className={`text-sm font-bold ${t1.text_color}`}>{t1.text}</span>
-            </div>
-          );
-        })()}
-        {(() => {
-          const t2 = getChannelStatus(track2);
-          return (
-            <div className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 ${t2.bg}`}>
-              <span className="text-sm text-slate-500">글로벌 AI</span>
-              <span className={`text-sm font-bold ${t2.text_color}`}>{t2.text}</span>
-            </div>
-          );
-        })()}
-        {!isEstimatedBenchmark && Math.abs(vsAvg) >= 1 && (
-          <div className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 ${vsAvg >= 0 ? "bg-blue-50 border-blue-200" : "bg-slate-50 border-slate-200"}`}>
-            <span className="text-sm text-slate-500">업종 평균 대비</span>
-            <span className={`text-sm font-bold ${vsAvg >= 0 ? "text-blue-600" : "text-slate-500"}`}>
-              {vsAvg >= 0 ? "높음 ↑" : "낮음 ↓"}
-            </span>
-          </div>
-        )}
-      </div>
+      {!isEstimatedBenchmark && Math.abs(vsAvg) >= 1 && (
+        <p className="text-sm text-slate-500 mt-2 break-keep">
+          내 가게 AI 검색 노출은 {categoryLabel} 업종 평균 {vsAvg >= 0 ? "이상입니다" : "대비 개선 여지가 있습니다"}.
+        </p>
+      )}
 
       <div className="mt-3">
         <p className="text-sm text-slate-400 leading-relaxed">
@@ -699,6 +624,29 @@ export default function TrialResultStep(props: TrialResultProps) {
   const briefingCategory: BriefingEligibility =
     (result.briefing_category as BriefingEligibility | undefined) ??
     getBriefingEligibility(selectedCategory, isFranchise);
+
+  // ── 종합 결론 히어로 (대시보드 HeroCard 구조 복제) ──────────────────────
+  const heroInactive = briefingCategory === "inactive" || isFranchise;
+  const naverCompetitorCount =
+    (naver as { naver_competitors?: unknown[] } | null)?.naver_competitors?.length ?? 0;
+  const heroTiles: ChannelTile[] = heroInactive
+    ? [
+        naverSeoTile({ missingKeywordCount: effectiveMissingKws.length }),
+        aiTabTile(null),
+        rankTile({ myRank: naver?.my_rank, totalCompetitors: naverCompetitorCount }),
+      ]
+    : [
+        naverSeoTile({ missingKeywordCount: effectiveMissingKws.length }),
+        aiTabTile(null),
+        briefingTile({ eligibility: briefingCategory, isFranchise, inBriefing }),
+      ];
+  const heroEvidenceParts: string[] = [];
+  if (naver?.my_rank && naverCompetitorCount > 1)
+    heroEvidenceParts.push(`경쟁 ${naverCompetitorCount}곳 중 ${naver.my_rank}위`);
+  heroEvidenceParts.push(
+    effectiveMissingKws.length === 0 ? "키워드 모두 포함" : `키워드 ${effectiveMissingKws.length}개 보강 필요`,
+  );
+  const heroEvidence = heroEvidenceParts.join(" · ");
 
   // 점수 산식 분해 데이터
   const breakdown = result.score?.breakdown;
@@ -934,7 +882,20 @@ export default function TrialResultStep(props: TrialResultProps) {
           <BriefingCategoryBadge category={briefingCategory} />
         )}
 
-        {/* ── 1. 핵심 결론 (실측 데이터만, 스크롤 없이 즉시 파악) ────── */}
+        {/* ── 1. 종합 결론 — 대시보드 HeroCard 구조 복제 (성장단계+네이버 3채널 그리드+실측근거+오늘할일) ── */}
+        <div className="mb-4">
+          <ResultSummaryHero
+            stageScore={track1}
+            inactive={briefingCategory === "inactive"}
+            isFranchise={isFranchise}
+            evidenceText={heroEvidence}
+            tiles={heroTiles}
+            todayAction={gs?.this_week_action}
+            todayActionLink="#today-action"
+          />
+        </div>
+
+        {/* ── 2. 핵심 실측 상세 (증거) ────────────────────────────── */}
         <ScanConclusionCard
           businessName={form.business_name || "내 가게"}
           chatgptMentioned={chatgptMentioned}
@@ -998,11 +959,12 @@ export default function TrialResultStep(props: TrialResultProps) {
              ACTIVE 업종: 네이버 AI 브리핑 먼저 → ChatGPT
              LIKELY/INACTIVE: ChatGPT 먼저 → 네이버는 섹션 9 안내로 대체 ── */}
 
-        {briefingCategory === "active" && (
+        {/* ACTIVE·LIKELY는 네이버 AI 브리핑을 먼저 (대시보드 InsightZone 순서분기와 일치) */}
+        {(briefingCategory === "active" || briefingCategory === "likely") && (
           <NaverBriefingResultCard
             businessName={form.business_name || "내 가게"}
             inBriefing={inBriefing}
-            isLikely={false}
+            isLikely={briefingCategory === "likely"}
             hasFaq={hasFaq}
             hasIntro={hasIntro}
             isSmartPlace={isSmartPlace}
@@ -1029,17 +991,6 @@ export default function TrialResultStep(props: TrialResultProps) {
           </div>
         )}
 
-        {briefingCategory === "likely" && (
-          <NaverBriefingResultCard
-            businessName={form.business_name || "내 가게"}
-            inBriefing={inBriefing}
-            isLikely={true}
-            hasFaq={hasFaq}
-            hasIntro={hasIntro}
-            isSmartPlace={isSmartPlace}
-          />
-        )}
-
         {/* ── 6. 네이버 검색 순위 + 블로그 격차 ─────────────────────── */}
         <TrialCompetitorGapCard
           businessName={form.business_name || "내 가게"}
@@ -1057,12 +1008,9 @@ export default function TrialResultStep(props: TrialResultProps) {
         {/* ── 7. 종합 점수 요약 ─────────────────────────────────────── */}
         <ScoreSummaryCard
           score={score}
-          track1={track1}
-          track2={track2}
           benchmarkAvg={benchmarkAvg}
           categoryLabel={categoryLabel}
           isEstimatedBenchmark={isEstimatedBenchmark}
-          gsLabel={gsLabel}
         />
 
         {/* ── 8. 즉시 파악 현황 요약 바 ───────────────────────────── */}
