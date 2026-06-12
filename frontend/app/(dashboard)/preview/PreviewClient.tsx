@@ -8,7 +8,6 @@ import {
   XAxis,
   YAxis,
   ResponsiveContainer,
-  Tooltip,
 } from "recharts";
 import {
   Lock,
@@ -38,6 +37,7 @@ import {
 import type { ScanResult } from "@/types";
 import ChannelDifferentiationCard from "@/components/common/ChannelDifferentiationCard";
 import { getUserGroup } from "@/lib/userGroup";
+import { getScoreTextLabel } from "@/lib/scoreLabels";
 import { PLAN_PRICES } from "@/lib/plans";
 
 // ── 업종별 Track1 레이블 헬퍼 ───────────────────────────────────────
@@ -297,7 +297,7 @@ function ScoreBarDemo({
     <div className="bg-gray-50 rounded-xl p-3">
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-sm font-semibold text-gray-700">{label}</span>
-        <span className="text-lg font-bold text-gray-800">{score}점</span>
+        <span className="text-base font-bold text-gray-800">{getScoreTextLabel(score)}</span>
       </div>
       <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden mb-1">
         <div
@@ -457,8 +457,8 @@ function FreeTab({
           subtitle="Gemini 10회 샘플링 기반 즉시 진단"
         />
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <span className="text-sm font-medium text-gray-700">준비 점수</span>
-          <span className="text-2xl font-extrabold text-indigo-600">{track1}점</span>
+          <span className="text-sm font-medium text-gray-700">준비 상태</span>
+          <span className="text-xl font-extrabold text-indigo-600">{getScoreTextLabel(track1)}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">성장 단계</span>
@@ -617,11 +617,10 @@ function BasicTab({
             subtitle="네이버 브리핑 + 글로벌 AI 통합 분석"
           />
           <div className="text-right shrink-0">
-            <div className="text-2xl font-extrabold text-indigo-600">
-              {Math.round(unified)}
-              <span className="text-sm font-normal text-gray-400">점</span>
+            <div className="text-xl font-extrabold text-indigo-600">
+              {getScoreTextLabel(Math.round(unified))}
             </div>
-            <span className="text-sm text-gray-400">통합 점수</span>
+            <span className="text-sm text-gray-400">통합 상태</span>
           </div>
         </div>
         <ScoreBarDemo
@@ -705,12 +704,10 @@ function BasicTab({
               />
               <YAxis
                 domain={[10, 50]}
-                tick={{ fontSize: 10, fill: "#9ca3af" }}
+                tick={false}
                 tickLine={false}
                 axisLine={false}
-              />
-              <Tooltip
-                contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                width={8}
               />
               <Line
                 type="monotone"
@@ -753,11 +750,11 @@ function BasicTab({
                   />
                 </div>
                 <span
-                  className={`text-sm font-bold w-10 text-right shrink-0 ${
+                  className={`text-sm font-bold w-16 text-right shrink-0 ${
                     isMe ? "text-indigo-700" : "text-gray-500"
                   }`}
                 >
-                  {scores[i]}점
+                  {getScoreTextLabel(scores[i])}
                 </span>
               </div>
             );
@@ -879,12 +876,12 @@ function StartupTab({
             <p className="text-sm text-red-700 mt-0.5">진입 난이도 높음</p>
           </div>
           <div className="bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-2xl font-extrabold text-blue-600">71점</p>
+            <p className="text-lg font-extrabold text-blue-600">양호</p>
             <p className="text-sm text-blue-700 mt-0.5">상위 10% 평균</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <p className="text-lg font-extrabold text-gray-500">?점</p>
-            <p className="text-sm text-gray-500 mt-0.5">내 예상 (스캔 후)</p>
+            <p className="text-base font-extrabold text-gray-500">스캔 후 확인</p>
+            <p className="text-sm text-gray-500 mt-0.5">내 예상</p>
           </div>
         </div>
         <p className="text-sm text-gray-400">* 예시 데이터입니다.</p>
@@ -943,7 +940,7 @@ function StartupTab({
                   <span className="text-sm font-bold text-emerald-600 w-4">{i + 1}</span>
                   <span className="text-sm text-gray-700 flex-1">{name}</span>
                   <span className="text-sm font-bold text-emerald-700">
-                    {[71, 65, 58][i]}점
+                    {getScoreTextLabel([71, 65, 58][i])}
                   </span>
                 </div>
               ))}
@@ -1138,11 +1135,11 @@ function ProTab({
                   />
                 </div>
                 <span
-                  className={`text-sm font-bold w-10 text-right shrink-0 ${
+                  className={`text-sm font-bold w-16 text-right shrink-0 ${
                     isMe ? "text-indigo-700" : "text-gray-500"
                   }`}
                 >
-                  {scores[i]}점
+                  {getScoreTextLabel(scores[i])}
                 </span>
               </div>
             );
@@ -1169,7 +1166,7 @@ function ProTab({
               <p className="text-sm text-gray-600">{d.bizName}</p>
               <p className="text-sm text-gray-500">2026년 4월</p>
               <p className="text-sm font-semibold text-indigo-600">
-                AI 가시성 점수: {Math.round((track1 + track2) / 2)}점
+                AI 가시성 상태: {getScoreTextLabel(Math.round((track1 + track2) / 2))}
               </p>
               <button
                 className="inline-flex items-center gap-1.5 mt-1 text-sm text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg px-3 py-1.5 font-medium transition-colors opacity-70 cursor-default"
@@ -1200,9 +1197,9 @@ function ProTab({
             <div key={item.month} className="flex items-center gap-1 shrink-0">
               <div className="text-center bg-indigo-50 border border-indigo-100 rounded-lg p-2.5 min-w-[64px]">
                 <p className="text-sm text-gray-500 mb-0.5">{item.month}</p>
-                <p className="text-base font-extrabold text-indigo-700">{item.score}점</p>
-                {item.change !== null && (
-                  <p className="text-sm font-semibold text-green-600">+{item.change}</p>
+                <p className="text-sm font-extrabold text-indigo-700">{getScoreTextLabel(item.score)}</p>
+                {item.change !== null && item.change > 0 && (
+                  <p className="text-sm font-semibold text-green-600">↑ 개선</p>
                 )}
               </div>
               {i < 3 && <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />}
@@ -1382,7 +1379,7 @@ function BizTab({
             <thead>
               <tr className="bg-gray-50">
                 <th className="py-2 px-3 text-sm font-semibold text-gray-500 text-left">사업장</th>
-                <th className="py-2 px-3 text-sm font-semibold text-gray-500 text-center">오늘 점수</th>
+                <th className="py-2 px-3 text-sm font-semibold text-gray-500 text-center">오늘 상태</th>
                 <th className="py-2 px-3 text-sm font-semibold text-gray-500 text-center">변화</th>
               </tr>
             </thead>
@@ -1390,7 +1387,7 @@ function BizTab({
               {BIZ_STORES.map((store) => (
                 <tr key={store.name}>
                   <td className="py-2 px-3 font-medium text-gray-700">{store.name}</td>
-                  <td className="py-2 px-3 text-center font-bold text-emerald-700">{store.score}점</td>
+                  <td className="py-2 px-3 text-center font-bold text-emerald-700">{getScoreTextLabel(store.score)}</td>
                   <td className="py-2 px-3 text-center">
                     <span
                       className={`text-sm font-bold ${
@@ -1401,7 +1398,7 @@ function BizTab({
                           : "text-gray-400"
                       }`}
                     >
-                      {store.change > 0 ? "+" : ""}{store.change}
+                      {store.change > 0 ? "↑ 개선" : store.change < 0 ? "↓ 하락" : "–"}
                     </span>
                   </td>
                 </tr>
@@ -1622,7 +1619,7 @@ export default function PreviewClient({ currentPlan, businessData, latestScan }:
       {businessData && !latestScan && (
         <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-sm text-amber-700">
-            아직 스캔 데이터가 없어 아래 점수는 예시값입니다. 첫 스캔 후 실제 점수가 반영됩니다.
+            아직 스캔 데이터가 없어 아래는 예시 화면입니다. 첫 스캔 후 사장님 사업장의 실제 상태가 반영됩니다.
           </p>
         </div>
       )}

@@ -46,6 +46,14 @@ export function getStageView(
   return                   { label: "AI 검색 노출 시작 전", labelColor: "text-slate-600",   bg: "bg-slate-50",   cardBorder: "border-slate-300",   sub: null };
 }
 
+/** 컴팩트 점수 텍스트 레이블 — 숫자 대신 표시 (표·카드 등 좁은 공간용) */
+export function getScoreTextLabel(score: number): string {
+  if (score >= 75) return "양호";
+  if (score >= 55) return "보통";
+  if (score >= 30) return "주의 필요";
+  return "시작 전";
+}
+
 // ── 채널 상태 타일 (DashboardHeroCard 채널카드 복제) ───────────────────────────
 export interface ChannelTile {
   id: string;
