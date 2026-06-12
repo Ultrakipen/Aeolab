@@ -13,7 +13,7 @@ export default function HowItWorksPage() {
   return (
     <main className="min-h-screen bg-white">
       <header className="border-b border-gray-100 px-4 md:px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link href="/" className="text-xl md:text-2xl font-bold text-blue-600">AEOlab</Link>
           <div className="flex items-center gap-3 md:gap-4">
             <Link href="/faq" className="hidden md:block text-sm text-gray-600 hover:text-gray-900">FAQ</Link>
@@ -36,7 +36,7 @@ export default function HowItWorksPage() {
           네이버 AI 브리핑·AI탭·Gemini·ChatGPT·Google AI Overview — 5개 채널에서 내 가게가 노출되는 원리와 개선 방법을 설명합니다.
         </p>
         <p className="text-sm md:text-base text-gray-500 mb-8">
-          마지막 업데이트: 2026-05-31 · 출처:{" "}
+          마지막 업데이트: 2026-06-12 · 출처:{" "}
           <a
             href="https://help.naver.com/service/30026/contents/24632"
             target="_blank"
@@ -100,7 +100,7 @@ export default function HowItWorksPage() {
             <li><a href="#ai-tab" className="hover:underline">네이버 AI탭 — 업종 공식 제한 없음, 베타 확대 중</a></li>
             <li><a href="#phase-a" className="hover:underline">Phase A. AI 검색 노출을 위한 통합 측정</a></li>
             <li><a href="#step5" className="hover:underline">5단계. 결과 측정 (실제 노출 확인)</a></li>
-            <li><a href="#dia" className="hover:underline">AI가 평가하는 5요소 + 2026 변화</a></li>
+            <li><a href="#dia" className="hover:underline">네이버 품질 기준 5요소 + 2026 변화</a></li>
             <li><a href="#plans" className="hover:underline">요금제별 사용 가능 기능</a></li>
             <li><a href="#roles" className="hover:underline">AEOlab vs 사장님 역할 분담</a></li>
             <li><a href="#limits" className="hover:underline">한계와 면책 — 정직한 약속</a></li>
@@ -317,13 +317,13 @@ export default function HowItWorksPage() {
                 </div>
               </div>
             </div>
-            <p className="text-xs text-blue-700 mt-3 leading-relaxed break-keep">
+            <p className="text-sm text-blue-700 mt-3 leading-relaxed break-keep">
               ※ 네이버 검색 기반(플레이스 순위·블로그 후기)이 강할수록, 향후 AI 브리핑·AI탭 대상 업종이 확대될 때 즉시 수혜를 받습니다.
             </p>
           </div>
         </section>
 
-        {/* ─── 2단계: 점수 100점 (현재 v3.0 5항목 / v3.1 6항목 예정) ─── */}
+        {/* ─── 2단계: 점수 100점 (현재 v3.0 6항목: ai_tab_readiness 5% 포함 / v3.1 그룹별 가중치 예정) ─── */}
         <section id="step2" className="mb-12 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
             2단계. 콘텐츠 점수 100점 — 네이버 채널 6항목
@@ -471,21 +471,21 @@ export default function HowItWorksPage() {
                 <li>• 음식점·카페·숙박 등 ACTIVE 업종에 해당하는 경우 가장 빠른 채널</li>
                 <li>• AI 정보 탭 토글 ON 설정 후 1일 이내 적용 가능</li>
               </ul>
-              <p className="text-xs text-green-700 mt-2 ml-9">※ ACTIVE 업종(음식점·카페·베이커리·바·숙박)에만 해당. 프랜차이즈 제외.</p>
+              <p className="text-sm text-green-700 mt-2 ml-9">※ ACTIVE 업종(음식점·카페·베이커리·바·숙박)에만 해당. 프랜차이즈 제외.</p>
             </div>
 
             {/* 2위: Gemini (실사용 앱) */}
             <div className="rounded-xl border-2 border-blue-300 bg-blue-50 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="shrink-0 w-7 h-7 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center">2</span>
-                <p className="text-sm md:text-base font-bold text-blue-900">Gemini (Google 그라운딩) — <span className="text-blue-700">2~4주 내 반영 시작</span></p>
+                <p className="text-sm md:text-base font-bold text-blue-900">Gemini (Google 그라운딩) — <span className="text-blue-700">2~4주</span></p>
               </div>
               <ul className="space-y-1 text-sm text-gray-700 ml-9">
                 <li>• 구글 비즈니스 프로필 등록·완성 (우선순위 1위)</li>
                 <li>• 구글 지도 리뷰 10개+ 확보</li>
                 <li>• 자체 웹사이트 구글 색인 + Search Console 색인 요청</li>
               </ul>
-              <p className="text-xs text-blue-700 mt-2 ml-9">실사용 Gemini 앱은 Google Search 그라운딩(실시간 색인) 기반 → 수주 내 반영 가능. 안정적 인용까지는 3~6개월.</p>
+              <p className="text-sm text-blue-700 mt-2 ml-9">실사용 Gemini 앱은 Google Search 그라운딩(실시간 색인) 기반 → 수주 내 반영 가능. 안정적 인용까지는 3~6개월.</p>
             </div>
 
             {/* 3위: Google AI Overview */}
@@ -499,7 +499,7 @@ export default function HowItWorksPage() {
                 <li>• JSON-LD 구조화 데이터 (LocalBusiness·Restaurant 스키마)</li>
                 <li>• 모든 플랫폼 상호명·주소·전화번호 일치 (NAP 통일)</li>
               </ul>
-              <p className="text-xs text-purple-700 mt-2 ml-9">실시간 구글 색인 기반 → 색인 완료 후 2~4주 내 반영. 안정적 인용까지는 3~6개월.</p>
+              <p className="text-sm text-purple-700 mt-2 ml-9">실시간 구글 색인 기반 → 색인 완료 후 2~4주 내 반영. 안정적 인용까지는 3~6개월.</p>
             </div>
 
             {/* 4위: ChatGPT */}
@@ -513,7 +513,7 @@ export default function HowItWorksPage() {
                 <li>• 구글 비즈니스 프로필 (Bing도 참조)</li>
                 <li>• 트립어드바이저·망고플레이트 등 Bing 인덱싱 플랫폼 등록</li>
               </ul>
-              <p className="text-xs text-orange-700 mt-2 ml-9">AEOlab 스캐너는 AI 학습 데이터 기반 측정 — 실시간 웹 반영까지 수개월~1년 소요. 네이버 블로그는 ChatGPT 점수 개선에 직접 효과 없음.</p>
+              <p className="text-sm text-orange-700 mt-2 ml-9">AEOlab 스캐너는 AI 학습 데이터 기반 측정 — 실시간 웹 반영까지 수개월~1년 소요. 네이버 블로그는 ChatGPT 점수 개선에 직접 효과 없음.</p>
             </div>
           </div>
 
@@ -563,7 +563,7 @@ export default function HowItWorksPage() {
             <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">
               2026-04-27 베타 출시된 네이버 AI탭은 AI 브리핑과 별개 경로입니다.
               업종 공식 제한이 없어 장소 기반 모든 업종이 플레이스 에이전트를 통해 노출될 수 있습니다.
-              베타 1개월 누적 사용자 300만명 돌파 (2026-05 기준).
+              2026년 상반기 중 전체 네이버 사용자로 확대될 예정입니다 (네이버 공식 발표 기준).
             </p>
           </div>
 
@@ -886,7 +886,7 @@ export default function HowItWorksPage() {
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 md:p-5">
               <h3 className="text-base md:text-lg font-bold text-blue-900 mb-3">AEOlab이 하는 일</h3>
               <ul className="space-y-2 text-sm md:text-base text-gray-700 leading-relaxed">
-                <li>✅ 노출 조건 5항목 점수화·시각화</li>
+                <li>✅ 노출 조건 6항목 점수화·시각화</li>
                 <li>✅ AI 콘텐츠 초안 자동 생성 (소개글·채팅방 메뉴 + 소개글 Q&A·소식)</li>
                 <li>✅ 매주 Gemini·ChatGPT·네이버 3종 AI 스캔 + 결과 추적</li>
                 <li>✅ 경쟁사 비교 + 키워드 갭 분석</li>
