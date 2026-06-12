@@ -295,7 +295,7 @@ export function TalktalkFAQGeneratorCard({
                   스마트플레이스 → 업체정보 → 소개글에 자연스럽게 포함하세요.
                   소개글 안의 Q&A 섹션이 사장님이 직접 컨트롤할 수 있는 가장 효과적인 AI 브리핑 인용 후보 경로입니다.
                 </p>
-                <p className="text-xs text-blue-700 mt-1.5">
+                <p className="text-sm text-blue-700 mt-1.5">
                   위 &lsquo;네이버 소개글 생성&rsquo;의 소개글에도 같은 Q&A가 들어 있습니다 — 여기서는 항목별 복사·톡톡 메뉴용으로 쓰세요.
                 </p>
               </div>

@@ -191,6 +191,18 @@ function postScoreBadge(score: number) {
   return "bg-red-100 text-red-700 border-red-300";
 }
 
+function postScoreLabel(score: number) {
+  if (score >= 70) return "우수";
+  if (score >= 40) return "보통";
+  return "개선 필요";
+}
+
+function freshnessLabel(score: number) {
+  if (score >= 70) return "최신 콘텐츠 양호";
+  if (score >= 40) return "업데이트 권장";
+  return "오래된 콘텐츠";
+}
+
 function impactBadge(impact: string) {
   if (impact === "high") return "bg-red-100 text-red-700 border-red-300";
   if (impact === "medium") return "bg-amber-100 text-amber-700 border-amber-300";
@@ -329,12 +341,12 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                 </td>
                 <td className="py-3 text-center">
                   <span className={`inline-flex items-center border text-sm font-bold px-2 py-0.5 rounded-full ${postScoreBadge(p.post_score)}`}>
-                    {p.post_score}
+                    {postScoreLabel(p.post_score)}
                   </span>
                 </td>
                 <td className="py-3 text-center">
                   <span className={`inline-flex items-center border text-sm font-bold px-2 py-0.5 rounded-full ${postScoreBadge(p.title_seo_score)}`}>
-                    {p.title_seo_score}
+                    {postScoreLabel(p.title_seo_score)}
                   </span>
                 </td>
                 <td className="py-3 pl-3">
@@ -413,7 +425,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className={`inline-flex items-center border text-sm font-bold px-2.5 py-0.5 rounded-full ${postScoreBadge(p.post_score)}`}>
-                  {p.post_score}점
+                  {postScoreLabel(p.post_score)}
                 </span>
               </div>
             </div>
@@ -657,7 +669,7 @@ function BestCitationCandidateCard({ candidate }: { candidate: NonNullable<BlogA
       {/* 포스트 점수 + 제목 */}
       <div className="flex items-start gap-3 mb-3">
         <span className={`inline-flex items-center border text-sm font-bold px-2.5 py-0.5 rounded-full shrink-0 ${postScoreBadge(candidate.post_score)}`}>
-          {candidate.post_score}점
+          {postScoreLabel(candidate.post_score)}
         </span>
         <div className="flex-1 min-w-0">
           {candidate.link ? (
@@ -1342,13 +1354,10 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   )}
                 </div>
                 <div className="text-right">
-                  <div className={`text-3xl md:text-4xl font-bold ${scoreColor(result.citation_score ?? 0)}`}>
-                    {result.citation_score ?? 0}
-                    <span className="text-base font-normal text-gray-500 ml-1">/ 100</span>
-                  </div>
-                  <div className="text-sm font-medium text-gray-600 mt-0.5">
+                  <div className={`text-xl font-bold ${scoreColor(result.citation_score ?? 0)}`}>
                     {scoreLabel(result.citation_score ?? 0)}
                   </div>
+                  <div className="text-xs text-gray-400 mt-0.5">분석 시점 기준 — 실제와 다를 수 있음</div>
                 </div>
               </div>
 
@@ -1359,11 +1368,10 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   <div className="text-sm text-gray-500 mt-0.5">분석 포스트</div>
                 </div>
                 <div className="bg-white/70 rounded-xl p-3 text-center">
-                  <div className="text-xl font-bold text-gray-900">
-                    {result.freshness_score ?? 0}
-                    <span className="text-sm font-normal text-gray-500">/100</span>
+                  <div className="text-base font-bold text-gray-700">
+                    {freshnessLabel(result.freshness_score ?? 0)}
                   </div>
-                  <div className="text-sm text-gray-500 mt-0.5">최신성 점수</div>
+                  <div className="text-sm text-gray-500 mt-0.5">최신성</div>
                 </div>
                 <div className="bg-white/70 rounded-xl p-3 text-center col-span-2 sm:col-span-1">
                   <div className="text-xl font-bold text-gray-900">

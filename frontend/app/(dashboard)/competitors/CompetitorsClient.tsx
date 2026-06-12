@@ -487,7 +487,7 @@ function GapCard({
               <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="font-semibold mb-1">경쟁사 점수가 비슷하게 나타납니다.</p>
-                <p>처음 등록된 경쟁사는 기본 점수(약 30점)로 시작합니다. AI 스캔을 실행하면 각 경쟁사의 실제 점수가 계산됩니다.</p>
+                <p>처음 등록된 경쟁사는 스캔 전 상태입니다. AI 스캔을 실행하면 각 경쟁사의 실제 점수가 계산됩니다.</p>
                 {onRequestScan && (
                   <button
                     onClick={onRequestScan}
@@ -1278,16 +1278,17 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                 <p className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-gray-400" />주요 수치 비교
                 </p>
-                <p className="text-xs text-gray-400 mb-3">* 마지막 동기화 시점 기준 — 실시간 값과 다를 수 있습니다</p>
-                <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
+                <p className="text-sm text-gray-400 mb-3">* 마지막 동기화 시점 기준 — 실시간 값과 다를 수 있습니다</p>
+                <div className="overflow-x-auto">
+                <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 min-w-[280px]">
                   <div className="grid grid-cols-3 text-sm font-semibold text-gray-500 px-4 py-2.5 border-b border-gray-200 bg-gray-100">
                     <span>항목</span>
                     <span className="text-center text-blue-600">내 가게</span>
                     <span className="text-center text-gray-600">경쟁사</span>
                   </div>
                   {statRows.map(row => {
-                    const myV   = row.decimals ? row.myVal.toFixed(row.decimals) : String(row.myVal)
-                    const cmpV  = row.decimals ? row.compVal.toFixed(row.decimals) : String(row.compVal)
+                    const myV   = row.decimals ? Number(row.myVal).toFixed(row.decimals) : String(row.myVal)
+                    const cmpV  = row.decimals ? Number(row.compVal).toFixed(row.decimals) : String(row.compVal)
                     const myWin = row.myVal > row.compVal
                     const tie   = row.myVal === row.compVal
                     return (
@@ -1302,6 +1303,7 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                       </div>
                     )
                   })}
+                </div>
                 </div>
               </div>
             </div>
@@ -2342,7 +2344,7 @@ export function CompetitorsClient({
                             <div className="flex items-center gap-1.5 text-sm font-bold text-blue-700 mb-1">
                               <Target className="w-3.5 h-3.5" />네이버 노출 점수 상세 (경쟁사)
                             </div>
-                            <p className="text-xs text-amber-700 mb-3">수치가 높을수록 그 항목에서 경쟁사가 강합니다</p>
+                            <p className="text-sm text-amber-700 mb-3">수치가 높을수록 그 항목에서 경쟁사가 강합니다</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
                               {renderItems(t1, 'bg-blue-400')}
                             </div>
@@ -3329,7 +3331,7 @@ export function CompetitorsClient({
             </p>
             <p className="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-2 text-center leading-relaxed">
               지금 스캔하지 않으면 <strong>내일 새벽</strong> 자동 스캔 후 데이터가 표시됩니다.<br />
-              <span className="text-xs text-amber-500">(점수 비교: 새벽 2시 / 키워드 분석: 새벽 4시)</span>
+              <span className="text-sm text-amber-500">(점수 비교: 새벽 2시 / 키워드 분석: 새벽 4시)</span>
             </p>
             <div className="flex flex-col gap-2.5">
               <button

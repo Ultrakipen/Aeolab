@@ -649,13 +649,16 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
       </div>
       {/* ChatGPT 노출 여부 (보조 정보) */}
       {snapshot.chatgpt_mentioned !== undefined && (
-        <div className="mt-2 flex gap-2 text-sm md:text-base text-gray-500">
-          <span className={snapshot.chatgpt_mentioned ? 'text-green-600' : 'text-gray-500'}>
-            ChatGPT {snapshot.chatgpt_mentioned ? '✓ 노출' : '미노출'}
-          </span>
-          {snapshot.competitor_count !== undefined && snapshot.competitor_count > 0 && (
-            <span>· 경쟁사 {snapshot.competitor_count}곳 비교 기반</span>
-          )}
+        <div className="mt-2 flex flex-col gap-1">
+          <div className="flex gap-2 text-sm md:text-base text-gray-500">
+            <span className={snapshot.chatgpt_mentioned ? 'text-green-600' : 'text-gray-500'}>
+              ChatGPT {snapshot.chatgpt_mentioned ? '✓ 노출' : '미노출'}
+            </span>
+            {snapshot.competitor_count !== undefined && snapshot.competitor_count > 0 && (
+              <span>· 경쟁사 {snapshot.competitor_count}곳 비교 기반</span>
+            )}
+          </div>
+          <p className="text-sm text-gray-400">ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다</p>
         </div>
       )}
     </div>
