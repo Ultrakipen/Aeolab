@@ -55,6 +55,9 @@ export default function HowItWorksPage() {
           <p className="text-sm md:text-base text-gray-700 mt-3 leading-relaxed break-keep">
             광고처럼 노출을 사는 게 아니라, <strong>노출 조건을 채우는 일을 자동화</strong>하는 서비스입니다.
           </p>
+          <p className="text-sm md:text-base text-gray-700 mt-3 leading-relaxed break-keep">
+            또한 소개글·리뷰·소식·키워드를 개선하면 <strong>네이버 일반검색(플레이스·블로그·지도)의 상위 노출</strong>도 함께 좋아집니다 — AI 브리핑 대상이든 아니든, <strong>업종과 무관하게 모든 사업장에 적용되는 공통 효과</strong>입니다.
+          </p>
         </div>
 
         {/* ─── 지금 바로 알아야 할 3가지 — 이탈 전 핵심 ─── */}
@@ -455,7 +458,8 @@ export default function HowItWorksPage() {
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
             소개글·소식·리뷰(3단계)는 네이버 AI 채널에 효과적입니다.
-            ChatGPT·Gemini는 구글·Bing 생태계 기반으로 별도 경로가 필요하며, 채널마다 개선 효과가 나타나는 시점이 크게 다릅니다.
+            ChatGPT·Gemini는 구글·Bing 생태계 기반이라 별도 경로가 필요합니다.
+            아래 1~3위(네이버·Gemini·Google)는 모두 <strong>2~4주</strong>로 속도 구간이 비슷하며 순서는 진입 난이도 기준이고, ChatGPT만 <strong>수개월~1년</strong>으로 크게 느립니다.
           </p>
 
           {/* 채널별 노출 속도 순서 카드 */}
