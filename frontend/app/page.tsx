@@ -1017,8 +1017,10 @@ export default async function LandingPage() {
       </section>
 
       {/* ── 6. WHY NOT DIY — ChatGPT 직접 vs AEOlab (#F8FAFC) ── */}
-      <div style={{ background: "#F8FAFC" }}>
-        <ChatGPTCompareSection />
+      <div className="px-4 py-10 md:p-0" style={{ background: "#F8FAFC" }}>
+        <MobileAccordion label="무료 AI로 직접 하면 되지 않나요? — 비교 보기">
+          <ChatGPTCompareSection />
+        </MobileAccordion>
       </div>
 
       {/* ── 7. vs OTHERS — AEO vs 기존 방법 비교 (#FFFFFF) ── */}
@@ -1154,7 +1156,11 @@ export default async function LandingPage() {
       </div>
 
       {/* ── 9-C. AGENCY SERVICE — 대행 서비스 (#FFFBEB) ── */}
-      <AgencyServiceSection />
+      <div className="px-4 py-10 md:p-0">
+        <MobileAccordion label="직접 할 시간이 없다면 — 전문가 대행 서비스 보기">
+          <AgencyServiceSection />
+        </MobileAccordion>
+      </div>
 
       {/* ── 10. FINAL CTA — 다크+그라디언트 ── */}
       <section
