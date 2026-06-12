@@ -78,7 +78,7 @@ export const PLANS: PlanInfo[] = [
     highlight: true,
     badge: "소상공인 첫 시작",
     description: "내 가게 AI 노출 주 1회 자동 감시 + 콘텐츠 도구 무제한",
-    valueTag: "ChatGPT 절반도 안 되는 가격으로 ChatGPT가 못 하는 걸 합니다",
+    valueTag: "ChatGPT Plus 절반도 안 되는 가격으로, ChatGPT가 못 하는 걸 합니다",
     killerFeature: "ChatGPT가 모르는 것 — 지금 내 가게가 네이버 AI에 나오는지 매주 자동 확인",
     features: [
       "주 1회 자동 AI 진단 (매주 월요일) — 내가 안 켜도 알아서 분석",
@@ -135,8 +135,8 @@ export const PLANS: PlanInfo[] = [
     amount: 49900,
     highlight: false,
     badge: "다점포 · 대행사",
-    description: "사업장 5개 × 매일 AI 풀스캔 — 5개 Basic보다 저렴",
-    valueTag: "5개 Basic 개별 구독(44,500원)보다 저렴하고 기능은 훨씬 강력",
+    description: "사업장 5개 × 매일 AI 풀스캔 — 팀 계정·무제한 경쟁사 포함",
+    valueTag: "Basic 5개와 비슷한 가격에 팀 계정·무제한 경쟁사·매일 풀스캔까지",
     killerFeature: "5개 사업장 매일 풀스캔 + 팀 계정 5명 + 경쟁사·리뷰답변 무제한",
     features: [
       "사업장 5개 × 매일 자동 AI 풀스캔 — 전 매장 현황 한눈에",
