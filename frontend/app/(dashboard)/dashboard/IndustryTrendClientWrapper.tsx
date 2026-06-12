@@ -58,9 +58,9 @@ export function IndustryTrendClientWrapper({ category, categoryCode, region, isP
               <span>10월</span><span>11월</span><span>12월</span><span>1월</span><span>2월</span><span>3월</span><span>4월</span>
             </div>
             <div className="mt-2 grid grid-cols-3 gap-2 text-center">
-              <div className="bg-gray-50 rounded-lg p-2"><div className="text-sm text-gray-300">업종 평균</div><div className="font-bold text-gray-300">43점</div></div>
-              <div className="bg-blue-50 rounded-lg p-2"><div className="text-sm text-blue-300">내 점수</div><div className="font-bold text-blue-300">51점</div></div>
-              <div className="bg-gray-50 rounded-lg p-2"><div className="text-sm text-gray-300">상위 10%</div><div className="font-bold text-gray-300">78점</div></div>
+              <div className="bg-gray-50 rounded-lg p-2"><div className="text-sm text-gray-300">업종 평균</div><div className="font-bold text-gray-300">--</div></div>
+              <div className="bg-blue-50 rounded-lg p-2"><div className="text-sm text-blue-300">내 수준</div><div className="font-bold text-blue-300">--</div></div>
+              <div className="bg-gray-50 rounded-lg p-2"><div className="text-sm text-gray-300">상위 10%</div><div className="font-bold text-gray-300">--</div></div>
             </div>
           </div>
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 rounded-xl">

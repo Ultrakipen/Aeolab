@@ -24,6 +24,9 @@ interface Props {
   scanLimit?: number
   plan?: string
   lastQueryUsed?: string
+  stacked?: boolean
+  /** 이미 스캔 결과가 있는 재방문 사용자 — 스캔을 보조 행동으로 강등(주행동은 '개선 실행') */
+  secondary?: boolean
   onScanComplete?: (data: ScanCompleteResult) => void
 }
 
@@ -37,6 +40,8 @@ export function ScanTrigger({
   scanLimit = 0,
   plan,
   lastQueryUsed,
+  stacked = false,
+  secondary = false,
   onScanComplete,
 }: Props) {
   const router = useRouter()
@@ -206,8 +211,8 @@ export function ScanTrigger({
       )}
 
       {!completed && (
-        /* PC: 가로 배치 (키워드 좌측 | 버튼 우측), 모바일: 세로 배치 */
-        <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+        /* stacked: 항상 세로(좁은 컬럼용) · 기본: PC 가로(키워드 좌측 | 버튼 우측), 모바일 세로 */
+        <div className={stacked ? "flex flex-col gap-3" : "flex flex-col sm:flex-row sm:items-start gap-3"}>
 
           {/* 키워드 선택 영역 — PC: flex-1 왼쪽, 모바일: 위 */}
           {!limitReached && hasKeywords && keywords && (
@@ -243,19 +248,23 @@ export function ScanTrigger({
             </div>
           )}
 
-          {/* 스캔 버튼 영역 — PC: 오른쪽 고정, 모바일: 아래 */}
-          <div className="flex flex-col items-stretch sm:items-end gap-1.5 sm:shrink-0">
+          {/* 스캔 버튼 영역 — stacked: 항상 세로 full · 기본: PC 오른쪽 고정, 모바일 아래 */}
+          <div className={stacked ? "flex flex-col items-stretch gap-1.5" : "flex flex-col items-stretch sm:items-end gap-1.5 sm:shrink-0"}>
             <button
               onClick={startScan}
               disabled={loading || limitReached}
-              className="bg-blue-600 text-white px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed w-full sm:w-auto"
+              className={`${
+                secondary
+                  ? "bg-white text-blue-700 border border-blue-300 hover:bg-blue-50"
+                  : "bg-blue-600 text-white border border-blue-600 hover:bg-blue-700"
+              } px-5 py-2.5 rounded-lg text-base font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${stacked ? "w-full" : "w-full sm:w-auto"}`}
             >
-              {loading ? '준비 중...' : limitReached ? `오늘 스캔 완료 (${scanUsed}/${scanLimit}회)` : 'AI 스캔 시작'}
+              {loading ? '준비 중...' : limitReached ? `오늘 스캔 완료 (${scanUsed}/${scanLimit}회)` : secondary ? '🔄 AI 다시 스캔' : 'AI 스캔 시작'}
             </button>
 
             {/* 스캔 횟수 */}
             {scanLimit > 0 && scanLimit < 999 && (
-              <p className={`text-sm text-center sm:text-right ${limitReached ? 'text-gray-500' : 'text-gray-400'}`}>
+              <p className={`text-sm ${stacked ? 'text-center' : 'text-center sm:text-right'} ${limitReached ? 'text-gray-500' : 'text-gray-400'}`}>
                 {limitReached
                   ? '새벽 2시에 자동 스캔이 실행됩니다'
                   : `오늘 ${scanUsed}/${scanLimit}회 사용`}
@@ -264,7 +273,7 @@ export function ScanTrigger({
 
             {/* 최근 스캔 키워드 */}
             {lastQueryUsed && (
-              <div className="flex items-center justify-center sm:justify-end gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-1.5">
+              <div className={`flex items-center ${stacked ? 'justify-center' : 'justify-center sm:justify-end'} gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-1.5`}>
                 <span className="text-sm text-gray-500">최근 스캔:</span>
                 <span className="text-sm font-semibold text-blue-600 truncate max-w-[140px]">&quot;{lastQueryUsed}&quot;</span>
               </div>

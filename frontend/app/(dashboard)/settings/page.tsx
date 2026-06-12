@@ -126,14 +126,14 @@ export default async function SettingsPage({
   return (
     <div className="p-4 md:p-8">
       {/* 페이지 헤더 */}
-      <div className="mb-5 md:mb-6 max-w-2xl mx-auto">
+      <div className="mb-5 md:mb-6 max-w-3xl mx-auto">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">설정 · 구독 관리</h1>
         <p className="text-sm text-gray-500 mt-1">{user.email}</p>
       </div>
 
       {/* ── Grace Period 만료 임박 배너 ── */}
       {currentStatus === "grace_period" && (
-        <div className="max-w-2xl mx-auto mb-4 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="max-w-3xl mx-auto mb-4 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1">
             <p className="text-sm font-bold text-amber-800">구독이 유예기간 중입니다</p>
             <p className="text-sm text-amber-700 mt-0.5">
@@ -152,7 +152,7 @@ export default async function SettingsPage({
       )}
 
       {/* ── 단일 컬럼 레이아웃 ── */}
-      <div className="max-w-2xl mx-auto space-y-4 md:space-y-6">
+      <div className="max-w-3xl mx-auto space-y-4 md:space-y-6">
 
           {/* ── 구독 현황 카드 ── */}
           <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -186,49 +186,52 @@ export default async function SettingsPage({
             <div className="p-4 md:p-5">
               {isActive && sub ? (
                 <div className="space-y-4">
-                  {/* 날짜 정보 */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
-                      <Calendar className="w-4 h-4 text-gray-400 shrink-0" strokeWidth={1.8} />
-                      <div>
-                        <div className="text-sm text-gray-500">구독 시작</div>
-                        <div className="text-base font-semibold text-gray-800">{formatDate(sub.start_at)}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
-                      <Clock className="w-4 h-4 text-gray-400 shrink-0" strokeWidth={1.8} />
-                      <div>
-                        <div className="text-sm text-gray-500">
-                          {isYearly ? "연간 구독 갱신일" : "다음 결제일"}
-                        </div>
-                        <div className="text-base font-semibold text-gray-800">
-                          {formatDate(sub.end_at)}
-                          {daysUntilEnd !== null && daysUntilEnd > 0 && (
-                            <span className="ml-1.5 text-sm text-gray-400 font-normal">({daysUntilEnd}일 후)</span>
-                          )}
+                  {/* 날짜 정보 + 플랜 한도: PC에서 좌우 2열 배치 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* 날짜 정보 */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+                        <Calendar className="w-4 h-4 text-gray-400 shrink-0" strokeWidth={1.8} />
+                        <div>
+                          <div className="text-sm text-gray-500">구독 시작</div>
+                          <div className="text-base font-semibold text-gray-800">{formatDate(sub.start_at)}</div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-
-                  {firstPaymentAmount !== null && sub.start_at && (
-                    <p className="text-sm text-gray-400">
-                      첫 결제: {firstPaymentAmount.toLocaleString("ko-KR")}원 · {formatDate(sub.start_at)}
-                    </p>
-                  )}
-
-                  {/* 플랜 한도 요약 */}
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { label: "직접 스캔",  value: planLimits.scan },
-                      { label: "경쟁사",     value: planLimits.competitors },
-                      { label: "자동 스캔",  value: planLimits.autoScan },
-                    ].map(({ label, value }) => (
-                      <div key={label} className="text-center bg-gray-50 rounded-xl p-3">
-                        <div className="text-base font-bold text-gray-800">{value}</div>
-                        <div className="text-sm text-gray-500 mt-0.5">{label}</div>
+                      <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+                        <Clock className="w-4 h-4 text-gray-400 shrink-0" strokeWidth={1.8} />
+                        <div>
+                          <div className="text-sm text-gray-500">
+                            {isYearly ? "연간 구독 갱신일" : "다음 결제일"}
+                          </div>
+                          <div className="text-base font-semibold text-gray-800">
+                            {formatDate(sub.end_at)}
+                            {daysUntilEnd !== null && daysUntilEnd > 0 && (
+                              <span className="ml-1.5 text-sm text-gray-400 font-normal">({daysUntilEnd}일 후)</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    ))}
+                      {firstPaymentAmount !== null && sub.start_at && (
+                        <p className="text-sm text-gray-400 px-1">
+                          첫 결제: {firstPaymentAmount.toLocaleString("ko-KR")}원 · {formatDate(sub.start_at)}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* 플랜 한도 요약 */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-500 px-1">플랜 사용 한도</p>
+                      {[
+                        { label: "직접 스캔",  value: planLimits.scan },
+                        { label: "경쟁사",     value: planLimits.competitors },
+                        { label: "자동 스캔",  value: planLimits.autoScan },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2.5">
+                          <span className="text-sm text-gray-500">{label}</span>
+                          <span className="text-base font-bold text-gray-800">{value}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="pt-3 border-t border-gray-100">
@@ -246,16 +249,16 @@ export default async function SettingsPage({
                   <p className="text-sm md:text-base text-gray-600">
                     유료 플랜으로 업그레이드하면 Gemini·ChatGPT 각 50회 (총 100회) AI 샘플링, 경쟁사 분석, 자동 개선 가이드를 이용할 수 있습니다.
                   </p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-2 md:gap-3">
                     {[
                       { label: "AI 스캔",    value: "100회", desc: "Gemini·ChatGPT 각 50회" },
                       { label: "경쟁사",     value: "3개",   desc: "비교 분석" },
                       { label: "개선 가이드", value: "매월",  desc: "Claude AI 생성" },
                     ].map(({ label, value, desc }) => (
-                      <div key={label} className="text-center bg-blue-50 rounded-xl p-3">
-                        <div className="text-base font-bold text-blue-700">{value}</div>
-                        <div className="text-sm text-blue-600 mt-0.5">{label}</div>
-                        <div className="text-sm text-blue-400">{desc}</div>
+                      <div key={label} className="text-center bg-blue-50 rounded-xl p-3 md:p-4">
+                        <div className="text-base md:text-lg font-bold text-blue-700">{value}</div>
+                        <div className="text-sm font-medium text-blue-600 mt-0.5">{label}</div>
+                        <div className="text-sm text-blue-400 hidden sm:block mt-0.5">{desc}</div>
                       </div>
                     ))}
                   </div>
@@ -300,7 +303,7 @@ export default async function SettingsPage({
             </div>
             <div className="p-4 md:p-5">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm text-gray-600 min-w-[600px]">
+                <table className="w-full text-sm text-gray-600">
                   <thead>
                     <tr className="text-left border-b border-gray-100">
                       <th className="pb-3 pr-4 font-medium text-gray-700 text-sm">기능</th>
@@ -311,7 +314,7 @@ export default async function SettingsPage({
                           free: "무료", basic: "Basic", startup: "창업패키지", pro: "Pro", biz: "Biz",
                         };
                         return (
-                          <th key={plan} className={`pb-3 text-center font-medium min-w-[80px] text-sm ${isCurrent ? meta.color : "text-gray-500"}`}>
+                          <th key={plan} className={`pb-3 text-center font-medium min-w-[72px] text-sm ${isCurrent ? meta.color : "text-gray-500"}`}>
                             {planLabel[plan]}
                             {isCurrent && (
                               <span className={`block text-sm font-semibold mt-0.5 px-1.5 py-0.5 rounded-full mx-auto w-fit ${meta.badge}`}>
@@ -401,7 +404,7 @@ export default async function SettingsPage({
               <div className="px-4 md:px-5 py-4 border-b border-gray-100">
                 <h2 className="text-base md:text-lg font-semibold text-gray-800">고급 설정</h2>
               </div>
-              <div className="p-3">
+              <div className="p-4 md:p-5">
                 <div className="space-y-1">
                   <Link
                     href="/settings/team"

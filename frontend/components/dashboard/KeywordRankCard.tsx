@@ -298,8 +298,11 @@ export default function KeywordRankCard({
               내가 입력한 키워드의 PC·모바일·플레이스 1페이지 순위
               {userGroup && (
                 <span className="ml-1.5 inline-flex px-1.5 py-0.5 text-sm rounded bg-gray-100 text-gray-600">
-                  {userGroup === "INACTIVE" ? "글로벌 AI 중심" : userGroup === "LIKELY" ? "AI 브리핑 확대 예정" : "네이버 AI 브리핑"} 가중치{" "}
-                  {userGroup === "INACTIVE" ? "35%" : userGroup === "LIKELY" ? "30%" : "25%"}
+                  {userGroup === "INACTIVE"
+                    ? "네이버 검색·플레이스 우선 업종"
+                    : userGroup === "LIKELY"
+                    ? "AI 브리핑 확대 예정 업종"
+                    : "네이버 AI 브리핑 해당 업종"}
                 </span>
               )}
             </p>

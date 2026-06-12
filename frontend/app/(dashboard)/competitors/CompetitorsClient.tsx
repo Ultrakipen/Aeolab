@@ -23,7 +23,7 @@ import CompetitorKeywordCompare from '@/components/dashboard/CompetitorKeywordCo
 import { PlaceCompareTable } from '@/components/dashboard/PlaceCompareTable'
 import type { GapAnalysis } from '@/types/gap'
 
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND || 'http://localhost:8000'
 
 interface Business { id: string; name: string; category: string; region: string }
 interface Competitor {
@@ -150,12 +150,10 @@ function sortBreakdownEntries(entries: [string, number][]): [string, number][] {
 }
 
 const PLAN_RANK: Record<string, number> = {
-  free: 0, basic: 1, startup: 1.5, pro: 2, biz: 3,
+  free: 0, basic: 1, startup: 1.5, pro: 2, biz: 3, enterprise: 4,
 }
 
-const PLAN_COMPETITOR_LIMIT: Record<string, number> = {
-  free: 0, basic: 3, startup: 5, pro: 5, biz: 999,
-}
+
 function planAtLeast(current: string, required: string): boolean {
   return (PLAN_RANK[current] ?? 0) >= (PLAN_RANK[required] ?? 99)
 }
@@ -265,14 +263,18 @@ function FreePlanPreview() {
           <div className="p-4">
             <p className="text-sm font-semibold text-gray-800 mb-3">경쟁 가게 AI 노출 점수 비교</p>
             <div className="space-y-2 blur-sm pointer-events-none select-none">
-              {[{ label: '내 가게', score: 52, color: 'bg-blue-500' }, { label: '경쟁 A', score: 71, color: 'bg-red-400' }, { label: '경쟁 B', score: 38, color: 'bg-emerald-400' }].map(item => (
+              {[
+                { label: '내 가게', width: '55%', color: 'bg-blue-400' },
+                { label: '경쟁사 A', width: '72%', color: 'bg-red-300' },
+                { label: '경쟁사 B', width: '38%', color: 'bg-emerald-300' },
+              ].map(item => (
                 <div key={item.label}>
-                  <div className="flex justify-between text-sm text-gray-500 mb-1">
-                    <span className={item.label === '내 가게' ? 'font-semibold text-blue-700' : ''}>{item.label}</span>
-                    <span className={`font-bold ${item.label === '내 가게' ? 'text-blue-700' : item.score >= 70 ? 'text-red-500' : 'text-emerald-600'}`}>{item.score}점</span>
+                  <div className="flex justify-between text-sm text-gray-400 mb-1">
+                    <span>{item.label}</span>
+                    <div className="h-3 w-12 bg-gray-200 rounded animate-pulse" />
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full">
-                    <div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.score}%` }} />
+                    <div className={`h-full ${item.color} rounded-full`} style={{ width: item.width }} />
                   </div>
                 </div>
               ))}
@@ -323,13 +325,17 @@ function FreePlanPreview() {
           <div className="p-4">
             <p className="text-sm font-semibold text-gray-800 mb-3">전체 경쟁 지형도 + AI 채널별 분석</p>
             <div className="space-y-1.5 blur-sm pointer-events-none select-none">
-              {[{ name: '내 가게', score: 52, color: 'bg-blue-500' }, { name: '경쟁 A', score: 71, color: 'bg-red-400' }, { name: '경쟁 B', score: 38, color: 'bg-amber-400' }].map(item => (
+              {[
+                { name: '내 가게', width: '55%', color: 'bg-blue-400' },
+                { name: '경쟁사 A', width: '72%', color: 'bg-red-300' },
+                { name: '경쟁사 B', width: '38%', color: 'bg-amber-300' },
+              ].map(item => (
                 <div key={item.name} className="flex items-center gap-2 text-sm">
                   <span className="w-14 text-gray-600 truncate">{item.name}</span>
                   <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.score}%` }} />
+                    <div className={`h-full ${item.color} rounded-full`} style={{ width: item.width }} />
                   </div>
-                  <span className="text-gray-500 w-8 text-right">{item.score}</span>
+                  <div className="h-3 w-8 bg-gray-200 rounded animate-pulse" />
                 </div>
               ))}
             </div>
@@ -541,7 +547,6 @@ interface Props {
 
 // ── 인라인 스캔 모달 ──
 // 경쟁사 페이지에서 대시보드 이동 없이 직접 AI 스캔을 실행합니다.
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
 function InlineScanModal({
   businessId,
@@ -580,7 +585,7 @@ function InlineScanModal({
         return
       }
       const prepRes = await fetch(
-        `${BACKEND_URL}/api/scan/stream/prepare?biz_id=${encodeURIComponent(businessId)}`,
+        `${BACKEND}/api/scan/stream/prepare?biz_id=${encodeURIComponent(businessId)}`,
         { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` } }
       )
       if (!prepRes.ok) {
@@ -595,7 +600,7 @@ function InlineScanModal({
       }
       const { stream_token } = await prepRes.json()
       const es = new EventSource(
-        `${BACKEND_URL}/api/scan/stream?stream_token=${encodeURIComponent(stream_token)}`
+        `${BACKEND}/api/scan/stream?stream_token=${encodeURIComponent(stream_token)}`
       )
       eventSourceRef.current = es
       setEventSource(es)
@@ -619,7 +624,7 @@ function InlineScanModal({
         const session = await getSafeSession()
         const token = session?.access_token ?? ''
         const res = await fetch(
-          `${BACKEND_URL}/api/report/score/${businessId}`,
+          `${BACKEND}/api/report/score/${businessId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         )
         if (res.ok) {
@@ -792,7 +797,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
           <BarChart2 className="w-4 h-4 text-blue-500" />
           <div>
             <div className="text-sm font-semibold text-gray-700">경쟁사 점수 비교</div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-600">
               {latestDate} 기준{prevDate ? ` · ${prevDate} 대비 변화` : ''}
             </div>
           </div>
@@ -813,17 +818,18 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
                 </span>
                 <div className="flex items-center gap-1 shrink-0">
                   {e.delta !== null && e.delta !== 0 && (
-                    <span className={`text-sm font-bold ${e.delta > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {e.delta > 0 ? `+${e.delta}` : e.delta}
+                    <span className={`text-sm font-bold ${
+                      e.isMe
+                        ? (e.delta > 0 ? 'text-emerald-600' : 'text-red-500')
+                        : (e.delta > 0 ? 'text-red-500' : 'text-emerald-600')
+                    }`}>
+                      {e.delta > 0 ? '↑' : '↓'}
                     </span>
                   )}
-                  <span className={`text-sm font-bold px-1.5 py-0.5 rounded-lg border ${
-                    e.isMe ? 'bg-blue-50 text-blue-700 border-blue-200' : getScoreBadgeCls(e.score)
+                  <span className={`text-sm font-semibold px-1.5 py-0.5 rounded-full border ${
+                    e.isMe ? 'bg-blue-50 text-blue-700 border-blue-200' : getGrowthStageText(e.score).cls
                   }`}>
-                    {e.score}점
-                  </span>
-                  <span className={`hidden sm:inline text-sm font-semibold px-1.5 py-0.5 rounded-full border ${getGrowthStageText(e.score).cls}`}>
-                    {getGrowthStageText(e.score).label}
+                    {e.isMe ? '내 가게' : getGrowthStageText(e.score).label}
                   </span>
                 </div>
               </div>
@@ -895,7 +901,12 @@ function CompetitorMap({
   useEffect(() => {
     if (!mapRef.current) return
 
-    const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID || '50dxi9xd6i'
+    const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID
+    if (!clientId) {
+      setMapError('네이버 지도 API 키가 설정되지 않았습니다.')
+      setMapLoading(false)
+      return
+    }
 
     const initMap = () => {
       if (!mapRef.current || !window.naver) return
@@ -1120,7 +1131,10 @@ function CompetitorSparkline({ competitorName, trendScans }: { competitorName: s
   const trend = data[data.length - 1].v - data[data.length - 2].v
   const color = trend > 0 ? '#ef4444' : trend < 0 ? '#22c55e' : '#9ca3af'
   return (
-    <div className="flex items-center gap-1 shrink-0">
+    <div
+      className="flex items-center gap-1 shrink-0"
+      title={trend > 0 ? '경쟁사 점수가 상승 중 — 주의 필요' : trend < 0 ? '경쟁사 점수가 하락 중' : '변화 없음'}
+    >
       <div style={{ width: 44, height: 18 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
@@ -1129,8 +1143,9 @@ function CompetitorSparkline({ competitorName, trendScans }: { competitorName: s
         </ResponsiveContainer>
       </div>
       {trend !== 0 && (
-        <span className={`text-sm font-bold ${trend > 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-          {trend > 0 ? `+${Math.round(trend)}` : `${Math.round(trend)}`}
+        <span className={`text-sm font-bold ${trend > 0 ? 'text-red-500' : 'text-emerald-600'}`}
+          title={trend > 0 ? '경쟁사 상승 (내 가게 기준으로 불리)' : '경쟁사 하락 (내 가게 기준으로 유리)'}>
+          {trend > 0 ? '↑' : '↓'}
         </span>
       )}
     </div>
@@ -1230,11 +1245,9 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                         <span className="text-sm text-gray-400 mr-1">{e.label}</span>{e.name}
                       </span>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <span className={`font-bold px-2 py-0.5 rounded-lg border text-sm ${e.isMe
-                          ? 'bg-blue-50 text-blue-700 border-blue-200'
-                          : e.score > myTotal ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        }`}>{e.score}점</span>
-                        <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(e.score).cls}`}>
+                        <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${
+                          e.isMe ? 'bg-blue-50 text-blue-700 border-blue-200' : getGrowthStageText(e.score).cls
+                        }`}>
                           {getGrowthStageText(e.score).label}
                         </span>
                       </div>
@@ -1253,18 +1266,19 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                   'bg-gray-50 text-gray-400'
                 }`}>
                   {compTotal > myTotal
-                    ? `경쟁사가 ${getGrowthStageText(compTotal).label} 단계로 앞서 있습니다 (${compTotal - myTotal}점 차)`
+                    ? `경쟁사가 ${getGrowthStageText(compTotal).label} 단계로 앞서 있습니다`
                     : compTotal < myTotal
-                    ? `내 가게가 ${getGrowthStageText(myTotal).label} 단계로 앞서 있습니다 (${myTotal - compTotal}점 차)`
+                    ? `내 가게가 ${getGrowthStageText(myTotal).label} 단계로 앞서 있습니다`
                     : '두 가게 같은 성장 단계'}
                 </div>
               </div>
 
               {/* 수치 비교 */}
               <div>
-                <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5">
+                <p className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-gray-400" />주요 수치 비교
                 </p>
+                <p className="text-xs text-gray-400 mb-3">* 마지막 동기화 시점 기준 — 실시간 값과 다를 수 있습니다</p>
                 <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
                   <div className="grid grid-cols-3 text-sm font-semibold text-gray-500 px-4 py-2.5 border-b border-gray-200 bg-gray-100">
                     <span>항목</span>
@@ -1302,9 +1316,10 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { label: '소개글',    val: competitor.place_has_intro },
-                      { label: '최신 소식', val: competitor.place_has_recent_post },
-                      { label: '메뉴·가격', val: competitor.place_has_menu },
+                      { label: '사업장 소개글',  val: competitor.place_has_intro },
+                      { label: '소개글 Q&A',    val: competitor.place_has_faq },
+                      { label: '최신 소식',     val: competitor.place_has_recent_post },
+                      { label: '메뉴·가격',     val: competitor.place_has_menu },
                     ].map(({ label, val }) => val !== undefined ? (
                       <div key={label} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold border ${
                         val ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-400 border-gray-200'
@@ -1338,8 +1353,14 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-emerald-600">있음</span>
                       {competitor.website_seo_score != null && (
-                        <span className="text-sm bg-white border border-emerald-200 text-emerald-700 font-semibold px-2 py-0.5 rounded-lg">
-                          SEO {competitor.website_seo_score}점
+                        <span className={`text-sm font-semibold px-2 py-0.5 rounded-lg border ${
+                          competitor.website_seo_score >= 70
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : competitor.website_seo_score >= 40
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-red-50 text-red-600 border-red-200'
+                        }`}>
+                          AI 최적화 {competitor.website_seo_score >= 70 ? '양호' : competitor.website_seo_score >= 40 ? '보통' : '미흡'}
                         </span>
                       )}
                     </div>
@@ -1371,8 +1392,10 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                       <div key={key}>
                         <div className="flex items-center justify-between text-sm mb-1">
                           <span className="text-gray-600">{label}</span>
-                          <span className={`font-bold text-sm ${pct >= 70 ? 'text-emerald-600' : pct >= 40 ? 'text-amber-600' : 'text-red-500'}`}>
-                            {pct}점
+                          <span className={`text-sm font-semibold px-1.5 py-0.5 rounded-full ${
+                            pct >= 70 ? 'bg-emerald-50 text-emerald-700' : pct >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+                          }`}>
+                            {pct >= 70 ? '양호' : pct >= 40 ? '보통' : '미흡'}
                           </span>
                         </div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -1402,7 +1425,7 @@ function SectionDivider({ title, icon: Icon }: { title: string; icon?: React.Com
       <div className="flex-1 h-px bg-gray-200" />
       <div className="flex items-center gap-1.5 shrink-0">
         {Icon && <Icon className="w-3.5 h-3.5 text-gray-400" />}
-        <span className="text-sm font-semibold text-gray-400 tracking-wide">{title}</span>
+        <span className="text-sm font-semibold text-gray-500 tracking-wide">{title}</span>
       </div>
       <div className="flex-1 h-px bg-gray-200" />
     </div>
@@ -1493,13 +1516,16 @@ export function CompetitorsClient({
       const res = await fetch(`${BACKEND}/api/competitors/${competitorId}/weakness`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
-      if (!res.ok) return
+      if (!res.ok) {
+        setFetchingWeaknessId(null)
+        return
+      }
       const data = await res.json()
       setCompetitors(prev =>
         prev.map(c => c.id === competitorId ? { ...c, weakness_data: data } : c)
       )
     } catch {
-      // silent fail
+      console.warn('[weakness] 약점 분석 실패:', competitorId)
     } finally {
       setFetchingWeaknessId(null)
     }
@@ -1513,7 +1539,10 @@ export function CompetitorsClient({
       const res = await fetch(`${BACKEND}/api/competitors/${competitorId}/faq-items`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      if (!res.ok) return
+      if (!res.ok) {
+        console.warn('[faq] 경쟁사 Q&A fetch 실패:', competitorId, res.status)
+        return
+      }
       const data = await res.json()
       // deprecated 응답: 빈 배열 + 안내 메시지 sentinel 저장
       const questions = data.deprecated
@@ -1522,8 +1551,8 @@ export function CompetitorsClient({
       setCompetitors(prev =>
         prev.map(c => c.id === competitorId ? { ...c, faq_questions: questions } : c)
       )
-    } catch {
-      // 네트워크 오류 — 조용히 무시 (다음 시도 가능)
+    } catch (e) {
+      console.warn('[faq] 경쟁사 Q&A 수집 실패:', competitorId, e)
     } finally {
       setFetchingFaqId(null)
     }
@@ -1768,7 +1797,8 @@ export function CompetitorsClient({
   }
 
   const removeCompetitor = async (id: string) => {
-    if (!window.confirm("이 경쟁사를 삭제하시겠습니까? 삭제 후 복구가 되지 않습니다.")) return
+    const compName = competitors.find(c => c.id === id)?.name ?? '이 경쟁사'
+    if (!window.confirm(`[${compName}]을(를) 삭제하시겠습니까? 삭제 후 복구가 되지 않습니다.`)) return
     const token = await getFreshToken()
     await fetch(`${BACKEND}/api/competitors/${id}`, {
       method: 'DELETE',
@@ -2004,20 +2034,15 @@ export function CompetitorsClient({
                           {cs && (() => {
                             const { label, cls } = getGrowthStageText(cs.score)
                             return (
-                              <>
-                                <span className={`text-sm font-bold px-2 py-0.5 rounded-lg border ${getScoreBadgeCls(cs.score)}`}>
-                                  {Math.round(cs.score)}점
-                                </span>
-                                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${cls}`}>
-                                  {label}
-                                </span>
-                              </>
+                              <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${cls}`}>
+                                {label}
+                              </span>
                             )
                           })()}
                           {csDelta !== null && csDelta !== 0 && (
-                            <span className={`text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}
-                              title={csDelta > 0 ? `지난 스캔 대비 +${csDelta}점 상승` : `지난 스캔 대비 ${csDelta}점 하락`}>
-                              {csDelta > 0 ? `↑${csDelta}` : `↓${Math.abs(csDelta)}`}
+                            <span className={`text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-600'}`}
+                              title={csDelta > 0 ? '지난 스캔 대비 상승 (경쟁사 강화)' : '지난 스캔 대비 하락 (내 가게에 유리)'}>
+                              {csDelta > 0 ? '↑ 상승' : '↓ 하락'}
                             </span>
                           )}
                           {/* 스파크라인 — 2회 이상 스캔 시 추이 표시 */}
@@ -2137,9 +2162,7 @@ export function CompetitorsClient({
                               <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                                 {cs.score > myScore ? (
                                   <>
-                                    <span className="text-sm text-red-500 font-medium">
-                                      내 가게보다 <strong>{Math.round(cs.score - myScore)}점 높음</strong>
-                                    </span>
+                                    <span className="text-sm text-red-500 font-medium">경쟁사가 앞서 있습니다</span>
                                     {getGrowthStageText(cs.score).label !== getGrowthStageText(myScore).label && (
                                       <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(cs.score).cls}`}>
                                         {getGrowthStageText(cs.score).label} 단계
@@ -2149,7 +2172,7 @@ export function CompetitorsClient({
                                   </>
                                 ) : cs.score < myScore ? (
                                   <>
-                                    <span className="text-sm text-emerald-600 font-medium">내 가게보다 <strong>{Math.round(myScore - cs.score)}점 낮음</strong></span>
+                                    <span className="text-sm text-emerald-600 font-medium">내 가게가 앞서 있습니다</span>
                                     {getGrowthStageText(cs.score).label !== getGrowthStageText(myScore).label && (
                                       <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(cs.score).cls}`}>
                                         {getGrowthStageText(cs.score).label} 단계
@@ -2177,7 +2200,7 @@ export function CompetitorsClient({
                               </span>
                               <button
                                 onClick={() => setShowInlineScan(true)}
-                                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 transition-colors"
+                                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-semibold underline underline-offset-2 transition-colors hover:bg-blue-50 rounded px-1 py-0.5"
                               >
                                 <Zap className="w-3 h-3" />지금 스캔하기
                               </button>
@@ -2194,10 +2217,10 @@ export function CompetitorsClient({
                       {cs && (
                         <button
                           onClick={() => setCompareCompId(compareCompId === c.id ? null : c.id)}
-                          className={`flex items-center gap-1 text-sm font-medium border rounded-lg px-2.5 py-1.5 transition-colors ${
+                          className={`flex items-center gap-1 text-sm font-semibold border rounded-lg px-2.5 py-1.5 transition-colors min-h-[34px] ${
                             compareCompId === c.id
-                              ? 'bg-purple-600 text-white border-purple-600'
-                              : 'text-purple-600 border-purple-200 hover:bg-purple-50'
+                              ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
+                              : 'text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-400'
                           }`}
                           title="1:1 상세 비교"
                         >
@@ -2207,7 +2230,11 @@ export function CompetitorsClient({
                       {cs && canViewBasic && (
                         <button
                           onClick={() => setExpandedId(isExpanded ? null : c.id)}
-                          className="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-700 transition-colors border border-blue-200 rounded-lg px-2.5 py-1.5 hover:bg-blue-50 font-medium"
+                          className={`flex items-center gap-1 text-sm font-semibold rounded-lg px-2.5 py-1.5 transition-colors min-h-[34px] border ${
+                            isExpanded
+                              ? 'bg-blue-50 text-blue-700 border-blue-300'
+                              : 'text-blue-500 border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300'
+                          }`}
                           title={isExpanded ? '상세 접기' : '상세 분석 보기'}
                         >
                           {isExpanded ? <><ChevronUp className="w-3.5 h-3.5" />접기</> : <><ChevronDown className="w-3.5 h-3.5" />상세</>}
@@ -2215,7 +2242,7 @@ export function CompetitorsClient({
                       )}
                       <button
                         onClick={() => togglePin(c.id)}
-                        className={`p-1.5 rounded-lg transition-colors ${pinnedIds.has(c.id) ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-50'}`}
+                        className={`p-2 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center ${pinnedIds.has(c.id) ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-50'}`}
                         title={pinnedIds.has(c.id) ? '고정 해제' : '상단 고정'}
                       >
                         <Pin className={`w-3.5 h-3.5 ${pinnedIds.has(c.id) ? 'fill-blue-400' : ''}`} />
@@ -2225,14 +2252,14 @@ export function CompetitorsClient({
                           if (openMemoId === c.id) { setOpenMemoId(null) }
                           else { setOpenMemoId(c.id); setMemoInput(memos[c.id] ?? '') }
                         }}
-                        className={`p-1.5 rounded-lg transition-colors ${memos[c.id] ? 'text-amber-500 hover:text-amber-700 hover:bg-amber-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-50'}`}
+                        className={`p-2 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center ${memos[c.id] ? 'text-amber-500 hover:text-amber-700 hover:bg-amber-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-50'}`}
                         title={memos[c.id] ? '메모 보기/편집' : '메모 추가'}
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => removeCompetitor(c.id)}
-                        className="text-gray-300 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-red-50"
+                        className="text-gray-300 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-50 min-h-[36px] min-w-[36px] flex items-center justify-center"
                         title="경쟁사 삭제하기"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -2291,7 +2318,13 @@ export function CompetitorsClient({
                         <div key={key} className="space-y-1">
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-500">{BREAKDOWN_LABELS[key] ?? key}</span>
-                            <span className="text-sm font-semibold text-gray-700">{Math.round(val)}점</span>
+                            <span className={`text-sm font-semibold px-1.5 py-0.5 rounded-full ${
+                              Math.round(val) >= 70 ? 'bg-emerald-50 text-emerald-700' :
+                              Math.round(val) >= 40 ? 'bg-amber-50 text-amber-700' :
+                              'bg-red-50 text-red-600'
+                            }`}>
+                              {Math.round(val) >= 70 ? '양호' : Math.round(val) >= 40 ? '보통' : '미흡'}
+                            </span>
                           </div>
                           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                             <div className={`h-full ${barCls} rounded-full transition-all`} style={{ width: `${Math.min(val, 100)}%` }} />
@@ -2306,9 +2339,10 @@ export function CompetitorsClient({
                             <p className="text-sm text-amber-600 bg-amber-50 rounded px-2 py-1 mb-2">
                               {TRACK1_ESTIMATED_NOTE}
                             </p>
-                            <div className="flex items-center gap-1.5 text-sm font-bold text-blue-700 mb-3">
-                              <Target className="w-3.5 h-3.5" />네이버 노출 점수 상세
+                            <div className="flex items-center gap-1.5 text-sm font-bold text-blue-700 mb-1">
+                              <Target className="w-3.5 h-3.5" />네이버 노출 점수 상세 (경쟁사)
                             </div>
+                            <p className="text-xs text-amber-700 mb-3">수치가 높을수록 그 항목에서 경쟁사가 강합니다</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
                               {renderItems(t1, 'bg-blue-400')}
                             </div>
@@ -2366,6 +2400,7 @@ export function CompetitorsClient({
                         className="w-full border border-amber-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
                         rows={3}
                       />
+                      <p className="text-sm text-gray-400 mt-1">※ 메모는 이 기기에만 저장되며 다른 기기에서는 보이지 않습니다.</p>
                       <div className="flex justify-end mt-2">
                         <button
                           onClick={() => { saveMemo(c.id, memoInput); setOpenMemoId(null) }}
@@ -2438,7 +2473,7 @@ export function CompetitorsClient({
             <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
             <div>
               <p className="text-sm md:text-base font-bold text-amber-900">
-                경쟁사 등록 한도 ({PLAN_COMPETITOR_LIMIT[currentPlan ?? 'free']}개)에 도달했습니다
+                경쟁사 등록 한도 ({planLimit}개)에 도달했습니다
               </p>
               <p className="text-sm text-amber-700 mt-1 leading-relaxed">
                 {currentPlan === 'basic'
@@ -2719,7 +2754,7 @@ export function CompetitorsClient({
             <span className="text-sm font-bold text-white">추천 경쟁사</span>
             <span className="text-sm font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full">최대 5개</span>
           </div>
-          <span className="text-sm text-blue-100">같은 업종·지역 미등록 업체</span>
+          <span className="text-sm text-blue-200">같은 업종·지역 미등록 업체</span>
         </div>
 
         {/* 본문 */}
@@ -2767,7 +2802,7 @@ export function CompetitorsClient({
                     </button>
                     <button
                       onClick={() => handleDismissSuggestion(s.name)}
-                      className="text-gray-300 hover:text-gray-500 transition-colors p-1"
+                      className="text-gray-300 hover:text-gray-500 transition-colors p-2 min-h-[36px] min-w-[36px] flex items-center justify-center"
                       title="이 추천 숨기기"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -2813,7 +2848,7 @@ export function CompetitorsClient({
             <p className="text-sm text-amber-700 mt-0.5 leading-relaxed">
               네이버 콘텐츠는 글로벌 AI 크롤러에 잘 인덱싱되지 않습니다. 독립 웹사이트가 없으면 ChatGPT·Gemini에서 내 가게를 찾기 어렵습니다.
               {gapAnalysis.naver_only_risk_score_impact > 0 && (
-                <span className="font-semibold"> 웹사이트 구축 시 최대 +{gapAnalysis.naver_only_risk_score_impact.toFixed(1)}점 상승 예상.</span>
+                <span className="font-semibold"> 웹사이트 구축 시 AI 검색 노출 수준이 향상될 수 있습니다.</span>
               )}
             </p>
             <a href="/guide" className="inline-flex items-center gap-1 text-sm font-semibold text-amber-700 hover:text-amber-900 mt-2 underline underline-offset-2">
@@ -2955,24 +2990,21 @@ export function CompetitorsClient({
     const leader = allEntries[0]
     const gap = leader && !leader.isMe ? leader.score - Math.round(myScore) : 0
 
-    const isEstimated = competitorScores === null
     return (
-      <div className={`rounded-xl border p-4 md:p-5 mb-5 ${isEstimated ? 'bg-amber-50 border-amber-200' : myRank === 1 ? 'bg-emerald-50 border-emerald-200' : gap > 15 ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
+      <div className={`rounded-xl border p-4 md:p-5 mb-5 ${myRank === 1 ? 'bg-emerald-50 border-emerald-200' : gap > 15 ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
         <div className="flex items-center gap-4">
           {/* 순위 배지 */}
-          <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex flex-col items-center justify-center shrink-0 ${isEstimated ? 'bg-amber-500' : myRank === 1 ? 'bg-emerald-600' : gap > 15 ? 'bg-red-500' : 'bg-amber-500'}`}>
+          <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex flex-col items-center justify-center shrink-0 ${myRank === 1 ? 'bg-emerald-600' : gap > 15 ? 'bg-red-500' : 'bg-amber-500'}`}>
             <span className="text-white font-black text-2xl md:text-3xl leading-none">{myRank}위</span>
             <span className="text-white/80 text-sm font-medium">/ {total}곳</span>
           </div>
           {/* 상황 요약 + topTip */}
           <div className="flex-1 min-w-0">
             <p className="text-base md:text-lg font-bold text-gray-900">
-              {isEstimated ? '스캔 전 임시 순위' : myRank === 1 ? '현재 1위입니다!' : `${leader?.name}이(가) 현재 앞서 있습니다`}
+              {myRank === 1 ? '현재 1위입니다!' : `${leader?.name}이(가) 현재 앞서 있습니다`}
             </p>
-            <p className="text-sm text-gray-500 mt-0.5">
-              {isEstimated
-                ? 'AI 스캔을 실행하면 경쟁사와의 실제 점수를 비교할 수 있습니다.'
-                : myRank === 1
+            <p className="text-sm text-gray-600 mt-0.5">
+              {myRank === 1
                 ? '이 위치를 유지하려면 가이드의 개선 방법을 꾸준히 실천하세요.'
                 : gap > 15
                 ? '격차가 큽니다. 가이드에서 우선 순위 높은 항목부터 개선하세요.'
@@ -2989,7 +3021,7 @@ export function CompetitorsClient({
         </div>
 
         {/* 점수 진행바 — 1위 대비 내 위치 */}
-        {!isEstimated && total > 1 && (
+        {total > 1 && (
           <div className="mt-3 pt-3 border-t border-black/5">
             <div className="flex items-center justify-between text-sm mb-1.5 gap-2 flex-wrap">
               <span className="flex items-center gap-1.5 flex-wrap">
@@ -2999,7 +3031,6 @@ export function CompetitorsClient({
                 <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(Math.round(myScore)).cls}`}>
                   {getGrowthStageText(Math.round(myScore)).label}
                 </span>
-                <span className="text-gray-400 text-sm">({Math.round(myScore)}점)</span>
               </span>
               {!leader.isMe && (
                 <span className="flex items-center gap-1.5 flex-wrap">
@@ -3007,7 +3038,6 @@ export function CompetitorsClient({
                   <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(leader.score).cls}`}>
                     {getGrowthStageText(leader.score).label}
                   </span>
-                  <span className="text-gray-400 text-sm">({leader.score}점)</span>
                 </span>
               )}
             </div>
@@ -3017,11 +3047,9 @@ export function CompetitorsClient({
                 style={{ width: `${Math.min(Math.round((Math.round(myScore) / Math.max(leader.score, 1)) * 100), 100)}%` }}
               />
             </div>
-            {!leader.isMe && gap > 0 && (
+            {!leader.isMe && gap > 0 && gap <= 15 && (
               <p className="text-sm mt-1 text-gray-500">
-                {gap > 15
-                  ? <>격차가 큽니다. <strong className="text-red-600">가이드</strong>에서 우선순위 높은 항목부터 개선하세요.</>
-                  : <>조금만 더 노력하면 1위에 올라갈 수 있습니다. <a href="/guide" className="text-blue-600 font-semibold underline underline-offset-2">가이드 →</a></>}
+                조금만 더 노력하면 1위에 올라갈 수 있습니다. <a href="/guide" className="text-blue-600 font-semibold underline underline-offset-2">가이드 →</a>
               </p>
             )}
           </div>
@@ -3088,13 +3116,21 @@ export function CompetitorsClient({
         )}
 
         {/* 3. 격차 분석 */}
-        {gapPanel && (
-          <>
-            <SectionDivider title="격차 분석" icon={Target} />
-            <p className="text-sm text-gray-500 -mt-3 mb-1">경쟁사와 차이가 나는 항목입니다. 점수 차이가 가장 큰 항목부터 개선하세요.</p>
-            {gapPanel}
-          </>
-        )}
+        <>
+          <SectionDivider title="격차 분석" icon={Target} />
+          {gapPanel ? (
+            <>
+              <p className="text-sm text-gray-500 -mt-3 mb-1">경쟁사와 차이가 나는 항목입니다. 점수 차이가 가장 큰 항목부터 개선하세요.</p>
+              {gapPanel}
+            </>
+          ) : (
+            <div className="text-center py-8 bg-gray-50 rounded-xl border border-gray-100 -mt-2">
+              <Target className="w-8 h-8 text-gray-300 mx-auto mb-2.5" />
+              <p className="text-sm font-semibold text-gray-500 mb-1">격차 분석 데이터 없음</p>
+              <p className="text-sm text-gray-400">경쟁사를 등록하고 AI 스캔을 실행하면 격차 분석이 표시됩니다.</p>
+            </div>
+          )}
+        </>
 
         {/* 4. SNS/카카오 공유 카드 — 기본 접힘, 버튼 클릭 시 생성 */}
         {canViewBasic && competitorScores && (
@@ -3163,12 +3199,12 @@ export function CompetitorsClient({
             { key: 'list' as const, label: '경쟁사 목록', shortLabel: '목록', icon: Users },
             { key: 'add' as const, label: '경쟁사 등록', shortLabel: '등록', icon: Plus },
             { key: 'analysis' as const, label: '격차 분석', shortLabel: '격차', icon: Target },
-            { key: 'data' as const, label: '점수 비교', shortLabel: '비교', icon: BarChart2 },
+            { key: 'data' as const, label: '점수·이력', shortLabel: '이력', icon: BarChart2 },
           ].map(({ key, label, shortLabel, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setMobileTab(key)}
-              className={`flex-1 flex items-center justify-center gap-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1 py-3 rounded-xl text-sm font-bold transition-all min-h-[44px] ${
                 mobileTab === key
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-800'
@@ -3192,8 +3228,10 @@ export function CompetitorsClient({
                 {gapPanel}
               </>
             ) : (
-              <div className="text-center py-8 text-gray-400 text-sm">
-                경쟁사를 등록하고 AI 스캔을 실행하면 격차 분석이 표시됩니다.
+              <div className="text-center py-10 bg-gray-50 rounded-xl border border-gray-100">
+                <Target className="w-8 h-8 text-gray-300 mx-auto mb-2.5" />
+                <p className="text-sm font-semibold text-gray-500 mb-1">격차 분석 데이터 없음</p>
+                <p className="text-sm text-gray-400">경쟁사를 등록하고 AI 스캔을 실행하면<br />격차 분석이 표시됩니다.</p>
               </div>
             )}
           </div>
@@ -3272,7 +3310,7 @@ export function CompetitorsClient({
           onClose={() => setShowInlineScan(false)}
           onComplete={() => {
             setShowInlineScan(false)
-            window.location.reload()
+            router.refresh()
           }}
         />
       )}
@@ -3290,11 +3328,8 @@ export function CompetitorsClient({
               AI 검색 노출 점수를 비교할 수 있습니다.
             </p>
             <p className="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-2 text-center leading-relaxed">
-              스캔하지 않으면 경쟁사 점수가 표시되지 않습니다.<br />
-              지금 스캔하지 않으면 다음 자동 스캔(새벽 2시)에 비교 데이터가 나타납니다.
-            </p>
-            <p className="text-sm text-gray-500 mt-1 mb-3 text-center">
-              키워드 비교 데이터는 <strong>내일 새벽 4시</strong> 자동 수집 후 가이드 페이지에 표시됩니다.
+              지금 스캔하지 않으면 <strong>내일 새벽</strong> 자동 스캔 후 데이터가 표시됩니다.<br />
+              <span className="text-xs text-amber-500">(점수 비교: 새벽 2시 / 키워드 분석: 새벽 4시)</span>
             </p>
             <div className="flex flex-col gap-2.5">
               <button
@@ -3302,12 +3337,6 @@ export function CompetitorsClient({
                 className="w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Zap className="w-4 h-4" />지금 여기서 AI 스캔 실행
-              </button>
-              <button
-                onClick={() => { setScanPromptName(null); router.push('/dashboard') }}
-                className="w-full border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5"
-              >
-                대시보드에서 스캔하기 <ArrowRight className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setScanPromptName(null)}

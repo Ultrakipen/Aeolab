@@ -63,6 +63,29 @@ interface Dimension {
   priority: number
 }
 
+// INACTIVE 업종에서 "오늘 할 일"로 후순위 처리할 글로벌 채널 차원.
+// (글로벌 노출은 수개월~1년 소요 — 사장님의 즉시 실행 미션으로는 네이버 quick-win 우선)
+const GLOBAL_DIMS = new Set(["multi_ai_exposure", "schema_seo"])
+
+/**
+ * 최상위 미션 차원 선택.
+ * deprioritizeGlobal=true(INACTIVE)면, 실제 개선 여지(gap_to_top>0)가 있는 차원 중
+ * 네이버 차원을 글로벌 차원보다 우선. 네이버 갭이 없으면 글로벌을 그대로 노출(정직성 유지).
+ */
+function pickTopDimension(dims: Dimension[], deprioritizeGlobal: boolean): Dimension | null {
+  const withGap = dims.filter((d) => d.gap_to_top > 0)
+  const pool = withGap.length > 0 ? withGap : dims
+  const sorted = [...pool].sort((a, b) => {
+    if (deprioritizeGlobal) {
+      const ag = GLOBAL_DIMS.has(a.dimension_key) ? 1 : 0
+      const bg = GLOBAL_DIMS.has(b.dimension_key) ? 1 : 0
+      if (ag !== bg) return ag - bg
+    }
+    return b.gap_to_top - a.gap_to_top
+  })
+  return sorted[0] ?? null
+}
+
 interface TodayTask {
   no: number
   title: string
@@ -78,6 +101,8 @@ interface Props {
   todayTasks: TodayTask[]
   actionCopyText: string | null
   topMissingKeyword: string | null
+  /** INACTIVE 업종 — 글로벌 채널 차원을 오늘 미션에서 후순위로 */
+  deprioritizeGlobal?: boolean
 }
 
 export default function DailyMissionCard({
@@ -87,6 +112,7 @@ export default function DailyMissionCard({
   todayTasks,
   actionCopyText,
   topMissingKeyword,
+  deprioritizeGlobal = false,
 }: Props) {
   // ── TopPriority 상태 ──
   const [topDimension, setTopDimension] = useState<Dimension | null>(null)
@@ -111,8 +137,7 @@ export default function DailyMissionCard({
       return
     }
     if (initialDimensions !== undefined) {
-      const sorted = [...initialDimensions].sort((a, b) => b.gap_to_top - a.gap_to_top)
-      setTopDimension(sorted[0] ?? null)
+      setTopDimension(pickTopDimension(initialDimensions, deprioritizeGlobal))
       setTopLoading(false)
       return
     }
@@ -122,15 +147,12 @@ export default function DailyMissionCard({
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data?.dimensions?.length > 0) {
-          const sorted = [...data.dimensions].sort(
-            (a: Dimension, b: Dimension) => b.gap_to_top - a.gap_to_top
-          )
-          setTopDimension(sorted[0])
+          setTopDimension(pickTopDimension(data.dimensions as Dimension[], deprioritizeGlobal))
         }
       })
       .catch((e) => console.warn('[DailyMission/gap]', e))
       .finally(() => setTopLoading(false))
-  }, [bizId, token, initialDimensions])
+  }, [bizId, token, initialDimensions, deprioritizeGlobal])
 
   // ActionComplete 데이터 로드
   useEffect(() => {
@@ -287,7 +309,7 @@ export default function DailyMissionCard({
           {/* 오늘 할 일 목록 */}
           {hasTasks && (
             <>
-              <h2 className="text-base font-bold text-gray-900 mb-3">오늘 할 일</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-3">오늘 할 일</h2>
               <div className="space-y-2 mb-4">
                 {todayTasks.map((task, idx) => (
                   <Link

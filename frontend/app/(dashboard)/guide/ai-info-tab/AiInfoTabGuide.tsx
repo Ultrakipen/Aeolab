@@ -154,11 +154,11 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               <p className="text-sm md:text-base font-semibold text-indigo-800 mb-2">
                 🆕 네이버 AI탭 준비 — 지금 바로 노출 가능 (업종 공식 제한 없음)
               </p>
-              <p className="text-sm text-indigo-700 mb-3 leading-relaxed">
+              <p className="text-sm md:text-base text-indigo-700 mb-3 leading-relaxed">
                 네이버 AI탭(2026-04-27 베타 출시, 베타 확대 중)은 업종 공식 제한 없이 모든 사업장이 노출 가능합니다.
                 지금 아래 항목을 준비해두면 노출 우위를 가질 수 있습니다.
               </p>
-              <ul className="space-y-2 text-sm text-indigo-700">
+              <ul className="space-y-2 text-sm md:text-base text-indigo-700">
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 flex-shrink-0 font-bold">①</span>
                   <span><strong>소개글 200자 이상</strong> + 자주 묻는 질문 3~5개 Q&amp;A 형식 포함
@@ -263,10 +263,18 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 : "이 업종은 AI 브리핑 토글이 제공되지 않습니다."
             }
             alternative={
-              <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                AI 브리핑 토글 대신, 위 <strong>AI탭 준비 5항목</strong>과 아래 3·4·5단계(소개글·소식·리뷰)로
-                <strong>AI탭 + ChatGPT·Gemini·Google AI</strong> 노출을 동시에 개선합니다.
-              </p>
+              <div>
+                <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-2">
+                  AI 브리핑 토글 대신, 위 <strong>AI탭 준비 5항목</strong>과 아래 3·4·5단계(소개글·소식·리뷰)로
+                  <strong>AI탭 + ChatGPT·Gemini·Google AI</strong> 노출을 동시에 개선합니다.
+                </p>
+                <Link
+                  href="/guide"
+                  className="inline-flex items-center gap-1 text-sm md:text-base font-semibold text-indigo-700 hover:text-indigo-900 underline underline-offset-2"
+                >
+                  전체 가이드 목록에서 ChatGPT·Gemini 최적화 보기 →
+                </Link>
+              </div>
             }
           />
         ) : (
@@ -303,75 +311,6 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               <p className="text-sm text-gray-500 mt-1">저장은 즉시. 실제 노출 반영까지 2~4주 소요될 수 있습니다</p>
             </div>
           </Step>
-        )}
-
-        {/* INACTIVE 전용: AI탭 노출 3단계 + 글로벌 AI 링크 */}
-        {isInactive && !business?.is_franchise && (
-          <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-6 space-y-4">
-            <div>
-              <p className="text-sm md:text-base font-semibold text-indigo-900 mb-1">
-                이 업종은 네이버 AI 브리핑 비대상이지만, AI탭(업종 공식 제한 없음)을 통한 노출을 지금 바로 준비할 수 있습니다
-              </p>
-              <p className="text-sm text-indigo-700 leading-relaxed">
-                네이버 AI탭(2026-04-27 베타 출시, 베타 확대 중)은 업종 공식 제한이 없습니다.
-                아래 3단계로 AI탭 노출을 미리 준비하세요.
-              </p>
-            </div>
-
-            <ol className="space-y-3">
-              <li className="flex items-start gap-3">
-                <span className="shrink-0 w-7 h-7 rounded-full bg-indigo-200 text-indigo-800 text-sm font-bold flex items-center justify-center mt-0.5">
-                  1
-                </span>
-                <div>
-                  <p className="text-sm md:text-base font-semibold text-gray-900">
-                    소개글에 Q&amp;A 형식 포함
-                  </p>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    Q&amp;A 콘텐츠가 AI탭 인용 가능성이 높습니다 (실측 기반 권장값, 알고리즘 미공개). 자주 묻는 질문 3~5개를 소개글 안에 넣으세요.
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="shrink-0 w-7 h-7 rounded-full bg-indigo-200 text-indigo-800 text-sm font-bold flex items-center justify-center mt-0.5">
-                  2
-                </span>
-                <div>
-                  <p className="text-sm md:text-base font-semibold text-gray-900">
-                    사진 10장 이상 등록
-                  </p>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    이미지 다양성은 AI탭 신뢰도 신호입니다. 외관·내부·서비스 현장 사진을 다양하게 올리세요.
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="shrink-0 w-7 h-7 rounded-full bg-indigo-200 text-indigo-800 text-sm font-bold flex items-center justify-center mt-0.5">
-                  3
-                </span>
-                <div>
-                  <p className="text-sm md:text-base font-semibold text-gray-900">
-                    소식 주 1회 업로드
-                  </p>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    최신성 신호는 AI탭 노출 우선순위에 영향을 줍니다. 신메뉴·이벤트·변경 사항을 꾸준히 올리세요.
-                  </p>
-                </div>
-              </li>
-            </ol>
-
-            <div className="pt-2 border-t border-indigo-200">
-              <p className="text-sm text-indigo-700 mb-2">
-                ChatGPT·Gemini도 함께 최적화하려면?
-              </p>
-              <Link
-                href="/guide/chatgpt-search"
-                className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-700 hover:text-indigo-900 underline underline-offset-2"
-              >
-                ChatGPT Search 최적화 가이드 →
-              </Link>
-            </div>
-          </div>
         )}
 
         {/* 단계 3: 소개글 작성 (150~500자) */}
@@ -482,8 +421,9 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         >
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed">
             {isInactive
-              ? <>네이버 일반 검색과 ChatGPT·Gemini는 <strong>최신성</strong>을 중요하게 평가합니다.
-                  30일에 1건 이상 신규 소식을 등록하면 검색 노출 확률이 상승합니다.</>
+              ? <>네이버 일반 검색은 소식의 <strong>최신성</strong>을 중요하게 평가합니다.
+                  30일에 1건 이상 신규 소식을 등록하면 네이버 노출 확률이 상승합니다.
+                  ChatGPT·Gemini는 네이버 소식 포스트보다 사업장 웹사이트·구글 비즈니스 프로필 업데이트가 더 직접적입니다.</>
               : <>네이버 AI 브리핑은 <strong>최신성</strong>을 중요하게 평가합니다.
                   30일에 1건 이상 신규 소식을 등록하면 인용 확률이 상승합니다.</>}
           </p>
@@ -612,7 +552,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         </h3>
         <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed break-keep">
           {isInactive
-            ? '네이버 일반 검색·ChatGPT·Gemini는 사업장의 사진 수·다양성·최신성을 신뢰도 신호로 활용합니다.'
+            ? '네이버 일반 검색은 사진 수·다양성·최신성을 노출 신호로 활용합니다. Gemini는 구글 비즈니스 프로필의 사진을, ChatGPT는 사업장 웹사이트 이미지 정보를 간접 참조합니다.'
             : '네이버 AI 브리핑은 사업장의 사진 수·다양성·최신성을 노출 신호로 활용합니다.'}
           {" "}아래 5종을 모두 등록하고, <strong>월 1회 이상 새 사진 추가를 권장합니다.</strong>
         </p>
@@ -700,12 +640,12 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 }`}>
                   {item.label}
                 </p>
-                <p className="text-sm text-gray-600 leading-relaxed break-keep">{item.desc}</p>
+                <p className="text-sm md:text-base text-gray-600 leading-relaxed break-keep">{item.desc}</p>
               </div>
             </button>
           ))}
         </div>
-        <p className="text-sm text-gray-400 leading-relaxed break-keep">
+        <p className="text-sm text-gray-500 leading-relaxed break-keep">
           네이버 콘텐츠 품질 점수는 비공개 알고리즘이며, 위 항목은 영향 요소 추정입니다.
         </p>
       </div>
@@ -733,7 +673,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             }`}>
               {blogMentionCount === 0
                 ? "아직 블로그 후기가 감지되지 않았습니다. AI 검색 노출에 블로그 언급은 핵심 신호입니다."
-                : `${blogMentionCount}건의 블로그 언급이 감지되었습니다. AI 탭은 블로그·SNS 후기가 풍부한 플레이스를 우선 노출합니다.`}
+                : `${blogMentionCount}건의 블로그 언급이 감지되었습니다. AI탭은 블로그·SNS 후기가 풍부한 플레이스를 우선 노출하는 경향이 있습니다 (실측 기반 권장값, 알고리즘 미공개).`}
             </p>
           </div>
         </div>
@@ -756,7 +696,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             목표: <strong>월 3건 이상</strong> 신규 블로그 후기 유지.
           </p>
         )}
-        <p className="text-sm text-gray-400 mt-3 leading-relaxed break-keep">
+        <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
           블로그 언급 수는 스캔 시점 기준이며, 측정 방식에 따라 실제와 차이가 있을 수 있습니다.
         </p>
       </div>

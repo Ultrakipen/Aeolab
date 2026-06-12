@@ -265,9 +265,13 @@ export function TalktalkFAQGeneratorCard({
                           {copiedMenuIndex === i ? "복사됨!" : "URL 복사"}
                         </button>
                       </div>
-                    ) : (
+                    ) : menu.message && menu.message !== menu.menu_name ? (
                       <p className="text-sm text-gray-600 leading-relaxed">
-                        {menu.message ?? ""}
+                        {menu.message}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-400 italic leading-relaxed">
+                        &lsquo;다시 생성&rsquo;을 누르면 메뉴 클릭 시 보낼 안내 메시지가 자동 작성됩니다
                       </p>
                     )}
                   </div>
@@ -290,6 +294,9 @@ export function TalktalkFAQGeneratorCard({
                   <strong>소개글에 포함할 Q&A {generated.items.length}개</strong> —
                   스마트플레이스 → 업체정보 → 소개글에 자연스럽게 포함하세요.
                   소개글 안의 Q&A 섹션이 사장님이 직접 컨트롤할 수 있는 가장 효과적인 AI 브리핑 인용 후보 경로입니다.
+                </p>
+                <p className="text-xs text-blue-700 mt-1.5">
+                  위 &lsquo;네이버 소개글 생성&rsquo;의 소개글에도 같은 Q&A가 들어 있습니다 — 여기서는 항목별 복사·톡톡 메뉴용으로 쓰세요.
                 </p>
               </div>
               <div className="space-y-3">

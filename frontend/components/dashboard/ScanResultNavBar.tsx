@@ -18,6 +18,11 @@ function scrollTo(id: string) {
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+/**
+ * 얇은 목차 점프바 — 상태(✓/✗/노출 양호 등)는 위 Hero 카드가 유일 소스.
+ * 여기서는 신호등 점(녹/황/회) + 라벨 + 점프만 제공해 정보 중복을 없애고
+ * "어디를 누르면 무슨 개선 방법이 나오는지" 목차 역할만 한다.
+ */
 export default function ScanResultNavBar({
   eligibility,
   naverInBriefing,
@@ -31,114 +36,57 @@ export default function ScanResultNavBar({
 }: Props) {
   const isInactive = eligibility === "inactive" || isFranchise;
 
-  /* ── 일반 검색 타일 ──────────────────────────── */
-  const searchTile = naverCaptchaBlocked
-    ? { icon: "?", label: "측정 불가", sub: "재스캔 필요", color: "text-gray-400 bg-gray-100", border: "border-gray-200" }
+  // 신호등 색만 추출 — green(양호) / amber(보강 가능) / gray(해당없음·미측정)
+  const GREEN = "bg-emerald-500";
+  const AMBER = "bg-amber-400";
+  const GRAY = "bg-gray-300";
+
+  const searchDot = naverCaptchaBlocked
+    ? GRAY
     : latestAdOnly
-    ? { icon: "광고", label: "광고만 노출", sub: "자연 노출 없음", color: "text-orange-600 bg-orange-100", border: "border-orange-200" }
+    ? AMBER
     : topMissingKeywordCount === 0
-    ? { icon: "✓", label: "검색 노출 양호", sub: "키워드 최적화됨", color: "text-emerald-700 bg-emerald-100", border: "border-emerald-200" }
-    : { icon: "!", label: "검색에 잘 안 보임", sub: `키워드 ${topMissingKeywordCount}개 추가 필요`, color: "text-amber-700 bg-amber-100", border: "border-amber-200" };
+    ? GREEN
+    : AMBER;
 
-  /* ── AI탭 타일 ──────────────────────────────── */
-  const aiTabTile = naverAiTabVisible === true
-    ? { icon: "✓", label: "AI탭 노출 중", sub: "AI탭 답변 있음", color: "text-emerald-700 bg-emerald-100", border: "border-emerald-200" }
-    : naverAiTabVisible === false
-    ? { icon: "✗", label: "AI탭 미노출", sub: "설정 개선 필요", color: "text-orange-600 bg-orange-100", border: "border-orange-200" }
-    : { icon: "–", label: "AI탭 미측정", sub: "스캔 후 자동 확인", color: "text-gray-400 bg-gray-100", border: "border-gray-200" };
+  const aiTabDot =
+    naverAiTabVisible === true ? GREEN : naverAiTabVisible === false ? AMBER : GRAY;
 
-  /* ── AI 브리핑 타일 ─────────────────────────── */
-  const briefingTile = naverCaptchaBlocked
-    ? { icon: "?", label: "측정 불가", sub: "재스캔 필요", color: "text-gray-400 bg-gray-100", border: "border-gray-200" }
+  const briefingDot = naverCaptchaBlocked
+    ? GRAY
     : isInactive
-    ? { icon: "–", label: "AI 브리핑 대상 아님", sub: "ChatGPT·AI탭으로 노출 가능", color: "text-gray-500 bg-gray-100", border: "border-gray-200" }
+    ? GRAY
     : eligibility === "likely"
-    ? { icon: "△", label: "확대 예정", sub: "지금 준비 중", color: "text-yellow-700 bg-yellow-100", border: "border-yellow-200" }
+    ? AMBER
     : naverInBriefing
-    ? { icon: "✓", label: "AI 브리핑 노출", sub: "5채널 최적화", color: "text-emerald-700 bg-emerald-100", border: "border-emerald-200" }
-    : { icon: "✗", label: "AI 브리핑 미노출", sub: "소개글 보강 필요", color: "text-red-600 bg-red-100", border: "border-red-200" };
+    ? GREEN
+    : AMBER;
 
-  /* ── 경쟁 현황 타일 ─────────────────────────── */
-  const rankStatus =
-    totalCompetitors <= 1
-      ? { icon: "-", label: "경쟁사 없음", sub: "등록 후 비교", color: "text-gray-400 bg-gray-100", border: "border-gray-200" }
-      : myRankInList === 1
-      ? { icon: "1위", label: `${totalCompetitors}곳 중 1위`, sub: "선두 유지 중", color: "text-emerald-700 bg-emerald-100", border: "border-emerald-200" }
-      : { icon: `${myRankInList}위`, label: `${totalCompetitors}곳 중 ${myRankInList}위`, sub: "개선 여지 있음", color: "text-amber-700 bg-amber-100", border: "border-amber-200" };
+  const rankDot =
+    totalCompetitors <= 1 ? GRAY : myRankInList === 1 ? GREEN : AMBER;
 
   const items = [
-    {
-      id: "nav-search",
-      scrollTarget: "section-naver",
-      iconBg: searchTile.color,
-      border: searchTile.border,
-      icon: searchTile.icon,
-      label: "일반검색 노출",
-      sub: searchTile.label,
-      statusSub: searchTile.sub,
-      highlight: !naverCaptchaBlocked && topMissingKeywordCount > 0 && !latestAdOnly,
-    },
-    {
-      id: "nav-aitab",
-      scrollTarget: "section-naver",
-      iconBg: aiTabTile.color,
-      border: aiTabTile.border,
-      icon: aiTabTile.icon,
-      label: "AI탭 노출",
-      sub: aiTabTile.label,
-      statusSub: aiTabTile.sub,
-      highlight: naverAiTabVisible === false,
-    },
-    {
-      id: "nav-briefing",
-      scrollTarget: "section-naver",
-      iconBg: briefingTile.color,
-      border: briefingTile.border,
-      icon: briefingTile.icon,
-      label: "AI브리핑 노출",
-      sub: briefingTile.label,
-      statusSub: briefingTile.sub,
-      highlight: eligibility === "active" && !isFranchise && !naverInBriefing && !naverCaptchaBlocked,
-    },
-    {
-      id: "nav-rank",
-      scrollTarget: "section-detail",
-      iconBg: rankStatus.color,
-      border: rankStatus.border,
-      icon: rankStatus.icon,
-      label: "경쟁 현황",
-      sub: rankStatus.label,
-      statusSub: rankStatus.sub,
-      highlight: false,
-    },
+    { id: "nav-search", scrollTarget: "section-naver", dot: searchDot, label: "일반검색", highlight: searchDot === AMBER },
+    { id: "nav-aitab", scrollTarget: "section-naver", dot: aiTabDot, label: "AI탭", highlight: naverAiTabVisible === false },
+    { id: "nav-briefing", scrollTarget: "section-naver", dot: briefingDot, label: "AI브리핑", highlight: !isInactive && eligibility === "active" && !naverInBriefing && !naverCaptchaBlocked },
+    { id: "nav-rank", scrollTarget: "section-detail", dot: rankDot, label: "경쟁현황", highlight: false },
   ];
 
   return (
     <div>
-      {/* 네이버 3채널 + 경쟁현황 4타일 */}
-      <p className="text-xs text-gray-400 mb-1.5 pl-0.5">각 항목을 누르면 상세 내용으로 이동합니다</p>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <p className="text-xs text-gray-400 mb-1.5 pl-0.5">아래 항목을 누르면 상세 개선 방법으로 이동합니다</p>
+      <div className="flex flex-wrap gap-2">
         {items.map((item) => (
           <button
             key={item.id}
             onClick={() => scrollTo(item.scrollTarget)}
-            className={`group relative flex items-center gap-2.5 p-3 rounded-xl border bg-white text-left transition-all cursor-pointer hover:border-blue-300 hover:bg-blue-50/40 hover:shadow-md ${
-              item.highlight ? "border-amber-300 ring-1 ring-amber-200" : item.border
+            className={`group inline-flex items-center gap-2 px-3 py-2 rounded-lg border bg-white text-left transition-all cursor-pointer hover:border-blue-300 hover:bg-blue-50/40 ${
+              item.highlight ? "border-amber-300 ring-1 ring-amber-200" : "border-gray-200"
             }`}
           >
-            <span
-              className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${item.iconBg}`}
-            >
-              {item.icon}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium text-gray-500 leading-tight line-clamp-1">{item.label}</p>
-              <p className="text-sm font-semibold text-gray-800 leading-tight line-clamp-1 mt-0.5">{item.sub}</p>
-              <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{item.statusSub}</p>
-            </div>
-            <span className="absolute bottom-1.5 right-2 text-xs text-blue-400 font-semibold group-hover:text-blue-600 transition-colors">
-              상세 ↓
-            </span>
+            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.dot}`} aria-hidden="true" />
+            <span className="text-sm font-semibold text-gray-700">{item.label}</span>
+            <span className="text-xs text-blue-400 font-semibold group-hover:text-blue-600 transition-colors">↓</span>
           </button>
         ))}
       </div>

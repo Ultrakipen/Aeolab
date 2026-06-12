@@ -1,0 +1,33 @@
+# 줄바꿈 정규화 — Windows 로컬(CRLF) ↔ Linux 서버(LF) 유령 diff 방지 (2026-06-12)
+# git이 저장소에는 LF로 통일 저장하고, 체크아웃 시 플랫폼에 맞게 변환한다.
+* text=auto
+
+# 명시적 LF (셸/설정/소스 — 서버에서 그대로 실행되는 파일)
+*.sh   text eol=lf
+*.py   text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.js   text eol=lf
+*.jsx  text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.css  text eol=lf
+*.md   text eol=lf
+*.sql  text eol=lf
+
+# 바이너리 (변환 금지)
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.woff  binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.pdf  binary
+*.xlsx binary
+*.tgz  binary
+*.gz   binary

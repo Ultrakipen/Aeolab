@@ -151,7 +151,6 @@ function ScoreBar({
   tip: string;
 }) {
   const pct = Math.round(weight * 100);
-  const barWidth = Math.min(100, Math.max(0, score));
 
   return (
     <div className={`rounded-xl p-3 md:p-4 ${isWeak ? "ring-2 ring-red-400 bg-red-50" : "bg-gray-50"}`}>
@@ -162,16 +161,29 @@ function ScoreBar({
             진단 비중 {pct}%
           </span>
         </div>
-        <span className={`text-xl md:text-2xl font-bold shrink-0 ${isWeak ? "text-red-600" : "text-gray-800"}`}>
-          {score.toFixed(0)}점
+        <span className={`text-sm font-bold shrink-0 px-2 py-1 rounded-full ${
+          score >= 70 ? "bg-green-100 text-green-700" :
+          score >= 40 ? "bg-amber-100 text-amber-700" :
+          "bg-red-100 text-red-700"
+        }`}>
+          {score >= 70 ? "양호" : score >= 40 ? "보통" : "개선 필요"}
         </span>
       </div>
-      <div className="h-3 bg-gray-200 rounded-full overflow-hidden mb-2">
-        <div
-          className={`h-full rounded-full transition-all duration-700 ${color}`}
-          style={{ width: `${barWidth}%` }}
-        />
-      </div>
+      {/* 3단계 세그먼트 바 (score 수치 노출 없이 단계만 표현) */}
+      {(() => {
+        const level = score >= 70 ? 3 : score >= 40 ? 2 : 1;
+        const segColor = score >= 70 ? color : score >= 40 ? "bg-amber-400" : "bg-red-400";
+        return (
+          <div className="flex gap-1 mb-2">
+            {[1, 2, 3].map((seg) => (
+              <div
+                key={seg}
+                className={`h-2.5 flex-1 rounded-full ${seg <= level ? segColor : "bg-gray-200"}`}
+              />
+            ))}
+          </div>
+        );
+      })()}
       <p className="text-base text-gray-500 leading-relaxed">{sublabel}</p>
       {isWeak && (
         <div className="mt-2 text-base text-red-600 font-medium bg-red-100 rounded-lg px-3 py-2 leading-relaxed">
@@ -251,20 +263,23 @@ export default function DualTrackCard({
           </div>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-3xl md:text-4xl font-extrabold text-indigo-600">
-            {unifiedScore.toFixed(0)}
-            <span className="text-base md:text-lg font-normal text-gray-400">점</span>
-          </div>
-          {/* 업종별 채널 비중 안내 */}
-          <div className="text-sm text-gray-500 mt-0.5">
-            {CATEGORY_LABELS[category] || "이 업종"} 기준 · 네이버 {Math.round(naverWeight * 100)}% 비중
+          <div className={`text-lg md:text-xl font-extrabold ${
+            unifiedScore >= 75 ? "text-emerald-700" :
+            unifiedScore >= 55 ? "text-blue-700" :
+            unifiedScore >= 30 ? "text-amber-700" :
+            "text-slate-600"
+          }`}>
+            {unifiedScore >= 75 ? "AI 노출 양호" :
+             unifiedScore >= 55 ? "AI 노출 개선 중" :
+             unifiedScore >= 30 ? "AI 노출 미흡" :
+             "AI 노출 시작 전"}
           </div>
           {benchmarkAvg && benchmarkAvg > 0 && (
             <div className="text-sm mt-1">
               <span className={unifiedScore >= benchmarkAvg ? "text-green-600 font-semibold" : "text-amber-600 font-semibold"}>
                 {unifiedScore >= benchmarkAvg
-                  ? `▲ 업종 평균보다 ${Math.round(unifiedScore - benchmarkAvg)}점 높습니다 ✓`
-                  : `▼ 업종 평균보다 ${Math.round(benchmarkAvg - unifiedScore)}점 낮습니다 — 개선 여지 있음`}
+                  ? "▲ 업종 평균보다 높습니다 ✓"
+                  : "▼ 업종 평균보다 낮습니다 — 개선 여지 있음"}
               </span>
             </div>
           )}
@@ -347,17 +362,28 @@ export default function DualTrackCard({
           <div className="space-y-2.5">
             {chatgptRate !== null && aiExposureData?.chatgptSampleSize ? (
               <div>
-                <div className="flex justify-between text-sm text-gray-700 mb-1">
+                <div className="flex justify-between items-center text-sm text-gray-700 mb-1.5">
                   <span>ChatGPT</span>
-                  <span className="font-semibold">
-                    {chatgptRate}%
-                    <span className="text-sm text-gray-500 font-normal ml-1">
-                      ({aiExposureData.chatgptFreq}/{aiExposureData.chatgptSampleSize}회)
-                    </span>
+                  <span className={`text-sm font-semibold px-2 py-0.5 rounded-full ${
+                    chatgptRate >= 30 ? "bg-emerald-100 text-emerald-700"
+                    : chatgptRate > 0  ? "bg-amber-100 text-amber-700"
+                    : "bg-gray-100 text-gray-500"
+                  }`}>
+                    {chatgptRate >= 30 ? "자주 언급" : chatgptRate > 0 ? "가끔 언급" : "노출 전"}
                   </span>
                 </div>
-                <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, chatgptRate)}%` }} />
+                <div className="flex gap-1">
+                  {[1, 2, 3].map((seg) => {
+                    const level = chatgptRate >= 30 ? 3 : chatgptRate > 0 ? 2 : 1;
+                    const filled = seg <= level;
+                    return (
+                      <div key={seg} className={`h-2 flex-1 rounded-full ${
+                        filled
+                          ? chatgptRate >= 30 ? "bg-blue-500" : chatgptRate > 0 ? "bg-amber-400" : "bg-red-300"
+                          : "bg-gray-200"
+                      }`} />
+                    );
+                  })}
                 </div>
               </div>
             ) : (
@@ -368,17 +394,28 @@ export default function DualTrackCard({
             )}
             {geminiRate !== null && aiExposureData?.geminiSampleSize ? (
               <div>
-                <div className="flex justify-between text-sm text-gray-700 mb-1">
+                <div className="flex justify-between items-center text-sm text-gray-700 mb-1.5">
                   <span>Google Gemini</span>
-                  <span className="font-semibold">
-                    {geminiRate}%
-                    <span className="text-sm text-gray-500 font-normal ml-1">
-                      ({aiExposureData.geminiFreq}/{aiExposureData.geminiSampleSize}회)
-                    </span>
+                  <span className={`text-sm font-semibold px-2 py-0.5 rounded-full ${
+                    geminiRate >= 30 ? "bg-emerald-100 text-emerald-700"
+                    : geminiRate > 0  ? "bg-amber-100 text-amber-700"
+                    : "bg-gray-100 text-gray-500"
+                  }`}>
+                    {geminiRate >= 30 ? "자주 언급" : geminiRate > 0 ? "가끔 언급" : "노출 전"}
                   </span>
                 </div>
-                <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.min(100, geminiRate)}%` }} />
+                <div className="flex gap-1">
+                  {[1, 2, 3].map((seg) => {
+                    const level = geminiRate >= 30 ? 3 : geminiRate > 0 ? 2 : 1;
+                    const filled = seg <= level;
+                    return (
+                      <div key={seg} className={`h-2 flex-1 rounded-full ${
+                        filled
+                          ? geminiRate >= 30 ? "bg-purple-500" : geminiRate > 0 ? "bg-amber-400" : "bg-red-300"
+                          : "bg-gray-200"
+                      }`} />
+                    );
+                  })}
                 </div>
               </div>
             ) : (

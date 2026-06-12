@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Search, RefreshCw, Share2, CheckCircle2 } from "lucide-react";
 import BusinessQuickEditButton from "../BusinessQuickEditButton";
-import ScanWithModal from "../ScanWithModal";
 import { RescanBanner } from "../RescanBanner";
 import { NewCompetitorAlert } from "@/components/dashboard/NewCompetitorAlert";
 import { OnboardingProgressBar } from "@/components/dashboard/OnboardingProgressBar";
@@ -43,6 +42,7 @@ interface Props {
   scanUsed: number;
   scanLimit: number;
   showRescanNotice: boolean;
+  rescanIsStale?: boolean;
   lastQueryUsed?: string;
   displayCity: string;
 }
@@ -58,10 +58,8 @@ export default function DashboardHeader({
   accessToken,
   scanInfo,
   lastScannedLabel,
-  scanUsed,
-  scanLimit,
   showRescanNotice,
-  lastQueryUsed,
+  rescanIsStale = false,
   displayCity,
 }: Props) {
   const planBadgeClass = isAdmin
@@ -104,7 +102,7 @@ export default function DashboardHeader({
 
       {/* 사업장 탭 */}
       {businesses && (businesses.length > 1 || businesses.length < (PLAN_BIZ_LIMITS[plan] ?? 1)) && (
-        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-2">
+        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-2 mb-3">
           {businesses.map((b) => (
             <a
               key={b.id}
@@ -133,7 +131,8 @@ export default function DashboardHeader({
         </div>
       )}
 
-      {showRescanNotice && <RescanBanner />}
+      {/* 방금 스캔 요청(2~3분 소요) 안내만 전체폭 배너로. 7일 경과(stale) 권유는 진단 카드 안 배지로 흡수 */}
+      {showRescanNotice && !rescanIsStale && <RescanBanner stale={false} />}
 
       {/* 재방문 변화 요약 배너 */}
       {business?.id && <VisitDeltaBanner bizId={business.id} />}
@@ -189,32 +188,28 @@ export default function DashboardHeader({
                   {planBadgeText}
                 </span>
               </div>
-              <div className="mt-0.5 space-y-0.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm text-gray-500 break-keep">
-                    {displayCity} · {CATEGORY_LABEL[business.category] ?? business.category}
-                  </p>
-                  {briefingEligibility === "active" ? (
-                    <span className="inline-flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 whitespace-nowrap">
-                      ✓ AI 브리핑 대상 업종
-                    </span>
-                  ) : briefingEligibility === "likely" ? (
-                    <span className="inline-flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 whitespace-nowrap">
-                      △ AI 브리핑 확대 예정
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 whitespace-nowrap">
-                      ChatGPT·AI탭·Gemini 노출 지원 업종
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-500 flex items-center gap-1 hidden sm:flex">
+              {/* 메타 1줄 압축 — 위치·업종·브리핑 자격·자동스캔 정보를 한 행에 (진단 카드 위로 끌어올리기) */}
+              <div className="mt-1 flex items-center gap-x-2 gap-y-1 flex-wrap">
+                <p className="text-sm text-gray-500 break-keep">
+                  {displayCity} · {CATEGORY_LABEL[business.category] ?? business.category}
+                </p>
+                {briefingEligibility === "active" ? (
+                  <span className="inline-flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 whitespace-nowrap">
+                    ✓ AI 브리핑 대상 업종
+                  </span>
+                ) : briefingEligibility === "likely" ? (
+                  <span className="inline-flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 whitespace-nowrap">
+                    △ AI 브리핑 확대 예정
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 whitespace-nowrap">
+                    ChatGPT·Gemini 노출 가능 업종
+                  </span>
+                )}
+                <span className="text-sm text-gray-400 items-center gap-1 hidden sm:inline-flex">
                   <RefreshCw className="w-3 h-3 shrink-0" />
                   <span className="break-keep">{scanInfo.label}</span>
-                </p>
-                {lastScannedLabel && (
-                  <p className="text-sm text-gray-600">마지막 분석: {lastScannedLabel}</p>
-                )}
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0 pt-1">
@@ -245,25 +240,7 @@ export default function DashboardHeader({
             </div>
           </div>
 
-          {/* 스캔 섹션 */}
-          <div className="mb-2" data-onboarding-tour="scan-button">
-            <ScanWithModal
-              businessId={business.id}
-              businessName={business.name}
-              category={business.category}
-              region={business.region}
-              keywords={business.keywords}
-              scanUsed={scanUsed}
-              scanLimit={scanLimit}
-              plan={plan}
-              lastQueryUsed={lastQueryUsed}
-            />
-          </div>
-
-          {/* 기대치 1줄 안내 */}
-          <p className="text-sm text-slate-500 mb-3 leading-snug hidden sm:block">
-            분석 결과는 현재 상태를 진단합니다. 스마트플레이스 변경은 1~2일, AI탭·블로그 개선은 2~4주 후 반영됩니다. AEOlab이 매주 변화를 추적합니다.
-          </p>
+          {/* 스캔 섹션·반영 안내는 page.tsx의 진단 2단 레이아웃(우측 컬럼)으로 이동 */}
 
           {/* 키워드 미등록 안내 */}
           {!business.keywords?.length && (

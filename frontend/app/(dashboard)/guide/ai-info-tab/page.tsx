@@ -41,7 +41,10 @@ export default async function AiInfoTabGuidePage({
     .limit(1)
     .maybeSingle()
 
-  const plan: string = (subRow?.status === 'active' ? subRow?.plan : null) ?? 'free'
+  const plan: string =
+    (subRow?.status === 'active' || subRow?.status === 'grace_period')
+      ? (subRow?.plan ?? 'free')
+      : 'free'
 
   const elig = business
     ? getBriefingEligibility(business.category, !!business.is_franchise)
@@ -82,7 +85,7 @@ export default async function AiInfoTabGuidePage({
           AI 브리핑은 <strong>음식점·카페·베이커리·바·숙박업 등 AI 브리핑 대상 업종</strong>만 대상이며,
           프랜차이즈 가맹점은 현재 제외됩니다(네이버 공식 정책).
         </p>
-        <p className="mt-2 text-sm text-blue-700 bg-white border border-blue-100 rounded px-2.5 py-1.5">
+        <p className="mt-2 text-sm md:text-base text-blue-700 bg-white border border-blue-100 rounded px-2.5 py-1.5">
           ℹ️ AI탭은 업종 공식 제한이 없습니다 (2026-04-27 베타, 베타 확대 중).{' '}
           <Link href="/guide/ai-tab" className="underline font-semibold">AI탭 5항목 가이드 →</Link>
         </p>

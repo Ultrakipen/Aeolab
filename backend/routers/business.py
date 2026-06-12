@@ -30,6 +30,25 @@ def _get_user_id(user=Depends(get_current_user)) -> str:
     return user["id"]
 
 
+def _extract_naver_place_id(url: str | None) -> str | None:
+    """네이버 플레이스 URL에서 숫자 place_id 추출.
+
+    지원 형식:
+      - https://map.naver.com/p/entry/place/898503091?lng=...
+      - https://map.naver.com/v5/entry/place/898503091
+      - https://m.place.naver.com/place/898503091/home
+      - https://m.place.naver.com/restaurant/898503091/home
+    추출 실패(검색 URL·단축 URL 등) 시 None 반환 — 오추출 방지.
+    """
+    if not url:
+        return None
+    m = re.search(r"place/(\d+)", url)            # .../place/898503091
+    if m:
+        return m.group(1)
+    m = re.search(r"/(\d{6,})(?:[/?]|$)", url)     # fallback: /restaurant/898503091/ 등 긴 숫자 세그먼트
+    return m.group(1) if m else None
+
+
 @router.get("/search-address")
 async def search_address(name: str = Query(...), region: str = Query("")):
     """네이버 지역 검색으로 사업장 주소·전화번호 후보 반환"""
@@ -235,7 +254,7 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
 
 
 _BIZ_BASE_COLS = "id, name, category, region, address, phone, website_url, blog_url, naver_place_url, keywords, business_type, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, receipt_review_count, visitor_review_count, is_active, created_at, has_faq, has_recent_post, has_intro, is_smart_place, review_sample, kakao_score, kakao_checklist, kakao_registered, business_registration_no, blog_mention_count"
-_BIZ_OPTIONAL_COLS = ["ai_info_tab_status", "is_franchise", "naver_intro_draft", "naver_intro_generated_at", "talktalk_faq_draft", "talktalk_faq_generated_at"]
+_BIZ_OPTIONAL_COLS = ["ai_info_tab_status", "is_franchise", "naver_intro_draft", "naver_intro_generated_at", "global_intro_draft", "global_intro_generated_at", "talktalk_faq_draft", "talktalk_faq_generated_at"]
 
 
 @router.get("/me")
@@ -297,6 +316,15 @@ async def update_business(biz_id: str, updates: dict, user=Depends(get_current_u
     if not filtered:
         raise HTTPException(status_code=400, detail="변경할 필드가 없습니다")
 
+    # 네이버 플레이스 URL 저장 시 place_id 자동 추출 — 리뷰 통계 동기화 활성화
+    # (빠른수정 패널은 naver_place_url만 전송 → place_id 미추출 시 sync_naver_place_stats가
+    #  스킵되어 review_count가 영원히 0으로 남던 버그 방지. 2026-06-11 수정)
+    if filtered.get("naver_place_url") and not filtered.get("naver_place_id"):
+        _extracted_pid = _extract_naver_place_id(filtered["naver_place_url"])
+        if _extracted_pid:
+            filtered["naver_place_id"] = _extracted_pid
+            logger.info(f"extracted naver_place_id={_extracted_pid} from url on update biz={biz_id}")
+
     # has_recent_post=True 토글 시 last_post_at 자동 갱신 (소식 14일 알림 잡 연계)
     # 컬럼 없는 경우 graceful fallback — DB ALTER 미실행 시 에러 무시
     if filtered.get("has_recent_post") is True:
@@ -312,6 +340,15 @@ async def update_business(biz_id: str, updates: dict, user=Depends(get_current_u
             result = await execute(supabase.table("businesses").update(filtered).eq("id", biz_id).eq("user_id", x_user_id))
         else:
             raise
+
+    # naver_place_id 신규/변경 시 리뷰 통계 백그라운드 동기화 (URL 추출분 포함)
+    # filtered는 변경 필드만 담으므로, place_id가 이번 업데이트에 포함된 경우에만 동기화 — 불필요한 크롤 방지
+    if filtered.get("naver_place_id"):
+        try:
+            asyncio.create_task(_sync_naver_stats(biz_id, filtered["naver_place_id"]))
+            logger.info(f"review stats sync scheduled on update: biz={biz_id}")
+        except Exception as e:
+            logger.warning(f"review sync task failed to create on update: {e}")
 
     # naver_blog_id 변경 시 blog_analysis 캐시 무효화 (is_mine 재판별 필요)
     if "naver_blog_id" in filtered:
@@ -989,6 +1026,17 @@ async def generate_global_ai_intro_endpoint(
         )
     except Exception as save_err:
         logger.warning(f"global-ai-intro guides 저장 실패: {save_err}")
+
+    # businesses.global_intro_draft 에 최신 초안 저장 (재방문 시 재로드용)
+    try:
+        await execute(
+            supabase.table("businesses").update({
+                "global_intro_draft": intro_text,
+                "global_intro_generated_at": now.isoformat(),
+            }).eq("id", req.biz_id)
+        )
+    except Exception as save_err:
+        logger.warning(f"global-ai-intro businesses 저장 실패 (컬럼 없을 수 있음): {save_err}")
 
     return GlobalAiIntroResponse(
         intro=intro_text,

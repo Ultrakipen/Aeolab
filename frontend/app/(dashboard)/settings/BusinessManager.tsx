@@ -201,7 +201,7 @@ function CategoryIconGrid({ value, onChange }: CategoryGridProps) {
           현재 선택된 업종({getCategoryLabel(value)})은 구 분류입니다. 아래에서 세부 업종을 재선택하면 분석 정확도가 높아집니다.
         </p>
       )}
-      <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 gap-2">
         {displayCategories.map((cat) => {
           const colors = COLOR_MAP[cat.color] ?? COLOR_MAP.gray;
           const IconComponent = ICON_MAP[cat.icon];
@@ -795,7 +795,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               <input
                 value={editForm.name}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             {/* 업종 아이콘 그리드 */}
@@ -807,13 +807,13 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               />
             </div>
             {/* 지역 / 전화 */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">지역 (구/동)</label>
                 <input
                   value={editForm.region}
                   onChange={(e) => setEditForm({ ...editForm, region: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -822,7 +822,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   value={editForm.phone ?? ""}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                   placeholder="010-0000-0000"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -831,7 +831,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               <input
                 value={editForm.address ?? ""}
                 onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div id="field-website_url">
@@ -840,7 +840,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 value={editForm.website_url ?? ""}
                 onChange={(e) => setEditForm({ ...editForm, website_url: e.target.value })}
                 placeholder="https://..."
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -852,7 +852,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 value={editForm.blog_url ?? ""}
                 onChange={(e) => setEditForm({ ...editForm, blog_url: e.target.value })}
                 placeholder="https://blog.naver.com/내계정 또는 티스토리 주소"
-                className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full border rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   editForm.blog_url && !(editForm.blog_url.startsWith('http://') || editForm.blog_url.startsWith('https://'))
                     ? 'border-red-300 focus:ring-red-400'
                     : 'border-gray-300'
@@ -868,17 +868,31 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             {/* 네이버 스마트플레이스 ID + URL + 카카오 */}
             <div className="bg-gray-100 rounded-xl px-4 py-3 space-y-3">
               <p className="text-sm font-semibold text-gray-700">플랫폼 등록 정보 <span className="font-normal text-gray-400">(선택)</span></p>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  네이버 스마트플레이스 ID
-                </label>
-                <input
-                  value={editForm.naver_place_id ?? ""}
-                  onChange={(e) => setEditForm({ ...editForm, naver_place_id: e.target.value })}
-                  placeholder="예: 12345678"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="text-sm text-gray-400 mt-1">예: place.naver.com/place/<strong className="text-gray-500">12345678</strong> → 12345678</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    네이버 스마트플레이스 ID
+                  </label>
+                  <input
+                    value={editForm.naver_place_id ?? ""}
+                    onChange={(e) => setEditForm({ ...editForm, naver_place_id: e.target.value })}
+                    placeholder="예: 12345678"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-sm text-gray-400 mt-1">예: place.naver.com/place/<strong className="text-gray-500">12345678</strong> → 12345678</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    구글 Place ID
+                  </label>
+                  <input
+                    value={editForm.google_place_id ?? ""}
+                    onChange={(e) => setEditForm({ ...editForm, google_place_id: e.target.value })}
+                    placeholder="예: ChIJN1t_..."
+                    className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-sm text-gray-400 mt-1">Google 지도 → 공유 → "장소 삽입"에서 확인 · 등록 시 AI 노출 점수 +10점</p>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -888,21 +902,9 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   value={editForm.naver_place_url ?? ""}
                   onChange={(e) => setEditForm({ ...editForm, naver_place_url: e.target.value })}
                   placeholder="예: https://map.naver.com/p/entry/place/12345678"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-sm text-gray-400 mt-1">입력 시 FAQ·소식·소개글 등록 여부를 스캔 때 자동으로 확인합니다.</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  구글 Place ID
-                </label>
-                <input
-                  value={editForm.google_place_id ?? ""}
-                  onChange={(e) => setEditForm({ ...editForm, google_place_id: e.target.value })}
-                  placeholder="예: ChIJN1t_..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="text-sm text-gray-400 mt-1">Google 지도 → 공유 → "장소 삽입"에서 확인 · 등록 시 AI 노출 점수 +10점</p>
+                <p className="text-sm text-gray-400 mt-1">입력 시 소식·소개글 등록 여부를 스캔 때 자동으로 확인합니다.</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -912,7 +914,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   value={editForm.kakao_place_id ?? ""}
                   onChange={(e) => setEditForm({ ...editForm, kakao_place_id: e.target.value })}
                   placeholder="예: 1234567890"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <p className="text-sm text-gray-400 mt-1">카카오맵 주소창 맨 끝 숫자 (예: map.kakao.com/장소/<strong className="text-gray-500">1234567890</strong>)</p>
               </div>
@@ -950,7 +952,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 </a>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     영수증 리뷰 수
@@ -961,7 +963,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                     min="0"
                     value={editForm.receipt_review_count ?? 0}
                     onChange={(e) => setEditForm({ ...editForm, receipt_review_count: parseInt(e.target.value) || 0 })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
                   />
                 </div>
                 <div>
@@ -974,7 +976,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                     min="0"
                     value={editForm.visitor_review_count ?? 0}
                     onChange={(e) => setEditForm({ ...editForm, visitor_review_count: parseInt(e.target.value) || 0 })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
                   />
                 </div>
                 <div>
@@ -989,7 +991,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                     step="0.1"
                     value={editForm.avg_rating ?? 0}
                     onChange={(e) => setEditForm({ ...editForm, avg_rating: parseFloat(e.target.value) || 0 })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
                   />
                 </div>
               </div>
@@ -1032,7 +1034,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               <div>
                 <div className="text-sm font-semibold text-green-800">스마트플레이스 현황</div>
                 <div className="text-sm text-green-600 mt-0.5">
-                  아래 항목이 AI 노출 점수(네이버 채널)에 직접 반영됩니다. 직접 확인 후 체크하세요.
+                  아래 항목이 AI 검색 노출 점수에 바로 반영됩니다. 실제 상태를 확인하고 체크해주세요.
                 </div>
               </div>
 
@@ -1041,7 +1043,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 <div className="text-sm font-semibold text-green-800">확인 및 등록 방법</div>
                 <div className="text-sm text-green-700 space-y-1">
                   <p><strong>① 최근 소식</strong> — 스마트플레이스 관리 → [소식] → 소식 작성 (1개월 이내)</p>
-                  <p><strong>② 소개글</strong> — 스마트플레이스 관리 → [기본정보] → 업체 소개 입력 (50자 이상)</p>
+                  <p><strong>② 소개글</strong> — 스마트플레이스 관리 → [기본정보] → 업체 소개 입력 (50자 이상이면 점수 인정)</p>
                 </div>
                 <a
                   href="https://smartplace.naver.com"
@@ -1063,19 +1065,19 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 />
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-semibold text-gray-800 group-hover:text-gray-900">네이버 스마트플레이스 등록됨</span>
-                  <span className="block text-sm text-gray-400">네이버 지도·검색에서 가게가 플레이스 카드로 표시되면 체크</span>
+                  <span className="block text-sm text-gray-400">네이버 지도·검색에서 내 가게 정보 카드가 뜨면 체크</span>
                 </div>
                 <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded shrink-0">
-                  네이버 채널 점수 기반
+                  AI 노출 점수 반영
                 </span>
               </label>
 
               <div className="space-y-2">
                 {([
-                  { key: "has_recent_post", label: "최근 소식 등록됨 (1개월 내)", points: "고영향", desc: "최신성 점수 — 없으면 감점 높음" },
-                  { key: "has_intro", label: "소개글 작성됨", points: "중요", desc: "기본 정보 완성도 · 소개글 안에 Q&A 섹션 포함 권장" },
+                  { key: "has_recent_post", label: "최근 소식 등록됨 (1개월 내)", points: "고영향", desc: "없으면 AI 노출 점수가 크게 낮아집니다" },
+                  { key: "has_intro", label: "소개글 작성됨", points: "중요", desc: "소개글에 자주 묻는 질문을 추가하면 AI 노출에 더 효과적입니다" },
                 ] as { key: "has_recent_post" | "has_intro"; label: string; points: string; desc: string }[]).map(({ key, label, points, desc }) => (
-                  <label key={key} className="flex items-start gap-3 cursor-pointer group">
+                  <label key={key} className="flex items-start gap-3 cursor-pointer group bg-white border border-green-200 rounded-lg px-3 py-3">
                     <input
                       type="checkbox"
                       checked={editForm[key] ?? false}
@@ -1104,6 +1106,9 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                       .filter((v): v is string => v !== null)
                       .join(" · ") || "미달성"}
                   </strong>
+                  {!saveSuccess && (
+                    <span className="ml-2 text-xs text-amber-500 font-medium">(미저장)</span>
+                  )}
                   {(!editForm.has_recent_post || !editForm.has_intro) && (
                     <span className="text-amber-600 ml-1.5">
                       · {[!editForm.has_recent_post ? "소식" : null, !editForm.has_intro ? "소개글" : null]
@@ -1135,7 +1140,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   {syncSmartplaceMsg.startsWith("✓") && " 결과가 실제와 다를 수 있으니 체크 항목을 직접 확인해 주세요."}
                 </p>
               ) : (
-                <p className="text-sm text-gray-400 mt-1">자동 확인은 1시간에 1회 가능 · 결과가 실제와 다를 수 있으니 반드시 직접 확인 후 수정하세요.</p>
+                <p className="text-sm text-gray-400 mt-1">자동 확인은 1시간에 1회 가능 · 결과가 실제와 다를 수 있으니 직접 확인 후 체크하면 더 정확합니다.</p>
               )}
             </div>
 
@@ -1150,7 +1155,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 value={editForm.review_sample ?? ""}
                 onChange={(e) => setEditForm({ ...editForm, review_sample: e.target.value })}
                 placeholder={"네이버 플레이스에서 받은 리뷰 2~3개를 붙여넣으세요.\n예: \"맛있어요, 분위기 좋아요, 다시 오고 싶어요\"\n\"친절하고 음식이 빨리 나와서 좋았습니다\""}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
               <p className="text-sm text-gray-400 mt-1">
                 리뷰 내 키워드를 분석해 부족한 키워드를 찾아드립니다
@@ -1171,9 +1176,13 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               <button
                 onClick={() => handleSave(activeTabId)}
                 disabled={saving}
-                className="w-full sm:w-auto px-5 py-3 bg-blue-600 text-white text-base font-medium rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className={`w-full sm:w-auto px-5 py-3 text-white text-base font-medium rounded-xl transition-colors disabled:opacity-50 ${
+                  syncSmartplaceMsg?.startsWith("✓")
+                    ? "bg-green-600 hover:bg-green-700 ring-2 ring-green-400"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
               >
-                {saving ? "저장 중..." : "저장"}
+                {saving ? "저장 중..." : syncSmartplaceMsg?.startsWith("✓") ? "저장 (자동 확인 반영)" : "저장"}
               </button>
             </div>
           </div>

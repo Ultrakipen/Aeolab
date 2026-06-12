@@ -393,6 +393,19 @@ export const FLAT_CATEGORY_MAP: Record<string, FlatCategory> = Object.fromEntrie
   FLAT_CATEGORIES.map((c) => [c.value, c])
 );
 
+// ⚠️ leaf 업종 라벨 병합 (2026-06-11): CATEGORY_LABEL은 그룹값(food·beauty…)만 매핑돼
+// restaurant·cafe 같은 leaf 업종이 영문 원본으로 폴백되던 버그 수정. business.category는
+// leaf 값을 저장하므로 헤더·상세존·설정 등 11개 사용처가 모두 영문 노출됐었다.
+// 기존 그룹 라벨은 보존(override 없음) — leaf 값만 추가한다.
+Object.assign(
+  CATEGORY_LABEL,
+  Object.fromEntries(
+    FLAT_CATEGORIES
+      .filter((f) => CATEGORY_LABEL[f.value] === undefined)
+      .map((f) => [f.value, f.label])
+  )
+);
+
 /** 평면 value → 그룹 value (벤치마크/tags 조회용) */
 export function flatToGroup(value: string): string {
   return FLAT_CATEGORY_MAP[value]?.group ?? value;

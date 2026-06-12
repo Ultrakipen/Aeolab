@@ -1,10 +1,12 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import DailyMissionCard from "@/components/dashboard/DailyMissionCard";
 import Day7ActionCard from "@/components/dashboard/Day7ActionCard";
 import ScoreAttributionCard from "@/components/dashboard/ScoreAttributionCard";
 import MonthlyChecklistCard from "@/components/dashboard/MonthlyChecklistCard";
-import SeasonalKeywordBanner from "@/components/dashboard/SeasonalKeywordBanner";
 import DeliveryRecommendCard from "@/components/dashboard/DeliveryRecommendCard";
-import UpgradeNudgeCard from "@/components/dashboard/UpgradeNudgeCard";
 import Link from "next/link";
 import { Calendar, Target, TrendingUp, ListChecks, Zap } from "lucide-react";
 
@@ -30,18 +32,18 @@ interface Props {
   unifiedScore?: number | null;
   isSmartPlace?: boolean;
   plan?: string;
-  category?: string;
-  isCompetitorEstimated?: boolean;
+  /** INACTIVE 업종 — 오늘 미션에서 글로벌 채널 후순위(네이버 quick-win 우선) */
+  deprioritizeGlobal?: boolean;
 }
 
 /**
  * 액션 카드 우선순위 계층 (4단계):
  *   ① 오늘 (DailyMissionCard) — 시급 강조 (rose/orange 톤)
  *   ② 이번 주 (Day7ActionCard) — 단기 (blue 톤)
- *   ③ 점수 변화 회고 (ScoreAttributionCard) — 분석 (slate 톤)
- *   ④ 이번 달 (MonthlyChecklistCard) — 장기 (green 톤)
+ *   ③ 이번 달 (MonthlyChecklistCard) — 장기 (green 톤) — 기본 접힘
+ *   ④ 점수 변화 회고 (ScoreAttributionCard) — 분석 (slate 톤) — 기본 접힘
  *
- * 각 그룹에 헤더 + 좌측 컬러바로 시각적 우선순위 명확화.
+ * ①, ②는 항상 노출. ③, ④, 대행 추천은 "더 보기" 토글 뒤에 배치.
  */
 
 interface ZoneHeaderProps {
@@ -79,7 +81,6 @@ export default function DashboardActionZone({
   accessToken,
   hasLatestScan,
   userCreatedAt,
-  isCompetitorEstimated,
   dimensions,
   todayTasks,
   actionCopyText,
@@ -87,23 +88,12 @@ export default function DashboardActionZone({
   unifiedScore,
   isSmartPlace = false,
   plan = "free",
-  category,
+  deprioritizeGlobal = false,
 }: Props) {
+  const [showMore, setShowMore] = useState(false);
+
   return (
     <section id="section-action" aria-label="액션 가이드" className="flex flex-col gap-3">
-      {/* 무료 플랜 업그레이드 유도 — 최상단 */}
-      <UpgradeNudgeCard plan={plan} hasLatestScan={hasLatestScan} />
-
-      {/* 경쟁사 실측 데이터 없음 — 추정값 기반 안내 */}
-      {isCompetitorEstimated && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-sm text-amber-800">
-          <strong>개선 우선순위는 업종 평균 추정값 기반입니다.</strong> 경쟁사를 등록하면 실측 데이터로 정확도가 높아집니다.
-        </div>
-      )}
-
-      {/* 시즌 키워드 배너 */}
-      <SeasonalKeywordBanner category={category} />
-
       {/* ① 오늘 — 시급 */}
       <ZoneHeader
         step={1}
@@ -122,6 +112,7 @@ export default function DashboardActionZone({
           todayTasks={todayTasks}
           actionCopyText={actionCopyText}
           topMissingKeyword={topMissingKeyword}
+          deprioritizeGlobal={deprioritizeGlobal}
         />
       ) : (
         <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-4 flex items-center gap-3">
@@ -155,44 +146,57 @@ export default function DashboardActionZone({
       />
       <Day7ActionCard bizId={bizId} userCreatedAt={userCreatedAt} />
 
-      {/* ③ 이번 달 — 장기 체크리스트 */}
-      {accessToken && (
+      {/* ③, ④, 대행 추천 — 기본 접힘 */}
+      {!showMore ? (
+        <button
+          onClick={() => setShowMore(true)}
+          className="w-full flex items-center justify-center gap-1 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <ChevronDown className="w-4 h-4" />
+          이달 체크리스트 · 행동 효과 · 대행 추천 보기
+        </button>
+      ) : (
         <>
-          <ZoneHeader
-            step={3}
-            icon={<ListChecks className="w-3.5 h-3.5" />}
-            label="이달의 체크리스트"
-            description="한 달 동안 꾸준히 달성하는 5개 항목"
-            accent="bg-emerald-500"
-            badgeBg="bg-emerald-100"
-            badgeText="text-emerald-800"
-          />
-          <MonthlyChecklistCard bizId={bizId} authToken={accessToken} />
-        </>
-      )}
+          {/* ③ 이번 달 — 장기 체크리스트 */}
+          {accessToken && (
+            <>
+              <ZoneHeader
+                step={3}
+                icon={<ListChecks className="w-3.5 h-3.5" />}
+                label="이달의 체크리스트"
+                description="한 달 동안 꾸준히 달성하는 5개 항목"
+                accent="bg-emerald-500"
+                badgeBg="bg-emerald-100"
+                badgeText="text-emerald-800"
+              />
+              <MonthlyChecklistCard bizId={bizId} authToken={accessToken} />
+            </>
+          )}
 
-      {/* ④ 점수 변화 회고 — 행동 효과 확인 (Basic+, 장기 행동 목록 이후) */}
-      {hasLatestScan && accessToken && plan && plan !== 'free' && (
-        <>
-          <ZoneHeader
-            step={4}
-            icon={<TrendingUp className="w-3.5 h-3.5" />}
-            label="내 행동의 효과"
-            description="지난 행동 후 점수 변화 — 효과가 큰 행동 우선"
-            accent="bg-slate-500"
-            badgeBg="bg-slate-100"
-            badgeText="text-slate-800"
-          />
-          <ScoreAttributionCard bizId={bizId} authToken={accessToken} />
-        </>
-      )}
+          {/* ④ 점수 변화 회고 — 행동 효과 확인 (Basic+, 장기 행동 목록 이후) */}
+          {hasLatestScan && accessToken && plan && plan !== "free" && (
+            <>
+              <ZoneHeader
+                step={4}
+                icon={<TrendingUp className="w-3.5 h-3.5" />}
+                label="내 행동의 효과"
+                description="지난 행동 후 노출 변화 — 효과가 큰 행동 우선"
+                accent="bg-slate-500"
+                badgeBg="bg-slate-100"
+                badgeText="text-slate-800"
+              />
+              <ScoreAttributionCard bizId={bizId} authToken={accessToken} />
+            </>
+          )}
 
-      {/* 대행 서비스 추천 카드 — 스코어가 있을 때 하단 */}
-      {hasLatestScan && unifiedScore !== null && unifiedScore !== undefined && (
-        <DeliveryRecommendCard
-          score={unifiedScore}
-          isSmartPlace={isSmartPlace}
-        />
+          {/* 대행 서비스 추천 카드 — 스코어가 있을 때 하단 */}
+          {hasLatestScan && unifiedScore !== null && unifiedScore !== undefined && (
+            <DeliveryRecommendCard
+              score={unifiedScore}
+              isSmartPlace={isSmartPlace}
+            />
+          )}
+        </>
       )}
     </section>
   );

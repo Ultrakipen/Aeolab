@@ -523,6 +523,17 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 2. 프론트엔드 변경 시 서버에서 `npm run build`
 3. `pm2 restart aeolab-frontend` / `pm2 restart aeolab-backend`
 4. 라이브 검증(`https://aeolab.co.kr`, PC+모바일) 후 `scp 서버 → 로컬` 동기화 + **md5 재일치 확인**
+5. **git 커밋 (drift 차단 — 2026-06-12 신설)** — scp 배포가 끝나면 **반드시 같은 변경을 로컬 git에 커밋**(`git add <파일> && git commit`)한다. **push는 선택**(자동배포 `reset --hard` 위험으로 reconcile 전엔 보류 가능)이나 **커밋은 필수** — 이 단계를 빠뜨리면 "서버엔 있고 git엔 없는" 변경이 누적돼 양방향 drift가 발생한다(2026-06-12 서버/로컬 32개 파일 drift 사고).
+
+### Drift 방지 장치 (2026-06-12 신설)
+
+> scp 직접 배포 ↔ git `reset --hard` 두 경로가 어긋나 누적되던 drift를 막는 3종 + 규칙 1.
+
+- **① deploy.yml 비파괴 가드** — `git reset --hard origin/main` 직전 미커밋 변경을 `/var/www/aeolab_predeploy_backups/predeploy_<ts>.tgz`로 자동 tar 백업(복원 가능, 최근 10개 유지). ⚠️ 이 가드는 **다음 안전 push 후 활성화**됨(GitHub Actions는 origin/main의 워크플로를 실행).
+- **③ `.gitattributes`** (`* text=auto` + 소스 `eol=lf`) — Windows(CRLF)↔서버(LF) 유령 diff 제거.
+- **④ drift 점검 스크립트** — `bash scripts/check_server_drift.sh` (읽기 전용). 서버 라이브 vs 로컬 git-tracked 전체를 줄바꿈 정규화 비교 → `[내용DRIFT]`/`[서버에만]`/`[로컬에만]` 리포트. **주 1회 권장**, `[내용DRIFT] 0건`이 정상.
+- **② 위 작업 순서 5번**(scp 후 즉시 커밋)이 drift의 원천 차단책.
+- ⚠️ **현재 미해소 drift 존재**(서버 `master` ↔ 로컬 `main`, 32개 파일 양방향 drift). **즉흥 push 금지** — reconcile은 파일별 방향 판정 후 신중히. 라이브는 scp로 이미 최신이므로 push 없이도 정상 동작.
 
 ---
 

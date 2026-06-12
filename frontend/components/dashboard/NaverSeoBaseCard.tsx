@@ -25,7 +25,13 @@ interface CheckItemProps {
 }
 
 function CheckItem({ checked, action, effect }: CheckItemProps) {
-  const icon = checked === null ? "⬜" : checked ? "✅" : "❌";
+  // Hero 진단 카드와 동일한 신호등 언어 — 미완료는 빨강 ✗ 대신 amber ! (불안 유발 차단)
+  const statusIcon =
+    checked === null
+      ? { glyph: "–", cls: "bg-gray-200 text-gray-500" }
+      : checked
+      ? { glyph: "✓", cls: "bg-emerald-500 text-white" }
+      : { glyph: "!", cls: "bg-amber-500 text-white" };
   const badgeColor =
     checked === null
       ? "bg-gray-100 text-gray-500"
@@ -35,8 +41,11 @@ function CheckItem({ checked, action, effect }: CheckItemProps) {
 
   return (
     <div className="flex items-center justify-between rounded-lg bg-white border border-emerald-100 px-3 py-2 gap-2">
-      <span className="text-sm text-gray-800">
-        {icon} {action}
+      <span className="text-sm text-gray-800 flex items-center gap-1.5 min-w-0">
+        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${statusIcon.cls}`}>
+          {statusIcon.glyph}
+        </span>
+        <span className="min-w-0">{action}</span>
       </span>
       <span
         className={`text-sm px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap ${badgeColor}`}

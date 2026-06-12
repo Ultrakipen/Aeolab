@@ -1125,9 +1125,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── 8-C. AGENCY SERVICE — 대행 서비스 (#FFFBEB) ── */}
-      <AgencyServiceSection />
-
       {/* ── 9. FAQ (#F8FAFC) ── */}
       <div style={{ background: "#F8FAFC" }}>
         <FAQSection />
@@ -1142,6 +1139,9 @@ export default async function LandingPage() {
           은 회원가입 없이 바로 가능합니다
         </p>
       </div>
+
+      {/* ── 9-C. AGENCY SERVICE — 대행 서비스 (#FFFBEB) ── */}
+      <AgencyServiceSection />
 
       {/* ── 10. FINAL CTA — 다크+그라디언트 ── */}
       <section

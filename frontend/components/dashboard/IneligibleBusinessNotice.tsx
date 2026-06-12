@@ -15,53 +15,42 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
   const isInactive = eligibility === "inactive";
 
   if (isInactive || isFranchise) {
+    const label = isFranchise ? "프랜차이즈 가맹점" : `${categoryLabel} 업종`;
     return (
-      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 md:p-5">
-        <p className="text-sm font-bold text-blue-800 mb-3">
-          {isFranchise ? "프랜차이즈 가맹점" : `${categoryLabel} 업종`} — 지금 바로 할 것
+      <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+        <p className="text-sm md:text-base font-bold text-green-900 mb-1 break-keep">
+          📍 {label} — <span className="underline decoration-green-400 decoration-2 underline-offset-2">네이버 검색·플레이스 상위노출</span>이 노출을 키우는 가장 빠른 길입니다
         </p>
-        <div className="space-y-2">
-          <div className="flex items-start gap-2.5 bg-white rounded-lg px-3 py-2.5 border border-blue-100">
-            <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold shrink-0 mt-0.5">1</span>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-800">네이버 스마트플레이스 완성도 높이기</p>
-              <p className="text-sm text-gray-600 mt-0.5">소개글·사진·소식 등록 → 네이버 검색 상위노출 핵심</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-2.5 bg-white rounded-lg px-3 py-2.5 border border-blue-100">
-            <span className="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold shrink-0 mt-0.5">2</span>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-800">네이버 AI탭 대비 콘텐츠 준비</p>
-              <p className="text-sm text-gray-600 mt-0.5">자연어 질문형 키워드를 소개글에 포함하면 AI탭 노출 가능성 상승</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-2.5 bg-white rounded-lg px-3 py-2.5 border border-gray-200">
-            <span className="w-5 h-5 rounded-full bg-gray-400 text-white text-xs flex items-center justify-center font-bold shrink-0 mt-0.5">3</span>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-700">ChatGPT·Gemini·Google AI — 장기 준비</p>
-              <p className="text-sm text-gray-500 mt-0.5">Google 비즈니스 프로필 등록 후 수 주~수개월 소요. 지금부터 콘텐츠 축적</p>
-            </div>
-          </div>
-        </div>
-        <div className="mt-3 flex gap-2">
-          <Link
-            href="/guide"
-            className="flex-1 text-center text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors"
-          >
-            개선 가이드 보기 →
-          </Link>
-          <Link
-            href="/guide/chatgpt-search"
-            className="flex-1 text-center text-sm font-medium text-blue-700 bg-white border border-blue-300 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
-          >
-            글로벌 AI 가이드
-          </Link>
-        </div>
-        <p className="mt-3 text-xs text-gray-400 leading-relaxed">
+        <p className="text-xs md:text-sm text-gray-600 mb-3 leading-relaxed break-keep">
           {isFranchise
-            ? "네이버 AI 브리핑은 프랜차이즈 가맹점을 현재 지원하지 않습니다(출처: 네이버 스마트플레이스 공식 안내)."
-            : `${categoryLabel} 업종은 네이버 AI 브리핑 대상이 아닙니다. 네이버 검색 노출과 AI탭이 핵심 경로입니다.`}
+            ? "프랜차이즈 가맹점은 네이버 AI 브리핑 대상이 아니지만(네이버 공식), 네이버 검색·플레이스와 AI탭으로 노출을 키울 수 있습니다."
+            : `${categoryLabel} 업종은 네이버 AI 브리핑 대상이 아니지만, 네이버 검색·플레이스와 AI탭으로 노출을 충분히 키울 수 있습니다.`}
         </p>
+        <p className="text-xs font-semibold text-green-800 mb-1.5">지금 바로 할 것</p>
+        <ul className="space-y-1 mb-3">
+          <li className="flex items-start gap-2 text-sm text-gray-700">
+            <span className="text-green-600 font-bold shrink-0">①</span>
+            <span><strong>스마트플레이스 소개글·사진·소식</strong> 업데이트 → 플레이스탭 상위 노출</span>
+          </li>
+          <li className="flex items-start gap-2 text-sm text-gray-700">
+            <span className="text-green-600 font-bold shrink-0">②</span>
+            <span><strong>블로그 정기 발행</strong> (주 1~2회) → 네이버 검색 결과 상위 노출</span>
+          </li>
+          <li className="flex items-start gap-2 text-sm text-gray-700">
+            <span className="text-green-500 font-bold shrink-0">③</span>
+            <span><strong>AI탭 콘텐츠 준비</strong> — 자연어 질문형 키워드를 소개글에 포함</span>
+          </li>
+          <li className="flex items-start gap-2 text-sm text-gray-500">
+            <span className="text-gray-400 font-bold shrink-0">④</span>
+            <span>ChatGPT·Gemini — Google 비즈니스 프로필 등록 후 장기 준비</span>
+          </li>
+        </ul>
+        <Link
+          href="/guide"
+          className="inline-block text-sm font-semibold text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors"
+        >
+          개선 가이드 보기 →
+        </Link>
       </div>
     );
   }

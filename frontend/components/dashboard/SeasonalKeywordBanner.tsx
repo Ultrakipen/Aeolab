@@ -110,7 +110,7 @@ const SEASONAL_BY_GROUP: Record<number, Record<string, string[]>> = {
   6: {
     food:         ["여름 시작 맛집", "초복 보양식", "여름 음료 신메뉴", "6월 야외 테라스", "여름 냉면 맛집"],
     beauty:       ["여름 헤어 스타일", "6월 여름 네일", "선케어 스킨케어", "여름 메이크업 트렌드", "여름 두피 케어"],
-    creative:     ["여름 프로필 촬영", "6월 웨딩 스냅", "여름 야외 스냅", "졸업 기념 영상", "6월 브랜드 영상 제작"],
+    creative:     ["여름 프로필 촬영", "6월 웨딩 스냅", "여름 야외 스냅", "여름 기념일 영상 제작", "6월 브랜드 영상 제작"],
     design:       ["여름 이벤트 배너", "6월 SNS 콘텐츠 디자인", "여름 패키지 리뉴얼", "상반기 홍보물 정리", "6월 브랜딩 작업"],
     wellness:     ["여름 바디 완성", "초복 전 다이어트", "6월 수영 레슨", "6월 야외 운동", "여름 전 PT 집중"],
     health:       ["여름 자외선 차단", "6월 모기 방역", "여름 식중독 예방", "6월 건강 관리", "여름 탈수 예방"],
@@ -214,7 +214,7 @@ const SEASONAL_GENERAL: Record<number, string[]> = {
   3:  ["봄나들이 시즌", "꽃놀이 이벤트", "개학 특수", "3월 봄 할인"],
   4:  ["벚꽃 시즌 이벤트", "봄 특별 프로모션", "4월 새봄 혜택", "어린이날 준비"],
   5:  ["어버이날 이벤트", "가정의달 특별 혜택", "스승의날 감사 이벤트", "5월 황금연휴"],
-  6:  ["초복 시즌 이벤트", "여름 시작 특별 혜택", "6월 더위 대비", "여름 신상 출시"],
+  6:  ["여름 시작 특별 혜택", "6월 더위 대비", "여름 시즌 오픈", "상반기 마무리 이벤트"],
   7:  ["중복 보양 이벤트", "여름 휴가 특별 혜택", "7월 무더위 이벤트", "바캉스 시즌"],
   8:  ["말복 보양 이벤트", "개학 특수 혜택", "8월 여름 마무리", "가을 시즌 준비"],
   9:  ["추석 연휴 이벤트", "가을 단풍 시즌", "9월 가을 특별 혜택", "추석 선물 추천"],
@@ -244,9 +244,9 @@ export default function SeasonalKeywordBanner({ category }: Props) {
   const groupLabel = group ? GROUP_LABELS[group] : undefined;
 
   const displayGroupKeywords = groupKeywords.slice(0, 5);
-  const displayGeneralKeywords = groupKeywords.length > 0 ? [] : generalKeywords.slice(0, 5);
 
-  if (displayGroupKeywords.length === 0 && displayGeneralKeywords.length === 0) return null;
+  // 업종 매핑이 없으면 표시 안 함 — 무관한 공통 키워드가 신뢰를 훼손하므로
+  if (displayGroupKeywords.length === 0) return null;
 
   // 헤더 레이블 결정
   const headerLabel = groupLabel
@@ -265,20 +265,10 @@ export default function SeasonalKeywordBanner({ category }: Props) {
 
       {/* 키워드 태그 */}
       <div className="flex flex-wrap gap-2 mb-3">
-        {/* 업종별 키워드 — 진한 amber */}
         {displayGroupKeywords.map((kw) => (
           <span
             key={kw}
             className="inline-flex items-center px-3 py-1.5 bg-amber-100 text-amber-800 text-sm font-medium rounded-full border border-amber-200"
-          >
-            {kw}
-          </span>
-        ))}
-        {/* 공통 키워드 — 기존 흰 배경 스타일 */}
-        {displayGeneralKeywords.map((kw) => (
-          <span
-            key={kw}
-            className="inline-flex items-center px-3 py-1.5 bg-white text-amber-700 text-sm font-medium rounded-full border border-amber-200"
           >
             {kw}
           </span>

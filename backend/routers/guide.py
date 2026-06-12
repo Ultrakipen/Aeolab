@@ -155,7 +155,7 @@ async def generate_review_reply(
 ):
     """리뷰 답변 초안 생성 (Claude Haiku, Basic+ 전용).
 
-    월별 한도: Basic 10회 / Startup 20회, Pro 50회, Biz/Enterprise 무제한
+    월별 한도: Basic 20회 / Startup 20회, Pro 무제한, Biz/Enterprise 무제한
     """
     from middleware.plan_gate import check_review_reply_limit
     supabase = get_client()
@@ -230,8 +230,8 @@ async def generate_review_reply(
             raise
 
     return {
-        "reply_draft": reply_draft,
-        "sentiment": sentiment,
+        "draft_response": reply_draft,
+        "tone": sentiment,
         "used": used + 1,
         "limit": limit,
     }
@@ -289,31 +289,40 @@ async def get_review_replies(biz_id: str, user=Depends(get_current_user)):
     """최근 리뷰 답변 이력 조회 (최대 20개)"""
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
+    def _normalize(rows: list) -> list:
+        return [
+            {
+                "id": r["id"],
+                "review_text": r.get("review_text", ""),
+                "draft_response": r.get("reply_draft", ""),
+                "tone": r.get("sentiment", "neutral"),
+                "keywords_used": r.get("keywords_used") or [],
+                "created_at": r["created_at"],
+            }
+            for r in rows
+        ]
+
     try:
         result = await execute(
             supabase.table("review_replies")
-            .select("id, review_text, reply_draft, sentiment, created_at")
+            .select("id, review_text, reply_draft, sentiment, keywords_used, created_at")
             .eq("business_id", biz_id)
             .order("created_at", desc=True)
             .limit(20)
         )
-        return result.data or []
+        return _normalize(result.data or [])
     except Exception as e:
-        # sentiment 컬럼 미적용 DB 환경 fallback — sentiment 제외 조회
         err_str = str(e)
         if "sentiment" in err_str and "does not exist" in err_str:
             _logger.warning("review_replies.sentiment 컬럼 미적용 — 마이그레이션 필요 (sentiment 제외 조회)")
             result = await execute(
                 supabase.table("review_replies")
-                .select("id, review_text, reply_draft, created_at")
+                .select("id, review_text, reply_draft, keywords_used, created_at")
                 .eq("business_id", biz_id)
                 .order("created_at", desc=True)
                 .limit(20)
             )
-            rows = result.data or []
-            for row in rows:
-                row.setdefault("sentiment", "neutral")
-            return rows
+            return _normalize(result.data or [])
         raise
 
 
@@ -484,7 +493,7 @@ async def _generate_and_save(req: GuideRequest):
 
         scan = (await execute(
             supabase.table("scan_results")
-            .select("id, total_score, score_breakdown, naver_channel_score, global_channel_score, kakao_result, website_check_result, chatgpt_result, naver_result, google_result, gemini_result, exposure_freq")
+            .select("id, total_score, score_breakdown, naver_channel_score, global_channel_score, kakao_result, website_check_result, chatgpt_result, naver_result, google_result, gemini_result, exposure_freq, track1_score, track2_score, competitor_scores")
             .eq("id", req.scan_id).single()
         )).data
         if not scan:
@@ -696,6 +705,7 @@ async def generate_smartplace_faq(
     # 월별 사용 횟수 체크 — intro_draft + faq_draft 합산 (plan_gate faq_monthly 공유 한도)
     # DEV_MODE=true 시 한도 검사 전체 우회
     now = datetime.now(timezone.utc)
+    used = 0
     if not _DEV_MODE:
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
         used_res = await execute(
@@ -740,7 +750,47 @@ async def generate_smartplace_faq(
     )
 
     items: list = result.get("items") or []
-    chat_menus: list = result.get("chat_menus") or []
+    raw_menus: list = result.get("chat_menus") or []
+
+    # 톡톡 채팅방 메뉴 객체화 — AI는 chat_menus를 ["가격 안내", ...] 형태의 string[](메뉴명만)로 반환한다.
+    # 그대로 두면 프론트 normalizeChatMenus가 message==menu_name으로 변환해 "메뉴명==메시지" 저가치 표시가 된다.
+    # → 메뉴명을 items의 카테고리와 매칭해 해당 Q&A 답변을 메시지로 채운다(클릭 시 보낼 실제 안내문).
+    def _menu_message_for(name: str, idx: int) -> str:
+        # 1순위: 메뉴명에 카테고리가 포함된 Q&A 답변 (예: "가격 안내" → 카테고리 "가격")
+        for it in items:
+            cat = (it.get("category") or "").strip()
+            if cat and cat in name:
+                return (it.get("answer") or "").strip()
+        # 2순위: 같은 순번 Q&A (AI가 메뉴·Q&A를 동일 주제 순서로 생성하므로 위치/서비스 등 명칭 불일치 보정)
+        if 0 <= idx < len(items):
+            return (items[idx].get("answer") or "").strip()
+        return ""
+
+    # 메뉴명 6자 제한(네이버 톡톡 메뉴명 제약) — 잘림 후 끝 공백 제거로 "자주 묻는 " 같은 어색한 표시 방지
+    def _clip_name(s: str) -> str:
+        return s.strip()[:6].strip()
+
+    chat_menus: list = []
+    for i, m in enumerate(raw_menus[:6]):
+        if isinstance(m, str):
+            nm = m.strip()
+            chat_menus.append({"menu_name": _clip_name(nm), "link_type": "message", "message": _menu_message_for(nm, i)})
+        elif isinstance(m, dict):
+            nm = str(m.get("menu_name") or m.get("name") or "").strip()
+            msg = (m.get("message") or "").strip() or _menu_message_for(nm, i)
+            entry = {"menu_name": _clip_name(nm), "link_type": m.get("link_type") or "message", "message": msg}
+            if m.get("url"):
+                entry["url"] = m.get("url")
+            chat_menus.append(entry)
+
+    # AI가 chat_menus를 누락한 경우 items(Q&A)로부터 직접 파생
+    if not chat_menus and items:
+        for idx, it in enumerate(items[:6]):
+            ans = (it.get("answer") or "").strip()
+            if not ans:
+                continue
+            name = _clip_name((it.get("category") or "").strip() or (it.get("question") or "").strip() or f"메뉴{idx + 1}")
+            chat_menus.append({"menu_name": name, "link_type": "message", "message": ans})
 
     # guides 테이블에 저장 (이력용)
     try:
@@ -1049,7 +1099,7 @@ async def generate_blog_topics(
         "video": "영상제작", "design": "디자인", "accommodation": "숙박·펜션",
         "other": "소상공인",
         # 구버전 호환
-        "hair": "미용실", "medical": "병원", "legal": "법률사무소",
+        "hair": "미용실",
     }.get(category, category)
 
     kw_hint = (", ".join(top_missing[:3])) if top_missing else f"{region} {category_ko}"
@@ -1082,7 +1132,7 @@ async def generate_blog_topics(
                     raise HTTPException(status_code=503, detail="블로그 주제 생성에 실패했습니다")
                 data = await resp.json()
 
-        raw = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        raw = (data.get("candidates") or [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
         m = re.search(r"\[.*\]", raw, re.DOTALL)
         topics: list[str] = json.loads(m.group()) if m else []
         if not topics:

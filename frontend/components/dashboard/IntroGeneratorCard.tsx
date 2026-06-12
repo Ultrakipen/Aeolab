@@ -7,11 +7,15 @@ import { FeedbackPopup } from "./FeedbackPopup";
 
 interface Props {
   bizId: string;
-  currentIntro?: string;            // 사용자가 스마트플레이스에 등록한 소개글 길이 추적용 (옵션)
+  currentIntro?: string;
   currentLength?: number;
-  generatedAt?: string;             // 마지막 자동 생성 시각 ISO
-  planLabel?: string;               // "Free" / "Basic" / "Pro" 등
-  planMonthlyLimit?: number;        // 0(불가) / 5 / 20 / 999(무제한)
+  generatedAt?: string;
+  planLabel?: string;
+  planMonthlyLimit?: number;
+  globalCurrentIntro?: string;
+  globalGeneratedAt?: string;
+  /** 설정 시 해당 타입만 표시하고 토글 버튼 숨김 */
+  onlyType?: "naver" | "global";
 }
 
 interface IntroStats {
@@ -30,13 +34,21 @@ export function IntroGeneratorCard({
   generatedAt,
   planLabel = "Free",
   planMonthlyLimit = 0,
+  globalCurrentIntro,
+  globalGeneratedAt,
+  onlyType,
 }: Props) {
+  const initialType: IntroType = onlyType === "global" ? "global" : "naver";
+  const initialContent = onlyType === "global" ? (globalCurrentIntro ?? "") : (currentIntro ?? "");
+  const initialGeneratedAt = onlyType === "global" ? globalGeneratedAt : generatedAt;
+
   const [generating, setGenerating] = useState(false);
-  const [generated, setGenerated] = useState<string>(currentIntro ?? "");
+  const [generated, setGenerated] = useState<string>(initialContent);
+  const [localGeneratedAt, setLocalGeneratedAt] = useState<string | undefined>(initialGeneratedAt);
   const [stats, setStats] = useState<IntroStats>();
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string>("");
-  const [introType, setIntroType] = useState<IntroType>("naver");
+  const [introType, setIntroType] = useState<IntroType>(initialType);
   const [feedbackTriggered, setFeedbackTriggered] = useState(false);
 
   const canGenerate = planMonthlyLimit > 0;
@@ -64,12 +76,12 @@ export function IntroGeneratorCard({
       });
       if (!res.ok) {
         if (res.status === 403) throw new Error("이 기능은 Basic 이상 플랜에서 사용 가능합니다.");
-        if (res.status === 429) throw new Error(`이번 달 한도(${planMonthlyLimit}회)에 도달했습니다.`);
+        if (res.status === 429) throw new Error(`이번 달 소개글·FAQ 합산 한도(${planMonthlyLimit}회)에 도달했습니다.`);
         throw new Error("생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
       }
       const data = await res.json();
-      // global: { intro, char_count, dia_score } / naver: { intro_text, char_count, qa_count, keywords_included, dia_score }
       setGenerated(data.intro ?? data.intro_text ?? "");
+      setLocalGeneratedAt(new Date().toISOString());
       setStats({
         char_count: data.char_count ?? 0,
         qa_count: data.qa_count ?? 0,
@@ -111,53 +123,56 @@ export function IntroGeneratorCard({
             {planLabel} 플랜 · 월 {planMonthlyLimit >= 999 ? "무제한" : `${planMonthlyLimit}회`}
           </span>
         </div>
-        {isShort && (
+        {isShort && introType === "naver" && (
           <span className="shrink-0 text-sm bg-amber-100 text-amber-800 px-2 py-1 rounded font-medium">
             현재 {currentLength}자
           </span>
         )}
       </div>
 
-      {/* 네이버용 / 글로벌 AI용 토글 */}
-      <div className="flex gap-2 mb-4 flex-wrap">
-        <button
-          type="button"
-          onClick={() => { setIntroType("naver"); setGenerated(""); setStats(undefined); setError(""); }}
-          className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-            introType === "naver"
-              ? "bg-blue-600 text-white border-blue-600"
-              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-          }`}
-        >
-          네이버용
-        </button>
-        <button
-          type="button"
-          onClick={() => { setIntroType("global"); setGenerated(""); setStats(undefined); setError(""); }}
-          className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-            introType === "global"
-              ? "bg-blue-600 text-white border-blue-600"
-              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-          }`}
-        >
-          글로벌 AI용 (ChatGPT·Gemini)
-        </button>
-      </div>
+      {/* 네이버용 / 글로벌 AI용 토글 — onlyType 설정 시 숨김 */}
+      {!onlyType && (
+        <div className="flex gap-2 mb-4 flex-wrap">
+          <button
+            type="button"
+            onClick={() => { setIntroType("naver"); setGenerated(currentIntro ?? ""); setStats(undefined); setError(""); setLocalGeneratedAt(generatedAt); }}
+            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              introType === "naver"
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+            }`}
+          >
+            네이버 검색 노출용
+          </button>
+          <button
+            type="button"
+            onClick={() => { setIntroType("global"); setGenerated(globalCurrentIntro ?? ""); setStats(undefined); setError(""); setLocalGeneratedAt(globalGeneratedAt); }}
+            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              introType === "global"
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+            }`}
+          >
+            ChatGPT·Gemini 노출용
+          </button>
+        </div>
+      )}
 
       {introType === "naver" ? (
         <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
-          Q&A 5개가 포함된 300~500자 소개글을 자동 생성합니다.
-          AI 브리핑 노출의 핵심 텍스트 소스입니다.
+          Q&A 5개가 포함된 300~500자 소개글을 AI가 자동으로 써드립니다.
+          네이버 AI가 내 가게를 검색 결과에 소개할 때 이 글을 참고합니다. 생성 후 스마트플레이스에 붙여넣기만 하면 됩니다.
         </p>
       ) : (
         <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
-          AI 인용 가능성 높은 구조로 작성된 소개글입니다. 자체 웹사이트·구글 비즈니스 프로필에 활용하면 ChatGPT·Gemini 노출에도 효과적입니다.
+          ChatGPT·Gemini 같은 AI가 내 가게를 검색할 때 언급하도록 최적화된 소개글입니다.
+          자체 웹사이트나 구글 비즈니스 프로필 소개란에 붙여넣으면 글로벌 AI 노출에 효과적입니다.
         </p>
       )}
 
       {!canGenerate && (
         <div className="bg-amber-50 border border-amber-200 rounded p-3 mb-4 text-sm md:text-base text-gray-700">
-          <strong>Free 플랜은 사용할 수 없습니다.</strong> Basic: 월 5회(FAQ 생성과 합산), Pro·Biz: 무제한.{" "}
+          <strong>Free 플랜은 사용할 수 없습니다.</strong> Basic: 소개글·톡톡 메뉴 생성 합산 월 5회, Pro·Biz: 무제한.{" "}
           <a href="/pricing" className="text-blue-600 hover:underline font-medium">플랜 보기 →</a>
         </div>
       )}
@@ -168,7 +183,7 @@ export function IntroGeneratorCard({
           disabled={generating}
           className="w-full md:w-auto px-5 py-3 bg-blue-600 text-white rounded font-medium text-sm md:text-base hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
-          {generating ? "생성 중... (30초)" : "소개글 자동 생성"}
+          {generating ? "AI가 소개글 쓰는 중... (약 30초)" : "소개글 자동 생성"}
         </button>
       )}
 
@@ -180,13 +195,19 @@ export function IntroGeneratorCard({
 
       {generated && (
         <div className="mt-4 space-y-3">
+          {introType === "naver" && currentIntro && !stats && (
+            <p className="text-sm text-gray-500 mb-2">이전에 생성된 소개글입니다. 하단 &apos;다시 생성&apos; 버튼으로 새로 만들 수 있습니다.</p>
+          )}
+          {introType === "global" && globalCurrentIntro && !stats && (
+            <p className="text-sm text-gray-500 mb-2">이전에 생성된 글로벌 AI용 소개글입니다. 하단 &apos;다시 생성&apos; 버튼으로 새로 만들 수 있습니다.</p>
+          )}
           <div className="p-4 bg-gray-50 rounded border whitespace-pre-wrap text-sm md:text-base text-gray-900 leading-relaxed">
             {generated}
           </div>
 
-          {generatedAt && (
+          {localGeneratedAt && (
             <p className="text-sm text-gray-500">
-              마지막 생성: {new Date(generatedAt).toLocaleString("ko-KR")}
+              마지막 생성: {new Date(localGeneratedAt).toLocaleString("ko-KR")}
             </p>
           )}
 
@@ -196,9 +217,11 @@ export function IntroGeneratorCard({
                 <span className="text-sm bg-green-100 text-green-800 px-2.5 py-1 rounded font-medium">
                   {stats.char_count}자
                 </span>
+                {stats.qa_count > 0 && (
                 <span className="text-sm bg-blue-100 text-blue-800 px-2.5 py-1 rounded font-medium">
                   Q&A {stats.qa_count}개
                 </span>
+                )}
                 {stats.keywords.length > 0 && (
                   <span className="text-sm bg-purple-100 text-purple-800 px-2.5 py-1 rounded font-medium">
                     키워드 {stats.keywords.length}개 포함
@@ -235,14 +258,25 @@ export function IntroGeneratorCard({
             >
               {copied ? "복사됨!" : "클립보드에 복사"}
             </button>
-            <a
-              href="https://smartplace.naver.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 px-4 py-3 bg-gray-700 text-white rounded font-medium text-sm md:text-base hover:bg-gray-800 transition-colors text-center"
-            >
-              스마트플레이스 열기 →
-            </a>
+            {introType === "naver" ? (
+              <a
+                href="https://smartplace.naver.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 px-4 py-3 bg-gray-700 text-white rounded font-medium text-sm md:text-base hover:bg-gray-800 transition-colors text-center"
+              >
+                스마트플레이스 열기 →
+              </a>
+            ) : (
+              <a
+                href="https://business.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 px-4 py-3 bg-gray-700 text-white rounded font-medium text-sm md:text-base hover:bg-gray-800 transition-colors text-center"
+              >
+                구글 비즈니스 프로필 열기 →
+              </a>
+            )}
             {canGenerate && (
               <button
                 onClick={handleGenerate}
@@ -255,7 +289,10 @@ export function IntroGeneratorCard({
           </div>
 
           <p className="text-sm text-gray-600">
-            스마트플레이스 → 업체정보 → &quot;소개&quot; 항목에 붙여넣기 하세요.
+            {introType === "naver"
+              ? <>스마트플레이스 → 업체정보 → &quot;소개&quot; 항목에 붙여넣기 하세요.</>
+              : <>자체 웹사이트 소개란 또는 구글 비즈니스 프로필 → &quot;소개&quot; 항목에 붙여넣기 하세요.</>
+            }
           </p>
         </div>
       )}

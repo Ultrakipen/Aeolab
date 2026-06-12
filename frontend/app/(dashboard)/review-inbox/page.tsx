@@ -364,7 +364,7 @@ export default function ReviewInboxPage() {
     ]
 
     return (
-      <div className="p-4 md:p-8 max-w-2xl">
+      <div className="p-4 md:p-8 max-w-2xl mx-auto">
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
           <span className="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Basic 이상</span>
@@ -388,7 +388,7 @@ export default function ReviewInboxPage() {
         <div className="bg-blue-600 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="text-white font-semibold text-sm">Basic 플랜부터 이용 가능</p>
-            <p className="text-blue-100 text-sm mt-0.5">월 9,900원 · 리뷰 답변 무제한 포함</p>
+            <p className="text-blue-100 text-sm mt-0.5">월 9,900원 · 리뷰 답변 월 20회 포함 (Pro이상 무제한)</p>
           </div>
           <a
             href="/pricing"
@@ -402,7 +402,7 @@ export default function ReviewInboxPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl">
+    <div className="p-4 md:p-8 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
           <MessageSquare className="w-5 h-5 text-blue-600" />
@@ -544,13 +544,13 @@ export default function ReviewInboxPage() {
             <div>
               <p className="text-sm font-medium text-gray-800">
                 플레이스 플러스(beta) AI 리뷰 답글
-                <span className="ml-1.5 text-xs bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-1.5 py-0.5 font-normal">
+                <span className="ml-1.5 text-sm bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-1.5 py-0.5 font-normal">
                   음식점 전용
                 </span>
               </p>
               <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
                 스마트플레이스 자체 AI가 리뷰 등록 시 답글 초안을 자동 생성합니다.
-                <span className="block text-gray-400 text-xs mt-0.5">
+                <span className="block text-gray-400 text-sm mt-0.5">
                   스마트플레이스 → 업체 홈 → 리뷰 (네이버플러스 구독 계정 beta)
                 </span>
               </p>
@@ -561,20 +561,20 @@ export default function ReviewInboxPage() {
             <div>
               <p className="text-sm font-medium text-gray-800">
                 리뷰 민감 이슈 알림
-                <span className="ml-1.5 text-xs bg-gray-100 text-gray-600 border border-gray-200 rounded-full px-1.5 py-0.5 font-normal">
+                <span className="ml-1.5 text-sm bg-gray-100 text-gray-600 border border-gray-200 rounded-full px-1.5 py-0.5 font-normal">
                   전 업종
                 </span>
               </p>
               <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
                 부정·민감 리뷰 등록 시 스마트플레이스 앱 알림을 즉시 받을 수 있습니다.
-                <span className="block text-gray-400 text-xs mt-0.5">
+                <span className="block text-gray-400 text-sm mt-0.5">
                   스마트플레이스 → 설정 → 알림 설정 → ON
                 </span>
               </p>
             </div>
           </div>
         </div>
-        <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-slate-200">
+        <p className="text-sm text-gray-400 mt-3 pt-3 border-t border-slate-200">
           AEOlab 리뷰 답변 생성은 Claude AI 기반으로 모든 업종·다양한 톤 설정을 지원하는 별개 서비스입니다.
         </p>
       </div>

@@ -562,7 +562,7 @@ export default function AIDiagnosisCard({
                 ? `리뷰 ${reviewCount}개로 충분합니다. AI 브리핑 인용을 높이려면 소개글 Q&A에 핵심 키워드를 보강하세요.`
                 : reviewCount === 0
                 ? (naverPlaceUrl
-                    ? "스캔 시 자동 수집되지만 이번에 가져오지 못했습니다. 재스캔하면 최신 리뷰 수가 반영됩니다."
+                    ? "네이버 플레이스 URL을 저장하면 리뷰 수가 자동 수집됩니다. 방금 등록했다면 약 30초 후 새로고침해 주세요."
                     : "네이버 플레이스 연동이 안 되어 리뷰를 자동 수집할 수 없습니다.")
                 : reviewCount < 10
                 ? "AI는 리뷰가 많은 가게를 더 자주 추천합니다. 리뷰 10개 이상이면 추천 빈도가 크게 증가합니다."
@@ -571,7 +571,7 @@ export default function AIDiagnosisCard({
             {reviewCount === 0 && (
               <p className="mt-1.5 text-sm text-red-600">
                 {naverPlaceUrl ? (
-                  <>실제 리뷰가 있다면 상단 <strong>스캔 실행</strong>으로 다시 측정하세요.</>
+                  <>리뷰가 있는데도 0이면 <Link href="/settings" className="underline font-medium text-red-700 hover:text-red-900">설정에서 플레이스 URL을 다시 저장</Link>해 주세요.</>
                 ) : (
                   <Link href="/settings" className="underline font-medium text-red-700 hover:text-red-900">
                     설정에서 네이버 플레이스 연동 →

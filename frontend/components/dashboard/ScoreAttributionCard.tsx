@@ -37,17 +37,33 @@ interface Props {
   authToken: string;
 }
 
+function getDeltaLabel(delta: number): "크게 향상" | "소폭 향상" | "변화 없음" | "소폭 하락" | "크게 하락" {
+  if (delta > 5)   return "크게 향상";
+  if (delta > 0.5) return "소폭 향상";
+  if (delta < -5)  return "크게 하락";
+  if (delta < -0.5) return "소폭 하락";
+  return "변화 없음";
+}
+
+function getScoreLabel(score: number): string {
+  if (score >= 75) return "양호";
+  if (score >= 55) return "보통";
+  if (score >= 30) return "주의 필요";
+  return "시작 전";
+}
+
 function DeltaBadge({ delta }: { delta: number }) {
-  if (delta > 0.5)
+  const label = getDeltaLabel(delta);
+  if (label === "크게 향상" || label === "소폭 향상")
     return (
       <span className="inline-flex items-center gap-1 text-green-700 bg-green-50 border border-green-200 rounded-full px-2 py-0.5 text-sm font-bold">
-        <TrendingUp size={13} /> +{delta.toFixed(1)}점
+        <TrendingUp size={13} /> {label}
       </span>
     );
-  if (delta < -0.5)
+  if (label === "크게 하락" || label === "소폭 하락")
     return (
       <span className="inline-flex items-center gap-1 text-red-600 bg-red-50 border border-red-200 rounded-full px-2 py-0.5 text-sm font-bold">
-        <TrendingDown size={13} /> {delta.toFixed(1)}점
+        <TrendingDown size={13} /> {label}
       </span>
     );
   return (
@@ -57,9 +73,23 @@ function DeltaBadge({ delta }: { delta: number }) {
   );
 }
 
+function getContributionLabel(contribution: number, maxAbs: number): string {
+  const ratio = maxAbs > 0 ? Math.abs(contribution / maxAbs) : 0;
+  if (contribution > 0) {
+    if (ratio > 0.6) return "높은 기여";
+    if (ratio > 0.3) return "기여";
+    return "소폭 기여";
+  } else {
+    if (ratio > 0.6) return "큰 영향";
+    if (ratio > 0.3) return "영향";
+    return "소폭 영향";
+  }
+}
+
 function DimBar({ change, maxAbs }: { change: DimensionChange; maxAbs: number }) {
   const pct = maxAbs > 0 ? Math.abs(change.weighted_contribution / maxAbs) * 100 : 0;
   const positive = change.delta > 0;
+  const contribLabel = getContributionLabel(change.weighted_contribution, maxAbs);
   return (
     <div className="flex items-center gap-2 text-sm">
       <span className="w-32 text-gray-600 truncate shrink-0">{change.label}</span>
@@ -69,8 +99,8 @@ function DimBar({ change, maxAbs }: { change: DimensionChange; maxAbs: number })
           style={{ width: `${Math.max(pct, 4)}%` }}
         />
       </div>
-      <span className={`w-16 text-right text-sm font-medium ${positive ? "text-green-700" : "text-red-600"}`}>
-        {change.delta > 0 ? "+" : ""}{change.delta.toFixed(0)}점 기여
+      <span className={`w-20 text-right text-sm font-medium ${positive ? "text-green-700" : "text-red-600"}`}>
+        {positive ? "+" : "-"}{contribLabel}
       </span>
     </div>
   );
@@ -85,6 +115,10 @@ function AttributionItem({ item }: { item: ActionAttribution }) {
   const dateStr = item.action_date
     ? new Date(item.action_date).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })
     : "";
+
+  const beforeLabel = getScoreLabel(item.score_before);
+  const afterLabel  = getScoreLabel(item.score_after);
+  const sameLabel   = beforeLabel === afterLabel;
 
   return (
     <div className="border border-gray-200 rounded-xl overflow-hidden">
@@ -104,24 +138,30 @@ function AttributionItem({ item }: { item: ActionAttribution }) {
 
       {open && (
         <div className="px-4 pb-4 border-t border-gray-100 bg-gray-50 space-y-3">
-          <p className="text-sm text-gray-700 mt-3">{item.attribution_text}</p>
+          {/* attribution_text는 백엔드 생성 문자열 — 행동 설명만 표시 */}
+          <p className="text-sm text-gray-700 mt-3">
+            {item.action_label} 실행 후 노출 지수에 변화가 반영됐습니다.
+            {item.dimension_changes.length > 0 && " 아래에서 채널별 영향을 확인하세요."}
+          </p>
 
           {item.dimension_changes.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-500">점수 변화 원인</p>
+              <p className="text-sm font-medium text-gray-500">채널별 영향</p>
               {item.dimension_changes.map((d) => (
                 <DimBar key={d.dimension} change={d} maxAbs={maxAbs} />
               ))}
             </div>
           )}
 
-          <div className="flex gap-4 text-sm text-gray-500 pt-1">
+          <div className="flex gap-2 text-sm text-gray-500 pt-1 items-center">
             <span>
-              이전: <strong className="text-gray-700">{item.score_before.toFixed(1)}점</strong>
+              이전: <strong className="text-gray-700">{beforeLabel}</strong>
             </span>
             <span>→</span>
             <span>
-              이후: <strong className="text-gray-700">{item.score_after.toFixed(1)}점</strong>
+              이후: <strong className={sameLabel ? "text-gray-700" : item.delta > 0 ? "text-green-700" : "text-red-600"}>
+                {afterLabel}
+              </strong>
             </span>
           </div>
         </div>
@@ -165,7 +205,7 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
   if (!attributions || attributions.length === 0) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="text-base font-semibold text-gray-800 mb-2">내 행동이 점수에 미친 영향</h3>
+        <h3 className="text-base font-semibold text-gray-800 mb-2">내 행동의 효과</h3>
         <p className="text-sm text-gray-500">
           {message || "기록된 행동이 없습니다. 가이드를 실행하고 행동을 기록하면 효과를 확인할 수 있습니다."}
         </p>
@@ -173,13 +213,17 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
     );
   }
 
+  const gainLabel = total_attributed_gain > 10 ? "크게 향상됨"
+    : total_attributed_gain > 3  ? "향상됨"
+    : total_attributed_gain > 0.5 ? "소폭 향상됨"
+    : "유지됨";
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       {/* 헤더 */}
       <div className="px-5 pt-5 pb-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold text-gray-800">내 행동이 점수에 미친 영향</h3>
-          {/* 기간 선택 */}
+          <h3 className="text-base font-semibold text-gray-800">내 행동의 효과</h3>
           <div className="flex gap-1">
             {[30, 60, 90].map((d) => (
               <button
@@ -197,13 +241,12 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
           </div>
         </div>
 
-        {/* 요약 배너 */}
-        {total_attributed_gain > 0 && (
+        {total_attributed_gain > 0.5 && (
           <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
             <TrendingUp className="text-green-600 shrink-0" size={18} />
             <div>
               <p className="text-sm font-semibold text-green-800">
-                최근 {days}일간 +{total_attributed_gain.toFixed(1)}점 향상
+                최근 {days}일간 노출 지수 {gainLabel}
               </p>
               {top_effective_action && (
                 <p className="text-sm text-green-700 mt-0.5">
@@ -222,7 +265,6 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
         ))}
       </div>
 
-      {/* 푸터 */}
       <div className="px-5 pb-4 text-sm text-gray-400">
         재스캔 후 최신 효과를 확인할 수 있습니다.
       </div>

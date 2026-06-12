@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { CompetitorsClient } from './CompetitorsClient'
 import { NoBusiness } from '@/components/dashboard/NoBusiness'
 import { Store, Search, BarChart2, Target, Zap, TrendingUp } from 'lucide-react'
+import { BusinessSwitcherClient } from './BusinessSwitcherClient'
 import type { GapAnalysis } from '@/types/gap'
 import type { Competitor } from '@/types/entities'
 import { getActiveBusinessId } from '@/lib/active-business'
@@ -78,15 +79,16 @@ export default async function CompetitorsPage({
     .maybeSingle()
 
   const COMPETITOR_LIMITS: Record<string, number> = {
-    free: 0, basic: 3, pro: 5, startup: 5, biz: 999,
+    free: 0, basic: 3, startup: 5, pro: 5, biz: 999, enterprise: 999,
   }
   const currentPlan = (subscription?.status === 'active' || subscription?.status === 'grace_period')
     ? (subscription?.plan ?? 'free')
     : 'free'
   const competitorLimit = COMPETITOR_LIMITS[currentPlan] ?? 3
 
-  // 액세스 토큰 — line 18에서 이미 인증된 user 사용 (getUser() 중복 호출 방지)
-  const accessToken = user ? (await supabase.auth.getSession()).data.session?.access_token ?? '' : ''
+  // 백엔드 API 호출용 토큰 — auth 검증은 위 getUser()로 완료. 토큰 추출 목적으로만 사용
+  const { data: sd } = await supabase.auth.getSession()
+  const accessToken = sd.session?.access_token ?? ''
 
   const [
     { data: scanResults },
@@ -171,22 +173,10 @@ export default async function CompetitorsPage({
 
       {/* 사업장 전환 탭 — 다중 사업장 보유 시 */}
       {(businesses?.length ?? 0) > 1 && (
-        <div className="flex flex-wrap gap-2 mt-2 md:mt-4 pt-4 md:pt-6 border-t border-gray-200 mb-8 md:mb-10">
-          {businesses!.map(b => (
-            <Link
-              key={b.id}
-              href={`?biz_id=${b.id}`}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors border ${
-                b.id === business.id
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-400 hover:text-blue-600'
-              }`}
-            >
-              <Store className="w-3.5 h-3.5" />
-              {b.name}
-            </Link>
-          ))}
-        </div>
+        <BusinessSwitcherClient
+          businesses={businesses!}
+          currentBizId={business.id}
+        />
       )}
 
       {/* 3단계 진행 스텝퍼 — 완료(step=3)이면 숨김 */}
@@ -240,6 +230,7 @@ export default async function CompetitorsPage({
       )}
 
       <CompetitorsClient
+        key={business.id}
         business={business}
         competitors={competitors ?? []}
         myScore={latestScanWithScores?.total_score ?? latestScans?.[0]?.total_score ?? 0}

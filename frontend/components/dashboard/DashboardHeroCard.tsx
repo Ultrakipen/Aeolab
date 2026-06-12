@@ -89,7 +89,7 @@ export default function DashboardHeroCard({
     naverAiTabVisible === true
       ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 중",  statusClass: "text-emerald-700", detail: "AI탭 답변 있음" }
       : naverAiTabVisible === false
-      ? { icon: "✗", iconClass: "bg-red-500 text-white",     status: "미노출",   statusClass: "text-red-600",     detail: "설정 개선 필요" }
+      ? { icon: "!", iconClass: "bg-amber-500 text-white",   status: "아직 미노출", statusClass: "text-amber-700",   detail: "설정 보강하면 가능" }
       : { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "준비 중",  statusClass: "text-gray-400",    detail: "정식 공개 후 측정" };
 
   const naverBriefingCard = naverCaptchaBlocked
@@ -100,13 +100,29 @@ export default function DashboardHeroCard({
     ? { icon: "△", iconClass: "bg-yellow-400 text-white",  status: "확대 예정",        statusClass: "text-yellow-700",  detail: "지금 준비 중" }
     : (naverInBriefing ?? false)
     ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 중",          statusClass: "text-emerald-700", detail: "브리핑 노출 확인됨" }
-    : { icon: "✗", iconClass: "bg-red-500 text-white",     status: "미노출",           statusClass: "text-red-600",     detail: "소개글 보강 필요" };
+    : { icon: "!", iconClass: "bg-amber-500 text-white",   status: "아직 미노출",       statusClass: "text-amber-700",   detail: "소개글 보강하면 가능" };
 
-  const naverChannels = [
-    { id: "naver-seo",      platform: "네이버 검색", ...naverSeoCard },
-    { id: "naver-aitab",    platform: "네이버 AI탭", ...naverAiTabCard },
-    { id: "naver-briefing", platform: "AI 브리핑",   ...naverBriefingCard },
-  ];
+  // INACTIVE/프랜차이즈는 AI 브리핑 비대상 — 항상 회색 N/A인 브리핑 카드 대신
+  // 실측 데이터가 있는 "경쟁 순위" 카드를 노출해 히어로 중앙이 공백으로 보이지 않게 한다.
+  const rankCard =
+    myRankInList && totalCompetitors && totalCompetitors > 1
+      ? myRankInList === 1
+        ? { icon: "1", iconClass: "bg-emerald-500 text-white", status: "동네 1위",  statusClass: "text-emerald-700", detail: `경쟁 ${totalCompetitors}곳 중 1위` }
+        : { icon: String(myRankInList), iconClass: "bg-amber-500 text-white", status: `${myRankInList}위`, statusClass: "text-amber-700", detail: `경쟁 ${totalCompetitors}곳 중 ${myRankInList}위` }
+      : { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "비교 준비 중", statusClass: "text-gray-400", detail: "경쟁사 등록 후 표시" };
+
+  // INACTIVE: 검색·AI탭·경쟁순위(실측) / ACTIVE·LIKELY: 검색·AI탭·AI브리핑
+  const naverChannels = isInactiveOrFranchise
+    ? [
+        { id: "naver-seo",   platform: "네이버 검색", ...naverSeoCard },
+        { id: "naver-aitab", platform: "네이버 AI탭", ...naverAiTabCard },
+        { id: "naver-rank",  platform: "경쟁 순위",   ...rankCard },
+      ]
+    : [
+        { id: "naver-seo",      platform: "네이버 검색", ...naverSeoCard },
+        { id: "naver-aitab",    platform: "네이버 AI탭", ...naverAiTabCard },
+        { id: "naver-briefing", platform: "AI 브리핑",   ...naverBriefingCard },
+      ];
 
   return (
     <div className={`bg-white rounded-xl border-2 shadow-md overflow-hidden mb-5 ${headerView.cardBorder}`}>
@@ -120,7 +136,7 @@ export default function DashboardHeroCard({
               <p className="text-sm font-semibold text-green-700 mt-1 break-keep">{headerView.sub}</p>
             )}
             {evidenceText && (
-              <p className="text-xs font-medium text-gray-600 mt-1 break-keep">{evidenceText}</p>
+              <p className="text-sm font-bold text-gray-800 mt-1 break-keep">{evidenceText}</p>
             )}
             {(lastScannedLabel || staleRescan) && (
               <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
@@ -147,7 +163,7 @@ export default function DashboardHeroCard({
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-center gap-1.5 mb-3">
           <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" aria-hidden="true" />
-          <p className="text-sm font-bold text-gray-700">네이버 AI 현황</p>
+          <p className="text-sm font-bold text-gray-700">{isInactiveOrFranchise ? "네이버 노출 현황" : "네이버 AI 현황"}</p>
           <span className="ml-1 text-xs text-gray-400 hidden sm:inline">소상공인 핵심 채널</span>
         </div>
         <div className="grid grid-cols-3 gap-2">

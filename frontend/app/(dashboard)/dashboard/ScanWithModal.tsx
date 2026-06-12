@@ -14,6 +14,8 @@ interface ScanWithModalProps {
   scanLimit?: number;
   plan?: string;
   lastQueryUsed?: string;
+  stacked?: boolean;
+  secondary?: boolean;
 }
 
 export default function ScanWithModal({
@@ -26,6 +28,8 @@ export default function ScanWithModal({
   scanLimit,
   plan,
   lastQueryUsed,
+  stacked,
+  secondary,
 }: ScanWithModalProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [topMissingKeyword, setTopMissingKeyword] = useState<string | null>(null);
@@ -49,6 +53,8 @@ export default function ScanWithModal({
         scanLimit={scanLimit}
         plan={plan}
         lastQueryUsed={lastQueryUsed}
+        stacked={stacked}
+        secondary={secondary}
         onScanComplete={handleScanComplete}
       />
       <PostScanModal

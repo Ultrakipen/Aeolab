@@ -58,3 +58,9 @@ docs/backups/
 # 백업 파일
 *.bak
 *.bak.*
+
+# reconcile/배포 임시 백업 (2026-06-12)
+_reconcile_backup_20260612/
+aeolab_predeploy_backups/
+scripts/_t
+*.bak_*

@@ -393,6 +393,7 @@ export default async function DashboardPage({
                   plan={plan}
                   lastQueryUsed={(latestScan?.query_used as string | undefined)}
                   stacked
+                  secondary={!!latestScan}
                 />
                 <p className="text-sm text-slate-500 mt-3 pt-3 border-t border-gray-100 leading-snug">
                   반영 기간: 스마트플레이스 1~2일 · AI탭·블로그 2~4주
@@ -522,8 +523,8 @@ export default async function DashboardPage({
             </>
           </CollapseSectionWrapper>
 
-          {/* ③ 콘텐츠 생성 도구 — 소개글·톡톡 메뉴 (유료 핵심 기능) */}
-          <CollapseSectionWrapper id="section-content" title="콘텐츠 생성 도구" description="AI 맞춤 소개글 · 톡톡 채팅방 메뉴 초안" iconColor="text-purple-600" defaultOpen={true}>
+          {/* ③ 콘텐츠 생성 도구 — 소개글·톡톡 메뉴 (필요할 때 펼치는 도구 성격 → 기본 접힘) */}
+          <CollapseSectionWrapper id="section-content" title="콘텐츠 생성 도구" description="AI 맞춤 소개글 · 톡톡 채팅방 메뉴 초안 — 펼쳐서 생성·복사" iconColor="text-purple-600" defaultOpen={false}>
             <DashboardContentZone
               bizId={bizBase.id}
               plan={plan}
@@ -550,6 +551,7 @@ export default async function DashboardPage({
               unifiedScore={unifiedScore}
               isSmartPlace={!!(business?.naver_place_id)}
               plan={plan}
+              deprioritizeGlobal={briefingEligibility === "inactive" || isFranchise}
             />
           </CollapseSectionWrapper>
 

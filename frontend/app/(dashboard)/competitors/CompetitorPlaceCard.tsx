@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, Star, CheckCircle, XCircle, Info, Lock, ExternalLink } from "lucide-react";
+import { RefreshCw, Star, CheckCircle, XCircle, Info, Lock, ExternalLink, Newspaper, Globe, HelpCircle, Target, Key } from "lucide-react";
 import { updateCompetitor, syncCompetitorPlace } from "@/lib/api";
 
 // 플레이스 카드에 필요한 최소 Competitor 필드만 정의
@@ -90,7 +90,7 @@ function ReviewCompareBar({
             리뷰 {diff}개 부족
           </span>
         ) : diff < 0 ? (
-          <span className="px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold text-sm border border-green-200">
+          <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold text-sm border border-emerald-200">
             리뷰 {Math.abs(diff)}개 앞서는 중
           </span>
         ) : (
@@ -222,7 +222,7 @@ function BlogMentionBar({
             경쟁사 {diff}회 더 많음
           </span>
         ) : diff < 0 ? (
-          <span className="px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold text-sm border border-green-200">
+          <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold text-sm border border-emerald-200">
             {Math.abs(diff)}회 앞서는 중
           </span>
         ) : (
@@ -305,14 +305,14 @@ export function CompetitorPlaceCard({
 
   if (!hasData) {
     return (
-      <div className="mt-3 bg-gray-50 border border-dashed border-gray-200 rounded-xl p-4 space-y-3">
+      <div className="mt-3 bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 space-y-3">
         <div className="flex items-start gap-3">
           <Info className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-700 leading-relaxed">
+            <p className="text-sm font-semibold text-gray-700 leading-relaxed">
               네이버 플레이스 ID를 입력하면
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-600">
               리뷰 수·평점을 자동으로 가져옵니다
             </p>
           </div>
@@ -327,7 +327,7 @@ export function CompetitorPlaceCard({
               placeholder="예: 1234567890"
               value={localPlaceId}
               onChange={(e) => setLocalPlaceId(e.target.value.replace(/\D/g, ""))}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[42px]"
             />
             <button
               onClick={handleSavePlaceId}
@@ -348,7 +348,7 @@ export function CompetitorPlaceCard({
             <p className="text-sm text-red-500">{saveError}</p>
           )}
           {saveSuccess && (
-            <p className="text-sm text-green-600 font-semibold">
+            <p className="text-sm text-emerald-600 font-semibold">
               ✓ 저장 완료! 데이터를 수집하는 중입니다 (30초~1분 소요)
             </p>
           )}
@@ -407,7 +407,7 @@ export function CompetitorPlaceCard({
 
       {/* 리뷰 수 비교 */}
       <div>
-        <div className="text-sm font-medium text-gray-600 mb-2">리뷰 수 비교</div>
+        <div className="text-sm font-semibold text-gray-700 mb-2">리뷰 수 비교</div>
         <ReviewCompareBar myCount={myReviewCount} compCount={compReviewCount} />
       </div>
 
@@ -426,15 +426,15 @@ export function CompetitorPlaceCard({
         {compAvgRating > 0 && (
           <div>
             {ratingDiff < -0.2 ? (
-              <span className="text-sm font-semibold text-orange-600 bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-full">
+              <span className="text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
                 평점 {Math.abs(ratingDiff).toFixed(1)} 낮음
               </span>
             ) : ratingDiff > 0.2 ? (
-              <span className="text-sm font-semibold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
+              <span className="text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
                 평점 {ratingDiff.toFixed(1)} 높음
               </span>
             ) : (
-              <span className="text-sm text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
+              <span className="text-sm text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
                 비슷한 평점
               </span>
             )}
@@ -445,7 +445,7 @@ export function CompetitorPlaceCard({
       {/* 플레이스 완성도 — 경쟁사 현황 + 행동 안내 */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-600">스마트플레이스 현황</span>
+          <span className="text-sm font-semibold text-gray-700">스마트플레이스 현황</span>
           <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">경쟁사만 표시 (내 가게는 대시보드에서 확인)</span>
         </div>
         <div className="bg-gray-50 rounded-xl px-3 py-1">
@@ -470,9 +470,9 @@ export function CompetitorPlaceCard({
             hasComp={competitor.place_has_menu ?? false}
           />
           {competitor.place_photo_count != null && (
-            <div className="flex items-center justify-between py-2.5 last:border-0">
+            <div className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0">
               <p className="text-sm text-gray-700 font-medium">사진 등록 수</p>
-              <span className="text-sm font-bold text-gray-800">{competitor.place_photo_count}장</span>
+              <span className="text-sm font-bold text-gray-800">약 {competitor.place_photo_count}장</span>
             </div>
           )}
         </div>
@@ -488,8 +488,8 @@ export function CompetitorPlaceCard({
       {competitor.ai_excerpt && (
         <div>
           <div className="flex items-center gap-1.5 mb-2">
-            <span>🤖</span>
-            <span className="text-sm font-medium text-gray-600">AI가 이 가게를 소개한 문장</span>
+            <Globe className="w-4 h-4 text-blue-500 shrink-0" />
+            <span className="text-sm font-semibold text-gray-700">AI가 이 가게를 소개한 문장</span>
           </div>
           <blockquote className="bg-blue-50 border-l-4 border-blue-400 rounded-r-xl px-4 py-3">
             <p className="text-sm text-blue-900 leading-relaxed italic">"{competitor.ai_excerpt}"</p>
@@ -505,12 +505,12 @@ export function CompetitorPlaceCard({
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
-            <span>📰</span>
-            <span className="text-sm font-medium text-gray-600">네이버 블로그 언급 수</span>
+            <Newspaper className="w-4 h-4 text-gray-500 shrink-0" />
+            <span className="text-sm font-semibold text-gray-700">네이버 블로그 언급 수</span>
           </div>
           <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">자동 수집</span>
         </div>
-        <p className="text-sm text-gray-400 mb-2 leading-relaxed">
+        <p className="text-sm text-gray-500 mb-2 leading-relaxed">
           네이버 블로그에서 경쟁사 이름으로 검색해 포스팅 수를 확인합니다 (최근 블로그 검색 기준). 블로그 언급이 많을수록 네이버 AI 브리핑·AI탭에서 해당 가게를 신뢰도 있는 곳으로 판단합니다.
         </p>
         {competitor.blog_mention_count == null ? (
@@ -527,8 +527,8 @@ export function CompetitorPlaceCard({
 
       {/* ── 웹사이트 보유 및 AI 검색 최적화 ── */}
       <div>
-        <div className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-1.5">
-          <span>🌐</span> 웹사이트 보유 및 AI 검색 최적화
+        <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+          <Globe className="w-4 h-4 text-gray-500 shrink-0" /> 웹사이트 보유 및 AI 검색 최적화
         </div>
         {competitor.website_url ? (
           <div className="space-y-2">
@@ -545,8 +545,16 @@ export function CompetitorPlaceCard({
                 <ExternalLink className="w-3.5 h-3.5" /> 방문
               </a>
               {competitor.website_seo_score != null && (
-                <span className="text-sm font-semibold text-gray-500">
-                  AI 최적화 점수 {competitor.website_seo_score}점 / 100점
+                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${
+                  competitor.website_seo_score >= 70
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : competitor.website_seo_score >= 40
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-red-50 text-red-600 border-red-200'
+                }`}>
+                  AI 최적화{' '}
+                  {competitor.website_seo_score >= 70 ? '양호' :
+                   competitor.website_seo_score >= 40 ? '보통' : '미흡'}
                 </span>
               )}
             </div>
@@ -588,8 +596,8 @@ export function CompetitorPlaceCard({
       {competitor.place_has_faq && (
         <div>
           <div className="flex items-center gap-1.5 mb-2">
-            <span>❓</span>
-            <span className="text-sm font-medium text-gray-600">경쟁사 소개글 Q&A</span>
+            <HelpCircle className="w-4 h-4 text-gray-500 shrink-0" />
+            <span className="text-sm font-semibold text-gray-700">경쟁사 소개글 Q&A</span>
             <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">내 소개글 작성 참고용</span>
           </div>
           {competitor.faq_questions?.[0] === '__deprecated__' ? (
@@ -622,8 +630,8 @@ export function CompetitorPlaceCard({
 
       {/* ── 키워드 분석 (창업패키지+ 전용) ── */}
       <div>
-        <div className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-1.5">
-          <span>🔑</span> 경쟁사 보유 키워드
+        <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+          <Key className="w-4 h-4 text-gray-500 shrink-0" /> 경쟁사 보유 키워드
         </div>
         {!canViewStartup ? (
           <LockedFeature
@@ -639,7 +647,7 @@ export function CompetitorPlaceCard({
             {/* present 키워드 */}
             {(competitor.comp_keywords.present?.length ?? 0) > 0 && (
               <div>
-                <p className="text-sm text-gray-500 mb-1.5">경쟁사 리뷰에 자주 등장하는 키워드 (AI 노출과 직접 연관):</p>
+                <p className="text-sm text-gray-600 mb-1.5">경쟁사 리뷰에 자주 등장하는 키워드 (AI 노출과 직접 연관):</p>
                 <div className="flex flex-wrap gap-1.5">
                   {competitor.comp_keywords.present!.map((kw) => (
                     <span
@@ -672,7 +680,7 @@ export function CompetitorPlaceCard({
             {/* pioneer 키워드 */}
             {(competitor.comp_keywords.pioneer?.length ?? 0) > 0 && (
               <div>
-                <p className="text-sm text-gray-500 mb-1.5">경쟁사 선점 키워드:</p>
+                <p className="text-sm text-gray-600 mb-1.5">경쟁사 선점 키워드:</p>
                 <div className="flex flex-wrap gap-1.5">
                   {competitor.comp_keywords.pioneer!.map((kw) => (
                     <span
@@ -693,8 +701,8 @@ export function CompetitorPlaceCard({
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
-            <span>🎯</span>
-            <span className="text-sm font-medium text-gray-600">경쟁사 블로그 리뷰 분석 — 공략 포인트</span>
+            <Target className="w-4 h-4 text-gray-500 shrink-0" />
+            <span className="text-sm font-semibold text-gray-700">경쟁사 블로그 리뷰 분석 — 공략 포인트</span>
           </div>
           <span
             className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full cursor-help"
@@ -720,7 +728,7 @@ export function CompetitorPlaceCard({
           </div>
         ) : (
           <div className="space-y-2">
-            <p className="text-sm text-gray-400">최근 블로그 포스팅 {competitor.weakness_data.total_posts_analyzed}개 분석 결과 (고객 불만 키워드):</p>
+            <p className="text-sm text-gray-500">최근 블로그 포스팅 {competitor.weakness_data.total_posts_analyzed}개 분석 결과 (고객 불만 키워드):</p>
             {competitor.weakness_data.weaknesses.map((w, i) => (
               <div key={i} className="bg-red-50 border border-red-100 rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-1">

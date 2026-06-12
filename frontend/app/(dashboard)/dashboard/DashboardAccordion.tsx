@@ -7,12 +7,13 @@ interface DashboardAccordionProps {
   tab1Content: React.ReactNode
   tab2Content: React.ReactNode
   tab3Content: React.ReactNode
+  defaultOpenId?: string
 }
 
 const SECTIONS = [
   {
     id: 'score',
-    label: '내 점수 분석',
+    label: 'AI 노출 현황',
     desc: '네이버·ChatGPT·Gemini AI 채널별 노출 결과',
     icon: BarChart2,
     color: 'text-blue-600 bg-blue-50',
@@ -36,8 +37,8 @@ const SECTIONS = [
   },
 ]
 
-export default function DashboardAccordion({ tab1Content, tab2Content, tab3Content }: DashboardAccordionProps) {
-  const [openId, setOpenId] = useState<string | null>(null)
+export default function DashboardAccordion({ tab1Content, tab2Content, tab3Content, defaultOpenId }: DashboardAccordionProps) {
+  const [openId, setOpenId] = useState<string | null>(defaultOpenId ?? null)
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const contentMap: Record<string, React.ReactNode> = {
