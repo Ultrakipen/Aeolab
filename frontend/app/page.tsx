@@ -321,6 +321,9 @@ export default async function LandingPage() {
                 <p className="text-sm mt-1.5 break-keep" style={{ color: "rgba(255,255,255,0.88)" }}>
                   측정 시점·지역·업종에 따라 달라질 수 있습니다
                 </p>
+                <p className="text-sm mt-1.5 break-keep" style={{ color: "rgba(255,255,255,0.72)" }}>
+                  ※ AI 브리핑 대상은 음식점·카페·베이커리·바·숙박 업종 — 그 외 업종은 네이버 AI탭·ChatGPT·Gemini 채널로 측정·개선합니다
+                </p>
               </div>
             </div>
 

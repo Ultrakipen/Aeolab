@@ -143,7 +143,7 @@ export default function ServiceMechanismSection() {
                   <ul className="space-y-2 text-sm leading-relaxed" style={{ color: "#0F172A" }}>
                     <li>• 노출 자체를 100% 보장 (네이버 알고리즘 비공개)</li>
                     <li>• 네이버 AI 브리핑 비대상 업종을 대상으로 전환하기</li>
-                    <li>• AI 정보 탭 토글을 대신 켜기</li>
+                    <li>• AI탭 토글을 대신 켜기</li>
                     <li>• 네이버 정책 위반 우회</li>
                   </ul>
                 </div>
