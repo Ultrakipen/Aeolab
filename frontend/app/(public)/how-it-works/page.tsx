@@ -301,8 +301,8 @@ export default function HowItWorksPage() {
               <div className="flex items-start gap-3 bg-white rounded-lg p-3 border border-blue-100">
                 <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-blue-500 text-white text-xs font-bold whitespace-nowrap">2~4주</span>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">네이버 VIEW탭 블로그 상위 노출</p>
-                  <p className="text-sm text-gray-600 leading-relaxed break-keep">D.I.A. 기준 블로그 초안 자동 생성 + 키워드 갭 분석 → 네이버 블로그 VIEW탭 상위 노출 가능성 향상.</p>
+                  <p className="text-sm font-semibold text-gray-800">네이버 통합검색 블로그 영역 상위 노출</p>
+                  <p className="text-sm text-gray-600 leading-relaxed break-keep">D.I.A. 기준 블로그 초안 자동 생성 + 키워드 갭 분석 → 네이버 통합검색 블로그 영역(스마트블록) 상위 노출 가능성 향상.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 bg-white rounded-lg p-3 border border-blue-100">
