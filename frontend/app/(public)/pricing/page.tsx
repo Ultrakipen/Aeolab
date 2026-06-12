@@ -400,7 +400,7 @@ export default function PricingPage() {
                 {
                   icon: "📡",
                   title: "지금 당장 내 가게가 네이버 AI에 나오는지",
-                  why: "네이버는 ChatGPT·Gemini 봇의 접근을 제한 — ChatGPT로는 네이버 AI 노출을 확인할 수 없습니다",
+                  why: "네이버는 ChatGPT·Gemini 봇 크롤링을 robots.txt로 전면 차단 — ChatGPT로는 네이버 AI 노출을 확인할 수 없습니다",
                 },
                 {
                   icon: "🔍",
