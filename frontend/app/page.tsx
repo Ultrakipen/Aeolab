@@ -11,6 +11,7 @@ import FreeToolsSection from "@/components/landing/FreeToolsSection";
 import AgencyServiceSection from "@/components/landing/AgencyServiceSection";
 import InlineKeywordWidget from "@/components/landing/InlineKeywordWidget";
 import { HowAeolabIntegrated } from "@/components/landing/HowAeolabIntegrated";
+import { MobileAccordion } from "@/components/landing/MobileAccordion";
 import { createClient } from "@/lib/supabase/server";
 import { LandingLogout } from "./LandingLogout";
 import { SiteFooter } from "@/components/common/SiteFooter";
@@ -363,6 +364,7 @@ export default async function LandingPage() {
       {/* ── 1-A. AI 검색 노출 — 업종 분기 다이어그램 + 개선 방법 통합 ── */}
       <section className="px-4 py-10 md:py-16" style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
         <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="AI 검색 노출, 업종마다 채널이 다릅니다 — 업종별 채널 보기">
 
           {/* PART 1 — 도입 */}
           <div className="text-center mb-10">
@@ -485,12 +487,14 @@ export default async function LandingPage() {
             </div>
           </div>
 
+          </MobileAccordion>
         </div>
       </section>
 
       {/* ── 1-A2. 메커니즘 — 점검→개선→AI노출 인과관계 ── */}
       <section className="px-4 py-10 md:py-14" style={{ background: "#FFFFFF", borderBottom: "1px solid #E2E8F0" }}>
         <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="AI가 내 가게를 추천하는 4가지 기준 — 작동 원리 보기">
           <div className="text-center mb-10">
             <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>AEOlab 작동 원리</p>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight break-keep" style={{ color: "#0F172A", letterSpacing: "-0.6px" }}>
@@ -601,12 +605,14 @@ export default async function LandingPage() {
               무료 진단 시작 →
             </a>
           </div>
+          </MobileAccordion>
         </div>
       </section>
 
       {/* ── 4. HOW CUSTOMERS — AI 브리핑 3단계 (#F8FAFC) ── */}
       <section className="px-4 py-12 md:py-20" style={{ background: "#F8FAFC" }}>
         <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="요즘 손님은 네이버 AI 추천 목록을 봅니다 — 자세히 보기">
           <div className="text-center mb-6 md:mb-8 fade-up">
             <span className="inline-flex items-center gap-2 mb-3">
               <span className="text-sm font-bold tracking-widest" style={{ color: "#2563EB" }}>네이버 AI 브리핑 상세</span>
@@ -725,6 +731,7 @@ export default async function LandingPage() {
           <p className="text-center text-sm mt-2 fade-up break-keep" style={{ color: "#94A3B8" }}>
             AI 브리핑 노출은 네이버 알고리즘 기준으로 보장되지 않으며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
           </p>
+          </MobileAccordion>
         </div>
       </section>
 
@@ -733,6 +740,7 @@ export default async function LandingPage() {
             네이버 AI 브리핑과 네이버 AI탭은 다른 노출 경로임을 명확히 안내. */}
       <section className="px-4 py-12 md:py-16" style={{ background: "#FFFFFF" }}>
         <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="네이버 AI탭이란? 모든 업종 노출 가능 — 자세히 보기">
           <div className="text-center mb-6 md:mb-8 fade-up">
             <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#6366F1" }}>
               네이버 AI탭 (검색결과 새 탭)
@@ -889,6 +897,7 @@ export default async function LandingPage() {
           <p className="text-center text-sm mt-4 fade-up break-keep" style={{ color: "#94A3B8" }}>
             AI 브리핑·AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
           </p>
+          </MobileAccordion>
         </div>
       </section>
 
@@ -901,6 +910,7 @@ export default async function LandingPage() {
       {/* ── 5-A. 서비스 기능 명시 — AEOlab이 제공하는 것 ── */}
       <section className="px-4 py-10 md:py-14" style={{ background: "#F8FAFC", borderTop: "1px solid #E2E8F0" }}>
         <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="구독하면 제공되는 기능 전체 — 펼쳐 보기">
           <div className="text-center mb-8">
             <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>AEOlab 제공 기능</p>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight break-keep" style={{ color: "#0F172A", letterSpacing: "-0.6px" }}>
@@ -979,12 +989,14 @@ export default async function LandingPage() {
               지금 시작 →
             </a>
           </div>
+          </MobileAccordion>
         </div>
       </section>
 
       {/* ── 5-B. DASHBOARD PREVIEW — 구독 가치 미리보기 (#F8FAFC) ── */}
       <section className="py-12 md:py-16 px-4" style={{ background: "#F8FAFC" }}>
         <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="대시보드 미리보기 — 예시 화면 보기">
           <div className="text-center mb-7 fade-up">
             <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>
               대시보드 미리보기
@@ -1000,6 +1012,7 @@ export default async function LandingPage() {
             </p>
           </div>
           <DashboardPreview />
+          </MobileAccordion>
         </div>
       </section>
 
