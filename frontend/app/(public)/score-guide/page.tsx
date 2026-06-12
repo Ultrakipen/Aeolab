@@ -71,6 +71,19 @@ export default function ScoreGuidePage() {
         </p>
       </div>
 
+      {/* 3-0. 모든 업종 공통 가치 — 네이버 SEO 상위노출 */}
+      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 mb-4">
+        <h2 className="text-base md:text-lg font-bold text-emerald-800 mb-2">
+          업종과 무관하게 — 점수를 올리면 네이버 검색 상위노출이 개선됩니다
+        </h2>
+        <p className="text-sm md:text-base text-emerald-900 leading-relaxed">
+          소개글·리뷰·소식·키워드 최적화는 <strong>모든 업종 공통</strong>으로 네이버 플레이스·검색 순위를 끌어올립니다.
+          AI 브리핑 비대상 업종(병원·법무·학원·쇼핑몰 등)도 동일하게 수혜를 받으며, 여기에
+          ChatGPT·Gemini·Google AI 노출 개선까지 함께 진행됩니다. 즉, AI 브리핑 대상 여부와 상관없이
+          <strong> 네이버 검색 상위노출이라는 공통 이득</strong>은 항상 확보됩니다.
+        </p>
+      </div>
+
       {/* 3-1. 점수와 매출의 관계 — 인과관계 명시 (장기 기대치 설정) */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-4">
         <h2 className="text-base md:text-lg font-bold text-slate-800 mb-3">
