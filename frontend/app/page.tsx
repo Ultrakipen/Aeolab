@@ -132,7 +132,7 @@ export default async function LandingPage() {
           <span className="hidden sm:block text-gray-400">·</span>
           <span className="break-keep">🤖 <strong className="text-purple-700">AI 브리핑·AI탭</strong> 노출 가능성 ↑</span>
           <span className="hidden sm:block text-gray-400">·</span>
-          <span className="break-keep">💬 <strong className="text-green-700">ChatGPT·Gemini</strong> 인식도 ↑</span>
+          <span className="break-keep">💬 <strong className="text-green-700">ChatGPT·Gemini</strong> 노출 현황 측정·추적</span>
         </div>
       </div>
 
