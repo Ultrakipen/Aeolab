@@ -73,7 +73,7 @@ function getMock(category: string, region: string) {
     benchmark: benchmarks[category] ?? benchmarks.restaurant,
     lockedTips: [
       { icon: "🔍", label: "AI 검색 노출 개선 방법",   tip: "Gemini·ChatGPT 각 50회 (총 100회) 반복 측정으로 정확한 노출 확률(%)을 산출하고 매일 자동 추적합니다." },
-      { icon: "📊", label: "경쟁사 6개 차원 갭 분석",  tip: "1위 경쟁사 대비 어느 항목이 몇 점 뒤처지는지 정확히 보여줍니다." },
+      { icon: "📊", label: "경쟁사 6개 차원 갭 분석",  tip: "1위 경쟁사 대비 어느 항목이 얼마나 뒤처지는지 정확히 보여줍니다." },
       { icon: "🗺️", label: "업종 시장 순위 확인",      tip: "내 가게가 지역 업종 내 몇 위인지, 상위 몇 %인지 수치로 확인합니다." },
       { icon: "📋", label: "스마트플레이스 소개글 + 블로그 자동 생성", tip: "AI 최적화 소개글과 블로그 포스트 초안을 자동 생성 — 복사 후 스마트플레이스에 붙여넣기만 하면 됩니다. 홈페이지 없어도 OK." },
       { icon: "📢", label: "온라인 언급 늘리기",        tip: "어느 플랫폼에서 언급이 많고 적은지, 경쟁사와 비교해 구체적 행동 가이드를 제공합니다." },
@@ -786,10 +786,9 @@ export default function DemoPage() {
                       <span className="text-sm text-gray-400">최적화</span>
                     </div>
                   </div>
-                  {/* 보조 숫자 점수 */}
+                  {/* 보조 상태 (상대 위치) */}
                   <p className="text-sm text-gray-400 mb-3">
-                    종합 점수 <strong className="text-gray-600 text-base">{m.totalScore}점</strong>
-                    {" "}· {isRealBiz ? "창원시" : m.region} {CATEGORIES.find(c => c.value === category)?.label} 평균 <strong>{m.benchmark.avg}점</strong>
+                    내 가게 AI 검색 노출은 {isRealBiz ? "창원시" : m.region} {CATEGORIES.find(c => c.value === category)?.label} 업종 평균 {m.totalScore >= m.benchmark.avg ? "이상입니다" : "대비 개선 여지가 있습니다"}.
                     <span className="ml-1 text-sm bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">추정</span>
                   </p>
                   {/* 채널 상태 태그 */}
@@ -1120,7 +1119,6 @@ export default function DemoPage() {
                           style={{ width: `${item.score}%` }}
                         />
                       </div>
-                      <span className="text-sm text-gray-400 shrink-0">{item.score}점</span>
                     </div>
                     <p className="text-sm md:text-base text-gray-500 leading-relaxed">{item.what}</p>
                     <p className={`text-sm md:text-base mt-1 font-medium leading-relaxed ${item.isLow ? "text-amber-600" : "text-green-600"}`}>
@@ -1204,11 +1202,11 @@ export default function DemoPage() {
         {/* ── CTA (전체 너비) ──────────────────────────── */}
         <div className="rounded-xl overflow-hidden bg-blue-600">
           <div className="px-5 md:px-8 pt-6 pb-5">
-            <p className="font-bold text-white text-xl md:text-2xl leading-snug mb-1.5">내 가게는 몇 점일까요?</p>
+            <p className="font-bold text-white text-xl md:text-2xl leading-snug mb-1.5">내 가게의 AI 노출은 어떤 상태일까요?</p>
             {isRealBiz ? (
               <p className="text-sm md:text-base text-white/85 mb-5 leading-relaxed">
-                지금 {m.businessName}의 AI 노출 점수는 {m.totalScore}점입니다.<br />
-                소개글에 Q&A 5개 추가 후 7일 뒤 점수가 얼마나 올랐는지 자동으로 확인하고 싶다면?
+                지금 {m.businessName}의 AI 노출 상태를 확인할 수 있습니다.<br />
+                소개글에 Q&A 5개 추가 후 7일 뒤 노출이 얼마나 개선됐는지 자동으로 확인하고 싶다면?
               </p>
             ) : (
               <p className="text-sm md:text-base text-white/75 mb-5">

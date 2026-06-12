@@ -4,6 +4,16 @@ import Link from "next/link";
 import { useState } from "react";
 
 // ────────────────────────────────────────────────────────────
+// 점수 → 텍스트 레이블 (실제 대시보드와 동일 정책: 숫자 비노출)
+// ────────────────────────────────────────────────────────────
+function scoreLabel(score: number): string {
+  if (score >= 75) return "양호";
+  if (score >= 55) return "개선 중";
+  if (score >= 30) return "미흡";
+  return "시작 전";
+}
+
+// ────────────────────────────────────────────────────────────
 // 업종별 Mock 데이터
 // ────────────────────────────────────────────────────────────
 type CategoryKey = "restaurant" | "cafe" | "beauty" | "academy";
@@ -274,7 +284,7 @@ function TrendGraph({ days, annotation }: { days: number; annotation?: string })
       </svg>
       <div className="flex justify-between mt-1 text-sm text-gray-500">
         <span>{days === 90 ? "90일 전" : "30일 전"}</span>
-        <span>오늘 37점</span>
+        <span>오늘</span>
       </div>
     </div>
   );
@@ -296,7 +306,6 @@ function CompetitorBar({ name, score, max, isMine }: { name: string; score: numb
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className={`text-sm font-bold w-8 text-right ${isMine ? "text-indigo-700" : "text-gray-700"}`}>{score}</span>
     </div>
   );
 }
@@ -367,25 +376,23 @@ function BasicContent({ d }: { d: MockData }) {
       <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
           <h3 className="text-base md:text-lg font-bold text-gray-900">AI가 내 가게를 알고 있나요?</h3>
-          <span className={`text-sm font-bold px-2 py-1 rounded-full w-fit ${d.stage_color}`}>{d.stage}</span>
         </div>
 
-        {/* 종합 점수 */}
+        {/* 종합 상태 */}
         <div className="flex items-end gap-3 mb-4">
-          <span className="text-4xl md:text-5xl font-black text-indigo-600">{d.unified}</span>
-          <span className="text-base text-gray-500 mb-1">/ 100점</span>
+          <span className="text-3xl md:text-4xl font-black text-indigo-600">AI 검색 노출 {scoreLabel(d.unified)}</span>
         </div>
 
         {/* 채널 점수 */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-blue-50 rounded-xl p-3">
             <div className="text-sm text-blue-600 font-semibold mb-1">네이버 AI 채널</div>
-            <div className="text-2xl font-black text-blue-700">{d.track1}점</div>
+            <div className="text-2xl font-black text-blue-700">{scoreLabel(d.track1)}</div>
             <div className="text-sm text-blue-500 mt-0.5">스마트플레이스 기반</div>
           </div>
           <div className="bg-purple-50 rounded-xl p-3">
             <div className="text-sm text-purple-600 font-semibold mb-1">ChatGPT·구글 AI</div>
-            <div className="text-2xl font-black text-purple-700">{d.track2}점</div>
+            <div className="text-2xl font-black text-purple-700">{scoreLabel(d.track2)}</div>
             <div className="text-sm text-purple-500 mt-0.5">글로벌 AI 채널</div>
           </div>
         </div>
@@ -393,7 +400,7 @@ function BasicContent({ d }: { d: MockData }) {
         {/* 경쟁 비교 배너 */}
         <div className="bg-red-50 border border-red-100 rounded-xl p-3 mb-4">
           <p className="text-sm font-semibold text-red-700">
-            경쟁 가게 평균은 {d.avg_score}점입니다. 지금 AI 검색에서 밀리고 있습니다.
+            경쟁 가게 평균보다 낮은 편입니다. 지금 AI 검색에서 밀리고 있습니다.
           </p>
         </div>
 
@@ -472,7 +479,7 @@ function BasicContent({ d }: { d: MockData }) {
         ))}
         <div className="mt-4 bg-orange-50 rounded-xl p-3">
           <p className="text-sm text-orange-800">
-            1위 경쟁 가게보다 <strong>{d.top_biz_score - d.unified}점 낮습니다.</strong>
+            1위 경쟁 가게보다 <strong>AI 노출이 낮습니다.</strong>
             어떤 항목에서 차이가 나는지 6개 차원으로 분석해 드립니다.
           </p>
         </div>
@@ -509,14 +516,14 @@ function BasicContent({ d }: { d: MockData }) {
 
       <LockedCard title="90일 장기 점수 추이" planLabel="Pro 전용 · 계절 패턴·이벤트 효과 파악">
         <div className="p-2">
-          <TrendGraph days={90} annotation="성수기 +15점" />
+          <TrendGraph days={90} annotation="성수기 ↑" />
         </div>
       </LockedCard>
 
       <LockedCard title="PDF 분석 리포트" planLabel="Pro 전용 · 인쇄·제출용 공식 보고서">
         <div className="p-3 border border-gray-200 rounded-xl text-center">
           <p className="text-sm font-bold text-gray-700">AI 노출 분석 리포트</p>
-          <p className="text-sm text-gray-500 mt-1">2024년 12월 | {d.name} | 종합 {d.unified}점</p>
+          <p className="text-sm text-gray-500 mt-1">2024년 12월 | {d.name} | 종합 {scoreLabel(d.unified)}</p>
           <div className="mt-2 h-12 bg-gray-100 rounded-lg" />
         </div>
       </LockedCard>
@@ -584,7 +591,7 @@ function ProContent({ d }: { d: MockData }) {
           <span className="bg-indigo-100 text-indigo-700 text-sm font-bold px-2 py-0.5 rounded-full">Pro 전용</span>
           <h3 className="text-base md:text-lg font-bold text-gray-900">90일 점수 변화 — 언제 올랐고 언제 내렸나</h3>
         </div>
-        <TrendGraph days={90} annotation="성수기 +15점" />
+        <TrendGraph days={90} annotation="성수기 ↑" />
         <p className="text-sm text-gray-500 mt-3">
           30일만 보면 놓치는 패턴이 있습니다.
           언제 집중 관리해야 하는지 90일 데이터로 파악합니다.
@@ -601,7 +608,7 @@ function ProContent({ d }: { d: MockData }) {
           <CompetitorBar key={name} name={name} score={compScores[i] ?? d.unified - 5} max={maxScore} isMine={i === 6} />
         ))}
         <div className="mt-3 bg-orange-50 rounded-xl p-3">
-          <p className="text-sm text-orange-800">지역 내 5곳 중 4위입니다. 1위까지 <strong>{d.top_biz_score - d.unified}점 차이</strong>입니다.</p>
+          <p className="text-sm text-orange-800">지역 내 5곳 중 4위입니다. 1위까지 <strong>AI 노출 격차</strong>가 있습니다.</p>
         </div>
       </div>
 
@@ -626,7 +633,7 @@ function ProContent({ d }: { d: MockData }) {
       <LockedCard title="창업 시장 분석" planLabel="창업패키지 전용">
         <div className="p-3 bg-emerald-50 rounded-xl">
           <p className="text-sm font-semibold text-emerald-800">이 지역 한식당 창업 타이밍 → 기회 있음</p>
-          <p className="text-sm text-emerald-700 mt-1">경쟁 강도: 중간 | AI 상위 10% 점수: 72점</p>
+          <p className="text-sm text-emerald-700 mt-1">경쟁 강도: 중간 | AI 상위 10% 노출: 상위권</p>
         </div>
       </LockedCard>
 
@@ -669,15 +676,15 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
             <div className="text-sm font-black">{d.competition_level}</div>
           </div>
           <div className="rounded-xl p-3 text-center bg-indigo-50 text-indigo-700">
-            <div className="text-sm font-semibold mb-1">상위 10% 점수</div>
-            <div className="text-sm font-black">{d.top10_score}점</div>
+            <div className="text-sm font-semibold mb-1">상위 10% 노출</div>
+            <div className="text-sm font-black">상위권</div>
           </div>
         </div>
 
         <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
           <p className="text-sm text-emerald-800">
-            지금 이 지역 {CATEGORY_LABELS[category]} 상위 10% 점수는 <strong>{d.top10_score}점</strong>입니다.
-            지금 창업해서 6개월 안에 {d.top10_score}점 달성하면 상위 10%에 들 수 있습니다.
+            지금 이 지역 {CATEGORY_LABELS[category]} 상위 10% 가게는 <strong>AI 검색 노출이 상위권</strong>입니다.
+            지금 창업해서 6개월 안에 상위권 수준에 도달하면 상위 10%에 들 수 있습니다.
             현재 경쟁 강도는 &apos;{d.competition_level}&apos; — 너무 늦지 않았습니다.
           </p>
         </div>
@@ -695,7 +702,7 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
             <div key={i} className="border border-gray-100 rounded-xl p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-bold text-gray-800">{i + 1}위 {d.competitors[i]}</span>
-                <span className="text-sm font-black text-gray-600">{score}점</span>
+                <span className="text-sm font-black text-gray-600">{scoreLabel(score)}</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
                 <div className="h-full bg-gray-500 rounded-full" style={{ width: `${(score / maxScore) * 100}%` }} />
@@ -751,8 +758,8 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
           <div className="bg-gray-50 rounded-xl p-3 text-center">
-            <div className="text-2xl font-black text-gray-700">{d.avg_score}점</div>
-            <div className="text-sm text-gray-500 mt-0.5">업종 평균 AI 점수</div>
+            <div className="text-2xl font-black text-gray-700">{scoreLabel(d.avg_score)}</div>
+            <div className="text-sm text-gray-500 mt-0.5">업종 평균 AI 노출</div>
           </div>
           <div className="bg-gray-50 rounded-xl p-3 text-center">
             <div className="text-2xl font-black text-gray-700">{d.avg_reviews}개</div>

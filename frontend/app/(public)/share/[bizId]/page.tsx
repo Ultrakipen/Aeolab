@@ -154,10 +154,10 @@ export default async function SharePage({ params }: Props) {
               </summary>
               <div className="mt-3 space-y-2">
                 {([
-                  { label: "안정 궤도",    range: "70점 이상", desc: "경쟁 가게 대비 AI 노출 우위", bg: "bg-blue-50 border-blue-200" },
-                  { label: "성장 진행 중", range: "50~69점",   desc: "기반 갖춤, 보완으로 노출 확대 가능", bg: "bg-blue-50 border-blue-100" },
-                  { label: "성장 준비 중", range: "30~49점",   desc: "핵심 항목 보완 시 빠른 개선 가능", bg: "bg-amber-50 border-amber-200" },
-                  { label: "시작 단계",    range: "0~29점",    desc: "AI 최적화 시작이 필요합니다", bg: "bg-slate-50 border-slate-200" },
+                  { label: "안정 궤도",    range: "내부 기준 70점 이상", desc: "경쟁 가게 대비 AI 노출 우위", bg: "bg-blue-50 border-blue-200" },
+                  { label: "성장 진행 중", range: "내부 기준 50~69점",   desc: "기반 갖춤, 보완으로 노출 확대 가능", bg: "bg-blue-50 border-blue-100" },
+                  { label: "성장 준비 중", range: "내부 기준 30~49점",   desc: "핵심 항목 보완 시 빠른 개선 가능", bg: "bg-amber-50 border-amber-200" },
+                  { label: "시작 단계",    range: "내부 기준 0~29점",    desc: "AI 최적화 시작이 필요합니다", bg: "bg-slate-50 border-slate-200" },
                 ]).map((item) => (
                   <div
                     key={item.label}
