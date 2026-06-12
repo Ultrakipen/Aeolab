@@ -55,7 +55,7 @@ export default function ScoreGuidePage() {
             <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">3</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               <strong>지금 가장 빠른 점수 향상 → 스마트플레이스 소개글 + 소식 탭</strong><br />
-              <span className="text-gray-500">스마트플레이스 완성도 항목(100점 만점)에서 최대 +45점(소식 25 + 소개글 20). 통합 점수에는 이 항목 비중(15~20%)만큼 반영됩니다.</span>
+              <span className="text-gray-500">두 항목이 스마트플레이스 완성도를 가장 크게 끌어올립니다. 통합 점수에는 이 항목 비중(15~20%)만큼 반영됩니다. <span className="text-gray-400">(내부 기준: 소식 25 + 소개글 20점)</span></span>
             </p>
           </div>
         </div>
@@ -557,10 +557,10 @@ export default function ScoreGuidePage() {
                 {g.grade}
               </div>
               <div className={`text-sm font-bold mb-1 ${g.textRange}`}>
-                {g.range}
+                {g.rank}
               </div>
               <div className="text-sm text-gray-600 mb-1">{g.label}</div>
-              <div className="text-sm text-gray-400">{g.rank}</div>
+              <div className="text-sm text-gray-400">내부 기준 {g.range}</div>
             </div>
           ))}
         </div>
@@ -622,8 +622,8 @@ export default function ScoreGuidePage() {
                 <span className={`text-sm font-bold ${s.textColor}`}>
                   {s.stage}
                 </span>
-                <span className={`text-sm font-semibold ${s.textColor}`}>
-                  {s.range}
+                <span className="text-sm text-gray-400">
+                  내부 기준 {s.range}
                 </span>
               </div>
               <div className="w-full bg-white/60 rounded-full h-2 mb-2">
