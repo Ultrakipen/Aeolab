@@ -23,14 +23,15 @@ jobs:
 
             cd /var/www/aeolab
 
-            echo "=== Pre-deploy 안전 백업 (reset --hard로 덮이는 미커밋 변경 보존) ==="
-            CHANGED=$(git status --porcelain | wc -l)
+            echo "=== Pre-deploy 안전 백업 (reset --hard로 '되돌려지는 추적 변경'만 보존) ==="
+            # reset --hard는 추적 파일만 되돌린다(미추적은 살아남음) → 추적 변경(modified·deleted)만 백업해 백업 비대화 방지
+            git diff --name-only HEAD > /tmp/_predeploy_tracked 2>/dev/null || true
+            CHANGED=$(wc -l < /tmp/_predeploy_tracked)
             if [ "$CHANGED" -gt 0 ]; then
               TS=$(date +%Y%m%d_%H%M%S)
               mkdir -p /var/www/aeolab_predeploy_backups
-              # 미커밋(추적·미추적) 변경 파일을 tar로 보존 — reset --hard 후 복원 가능
-              git status --porcelain | sed 's/^...//' | tar czf "/var/www/aeolab_predeploy_backups/predeploy_$TS.tgz" -T - 2>/dev/null || true
-              echo "⚠ 미커밋 변경 ${CHANGED}개 발견 → /var/www/aeolab_predeploy_backups/predeploy_${TS}.tgz 에 백업 후 진행"
+              tar czf "/var/www/aeolab_predeploy_backups/predeploy_$TS.tgz" -T /tmp/_predeploy_tracked 2>/dev/null || true
+              echo "⚠ 추적 변경 ${CHANGED}개 → /var/www/aeolab_predeploy_backups/predeploy_${TS}.tgz 백업 후 진행"
               # 최근 10개만 유지
               ls -1t /var/www/aeolab_predeploy_backups/predeploy_*.tgz 2>/dev/null | tail -n +11 | xargs -r rm -f
             fi
