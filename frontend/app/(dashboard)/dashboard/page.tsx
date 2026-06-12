@@ -456,7 +456,25 @@ export default async function DashboardPage({
             globalIntroReady={globalIntroReady}
           />
 
-          {/* ② 네이버 현황 — NavBar·Notice 포함, 기본 펼침 */}
+          {/* ④ 오늘 할 일 — Hero 직후 배치(결론→행동 흐름 복원). 네이버 우선은 Hero가 네이버 현황 첫 노출로 유지됨 */}
+          <CollapseSectionWrapper id="section-action" title="오늘 할 일" description="지금 바로 실행할 액션" iconColor="text-rose-500" defaultOpen={true}>
+            <DashboardActionZone
+              bizId={bizBase.id}
+              accessToken={accessToken}
+              hasLatestScan={!!latestScan}
+              userCreatedAt={user.created_at ?? null}
+              dimensions={dimensions}
+              todayTasks={todayTasks}
+              actionCopyText={actionCopyText}
+              topMissingKeyword={topMissingKeywords[0] ?? null}
+              unifiedScore={unifiedScore}
+              isSmartPlace={!!(business?.naver_place_id)}
+              plan={plan}
+              deprioritizeGlobal={briefingEligibility === "inactive" || isFranchise}
+            />
+          </CollapseSectionWrapper>
+
+          {/* ② 네이버 채널별 개선 방법 — 상세 참고(행동 뒤). 네이버 우선은 Hero 첫 노출로 유지, 기본 펼침 */}
           <CollapseSectionWrapper id="section-naver" title="네이버 채널별 개선 방법" description="노출 높이는 구체적 방법 — 요약 상태는 위 진단 카드 참고" iconColor="text-green-600" defaultOpen={true} highlight={true}>
             <>
               {/* 4타일 NavBar — 섹션 최상단 */}
@@ -534,24 +552,6 @@ export default async function DashboardPage({
               naverIntroGeneratedAt={business?.naver_intro_generated_at}
               talktalkFaqDraft={business?.talktalk_faq_draft as { items: Array<{ question: string; answer: string; category: string }>; chat_menus: string[] } | null | undefined}
               talktalkFaqGeneratedAt={business?.talktalk_faq_generated_at}
-            />
-          </CollapseSectionWrapper>
-
-          {/* ④ 오늘 할 일 — 기본 펼침 */}
-          <CollapseSectionWrapper id="section-action" title="오늘 할 일" description="지금 바로 실행할 액션" iconColor="text-rose-500" defaultOpen={true}>
-            <DashboardActionZone
-              bizId={bizBase.id}
-              accessToken={accessToken}
-              hasLatestScan={!!latestScan}
-              userCreatedAt={user.created_at ?? null}
-              dimensions={dimensions}
-              todayTasks={todayTasks}
-              actionCopyText={actionCopyText}
-              topMissingKeyword={topMissingKeywords[0] ?? null}
-              unifiedScore={unifiedScore}
-              isSmartPlace={!!(business?.naver_place_id)}
-              plan={plan}
-              deprioritizeGlobal={briefingEligibility === "inactive" || isFranchise}
             />
           </CollapseSectionWrapper>
 

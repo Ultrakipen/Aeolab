@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import KeywordRankCard from "@/components/dashboard/KeywordRankCard";
 import { AiInfoTabStatusCard } from "@/components/dashboard/AiInfoTabStatusCard";
@@ -63,6 +63,37 @@ function SubSectionLabel({ icon, label, borderClass }: { icon: string; label: st
   );
 }
 
+/** 접이식 소섹션 — 헤더가 SubSectionLabel과 동일 스타일이되 클릭 토글.
+    점진적 공개: 무거운 카드(순위표·AI탭·브리핑)를 기본 접힘으로 두어 읽기 부담 감소 */
+function CollapsibleSub({
+  icon, label, borderClass, defaultOpen = false, id, children,
+}: { icon: string; label: string; borderClass: string; defaultOpen?: boolean; id?: string; children: ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div id={id}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className={`w-full flex items-center justify-between gap-2 mb-3 pb-2 border-b-2 ${borderClass} text-left hover:opacity-80 transition-opacity`}
+      >
+        <span className="flex items-center gap-2 min-w-0">
+          <span className="text-base shrink-0" aria-hidden="true">{icon}</span>
+          <span className="text-sm font-bold text-gray-700">{label}</span>
+        </span>
+        {open ? (
+          <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
+        ) : (
+          <span className="flex items-center gap-1 text-xs text-gray-400 font-medium shrink-0 whitespace-nowrap">
+            눌러서 보기 <ChevronDown className="w-4 h-4" />
+          </span>
+        )}
+      </button>
+      {open && children}
+    </div>
+  );
+}
+
 export default function DashboardInsightZone({
   bizId,
   accessToken,
@@ -96,8 +127,7 @@ export default function DashboardInsightZone({
   const isActiveOrLikely = userGroup === "ACTIVE" || userGroup === "LIKELY";
 
   const sectionAiTab = (
-    <div id="naver-aitab-anchor">
-      <SubSectionLabel icon="🤖" label="네이버 AI탭 — 노출 높이는 방법" borderClass="border-blue-400" />
+    <CollapsibleSub id="naver-aitab-anchor" icon="🤖" label="네이버 AI탭 — 노출 높이는 방법" borderClass="border-blue-400" defaultOpen={false}>
       {/* 노출 상태(✓/✗/–)는 상단 진단 카드에서 한 번만 표시 — 여기서는 개선 방법만 안내 (중복 제거) */}
       <AiTabPreviewCard
         bizId={bizId}
@@ -106,12 +136,12 @@ export default function DashboardInsightZone({
         blogMentionCount={blogMentionCount}
         keywordCount={keywordCount}
       />
-    </div>
+    </CollapsibleSub>
   );
 
   const sectionBriefing = accessToken && briefingMeta ? (
-    <div id="naver-briefing-anchor">
-      <SubSectionLabel icon="✨" label="네이버 AI 브리핑" borderClass="border-purple-400" />
+    // ACTIVE/LIKELY는 브리핑이 핵심 채널 → 펼침. INACTIVE는 비대상 → 접힘
+    <CollapsibleSub id="naver-briefing-anchor" icon="✨" label="네이버 AI 브리핑" borderClass="border-purple-400" defaultOpen={isActiveOrLikely}>
       <AiInfoTabStatusCard
         bizId={bizId}
         accessToken={accessToken}
@@ -121,11 +151,12 @@ export default function DashboardInsightZone({
         explanation={briefingMeta.explanation}
         adOnly={latestAdOnly}
       />
-    </div>
+    </CollapsibleSub>
   ) : null;
 
   const sectionNaverSearch = (
     <div id="naver-seo-anchor">
+      {/* 체크리스트는 가볍고 핵심 → 항상 펼침. 순위표(무거움)만 접힘 처리 */}
       <SubSectionLabel icon="🔍" label="네이버 일반검색 노출" borderClass="border-green-400" />
       <NaverSeoBaseCard
         reviewCount={reviewCount ?? 0}
@@ -143,13 +174,15 @@ export default function DashboardInsightZone({
       />
       {keywords && keywords.length > 0 && region && (
         <div className="mt-3">
-          <KeywordRankCard
-            bizId={bizId}
-            keywords={keywords}
-            initialKeywordRanks={initialKeywordRanks ?? null}
-            userGroup={userGroup ?? "INACTIVE"}
-            region={region}
-          />
+          <CollapsibleSub icon="📊" label="내 키워드 네이버 검색 순위" borderClass="border-green-400" defaultOpen={false}>
+            <KeywordRankCard
+              bizId={bizId}
+              keywords={keywords}
+              initialKeywordRanks={initialKeywordRanks ?? null}
+              userGroup={userGroup ?? "INACTIVE"}
+              region={region}
+            />
+          </CollapsibleSub>
         </div>
       )}
     </div>
