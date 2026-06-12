@@ -55,7 +55,7 @@ export default function ScoreGuidePage() {
             <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">3</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               <strong>지금 가장 빠른 점수 향상 → 스마트플레이스 소개글 + 소식 탭</strong><br />
-              <span className="text-gray-500">두 항목만 완성해도 최대 +45점 가능 (소식 25점 + 소개글 20점)</span>
+              <span className="text-gray-500">스마트플레이스 완성도 항목(100점 만점)에서 최대 +45점(소식 25 + 소개글 20). 통합 점수에는 이 항목 비중(15~20%)만큼 반영됩니다.</span>
             </p>
           </div>
         </div>
@@ -452,10 +452,10 @@ export default function ScoreGuidePage() {
                   naverDominant: false,
                 },
                 {
-                  category: "쇼핑·패션·온라인몰",
+                  category: "온라인몰·종합쇼핑",
                   naver: 10,
                   global: 90,
-                  reason: "온라인 = 글로벌 AI 압도적",
+                  reason: "온라인 = 글로벌 AI 압도적 (의류·신발 매장은 50/50 내외)",
                   naverDominant: false,
                 },
                 {
