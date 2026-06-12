@@ -77,7 +77,7 @@ export default function HowItWorksPage() {
               <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center mt-0.5">2</span>
               <div>
                 <p className="text-sm md:text-base font-semibold text-gray-800">성장 단계는 네이버 채널 점수만으로 결정됩니다</p>
-                <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">대시보드의 통합 점수(예: 62점)와 성장 단계(예: 시작 단계)가 달라 보일 수 있습니다. 업종별 비율 차이를 보정하기 위해 성장 단계는 네이버 채널 점수만 기준으로 판정합니다.</p>
+                <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">대시보드의 통합 점수 상태(예: &lsquo;개선 중&rsquo;)와 성장 단계(예: &lsquo;시작 단계&rsquo;)가 달라 보일 수 있습니다. 업종별 비율 차이를 보정하기 위해 성장 단계는 네이버 채널 점수만 기준으로 판정합니다.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 px-4 py-3.5">
