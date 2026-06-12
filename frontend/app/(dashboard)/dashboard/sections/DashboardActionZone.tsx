@@ -92,8 +92,9 @@ export default function DashboardActionZone({
 }: Props) {
   const [showMore, setShowMore] = useState(false);
 
+  // 앵커 id는 외부 CollapseSectionWrapper(id="section-action")가 제공 — 중복 id 방지로 여기선 미부착
   return (
-    <section id="section-action" aria-label="액션 가이드" className="flex flex-col gap-3">
+    <section aria-label="액션 가이드" className="flex flex-col gap-3">
       {/* ① 오늘 — 시급 */}
       <ZoneHeader
         step={1}
