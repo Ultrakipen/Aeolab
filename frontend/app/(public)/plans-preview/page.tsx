@@ -319,7 +319,7 @@ function ComparisonTable() {
     { feature: "없는 키워드 3개 제시", basic: true, pro: true, startup: true },
     { feature: "이번 주 행동 1가지 안내", basic: true, pro: true, startup: true },
     { feature: "자동 스캔 빈도", basic: "매일", pro: "주 3회 전체", startup: "매일" },
-    { feature: "점수 추이 히스토리", basic: "30일", pro: "90일", startup: "90일" },
+    { feature: "점수 추이 히스토리", basic: "60일", pro: "90일", startup: "90일" },
     { feature: "경쟁 가게 등록", basic: "3곳", pro: "5곳", startup: "5곳" },
     { feature: "가이드 생성/월", basic: "3회", pro: "10회", startup: "5회" },
     { feature: "조건 검색 분석", basic: false, pro: true, startup: false },
@@ -489,7 +489,7 @@ function BasicContent({ d }: { d: MockData }) {
       <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
           <h3 className="text-base md:text-lg font-bold text-gray-900">내 가게 AI 노출 점수 변화</h3>
-          <span className="text-sm text-gray-500">Basic · 최근 30일</span>
+          <span className="text-sm text-gray-500">Basic · 최근 추이</span>
         </div>
         <TrendGraph days={30} />
         <p className="text-sm text-gray-500 mt-3">
