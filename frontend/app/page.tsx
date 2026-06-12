@@ -327,7 +327,7 @@ export default async function LandingPage() {
             <div className="fade-up flex flex-col gap-3">
               {[
                 { num: "3,000만+", label: "네이버 AI 서비스 월 이용자 (전체)", sub: "뉴스·검색·플레이스 전체 합산 · 네이버 공식 발표 (2025.11)", delay: "delay-1", isAiTab: false },
-                { num: "2026.04", label: "네이버 AI탭 베타 출시", sub: "2026-04-27 베타 출시 · 2026년 상반기 정식 서비스 예정(지연 가능) · 네이버 공식", delay: "delay-2", isAiTab: false },
+                { num: "2026.04", label: "네이버 AI탭 베타 출시", sub: "2026-04-27 베타 출시 · 정식 서비스 확대 예정(시점 네이버 공지 기준) · 네이버 공식", delay: "delay-2", isAiTab: false },
                 { num: "25종+", label: "모든 업종 측정 가능", sub: "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기", delay: "delay-3", isAiTab: true },
               ].map((item) => (
                 <div
@@ -839,7 +839,7 @@ export default async function LandingPage() {
                   <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">노출 대상 업종</p>
                   <div className="rounded-lg px-3 py-2.5" style={{ background: "#E0E7FF" }}>
                     <p className="text-sm font-black text-indigo-800">🏢 업종 공식 제한 없음 · 베타 확대 중</p>
-                    <p className="text-sm text-indigo-600 mt-0.5">장소 기반 모든 업종 가능 · 베타 300만명 돌파</p>
+                    <p className="text-sm text-indigo-600 mt-0.5">장소 기반 모든 업종 가능 · AI탭 베타 이용자 300만 돌파</p>
                   </div>
                   <div className="mt-2 flex items-center gap-1.5">
                     <span className="text-sm px-2 py-0.5 rounded-full font-semibold" style={{ background: "#D1FAE5", color: "#065F46" }}>✓ 프랜차이즈 가맹점도 가능</span>
@@ -1030,7 +1030,7 @@ export default async function LandingPage() {
                 월 광고비 30만원 → AEOlab 월 9,900원으로 대체 시
               </h2>
               <p className="text-base md:text-lg font-black break-keep mb-1" style={{ color: "#059669" }}>
-                연 <span style={{ fontSize: "1.4em" }}>347만원</span> 절감 예상
+                연 <span style={{ fontSize: "1.4em" }}>348만원</span> 절감 예상
               </p>
               <p className="text-sm" style={{ color: "#64748B" }}>
                 광고비 30만원 × 12개월 − AEOlab 연 118,800원 기준 추정
