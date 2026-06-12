@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 export const metadata: Metadata = {
   title: "점수 계산 방식 | AEOlab",
@@ -9,7 +10,8 @@ export const metadata: Metadata = {
 
 export default function ScoreGuidePage() {
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <main className="min-h-screen bg-white">
+    <div className="max-w-3xl mx-auto px-4 md:px-6 py-8 md:py-12">
       {/* 1. 헤더 */}
       <div className="mb-6">
         <div className="flex items-center justify-between gap-2 flex-wrap mb-4">
@@ -639,5 +641,7 @@ export default function ScoreGuidePage() {
         </Link>
       </div>
     </div>
+    <SiteFooter activePage="/score-guide" />
+    </main>
   );
 }

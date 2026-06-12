@@ -323,14 +323,14 @@ export default function HowItWorksPage() {
           </div>
         </section>
 
-        {/* ─── 2단계: 점수 100점 (현재 v3.0 6항목: ai_tab_readiness 5% 포함 / v3.1 그룹별 가중치 예정) ─── */}
+        {/* ─── 2단계: 점수 100점 — v3.1 업종그룹별 6항목 가중치 라이브 적용 중 (서버 SCORE_MODEL_VERSION=v3_1) ─── */}
         <section id="step2" className="mb-12 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
             2단계. 콘텐츠 점수 100점 — 네이버 채널 6항목
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            아래 표는 업종별 맞춤 그룹 가중치(향후 적용 예정)입니다. 현재는 단일 가중치(키워드 30%·리뷰 25%·스마트플레이스 15%·AI브리핑 15%·카카오맵 10%·AI탭 5%)가 적용 중이며, 베타 사용자 5명+ 데이터 확보 후 업종별 맞춤 기준으로 전환됩니다.
-            AI 브리핑 비대상 업종이라도 전환 시 키워드 검색·스마트플레이스 비중이 자동 상향되어 점수상 불이익이 없도록 설계됩니다.
+            아래 표는 업종 그룹(AI 브리핑 대상 / 확대 예정 / 글로벌 AI 중심)에 따라 자동 적용되는 6항목 가중치이며, 현재 라이브로 적용 중입니다.
+            AI 브리핑 비대상 업종(글로벌 AI 중심 그룹)은 키워드 검색·스마트플레이스 비중이 자동 상향되고 AI 브리핑 비중이 0%로 빠져, 비대상 업종이라도 점수상 불이익이 없도록 설계됩니다.
           </p>
 
           <div className="overflow-x-auto mb-4">
