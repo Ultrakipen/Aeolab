@@ -179,6 +179,23 @@ export default function PricingPage() {
             어떤 요금제든 당신의 업종에 맞는 채널을 측정합니다.
           </p>
           <ChannelDifferentiationCard variant="compact" />
+
+          {/* 모든 업종 공통 — 네이버 일반 검색·지도(플레이스) SEO */}
+          <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 md:px-6 py-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl shrink-0" aria-hidden="true">📍</span>
+              <div>
+                <p className="text-sm md:text-base font-bold text-green-900 mb-1 break-keep">
+                  모든 업종 공통 — 네이버 일반 검색·지도(플레이스) 상위 노출도 함께 개선
+                </p>
+                <p className="text-sm md:text-base text-green-800 leading-relaxed break-keep">
+                  네이버 AI 브리핑 대상 업종이 아니어도 걱정 마세요. 스마트플레이스 소개글·소식·리뷰·키워드를
+                  개선하면 <strong>네이버 일반 검색과 지도(플레이스) 상위 노출</strong>이 함께 올라갑니다.
+                  이 효과는 <strong>업종·프랜차이즈 여부와 관계없이 모든 사업장에 공통</strong>으로 적용됩니다.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* ─── 플랜 기능 비교표 ─── */}
@@ -269,18 +286,56 @@ export default function PricingPage() {
 
         {/* ─── 업종별 노출 범위 안내 (면책 문구) ─── */}
         <div className="mb-12 rounded-xl border border-amber-200 bg-amber-50 p-5 md:p-6">
-          <h3 className="text-base md:text-lg font-bold text-amber-900 mb-2 break-keep">
-            업종별 AI 브리핑 노출 범위 안내
+          <h3 className="text-base md:text-lg font-bold text-amber-900 mb-1 break-keep">
+            내 업종은 어디에 해당하나요? — 노출 범위 안내
           </h3>
-          <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed break-keep">
-            네이버 AI 브리핑은 현재 <strong>음식점·카페·베이커리·바·숙박</strong> 등 일부 업종에서만 제공되며,
-            <strong> 프랜차이즈 가맹점은 제공 대상에서 제외됩니다</strong>(네이버 정책 기준, 추후 확대 예정).
-            <strong>뷰티·네일·피트니스·약국·반려동물</strong> 등 확대 예상 업종은 네이버 AI탭(베타, 업종 공식 제한 없음, 2026-04-27 베타) 업종 확대를 대비해 소개글·사진을 미리 준비할 수 있습니다.
-            병원·법무·교육·쇼핑몰 등 비대상 업종 또는 프랜차이즈는 AEOlab 구독 시{" "}
-            <strong>네이버 AI탭·ChatGPT·Gemini·카카오맵 등 글로벌 AI 가시성</strong>이 향상됩니다.
+          <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed break-keep">
+            네이버 AI 브리핑은 업종에 따라 대상이 나뉩니다. 하지만 어느 단계든 AEOlab으로 개선 가능한 채널이 있습니다.
           </p>
-          <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-            구독 전 자신의 업종이 어디에 해당하는지{" "}
+
+          {/* 단계별 분류 */}
+          <div className="space-y-2.5 mb-4">
+            <div className="rounded-xl bg-white border border-green-200 px-4 py-3">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-800 border border-green-200">AI 브리핑 대상</span>
+                <span className="text-sm font-semibold text-gray-900">음식점 · 카페 · 베이커리 · 바 · 숙박</span>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed break-keep">
+                네이버 AI 브리핑 + AI탭 + 글로벌 AI까지 3개 채널 모두 노출 가능 (단, 프랜차이즈 가맹점은 본사 정책상 AI 브리핑 제외)
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-white border border-blue-200 px-4 py-3">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">확대 예상</span>
+                <span className="text-sm font-semibold text-gray-900">뷰티 · 네일 · 피트니스 · 요가 · 약국 · 반려동물 등</span>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed break-keep">
+                현재 AI탭(베타, 업종 제한 없음) + 글로벌 AI 노출 가능. AI 브리핑 확대에 대비해 소개글·사진을 미리 준비할 수 있습니다.
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-white border border-gray-200 px-4 py-3">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">비대상 · 프랜차이즈</span>
+                <span className="text-sm font-semibold text-gray-900">병원 · 법무 · 교육 · 쇼핑몰 등</span>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed break-keep">
+                AI 브리핑 대상은 아니지만 AI탭 + ChatGPT · Gemini · Google AI · 카카오맵 등 글로벌 AI 가시성을 집중 개선합니다.
+              </p>
+            </div>
+          </div>
+
+          {/* 공통 안내 — 네이버 일반 검색 SEO */}
+          <div className="rounded-xl bg-green-100/60 border border-green-200 px-4 py-3 mb-4">
+            <p className="text-sm md:text-base text-green-900 leading-relaxed break-keep">
+              <strong>📍 어느 단계든 공통:</strong> 위 어느 경우에 해당하든, 스마트플레이스·블로그·키워드를 개선하면
+              <strong> 네이버 일반 검색과 지도(플레이스) 상위 노출</strong>은 함께 향상됩니다. AI 브리핑 대상이 아니어도 네이버에서 더 잘 찾히게 만들 수 있습니다.
+            </p>
+          </div>
+
+          <p className="text-sm md:text-base text-gray-600 leading-relaxed break-keep">
+            구독 전 내 업종이 어디에 해당하는지{" "}
             <Link href="/trial" className="text-blue-600 hover:underline font-medium">
               무료 진단
             </Link>
@@ -288,7 +343,7 @@ export default function PricingPage() {
             <Link href="/how-it-works" className="text-blue-600 hover:underline font-medium">
               서비스 안내 매뉴얼
             </Link>
-            을 참고하세요.{" "}
+            ·{" "}
             <a
               href="https://help.naver.com/service/30026/contents/24632"
               target="_blank"
@@ -297,7 +352,7 @@ export default function PricingPage() {
             >
               네이버 공식 안내
             </a>
-            도 함께 보세요.
+            를 참고하세요.
           </p>
         </div>
 
@@ -417,7 +472,7 @@ export default function PricingPage() {
             {[
               {
                 q: "내 업종도 네이버 AI 브리핑에 노출되나요?",
-                a: "음식점·카페·베이커리·바·숙박 5개 업종이 현재 네이버 AI 브리핑 노출 대상입니다. 뷰티·네일·반려동물·헬스·요가·약국 등은 2026 AI탭 베타·확대 진행 중. 그 외 업종은 ChatGPT·Gemini·Google AI 노출 개선 중심으로 가치를 제공합니다. 단, 모든 업종에서 프랜차이즈 가맹점은 네이버 정책상 제외됩니다.",
+                a: "음식점·카페·베이커리·바·숙박 5개 업종이 현재 네이버 AI 브리핑 노출 대상입니다. 뷰티·네일·반려동물·헬스·요가·약국 등은 2026 AI탭 베타·확대 진행 중. 그 외 업종은 ChatGPT·Gemini·Google AI 노출 개선 중심으로 가치를 제공합니다. 단, 모든 업종에서 프랜차이즈 가맹점은 네이버 정책상 제외됩니다. 그리고 AI 브리핑 대상이 아니어도, 어느 업종이든 스마트플레이스·블로그·키워드를 개선하면 네이버 일반 검색·지도(플레이스) 상위 노출은 공통으로 향상됩니다.",
               },
               {
                 q: "구독은 언제든지 해지할 수 있나요?",
