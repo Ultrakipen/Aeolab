@@ -270,7 +270,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
     top3: [
       {
         title: "전후 비교 사진",
-        desc: "미용 전후 사진은 '우리 강아지 미용 잘하는 곳' 쿼리 응답에서 AI 브리핑 인용 요소로 작용합니다.",
+        desc: "AI탭·AI 브리핑 노출 시 '우리 강아지 미용 잘하는 곳' 쿼리에서 미용 전후 사진이 있는 업소가 인용되기 유리합니다.",
       },
       {
         title: "요금표 투명화",
@@ -312,7 +312,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
       },
       {
         title: "수강 후기 확보",
-        desc: "실제 수강생 후기는 AI 브리핑·글로벌 AI 모두 '인용할 만한 근거'로 활용합니다.",
+        desc: "실제 수강생 후기는 ChatGPT·Gemini 등 글로벌 AI가 '인용할 만한 근거'로 활용합니다.",
       },
     ],
   },
