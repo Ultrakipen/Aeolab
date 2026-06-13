@@ -23,7 +23,7 @@ import CompetitorKeywordCompare from '@/components/dashboard/CompetitorKeywordCo
 import { PlaceCompareTable } from '@/components/dashboard/PlaceCompareTable'
 import type { GapAnalysis } from '@/types/gap'
 
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND || 'http://localhost:8000'
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
 interface Business { id: string; name: string; category: string; region: string }
 interface Competitor {

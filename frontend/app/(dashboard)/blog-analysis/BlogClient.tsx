@@ -511,8 +511,8 @@ function CompetitorComparisonSection({ comparison, businessName }: { comparison:
           <div className="text-sm text-blue-600 mt-1">{comparison.total_count}개 사업장 중</div>
         </div>
         <div className={`border rounded-xl p-4 text-center ${comparison.my_score >= comparison.avg_score ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
-          <div className={`text-2xl md:text-3xl font-bold ${comparison.my_score >= comparison.avg_score ? "text-green-700" : "text-red-700"}`}>
-            {comparison.my_score >= comparison.avg_score ? "+" : ""}{Math.round(comparison.my_score - comparison.avg_score)}점
+          <div className={`text-xl md:text-2xl font-bold ${comparison.my_score >= comparison.avg_score ? "text-green-700" : "text-red-700"}`}>
+            {comparison.my_score >= comparison.avg_score ? "평균 이상" : "평균 미달"}
           </div>
           <div className="text-sm text-gray-600 mt-1">경쟁사 평균 대비</div>
         </div>
@@ -524,7 +524,7 @@ function CompetitorComparisonSection({ comparison, businessName }: { comparison:
         <div>
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm font-semibold text-blue-700">{businessName} (나)</span>
-            <span className="text-sm font-bold text-blue-700">{comparison.my_score}점</span>
+            <span className="text-sm font-bold text-blue-700">{postScoreLabel(comparison.my_score)}</span>
           </div>
           <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${Math.max((comparison.my_score / maxScore) * 100, 2)}%` }} />
@@ -535,7 +535,7 @@ function CompetitorComparisonSection({ comparison, businessName }: { comparison:
           <div key={idx}>
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-medium text-gray-600 truncate max-w-[60%]">{c.name}</span>
-              <span className="text-sm font-semibold text-gray-700">{c.score}점 · {c.post_count}개</span>
+              <span className="text-sm font-semibold text-gray-700">{postScoreLabel(c.score)} · {c.post_count}개</span>
             </div>
             <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
               <div className="h-full bg-gray-400 rounded-full transition-all" style={{ width: `${Math.max((c.score / maxScore) * 100, 2)}%` }} />

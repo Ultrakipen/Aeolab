@@ -499,7 +499,7 @@ export default function ReviewInboxPage() {
                   <CopyButton text={h.draft_response} />
                 </div>
                 {/* 위기관리 가이드 버튼 (부정 리뷰) */}
-                {h.tone === 'negative' && businessId && token && (
+                {h.tone === 'negative' && h.review_text && businessId && token && (
                   <div className="mt-3">
                     <button
                       onClick={() => {
@@ -508,7 +508,7 @@ export default function ReviewInboxPage() {
                           setCrisisReviewText('')
                         } else {
                           setCrisisReviewId(h.id)
-                          setCrisisReviewText(h.review_text ?? '')
+                          setCrisisReviewText(h.review_text!)
                         }
                       }}
                       className="flex items-center gap-1.5 text-sm text-red-600 border border-red-200 rounded-lg px-2.5 py-1.5 hover:bg-red-50 transition-colors font-medium"
@@ -526,7 +526,7 @@ export default function ReviewInboxPage() {
                     )}
                   </div>
                 )}
-                <p className="text-sm text-gray-300 mt-2">{h.created_at.slice(0, 10)}</p>
+                <p className="text-sm text-gray-300 mt-2">{h.created_at?.slice(0, 10) ?? ''}</p>
               </div>
             ))}
           </div>
