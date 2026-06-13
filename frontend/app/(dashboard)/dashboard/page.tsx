@@ -571,8 +571,8 @@ export default async function DashboardPage({
             />
           </CollapseSectionWrapper>
 
-          {/* ③ 오늘 할 일 — 네이버 현황·도구 파악 후 행동 지시 */}
-          <CollapseSectionWrapper id="section-action" title="오늘 할 일" description="지금 바로 실행할 액션" iconColor="text-rose-500" defaultOpen={true}>
+          {/* ③ 오늘 할 일 — 네이버 현황·도구 파악 후 행동 지시 (모바일: 기본 접힘 → 스크롤 단축) */}
+          <CollapseSectionWrapper id="section-action" title="오늘 할 일" description="지금 바로 실행할 액션" iconColor="text-rose-500" defaultOpen={true} mobileDefaultOpen={false}>
             <DashboardActionZone
               bizId={bizBase.id}
               accessToken={accessToken}

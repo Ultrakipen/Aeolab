@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
 interface Props {
@@ -9,6 +9,8 @@ interface Props {
   description?: string;
   iconColor?: string;
   defaultOpen?: boolean;
+  /** 모바일(< 768px) 전용 기본 상태. 미지정 시 defaultOpen과 동일 */
+  mobileDefaultOpen?: boolean;
   highlight?: boolean;
   badgeText?: string;
   badgeColor?: "amber" | "red" | "green" | "blue";
@@ -21,12 +23,22 @@ export default function CollapseSectionWrapper({
   description,
   iconColor = "text-blue-600",
   defaultOpen = false,
+  mobileDefaultOpen,
   highlight = false,
   badgeText,
   badgeColor = "amber",
   children,
 }: Props) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  // 모바일 기본 상태 오버라이드 — useEffect로 하이드레이션 후 적용 (flash 최소화)
+  useEffect(() => {
+    if (mobileDefaultOpen === undefined) return;
+    if (window.innerWidth < 768) {
+      setIsOpen(mobileDefaultOpen);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div id={id} className={`bg-white rounded-xl border shadow-sm overflow-hidden ${
