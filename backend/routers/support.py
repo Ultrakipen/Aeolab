@@ -234,7 +234,7 @@ async def _send_reply_notification(ticket_id: str, ticket_title: str, user_id: s
     <p style="font-size:15px; color:#1e293b; margin:0;">{ticket_title}</p>
   </div>
   <div style="text-align:center; margin-top:8px;">
-    <a href="https://aeolab.co.kr/dashboard/support/{ticket_id}"
+    <a href="https://aeolab.co.kr/support/tickets/{ticket_id}"
        style="background:#1d4ed8; color:#ffffff; text-decoration:none; padding:12px 28px; border-radius:8px; font-size:14px; font-weight:600;">
       답변 확인하기
     </a>
@@ -293,16 +293,24 @@ async def create_ticket(
 
 
 @router.get("/tickets/me")
-async def list_my_tickets(user: dict = Depends(get_current_user)):
-    """내 문의 목록 최신순 20건."""
+async def list_my_tickets(
+    user: dict = Depends(get_current_user),
+    status: Optional[str] = Query(None),
+):
+    """내 문의 목록 최신순 20건 (status 필터 optional)."""
+    if status and status not in _VALID_STATUSES:
+        raise HTTPException(status_code=400, detail=f"유효하지 않은 상태입니다. 허용값: {', '.join(sorted(_VALID_STATUSES))}")
     supabase = get_client()
-    res = await execute(
+    query = (
         supabase.table("support_tickets")
         .select("id, category, title, status, visibility, created_at, answered_at")
         .eq("user_id", user["id"])
         .order("created_at", desc=True)
         .limit(20)
     )
+    if status:
+        query = query.eq("status", status)
+    res = await execute(query)
     return {"tickets": res.data or []}
 
 

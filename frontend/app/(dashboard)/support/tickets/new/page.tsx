@@ -118,7 +118,13 @@ function SupportNewForm() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.detail ?? "문의 제출에 실패했습니다.");
+        const detail = errData.detail;
+        const msg = typeof detail === "string"
+          ? detail
+          : (typeof detail === "object" && detail?.message)
+          ? detail.message
+          : "문의 제출에 실패했습니다.";
+        throw new Error(msg);
       }
 
       const data = await res.json();
@@ -238,12 +244,12 @@ function SupportNewForm() {
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value.slice(0, 200))}
-                maxLength={200}
+                onChange={(e) => setTitle(e.target.value.slice(0, 100))}
+                maxLength={100}
                 placeholder="문의 제목을 간단히 입력해 주세요."
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400"
               />
-              <p className="text-sm text-gray-400 mt-1 text-right">{title.length}/200</p>
+              <p className="text-sm text-gray-400 mt-1 text-right">{title.length}/100</p>
             </div>
 
             {/* 내용 */}
