@@ -163,12 +163,14 @@ export async function generateSchema(req: {
   website_url?: string;
   opening_hours?: string;
   description?: string;
-}, userId?: string) {
+  menu_items?: string;
+  specialty?: string;
+}, token?: string) {
   return apiCall(`${BACKEND_URL}/api/schema/generate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(userId ? { "X-User-Id": userId } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(req),
   });

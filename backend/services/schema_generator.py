@@ -5,7 +5,7 @@ Claude 호출 없음 (비용 정책: Claude Sonnet은 guide_generator.py 전용)
 """
 import json
 from models.schemas import SchemaRequest
-from services.keyword_taxonomy import KEYWORD_TAXONOMY
+from services.keyword_taxonomy import KEYWORD_TAXONOMY, normalize_category
 
 # ── 업종 한국어 매핑 ──────────────────────────────────────────────────────────
 CATEGORY_KO: dict[str, str] = {
@@ -167,14 +167,7 @@ CHECKLIST_BY_CATEGORY: dict[str, list[dict]] = {
 
 def score_intro_for_ai_briefing(intro_text: str, category: str) -> dict:
     """생성된 소개글이 AI 브리핑 키워드를 얼마나 포함하는지 점수 계산"""
-    # keyword_taxonomy의 CATEGORY_ALIASES를 통해 정규화된 키 사용
-    _ALIASES: dict[str, str] = {
-        "restaurant": "restaurant", "cafe": "cafe", "beauty": "beauty",
-        "clinic": "clinic", "hospital": "clinic", "academy": "academy",
-        "legal": "legal", "law": "legal", "fitness": "fitness",
-        "pet": "pet", "shopping": "shopping",
-    }
-    normalized = _ALIASES.get(category, category)
+    normalized = normalize_category(category)
     taxonomy = KEYWORD_TAXONOMY.get(normalized, KEYWORD_TAXONOMY.get("restaurant", {}))
 
     all_keywords: list[str] = []

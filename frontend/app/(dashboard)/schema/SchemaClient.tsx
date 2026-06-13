@@ -147,6 +147,8 @@ function ChecklistItem({
 }
 
 // AI 브리핑 최적화 점수 게이지
+const GRADE_LABEL: Record<string, string> = { A: '우수', B: '양호', C: '보통', D: '부족' }
+
 function IntroScoreGauge({ introScore }: { introScore: IntroScore }) {
   const GRADE_COLOR: Record<string, { ring: string; text: string; bg: string }> = {
     A: { ring: 'stroke-green-500', text: 'text-green-600', bg: 'bg-green-50' },
@@ -174,8 +176,8 @@ function IntroScoreGauge({ introScore }: { introScore: IntroScore }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`text-2xl font-bold ${color.text}`}>{introScore.score}</span>
-          <span className={`text-sm font-semibold ${color.text}`}>{introScore.grade}등급</span>
+          <span className={`text-lg font-bold ${color.text}`}>{GRADE_LABEL[introScore.grade] ?? '보통'}</span>
+          <span className={`text-xs font-medium ${color.text}`}>{introScore.grade}등급</span>
         </div>
       </div>
       <div className="flex-1 min-w-0">
@@ -229,6 +231,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
   ])
   const [result, setResult] = useState<SchemaResult | null>(null)
   const [loading, setLoading] = useState(false)
+  const [generateError, setGenerateError] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('briefing')
   const [blogDraftType, setBlogDraftType] = useState<BlogDraftType>('new_open')
   const [checkedCount, setCheckedCount] = useState(0)
@@ -238,16 +241,20 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setGenerateError(null)
     try {
       const opening_hours = buildOpeningHoursString(hoursRows)
       try { localStorage.removeItem(checklistStorageKey) } catch {}
-      const data = await generateSchema({ ...form, opening_hours }, userId) as SchemaResult
+      const { getSafeSession } = await import('@/lib/supabase/client')
+      const sess = await getSafeSession()
+      const token = sess?.access_token
+      const data = await generateSchema({ ...form, opening_hours }, token) as SchemaResult
       setResult(data)
       setTab('briefing')
       setCheckedCount(0)
       setTimeout(() => document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth' }), 100)
     } catch {
-      alert('생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+      setGenerateError('생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
     } finally {
       setLoading(false)
     }
@@ -314,14 +321,14 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
           <h2 className="text-sm font-semibold text-gray-700 mb-3">기본 정보</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">가게 이름 *</label>
-              <input required value={form.business_name} onChange={(e) => setForm({ ...form, business_name: e.target.value })}
+              <label htmlFor="sc-business-name" className="block text-sm font-medium text-gray-700 mb-1">가게 이름 *</label>
+              <input id="sc-business-name" required value={form.business_name} onChange={(e) => setForm({ ...form, business_name: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="예: 강남 맛있는 치킨" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">업종 *</label>
-              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
+              <label htmlFor="sc-category" className="block text-sm font-medium text-gray-700 mb-1">업종 *</label>
+              <select id="sc-category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 {FLAT_CATEGORY_GROUPS.map((group) => (
                   <optgroup key={group.groupLabel} label={group.groupLabel}>
@@ -340,40 +347,40 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
           <h2 className="text-sm font-semibold text-gray-700 mb-3">위치 · 연락처</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">지역 *</label>
-              <input required value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })}
+              <label htmlFor="sc-region" className="block text-sm font-medium text-gray-700 mb-1">지역 *</label>
+              <input id="sc-region" required value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="예: 강남구" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">전화번호</label>
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              <label htmlFor="sc-phone" className="block text-sm font-medium text-gray-700 mb-1">전화번호</label>
+              <input id="sc-phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="02-0000-0000" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">주소</label>
-            <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })}
+            <label htmlFor="sc-address" className="block text-sm font-medium text-gray-700 mb-1">주소</label>
+            <input id="sc-address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="서울시 강남구 테헤란로 123" />
           </div>
         </div>
 
         {/* 메뉴·서비스 (핵심) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="sc-menu-items" className="block text-sm font-medium text-gray-700 mb-1">
             메뉴 · 서비스 <span className="text-gray-400 font-normal text-sm">(AI가 가장 많이 활용하는 정보)</span>
           </label>
-          <textarea rows={2} value={form.menu_items} onChange={(e) => setForm({ ...form, menu_items: e.target.value })}
+          <textarea id="sc-menu-items" rows={2} value={form.menu_items} onChange={(e) => setForm({ ...form, menu_items: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
             placeholder="예: 후라이드치킨, 양념치킨, 간장치킨, 치킨무, 콜라 — 주력 메뉴나 서비스를 입력하세요" />
         </div>
 
         {/* 특징·강점 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="sc-specialty" className="block text-sm font-medium text-gray-700 mb-1">
             가게 특징 · 강점 <span className="text-gray-400 font-normal text-sm">(소개글에 반영됩니다)</span>
           </label>
-          <textarea rows={2} value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })}
+          <textarea id="sc-specialty" rows={2} value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
             placeholder="예: 20년 전통, 주문 즉시 튀김, 배달 30분 이내, 무료 주차, 아이 동반 가능" />
         </div>
@@ -387,10 +394,10 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
 
         {/* 홈페이지 (선택) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="sc-website-url" className="block text-sm font-medium text-gray-700 mb-1">
             홈페이지 주소 <span className="text-gray-400 font-normal text-sm">(없으면 비워도 됩니다)</span>
           </label>
-          <input value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })}
+          <input id="sc-website-url" value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="https://내가게.com (없으면 비워두세요)" />
         </div>
 
@@ -403,6 +410,12 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
             </>
           ) : 'AI 검색 코드 · 소개글 · 블로그 초안 생성하기'}
         </button>
+        {generateError && (
+          <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            {generateError}
+          </div>
+        )}
       </form>
 
       {/* 결과 */}
