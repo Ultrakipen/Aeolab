@@ -440,41 +440,7 @@ export default async function DashboardPage({
             </div>
           </div>
 
-          {/* 🔎 실측 증거 미리보기 — ChatGPT 실제 인용문 (실측, 없으면 미표시) */}
-          {latestScan && (
-            <DashboardEvidencePreview
-              chatgptCitation={chatgptCitation}
-              myRankInList={myRankInList}
-              totalCompetitors={rankingItems.length}
-            />
-          )}
-
-          {/* 🎁 받은 것 신호 — AI 생성 산출물 (실측, 없으면 미표시) */}
-          <DashboardDeliverableSignal
-            naverIntroReady={naverIntroReady}
-            talktalkMenuCount={talktalkMenuCount}
-            globalIntroReady={globalIntroReady}
-          />
-
-          {/* ④ 오늘 할 일 — Hero 직후 배치(결론→행동 흐름 복원). 네이버 우선은 Hero가 네이버 현황 첫 노출로 유지됨 */}
-          <CollapseSectionWrapper id="section-action" title="오늘 할 일" description="지금 바로 실행할 액션" iconColor="text-rose-500" defaultOpen={true}>
-            <DashboardActionZone
-              bizId={bizBase.id}
-              accessToken={accessToken}
-              hasLatestScan={!!latestScan}
-              userCreatedAt={user.created_at ?? null}
-              dimensions={dimensions}
-              todayTasks={todayTasks}
-              actionCopyText={actionCopyText}
-              topMissingKeyword={topMissingKeywords[0] ?? null}
-              unifiedScore={unifiedScore}
-              isSmartPlace={!!(business?.naver_place_id)}
-              plan={plan}
-              deprioritizeGlobal={briefingEligibility === "inactive" || isFranchise}
-            />
-          </CollapseSectionWrapper>
-
-          {/* ② 네이버 채널별 개선 방법 — 상세 참고(행동 뒤). 네이버 우선은 Hero 첫 노출로 유지, 기본 펼침 */}
+          {/* ① 네이버 채널별 개선 방법 — 소상공인 최우선 채널. Hero 바로 다음에 배치 */}
           <CollapseSectionWrapper id="section-naver" title="네이버 채널별 개선 방법" description="노출 높이는 구체적 방법 — 요약 상태는 위 진단 카드 참고" iconColor="text-green-600" defaultOpen={true} highlight={true}>
             <>
               {/* 4타일 NavBar — 섹션 최상단 */}
@@ -540,6 +506,40 @@ export default async function DashboardPage({
                 />
             </>
           </CollapseSectionWrapper>
+
+          {/* ② 오늘 할 일 — 네이버 현황 파악 후 행동 지시 */}
+          <CollapseSectionWrapper id="section-action" title="오늘 할 일" description="지금 바로 실행할 액션" iconColor="text-rose-500" defaultOpen={true}>
+            <DashboardActionZone
+              bizId={bizBase.id}
+              accessToken={accessToken}
+              hasLatestScan={!!latestScan}
+              userCreatedAt={user.created_at ?? null}
+              dimensions={dimensions}
+              todayTasks={todayTasks}
+              actionCopyText={actionCopyText}
+              topMissingKeyword={topMissingKeywords[0] ?? null}
+              unifiedScore={unifiedScore}
+              isSmartPlace={!!(business?.naver_place_id)}
+              plan={plan}
+              deprioritizeGlobal={briefingEligibility === "inactive" || isFranchise}
+            />
+          </CollapseSectionWrapper>
+
+          {/* 🔎 실측 증거 미리보기 — ChatGPT 실제 인용문 (글로벌 AI 데이터, 없으면 미표시) */}
+          {latestScan && (
+            <DashboardEvidencePreview
+              chatgptCitation={chatgptCitation}
+              myRankInList={myRankInList}
+              totalCompetitors={rankingItems.length}
+            />
+          )}
+
+          {/* 🎁 받은 것 신호 — AI 생성 산출물 (실측, 없으면 미표시) */}
+          <DashboardDeliverableSignal
+            naverIntroReady={naverIntroReady}
+            talktalkMenuCount={talktalkMenuCount}
+            globalIntroReady={globalIntroReady}
+          />
 
           {/* ③ 콘텐츠 생성 도구 — 소개글·톡톡 메뉴 (필요할 때 펼치는 도구 성격 → 기본 접힘) */}
           <CollapseSectionWrapper id="section-content" title="콘텐츠 생성 도구" description="AI 맞춤 소개글 · 톡톡 채팅방 메뉴 초안 — 펼쳐서 생성·복사" iconColor="text-purple-600" defaultOpen={false}>
