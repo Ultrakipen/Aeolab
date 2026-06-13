@@ -55,7 +55,7 @@ export default function ScoreGuidePage() {
             <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">3</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               <strong>지금 가장 빠른 점수 향상 → 스마트플레이스 소개글 + 소식 탭</strong><br />
-              <span className="text-gray-500">두 항목이 스마트플레이스 완성도를 가장 크게 끌어올립니다. 통합 점수에는 이 항목 비중(15~20%)만큼 반영됩니다. <span className="text-gray-400">(내부 기준: 소식 25 + 소개글 20점)</span></span>
+              <span className="text-gray-500">두 항목이 스마트플레이스 완성도를 가장 크게 끌어올립니다. 통합 점수에는 이 항목 비중(15~20%)만큼 반영됩니다.</span>
             </p>
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function ScoreGuidePage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <p className="text-sm md:text-base text-gray-700 leading-relaxed">
           AI가 가게를 추천할 때 얼마나 잘 준비돼 있는지를{" "}
-          <strong>0~100점</strong>으로 측정합니다. 점수가 높을수록 네이버 AI
+          <strong>A~D 4단계 등급</strong>으로 진단합니다. 등급이 높을수록 네이버 AI
           브리핑·AI탭·ChatGPT·Gemini·Google AI에 가게 이름이 더 자주 노출됩니다.
         </p>
       </div>
@@ -560,7 +560,6 @@ export default function ScoreGuidePage() {
                 {g.rank}
               </div>
               <div className="text-sm text-gray-600 mb-1">{g.label}</div>
-              <div className="text-sm text-gray-400">내부 기준 {g.range}</div>
             </div>
           ))}
         </div>
@@ -618,12 +617,9 @@ export default function ScoreGuidePage() {
             },
           ].map((s, i) => (
             <div key={i} className={`rounded-xl p-4 ${s.color}`}>
-              <div className="flex items-center justify-between mb-2">
+              <div className="mb-2">
                 <span className={`text-sm font-bold ${s.textColor}`}>
                   {s.stage}
-                </span>
-                <span className="text-sm text-gray-400">
-                  내부 기준 {s.range}
                 </span>
               </div>
               <div className="w-full bg-white/60 rounded-full h-2 mb-2">

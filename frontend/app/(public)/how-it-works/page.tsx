@@ -84,7 +84,7 @@ export default function HowItWorksPage() {
               <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center mt-0.5">3</span>
               <div>
                 <p className="text-sm md:text-base font-semibold text-gray-800">지금 당장 점수를 올리는 가장 빠른 방법</p>
-                <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">스마트플레이스 <strong>소개글 작성</strong> + <strong>소식 탭 최근 게시물</strong> — 두 항목이 네이버 채널 점수를 가장 크게 끌어올립니다. 광고비 없이 콘텐츠만으로 가능한 가장 확실한 개선입니다. <span className="text-gray-400">(내부 기준: 소식 25 + 소개글 20점)</span></p>
+                <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">스마트플레이스 <strong>소개글 작성</strong> + <strong>소식 탭 최근 게시물</strong> — 두 항목이 네이버 채널 점수를 가장 크게 끌어올립니다. 광고비 없이 콘텐츠만으로 가능한 가장 확실한 개선입니다.</p>
               </div>
             </div>
           </div>
