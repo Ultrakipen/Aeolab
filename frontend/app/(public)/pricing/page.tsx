@@ -24,21 +24,19 @@ export default function PricingPage() {
         </div>
       </header>
 
-      <section className="max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-14">
+      <section className="max-w-5xl mx-auto px-4 md:px-6 py-12 md:py-16">
         {/* 타이틀 */}
-        <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-3">요금제</h1>
-        <p className="text-center text-base md:text-lg text-gray-500 mb-6">
+        <h1 className="text-3xl md:text-5xl font-bold text-center text-gray-900 mb-3">요금제</h1>
+        <p className="text-center text-base md:text-xl text-gray-500 mb-6">
           네이버 AI 브리핑 · ChatGPT · Gemini — AI가 내 가게를 먼저 추천하게 만드세요
         </p>
 
         {/* 업종 선택 → 그룹별 가치 메시지 */}
         <GroupHeadlineBanner />
 
-        <div className="mb-8" />
-
         {/* ─── 플랜 카드: 상단 3개 ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {[PLANS[1], PLANS[4], PLANS[2]].map((plan) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 mt-8">
+          {[PLANS[4], PLANS[1], PLANS[2]].map((plan) => (
             <div
               key={plan.name}
               id={`plan-${plan.name.replace(/\s+/g, "-")}`}
@@ -53,10 +51,10 @@ export default function PricingPage() {
                   {plan.badge}
                 </div>
               )}
-              <div className={`text-xl font-bold mb-0.5 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
+              <div className={`text-2xl font-bold mb-0.5 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
                 {plan.name}
               </div>
-              <div className={`text-sm mb-1 ${plan.highlight ? "text-blue-200" : "text-gray-500"}`}>
+              <div className={`text-sm md:text-base mb-1 ${plan.highlight ? "text-blue-200" : "text-gray-500"}`}>
                 {plan.description}
               </div>
               {plan.valueTag && (
@@ -66,9 +64,9 @@ export default function PricingPage() {
                   {plan.valueTag}
                 </div>
               )}
-              <div className={`text-3xl font-bold mb-1 mt-1 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
+              <div className={`text-4xl font-bold mb-1 mt-2 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
                 {plan.price}
-                <span className={`text-sm font-normal ${plan.highlight ? "text-blue-200" : "text-gray-500"}`}>
+                <span className={`text-base font-normal ${plan.highlight ? "text-blue-200" : "text-gray-500"}`}>
                   {plan.period}
                 </span>
               </div>
@@ -82,7 +80,7 @@ export default function PricingPage() {
 
               <ul className="mt-4 mb-6 space-y-2.5 flex-1">
                 {plan.features.map((f) => (
-                  <li key={f} className={`text-sm flex gap-2 leading-snug ${plan.highlight ? "text-blue-100" : "text-gray-600"}`}>
+                  <li key={f} className={`text-sm md:text-base flex gap-2 leading-snug ${plan.highlight ? "text-blue-100" : "text-gray-600"}`}>
                     <span className={`mt-0.5 shrink-0 ${plan.highlight ? "text-blue-200" : "text-blue-500"}`}>✓</span>
                     {f}
                   </li>
@@ -133,20 +131,20 @@ export default function PricingPage() {
               {plan.badge && (
                 <div className="text-sm font-semibold text-blue-600 mb-2">{plan.badge}</div>
               )}
-              <div className="text-xl font-bold text-gray-900 mb-0.5">{plan.name}</div>
-              <div className="text-sm text-gray-500 mb-1">{plan.description}</div>
+              <div className="text-2xl font-bold text-gray-900 mb-0.5">{plan.name}</div>
+              <div className="text-sm md:text-base text-gray-500 mb-1">{plan.description}</div>
               {plan.valueTag && (
                 <div className="text-sm font-medium mb-3 px-2 py-1 rounded-full inline-block self-start bg-green-50 text-green-700">
                   {plan.valueTag}
                 </div>
               )}
-              <div className="text-3xl font-bold text-gray-900 mb-1 mt-1">
+              <div className="text-4xl font-bold text-gray-900 mb-1 mt-2">
                 {plan.price}
-                <span className="text-sm font-normal text-gray-500">{plan.period}</span>
+                <span className="text-base font-normal text-gray-500">{plan.period}</span>
               </div>
               <ul className="mt-4 mb-6 space-y-2.5 flex-1">
                 {plan.features.map((f) => (
-                  <li key={f} className="text-sm flex gap-2 text-gray-600 leading-snug">
+                  <li key={f} className="text-sm md:text-base flex gap-2 text-gray-600 leading-snug">
                     <span className="text-blue-500 mt-0.5 shrink-0">✓</span>
                     {f}
                   </li>
@@ -200,7 +198,8 @@ export default function PricingPage() {
 
         {/* ─── 플랜 기능 비교표 ─── */}
         <div className="overflow-x-auto mb-14">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 text-center">플랜 기능 비교</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 text-center">플랜 기능 비교</h2>
+          <p className="text-sm text-gray-400 text-center mb-4 md:hidden">← 좌우로 밀어 비교하세요</p>
           <table className="w-full min-w-[560px] text-sm border-collapse">
             <thead>
               <tr className="border-b border-gray-200">
@@ -251,7 +250,7 @@ export default function PricingPage() {
               <span className="inline-block bg-blue-100 text-blue-700 text-sm font-bold px-2.5 py-1 rounded-full">
                 Basic 이상 포함
               </span>
-              <h2 className="text-base md:text-lg font-bold text-gray-900">추가 진단 도구</h2>
+              <h2 className="text-lg md:text-xl font-bold text-gray-900">추가 진단 도구</h2>
             </div>
             <p className="text-sm text-gray-600 mb-5 break-keep">
               AI 노출 점수가 낮은 <strong>원인을 찾는</strong> 도구 두 가지를 구독에 포함해 제공합니다.
@@ -286,7 +285,7 @@ export default function PricingPage() {
 
         {/* ─── 업종별 노출 범위 안내 (면책 문구) ─── */}
         <div className="mb-12 rounded-xl border border-amber-200 bg-amber-50 p-5 md:p-6">
-          <h3 className="text-base md:text-lg font-bold text-amber-900 mb-1 break-keep">
+          <h3 className="text-lg md:text-xl font-bold text-amber-900 mb-1 break-keep">
             내 업종은 어디에 해당하나요? — 노출 범위 안내
           </h3>
           <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed break-keep">
@@ -359,7 +358,7 @@ export default function PricingPage() {
         {/* ─── ChatGPT·네이버 광고와 비교 (아코디언) ─── */}
         <details className="group bg-slate-50 border border-slate-200 rounded-xl mb-12 overflow-hidden">
           <summary className="flex items-center justify-between cursor-pointer px-6 py-5 select-none list-none">
-            <span className="text-base md:text-lg font-bold text-slate-900">
+            <span className="text-lg md:text-xl font-bold text-slate-900">
               ChatGPT·네이버 광고와 비교
             </span>
             <span className="ml-4 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180">
@@ -467,7 +466,7 @@ export default function PricingPage() {
 
         {/* ─── FAQ ─── */}
         <div className="mb-10">
-          <h2 className="text-lg font-bold text-gray-900 mb-6 text-center">자주 묻는 질문</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 text-center">자주 묻는 질문</h2>
           <div className="space-y-4 max-w-2xl mx-auto">
             {[
               {
@@ -492,8 +491,8 @@ export default function PricingPage() {
               },
             ].map(({ q, a }) => (
               <div key={q} className="border border-gray-100 rounded-xl p-4">
-                <div className="font-medium text-gray-900 text-base mb-2">{q}</div>
-                <div className="text-sm text-gray-500 leading-relaxed">{a}</div>
+                <div className="font-semibold text-gray-900 text-base md:text-lg mb-2">{q}</div>
+                <div className="text-sm md:text-base text-gray-600 leading-relaxed">{a}</div>
               </div>
             ))}
           </div>
