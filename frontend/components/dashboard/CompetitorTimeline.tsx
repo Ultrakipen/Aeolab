@@ -291,7 +291,6 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
                     : <TrendingDown className="w-4 h-4 shrink-0" />}
                   <span>
                     <strong>{s.name}</strong>이(가) 최근 스캔에서{' '}
-                    {s.change > 0 ? '+' : ''}{s.change}점{' '}
                     {s.change > 0 ? '상승 — 경쟁 위협 증가' : '하락 — 경쟁 완화'}
                   </span>
                 </div>
@@ -309,13 +308,15 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
               />
               <YAxis
                 domain={[0, yMax]}
-                tick={{ fontSize: 11, fill: '#9ca3af' }}
-                tickLine={false}
-                axisLine={false}
+                hide
               />
               <Tooltip
                 contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
-                formatter={(value) => [`${Math.round(Number(value))}점`, undefined]}
+                formatter={(value) => {
+                  const v = Math.round(Number(value))
+                  const label = v >= 75 ? '지역 1등' : v >= 55 ? '빠른 성장' : v >= 30 ? '성장 중' : '시작 단계'
+                  return [label, undefined]
+                }}
               />
               <Legend
                 wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
@@ -389,7 +390,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
                 })()}
               </div>
               {compNames.some(n => (lastKnownScore[n] ?? 0) <= 15) && (
-                <p className="mt-1.5 text-sm text-gray-500">※ 15점 = AI 검색 미언급 · 스캔 반복 시 점수 변동</p>
+                <p className="mt-1.5 text-sm text-gray-500">※ 막대가 짧은 경쟁사는 AI 검색에 미노출 상태입니다</p>
               )}
             </div>
           )}

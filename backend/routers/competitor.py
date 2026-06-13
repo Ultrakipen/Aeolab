@@ -1433,8 +1433,8 @@ async def _scan_new_competitor(comp_id: str, comp_name: str, business_id: str, s
         excerpt = result.get("excerpt", "")
         base_score = 60.0 if mentioned else 30.0
         breakdown = {
-            "ai_visibility_t1": round(base_score * 0.9, 1),
-            "review_quality_t1": round(base_score * 0.85, 1),
+            "naver_exposure_confirmed": round(base_score * 0.9, 1),
+            "review_quality": round(base_score * 0.85, 1),
             "online_mentions_t2": round(base_score * 0.75, 1),
             "google_presence": round(base_score * 0.7, 1),
         }
