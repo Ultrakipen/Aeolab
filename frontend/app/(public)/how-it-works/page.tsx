@@ -292,10 +292,10 @@ export default function HowItWorksPage() {
             </p>
             <div className="space-y-2.5">
               <div className="flex items-start gap-3 bg-white rounded-lg p-3 border border-blue-100">
-                <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-green-500 text-white text-xs font-bold whitespace-nowrap">즉시</span>
+                <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-green-500 text-white text-xs font-bold whitespace-nowrap">수일~1주</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">네이버 플레이스 탭 상위 노출</p>
-                  <p className="text-sm text-gray-600 leading-relaxed break-keep">소개글 키워드·리뷰 수·영수증 리뷰·사진·소식 게시 최적화 → 플레이스 탭 순위 즉시 개선. AI 브리핑과 무관하게 네이버에서 먼저 발견됩니다.</p>
+                  <p className="text-sm text-gray-600 leading-relaxed break-keep">소개글 키워드·리뷰 수·영수증 리뷰·사진·소식 게시 최적화 → 플레이스 탭 순위 빠르게 개선. 소식·사진은 즉시 게시되며, 순위 영향은 수일~1주 내 반영됩니다. AI 브리핑과 무관하게 네이버에서 먼저 발견됩니다.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 bg-white rounded-lg p-3 border border-blue-100">
@@ -309,7 +309,7 @@ export default function HowItWorksPage() {
                 <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-purple-500 text-white text-xs font-bold whitespace-nowrap">수주</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">Gemini·Google AI Overview 노출</p>
-                  <p className="text-sm text-gray-600 leading-relaxed break-keep">구글 비즈니스 프로필 완성 + JSON-LD 구조화 데이터 → 구글 생태계 AI 노출 개선.</p>
+                  <p className="text-sm text-gray-600 leading-relaxed break-keep">구글 비즈니스 프로필 완성 + JSON-LD 구조화 데이터 → 구글 생태계 AI 노출 개선 (구글 실시간 검색 기준). ※ AEOlab Gemini 스캐너 점수는 학습 데이터 기반으로 수개월 이상 소요됩니다.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 bg-white rounded-lg p-3 border border-blue-100">
