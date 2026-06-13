@@ -204,27 +204,27 @@ export default function PricingPage() {
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-3 text-gray-500 font-medium w-36">기능</th>
-                <th className="text-center py-3 px-2 text-gray-700 font-semibold">Basic<br/><span className="font-normal text-gray-500 text-sm">9,900원</span></th>
                 <th className="text-center py-3 px-2 text-gray-700 font-semibold">창업패키지<br/><span className="font-normal text-gray-500 text-sm">12,900원</span></th>
-                <th className="text-center py-3 px-2 text-blue-600 font-semibold">Pro<br/><span className="font-normal text-blue-400 text-sm">18,900원</span></th>
+                <th className="text-center py-3 px-2 text-blue-600 font-semibold">Basic<br/><span className="font-normal text-blue-400 text-sm">9,900원</span></th>
+                <th className="text-center py-3 px-2 text-gray-700 font-semibold">Pro<br/><span className="font-normal text-gray-500 text-sm">18,900원</span></th>
                 <th className="text-center py-3 px-2 text-gray-700 font-semibold">Biz<br/><span className="font-normal text-gray-500 text-sm">49,900원</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {[
                 ["자동 스캔", "주 1회", "주 1회", "주 3회", "매일"],
-                ["수동 스캔", "하루 2회", "하루 3회", "하루 5회", "하루 15회"],
-                ["키워드 순위 측정 주기", "주 1회", "매일", "매일", "매일"],
-                ["키워드 자동 추천 (월)", "1회", "4회", "4회", "10회"],
-                ["AI 콘텐츠 자동 생성 (소개글·채팅방메뉴, 월합산)", "5건", "월 20건", "월 30건", "월 60건"],
-                ["경쟁사 비교", "3개", "5개", "5개", "무제한"],
-                ["AI 개선 가이드", "월 3회", "월 5회", "월 10회", "월 20회"],
-                ["리뷰 답변 초안", "월 20회", "무제한", "무제한", "무제한"],
-                ["히스토리 보관", "60일", "90일", "90일", "무제한"],
+                ["수동 스캔", "하루 3회", "하루 2회", "하루 5회", "하루 15회"],
+                ["키워드 순위 측정 주기", "매일", "주 1회", "매일", "매일"],
+                ["키워드 자동 추천 (월)", "4회", "1회", "4회", "10회"],
+                ["AI 콘텐츠 자동 생성 (소개글·채팅방메뉴, 월합산)", "월 20건", "5건", "월 30건", "월 60건"],
+                ["경쟁사 비교", "5개", "3개", "5개", "무제한"],
+                ["AI 개선 가이드", "월 5회", "월 3회", "월 10회", "월 20회"],
+                ["리뷰 답변 초안", "무제한", "월 20회", "무제한", "무제한"],
+                ["히스토리 보관", "90일", "60일", "90일", "무제한"],
                 ["엑셀(CSV) 내보내기", "✓", "✓", "✓", "✓"],
                 ["PDF 리포트", "—", "—", "✓", "✓"],
                 ["광고 대응 가이드", "—", "—", "✓", "✓"],
-                ["창업 시장 분석", "—", "✓", "—", "✓"],
+                ["창업 시장 분석", "✓", "—", "—", "✓"],
                 ["팀 계정", "—", "—", "—", "5명"],
                 ["API 키 발급", "—", "—", "—", "✓"],
                 ["사업장 수", "1개", "1개", "2개", "5개"],
@@ -232,7 +232,7 @@ export default function PricingPage() {
                 <tr key={feature as string} className="hover:bg-gray-50">
                   <td className="py-2.5 px-3 text-gray-600">{feature}</td>
                   {vals.map((v, i) => (
-                    <td key={i} className={`py-2.5 px-2 text-center ${i === 2 ? "text-blue-600 font-medium" : "text-gray-600"} ${v === "—" ? "text-gray-500" : ""}`}>
+                    <td key={i} className={`py-2.5 px-2 text-center ${i === 1 ? "text-blue-600 font-medium" : "text-gray-600"} ${v === "—" ? "text-gray-500" : ""}`}>
                       {v}
                     </td>
                   ))}
