@@ -430,11 +430,28 @@ export default async function DashboardPage({
                   showStaleRescan={showRescanIsStale}
                 />
               ) : (
-                <div className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-6 md:p-8 text-center">
-                  <p className="text-base font-semibold text-slate-600">아직 스캔 데이터가 없습니다</p>
-                  <p className="text-sm text-slate-400 mt-1.5 leading-snug">
-                    오른쪽에서 키워드를 선택하고 AI 스캔을 시작하면 진단 결과가 여기에 표시됩니다
-                  </p>
+                /* 첫 스캔 온보딩 — 스캔 후 나타날 정보 미리보기 */
+                <div className="bg-gradient-to-br from-slate-50 to-blue-50 border border-blue-100 rounded-xl p-5 space-y-4">
+                  <div>
+                    <p className="text-base font-bold text-gray-800">스캔하면 이런 정보가 나옵니다</p>
+                    <p className="text-sm text-gray-500 mt-0.5 leading-snug">오른쪽에서 키워드를 선택하고 AI 스캔을 시작하세요</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      { icon: "🔍", title: "네이버 3채널 실측", desc: "AI 브리핑·AI탭·일반검색 노출 여부" },
+                      { icon: "🤖", title: "ChatGPT·Gemini 측정", desc: "50회 질문 중 내 가게 언급 횟수" },
+                      { icon: "📊", title: "경쟁사 순위 비교", desc: "동네 경쟁 가게 대비 내 위치" },
+                      { icon: "✅", title: "오늘 할 일 안내", desc: "AI 노출 높이는 구체적 액션" },
+                    ] as { icon: string; title: string; desc: string }[]).map(({ icon, title, desc }) => (
+                      <div key={title} className="bg-white rounded-lg border border-gray-100 px-3 py-2.5">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-base leading-none">{icon}</span>
+                          <p className="text-sm font-semibold text-gray-800 leading-tight">{title}</p>
+                        </div>
+                        <p className="text-xs text-gray-500 leading-snug">{desc}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
