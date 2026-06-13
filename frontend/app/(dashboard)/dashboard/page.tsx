@@ -436,7 +436,7 @@ export default async function DashboardPage({
                     <p className="text-base font-bold text-gray-800">스캔하면 이런 정보가 나옵니다</p>
                     <p className="text-sm text-gray-500 mt-0.5 leading-snug">오른쪽에서 키워드를 선택하고 AI 스캔을 시작하세요</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {([
                       { icon: "🔍", title: "네이버 3채널 실측", desc: "AI 브리핑·AI탭·일반검색 노출 여부" },
                       { icon: "🤖", title: "ChatGPT·Gemini 측정", desc: "50회 질문 중 내 가게 언급 횟수" },
@@ -459,33 +459,39 @@ export default async function DashboardPage({
 
           {/* 🌐 글로벌 AI 실측 요약 — 스캔 측정값 있을 때 상시 표시 (section-global 기본 접힘 보완) */}
           {latestScan && (aiExposureData?.chatgptFreq !== undefined || aiExposureData?.geminiFreq !== undefined) && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 bg-sky-50 border border-sky-100 rounded-xl px-4 py-3">
-              <span className="text-xs font-bold text-sky-700 shrink-0">글로벌 AI 실측</span>
-              {aiExposureData?.chatgptFreq !== undefined && (
-                <span className="text-sm text-gray-700">
-                  ChatGPT{" "}
-                  <span className={`font-bold ${aiExposureData.chatgptFreq > 0 ? "text-blue-700" : "text-gray-400"}`}>
-                    {aiExposureData.chatgptFreq > 0 ? `${aiExposureData.chatgptFreq}회 언급` : "미언급"}
+            <div className="bg-sky-50 border border-sky-100 rounded-xl px-4 py-3">
+              {/* 라벨 + 상세보기 — 항상 같은 줄 (모바일/PC 동일) */}
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <span className="text-xs font-bold text-sky-700">글로벌 AI 실측</span>
+                <a href="#section-global" className="text-xs font-semibold text-sky-600 hover:text-sky-800 whitespace-nowrap">
+                  상세 보기 →
+                </a>
+              </div>
+              {/* 측정값 — 모바일 줄바꿈 허용 */}
+              <div className="flex flex-wrap gap-x-4 gap-y-1">
+                {aiExposureData?.chatgptFreq !== undefined && (
+                  <span className="text-sm text-gray-700">
+                    ChatGPT{" "}
+                    <span className={`font-bold ${aiExposureData.chatgptFreq > 0 ? "text-blue-700" : "text-gray-400"}`}>
+                      {aiExposureData.chatgptFreq > 0 ? `${aiExposureData.chatgptFreq}회 언급` : "미언급"}
+                    </span>
+                    {(aiExposureData?.chatgptSampleSize ?? 0) > 0 && (
+                      <span className="text-gray-400"> / {aiExposureData.chatgptSampleSize}회 중</span>
+                    )}
                   </span>
-                  {(aiExposureData?.chatgptSampleSize ?? 0) > 0 && (
-                    <span className="text-gray-400"> / {aiExposureData.chatgptSampleSize}회 중</span>
-                  )}
-                </span>
-              )}
-              {aiExposureData?.geminiFreq !== undefined && (
-                <span className="text-sm text-gray-700">
-                  · Gemini{" "}
-                  <span className={`font-bold ${aiExposureData.geminiFreq > 0 ? "text-blue-700" : "text-gray-400"}`}>
-                    {aiExposureData.geminiFreq > 0 ? `${aiExposureData.geminiFreq}회 언급` : "미언급"}
+                )}
+                {aiExposureData?.geminiFreq !== undefined && (
+                  <span className="text-sm text-gray-700">
+                    Gemini{" "}
+                    <span className={`font-bold ${aiExposureData.geminiFreq > 0 ? "text-blue-700" : "text-gray-400"}`}>
+                      {aiExposureData.geminiFreq > 0 ? `${aiExposureData.geminiFreq}회 언급` : "미언급"}
+                    </span>
+                    {(aiExposureData?.geminiSampleSize ?? 0) > 0 && (
+                      <span className="text-gray-400"> / {aiExposureData.geminiSampleSize}회 중</span>
+                    )}
                   </span>
-                  {(aiExposureData?.geminiSampleSize ?? 0) > 0 && (
-                    <span className="text-gray-400"> / {aiExposureData.geminiSampleSize}회 중</span>
-                  )}
-                </span>
-              )}
-              <a href="#section-global" className="ml-auto text-xs font-semibold text-sky-600 hover:text-sky-800 shrink-0 whitespace-nowrap">
-                상세 보기 →
-              </a>
+                )}
+              </div>
             </div>
           )}
 
