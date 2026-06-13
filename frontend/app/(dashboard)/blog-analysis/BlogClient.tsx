@@ -216,11 +216,12 @@ function isStale(lastAnalyzedAt: string | null): boolean {
 }
 
 /* ── WeeklyActionsCard ── */
-function WeeklyActionsCard({ actions }: { actions: WeeklyAction[] }) {
+function WeeklyActionsCard({ actions, businessId }: { actions: WeeklyAction[]; businessId: string }) {
+  const storageKey = `aeolab_blog_weekly_actions_${businessId}`;
   const [checked, setChecked] = useState<Record<number, boolean>>(() => {
     if (typeof window === "undefined") return {};
     try {
-      const saved = localStorage.getItem("aeolab_blog_weekly_actions");
+      const saved = localStorage.getItem(storageKey);
       return saved ? JSON.parse(saved) : {};
     } catch { return {}; }
   });
@@ -228,7 +229,7 @@ function WeeklyActionsCard({ actions }: { actions: WeeklyAction[] }) {
   const toggle = (idx: number) => {
     const next = { ...checked, [idx]: !checked[idx] };
     setChecked(next);
-    try { localStorage.setItem("aeolab_blog_weekly_actions", JSON.stringify(next)); } catch {}
+    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
   };
 
   if (!actions || actions.length === 0) return null;
@@ -1095,7 +1096,12 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           {businesses.map((biz) => (
             <button
               key={biz.id}
-              onClick={() => setSelectedBiz(biz)}
+              onClick={() => {
+                setSelectedBiz(biz);
+                setResult(null);
+                setAutoTriggered(false);
+                setOldFormatDetected(false);
+              }}
               className="text-left bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md rounded-xl p-5 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <p className="text-base font-semibold text-gray-900 mb-1 truncate">{biz.name}</p>
@@ -1154,6 +1160,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               onClick={() => {
                 setSelectedBiz(null);
                 setResult(null);
+                setAutoTriggered(false);
+                setOldFormatDetected(false);
               }}
               className="ml-auto inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
             >
@@ -1444,7 +1452,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
             {/* E. 이번 주 할 일 카드 */}
             {result.weekly_actions && result.weekly_actions.length > 0 && (
-              <WeeklyActionsCard actions={result.weekly_actions} />
+              <WeeklyActionsCard actions={result.weekly_actions} businessId={business.id} />
             )}
 
             {/* F. 포스트별 상세 분석 */}
