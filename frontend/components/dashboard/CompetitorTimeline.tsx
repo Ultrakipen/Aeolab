@@ -292,7 +292,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
                   <span>
                     <strong>{s.name}</strong>이(가) 최근 스캔에서{' '}
                     {s.change > 0 ? '+' : ''}{s.change}점{' '}
-                    {s.change > 0 ? '상승 — 경쟝 위협 증가' : '하락 — 경쟝 완화'}
+                    {s.change > 0 ? '상승 — 경쟁 위협 증가' : '하락 — 경쟁 완화'}
                   </span>
                 </div>
               ))}

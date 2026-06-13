@@ -854,7 +854,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
           <p className="text-sm text-blue-500">※ 스캔 미완료 경쟁사는 다음 스캔 후 그래프에 나타납니다.</p>
         ) : null}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <p className="text-sm text-gray-500">막대 길이 = 최신 점수 · 숫자 변화량 = 이전 스캔 대비</p>
+          <p className="text-sm text-gray-500">막대 길이 = 최신 점수 기반 · 화살표 = 이전 스캔 대비 변화</p>
           <a href="/guide" className="text-sm text-blue-600 font-medium hover:underline flex items-center gap-1 shrink-0">
             점수 올리는 방법 보기 <ArrowRight className="w-3.5 h-3.5" />
           </a>
@@ -1707,7 +1707,10 @@ export function CompetitorsClient({
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!searchQuery.trim()) return
+    if (!searchQuery.trim()) {
+      setSearchError('검색어를 입력해주세요.')
+      return
+    }
     setSearching(true)
     setSearchError('')
     setSearchResults([])
@@ -2053,12 +2056,12 @@ export function CompetitorsClient({
                             {(() => {
                               const { label, cls } = getGrowthStageText(cs.score)
                               return (
-                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${cls}`}>
+                                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${cls}`}>
                                   {label}
                                 </span>
                               )
                             })()}
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
+                            <span className={`text-sm px-2 py-0.5 rounded-full font-medium border ${
                               cs.mentioned
                                 ? 'bg-orange-50 text-orange-700 border-orange-200'
                                 : 'bg-gray-50 text-gray-400 border-gray-200'
@@ -2072,7 +2075,7 @@ export function CompetitorsClient({
                               </span>
                             )}
                             {csDelta !== null && csDelta !== 0 && (
-                              <span className={`md:hidden text-xs font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-600'}`}>
+                              <span className={`md:hidden text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-600'}`}>
                                 {csDelta > 0 ? '↑' : '↓'}
                               </span>
                             )}
@@ -2173,7 +2176,7 @@ export function CompetitorsClient({
                                       ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'} <span className="font-normal opacity-70">(추정)</span>
                                     </span>
                                   </div>
-                                  <p className="text-xs text-gray-400 mt-0.5">Gemini AI 단일 스캔 기반 추정 — 실제와 다를 수 있음</p>
+                                  <p className="text-sm text-gray-400 mt-0.5">Gemini AI 단일 스캔 기반 추정 — 실제와 다를 수 있음</p>
                                 </div>
                               )
                             })()}
@@ -2393,7 +2396,7 @@ export function CompetitorsClient({
                           </div>
                         )}
                         <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
-                          <p className="text-sm text-gray-500">막대 길이 = 최신 점수 · 숫자 변화량 = 이전 스캔 대비</p>
+                          <p className="text-sm text-gray-500">막대 길이 = 최신 점수 기반 · 화살표 = 이전 스캔 대비 변화</p>
                           {allEntries.some(([k]) => TRACK1_KEYS.includes(k)) && (
                             <p className="text-sm text-gray-400">* (추정) 항목은 Gemini AI 단일 스캔 기반 간접 측정값입니다</p>
                           )}
@@ -2571,7 +2574,7 @@ export function CompetitorsClient({
               </p>
               <form onSubmit={handleSearch} className="flex gap-2">
                 <input
-                  placeholder="예: 치킨집, 헬스장, 피자"
+                  placeholder="예: 미용실, 치킨집, 헬스장"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors"

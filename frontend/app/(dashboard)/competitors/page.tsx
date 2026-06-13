@@ -224,8 +224,7 @@ export default async function CompetitorsPage({
       {gapAnalysis && (gapAnalysis as GapAnalysis & { is_competitor_estimated?: boolean }).is_competitor_estimated && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-800">
           <strong>현재는 업종 평균과 비교한 추정 데이터입니다.</strong>
-          경쟁사를 직접 등록하면 실제 가게 간 비교 데이터가 표시됩니다.
-          <Link href="/competitors" className="underline ml-1">경쟁사 등록하기 →</Link>
+          아래에서 경쟁사를 직접 등록하면 실제 가게 간 비교 데이터가 표시됩니다.
         </div>
       )}
 
