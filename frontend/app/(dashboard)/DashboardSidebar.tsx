@@ -323,14 +323,19 @@ export function DashboardSidebar({
         />
       )}
 
-      {/* 사이드바 */}
+      {/* 사이드바
+           모바일(< lg): fixed overlay, open=false → translate-x-full + visibility:hidden
+           데스크톱(≥ lg): sticky flex 참여, 항상 보임
+      */}
       <aside
         className={[
           "fixed lg:sticky lg:top-0 inset-y-0 left-0 z-40",
-          "w-60 bg-white border-r border-gray-100 flex flex-col shrink-0 lg:h-screen",
-          "transform transition-transform duration-200 ease-in-out",
-          open ? "translate-x-0" : "-translate-x-full",
-          "lg:translate-x-0",
+          "w-60 bg-white border-r border-gray-100 flex flex-col lg:shrink-0 lg:h-screen",
+          "transition-transform duration-200 ease-in-out",
+          /* 모바일 슬라이드 + visibility 제어 */
+          open ? "translate-x-0" : "-translate-x-full max-lg:invisible",
+          /* 데스크톱: 항상 보임·translate 0 */
+          "lg:translate-x-0 lg:visible",
         ].join(" ")}
       >
         <SidebarContent />

@@ -28,7 +28,7 @@ export function DashboardShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex overflow-x-hidden">
       <DashboardSidebar
         email={email}
         plan={plan}
@@ -39,7 +39,8 @@ export function DashboardShell({
       />
 
       {/* 메인 — 모바일: 상단바(56px) + 하단탭(56px) 패딩 / 데스크톱: 패딩 없음 */}
-      <main className="flex-1 overflow-auto min-w-0 pt-14 lg:pt-0 pb-16 lg:pb-0">
+      {/* w-full: 모바일에서 fixed 사이드바가 flex 공간을 차지하지 않도록 보장 */}
+      <main className="flex-1 w-full overflow-auto min-w-0 pt-14 lg:pt-0 pb-16 lg:pb-0">
         {children}
       </main>
 
