@@ -10,6 +10,8 @@ interface Props {
   iconColor?: string;
   defaultOpen?: boolean;
   highlight?: boolean;
+  badgeText?: string;
+  badgeColor?: "amber" | "red" | "green" | "blue";
   children: React.ReactNode;
 }
 
@@ -20,6 +22,8 @@ export default function CollapseSectionWrapper({
   iconColor = "text-blue-600",
   defaultOpen = false,
   highlight = false,
+  badgeText,
+  badgeColor = "amber",
   children,
 }: Props) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -42,6 +46,16 @@ export default function CollapseSectionWrapper({
           {highlight && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold hidden sm:inline-flex">
               핵심
+            </span>
+          )}
+          {badgeText && (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shrink-0 ${
+              badgeColor === "red"   ? "bg-red-100 text-red-700" :
+              badgeColor === "green" ? "bg-green-100 text-green-700" :
+              badgeColor === "blue"  ? "bg-blue-100 text-blue-700" :
+              "bg-amber-100 text-amber-700"
+            }`}>
+              {badgeText}
             </span>
           )}
         </div>

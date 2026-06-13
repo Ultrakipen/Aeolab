@@ -558,7 +558,7 @@ export default async function DashboardPage({
           </CollapseSectionWrapper>
 
           {/* ② 콘텐츠 생성 도구 — 네이버 소개글·톡톡 메뉴 (네이버 도구 → 네이버 섹션 바로 다음 배치) */}
-          <CollapseSectionWrapper id="section-content" title="콘텐츠 생성 도구" description="네이버 소개글 · 톡톡 채팅방 메뉴 초안 — 펼쳐서 생성·복사" iconColor="text-purple-600" defaultOpen={false}>
+          <CollapseSectionWrapper id="section-content" title="콘텐츠 생성 도구" description="네이버 소개글 · 톡톡 채팅방 메뉴 초안 — 펼쳐서 생성·복사" iconColor="text-purple-600" defaultOpen={false} badgeText={latestScan && !naverIntroReady ? "소개글 없음" : undefined} badgeColor="amber">
             <DashboardContentZone
               bizId={bizBase.id}
               plan={plan}
