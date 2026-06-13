@@ -440,6 +440,56 @@ export default async function DashboardPage({
             </div>
           </div>
 
+          {/* 🌐 글로벌 AI 실측 요약 — 스캔 측정값 있을 때 상시 표시 (section-global 기본 접힘 보완) */}
+          {latestScan && (aiExposureData?.chatgptFreq !== undefined || aiExposureData?.geminiFreq !== undefined) && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 bg-sky-50 border border-sky-100 rounded-xl px-4 py-3">
+              <span className="text-xs font-bold text-sky-700 shrink-0">글로벌 AI 실측</span>
+              {aiExposureData?.chatgptFreq !== undefined && (
+                <span className="text-sm text-gray-700">
+                  ChatGPT{" "}
+                  <span className={`font-bold ${aiExposureData.chatgptFreq > 0 ? "text-blue-700" : "text-gray-400"}`}>
+                    {aiExposureData.chatgptFreq > 0 ? `${aiExposureData.chatgptFreq}회 언급` : "미언급"}
+                  </span>
+                  {(aiExposureData?.chatgptSampleSize ?? 0) > 0 && (
+                    <span className="text-gray-400"> / {aiExposureData.chatgptSampleSize}회 중</span>
+                  )}
+                </span>
+              )}
+              {aiExposureData?.geminiFreq !== undefined && (
+                <span className="text-sm text-gray-700">
+                  · Gemini{" "}
+                  <span className={`font-bold ${aiExposureData.geminiFreq > 0 ? "text-blue-700" : "text-gray-400"}`}>
+                    {aiExposureData.geminiFreq > 0 ? `${aiExposureData.geminiFreq}회 언급` : "미언급"}
+                  </span>
+                  {(aiExposureData?.geminiSampleSize ?? 0) > 0 && (
+                    <span className="text-gray-400"> / {aiExposureData.geminiSampleSize}회 중</span>
+                  )}
+                </span>
+              )}
+              <a href="#section-global" className="ml-auto text-xs font-semibold text-sky-600 hover:text-sky-800 shrink-0 whitespace-nowrap">
+                상세 보기 →
+              </a>
+            </div>
+          )}
+
+          {/* 📊 경쟁사 미등록 — 등록 유도 CTA */}
+          {latestScan && (competitors?.length ?? 0) === 0 && (
+            <div className="flex items-center justify-between gap-3 bg-orange-50 border border-orange-100 rounded-xl px-4 py-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-base shrink-0">📊</span>
+                <p className="text-sm text-gray-700 leading-snug">
+                  <span className="font-semibold">경쟁사를 등록</span>하면 내 가게 순위와 키워드 격차를 확인할 수 있습니다
+                </p>
+              </div>
+              <a
+                href="/competitors"
+                className="shrink-0 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors"
+              >
+                등록하기
+              </a>
+            </div>
+          )}
+
           {/* ① 네이버 채널별 개선 방법 — 소상공인 최우선 채널. Hero 바로 다음에 배치 */}
           <CollapseSectionWrapper id="section-naver" title="네이버 채널별 개선 방법" description="노출 높이는 구체적 방법 — 요약 상태는 위 진단 카드 참고" iconColor="text-green-600" defaultOpen={true} highlight={true}>
             <>
