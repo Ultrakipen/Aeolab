@@ -1285,8 +1285,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           </div>
         )}
 
-        {/* 결과 없음 empty state */}
-        {savedBlogUrl && !result && !loading && !autoTriggered && !resultLoading && (
+        {/* 결과 없음 empty state — lastAnalyzedAt 있을 때만 (없으면 "진행 중" 배너가 담당) */}
+        {savedBlogUrl && !!lastAnalyzedAt && !result && !loading && !autoTriggered && !resultLoading && (
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 md:p-8 text-center">
             <Search className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <p className="text-base font-semibold text-gray-600 mb-1">분석 결과가 없습니다</p>

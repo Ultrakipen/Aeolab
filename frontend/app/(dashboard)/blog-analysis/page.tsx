@@ -12,7 +12,7 @@ export default async function BlogPage() {
 
   const { data: businesses } = await supabase
     .from('businesses')
-    .select('id, name, category, region, keywords, blog_url, blog_analyzed_at, blog_keyword_coverage, blog_post_count, blog_latest_post_date')
+    .select('id, name, category, region, keywords, blog_url, blog_analyzed_at, blog_keyword_coverage, blog_post_count, blog_latest_post_date, is_franchise')
     .eq('user_id', user.id)
     .eq('is_active', true)
     .order('created_at', { ascending: true })
@@ -62,6 +62,7 @@ export default async function BlogPage() {
           keywords: b.keywords,
           blog_url: b.blog_url,
           blog_analyzed_at: b.blog_analyzed_at,
+          is_franchise: b.is_franchise,
         }))}
         currentPlan={currentPlan}
         accessToken={accessToken}
