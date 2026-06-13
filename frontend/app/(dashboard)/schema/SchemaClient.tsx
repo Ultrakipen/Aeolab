@@ -223,7 +223,7 @@ function makeChecklistStorageKey(businessName: string): string {
 export default function SchemaPageContent({ userId }: { userId: string }) {
   const [form, setForm] = useState({
     business_name: '', category: 'restaurant', region: '', address: '',
-    phone: '', website_url: '', description: '', menu_items: '', specialty: '',
+    phone: '', website_url: '', menu_items: '', specialty: '',
   })
   const [hoursRows, setHoursRows] = useState<HoursRow[]>([
     { id: '1', days: ['Mo', 'Tu', 'We', 'Th', 'Fr'], open: '09:00', close: '21:00', closed: false },
