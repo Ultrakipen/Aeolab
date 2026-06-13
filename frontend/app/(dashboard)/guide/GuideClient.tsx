@@ -3132,13 +3132,28 @@ function GuideItemCard({
 
 
 // ── 지금 바로 할 것 — 키워드 선택형 히어로 ────────────────────────────────────
+function getBizPlaceLabel(category?: string): string {
+  const medical = new Set(['medical', 'dental', 'oriental_medicine', 'optics', 'pharmacy'])
+  const office = new Set(['legal', 'accounting', 'realestate', 'design', 'photo', 'video'])
+  const academy = new Set(['education', 'tutoring', 'music_class', 'music_lesson', 'art_class', 'cooking', 'dance', 'ballet', 'martial_arts'])
+  const studio = new Set(['fitness', 'yoga', 'climbing', 'swim', 'golf', 'childcare'])
+  if (!category) return '가게'
+  if (medical.has(category)) return '병원'
+  if (office.has(category)) return '사무소'
+  if (academy.has(category)) return '학원'
+  if (studio.has(category)) return '센터'
+  return '가게'
+}
+
 function TodayKeywordHero({
   keywords,
   bizId,
+  category,
   initialExcluded = [],
 }: {
   keywords: string[]
   bizId: string
+  category?: string
   initialExcluded?: string[]
 }) {
   const STORAGE_KEY = `aeolab_hero_excluded_${bizId}`
@@ -3175,8 +3190,9 @@ function TodayKeywordHero({
     ).catch(() => {})
   }
 
+  const placeLabel = getBizPlaceLabel(category)
   const faqText = active
-    ? `Q: ${active}는 어떤가요?\nA: 저희 가게는 ${active} 관련 서비스를 제공하고 있습니다. 궁금한 점은 언제든지 문의해 주세요.`
+    ? `Q: ${active}는 어떤가요?\nA: 저희 ${placeLabel}는 ${active} 관련 서비스를 제공하고 있습니다. 궁금한 점은 언제든지 문의해 주세요.`
     : null
 
   if (!active) return null
@@ -3423,6 +3439,7 @@ function GuideTabView({
             <TodayKeywordHero
               keywords={keywordGap!.missing_keywords}
               bizId={business.id}
+              category={business.category}
               initialExcluded={business.excluded_keywords ?? []}
             />
           ) : todayHeroAction && (

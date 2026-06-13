@@ -82,13 +82,38 @@ const FAQ_DATA = [
   },
 ];
 
+const CATEGORY_KO: Record<string, string> = {
+  restaurant: '음식점', cafe: '카페', bakery: '베이커리·빵집',
+  bar: '주점·바', accommodation: '숙박·펜션',
+  beauty: '미용·뷰티', nail: '네일샵', skincare: '스킨케어',
+  massage: '마사지', spa: '스파', dance: '댄스', ballet: '발레',
+  semi_permanent: '반영구 타투', pet: '반려동물',
+  fitness: '운동·헬스', yoga: '요가·필라테스', pharmacy: '약국',
+  medical: '병원·의원', dental: '치과', oriental_medicine: '한의원',
+  optics: '안경원', legal: '법률·행정', accounting: '세무·회계',
+  education: '교육·학원', tutoring: '과외·튜터링',
+  photo: '사진·영상', video: '영상제작', design: '디자인',
+  realestate: '부동산', interior: '인테리어',
+  auto: '자동차', cleaning: '청소', laundry: '세탁소',
+  shopping: '쇼핑몰', fashion: '패션·의류', clothing: '의류',
+  flower: '꽃집·플라워', kids: '어린이·키즈', study: '독서실·스터디카페',
+  workshop: '공방·원데이클래스', music_class: '음악학원', music_lesson: '음악레슨',
+  cooking: '요리·쿠킹', experience: '체험·액티비티',
+  martial_arts: '무술·무도', climbing: '클라이밍', art_class: '미술학원',
+  childcare: '어린이집·유치원', car_wash: '세차',
+  electronics_repair: '전자기기 수리', footwear: '신발·구두',
+  stationery: '문구', norebang: '노래방', billiards: '당구장',
+  golf: '골프', swim: '수영장', jjimjil: '찜질방·사우나',
+  escape: '방탈출', other: '기타',
+}
+
 export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
   // 해당 업종의 그룹 콘텐츠 (없으면 INACTIVE fallback)
   const groupKey = userGroup ?? "INACTIVE";
   const groupContent = GROUP_CONTENT[groupKey];
 
   const categoryLabel = userCategory
-    ? `${userCategory} 업종`
+    ? `${CATEGORY_KO[userCategory] ?? userCategory} 업종`
     : "내 업종";
 
   return (
