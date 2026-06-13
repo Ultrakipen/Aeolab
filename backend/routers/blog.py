@@ -144,7 +144,10 @@ async def analyze_blog_endpoint(
         "total_post_count": analysis.get("total_post_count", 0),
         "platform": analysis.get("platform"),
         "citation_score": analysis.get("ai_readiness_score", 0),
-        "freshness_score": analysis.get("ai_readiness_score", 0),
+        # freshness_score: freshness 문자열 → 숫자 변환 (ai_readiness_score와 혼용 금지)
+        "freshness_score": {"fresh": 80, "stale": 50, "outdated": 20}.get(
+            analysis.get("freshness", "outdated"), 50
+        ),
         "freshness": analysis.get("freshness"),
         "keyword_coverage": keyword_coverage,
         "missing_keywords": analysis.get("missing_keywords", []),

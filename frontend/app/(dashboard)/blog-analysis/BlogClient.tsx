@@ -562,7 +562,7 @@ function CompetitorComparisonSection({ comparison, businessName }: { comparison:
             ))}
           </div>
           <p className="text-sm text-blue-600 leading-relaxed">
-            이 키워드들로 포스팅하면 경쟁사 대비 AI 노출을 따라잡을 수 있습니다.
+            이 키워드들로 포스팅하면 경쟁사 대비 AI 노출 개선에 유리합니다 (알고리즘 기준, 100% 보장 아님).
           </p>
         </div>
       )}
@@ -704,7 +704,7 @@ function BestCitationCandidateCard({ candidate }: { candidate: NonNullable<BlogA
         <p className="text-sm font-semibold text-green-800 mb-1">지금 이것만 추가하면 됩니다</p>
         <p className="text-sm font-bold text-green-900 leading-relaxed">{candidate.what_to_add}</p>
         <span className="inline-flex items-center border text-sm font-medium px-3 py-1 rounded-full bg-green-100 text-green-700 border-green-300 mt-3">
-          소요 시간: 5분
+          간단한 수정으로 가능
         </span>
       </div>
     </div>
@@ -1281,9 +1281,9 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 mb-4">
             <span className="text-2xl shrink-0">&#x23F3;</span>
             <div>
-              <p className="font-semibold text-amber-800">블로그 분석이 진행 중입니다</p>
+              <p className="font-semibold text-amber-800">블로그 첫 분석을 시작합니다</p>
               <p className="text-sm text-amber-700 mt-0.5 leading-relaxed">
-                등록하신 블로그를 자동으로 분석하고 있습니다. 보통 1~2분 안에 완료됩니다.<br/>
+                등록하신 블로그를 읽고 AI 인용 가능성을 분석합니다. 보통 20~35초 소요됩니다.<br/>
                 완료되면 이 페이지를 새로고침하면 결과를 확인할 수 있습니다.
               </p>
               <button onClick={() => window.location.reload()} className="mt-2 text-sm text-amber-800 underline">
