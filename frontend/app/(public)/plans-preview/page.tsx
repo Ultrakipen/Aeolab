@@ -51,7 +51,7 @@ const MOCK_DATA: Record<CategoryKey, MockData> = {
     name: "우리동네 한식당",
     competitors: ["맛있는 김치찌개", "할머니 순대국", "원조 갈비탕", "골목식당", "청기와 밥집", "한솥 도시락", "향토 설렁탕", "미가 한정식", "뚝배기 집", "촌닭발"],
     missing_keywords: ["혼밥 가능", "주차 있음", "포장 됩니다"],
-    platform_counts: { naver: 31, gemini: 28, chatgpt: 0, claude: 0, google: 0 },
+    platform_counts: { naver: 31, gemini: 28, chatgpt: 0, google: 0 },
     top_competitor_count: 58,
     review_sample: "밥이 맛있고 반찬이 깔끔해요",
     track1: 42,
@@ -87,7 +87,7 @@ const MOCK_DATA: Record<CategoryKey, MockData> = {
     name: "카페 온기",
     competitors: ["스튜디오 봄봄", "커피 한잔", "달빛카페", "카페 라온", "브루잉 서울", "콩다방", "하루 카페", "씨앗 커피", "모닝 브루", "카페 달"],
     missing_keywords: ["노트북 가능", "콘센트 있음", "조용한 카페"],
-    platform_counts: { naver: 19, gemini: 22, chatgpt: 0, claude: 0, google: 5 },
+    platform_counts: { naver: 19, gemini: 22, chatgpt: 0, google: 5 },
     top_competitor_count: 61,
     review_sample: "분위기 좋고 커피 맛있어요",
     track1: 38,
@@ -123,7 +123,7 @@ const MOCK_DATA: Record<CategoryKey, MockData> = {
     name: "헤어림 미용실",
     competitors: ["예쁨 헤어", "트렌드 살롱", "봄봄 헤어", "미소 헤어샵", "스타일 헤어", "뷰티 컷", "솔직 미용실", "아이린 헤어", "스타일 팩토리", "헤어 라운지"],
     missing_keywords: ["남성 커트", "당일 예약", "주차 가능"],
-    platform_counts: { naver: 27, gemini: 15, chatgpt: 0, claude: 0, google: 3 },
+    platform_counts: { naver: 27, gemini: 15, chatgpt: 0, google: 3 },
     top_competitor_count: 54,
     review_sample: "원장님이 꼼꼼하게 해주세요",
     track1: 45,
@@ -159,7 +159,7 @@ const MOCK_DATA: Record<CategoryKey, MockData> = {
     name: "성공 영어학원",
     competitors: ["우리 수학학원", "탑 영어", "미래 학원", "강남 국어", "스마트 영어", "논술 왕", "사고력 수학", "독서 논술", "창의 영재", "알파 학원"],
     missing_keywords: ["성인반 있음", "무료 체험", "1대1 수업"],
-    platform_counts: { naver: 12, gemini: 18, chatgpt: 0, claude: 8, google: 0 },
+    platform_counts: { naver: 12, gemini: 18, chatgpt: 0, google: 0 },
     top_competitor_count: 49,
     review_sample: "선생님이 친절하고 설명을 잘 해요",
     track1: 30,
@@ -204,7 +204,6 @@ const PLATFORM_LABELS: Record<string, string> = {
   naver: "네이버 AI 브리핑",
   gemini: "Gemini (구글)",
   chatgpt: "ChatGPT",
-  claude: "Claude AI",
   google: "Google AI",
 };
 
@@ -315,7 +314,7 @@ function CompetitorBar({ name, score, max, isMine }: { name: string; score: numb
 // ────────────────────────────────────────────────────────────
 function ComparisonTable() {
   const rows = [
-    { feature: "AI 7개 채널 노출 분석", basic: true, pro: true, startup: true },
+    { feature: "AI 5개 채널 노출 분석", basic: true, pro: true, startup: true },
     { feature: "없는 키워드 3개 제시", basic: true, pro: true, startup: true },
     { feature: "이번 주 행동 1가지 안내", basic: true, pro: true, startup: true },
     { feature: "자동 스캔 빈도", basic: "주 1회", pro: "주 3회", startup: "주 1회" },

@@ -874,7 +874,7 @@ export default function HowItWorksPage() {
           </div>
 
           <p className="mt-3 text-sm text-gray-500">
-            * Basic 소개글·채팅방메뉴 AI 생성은 합산 월 5회 한도. 창업패키지·Pro·Biz는 무제한.<br />
+            * AI 콘텐츠 생성(소개글+채팅방메뉴) 월 합산 한도: Basic 5건·창업패키지 20건·Pro 30건·Biz 60건.<br />
             * 창업패키지는 예비 창업자 전용으로 창업 시장 분석 + Basic 기능 전체 포함.
           </p>
           <p className="mt-2 text-sm md:text-base text-gray-600 leading-relaxed break-keep">
