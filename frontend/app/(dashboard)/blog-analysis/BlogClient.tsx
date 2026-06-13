@@ -316,7 +316,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
             <tr className="border-b border-gray-200 text-left">
               <th className="pb-3 pr-3 font-semibold text-gray-600">제목</th>
               <th className="pb-3 font-semibold text-gray-600 text-center">날짜</th>
-              <th className="pb-3 font-semibold text-gray-600 text-center">점수</th>
+              <th className="pb-3 font-semibold text-gray-600 text-center">상태</th>
               <th className="pb-3 font-semibold text-gray-600 text-center">SEO</th>
               <th className="pb-3 pl-3 font-semibold text-gray-600">문제점</th>
               <th className="pb-3 pl-3 font-semibold text-gray-600">개선 제목</th>
@@ -648,11 +648,18 @@ function PostingFrequencyCard({ freq }: { freq: NonNullable<BlogAnalysisResult["
       <p className="text-sm text-gray-600 mb-3 leading-relaxed">{freq.consistency_message}</p>
 
       {/* 다음 발행 권장일 */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-        <p className="text-sm font-semibold text-amber-800">
-          다음 발행 권장일: {formatNextDate(freq.recommended_next_date)}
-        </p>
-      </div>
+      {(() => {
+        const recDate = new Date(freq.recommended_next_date);
+        const isPast = recDate < new Date();
+        return (
+          <div className={`rounded-xl px-4 py-3 ${isPast ? "bg-gray-50 border border-gray-200" : "bg-amber-50 border border-amber-200"}`}>
+            <p className={`text-sm font-semibold ${isPast ? "text-gray-500" : "text-amber-800"}`}>
+              다음 발행 권장일: {formatNextDate(freq.recommended_next_date)}
+              {isPast && <span className="ml-2 text-gray-400 font-normal">(이미 지났습니다 — 지금 작성하세요)</span>}
+            </p>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -1357,7 +1364,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   <div className={`text-xl font-bold ${scoreColor(result.citation_score ?? 0)}`}>
                     {scoreLabel(result.citation_score ?? 0)}
                   </div>
-                  <div className="text-xs text-gray-400 mt-0.5">분석 시점 기준 — 실제와 다를 수 있음</div>
+                  <div className="text-sm text-gray-400 mt-0.5">분석 시점 기준 — 실제와 다를 수 있음</div>
                 </div>
               </div>
 

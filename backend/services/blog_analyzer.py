@@ -629,6 +629,11 @@ def _detect_duplicate_topics(posts_detail: list[dict]) -> list[dict]:
         "있는", "없는", "같은", "많은", "이후", "이전", "이상", "이하", "위해",
         "통해", "인한", "중인", "완성", "만들", "제작", "진행", "시작", "완료",
     }
+    # 검색 의도어 — 이 단어 자체가 중복 주제로 오탐되면 "후기 후기" 같은 말이 제안에 나옴
+    _INTENT_WORDS = {
+        "추천", "리뷰", "후기", "비용", "가격", "비교", "선택", "방법", "총정리",
+        "근처", "어디서", "안내", "정보", "꿀팁", "할인", "이벤트", "쿠폰",
+    }
 
     # 1차: taxonomy 전체 키워드 수집 (길이 내림차순 — 긴 키워드 우선)
     all_taxonomy_keywords: list[str] = []
@@ -655,7 +660,7 @@ def _detect_duplicate_topics(posts_detail: list[dict]) -> list[dict]:
                 matched_in_post.add(kw)
                 groups[kw].append(p)
 
-        # 2차: 공백 분리 토큰 중 2글자+ 의미 단어 (문법 어미 제외)
+        # 2차: 공백 분리 토큰 중 2글자+ 의미 단어 (문법 어미/검색 의도어 제외)
         # 공백 기준 분리이므로 "성하"(완성하는 부분문자열) 같은 오탐 구조적으로 불가
         tokens = re.sub(r"[|·\-\[\]()「」『』【】]", " ", title).split()
         for tok in tokens:
@@ -664,6 +669,7 @@ def _detect_duplicate_topics(posts_detail: list[dict]) -> list[dict]:
                 len(tok) >= 2
                 and tok not in matched_in_post
                 and tok not in seen_kw          # taxonomy 키워드 중복 방지
+                and tok not in _INTENT_WORDS    # 검색 의도어 자체는 주제 키워드 아님
                 and not any(tok.endswith(e) for e in _GRAMMAR_ENDINGS)
             ):
                 matched_in_post.add(tok)
