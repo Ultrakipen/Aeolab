@@ -63,16 +63,34 @@ function simplify(text: string | undefined | null): string {
     .replace(/"@type"\s*:\s*"LocalBusiness"/g, '"@type": "사업장 정보"')
 }
 
-// 업종 영문 코드 → 한국어 (네이버 검색 URL 구성용) — v3.5 업종 25개
+// 업종 영문 코드 → 한국어 (네이버 검색 URL 구성용) — v5.8 업종 59개
 const CATEGORY_KO: Record<string, string> = {
+  // ACTIVE
   restaurant: '음식점', cafe: '카페', bakery: '베이커리·빵집',
-  bar: '주점·바', beauty: '미용·뷰티', nail: '네일샵',
-  medical: '병원·의원', pharmacy: '약국', fitness: '운동·헬스',
-  yoga: '요가·필라테스', pet: '반려동물', education: '교육·학원',
-  tutoring: '과외·튜터링', legal: '법률·행정', realestate: '부동산',
-  interior: '인테리어', auto: '자동차', cleaning: '청소·세탁',
-  shopping: '쇼핑몰', fashion: '패션·의류', photo: '사진·영상',
-  video: '영상제작', design: '디자인', accommodation: '숙박·펜션',
+  bar: '주점·바', accommodation: '숙박·펜션',
+  // LIKELY
+  beauty: '미용·뷰티', nail: '네일샵', skincare: '스킨케어',
+  massage: '마사지', spa: '스파', dance: '댄스',
+  ballet: '발레', semi_permanent: '반영구 타투',
+  pet: '반려동물', fitness: '운동·헬스', yoga: '요가·필라테스',
+  pharmacy: '약국',
+  // INACTIVE
+  medical: '병원·의원', legal: '법률·행정', accounting: '세무·회계',
+  education: '교육·학원', tutoring: '과외·튜터링',
+  photo: '사진·영상', video: '영상제작', design: '디자인',
+  realestate: '부동산', interior: '인테리어',
+  auto: '자동차', cleaning: '청소', laundry: '세탁소',
+  shopping: '쇼핑몰', fashion: '패션·의류', clothing: '의류',
+  flower: '꽃집·플라워', kids: '어린이·키즈', study: '독서실·스터디카페',
+  workshop: '공방·원데이클래스', music_class: '음악학원', music_lesson: '음악레슨',
+  cooking: '요리·쿠킹', experience: '체험·액티비티',
+  dental: '치과', oriental_medicine: '한의원', optics: '안경원',
+  martial_arts: '무술·무도', climbing: '클라이밍', art_class: '미술학원',
+  childcare: '어린이집·유치원',
+  car_wash: '세차', electronics_repair: '전자기기 수리',
+  footwear: '신발·구두', stationery: '문구',
+  norebang: '노래방', billiards: '당구장', golf: '골프',
+  swim: '수영장', jjimjil: '찜질방·사우나', escape: '방탈출',
   other: '기타',
 }
 
@@ -969,6 +987,38 @@ const CONTENT_CALENDAR: Record<string, { theme: string; ideas: string[] }[]> = {
     { theme: '9~10월: 가을 변신', ideas: ['가을 헤어컬러 트렌드', '환절기 두피 관리 팁', '수능 수험생 헤어 추천'] },
     { theme: '11~12월: 연말 변신', ideas: ['연말 파티 헤어스타일', '크리스마스 특별 이벤트', '연말 전 정기 관리 예약'] },
   ],
+  fitness: [
+    { theme: '1~2월: 새해 건강 다짐', ideas: ['새해 운동 목표 설정 팁', '겨울철 실내 운동 효과', '신규 회원 등록 이벤트 안내'] },
+    { theme: '3~4월: 봄 몸매 관리', ideas: ['봄 맞이 체중 감량 프로그램 소개', '야외 운동과 실내 운동 병행 팁', '봄 등록 혜택 안내'] },
+    { theme: '5~6월: 여름 준비', ideas: ['여름 몸매 관리 6주 플랜', '단백질 보충 식단 팁', '여름 단기 집중 프로그램'] },
+    { theme: '7~8월: 여름 성수기', ideas: ['더위에도 지속하는 운동 루틴', '수분 보충과 운동 안전 팁', '수영장·헬스 병행 추천'] },
+    { theme: '9~10월: 가을 건강 관리', ideas: ['가을 마라톤·조깅 준비 팁', '환절기 면역력 운동 루틴', '가을 특별 프로그램 오픈'] },
+    { theme: '11~12월: 연말 마무리', ideas: ['연말 스트레스 해소 운동', '내년 운동 목표 세우기', '연말 이벤트 및 새해 사전 등록'] },
+  ],
+  pet: [
+    { theme: '1~2월: 겨울 반려동물 케어', ideas: ['겨울철 반려동물 보온 관리', '설 연휴 반려동물 맡기기 안내', '겨울 피부 건조 케어 팁'] },
+    { theme: '3~4월: 봄 환경 변화', ideas: ['봄 털 갈이 시즌 그루밍 안내', '벚꽃 나들이 안전 동행 팁', '봄 예방접종 시기 안내'] },
+    { theme: '5~6월: 야외 활동 시즌', ideas: ['야외 산책 안전 수칙', '심장사상충 예방약 안내', '여름 대비 털 정리 타이밍'] },
+    { theme: '7~8월: 여름 반려동물 건강', ideas: ['반려동물 더위 관리 방법', '물놀이 동반 안전 수칙', '여름 피부병·습진 예방 케어'] },
+    { theme: '9~10월: 가을 건강 점검', ideas: ['가을 정기 건강 검진 안내', '산책하기 좋은 가을 코스', '추석 연휴 반려동물 케어'] },
+    { theme: '11~12월: 연말 반려동물', ideas: ['연말 연휴 반려동물 맡기기 안내', '겨울 관절 건강 관리', '연말 특별 그루밍 패키지'] },
+  ],
+  education: [
+    { theme: '1~2월: 새 학기 준비', ideas: ['새 학기 학습 계획 세우기', '겨울방학 집중 특강 안내', '신규 등록 상담 이벤트'] },
+    { theme: '3~4월: 학기 중반', ideas: ['중간고사 대비 특강 안내', '봄 수강 신청 할인', '학습 성과 공유 후기'] },
+    { theme: '5~6월: 시험 시즌', ideas: ['기말고사 대비 집중 수업', '상반기 학습 성과 정리', '여름방학 특강 사전 신청'] },
+    { theme: '7~8월: 여름방학', ideas: ['여름방학 단기 집중 과정', '부족한 과목 보충 수업', '2학기 선행 학습 프로그램'] },
+    { theme: '9~10월: 2학기 중간', ideas: ['중간고사 마무리 대비', '수능 D-50 특강 안내', '가을 학습 습관 만들기'] },
+    { theme: '11~12월: 연말·수능 후', ideas: ['수능 이후 진로 상담', '겨울방학 특강 모집', '새해 학습 목표 설정'] },
+  ],
+  accommodation: [
+    { theme: '1~2월: 겨울 여행', ideas: ['설 연휴 가족 여행 숙소 안내', '겨울 온천·스파 패키지', '눈꽃 시즌 특별 할인'] },
+    { theme: '3~4월: 봄 여행', ideas: ['벚꽃 시즌 예약 안내', '봄 커플 패키지 소개', '4월 얼리버드 예약 혜택'] },
+    { theme: '5~6월: 성수기 준비', ideas: ['가정의 달 가족 패키지', '신혼여행·기념일 특별 객실', '여름 예약 오픈 안내'] },
+    { theme: '7~8월: 여름 성수기', ideas: ['여름 휴가 마지막 객실 안내', '해수욕장·물놀이 근접 특징', '바베큐·야외 시설 소개'] },
+    { theme: '9~10월: 가을 여행', ideas: ['단풍 시즌 패키지 안내', '추석 연휴 잔여 객실 안내', '가을 소규모 모임 추천'] },
+    { theme: '11~12월: 연말 시즌', ideas: ['연말 모임·파티 패키지', '크리스마스 커플 특실', '새해 카운트다운 이벤트'] },
+  ],
   default: [
     { theme: '1~2월', ideas: ['신년 이벤트 안내', '겨울 시즌 서비스 소개', '설 연휴 영업 안내'] },
     { theme: '3~4월', ideas: ['봄 맞이 서비스 업데이트', '봄 시즌 이벤트', '신규 고객 할인 안내'] },
@@ -979,11 +1029,20 @@ const CONTENT_CALENDAR: Record<string, { theme: string; ideas: string[] }[]> = {
   ],
 }
 
+const FOOD_CATS = new Set(['restaurant', 'cafe', 'bakery', 'bar'])
+const BEAUTY_CATS = new Set(['beauty', 'nail', 'skincare', 'massage', 'spa', 'semi_permanent'])
+const FITNESS_CATS = new Set(['fitness', 'yoga', 'dance', 'ballet', 'martial_arts', 'climbing', 'swim', 'golf'])
+const EDUCATION_CATS = new Set(['education', 'tutoring', 'music_class', 'music_lesson', 'art_class', 'cooking', 'kids', 'study', 'workshop'])
+
 function getCalendarKey(category?: string): keyof typeof CONTENT_CALENDAR {
   if (!category) return 'default'
   const c = category.toLowerCase()
-  if (c.includes('restaurant') || c.includes('cafe') || c.includes('음식') || c.includes('카페') || c.includes('식당')) return 'restaurant'
-  if (c.includes('hair') || c.includes('nail') || c.includes('beauty') || c.includes('미용') || c.includes('헤어') || c.includes('네일')) return 'beauty_nail'
+  if (FOOD_CATS.has(c)) return 'restaurant'
+  if (BEAUTY_CATS.has(c)) return 'beauty_nail'
+  if (FITNESS_CATS.has(c)) return 'fitness'
+  if (c === 'pet') return 'pet'
+  if (EDUCATION_CATS.has(c)) return 'education'
+  if (c === 'accommodation') return 'accommodation'
   return 'default'
 }
 

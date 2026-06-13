@@ -130,8 +130,12 @@ function KeywordCompletenessContent({ businessId, authToken }: { businessId: str
           <BarChart2 className="w-4 h-4 text-blue-500" />
           <span className="text-sm font-semibold text-gray-900">업종 키워드 충족도 게이지</span>
         </div>
-        <span className={`text-2xl font-bold ${overallTextColor(data.overall_pct)}`}>
-          {data.overall_pct}%
+        <span className={`text-sm font-bold px-2.5 py-0.5 rounded-full ${
+          data.overall_pct < 40 ? 'bg-red-100 text-red-700' :
+          data.overall_pct < 70 ? 'bg-orange-100 text-orange-700' :
+          'bg-blue-100 text-blue-700'
+        }`}>
+          {data.overall_pct < 40 ? '보완 필요' : data.overall_pct < 70 ? '보통' : '양호'}
         </span>
       </div>
 
@@ -159,8 +163,10 @@ function KeywordCompletenessContent({ businessId, authToken }: { businessId: str
           {sortedCategories.map((cat, i) => (
             <div key={i}>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-gray-700 truncate max-w-[60%]">{cat.name}</span>
-                <span className="text-sm font-semibold text-gray-600">{cat.covered_pct}%</span>
+                <span className="text-sm text-gray-700 truncate max-w-[70%]">{cat.name}</span>
+                <span className={`text-xs font-medium ${cat.covered_pct === 0 ? 'text-red-500' : cat.covered_pct < 50 ? 'text-orange-500' : cat.covered_pct < 80 ? 'text-yellow-600' : 'text-green-600'}`}>
+                  {cat.covered_pct === 0 ? '미충족' : cat.covered_pct < 50 ? '부족' : cat.covered_pct < 80 ? '보통' : '충족'}
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div
