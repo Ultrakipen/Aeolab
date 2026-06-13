@@ -41,10 +41,16 @@ export default async function AiInfoTabGuidePage({
     .limit(1)
     .maybeSingle()
 
-  const plan: string =
+  // 관리자 이메일 → biz 플랜 부여 (layout.tsx 동일 로직, 불일치 방지)
+  const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com")
+    .split(",").map((e) => e.trim().toLowerCase())
+  const isAdminUser = ADMIN_EMAILS.includes((user.email ?? "").toLowerCase())
+
+  const plan: string = isAdminUser ? "biz" : (
     (subRow?.status === 'active' || subRow?.status === 'grace_period')
       ? (subRow?.plan ?? 'free')
       : 'free'
+  )
 
   const elig = business
     ? getBriefingEligibility(business.category, !!business.is_franchise)

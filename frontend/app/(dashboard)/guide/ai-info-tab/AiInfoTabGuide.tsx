@@ -322,7 +322,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         >
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed">
             {isInactive
-              ? <>ChatGPT·Gemini·Google AI는 <strong>자체 웹사이트·구글 비즈니스 프로필</strong>을 주요 학습 소스로 활용합니다. 아래 소개글을 홈페이지에도 활용하세요.</>
+              ? <>Gemini·Google AI는 <strong>구글 비즈니스 프로필</strong>을 실시간 참조합니다. ChatGPT는 학습 데이터 기반(컷오프 2024.06)이며 신규 콘텐츠 반영까지 수개월 소요됩니다. 아래 소개글을 홈페이지·구글 비즈니스 프로필에도 활용하세요.</>
 
               : <>AI 브리핑은 소개글의 <strong>핵심 정보를 학습 소스로 활용</strong>합니다.</>}
             {" "}200자 이상(AI 브리핑은 500자 이상 권장) 분량에 사업장의 강점·서비스·키워드를 자연스럽게 포함하세요.
@@ -434,8 +434,8 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           </ul>
           {plan !== "free" && (
             <div className="bg-purple-50 border border-purple-200 rounded p-3 text-sm md:text-base text-gray-700 mb-3">
-              <strong>{planInfo.label} 플랜:</strong> 매주 월요일 오전 9시, AI가 업종별 소식 초안을 자동 작성합니다.
-              가이드 페이지의 <strong>이번 주 소식 초안</strong>에서 확인하세요.
+              <strong>{planInfo.label} 플랜:</strong> 매주 월요일 오전 9시, AI가 업종별 소식 초안을 자동 작성합니다.{" "}
+              <Link href="/guide" className="text-purple-700 underline hover:text-purple-900">가이드 페이지의 이번 주 소식 초안</Link>에서 확인하세요.
             </div>
           )}
           <a
