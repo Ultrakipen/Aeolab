@@ -659,8 +659,11 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
         {/* 키워드 충족률 */}
         <div className={`rounded-xl border p-3 ${gapCount === 0 ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
           <div className="text-sm md:text-base text-gray-500 mb-1">키워드 충족률</div>
-          <div className={`text-2xl font-bold ${gapCount === 0 ? 'text-green-700' : 'text-amber-700'}`}>
-            {coverageRate > 0 ? `${Math.round(coverageRate)}%` : gapCount === 0 ? '100%' : '-'}
+          <div className={`text-xl font-bold ${gapCount === 0 ? 'text-green-700' : 'text-amber-700'}`}>
+            {gapCount === 0 ? '충족' : coverageRate >= 50 ? '보통' : '부족'}
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
+            <div className={`h-1.5 rounded-full ${gapCount === 0 ? 'bg-green-500' : 'bg-amber-400'}`} style={{ width: `${coverageRate > 0 ? Math.min(Math.round(coverageRate), 100) : gapCount === 0 ? 100 : 0}%` }} />
           </div>
           {gapCount > 0 && <div className="text-sm md:text-base text-amber-600 mt-0.5">{gapCount}개 키워드 부족</div>}
         </div>
@@ -2761,8 +2764,8 @@ function SmartplaceFAQSection({
         const err = await res.json().catch(() => ({})) as { detail?: string }
         throw new Error(err.detail || '생성 실패')
       }
-      const data = await res.json() as { faqs?: Array<{ question: string; answer: string }>; used?: number; limit?: number }
-      setFaqs(data.faqs || [])
+      const data = await res.json() as { items?: Array<{ question: string; answer: string }>; used?: number; limit?: number }
+      setFaqs(data.items || [])
       if (data.used !== undefined && data.limit !== undefined) {
         setUsage({ used: data.used, limit: data.limit })
       }
