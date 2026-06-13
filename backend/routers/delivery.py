@@ -45,19 +45,37 @@ _TOSS_TIMEOUT = aiohttp.ClientTimeout(total=30)
 # ── 패키지 정의 (금액은 config/prices.py DELIVERY_PRICES 단일 소스) ──────────
 PACKAGES: dict[str, dict] = {
     "smartplace_register": {
-        "name": "스마트플레이스 등록 대행",
+        "name": "01 스마트플레이스 등록 대행",
         "amount": DELIVERY_PRICES["smartplace_register"],
-        "description": "네이버 스마트플레이스 신규 등록부터 기본 최적화까지 대행합니다.",
+        "description": "스마트플레이스 신규 등록부터 기본정보, 메뉴, 키워드 최적화까지",
+        "work_hours": "5.2h 작업",
+        "features": [
+            "스마트플레이스 신규 등록",
+            "기본정보·메뉴·키워드 최적화",
+            "대표 사진 구성 안내",
+        ],
     },
     "ai_optimization": {
-        "name": "AI 검색 최적화",
+        "name": "02 AI 검색 최적화",
         "amount": DELIVERY_PRICES["ai_optimization"],
-        "description": "AI 검색 노출을 위한 키워드·콘텐츠·정보 최적화를 대행합니다.",
+        "description": "AI 검색 최적화, 소개글·톡톡메뉴·후기답글·키워드 보강",
+        "work_hours": "6.0h 작업",
+        "features": [
+            "소개글·톡톡채팅방 메뉴 최적화",
+            "후기 답글 10건 작성",
+            "핵심 키워드 보강",
+        ],
     },
     "comprehensive": {
-        "name": "종합 풀패키지",
+        "name": "03 종합 풀패키지",
         "amount": DELIVERY_PRICES["comprehensive"],
-        "description": "스마트플레이스 등록 + AI 최적화 + 모니터링 종합 관리를 대행합니다.",
+        "description": "등록+최적화+코칭+30일 재진단 — 개별 합산 158,000원 → 119,000원",
+        "work_hours": "11.2h 작업",
+        "features": [
+            "01 등록 대행 전체 포함",
+            "02 AI 최적화 전체 포함",
+            "1:1 코칭 세션 + 30일 재진단",
+        ],
     },
 }
 
@@ -273,6 +291,8 @@ async def list_packages():
                 "name": pkg["name"],
                 "amount": pkg["amount"],
                 "description": pkg["description"],
+                "work_hours": pkg.get("work_hours", ""),
+                "features": pkg.get("features", []),
             }
             for key, pkg in PACKAGES.items()
         ]
@@ -363,6 +383,20 @@ async def get_order(
     order = await _get_order_owned_or_403(order_id, user["id"])
     pkg_type = order.get("package_type", "")
     order["package_name"] = PACKAGES.get(pkg_type, {}).get("name", pkg_type)
+
+    # 사업장명 enrichment
+    biz_id = order.get("business_id")
+    if biz_id:
+        try:
+            supabase = get_client()
+            biz_res = await execute(
+                supabase.table("businesses").select("name").eq("id", biz_id).single()
+            )
+            if biz_res and biz_res.data:
+                order["business_name"] = biz_res.data.get("name") or ""
+        except Exception as _e:
+            _logger.debug(f"[delivery/get_order] 사업장명 조회 실패 (무시): {_e}")
+
     return {"order": order}
 
 
@@ -426,9 +460,9 @@ async def create_message(
     """사용자 메시지 작성 (본인 소유 검증)."""
     order = await _get_order_owned_or_403(order_id, user["id"])
 
-    # 취소·완료 상태 의뢰는 메시지 작성 불가
-    if order.get("status") in ("cancelled", "completed"):
-        raise HTTPException(status_code=400, detail="완료 또는 취소된 의뢰에는 메시지를 작성할 수 없습니다")
+    # 취소·완료·환불 상태 의뢰는 메시지 작성 불가
+    if order.get("status") in ("cancelled", "completed", "refunded"):
+        raise HTTPException(status_code=400, detail="완료·취소·환불된 의뢰에는 메시지를 작성할 수 없습니다")
 
     supabase = get_client()
     now = datetime.now(timezone.utc).isoformat()
