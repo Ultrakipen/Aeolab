@@ -2016,6 +2016,7 @@ export function CompetitorsClient({
                       </div>
 
                       <div className="flex-1 min-w-0">
+                        {/* 1행: 이름 + 핀 + 메모 + 변화감지 */}
                         <div className="flex items-center gap-2 flex-wrap">
                           {pinnedIds.has(c.id) && (
                             <Pin className="w-3 h-3 text-blue-500 fill-blue-400 shrink-0" />
@@ -2033,34 +2034,50 @@ export function CompetitorsClient({
                               변화 감지
                             </span>
                           )}
-                          {cs && (() => {
-                            const { label, cls } = getGrowthStageText(cs.score)
-                            return (
-                              <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${cls}`}>
-                                {label}
-                              </span>
-                            )
-                          })()}
+                          {/* 스파크라인 + 점수 변화 — PC만 표시 */}
+                          {trendScans.length >= 2 && cs && (
+                            <span className="hidden md:inline-flex">
+                              <CompetitorSparkline competitorName={c.name} trendScans={trendScans} />
+                            </span>
+                          )}
                           {csDelta !== null && csDelta !== 0 && (
-                            <span className={`text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-600'}`}
+                            <span className={`hidden md:inline-flex text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-600'}`}
                               title={csDelta > 0 ? '지난 스캔 대비 상승 (경쟁사 강화)' : '지난 스캔 대비 하락 (내 가게에 유리)'}>
                               {csDelta > 0 ? '↑ 상승' : '↓ 하락'}
                             </span>
                           )}
-                          {/* 스파크라인 — 2회 이상 스캔 시 추이 표시 */}
-                          {trendScans.length >= 2 && cs && (
-                            <CompetitorSparkline competitorName={c.name} trendScans={trendScans} />
-                          )}
-                          {cs && (
-                            <span className={`text-sm px-2 py-0.5 rounded-full font-medium border ${
+                        </div>
+                        {/* 2행: 성장 단계 + AI 노출 배지 */}
+                        {cs && (
+                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                            {(() => {
+                              const { label, cls } = getGrowthStageText(cs.score)
+                              return (
+                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${cls}`}>
+                                  {label}
+                                </span>
+                              )
+                            })()}
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
                               cs.mentioned
                                 ? 'bg-orange-50 text-orange-700 border-orange-200'
                                 : 'bg-gray-50 text-gray-400 border-gray-200'
                             }`}>
                               {cs.mentioned ? 'AI 노출됨' : 'AI 미노출'}
                             </span>
-                          )}
-                        </div>
+                            {/* 스파크라인 + 점수 변화 — 모바일만 표시 (2행에 배치) */}
+                            {trendScans.length >= 2 && (
+                              <span className="md:hidden">
+                                <CompetitorSparkline competitorName={c.name} trendScans={trendScans} />
+                              </span>
+                            )}
+                            {csDelta !== null && csDelta !== 0 && (
+                              <span className={`md:hidden text-xs font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-600'}`}>
+                                {csDelta > 0 ? '↑' : '↓'}
+                              </span>
+                            )}
+                          </div>
+                        )}
                         {c.address && (
                           <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
                             <MapPin className="w-3 h-3 shrink-0" />
@@ -2143,19 +2160,20 @@ export function CompetitorsClient({
                               const naverOn = (cs.breakdown.naver_exposure_confirmed ?? 0) >= 50
                               const globalOn = (cs.breakdown.multi_ai_exposure ?? 0) >= 50
                               return (
-                                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                                  <span
-                                    className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${naverOn ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}
-                                    title="경쟁사 노출 여부는 Gemini AI 단일 스캔 기반 추정값입니다"
-                                  >
-                                    네이버 AI {naverOn ? '노출됨' : '미노출'} <span className="font-normal opacity-70">(추정)</span>
-                                  </span>
-                                  <span
-                                    className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${globalOn ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}
-                                    title="경쟁사 노출 여부는 Gemini AI 단일 스캔 기반 추정값입니다"
-                                  >
-                                    ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'} <span className="font-normal opacity-70">(추정)</span>
-                                  </span>
+                                <div className="mt-1.5">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span
+                                      className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${naverOn ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}
+                                    >
+                                      네이버 AI {naverOn ? '노출됨' : '미노출'} <span className="font-normal opacity-70">(추정)</span>
+                                    </span>
+                                    <span
+                                      className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${globalOn ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}
+                                    >
+                                      ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'} <span className="font-normal opacity-70">(추정)</span>
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-400 mt-0.5">Gemini AI 단일 스캔 기반 추정 — 실제와 다를 수 있음</p>
                                 </div>
                               )
                             })()}
