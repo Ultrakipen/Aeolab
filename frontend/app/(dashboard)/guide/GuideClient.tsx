@@ -3134,12 +3134,14 @@ function GuideItemCard({
 // ── 지금 바로 할 것 — 키워드 선택형 히어로 ────────────────────────────────────
 function getBizPlaceLabel(category?: string): string {
   const medical = new Set(['medical', 'dental', 'oriental_medicine', 'optics', 'pharmacy'])
-  const office = new Set(['legal', 'accounting', 'realestate', 'design', 'photo', 'video'])
+  const office = new Set(['legal', 'accounting', 'realestate'])
+  const creative = new Set(['photo', 'video', 'design'])
   const academy = new Set(['education', 'tutoring', 'music_class', 'music_lesson', 'art_class', 'cooking', 'dance', 'ballet', 'martial_arts'])
   const studio = new Set(['fitness', 'yoga', 'climbing', 'swim', 'golf', 'childcare'])
   if (!category) return '가게'
   if (medical.has(category)) return '병원'
   if (office.has(category)) return '사무소'
+  if (creative.has(category)) return '스튜디오'
   if (academy.has(category)) return '학원'
   if (studio.has(category)) return '센터'
   return '가게'
