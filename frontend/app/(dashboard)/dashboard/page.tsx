@@ -507,7 +507,21 @@ export default async function DashboardPage({
             </>
           </CollapseSectionWrapper>
 
-          {/* ② 오늘 할 일 — 네이버 현황 파악 후 행동 지시 */}
+          {/* ② 콘텐츠 생성 도구 — 네이버 소개글·톡톡 메뉴 (네이버 도구 → 네이버 섹션 바로 다음 배치) */}
+          <CollapseSectionWrapper id="section-content" title="콘텐츠 생성 도구" description="네이버 소개글 · 톡톡 채팅방 메뉴 초안 — 펼쳐서 생성·복사" iconColor="text-purple-600" defaultOpen={false}>
+            <DashboardContentZone
+              bizId={bizBase.id}
+              plan={plan}
+              planLabel={planLabel}
+              planFaqLimit={planFaqLimit}
+              naverIntroDraft={business?.naver_intro_draft}
+              naverIntroGeneratedAt={business?.naver_intro_generated_at}
+              talktalkFaqDraft={business?.talktalk_faq_draft as { items: Array<{ question: string; answer: string; category: string }>; chat_menus: string[] } | null | undefined}
+              talktalkFaqGeneratedAt={business?.talktalk_faq_generated_at}
+            />
+          </CollapseSectionWrapper>
+
+          {/* ③ 오늘 할 일 — 네이버 현황·도구 파악 후 행동 지시 */}
           <CollapseSectionWrapper id="section-action" title="오늘 할 일" description="지금 바로 실행할 액션" iconColor="text-rose-500" defaultOpen={true}>
             <DashboardActionZone
               bizId={bizBase.id}
@@ -540,20 +554,6 @@ export default async function DashboardPage({
             talktalkMenuCount={talktalkMenuCount}
             globalIntroReady={globalIntroReady}
           />
-
-          {/* ③ 콘텐츠 생성 도구 — 소개글·톡톡 메뉴 (필요할 때 펼치는 도구 성격 → 기본 접힘) */}
-          <CollapseSectionWrapper id="section-content" title="콘텐츠 생성 도구" description="AI 맞춤 소개글 · 톡톡 채팅방 메뉴 초안 — 펼쳐서 생성·복사" iconColor="text-purple-600" defaultOpen={false}>
-            <DashboardContentZone
-              bizId={bizBase.id}
-              plan={plan}
-              planLabel={planLabel}
-              planFaqLimit={planFaqLimit}
-              naverIntroDraft={business?.naver_intro_draft}
-              naverIntroGeneratedAt={business?.naver_intro_generated_at}
-              talktalkFaqDraft={business?.talktalk_faq_draft as { items: Array<{ question: string; answer: string; category: string }>; chat_menus: string[] } | null | undefined}
-              talktalkFaqGeneratedAt={business?.talktalk_faq_generated_at}
-            />
-          </CollapseSectionWrapper>
 
           {/* ⑤ 상세 분석 데이터 — 접힘 */}
           <CollapseSectionWrapper id="section-detail" title="상세 분석 데이터" description="점수 근거 · 경쟁사 비교 · AI 인용" iconColor="text-indigo-600">
