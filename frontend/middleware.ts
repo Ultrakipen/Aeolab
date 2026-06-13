@@ -127,6 +127,7 @@ export const config = {
     "/onboarding/:path*",
     "/onboarding",
     "/growth/:path*",
+    "/review-inbox",
     "/review-inbox/:path*",
     "/preview/:path*",
     "/notices/:path*",

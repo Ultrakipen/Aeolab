@@ -269,6 +269,10 @@ export default function ReviewInboxPage() {
   // 위기관리 가이드 상태
   const [crisisReviewId, setCrisisReviewId] = useState<string | null>(null)
   const [crisisReviewText, setCrisisReviewText] = useState<string>('')
+  // 새 결과 카드의 위기관리 패널
+  const [crisisOnResult, setCrisisOnResult] = useState(false)
+  // 월 사용량 (마지막 생성 후 서버 응답 기준)
+  const [usageStat, setUsageStat] = useState<{ used: number; limit: number } | null>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -326,6 +330,8 @@ export default function ReviewInboxPage() {
     try {
       const data = await generateReviewReply(businessId, reviewText, token)
       setResult(data)
+      setUsageStat({ used: data.used, limit: data.limit })
+      setCrisisOnResult(false)
       fetchHistory()
     } catch (err: unknown) {
       const apiErr = err as { code?: string; detail?: { limit?: number; message?: string } }
@@ -388,7 +394,7 @@ export default function ReviewInboxPage() {
         <div className="bg-blue-600 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="text-white font-semibold text-sm">Basic 플랜부터 이용 가능</p>
-            <p className="text-blue-100 text-sm mt-0.5">월 9,900원 · 리뷰 답변 월 20회 포함 (Pro이상 무제한)</p>
+            <p className="text-blue-100 text-sm mt-0.5">월 9,900원 · 리뷰 답변 월 20회 포함 (Pro·창업패키지 이상 무제한)</p>
           </div>
           <a
             href="/pricing"
@@ -415,9 +421,16 @@ export default function ReviewInboxPage() {
 
       {/* 입력 폼 */}
       <form onSubmit={handleSubmit} className="bg-white rounded-xl p-5 shadow-sm mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          리뷰 텍스트 붙여넣기
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-medium text-gray-700">
+            리뷰 텍스트 붙여넣기
+          </label>
+          {usageStat && (
+            <span className="text-xs text-gray-400">
+              이번 달 {usageStat.used}{usageStat.limit === 999 ? '' : `/${usageStat.limit}회`} 사용
+            </span>
+          )}
+        </div>
         <textarea
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}
@@ -456,9 +469,39 @@ export default function ReviewInboxPage() {
           <p className="text-blue-900 text-sm leading-relaxed bg-white rounded-xl px-4 py-3 border border-blue-100">
             {result.draft_response}
           </p>
+          {result.keywords_used && result.keywords_used.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1 mt-2">
+              <span className="text-xs text-gray-400 shrink-0">사용 키워드:</span>
+              {result.keywords_used.map((kw, i) => (
+                <span key={i} className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-medium">
+                  {kw}
+                </span>
+              ))}
+            </div>
+          )}
           <p className="text-sm text-blue-600 mt-2">
             위 답변을 네이버·카카오 리뷰 답글란에 붙여넣으세요.
           </p>
+          {result.tone === 'negative' && businessId && token && (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => setCrisisOnResult((v) => !v)}
+                className="flex items-center gap-1.5 text-sm text-red-600 border border-red-200 rounded-lg px-2.5 py-1.5 hover:bg-red-50 transition-colors font-medium"
+              >
+                <AlertTriangle className="w-3.5 h-3.5" />
+                {crisisOnResult ? '가이드 닫기' : '위기관리 가이드'}
+              </button>
+              {crisisOnResult && (
+                <CrisisGuidePanel
+                  reviewText={reviewText}
+                  businessId={businessId}
+                  token={token}
+                  onClose={() => setCrisisOnResult(false)}
+                />
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -471,9 +514,16 @@ export default function ReviewInboxPage() {
           )}
         </div>
         {historyLoading ? (
-          <p className="text-sm text-gray-400">불러오는 중...</p>
+          <div className="space-y-2">
+            <div className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+            <div className="h-16 bg-gray-100 rounded-xl animate-pulse w-4/5" />
+          </div>
         ) : history.length === 0 ? (
-          <p className="text-sm text-gray-400">아직 생성된 답변이 없습니다.</p>
+          <div className="text-center py-8 bg-white rounded-xl border border-dashed border-gray-200">
+            <MessageSquare className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+            <p className="text-sm text-gray-400">아직 생성된 답변이 없습니다.</p>
+            <p className="text-xs text-gray-300 mt-1">위에서 리뷰를 붙여넣고 첫 답변을 만들어보세요.</p>
+          </div>
         ) : (
           <div className="space-y-3">
             {history.map((h) => (
@@ -526,7 +576,9 @@ export default function ReviewInboxPage() {
                     )}
                   </div>
                 )}
-                <p className="text-sm text-gray-300 mt-2">{h.created_at?.slice(0, 10) ?? ''}</p>
+                <p className="text-xs text-gray-300 mt-2">
+                  {h.created_at ? new Date(h.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
+                </p>
               </div>
             ))}
           </div>
