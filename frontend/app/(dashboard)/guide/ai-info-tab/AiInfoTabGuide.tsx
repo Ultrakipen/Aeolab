@@ -152,7 +152,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             {/* AI탭 준비 안내 — INACTIVE/프랜차이즈도 AI탭은 모든 업종 가능 */}
             <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5">
               <p className="text-sm md:text-base font-semibold text-indigo-800 mb-2">
-                🆕 네이버 AI탭 준비 — 지금 바로 노출 가능 (업종 공식 제한 없음)
+                🆕 네이버 AI탭 준비 — 업종 공식 제한 없음 (베타 확대 중)
               </p>
               <p className="text-sm md:text-base text-indigo-700 mb-3 leading-relaxed">
                 네이버 AI탭(2026-04-27 베타 출시, 베타 확대 중)은 업종 공식 제한 없이 모든 사업장이 노출 가능합니다.

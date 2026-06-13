@@ -140,16 +140,7 @@ export default async function AiTabGuidePage({
           AI탭에 내 사업장이 노출되도록 핵심 항목 5개를 점검합니다. 평균 소요 20분.
         </p>
         <p className="mt-2 text-sm md:text-base text-gray-500">
-          출처:{" "}
-          <a
-            href="https://search.naver.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
-          >
-            네이버 AI탭 베타 출시 2026-04-27
-          </a>{" "}
-          · 항목 기준은 실측 기반 권장값
+          출처: 네이버 공식 발표 (2026-04-27 베타) · 항목 기준은 실측 기반 권장값
         </p>
       </div>
 
