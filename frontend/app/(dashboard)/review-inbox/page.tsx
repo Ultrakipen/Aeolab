@@ -335,7 +335,9 @@ export default function ReviewInboxPage() {
       fetchHistory()
     } catch (err: unknown) {
       const apiErr = err as { code?: string; detail?: { limit?: number; message?: string } }
-      if (apiErr?.code === 'PLAN_REQUIRED' || apiErr?.detail?.limit !== undefined) {
+      if (apiErr?.code === 'PLAN_REQUIRED') {
+        setError('구독이 만료됐거나 플랜 권한이 없습니다. 플랜을 확인해주세요.')
+      } else if (apiErr?.code === 'REVIEW_REPLY_LIMIT_EXCEEDED' || apiErr?.detail?.limit !== undefined) {
         setError(`이번 달 한도(${apiErr.detail?.limit ?? ''}회)를 초과했습니다.`)
       } else {
         setError('답변 생성 실패. 다시 시도해주세요.')

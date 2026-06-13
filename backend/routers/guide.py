@@ -234,6 +234,7 @@ async def generate_review_reply(
         "tone": sentiment,
         "used": used + 1,
         "limit": limit,
+        "keywords_used": biz.get("keywords") or [],
     }
 
 
