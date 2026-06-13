@@ -18,7 +18,7 @@ const LEARN_SOURCES = [
   {
     icon: "📍",
     title: "구글 비즈니스 프로필",
-    desc: "Google 데이터를 기반으로 하는 ChatGPT 웹 검색에서 가장 직접적으로 참조됩니다. business.google.com 무료 등록만으로 즉시 효과가 있습니다.",
+    desc: "구글 비즈니스 프로필에 등록하면 웹 상 사업장 정보가 공식화되어 ChatGPT 웹검색(Bing 기반)에서도 발견되기 쉬워집니다. business.google.com 무료 등록 후 Bing 인덱싱까지 1~4주 소요됩니다.",
   },
   {
     icon: "📰",
@@ -34,7 +34,7 @@ const LEARN_SOURCES = [
 
 const CHECKLIST_ITEMS = [
   { id: "google_biz", label: "구글 비즈니스 프로필 등록 완료 (business.google.com)" },
-  { id: "qa", label: "자체 웹사이트·홈페이지에 Q&A 5개 이상 포함" },
+  { id: "qa", label: "자체 웹사이트·홈페이지에 Q&A 형식 콘텐츠 포함 (가격·운영시간·예약 방법 등)" },
   { id: "specific", label: "가격·운영시간·위치 구체 수치 명시" },
   { id: "authority", label: "권위 신호 포함 (경력·자격·수상)" },
   { id: "tripadvisor", label: "트립어드바이저·망고플레이트 등 외부 플랫폼 등록" },
@@ -197,7 +197,7 @@ export default function ChatGptSearchGuidePage() {
             ChatGPT 노출 체크리스트
           </h2>
           <p className="text-sm text-gray-500 mb-4">
-            체크는 화면 확인용입니다. 브라우저에 저장되며 닫으면 초기화됩니다.
+            체크 상태는 이 브라우저에 저장됩니다 (새 기기·시크릿 모드에서는 초기화됩니다).
           </p>
           <ChatGptChecklist items={CHECKLIST_ITEMS} />
         </section>
