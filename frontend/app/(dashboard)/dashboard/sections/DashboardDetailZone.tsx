@@ -342,7 +342,7 @@ export default function DashboardDetailZone({
                 ? undefined
                 : (naverResult.in_briefing ?? false)
             }
-            aiTabMentioned={undefined}
+            aiTabMentioned={scan.naver_ai_tab_visible == null ? undefined : (scan.naver_ai_tab_visible as boolean)}
             chatgptMentioned={!!chatgptResult?.mentioned}
             hasWebsite={isIndependentWebsite(business.website_url)}
             googlePlaceRegistered={!!business.google_place_id}

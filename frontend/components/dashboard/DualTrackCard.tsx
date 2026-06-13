@@ -12,8 +12,8 @@ void SCORE_LABELS; // 미사용 경고 방지 (향후 dynamic rendering 시 활�
 /**
  * DualTrackCard — 업종별 듀얼트랙 AI 가시성 카드 (v3.0)
  *
- * Track 1: 네이버 AI 브리핑 준비도 (업종별 비중: 40~70%)
- * Track 2: 글로벌 AI 가시성       (업종별 비중: 30~90%)
+ * Track 1: 네이버 AI 채널 준비도 — 브리핑·AI탭·일반검색·카카오 종합 (업종별 비중: 40~70%)
+ * Track 2: 글로벌 AI 가시성       — ChatGPT·Gemini·Google AI (업종별 비중: 30~90%)
  * 성장 단계: track1_score 기준 (시작/성장 중/두각/선도)
  */
 

@@ -87,10 +87,10 @@ export default function DashboardHeroCard({
 
   const naverAiTabCard =
     naverAiTabVisible === true
-      ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 중",  statusClass: "text-emerald-700", detail: "AI탭 답변 있음" }
+      ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 중",    statusClass: "text-emerald-700", detail: "AI탭 답변 있음" }
       : naverAiTabVisible === false
       ? { icon: "!", iconClass: "bg-amber-500 text-white",   status: "아직 미노출", statusClass: "text-amber-700",   detail: "설정 보강하면 가능" }
-      : { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "준비 중",  statusClass: "text-gray-400",    detail: "정식 공개 후 측정" };
+      : { icon: "→", iconClass: "bg-blue-100 text-blue-600", status: "준비 가능",   statusClass: "text-blue-600",    detail: "가이드 확인하기" };
 
   const naverBriefingCard = naverCaptchaBlocked
     ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",        statusClass: "text-gray-400",    detail: "일시적으로 확인 어려움" }
@@ -112,6 +112,12 @@ export default function DashboardHeroCard({
       : { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "비교 준비 중", statusClass: "text-gray-400", detail: "경쟁사 등록 후 표시" };
 
   // INACTIVE: 검색·AI탭·경쟁순위(실측) / ACTIVE·LIKELY: 검색·AI탭·AI브리핑
+  const ANCHOR_MAP: Record<string, string> = {
+    "naver-seo":      "#naver-seo-anchor",
+    "naver-aitab":    "#naver-aitab-anchor",
+    "naver-briefing": "#naver-briefing-anchor",
+    "naver-rank":     "#section-detail",
+  };
   const naverChannels = isInactiveOrFranchise
     ? [
         { id: "naver-seo",   platform: "네이버 검색", ...naverSeoCard },
@@ -168,9 +174,10 @@ export default function DashboardHeroCard({
         </div>
         <div className="grid grid-cols-3 gap-2">
           {naverChannels.map((card) => (
-            <div
+            <a
               key={card.id}
-              className="bg-white rounded-xl border border-gray-200 shadow-sm px-2 py-3 flex flex-col items-center gap-1.5 text-center"
+              href={ANCHOR_MAP[card.id] ?? "#section-naver"}
+              className="bg-white rounded-xl border border-gray-200 shadow-sm px-2 py-3 flex flex-col items-center gap-1.5 text-center hover:border-blue-300 hover:shadow-md transition-all group"
             >
               <span className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${card.iconClass}`}>
                 {card.icon}
@@ -178,9 +185,9 @@ export default function DashboardHeroCard({
               <div>
                 <p className="text-sm font-medium text-gray-500 leading-tight break-keep">{card.platform}</p>
                 <p className={`text-sm font-bold mt-0.5 leading-tight ${card.statusClass}`}>{card.status}</p>
-                <p className="text-xs text-gray-400 mt-0.5 leading-tight break-keep hidden sm:block">{card.detail}</p>
+                <p className="text-xs text-gray-400 mt-0.5 leading-tight break-keep hidden sm:block group-hover:text-blue-400 transition-colors">{card.detail}</p>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>

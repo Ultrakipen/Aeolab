@@ -396,7 +396,7 @@ export default async function DashboardPage({
                   secondary={!!latestScan}
                 />
                 <p className="text-sm text-slate-500 mt-3 pt-3 border-t border-gray-100 leading-snug">
-                  반영 기간: 스마트플레이스 1~2일 · AI탭·블로그 2~4주
+                  반영 기간: 스마트플레이스 1~2일 · AI탭·블로그 2~4주 · ChatGPT·Gemini 수개월
                 </p>
               </div>
             </div>
@@ -607,8 +607,8 @@ export default async function DashboardPage({
             />
           </CollapseSectionWrapper>
 
-          {/* ⑥ 글로벌 AI — 접힘, 글로벌 소개글 포함 */}
-          <CollapseSectionWrapper id="section-global" title="글로벌 AI 현황" description="ChatGPT · Gemini · Google AI · 글로벌 소개글" iconColor="text-blue-500">
+          {/* ⑥ 글로벌 AI — INACTIVE/프랜차이즈는 기본 펼침(핵심 대안 채널), 나머지 접힘 */}
+          <CollapseSectionWrapper id="section-global" title="글로벌 AI 현황" description="ChatGPT · Gemini · Google AI 실측 · 글로벌 소개글" iconColor="text-blue-500" defaultOpen={briefingEligibility === "inactive" || isFranchise}>
             <DashboardGlobalAiZone
               category={bizBase.category}
               plan={plan}
@@ -622,6 +622,12 @@ export default async function DashboardPage({
               planFaqLimit={planFaqLimit}
               globalIntroDraft={business?.global_intro_draft}
               globalIntroGeneratedAt={business?.global_intro_generated_at}
+              chatgptFreq={aiExposureData?.chatgptFreq}
+              chatgptSampleSize={aiExposureData?.chatgptSampleSize}
+              geminiFreq={aiExposureData?.geminiFreq}
+              geminiSampleSize={aiExposureData?.geminiSampleSize}
+              googleMentioned={(() => { const g = allPlatformResults.google; if (!g || g.error) return null; return !!(g.in_ai_overview ?? g.mentioned); })()}
+              googleError={!!allPlatformResults.google?.error}
             />
           </CollapseSectionWrapper>
 
