@@ -23,6 +23,24 @@ router = APIRouter()
 _logger = logging.getLogger("aeolab")
 
 
+async def _get_monthly_blog_count(user_id: str, supabase) -> int:
+    """이번 달 블로그 분석 사용 횟수 조회 (notifications.sent_at 기준 UTC)"""
+    today = datetime.now(timezone.utc)
+    month_start = f"{today.year:04d}-{today.month:02d}-01"
+    try:
+        res = await execute(
+            supabase.table("notifications")
+            .select("id", count="exact")
+            .eq("user_id", user_id)
+            .eq("type", "blog_analysis")
+            .gte("sent_at", month_start)
+        )
+        return res.count or 0
+    except Exception as e:
+        _logger.warning(f"monthly blog count query failed for user={user_id}: {e}")
+        return 0
+
+
 class BlogAnalyzeRequest(BaseModel):
     business_id: str = Field(..., description="사업장 ID")
     blog_url: str = Field(..., max_length=300, description="블로그 URL")
@@ -68,6 +86,22 @@ async def analyze_blog_endpoint(
         raise HTTPException(status_code=403, detail="접근 권한 없음")
 
     now_utc = datetime.now(timezone.utc)
+
+    # 월별 사용량 체크 (free 이외 플랜: basic=3, pro=10, startup=5)
+    monthly_used = 0
+    if limit < 999:
+        monthly_used = await _get_monthly_blog_count(user_id, supabase)
+        if monthly_used >= limit:
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "code": "MONTHLY_LIMIT_REACHED",
+                    "message": f"이번 달 블로그 분석 횟수({limit}회)를 모두 사용했습니다.",
+                    "monthly_used": monthly_used,
+                    "monthly_limit": limit,
+                    "upgrade_url": "/pricing",
+                },
+            )
 
     # 24시간 쿨다운 — 사업장별 마지막 분석 시각 기준
     last_analyzed = biz_row.get("blog_analyzed_at")
@@ -169,6 +203,9 @@ async def analyze_blog_endpoint(
         "ai_readiness_items": analysis.get("ai_readiness_items", []),
         "analyzed_at": now_iso,
         "error": analysis.get("error"),
+        # 월 사용량 — 이번 분석 포함 (insert 직후이므로 +1)
+        "monthly_used": monthly_used + 1,
+        "monthly_limit": limit,
     }
 
     # 기본 저장 필드 (blog_analysis_json 컬럼이 없어도 동작)
@@ -283,11 +320,21 @@ async def get_blog_result(
     if biz_row["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="접근 권한 없음")
 
+    # 플랜 + 월 사용량 조회 (모든 경로에 포함)
+    plan = await get_user_plan(user_id, supabase)
+    limit = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["blog_monthly"]
+    monthly_used = await _get_monthly_blog_count(user_id, supabase) if limit < 999 else 0
+
     # blog_analysis_json이 있으면 전체 결과 그대로 반환 (새로고침 후 복원)
     if has_json_column:
         saved_json = biz_row.get("blog_analysis_json")
         if saved_json and isinstance(saved_json, dict):
-            return {**saved_json, "has_blog_analysis": True}
+            return {
+                **saved_json,
+                "has_blog_analysis": True,
+                "monthly_used": monthly_used,
+                "monthly_limit": limit,
+            }
 
     # 하위호환: blog_analysis_json 없는 경우 요약 필드만 반환
     return {
@@ -298,4 +345,6 @@ async def get_blog_result(
         "blog_latest_post_date": biz_row.get("blog_latest_post_date"),
         "blog_analyzed_at": biz_row.get("blog_analyzed_at"),
         "has_blog_analysis": biz_row.get("blog_analyzed_at") is not None,
+        "monthly_used": monthly_used,
+        "monthly_limit": limit,
     }

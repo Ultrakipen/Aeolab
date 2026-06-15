@@ -109,7 +109,7 @@ interface BlogAnalysisResult {
     monthly_counts: Record<string, number>;
     total_analyzed: number;
     avg_interval_days: number;
-    consistency: "active" | "regular" | "irregular" | "inactive";
+    consistency: "active" | "regular" | "irregular" | "inactive" | "bursty";
     recommended_posts_per_month: number;
     recommended_next_date: string;
     consistency_message: string;
@@ -134,6 +134,9 @@ interface BlogAnalysisResult {
     passed: boolean;
     description?: string;
   }>;
+  // 월 사용량 (GET/POST 응답에 포함)
+  monthly_used?: number;
+  monthly_limit?: number;
 }
 
 interface Props {
@@ -592,6 +595,7 @@ function PostingFrequencyCard({ freq }: { freq: NonNullable<BlogAnalysisResult["
 
   function consistencyBadge(c: string) {
     if (c === "active") return { label: "활발", cls: "bg-green-100 text-green-700 border-green-300" };
+    if (c === "bursty") return { label: "집중 발행", cls: "bg-purple-100 text-purple-700 border-purple-300" };
     if (c === "regular") return { label: "규칙적", cls: "bg-blue-100 text-blue-700 border-blue-300" };
     if (c === "irregular") return { label: "불규칙", cls: "bg-amber-100 text-amber-700 border-amber-300" };
     return { label: "비활성", cls: "bg-red-100 text-red-700 border-red-300" };
@@ -904,6 +908,9 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
   const [resultLoading, setResultLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<BlogAnalysisResult | null>(null);
+  const [monthlyUsed, setMonthlyUsed] = useState<number | null>(null);
+  const [monthlyLimit, setMonthlyLimit] = useState<number | null>(null);
+  const [isMonthlyLimitReached, setIsMonthlyLimitReached] = useState(false);
   const [kwCopied, setKwCopied] = useState(false);
   const [token, setToken] = useState(initialToken);
   const [autoTriggered, setAutoTriggered] = useState(false);
@@ -957,6 +964,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           const isOldFormat = hasNoDetails || hasEllipsis || missingPositives || missingNewFields;
           if (!isOldFormat) {
             setResult(data as BlogAnalysisResult);
+            if (typeof data.monthly_used === "number") setMonthlyUsed(data.monthly_used);
+            if (typeof data.monthly_limit === "number") setMonthlyLimit(data.monthly_limit);
           } else {
             setOldFormatDetected(true);
           }
@@ -1009,7 +1018,13 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        const detail = (data as { detail?: string | { message?: string } }).detail;
+        type DetailObj = { code?: string; message?: string; monthly_used?: number; monthly_limit?: number };
+        const detail = (data as { detail?: string | DetailObj }).detail;
+        if (typeof detail === "object" && detail?.code === "MONTHLY_LIMIT_REACHED") {
+          setIsMonthlyLimitReached(true);
+          if (typeof detail.monthly_used === "number") setMonthlyUsed(detail.monthly_used);
+          if (typeof detail.monthly_limit === "number") setMonthlyLimit(detail.monthly_limit);
+        }
         const message = typeof detail === "string"
           ? detail
           : (detail && typeof detail === "object" && detail.message) || `분석 실패 (${res.status})`;
@@ -1017,6 +1032,9 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
       }
       const data: BlogAnalysisResult = await res.json();
       setResult(data);
+      setIsMonthlyLimitReached(false);
+      if (typeof data.monthly_used === "number") setMonthlyUsed(data.monthly_used);
+      if (typeof data.monthly_limit === "number") setMonthlyLimit(data.monthly_limit);
       setToast({ type: "success", message: "블로그 분석이 완료됐습니다." });
       // 결과 영역으로 스크롤
       setTimeout(() => {
@@ -1101,6 +1119,9 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 setResult(null);
                 setAutoTriggered(false);
                 setOldFormatDetected(false);
+                setMonthlyUsed(null);
+                setMonthlyLimit(null);
+                setIsMonthlyLimitReached(false);
               }}
               className="text-left bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md rounded-xl p-5 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
@@ -1162,6 +1183,9 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 setResult(null);
                 setAutoTriggered(false);
                 setOldFormatDetected(false);
+                setMonthlyUsed(null);
+                setMonthlyLimit(null);
+                setIsMonthlyLimitReached(false);
               }}
               className="ml-auto inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
             >
@@ -1226,20 +1250,56 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 )}
               </div>
 
-              <button
-                type="button"
-                onClick={() => handleAnalyze()}
-                aria-busy={loading}
-                className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold text-base px-5 py-3 rounded-xl transition-colors w-full sm:w-auto shrink-0 min-h-[44px]"
-                disabled={loading}
-              >
-                {loading ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> 분석 중...</>
-                ) : (
-                  <><RefreshCw className="w-4 h-4" /> 재분석하기</>
+              <div className="flex flex-col items-stretch sm:items-end gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleAnalyze()}
+                  aria-busy={loading}
+                  className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold text-base px-5 py-3 rounded-xl transition-colors w-full sm:w-auto min-h-[44px]"
+                  disabled={loading || isMonthlyLimitReached}
+                >
+                  {loading ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> 분석 중...</>
+                  ) : (
+                    <><RefreshCw className="w-4 h-4" /> 재분석하기</>
+                  )}
+                </button>
+                {/* 월 사용량 배지 — basic(3)/pro(10)/startup(5)만 표시, 무제한(999)은 숨김 */}
+                {typeof monthlyLimit === "number" && monthlyLimit > 0 && monthlyLimit < 999 && (
+                  <span className={`inline-flex items-center justify-center text-sm font-medium px-3 py-1 rounded-full border ${
+                    (monthlyUsed ?? 0) >= monthlyLimit
+                      ? "bg-red-50 text-red-700 border-red-200"
+                      : "bg-gray-50 text-gray-600 border-gray-200"
+                  }`}>
+                    이번 달 {monthlyUsed ?? 0}/{monthlyLimit}회 사용
+                  </span>
                 )}
-              </button>
+              </div>
             </div>
+
+            {/* 월별 한도 초과 업그레이드 CTA */}
+            {isMonthlyLimitReached && (
+              <div className="mt-4 bg-amber-50 border border-amber-300 rounded-xl px-4 py-4 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-amber-900 mb-1">
+                    이번 달 블로그 분석 횟수를 모두 사용했습니다
+                    {typeof monthlyLimit === "number" && monthlyLimit > 0 && (
+                      <span className="ml-1 font-normal text-amber-700">({monthlyLimit}회/월)</span>
+                    )}
+                  </p>
+                  <p className="text-sm text-amber-800 mb-3 leading-relaxed">
+                    다음 달 1일에 초기화됩니다. Pro 플랜으로 업그레이드하면 월 10회까지 분석할 수 있습니다.
+                  </p>
+                  <Link
+                    href="/pricing"
+                    className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+                  >
+                    플랜 업그레이드
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {loading && (
               <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-xl px-4 py-3 text-sm text-blue-800 flex items-start gap-2">
@@ -1259,7 +1319,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               </div>
             )}
 
-            {error && (
+            {error && !isMonthlyLimitReached && (
               <div className="mt-4 flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                 {error}
