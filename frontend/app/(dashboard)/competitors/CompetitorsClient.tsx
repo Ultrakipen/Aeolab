@@ -2918,12 +2918,14 @@ export function CompetitorsClient({
           { key: 'pioneer' as const, label: '내 선점', count: kw.pioneer_keywords?.length ?? 0, show: hasPioneer },
           { key: 'common' as const, label: '공통', count: kw.present_keywords?.length ?? 0, show: hasCommon },
           { key: 'compare' as const, label: '경쟁사별', count: 0, show: hasCompare },
-        ].filter(t => t.show)
+        ]
 
-        if (tabs.length === 0) return null
+        if (tabs.every(t => !t.show)) return null
 
-        // 현재 kwTab에 해당하는 데이터가 없으면 첫 번째 유효 탭으로 폴백
-        const activeTabKey = tabs.find(t => t.key === kwTab)?.key ?? tabs[0].key
+        // 현재 kwTab에 데이터가 있으면 유지, 없으면 첫 번째 유효 탭으로 폴백
+        const activeTabKey = tabs.find(t => t.key === kwTab && t.show)?.key
+          ?? tabs.find(t => t.show)?.key
+          ?? tabs[0].key
 
         return (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 md:p-5">
@@ -2936,9 +2938,15 @@ export function CompetitorsClient({
               {tabs.map(t => (
                 <button
                   key={t.key}
-                  onClick={() => setKwTab(t.key)}
+                  onClick={t.show ? () => setKwTab(t.key) : undefined}
+                  disabled={!t.show}
+                  title={!t.show ? '스캔 후 데이터가 채워집니다' : undefined}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
-                    activeTabKey === t.key ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'
+                    !t.show
+                      ? 'opacity-40 cursor-not-allowed text-gray-400'
+                      : activeTabKey === t.key
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
                   {t.label}

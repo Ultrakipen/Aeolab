@@ -219,7 +219,9 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
         const hiddenCount = ALL_COMPS.length - SHOW_LIMIT;
 
         return (
-          <div className="overflow-x-auto">
+          <>
+          <div className="relative">
+            <div className="overflow-x-auto">
             <table className="min-w-[540px] w-full text-sm md:text-base">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
@@ -324,6 +326,11 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                 })}
               </tbody>
             </table>
+            </div>
+            {/* 모바일 스크롤 인디케이터 — md 이상에서는 숨김 */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent md:hidden" />
+          </div>
+          <p className="md:hidden text-center text-sm text-gray-400 py-1.5">← 좌우로 스와이프하세요</p>
 
             {/* 블로그 언급 수 데이터 출처 안내 */}
             {data.rows.some((r) => r.field === "blog_mention_count") && (
@@ -357,7 +364,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                 </button>
               </div>
             )}
-          </div>
+          </>
         );
       })()}
 
