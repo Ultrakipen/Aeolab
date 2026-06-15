@@ -166,6 +166,7 @@ async def analyze_blog_endpoint(
         "posting_frequency": analysis.get("posting_frequency"),
         "best_citation_candidate": analysis.get("best_citation_candidate"),
         "duplicate_topics": analysis.get("duplicate_topics", []),
+        "ai_readiness_items": analysis.get("ai_readiness_items", []),
         "analyzed_at": now_iso,
         "error": analysis.get("error"),
     }

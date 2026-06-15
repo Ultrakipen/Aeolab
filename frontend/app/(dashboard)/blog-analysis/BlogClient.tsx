@@ -1379,7 +1379,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="bg-white/70 rounded-xl p-3 text-center">
                   <div className="text-xl font-bold text-gray-900">{result.post_count ?? 0}</div>
-                  <div className="text-sm text-gray-400 mt-0.5">(최근 50개 기준)</div>
+                  <div className="text-sm text-gray-400 mt-0.5">(제목·요약 기준)</div>
                   <div className="text-sm text-gray-500 mt-0.5">분석 포스트</div>
                 </div>
                 <div className="bg-white/70 rounded-xl p-3 text-center">

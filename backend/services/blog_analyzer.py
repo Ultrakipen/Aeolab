@@ -202,7 +202,7 @@ def _analyze_single_post(
             ikw = matched_industry_kws[0]
             suggestion = (
                 f"업종 키워드 '{ikw}'는 들어 있습니다. "
-                "제목 끝에 '추천·후기·비교' 같은 검색 의도어를 추가하면 AI 브리핑 인용률이 올라갑니다."
+                "제목 끝에 '추천·후기·비교' 같은 검색 의도어를 추가하면 AI 검색 인용률이 올라갑니다."
             )
         else:
             suggestion = "제목에 업종 키워드(예: 웨딩스냅)와 검색 의도어(추천/후기/비교)를 함께 넣으세요"
@@ -467,7 +467,7 @@ def _build_weekly_actions(
             "priority": len(actions) + 1,
             "action": f"'{top_kw}' 키워드로 새 포스트 1개 작성",
             "impact": "high",
-            "reason": f"이 키워드가 블로그에 없어 AI 브리핑에서 누락됩니다",
+            "reason": f"이 키워드가 블로그에 없어 AI 검색 노출에서 누락됩니다",
         })
 
     # 3순위: 최신성 문제
@@ -540,9 +540,17 @@ def _calc_posting_frequency(post_dates: list) -> dict:
     active_months = sum(1 for v in monthly_counts.values() if v > 0)
     monthly_avg = sum(monthly_counts.values()) / max(total_months, 1)
 
-    if monthly_avg >= 2:
+    counts_list = sorted(monthly_counts.values(), reverse=True)
+    total_count = sum(counts_list) or 1
+    max_single = counts_list[0] if counts_list else 0
+    is_bursty = max_single >= 5 and (max_single / total_count) > 0.4
+
+    if monthly_avg >= 2 and is_bursty:
+        consistency = "bursty"
+        consistency_message = "특정 시기에 집중 발행됐습니다. 매월 2~3개씩 고르게 발행하면 AI 검색 신뢰도가 높아집니다."
+    elif monthly_avg >= 2:
         consistency = "active"
-        consistency_message = "꾸준히 발행하고 있습니다. AI가 이 블로그를 신뢰합니다."
+        consistency_message = "꾸준히 발행하고 있습니다. 월 2회 이상 발행으로 AI 검색 노출을 유지하세요."
     elif monthly_avg >= 1:
         consistency = "regular"
         consistency_message = "월 1회 발행 중. 월 2회로 늘리면 AI 인용률이 높아집니다."
@@ -606,7 +614,7 @@ def _pick_best_citation_candidate(posts_detail: list[dict], region: str) -> Opti
         "post_score": best.get("post_score", 0),
         "title_seo_score": best.get("title_seo_score", 0),
         "what_to_add": what_to_add,
-        "reason": "현재 블로그에서 AI 브리핑에 가장 가까운 포스트입니다",
+        "reason": "현재 블로그에서 AI 검색 인용 가능성이 가장 높은 포스트입니다",
     }
 
 
@@ -867,7 +875,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": "검색 의도 키워드 포함 (추천/리뷰/근처 등)",
         "passed": has_question,
-        "tip": "포스트 제목에 '추천', '리뷰', '근처' 등의 검색 의도 키워드를 포함하면 AI 인용률이 높아집니다.",
+        "description": "포스트 제목에 '추천', '리뷰', '근처' 등의 검색 의도 키워드를 포함하면 AI 인용률이 높아집니다.",
     })
 
     # 2. 지역 정보 포함 여부 — 시(市) 단위 정규화 후 검사 ("창원시" → "창원"도 매칭)
@@ -876,7 +884,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": f"지역 키워드 포함 ({region_clean or region or '지역명'})",
         "passed": has_region,
-        "tip": "블로그 본문에 지역명을 자연스럽게 포함하면 로컬 AI 검색에서 인용됩니다.",
+        "description": "블로그 본문에 지역명을 자연스럽게 포함하면 로컬 AI 검색에서 인용됩니다.",
     })
 
     # 3. 최신성 체크
@@ -897,7 +905,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": "최근 30일 이내 포스트 존재",
         "passed": recent,
-        "tip": "한 달에 1~2개 포스트를 올리면 AI가 최신 정보로 인식합니다.",
+        "description": "한 달에 1~2개 포스트를 올리면 AI가 최신 정보로 인식합니다.",
     })
 
     # 4. 포스트 길이 체크 (평균 300자 이상)
@@ -905,7 +913,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": "충분한 본문 내용 (300자 이상)",
         "passed": has_content,
-        "tip": "AI가 인용할 내용이 충분하려면 포스트당 최소 300자 이상 작성이 필요합니다.",
+        "description": "AI가 인용할 내용이 충분하려면 포스트당 최소 300자 이상 작성이 필요합니다.",
     })
 
     # 5. FAQ/Q&A 구조 포함 여부
@@ -915,7 +923,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": "FAQ/Q&A 구조 포함",
         "passed": has_faq,
-        "tip": "Q&A 형식 글은 네이버 AI 브리핑이 가장 많이 인용합니다. FAQ 섹션을 추가하세요.",
+        "description": "Q&A 형식 글은 AI 검색에서 가장 많이 인용합니다. FAQ 섹션을 추가하세요.",
     })
 
     # 6. 본문에 전화번호/주소 포함 여부
@@ -928,7 +936,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": "전화번호 또는 주소 포함",
         "passed": has_contact,
-        "tip": "블로그에 전화번호·주소가 있으면 AI가 스마트플레이스 정보와 연결해 신뢰도를 높입니다.",
+        "description": "블로그에 전화번호·주소가 있으면 AI가 스마트플레이스 정보와 연결해 신뢰도를 높입니다.",
     })
 
     # 7. 포스트 길이 500자 이상 비율 50% 초과
@@ -938,7 +946,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": "포스트 길이 500자 이상 비율 50% 초과",
         "passed": has_long_posts,
-        "tip": "500자 이상의 충분한 내용이 있어야 AI가 인용할 근거를 찾을 수 있습니다.",
+        "description": "500자 이상의 충분한 내용이 있어야 AI가 인용할 근거를 찾을 수 있습니다.",
     })
 
     # 8. 제목에 숫자/구체성 포함 비율 30% 초과
@@ -951,7 +959,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": "제목에 숫자/구체적 표현 포함 비율 30% 초과",
         "passed": has_specific_titles,
-        "tip": "숫자가 포함된 제목('3가지 방법', 'TOP5')은 AI 브리핑 인용률이 높습니다.",
+        "description": "숫자가 포함된 제목('3가지 방법', 'TOP5')은 AI 검색 인용률이 높습니다.",
     })
 
     passed_count = sum(1 for i in items if i["passed"])
@@ -1575,7 +1583,7 @@ def _build_top_recommendation(
 ) -> str:
     """분석 결과를 바탕으로 가장 중요한 개선 사항 1줄 생성"""
     if post_count == 0:
-        return "블로그 포스트가 없습니다. 첫 번째 포스트를 작성해 AI 브리핑 신호를 만드세요."
+        return "블로그 포스트가 없습니다. 첫 번째 포스트를 작성해 AI 검색 신호를 만드세요."
     if freshness == "outdated":
         return "마지막 포스트가 90일 이상 지났습니다. 이번 주 안에 포스트 1개를 올려 최신성을 회복하세요."
     if freshness == "stale":
@@ -1585,7 +1593,7 @@ def _build_top_recommendation(
         return f"키워드 커버리지가 낮습니다. 다음 포스트 제목에 '{top_kw}'를 포함하세요."
     if readiness_score < 50:
         return "포스트 제목에 '추천', '후기', '근처' 등 검색 의도 키워드를 포함하면 AI 인용률이 높아집니다."
-    return "블로그 관리가 양호합니다. 월 2회 이상 꾸준한 발행으로 AI 브리핑 노출을 유지하세요."
+    return "블로그 관리가 양호합니다. 월 2회 이상 꾸준한 발행으로 AI 검색 노출을 유지하세요."
 
 
 # ── 메인 분석 함수 ────────────────────────────────────────────────────────────
