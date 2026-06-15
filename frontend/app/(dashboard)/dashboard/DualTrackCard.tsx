@@ -347,7 +347,7 @@ export default function DualTrackCard({
         score={track2Score}
         weight={globalWeight}
         label="🌐 글로벌 AI 인식 현황"
-        sublabel="ChatGPT·Gemini가 현재 이 사업장을 인식하는 수준입니다"
+        sublabel="ChatGPT·Gemini가 현재 이 사업장을 인식하는 수준입니다. 개선 반영은 수개월~1년 소요."
         color="bg-blue-500"
         isWeak={isTrack2Weak}
         tip={msg.track2Tip}
