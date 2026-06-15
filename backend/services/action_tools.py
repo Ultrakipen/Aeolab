@@ -966,6 +966,11 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
 
     cat_ko = _ko_category(biz_category or "") or "우리 업종"
 
+    # 업종 브리핑 자격 (ACTIVE/LIKELY vs INACTIVE)
+    from services.score_engine import BRIEFING_ACTIVE_CATEGORIES, BRIEFING_LIKELY_CATEGORIES
+    _cat_key = (biz_category or "").strip().lower()
+    _is_briefing_eligible = _cat_key in BRIEFING_ACTIVE_CATEGORIES or _cat_key in BRIEFING_LIKELY_CATEGORIES
+
     # 우선순위 결정 (효과/난이도 기준)
     # 1) 스마트플레이스 미등록 — 모든 작업의 토대
     if sp_score < 30:
@@ -1023,15 +1028,25 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
                     )
         except Exception as e:
             _logger.warning(f"pick_top_action 소개글 Q&A 키워드 주입 실패: {e}")
-        return {
-            "action_type": "smartplace_intro_qa",
-            "title": "소개글에 Q&A 섹션 추가하기",
-            "description": (
+        if _is_briefing_eligible:
+            _desc = (
                 f"소개글 하단의 Q&A 텍스트는 네이버 AI 브리핑 인용 후보 콘텐츠입니다. "
                 f"{cat_ko}에서 손님이 자주 묻는 질문 1개만 소개글에 추가해도 AI 노출 후보에 포함될 수 있습니다."
                 f"{faq_kw_hint}"
-            ),
-            "expected_impact": "AI 브리핑 인용 후보 진입 가능 — 7일 후 확인 권장",
+            )
+            _impact = "AI 브리핑 인용 후보 진입 가능 — 7일 후 확인 권장"
+        else:
+            _desc = (
+                f"소개글 하단의 Q&A 텍스트는 네이버 AI탭·일반검색 노출에 유리한 콘텐츠입니다. "
+                f"{cat_ko}에서 손님이 자주 묻는 질문 1개만 소개글에 추가해도 검색 노출과 AI탭 인용 가능성이 높아집니다."
+                f"{faq_kw_hint}"
+            )
+            _impact = "AI탭·네이버 검색 노출 강화 — 2~4주 후 확인 권장"
+        return {
+            "action_type": "smartplace_intro_qa",
+            "title": "소개글에 Q&A 섹션 추가하기",
+            "description": _desc,
+            "expected_impact": _impact,
             "estimated_time_min": 5,
             "copy_template": faq_copy,
             "action_url": "https://smartplace.naver.com",
