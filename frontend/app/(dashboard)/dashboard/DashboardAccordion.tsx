@@ -29,8 +29,8 @@ const SECTIONS = [
   },
   {
     id: 'improve',
-    label: '점수 근거 · 항목 점검',
-    desc: '점수 세부 근거 · 스마트플레이스 · 카카오맵 · 웹사이트 자동 점검',
+    label: '채널별 분석 · 항목 점검',
+    desc: '채널별 분석 근거 · 스마트플레이스 · 카카오맵 · 웹사이트 자동 점검',
     icon: Wrench,
     color: 'text-emerald-600 bg-emerald-50',
     activeBar: 'border-l-4 border-emerald-500',

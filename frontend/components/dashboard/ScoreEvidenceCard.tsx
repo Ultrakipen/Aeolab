@@ -630,7 +630,7 @@ function V30FourItems({
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="text-sm md:text-base font-semibold text-gray-800">1. 키워드 커버리지</span>
               <span className="text-sm text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
-                영향도 ★★★ (전체 점수의 30%)
+                영향도 ★★★ (가중치 30%)
               </span>
               {isKeywordEstimated && (
                 <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">(추정값)</span>
@@ -698,7 +698,7 @@ function V30FourItems({
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="text-sm md:text-base font-semibold text-gray-800">2. 리뷰 품질</span>
               <span className="text-sm text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-medium">
-                영향도 ★★ (전체 점수의 25%)
+                영향도 ★★ (가중치 25%)
               </span>
             </div>
             <p className="text-sm text-gray-500 leading-relaxed">리뷰 수 × 평균 별점 × 키워드 다양성으로 계산합니다</p>
@@ -737,7 +737,7 @@ function V30FourItems({
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="text-sm md:text-base font-semibold text-gray-800">3. 스마트플레이스 완성도</span>
               <span className="text-sm text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-medium">
-                영향도 ★★ (전체 점수의 15%)
+                영향도 ★★ (가중치 15%)
               </span>
             </div>
             <p className="text-sm text-gray-500 leading-relaxed">
@@ -820,7 +820,7 @@ function V30FourItems({
               <div className="flex items-center gap-2 flex-wrap mb-1">
                 <span className="text-sm md:text-base font-semibold text-gray-800">4. 네이버 AI 브리핑 노출</span>
                 <span className="text-sm text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full font-medium">
-                  영향도 ★ (전체 점수의 15%)
+                  영향도 ★ (가중치 15%)
                 </span>
               </div>
               <p className="text-sm text-gray-500 leading-relaxed">실제 네이버 AI 브리핑에 노출됐는지 확인합니다</p>
@@ -905,10 +905,10 @@ export default function ScoreEvidenceCard({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h2 className="text-base md:text-lg font-bold text-gray-900">
-              AI 노출 지수 구성 ({isV32Parent ? "7" : isV31 ? "6" : "4"}가지 항목)
+              채널별 노출 분석 ({isV32Parent ? "7" : isV31 ? "6" : "4"}가지 항목)
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">
-              내 점수가 어떻게 계산됐는지 항목별로 설명합니다
+              채널별 노출 현황과 항목별 분석입니다
             </p>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -942,7 +942,7 @@ export default function ScoreEvidenceCard({
                   ? "네이버 AI탭 준비 상태"
                   : "네이버 AI 브리핑 준비 상태"}
               </div>
-              <div className="text-sm text-gray-500">업종 점수의 {naverWeightPct}% 반영</div>
+              <div className="text-sm text-gray-500">업종 가중치 {naverWeightPct}%</div>
             </div>
             {effectiveGroup === "INACTIVE" ? (
               <span className="text-sm px-3 py-1 rounded-full font-semibold border bg-gray-100 text-gray-500 border-gray-200">
@@ -1031,7 +1031,7 @@ export default function ScoreEvidenceCard({
               <div className="text-sm font-semibold text-purple-700 uppercase tracking-wide mb-0.5">
                 ChatGPT · Gemini 등 해외 AI 노출 현황
               </div>
-              <div className="text-sm text-gray-500">업종 점수의 {globalWeight}% 반영</div>
+              <div className="text-sm text-gray-500">업종 가중치 {globalWeight}%</div>
             </div>
             <span className={`text-sm px-3 py-1 rounded-full font-semibold border ${
               track2Score >= 80 ? "bg-emerald-50 text-emerald-600 border-emerald-100"

@@ -591,7 +591,7 @@ export default async function DashboardPage({
           />
 
           {/* ⑤ 상세 분석 데이터 — 접힘 */}
-          <CollapseSectionWrapper id="section-detail" title="상세 분석 데이터" description="점수 근거 · 경쟁사 비교 · AI 인용" iconColor="text-indigo-600">
+          <CollapseSectionWrapper id="section-detail" title="상세 분석 데이터" description="채널별 분석 · 경쟁사 비교 · AI 인용" iconColor="text-indigo-600">
             <DashboardDetailZone
               business={{
                 id: bizBase.id, name: bizBase.name, category: bizBase.category, region: bizBase.region,

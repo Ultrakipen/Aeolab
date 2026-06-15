@@ -588,7 +588,7 @@ export default function AIDiagnosisCard({
           ) : (
             <p className="text-sm text-gray-400 mt-2">
               스마트플레이스 세부 항목(소개글 Q&A·소식 등)은{" "}
-              <span className="font-medium text-blue-500">점수 근거 카드</span>에서 확인하세요.{" "}
+              <span className="font-medium text-blue-500">채널별 분석 근거</span>에서 확인하세요.{" "}
               <a href="/onboarding" className="text-blue-400 hover:underline">URL 등록 →</a>
             </p>
           )}
