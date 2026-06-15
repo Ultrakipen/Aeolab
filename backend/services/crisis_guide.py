@@ -25,8 +25,8 @@ async def generate_crisis_reply(
         {
             "public_reply": str,          # 공개 답변 초안 (150자 이내)
             "ai_impact_tips": list[str],  # AI 검색 부정 영향 최소화 팁 3가지
-            "do_not": list[str],          # 하지 말아야 할 것 2가지
-            "resolution_steps": list[str] # 오프라인 해결 단계 3가지
+            "do_not_do": list[str],       # 하지 말아야 할 것 2가지
+            "offline_steps": list[str]    # 오프라인 해결 단계 3가지
         }
     """
     api_key = os.getenv("ANTHROPIC_API_KEY", "")
@@ -52,11 +52,11 @@ async def generate_crisis_reply(
     "팁2",
     "팁3"
   ],
-  "do_not": [
+  "do_not_do": [
     "하지 말아야 할 행동1 (예: 리뷰 삭제 요청)",
     "하지 말아야 할 행동2"
   ],
-  "resolution_steps": [
+  "offline_steps": [
     "단계1 — 지금 당장 할 수 있는 것",
     "단계2",
     "단계3"
@@ -66,8 +66,8 @@ async def generate_crisis_reply(
 규칙:
 - public_reply는 반드시 한국어, 공손한 어투, 150자 이내
 - ai_impact_tips는 "네이버 AI 브리핑은 답변 진정성을 감지합니다" 등 AI 검색 최적화 구체적 팁
-- do_not에는 "삭제 요청", "감정적 반박", "허위 사실 주장" 등 역효과 행동
-- resolution_steps는 실제로 할 수 있는 오프라인/온라인 조치"""
+- do_not_do에는 "삭제 요청", "감정적 반박", "허위 사실 주장" 등 역효과 행동
+- offline_steps는 실제로 할 수 있는 오프라인/온라인 조치"""
 
     try:
         resp = await client.messages.create(
@@ -106,11 +106,11 @@ def _fallback_response(business_name: str, rating: int) -> dict:
             "진정성 있는 답변은 AI가 긍정 신호로 분류해 브리핑 인용 가능성을 높입니다",
             "이후 긍정 리뷰가 쌓이면 AI 검색에서 부정 리뷰 영향이 희석됩니다",
         ],
-        "do_not": [
+        "do_not_do": [
             "리뷰 삭제 요청 — 플랫폼 정책 위반이며 오히려 신뢰 손상",
             "감정적 반박 — 공개 논쟁은 브랜드 이미지에 치명적",
         ],
-        "resolution_steps": [
+        "offline_steps": [
             "고객에게 직접 연락해 해결 의사를 먼저 전달",
             "리뷰에서 언급된 문제를 실제로 파악하고 개선",
             "개선 내용을 공개 답변에 업데이트하여 다른 잠재 고객에게도 신뢰 제공",

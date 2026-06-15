@@ -259,6 +259,7 @@ export default function ReviewInboxPage() {
   const [businessId, setBusinessId] = useState<string | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [plan, setPlan] = useState<string>('free')
+  const [planLoading, setPlanLoading] = useState(true)
   const [reviewText, setReviewText] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -289,6 +290,7 @@ export default function ReviewInboxPage() {
       const { data: sub } = await supabase
         .from('subscriptions').select('plan, status').eq('user_id', session.user.id).in('status', ['active', 'grace_period']).maybeSingle()
       setPlan(sub?.plan ?? 'free')
+      setPlanLoading(false)
     }
     init()
   }, [])
@@ -345,6 +347,15 @@ export default function ReviewInboxPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (planLoading) {
+    return (
+      <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-4">
+        <div className="h-8 bg-gray-100 rounded-xl animate-pulse w-48" />
+        <div className="h-40 bg-gray-100 rounded-xl animate-pulse" />
+      </div>
+    )
   }
 
   if (plan === 'free') {
@@ -428,7 +439,7 @@ export default function ReviewInboxPage() {
             리뷰 텍스트 붙여넣기
           </label>
           {usageStat && (
-            <span className="text-xs text-gray-400">
+            <span className="text-sm text-gray-400">
               이번 달 {usageStat.used}{usageStat.limit === 999 ? '' : `/${usageStat.limit}회`} 사용
             </span>
           )}
@@ -473,9 +484,9 @@ export default function ReviewInboxPage() {
           </p>
           {result.keywords_used && result.keywords_used.length > 0 && (
             <div className="flex flex-wrap items-center gap-1 mt-2">
-              <span className="text-xs text-gray-400 shrink-0">사용 키워드:</span>
+              <span className="text-sm text-gray-400 shrink-0">사용 키워드:</span>
               {result.keywords_used.map((kw, i) => (
-                <span key={i} className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-medium">
+                <span key={i} className="text-sm bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-medium">
                   {kw}
                 </span>
               ))}
@@ -524,7 +535,7 @@ export default function ReviewInboxPage() {
           <div className="text-center py-8 bg-white rounded-xl border border-dashed border-gray-200">
             <MessageSquare className="w-8 h-8 text-gray-200 mx-auto mb-2" />
             <p className="text-sm text-gray-400">아직 생성된 답변이 없습니다.</p>
-            <p className="text-xs text-gray-300 mt-1">위에서 리뷰를 붙여넣고 첫 답변을 만들어보세요.</p>
+            <p className="text-sm text-gray-300 mt-1">위에서 리뷰를 붙여넣고 첫 답변을 만들어보세요.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -578,7 +589,7 @@ export default function ReviewInboxPage() {
                     )}
                   </div>
                 )}
-                <p className="text-xs text-gray-300 mt-2">
+                <p className="text-sm text-gray-300 mt-2">
                   {h.created_at ? new Date(h.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
                 </p>
               </div>
