@@ -72,12 +72,30 @@ async def generate_schema(req: SchemaRequest, user: dict = Depends(get_current_u
     # 소개글 AI 브리핑 키워드 포함 점수
     result["intro_score"] = score_intro_for_ai_briefing(smartplace_intro, req.category)
 
-    # 업종별 맞춤 팁
-    result["category_tips"] = CATEGORY_TIPS.get(req.category, CATEGORY_TIPS.get("restaurant", {}))
+    # 업종별 맞춤 팁 (업종 alias 정규화 — CATEGORY_TIPS/CHECKLIST 키는 대표 업종군으로 통합)
+    _TIPS_ALIAS: dict[str, str] = {
+        "hospital": "clinic", "dental": "clinic", "oriental": "clinic", "skincare": "clinic",
+        "rehab": "clinic", "checkup": "clinic", "mental": "clinic", "eye": "clinic",
+        "nail": "beauty", "makeup": "beauty", "spa": "beauty",
+        "yoga": "fitness", "swimming": "fitness",
+        "language": "academy", "coding": "academy", "art_studio": "academy",
+        "art_edu": "academy", "sports_edu": "academy", "driving": "academy",
+        "daycare": "academy", "tutoring": "academy", "music_edu": "academy",
+        "chicken": "restaurant", "bbq": "restaurant", "seafood": "restaurant",
+        "bar": "restaurant", "snack": "restaurant", "delivery": "restaurant",
+        "bakery": "cafe",
+        "tax": "legal", "architecture": "legal",
+        "vet": "pet",
+        "clothing": "shopping", "shoes": "shopping", "grocery": "shopping",
+        "electronics": "shopping", "furniture": "shopping", "stationery": "shopping",
+        "book": "shopping", "supplement": "shopping", "baby": "shopping",
+    }
+    _tips_key = _TIPS_ALIAS.get(req.category, req.category)
+    result["category_tips"] = CATEGORY_TIPS.get(_tips_key, {})
 
     # 표준 체크리스트 + 업종별 추가 체크리스트
     result["extended_checklist"] = (
-        SMARTPLACE_CHECKLIST + CHECKLIST_BY_CATEGORY.get(req.category, [])
+        SMARTPLACE_CHECKLIST + CHECKLIST_BY_CATEGORY.get(_tips_key, [])
     )
 
     # 홈페이지 있는 경우에만 JSON-LD 추가
@@ -85,7 +103,7 @@ async def generate_schema(req: SchemaRequest, user: dict = Depends(get_current_u
         result["script_tag"] = build_script_tag(req)
     else:
         # 홈페이지 없을 때 대안 가이드
-        result["no_website_guide"] = CATEGORY_TIPS.get(req.category, {}).get(
+        result["no_website_guide"] = CATEGORY_TIPS.get(_tips_key, {}).get(
             "no_website_guide",
             "카카오맵 비즈니스 채널에 가게 정보를 등록하면 홈페이지 없이도 Google AI Overview 노출이 가능합니다.",
         )

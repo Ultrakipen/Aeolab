@@ -446,7 +446,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                 <div className="space-y-5">
                   <div>
                     <div className="text-sm font-semibold text-gray-800 mb-1">AI 브리핑 최적화 점수</div>
-                    <p className="text-sm text-gray-500">소개글에 AI가 검색할 때 중요한 키워드가 얼마나 포함됐는지 분석합니다.</p>
+                    <p className="text-sm text-gray-500">AI가 생성한 소개글에 업종 핵심 키워드가 얼마나 포함됐는지 분석합니다. 부족한 키워드를 추가한 뒤 스마트플레이스에 등록하세요.</p>
                   </div>
 
                   {result.intro_score ? (
@@ -500,8 +500,8 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
 
                   {/* AI 핵심 키워드 */}
                   <div>
-                    <div className="text-sm font-semibold text-gray-800 mb-2">AI 검색 핵심 키워드 {result.keywords.length}개</div>
-                    <p className="text-sm text-gray-500 mb-3">스마트플레이스 소개글·메뉴명·소식 포스트에 자연스럽게 포함하세요.</p>
+                    <div className="text-sm font-semibold text-gray-800 mb-2">추천 검색 키워드 {result.keywords.length}개</div>
+                    <p className="text-sm text-gray-500 mb-3">지역·업종 기반 조합 키워드입니다. 스마트플레이스 소개글·메뉴명·소식 포스트에 자연스럽게 포함하면 관련 검색 노출에 도움이 됩니다.</p>
                     <div className="flex flex-wrap gap-2">
                       {result.keywords.map((kw) => (
                         <button
