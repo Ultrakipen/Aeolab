@@ -156,23 +156,23 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
               : 'bg-slate-50 border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2">
-              <FileSearch className="w-5 h-5 text-blue-600" />
-              <span className="text-base md:text-lg font-bold text-blue-900">네이버 AI 브리핑 가이드</span>
+          <div className="mb-2">
+            <div className="flex items-center gap-2 mb-1.5">
+              <FileSearch className="w-5 h-5 text-blue-600 shrink-0" />
+              <span className="text-base md:text-lg font-bold text-blue-900 break-keep">네이버 AI 브리핑 가이드</span>
             </div>
             {briefingActive && (
-              <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5 text-sm font-bold">
+              <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
                 내 업종 대상
               </span>
             )}
             {briefingLikely && (
-              <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-sm font-semibold">
+              <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-xs font-semibold whitespace-nowrap">
                 확대 예정
               </span>
             )}
             {!briefingActive && !briefingLikely && (
-              <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-sm font-semibold">
+              <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-xs font-semibold whitespace-nowrap">
                 비대상
               </span>
             )}
@@ -188,12 +188,12 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
           href={`/guide/ai-tab?biz_id=${business.id}`}
           className="group rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5 transition-all hover:shadow-md hover:border-indigo-400"
         >
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-indigo-600" />
-              <span className="text-base md:text-lg font-bold text-indigo-900">네이버 AI탭 가이드</span>
+          <div className="mb-2">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Sparkles className="w-5 h-5 text-indigo-600 shrink-0" />
+              <span className="text-base md:text-lg font-bold text-indigo-900 break-keep">네이버 AI탭 가이드</span>
             </div>
-            <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-sm font-bold">
+            <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
               Beta · 베타 확대 중
             </span>
           </div>
@@ -208,12 +208,12 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
           href="/guide/chatgpt-search"
           className="group rounded-xl border border-purple-200 bg-purple-50 p-4 md:p-5 transition-all hover:shadow-md hover:border-purple-400"
         >
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2">
-              <Bot className="w-5 h-5 text-purple-600" />
-              <span className="text-base md:text-lg font-bold text-purple-900">ChatGPT·Gemini 노출 가이드</span>
+          <div className="mb-2">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Bot className="w-5 h-5 text-purple-600 shrink-0" />
+              <span className="text-base md:text-lg font-bold text-purple-900 break-keep">ChatGPT·Gemini 노출 가이드</span>
             </div>
-            <span className="inline-flex items-center rounded-full bg-purple-600 text-white px-2 py-0.5 text-sm font-bold">
+            <span className="inline-flex items-center rounded-full bg-purple-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
               모든 업종
             </span>
           </div>

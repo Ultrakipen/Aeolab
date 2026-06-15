@@ -25,7 +25,7 @@ const GUIDES = [
     category: "bakery",
     label: "베이커리",
     icon: "▲",
-    tip: "당일 생산 품목·소식 게시로 재방문율 향상",
+    tip: "당일 생산 품목·소식 게시로 AI 검색 노출 경쟁력 향상",
   },
   {
     category: "beauty",

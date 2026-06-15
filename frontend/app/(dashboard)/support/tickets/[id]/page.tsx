@@ -10,7 +10,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:800
 interface Reply {
   id: string;
   ticket_id: string;
-  sender_type: "user" | "admin";
+  author_type: "user" | "admin";
   body: string;
   created_at: string;
 }
@@ -117,7 +117,7 @@ function TicketDetailInner() {
       const newReply = data.reply ?? {
         id: Date.now().toString(),
         ticket_id: id,
-        sender_type: "user" as const,
+        author_type: "user" as const,
         body,
         created_at: new Date().toISOString(),
       };
@@ -162,8 +162,6 @@ function TicketDetailInner() {
   const statusMeta = STATUS_META[ticket.status] ?? { label: ticket.status, color: "bg-gray-100 text-gray-600" };
   const isClosed = ticket.status === "closed";
   const replies = ticket.replies ?? [];
-  const adminReplies = replies.filter((r) => r.sender_type === "admin");
-  const userReplies = replies.filter((r) => r.sender_type === "user" && replies.indexOf(r) > 0);
 
   return (
     <div className="p-4 md:p-8">
@@ -202,17 +200,17 @@ function TicketDetailInner() {
                 key={reply.id}
                 className={[
                   "rounded-xl border p-4",
-                  reply.sender_type === "admin"
+                  reply.author_type === "admin"
                     ? "bg-blue-50 border-blue-200"
                     : "bg-white border-gray-100 shadow-sm",
                 ].join(" ")}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <span className={`text-sm font-semibold ${reply.sender_type === "admin" ? "text-blue-700" : "text-gray-700"}`}>
-                    {reply.sender_type === "admin" ? "운영자" : "나"}
+                  <span className={`text-sm font-semibold ${reply.author_type === "admin" ? "text-blue-700" : "text-gray-700"}`}>
+                    {reply.author_type === "admin" ? "운영자" : "나"}
                   </span>
                   <span className="text-sm text-gray-400">{formatDate(reply.created_at)}</span>
-                  {reply.sender_type === "admin" && (
+                  {reply.author_type === "admin" && (
                     <span className="text-sm bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium">답변</span>
                   )}
                 </div>

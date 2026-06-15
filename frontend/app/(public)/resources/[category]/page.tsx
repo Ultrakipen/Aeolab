@@ -43,11 +43,11 @@ const GUIDE_DATA: Record<string, GuideData> = {
       },
       {
         title: "리뷰 답글 꾸준히",
-        desc: "리뷰 응답률이 높은 가게는 스마트플레이스 활성도 점수가 올라 AI 노출 우선순위가 높아집니다.",
+        desc: "리뷰 응답률이 높은 가게는 스마트플레이스 노출 우선순위가 올라가는 경향이 있습니다.",
       },
       {
         title: "소식 2주 이내 작성",
-        desc: "최근 소식이 없으면 AI 브리핑에서 '현재 운영 여부 불분명' 판단으로 노출이 줄 수 있습니다.",
+        desc: "최근 소식이 없는 업소보다 정기적으로 업데이트하는 업소가 AI 브리핑에서 더 자주 인용되는 경향이 있습니다.",
       },
     ],
   },
@@ -72,7 +72,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
     top3: [
       {
         title: "시그니처 음료 사진",
-        desc: "AI 브리핑은 이미지 태그 정보를 활용합니다. 시각적으로 완성도 높은 음료 사진이 키워드 연결에 유리합니다.",
+        desc: "AI 검색은 등록된 이미지와 메뉴 정보를 함께 참고합니다. 완성도 높은 음료 사진은 키워드 연결에 유리합니다.",
       },
       {
         title: "좌석 환경 정보 완성",
@@ -138,7 +138,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
     top3: [
       {
         title: "시술 전후 사진",
-        desc: "AI탭·AI 브리핑 노출 시 '헤어샵 추천' 쿼리에서 시술 전후 사진이 풍부한 업소가 인용되기 유리합니다.",
+        desc: "AI탭 검색 및 향후 AI 브리핑 확대 시 '헤어샵 추천' 쿼리에서 시술 전후 사진이 풍부한 업소가 인용되기 유리합니다.",
       },
       {
         title: "가격 정보 투명화",
@@ -171,7 +171,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
     top3: [
       {
         title: "디자인 포트폴리오 사진",
-        desc: "'젤네일 예쁜 곳' 등 비주얼 쿼리에서 AI탭·AI 브리핑 노출 시 사진이 많은 업소가 인용되기 유리합니다.",
+        desc: "'젤네일 예쁜 곳' 등 비주얼 쿼리에서 AI탭 검색 및 향후 AI 브리핑 확대 시 사진이 많은 업소가 인용되기 유리합니다.",
       },
       {
         title: "시술 소요 시간 안내",
@@ -204,7 +204,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
     top3: [
       {
         title: "트레이너 소개 작성",
-        desc: "자격증·경력이 명시된 트레이너 정보는 AI 브리핑 '전문성' 판단 요소로 인용될 수 있습니다.",
+        desc: "자격증·경력이 명시된 트레이너 정보는 AI 검색에서 전문성 있는 업소로 인용될 가능성이 높습니다.",
       },
       {
         title: "시설 사진 풍부하게",
@@ -270,7 +270,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
     top3: [
       {
         title: "전후 비교 사진",
-        desc: "AI탭·AI 브리핑 노출 시 '우리 강아지 미용 잘하는 곳' 쿼리에서 미용 전후 사진이 있는 업소가 인용되기 유리합니다.",
+        desc: "AI탭 검색 및 향후 AI 브리핑 확대 시 '우리 강아지 미용 잘하는 곳' 쿼리에서 미용 전후 사진이 있는 업소가 인용되기 유리합니다.",
       },
       {
         title: "요금표 투명화",
@@ -278,7 +278,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
       },
       {
         title: "자격증 정보 게시",
-        desc: "반려동물 관련 자격증이 명시된 업소는 AI 검색의 '신뢰도' 평가 요소에서 가산점을 받습니다.",
+        desc: "반려동물 관련 자격증이 명시된 업소는 AI 검색에서 신뢰도 높은 업소로 인용될 가능성이 높습니다.",
       },
     ],
   },
@@ -342,7 +342,7 @@ export async function generateMetadata({
   if (!guide) return {};
   return {
     title: `${guide.label} AI 검색 노출 가이드 | AEOlab`,
-    description: `${guide.label} 스마트플레이스·AI 검색 노출 10가지 체크리스트. 지금 바로 진단받기.`,
+    description: `${guide.label} 스마트플레이스·AI 검색 노출 ${guide.checklist.length}가지 체크리스트. 지금 바로 진단받기.`,
   };
 }
 
@@ -416,7 +416,7 @@ export default async function CategoryGuidePage({
             2. 이 업종에서 자주 인용되는 키워드
           </h2>
           <p className="text-sm text-gray-500 mb-4 break-keep">
-            AI 검색 응답에서 자주 등장하는 키워드입니다. 소개글과 소식에 자연스럽게 포함하세요.
+            이 업종의 AI 검색에서 활용되는 대표 키워드 예시입니다. 소개글과 소식에 자연스럽게 포함하세요.
           </p>
           <div className="flex flex-wrap gap-2">
             {guide.keywords.map((kw) => (

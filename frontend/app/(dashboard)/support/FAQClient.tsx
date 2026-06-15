@@ -28,7 +28,7 @@ const SUBJECT_OPTIONS = [
 ];
 
 // ─── FAQ 아코디언 섹션 ────────────────────────────────────────
-function FAQSection({ initialItems }: { initialItems: FAQ[] }) {
+function FAQSection({ initialItems, onSwitchToInquiry }: { initialItems: FAQ[]; onSwitchToInquiry: () => void }) {
   const [activeCategory, setActiveCategory] = useState("");
   const [openIds, setOpenIds] = useState<Set<number>>(new Set());
 
@@ -67,7 +67,9 @@ function FAQSection({ initialItems }: { initialItems: FAQ[] }) {
 
       {filtered.length === 0 && (
         <div className="py-16 text-center">
-          <p className="text-gray-400 text-base">등록된 FAQ가 없습니다.</p>
+          <HelpCircle className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500 text-base font-medium mb-1">아직 FAQ가 준비되지 않았습니다.</p>
+          <p className="text-gray-400 text-sm">궁금한 점은 <button onClick={onSwitchToInquiry} className="text-blue-500 underline hover:no-underline">문의하기</button> 탭에서 직접 문의해 주세요.</p>
         </div>
       )}
 
@@ -409,7 +411,7 @@ export default function FAQClient({
       </div>
 
       {/* 탭 콘텐츠 */}
-      {activeTab === "faq" && <FAQSection initialItems={initialItems} />}
+      {activeTab === "faq" && <FAQSection initialItems={initialItems} onSwitchToInquiry={() => setActiveTab("inquiry")} />}
       {activeTab === "inquiry" && (
         <InquirySection
           userEmail={userEmail}
