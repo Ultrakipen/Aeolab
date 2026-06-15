@@ -195,6 +195,7 @@ function IntroScoreGauge({ introScore }: { introScore: IntroScore }) {
         ) : (
           <p className="text-sm text-gray-600 leading-relaxed">
             아래 부족한 키워드를 소개글에 추가하면 <span className="font-semibold text-blue-600">네이버 AI탭·AI 브리핑(대상 업종) 및 글로벌 AI 키워드 커버리지가 높아집니다.</span>
+            <span className="block mt-1 text-gray-400">해당 없는 키워드는 추가하지 않아도 됩니다.</span>
           </p>
         )}
       </div>
@@ -296,7 +297,7 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
     : null
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto">
       {/* 헤더 */}
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 검색 최적화 도구</h1>
@@ -531,8 +532,8 @@ export default function SchemaPageContent({ userId }: { userId: string }) {
                   <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border border-gray-100">
                     {result.smartplace_intro}
                   </div>
-                  <div className="text-sm text-right text-gray-400">
-                    {result.smartplace_intro.length}자 (500자 이상 권장)
+                  <div className={`text-sm text-right ${result.smartplace_intro.length < 500 ? 'text-amber-600 font-medium' : 'text-gray-400'}`}>
+                    {result.smartplace_intro.length}자{result.smartplace_intro.length < 500 ? ' — 500자 이상 권장, 소개글 탭에서 직접 추가하세요' : ' (500자 이상 ✓)'}
                   </div>
 
                   {/* 스마트플레이스 적용 경로 */}
