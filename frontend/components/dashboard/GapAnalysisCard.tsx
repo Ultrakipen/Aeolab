@@ -291,7 +291,9 @@ export function GapAnalysisCard({ gap }: Props) {
             <div className="mt-4 bg-blue-50 rounded-xl p-3 text-sm text-blue-700">
               위 항목 개선 시 예상 수준:{" "}
               <strong className={getScoreLevel(Math.round(estimatedScore)).color}>{getScoreLevel(Math.round(estimatedScore)).label}</strong>{" "}
-              <span className="text-blue-500 text-sm">(현재 {myLevel.label} → {getScoreLevel(Math.round(estimatedScore)).label})</span>
+              {myLevel.label !== getScoreLevel(Math.round(estimatedScore)).label && (
+                <span className="text-blue-500 text-sm">(현재 {myLevel.label} → {getScoreLevel(Math.round(estimatedScore)).label})</span>
+              )}
             </div>
           )}
         </>

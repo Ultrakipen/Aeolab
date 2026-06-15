@@ -2188,7 +2188,7 @@ export function CompetitorsClient({
                                     <span className="text-sm text-red-500 font-medium">경쟁사가 앞서 있습니다</span>
                                     {getGrowthStageText(cs.score).label !== getGrowthStageText(myScore).label && (
                                       <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(cs.score).cls}`}>
-                                        {getGrowthStageText(cs.score).label} 단계
+                                        {getGrowthStageText(cs.score).label}
                                       </span>
                                     )}
                                     <a href="/guide" className="text-sm text-red-600 underline underline-offset-2">가이드 →</a>
@@ -2198,7 +2198,7 @@ export function CompetitorsClient({
                                     <span className="text-sm text-emerald-600 font-medium">내 가게가 앞서 있습니다</span>
                                     {getGrowthStageText(cs.score).label !== getGrowthStageText(myScore).label && (
                                       <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(cs.score).cls}`}>
-                                        {getGrowthStageText(cs.score).label} 단계
+                                        {getGrowthStageText(cs.score).label}
                                       </span>
                                     )}
                                   </>
@@ -2235,32 +2235,34 @@ export function CompetitorsClient({
                     </div>
 
                     {/* 버튼 영역 */}
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                       {/* 1:1 비교 버튼 */}
                       {cs && (
                         <button
                           onClick={() => setCompareCompId(compareCompId === c.id ? null : c.id)}
-                          className={`flex items-center gap-1 text-sm font-semibold border rounded-lg px-2.5 py-1.5 transition-colors min-h-[34px] ${
+                          className={`flex items-center gap-1 text-sm font-semibold border rounded-lg px-1.5 sm:px-2.5 py-1.5 transition-colors min-h-[34px] min-w-[34px] justify-center ${
                             compareCompId === c.id
                               ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
                               : 'text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-400'
                           }`}
                           title="1:1 상세 비교"
                         >
-                          <BarChart2 className="w-3.5 h-3.5" />비교
+                          <BarChart2 className="w-3.5 h-3.5" /><span className="hidden sm:inline">비교</span>
                         </button>
                       )}
                       {cs && canViewBasic && (
                         <button
                           onClick={() => setExpandedId(isExpanded ? null : c.id)}
-                          className={`flex items-center gap-1 text-sm font-semibold rounded-lg px-2.5 py-1.5 transition-colors min-h-[34px] border ${
+                          className={`flex items-center gap-1 text-sm font-semibold rounded-lg px-1.5 sm:px-2.5 py-1.5 transition-colors min-h-[34px] min-w-[34px] justify-center border ${
                             isExpanded
                               ? 'bg-blue-50 text-blue-700 border-blue-300'
                               : 'text-blue-500 border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300'
                           }`}
                           title={isExpanded ? '상세 접기' : '상세 분석 보기'}
                         >
-                          {isExpanded ? <><ChevronUp className="w-3.5 h-3.5" />접기</> : <><ChevronDown className="w-3.5 h-3.5" />상세</>}
+                          {isExpanded
+                            ? <><ChevronUp className="w-3.5 h-3.5" /><span className="hidden sm:inline">접기</span></>
+                            : <><ChevronDown className="w-3.5 h-3.5" /><span className="hidden sm:inline">상세</span></>}
                         </button>
                       )}
                       <button
