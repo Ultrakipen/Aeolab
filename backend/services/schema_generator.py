@@ -166,20 +166,39 @@ CHECKLIST_BY_CATEGORY: dict[str, list[dict]] = {
 
 
 def score_intro_for_ai_briefing(intro_text: str, category: str) -> dict:
-    """생성된 소개글이 AI 브리핑 키워드를 얼마나 포함하는지 점수 계산"""
+    """생성된 소개글이 AI 브리핑 키워드 주제를 얼마나 커버하는지 점수 계산.
+
+    매칭 기준:
+    - 완전 일치: 키워드 어구가 소개글에 그대로 있으면 매칭
+    - 핵심 토큰: 어순 차이("무료 주차" vs "주차 무료") 흡수 — 2자 이상 첫 토큰이 소개글에 있으면 매칭
+    - 가중치 내림차순 정렬 후 상위 20개 채취 (weight=0 카테고리 제외)
+    """
     normalized = normalize_category(category)
     taxonomy = KEYWORD_TAXONOMY.get(normalized, KEYWORD_TAXONOMY.get("restaurant", {}))
 
-    all_keywords: list[str] = []
-    for cat_data in taxonomy.values():
-        if isinstance(cat_data, dict) and "keywords" in cat_data:
-            all_keywords.extend(cat_data["keywords"])
+    # 가중치 내림차순 정렬, weight=0(메뉴종류 등 확장 풀) 제외
+    sorted_cats = sorted(
+        [(k, v) for k, v in taxonomy.items()
+         if isinstance(v, dict) and "keywords" in v and v.get("weight", 0) > 0],
+        key=lambda x: x[1].get("weight", 0),
+        reverse=True,
+    )
 
-    # 중복 제거 후 상위 20개
+    all_keywords: list[str] = []
+    for _, cat_data in sorted_cats:
+        all_keywords.extend(cat_data["keywords"])
+
     unique_keywords = list(dict.fromkeys(all_keywords))[:20]
 
-    matched = [kw for kw in unique_keywords if kw in intro_text]
-    missing = [kw for kw in unique_keywords if kw not in intro_text][:5]
+    def _is_matched(kw: str, text: str) -> bool:
+        if kw in text:
+            return True
+        # 핵심 토큰 매칭: 첫 번째 2자 이상 토큰이 소개글에 있으면 주제 커버로 인정
+        tokens = [t for t in kw.split() if len(t) >= 2]
+        return bool(tokens) and tokens[0] in text
+
+    matched = [kw for kw in unique_keywords if _is_matched(kw, intro_text)]
+    missing = [kw for kw in unique_keywords if not _is_matched(kw, intro_text)][:5]
 
     score = int(len(matched) / max(len(unique_keywords), 1) * 100)
     grade = "A" if score >= 80 else "B" if score >= 60 else "C" if score >= 40 else "D"
