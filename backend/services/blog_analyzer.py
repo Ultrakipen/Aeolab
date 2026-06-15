@@ -1058,7 +1058,7 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int]:
             async with session.get(rss_url) as resp:
                 if resp.status != 200:
                     return [], 0
-                raw = await resp.read()
+                raw = await resp.content.read(_MAX_BODY_BYTES)
                 xml_text = raw.decode("utf-8", errors="replace")
     except Exception as e:
         _logger.warning("naver rss fetch failed for blog_id=%s: %s", blog_id, e)
@@ -1346,7 +1346,7 @@ async def _analyze_external_blog(
                 content_type = resp.headers.get("Content-Type", "")
                 if "html" not in content_type.lower():
                     return _error_result(platform, "HTML 페이지가 아님")
-                raw = await resp.read()
+                raw = await resp.content.read(_MAX_BODY_BYTES)
                 html = raw.decode("utf-8", errors="replace")
     except aiohttp.ClientConnectorError:
         return _error_result(platform, "사이트 접속 불가")
