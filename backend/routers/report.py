@@ -2684,9 +2684,10 @@ async def get_place_compare(biz_id: str, background_tasks: BackgroundTasks, user
 
     # 내 데이터 매핑 — sp_auto(Playwright 자동 체크) OR businesses 체크박스 (둘 중 True면 True)
     # sp_auto가 False negative를 가질 수 있으므로 businesses 테이블 값도 함께 고려
+    _my_review_count = int(biz.get("review_count") or 0)
     my_data = {
-        "review_count":    biz.get("review_count") or 0,
-        "avg_rating":      float(biz.get("avg_rating")) if biz.get("avg_rating") else None,
+        "review_count":    _my_review_count,
+        "avg_rating":      float(biz.get("avg_rating")) if (biz.get("avg_rating") and _my_review_count > 0) else None,
         "has_faq":         bool(sp_auto.get("has_faq")) or bool(biz.get("has_faq")),
         "has_intro":       bool(sp_auto.get("has_intro")) or bool(biz.get("has_intro")),
         "has_recent_post": bool(sp_auto.get("has_recent_post")) or bool(biz.get("has_recent_post")),

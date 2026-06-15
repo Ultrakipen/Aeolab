@@ -261,8 +261,10 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
       {!loading && !error && chartData.length === 0 && (
         <div className="py-10 text-center">
           <p className="text-sm text-gray-500 leading-relaxed">
-            경쟁사를 등록하고 첫 스캔이 완료되면<br />
-            비교 그래프가 나타납니다.
+            {scans.length === 0
+              ? <>경쟁사를 등록하고 첫 스캔이 완료되면<br />비교 그래프가 나타납니다.</>
+              : <>지난 {effectiveDays}일간 스캔 내역이 없습니다.<br />AI 스캔을 실행하면 비교 그래프가 업데이트됩니다.</>
+            }
           </p>
           <a href="/dashboard" className="inline-block mt-3 text-sm text-blue-600 font-semibold hover:underline">
             대시보드에서 AI 스캔 실행 →
