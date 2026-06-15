@@ -143,100 +143,8 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         <p className="text-gray-500 text-sm mt-1 leading-relaxed">스캔 결과를 바탕으로 AI가 분석한 <strong>지금 당장 실천 가능한</strong> 개선 방법을 알려드립니다.</p>
       </div>
 
-      {/* 네이버 두 노출 경로 가이드 진입점 — AI 브리핑 vs AI탭 명확 분리 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
-        {/* AI 브리핑 가이드 */}
-        <Link
-          href={`/guide/ai-info-tab?biz_id=${business.id}`}
-          className={`group rounded-xl border p-4 md:p-5 transition-all hover:shadow-md ${
-            briefingActive
-              ? 'bg-blue-50 border-blue-300 hover:border-blue-500'
-              : briefingLikely
-              ? 'bg-blue-50 border-blue-200 hover:border-blue-400'
-              : 'bg-slate-50 border-slate-200 hover:border-slate-300'
-          }`}
-        >
-          <div className="mb-2">
-            <div className="flex items-center gap-2 mb-1.5">
-              <FileSearch className="w-5 h-5 text-blue-600 shrink-0" />
-              <span className="text-base md:text-lg font-bold text-blue-900 break-keep">네이버 AI 브리핑 가이드</span>
-            </div>
-            {briefingActive && (
-              <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
-                내 업종 대상
-              </span>
-            )}
-            {briefingLikely && (
-              <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-xs font-semibold whitespace-nowrap">
-                확대 예정
-              </span>
-            )}
-            {!briefingActive && !briefingLikely && (
-              <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-xs font-semibold whitespace-nowrap">
-                비대상
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
-            검색결과 상단 AI 자동 추천 박스. 음식점·카페·숙박업 등 AI 브리핑 대상 업종.
-          </p>
-          <p className="text-sm font-semibold text-blue-700 group-hover:underline">5단계 설정 가이드 →</p>
-        </Link>
-
-        {/* AI탭 가이드 */}
-        <Link
-          href={`/guide/ai-tab?biz_id=${business.id}`}
-          className="group rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5 transition-all hover:shadow-md hover:border-indigo-400"
-        >
-          <div className="mb-2">
-            <div className="flex items-center gap-2 mb-1.5">
-              <Sparkles className="w-5 h-5 text-indigo-600 shrink-0" />
-              <span className="text-base md:text-lg font-bold text-indigo-900 break-keep">네이버 AI탭 가이드</span>
-            </div>
-            <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
-              Beta · 베타 확대 중
-            </span>
-          </div>
-          <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
-            검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-27 베타 출시, 업종 공식 제한 없음 (베타 확대 중).
-          </p>
-          <p className="text-sm font-semibold text-indigo-700 group-hover:underline">5항목 설정 가이드 →</p>
-        </Link>
-
-        {/* ChatGPT·Gemini 노출 가이드 — 모든 업종 */}
-        <Link
-          href="/guide/chatgpt-search"
-          className="group rounded-xl border border-purple-200 bg-purple-50 p-4 md:p-5 transition-all hover:shadow-md hover:border-purple-400"
-        >
-          <div className="mb-2">
-            <div className="flex items-center gap-2 mb-1.5">
-              <Bot className="w-5 h-5 text-purple-600 shrink-0" />
-              <span className="text-base md:text-lg font-bold text-purple-900 break-keep">ChatGPT·Gemini 노출 가이드</span>
-            </div>
-            <span className="inline-flex items-center rounded-full bg-purple-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
-              모든 업종
-            </span>
-          </div>
-          <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
-            글로벌 AI가 내 가게를 언급하게 만드는 소개글·Q&amp;A 최적화.
-          </p>
-          <p className="text-sm font-semibold text-purple-700 group-hover:underline">소개글 최적화 가이드 →</p>
-        </Link>
-      </div>
-
-      {/* 점수 모델 v3.1 변경 사항 안내 — 베타 진입점 (작게 표시) */}
-      <div className="mb-4">
-        <Link
-          href="/guide/score-model-v3-1"
-          className="group inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 hover:border-blue-300 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
-        >
-          업종별 맞춤 점수 기준 개선 안내
-          <span className="group-hover:underline">→</span>
-        </Link>
-      </div>
-
       {businesses && businesses.length > 1 && (
-        <div className="flex items-center gap-2 mt-2 md:mt-4 pt-4 md:pt-6 border-t border-gray-200 mb-8 md:mb-10 overflow-x-auto pb-1">
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
           {businesses.map(b => (
             <a
               key={b.id}
@@ -261,6 +169,101 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         latestScanMentioned={latestScanMentioned}
         initialToken={initialToken}
       />
+
+      {/* 채널별 심화 가이드 — 가이드 본문 아래에 배치 (탐색 링크) */}
+      <div className="mt-10 pt-8 border-t border-gray-100">
+        <p className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">채널별 심화 가이드</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+          {/* AI 브리핑 가이드 */}
+          <Link
+            href={`/guide/ai-info-tab?biz_id=${business.id}`}
+            className={`group rounded-xl border p-4 md:p-5 transition-all hover:shadow-md ${
+              briefingActive
+                ? 'bg-blue-50 border-blue-300 hover:border-blue-500'
+                : briefingLikely
+                ? 'bg-blue-50 border-blue-200 hover:border-blue-400'
+                : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            <div className="mb-2">
+              <div className="flex items-center gap-2 mb-1.5">
+                <FileSearch className="w-5 h-5 text-blue-600 shrink-0" />
+                <span className="text-base font-bold text-blue-900 break-keep">네이버 AI 브리핑 가이드</span>
+              </div>
+              {briefingActive && (
+                <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
+                  내 업종 대상
+                </span>
+              )}
+              {briefingLikely && (
+                <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-xs font-semibold whitespace-nowrap">
+                  확대 예정
+                </span>
+              )}
+              {!briefingActive && !briefingLikely && (
+                <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-xs font-semibold whitespace-nowrap">
+                  비대상
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
+              검색결과 상단 AI 자동 추천 박스. 음식점·카페·숙박업 등 AI 브리핑 대상 업종.
+            </p>
+            <p className="text-sm font-semibold text-blue-700 group-hover:underline">5단계 설정 가이드 →</p>
+          </Link>
+
+          {/* AI탭 가이드 */}
+          <Link
+            href={`/guide/ai-tab?biz_id=${business.id}`}
+            className="group rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5 transition-all hover:shadow-md hover:border-indigo-400"
+          >
+            <div className="mb-2">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Sparkles className="w-5 h-5 text-indigo-600 shrink-0" />
+                <span className="text-base font-bold text-indigo-900 break-keep">네이버 AI탭 가이드</span>
+              </div>
+              <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
+                Beta · 베타 확대 중
+              </span>
+            </div>
+            <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
+              검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-27 베타 출시, 업종 공식 제한 없음 (베타 확대 중).
+            </p>
+            <p className="text-sm font-semibold text-indigo-700 group-hover:underline">5항목 설정 가이드 →</p>
+          </Link>
+
+          {/* ChatGPT·Gemini 노출 가이드 */}
+          <Link
+            href="/guide/chatgpt-search"
+            className="group rounded-xl border border-purple-200 bg-purple-50 p-4 md:p-5 transition-all hover:shadow-md hover:border-purple-400"
+          >
+            <div className="mb-2">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Bot className="w-5 h-5 text-purple-600 shrink-0" />
+                <span className="text-base font-bold text-purple-900 break-keep">ChatGPT·Gemini 노출 가이드</span>
+              </div>
+              <span className="inline-flex items-center rounded-full bg-purple-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
+                모든 업종
+              </span>
+            </div>
+            <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
+              글로벌 AI가 내 가게를 언급하게 만드는 소개글·Q&amp;A 최적화.
+            </p>
+            <p className="text-sm font-semibold text-purple-700 group-hover:underline">소개글 최적화 가이드 →</p>
+          </Link>
+        </div>
+
+        {/* 점수 모델 v3.1 변경 사항 안내 */}
+        <div className="mt-4">
+          <Link
+            href="/guide/score-model-v3-1"
+            className="group inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-600 hover:border-blue-300 hover:text-blue-700 transition-colors"
+          >
+            업종별 맞춤 점수 기준 개선 안내
+            <span className="group-hover:underline">→</span>
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }
