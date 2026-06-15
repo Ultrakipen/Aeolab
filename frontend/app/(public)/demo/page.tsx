@@ -489,7 +489,7 @@ export default function DemoPage() {
           </span>
           {key === "exposure_freq" && (
             <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${m.geminiRate === 0 ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
-              AI노출 {m.geminiRate}%
+              {m.geminiRate === 0 ? "AI 미노출" : `AI노출 ${m.geminiRate}%`}
             </span>
           )}
         </div>
@@ -644,7 +644,7 @@ export default function DemoPage() {
                   {CATEGORIES.find(c => c.value === category)?.label} 업종 — 네이버 AI 브리핑 확대 예정
                 </p>
                 <p className="text-sm md:text-base text-blue-800 leading-relaxed">
-                  2026년 상반기 네이버 AI 브리핑 확대 진행 중입니다.
+                  2026년 6월 전체 네이버 사용자 대상 확대 예정입니다.
                   지금 준비해두면 확대 시 바로 유리해집니다.
                 </p>
               </div>
@@ -1026,7 +1026,7 @@ export default function DemoPage() {
                           ChatGPT·Gemini 합산 AI 노출 확률: <span className="text-green-800">{m.geminiRate}%</span>
                         </p>
                       </div>
-                      <p className="text-sm text-gray-500 leading-relaxed">무료 체험은 ChatGPT 5회 질의 + Gemini 10회 간이 진단입니다. Basic 자동: Gemini·ChatGPT 각 50회 / Full 스캔: 각 100회 측정 (± 오차 범위 표시).</p>
+                      <p className="text-sm text-gray-500 leading-relaxed">무료 체험은 ChatGPT 5회 질의입니다. Basic 구독: Gemini·ChatGPT 각 50회 / 월요일 풀스캔: 각 100회 (± 오차 범위 표시).</p>
                     </>
                   )}
                   <p className="mt-2 text-sm text-gray-400 leading-relaxed">
