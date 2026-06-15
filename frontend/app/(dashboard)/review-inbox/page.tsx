@@ -16,6 +16,15 @@ type ReviewReply = ReviewReplyResult & { review_text?: string }
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
+function relativeDate(isoString: string): string {
+  const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000)
+  if (diff < 60) return '방금 전'
+  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`
+  if (diff < 86400 * 3) return `${Math.floor(diff / 86400)}일 전`
+  return new Date(isoString).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
+}
+
 // ── 위기관리 가이드 타입 ───────────────────────────────────────────
 interface CrisisGuideResult {
   public_reply: string
@@ -39,6 +48,7 @@ function CrisisGuidePanel({
   const [result, setResult] = useState<CrisisGuideResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [rating, setRating] = useState<1 | 2 | 3>(1)
   const [copiedSection, setCopiedSection] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     reply: true, tips: true, doNot: false, offline: false,
@@ -57,6 +67,7 @@ function CrisisGuidePanel({
     const generate = async () => {
       setLoading(true)
       setError('')
+      setResult(null)
       try {
         const res = await fetch(`${BACKEND}/api/guide/${businessId}/crisis-reply`, {
           method: 'POST',
@@ -64,7 +75,7 @@ function CrisisGuidePanel({
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ review_text: reviewText }),
+          body: JSON.stringify({ review_text: reviewText, rating }),
         })
         if (!res.ok) {
           const err = await res.json().catch(() => ({})) as { detail?: string }
@@ -80,7 +91,7 @@ function CrisisGuidePanel({
       }
     }
     generate()
-  }, [reviewText, businessId, token])
+  }, [reviewText, businessId, token, rating])
 
   return (
     <div className="mt-3 bg-red-50 border border-red-200 rounded-xl overflow-hidden">
@@ -103,6 +114,25 @@ function CrisisGuidePanel({
         {/* 리뷰 원문 미리보기 */}
         <div className="text-sm text-red-700 bg-red-100 rounded-lg px-3 py-2 line-clamp-2 border border-red-200">
           <span className="font-semibold">원문: </span>{reviewText}
+        </div>
+
+        {/* 별점 선택 */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500 shrink-0">리뷰 별점:</span>
+          {([1, 2, 3] as const).map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setRating(r)}
+              className={`flex items-center gap-0.5 px-2.5 py-1 rounded-lg text-sm font-medium border transition-colors ${
+                rating === r
+                  ? 'bg-red-600 text-white border-red-600'
+                  : 'bg-white text-gray-500 border-gray-200 hover:border-red-300'
+              }`}
+            >
+              {'★'.repeat(r)}{'☆'.repeat(3 - r)} {r}점
+            </button>
+          ))}
         </div>
 
         {/* 로딩 */}
@@ -289,8 +319,21 @@ export default function ReviewInboxPage() {
 
       const { data: sub } = await supabase
         .from('subscriptions').select('plan, status').eq('user_id', session.user.id).in('status', ['active', 'grace_period']).maybeSingle()
-      setPlan(sub?.plan ?? 'free')
+      const resolvedPlan = sub?.plan ?? 'free'
+      setPlan(resolvedPlan)
       setPlanLoading(false)
+
+      if (resolvedPlan !== 'free' && biz) {
+        try {
+          const usageRes = await fetch(`${BACKEND}/api/guide/${biz.id}/review-reply/usage`, {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          })
+          if (usageRes.ok) {
+            const usageData = await usageRes.json() as { used: number; limit: number }
+            setUsageStat(usageData)
+          }
+        } catch { /* 사용량 조회 실패는 조용히 무시 */ }
+      }
     }
     init()
   }, [])
@@ -438,9 +481,9 @@ export default function ReviewInboxPage() {
           <label className="block text-sm font-medium text-gray-700">
             리뷰 텍스트 붙여넣기
           </label>
-          {usageStat && (
+          {usageStat && usageStat.limit < 999 && (
             <span className="text-sm text-gray-400">
-              이번 달 {usageStat.used}{usageStat.limit === 999 ? '' : `/${usageStat.limit}회`} 사용
+              이번 달 {usageStat.used}/{usageStat.limit}회 사용
             </span>
           )}
         </div>
@@ -475,7 +518,9 @@ export default function ReviewInboxPage() {
               <SentimentBadge sentiment={result.tone} />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">{result.used}/{result.limit === 999 ? '∞' : result.limit}회 사용</span>
+              {result.limit < 999 && (
+                <span className="text-sm text-gray-400">{result.used}/{result.limit}회 사용</span>
+              )}
               <CopyButton text={result.draft_response} />
             </div>
           </div>
@@ -534,8 +579,14 @@ export default function ReviewInboxPage() {
         ) : history.length === 0 ? (
           <div className="text-center py-8 bg-white rounded-xl border border-dashed border-gray-200">
             <MessageSquare className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-            <p className="text-sm text-gray-400">아직 생성된 답변이 없습니다.</p>
-            <p className="text-sm text-gray-300 mt-1">위에서 리뷰를 붙여넣고 첫 답변을 만들어보세요.</p>
+            <p className="text-sm text-gray-400 mb-1">아직 생성된 답변이 없습니다.</p>
+            <button
+              type="button"
+              onClick={() => document.querySelector('textarea')?.focus()}
+              className="text-sm text-blue-500 hover:text-blue-700 underline underline-offset-2 transition-colors"
+            >
+              리뷰 붙여넣고 첫 답변 만들기 →
+            </button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -590,7 +641,7 @@ export default function ReviewInboxPage() {
                   </div>
                 )}
                 <p className="text-sm text-gray-300 mt-2">
-                  {h.created_at ? new Date(h.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
+                  {h.created_at ? relativeDate(h.created_at) : ''}
                 </p>
               </div>
             ))}

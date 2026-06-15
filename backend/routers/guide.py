@@ -327,6 +327,16 @@ async def get_review_replies(biz_id: str, user=Depends(get_current_user)):
         raise
 
 
+@router.get("/{biz_id}/review-reply/usage")
+async def get_review_reply_usage(biz_id: str, user=Depends(get_current_user)):
+    """이번 달 리뷰 답변 사용량 조회 (Basic+ 전용, 페이지 진입 시 호출)"""
+    from middleware.plan_gate import check_review_reply_limit
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+    _, used, limit = await check_review_reply_limit(user["id"], supabase)
+    return {"used": used, "limit": limit}
+
+
 @router.delete("/{biz_id}/review-replies/{reply_id}")
 async def delete_review_reply(
     biz_id: str,
