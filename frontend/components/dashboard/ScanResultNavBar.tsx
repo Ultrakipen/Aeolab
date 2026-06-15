@@ -15,7 +15,15 @@ interface Props {
 
 function scrollTo(id: string) {
   const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (!el) return;
+  // CollapseSectionWrapper가 접혀 있으면 먼저 열고 스크롤
+  const toggleBtn = el.querySelector<HTMLButtonElement>("button[aria-expanded]");
+  if (toggleBtn && toggleBtn.getAttribute("aria-expanded") === "false") {
+    toggleBtn.click();
+    setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+  } else {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 /**
