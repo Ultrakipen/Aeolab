@@ -174,7 +174,7 @@ export default function DashboardInsightZone({
       />
       {keywords && keywords.length > 0 && region && (
         <div className="mt-3">
-          <CollapsibleSub icon="📊" label="내 키워드 네이버 검색 순위" borderClass="border-green-400" defaultOpen={true}>
+          <CollapsibleSub icon="📊" label="내 키워드 네이버 검색 순위" borderClass="border-green-400" defaultOpen={false}>
             <KeywordRankCard
               bizId={bizId}
               keywords={keywords}
