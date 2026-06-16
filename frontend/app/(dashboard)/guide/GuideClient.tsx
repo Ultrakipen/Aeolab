@@ -3828,7 +3828,7 @@ function GuideTabView({
                      isFoodDrink ? '외부 언급 2채널 (맘카페·지식인)' :
                      '외부 언급 2채널 (지역 카페·지식인)'}
                   </div>
-                  <span className="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">이번 달</span>
+                  <span className="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">이번 달 실행</span>
                 </div>
                 <p className="text-sm text-gray-500 mb-3 leading-relaxed">
                   AI는 여러 곳에서 언급되는 가게를 신뢰합니다. 각 채널마다 접근법이 다릅니다 — 본인 상황에 맞는 채널 1~2개만 골라 시도해 보세요.
@@ -4596,7 +4596,7 @@ export function GuideClient({
                     현재 비대상 업종 — 아래 가이드는 모든 AI 채널에 효과적입니다
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    네이버 AI 브리핑은 음식점·카페·숙박 중심이지만, 아래 개선 항목은
+                    네이버 AI 브리핑은 음식점·카페·숙박 중심이지만, 아래 개선 항목은{' '}
                     <strong>네이버 AI탭·카카오맵·일반 검색 노출</strong>에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
                   </p>
                 </>
