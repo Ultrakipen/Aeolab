@@ -63,6 +63,21 @@ function simplify(text: string | undefined | null): string {
     .replace(/"@type"\s*:\s*"LocalBusiness"/g, '"@type": "사업장 정보"')
 }
 
+// 한국어 조사 헬퍼 — 받침 유무에 따라 을/를, 으로/로 자동 선택
+function euReul(word: string): string {
+  if (!word) return '을'
+  const code = word.charCodeAt(word.length - 1)
+  if (code < 0xAC00 || code > 0xD7A3) return '을'
+  return (code - 0xAC00) % 28 === 0 ? '를' : '을'
+}
+function roYuro(word: string): string {
+  if (!word) return '으로'
+  const code = word.charCodeAt(word.length - 1)
+  if (code < 0xAC00 || code > 0xD7A3) return '으로'
+  const jong = (code - 0xAC00) % 28
+  return jong === 0 || jong === 8 ? '로' : '으로'
+}
+
 // 업종 영문 코드 → 한국어 (네이버 검색 URL 구성용) — v5.8 업종 59개
 const CATEGORY_KO: Record<string, string> = {
   // ACTIVE
@@ -1282,7 +1297,7 @@ function ListContentSection({ bizId, token, region, category, bizName }: {
   const buildDraft = (): string => {
     const list = competitors ?? []
     const myBiz = bizName || '우리 가게'
-    const header = `[${displayRegion} ${categoryKo} 베스트 5] ${displayRegion}에서 ${categoryKo}을(를) 찾고 있다면 꼭 참고해 보세요.`
+    const header = `[${displayRegion} ${categoryKo} 베스트 5] ${displayRegion}에서 ${categoryKo}${euReul(categoryKo)} 찾고 있다면 꼭 참고해 보세요.`
     const intro = `${displayRegion} 지역에서 많이 찾는 ${categoryKo} 5곳을 직접 비교해 정리했습니다. 각 가게마다 특징이 다르니 상황에 맞게 선택하시면 좋을 것 같습니다.\n`
 
     const items = [myBiz, ...list.map((c) => c.name)].slice(0, 5)
@@ -3623,12 +3638,13 @@ function GuideTabView({
           {/* 외부 언급 채널 — 맘카페·지식인 등 (각각 다른 접근법) */}
           {(() => {
             const topKeyword = keywordGap?.missing_keywords?.[0]
-            const bizRegion = region || '우리 지역'
-            const bizCategory = category ? (CATEGORY_KO[category] ?? category) : '가게'
+            const bizRegion = region || business.region || '우리 지역'
+            const effectiveCat = category || business.category
+            const bizCategory = effectiveCat ? (CATEGORY_KO[effectiveCat] ?? effectiveCat) : '가게'
             const bizName = business.name || '우리 가게'
 
             // 업종별 채널 분기
-            const cat = category ?? 'other'
+            const cat = effectiveCat ?? 'other'
             const isFoodDrink = ['restaurant', 'cafe', 'bakery', 'bar'].includes(cat)
             const isBeauty = ['beauty', 'nail'].includes(cat)
             const isMedical = ['medical', 'pharmacy'].includes(cat)
@@ -3689,7 +3705,7 @@ function GuideTabView({
                   hint: topKeyword ? `"${bizRegion} ${topKeyword} 추천" 질문 검색 후 전문 답변` : `"${bizRegion} ${bizCategory} 추천" 질문에 답변`,
                   text: topKeyword
                     ? `${topKeyword} 시술을 찾고 계신다면 ${bizName}에서 상담받아 보세요. ${bizRegion} 위치이며 지도 검색 '${bizName}'으로 예약 가능합니다. (답변자: ${bizName} 원장)`
-                    : `${bizRegion} ${bizCategory}을 찾으신다면 ${bizName}을 추천드립니다. 지도 검색으로 바로 찾을 수 있습니다. (답변자: ${bizName} 원장)`,
+                    : `${bizRegion} ${bizCategory}${euReul(bizCategory)} 찾으신다면 ${bizName}${euReul(bizName)} 추천드립니다. 지도 검색으로 바로 찾을 수 있습니다. (답변자: ${bizName} 원장)`,
                 },
               ]
             } else if (isFitness) {
@@ -3775,8 +3791,8 @@ function GuideTabView({
                     : '지역 커뮤니티 카페에서 관련 질문에 사업주로 답글',
                   hint: '사업주 신분 밝히고 솔직한 소개 + 위치 정보 포함',
                   text: topKeyword
-                    ? `안녕하세요, ${bizRegion}에서 ${bizCategory} 운영 중인 ${bizName} 사장입니다. ${topKeyword}을(를) 찾으시는 분이 있으시다면 도움이 될 것 같아 답글 남깁니다. 저희 가게는 ${bizRegion} 내에 위치해 있고, 지도에서 '${bizName}' 검색하시면 바로 찾으실 수 있습니다. (사업주 작성)`
-                    : `안녕하세요, ${bizRegion} ${bizCategory} ${bizName} 사장입니다. 저희 정보가 도움이 될 것 같아 소개드립니다. 지도 검색 '${bizName}'으로 바로 찾으실 수 있습니다. (사업주 작성)`,
+                    ? `안녕하세요, ${bizRegion}에서 ${bizCategory} 운영 중인 ${bizName} 사장입니다. ${topKeyword}${euReul(topKeyword ?? '')} 찾으시는 분이 있으시다면 도움이 될 것 같아 답글 남깁니다. 저희 가게는 ${bizRegion} 내에 위치해 있고, 지도에서 '${bizName}' 검색하시면 바로 찾으실 수 있습니다. (사업주 작성)`
+                    : `안녕하세요, ${bizRegion} ${bizCategory} ${bizName} 사장입니다. 저희 정보가 도움이 될 것 같아 소개드립니다. 지도 검색 '${bizName}'${roYuro(bizName)} 바로 찾으실 수 있습니다. (사업주 작성)`,
                 },
                 {
                   key: 'knowledge',
@@ -3787,8 +3803,8 @@ function GuideTabView({
                     ? `"${bizRegion}에서 ${topKeyword} ${bizCategory} 어디가 좋나요?" 같은 질문 검색 후 답변`
                     : `"${bizRegion} ${bizCategory} 추천" 질문에 답변`,
                   text: topKeyword
-                    ? `${bizRegion}에서 ${topKeyword}을(를) 잘하는 ${bizCategory}을(를) 찾으신다면 '${bizName}' 추천드립니다. ${bizRegion} 내에 위치하고 있으며 지도에서 바로 검색 가능합니다. (답변자: 해당 가게 사업주)`
-                    : `${bizRegion} ${bizCategory}을(를) 찾으신다면 '${bizName}' 참고해보세요. 지도 검색으로 바로 찾을 수 있습니다. (답변자: 해당 가게 사업주)`,
+                    ? `${bizRegion}에서 ${topKeyword}${euReul(topKeyword ?? '')} 잘하는 ${bizCategory}${euReul(bizCategory)} 찾으신다면 '${bizName}' 추천드립니다. ${bizRegion} 내에 위치하고 있으며 지도에서 바로 검색 가능합니다. (답변자: 해당 가게 사업주)`
+                    : `${bizRegion} ${bizCategory}${euReul(bizCategory)} 찾으신다면 '${bizName}' 참고해보세요. 지도 검색으로 바로 찾을 수 있습니다. (답변자: 해당 가게 사업주)`,
                 },
               ]
             }

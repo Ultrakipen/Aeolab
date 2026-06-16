@@ -53,14 +53,14 @@ function DeltaBadge({ before, after }: { before: number | null; after: number | 
     return (
       <span className="flex items-center gap-0.5 text-sm text-green-600 font-semibold">
         <TrendingUp className="w-3.5 h-3.5" />
-        +{delta.toFixed(1)}점
+        개선됨
       </span>
     )
   }
   return (
     <span className="flex items-center gap-0.5 text-sm text-red-500 font-semibold">
       <TrendingDown className="w-3.5 h-3.5" />
-      {delta.toFixed(1)}점
+      하락
     </span>
   )
 }
@@ -167,15 +167,6 @@ function ActionTimelineContent({ businessId, authToken }: { businessId: string; 
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {w.score_before !== null && (
-                    <span className="text-sm text-gray-500">{w.score_before.toFixed(1)}점</span>
-                  )}
-                  {w.score_before !== null && (
-                    <span className="text-sm text-gray-400">→</span>
-                  )}
-                  {w.score_after !== null && (
-                    <span className="text-sm font-semibold text-gray-700">{w.score_after.toFixed(1)}점</span>
-                  )}
                   <DeltaBadge before={w.score_before} after={w.score_after} />
                 </div>
               </div>

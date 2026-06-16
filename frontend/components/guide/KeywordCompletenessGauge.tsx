@@ -164,7 +164,7 @@ function KeywordCompletenessContent({ businessId, authToken }: { businessId: str
             <div key={i}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-gray-700 truncate max-w-[70%]">{cat.name}</span>
-                <span className={`text-xs font-medium ${cat.covered_pct === 0 ? 'text-red-500' : cat.covered_pct < 50 ? 'text-orange-500' : cat.covered_pct < 80 ? 'text-yellow-600' : 'text-green-600'}`}>
+                <span className={`text-sm font-medium ${cat.covered_pct === 0 ? 'text-red-500' : cat.covered_pct < 50 ? 'text-orange-500' : cat.covered_pct < 80 ? 'text-yellow-600' : 'text-green-600'}`}>
                   {cat.covered_pct === 0 ? '미충족' : cat.covered_pct < 50 ? '부족' : cat.covered_pct < 80 ? '보통' : '충족'}
                 </span>
               </div>

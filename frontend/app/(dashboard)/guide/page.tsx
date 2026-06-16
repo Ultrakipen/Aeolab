@@ -191,17 +191,17 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
                 <span className="text-base font-bold text-blue-900 break-keep">네이버 AI 브리핑 가이드</span>
               </div>
               {briefingActive && (
-                <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
+                <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5 text-sm font-bold whitespace-nowrap">
                   내 업종 대상
                 </span>
               )}
               {briefingLikely && (
-                <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-xs font-semibold whitespace-nowrap">
+                <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-sm font-semibold whitespace-nowrap">
                   확대 예정
                 </span>
               )}
               {!briefingActive && !briefingLikely && (
-                <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-xs font-semibold whitespace-nowrap">
+                <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-sm font-semibold whitespace-nowrap">
                   비대상
                 </span>
               )}
@@ -222,7 +222,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
                 <Sparkles className="w-5 h-5 text-indigo-600 shrink-0" />
                 <span className="text-base font-bold text-indigo-900 break-keep">네이버 AI탭 가이드</span>
               </div>
-              <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
+              <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-sm font-bold whitespace-nowrap">
                 Beta · 베타 확대 중
               </span>
             </div>
@@ -242,7 +242,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
                 <Bot className="w-5 h-5 text-purple-600 shrink-0" />
                 <span className="text-base font-bold text-purple-900 break-keep">ChatGPT·Gemini 노출 가이드</span>
               </div>
-              <span className="inline-flex items-center rounded-full bg-purple-600 text-white px-2 py-0.5 text-xs font-bold whitespace-nowrap">
+              <span className="inline-flex items-center rounded-full bg-purple-600 text-white px-2 py-0.5 text-sm font-bold whitespace-nowrap">
                 모든 업종
               </span>
             </div>
