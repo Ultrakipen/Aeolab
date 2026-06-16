@@ -259,7 +259,7 @@ async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str]:
 sentiment: <값>
 reply: <답변 내용>
 
-리뷰: {review_text[:300]}"""
+리뷰: {review_text[:500]}"""
 
     try:
         msg = await client.messages.create(
