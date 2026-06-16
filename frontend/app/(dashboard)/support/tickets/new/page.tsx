@@ -154,7 +154,7 @@ function SupportNewForm() {
 
   return (
     <div className="p-4 md:p-8">
-      <div className="max-w-xl mx-auto">
+      <div className="max-w-2xl mx-auto">
         {/* 헤더 */}
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
@@ -176,11 +176,12 @@ function SupportNewForm() {
             : "bg-blue-50 border border-blue-200 text-blue-700",
         ].join(" ")}>
           {planInfo.limit === null ? (
-            <span className="font-medium">무제한 문의 가능</span>
+            <span className="font-medium">무제한 문의 가능 · 평균 1~2 영업일 이내 답변</span>
           ) : remaining !== null && remaining > 0 ? (
             <span>
               이번 달 남은 문의 <strong>{remaining}건</strong>
               <span className="text-blue-500 ml-1">({planInfo.label})</span>
+              <span className="ml-2 text-blue-400">· 평균 1~2 영업일 이내 답변</span>
             </span>
           ) : (
             <span>
@@ -264,13 +265,13 @@ function SupportNewForm() {
               </label>
               <textarea
                 value={body}
-                onChange={(e) => setBody(e.target.value.slice(0, 2000))}
-                maxLength={2000}
+                onChange={(e) => setBody(e.target.value.slice(0, 3000))}
+                maxLength={3000}
                 rows={8}
-                placeholder="문의 내용을 상세히 작성해 주세요. 스크린샷이 있으면 내용에 설명을 덧붙여 주세요."
+                placeholder="문의 내용을 상세히 작성해 주세요. 스크린샷은 구글 드라이브 등 외부 링크로 내용에 포함해 주세요."
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400 resize-none"
               />
-              <p className="text-sm text-gray-400 mt-1 text-right">{body.length}/2000</p>
+              <p className="text-sm text-gray-400 mt-1 text-right">{body.length}/3000</p>
             </div>
           </div>
 
