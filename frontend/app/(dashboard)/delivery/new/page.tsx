@@ -356,7 +356,7 @@ function DeliveryNewForm() {
             <div className="flex items-center gap-2 bg-blue-500/40 rounded-xl p-3 mb-4">
               <CheckCircle2 className="w-4 h-4 text-blue-200 shrink-0" />
               <p className="text-sm text-blue-100">
-                결제 후 24시간 내 담당자가 연락드립니다.
+                결제 완료 후 영업일 1~2일 내 담당자가 연락드립니다.
               </p>
             </div>
 

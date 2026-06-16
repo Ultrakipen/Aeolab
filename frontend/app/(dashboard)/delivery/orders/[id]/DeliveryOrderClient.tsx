@@ -100,8 +100,8 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
   };
 
   const handleTestimonialSubmit = async () => {
-    if (!testimonialBody.trim()) {
-      setTestimonialError("후기 내용을 입력해주세요.");
+    if (testimonialBody.trim().length < 10) {
+      setTestimonialError("후기는 10자 이상 입력해주세요.");
       return;
     }
     setTestimonialSubmitting(true);

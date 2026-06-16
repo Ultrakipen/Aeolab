@@ -753,7 +753,7 @@ async def submit_testimonial(
     supabase = get_client()
     res = await execute(
         supabase.table("delivery_orders")
-        .select("id, user_id, business_id, package_type, status, testimonial_submitted_at, score_before, score_after, category, region")
+        .select("id, user_id, business_id, package_type, status, testimonial_submitted_at, score_before, score_after")
         .eq("id", order_id)
         .single()
     )
@@ -774,12 +774,27 @@ async def submit_testimonial(
     if len(testimonial_body) < 10:
         raise HTTPException(status_code=422, detail="후기는 10자 이상 입력해주세요")
 
+    # businesses에서 category/region 조회 (delivery_orders에 해당 컬럼 없음)
+    biz_category = "other"
+    biz_region = ""
+    biz_id = order.get("business_id")
+    if biz_id:
+        try:
+            biz_res = await execute(
+                supabase.table("businesses").select("category, region").eq("id", biz_id).single()
+            )
+            if biz_res and biz_res.data:
+                biz_category = biz_res.data.get("category") or "other"
+                biz_region = biz_res.data.get("region") or ""
+        except Exception as _be:
+            _logger.debug(f"[delivery/testimonial] 사업장 정보 조회 실패 (무시): {_be}")
+
     # success_stories INSERT (published_at 없음 → 관리자 검토 대기)
     story_payload = {
         "delivery_order_id": order_id,
         "business_id": order.get("business_id"),
-        "category": order.get("category") or "other",
-        "region": order.get("region") or "",
+        "category": biz_category,
+        "region": biz_region,
         "title": body.get("title") or "서비스 후기",
         "body": testimonial_body,
         "score_before": order.get("score_before"),

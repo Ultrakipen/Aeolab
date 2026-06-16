@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ChevronRight, AlertCircle, CheckCircle2, Download } from "lucide-react";
 import DeliveryOrderClient from "./DeliveryOrderClient";
+import DeliveryPaymentRetryButton from "./DeliveryPaymentRetryButton";
 
 export const metadata = { title: "의뢰 상세 | AEOlab" };
 
@@ -210,6 +211,21 @@ export default async function DeliveryOrderDetailPage({
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{order.request_body}</p>
             </div>
+
+            {/* 결제 대기 — received 상태에서 결제 재시도 */}
+            {order.status === "received" && (
+              <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <p className="text-sm font-semibold text-amber-800 mb-0.5">결제가 완료되지 않았습니다</p>
+                <p className="text-sm text-amber-700">
+                  결제를 완료하면 영업일 1~2일 내에 작업이 시작됩니다.
+                </p>
+                <DeliveryPaymentRetryButton
+                  orderId={order.id}
+                  packageType={order.package_type}
+                  amount={order.amount}
+                />
+              </div>
+            )}
           </div>
 
           {/* 완료 보고서 */}

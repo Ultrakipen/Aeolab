@@ -2190,3 +2190,16 @@ CREATE INDEX IF NOT EXISTS idx_naver_prescan_date ON naver_prescan(scan_date DES
 ALTER TABLE naver_prescan ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_naver_prescan_all" ON naver_prescan
   USING (true) WITH CHECK (true);
+
+
+-- ============================================================
+-- v6.2 — delivery_orders status CHECK constraint에 'paid' 추가
+-- 원인: 초기 스키마에 'paid' 누락 → 결제 확인 후 UPDATE 실패 (P0)
+-- 실행 시점: 대행 서비스 출시 전 필수 (Supabase SQL Editor에서 실행)
+-- ============================================================
+DO $$
+BEGIN
+  ALTER TABLE delivery_orders DROP CONSTRAINT IF EXISTS delivery_orders_status_check;
+  ALTER TABLE delivery_orders ADD CONSTRAINT delivery_orders_status_check
+    CHECK (status IN ('received','paid','in_progress','completed','rework','refunded','cancelled'));
+END $$;
