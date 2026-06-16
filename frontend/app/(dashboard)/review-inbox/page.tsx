@@ -394,7 +394,7 @@ export default function ReviewInboxPage() {
 
   if (planLoading) {
     return (
-      <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-4">
+      <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-4">
         <div className="h-8 bg-gray-100 rounded-xl animate-pulse w-48" />
         <div className="h-40 bg-gray-100 rounded-xl animate-pulse" />
       </div>
@@ -426,7 +426,7 @@ export default function ReviewInboxPage() {
     ]
 
     return (
-      <div className="p-4 md:p-8 max-w-2xl mx-auto">
+      <div className="p-4 md:p-8 max-w-3xl mx-auto">
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
           <span className="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Basic 이상</span>
@@ -464,14 +464,14 @@ export default function ReviewInboxPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto">
+    <div className="p-4 md:p-8 max-w-3xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
           <MessageSquare className="w-5 h-5 text-blue-600" />
         </div>
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
-          <p className="text-sm text-gray-500">리뷰를 붙여넣으면 AI가 업종 키워드 포함 답변을 초안해드립니다</p>
+          <p className="text-sm text-gray-500">리뷰를 붙여넣으면 AI가 업종 키워드를 포함한 답변 초안을 드립니다</p>
         </div>
       </div>
 
@@ -650,7 +650,7 @@ export default function ReviewInboxPage() {
       </div>
 
       {/* 스마트플레이스 리뷰 AI 기능 안내 */}
-      <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mt-6 mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
         <p className="text-sm font-semibold text-slate-700 mb-3">
           💡 스마트플레이스 리뷰 관련 AI 기능도 있어요
         </p>
