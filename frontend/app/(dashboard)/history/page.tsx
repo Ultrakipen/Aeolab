@@ -202,6 +202,9 @@ export default async function HistoryPage() {
             <p className="text-sm text-gray-500">
               통합 점수 = 네이버 AI 점수 × 업종 비율 + 글로벌 AI 점수 × 비율로 계산됩니다
             </p>
+            <p className="text-sm text-gray-400 mt-0.5">
+              측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다
+            </p>
           </div>
           {(history ?? []).length === 0 ? (
             <div className="p-4 sm:p-6 md:p-8 text-center">

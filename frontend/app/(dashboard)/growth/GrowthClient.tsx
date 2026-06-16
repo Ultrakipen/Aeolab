@@ -285,6 +285,9 @@ export default function GrowthClient({
         <p className="text-sm md:text-base text-gray-500 mt-1">
           {region} · {categoryLabel} · AI 스캔 결과를 기반으로 내 가게가 얼마나 성장했는지 확인하세요
         </p>
+        <p className="text-sm text-gray-400 mt-1">
+          측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다
+        </p>
         {/* 업종 내 순위 배지 */}
         {latestRank !== null && latestTotal !== null && (
           <div className="mt-2">
