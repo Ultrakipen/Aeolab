@@ -8,6 +8,7 @@ import { NoBusiness } from '@/components/dashboard/NoBusiness'
 import { History, ImageIcon, TrendingUp, Calendar, Download } from 'lucide-react'
 import Link from 'next/link'
 import { getActiveBusinessId } from '@/lib/active-business'
+import { getScoreTextLabel } from '@/lib/scoreLabels'
 
 export default async function HistoryPage() {
   const supabase = await createClient()
@@ -157,22 +158,26 @@ export default async function HistoryPage() {
       </div>
 
       <div className="space-y-4">
-        {/* 최신 점수 요약 카드 */}
+        {/* 최신 상태 요약 카드 */}
         {scores.length >= 2 && (
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
-              <p className="text-sm text-gray-500 mb-1 font-medium">현재 점수</p>
-              <p className="text-2xl md:text-3xl font-bold text-gray-900">{currentVal.toFixed(1)}</p>
-            </div>
-            <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
-              <p className="text-sm text-gray-500 mb-1 font-medium">지난주 대비</p>
-              <p className={`text-2xl md:text-3xl font-bold ${diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                {diff >= 0 ? '+' : ''}{diff.toFixed(1)}
+              <p className="text-sm text-gray-500 mb-2 font-medium">현재 상태</p>
+              <p className={`text-base md:text-lg font-bold ${currentVal >= 75 ? 'text-emerald-600' : currentVal >= 55 ? 'text-blue-600' : currentVal >= 30 ? 'text-amber-600' : 'text-gray-400'}`}>
+                {getScoreTextLabel(currentVal)}
               </p>
             </div>
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
-              <p className="text-sm text-gray-500 mb-1 font-medium">최고 기록</p>
-              <p className="text-2xl md:text-3xl font-bold text-blue-600">{maxScore.toFixed(1)}</p>
+              <p className="text-sm text-gray-500 mb-2 font-medium">지난주 대비</p>
+              <p className={`text-base md:text-lg font-bold ${diff > 2 ? 'text-emerald-600' : diff < -2 ? 'text-red-500' : 'text-gray-400'}`}>
+                {diff > 2 ? '↑ 상승' : diff < -2 ? '↓ 하락' : '— 유지'}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
+              <p className="text-sm text-gray-500 mb-2 font-medium">최고 도달 상태</p>
+              <p className={`text-base md:text-lg font-bold ${maxScore >= 75 ? 'text-emerald-600' : maxScore >= 55 ? 'text-blue-600' : maxScore >= 30 ? 'text-amber-600' : 'text-gray-400'}`}>
+                {getScoreTextLabel(maxScore)}
+              </p>
             </div>
           </div>
         )}
@@ -182,8 +187,8 @@ export default async function HistoryPage() {
           <div className="px-4 md:px-6 py-4 border-b border-gray-100">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <div className="flex-1">
-                <div className="text-base font-medium text-gray-700">점수 변화 기록</div>
-                <div className="text-sm text-gray-400 mt-0.5">점수가 높을수록 AI 검색에 더 잘 노출됩니다 (0~100점)</div>
+                <div className="text-base font-medium text-gray-700">AI 노출 상태 기록</div>
+                <div className="text-sm text-gray-400 mt-0.5">스캔할 때마다 AI 검색 노출 상태가 기록됩니다</div>
               </div>
               {/* 모바일 전용 스크롤 안내 */}
               <div className="md:hidden flex items-center gap-1.5 text-sm text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 self-start">
@@ -209,8 +214,8 @@ export default async function HistoryPage() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">날짜</th>
-                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">통합 점수</th>
-                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">네이버 AI 브리핑 점수</th>
+                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">전체 AI 노출</th>
+                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">네이버 AI 노출도</th>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">AI 노출 횟수 (100회 중)</th>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">전주 대비</th>
                   </tr>
@@ -221,22 +226,32 @@ export default async function HistoryPage() {
                       <td className="px-4 md:px-6 py-3 text-gray-700 whitespace-nowrap">
                         {new Date(row.score_date).toLocaleDateString('ko-KR')}
                       </td>
-                      <td className="px-4 md:px-6 py-3 font-semibold text-blue-600">
-                        {Math.round(row.unified_score ?? row.total_score)}점
+                      <td className="px-4 md:px-6 py-3">
+                        {(() => {
+                          const s = row.unified_score ?? row.total_score ?? 0
+                          const lbl = getScoreTextLabel(s)
+                          const cls = s >= 75 ? 'text-emerald-600' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-600' : 'text-gray-400'
+                          return <span className={`font-semibold text-sm ${cls}`}>{lbl}</span>
+                        })()}
                       </td>
                       <td className="px-4 md:px-6 py-3">
                         {row.track1_score != null ? (
-                          <span className="font-medium text-indigo-600">{Math.round(row.track1_score)}점</span>
+                          (() => {
+                            const s = row.track1_score
+                            const lbl = getScoreTextLabel(s)
+                            const cls = s >= 75 ? 'text-emerald-600' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-600' : 'text-gray-400'
+                            return <span className={`font-medium text-sm ${cls}`}>{lbl}</span>
+                          })()
                         ) : (
                           <span className="text-gray-300">—</span>
                         )}
                       </td>
-                      <td className="px-4 md:px-6 py-3 text-gray-600">{row.exposure_freq}/100</td>
+                      <td className="px-4 md:px-6 py-3 text-gray-600 text-sm">{row.exposure_freq}/100</td>
                       <td className="px-4 md:px-6 py-3">
-                        {(row.weekly_change ?? 0) > 0 ? (
-                          <span className="text-green-600">+{(row.weekly_change as number).toFixed(1)}</span>
-                        ) : (row.weekly_change ?? 0) < 0 ? (
-                          <span className="text-red-500">{(row.weekly_change as number).toFixed(1)}</span>
+                        {(row.weekly_change ?? 0) > 2 ? (
+                          <span className="text-green-600 font-semibold">↑ 상승</span>
+                        ) : (row.weekly_change ?? 0) < -2 ? (
+                          <span className="text-red-500 font-semibold">↓ 하락</span>
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}
@@ -254,7 +269,7 @@ export default async function HistoryPage() {
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
             <span className="text-red-500 text-xl shrink-0">⚠️</span>
             <div>
-              <p className="font-semibold text-red-700">점수가 {Math.abs(diff).toFixed(1)}점 떨어졌습니다</p>
+              <p className="font-semibold text-red-700">AI 노출 상태가 하락했습니다</p>
               <p className="text-sm text-red-600 mt-1">경쟁사가 강화되었거나 내 가게 정보 업데이트가 필요할 수 있습니다.</p>
               <Link href="/guide" className="mt-2 inline-flex items-center text-sm font-semibold text-red-700 hover:underline">
                 개선 방법 보기 →
@@ -266,7 +281,7 @@ export default async function HistoryPage() {
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
             <span className="text-xl shrink-0">🎉</span>
             <div>
-              <p className="font-semibold text-emerald-700">점수가 {diff.toFixed(1)}점 올랐습니다!</p>
+              <p className="font-semibold text-emerald-700">AI 노출 상태가 개선됐습니다!</p>
               <p className="text-sm text-emerald-600 mt-1">지속적으로 유지하려면 FAQ와 소식 업데이트를 주 1회 이어가세요.</p>
             </div>
           </div>

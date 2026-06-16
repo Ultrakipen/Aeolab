@@ -43,8 +43,7 @@ interface Props {
   naverBlogId?: string
 }
 
-// TODO: 개발 중 플랜 제한 비활성화 — 출시 전 복구 필요
-const ALLOWED_PLANS = ["free", "basic", "startup", "pro", "biz", "enterprise"]
+const ALLOWED_PLANS = ["basic", "startup", "pro", "biz", "enterprise"]
 
 function formatAnalyzedAt(iso: string): string {
   try {

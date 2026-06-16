@@ -35,12 +35,12 @@ function movingAvg(values: (number | null)[], window = 7): (number | null)[] {
   })
 }
 
-/** score_after가 있을 때 변화량 레이블 생성 */
+/** score_after가 있을 때 방향 레이블 생성 — 점수 수치 미노출 */
 function deltaLabel(log: ActionLog): string {
   if (log.score_after != null && log.score_before != null) {
     const diff = Math.round(log.score_after - log.score_before)
-    const sign = diff >= 0 ? '+' : ''
-    return `${log.action_label} (${sign}${diff}점)`
+    const dir = diff > 0 ? '↑ 상승' : diff < 0 ? '↓ 하락' : '변화 없음'
+    return `${log.action_label} (${dir})`
   }
   return log.action_label
 }
@@ -98,7 +98,7 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
               className={`text-sm font-semibold px-2 py-0.5 rounded-full ${latestGrade.bg}`}
               style={{ color: latestGrade.color }}
             >
-              현재 {latestScore}점 · {latestGrade.label}
+              현재 {latestGrade.label}
             </span>
           )}
         </div>
@@ -159,7 +159,7 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
               const n = Number(val)
               const grade = n >= 80 ? '우수' : n >= 60 ? '양호' : n >= 40 ? '보통' : '개선 필요'
               const label = name === 'score' ? '일별 측정값' : '7일 평균'
-              return [`${n}점 (${grade})`, label]
+              return [grade, label]
             }}
           />
           {/* 행동 기록 세로 점선 오버레이 */}

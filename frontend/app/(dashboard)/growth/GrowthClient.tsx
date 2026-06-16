@@ -14,6 +14,7 @@ import {
   Legend,
   ReferenceLine,
 } from "recharts";
+import { getScoreTextLabel } from "@/lib/scoreLabels";
 
 // 업종 코드 → 한글
 const CATEGORY_LABEL: Record<string, string> = {
@@ -128,7 +129,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
       {payload.map((p, i) => (
         <div key={i} className="flex items-center justify-between gap-3 mb-0.5">
           <span style={{ color: p.color }} className="font-medium text-sm">{p.name}</span>
-          <span className="font-bold text-gray-800">{Math.round(p.value)}점</span>
+          <span className="font-bold text-gray-800">{getScoreTextLabel(Math.round(p.value))}</span>
         </div>
       ))}
     </div>
@@ -209,9 +210,9 @@ export default function GrowthClient({
 
     trackKakaoShareClick({ score: currentScore });
 
-    const shareUrl = `https://aeolab.co.kr/share/growth?img=${encodeURIComponent(growthCardUrl)}&biz=${encodeURIComponent(businessName)}&score=${currentScore}`;
+    const shareUrl = `https://aeolab.co.kr/share/growth?img=${encodeURIComponent(growthCardUrl)}&biz=${encodeURIComponent(businessName)}`;
     const trialUrl = "https://aeolab.co.kr/trial?ref=growth_share";
-    const title = `${businessName} AI 노출 점수 ${currentScore}점`;
+    const title = `${businessName} AI 검색 노출 성장 리포트`;
     const description = "이달 가게 AI 노출 성장 기록 · AEOlab";
 
     // 1) Kakao SDK
@@ -296,67 +297,69 @@ export default function GrowthClient({
 
       {/* 요약 카드 3개 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* 전체 점수 변화 */}
+        {/* 전체 AI 노출 상태 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5">
-          <p className="text-sm font-medium text-gray-500 mb-3">전체 AI 노출 점수</p>
+          <p className="text-sm font-medium text-gray-500 mb-3">전체 AI 노출 상태</p>
           {historyData.length >= 2 ? (
             <>
-              <div className="flex items-end gap-2 mb-1 flex-wrap">
-                <span className="text-3xl md:text-4xl font-bold text-gray-400">{firstScore}</span>
-                <span className="text-lg text-gray-400 mb-1">→</span>
-                <span className="text-3xl md:text-4xl font-bold text-blue-600">{currentScore}</span>
-                <span className="text-sm text-gray-500 mb-1">점</span>
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                <span className="text-sm text-gray-400">{getScoreTextLabel(firstScore)}</span>
+                <span className="text-gray-300">→</span>
+                {(() => {
+                  const lbl = getScoreTextLabel(currentScore)
+                  const cls = currentScore >= 75 ? 'text-emerald-600' : currentScore >= 55 ? 'text-blue-600' : currentScore >= 30 ? 'text-amber-600' : 'text-gray-400'
+                  return <span className={`text-lg font-bold ${cls}`}>{lbl}</span>
+                })()}
               </div>
               {totalDelta !== 0 && (
                 <p className={`text-sm font-semibold ${totalDelta > 0 ? "text-blue-600" : "text-red-500"}`}>
-                  {totalDelta > 0 ? "+" : ""}{totalDelta}점 {totalDelta > 0 ? "↑" : "↓"}
+                  {totalDelta > 0 ? "↑ 첫 스캔 대비 개선됨" : "↓ 첫 스캔 대비 하락"}
                 </p>
               )}
-              {/* 주간 변화 */}
               {latestWeeklyChange !== null && latestWeeklyChange !== 0 && (
                 <p className={`text-sm font-semibold mt-1 ${latestWeeklyChange > 0 ? "text-emerald-600" : "text-red-400"}`}>
-                  이번 주 {latestWeeklyChange > 0 ? "+" : ""}{Math.round(latestWeeklyChange * 10) / 10}점
+                  이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
               )}
               <p className="text-sm text-gray-400 mt-1">첫 스캔부터 현재까지</p>
             </>
           ) : (
             <>
-              <div className="flex items-end gap-2 mb-1 flex-wrap">
-                <span className="text-3xl md:text-4xl font-bold text-blue-600">{currentScore}</span>
-                <span className="text-sm text-gray-500 mb-1">점</span>
-              </div>
+              {(() => {
+                const lbl = getScoreTextLabel(currentScore)
+                const cls = currentScore >= 75 ? 'text-emerald-600' : currentScore >= 55 ? 'text-blue-600' : currentScore >= 30 ? 'text-amber-600' : 'text-gray-400'
+                return <p className={`text-lg font-bold mb-1 ${cls}`}>{lbl}</p>
+              })()}
               {latestWeeklyChange !== null && latestWeeklyChange !== 0 && (
                 <p className={`text-sm font-semibold mb-1 ${latestWeeklyChange > 0 ? "text-emerald-600" : "text-red-400"}`}>
-                  이번 주 {latestWeeklyChange > 0 ? "+" : ""}{Math.round(latestWeeklyChange * 10) / 10}점
+                  이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
               )}
-              <p className="text-sm text-gray-400 mt-1">현재 점수 · 스캔 2회 이상부터 변화 추적</p>
+              <p className="text-sm text-gray-400 mt-1">스캔 2회 이상부터 변화 추적</p>
             </>
           )}
-          {/* AI 노출 빈도 */}
           {latestExposureFreq !== null && (
             <div className="mt-2 bg-blue-50 rounded-lg px-3 py-1.5">
               <p className="text-sm font-semibold text-blue-700">
-                100번 중 <span className="text-lg">{Math.round(latestExposureFreq)}</span>번 노출
+                100번 중 <span className="text-base">{Math.round(latestExposureFreq)}</span>번 노출
               </p>
             </div>
           )}
         </div>
 
-        {/* 네이버 AI 노출 점수 */}
+        {/* 네이버 AI 검색 노출도 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5">
           <p className="text-sm font-medium text-gray-500 mb-3">네이버 AI 검색 노출도</p>
           {latest ? (
             <>
-              <div className="flex items-end gap-1 mb-1">
-                <span className="text-3xl md:text-4xl font-bold text-blue-600">
-                  {Math.round(latest.track1_score)}
-                </span>
-                <span className="text-sm text-gray-500 mb-1">점</span>
-              </div>
+              {(() => {
+                const s = latest.track1_score
+                const lbl = getScoreTextLabel(s)
+                const cls = s >= 75 ? 'text-emerald-600' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-600' : 'text-gray-400'
+                return <p className={`text-lg font-bold mb-1 ${cls}`}>{lbl}</p>
+              })()}
               <p className="text-sm text-gray-400 mt-1">
-                스마트플레이스 기반 · 낮을수록 네이버 AI 검색에서 덜 보입니다
+                스마트플레이스 기반 네이버 AI 노출 수준입니다
               </p>
             </>
           ) : (
@@ -364,17 +367,17 @@ export default function GrowthClient({
           )}
         </div>
 
-        {/* 구글·챗GPT AI 노출 점수 */}
+        {/* ChatGPT·Gemini 노출도 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5">
           <p className="text-sm font-medium text-gray-500 mb-3">ChatGPT·Gemini 노출도</p>
           {latest ? (
             <>
-              <div className="flex items-end gap-1 mb-1">
-                <span className="text-3xl md:text-4xl font-bold text-purple-600">
-                  {Math.round(latest.track2_score ?? 0)}
-                </span>
-                <span className="text-sm text-gray-500 mb-1">점</span>
-              </div>
+              {(() => {
+                const s = latest.track2_score ?? 0
+                const lbl = getScoreTextLabel(s)
+                const cls = s >= 75 ? 'text-purple-600' : s >= 55 ? 'text-purple-500' : s >= 30 ? 'text-amber-600' : 'text-gray-400'
+                return <p className={`text-lg font-bold mb-1 ${cls}`}>{lbl}</p>
+              })()}
               <p className="text-sm text-gray-400 mt-1">
                 Gemini·ChatGPT가 현재 이 사업장을 인식하는 수준입니다
               </p>
@@ -496,7 +499,7 @@ export default function GrowthClient({
                         <span className="text-gray-700 font-medium">{log.action_label}</span>
                         {scoreDelta !== null && (
                           <span className={`text-sm font-semibold ${scoreDelta > 0 ? "text-emerald-600" : scoreDelta < 0 ? "text-red-500" : "text-gray-400"}`}>
-                            {scoreDelta > 0 ? "+" : ""}{scoreDelta}점 효과
+                            {scoreDelta > 0 ? "↑ 점수 상승" : scoreDelta < 0 ? "↓ 점수 하락" : "변화 없음"}
                           </span>
                         )}
                         {scoreDelta === null && log.score_after === null && (
@@ -512,10 +515,10 @@ export default function GrowthClient({
         ) : chartData.length === 1 ? (
           <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
             <p className="text-sm font-semibold text-gray-700">
-              현재 점수: <span className="text-blue-600 text-2xl">{chartData[0].score}점</span>
+              현재 AI 노출: <span className="text-blue-600 text-base font-bold">{getScoreTextLabel(chartData[0].score)}</span>
             </p>
             <p className="text-sm text-gray-400">
-              스캔을 1회 더 하면 점수 변화 추이가 그래프로 나타납니다.
+              스캔을 1회 더 하면 노출 변화 추이가 그래프로 나타납니다.
             </p>
             <Link
               href="/dashboard"
@@ -566,7 +569,7 @@ export default function GrowthClient({
                       <span className="text-sm font-semibold text-gray-800">{log.action_label}</span>
                       {scoreDelta !== null && (
                         <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${scoreDelta > 0 ? "bg-emerald-100 text-emerald-700" : scoreDelta < 0 ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-500"}`}>
-                          {scoreDelta > 0 ? "+" : ""}{scoreDelta}점
+                          {scoreDelta > 0 ? "↑ 상승" : scoreDelta < 0 ? "↓ 하락" : "변화 없음"}
                         </span>
                       )}
                       {log.score_after === null && (
@@ -605,11 +608,11 @@ export default function GrowthClient({
           <div className="space-y-4">
             {/* 게이지 바 */}
             <div className="space-y-3">
-              {/* 내 점수 */}
+              {/* 내 가게 */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-semibold text-blue-700">⭐ 내 가게</span>
-                  <span className="text-sm font-bold text-blue-700">{Math.round(benchmarkData.my_score)}점</span>
+                  <span className="text-sm font-bold text-blue-700">{getScoreTextLabel(benchmarkData.my_score)}</span>
                 </div>
                 <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                   <div
@@ -623,7 +626,7 @@ export default function GrowthClient({
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm text-gray-600">업종 평균</span>
-                  <span className="text-sm font-semibold text-gray-600">{Math.round(benchmarkData.avg_score)}점</span>
+                  <span className="text-sm font-semibold text-gray-600">{getScoreTextLabel(benchmarkData.avg_score)}</span>
                 </div>
                 <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                   <div
@@ -637,7 +640,7 @@ export default function GrowthClient({
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm text-gray-600">상위 10% 가게</span>
-                  <span className="text-sm font-semibold text-gray-600">{Math.round(benchmarkData.top10_score)}점</span>
+                  <span className="text-sm font-semibold text-gray-600">{getScoreTextLabel(benchmarkData.top10_score)}</span>
                 </div>
                 <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                   <div
@@ -652,17 +655,17 @@ export default function GrowthClient({
             {benchmarkData.my_score >= benchmarkData.avg_score ? (
               <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
                 <p className="text-sm font-semibold text-blue-800">
-                  업종 평균보다 {Math.round(benchmarkData.my_score - benchmarkData.avg_score)}점 높습니다
+                  업종 평균보다 높습니다 ✓
                 </p>
                 <p className="text-sm text-blue-600 mt-0.5">
-                  잘 하고 있습니다! 상위 10%까지 {Math.round(benchmarkData.top10_score - benchmarkData.my_score)}점 남았습니다.
+                  꾸준히 유지하면 상위 가게에 가까워집니다.
                 </p>
               </div>
             ) : (
               <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-amber-800">
-                    업종 평균보다 {Math.round(benchmarkData.avg_score - benchmarkData.my_score)}점 낮습니다
+                    업종 평균보다 낮습니다
                   </p>
                   <p className="text-sm text-amber-600 mt-0.5">
                     가이드를 따라 하면 평균에 가까워질 수 있습니다.
@@ -675,12 +678,6 @@ export default function GrowthClient({
                   개선 가이드 보기 →
                 </Link>
               </div>
-            )}
-
-            {benchmarkData.rank_percentile > 0 && (
-              <p className="text-sm text-gray-400">
-                상위 {Math.round(benchmarkData.rank_percentile)}% 수준 · {categoryLabel} 업종 기준
-              </p>
             )}
           </div>
         ) : (
@@ -704,19 +701,21 @@ export default function GrowthClient({
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4 flex-1 text-center">
-                <p className="text-sm text-blue-500 font-medium mb-1">이번 달 최고 점수</p>
-                <p className="text-3xl md:text-4xl font-bold text-blue-600">{thisMonthBest}점</p>
+                <p className="text-sm text-blue-500 font-medium mb-1">이번 달 최고 상태</p>
+                <p className={`text-lg font-bold ${thisMonthBest >= 75 ? 'text-emerald-600' : thisMonthBest >= 55 ? 'text-blue-600' : thisMonthBest >= 30 ? 'text-amber-600' : 'text-gray-400'}`}>
+                  {getScoreTextLabel(thisMonthBest)}
+                </p>
               </div>
               {lastMonthBest !== null && (
                 <>
                   <span className="text-2xl text-gray-300 hidden sm:block">→</span>
                   <div className="bg-gray-50 border border-gray-100 rounded-xl px-5 py-4 flex-1 text-center sm:hidden">
-                    <p className="text-sm text-gray-400 font-medium mb-1">지난달 최고 점수</p>
-                    <p className="text-3xl font-bold text-gray-500">{lastMonthBest}점</p>
+                    <p className="text-sm text-gray-400 font-medium mb-1">지난달 최고 상태</p>
+                    <p className="text-lg font-bold text-gray-500">{getScoreTextLabel(lastMonthBest)}</p>
                   </div>
                   <div className="hidden sm:flex bg-gray-50 border border-gray-100 rounded-xl px-5 py-4 flex-1 text-center flex-col">
-                    <p className="text-sm text-gray-400 font-medium mb-1">지난달 최고 점수</p>
-                    <p className="text-3xl md:text-4xl font-bold text-gray-500">{lastMonthBest}점</p>
+                    <p className="text-sm text-gray-400 font-medium mb-1">지난달 최고 상태</p>
+                    <p className="text-lg font-bold text-gray-500">{getScoreTextLabel(lastMonthBest)}</p>
                   </div>
                 </>
               )}
@@ -727,13 +726,13 @@ export default function GrowthClient({
                 <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
                   <span className="text-2xl">🎉</span>
                   <p className="text-sm font-semibold text-green-800">
-                    지난달보다 {monthDelta}점 올랐습니다!
+                    지난달보다 개선됐습니다!
                   </p>
                 </div>
               ) : monthDelta < 0 ? (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
                   <p className="text-sm font-semibold text-amber-800 flex-1">
-                    지난달보다 {Math.abs(monthDelta)}점 낮습니다. 가이드를 확인해 보세요.
+                    지난달보다 낮아졌습니다. 가이드를 확인해 보세요.
                   </p>
                   <Link href="/guide" className="text-sm text-amber-700 font-semibold underline shrink-0">
                     가이드 보기 →
@@ -741,7 +740,7 @@ export default function GrowthClient({
                 </div>
               ) : (
                 <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-                  <p className="text-sm text-gray-600">지난달과 점수가 같습니다.</p>
+                  <p className="text-sm text-gray-600">지난달과 같은 수준을 유지하고 있습니다.</p>
                 </div>
               )
             )}
@@ -827,7 +826,7 @@ export default function GrowthClient({
               <thead>
                 <tr className="border-b border-gray-100">
                   <th className="text-left py-2 pr-3 text-gray-400 font-medium text-sm">날짜</th>
-                  <th className="text-right py-2 pr-3 text-gray-400 font-medium text-sm">전체 점수</th>
+                  <th className="text-right py-2 pr-3 text-gray-400 font-medium text-sm">전체 상태</th>
                   <th className="text-right py-2 pr-3 text-gray-400 font-medium text-sm">네이버 AI</th>
                   <th className="text-right py-2 pr-3 text-gray-400 font-medium text-sm">글로벌 AI</th>
                   <th className="text-right py-2 pr-3 text-gray-400 font-medium text-sm">노출 빈도</th>
@@ -852,26 +851,20 @@ export default function GrowthClient({
                           </span>
                         )}
                       </td>
-                      <td className={`py-3 pr-3 text-right font-bold ${isLatest ? "text-blue-600" : "text-gray-700"}`}>
-                        {Math.round(entry.unified_score)}점
+                      <td className={`py-3 pr-3 text-right font-bold text-sm ${isLatest ? "text-blue-600" : "text-gray-600"}`}>
+                        {getScoreTextLabel(entry.unified_score)}
                       </td>
-                      <td className="py-3 pr-3 text-right text-blue-500 font-medium">
-                        {Math.round(entry.track1_score)}점
+                      <td className="py-3 pr-3 text-right text-blue-500 font-medium text-sm">
+                        {getScoreTextLabel(entry.track1_score)}
                       </td>
-                      <td className="py-3 pr-3 text-right text-purple-500 font-medium">
-                        {Math.round(entry.track2_score ?? 0)}점
+                      <td className="py-3 pr-3 text-right text-purple-500 font-medium text-sm">
+                        {getScoreTextLabel(entry.track2_score ?? 0)}
                       </td>
-                      <td className="py-3 pr-3 text-right text-gray-500">
+                      <td className="py-3 pr-3 text-right text-gray-500 text-sm">
                         {expFreq !== null ? `${Math.round(expFreq)}회 / 100` : "–"}
                       </td>
-                      <td className={`py-3 text-right font-semibold ${weeklyChange === null ? "text-gray-300" : weeklyChange > 0 ? "text-emerald-600" : weeklyChange < 0 ? "text-red-500" : "text-gray-400"}`}>
-                        {weeklyChange === null
-                          ? "–"
-                          : weeklyChange > 0
-                          ? `+${Math.round(weeklyChange * 10) / 10}`
-                          : weeklyChange < 0
-                          ? `${Math.round(weeklyChange * 10) / 10}`
-                          : "±0"}
+                      <td className={`py-3 text-right font-semibold text-sm ${weeklyChange === null ? "text-gray-300" : weeklyChange > 2 ? "text-emerald-600" : weeklyChange < -2 ? "text-red-500" : "text-gray-400"}`}>
+                        {weeklyChange === null ? "–" : weeklyChange > 2 ? "↑ 상승" : weeklyChange < -2 ? "↓ 하락" : "— 유지"}
                       </td>
                     </tr>
                   );
