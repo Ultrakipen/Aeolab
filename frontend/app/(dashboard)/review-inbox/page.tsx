@@ -506,6 +506,12 @@ export default function ReviewInboxPage() {
             {loading ? '생성 중...' : '답변 초안 생성'}
           </button>
         </div>
+        {!businessId && (
+          <p className="text-sm text-amber-600 mt-2">
+            사업장을 먼저 등록해야 답변을 생성할 수 있습니다.{' '}
+            <a href="/onboarding" className="underline hover:text-amber-700">사업장 등록 →</a>
+          </p>
+        )}
         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       </form>
 
@@ -609,7 +615,7 @@ export default function ReviewInboxPage() {
                   </div>
                 </div>
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm text-gray-700 flex-1">{h.draft_response}</p>
+                  <p className="text-sm text-gray-700 flex-1 line-clamp-4">{h.draft_response}</p>
                   <CopyButton text={h.draft_response} />
                 </div>
                 {/* 위기관리 가이드 버튼 (부정 리뷰) */}
