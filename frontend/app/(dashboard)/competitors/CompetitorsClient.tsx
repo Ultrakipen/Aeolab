@@ -2240,7 +2240,7 @@ export function CompetitorsClient({
                       {cs && (
                         <button
                           onClick={() => setCompareCompId(compareCompId === c.id ? null : c.id)}
-                          className={`flex items-center gap-1 text-sm font-semibold border rounded-lg px-1.5 sm:px-2.5 py-1.5 transition-colors min-h-[34px] min-w-[34px] justify-center ${
+                          className={`hidden sm:flex items-center gap-1 text-sm font-semibold border rounded-lg px-1.5 sm:px-2.5 py-1.5 transition-colors min-h-[34px] min-w-[34px] justify-center ${
                             compareCompId === c.id
                               ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
                               : 'text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-400'
@@ -2267,7 +2267,7 @@ export function CompetitorsClient({
                       )}
                       <button
                         onClick={() => togglePin(c.id)}
-                        className={`p-2 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center ${pinnedIds.has(c.id) ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-50'}`}
+                        className={`hidden sm:flex p-2 rounded-lg transition-colors min-h-[36px] min-w-[36px] items-center justify-center ${pinnedIds.has(c.id) ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-50'}`}
                         title={pinnedIds.has(c.id) ? '고정 해제' : '상단 고정'}
                       >
                         <Pin className={`w-3.5 h-3.5 ${pinnedIds.has(c.id) ? 'fill-blue-400' : ''}`} />
@@ -2277,7 +2277,7 @@ export function CompetitorsClient({
                           if (openMemoId === c.id) { setOpenMemoId(null) }
                           else { setOpenMemoId(c.id); setMemoInput(memos[c.id] ?? '') }
                         }}
-                        className={`p-2 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center ${memos[c.id] ? 'text-amber-500 hover:text-amber-700 hover:bg-amber-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-50'}`}
+                        className={`hidden sm:flex p-2 rounded-lg transition-colors min-h-[36px] min-w-[36px] items-center justify-center ${memos[c.id] ? 'text-amber-500 hover:text-amber-700 hover:bg-amber-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-50'}`}
                         title={memos[c.id] ? '메모 보기/편집' : '메모 추가'}
                       >
                         <Pencil className="w-3.5 h-3.5" />
@@ -2502,7 +2502,7 @@ export function CompetitorsClient({
               </p>
               <p className="text-sm text-amber-700 mt-1 leading-relaxed">
                 {currentPlan === 'basic'
-                  ? 'Pro로 업그레이드하면 경쟁사 5개까지 비교할 수 있습니다.'
+                  ? '창업패키지·Pro로 업그레이드하면 경쟁사 5개까지 비교할 수 있습니다.'
                   : currentPlan === 'startup'
                   ? 'Biz 플랜으로 업그레이드하면 경쟁사를 무제한으로 등록할 수 있습니다.'
                   : currentPlan === 'pro'
