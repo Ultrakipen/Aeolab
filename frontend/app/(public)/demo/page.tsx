@@ -732,13 +732,13 @@ export default function DemoPage() {
 
             {/* AI 채널별 개선 반영 기간 */}
             <div>
-              <p className="text-sm font-semibold text-gray-600 mb-2">개선 후 노출 반영 기간 (채널별 실측 기준)</p>
+              <p className="text-sm font-semibold text-gray-600 mb-2">개선 후 손님에게 노출되는 기간 (공식 자료 기준)</p>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { ch: "네이버 AI 브리핑", period: "2~4주", border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 즉시 적용" },
-                  { ch: "네이버 AI탭",       period: "2~4주", border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강" },
-                  { ch: "Gemini",            period: "수개월~1년", border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록으로 단축 가능" },
-                  { ch: "ChatGPT",           period: "수개월~1년", border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "Bing 학습 데이터 반영에 시간 소요" },
+                  { ch: "네이버 AI 브리핑", period: "2~4주",    border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집" },
+                  { ch: "네이버 AI탭",       period: "2~4주",    border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강" },
+                  { ch: "Gemini",            period: "수일~수주", border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 후 실시간 반영" },
+                  { ch: "ChatGPT",           period: "수주~수개월", border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "Bing Places 등록 시 빠름, 웹콘텐츠 기반" },
                 ].map((item) => (
                   <div key={item.ch} className={`rounded-xl border ${item.border} ${item.bg} px-3 py-2.5`}>
                     <div className={`flex items-center justify-between mb-0.5 ${item.text}`}>
@@ -799,7 +799,7 @@ export default function DemoPage() {
                 <span className="text-sm text-slate-700">📝 블로그 후기 {m.blogMentions}건 발견</span>
                 <span className="text-sm text-slate-700">✅ 스마트플레이스 자동 점검</span>
               </div>
-              <p className="text-sm text-slate-500">⏱ 개선 반영 기간: 네이버 2~4주 · Gemini·ChatGPT 수개월~1년</p>
+              <p className="text-sm text-slate-500">⏱ 손님 노출 기간: 네이버 2~4주 · Gemini 수일~수주 · ChatGPT 수주~수개월</p>
             </div>
 
             {/* 업종 평균 대비 내 위치 (교육용 보조 — 성장단계·채널·오늘할일은 위 종합결론 히어로에 표시) */}
@@ -983,11 +983,11 @@ export default function DemoPage() {
                     <ul className="space-y-1.5">
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">ChatGPT</span>
-                        <span>Bing 웹검색 + 학습 데이터 기반 (학습 반영에 수개월~1년 소요)</span>
+                        <span>Bing 실시간 검색 기반 — Bing Places 등록 시 빠름, 웹콘텐츠 기반 수주~수개월</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">Gemini</span>
-                        <span>Google 비즈니스 프로필 + 구글 크롤링 기반 (수개월~1년, 구글 프로필 등록으로 단축 가능)</span>
+                        <span>Google 비즈니스 프로필 + 실시간 검색 그라운딩 기반 (프로필 등록 후 수일~수주)</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">네이버 AI 브리핑</span>
