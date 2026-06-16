@@ -77,6 +77,12 @@ function roYuro(word: string): string {
   const jong = (code - 0xAC00) % 28
   return jong === 0 || jong === 8 ? '로' : '으로'
 }
+function eunNeun(word: string): string {
+  if (!word) return '은'
+  const code = word.charCodeAt(word.length - 1)
+  if (code < 0xAC00 || code > 0xD7A3) return '은'
+  return (code - 0xAC00) % 28 === 0 ? '는' : '은'
+}
 
 // 업종 영문 코드 → 한국어 (네이버 검색 URL 구성용) — v5.8 업종 59개
 const CATEGORY_KO: Record<string, string> = {
@@ -3212,7 +3218,7 @@ function TodayKeywordHero({
 
   const placeLabel = getBizPlaceLabel(category)
   const faqText = active
-    ? `Q: ${active}는 어떤가요?\nA: 저희 ${placeLabel}는 ${active} 관련 서비스를 제공하고 있습니다. 궁금한 점은 언제든지 문의해 주세요.`
+    ? `Q: ${active}${eunNeun(active)} 어떤가요?\nA: 저희 ${placeLabel}${eunNeun(placeLabel)} ${active} 관련 서비스를 제공하고 있습니다. 궁금한 점은 언제든지 문의해 주세요.`
     : null
 
   if (!active) return null
@@ -3393,7 +3399,7 @@ function GuideTabView({
       return {
         label: `"${kw}" 키워드를 스마트플레이스 소개글에 포함하세요`,
         reason: `이 키워드가 소개글에 없으면 AI 브리핑 인용 후보에서 누락될 수 있습니다. 소개글은 사장님이 직접 컨트롤할 수 있는 인용 후보 경로 중 하나입니다.`,
-        copyText: `Q: ${kw}는 어떤 곳인가요?\nA: 저희 가게는 ${kw} 분야에서 최선을 다하고 있습니다. 언제든지 방문해 주세요.`,
+        copyText: `Q: ${kw}${eunNeun(kw)} 어떤 곳인가요?\nA: 저희 가게는 ${kw} 분야에서 최선을 다하고 있습니다. 언제든지 방문해 주세요.`,
       }
     }
     if (thisWeekMission?.title) {

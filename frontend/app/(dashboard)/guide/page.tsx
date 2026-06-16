@@ -81,7 +81,15 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
     .eq('user_id', user.id)
     .maybeSingle()
 
-  const currentPlan = (subscription?.status === "active" || subscription?.status === "grace_period") ? (subscription?.plan ?? "free") : "free"
+  // 관리자 이메일 → 개발 기간 biz 플랜 강제 부여 (layout.tsx와 동일 로직)
+  const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com')
+    .split(',').map(e => e.trim().toLowerCase())
+  const isAdminUser = ADMIN_EMAILS.includes((user.email ?? '').toLowerCase())
+  const currentPlan = isAdminUser ? 'biz' : (
+    (subscription?.status === "active" || subscription?.status === "grace_period")
+      ? (subscription?.plan ?? "free")
+      : "free"
+  )
 
   const GUIDE_LIMITS: Record<string, number> = {
     free: 0, basic: 3, pro: 10, startup: 5, biz: 20, enterprise: 999,
