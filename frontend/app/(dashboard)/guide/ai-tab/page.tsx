@@ -66,7 +66,7 @@ export default async function AiTabGuidePage({
       num: 2,
       title: '사진 10장 이상 등록',
       desc: '외관·내부·서비스 현장 사진. AI탭이 검색결과에 노출할 때 썸네일 후보로 사용합니다.',
-      example: '필수: 외관·내부·메뉴판·시그니처(또는 대표 서비스) 사진',
+      example: '필수: 외관·내부·메뉴판(또는 이용요금표)·대표 메뉴·서비스 현장 사진',
       status: photoCount !== null ? (photoCount >= 10 ? `✓ ${photoCount}장 등록됨` : `현재 ${photoCount}장`) : '미측정',
       statusOk: photoCount !== null && photoCount >= 10,
     },

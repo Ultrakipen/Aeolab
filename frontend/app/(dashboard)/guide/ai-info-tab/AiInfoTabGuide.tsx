@@ -6,10 +6,10 @@ import { useState } from 'react'
 // §3.4 필수 사진 5종 카드
 const PHOTO_ITEMS = [
   { id: "exterior", label: "외관 사진 (입구·간판)" },
-  { id: "interior", label: "내부 인테리어" },
-  { id: "menu_board", label: "메뉴판 (가격 포함)" },
-  { id: "signature", label: "시그니처 메뉴 사진" },
-  { id: "price_sign", label: "가격판·서비스 안내판" },
+  { id: "interior", label: "내부 공간 사진 (인테리어)" },
+  { id: "menu_board", label: "메뉴판·이용요금표 (가격 포함)" },
+  { id: "signature", label: "대표 메뉴·서비스 현장 사진" },
+  { id: "price_sign", label: "서비스 안내판·가격표" },
 ]
 
 // §3.8 C-rank 4요소 항목
