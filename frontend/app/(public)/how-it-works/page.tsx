@@ -436,7 +436,7 @@ export default function HowItWorksPage() {
             <ContentCard
               num={2}
               title="소식"
-              detail="30일 주기로 자동 초안을 작성합니다. 사장님은 1분 만에 복사·등록만 하면 최신성 점수가 유지됩니다."
+              detail="매주 월요일 오전 9시에 자동 초안을 생성합니다. 사장님은 1분 만에 복사·등록만 하면 최신성 점수가 유지됩니다."
             />
             <ContentCard
               num={3}

@@ -46,6 +46,12 @@ const GUIDES = [
     tip: "트레이너 소개·시설 사진·체험 프로그램 안내가 핵심",
   },
   {
+    category: "bar",
+    label: "주점·바",
+    icon: "◈",
+    tip: "주류 메뉴·안주·분위기 사진 + 영업시간(라스트오더) 정확 입력이 노출 핵심",
+  },
+  {
     category: "accommodation",
     label: "숙박",
     icon: "◇",
@@ -112,7 +118,7 @@ export default function ResourcesPage() {
           업종별 체크리스트로 지금 바로 확인하세요.
         </p>
         <p className="text-sm text-gray-400 mb-8">
-          9개 업종 · 각 10~12개 항목 · 로그인 불필요
+          10개 업종 · 각 10~12개 항목 · 로그인 불필요
         </p>
 
         {/* 업종 카드 그리드 */}
