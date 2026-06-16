@@ -237,8 +237,8 @@ export default function AIProblemDiagnosis({
   if (track1Score < 40) {
     rawProblems.push({
       text: isActive
-        ? `네이버 AI 브리핑 노출 준비 미흡 (${track1Score}점)`
-        : `네이버 플레이스·블로그 검색 노출 미흡 (${track1Score}점)`,
+        ? "네이버 AI 브리핑 노출 준비 미흡"
+        : "네이버 플레이스·블로그 검색 노출 미흡",
       impact: isActive
         ? "손님이 '근처 맛집 추천' 검색 시 내 가게가 안 나옴"
         : "네이버 지역·블로그 검색에서 가게 발견 가능성이 낮음 — 블로그 포스팅과 플레이스 정보 개선으로 노출을 높일 수 있습니다",
@@ -283,7 +283,7 @@ export default function AIProblemDiagnosis({
   const aiTerm = AI_SEARCH_TERM[category] ?? "관련 업체";
   if (track2Score < 40) {
     rawProblems.push({
-      text: `ChatGPT·구글 AI 노출 미흡 (${track2Score}점)`,
+      text: "ChatGPT·구글 AI 노출 미흡",
       impact: `ChatGPT·구글에서 '${aiTerm}' 검색 시 내 가게가 안 나옴`,
       priority: 2,
     });

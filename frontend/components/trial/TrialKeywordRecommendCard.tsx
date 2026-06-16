@@ -160,10 +160,10 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
                   {copied === kw ? <><Check className="w-4 h-4" aria-hidden="true" /> 복사됨</> : copied === kw + "__fail" ? "직접 복사하세요" : "문구 복사"}
                 </button>
               </div>
-              {/* 추천 근거: 어느 서브카테고리·비중에서 왔는지 표시 */}
-              {subLabel && weightPct !== null && (
+              {/* 추천 근거: 어느 서브카테고리에서 왔는지 표시 */}
+              {subLabel && (
                 <p className="text-sm text-blue-700 mt-1">
-                  {categoryLabel} &lsquo;{subLabel}&rsquo; 영역 (점수 비중 {weightPct}%)
+                  {categoryLabel} &lsquo;{subLabel}&rsquo; 관련 — AI 추천 핵심 키워드
                 </p>
               )}
               {idx === 0 && (
