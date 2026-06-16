@@ -144,6 +144,17 @@ export default async function AiTabGuidePage({
         </p>
       </div>
 
+      {/* 네이버 SEO 일석이조 강조 배너 */}
+      <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 md:p-5">
+        <p className="text-sm md:text-base font-bold text-emerald-900 mb-2">
+          📈 이 5가지는 네이버 검색 상위노출에도 직접 도움이 됩니다
+        </p>
+        <p className="text-sm md:text-base text-emerald-800 leading-relaxed break-keep">
+          소개글·사진·리뷰·블로그는 AI탭 노출 조건인 동시에 네이버 플레이스 검색 순위를 결정하는 핵심 요소입니다.
+          한 번 갖추면 <strong>AI탭 노출 + 네이버 일반 검색 상위노출</strong> 두 가지 효과를 동시에 얻습니다.
+        </p>
+      </div>
+
       {/* 내 사업장 안내 박스 */}
       <div className="rounded-xl p-4 md:p-5 bg-slate-50 border border-slate-200">
         {business ? (

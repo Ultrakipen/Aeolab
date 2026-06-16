@@ -140,6 +140,33 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         {/* 단계 1: AI 정보 탭 찾기 — INACTIVE/프랜차이즈는 AI탭 대비 안내로 대체 */}
         {isInactive || business?.is_franchise ? (
           <>
+            {/* 네이버 SEO 일석이조 강조 배너 */}
+            <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 md:p-5">
+              <p className="text-sm md:text-base font-bold text-emerald-900 mb-2">
+                📈 아래 단계는 네이버 검색 상위노출에도 직접 도움이 됩니다
+              </p>
+              <ul className="space-y-1.5 text-sm md:text-base text-emerald-800">
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0">•</span>
+                  <span><strong>소개글 200자 이상</strong> → 네이버 플레이스 검색 노출 점수 상승</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0">•</span>
+                  <span><strong>소식 월 1건 이상</strong> → 최신성 신호로 검색 순위 유지</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0">•</span>
+                  <span><strong>리뷰 10건 이상</strong> → 네이버 검색 순위 직접 영향</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0">•</span>
+                  <span><strong>블로그·SNS 후기</strong> → 외부 언급이 많을수록 검색 노출 빈도 상승</span>
+                </li>
+              </ul>
+              <p className="mt-2 text-sm text-emerald-700">
+                AI탭·ChatGPT·Gemini 노출까지 한 번에 — 동일한 작업으로 두 가지 효과를 동시에 얻습니다.
+              </p>
+            </div>
             <StepSkipped
               num={1}
               title="🎯 네이버 스마트플레이스 AI 정보 탭 찾기 (AI 브리핑)"
@@ -602,10 +629,10 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
       {/* ── §3.8 C-rank 4요소 체크리스트 카드 ────────────────────── */}
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 md:p-6">
         <h3 className="text-base md:text-lg font-bold text-gray-900 mb-1 break-keep">
-          네이버 콘텐츠 품질 영향 요소 4가지
+          네이버 검색 상위노출을 위한 콘텐츠 품질 4요소 (C-rank)
         </h3>
         <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed break-keep">
-          네이버 블로그·콘텐츠 노출에 영향을 주는 품질 요소입니다. 각 항목을 콘텐츠 작성 시 체크해보세요.
+          네이버가 콘텐츠 품질을 평가하는 4가지 기준입니다. 소개글·소식·블로그 작성 시 이 요소를 충족할수록 검색 상위노출 가능성이 높아집니다.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
           {CRANK_ITEMS.map((item) => (
