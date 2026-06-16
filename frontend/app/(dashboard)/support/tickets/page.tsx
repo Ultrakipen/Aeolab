@@ -14,6 +14,7 @@ interface Ticket {
   status: string;
   visibility: "public" | "private";
   created_at: string;
+  answered_at?: string;
 }
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
@@ -140,7 +141,7 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
                       <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500">카테고리</th>
                       <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500">제목</th>
                       <th className="text-center px-5 py-3 text-sm font-semibold text-gray-500">상태</th>
-                      <th className="text-right px-5 py-3 text-sm font-semibold text-gray-500">작성일</th>
+                      <th className="text-right px-5 py-3 text-sm font-semibold text-gray-500">날짜</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -167,7 +168,11 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
                             </span>
                           </td>
                           <td className="px-5 py-4 text-right text-sm text-gray-400">
-                            {formatDate(ticket.created_at)}
+                            {ticket.status === "answered" && ticket.answered_at ? (
+                              <span className="text-green-600 font-medium">답변 {formatDate(ticket.answered_at)}</span>
+                            ) : (
+                              formatDate(ticket.created_at)
+                            )}
                           </td>
                         </tr>
                       );
@@ -196,7 +201,13 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
                       </span>
                     </div>
                     <p className="text-sm font-semibold text-gray-900 truncate">{ticket.title}</p>
-                    <p className="text-sm text-gray-400 mt-1">{formatDate(ticket.created_at)}</p>
+                    <p className="text-sm mt-1">
+                      {ticket.status === "answered" && ticket.answered_at ? (
+                        <span className="text-green-600 font-medium">답변 {formatDate(ticket.answered_at)}</span>
+                      ) : (
+                        <span className="text-gray-400">{formatDate(ticket.created_at)}</span>
+                      )}
+                    </p>
                   </Link>
                 );
               })}

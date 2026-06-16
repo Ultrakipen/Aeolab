@@ -283,8 +283,8 @@ function SupportNewForm() {
             </div>
           )}
 
-          {/* 제출 버튼 */}
-          <div className="flex gap-3">
+          {/* 제출 버튼 — pb-16: 모바일 FAB(?) 버튼 겹침 방지 */}
+          <div className="flex gap-3 pb-16 md:pb-0">
             <a
               href="/support/tickets"
               className="flex-1 py-3.5 rounded-xl bg-gray-100 text-gray-700 text-base font-semibold hover:bg-gray-200 transition-colors text-center"
