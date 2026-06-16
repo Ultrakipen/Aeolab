@@ -6,38 +6,40 @@ import { ChatGptChecklist } from "./ChatGptChecklist"
 export const metadata: Metadata = {
   title: "ChatGPT에서 내 가게가 언급되는 조건 | AEOlab",
   description:
-    "ChatGPT는 Bing 검색 기반으로 구글 비즈니스 프로필·자체 웹사이트·영문 플랫폼을 참조합니다. 네이버 블로그·스마트플레이스와는 직접 연결되지 않는 이유를 정리합니다.",
+    "ChatGPT는 Bing 검색 기반으로 자체 웹사이트·구글 비즈니스 프로필·영어권 플랫폼을 참조합니다. 네이버 블로그·스마트플레이스와는 직접 연결되지 않는 이유와 실제 노출 조건을 정리합니다.",
 }
 
 const LEARN_SOURCES = [
   {
     icon: "🌐",
     title: "자체 웹사이트 (가장 효과적)",
-    desc: "Bing·OAI-SearchBot이 직접 크롤링하는 외부 URL. JSON-LD 구조화 마크업이 있으면 인용 가능성이 높아집니다. 티스토리·워드프레스도 포함됩니다.",
+    desc: "Bing·OAI-SearchBot이 직접 크롤링하는 외부 URL. JSON-LD 구조화 마크업이 있으면 인용 가능성이 높아집니다. 티스토리·워드프레스도 포함됩니다. Bing 웹마스터 도구 등록 시 크롤링 속도를 높일 수 있습니다.",
   },
   {
     icon: "📍",
     title: "구글 비즈니스 프로필",
-    desc: "구글 비즈니스 프로필에 등록하면 웹 상 사업장 정보가 공식화되어 ChatGPT 웹검색(Bing 기반)에서도 발견되기 쉬워집니다. business.google.com 무료 등록 후 Bing 인덱싱까지 1~4주 소요됩니다.",
+    desc: "구글 비즈니스 프로필에 등록하면 사업장 정보가 웹 전반에 퍼지며 Bing에서도 발견될 가능성이 높아집니다. business.google.com 무료 등록 후 웹 전체 인덱싱까지 1~4주 소요됩니다.",
   },
   {
     icon: "📰",
-    title: "뉴스·언론 기사·영문 플랫폼",
-    desc: "언론 보도, 트립어드바이저 등 Bing 인덱싱이 잘 되는 외부 플랫폼은 권위 신호로 인식되어 인용 가능성이 높아집니다.",
+    title: "뉴스·언론 기사·영어권 플랫폼",
+    desc: "언론 보도, 트립어드바이저 등 영어권 글로벌 플랫폼은 Bing 인덱싱이 활발하여 권위 신호로 인식되고 인용 가능성이 높아집니다.",
   },
   {
     icon: "⚠️",
-    title: "네이버 블로그·스마트플레이스는 ChatGPT 응답에 미치는 영향이 제한적입니다",
-    desc: "ChatGPT는 Bing 검색 엔진을 기반으로 합니다. 네이버 생태계(블로그·스마트플레이스)는 구글 색인 콘텐츠 대비 Bing 내 영향력이 매우 제한적이어서 ChatGPT 응답에 미치는 효과가 작습니다. 네이버 최적화는 네이버 AI 브리핑·AI탭에 효과적입니다.",
+    title: "네이버 블로그·스마트플레이스 — ChatGPT 효과 제한적",
+    desc: "ChatGPT는 Bing 검색 기반입니다. 네이버 생태계(블로그·스마트플레이스)는 Bing 내 영향력이 제한적이어서 ChatGPT 응답에 미치는 효과가 작습니다. 네이버 최적화는 네이버 AI 브리핑·AI탭에 효과적입니다.",
   },
 ]
 
 const CHECKLIST_ITEMS = [
   { id: "google_biz", label: "구글 비즈니스 프로필 등록 완료 (business.google.com)" },
+  { id: "bing_webmaster", label: "Bing 웹마스터 도구 등록 (bing.com/webmasters) — 크롤링 속도 향상" },
+  { id: "json_ld", label: "자체 웹사이트·홈페이지에 JSON-LD 구조화 마크업 적용" },
   { id: "qa", label: "자체 웹사이트·홈페이지에 Q&A 형식 콘텐츠 포함 (가격·운영시간·예약 방법 등)" },
   { id: "specific", label: "가격·운영시간·위치 구체 수치 명시" },
   { id: "authority", label: "권위 신호 포함 (경력·자격·수상)" },
-  { id: "tripadvisor", label: "트립어드바이저·망고플레이트 등 외부 플랫폼 등록" },
+  { id: "tripadvisor", label: "트립어드바이저 등 영어권 글로벌 플랫폼 등록" },
 ]
 
 export default function ChatGptSearchGuidePage() {
@@ -72,7 +74,7 @@ export default function ChatGptSearchGuidePage() {
         </div>
       </header>
 
-      <article className="max-w-3xl mx-auto px-4 md:px-6 py-8 md:py-12 space-y-10">
+      <article className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12 space-y-10">
 
         {/* ── 1. 헤더 섹션 ── */}
         <section>
@@ -80,7 +82,7 @@ export default function ChatGptSearchGuidePage() {
             ChatGPT에서 내 가게를 노출시키는 방법
           </h1>
           <p className="text-base md:text-lg text-gray-600 mb-4 leading-relaxed break-keep">
-            ChatGPT는 Bing 검색 기반 — 구글 비즈니스 프로필과 자체 웹사이트가 핵심입니다
+            ChatGPT 웹검색은 Bing 기반 — 자체 웹사이트와 구글 비즈니스 프로필이 핵심입니다
           </p>
           {/* 면책 문구 */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
@@ -94,7 +96,7 @@ export default function ChatGptSearchGuidePage() {
         {/* ── 2. ChatGPT가 참조하는 정보 ── */}
         <section>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 break-keep">
-            실사용자 ChatGPT가 참조하는 정보 — Bing 웹검색 기반
+            ChatGPT가 실제로 참조하는 정보 — Bing 웹검색 기반
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {LEARN_SOURCES.map((item) => (
@@ -102,8 +104,8 @@ export default function ChatGptSearchGuidePage() {
                 key={item.title}
                 className="rounded-xl border border-gray-200 bg-white p-4 md:p-5 flex flex-col gap-2"
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl" aria-hidden="true">{item.icon}</span>
+                <div className="flex items-start gap-2">
+                  <span className="text-2xl shrink-0 mt-0.5" aria-hidden="true">{item.icon}</span>
                   <p className="text-sm md:text-base font-semibold text-gray-900 break-keep">
                     {item.title}
                   </p>
@@ -116,10 +118,10 @@ export default function ChatGptSearchGuidePage() {
           </div>
         </section>
 
-        {/* ── 3. 소개글 FAQ 구조가 인용률을 높이는 이유 ── */}
+        {/* ── 3. 자체 웹사이트 FAQ 구조가 인용률을 높이는 이유 ── */}
         <section>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
-            소개글 FAQ 구조가 인용률을 높이는 이유
+            자체 웹사이트 FAQ 구조가 ChatGPT 인용률을 높이는 이유
           </h2>
           <div className="space-y-3 mb-5">
             <div className="flex items-start gap-3">
@@ -170,23 +172,36 @@ export default function ChatGptSearchGuidePage() {
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
             개선 후 ChatGPT에 반영되기까지
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <p className="text-sm font-semibold text-blue-800 mb-1">실사용자 ChatGPT (Bing 웹검색 기준)</p>
-              <p className="text-sm text-gray-700 leading-relaxed">
-                구글 비즈니스 프로필 등록·업데이트 → Bing 인덱싱 후 반영<br />
-                <strong>약 1~4주</strong> 소요
-              </p>
+              <p className="text-sm font-semibold text-blue-800 mb-2">실사용자 ChatGPT 웹검색 (Bing 인덱싱 기준)</p>
+              <ul className="space-y-1.5 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
+                  <span>자체 웹사이트 신규 등록 → Bing 인덱싱: <strong>약 1~2주</strong></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
+                  <span>구글 비즈니스 프로필 등록 → 웹 전파 후 반영: <strong>약 2~4주</strong></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
+                  <span>Bing 웹마스터 도구 등록 시 인덱싱 단축 가능</span>
+                </li>
+              </ul>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-semibold text-amber-800 mb-1">AEOlab 스캐너 점수 (ChatGPT 학습 데이터 기준)</p>
+              <p className="text-sm font-semibold text-amber-800 mb-2">AEOlab 스캐너 점수 (ChatGPT 학습 데이터 기준)</p>
               <p className="text-sm text-gray-700 leading-relaxed">
                 ChatGPT 모델 재학습 주기에 의존<br />
                 <strong>수개월~1년</strong> 이상 소요
               </p>
+              <p className="text-xs text-gray-500 mt-2">
+                GPT-4.1-mini 학습 데이터 컷오프: 2024년 6월 기준
+              </p>
             </div>
           </div>
-          <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+          <p className="text-sm text-gray-500 leading-relaxed">
             ※ AEOlab 점수는 학습 데이터 기반 측정이며, 실사용자 ChatGPT 웹검색 결과와 다를 수 있습니다.
           </p>
         </section>
@@ -210,12 +225,20 @@ export default function ChatGptSearchGuidePage() {
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
             ChatGPT·Gemini가 내 사업장을 언급하도록 FAQ 중심 소개글·Q&A를 30초 안에 자동 생성합니다. 구글 비즈니스 프로필·자체 웹사이트에 바로 활용하세요.
           </p>
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm md:text-base font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            대시보드에서 소개글 생성하기 →
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/trial"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm md:text-base font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              무료 체험으로 시작하기 →
+            </Link>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-sm md:text-base text-blue-600 font-medium hover:underline"
+            >
+              대시보드 바로가기
+            </Link>
+          </div>
         </section>
 
       </article>
