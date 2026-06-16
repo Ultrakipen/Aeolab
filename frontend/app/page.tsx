@@ -256,7 +256,7 @@ export default async function LandingPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-bold shrink-0">✓</span>
-                    스마트플레이스·블로그 개선 → 네이버 검색 노출도 함께 상승
+                    스마트플레이스·블로그 개선 → 네이버 검색 노출 가능성도 함께 높아집니다
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-bold shrink-0">✓</span>
@@ -474,6 +474,7 @@ export default async function LandingPage() {
               <p className="text-sm text-green-700 mt-1 break-keep">
                 스마트플레이스 → 네이버 플레이스 탭 순위 상승 / 블로그 → VIEW탭 상위 노출 → AI 브리핑·AI탭 노출 가능성도 함께 높아집니다
               </p>
+              <p className="text-xs text-green-600 mt-1.5">네이버 검색 순위는 네이버 알고리즘이 결정하며 보장되지 않습니다</p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl bg-white border border-blue-200 px-5 py-4">
@@ -594,9 +595,6 @@ export default async function LandingPage() {
           <div className="mt-8 rounded-2xl p-5 md:p-6 text-center" style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #4F46E5 100%)" }}>
             <p className="text-base md:text-lg font-black text-white mb-1 break-keep">
               스마트플레이스·리뷰·키워드·블로그를 함께 관리하면 AI 추천 가능성이 높아집니다
-            </p>
-            <p className="text-sm mb-2" style={{ color: "rgba(255,255,255,0.88)" }}>
-              스마트플레이스·블로그 개선은 네이버 검색 노출에도 효과가 있습니다
             </p>
             <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.75)" }}>
               AEOlab이 4가지 기준을 자동 점검하고 개선 순서를 알려드립니다 — 1분 무료 진단
@@ -1075,6 +1073,21 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* ── 9. FAQ (#F8FAFC) ── */}
+      <div style={{ background: "#F8FAFC" }}>
+        <FAQSection />
+      </div>
+      {/* FAQ 하단 소프트 CTA */}
+      <div className="text-center py-5 px-4 fade-up" style={{ background: "#F8FAFC", borderTop: "1px solid #E2E8F0" }}>
+        <p className="text-sm" style={{ color: "#475569" }}>
+          아직 망설이고 있다면,{" "}
+          <a href="/trial" className="font-bold underline" style={{ color: "#7C3AED" }}>
+            1분 무료 진단
+          </a>
+          은 회원가입 없이 바로 가능합니다
+        </p>
+      </div>
+
       {/* ── 8. PRICE — 가격 앵커 (#EFF6FF) ── */}
       <section className="py-12 md:py-20 px-4" style={{ background: "#EFF6FF", borderTop: "1px solid #BFDBFE" }}>
         <PricingAnchorTracker />
@@ -1142,21 +1155,6 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* ── 9. FAQ (#F8FAFC) ── */}
-      <div style={{ background: "#F8FAFC" }}>
-        <FAQSection />
-      </div>
-      {/* FAQ 하단 소프트 CTA */}
-      <div className="text-center py-5 px-4 fade-up" style={{ background: "#F8FAFC", borderTop: "1px solid #E2E8F0" }}>
-        <p className="text-sm" style={{ color: "#475569" }}>
-          아직 망설이고 있다면,{" "}
-          <a href="/trial" className="font-bold underline" style={{ color: "#7C3AED" }}>
-            1분 무료 진단
-          </a>
-          은 회원가입 없이 바로 가능합니다
-        </p>
-      </div>
 
       {/* ── 9-C. AGENCY SERVICE — 대행 서비스 (#FFFBEB) ── */}
       <div className="px-4 py-10 md:p-0">
