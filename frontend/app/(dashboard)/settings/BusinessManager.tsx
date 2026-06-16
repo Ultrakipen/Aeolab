@@ -930,7 +930,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-3">
               <div>
                 <div className="text-sm font-semibold text-amber-800">네이버 리뷰 현황</div>
-                <div className="text-sm text-amber-700 mt-0.5">리뷰 수·별점이 AI 노출 점수(리뷰 품질 25%)에 반영됩니다</div>
+                <div className="text-sm text-amber-700 mt-0.5">리뷰 수·별점이 AI 노출 점수(리뷰 품질 항목)에 반영됩니다</div>
               </div>
 
               {/* 확인 방법 안내 */}
@@ -997,7 +997,13 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               </div>
               <div className="flex items-center justify-between text-sm flex-wrap gap-2">
                 <span className="text-amber-700">
-                  총 <strong>{(editForm.visitor_review_count ?? 0) + (editForm.receipt_review_count ?? 0)}개</strong> · 별점 <strong>{(editForm.avg_rating ?? 0).toFixed(1)}점</strong>
+                  {(() => {
+                    const total = (editForm.visitor_review_count ?? 0) + (editForm.receipt_review_count ?? 0);
+                    const rating = editForm.avg_rating ?? 0;
+                    return total > 0
+                      ? <><strong>{total}개</strong> · 별점 <strong>{rating.toFixed(1)}점</strong></>
+                      : <><strong>0개</strong> <span className="text-gray-400 font-normal">(별점 미확인)</span></>;
+                  })()}
                 </span>
                 <button
                   type="button"
@@ -1106,7 +1112,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                       .filter((v): v is string => v !== null)
                       .join(" · ") || "미달성"}
                   </strong>
-                  {!saveSuccess && (
+                  {isDirty && (
                     <span className="ml-2 text-xs text-amber-500 font-medium">(미저장)</span>
                   )}
                   {(!editForm.has_recent_post || !editForm.has_intro) && (

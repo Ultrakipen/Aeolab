@@ -303,7 +303,7 @@ export default async function SettingsPage({
             </div>
             <div className="p-4 md:p-5">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm text-gray-600">
+                <table className="min-w-[520px] w-full text-sm text-gray-600">
                   <thead>
                     <tr className="text-left border-b border-gray-100">
                       <th className="pb-3 pr-4 font-medium text-gray-700 text-sm">기능</th>
