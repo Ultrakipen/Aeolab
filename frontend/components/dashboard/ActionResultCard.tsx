@@ -93,7 +93,16 @@ export default function ActionResultCard({ actions }: Props) {
                     )}
                     {(a.before_score !== null && a.after_score !== null) && (
                       <p className="text-sm text-gray-500 mt-1">
-                        점수 변화: {a.before_score}점 &rarr; <strong className="text-gray-700">{a.after_score}점</strong>
+                        점수 변화:{" "}
+                        <span className={
+                          a.after_score > a.before_score
+                            ? "text-emerald-600 font-semibold"
+                            : a.after_score < a.before_score
+                            ? "text-amber-600 font-semibold"
+                            : "text-gray-600"
+                        }>
+                          {a.after_score > a.before_score ? "개선됨 ↑" : a.after_score < a.before_score ? "하락 ↓" : "변화 없음"}
+                        </span>
                       </p>
                     )}
                   </div>

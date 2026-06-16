@@ -57,7 +57,7 @@ export default function VisitDeltaBanner({ bizId }: Props) {
   if (loading) return <div className="h-0 mb-0" />;
   if (!data || !data.show) return null;
 
-  const { days_away, score_before, score_now, delta } = data;
+  const { days_away, delta } = data;
   const isPositive = (delta ?? 0) > 0;
   const isNegative = (delta ?? 0) < 0;
 
@@ -92,20 +92,14 @@ export default function VisitDeltaBanner({ bizId }: Props) {
         {isPositive && (
           <p className="text-sm font-semibold text-green-800">
             {days_away ?? "?"}일 만에 오셨네요! 그동안 AI 노출 점수가{" "}
-            <span className="text-green-700 font-bold">
-              +{(delta ?? 0).toFixed(1)}점
-            </span>{" "}
-            올랐어요
+            <span className="text-green-700 font-bold">개선됐어요</span>
           </p>
         )}
         {isNegative && (
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <p className="text-sm font-semibold text-orange-800">
-              {days_away ?? "?"}일 만에 오셨네요. 점수가{" "}
-              <span className="text-orange-700 font-bold">
-                {(delta ?? 0).toFixed(1)}점
-              </span>{" "}
-              내려갔습니다.
+              {days_away ?? "?"}일 만에 오셨네요. AI 노출 점수가{" "}
+              <span className="text-orange-700 font-bold">내려갔습니다.</span>
             </p>
             <Link
               href="/dashboard"
@@ -114,23 +108,6 @@ export default function VisitDeltaBanner({ bizId }: Props) {
               지금 스캔해보세요 →
             </Link>
           </div>
-        )}
-        {/* 점수 보조 정보 */}
-        {score_before !== undefined && score_now !== undefined && (
-          <p className="text-sm text-gray-500 mt-0.5">
-            이전 점수: {score_before.toFixed(1)} → 현재:{" "}
-            <span
-              className={
-                isPositive
-                  ? "text-green-700 font-semibold"
-                  : isNegative
-                  ? "text-orange-700 font-semibold"
-                  : "text-gray-700 font-semibold"
-              }
-            >
-              {score_now.toFixed(1)}
-            </span>
-          </p>
         )}
       </div>
 
