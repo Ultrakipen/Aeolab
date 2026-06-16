@@ -81,9 +81,13 @@ export default async function CompetitorsPage({
   const COMPETITOR_LIMITS: Record<string, number> = {
     free: 0, basic: 3, startup: 5, pro: 5, biz: 999, enterprise: 999,
   }
-  const currentPlan = (subscription?.status === 'active' || subscription?.status === 'grace_period')
-    ? (subscription?.plan ?? 'free')
-    : 'free'
+  const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com').split(',').map(e => e.trim().toLowerCase())
+  const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? '').toLowerCase())
+  const currentPlan = isAdmin ? 'biz' : (
+    (subscription?.status === 'active' || subscription?.status === 'grace_period')
+      ? (subscription?.plan ?? 'free')
+      : 'free'
+  )
   const competitorLimit = COMPETITOR_LIMITS[currentPlan] ?? 3
 
   // 백엔드 API 호출용 토큰 — auth 검증은 위 getUser()로 완료. 토큰 추출 목적으로만 사용
