@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import SchemaPageContent from './SchemaClient'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
+import { getActiveBusinessId } from '@/lib/active-business'
 
 export default async function SchemaPage() {
   const supabase = await createClient()
@@ -48,5 +49,27 @@ export default async function SchemaPage() {
     )
   }
 
-  return <SchemaPageContent userId={user.id} />
+  // 활성 사업장 정보 불러오기 (폼 자동 입력용)
+  const activeBizId = await getActiveBusinessId(user.id)
+  let prefill: { name: string; category: string; region: string; phone: string; address: string; website_url: string } | null = null
+
+  if (activeBizId) {
+    const { data: biz } = await supabase
+      .from('businesses')
+      .select('name, category, region, phone, address, website_url')
+      .eq('id', activeBizId)
+      .maybeSingle()
+    if (biz) {
+      prefill = {
+        name: biz.name ?? '',
+        category: biz.category ?? 'restaurant',
+        region: biz.region ?? '',
+        phone: biz.phone ?? '',
+        address: biz.address ?? '',
+        website_url: biz.website_url ?? '',
+      }
+    }
+  }
+
+  return <SchemaPageContent userId={user.id} prefill={prefill} />
 }

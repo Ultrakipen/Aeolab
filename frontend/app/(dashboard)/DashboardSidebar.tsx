@@ -39,7 +39,7 @@ const NAV_GROUPS: {
     label: "개선 실행",
     items: [
       { href: "/guide",         label: "개선 가이드",           Icon: Lightbulb,     requiresBusiness: true },
-      { href: "/schema",        label: "소개글 · 검색태그",       Icon: Code2,         requiredPlan: "basic", requiresBusiness: true },
+      { href: "/schema",        label: "소개글 · 콘텐츠 생성",    Icon: Code2,         requiredPlan: "basic", requiresBusiness: true },
       { href: "/blog-analysis", label: "블로그 진단",           Icon: FileText,      requiredPlan: "basic", requiresBusiness: true },
       { href: "/review-inbox",      label: "리뷰 답변",             Icon: MessageSquare, requiredPlan: "basic", requiresBusiness: true },
       { href: "/guide/ai-info-tab", label: "AI 브리핑 5단계",       Icon: BookOpen },

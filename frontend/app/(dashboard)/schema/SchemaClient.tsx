@@ -221,10 +221,20 @@ function makeChecklistStorageKey(businessName: string): string {
   return `schema-checklist-${hash}`
 }
 
-export default function SchemaPageContent({ userId }: { userId: string }) {
+interface Prefill {
+  name: string; category: string; region: string; phone: string; address: string; website_url: string
+}
+
+export default function SchemaPageContent({ userId, prefill }: { userId: string; prefill?: Prefill | null }) {
   const [form, setForm] = useState({
-    business_name: '', category: 'restaurant', region: '', address: '',
-    phone: '', website_url: '', menu_items: '', specialty: '',
+    business_name: prefill?.name ?? '',
+    category: prefill?.category ?? 'restaurant',
+    region: prefill?.region ?? '',
+    address: prefill?.address ?? '',
+    phone: prefill?.phone ?? '',
+    website_url: prefill?.website_url ?? '',
+    menu_items: '',
+    specialty: '',
   })
   const [hoursRows, setHoursRows] = useState<HoursRow[]>([
     { id: '1', days: ['Mo', 'Tu', 'We', 'Th', 'Fr'], open: '09:00', close: '21:00', closed: false },
