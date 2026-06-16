@@ -290,7 +290,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
   const hasNoWebsiteGuide = !!result?.no_website_guide
 
   const tabs: { key: Tab; label: string; mobileLabel: string; icon: React.ReactNode }[] = [
-    { key: 'briefing',    label: 'AI 브리핑 최적화 점수', mobileLabel: 'AI점수',    icon: <BarChart2 className="w-4 h-4" /> },
+    { key: 'briefing',    label: '소개글 키워드 점수',     mobileLabel: 'AI점수',    icon: <BarChart2 className="w-4 h-4" /> },
     { key: 'smartplace',  label: '스마트플레이스 소개글',  mobileLabel: '소개글',    icon: <MapPin className="w-4 h-4" /> },
     { key: 'blog',        label: '블로그 포스트 초안',      mobileLabel: '블로그',    icon: <FileText className="w-4 h-4" /> },
     { key: 'checklist',   label: '최적화 체크리스트',       mobileLabel: '체크리스트', icon: <ListChecks className="w-4 h-4" /> },
@@ -456,7 +456,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
               {tab === 'briefing' && (
                 <div className="space-y-5">
                   <div>
-                    <div className="text-sm font-semibold text-gray-800 mb-1">AI 브리핑 최적화 점수</div>
+                    <div className="text-sm font-semibold text-gray-800 mb-1">소개글 키워드 점수</div>
                     <p className="text-sm text-gray-500">AI가 생성한 소개글에 업종 핵심 키워드가 얼마나 포함됐는지 분석합니다. 부족한 키워드를 추가한 뒤 스마트플레이스에 등록하세요.</p>
                   </div>
 
