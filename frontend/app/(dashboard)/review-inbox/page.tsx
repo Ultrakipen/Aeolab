@@ -431,7 +431,7 @@ export default function ReviewInboxPage() {
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
           <span className="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Basic 이상</span>
         </div>
-        <p className="text-sm text-gray-500 mb-6">손님 리뷰에 AI가 업종 키워드 포함 답변 초안을 생성합니다</p>
+        <p className="text-sm text-gray-500 mb-6">손님 리뷰를 붙여넣으면 AI가 업종 키워드를 포함한 답변 초안을 드립니다</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {features.map((f) => (
@@ -490,13 +490,13 @@ export default function ReviewInboxPage() {
         <textarea
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}
-          placeholder="손님이 남긴 리뷰를 여기에 붙여넣으세요. (최대 300자)"
-          maxLength={300}
+          placeholder="손님이 남긴 리뷰를 여기에 붙여넣으세요. (최대 500자)"
+          maxLength={500}
           rows={4}
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
         />
         <div className="flex items-center justify-between mt-3">
-          <span className="text-sm text-gray-400">{reviewText.length} / 300자</span>
+          <span className="text-sm text-gray-400">{reviewText.length} / 500자</span>
           <button
             type="submit"
             disabled={loading || !reviewText.trim() || !businessId}
@@ -593,7 +593,7 @@ export default function ReviewInboxPage() {
             {history.map((h) => (
               <div key={h.id} className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className="text-sm text-gray-400 leading-relaxed flex-1 line-clamp-2">
+                  <p className="text-sm text-gray-400 leading-relaxed flex-1 line-clamp-3">
                     리뷰: {h.review_text}
                   </p>
                   <div className="flex items-center gap-2 shrink-0">
@@ -654,7 +654,7 @@ export default function ReviewInboxPage() {
         <p className="text-sm font-semibold text-slate-700 mb-3">
           💡 스마트플레이스 리뷰 관련 AI 기능도 있어요
         </p>
-        <div className="space-y-3">
+        <div className="space-y-3 pr-14 md:pr-0">
           <div className="flex items-start gap-2.5">
             <span className="shrink-0 text-base mt-0.5">💬</span>
             <div>
