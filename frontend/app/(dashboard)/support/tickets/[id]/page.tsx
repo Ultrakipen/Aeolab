@@ -231,7 +231,7 @@ function TicketDetailInner() {
             <div className="flex gap-2">
               <textarea
                 value={replyBody}
-                onChange={(e) => setReplyBody(e.target.value.slice(0, 1000))}
+                onChange={(e) => setReplyBody(e.target.value.slice(0, 2000))}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
@@ -250,7 +250,7 @@ function TicketDetailInner() {
                 {submittingReply ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-sm text-gray-400 mt-1 text-right">{replyBody.length}/1000</p>
+            <p className="text-sm text-gray-400 mt-1 text-right">{replyBody.length}/2000</p>
           </div>
         )}
 

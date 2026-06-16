@@ -264,6 +264,20 @@ function InquirySection({
 
   return (
     <div>
+      {/* 신버전 1:1 문의 안내 */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-blue-800">더 빠른 1:1 문의를 원하시면 →</p>
+          <p className="text-sm text-blue-600 mt-0.5">카테고리 선택·상태 추적·추가 코멘트가 가능한 신규 문의 시스템을 이용해 보세요.</p>
+        </div>
+        <a
+          href="/support/tickets/new"
+          className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+        >
+          1:1 문의하기 →
+        </a>
+      </div>
+
       {/* 문의 폼 */}
       <div className="max-w-2xl mx-auto">
         {success ? (
