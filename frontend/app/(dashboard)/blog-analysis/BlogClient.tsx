@@ -961,7 +961,13 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           const hasEllipsis = details.some(p => typeof p.improved_title === "string" && p.improved_title.includes("..."));
           const missingPositives = details.length > 0 && details.every(p => p.positives === undefined);
           const missingNewFields = !data.posting_frequency && !data.best_citation_candidate;
-          const isOldFormat = hasNoDetails || hasEllipsis || missingPositives || missingNewFields;
+          // INACTIVE 업종인데 캐시에 구 "AI 브리핑" 문구가 남아 있으면 재분석 필요
+          const hasOldBriefingText = isBlogInactive && (
+            (typeof data.best_citation_candidate?.reason === "string" && data.best_citation_candidate.reason.includes("AI 브리핑")) ||
+            ((data.weekly_actions ?? []) as {reason?: string}[]).some(a => a.reason?.includes("AI 브리핑")) ||
+            (typeof data.top_recommendation === "string" && data.top_recommendation.includes("AI 브리핑"))
+          );
+          const isOldFormat = hasNoDetails || hasEllipsis || missingPositives || missingNewFields || hasOldBriefingText;
           if (!isOldFormat) {
             setResult(data as BlogAnalysisResult);
             if (typeof data.monthly_used === "number") setMonthlyUsed(data.monthly_used);
