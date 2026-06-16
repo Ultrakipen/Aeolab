@@ -254,19 +254,25 @@ interface ScorePillProps {
   desc: string;
 }
 
+function getImportanceBadge(points: number): { label: string; color: string; bg: string } {
+  if (points >= 30) return { label: "최우선", color: "#1D4ED8", bg: "#DBEAFE" };
+  if (points >= 25) return { label: "핵심", color: "#6D28D9", bg: "#EDE9FE" };
+  return { label: "중요", color: "#047857", bg: "#D1FAE5" };
+}
+
 function ScorePill({ points, title, desc }: ScorePillProps) {
+  const badge = getImportanceBadge(points);
   return (
     <div
       className="rounded-xl border p-3 md:p-4 text-center"
       style={{ background: "#F8FAFC", borderColor: "#E2E8F0", minHeight: "96px" }}
     >
-      <p
-        className="text-3xl md:text-4xl font-black mb-1 leading-none"
-        style={{ color: "#2563EB", fontFamily: "var(--font-outfit, Outfit, sans-serif)" }}
+      <span
+        className="inline-block text-xs font-bold px-2 py-0.5 rounded-full mb-2"
+        style={{ color: badge.color, background: badge.bg }}
       >
-        {points}
-        <span className="text-sm font-normal" style={{ color: "#475569" }}>점</span>
-      </p>
+        {badge.label}
+      </span>
       <p className="text-sm font-bold mb-0.5 break-keep" style={{ color: "#0F172A" }}>{title}</p>
       <p className="text-sm break-keep" style={{ color: "#475569" }}>{desc}</p>
     </div>

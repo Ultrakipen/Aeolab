@@ -67,7 +67,7 @@ export default function DashboardPreview() {
             style={{ background: "#EFF6FF", borderColor: "#BFDBFE", boxShadow: "var(--aeo-shadow)" }}
           >
             <p className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: "#2563EB" }}>
-              네이버 채널 점수
+              네이버 채널 진단
             </p>
             <p
               className="text-lg font-black mb-1"
@@ -166,7 +166,7 @@ export default function DashboardPreview() {
             {/* 헤더: 스토리 텍스트로 점수 의미 전달 */}
             <div className="flex items-start justify-between mb-3">
               <div>
-                <p className="text-sm font-bold mb-1" style={{ color: "#0F172A" }}>7주 추세 · 통합 점수</p>
+                <p className="text-sm font-bold mb-1" style={{ color: "#0F172A" }}>7주 추세 · 노출 단계 변화</p>
                 <p className="text-sm" style={{ color: "#475569" }}>
                   <span className="font-semibold px-1.5 py-0.5 rounded" style={{ background: "#FEF9C3", color: "#92400E" }}>보통</span>
                   <span className="mx-1.5 text-gray-400">→ 7주 후 →</span>

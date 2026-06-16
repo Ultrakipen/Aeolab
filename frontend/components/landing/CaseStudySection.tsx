@@ -85,7 +85,7 @@ const CASES: CaseData[] = [
     ],
     after: {
       exposure: 13,
-      score: 39,
+      score: 42,
       weeks: 4,
     },
     reasons: [
@@ -147,9 +147,14 @@ function ScoreBar({ value, max = 100, color }: { value: number; max?: number; co
   );
 }
 
+function getStageLabel(score: number): string {
+  if (score < 40) return "주의 필요";
+  if (score < 60) return "보통";
+  return "양호";
+}
+
 function CaseCard({ data }: { data: CaseData }) {
   const exposureDelta = data.after.exposure - data.before.exposure;
-  const scoreDelta = data.after.score - data.before.score;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -194,8 +199,8 @@ function CaseCard({ data }: { data: CaseData }) {
               <p className="text-sm text-gray-500 mt-0.5 break-keep">AI 노출률</p>
             </div>
             <div className="text-center border-x border-red-100">
-              <p className="text-xl font-bold text-red-600">{data.before.score}점</p>
-              <p className="text-sm text-gray-500 mt-0.5">AEO 점수</p>
+              <p className="text-base font-bold text-red-600">{getStageLabel(data.before.score)}</p>
+              <p className="text-sm text-gray-500 mt-0.5">노출 단계</p>
             </div>
             <div className="text-center">
               <p className="text-xl font-bold text-red-600">{data.before.gaps}개</p>
@@ -267,10 +272,10 @@ function CaseCard({ data }: { data: CaseData }) {
               </p>
             </div>
             <div className="text-center border-l border-emerald-200">
-              <p className="text-2xl font-bold text-emerald-700">{data.after.score}점</p>
-              <p className="text-sm text-gray-500 mt-0.5">AEO 점수</p>
+              <p className="text-xl font-bold text-emerald-700">{getStageLabel(data.after.score)}</p>
+              <p className="text-sm text-gray-500 mt-0.5">노출 단계</p>
               <p className="text-sm text-emerald-600 font-semibold mt-0.5">
-                +{scoreDelta}점 향상
+                단계 향상 ↑
               </p>
             </div>
           </div>

@@ -10,7 +10,7 @@ const steps = [
     title: "업종·가게명 입력",
     description:
       "네이버·ChatGPT·Google AI가 내 가게를 얼마나 언급하는지 즉시 측정합니다",
-    tags: ["AI 노출 점수", "키워드 공백 확인"],
+    tags: ["AI 노출 진단", "키워드 공백 확인"],
     emphasis: "가입 불필요 · 5분 소요",
     emphasisClass: "text-blue-600",
   },
@@ -19,9 +19,9 @@ const steps = [
     badgeClass: "bg-purple-100 text-purple-700",
     Icon: BarChart2,
     iconColor: "text-purple-500",
-    title: "점수와 개선점 확인",
+    title: "진단 결과 & 개선점 확인",
     description:
-      "0~100점 AI 노출 점수와 경쟁 가게 대비 부족한 키워드·정보 3가지를 알려줍니다",
+      "AI 노출 상태(양호·보통·주의)와 경쟁 가게 대비 부족한 키워드·정보 3가지를 알려줍니다",
     tags: ["경쟁사 비교", "개선 우선순위"],
     emphasis: "한 페이지로 현재 상태 파악",
     emphasisClass: "text-purple-600",
@@ -33,7 +33,7 @@ const steps = [
     iconColor: "text-emerald-500",
     title: "AI 가이드로 꾸준히 개선",
     description:
-      "7일마다 자동 재측정, AI 맞춤 개선 가이드로 지속 개선합니다. 네이버 관련 점수는 2~4주, ChatGPT·Gemini는 수주~수개월 안에 변화가 나타납니다.",
+      "7일마다 자동 재측정, AI 맞춤 개선 가이드로 지속 개선합니다. 네이버 관련 노출은 2~4주, ChatGPT·Gemini는 수주~수개월 안에 변화가 나타납니다.",
     tags: ["7일 자동 재측정", "AI 개선 가이드"],
     emphasis: "월 9,900원 · 언제든 해지",
     emphasisClass: "text-emerald-600",

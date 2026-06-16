@@ -7,10 +7,10 @@ export default function DiagnosticToolsSection() {
             Basic 이상 포함 — 추가 진단 도구
           </span>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 break-keep">
-            점수가 낮다면, 원인까지 찾아드립니다
+            노출이 낮다면, 원인까지 찾아드립니다
           </h2>
           <p className="text-base md:text-lg text-gray-600 mt-2 break-keep">
-            AI 검색 노출 측정이 핵심입니다. 점수를 올리는 원인 진단 도구 두 가지를 함께 제공합니다.
+            AI 검색 노출 측정이 핵심입니다. 노출을 높이는 원인 진단 도구 두 가지를 함께 제공합니다.
           </p>
         </div>
 

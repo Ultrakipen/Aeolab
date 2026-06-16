@@ -112,7 +112,7 @@ export function HowAeolabIntegrated() {
           className="text-sm font-bold uppercase tracking-wider mb-2"
           style={{ color: "#2563EB" }}
         >
-          네이버 채널 점수
+          네이버 채널 진단
         </p>
         <p
           className="text-lg font-black mb-1"
@@ -135,7 +135,7 @@ export function HowAeolabIntegrated() {
           className="text-sm font-bold uppercase tracking-wider mb-2"
           style={{ color: "#7C3AED" }}
         >
-          글로벌 AI 점수
+          글로벌 AI 진단
         </p>
         <p
           className="text-lg font-black mb-1"
@@ -440,7 +440,7 @@ export function HowAeolabIntegrated() {
 
         {/* 면책 문구 */}
         <p className="text-center text-sm mt-6" style={{ color: "#94A3B8" }}>
-          카카오 알림 카드·점수 변화는 예시 데이터입니다 · 실제 수치는 내 가게 스캔 후 표시됩니다
+          카카오 알림 카드·노출 상태 변화는 예시 데이터입니다 · 실제 수치는 내 가게 스캔 후 표시됩니다
         </p>
 
         {/* CTA */}

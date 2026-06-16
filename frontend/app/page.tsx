@@ -556,7 +556,7 @@ export default async function LandingPage() {
                 <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 w-full text-left">
                   <p className="text-sm font-semibold text-indigo-700 mb-1.5">자동 진단 내용</p>
                   <div className="space-y-1">
-                    {["항목별 완성도 점수화 (0~100점)", "경쟁사 대비 부족한 부분 파악", "ChatGPT·Gemini 실제 언급 횟수", "키워드 노출 현황 분석", "개선 우선순위 자동 제시"].map(item => (
+                    {["항목별 노출 상태 진단 (양호·보통·주의)", "경쟁사 대비 부족한 부분 파악", "ChatGPT·Gemini 실제 언급 횟수", "키워드 노출 현황 분석", "개선 우선순위 자동 제시"].map(item => (
                       <div key={item} className="flex items-center gap-1.5">
                         <span className="text-indigo-400 text-sm flex-shrink-0">▸</span>
                         <span className="text-sm text-gray-700">{item}</span>
@@ -933,15 +933,15 @@ export default async function LandingPage() {
               },
               {
                 icon: "📊",
-                title: "AI 노출 점수 & 추세",
-                desc: "스마트플레이스·리뷰·키워드·콘텐츠를 종합한 0~100점 점수화. 30일 추세 그래프로 변화 추적",
+                title: "AI 노출 진단 & 추세",
+                desc: "스마트플레이스·리뷰·키워드·콘텐츠를 종합 진단. 양호·보통·주의 단계로 상태 파악, 30일 추세 그래프로 변화 추적",
                 badge: null,
                 badgeColor: "",
               },
               {
                 icon: "🏆",
                 title: "경쟁사 비교 분석",
-                desc: "인근 경쟁 가게들의 AI 노출 점수와 내 가게를 비교. 내가 어느 위치인지 순위로 확인",
+                desc: "인근 경쟁 가게들의 AI 노출 상태와 내 가게를 비교. 내가 어느 위치인지 순위로 확인",
                 badge: null,
                 badgeColor: "",
               },
@@ -955,14 +955,14 @@ export default async function LandingPage() {
               {
                 icon: "📝",
                 title: "AI 맞춤 개선 가이드",
-                desc: "내 가게 점수와 경쟁사 분석을 바탕으로 AI가 우선순위 높은 개선 항목을 순서대로 안내",
+                desc: "내 가게 노출 진단과 경쟁사 분석을 바탕으로 AI가 우선순위 높은 개선 항목을 순서대로 안내",
                 badge: "인기",
                 badgeColor: "#7C3AED",
               },
               {
                 icon: "🔔",
-                title: "카카오 점수 변화 알림",
-                desc: "점수가 오르거나 내려가면 카카오톡으로 즉시 알림. 경쟁사 변화도 감지해 알려드림",
+                title: "카카오 노출 변화 알림",
+                desc: "노출 상태가 변화하면 카카오톡으로 즉시 알림. 경쟁사 변화도 감지해 알려드림",
                 badge: null,
                 badgeColor: "",
               },
