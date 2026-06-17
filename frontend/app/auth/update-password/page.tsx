@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
@@ -42,16 +43,19 @@ export default function UpdatePasswordPage() {
 
   if (done) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="w-full max-w-sm text-center bg-white rounded-xl p-4 md:p-8 shadow-sm">
-          <div className="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+      <main className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="w-full max-w-sm text-center bg-white rounded-xl p-4 md:p-8 shadow-sm">
+            <div className="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 mb-2">비밀번호가 변경되었습니다</h2>
+            <p className="text-sm text-gray-500">잠시 후 대시보드로 이동합니다...</p>
           </div>
-          <h2 className="text-lg font-bold text-gray-900 mb-2">비밀번호가 변경되었습니다</h2>
-          <p className="text-sm text-gray-500">잠시 후 대시보드로 이동합니다...</p>
         </div>
+        <SiteFooter />
       </main>
     );
   }
@@ -114,6 +118,7 @@ export default function UpdatePasswordPage() {
           </button>
         </form>
       </div>
+      <SiteFooter />
     </main>
   );
 }
