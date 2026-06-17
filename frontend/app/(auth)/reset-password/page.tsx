@@ -17,11 +17,16 @@ export default function ResetPasswordPage() {
     setLoading(true);
     setError("");
     const supabase = createClient();
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || location.origin;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${location.origin}/auth/callback?next=/auth/update-password`,
+      redirectTo: `${appUrl}/auth/callback?next=/auth/update-password`,
     });
     if (error) {
-      setError("이메일 발송에 실패했습니다. 다시 시도해주세요.");
+      if (error.message?.includes("security purposes") || error.message?.includes("rate") || error.status === 429) {
+        setError("잠시 후 다시 시도해주세요. (60초에 1회만 요청 가능)");
+      } else {
+        setError("이메일 발송에 실패했습니다. 다시 시도해주세요.");
+      }
       setLoading(false);
       return;
     }
