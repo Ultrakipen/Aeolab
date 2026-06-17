@@ -1,5 +1,8 @@
 """
-개선 가이드 생성 서비스 — Claude Sonnet 4.6 기반
+개선 가이드 생성 서비스
+- AI 개선 가이드: Claude Sonnet 4.6
+- 소개글·블로그 초안(generate_smartplace_intro): Claude Haiku 4.5 (2026-06-17 전환)
+- FAQ·채팅방 메뉴: Claude Haiku 4.5
 도메인 모델 v2.1 Phase D: ActionPlan + ActionTools 생성
 """
 import os
@@ -1147,7 +1150,7 @@ async def generate_smartplace_intro(
     description: str | None,
 ) -> dict:
     """
-    스마트플레이스 소개글 + 블로그 포스트 초안 3종 생성 (Claude Sonnet 4.6)
+    스마트플레이스 소개글 + 블로그 포스트 초안 3종 생성 (Claude Haiku 4.5 — 2026-06-17 Sonnet→Haiku 전환)
     schema_gen.py 라우터에서 호출 — 비용 정책 허용 경로 (guide_generator.py)
 
     반환 구조:

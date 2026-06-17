@@ -24,8 +24,8 @@ ADMIN_EMAILS: set[str] = {
 # auto_scan_mode:
 #   None     → 자동 스캔 없음 (free)
 #   "basic"  → Gemini 50회 + ChatGPT 50회 + 네이버 주 1회(월요일) 자동 스캔 (A안 50/50)
-#   "pro"    → 8개 AI 전체 스캔 주 3회(월·수·금) / 나머지 날 basic (pro)
-#   "full"   → 8개 AI 매일 (biz)
+#   "pro"    → 4종 AI 전체 스캔 주 3회(월·수·금) / 나머지 날 basic (pro)
+#   "full"   → 4종 AI 매일 (biz)
 #
 # guide_monthly        : 월 Claude Sonnet 가이드 생성 허용 횟수 (999 = 무제한)
 # manual_scan_daily    : 하루 수동 스캔 허용 횟수 (999 = 무제한)
@@ -64,7 +64,7 @@ PLAN_LIMITS = {
         "blog_monthly": 3,
     },
     "pro": {
-        # v3.4 강화: 리뷰답변 무제한, 히스토리 90일, FAQ 무제한 (Basic보다 낮으면 안 됨)
+        # v3.4 강화: 리뷰답변 무제한, 히스토리 90일, FAQ 소개글+채팅방메뉴 합산 30건/월
         "competitors": 5,
         "guide_monthly": 10,
         "manual_scan_daily": 5,
@@ -93,7 +93,7 @@ PLAN_LIMITS = {
         "blog_monthly": 999,
     },
     "startup": {
-        # v3.4 강화: 리뷰답변 무제한, FAQ 무제한
+        # v3.4 강화: 리뷰답변 무제한 / FAQ 소개글+채팅방메뉴 합산 20건/월
         "competitors": 5,
         "guide_monthly": 5,
         "manual_scan_daily": 3,
