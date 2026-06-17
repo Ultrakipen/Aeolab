@@ -23,6 +23,7 @@ import NaverAiPathwayCard from "@/components/dashboard/NaverAiPathwayCard";
 import ScanResultNavBar from "@/components/dashboard/ScanResultNavBar";
 import DashboardDeliverableSignal from "@/components/dashboard/DashboardDeliverableSignal";
 import DashboardEvidencePreview from "@/components/dashboard/DashboardEvidencePreview";
+import BasicTrialBanner from "@/components/dashboard/BasicTrialBanner";
 import { IneligibleBusinessNotice } from "@/components/dashboard/IneligibleBusinessNotice";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import {
@@ -463,6 +464,11 @@ export default async function DashboardPage({
               )}
             </div>
           </div>
+
+          {/* 🎁 Basic 무료 체험 배너 — 비구독 사용자에게만 표시 (체험 전: 유도 / 체험 후: 구독 CTA) */}
+          {plan === "free" && accessToken && bizBase && (
+            <BasicTrialBanner businessId={bizBase.id} businessName={bizBase.name} authToken={accessToken} />
+          )}
 
           {/* 📊 경쟁사 미등록 — 등록 유도 CTA */}
           {latestScan && (competitors?.length ?? 0) === 0 && (

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Lightbulb, Store, BarChart2, TrendingUp, BookOpen } from "lucide-react";
 import AIAssistant from "@/components/common/AIAssistant";
-import BasicTrialBanner from "@/components/dashboard/BasicTrialBanner";
 
 interface Props {
   bizId: string;
@@ -39,11 +38,6 @@ export default function DashboardFooter({ bizId, bizName, plan, accessToken }: P
           </Link>
         ))}
       </div>
-
-      {/* 하단 업셀 */}
-      {accessToken && bizName && (
-        <BasicTrialBanner businessId={bizId} businessName={bizName} authToken={accessToken} />
-      )}
 
       {/* AI 도우미 플로팅 채팅 — Basic+ 전용 */}
       {["basic", "startup", "pro", "biz", "enterprise"].includes(plan) && accessToken && (
