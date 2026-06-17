@@ -37,8 +37,14 @@ docs/full_site_prelaunch_inspection_standard_v1.0.md 기준 — §2의 [그룹 B
 - **§5 노출기간표 = 코드 검증 완료.** 우리 ChatGPT·Gemini 점수는 **학습데이터 측정**(`chatgpt_scanner.py:25-30` 웹검색 도구 없음 / `gemini_scanner.py:16` 그라운딩 기본 false). → "수개월~1년" 정확.
 - **CLAUDE.md "ChatGPT·Gemini 스캐너 점수 수개월~1년" = 진실 확인(수정 불요).** 코드와 일치.
 - **정정된 오판 1건(기록):** v1.0 초안이 위 기간을 "웹검색 경로 누락 = 과소 안내"로 분류했으나 **방향 오판**. 우리 점수는 웹검색 경로(ChatGPT Search 24~72h)를 측정하지 않으므로, 그 빠른 기간을 점수 안내에 끌어오면 오히려 **과대 약속**. → §5에서 "우리 점수=학습데이터 ✅측정 / 웹검색·그라운딩=별도 참고채널 ❌미반영" 분리 완료.
-- **아직 미착수:** 실제 페이지 라이브 점검(§9 브라우저). **권장 시작 순서 = P★**(`/trial`·`/`·`/demo`·`/pricing`) → **P1 대시보드** → 이하 §2 우선순위.
+- **아직 미착수:** 실제 페이지 라이브 점검(§9 브라우저). **권장 시작 순서 = §2.1 효율 전략**(세션1 전역 grep → 세션2 P★ → 세션3 P1) 따를 것.
 - **시작 명령:** §0 트리거 1줄 사용. 점검만이면 ①, 수정·배포까지면 ②.
+
+> **확정 발견(2026-06-17 점수 표시 점검 — 새 세션 첫 작업 후보, 재검증 불요):**
+> - **[P1 확정 위반] `BriefingTimeline.tsx:94·117·138`** — `total_score.toFixed(1)점`(=AI Visibility 점수)을 마일스톤·툴팁에 **숫자 노출**. `DashboardDetailZone.tsx:407` 실렌더 확인됨. → 기존 헬퍼(`scoreToLabel` 등)로 텍스트 레이블 전환 + scp·build·pm2 배포 필요.
+> - **[CLAUDE.md 진위 정정 필요 §10]** CLAUDE.md §"점수 표시 원칙"의 **"모든 점수"·"미수정 파일 현재 없음(전체 적용 완료)" 기재가 부정확.** 실제는 ① AI Visibility 점수에만 적용 ② BriefingTimeline 누락. → 스코프를 "AI Visibility 점수 한정"으로 명확화 + BriefingTimeline 반영하도록 CLAUDE.md 정정(새 세션 작업).
+> - **[오판 방지·위반 아님] `ScoreCard.tsx`** — "AI Visibility {score}/100" 숫자 코드 존재하나 **어디서도 import 안 됨 = dead code, 미렌더.** grep만 보고 P0 단정 금지. 삭제는 별도 정리 백로그.
+> - **[유지 확인] 핵심 AI Visibility 점수 표시는 텍스트 레이블 개편 유지됨** — HeroCard·DualTrackCard·MultiBizTable·competitors·growth·preview·plans-preview·blog-analysis 등 레이블 헬퍼 경유 확인.
 
 ---
 
@@ -139,7 +145,9 @@ docs/full_site_prelaunch_inspection_standard_v1.0.md 기준 — §2의 [그룹 B
 > 축 A~E는 six_pages 5축 계승. **게이트 N·T는 이 서비스 고유 도메인 기준**으로, 결과/안내 화면에서 ❌면 무조건 P0(상업 부적합).
 
 ### 축 A — 사실적·실질적 구현 (실측)
-- 더미/임의 추정 숫자 노출 **0건**. 점수는 **텍스트 레이블**(양호/보통/주의 필요)만, 숫자(`72점`) 금지 — 티저 더미숫자도 금지(`feedback_score_display_text_only`).
+- 더미/임의 추정 숫자 노출 **0건**. **AI Visibility 점수**(track1/track2/unified·종합 노출 점수)는 **텍스트 레이블**(양호/보통/주의 필요)만, 숫자(`72점`·`/100`) 금지 — 티저 더미숫자도 금지(`feedback_score_display_text_only`).
+  - ⚠️ **스코프 정정(2026-06-17 코드 점검)** — 텍스트 전용 강제 대상은 **AI Visibility 점수 한정**이다. `DiaScoreBadge`(콘텐츠 품질 5요소)·`website_seo_score`·블로그 진단 점수 같은 **진단·품질 점수는 숫자 허용**(개선 여지를 보여주는 실질 피드백 — `feedback_no_remove_useful`). 이 둘을 혼동해 진단 점수 숫자를 "위반"으로 오판 금지. **trial·공유·stories funnel의 실측 점수는 별건**(dummy 아님 — 톤 일관성은 후속 백로그).
+  - **반증 필수** — "점수 숫자 노출 위반" 단정 전 ① 그 점수가 AI Visibility인지 품질/진단인지 구분 ② 해당 컴포넌트가 **실제 import·렌더되는지** `grep -rn` 확인(dead code 오판 방지 — `ScoreCard.tsx`는 "AI Visibility {score}/100" 코드가 있으나 **미렌더 dead code**라 위반 아님, 2026-06-17 실사례).
 - API 실패 시 `0`/`N·A` 폴백, 허위 수치 생성 금지.
 - 버튼·생성기·필터가 실제 백엔드에 연결돼 동작.
 - 빈 상태 "아직 데이터 없음 — 첫 스캔 후 표시" 안내.
@@ -325,6 +333,7 @@ docs/full_site_prelaunch_inspection_standard_v1.0.md 기준 — §2의 [그룹 B
 ---
 
 ## §13. 변경 이력
+- v1.0.4 2026-06-17 — 점수 표시 점검 결과 반영(코드 직접 grep+반증): §3 축 A 스코프 정정(텍스트 전용 = **AI Visibility 점수 한정**, 품질/진단 점수는 숫자 허용·dead code 오판 방지) + §0.1에 확정 발견 씨앗(BriefingTimeline P1 위반·CLAUDE.md "전체 적용 완료" 부정확·ScoreCard dead code 오판방지·핵심 점수 유지 확인). 새 세션이 §2.1 효율 전략으로 이어받아 점검·수정.
 - v1.0.3 2026-06-17 — 자체 점검 5건 반영(코드 직접 검증 후): ① §10 점수 가중치 라이브 버전 함정(`score_engine.py:24` 기본 v3_0 ↔ 서버 .env v3_1 라이브) 추가 ② 게이트 N·원칙 N "노출 가능" 단정 → 확률 표현 교정(축 E·게이트 T 자기모순 해소) ③ §4 결번 명시 ④ §5 스캐너 경로 정정(`backend/services/ai_scanner/`)·인벤토리 누락분(`(public)/index`·`(auth)`·`guide/score-model-v3-1`·`page.tsx.server` 잔재) 추가 ⑤ §9 평문 자격증명 → 비추적 보관으로 분리. §2.1 효율 실행 전략(전역 1회 grep·라이브 P★+P1 한정·패널 조건부·세션 분할) 신설. ※ §5 핵심 사실성(웹검색 OFF=학습데이터·"수개월~1년")은 `chatgpt_scanner.py:25-30`·`gemini_scanner.py:16` 재검증 결과 **정확 확인**(수정 불요).
 - v1.0.2 2026-06-17 — 축 E에 상거래법 필수 고지(사업자/통신판매/환불) 출시 게이트 추가, 축 D에 교차 페이지 일관성(가격·점수레이블·용어) 추가. ※ 반증 결과 "테스트 데이터 전제"(six_pages §8.5 기존)·"점검 진행 대장"(메모리 시스템 기존)은 중복이라 미추가 — 오판으로 분류.
 - v1.0.1 2026-06-17 — §5 노출기간표 코드 검증 + 오판 1건 정정(초안의 "CLAUDE.md 정밀화 권장"이 방향 오판 → 우리 점수=학습데이터 / 웹검색=별도채널 분리). CLAUDE.md "수개월~1년" 진실 확인(수정 불요). §0.1 검증 상태·시작점 신설.
