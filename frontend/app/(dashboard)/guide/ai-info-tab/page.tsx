@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -5,6 +6,11 @@ import { ChevronLeft } from 'lucide-react'
 import { AiInfoTabGuide } from './AiInfoTabGuide'
 import { getBriefingEligibility } from '@/lib/userGroup'
 import { getActiveBusinessId } from '@/lib/active-business'
+
+export const metadata: Metadata = {
+  title: 'AI 브리핑 5단계 가이드 | AEOlab',
+  description: '네이버 AI 브리핑 노출을 위한 5단계 실행 가이드. 소개글·소식·리뷰 최적화로 AI 검색 상단 노출을 달성하세요.',
+}
 
 export default async function AiInfoTabGuidePage({
   searchParams,

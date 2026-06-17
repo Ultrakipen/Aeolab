@@ -18,8 +18,8 @@ export default function UpdatePasswordPage() {
     e.preventDefault();
     setError("");
 
-    if (password.length < 6) {
-      setError("비밀번호는 최소 6자 이상이어야 합니다.");
+    if (password.length < 8) {
+      setError("비밀번호는 최소 8자 이상이어야 합니다.");
       return;
     }
     if (password !== passwordConfirm) {
@@ -80,7 +80,7 @@ export default function UpdatePasswordPage() {
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="6자 이상 입력하세요"
+              placeholder="8자 이상 입력하세요"
               className="w-full border border-gray-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
             />
           </div>

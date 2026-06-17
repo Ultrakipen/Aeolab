@@ -75,9 +75,13 @@ export default function KeywordToolPage() {
       const res = await fetch(`${BACKEND_URL}/api/businesses/keyword-suggest-preview`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ business_name: businessName.trim(), category }),
+        credentials: "include",
+        body: JSON.stringify({ name: businessName.trim(), category }),
       });
 
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("로그인 후 사용 가능합니다. 로그인 → 무료 회원가입 시 바로 이용할 수 있습니다.");
+      }
       if (res.status === 429) {
         setError("잠시 후 다시 시도해주세요. (분당 3회 제한)");
         startCooldown();
