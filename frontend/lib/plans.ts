@@ -16,8 +16,8 @@
  * 기능 한도 (plan_gate.py PLAN_LIMITS 기준):
  *   경쟁사:         Basic 3 / 창업 5 / Pro 5 / Biz 무제한
  *   가이드/월:      Basic 3 / 창업 5 / Pro 10 / Biz 20
- *   리뷰답변/월:    Basic 20회 / 창업 무제한 / Pro 무제한 / Biz 무제한
- *   소개글+FAQ/월:  Basic 5건 / 창업 20건 / Pro 30건 / Biz 60건  ← 남용 방지, DEV_MODE=true 시 우회
+ *   리뷰답변/월:    Basic 50회 / 창업 무제한 / Pro 무제한 / Biz 무제한
+ *   소개글+FAQ/월:  Basic 10건 / 창업 20건 / Pro 30건 / Biz 60건  ← 남용 방지, DEV_MODE=true 시 우회
  *   히스토리:       Basic 60일 / 창업·Pro 90일 / Biz 무제한
  *   CSV:            Basic·창업·Pro·Biz (전 플랜 포함)
  *   PDF:            Pro·Biz (Basic·창업 제외)
@@ -83,8 +83,8 @@ export const PLANS: PlanInfo[] = [
     features: [
       "주 1회 자동 AI 진단 (매주 월요일) — 내가 안 켜도 알아서 분석",
       "수동 스캔 하루 2회 — 소개글 Q&A 추가 후 AI가 바로 반영됐는지 즉시 확인",
-      "리뷰 답변 초안 월 20회",
-      "FAQ 생성 월 5회",
+      "리뷰 답변 초안 월 50회",
+      "AI 콘텐츠 생성 (소개글·FAQ·소식) 월 10건",
       "CSV 내보내기 포함",
       "60일 히스토리",
       "경쟁사 3곳 AI 노출 비교",
