@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { getScoreTextLabel } from "@/lib/scoreLabels";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -200,7 +201,7 @@ export default function StoriesPage() {
                     </div>
                     {story.score_delta !== null && story.score_delta > 0 && (
                       <span className="shrink-0 text-sm font-bold bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                        +{story.score_delta.toFixed(0)}점
+                        노출 향상
                       </span>
                     )}
                   </div>
@@ -219,9 +220,9 @@ export default function StoriesPage() {
                   <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
                     {story.score_before !== null && story.score_after !== null ? (
                       <div className="flex items-center gap-1.5 text-sm">
-                        <span className="text-gray-400">{story.score_before.toFixed(0)}점</span>
+                        <span className="text-gray-400">{getScoreTextLabel(story.score_before)}</span>
                         <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
-                        <span className="font-bold text-emerald-600">{story.score_after.toFixed(0)}점</span>
+                        <span className="font-bold text-emerald-600">{getScoreTextLabel(story.score_after)}</span>
                       </div>
                     ) : (
                       <span />

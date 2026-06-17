@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { getScoreTextLabel } from "@/lib/scoreLabels";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -99,7 +100,7 @@ export default async function StoryDetailPage({
             )}
             {story.score_delta !== null && story.score_delta > 0 && (
               <span className="text-sm font-bold bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200">
-                +{story.score_delta.toFixed(0)}점 향상
+                노출 향상
               </span>
             )}
           </div>
@@ -119,27 +120,25 @@ export default async function StoryDetailPage({
               {/* Before */}
               <div className="text-center">
                 <p className="text-sm text-gray-400 mb-1">시작 전</p>
-                <p className="text-3xl md:text-4xl font-black text-gray-400">
-                  {story.score_before !== null ? story.score_before.toFixed(0) : "—"}
+                <p className="text-2xl font-black text-gray-400">
+                  {story.score_before !== null ? getScoreTextLabel(story.score_before) : "—"}
                 </p>
-                <p className="text-sm text-gray-400">점</p>
               </div>
 
               {/* 화살표 */}
               <div className="flex flex-col items-center gap-1">
                 <ChevronRight className="w-8 h-8 text-blue-300" />
                 {story.score_delta !== null && story.score_delta > 0 && (
-                  <span className="text-sm font-bold text-emerald-600">+{story.score_delta.toFixed(0)}점</span>
+                  <span className="text-sm font-bold text-emerald-600">향상</span>
                 )}
               </div>
 
               {/* After */}
               <div className="text-center">
                 <p className="text-sm text-emerald-600 font-medium mb-1">30일 후</p>
-                <p className="text-3xl md:text-4xl font-black text-emerald-600">
-                  {story.score_after !== null ? story.score_after.toFixed(0) : "—"}
+                <p className="text-2xl font-black text-emerald-600">
+                  {story.score_after !== null ? getScoreTextLabel(story.score_after) : "—"}
                 </p>
-                <p className="text-sm text-emerald-600">점</p>
               </div>
             </div>
           </div>

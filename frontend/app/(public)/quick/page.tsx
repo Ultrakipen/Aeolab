@@ -5,6 +5,7 @@ import Link from "next/link";
 import { trialScan, ApiError } from "@/lib/api";
 import type { TrialScanResult } from "@/types";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { getScoreTextLabel } from "@/lib/scoreLabels";
 
 // ── 상수 ──────────────────────────────────────────────────────────────────────
 
@@ -464,16 +465,13 @@ export default function QuickPage() {
                 {name} · {region} — AI 검색 노출 점수
               </p>
 
-              <div className="flex items-end gap-4 mb-4">
-                <span className={`text-7xl font-black leading-none ${scoreColor(score)}`}>
-                  {score}
+              <div className="flex items-center gap-3 mb-4">
+                <span className={`text-4xl font-black leading-none ${scoreColor(score)}`}>
+                  {getScoreTextLabel(score)}
                 </span>
-                <div className="mb-1">
-                  <p className="text-xl text-gray-500 font-bold leading-none mb-2">/ 100</p>
-                  <span className={`text-base font-bold px-3 py-1 rounded-full ${gradeColor(grade)}`}>
-                    {grade}등급
-                  </span>
-                </div>
+                <span className={`text-base font-bold px-3 py-1 rounded-full ${gradeColor(grade)}`}>
+                  {grade}등급
+                </span>
               </div>
 
               <p className={`text-base font-semibold mb-3 ${scoreColor(score)}`}>
@@ -488,14 +486,14 @@ export default function QuickPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white/70 rounded-xl p-3">
                   <p className="text-sm text-gray-500 mb-1">네이버 AI 노출</p>
-                  <p className={`text-2xl font-bold ${scoreColor(Math.round(track1))}`}>
-                    {Math.round(track1)}점
+                  <p className={`text-xl font-bold ${scoreColor(track1)}`}>
+                    {getScoreTextLabel(Math.round(track1))}
                   </p>
                 </div>
                 <div className="bg-white/70 rounded-xl p-3">
                   <p className="text-sm text-gray-500 mb-1">글로벌 AI 노출</p>
-                  <p className={`text-2xl font-bold ${scoreColor(Math.round(track2))}`}>
-                    {Math.round(track2)}점
+                  <p className={`text-xl font-bold ${scoreColor(track2)}`}>
+                    {getScoreTextLabel(Math.round(track2))}
                   </p>
                 </div>
               </div>

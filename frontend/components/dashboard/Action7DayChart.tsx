@@ -177,7 +177,7 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
               <Tooltip
                 formatter={(value: unknown) => {
                   if (typeof value !== 'number') return ["—", "점수"];
-                  return [`${scoreToLabel(value)} (${value.toFixed(1)}점)`, "점수"];
+                  return [scoreToLabel(value), "점수"];
                 }}
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />
