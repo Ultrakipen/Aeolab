@@ -88,7 +88,7 @@ export default async function DashboardPage({
 
   // ── 온보딩 ───────────────────────────────────────────────────
   const { data: profileRow } = await supabase
-    .from("profiles").select("onboarding_done").eq("id", user.id).maybeSingle();
+    .from("profiles").select("onboarding_done, basic_trial_used").eq("id", user.id).maybeSingle();
   let onboardingDone = profileRow?.onboarding_done ?? false;
   if (!onboardingDone && business) {
     await supabase.from("profiles").upsert({ id: user.id, onboarding_done: true }, { onConflict: "id" });
@@ -152,6 +152,7 @@ export default async function DashboardPage({
   const subscriptionPlan = isAdmin ? "biz"
     : subscription?.status === "active" || subscription?.status === "grace_period"
     ? subscription?.plan ?? "free" : "free";
+  const isTrialUser = !!(profileRow?.basic_trial_used) && plan === "free";
   const devMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
   const scanLimit = (isAdmin || devMode) ? 999 : SCAN_DAILY_LIMITS[plan] ?? 0;
   const scanUsed = scanUsedToday ?? 0;
@@ -165,8 +166,14 @@ export default async function DashboardPage({
   const guideTopAction = guideData?.priority_json?.[0] ?? null;
   const briefingPathLabel = guideData?.tools_json?.direct_briefing_paths?.[0]?.path_label ?? null;
   const faqQuestion = guideData?.tools_json?.faq_list?.[0]?.question ?? null;
-  const topMissingKeywords: string[] = Array.isArray(latestScan?.top_missing_keywords)
-    ? (latestScan!.top_missing_keywords as string[]).slice(0, 8) : [];
+  const _allMissingKeywords: string[] = Array.isArray(latestScan?.top_missing_keywords)
+    ? (latestScan!.top_missing_keywords as string[]) : [];
+  const topMissingKeywords: string[] = isTrialUser
+    ? _allMissingKeywords.slice(0, 4)
+    : _allMissingKeywords.slice(0, 8);
+  const trialHiddenKeywordCount = isTrialUser
+    ? Math.max(0, _allMissingKeywords.slice(0, 8).length - 4)
+    : 0;
 
   const todayActionText = calcTodayAction(
     guideTopAction,
@@ -571,6 +578,7 @@ export default async function DashboardPage({
               isSmartPlace={!!(business?.naver_place_id)}
               plan={plan}
               deprioritizeGlobal={true}
+              isTrialUser={isTrialUser}
             />
           </CollapseSectionWrapper>
 

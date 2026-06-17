@@ -23,6 +23,7 @@ interface DualTrackCardProps {
   growthStageLabel: string;
   isKeywordEstimated?: boolean;
   topMissingKeywords?: string[];
+  trialHiddenKeywordCount?: number;
   benchmarkAvg?: number;
   hasRegisteredKeywords?: boolean;
   blogContribution?: {
@@ -205,6 +206,7 @@ export default function DualTrackCard({
   growthStageLabel,
   isKeywordEstimated = false,
   topMissingKeywords = [],
+  trialHiddenKeywordCount = 0,
   benchmarkAvg,
   hasRegisteredKeywords = false,
   blogContribution,
@@ -459,6 +461,14 @@ export default function DualTrackCard({
                 ❌ {kw} →
               </Link>
             ))}
+            {trialHiddenKeywordCount > 0 && (
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-1 bg-amber-100 border border-amber-300 text-amber-700 text-sm font-medium rounded-full px-3 py-1 hover:bg-amber-200 transition-colors"
+              >
+                🔒 +{trialHiddenKeywordCount}개 더 — Basic 구독 후 확인
+              </Link>
+            )}
           </div>
           <p className="text-base text-amber-600 mt-2 leading-relaxed">
             {hasRegisteredKeywords

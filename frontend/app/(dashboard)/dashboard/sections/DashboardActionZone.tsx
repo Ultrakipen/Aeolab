@@ -34,6 +34,8 @@ interface Props {
   plan?: string;
   /** INACTIVE 업종 — 오늘 미션에서 글로벌 채널 후순위(네이버 quick-win 우선) */
   deprioritizeGlobal?: boolean;
+  /** Basic 무료 체험 사용자 — 가이드 잠금 처리 */
+  isTrialUser?: boolean;
 }
 
 /**
@@ -89,12 +91,38 @@ export default function DashboardActionZone({
   isSmartPlace = false,
   plan = "free",
   deprioritizeGlobal = false,
+  isTrialUser = false,
 }: Props) {
   const [showMore, setShowMore] = useState(false);
 
   // 앵커 id는 외부 CollapseSectionWrapper(id="section-action")가 제공 — 중복 id 방지로 여기선 미부착
   return (
     <section aria-label="액션 가이드" className="flex flex-col gap-3">
+      {/* 체험 사용자 가이드 잠금 카드 */}
+      {isTrialUser && (
+        <div className="rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 px-4 py-4 mb-2">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+              <span className="text-lg">🔒</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-gray-900 leading-snug">맞춤 AI 개선 가이드가 준비됐습니다</p>
+              <p className="text-sm text-gray-500 mt-1 leading-snug">
+                이번 스캔 결과를 바탕으로 네이버 AI 브리핑 노출을 높이는<br />
+                3가지 우선 개선 항목이 생성됐습니다.
+              </p>
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-1.5 mt-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+              >
+                Basic 구독으로 가이드 확인 →
+              </Link>
+              <p className="text-xs text-gray-400 mt-1.5">첫 달 4,950원 · 이후 9,900원/월</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ① 오늘 — 시급 */}
       <ZoneHeader
         step={1}
@@ -105,7 +133,7 @@ export default function DashboardActionZone({
         badgeBg="bg-rose-100"
         badgeText="text-rose-800"
       />
-      {hasLatestScan && accessToken ? (
+      {hasLatestScan && accessToken && !isTrialUser ? (
         <DailyMissionCard
           bizId={bizId}
           token={accessToken}
@@ -115,7 +143,7 @@ export default function DashboardActionZone({
           topMissingKeyword={topMissingKeyword}
           deprioritizeGlobal={deprioritizeGlobal}
         />
-      ) : (
+      ) : isTrialUser ? null : (
         <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-4 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
             <Zap className="w-4 h-4 text-rose-600" />
