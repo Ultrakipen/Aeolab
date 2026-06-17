@@ -143,11 +143,11 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
               const x = typeof props.x === 'string' ? parseInt(props.x) : props.x
               const y = typeof props.y === 'string' ? parseInt(props.y) : props.y
               const v = props.payload?.value ?? 0
-              const grade = v === 100 ? '' : v === 80 ? '우수▲' : v === 60 ? '양호▲' : v === 40 ? '보통▲' : ''
+              const grade = v === 80 ? '우수' : v === 60 ? '양호' : v === 40 ? '보통' : ''
+              if (!grade) return <g />
               return (
                 <g>
-                  <text x={x} y={y} dy={4} textAnchor="end" fontSize={10} fill="#94a3b8">{v}</text>
-                  {grade && <text x={x} y={y + 11} textAnchor="end" fontSize={9} fill="#94a3b8">{grade}</text>}
+                  <text x={x} y={y} dy={4} textAnchor="end" fontSize={10} fill="#94a3b8">{grade}</text>
                 </g>
               )
             }}

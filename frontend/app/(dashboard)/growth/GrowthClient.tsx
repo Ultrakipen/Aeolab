@@ -412,16 +412,11 @@ export default function GrowthClient({
                   />
                   <YAxis
                     domain={[0, 100]}
-                    tick={{ fontSize: 12, fill: "#9ca3af" }}
+                    ticks={[0, 40, 60, 80, 100]}
+                    tickFormatter={(v: number) => v === 80 ? '우수' : v === 60 ? '양호' : v === 40 ? '보통' : ''}
+                    tick={{ fontSize: 10, fill: "#9ca3af" }}
                     tickLine={false}
                     axisLine={false}
-                    label={{
-                      value: "AI 노출 점수",
-                      angle: -90,
-                      position: "insideLeft",
-                      offset: 20,
-                      style: { fontSize: 11, fill: "#9ca3af" },
-                    }}
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
