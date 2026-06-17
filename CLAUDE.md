@@ -616,17 +616,18 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - Windows: `backend_venv\Scripts\activate`
 - pip: `backend_venv/Scripts/pip install -r backend/requirements.txt`
 
-### 점수 표시 원칙 (2026-06-10 확정, 2026-06-10 적용 범위 명확화)
+### 점수 표시 원칙 (2026-06-10 확정, 2026-06-17 스코프 명확화)
 
-> **⚠️ 점수 수치(숫자)는 사용자에게 직접 표시하지 않는다.** 모든 점수는 텍스트 레이블로만 노출. 대시보드 전 컴포넌트에 적용됨.
+> **⚠️ AI Visibility 점수 수치(숫자)는 사용자에게 직접 표시하지 않는다.** AI Visibility(`total_score`·`track1_score`·`track2_score`·`unified_score`) 모든 파생 숫자는 텍스트 레이블로만 노출. 대시보드·타임라인·가이드 전 컴포넌트에 적용됨.
 
-- **금지**: `72점`, `track1Score: 68` 등 숫자 직접 노출 — HeroCard·DualTrackCard·ChannelScoreCards·**CompetitorTimeline** 모든 컴포넌트에 적용
+- **금지**: `72점`, `track1Score: 68`, `total_score.toFixed(1)점` 등 AI Visibility 숫자 직접 노출 — HeroCard·DualTrackCard·ChannelScoreCards·**CompetitorTimeline**·**BriefingTimeline** 모든 컴포넌트에 적용
 - **티저 UI 더미 숫자도 금지**: 잠금(Lock) UI 뒤에 표시하는 샘플도 임의 숫자(`43점`·`51점`·`78점` 등) 사용 금지 → `--` 또는 의미 텍스트로 대체
 - **허용**: `"양호"`, `"보통"`, `"주의 필요"`, `"업종 상위권"`, `"AI 검색 노출 개선 중"` 등 의미 레이블; 진행률 바(%) 시각 보조 — 단, 숫자 레이블 없이
 - **구현 완료 파일 (텍스트 레이블 적용됨)**:
   - `DualTrackCard.tsx` → `getScoreStatusLabel()` (양호/보통/주의 필요)
   - `DashboardHeroCard.tsx` → `getStage()` (AI 검색 노출 양호/개선 중/미흡/시작 전)
-- **미수정 파일**: 현재 없음 (2026-06-10 기준 전체 적용 완료)
+  - `BriefingTimeline.tsx` → `getScoreTextLabel()` (툴팁·마일스톤·변화 방향 텍스트 — 2026-06-17 수정)
+- **미수정 파일**: 현재 없음 (2026-06-17 기준 전체 적용 완료)
 - **이유**: 낮은 점수 숫자가 사용자에게 불안감을 주고, 절대 수치보다 상대적 위치(업종 평균 대비, 단계)가 더 유용하다는 UX 판단
 - **주의**: 점수 수치 추가를 "개선"이라고 판단하지 말 것 — 의도적 설계 결정임
 

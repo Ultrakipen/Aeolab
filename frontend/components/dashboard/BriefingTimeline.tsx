@@ -1,6 +1,7 @@
 'use client'
 
 import { TrendingUp, TrendingDown, Minus, Star } from 'lucide-react'
+import { getScoreTextLabel } from '@/lib/scoreLabels'
 
 interface ScorePoint {
   score_date: string
@@ -62,7 +63,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
               totalChange > 0 ? 'text-green-600' : totalChange < 0 ? 'text-red-500' : 'text-gray-400'
             }`}
           >
-            {totalChange > 0 ? '+' : ''}{totalChange}점
+            {totalChange > 0 ? '향상 중' : totalChange < 0 ? '하락 중' : '유지'}
           </span>
           <span className="text-sm text-gray-400 ml-1">전체 변화</span>
         </div>
@@ -91,7 +92,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
               {/* 툴팁 */}
               <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center z-10">
                 <div className="bg-gray-800 text-white text-sm rounded px-2 py-1 whitespace-nowrap">
-                  {formatFullDate(p.score_date)}: {p.total_score.toFixed(1)}점
+                  {formatFullDate(p.score_date)}: {getScoreTextLabel(p.total_score)}
                   {isPeak && ' ★최고'}
                 </div>
                 <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800" />
@@ -114,7 +115,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
           <div className="flex items-center gap-2 text-sm">
             <Star className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span className="text-gray-500">
-              최고점 <span className="font-medium text-amber-700">{peakPoint.total_score.toFixed(1)}점</span> 달성
+              최고점 <span className="font-medium text-amber-700">{getScoreTextLabel(peakPoint.total_score)}</span> 달성
               <span className="text-gray-400 ml-1">({formatFullDate(peakPoint.score_date)})</span>
             </span>
           </div>
@@ -135,7 +136,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
             <span className="text-white font-bold leading-none" style={{ fontSize: 8 }}>→</span>
           </div>
           <span className="text-gray-500">
-            현재 <span className="font-medium text-blue-700">{latest.total_score.toFixed(1)}점</span>
+            현재 <span className="font-medium text-blue-700">{getScoreTextLabel(latest.total_score)}</span>
             <span className="text-gray-400 ml-1">({formatFullDate(latest.score_date)})</span>
           </span>
         </div>
