@@ -155,7 +155,7 @@ async def generate_review_reply(
 ):
     """리뷰 답변 초안 생성 (Claude Haiku, Basic+ 전용).
 
-    월별 한도: Basic 20회 / Startup 20회, Pro 무제한, Biz/Enterprise 무제한
+    월별 한도: Basic 20회 / Startup·Pro·Biz·Enterprise 무제한(999)
     """
     from middleware.plan_gate import check_review_reply_limit
     supabase = get_client()
