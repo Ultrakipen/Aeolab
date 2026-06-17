@@ -738,7 +738,7 @@ export default function DemoPage() {
                   { ch: "네이버 AI 브리핑", period: "2~4주",    border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집" },
                   { ch: "네이버 AI탭",       period: "2~4주",    border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강" },
                   { ch: "Gemini",            period: "수일~수주", border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 후 실시간 반영" },
-                  { ch: "ChatGPT",           period: "수주~수개월", border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "Bing Places 등록 시 빠름, 웹콘텐츠 기반" },
+                  { ch: "ChatGPT",           period: "수개월~1년",   border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "Bing Places 등록 시 빠름, 웹콘텐츠 기반" },
                 ].map((item) => (
                   <div key={item.ch} className={`rounded-xl border ${item.border} ${item.bg} px-3 py-2.5`}>
                     <div className={`flex items-center justify-between mb-0.5 ${item.text}`}>
@@ -799,7 +799,7 @@ export default function DemoPage() {
                 <span className="text-sm text-slate-700">📝 블로그 후기 {m.blogMentions}건 발견</span>
                 <span className="text-sm text-slate-700">✅ 스마트플레이스 자동 점검</span>
               </div>
-              <p className="text-sm text-slate-500">⏱ 손님 노출 기간: 네이버 2~4주 · Gemini 수일~수주 · ChatGPT 수주~수개월</p>
+              <p className="text-sm text-slate-500">⏱ 손님 노출 기간: 네이버 2~4주 · Gemini 수일~수주 · ChatGPT 수개월~1년</p>
             </div>
 
             {/* 업종 평균 대비 내 위치 (교육용 보조 — 성장단계·채널·오늘할일은 위 종합결론 히어로에 표시) */}
