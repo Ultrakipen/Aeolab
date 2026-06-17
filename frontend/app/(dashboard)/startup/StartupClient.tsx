@@ -3,6 +3,7 @@ import { useState } from "react";
 import { apiBase } from "@/lib/api";
 import { getSafeSession } from "@/lib/supabase/client";
 import { CATEGORY_GROUPS } from "@/lib/categories";
+import { getScoreTextLabel } from "@/lib/scoreLabels";
 
 interface StartupReport {
   category: string;
@@ -137,8 +138,8 @@ export function StartupClient() {
                 <div className="text-sm text-gray-500 mt-1">등록 사업장</div>
               </div>
               <div className="text-center p-3 md:p-4 bg-gray-50 rounded-xl">
-                <div className="text-xl md:text-2xl font-bold text-gray-900">{report.avg_competitor_score}</div>
-                <div className="text-sm text-gray-500 mt-1">평균 AI 점수</div>
+                <div className="text-lg md:text-xl font-bold text-gray-900">{getScoreTextLabel(report.avg_competitor_score)}</div>
+                <div className="text-sm text-gray-500 mt-1">평균 AI 노출</div>
               </div>
               <div className={`text-center p-3 md:p-4 rounded-xl border ${LEVEL_COLORS[report.competition_level_color] ?? "bg-gray-50"}`}>
                 <div className="text-base md:text-lg font-bold">{report.competition_level}</div>
@@ -169,7 +170,7 @@ export function StartupClient() {
                   {report.top_competitors.map((c, i) => (
                     <div key={i} className="flex items-center justify-between">
                       <span className="text-sm md:text-base text-gray-700 font-medium">{i + 1}. {c.name}</span>
-                      <span className="text-sm text-gray-500">{c.score}점 (노출 {c.exposure_freq}/100)</span>
+                      <span className="text-sm text-gray-500">노출 {c.exposure_freq}/100</span>
                     </div>
                   ))}
                 </div>

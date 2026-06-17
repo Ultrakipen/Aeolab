@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { apiBase } from "@/lib/api";
 import { getSafeSession } from "@/lib/supabase/client";
+import { getScoreTextLabel } from "@/lib/scoreLabels";
 
 interface AdDefenseGuide {
   situation_summary?: string;
@@ -108,8 +109,8 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
             <h2 className="text-base font-semibold text-gray-700 mb-3">현재 상황</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
               <div className="text-center p-4 bg-gray-50 rounded-xl">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{result.current_score.toFixed(0)}</div>
-                <div className="text-sm text-gray-500 mt-1">AI 점수</div>
+                <div className="text-lg md:text-xl font-bold text-gray-900">{getScoreTextLabel(result.current_score)}</div>
+                <div className="text-sm text-gray-500 mt-1">AI 노출 상태</div>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-xl">
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">{result.exposure_freq}</div>
