@@ -330,6 +330,8 @@ async def trial_search(request: Request, query: str, region: str = ""):
 
     import urllib.parse as _urlparse
 
+    _TEST_PATTERNS = _re.compile(r"테스트|_test_|_테스트_|test\d+", _re.IGNORECASE)
+
     items_out: list[dict] = []
     for item in (data.get("items") or [])[:5]:
         link = item.get("link") or ""
@@ -337,6 +339,8 @@ async def trial_search(request: Request, query: str, region: str = ""):
         place_id = m.group(1) if m else ""
         title = _strip_html(item.get("title", ""))
         if not title:
+            continue
+        if _TEST_PATTERNS.search(title):
             continue
         # mapx/mapy: WGS84 × 1e7 (네이버 표준)
         try:
