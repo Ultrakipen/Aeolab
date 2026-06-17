@@ -81,7 +81,7 @@ PLAN_LIMITS = {
     "biz": {
         "competitors": 999,
         "guide_monthly": 20,
-        "manual_scan_daily": 15,
+        "manual_scan_daily": 10,
         "auto_scan_mode": "full",
         "schema": True, "pdf": True, "csv": True,
         "startup_report": True, "api_keys": True,

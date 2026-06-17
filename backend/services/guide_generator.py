@@ -1204,7 +1204,7 @@ async def generate_smartplace_intro(
     try:
         message = await asyncio.to_thread(
             lambda: _get_client().messages.create(
-                model="claude-sonnet-4-6",
+                model="claude-haiku-4-5-20251001",
                 max_tokens=4096,
                 messages=[{"role": "user", "content": prompt}],
             )
@@ -1520,7 +1520,7 @@ async def generate_talktalk_faq(
     services: str,
     count: int = 10,
 ) -> dict:
-    """톡톡 채팅방 메뉴 + 자주 묻는 질문 생성 (Claude Sonnet — guide_generator.py 허용 경로).
+    """톡톡 채팅방 메뉴 + 자주 묻는 질문 생성 (Claude Haiku — guide_generator.py 허용 경로).
 
     반환 구조: {"items": [...], "chat_menus": [...]}
     """
@@ -1534,7 +1534,7 @@ async def generate_talktalk_faq(
     try:
         raw = await asyncio.to_thread(
             lambda: _get_client().messages.create(
-                model="claude-sonnet-4-6",
+                model="claude-haiku-4-5-20251001",
                 max_tokens=2000,
                 messages=[{"role": "user", "content": prompt}],
                 timeout=60.0,

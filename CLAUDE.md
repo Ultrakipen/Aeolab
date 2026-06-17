@@ -326,9 +326,13 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 - **Biz 49,900원**
 - **Enterprise 200,000원**
 
+> **요금제 한도 전체 기준**: `docs/plan_limits_v1.0.md` (2026-06-17 확정) — 기능 한도·API 비용·마진·단일 소스 파일 목록 포함. 수치 기재 전 항상 `backend/middleware/plan_gate.py PLAN_LIMITS` 직접 확인.
+
 **단일 소스 파일:**
-- 백엔드: `backend/config/prices.py` (PLAN_PRICES + FIRST_MONTH_DISCOUNT_PRICES)
-- 프론트: `frontend/lib/plans.ts`
+- **기능 한도**: `backend/middleware/plan_gate.py` (PLAN_LIMITS) — 한도 정의 원본
+- 가격: `backend/config/prices.py` (PLAN_PRICES + FIRST_MONTH_DISCOUNT_PRICES)
+- 프론트 카드: `frontend/lib/plans.ts`
+- 비교표: `frontend/app/(public)/pricing/page.tsx`, `frontend/app/(dashboard)/settings/page.tsx`
 - 관리자 MRR: `frontend/app/admin/AdminDashboard.tsx`
 - 결제: `backend/services/toss_billing.py`, `backend/routers/webhook.py`
 - UI: `frontend/components/common/PlanGate.tsx`, `frontend/app/(auth)/signup/page.tsx`

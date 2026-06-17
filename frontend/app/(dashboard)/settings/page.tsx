@@ -37,7 +37,7 @@ const PLAN_LIMITS: Record<string, { scan: string; competitors: string; autoScan:
   basic:      { scan: "하루 2회",   competitors: "3개",    autoScan: "주 1회 (월요일)" },
   startup:    { scan: "하루 3회",   competitors: "5개",    autoScan: "주 1회 (월요일)" },
   pro:        { scan: "하루 5회",   competitors: "5개",   autoScan: "주 3회" },
-  biz:        { scan: "하루 15회",  competitors: "무제한", autoScan: "매일" },
+  biz:        { scan: "하루 10회",  competitors: "무제한", autoScan: "매일" },
 };
 
 export default async function SettingsPage({
@@ -328,7 +328,7 @@ export default async function SettingsPage({
                   </thead>
                   <tbody>
                     {([
-                      ["직접 스캔",      "—",  "하루 2회", "하루 3회", "하루 5회", "하루 15회"],
+                      ["직접 스캔",      "—",  "하루 2회", "하루 3회", "하루 5회", "하루 10회"],
                       ["자동 스캔",      "—",  "주 1회",  "주 1회",   "주 3회",  "매일"],
                       ["경쟁사 비교",    "—",  "3개",     "5개",      "5개",     "무제한"],
                       ["AI 개선 가이드", "—",  "월 3회",  "월 5회",   "월 10회", "월 20회"],
