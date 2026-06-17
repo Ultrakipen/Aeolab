@@ -61,11 +61,12 @@ export default function UpdatePasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-6">
+    <main className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1 flex items-center justify-center px-4 py-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-bold text-blue-600">AEOlab</Link>
-          <p className="text-gray-500 mt-2 text-sm">새 비밀번호 설정</p>
+          <p className="text-base text-gray-500 mt-2">새 비밀번호 설정</p>
         </div>
 
         <form onSubmit={handleUpdate} className="bg-white rounded-xl p-6 shadow-sm space-y-5">
@@ -117,6 +118,7 @@ export default function UpdatePasswordPage() {
             {loading ? "변경 중..." : "비밀번호 변경"}
           </button>
         </form>
+      </div>
       </div>
       <SiteFooter />
     </main>
