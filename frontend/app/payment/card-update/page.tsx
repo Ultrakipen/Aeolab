@@ -6,6 +6,7 @@ import Link from "next/link";
 import { updateBillingCard, ApiError } from "@/lib/api";
 import { getSafeSession } from "@/lib/supabase/client";
 import { XCircle, CheckCircle2, CreditCard } from "lucide-react";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 type Status = "processing" | "success" | "error";
 
@@ -85,6 +86,7 @@ function CardUpdateContent() {
             </Link>
           </div>
         </div>
+        <SiteFooter />
       </main>
     );
   }
@@ -117,6 +119,7 @@ function CardUpdateContent() {
           </Link>
         </div>
       </div>
+      <SiteFooter />
     </main>
   );
 }
