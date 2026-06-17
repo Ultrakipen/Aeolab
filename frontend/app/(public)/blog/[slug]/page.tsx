@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { BLOG_POSTS } from "@/lib/blog-posts";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 export async function generateStaticParams() {
   return BLOG_POSTS.map((p) => ({ slug: p.slug }));
@@ -231,26 +232,7 @@ export default async function BlogPostPage({
         )}
       </div>
 
-      {/* 푸터 */}
-      <footer className="border-t border-gray-100 py-6 px-4 mt-6">
-        <div className="max-w-4xl mx-auto text-center text-sm text-gray-500">
-          <Link href="/" className="hover:text-gray-700">
-            AEOlab 홈으로
-          </Link>
-          <span className="mx-2">·</span>
-          <Link href="/blog" className="hover:text-gray-700">
-            블로그 목록
-          </Link>
-          <span className="mx-2">·</span>
-          <Link href="/keywords" className="hover:text-gray-700">
-            키워드 분석
-          </Link>
-          <span className="mx-2">·</span>
-          <Link href="/trial" className="hover:text-gray-700">
-            무료 진단
-          </Link>
-        </div>
-      </footer>
+      <SiteFooter activePage="/blog" />
     </main>
   );
 }

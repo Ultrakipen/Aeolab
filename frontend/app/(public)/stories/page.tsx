@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -270,6 +271,7 @@ export default function StoriesPage() {
           </Link>
         </div>
       </div>
+      <SiteFooter activePage="/stories" />
     </main>
   );
 }

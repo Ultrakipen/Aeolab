@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -174,6 +175,7 @@ export default async function StoryDetailPage({
           </Link>
         </div>
       </div>
+      <SiteFooter activePage="/stories" />
     </main>
   );
 }

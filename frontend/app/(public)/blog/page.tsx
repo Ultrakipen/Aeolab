@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BLOG_POSTS } from "@/lib/blog-posts";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 export const metadata: Metadata = {
   title: "소상공인 AI 검색 노출 가이드 | AEOlab 블로그",
@@ -156,22 +157,7 @@ export default function BlogIndexPage() {
         </div>
       </div>
 
-      {/* 푸터 */}
-      <footer className="border-t border-gray-100 py-6 px-4 mt-6">
-        <div className="max-w-5xl mx-auto text-center text-sm text-gray-500">
-          <Link href="/" className="hover:text-gray-700">
-            AEOlab 홈으로
-          </Link>
-          <span className="mx-2">·</span>
-          <Link href="/keywords" className="hover:text-gray-700">
-            키워드 분석
-          </Link>
-          <span className="mx-2">·</span>
-          <Link href="/trial" className="hover:text-gray-700">
-            무료 진단
-          </Link>
-        </div>
-      </footer>
+      <SiteFooter activePage="/blog" />
     </main>
   );
 }
