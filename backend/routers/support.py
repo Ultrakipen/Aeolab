@@ -198,6 +198,34 @@ async def _check_monthly_limit(user_id: str) -> None:
         )
 
 
+async def _notify_admin_new_ticket(ticket_id, category: str, title: str, user_id: str) -> None:
+    """새 문의 접수 시 관리자 이메일 알림 (RESEND_API_KEY 미설정 시 skip)."""
+    resend_key = os.getenv("RESEND_API_KEY", "")
+    from_email = os.getenv("FROM_EMAIL", "noreply@aeolab.co.kr")
+    admin_emails_raw = os.getenv("ADMIN_EMAILS", "contact@aeolab.co.kr")
+    admin_emails = [e.strip() for e in admin_emails_raw.split(",") if e.strip()]
+    if not resend_key or not admin_emails:
+        return
+    try:
+        import resend as _resend
+        _resend.api_key = resend_key
+        _resend.Emails.send({
+            "from": f"AEOlab <{from_email}>",
+            "to": admin_emails,
+            "subject": f"[AEOlab] 새 Q&A 문의 #{ticket_id}: {title}",
+            "html": (
+                f"<p><b>티켓 ID:</b> {ticket_id}</p>"
+                f"<p><b>카테고리:</b> {category}</p>"
+                f"<p><b>제목:</b> {title}</p>"
+                f"<p><b>작성자 ID:</b> {user_id}</p>"
+                f"<p><a href='https://aeolab.co.kr/admin/support'>관리자 페이지에서 확인</a></p>"
+            ),
+        })
+        _logger.debug("[support] 관리자 새 티켓 알림 발송 ticket_id=%s", ticket_id)
+    except Exception as e:
+        _logger.warning("[support] 관리자 알림 발송 실패 (무시) ticket_id=%s: %s", ticket_id, e)
+
+
 async def _send_reply_notification(ticket_id: str, ticket_title: str, user_id: str) -> None:
     """관리자 답글 등록 시 이메일 알림 (RESEND_API_KEY 미설정 시 skip)."""
     resend_key = os.getenv("RESEND_API_KEY", "")
@@ -289,6 +317,9 @@ async def create_ticket(
 
     ticket = insert_res.data[0]
     _logger.info(f"[support] 문의 등록: ticket_id={ticket['id']}, user_id={user_id}, category={body.category}")
+
+    import asyncio as _asyncio
+    _asyncio.create_task(_notify_admin_new_ticket(ticket["id"], body.category, body.title, user_id))
     return {"ticket": ticket}
 
 

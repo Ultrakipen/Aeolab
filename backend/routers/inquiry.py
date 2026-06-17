@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -11,6 +13,33 @@ from utils.admin_auth import verify_admin
 
 router = APIRouter()
 _logger = logging.getLogger("aeolab.inquiry")
+
+
+async def _notify_admin_new_inquiry(name: str, email: str, subject: str, inquiry_id) -> None:
+    resend_key = os.getenv("RESEND_API_KEY", "")
+    from_email = os.getenv("FROM_EMAIL", "noreply@aeolab.co.kr")
+    admin_emails_raw = os.getenv("ADMIN_EMAILS", "contact@aeolab.co.kr")
+    admin_emails = [e.strip() for e in admin_emails_raw.split(",") if e.strip()]
+    if not resend_key or not admin_emails:
+        return
+    try:
+        import resend as _resend
+        _resend.api_key = resend_key
+        _resend.Emails.send({
+            "from": f"AEOlab <{from_email}>",
+            "to": admin_emails,
+            "subject": f"[AEOlab] 새 문의 접수 #{inquiry_id}: {subject}",
+            "html": (
+                f"<p><b>문의 ID:</b> {inquiry_id}</p>"
+                f"<p><b>이름:</b> {name}</p>"
+                f"<p><b>이메일:</b> {email}</p>"
+                f"<p><b>제목:</b> {subject}</p>"
+                f"<p><a href='https://aeolab.co.kr/admin'>관리자 페이지에서 확인</a></p>"
+            ),
+        })
+        _logger.debug("[inquiry] 관리자 알림 발송 완료 id=%s", inquiry_id)
+    except Exception as e:
+        _logger.warning("[inquiry] 관리자 알림 발송 실패 (무시) id=%s: %s", inquiry_id, e)
 
 
 # ── Pydantic 모델 ──────────────────────────────────────────────────────────────
@@ -67,6 +96,9 @@ async def submit_inquiry(
         )
         inquiry_id = ins.data[0]["id"] if ins.data else None
         _logger.info("inquiry submitted id=%s user=%s", inquiry_id, user["id"])
+        asyncio.create_task(_notify_admin_new_inquiry(
+            body.name.strip(), body.email.strip(), body.subject.strip(), inquiry_id
+        ))
         return {"id": inquiry_id, "message": "문의가 접수되었습니다."}
     except HTTPException:
         raise

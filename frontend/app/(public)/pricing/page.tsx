@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { PayButton } from "./PayButton";
@@ -6,6 +7,15 @@ import PlanRecommender from "./PlanRecommender";
 import GroupHeadlineBanner from "./GroupHeadlineBanner";
 import { PLANS, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import ChannelDifferentiationCard from "@/components/common/ChannelDifferentiationCard";
+
+export const metadata: Metadata = {
+  title: "요금제 | AEOlab — AI 검색 노출 진단 서비스",
+  description: "Basic 월 9,900원부터 Biz까지. 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 4채널 노출 진단. 신규 가입 첫 달 50% 할인.",
+  openGraph: {
+    title: "AEOlab 요금제 — 월 9,900원부터",
+    description: "Basic·창업패키지·Pro·Biz 비교. 소상공인 AI 검색 노출 진단 서비스. 신규 첫 달 50% 할인.",
+  },
+};
 
 export default function PricingPage() {
   return (
