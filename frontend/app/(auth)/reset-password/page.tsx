@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { Mail } from "lucide-react";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState("");
@@ -30,23 +31,26 @@ export default function ResetPasswordPage() {
 
   if (done) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="w-full max-w-sm text-center">
-          <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm">
-            <Mail className="w-10 h-10 text-blue-400 mx-auto mb-4" strokeWidth={1.5} />
-            <h2 className="text-lg font-bold text-gray-900 mb-2">이메일을 확인해주세요</h2>
-            <p className="text-sm text-gray-500 mb-6">
-              <span className="font-medium text-gray-700">{email}</span>으로<br />
-              비밀번호 재설정 링크를 발송했습니다.
-            </p>
-            <Link
-              href="/login"
-              className="block w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
-            >
-              로그인 페이지로
-            </Link>
+      <main className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="w-full max-w-sm text-center">
+            <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm">
+              <Mail className="w-10 h-10 text-blue-400 mx-auto mb-4" strokeWidth={1.5} />
+              <h2 className="text-lg font-bold text-gray-900 mb-2">이메일을 확인해주세요</h2>
+              <p className="text-sm text-gray-500 mb-6">
+                <span className="font-medium text-gray-700">{email}</span>으로<br />
+                비밀번호 재설정 링크를 발송했습니다.
+              </p>
+              <Link
+                href="/login"
+                className="block w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
+              >
+                로그인 페이지로
+              </Link>
+            </div>
           </div>
         </div>
+        <SiteFooter />
       </main>
     );
   }
@@ -86,6 +90,7 @@ export default function ResetPasswordPage() {
           <Link href="/login" className="text-blue-600 hover:underline">로그인으로 돌아가기</Link>
         </p>
       </div>
+      <SiteFooter />
     </main>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { trialScan, ApiError } from "@/lib/api";
 import type { TrialScanResult } from "@/types";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 // ── 상수 ──────────────────────────────────────────────────────────────────────
 
@@ -568,6 +569,7 @@ export default function QuickPage() {
           </div>
         )}
       </div>
+      <SiteFooter />
     </main>
   );
 }

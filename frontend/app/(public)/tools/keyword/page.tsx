@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { Sparkles, Loader2, ArrowLeft } from "lucide-react";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -255,6 +256,7 @@ export default function KeywordToolPage() {
           </div>
         </div>
       </div>
+      <SiteFooter />
     </main>
   );
 }

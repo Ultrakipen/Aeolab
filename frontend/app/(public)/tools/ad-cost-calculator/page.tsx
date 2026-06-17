@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, TrendingDown, Calculator } from "lucide-react";
 import { PLAN_PRICES } from "@/lib/plans";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 const AEOLAB_MONTHLY = PLAN_PRICES.basic;
 const AI_REPLACE_RATIO = 0.3; // 광고비의 30%를 AI 노출로 대체 가정
@@ -93,7 +94,7 @@ export default function AdCostCalculatorPage() {
           {/* AEOlab 구독료 */}
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
             <p className="text-sm font-semibold text-blue-600 mb-1">AEOlab 구독료</p>
-            <p className="text-2xl md:text-3xl font-black text-blue-700">9,900원</p>
+            <p className="text-2xl md:text-3xl font-black text-blue-700">{formatWon(AEOLAB_MONTHLY)}</p>
             <p className="text-sm text-blue-500 mt-1">
               광고비의{" "}
               <span className="font-bold">
@@ -186,6 +187,7 @@ export default function AdCostCalculatorPage() {
           </div>
         </div>
       </div>
+      <SiteFooter />
     </main>
   );
 }

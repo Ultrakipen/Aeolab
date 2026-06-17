@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
+import { SiteFooter } from "@/components/common/SiteFooter";
 
 export const metadata = { title: "도움말 FAQ | AEOlab" };
 
@@ -61,6 +62,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
     new Date(iso).toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto p-4 md:p-8">
         {/* 헤더 */}
@@ -167,5 +169,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
         </div>
       </div>
     </div>
+    <SiteFooter />
+    </>
   );
 }
