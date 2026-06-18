@@ -274,8 +274,8 @@ export default async function SettingsPage({
             </div>
           </section>
 
-          {/* ── 알림 및 결제 설정 (활성 구독자만) ── */}
-          {isActive && (
+          {/* ── 알림 및 결제 설정 (활성 구독자 + 정지 상태) ── */}
+          {(isActive || currentStatus === "suspended") && (
             <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-4 md:px-5 py-4 border-b border-gray-100">
                 <h2 className="text-base md:text-lg font-semibold text-gray-800">알림 · 결제 설정</h2>

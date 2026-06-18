@@ -690,12 +690,24 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">AEOlab 관리자</h1>
             <p className="text-sm text-gray-400">구독자·매출·공지사항·FAQ·Q&A 관리</p>
           </div>
-          <button
-            onClick={() => fetchAll()}
-            className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-          >
-            새로고침
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => fetchAll()}
+              className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+            >
+              새로고침
+            </button>
+            <button
+              onClick={() => {
+                try { localStorage.removeItem("aeolab_admin_authed"); } catch { /* ignore */ }
+                setAuthed(false);
+                setInputKey("");
+              }}
+              className="text-sm text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              로그아웃
+            </button>
+          </div>
         </div>
 
         {/* 외부 링크 */}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
+import Image from "next/image"
 import { X, ZoomIn, Search } from "lucide-react"
 
 interface BeforeAfterItem {
@@ -103,10 +104,13 @@ function Lightbox({ src, alt, label, date, onClose }: LightboxProps) {
           <span className="text-white/60 text-sm">{date}</span>
         </div>
 
-        <img
+        <Image
           src={src}
           alt={alt}
-          className="w-full rounded-xl shadow-2xl object-contain max-h-[75vh]"
+          width={1200}
+          height={900}
+          className="w-full h-auto rounded-xl shadow-2xl object-contain"
+          style={{ maxHeight: "75vh" }}
         />
 
         <p className="mt-3 text-center text-white/50 text-sm">
@@ -144,21 +148,20 @@ function ImageThumb({ item, label, isBefore, onClick }: ImageThumbProps) {
             <span className="text-sm text-gray-400 text-center px-2">이미지를 불러올 수 없습니다</span>
           </div>
         ) : (
-          <>
-            {/* 로딩 중 skeleton */}
+          <div className={`relative w-full aspect-video overflow-hidden rounded-lg border ${borderClass}`}>
             {!imgLoaded && (
-              <div
-                className={`absolute inset-0 w-full rounded-lg border ${borderClass} bg-gray-100 animate-pulse aspect-video`}
-              />
+              <div className="absolute inset-0 bg-gray-100 animate-pulse" />
             )}
-            <img
+            <Image
+              fill
               src={item.image_url}
               alt={label}
-              className={`w-full rounded-lg border ${borderClass} object-cover aspect-video transition-opacity group-hover:opacity-80 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+              className={`object-cover transition-opacity group-hover:opacity-80 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
               onLoad={() => setImgLoaded(true)}
               onError={() => setImgError(true)}
+              sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 20vw"
             />
-          </>
+          </div>
         )}
         {!imgError && imgLoaded && (
           <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/0 group-hover:bg-black/30 transition-all">
