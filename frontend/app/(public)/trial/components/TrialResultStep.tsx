@@ -10,6 +10,7 @@ import {
 import { getUserGroup, GROUP_MESSAGES, getBriefingEligibility, type BriefingEligibility } from "@/lib/userGroup";
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import TodayOneAction from "@/components/trial/TodayOneAction";
+import NaverStatusSection from "@/components/trial/NaverStatusSection";
 import NaverAiPathwayCard from "@/components/dashboard/NaverAiPathwayCard";
 import SubscriptionValueCompare from "@/components/trial/SubscriptionValueCompare";
 import SubscriptionScreenshotPreview from "@/components/trial/SubscriptionScreenshotPreview";
@@ -934,7 +935,35 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         </div>
 
-        {/* ── 2. 핵심 실측 상세 (증거) ────────────────────────────── */}
+        {/* ── 1-b. 네이버 현황 (location_based 업종만) ──────────── */}
+        {(result as { business_type?: string }).business_type !== "non_location" && (
+          <NaverStatusSection
+            businessName={form.business_name || "내 가게"}
+            searchQuery={(naver as { search_query?: string } | null)?.search_query}
+            myRank={naver?.my_rank ?? null}
+            isSmartPlace={
+              result.smart_place_check?.is_smart_place ??
+              (naver as { is_smart_place?: boolean } | null)?.is_smart_place ??
+              false
+            }
+            naverCompetitors={
+              (naver as { naver_competitors?: Array<{ rank: number; name: string; address?: string }> } | null)?.naver_competitors
+            }
+            hasIntro={result.smart_place_check?.has_intro ?? hasIntro}
+            hasRecentPost={result.smart_place_check?.has_recent_post ?? hasRecentPost}
+            hasFaq={result.smart_place_check?.has_faq ?? hasFaq}
+            photoCount={(result.smart_place_check as { photo_count?: number } | null | undefined)?.photo_count}
+            visitorReviewCount={(result.smart_place_check as { visitor_review_count?: number } | null | undefined)?.visitor_review_count}
+            avgRating={(result.smart_place_check as { avg_rating?: number } | null | undefined)?.avg_rating}
+            briefingCategory={briefingCategory}
+            inBriefing={inBriefing}
+            blogCount={blogCount}
+            topCompetitorName={(naver as { top_competitor_name?: string | null } | null)?.top_competitor_name}
+            topCompetitorBlogCount={(naver as { top_competitor_blog_count?: number } | null)?.top_competitor_blog_count}
+          />
+        )}
+
+        {/* ── 2. 핵심 실측 상세 (AI 스캔 결과) ──────────────────── */}
         <ScanConclusionCard
           businessName={form.business_name || "내 가게"}
           chatgptMentioned={chatgptMentioned}

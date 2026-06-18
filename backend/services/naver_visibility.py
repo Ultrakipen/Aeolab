@@ -56,6 +56,28 @@ def _name_matches(target: str, candidate: str) -> bool:
     return False
 
 
+def _build_region_prefix(region: str) -> str:
+    """
+    행정구역 → 검색 정밀도 최대화
+    "창원시 성산구 상남동" → "성산구 상남동"  (구+동 조합, 가장 정밀)
+    "서울특별시 강남구 역삼동" → "강남구 역삼동"
+    "창원시 성산구" → "창원 성산구"
+    "창원시" → "창원"
+    """
+    parts = (region or "").strip().split()
+    if not parts:
+        return ""
+    # 시/도 레벨 (첫 토큰) — 접미사 제거
+    city = re.sub(r"(특별시|광역시|특별자치시|특별자치도|시|도)$", "", parts[0]).strip()
+    if len(parts) == 1:
+        return city
+    if len(parts) == 2:
+        # "창원시 성산구" → "창원 성산구"
+        return f"{city} {parts[1]}".strip()
+    # 3개 이상: 구+동 조합이 가장 정밀 ("성산구 상남동")
+    return f"{parts[1]} {parts[2]}".strip()
+
+
 def _clean_keyword(keyword: str) -> str:
     """검색어의 특수문자 제거 — 네이버 API 오동작 방지 (·, /, ·, 괄호 등)"""
     # 슬래시·가운뎃점·특수기호 → 공백으로 대체 후 중복 공백 제거
@@ -100,10 +122,8 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
     import asyncio
 
     # ── 검색어 구성 ────────────────────────────────────────────────
-    # 행정단위 접미사(시·도·군·구·특별시·광역시) 제거 → "창원시" → "창원"
-    import re as _re
-    _raw_region = region.split()[0] if region else (region or "")
-    region_prefix = _re.sub(r"(특별시|광역시|특별자치시|특별자치도|시|도|군|구)$", "", _raw_region).strip()
+    # 행정구역 정밀 파싱: "창원시 성산구 상남동" → "성산구 상남동" (구+동 조합이 가장 정밀)
+    region_prefix = _build_region_prefix(region)
     # 키워드 특수문자 정리 ("웨딩 스냅·영상" → "웨딩 스냅 영상")
     clean_kw = _clean_keyword(keyword)
     search_query = f"{region_prefix} {clean_kw}".strip()

@@ -121,10 +121,18 @@ async def _recover_naver_place_id(business_name: str, region: str) -> str:
     import re as _re
     if not business_name:
         return ""
-    region_part = (region or "").split()[0] if region else ""
-    region_prefix = _re.sub(
-        r"(특별시|광역시|특별자치시|특별자치도|시|도|군|구)$", "", region_part
-    ).strip()
+    # 행정구역 정밀 파싱 — naver_visibility._build_region_prefix 동일 로직
+    _parts = (region or "").strip().split()
+    if not _parts:
+        region_prefix = ""
+    else:
+        _city = _re.sub(r"(특별시|광역시|특별자치시|특별자치도|시|도)$", "", _parts[0]).strip()
+        if len(_parts) == 1:
+            region_prefix = _city
+        elif len(_parts) == 2:
+            region_prefix = f"{_city} {_parts[1]}".strip()
+        else:
+            region_prefix = f"{_parts[1]} {_parts[2]}".strip()
     query = f"{region_prefix} {business_name}".strip() if region_prefix else business_name.strip()
     if not query:
         return ""
@@ -292,11 +300,18 @@ async def trial_search(request: Request, query: str, region: str = ""):
         _logger.warning("trial_search: NAVER_CLIENT_ID/SECRET not configured")
         return {"items": [], "fallback_to_manual": True}
 
-    # 행정단위 접미사 제거 ("창원시" → "창원") — naver_visibility.py와 동일 패턴
-    region_raw = (region or "").split()[0] if region else ""
-    region_prefix = _re.sub(
-        r"(특별시|광역시|특별자치시|특별자치도|시|도|군|구)$", "", region_raw
-    ).strip()
+    # 행정구역 정밀 파싱 — naver_visibility._build_region_prefix 동일 로직
+    _r_parts = (region or "").strip().split()
+    if not _r_parts:
+        region_prefix = ""
+    else:
+        _r_city = _re.sub(r"(특별시|광역시|특별자치시|특별자치도|시|도)$", "", _r_parts[0]).strip()
+        if len(_r_parts) == 1:
+            region_prefix = _r_city
+        elif len(_r_parts) == 2:
+            region_prefix = f"{_r_city} {_r_parts[1]}".strip()
+        else:
+            region_prefix = f"{_r_parts[1]} {_r_parts[2]}".strip()
     search_q = f"{region_prefix} {q}".strip() if region_prefix else q
 
     headers = {
