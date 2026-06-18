@@ -646,21 +646,23 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
-### 2026-05-26 — AI 노출 기준 교차검증 + 안내문 전사 수정 (13개 파일)
-> 인터넷 최신 문서 기반 교차검증 → 오류·과장 표현 전사 수정 + 2차 배포
-- **교차검증 확인**: GPT-4.1-mini 컷오프 2024.06 ✅ / ChatGPT 웹검색=Bing 기반 ✅ / 네이버 블로그→Bing "완전 차단" 과장 → "영향 제한적"으로 전사 수정 / beauty 업종 AI 브리핑 2026 연내 ACTIVE 전환 공식 예고(네이버 CEO 컨콜 2026.02) 신규 발견
-- **핵심 수정 3종**: ① "2~4주 점수 변화" → 네이버(2~4주)/ChatGPT·Gemini(수개월) 채널별 분리 ② 네이버 블로그 effect `"ChatGPT·Gemini"` → `"AI탭·AI 브리핑"` ③ `pdf_generator.py` "Google AI 노출 시작" 허위 보장 제거
-- **수정 파일 13개**: `AIDiagnosisCard.tsx`×2, `GlobalAiActionCard.tsx`, `FAQSection.tsx`×2, `HowItWorksSection.tsx`, `GuideClient.tsx`, `chatgpt-search/page.tsx`(title+desc), `blog-strategy/page.tsx`, `gap_analyzer.py`, `pdf_generator.py`, `ai_exposure_standard_and_naver_seo_v1.0.md`(v1.3)
-- **beauty 업종**: LIKELY 유지, `ai_exposure_standard_and_naver_seo_v1.0.md §1.2` "2026 연내 ACTIVE 공식 예고" 추가 — `briefing_category_expansion_monitor_job` 자동 감지 대기 중
-
-### 2026-05-25 — 롱테일 자연어 질의 대응 P1
-`keyword_taxonomy.build_ai_scan_queries()` 단일 소스(짧은 변형 3 + 자연어 변형 2 = 5쿼리). `scan.py`·`jobs.py` 배선. 비용 불변. `AICitationCard.tsx` 제로클릭 실측 표시. 상세 → `docs/naver_longtail_query_response_v1.0.md`
-
-### 2026-05-18 — AI 브리핑·AI탭 구분 + M1~M3 + 리드젠 + 버그수정
-- **AI 브리핑 vs AI탭 9건**: `NaverAiPathwayCard.tsx` 신규·`/guide/ai-tab` 신규·용어 표준화("AI탭"≠"AI 정보 탭"). 상세 → `docs/ai_briefing_vs_ai_tab_clarification_v1.0.md`
-- **M1~M3**: WHITELIST 59개·`in_ai_tab`/`ad_only` 플래그·AI탭 체크리스트 25종·`NAVER_TRACK_WEIGHTS_V3_2`·`simulate_ai_tab_answer` v2(measured/estimated). 상세 → `docs/naver_ai_search_optimization_plan_v1.0.md`
-- **리드젠**: `FreeToolsSection.tsx`·메뉴 Excel(`/api/tools/menu-template.xlsx`)·`InlineKeywordWidget.tsx` 신규
-- **P2 버그**: `competitor_place_crawler.py`+`naver_place_stats.py` `except pass`→`warning()`. `AgencyServiceSection.tsx` 신규
+### 2026-06-18 — 상업 서비스 수준 전체 점검 및 개선 15건
+> OWASP·개인정보보호법·전자상거래법·SEO·신뢰성 기준 상업 점검
+- **P0 오판 복구**: `webhook.py /billing/issue`에 `_verify_toss_auth` 오적용(프론트 호출 엔드포인트) → 롤백 + `profiles` user 존재 검증으로 교체
+- **보안**: `privacy/page.tsx` 개인정보 보호책임자 실명 "김봉후" 등록 (개인정보보호법 제30조)
+- **보안**: `support/tickets/new/page.tsx` `NEXT_PUBLIC_ADMIN_EMAILS` 클라이언트 번들 노출 제거
+- **보안**: `PlanGate.tsx` `enterprise: 4` 추가 (엔터프라이즈 플랜 기능 게이트 누락 수정)
+- **법률**: `PayButton.tsx` 결제 모달에 전자상거래법 §17 청약철회 7일 명시 + 이용약관 링크
+- **SEO**: `sitemap.ts` 59개 카테고리 페이지 추가 + `new Date()` → 빌드 날짜 고정
+- **SEO**: `stories/page.tsx` server/client 분리 → OG metadata export 가능
+- **SEO**: `opengraph-image.tsx:169` "3채널" → "4채널" 업데이트 (ChatGPT·Gemini·네이버·Google AI 반영)
+- **신뢰성**: `chatgpt_scanner.py` `check_citation()` 20초 timeout 추가
+- **신뢰성**: `naver_place_stats.py` × 3건, `scan.py` × 2건 `except Exception: pass` → debug/warning 로그
+- **UX**: `settings/page.tsx` suspended 상태 사용자도 구독 해지 버튼 노출
+- **성능**: `BeforeAfterCard.tsx` `<img>` → Next.js `<Image>` (WebP 자동변환·지연로딩·썸네일+라이트박스)
+- **안정성**: `DashboardErrorBoundary` 신설 → `(dashboard)/layout.tsx` 적용
+- **관리**: `AdminDashboard.tsx` 로그아웃 버튼 추가 (localStorage 세션 삭제)
+- **전 페이지 점검 완료**: 75개 페이지 7기준(게이트N·T 포함) 전체 ✅ (2026-06-17 선언)
 
 
 ---
@@ -683,29 +685,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 | **P2 DB v5.7 컬럼** | P2와 동시 실행 (Supabase SQL Editor) | — |
 | **P3 점수 모델 v3.1** | 백엔드 로그 `[P3-READY]` WARNING 발생 시 | ✅ 매일 09:15 KST 자동 체크 중 |
 
-**P2 트리거 확인 명령** (주 1회 실행):
-```bash
-ssh root@115.68.231.57 'cd /var/www/aeolab && source venv/bin/activate && python3 -c "
-import asyncio
-from playwright.async_api import async_playwright
-async def t():
-    async with async_playwright() as p:
-        br = await p.chromium.launch(headless=True, args=[\"--no-sandbox\",\"--disable-dev-shm-usage\"])
-        pg = await br.new_page()
-        await pg.goto(\"https://search.naver.com/search.naver?query=강남역+맛집\", timeout=20000)
-        await pg.wait_for_timeout(3000)
-        tabs = await pg.query_selector_all(\"a[role=tab]\")
-        for t in tabs: print(\"tab:\", await t.inner_text())
-        await br.close()
-asyncio.run(t())
-"'
-# 출력에 "AI" 탭 보이면 P2 실행 시작
-```
-
-**P3 트리거 확인 명령** (구독자 늘 때마다):
-```bash
-ssh root@115.68.231.57 'pm2 logs aeolab-backend --lines 500 --nostream | grep "P3-READY"'
-```
+**트리거 명령 전체**: `docs/p2_p3_execution_runbook.md` 참조 (런북에 최신 명령 포함)
 
 ### 비즈니스 목표
 - [ ] 유료 구독자 20명 달성 (BEP)
@@ -725,4 +705,4 @@ ssh root@115.68.231.57 'pm2 logs aeolab-backend --lines 500 --nostream | grep "P
 
 ---
 
-*최종 업데이트: 2026-05-31 | CLAUDE.md 압축 정리 (674줄) + 코드 수정 필수 절차 섹션 추가. 2026-04-30~05-04 이관 → changelog_archive.md*
+*최종 업데이트: 2026-06-18 | 상업 점검 13건 완료 + 구버전 업데이트 changelog_archive.md 이관. 2026-05-18~05-26 이관.*
