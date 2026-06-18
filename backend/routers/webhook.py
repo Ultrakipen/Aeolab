@@ -188,9 +188,8 @@ PLAN_NAME_TO_KEY = {
 
 
 @router.post("/toss/billing/issue")
-async def issue_billing(request: Request, body: BillingIssueRequest):
+async def issue_billing(body: BillingIssueRequest):
     """빌링키 발급 + 첫 결제 → 구독 활성화"""
-    _verify_toss_auth(request)
     import re as _re
     if not _re.match(r"^customer_[a-f0-9\-]{36}$", body.customerKey):
         raise HTTPException(status_code=400, detail="유효하지 않은 customerKey 형식입니다")
@@ -211,8 +210,14 @@ async def issue_billing(request: Request, body: BillingIssueRequest):
     if not billing_key:
         raise HTTPException(status_code=500, detail="빌링키를 받지 못했습니다")
 
-    # customerKey 형식: customer_{user_id}
+    # customerKey 형식: customer_{user_id} — user_id가 실제 존재하는 계정인지 검증
     user_id = body.customerKey.replace("customer_", "", 1)
+    _user_check = await execute(
+        get_client().table("profiles").select("id").eq("id", user_id).limit(1)
+    )
+    if not (_user_check and _user_check.data):
+        logger.warning(f"issue_billing 미존재 user_id: {user_id}")
+        raise HTTPException(status_code=400, detail="유효하지 않은 사용자입니다")
     # amount 기반으로 플랜 결정 (클라이언트 plan 필드 조작 방지)
     # PLAN_PRICES에 없는 금액이면 400 거부 — name 폴백 허용하지 않음 (보안)
     plan_by_amount = PLAN_PRICES.get(body.amount)
