@@ -48,14 +48,27 @@ async def main() -> None:
 
     supabase = create_client(supabase_url, service_key)
 
-    # 활성 구독자 사업장만 조회
+    # 활성 구독자 사업장만 조회 (subscriptions.status=active 또는 grace_period)
+    user_ids_res = (
+        supabase.table("subscriptions")
+        .select("user_id")
+        .in_("status", ["active", "grace_period"])
+        .execute()
+    )
+    active_user_ids = [row["user_id"] for row in (user_ids_res.data or [])]
+
+    if not active_user_ids:
+        logger.info("활성 구독자가 없습니다")
+        return
+
     res = (
         supabase.table("businesses")
         .select("id, name, category, region, keywords, naver_place_id, naver_place_url")
+        .in_("user_id", active_user_ids)
         .execute()
     )
     businesses = res.data or []
-    logger.info("스캔 대상 사업장: %d개", len(businesses))
+    logger.info("스캔 대상 사업장: %d개 (활성 구독자)", len(businesses))
 
     from services.ai_scanner.naver_scanner import NaverAIBriefingScanner
     from services.keyword_taxonomy import build_ai_scan_queries

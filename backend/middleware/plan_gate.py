@@ -32,6 +32,7 @@ ADMIN_EMAILS: set[str] = {
 # history_days         : 점수 히스토리 보관 일수 (999 = 무제한)
 # businesses           : 등록 가능 사업장 수
 # review_reply_monthly : 월 리뷰 답변 생성 허용 횟수 (Claude Haiku 사용)
+# keyword_suggest_monthly : 월 키워드 제안 생성 허용 횟수
 # ──────────────────────────────────────────────────────────────────────────────
 PLAN_LIMITS = {
     "free": {
@@ -47,6 +48,7 @@ PLAN_LIMITS = {
         "review_reply_monthly": 0,
         "faq_monthly": 0,
         "blog_monthly": 0,
+        "keyword_suggest_monthly": 0,
     },
     "basic": {
         # v3.5 한도 조정: 리뷰답변 20→50회, 소개글+채팅방메뉴 5→10건 (Haiku 추가 비용 <25원/월)
@@ -62,6 +64,7 @@ PLAN_LIMITS = {
         "review_reply_monthly": 50,
         "faq_monthly": 10,
         "blog_monthly": 3,
+        "keyword_suggest_monthly": 5,
     },
     "pro": {
         # v3.4 강화: 리뷰답변 무제한, 히스토리 90일, FAQ 무제한 (Basic보다 낮으면 안 됨)
@@ -77,6 +80,7 @@ PLAN_LIMITS = {
         "review_reply_monthly": 999,
         "faq_monthly": 30,  # 소개글+FAQ 합산 — 남용 방지. DEV_MODE=true 시 우회.
         "blog_monthly": 10,
+        "keyword_suggest_monthly": 20,
     },
     "biz": {
         "competitors": 999,
@@ -91,6 +95,7 @@ PLAN_LIMITS = {
         "review_reply_monthly": 999,
         "faq_monthly": 60,  # 5사업장 합산 — 남용 방지. DEV_MODE=true 시 우회.
         "blog_monthly": 999,
+        "keyword_suggest_monthly": 999,
     },
     "startup": {
         # v3.4 강화: 리뷰답변 무제한, FAQ 무제한
@@ -106,6 +111,7 @@ PLAN_LIMITS = {
         "review_reply_monthly": 999,
         "faq_monthly": 20,  # 소개글+FAQ 합산 — 남용 방지. DEV_MODE=true 시 우회.
         "blog_monthly": 5,
+        "keyword_suggest_monthly": 10,
     },
     "enterprise": {
         # 영업 전용 200,000원/월 — Biz 한도 전부 + 사업장 무제한 + 팀 20명 + API 키 무제한
@@ -121,6 +127,7 @@ PLAN_LIMITS = {
         "review_reply_monthly": 999,
         "faq_monthly": 999,
         "blog_monthly": 999,
+        "keyword_suggest_monthly": 999,
     },
 }
 
