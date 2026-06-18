@@ -94,7 +94,7 @@ export default function ResultSummaryHero({
               <span className="text-rose-500 text-base shrink-0">↳</span>
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-rose-600 leading-tight">지금 할 일</p>
-                <p className="text-sm font-semibold text-gray-800 leading-snug break-keep line-clamp-2 mt-0.5">{todayAction}</p>
+                <p className="text-sm font-semibold text-gray-800 leading-snug break-keep line-clamp-3 mt-0.5">{todayAction}</p>
               </div>
             </div>
             <span className="text-sm font-bold text-rose-500 group-hover:text-rose-700 shrink-0 whitespace-nowrap">실행 →</span>

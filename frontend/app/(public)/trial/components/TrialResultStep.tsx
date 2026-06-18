@@ -891,7 +891,7 @@ export default function TrialResultStep(props: TrialResultProps) {
 
       <StickySignupBanner isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
 
-      <div className="max-w-5xl mx-auto py-6 px-4 pb-28">
+      <div className="max-w-5xl mx-auto py-6 px-4 pb-28 md:pb-8">
 
         {/* ── 1. 가게 헤더 (업종 배지 인라인 통합) ───────────────── */}
         {form.business_name ? (
