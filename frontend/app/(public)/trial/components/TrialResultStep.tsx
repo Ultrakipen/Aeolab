@@ -1003,6 +1003,27 @@ export default function TrialResultStep(props: TrialResultProps) {
           onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
         />
 
+        {/* ── 개선 효과 연결 브리지 ── */}
+        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-4 mb-4">
+          <p className="text-xs font-bold text-blue-500 tracking-wide uppercase mb-3">이 개선들의 공통 효과</p>
+          <div className="space-y-1.5 text-sm">
+            <p className="text-slate-700">소개글 · 키워드 · 소식 · 리뷰 개선</p>
+            <p className="text-blue-300 pl-1">↓</p>
+            <p className="font-semibold text-slate-800">네이버 검색 상위 노출</p>
+            <p className="text-blue-300 pl-1">↓</p>
+            <p className="font-bold text-blue-800 break-keep">
+              {briefingCategory === "active"
+                ? "AI 브리핑·ChatGPT·Gemini 동시 노출 가능성 향상"
+                : briefingCategory === "likely"
+                ? "ChatGPT·Gemini 노출 향상 + AI 브리핑 확대 시 즉시 유리"
+                : "ChatGPT·Gemini에서 내 가게 추천 가능성 향상"}
+            </p>
+          </div>
+          <p className="text-xs text-blue-600 mt-3 pt-3 border-t border-blue-100 leading-relaxed break-keep">
+            구독하면 이 변화를 매주 수치로 자동 추적합니다
+          </p>
+        </div>
+
         {/* ── 구독 유도 + 전환 CTA ── */}
         {!isLoggedIn && (
           <LockedScoreCard
