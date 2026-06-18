@@ -204,91 +204,107 @@ function ScanConclusionCard({
 
       {/* AI 검색 실측 수치 — ACTIVE 업종은 네이버(AI브리핑) 우선, 그 외는 ChatGPT 우선 */}
       {(hasNumericData || (briefingCategory === "active" && inBriefing !== null)) && (
-        <div className="grid grid-cols-3 gap-2 mb-4 pb-4 border-b border-slate-100">
+        <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2 mb-4 pb-4 border-b border-slate-100">
           {/* ACTIVE 업종: AI브리핑 첫 번째 (소상공인 핵심 채널) */}
           {briefingCategory === "active" ? (
-            <div className="text-center bg-slate-50 rounded-xl p-3">
-              <div className="text-2xl leading-none mt-0.5">
-                {inBriefing === null ? "⏳" : inBriefing ? "✅" : "❌"}
+            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-slate-50 rounded-xl p-3">
+              <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
+                <div className="text-2xl leading-none">
+                  {inBriefing === null ? "⏳" : inBriefing ? "✅" : "❌"}
+                </div>
               </div>
-              <div className="text-xs font-semibold text-slate-600 mt-1.5">네이버 AI브리핑</div>
-              <div className="text-xs text-slate-400">
-                {inBriefing === null ? "측정 중" : inBriefing ? "노출 중" : "미노출"}
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-slate-600 sm:mt-1.5">네이버 AI브리핑</div>
+                <div className="text-xs text-slate-400">
+                  {inBriefing === null ? "측정 중" : inBriefing ? "노출 중" : "미노출"}
+                </div>
               </div>
             </div>
           ) : (
-            <div className="text-center bg-slate-50 rounded-xl p-3">
+            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-slate-50 rounded-xl p-3">
               {(() => {
                 const lbl = chatgptFreqLabel(chatgptExposureFreq, chatgptMentioned, chatgptSampleSize);
                 return (
-                  <>
+                  <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
                     <div className={`text-xl font-black leading-none ${lbl.color}`}>{lbl.text}</div>
                     {chatgptExposureFreq !== undefined && (
                       <div className="text-xs text-slate-400 mt-0.5">{chatgptExposureFreq}/{chatgptSampleSize}회</div>
                     )}
-                  </>
+                  </div>
                 );
               })()}
-              <div className="text-xs font-semibold text-slate-600 mt-1.5">ChatGPT 추천</div>
-              <div className="text-xs text-slate-400">{chatgptSampleSize}회 질의</div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-slate-600 sm:mt-1.5">ChatGPT 추천</div>
+                <div className="text-xs text-slate-400">{chatgptSampleSize}회 질의</div>
+              </div>
             </div>
           )}
           {/* 두 번째: ACTIVE는 ChatGPT, 그 외는 Gemini */}
           {briefingCategory === "active" ? (
-            <div className="text-center bg-slate-50 rounded-xl p-3">
+            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-slate-50 rounded-xl p-3">
               {(() => {
                 const lbl = chatgptFreqLabel(chatgptExposureFreq, chatgptMentioned, chatgptSampleSize);
                 return (
-                  <>
+                  <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
                     <div className={`text-xl font-black leading-none ${lbl.color}`}>{lbl.text}</div>
                     {chatgptExposureFreq !== undefined && (
                       <div className="text-xs text-slate-400 mt-0.5">{chatgptExposureFreq}/{chatgptSampleSize}회</div>
                     )}
-                  </>
+                  </div>
                 );
               })()}
-              <div className="text-xs font-semibold text-slate-600 mt-1.5">ChatGPT 추천</div>
-              <div className="text-xs text-slate-400">{chatgptSampleSize}회 질의</div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-slate-600 sm:mt-1.5">ChatGPT 추천</div>
+                <div className="text-xs text-slate-400">{chatgptSampleSize}회 질의</div>
+              </div>
             </div>
           ) : (
-            <div className="text-center bg-slate-50 rounded-xl p-3">
+            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-slate-50 rounded-xl p-3">
               {(() => {
                 const lbl = geminiFreqLabel(geminiExposureFreq);
                 return (
-                  <>
+                  <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
                     <div className={`text-xl font-black leading-none ${lbl.color}`}>{lbl.text}</div>
                     {geminiExposureFreq !== undefined && (
                       <div className="text-xs text-slate-400 mt-0.5">{geminiExposureFreq}/10회</div>
                     )}
-                  </>
+                  </div>
                 );
               })()}
-              <div className="text-xs font-semibold text-slate-600 mt-1.5">Gemini 추천</div>
-              <div className="text-xs text-slate-400">Basic 구독 시 측정</div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-slate-600 sm:mt-1.5">Gemini 추천</div>
+                <div className="text-xs text-slate-400">Basic 구독 시 측정</div>
+              </div>
             </div>
           )}
           {/* 세 번째: ACTIVE는 Gemini(Basic 예고), 그 외는 AI브리핑(비대상) */}
           {briefingCategory === "active" ? (
-            <div className="text-center bg-slate-50 rounded-xl p-3">
+            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-slate-50 rounded-xl p-3">
               {(() => {
                 const lbl = geminiFreqLabel(geminiExposureFreq);
                 return (
-                  <>
+                  <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
                     <div className={`text-xl font-black leading-none ${lbl.color}`}>{lbl.text}</div>
                     {geminiExposureFreq !== undefined && (
                       <div className="text-xs text-slate-400 mt-0.5">{geminiExposureFreq}/10회</div>
                     )}
-                  </>
+                  </div>
                 );
               })()}
-              <div className="text-xs font-semibold text-slate-600 mt-1.5">Gemini 추천</div>
-              <div className="text-xs text-slate-400">Basic 구독 시 측정</div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-slate-600 sm:mt-1.5">Gemini 추천</div>
+                <div className="text-xs text-slate-400">Basic 구독 시 측정</div>
+              </div>
             </div>
           ) : (
-            <div className="text-center bg-slate-50 rounded-xl p-3">
-              <div className="text-xl text-slate-300 leading-none mt-1">—</div>
-              <div className="text-xs font-semibold text-slate-400 mt-1.5">AI브리핑</div>
-              <div className="text-xs text-slate-400">비대상 업종</div>
+            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-slate-50 rounded-xl p-3">
+              <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
+                <div className="text-xl text-slate-300 leading-none">—</div>
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-slate-400 sm:mt-1.5">AI브리핑</div>
+                <div className="text-xs text-slate-400">비대상 업종</div>
+              </div>
             </div>
           )}
         </div>
