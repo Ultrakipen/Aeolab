@@ -96,7 +96,7 @@ export default function NaverStatusSection({
       return "스마트플레이스에 등록하지 않으면 네이버 지역 검색에 나타나지 않습니다.";
     }
     if (!inTop20) {
-      return "스마트플레이스 등록 후 소개글을 작성하면 검색 노출이 시작됩니다.";
+      return "이 키워드 검색 상위 20위에 없습니다 — 소개글·소식·리뷰를 보강하면 순위가 올라갑니다.";
     }
     if (!inTop5) {
       return "소개글·소식·리뷰가 부족하면 순위가 밀립니다.";
@@ -291,12 +291,12 @@ export default function NaverStatusSection({
           </div>
           <div className="px-4 py-3">
             {briefingCategory === "active" && inBriefing === null && (
-              <div className="flex items-start gap-3 bg-slate-50 rounded-lg px-3 py-3 border border-slate-200">
-                <span className="text-lg shrink-0">⏳</span>
+              <div className="flex items-start gap-3 bg-blue-50 rounded-lg px-3 py-3 border border-blue-200">
+                <span className="text-lg shrink-0">🔒</span>
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">측정 결과를 가져오는 중입니다</p>
-                  <p className="text-sm text-slate-500 mt-0.5 leading-snug break-keep">
-                    정식 스캔에서 실시간으로 확인합니다
+                  <p className="text-sm font-semibold text-blue-800">체험 스캔에서는 AI 브리핑 실측 미포함</p>
+                  <p className="text-sm text-blue-700 mt-0.5 leading-snug break-keep">
+                    구독 후 정식 스캔에서 네이버 AI 브리핑 실측 결과(노출 여부·인용 문장)를 확인하세요
                   </p>
                 </div>
               </div>

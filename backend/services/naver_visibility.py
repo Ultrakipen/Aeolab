@@ -184,8 +184,7 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
                 name = _strip_html(item.get("title", ""))
                 if _name_matches(business_name, name):
                     is_smart_place = True
-                    if my_rank is None:
-                        my_rank = i + 1
+                    # my_rank는 메인 키워드 검색 기준으로만 설정 — fallback rank는 다른 쿼리 기준이라 혼동 유발
                     _logger.debug(f"[naver_visibility] fallback 지역+업체명 검색으로 등록 확인: {name}")
                     break
 
@@ -204,8 +203,7 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
                 addr_ok = (not region_prefix) or (region_prefix in addr)
                 if _name_matches(business_name, name) and addr_ok:
                     is_smart_place = True
-                    if my_rank is None:
-                        my_rank = i + 1
+                    # my_rank는 메인 키워드 검색 기준으로만 설정 — fallback rank는 다른 쿼리 기준이라 혼동 유발
                     _logger.debug(f"[naver_visibility] fallback 업체명 단독 검색으로 등록 확인: {name} ({addr})")
                     break
 
