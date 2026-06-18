@@ -11,14 +11,9 @@ import { getUserGroup, GROUP_MESSAGES, getBriefingEligibility, type BriefingElig
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import TodayOneAction from "@/components/trial/TodayOneAction";
 import NaverStatusSection from "@/components/trial/NaverStatusSection";
-import NaverAiPathwayCard from "@/components/dashboard/NaverAiPathwayCard";
 import SubscriptionValueCompare from "@/components/trial/SubscriptionValueCompare";
-import SubscriptionScreenshotPreview from "@/components/trial/SubscriptionScreenshotPreview";
-import ClaimGate from "@/components/trial/ClaimGate";
 import KakaoShareButton from "@/components/common/KakaoShareButton";
 import TextShareButton from "@/components/trial/TextShareButton";
-import TrialCompetitorGapCard from "@/components/trial/TrialCompetitorGapCard";
-import TrialDetailAccordion from "@/components/trial/TrialDetailAccordion";
 import ResultSummaryHero from "@/components/common/ResultSummaryHero";
 import { naverSeoTile, aiTabTile, briefingTile, rankTile, type ChannelTile } from "@/lib/scoreLabels";
 import type {
@@ -39,7 +34,6 @@ import {
   Check,
   X,
   XCircle,
-  TrendingUp,
   Lock,
 } from "lucide-react";
 
@@ -1009,230 +1003,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
         />
 
-        {/* ── 3. 성장단계 이번 주 액션 ──────────────────────────── */}
-        {gs?.this_week_action && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-3">
-            <TrendingUp className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-bold text-amber-800 mb-0.5 break-keep">
-                이번 주 집중할 것 <span className="font-normal text-amber-600">({gsLabel})</span>
-              </p>
-              <p className="text-sm text-amber-700 leading-relaxed break-keep">{gs.this_week_action}</p>
-            </div>
-          </div>
-        )}
-
-        {/* ── 4. 스마트플레이스 실측 점검 ───────────────────────── */}
-        {result.smart_place_check && (
-          <SmartPlaceCheckCard check={result.smart_place_check} userGroup={userGroupValue} />
-        )}
-        {!result.smart_place_check && result.place_match && (
-          <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 mb-4">
-            <p className="text-sm text-slate-600 leading-relaxed">
-              <strong className="text-slate-700">스마트플레이스 상세 점검</strong> —
-              네이버 지역검색·모바일 검색 두 경로로 시도했지만 이 가게의 플레이스 ID를 자동으로 찾지 못해 소개글·소식·사진 수 등의 상세 점검을 건너뛰었습니다.
-              <span className="block mt-1 text-slate-500">
-                이런 경우는 보통 가게가 아직 스마트플레이스에 등록되지 않았거나(미등록), 등록되었더라도 검색 결과 상위에 노출되지 않을 때 발생합니다.
-                정식 스캔에서는 가게 정보 입력 시 플레이스 URL을 직접 붙여 넣어 정확히 확인합니다.
-              </span>
-            </p>
-          </div>
-        )}
-
-        {/* ── 5. 채널별 AI 검색 결과 (업종별 순서 분기)
-             ACTIVE 업종: 네이버 AI 브리핑 먼저 → ChatGPT
-             LIKELY/INACTIVE: ChatGPT 먼저 → 네이버는 섹션 9 안내로 대체 ── */}
-
-        {/* ACTIVE·LIKELY는 네이버 AI 브리핑을 먼저 (대시보드 InsightZone 순서분기와 일치) */}
-        {(briefingCategory === "active" || briefingCategory === "likely") && (
-          <NaverBriefingResultCard
-            businessName={form.business_name || "내 가게"}
-            inBriefing={inBriefing}
-            isLikely={briefingCategory === "likely"}
-            hasFaq={hasFaq}
-            hasIntro={hasIntro}
-            isSmartPlace={isSmartPlace}
-          />
-        )}
-
-        {chatgptResult ? (
-          <ChatGPTResultCard
-            businessName={form.business_name || "내 가게"}
-            queries={chatgptDisplayQueries}
-            mentioned={chatgptMentioned ?? false}
-            excerpt={chatgptResult?.excerpt}
-            sampleSize={chatgptSampleSize}
-            hasFaq={hasFaq}
-            hasIntro={hasIntro}
-            isSmartPlace={isSmartPlace}
-            missingKws={effectiveMissingKws}
-          />
-        ) : (
-          <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 mb-4">
-            <p className="text-sm text-slate-600">
-              ChatGPT 측정 중 오류가 발생했습니다. 정식 스캔에서 50회 질의로 정확히 확인합니다.
-            </p>
-          </div>
-        )}
-
-        {/* ── 6. 네이버 검색 순위 + 블로그 격차 ─────────────────────── */}
-        <TrialCompetitorGapCard
-          businessName={form.business_name || "내 가게"}
-          searchQuery={(naver as { search_query?: string } | null)?.search_query}
-          myRank={naver?.my_rank}
-          blogCount={blogCount}
-          topCompetitorName={(naver as { top_competitor_name?: string | null } | null)?.top_competitor_name}
-          topCompetitorBlogCount={(naver as { top_competitor_blog_count?: number } | null)?.top_competitor_blog_count}
-          naverCompetitors={(naver as { naver_competitors?: { rank: number; name: string; address?: string }[] } | null)?.naver_competitors}
-          blogSearchQuery={(naver as { blog_search_query?: string } | null)?.blog_search_query}
-          compBlogSearchQuery={(naver as { comp_blog_search_query?: string } | null)?.comp_blog_search_query}
-          keywordRanks={(result as { keyword_ranks?: Array<{ query: string; rank: number | null; exposed: boolean }> }).keyword_ranks}
-        />
-
-        {/* ── 7. 종합 점수 요약 ─────────────────────────────────────── */}
-        <ScoreSummaryCard
-          score={score}
-          benchmarkAvg={benchmarkAvg}
-          categoryLabel={categoryLabel}
-          isEstimatedBenchmark={isEstimatedBenchmark}
-        />
-
-        {/* ── 8. 즉시 파악 현황 요약 바 ───────────────────────────── */}
-        <ScanStatusBar
-          chatgptMentioned={chatgptMentioned}
-          chatgptExposureFreq={chatgptResult?.exposure_freq}
-          chatgptSampleSize={chatgptSampleSize}
-          geminiExposureFreq={geminiExposureFreq}
-          inBriefing={inBriefing}
-          briefingCategory={briefingCategory}
-          smartPlaceCheck={result.smart_place_check ?? null}
-        />
-
-        {/* ── 9. 트랙별 상세 아코디언 ───────────────────────────── */}
-        <TrialDetailAccordion
-          naverTrackCardProps={{
-            track1Score: track1,
-            inBriefing,
-            isSmartPlace,
-            blogCount,
-            hasFaq,
-            hasIntro,
-            userGroup: userGroupValue,
-            businessName: form.business_name || "내 가게",
-          }}
-          competitorGapCardProps={{
-            businessName: form.business_name || "내 가게",
-            searchQuery: (naver as { search_query?: string } | null)?.search_query,
-            myRank: naver?.my_rank,
-            blogCount,
-            topCompetitorName: (
-              naver as { top_competitor_name?: string | null } | null
-            )?.top_competitor_name,
-            topCompetitorBlogCount: (
-              naver as { top_competitor_blog_count?: number } | null
-            )?.top_competitor_blog_count,
-            naverCompetitors: (
-              naver as {
-                naver_competitors?: { rank: number; name: string; address?: string }[];
-              } | null
-            )?.naver_competitors,
-            blogSearchQuery: (naver as { blog_search_query?: string } | null)
-              ?.blog_search_query,
-            compBlogSearchQuery: (
-              naver as { comp_blog_search_query?: string } | null
-            )?.comp_blog_search_query,
-            keywordRanks: (result as {
-              keyword_ranks?: Array<{ query: string; rank: number | null; exposed: boolean }>;
-            }).keyword_ranks,
-          }}
-          keywordCardProps={
-            missingKws.length > 0
-              ? {
-                  missingKws,
-                  faqText,
-                  categoryLabel,
-                  dismissed: dismissedKws,
-                  onDismiss: (kw) => setDismissedKws((prev) => [...prev, kw]),
-                  keywordMeta: (result as { keyword_meta?: Record<string, { subcategory: string; weight: number }> }).keyword_meta,
-                  userGroup: userGroupValue,
-                  introAnalyzed: !!(result as { intro_analyzed?: boolean }).intro_analyzed,
-                  isPaidUser: false,
-                }
-              : null
-          }
-          globalAiActionCardProps={{
-            track2Score: track2,
-            chatgptMentioned,
-            chatgptSampleSize,
-            geminiExposureFreq,
-            blogCount,
-            hasWebsite,
-            missingKeywords: effectiveMissingKws,
-            businessName: form.business_name || "내 가게",
-            category: selectedCategory,
-            region: form.region || "",
-            userGroup: userGroupValue,
-          }}
-          factEvidenceSectionProps={{
-            chatgptResult: chatgptResult ?? null,
-            naver: result.naver ?? null,
-            exposureFreq: result.score?.breakdown?.exposure_freq,
-            totalSamples: 10,
-            aiEvidence: aiEvidence ?? null,
-            analyzedKeyword,
-            region: form.region || undefined,
-            userGroup: userGroupValue,
-          }}
-          problemDiagnosisProps={{
-            businessName: form.business_name || "내 가게",
-            category: selectedCategory,
-            track1Score: track1,
-            track2Score: track2,
-            missingKeywords: effectiveMissingKws,
-            hasFaq,
-            hasRecentPost,
-            hasIntro,
-            isSmartPlace,
-            blogMentions: blogCount,
-            faqCopyText: effectiveFaqText,
-            pioneerKeywords: effectivePioneerKws,
-            reviewCopyText: (
-              result as TrialScanResult & {
-                review_copy_text?: string;
-              }
-            ).review_copy_text,
-            selectedTags,
-            region: form.region,
-            userGroup: userGroupValue,
-          }}
-          scoreBreakdownProps={{
-            userGroup: userGroupValue,
-            naverChannelScore,
-            globalChannelScore,
-            groupBannerNode,
-          }}
-        />
-
-        {/* ── 10. 채널 안내 (NaverAiPathwayCard + 노출 채널 안내) ────── */}
-        <NaverAiPathwayCard
-          briefingEligibility={briefingCategory}
-          isFranchise={isFranchise}
-        />
-        {(briefingCategory === "inactive" || briefingCategory === "likely") && (
-          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 mb-4 flex items-start gap-2">
-            <Globe className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" aria-hidden="true" />
-            <p className="text-sm text-blue-800 leading-relaxed break-keep">
-              {briefingCategory === "likely"
-                ? "네이버 AI 브리핑 확대 검토 중 — 지금은 ChatGPT·Gemini 최적화와 스마트플레이스 완성에 집중하세요."
-                : "AI 브리핑 비대상이지만 스마트플레이스·소개글 개선으로 ChatGPT·Gemini 추천 가능성을 높일 수 있습니다."}
-            </p>
-          </div>
-        )}
-
-        {/* ── 11. 측정 방법 + 스캔 기준 ───────────────────────────── */}
-        <MergedScanInfoBox chatgptSampleSize={chatgptSampleSize} />
-
-        {/* ── 12. 잠긴 점수 카드 — 구독 유도 ────────────────────── */}
+        {/* ── 구독 유도 + 전환 CTA ── */}
         {!isLoggedIn && (
           <LockedScoreCard
             score={score}
@@ -1242,17 +1013,6 @@ export default function TrialResultStep(props: TrialResultProps) {
             breakdown={breakdown}
           />
         )}
-
-        {/* ── 13. ClaimGate — 근거 확인 후 저장 유도 ──────────── */}
-        {!isLoggedIn && (
-          <ClaimGate trialId={result.trial_id} initialEmail={form.email} />
-        )}
-
-        {/* ── 14. 구독 전환 섹션 ────────────────────────────────── */}
-        <NextScanDateNote nextScanDate={nextScanDate} isLoggedIn={isLoggedIn} />
-        <SubscriptionScreenshotPreview
-          businessName={form.business_name || "내 가게"}
-        />
         <SubscriptionValueCompare isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
 
         {/* ── 15. 공유 버튼 ──────────────────────────────────────── */}
