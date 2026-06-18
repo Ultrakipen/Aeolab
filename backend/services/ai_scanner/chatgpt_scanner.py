@@ -22,11 +22,14 @@ class ChatGPTScanner:
 {{"mentioned": true/false, "rank": 순위또는null, "excerpt": "인용된텍스트"}}"""
 
         try:
-            response = await self.client.chat.completions.create(
-                model="gpt-4.1-mini",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=1.0,
-                max_tokens=200,
+            response = await asyncio.wait_for(
+                self.client.chat.completions.create(
+                    model="gpt-4.1-mini",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=1.0,
+                    max_tokens=200,
+                ),
+                timeout=20.0,
             )
             text = response.choices[0].message.content or ""
             m = re.search(r"\{.*?\}", text, re.DOTALL)

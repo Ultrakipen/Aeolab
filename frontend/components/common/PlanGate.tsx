@@ -11,6 +11,7 @@ const PLAN_HIERARCHY: Record<string, number> = {
   startup: 1.5,
   pro: 2,
   biz: 3,
+  enterprise: 4,
 }
 
 const PLAN_PRICE: Record<string, string> = {

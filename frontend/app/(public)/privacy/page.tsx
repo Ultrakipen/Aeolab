@@ -171,7 +171,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">8. 개인정보 보호책임자</h2>
             <div className="bg-gray-50 rounded-lg p-4 space-y-1">
-              <p><strong>성명:</strong> AEOlab 운영자</p>
+              <p><strong>성명:</strong> AEOlab 운영자 (실명 입력 필요)</p>
               <p><strong>이메일:</strong> <a href="mailto:contact@aeolab.co.kr" className="text-blue-600 hover:underline">contact@aeolab.co.kr</a></p>
               <p className="text-sm text-gray-500 mt-2">
                 개인정보 처리에 관한 문의, 불만, 피해 구제 등은 위 연락처로 문의해 주시기 바랍니다.

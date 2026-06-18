@@ -137,8 +137,8 @@ class NaverPlaceStatsService:
                             val = float(_m_json.group(1))
                             if 0.0 < val <= 5.0:
                                 avg_rating = val
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug("[naver_place_stats] avg_rating JSON parse failed: %s", e)
 
                 # 사업장명 파싱
                 name_el = None
@@ -280,8 +280,8 @@ async def _check_completeness(url: str) -> dict:
                         if await page.query_selector(_sel):
                             has_reservation = True
                             break
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("[naver_place_stats] reservation selector check failed: %s", e)
 
             # 메뉴·서비스 — 홈탭 또는 메뉴탭에서 감지
             has_menu = bool(
@@ -488,8 +488,8 @@ async def _parse_photo_categories(page) -> tuple[dict, int | None]:
             m_text = re.search(r"전체\s*([\d,]+)", page_text)
             if m_text:
                 total_from_text = int(m_text.group(1).replace(",", ""))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("[naver_place_stats] photo tab text parse failed: %s", e)
 
         # AI 이미지 필터 버튼 셀렉터 (네이버 플레이스 UI 구조 다양성 대응)
         filter_btns = page.locator(

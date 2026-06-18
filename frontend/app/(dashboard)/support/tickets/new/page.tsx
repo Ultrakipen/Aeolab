@@ -48,18 +48,13 @@ function SupportNewForm() {
           router.push("/login");
           return;
         }
-        // 관리자 계정은 layout.tsx와 동일하게 biz 처리
-        const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "hoozdev@gmail.com")
-          .split(",").map((e) => e.trim().toLowerCase());
-        const isAdmin = adminEmails.includes((user.email ?? "").toLowerCase());
-
         const { data: sub } = await supabase
           .from("subscriptions")
           .select("plan, status")
           .eq("user_id", user.id)
           .eq("status", "active")
           .maybeSingle();
-        const activePlan = isAdmin ? "biz" : (sub?.status === "active" ? (sub?.plan ?? "free") : "free");
+        const activePlan = sub?.status === "active" ? (sub?.plan ?? "free") : "free";
         setPlan(activePlan);
 
         // 이번 달 문의 수 조회

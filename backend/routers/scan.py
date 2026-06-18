@@ -1907,7 +1907,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                         for _k_s in _sd_s.get("keywords", []):
                             if _k_s not in _stream_kw_meta_s:
                                 _stream_kw_meta_s[_k_s] = _sn_s
-                except Exception:
+                except Exception as _e:
+                    _logger.warning("[stream scan] keyword_taxonomy load failed (keyword_gap_score→0): %s", _e)
                     _stream_industry = {}
                     _stream_kw_meta_s = {}
                 # round-robin: 서브카테고리에서 1개씩 순환 — 블록 편향 방지 (dict 삽입 순서 = weight 순)
@@ -2989,7 +2990,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     for _k in _sd.get("keywords", []):
                         if _k not in _full_kw_meta:
                             _full_kw_meta[_k] = _sn
-            except Exception:
+            except Exception as _e:
+                _logger.warning("[full scan] keyword_taxonomy load failed (keyword_gap_score→0): %s", _e)
                 _full_industry = {}
                 _full_kw_meta = {}
             # round-robin: 서브카테고리에서 1개씩 순환 — 블록 편향 방지 (dict 삽입 순서 = weight 순)

@@ -1,13 +1,16 @@
 import { MetadataRoute } from "next";
 import { KEYWORD_PAGES } from "@/lib/keywords-data";
 import { BLOG_POSTS } from "@/lib/blog-posts";
+import { FLAT_CATEGORIES } from "@/lib/categories";
+
+const SITE_BUILD_DATE = new Date("2026-06-18");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://aeolab.co.kr";
 
   const keywordPages: MetadataRoute.Sitemap = KEYWORD_PAGES.map((p) => ({
     url: `${baseUrl}/keywords/${p.slug}`,
-    lastModified: new Date(),
+    lastModified: SITE_BUILD_DATE,
     changeFrequency: "monthly" as const,
     priority: 0.7,
   }));
@@ -19,79 +22,87 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
+  const guideChannelPages: MetadataRoute.Sitemap = FLAT_CATEGORIES.map((c) => ({
+    url: `${baseUrl}/guide/channels/${c.value}`,
+    lastModified: SITE_BUILD_DATE,
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  }));
+
   return [
     {
       url: `${baseUrl}/`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "weekly",
       priority: 1.0,
     },
     {
       url: `${baseUrl}/trial`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
       url: `${baseUrl}/pricing`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/faq`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/how-it-works`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "monthly",
       priority: 0.75,
     },
     {
       url: `${baseUrl}/terms`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${baseUrl}/privacy`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${baseUrl}/demo`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "weekly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/keywords`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "monthly",
       priority: 0.75,
     },
     {
       url: `${baseUrl}/blog`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "weekly",
       priority: 0.75,
     },
     {
       url: `${baseUrl}/login`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "yearly",
       priority: 0.5,
     },
     {
       url: `${baseUrl}/signup`,
-      lastModified: new Date(),
+      lastModified: SITE_BUILD_DATE,
       changeFrequency: "yearly",
       priority: 0.5,
     },
+    ...guideChannelPages,
     ...keywordPages,
     ...blogPages,
   ];

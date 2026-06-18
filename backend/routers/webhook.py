@@ -188,8 +188,9 @@ PLAN_NAME_TO_KEY = {
 
 
 @router.post("/toss/billing/issue")
-async def issue_billing(body: BillingIssueRequest):
+async def issue_billing(request: Request, body: BillingIssueRequest):
     """빌링키 발급 + 첫 결제 → 구독 활성화"""
+    _verify_toss_auth(request)
     import re as _re
     if not _re.match(r"^customer_[a-f0-9\-]{36}$", body.customerKey):
         raise HTTPException(status_code=400, detail="유효하지 않은 customerKey 형식입니다")
