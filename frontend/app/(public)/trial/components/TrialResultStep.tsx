@@ -58,10 +58,10 @@ function LockedScoreCard({
   };
 }) {
   const kgPct = breakdown?.keyword_gap_score !== undefined
-    ? Math.round(breakdown.keyword_gap_score * 100)
+    ? Math.round(breakdown.keyword_gap_score)
     : null;
   const spPct = breakdown?.smart_place_completeness !== undefined
-    ? Math.round(breakdown.smart_place_completeness * 100)
+    ? Math.round(breakdown.smart_place_completeness)
     : null;
 
   return (
