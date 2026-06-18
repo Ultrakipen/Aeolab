@@ -166,7 +166,7 @@ export default async function Image() {
             justifyContent: "center",
           }}
         >
-          네이버·카카오·ChatGPT 3채널 노출 여부 자동 진단 · 경쟁사 벤치마킹 · 개선 가이드
+          네이버·ChatGPT·Gemini·Google AI 4채널 노출 자동 진단 · 경쟁사 벤치마킹 · 개선 가이드
         </div>
 
         {/* 도메인 */}
