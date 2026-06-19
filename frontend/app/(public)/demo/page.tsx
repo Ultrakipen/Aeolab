@@ -570,6 +570,16 @@ export default function DemoPage() {
           </div>
         )}
 
+        {/* ── 소상공인 네이버 핵심 가치 제안 ── */}
+        <div className="px-1">
+          <p className="text-base md:text-xl font-bold text-gray-800 leading-snug">
+            내 가게 네이버 플레이스 순위, 경쟁사와 비교해 정확히 확인하세요
+          </p>
+          <p className="text-sm md:text-base text-gray-500 mt-1.5 leading-relaxed">
+            스마트플레이스 개선이 네이버 검색 상위 노출로 이어집니다. 어느 채널을, 얼마나 빠르게 올릴 수 있는지 채널별로 안내합니다.
+          </p>
+        </div>
+
         {/* ── 업종·지역 선택기 (전체 너비) ──────────────── */}
         <div className="bg-white rounded-xl shadow-sm px-4 md:px-6 py-4 md:py-5">
           <p className="text-sm md:text-base font-semibold text-gray-600 mb-3 md:mb-4">내 업종과 지역을 선택하면 비슷한 예시를 보여드립니다</p>
@@ -688,6 +698,15 @@ export default function DemoPage() {
           {/* 본문 */}
           <div className="px-4 md:px-5 py-4 space-y-4">
 
+            {/* ✅ 네이버 SEO 개선 가치 제안 — 최상단 강조 */}
+            <div className="bg-green-50 border-2 border-green-300 rounded-xl px-4 py-3.5">
+              <p className="text-base font-bold text-green-800 mb-1.5">✅ 이 서비스로 네이버 검색 순위를 올릴 수 있습니다</p>
+              <p className="text-sm md:text-base text-green-700 leading-relaxed">
+                스마트플레이스 <strong>소개글·리뷰·사진·소식</strong>을 개선하면 네이버 지도·플레이스 키워드 검색 순위가 올라갑니다.
+                {briefingStatus !== "inactive" && " AI 브리핑 인용 후보 진입도 같은 방법으로 가능합니다."}
+              </p>
+            </div>
+
             {/* 네이버 플레이스 순위 + AI 브리핑 상태 2칸 그리드 */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-50 rounded-xl px-4 py-3">
@@ -721,15 +740,6 @@ export default function DemoPage() {
               </div>
             </div>
 
-            {/* ✅ 네이버 SEO 개선 가치 제안 */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
-              <p className="text-sm font-bold text-blue-800 mb-1.5">✅ 이 서비스로 네이버 검색 순위를 올릴 수 있습니다</p>
-              <p className="text-sm text-blue-700 leading-relaxed">
-                스마트플레이스 소개글·리뷰·사진·소식을 개선하면 네이버 지도·플레이스 키워드 검색 순위가 올라갑니다.
-                {briefingStatus !== "inactive" && " AI 브리핑 인용 후보 진입도 같은 방법으로 가능합니다."}
-              </p>
-            </div>
-
             {/* AI 채널별 개선 반영 기간 */}
             <div>
               <p className="text-sm font-semibold text-gray-600 mb-2">개선 후 손님에게 노출되는 기간 (공식 자료 기준)</p>
@@ -737,15 +747,15 @@ export default function DemoPage() {
                 {[
                   { ch: "네이버 AI 브리핑", period: "2~4주",    border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집" },
                   { ch: "네이버 AI탭",       period: "2~4주",    border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강" },
-                  { ch: "Gemini",            period: "수일~수주", border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 후 실시간 반영" },
-                  { ch: "ChatGPT",           period: "수개월~1년",   border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "Bing Places 등록 시 빠름, 웹콘텐츠 기반" },
+                  { ch: "Gemini",            period: "수일~수주", border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 시 빠름 / 미등록 시 수개월~1년" },
+                  { ch: "ChatGPT",           period: "수개월~1년",   border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "Bing Places 등록 시 빠름 · 웹콘텐츠 기반" },
                 ].map((item) => (
                   <div key={item.ch} className={`rounded-xl border ${item.border} ${item.bg} px-3 py-2.5`}>
                     <div className={`flex items-center justify-between mb-0.5 ${item.text}`}>
                       <span className="text-sm font-semibold">{item.ch}</span>
                       <span className="text-sm font-bold">{item.period}</span>
                     </div>
-                    <p className={`text-sm leading-relaxed ${item.text} opacity-75`}>{item.tip}</p>
+                    <p className={`text-sm leading-relaxed break-keep ${item.text} opacity-75`}>{item.tip}</p>
                   </div>
                 ))}
               </div>
@@ -799,7 +809,7 @@ export default function DemoPage() {
                 <span className="text-sm text-slate-700">📝 블로그 후기 {m.blogMentions}건 발견</span>
                 <span className="text-sm text-slate-700">✅ 스마트플레이스 자동 점검</span>
               </div>
-              <p className="text-sm text-slate-500">⏱ 손님 노출 기간: 네이버 2~4주 · Gemini 수일~수주 · ChatGPT 수개월~1년</p>
+              <p className="text-sm text-slate-500">⏱ 스마트플레이스 개선 후 네이버 검색 순위 변화까지 보통 2~4주 소요됩니다.</p>
             </div>
 
             {/* 업종 평균 대비 내 위치 (교육용 보조 — 성장단계·채널·오늘할일은 위 종합결론 히어로에 표시) */}
@@ -1033,7 +1043,7 @@ export default function DemoPage() {
                           ChatGPT·Gemini 합산 AI 노출 확률: <span className="text-green-800">{m.geminiRate}%</span>
                         </p>
                       </div>
-                      <p className="text-sm text-gray-500 leading-relaxed">무료 체험은 ChatGPT 5회 질의입니다. Basic 구독: Gemini·ChatGPT 각 50회 / 월요일 풀스캔: 각 100회 (± 오차 범위 표시).</p>
+                      <p className="text-sm text-gray-500 leading-relaxed">무료 체험은 ChatGPT 5회 질의입니다. Basic 구독: 주 1회(월요일) Gemini·ChatGPT 각 50회 자동 측정.</p>
                     </>
                   )}
                   <p className="mt-2 text-sm text-gray-400 leading-relaxed">
@@ -1128,8 +1138,8 @@ export default function DemoPage() {
                   <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                     <p className="text-sm font-bold text-blue-700 mb-2">구독 시작 후 (Basic 기준)</p>
                     <ul className="space-y-1.5 text-sm text-blue-700">
-                      <li>· 매일 AI 자동 스캔 (Gemini·ChatGPT 각 50회 + 네이버)</li>
-                      <li>· 월요일 풀스캔 (Gemini·ChatGPT 각 100회 + Google AI)</li>
+                      <li>· 주 1회(월요일) 자동 스캔 — Gemini·ChatGPT 각 50회 + 네이버 AI 브리핑</li>
+                      <li>· 수동 스캔 하루 2회 (원할 때 직접 실행)</li>
                       <li>· 경쟁사 3곳 추적 + 6개 차원 갭 분석</li>
                       <li>· 업종 시장 순위·분포 확인</li>
                       <li>· Claude AI 맞춤 개선 가이드 (월 3회)</li>
