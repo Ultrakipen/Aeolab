@@ -54,7 +54,7 @@ export default function CollapseSectionWrapper({
         <div className="flex items-center gap-2 min-w-0">
           <span className={`w-2 h-2 rounded-full ${iconColor.replace("text-", "bg-")} shrink-0`} />
           <span className="text-base font-bold text-gray-800 shrink-0 whitespace-nowrap">{title}</span>
-          {description && <span className="text-xs text-gray-400 truncate min-w-0">{description}</span>}
+          {description && <span className="text-sm text-gray-400 truncate min-w-0">{description}</span>}
           {highlight && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold hidden sm:inline-flex">
               핵심

@@ -59,7 +59,7 @@ export default function DashboardGlobalAiZone({
           <div className="grid grid-cols-3 gap-3 mb-3">
             {/* ChatGPT */}
             <div className="bg-white rounded-lg border border-blue-100 p-3 text-center">
-              <p className="text-xs text-gray-500 mb-1.5 font-medium">ChatGPT</p>
+              <p className="text-sm text-gray-500 mb-1 font-medium">ChatGPT</p>
               {chatgptFreq !== undefined ? (
                 <>
                   <p className={`text-sm font-bold leading-tight ${chatgptFreq > 0 ? "text-blue-700" : "text-gray-400"}`}>
@@ -75,7 +75,7 @@ export default function DashboardGlobalAiZone({
             </div>
             {/* Gemini */}
             <div className="bg-white rounded-lg border border-blue-100 p-3 text-center">
-              <p className="text-xs text-gray-500 mb-1.5 font-medium">Gemini</p>
+              <p className="text-sm text-gray-500 mb-1 font-medium">Gemini</p>
               {geminiFreq !== undefined ? (
                 <>
                   <p className={`text-sm font-bold leading-tight ${geminiFreq > 0 ? "text-blue-700" : "text-gray-400"}`}>
@@ -91,7 +91,7 @@ export default function DashboardGlobalAiZone({
             </div>
             {/* Google AI */}
             <div className="bg-white rounded-lg border border-blue-100 p-3 text-center">
-              <p className="text-xs text-gray-500 mb-1.5 font-medium">Google AI</p>
+              <p className="text-sm text-gray-500 mb-1 font-medium">Google AI</p>
               {!googleError && googleMentioned !== undefined && googleMentioned !== null ? (
                 <p className={`text-sm font-bold leading-tight ${googleMentioned ? "text-blue-700" : "text-gray-400"}`}>
                   {googleMentioned ? "노출 중" : "미확인"}
