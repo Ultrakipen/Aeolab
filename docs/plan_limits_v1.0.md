@@ -42,7 +42,7 @@
 | **소개글·채팅방메뉴 (월합산)** | 0 | 10건 | 20건 | 30건 | 60건 | 무제한 |
 | **리뷰 답변 초안 (월)** | 0 | 50회 | 무제한 | 무제한 | 무제한 | 무제한 |
 | **블로그 AI 진단 (월)** | 0 | 3회 | 5회 | 10회 | 무제한 | 무제한 |
-| **키워드 자동 추천 (월)** | 1회 | 1회 | 4회 | 4회 | 10회 | 무제한 |
+| **키워드 자동 추천 (월)** | 0 | 5회 | 10회 | 20회 | 무제한 | 무제한 |
 
 > AI 가이드: Claude Sonnet 4.6 (D.I.A. 점수 게이트 70점 적용)
 > 소개글·리뷰·FAQ: Claude Haiku 4.5 (~0.7~0.8원/회)
@@ -134,7 +134,7 @@ Pro는 대신 **PDF, 광고대응, 주 3회 스캔, 사업장 2개**를 제공�
 | 파일 | 역할 | 비고 |
 |------|------|------|
 | `backend/middleware/plan_gate.py` | `PLAN_LIMITS` — 한도 정의 **원본** | 이 파일이 진실 |
-| `backend/routers/business.py` | `_KEYWORD_SUGGEST_MONTHLY_LIMIT` | PLAN_LIMITS와 별도 관리 |
+| `backend/routers/business.py` | `_get_keyword_suggest_limit()` | PLAN_LIMITS에서 읽음 (`4413e64` 통합) |
 | `backend/routers/teams.py` | `TEAM_LIMIT` | biz:5, enterprise:20 |
 | `backend/config/prices.py` | `PLAN_PRICES` — 결제 금액 원본 | |
 | `frontend/lib/plans.ts` | UI 카드 텍스트 + `PLAN_PRICES` | plan_gate.py와 동기화 필수 |
@@ -154,3 +154,5 @@ Pro는 대신 **PDF, 광고대응, 주 3회 스캔, 사업장 2개**를 제공�
 | 2026-06-17 | Basic 자동 스캔 매일→월요일 1회만 (비용 850원→200원) | jobs.py |
 | 2026-06-17 | Basic 리뷰답변 20→50회, 소개글+FAQ 5→10건 | plan_gate.py, plans.ts, pricing/page.tsx |
 | 2026-06-17 | 문서 v1.1 전면 재작성 — 전 플랜 비교표 통합 | plan_limits_v1.0.md |
+| 2026-06-18 | keyword_suggest_monthly 수치 정정 (1/1/4/4/10→0/5/10/20/무제한) | plan_limits_v1.0.md |
+| 2026-06-18 | business.py 단일 소스 파일 항목 정정 (_KEYWORD_SUGGEST_MONTHLY_LIMIT→PLAN_LIMITS 통합) | plan_limits_v1.0.md |

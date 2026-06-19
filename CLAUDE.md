@@ -646,6 +646,13 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
+### 2026-06-19 — 사용자 관점 UX 점검 + Trial 점수 레이블 버그 수정
+> 소상공인 사용자 관점 전 페이지 기능·실측·모바일 UX 점검
+- **P0 버그 수정**: `trial/components/TrialResultStep.tsx:61,64` — `breakdown.keyword_gap_score * 100`, `breakdown.smart_place_completeness * 100` → `* 100` 제거. 백엔드는 이미 0~100 반환하는데 중복 ×100으로 kgPct/spPct=3000 → 항상 "양호" 표시되던 버그. 배포 완료 (git `4a4f820`)
+- **UX 점검 결과**: 홈·Trial·Demo·Pricing·How-it-works 전 페이지 ✅. 네이버 관련 정보 상단 노출 확인, 모바일 반응성 양호
+- **P2 개선 권장**: Trial 결과 "개선 필요" 레이블에 1줄 개선 힌트 추가 검토, Demo 모바일 스크롤 과다(접기 구조 권장)
+- **P3 데이터 품질**: 일반명사 가게명(테스트용) 스캔 시 블로그 집계 과대 → 실사업자 고유 상호명 사용 시 자연 해결
+
 ### 2026-06-18 — 상업 서비스 수준 전체 점검 및 개선 15건
 > OWASP·개인정보보호법·전자상거래법·SEO·신뢰성 기준 상업 점검
 - **P0 오판 복구**: `webhook.py /billing/issue`에 `_verify_toss_auth` 오적용(프론트 호출 엔드포인트) → 롤백 + `profiles` user 존재 검증으로 교체

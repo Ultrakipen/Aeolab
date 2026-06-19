@@ -2044,16 +2044,13 @@ async def trial_followup_job():
                 if not email:
                     continue
 
-                # 원자적 업데이트 (이미 처리된 행 스킵)
-                updated = await _db(
+                # 중복 발송 방지 업데이트 (supabase-py 2.7.4: update+select 체인 미지원)
+                await _db(
                     supabase.table("trial_scans")
                     .update({col: True, "followup_sent_at": today.isoformat()})
                     .eq("id", row["id"])
                     .eq(col, False)
-                    .select("id")
                 )
-                if not (updated and updated.data):
-                    continue  # 다른 프로세스가 먼저 처리한 경우
 
                 sent = await send_trial_followup(
                     email=email,
