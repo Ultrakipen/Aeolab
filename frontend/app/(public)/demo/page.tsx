@@ -74,7 +74,7 @@ function getMock(category: string, region: string) {
     geminiRate: 15,
     benchmark: benchmarks[category] ?? benchmarks.restaurant,
     lockedTips: [
-      { icon: "🔍", label: "AI 검색 노출 개선 방법",   tip: "Gemini·ChatGPT 각 50회 (총 100회) 반복 측정으로 정확한 노출 확률(%)을 산출하고 매일 자동 추적합니다." },
+      { icon: "🔍", label: "AI 검색 노출 개선 방법",   tip: "Gemini·ChatGPT 각 50회 (총 100회) 반복 측정으로 정확한 노출 확률(%)을 산출하고 플랜에 따라 주 1회(월요일)~매일 자동 추적합니다." },
       { icon: "📊", label: "경쟁사 6개 차원 갭 분석",  tip: "1위 경쟁사 대비 어느 항목이 얼마나 뒤처지는지 정확히 보여줍니다." },
       { icon: "🗺️", label: "업종 시장 순위 확인",      tip: "내 가게가 지역 업종 내 몇 위인지, 상위 몇 %인지 수치로 확인합니다." },
       { icon: "📋", label: "스마트플레이스 소개글 + 블로그 자동 생성", tip: "AI 최적화 소개글과 블로그 포스트 초안을 자동 생성 — 복사 후 스마트플레이스에 붙여넣기만 하면 됩니다. 홈페이지 없어도 OK." },
@@ -745,7 +745,7 @@ export default function DemoPage() {
                       <span className="text-sm font-semibold">{item.ch}</span>
                       <span className="text-sm font-bold">{item.period}</span>
                     </div>
-                    <p className={`text-xs leading-relaxed ${item.text} opacity-75`}>{item.tip}</p>
+                    <p className={`text-sm leading-relaxed ${item.text} opacity-75`}>{item.tip}</p>
                   </div>
                 ))}
               </div>
