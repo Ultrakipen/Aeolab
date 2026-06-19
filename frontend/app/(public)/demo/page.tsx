@@ -743,17 +743,17 @@ export default function DemoPage() {
             {/* AI 채널별 개선 반영 기간 */}
             <div>
               <p className="text-sm font-semibold text-gray-600 mb-2">개선 후 손님에게 노출되는 기간 (공식 자료 기준)</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {[
-                  { ch: "네이버 AI 브리핑", period: "2~4주",    border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집" },
-                  { ch: "네이버 AI탭",       period: "2~4주",    border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강" },
-                  { ch: "Gemini",            period: "수일~수주", border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 시 빠름 / 미등록 시 수개월~1년" },
-                  { ch: "ChatGPT",           period: "수개월~1년",   border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "Bing Places 등록 시 빠름 · 웹콘텐츠 기반" },
+                  { ch: "네이버 AI 브리핑", period: "2~4주",      border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집" },
+                  { ch: "네이버 AI탭",       period: "2~4주",      border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강" },
+                  { ch: "Gemini",            period: "수일~수주",   border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 시 빠름 / 미등록 시 수개월~1년" },
+                  { ch: "ChatGPT",           period: "수개월~1년",  border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "Bing Places 등록 시 빠름 · 웹콘텐츠 기반" },
                 ].map((item) => (
                   <div key={item.ch} className={`rounded-xl border ${item.border} ${item.bg} px-3 py-2.5`}>
                     <div className={`flex items-center justify-between mb-0.5 ${item.text}`}>
                       <span className="text-sm font-semibold">{item.ch}</span>
-                      <span className="text-sm font-bold">{item.period}</span>
+                      <span className="text-sm font-bold shrink-0 ml-2">{item.period}</span>
                     </div>
                     <p className={`text-sm leading-relaxed break-keep ${item.text} opacity-75`}>{item.tip}</p>
                   </div>
