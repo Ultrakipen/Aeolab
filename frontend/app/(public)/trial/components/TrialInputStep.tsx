@@ -127,18 +127,22 @@ export default function TrialInputStep(props: TrialInputStepProps) {
     <>
       <div
         id="trial-form"
-        className={`max-w-2xl mx-auto px-4 ${step === "category" ? "pt-8 pb-10" : "py-10"}`}
+        className={`mx-auto px-4 ${
+          step === "category" ? "max-w-5xl pt-8 pb-10" :
+          step === "info" ? "max-w-3xl py-10" :
+          "max-w-2xl py-10"
+        }`}
       >
         {/* ── 무료 진단으로 얻는 것 ── */}
         {step !== "scanning" && step !== "search" && (
-          <div className="mb-7">
+          <div className="mb-7 max-w-2xl mx-auto">
             <p className="text-sm font-semibold text-slate-500 text-center mb-3">무료 진단으로 얻는 것</p>
             <div className="grid grid-cols-3 gap-2.5">
               {[
                 {
                   Icon: Search,
                   title: "AI 노출 점수",
-                  desc: "ChatGPT·네이버가 내 가게를 검색하는지 바로 확인",
+                  desc: "네이버·ChatGPT가 내 가게를 검색하는지 바로 확인",
                 },
                 {
                   Icon: Target,
@@ -213,7 +217,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
             </p>
 
             {/* AI 채널 범례 */}
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 mb-5 px-1">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 mb-4 px-1">
               {[
                 { dot: "bg-green-500", label: "네이버 AI 브리핑 대상" },
                 { dot: "bg-blue-400", label: "AI 탭 확대 예정" },
@@ -227,7 +231,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
             </div>
 
             {/* 업종 검색 입력 */}
-            <div className="relative mb-4">
+            <div className="relative mb-4 max-w-lg mx-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" aria-hidden="true" />
               <input
                 type="text"
@@ -1106,7 +1110,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       href="/signup"
                       className="flex-1 text-center py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors"
                     >
-                      회원가입하고 매일 자동 진단 받기 →
+                      회원가입하고 매주 자동 진단 받기 →
                     </Link>
                     <Link
                       href="/login"

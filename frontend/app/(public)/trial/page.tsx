@@ -442,7 +442,7 @@ export default function TrialPage() {
       setStep("search");
     } catch {
       setSearchError(
-        "검색 중 오류가 발생했습니다. 직접 입력 정보로 진단을 진행할 수 있습니다.",
+        "네이버 검색 결과를 불러오지 못했습니다. 입력하신 정보로 바로 진단할 수 있습니다.",
       );
       setStep("search");
     } finally {

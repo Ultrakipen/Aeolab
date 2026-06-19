@@ -1008,9 +1008,9 @@ export default function TrialResultStep(props: TrialResultProps) {
           <p className="text-xs font-bold text-blue-500 tracking-wide uppercase mb-3">이 개선들의 공통 효과</p>
           <div className="space-y-1.5 text-sm">
             <p className="text-slate-700">소개글 · 키워드 · 소식 · 리뷰 개선</p>
-            <p className="text-blue-300 pl-1">↓</p>
+            <p className="text-blue-300 pl-1">↓ <span className="text-slate-400 text-xs">개선 직후 ~ 2~4주 내</span></p>
             <p className="font-semibold text-slate-800">네이버 검색 상위 노출</p>
-            <p className="text-blue-300 pl-1">↓</p>
+            <p className="text-blue-300 pl-1">↓ <span className="text-slate-400 text-xs">{briefingCategory === "active" ? "2~4주 내 AI 브리핑 반영" : "수개월 내 반영"}</span></p>
             <p className="font-bold text-blue-800 break-keep">
               {briefingCategory === "active"
                 ? "AI 브리핑·ChatGPT·Gemini 동시 노출 가능성 향상"
@@ -1019,9 +1019,20 @@ export default function TrialResultStep(props: TrialResultProps) {
                 : "ChatGPT·Gemini에서 내 가게 추천 가능성 향상"}
             </p>
           </div>
-          <p className="text-xs text-blue-600 mt-3 pt-3 border-t border-blue-100 leading-relaxed break-keep">
-            구독하면 이 변화를 매주 수치로 자동 추적합니다
-          </p>
+          <div className="mt-3 pt-3 border-t border-blue-100 space-y-1">
+            <p className="text-xs text-slate-500 leading-relaxed break-keep">
+              · 네이버 AI 브리핑·AI탭: 개선 후 <strong className="text-slate-700">2~4주</strong> 내 반영 기대
+              {briefingCategory !== "active" && <span> · ChatGPT·Gemini: 학습 데이터 반영까지 <strong className="text-slate-700">수개월~1년</strong> 소요 (네이버 최적화로 가속 가능)</span>}
+            </p>
+            {briefingCategory === "active" && (
+              <p className="text-xs text-slate-500 leading-relaxed break-keep">
+                · ChatGPT·Gemini: 학습 데이터 반영까지 <strong className="text-slate-700">수개월~1년</strong> 소요 — 네이버 블로그·플레이스 최적화로 가속 가능
+              </p>
+            )}
+            <p className="text-xs text-blue-600 leading-relaxed break-keep">
+              구독하면 이 변화를 매주 수치로 자동 추적합니다
+            </p>
+          </div>
         </div>
 
         {/* ── 구독 유도 + 전환 CTA ── */}
