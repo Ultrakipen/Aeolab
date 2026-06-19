@@ -419,7 +419,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           <li className="flex items-start gap-1.5">
                             <span className="text-blue-500 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
-                              <strong>ChatGPT·Gemini</strong> 검색 + <strong>네이버 플레이스·지도</strong> 노출을 중심으로 진단
+                              <strong>네이버 플레이스·지도</strong> 노출 + <strong>ChatGPT·Gemini</strong> 검색을 중심으로 진단
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -685,7 +685,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                     <p className="text-base font-bold text-blue-900">분석 기준 키워드 확인</p>
                   </div>
                   <p className="text-sm text-blue-700 mb-1 leading-relaxed">
-                    이 키워드로 ChatGPT·Gemini·네이버 AI에 <strong>&ldquo;[지역] [키워드] 추천&rdquo;</strong> 형식으로 실제 쿼리를 날려 경쟁사와 비교 측정합니다.
+                    이 키워드로 네이버 AI·ChatGPT·Gemini에 <strong>&ldquo;[지역] [키워드] 추천&rdquo;</strong> 형식으로 실제 쿼리를 날려 경쟁사와 비교 측정합니다.
                   </p>
                   <p className="text-sm font-semibold text-blue-800 mb-3">
                     내 가게의 대표 서비스·업종명이 맞는지 확인하세요.
@@ -852,7 +852,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 />
                 <p className={`text-sm mt-1 ${description ? "text-blue-600" : "text-amber-600"}`}>
                   {description
-                    ? "ChatGPT·Gemini가 가게를 더 정확하게 파악합니다"
+                    ? "네이버·ChatGPT·Gemini가 가게를 더 정확하게 파악합니다"
                     : "비워두면 업종 평균 데이터로 추정합니다 — 짧아도 좋으니 한 줄 적어보세요"}
                 </p>
               </div>

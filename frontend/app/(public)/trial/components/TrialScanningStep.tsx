@@ -43,7 +43,7 @@ export default function TrialScanningStep({
           &ldquo;{[region, selectedTag].filter(Boolean).join(" ") || "이 업종"} 추천&rdquo;
         </span>
         을<br />
-        ChatGPT·Gemini·네이버 AI에게 직접 물어보고 있습니다
+        네이버·ChatGPT·Gemini AI에게 직접 물어보고 있습니다
       </p>
       <p className="text-sm text-slate-400 mb-8">보통 30~60초 소요됩니다</p>
 
@@ -87,7 +87,7 @@ export default function TrialScanningStep({
       {/* 체험 스캔 범위 안내 (ACTIVE 업종) */}
       {briefingCategory === "active" && (
         <p className="text-sm text-slate-400 mt-6 leading-relaxed bg-slate-50 rounded-xl px-4 py-3 text-left">
-          💡 <span className="font-semibold text-slate-600">체험 스캔 범위:</span> ChatGPT·스마트플레이스 자동 점검을 진행합니다.
+          💡 <span className="font-semibold text-slate-600">체험 스캔 범위:</span> 네이버 스마트플레이스 자동 점검·ChatGPT 질의를 진행합니다.
           네이버 AI 브리핑 실측 확인은 구독 후 정식 스캔에서 제공됩니다.
         </p>
       )}

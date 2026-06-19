@@ -477,7 +477,7 @@ function ScoreSummaryCard({
 
       <div className="mt-3">
         <p className="text-sm text-slate-400 leading-relaxed">
-          AEOlab AI 가시성 진단 · ChatGPT·네이버 실측 기반 · 측정 시점에 따라 결과가 달라질 수 있습니다
+          AEOlab AI 가시성 진단 · 네이버·ChatGPT 실측 기반 · 측정 시점에 따라 결과가 달라질 수 있습니다
         </p>
       </div>
     </div>
@@ -1113,7 +1113,7 @@ function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number })
             이번 체험 스캔 기준
           </p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            ChatGPT <strong className="text-white font-semibold">{chatgptSampleSize}회 질의</strong> + 네이버 스마트플레이스 자동 점검으로 측정한 결과입니다. Gemini는 Basic 구독 시 측정됩니다.
+            네이버 스마트플레이스 자동 점검 + ChatGPT <strong className="text-white font-semibold">{chatgptSampleSize}회 질의</strong>로 측정한 결과입니다. Gemini는 Basic 구독 시 측정됩니다.
           </p>
         </div>
       </div>
