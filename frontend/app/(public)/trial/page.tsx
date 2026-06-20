@@ -28,7 +28,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:800
 
 // ── 결과 캐시 (sessionStorage + localStorage fallback) ────────────────
 const RESULT_CACHE_KEY = "trial_result_cache";
-const RESULT_CACHE_TTL_MS = 60 * 60 * 1000; // 1시간
+const RESULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24시간
 
 interface TrialResultCache {
   result: TrialScanResult;
