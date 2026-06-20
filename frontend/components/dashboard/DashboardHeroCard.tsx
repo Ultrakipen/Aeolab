@@ -60,8 +60,8 @@ export default function DashboardHeroCard({
         bg: "bg-green-50",
         cardBorder: "border-green-300",
         sub: isFranchise
-          ? "프랜차이즈는 AI 브리핑 비대상 — 검색·플레이스·AI탭 상위노출로 노출을 키웁니다"
-          : "AI 브리핑 비대상 업종 — 검색·플레이스·AI탭 상위노출로 노출을 키웁니다",
+          ? "네이버 검색·플레이스·AI탭 집중 전략 — 개선하면 상위 노출이 가능합니다"
+          : "네이버 검색·플레이스·AI탭이 핵심 노출 채널 — 개선하면 상위 노출이 가능합니다",
       }
     : { label: stage.label, labelColor: stage.labelColor, bg: stage.bg, cardBorder: stage.cardBorder, sub: null as string | null };
 
@@ -90,7 +90,7 @@ export default function DashboardHeroCard({
       ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 중",    statusClass: "text-emerald-700", detail: "AI탭 답변 있음" }
       : naverAiTabVisible === false
       ? { icon: "!", iconClass: "bg-amber-500 text-white",   status: "아직 미노출", statusClass: "text-amber-700",   detail: "설정 보강하면 가능" }
-      : { icon: "→", iconClass: "bg-blue-100 text-blue-600", status: "준비 가능",   statusClass: "text-blue-600",    detail: "가이드 확인하기" };
+      : { icon: "i", iconClass: "bg-blue-100 text-blue-700 font-black", status: "준비 가능",   statusClass: "text-blue-700",    detail: "가이드로 설정하기" };
 
   const naverBriefingCard = naverCaptchaBlocked
     ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",        statusClass: "text-gray-400",    detail: "일시적으로 확인 어려움" }
