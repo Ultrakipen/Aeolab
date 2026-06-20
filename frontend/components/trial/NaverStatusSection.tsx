@@ -365,6 +365,9 @@ export default function NaverStatusSection({
             <p className="text-sm font-bold text-slate-500 tracking-wide uppercase">
               블로그 언급 격차
             </p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              네이버 블로그 검색에서 가게명이 등장한 포스팅 수 — 많을수록 AI 인용 가능성 높음
+            </p>
           </div>
           <div className="px-4 py-3 space-y-3">
             {/* 내 가게 */}
@@ -402,12 +405,19 @@ export default function NaverStatusSection({
             {compBlogCount > blogCount && (
               <div className="flex items-start gap-2 bg-amber-50 rounded-lg px-3 py-2.5 border border-amber-200">
                 <BookOpen className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-amber-700 leading-snug break-keep">
-                  경쟁사보다 {(compBlogCount - blogCount).toLocaleString()}건 적습니다 —
-                  리뷰 답변에 키워드를 포함하면 블로그 유입이 늘어납니다.
-                </p>
+                <div>
+                  <p className="text-sm text-amber-700 leading-snug break-keep">
+                    경쟁사보다 {(compBlogCount - blogCount).toLocaleString()}건 적습니다
+                  </p>
+                  <p className="text-sm text-amber-600 leading-snug break-keep mt-0.5">
+                    → 방문 손님께 블로그 후기 요청 + 이벤트 진행으로 포스팅을 늘리면 AI 노출 가능성이 높아집니다
+                  </p>
+                </div>
               </div>
             )}
+            <p className="text-xs text-slate-400 leading-relaxed break-keep">
+              · 가게명이 일반 명사와 유사한 경우 관련 없는 포스팅이 일부 포함될 수 있습니다
+            </p>
           </div>
         </div>
       )}

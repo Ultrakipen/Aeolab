@@ -171,6 +171,7 @@ function ScanConclusionCard({
   missingKws,
   inBriefing,
   briefingCategory,
+  chatgptQueries,
 }: {
   businessName: string;
   chatgptMentioned: boolean | undefined;
@@ -181,6 +182,7 @@ function ScanConclusionCard({
   missingKws: string[];
   inBriefing: boolean | null;
   briefingCategory: "active" | "likely" | "inactive";
+  chatgptQueries?: string[];
 }) {
   // 실측 데이터가 하나도 없으면 카드 자체 숨김
   const hasAnyData =
@@ -343,14 +345,19 @@ function ScanConclusionCard({
             <span className="text-lg shrink-0 mt-0.5">{chatgptMentioned ? "✅" : "❌"}</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-slate-800 break-keep">
-                ChatGPT {chatgptSampleSize}회 질의 —{" "}
+                ChatGPT {chatgptSampleSize}회 —{" "}
                 {chatgptMentioned
-                  ? `"${businessName}"이 추천 목록에 등장했습니다`
-                  : `"${businessName}"이 아직 추천 목록에 없습니다`}
+                  ? `지역 업종 검색 결과에 "${businessName}" 등장`
+                  : `지역 업종 검색 결과에 아직 미노출`}
               </p>
+              {chatgptQueries && chatgptQueries[0] && (
+                <p className="text-sm text-slate-500 mt-0.5 break-keep">
+                  질의 예시: &ldquo;{chatgptQueries[0]}&rdquo; — 이 검색에서 가게명이 나오는지 확인
+                </p>
+              )}
               {!chatgptMentioned && (
                 <p className="text-sm text-slate-500 mt-0.5 break-keep">
-                  체험은 {chatgptSampleSize}회 기준 · 정식 스캔은 50회로 더 정확합니다
+                  정식 스캔은 50회 질의로 더 정확 · 네이버 최적화 후 수개월 내 반영 기대
                 </p>
               )}
             </div>
@@ -398,17 +405,18 @@ function ScanConclusionCard({
           <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-amber-50 border border-amber-200">
             <span className="text-lg shrink-0 mt-0.5">⚠️</span>
             <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-amber-600 mb-0.5">경쟁 가게 소개글·리뷰에 자주 등장하는 키워드</p>
               <p className="text-sm font-semibold text-slate-800 break-keep">
-                경쟁 가게 키워드 {missingKws.length}개 없음 — {missingKws.slice(0, 2).map(k => `'${k}'`).join(", ")} 등
+                내 가게에 없는 키워드 {missingKws.length}개 — {missingKws.slice(0, 3).map(k => `'${k}'`).join(", ")} 등
               </p>
-              <p className="text-sm text-slate-500 mt-0.5">소개글·리뷰에 추가하면 AI 추천 가능성이 높아집니다</p>
+              <p className="text-sm text-slate-500 mt-0.5 break-keep">이 키워드를 소개글·리뷰 답변에 자연스럽게 포함하면 AI 추천 가능성이 높아집니다</p>
             </div>
           </div>
         ) : (
           <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-green-50 border border-green-200">
             <span className="text-lg shrink-0 mt-0.5">✅</span>
             <p className="text-sm font-semibold text-slate-800 break-keep">
-              핵심 키워드가 갖춰져 있습니다
+              경쟁 가게 핵심 키워드가 이미 갖춰져 있습니다
             </p>
           </div>
         )}
@@ -954,6 +962,7 @@ export default function TrialResultStep(props: TrialResultProps) {
             isSmartPlace={
               result.smart_place_check?.is_smart_place ??
               (naver as { is_smart_place?: boolean } | null)?.is_smart_place ??
+              form.is_smart_place ??
               false
             }
             naverCompetitors={
@@ -984,6 +993,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           missingKws={effectiveMissingKws}
           inBriefing={inBriefing}
           briefingCategory={briefingCategory}
+          chatgptQueries={chatgptDisplayQueries}
         />
 
         {/* ── 2. 지금 바로 할 핵심 액션 ──────────────────────────── */}
@@ -1004,33 +1014,52 @@ export default function TrialResultStep(props: TrialResultProps) {
         />
 
         {/* ── 개선 효과 연결 브리지 ── */}
-        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-4 mb-4">
-          <p className="text-xs font-bold text-blue-500 tracking-wide uppercase mb-3">이 개선들의 공통 효과</p>
-          <div className="space-y-1.5 text-sm">
-            <p className="text-slate-700">소개글 · 키워드 · 소식 · 리뷰 개선</p>
-            <p className="text-blue-300 pl-1">↓ <span className="text-slate-400 text-xs">개선 직후 ~ 2~4주 내</span></p>
-            <p className="font-semibold text-slate-800">네이버 검색 상위 노출</p>
-            <p className="text-blue-300 pl-1">↓ <span className="text-slate-400 text-xs">{briefingCategory === "active" ? "2~4주 내 AI 브리핑 반영" : "수개월 내 반영"}</span></p>
-            <p className="font-bold text-blue-800 break-keep">
-              {briefingCategory === "active"
-                ? "AI 브리핑·ChatGPT·Gemini 동시 노출 가능성 향상"
-                : briefingCategory === "likely"
-                ? "ChatGPT·Gemini 노출 향상 + AI 브리핑 확대 시 즉시 유리"
-                : "ChatGPT·Gemini에서 내 가게 추천 가능성 향상"}
-            </p>
+        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-5 mb-4">
+          <p className="text-base font-bold text-blue-700 mb-3">이 개선들이 실제로 효과가 있는 이유</p>
+          <p className="text-sm text-slate-600 leading-relaxed mb-4 break-keep">
+            ChatGPT·Gemini 같은 AI 도구는 <strong className="text-slate-800">네이버 블로그·플레이스 콘텐츠를 학습 데이터로 사용</strong>합니다.
+            네이버에서 잘 노출되는 가게가 AI 검색에도 자주 등장하는 이유입니다.
+          </p>
+          <div className="space-y-2 text-sm bg-white rounded-xl px-4 py-3 border border-blue-100">
+            <div className="flex items-start gap-3">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-black">1</span>
+              <div>
+                <p className="font-semibold text-slate-800">소개글·키워드·소식·리뷰 개선</p>
+                <p className="text-slate-500 text-sm">개선 직후 ~ 2~4주 내</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-black">2</span>
+              <div>
+                <p className="font-semibold text-slate-800">네이버 지역 검색 상위권 노출</p>
+                <p className="text-slate-500 text-sm">네이버가 관련성 높은 가게로 평가 → 상위 노출</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-black">3</span>
+              <div>
+                <p className="font-bold text-blue-800 break-keep">
+                  {briefingCategory === "active"
+                    ? "네이버 AI 브리핑 + ChatGPT·Gemini 동시 노출"
+                    : briefingCategory === "likely"
+                    ? "ChatGPT·Gemini 노출 향상 + AI 브리핑 확대 준비"
+                    : "ChatGPT·Gemini에서 내 가게 추천 가능성 향상"}
+                </p>
+                <p className="text-slate-500 text-sm">
+                  {briefingCategory === "active" ? "2~4주 내 AI 브리핑 반영 기대" : "네이버 최적화 후 수개월 내 반영"}
+                </p>
+              </div>
+            </div>
           </div>
           <div className="mt-3 pt-3 border-t border-blue-100 space-y-1">
-            <p className="text-xs text-slate-500 leading-relaxed break-keep">
+            <p className="text-sm text-slate-500 leading-relaxed break-keep">
               · 네이버 AI 브리핑·AI탭: 개선 후 <strong className="text-slate-700">2~4주</strong> 내 반영 기대
-              {briefingCategory !== "active" && <span> · ChatGPT·Gemini: 학습 데이터 반영까지 <strong className="text-slate-700">수개월~1년</strong> 소요 (네이버 최적화로 가속 가능)</span>}
             </p>
-            {briefingCategory === "active" && (
-              <p className="text-xs text-slate-500 leading-relaxed break-keep">
-                · ChatGPT·Gemini: 학습 데이터 반영까지 <strong className="text-slate-700">수개월~1년</strong> 소요 — 네이버 블로그·플레이스 최적화로 가속 가능
-              </p>
-            )}
-            <p className="text-xs text-blue-600 leading-relaxed break-keep">
-              구독하면 이 변화를 매주 수치로 자동 추적합니다
+            <p className="text-sm text-slate-500 leading-relaxed break-keep">
+              · ChatGPT·Gemini: 학습 데이터 반영까지 <strong className="text-slate-700">수개월~1년</strong> 소요 — 네이버 블로그·플레이스 최적화로 가속 가능
+            </p>
+            <p className="text-sm text-blue-600 font-medium leading-relaxed break-keep">
+              → 구독하면 이 변화를 매주 자동 추적하고 경쟁사와 비교합니다
             </p>
           </div>
         </div>
