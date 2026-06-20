@@ -960,10 +960,11 @@ export default function TrialResultStep(props: TrialResultProps) {
             searchQuery={(naver as { search_query?: string } | null)?.search_query}
             myRank={naver?.my_rank ?? null}
             isSmartPlace={
-              result.smart_place_check?.is_smart_place ??
-              (naver as { is_smart_place?: boolean } | null)?.is_smart_place ??
-              form.is_smart_place ??
-              false
+              // 네이버 플레이스 URL이 존재 = 후보 선택됨 = 스마트플레이스 등록 확인
+              !!(result.place_match?.naver_place_url
+              || result.smart_place_check?.is_smart_place
+              || (naver as { is_smart_place?: boolean } | null)?.is_smart_place
+              || form.is_smart_place)
             }
             naverCompetitors={
               (naver as { naver_competitors?: Array<{ rank: number; name: string; address?: string }> } | null)?.naver_competitors
