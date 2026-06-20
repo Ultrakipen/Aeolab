@@ -136,8 +136,14 @@ def _failed_result(error_code: str, naver_place_id: str = "") -> dict:
 
 
 def _detect_visitor_review_count(home_text: str) -> int:
-    """홈 탭 텍스트에서 방문자 리뷰 수를 추출. 0이면 미감지."""
+    """홈 탭 텍스트에서 리뷰 수를 추출. 0이면 미감지.
+
+    Naver 실측 (2026-06-20): 홈 탭에 "[업종]리뷰 N" 형식으로 표시됨.
+    예: "돼지고기구이리뷰 202" → 리뷰\s+(\d+) 패턴으로 202 추출.
+    """
     _patterns = [
+        # 실측: "돼지고기구이리뷰 202" — 업종명+리뷰 뒤 공백+숫자
+        r"리뷰\s+(\d[\d,]+)",
         r"방문자\s*리뷰\s*(\d[\d,]*)",
         r"방문자리뷰\s*(\d[\d,]*)",
         r"리뷰\s*(\d[\d,]+)\s*개",
@@ -184,9 +190,9 @@ async def _run_check(naver_place_id: str) -> dict:
         "recent_post_measured": True,   # False = 차단으로 측정 불가
         "has_intro": False,
         "has_reservation": False,
-        "photo_count": 0,
+        "photo_count": None,      # 감지 성공 시 int, 미감지 시 None (프론트 "0장" 오표시 방지)
         "visitor_review_count": 0,
-        "avg_rating": 0.0,
+        "avg_rating": None,       # 감지 성공 시 float, 미감지 시 None
         "intro_text": "",
     }
 
@@ -439,15 +445,16 @@ async def _detect_reservation(page, home_text: str) -> bool:
     return False
 
 
-async def _detect_photo_count(page, home_text: str) -> int:
+async def _detect_photo_count(page, home_text: str) -> "int | None":
     """[P1-B-2] 홈 탭에서 등록 사진 수 추정.
 
     점수 미반영 — 10장 미만 시 AI탭 품질 향상 안내 전용.
-    우선순위: 탭 버튼 "사진 N" 텍스트 → "N장" 패턴
-    (img.count() 폴백 제거 — 내비게이션 아이콘 등 무관 이미지 카운트로 오류 발생)
+    Naver 실측 (2026-06-20): 홈 탭 텍스트에 사진 수 미포함. 사진 탭은 JS 비동기 로딩
+    으로 inner_text()로 접근 불가("로딩중" 상태 8s 이상 유지).
+    감지 불가 시 None 반환 — 프론트가 "0장" 오표시 방지.
     """
     # 1. 탭 버튼에 표시된 사진 수 "사진 N" 패턴 추출 (콤마 포함 숫자 지원)
-    m = re.search(r"사진\s*(\d[\d,]*)", home_text)
+    m = re.search(r"사진\s*(\d[\d,]+)", home_text)
     if m:
         try:
             val = int(m.group(1).replace(",", ""))
@@ -464,4 +471,4 @@ async def _detect_photo_count(page, home_text: str) -> int:
                 return val
         except ValueError:
             pass
-    return 0
+    return None  # 감지 불가 — 프론트에서 표시 안 함

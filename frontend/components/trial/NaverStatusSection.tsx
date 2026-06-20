@@ -248,7 +248,7 @@ export default function NaverStatusSection({
             okNote="신선도 점수가 높아집니다"
             failNote="소식이 없으면 신선도 점수가 낮아집니다 — 월 1회 이상 소식을 게시하세요"
           />
-          {photoCount !== undefined && (
+          {isSmartPlace && photoCount != null && (
             <CheckRow
               label="사진"
               ok={photoCount >= 30}
@@ -257,20 +257,20 @@ export default function NaverStatusSection({
               failNote={`30장 이상 권장, 현재 ${photoCount}장 — 음식·매장 사진을 추가로 올리세요`}
             />
           )}
-          {(visitorReviewCount !== undefined || avgRating !== undefined) && (
+          {isSmartPlace && (visitorReviewCount != null || avgRating != null) && (
             <div className="flex items-center gap-3 py-2.5">
               <Star className="w-5 h-5 text-yellow-400 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-semibold text-slate-800">방문자 리뷰</span>
-                  {visitorReviewCount !== undefined && (
+                  {visitorReviewCount != null && (
                     <span className="text-sm text-slate-500">{visitorReviewCount.toLocaleString()}건</span>
                   )}
-                  {avgRating !== undefined && (
+                  {avgRating != null && (
                     <span className="text-sm text-slate-500">★ {avgRating.toFixed(1)}</span>
                   )}
                 </div>
-                {visitorReviewCount !== undefined && visitorReviewCount < 30 && (
+                {visitorReviewCount != null && visitorReviewCount < 30 && (
                   <p className="text-sm text-slate-500 mt-0.5 leading-snug break-keep">
                     리뷰가 30건 미만입니다 — 방문 후 리뷰 요청 문자를 활용해 빠르게 늘리세요
                   </p>
