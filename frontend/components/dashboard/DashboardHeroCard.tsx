@@ -192,21 +192,21 @@ export default function DashboardHeroCard({
         </div>
       </div>
 
-      {/* ── 오늘 할 일 요약 CTA ── */}
+      {/* ── 오늘 할 일 앵커 CTA — 동일 텍스트 중복 방지: 실제 내용은 아래 ActionZone에만 표시 ── */}
       {todayAction && (
         <div className="px-4 pb-4 border-t border-gray-100 pt-3">
           <a
-            href={todayActionLink ?? "/guide"}
+            href={todayActionLink ?? "#section-action"}
             className="flex items-center justify-between gap-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl px-4 py-3 transition-colors group"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-rose-500 text-base shrink-0">↳</span>
+              <span className="text-rose-500 text-lg shrink-0">✅</span>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-rose-600 leading-tight">지금 할 일</p>
-                <p className="text-sm font-semibold text-gray-800 leading-snug break-keep line-clamp-2 mt-0.5">{todayAction}</p>
+                <p className="text-xs font-semibold text-rose-600 leading-tight">오늘의 개선 미션</p>
+                <p className="text-sm font-semibold text-gray-800 leading-snug break-keep mt-0.5">스캔 결과 기반 맞춤 액션이 준비됐습니다</p>
               </div>
             </div>
-            <span className="text-sm font-bold text-rose-500 group-hover:text-rose-700 shrink-0 whitespace-nowrap">실행 →</span>
+            <span className="text-sm font-bold text-rose-500 group-hover:text-rose-700 shrink-0 whitespace-nowrap">확인하기 ↓</span>
           </a>
         </div>
       )}
