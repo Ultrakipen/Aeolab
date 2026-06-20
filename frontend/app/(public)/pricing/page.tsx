@@ -45,8 +45,8 @@ export default function PricingPage() {
         <GroupHeadlineBanner />
 
         {/* ─── 플랜 카드: 상단 3개 ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 mt-8">
-          {[PLANS[4], PLANS[1], PLANS[2]].map((plan) => (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 mt-8">
+          {[PLANS[1], PLANS[2], PLANS[4]].map((plan) => (
             <div
               key={plan.name}
               id={`plan-${plan.name.replace(/\s+/g, "-")}`}
@@ -57,24 +57,24 @@ export default function PricingPage() {
               }`}
             >
               {plan.badge && (
-                <div className={`text-sm font-semibold mb-3 ${plan.highlight ? "text-blue-100" : "text-blue-600"}`}>
+                <div className={`text-sm font-semibold mb-2 ${plan.highlight ? "text-blue-100" : "text-blue-600"}`}>
                   {plan.badge}
                 </div>
               )}
-              <div className={`text-2xl font-bold mb-0.5 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
+              <div className={`text-2xl md:text-3xl font-bold mb-1 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
                 {plan.name}
               </div>
-              <div className={`text-sm md:text-base mb-1 ${plan.highlight ? "text-blue-200" : "text-gray-500"}`}>
+              <div className={`text-sm md:text-base mb-2 leading-snug ${plan.highlight ? "text-blue-200" : "text-gray-500"}`}>
                 {plan.description}
               </div>
-              {plan.valueTag && (
-                <div className={`text-sm font-medium mb-3 px-2 py-1 rounded-full inline-block self-start ${
-                  plan.highlight ? "bg-blue-500 text-blue-100" : "bg-green-50 text-green-700"
+              {plan.killerFeature && (
+                <div className={`text-sm md:text-base font-medium mb-3 px-3 py-2 rounded-lg ${
+                  plan.highlight ? "bg-white/15 text-white" : "bg-amber-50 text-amber-800 border border-amber-200"
                 }`}>
-                  {plan.valueTag}
+                  ✦ {plan.killerFeature}
                 </div>
               )}
-              <div className={`text-4xl font-bold mb-1 mt-2 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
+              <div className={`text-3xl md:text-4xl font-bold mb-1 mt-1 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
                 {plan.price}
                 <span className={`text-base font-normal ${plan.highlight ? "text-blue-200" : "text-gray-500"}`}>
                   {plan.period}
@@ -87,8 +87,15 @@ export default function PricingPage() {
                   첫 달 50% 할인 — 4,950원 (이후 월 9,900원)
                 </div>
               )}
+              {plan.valueTag && (
+                <div className={`mt-3 text-xs md:text-sm font-medium px-3 py-1.5 rounded-lg self-start ${
+                  plan.highlight ? "bg-blue-500/50 text-blue-100" : "bg-green-50 text-green-700 border border-green-200"
+                }`}>
+                  {plan.valueTag}
+                </div>
+              )}
 
-              <ul className="mt-4 mb-6 space-y-2.5 flex-1">
+              <ul className="mt-4 mb-6 space-y-2 md:space-y-2.5 flex-1">
                 {plan.features.map((f) => (
                   <li key={f} className={`text-sm md:text-base flex gap-2 leading-snug ${plan.highlight ? "text-blue-100" : "text-gray-600"}`}>
                     <span className={`mt-0.5 shrink-0 ${plan.highlight ? "text-blue-200" : "text-blue-500"}`}>✓</span>
@@ -144,7 +151,7 @@ export default function PricingPage() {
               <div className="text-2xl font-bold text-gray-900 mb-0.5">{plan.name}</div>
               <div className="text-sm md:text-base text-gray-500 mb-1">{plan.description}</div>
               {plan.valueTag && (
-                <div className="text-sm font-medium mb-3 px-2 py-1 rounded-full inline-block self-start bg-green-50 text-green-700">
+                <div className="text-xs md:text-sm font-medium mb-3 px-3 py-1.5 rounded-lg inline-block self-start bg-green-50 text-green-700 border border-green-200">
                   {plan.valueTag}
                 </div>
               )}
@@ -198,7 +205,7 @@ export default function PricingPage() {
                 </p>
                 <p className="text-sm md:text-base text-green-800 leading-relaxed break-keep">
                   네이버 AI 브리핑 대상 업종이 아니어도 걱정 마세요. 스마트플레이스 소개글·소식·리뷰·키워드를
-                  개선하면 <strong>네이버 일반 검색과 지도(플레이스) 상위 노출</strong>이 함께 올라갑니다.
+                  개선하면 <strong>네이버 일반 검색과 지도(플레이스) 상위 노출</strong>이 함께 올라갈 가능성이 높아집니다.
                   이 효과는 <strong>업종·프랜차이즈 여부와 관계없이 모든 사업장에 공통</strong>으로 적용됩니다.
                 </p>
               </div>
@@ -340,7 +347,7 @@ export default function PricingPage() {
           <div className="rounded-xl bg-green-100/60 border border-green-200 px-4 py-3 mb-4">
             <p className="text-sm md:text-base text-green-900 leading-relaxed break-keep">
               <strong>📍 어느 단계든 공통:</strong> 위 어느 경우에 해당하든, 스마트플레이스·블로그·키워드를 개선하면
-              <strong> 네이버 일반 검색과 지도(플레이스) 상위 노출</strong>은 함께 향상됩니다. AI 브리핑 대상이 아니어도 네이버에서 더 잘 찾히게 만들 수 있습니다.
+              <strong> 네이버 일반 검색과 지도(플레이스) 상위 노출</strong>은 함께 향상될 수 있습니다. AI 브리핑 대상이 아니어도 네이버에서 더 잘 찾히게 만들 수 있습니다.
             </p>
           </div>
 
@@ -482,7 +489,7 @@ export default function PricingPage() {
             {[
               {
                 q: "내 업종도 네이버 AI 브리핑에 노출되나요?",
-                a: "음식점·카페·베이커리·바·숙박 5개 업종이 현재 네이버 AI 브리핑 노출 대상입니다. 뷰티·네일·반려동물·헬스·요가·약국 등은 2026 AI탭 베타·확대 진행 중. 그 외 업종은 ChatGPT·Gemini·Google AI 노출 개선 중심으로 가치를 제공합니다. 단, 모든 업종에서 프랜차이즈 가맹점은 네이버 정책상 제외됩니다. 그리고 AI 브리핑 대상이 아니어도, 어느 업종이든 스마트플레이스·블로그·키워드를 개선하면 네이버 일반 검색·지도(플레이스) 상위 노출은 공통으로 향상됩니다.",
+                a: "음식점·카페·베이커리·바·숙박 5개 업종이 현재 네이버 AI 브리핑 노출 대상입니다. 뷰티·네일·반려동물·헬스·요가·약국 등은 2026 AI탭 베타·확대 진행 중. 그 외 업종은 ChatGPT·Gemini·Google AI 노출 개선 중심으로 가치를 제공합니다. 단, 모든 업종에서 프랜차이즈 가맹점은 네이버 정책상 제외됩니다. 그리고 AI 브리핑 대상이 아니어도, 어느 업종이든 스마트플레이스·블로그·키워드를 개선하면 네이버 일반 검색·지도(플레이스) 상위 노출은 공통으로 향상될 수 있습니다.",
               },
               {
                 q: "구독은 언제든지 해지할 수 있나요?",

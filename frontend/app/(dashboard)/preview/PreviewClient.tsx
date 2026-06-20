@@ -520,7 +520,7 @@ function FreeTab({
           <FeatureRow label="네이버 AI 검색 준비도 점수 (AI브리핑·AI탭)" available={true} />
           <FeatureRow label="성장 단계 진단" available={true} />
           <FeatureRow label="개선 방향 1개 공개" available={true} />
-          <FeatureRow label="AI 7개 전체 결과" available={false} />
+          <FeatureRow label="AI 4채널 전체 결과" available={false} />
           <FeatureRow label="경쟁사 비교" available={false} />
           <FeatureRow label="자동 스캔" available={false} />
           <FeatureRow label="리뷰 답변 초안" available={false} />
@@ -584,7 +584,7 @@ function BasicTab({
         lines={[
           {
             icon: "📊",
-            text: `매주 월요일 AI 7개가 ${d.bizName}을 얼마나 추천하는지 자동으로 추적합니다`,
+            text: `매주 월요일 AI 4채널이 ${d.bizName}을 얼마나 추천하는지 자동으로 추적합니다`,
           },
           {
             icon: "🎯",
@@ -603,7 +603,7 @@ function BasicTab({
           Basic — {PLAN_PRICES.basic.toLocaleString()}원/월
         </p>
         <p className="text-sm text-blue-700 leading-relaxed">
-          매주 월요일 AI 7개 자동 스캔 + 경쟁사 3곳 비교. 커피 한 잔 값으로 내 가게가 AI에서
+          매주 월요일 AI 4채널 자동 스캔 + 경쟁사 3곳 비교. 커피 한 잔 값으로 내 가게가 AI에서
           어떻게 보이는지 매주 자동으로 추적합니다.
         </p>
       </div>
@@ -647,7 +647,7 @@ function BasicTab({
         <SectionTitle
           icon={<Globe className="w-4 h-4 text-blue-500" />}
           title="AI 플랫폼별 노출 결과표"
-          subtitle="네이버·ChatGPT·Google AI 전체 노출 현황 · 매주 자동 업데이트"
+          subtitle="네이버·ChatGPT·Gemini·Google AI 노출 현황 · 매주 자동 업데이트"
         />
         <PlatformResultTable showAll={true} />
         <p className="text-sm text-gray-400 mt-2">* 예시 데이터입니다.</p>
@@ -776,7 +776,7 @@ function BasicTab({
           title="Basic 포함 기능"
         />
         <div className="divide-y divide-gray-50">
-          <FeatureRow label="매주 월요일 AI 7개 자동 스캔" available={true} />
+          <FeatureRow label="매주 월요일 AI 4채널 자동 스캔" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 3곳" />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 3회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 20회" />
@@ -960,7 +960,7 @@ function StartupTab({
           <FeatureRow label="창업 시장 분석 리포트 (업종·지역 경쟁 강도)" available={true} />
           <FeatureRow label="시장 진입 난이도 + 틈새 키워드 발굴" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 5개" />
-          <FeatureRow label="매주 월요일 AI 7개 자동 스캔" available={true} />
+          <FeatureRow label="매주 월요일 AI 4채널 자동 스캔" available={true} />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 5회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="무제한" />
           <FeatureRow label="CSV 내보내기" available={true} />
@@ -1274,7 +1274,7 @@ function ProTab({
           title="Pro 포함 기능"
         />
         <div className="divide-y divide-gray-50">
-          <FeatureRow label="월·수·금 주 3회 AI 7개 자동 스캔" available={true} />
+          <FeatureRow label="월·수·금 주 3회 AI 4채널 자동 스캔" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 5개" />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 10회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="무제한" />
@@ -1516,7 +1516,7 @@ function BizTab({
           <FeatureRow label="수동 스캔 무제한" available={true} />
           <FeatureRow label="경쟁사 무제한" available={true} />
           <FeatureRow label="리뷰 답변 초안 무제한" available={true} />
-          <FeatureRow label="사업장 5개 × AI 7개 매일 자동 스캔" available={true} />
+          <FeatureRow label="사업장 5개 × AI 4채널 매일 자동 스캔" available={true} />
           <FeatureRow label="팀 계정 5명" available={true} />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 20회" />
           <FeatureRow label="창업·신규 지점 시장 분석 리포트" available={true} />

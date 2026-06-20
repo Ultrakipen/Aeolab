@@ -78,8 +78,8 @@ export const PLANS: PlanInfo[] = [
     highlight: true,
     badge: "소상공인 첫 시작",
     description: "내 가게 AI 노출 주 1회 자동 감시 + 콘텐츠 도구 무제한",
-    valueTag: "ChatGPT Plus 절반도 안 되는 가격으로, ChatGPT가 못 하는 걸 합니다",
-    killerFeature: "ChatGPT가 모르는 것 — 지금 내 가게가 네이버 AI에 나오는지 매주 자동 확인",
+    valueTag: "네이버·ChatGPT·구글 AI 노출과 검색 상위 노출 — 주 1회 자동 진단, 월 9,900원",
+    killerFeature: "내 가게가 네이버 AI·ChatGPT·구글 AI에 지금 나오는지 매주 자동으로 확인합니다",
     features: [
       "주 1회 자동 AI 진단 (매주 월요일) — 내가 안 켜도 알아서 분석",
       "수동 스캔 하루 2회 — 소개글 Q&A 추가 후 AI가 바로 반영됐는지 즉시 확인",
@@ -107,8 +107,8 @@ export const PLANS: PlanInfo[] = [
     highlight: false,
     badge: "성장 중인 가게",
     description: "경쟁사 움직임 즉시 포착 + 내 행동이 AI에 반영됐는지 증명",
-    valueTag: "ChatGPT Plus보다 저렴, ChatGPT가 절대 못 하는 일을 매일",
-    killerFeature: "매일 자동 감시 + 내 행동이 AI에 반영됐는지 7일 후 자동 증명",
+    valueTag: "네이버·ChatGPT·구글 AI 노출과 검색 상위 노출 — 주 3회 자동 감시",
+    killerFeature: "주 3회 자동 감시(월·수·금) + 내 행동이 AI에 반영됐는지 7일 후 자동 증명",
     features: [
       "경쟁사가 FAQ·소식·키워드를 추가하면 즉시 알림",
       "내가 한 행동이 AI 브리핑에 반영됐는지 7일 후 자동 증명",

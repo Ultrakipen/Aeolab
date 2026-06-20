@@ -477,7 +477,7 @@ export default function OnboardingPage() {
             <p className="text-base text-gray-500 mb-6 leading-relaxed">
               가게 이름을 검색하면 주소·전화번호·업종이 자동으로 채워집니다.
               <br className="hidden sm:block" />
-              등록 후 매일 자동으로 경쟁 가게와 AI 노출을 비교해 드립니다.
+              등록 후 플랜에 따라 주 1회~매일 자동으로 경쟁 가게와 AI 노출을 비교해 드립니다.
             </p>
 
             <form onSubmit={handleRegister} className="space-y-5">
@@ -818,7 +818,7 @@ export default function OnboardingPage() {
               </div>
               <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">가게 분석 준비 완료!</h1>
               <p className="text-base text-gray-500 leading-relaxed">
-                매일 자동으로 경쟁 가게와 비교해 드립니다.<br className="hidden sm:block" />
+                플랜에 따라 자동으로 경쟁 가게와 비교해 드립니다.<br className="hidden sm:block" />
                 AI 스캔 방법을 먼저 확인하세요.
               </p>
             </div>

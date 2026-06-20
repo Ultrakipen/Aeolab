@@ -56,7 +56,7 @@ export default function HowItWorksPage() {
             광고처럼 노출을 사는 게 아니라, <strong>노출 조건을 채우는 일을 자동화</strong>하는 서비스입니다.
           </p>
           <p className="text-sm md:text-base text-gray-700 mt-3 leading-relaxed break-keep">
-            또한 소개글·리뷰·소식·키워드를 개선하면 <strong>네이버 일반검색(플레이스·블로그·지도)의 상위 노출</strong>도 함께 좋아집니다 — AI 브리핑 대상이든 아니든, <strong>업종과 무관하게 모든 사업장에 적용되는 공통 효과</strong>입니다.
+            또한 소개글·리뷰·소식·키워드를 개선하면 <strong>네이버 일반검색(플레이스·블로그·지도)의 상위 노출</strong>도 함께 좋아질 가능성이 높아집니다 — AI 브리핑 대상이든 아니든, <strong>업종과 무관하게 모든 사업장에 공통으로 도움이 됩니다</strong>.
           </p>
         </div>
 
@@ -288,7 +288,7 @@ export default function HowItWorksPage() {
           {/* 비대상 업종 가치 강조 박스 */}
           <div className="rounded-xl border border-blue-300 bg-blue-50 p-4 md:p-5">
             <p className="text-sm md:text-base font-bold text-blue-900 mb-3 break-keep">
-              AI 브리핑 비대상 업종(병원·법무·교육·쇼핑몰 등)이라도 — 네이버 검색 상위 노출은 가능합니다
+              AI 브리핑 비대상 업종(병원·법무·교육·쇼핑몰 등)이라도 — 네이버 검색 상위 노출 가능성을 높일 수 있습니다
             </p>
             <div className="space-y-2.5">
               <div className="flex items-start gap-3 bg-white rounded-lg p-3 border border-blue-100">
@@ -901,7 +901,7 @@ export default function HowItWorksPage() {
               <ul className="space-y-2 text-sm md:text-base text-gray-700 leading-relaxed">
                 <li>✅ 노출 조건 6항목 점수화·시각화</li>
                 <li>✅ AI 콘텐츠 초안 자동 생성 (소개글·채팅방 메뉴 + 소개글 Q&A·소식)</li>
-                <li>✅ 매주 Gemini·ChatGPT·네이버 3종 AI 스캔 + 결과 추적</li>
+                <li>✅ 매주 Gemini·ChatGPT·네이버·Google AI 4채널 스캔 + 결과 추적</li>
                 <li>✅ 경쟁사 비교 + 키워드 갭 분석</li>
                 <li>✅ 카카오 알림 + 이메일 다이제스트</li>
                 <li>✅ QR 카드·리뷰 답변 도구 제공</li>
