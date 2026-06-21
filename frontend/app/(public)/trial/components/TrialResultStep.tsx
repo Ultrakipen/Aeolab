@@ -947,6 +947,28 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         )}
 
+        {/* ── 1-c. 네이버 현황 직후 인라인 CTA (전환 최적 순간) ── */}
+        {!isLoggedIn && (
+          <div className="rounded-xl border border-blue-300 bg-blue-600 px-4 py-4 mb-4 shadow-md">
+            <p className="text-base font-bold text-white leading-snug break-keep mb-1">
+              이 변화를 매주 자동으로 추적하고 싶다면
+            </p>
+            <p className="text-sm text-blue-200 leading-snug break-keep mb-3">
+              경쟁 가게와 내 가게의 격차 — 지금 개선하면 얼마나 바뀌는지 매주 카톡으로 알려드립니다
+            </p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <Link
+                href="/signup"
+                onClick={onSaveTrialData}
+                className="inline-block bg-white text-blue-700 font-black text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-colors shadow whitespace-nowrap"
+              >
+                매주 자동 추적 시작 — 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원
+              </Link>
+              <span className="text-sm text-blue-300">이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지</span>
+            </div>
+          </div>
+        )}
+
         {/* ── 2. 핵심 실측 상세 (AI 스캔 결과) ──────────────────── */}
         <ScanConclusionCard
           businessName={form.business_name || "내 가게"}
@@ -1780,7 +1802,7 @@ function StickySignupBanner({
 
   return (
     <div
-      className="md:hidden fixed bottom-0 left-0 right-0 bg-blue-600 text-white px-4 pt-4 pb-4 z-50 shadow-2xl"
+      className="fixed bottom-0 left-0 right-0 bg-blue-600 text-white px-4 pt-4 pb-4 z-50 shadow-2xl"
       style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
     >
       <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
