@@ -71,79 +71,143 @@ def _get_resend():
 def _day1_html(
     business_name: str,
     category: str,
-    score: float,
+    region: str = "",
+    score: float = 0,
     naver_rank: int | None = None,
     ai_mentioned: bool | None = None,
     top_missing_keywords: list | None = None,
     has_recent_post: bool | None = None,
     has_intro: bool | None = None,
     growth_stage: str | None = None,
+    blog_mentions: int | None = None,
+    top_competitor_name: str | None = None,
 ) -> tuple[str, str]:
-    subject = f"[{business_name}] AI 스캔 결과 — 지금 개선하면 가장 빠릅니다"
+    cat_ko = _CATEGORY_KO.get(category or "", "사업장")
+    kw0 = (top_missing_keywords or [""])[0]
 
-    if has_intro is False:
-        action_text   = "스마트플레이스 소개글을 작성하세요 (업종명·지역·서비스 300자 이상)."
-        action_detail = "소개글은 AI가 사업장을 인식하는 가장 기본 조건입니다."
-    elif has_recent_post is False:
-        action_text   = "스마트플레이스 소식을 1개 게시하세요."
-        action_detail = "최근 소식이 없으면 AI가 사업장을 비활성 상태로 판단할 수 있습니다."
-    elif ai_mentioned is False:
-        action_text   = "소개글에 지역명과 업종 키워드를 포함해 업데이트하세요."
-        action_detail = "예: '서울 강남구 헬스장' 같은 구체적인 표현이 AI 인식률을 높입니다."
+    # 제목: 순위가 있으면 순위 중심, 없으면 일반
+    if naver_rank and top_competitor_name:
+        subject = f"[{business_name}] 네이버 {naver_rank}위 확인 — 1위 {top_competitor_name}과의 차이"
+    elif naver_rank:
+        subject = f"[{business_name}] 네이버 검색 {naver_rank}위 — 순위 올리는 방법"
     else:
-        action_text   = "스마트플레이스 사진을 10장 이상 등록하세요."
-        action_detail = "사진이 많을수록 AI 플랫폼에서 사업장 신뢰도가 높아집니다."
+        subject = f"[{business_name}] AI 스캔 결과 — 지금 개선하면 가장 빠릅니다"
+
+    # ── 블록 A: 네이버 순위 ──────────────────────────────────────────
+    if naver_rank:
+        if naver_rank == 1:
+            rank_msg = "현재 1위입니다. 소식과 리뷰 관리를 꾸준히 하면 유지됩니다."
+        elif naver_rank <= 5:
+            rank_msg = f"{naver_rank}위에 있습니다. 소개글·소식 보강으로 1위를 노려볼 수 있습니다."
+        elif naver_rank <= 10:
+            rank_msg = f"{naver_rank}위에 있습니다. 상위 5위 안으로 올라가려면 키워드 보강이 필요합니다."
+        else:
+            rank_msg = f"{naver_rank}위에 있습니다. 상위 10위 안에 들어야 손님 유입이 늘어납니다."
+
+        comp_cell = f'<td style="text-align:center; padding:8px 16px;"><p style="font-size:22px; font-weight:900; color:#64748b; margin:0;">1위</p><p style="font-size:13px; color:#94a3b8; margin:4px 0 0;">{top_competitor_name}</p></td>' if top_competitor_name else ""
+
+        rank_block = f"""
+  <div style="background:#f0f7ff; border:1px solid #bfdbfe; border-radius:10px; padding:16px 18px; margin:0 0 16px;">
+    <p style="font-size:12px; color:#3b82f6; font-weight:700; margin:0 0 10px; letter-spacing:0.05em;">네이버 {cat_ko} 지역 검색 순위 (실측)</p>
+    <table style="width:100%; border-collapse:collapse;">
+      <tr>
+        <td style="text-align:center; padding:8px 16px; border-right:1px solid #e2e8f0;">
+          <p style="font-size:30px; font-weight:900; color:#1d4ed8; margin:0;">{naver_rank}위</p>
+          <p style="font-size:13px; color:#3b82f6; margin:4px 0 0; font-weight:600;">내 가게</p>
+        </td>
+        {comp_cell}
+      </tr>
+    </table>
+    <p style="font-size:13px; color:#475569; margin:10px 0 0; line-height:1.6;">{rank_msg}</p>
+  </div>"""
+    else:
+        rank_block = """
+  <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px 18px; margin:0 0 16px;">
+    <p style="font-size:13px; color:#dc2626; font-weight:700; margin:0 0 4px;">네이버 검색 순위 미확인</p>
+    <p style="font-size:13px; color:#7f1d1d; margin:0; line-height:1.6;">스마트플레이스 미등록이거나 상위 20위 밖에 있습니다.<br>스마트플레이스 등록 후 키워드·소개글을 보강하면 순위가 생깁니다.</p>
+  </div>"""
+
+    # ── 블록 B: 스마트플레이스 현황 ─────────────────────────────────
+    sp_rows = ""
+    if has_intro is not None:
+        c = "#16a34a" if has_intro else "#dc2626"
+        v = "✓ 작성 완료" if has_intro else "✗ 미작성 — 소개글이 없으면 AI가 가게를 인식하지 못합니다"
+        sp_rows += f'<tr><td style="padding:5px 0; color:#64748b; width:100px;">소개글</td><td style="padding:5px 0; font-weight:600; color:{c};">{v}</td></tr>'
+    if has_recent_post is not None:
+        c = "#16a34a" if has_recent_post else "#dc2626"
+        v = "✓ 최근 게시 있음" if has_recent_post else "✗ 없음 — 월 1회 이상 소식을 올리면 신선도 점수가 올라갑니다"
+        sp_rows += f'<tr><td style="padding:5px 0; color:#64748b;">최근 소식</td><td style="padding:5px 0; font-weight:600; color:{c};">{v}</td></tr>'
+    if blog_mentions is not None:
+        sp_rows += f'<tr><td style="padding:5px 0; color:#64748b;">블로그 언급</td><td style="padding:5px 0; font-weight:600; color:#334155;">{blog_mentions}건{f" (경쟁 1위 {top_competitor_name}과 비교하세요)" if top_competitor_name else ""}</td></tr>'
+
+    sp_block = ""
+    if sp_rows:
+        sp_block = f"""
+  <div style="background:#f8fafc; border-radius:10px; padding:14px 18px; margin:0 0 16px;">
+    <p style="font-size:12px; color:#94a3b8; font-weight:700; margin:0 0 8px; letter-spacing:0.05em;">스마트플레이스 현황 (실측)</p>
+    <table style="width:100%; border-collapse:collapse; font-size:13px; color:#334155;">
+      {sp_rows}
+    </table>
+  </div>"""
+
+    # ── 블록 C: 지금 바로 할 1가지 ──────────────────────────────────
+    if kw0:
+        action_title = f'소개글에 &ldquo;<b style="color:#92400e;">{kw0}</b>&rdquo; 키워드를 추가하세요'
+        action_detail = f"이 키워드로 검색하는 손님에게 내 가게가 노출될 수 있습니다. 소개글 200자 이상·키워드 자연스럽게 포함이 핵심입니다."
+    elif has_intro is False:
+        action_title = "스마트플레이스 소개글을 작성하세요 (200자 이상)"
+        action_detail = "업종명·지역·대표 서비스를 포함해 작성하면 AI가 가게를 인식합니다."
+    elif has_recent_post is False:
+        action_title = "스마트플레이스 소식을 1개 게시하세요"
+        action_detail = "최근 소식이 없으면 AI가 사업장을 비활성 상태로 판단할 수 있습니다."
+    else:
+        action_title = "스마트플레이스 사진을 30장 이상 등록하세요"
+        action_detail = "사진이 많을수록 네이버·AI 플랫폼 신뢰도가 높아집니다."
+
+    action_block = f"""
+  <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:16px 20px; margin:0 0 16px;">
+    <p style="font-size:12px; color:#166534; font-weight:700; margin:0 0 6px; letter-spacing:0.05em;">지금 바로 할 1가지</p>
+    <p style="font-size:15px; color:#14532d; margin:0 0 6px; font-weight:600; line-height:1.5;">{action_title}</p>
+    <p style="font-size:13px; color:#166534; margin:0; line-height:1.6;">{action_detail}</p>
+    <p style="font-size:12px; color:#4ade80; margin:8px 0 0;">→ 개선 후 2~4주 내 네이버 반영 기대 · ChatGPT·Gemini는 수개월 소요</p>
+  </div>"""
+
+    # ── ChatGPT 참고 ─────────────────────────────────────────────────
+    chatgpt_note = ""
+    if ai_mentioned is not None:
+        if ai_mentioned:
+            chatgpt_note = '<p style="font-size:12px; color:#16a34a; margin:0 0 16px;">✓ ChatGPT 인식 확인 (5회 질의 기준 · 참고 수치)</p>'
+        else:
+            chatgpt_note = '<p style="font-size:12px; color:#94a3b8; margin:0 0 16px;">ChatGPT 인식 없음 (5회 질의 기준 · 참고 수치) — 네이버 최적화 후 수개월 내 개선 기대</p>'
 
     body = f"""
 <div style="font-family: 'Apple SD Gothic Neo', sans-serif; max-width:560px; margin:0 auto; padding:32px 24px; color:#1e293b;">
-  <div style="background:#1d4ed8; border-radius:12px; padding:22px 24px; margin-bottom:22px; text-align:center;">
-    <p style="color:#bfdbfe; font-size:12px; margin:0 0 4px;">AI 진단 결과 리마인더</p>
-    <h1 style="color:#ffffff; font-size:20px; margin:0 0 12px;">{business_name}</h1>
-    <span style="background:rgba(255,255,255,0.18); color:#ffffff; font-size:20px; font-weight:800; padding:6px 20px; border-radius:20px;">{_score_label(score)}</span>
+  <div style="background:#1d4ed8; border-radius:12px; padding:20px 24px; margin-bottom:20px; text-align:center;">
+    <p style="color:#bfdbfe; font-size:12px; margin:0 0 6px;">AEOlab 무료 체험 스캔 결과</p>
+    <h1 style="color:#ffffff; font-size:22px; font-weight:900; margin:0;">{business_name}</h1>
+    {f'<p style="color:#93c5fd; font-size:13px; margin:6px 0 0;">{cat_ko} · {region}</p>' if region else ''}
   </div>
 
-  <p style="font-size:15px; line-height:1.7; margin:0 0 18px;">
-    무료 AI 스캔 결과 확인하셨나요?<br>
-    지금 바로 개선을 시작하면 가장 빠르게 변화를 만들 수 있습니다.
-  </p>
+  {rank_block}
+  {sp_block}
+  {action_block}
+  {chatgpt_note}
 
-  <div style="background:#f8fafc; border-radius:10px; padding:14px 18px; margin:0 0 16px;">
-    <p style="font-size:12px; color:#94a3b8; font-weight:700; margin:0 0 8px; letter-spacing:0.06em;">진단 결과 요약</p>
-    <table style="width:100%; border-collapse:collapse; font-size:13px; color:#334155;">
-      <tr><td style="padding:4px 0; width:120px; color:#64748b;">AI 검색 노출</td>
-          <td style="padding:4px 0; font-weight:600; color:{"#16a34a" if ai_mentioned is True else "#dc2626" if ai_mentioned is False else "#94a3b8"};">{"ChatGPT 노출 확인" if ai_mentioned is True else "ChatGPT 미인식" if ai_mentioned is False else "확인 중"}</td></tr>
-      <tr><td style="padding:4px 0; color:#64748b;">소개글</td>
-          <td style="padding:4px 0; font-weight:600; color:{"#16a34a" if has_intro is True else "#dc2626" if has_intro is False else "#94a3b8"};">{"작성 완료" if has_intro is True else "미작성" if has_intro is False else "확인 중"}</td></tr>
-      <tr><td style="padding:4px 0; color:#64748b;">최근 소식</td>
-          <td style="padding:4px 0; font-weight:600; color:{"#16a34a" if has_recent_post is True else "#dc2626" if has_recent_post is False else "#94a3b8"};">{"게시 완료" if has_recent_post is True else "미게시" if has_recent_post is False else "확인 중"}</td></tr>
-    </table>
-    <p style="font-size:11px; color:#94a3b8; margin:8px 0 0;">* ChatGPT 인식 여부는 5회 질의 기반 참고 수치입니다 · 측정 시점에 따라 달라질 수 있습니다</p>
+  <div style="border-top:1px solid #e2e8f0; padding-top:16px; margin-bottom:20px;">
+    <p style="font-size:13px; color:#475569; margin:0 0 12px; line-height:1.6;">
+      이 결과는 스캔 시점 기준입니다. 개선 후 순위가 실제로 올랐는지 — 경쟁 가게가 치고 올라오지는 않는지 — 매주 자동으로 확인하려면 구독이 필요합니다.
+    </p>
+    <div style="text-align:center;">
+      <a href="https://aeolab.co.kr/signup" style="background:#1d4ed8; color:#ffffff; text-decoration:none; padding:13px 32px; border-radius:8px; font-size:15px; font-weight:700; display:inline-block;">
+        매주 자동 추적 시작 → 첫 달 4,950원
+      </a>
+      <p style="font-size:12px; color:#94a3b8; margin:8px 0 0;">이후 9,900원/월 · 언제든 해지 가능</p>
+    </div>
   </div>
 
-  <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:16px 20px; margin:0 0 24px;">
-    <p style="font-size:13px; color:#166534; margin:0 0 6px; font-weight:700;">오늘 할 1가지</p>
-    <p style="font-size:15px; color:#14532d; margin:0 0 6px; font-weight:600;">{action_text}</p>
-    <p style="font-size:13px; color:#166534; margin:0;">{action_detail}</p>
-  </div>
-
-  <div style="background:#eff6ff; border-radius:10px; padding:14px 18px; margin:0 0 20px;">
-    <p style="font-size:13px; color:#1e3a8a; font-weight:700; margin:0 0 6px;">구독하면 매주 이것이 자동으로 됩니다</p>
-    <ul style="font-size:13px; color:#1e40af; margin:0; padding-left:18px; line-height:1.9;">
-      <li>AI 노출 변화 자동 측정 (네이버·ChatGPT·Google)</li>
-      <li>경쟁 가게와 내 가게 점수 비교</li>
-      <li>이번 주 개선 우선순위 가이드</li>
-    </ul>
-  </div>
-
-  <div style="text-align:center;">
-    <a href="https://aeolab.co.kr/pricing" style="background:#1d4ed8; color:#ffffff; text-decoration:none; padding:13px 28px; border-radius:8px; font-size:14px; font-weight:700; display:inline-block;">
-      Basic 플랜 첫 달 4,950원으로 자동 추적 시작하기 →
-    </a>
-    <p style="font-size:12px; color:#94a3b8; margin:6px 0 0;">이후 9,900원/월 · 언제든 해지 가능</p>
-  </div>
-
-  <p style="font-size:11px; color:#94a3b8; margin-top:28px; text-align:center; line-height:1.6;">
-    ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
+  <p style="font-size:11px; color:#94a3b8; text-align:center; line-height:1.6;">
+    ChatGPT·Gemini 측정은 AI 학습 데이터 기반이며 실시간 검색 결과와 다를 수 있습니다.<br>
+    네이버 순위는 검색어·기기·로그인 상태에 따라 달라질 수 있습니다.
   </p>
   <p style="font-size:12px; color:#94a3b8; margin-top:6px; text-align:center;">
     AEOlab · <a href="https://aeolab.co.kr" style="color:#94a3b8;">aeolab.co.kr</a>
@@ -426,6 +490,7 @@ async def send_trial_followup(
             subject, html = _day1_html(
                 business_name=business_name,
                 category=category,
+                region=region,
                 score=score,
                 naver_rank=naver_rank,
                 ai_mentioned=ai_mentioned,
@@ -433,6 +498,8 @@ async def send_trial_followup(
                 has_recent_post=has_recent_post,
                 has_intro=has_intro,
                 growth_stage=growth_stage,
+                blog_mentions=blog_mentions,
+                top_competitor_name=top_competitor_name,
             )
         elif day == 3:
             subject, html = _day3_html(
