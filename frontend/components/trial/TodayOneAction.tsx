@@ -298,7 +298,7 @@ export default function TodayOneAction({
       {missingKws.length > 0 && (
         <div className="bg-amber-50 border border-amber-300 rounded-xl px-3 py-2.5 mb-3">
           <p className="text-sm text-amber-800 leading-relaxed">
-            아래 키워드는 <strong>업종 경쟁사 분석</strong>으로 자동 추출되었습니다. 내 가게에 해당하지 않는 항목은 건너뛰세요.
+            아래 키워드는 <strong>업종별 AI 최적화 추천 목록</strong>과 내 가게 정보를 비교해 자동 추출되었습니다. 내 가게에 해당하지 않는 항목은 건너뛰세요.
             구독 후 정식 스캔에서도 동일한 방식으로 제안되며, 관련 없는 키워드는 삭제할 수 있습니다.
           </p>
         </div>

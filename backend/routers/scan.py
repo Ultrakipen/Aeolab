@@ -1077,6 +1077,8 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         "smart_place_check": smart_place_check_data,
         # v3.4 — 신뢰도 강화 2라운드 (Gemini 10회 AI 응답 evidence, nullable)
         "ai_evidence": ai_evidence_data,
+        # gemini_result: 프론트엔드 ScanConclusionCard가 읽는 키 (gemini_evidence_data 직접 전달)
+        "gemini_result": gemini_evidence_data,
         "message": "무료 원샷 체험 결과입니다. 100회 샘플링 전체 분석은 구독 후 이용 가능합니다.",
     }
 
