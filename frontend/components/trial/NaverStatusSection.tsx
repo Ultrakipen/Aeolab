@@ -157,7 +157,7 @@ export default function NaverStatusSection({
                   key={i}
                   className={`flex items-center justify-between rounded-lg px-3 py-2 ${
                     !kr.exposed
-                      ? "bg-red-50 border border-red-100"
+                      ? "bg-slate-50 border border-slate-200"
                       : kr.rank !== null && kr.rank <= 5
                       ? "bg-emerald-50 border border-emerald-100"
                       : "bg-slate-50 border border-slate-100"
@@ -175,11 +175,18 @@ export default function NaverStatusSection({
                       {kr.rank}위
                     </span>
                   ) : (
-                    <span className="text-sm font-bold shrink-0 text-red-500">미노출</span>
+                    <span className="text-sm font-semibold shrink-0 text-slate-400">미노출</span>
                   )}
                 </div>
               ))}
             </div>
+            {/* 특화 키워드 상위 + 광역 키워드 미노출 혼재 시 안내 */}
+            {keywordRanks.some(kr => kr.exposed && kr.rank !== null && kr.rank <= 5) &&
+             keywordRanks.some(kr => !kr.exposed) && (
+              <p className="text-xs text-slate-400 mt-2 leading-snug break-keep">
+                * 업종 전체 광역 키워드(예: 음식점·카페)는 경쟁이 매우 심해 미노출이 일반적입니다. 특화 키워드에서 상위권이라면 실질적으로 문제 없습니다.
+              </p>
+            )}
             {searchQuery && (
               <p className="text-xs text-slate-400 mt-2">
                 ↓ &ldquo;{searchQuery}&rdquo; 검색 상위 결과

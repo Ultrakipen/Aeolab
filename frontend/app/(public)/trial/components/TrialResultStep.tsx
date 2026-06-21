@@ -172,6 +172,7 @@ function ScanConclusionCard({
   inBriefing,
   briefingCategory,
   chatgptQueries,
+  naverMyRank,
 }: {
   businessName: string;
   chatgptMentioned: boolean | undefined;
@@ -183,6 +184,7 @@ function ScanConclusionCard({
   inBriefing: boolean | null;
   briefingCategory: "active" | "likely" | "inactive";
   chatgptQueries?: string[];
+  naverMyRank?: number | null;
 }) {
   // 실측 데이터가 하나도 없으면 카드 자체 숨김
   const hasAnyData =
@@ -305,8 +307,8 @@ function ScanConclusionCard({
 
         {/* ChatGPT 실측 결과 */}
         {chatgptMentioned !== undefined && (
-          <div className={`flex items-start gap-3 rounded-lg px-3 py-2.5 ${chatgptMentioned ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
-            <span className="text-lg shrink-0 mt-0.5">{chatgptMentioned ? "✅" : "❌"}</span>
+          <div className={`flex items-start gap-3 rounded-lg px-3 py-2.5 ${chatgptMentioned ? "bg-green-50 border border-green-200" : "bg-slate-50 border border-slate-200"}`}>
+            <span className="text-lg shrink-0 mt-0.5">{chatgptMentioned ? "✅" : "—"}</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-slate-800 break-keep">
                 ChatGPT {chatgptSampleSize}회 —{" "}
@@ -316,15 +318,27 @@ function ScanConclusionCard({
               </p>
               {chatgptQueries && chatgptQueries[0] && (
                 <p className="text-sm text-slate-500 mt-0.5 break-keep">
-                  질의 예시: &ldquo;{chatgptQueries[0]}&rdquo; — 이 검색에서 가게명이 나오는지 확인
+                  질의 예시: &ldquo;{chatgptQueries[0]}&rdquo;
                 </p>
               )}
               {!chatgptMentioned && (
                 <p className="text-sm text-slate-500 mt-0.5 break-keep">
-                  정식 스캔은 50회 질의로 더 정확 · 네이버 최적화 후 수개월 내 반영 기대
+                  정식 스캔 50회 · 네이버 최적화 후 수개월~1년 내 반영 기대
                 </p>
               )}
             </div>
+          </div>
+        )}
+
+        {/* AI 0회 맥락 — 네이버 상위권인데 ChatGPT·Gemini 미노출이면 정상임을 설명 */}
+        {chatgptExposureFreq === 0 && (geminiExposureFreq === 0 || geminiExposureFreq === undefined) &&
+         naverMyRank !== null && naverMyRank !== undefined && naverMyRank <= 5 && (
+          <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-blue-50 border border-blue-100">
+            <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+            <p className="text-sm text-slate-600 break-keep leading-snug">
+              <strong className="text-slate-800">네이버 {naverMyRank}위인데 ChatGPT에 없는 건 정상입니다.</strong>{" "}
+              ChatGPT·Gemini는 수개월~1년 주기로 학습 데이터를 갱신하며, 네이버 검색 상위권인 가게도 대부분 아직 미인식 상태입니다. 네이버 최적화를 유지하면 점차 반영됩니다.
+            </p>
           </div>
         )}
 
@@ -983,6 +997,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           inBriefing={inBriefing}
           briefingCategory={briefingCategory}
           chatgptQueries={chatgptDisplayQueries}
+          naverMyRank={naver?.my_rank ?? null}
         />
 
         {/* ── 2. 지금 바로 할 핵심 액션 ──────────────────────────── */}
