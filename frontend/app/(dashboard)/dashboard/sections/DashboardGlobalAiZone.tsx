@@ -102,8 +102,9 @@ export default function DashboardGlobalAiZone({
             </div>
           </div>
           <p className="text-xs text-gray-500 leading-snug">
-            ChatGPT·Gemini 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
-            개선 반영까지 <span className="font-semibold text-gray-700">수개월~1년</span> 소요 — 꾸준한 콘텐츠·리뷰 관리가 핵심입니다.
+            스캐너는 학습 데이터 기반 쿼리로 측정합니다.
+            ChatGPT 개선 반영까지 <span className="font-semibold text-gray-700">수개월~1년</span> 소요.
+            Gemini는 Google 검색 연동으로 <span className="font-semibold text-gray-700">수 주~수개월</span> 내 더 빠르게 노출될 수 있습니다.
           </p>
         </div>
       )}
