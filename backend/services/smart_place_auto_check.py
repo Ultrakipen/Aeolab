@@ -211,6 +211,7 @@ async def _run_check(naver_place_id: str) -> dict:
         page = await ctx.new_page()
         await _apply_stealth(page)
         try:
+            _NAVER_IP_BLOCK = "플레이스 서비스 이용이 제한"
             # ── 1단계: 홈 탭 — 페이지 정상 로드 여부 + 예약 감지 + 사진 수 ──
             try:
                 await page.goto(
@@ -220,6 +221,15 @@ async def _run_check(naver_place_id: str) -> dict:
                 )
                 await page.wait_for_timeout(1500)
                 home_text = (await page.inner_text("body"))[:15000] or ""
+                # IP 차단 감지 — 차단 시 photo/review 등 감지 불가이므로 early return
+                if _NAVER_IP_BLOCK in home_text:
+                    _logger.warning(f"smart_place home tab blocked (IP restriction) [{naver_place_id}]")
+                    return {
+                        **results,
+                        "score_loss": _calc_score_loss(results),
+                        "action_links": _build_action_links(naver_place_id, results),
+                        "error": "ip_blocked",
+                    }
                 # "삭제된 업체" / "존재하지 않는" 메시지 차단 — 그 외엔 등록된 것으로 판정
                 if home_text and not re.search(
                     r"(존재하지 않|삭제|찾을 수 없|페이지를 찾을 수 없)", home_text
@@ -243,7 +253,6 @@ async def _run_check(naver_place_id: str) -> dict:
                 }
 
             # ── 2단계: 소식 탭 — 최근 90일 내 게시물 ───────────────────
-            _NAVER_IP_BLOCK = "플레이스 서비스 이용이 제한"
             try:
                 await page.goto(
                     f"{base_url}/feed",
