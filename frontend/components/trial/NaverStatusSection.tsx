@@ -138,7 +138,7 @@ export default function NaverStatusSection({
           <p className="text-sm font-bold text-slate-500 tracking-wide uppercase">
             네이버 지역검색 위치
           </p>
-          {searchQuery && (
+          {searchQuery && !(keywordRanks && keywordRanks.length > 1) && (
             <p className="text-base font-bold text-slate-800 mt-0.5">
               &quot;{searchQuery}&quot; 검색 결과
             </p>
@@ -164,11 +164,11 @@ export default function NaverStatusSection({
                   }`}
                 >
                   <span className="text-sm text-slate-700 truncate mr-2">&ldquo;{kr.query}&rdquo;</span>
-                  {kr.exposed ? (
+                  {kr.exposed && kr.rank != null ? (
                     <span className={`text-sm font-bold shrink-0 ${
-                      kr.rank !== null && kr.rank <= 3
+                      kr.rank <= 3
                         ? "text-emerald-700"
-                        : kr.rank !== null && kr.rank <= 10
+                        : kr.rank <= 10
                         ? "text-blue-700"
                         : "text-amber-700"
                     }`}>
