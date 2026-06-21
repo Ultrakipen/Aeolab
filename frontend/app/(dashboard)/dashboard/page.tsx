@@ -403,9 +403,12 @@ export default async function DashboardPage({
                   stacked
                   secondary={!!latestScan}
                 />
-                <p className="text-sm text-slate-500 mt-3 pt-3 border-t border-gray-100 leading-snug">
-                  반영 기간: 스마트플레이스 1~2일 · AI탭·블로그 2~4주 · ChatGPT·Gemini 수개월
-                </p>
+                <div className="mt-3 pt-3 border-t border-gray-100 space-y-0.5">
+                  <p className="text-sm font-semibold text-slate-600 leading-snug">📅 개선 후 반영 예상 기간</p>
+                  <p className="text-sm text-slate-500 leading-snug">· 스마트플레이스·네이버 검색 상위 노출: <strong className="text-slate-700">즉시~2주</strong></p>
+                  <p className="text-sm text-slate-500 leading-snug">· 네이버 AI 브리핑·AI탭: <strong className="text-slate-700">2~4주</strong></p>
+                  <p className="text-sm text-slate-500 leading-snug">· ChatGPT·Gemini: <strong className="text-slate-700">수개월~1년</strong> (네이버 최적화로 가속 가능)</p>
+                </div>
               </div>
             </div>
 
