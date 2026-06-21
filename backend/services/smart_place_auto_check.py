@@ -139,7 +139,7 @@ def _detect_visitor_review_count(home_text: str) -> int:
     """홈 탭 텍스트에서 리뷰 수를 추출. 0이면 미감지.
 
     Naver 실측 (2026-06-20): 홈 탭에 "[업종]리뷰 N" 형식으로 표시됨.
-    예: "돼지고기구이리뷰 202" → 리뷰\s+(\d+) 패턴으로 202 추출.
+    예: "돼지고기구이리뷰 202" → 리뷰 + 공백 + 숫자 패턴으로 202 추출.
     """
     _patterns = [
         # 실측: "돼지고기구이리뷰 202" — 업종명+리뷰 뒤 공백+숫자
@@ -278,14 +278,14 @@ async def _run_check(naver_place_id: str) -> dict:
                 _logger.warning(f"smart_place information tab skipped [{naver_place_id}]: {e}")
 
             # ── 4단계: 사진 탭 — 전체 사진 수 정확 파악 ────────────────────────
-            # 홈 탭 미리보기(일부)가 아닌 사진 탭 전체 수 사용
+            # 사진 탭은 JS 비동기 로딩. networkidle 대기 후 숫자 패턴 추출.
             try:
                 await page.goto(
                     f"{base_url}/photo",
                     timeout=_PAGE_TIMEOUT_MS,
-                    wait_until="domcontentloaded",
+                    wait_until="networkidle",
                 )
-                await page.wait_for_timeout(3000)  # 1500 → 3000ms
+                await page.wait_for_timeout(1500)
                 photo_body = (await page.inner_text("body")) or ""
                 # 네트워크 오류·IP 차단 감지 — 오류 시 기존 값 유지 (잘못된 숫자 방지)
                 if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", photo_body) or _NAVER_IP_BLOCK in photo_body:

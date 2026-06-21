@@ -104,7 +104,7 @@ def _day1_html(
         else:
             rank_msg = f"{naver_rank}위에 있습니다. 상위 10위 안에 들어야 손님 유입이 늘어납니다."
 
-        comp_cell = f'<td style="text-align:center; padding:8px 16px;"><p style="font-size:22px; font-weight:900; color:#64748b; margin:0;">1위</p><p style="font-size:13px; color:#94a3b8; margin:4px 0 0;">{top_competitor_name}</p></td>' if top_competitor_name else ""
+        comp_cell = f'<td style="text-align:center; padding:8px 16px;"><p style="font-size:13px; font-weight:700; color:#64748b; margin:0 0 4px;">주요 경쟁 가게</p><p style="font-size:15px; font-weight:800; color:#475569; margin:0;">{top_competitor_name}</p></td>' if top_competitor_name else ""
 
         rank_block = f"""
   <div style="background:#f0f7ff; border:1px solid #bfdbfe; border-radius:10px; padding:16px 18px; margin:0 0 16px;">

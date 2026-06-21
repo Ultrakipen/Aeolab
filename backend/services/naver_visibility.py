@@ -129,16 +129,16 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
     search_query = f"{region_prefix} {clean_kw}".strip()
 
     # ── 블로그 쿼리: 가장 정확한 쿼리 우선 ────────────────────────
-    # 1. 지역 + 업체명:  "창원 홍스튜디오"   ← 가장 정확 (내 가게 특정)
-    # 2. 업체명 단독:    "홍스튜디오"         ← 전국 동명업체 포함 가능
-    # 3. 지역+업체명+키워드: "창원 홍스튜디오 웨딩" (keyword 있을 때)
-    #    ※ 업체명+키워드 단순 조합은 키워드 전체 포스트를 잡아 수백만 건 오반환 위험
-    blog_query_region  = f"{region_prefix} {business_name}".strip() if region_prefix else business_name
-    blog_query_name    = business_name
+    # 업체명을 따옴표로 감싸 exact phrase 검색 → "홍대 육지" 검색 시 홍대/육지 개별 단어 포함
+    # 포스트(수만 건 오반환) 방지. 따옴표 없이 검색하면 단어 조합 전체가 잡혀 수천 건 과대 집계됨.
+    # 네이버 Search API는 "" 연산자를 지원하여 정확한 업체명 포스트만 반환.
+    _quoted_name = f'"{business_name}"'
+    blog_query_name    = _quoted_name
+    blog_query_region  = f"{region_prefix} {_quoted_name}".strip() if region_prefix else _quoted_name
     # 키워드 첫 단어만 사용 (복합 키워드가 전체 카테고리 포스트를 끌어올리는 문제 방지)
     _kw_first = clean_kw.split()[0] if clean_kw else ""
     blog_query_keyword = (
-        f"{region_prefix} {business_name} {_kw_first}".strip()
+        f"{region_prefix} {_quoted_name} {_kw_first}".strip()
         if (region_prefix and _kw_first) else blog_query_region
     )
 
