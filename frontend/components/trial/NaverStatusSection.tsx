@@ -8,6 +8,19 @@ export interface NaverCompetitor {
   address?: string;
 }
 
+export interface KeywordRank {
+  query: string;
+  rank: number | null;
+  exposed: boolean;
+}
+
+export interface KeywordBlogComparison {
+  keyword: string;
+  my_count: number;
+  competitor_name: string;
+  competitor_count: number;
+}
+
 export interface NaverStatusSectionProps {
   businessName: string;
   searchQuery?: string;
@@ -25,6 +38,8 @@ export interface NaverStatusSectionProps {
   blogCount: number;
   topCompetitorName?: string | null;
   topCompetitorBlogCount?: number;
+  keywordRanks?: KeywordRank[];
+  keywordBlogComparison?: KeywordBlogComparison[];
 }
 
 function CheckRow({
@@ -84,6 +99,8 @@ export default function NaverStatusSection({
   blogCount,
   topCompetitorName,
   topCompetitorBlogCount,
+  keywordRanks,
+  keywordBlogComparison,
 }: NaverStatusSectionProps) {
   const topFive = (naverCompetitors ?? []).slice(0, 5);
   const myRankNum = myRank ?? null;
@@ -127,6 +144,49 @@ export default function NaverStatusSection({
             </p>
           )}
         </div>
+
+        {/* ── 키워드별 순위 요약 (2개 이상 키워드 조사 시) ── */}
+        {keywordRanks && keywordRanks.length > 1 && (
+          <div className="px-4 pt-3 pb-2 border-b border-slate-100">
+            <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+              {keywordRanks.length}개 검색어 조사 결과
+            </p>
+            <div className="space-y-1.5">
+              {keywordRanks.map((kr, i) => (
+                <div
+                  key={i}
+                  className={`flex items-center justify-between rounded-lg px-3 py-2 ${
+                    !kr.exposed
+                      ? "bg-red-50 border border-red-100"
+                      : kr.rank !== null && kr.rank <= 5
+                      ? "bg-emerald-50 border border-emerald-100"
+                      : "bg-slate-50 border border-slate-100"
+                  }`}
+                >
+                  <span className="text-sm text-slate-700 truncate mr-2">&ldquo;{kr.query}&rdquo;</span>
+                  {kr.exposed ? (
+                    <span className={`text-sm font-bold shrink-0 ${
+                      kr.rank !== null && kr.rank <= 3
+                        ? "text-emerald-700"
+                        : kr.rank !== null && kr.rank <= 10
+                        ? "text-blue-700"
+                        : "text-amber-700"
+                    }`}>
+                      {kr.rank}위
+                    </span>
+                  ) : (
+                    <span className="text-sm font-bold shrink-0 text-red-500">미노출</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            {searchQuery && (
+              <p className="text-xs text-slate-400 mt-2">
+                ↓ &ldquo;{searchQuery}&rdquo; 검색 상위 결과
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="px-4 pt-3 pb-2">
           {topFive.length > 0 ? (
@@ -415,7 +475,42 @@ export default function NaverStatusSection({
                 </div>
               </div>
             )}
-            <p className="text-sm text-slate-400 leading-relaxed break-keep">
+            {/* 키워드별 블로그 격차 */}
+            {keywordBlogComparison && keywordBlogComparison.length > 0 && (
+              <div className="pt-1">
+                <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+                  키워드별 블로그 비교
+                </p>
+                <div className="space-y-2">
+                  {keywordBlogComparison.map((kbc, i) => {
+                    const gap = kbc.competitor_count - kbc.my_count;
+                    return (
+                      <div key={i} className="bg-slate-50 rounded-lg px-3 py-2.5 border border-slate-100">
+                        <p className="text-xs text-slate-500 mb-1.5">&ldquo;{kbc.keyword}&rdquo; 키워드</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-blue-700">내 가게 {kbc.my_count.toLocaleString()}건</span>
+                          <span className="text-slate-300">vs</span>
+                          <span className="text-sm font-semibold text-slate-600">
+                            {kbc.competitor_name} {kbc.competitor_count.toLocaleString()}건
+                          </span>
+                          {gap > 0 && (
+                            <span className="text-xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200">
+                              {gap.toLocaleString()}건 격차
+                            </span>
+                          )}
+                          {gap <= 0 && (
+                            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">
+                              경쟁사 이상
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <p className="text-xs text-slate-400 leading-relaxed break-keep">
               · 가게명이 일반 명사와 유사한 경우 관련 없는 포스팅이 일부 포함될 수 있습니다
             </p>
           </div>

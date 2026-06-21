@@ -944,6 +944,8 @@ export default function TrialResultStep(props: TrialResultProps) {
             blogCount={blogCount}
             topCompetitorName={(naver as { top_competitor_name?: string | null } | null)?.top_competitor_name}
             topCompetitorBlogCount={(naver as { top_competitor_blog_count?: number } | null)?.top_competitor_blog_count}
+            keywordRanks={(result as { keyword_ranks?: Array<{ query: string; rank: number | null; exposed: boolean }> }).keyword_ranks}
+            keywordBlogComparison={(result as { keyword_blog_comparison?: Array<{ keyword: string; my_count: number; competitor_name: string; competitor_count: number }> }).keyword_blog_comparison}
           />
         )}
 
