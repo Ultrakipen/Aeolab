@@ -296,7 +296,7 @@ function ScanConclusionCard({
         )}
 
         {/* 스마트플레이스 강점 (photo_count 많을 때만) */}
-        {smartPlaceCheck && !smartPlaceCheck.error && (smartPlaceCheck as { photo_count?: number }).photo_count !== undefined && ((smartPlaceCheck as { photo_count?: number }).photo_count ?? 0) >= 30 && (
+        {smartPlaceCheck && !smartPlaceCheck.error && (smartPlaceCheck as { photo_count?: number }).photo_count != null && ((smartPlaceCheck as { photo_count?: number }).photo_count ?? 0) >= 30 && (
           <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-green-50 border border-green-200">
             <span className="text-lg shrink-0 mt-0.5">✅</span>
             <p className="text-sm font-semibold text-slate-800 break-keep">
@@ -936,6 +936,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           <NaverStatusSection
             businessName={form.business_name || "내 가게"}
             searchQuery={(naver as { search_query?: string } | null)?.search_query}
+            region={form.region}
             myRank={naver?.my_rank ?? null}
             isSmartPlace={
               // 네이버 플레이스 URL이 존재 = 후보 선택됨 = 스마트플레이스 등록 확인
@@ -1992,7 +1993,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
       )}
 
       {/* AI탭 품질 향상 참고 사항 — 점수 미반영, advisory only */}
-      {(check.has_reservation !== undefined || check.photo_count !== undefined) && (
+      {(check.has_reservation !== undefined || check.photo_count != null) && (
         <div className="mt-3 border-t border-gray-100 pt-3">
           <p className="text-sm text-gray-500 mb-2">AI탭 품질 향상 참고 사항 (점수 미반영)</p>
           <div className="flex flex-col gap-2">
@@ -2026,7 +2027,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
                 )}
               </div>
             )}
-            {check.photo_count !== undefined && (
+            {check.photo_count != null && (
               <div
                 className={`flex items-center gap-2 rounded-xl px-3 py-2.5 border ${
                   (check.photo_count ?? 0) >= 10
