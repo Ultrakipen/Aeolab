@@ -77,6 +77,31 @@ const FAQS: FaqItem[] = [
     q: "무료 진단과 유료 구독의 차이가 뭔가요?",
     a: "무료 진단은 현재 AI 노출 상태와 핵심 문제 3가지를 한 번 확인할 수 있습니다. 유료 구독은 7일마다 자동 재측정, 경쟁사 비교, 키워드 갭 분석, AI 개선 가이드, 주간 노출 리포트를 제공합니다. 무료 진단은 '현재 상태를 아는 것', 구독은 '지속적으로 개선하는 것'입니다.",
   },
+  {
+    q: "다른 AI 노출 관리 서비스와 어떻게 다른가요?",
+    a: "국내 다른 AI 노출 서비스들은 ChatGPT·Gemini 등 글로벌 AI만 측정합니다. AEOlab은 한국 소상공인의 핵심 채널인 네이버 AI 브리핑·AI탭을 함께 측정하는 서비스입니다. 또한 월 9,900원 셀프서비스로 직접 관리할 수 있어, 수십만 원대 대행 서비스 없이 운영할 수 있습니다.",
+    aNode: (
+      <div className="space-y-2.5">
+        <p>국내 다른 AI 노출 서비스들은 ChatGPT·Gemini 등 <strong>글로벌 AI만 측정</strong>합니다.</p>
+        <p>AEOlab은 두 가지 핵심 차이가 있습니다.</p>
+        <ul className="space-y-2">
+          <li className="flex gap-2.5">
+            <span className="font-bold shrink-0 mt-px" style={{ color: "#2563EB" }}>①</span>
+            <span>
+              <strong>네이버 AI 브리핑·AI탭 포함</strong> — 한국 소상공인이 가장 많이 쓰는 채널을 글로벌 AI와 함께 측정합니다
+            </span>
+          </li>
+          <li className="flex gap-2.5">
+            <span className="font-bold shrink-0 mt-px" style={{ color: "#2563EB" }}>②</span>
+            <span>
+              <strong>월 9,900원 셀프서비스</strong> — 수십만 원대 대행 없이 직접 관리·개선할 수 있습니다
+            </span>
+          </li>
+        </ul>
+        <p className="text-xs" style={{ color: "#94A3B8" }}>※ 업종에 따라 네이버 AI 브리핑 대상 여부가 다릅니다. 무료 진단으로 먼저 확인하세요.</p>
+      </div>
+    ),
+  },
 ];
 
 export default function FAQSection() {

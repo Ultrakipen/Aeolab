@@ -1041,6 +1041,9 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
     except Exception as _rce:
         _logger.warning(f"trial review_copy_text build failed: {_rce}")
 
+    # 측정 쿼리 리스트 — trial: 실제 사용 1개 + 구독 변형 미리보기 포함
+    _trial_scan_queries = _build_ai_scan_queries(req.region or "", keyword_ko)
+
     return {
         # v3.6: trial_id (claim 깔때기에서 사용)
         "trial_id": trial_id,
@@ -1079,6 +1082,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         "ai_evidence": ai_evidence_data,
         # gemini_result: 프론트엔드 ScanConclusionCard가 읽는 키 (gemini_evidence_data 직접 전달)
         "gemini_result": gemini_evidence_data,
+        "scan_queries": _trial_scan_queries,
         "message": "무료 원샷 체험 결과입니다. 100회 샘플링 전체 분석은 구독 후 이용 가능합니다.",
     }
 

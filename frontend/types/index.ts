@@ -372,6 +372,8 @@ export interface TrialScanResult {
   ai_evidence?: TrialAIEvidence | null;
   // Trial Conversion Funnel — 30일 보관용 trial_scans.id
   trial_id?: string;
+  // 측정에 사용된 쿼리 목록 (쿼리 라이브러리 UI 노출용)
+  scan_queries?: string[];
   // 업종별 AI 브리핑 노출 분류 (백엔드 제공 or 프론트 fallback 계산)
   briefing_category?: "active" | "likely" | "inactive";
 }

@@ -1,5 +1,10 @@
 const COMPARE_ROWS = [
   {
+    label: "측정 채널",
+    manual: "ChatGPT·Gemini 등 글로벌 AI만",
+    auto: "네이버 AI 브리핑·AI탭 + 글로벌 AI 통합",
+  },
+  {
     label: "추적 방식",
     manual: "매주 수십 회 직접 질문 필요",
     auto: "자동 추적 + 카카오 알림",
@@ -39,6 +44,9 @@ export default function ChatGPTCompareSection() {
           <p className="text-sm mt-2 break-keep" style={{ color: "#475569" }}>
             &ldquo;강남 카페 추천해줘&rdquo; — ChatGPT가 답할 때 내 가게가 언급되는지,
             AEOlab은 이걸 50~100회 자동 측정합니다.
+            <strong className="block mt-1" style={{ color: "#0F172A" }}>
+              ChatGPT·Gemini만 측정하는 다른 서비스와 달리, 네이버 AI까지 함께 다룹니다.
+            </strong>
           </p>
         </div>
 
