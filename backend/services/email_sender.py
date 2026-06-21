@@ -30,6 +30,28 @@ _GROWTH_STAGE_KO: dict[str, str] = {
 _TRIAL_CHATGPT_SAMPLE_N = 5  # Trial scan ChatGPT sample size
 
 
+def _score_label(score: float) -> str:
+    if score >= 70:
+        return "양호"
+    elif score >= 45:
+        return "보통"
+    elif score >= 25:
+        return "주의 필요"
+    else:
+        return "미흡"
+
+
+def _score_color(score: float) -> str:
+    if score >= 70:
+        return "#16a34a"
+    elif score >= 45:
+        return "#d97706"
+    elif score >= 25:
+        return "#dc2626"
+    else:
+        return "#991b1b"
+
+
 def _mask_email(e: str) -> str:
     """이메일 주소 마스킹 — 로그 PII 보호용 (예: abc***@example.com)"""
     if not e or "@" not in e:
@@ -76,15 +98,26 @@ def _day1_html(
 <div style="font-family: 'Apple SD Gothic Neo', sans-serif; max-width:560px; margin:0 auto; padding:32px 24px; color:#1e293b;">
   <div style="background:#1d4ed8; border-radius:12px; padding:22px 24px; margin-bottom:22px; text-align:center;">
     <p style="color:#bfdbfe; font-size:12px; margin:0 0 4px;">AI 진단 결과 리마인더</p>
-    <h1 style="color:#ffffff; font-size:20px; margin:0 0 10px;">{business_name}</h1>
-    <span style="color:#ffffff; font-size:36px; font-weight:800;">{score:.0f}점</span>
-    <span style="color:#bfdbfe; font-size:14px; margin-left:6px;">/ 100점</span>
+    <h1 style="color:#ffffff; font-size:20px; margin:0 0 12px;">{business_name}</h1>
+    <span style="background:rgba(255,255,255,0.18); color:#ffffff; font-size:20px; font-weight:800; padding:6px 20px; border-radius:20px;">{_score_label(score)}</span>
   </div>
 
   <p style="font-size:15px; line-height:1.7; margin:0 0 18px;">
     어제 발송드린 AI 진단 보고서 확인하셨나요?<br>
     지금 바로 개선을 시작하면 가장 빠르게 변화를 만들 수 있습니다.
   </p>
+
+  <div style="background:#f8fafc; border-radius:10px; padding:14px 18px; margin:0 0 16px;">
+    <p style="font-size:12px; color:#94a3b8; font-weight:700; margin:0 0 8px; letter-spacing:0.06em;">진단 결과 요약</p>
+    <table style="width:100%; border-collapse:collapse; font-size:13px; color:#334155;">
+      <tr><td style="padding:4px 0; width:120px; color:#64748b;">AI 검색 노출</td>
+          <td style="padding:4px 0; font-weight:600; color:{"#16a34a" if ai_mentioned is True else "#dc2626" if ai_mentioned is False else "#94a3b8"};">{"ChatGPT 노출 확인" if ai_mentioned is True else "ChatGPT 미노출" if ai_mentioned is False else "확인 중"}</td></tr>
+      <tr><td style="padding:4px 0; color:#64748b;">소개글</td>
+          <td style="padding:4px 0; font-weight:600; color:{"#16a34a" if has_intro is True else "#dc2626" if has_intro is False else "#94a3b8"};">{"작성 완료" if has_intro is True else "미작성" if has_intro is False else "확인 중"}</td></tr>
+      <tr><td style="padding:4px 0; color:#64748b;">최근 소식</td>
+          <td style="padding:4px 0; font-weight:600; color:{"#16a34a" if has_recent_post is True else "#dc2626" if has_recent_post is False else "#94a3b8"};">{"게시 완료" if has_recent_post is True else "없음" if has_recent_post is False else "확인 중"}</td></tr>
+    </table>
+  </div>
 
   <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:16px 20px; margin:0 0 24px;">
     <p style="font-size:13px; color:#166534; margin:0 0 6px; font-weight:700;">오늘 할 1가지</p>
@@ -149,7 +182,7 @@ def _day3_html(
     <div style="margin-bottom:12px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
         <span style="font-size:13px; color:#1e293b;">Track1 네이버 생태계</span>
-        <span style="font-size:15px; font-weight:700; color:#1d4ed8;">{t1:.0f} / 100점</span>
+        <span style="font-size:13px; font-weight:700; color:#1d4ed8;">{_score_label(t1)}</span>
       </div>
       <div style="background:#e2e8f0; border-radius:4px; height:8px;">
         <div style="background:#1d4ed8; border-radius:4px; height:8px; width:{t1_pct}%;"></div>
@@ -158,7 +191,7 @@ def _day3_html(
     <div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
         <span style="font-size:13px; color:#1e293b;">Track2 글로벌 AI (ChatGPT·Gemini)</span>
-        <span style="font-size:15px; font-weight:700; color:#7c3aed;">{t2:.0f} / 100점</span>
+        <span style="font-size:13px; font-weight:700; color:#7c3aed;">{_score_label(t2)}</span>
       </div>
       <div style="background:#e2e8f0; border-radius:4px; height:8px;">
         <div style="background:#7c3aed; border-radius:4px; height:8px; width:{t2_pct}%;"></div>
@@ -242,8 +275,7 @@ def _day3_html(
         <p style="color:#bfdbfe; font-size:13px; margin:4px 0 0;">{cat_ko}</p>
       </div>
       <div style="background:rgba(255,255,255,0.15); border-radius:8px; padding:8px 16px; text-align:center;">
-        <span style="color:#ffffff; font-size:32px; font-weight:bold;">{score:.0f}점</span>
-        <span style="color:#bfdbfe; font-size:16px; margin-left:4px;">({grade}등급)</span>
+        <span style="color:#ffffff; font-size:22px; font-weight:800;">{_score_label(score)}</span>
       </div>
     </div>
   </div>
@@ -529,7 +561,7 @@ async def send_welcome_promise_email(
         score_section = f"""
   <div style="background:#eff6ff; border-radius:10px; padding:16px 20px; margin-bottom:20px; text-align:center;">
     <p style="font-size:13px; color:#3b82f6; margin:0 0 4px; font-weight:600;">오늘 AI 노출 점수</p>
-    <p style="font-size:32px; font-weight:bold; color:#1d4ed8; margin:0;">{unified_score:.0f}점 ({grade}등급)</p>
+    <p style="font-size:28px; font-weight:bold; color:{_score_color(unified_score)}; margin:0;">{_score_label(unified_score)}</p>
   </div>"""
     else:
         score_section = """
@@ -655,14 +687,14 @@ async def send_trial_claim_link(
       <div style="margin-bottom:10px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
           <span style="font-size:13px; color:#334155;">Track 1 · 네이버 생태계</span>
-          <span style="font-size:14px; font-weight:700; color:#1d4ed8;">{t1:.0f}<span style="font-size:11px; font-weight:400; color:#94a3b8;"> / 100점</span></span>
+          <span style="font-size:13px; font-weight:700; color:#1d4ed8;">{_score_label(t1)}</span>
         </div>
         <div style="background:#e2e8f0; border-radius:4px; height:8px;"><div style="background:#1d4ed8; border-radius:4px; height:8px; width:{t1_pct}%;"></div></div>
       </div>
       <div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
           <span style="font-size:13px; color:#334155;">Track 2 · 글로벌 AI (ChatGPT · Gemini)</span>
-          <span style="font-size:14px; font-weight:700; color:#7c3aed;">{t2:.0f}<span style="font-size:11px; font-weight:400; color:#94a3b8;"> / 100점</span></span>
+          <span style="font-size:13px; font-weight:700; color:#7c3aed;">{_score_label(t2)}</span>
         </div>
         <div style="background:#e2e8f0; border-radius:4px; height:8px;"><div style="background:#7c3aed; border-radius:4px; height:8px; width:{t2_pct}%;"></div></div>
       </div>
@@ -909,7 +941,7 @@ async def send_trial_claim_link(
       <p style="font-size:12px; color:#475569; margin:0; line-height:1.8;">{"  ·  ".join(_evidence_items)}</p>
     </div>"""
 
-    subject = f"[AI 진단 보고서] {biz_name} · {score:.0f}점 {grade}등급"
+    subject = f"[AI 진단 보고서] {biz_name} — AI 검색 노출 분석 완료"
     html = f"""
 <div style="font-family: 'Apple SD Gothic Neo', Malgun Gothic, sans-serif; max-width:600px; margin:0 auto; color:#1e293b;">
 
@@ -918,8 +950,7 @@ async def send_trial_claim_link(
     <h1 style="color:#ffffff; font-size:20px; margin:0 0 2px; font-weight:700; word-break:keep-all;">{biz_name}</h1>
     <p style="color:#bfdbfe; font-size:12px; margin:0 0 18px;">{cat_ko} · {region}</p>
     <div style="display:flex; align-items:baseline; gap:6px;">
-      <span style="color:#ffffff; font-size:48px; font-weight:800; line-height:1;">{score:.0f}</span>
-      <span style="color:#bfdbfe; font-size:15px;">점 · {grade}등급</span>
+      <span style="background:rgba(255,255,255,0.2); color:#ffffff; font-size:24px; font-weight:800; padding:6px 22px; border-radius:24px;">{_score_label(score)}</span>
     </div>
   </div>
 
@@ -1219,11 +1250,11 @@ def _weekly_digest_html(
         delta = current_score - prev_score
         if delta > 0:
             delta_html = (
-                f'<span style="font-size:18px; color:#16a34a; font-weight:600; margin-left:10px;">▲ +{delta:.1f}점</span>'
+                '<span style="font-size:15px; color:#86efac; font-weight:600; margin-left:10px;">▲ 개선됨</span>'
             )
         elif delta < 0:
             delta_html = (
-                f'<span style="font-size:18px; color:#dc2626; font-weight:600; margin-left:10px;">▼ {delta:.1f}점</span>'
+                '<span style="font-size:15px; color:#fca5a5; font-weight:600; margin-left:10px;">▼ 하락</span>'
             )
         else:
             delta_html = (
@@ -1248,8 +1279,8 @@ def _weekly_digest_html(
   <div style="background:#1d4ed8; border-radius:12px; padding:24px; margin-bottom:24px; text-align:center;">
     <p style="color:#bfdbfe; font-size:13px; margin:0 0 4px; font-weight:600; letter-spacing:0.05em;">이번 주 AI 검색 노출 현황</p>
     <h1 style="color:#ffffff; font-size:22px; margin:0 0 12px;">{business_name}</h1>
-    <div style="background:rgba(255,255,255,0.15); border-radius:8px; display:inline-flex; align-items:center; padding:10px 24px;">
-      <span style="color:#ffffff; font-size:40px; font-weight:bold;">{current_score:.0f}점</span>
+    <div style="background:rgba(255,255,255,0.15); border-radius:8px; display:inline-flex; align-items:center; padding:10px 24px; gap:8px;">
+      <span style="color:#ffffff; font-size:26px; font-weight:800;">{_score_label(current_score)}</span>
       {delta_html}
     </div>
   </div>
@@ -1260,8 +1291,8 @@ def _weekly_digest_html(
       <p style="font-size:28px; font-weight:bold; color:#1d4ed8; margin:0;">{ai_citations_count}건</p>
     </div>
     <div style="flex:1; background:#f0fdf4; border-radius:10px; padding:16px; text-align:center;">
-      <p style="font-size:12px; color:#16a34a; margin:0 0 4px; font-weight:600;">현재 AI 노출 점수</p>
-      <p style="font-size:28px; font-weight:bold; color:#15803d; margin:0;">{current_score:.0f}점</p>
+      <p style="font-size:12px; color:#16a34a; margin:0 0 4px; font-weight:600;">현재 AI 노출 현황</p>
+      <p style="font-size:22px; font-weight:bold; color:#15803d; margin:0;">{_score_label(current_score)}</p>
     </div>
   </div>
 
