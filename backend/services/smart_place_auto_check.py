@@ -125,9 +125,9 @@ def _failed_result(error_code: str, naver_place_id: str = "") -> dict:
         "has_recent_post": False,
         "has_intro": False,
         "has_reservation": False,
-        "photo_count": 0,
+        "photo_count": None,
         "visitor_review_count": 0,
-        "avg_rating": 0.0,
+        "avg_rating": None,
         "intro_text": "",
         "score_loss": 70,
         "action_links": {"register": "https://smartplace.naver.com/"},
@@ -160,8 +160,8 @@ def _detect_visitor_review_count(home_text: str) -> int:
     return 0
 
 
-def _detect_avg_rating(home_text: str) -> float:
-    """홈 탭 텍스트에서 별점/평점을 추출. 0.0이면 미감지."""
+def _detect_avg_rating(home_text: str) -> "float | None":
+    """홈 탭 텍스트에서 별점/평점을 추출. None이면 미감지 (0.0 오표시 방지)."""
     _patterns = [
         r"별점\s*(\d+(?:\.\d{1,2})?)",
         r"평점\s*(\d+(?:\.\d{1,2})?)",
@@ -175,7 +175,7 @@ def _detect_avg_rating(home_text: str) -> float:
                     return val
             except ValueError:
                 pass
-    return 0.0
+    return None
 
 
 async def _run_check(naver_place_id: str) -> dict:
