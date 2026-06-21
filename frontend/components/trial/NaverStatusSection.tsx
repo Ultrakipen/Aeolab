@@ -365,7 +365,7 @@ export default function NaverStatusSection({
             <p className="text-sm font-bold text-slate-500 tracking-wide uppercase">
               블로그 언급 격차
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-sm text-slate-400 mt-0.5">
               네이버 블로그 검색에서 가게명이 등장한 포스팅 수 — 많을수록 AI 인용 가능성 높음
             </p>
           </div>
@@ -415,7 +415,7 @@ export default function NaverStatusSection({
                 </div>
               </div>
             )}
-            <p className="text-xs text-slate-400 leading-relaxed break-keep">
+            <p className="text-sm text-slate-400 leading-relaxed break-keep">
               · 가게명이 일반 명사와 유사한 경우 관련 없는 포스팅이 일부 포함될 수 있습니다
             </p>
           </div>
