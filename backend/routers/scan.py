@@ -655,8 +655,10 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
                 # 스코어 엔진에 전달할 biz_ctx에 자동 진단 결과 반영
                 req.is_smart_place = bool(smart_place_check_data.get("is_smart_place"))
                 req.has_faq        = bool(smart_place_check_data.get("has_faq"))
-                req.has_recent_post = bool(smart_place_check_data.get("has_recent_post"))
-                req.has_intro      = bool(smart_place_check_data.get("has_intro"))
+                _v_hr = smart_place_check_data.get("has_recent_post")
+                req.has_recent_post = bool(_v_hr) if _v_hr is not None else req.has_recent_post
+                _v_hi = smart_place_check_data.get("has_intro")
+                req.has_intro = bool(_v_hi) if _v_hi is not None else req.has_intro
                 # naver_data의 is_smart_place도 자동 진단 값으로 동기화
                 if isinstance(naver_data, dict):
                     naver_data = {**naver_data, "is_smart_place": req.is_smart_place}

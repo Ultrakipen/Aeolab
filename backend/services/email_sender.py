@@ -111,12 +111,13 @@ def _day1_html(
     <p style="font-size:12px; color:#94a3b8; font-weight:700; margin:0 0 8px; letter-spacing:0.06em;">진단 결과 요약</p>
     <table style="width:100%; border-collapse:collapse; font-size:13px; color:#334155;">
       <tr><td style="padding:4px 0; width:120px; color:#64748b;">AI 검색 노출</td>
-          <td style="padding:4px 0; font-weight:600; color:{"#16a34a" if ai_mentioned is True else "#dc2626" if ai_mentioned is False else "#94a3b8"};">{"ChatGPT 노출 확인" if ai_mentioned is True else "ChatGPT 미노출" if ai_mentioned is False else "확인 중"}</td></tr>
+          <td style="padding:4px 0; font-weight:600; color:{"#16a34a" if ai_mentioned is True else "#dc2626" if ai_mentioned is False else "#94a3b8"};">{"ChatGPT 노출 확인" if ai_mentioned is True else "ChatGPT 미인식" if ai_mentioned is False else "확인 중"}</td></tr>
       <tr><td style="padding:4px 0; color:#64748b;">소개글</td>
           <td style="padding:4px 0; font-weight:600; color:{"#16a34a" if has_intro is True else "#dc2626" if has_intro is False else "#94a3b8"};">{"작성 완료" if has_intro is True else "미작성" if has_intro is False else "확인 중"}</td></tr>
       <tr><td style="padding:4px 0; color:#64748b;">최근 소식</td>
-          <td style="padding:4px 0; font-weight:600; color:{"#16a34a" if has_recent_post is True else "#dc2626" if has_recent_post is False else "#94a3b8"};">{"게시 완료" if has_recent_post is True else "없음" if has_recent_post is False else "확인 중"}</td></tr>
+          <td style="padding:4px 0; font-weight:600; color:{"#16a34a" if has_recent_post is True else "#dc2626" if has_recent_post is False else "#94a3b8"};">{"게시 완료" if has_recent_post is True else "미게시" if has_recent_post is False else "확인 중"}</td></tr>
     </table>
+    <p style="font-size:11px; color:#94a3b8; margin:8px 0 0;">* ChatGPT 인식 여부는 5회 질의 기반 참고 수치입니다 · 측정 시점에 따라 달라질 수 있습니다</p>
   </div>
 
   <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:16px 20px; margin:0 0 24px;">
