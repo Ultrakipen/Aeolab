@@ -407,7 +407,8 @@ export default async function DashboardPage({
                   <p className="text-sm font-semibold text-slate-600 leading-snug">📅 개선 후 반영 예상 기간</p>
                   <p className="text-sm text-slate-500 leading-snug">· 스마트플레이스·네이버 검색 상위 노출: <strong className="text-slate-700">즉시~2주</strong></p>
                   <p className="text-sm text-slate-500 leading-snug">· 네이버 AI 브리핑·AI탭: <strong className="text-slate-700">2~4주</strong></p>
-                  <p className="text-sm text-slate-500 leading-snug">· ChatGPT·Gemini: <strong className="text-slate-700">수개월~1년</strong> (네이버 최적화로 가속 가능)</p>
+                  <p className="text-sm text-slate-500 leading-snug">· Gemini: <strong className="text-slate-700">수 주~수개월</strong> (Google 검색 실시간 연동)</p>
+                  <p className="text-sm text-slate-500 leading-snug">· ChatGPT: <strong className="text-slate-700">수개월~1년</strong> (학습 데이터 기반)</p>
                 </div>
               </div>
             </div>
