@@ -50,18 +50,22 @@ async def apply_stealth(page) -> None:
 
 
 # ── 프록시 로테이션 ────────────────────────────────────────────────────────────
-# 환경변수 NAVER_PROXY_LIST 형식:
-#   호스트:포트:유저:패스워드 (콜론 구분), 여러 프록시는 쉼표로 구분
-#   예) p.webshare.io:80:myuser:mypass,p.webshare.io:81:myuser:mypass
-#   인증 없는 프록시: 호스트:포트 형식도 지원
+# 환경변수 NAVER_PROXY_LIST 형식 (쉼표로 여러 프록시 구분):
 #
-# Webshare 무료 10 IP 설정 방법:
-#   1. webshare.io 가입 → Dashboard → Proxy → List
-#   2. 각 프록시 행을 "host:port:user:pass" 형식으로 NAVER_PROXY_LIST에 추가
-#   3. pm2 restart aeolab-backend
+#   HTTP 프록시 (인증 있음):  host:port:user:pass
+#   HTTP 프록시 (인증 없음):  host:port
+#   SOCKS5 프록시 (인증 있음): socks5:host:port:user:pass
+#   SOCKS5 프록시 (인증 없음): socks5:host:port
+#
+# SOCKS5는 HTTPS 사이트 크롤링에 더 안정적 (HTTP CONNECT 터널링 불필요).
+# ERR_TUNNEL_CONNECTION_FAILED 발생 시 SOCKS5 프록시로 교체 권장.
+#
+# 설정 방법:
+#   NAVER_PROXY_LIST=socks5:p.example.io:1080:user:pass,socks5:q.example.io:1080:user:pass
+#   pm2 restart aeolab-backend --update-env
 _proxy_pool: list[dict] = []
 _proxy_pool_loaded = False
-_proxy_index: int = 0  # 라운드로빈 인덱스 — 10개 IP 균등 소진
+_proxy_index: int = 0  # 라운드로빈 인덱스 — 균등 소진
 
 
 def _load_proxy_pool() -> list[dict]:
@@ -77,23 +81,43 @@ def _load_proxy_pool() -> list[dict]:
         entry = entry.strip()
         if not entry:
             continue
-        parts = entry.split(":")
-        if len(parts) == 4:
-            host, port, username, password = parts
-            proxies.append({
-                "server": f"http://{host}:{port}",
-                "username": username,
-                "password": password,
-            })
-        elif len(parts) == 2:
-            host, port = parts
-            proxies.append({"server": f"http://{host}:{port}"})
+        # SOCKS5 형식: socks5:host:port 또는 socks5:host:port:user:pass
+        if entry.startswith("socks5:"):
+            parts = entry[len("socks5:"):].split(":")
+            if len(parts) == 4:
+                host, port, username, password = parts
+                proxies.append({
+                    "server": f"socks5://{host}:{port}",
+                    "username": username,
+                    "password": password,
+                })
+            elif len(parts) == 2:
+                host, port = parts
+                proxies.append({"server": f"socks5://{host}:{port}"})
+            else:
+                _logger.warning("[proxy] SOCKS5 형식 오류 — socks5:host:port[:user:pass] 필요: %r", entry)
+        # HTTP 형식: host:port 또는 host:port:user:pass
         else:
-            _logger.warning("[proxy] 형식 오류 — host:port:user:pass 또는 host:port 필요: %r", entry)
+            parts = entry.split(":")
+            if len(parts) == 4:
+                host, port, username, password = parts
+                proxies.append({
+                    "server": f"http://{host}:{port}",
+                    "username": username,
+                    "password": password,
+                })
+            elif len(parts) == 2:
+                host, port = parts
+                proxies.append({"server": f"http://{host}:{port}"})
+            else:
+                _logger.warning("[proxy] 형식 오류 — host:port[:user:pass] 또는 socks5:host:port[:user:pass] 필요: %r", entry)
     _proxy_pool = proxies
     _proxy_pool_loaded = True
     if proxies:
-        _logger.info("[proxy] 프록시 풀 로드 완료 — %d개", len(proxies))
+        _logger.info("[proxy] 프록시 풀 로드 완료 — %d개 (socks5: %d개, http: %d개)",
+                     len(proxies),
+                     sum(1 for p in proxies if p["server"].startswith("socks5")),
+                     sum(1 for p in proxies if p["server"].startswith("http")))
     return proxies
 
 
