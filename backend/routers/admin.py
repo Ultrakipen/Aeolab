@@ -4,6 +4,7 @@ import secrets
 import statistics
 from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Header, Query
+from fastapi.responses import HTMLResponse
 from db.supabase_client import get_client, execute
 from config.prices import PLAN_PRICE_MAP
 from services.score_engine import BRIEFING_ACTIVE_CATEGORIES, BRIEFING_LIKELY_CATEGORIES
@@ -494,3 +495,205 @@ async def get_dia_stats(
         "regenerated_count": regenerated_total,
         "regenerated_success_rate": regen_success_rate,
     }
+
+
+# ─── 이메일 미리보기 / 테스트 발송 ────────────────────────────────────────────
+
+_EMAIL_DUMMY = {
+    "business_name": "대호흑돼지",
+    "category": "restaurant",
+    "region": "서울 마포구",
+    "score": 22.0,
+    "track1_score": 18.0,
+    "track2_score": 28.0,
+    "ai_mentioned": False,
+    "has_intro": False,
+    "has_recent_post": False,
+    "naver_rank": None,
+    "blog_mentions": 2,
+    "top_missing_keywords": ["맛집", "회식"],
+    "top_competitor_name": "황금돼지집",
+    "top_competitor_blog_count": 15,
+    "smart_place_completeness": 12.0,
+    "growth_stage": "survival",
+    "kakao_rank": None,
+    "is_on_kakao": True,
+    "is_smart_place": True,
+    "grade": "D",
+}
+
+
+def _verify_admin_key(key: str) -> None:
+    secret = os.getenv("ADMIN_SECRET_KEY", "")
+    if not secret or not key or not secrets.compare_digest(key, secret):
+        raise HTTPException(status_code=403, detail="관리자 전용")
+
+
+@router.get(
+    "/email-preview/{email_type}",
+    response_class=HTMLResponse,
+    summary="이메일 HTML 미리보기 (브라우저 직접 열기)",
+    tags=["admin"],
+)
+async def email_preview(
+    email_type: str,
+    key: str = Query(..., description="ADMIN_SECRET_KEY"),
+    name: str = Query("대호흑돼지", description="사업장명"),
+):
+    """브라우저 주소창에서 이메일 HTML을 직접 확인합니다.
+
+    email_type: day1 | day3 | day7 | claim | welcome
+
+    예시:
+      https://aeolab.co.kr/admin/email-preview/day1?key=SECRET&name=내가게
+    """
+    _verify_admin_key(key)
+
+    from services.email_sender import _day1_html, _day3_html, _day7_html
+
+    d = dict(_EMAIL_DUMMY)
+    d["business_name"] = name
+
+    if email_type == "day1":
+        _, html = _day1_html(
+            business_name=d["business_name"], category=d["category"],
+            score=d["score"], ai_mentioned=d["ai_mentioned"],
+            has_intro=d["has_intro"], has_recent_post=d["has_recent_post"],
+            naver_rank=d["naver_rank"], top_missing_keywords=d["top_missing_keywords"],
+            growth_stage=d["growth_stage"],
+        )
+    elif email_type == "day3":
+        _, html = _day3_html(
+            business_name=d["business_name"], category=d["category"],
+            score=d["score"], track1_score=d["track1_score"],
+            track2_score=d["track2_score"], has_intro=d["has_intro"],
+            has_recent_post=d["has_recent_post"],
+            smart_place_completeness=d["smart_place_completeness"],
+            ai_mentioned=d["ai_mentioned"], blog_mentions=d["blog_mentions"],
+            top_competitor_name=d["top_competitor_name"],
+            top_missing_keywords=d["top_missing_keywords"],
+        )
+    elif email_type == "day7":
+        _, html = _day7_html(
+            business_name=d["business_name"], category=d["category"],
+            ai_mentioned=d["ai_mentioned"], has_intro=d["has_intro"],
+            has_recent_post=d["has_recent_post"],
+        )
+    elif email_type == "claim":
+        # claim 이메일 (즉시 발송) — 매직 링크 포함 레이아웃 재현
+        from services.email_sender import _score_label, _score_color, _CATEGORY_KO
+        score = float(d["score"])
+        cat_ko = _CATEGORY_KO.get(d["category"], "사업장")
+        dummy_link = "https://aeolab.co.kr/signup?preview=1"
+        html = f"""<div style="background:#fef9c3;padding:10px 16px;font-size:13px;text-align:center;border-bottom:1px solid #fde047;">⚠️ 미리보기 — 실제 발송 시 24시간 유효 매직 링크 포함</div>
+<div style="font-family:'Apple SD Gothic Neo',Malgun Gothic,sans-serif;max-width:560px;margin:0 auto;padding:0 0 32px;color:#1e293b;background:#f8fafc;">
+  <div style="background:#1d4ed8;padding:28px 24px;">
+    <p style="color:#bfdbfe;font-size:11px;letter-spacing:.08em;margin:0 0 6px;">AI ENGINE OPTIMIZATION LAB</p>
+    <h1 style="color:#fff;font-size:22px;margin:0 0 4px;">{d['business_name']} AI 진단 완료</h1>
+    <p style="color:#93c5fd;font-size:13px;margin:0;">{d['region']} · {cat_ko}</p>
+  </div>
+  <div style="padding:24px 20px;">
+    <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px;margin-bottom:20px;text-align:center;">
+      <p style="font-size:12px;color:#64748b;margin:0 0 6px;">AI 노출 현황</p>
+      <p style="font-size:28px;font-weight:bold;color:{_score_color(score)};margin:0;">{_score_label(score)}</p>
+    </div>
+    <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px;margin-bottom:20px;text-align:center;">
+      <p style="font-size:14px;color:#1e293b;margin:0 0 14px;">아래 버튼으로 전체 결과를 확인하세요.<br><span style="font-size:12px;color:#64748b;">링크는 24시간 후 만료됩니다</span></p>
+      <a href="{dummy_link}" style="background:#1d4ed8;color:#fff;text-decoration:none;padding:13px 28px;border-radius:8px;font-size:14px;font-weight:700;display:inline-block;">
+        내 AI 진단 결과 보기 →
+      </a>
+    </div>
+    <p style="font-size:12px;color:#94a3b8;text-align:center;">AEOlab · aeolab.co.kr</p>
+  </div>
+</div>"""
+    elif email_type == "welcome":
+        from services.email_sender import send_welcome_promise_email
+        # welcome은 async 함수라 HTML만 직접 접근 불가 — 내부 HTML 재현
+        html = f"""
+<div style="font-family:'Apple SD Gothic Neo',sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;color:#1e293b;">
+  <div style="background:#1d4ed8;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+    <p style="color:#bfdbfe;font-size:12px;margin:0 0 4px;">AI ENGINE OPTIMIZATION LAB</p>
+    <h1 style="color:#fff;font-size:22px;margin:0;">{d['business_name']} 등록 완료</h1>
+  </div>
+  <div style="background:#eff6ff;border-radius:10px;padding:16px 20px;margin-bottom:20px;text-align:center;">
+    <p style="font-size:13px;color:#3b82f6;margin:0 0 4px;font-weight:600;">AI 노출 현황</p>
+    <p style="font-size:24px;font-weight:bold;color:#1d4ed8;margin:0;">주의 필요</p>
+  </div>
+  <p style="font-size:14px;color:#475569;">[실제 발송 시 가입 완료 + 스마트플레이스 소개글 안내 포함]</p>
+  <p style="font-size:12px;color:#94a3b8;text-align:center;">AEOlab · aeolab.co.kr</p>
+</div>"""
+    else:
+        raise HTTPException(status_code=400, detail=f"지원하지 않는 타입: {email_type}. day1 | day3 | day7 | claim | welcome")
+
+    wrapper = f"""<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>이메일 미리보기 — {email_type}</title>
+<style>
+  body {{ margin:0; background:#f1f5f9; padding:20px; font-family:sans-serif; }}
+  .meta {{ max-width:600px; margin:0 auto 12px; background:#1e293b; color:#e2e8f0;
+           border-radius:8px; padding:10px 16px; font-size:13px; display:flex;
+           justify-content:space-between; align-items:center; }}
+  .meta a {{ color:#93c5fd; font-size:12px; }}
+</style></head><body>
+<div class="meta">
+  <span>📧 미리보기: <strong>{email_type}</strong> · 사업장: {name}</span>
+  <span>
+    <a href="?key={key}&name={name}&email_type=day1">day1</a> |
+    <a href="/admin/email-preview/day3?key={key}&name={name}">day3</a> |
+    <a href="/admin/email-preview/day7?key={key}&name={name}">day7</a> |
+    <a href="/admin/email-preview/claim?key={key}&name={name}">claim</a>
+  </span>
+</div>
+{html}
+</body></html>"""
+    return HTMLResponse(content=wrapper)
+
+
+@router.post(
+    "/email-test-send",
+    summary="이메일 실제 발송 테스트 (관리자 전용)",
+    tags=["admin"],
+)
+async def email_test_send(
+    to_email: str = Query(..., description="수신 이메일 주소"),
+    email_type: str = Query("day1", description="day1 | day3 | day7"),
+    name: str = Query("대호흑돼지", description="사업장명"),
+    _: None = Depends(verify_admin),
+):
+    """지정 이메일로 테스트 이메일을 실제 발송합니다.
+
+    Swagger UI → X-Admin-Key 헤더 설정 후 호출
+    """
+    from services.email_sender import send_trial_followup
+
+    d = dict(_EMAIL_DUMMY)
+    d["business_name"] = name
+
+    day_map = {"day1": 1, "day3": 3, "day7": 7}
+    day = day_map.get(email_type)
+    if not day:
+        raise HTTPException(status_code=400, detail="email_type은 day1 | day3 | day7")
+
+    sent = await send_trial_followup(
+        email=to_email,
+        business_name=d["business_name"],
+        category=d["category"],
+        region=d["region"],
+        score=d["score"],
+        day=day,
+        ai_mentioned=d["ai_mentioned"],
+        has_intro=d["has_intro"],
+        has_recent_post=d["has_recent_post"],
+        naver_rank=d["naver_rank"],
+        blog_mentions=d["blog_mentions"],
+        top_missing_keywords=d["top_missing_keywords"],
+        top_competitor_name=d["top_competitor_name"],
+        track1_score=d["track1_score"],
+        track2_score=d["track2_score"],
+        smart_place_completeness=d["smart_place_completeness"],
+        growth_stage=d["growth_stage"],
+    )
+    if not sent:
+        raise HTTPException(status_code=500, detail="발송 실패 — RESEND_API_KEY 확인 또는 서버 로그 점검")
+    return {"ok": True, "sent_to": to_email, "type": email_type, "name": name}
