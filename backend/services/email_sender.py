@@ -79,7 +79,7 @@ def _day1_html(
     has_intro: bool | None = None,
     growth_stage: str | None = None,
 ) -> tuple[str, str]:
-    subject = f"[{business_name}] 어제 보고서 확인하셨나요? — 지금 개선하면 가장 빠릅니다"
+    subject = f"[{business_name}] AI 스캔 결과 — 지금 개선하면 가장 빠릅니다"
 
     if has_intro is False:
         action_text   = "스마트플레이스 소개글을 작성하세요 (업종명·지역·서비스 300자 이상)."
@@ -103,7 +103,7 @@ def _day1_html(
   </div>
 
   <p style="font-size:15px; line-height:1.7; margin:0 0 18px;">
-    어제 발송드린 AI 진단 보고서 확인하셨나요?<br>
+    무료 AI 스캔 결과 확인하셨나요?<br>
     지금 바로 개선을 시작하면 가장 빠르게 변화를 만들 수 있습니다.
   </p>
 
@@ -125,14 +125,17 @@ def _day1_html(
     <p style="font-size:13px; color:#166534; margin:0;">{action_detail}</p>
   </div>
 
-  <div style="text-align:center;">
-    <a href="https://aeolab.co.kr/trial" style="background:#1d4ed8; color:#ffffff; text-decoration:none; padding:12px 28px; border-radius:8px; font-size:14px; font-weight:600; display:inline-block;">
-      보고서 다시 보기
-    </a>
+  <div style="background:#eff6ff; border-radius:10px; padding:14px 18px; margin:0 0 20px;">
+    <p style="font-size:13px; color:#1e3a8a; font-weight:700; margin:0 0 6px;">구독하면 매주 이것이 자동으로 됩니다</p>
+    <ul style="font-size:13px; color:#1e40af; margin:0; padding-left:18px; line-height:1.9;">
+      <li>AI 노출 변화 자동 측정 (네이버·ChatGPT·Google)</li>
+      <li>경쟁 가게와 내 가게 점수 비교</li>
+      <li>이번 주 개선 우선순위 가이드</li>
+    </ul>
   </div>
 
-  <div style="text-align:center; margin-top:12px;">
-    <a href="https://aeolab.co.kr/pricing" style="background:#16a34a; color:#ffffff; text-decoration:none; padding:12px 28px; border-radius:8px; font-size:14px; font-weight:600; display:inline-block;">
+  <div style="text-align:center;">
+    <a href="https://aeolab.co.kr/pricing" style="background:#1d4ed8; color:#ffffff; text-decoration:none; padding:13px 28px; border-radius:8px; font-size:14px; font-weight:700; display:inline-block;">
       Basic 플랜 첫 달 4,950원으로 자동 추적 시작하기 →
     </a>
     <p style="font-size:12px; color:#94a3b8; margin:6px 0 0;">이후 9,900원/월 · 언제든 해지 가능</p>

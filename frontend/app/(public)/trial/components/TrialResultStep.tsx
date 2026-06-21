@@ -116,7 +116,7 @@ function LockedScoreCard({
             <div key={item.label} className="mb-3">
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-slate-600">{item.label}</span>
-                <span className="text-sm text-slate-400">?점</span>
+                <span className="text-sm text-slate-400">--</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div className="h-2 rounded-full bg-blue-400" style={{ width: `${item.barW}%` }} />
