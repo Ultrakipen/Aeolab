@@ -126,7 +126,16 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
     region_prefix = _build_region_prefix(region)
     # 키워드 특수문자 정리 ("웨딩 스냅·영상" → "웨딩 스냅 영상")
     clean_kw = _clean_keyword(keyword)
-    search_query = f"{region_prefix} {clean_kw}".strip()
+    # 키워드 앞에 지역명 중복 방지 (업체명이 키워드로 전달될 때 발생)
+    # "창원시 성산구" + kw="창원시 성산구 상남동 제주흑돼지" → "상남동 제주흑돼지"
+    # 원본 region(변환 전)과 변환된 prefix 둘 다 체크
+    _orig_region = (region or "").strip()
+    _ck = clean_kw
+    if _orig_region and _ck.startswith(_orig_region):
+        _ck = _ck[len(_orig_region):].strip()
+    elif region_prefix and _ck.startswith(region_prefix):
+        _ck = _ck[len(region_prefix):].strip()
+    search_query = f"{region_prefix} {_ck}".strip() if _ck else region_prefix
 
     # ── 블로그 쿼리: 가장 정확한 쿼리 우선 ────────────────────────
     # 업체명을 따옴표로 감싸 exact phrase 검색 → "홍대 육지" 검색 시 홍대/육지 개별 단어 포함
