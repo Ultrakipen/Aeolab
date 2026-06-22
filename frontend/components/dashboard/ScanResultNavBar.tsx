@@ -94,7 +94,7 @@ export default function ScanResultNavBar({
           >
             <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.dot}`} aria-hidden="true" />
             <span className="text-sm font-semibold text-gray-700">{item.label}</span>
-            <span className="text-xs text-blue-400 font-semibold group-hover:text-blue-600 transition-colors">↓</span>
+            <span className="text-xs text-blue-400 font-semibold group-hover:text-blue-600 transition-colors">보기</span>
           </button>
         ))}
       </div>

@@ -258,7 +258,7 @@ export default function DailyMissionCard({
               <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-amber-900 mb-0.5">
-                  지금 AI 검색에 잘 안 나오는 이유
+                  지금 개선하면 AI 검색 노출이 올라갑니다
                 </p>
                 <p className="text-base font-semibold text-amber-800 mb-1">{msg.reason}</p>
                 <p className="text-sm text-amber-700 mb-3">{msg.action}</p>
