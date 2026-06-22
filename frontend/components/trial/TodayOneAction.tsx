@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Zap, Clock, AlertTriangle } from "lucide-react";
+import { FIRST_MONTH_DISCOUNT_PRICES, PLAN_PRICES } from "@/lib/plans";
 
 interface TodayOneActionProps {
   isSmartPlace: boolean;
@@ -325,6 +327,22 @@ export default function TodayOneAction({
           </button>
         )}
       </div>
+
+      {/* 변화 추적 CTA — 액션 직후 자연스럽게 구독 연결 */}
+      {!isLoggedIn && (
+        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-3 bg-white rounded-xl border border-emerald-300">
+          <p className="text-sm text-emerald-900 leading-snug break-keep">
+            위 액션을 실행한 후 — <strong>2~4주 뒤 실제로 효과가 있었는지</strong> 자동으로 알려드립니다
+          </p>
+          <Link
+            href="/signup"
+            className="shrink-0 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+          >
+            변화 추적 시작 — 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원
+          </Link>
+          <span className="text-xs text-emerald-600 sm:hidden">이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지</span>
+        </div>
+      )}
     </section>
   );
 }
