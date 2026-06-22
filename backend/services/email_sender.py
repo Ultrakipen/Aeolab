@@ -279,8 +279,8 @@ def _day3_html(
         checklist_items.append(f'<li style="color:{color}; margin-bottom:4px;">{icon} 최근 소식 게시 {"완료" if has_recent_post else "없음"}</li>')
     if smart_place_completeness is not None:
         sp = float(smart_place_completeness)
-        sp_color = "#16a34a" if sp >= 20 else "#d97706" if sp >= 12 else "#dc2626"
-        checklist_items.append(f'<li style="color:{sp_color}; margin-bottom:4px;">· 스마트플레이스 완성도 {sp:.0f} / 25점</li>')
+        sp_color = "#16a34a" if sp >= 70 else "#d97706" if sp >= 45 else "#dc2626"
+        checklist_items.append(f'<li style="color:{sp_color}; margin-bottom:4px;">· 스마트플레이스 완성도  {_score_label(sp)}</li>')
     if ai_mentioned is not None:
         icon = "✓" if ai_mentioned else "✗"
         color = "#16a34a" if ai_mentioned else "#dc2626"
@@ -791,8 +791,8 @@ async def send_trial_claim_link(
         check_rows.append((icon, color, label))
     if smart_place_completeness is not None:
         sp = float(smart_place_completeness)
-        sp_color = "#16a34a" if sp >= 20 else "#d97706" if sp >= 12 else "#dc2626"
-        check_rows.append(("·", sp_color, f"스마트플레이스 완성도  {sp:.0f} / 25점"))
+        sp_color = "#16a34a" if sp >= 70 else "#d97706" if sp >= 45 else "#dc2626"
+        check_rows.append(("·", sp_color, f"스마트플레이스 완성도  {_score_label(sp)}"))
     if ai_mentioned is not None:
         icon  = "✓" if ai_mentioned is True else "✗"
         color = "#16a34a" if ai_mentioned is True else "#dc2626"
