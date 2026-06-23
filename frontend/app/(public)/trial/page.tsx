@@ -79,7 +79,7 @@ const SCAN_STEPS_LOCATION = [
   "ChatGPT에서 가게명 확인 중...",
   "업종 키워드 분석 중...",
   "경쟁 가게 평균과 비교 중...",
-  "점수 계산 중...",
+  "AI 노출 현황 분석 중...",
 ];
 
 const SCAN_STEPS_NON_LOCATION = [
@@ -87,7 +87,7 @@ const SCAN_STEPS_NON_LOCATION = [
   "ChatGPT에서 가게명 확인 중...",
   "업종 키워드 분석 중...",
   "경쟁 가게 평균과 비교 중...",
-  "점수 계산 중...",
+  "AI 노출 현황 분석 중...",
 ];
 
 const TRIAL_LS_KEY = "aeolab_trial_v2";

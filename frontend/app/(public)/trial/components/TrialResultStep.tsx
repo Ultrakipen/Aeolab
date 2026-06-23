@@ -675,15 +675,16 @@ export default function TrialResultStep(props: TrialResultProps) {
   const heroInactive = briefingCategory === "inactive" || isFranchise;
   const naverCompetitorCount =
     (naver as { naver_competitors?: unknown[] } | null)?.naver_competitors?.length ?? 0;
+  // Trial에서 aiTabTile(null)="준비 중"은 소상공인에게 의미 없음 → 경쟁 순위 타일로 교체
   const heroTiles: ChannelTile[] = heroInactive
     ? [
         naverSeoTile({ missingKeywordCount: effectiveMissingKws.length }),
-        aiTabTile(null),
         rankTile({ myRank: naver?.my_rank, totalCompetitors: naverCompetitorCount }),
+        briefingTile({ eligibility: briefingCategory, isFranchise, inBriefing }),
       ]
     : [
         naverSeoTile({ missingKeywordCount: effectiveMissingKws.length }),
-        aiTabTile(null),
+        rankTile({ myRank: naver?.my_rank, totalCompetitors: naverCompetitorCount }),
         briefingTile({ eligibility: briefingCategory, isFranchise, inBriefing }),
       ];
   const heroEvidenceParts: string[] = [];
@@ -936,7 +937,13 @@ export default function TrialResultStep(props: TrialResultProps) {
             isFranchise={isFranchise}
             evidenceText={heroEvidence}
             tiles={heroTiles}
-            todayAction={gs?.this_week_action}
+            todayAction={
+            effectiveMissingKws.length > 0
+              ? `소개글에 '${effectiveMissingKws[0]}' 키워드 추가 → 네이버 순위 ↑`
+              : !isSmartPlace
+              ? "스마트플레이스 등록하기 — 네이버 검색 노출 시작"
+              : gs?.this_week_action
+          }
             todayActionLink="#today-action"
           />
         </div>

@@ -74,8 +74,12 @@ def _build_region_prefix(region: str) -> str:
     if len(parts) == 2:
         # "창원시 성산구" → "창원 성산구"
         return f"{city} {parts[1]}".strip()
-    # 3개 이상: 구+동 조합이 가장 정밀 ("성산구 상남동")
-    return f"{parts[1]} {parts[2]}".strip()
+    if len(parts) == 3:
+        # "창원시 성산구 상남동" → "성산구 상남동" (구+동, 가장 정밀)
+        return f"{parts[1]} {parts[2]}".strip()
+    # 4개 이상 (도+시+구+동): "경상남도 창원시 성산구 상남동" → "성산구 상남동"
+    # 이전 코드가 parts[1]+parts[2]="창원시 성산구"를 반환하여 동 레벨 정밀도 손실 — 수정
+    return f"{parts[2]} {parts[3]}".strip()
 
 
 def _clean_keyword(keyword: str) -> str:
@@ -231,17 +235,28 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
         "건강관리협회", "헌혈의집", "마음건강", "청년마음", "사회복지",
         "주민센터", "동사무소", "보건소", "정신건강", "심리지원",
     }
+    # 구(區) 레벨 필터 — 동명 다른 구 경쟁사 제외 (예: 성산구 상남동 vs 합포구 상남동)
+    _region_gu = ""
+    if region_prefix:
+        _gu_parts = [p for p in region_prefix.split() if p.endswith("구")]
+        if _gu_parts:
+            _region_gu = _gu_parts[0]  # "성산구"
     top_competitor_name = None
     for comp in naver_competitors:
         if _name_matches(business_name, comp["name"]):
             continue
         comp_cat = comp.get("category", "")
         comp_name = comp.get("name", "")
+        comp_addr = comp.get("address", "")
         if any(skip in comp_cat for skip in _COMP_SKIP_CATEGORIES):
             _logger.debug(f"[naver_visibility] 이종 업종(카테고리) 경쟁사 제외: {comp_name} ({comp_cat})")
             continue
         if any(frag in comp_name for frag in _COMP_SKIP_NAME_FRAGMENTS):
             _logger.debug(f"[naver_visibility] 이종 업종(이름) 경쟁사 제외: {comp_name}")
+            continue
+        # 구 레벨 주소 불일치 → 다른 구의 동명 가게 제외
+        if _region_gu and comp_addr and _region_gu not in comp_addr:
+            _logger.debug(f"[naver_visibility] 다른 구 경쟁사 제외: {comp_name} ({comp_addr}) — 기대 구: {_region_gu}")
             continue
         top_competitor_name = comp_name
         break
