@@ -157,7 +157,7 @@ function ActionCard({
             {isLoggedIn ? "이렇게 따라하기" : "무료 가입 후 따라하기"}
           </a>
         )}
-        {onDismissKw && missingKws && missingKws.length > 0 && (index === 1 || index === 2) && (
+        {onDismissKw && missingKws && missingKws.length > 0 && (
           <button
             onClick={() => onDismissKw(missingKws[0])}
             className="flex-1 text-center py-2.5 rounded-lg text-sm font-medium text-emerald-700 border border-emerald-400 hover:bg-emerald-50 transition-colors"

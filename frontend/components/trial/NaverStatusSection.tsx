@@ -144,11 +144,11 @@ export default function NaverStatusSection({
       <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
         <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
           <p className="text-sm font-bold text-slate-500 tracking-wide uppercase">
-            네이버 지역검색 위치
+            경쟁 가게 목록 (위 경쟁 순위 기준)
           </p>
           {searchQuery && !(keywordRanks && keywordRanks.length > 1) && (
-            <p className="text-base font-bold text-slate-800 mt-0.5">
-              &quot;{stripRegion(searchQuery)}&quot; 검색 결과
+            <p className="text-sm text-slate-600 mt-0.5">
+              &quot;{stripRegion(searchQuery)}&quot; 네이버 검색 결과
             </p>
           )}
         </div>
@@ -191,12 +191,12 @@ export default function NaverStatusSection({
             {/* 특화 키워드 상위 + 광역 키워드 미노출 혼재 시 안내 */}
             {keywordRanks.some(kr => kr.exposed && kr.rank !== null && kr.rank <= 5) &&
              keywordRanks.some(kr => !kr.exposed) && (
-              <p className="text-xs text-slate-400 mt-2 leading-snug break-keep">
+              <p className="text-xs text-slate-500 mt-2 leading-snug break-keep">
                 * 업종 전체 광역 키워드(예: 음식점·카페)는 경쟁이 매우 심해 미노출이 일반적입니다. 특화 키워드에서 상위권이라면 실질적으로 문제 없습니다.
               </p>
             )}
             {searchQuery && (
-              <p className="text-xs text-slate-400 mt-2">
+              <p className="text-xs text-slate-500 mt-2">
                 ↓ &ldquo;{searchQuery}&rdquo; 검색 상위 결과
               </p>
             )}
@@ -440,13 +440,13 @@ export default function NaverStatusSection({
             <p className="text-sm font-bold text-slate-500 tracking-wide uppercase">
               블로그 언급 격차
             </p>
-            <p className="text-sm text-slate-400 mt-0.5">
-              네이버 블로그 검색 API로 <strong className="text-slate-500">가게명+지역</strong> 조합 검색 시 나오는 포스팅 전체 건수입니다. 많을수록 AI 인용 가능성 높음.
-              <span className="block text-xs text-slate-300 mt-1">
+            <p className="text-sm text-slate-600 mt-0.5">
+              네이버 블로그 검색 API로 <strong className="text-slate-700">가게명+지역</strong> 조합 검색 시 나오는 포스팅 전체 건수입니다. 많을수록 AI 인용 가능성 높음.
+              <span className="block text-xs text-slate-500 mt-1">
                 ※ 스마트플레이스 &#39;블로그 리뷰&#39; 탭(방문자가 직접 등록한 리뷰)과 측정 방식이 달라 숫자가 다를 수 있습니다.
               </span>
               {blogCount > 1000 && (
-                <span className="block text-xs text-slate-300 mt-0.5">
+                <span className="block text-xs text-slate-500 mt-0.5">
                   ※ 가게명이 일반적인 단어일 경우 실제 언급 수보다 높게 집계될 수 있습니다.
                 </span>
               )}
@@ -511,10 +511,10 @@ export default function NaverStatusSection({
             {/* 키워드별 블로그 격차 */}
             {keywordBlogComparison && keywordBlogComparison.length > 0 && (
               <div className="pt-1">
-                <p className="text-xs text-slate-400 font-semibold mb-0.5 uppercase tracking-wide">
+                <p className="text-xs text-slate-500 font-semibold mb-0.5 uppercase tracking-wide">
                   키워드별 블로그 비교
                 </p>
-                <p className="text-xs text-slate-400 mb-2 break-keep">
+                <p className="text-xs text-slate-500 mb-2 break-keep">
                   각 키워드 검색 시 블로그 포스팅이 가장 많은 경쟁 가게와 비교 — 키워드마다 상위 가게가 다를 수 있습니다
                 </p>
                 <div className="space-y-2">
@@ -557,7 +557,7 @@ export default function NaverStatusSection({
                 </div>
               </div>
             )}
-            <p className="text-xs text-slate-400 leading-relaxed break-keep">
+            <p className="text-xs text-slate-500 leading-relaxed break-keep">
               · 가게명이 일반 명사와 유사한 경우 관련 없는 포스팅이 일부 포함될 수 있습니다
             </p>
           </div>

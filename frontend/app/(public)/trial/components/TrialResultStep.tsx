@@ -267,7 +267,7 @@ function ScanConclusionCard({
       <div className="border-t border-slate-100 pt-3 mb-2" />
 
       {/* ChatGPT 측정 결과 1줄 요약 */}
-      <p className="text-sm text-slate-400 leading-snug break-keep">
+      <p className="text-sm text-slate-600 leading-snug break-keep">
         ChatGPT {chatgptSampleSize}회 초기 측정 —{" "}
         {chatgptMentioned
           ? `"${businessName}" 노출됨`
@@ -346,7 +346,7 @@ function ScanConclusionCard({
 
       </div>
       <div className="flex items-center justify-between mt-3">
-        <p className="text-sm text-slate-400 leading-relaxed">
+        <p className="text-sm text-slate-500 leading-relaxed">
           측정 시점·기기·질의 구성에 따라 결과가 달라질 수 있습니다
         </p>
         <a href="#today-action" className="shrink-0 text-sm font-bold text-blue-600 hover:text-blue-700 whitespace-nowrap ml-3">
@@ -407,7 +407,7 @@ function ScoreSummaryCard({
       )}
 
       <div className="mt-3">
-        <p className="text-sm text-slate-400 leading-relaxed">
+        <p className="text-sm text-slate-500 leading-relaxed">
           AEOlab AI 가시성 진단 · 네이버·ChatGPT 실측 기반 · 측정 시점에 따라 결과가 달라질 수 있습니다
         </p>
       </div>
@@ -631,7 +631,7 @@ export default function TrialResultStep(props: TrialResultProps) {
   if (kakaoMyRank && kakaoMyRank <= 5 && !naver?.my_rank)
     heroEvidenceParts.push(`카카오 ${kakaoMyRank}위`);
   if (blogCount > 0)
-    heroEvidenceParts.push(`블로그 ${blogCount}건`);
+    heroEvidenceParts.push(`네이버 블로그 ${blogCount}건`);
   heroEvidenceParts.push(
     effectiveMissingKws.length === 0 ? "키워드 모두 포함" : `키워드 ${effectiveMissingKws.length}개 보강 필요`,
   );
@@ -911,7 +911,7 @@ export default function TrialResultStep(props: TrialResultProps) {
             tiles={heroTiles}
             todayAction={
             effectiveMissingKws.length > 0
-              ? `소개글에 '${effectiveMissingKws[0]}' 키워드 추가 → 네이버 순위 ↑`
+              ? `경쟁사 소개글 분석 → '${effectiveMissingKws[0]}' 키워드 추가 권장 (↓ 아래 확인)`
               : !isSmartPlace
               ? "스마트플레이스 등록하기 — 네이버 검색 노출 시작"
               : gs?.this_week_action
