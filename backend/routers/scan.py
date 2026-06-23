@@ -111,16 +111,21 @@ def _is_admin_request(request: Request) -> bool:
 
 
 async def _recover_naver_place_id(business_name: str, region: str) -> str:
-    """Local Search API에서 place_id 추출 실패 시 모바일 검색 페이지 HTML로 2차 시도.
+    """네이버 Local Search API로 place_id 복구 + 이름 유사도 검증.
 
-    네이버 모바일 검색 결과 HTML에는 통상 `/place/<숫자>` 형태의 링크가 포함된다.
-    실패 시 빈 문자열 반환 — 호출자는 graceful skip.
-
-    비용: 단일 HTTP GET ~500ms. Playwright 미사용 (RAM 부담 0).
+    trial-search와 동일 API 사용 — 모바일 HTML 스크래핑 대비 오인식 방지.
+    이름 유사도 0.6 미만이고 부분 포함도 아니면 "" 반환 (잘못된 가게 차단).
     """
     import re as _re
+    import difflib
     if not business_name:
         return ""
+
+    client_id = os.getenv("NAVER_CLIENT_ID", "")
+    client_secret = os.getenv("NAVER_CLIENT_SECRET", "")
+    if not client_id or not client_secret:
+        return ""
+
     # 행정구역 정밀 파싱 — naver_visibility._build_region_prefix 동일 로직
     _parts = (region or "").strip().split()
     if not _parts:
@@ -131,34 +136,74 @@ async def _recover_naver_place_id(business_name: str, region: str) -> str:
             region_prefix = _city
         elif len(_parts) == 2:
             region_prefix = f"{_city} {_parts[1]}".strip()
-        else:
+        elif len(_parts) == 3:
             region_prefix = f"{_parts[1]} {_parts[2]}".strip()
+        else:  # 4파트 이상 (도+시+구+동): "경상남도 창원시 성산구 상남동" → "성산구 상남동"
+            region_prefix = f"{_parts[2]} {_parts[3]}".strip()
+
     query = f"{region_prefix} {business_name}".strip() if region_prefix else business_name.strip()
     if not query:
         return ""
+
+    def _strip_html(t: str) -> str:
+        t = _re.sub(r"<[^>]+>", "", t or "")
+        return (
+            t.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+             .replace("&quot;", '"').replace("&#39;", "'").strip()
+        )
+
     try:
         import aiohttp as _aiohttp
-        import urllib.parse as _urlparse
-        url = "https://m.search.naver.com/search.naver?where=m&query=" + _urlparse.quote(query)
-        timeout = _aiohttp.ClientTimeout(total=1.5)
-        headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) "
-                "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
-            ),
-            "Accept-Language": "ko-KR,ko;q=0.9",
+        timeout = _aiohttp.ClientTimeout(total=5)
+        api_headers = {
+            "X-Naver-Client-Id": client_id,
+            "X-Naver-Client-Secret": client_secret,
         }
         async with _aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(url, headers=headers) as res:
+            async with session.get(
+                "https://openapi.naver.com/v1/search/local.json",
+                params={"query": query, "display": 5, "sort": "comment"},
+                headers=api_headers,
+            ) as res:
                 if res.status != 200:
+                    _logger.debug(f"_recover_naver_place_id: API HTTP {res.status} for '{business_name}'")
                     return ""
-                html = await res.text()
-        # /place/<숫자> 또는 /restaurant/<숫자> 패턴 (place_id 11~13자리 일반)
-        m = _re.search(r"/(?:place|restaurant)/(\d{6,15})", html)
-        if m:
-            return m.group(1)
+                data = await res.json()
     except Exception as _e:
         _logger.debug(f"_recover_naver_place_id failed for '{business_name}': {_e}")
+        return ""
+
+    _name_clean = _re.sub(r"\s+", "", business_name).lower()
+
+    for item in (data.get("items") or []):
+        title = _strip_html(item.get("title", ""))
+        if not title:
+            continue
+        link = item.get("link") or ""
+        m = _re.search(r"place/(\d+)", link)
+        if not m:
+            continue
+        place_id = m.group(1)
+        title_clean = _re.sub(r"\s+", "", title).lower()
+
+        # 이름 포함 검사 (체인점 접미사 처리 포함)
+        if _name_clean in title_clean or title_clean in _name_clean:
+            _logger.info(
+                f"[trial] place_id recovered via Local API: "
+                f"'{business_name}' → '{title}' place_id={place_id}"
+            )
+            return place_id
+
+        # 유사도 검사
+        ratio = difflib.SequenceMatcher(None, _name_clean, title_clean).ratio()
+        if ratio >= 0.6:
+            _logger.info(
+                f"[trial] place_id recovered via Local API (ratio={ratio:.2f}): "
+                f"'{business_name}' → '{title}' place_id={place_id}"
+            )
+            return place_id
+
+    _logger.debug(f"_recover_naver_place_id: no name match for '{business_name}' in region '{region}'")
     return ""
 
 
@@ -310,8 +355,10 @@ async def trial_search(request: Request, query: str, region: str = ""):
             region_prefix = _r_city
         elif len(_r_parts) == 2:
             region_prefix = f"{_r_city} {_r_parts[1]}".strip()
-        else:
+        elif len(_r_parts) == 3:
             region_prefix = f"{_r_parts[1]} {_r_parts[2]}".strip()
+        else:  # 4파트 이상 (도+시+구+동): "경상남도 창원시 성산구 상남동" → "성산구 상남동"
+            region_prefix = f"{_r_parts[2]} {_r_parts[3]}".strip()
     search_q = f"{region_prefix} {q}".strip() if region_prefix else q
 
     headers = {
