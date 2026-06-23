@@ -953,27 +953,6 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         )}
 
-        {/* ── 1-c. 네이버 현황 직후 인라인 CTA (전환 최적 순간) ── */}
-        {!isLoggedIn && (
-          <div className="rounded-xl border border-blue-300 bg-blue-600 px-4 py-4 mb-4 shadow-md">
-            <p className="text-base font-bold text-white leading-snug break-keep mb-1">
-              네이버 순위가 오르면 바로 알려드립니다
-            </p>
-            <p className="text-sm text-blue-200 leading-snug break-keep mb-3">
-              소개글 개선 후 네이버 순위가 올랐는지 — 매주 자동으로 확인하고 카톡으로 알려드립니다. 경쟁 가게와 비교도 제공합니다
-            </p>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-              <Link
-                href="/signup"
-                onClick={onSaveTrialData}
-                className="inline-block bg-white text-blue-700 font-black text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-colors shadow whitespace-nowrap"
-              >
-                매주 자동 추적 시작 — 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원
-              </Link>
-              <span className="text-sm text-blue-300">이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지</span>
-            </div>
-          </div>
-        )}
 
         {/* ── 2. 핵심 실측 상세 (AI 스캔 결과) ──────────────────── */}
         <ScanConclusionCard
@@ -1026,6 +1005,28 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         )}
         <SubscriptionValueCompare isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
+
+        {/* ── 네이버 순위 추적 CTA (하단) ── */}
+        {!isLoggedIn && (
+          <div className="rounded-xl border border-blue-300 bg-blue-600 px-4 py-4 mb-4 shadow-md">
+            <p className="text-base font-bold text-white leading-snug break-keep mb-1">
+              네이버 순위가 오르면 바로 알려드립니다
+            </p>
+            <p className="text-sm text-blue-200 leading-snug break-keep mb-3">
+              소개글 개선 후 네이버 순위가 올랐는지 — 매주 자동으로 확인하고 카톡으로 알려드립니다. 경쟁 가게와 비교도 제공합니다
+            </p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <Link
+                href="/signup"
+                onClick={onSaveTrialData}
+                className="inline-block bg-white text-blue-700 font-black text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-colors shadow whitespace-nowrap"
+              >
+                매주 자동 추적 시작 — 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원
+              </Link>
+              <span className="text-sm text-blue-300">이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지</span>
+            </div>
+          </div>
+        )}
 
         {/* ── 개선 효과 연결 브리지 (페이지 하단) ── */}
         <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-5 mb-4">
