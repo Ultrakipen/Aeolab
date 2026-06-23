@@ -307,6 +307,11 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           >
                             {cat.label}
                           </span>
+                          {cat.typeTags && cat.typeTags.length > 0 && (
+                            <span className="text-xs text-gray-400 text-center leading-tight truncate w-full px-1">
+                              {cat.typeTags.slice(0, 2).join("·")} 등
+                            </span>
+                          )}
                           <span className={`text-sm font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${aiBadge.cls}`}>
                             <span className={`w-2 h-2 rounded-full ${aiBadge.dot} inline-block shrink-0`} aria-hidden="true" />
                             {aiBadge.text}

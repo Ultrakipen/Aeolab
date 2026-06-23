@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { CATEGORY_GROUPS } from '@/lib/categories'
+import { CATEGORY_GROUPS, FLAT_CATEGORY_MAP } from '@/lib/categories'
 import { CATEGORY_ICON_MAP } from '@/lib/categoryIcons'
 import { getSafeSession } from '@/lib/supabase/client'
 import { trackKeywordInput, trackKeywordRecommendClick } from '@/lib/analytics'
@@ -275,7 +275,9 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
     )
   }
 
-  const currentCategoryGroup = CATEGORY_GROUPS.find((g) => g.value === selectedCategory)
+  const currentCategoryGroup = CATEGORY_GROUPS.find(
+    (g) => g.value === (FLAT_CATEGORY_MAP[selectedCategory]?.group ?? selectedCategory)
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -444,7 +446,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                   <CatIcon className={`w-5 h-5 ${catColors.icon}`} strokeWidth={1.8} />
                 </div>
               )}
-              <h2 className="font-semibold text-gray-900">{currentCategoryGroup?.label ?? cat?.label}</h2>
+              <h2 className="font-semibold text-gray-900">{cat?.label ?? currentCategoryGroup?.label}</h2>
             </div>
           )
         })()}
@@ -566,7 +568,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
         )}
         <div>
           <p className={`text-sm font-semibold ${step3Colors.icon}`}>
-            {currentCategoryGroup?.label ?? cat?.label}
+            {cat?.label ?? currentCategoryGroup?.label}
           </p>
           {selectedTags.length > 0 && (
             <p className="text-sm font-medium text-gray-800 mt-0.5">
