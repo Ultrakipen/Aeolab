@@ -920,6 +920,18 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         </div>
 
+        {/* ── 네이버→AI 가치 제안 1줄 (히어로 바로 아래, 스크롤 없이 노출) ── */}
+        <div className="flex items-start gap-2.5 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 mb-4">
+          <span className="shrink-0 text-base mt-0.5">🔗</span>
+          <p className="text-sm text-indigo-900 leading-snug break-keep">
+            <strong>네이버 소개글·키워드 개선</strong>은 네이버 순위를 올리고,
+            네이버 상위 가게는 ChatGPT·Gemini 학습 데이터에도 반영됩니다.{" "}
+            <span className="text-indigo-600 font-semibold whitespace-nowrap">
+              네이버 2~4주 · AI 수개월~1년
+            </span>
+          </p>
+        </div>
+
         {/* ── 1-b. 네이버 현황 (location_based 업종만) ──────────── */}
         {(result as { business_type?: string }).business_type !== "non_location" && (
           <NaverStatusSection
