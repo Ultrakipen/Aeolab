@@ -807,12 +807,14 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
                 "naver_weight": score.get("naver_weight"),
                 "global_weight": score.get("global_weight"),
                 "growth_stage": score.get("growth_stage"),
-                "top_missing_keywords": score.get("top_missing_keywords") or [],
+                # top_missing_keywords는 score dict에 없고 별도 로컬 변수 — 클로저로 접근
+                "top_missing_keywords": (top_missing_keywords if isinstance(top_missing_keywords, list) else []),
                 "keyword_coverage": score.get("breakdown", {}).get("keyword_gap_score", 0.0) / 100,
                 "naver_result": naver if isinstance(naver, dict) and naver else None,
                 "kakao_result": kakao if isinstance(kakao, dict) and kakao else None,
                 "website_check_result": website_data if isinstance(website_data, dict) else None,
                 "smart_place_completeness": score.get("breakdown", {}).get("smart_place_completeness"),
+                # smart_place_auto_check 실측값 우선 (req는 자동진단 결과로 이미 업데이트됨)
                 "has_faq": getattr(req, "has_faq", None),
                 "has_recent_post": getattr(req, "has_recent_post", None),
                 "has_intro": getattr(req, "has_intro", None),

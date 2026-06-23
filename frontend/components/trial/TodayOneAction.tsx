@@ -218,8 +218,8 @@ export default function TodayOneAction({
       primary: !actions.length,
     });
     actions.push({
-      title: "단골 고객에게 블로그 리뷰 부탁하기",
-      desc: "네이버 AI 브리핑 대상은 아니지만, 블로그 포스팅·리뷰가 쌓이면 네이버 검색에서 가게가 더 많이 노출됩니다. 방문한 고객에게 네이버 블로그 리뷰를 부탁해 보세요.",
+      title: "단골 고객에게 네이버 블로그 리뷰 부탁하기 → 검색 노출 ↑",
+      desc: "네이버 AI 브리핑 직접 대상은 아니지만, 블로그 리뷰가 쌓이면 네이버 검색 일반 탭 노출이 늘어납니다. '블로그에 솔직한 후기 남겨주시면 감사합니다'라고 방문 고객에게 부탁해 보세요.",
       time: "2분",
       primary: !actions.length,
     });
@@ -236,10 +236,10 @@ export default function TodayOneAction({
     if (missingKws.length > 0 && !hasFaq) {
       const isActiveGroup = userGroup === "ACTIVE";
       actions.push({
-        title: `소개글에 '${missingKws[0]}' Q&A 추가하기`,
+        title: `소개글에 '${missingKws[0]}' 키워드 추가하기 → 네이버 검색 순위 ↑`,
         desc: isActiveGroup
-          ? `스마트플레이스 → 업체정보 → 소개글에 '${missingKws[0]}' 관련 Q&A를 자연스럽게 포함하면 됩니다. 소개글 안의 Q&A 섹션이 네이버 AI 브리핑 인용 후보로 가장 효과적입니다.`
-          : `스마트플레이스 → 업체정보 → 소개글에 '${missingKws[0]}' 관련 Q&A를 자연스럽게 포함하면 됩니다. 소개글 최적화는 네이버 AI탭 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 더 직접적입니다.`,
+          ? `'${missingKws[0]}' 키워드가 소개글에 없으면 경쟁 업체보다 네이버 검색 순위가 밀립니다. 스마트플레이스 → 업체정보 → 소개글에 Q&A 형식으로 추가하면 2~4주 내 네이버 AI 브리핑·검색 노출이 올라옵니다.`
+          : `'${missingKws[0]}' 키워드가 소개글에 없으면 경쟁 업체보다 네이버 검색 순위가 밀립니다. 스마트플레이스 → 업체정보 → 소개글에 Q&A 형식으로 추가하세요. 네이버 AI탭 노출에도 직접 영향을 줍니다.`,
         copy:
           faqText ??
           `Q. ${missingKws[0]}${p(missingKws[0], "은는")} 어떤가요?\nA. 저희 가게의 ${missingKws[0]} ${bw}${p(bw, "을를")} 경험해 보세요. 궁금한 점은 네이버 채팅으로 편하게 문의해 주세요.`,
@@ -251,8 +251,8 @@ export default function TodayOneAction({
 
     if (missingKws.length > 0) {
       actions.push({
-        title: `리뷰 답변에 '${missingKws[0]}' 언급하기`,
-        desc: `최근 받은 리뷰에 답변할 때 '${missingKws[0]}'를 자연스럽게 포함하세요. 리뷰 답변 텍스트도 AI가 학습하는 콘텐츠입니다.`,
+        title: `리뷰 답변에 '${missingKws[0]}' 언급하기 → 네이버 키워드 랭킹 ↑`,
+        desc: `최근 받은 리뷰에 답변할 때 '${missingKws[0]}'를 자연스럽게 포함하세요. 리뷰 답변 텍스트는 네이버가 가게 키워드를 인식하는 중요한 신호입니다.`,
         copy: `소중한 리뷰 감사합니다. 앞으로도 ${missingKws[0]} 면에서 더 좋은 경험을 드리겠습니다. 또 방문해 주세요.`,
         copyLabel: "답변 문구 복사",
         time: "2분",
@@ -267,11 +267,11 @@ export default function TodayOneAction({
         : null;
     actions.push({
       title: isExposed
-        ? "소식 업데이트로 AI 브리핑 노출 순위 유지하기"
-        : "소식(포스팅) 1개 등록으로 최신성 점수 높이기",
+        ? "소식 주 1회 업데이트 → 네이버 AI 브리핑 노출 순위 유지"
+        : "소식 1개 등록 → 네이버 '운영 활발' 인식 → 검색 순위 상승",
       desc: isExposed
-        ? "현재 AI 브리핑에 노출 중입니다. 주 1회 소식 작성으로 최신성 점수를 유지하면 노출 순위를 지킬 수 있습니다."
-        : "스마트플레이스 → 소식 → 새 소식 작성으로 주 1회 업데이트하면 AI가 '운영 중'으로 인식해 네이버 AI 브리핑 노출 가능성이 높아집니다.",
+        ? "현재 네이버 AI 브리핑에 노출 중입니다. 주 1회 소식 작성으로 최신성 점수를 유지하면 검색 상위 순위를 지킬 수 있습니다."
+        : "네이버는 최신 소식이 있는 가게를 '운영 활발'로 판단해 검색 상위에 올립니다. 스마트플레이스 → 소식 → 새 소식 작성으로 주 1회 업데이트하면 2~4주 내 효과가 나타납니다.",
       copy: safeTag
         ? `저희 ${categoryLabel}의 새 소식입니다.\n${safeTag} 관련 업데이트를 전해드립니다. 궁금하신 점은 네이버 채팅으로 문의해 주세요.`
         : `저희 ${categoryLabel}의 새 소식입니다.\n최근 업데이트된 내용을 안내드립니다. 방문해 주시는 모든 분께 감사드립니다.`,
@@ -292,7 +292,7 @@ export default function TodayOneAction({
       <div className="flex items-center gap-2 mb-4">
         <Zap className="w-5 h-5 text-emerald-600 shrink-0" />
         <p className="text-sm md:text-base font-semibold text-emerald-800">
-          지금 바로 할 수 있는 개선 액션
+          네이버 검색 순위를 올리는 지금 바로 할 수 있는 액션
         </p>
       </div>
 
@@ -332,7 +332,7 @@ export default function TodayOneAction({
       {!isLoggedIn && (
         <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-3 bg-white rounded-xl border border-emerald-300">
           <p className="text-sm text-emerald-900 leading-snug break-keep">
-            위 액션을 실행한 후 — <strong>2~4주 뒤 실제로 효과가 있었는지</strong> 자동으로 알려드립니다
+            위 액션 실행 후 — <strong>2~4주 뒤 네이버 순위가 실제로 올랐는지</strong> 자동으로 알려드립니다
           </p>
           <Link
             href="/signup"
