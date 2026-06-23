@@ -113,12 +113,12 @@ def get_ai_tab_eligibility(category: str) -> str:
 # ────────────────────────────────────────────────────────────────
 DUAL_TRACK_RATIO: dict[str, dict[str, float]] = {
     # 위치 기반 업종 (location_based)
-    "restaurant": {"naver": 0.70, "global": 0.30},  # 즉시방문형, 30-50대 고객 70%+
-    "cafe":       {"naver": 0.65, "global": 0.35},  # 분위기 탐색 AI 증가, 20대 고객 多
-    "beauty":     {"naver": 0.65, "global": 0.35},  # 당일예약 네이버, 전문시술 AI 리서치
-    "fitness":    {"naver": 0.60, "global": 0.40},  # 10-20대 고객 → AI 네이티브 비중 높음
-    "yoga":       {"naver": 0.60, "global": 0.40},  # 요가 스튜디오 = fitness 계열, LIKELY (2026-05-19 누락 수정)
-    "pet":        {"naver": 0.65, "global": 0.35},  # 동물병원 AI 검색 빠르게 증가
+    "restaurant": {"naver": 0.80, "global": 0.20},  # 즉시방문형, 30-50대 고객 70%+ (ChatGPT API 소상공인 미반영 현실 반영 2026-06-23)
+    "cafe":       {"naver": 0.75, "global": 0.25},  # 분위기 탐색 AI 증가, 20대 고객 多
+    "beauty":     {"naver": 0.70, "global": 0.30},  # 당일예약 네이버, 전문시술 AI 리서치
+    "fitness":    {"naver": 0.65, "global": 0.35},  # 10-20대 고객 → AI 네이티브 비중 높음
+    "yoga":       {"naver": 0.65, "global": 0.35},  # 요가 스튜디오 = fitness 계열, LIKELY (2026-05-19 누락 수정)
+    "pet":        {"naver": 0.70, "global": 0.30},  # 동물병원 AI 검색 빠르게 증가
     "medical":    {"naver": 0.55, "global": 0.45},  # 증상 검색 = ChatGPT, 지식 습득 목적 47.6% ("clinic" → "medical" 로 키 변경)
     "clinic":     {"naver": 0.55, "global": 0.45},  # normalize_category alias 후 키 (medical 동일 비율, 2026-05-19 P0)
     "academy":    {"naver": 0.40, "global": 0.60},  # 10대(AI 네이티브), 커리큘럼 비교 AI
@@ -127,31 +127,31 @@ DUAL_TRACK_RATIO: dict[str, dict[str, float]] = {
     "legal":      {"naver": 0.20, "global": 0.80},  # 전문직 = ChatGPT·Gemini 주전장
     "shopping":   {"naver": 0.10, "global": 0.90},  # 온라인 = 글로벌 AI 압도적
     # 사진·영상·디자인 (위치 기반, 지역 스튜디오·제작사)
-    "photo":  {"naver": 0.65, "global": 0.35},  # 지역 기반 사진·영상 검색 ← 네이버 강세
+    "photo":  {"naver": 0.70, "global": 0.30},  # 지역 기반 사진·영상 검색 ← 네이버 강세
     "video":  {"naver": 0.55, "global": 0.45},  # 포트폴리오 탐색 = AI 비중 증가
     "design": {"naver": 0.35, "global": 0.65},  # 온라인 레퍼런스 탐색 = 글로벌 AI 우세
     # 폼 25개 업종 추가 (2026-04-23) — alias 대상이 아닌 신규 dict 4종
-    "pharmacy":   {"naver": 0.70, "global": 0.30},  # 약국 = 지역 기반 강함, 즉시 방문형
-    "realestate": {"naver": 0.65, "global": 0.35},  # 부동산 = 지역·매물 검색 네이버 강세
+    "pharmacy":   {"naver": 0.75, "global": 0.25},  # 약국 = 지역 기반 강함, 즉시 방문형
+    "realestate": {"naver": 0.70, "global": 0.30},  # 부동산 = 지역·매물 검색 네이버 강세
     "interior":   {"naver": 0.55, "global": 0.45},  # 인테리어 = 포트폴리오 탐색 AI 비중 증가
-    "auto":       {"naver": 0.65, "global": 0.35},  # 자동차 정비 = 지역 + 차종 검색 네이버 강세
+    "auto":       {"naver": 0.70, "global": 0.30},  # 자동차 정비 = 지역 + 차종 검색 네이버 강세
     # bakery·bar·nail은 _CATEGORY_ALIASES에 의해 cafe/restaurant/beauty로 normalize되므로 별도 키 불필요
     "accommodation": {"naver": 0.70, "global": 0.30},  # 숙박 = 네이버 AI 브리핑 ACTIVE 업종, 즉시예약형
     # 신규 업종 8개 (2026-05-13)
-    "massage":    {"naver": 0.65, "global": 0.35},  # 마사지·스파 = 당일예약 네이버 강세
-    "skincare":   {"naver": 0.65, "global": 0.35},  # 피부관리실 = 시술 리서치 AI 증가
+    "massage":    {"naver": 0.70, "global": 0.30},  # 마사지·스파 = 당일예약 네이버 강세
+    "skincare":   {"naver": 0.70, "global": 0.30},  # 피부관리실 = 시술 리서치 AI 증가
     "accounting": {"naver": 0.30, "global": 0.70},  # 세무·회계 = 전문직 = 글로벌 AI 주전장
-    "flower":     {"naver": 0.70, "global": 0.30},  # 꽃집 = 지역 배달·즉시구매 네이버 강세
-    "laundry":    {"naver": 0.70, "global": 0.30},  # 세탁소 = 지역 기반 즉시방문형
-    "kids":       {"naver": 0.70, "global": 0.30},  # 키즈카페 = 지역 근거리 검색 네이버 압도
-    "study":      {"naver": 0.65, "global": 0.35},  # 스터디카페 = 지역+시설 검색 네이버 우세
+    "flower":     {"naver": 0.75, "global": 0.25},  # 꽃집 = 지역 배달·즉시구매 네이버 강세
+    "laundry":    {"naver": 0.75, "global": 0.25},  # 세탁소 = 지역 기반 즉시방문형
+    "kids":       {"naver": 0.75, "global": 0.25},  # 키즈카페 = 지역 근거리 검색 네이버 압도
+    "study":      {"naver": 0.70, "global": 0.30},  # 스터디카페 = 지역+시설 검색 네이버 우세
     "workshop":   {"naver": 0.55, "global": 0.45},  # 공방·클래스 = 포트폴리오 AI 탐색 비중 증가
     # 프론트엔드 신규 카테고리 10개 (2026-05-13)
-    "dance":        {"naver": 0.65, "global": 0.35},  # 댄스 = 지역 스튜디오, LIKELY
-    "ballet":       {"naver": 0.65, "global": 0.35},  # 발레 = 지역 스튜디오, LIKELY
-    "golf":         {"naver": 0.65, "global": 0.35},  # 골프연습장 = 지역 기반 즉시방문형
-    "swim":         {"naver": 0.65, "global": 0.35},  # 수영·아쿠아 = 지역 기반
-    "jjimjil":      {"naver": 0.70, "global": 0.30},  # 찜질방·사우나 = 지역 근거리 즉시방문형
+    "dance":        {"naver": 0.70, "global": 0.30},  # 댄스 = 지역 스튜디오, LIKELY
+    "ballet":       {"naver": 0.70, "global": 0.30},  # 발레 = 지역 스튜디오, LIKELY
+    "golf":         {"naver": 0.70, "global": 0.30},  # 골프연습장 = 지역 기반 즉시방문형
+    "swim":         {"naver": 0.70, "global": 0.30},  # 수영·아쿠아 = 지역 기반
+    "jjimjil":      {"naver": 0.75, "global": 0.25},  # 찜질방·사우나 = 지역 근거리 즉시방문형
     "music_class":  {"naver": 0.60, "global": 0.40},  # 음악교실 = 지역 기반, AI 정보 탐색 일부
     "music_lesson": {"naver": 0.55, "global": 0.45},  # 악기레슨 = 개인레슨, AI 매칭 비중 증가
     "cooking":      {"naver": 0.60, "global": 0.40},  # 요리교실 = 지역+클래스 탐색
@@ -162,19 +162,19 @@ DUAL_TRACK_RATIO: dict[str, dict[str, float]] = {
     "clothing":     {"naver": 0.50, "global": 0.50},  # 의류 = 온라인·오프라인 혼합
     # 신규 14개 (v5.7 — 2026-05-13)
     "dental":             {"naver": 0.60, "global": 0.40},  # 치과 = 증상검색 AI, 지역 기반 혼합
-    "oriental_medicine":  {"naver": 0.65, "global": 0.35},  # 한의원 = 지역 기반, 네이버 블로그 강세
-    "optics":             {"naver": 0.70, "global": 0.30},  # 안경원 = 즉시방문형
-    "semi_permanent":     {"naver": 0.65, "global": 0.35},  # 반영구화장 = LIKELY 뷰티 계열
-    "martial_arts":       {"naver": 0.65, "global": 0.35},  # 태권도·무술 = 지역 유소년 중심
+    "oriental_medicine":  {"naver": 0.70, "global": 0.30},  # 한의원 = 지역 기반, 네이버 블로그 강세
+    "optics":             {"naver": 0.75, "global": 0.25},  # 안경원 = 즉시방문형
+    "semi_permanent":     {"naver": 0.70, "global": 0.30},  # 반영구화장 = LIKELY 뷰티 계열
+    "martial_arts":       {"naver": 0.70, "global": 0.30},  # 태권도·무술 = 지역 유소년 중심
     "climbing":           {"naver": 0.60, "global": 0.40},  # 클라이밍 = 시설 비교 AI 증가
     "art_class":          {"naver": 0.60, "global": 0.40},  # 미술학원 = 교육 계열
-    "childcare":          {"naver": 0.70, "global": 0.30},  # 어린이집 = 지역 기반 즉시결정형
-    "car_wash":           {"naver": 0.70, "global": 0.30},  # 세차장 = 지역 즉시방문형
-    "electronics_repair": {"naver": 0.65, "global": 0.35},  # 가전수리 = 지역 기반, 후기 중요
+    "childcare":          {"naver": 0.75, "global": 0.25},  # 어린이집 = 지역 기반 즉시결정형
+    "car_wash":           {"naver": 0.75, "global": 0.25},  # 세차장 = 지역 즉시방문형
+    "electronics_repair": {"naver": 0.70, "global": 0.30},  # 가전수리 = 지역 기반, 후기 중요
     "footwear":           {"naver": 0.45, "global": 0.55},  # 신발 = 온라인 쇼핑 비중 높음
     "stationery":         {"naver": 0.60, "global": 0.40},  # 문구 = 지역+온라인 혼합
-    "norebang":           {"naver": 0.75, "global": 0.25},  # 노래방 = 완전 지역 즉시방문형
-    "billiards":          {"naver": 0.70, "global": 0.30},  # 당구장 = 지역 즉시방문형
+    "norebang":           {"naver": 0.80, "global": 0.20},  # 노래방 = 완전 지역 즉시방문형
+    "billiards":          {"naver": 0.75, "global": 0.25},  # 당구장 = 지역 즉시방문형
 }
 
 # NOTE: cleaning·fashion은 BRIEFING_INACTIVE 업종으로 전략적 중요도 낮음
@@ -285,10 +285,10 @@ def calc_ai_tab_readiness(
 # 점수 배분 근거: §1.3 글로벌 AI 플랫폼 시장 점유율 (model_engine_v3.0.md)
 # ────────────────────────────────────────────────────────────────
 GLOBAL_TRACK_WEIGHTS: dict[str, float] = {
-    "multi_ai_exposure": 0.40,  # Gemini 45점 + ChatGPT 45점 = 90점 → 100점 재배분 (A안 50/50 분할, 2026-05-04)
+    "multi_ai_exposure": 0.30,  # Gemini+ChatGPT API — 소상공인 학습데이터 미반영 현실 반영해 하향 (2026-06-23)
     "schema_seo":        0.30,  # JSON-LD + 웹사이트 SEO + Open Graph
     "online_mentions":   0.20,  # 블로그·뉴스·미디어 언급 (네이버 블로그 API)
-    "google_presence":   0.10,  # Google AI Overview 노출
+    "google_presence":   0.20,  # Google AI Overview — Serper.dev 실시간 실측, 신뢰도 높아 상향 (2026-06-23)
 }
 
 # 성장 단계 기준 (track1_score 기준 — 업종별 unified 비율 차이 오판 방지)
@@ -801,7 +801,7 @@ def calc_track2_score(scan_result: dict, biz: dict, naver_data: dict) -> float:
 
     if _is_google_captcha(scan_result):
         # Google 측정 불가(CAPTCHA 차단) → 나머지 3개 항목 가중치 합(0.90)으로 재배분해 100점 만점 유지
-        google_w = GLOBAL_TRACK_WEIGHTS["google_presence"]  # 0.10
+        google_w = GLOBAL_TRACK_WEIGHTS["google_presence"]  # 0.20 (2026-06-23 상향)
         base_w   = 1.0 - google_w                           # 0.90
         score = (
             ai_exp   * GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"] +
