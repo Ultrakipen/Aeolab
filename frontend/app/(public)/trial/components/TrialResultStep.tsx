@@ -173,6 +173,9 @@ function ScanConclusionCard({
   briefingCategory,
   chatgptQueries,
   naverMyRank,
+  kakaoRank,
+  blogCount,
+  isSmartPlaceConfirmed,
 }: {
   businessName: string;
   chatgptMentioned: boolean | undefined;
@@ -185,127 +188,95 @@ function ScanConclusionCard({
   briefingCategory: "active" | "likely" | "inactive";
   chatgptQueries?: string[];
   naverMyRank?: number | null;
+  kakaoRank?: number | null;
+  blogCount?: number;
+  isSmartPlaceConfirmed?: boolean;
 }) {
+  // chatgptQueries prop은 향후 확장을 위해 유지 (현재 1줄 요약 구조에서 미사용)
+  void chatgptQueries;
+
   // 실측 데이터가 하나도 없으면 카드 자체 숨김
   const hasAnyData =
     chatgptMentioned !== undefined ||
     (smartPlaceCheck && !smartPlaceCheck.error) ||
     missingKws.length > 0 ||
-    inBriefing !== null;
+    inBriefing !== null ||
+    isSmartPlaceConfirmed;
   if (!hasAnyData) return null;
 
-  const hasNumericData = chatgptExposureFreq !== undefined || geminiExposureFreq !== undefined;
+  // 강점 항목 목록 (실측 데이터 있는 것만)
+  const strengthItems: { icon: string; text: string }[] = [];
+  if (isSmartPlaceConfirmed) {
+    strengthItems.push({ icon: "✅", text: "스마트플레이스 등록 확인 — 네이버 지역 검색 대상" });
+  }
+  if (kakaoRank !== null && kakaoRank !== undefined && kakaoRank <= 10) {
+    strengthItems.push({ icon: "✅", text: `카카오 검색 ${kakaoRank}위 확인` });
+  }
+  if (blogCount !== undefined && blogCount > 0) {
+    strengthItems.push({ icon: "✅", text: `블로그 리뷰 ${blogCount.toLocaleString()}건 확인` });
+  }
+  if (
+    smartPlaceCheck &&
+    !smartPlaceCheck.error &&
+    ((smartPlaceCheck as { visitor_review_count?: number }).visitor_review_count ?? 0) > 0
+  ) {
+    const vrc = (smartPlaceCheck as { visitor_review_count?: number }).visitor_review_count ?? 0;
+    // 블로그카운트와 중복 표시 방지: 방문자 리뷰는 별도 항목으로만
+    if (!strengthItems.some((s) => s.text.includes("블로그"))) {
+      strengthItems.push({ icon: "✅", text: `방문자 리뷰 ${vrc.toLocaleString()}건 확인` });
+    }
+  }
+
+  // 핵심 개선 포인트 (키워드 갭 우선)
+  const topMissingKw = missingKws[0] ?? null;
 
   return (
     <div className="rounded-xl border-2 border-slate-200 bg-white px-4 py-4 mb-4 shadow-sm">
-      <p className="text-sm font-bold text-slate-500 mb-3 tracking-wide uppercase">이번 스캔 핵심 결과</p>
+      <p className="text-sm font-bold text-slate-500 mb-3 tracking-wide uppercase">이번 스캔 발견</p>
 
-      {/* AI 검색 실측 수치 — 모든 업종: 네이버 채널 우선, ChatGPT, Gemini 순 */}
-      {(hasNumericData || (briefingCategory === "active" && inBriefing !== null)) && (
-        <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2 mb-4 pb-4 border-b border-slate-100">
-
-          {/* 1번 칸: ACTIVE → 네이버 AI브리핑, 그 외 → 네이버 AI탭 (전 업종 개선 가능) */}
-          {briefingCategory === "active" ? (
-            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-slate-50 rounded-xl p-3">
-              <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
-                <div className="text-2xl leading-none">
-                  {inBriefing === null ? "⏳" : inBriefing ? "✅" : "❌"}
-                </div>
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-slate-700 sm:mt-1.5">네이버 AI브리핑</div>
-                <div className="text-sm text-slate-500">
-                  {inBriefing === null ? "측정 중" : inBriefing ? "노출 중" : "미노출"}
-                </div>
-              </div>
+      {/* 강점 먼저 — 실측 데이터 있는 것만 */}
+      {strengthItems.length > 0 && (
+        <div className="space-y-1.5 mb-3">
+          {strengthItems.map((item, i) => (
+            <div key={i} className="flex items-center gap-2.5 rounded-lg bg-green-50 border border-green-100 px-3 py-2">
+              <span className="text-base shrink-0">{item.icon}</span>
+              <p className="text-sm font-semibold text-green-800 break-keep">{item.text}</p>
             </div>
-          ) : (
-            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-blue-50 border border-blue-100 rounded-xl p-3">
-              <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
-                <div className="text-2xl leading-none">🔵</div>
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-blue-800 sm:mt-1.5">네이버 AI탭</div>
-                <div className="text-sm text-blue-600">전 업종 개선 가능</div>
-              </div>
-            </div>
-          )}
-
-          {/* 2번 칸: ChatGPT (모든 업종 동일) */}
-          <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-slate-50 rounded-xl p-3">
-            {(() => {
-              const lbl = chatgptFreqLabel(chatgptExposureFreq, chatgptMentioned, chatgptSampleSize);
-              return (
-                <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
-                  <div className={`text-xl font-black leading-none ${lbl.color}`}>{lbl.text}</div>
-                  {chatgptExposureFreq !== undefined && (
-                    <div className="text-xs text-slate-400 mt-0.5">{chatgptExposureFreq}/{chatgptSampleSize}회</div>
-                  )}
-                </div>
-              );
-            })()}
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-slate-700 sm:mt-1.5">ChatGPT 추천</div>
-              <div className="text-sm text-slate-500">{chatgptSampleSize}회 질의</div>
-            </div>
-          </div>
-
-          {/* 3번 칸: Gemini — 측정 데이터 있으면 표시, 없으면 구독 유도 */}
-          {geminiExposureFreq !== undefined ? (
-            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-slate-50 rounded-xl p-3">
-              {(() => {
-                const lbl = geminiFreqLabel(geminiExposureFreq);
-                return (
-                  <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
-                    <div className={`text-xl font-black leading-none ${lbl.color}`}>{lbl.text}</div>
-                    <div className="text-xs text-slate-400 mt-0.5">{geminiExposureFreq}/10회</div>
-                  </div>
-                );
-              })()}
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-slate-700 sm:mt-1.5">Gemini 추천</div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-purple-50 border border-purple-100 rounded-xl p-3">
-              <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
-                <div className="text-xl font-black leading-none text-purple-600">50회</div>
-                <div className="text-xs text-purple-400 mt-0.5">구독 시</div>
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-purple-800 sm:mt-1.5">Gemini 추천</div>
-                <div className="text-sm text-purple-600">구글 AI 노출 확인 가능</div>
-              </div>
-            </div>
-          )}
-
+          ))}
         </div>
       )}
 
-      <div className="space-y-2">
-
-        {/* 방문자 리뷰 수 실측 강점 (감지 시 항상 표시) */}
-        {smartPlaceCheck && !smartPlaceCheck.error && ((smartPlaceCheck as { visitor_review_count?: number }).visitor_review_count ?? 0) > 0 && (
-          <div className={`flex items-start gap-3 rounded-lg px-3 py-2.5 border ${
-            ((smartPlaceCheck as { visitor_review_count?: number }).visitor_review_count ?? 0) >= 100
-              ? "bg-green-50 border-green-200"
-              : "bg-blue-50 border-blue-200"
-          }`}>
-            <span className="text-lg shrink-0 mt-0.5">
-              {((smartPlaceCheck as { visitor_review_count?: number }).visitor_review_count ?? 0) >= 100 ? "✅" : "ℹ️"}
-            </span>
-            <p className="text-sm font-semibold text-slate-800 break-keep">
-              방문자 리뷰 {((smartPlaceCheck as { visitor_review_count?: number }).visitor_review_count ?? 0).toLocaleString()}건 확인
-              {((smartPlaceCheck as { visitor_review_count?: number }).visitor_review_count ?? 0) >= 500
-                ? " — 리뷰 신뢰도가 매우 높습니다"
-                : ((smartPlaceCheck as { visitor_review_count?: number }).visitor_review_count ?? 0) >= 100
-                  ? " — 충분한 리뷰가 쌓여 있습니다"
-                  : " — 리뷰를 더 쌓으면 AI 노출 확률이 높아집니다"}
-            </p>
+      {/* 핵심 개선 포인트 1개 */}
+      {topMissingKw && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 mb-3">
+          <div className="flex items-start gap-2">
+            <span className="text-base shrink-0 mt-0.5">⚠️</span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-amber-800 break-keep">
+                소개글에 경쟁사 핵심 키워드 {missingKws.length}개 없음
+              </p>
+              <p className="text-sm text-amber-700 mt-0.5 break-keep">
+                &lsquo;{topMissingKw}&rsquo; 등 추가 시 2~4주 내 네이버 순위 상승 기대
+              </p>
+            </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* 스마트플레이스 강점 (photo_count 많을 때만) */}
+      {/* 구분선 */}
+      <div className="border-t border-slate-100 pt-3 mb-2" />
+
+      {/* ChatGPT 측정 결과 1줄 요약 */}
+      <p className="text-sm text-slate-400 leading-snug break-keep">
+        ChatGPT {chatgptSampleSize}회 초기 측정 —{" "}
+        {chatgptMentioned
+          ? `"${businessName}" 노출됨`
+          : "아직 미노출 (네이버 최적화 후 수개월 내 반영 예상)"}
+      </p>
+
+      <div className="space-y-2 mt-3">
+
+        {/* 사진 강점 (photo_count 많을 때만 — 상단 strengthItems에 없는 추가 강점) */}
         {smartPlaceCheck && !smartPlaceCheck.error && (smartPlaceCheck as { photo_count?: number }).photo_count != null && ((smartPlaceCheck as { photo_count?: number }).photo_count ?? 0) >= 30 && (
           <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-green-50 border border-green-200">
             <span className="text-lg shrink-0 mt-0.5">✅</span>
@@ -315,44 +286,19 @@ function ScanConclusionCard({
           </div>
         )}
 
-        {/* ChatGPT 실측 결과 */}
-        {chatgptMentioned !== undefined && (
-          <div className={`flex items-start gap-3 rounded-lg px-3 py-2.5 ${chatgptMentioned ? "bg-green-50 border border-green-200" : "bg-slate-50 border border-slate-200"}`}>
-            <span className="text-lg shrink-0 mt-0.5">{chatgptMentioned ? "✅" : "—"}</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-800 break-keep">
-                ChatGPT {chatgptSampleSize}회 —{" "}
-                {chatgptMentioned
-                  ? `지역 업종 검색 결과에 "${businessName}" 등장`
-                  : `지역 업종 검색 결과에 아직 미노출`}
-              </p>
-              {chatgptQueries && chatgptQueries[0] && (
-                <p className="text-sm text-slate-500 mt-0.5 break-keep">
-                  질의 예시: &ldquo;{chatgptQueries[0]}&rdquo;
-                </p>
-              )}
-              {!chatgptMentioned && (
-                <p className="text-sm text-slate-500 mt-0.5 break-keep">
-                  정식 스캔 50회 · 네이버 최적화 후 수개월~1년 내 반영 기대
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* AI 0회 맥락 — 네이버 상위권인데 ChatGPT·Gemini 미노출이면 정상임을 설명 */}
+        {/* 네이버 상위권인데 ChatGPT 미노출 — 정상 맥락 설명 */}
         {chatgptExposureFreq === 0 && (geminiExposureFreq === 0 || geminiExposureFreq === undefined) &&
          naverMyRank !== null && naverMyRank !== undefined && naverMyRank <= 5 && (
           <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-blue-50 border border-blue-100">
             <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
             <p className="text-sm text-slate-600 break-keep leading-snug">
               <strong className="text-slate-800">네이버 {naverMyRank}위인데 ChatGPT에 없는 건 정상입니다.</strong>{" "}
-              ChatGPT·Gemini는 수개월~1년 주기로 학습 데이터를 갱신하며, 네이버 검색 상위권인 가게도 대부분 아직 미인식 상태입니다. 네이버 최적화를 유지하면 점차 반영됩니다.
+              ChatGPT는 수개월~1년 주기로 학습 데이터를 갱신하며, 네이버 검색 상위권인 가게도 대부분 아직 미인식 상태입니다. 네이버 최적화를 유지하면 점차 반영됩니다.
             </p>
           </div>
         )}
 
-        {/* 네이버 AI 브리핑 실측 결과 (active 업종만, 측정된 경우만) */}
+        {/* 네이버 AI 브리핑 실측 결과 (active 업종, 체험 스캔에서 측정된 경우만) */}
         {briefingCategory === "active" && inBriefing !== null && (
           <div className={`flex items-start gap-3 rounded-lg px-3 py-2.5 ${inBriefing ? "bg-green-50 border border-green-200" : "bg-amber-50 border border-amber-200"}`}>
             <span className="text-lg shrink-0 mt-0.5">{inBriefing ? "✅" : "⚠️"}</span>
@@ -365,42 +311,31 @@ function ScanConclusionCard({
           </div>
         )}
 
-        {/* 스마트플레이스 실측 결과 */}
+        {/* 스마트플레이스 미완성 항목 (누락된 것만) */}
         {smartPlaceCheck && !smartPlaceCheck.error && (() => {
           const missing = [
             !smartPlaceCheck.is_smart_place && "스마트플레이스 등록",
             !smartPlaceCheck.has_recent_post && "최근 소식",
             !smartPlaceCheck.has_intro && "소개글",
           ].filter(Boolean) as string[];
-          const allOK = missing.length === 0;
+          if (missing.length === 0) return null;
           return (
-            <div className={`flex items-start gap-3 rounded-lg px-3 py-2.5 ${allOK ? "bg-green-50 border border-green-200" : "bg-amber-50 border border-amber-200"}`}>
-              <span className="text-lg shrink-0 mt-0.5">{allOK ? "✅" : "⚠️"}</span>
+            <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-amber-50 border border-amber-200">
+              <span className="text-lg shrink-0 mt-0.5">⚠️</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 break-keep">
-                  스마트플레이스 —{" "}
-                  {allOK
-                    ? "3개 항목 모두 완성됐습니다"
-                    : `${missing.join(" · ")} 미완성`}
+                  스마트플레이스 {missing.join(" · ")} 미완성
+                </p>
+                <p className="text-sm text-slate-500 mt-0.5 break-keep">
+                  완성하면 AI 인용·네이버 신선도 점수가 올라갑니다
                 </p>
               </div>
             </div>
           );
         })()}
 
-        {/* 키워드 갭 실측 결과 */}
-        {missingKws.length > 0 ? (
-          <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-amber-50 border border-amber-200">
-            <span className="text-lg shrink-0 mt-0.5">⚠️</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-amber-700 mb-0.5">경쟁 가게 소개글·리뷰에 자주 등장하는 키워드</p>
-              <p className="text-sm font-semibold text-slate-800 break-keep">
-                내 가게에 없는 키워드 {missingKws.length}개 — {missingKws.slice(0, 3).map(k => `'${k}'`).join(", ")} 등
-              </p>
-              <p className="text-sm text-slate-500 mt-0.5 break-keep">이 키워드를 소개글·리뷰 답변에 자연스럽게 포함하면 AI 추천 가능성이 높아집니다</p>
-            </div>
-          </div>
-        ) : (
+        {/* 키워드가 이미 모두 갖춰진 경우에만 긍정 메시지 */}
+        {missingKws.length === 0 && (
           <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-green-50 border border-green-200">
             <span className="text-lg shrink-0 mt-0.5">✅</span>
             <p className="text-sm font-semibold text-slate-800 break-keep">
@@ -1075,6 +1010,14 @@ export default function TrialResultStep(props: TrialResultProps) {
           briefingCategory={briefingCategory}
           chatgptQueries={chatgptDisplayQueries}
           naverMyRank={naver?.my_rank ?? null}
+          kakaoRank={(result as { kakao?: { my_rank?: number | null } }).kakao?.my_rank ?? null}
+          blogCount={naver?.blog_mentions ?? 0}
+          isSmartPlaceConfirmed={!!(
+            result.place_match?.naver_place_url ||
+            result.smart_place_check?.is_smart_place ||
+            (naver as { is_smart_place?: boolean } | null)?.is_smart_place ||
+            form.is_smart_place
+          )}
         />
 
         {/* ── 2. 지금 바로 할 핵심 액션 ──────────────────────────── */}

@@ -483,14 +483,24 @@ export default function NaverStatusSection({
               </div>
             </div>
             {compBlogCount > blogCount && (
-              <div className="flex items-start gap-2 bg-amber-50 rounded-lg px-3 py-2.5 border border-amber-200">
-                <BookOpen className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm text-amber-700 leading-snug break-keep">
-                    경쟁사보다 {(compBlogCount - blogCount).toLocaleString()}건 적습니다
-                  </p>
-                  <p className="text-sm text-amber-600 leading-snug break-keep mt-0.5">
-                    → 방문 손님께 블로그 후기 요청 + 이벤트 진행으로 포스팅을 늘리면 AI 노출 가능성이 높아집니다
+              <div className="space-y-2">
+                <div className="flex items-start gap-2 bg-amber-50 rounded-lg px-3 py-2.5 border border-amber-200">
+                  <BookOpen className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-amber-700 leading-snug break-keep">
+                      경쟁사보다 {(compBlogCount - blogCount).toLocaleString()}건 적습니다
+                    </p>
+                    <p className="text-sm text-amber-600 leading-snug break-keep mt-0.5">
+                      → 방문 손님께 블로그 후기 요청 + 이벤트 진행으로 포스팅을 늘리면 AI 노출 가능성이 높아집니다
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 bg-blue-50 rounded-lg px-3 py-2.5 border border-blue-100">
+                  <span className="text-sm shrink-0 mt-0.5">💡</span>
+                  <p className="text-sm text-blue-800 leading-snug break-keep">
+                    <strong>블로그보다 빠른 방법:</strong> 소개글에 경쟁사 키워드를 추가하면
+                    블로그 수 격차 없이도 네이버 순위가 올라갑니다.
+                    (블로그는 수개월 소요, 소개글 키워드는 2~4주)
                   </p>
                 </div>
               </div>
