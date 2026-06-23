@@ -212,7 +212,7 @@ export const FLAT_CATEGORY_GROUPS: { groupLabel: string; items: FlatCategory[] }
       { value: "cafe",       label: "카페",       group: "food",          groupLabel: "음식·음료",
         typeTags: ["커피전문", "스페셜티", "브런치", "디저트카페", "베이커리카페", "버블티", "스무디"] },
       { value: "bakery",     label: "베이커리",   group: "food",          groupLabel: "음식·음료",
-        typeTags: ["소금빵", "크루아상", "케이크", "마카롱", "타르트", "식빵", "베이글"] },
+        tags: ["소금빵", "크루아상", "케이크", "마카롱", "타르트", "식빵", "베이글", "브런치 가능", "카페 병행", "포장 가능"] },
       { value: "bar",        label: "술집",        group: "food",          groupLabel: "음식·음료",
         typeTags: ["이자카야", "와인바", "맥주바", "막걸리", "소주", "칵테일바", "포차"] },
       { value: "kids",       label: "키즈카페",   group: "kids",          groupLabel: "음식·음료",
@@ -421,7 +421,7 @@ export function tagsForFlat(value: string): string[] {
 
 /** 종류 키워드(typeTags)가 있는 업종 집합 — TrialInputStep에서 UI 분기용 */
 export const CATEGORIES_WITH_TYPE_KEYWORDS = new Set([
-  "restaurant", "cafe", "bakery", "bar",
+  "restaurant", "cafe", "bar",
   "education", "tutoring", "medical", "beauty", "legal",
 ]);
 
