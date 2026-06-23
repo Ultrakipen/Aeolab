@@ -15,7 +15,7 @@ import SubscriptionValueCompare from "@/components/trial/SubscriptionValueCompar
 import KakaoShareButton from "@/components/common/KakaoShareButton";
 import TextShareButton from "@/components/trial/TextShareButton";
 import ResultSummaryHero from "@/components/common/ResultSummaryHero";
-import { naverSeoTile, aiTabTile, briefingTile, rankTile, type ChannelTile } from "@/lib/scoreLabels";
+import { naverSeoTile, aiTabTile, briefingTile, rankTile, makeTile, type ChannelTile } from "@/lib/scoreLabels";
 import type {
   TrialScanResult,
   TrialPlaceMatch,
@@ -610,21 +610,28 @@ export default function TrialResultStep(props: TrialResultProps) {
   const heroInactive = briefingCategory === "inactive" || isFranchise;
   const naverCompetitorCount =
     (naver as { naver_competitors?: unknown[] } | null)?.naver_competitors?.length ?? 0;
-  // Trial에서 aiTabTile(null)="준비 중"은 소상공인에게 의미 없음 → 경쟁 순위 타일로 교체
-  const heroTiles: ChannelTile[] = heroInactive
-    ? [
-        naverSeoTile({ missingKeywordCount: effectiveMissingKws.length }),
-        rankTile({ myRank: naver?.my_rank, totalCompetitors: naverCompetitorCount }),
-        briefingTile({ eligibility: briefingCategory, isFranchise, inBriefing }),
-      ]
-    : [
-        naverSeoTile({ missingKeywordCount: effectiveMissingKws.length }),
-        rankTile({ myRank: naver?.my_rank, totalCompetitors: naverCompetitorCount }),
-        briefingTile({ eligibility: briefingCategory, isFranchise, inBriefing }),
-      ];
+
+  // 카카오 순위: 네이버 순위 없을 때 대체 타일로 사용
+  const kakaoMyRank = (result as { kakao?: { my_rank?: number | null } }).kakao?.my_rank ?? null;
+  const rankOrKakaoTile: ChannelTile = (!naver?.my_rank && kakaoMyRank && kakaoMyRank <= 5)
+    ? makeTile("kakao-rank", "카카오 검색", "good",
+        kakaoMyRank === 1 ? "카카오 1위" : `카카오 ${kakaoMyRank}위`,
+        "카카오맵 상위 노출 중")
+    : rankTile({ myRank: naver?.my_rank, totalCompetitors: naverCompetitorCount });
+
+  const heroTiles: ChannelTile[] = [
+    naverSeoTile({ missingKeywordCount: effectiveMissingKws.length }),
+    rankOrKakaoTile,
+    briefingTile({ eligibility: briefingCategory, isFranchise, inBriefing }),
+  ];
+
   const heroEvidenceParts: string[] = [];
   if (naver?.my_rank && naverCompetitorCount > 1)
     heroEvidenceParts.push(`경쟁 ${naverCompetitorCount}곳 중 ${naver.my_rank}위`);
+  if (kakaoMyRank && kakaoMyRank <= 5 && !naver?.my_rank)
+    heroEvidenceParts.push(`카카오 ${kakaoMyRank}위`);
+  if (blogCount > 0)
+    heroEvidenceParts.push(`블로그 ${blogCount}건`);
   heroEvidenceParts.push(
     effectiveMissingKws.length === 0 ? "키워드 모두 포함" : `키워드 ${effectiveMissingKws.length}개 보강 필요`,
   );
@@ -863,6 +870,36 @@ export default function TrialResultStep(props: TrialResultProps) {
         ) : (
           <BriefingCategoryBadge category={briefingCategory} />
         )}
+
+        {/* ── 발견된 강점 배너 — 첫 인상: 실측 강점 먼저 표시 ── */}
+        {(() => {
+          const isSpConfirmed = !!(result.place_match?.naver_place_url
+            || result.smart_place_check?.is_smart_place
+            || (naver as { is_smart_place?: boolean } | null)?.is_smart_place
+            || (form as { is_smart_place?: boolean }).is_smart_place);
+          const badges: { icon: string; text: string }[] = [];
+          if (isSpConfirmed) badges.push({ icon: "📍", text: "스마트플레이스 등록됨" });
+          const _kakaoRk = (result as { kakao?: { my_rank?: number | null } }).kakao?.my_rank ?? null;
+          if (_kakaoRk && _kakaoRk <= 5) badges.push({ icon: "🟡", text: `카카오맵 ${_kakaoRk}위` });
+          if (blogCount > 0) badges.push({ icon: "📝", text: `블로그 리뷰 ${blogCount}건` });
+          if ((result.smart_place_check as { visitor_review_count?: number } | null)?.visitor_review_count) {
+            const vrc2 = (result.smart_place_check as { visitor_review_count?: number }).visitor_review_count!;
+            if (vrc2 > 0 && !badges.some(b => b.text.includes("리뷰"))) badges.push({ icon: "⭐", text: `방문자 리뷰 ${vrc2}건` });
+          }
+          if (badges.length === 0) return null;
+          return (
+            <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 mb-4">
+              <p className="text-xs font-bold text-green-600 uppercase tracking-wide mb-2">이번 스캔에서 발견한 강점</p>
+              <div className="flex flex-wrap gap-2">
+                {badges.map((b, i) => (
+                  <span key={i} className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-800 bg-white border border-green-200 rounded-full px-3 py-1 shadow-sm">
+                    <span>{b.icon}</span>{b.text}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── 1. 종합 결론 — 대시보드 HeroCard 구조 복제 (성장단계+네이버 3채널 그리드+실측근거+오늘할일) ── */}
         <div className="mb-4">
