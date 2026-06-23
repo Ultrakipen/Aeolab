@@ -796,7 +796,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-green-800 leading-tight">네이버 스마트플레이스에서 찾았습니다</p>
                         {inlineSelectedCandidate.address && (
-                          <p className="text-sm text-green-700 mt-0.5 truncate">{inlineSelectedCandidate.address}</p>
+                          <p className="text-sm text-green-700 mt-0.5 break-keep">{inlineSelectedCandidate.address}</p>
                         )}
                       </div>
                       <button
