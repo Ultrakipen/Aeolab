@@ -13,16 +13,41 @@ interface Props {
   isFranchise?: boolean;
 }
 
-function scrollTo(id: string) {
+/**
+ * 부모 섹션(id)을 열고, 하위 서브섹션(subId)으로 직접 이동.
+ * CollapseSectionWrapper → CollapsibleSub 두 단계 중첩 처리.
+ */
+function scrollTo(id: string, subId?: string) {
   const el = document.getElementById(id);
   if (!el) return;
-  // CollapseSectionWrapper가 접혀 있으면 먼저 열고 스크롤
+
   const toggleBtn = el.querySelector<HTMLButtonElement>("button[aria-expanded]");
-  if (toggleBtn && toggleBtn.getAttribute("aria-expanded") === "false") {
+  const isCollapsed = toggleBtn && toggleBtn.getAttribute("aria-expanded") === "false";
+
+  const doSubScroll = () => {
+    if (!subId) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    const subEl = document.getElementById(subId);
+    if (!subEl) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    const subBtn = subEl.querySelector<HTMLButtonElement>("button[aria-expanded]");
+    if (subBtn && subBtn.getAttribute("aria-expanded") === "false") {
+      subBtn.click();
+      setTimeout(() => subEl.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    } else {
+      subEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  if (isCollapsed) {
     toggleBtn.click();
-    setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+    setTimeout(doSubScroll, 150);
   } else {
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    doSubScroll();
   }
 }
 
@@ -74,10 +99,10 @@ export default function ScanResultNavBar({
     totalCompetitors <= 1 ? GRAY : myRankInList === 1 ? GREEN : AMBER;
 
   const items = [
-    { id: "nav-search", scrollTarget: "section-naver", dot: searchDot, label: "일반검색", highlight: searchDot === AMBER },
-    { id: "nav-aitab", scrollTarget: "section-naver", dot: aiTabDot, label: "AI탭", highlight: naverAiTabVisible === false },
-    { id: "nav-briefing", scrollTarget: "section-naver", dot: briefingDot, label: "AI브리핑", highlight: !isInactive && eligibility === "active" && !naverInBriefing && !naverCaptchaBlocked },
-    { id: "nav-rank", scrollTarget: "section-detail", dot: rankDot, label: "경쟁현황", highlight: false },
+    { id: "nav-search",   scrollTarget: "section-naver", subTarget: "naver-seo-anchor",     dot: searchDot,   label: "일반검색",  highlight: searchDot === AMBER },
+    { id: "nav-aitab",    scrollTarget: "section-naver", subTarget: "naver-aitab-anchor",    dot: aiTabDot,    label: "AI탭",      highlight: naverAiTabVisible === false },
+    { id: "nav-briefing", scrollTarget: "section-naver", subTarget: "naver-briefing-anchor", dot: briefingDot, label: "AI브리핑",  highlight: !isInactive && eligibility === "active" && !naverInBriefing && !naverCaptchaBlocked },
+    { id: "nav-rank",     scrollTarget: "section-detail", subTarget: undefined,              dot: rankDot,     label: "경쟁현황",  highlight: false },
   ];
 
   return (
@@ -87,7 +112,7 @@ export default function ScanResultNavBar({
         {items.map((item) => (
           <button
             key={item.id}
-            onClick={() => scrollTo(item.scrollTarget)}
+            onClick={() => scrollTo(item.scrollTarget, item.subTarget)}
             className={`group inline-flex items-center gap-2 px-3 py-2 rounded-lg border bg-white text-left transition-all cursor-pointer hover:border-blue-300 hover:bg-blue-50/40 ${
               item.highlight ? "border-amber-300 ring-1 ring-amber-200" : "border-gray-200"
             }`}

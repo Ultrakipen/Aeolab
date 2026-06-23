@@ -168,7 +168,7 @@ export default function DashboardActionZone({
         step={2}
         icon={<Calendar className="w-3.5 h-3.5" />}
         label="이번 주 액션"
-        description="가입 후 7일 이내는 환영 가이드 · 이후는 주간 권장"
+        description="이번 주 네이버 AI 노출을 높이는 실행 항목"
         accent="bg-blue-500"
         badgeBg="bg-blue-100"
         badgeText="text-blue-800"
