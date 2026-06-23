@@ -953,6 +953,53 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         )}
 
+        {/* ── 네이버 개선 → AI 노출 인과관계 인사이트 ── */}
+        <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 px-4 py-4 mb-4">
+          <p className="text-sm font-bold text-blue-800 mb-3 break-keep">
+            💡 네이버 정보를 개선하면 글로벌 AI 검색까지 연결됩니다
+          </p>
+          <div className="flex flex-col gap-2">
+            {/* Step 1 */}
+            <div className="flex items-start gap-2.5">
+              <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center">1</span>
+              <div>
+                <p className="text-sm font-semibold text-slate-800 break-keep">
+                  소개글·키워드 개선
+                  {effectiveMissingKws.length > 0 && (
+                    <span className="ml-1 text-blue-700">(예: &lsquo;{effectiveMissingKws[0]}&rsquo; 추가)</span>
+                  )}
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5">즉시 ~ 2~4주 내 네이버에 반영</p>
+              </div>
+            </div>
+            {/* 화살표 */}
+            <div className="ml-2.5 pl-4 border-l-2 border-blue-200">
+              <p className="text-xs text-blue-500 font-medium">▼ 2~4주</p>
+            </div>
+            {/* Step 2 */}
+            <div className="flex items-start gap-2.5">
+              <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-green-500 text-white text-xs font-black flex items-center justify-center">2</span>
+              <div>
+                <p className="text-sm font-semibold text-green-800 break-keep">네이버 지역 검색 상위권 노출</p>
+                <p className="text-xs text-slate-500 mt-0.5">네이버가 관련성 높은 가게로 평가 → 검색 상위 배치</p>
+              </div>
+            </div>
+            {/* 화살표 */}
+            <div className="ml-2.5 pl-4 border-l-2 border-green-200">
+              <p className="text-xs text-green-600 font-medium">▼ 수개월~1년</p>
+            </div>
+            {/* Step 3 */}
+            <div className="flex items-start gap-2.5">
+              <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-purple-600 text-white text-xs font-black flex items-center justify-center">3</span>
+              <div>
+                <p className="text-sm font-semibold text-purple-800 break-keep">ChatGPT·Gemini에도 자동 반영</p>
+                <p className="text-xs text-slate-500 mt-0.5 break-keep">
+                  두 AI는 네이버 콘텐츠를 학습 데이터로 사용 — 네이버 상위 가게가 AI 검색에서도 추천됩니다
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* ── 2. 핵심 실측 상세 (AI 스캔 결과) ──────────────────── */}
         <ScanConclusionCard
