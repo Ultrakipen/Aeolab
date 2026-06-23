@@ -597,10 +597,10 @@ async def send_trial_claim_link(
     cat_lower = (category or "").lower()
     if cat_lower in _ACTIVE:
         cat_bg, cat_bd, cat_color = "#eff6ff", "#bfdbfe", "#1e3a8a"
-        cat_msg = f"<strong>{cat_ko}</strong> 업종은 <strong>네이버 AI 브리핑 노출 가능 업종</strong>입니다. Track1 네이버 생태계 점수를 우선 개선하세요."
+        cat_msg = f"<strong>{cat_ko}</strong> 업종은 <strong>네이버 AI 브리핑 노출 가능 업종</strong>입니다. 스마트플레이스 소개글·소식·리뷰를 먼저 개선하세요."
     elif cat_lower in _LIKELY:
         cat_bg, cat_bd, cat_color = "#f0fdf4", "#86efac", "#14532d"
-        cat_msg = f"<strong>{cat_ko}</strong> 업종은 네이버 AI 탭 확대 예상 업종입니다. Track1 네이버 + Track2 글로벌 AI 양쪽 개선이 중요합니다."
+        cat_msg = f"<strong>{cat_ko}</strong> 업종은 네이버 AI탭 확대 예상 업종입니다. 네이버 스마트플레이스 최적화 + ChatGPT·Gemini 노출 양쪽 개선이 중요합니다."
     else:
         cat_bg, cat_bd, cat_color = "#fefce8", "#fde047", "#713f12"
         cat_msg = f"<strong>{cat_ko}</strong> 업종은 네이버 AI 브리핑 대상이 아닙니다. <strong>ChatGPT · Gemini · Google AI</strong> 노출 개선에 집중하세요."
@@ -615,14 +615,14 @@ async def send_trial_claim_link(
       <p style="font-size:12px; color:#94a3b8; font-weight:700; margin:0 0 12px; letter-spacing:0.08em; text-transform:uppercase;">AI 노출 점수</p>
       <div style="margin-bottom:10px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-          <span style="font-size:13px; color:#334155;">Track 1 · 네이버 생태계</span>
+          <span style="font-size:13px; color:#334155;">네이버 검색 노출도</span>
           <span style="font-size:13px; font-weight:700; color:#1d4ed8;">{_score_label(t1)}</span>
         </div>
         <div style="background:#e2e8f0; border-radius:4px; height:8px;"><div style="background:#1d4ed8; border-radius:4px; height:8px; width:{t1_pct}%;"></div></div>
       </div>
       <div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-          <span style="font-size:13px; color:#334155;">Track 2 · 글로벌 AI (ChatGPT · Gemini)</span>
+          <span style="font-size:13px; color:#334155;">ChatGPT·Gemini 노출도</span>
           <span style="font-size:13px; font-weight:700; color:#7c3aed;">{_score_label(t2)}</span>
         </div>
         <div style="background:#e2e8f0; border-radius:4px; height:8px;"><div style="background:#7c3aed; border-radius:4px; height:8px; width:{t2_pct}%;"></div></div>

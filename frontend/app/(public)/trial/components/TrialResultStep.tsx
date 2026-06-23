@@ -250,24 +250,34 @@ function ScanConclusionCard({
             </div>
           </div>
 
-          {/* 3번 칸: Gemini (모든 업종 동일 — Basic 구독 시 측정) */}
-          <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-slate-50 rounded-xl p-3">
-            {(() => {
-              const lbl = geminiFreqLabel(geminiExposureFreq);
-              return (
-                <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
-                  <div className={`text-xl font-black leading-none ${lbl.color}`}>{lbl.text}</div>
-                  {geminiExposureFreq !== undefined && (
+          {/* 3번 칸: Gemini — 측정 데이터 있으면 표시, 없으면 구독 유도 */}
+          {geminiExposureFreq !== undefined ? (
+            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-slate-50 rounded-xl p-3">
+              {(() => {
+                const lbl = geminiFreqLabel(geminiExposureFreq);
+                return (
+                  <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
+                    <div className={`text-xl font-black leading-none ${lbl.color}`}>{lbl.text}</div>
                     <div className="text-xs text-slate-400 mt-0.5">{geminiExposureFreq}/10회</div>
-                  )}
-                </div>
-              );
-            })()}
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-slate-700 sm:mt-1.5">Gemini 추천</div>
-              <div className="text-sm text-slate-500">Basic 구독 시 측정</div>
+                  </div>
+                );
+              })()}
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-slate-700 sm:mt-1.5">Gemini 추천</div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:justify-center sm:text-center bg-purple-50 border border-purple-100 rounded-xl p-3">
+              <div className="shrink-0 min-w-[2.5rem] sm:min-w-0 text-center">
+                <div className="text-xl font-black leading-none text-purple-600">50회</div>
+                <div className="text-xs text-purple-400 mt-0.5">구독 시</div>
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-purple-800 sm:mt-1.5">Gemini 추천</div>
+                <div className="text-sm text-purple-600">구글 AI 노출 확인 가능</div>
+              </div>
+            </div>
+          )}
 
         </div>
       )}
@@ -968,10 +978,10 @@ export default function TrialResultStep(props: TrialResultProps) {
         {!isLoggedIn && (
           <div className="rounded-xl border border-blue-300 bg-blue-600 px-4 py-4 mb-4 shadow-md">
             <p className="text-base font-bold text-white leading-snug break-keep mb-1">
-              이 변화를 매주 자동으로 추적하고 싶다면
+              네이버 순위가 오르면 바로 알려드립니다
             </p>
             <p className="text-sm text-blue-200 leading-snug break-keep mb-3">
-              경쟁 가게와 내 가게의 격차 — 지금 개선하면 얼마나 바뀌는지 매주 카톡으로 알려드립니다
+              소개글 개선 후 네이버 순위가 올랐는지 — 매주 자동으로 확인하고 카톡으로 알려드립니다. 경쟁 가게와 비교도 제공합니다
             </p>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
               <Link
@@ -985,38 +995,6 @@ export default function TrialResultStep(props: TrialResultProps) {
             </div>
           </div>
         )}
-
-        {/* ── 2. 핵심 실측 상세 (AI 스캔 결과) ──────────────────── */}
-        <ScanConclusionCard
-          businessName={form.business_name || "내 가게"}
-          chatgptMentioned={chatgptMentioned}
-          chatgptSampleSize={chatgptSampleSize}
-          chatgptExposureFreq={chatgptResult?.exposure_freq}
-          geminiExposureFreq={geminiExposureFreq}
-          smartPlaceCheck={result.smart_place_check ?? null}
-          missingKws={effectiveMissingKws}
-          inBriefing={inBriefing}
-          briefingCategory={briefingCategory}
-          chatgptQueries={chatgptDisplayQueries}
-          naverMyRank={naver?.my_rank ?? null}
-        />
-
-        {/* ── 2. 지금 바로 할 핵심 액션 ──────────────────────────── */}
-        <div id="today-action" />
-        <TodayOneAction
-          key={effectiveMissingKws[0] ?? "no-kw"}
-          isSmartPlace={isSmartPlace}
-          missingKws={effectiveMissingKws}
-          hasFaq={hasFaq}
-          inBriefing={inBriefing}
-          faqText={effectiveFaqText}
-          selectedTags={selectedTags}
-          categoryLabel={categoryLabel}
-          userGroup={userGroupValue}
-          category={selectedCategory}
-          isLoggedIn={isLoggedIn}
-          onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
-        />
 
         {/* ── 개선 효과 연결 브리지 ── */}
         <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-5 mb-4">
@@ -1076,6 +1054,38 @@ export default function TrialResultStep(props: TrialResultProps) {
             </p>
           </div>
         </div>
+
+        {/* ── 2. 핵심 실측 상세 (AI 스캔 결과) ──────────────────── */}
+        <ScanConclusionCard
+          businessName={form.business_name || "내 가게"}
+          chatgptMentioned={chatgptMentioned}
+          chatgptSampleSize={chatgptSampleSize}
+          chatgptExposureFreq={chatgptResult?.exposure_freq}
+          geminiExposureFreq={geminiExposureFreq}
+          smartPlaceCheck={result.smart_place_check ?? null}
+          missingKws={effectiveMissingKws}
+          inBriefing={inBriefing}
+          briefingCategory={briefingCategory}
+          chatgptQueries={chatgptDisplayQueries}
+          naverMyRank={naver?.my_rank ?? null}
+        />
+
+        {/* ── 2. 지금 바로 할 핵심 액션 ──────────────────────────── */}
+        <div id="today-action" />
+        <TodayOneAction
+          key={effectiveMissingKws[0] ?? "no-kw"}
+          isSmartPlace={isSmartPlace}
+          missingKws={effectiveMissingKws}
+          hasFaq={hasFaq}
+          inBriefing={inBriefing}
+          faqText={effectiveFaqText}
+          selectedTags={selectedTags}
+          categoryLabel={categoryLabel}
+          userGroup={userGroupValue}
+          category={selectedCategory}
+          isLoggedIn={isLoggedIn}
+          onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
+        />
 
         {/* ── 구독 유도 + 전환 CTA ── */}
         {!isLoggedIn && (
