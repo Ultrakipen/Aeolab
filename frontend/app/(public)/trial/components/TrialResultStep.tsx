@@ -213,7 +213,7 @@ function ScanConclusionCard({
     strengthItems.push({ icon: "✅", text: `카카오 검색 ${kakaoRank}위 확인` });
   }
   if (blogCount !== undefined && blogCount > 0) {
-    strengthItems.push({ icon: "✅", text: `블로그 리뷰 ${blogCount.toLocaleString()}건 확인` });
+    strengthItems.push({ icon: "✅", text: `블로그 언급 ${blogCount.toLocaleString()}건 확인` });
   }
   if (
     smartPlaceCheck &&
@@ -881,10 +881,10 @@ export default function TrialResultStep(props: TrialResultProps) {
           if (isSpConfirmed) badges.push({ icon: "📍", text: "스마트플레이스 등록됨" });
           const _kakaoRk = (result as { kakao?: { my_rank?: number | null } }).kakao?.my_rank ?? null;
           if (_kakaoRk && _kakaoRk <= 5) badges.push({ icon: "🟡", text: `카카오맵 ${_kakaoRk}위` });
-          if (blogCount > 0) badges.push({ icon: "📝", text: `블로그 리뷰 ${blogCount}건` });
+          if (blogCount > 0) badges.push({ icon: "📝", text: `블로그 언급 ${blogCount}건` });
           if ((result.smart_place_check as { visitor_review_count?: number } | null)?.visitor_review_count) {
             const vrc2 = (result.smart_place_check as { visitor_review_count?: number }).visitor_review_count!;
-            if (vrc2 > 0 && !badges.some(b => b.text.includes("리뷰"))) badges.push({ icon: "⭐", text: `방문자 리뷰 ${vrc2}건` });
+            if (vrc2 > 0 && !badges.some(b => b.text.includes("방문자 리뷰"))) badges.push({ icon: "⭐", text: `방문자 리뷰 ${vrc2}건` });
           }
           if (badges.length === 0) return null;
           return (
