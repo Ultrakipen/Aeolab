@@ -56,6 +56,22 @@ def _name_matches(target: str, candidate: str) -> bool:
     return False
 
 
+def _kw_display_label(search_query: str, region_prefix: str) -> str:
+    """키워드 블로그 비교 표시용: search_query에서 region_prefix 제거 후 핵심 키워드만 반환."""
+    import re as _re_lbl
+    sq = search_query.strip()
+    if not sq:
+        return sq
+    # region_prefix가 있으면 앞에서 제거
+    if region_prefix and sq.startswith(region_prefix):
+        sq = sq[len(region_prefix):].strip()
+    # 남은 행정구역 패턴 제거 (시+구+동, 구+동, 동)
+    sq = _re_lbl.sub(r"\S+시\s+\S+구\s+\S+동\s*", "", sq).strip()
+    sq = _re_lbl.sub(r"^\S+구\s+\S+동\s+", "", sq).strip()
+    sq = _re_lbl.sub(r"^\S+동\s+", "", sq).strip()
+    return sq or search_query
+
+
 def _build_region_prefix(region: str) -> str:
     """
     행정구역 → 검색 정밀도 최대화
@@ -131,14 +147,20 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
     # 키워드 특수문자 정리 ("웨딩 스냅·영상" → "웨딩 스냅 영상")
     clean_kw = _clean_keyword(keyword)
     # 키워드 앞에 지역명 중복 방지 (업체명이 키워드로 전달될 때 발생)
-    # "창원시 성산구" + kw="창원시 성산구 상남동 제주흑돼지" → "상남동 제주흑돼지"
-    # 원본 region(변환 전)과 변환된 prefix 둘 다 체크
+    # "성산구 상남동" + kw="창원시 성산구 상남동 제주흑돼지" → "제주흑돼지"
+    # startswith 비교 + 정규식 fallback (경상남도 포함 4파트 region이면 startswith 실패하므로)
+    import re as _re_kw
     _orig_region = (region or "").strip()
     _ck = clean_kw
     if _orig_region and _ck.startswith(_orig_region):
         _ck = _ck[len(_orig_region):].strip()
     elif region_prefix and _ck.startswith(region_prefix):
         _ck = _ck[len(region_prefix):].strip()
+    else:
+        # fallback: 키워드 내부 행정구역 패턴(시+구+동, 구+동, 동) 제거
+        _ck = _re_kw.sub(r"\S+시\s+\S+구\s+\S+동\s*", "", _ck).strip()
+        _ck = _re_kw.sub(r"^\S+구\s+\S+동\s+", "", _ck).strip()
+        _ck = _re_kw.sub(r"^\S+동\s+", "", _ck).strip()
     search_query = f"{region_prefix} {_ck}".strip() if _ck else region_prefix
 
     # ── 블로그 쿼리: 가장 정확한 쿼리 우선 ────────────────────────
@@ -430,7 +452,8 @@ async def get_naver_visibility_multi(business_name: str, keywords: list[str], re
     # 키워드별 블로그 비교 목록
     best["keyword_blog_comparison"] = [
         {
-            "keyword":          (r.get("search_query", "").split(" ", 1)[-1] if " " in r.get("search_query", "") else r.get("search_query", "")),
+            # region_prefix를 제거해 핵심 키워드만 표시 ("성산구 상남동 흑돼지" → "흑돼지")
+            "keyword": _kw_display_label(r.get("search_query", ""), region_prefix),
             "my_count":         r.get("blog_kw_count", 0),
             "competitor_name":  r.get("top_competitor_name") or "",
             "competitor_count": r.get("competitor_kw_blog_count", 0),

@@ -517,9 +517,11 @@ export default function NaverStatusSection({
                 <div className="space-y-2">
                   {keywordBlogComparison.map((kbc, i) => {
                     const gap = kbc.competitor_count - kbc.my_count;
-                    // 키워드 레이블: "상남동 창원시 성산구 상남동 제주흑돼지" → "상남동 제주흑돼지"
+                    // 키워드 레이블: 행정구역 패턴 모두 제거 → 핵심 키워드만
                     const cleanKeyword = kbc.keyword
-                      .replace(/\S+시\s+\S+구\s+\S+동\s*/g, "")
+                      .replace(/\S+시\s+\S+구\s+\S+동\s*/g, "")  // 창원시 성산구 상남동
+                      .replace(/^\S+구\s+\S+동\s+/g, "")           // 성산구 상남동
+                      .replace(/^\S+동\s+/g, "")                    // 상남동
                       .trim();
                     // 경쟁사 이름: "마중 천일식육식당 2번째이야기" → "마중 천일식육식당"
                     const cleanName = kbc.competitor_name
