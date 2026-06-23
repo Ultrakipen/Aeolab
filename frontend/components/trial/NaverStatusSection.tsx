@@ -508,20 +508,32 @@ export default function NaverStatusSection({
             {/* 키워드별 블로그 격차 */}
             {keywordBlogComparison && keywordBlogComparison.length > 0 && (
               <div className="pt-1">
-                <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+                <p className="text-xs text-slate-400 font-semibold mb-0.5 uppercase tracking-wide">
                   키워드별 블로그 비교
+                </p>
+                <p className="text-xs text-slate-400 mb-2 break-keep">
+                  각 키워드 검색 시 블로그 포스팅이 가장 많은 경쟁 가게와 비교 — 키워드마다 상위 가게가 다를 수 있습니다
                 </p>
                 <div className="space-y-2">
                   {keywordBlogComparison.map((kbc, i) => {
                     const gap = kbc.competitor_count - kbc.my_count;
+                    // 키워드 레이블: "상남동 창원시 성산구 상남동 제주흑돼지" → "상남동 제주흑돼지"
+                    const cleanKeyword = kbc.keyword
+                      .replace(/\S+시\s+\S+구\s+\S+동\s*/g, "")
+                      .trim();
+                    // 경쟁사 이름: "마중 천일식육식당 2번째이야기" → "마중 천일식육식당"
+                    const cleanName = kbc.competitor_name
+                      .replace(/\s*\d+번째이야기\s*$/i, "")
+                      .replace(/\s*(맛집탐방|방문후기|탐방기|이야기)\s*$/i, "")
+                      .trim();
                     return (
                       <div key={i} className="bg-slate-50 rounded-lg px-3 py-2.5 border border-slate-100">
-                        <p className="text-xs text-slate-500 mb-1.5">&ldquo;{kbc.keyword}&rdquo; 키워드</p>
+                        <p className="text-xs text-slate-500 mb-1.5">&ldquo;{cleanKeyword || kbc.keyword}&rdquo; 검색 시</p>
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-sm font-bold text-blue-700">내 가게 {kbc.my_count.toLocaleString()}건</span>
                           <span className="text-slate-300">vs</span>
                           <span className="text-sm font-semibold text-slate-600">
-                            {kbc.competitor_name} {kbc.competitor_count.toLocaleString()}건
+                            {cleanName || kbc.competitor_name} {kbc.competitor_count.toLocaleString()}건
                           </span>
                           {gap > 0 && (
                             <span className="text-xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200">

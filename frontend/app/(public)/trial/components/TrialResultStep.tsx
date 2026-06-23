@@ -975,7 +975,59 @@ export default function TrialResultStep(props: TrialResultProps) {
           </div>
         )}
 
-        {/* ── 개선 효과 연결 브리지 ── */}
+        {/* ── 2. 핵심 실측 상세 (AI 스캔 결과) ──────────────────── */}
+        <ScanConclusionCard
+          businessName={form.business_name || "내 가게"}
+          chatgptMentioned={chatgptMentioned}
+          chatgptSampleSize={chatgptSampleSize}
+          chatgptExposureFreq={chatgptResult?.exposure_freq}
+          geminiExposureFreq={geminiExposureFreq}
+          smartPlaceCheck={result.smart_place_check ?? null}
+          missingKws={effectiveMissingKws}
+          inBriefing={inBriefing}
+          briefingCategory={briefingCategory}
+          chatgptQueries={chatgptDisplayQueries}
+          naverMyRank={naver?.my_rank ?? null}
+          kakaoRank={(result as { kakao?: { my_rank?: number | null } }).kakao?.my_rank ?? null}
+          blogCount={naver?.blog_mentions ?? 0}
+          isSmartPlaceConfirmed={!!(
+            result.place_match?.naver_place_url ||
+            result.smart_place_check?.is_smart_place ||
+            (naver as { is_smart_place?: boolean } | null)?.is_smart_place ||
+            form.is_smart_place
+          )}
+        />
+
+        {/* ── 2. 지금 바로 할 핵심 액션 ──────────────────────────── */}
+        <div id="today-action" />
+        <TodayOneAction
+          key={effectiveMissingKws[0] ?? "no-kw"}
+          isSmartPlace={isSmartPlace}
+          missingKws={effectiveMissingKws}
+          hasFaq={hasFaq}
+          inBriefing={inBriefing}
+          faqText={effectiveFaqText}
+          selectedTags={selectedTags}
+          categoryLabel={categoryLabel}
+          userGroup={userGroupValue}
+          category={selectedCategory}
+          isLoggedIn={isLoggedIn}
+          onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
+        />
+
+        {/* ── 구독 유도 + 전환 CTA ── */}
+        {!isLoggedIn && (
+          <LockedScoreCard
+            score={score}
+            track1={track1}
+            track2={track2}
+            userGroup={userGroupValue}
+            breakdown={breakdown}
+          />
+        )}
+        <SubscriptionValueCompare isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
+
+        {/* ── 개선 효과 연결 브리지 (페이지 하단) ── */}
         <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-5 mb-4">
           <p className="text-base font-bold text-blue-700 mb-1">네이버 최적화 → 검색 상위 노출 → AI 추천까지</p>
           <p className="text-sm text-slate-600 leading-relaxed mb-4 break-keep">
@@ -1033,58 +1085,6 @@ export default function TrialResultStep(props: TrialResultProps) {
             </p>
           </div>
         </div>
-
-        {/* ── 2. 핵심 실측 상세 (AI 스캔 결과) ──────────────────── */}
-        <ScanConclusionCard
-          businessName={form.business_name || "내 가게"}
-          chatgptMentioned={chatgptMentioned}
-          chatgptSampleSize={chatgptSampleSize}
-          chatgptExposureFreq={chatgptResult?.exposure_freq}
-          geminiExposureFreq={geminiExposureFreq}
-          smartPlaceCheck={result.smart_place_check ?? null}
-          missingKws={effectiveMissingKws}
-          inBriefing={inBriefing}
-          briefingCategory={briefingCategory}
-          chatgptQueries={chatgptDisplayQueries}
-          naverMyRank={naver?.my_rank ?? null}
-          kakaoRank={(result as { kakao?: { my_rank?: number | null } }).kakao?.my_rank ?? null}
-          blogCount={naver?.blog_mentions ?? 0}
-          isSmartPlaceConfirmed={!!(
-            result.place_match?.naver_place_url ||
-            result.smart_place_check?.is_smart_place ||
-            (naver as { is_smart_place?: boolean } | null)?.is_smart_place ||
-            form.is_smart_place
-          )}
-        />
-
-        {/* ── 2. 지금 바로 할 핵심 액션 ──────────────────────────── */}
-        <div id="today-action" />
-        <TodayOneAction
-          key={effectiveMissingKws[0] ?? "no-kw"}
-          isSmartPlace={isSmartPlace}
-          missingKws={effectiveMissingKws}
-          hasFaq={hasFaq}
-          inBriefing={inBriefing}
-          faqText={effectiveFaqText}
-          selectedTags={selectedTags}
-          categoryLabel={categoryLabel}
-          userGroup={userGroupValue}
-          category={selectedCategory}
-          isLoggedIn={isLoggedIn}
-          onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
-        />
-
-        {/* ── 구독 유도 + 전환 CTA ── */}
-        {!isLoggedIn && (
-          <LockedScoreCard
-            score={score}
-            track1={track1}
-            track2={track2}
-            userGroup={userGroupValue}
-            breakdown={breakdown}
-          />
-        )}
-        <SubscriptionValueCompare isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
 
         {/* ── 15. 공유 버튼 ──────────────────────────────────────── */}
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 md:p-5 mb-4">
