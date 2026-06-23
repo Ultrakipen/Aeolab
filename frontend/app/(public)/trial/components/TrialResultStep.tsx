@@ -920,6 +920,21 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         </div>
 
+        {/* ── 📌 측정 근거 박스 (히어로 바로 아래) ── */}
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 mb-4">
+          <p className="text-sm font-bold text-slate-700 mb-2">📌 측정 근거</p>
+          <div className="space-y-1 text-sm text-slate-600">
+            <div className="flex gap-2">
+              <span className="shrink-0">·</span>
+              <p className="break-keep">경쟁 N곳 = 네이버 검색어 상위 결과(유사 가게명·업종으로 자동 수집)</p>
+            </div>
+            <div className="flex gap-2">
+              <span className="shrink-0">·</span>
+              <p className="break-keep">블로그 N건 = 네이버 블로그 API 검색 건수(키워드별, 최신 정렬)</p>
+            </div>
+          </div>
+        </div>
+
         {/* ── 네이버→AI 가치 제안 1줄 (히어로 바로 아래, 스크롤 없이 노출) ── */}
         <div className="flex items-start gap-2.5 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 mb-4">
           <span className="shrink-0 text-base mt-0.5">🔗</span>

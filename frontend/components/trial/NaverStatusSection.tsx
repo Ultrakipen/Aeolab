@@ -146,6 +146,7 @@ export default function NaverStatusSection({
           <p className="text-sm font-bold text-slate-500 tracking-wide uppercase">
             경쟁 가게 목록 (위 경쟁 순위 기준)
           </p>
+          <p className="text-sm text-slate-500 mt-1">위 '경쟁 순위' 카드의 근거</p>
           {searchQuery && !(keywordRanks && keywordRanks.length > 1) && (
             <p className="text-sm text-slate-600 mt-0.5">
               &quot;{stripRegion(searchQuery)}&quot; 네이버 검색 결과
