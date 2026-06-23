@@ -488,6 +488,7 @@ export default function TrialResultStep(props: TrialResultProps) {
   );
   const naver = result.naver;
   const blogCount = naver?.blog_mentions ?? 0;
+  const naverSearchQuery = (naver as { search_query?: string } | null)?.search_query ?? null;
   const smartPlaceStatus: boolean | null =
     form.is_smart_place === true
       ? true
@@ -921,19 +922,31 @@ export default function TrialResultStep(props: TrialResultProps) {
         </div>
 
         {/* ── 📌 측정 근거 박스 (히어로 바로 아래) ── */}
-        <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 mb-4">
-          <p className="text-sm font-bold text-slate-700 mb-2">📌 측정 근거</p>
-          <div className="space-y-1 text-sm text-slate-600">
-            <div className="flex gap-2">
-              <span className="shrink-0">·</span>
-              <p className="break-keep">경쟁 N곳 = 네이버 검색어 상위 결과(유사 가게명·업종으로 자동 수집)</p>
-            </div>
-            <div className="flex gap-2">
-              <span className="shrink-0">·</span>
-              <p className="break-keep">블로그 N건 = 네이버 블로그 API 검색 건수(키워드별, 최신 정렬)</p>
+        {(naverCompetitorCount > 0 || blogCount > 0) && (
+          <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 mb-4">
+            <p className="text-sm font-semibold text-slate-700 mb-1.5">📌 측정 근거</p>
+            <div className="space-y-1 text-sm text-slate-600">
+              {naverCompetitorCount > 0 && (
+                <div className="flex gap-2">
+                  <span className="shrink-0">·</span>
+                  <p className="break-keep">
+                    경쟁 {naverCompetitorCount}곳 ={" "}
+                    {naverSearchQuery ? <>&ldquo;{naverSearchQuery}&rdquo; </> : "해당 업종·지역 "}
+                    네이버 지역검색 상위 가게 자동 수집
+                  </p>
+                </div>
+              )}
+              {blogCount > 0 && (
+                <div className="flex gap-2">
+                  <span className="shrink-0">·</span>
+                  <p className="break-keep">
+                    블로그 {blogCount.toLocaleString()}건 = 네이버 블로그 API로 가게명+지역 조합 검색 포스팅 수
+                  </p>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
         {/* ── 네이버→AI 가치 제안 1줄 (히어로 바로 아래, 스크롤 없이 노출) ── */}
         <div className="flex items-start gap-2.5 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 mb-4">
