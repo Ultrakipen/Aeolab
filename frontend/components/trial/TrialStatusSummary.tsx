@@ -313,7 +313,7 @@ export default function TrialStatusSummary({
             <StatusRow
               icon={<FileText className="w-5 h-5 text-blue-600" />}
               iconBg="bg-blue-50"
-              label="블로그 후기 수"
+              label="블로그 언급 수"
               status={blogStatus}
               statusColor={blogStatusColor}
               value={blogValue}

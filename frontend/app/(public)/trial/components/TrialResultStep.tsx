@@ -213,7 +213,7 @@ function ScanConclusionCard({
     strengthItems.push({ icon: "✅", text: `카카오 검색 ${kakaoRank}위 확인` });
   }
   if (blogCount !== undefined && blogCount > 0) {
-    strengthItems.push({ icon: "✅", text: `블로그 언급 ${blogCount.toLocaleString()}건 확인` });
+    strengthItems.push({ icon: "✅", text: `블로그 언급 ${blogCount.toLocaleString()}건 확인 (네이버 블로그 검색 기준)` });
   }
   if (
     smartPlaceCheck &&

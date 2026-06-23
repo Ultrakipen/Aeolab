@@ -441,10 +441,13 @@ export default function NaverStatusSection({
               블로그 언급 격차
             </p>
             <p className="text-sm text-slate-400 mt-0.5">
-              네이버 블로그에서 가게명이 포함된 포스팅 수 — 많을수록 AI 인용 가능성 높음
+              네이버 블로그 검색 API로 <strong className="text-slate-500">가게명+지역</strong> 조합 검색 시 나오는 포스팅 전체 건수입니다. 많을수록 AI 인용 가능성 높음.
+              <span className="block text-xs text-slate-300 mt-1">
+                ※ 스마트플레이스 &#39;블로그 리뷰&#39; 탭(방문자가 직접 등록한 리뷰)과 측정 방식이 달라 숫자가 다를 수 있습니다.
+              </span>
               {blogCount > 1000 && (
                 <span className="block text-xs text-slate-300 mt-0.5">
-                  ※ 가게명이 일반적인 단어일 경우 실제 언급 수보다 높게 집계될 수 있습니다
+                  ※ 가게명이 일반적인 단어일 경우 실제 언급 수보다 높게 집계될 수 있습니다.
                 </span>
               )}
             </p>
