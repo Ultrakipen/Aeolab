@@ -409,6 +409,8 @@ async def get_naver_visibility_multi(business_name: str, keywords: list[str], re
     if not valid:
         return {}
 
+    region_prefix = _build_region_prefix(region)
+
     # 우선순위: my_rank 있는 것 중 순위 가장 높은 것 → 없으면 blog_mentions 최대
     ranked = [r for r in valid if r.get("my_rank") is not None]
     best = min(ranked, key=lambda r: r["my_rank"]) if ranked else max(valid, key=lambda r: r.get("blog_mentions", 0))
