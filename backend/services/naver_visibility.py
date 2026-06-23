@@ -252,7 +252,10 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
     top_competitor_blog_count = 0
     competitor_kw_blog_count  = 0
     if top_competitor_name:
-        comp_region_name = f"{region_prefix} {top_competitor_name}".strip() if region_prefix else top_competitor_name
+        # 경쟁사도 내 가게와 동일하게 업체명 따옴표 exact match — 미적용 시 프랜차이즈 브랜드명이
+        # 전국 포스트까지 끌어올려 수천~수만 건 과대 집계 (내 가게 쿼리와 불공정 비교 방지)
+        _quoted_comp_name = f'"{top_competitor_name}"'
+        comp_region_name = f"{region_prefix} {_quoted_comp_name}".strip() if region_prefix else _quoted_comp_name
         if _kw_first:
             comp_base, comp_kw = await asyncio.gather(
                 _get("blog.json", {"query": comp_region_name,                  "display": 1}),
