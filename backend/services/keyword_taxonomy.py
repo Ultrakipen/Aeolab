@@ -232,7 +232,7 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
             "condition_search_example": "강남 식당 주차 가능",
         },
         "단체모임": {
-            "keywords": ["단체 예약 가능", "회식 장소", "프라이빗룸", "기업 행사 가능", "30명 수용", "단체 이용 가능"],
+            "keywords": ["단체 예약 가능", "회식 장소", "단체석 있음", "프라이빗룸", "30명 수용", "단체 이용 가능"],
             "weight": 0.20,
             "condition_search_example": "을지로 회식 단체 예약",
         },
