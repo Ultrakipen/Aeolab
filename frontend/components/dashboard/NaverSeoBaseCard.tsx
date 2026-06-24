@@ -119,8 +119,8 @@ export default function NaverSeoBaseCard({
       : { color: "bg-emerald-200 text-emerald-800", label: "AI탭 소스 풍부" };
 
   const subtitle = isActiveOrLikely
-    ? "네이버 검색 순위와 AI 브리핑·AI탭 노출을 함께 높이는 기반입니다"
-    : "네이버 검색 순위와 AI탭 노출을 함께 높이는 기반입니다";
+    ? "네이버는 스마트플레이스 완성도·리뷰를 기반으로 검색 순위와 AI 브리핑·AI탭 노출을 결정합니다"
+    : "네이버는 스마트플레이스 완성도·리뷰를 기반으로 검색 순위와 AI탭 노출을 결정합니다";
 
   return (
     <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 md:px-5 py-4">
@@ -226,11 +226,12 @@ export default function NaverSeoBaseCard({
 
       {/* 블로그 언급 섹션 */}
       <div className="mt-3 pt-3 border-t border-emerald-200">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-800">
-            📝 블로그 언급 {blogMentionCount}건
-          </span>
-          <div className="flex items-center gap-1.5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-sm text-gray-800">📝 블로그 후기 언급 {blogMentionCount}건</span>
+            <p className="text-xs text-gray-500 mt-0.5 leading-snug">네이버 AI탭은 블로그 후기를 답변 소스로 활용합니다</p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
             <span className="text-emerald-600 font-bold">→</span>
             <span
               className={`text-sm px-2 py-0.5 rounded-full whitespace-nowrap ${blogBadge.color}`}

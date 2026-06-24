@@ -1029,7 +1029,7 @@ export default function ScoreEvidenceCard({
           <div className="flex items-center justify-between mb-3">
             <div>
               <div className="text-sm font-semibold text-purple-700 uppercase tracking-wide mb-0.5">
-                ChatGPT · Gemini 등 해외 AI 노출 현황
+                ChatGPT · Gemini 등 글로벌 AI 노출 현황
               </div>
               <div className="text-sm text-gray-500">업종 가중치 {globalWeight}%</div>
             </div>

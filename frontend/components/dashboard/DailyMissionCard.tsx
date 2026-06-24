@@ -16,7 +16,7 @@ const DIMENSION_MESSAGES: Record<string, {
   linkLabel: string
 }> = {
   keyword_gap_score: {
-    reason: '업종 핵심 키워드가 부족해 AI 검색 노출이 안 됩니다',
+    reason: '업종 핵심 키워드가 부족해 AI 검색 노출이 낮습니다',
     action: '소개글 Q&A에 빠진 키워드를 추가하면 AI 검색 노출 가능성이 높아집니다',
     link: '/guide',
     linkLabel: '없는 키워드 확인하기',
@@ -34,14 +34,14 @@ const DIMENSION_MESSAGES: Record<string, {
     linkLabel: '소개글 편집하러 가기',
   },
   naver_exposure_confirmed: {
-    reason: '네이버 AI 검색에 아직 내 가게가 안 나옵니다',
-    action: '소개글 하단에 Q&A 3개를 추가하는 것이 가장 빠른 방법입니다',
+    reason: '네이버 AI 검색에 아직 내 가게가 확인되지 않았습니다',
+    action: '소개글에 Q&A 형식으로 가게 특징 3가지를 추가하면 AI가 가게를 더 잘 인식합니다',
     link: '/guide',
     linkLabel: '소개글 Q&A 복사하러 가기',
   },
   multi_ai_exposure: {
-    reason: 'Gemini·Google AI에서 이 사업장 인식도를 높일 수 있습니다',
-    action: 'Google 비즈니스 프로필 등록이 Gemini·ChatGPT(Bing 검색) 노출의 첫 단계입니다. Gemini는 수 주 이내 노출이 시작될 수 있으며, ChatGPT 학습 반영은 수개월이 소요됩니다.',
+    reason: 'ChatGPT·Gemini에서 이 사업장 인식도를 높일 수 있습니다',
+    action: 'Google 비즈니스 프로필 등록이 Gemini 노출의 첫 단계입니다. Gemini는 Google 검색 실시간 연동으로 수 주~수개월, ChatGPT는 AI 학습 데이터 기반으로 수개월~1년이 소요됩니다.',
     link: '/guide',
     linkLabel: '개선 가이드 보기',
   },
@@ -366,7 +366,7 @@ export default function DailyMissionCard({
             actionCompleted ? (
               <div className="flex items-center gap-2 text-green-700 text-sm font-semibold bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-3">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
-                완료! 7일 후 AI 브리핑 변화를 자동으로 확인해드립니다
+                완료! 다음 스캔에서 개선 효과를 확인해보세요 (반영까지 2~4주 소요)
               </div>
             ) : (
               <div>

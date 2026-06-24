@@ -203,7 +203,7 @@ export default function DashboardHeroCard({
               <span className="text-rose-500 text-lg shrink-0">✅</span>
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-rose-600 leading-tight">오늘의 개선 미션</p>
-                <p className="text-sm font-semibold text-gray-800 leading-snug break-keep mt-0.5">스캔 결과 기반 맞춤 액션이 준비됐습니다</p>
+                <p className="text-sm font-semibold text-gray-800 leading-snug break-keep mt-0.5 line-clamp-2">{todayAction}</p>
               </div>
             </div>
             <span className="text-sm font-bold text-rose-500 group-hover:text-rose-700 shrink-0 whitespace-nowrap">확인하기 ↓</span>
