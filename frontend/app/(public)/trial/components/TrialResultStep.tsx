@@ -11,7 +11,6 @@ import { getUserGroup, GROUP_MESSAGES, getBriefingEligibility, type BriefingElig
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import TodayOneAction from "@/components/trial/TodayOneAction";
 import NaverStatusSection from "@/components/trial/NaverStatusSection";
-import SubscriptionValueCompare from "@/components/trial/SubscriptionValueCompare";
 import KakaoShareButton from "@/components/common/KakaoShareButton";
 import TextShareButton from "@/components/trial/TextShareButton";
 import ResultSummaryHero from "@/components/common/ResultSummaryHero";
@@ -136,6 +135,40 @@ function LockedScoreCard({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── 구독 행동 기능 잠금 카드 ────────────────────────────────────────
+function ActionFeaturesLock({ onSave }: { onSave: () => void }) {
+  const actions = [
+    { icon: "✍️", label: "소개글 개선 초안 자동 생성", desc: "키워드 갭 기반 소개글 1분 완성" },
+    { icon: "📅", label: "14일 후 순위 변화 자동 측정", desc: "소개글 수정 후 결과를 직접 확인" },
+    { icon: "🔔", label: "경쟁 가게 AI 노출 변화 알림", desc: "경쟁사가 AI에서 뜨면 즉시 알림" },
+    { icon: "📊", label: "매주 자동 순위 추적 + 30일 추세", desc: "내가 한 행동이 효과 있었는지 확인" },
+  ];
+  return (
+    <div className="rounded-xl border-2 border-blue-100 bg-white px-4 py-4 mb-4">
+      <p className="text-sm font-bold text-slate-600 mb-3">🔒 구독하면 바로 사용 가능한 기능</p>
+      <div className="space-y-2 mb-4">
+        {actions.map((item) => (
+          <div key={item.label} className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5">
+            <span className="text-lg shrink-0">{item.icon}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-slate-800">{item.label}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
+            </div>
+            <Lock className="w-4 h-4 text-slate-300 shrink-0" />
+          </div>
+        ))}
+      </div>
+      <Link
+        href="/signup"
+        onClick={onSave}
+        className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3 rounded-xl transition-colors"
+      >
+        무료로 시작하기
+      </Link>
     </div>
   );
 }
@@ -811,27 +844,7 @@ export default function TrialResultStep(props: TrialResultProps) {
         </div>
       )}
 
-      {/* Sticky 상단 CTA — 비로그인, 데스크톱 전용 */}
-      {!isLoggedIn && (
-        <div className="hidden md:block sticky top-0 z-40 bg-blue-600 shadow-md">
-          <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-            <p className="text-base font-medium leading-tight text-white">
-              이 결과를 기반으로 매주 자동 진단 + 경쟁사 비교 + 개선 가이드 — 무료 회원가입
-            </p>
-            <Link
-              href="/signup"
-              onClick={() => { onSaveTrialData(); handleSignupCTAClick(userGroupValue); }}
-              className="shrink-0 bg-white text-blue-600 text-base font-bold px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
-            >
-              {getSignupCTALabel(userGroupValue)}
-            </Link>
-          </div>
-        </div>
-      )}
-
-      <StickySignupBanner isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
-
-      <div className="max-w-5xl mx-auto py-6 px-4 pb-28 md:pb-8">
+      <div className="max-w-5xl mx-auto py-6 px-4 pb-8">
 
         {/* ── 1. 가게 헤더 (업종 배지 인라인 통합) ───────────────── */}
         {form.business_name ? (
@@ -872,6 +885,16 @@ export default function TrialResultStep(props: TrialResultProps) {
           <BriefingCategoryBadge category={briefingCategory} />
         )}
 
+        {/* ── 채널별 즉시 현황 바 ── */}
+        <ScanStatusBar
+          chatgptMentioned={chatgptMentioned}
+          chatgptExposureFreq={chatgptResult?.exposure_freq}
+          chatgptSampleSize={chatgptSampleSize}
+          geminiExposureFreq={geminiExposureFreq}
+          inBriefing={inBriefing}
+          briefingCategory={briefingCategory}
+          smartPlaceCheck={result.smart_place_check ?? null}
+        />
 
         {/* ── 1. 종합 결론 — 대시보드 HeroCard 구조 복제 (성장단계+네이버 3채널 그리드+실측근거+오늘할일) ── */}
         <div className="mb-4">
@@ -892,7 +915,30 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         </div>
 
-        {/* ── 📌 측정 근거 박스 (히어로 바로 아래) ── */}
+        {/* ── 이번 스캔 발견 ── */}
+        <ScanConclusionCard
+          businessName={form.business_name || "내 가게"}
+          chatgptMentioned={chatgptMentioned}
+          chatgptSampleSize={chatgptSampleSize}
+          chatgptExposureFreq={chatgptResult?.exposure_freq}
+          geminiExposureFreq={geminiExposureFreq}
+          smartPlaceCheck={result.smart_place_check ?? null}
+          missingKws={effectiveMissingKws}
+          inBriefing={inBriefing}
+          briefingCategory={briefingCategory}
+          chatgptQueries={chatgptDisplayQueries}
+          naverMyRank={naver?.my_rank ?? null}
+          kakaoRank={(result as { kakao?: { my_rank?: number | null } }).kakao?.my_rank ?? null}
+          blogCount={naver?.blog_mentions ?? 0}
+          isSmartPlaceConfirmed={!!(
+            result.place_match?.naver_place_url ||
+            result.smart_place_check?.is_smart_place ||
+            (naver as { is_smart_place?: boolean } | null)?.is_smart_place ||
+            form.is_smart_place
+          )}
+        />
+
+        {/* ── 📌 측정 근거 박스 ── */}
         {(naverCompetitorCount > 0 || blogCount > 0) && (
           <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 mb-4">
             <p className="text-sm font-semibold text-slate-700 mb-1.5">📌 측정 근거</p>
@@ -919,7 +965,40 @@ export default function TrialResultStep(props: TrialResultProps) {
           </div>
         )}
 
-        {/* ── 1-b. 네이버 현황 (location_based 업종만) ──────────── */}
+        {/* ── ChatGPT 검색 결과 상세 ── */}
+        {chatgptMentioned !== undefined && (
+          <ChatGPTResultCard
+            businessName={form.business_name || "내 가게"}
+            queries={chatgptDisplayQueries}
+            mentioned={chatgptMentioned}
+            excerpt={chatgptResult?.excerpt}
+            sampleSize={chatgptSampleSize}
+            hasFaq={result.smart_place_check?.has_faq ?? hasFaq}
+            hasIntro={result.smart_place_check?.has_intro ?? hasIntro}
+            isSmartPlace={isSmartPlace}
+            missingKws={effectiveMissingKws}
+          />
+        )}
+
+        {/* ── 지금 바로 할 핵심 액션 ── */}
+        <div id="today-action" />
+        <TodayOneAction
+          key={effectiveMissingKws[0] ?? "no-kw"}
+          isSmartPlace={isSmartPlace}
+          missingKws={effectiveMissingKws}
+          hasFaq={hasFaq}
+          inBriefing={inBriefing}
+          faqText={effectiveFaqText}
+          selectedTags={selectedTags}
+          categoryLabel={categoryLabel}
+          userGroup={userGroupValue}
+          category={selectedCategory}
+          isLoggedIn={isLoggedIn}
+          onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
+          trialId={result.trial_id as string | undefined}
+        />
+
+        {/* ── 네이버 현황 ── */}
         {(result as { business_type?: string }).business_type !== "non_location" && (
           <NaverStatusSection
             businessName={form.business_name || "내 가게"}
@@ -927,7 +1006,6 @@ export default function TrialResultStep(props: TrialResultProps) {
             region={form.region}
             myRank={naver?.my_rank ?? null}
             isSmartPlace={
-              // 네이버 플레이스 URL이 존재 = 후보 선택됨 = 스마트플레이스 등록 확인
               !!(result.place_match?.naver_place_url
               || result.smart_place_check?.is_smart_place
               || (naver as { is_smart_place?: boolean } | null)?.is_smart_place
@@ -952,31 +1030,12 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         )}
 
-        {/* ── 지금 바로 할 핵심 액션 ── */}
-        <div id="today-action" />
-        <TodayOneAction
-          key={effectiveMissingKws[0] ?? "no-kw"}
-          isSmartPlace={isSmartPlace}
-          missingKws={effectiveMissingKws}
-          hasFaq={hasFaq}
-          inBriefing={inBriefing}
-          faqText={effectiveFaqText}
-          selectedTags={selectedTags}
-          categoryLabel={categoryLabel}
-          userGroup={userGroupValue}
-          category={selectedCategory}
-          isLoggedIn={isLoggedIn}
-          onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
-          trialId={result.trial_id as string | undefined}
-        />
-
         {/* ── 네이버 개선 → AI 노출 인과관계 인사이트 ── */}
         <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 px-4 py-4 mb-4">
           <p className="text-sm font-bold text-blue-800 mb-3 break-keep">
             💡 네이버 정보를 개선하면 글로벌 AI 검색까지 연결됩니다
           </p>
           <div className="flex flex-col gap-2">
-            {/* Step 1 */}
             <div className="flex items-start gap-2.5">
               <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center">1</span>
               <div>
@@ -989,11 +1048,9 @@ export default function TrialResultStep(props: TrialResultProps) {
                 <p className="text-xs text-slate-500 mt-0.5">즉시 ~ 2~4주 내 네이버에 반영</p>
               </div>
             </div>
-            {/* 화살표 */}
             <div className="ml-2.5 pl-4 border-l-2 border-blue-200">
               <p className="text-xs text-blue-500 font-medium">▼ 2~4주</p>
             </div>
-            {/* Step 2 */}
             <div className="flex items-start gap-2.5">
               <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-green-500 text-white text-xs font-black flex items-center justify-center">2</span>
               <div>
@@ -1001,11 +1058,9 @@ export default function TrialResultStep(props: TrialResultProps) {
                 <p className="text-xs text-slate-500 mt-0.5">네이버가 관련성 높은 가게로 평가 → 검색 상위 배치</p>
               </div>
             </div>
-            {/* 화살표 */}
             <div className="ml-2.5 pl-4 border-l-2 border-green-200">
               <p className="text-xs text-green-600 font-medium">▼ 수개월~1년</p>
             </div>
-            {/* Step 3 */}
             <div className="flex items-start gap-2.5">
               <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-purple-600 text-white text-xs font-black flex items-center justify-center">3</span>
               <div>
@@ -1018,40 +1073,17 @@ export default function TrialResultStep(props: TrialResultProps) {
           </div>
         </div>
 
-        {/* ── 2. 핵심 실측 상세 (AI 스캔 결과) ──────────────────── */}
-        <ScanConclusionCard
-          businessName={form.business_name || "내 가게"}
-          chatgptMentioned={chatgptMentioned}
-          chatgptSampleSize={chatgptSampleSize}
-          chatgptExposureFreq={chatgptResult?.exposure_freq}
-          geminiExposureFreq={geminiExposureFreq}
-          smartPlaceCheck={result.smart_place_check ?? null}
-          missingKws={effectiveMissingKws}
-          inBriefing={inBriefing}
-          briefingCategory={briefingCategory}
-          chatgptQueries={chatgptDisplayQueries}
-          naverMyRank={naver?.my_rank ?? null}
-          kakaoRank={(result as { kakao?: { my_rank?: number | null } }).kakao?.my_rank ?? null}
-          blogCount={naver?.blog_mentions ?? 0}
-          isSmartPlaceConfirmed={!!(
-            result.place_match?.naver_place_url ||
-            result.smart_place_check?.is_smart_place ||
-            (naver as { is_smart_place?: boolean } | null)?.is_smart_place ||
-            form.is_smart_place
-          )}
+        {/* ── 항목별 분석 (전체 공개) ── */}
+        <ScoreBreakdownBox
+          breakdownItems={breakdownItems}
+          scoreInterpretation={scoreInterpretation}
+          unifiedScore={unifiedScore}
         />
 
-        {/* ── 구독 유도 + 전환 CTA ── */}
+        {/* ── 구독 행동 기능 (잠금) ── */}
         {!isLoggedIn && (
-          <LockedScoreCard
-            score={score}
-            track1={track1}
-            track2={track2}
-            userGroup={userGroupValue}
-            breakdown={breakdown}
-          />
+          <ActionFeaturesLock onSave={onSaveTrialData} />
         )}
-        <SubscriptionValueCompare isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
 
         {/* ── 15. 공유 버튼 ──────────────────────────────────────── */}
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 md:p-5 mb-4">
