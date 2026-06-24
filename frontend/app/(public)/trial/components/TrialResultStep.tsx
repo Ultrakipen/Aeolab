@@ -894,6 +894,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           inBriefing={inBriefing}
           briefingCategory={briefingCategory}
           smartPlaceCheck={result.smart_place_check ?? null}
+          isSmartPlace={isSmartPlace}
         />
 
         {/* ── 1. 종합 결론 — 대시보드 HeroCard 구조 복제 (성장단계+네이버 3채널 그리드+실측근거+오늘할일) ── */}
@@ -1702,7 +1703,7 @@ function BriefingBadgeChip({
 // ── 즉시 파악 현황 요약 바 ────────────────────────────────────────────
 function ScanStatusBar({
   chatgptMentioned, chatgptExposureFreq, chatgptSampleSize,
-  geminiExposureFreq, inBriefing, briefingCategory, smartPlaceCheck,
+  geminiExposureFreq, inBriefing, briefingCategory, smartPlaceCheck, isSmartPlace,
 }: {
   chatgptMentioned: boolean | undefined;
   chatgptExposureFreq?: number;
@@ -1711,13 +1712,21 @@ function ScanStatusBar({
   inBriefing: boolean | null;
   briefingCategory: "active" | "likely" | "inactive";
   smartPlaceCheck: TrialSmartPlaceCheck | null | undefined;
+  isSmartPlace: boolean;
 }) {
   const chatgptOk = chatgptExposureFreq !== undefined ? chatgptExposureFreq > 0 : chatgptMentioned === true;
   const geminiOk = (geminiExposureFreq ?? 0) > 0;
   const briefingOk = briefingCategory === "active" ? inBriefing === true : null;
-  const spOk = smartPlaceCheck && !smartPlaceCheck.error
-    ? (smartPlaceCheck.is_smart_place && smartPlaceCheck.has_intro)
-    : null;
+
+  // smartPlaceCheck 상세 데이터 우선, 없으면 place_match/form 감지 결과 사용
+  const spOk: boolean | null = (smartPlaceCheck && !smartPlaceCheck.error)
+    ? (smartPlaceCheck.is_smart_place && (smartPlaceCheck.has_intro ?? true))
+    : isSmartPlace ? true : null;
+  const spDetail = spOk === null
+    ? "확인 불가"
+    : spOk
+      ? (smartPlaceCheck?.has_intro !== undefined ? "기본 완료" : "등록 확인")
+      : (smartPlaceCheck?.is_smart_place ? "소개글 없음" : "보완 필요");
 
   type ItemStatus = "ok" | "warn" | "na" | "unknown";
   const items: { label: string; status: ItemStatus; detail: string }[] = [
@@ -1739,7 +1748,7 @@ function ScanStatusBar({
     {
       label: "스마트플레이스",
       status: spOk === null ? "unknown" : spOk ? "ok" : "warn",
-      detail: spOk === null ? "확인 불가" : spOk ? "기본 완료" : "보완 필요",
+      detail: spDetail,
     },
   ];
 
