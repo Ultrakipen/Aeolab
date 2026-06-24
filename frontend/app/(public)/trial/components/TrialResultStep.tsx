@@ -1783,9 +1783,8 @@ function StickySignupBanner({
           <p className="text-sm md:text-base font-semibold leading-snug">
             7일 후 AI가 내 가게를 인식했는지 자동으로 확인해 드립니다
           </p>
-          <p className="text-sm md:text-base text-blue-200 mt-0.5">
-            <span className="text-emerald-300 font-semibold">첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원</span>
-            {" "}· 이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지
+          <p className="text-xs text-blue-200 mt-0.5">
+            첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 · 언제든 해지
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
