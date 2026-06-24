@@ -156,7 +156,7 @@ function ActionFeaturesLock({ onSave }: { onSave: () => void }) {
             <span className="text-lg shrink-0">{item.icon}</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-slate-800">{item.label}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
+              <p className="text-sm text-slate-500 mt-0.5">{item.desc}</p>
             </div>
             <Lock className="w-4 h-4 text-slate-300 shrink-0" />
           </div>
@@ -1053,7 +1053,7 @@ export default function TrialResultStep(props: TrialResultProps) {
                     <span className="ml-1 text-blue-700">(예: &lsquo;{effectiveMissingKws[0]}&rsquo; 추가)</span>
                   )}
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5">즉시 ~ 2~4주 내 네이버에 반영</p>
+                <p className="text-sm text-slate-500 mt-0.5">즉시 ~ 2~4주 내 네이버에 반영</p>
               </div>
             </div>
             <div className="ml-2.5 pl-4 border-l-2 border-blue-200">
@@ -1063,7 +1063,7 @@ export default function TrialResultStep(props: TrialResultProps) {
               <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-green-500 text-white text-xs font-black flex items-center justify-center">2</span>
               <div>
                 <p className="text-sm font-semibold text-green-800 break-keep">네이버 지역 검색 상위권 노출</p>
-                <p className="text-xs text-slate-500 mt-0.5">네이버가 관련성 높은 가게로 평가 → 검색 상위 배치</p>
+                <p className="text-sm text-slate-500 mt-0.5">네이버가 관련성 높은 가게로 평가 → 검색 상위 배치</p>
               </div>
             </div>
             <div className="ml-2.5 pl-4 border-l-2 border-green-200">
@@ -1073,7 +1073,7 @@ export default function TrialResultStep(props: TrialResultProps) {
               <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-purple-600 text-white text-xs font-black flex items-center justify-center">3</span>
               <div>
                 <p className="text-sm font-semibold text-purple-800 break-keep">ChatGPT·Gemini에도 자동 반영</p>
-                <p className="text-xs text-slate-500 mt-0.5 break-keep">
+                <p className="text-sm text-slate-500 mt-0.5 break-keep">
                   두 AI는 네이버 콘텐츠를 학습 데이터로 사용 — 네이버 상위 가게가 AI 검색에서도 추천됩니다
                 </p>
               </div>
@@ -1318,7 +1318,7 @@ function ScoreBreakdownBox({
                 <p className="text-sm text-slate-500 mt-0.5">{item.trialNote}</p>
               )}
               {!isUnmeasured && item.why && (
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.why}</p>
+                <p className="text-sm text-slate-500 mt-1 leading-relaxed">{item.why}</p>
               )}
             </div>
           );

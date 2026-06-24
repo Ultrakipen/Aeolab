@@ -140,7 +140,7 @@ function ActionCard({
       {action.copy && (
         <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 mb-3 ml-9">
           {action.copyLabel === "Q&A 문구 복사" && (
-            <p className="flex items-center gap-1.5 text-xs text-amber-700 mb-1.5 font-semibold">
+            <p className="flex items-center gap-1.5 text-sm text-amber-700 mb-1.5 font-semibold">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
               복사 후 [ ] 안을 내 가게에 맞게 수정 → 스마트플레이스 소개글에 붙여넣기
             </p>
@@ -357,7 +357,7 @@ export default function TodayOneAction({
       {/* 키워드 면책 */}
       {missingKws.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-3">
-          <p className="text-xs text-amber-800 leading-relaxed">
+          <p className="text-sm text-amber-800 leading-relaxed">
             아래 키워드는 <strong>경쟁 가게 소개글 분석</strong>으로 자동 추출됐습니다. 내 가게에 안 맞는 키워드라면 건너뛰세요.
           </p>
         </div>
