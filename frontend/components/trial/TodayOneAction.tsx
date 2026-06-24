@@ -377,68 +377,20 @@ export default function TodayOneAction({
         ))}
       </div>
 
-      {/* 이메일 캡처 / 구독 CTA */}
+      {/* 구독 CTA */}
       {!isLoggedIn && (
         <div className="mt-4 border-t border-emerald-200 pt-4">
-          {emailSent ? (
-            <div className="flex items-start gap-2.5 bg-white rounded-xl px-4 py-3.5 border border-emerald-300">
-              <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-bold text-emerald-900">저장됐습니다</p>
-                <p className="text-sm text-emerald-700 mt-0.5 break-keep">
-                  이 플랜과 복사 문구를 이메일로 보내드렸습니다. 14일 후 네이버 순위 변화를 다시 측정해 드립니다.{" "}
-                  <Link href="/signup" className="text-blue-600 font-semibold underline underline-offset-2">
-                    구독하면 매주 자동 추적
-                  </Link>
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl border border-slate-200 px-4 py-4">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <Mail className="w-4 h-4 text-slate-500" />
-                <p className="text-sm font-bold text-slate-800">
-                  이 개선 플랜과 문구를 이메일로 받아두세요
-                </p>
-              </div>
-              <p className="text-sm text-slate-500 mb-3 break-keep">
-                지금 바로 쓸 수 있는 Q&A·리뷰·소식 문구 +{" "}
-                <strong className="text-slate-700">14일 후 무료 재측정</strong> 링크를 보내드립니다
-              </p>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleEmailSave()}
-                  placeholder="이메일 주소"
-                  className="flex-1 border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent min-w-0"
-                />
-                <button
-                  onClick={handleEmailSave}
-                  disabled={emailLoading || !email.includes("@")}
-                  className="shrink-0 bg-emerald-600 text-white font-bold text-sm px-4 py-2.5 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                >
-                  {emailLoading ? "..." : "무료 저장"}
-                </button>
-              </div>
-              <p className="text-xs text-slate-400 mt-1.5">구독 없이 무료 · 스팸 없음</p>
-              <div className="flex items-center gap-2 my-3">
-                <div className="flex-1 border-t border-slate-100" />
-                <span className="text-xs text-slate-400">또는 구독으로 매주 자동 추적</span>
-                <div className="flex-1 border-t border-slate-100" />
-              </div>
-              <Link
-                href="/signup"
-                className="block text-center py-2.5 rounded-lg font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-              >
-                매주 자동 추적 시작 — 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원
-              </Link>
-              <p className="text-xs text-center text-slate-400 mt-1">
-                이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지
-              </p>
-            </div>
-          )}
+          <div className="bg-white rounded-xl border border-slate-200 px-4 py-4">
+            <Link
+              href="/signup"
+              className="block text-center py-2.5 rounded-lg font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+            >
+              매주 자동 추적 시작 — 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원
+            </Link>
+            <p className="text-xs text-center text-slate-400 mt-1">
+              이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지
+            </p>
+          </div>
         </div>
       )}
     </section>

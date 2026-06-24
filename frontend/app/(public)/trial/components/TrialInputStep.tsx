@@ -1060,7 +1060,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   className="w-full border border-slate-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <p className="text-xs text-slate-500 mt-1.5">
-                  입력하시면 스캔 결과와 내일 오전 맞춤 개선 리포트를 보내드립니다.
+                  입력하시면 스캔 완료 후 결과 요약을 바로 이메일로 보내드립니다.
                 </p>
               </div>
 

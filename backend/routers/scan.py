@@ -885,6 +885,31 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
                 # v3.4 — 트라이얼 신뢰도 강화 2라운드 (Gemini 10회 evidence)
                 "ai_evidence": ai_evidence_data,
             }))
+            # 스캔 완료 즉시 1회 이메일 발송
+            if req.email:
+                try:
+                    from services.email_sender import send_trial_followup as _send_result_email
+                    await _send_result_email(
+                        email=req.email,
+                        business_name=req.business_name or "",
+                        category=req.category or "",
+                        region=req.region or "",
+                        score=float(score.get("total_score") or 0),
+                        day=1,
+                        naver_rank=naver.get("my_rank"),
+                        blog_mentions=naver.get("blog_mentions"),
+                        top_competitor_name=naver.get("top_competitor_name"),
+                        ai_mentioned=ai_mentioned,
+                        top_missing_keywords=top_missing_keywords if isinstance(top_missing_keywords, list) else [],
+                        has_recent_post=getattr(req, "has_recent_post", None),
+                        has_intro=getattr(req, "has_intro", None),
+                        track1_score=score.get("track1_score"),
+                        track2_score=score.get("track2_score"),
+                        growth_stage=score.get("growth_stage"),
+                        smart_place_completeness=score.get("breakdown", {}).get("smart_place_completeness"),
+                    )
+                except Exception as _e:
+                    _logger.warning(f"trial 즉시 이메일 발송 실패: {_e}")
         except Exception as e:
             _logger.warning(f"trial_scans save failed: {e}")
 

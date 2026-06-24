@@ -2006,11 +2006,13 @@ async def send_trial_day5_reminder():
 
 
 async def trial_followup_job():
-    """매일 오전 10시: 무료 체험 팔로업 이메일 시퀀스 (1·3·7일차).
+    """매일 오전 10시: 무료 체험 팔로업 이메일 시퀀스 — 비활성화됨.
 
-    trial_scans에서 email 있고 followup_sent_N = False인 건 조회 후 발송.
-    UPDATE WHERE followup_sent_N = FALSE 원자적 업데이트로 중복 발송 방지.
+    2026-06-24: 스캔 완료 즉시 1회 발송으로 전환 (scan.py _save() 내 처리).
+    day-1/3/7 시퀀스는 자원 낭비로 판단하여 제거.
     """
+    return  # 비활성화
+
     from db.supabase_client import get_client
     from services.email_sender import send_trial_followup
     from datetime import date, timedelta
