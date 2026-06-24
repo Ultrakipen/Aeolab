@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Zap, Clock, AlertTriangle } from "lucide-react";
+import { Zap, Clock, AlertTriangle, Mail, CheckCircle } from "lucide-react";
 import { FIRST_MONTH_DISCOUNT_PRICES, PLAN_PRICES } from "@/lib/plans";
 
 interface TodayOneActionProps {
@@ -17,7 +17,10 @@ interface TodayOneActionProps {
   category?: string;
   isLoggedIn?: boolean;
   onDismissKw?: (kw: string) => void;
+  trialId?: string;
 }
+
+type Urgency = "today" | "soon" | "week";
 
 interface Action {
   title: string;
@@ -26,7 +29,16 @@ interface Action {
   copyLabel?: string;
   time: string;
   primary?: boolean;
+  urgency: Urgency;
 }
+
+const URGENCY_BADGE: Record<Urgency, { label: string; cls: string }> = {
+  today: { label: "📌 오늘 바로", cls: "bg-red-100 text-red-700" },
+  soon: { label: "📅 3일 이내", cls: "bg-orange-100 text-orange-700" },
+  week: { label: "📅 7일 이내", cls: "bg-slate-100 text-slate-600" },
+};
+
+const URGENCY_BY_INDEX: Urgency[] = ["today", "soon", "week", "week", "week"];
 
 function p(word: string, jong: "은는" | "을를" | "이가"): string {
   if (!word) return jong[1];
@@ -60,13 +72,14 @@ function ActionCard({
 }) {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
+  const badge = URGENCY_BADGE[action.urgency];
 
   const handleCopy = async () => {
     if (!action.copy) return;
     try {
       await navigator.clipboard.writeText(action.copy);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 2500);
     } catch {
       try {
         const ta = document.createElement("textarea");
@@ -79,7 +92,7 @@ function ActionCard({
         document.execCommand("copy");
         document.body.removeChild(ta);
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        setTimeout(() => setCopied(false), 2500);
       } catch {
         setCopyFailed(true);
         setTimeout(() => setCopyFailed(false), 3000);
@@ -95,39 +108,44 @@ function ActionCard({
           : "bg-emerald-50 border border-emerald-200"
       }`}
     >
-      {/* 액션 제목 + 순번 */}
-      <div className="flex items-start gap-3 mb-2">
+      {/* 타이밍 배지 + 순번 + 소요시간 */}
+      <div className="flex items-center gap-2 mb-2.5">
         <span
-          className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-black shrink-0 mt-0.5 ${
+          className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${
             action.primary ? "bg-emerald-600 text-white" : "bg-emerald-200 text-emerald-700"
           }`}
         >
           {index + 1}
         </span>
-        <p className="text-base md:text-lg font-bold text-emerald-900 leading-snug break-keep flex-1">
-          {action.title}
-        </p>
-        <span className="text-sm text-emerald-600 shrink-0 flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5" />
+        <span className={`text-xs font-bold rounded-full px-2.5 py-0.5 ${badge.cls}`}>
+          {badge.label}
+        </span>
+        <span className="text-xs text-slate-400 flex items-center gap-1 ml-auto shrink-0">
+          <Clock className="w-3 h-3" />
           {action.time}
         </span>
       </div>
 
+      {/* 액션 제목 */}
+      <p className="text-base md:text-lg font-bold text-emerald-900 leading-snug break-keep mb-2 pl-9">
+        {action.title}
+      </p>
+
       {/* 설명 */}
-      <p className="text-sm md:text-base text-emerald-800 leading-relaxed mb-3 break-keep pl-9">
+      <p className="text-sm text-emerald-800 leading-relaxed mb-3 break-keep pl-9">
         {action.desc}
       </p>
 
-      {/* 복사 문구 */}
+      {/* 복사 문구 박스 */}
       {action.copy && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2.5 mb-3 ml-9">
+        <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 mb-3 ml-9">
           {action.copyLabel === "Q&A 문구 복사" && (
-            <p className="flex items-center gap-1.5 text-sm text-amber-700 mb-1.5 font-semibold">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              복사 후 [ ] 괄호 안 내용을 내 가게에 맞게 수정하세요
+            <p className="flex items-center gap-1.5 text-xs text-amber-700 mb-1.5 font-semibold">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              복사 후 [ ] 안을 내 가게에 맞게 수정 → 스마트플레이스 소개글에 붙여넣기
             </p>
           )}
-          <p className="text-sm text-emerald-900 leading-relaxed whitespace-pre-line break-keep">
+          <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line break-keep">
             {action.copy}
           </p>
         </div>
@@ -146,10 +164,14 @@ function ActionCard({
                 : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
           >
-            {copied ? "✓ 복사됨!" : copyFailed ? "직접 선택 후 복사하세요" : action.copyLabel}
+            {copied
+              ? "✓ 복사됨 — 스마트플레이스에 붙여넣으세요"
+              : copyFailed
+              ? "직접 선택 후 복사하세요"
+              : action.copyLabel ?? "복사하기"}
           </button>
         )}
-        {action.primary && (
+        {action.primary && !action.copy && (
           <a
             href={isLoggedIn ? "/dashboard" : "/signup?redirect=/dashboard"}
             className="flex-1 text-center py-2.5 rounded-lg font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white transition-all"
@@ -160,7 +182,7 @@ function ActionCard({
         {onDismissKw && missingKws && missingKws.length > 0 && (
           <button
             onClick={() => onDismissKw(missingKws[0])}
-            className="flex-1 text-center py-2.5 rounded-lg text-sm font-medium text-emerald-700 border border-emerald-400 hover:bg-emerald-50 transition-colors"
+            className="flex-1 text-center py-2.5 rounded-lg text-sm font-medium text-emerald-700 border border-emerald-300 hover:bg-emerald-50 transition-colors"
           >
             이 키워드 건너뛰기
           </button>
@@ -182,12 +204,35 @@ export default function TodayOneAction({
   category,
   isLoggedIn,
   onDismissKw,
+  trialId,
 }: TodayOneActionProps) {
   const isGlobalFocus = userGroup === "INACTIVE" || userGroup === "franchise";
   const bw = getBusinessWord(category);
-  const [showAll, setShowAll] = useState(false);
 
-  // ── 실행 가능한 액션 목록 구성 ──────────────────────────────────────
+  const [email, setEmail] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+
+  const handleEmailSave = async () => {
+    const trimmed = email.trim();
+    if (!trimmed || !trimmed.includes("@")) return;
+    setEmailLoading(true);
+    try {
+      if (trialId) {
+        await fetch(`/api/scan/trial/${trialId}/save-email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: trimmed }),
+        });
+      }
+      setEmailSent(true);
+    } catch {
+      setEmailSent(true);
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   const actions: Action[] = [];
 
   if (isGlobalFocus) {
@@ -197,6 +242,7 @@ export default function TodayOneAction({
         desc: "ChatGPT·Google AI는 구글 데이터를 기반으로 가게를 추천합니다. business.google.com 무료 등록만으로 글로벌 AI 노출 가능성이 즉시 높아집니다.",
         time: "10분",
         primary: true,
+        urgency: "today",
       });
     }
     if (missingKws.length > 0) {
@@ -209,6 +255,7 @@ export default function TodayOneAction({
         copyLabel: "Q&A 문구 복사",
         time: "5분",
         primary: !actions.length,
+        urgency: URGENCY_BY_INDEX[actions.length] ?? "week",
       });
     }
     actions.push({
@@ -216,12 +263,14 @@ export default function TodayOneAction({
       desc: "영업시간·카테고리·사진·설명을 완성하면 ChatGPT·Google AI에 인용될 가능성이 높아집니다. business.google.com에서 직접 수정하세요.",
       time: "10분",
       primary: !actions.length,
+      urgency: URGENCY_BY_INDEX[actions.length] ?? "week",
     });
     actions.push({
       title: "단골 고객에게 네이버 블로그 리뷰 부탁하기 → 검색 노출 ↑",
-      desc: "네이버 AI 브리핑 직접 대상은 아니지만, 블로그 리뷰가 쌓이면 네이버 검색 일반 탭 노출이 늘어납니다. '블로그에 솔직한 후기 남겨주시면 감사합니다'라고 방문 고객에게 부탁해 보세요.",
+      desc: "블로그 리뷰가 쌓이면 네이버 검색 일반 탭 노출이 늘어납니다. '블로그에 솔직한 후기 남겨주시면 감사합니다'라고 방문 고객에게 부탁해 보세요.",
       time: "2분",
       primary: !actions.length,
+      urgency: URGENCY_BY_INDEX[actions.length] ?? "week",
     });
   } else {
     if (!isSmartPlace) {
@@ -230,6 +279,7 @@ export default function TodayOneAction({
         desc: "네이버 지도·플레이스에 가게를 등록하면 네이버 AI 브리핑·검색 노출에 나올 수 있습니다. smartplace.naver.com에서 무료로 등록하세요.",
         time: "10분",
         primary: true,
+        urgency: "today",
       });
     }
 
@@ -238,14 +288,15 @@ export default function TodayOneAction({
       actions.push({
         title: `소개글에 '${missingKws[0]}' 키워드 추가하기 → 네이버 검색 순위 ↑`,
         desc: isActiveGroup
-          ? `'${missingKws[0]}' 키워드가 소개글에 없으면 경쟁 업체보다 네이버 검색 순위가 밀립니다. 스마트플레이스 → 업체정보 → 소개글에 Q&A 형식으로 추가하면 2~4주 내 네이버 AI 브리핑·검색 노출이 올라옵니다. 네이버 상위 노출이 유지되면 수개월~1년 내 ChatGPT·Gemini에도 단계적으로 반영됩니다.`
-          : `'${missingKws[0]}' 키워드가 소개글에 없으면 경쟁 업체보다 네이버 검색 순위가 밀립니다. 스마트플레이스 → 업체정보 → 소개글에 Q&A 형식으로 추가하세요. 네이버 AI탭(2~4주)과 ChatGPT·Gemini(수개월~1년) 노출에도 단계적으로 연결됩니다.`,
+          ? `'${missingKws[0]}' 키워드가 소개글에 없으면 경쟁 업체보다 네이버 검색 순위가 밀립니다. 스마트플레이스 → 업체정보 → 소개글에 아래 문구를 붙여넣으세요. 2~4주 내 네이버 AI 브리핑·검색 노출이 올라오고, 이후 수개월~1년 내 ChatGPT·Gemini에도 반영됩니다.`
+          : `'${missingKws[0]}' 키워드가 소개글에 없으면 경쟁 업체보다 네이버 검색 순위가 밀립니다. 스마트플레이스 → 업체정보 → 소개글에 아래 문구를 붙여넣으세요. 네이버 AI탭(2~4주)과 ChatGPT·Gemini(수개월~1년) 노출에도 단계적으로 연결됩니다.`,
         copy:
           faqText ??
           `Q. ${missingKws[0]}${p(missingKws[0], "은는")} 어떤가요?\nA. 저희 가게의 ${missingKws[0]} ${bw}${p(bw, "을를")} 경험해 보세요. 궁금한 점은 네이버 채팅으로 편하게 문의해 주세요.`,
         copyLabel: "Q&A 문구 복사",
         time: "5분",
         primary: !actions.length,
+        urgency: URGENCY_BY_INDEX[actions.length] ?? "week",
       });
     }
 
@@ -257,6 +308,7 @@ export default function TodayOneAction({
         copyLabel: "답변 문구 복사",
         time: "2분",
         primary: !actions.length,
+        urgency: URGENCY_BY_INDEX[actions.length] ?? "week",
       });
     }
 
@@ -278,10 +330,10 @@ export default function TodayOneAction({
       copyLabel: "소식 문구 복사",
       time: "5분",
       primary: !actions.length,
+      urgency: URGENCY_BY_INDEX[actions.length] ?? "week",
     });
   }
 
-  // 첫 번째 항목이 primary 미설정 시 보정
   if (actions.length > 0 && !actions.some((a) => a.primary)) {
     actions[0] = { ...actions[0], primary: true };
   }
@@ -289,26 +341,31 @@ export default function TodayOneAction({
   return (
     <section className="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-4 md:p-6 mb-4">
       {/* 헤더 */}
-      <div className="flex items-center gap-2 mb-4">
-        <Zap className="w-5 h-5 text-emerald-600 shrink-0" />
-        <p className="text-sm md:text-base font-semibold text-emerald-800">
-          네이버 검색 순위를 올리는 지금 바로 할 수 있는 액션
-        </p>
+      <div className="flex items-start gap-2.5 mb-1">
+        <Zap className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+        <div>
+          <p className="text-base md:text-lg font-bold text-emerald-900">
+            지금부터 할 일 — 순서대로 따라하기
+          </p>
+          <p className="text-sm text-emerald-700 mt-0.5 break-keep">
+            아래 문구를 복사해서 스마트플레이스에 붙여넣으면 됩니다. 2~4주 내 네이버 순위 변화가 시작됩니다.
+          </p>
+        </div>
       </div>
+      <div className="border-t border-emerald-200 mt-3 mb-3" />
 
-      {/* 키워드 면책 박스 */}
+      {/* 키워드 면책 */}
       {missingKws.length > 0 && (
-        <div className="bg-amber-50 border border-amber-300 rounded-xl px-3 py-2.5 mb-3">
-          <p className="text-sm text-amber-800 leading-relaxed">
-            아래 키워드는 <strong>경쟁 가게 소개글 분석</strong>을 통해 자동 추출되었습니다. 내 가게에 맞지 않는 키워드라면 건너뛰세요.
-            구독 후 정식 스캔에서도 동일한 방식으로 제안되며, 관련 없는 키워드는 언제든 삭제할 수 있습니다.
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-3">
+          <p className="text-xs text-amber-800 leading-relaxed">
+            아래 키워드는 <strong>경쟁 가게 소개글 분석</strong>으로 자동 추출됐습니다. 내 가게에 안 맞는 키워드라면 건너뛰세요.
           </p>
         </div>
       )}
 
-      {/* 액션별 상세 카드 */}
+      {/* 액션 카드 — 전체 표시 */}
       <div className="space-y-3">
-        {(showAll ? actions : actions.slice(0, 1)).map((action, i) => (
+        {actions.map((action, i) => (
           <ActionCard
             key={i}
             action={action}
@@ -318,29 +375,70 @@ export default function TodayOneAction({
             missingKws={missingKws}
           />
         ))}
-        {!showAll && actions.length > 1 && (
-          <button
-            onClick={() => setShowAll(true)}
-            className="w-full py-3 text-sm font-semibold text-emerald-700 border border-emerald-300 rounded-xl hover:bg-emerald-50 transition-colors"
-          >
-            나머지 {actions.length - 1}가지 개선 방법 더 보기 ↓
-          </button>
-        )}
       </div>
 
-      {/* 변화 추적 CTA — 액션 직후 자연스럽게 구독 연결 */}
+      {/* 이메일 캡처 / 구독 CTA */}
       {!isLoggedIn && (
-        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-3 bg-white rounded-xl border border-emerald-300">
-          <p className="text-sm text-emerald-900 leading-snug break-keep">
-            위 액션 실행 후 — <strong>2~4주 뒤 네이버 순위가 실제로 올랐는지</strong> 자동으로 알려드립니다
-          </p>
-          <Link
-            href="/signup"
-            className="shrink-0 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
-          >
-            변화 추적 시작 — 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원
-          </Link>
-          <span className="text-xs text-emerald-600 sm:hidden">이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지</span>
+        <div className="mt-4 border-t border-emerald-200 pt-4">
+          {emailSent ? (
+            <div className="flex items-start gap-2.5 bg-white rounded-xl px-4 py-3.5 border border-emerald-300">
+              <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-bold text-emerald-900">저장됐습니다</p>
+                <p className="text-sm text-emerald-700 mt-0.5 break-keep">
+                  이 플랜과 복사 문구를 이메일로 보내드렸습니다. 14일 후 네이버 순위 변화를 다시 측정해 드립니다.{" "}
+                  <Link href="/signup" className="text-blue-600 font-semibold underline underline-offset-2">
+                    구독하면 매주 자동 추적
+                  </Link>
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-slate-200 px-4 py-4">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Mail className="w-4 h-4 text-slate-500" />
+                <p className="text-sm font-bold text-slate-800">
+                  이 개선 플랜과 문구를 이메일로 받아두세요
+                </p>
+              </div>
+              <p className="text-sm text-slate-500 mb-3 break-keep">
+                지금 바로 쓸 수 있는 Q&A·리뷰·소식 문구 +{" "}
+                <strong className="text-slate-700">14일 후 무료 재측정</strong> 링크를 보내드립니다
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleEmailSave()}
+                  placeholder="이메일 주소"
+                  className="flex-1 border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent min-w-0"
+                />
+                <button
+                  onClick={handleEmailSave}
+                  disabled={emailLoading || !email.includes("@")}
+                  className="shrink-0 bg-emerald-600 text-white font-bold text-sm px-4 py-2.5 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {emailLoading ? "..." : "무료 저장"}
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 mt-1.5">구독 없이 무료 · 스팸 없음</p>
+              <div className="flex items-center gap-2 my-3">
+                <div className="flex-1 border-t border-slate-100" />
+                <span className="text-xs text-slate-400">또는 구독으로 매주 자동 추적</span>
+                <div className="flex-1 border-t border-slate-100" />
+              </div>
+              <Link
+                href="/signup"
+                className="block text-center py-2.5 rounded-lg font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+              >
+                매주 자동 추적 시작 — 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원
+              </Link>
+              <p className="text-xs text-center text-slate-400 mt-1">
+                이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지
+              </p>
+            </div>
+          )}
         </div>
       )}
     </section>

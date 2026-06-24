@@ -872,35 +872,6 @@ export default function TrialResultStep(props: TrialResultProps) {
           <BriefingCategoryBadge category={briefingCategory} />
         )}
 
-        {/* ── 발견된 강점 배너 — 첫 인상: 실측 강점 먼저 표시 ── */}
-        {(() => {
-          const isSpConfirmed = !!(result.place_match?.naver_place_url
-            || result.smart_place_check?.is_smart_place
-            || (naver as { is_smart_place?: boolean } | null)?.is_smart_place
-            || (form as { is_smart_place?: boolean }).is_smart_place);
-          const badges: { icon: string; text: string }[] = [];
-          if (isSpConfirmed) badges.push({ icon: "📍", text: "스마트플레이스 등록됨" });
-          const _kakaoRk = (result as { kakao?: { my_rank?: number | null } }).kakao?.my_rank ?? null;
-          if (_kakaoRk && _kakaoRk <= 5) badges.push({ icon: "🟡", text: `카카오맵 ${_kakaoRk}위` });
-          if (blogCount > 0) badges.push({ icon: "📝", text: `블로그 언급 ${blogCount}건` });
-          if ((result.smart_place_check as { visitor_review_count?: number } | null)?.visitor_review_count) {
-            const vrc2 = (result.smart_place_check as { visitor_review_count?: number }).visitor_review_count!;
-            if (vrc2 > 0 && !badges.some(b => b.text.includes("방문자 리뷰"))) badges.push({ icon: "⭐", text: `방문자 리뷰 ${vrc2}건` });
-          }
-          if (badges.length === 0) return null;
-          return (
-            <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 mb-4">
-              <p className="text-xs font-bold text-green-600 uppercase tracking-wide mb-2">이번 스캔에서 발견한 강점</p>
-              <div className="flex flex-wrap gap-2">
-                {badges.map((b, i) => (
-                  <span key={i} className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-800 bg-white border border-green-200 rounded-full px-3 py-1 shadow-sm">
-                    <span>{b.icon}</span>{b.text}
-                  </span>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
 
         {/* ── 1. 종합 결론 — 대시보드 HeroCard 구조 복제 (성장단계+네이버 3채널 그리드+실측근거+오늘할일) ── */}
         <div className="mb-4">
@@ -948,18 +919,6 @@ export default function TrialResultStep(props: TrialResultProps) {
           </div>
         )}
 
-        {/* ── 네이버→AI 가치 제안 1줄 (히어로 바로 아래, 스크롤 없이 노출) ── */}
-        <div className="flex items-start gap-2.5 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 mb-4">
-          <span className="shrink-0 text-base mt-0.5">🔗</span>
-          <p className="text-sm text-indigo-900 leading-snug break-keep">
-            <strong>네이버 소개글·키워드 개선</strong>은 네이버 순위를 올리고,
-            네이버 상위 가게는 ChatGPT·Gemini 학습 데이터에도 반영됩니다.{" "}
-            <span className="text-indigo-600 font-semibold whitespace-nowrap">
-              네이버 2~4주 · AI 수개월~1년
-            </span>
-          </p>
-        </div>
-
         {/* ── 1-b. 네이버 현황 (location_based 업종만) ──────────── */}
         {(result as { business_type?: string }).business_type !== "non_location" && (
           <NaverStatusSection
@@ -992,6 +951,24 @@ export default function TrialResultStep(props: TrialResultProps) {
             keywordBlogComparison={(result as { keyword_blog_comparison?: Array<{ keyword: string; my_count: number; competitor_name: string; competitor_count: number }> }).keyword_blog_comparison}
           />
         )}
+
+        {/* ── 지금 바로 할 핵심 액션 ── */}
+        <div id="today-action" />
+        <TodayOneAction
+          key={effectiveMissingKws[0] ?? "no-kw"}
+          isSmartPlace={isSmartPlace}
+          missingKws={effectiveMissingKws}
+          hasFaq={hasFaq}
+          inBriefing={inBriefing}
+          faqText={effectiveFaqText}
+          selectedTags={selectedTags}
+          categoryLabel={categoryLabel}
+          userGroup={userGroupValue}
+          category={selectedCategory}
+          isLoggedIn={isLoggedIn}
+          onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
+          trialId={result.trial_id as string | undefined}
+        />
 
         {/* ── 네이버 개선 → AI 노출 인과관계 인사이트 ── */}
         <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 px-4 py-4 mb-4">
@@ -1064,23 +1041,6 @@ export default function TrialResultStep(props: TrialResultProps) {
           )}
         />
 
-        {/* ── 2. 지금 바로 할 핵심 액션 ──────────────────────────── */}
-        <div id="today-action" />
-        <TodayOneAction
-          key={effectiveMissingKws[0] ?? "no-kw"}
-          isSmartPlace={isSmartPlace}
-          missingKws={effectiveMissingKws}
-          hasFaq={hasFaq}
-          inBriefing={inBriefing}
-          faqText={effectiveFaqText}
-          selectedTags={selectedTags}
-          categoryLabel={categoryLabel}
-          userGroup={userGroupValue}
-          category={selectedCategory}
-          isLoggedIn={isLoggedIn}
-          onDismissKw={(kw) => setDismissedKws((prev) => [...prev, kw])}
-        />
-
         {/* ── 구독 유도 + 전환 CTA ── */}
         {!isLoggedIn && (
           <LockedScoreCard
@@ -1092,87 +1052,6 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         )}
         <SubscriptionValueCompare isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
-
-        {/* ── 개선 효과 연결 브리지 (페이지 하단) ── */}
-        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-5 mb-4">
-          <p className="text-base font-bold text-blue-700 mb-1">네이버 최적화 → 검색 상위 노출 → AI 추천까지</p>
-          <p className="text-sm text-slate-600 leading-relaxed mb-4 break-keep">
-            <strong className="text-slate-800">네이버 블로그·플레이스 최적화</strong>는 네이버 검색 상위 노출의 핵심입니다.
-            ChatGPT·Gemini도 네이버 콘텐츠를 학습 데이터로 사용하기 때문에, 네이버에서 잘 보이는 가게가 AI 검색에도 함께 노출됩니다.
-          </p>
-          <div className="space-y-2 text-sm bg-white rounded-xl px-4 py-3 border border-blue-100">
-            <div className="flex items-start gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-black">1</span>
-              <div>
-                <p className="font-semibold text-slate-800">스마트플레이스 소개글·키워드·소식·리뷰 개선</p>
-                <p className="text-slate-500 text-sm">개선 직후 ~ 2~4주 내 네이버에 반영</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-black">2</span>
-              <div>
-                <p className="font-bold text-green-800">네이버 지역 검색 상위권 노출 가능</p>
-                <p className="text-slate-500 text-sm">네이버가 내 가게를 관련성 높은 가게로 평가 → 검색 결과 상위에 노출</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-black">3</span>
-              <div>
-                <p className="font-bold text-blue-800 break-keep">
-                  {briefingCategory === "active"
-                    ? "네이버 AI 브리핑 + ChatGPT·Gemini 동시 노출"
-                    : briefingCategory === "likely"
-                    ? "네이버 AI탭 + ChatGPT·Gemini 노출 향상"
-                    : "네이버 AI탭 + ChatGPT·Gemini 추천 가능성 향상"}
-                </p>
-                <p className="text-slate-500 text-sm">
-                  {briefingCategory === "active"
-                    ? "네이버 AI 브리핑 2~4주 내 / ChatGPT·Gemini 수개월 내 반영 기대"
-                    : "네이버 AI탭 2~4주 내 / ChatGPT·Gemini 수개월~1년 내 반영"}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-3 pt-3 border-t border-blue-100 space-y-1.5">
-            <p className="text-sm text-slate-600 leading-relaxed break-keep font-medium">
-              📅 채널별 반영 예상 기간
-            </p>
-            <p className="text-sm text-slate-500 leading-relaxed break-keep">
-              · 스마트플레이스·네이버 검색: <strong className="text-slate-700">즉시~2주</strong>
-            </p>
-            <p className="text-sm text-slate-500 leading-relaxed break-keep">
-              · 네이버 AI 브리핑·AI탭: 개선 후 <strong className="text-slate-700">2~4주</strong> 내 반영 기대
-            </p>
-            <p className="text-sm text-slate-500 leading-relaxed break-keep">
-              · ChatGPT·Gemini: 학습 데이터 반영까지 <strong className="text-slate-700">수개월~1년</strong> — 네이버 최적화로 가속 가능
-            </p>
-            <p className="text-sm text-blue-600 font-medium leading-relaxed break-keep mt-1">
-              → 구독하면 이 변화를 매주 자동 추적하고 경쟁사와 비교합니다
-            </p>
-          </div>
-        </div>
-
-        {/* ── 네이버 순위 추적 CTA (하단) ── */}
-        {!isLoggedIn && (
-          <div className="rounded-xl border border-blue-300 bg-blue-600 px-4 py-4 mb-4 shadow-md">
-            <p className="text-base font-bold text-white leading-snug break-keep mb-1">
-              네이버 순위가 오르면 바로 알려드립니다
-            </p>
-            <p className="text-sm text-blue-200 leading-snug break-keep mb-3">
-              소개글 개선 후 네이버 순위가 올랐는지 — 매주 자동으로 확인하고 카톡으로 알려드립니다. 경쟁 가게와 비교도 제공합니다
-            </p>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-              <Link
-                href="/signup"
-                onClick={onSaveTrialData}
-                className="inline-block bg-white text-blue-700 font-black text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-colors shadow whitespace-nowrap"
-              >
-                매주 자동 추적 시작 — 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원
-              </Link>
-              <span className="text-sm text-blue-300">이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지</span>
-            </div>
-          </div>
-        )}
 
         {/* ── 15. 공유 버튼 ──────────────────────────────────────── */}
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 md:p-5 mb-4">
@@ -1200,19 +1079,10 @@ export default function TrialResultStep(props: TrialResultProps) {
         </div>
 
         {/* ── 16. 재진단 버튼 ────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row gap-3 mt-2">
-          {!isLoggedIn && (
-            <Link
-              href="/signup"
-              onClick={() => { onSaveTrialData(); handleSignupCTAClick(userGroupValue); }}
-              className="flex-1 text-center bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors text-sm md:text-base"
-            >
-              {getSignupCTALabel(userGroupValue)}
-            </Link>
-          )}
+        <div className="mt-2">
           <button
             onClick={onReset}
-            className="flex-1 border border-slate-300 text-slate-500 font-medium py-3 rounded-xl hover:bg-slate-50 transition-colors text-sm"
+            className="w-full border border-slate-300 text-slate-500 font-medium py-3 rounded-xl hover:bg-slate-50 transition-colors text-sm"
           >
             다시 진단하기
           </button>

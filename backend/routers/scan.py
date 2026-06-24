@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from models.schemas import ScanRequest, TrialScanRequest, TrialClaimRequest, TrialAttachRequest
 from services.ai_scanner.multi_scanner import MultiAIScanner
 from services.score_engine import calculate_score
@@ -1166,6 +1166,33 @@ def _check_naver_briefing_rate_limit(ip: str) -> None:
         _cache.set(key, 1, _NAVER_BRIEFING_WINDOW)
     else:
         _cache.set(key, count + 1, _NAVER_BRIEFING_WINDOW)
+
+
+class _TrialEmailRequest(BaseModel):
+    email: str = Field(..., max_length=200)
+
+
+@router.post("/trial/{trial_id}/save-email")
+async def trial_save_email(trial_id: str, req: _TrialEmailRequest, request: Request):
+    """무료 체험 결과 이메일 저장 — 개선 플랜 발송 + 14일 후 재측정 링크용"""
+    import re
+    if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', req.email):
+        raise HTTPException(status_code=400, detail="이메일 형식이 올바르지 않습니다")
+    try:
+        supabase = get_client()
+        res = await execute(supabase.table("trial_scans").select("id").eq("id", trial_id).limit(1))
+        if not (res and res.data):
+            raise HTTPException(status_code=404, detail="체험 결과를 찾을 수 없습니다")
+        await execute(
+            supabase.table("trial_scans").update({"email": req.email}).eq("id", trial_id)
+        )
+        return {"ok": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("trial_save_email error trial_id=%s: %s", trial_id, e)
+        raise HTTPException(status_code=500, detail="저장 중 오류가 발생했습니다")
 
 
 @router.post("/trial/naver-briefing")
