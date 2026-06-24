@@ -846,26 +846,26 @@ export default function TrialResultStep(props: TrialResultProps) {
                 <Store className="w-7 h-7 text-slate-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-2xl font-black text-slate-900 leading-tight tracking-tight break-keep">
+                <p className="text-xl md:text-2xl font-black text-slate-900 leading-tight tracking-tight break-keep">
                   {form.business_name}
                 </p>
                 {form.region && (
-                  <p className="text-base text-slate-500 mt-0.5 font-medium">{form.region}</p>
+                  <p className="text-sm md:text-base text-slate-500 mt-0.5 font-medium">{form.region}</p>
                 )}
-                <div className="mt-2">
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
                   <BriefingBadgeChip category={briefingCategory} />
+                  {result.place_match?.naver_place_url && (
+                    <a
+                      href={result.place_match.naver_place_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap"
+                    >
+                      네이버 플레이스 →
+                    </a>
+                  )}
                 </div>
               </div>
-              {result.place_match?.naver_place_url && (
-                <a
-                  href={result.place_match.naver_place_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap shadow-md"
-                >
-                  네이버 플레이스 →
-                </a>
-              )}
             </div>
           </div>
         ) : (
