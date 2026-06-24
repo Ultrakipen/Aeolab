@@ -451,7 +451,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 - `ai_tab_readiness` 분리(2026-05-18)로 `keyword_gap_score` **0.35→0.30** 하향. 이 변경이 score-guide에 미반영돼 오기재 사고 발생
 - GrowthStage 기준: **`track1_score`** (unified 아님) — 업종별 비율 차이 오판 방지
 - v3.1/v3.2/v3.3: `NAVER_TRACK_WEIGHTS_V3_1/V3_2/V3_3` — 환경변수 `SCORE_MODEL_VERSION`으로 토글
-- **채널별 노출 소요 기간**: 네이버 AI 브리핑·AI탭 2~4주(추정, 네이버 미공개) / Gemini 수 주~수개월(Google Search 실시간 grounding — GBP 인덱싱 1~14일 후 연동) / ChatGPT 수개월~1년(학습 데이터 기반, knowledge cutoff 있음) — ChatGPT·Gemini를 묶어 표시하지 말 것(원리가 다름)
+- **채널별 노출 소요 기간**: 네이버 AI 브리핑·AI탭 2~4주(추정, 네이버 미공개) / Gemini GBP 등록 후 2~4주 내 반영 시작·안정적 인용까지 수 개월(Google Search 실시간 grounding — GBP 인덱싱 1~4주 후 연동) / ChatGPT 수개월~1년(학습 데이터 기반, knowledge cutoff 2024-06-01 공식 확인) — ChatGPT·Gemini를 묶어 표시하지 말 것(원리가 다름)
 
 ---
 
