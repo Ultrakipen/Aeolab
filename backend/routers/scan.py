@@ -1023,6 +1023,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
                     _kw_to_meta[_kw] = {
                         "subcategory": _sub_name,
                         "weight": _sub_weight,
+                        "source": "업종_표준",
                     }
 
         # 다양성 보강: 사용자 신호 없을 때 weight 1·2순위 서브카테고리에서 골고루 추출
@@ -1061,6 +1062,14 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
                 if _sub != "_etc":
                     _subcat_count[_sub] = _subcat_count.get(_sub, 0) + 1
         _all_missing = _capped
+
+        # 사업장명 기반 안전 필터: 빵/제과류 업체에 공간·뷰 관련 키워드 제거
+        # taxonomy alias가 잘못 분류됐을 때 최후 방어선
+        _BAKERY_NAME_SIGNALS = {"빵", "제과", "베이커리", "케이크", "마카롱", "스콘", "타르트", "크루아상"}
+        _VENUE_AMBIANCE_KWS = {"뷰 좋음", "루프탑 있음", "야외석 있음", "인스타 감성", "포토존", "루프탑"}
+        _biz_lower = (req.business_name or "").replace(" ", "")
+        if any(s in _biz_lower for s in _BAKERY_NAME_SIGNALS):
+            _all_missing = [kw for kw in _all_missing if kw not in _VENUE_AMBIANCE_KWS]
 
         top_missing_keywords = _all_missing[:8]
         pioneer_keywords = kw_analysis.get("pioneer", [])[:2]

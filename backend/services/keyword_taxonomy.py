@@ -112,7 +112,8 @@ _CATEGORY_ALIASES: dict[str, str] = {
     "이사": "living", "청소": "living",
     # ── 폼 25개 업종 추가 매핑 (2026-04-23) ──
     # 음식 계열 alias
-    "bakery": "cafe", "베이커리": "cafe", "빵집": "cafe", "디저트": "cafe",
+    "bakery": "bakery", "베이커리": "bakery", "빵집": "bakery", "디저트": "bakery",
+    "베이커리카페": "bakery", "제과": "bakery", "제과점": "bakery", "케이크샵": "bakery",
     "bar": "restaurant", "주점": "restaurant", "술집": "restaurant", "포차": "restaurant",
     # 네일샵 — 별도 taxonomy (beauty 오분류 방지, 2026-05-18 수정)
     "nail": "nail", "네일아트": "nail", "네일샵": "nail",
@@ -611,7 +612,42 @@ KEYWORD_TAXONOMY: dict[str, dict[str, KeywordCategory]] = {
         },
     },
 
-    # § 2.8 헬스장·피트니스 (스포츠·운동시설)
+    # § 2.8 베이커리·디저트 (빵집·제과점 — 카페와 구분, 뷰·루프탑 키워드 제외)
+    "bakery": {
+        "빵메뉴": {
+            "keywords": ["소금빵", "크루아상", "케이크", "마카롱", "타르트", "식빵", "베이글", "스콘", "파이", "브레드"],
+            "weight": 0.30,
+            "condition_search_example": "창원 소금빵 베이커리",
+        },
+        "재료품질": {
+            "keywords": ["천연 발효", "국내산 밀", "당일 제조", "수제 제조", "무방부제", "유기농 재료", "홈메이드", "직접 굽는"],
+            "weight": 0.25,
+            "condition_search_example": "수제 천연발효 빵집",
+        },
+        "이용목적": {
+            "keywords": ["선물 포장 가능", "테이크아웃 전문", "구독 베이커리", "조각 케이크", "맞춤 제작 케이크", "생일 케이크 예약"],
+            "weight": 0.20,
+            "condition_search_example": "생일 케이크 예약 제과점",
+        },
+        "공간분위기": {
+            "keywords": ["아늑한 분위기", "브런치 가능", "카페 분위기", "테이블 있음"],
+            "weight": 0.15,
+            "condition_search_example": "브런치 베이커리 카페",
+        },
+        "운영정보": {
+            "keywords": ["당일 예약 가능", "주차 가능", "조기 마감 가능", "온라인 주문", "포장 가능"],
+            "weight": 0.10,
+            "condition_search_example": "주차 가능 베이커리",
+        },
+        "ai_tab_context": {
+            "keywords": ["수제 빵 추천", "당일 구운 빵", "케이크 예약", "국내산 재료", "무방부제 빵"],
+            "weight": 0.0,
+            "condition_search_example": "수제 베이커리 추천",
+            "in_ai_tab": True,
+        },
+    },
+
+    # § 2.9 헬스장·피트니스 (스포츠·운동시설)
     "fitness": {
         "시설장비": {
             "keywords": ["최신 장비", "넓은 공간", "개인 락커", "샤워실 있음", "주차 가능", "깨끗한 환경"],

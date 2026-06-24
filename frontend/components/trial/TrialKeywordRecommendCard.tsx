@@ -6,6 +6,7 @@ import { Bookmark, Check } from "lucide-react";
 interface KeywordMetaEntry {
   subcategory: string;
   weight: number;
+  source?: string;
 }
 
 interface Props {
@@ -44,6 +45,11 @@ const SUBCAT_LABEL: Record<string, string> = {
   포트폴리오: "포트폴리오",
   수정가능횟수: "수정·납품",
   가격: "가격",
+  // bakery 서브카테고리
+  빵메뉴: "빵·메뉴 종류",
+  재료품질: "재료·품질",
+  이용목적: "이용 목적",
+  공간분위기: "공간·분위기",
 };
 
 export default function TrialKeywordRecommendCard({ missingKws, faqText, categoryLabel, dismissed, onDismiss, keywordMeta, userGroup, introAnalyzed = false, isPaidUser = false }: Props) {
@@ -160,10 +166,11 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
                   {copied === kw ? <><Check className="w-4 h-4" aria-hidden="true" /> 복사됨</> : copied === kw + "__fail" ? "직접 복사하세요" : "문구 복사"}
                 </button>
               </div>
-              {/* 추천 근거: 어느 서브카테고리에서 왔는지 표시 */}
+              {/* 추천 근거: 어느 서브카테고리에서 왔는지 + 가중치 표시 */}
               {subLabel && (
-                <p className="text-sm text-blue-700 mt-1">
-                  {categoryLabel} &lsquo;{subLabel}&rsquo; 관련 — AI 추천 핵심 키워드
+                <p className="text-sm text-blue-600 mt-1">
+                  {categoryLabel} 소비자가 자주 검색하는 &lsquo;{subLabel}&rsquo; 키워드
+                  {weightPct && weightPct > 0 ? ` — 노출 영향도 ${weightPct}%` : ""}
                 </p>
               )}
               {idx === 0 && (
