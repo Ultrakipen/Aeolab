@@ -11,6 +11,7 @@ import { getUserGroup, GROUP_MESSAGES, getBriefingEligibility, type BriefingElig
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import TodayOneAction from "@/components/trial/TodayOneAction";
 import NaverStatusSection from "@/components/trial/NaverStatusSection";
+import TrialKeywordRecommendCard from "@/components/trial/TrialKeywordRecommendCard";
 import KakaoShareButton from "@/components/common/KakaoShareButton";
 import TextShareButton from "@/components/trial/TextShareButton";
 import ResultSummaryHero from "@/components/common/ResultSummaryHero";
@@ -143,7 +144,7 @@ function LockedScoreCard({
 function ActionFeaturesLock({ onSave }: { onSave: () => void }) {
   const actions = [
     { icon: "✍️", label: "소개글 개선 초안 자동 생성", desc: "키워드 갭 기반 소개글 1분 완성" },
-    { icon: "📅", label: "14일 후 순위 변화 자동 측정", desc: "소개글 수정 후 결과를 직접 확인" },
+    { icon: "📅", label: "7일 후 순위 변화 자동 측정", desc: "소개글 수정 후 결과를 직접 확인" },
     { icon: "🔔", label: "경쟁 가게 AI 노출 변화 알림", desc: "경쟁사가 AI에서 뜨면 즉시 알림" },
     { icon: "📊", label: "매주 자동 순위 추적 + 30일 추세", desc: "내가 한 행동이 효과 있었는지 확인" },
   ];
@@ -944,6 +945,15 @@ export default function TrialResultStep(props: TrialResultProps) {
             (naver as { is_smart_place?: boolean } | null)?.is_smart_place ||
             form.is_smart_place
           )}
+        />
+
+        {/* ── 키워드 추천 카드 ── */}
+        <TrialKeywordRecommendCard
+          missingKws={effectiveMissingKws}
+          categoryLabel={categoryLabel}
+          dismissed={dismissedKws}
+          onDismiss={(kw) => setDismissedKws((prev) => [...prev, kw])}
+          userGroup={userGroupValue}
         />
 
         {/* ── 📌 측정 근거 박스 ── */}
