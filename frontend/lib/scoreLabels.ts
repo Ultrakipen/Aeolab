@@ -98,8 +98,8 @@ export function naverSeoTile(args: {
   const { captchaBlocked, adOnly, missingKeywordCount } = args;
   if (captchaBlocked) return makeTile("naver-seo", "네이버 검색", "unknown", "측정 불가", "일시적으로 확인 어려움");
   if (adOnly)         return makeTile("naver-seo", "네이버 검색", "warn", "광고만 노출", "유료광고 결과만 노출");
-  if (missingKeywordCount === 0) return makeTile("naver-seo", "네이버 검색", "good", "노출 양호", "키워드 모두 포함됨");
-  return makeTile("naver-seo", "네이버 검색", "warn", "키워드 보강 필요", `${missingKeywordCount}개 키워드 추가 필요`);
+  if (missingKeywordCount === 0) return makeTile("naver-seo", "네이버 검색", "good", "노출 양호", "경쟁가게보다 키워드 풍부");
+  return makeTile("naver-seo", "네이버 검색", "warn", "키워드 보강 필요", `${missingKeywordCount}개 없음 · 경쟁가게가 먼저 추천`);
 }
 
 /** 네이버 AI탭 타일 (DashboardHeroCard naverAiTabCard) */
@@ -123,8 +123,8 @@ export function briefingTile(args: {
   if (eligibility === "likely")
     return makeTile("naver-briefing", "AI 브리핑", "expand", "확대 예정", "지금 준비 중");
   if (inBriefing)
-    return makeTile("naver-briefing", "AI 브리핑", "good", "노출 중", "브리핑 노출 확인됨");
-  return makeTile("naver-briefing", "AI 브리핑", "warn", "아직 미노출", "소개글 보강하면 가능");
+    return makeTile("naver-briefing", "AI 브리핑", "good", "노출 중", "검색 첫화면에 내 가게 추천 중");
+  return makeTile("naver-briefing", "AI 브리핑", "warn", "아직 미노출", "보강 시 검색 첫화면 노출 가능");
 }
 
 /** 경쟁 순위 타일 — INACTIVE 그룹에서 AI 브리핑 대신 노출 (DashboardHeroCard rankCard) */
