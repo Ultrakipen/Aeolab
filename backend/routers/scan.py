@@ -552,6 +552,20 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         keyword_ko = req.keyword.strip().split()[0]  # 복합 문자열 방지: 첫 토큰만
     else:
         keyword_ko = _CATEGORY_KO.get(req.category, req.category)
+    # keyword_ko가 req.region의 일부 접미사로 시작하면 제거 (이중 지역 방지)
+    # 예: region="경상남도 창원시 성산구 상남동", keyword_ko="창원시 성산구 상남동 베이커리카페"
+    # → keyword_ko="베이커리카페"
+    if req.region and keyword_ko:
+        _region_parts = req.region.strip().split()
+        for _rlen in range(len(_region_parts), 0, -1):
+            _prefix = " ".join(_region_parts[-_rlen:])
+            if keyword_ko.startswith(_prefix + " "):
+                keyword_ko = keyword_ko[len(_prefix) + 1:].strip()
+                break
+            elif keyword_ko == _prefix:
+                keyword_ko = _CATEGORY_KO.get(req.category, req.category)
+                break
+
     is_non_location = (req.business_type == "non_location") or not req.region
 
     # 속성 키워드(공백 포함)일 때 업종 접미어 추가로 AI 질의 현실화
