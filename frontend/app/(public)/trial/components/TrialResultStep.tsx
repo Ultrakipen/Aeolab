@@ -286,10 +286,10 @@ function ScanConclusionCard({
             <span className="text-base shrink-0 mt-0.5">⚠️</span>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-amber-800 break-keep">
-                소개글에 경쟁사 핵심 키워드 {missingKws.length}개 없음
+                소개글에 경쟁사 핵심 키워드 {missingKws.length}개 없음 — 지금 경쟁 가게보다 덜 노출됩니다
               </p>
               <p className="text-sm text-amber-700 mt-0.5 break-keep">
-                &lsquo;{topMissingKw}&rsquo; 등 추가 시 2~4주 내 네이버 순위 상승 기대
+                &lsquo;{topMissingKw}&rsquo; 등을 소개글에 추가하면 AI가 이 키워드로 검색하는 손님에게 내 가게를 추천합니다. 2~4주 내 네이버 순위 변화가 시작됩니다.
               </p>
             </div>
           </div>
@@ -360,7 +360,7 @@ function ScanConclusionCard({
                   스마트플레이스 {missing.join(" · ")} 미완성
                 </p>
                 <p className="text-sm text-slate-500 mt-0.5 break-keep">
-                  완성하면 AI 인용·네이버 신선도 점수가 올라갑니다
+                  네이버는 정보가 완성된 가게를 '신뢰 가게'로 분류해 AI 검색에 우선 노출합니다. 완성하면 새 손님이 내 가게를 더 잘 찾게 됩니다.
                 </p>
               </div>
             </div>
@@ -678,6 +678,7 @@ export default function TrialResultStep(props: TrialResultProps) {
       label: "AI 질문에 내 가게가 나오는 핵심 키워드 보유",
       weight: 30,
       value: breakdown?.keyword_gap_score,
+      why: "AI가 '맛집 추천' 같은 질문을 받을 때 소개글 키워드를 기준으로 가게를 고릅니다. 키워드가 없으면 경쟁 가게가 먼저 추천됩니다.",
     },
     {
       label: "고객 후기 수와 평점 신뢰도",
@@ -685,11 +686,13 @@ export default function TrialResultStep(props: TrialResultProps) {
       value: breakdown?.review_quality,
       trialLimited: !breakdown?.review_quality,
       trialNote: "체험 스캔에서는 미수집 — 정식 스캔에서 자동으로 측정합니다",
+      why: "AI는 리뷰 수·평점·최신성으로 가게 신뢰도를 판단합니다. 리뷰가 많고 최신일수록 AI 검색에 추천될 확률이 높아집니다.",
     },
     {
       label: "네이버 가게 프로필 완성도",
       weight: 15,
       value: breakdown?.smart_place_completeness,
+      why: "소개글·소식·사진이 완성된 가게를 네이버가 '운영 중인 신뢰 가게'로 인식해 AI 검색 노출 우선순위를 높입니다.",
     },
     {
       label: isFranchise || userGroupValue === "INACTIVE"
@@ -701,11 +704,15 @@ export default function TrialResultStep(props: TrialResultProps) {
       value: breakdown?.naver_exposure_confirmed,
       trialLimited: !breakdown?.naver_exposure_confirmed,
       trialNote: "체험 스캔에서는 미측정 — 정식 스캔에서 확인합니다",
+      why: isFranchise || userGroupValue === "INACTIVE"
+        ? "네이버 지역 검색·블로그에 노출되면 스마트폰으로 검색하는 손님에게 직접 보이게 됩니다."
+        : "네이버 AI 브리핑에 노출되면 검색 첫 화면에 가게가 추천되어 새 손님 유입이 늘어납니다.",
     },
     {
       label: "카카오맵 가게 정보 등록",
       weight: 10,
       value: breakdown?.kakao_completeness,
+      why: "카카오 검색·Gemini·ChatGPT는 카카오맵 데이터를 참조합니다. 등록하면 AI 추천 경로가 하나 더 열립니다.",
     },
   ];
 
@@ -1218,6 +1225,7 @@ interface BreakdownItem {
   value: number | undefined;
   trialLimited?: boolean;
   trialNote?: string;
+  why?: string;
 }
 
 function ScoreBreakdownBox({
@@ -1308,6 +1316,9 @@ function ScoreBreakdownBox({
               )}
               {isUnmeasured && item.trialNote && (
                 <p className="text-sm text-slate-500 mt-0.5">{item.trialNote}</p>
+              )}
+              {!isUnmeasured && item.why && (
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.why}</p>
               )}
             </div>
           );
