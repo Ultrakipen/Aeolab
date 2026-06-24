@@ -700,7 +700,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             }`}>
               {blogMentionCount === 0
                 ? "아직 블로그 후기가 감지되지 않았습니다. AI 검색 노출에 블로그 언급은 핵심 신호입니다."
-                : `${blogMentionCount}건의 블로그 언급이 감지되었습니다. AI탭은 블로그·SNS 후기가 풍부한 플레이스를 우선 노출하는 경향이 있습니다 (실측 기반 권장값, 알고리즘 미공개).`}
+                : `네이버 블로그에서 "${blogMentionCount}건" 검색 결과가 발견되었습니다 (가게명 키워드 검색 기준). AI탭은 블로그·SNS 후기가 풍부한 플레이스를 우선 노출하는 경향이 있습니다 (실측 기반 권장값, 알고리즘 미공개).`}
             </p>
           </div>
         </div>

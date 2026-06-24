@@ -747,7 +747,7 @@ export default function DemoPage() {
                 {[
                   { ch: "네이버 AI 브리핑", period: "2~4주",      border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집" },
                   { ch: "네이버 AI탭",       period: "2~4주",      border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강" },
-                  { ch: "Gemini",            period: "수일~수주",   border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 시 빠름 / 미등록 시 수개월~1년" },
+                  { ch: "Gemini",            period: "2~4주",       border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 후 반영 시작, 안정적 인용까지 수 개월 소요" },
                   { ch: "ChatGPT",           period: "수개월~1년",  border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "Bing Places 등록 시 빠름 · 웹콘텐츠 기반" },
                 ].map((item) => (
                   <div key={item.ch} className={`rounded-xl border ${item.border} ${item.bg} px-3 py-2.5`}>
@@ -997,7 +997,7 @@ export default function DemoPage() {
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">Gemini</span>
-                        <span>Google 비즈니스 프로필 + 실시간 검색 그라운딩 기반 (프로필 등록 후 수일~수주)</span>
+                        <span>Google 비즈니스 프로필 + 실시간 검색 그라운딩 기반 (프로필 등록 후 2~4주 내 반영 시작, 안정적 인용까지 수 개월 소요)</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">네이버 AI 브리핑</span>
