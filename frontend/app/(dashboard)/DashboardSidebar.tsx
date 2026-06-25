@@ -29,28 +29,21 @@ const NAV_GROUPS: {
   items: NavItem[];
 }[] = [
   {
-    label: "진단",
+    label: "내 가게 현황",
     items: [
       { href: "/dashboard",   label: "대시보드",    Icon: LayoutDashboard },
       { href: "/competitors", label: "경쟁사 관리", Icon: Store,         requiresBusiness: true },
+      { href: "/history",     label: "변화 기록",   Icon: History,    requiredPlan: "basic", requiresBusiness: true },
+      { href: "/growth",      label: "성장 리포트", Icon: TrendingUp, requiredPlan: "basic", requiresBusiness: true },
     ],
   },
   {
     label: "개선 실행",
     items: [
-      { href: "/guide",         label: "개선 가이드",           Icon: Lightbulb,     requiresBusiness: true },
-      { href: "/schema",        label: "소개글 · 콘텐츠 생성",    Icon: Code2,         requiredPlan: "basic", requiresBusiness: true },
-      { href: "/blog-analysis", label: "블로그 진단",           Icon: FileText,      requiredPlan: "basic", requiresBusiness: true },
-      { href: "/review-inbox",      label: "리뷰 답변",             Icon: MessageSquare, requiredPlan: "basic", requiresBusiness: true },
-      { href: "/guide/ai-info-tab", label: "AI 브리핑 5단계",       Icon: BookOpen },
-      { href: "/guide/chatgpt-search", label: "ChatGPT 최적화 가이드", Icon: MessageSquare },
-    ],
-  },
-  {
-    label: "변화 보기",
-    items: [
-      { href: "/history", label: "변화 기록",   Icon: History,    requiredPlan: "basic", requiresBusiness: true },
-      { href: "/growth",  label: "성장 리포트", Icon: TrendingUp, requiredPlan: "basic", requiresBusiness: true },
+      { href: "/guide",         label: "개선 가이드",         Icon: Lightbulb,     requiresBusiness: true },
+      { href: "/schema",        label: "소개글 · 콘텐츠 생성", Icon: Code2,         requiredPlan: "basic", requiresBusiness: true },
+      { href: "/blog-analysis", label: "블로그 진단",         Icon: FileText,      requiredPlan: "basic", requiresBusiness: true },
+      { href: "/review-inbox",  label: "리뷰 답변",           Icon: MessageSquare, requiredPlan: "basic", requiresBusiness: true },
     ],
   },
   {
@@ -63,9 +56,11 @@ const NAV_GROUPS: {
 
 // 하단 서비스 링크 (검색 포함 여부 선택 — 여기선 포함)
 const FOOTER_ITEMS: NavItem[] = [
-  { href: "/how-it-works",      label: "서비스 매뉴얼",  Icon: BookOpen },
-  { href: "/support",           label: "자주 묻는 질문", Icon: HelpCircle },
-  { href: "/support/tickets",   label: "1:1 문의",       Icon: MessageCircle },
+  { href: "/guide/ai-info-tab",    label: "AI 브리핑 5단계",       Icon: BookOpen },
+  { href: "/guide/chatgpt-search", label: "ChatGPT 최적화 가이드", Icon: MessageSquare },
+  { href: "/how-it-works",         label: "서비스 매뉴얼",         Icon: BookOpen },
+  { href: "/support",              label: "자주 묻는 질문",        Icon: HelpCircle },
+  { href: "/support/tickets",      label: "1:1 문의",              Icon: MessageCircle },
 ];
 
 const PLAN_LABEL: Record<string, string> = {
@@ -233,7 +228,7 @@ export function DashboardSidebar({
             <div className="mb-6 mt-2 pt-4 border-t border-gray-200">
               <div className="flex items-center gap-2 px-2 mb-2">
                 <span className="w-1.5 h-4 rounded-full bg-blue-500 shrink-0" aria-hidden="true" />
-                <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">기타</p>
+                <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">도움말</p>
               </div>
               <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-2 space-y-1">
                 {filteredFooter.map((item) => {
