@@ -248,7 +248,7 @@ export default function TodayOneAction({
     if (missingKws.length > 0) {
       actions.push({
         title: `소개글에 '${missingKws[0]}' 관련 Q&A 추가하기`,
-        desc: `ChatGPT·Gemini는 구조화된 텍스트를 학습합니다. '${missingKws[0]}' 관련 Q&A를 소개글이나 홈페이지에 추가하면 AI 인용 가능성이 높아집니다.`,
+        desc: `ChatGPT·Gemini는 소개글·홈페이지의 글을 참고합니다. '${missingKws[0]}' 관련 Q&A를 추가하면 AI가 내 가게를 검색 답변에 포함할 가능성이 높아집니다.`,
         copy:
           faqText ??
           `Q. ${missingKws[0]}에 대해 궁금한 점이 있어요.\nA. 저희 가게의 ${missingKws[0]} ${bw}에 대해 안내드립니다. 자세한 내용은 네이버 지도 채팅이나 전화로 문의해 주시면 친절하게 안내해 드리겠습니다.`,

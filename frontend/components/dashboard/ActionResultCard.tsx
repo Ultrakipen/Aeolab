@@ -80,12 +80,12 @@ export default function ActionResultCard({ actions }: Props) {
                     {a.after_mentioned ? (
                       <p className="text-sm font-semibold text-emerald-700 flex items-center gap-1">
                         <CheckCircle2 className="w-4 h-4 shrink-0" />
-                        AI 브리핑에 노출됐습니다
+                        네이버 AI 검색에 내 가게가 나타났습니다 ✓
                       </p>
                     ) : (
                       <p className="text-sm font-semibold text-amber-700 flex items-center gap-1">
                         <AlertCircle className="w-4 h-4 shrink-0" />
-                        아직 반영 중입니다. 조금 더 기다려주세요
+                        아직 반영 중입니다 (보통 2~4주 소요)
                       </p>
                     )}
                     {a.result_summary && (

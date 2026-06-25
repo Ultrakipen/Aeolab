@@ -300,7 +300,7 @@ def build_smart_place_checklist(biz: dict, naver_data: dict = None) -> list[str]
         # 이미 등록·기본정보·사진 완료 → 실제 미완성 항목만 동적 생성
         items = []
         if not has_faq:
-            items.append("소개글 하단에 Q&A 섹션 추가 — 고객 자주 묻는 질문 3~5개를 소개글에 작성 (AI 브리핑 인용 후보 콘텐츠)")
+            items.append("소개글 하단에 Q&A 섹션 추가 — 고객 자주 묻는 질문 3~5개를 소개글에 작성 (AI가 검색 답변 생성 시 이 글을 참고합니다)")
         if not has_intro:
             items.append("기본정보 탭 → 소개글에 지역명·업종 키워드 포함한 2~3문장 작성 (예: '창원 웨딩스냅·돌스냅 전문')")
         if not has_recent_post:
@@ -949,7 +949,7 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
             "action_type":      "smartplace_faq" | "review_reply" | "blog_keyword" | "smart_place" | "intro",
             "title":            "스마트플레이스 소개글에 Q&A 1개 추가하기",
             "description":      "...",
-            "expected_impact":  "AI 브리핑 인용 후보 진입 가능 — 7일 후 확인 권장",
+            "expected_impact":  "네이버 AI 검색에 내 가게 노출 시작 — 2~4주 후 확인 권장",
             "estimated_time_min": 5,
             "copy_template":    "Q: ...\nA: ..."
         }
@@ -1030,15 +1030,15 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
             _logger.warning(f"pick_top_action 소개글 Q&A 키워드 주입 실패: {e}")
         if _is_briefing_eligible:
             _desc = (
-                f"소개글 하단의 Q&A 텍스트는 네이버 AI 브리핑 인용 후보 콘텐츠입니다. "
-                f"{cat_ko}에서 손님이 자주 묻는 질문 1개만 소개글에 추가해도 AI 노출 후보에 포함될 수 있습니다."
+                f"손님이 네이버에서 '{cat_ko} 추천'을 검색하면 AI가 소개글 Q&A에서 답을 찾아 가게를 소개합니다. "
+                f"Q&A 1개만 추가해도 AI가 내 가게를 검색 답변에 포함할 가능성이 높아집니다."
                 f"{faq_kw_hint}"
             )
-            _impact = "AI 브리핑 인용 후보 진입 가능 — 7일 후 확인 권장"
+            _impact = "네이버 AI 검색에 내 가게 노출 가능 — 2~4주 후 확인 권장"
         else:
             _desc = (
-                f"소개글 하단의 Q&A 텍스트는 네이버 AI탭·일반검색 노출에 유리한 콘텐츠입니다. "
-                f"{cat_ko}에서 손님이 자주 묻는 질문 1개만 소개글에 추가해도 검색 노출과 AI탭 인용 가능성이 높아집니다."
+                f"손님이 네이버·ChatGPT에서 '{cat_ko} 추천'을 검색할 때, AI가 소개글 Q&A를 참고해 가게를 답변에 포함합니다. "
+                f"Q&A 1개만 추가해도 검색 노출 가능성이 높아집니다."
                 f"{faq_kw_hint}"
             )
             _impact = "AI탭·네이버 검색 노출 강화 — 2~4주 후 확인 권장"
@@ -1058,12 +1058,12 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
             "action_type": "review_reply",
             "title": "최근 리뷰 1개에 키워드 담아 답변하기",
             "description": (
-                "사장님 답변에 우리 가게의 강점 키워드를 담으면 AI 브리핑 신호가 강화됩니다. "
+                "사장님 답변에 가게 강점 키워드를 담으면 네이버가 내 가게 특징을 더 정확하게 파악합니다. "
                 "네이버 플레이스 플러스 AI 답글 도구로 초안을 받은 뒤, "
                 "업종 핵심 키워드가 포함됐는지 확인하고 등록해 주세요. "
                 "(AI 초안에는 키워드가 빠질 수 있으니 직접 한 단어 추가가 효과적입니다.)"
             ),
-            "expected_impact": "AI 브리핑 신호 강화 — 효과 3~7일 이내",
+            "expected_impact": "네이버 검색 키워드 인식 강화 — 효과 3~7일 이내",
             "estimated_time_min": 3,
             "copy_template": (
                 "안녕하세요, {업장명}입니다.\n"
