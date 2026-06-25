@@ -135,9 +135,11 @@ export function AiInfoTabStatusCard({
 
       {eligibilityBanner}
 
-      <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
-        {explanation}
-      </p>
+      {explanation && (
+        <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
+          {explanation}
+        </p>
+      )}
 
       {eligibility !== "inactive" && (
       <details className="mb-4">
