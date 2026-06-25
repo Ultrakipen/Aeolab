@@ -152,7 +152,7 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
             <div className="flex items-start gap-1.5">
               <span className="shrink-0 mt-0.5">•</span>
               <span>
-                <strong>네이버 AI탭</strong> (베타) — 업종 제한 없이 노출 가능.
+                <strong>네이버 AI탭</strong> (정식 출시) — 업종 제한 없이 노출 가능.
                 소개글 200자·사진 10장·블로그 후기가 핵심
               </span>
             </div>

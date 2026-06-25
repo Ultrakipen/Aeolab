@@ -182,8 +182,8 @@ export default function ChannelDifferentiationCard({
           title="네이버 AI 탭"
           badge="참여 가능"
           badgeVariant="all"
-          description="검색 'AI' 탭. 업종 제한 없이 모두 노출 가능 (2026 베타)"
-          disclaimer="베타 · 확대 진행 중 · 콘텐츠 품질에 따라 다름"
+          description="검색 'AI' 탭. 업종 제한 없이 모두 노출 가능 (2026-06-25 정식 출시)"
+          disclaimer="정식 출시 · 콘텐츠 품질에 따라 다름"
           highlight={group !== "ACTIVE"}
           compact={isCompact}
         />

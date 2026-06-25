@@ -487,7 +487,7 @@ export default function DemoPage() {
   const channelDefs: Record<string, ChannelDef> = {
     briefing:    { icon: "✨", label: "네이버 AI 브리핑", border: "border-purple-400", note: briefingNote },
     naverSearch: { icon: "🔍", label: "네이버 일반검색", border: "border-green-400", items: naverSearchItems },
-    aitab:       { icon: "🤖", label: "네이버 AI탭", border: "border-blue-400", note: "네이버 AI탭은 모든 업종 대상(2026-04 베타 오픈, 확대 중). 소개글·리뷰 키워드를 보강하면 AI탭 답변 후보에 들어갑니다." },
+    aitab:       { icon: "🤖", label: "네이버 AI탭", border: "border-blue-400", note: "네이버 AI탭은 모든 업종 대상(2026-06-25 정식 출시). 소개글·리뷰 키워드를 보강하면 AI탭 답변 후보에 들어갑니다." },
     global:      { icon: "🌐", label: "글로벌 AI (ChatGPT·Gemini)", border: "border-slate-400", items: globalItems },
   };
   // 업종그룹 순서분기 — 대시보드 InsightZone과 동일

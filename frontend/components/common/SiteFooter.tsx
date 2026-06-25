@@ -19,7 +19,7 @@ export function SiteFooter({ activePage }: { activePage?: string }) {
       <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start justify-between gap-4">
         <div className="shrink-0">
           <p className="text-sm font-semibold text-gray-700">AEOlab</p>
-          <p className="text-sm text-gray-400 mt-0.5 whitespace-nowrap">네이버 AI 브리핑 노출 관리 서비스</p>
+          <p className="text-sm text-gray-400 mt-0.5 whitespace-nowrap">AI 검색 노출 관리 서비스</p>
         </div>
         <div className="flex flex-col items-start sm:items-end gap-2 min-w-0">
           <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap justify-start sm:justify-end">

@@ -13,7 +13,7 @@ type FaqItem = {
 const FAQS: FaqItem[] = [
   {
     q: "내 업종도 네이버 AI 브리핑에 노출되나요?",
-    a: "음식점·카페·베이커리·바·숙박 업종이 대상이며 프랜차이즈는 제외됩니다. 대상이 아닌 업종도 ① 네이버 AI탭(모든 업종, 2026년 4월 베타) 노출 준비도 진단, ② 네이버 플레이스·VIEW 탭 일반 검색 상위 노출 최적화, ③ ChatGPT·Gemini·Google AI 채널 개선 — 세 방향으로 가치를 드립니다. 무료 진단으로 내 업종 채널별 현황을 확인하세요.",
+    a: "음식점·카페·베이커리·바·숙박 업종이 대상이며 프랜차이즈는 제외됩니다. 대상이 아닌 업종도 ① 네이버 AI탭(모든 업종, 정식 출시) 노출 준비도 진단, ② 네이버 플레이스·VIEW 탭 일반 검색 상위 노출 최적화, ③ ChatGPT·Gemini·Google AI 채널 개선 — 세 방향으로 가치를 드립니다. 무료 진단으로 내 업종 채널별 현황을 확인하세요.",
     aNode: (
       <div className="space-y-2.5">
         <p>음식점·카페·베이커리·바·숙박 업종이 대상이며 프랜차이즈는 제외됩니다.</p>
@@ -25,7 +25,7 @@ const FAQS: FaqItem[] = [
             <span className="font-bold shrink-0 mt-px" style={{ color: "#2563EB" }}>①</span>
             <span>
               <strong>네이버 AI탭</strong> — 업종·프랜차이즈 제한 없이 모든 사업장 노출 가능
-              <span className="ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-medium" style={{ background: "#EFF6FF", color: "#1D4ED8" }}>2026년 4월 베타</span>
+              <span className="ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-medium" style={{ background: "#EFF6FF", color: "#1D4ED8" }}>정식 출시 (6.25)</span>
             </span>
           </li>
           <li className="flex gap-2.5">
