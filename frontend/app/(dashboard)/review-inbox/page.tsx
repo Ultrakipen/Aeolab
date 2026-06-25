@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient, getSafeSession } from '@/lib/supabase/client'
 import {
   generateReviewReply, getReviewReplies, deleteReviewReply,
@@ -288,6 +288,9 @@ function CopyButton({ text }: { text: string }) {
 export default function ReviewInboxPage() {
   const [businessId, setBusinessId] = useState<string | null>(null)
   const [bizName, setBizName] = useState<string | null>(null)
+  const [businesses, setBusinesses] = useState<{ id: string; name: string }[]>([])
+  const [bizDropdownOpen, setBizDropdownOpen] = useState(false)
+  const bizDropdownRef = useRef<HTMLDivElement>(null)
   const [token, setToken] = useState<string | null>(null)
   const [plan, setPlan] = useState<string>('free')
   const [planLoading, setPlanLoading] = useState(true)
@@ -328,6 +331,9 @@ export default function ReviewInboxPage() {
         .from('businesses').select('id, name').eq('user_id', session.user.id).eq('is_active', true)
 
       if (!businesses || businesses.length === 0) return
+
+      const validBizList = businesses.map(b => ({ id: b.id, name: b.name ?? '' }))
+      setBusinesses(validBizList)
 
       // 쿠키 → localStorage → 첫 번째 순으로 활성 사업장 선택
       const cookieId = getActiveBizIdFromCookie()
@@ -387,6 +393,43 @@ export default function ReviewInboxPage() {
     window.addEventListener('aeolab:active-biz-changed', handleBizChange)
     return () => window.removeEventListener('aeolab:active-biz-changed', handleBizChange)
   }, [])
+
+  // 드롭다운 외부 클릭 시 닫기
+  useEffect(() => {
+    if (!bizDropdownOpen) return
+    function handleClick(e: MouseEvent) {
+      if (bizDropdownRef.current && !bizDropdownRef.current.contains(e.target as Node)) {
+        setBizDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [bizDropdownOpen])
+
+  // 페이지 내 사업장 직접 선택
+  const handleSelectBiz = async (id: string, name: string) => {
+    setBizDropdownOpen(false)
+    if (id === businessId) return
+    setBusinessId(id)
+    setBizName(name)
+    setResult(null)
+    setHistory([])
+    setUsageStat(null)
+    // 쿠키·localStorage 동기화 (사이드바와 일치)
+    document.cookie = `aeolab_active_biz=${id}; path=/; max-age=31536000; samesite=lax`
+    try { localStorage.setItem('aeolab.activeBizId', id) } catch { /* 무시 */ }
+    window.dispatchEvent(new CustomEvent('aeolab:active-biz-changed', { detail: { bizId: id } }))
+    if (!token) return
+    try {
+      const usageRes = await fetch(`${BACKEND}/api/guide/${id}/review-reply/usage`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (usageRes.ok) {
+        const usageData = await usageRes.json() as { used: number; limit: number }
+        setUsageStat(usageData)
+      }
+    } catch { /* 무시 */ }
+  }
 
   const fetchHistory = useCallback(async () => {
     if (!businessId || !token) return
@@ -515,18 +558,45 @@ export default function ReviewInboxPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-          <MessageSquare className="w-5 h-5 text-blue-600" />
+      <div className="flex items-start justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+            <MessageSquare className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
+            <p className="text-sm text-gray-500">리뷰를 붙여넣으면 AI가 업종 키워드를 포함한 답변 초안을 드립니다</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
-          <p className="text-sm text-gray-500">
-            {bizName ? (
-              <span>현재 사업장: <span className="font-medium text-gray-700">{bizName}</span></span>
-            ) : '리뷰를 붙여넣으면 AI가 업종 키워드를 포함한 답변 초안을 드립니다'}
-          </p>
-        </div>
+
+        {/* 사업장 선택 드롭다운 — 2개 이상일 때만 표시 */}
+        {businesses.length >= 2 && (
+          <div className="relative shrink-0" ref={bizDropdownRef}>
+            <button
+              type="button"
+              onClick={() => setBizDropdownOpen(v => !v)}
+              className="flex items-center gap-1.5 text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white hover:bg-gray-50 transition-colors max-w-[160px]"
+            >
+              <span className="truncate font-medium text-gray-800">{bizName ?? '사업장 선택'}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            </button>
+            {bizDropdownOpen && (
+              <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1">
+                {businesses.map(b => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => handleSelectBiz(b.id, b.name)}
+                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${b.id === businessId ? 'font-semibold text-blue-600' : 'text-gray-700'}`}
+                  >
+                    {b.name}
+                    {b.id === businessId && <span className="ml-1 text-xs text-blue-400">선택됨</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 입력 폼 */}
