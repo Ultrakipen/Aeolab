@@ -331,7 +331,7 @@ export default async function LandingPage() {
             <div className="fade-up flex flex-col gap-3">
               {[
                 { num: "3,000만+", label: "네이버 AI 서비스 월 이용자 (전체)", sub: "뉴스·검색·플레이스 전체 합산 · 네이버 공식 발표 (2025.11)", delay: "delay-1", isAiTab: false },
-                { num: "2026.04", label: "네이버 AI탭 베타 출시", sub: "2026-04-27 베타 출시 · 정식 서비스 확대 예정(시점 네이버 공지 기준) · 네이버 공식", delay: "delay-2", isAiTab: false },
+                { num: "2026.04", label: "네이버 AI탭 베타 출시", sub: "2026-04-27 베타 출시 · 2026-06-25 정식 출시 · 네이버 공식", delay: "delay-2", isAiTab: false },
                 { num: "25종+", label: "모든 업종 측정 가능", sub: "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기", delay: "delay-3", isAiTab: true },
               ].map((item) => (
                 <div
@@ -753,7 +753,7 @@ export default async function LandingPage() {
               업종 공식 제한 없음, 2026-04-27 베타 — AI 브리핑과 다른 경로
             </h2>
             <p className="text-sm mt-2 break-keep max-w-2xl mx-auto" style={{ color: "#475569" }}>
-              2026-04-27 베타 출시 · 베타 확대 중 · 네이버 공식
+              2026-04-27 베타 출시 · 2026-06-25 정식 출시 (네이버 공식)
             </p>
           </div>
 
@@ -766,7 +766,7 @@ export default async function LandingPage() {
               학원·병원·미용실·헬스장·법무사 등 — AI 브리핑 비대상이어도 <span style={{ color: "#6366F1" }}>AI탭</span> 노출을 준비할 수 있습니다
             </p>
             <p className="text-sm mt-1.5 break-keep text-center" style={{ color: "#4338CA" }}>
-              2026-04-27 베타 출시 · 베타 확대 중
+              2026-04-27 베타 출시 · 2026-06-25 정식 출시
             </p>
           </div>
 
@@ -835,7 +835,7 @@ export default async function LandingPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">🟣</span>
                   <h3 className="text-base font-black text-white">네이버 AI탭</h3>
-                  <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.25)", color: "#fff" }}>베타 확대 중</span>
+                  <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.25)", color: "#fff" }}>정식 출시</span>
                 </div>
                 <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
                   검색 탭에서 &apos;AI&apos;를 클릭하면 나오는 AI 답변
@@ -847,8 +847,8 @@ export default async function LandingPage() {
                 <div className="mb-4">
                   <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">노출 대상 업종</p>
                   <div className="rounded-lg px-3 py-2.5" style={{ background: "#E0E7FF" }}>
-                    <p className="text-sm font-black text-indigo-800">🏢 업종 공식 제한 없음 · 베타 확대 중</p>
-                    <p className="text-sm text-indigo-600 mt-0.5">장소 기반 모든 업종 가능 · AI탭 베타 이용자 300만 돌파</p>
+                    <p className="text-sm font-black text-indigo-800">🏢 업종 공식 제한 없음 · 정식 출시</p>
+                    <p className="text-sm text-indigo-600 mt-0.5">장소 기반 모든 업종 가능 · AI탭 300만 달성 · 2026-06-25 정식 출시</p>
                   </div>
                   <div className="mt-2 flex items-center gap-1.5">
                     <span className="text-sm px-2 py-0.5 rounded-full font-semibold" style={{ background: "#D1FAE5", color: "#065F46" }}>✓ 프랜차이즈 가맹점도 가능</span>
@@ -862,7 +862,7 @@ export default async function LandingPage() {
                     {[
                       { icon: "👆", text: "검색 결과 탭에서 'AI' 클릭 시 답변에 내 가게 등장" },
                       { icon: "🌐", text: "업종 공식 제한 없음 — 장소 기반 모든 업종 가능" },
-                      { icon: "🚀", text: "2026-04-27 베타 출시 · 베타 확대 중 (네이버 공식)" },
+                      { icon: "🚀", text: "2026-04-27 베타 출시 · 2026-06-25 정식 출시 (네이버 공식)" },
                       { icon: "📝", text: "노출 기준: 소개글, 사진, 예약 연동, 블로그 UGC" },
                     ].map(({ icon, text }) => (
                       <div key={text} className="flex items-start gap-2">

@@ -27,13 +27,13 @@ const GROUP_CONTENT = {
     impact: "AI 브리핑에 실제로 노출되고 있는 사장님은 점수 상승이 예상됩니다. 스마트플레이스를 완성하지 않은 경우 점수 하락이 있을 수 있습니다.",
   },
   LIKELY: {
-    label: "AI탭 베타 준비 업종 (미용·네일·피트니스·요가·반려·약국)",
+    label: "AI탭 대상 업종 (미용·네일·피트니스·요가·반려·약국)",
     color: "bg-indigo-50 border-indigo-200 dark:bg-indigo-950 dark:border-indigo-700",
     titleColor: "text-indigo-800 dark:text-indigo-200",
     badge: "bg-indigo-600 text-white",
-    badgeText: "AI탭 베타 대상",
+    badgeText: "AI탭 대상",
     changes: [
-      "네이버 AI탭(베타) 노출 반영이 새로 추가됩니다 — 2026-04-27 베타 출시(네이버플러스 우선), 베타 확대 중 기준.",
+      "네이버 AI탭(정식 출시) 노출 반영이 새로 추가됩니다 — 2026-04-27 베타 출시(네이버플러스 우선), 정식 출시 기준.",
       "미용 업종은 2026년 내 AI 브리핑 ACTIVE 전환이 공식 예고되어 있습니다 (네이버 컨퍼런스콜 2026.02 기준). 소개글·리뷰를 미리 완성해두면 전환 시 즉시 노출 우위를 가질 수 있습니다.",
       "ChatGPT·Gemini 인용 신호가 글로벌 AI 점수에 더 세밀하게 반영됩니다.",
     ],

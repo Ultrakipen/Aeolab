@@ -63,7 +63,7 @@ function getDeficiencyMessage(
   userGroup: string,
 ): string | null {
   if (userGroup === "INACTIVE" || userGroup === "franchise") {
-    return "이 업종은 네이버 AI 브리핑 대상이 아닙니다. 네이버 AI탭(업종 공식 제한 없음, 2026-04-27 베타, 베타 확대 중)과 GPT/Gemini 개선 방안을 함께 실행하세요.";
+    return "이 업종은 네이버 AI 브리핑 대상이 아닙니다. 네이버 AI탭(업종 공식 제한 없음, 2026-04-27 베타, 정식 출시)과 GPT/Gemini 개선 방안을 함께 실행하세요.";
   }
   if (!isSmartPlace) {
     return "스마트플레이스 미등록 → 네이버 AI 브리핑 노출 불가. 아래 할 일에서 등록 방법을 확인하세요.";
@@ -211,7 +211,7 @@ export default function NaverTrackCard({
       {isGlobal && (
         <div className="bg-amber-100 border border-amber-200 rounded-xl px-3 py-2.5 mb-3">
           <p className="text-sm font-semibold text-amber-900 leading-relaxed break-keep">
-            이 업종의 주요 노출 채널은 네이버 AI탭(업종 공식 제한 없음, 2026-04-27 베타, 베타 확대 중) + ChatGPT·Gemini입니다. 아래 섹션에서 개선 방법을 확인하세요.
+            이 업종의 주요 노출 채널은 네이버 AI탭(업종 공식 제한 없음, 2026-04-27 베타, 정식 출시) + ChatGPT·Gemini입니다. 아래 섹션에서 개선 방법을 확인하세요.
           </p>
         </div>
       )}

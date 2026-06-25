@@ -66,7 +66,7 @@ export function ChannelScoreCards({
     naverMentioned === undefined ? '네이버 AI 브리핑 측정 불가 (재스캔 권장)' : '네이버 AI 브리핑 노출'
   const naverItems = [
     { label: naverBriefingLabel, ok: !!naverMentioned, unmeasured: naverMentioned === undefined },
-    { label: '네이버 AI탭 노출 (Beta · 베타 확대 중)', ok: !!aiTabMentioned },
+    { label: '네이버 AI탭 노출 (정식 출시)', ok: !!aiTabMentioned },
     { label: '스마트플레이스 등록',                ok: !!isSmartPlace },
     { label: kakaoLabel,                           ok: !!isOnKakao },
   ]

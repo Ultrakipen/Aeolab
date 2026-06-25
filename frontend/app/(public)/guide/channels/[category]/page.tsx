@@ -30,7 +30,7 @@ export async function generateMetadata({
     entry.briefing === "active"
       ? "네이버 AI 브리핑 노출 가능 업종"
       : entry.briefing === "likely"
-      ? "네이버 AI탭 베타 대상 업종"
+      ? "네이버 AI탭 대상 업종"
       : "AI탭 + 글로벌 AI 최적화 대상 업종"
 
   return {
@@ -52,7 +52,7 @@ function getChannelCards(entry: ChannelGuideEntry) {
         entry.briefing === "active"
           ? "검색 결과 상단 AI 브리핑에 플레이스 카드로 노출됩니다."
           : entry.briefing === "likely"
-          ? "2026 AI탭 베타 공개 중. 업종 확대 시 즉시 대상이 됩니다."
+          ? "2026-06-25 AI탭 정식 출시. 업종 확대 시 즉시 대상이 됩니다."
           : "현재 AI 브리핑 대상 업종이 아닙니다. AI탭과 글로벌 AI에 집중하세요.",
       icon: "🤖",
     },
@@ -60,10 +60,10 @@ function getChannelCards(entry: ChannelGuideEntry) {
       id: "aitab",
       title: "네이버 AI탭",
       subtitle: "2026 베타 공개",
-      status: "2026-04-27 베타 · 베타 확대 중",
+      status: "2026-04-27 베타 · 정식 출시",
       statusColor: "bg-violet-100 text-violet-800",
       detail:
-        "2026-04-27 베타, 베타 확대 중. 업종 공식 제한이 없습니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
+        "2026-04-27 베타, 정식 출시. 업종 공식 제한이 없습니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
       icon: "✨",
     },
     {

@@ -367,8 +367,10 @@ export default function DailyMissionCard({
               <div className="flex items-center gap-2 text-green-700 text-sm font-semibold bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-3">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 완료! 다음 스캔에서 개선 효과를 확인해보세요{" "}
-                {GLOBAL_DIMS.has(topDimension?.dimension_key ?? "")
-                  ? "(글로벌 AI 반영까지 수개월~1년 소요)"
+                {topDimension?.dimension_key === "multi_ai_exposure"
+                  ? "(ChatGPT 수개월~1년, Gemini 2~4주 소요)"
+                  : topDimension?.dimension_key === "schema_seo"
+                  ? "(Google/Gemini 2~4주, ChatGPT 수개월~1년 소요)"
                   : "(네이버 반영까지 2~4주 소요)"}
               </div>
             ) : (

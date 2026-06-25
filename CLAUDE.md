@@ -191,7 +191,7 @@
 ### 1. AI 브리핑 노출 게이팅 (단일 진실)
 
 - **ACTIVE 업종**: restaurant, cafe, bakery, bar, accommodation — 네이버 AI 브리핑 플레이스형 노출 대상 (beauty·nail은 LIKELY, 코드 `score_engine.py:30` 기준)
-- **LIKELY 업종**: beauty, nail, pet, fitness, yoga, pharmacy — **AI 브리핑 플레이스형** 노출 확대 예정 업종 (안내 톤 분기). ※ AI탭(대화형 검색)은 업종 무관 — 2026-04-27 네이버플러스 멤버십 베타 → **2026-06 전체 네이버 사용자 확대 예정** (사용자 확대이며 업종 확대 아님, 네이버 공식 발표 기준)
+- **LIKELY 업종**: beauty, nail, pet, fitness, yoga, pharmacy — **AI 브리핑 플레이스형** 노출 확대 예정 업종 (안내 톤 분기). ※ AI탭(대화형 검색)은 업종 무관 — 2026-04-27 베타 출시 → **2026-06-25 전체 네이버 사용자 정식 출시 완료** (사용자 확대이며 업종 확대 아님, 네이버 공식)
 - **INACTIVE 업종**: 그 외 모든 업종 → 글로벌 AI(ChatGPT·Gemini·Google AI) 중심 안내
 - **프랜차이즈는 ACTIVE 업종이라도 제외** (네이버 공식 정책) — `get_briefing_eligibility(category, is_franchise)` 사용
 - **단일 소스 동기화**: backend `score_engine.py:30` `BRIEFING_ACTIVE_CATEGORIES` ↔ frontend `lib/userGroup.ts:43` `BRIEFING_ACTIVE_CATEGORIES` — 한쪽 변경 시 양쪽 동시 수정 필수 (RegisterBusinessForm.tsx·dashboard/page.tsx는 userGroup.ts를 import)
@@ -457,16 +457,20 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 ## API 비용 관리 (BEP 20명 기준, A안 50/50 반영)
 
-| API | 단가 | 월 비용 | 용도 |
-|-----|------|--------|------|
-| Gemini 2.5 Flash | $0.15/1M in, $0.60/1M out | ~$3 | Basic 자동 50회 / Full 100회 (2026-05-31 2.0→2.5 마이그레이션) |
-| OpenAI gpt-4.1-mini | $0.15/1M in, $0.60/1M out | ~$2 | Basic 자동 50회 / Full 100회 (A안 신규) |
-| Claude Sonnet | $3/1M | ~$3 | 가이드 생성 시만 |
+> **단가 기준 (2026-06-25 공식 확인):** Gemini = Standard Tier (gemini_scanner.py가 실시간 `generate_content` 사용). 월 비용은 실측 데이터 미확보로 추정값 — 실구독자 확보 후 재산정 필요.
+
+| API | 단가 | 월 비용 (추정) | 용도 |
+|-----|------|--------------|------|
+| Gemini 2.5 Flash | **$0.30/1M in, $2.50/1M out** (Standard, thinking 포함) | ~$3~8 | Basic 자동 50회 / Full 100회 (2026-05-31 2.0→2.5 마이그레이션) |
+| OpenAI gpt-4.1-mini | **$0.40/1M in, $1.60/1M out** | ~$1~3 | Basic 자동 50회 / Full 100회 (A안 신규) |
+| Claude Sonnet | $3/1M in | ~$3 | 가이드 생성 시만 |
 | 카카오 알림톡 | 8~15원/건 | ~800원 | 변화 있을 때 |
 | iwinv 서버 | 고정 | 27,800원 | |
-| **합계** | | **~7.5만원** | A안 도입 추가 ~3,000~4,500원 |
+| **합계** | | **~8~15만원** | Gemini thinking 토큰 실측 전 상단 불확실 |
 
-**마진율:** Basic 85%, Pro 78%, Biz 70% (A안으로 0.5~1%p 하락, 사용자 인지도 ↑로 상쇄)
+> ⚠️ **Gemini 2.5 Flash thinking 토큰 주의**: 출력 단가 $2.50에 thinking 토큰 포함. 단순 JSON 태스크에서 thinking이 최소화되면 실제 비용은 하단에 가까움. 구독자 확보 후 실측 필요. Batch Tier($0.15/$1.25) 전환 시 비용 절반 이하로 감소 가능.
+
+**마진율:** Basic 85%, Pro 78%, Biz 70% — API 단가 정정으로 실제 마진율 재검토 필요 (특히 Gemini thinking 토큰 실측 후)
 
 ---
 

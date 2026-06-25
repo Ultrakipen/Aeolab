@@ -17,7 +17,7 @@ interface PlatformDistributionChartProps {
 
 const NAVER_PLATFORMS: { key: string; label: string; color: string }[] = [
   { key: 'naver',        label: '네이버 AI 브리핑',            color: '#03c75a' },
-  { key: 'naver_ai_tab', label: '네이버 AI탭 (Beta · 2026-04-27 출시)', color: '#0ea5e9' },
+  { key: 'naver_ai_tab', label: '네이버 AI탭 (2026-06-25 정식 출시)', color: '#0ea5e9' },
 ]
 
 const GLOBAL_PLATFORMS: { key: string; label: string; color: string }[] = [
@@ -222,7 +222,7 @@ export function PlatformDistributionChart({
                 → 네이버 일반 검색 상위노출(C-Rank · 리뷰·소식 최적화) 집중 권장
               </p>
               <PlatformRow
-                platform={{ key: 'naver_ai_tab', label: '네이버 AI탭 (Beta · 2026-04-27 출시)', color: '#0ea5e9' }}
+                platform={{ key: 'naver_ai_tab', label: '네이버 AI탭 (2026-06-25 정식 출시)', color: '#0ea5e9' }}
                 result={results['naver_ai_tab']}
               />
             </>
