@@ -287,6 +287,7 @@ function CopyButton({ text }: { text: string }) {
 
 export default function ReviewInboxPage() {
   const [businessId, setBusinessId] = useState<string | null>(null)
+  const [bizName, setBizName] = useState<string | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [plan, setPlan] = useState<string>('free')
   const [planLoading, setPlanLoading] = useState(true)
@@ -305,17 +306,37 @@ export default function ReviewInboxPage() {
   // 월 사용량 (마지막 생성 후 서버 응답 기준)
   const [usageStat, setUsageStat] = useState<{ used: number; limit: number } | null>(null)
 
+  // 쿠키에서 활성 사업장 ID 읽기
+  function getActiveBizIdFromCookie(): string | null {
+    try {
+      const match = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('aeolab_active_biz='))
+      return match ? match.split('=')[1] : null
+    } catch { return null }
+  }
+
   useEffect(() => {
+    let currentToken: string | null = null
+
     const init = async () => {
       const session = await getSafeSession()
       if (!session) return
+      currentToken = session.access_token
       setToken(session.access_token)
 
       const supabase = createClient()
       const { data: businesses } = await supabase
-        .from('businesses').select('id').eq('user_id', session.user.id).eq('is_active', true).limit(1)
-      const biz = businesses?.[0]
-      if (biz) setBusinessId(biz.id)
+        .from('businesses').select('id, name').eq('user_id', session.user.id).eq('is_active', true)
+
+      if (!businesses || businesses.length === 0) return
+
+      // 쿠키 → localStorage → 첫 번째 순으로 활성 사업장 선택
+      const cookieId = getActiveBizIdFromCookie()
+      const storedId = (() => { try { return localStorage.getItem('aeolab.activeBizId') } catch { return null } })()
+      const preferredId = cookieId || storedId
+      const biz = (preferredId && businesses.find(b => b.id === preferredId)) || businesses[0]
+
+      setBusinessId(biz.id)
+      setBizName(biz.name ?? null)
 
       const { data: sub } = await supabase
         .from('subscriptions').select('plan, status').eq('user_id', session.user.id).in('status', ['active', 'grace_period']).maybeSingle()
@@ -335,7 +356,36 @@ export default function ReviewInboxPage() {
         } catch { /* 사용량 조회 실패는 조용히 무시 */ }
       }
     }
+
     init()
+
+    // 사이드바에서 사업장 전환 시 연동
+    const handleBizChange = async (e: Event) => {
+      const bizId = (e as CustomEvent<{ bizId: string }>).detail?.bizId
+      if (!bizId) return
+      setBusinessId(bizId)
+      setResult(null)
+      setHistory([])
+      setUsageStat(null)
+
+      const supabase = createClient()
+      const { data } = await supabase.from('businesses').select('name').eq('id', bizId).maybeSingle()
+      setBizName(data?.name ?? null)
+
+      if (!currentToken) return
+      try {
+        const usageRes = await fetch(`${BACKEND}/api/guide/${bizId}/review-reply/usage`, {
+          headers: { Authorization: `Bearer ${currentToken}` },
+        })
+        if (usageRes.ok) {
+          const usageData = await usageRes.json() as { used: number; limit: number }
+          setUsageStat(usageData)
+        }
+      } catch { /* 무시 */ }
+    }
+
+    window.addEventListener('aeolab:active-biz-changed', handleBizChange)
+    return () => window.removeEventListener('aeolab:active-biz-changed', handleBizChange)
   }, [])
 
   const fetchHistory = useCallback(async () => {
@@ -471,7 +521,11 @@ export default function ReviewInboxPage() {
         </div>
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
-          <p className="text-sm text-gray-500">리뷰를 붙여넣으면 AI가 업종 키워드를 포함한 답변 초안을 드립니다</p>
+          <p className="text-sm text-gray-500">
+            {bizName ? (
+              <span>현재 사업장: <span className="font-medium text-gray-700">{bizName}</span></span>
+            ) : '리뷰를 붙여넣으면 AI가 업종 키워드를 포함한 답변 초안을 드립니다'}
+          </p>
         </div>
       </div>
 
