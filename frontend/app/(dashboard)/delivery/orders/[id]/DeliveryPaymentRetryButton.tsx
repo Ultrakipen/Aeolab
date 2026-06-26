@@ -3,12 +3,6 @@
 import { useState } from "react";
 import { Loader2, CreditCard } from "lucide-react";
 
-const PACKAGE_PRICES: Record<string, number> = {
-  smartplace_register: 49000,
-  ai_optimization: 79000,
-  comprehensive: 119000,
-};
-
 const PACKAGE_NAMES: Record<string, string> = {
   smartplace_register: "01 스마트플레이스 등록 대행",
   ai_optimization: "02 AI 검색 최적화",
@@ -38,7 +32,7 @@ export default function DeliveryPaymentRetryButton({ orderId, packageType, amoun
       // @ts-ignore
       const { loadTossPayments } = await import("@tosspayments/payment-sdk");
       const tossPayments = await loadTossPayments(clientKey);
-      const price = PACKAGE_PRICES[packageType] ?? amount;
+      const price = amount;
       const pkgName = PACKAGE_NAMES[packageType] ?? packageType;
       const tossOrderId = `delivery_${orderId}_${Date.now()}`;
       // @ts-ignore

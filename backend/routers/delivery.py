@@ -183,7 +183,7 @@ async def _get_order_or_404(order_id: str) -> dict:
     supabase = get_client()
     res = await execute(
         supabase.table("delivery_orders")
-        .select("id, user_id, business_id, package_type, request_title, request_body, status, amount, consent_agreed, consent_signed_at, consent_ip, completion_report, created_at")
+        .select("id, user_id, business_id, package_type, request_title, request_body, status, amount, consent_agreed, consent_signed_at, consent_ip, completion_report, materials_url, created_at")
         .eq("id", order_id)
         .single()
     )
@@ -352,7 +352,7 @@ async def create_order(
 
     order_id = insert_res.data[0]["id"]
     _logger.info(f"[delivery] 의뢰 생성 완료: order_id={order_id}, user_id={user_id}, package={body.package_type}")
-    return {"order_id": order_id, "status": "received", "amount": pkg["amount"]}
+    return {"id": order_id, "order_id": order_id, "status": "received", "amount": pkg["amount"]}
 
 
 @router.get("/orders/me")
