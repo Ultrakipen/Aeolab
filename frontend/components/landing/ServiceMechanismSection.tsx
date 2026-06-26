@@ -36,7 +36,7 @@ export default function ServiceMechanismSection() {
               num="①"
               title="AI 브리핑 대상 업종"
               active="음식점·카페·베이커리·바·숙박"
-              detail="그 외 업종은 ChatGPT·Gemini·Google AI + 네이버 AI탭(업종 공식 제한 없음, 2026-04-27 베타) 노출 개선으로 가치 전달"
+              detail="그 외 업종은 ChatGPT·Gemini·Google AI + 네이버 AI탭(업종 공식 제한 없음, 2026-06-25 정식 출시) 노출 개선으로 가치 전달"
               variant="blue"
             />
             <GateCard
