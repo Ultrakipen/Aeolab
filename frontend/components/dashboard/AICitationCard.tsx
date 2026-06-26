@@ -112,7 +112,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
         {isNaverInactive && (
           <div className="mb-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             <p className="text-sm font-semibold text-amber-800">이 업종은 네이버 AI 브리핑 대상이 아닙니다</p>
-            <p className="text-sm text-amber-700 mt-0.5">네이버 AI탭(업종 공식 제한 없음, 2026-04-27 베타) · ChatGPT · Gemini 노출 현황을 확인합니다.</p>
+            <p className="text-sm text-amber-700 mt-0.5">네이버 AI탭(업종 공식 제한 없음, 2026-06-25 정식 출시) · ChatGPT · Gemini 노출 현황을 확인합니다.</p>
           </div>
         )}
         <p className="text-sm text-gray-500 leading-relaxed">

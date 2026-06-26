@@ -117,7 +117,7 @@ export default async function AiTabGuidePage({
       {/* 두 경로 분기 안내 — 가이드 진입 직후 명확화 */}
       <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5">
         <p className="text-sm md:text-base font-bold text-indigo-900 mb-1.5">
-          🆕 네이버 AI탭 — 검색결과 상단 &quot;AI&quot; 탭 (2026-04-27 베타)
+          ✅ 네이버 AI탭 — 검색결과 상단 &quot;AI&quot; 탭 (2026-06-25 정식 출시)
         </p>
         <p className="text-sm md:text-base text-indigo-800 leading-relaxed break-keep">
           AI 브리핑(검색결과 상단 자동 추천 박스)과는 다른 노출 경로입니다.
@@ -140,7 +140,7 @@ export default async function AiTabGuidePage({
           AI탭에 내 사업장이 노출되도록 핵심 항목 5개를 점검합니다. 평균 소요 20분.
         </p>
         <p className="mt-2 text-sm md:text-base text-gray-500">
-          출처: 네이버 공식 발표 (2026-04-27 베타) · 항목 기준은 실측 기반 권장값
+          출처: 네이버 공식 발표 (2026-04-27 베타 → 2026-06-25 정식 출시) · 항목 기준은 실측 기반 권장값
         </p>
       </div>
 
