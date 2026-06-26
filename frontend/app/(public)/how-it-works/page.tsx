@@ -459,7 +459,7 @@ export default function HowItWorksPage() {
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
             소개글·소식·리뷰(3단계)는 네이버 AI 채널에 효과적입니다.
             ChatGPT·Gemini는 구글·Bing 생태계 기반이라 별도 경로가 필요합니다.
-            아래 1~3위(네이버·Gemini·Google)는 모두 <strong>2~4주</strong>로 속도 구간이 비슷하며 순서는 진입 난이도 기준이고, ChatGPT만 <strong>수개월~1년</strong>으로 크게 느립니다.
+            네이버(1위)는 <strong>2~4주</strong>, Gemini·Google(2~3위)는 <strong>수 주~수개월</strong>이며 순서는 진입 난이도 기준이고, ChatGPT만 <strong>수개월~1년</strong>으로 크게 느립니다.
           </p>
 
           {/* 채널별 노출 속도 순서 카드 */}
@@ -482,7 +482,7 @@ export default function HowItWorksPage() {
             <div className="rounded-xl border-2 border-blue-300 bg-blue-50 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="shrink-0 w-7 h-7 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center">2</span>
-                <p className="text-sm md:text-base font-bold text-blue-900">Gemini (Google 그라운딩) — <span className="text-blue-700">2~4주</span></p>
+                <p className="text-sm md:text-base font-bold text-blue-900">Gemini (Google 그라운딩) — <span className="text-blue-700">수 주~수개월</span></p>
               </div>
               <ul className="space-y-1 text-sm text-gray-700 ml-9">
                 <li>• 구글 비즈니스 프로필 등록·완성 (우선순위 1위)</li>

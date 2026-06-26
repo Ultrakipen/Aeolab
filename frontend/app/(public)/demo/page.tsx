@@ -747,7 +747,7 @@ export default function DemoPage() {
                 {[
                   { ch: "네이버 AI 브리핑", period: "2~4주",      border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집" },
                   { ch: "네이버 AI탭",       period: "2~4주",      border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강" },
-                  { ch: "Gemini",            period: "2~4주",       border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 후 반영 시작, 안정적 인용까지 수 개월 소요" },
+                  { ch: "Gemini",            period: "수 주~수개월",  border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 후 수주 내 반영 시작, 안정적 인용까지 수 개월 소요" },
                   { ch: "ChatGPT",           period: "수개월~1년",  border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "Bing Places 등록 시 빠름 · 웹콘텐츠 기반" },
                 ].map((item) => (
                   <div key={item.ch} className={`rounded-xl border ${item.border} ${item.bg} px-3 py-2.5`}>
