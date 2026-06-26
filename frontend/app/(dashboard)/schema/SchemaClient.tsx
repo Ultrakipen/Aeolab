@@ -828,7 +828,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
             }
           </div>
           <p className="text-sm text-center text-gray-400">
-            적용 후 네이버 AI 브리핑·AI탭은 2~4주, ChatGPT·Gemini는 수개월 후 AEOlab 스캔에서 점수 변화를 확인하세요.
+            적용 후 네이버 AI 브리핑·AI탭은 2~4주, Gemini는 수 주~수개월, ChatGPT는 수개월~1년 후 AEOlab 스캔에서 점수 변화를 확인하세요.
           </p>
         </div>
       )}
