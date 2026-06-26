@@ -7,7 +7,7 @@ import { LogoutButton } from "./LogoutButton";
 import {
   LayoutDashboard, Store, Lightbulb, Code2, History, FileText,
   Settings, MessageSquare, Menu, X, Lock, TrendingUp, BookOpen, ShoppingBag,
-  Search, HelpCircle, MessageCircle,
+  Search, HelpCircle, MessageCircle, Shield, BarChart2, Sparkles, BookMarked,
   type LucideIcon,
 } from "lucide-react";
 import { SidebarBusinessSwitcher } from "@/components/dashboard/SidebarBusinessSwitcher";
@@ -41,15 +41,17 @@ const NAV_GROUPS: {
     label: "개선 실행",
     items: [
       { href: "/guide",         label: "개선 가이드",         Icon: Lightbulb,     requiresBusiness: true },
-      { href: "/schema",        label: "소개글 · 콘텐츠 생성", Icon: Code2,         requiredPlan: "basic", requiresBusiness: true },
+      { href: "/schema",        label: "소개글 · 콘텐츠",     Icon: Code2,         requiredPlan: "basic", requiresBusiness: true },
       { href: "/blog-analysis", label: "블로그 진단",         Icon: FileText,      requiredPlan: "basic", requiresBusiness: true },
       { href: "/review-inbox",  label: "리뷰 답변",           Icon: MessageSquare, requiredPlan: "basic", requiresBusiness: true },
+      { href: "/ad-defense",    label: "광고 방어",           Icon: Shield,        requiredPlan: "pro",   requiresBusiness: true },
     ],
   },
   {
-    label: "전문 대행",
+    label: "전문 서비스",
     items: [
-      { href: "/delivery", label: "대행 서비스", Icon: ShoppingBag, badge: "인기" },
+      { href: "/delivery", label: "대행 서비스",    Icon: ShoppingBag, badge: "인기" },
+      { href: "/startup",  label: "창업 시장 분석", Icon: BarChart2,   requiredPlan: "startup" },
     ],
   },
 ];
@@ -57,8 +59,8 @@ const NAV_GROUPS: {
 // 하단 서비스 링크 (검색 포함 여부 선택 — 여기선 포함)
 const FOOTER_ITEMS: NavItem[] = [
   { href: "/guide/ai-info-tab",    label: "AI 브리핑 5단계",       Icon: BookOpen },
-  { href: "/guide/chatgpt-search", label: "ChatGPT 최적화 가이드", Icon: MessageSquare },
-  { href: "/how-it-works",         label: "서비스 매뉴얼",         Icon: BookOpen },
+  { href: "/guide/chatgpt-search", label: "ChatGPT 가이드",        Icon: Sparkles },
+  { href: "/how-it-works",         label: "서비스 매뉴얼",         Icon: BookMarked },
   { href: "/support",              label: "자주 묻는 질문",        Icon: HelpCircle },
   { href: "/support/tickets",      label: "1:1 문의",              Icon: MessageCircle },
 ];
