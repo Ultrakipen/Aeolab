@@ -220,7 +220,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 mb-4 px-1">
               {[
                 { dot: "bg-green-500", label: "네이버 AI 브리핑 대상" },
-                { dot: "bg-blue-400", label: "AI 탭 확대 예정" },
+                { dot: "bg-blue-400", label: "AI 브리핑 확대 예정" },
                 { dot: "bg-violet-400", label: "글로벌 AI (ChatGPT·Gemini)" },
               ].map(({ dot, label }) => (
                 <span key={label} className="flex items-center gap-1.5 text-sm text-gray-500">
@@ -269,7 +269,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                         grp === "ACTIVE"
                           ? { text: "AI 브리핑", cls: "bg-green-100 text-green-700", dot: "bg-green-500" }
                           : grp === "LIKELY"
-                          ? { text: "AI 탭 확대 예정", cls: "bg-blue-100 text-blue-700", dot: "bg-blue-400" }
+                          ? { text: "AI 브리핑 확대 예정", cls: "bg-blue-100 text-blue-700", dot: "bg-blue-400" }
                           : { text: "글로벌 AI", cls: "bg-violet-50 text-violet-700", dot: "bg-violet-400" };
                       return (
                         <button
@@ -418,7 +418,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" aria-hidden="true" />
                       <div className="flex-1">
                         <p className="text-sm font-bold text-blue-900 mb-1">
-                          네이버 AI 탭 확대 예정 업종 — 현재 공식 대상은 아닙니다
+                          네이버 AI 브리핑 확대 예정 업종 — AI탭(정식 출시)은 이미 노출 가능
                         </p>
                         <ul className="space-y-1.5 mt-2">
                           <li className="flex items-start gap-1.5">
