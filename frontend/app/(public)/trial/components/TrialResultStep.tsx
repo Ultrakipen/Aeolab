@@ -10,6 +10,7 @@ import {
 import { getUserGroup, GROUP_MESSAGES, getBriefingEligibility, type BriefingEligibility } from "@/lib/userGroup";
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import TodayOneAction from "@/components/trial/TodayOneAction";
+import SubscriptionValueCompare from "@/components/trial/SubscriptionValueCompare";
 import NaverStatusSection from "@/components/trial/NaverStatusSection";
 import TrialKeywordRecommendCard from "@/components/trial/TrialKeywordRecommendCard";
 import KakaoShareButton from "@/components/common/KakaoShareButton";
@@ -1016,6 +1017,10 @@ export default function TrialResultStep(props: TrialResultProps) {
           trialId={result.trial_id as string | undefined}
         />
 
+        {/* ── 다음 측정일 + 구독 가치 비교 — TodayOneAction 직후, 모바일 조기 노출 ── */}
+        <NextScanDateNote nextScanDate={nextScanDate} isLoggedIn={isLoggedIn} />
+        <SubscriptionValueCompare isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
+
         {/* ── 네이버 현황 ── */}
         {(result as { business_type?: string }).business_type !== "non_location" && (
           <NaverStatusSection
@@ -1048,8 +1053,8 @@ export default function TrialResultStep(props: TrialResultProps) {
           />
         )}
 
-        {/* ── 네이버 개선 → AI 노출 인과관계 인사이트 ── */}
-        <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 px-4 py-4 mb-4">
+        {/* ── 네이버 개선 → AI 노출 인과관계 인사이트 (모바일 숨김 — 스크롤 단축) ── */}
+        <div className="hidden md:block rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 px-4 py-4 mb-4">
           <p className="text-sm font-bold text-blue-800 mb-3 break-keep">
             💡 네이버 정보를 개선하면 글로벌 AI 검색까지 연결됩니다
           </p>
