@@ -33,11 +33,31 @@ const PRIORITY_COLORS: Record<string, string> = {
   high: "border-l-red-500", medium: "border-l-yellow-500", low: "border-l-gray-300",
 };
 
-export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string; name: string }> }) {
+function daysAgo(dateStr: string): number {
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function formatScanDate(dateStr: string): string {
+  const days = daysAgo(dateStr);
+  if (days === 0) return "오늘";
+  if (days === 1) return "어제";
+  return `${days}일 전`;
+}
+
+export function AdDefenseClient({
+  businesses,
+  lastScanByBiz = {},
+}: {
+  businesses: Array<{ id: string; name: string }>;
+  lastScanByBiz?: Record<string, string>;
+}) {
   const [bizId, setBizId] = useState(businesses[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AdDefenseResult | null>(null);
   const [error, setError] = useState("");
+
+  const lastScanDate = lastScanByBiz[bizId];
+  const scanDays = lastScanDate ? daysAgo(lastScanDate) : null;
 
   async function handleGenerate() {
     if (!bizId) return;
@@ -76,10 +96,37 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
   return (
     <div className="p-4 md:p-8 max-w-3xl">
       <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">ChatGPT 광고 대응 가이드</h1>
-      <p className="text-base text-gray-500 mb-6">
+      <p className="text-base text-gray-500 mb-5">
         ChatGPT SearchGPT 광고 도입 시 유기적 AI 노출을 유지하는 전략을 제공합니다.
       </p>
 
+      {/* 배경 설명 */}
+      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5">
+        <p className="text-sm text-blue-800 leading-relaxed">
+          <span className="font-semibold">왜 지금 대비해야 할까요?</span>{" "}
+          ChatGPT에 광고가 도입되면 유료 광고가 AI 검색 결과를 밀어낼 수 있습니다.
+          지금 유기적 노출 경쟁력을 높여두면 광고 없이도 AI 검색 상위에 지속 노출될 수 있습니다.
+        </p>
+      </div>
+
+      {/* 사용 방법 3단계 */}
+      <div className="grid grid-cols-3 gap-2 md:gap-3 mb-6">
+        {[
+          { step: "1", label: "사업장 선택", desc: "분석할 가게를 선택하세요" },
+          { step: "2", label: "가이드 생성", desc: "AI가 10~20초 분석합니다" },
+          { step: "3", label: "전략 실행", desc: "우선순위대로 실행하세요" },
+        ].map(({ step, label, desc }) => (
+          <div key={step} className="bg-white rounded-xl p-3 md:p-4 shadow-sm text-center">
+            <div className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center mx-auto mb-2">
+              {step}
+            </div>
+            <div className="text-sm font-semibold text-gray-900 mb-0.5">{label}</div>
+            <div className="text-xs text-gray-500 leading-relaxed">{desc}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 생성 폼 */}
       <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-6">
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1.5">사업장 선택</label>
@@ -92,7 +139,32 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
           </select>
+
+          {/* 스캔 신선도 */}
+          <div className="mt-2">
+            {scanDays === null ? (
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                <span>⚠</span>
+                <span>
+                  스캔 데이터 없음 —{" "}
+                  <a href="/dashboard" className="underline hover:text-amber-700">스캔 먼저 실행</a>
+                  하면 더 정확한 가이드가 만들어집니다
+                </span>
+              </p>
+            ) : scanDays > 30 ? (
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                <span>⚠</span>
+                <span>마지막 스캔 {formatScanDate(lastScanDate!)} — 재스캔하면 최신 데이터로 가이드가 개선됩니다</span>
+              </p>
+            ) : (
+              <p className="text-xs text-gray-400 flex items-center gap-1">
+                <span>✓</span>
+                <span>마지막 스캔 {formatScanDate(lastScanDate!)}</span>
+              </p>
+            )}
+          </div>
         </div>
+
         {error && <p className="text-sm text-red-600 mb-3 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <button
           onClick={handleGenerate}

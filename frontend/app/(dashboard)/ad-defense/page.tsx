@@ -96,5 +96,18 @@ export default async function AdDefensePage() {
     );
   }
 
-  return <AdDefenseClient businesses={businesses} />;
+  // 사업장별 마지막 스캔 날짜
+  const bizIds = businesses.map((b) => b.id);
+  const { data: recentScans } = await supabase
+    .from("scan_results")
+    .select("business_id, created_at")
+    .in("business_id", bizIds)
+    .order("created_at", { ascending: false });
+
+  const lastScanByBiz: Record<string, string> = {};
+  recentScans?.forEach((s) => {
+    if (!lastScanByBiz[s.business_id]) lastScanByBiz[s.business_id] = s.created_at;
+  });
+
+  return <AdDefenseClient businesses={businesses} lastScanByBiz={lastScanByBiz} />;
 }
