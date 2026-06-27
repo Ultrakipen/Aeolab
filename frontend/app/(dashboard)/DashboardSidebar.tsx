@@ -44,7 +44,7 @@ const NAV_GROUPS: {
       { href: "/schema",        label: "소개글 · 콘텐츠",     Icon: Code2,         requiredPlan: "basic", requiresBusiness: true },
       { href: "/blog-analysis", label: "블로그 진단",         Icon: FileText,      requiredPlan: "basic", requiresBusiness: true },
       { href: "/review-inbox",  label: "리뷰 답변",           Icon: MessageSquare, requiredPlan: "basic", requiresBusiness: true },
-      { href: "/ad-defense",    label: "광고 방어",           Icon: Shield,        requiredPlan: "pro",   requiresBusiness: true },
+      { href: "/ad-defense",    label: "AI 광고 대비",         Icon: Shield,        requiredPlan: "pro",   requiresBusiness: true },
     ],
   },
   {

@@ -408,7 +408,7 @@ function ServiceOverviewGrid() {
     { Icon: ClipboardList, label: "소개글·콘텐츠", plan: "Basic", iconCls: "text-blue-600 bg-blue-50" },
     { Icon: Globe, label: "블로그 진단", plan: "Basic", iconCls: "text-blue-600 bg-blue-50" },
     { Icon: MessageSquare, label: "리뷰 답변", plan: "Basic", iconCls: "text-blue-600 bg-blue-50" },
-    { Icon: Shield, label: "광고 방어", plan: "Pro", iconCls: "text-indigo-600 bg-indigo-50" },
+    { Icon: Shield, label: "AI 광고 대비", plan: "Pro", iconCls: "text-indigo-600 bg-indigo-50" },
   ];
   return (
     <div className="mb-4 bg-white border border-gray-200 rounded-xl p-4">
