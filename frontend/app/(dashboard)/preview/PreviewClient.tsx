@@ -402,7 +402,7 @@ function PlatformResultTable({ showAll }: { showAll: boolean }) {
 function ServiceOverviewGrid() {
   const services = [
     { Icon: Users, label: "경쟁사 관리", plan: "Basic", iconCls: "text-blue-600 bg-blue-50" },
-    { Icon: TrendingUp, label: "변화 기록", plan: "Pro", iconCls: "text-indigo-600 bg-indigo-50" },
+    { Icon: TrendingUp, label: "변화 기록", plan: "Basic", iconCls: "text-blue-600 bg-blue-50" },
     { Icon: FileText, label: "성장 리포트", plan: "Pro", iconCls: "text-indigo-600 bg-indigo-50" },
     { Icon: Lightbulb, label: "개선 가이드", plan: "Basic", iconCls: "text-amber-600 bg-amber-50" },
     { Icon: ClipboardList, label: "소개글·콘텐츠", plan: "Basic", iconCls: "text-blue-600 bg-blue-50" },
@@ -864,6 +864,26 @@ function BasicTab({
         </div>
       </div>
 
+      {/* ② 결과 미리보기 — AI 개선 가이드 (월 3회, PC only) */}
+      <div className="hidden md:block bg-white border border-gray-200 rounded-xl p-4">
+        <SectionTitle
+          icon={<Lightbulb className="w-4 h-4 text-amber-500" />}
+          title="AI 개선 가이드 예시"
+          subtitle="월 3회 · AI가 이번 주 가장 중요한 개선 1가지를 알려줍니다"
+        />
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 mt-2">
+          <p className="text-sm font-bold text-amber-800 mb-1.5">🎯 이번 주 핵심 개선 포인트</p>
+          <p className="text-sm text-amber-700 leading-relaxed break-keep">
+            소개글에 <strong className="text-amber-900">&apos;{d.missingKeyword}&apos;</strong>를 추가하세요.
+            인근 경쟁 가게 2곳이 이 키워드로 AI 검색에 노출되고 있습니다.
+          </p>
+          <div className="mt-2.5 pt-2.5 border-t border-amber-200">
+            <p className="text-xs text-amber-600">다음 개선 포인트 → 소식 업데이트 1건 등록 / 톡톡 채팅방 메뉴 설정</p>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400 mt-2 text-right">* 예시 데이터</p>
+      </div>
+
       {/* ③ 기능 목록 */}
       <div className="bg-white border border-gray-200 rounded-xl p-4">
         <SectionTitle
@@ -1044,6 +1064,29 @@ function StartupTab({
           </div>
           <p className="text-sm text-gray-400">* 예시 데이터입니다.</p>
         </div>
+      </div>
+
+      {/* ② 결과 미리보기 — 오픈 후 리뷰 답변 (무제한) */}
+      <div className="bg-white border border-gray-200 rounded-xl p-4">
+        <SectionTitle
+          icon={<MessageSquare className="w-4 h-4 text-orange-500" />}
+          title="오픈 후 — 리뷰 답변 초안 자동 생성"
+          subtitle="무제한 · 키워드를 자연스럽게 담아 AI 노출을 높입니다"
+        />
+        <div className="mt-2 space-y-2">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg px-3.5 py-2.5">
+            <p className="text-xs font-semibold text-gray-500 mb-1">손님 리뷰</p>
+            <p className="text-sm text-gray-700">&ldquo;{d.reviewText}&rdquo;</p>
+          </div>
+          <div className="flex items-center justify-center py-1">
+            <span className="text-xs text-orange-500 font-semibold">AI 자동 생성 ▼</span>
+          </div>
+          <div className="bg-orange-50 border border-orange-200 rounded-lg px-3.5 py-2.5">
+            <p className="text-xs font-semibold text-orange-600 mb-1">답변 초안</p>
+            <p className="text-sm text-orange-800 leading-relaxed">{d.reviewReply}</p>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400 mt-2 text-right">* 예시 데이터</p>
       </div>
 
       {/* ③ 기능 목록 */}
