@@ -398,6 +398,38 @@ function PlatformResultTable({ showAll }: { showAll: boolean }) {
   );
 }
 
+// ── 전체 서비스 한눈에 보기 ─────────────────────────────────────────
+function ServiceOverviewGrid() {
+  const services = [
+    { Icon: Users, label: "경쟁사 관리", plan: "Basic", iconCls: "text-blue-600 bg-blue-50" },
+    { Icon: TrendingUp, label: "변화 기록", plan: "Pro", iconCls: "text-indigo-600 bg-indigo-50" },
+    { Icon: FileText, label: "성장 리포트", plan: "Pro", iconCls: "text-indigo-600 bg-indigo-50" },
+    { Icon: Lightbulb, label: "개선 가이드", plan: "Basic", iconCls: "text-amber-600 bg-amber-50" },
+    { Icon: ClipboardList, label: "소개글·콘텐츠", plan: "Basic", iconCls: "text-blue-600 bg-blue-50" },
+    { Icon: Globe, label: "블로그 진단", plan: "Basic", iconCls: "text-blue-600 bg-blue-50" },
+    { Icon: MessageSquare, label: "리뷰 답변", plan: "Basic", iconCls: "text-blue-600 bg-blue-50" },
+    { Icon: Shield, label: "광고 방어", plan: "Pro", iconCls: "text-indigo-600 bg-indigo-50" },
+  ];
+  return (
+    <div className="mb-4 bg-white border border-gray-200 rounded-xl p-4">
+      <p className="text-sm font-bold text-gray-700 mb-3">이 서비스가 제공하는 8가지 기능</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {services.map((s) => (
+          <div key={s.label} className="rounded-lg border border-gray-100 p-2.5 flex items-center gap-2">
+            <div className={`w-7 h-7 rounded-lg ${s.iconCls} flex items-center justify-center shrink-0`}>
+              <s.Icon className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-800 leading-tight truncate">{s.label}</p>
+              <p className="text-xs text-gray-400">{s.plan}+</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── 각 탭 컨텐츠 ─────────────────────────────────────────────────
 
 function FreeTab({
@@ -686,6 +718,69 @@ function BasicTab({
         </div>
       </div>
 
+      {/* ② 결과 미리보기 — 소개글·Q&A 자동 생성 */}
+      <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+        <SectionTitle
+          icon={<ClipboardList className="w-4 h-4 text-blue-500" />}
+          title="소개글·Q&A 자동 생성"
+          subtitle="핵심 키워드 포함 — 스마트플레이스 바로 붙여넣기"
+        />
+        <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 space-y-2">
+          <p className="text-xs font-semibold text-gray-500 mb-1">✅ 자동 생성된 Q&A 초안 (예시)</p>
+          <div className="bg-white rounded-lg p-2.5 border border-gray-100">
+            <p className="text-sm font-bold text-blue-700 mb-0.5">Q. {d.missingKeyword} 가능한가요?</p>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              네, 저희 {d.bizName}에서 이용 가능합니다. 언제든지 편하게 방문해주세요.
+            </p>
+          </div>
+          <button className="inline-flex items-center gap-1.5 text-sm text-blue-600 bg-blue-50 rounded-lg px-3 py-1.5 font-medium">
+            <Copy className="w-3.5 h-3.5" /> Q&A 5개 한 번에 복사
+          </button>
+        </div>
+        <p className="text-xs text-gray-400">* 예시 데이터 · 월 5회 자동 생성</p>
+      </div>
+
+      {/* ② 결과 미리보기 — 블로그 키워드 진단 */}
+      <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+        <SectionTitle
+          icon={<Globe className="w-4 h-4 text-blue-500" />}
+          title="블로그 키워드 진단"
+          subtitle="네이버 블로그 내 가게 언급 키워드 분석"
+        />
+        <div className="space-y-1.5">
+          {[
+            { kw: d.keywords[0], found: true, count: 12 },
+            { kw: d.keywords[1] ?? d.keywords[0], found: true, count: 4 },
+            { kw: d.missingKeyword, found: false, count: 0 },
+          ].map((item) => (
+            <div
+              key={item.kw}
+              className={`flex items-center gap-2.5 p-2.5 rounded-lg border text-sm ${
+                item.found ? "bg-green-50 border-green-100" : "bg-amber-50 border-amber-100"
+              }`}
+            >
+              {item.found
+                ? <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                : <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+              }
+              <span className="flex-1 font-medium text-gray-800 min-w-0 truncate">"{item.kw}"</span>
+              <span className={`text-xs font-semibold rounded-full px-2 py-0.5 shrink-0 ${
+                item.found ? "text-green-700 bg-green-100" : "text-amber-700 bg-amber-100"
+              }`}>
+                {item.found ? `블로그 ${item.count}건` : "언급 없음"}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="bg-amber-50 border border-amber-100 rounded-lg p-3">
+          <p className="text-xs font-bold text-amber-800 mb-0.5">개선 포인트</p>
+          <p className="text-xs text-amber-700 leading-relaxed">
+            "{d.missingKeyword}" 블로그 언급 없음 — 소식 탭 포스팅 1개 추가 시 AI 인용 가능성 상승
+          </p>
+        </div>
+        <p className="text-xs text-gray-400">* 예시 데이터</p>
+      </div>
+
       {/* ② 결과 미리보기 — 30일 추세 차트 */}
       <div className="bg-white border border-gray-200 rounded-xl p-4">
         <SectionTitle
@@ -780,8 +875,9 @@ function BasicTab({
           <FeatureRow label="경쟁사 비교" available={true} note="최대 3곳" />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 3회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 20회" />
+          <FeatureRow label="소개글·Q&A 자동 생성" available={true} note="월 5회" />
+          <FeatureRow label="블로그 키워드 진단" available={true} />
           <FeatureRow label="30일 성장 추세 그래프" available={true} />
-          <FeatureRow label="스마트플레이스 AI 검색 최적화 자동 생성" available={true} />
           <FeatureRow label="수동 스캔" available={true} note="하루 2회" />
           <FeatureRow label="CSV 내보내기" available={true} />
           <FeatureRow label="PDF 리포트" available={false} />
@@ -1649,6 +1745,9 @@ export default function PreviewClient({ currentPlan, businessData, latestScan }:
           variant="preview"
         />
       </div>
+
+      {/* 전체 제공 서비스 한눈에 보기 */}
+      <ServiceOverviewGrid />
 
       {/* 탭 네비게이션 */}
       <div className="bg-white border border-gray-200 rounded-xl mb-5 overflow-hidden">
