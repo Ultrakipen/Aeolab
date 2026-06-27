@@ -2940,11 +2940,15 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             try:
                 _ai_tab_res = await _naver_ai_tab.scan_batch(_scan_queries[:2], req.business_name)
                 if _ai_tab_res:
+                    # tab_available=True(AI탭 섹션 DOM 존재) 인 경우만 visible로 인정
+                    # body fallback(tab_available=False)만으로 mentioned=True 시 거짓 양성 방지
                     _ai_tab_visible = any(
-                        bool((r or {}).get("mentioned")) for r in _ai_tab_res.values()
+                        bool((r or {}).get("mentioned")) and bool((r or {}).get("tab_available"))
+                        for r in _ai_tab_res.values()
                     )
                     _ai_tab_excerpt = next(
-                        ((r or {}).get("excerpt") for r in _ai_tab_res.values() if (r or {}).get("excerpt")),
+                        ((r or {}).get("excerpt") for r in _ai_tab_res.values()
+                         if (r or {}).get("excerpt") and (r or {}).get("tab_available")),
                         None,
                     )
             except Exception as _e_tab:

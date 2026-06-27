@@ -64,7 +64,7 @@ def _get_ai_tab_semaphore() -> asyncio.Semaphore:
 # 순서대로 시도하며 첫 번째로 매칭된 셀렉터를 사용.
 # 마지막 fallback: page body 전체 텍스트에서 사업장명 부분매칭 (_name_in_text).
 _AI_TAB_SELECTORS = [
-    # --- 네이버 AI탭 / AI Overview 직접 지시자 ---
+    # --- 네이버 AI탭 / AI Overview 직접 지시자 (신뢰도 높은 순서) ---
     "#ai_overview",                    # 통합검색 AI Overview 컨테이너 (가장 신뢰)
     "div[id*='ai_overview']",          # id에 ai_overview 포함
     "[data-cr-tab]",                   # AI탭 전환 크롬 렌더링 속성
@@ -76,13 +76,15 @@ _AI_TAB_SELECTORS = [
     "div[class*='AiTab']",             # AiTab* camelCase
     "div[class*='ai_tab']",            # ai_tab* snake_case
     "div[class*='wrap_ai']",           # wrap_ai* 래퍼
-    "section[class*='ai']",            # section 기반 AI 섹션
     # --- id 기반 셀렉터 ---
-    "#ai_answer",                      # AI 답변 영역 (AI브리핑·AI탭 공유 가능)
-    "div[id*='ai']",                   # id에 'ai' 포함하는 div
+    "#ai_answer",                      # AI 답변 영역
+    "div[id='ai_overview']",           # 정확한 id 매칭 (ai_overview)
     # --- aria/role 기반 접근성 셀렉터 ---
-    "[aria-label*='AI']",              # aria-label에 AI 포함
-    ".ai_tab_answer",                  # AI탭 전용 예상 클래스 (베타 잔재)
+    ".ai_tab_answer",                  # AI탭 전용 예상 클래스
+    # ⚠️ 제거된 셀렉터 (거짓 양성 원인):
+    # "section[class*='ai']" — Place 결과 section과 충돌
+    # "div[id*='ai']"        — Place 결과 div id와 충돌 (ai_overview 아닌 것도 매칭)
+    # "[aria-label*='AI']"   — 탭 메뉴 버튼(aria-label="AI")과 충돌
 ]
 
 
@@ -165,6 +167,35 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
         try:
             await page.goto(url, timeout=25000)
             await page.wait_for_timeout(3000)
+
+            # isAITab JS 상태 확인: false이면 AI탭 콘텐츠 자체가 렌더링 안 됨
+            try:
+                is_ai_tab_js = await page.evaluate(
+                    "() => {"
+                    "  try {"
+                    "    const s = window.naver && window.naver.search && window.naver.search.ext;"
+                    "    if (!s) return null;"
+                    "    for (const ns of Object.values(s)) {"
+                    "      const ps = ns && ns.salt && ns.salt.__PROFILE_STATE__;"
+                    "      if (ps && typeof ps.isAITab === 'boolean') return ps.isAITab;"
+                    "    }"
+                    "  } catch(e) { return null; }"
+                    "  return null;"
+                    "}"
+                )
+            except Exception:
+                is_ai_tab_js = None
+
+            if is_ai_tab_js is False:
+                _logger.info(
+                    f"[naver_ai_tab] isAITab=false (서버 IP 미지원 또는 기능 비활성): query={query!r}"
+                )
+                return {
+                    "mentioned": False,
+                    "excerpt": "",
+                    "tab_available": False,
+                    "selector_matched": "isAITab_false",
+                }
 
             # AI탭 섹션 탐색: _AI_TAB_SELECTORS 순서대로 시도
             tab_available = False
