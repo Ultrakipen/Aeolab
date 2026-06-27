@@ -18,6 +18,7 @@ interface AdDefenseResult {
   current_score: number;
   chatgpt_mentioned: boolean;
   exposure_freq: number;
+  sample_size?: number;
   guide: AdDefenseGuide;
 }
 
@@ -96,9 +97,15 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
         <button
           onClick={handleGenerate}
           disabled={loading || !bizId}
-          className="bg-blue-600 text-white px-6 py-3 rounded-xl text-base font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors min-h-[44px] w-full sm:w-auto"
+          className="bg-blue-600 text-white px-6 py-3 rounded-xl text-base font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2"
         >
-          {loading ? "가이드 생성 중..." : "광고 대응 가이드 생성"}
+          {loading && (
+            <svg className="animate-spin h-4 w-4 text-white shrink-0" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+          )}
+          {loading ? "가이드 생성 중 (10~20초)..." : "광고 대응 가이드 생성"}
         </button>
       </section>
 
@@ -114,7 +121,7 @@ export function AdDefenseClient({ businesses }: { businesses: Array<{ id: string
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-xl">
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">{result.exposure_freq}</div>
-                <div className="text-sm text-gray-500 mt-1">Gemini 노출(/100)</div>
+                <div className="text-sm text-gray-500 mt-1">Gemini 언급(/{result.sample_size ?? 50}회 중)</div>
               </div>
               <div className={`text-center p-4 rounded-xl ${result.chatgpt_mentioned ? "bg-green-50" : "bg-red-50"}`}>
                 <div className={`text-xl font-bold ${result.chatgpt_mentioned ? "text-green-700" : "text-red-700"}`}>

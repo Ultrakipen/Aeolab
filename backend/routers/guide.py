@@ -458,10 +458,10 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
     ).data
     plan = (sub or {}).get("plan", "free")
     status = (sub or {}).get("status", "inactive")
-    if plan not in ("pro", "biz") or status not in ("active", "grace_period"):
+    if plan not in ("pro", "biz", "enterprise") or status not in ("active", "grace_period"):
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz"]},
+            detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz", "enterprise"]},
         )
 
     biz = (await execute(

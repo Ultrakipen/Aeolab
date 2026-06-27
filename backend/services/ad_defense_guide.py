@@ -17,6 +17,15 @@ class AdDefenseGuideService:
         chatgpt_mentioned = chatgpt_result.get("mentioned", False)
         gemini_result = scan_result.get("gemini_result") or {}
         exposure_freq = gemini_result.get("exposure_freq", 0)
+        sample_size = gemini_result.get("sample_size", 50)
+
+        # 약한 영역 상위 3개 추출 (가이드 품질 향상)
+        score_breakdown = scan_result.get("score_breakdown") or {}
+        weak_areas = sorted(
+            [(k, v) for k, v in score_breakdown.items() if isinstance(v, (int, float)) and v < 0.5],
+            key=lambda x: x[1]
+        )[:3]
+        weak_areas_text = ", ".join(k for k, _ in weak_areas) if weak_areas else "없음"
 
         prompt = f"""당신은 한국 AI 검색 광고 전략 전문가입니다.
 
@@ -24,9 +33,9 @@ class AdDefenseGuideService:
 - 이름: {biz.get('name')}
 - 업종: {biz.get('category')}
 - 지역: {biz.get('region')}
-- 현재 AI Visibility Score: {score}점
 - ChatGPT 현재 언급 여부: {"언급됨" if chatgpt_mentioned else "미언급"}
-- Gemini 100회 샘플링 노출 빈도: {exposure_freq}회
+- Gemini {sample_size}회 샘플링 노출 빈도: {exposure_freq}회
+- 개선이 필요한 영역: {weak_areas_text}
 
 ChatGPT가 한국에 광고 모델(SearchGPT Ads)을 도입할 경우를 대비하여,
 유기적(Organic) AI 검색 노출을 강화하는 전략을 아래 JSON 형식으로 제공해줘:
@@ -63,4 +72,5 @@ organic_strategies는 5개, 소상공인이 직접 실행 가능한 것 위주�
             "current_score": score,
             "chatgpt_mentioned": chatgpt_mentioned,
             "exposure_freq": exposure_freq,
+            "sample_size": sample_size,
         }

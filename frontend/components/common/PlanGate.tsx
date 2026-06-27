@@ -40,7 +40,7 @@ const FEATURE_LOSS_MESSAGES: Record<string, string> = {
   'AI 인용 현황':           'ChatGPT·Gemini 실제 인용 문장은 Basic부터 — 이번 달부터 잠금 해제',
   '행동·점수 타임라인':     '행동-결과 타임라인은 Basic부터 — 무엇이 점수를 올렸는지 한눈에',
   '블로그 AI 진단':         '블로그 AI 진단은 Basic부터 — 네이버 고품질 콘텐츠 기준 5요소 자동 채점',
-  'ChatGPT 광고 대응 가이드': 'ChatGPT 광고 영역 대응 가이드는 Pro부터 — 2026 Q2 광고화 대비',
+  'ChatGPT 광고 대응 가이드': 'ChatGPT 광고 영역 대응 가이드는 Pro부터 — 2026 하반기 광고화 대비',
   '창업 시장 분석':         '창업 시장 분석은 Startup 패키지 — 업종 트렌드·창업 타이밍 지수',
 }
 

@@ -18,7 +18,7 @@ export default async function AdDefensePage() {
     .maybeSingle();
 
   const activePlan = (sub?.status === "active" || sub?.status === "grace_period") ? (sub?.plan ?? "free") : "free";
-  const PRO_PLANS = ["pro", "biz"];
+  const PRO_PLANS = ["pro", "biz", "enterprise"];
 
   if (!PRO_PLANS.includes(activePlan)) {
     const features = [
