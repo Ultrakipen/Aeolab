@@ -1017,10 +1017,6 @@ export default function TrialResultStep(props: TrialResultProps) {
           trialId={result.trial_id as string | undefined}
         />
 
-        {/* ── 다음 측정일 + 구독 가치 비교 — TodayOneAction 직후, 모바일 조기 노출 ── */}
-        <NextScanDateNote nextScanDate={nextScanDate} isLoggedIn={isLoggedIn} />
-        <SubscriptionValueCompare isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
-
         {/* ── 네이버 현황 ── */}
         {(result as { business_type?: string }).business_type !== "non_location" && (
           <NaverStatusSection
@@ -1133,7 +1129,11 @@ export default function TrialResultStep(props: TrialResultProps) {
           </div>
         </div>
 
-        {/* ── 16. 재진단 버튼 ────────────────────────────────────── */}
+        {/* ── 16. 다음 측정일 + 구독 가치 비교 ──────────────────── */}
+        <NextScanDateNote nextScanDate={nextScanDate} isLoggedIn={isLoggedIn} />
+        <SubscriptionValueCompare isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
+
+        {/* ── 17. 재진단 버튼 ────────────────────────────────────── */}
         <div className="mt-2">
           <button
             onClick={onReset}
