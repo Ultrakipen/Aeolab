@@ -377,22 +377,6 @@ export default function TodayOneAction({
         ))}
       </div>
 
-      {/* 구독 CTA */}
-      {!isLoggedIn && (
-        <div className="mt-4 border-t border-emerald-200 pt-4">
-          <div className="bg-white rounded-xl border border-slate-200 px-4 py-4">
-            <Link
-              href="/signup"
-              className="block text-center py-2.5 rounded-lg font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-            >
-              매주 자동 추적 시작 — 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원
-            </Link>
-            <p className="text-xs text-center text-slate-400 mt-1">
-              이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 언제든 해지
-            </p>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

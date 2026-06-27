@@ -781,8 +781,8 @@ function BasicTab({
         <p className="text-xs text-gray-400">* 예시 데이터</p>
       </div>
 
-      {/* ② 결과 미리보기 — 30일 추세 차트 */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4">
+      {/* ② 결과 미리보기 — 30일 추세 차트 (모바일 섹션 과부하 방지) */}
+      <div className="hidden md:block bg-white border border-gray-200 rounded-xl p-4">
         <SectionTitle
           icon={<TrendingUp className="w-4 h-4 text-blue-500" />}
           title="30일 점수 추세"
