@@ -24,6 +24,40 @@ _logger = logging.getLogger("aeolab")
 # 환경변수 fallback — DB 조회 실패 시에만 사용
 NAVER_AI_TAB_ENABLED: bool = os.getenv("NAVER_AI_TAB_ENABLED", "false").lower() == "true"
 
+
+def _get_naver_cookies() -> list[dict]:
+    """환경변수에서 네이버 로그인 쿠키를 읽어 Playwright cookie 형식으로 반환.
+
+    설정 방법 (backend/.env):
+        NAVER_COOKIE_NID_AUT=<값>
+        NAVER_COOKIE_NID_SES=<값>
+        NAVER_COOKIE_NID_JKL=<값>  (선택)
+
+    쿠키 추출: Chrome → F12 → Application → Cookies → .naver.com
+    만료 주기: NID_SES 약 30일, NID_AUT 약 1년 → 월 1회 수동 교체
+    """
+    cookies = []
+    for name, env_key in [
+        ("NID_AUT", "NAVER_COOKIE_NID_AUT"),
+        ("NID_SES", "NAVER_COOKIE_NID_SES"),
+        ("NID_JKL", "NAVER_COOKIE_NID_JKL"),
+    ]:
+        val = os.getenv(env_key, "").strip()
+        if val:
+            cookies.append({
+                "name": name,
+                "value": val,
+                "domain": ".naver.com",
+                "path": "/",
+                "httpOnly": True,
+                "secure": True,
+            })
+    if cookies:
+        _logger.info(f"[naver_ai_tab] 네이버 쿠키 {len(cookies)}개 로드 ({[c['name'] for c in cookies]})")
+    else:
+        _logger.debug("[naver_ai_tab] 네이버 쿠키 없음 (NAVER_COOKIE_* 미설정)")
+    return cookies
+
 # system_status DB 조회 캐시 (1분 TTL)
 _ai_tab_enabled_cache: dict = {"value": None, "ts": 0.0}
 _CACHE_TTL = 60.0
@@ -166,10 +200,19 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
             timezone_id="Asia/Seoul",
             user_agent=get_random_ua(),
         )
+        # 네이버 로그인 쿠키 주입 (설정된 경우)
+        naver_cookies = _get_naver_cookies()
+        if naver_cookies:
+            await ctx.add_cookies(naver_cookies)
+
         page = await ctx.new_page()
         await apply_stealth(page)
 
         try:
+            # 쿠키가 있을 때: 네이버 메인 먼저 방문해 세션 활성화 후 AI탭으로 이동
+            if naver_cookies:
+                await page.goto("https://www.naver.com", timeout=15000)
+                await page.wait_for_timeout(1500)
             await page.goto(url, timeout=25000)
             # AI탭은 동적으로 답변을 생성하므로 충분히 대기
             await page.wait_for_timeout(7000)
