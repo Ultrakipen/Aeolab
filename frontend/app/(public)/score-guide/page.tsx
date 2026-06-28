@@ -41,7 +41,7 @@ export default function ScoreGuidePage() {
             <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">1</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               <strong>점수 = 네이버 채널 × 업종 비율 + 글로벌 AI × 업종 비율</strong><br />
-              <span className="text-gray-500">음식점·카페는 네이버 70%, 법률·교육·온라인몰은 글로벌 AI 60~90%</span>
+              <span className="text-gray-500">음식점은 네이버 80%, 카페는 75%, 법률·교육·온라인몰은 글로벌 AI 60~90%</span>
             </p>
           </div>
           <div className="flex items-start gap-3">
@@ -96,7 +96,7 @@ export default function ScoreGuidePage() {
               <strong>지표 개선</strong>은 AI 검색 노출 가능성을 높이는 방향입니다.
               채널별 반영 속도가 다릅니다 — 네이버 AI 브리핑·AI탭은 콘텐츠 개선 후
               <strong>2~4주</strong> 내 반영되며, Gemini는 구글 비즈니스 프로필 기준
-              <strong>수주 내</strong> 반영 가능합니다. ChatGPT는 AI 학습 데이터 업데이트
+              <strong>수 주~수개월</strong> 반영 가능합니다. ChatGPT는
               AI 재학습 주기 특성상 <strong>수개월~1년</strong> 후 스캐너 점수에 반영됩니다.
               그 결과 새 손님이 가게를 발견할 접점이 늘어납니다.
             </p>
@@ -348,43 +348,43 @@ export default function ScoreGuidePage() {
               {[
                 {
                   category: "음식점",
-                  naver: 70,
-                  global: 30,
-                  reason: "즉시방문형, 30~50대 고객",
+                  naver: 80,
+                  global: 20,
+                  reason: "즉시방문형, 30~50대 고객 — ChatGPT 소상공인 반영 낮음",
                   naverDominant: true,
                 },
                 {
                   category: "카페",
-                  naver: 65,
-                  global: 35,
-                  reason: "분위기 탐색 AI 증가",
+                  naver: 75,
+                  global: 25,
+                  reason: "분위기 탐색 AI 증가, 20대 고객 多",
                   naverDominant: true,
                 },
                 {
                   category: "뷰티·미용·네일",
-                  naver: 65,
-                  global: 35,
+                  naver: 70,
+                  global: 30,
                   reason: "당일예약 네이버, 전문시술 AI 리서치",
                   naverDominant: true,
                 },
                 {
                   category: "약국",
-                  naver: 70,
-                  global: 30,
+                  naver: 75,
+                  global: 25,
                   reason: "지역 기반 즉시방문형",
                   naverDominant: true,
                 },
                 {
                   category: "헬스·필라테스·요가",
-                  naver: 60,
-                  global: 40,
-                  reason: "10~20대 고객 비중 높음",
+                  naver: 65,
+                  global: 35,
+                  reason: "10~20대 고객 비중 높음, AI 네이티브 세대",
                   naverDominant: true,
                 },
                 {
                   category: "반려동물",
-                  naver: 65,
-                  global: 35,
+                  naver: 70,
+                  global: 30,
                   reason: "동물병원·펫샵 AI 검색 증가",
                   naverDominant: true,
                 },
@@ -411,22 +411,22 @@ export default function ScoreGuidePage() {
                 },
                 {
                   category: "부동산",
-                  naver: 65,
-                  global: 35,
+                  naver: 70,
+                  global: 30,
                   reason: "지역·매물 검색 네이버 강세",
                   naverDominant: true,
                 },
                 {
                   category: "자동차 정비",
-                  naver: 65,
-                  global: 35,
+                  naver: 70,
+                  global: 30,
                   reason: "지역 + 차종 검색 네이버 강세",
                   naverDominant: true,
                 },
                 {
                   category: "사진 스튜디오",
-                  naver: 65,
-                  global: 35,
+                  naver: 70,
+                  global: 30,
                   reason: "지역 기반 네이버 강세 (영상·제작 스튜디오는 55/45 내외)",
                   naverDominant: true,
                 },

@@ -245,7 +245,7 @@
 
 `Unified Score = Track1 × naver_weight + Track2 × global_weight`
 
-- `DUAL_TRACK_RATIO`: 42개+ 업종 × naver/global 비율 (`score_engine.py:114`; restaurant 70/30, legal 20/80, shopping 10/90 등)
+- `DUAL_TRACK_RATIO`: 42개+ 업종 × naver/global 비율 (`score_engine.py:114`; restaurant 80/20, cafe 75/25, legal 20/80, shopping 10/90 등) — 2026-06-23 restaurant 70→80 상향
 - fallback: `DEFAULT_DUAL_TRACK_RATIO = {naver: 0.60, global: 0.40}` — 미등록 업종 중립 기본값 (restaurant 자체는 70/30)
 - GrowthStage 기준: **`track1_score`** (unified 아님 — 업종 비율 차이로 오판 방지)
 - keyword_gap cold start: 리뷰 → 블로그 자동 추출 → fallback 30.0
