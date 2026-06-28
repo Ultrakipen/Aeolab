@@ -108,7 +108,7 @@ export default function HowItWorksPage() {
             <li><a href="#roles" className="hover:underline">AEOlab vs 사장님 역할 분담</a></li>
             <li><a href="#limits" className="hover:underline">한계와 면책 — 정직한 약속</a></li>
             <li><a href="#start" className="hover:underline">시작하는 법</a></li>
-            <li><a href="#ad-impact" className="hover:underline">2026 Q2: AI 브리핑 광고 도입 영향</a></li>
+            <li><a href="#ad-impact" className="hover:underline">2026 하반기~: AI 브리핑 광고 도입 영향</a></li>
           </ol>
         </nav>
 
@@ -823,6 +823,7 @@ export default function HowItWorksPage() {
             <li>
               <strong>인용 콘텐츠 배지</strong> — AI 브리핑에 인용된 블로그·콘텐츠에 배지가 표시되어
               추가 트래픽이 유입됩니다. <strong>사장님 자체 블로그 운영의 가치가 높아집니다.</strong>
+              <span className="text-gray-400 text-sm ml-1">(다수 사용자 관측 기반 — 네이버 미공식)</span>
             </li>
           </ul>
           <div className="bg-blue-50 border border-blue-200 rounded p-3 md:p-4 text-sm md:text-base text-gray-700 leading-relaxed break-keep">
@@ -1024,10 +1025,10 @@ export default function HowItWorksPage() {
           </div>
         </section>
 
-        {/* ─── 2026 Q2 AI 브리핑 광고 도입 영향 ─── */}
+        {/* ─── 2026 하반기~ AI 브리핑 광고 도입 영향 ─── */}
         <section id="ad-impact" className="mb-8 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
-            2026 Q2~: AI 브리핑 광고 도입 (모니터링 중)
+            2026 하반기~: AI 브리핑 광고 도입 (모니터링 중)
           </h2>
           <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-4 break-keep">
             네이버는 2026년 2분기 중 AI 브리핑 결과 내에 광고성 플레이스 카드 노출을 예고했으며, 공식 출시 일정은 모니터링 중입니다.
