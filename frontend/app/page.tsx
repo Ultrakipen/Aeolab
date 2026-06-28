@@ -911,7 +911,6 @@ export default async function LandingPage() {
       {/* ── 5-A. 서비스 기능 명시 — AEOlab이 제공하는 것 ── */}
       <section className="px-4 py-10 md:py-14" style={{ background: "#F8FAFC", borderTop: "1px solid #E2E8F0" }}>
         <div className="max-w-[1020px] mx-auto">
-          <MobileAccordion label="구독하면 제공되는 기능 전체 — 펼쳐 보기">
           <div className="text-center mb-8">
             <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>AEOlab 제공 기능</p>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight break-keep" style={{ color: "#0F172A", letterSpacing: "-0.6px" }}>
@@ -922,7 +921,7 @@ export default async function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {[
               {
                 icon: "🔍",
@@ -1002,17 +1001,17 @@ export default async function LandingPage() {
                 badgeColor: "#7C3AED",
               },
             ].map(({ icon, title, desc, badge, badgeColor }) => (
-              <div key={title} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-3">
-                  <span className="text-2xl">{icon}</span>
+              <div key={title} className="rounded-xl border border-gray-200 bg-white p-3 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-2 sm:mb-3">
+                  <span className="text-xl sm:text-2xl">{icon}</span>
                   {badge && (
                     <span className="text-sm font-bold px-2 py-0.5 rounded-full text-white" style={{ background: badgeColor }}>
                       {badge}
                     </span>
                   )}
                 </div>
-                <h3 className="text-sm font-bold text-gray-900 mb-1.5">{title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed break-keep">{desc}</p>
+                <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+                <p className="text-sm text-gray-500 leading-snug break-keep line-clamp-3 sm:line-clamp-none">{desc}</p>
               </div>
             ))}
           </div>
@@ -1025,7 +1024,6 @@ export default async function LandingPage() {
               지금 시작 →
             </a>
           </div>
-          </MobileAccordion>
         </div>
       </section>
 
