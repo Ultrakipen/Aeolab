@@ -36,7 +36,7 @@ export default function HowItWorksPage() {
           네이버 AI 브리핑·AI탭·Gemini·ChatGPT·Google AI Overview — 5개 채널에서 내 가게가 노출되는 원리와 개선 방법을 설명합니다.
         </p>
         <p className="text-sm md:text-base text-gray-500 mb-8">
-          마지막 업데이트: 2026-06-12 · 출처:{" "}
+          마지막 업데이트: 2026-06-28 · 출처:{" "}
           <a
             href="https://help.naver.com/service/30026/contents/24632"
             target="_blank"
@@ -261,6 +261,7 @@ export default function HowItWorksPage() {
                   <td className="py-3 px-3 align-top">
                     <strong>① 노출 가능 업종?</strong>
                     <p className="text-sm text-gray-500 mt-1 leading-relaxed">음식점·카페·베이커리·바·숙박</p>
+                    <p className="text-sm text-amber-600 mt-1 leading-relaxed">확대 예정: 뷰티·네일·펫·피트니스·요가·약국</p>
                   </td>
                   <td className="py-3 px-3 align-top text-gray-700">업종 선택 시 자동 판정. 비대상 업종은 대시보드에 안내 배너 표시 + 글로벌 AI 채널로 가치 전달</td>
                   <td className="py-3 px-3 align-top text-gray-700">업종 선택</td>
@@ -828,7 +829,7 @@ export default function HowItWorksPage() {
           </ul>
           <div className="bg-blue-50 border border-blue-200 rounded p-3 md:p-4 text-sm md:text-base text-gray-700 leading-relaxed break-keep">
             <strong>지금 해야 할 일:</strong> ① 사장님 블로그에 가게 소개 글을 1편 발행(AEOlab 초안 활용)
-            ② 매월 1회 업데이트로 적시성 신호 유지 ③ Q&A 답변 첫 문장을 30~60자 즉답형으로 작성.
+            ② 매월 1회 업데이트로 적시성 신호 유지 ③ 소개글 Q&A 섹션 첫 문장을 30~60자 즉답형으로 작성.
             세 가지가 2026년 AI 탭 시대의 인용 배지 후보 자격이 됩니다.
           </div>
         </section>
@@ -1031,7 +1032,7 @@ export default function HowItWorksPage() {
             2026 하반기~: AI 브리핑 광고 도입 (모니터링 중)
           </h2>
           <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-4 break-keep">
-            네이버는 2026년 2분기 중 AI 브리핑 결과 내에 광고성 플레이스 카드 노출을 예고했으며, 공식 출시 일정은 모니터링 중입니다.
+            네이버는 2026년 하반기 중 AI 브리핑 결과 내에 광고성 플레이스 카드 노출을 예고했으며, 공식 출시 일정은 모니터링 중입니다.
             광고로만 노출되는 플레이스는 <strong>AI가 콘텐츠를 보고 자동 선택하는 노출과 구분</strong>되며,
             AEOlab 점수 산정에서 별도로 처리됩니다.
           </p>
