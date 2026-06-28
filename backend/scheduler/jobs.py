@@ -325,13 +325,24 @@ async def daily_scan_all():
             if uid.strip()
         )
 
+        # subscriptions!inner 조인은 FK 없어 PGRST200 에러 → 두 번 조회로 교체
+        _subs_res = await _db(
+            supabase.table("subscriptions")
+            .select("user_id, plan, status")
+            .eq("status", "active")
+            .in_("plan", ["basic", "pro", "biz", "startup"])
+        )
+        _active_subs = {s["user_id"]: s["plan"] for s in (_subs_res.data or [])}
         _biz_res = await _db(
             supabase.table("businesses")
-            .select("*, subscriptions!inner(status, plan)")
-            .eq("subscriptions.status", "active")
-            .in_("subscriptions.plan", ["basic", "pro", "biz", "startup"])
+            .select("*")
+            .in_("user_id", list(_active_subs.keys()) or ["__none__"])
         )
-        businesses = _biz_res.data or []
+        # 각 사업장에 플랜 정보 병합
+        businesses = []
+        for _b in (_biz_res.data or []):
+            _b["subscriptions"] = {"plan": _active_subs.get(_b["user_id"], "basic"), "status": "active"}
+            businesses.append(_b)
 
         # 관리자 계정은 자동 스캔 대상에서 명시적으로 제외
         if admin_user_ids:
@@ -1226,10 +1237,15 @@ async def after_screenshot_job():
 
         for days in [7, 14, 30]:
             target_date = today - timedelta(days=days)
+            # subscriptions!inner 조인 PGRST200 에러 → 두 번 조회
+            _as_subs = await _db(
+                supabase.table("subscriptions").select("user_id").eq("status", "active")
+            )
+            _as_active_uids = [s["user_id"] for s in (_as_subs.data or [])]
             _as_biz_res = await _db(
                 supabase.table("businesses")
-                .select("*, subscriptions!inner(status)")
-                .eq("subscriptions.status", "active")
+                .select("*")
+                .in_("user_id", _as_active_uids or ["__none__"])
                 .gte("created_at", str(target_date))
                 .lt("created_at", str(target_date + timedelta(days=1)))
             )
