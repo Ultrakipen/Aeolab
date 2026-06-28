@@ -918,7 +918,7 @@ export default async function LandingPage() {
               구독하면 이런 기능을 사용할 수 있습니다
             </h2>
             <p className="mt-2 text-sm md:text-base text-gray-500 break-keep">
-              진단부터 개선 가이드·경쟁사 비교·알림까지 — AI 검색 노출에 필요한 모든 것
+              진단·경쟁사 비교·소개글 생성·블로그 진단·리뷰 답변·성장 리포트·알림까지 — AI 검색 노출에 필요한 모든 것
             </p>
           </div>
 
@@ -946,13 +946,6 @@ export default async function LandingPage() {
                 badgeColor: "",
               },
               {
-                icon: "🔑",
-                title: "키워드 순위 추적",
-                desc: "설정한 키워드가 네이버에서 몇 위에 노출되는지 자동 측정. 주 1회 업데이트",
-                badge: null,
-                badgeColor: "",
-              },
-              {
                 icon: "📝",
                 title: "AI 맞춤 개선 가이드",
                 desc: "내 가게 노출 진단과 경쟁사 분석을 바탕으로 AI가 우선순위 높은 개선 항목을 순서대로 안내",
@@ -960,11 +953,53 @@ export default async function LandingPage() {
                 badgeColor: "#7C3AED",
               },
               {
+                icon: "✍️",
+                title: "소개글 · 콘텐츠 자동 생성",
+                desc: "AI가 내 업종에 맞는 스마트플레이스 소개글 초안을 자동 작성. 검색 태그·FAQ·소식 콘텐츠도 생성",
+                badge: "Basic+",
+                badgeColor: "#059669",
+              },
+              {
+                icon: "📰",
+                title: "블로그 진단",
+                desc: "내 가게를 언급한 블로그 콘텐츠 분석. 빠진 키워드·경쟁사 대비 언급량 비교로 콘텐츠 방향 제시",
+                badge: null,
+                badgeColor: "",
+              },
+              {
+                icon: "💬",
+                title: "리뷰 답변 초안 자동 생성",
+                desc: "손님 리뷰에 AI가 자동으로 맞춤 답변 초안 작성. 리뷰 키워드 분석 및 감정 파악 포함",
+                badge: "Basic+",
+                badgeColor: "#059669",
+              },
+              {
+                icon: "📈",
+                title: "성장 리포트",
+                desc: "월간 AI 노출 성장 추이 분석. 행동-결과 타임라인으로 어떤 개선이 노출에 영향을 미쳤는지 확인",
+                badge: null,
+                badgeColor: "",
+              },
+              {
+                icon: "🔑",
+                title: "키워드 순위 추적",
+                desc: "설정한 키워드가 네이버에서 몇 위에 노출되는지 자동 측정. 주 1회 업데이트",
+                badge: null,
+                badgeColor: "",
+              },
+              {
                 icon: "🔔",
                 title: "카카오 노출 변화 알림",
                 desc: "노출 상태가 변화하면 카카오톡으로 즉시 알림. 경쟁사 변화도 감지해 알려드림",
                 badge: null,
                 badgeColor: "",
+              },
+              {
+                icon: "🛡️",
+                title: "AI 광고 대비",
+                desc: "AI 검색 광고 환경 변화 대응 전략 가이드. 광고 없이도 AI 추천 상위에 오를 수 있는 방법 분석",
+                badge: "Pro+",
+                badgeColor: "#7C3AED",
               },
             ].map(({ icon, title, desc, badge, badgeColor }) => (
               <div key={title} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
