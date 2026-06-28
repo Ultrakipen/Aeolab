@@ -61,6 +61,7 @@ def _get_naver_cookies() -> list[dict]:
 # Chrome UA 캐시 — channel="chrome" 실행 시 "HeadlessChrome"이 HTTP 헤더에 노출돼 봇 감지됨.
 # subprocess로 실제 Chrome 버전을 읽어 "Chrome/X.0.0.0"으로 교체.
 _chrome_ua_cache: str = ""
+_scan_consecutive_failures: int = 0  # 연속 실패 카운터 (쿠키 만료·차단 감지)
 
 def _build_chrome_ua() -> str:
     """설치된 google-chrome-stable 버전을 읽어 올바른 UA 반환."""
@@ -212,6 +213,7 @@ async def scan(query: str, business_name: str) -> Optional[dict]:
 
 
 async def _run_scan(query: str, business_name: str) -> Optional[dict]:
+    global _scan_consecutive_failures
     """Playwright로 네이버 AI탭 DOM을 파싱한다 (내부 구현).
 
     접근 방식 (2026-06-28 확정):
@@ -292,7 +294,17 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
 
                 # 로그인 리다이렉트 감지 (쿠키 만료)
                 if "nidlogin" in current_url:
-                    _logger.warning(f"[naver_ai_tab] 로그인 리다이렉트 — 쿠키 만료 의심: query={query!r}")
+                    _scan_consecutive_failures += 1
+                    _logger.warning(
+                        f"[naver_ai_tab] ⚠️ 쿠키 만료 감지 (연속 {_scan_consecutive_failures}회) — "
+                        f"query={query!r} | "
+                        "조치: Chrome → naver.com 로그인 → F12 → Application → Cookies → NID_AUT 복사 → .env 갱신"
+                    )
+                    if _scan_consecutive_failures >= 3:
+                        _logger.warning(
+                            f"[naver_ai_tab] 🚨 연속 {_scan_consecutive_failures}회 쿠키 만료 — "
+                            "AI탭 스캔 중단됨. 즉시 NID_AUT 교체 필요."
+                        )
                     return None
 
                 body_check = await page.inner_text("body")
@@ -300,12 +312,17 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
 
                 # 차단 감지
                 if "잘못된 접근" in body_check and len(body_stripped) < 150:
-                    _logger.warning(f"[naver_ai_tab] AI탭 차단됨: query={query!r}")
+                    _scan_consecutive_failures += 1
+                    _logger.warning(
+                        f"[naver_ai_tab] ⚠️ AI탭 차단 감지 (연속 {_scan_consecutive_failures}회): "
+                        f"query={query!r} | 프록시 또는 접근 방식 문제"
+                    )
                     return None
 
                 # 생성 완료 판단: body 200자+ && "분석 중" 없음
                 if len(body_stripped) > 200 and "분석 중" not in body_check:
                     ai_text = body_check
+                    _scan_consecutive_failures = 0  # 성공 시 카운터 리셋
                     _logger.debug(f"[naver_ai_tab] AI 답변 완성 ({round_n*5+5}s): body_len={len(body_stripped)}")
                     break
 
