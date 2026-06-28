@@ -5368,10 +5368,33 @@ async def check_naver_cookie_health_job():
          - 실패(2FA·캡챠): pm2 logs에 WARNING 출력 (수동 교체 필요)
     """
     import subprocess, re as _re
+    from datetime import datetime as _dt, timedelta as _td
     nid_aut = os.getenv("NAVER_COOKIE_NID_AUT", "")
     if not nid_aut:
         _logger.warning("[naver_cookie_health] NID_AUT 미설정 — AI탭 스캔 불가. .env에 추가 필요")
         return
+
+    # ── 만료 30일 전 조기 경고 (NAVER_COOKIE_NID_AUT_ISSUED 기준) ───────────────
+    _issued_str = os.getenv("NAVER_COOKIE_NID_AUT_ISSUED", "")
+    if _issued_str:
+        try:
+            _issued = _dt.strptime(_issued_str, "%Y-%m-%d")
+            _days_elapsed = (_dt.now() - _issued).days
+            _days_left = 365 - _days_elapsed
+            if _days_left <= 0:
+                _logger.warning(
+                    f"[naver_cookie_health] ⚠️ NID_AUT 만료 예상일 초과 ({_days_elapsed}일 경과) — "
+                    "새 쿠키 교체 필요. Chrome → naver.com → F12 → Application → Cookies → NID_AUT 복사"
+                )
+            elif _days_left <= 30:
+                _logger.warning(
+                    f"[naver_cookie_health] ⚠️ NID_AUT 만료 {_days_left}일 전 — "
+                    "미리 새 쿠키 준비 필요. Chrome → naver.com → F12 → Application → Cookies → NID_AUT 복사"
+                )
+            else:
+                _logger.info(f"[naver_cookie_health] NID_AUT 만료까지 {_days_left}일 남음")
+        except ValueError:
+            _logger.warning(f"[naver_cookie_health] NAVER_COOKIE_NID_AUT_ISSUED 형식 오류: {_issued_str} (YYYY-MM-DD 필요)")
 
     try:
         from playwright.async_api import async_playwright
