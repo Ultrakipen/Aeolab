@@ -73,7 +73,22 @@ export default async function StartupPage() {
           currentPlan={activePlan}
           feature="창업 시장 분석"
         >
-          <div className="bg-white rounded-xl p-6 shadow-sm" />
+          <div className="bg-white rounded-xl p-6 shadow-sm space-y-4">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="h-16 bg-gray-100 rounded-xl" />
+              <div className="h-16 bg-gray-100 rounded-xl" />
+              <div className="h-16 bg-gray-100 rounded-xl" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 bg-gray-100 rounded w-full" />
+              <div className="h-3 bg-gray-100 rounded w-5/6" />
+              <div className="h-3 bg-gray-100 rounded w-4/6" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 bg-gray-100 rounded w-full" />
+              <div className="h-3 bg-gray-100 rounded w-3/4" />
+            </div>
+          </div>
         </PlanGate>
       </div>
     );

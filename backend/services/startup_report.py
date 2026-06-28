@@ -2,10 +2,9 @@
 창업 패키지 리포트 서비스
 업종·지역 경쟁 강도 분석 + 진입 전략 가이드 (Claude Sonnet)
 """
-import asyncio
 import os
 import anthropic
-from db.supabase_client import get_client
+from db.supabase_client import get_client, execute
 
 
 class StartupReportService:
@@ -16,40 +15,46 @@ class StartupReportService:
         """창업 패키지 리포트 생성"""
         supabase = get_client()
 
-        # 해당 업종·지역 기존 사업장 평균 점수 조회
-        businesses = (
+        # 해당 업종·지역 기존 사업장 조회
+        biz_res = await execute(
             supabase.table("businesses")
             .select("id, name")
             .eq("category", category)
             .eq("region", region)
             .eq("is_active", True)
-            .execute()
-            .data or []
         )
+        businesses = biz_res.data or []
+        competitor_count = len(businesses)
 
         avg_score = 0.0
         top_competitors = []
-        competitor_count = len(businesses)
+        scores: list[float] = []
 
         if businesses:
-            scores = []
-            for biz in businesses[:10]:
-                scan = (
-                    supabase.table("scan_results")
-                    .select("total_score, exposure_freq, scanned_at")
-                    .eq("business_id", biz["id"])
-                    .order("scanned_at", desc=True)
-                    .limit(1)
-                    .execute()
-                    .data
-                )
-                if scan:
-                    scores.append(scan[0]["total_score"])
-                    top_competitors.append({
-                        "name": biz["name"],
-                        "score": scan[0]["total_score"],
-                        "exposure_freq": scan[0]["exposure_freq"],
-                    })
+            biz_ids = [b["id"] for b in businesses[:10]]
+            biz_name_map = {b["id"]: b["name"] for b in businesses[:10]}
+
+            # N+1 제거 — 단일 IN 쿼리로 최신 스캔 일괄 조회
+            scans_res = await execute(
+                supabase.table("scan_results")
+                .select("business_id, total_score, exposure_freq, scanned_at")
+                .in_("business_id", biz_ids)
+                .order("scanned_at", desc=True)
+            )
+            seen: dict = {}
+            for s in (scans_res.data or []):
+                bid = s.get("business_id")
+                if bid not in seen and s.get("total_score") is not None:
+                    seen[bid] = s
+
+            for bid, s in seen.items():
+                scores.append(s["total_score"])
+                top_competitors.append({
+                    "name": biz_name_map.get(bid, ""),
+                    "score": s["total_score"],
+                    "exposure_freq": s.get("exposure_freq") or 0,
+                })
+
             if scores:
                 avg_score = round(sum(scores) / len(scores), 1)
             top_competitors.sort(key=lambda x: x["score"], reverse=True)
@@ -72,12 +77,11 @@ class StartupReportService:
             level_color = "green"
             level_score = 4
 
-        # Claude로 진입 전략 생성
+        # Claude로 진입 전략 생성 — 점수 숫자 미포함(strategy 텍스트에 노출 방지)
         top_names = ", ".join(c["name"] for c in top_competitors[:3]) if top_competitors else "데이터 없음"
         prompt = f"""한국 {region} {category} 업종 창업 분석:
 
 - 기존 사업장 수: {competitor_count}개
-- AI 검색 노출 평균 점수: {avg_score}점/100점
 - 경쟁 강도: {competition_level}
 - 상위 경쟁사: {top_names}
 {"- 창업 예정 사업장명: " + business_name if business_name else ""}

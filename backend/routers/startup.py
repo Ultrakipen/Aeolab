@@ -61,6 +61,7 @@ async def generate_startup_report(
                 timing_data = {"timing": "포화", "timing_label": "경쟁 과열 — 차별화 필수", "timing_color": "red", "reasoning": f"{req.region} {req.category} 업종은 경쟁이 치열합니다. 틈새 키워드 전략 없이는 노출이 어렵습니다.", "opportunity_score": 25}
             else:
                 timing_data = {"timing": "안정", "timing_label": "안정적 — 꾸준한 성장 가능", "timing_color": "blue", "reasoning": f"{req.region} {req.category} 업종은 안정적인 시장입니다. 꾸준한 관리로 경쟁력을 높일 수 있습니다.", "opportunity_score": 60}
+            _cache.set(timing_key, timing_data, 1800)
         result["timing"] = timing_data
     except Exception as _e:
         import logging
