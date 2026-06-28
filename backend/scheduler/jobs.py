@@ -276,6 +276,12 @@ def start_scheduler():
         replace_existing=True,
         misfire_grace_time=3600,
     )
+    # 네이버 NID_AUT 쿠키 유효성 검사 + 자동 갱신 — 매주 월요일 09:30 KST (UTC 00:30)
+    scheduler.add_job(
+        check_naver_cookie_health_job, "cron", day_of_week="mon", hour=0, minute=30,
+        id="naver_cookie_health_check", replace_existing=True,
+        max_instances=1, misfire_grace_time=3600,
+    )
     scheduler.start()
     logger.info("Scheduler started")
 
@@ -5349,3 +5355,120 @@ async def briefing_category_expansion_monitor_job():
             f"[briefing_expansion] 신규 업종 확대 없음 "
             f"(모니터링: {list(MONITOR_QUERIES.keys())})"
         )
+
+
+async def check_naver_cookie_health_job():
+    """매주 월요일 09:30 KST — 네이버 NID_AUT 쿠키 유효성 검사 + 만료 시 자동 재로그인.
+
+    작동 순서:
+      1. NID_AUT로 naver.com 방문 → 로그인 상태 확인
+      2. 유효: 정상 로그 기록 후 종료
+      3. 만료: NAVER_LOGIN_ID/PW로 자동 재로그인 시도
+         - 성공: 새 NID_AUT 추출 → .env 파일 + os.environ 즉시 갱신
+         - 실패(2FA·캡챠): pm2 logs에 WARNING 출력 (수동 교체 필요)
+    """
+    import subprocess, re as _re
+    nid_aut = os.getenv("NAVER_COOKIE_NID_AUT", "")
+    if not nid_aut:
+        _logger.warning("[naver_cookie_health] NID_AUT 미설정 — AI탭 스캔 불가. .env에 추가 필요")
+        return
+
+    try:
+        from playwright.async_api import async_playwright
+    except ImportError:
+        _logger.warning("[naver_cookie_health] playwright 미설치")
+        return
+
+    # 설치된 Chrome 버전 기반 UA
+    try:
+        _cr = subprocess.run(["google-chrome-stable", "--version"], capture_output=True, text=True, timeout=5)
+        _ver = _cr.stdout.strip().split()[-1].split(".")[0]
+        _ua = f"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{_ver}.0.0.0 Safari/537.36"
+    except Exception:
+        _ua = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+
+    _LAUNCH_ARGS = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage",
+                    "--disable-blink-features=AutomationControlled"]
+
+    # ── Step 1: 현재 쿠키 유효성 확인 ──────────────────────────────────────────
+    logged_in = False
+    async with async_playwright() as _p:
+        _br = await _p.chromium.launch(headless=True, channel="chrome", args=_LAUNCH_ARGS)
+        _ctx = await _br.new_context(viewport={"width": 1280, "height": 800},
+                                     locale="ko-KR", timezone_id="Asia/Seoul", user_agent=_ua)
+        await _ctx.add_cookies([{"name": "NID_AUT", "value": nid_aut, "domain": ".naver.com",
+                                  "path": "/", "httpOnly": True, "secure": True}])
+        _pg = await _ctx.new_page()
+        try:
+            await _pg.goto("https://www.naver.com", timeout=20000)
+            await _pg.wait_for_timeout(2000)
+            logged_in = "로그아웃" in await _pg.content()
+        except Exception as _e:
+            _logger.warning(f"[naver_cookie_health] naver.com 접근 실패: {_e}")
+        finally:
+            await _br.close()
+
+    if logged_in:
+        _logger.info("[naver_cookie_health] NID_AUT 유효 ✅ — AI탭 스캔 정상")
+        return
+
+    # ── Step 2: 만료 감지 → 자동 재로그인 ──────────────────────────────────────
+    _logger.warning("[naver_cookie_health] NID_AUT 만료 감지 — 자동 재로그인 시도")
+    login_id = os.getenv("NAVER_LOGIN_ID", "")
+    login_pw  = os.getenv("NAVER_LOGIN_PW", "")
+
+    if not login_id or not login_pw:
+        _logger.warning(
+            "[naver_cookie_health] NAVER_LOGIN_ID/PW 미설정 → 수동 교체 필요\n"
+            "  Chrome → naver.com 로그인 → F12 → Application → Cookies → NID_AUT 복사 → .env 갱신"
+        )
+        return
+
+    new_nid_aut = None
+    async with async_playwright() as _p:
+        _br = await _p.chromium.launch(headless=True, channel="chrome", args=_LAUNCH_ARGS)
+        _ctx = await _br.new_context(viewport={"width": 1280, "height": 800},
+                                     locale="ko-KR", timezone_id="Asia/Seoul", user_agent=_ua)
+        _pg = await _ctx.new_page()
+        try:
+            await _pg.goto("https://nid.naver.com/nidlogin.login", timeout=20000)
+            await _pg.wait_for_timeout(1500)
+            await _pg.fill("#id", login_id)
+            await _pg.wait_for_timeout(400)
+            await _pg.fill("#pw", login_pw)
+            await _pg.wait_for_timeout(400)
+            await _pg.click(".btn_login")
+            await _pg.wait_for_timeout(6000)
+
+            if "nidlogin" in _pg.url:
+                _logger.warning(
+                    f"[naver_cookie_health] 자동 로그인 실패 (2FA·캡챠 가능) url={_pg.url[:80]}\n"
+                    "  수동 쿠키 교체 필요"
+                )
+            else:
+                _cookies = await _ctx.cookies(["https://www.naver.com"])
+                for _c in _cookies:
+                    if _c["name"] == "NID_AUT":
+                        new_nid_aut = _c["value"]
+                        break
+                _logger.info(f"[naver_cookie_health] 자동 로그인 성공 — NID_AUT {len(new_nid_aut or '')}자")
+        except Exception as _e:
+            _logger.warning(f"[naver_cookie_health] 자동 로그인 오류: {_e}")
+        finally:
+            await _br.close()
+
+    if not new_nid_aut:
+        return
+
+    # ── Step 3: .env 파일 + os.environ 즉시 갱신 ───────────────────────────────
+    try:
+        _env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+        with open(_env_path, "r") as _f:
+            _env_txt = _f.read()
+        _env_txt = _re.sub(r"NAVER_COOKIE_NID_AUT=.*", f"NAVER_COOKIE_NID_AUT={new_nid_aut}", _env_txt)
+        with open(_env_path, "w") as _f:
+            _f.write(_env_txt)
+        os.environ["NAVER_COOKIE_NID_AUT"] = new_nid_aut
+        _logger.info("[naver_cookie_health] NID_AUT 자동 갱신 완료 ✅ — .env + 인메모리 업데이트")
+    except Exception as _e:
+        _logger.warning(f"[naver_cookie_health] .env 갱신 실패: {_e}")
