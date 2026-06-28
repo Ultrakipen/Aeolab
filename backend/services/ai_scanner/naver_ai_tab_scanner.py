@@ -17,7 +17,7 @@ import os
 import time
 from typing import Optional
 
-from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua
+from services.ai_scanner import get_proxy_config
 
 _logger = logging.getLogger("aeolab")
 
@@ -57,6 +57,43 @@ def _get_naver_cookies() -> list[dict]:
     else:
         _logger.debug("[naver_ai_tab] 네이버 쿠키 없음 (NAVER_COOKIE_* 미설정)")
     return cookies
+
+# Chrome UA 캐시 — channel="chrome" 실행 시 "HeadlessChrome"이 HTTP 헤더에 노출돼 봇 감지됨.
+# subprocess로 실제 Chrome 버전을 읽어 "Chrome/X.0.0.0"으로 교체.
+_chrome_ua_cache: str = ""
+
+def _build_chrome_ua() -> str:
+    """설치된 google-chrome-stable 버전을 읽어 올바른 UA 반환."""
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["google-chrome-stable", "--version"],
+            capture_output=True, text=True, timeout=5,
+        )
+        # e.g. "Google Chrome 149.0.7827.200 \n"
+        version_str = result.stdout.strip().split()[-1]  # "149.0.7827.200"
+        major = version_str.split(".")[0]  # "149"
+        ua = (
+            f"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+            f"(KHTML, like Gecko) Chrome/{major}.0.0.0 Safari/537.36"
+        )
+        _logger.info(f"[naver_ai_tab] Chrome UA 감지: {ua}")
+        return ua
+    except Exception as e:
+        _logger.warning(f"[naver_ai_tab] Chrome 버전 감지 실패, fallback UA 사용: {e}")
+        return (
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+        )
+
+
+async def _get_chrome_ua() -> str:
+    """Chrome UA 반환 (프로세스 수명 동안 캐시)."""
+    global _chrome_ua_cache
+    if not _chrome_ua_cache:
+        _chrome_ua_cache = _build_chrome_ua()
+    return _chrome_ua_cache
+
 
 # system_status DB 조회 캐시 (1분 TTL)
 _ai_tab_enabled_cache: dict = {"value": None, "ts": 0.0}
@@ -164,10 +201,10 @@ async def scan(query: str, business_name: str) -> Optional[dict]:
         async with _get_ai_tab_semaphore():
             return await asyncio.wait_for(
                 _run_scan(query, business_name),
-                timeout=30.0,
+                timeout=60.0,  # 클릭 네비게이션 방식: naver메인+검색+AI답변 생성 최대 25s
             )
     except asyncio.TimeoutError:
-        _logger.warning(f"[naver_ai_tab] scan timeout (30s): query={query!r}")
+        _logger.warning(f"[naver_ai_tab] scan timeout (60s): query={query!r}")
         return None
     except Exception as e:
         _logger.warning(f"[naver_ai_tab] scan 오류: query={query!r}, error={e}")
@@ -177,104 +214,111 @@ async def scan(query: str, business_name: str) -> Optional[dict]:
 async def _run_scan(query: str, business_name: str) -> Optional[dict]:
     """Playwright로 네이버 AI탭 DOM을 파싱한다 (내부 구현).
 
-    URL: ssc=tab.ait.all 파라미터로 AI탭 직접 접근 (2026-06-27 확인).
-    isAITab JS 플래그는 "현재 AI탭 화면인가" 여부이며 기능 가용성 지표가 아님 — 사용 금지.
+    접근 방식 (2026-06-28 확정):
+      1. 일반 검색 페이지 → AI탭 링크 클릭 (직접 URL 차단됨)
+      2. apply_stealth 제거 — 오히려 봇 감지 유발 확인
+      3. channel="chrome" + --disable-blink-features=AutomationControlled
+      4. Chrome 버전 일치 UA (HeadlessChrome 제거)
     """
     import urllib.parse
     from playwright.async_api import async_playwright
 
     encoded_q = urllib.parse.quote(query)
-    # AI탭 직접 URL: ssc=tab.ait.all (일반 검색 URL과 다름)
-    url = f"https://search.naver.com/search.naver?ssc=tab.ait.all&query={encoded_q}"
+    search_url = f"https://search.naver.com/search.naver?query={encoded_q}"
 
     proxy = get_proxy_config()
+    # Chrome UA: 설치된 Chrome 버전에 맞게 동적 감지 (HeadlessChrome → Chrome)
+    ua = await _get_chrome_ua()
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+            channel="chrome",
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-blink-features=AutomationControlled",
+            ],
             proxy=proxy,
         )
         ctx = await browser.new_context(
             viewport={"width": 1280, "height": 800},
             locale="ko-KR",
             timezone_id="Asia/Seoul",
-            user_agent=get_random_ua(),
+            user_agent=ua,
         )
-        # 네이버 로그인 쿠키 주입 (설정된 경우)
+        # 네이버 로그인 쿠키 주입
         naver_cookies = _get_naver_cookies()
         if naver_cookies:
             await ctx.add_cookies(naver_cookies)
 
         page = await ctx.new_page()
-        await apply_stealth(page)
+        # apply_stealth 미적용 — AI탭에서 봇 감지 유발 확인 (2026-06-28)
 
         try:
-            # 쿠키가 있을 때: 네이버 메인 먼저 방문해 세션 활성화 후 AI탭으로 이동
-            if naver_cookies:
-                await page.goto("https://www.naver.com", timeout=15000)
-                await page.wait_for_timeout(1500)
-            await page.goto(url, timeout=25000)
-            # AI탭은 동적으로 답변을 생성하므로 충분히 대기
-            await page.wait_for_timeout(7000)
+            # 네이버 메인 방문 (세션 활성화)
+            await page.goto("https://www.naver.com", timeout=15000)
+            await page.wait_for_timeout(1500)
 
-            # ssc=tab.ait.all URL에 정상 도달했으면 AI탭 페이지 자체가 존재
-            # tab_available은 AI탭 페이지 응답 여부로 판단
-            current_url = page.url
-            tab_available = "tab.ait" in current_url or "ssc=tab.ait" in current_url
+            # 일반 검색 이동
+            await page.goto(search_url, timeout=20000)
+            await page.wait_for_timeout(3000)
 
-            ai_text = ""
-            selector_matched: Optional[str] = None
-
-            # AI탭 콘텐츠 셀렉터 순서대로 시도
-            for selector in _AI_TAB_SELECTORS:
+            # AI탭 링크 클릭 (직접 URL 차단 우회)
+            ai_tab_clicked = False
+            for selector in ["a[href*='tab.ait']", "a[href*='m_ait']"]:
                 try:
                     el = await page.query_selector(selector)
                     if el:
-                        text_candidate = (await el.inner_text()) or ""
-                        if text_candidate.strip():
-                            ai_text = text_candidate
-                            selector_matched = selector
-                            tab_available = True
-                            break
+                        await el.click()
+                        ai_tab_clicked = True
+                        _logger.debug(f"[naver_ai_tab] AI탭 링크 클릭: {selector}")
+                        break
                 except Exception:
                     continue
 
-            # 셀렉터 미매칭 시 body 전체 텍스트 fallback
-            # AI탭 URL로 직접 진입했으므로 body 내용도 AI탭 콘텐츠
-            if not ai_text:
-                try:
-                    body_text = await page.inner_text("body")
-                    if body_text and len(body_text.strip()) > 100:
-                        ai_text = body_text
-                        selector_matched = "body_text"
-                        tab_available = True
-                        _logger.debug(
-                            f"[naver_ai_tab] 셀렉터 미매칭 → body fallback 사용: query={query!r}, "
-                            f"body_len={len(body_text)}"
-                        )
-                except Exception as e:
-                    _logger.debug(f"[naver_ai_tab] body fallback 실패: {e}")
+            if not ai_tab_clicked:
+                # fallback: 직접 URL (클릭 실패 시)
+                url_ai = f"https://search.naver.com/search.naver?ssc=tab.ait.all&query={encoded_q}"
+                _logger.debug(f"[naver_ai_tab] AI탭 링크 없음 → 직접 URL 시도")
+                await page.goto(url_ai, timeout=25000)
+
+            # AI 답변 생성 대기 (최대 25초, 5초마다 체크)
+            ai_text = ""
+            for round_n in range(5):
+                await page.wait_for_timeout(5000)
+                current_url = page.url
+
+                # 로그인 리다이렉트 감지 (쿠키 만료)
+                if "nidlogin" in current_url:
+                    _logger.warning(f"[naver_ai_tab] 로그인 리다이렉트 — 쿠키 만료 의심: query={query!r}")
+                    return None
+
+                body_check = await page.inner_text("body")
+                body_stripped = body_check.strip()
+
+                # 차단 감지
+                if "잘못된 접근" in body_check and len(body_stripped) < 150:
+                    _logger.warning(f"[naver_ai_tab] AI탭 차단됨: query={query!r}")
+                    return None
+
+                # 생성 완료 판단: body 200자+ && "분석 중" 없음
+                if len(body_stripped) > 200 and "분석 중" not in body_check:
+                    ai_text = body_check
+                    _logger.debug(f"[naver_ai_tab] AI 답변 완성 ({round_n*5+5}s): body_len={len(body_stripped)}")
+                    break
 
             if not ai_text:
-                # 네이버 차단 오류 페이지 감지 ("잘못된 접근입니다")
-                try:
-                    raw_body = await page.inner_text("body")
-                except Exception:
-                    raw_body = ""
-                if "잘못된 접근" in raw_body or len(raw_body.strip()) < 100:
-                    _logger.warning(
-                        f"[naver_ai_tab] AI탭 차단됨 (잘못된 접근 또는 빈 페이지): query={query!r}"
-                    )
-                    return None  # 측정 실패 → scan.py가 None으로 처리, DB 저장 안 함
-                _logger.info(
-                    f"[naver_ai_tab] AI탭 콘텐츠 없음 (답변 없음): query={query!r}"
-                )
-                return {
-                    "mentioned": False,
-                    "excerpt": "",
-                    "tab_available": tab_available,
-                    "selector_matched": None,
-                }
+                # 시간 내 완성 안 됨 — 마지막 상태 그대로 사용
+                ai_text = await page.inner_text("body")
+
+            # 최종 차단·빈 페이지 체크
+            if "잘못된 접근" in ai_text or len(ai_text.strip()) < 100:
+                _logger.warning(f"[naver_ai_tab] AI탭 차단됨 (최종): query={query!r}")
+                return None
+
+            tab_available = len(ai_text.strip()) > 200
 
             # 사업장명 언급 여부 판단
             normalized_name = _normalize(business_name)
@@ -290,14 +334,13 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
 
             _logger.info(
                 f"[naver_ai_tab] 스캔 완료: query={query!r}, "
-                f"mentioned={mentioned}, tab_available={tab_available}, "
-                f"selector_matched={selector_matched!r}"
+                f"mentioned={mentioned}, tab_available={tab_available}, body_len={len(ai_text.strip())}"
             )
             return {
                 "mentioned": mentioned,
                 "excerpt": excerpt,
                 "tab_available": tab_available,
-                "selector_matched": selector_matched,
+                "selector_matched": "click_navigation",
             }
 
         finally:
