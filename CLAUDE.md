@@ -650,31 +650,21 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
-### 2026-06-19 — 사용자 관점 UX 점검 + Trial 점수 레이블 버그 수정
-> 소상공인 사용자 관점 전 페이지 기능·실측·모바일 UX 점검
-- **P0 버그 수정**: `trial/components/TrialResultStep.tsx:61,64` — `breakdown.keyword_gap_score * 100`, `breakdown.smart_place_completeness * 100` → `* 100` 제거. 백엔드는 이미 0~100 반환하는데 중복 ×100으로 kgPct/spPct=3000 → 항상 "양호" 표시되던 버그. 배포 완료 (git `4a4f820`)
-- **UX 점검 결과**: 홈·Trial·Demo·Pricing·How-it-works 전 페이지 ✅. 네이버 관련 정보 상단 노출 확인, 모바일 반응성 양호
-- **P2 개선 권장**: Trial 결과 "개선 필요" 레이블에 1줄 개선 힌트 추가 검토, Demo 모바일 스크롤 과다(접기 구조 권장)
-- **P3 데이터 품질**: 일반명사 가게명(테스트용) 스캔 시 블로그 집계 과대 → 실사업자 고유 상호명 사용 시 자연 해결
+### 2026-06-26 — 대시보드 좌측 메뉴 재편 (소상공인 UX 최적화)
+> `DashboardSidebar.tsx` NAV_GROUPS 재구성. git `4d2a453`. 배포 완료.
+- **그룹 통합**: "진단"(2) + "변화 보기"(2) → **"내 가게 현황"(4)** — 스크롤 없이 712px→350px대 노출
+- **개선 실행 축소**: 6→4개 (AI 브리핑 5단계·ChatGPT 최적화 가이드 → 도움말 섹션 이동)
+- **"기타" → "도움말"** 명칭 변경, 학습 콘텐츠 2개 추가 (총 5개)
+- **모바일**: `MobileBottomTabs` 하단 "변화" 탭 유지 (변경 불필요)
 
-### 2026-06-18 — 상업 서비스 수준 전체 점검 및 개선 15건
-> OWASP·개인정보보호법·전자상거래법·SEO·신뢰성 기준 상업 점검
-- **P0 오판 복구**: `webhook.py /billing/issue`에 `_verify_toss_auth` 오적용(프론트 호출 엔드포인트) → 롤백 + `profiles` user 존재 검증으로 교체
-- **보안**: `privacy/page.tsx` 개인정보 보호책임자 실명 "김봉후" 등록 (개인정보보호법 제30조)
-- **보안**: `support/tickets/new/page.tsx` `NEXT_PUBLIC_ADMIN_EMAILS` 클라이언트 번들 노출 제거
-- **보안**: `PlanGate.tsx` `enterprise: 4` 추가 (엔터프라이즈 플랜 기능 게이트 누락 수정)
-- **법률**: `PayButton.tsx` 결제 모달에 전자상거래법 §17 청약철회 7일 명시 + 이용약관 링크
-- **SEO**: `sitemap.ts` 59개 카테고리 페이지 추가 + `new Date()` → 빌드 날짜 고정
-- **SEO**: `stories/page.tsx` server/client 분리 → OG metadata export 가능
-- **SEO**: `opengraph-image.tsx:169` "3채널" → "4채널" 업데이트 (ChatGPT·Gemini·네이버·Google AI 반영)
-- **신뢰성**: `chatgpt_scanner.py` `check_citation()` 20초 timeout 추가
-- **신뢰성**: `naver_place_stats.py` × 3건, `scan.py` × 2건 `except Exception: pass` → debug/warning 로그
-- **UX**: `settings/page.tsx` suspended 상태 사용자도 구독 해지 버튼 노출
-- **성능**: `BeforeAfterCard.tsx` `<img>` → Next.js `<Image>` (WebP 자동변환·지연로딩·썸네일+라이트박스)
-- **안정성**: `DashboardErrorBoundary` 신설 → `(dashboard)/layout.tsx` 적용
-- **관리**: `AdminDashboard.tsx` 로그아웃 버튼 추가 (localStorage 세션 삭제)
-- **전 페이지 점검 완료**: 75개 페이지 7기준(게이트N·T 포함) 전체 ✅ (2026-06-17 선언)
-
+### 2026-06-26 — 전 서비스 심층 점검 + AI탭 베타 표기 수정
+> 브라우저 직접 접속(hoozdev@gmail.com) 전 페이지 점검. CLAUDE.md 사실 전수 검증 완료.
+- **P1 수정**: 네이버 AI탭 "베타" → "정식 출시 (2026-06-25)" 8개 파일 수정 (SiteFooter·ChannelDifferentiationCard·pricing/page·PlanRecommender·HeroSampleCard·GlobalAiFocusCard·FAQSection·demo/page)
+- **P1 수정**: `SiteFooter.tsx` "네이버 AI 브리핑 노출 관리 서비스" → "AI 검색 노출 관리 서비스" (멀티채널 실제 범위 반영)
+- **CLAUDE.md 검증 결과**: ChatGPT cutoff 2024-06-01 ✅ / AI탭 정식 출시 2026-06-25 ✅ / 가격 전체 ✅ / Gemini 기간 추정 유효 ✅
+- **기준 문서 신설**: `docs/commercial_inspection_standard_v2.0.md` (페이지별 점검 항목 + 오판 방지 체크리스트)
+- **미수정 P1**: 대시보드 Gemini 기간 표기 통일, 대행서비스 02번 업종별 분기 → 다음 세션
+- **P2 잔여**: ad-defense "Q2"→"하반기", 설정 페이지 앵커, Trial 업종 검색 필터
 
 ---
 
@@ -692,7 +682,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 | 작업 | 트리거 | 자동 알림 |
 |------|--------|---------|
-| **P2 AI탭 스캐너 활성화** | 6월 **전체 네이버 사용자** 공개 후 비로그인(헤드리스) 상태에서 AI탭 탭이 보이는지 확인 — 네이버 일반 검색은 비로그인도 가능하므로 전체 공개 시 비로그인에서도 노출 예상 | 없음 — 주 1회 수동 확인 필요 |
+| **P2 AI탭 스캐너 활성화** | ⚠️ **2026-06-25 정식 출시 완료 — 트리거 충족됨.** 비로그인(헤드리스) 상태에서 AI탭이 보이는지 수동 확인 후 `docs/p2_p3_execution_runbook.md` 실행 | 없음 — 즉시 수동 확인 필요 |
 | **P2 DB v5.7 컬럼** | P2와 동시 실행 (Supabase SQL Editor) | — |
 | **P3 점수 모델 v3.1** | 백엔드 로그 `[P3-READY]` WARNING 발생 시 | ✅ 매일 09:15 KST 자동 체크 중 |
 

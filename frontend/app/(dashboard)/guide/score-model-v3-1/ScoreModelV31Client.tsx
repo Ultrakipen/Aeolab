@@ -142,7 +142,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
         )}
         <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm leading-relaxed break-keep">
           업종별 계산 비중을 세밀하게 조정해 사장님 업종 특성에 맞는 진단을 제공합니다.
-          'AI 브리핑 대상'·'AI탭 베타 준비'·'글로벌 AI 집중' 세 유형으로 나뉘어
+          'AI 브리핑 대상'·'AI 브리핑 확대 예정'·'글로벌 AI 집중' 세 유형으로 나뉘어
           각 유형에 실제로 의미 있는 채널에 더 높은 비중이 적용됩니다.
         </p>
       </div>
