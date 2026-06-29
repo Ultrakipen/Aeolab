@@ -38,6 +38,10 @@ export function getUserGroup(category: string, isFranchise: boolean): UserGroup 
 }
 
 // ── AI 브리핑 게이팅 단일 소스 (v4.1) ─────────────────────────────────────────
+// ⚠️ 중요: 이 목록은 "플레이스형(소상공인 플레이스 카드 요약형)" AI 브리핑 대상 업종만 정의한다.
+//   네이버 AI 브리핑 5유형 중 "정보형/공식형 멀티출처(추천형)"는 업종 제한이 없으며,
+//   블로그·카페·콘텐츠가 출처로 채택되면 전 업종이 노출될 수 있다(2026-06-29 실측 확인: 사진/웨딩스냅 노출).
+//   따라서 inactive/likely/franchise라도 "네이버 AI 브리핑 전면 불가"가 아니다 — GROUP_MESSAGES 참조.
 // ⚠️ backend/services/score_engine.py BRIEFING_ACTIVE_CATEGORIES와 동기화 필수
 // ⚠️ 변경 시 RegisterBusinessForm.tsx, dashboard/page.tsx 양쪽 확인 필수
 export const BRIEFING_ACTIVE_CATEGORIES: ReadonlyArray<string> = [
@@ -83,20 +87,20 @@ export const GROUP_MESSAGES: Record<UserGroup, GroupMessage> = {
     badgeColor: "bg-green-100 text-green-800 border border-green-200",
   },
   LIKELY: {
-    headline: "네이버 검색·지도·블로그 + ChatGPT·Gemini AI 노출 최적화",
-    sub: "현재 네이버 AI 브리핑 공식 대상은 아닙니다. 네이버 지도 상위 노출과 ChatGPT·Gemini 검색 노출을 집중 개선합니다.",
-    badge: "로컬 AI 노출 최적화",
+    headline: "네이버 정보형 AI 브리핑 + 검색·지도 + ChatGPT·Gemini 노출 최적화",
+    sub: "특정 가게를 요약하는 '플레이스형' AI 브리핑 공식 대상은 아니지만(확대 예상 업종), 블로그·콘텐츠 기반 '정보형 AI 브리핑'에는 지금도 노출될 수 있습니다. 네이버 지도 상위 노출과 ChatGPT·Gemini도 함께 집중 개선합니다.",
+    badge: "정보형 AI + 로컬 노출",
     badgeColor: "bg-blue-100 text-blue-800 border border-blue-200",
   },
   INACTIVE: {
-    headline: "ChatGPT·Gemini·Google AI 검색 노출 집중 관리",
-    sub: "현재 네이버 AI 브리핑 대상 업종이 아닙니다. ChatGPT·Google AI에서 먼저 찾히도록 최적화합니다. 네이버 지도·블로그 관리도 함께 제공됩니다.",
-    badge: "글로벌 AI 채널 집중",
+    headline: "네이버 정보형 AI 브리핑 + ChatGPT·Gemini·Google AI 노출 관리",
+    sub: "특정 가게를 요약하는 '플레이스형' AI 브리핑 대상은 아니지만, 블로그·콘텐츠가 잘 갖춰지면 '정보형(추천)·AI 브리핑'에는 노출될 수 있습니다. 이 콘텐츠 노출과 함께 ChatGPT·Google AI, 네이버 지도·블로그도 관리합니다.",
+    badge: "정보형 AI + 글로벌 AI",
     badgeColor: "bg-amber-100 text-amber-800 border border-amber-200",
   },
   franchise: {
-    headline: "네이버 검색·블로그 + ChatGPT·Google AI 노출 관리",
-    sub: "프랜차이즈 가맹점은 네이버 AI 브리핑 대상에서 제외됩니다(본사 정책). 네이버 일반 검색·지도·ChatGPT·Google AI 노출은 직접 관리할 수 있습니다.",
+    headline: "네이버 정보형 AI 브리핑 + 검색·블로그 + ChatGPT·Google AI 노출 관리",
+    sub: "프랜차이즈 가맹점은 '플레이스형' AI 브리핑 대상에서 제외됩니다(본사 정책). 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 네이버 일반 검색·지도·ChatGPT·Google AI 노출은 직접 관리할 수 있습니다.",
     badge: "프랜차이즈 맞춤",
     badgeColor: "bg-purple-100 text-purple-800 border border-purple-200",
   },

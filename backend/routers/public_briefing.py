@@ -74,9 +74,12 @@ async def get_briefing_categories(request: Request):
         "version":  "v3.1",
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "note": (
-            "active = 현재 네이버 AI 브리핑 대상 업종 (프랜차이즈 제외). "
-            "likely = 확대 예상 업종. "
-            "inactive = 비대상 업종 (글로벌 AI 채널로 노출 가능). "
+            "이 분류는 '플레이스형(가게 플레이스 카드 요약형)' AI 브리핑 대상 업종만 정의한다. "
+            "active = 현재 플레이스형 대상 업종 (프랜차이즈 제외). "
+            "likely = 플레이스형 확대 예상 업종. "
+            "inactive = 플레이스형 비대상 업종 — 단, 블로그·콘텐츠 기반 '정보형/공식형 멀티출처' "
+            "AI 브리핑은 업종 제한 없이 노출 가능(2026-06-29 실측: 사진/웨딩스냅 노출 확인). "
+            "글로벌 AI(ChatGPT·Gemini·Google) 채널로도 노출 가능. "
             "출처: 네이버 공식 help.naver.com/service/30026/contents/24632"
         ),
     }
