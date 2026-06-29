@@ -243,7 +243,7 @@ export default function HowItWorksPage() {
             1단계. 게이트 3조건 — 노출 가능 여부 먼저 확인
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            네이버 AI 브리핑은 모든 가게에 노출되지 않습니다. 아래 3가지 조건 중 하나라도 안 되면
+            네이버 '플레이스형' AI 브리핑은 모든 가게에 노출되지 않습니다. 아래 3가지 조건 중 하나라도 안 되면
             콘텐츠가 아무리 좋아도 노출되지 않으므로, AEOlab은 가장 먼저 이를 점검합니다.
           </p>
 
