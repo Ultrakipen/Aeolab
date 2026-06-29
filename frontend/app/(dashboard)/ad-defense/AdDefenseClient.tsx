@@ -95,7 +95,7 @@ export function AdDefenseClient({
 
   return (
     <div className="p-4 md:p-8 max-w-3xl">
-      <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">ChatGPT 광고 대응 가이드</h1>
+      <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">AI 광고 대비 가이드</h1>
       <p className="text-base text-gray-500 mb-5">
         ChatGPT SearchGPT 광고 도입 시 유기적 AI 노출을 유지하는 전략을 제공합니다.
       </p>
@@ -110,7 +110,7 @@ export function AdDefenseClient({
       </div>
 
       {/* 사용 방법 3단계 */}
-      <div className="grid grid-cols-3 gap-2 md:gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 mb-6">
         {[
           { step: "1", label: "사업장 선택", desc: "분석할 가게를 선택하세요" },
           { step: "2", label: "가이드 생성", desc: "AI가 10~20초 분석합니다" },

@@ -46,7 +46,7 @@ export default async function AdDefensePage() {
 
     return (
       <div className="p-4 md:p-8 max-w-2xl">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">ChatGPT 광고 대응 가이드</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">AI 광고 대비 가이드</h1>
         <p className="text-sm text-gray-500 mb-6">ChatGPT SearchGPT 광고 도입 시 유기적 AI 노출을 유지하는 전략 (Pro 이상 전용)</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
