@@ -525,6 +525,22 @@ async def daily_scan_all():
                     )
                 # ────────────────────────────────────────────────────────────────
 
+                # naver AI탭 결과 추출 — result["naver_ai_tab"] = {query: {mentioned, excerpt, ...}}
+                _ai_tab_raw = result.get("naver_ai_tab") or {}
+                _sched_ai_tab_visible: "bool | None" = None
+                _sched_ai_tab_excerpt: "str | None" = None
+                if _ai_tab_raw:
+                    _sched_ai_tab_visible = any(v.get("mentioned") for v in _ai_tab_raw.values() if v)
+                    for _v in _ai_tab_raw.values():
+                        if _v and _v.get("mentioned") and _v.get("excerpt"):
+                            _sched_ai_tab_excerpt = (_v["excerpt"] or "")[:500] or None
+                            break
+                    if _sched_ai_tab_excerpt is None:
+                        for _v in _ai_tab_raw.values():
+                            if _v and _v.get("excerpt"):
+                                _sched_ai_tab_excerpt = (_v["excerpt"] or "")[:500] or None
+                                break
+
                 _insert_res = await _db(
                     supabase.table("scan_results").insert(
                         {
@@ -550,6 +566,8 @@ async def daily_scan_all():
                             "blog_platform": _sched_blog_json.get("platform") or None,
                             "blog_top_recommendation": (_sched_blog_json.get("top_recommendation") or "")[:500] or None,
                             "smart_place_completeness_result": (_prescan_sp if _prescan_sp and not _prescan_sp.get("error") else None),
+                            "naver_ai_tab_visible": _sched_ai_tab_visible,
+                            "naver_ai_tab_excerpt": _sched_ai_tab_excerpt,
                         }
                     )
                 )
