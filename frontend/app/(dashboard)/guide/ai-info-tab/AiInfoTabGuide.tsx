@@ -116,9 +116,9 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             </p>
             <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">
               {business.is_franchise
-                ? "프랜차이즈 가맹점은 현재 네이버 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정). 그동안 일반 검색·AI탭 노출과 ChatGPT·Gemini 현황 측정에서 효과를 드립니다."
+                ? "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다(본사 정책). 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 AI탭·일반 검색·ChatGPT·Gemini에서는 노출 가능합니다."
                 : isInactive
-                ? "이 업종은 AI 브리핑 비대상이지만, 네이버 AI탭(2026-04-27 베타 출시 · 2026-06-25 정식 출시, 업종 공식 제한 없음)을 통한 노출을 준비할 수 있습니다. 아래 단계로 준비하세요. 일반 검색 노출과 병행 가능합니다."
+                ? "이 업종은 '플레이스형' AI 브리핑 비대상이지만, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. 네이버 AI탭(2026-06-25 정식 출시, 업종 공식 제한 없음)을 통한 노출도 준비하세요. 일반 검색 노출과 병행 가능합니다."
                 : isLikely
                 ? "이 업종은 AI 브리핑 확대 예상 업종입니다. 미리 5단계를 완료해두면 확대 즉시 노출됩니다. (네이버 AI탭은 2026-04-27 베타 출시 · 2026-06-25 정식 출시 → 아래 AI탭 가이드 참고)"
                 : "이 업종은 현재 AI 브리핑 노출 대상입니다. 5단계를 완료해 노출 확률을 높이세요."}
@@ -172,8 +172,8 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               title="🎯 네이버 스마트플레이스 AI 정보 탭 찾기 (AI 브리핑)"
               reason={
                 business?.is_franchise
-                  ? "프랜차이즈 가맹점은 네이버 AI 브리핑 제공 대상에서 제외됩니다 (네이버 공식 정책)."
-                  : "이 업종은 네이버 AI 브리핑 비대상입니다. AI 정보 탭이 노출되지 않습니다."
+                  ? "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다 (네이버 공식 정책)."
+                  : "이 업종은 '플레이스형' 네이버 AI 브리핑 비대상입니다. AI 정보 탭(브리핑 연동)이 노출되지 않습니다."
               }
             />
             {/* AI탭 준비 안내 — INACTIVE/프랜차이즈도 AI탭은 모든 업종 가능 */}

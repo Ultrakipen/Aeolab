@@ -946,7 +946,7 @@ export default function ScoreEvidenceCard({
             </div>
             {effectiveGroup === "INACTIVE" ? (
               <span className="text-sm px-3 py-1 rounded-full font-semibold border bg-gray-100 text-gray-500 border-gray-200">
-                AI 브리핑 비대상
+                플레이스형 AI 브리핑 비대상
               </span>
             ) : (
               <span className={`text-sm px-3 py-1 rounded-full font-semibold border ${

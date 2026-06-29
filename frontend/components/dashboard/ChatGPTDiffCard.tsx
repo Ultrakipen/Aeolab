@@ -63,10 +63,10 @@ export default function ChatGPTDiffCard({
     {
       label: "네이버 AI 브리핑 실시간 확인",
       value: isNaverInactive
-        ? "이 업종 해당 없음"
+        ? "플레이스형 해당 없음"
         : naverBriefing ? "현재 노출 중" : "현재 미노출",
       detail: isNaverInactive
-        ? "이 업종은 네이버 AI 브리핑 노출 대상이 아닙니다. 글로벌 AI 채널 중심으로 최적화하세요."
+        ? "이 업종은 '플레이스형' 네이버 AI 브리핑 노출 대상이 아닙니다. 블로그·콘텐츠로 '정보형 AI 브리핑'과 글로벌 AI 채널을 함께 최적화하세요."
         : "실제 네이버 검색 결과를 직접 파싱합니다. ChatGPT는 네이버 결과를 볼 수 없습니다",
       highlight: !isNaverInactive && naverBriefing,
       inactive: isNaverInactive,

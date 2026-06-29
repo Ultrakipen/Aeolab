@@ -196,7 +196,7 @@ export default function AIDiagnosisCard({
         </div>
         {isNaverBriefingInactive ? (
           <p className="text-xl md:text-2xl font-bold text-white leading-snug">
-            {eunNeun(businessName)} 네이버 AI 브리핑 비대상 업종입니다. AI탭·ChatGPT·Gemini는 소개글·리뷰 개선으로 노출을 시작할 수 있습니다.
+            {eunNeun(businessName)} '플레이스형' 네이버 AI 브리핑 비대상 업종입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. AI탭·ChatGPT·Gemini는 소개글·리뷰 개선으로 노출을 시작할 수 있습니다.
           </p>
         ) : naverInBriefing ? (
           <p className="text-xl md:text-2xl font-bold text-green-400 leading-snug">
@@ -266,10 +266,10 @@ export default function AIDiagnosisCard({
                       <div className="flex-1 min-w-0">
                         <span className="text-sm font-semibold text-gray-600">네이버 검색 노출</span>
                         <span className="block text-sm text-gray-500 mt-0.5">
-                          AI 브리핑은 이 업종에 미적용 — AI탭·ChatGPT·Gemini는 동일한 개선 방법으로 노출 가능
+                          '플레이스형' AI 브리핑은 이 업종에 미적용 — '정보형 AI 브리핑'·AI탭·ChatGPT·Gemini는 동일한 개선 방법으로 노출 가능
                         </span>
                       </div>
-                      <span className="text-sm font-semibold text-gray-400 shrink-0">AI 브리핑 제외</span>
+                      <span className="text-sm font-semibold text-gray-400 shrink-0">'플레이스형' AI 브리핑 제외</span>
                     </div>
                     <div className="col-span-2 flex items-start gap-2 rounded-xl px-3 py-3 border bg-indigo-50 border-indigo-200">
                       <Minus className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
@@ -455,7 +455,7 @@ export default function AIDiagnosisCard({
               {isNaverBriefingInactive ? (
                 <span className="flex items-start gap-1.5">
                   <Lightbulb className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-                  <span>이 업종은 네이버 AI 브리핑 비대상입니다. AI탭·ChatGPT·Gemini는 소개글·구글 비즈니스 프로필 개선으로 노출을 시작할 수 있습니다</span>
+                  <span>이 업종은 '플레이스형' 네이버 AI 브리핑 비대상입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. AI탭·ChatGPT·Gemini는 소개글·구글 비즈니스 프로필 개선으로 노출을 시작할 수 있습니다</span>
                 </span>
               ) : naverInBriefing ? (
                 <span className="flex items-start gap-1.5">

@@ -777,14 +777,14 @@ export default function TrialResultStep(props: TrialResultProps) {
             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
             <p className="text-sm md:text-base font-bold text-amber-900">
               {group === "franchise"
-                ? "프랜차이즈 가맹점은 네이버 AI 브리핑 대상에서 제외됩니다"
-                : "현재 네이버 AI 브리핑 대상 업종이 아닙니다"}
+                ? "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 대상에서 제외됩니다"
+                : "현재 '플레이스형' 네이버 AI 브리핑 대상 업종이 아닙니다"}
             </p>
           </div>
           <p className="text-sm text-amber-800 leading-relaxed mb-2 break-keep">
             {group === "franchise"
-              ? "네이버 본사 정책에 따라 프랜차이즈 가맹점은 AI 브리핑 노출이 제한됩니다. 단, 네이버 AI탭(업종 공식 제한 없음, 정식 출시)도 확인하세요."
-              : "ChatGPT·Gemini·Google AI 노출 최적화에 집중합니다. 또한 네이버 AI탭(업종 공식 제한 없음, 정식 출시)도 확인하세요."}
+              ? "네이버 본사 정책에 따라 프랜차이즈 가맹점은 '플레이스형' AI 브리핑 노출이 제한됩니다. 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 AI탭·ChatGPT·Gemini·Google AI에서는 노출 가능합니다."
+              : "블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. ChatGPT·Gemini·Google AI 노출 최적화에 집중하고, 네이버 AI탭(업종 제한 없음, 정식 출시)도 확인하세요."}
           </p>
           <div className="flex flex-wrap gap-2">
             {[
@@ -1226,7 +1226,7 @@ function BriefingCategoryBadge({
           AI탭 + ChatGPT·Gemini·Google AI — 4채널 노출이 가능합니다
         </p>
         <p className="text-sm text-blue-700 mt-0.5">
-          네이버 AI 브리핑 대상 업종이 아닙니다
+          '플레이스형' AI 브리핑 대상 업종이 아닙니다 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능
         </p>
       </div>
     </div>

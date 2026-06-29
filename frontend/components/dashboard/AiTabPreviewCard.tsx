@@ -324,7 +324,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         {/* INACTIVE 업종: 카드 숨김 대신 안내 배너 표시 */}
         {NAVER_AI_TAB_ENABLED && !loading && unavailable && (
           <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 text-sm text-slate-700">
-            <p className="font-semibold text-slate-800 mb-1">네이버 AI 브리핑 비대상 업종 — AI탭은 모든 업종 가능</p>
+            <p className="font-semibold text-slate-800 mb-1">플레이스형 AI 브리핑 비대상 업종 — 정보형 AI 브리핑·AI탭은 모든 업종 가능</p>
             <p className="leading-relaxed break-keep">
               AI탭은 업종 공식 제한 없이 모든 업종이 대상입니다.
               소개글 200자·사진 10장·리뷰 키워드를 미리 최적화하면 플레이스 에이전트를 통한 AI탭 노출에 유리합니다.

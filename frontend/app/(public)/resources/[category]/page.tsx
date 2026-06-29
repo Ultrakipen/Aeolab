@@ -287,7 +287,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
   pet: {
     label: "반려동물샵",
     description:
-      "반려동물샵은 네이버 AI 브리핑 확대 예정 업종입니다. 서비스별 요금, 전후 사진, 자격증 정보가 신뢰도 핵심입니다.",
+      "반려동물샵은 네이버 '플레이스형' AI 브리핑 확대 예정 업종입니다. 서비스별 요금, 전후 사진, 자격증 정보가 신뢰도 핵심입니다.",
     checklist: [
       "스마트플레이스 소개글 200자 이상 (주요 서비스 포함)",
       "미용 전후 비교 사진 3세트 이상 업로드",
@@ -320,7 +320,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
   education: {
     label: "교육·학원",
     description:
-      "교육·학원은 네이버 AI 브리핑 비대상 업종으로 ChatGPT·Gemini 중심 노출이 권장됩니다. 커리큘럼, 강사 소개, 수강 후기가 등록 전환 핵심입니다.",
+      "교육·학원은 '플레이스형' 네이버 AI 브리핑 비대상 업종이지만, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. ChatGPT·Gemini 중심 노출도 권장됩니다. 커리큘럼, 강사 소개, 수강 후기가 등록 전환 핵심입니다.",
     checklist: [
       "스마트플레이스 소개글 200자 이상 (수업 과목·대상 연령 포함)",
       "구글 비즈니스 프로필 등록 (business.google.com) — ChatGPT·Gemini 노출 핵심",

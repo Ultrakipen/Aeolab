@@ -46,12 +46,12 @@ def _briefing_strategy_header(eligibility: str, is_franchise: bool) -> str:
     # inactive
     if is_franchise:
         return (
-            "🏢 프랜차이즈 가맹점은 현재 네이버 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정). "
-            "글로벌 AI 채널 노출에 집중하세요."
+            "🏢 프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정). "
+            "단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 글로벌 AI 노출은 가능합니다."
         )
     return (
-        "ℹ️ 이 업종은 현재 AI 브리핑 비대상이지만, "
-        "콘텐츠 강화는 ChatGPT·Gemini·Google AI Overview 노출에 동일하게 효과적입니다."
+        "ℹ️ 이 업종은 '플레이스형' 네이버 AI 브리핑 비대상이지만, "
+        "블로그·콘텐츠 강화는 '정보형 네이버 AI 브리핑'과 ChatGPT·Gemini·Google AI 노출에 동일하게 효과적입니다."
     )
 
 
@@ -78,7 +78,7 @@ def _naver_briefing_exposure_msg(naver_in_briefing: bool, eligibility: str) -> s
     if naver_in_briefing:
         return "있음 ✅"
     if eligibility == "inactive":
-        return "네이버 AI 브리핑은 현재 이 업종 비대상입니다 — ChatGPT·Gemini·Google AI 노출 개선에 집중"
+        return "플레이스형 네이버 AI 브리핑은 현재 이 업종 비대상입니다 — 블로그·콘텐츠로 정보형 AI 브리핑 + ChatGPT·Gemini·Google AI 노출 개선 가능"
     if eligibility == "likely":
         return "없음 ⚠️ — 확대 예상 업종, 미리 준비 권장"
     return "없음 ❌ — 가장 먼저 해결해야 할 문제"
@@ -930,7 +930,7 @@ class GuideGenerator:
         if naver_in_briefing:
             _summary_briefing_hint = "네이버 브리핑 노출 중"
         elif eligibility == "inactive":
-            _summary_briefing_hint = "이 업종은 네이버 AI 브리핑 비대상 — ChatGPT·Gemini·Google AI 노출 개선이 핵심"
+            _summary_briefing_hint = "이 업종은 '플레이스형' 네이버 AI 브리핑 비대상 — 블로그·콘텐츠 기반 '정보형 AI 브리핑' + ChatGPT·Gemini·Google AI 노출 개선이 핵심"
         elif eligibility == "likely":
             _summary_briefing_hint = "AI 브리핑 확대 예상 업종 — 미리 5단계 준비 권장"
         else:

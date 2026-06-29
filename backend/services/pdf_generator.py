@@ -774,8 +774,8 @@ def generate_pdf_report(
 
     # 채널 안내 배너
     if elig == "inactive":
-        btext = ("【비대상 업종】  네이버 AI 브리핑은 음식점·카페·숙박 등 일부 업종만 대상입니다 (네이버 공식 정책). "
-                 "이 사업장은 ChatGPT · Gemini · Google AI 최적화에 집중해야 합니다.")
+        btext = ("【플레이스형 비대상 업종】  '플레이스형' 네이버 AI 브리핑은 음식점·카페·숙박 등 일부 업종만 대상입니다 (네이버 공식 정책). "
+                 "이 사업장은 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 ChatGPT · Gemini · Google AI 최적화에 집중하세요.")
         story.append(_banner(btext, "#fef9c3", "#ca8a04", S))
     elif elig == "likely":
         btext = ("【확대 예정 업종】  현재 네이버 AI 탭 베타 확대 중인 업종입니다. "
@@ -835,9 +835,9 @@ def generate_pdf_report(
 
     # 네이버 AI 브리핑
     if not nav["eligible"]:
-        _add_row("네이버 AI 브리핑", "비대상 업종",
+        _add_row("네이버 AI 브리핑", "플레이스형 비대상",
                  False,
-                 "네이버 공식 정책상 현재 이 업종은 AI 브리핑 서비스 미지원",
+                 "네이버 공식 정책상 현재 이 업종은 '플레이스형' AI 브리핑 서비스 미지원 (정보형은 블로그·콘텐츠로 노출 가능)",
                  1, is_neutral=True)
     else:
         ok  = nav["in_briefing"]
@@ -1157,9 +1157,9 @@ def generate_pdf_report(
     # ── INACTIVE 전용: 글로벌 AI SEO 5단계 ─────────────────────────────────
     if elig == "inactive":
         story.append(Spacer(1, 6))
-        _section_bg(story, "글로벌 AI SEO 전략  (비대상 업종 집중 플랜)", bg="#f5f3ff", fg="#7c3aed")
+        _section_bg(story, "정보형 AI 브리핑 + 글로벌 AI SEO 전략  (플레이스형 비대상 업종 집중 플랜)", bg="#f5f3ff", fg="#7c3aed")
         story.append(Paragraph(
-            "네이버 AI 브리핑 비대상 업종은 아래 5단계로 ChatGPT·Gemini·Google AI 노출을 높이세요.",
+            "'플레이스형' 네이버 AI 브리핑 비대상 업종도 블로그·콘텐츠 강화로 '정보형 AI 브리핑' + ChatGPT·Gemini·Google AI 노출을 높일 수 있습니다. 아래 5단계를 실행하세요.",
             S["small"],
         ))
         story.append(Spacer(1, 4))

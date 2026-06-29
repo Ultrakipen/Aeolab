@@ -111,7 +111,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
         </div>
         {isNaverInactive && (
           <div className="mb-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            <p className="text-sm font-semibold text-amber-800">이 업종은 네이버 AI 브리핑 대상이 아닙니다</p>
+            <p className="text-sm font-semibold text-amber-800">이 업종은 '플레이스형' 네이버 AI 브리핑 대상이 아닙니다</p>
             <p className="text-sm text-amber-700 mt-0.5">네이버 AI탭(업종 공식 제한 없음, 2026-06-25 정식 출시) · ChatGPT · Gemini 노출 현황을 확인합니다.</p>
           </div>
         )}
@@ -142,7 +142,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
           <h3 className="text-base font-bold text-gray-900">AI 검색 언급 분석</h3>
           <p className="text-sm text-gray-500">
             {isNaverInactive
-              ? "AI탭 · Gemini · ChatGPT 추천 시뮬레이션 (이 업종은 네이버 AI 브리핑 대상 아님)"
+              ? "AI탭 · 정보형 AI 브리핑 · Gemini · ChatGPT 추천 시뮬레이션 (이 업종은 플레이스형 AI 브리핑 비대상)"
               : "네이버 AI 브리핑 실제 문장 · Gemini/ChatGPT 추천 시뮬레이션"}
           </p>
         </div>

@@ -36,7 +36,7 @@ export default function InactiveUserBanner({ userCreatedAt }: Props) {
       role="alert"
     >
       <p className="flex-1 text-sm leading-relaxed text-[#1E40AF] break-keep">
-        AI 브리핑은 비대상 업종이지만, ChatGPT·Gemini 노출은 정상 측정 중입니다. 네이버 AI탭은 업종 공식 제한이 없습니다 (정식 출시).
+        '플레이스형' AI 브리핑은 비대상 업종이지만, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능합니다. ChatGPT·Gemini 노출은 정상 측정 중이며, AI탭도 업종 제한이 없습니다(정식 출시).
       </p>
       <button
         onClick={handleDismiss}

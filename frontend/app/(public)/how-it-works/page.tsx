@@ -263,7 +263,7 @@ export default function HowItWorksPage() {
                     <p className="text-sm text-gray-500 mt-1 leading-relaxed">음식점·카페·베이커리·바·숙박</p>
                     <p className="text-sm text-amber-600 mt-1 leading-relaxed">확대 예정: 뷰티·네일·펫·피트니스·요가·약국</p>
                   </td>
-                  <td className="py-3 px-3 align-top text-gray-700">업종 선택 시 자동 판정. 비대상 업종은 대시보드에 안내 배너 표시 + 글로벌 AI 채널로 가치 전달</td>
+                  <td className="py-3 px-3 align-top text-gray-700">업종 선택 시 자동 판정. '플레이스형 AI 브리핑 비대상' 업종은 대시보드에 안내 배너 표시 + 정보형 AI 브리핑·글로벌 AI 채널로 가치 전달</td>
                   <td className="py-3 px-3 align-top text-gray-700">업종 선택</td>
                 </tr>
                 <tr className="border-b border-gray-100">
@@ -271,7 +271,7 @@ export default function HowItWorksPage() {
                     <strong>② 프랜차이즈 가맹점 아님?</strong>
                     <p className="text-sm text-gray-500 mt-1 leading-relaxed">네이버 정책 기준: 프랜차이즈는 현재 제외</p>
                   </td>
-                  <td className="py-3 px-3 align-top text-gray-700">체크하면 AI 브리핑 비대상으로 전환 + 대체 채널(글로벌 AI) 노출 개선으로 전환</td>
+                  <td className="py-3 px-3 align-top text-gray-700">체크하면 '플레이스형' AI 브리핑 비대상으로 전환 + '정보형 AI 브리핑'·글로벌 AI 채널 노출 개선으로 전환</td>
                   <td className="py-3 px-3 align-top text-gray-700">사업장 등록 시 체크박스로 답변</td>
                 </tr>
                 <tr>
@@ -289,7 +289,7 @@ export default function HowItWorksPage() {
           {/* 비대상 업종 가치 강조 박스 */}
           <div className="rounded-xl border border-blue-300 bg-blue-50 p-4 md:p-5">
             <p className="text-sm md:text-base font-bold text-blue-900 mb-3 break-keep">
-              AI 브리핑 비대상 업종(병원·법무·교육·쇼핑몰 등)이라도 — 네이버 검색 상위 노출 가능성을 높일 수 있습니다
+              '플레이스형' AI 브리핑 비대상 업종(병원·법무·교육·쇼핑몰 등)이라도 — 네이버 검색·정보형 AI 브리핑 노출 가능성을 높일 수 있습니다
             </p>
             <div className="space-y-2.5">
               <div className="flex items-start gap-3 bg-white rounded-lg p-3 border border-blue-100">
@@ -334,7 +334,7 @@ export default function HowItWorksPage() {
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
             아래 표는 업종 그룹(AI 브리핑 대상 / 확대 예정 / 글로벌 AI 중심)에 따라 자동 적용되는 6항목 가중치이며, 현재 라이브로 적용 중입니다.
-            AI 브리핑 비대상 업종(글로벌 AI 중심 그룹)은 키워드 검색·스마트플레이스 비중이 자동 상향되고 AI 브리핑 비중이 0%로 빠져, 비대상 업종이라도 점수상 불이익이 없도록 설계됩니다.
+            '플레이스형' AI 브리핑 비대상 업종(글로벌 AI 중심 그룹)은 키워드 검색·스마트플레이스 비중이 자동 상향되고 플레이스형 AI 브리핑 비중이 0%로 빠져, 비대상 업종이라도 점수상 불이익이 없도록 설계됩니다.
           </p>
 
           <div className="overflow-x-auto mb-4">
@@ -948,8 +948,8 @@ export default function HowItWorksPage() {
                   <td className="py-2.5 px-3 align-top text-gray-700"><strong>노출 자체를 보장</strong> (네이버 알고리즘 비공개)</td>
                 </tr>
                 <tr className="border-b border-gray-100">
-                  <td className="py-2.5 px-3 align-top">비대상 업종에 대해 네이버 일반 검색 상위 노출 + 글로벌 AI 노출 개선</td>
-                  <td className="py-2.5 px-3 align-top text-gray-700">비대상 업종을 AI 브리핑 대상으로 만들기</td>
+                  <td className="py-2.5 px-3 align-top">'플레이스형' AI 브리핑 비대상 업종에 대해 네이버 일반 검색·정보형 AI 브리핑 노출 개선 + 글로벌 AI 노출 개선</td>
+                  <td className="py-2.5 px-3 align-top text-gray-700">비대상 업종을 '플레이스형' AI 브리핑 대상으로 만들기</td>
                 </tr>
                 <tr className="border-b border-gray-100">
                   <td className="py-2.5 px-3 align-top">사장님 5단계 행동 가이드</td>
@@ -968,8 +968,8 @@ export default function HowItWorksPage() {
           </div>
 
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded p-3 md:p-4 text-sm md:text-base text-gray-700 leading-relaxed break-keep">
-            <strong>비대상 업종(병원·법무·교육·쇼핑몰 등) 안내:</strong>{" "}
-            네이버 AI 브리핑은 지원되지 않지만, <strong>네이버 플레이스 탭 검색 상위 노출</strong>은 업종과 무관하게 개선됩니다.
+            <strong>'플레이스형' AI 브리핑 비대상 업종(병원·법무·교육·쇼핑몰 등) 안내:</strong>{" "}
+            '플레이스형' 네이버 AI 브리핑은 지원되지 않지만, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능합니다. <strong>네이버 플레이스 탭 검색 상위 노출</strong>은 업종과 무관하게 개선됩니다.
             소개글·리뷰·소식·키워드 최적화는 즉시 네이버 검색 순위에 영향을 줍니다.
             여기에 Gemini·Google AI Overview·ChatGPT 등 글로벌 AI 노출까지 함께 개선됩니다. 구독 전{" "}
             <Link href="/trial" className="text-blue-600 hover:underline font-medium">무료 진단</Link>으로

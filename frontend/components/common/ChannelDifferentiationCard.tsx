@@ -16,13 +16,13 @@ function getSummaryMessage(group: UserGroup | "unknown"): string {
     return "음식점/카페/바/베이커리/숙박업은 3개 채널 모두에서 노출 가능합니다.";
   }
   if (group === "franchise") {
-    return "프랜차이즈는 AI 브리핑 제외 대상이지만, AI 탭과 글로벌 AI 2개 채널에서 노출 가능합니다.";
+    return "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 대상에서 제외됩니다(본사 정책). 단, '정보형 AI 브리핑'과 AI탭·ChatGPT·Gemini·Google AI에서는 노출 가능합니다.";
   }
   if (group === "LIKELY") {
     return "현재 AI 탭과 글로벌 AI 2개 채널에서 노출 가능하며, AI 브리핑은 곧 확대 예정입니다.";
   }
   if (group === "INACTIVE") {
-    return "AI 탭과 글로벌 AI 2개 채널에서 노출 가능합니다. AI 브리핑 대상은 아니지만 핵심 채널은 모두 측정합니다.";
+    return "AI탭과 글로벌 AI 2개 채널에서 노출 가능합니다. '플레이스형' AI 브리핑 비대상이나 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능하며, 핵심 채널 모두 측정합니다.";
   }
   // category=null (비로그인 방문자 등)
   return "당신의 업종에 따라 최적화된 채널을 자동으로 분기하여 측정합니다.";

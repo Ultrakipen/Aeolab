@@ -4573,11 +4573,11 @@ export function GuideClient({
               {business.is_franchise ? (
                 <>
                   <p className="text-base font-bold text-gray-900 mb-1">
-                    프랜차이즈 가맹점은 현재 AI 브리핑 비대상입니다
+                    프랜차이즈 가맹점은 현재 '플레이스형' AI 브리핑 비대상입니다
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    네이버 공식: 프랜차이즈 업종은 현재 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정).
-                    그동안 아래 가이드는 <strong>네이버 AI탭·일반 검색 노출</strong>에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
+                    네이버 공식: 프랜차이즈 업종은 '플레이스형' AI 브리핑 제공 대상에서 제외됩니다. 단, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다.
+                    아래 가이드는 <strong>정보형 AI 브리핑·AI탭·일반 검색 노출</strong>에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
                   </p>
                 </>
               ) : isBriefingLikely ? (

@@ -603,7 +603,7 @@ async def send_trial_claim_link(
         cat_msg = f"<strong>{cat_ko}</strong> 업종은 네이버 AI탭 확대 예상 업종입니다. 네이버 스마트플레이스 최적화 + ChatGPT·Gemini 노출 양쪽 개선이 중요합니다."
     else:
         cat_bg, cat_bd, cat_color = "#fefce8", "#fde047", "#713f12"
-        cat_msg = f"<strong>{cat_ko}</strong> 업종은 네이버 AI 브리핑 대상이 아닙니다. <strong>ChatGPT · Gemini · Google AI</strong> 노출 개선에 집중하세요."
+        cat_msg = f"<strong>{cat_ko}</strong> 업종은 '플레이스형' 네이버 AI 브리핑 대상이 아닙니다. 블로그·콘텐츠 강화는 <strong>정보형 네이버 AI 브리핑 + ChatGPT · Gemini · Google AI</strong> 노출 개선에 동일하게 효과적입니다."
 
     # ── 섹션 1: 트랙별 점수 진행바 ───────────────────────────────────────────
     track_section = ""

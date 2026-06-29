@@ -21,7 +21,7 @@ function getBriefingBadge(
 ): { label: string; colorClass: string; icon: ReactNode } {
   if (userGroup === "INACTIVE" || userGroup === "franchise") {
     return {
-      label: "네이버 AI 브리핑 비대상",
+      label: "플레이스형 AI 브리핑 비대상",
       colorClass: "bg-amber-100 text-amber-800 border border-amber-300",
       icon: <Minus className="w-4 h-4" />,
     };
@@ -63,7 +63,7 @@ function getDeficiencyMessage(
   userGroup: string,
 ): string | null {
   if (userGroup === "INACTIVE" || userGroup === "franchise") {
-    return "이 업종은 네이버 AI 브리핑 대상이 아닙니다. 네이버 AI탭(업종 공식 제한 없음, 2026-06-25 정식 출시)과 GPT/Gemini 개선 방안을 함께 실행하세요.";
+    return "이 업종은 '플레이스형' 네이버 AI 브리핑 대상이 아닙니다. 단, 블로그·콘텐츠가 갖춰지면 '정보형 AI 브리핑'에 노출될 수 있습니다. AI탭(정식 출시)과 ChatGPT·Gemini 개선 방안을 함께 실행하세요.";
   }
   if (!isSmartPlace) {
     return "스마트플레이스 미등록 → 네이버 AI 브리핑 노출 불가. 아래 할 일에서 등록 방법을 확인하세요.";
@@ -135,7 +135,7 @@ export default function NaverTrackCard({
           <p className="text-sm font-bold text-amber-900 break-keep">
             {userGroup === "LIKELY"
               ? "현재 네이버 AI 브리핑 공식 대상 업종이 아닙니다 (확대 검토 중) — AI탭은 지금도 가능"
-              : "이 업종은 네이버 AI 브리핑 대상이 아닙니다 — AI탭은 업종 공식 제한 없음, 2026-06-25 정식 출시"}
+              : "이 업종은 '플레이스형' 네이버 AI 브리핑 대상이 아닙니다 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능 — AI탭도 업종 제한 없음(2026-06-25 정식 출시)"}
           </p>
         </div>
       )}

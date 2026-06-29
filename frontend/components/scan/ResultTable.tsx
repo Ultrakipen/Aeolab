@@ -95,7 +95,7 @@ function NaverSection({
             ) : briefingEligibility === 'inactive' ? (
               <div className="space-y-1">
                 <span className="text-gray-600 text-sm font-medium block">미지원 업종</span>
-                <span className="text-gray-500 text-sm block">이 업종은 현재 AI 브리핑 대상이 아닙니다</span>
+                <span className="text-gray-500 text-sm block">이 업종은 현재 '플레이스형' AI 브리핑 대상이 아닙니다</span>
               </div>
             ) : (
               <div className="space-y-1">

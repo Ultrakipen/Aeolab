@@ -43,7 +43,7 @@ export interface Business {
 
   // AI 브리핑 노출 메타
   ai_info_tab_status?: "not_visible" | "off" | "on" | "disabled" | "unknown";
-  is_franchise?: boolean;  // 프랜차이즈 가맹점 여부 (네이버 공식: AI 브리핑 비대상)
+  is_franchise?: boolean;  // 프랜차이즈 가맹점 여부 (네이버 공식: '플레이스형' AI 브리핑 비대상)
 
   // AI 생성 콘텐츠 초안 (재생성 전까지 유지)
   naver_intro_draft?: string;

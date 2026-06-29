@@ -436,7 +436,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           <li className="flex items-start gap-1.5">
                             <span className="text-blue-500 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
-                              AI 브리핑 대상이 아니어도 <strong>스마트플레이스·소개글 개선</strong>은 노출에 도움
+                              '플레이스형' AI 브리핑 대상이 아니어도 <strong>스마트플레이스·소개글·블로그 개선</strong>은 '정보형 AI 브리핑'과 검색 노출에 도움
                             </p>
                           </li>
                         </ul>

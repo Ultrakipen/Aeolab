@@ -469,9 +469,9 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           }`}>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               {isFranchise
-                ? "프랜차이즈 가맹점은 현재 네이버 AI 브리핑 제공 대상이 아닙니다(네이버 정책 기준). 추후 확대 예정이며, 그동안 일반 검색·AI탭 노출과 ChatGPT·Gemini 현황 측정에서 효과를 드립니다."
+                ? "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 제공 대상이 아닙니다(네이버 정책 기준). 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 AI탭·ChatGPT·Gemini에서는 노출 가능합니다."
                 : getBriefingEligibility(selectedCategory) === "inactive"
-                ? "이 업종은 현재 네이버 AI 브리핑 비대상이지만, 일반 검색·AI탭 노출과 ChatGPT·Gemini 현황 측정에서 효과를 드립니다."
+                ? "이 업종은 현재 '플레이스형' 네이버 AI 브리핑 비대상이지만, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. 일반 검색·AI탭 노출과 ChatGPT·Gemini 현황 측정에서도 효과를 드립니다."
                 : "이 업종은 네이버 AI 브리핑 확대 예상 업종입니다. 지금 가입하면 확대 시 자동으로 활성화됩니다."}
             </p>
           </div>
@@ -488,7 +488,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           <div className="flex-1 min-w-0">
             <span className="text-sm md:text-base font-medium text-gray-800">프랜차이즈 가맹점입니다</span>
             <span className="block text-sm text-gray-500 mt-0.5">
-              네이버 공식: 프랜차이즈는 현재 AI 브리핑 제공 대상에서 제외됩니다(2026-04-30 확인)
+              네이버 공식: 프랜차이즈는 현재 '플레이스형' AI 브리핑 제공 대상에서 제외됩니다(2026-04-30 확인)
             </span>
           </div>
         </label>

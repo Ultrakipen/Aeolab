@@ -111,7 +111,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               )}
               {briefingInactive && (
                 <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-sm font-semibold">
-                  비대상
+                  플레이스형 비대상
                 </span>
               )}
             </div>

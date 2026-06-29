@@ -78,7 +78,7 @@ export default function ScoreGuidePage() {
         </h2>
         <p className="text-sm md:text-base text-emerald-900 leading-relaxed">
           소개글·리뷰·소식·키워드 최적화는 <strong>모든 업종 공통</strong>으로 네이버 플레이스·검색 순위를 끌어올립니다.
-          AI 브리핑 비대상 업종(병원·법무·학원·쇼핑몰 등)도 동일하게 수혜를 받으며, 여기에
+          '플레이스형' AI 브리핑 비대상 업종(병원·법무·학원·쇼핑몰 등)도 동일하게 수혜를 받으며, 여기에
           ChatGPT·Gemini·Google AI 노출 개선까지 함께 진행됩니다. 즉, AI 브리핑 대상 여부와 상관없이
           <strong> 네이버 검색 상위노출이라는 공통 이득</strong>은 항상 확보됩니다.
         </p>
@@ -191,7 +191,7 @@ export default function ScoreGuidePage() {
                 },
                 {
                   item: "네이버 AI 브리핑 노출",
-                  desc: "실제 네이버 AI 브리핑에 가게가 인용됐는지 (비대상 업종 0% — 음식점·카페 등 일부 업종만 해당)",
+                  desc: "실제 네이버 AI 브리핑(플레이스형)에 가게가 인용됐는지 (비대상 업종 0% — 음식점·카페 등 일부 업종만 해당)",
                 },
               ].map((row, i) => (
                 <tr

@@ -35,8 +35,8 @@ export function getStageView(
       bg: "bg-green-50",
       cardBorder: "border-green-300",
       sub: isFranchise
-        ? "프랜차이즈는 AI 브리핑 비대상 — 검색·플레이스·AI탭 상위노출로 노출을 키웁니다"
-        : "AI 브리핑 비대상 업종 — 검색·플레이스·AI탭 상위노출로 노출을 키웁니다",
+        ? "프랜차이즈는 '플레이스형' AI 브리핑 비대상 — 정보형 AI 브리핑·AI탭·검색·ChatGPT·Gemini는 가능"
+        : "'플레이스형' AI 브리핑 비대상 업종 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능, 검색·플레이스·AI탭도 함께 개선합니다",
     };
   }
 

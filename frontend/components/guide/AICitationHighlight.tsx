@@ -103,7 +103,7 @@ function AICitationContent({ businessId, authToken, isInactive }: { businessId: 
             <span className="text-sm font-semibold text-gray-900">{title}</span>
           </div>
           {isInactive && (
-            <span className="text-sm text-gray-400 pl-6">네이버 AI 브리핑 비대상 업종 · ChatGPT·Gemini·Google 기준</span>
+            <span className="text-sm text-gray-400 pl-6">플레이스형 AI 브리핑 비대상 업종 · 정보형 AI 브리핑·ChatGPT·Gemini·Google 기준</span>
           )}
         </div>
         {totalMentioned > 0 && (

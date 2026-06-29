@@ -68,8 +68,8 @@ function getContextSentence(score: number, userGroup: string): {
 } {
   if (userGroup === "INACTIVE" || userGroup === "franchise") {
     return {
-      text: "네이버 AI 브리핑 대상이 아닌 업종입니다",
-      sub: "ChatGPT·Gemini·Google AI 노출 최적화가 핵심입니다. 네이버 AI탭(업종 공식 제한 없음, 2026-06-25 정식 출시)도 확인하세요.",
+      text: "플레이스형 네이버 AI 브리핑 대상이 아닌 업종입니다",
+      sub: "블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. ChatGPT·Gemini·Google AI 최적화도 핵심이며, AI탭(업종 제한 없음, 정식 출시)도 확인하세요.",
       bg: "bg-amber-50 border-amber-200",
       textColor: "text-amber-800",
       subColor: "text-amber-700",

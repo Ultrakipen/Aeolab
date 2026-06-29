@@ -176,10 +176,10 @@ function scoreColor(score: number) {
   return "text-red-600";
 }
 
-function scoreLabel(score: number) {
-  if (score >= 70) return "AI 인용 가능성 높음";
-  if (score >= 40) return "보통 - 개선 여지 있음";
-  return "낮음 - 즉시 개선 필요";
+function readinessLabel(score: number) {
+  if (score >= 70) return "양호";
+  if (score >= 40) return "보통";
+  return "주의 필요";
 }
 
 function scoreBgColor(score: number) {
@@ -218,6 +218,127 @@ function isStale(lastAnalyzedAt: string | null): boolean {
   return elapsed > STALE_DAYS * 24 * 60 * 60 * 1000;
 }
 
+/* ── Layer 1+3: 정보형 AI 브리핑 준비도 (상태 레이블·실측 근거·변화 확인) ── */
+function InfoBriefingReadinessCard({
+  result,
+  eligibility,
+  businessId,
+  platform,
+  blogUrl,
+}: {
+  result: BlogAnalysisResult;
+  eligibility: BriefingEligibility;
+  businessId: string;
+  platform?: string;
+  blogUrl?: string;
+}) {
+  const score = result.citation_score ?? 0;
+  const label = readinessLabel(score);
+  const present = result.keyword_coverage?.present?.length ?? 0;
+  const total = present + (result.keyword_coverage?.missing?.length ?? 0);
+  const posts = result.post_count ?? 0;
+
+  // 근거 1줄 — 실측값만 (CLAUDE.md 실측 원칙: 더미·추정 금지)
+  const evidenceBits: string[] = [];
+  if (posts > 0) evidenceBits.push(`블로그 글 ${posts}개 분석`);
+  evidenceBits.push(`최신성 ${freshnessLabel(result.freshness_score ?? 0)}`);
+  if (total > 0) evidenceBits.push(`핵심 키워드 ${present}/${total} 반영`);
+  if (result.posting_frequency?.consistency) {
+    const cmap: Record<string, string> = {
+      active: "발행 꾸준함",
+      regular: "발행 규칙적",
+      irregular: "발행 불규칙",
+      inactive: "발행 휴면",
+      bursty: "발행 몰아쓰기",
+    };
+    evidenceBits.push(cmap[result.posting_frequency.consistency] ?? "");
+  }
+
+  // Layer 3: 지난 분석 대비 준비도 변화 (localStorage, 텍스트만)
+  const [prevLabel, setPrevLabel] = useState<string | null>(null);
+  useEffect(() => {
+    const key = `aeolab_info_briefing_readiness_${businessId}`;
+    try {
+      const saved = localStorage.getItem(key);
+      if (saved && saved !== label) setPrevLabel(saved);
+      localStorage.setItem(key, label);
+    } catch { /* localStorage 차단 환경 무시 */ }
+  }, [businessId, label]);
+
+  const order = ["주의 필요", "보통", "양호"];
+  const changeDir = prevLabel ? order.indexOf(label) - order.indexOf(prevLabel) : 0;
+
+  return (
+    <div className={`border rounded-xl p-4 md:p-6 ${scoreBgColor(score)}`}>
+      {/* Layer 1: 상태 헤딩 */}
+      <div className="flex items-center gap-2 flex-wrap mb-3">
+        <TrendingUp className="w-5 h-5 text-indigo-600 shrink-0" />
+        <h3 className="text-base md:text-lg font-bold text-gray-900">정보형 네이버 AI 브리핑 준비도</h3>
+        <span className="inline-flex items-center border text-sm font-semibold px-2.5 py-0.5 rounded-full bg-white/70 border-gray-300 text-gray-600">
+          블로그·콘텐츠 기반 · 전 업종
+        </span>
+      </div>
+
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {platformBadge(platform)}
+          {blogUrl && (
+            <a
+              href={blogUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+            >
+              블로그 열기 <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
+        </div>
+        <div className="text-right">
+          <div className={`text-2xl font-bold ${scoreColor(score)}`}>{label}</div>
+          <div className="text-sm text-gray-400 mt-0.5">분석 시점 기준 — 측정 시점·기기에 따라 달라질 수 있음</div>
+        </div>
+      </div>
+
+      {/* Layer 1: 실측 근거 1줄 */}
+      <p className="text-sm text-gray-600 mt-3 leading-relaxed">
+        <span className="font-semibold text-gray-700">근거</span> · {evidenceBits.filter(Boolean).join(" · ")}
+      </p>
+
+      {/* Layer 3: 지난 분석 대비 변화 */}
+      {prevLabel && changeDir !== 0 && (
+        <p className={`text-sm mt-1 font-medium ${changeDir > 0 ? "text-green-700" : "text-amber-700"}`}>
+          지난 분석 대비 <span className="font-semibold">{prevLabel} → {label}</span> {changeDir > 0 ? "↑ 개선" : "↓ 하락"}
+        </p>
+      )}
+
+      {/* Layer 1: 실측 통계 타일 */}
+      <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="bg-white/70 rounded-xl p-3 text-center">
+          <div className="text-xl font-bold text-gray-900">{posts}</div>
+          <div className="text-sm text-gray-400 mt-0.5">(제목·요약 기준)</div>
+          <div className="text-sm text-gray-500 mt-0.5">분석 포스트</div>
+        </div>
+        <div className="bg-white/70 rounded-xl p-3 text-center">
+          <div className="text-base font-bold text-gray-700">{freshnessLabel(result.freshness_score ?? 0)}</div>
+          <div className="text-sm text-gray-500 mt-0.5">최신성</div>
+        </div>
+        <div className="bg-white/70 rounded-xl p-3 text-center col-span-2 sm:col-span-1">
+          <div className="text-xl font-bold text-gray-900">{present} / {total}</div>
+          <div className="text-sm text-gray-500 mt-0.5">확인된 키워드</div>
+        </div>
+      </div>
+
+      {/* 인과 설명 — 정보형 브리핑은 전 업종 */}
+      <div className="mt-4 bg-white/60 border border-gray-200 rounded-xl p-3 text-sm text-gray-700 leading-relaxed">
+        <span className="font-semibold text-indigo-700">왜 중요한가요?</span> 블로그·콘텐츠가 충실하면 네이버가 이를 출처로 채택해{" "}
+        <span className="font-semibold">정보형 AI 브리핑(추천·요약형)</span>에 인용합니다. 정보형은 업종 제한이 없어 사진·학원·법무 등{" "}
+        <span className="font-semibold">전 업종이 노출 대상</span>이며, 같은 콘텐츠가 ChatGPT·Gemini·Google AI 노출에도 함께 작용합니다.
+        {eligibility === "active" && " 이 업종은 가게를 직접 요약하는 '플레이스형' AI 브리핑 대상이기도 합니다."}
+      </div>
+    </div>
+  );
+}
+
 /* ── WeeklyActionsCard ── */
 function WeeklyActionsCard({ actions, businessId }: { actions: WeeklyAction[]; businessId: string }) {
   const storageKey = `aeolab_blog_weekly_actions_${businessId}`;
@@ -246,6 +367,9 @@ function WeeklyActionsCard({ actions, businessId }: { actions: WeeklyAction[]; b
           {Object.values(checked).filter(Boolean).length}/{actions.length} 완료
         </span>
       </div>
+      <p className="text-sm text-blue-700 mb-3 leading-relaxed bg-white/60 border border-blue-100 rounded-lg px-3 py-2">
+        ✓ 완료할수록 <span className="font-semibold">네이버 정보형 AI 브리핑 인용</span> + ChatGPT·Gemini 노출 가능성이 올라갑니다
+      </p>
       <div className="space-y-3">
         {actions.map((a, idx) => (
           <div
@@ -1382,11 +1506,11 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               {business?.is_franchise ? (
                 <>
                   <p className="text-base font-bold text-gray-900 mb-1">
-                    프랜차이즈 가맹점 — AI 브리핑 비대상
+                    프랜차이즈 가맹점 — '플레이스형' AI 브리핑 비대상
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    프랜차이즈는 현재 네이버 AI 브리핑 제공 대상에서 제외됩니다(추후 확대 예정).
-                    블로그 분석은 <strong>네이버 AI탭·일반 검색 노출 및 콘텐츠 품질 점수</strong> 강화에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
+                    프랜차이즈는 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다. 단, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다.
+                    블로그 분석은 <strong>정보형 AI 브리핑·AI탭·일반 검색 노출 및 콘텐츠 품질 점수</strong> 강화에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
                   </p>
                 </>
               ) : isBlogLikely ? (
@@ -1402,11 +1526,11 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               ) : (
                 <>
                   <p className="text-base font-bold text-gray-900 mb-1">
-                    현재 비대상 업종 — 블로그 분석은 모든 AI 채널에 효과적입니다
+                    현재 '플레이스형' AI 브리핑 비대상 업종 — 블로그 분석은 모든 AI 채널에 효과적입니다
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    네이버 AI 브리핑 비대상이지만, 아래 분석 결과는
-                    <strong>네이버 AI탭·일반 검색 노출</strong> 및 콘텐츠 품질 점수 강화에 활용하세요. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
+                    '플레이스형' 네이버 AI 브리핑 비대상이지만, 블로그·콘텐츠가 갖춰지면 '정보형 AI 브리핑'에 노출될 수 있습니다. 아래 분석 결과는
+                    <strong>정보형 AI 브리핑·AI탭·일반 검색 노출</strong> 및 콘텐츠 품질 점수 강화에 활용하세요. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
                   </p>
                 </>
               )}
@@ -1418,52 +1542,14 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
         {result && (
           <div ref={resultSectionRef} className="space-y-5">
 
-            {/* 종합 점수 카드 */}
-            <div className={`border rounded-xl p-4 md:p-6 ${scoreBgColor(result.citation_score ?? 0)}`}>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex items-center gap-3 flex-wrap">
-                  {platformBadge(result.platform)}
-                  {result.blog_url && (
-                    <a
-                      href={result.blog_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
-                    >
-                      블로그 열기 <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
-                </div>
-                <div className="text-right">
-                  <div className={`text-xl font-bold ${scoreColor(result.citation_score ?? 0)}`}>
-                    {scoreLabel(result.citation_score ?? 0)}
-                  </div>
-                  <div className="text-sm text-gray-400 mt-0.5">분석 시점 기준 — 실제와 다를 수 있음</div>
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div className="bg-white/70 rounded-xl p-3 text-center">
-                  <div className="text-xl font-bold text-gray-900">{result.post_count ?? 0}</div>
-                  <div className="text-sm text-gray-400 mt-0.5">(제목·요약 기준)</div>
-                  <div className="text-sm text-gray-500 mt-0.5">분석 포스트</div>
-                </div>
-                <div className="bg-white/70 rounded-xl p-3 text-center">
-                  <div className="text-base font-bold text-gray-700">
-                    {freshnessLabel(result.freshness_score ?? 0)}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-0.5">최신성</div>
-                </div>
-                <div className="bg-white/70 rounded-xl p-3 text-center col-span-2 sm:col-span-1">
-                  <div className="text-xl font-bold text-gray-900">
-                    {result.keyword_coverage?.present?.length ?? 0}
-                    {" / "}
-                    {(result.keyword_coverage?.present?.length ?? 0) + (result.keyword_coverage?.missing?.length ?? 0)}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-0.5">확인된 키워드</div>
-                </div>
-              </div>
-            </div>
+            {/* Layer 1+3: 정보형 AI 브리핑 준비도 (상태·근거·변화) */}
+            <InfoBriefingReadinessCard
+              result={result}
+              eligibility={briefingEligibility}
+              businessId={business.id}
+              platform={result.platform}
+              blogUrl={result.blog_url}
+            />
 
             {/* A. AI 인용 체크리스트 */}
             {result.ai_readiness_items && result.ai_readiness_items.length > 0 && (
@@ -1472,7 +1558,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
                   <h3 className="text-base md:text-lg font-bold text-gray-900">
                     {isBlogInactive
-                      ? "AI 검색 인용 체크리스트 (ChatGPT·Gemini·Google·네이버)"
+                      ? "정보형 AI 브리핑·ChatGPT·Gemini·Google 인용 체크리스트"
                       : "AI 브리핑 인용 체크리스트"}
                   </h3>
                 </div>

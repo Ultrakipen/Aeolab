@@ -3085,7 +3085,7 @@ async def get_ai_citations(
     enriched_real = []
     for c in real_rows:
         platform = c.get("platform", "")
-        # INACTIVE 업종(네이버 AI 브리핑 비대상)은 naver 인용 제외
+        # INACTIVE 업종(플레이스형 네이버 AI 브리핑 비대상)은 naver 인용 제외
         if eligibility == "inactive" and platform == "naver":
             continue
         enriched_real.append({

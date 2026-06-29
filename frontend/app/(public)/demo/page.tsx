@@ -481,7 +481,7 @@ export default function DemoPage() {
       ? "네이버 AI 브리핑 대상 업종 — 소개글 Q&A·소식·리뷰를 보강하면 브리핑 인용 후보에 진입합니다 (업데이트 후 2~4주)."
       : briefingStatus === "likely"
       ? "네이버 AI 브리핑 확대 예정 업종 — 지금 준비해두면 확대 시 바로 유리합니다."
-      : "이 업종은 네이버 AI 브리핑 비대상입니다. 네이버 일반검색·AI탭 노출에 집중하세요.";
+      : "이 업종은 '플레이스형' 네이버 AI 브리핑 비대상입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능. 네이버 일반검색·AI탭 노출에 집중하세요.";
 
   type ChannelDef = { icon: string; label: string; border: string; items?: [string, BreakdownItem][]; note?: string };
   const channelDefs: Record<string, ChannelDef> = {
@@ -640,11 +640,12 @@ export default function DemoPage() {
               <span className="text-xl shrink-0 mt-0.5">ℹ️</span>
               <div>
                 <p className="text-base font-bold text-slate-800 mb-1">
-                  {CATEGORIES.find(c => c.value === category)?.label} 업종은 현재 네이버 AI 브리핑 비대상입니다
+                  {CATEGORIES.find(c => c.value === category)?.label} 업종은 현재 '플레이스형' 네이버 AI 브리핑 비대상입니다
                 </p>
                 <p className="text-sm md:text-base text-slate-600 leading-relaxed">
-                  네이버 AI 브리핑은 음식점·카페 등 일부 업종만 대상입니다.
-                  이 업종은 <strong className="text-slate-800">ChatGPT·Google AI</strong> 노출 개선이 더 효과적이며,
+                  네이버 '플레이스형' AI 브리핑은 음식점·카페 등 일부 업종만 대상입니다.
+                  단, 블로그·콘텐츠로 <strong className="text-slate-800">'정보형 AI 브리핑'</strong> 노출도 가능합니다.
+                  <strong className="text-slate-800">ChatGPT·Google AI</strong> 노출 개선도 효과적이며,
                   <strong className="text-slate-800"> 네이버 AI탭</strong>(모든 업종, 정식 출시)도 확인하세요.
                 </p>
               </div>
@@ -657,7 +658,7 @@ export default function DemoPage() {
                   단, 스마트플레이스 정보 개선으로 네이버 지도·플레이스 검색 순위가 유리해질 수 있습니다
                 </p>
                 <p className="text-sm text-green-700 leading-relaxed">
-                  AI 브리핑 비대상이어도 <strong>리뷰 수·평점·소개글·사진</strong>을 개선하면
+                  '플레이스형' AI 브리핑 비대상이어도 <strong>리뷰 수·평점·소개글·사진</strong>을 개선하면
                   네이버 지도·플레이스 키워드 검색에서 순위가 올라갈 가능성이 높아집니다.
                   이 개선은 네이버 AI탭·ChatGPT·Gemini 노출에도 긍정적으로 작용합니다.
                 </p>

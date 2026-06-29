@@ -763,7 +763,7 @@ export default async function LandingPage() {
             style={{ borderColor: "#A5B4FC", background: "#EEF2FF" }}
           >
             <p className="text-sm md:text-base font-bold break-keep text-center" style={{ color: "#3730A3" }}>
-              학원·병원·미용실·헬스장·법무사 등 — AI 브리핑 비대상이어도 <span style={{ color: "#6366F1" }}>AI탭</span> 노출을 준비할 수 있습니다
+              학원·병원·미용실·헬스장·법무사 등 — 플레이스형 AI 브리핑 비대상이어도 정보형 AI 브리핑과 <span style={{ color: "#6366F1" }}>AI탭</span> 노출을 준비할 수 있습니다
             </p>
             <p className="text-sm mt-1.5 break-keep text-center" style={{ color: "#4338CA" }}>
               2026-04-27 베타 출시 · 2026-06-25 정식 출시

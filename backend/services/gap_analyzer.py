@@ -545,7 +545,7 @@ def analyze_gap(
                 dimensions[i] = dim.model_copy(update={
                     "gap_to_top": 0.0,
                     "gap_reason": (
-                        f"{dim.dimension_label} 항목은 이 업종({category})에서 네이버 AI 브리핑 대상이 아닙니다. "
+                        f"{dim.dimension_label} 항목은 이 업종({category})에서 '플레이스형' 네이버 AI 브리핑 대상이 아닙니다(정보형은 블로그·콘텐츠로 노출 가능). "
                         "ChatGPT·Gemini·Google AI 노출을 위해 구글 비즈니스 프로필과 소개글 최적화에 집중하세요."
                     )
                 })
@@ -901,7 +901,7 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
                 d.model_copy(update={
                     "gap_to_top": 0.0,
                     "gap_reason": (
-                        f"{d.dimension_label} 항목은 이 업종에서 네이버 AI 브리핑 대상이 아닙니다. "
+                        f"{d.dimension_label} 항목은 이 업종에서 '플레이스형' 네이버 AI 브리핑 대상이 아닙니다(정보형은 블로그·콘텐츠로 노출 가능). "
                         "ChatGPT·Gemini·Google AI 노출을 위해 구글 비즈니스 프로필과 소개글 최적화에 집중하세요."
                     )
                 }) if d.dimension_key in _naver_only_fb else d
