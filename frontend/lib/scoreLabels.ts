@@ -119,7 +119,7 @@ export function briefingTile(args: {
   const { captchaBlocked, eligibility, isFranchise, inBriefing } = args;
   if (captchaBlocked) return makeTile("naver-briefing", "AI 브리핑", "unknown", "측정 불가", "일시적으로 확인 어려움");
   if (eligibility === "inactive" || isFranchise)
-    return makeTile("naver-briefing", "AI 브리핑", "pending", "이 업종 해당 없음", "네이버 검색·AI탭으로 노출 가능");
+    return makeTile("naver-briefing", "AI 브리핑", "pending", "플레이스형 해당 없음", "블로그·콘텐츠로 정보형 AI 브리핑·검색·AI탭 노출 가능");
   if (eligibility === "likely")
     return makeTile("naver-briefing", "AI 브리핑", "expand", "확대 예정", "지금 준비 중");
   if (inBriefing)

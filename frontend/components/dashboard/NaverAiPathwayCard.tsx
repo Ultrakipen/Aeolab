@@ -126,7 +126,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             </ul>
             {isFranchise && (
               <p className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
-                프랜차이즈 가맹점은 현재 AI 브리핑 제공 대상에서 제외 (추후 확대 예정)
+                프랜차이즈 가맹점은 현재 '플레이스형' AI 브리핑 제공 대상에서 제외 (추후 확대 예정) — 정보형 AI 브리핑은 콘텐츠로 노출 가능
               </p>
             )}
             {/* M3 광고 경고 배너 — NAVER_AD_IN_BRIEFING_ACTIVE=true 시 노출 */}

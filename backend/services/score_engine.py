@@ -526,7 +526,7 @@ def calc_kakao_completeness(scan_result: dict, biz: dict) -> float:
 def _briefing_explanation(eligibility: str, ai_status: str) -> str:
     """업종·토글 상태 조합별 안내 문구."""
     if eligibility == "inactive":
-        return "현재 네이버 AI 브리핑 비대상 업종입니다. 검색 가시성 영역에서 가치를 드립니다."
+        return "현재 '플레이스형' 네이버 AI 브리핑 비대상 업종입니다. 블로그·콘텐츠로 '정보형 AI 브리핑'에 노출될 수 있고, 검색 가시성 영역에서도 가치를 드립니다."
     if ai_status == "off":
         return "AI 브리핑 노출 설정이 OFF입니다. 1분만 투자해 ON으로 변경하면 노출 가능성이 즉시 활성화됩니다."
     if ai_status == "on":

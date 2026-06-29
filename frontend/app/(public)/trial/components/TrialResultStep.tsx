@@ -1212,7 +1212,7 @@ function BriefingCategoryBadge({
             AI탭 + ChatGPT·Gemini·Google AI — 4채널 노출이 가능합니다
           </p>
           <p className="text-sm text-amber-700 mt-0.5">
-            네이버 AI 브리핑은 현재 공식 대상이 아닙니다 (확대 검토 중)
+            '플레이스형' 네이버 AI 브리핑은 현재 공식 대상이 아닙니다(확대 검토 중) — 정보형 AI 브리핑은 블로그·콘텐츠로 노출 가능
           </p>
         </div>
       </div>
@@ -1417,10 +1417,10 @@ function NaverBriefingResultCard({
           ) : (
             /* LIKELY 업종 — 확대 예정 안내 */
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-              <p className="text-sm font-semibold text-amber-800 mb-1">AI 브리핑 업종 확대 검토 중</p>
+              <p className="text-sm font-semibold text-amber-800 mb-1">'플레이스형' AI 브리핑 업종 확대 검토 중</p>
               <p className="text-sm text-amber-700 leading-relaxed">
-                현재 네이버 AI 브리핑 공식 대상이 아닙니다. 업종 확대는 검토 중이며,
-                AI탭(정식 출시)은 지금도 가능합니다. 정식 스캔에서 노출 여부를 모니터링합니다.
+                '플레이스형' 네이버 AI 브리핑 공식 대상은 아니지만(확대 검토 중), 블로그·콘텐츠가 갖춰지면 '정보형 AI 브리핑'에 노출될 수 있습니다.
+                AI탭(정식 출시)은 지금도 가능하며, 정식 스캔에서 노출 여부를 모니터링합니다.
               </p>
             </div>
           )

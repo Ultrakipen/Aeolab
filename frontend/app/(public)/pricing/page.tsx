@@ -318,7 +318,7 @@ export default function PricingPage() {
                 <span className="text-sm font-semibold text-gray-900">음식점 · 카페 · 베이커리 · 바 · 숙박</span>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                네이버 AI 브리핑 + AI탭 + 글로벌 AI까지 3개 채널 모두 노출 가능 (단, 프랜차이즈 가맹점은 본사 정책상 AI 브리핑 제외)
+                네이버 AI 브리핑(플레이스형) + AI탭 + 글로벌 AI까지 3개 채널 모두 노출 가능 (단, 프랜차이즈 가맹점은 본사 정책상 '플레이스형' AI 브리핑 제외 — 정보형 AI 브리핑은 콘텐츠로 노출 가능)
               </p>
             </div>
 
@@ -338,7 +338,7 @@ export default function PricingPage() {
                 <span className="text-sm font-semibold text-gray-900">병원 · 법무 · 교육 · 쇼핑몰 등</span>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                AI 브리핑 대상은 아니지만 AI탭 + ChatGPT · Gemini · Google AI · 카카오맵 등 글로벌 AI 가시성을 집중 개선합니다.
+                '플레이스형' AI 브리핑 대상은 아니지만, 블로그·콘텐츠로 '정보형 AI 브리핑'에 노출될 수 있고 AI탭 + ChatGPT · Gemini · Google AI · 카카오맵 등 글로벌 AI 가시성도 집중 개선합니다.
               </p>
             </div>
           </div>
@@ -347,7 +347,7 @@ export default function PricingPage() {
           <div className="rounded-xl bg-green-100/60 border border-green-200 px-4 py-3 mb-4">
             <p className="text-sm md:text-base text-green-900 leading-relaxed break-keep">
               <strong>📍 어느 단계든 공통:</strong> 위 어느 경우에 해당하든, 스마트플레이스·블로그·키워드를 개선하면
-              <strong> 네이버 일반 검색과 지도(플레이스) 상위 노출</strong>은 함께 향상될 수 있습니다. AI 브리핑 대상이 아니어도 네이버에서 더 잘 찾히게 만들 수 있습니다.
+              <strong> 네이버 일반 검색과 지도(플레이스) 상위 노출</strong>은 함께 향상될 수 있습니다. '플레이스형' AI 브리핑 대상이 아니어도 블로그·콘텐츠로 '정보형 AI 브리핑'과 네이버 검색에서 더 잘 찾히게 만들 수 있습니다.
             </p>
           </div>
 
@@ -489,7 +489,7 @@ export default function PricingPage() {
             {[
               {
                 q: "내 업종도 네이버 AI 브리핑에 노출되나요?",
-                a: "음식점·카페·베이커리·바·숙박 5개 업종이 현재 네이버 AI 브리핑 노출 대상입니다. 뷰티·네일·반려동물·헬스·요가·약국 등은 AI탭(2026-06-25 정식 출시) 대상. 그 외 업종은 ChatGPT·Gemini·Google AI 노출 개선 중심으로 가치를 제공합니다. 단, 모든 업종에서 프랜차이즈 가맹점은 네이버 정책상 제외됩니다. 그리고 AI 브리핑 대상이 아니어도, 어느 업종이든 스마트플레이스·블로그·키워드를 개선하면 네이버 일반 검색·지도(플레이스) 상위 노출은 공통으로 향상될 수 있습니다.",
+                a: "네이버 AI 브리핑은 크게 두 유형입니다. ① 가게 플레이스 카드를 요약하는 '플레이스형'은 음식점·카페·베이커리·바·숙박 5개 업종이 현재 대상(프랜차이즈 제외)입니다. ② 블로그·콘텐츠를 출처로 종합하는 '정보형(추천형)'은 업종 제한이 없어, 사진·학원·병원 등 전 업종도 콘텐츠가 잘 갖춰지면 노출될 수 있습니다. 뷰티·네일·반려동물·헬스·요가·약국 등은 AI탭(2026-06-25 정식 출시)도 대상입니다. 그 외 업종은 정보형 AI 브리핑 + ChatGPT·Gemini·Google AI 노출 개선 중심으로 가치를 제공합니다. 어느 업종이든 스마트플레이스·블로그·키워드를 개선하면 네이버 일반 검색·지도(플레이스) 상위 노출도 공통으로 향상될 수 있습니다.",
               },
               {
                 q: "구독은 언제든지 해지할 수 있나요?",

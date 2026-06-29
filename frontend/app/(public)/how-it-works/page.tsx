@@ -1049,7 +1049,7 @@ export default function HowItWorksPage() {
               <p className="text-sm font-semibold text-amber-800 mb-1">광고 전용 노출 (돈 내야만 나옴)</p>
               <p className="text-sm text-amber-700 leading-relaxed break-keep">
                 네이버 광고비를 지불한 경우에만 노출. AEOlab은 광고 배지를 자동 감지하여
-                <strong>AI 브리핑 점수 0점</strong>으로 산정합니다.
+                <strong>'플레이스형' AI 브리핑 점수 0점</strong>으로 산정합니다.
               </p>
             </div>
           </div>
