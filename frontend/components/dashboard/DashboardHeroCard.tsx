@@ -60,8 +60,8 @@ export default function DashboardHeroCard({
         bg: "bg-green-50",
         cardBorder: "border-green-300",
         sub: isFranchise
-          ? "네이버 검색·플레이스·AI탭 집중 전략 — 개선하면 상위 노출이 가능합니다"
-          : "네이버 검색·플레이스·AI탭이 핵심 노출 채널 — 개선하면 상위 노출이 가능합니다",
+          ? "네이버 검색·플레이스·AI탭 집중 전략 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다"
+          : "네이버 검색·플레이스·AI탭이 핵심 노출 채널 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다",
       }
     : { label: stage.label, labelColor: stage.labelColor, bg: stage.bg, cardBorder: stage.cardBorder, sub: null as string | null };
 

@@ -30,7 +30,7 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
           </li>
           <li className="flex items-start gap-2 text-sm text-gray-700">
             <span className="text-green-600 font-bold shrink-0">②</span>
-            <span><strong>블로그 정기 발행</strong> (주 1~2회) → 네이버 검색 결과 상위 노출</span>
+            <span><strong>블로그 정기 발행</strong> (주 1~2회) → 네이버 검색 상위 노출 + <strong>'정보형 AI 브리핑'</strong> 인용 후보</span>
           </li>
           <li className="flex items-start gap-2 text-sm text-gray-700">
             <span className="text-green-500 font-bold shrink-0">③</span>

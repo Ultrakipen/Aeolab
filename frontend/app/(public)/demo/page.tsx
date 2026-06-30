@@ -704,7 +704,9 @@ export default function DemoPage() {
               <p className="text-base font-bold text-green-800 mb-1.5">✅ 이 서비스로 네이버 검색 순위를 올릴 수 있습니다</p>
               <p className="text-sm md:text-base text-green-700 leading-relaxed">
                 스마트플레이스 <strong>소개글·리뷰·사진·소식</strong>을 개선하면 네이버 지도·플레이스 키워드 검색 순위가 올라갑니다.
-                {briefingStatus !== "inactive" && " AI 브리핑 인용 후보 진입도 같은 방법으로 가능합니다."}
+                {briefingStatus !== "inactive"
+                  ? " AI 브리핑 인용 후보 진입도 같은 방법으로 가능합니다."
+                  : " 블로그·콘텐츠를 꾸준히 발행하면 '정보형 AI 브리핑' 인용 후보가 됩니다."}
               </p>
             </div>
 
