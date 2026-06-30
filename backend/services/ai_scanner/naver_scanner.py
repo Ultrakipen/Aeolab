@@ -9,9 +9,15 @@ from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua, 
 
 logger = logging.getLogger("aeolab")
 
-# AI 브리핑 셀렉터 (네이버 DOM 변경 대응 — 우선순위 순, 2026-04-14 업데이트)
+# AI 브리핑 셀렉터 (네이버 DOM 변경 대응 — 우선순위 순)
+# 2026-06-30 실측: 실제 DOM 클래스 접두사 = fds-aib (fds-aib-expandable-container, fds-aib-answer-expa 등)
 BRIEFING_SELECTORS = [
-    # 2025~2026 네이버 AI 브리핑 최신 DOM
+    # ── 2026 네이버 AI 브리핑 최신 DOM (fds-aib 접두사, 2026-06-30 실측 확인) ──
+    "div[class*='fds-aib-expandable-container']",   # 메인 확장 컨테이너
+    "div[class*='fds-aib-answer']",                 # 답변 영역 (expa/expand 변형 포함)
+    "div[class*='fds-aib-static-position']",        # 정적 위치 컨테이너
+    "div[class*='fds-aib']",                        # fds-aib 전체 fallback
+    # ── 구버전 DOM (2025 이전) ──
     ".ai_answer_area",
     "div[class*='AiAnswerArea']",
     "div[class*='ai_answer_area']",
@@ -20,7 +26,6 @@ BRIEFING_SELECTORS = [
     ".ai-answer-wrap",
     "#ai-answer",
     "div.ai_summary",
-    # 레거시 (2024 이전)
     ".ai_answer",
     ".cai_cont",
     "[class*='ai_brief']",
@@ -138,6 +143,29 @@ class NaverAIBriefingScanner:
                     "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
                     "queries_used": [query],
                 }
+
+            # ── AI 브리핑 "펼쳐서 더보기" 확장 ─────────────────────
+            # 정보형 AI 브리핑은 기본 텍스트가 잘려 있어 사업장명이 숨겨질 수 있음.
+            # 2026-06-30 실측: 버튼이 <button> 태그가 아닐 수 있음 → 여러 방법 시도
+            try:
+                expand_btn = (
+                    await page.query_selector("button:has-text('펼쳐서 더보기')") or
+                    await page.query_selector("[class*='fds-aib-expandable'] [role='button']") or
+                    await page.query_selector("[class*='fds-aib'] button") or
+                    await page.query_selector("[aria-label*='더보기']") or
+                    await page.query_selector("[class*='expand']")
+                )
+                if expand_btn:
+                    # ElementHandle.click()은 overlay로 타임아웃됨 → JS evaluate 우선
+                    try:
+                        await page.evaluate("el => el.click()", expand_btn)
+                        await page.wait_for_timeout(800)
+                        page_text = await page.inner_text("body") or ""
+                        logger.debug("[naver_scanner] 더보기 JS evaluate 클릭 성공")
+                    except Exception:
+                        pass
+            except Exception as _e:
+                logger.debug(f"[naver_scanner] 더보기 클릭 실패 (무시): {_e}")
 
             # ── AI 브리핑 영역 확인 ──────────────────────────────
             for sel in BRIEFING_SELECTORS:
