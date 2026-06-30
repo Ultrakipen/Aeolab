@@ -5,7 +5,7 @@ import random
 import re
 
 from services.keyword_taxonomy import log_ad_only_mismatch
-from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua
+from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua, get_naver_cookies, build_chrome_ua
 
 logger = logging.getLogger("aeolab")
 
@@ -225,18 +225,30 @@ class NaverAIBriefingScanner:
 
     async def check_mention(self, query: str, target: str, category: str = "") -> dict:
         proxy = get_proxy_config()
+        ua = build_chrome_ua()
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(
                 headless=True,
-                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+                channel="chrome",
+                args=[
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-blink-features=AutomationControlled",
+                ],
                 proxy=proxy,
             )
             ctx = await browser.new_context(
+                viewport={"width": 1280, "height": 800},
                 locale="ko-KR",
-                user_agent=get_random_ua(),
+                timezone_id="Asia/Seoul",
+                user_agent=ua,
             )
+            naver_cookies = get_naver_cookies()
+            if naver_cookies:
+                await ctx.add_cookies(naver_cookies)
             page = await ctx.new_page()
-            await apply_stealth(page)
+            # apply_stealth 제거 — 봇 감지 유발 (2026-06-28 AI탭 실측 확인)
             try:
                 result = await self._check_single_page(page, query, target, category=category)
             finally:
@@ -257,20 +269,32 @@ class NaverAIBriefingScanner:
             }
 
         proxy = get_proxy_config()
+        ua = build_chrome_ua()
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(
                 headless=True,
-                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+                channel="chrome",
+                args=[
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-blink-features=AutomationControlled",
+                ],
                 proxy=proxy,
             )
             ctx = await browser.new_context(
+                viewport={"width": 1280, "height": 800},
                 locale="ko-KR",
-                user_agent=get_random_ua(),
+                timezone_id="Asia/Seoul",
+                user_agent=ua,
             )
+            naver_cookies = get_naver_cookies()
+            if naver_cookies:
+                await ctx.add_cookies(naver_cookies)
             keyword_results = []
             for q in queries:
                 page = await ctx.new_page()
-                await apply_stealth(page)
+                # apply_stealth 제거 — 봇 감지 유발 (2026-06-28 AI탭 실측 확인)
                 try:
                     r = await self._check_single_page(page, q, target, category=category)
                 finally:

@@ -121,6 +121,71 @@ def _load_proxy_pool() -> list[dict]:
     return proxies
 
 
+def get_naver_cookies() -> list[dict]:
+    """환경변수에서 네이버 로그인 쿠키를 읽어 Playwright cookie 형식으로 반환.
+
+    설정 방법 (backend/.env):
+        NAVER_COOKIE_NID_AUT=<값>
+        NAVER_COOKIE_NID_SES=<값>        ← 로그인 세션 (30일 만료)
+        NAVER_COOKIE_NID_JKL=<값>        (선택)
+    추출: Chrome → F12 → Application → Cookies → .naver.com
+    """
+    cookies = []
+    for name, env_key in [
+        ("NID_AUT", "NAVER_COOKIE_NID_AUT"),
+        ("NID_SES", "NAVER_COOKIE_NID_SES"),
+        ("NID_JKL", "NAVER_COOKIE_NID_JKL"),
+    ]:
+        val = os.getenv(env_key, "").strip()
+        if val:
+            cookies.append({
+                "name": name,
+                "value": val,
+                "domain": ".naver.com",
+                "path": "/",
+                "httpOnly": True,
+                "secure": True,
+            })
+    if cookies:
+        _logger.info(f"[naver] 쿠키 {len(cookies)}개 로드 ({[c['name'] for c in cookies]})")
+    else:
+        _logger.debug("[naver] 쿠키 없음 (NAVER_COOKIE_* 미설정)")
+    return cookies
+
+
+_chrome_ua_cache: str = ""
+
+
+def build_chrome_ua() -> str:
+    """설치된 google-chrome-stable 버전을 읽어 올바른 UA 반환 (프로세스 수명 동안 캐시).
+
+    HeadlessChrome 문자열을 Chrome으로 교체 — 봇 감지 방지.
+    """
+    global _chrome_ua_cache
+    if _chrome_ua_cache:
+        return _chrome_ua_cache
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["google-chrome-stable", "--version"],
+            capture_output=True, text=True, timeout=5,
+        )
+        version_str = result.stdout.strip().split()[-1]
+        major = version_str.split(".")[0]
+        _chrome_ua_cache = (
+            f"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+            f"(KHTML, like Gecko) Chrome/{major}.0.0.0 Safari/537.36"
+        )
+        _logger.info(f"[naver] Chrome UA 감지: {_chrome_ua_cache}")
+    except Exception as e:
+        _logger.warning(f"[naver] Chrome 버전 감지 실패, fallback UA 사용: {e}")
+        _chrome_ua_cache = (
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+        )
+    return _chrome_ua_cache
+
+
 def get_proxy_config() -> Optional[dict]:
     """프록시 풀에서 라운드로빈 선택. NAVER_PROXY_LIST 미설정 시 None (직접 연결).
 
