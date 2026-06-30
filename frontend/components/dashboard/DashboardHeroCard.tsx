@@ -94,6 +94,8 @@ export default function DashboardHeroCard({
 
   const naverBriefingCard = naverCaptchaBlocked
     ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",        statusClass: "text-gray-400",    detail: "일시적으로 확인 어려움" }
+    : isInactiveOrFranchise && (naverInBriefing ?? false)
+    ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "정보형 노출 중",   statusClass: "text-emerald-700", detail: "콘텐츠 기반 AI 브리핑 노출" }
     : isInactiveOrFranchise
     ? { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "이 업종 해당 없음", statusClass: "text-gray-400",    detail: "네이버 검색·AI탭으로 노출 가능" }
     : briefingEligibility === "likely"
@@ -102,8 +104,8 @@ export default function DashboardHeroCard({
     ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 중",          statusClass: "text-emerald-700", detail: "브리핑 노출 확인됨" }
     : { icon: "!", iconClass: "bg-amber-500 text-white",   status: "아직 미노출",       statusClass: "text-amber-700",   detail: "소개글 보강하면 가능" };
 
-  // INACTIVE/프랜차이즈는 AI 브리핑 비대상 — 항상 회색 N/A인 브리핑 카드 대신
-  // 실측 데이터가 있는 "경쟁 순위" 카드를 노출해 히어로 중앙이 공백으로 보이지 않게 한다.
+  // INACTIVE/프랜차이즈는 AI 브리핑 비대상 → 경쟁순위 카드 대체 표시.
+  // 단, 정보형 AI 브리핑에 실측 노출(naverInBriefing=True) 시 브리핑 카드로 교체 — 사용자에게 긍정 신호.
   const rankCard =
     myRankInList && totalCompetitors && totalCompetitors > 1
       ? myRankInList === 1
@@ -111,14 +113,14 @@ export default function DashboardHeroCard({
         : { icon: String(myRankInList), iconClass: "bg-amber-500 text-white", status: `${myRankInList}위`, statusClass: "text-amber-700", detail: `경쟁 ${totalCompetitors}곳 중 ${myRankInList}위` }
       : { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "비교 준비 중", statusClass: "text-gray-400", detail: "경쟁사 등록 후 표시" };
 
-  // INACTIVE: 검색·AI탭·경쟁순위(실측) / ACTIVE·LIKELY: 검색·AI탭·AI브리핑
   const ANCHOR_MAP: Record<string, string> = {
     "naver-seo":      "#naver-seo-anchor",
     "naver-aitab":    "#naver-aitab-anchor",
     "naver-briefing": "#naver-briefing-anchor",
     "naver-rank":     "#section-detail",
   };
-  const naverChannels = isInactiveOrFranchise
+  // INACTIVE+in_briefing=True: 정보형 노출 확인 → 브리핑 카드 표시 (경쟁순위 대신)
+  const naverChannels = isInactiveOrFranchise && !(naverInBriefing ?? false)
     ? [
         { id: "naver-seo",   platform: "네이버 검색", ...naverSeoCard },
         { id: "naver-aitab", platform: "네이버 AI탭", ...naverAiTabCard },

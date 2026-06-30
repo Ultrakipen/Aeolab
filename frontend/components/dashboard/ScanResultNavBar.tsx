@@ -87,6 +87,8 @@ export default function ScanResultNavBar({
 
   const briefingDot = naverCaptchaBlocked
     ? GRAY
+    : isInactive && naverInBriefing  // INACTIVE여도 정보형 브리핑 노출 시 GREEN
+    ? GREEN
     : isInactive
     ? GRAY
     : eligibility === "likely"
