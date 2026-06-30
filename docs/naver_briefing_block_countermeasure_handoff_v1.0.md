@@ -67,17 +67,19 @@ docs/naver_briefing_block_countermeasure_handoff_v1.0.md 기준으로 작업 시
 
 ## §4. AI 브리핑 차단 대응 단계
 
-### §4-A. ✅ 완료 (2026-06-30) — Chrome 레시피 이식 성공
+### §4-A. ✅ 완료 (2026-06-30) — Chrome 레시피 이식 성공 + DOM 셀렉터 완전 수정
 
-**결과**: `captcha_detected=False` 확인. 봇 차단 우회 성공. git `3314fdf`.
+**결과**: `captcha_detected=None` (차단 없음), 브리핑 실측 탐지 정상. git `3314fdf` → `c0d2212`.
 
 - ✅ 제거: `apply_stealth(page)` (봇 감지 유발 확인)
 - ✅ 추가: `channel="chrome"` + `--disable-blink-features=AutomationControlled`
 - ✅ 추가: `build_chrome_ua()` — HeadlessChrome → Chrome 교체 (`__init__.py` 공유)
-- ✅ 추가: `ctx.add_cookies(get_naver_cookies())` — NID_AUT 주입 (`__init__.py` 공유)
-- ✅ 접근: 직접 search.naver.com URL + 브리핑 인라인 파싱 (클릭 불필요 확인)
+- ✅ 추가: `ctx.add_cookies(get_naver_cookies())` — NID_AUT + NID_SES 주입
+- ✅ **BRIEFING_SELECTORS 갱신**: 2026 실측 기준 `fds-aib-expandable-container` 최우선 추가 (구버전 `.ai_answer_area` 등 전부 MISS → 신규 클래스 접두사 `fds-aib` 일치)
+- ✅ **"펼쳐서 더보기" JS evaluate 클릭**: `ElementHandle.click()` overlay 타임아웃 → `page.evaluate("el => el.click()")` 교체
+- ✅ **최종 검증**: 신신예식장 `in_briefing=True` / 숨고 `in_briefing=True` — 브리핑 내 실존 업체 정확 탐지 확인
 
-**⚠️ 남은 한계**: 서버에 `NID_SES` 쿠키 없음 (로그인 미성립). 비로그인 상태에서도 차단 우회는 성공했으나, 플레이스형 AI 브리핑이 로그인 사용자에게만 렌더되는 경우 실제 노출 측정이 안될 수 있음. **NID_SES 추출 방법**: Chrome → F12 → Application → Cookies → `.naver.com` → `NID_SES` 값 → `backend/.env`에 `NAVER_COOKIE_NID_SES=<값>` 추가 후 `pm2 restart aeolab-backend --update-env`.
+**브리핑 동적 특성 주의**: 정보형 AI 브리핑은 블로그·콘텐츠 인용 순위로 매일 변동. 홍스튜디오 `in_briefing=False`는 스캐너 문제가 아니라 해당 쿼리 당일 브리핑에 미포함인 것(2026-06-30 실측 확인). NID_SES 쿠키도 서버에 주입 완료.
 
 ### §4-B. (2순위, 구독자 50명) BrowserBase
 
