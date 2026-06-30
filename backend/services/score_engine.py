@@ -577,11 +577,14 @@ def calc_track1_score(
     ai_status    = biz.get("ai_info_tab_status", "unknown")
     eligibility  = get_briefing_eligibility(_eff_category, bool(biz.get("is_franchise")))
 
-    # INACTIVE 업종: naver_exposure_confirmed는 항상 0 (AI 브리핑 비대상)
-    # → 해당 15% 가중치를 제외하고 나머지 85%로 정규화해 구조적 손실 방지
-    # (출처: help.naver.com/service/30026/contents/24632 "음식점, 카페 등 일부 업종")
-    # LIKELY 업종은 nv_exp가 일부 업체에서 0이 아닐 수 있으므로 이 분기에 포함하지 않음
-    if eligibility == "inactive":
+    # INACTIVE 업종: 플레이스형 AI 브리핑 비대상 → naver_exposure_confirmed 기본 0
+    # 단, 정보형 AI 브리핑에 실측 노출(in_briefing=True) 시 ACTIVE와 동일하게 반영
+    # (2026-06-30: 정보형은 전 업종 대상 — "음식점 등 일부 업종" 출처는 플레이스형 한정)
+    _naver_r_for_check = scan_result.get("naver") or scan_result.get("naver_result") or {}
+    _in_briefing_confirmed = bool(_naver_r_for_check.get("in_briefing"))
+
+    if eligibility == "inactive" and not _in_briefing_confirmed:
+        # 정보형 브리핑 미노출: 15% 제외 후 0.85 정규화 (구조적 손실 방지)
         _inactive_w = 1.0 - NAVER_TRACK_WEIGHTS["naver_exposure_confirmed"]  # 0.85
         score = (
             kw_gap        * NAVER_TRACK_WEIGHTS["keyword_gap_score"] +
@@ -591,6 +594,7 @@ def calc_track1_score(
             ai_tab_ready  * NAVER_TRACK_WEIGHTS["ai_tab_readiness"]
         ) / _inactive_w
     else:
+        # ACTIVE/LIKELY, 또는 INACTIVE+정보형 브리핑 실측 노출 → nv_exp 포함
         score = (
             kw_gap        * NAVER_TRACK_WEIGHTS["keyword_gap_score"] +
             rv_qual       * NAVER_TRACK_WEIGHTS["review_quality"] +
@@ -1329,6 +1333,12 @@ def calc_track1_score_v3_1(
     blog_crank = calc_blog_crank_score(naver_data, biz)
     local_map = calc_local_map_score(scan_result, biz, naver_data)
     ai_brief = calc_naver_exposure(scan_result)
+
+    # INACTIVE + 정보형 AI 브리핑 실측 노출 시 LIKELY 가중치 적용
+    # (INACTIVE weights: ai_briefing_score=0.00 → LIKELY: 0.15, 합계 1.0 유지)
+    _naver_r_v31 = scan_result.get("naver") or scan_result.get("naver_result") or {}
+    if user_group == "INACTIVE" and _naver_r_v31.get("in_briefing"):
+        weights = NAVER_TRACK_WEIGHTS_V3_1["LIKELY"]
 
     score = (
         kw_search  * weights["keyword_search_rank"] +
