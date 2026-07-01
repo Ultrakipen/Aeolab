@@ -728,7 +728,7 @@ export default async function LandingPage() {
 
           <p className="text-center text-sm fade-up break-keep" style={{ color: "#64748B" }}>
             음식점·카페·베이커리·바·숙박업 등 플레이스형 네이버 AI 브리핑 대상 업종 기준 ·{" "}
-            <strong style={{ color: "#6366F1" }}>그 외 업종도 블로그·콘텐츠 채택 시 정보형 AI 브리핑 노출 가능 + AI탭(업종 공식 제한 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini 가이드 자동 제공</strong>
+            <strong style={{ color: "#6366F1" }}>그 외 업종도 블로그·콘텐츠 채택 시 정보형 AI 브리핑 노출 가능 + AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini 가이드 자동 제공</strong>
           </p>
           <p className="text-center text-sm mt-2 fade-up break-keep" style={{ color: "#94A3B8" }}>
             AI 브리핑 노출은 네이버 알고리즘 기준으로 보장되지 않으며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
@@ -751,7 +751,7 @@ export default async function LandingPage() {
               className="text-2xl md:text-3xl font-black tracking-tight break-keep"
               style={{ color: "#0F172A", letterSpacing: "-0.6px" }}
             >
-              업종 공식 제한 없음, 2026-06-25 정식 출시 — AI 브리핑과 다른 경로
+              업종 제한 발표 없음, 2026-06-25 정식 출시 — AI 브리핑과 다른 경로
             </h2>
             <p className="text-sm mt-2 break-keep max-w-2xl mx-auto" style={{ color: "#475569" }}>
               2026-04-27 베타 출시 · 2026-06-25 정식 출시 (네이버 공식)
@@ -848,7 +848,7 @@ export default async function LandingPage() {
                 <div className="mb-4">
                   <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">노출 대상 업종</p>
                   <div className="rounded-lg px-3 py-2.5" style={{ background: "#E0E7FF" }}>
-                    <p className="text-sm font-black text-indigo-800">🏢 업종 공식 제한 없음 · 정식 출시</p>
+                    <p className="text-sm font-black text-indigo-800">🏢 업종 제한 발표 없음 · 정식 출시</p>
                     <p className="text-sm text-indigo-600 mt-0.5">장소 기반 모든 업종 가능 · AI탭 300만 달성 · 2026-06-25 정식 출시</p>
                   </div>
                   <div className="mt-2 flex items-center gap-1.5">
@@ -862,7 +862,7 @@ export default async function LandingPage() {
                   <div className="space-y-2">
                     {[
                       { icon: "👆", text: "검색 결과 탭에서 'AI' 클릭 시 답변에 내 가게 등장" },
-                      { icon: "🌐", text: "업종 공식 제한 없음 — 장소 기반 모든 업종 가능" },
+                      { icon: "🌐", text: "업종 제한 발표 없음 — 장소 기반 모든 업종 가능" },
                       { icon: "🚀", text: "2026-04-27 베타 출시 · 2026-06-25 정식 출시 (네이버 공식)" },
                       { icon: "📝", text: "노출 기준: 소개글, 사진, 예약 연동, 블로그 UGC" },
                     ].map(({ icon, text }) => (
