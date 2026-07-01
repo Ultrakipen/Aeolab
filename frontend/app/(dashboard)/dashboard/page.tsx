@@ -554,7 +554,7 @@ export default async function DashboardPage({
                 jisikResult={jisikResult}
                 keywords={bizBase.keywords ?? []}
                 initialKeywordRanks={(latestScan?.keyword_ranks as Record<string, unknown> | null) ?? null}
-                userGroup={(() => { const rawGroup = getUserGroup(bizBase.category, isFranchise); return rawGroup === "franchise" ? "INACTIVE" : rawGroup as "ACTIVE" | "LIKELY" | "INACTIVE"; })()}
+                userGroup={(() => { const rawGroup = getUserGroup(bizBase.category, isFranchise, briefingCats.active, briefingCats.likely); return rawGroup === "franchise" ? "INACTIVE" : rawGroup as "ACTIVE" | "LIKELY" | "INACTIVE"; })()}
                 region={bizBase.region}
                 />
             </>

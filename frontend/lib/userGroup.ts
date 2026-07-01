@@ -30,10 +30,21 @@ const LIKELY_CATEGORIES = new Set([
   "dance", "ballet", "semi_permanent",
 ]);
 
-export function getUserGroup(category: string, isFranchise: boolean): UserGroup {
+/**
+ * @param activeOverride — fetchBriefingCategories()로 가져온 동적 목록. 미전달 시 하드코딩 fallback.
+ * @param likelyOverride — fetchBriefingCategories()로 가져온 동적 목록. 미전달 시 하드코딩 fallback.
+ */
+export function getUserGroup(
+  category: string,
+  isFranchise: boolean,
+  activeOverride?: readonly string[],
+  likelyOverride?: readonly string[],
+): UserGroup {
   if (isFranchise) return "franchise";
-  if (ACTIVE_CATEGORIES.has(category)) return "ACTIVE";
-  if (LIKELY_CATEGORIES.has(category)) return "LIKELY";
+  const activeSet = activeOverride ? new Set(activeOverride) : ACTIVE_CATEGORIES;
+  const likelySet = likelyOverride ? new Set(likelyOverride) : LIKELY_CATEGORIES;
+  if (activeSet.has(category)) return "ACTIVE";
+  if (likelySet.has(category)) return "LIKELY";
   return "INACTIVE";
 }
 
