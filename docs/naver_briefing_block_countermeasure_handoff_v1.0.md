@@ -177,4 +177,19 @@ A단계로도 브리핑 미노출 시 AI탭 문서 §2-B와 동일 — `connect_
 
 ---
 
+## §11. 2026-07-01 "추가 개선은 없는지?" 재확인 스윕 — 동일 버그 패턴 2건 추가 발견·수정·배포 완료 (git `20882d6`)
+
+> §10에서 고친 "LIKELY 업종 실측 노출 무시" 버그가 다른 곳에도 있는지 전수 재검색. `naverInBriefing`/`inBriefing`을 실제 props로 받는 컴포넌트를 전부 훑어 2건 추가 발견.
+
+1. **`ScanResultNavBar.tsx` `briefingDot`(P2)** — 대시보드 목차 점프바의 신호등 점(dot)이 INACTIVE는 실측 `naverInBriefing`을 반영하도록 이미 고쳐져 있었으나(§10), LIKELY 분기는 그대로 두어 실제 노출돼도 항상 AMBER("확대 예정" 색)만 표시하던 동일 패턴 버그. `eligibility === "likely" && naverInBriefing` 케이스를 GREEN으로 분기 추가(`ScanResultNavBar.tsx:94-95`). `dashboard/page.tsx:502-506`에서 실측 `latestScan.naver_result.in_briefing`을 그대로 주입받는 것 확인 → 실사용 영향 있는 버그였음.
+2. **`NaverStatusSection.tsx`(무료 체험 페이지, P2)** — 트라이얼 결과 화면의 AI 브리핑 안내 블록이 `briefingCategory === "active"`는 실측 `inBriefing`(true/false/null) 3분기를 정확히 반영하는데, `"likely"` 분기만 `inBriefing` 값과 무관하게 항상 "확대 준비 중(2026년 확대 예정)" 고정 문구였음. `inBriefing === true`일 때 "정보형 AI 브리핑에 노출 중입니다" 녹색 블록, 그 외엔 기존 준비 중 안내로 분기 추가. 트라이얼은 비로그인 공개 페이지 중 트래픽이 가장 많아 우선순위 높게 처리.
+
+**검토 후 정상으로 판정해 수정 안 한 파일** — `DualTrackCard.tsx`, `NaverAiPathwayCard.tsx`, `AiTabPreviewCard.tsx`, `AiInfoTabStatusCard.tsx`, `DashboardHeader.tsx`, `demo/page.tsx`, `guide/*` 등: 애초에 실측 `inBriefing`을 prop으로 받지 않는 정적 안내 카드라 버그가 아니라 설계 범위 밖. `AIDiagnosisCard.tsx`는 LIKELY를 별도 분기하지 않고 실측값을 그대로 쓰고 있어 원래부터 정상.
+
+md5 선확인 일치 → scp → 프론트 빌드 성공 → pm2 재시작(에러 0, "Failed to find Server Action" 1줄은 재시작 직후 구버전 클라이언트 번들의 무해한 일과성 아티팩트로 판정) → 서버 grep 반영 확인 완료.
+
+**남은 잠재 항목(미착수, 우선순위 낮음)**: `jobs.py` 내 §9/§10/§11에서 다룬 2개 잡 외 나머지 약 25개 스케줄 잡이 여전히 죽은 `send_slack_alert`만 호출 중(이메일 폴백 미적용). 이번 핸드오프 범위(네이버 브리핑) 밖이라 별도 판단 필요 시 진행.
+
+---
+
 *최종 업데이트: 2026-07-01 | 담당: 메인 세션 직접 관리 | 실측 우선·단정 금지·실측 없는 배포 금지*
