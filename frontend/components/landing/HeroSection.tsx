@@ -249,14 +249,15 @@ export default function HeroSection() {
                   음식점·카페·숙박업 등
                 </span>
                 검색 상단에 자동으로 뜨는{" "}
-                <strong style={{ color: "#FFFFFF" }}>네이버 AI 브리핑</strong>에
+                &apos;플레이스형&apos; <strong style={{ color: "#FFFFFF" }}>네이버 AI 브리핑</strong>에
                 우리 가게가 나오는지 확인하세요.
               </p>
               <p
                 className="text-sm leading-relaxed break-keep"
                 style={{ color: "rgba(255,255,255,0.80)" }}
               >
-                <strong style={{ color: "#A5F3FC" }}>네이버 AI탭</strong> 답변 준비도와{" "}
+                <strong style={{ color: "#A5F3FC" }}>네이버 AI탭</strong>·
+                <strong style={{ color: "#A5F3FC" }}>&apos;정보형&apos; AI 브리핑</strong> 준비도와{" "}
                 <strong style={{ color: "#A5F3FC" }}>일반 검색 상위 노출</strong> 최적화 진단 —
                 모든 업종 대상 · 가입 없이 1분
               </p>
