@@ -568,7 +568,7 @@ export default function DualTrackCard({
         <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 md:p-4">
           <p className="text-sm font-semibold text-yellow-800 mb-1">🔔 네이버 AI 브리핑 확대 예정 업종</p>
           <p className="text-sm text-yellow-700 leading-relaxed">
-            지금은 블로그·스마트플레이스 관리로 네이버 검색 노출을 높이세요. 이 개선이 AI 브리핑·AI탭 노출의 기반이 됩니다. AI 브리핑 업종 확대 시 자동으로 전환됩니다.
+            지금은 블로그·스마트플레이스 관리로 네이버 검색 노출을 높이세요. 이 개선이 '정보형 AI 브리핑'·AI탭 노출의 기반이 됩니다. '플레이스형' AI 브리핑 업종 확대 시 자동으로 전환됩니다.
           </p>
         </div>
       )}

@@ -22,7 +22,7 @@ function getSummaryMessage(group: UserGroup | "unknown"): string {
     return "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 대상에서 제외됩니다(본사 정책). 단, '정보형 AI 브리핑'과 AI탭·ChatGPT·Gemini·Google AI에서는 노출 가능합니다.";
   }
   if (group === "LIKELY") {
-    return "현재 AI 탭과 글로벌 AI 2개 채널에서 노출 가능하며, AI 브리핑은 곧 확대 예정입니다.";
+    return "현재 AI 탭과 글로벌 AI 2개 채널에서 노출 가능하며, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. '플레이스형' AI 브리핑은 곧 확대 예정입니다.";
   }
   if (group === "INACTIVE") {
     return "AI탭과 글로벌 AI 2개 채널에서 노출 가능합니다. '플레이스형' AI 브리핑 비대상이나 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능하며, 핵심 채널 모두 측정합니다.";

@@ -309,7 +309,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
             ⚡ 네이버 AI탭 2026년 확장 예정 업종
           </p>
           <p className="text-sm text-amber-700 mt-0.5">
-            현재는 ChatGPT·Gemini·Google AI 노출이 핵심 채널입니다. 네이버 AI탭(2026-06-25 정식 출시, 네이버 공식) 노출도 추적합니다.
+            현재는 ChatGPT·Gemini·Google AI 노출이 핵심 채널입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능하며, 네이버 AI탭(2026-06-25 정식 출시) 노출도 추적합니다.
           </p>
         </div>
       )}

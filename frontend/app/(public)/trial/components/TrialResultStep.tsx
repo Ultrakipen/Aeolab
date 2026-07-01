@@ -815,7 +815,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           </p>
           <p className="text-sm text-amber-800 leading-relaxed">
             네이버 AI탭은 2026-04-27 베타 출시 · 2026-06-25 정식 출시입니다 (업종 제한 발표 없음).
-            AI 브리핑 업종 확대는 네이버 공식 발표 후 적용 예정이며 현재 확대 검토 중입니다.
+            블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. '플레이스형' AI 브리핑 업종 확대는 네이버 공식 발표 후 적용 예정이며 현재 확대 검토 중입니다.
           </p>
         </div>
       )}

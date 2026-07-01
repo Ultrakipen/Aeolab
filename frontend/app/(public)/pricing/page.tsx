@@ -328,7 +328,7 @@ export default function PricingPage() {
                 <span className="text-sm font-semibold text-gray-900">뷰티 · 네일 · 피트니스 · 요가 · 약국 · 반려동물 등</span>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                현재 AI탭(정식 출시, 업종 제한 없음) + 글로벌 AI 노출 가능. AI 브리핑 확대에 대비해 소개글·사진을 미리 준비할 수 있습니다.
+                현재 AI탭(정식 출시, 업종 제한 없음) + 글로벌 AI 노출 가능. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. '플레이스형' AI 브리핑 확대에 대비해 소개글·사진을 미리 준비할 수 있습니다.
               </p>
             </div>
 

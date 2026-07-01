@@ -88,7 +88,7 @@ export function AiInfoTabStatusCard({
       </div>
     ) : eligibility === "likely" ? (
       <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
-        AI탭 우선 최적화 업종입니다. AI 브리핑은 네이버 확대 정책에 따라 추가될 예정입니다.
+        AI탭 우선 최적화 업종입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. '플레이스형' AI 브리핑은 네이버 확대 정책에 따라 추가될 예정입니다.
       </div>
     ) : eligibility === "inactive" ? (
       <div className="mb-4 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm text-slate-700">
