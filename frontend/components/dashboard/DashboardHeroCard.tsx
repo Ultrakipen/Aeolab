@@ -98,6 +98,8 @@ export default function DashboardHeroCard({
     ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "정보형 노출 중",   statusClass: "text-emerald-700", detail: "콘텐츠 기반 AI 브리핑 노출" }
     : isInactiveOrFranchise
     ? { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "이 업종 해당 없음", statusClass: "text-gray-400",    detail: "네이버 검색·AI탭으로 노출 가능" }
+    : briefingEligibility === "likely" && (naverInBriefing ?? false)
+    ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "정보형 노출 중",   statusClass: "text-emerald-700", detail: "콘텐츠 기반 AI 브리핑 노출" }
     : briefingEligibility === "likely"
     ? { icon: "△", iconClass: "bg-yellow-400 text-white",  status: "확대 예정",        statusClass: "text-yellow-700",  detail: "지금 준비 중" }
     : (naverInBriefing ?? false)

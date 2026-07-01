@@ -41,8 +41,13 @@ import { getScoreTextLabel } from "@/lib/scoreLabels";
 import { PLAN_PRICES } from "@/lib/plans";
 
 // ── 업종별 Track1 레이블 헬퍼 ───────────────────────────────────────
-function getTrack1Label(category: string, isFranchise: boolean): string {
-  const group = getUserGroup(category, isFranchise);
+function getTrack1Label(
+  category: string,
+  isFranchise: boolean,
+  activeOverride?: readonly string[],
+  likelyOverride?: readonly string[],
+): string {
+  const group = getUserGroup(category, isFranchise, activeOverride, likelyOverride);
   if (group === "ACTIVE") return "네이버 AI 검색 준비도 (AI 브리핑·AI탭 통합)";
   if (group === "LIKELY") return "네이버 AI 검색 준비도 (AI탭 중심, AI브리핑 확대 예정)";
   return "네이버 AI 탭 준비도";
@@ -588,11 +593,13 @@ function BasicTab({
   isCurrentPlan,
   isAlreadyOwned,
   industry,
+  briefingCats,
 }: {
   scan: ScanResult | null;
   isCurrentPlan: boolean;
   isAlreadyOwned: boolean;
   industry: IndustryKey;
+  briefingCats?: { active: readonly string[]; likely: readonly string[] };
 }) {
   const [copied, setCopied] = useState(false);
   const d = INDUSTRY_DATA[industry];
@@ -656,7 +663,7 @@ function BasicTab({
           </div>
         </div>
         <ScoreBarDemo
-          label={getTrack1Label(industry, false)}
+          label={getTrack1Label(industry, false, briefingCats?.active, briefingCats?.likely)}
           score={Math.round(track1)}
           color="bg-green-500"
           weight={naverWeight}
@@ -1838,6 +1845,7 @@ export default function PreviewClient({ currentPlan, businessData, latestScan, b
               isCurrentPlan={isCurrentPlan("basic")}
               isAlreadyOwned={isAlreadyOwned("basic")}
               industry={industry}
+              briefingCats={briefingCats}
             />
           )}
           {activeTab === "startup" && (

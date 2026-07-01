@@ -123,8 +123,11 @@ export function briefingTile(args: {
       return makeTile("naver-briefing", "AI 브리핑", "good", "정보형 노출 중", "블로그·콘텐츠 기반 정보형 AI 브리핑에 노출 중");
     return makeTile("naver-briefing", "AI 브리핑", "pending", "플레이스형 해당 없음", "블로그·콘텐츠로 정보형 AI 브리핑·검색·AI탭 노출 가능");
   }
-  if (eligibility === "likely")
+  if (eligibility === "likely") {
+    if (inBriefing)
+      return makeTile("naver-briefing", "AI 브리핑", "good", "정보형 노출 중", "블로그·콘텐츠 기반 정보형 AI 브리핑에 노출 중");
     return makeTile("naver-briefing", "AI 브리핑", "expand", "확대 예정", "지금 준비 중");
+  }
   if (inBriefing)
     return makeTile("naver-briefing", "AI 브리핑", "good", "노출 중", "검색 첫화면에 내 가게 추천 중");
   return makeTile("naver-briefing", "AI 브리핑", "warn", "아직 미노출", "보강 시 검색 첫화면 노출 가능");

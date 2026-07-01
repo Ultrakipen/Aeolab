@@ -5303,15 +5303,15 @@ async def ai_tab_trigger_check_job():
     _logger.info(f"[ai_tab_trigger_check] hit={hit_count}/{len(queries)} rate={rate:.0%}")
 
     if rate >= 0.8:
-        await send_slack_alert(
-            "[P2-READY] AI탭 전체 확대 감지",
-            (
-                f"비로그인 노출률 {rate*100:.0f}% ({hit_count}/{len(queries)}) — "
-                "P2 작업 시작 필요. "
-                "naver_ai_search_optimization_plan_v1.0.md §P2 참조."
-            ),
-            level="info",
+        _alert_msg = (
+            f"비로그인 노출률 {rate*100:.0f}% ({hit_count}/{len(queries)}) — "
+            "P2 작업 시작 필요. "
+            "naver_ai_search_optimization_plan_v1.0.md §P2 참조."
         )
+        await send_slack_alert("[P2-READY] AI탭 전체 확대 감지", _alert_msg, level="info")
+        # SLACK_WEBHOOK_URL 미설정 시 위 호출은 무동작 — 이메일로 이중 발송 (2026-07-01)
+        from services.email_sender import send_operator_alert
+        await send_operator_alert("[P2-READY] AI탭 전체 확대 감지", _alert_msg)
         _logger.warning(f"[P2-READY] AI탭 노출률 {rate*100:.0f}% — 전체 확대 감지")
         # system_status 자동 활성화 (pm2 restart 불필요)
         try:
@@ -5446,15 +5446,15 @@ async def briefing_category_expansion_monitor_job():
 
     if newly_detected_place:
         cats_str = ", ".join(newly_detected_place)
-        await send_slack_alert(
-            "[AI 브리핑 업종 확대 감지 — 플레이스형]",
-            (
-                f"INACTIVE 업종에서 플레이스형 AI 브리핑 노출 확인: {cats_str}\n"
-                "score_engine.py BRIEFING_LIKELY_CATEGORIES 또는 BRIEFING_ACTIVE_CATEGORIES "
-                "업데이트 필요. naver_gpt_work_standard_v1.0.md 기준으로 검토."
-            ),
-            level="info",
+        _alert_msg = (
+            f"INACTIVE 업종에서 플레이스형 AI 브리핑 노출 확인: {cats_str}\n"
+            "score_engine.py BRIEFING_LIKELY_CATEGORIES 또는 BRIEFING_ACTIVE_CATEGORIES "
+            "업데이트 필요. naver_gpt_work_standard_v1.0.md 기준으로 검토."
         )
+        await send_slack_alert("[AI 브리핑 업종 확대 감지 — 플레이스형]", _alert_msg, level="info")
+        # SLACK_WEBHOOK_URL 미설정 시 위 호출은 무동작 — 이메일로 이중 발송 (2026-07-01)
+        from services.email_sender import send_operator_alert
+        await send_operator_alert("[AI 브리핑 업종 확대 감지 — 플레이스형]", _alert_msg)
     if info_only_detected:
         _logger.info(
             "[briefing_expansion] 정보형 브리핑만 감지(업종 확대 아님, 조치 불필요): "
