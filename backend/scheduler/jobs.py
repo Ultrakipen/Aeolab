@@ -1398,12 +1398,36 @@ async def monthly_market_news_job():
         supabase = get_client()
         notifier = KakaoNotifier()
 
-        _mu_res = await _db(
-            supabase.table("subscriptions")
-            .select("user_id, profiles(phone), businesses(id,name,category,region)")
-            .eq("status", "active")
+        # subscriptions↔profiles/businesses는 FK 없어 embedded join 시 PGRST200 →
+        # 세 번 조회 후 user_id 기준 병합으로 교체 (2026-07-01, 기존 패턴과 동일)
+        _subs_res = await _db(
+            supabase.table("subscriptions").select("user_id").eq("status", "active")
         )
-        users = _mu_res.data or []
+        _active_user_ids = list({s["user_id"] for s in (_subs_res.data or [])}) or ["__none__"]
+
+        _profiles_res = await _db(
+            supabase.table("profiles").select("user_id, phone").in_("user_id", _active_user_ids)
+        )
+        _phone_by_user = {p["user_id"]: p.get("phone") for p in (_profiles_res.data or [])}
+
+        _biz_res0 = await _db(
+            supabase.table("businesses")
+            .select("id, name, category, region, user_id")
+            .in_("user_id", _active_user_ids)
+        )
+        _biz_by_user: dict = {}
+        for _b in (_biz_res0.data or []):
+            _biz_by_user.setdefault(_b["user_id"], []).append(_b)
+
+        users = [
+            {
+                "user_id": uid,
+                "profiles": {"phone": _phone_by_user.get(uid)},
+                "businesses": _biz_by_user.get(uid, []),
+            }
+            for uid in _active_user_ids
+            if uid != "__none__"
+        ]
         if not users:
             return
 
