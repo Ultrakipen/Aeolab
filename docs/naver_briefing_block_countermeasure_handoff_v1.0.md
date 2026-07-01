@@ -165,4 +165,16 @@ A단계로도 브리핑 미노출 시 AI탭 문서 §2-B와 동일 — `connect_
 
 ---
 
+## §10. 2026-07-01 종합 점검 — 미보고 3건 발견·수정·배포 완료 (git `dd9b1ab`)
+
+> 사용자 요청으로 이 핸드오프 전체를 코드·서버·로그 직접 검증(문서 주장은 대부분 사실과 일치 확인). 단, "사용자 그룹별로 올바른 정보 제공" 관점에서 문서에 없던 3건 추가 발견 → 즉시 수정·배포.
+
+1. **Slack 알림 전환 미완료(P1)** — §9가 고친 `briefing_category_expansion_monitor_job`과 `ai_tab_trigger_check_job`(P2-READY)이 여전히 죽은 `send_slack_alert`만 호출 중이었음(이메일 전환은 `check_naver_cookie_health_job`에만 적용됨). 두 잡 모두 `send_operator_alert` 이메일 이중 발송 추가.
+2. **LIKELY 업종 실측 노출 무시(P2)** — `scoreLabels.ts briefingTile` + `DashboardHeroCard.tsx naverBriefingCard`가 INACTIVE/franchise는 실측 `inBriefing`을 반영하도록 고쳐졌으나(3b4769b) LIKELY 분기는 그대로 두어 실제 노출돼도 항상 "확대 예정"만 표시하던 버그. 두 곳 모두 `inBriefing` 체크 추가.
+3. **PreviewClient.tsx 동적 override 누락(P2)** — f7326bf "15곳 전수 연결"에서 이 파일(`BasicTab` 내부 `getTrack1Label` 호출)이 누락돼 정적 카테고리 목록만 사용 중이었음. `briefingCats` prop을 `BasicTab`까지 관통시켜 연결.
+
+서버 md5 선확인 일치 → scp 배포 → 백엔드 재시작(에러 0)·프론트 빌드 성공·재시작(에러 0) 검증 완료.
+
+---
+
 *최종 업데이트: 2026-07-01 | 담당: 메인 세션 직접 관리 | 실측 우선·단정 금지·실측 없는 배포 금지*
