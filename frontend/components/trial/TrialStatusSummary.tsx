@@ -78,7 +78,7 @@ function getContextSentence(score: number, userGroup: string): {
   if (userGroup === "LIKELY") {
     return {
       text: "AI 탭 확장 예정 업종 — 지금은 ChatGPT·Gemini 최적화가 핵심",
-      sub: "네이버 AI 브리핑 공식 대상 업종이 아닙니다. 스마트플레이스는 네이버 플레이스 노출에 도움이 됩니다.",
+      sub: "'플레이스형' 네이버 AI 브리핑 공식 대상 업종이 아닙니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능하며, 스마트플레이스는 네이버 플레이스 노출에 도움이 됩니다.",
       bg: "bg-blue-50 border-blue-200",
       textColor: "text-blue-800",
       subColor: "text-blue-700",
