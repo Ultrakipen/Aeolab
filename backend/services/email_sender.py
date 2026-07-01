@@ -1439,3 +1439,29 @@ async def send_operator_delivery_notification(
     except Exception as e:
         logger.warning(f"send_operator_delivery_notification 예외 (order_id={order_id}): {e}")
         return False
+
+
+async def send_operator_alert(subject: str, message: str) -> bool:
+    """운영 모니터링 잡(쿠키 만료·스캐너 차단 등) 알림 — 운영자(contact@aeolab.co.kr)에게 이메일 발송.
+
+    SLACK_WEBHOOK_URL 미설정 시 utils.alert.send_slack_alert가 무동작(no-op)이므로,
+    이미 설정된 Resend 이메일 채널로 대체 발송한다(2026-07-01).
+    """
+    operator_email = os.getenv("OPERATOR_EMAIL", "contact@aeolab.co.kr")
+    html = f"""
+<div style="font-family: 'Apple SD Gothic Neo', sans-serif; max-width:480px; margin:0 auto; padding:24px; color:#1e293b;">
+  <div style="background:#b91c1c; border-radius:10px; padding:16px 20px; margin-bottom:20px;">
+    <p style="color:#fecaca; font-size:12px; margin:0 0 4px;">AEOlab 운영 알림</p>
+    <h1 style="color:#fff; font-size:16px; font-weight:700; margin:0;">{subject}</h1>
+  </div>
+  <p style="font-size:13px; line-height:1.6; white-space:pre-wrap;">{message}</p>
+</div>
+"""
+    try:
+        ok = await send_email(operator_email, f"[AEOlab 운영] {subject}", html)
+        if ok:
+            logger.info(f"send_operator_alert OK: {subject}")
+        return ok
+    except Exception as e:
+        logger.warning(f"send_operator_alert 예외 ({subject}): {e}")
+        return False

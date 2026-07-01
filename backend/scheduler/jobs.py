@@ -5329,7 +5329,7 @@ async def briefing_category_expansion_monitor_job():
     try:
         from playwright.async_api import async_playwright
         from services.ai_scanner.naver_scanner import BRIEFING_SELECTORS
-        from services.ai_scanner import get_naver_cookies, build_chrome_ua
+        from services.ai_scanner import get_naver_cookies, build_chrome_ua, get_proxy_config
     except ImportError as e:
         _logger.warning(f"briefing_category_expansion_monitor_job: import failed: {e}")
         return
@@ -5356,12 +5356,13 @@ async def briefing_category_expansion_monitor_job():
 
     try:
         async with async_playwright() as pw:
-            # §4-A 승격 레시피(2026-06-30 검증): channel=chrome + 쿠키 주입, apply_stealth 미사용
+            # §4-A 승격 레시피(2026-06-30 검증): channel=chrome + 쿠키 주입 + 프록시, apply_stealth 미사용
             browser = await pw.chromium.launch(
                 headless=True,
                 channel="chrome",
                 args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage",
                       "--disable-blink-features=AutomationControlled"],
+                proxy=get_proxy_config(),
             )
             ctx = await browser.new_context(locale="ko-KR", user_agent=build_chrome_ua())
             naver_cookies = get_naver_cookies()
@@ -5443,23 +5444,34 @@ async def briefing_category_expansion_monitor_job():
 
 
 async def check_naver_cookie_health_job():
-    """매주 월요일 09:30 KST — 네이버 NID_AUT 쿠키 유효성 검사 + 만료 시 자동 재로그인.
+    """매주 월요일 09:30 KST — 네이버 NID_AUT/NID_SES 쿠키 유효성 검사 + 만료 시 자동 재로그인.
 
     작동 순서:
       1. NID_AUT로 naver.com 방문 → 로그인 상태 확인
       2. 유효: 정상 로그 기록 후 종료
       3. 만료: NAVER_LOGIN_ID/PW로 자동 재로그인 시도
          - 성공: 새 NID_AUT 추출 → .env 파일 + os.environ 즉시 갱신
-         - 실패(2FA·캡챠): pm2 logs에 WARNING 출력 (수동 교체 필요)
+         - 실패(2FA·캡챠): pm2 logs + 운영자 이메일 알림 (수동 교체 필요)
+
+    2026-07-01 추가: SLACK_WEBHOOK_URL이 서버에 미설정이라 기존 send_slack_alert류 알림은
+    무동작(no-op)이었음. 이미 동작 중인 Resend 이메일 채널(send_operator_alert)로 대체 발송.
+    또한 NID_SES(AI 브리핑 전용, ~30일 만료 — NID_AUT의 365일보다 훨씬 짧음)는 기존에 만료
+    추적이 전혀 없어 별도 블록으로 추가.
     """
     import subprocess, re as _re
     from datetime import datetime as _dt, timedelta as _td
+    from services.email_sender import send_operator_alert
+
     nid_aut = os.getenv("NAVER_COOKIE_NID_AUT", "")
     if not nid_aut:
         _logger.warning("[naver_cookie_health] NID_AUT 미설정 — AI탭 스캔 불가. .env에 추가 필요")
+        await send_operator_alert(
+            "NID_AUT 쿠키 미설정",
+            "네이버 AI탭 스캔이 동작하지 않습니다. NAVER_COOKIE_NID_AUT를 .env에 설정해주세요.",
+        )
         return
 
-    # ── 만료 30일 전 조기 경고 (NAVER_COOKIE_NID_AUT_ISSUED 기준) ───────────────
+    # ── NID_AUT 만료 30일 전 조기 경고 (NAVER_COOKIE_NID_AUT_ISSUED 기준, 365일 주기) ──
     _issued_str = os.getenv("NAVER_COOKIE_NID_AUT_ISSUED", "")
     if _issued_str:
         try:
@@ -5471,15 +5483,57 @@ async def check_naver_cookie_health_job():
                     f"[naver_cookie_health] ⚠️ NID_AUT 만료 예상일 초과 ({_days_elapsed}일 경과) — "
                     "새 쿠키 교체 필요. Chrome → naver.com → F12 → Application → Cookies → NID_AUT 복사"
                 )
+                await send_operator_alert(
+                    "NID_AUT 만료 예상일 초과",
+                    f"{_days_elapsed}일 경과. Chrome → naver.com 로그인 → F12 → Application → "
+                    "Cookies → NID_AUT 복사 → .env NAVER_COOKIE_NID_AUT 교체 필요.",
+                )
             elif _days_left <= 30:
-                _logger.warning(
-                    f"[naver_cookie_health] ⚠️ NID_AUT 만료 {_days_left}일 전 — "
-                    "미리 새 쿠키 준비 필요. Chrome → naver.com → F12 → Application → Cookies → NID_AUT 복사"
+                _logger.warning(f"[naver_cookie_health] ⚠️ NID_AUT 만료 {_days_left}일 전")
+                await send_operator_alert(
+                    "NID_AUT 만료 임박",
+                    f"{_days_left}일 후 만료 예상. 미리 새 쿠키 준비 필요 "
+                    "(Chrome → naver.com → F12 → Application → Cookies → NID_AUT).",
                 )
             else:
                 _logger.info(f"[naver_cookie_health] NID_AUT 만료까지 {_days_left}일 남음")
         except ValueError:
             _logger.warning(f"[naver_cookie_health] NAVER_COOKIE_NID_AUT_ISSUED 형식 오류: {_issued_str} (YYYY-MM-DD 필요)")
+
+    # ── NID_SES 만료 추적 (AI 브리핑 전용, ~30일 주기 — NAVER_COOKIE_NID_SES_ISSUED 기준) ──
+    nid_ses = os.getenv("NAVER_COOKIE_NID_SES", "")
+    _ses_issued_str = os.getenv("NAVER_COOKIE_NID_SES_ISSUED", "")
+    if not nid_ses:
+        _logger.warning("[naver_cookie_health] NID_SES 미설정 — AI 브리핑(플레이스형) 스캔 정확도 저하 가능")
+    elif not _ses_issued_str:
+        _logger.warning(
+            "[naver_cookie_health] NAVER_COOKIE_NID_SES_ISSUED 미설정 — NID_SES 만료 추적 불가. "
+            ".env에 발급일(YYYY-MM-DD) 추가 권장"
+        )
+    else:
+        try:
+            _ses_issued = _dt.strptime(_ses_issued_str, "%Y-%m-%d")
+            _ses_days_elapsed = (_dt.now() - _ses_issued).days
+            _ses_days_left = 30 - _ses_days_elapsed
+            if _ses_days_left <= 0:
+                _logger.warning(f"[naver_cookie_health] ⚠️ NID_SES 만료 예상일 초과 ({_ses_days_elapsed}일 경과)")
+                await send_operator_alert(
+                    "NID_SES 만료 예상일 초과 — AI 브리핑 스캔 정확도 저하 우려",
+                    f"{_ses_days_elapsed}일 경과(주기 ~30일). Chrome → naver.com 로그인 → F12 → "
+                    "Application → Cookies → NID_SES 복사 → .env NAVER_COOKIE_NID_SES + "
+                    "NAVER_COOKIE_NID_SES_ISSUED(오늘 날짜) 갱신 필요.",
+                )
+            elif _ses_days_left <= 7:
+                _logger.warning(f"[naver_cookie_health] ⚠️ NID_SES 만료 {_ses_days_left}일 전")
+                await send_operator_alert(
+                    "NID_SES 만료 임박 — AI 브리핑 스캔",
+                    f"{_ses_days_left}일 후 만료 예상. 미리 교체 필요 "
+                    "(Chrome → naver.com → F12 → Application → Cookies → NID_SES).",
+                )
+            else:
+                _logger.info(f"[naver_cookie_health] NID_SES 만료까지 {_ses_days_left}일 남음")
+        except ValueError:
+            _logger.warning(f"[naver_cookie_health] NAVER_COOKIE_NID_SES_ISSUED 형식 오류: {_ses_issued_str} (YYYY-MM-DD 필요)")
 
     try:
         from playwright.async_api import async_playwright
@@ -5530,6 +5584,12 @@ async def check_naver_cookie_health_job():
             "[naver_cookie_health] NAVER_LOGIN_ID/PW 미설정 → 수동 교체 필요\n"
             "  Chrome → naver.com 로그인 → F12 → Application → Cookies → NID_AUT 복사 → .env 갱신"
         )
+        await send_operator_alert(
+            "NID_AUT 만료 — 자동 재로그인 불가",
+            "NAVER_LOGIN_ID/PW가 .env에 없어 자동 재로그인을 시도할 수 없습니다.\n"
+            "Chrome → naver.com 로그인 → F12 → Application → Cookies → NID_AUT 복사 → "
+            ".env NAVER_COOKIE_NID_AUT 수동 교체 필요. AI탭 스캔이 중단될 수 있습니다.",
+        )
         return
 
     new_nid_aut = None
@@ -5552,6 +5612,12 @@ async def check_naver_cookie_health_job():
                 _logger.warning(
                     f"[naver_cookie_health] 자동 로그인 실패 (2FA·캡챠 가능) url={_pg.url[:80]}\n"
                     "  수동 쿠키 교체 필요"
+                )
+                await send_operator_alert(
+                    "NID_AUT 자동 재로그인 실패",
+                    f"2FA·캡챠로 자동 로그인이 막혔을 수 있습니다 (url={_pg.url[:80]}).\n"
+                    "Chrome → naver.com 로그인 → F12 → Application → Cookies → NID_AUT 복사 → "
+                    ".env 수동 교체 필요. AI탭 스캔이 중단될 수 있습니다.",
                 )
             else:
                 _cookies = await _ctx.cookies(["https://www.naver.com"])
