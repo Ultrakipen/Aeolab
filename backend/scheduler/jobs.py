@@ -5314,14 +5314,27 @@ async def briefing_category_expansion_monitor_job():
     """M3-4: 월 1회(1일 09:00 KST) 의료·법무·헬스케어 AI 브리핑 업종 확대 감지.
 
     INACTIVE 업종(medical, dental, legal, accounting)의 실제 검색 결과에서
-    AI 브리핑 노출 여부를 확인. 노출 감지 시 Slack 알림 → LIKELY/ACTIVE 승급 검토.
+    "플레이스형" AI 브리핑 노출 여부를 확인. 노출 감지 시 Slack 알림 → LIKELY/ACTIVE 승급 검토.
+
+    2026-07-01 수정 (P0 버그): 기존 구현은 `_check_single_page(page, q, "")`로 target을
+    빈 문자열로 넘겼는데, `_name_in_text("", text)`는 `"" in text`가 항상 True이므로
+    실제 콘텐츠 유무·업종 관련성과 무관하게 "노출 감지"를 오탐지했다(2026-07-01 09:00 KST
+    실측: accounting 오탐 → 잘못된 Slack 액션 알림 발송 확인). 또한 "~추천" 질의는 업종
+    무관 정보형(공식형·멀티출처형) AI 브리핑을 유발하기 쉬우므로(2026-06-29 사진업종
+    실측·네이버 공식 확인) 이 잡은 다음 두 가지로 수정한다:
+      1. 실제 렌더된 텍스트 길이 검증(빈 래퍼 div 오탐 제거)
+      2. 정보형 신호(관련질문/비교표) 감지 시 "확대 아님"으로 분리 — 업종 재분류를
+         유발하는 액션 알림은 플레이스형으로 보이는 경우에만 발송
     """
     try:
         from playwright.async_api import async_playwright
-        from services.ai_scanner.naver_scanner import NaverAIBriefingScanner
+        from services.ai_scanner.naver_scanner import BRIEFING_SELECTORS
+        from services.ai_scanner import get_naver_cookies, build_chrome_ua
     except ImportError as e:
         _logger.warning(f"briefing_category_expansion_monitor_job: import failed: {e}")
         return
+
+    import random
 
     # 확대 모니터링 대상 업종 + 테스트 쿼리 (업종별 2개)
     MONITOR_QUERIES: dict[str, list[str]] = {
@@ -5331,60 +5344,98 @@ async def briefing_category_expansion_monitor_job():
         "accounting": ["서울 세무사 추천", "강남 회계사 추천"],
     }
 
-    newly_detected: list[str] = []
-    scanner = NaverAIBriefingScanner()
+    def _is_info_type(text: str) -> bool:
+        """공식형·멀티출처형(정보형) 신호 — 관련질문 섹션 또는 구분/근거 비교표."""
+        return (
+            "관련 질문" in text or "관련질문" in text
+            or ("구분" in text and "근거" in text)
+        )
+
+    newly_detected_place: list[str] = []
+    info_only_detected: list[str] = []
 
     try:
         async with async_playwright() as pw:
+            # §4-A 승격 레시피(2026-06-30 검증): channel=chrome + 쿠키 주입, apply_stealth 미사용
             browser = await pw.chromium.launch(
                 headless=True,
-                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+                channel="chrome",
+                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage",
+                      "--disable-blink-features=AutomationControlled"],
             )
-            ctx = await browser.new_context(
-                locale="ko-KR",
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/131.0.0.0 Safari/537.36"
-                ),
-            )
+            ctx = await browser.new_context(locale="ko-KR", user_agent=build_chrome_ua())
+            naver_cookies = get_naver_cookies()
+            if naver_cookies:
+                await ctx.add_cookies(naver_cookies)
 
             for cat, queries in MONITOR_QUERIES.items():
-                cat_hit = 0
+                place_hit = 0
+                info_hit = 0
                 for q in queries:
                     page = await ctx.new_page()
                     try:
-                        result = await scanner._check_single_page(page, q, "")
-                        if result.get("in_briefing"):
-                            cat_hit += 1
-                            _logger.info(f"[briefing_expansion] in_briefing=True cat={cat} query='{q}'")
+                        await page.goto(
+                            f"https://search.naver.com/search.naver?query={q}",
+                            wait_until="domcontentloaded", timeout=30000,
+                        )
+                        await page.wait_for_timeout(random.randint(2800, 4800))
+
+                        text = ""
+                        for sel in BRIEFING_SELECTORS:
+                            el = await page.query_selector(sel)
+                            if el:
+                                t = await el.inner_text()
+                                if t and t.strip():
+                                    text = t
+                                    break
+
+                        if text and len(text.strip()) > 20:
+                            if _is_info_type(text):
+                                info_hit += 1
+                                _logger.info(
+                                    f"[briefing_expansion] cat={cat} query='{q}' "
+                                    "정보형 브리핑 감지(업종 무관 — 확대 아님)"
+                                )
+                            else:
+                                place_hit += 1
+                                _logger.warning(
+                                    f"[briefing_expansion] cat={cat} query='{q}' "
+                                    "플레이스형 추정 브리핑 감지"
+                                )
                     except Exception as e:
                         _logger.warning(f"[briefing_expansion] cat={cat} q='{q}' failed: {e}")
                     finally:
                         await page.close()
                     await asyncio.sleep(1.0)
 
-                if cat_hit >= len(queries):
-                    newly_detected.append(cat)
-                    _logger.warning(f"[briefing_expansion] {cat} 업종 AI 브리핑 노출 감지!")
+                if place_hit >= len(queries):
+                    newly_detected_place.append(cat)
+                    _logger.warning(f"[briefing_expansion] {cat} 업종 플레이스형 AI 브리핑 노출 감지!")
+                elif info_hit > 0:
+                    info_only_detected.append(cat)
 
             await browser.close()
     except Exception as e:
         _logger.warning(f"briefing_category_expansion_monitor_job playwright failed: {e}")
         return
 
-    if newly_detected:
-        cats_str = ", ".join(newly_detected)
+    if newly_detected_place:
+        cats_str = ", ".join(newly_detected_place)
         await send_slack_alert(
-            "[AI 브리핑 업종 확대 감지]",
+            "[AI 브리핑 업종 확대 감지 — 플레이스형]",
             (
-                f"INACTIVE 업종에서 AI 브리핑 노출 확인: {cats_str}\n"
+                f"INACTIVE 업종에서 플레이스형 AI 브리핑 노출 확인: {cats_str}\n"
                 "score_engine.py BRIEFING_LIKELY_CATEGORIES 또는 BRIEFING_ACTIVE_CATEGORIES "
                 "업데이트 필요. naver_gpt_work_standard_v1.0.md 기준으로 검토."
             ),
             level="info",
         )
-    else:
+    if info_only_detected:
+        _logger.info(
+            "[briefing_expansion] 정보형 브리핑만 감지(업종 확대 아님, 조치 불필요): "
+            + ", ".join(info_only_detected)
+        )
+    if not newly_detected_place and not info_only_detected:
         _logger.info(
             f"[briefing_expansion] 신규 업종 확대 없음 "
             f"(모니터링: {list(MONITOR_QUERIES.keys())})"
