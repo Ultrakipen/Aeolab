@@ -322,7 +322,7 @@ export default async function LandingPage() {
                   측정 시점·지역·업종에 따라 달라질 수 있습니다
                 </p>
                 <p className="text-sm mt-1.5 break-keep" style={{ color: "rgba(255,255,255,0.72)" }}>
-                  ※ AI 브리핑 대상은 음식점·카페·베이커리·바·숙박 업종 — 그 외 업종은 네이버 AI탭·ChatGPT·Gemini 채널로 측정·개선합니다
+                  ※ 플레이스형 AI 브리핑 대상은 음식점·카페·베이커리·바·숙박 업종 — 그 외 업종도 블로그·콘텐츠가 채택되면 정보형 AI 브리핑 노출이 가능하며, 네이버 AI탭·ChatGPT·Gemini 채널로도 측정·개선합니다
                 </p>
               </div>
             </div>
@@ -429,11 +429,12 @@ export default async function LandingPage() {
               </div>
 
               <div className="space-y-3 mb-4">
-                <div className="flex items-start gap-3 rounded-xl bg-white border border-gray-200 px-4 py-3 opacity-60">
-                  <span className="text-gray-400 text-base font-bold mt-0.5 flex-shrink-0">➖</span>
+                <div className="flex items-start gap-3 rounded-xl bg-white border border-blue-100 px-4 py-3">
+                  <span className="text-blue-500 text-base font-bold mt-0.5 flex-shrink-0">✅</span>
                   <div>
-                    <p className="text-sm font-bold text-gray-500">네이버 AI 브리핑</p>
-                    <p className="text-sm text-gray-400">연내 두 자릿수 업종 확대 예정 (네이버 공식)</p>
+                    <p className="text-sm font-bold text-gray-800">네이버 AI 브리핑 (정보형)</p>
+                    <p className="text-sm text-gray-500">블로그·콘텐츠가 출처로 채택되면 지금도 노출 가능</p>
+                    <p className="text-sm text-gray-400 mt-0.5">플레이스형(가게 카드 요약)은 연내 두 자릿수 업종 확대 예정 (네이버 공식)</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 rounded-xl bg-white border border-blue-100 px-4 py-3">
@@ -726,8 +727,8 @@ export default async function LandingPage() {
           </div>
 
           <p className="text-center text-sm fade-up break-keep" style={{ color: "#64748B" }}>
-            음식점·카페·베이커리·바·숙박업 등 네이버 AI 브리핑 대상 업종 기준 ·{" "}
-            <strong style={{ color: "#6366F1" }}>그 외 업종은 AI탭(업종 공식 제한 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini 가이드 자동 제공</strong>
+            음식점·카페·베이커리·바·숙박업 등 플레이스형 네이버 AI 브리핑 대상 업종 기준 ·{" "}
+            <strong style={{ color: "#6366F1" }}>그 외 업종도 블로그·콘텐츠 채택 시 정보형 AI 브리핑 노출 가능 + AI탭(업종 공식 제한 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini 가이드 자동 제공</strong>
           </p>
           <p className="text-center text-sm mt-2 fade-up break-keep" style={{ color: "#94A3B8" }}>
             AI 브리핑 노출은 네이버 알고리즘 기준으로 보장되지 않으며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
