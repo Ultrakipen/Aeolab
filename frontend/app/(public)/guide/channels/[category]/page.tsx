@@ -31,7 +31,7 @@ export async function generateMetadata({
       ? "네이버 AI 브리핑 노출 가능 업종"
       : entry.briefing === "likely"
       ? "네이버 AI탭 대상 업종"
-      : "AI탭 + 글로벌 AI 최적화 대상 업종"
+      : "AI탭 + 글로벌 AI 최적화 + 정보형 AI 브리핑 노출 가능 업종"
 
   return {
     title: `${entry.label} AI 검색 노출 채널 가이드 | AEOlab`,
@@ -53,7 +53,7 @@ function getChannelCards(entry: ChannelGuideEntry) {
           ? "검색 결과 상단 AI 브리핑에 플레이스 카드로 노출됩니다."
           : entry.briefing === "likely"
           ? "2026-06-25 AI탭 정식 출시. 업종 확대 시 즉시 대상이 됩니다."
-          : "현재 AI 브리핑 대상 업종이 아닙니다. AI탭과 글로벌 AI에 집중하세요.",
+          : "'플레이스형' AI 브리핑 대상 업종은 아니지만, 블로그·콘텐츠가 갖춰지면 업종 제한 없는 '정보형 AI 브리핑'에는 노출될 수 있습니다. AI탭과 글로벌 AI에도 집중하세요.",
       icon: "🤖",
     },
     {

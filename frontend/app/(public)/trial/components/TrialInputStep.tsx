@@ -380,7 +380,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" aria-hidden="true" />
                       <div className="flex-1">
                         <p className="text-sm font-bold text-blue-900 mb-1">
-                          네이버 AI 브리핑 대상 업종이 아닙니다 — 그래도 개선 효과가 있습니다
+                          '플레이스형' 네이버 AI 브리핑 대상 업종이 아닙니다 — 그래도 개선 효과가 있습니다
                         </p>
                         <ul className="space-y-1.5 mt-2">
                           <li className="flex items-start gap-1.5">
@@ -392,7 +392,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           <li className="flex items-start gap-1.5">
                             <span className="text-blue-500 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
-                              <strong>블로그 포스팅·리뷰</strong>가 쌓이면 네이버 검색 노출에 직접 효과
+                              <strong>블로그 포스팅·리뷰</strong>가 쌓이면 '정보형 AI 브리핑'과 네이버 검색 노출에 직접 효과
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">

@@ -34,9 +34,9 @@ export default function ServiceMechanismSection() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             <GateCard
               num="①"
-              title="AI 브리핑 대상 업종"
+              title="'플레이스형' AI 브리핑 대상 업종"
               active="음식점·카페·베이커리·바·숙박"
-              detail="그 외 업종은 ChatGPT·Gemini·Google AI + 네이버 AI탭(업종 공식 제한 없음, 2026-06-25 정식 출시) 노출 개선으로 가치 전달"
+              detail="그 외 업종도 블로그·콘텐츠로 '정보형 AI 브리핑'에 노출 가능하며, ChatGPT·Gemini·Google AI + 네이버 AI탭(업종 공식 제한 없음, 2026-06-25 정식 출시) 노출 개선으로도 가치 전달"
               variant="blue"
             />
             <GateCard

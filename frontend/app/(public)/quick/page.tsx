@@ -6,6 +6,7 @@ import { trialScan, ApiError } from "@/lib/api";
 import type { TrialScanResult } from "@/types";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { getScoreTextLabel } from "@/lib/scoreLabels";
+import { getBriefingEligibility } from "@/lib/userGroup";
 
 // ── 상수 ──────────────────────────────────────────────────────────────────────
 
@@ -89,18 +90,27 @@ function gradeColor(grade: string): string {
 }
 
 // 진단 문제 도출
-function buildIssues(result: TrialScanResult, track1: number, track2: number): Array<{ icon: string; title: string; desc: string }> {
+function buildIssues(result: TrialScanResult, track1: number, track2: number, category: string): Array<{ icon: string; title: string; desc: string }> {
   const issues: Array<{ icon: string; title: string; desc: string }> = [];
 
   const gsRaw = result.growth_stage;
   const gs = typeof gsRaw === "string" ? gsRaw : (gsRaw?.stage ?? "");
 
   if (track1 < 40) {
-    issues.push({
-      icon: "📍",
-      title: "네이버 AI 브리핑 미노출",
-      desc: "네이버 스마트플레이스 최적화가 필요합니다. FAQ·소식·소개글 등록으로 개선할 수 있습니다.",
-    });
+    const isBriefingEligible = getBriefingEligibility(category) !== "inactive";
+    issues.push(
+      isBriefingEligible
+        ? {
+            icon: "📍",
+            title: "네이버 AI 브리핑 미노출",
+            desc: "네이버 스마트플레이스 최적화가 필요합니다. 소식·소개글 등록으로 개선할 수 있습니다.",
+          }
+        : {
+            icon: "📍",
+            title: "네이버 지역·블로그 검색 노출 부족",
+            desc: "이 업종은 '플레이스형' AI 브리핑 대상이 아니지만, 스마트플레이스·블로그 콘텐츠를 갖추면 '정보형 AI 브리핑'과 네이버 지역 검색 노출에 효과가 있습니다.",
+          }
+    );
   }
   if (track2 < 40) {
     issues.push({
@@ -243,7 +253,7 @@ export default function QuickPage() {
   const track2 = result ? (result.track2_score ?? result.score?.track2_score ?? result.score?.total_score ?? 0) : 0;
   const score  = result ? Math.round(result.score?.total_score ?? 0) : 0;
   const grade  = result ? (result.score?.grade ?? scoreGrade(score)) : "D";
-  const issues = result ? buildIssues(result, track1, track2) : [];
+  const issues = result ? buildIssues(result, track1, track2, category) : [];
 
   return (
     <main className="min-h-screen bg-gray-50">

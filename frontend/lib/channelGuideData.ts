@@ -326,7 +326,7 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
     value: "other", label: "기타", group: "E",
     briefing: "inactive", naverRatio: 0, globalRatio: 100,
     keyActions: ["사업장 정보 정확히 입력 (이름·주소·전화)", "구글 비즈니스 프로필 등록·최적화", "ChatGPT·Gemini가 인용할 소개글 작성", "Schema.org 구조화 데이터 적용", "외부 블로그·SNS 언급 확대"],
-    note: "네이버 AI 브리핑 대상 외 업종. ChatGPT·Gemini·Google AI 최적화에 집중",
+    note: "'플레이스형' 네이버 AI 브리핑 대상 외 업종. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능하며, ChatGPT·Gemini·Google AI 최적화에도 집중",
   },
 ]
 
