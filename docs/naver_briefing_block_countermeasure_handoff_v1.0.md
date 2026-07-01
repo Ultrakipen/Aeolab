@@ -1,6 +1,6 @@
 # 네이버 AI 브리핑 + 정보형 + AI탭 차단 대응 — 새 대화창 핸드오프 v1.0
 
-> 작성일: 2026-06-30 | 실측 조사 기반 (2026-06-29~30 세션)
+> 작성일: 2026-06-30 | 실측 조사 기반 (2026-06-29~30 세션) | 2026-07-01 §9 추가
 > 목적: 네이버 3종(AI 브리핑 / 정보형 AI 브리핑 / AI탭) 차단 대응 작업을 **새 대화창에서 즉시 이어가기** 위한 단일 핸드오프
 > 자매 문서: `docs/naver_ai_tab_block_countermeasure_v1.0.md`(AI탭 전용) / `docs/naver_ai_tab_block_countermeasure_v1.0.md` §2~§6
 
@@ -89,14 +89,6 @@ A단계로도 브리핑 미노출 시 AI탭 문서 §2-B와 동일 — `connect_
 
 브리핑이 끝내 안 뚫리면 → UI에서 플레이스형 AI 브리핑 항목을 **"측정 불가(일시적으로 확인 어려움)"** 로 정직 표기(이미 `scoreLabels.ts briefingTile` `captchaBlocked` 분기·`naver_scanner.py` `captcha_detected` 존재). **거짓 "미노출" 표기 금지.**
 
-### §4-B. (2순위, 구독자 50명) BrowserBase
-
-A단계로도 안 뚫리면 AI탭 문서 §2-B와 동일 — `connect_over_cdp()` 한 줄 교체, ~$49/월. 두 스캐너 공통 적용.
-
-### §4-C. (선택) 측정 불가 시 정직 폴백
-
-브리핑이 끝내 안 뚫리면 → UI에서 플레이스형 AI 브리핑 항목을 **"측정 불가(일시적으로 확인 어려움)"** 로 정직 표기(이미 `scoreLabels.ts briefingTile` `captchaBlocked` 분기·`naver_scanner.py` `captcha_detected` 존재). **거짓 "미노출" 표기 금지.**
-
 ---
 
 ## §5. 정보형 후속 (선택 — 사용자 미선택 보류 중)
@@ -118,7 +110,7 @@ A단계로도 안 뚫리면 AI탭 문서 §2-B와 동일 — `connect_over_cdp()
 | `frontend/lib/userGroup.ts` | `:43 BRIEFING_ACTIVE_CATEGORIES`(프론트 단일 소스), `GROUP_MESSAGES` |
 | `frontend/lib/scoreLabels.ts` | `:112 briefingTile`(플레이스형/정보형 분기·captchaBlocked 폴백) |
 | `frontend/app/(dashboard)/blog-analysis/BlogClient.tsx` | `InfoBriefingReadinessCard`(3층 준비도) |
-| `scheduler/jobs.py` | `:5360 check_naver_cookie_health_job`(쿠키 만료 자동 감지·재로그인) |
+| `backend/scheduler/jobs.py` | `:5394 check_naver_cookie_health_job`(쿠키 만료 자동 감지·재로그인) / `:5313 briefing_category_expansion_monitor_job`(월 1회 INACTIVE 업종 플레이스형 확대 감지 — **2026-07-01 오탐 버그 수정, §9 참조**) |
 
 > **단일 소스 동기화**: `score_engine.py:30` ↔ `userGroup.ts:43` `BRIEFING_ACTIVE_CATEGORIES` — 한쪽 변경 시 양쪽 동시.
 
@@ -126,7 +118,7 @@ A단계로도 안 뚫리면 AI탭 문서 §2-B와 동일 — `connect_over_cdp()
 
 ## §7. 미해결 알림 (작업 중 같이 점검 권장)
 
-- **daily_scan_all PGRST200** — 6월 로그에 `businesses↔subscriptions` FK 관계 에러로 야간 스캔 실패 흔적. 브리핑 작업과 별개지만 스캔 파이프 점검 시 같이 확인.
+- **daily_scan_all / monthly_market_news_job PGRST200** — `subscriptions↔businesses`, `subscriptions↔profiles` FK 관계 미등록으로 `!inner` 조인 실패 흔적이 반복 발생 중(2026-07-01 01:00 KST에도 `monthly_market_news_job` 동일 에러로 실패 확인). 브리핑 작업과 별개지만 스캔·잡 파이프 점검 시 같이 확인 권장.
 
 ---
 
@@ -139,4 +131,29 @@ A단계로도 안 뚫리면 AI탭 문서 §2-B와 동일 — `connect_over_cdp()
 
 ---
 
-*최종 업데이트: 2026-06-30 | 담당: 메인 세션 직접 관리 | 실측 우선·단정 금지·실측 없는 배포 금지*
+## §9. 2026-07-01 추가 조사 — "다수 업종이 노출 대상 아닌가?" 재검증 + 모니터링 잡 버그 수정
+
+> 사용자가 "창원 웨딩 스냅 촬영 추천"(2026-06-29와 동일 스크린샷) 재제기 → 공식 자료·서버 실측으로 재검증.
+
+### 재검증 결론 — 오판 아님, 기존 §1~§2 결론 유효
+
+- **공식 자료 확인(2026 기사 2건)**: 플레이스형 AI 브리핑 확장 순서는 "여행명소 → 식당·카페 → 숙박"(2026년 공식) — 현재 `BRIEFING_ACTIVE_CATEGORIES`(restaurant/cafe/bakery/bar/accommodation)와 정확히 일치. 네이버는 "올해 말까지 적용 범위 2배 확대, 쇼핑·로컬 연결"이라 밝혔으나 의료·법무·미용 등 확정 발표는 아직 없음.
+- **정보형(공식형·멀티출처형)은 "정보형 검색 질의"면 업종 무관 노출**이 공식 기사로도 재확인됨 — 기존 결론([[project_naver_briefing_placetype_vs_infotype]])과 일치. **코드의 ACTIVE/LIKELY/INACTIVE 분류(플레이스형 게이팅)는 수정 불필요.**
+
+### 신규 발견 — `briefing_category_expansion_monitor_job` 오탐 버그 (P0, 수정 완료)
+
+- **근거**: `jobs.py:5357`(수정 전) `scanner._check_single_page(page, q, "")` — target을 빈 문자열로 전달. `naver_scanner.py:99 _name_in_text`는 `t in c`로 매칭하는데 `t=""`이면 Python에서 항상 `True`. 즉 실제 브리핑 콘텐츠 존재·업종 관련성과 무관하게 `fds-aib` 클래스 접두사를 가진 DOM 요소가 하나라도 있으면 무조건 "노출 감지"로 판정.
+- **반증 시도**: 서버에서 §4-A 레시피(channel=chrome+쿠키)로 동일 쿼리("강남 회계사 추천" 등)를 직접 재현 — 매칭된 `fds-aib` 요소의 실제 텍스트 길이가 0인 경우도 "노출 감지"로 이어지는 경로임을 코드 추적으로 확인. 실제 프로덕션 로그에서도 2026-07-01 09:00 KST `briefing_category_expansion_monitor_job` 실행 시 `accounting` 업종이 "노출 감지!"로 판정되어 Slack 액션 알림(`score_engine.py BRIEFING_LIKELY_CATEGORIES 업데이트 필요`)이 발송되는 것을 로그로 직접 확인.
+- **위험도**: 이 알림을 그대로 따라 INACTIVE 업종을 ACTIVE/LIKELY로 승격했다면 photo 업종 때와 동일한 오처방(잘못된 스마트플레이스 완성도 가이드) 사고가 재발했을 것.
+- **추가 문제**: 이 잡은 §4-A 차단 우회 레시피(channel=chrome, 쿠키 주입, apply_stealth 미사용)를 적용받지 못한 **구버전 브라우저 launch 설정**을 그대로 쓰고 있었음 — §2/§6에 이 파일이 누락되어 있었던 것이 원인.
+- **수정 내용(git `f9ad295`, 배포 완료·검증됨)**:
+  1. §4-A 레시피 적용(channel=chrome + `get_naver_cookies()` + `build_chrome_ua()`)
+  2. 빈 target 트릭 제거 — 실제 렌더 텍스트 길이(`>20자`) 검증으로 교체
+  3. **정보형/플레이스형 분리** — "관련 질문" 또는 "구분+근거" 비교표 신호가 있으면 정보형으로 분류해 액션 알림 대상에서 제외, 그 외 실질 콘텐츠만 플레이스형 후보로 카운트
+  4. Slack 알림은 플레이스형 후보가 실제로 임계치 이상일 때만 발송 (정보형만 감지되면 INFO 로그만 남기고 액션 알림 없음)
+- **한계**: 정보형/플레이스형 구분은 현재 텍스트 키워드 휴리스틱(관련질문/비교표)이며 100% 정확하지 않음. 다음 달(2026-08-01 09:00 KST) 정기 실행 결과로 추가 보정 필요 — Slack 알림이 오면 **바로 신뢰하지 말고 실제 화면(스크린샷)으로 플레이스 카드 vs 멀티출처 카드인지 육안 재확인 후 카테고리 변경 여부 결정**.
+- **일반화 교훈**: "~추천" 형태의 질의로 업종 확대를 감지하려는 모든 자동화는 정보형 오탐 위험을 구조적으로 안고 있다. 향후 유사 모니터링 코드 작성 시 반드시 정보형 신호 필터링을 함께 구현할 것.
+
+---
+
+*최종 업데이트: 2026-07-01 | 담당: 메인 세션 직접 관리 | 실측 우선·단정 금지·실측 없는 배포 금지*
