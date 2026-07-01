@@ -118,7 +118,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               {business.is_franchise
                 ? "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다(본사 정책). 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 AI탭·일반 검색·ChatGPT·Gemini에서는 노출 가능합니다."
                 : isInactive
-                ? "이 업종은 '플레이스형' AI 브리핑 비대상이지만, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. 네이버 AI탭(2026-06-25 정식 출시, 업종 공식 제한 없음)을 통한 노출도 준비하세요. 일반 검색 노출과 병행 가능합니다."
+                ? "이 업종은 '플레이스형' AI 브리핑 비대상이지만, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. 네이버 AI탭(2026-06-25 정식 출시, 업종 제한 발표 없음)을 통한 노출도 준비하세요. 일반 검색 노출과 병행 가능합니다."
                 : isLikely
                 ? "이 업종은 AI 브리핑 확대 예상 업종입니다. 미리 5단계를 완료해두면 확대 즉시 노출됩니다. (네이버 AI탭은 2026-04-27 베타 출시 · 2026-06-25 정식 출시 → 아래 AI탭 가이드 참고)"
                 : "이 업종은 현재 AI 브리핑 노출 대상입니다. 5단계를 완료해 노출 확률을 높이세요."}
@@ -179,7 +179,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             {/* AI탭 준비 안내 — INACTIVE/프랜차이즈도 AI탭은 모든 업종 가능 */}
             <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5">
               <p className="text-sm md:text-base font-semibold text-indigo-800 mb-2">
-                🆕 네이버 AI탭 준비 — 업종 공식 제한 없음 (정식 출시)
+                🆕 네이버 AI탭 준비 — 업종 제한 발표 없음 (정식 출시)
               </p>
               <p className="text-sm md:text-base text-indigo-700 mb-3 leading-relaxed">
                 네이버 AI탭(2026-04-27 베타 출시 · 2026-06-25 정식 출시)은 업종 공식 제한 없이 모든 사업장이 노출 가능합니다.

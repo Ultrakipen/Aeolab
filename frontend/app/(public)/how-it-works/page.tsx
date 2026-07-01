@@ -100,7 +100,7 @@ export default function HowItWorksPage() {
             <li><a href="#step3" className="hover:underline">3단계. AI 브리핑 노출 강화 — 콘텐츠 품질 (네이버 채널)</a></li>
             <li><a href="#channel-speed" className="hover:underline font-semibold text-blue-700">채널별 노출 속도 — 빠른 순서 비교 (네이버·Gemini·Google·ChatGPT)</a></li>
             <li><a href="#step4" className="hover:underline">4단계. AI 정보 탭 토글 추적</a></li>
-            <li><a href="#ai-tab" className="hover:underline">네이버 AI탭 — 업종 공식 제한 없음, 정식 출시</a></li>
+            <li><a href="#ai-tab" className="hover:underline">네이버 AI탭 — 업종 제한 발표 없음, 정식 출시</a></li>
             <li><a href="#phase-a" className="hover:underline">Phase A. AI 검색 노출을 위한 통합 측정</a></li>
             <li><a href="#step5" className="hover:underline">5단계. 결과 측정 (실제 노출 확인)</a></li>
             <li><a href="#dia" className="hover:underline">네이버 품질 기준 5요소 + 2026 변화</a></li>
@@ -561,7 +561,7 @@ export default function HowItWorksPage() {
         {/* ─── 네이버 AI탭 전용 섹션 ─── */}
         <section id="ai-tab" className="mb-12 scroll-mt-20">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
-            네이버 AI탭 — 업종 공식 제한 없음, 정식 출시
+            네이버 AI탭 — 업종 제한 발표 없음, 정식 출시
           </h2>
           <div className="rounded-xl border border-green-200 bg-green-50 p-4 md:p-5 mb-4">
             <p className="text-sm font-bold text-green-800 mb-1">2026-06-25 정식 출시</p>
@@ -582,7 +582,7 @@ export default function HowItWorksPage() {
                 </div>
                 <div className="flex gap-2">
                   <span className="shrink-0 font-semibold text-blue-600">AI탭</span>
-                  <span>2026-04-27 베타 출시 · 2026-06-25 정식 출시 · 업종 공식 제한 없음</span>
+                  <span>2026-04-27 베타 출시 · 2026-06-25 정식 출시 · 업종 제한 발표 없음</span>
                 </div>
               </div>
             </div>

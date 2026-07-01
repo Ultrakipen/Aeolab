@@ -162,7 +162,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               검색 결과 상단 &quot;AI&quot; 탭 메뉴
             </p>
             <ul className="space-y-1 text-sm text-slate-700 leading-snug">
-              <li>• <strong>업종 공식 제한 없음</strong> — 장소 기반 모든 업종 가능</li>
+              <li>• <strong>업종 제한 발표 없음</strong> — 장소 기반 모든 업종 가능</li>
               <li>• 플레이스·쇼핑 에이전트 통합 검색 (정식 출시)</li>
               <li>• 핵심: 소개글 Q&A 포함·사진 10장+·예약 연동·블로그 후기</li>
               <li>• 베타 출시 1개월 만에 누적 사용자 300만명 돌파 (2026년 5월 기준)</li>

@@ -239,7 +239,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
               </span>
             </div>
             <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
-              검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-27 베타 출시, 업종 공식 제한 없음 (정식 출시).
+              검색결과 상단 &quot;AI&quot; 탭 메뉴. 2026-04-27 베타 출시, 업종 제한 발표 없음 (정식 출시).
             </p>
             <p className="text-sm font-semibold text-indigo-700 group-hover:underline">5항목 설정 가이드 →</p>
           </Link>

@@ -211,7 +211,7 @@ export default function NaverTrackCard({
       {isGlobal && (
         <div className="bg-amber-100 border border-amber-200 rounded-xl px-3 py-2.5 mb-3">
           <p className="text-sm font-semibold text-amber-900 leading-relaxed break-keep">
-            이 업종의 주요 노출 채널은 네이버 AI탭(업종 공식 제한 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini입니다. 아래 섹션에서 개선 방법을 확인하세요.
+            이 업종의 주요 노출 채널은 네이버 AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini입니다. 아래 섹션에서 개선 방법을 확인하세요.
           </p>
         </div>
       )}

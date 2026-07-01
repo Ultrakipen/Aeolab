@@ -93,7 +93,7 @@ export function AiInfoTabStatusCard({
     ) : eligibility === "inactive" ? (
       <div className="mb-4 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm text-slate-700">
         <strong>플레이스형 네이버 AI 브리핑 비대상 업종입니다.</strong>{" "}
-        단, 블로그·콘텐츠가 갖춰지면 <strong>'정보형 AI 브리핑'</strong>에 노출될 수 있습니다. <strong>AI탭은 업종 공식 제한 없음</strong> — 정식 출시됐으며 모든 업종이 노출될 수 있습니다.
+        단, 블로그·콘텐츠가 갖춰지면 <strong>'정보형 AI 브리핑'</strong>에 노출될 수 있습니다. <strong>AI탭은 업종 제한 발표 없음</strong> — 정식 출시됐으며 모든 업종이 노출될 수 있습니다.
         ChatGPT·Gemini 글로벌 AI 채널 최적화도 함께 진행하세요.
       </div>
     ) : null;

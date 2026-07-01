@@ -404,7 +404,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           <li className="flex items-start gap-1.5">
                             <span className="text-blue-500 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
-                              <strong>네이버 AI탭</strong>은 2026-04-27 베타 출시, 2026년 2026-06-25 전체 사용자 정식 출시됨 (업종 공식 제한 없음)
+                              <strong>네이버 AI탭</strong>은 2026-04-27 베타 출시, 2026-06-25 전체 사용자 정식 출시됨 (업종 제한 발표 없음)
                             </p>
                           </li>
                         </ul>
