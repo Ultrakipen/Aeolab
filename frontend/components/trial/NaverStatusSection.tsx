@@ -415,7 +415,18 @@ export default function NaverStatusSection({
                 </div>
               </div>
             )}
-            {briefingCategory === "likely" && (
+            {briefingCategory === "likely" && inBriefing === true && (
+              <div className="flex items-start gap-3 bg-green-50 rounded-lg px-3 py-3 border border-green-200">
+                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-green-800">정보형 AI 브리핑에 노출 중입니다</p>
+                  <p className="text-sm text-green-700 mt-0.5 leading-snug break-keep">
+                    블로그·콘텐츠 기반 노출입니다. 소개글·소식·리뷰를 꾸준히 유지하면 노출이 지속됩니다
+                  </p>
+                </div>
+              </div>
+            )}
+            {briefingCategory === "likely" && inBriefing !== true && (
               <div className="space-y-2">
                 <div className="flex items-start gap-3 bg-blue-50 rounded-lg px-3 py-3 border border-blue-200">
                   <AlertTriangle className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />

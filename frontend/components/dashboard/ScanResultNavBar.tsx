@@ -91,6 +91,8 @@ export default function ScanResultNavBar({
     ? GREEN
     : isInactive
     ? GRAY
+    : eligibility === "likely" && naverInBriefing  // LIKELY도 정보형 브리핑 실측 노출 시 GREEN
+    ? GREEN
     : eligibility === "likely"
     ? AMBER
     : naverInBriefing
