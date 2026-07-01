@@ -84,6 +84,8 @@
 
 `userGroup.ts GROUP_MESSAGES`, `public_briefing.py`, `score_engine.py` 주석, `FAQSection.tsx`, `faq/page.tsx`, `TrialInputStep.tsx`, `TrialResultStep.tsx`, `TrialStatusSummary.tsx`, `NaverTrackCard.tsx`, `NaverStatusSection.tsx`, `ScanResultNavBar.tsx`, `guide/channels/[category]/page.tsx`, `channelGuideData.ts`, `ServiceMechanismSection.tsx`, `quick/page.tsx`, `frontend/app/page.tsx`(랜딩, 전체), `AiTabPreviewCard.tsx`, `ScoreEvidenceCard.tsx`, `guide/ai-tab/page.tsx`, `guide/ai-info-tab/page.tsx`+`AiInfoTabGuide.tsx`, `resources/[category]/page.tsx`, `demo/page.tsx`, `ChannelDifferentiationCard.tsx`, `pricing/page.tsx`, `AiInfoTabStatusCard.tsx`, `HeroSampleCard.tsx`, `ResultTable.tsx`, `DualTrackCard.tsx`(2개 버전), `HeroSection.tsx`.
 
+**12차 스윕 (2026-07-01, git `f464977`) 추가 수정**: `guide/page.tsx`(채널별 심화 가이드 카드 — 유형③), `guide/ai-info-tab/page.tsx`(상단 경로 안내 배너 — 유형③, INACTIVE/franchise 랜딩 페이지인데도 캐비엇 없었음), `guide/ai-tab/page.tsx`(AI 브리핑 교차 CTA — 유형③), `schema/SchemaClient.tsx`(소개글 SEO 안내 문단 — 유형③), `NaverAiPathwayCard.tsx`(2곳: INACTIVE 상단 문단 + franchise 전용이던 캐비엇을 LIKELY/INACTIVE 전체로 확장 — 유형①), `backend/services/guide_generator.py::_naver_briefing_exposure_msg`(LIKELY 분기만 캐비엇 누락 — 유형①, Claude 가이드 프롬프트 컨텍스트).
+
 **미구현 후속 (사용자 미선택, 착수하지 말 것)**: Track1 점수 모델에 정보형 브리핑 기여도 반영 — 점수 모델 변경이라 보류 결정됨.
 
 ---
