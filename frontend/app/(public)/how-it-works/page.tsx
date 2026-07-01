@@ -567,7 +567,7 @@ export default function HowItWorksPage() {
             <p className="text-sm font-bold text-green-800 mb-1">2026-06-25 정식 출시</p>
             <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">
               2026-04-27 베타 출시된 네이버 AI탭은 AI 브리핑과 별개 경로입니다.
-              업종 공식 제한이 없어 장소 기반 모든 업종이 플레이스 에이전트를 통해 노출될 수 있습니다.
+              업종 제한 발표가 없어 장소 기반 모든 업종이 플레이스 에이전트를 통해 노출될 수 있습니다.
               2026-06-25 전체 네이버 사용자 정식 출시됐습니다 (네이버 공식).
             </p>
           </div>

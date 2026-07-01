@@ -468,7 +468,7 @@ function V31SixItems({
             <p className={`text-sm ${aiBriefingApplicable ? "text-gray-500" : "text-indigo-700"}`}>
               {aiBriefingApplicable
                 ? "실제 네이버 AI 브리핑에 노출됐는지 확인합니다"
-                : "네이버 AI탭은 업종 공식 제한이 없습니다 (2026-06-25 정식 출시)"}
+                : "네이버 AI탭은 업종 제한 발표가 없습니다 (2026-06-25 정식 출시)"}
             </p>
           </div>
           {aiBriefingApplicable && <ScoreBadge value={aiItem?.score ?? 0} />}
@@ -802,7 +802,7 @@ function V30FourItems({
                 </span>
               </div>
               <p className="text-sm text-indigo-700 leading-relaxed">
-                네이버 AI탭은 업종 공식 제한이 없습니다 (2026-06-25 정식 출시)
+                네이버 AI탭은 업종 제한 발표가 없습니다 (2026-06-25 정식 출시)
               </p>
             </div>
           </div>

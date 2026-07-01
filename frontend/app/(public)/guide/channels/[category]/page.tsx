@@ -63,7 +63,7 @@ function getChannelCards(entry: ChannelGuideEntry) {
       status: "2026-04-27 베타 · 정식 출시",
       statusColor: "bg-violet-100 text-violet-800",
       detail:
-        "2026-04-27 베타, 정식 출시. 업종 공식 제한이 없습니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
+        "2026-04-27 베타, 정식 출시. 업종 제한 발표가 없습니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
       icon: "✨",
     },
     {

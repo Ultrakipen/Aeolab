@@ -482,7 +482,7 @@ export default function DemoPage() {
     briefingStatus === "active"
       ? "네이버 AI 브리핑 대상 업종 — 소개글 Q&A·소식·리뷰를 보강하면 브리핑 인용 후보에 진입합니다 (업데이트 후 2~4주)."
       : briefingStatus === "likely"
-      ? "네이버 AI 브리핑 확대 예정 업종 — 지금 준비해두면 확대 시 바로 유리합니다."
+      ? "네이버 '플레이스형' AI 브리핑 확대 예정 업종 — 지금 준비해두면 확대 시 바로 유리합니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 지금 가능합니다."
       : "이 업종은 '플레이스형' 네이버 AI 브리핑 비대상입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능. 네이버 일반검색·AI탭 노출에 집중하세요.";
 
   type ChannelDef = { icon: string; label: string; border: string; items?: [string, BreakdownItem][]; note?: string };
@@ -678,7 +678,7 @@ export default function DemoPage() {
                 </p>
                 <p className="text-sm md:text-base text-blue-800 leading-relaxed">
                   2026-06-25 전체 네이버 사용자 정식 출시됐습니다.
-                  지금 준비해두면 확대 시 바로 유리해집니다.
+                  지금 준비해두면 확대 시 바로 유리해집니다. 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출도 지금 가능합니다.
                 </p>
               </div>
             </div>

@@ -246,7 +246,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         </div>
         <p className="mt-1 text-sm text-blue-700/80 leading-snug break-keep">
           고객이 네이버에서 검색할 때 <strong>AI탭에 내 가게가 어떻게 소개되는지</strong> 미리 볼 수 있습니다.
-          네이버 AI 브리핑과는 별개 경로로, <strong>업종 공식 제한 없이</strong> 모든 업종이 대상입니다.
+          네이버 AI 브리핑과는 별개 경로로, <strong>업종 제한 발표 없이</strong> 모든 업종이 대상입니다.
         </p>
       </div>
 
@@ -326,7 +326,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
           <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 text-sm text-slate-700">
             <p className="font-semibold text-slate-800 mb-1">플레이스형 AI 브리핑 비대상 업종 — 정보형 AI 브리핑·AI탭은 모든 업종 가능</p>
             <p className="leading-relaxed break-keep">
-              AI탭은 업종 공식 제한 없이 모든 업종이 대상입니다.
+              AI탭은 업종 제한 발표 없이 모든 업종이 대상입니다.
               소개글 200자·사진 10장·리뷰 키워드를 미리 최적화하면 플레이스 에이전트를 통한 AI탭 노출에 유리합니다.
               ChatGPT·Gemini 등 글로벌 AI 최적화도 함께 진행하세요.
             </p>
@@ -388,7 +388,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             {/* likely 업종 안내 배너 — flex-row 밖에 배치해야 레이아웃 붕괴 없음 */}
             {data.eligibility === "likely" && (
               <div className="w-full rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800 mb-4">
-                AI 브리핑 확대 예상 업종입니다. AI탭은 업종 공식 제한이 없으므로 지금부터 소개글·사진·리뷰를 준비해두세요.
+                AI 브리핑 확대 예상 업종입니다. AI탭은 업종 제한 발표가 없으므로 지금부터 소개글·사진·리뷰를 준비해두세요.
               </div>
             )}
 
