@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { getBriefingEligibility } from "@/lib/userGroup";
+import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import ResultSummaryHero from "@/components/common/ResultSummaryHero";
 import { aiTabTile, briefingTile, rankTile, makeTile, type ChannelTile } from "@/lib/scoreLabels";
 
@@ -433,6 +434,7 @@ type Mock = ReturnType<typeof getMock>;
 export default function DemoPage() {
   const [category, setCategory] = useState("photo");
   const [region, setRegion]     = useState("창원시");
+  const briefingCats = useBriefingCategories();
   const m = getMock(category, region) as Mock & {
     businessName: string; query: string; aiExcerpt: string; aiExcerptFail: boolean;
     naverRank: number; blogMentions: number;
@@ -455,7 +457,7 @@ export default function DemoPage() {
   const isRealBiz = category === "photo" || category === "music";
 
   // 네이버 AI 브리핑 노출 상태 (단일 소스 헬퍼 사용)
-  const briefingStatus = getBriefingEligibility(category);
+  const briefingStatus = getBriefingEligibility(category, false, briefingCats?.active, briefingCats?.likely);
 
   // ── 종합 결론 히어로 (대시보드 HeroCard 구조 복제) ──────────────────────
   // 네이버 검색 타일: demo는 키워드 커버리지 대신 지역검색 순위(실측 신호)로 표시

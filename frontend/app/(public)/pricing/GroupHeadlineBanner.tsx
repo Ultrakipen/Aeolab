@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { getUserGroup, GROUP_MESSAGES } from "@/lib/userGroup";
+import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import { FLAT_CATEGORY_GROUPS } from "@/lib/categories";
 
 /** 요금제 페이지 — 업종 선택 → 그룹별 가치 메시지 배너 */
 export default function GroupHeadlineBanner() {
   const [category, setCategory] = useState("");
   const [isFranchise, setIsFranchise] = useState(false);
+  const briefingCats = useBriefingCategories();
 
-  const group = category ? getUserGroup(category, isFranchise) : null;
+  const group = category ? getUserGroup(category, isFranchise, briefingCats?.active, briefingCats?.likely) : null;
   const msg = group ? GROUP_MESSAGES[group] : null;
 
   const bgMap: Record<string, string> = {

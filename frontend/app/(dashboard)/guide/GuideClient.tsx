@@ -312,11 +312,21 @@ interface Props {
   region?: string
   latestScanMentioned?: boolean | null
   initialToken?: string
+  briefingActiveCategories?: readonly string[]
+  briefingLikelyCategories?: readonly string[]
 }
 
 // ── 네이버 검색 기반 → AI 노출 연결 체크리스트 ────────────────────────────────
-function NaverSearchBaseSection({ category }: { category?: string }) {
-  const eligibility = getBriefingEligibility(category, false)
+function NaverSearchBaseSection({
+  category,
+  activeOverride,
+  likelyOverride,
+}: {
+  category?: string
+  activeOverride?: readonly string[]
+  likelyOverride?: readonly string[]
+}) {
+  const eligibility = getBriefingEligibility(category, false, activeOverride, likelyOverride)
   const isActive = eligibility === "active"
   const isLikely = eligibility === "likely"
 
@@ -3347,6 +3357,8 @@ function GuideTabView({
   region,
   category,
   briefingEligibility = "active",
+  briefingActiveCategories,
+  briefingLikelyCategories,
 }: {
   guide: Guide
   tools: ToolsJson
@@ -3384,6 +3396,8 @@ function GuideTabView({
   region?: string
   category?: string
   briefingEligibility?: BriefingEligibility
+  briefingActiveCategories?: readonly string[]
+  briefingLikelyCategories?: readonly string[]
 }) {
   const isTabInactive = briefingEligibility !== "active"
   const [activeTab, setActiveTab] = useState<TabKey>('now')
@@ -4026,7 +4040,11 @@ function GuideTabView({
           />
 
           {/* 네이버 검색 기반 → AI 노출 연결 체크리스트 */}
-          <NaverSearchBaseSection category={category} />
+          <NaverSearchBaseSection
+            category={category}
+            activeOverride={briefingActiveCategories}
+            likelyOverride={briefingLikelyCategories}
+          />
 
           {/* 스마트플레이스 현황 업데이트 */}
           <SmartPlaceStatusCard
@@ -4111,6 +4129,8 @@ export function GuideClient({
   region,
   latestScanMentioned,
   initialToken,
+  briefingActiveCategories,
+  briefingLikelyCategories,
 }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -4141,6 +4161,8 @@ export function GuideClient({
   const briefingEligibility = getBriefingEligibility(
     business.category ?? category,
     !!business.is_franchise,
+    briefingActiveCategories,
+    briefingLikelyCategories,
   )
   const isBriefingInactive = briefingEligibility !== "active"
   const isBriefingLikely   = briefingEligibility === "likely"
@@ -4689,6 +4711,8 @@ export function GuideClient({
                   region={region}
                   category={category}
                   briefingEligibility={briefingEligibility}
+                  briefingActiveCategories={briefingActiveCategories}
+                  briefingLikelyCategories={briefingLikelyCategories}
                 />
               </div>
             </div>

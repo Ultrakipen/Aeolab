@@ -1703,9 +1703,10 @@ interface Props {
   currentPlan: string;
   businessData: { id: string; name: string; category: string; region: string } | null;
   latestScan: ScanResult | null;
+  briefingCats?: { active: readonly string[]; likely: readonly string[] };
 }
 
-export default function PreviewClient({ currentPlan, businessData, latestScan }: Props) {
+export default function PreviewClient({ currentPlan, businessData, latestScan, briefingCats }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>("basic");
   const [industry, setIndustry] = useState<IndustryKey>("cafe");
 
@@ -1786,6 +1787,8 @@ export default function PreviewClient({ currentPlan, businessData, latestScan }:
           category={industry}
           isFranchise={false}
           variant="preview"
+          activeOverride={briefingCats?.active}
+          likelyOverride={briefingCats?.likely}
         />
       </div>
 

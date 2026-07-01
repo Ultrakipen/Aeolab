@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/common/SiteFooter";
 import { trialScan, searchTrialBusiness, ApiError } from "@/lib/api";
 import { mapNaverCategory } from "@/lib/categories";
 import { getBriefingEligibility } from "@/lib/userGroup";
+import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import { getSafeSession } from "@/lib/supabase/client";
 import type {
   TrialScanResult,
@@ -137,6 +138,7 @@ function formatCooldown(ms: number): string {
 // ── 메인 페이지 ────────────────────────────────────────────────────────
 export default function TrialPage() {
   const searchParams = useSearchParams();
+  const briefingCats = useBriefingCategories();
 
   // ── 핵심 state ──────────────────────────────────────────────────────
   const [step, setStep] = useState<Step>("category");
@@ -771,7 +773,7 @@ export default function TrialPage() {
             scanSteps={businessType === "non_location" ? SCAN_STEPS_NON_LOCATION : SCAN_STEPS_LOCATION}
             selectedTag={selectedTags[0] ?? ""}
             region={form.region}
-            briefingCategory={getBriefingEligibility(selectedCategory)}
+            briefingCategory={getBriefingEligibility(selectedCategory, false, briefingCats?.active, briefingCats?.likely)}
           />
         </div>
       )}

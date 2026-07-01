@@ -26,6 +26,7 @@ import { KeywordManagerModal } from "@/components/dashboard/KeywordManagerModal"
 import { addExcludedKeyword } from "@/lib/api";
 import Link from "next/link";
 import { getBriefingEligibility, type BriefingEligibility } from "@/lib/userGroup";
+import { useBriefingCategories } from "@/lib/useBriefingCategories";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 const STALE_DAYS = 7;
@@ -1024,7 +1025,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
   const lastAnalyzedAt = selectedBiz?.blog_analyzed_at ?? null;
 
   // AI 브리핑 게이팅 (v4.1) — 미로딩 시 ACTIVE 가정(깜빡임 방지)
-  const briefingEligibility = getBriefingEligibility(business?.category, !!business?.is_franchise);
+  const briefingCats = useBriefingCategories();
+  const briefingEligibility = getBriefingEligibility(business?.category, !!business?.is_franchise, briefingCats?.active, briefingCats?.likely);
   const isBlogInactive = briefingEligibility !== "active";
   const isBlogLikely   = briefingEligibility === "likely";
 

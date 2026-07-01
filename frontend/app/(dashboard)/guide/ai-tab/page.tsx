@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ChevronLeft, ExternalLink, CheckCircle2 } from 'lucide-react'
 import { getBriefingEligibility } from '@/lib/userGroup'
 import { getActiveBusinessId } from '@/lib/active-business'
+import { fetchBriefingCategories } from '@/lib/briefingCategoriesServer'
 
 /**
  * 네이버 AI탭 — 5항목 설정 가이드 (모든 업종 대상)
@@ -50,8 +51,9 @@ export default async function AiTabGuidePage({
   const reviewCount = business?.review_count ?? 0
   const blogMentionCount = (business as { blog_mention_count?: number } | null)?.blog_mention_count ?? 0
 
+  const briefingCats = await fetchBriefingCategories()
   const briefingElig = business
-    ? getBriefingEligibility(business.category, !!business.is_franchise)
+    ? getBriefingEligibility(business.category, !!business.is_franchise, briefingCats.active, briefingCats.likely)
     : 'inactive'
 
   const items = [

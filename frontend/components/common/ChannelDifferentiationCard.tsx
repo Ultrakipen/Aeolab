@@ -8,6 +8,9 @@ interface Props {
   category?: string | null;
   isFranchise?: boolean;
   variant?: ChannelDiffVariant;
+  /** fetchBriefingCategories()/useBriefingCategories()로 가져온 동적 목록. 미전달 시 하드코딩 fallback. */
+  activeOverride?: readonly string[];
+  likelyOverride?: readonly string[];
 }
 
 // 업종별 분기 메시지 (지시서 원문 그대로)
@@ -106,11 +109,13 @@ export default function ChannelDifferentiationCard({
   category,
   isFranchise = false,
   variant = "dashboard",
+  activeOverride,
+  likelyOverride,
 }: Props) {
   const group: UserGroup | "unknown" =
     category == null
       ? "unknown"
-      : getUserGroup(category, isFranchise);
+      : getUserGroup(category, isFranchise, activeOverride, likelyOverride);
 
   // 네이버 AI 브리핑 배지 분기
   const briefingBadge: ChannelCardProps["badgeVariant"] =

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import PreviewClient from "./PreviewClient";
+import { fetchBriefingCategories } from "@/lib/briefingCategoriesServer";
 import type { ScanResult } from "@/types";
 
 export const metadata = {
@@ -63,6 +64,8 @@ export default async function PreviewPage() {
     latestScan = scan as ScanResult | null;
   }
 
+  const briefingCats = await fetchBriefingCategories();
+
   return (
     <PreviewClient
       currentPlan={activePlan}
@@ -72,6 +75,7 @@ export default async function PreviewPage() {
           : null
       }
       latestScan={latestScan}
+      briefingCats={briefingCats}
     />
   );
 }

@@ -6,6 +6,7 @@ import { NoBusiness } from '@/components/dashboard/NoBusiness'
 import { Lightbulb, Bot, ListChecks, RefreshCw, CheckSquare, Lock, Sparkles, FileSearch } from 'lucide-react'
 import { getActiveBusinessId } from '@/lib/active-business'
 import { getBriefingEligibility } from '@/lib/userGroup'
+import { fetchBriefingCategories } from '@/lib/briefingCategoriesServer'
 
 export default async function GuidePage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const supabase = await createClient()
@@ -140,7 +141,8 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
   }
 
   // 두 노출 경로 가이드 진입점 분기 — AI 브리핑(업종 제한) vs AI탭(모든 업종)
-  const briefingElig = getBriefingEligibility(business.category, !!business.is_franchise)
+  const briefingCats = await fetchBriefingCategories()
+  const briefingElig = getBriefingEligibility(business.category, !!business.is_franchise, briefingCats.active, briefingCats.likely)
   const briefingActive = briefingElig === 'active' && !business.is_franchise
   const briefingLikely = briefingElig === 'likely' && !business.is_franchise
 
@@ -176,6 +178,8 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         guideLimit={guideLimit}
         latestScanMentioned={latestScanMentioned}
         initialToken={initialToken}
+        briefingActiveCategories={briefingCats.active}
+        briefingLikelyCategories={briefingCats.likely}
       />
 
       {/* 채널별 심화 가이드 — 가이드 본문 아래에 배치 (탐색 링크) */}

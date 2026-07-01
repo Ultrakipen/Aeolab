@@ -23,7 +23,7 @@ import type { LucideIcon } from 'lucide-react'
 import { Search, ChevronLeft, Loader2 } from 'lucide-react'
 import BusinessSearchDropdown, { mapKakaoCategory } from '@/components/dashboard/BusinessSearchDropdown'
 import type { BusinessSearchResult } from '@/types'
-import { getBriefingEligibility } from '@/lib/userGroup'
+import { useBriefingCategories } from '@/lib/useBriefingCategories'
 import ChannelDifferentiationCard from '@/components/common/ChannelDifferentiationCard'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
@@ -158,6 +158,7 @@ type Step = 'category' | 'tags' | 'info'
 
 export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessFormProps) {
   const router = useRouter()
+  const briefingCats = useBriefingCategories()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -458,22 +459,9 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
               category={selectedCategory}
               isFranchise={isFranchise}
               variant="compact"
+              activeOverride={briefingCats?.active}
+              likelyOverride={briefingCats?.likely}
             />
-          </div>
-        )}
-        {!selectedCategory && getBriefingEligibility(selectedCategory, isFranchise) !== "active" && (
-          <div className={`p-3 md:p-4 rounded-xl mb-4 ${
-            getBriefingEligibility(selectedCategory, isFranchise) === "inactive"
-              ? "bg-amber-50 border border-amber-200"
-              : "bg-blue-50 border border-blue-200"
-          }`}>
-            <p className="text-sm md:text-base text-gray-800 leading-relaxed">
-              {isFranchise
-                ? "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 제공 대상이 아닙니다(네이버 정책 기준). 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 AI탭·ChatGPT·Gemini에서는 노출 가능합니다."
-                : getBriefingEligibility(selectedCategory) === "inactive"
-                ? "이 업종은 현재 '플레이스형' 네이버 AI 브리핑 비대상이지만, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. 일반 검색·AI탭 노출과 ChatGPT·Gemini 현황 측정에서도 효과를 드립니다."
-                : "이 업종은 네이버 AI 브리핑 확대 예상 업종입니다. 지금 가입하면 확대 시 자동으로 활성화됩니다."}
-            </p>
           </div>
         )}
 

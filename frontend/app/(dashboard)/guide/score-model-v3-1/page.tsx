@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ScoreModelV31Client } from "./ScoreModelV31Client";
 import { getUserGroup } from "@/lib/userGroup";
+import { fetchBriefingCategories } from "@/lib/briefingCategoriesServer";
 
 export default async function ScoreModelV31Page() {
   const supabase = await createClient();
@@ -20,8 +21,9 @@ export default async function ScoreModelV31Page() {
     .single();
 
   if (biz?.category) {
+    const briefingCats = await fetchBriefingCategories();
     userCategory = biz.category;
-    userGroup = getUserGroup(biz.category, !!biz.is_franchise);
+    userGroup = getUserGroup(biz.category, !!biz.is_franchise, briefingCats.active, briefingCats.likely);
   }
 
   return <ScoreModelV31Client userCategory={userCategory} userGroup={userGroup} />;

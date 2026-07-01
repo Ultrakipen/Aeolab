@@ -12,6 +12,7 @@ import {
 } from "@/lib/categories";
 import { CATEGORY_ICON_MAP } from "@/lib/categoryIcons";
 import { getUserGroup } from "@/lib/userGroup";
+import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import type { TrialBusinessCandidate } from "@/types";
 import type { TrialInputStepProps } from "./TrialSharedTypes";
 
@@ -72,6 +73,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
   const [keywordError, setKeywordError] = useState(false);
   const [regionError, setRegionError] = useState(false);
   const [categorySearch, setCategorySearch] = useState("");
+  const briefingCats = useBriefingCategories();
 
   useEffect(() => {
     if (step === "category") setCategorySearch("");
@@ -264,7 +266,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       const cfg = CATEGORY_ICON_MAP[cat.value];
                       const Icon = cfg?.Icon;
                       const selected = selectedCategory === cat.value;
-                      const grp = getUserGroup(cat.value, false);
+                      const grp = getUserGroup(cat.value, false, briefingCats?.active, briefingCats?.likely);
                       const aiBadge =
                         grp === "ACTIVE"
                           ? { text: "AI 브리핑", cls: "bg-green-100 text-green-700", dot: "bg-green-500" }
@@ -353,7 +355,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
 
             {/* 업종별 AI 브리핑 대상 여부 안내 — 업종 선택 직후 즉시 표시 */}
             {(() => {
-              const group = getUserGroup(selectedCategory, false);
+              const group = getUserGroup(selectedCategory, false, briefingCats?.active, briefingCats?.likely);
               if (group === "ACTIVE") {
                 return (
                   <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 mb-5">

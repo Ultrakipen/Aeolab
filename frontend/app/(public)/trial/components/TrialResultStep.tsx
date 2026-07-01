@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import {
   CATEGORY_MAP,
   FLAT_CATEGORY_MAP,
@@ -487,6 +488,8 @@ export default function TrialResultStep(props: TrialResultProps) {
     onRescan,
   } = props;
 
+  const briefingCats = useBriefingCategories();
+
   // 점수 계산
   const totalScore = Math.round(result.score?.total_score ?? 0);
   // track1Estimated / track2Estimated — ScoreSummaryCard 숫자 점수 제거로 렌더링 미사용, 향후 다른 UI에 재활용 가능
@@ -612,7 +615,7 @@ export default function TrialResultStep(props: TrialResultProps) {
   })();
 
   const isFranchise = (form as { is_franchise?: boolean }).is_franchise === true;
-  const userGroupValue = getUserGroup(selectedCategory, isFranchise);
+  const userGroupValue = getUserGroup(selectedCategory, isFranchise, briefingCats?.active, briefingCats?.likely);
 
   function getSignupCTALabel(group: string): string {
     if (group === "ACTIVE") return "가입하고 네이버 AI 브리핑 노출 시작하기";
@@ -640,7 +643,7 @@ export default function TrialResultStep(props: TrialResultProps) {
   // 업종 AI 브리핑 분류 (백엔드 제공 우선, 없으면 프론트 단일 소스 헬퍼 사용)
   const briefingCategory: BriefingEligibility =
     (result.briefing_category as BriefingEligibility | undefined) ??
-    getBriefingEligibility(selectedCategory, isFranchise);
+    getBriefingEligibility(selectedCategory, isFranchise, briefingCats?.active, briefingCats?.likely);
 
   // ── 종합 결론 히어로 (대시보드 HeroCard 구조 복제) ──────────────────────
   const heroInactive = briefingCategory === "inactive" || isFranchise;

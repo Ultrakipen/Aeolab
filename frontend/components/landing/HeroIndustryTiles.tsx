@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { trackTrialStart } from "@/lib/analytics";
 import { getUserGroup, GROUP_MESSAGES } from "@/lib/userGroup";
+import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import type { LucideIcon } from "lucide-react";
 
 interface Tile {
@@ -59,8 +60,9 @@ export default function HeroIndustryTiles({ variant = "default" }: Props) {
   };
 
   const isCompact = variant === "compact";
+  const briefingCats = useBriefingCategories();
 
-  const group = selected ? getUserGroup(selected, isFranchise) : null;
+  const group = selected ? getUserGroup(selected, isFranchise, briefingCats?.active, briefingCats?.likely) : null;
   const msg = group ? GROUP_MESSAGES[group] : null;
   const selectedTile = TILES.find((t) => t.value === selected);
 

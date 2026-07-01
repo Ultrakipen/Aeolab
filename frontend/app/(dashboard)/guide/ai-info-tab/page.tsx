@@ -6,6 +6,7 @@ import { ChevronLeft } from 'lucide-react'
 import { AiInfoTabGuide } from './AiInfoTabGuide'
 import { getBriefingEligibility } from '@/lib/userGroup'
 import { getActiveBusinessId } from '@/lib/active-business'
+import { fetchBriefingCategories } from '@/lib/briefingCategoriesServer'
 
 export const metadata: Metadata = {
   title: 'AI 브리핑 5단계 가이드 | AEOlab',
@@ -58,8 +59,9 @@ export default async function AiInfoTabGuidePage({
       : 'free'
   )
 
+  const briefingCats = await fetchBriefingCategories()
   const elig = business
-    ? getBriefingEligibility(business.category, !!business.is_franchise)
+    ? getBriefingEligibility(business.category, !!business.is_franchise, briefingCats.active, briefingCats.likely)
     : 'inactive'
 
   return (
