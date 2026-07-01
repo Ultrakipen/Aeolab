@@ -80,7 +80,7 @@ def _naver_briefing_exposure_msg(naver_in_briefing: bool, eligibility: str) -> s
     if eligibility == "inactive":
         return "플레이스형 네이버 AI 브리핑은 현재 이 업종 비대상입니다 — 블로그·콘텐츠로 정보형 AI 브리핑 + ChatGPT·Gemini·Google AI 노출 개선 가능"
     if eligibility == "likely":
-        return "없음 ⚠️ — 확대 예상 업종, 미리 준비 권장"
+        return "없음 ⚠️ — 확대 예상 업종, 미리 준비 권장 (블로그·콘텐츠로 정보형 AI 브리핑 노출은 지금도 가능)"
     return "없음 ❌ — 가장 먼저 해결해야 할 문제"
 
 # 업종별 외부 언급 채널 맵 (format 키: {region}, {keyword}, {biz_name})

@@ -219,7 +219,8 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
               )}
             </div>
             <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
-              검색결과 상단 AI 자동 추천 박스. 음식점·카페·숙박업 등 AI 브리핑 대상 업종.
+              검색결과 상단 AI 자동 추천 박스. 음식점·카페·숙박업 등 &apos;플레이스형&apos; 대상 업종
+              {!briefingActive && ' — 다른 업종도 블로그·콘텐츠로 \'정보형 AI 브리핑\' 노출 가능'}.
             </p>
             <p className="text-sm font-semibold text-blue-700 group-hover:underline">5단계 설정 가이드 →</p>
           </Link>

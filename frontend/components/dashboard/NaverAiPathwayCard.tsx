@@ -53,7 +53,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
       <div className="p-4 md:p-6">
         {briefingInactive ? (
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            이 업종은 <strong>네이버 플레이스탭·검색 상위노출</strong>이 가장 실질적인 고객 유입 경로입니다. 여기에 네이버 AI탭(정식 출시)을 더하면 노출을 확장할 수 있습니다. 글로벌 AI(ChatGPT·Gemini·Google AI)는 장기 과제입니다.
+            이 업종은 <strong>네이버 플레이스탭·검색 상위노출</strong>이 가장 실질적인 고객 유입 경로입니다. 여기에 네이버 AI탭(정식 출시)을 더하면 노출을 확장할 수 있습니다. 블로그·콘텐츠가 출처로 채택되면 &apos;정보형 AI 브리핑&apos; 노출도 가능합니다. 글로벌 AI(ChatGPT·Gemini·Google AI)는 장기 과제입니다.
           </p>
         ) : (
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
@@ -124,9 +124,13 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               <li className="text-sm">• 핵심: 네이버 품질 기준, 리뷰 확보(권장), 소식·소개글</li>
               <li className="text-sm">• 2025.03 정식 출시 (외식 특화 2025.06)</li>
             </ul>
-            {isFranchise && (
+            {(briefingLikely || briefingInactive) && (
               <p className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
-                프랜차이즈 가맹점은 현재 '플레이스형' AI 브리핑 제공 대상에서 제외 (추후 확대 예정) — 정보형 AI 브리핑은 콘텐츠로 노출 가능
+                {isFranchise
+                  ? "프랜차이즈 가맹점은 현재 '플레이스형' AI 브리핑 제공 대상에서 제외 (추후 확대 예정) — 정보형 AI 브리핑은 콘텐츠로 노출 가능"
+                  : briefingLikely
+                  ? "이 업종은 '플레이스형' AI 브리핑 확대 예정 업종입니다 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출은 지금도 가능"
+                  : "이 업종은 현재 '플레이스형' AI 브리핑 대상이 아닙니다 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출은 가능"}
               </p>
             )}
             {/* M3 광고 경고 배너 — NAVER_AD_IN_BRIEFING_ACTIVE=true 시 노출 */}

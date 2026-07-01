@@ -96,8 +96,9 @@ export default async function AiInfoTabGuidePage({
         </p>
         <p className="text-sm md:text-base text-blue-800 leading-relaxed break-keep">
           AI탭(검색결과 &quot;AI&quot; 탭 메뉴)과는 다른 노출 경로입니다.
-          AI 브리핑은 <strong>음식점·카페·베이커리·바·숙박업 등 AI 브리핑 대상 업종</strong>만 대상이며,
+          &apos;플레이스형&apos; AI 브리핑은 <strong>음식점·카페·베이커리·바·숙박업 등 AI 브리핑 대상 업종</strong>만 대상이며,
           프랜차이즈 가맹점은 현재 제외됩니다(네이버 공식 정책).
+          다른 업종·프랜차이즈도 블로그·콘텐츠가 출처로 채택되면 &apos;정보형 AI 브리핑&apos;에 노출될 수 있습니다.
         </p>
         <p className="mt-2 text-sm md:text-base text-blue-700 bg-white border border-blue-100 rounded px-2.5 py-1.5">
           ℹ️ AI탭은 업종 제한 발표가 없습니다 (2026-04-27 베타, 정식 출시).{' '}

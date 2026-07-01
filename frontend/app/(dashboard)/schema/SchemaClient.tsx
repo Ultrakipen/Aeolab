@@ -497,7 +497,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                         ))}
                       </div>
                       <p className="text-sm text-gray-500 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
-                        위 키워드를 스마트플레이스 소개글에 자연스럽게 포함하면 네이버 AI 브리핑(음식점·카페·숙박 등 대상 업종) 및 AI탭 노출 가능성이 높아집니다. 법률·IT·부동산 등 비대상 업종은 ChatGPT·Gemini·Google AI 노출 개선에 동일하게 효과적입니다.
+                        위 키워드를 스마트플레이스 소개글에 자연스럽게 포함하면 네이버 AI 브리핑(&apos;플레이스형&apos;, 음식점·카페·숙박 등 대상 업종) 및 AI탭 노출 가능성이 높아집니다. 법률·IT·부동산 등 비대상 업종도 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출이 가능하며, ChatGPT·Gemini·Google AI 노출 개선에도 동일하게 효과적입니다.
                       </p>
                     </div>
                   )}

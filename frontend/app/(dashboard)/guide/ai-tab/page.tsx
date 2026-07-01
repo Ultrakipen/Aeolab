@@ -233,7 +233,7 @@ export default async function AiTabGuidePage({
 
       <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 md:p-5">
         <p className="text-sm md:text-base text-gray-800 mb-3 leading-relaxed break-keep">
-          <strong>AI 브리핑도 함께 점검</strong> — 음식점·카페·베이커리·바·숙박업이거나 AI 브리핑 확대 예정 업종이면 5단계 설정도 완료하세요.
+          <strong>AI 브리핑도 함께 점검</strong> — 음식점·카페·베이커리·바·숙박업이거나 AI 브리핑 확대 예정 업종이면 5단계 설정도 완료하세요. 그 외 업종도 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출이 가능합니다.
         </p>
         <Link
           href="/guide/ai-info-tab"
