@@ -135,7 +135,7 @@ export default function AEOCompareSection() {
 
         {/* 기준 날짜 — PC 테이블 하단 */}
         <p className="hidden md:block text-sm text-gray-500 text-center mt-2 fade-up">
-          2026년 5월 기준
+          2026년 7월 기준
         </p>
 
         {/* 모바일 — 간소화 카드 */}
@@ -179,7 +179,7 @@ export default function AEOCompareSection() {
             </a>
           </div>
           <p className="text-sm text-gray-500 text-center mt-2">
-            2026년 5월 기준
+            2026년 7월 기준
           </p>
         </div>
       </div>
