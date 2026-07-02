@@ -126,14 +126,14 @@ export default async function LandingPage() {
 
       {/* ── 1-B. 3중 효과 배너 — Hero 직후 ── */}
       <div className="bg-blue-50 border-b border-blue-100 py-3 px-4">
-        <div className="max-w-[1020px] mx-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-6 text-sm text-gray-700 text-center">
-          <span className="font-semibold text-gray-800 break-keep">스마트플레이스·블로그 개선 방법을 알면</span>
+        <div className="max-w-[1020px] mx-auto flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-1.5 sm:gap-6 text-sm text-gray-700 text-center">
+          <span className="font-semibold text-gray-800 whitespace-nowrap">스마트플레이스·블로그 개선 방법을 알면</span>
           <span className="hidden sm:block text-gray-400">→</span>
-          <span className="break-keep">🔍 <strong className="text-blue-700">네이버 검색 상위노출</strong> 가능성 ↑</span>
+          <span className="whitespace-nowrap">🔍 <strong className="text-blue-700">네이버 검색 상위노출</strong> 가능성 ↑</span>
           <span className="hidden sm:block text-gray-400">·</span>
-          <span className="break-keep">🤖 <strong className="text-purple-700">AI 브리핑·AI탭</strong> 노출 가능성 ↑</span>
+          <span className="whitespace-nowrap">🤖 <strong className="text-purple-700">AI 브리핑·AI탭</strong> 노출 가능성 ↑</span>
           <span className="hidden sm:block text-gray-400">·</span>
-          <span className="break-keep">💬 <strong className="text-green-700">ChatGPT·Gemini</strong> 노출 현황 측정·추적</span>
+          <span className="whitespace-nowrap">💬 <strong className="text-green-700">ChatGPT·Gemini</strong> 노출 현황 측정·추적</span>
         </div>
       </div>
 
@@ -537,7 +537,7 @@ export default async function LandingPage() {
                     ].map(({ label, desc }) => (
                       <div key={label} className="flex items-start gap-1.5">
                         <span className="text-blue-600 text-sm font-bold flex-shrink-0 mt-0.5">{label}</span>
-                        <span className="text-sm text-gray-600">{desc}</span>
+                        <span className="text-sm text-gray-600 break-keep">{desc}</span>
                       </div>
                     ))}
                   </div>
@@ -560,7 +560,7 @@ export default async function LandingPage() {
                     {["항목별 노출 상태 진단 (양호·보통·주의)", "경쟁사 대비 부족한 부분 파악", "ChatGPT·Gemini 실제 언급 횟수", "키워드 노출 현황 분석", "개선 우선순위 자동 제시"].map(item => (
                       <div key={item} className="flex items-center gap-1.5">
                         <span className="text-indigo-400 text-sm flex-shrink-0">▸</span>
-                        <span className="text-sm text-gray-700">{item}</span>
+                        <span className="text-sm text-gray-700 break-keep">{item}</span>
                       </div>
                     ))}
                   </div>
@@ -583,7 +583,7 @@ export default async function LandingPage() {
                     {["네이버 AI 브리핑 상단 노출 (음식점·카페 등)", "네이버 AI탭 답변에 내 가게 등장", "ChatGPT·Gemini 현황 정기 모니터링", "매주 자동 점검으로 노출 지속 유지", "경쟁사 대비 AI 노출 준비도 우위 확보"].map(item => (
                       <div key={item} className="flex items-center gap-1.5">
                         <span className="text-green-500 text-sm flex-shrink-0">✓</span>
-                        <span className="text-sm text-gray-700">{item}</span>
+                        <span className="text-sm text-gray-700 break-keep">{item}</span>
                       </div>
                     ))}
                   </div>

@@ -81,10 +81,10 @@ export default function DashboardPreview() {
             >
               양호
             </span>
-            <p className="text-sm mb-1" style={{ color: "#1D4ED8", fontWeight: 600 }}>
+            <p className="text-sm mb-1 break-keep" style={{ color: "#1D4ED8", fontWeight: 600 }}>
               ✓ 업종 평균보다 높은 노출
             </p>
-            <p className="text-sm" style={{ color: "#475569" }}>AI 브리핑 노출 현황 · 예시</p>
+            <p className="text-sm break-keep" style={{ color: "#475569" }}>AI 브리핑 노출 현황 · 예시</p>
             <div className="mt-2 flex items-center gap-1 mb-2">
               <span
                 className="text-sm font-semibold px-2 py-0.5 rounded-full"
@@ -101,8 +101,8 @@ export default function DashboardPreview() {
             </div>
             {/* 개선 소요 기간 안내 */}
             <div className="mt-auto rounded-lg px-2.5 py-2" style={{ background: "#DBEAFE" }}>
-              <p className="text-sm font-semibold mb-0.5" style={{ color: "#1E40AF" }}>⏱ 개선 효과 확인까지</p>
-              <p className="text-sm" style={{ color: "#1D4ED8" }}>소개글·소식 업데이트 후 <strong>2~4주</strong> 내 변화</p>
+              <p className="text-sm font-semibold mb-0.5 break-keep" style={{ color: "#1E40AF" }}>⏱ 개선 효과 확인까지</p>
+              <p className="text-sm break-keep" style={{ color: "#1D4ED8" }}>소개글·소식 업데이트 후 <strong>2~4주</strong> 내 변화</p>
             </div>
           </div>
 
@@ -126,7 +126,7 @@ export default function DashboardPreview() {
             >
               보통
             </span>
-            <p className="text-sm" style={{ color: "#475569" }}>ChatGPT·Gemini 노출 현황 · 예시</p>
+            <p className="text-sm break-keep" style={{ color: "#475569" }}>ChatGPT·Gemini 노출 현황 · 예시</p>
             <div className="mt-2 flex items-center gap-1 mb-2">
               <span
                 className="text-sm font-semibold px-2 py-0.5 rounded-full"
@@ -143,16 +143,16 @@ export default function DashboardPreview() {
             </div>
             {/* 채널별 현실 안내 */}
             <div className="mt-auto rounded-lg px-2.5 py-2 space-y-1" style={{ background: "#F1F5F9" }}>
-              <p className="text-sm font-semibold" style={{ color: "#475569" }}>📌 현실적인 기대치</p>
-              <p className="text-sm" style={{ color: "#475569" }}>
+              <p className="text-sm font-semibold break-keep" style={{ color: "#475569" }}>📌 현실적인 기대치</p>
+              <p className="text-sm break-keep" style={{ color: "#475569" }}>
                 <span className="font-semibold" style={{ color: "#4F46E5" }}>Gemini</span>
                 {" — "}Google 실시간 검색 연동: <strong>수 주</strong> / 학습 데이터: <strong>수개월~1년</strong>
               </p>
-              <p className="text-sm" style={{ color: "#475569" }}>
+              <p className="text-sm break-keep" style={{ color: "#475569" }}>
                 <span className="font-semibold" style={{ color: "#10A37F" }}>ChatGPT</span>
                 {" — "}학습 데이터 기반 · 노출까지 <strong>수개월~1년</strong> 소요
               </p>
-              <p className="text-sm" style={{ color: "#64748B" }}>
+              <p className="text-sm break-keep" style={{ color: "#64748B" }}>
                 🌱 대부분의 가게가 아직 준비 중 — 지금 시작하면 선점 유리
               </p>
             </div>
