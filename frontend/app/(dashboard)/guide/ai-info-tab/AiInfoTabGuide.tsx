@@ -175,6 +175,11 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                   ? "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다 (네이버 공식 정책)."
                   : "이 업종은 '플레이스형' 네이버 AI 브리핑 비대상입니다. AI 정보 탭(브리핑 연동)이 노출되지 않습니다."
               }
+              alternative={
+                <p className="text-sm md:text-base text-gray-700 leading-relaxed">
+                  블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출은 지금도 가능합니다. 아래 AI탭 준비 안내를 확인하세요.
+                </p>
+              }
             />
             {/* AI탭 준비 안내 — INACTIVE/프랜차이즈도 AI탭은 모든 업종 가능 */}
             <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5">
