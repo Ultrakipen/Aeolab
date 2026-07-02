@@ -425,7 +425,7 @@ export default async function LandingPage() {
                 <div>
                   <p className="text-base font-black text-gray-800 break-keep">학원·병원·법무사·부동산·쇼핑 등</p>
                 </div>
-                <span className="flex-shrink-0 ml-3 px-3 py-1 rounded-full text-sm font-bold bg-blue-600 text-white whitespace-nowrap">2채널</span>
+                <span className="flex-shrink-0 ml-3 px-3 py-1 rounded-full text-sm font-bold bg-blue-600 text-white whitespace-nowrap">3채널</span>
               </div>
 
               <div className="space-y-3 mb-4">
