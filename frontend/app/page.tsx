@@ -1077,16 +1077,16 @@ export default async function LandingPage() {
                 className="text-xl md:text-2xl font-black break-keep mb-2"
                 style={{ color: "#0F172A", letterSpacing: "-0.4px" }}
               >
-                월 광고비 30만원 → AEOlab 월 9,900원으로 대체 시
+                월 광고비 30만원의 30%를 AEOlab으로 대체 시
               </h2>
               <p className="text-base md:text-lg font-black break-keep mb-1" style={{ color: "#059669" }}>
-                연 <span style={{ fontSize: "1.4em" }}>348만원</span> 절감 예상
+                연 <span style={{ fontSize: "1.4em" }}>약 96만원</span> 절감 예상
               </p>
               <p className="text-sm" style={{ color: "#64748B" }}>
-                광고비 30만원 × 12개월 − AEOlab 연 118,800원 기준 추정
+                광고비 30만원 × 30% × 12개월 − AEOlab 연 118,800원 기준 추정
               </p>
               <p className="text-sm mt-1" style={{ color: "#94A3B8" }}>
-                절감 효과는 업종·지역·경쟁 강도에 따라 다릅니다
+                계산 기준: 광고비의 30%를 AI 노출로 대체 가능하다고 가정 · 실제 효과는 업종·지역·경쟁 강도에 따라 다릅니다
               </p>
             </div>
 
