@@ -5,7 +5,8 @@ import random
 import re
 
 from services.keyword_taxonomy import log_ad_only_mismatch
-from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua, get_naver_cookies, build_chrome_ua
+from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua, get_naver_cookies, build_chrome_ua, block_heavy_resources, attach_bandwidth_counter
+from services.ai_scanner.bandwidth_tracker import record_usage_mb
 
 logger = logging.getLogger("aeolab")
 
@@ -275,12 +276,15 @@ class NaverAIBriefingScanner:
             naver_cookies = get_naver_cookies()
             if naver_cookies:
                 await ctx.add_cookies(naver_cookies)
+            await ctx.route("**/*", block_heavy_resources)
+            _bw_counter = attach_bandwidth_counter(ctx)
             page = await ctx.new_page()
             # apply_stealth 제거 — 봇 감지 유발 (2026-06-28 AI탭 실측 확인)
             try:
                 result = await self._check_single_page(page, query, target, category=category)
             finally:
                 await browser.close()
+                await record_usage_mb(_bw_counter[0] / 1024 / 1024)
         return result
 
     async def check_mention_multi(self, queries: list[str], target: str, category: str = "") -> dict:
@@ -319,6 +323,8 @@ class NaverAIBriefingScanner:
             naver_cookies = get_naver_cookies()
             if naver_cookies:
                 await ctx.add_cookies(naver_cookies)
+            await ctx.route("**/*", block_heavy_resources)
+            _bw_counter = attach_bandwidth_counter(ctx)
             keyword_results = []
             for q in queries:
                 page = await ctx.new_page()
@@ -332,6 +338,7 @@ class NaverAIBriefingScanner:
                     break
                 await asyncio.sleep(random.uniform(2, 4))
             await browser.close()
+            await record_usage_mb(_bw_counter[0] / 1024 / 1024)
 
         # 최선 결과: in_briefing+excerpt > in_briefing > mentioned > first
         best = (

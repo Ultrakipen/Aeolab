@@ -17,7 +17,8 @@ import os
 import time
 from typing import Optional
 
-from services.ai_scanner import get_proxy_config
+from services.ai_scanner import get_proxy_config, block_heavy_resources, attach_bandwidth_counter
+from services.ai_scanner.bandwidth_tracker import record_usage_mb
 
 _logger = logging.getLogger("aeolab")
 
@@ -254,6 +255,8 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
         naver_cookies = _get_naver_cookies()
         if naver_cookies:
             await ctx.add_cookies(naver_cookies)
+        await ctx.route("**/*", block_heavy_resources)
+        _bw_counter = attach_bandwidth_counter(ctx)
 
         page = await ctx.new_page()
         # apply_stealth 미적용 — AI탭에서 봇 감지 유발 확인 (2026-06-28)
@@ -362,6 +365,7 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
 
         finally:
             await browser.close()
+            await record_usage_mb(_bw_counter[0] / 1024 / 1024)
 
 
 async def scan_batch(queries: list[str], business_name: str) -> dict:

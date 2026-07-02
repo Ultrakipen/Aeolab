@@ -1,4 +1,5 @@
 """AI 스캐너 공통 유틸리티 — UA 풀, stealth, 프록시 로테이션"""
+import asyncio
 import logging
 import os
 import random
@@ -47,6 +48,49 @@ async def apply_stealth(page) -> None:
         await stealth_async(page)
     except ImportError:
         _logger.warning("[stealth] playwright-stealth 미설치 — pip install playwright-stealth==1.0.6")
+
+
+# ── 리소스 차단 (대역폭 절감) ─────────────────────────────────────────────────
+# AI 브리핑/AI탭 파싱은 DOM 텍스트만 필요 — 이미지·미디어·폰트·광고/로깅 스크립트는 낭비.
+# 2026-07-02 프록시 대역폭 소진 사고 후 실측(콜드 요청 1회, 네이버 검색결과 페이지):
+#   script 11.74MB(핵심 렌더링 fender.js 4MB 포함 — 차단 불가) > stylesheet 2.21MB
+#   > document 1.17MB, image/font/media 0MB(이미 차단됨)
+# 광고·로깅 스크립트(도메인/경로로 식별 가능한 것)만 추가 차단 — 약 3.3MB/페이지 절감.
+# 핵심 렌더링 스크립트(fender 등)는 AI브리핑 DOM을 실제로 그리므로 차단 금지.
+_BLOCKED_URL_SUBSTRINGS = (
+    "ad-creative.pstatic.net",
+    "gfp-display-sdk",
+    "meerkat/logger",
+    "log-invoker/scroll",
+    "log-invoker/click",
+    "ntm.pstatic.net",
+)
+
+
+async def block_heavy_resources(route) -> None:
+    """image/media/font 및 광고·로깅 스크립트를 차단해 프록시 대역폭 사용량을 줄인다."""
+    req = route.request
+    if req.resource_type in ("image", "media", "font"):
+        await route.abort()
+        return
+    if any(s in req.url for s in _BLOCKED_URL_SUBSTRINGS):
+        await route.abort()
+        return
+    await route.continue_()
+
+
+def attach_bandwidth_counter(ctx) -> list:
+    """context에 응답 바이트 합산 리스너를 붙인다. 반환값[0]이 누적 바이트(가변 리스트로 클로저 우회)."""
+    total = [0]
+
+    async def _count(resp):
+        try:
+            total[0] += len(await resp.body())
+        except Exception:
+            pass
+
+    ctx.on("response", lambda r: asyncio.create_task(_count(r)))
+    return total
 
 
 # ── 프록시 로테이션 ────────────────────────────────────────────────────────────
