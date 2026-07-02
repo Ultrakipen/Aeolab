@@ -225,6 +225,7 @@ interface ScanSnapshot {
   track1_score?: number | null
   track2_score?: number | null
   naver_in_briefing?: boolean
+  naver_measured?: boolean
   chatgpt_mentioned?: boolean
   keyword_gap_count?: number
   coverage_rate?: number
@@ -646,6 +647,7 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
   const score = snapshot.my_score ?? 0
   const freq = snapshot.my_freq ?? 0
   const naverOk = snapshot.naver_in_briefing ?? false
+  const naverMeasured = snapshot.naver_measured ?? true
   const gapCount = snapshot.keyword_gap_count ?? 0
   const coverageRate = snapshot.coverage_rate ?? 0
 
@@ -670,7 +672,7 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
           <div className={`text-lg font-bold ${freqColor}`}>{freqLabel}</div>
         </div>
         {/* 네이버 AI 브리핑 / 비대상 업종은 AI 검색으로 표시 */}
-        <div className={`rounded-xl border p-3 ${isInactive ? 'bg-gray-50 border-gray-200' : naverOk ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+        <div className={`rounded-xl border p-3 ${isInactive ? 'bg-gray-50 border-gray-200' : !naverMeasured ? 'bg-gray-50 border-gray-200' : naverOk ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
           <div className="text-sm md:text-base text-gray-500 mb-1">
             {isInactive ? "AI 검색 노출" : "네이버 AI 브리핑"}
           </div>
@@ -678,6 +680,11 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
             <div className="text-sm md:text-base font-semibold mt-1 text-gray-600">
               비대상 업종
             </div>
+          ) : !naverMeasured ? (
+            <>
+              <div className="text-base font-bold mt-1 text-gray-600">측정 실패</div>
+              <div className="text-sm md:text-base text-gray-500 mt-0.5">다음 스캔에서 재확인</div>
+            </>
           ) : (
             <>
               <div className={`text-base font-bold mt-1 ${naverOk ? 'text-green-700' : 'text-red-600'}`}>

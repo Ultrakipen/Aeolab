@@ -1016,6 +1016,9 @@ async def _search_naver_blog_once(
             },
         ) as resp:
             if resp.status != 200:
+                _logger.warning(
+                    f"naver blog search non-200 for query='{query}': status={resp.status}"
+                )
                 return [], 0
             data = await resp.json()
     except aiohttp.ClientError as e:
@@ -1057,6 +1060,9 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int]:
         async with aiohttp.ClientSession(timeout=_TIMEOUT, headers=_HEADERS) as session:
             async with session.get(rss_url) as resp:
                 if resp.status != 200:
+                    _logger.warning(
+                        "naver rss non-200 for blog_id=%s: status=%s", blog_id, resp.status
+                    )
                     return [], 0
                 raw = await resp.content.read(_MAX_BODY_BYTES)
                 xml_text = raw.decode("utf-8", errors="replace")

@@ -19,6 +19,7 @@ interface ChatMenu {
 interface GeneratedResult {
   items: FAQItem[];         // 소개글 Q&A 섹션용
   chat_menus: ChatMenu[];   // 채팅방 메뉴 6개
+  is_fallback?: boolean;    // AI 생성 실패로 일반 템플릿이 대신 반환됨
 }
 
 // 기존 사용자 talktalk_faq_draft의 string[] 형태를 ChatMenu[]로 안전 변환
@@ -34,7 +35,7 @@ function normalizeChatMenus(raw: unknown[]): ChatMenu[] {
 
 interface Props {
   bizId: string;
-  initialDraft?: { items?: FAQItem[]; chat_menus?: unknown[] } | null;
+  initialDraft?: { items?: FAQItem[]; chat_menus?: unknown[]; is_fallback?: boolean } | null;
   generatedAt?: string;
   planLabel?: string;
   planMonthlyLimit?: number;
@@ -52,7 +53,7 @@ export function TalktalkFAQGeneratorCard({
     if (!initialDraft) return null;
     const items = initialDraft.items ?? [];
     const rawMenus = initialDraft.chat_menus ?? [];
-    return { items, chat_menus: normalizeChatMenus(rawMenus) };
+    return { items, chat_menus: normalizeChatMenus(rawMenus), is_fallback: initialDraft.is_fallback };
   });
   const [copiedFaqIndex, setCopiedFaqIndex] = useState<number | null>(null);
   const [copiedMenuIndex, setCopiedMenuIndex] = useState<number | null>(null);
@@ -97,6 +98,7 @@ export function TalktalkFAQGeneratorCard({
       setGenerated({
         items: data.items ?? [],
         chat_menus: normalizeChatMenus(data.chat_menus ?? []),
+        is_fallback: Boolean(data.is_fallback),
       });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
@@ -204,6 +206,11 @@ export function TalktalkFAQGeneratorCard({
 
       {generated && (
         <div className="mt-4 space-y-5">
+          {generated.is_fallback && (
+            <p className="text-sm md:text-base text-amber-800 bg-amber-50 p-3 rounded border border-amber-200">
+              일시적인 AI 생성 오류로 업종 기반 <strong>기본 템플릿</strong>이 대신 표시됐습니다. 우리 가게에 맞게 직접 수정 후 사용해 주세요. (이번 생성은 월 한도에서 차감되지 않았습니다)
+            </p>
+          )}
           {generatedAt && (
             <p className="text-sm text-gray-500">
               마지막 생성: {new Date(generatedAt).toLocaleString("ko-KR")}

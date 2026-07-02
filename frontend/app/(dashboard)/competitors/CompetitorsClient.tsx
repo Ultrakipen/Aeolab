@@ -534,7 +534,7 @@ interface Props {
   myScore: number
   myReviewCount?: number
   myAvgRating?: number
-  myBlogMentions?: number
+  myBlogMentions?: number | null
   userId: string
   trendScans?: TrendScan[]
   competitorScores?: Record<string, CompetitorScore> | null
@@ -1158,7 +1158,7 @@ interface CompareModalProps {
   myScore: number
   myReviewCount: number
   myAvgRating: number
-  myBlogMentions: number
+  myBlogMentions: number | null
   competitor: {
     name: string
     place_review_count?: number | null
@@ -1287,6 +1287,18 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                     <span className="text-center text-gray-600">경쟁사</span>
                   </div>
                   {statRows.map(row => {
+                    if (row.myVal === null) {
+                      // 크롤러 측정 실패 — 0으로 단정하지 않고 중립 표시 (경쟁사 값과 비교 안 함)
+                      return (
+                        <div key={row.label} className="grid grid-cols-3 px-4 py-3 border-b border-gray-100 last:border-0 items-center">
+                          <span className="text-sm text-gray-600 font-medium">{row.label}</span>
+                          <span className="text-center text-sm text-gray-400">측정 실패</span>
+                          <span className="text-center text-sm font-bold text-gray-500">
+                            {row.decimals ? Number(row.compVal).toFixed(row.decimals) : String(row.compVal)}{row.unit}
+                          </span>
+                        </div>
+                      )
+                    }
                     const myV   = row.decimals ? Number(row.myVal).toFixed(row.decimals) : String(row.myVal)
                     const cmpV  = row.decimals ? Number(row.compVal).toFixed(row.decimals) : String(row.compVal)
                     const myWin = row.myVal > row.compVal

@@ -436,6 +436,15 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
             <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" strokeWidth={1.5} />
             <span className="text-sm font-medium text-green-800">완성됐습니다! 아래 탭에서 복사해 바로 사용하세요.</span>
           </div>
+          {result.is_fallback && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" strokeWidth={1.5} />
+              <span className="text-sm text-amber-800">
+                일시적인 AI 생성 오류로 입력하신 정보 기반의 <strong>기본 템플릿</strong>이 대신 표시됐습니다.
+                맞춤 문구가 아니니 내용을 확인 후 직접 다듬어서 사용해 주세요. 잠시 후 다시 생성하면 AI 맞춤 소개글을 받을 수 있습니다.
+              </span>
+            </div>
+          )}
 
           {/* 탭 */}
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">

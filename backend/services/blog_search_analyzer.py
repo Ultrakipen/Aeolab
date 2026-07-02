@@ -7,12 +7,14 @@ Playwright로 네이버 블로그 검색을 실행해 상위 10개 포스팅을 
 
 import asyncio
 import logging
+import re
 import urllib.parse
 from datetime import datetime, timezone
 
 from playwright.async_api import async_playwright
 
 _logger = logging.getLogger("aeolab.blog_analysis")
+_re_captcha = re.compile(r"로봇이 아님|자동화된 요청|비정상적인 접근|보안 문자")
 
 
 async def analyze_blog_search(
@@ -72,6 +74,30 @@ async def analyze_blog_search(
             try:
                 await page.goto(search_url, timeout=30000)
                 await page.wait_for_timeout(2000)
+
+                # ── 캡챠 / 차단 감지 (naver_scanner.py와 동일 패턴) ──────────
+                _current_url = page.url
+                _page_title = await page.title()
+                _page_text = await page.inner_text("body") or ""
+                if (
+                    any(kw in _current_url for kw in ["captcha", "nid.naver.com", "login.naver.com"]) or
+                    any(kw in _page_title for kw in ["로봇", "자동화", "captcha", "CAPTCHA", "보안문자"]) or
+                    bool(_re_captcha.search(_page_text[:500]))
+                ):
+                    _logger.warning(f"blog_search captcha/block detected | kw={keyword!r}")
+                    await page.close()
+                    await ctx.close()
+                    await browser.close()
+                    return {
+                        "keyword": keyword,
+                        "total_found": 0,
+                        "my_rank": None,
+                        "posts": [],
+                        "analyzed_at": datetime.now(timezone.utc).isoformat(),
+                        "blog_id_registered": bool(naver_blog_id.strip()),
+                        "captcha_detected": True,
+                        "error": "captcha_or_blocked",
+                    }
 
                 # 네이버 블로그 검색 결과 DOM 파싱
                 # 2024~2026 네이버 블로그 탭 셀렉터 패턴 순서대로 시도

@@ -203,10 +203,20 @@ async def analyze_blog_endpoint(
         "ai_readiness_items": analysis.get("ai_readiness_items", []),
         "analyzed_at": now_iso,
         "error": analysis.get("error"),
-        # 월 사용량 — 이번 분석 포함 (insert 직후이므로 +1)
-        "monthly_used": monthly_used + 1,
+        # 월 사용량 — 실패 시 소비하지 않으므로 +1 하지 않음
+        "monthly_used": monthly_used if analysis.get("error") else monthly_used + 1,
         "monthly_limit": limit,
     }
+
+    # 분석이 실패한 경우(크롤링/API 오류 등) — 기존에 저장된 실제 값을 0으로 덮어쓰지 않고,
+    # 24시간 쿨다운·월 사용량도 소비시키지 않는다 (우리 쪽 오류로 사용자에게 불이익 금지)
+    _analysis_failed = bool(analysis.get("error"))
+    if _analysis_failed:
+        _logger.warning(
+            f"blog analysis returned error for biz={request.business_id}: {analysis.get('error')} "
+            "— DB 저장·사용량 차감 생략"
+        )
+        return analysis_json
 
     # 기본 저장 필드 (blog_analysis_json 컬럼이 없어도 동작)
     base_payload: dict = {
@@ -252,7 +262,7 @@ async def analyze_blog_endpoint(
         else:
             _logger.warning(f"blog analysis DB save failed for biz={request.business_id}: {e}")
 
-    # 월 사용 기록 (biz=무제한 포함 모두 기록 — 통계 목적)
+    # 월 사용 기록 (biz=무제한 포함 모두 기록 — 통계 목적, 실측 성공 시에만)
     try:
         await execute(
             supabase.table("notifications")

@@ -46,7 +46,7 @@ interface Props {
   onSyncRequest: () => void;
   accessToken?: string;
   onPlaceIdSaved?: () => void;
-  myBlogMentions?: number;   // 내 가게 블로그 언급 수 (비교용)
+  myBlogMentions?: number | null;   // 내 가게 블로그 언급 수 (비교용) — null=측정 실패
   canViewStartup?: boolean;  // 창업패키지+ 여부 (키워드 섹션 잠금)
   onFetchFaq?: () => void;
   isFetchingFaq?: boolean;
@@ -503,6 +503,10 @@ export function CompetitorPlaceCard({
           <p className="text-sm text-gray-400 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
             새로고침 버튼을 누르면 자동으로 수집됩니다.
           </p>
+        ) : myBlogMentions == null ? (
+          <p className="text-sm text-gray-400 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
+            내 가게 블로그 언급 수 측정에 실패했습니다. 잠시 후 다시 시도해주세요.
+          </p>
         ) : (
           <BlogMentionBar
             myCount={myBlogMentions}
@@ -531,8 +535,16 @@ export function CompetitorPlaceCard({
                 <ExternalLink className="w-3.5 h-3.5" /> 방문
               </a>
               {competitor.website_seo_score != null && (
-                <span className="text-sm font-semibold text-gray-500">
-                  AI 최적화 점수 {competitor.website_seo_score}점 / 100점
+                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${
+                  competitor.website_seo_score >= 70
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : competitor.website_seo_score >= 40
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-red-50 text-red-600 border-red-200'
+                }`}>
+                  AI 최적화{' '}
+                  {competitor.website_seo_score >= 70 ? '양호' :
+                   competitor.website_seo_score >= 40 ? '보통' : '미흡'}
                 </span>
               )}
             </div>

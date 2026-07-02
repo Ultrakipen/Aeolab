@@ -1429,21 +1429,22 @@ async def _scan_new_competitor(comp_id: str, comp_name: str, business_id: str, s
         gemini = GeminiScanner()
         result = await gemini.single_check_with_competitors(query, comp_name)
 
+        # Gemini 단일 스캔은 "AI 언급 여부" 1개 신호만 실측한다 — review_quality·
+        # smart_place_completeness 등 세부 항목은 측정하지 않았으므로 가짜 breakdown을
+        # 만들지 않는다. breakdown을 비워두면 gap_analyzer._is_competitor_estimated
+        # 로직이 총점 기반 추정치로 자동 대체하며 "추정" 플래그를 올바르게 표시한다.
+        if not result.get("_measured", True):
+            _logger.warning(f"[competitor_scan] Gemini 측정 실패, 스캔 생략 — comp={comp_name}: {result.get('_error')}")
+            return
         mentioned = bool(result.get("mentioned"))
         excerpt = result.get("excerpt", "")
         base_score = 60.0 if mentioned else 30.0
-        breakdown = {
-            "naver_exposure_confirmed": round(base_score * 0.9, 1),
-            "review_quality": round(base_score * 0.85, 1),
-            "online_mentions_t2": round(base_score * 0.75, 1),
-            "google_presence": round(base_score * 0.7, 1),
-        }
         new_entry = {
             "name": comp_name,
             "mentioned": mentioned,
             "score": base_score,
             "excerpt": excerpt,
-            "breakdown": breakdown,
+            "score_estimated": True,
         }
 
         # ── Race condition 방지: Gemini 스캔 완료 후 최신 DB 값 재조회 후 병합 ──

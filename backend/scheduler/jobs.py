@@ -504,6 +504,13 @@ async def daily_scan_all():
                                     f"comp={comp['name']}: {cr}"
                                 )
                                 continue
+                            if not cr.get("_measured", True):
+                                # API 오류·타임아웃 — "미노출"로 확정하지 않고 이번 배치 갱신을 생략
+                                logger.warning(
+                                    f"[scheduler] 경쟁사 측정 실패, 갱신 생략 — "
+                                    f"comp={comp['name']}: {cr.get('_error')}"
+                                )
+                                continue
                             is_mentioned = (cr.get("exposure_freq") or 0) > 0
                             excerpt = cr.get("excerpt") or ""
                             # Gemini 단일 스캔 결과로 간이 점수 추정 (random 제거)
@@ -3125,6 +3132,14 @@ async def check_action_rescans():
                 query = f"{region} {keyword}".strip() if region else keyword
 
                 result = await gemini.single_check(query, biz_name)
+                if not result.get("_measured", True):
+                    # API 오류·타임아웃 — "노출 안 됨"으로 확정하지 않고 rescan_done을 세팅하지 않아
+                    # 다음 날 배치에서 자동 재시도되도록 둔다 (측정 실패 ≠ 실측된 미노출)
+                    logger.warning(
+                        f"[action_rescan] Gemini 측정 실패, 다음 배치에 재시도 — "
+                        f"id={action_id}, error={result.get('_error')}"
+                    )
+                    continue
                 after_mentioned = bool(result.get("exposure_freq", 0) > 0)
 
                 score_row = await _db(

@@ -573,6 +573,7 @@ export interface SchemaResult {
   category_tips?: CategoryTips;
   extended_checklist?: Array<{ item: string; tip: string }>;
   no_website_guide?: string;
+  is_fallback?: boolean;
 }
 
 // ── 블로그 진단 (GuideClient BlogDiagnosisCard) ──────────────────────────────

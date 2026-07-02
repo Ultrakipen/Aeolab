@@ -84,6 +84,12 @@ function MiniChart({ data }: { data: TimelinePoint[] }) {
           />
           <Tooltip
             contentStyle={{ fontSize: 12, padding: '2px 8px' }}
+            formatter={(val: unknown) => {
+              if (val === null || val === undefined) return ['—', '점수']
+              const n = Number(val)
+              const grade = n >= 80 ? '우수' : n >= 60 ? '양호' : n >= 40 ? '보통' : '개선 필요'
+              return [grade, '점수']
+            }}
           />
         </LineChart>
       </ResponsiveContainer>

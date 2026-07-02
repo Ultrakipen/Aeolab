@@ -74,9 +74,11 @@ def _post_missing_msg(eligibility: str) -> str:
     return "소식 게시물 없음 — 주 1회 업로드 시 최신성 점수 유지됨"
 
 
-def _naver_briefing_exposure_msg(naver_in_briefing: bool, eligibility: str) -> str:
+def _naver_briefing_exposure_msg(naver_in_briefing: bool, eligibility: str, unmeasured: bool = False) -> str:
     if naver_in_briefing:
         return "있음 ✅"
+    if unmeasured:
+        return "측정 실패(일시적 차단·오류) — 다음 스캔에서 재확인 필요, 현재 결과로 미노출 단정 불가"
     if eligibility == "inactive":
         return "플레이스형 네이버 AI 브리핑은 현재 이 업종 비대상입니다 — 블로그·콘텐츠로 정보형 AI 브리핑 + ChatGPT·Gemini·Google AI 노출 개선 가능"
     if eligibility == "likely":
@@ -578,7 +580,10 @@ class GuideGenerator:
         briefing_header = _briefing_strategy_header(eligibility, is_franchise)
 
         # 네이버 AI 브리핑 노출 여부
-        naver_in_briefing = (scan_result.get("naver_result") or {}).get("mentioned", False)
+        _naver_res_gg = scan_result.get("naver_result") or {}
+        naver_in_briefing = _naver_res_gg.get("mentioned", False)
+        # CAPTCHA 차단·API 오류로 측정 자체가 안 된 경우 "미노출"로 단정하지 않음
+        naver_unmeasured = bool(_naver_res_gg.get("captcha_detected")) or bool(_naver_res_gg.get("error"))
 
         # 채널별 상태 요약 — INACTIVE는 글로벌 AI 우선 표기
         channel_lines = []
@@ -950,7 +955,7 @@ class GuideGenerator:
 
 ## AI 스캔 결과
 - 현재 AI 노출 빈도: {my_freq}/100회 (종합 {my_score:.1f}점)
-- 네이버 AI 브리핑 노출: {_naver_briefing_exposure_msg(naver_in_briefing, eligibility)}
+- 네이버 AI 브리핑 노출: {_naver_briefing_exposure_msg(naver_in_briefing, eligibility, naver_unmeasured)}
 - ChatGPT 노출: {'있음' if ((scan_result.get('chatgpt_result') or {}).get('mentioned') or (scan_result.get('chatgpt_result') or {}).get('exposure_freq', 0) > 0) else '없음'}
 
 {channel_section}{cross_ai_section}{track2_focus_section}{website_section}{kakao_section}{keyword_section}{v3_1_section}{stage_section}{blog_section}{sp_detail_section}{external_section}{seasonal_section}
@@ -1223,6 +1228,7 @@ async def generate_smartplace_intro(
         if drafts:
             result.setdefault("blog_title", drafts[0].get("title", ""))
             result.setdefault("blog_content", drafts[0].get("content", ""))
+        result["is_fallback"] = False
         return result
     except Exception as e:
         _logger.warning(f"generate_smartplace_intro failed: {e}")
@@ -1276,6 +1282,7 @@ async def generate_smartplace_intro(
             ],
             "blog_title": fallback_title,
             "blog_content": fallback_blog_content,
+            "is_fallback": True,
         }
 
 

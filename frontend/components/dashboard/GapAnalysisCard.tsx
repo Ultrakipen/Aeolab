@@ -150,7 +150,7 @@ export function GapAnalysisCard({ gap }: Props) {
                           {DIMENSION_LABELS[d.dimension_key] ?? d.dimension_key}
                         </span>
                         <span className="text-sm text-red-500 font-semibold shrink-0">
-                          -{Math.round(d.gap_to_top)}점 차이
+                          {d.improvement_potential === "high" ? "큰 격차" : d.improvement_potential === "medium" ? "중간 격차" : "작은 격차"}
                         </span>
                       </div>
                       <p className="text-sm text-gray-500 mt-0.5">{d.gap_reason}</p>

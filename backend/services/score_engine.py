@@ -464,6 +464,20 @@ def calc_smart_place_completeness(naver_data: dict, biz: dict) -> float:
     ))
 
 
+def _is_naver_unmeasured(scan_result: dict) -> bool:
+    """네이버 스캐너가 CAPTCHA 차단이든 API 오류든 측정 자체에 실패했는지 확인
+    (_is_google_unmeasured와 동일 패턴) — 실패를 "미노출"(0점)로 오집계하지 않기 위함.
+
+    ⚠️ 2026-07-02 발견: calc_naver_exposure()는 아직 이 플래그로 Track1 가중치를
+    재배분하지 않는다(Google의 calc_track2_score처럼). v3.0/v3.1/v3.2/v3.3 4개
+    버전의 Track1 계산 함수를 모두 손대는 건 블라스트 반경이 커서 별도 세션에서
+    회귀 테스트와 함께 진행 예정 — 현재는 guide.py/guide_generator.py의 사용자
+    노출 문구(미노출 확정 표현)만 이 플래그로 교정한다.
+    """
+    naver_result = scan_result.get("naver") or scan_result.get("naver_result") or {}
+    return bool(naver_result.get("captcha_detected")) or bool(naver_result.get("error"))
+
+
 def calc_naver_exposure(scan_result: dict) -> float:
     """네이버 AI 브리핑 실제 노출 확인 점수 (0~100).
 

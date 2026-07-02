@@ -117,4 +117,6 @@ class StartupReportService:
             "competition_level_score": level_score,  # 1=치열, 4=기회
             "top_competitors": top_competitors[:5],
             "strategy": strategy,
+            # 표본 3개 미만이면 "평균"의 대표성이 낮음 — timing_data(startup.py)와 동일 임계값
+            "is_estimated": competitor_count < 3,
         }

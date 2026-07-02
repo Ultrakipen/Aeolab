@@ -67,6 +67,8 @@ async def generate_schema(req: SchemaRequest, user: dict = Depends(get_current_u
         "blog_content": ai_content.get("blog_content", blog_drafts[0]["content"] if blog_drafts else ""),
         "keywords": build_keywords(req),
         "smartplace_checklist": SMARTPLACE_CHECKLIST,
+        # Claude 호출 실패로 일반 템플릿이 대신 반환된 경우 — 사용자에게 반드시 고지
+        "is_fallback": bool(ai_content.get("is_fallback", False)),
     }
 
     # 소개글 AI 브리핑 키워드 포함 점수

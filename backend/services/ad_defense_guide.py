@@ -14,15 +14,29 @@ class AdDefenseGuideService:
         """ChatGPT 광고 대응 가이드 생성"""
         score = scan_result.get("total_score", 0)
         chatgpt_result = scan_result.get("chatgpt_result") or {}
-        chatgpt_mentioned = chatgpt_result.get("mentioned", False)
+        # sample_n() 기반 Basic/Full 스캔 결과엔 "mentioned" 키가 없다 — exposure_freq로 폴백
+        # (guide.py:606-607의 chatgpt_mentioned 판정과 동일 패턴)
+        chatgpt_mentioned = bool(
+            chatgpt_result.get("mentioned")
+            or (chatgpt_result.get("exposure_freq", 0) or 0) > 0
+        )
         gemini_result = scan_result.get("gemini_result") or {}
         exposure_freq = gemini_result.get("exposure_freq", 0)
         sample_size = gemini_result.get("sample_size", 50)
 
         # 약한 영역 상위 3개 추출 (가이드 품질 향상)
+        # score_breakdown은 0~100 척도 점수 외에 불리언(google_captcha_blocked)·dict(track1_detail)·
+        # 문자열(user_group/model_version) 필드가 섞여 있음. bool은 int 서브클래스라
+        # isinstance(v, (int, float))를 통과하므로 명시적으로 제외해야 함.
+        _NON_SCORE_KEYS = {"google_captcha_blocked", "track1_detail", "user_group", "model_version"}
         score_breakdown = scan_result.get("score_breakdown") or {}
         weak_areas = sorted(
-            [(k, v) for k, v in score_breakdown.items() if isinstance(v, (int, float)) and v < 0.5],
+            [
+                (k, v) for k, v in score_breakdown.items()
+                if k not in _NON_SCORE_KEYS
+                and isinstance(v, (int, float)) and not isinstance(v, bool)
+                and v < 50
+            ],
             key=lambda x: x[1]
         )[:3]
         weak_areas_text = ", ".join(k for k, _ in weak_areas) if weak_areas else "없음"

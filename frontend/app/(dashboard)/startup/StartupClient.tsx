@@ -13,6 +13,7 @@ interface StartupReport {
   competition_level: string;
   competition_level_color: string;
   competition_level_score: number;
+  is_estimated?: boolean;
   top_competitors: Array<{ name: string; score: number; exposure_freq: number }>;
   timing?: {
     timing_label: string;
@@ -146,6 +147,11 @@ export function StartupClient() {
                 <div className="text-sm mt-1">경쟁 강도</div>
               </div>
             </div>
+            {report.is_estimated && (
+              <p className="text-sm text-gray-400 -mt-2 mb-2">
+                * 등록 사업장 표본이 적어 참고용 추정치입니다. 사업장이 더 등록되면 정확도가 올라갑니다.
+              </p>
+            )}
 
             {/* 창업 타이밍 지수 */}
           {report.timing && (
@@ -154,9 +160,6 @@ export function StartupClient() {
               <div className={`rounded-xl p-4 ${report.timing.timing_color === "emerald" ? "bg-emerald-50 border border-emerald-200" : report.timing.timing_color === "blue" ? "bg-blue-50 border border-blue-200" : report.timing.timing_color === "red" ? "bg-red-50 border border-red-200" : report.timing.timing_color === "amber" ? "bg-amber-50 border border-amber-200" : "bg-gray-50 border border-gray-200"}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-base font-bold">{report.timing.timing_label}</span>
-                  <span className="text-sm px-2 py-0.5 bg-white rounded-full font-medium">
-                    기회지수 {report.timing.opportunity_score}점
-                  </span>
                 </div>
                 <p className="text-sm md:text-base text-gray-600 leading-relaxed">{report.timing.reasoning}</p>
               </div>
@@ -167,12 +170,16 @@ export function StartupClient() {
               <div className="mt-4 border-t border-gray-100 pt-4">
                 <p className="text-sm font-semibold text-gray-600 mb-3">상위 경쟁사</p>
                 <div className="space-y-2.5">
-                  {report.top_competitors.map((c, i) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <span className="text-sm md:text-base text-gray-700 font-medium">{i + 1}. {c.name}</span>
-                      <span className="text-sm text-gray-500">노출 {c.exposure_freq}/100</span>
-                    </div>
-                  ))}
+                  {report.top_competitors.map((c, i) => {
+                    // 스캔 표본 크기(Basic 50회/Full 100회)를 알 수 없어 분수 대신 구간 레이블로 표시
+                    const freqLabel = c.exposure_freq >= 30 ? "자주 노출" : c.exposure_freq >= 10 ? "가끔 노출" : c.exposure_freq > 0 ? "노출 적음" : "노출 없음"
+                    return (
+                      <div key={i} className="flex items-center justify-between">
+                        <span className="text-sm md:text-base text-gray-700 font-medium">{i + 1}. {c.name}</span>
+                        <span className="text-sm text-gray-500">{freqLabel}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}

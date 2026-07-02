@@ -109,6 +109,19 @@ async def get_market_overview(category: str, region: str):
                 scores.append(s["total_score"])
                 seen.add(bid)
 
+    if count == 0:
+        # 등록 사업장 0건 = "데이터 없음"이지 "경쟁 낮음"이 아님 — 혼동 금지
+        result = {
+            "category": category,
+            "region": region,
+            "competitor_count": 0,
+            "avg_score": 0,
+            "competition_level": "데이터 수집 중",
+            "is_estimated": True,
+        }
+        _cache.set(cache_key, result, _TTL_MARKET)
+        return result
+
     avg_score = round(sum(scores) / len(scores), 1) if scores else 0
     result = {
         "category": category,
@@ -121,6 +134,8 @@ async def get_market_overview(category: str, region: str):
             "보통" if avg_score >= 40 else
             "기회 있음"
         ),
+        # 표본 3개 미만이면 "평균"의 대표성이 낮음
+        "is_estimated": count < 3,
     }
     _cache.set(cache_key, result, _TTL_MARKET)
     return result

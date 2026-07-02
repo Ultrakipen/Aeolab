@@ -755,10 +755,11 @@ async def get_my_blog_mentions(biz_id: str, user=Depends(get_current_user)):
             biz["name"],
             biz.get("region", "")
         )
-        return {"count": count}
+        return {"count": count, "measured": True}
     except Exception as e:
         logger.warning(f"blog-mentions fetch failed [{biz_id}]: {e}")
-        return {"count": 0}
+        # 크롤러 실패와 실제 0건을 구분 — count는 하위호환용, measured로 실측 여부 판별
+        return {"count": 0, "measured": False}
 
 # ─── 업종 한글명 매핑 ─────────────────────────────────────────────────────────
 _CATEGORY_LABELS = {
@@ -816,6 +817,7 @@ class TalktalkFAQGenerateRequest(BaseModel):
 class TalktalkFAQGenerateResponse(BaseModel):
     items: list[TalktalkFAQItem]
     chat_menus: list[str]
+    is_fallback: bool = False
 
 
 @router.post("/intro-generate", response_model=IntroGenerateResponse)
@@ -1117,6 +1119,7 @@ async def generate_talktalk_faq(req: TalktalkFAQGenerateRequest, user=Depends(ge
         "chat_menus": ["가격 안내", "예약 방법", "위치/교통", "영업시간", "서비스 안내"],
     }
 
+    is_fallback = False
     try:
         parsed = await _gen_talktalk(
             biz_name=biz.get("name", ""),
@@ -1128,10 +1131,12 @@ async def generate_talktalk_faq(req: TalktalkFAQGenerateRequest, user=Depends(ge
     except Exception as e:
         logger.warning(f"talktalk-faq-generate Claude call failed [biz={req.biz_id}]: {e}. using fallback")
         parsed = _TALKTALK_FALLBACK
+        is_fallback = True
 
     if not parsed or not isinstance(parsed.get("items"), list):
         logger.warning(f"talktalk-faq-generate invalid response, using fallback [biz={req.biz_id}]")
         parsed = _TALKTALK_FALLBACK
+        is_fallback = True
 
     items = [
         TalktalkFAQItem(
@@ -1144,31 +1149,37 @@ async def generate_talktalk_faq(req: TalktalkFAQGenerateRequest, user=Depends(ge
     ]
     chat_menus = (parsed.get("chat_menus") or [])[:5]
 
-    # guides 테이블에 사용 이력 + businesses 테이블에 최신 초안 저장
-    try:
-        await execute(
-            supabase.table("guides").insert({
-                "business_id": req.biz_id,
-                "context": "talktalk_faq",
-                "items_json": {"items": [i.model_dump() for i in items], "chat_menus": chat_menus},
-                "generated_at": now.isoformat(),
-            })
-        )
-    except Exception as save_err:
-        logger.warning(f"talktalk-faq-generate guides 저장 실패: {save_err}")
+    # guides 테이블에 사용 이력 저장 (월 한도 소비) — AI가 실제로 생성한 경우에만.
+    # 일반 템플릿 fallback은 사용자 요청에 응답하지 못한 것이므로 한도를 소비시키지 않는다.
+    if not is_fallback:
+        try:
+            await execute(
+                supabase.table("guides").insert({
+                    "business_id": req.biz_id,
+                    "context": "talktalk_faq",
+                    "items_json": {"items": [i.model_dump() for i in items], "chat_menus": chat_menus},
+                    "generated_at": now.isoformat(),
+                })
+            )
+        except Exception as save_err:
+            logger.warning(f"talktalk-faq-generate guides 저장 실패: {save_err}")
 
     # businesses.talktalk_faq_draft 에 최신 초안 저장 (재방문 시 재로드용)
     try:
         await execute(
             supabase.table("businesses").update({
-                "talktalk_faq_draft": {"items": [i.model_dump() for i in items], "chat_menus": chat_menus},
+                "talktalk_faq_draft": {
+                    "items": [i.model_dump() for i in items],
+                    "chat_menus": chat_menus,
+                    "is_fallback": is_fallback,
+                },
                 "talktalk_faq_generated_at": now.isoformat(),
             }).eq("id", req.biz_id)
         )
     except Exception as save_err:
         logger.warning(f"talktalk-faq-generate businesses 저장 실패 (컬럼 없을 수 있음): {save_err}")
 
-    return TalktalkFAQGenerateResponse(items=items, chat_menus=chat_menus)
+    return TalktalkFAQGenerateResponse(items=items, chat_menus=chat_menus, is_fallback=is_fallback)
 
 
 async def _import_trial_scan(business_id: str, trial_scan_id: str):

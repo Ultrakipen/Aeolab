@@ -291,6 +291,9 @@ JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거
             "exposure_rate": 1.0 if result.get("mentioned") else 0.0,
             "citations": [result.get("excerpt")] if result.get("excerpt") else [],
             "confidence": {"lower": 0, "upper": 1},
+            # 측정 실패(API 오류·타임아웃)와 실측된 미노출을 구분 (2026-07-02 파이프라인 무결성 원칙)
+            "_measured": result.get("_measured", True),
+            "_error": result.get("_error"),
         }
 
     async def single_check_with_competitors(self, query: str, target: str) -> dict:
@@ -332,6 +335,8 @@ competitors는 실제 해당 지역에 존재할 법한 업체명으로 작성�
                 "exposure_freq": 1 if mentioned else 0,
                 "exposure_rate": 1.0 if mentioned else 0.0,
                 "confidence": {"lower": 0, "upper": 1},
+                "_measured": True,
+                "_error": None,
             }
         except (asyncio.TimeoutError, Exception) as e:
             _logger.debug("gemini single_check_with_competitors failed (%s): %s", type(e).__name__, e)
@@ -347,6 +352,9 @@ competitors는 실제 해당 지역에 존재할 법한 업체명으로 작성�
                 "exposure_freq": 1 if fallback.get("mentioned") else 0,
                 "exposure_rate": 1.0 if fallback.get("mentioned") else 0.0,
                 "confidence": {"lower": 0, "upper": 1},
+                # 최초 시도 실패(e) + fallback _check()의 측정 성공 여부를 모두 반영
+                "_measured": fallback.get("_measured", False),
+                "_error": fallback.get("_error") or str(e),
             }
 
     async def scan_by_keywords(

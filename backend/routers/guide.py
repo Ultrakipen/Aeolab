@@ -602,6 +602,11 @@ async def _generate_and_save(req: GuideRequest):
             "track1_score": round(float(score_data.get("track1_score") or 0), 1) if score_data.get("track1_score") is not None else None,
             "track2_score": round(float(score_data.get("track2_score") or 0), 1) if score_data.get("track2_score") is not None else None,
             "naver_in_briefing": bool((score_data.get("naver_result") or {}).get("mentioned", False)),
+            # CAPTCHA 차단·API 오류로 측정 자체가 안 된 경우 프론트가 "미노출 확정"으로 표시하지 않도록
+            "naver_measured": not (
+                bool((score_data.get("naver_result") or {}).get("captcha_detected"))
+                or bool((score_data.get("naver_result") or {}).get("error"))
+            ),
             "chatgpt_mentioned": bool(
                 (score_data.get("chatgpt_result") or {}).get("mentioned")
                 or (score_data.get("chatgpt_result") or {}).get("exposure_freq", 0) > 0
@@ -734,20 +739,20 @@ async def generate_smartplace_faq(
             )
 
     # 키워드 결정: 사용자 제공 키워드 우선, 없으면 최신 스캔에서 자동 추출
+    # (top_missing_keywords는 scan_results의 top-level 컬럼 — gemini_result 안에 없음. 2026-07-02 수정)
     if req.keywords:
         final_keywords = req.keywords
     else:
         scan_res = await execute(
             supabase.table("scan_results")
-            .select("gemini_result")
+            .select("top_missing_keywords")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(1)
         )
         final_keywords = []
         if scan_res.data:
-            gemini = scan_res.data[0].get("gemini_result") or {}
-            final_keywords = gemini.get("top_keywords", []) or []
+            final_keywords = scan_res.data[0].get("top_missing_keywords") or []
 
     category_label = _CAT_KO.get(biz.get("category", ""), biz.get("category", ""))
     services = ", ".join(final_keywords) if final_keywords else ""
@@ -1085,10 +1090,10 @@ async def generate_blog_topics(
     region = biz.get("region", "")
     category = biz.get("category", "")
 
-    # 최신 스캔에서 top_missing_keywords 추출
+    # 최신 스캔에서 top_missing_keywords 추출 (scan_results의 top-level 컬럼 — gemini_result 안에 없음)
     scan_row = await execute(
         supabase.table("scan_results")
-        .select("gemini_result")
+        .select("top_missing_keywords")
         .eq("business_id", biz_id)
         .order("scanned_at", desc=True)
         .limit(1)
@@ -1096,8 +1101,7 @@ async def generate_blog_topics(
     )
     top_missing: list[str] = []
     if scan_row.data:
-        gemini_r = scan_row.data.get("gemini_result") or {}
-        top_missing = (gemini_r.get("top_missing_keywords") or [])[:5]
+        top_missing = (scan_row.data.get("top_missing_keywords") or [])[:5]
 
     category_ko = {
         "restaurant": "음식점", "cafe": "카페", "bakery": "베이커리·빵집",
@@ -1217,24 +1221,12 @@ async def get_keyword_completeness(
     taxonomy_key: str = _CATEGORY_ALIASES.get(category, "restaurant")
     taxonomy_dict: dict = KEYWORD_TAXONOMY.get(taxonomy_key, KEYWORD_TAXONOMY.get("restaurant", {}))
 
-    # 최신 스캔의 keyword_coverage로 covered_keywords 보완
-    scan_row = await execute(
-        supabase.table("scan_results")
-        .select("keyword_coverage")
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
-        .maybe_single()
-    )
-    scan_covered: list[str] = []
-    if scan_row and scan_row.data:
-        kw_cov = scan_row.data.get("keyword_coverage")
-        # keyword_coverage는 JSONB 또는 None일 수 있음
-        if isinstance(kw_cov, dict):
-            scan_covered = kw_cov.get("covered_keywords") or []
-
-    # 전체 covered 키워드 집합 (내 키워드 + 스캔 covered + 블로그 분석 covered)
-    all_covered_set: set[str] = set(my_keywords) | set(scan_covered) | set(blog_covered)
+    # ⚠️ 2026-07-02: 이전에는 scan_results.keyword_coverage(JSONB로 가정)에서 covered_keywords를
+    # 보완하려 했으나, 해당 컬럼은 실제로 NUMERIC(4,2) 스칼라 비율이라 dict 파싱이 항상 실패해
+    # 아무 값도 추가하지 못하는 죽은 코드였다. 실측 커버리지 키워드 목록은 gap_analyzer가 계산하는
+    # GapAnalysis.covered_keywords에만 존재하며 이 엔드포인트는 그 결과를 조회하지 않으므로 제거함.
+    # 전체 covered 키워드 집합 (내 키워드 + 블로그 분석 covered)
+    all_covered_set: set[str] = set(my_keywords) | set(blog_covered)
 
     # 카테고리별 covered/missing 분류
     category_results = []

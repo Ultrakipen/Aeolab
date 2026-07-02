@@ -133,8 +133,10 @@ export default async function CompetitorsPage({
       ? fetch(`${BACKEND}/api/businesses/${business.id}/blog-mentions`, {
           headers: { Authorization: `Bearer ${accessToken}` },
           cache: 'no-store',
-        }).then(r => r.ok ? r.json() : { count: 0 }).then((d: { count: number }) => d.count).catch(() => 0)
-      : Promise.resolve(0),
+        }).then(r => r.ok ? r.json() : { count: 0, measured: false })
+          .then((d: { count: number; measured?: boolean }) => (d.measured === false ? null : d.count))
+          .catch(() => null)
+      : Promise.resolve(null),
   ])
 
   // competitor_scores가 있는 최신 스캔 결과
@@ -239,7 +241,7 @@ export default async function CompetitorsPage({
         myScore={latestScanWithScores?.total_score ?? latestScans?.[0]?.total_score ?? 0}
         myReviewCount={business.review_count ?? 0}
         myAvgRating={business.avg_rating ?? 0}
-        myBlogMentions={myBlogMentions ?? 0}
+        myBlogMentions={myBlogMentions}
         userId={user.id}
         trendScans={trendScans ?? []}
         competitorScores={latestScanWithScores?.competitor_scores ?? null}

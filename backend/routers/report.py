@@ -423,9 +423,9 @@ async def get_benchmark(category: str, region: str):
         _cache.set(cache_key, result, _TTL_BENCHMARK)
         return result
 
-    # 3순위: 전체 서비스 평균
+    # 3순위: 전체 서비스 평균 (표본 3개 미만이면 "평균"의 대표성이 없어 다음 empty 분기로)
     scores = await _query_benchmark_scores(supabase, category=None, region=None)
-    if scores:
+    if scores and len(scores) >= 3:
         result = _compute_benchmark_stats(scores, None, None)
         result["fallback"] = "global"
         result["fallback_message"] = "데이터 수집 중입니다. 전체 평균을 표시합니다"
@@ -4097,6 +4097,10 @@ async def run_blog_analysis(
                 # 지역+키워드 조합으로 검색 (지역 없으면 키워드만)
                 search_query = f"{_biz_region} {kw}".strip() if _biz_region else kw
                 result = await analyze_blog_search(search_query, _biz_name, _competitor_names, naver_blog_id=_naver_blog_id)
+                if result.get("captcha_detected"):
+                    # 측정 실패(캡챠/차단) — my_rank=None을 "10위 밖"으로 오기록하지 않도록 저장 생략
+                    _log.warning(f"blog_analysis captcha/block, skip save | biz={_biz_id} kw={kw!r}")
+                    continue
                 _supabase = get_client()
                 await execute(
                     _supabase.table("blog_analysis")
