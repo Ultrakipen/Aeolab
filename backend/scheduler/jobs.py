@@ -254,6 +254,12 @@ def start_scheduler():
         id="v31_readiness_check_job", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
+    # [데이터 배선 확장] DataLab/Playwright 자동화 착수 조건 체크 -- daily 09:20 KST (UTC 00:20)
+    scheduler.add_job(
+        _check_data_wiring_readiness_job, "cron", hour=0, minute=20,
+        id="data_wiring_readiness_check_job", replace_existing=True,
+        max_instances=1, misfire_grace_time=600,
+    )
     # M3-1: AI탭 P2 자동 트리거 감지 — 주 2회(월·목 09:00 KST)
     scheduler.add_job(
         ai_tab_trigger_check_job, "cron", day_of_week="mon,thu", hour=9, minute=0,
@@ -5247,6 +5253,50 @@ async def _check_v31_readiness_job():
             )
     except Exception as e:
         _logger.warning(f"[P3-READY] subscriber check failed: {e}")
+
+
+async def _check_data_wiring_readiness_job():
+    """[데이터 배선 확장] beta subscriber count check — DataLab/Playwright 자동화 착수 조건 감지.
+
+    Condition A (Playwright 완전 자동화): active subscriptions >= 50 AND SMARTPLACE_AUTO_FULL_ENABLED != 'true'
+    Condition B (네이버 DataLab API 연동): active subscriptions >= 100 AND NAVER_DATALAB_ENABLED != 'true'
+    Notification: WARNING log only (no email/kakao) — 실제 설계·구현은 새 대화창에서 사람이 시작
+    """
+    import os
+    from datetime import date
+
+    playwright_done = os.getenv("SMARTPLACE_AUTO_FULL_ENABLED", "false").lower() == "true"
+    datalab_done = os.getenv("NAVER_DATALAB_ENABLED", "false").lower() == "true"
+    if playwright_done and datalab_done:
+        return  # 둘 다 이미 구현·활성화됨
+
+    try:
+        from db.supabase_client import get_supabase
+        supabase = get_supabase()
+
+        res = await _db(
+            supabase.table("subscriptions")
+            .select("id", count="exact")
+            .eq("status", "active")
+        )
+        count = res.count if (res and res.count is not None) else 0
+        today = date.today().isoformat()
+
+        if not playwright_done and count >= 50:
+            _logger.warning(
+                f"[DATA-WIRING-READY-50] {today} -- active subscriber count={count} -- "
+                "smart_place_completeness Playwright 완전 자동화 착수 조건 충족. "
+                "새 대화창에서 CLAUDE.md 남은 작업 항목 확인 후 설계 시작 "
+                "(naver_place_stats.py check_smart_place_completeness 기준 코드 최신 상태 재확인 필수)."
+            )
+        if not datalab_done and count >= 100:
+            _logger.warning(
+                f"[DATA-WIRING-READY-100] {today} -- active subscriber count={count} -- "
+                "네이버 DataLab API 연동(naver_datalab.py) 착수 조건 충족. "
+                "새 대화창에서 CLAUDE.md 남은 작업 항목 확인 후 설계 시작."
+            )
+    except Exception as e:
+        _logger.warning(f"[DATA-WIRING-READY] subscriber check failed: {e}")
 
 
 async def ai_tab_trigger_check_job():

@@ -693,6 +693,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 | **P2 AI탭 스캐너 활성화** | ⚠️ **2026-06-25 정식 출시 완료 — 트리거 충족됨.** 비로그인(헤드리스) 상태에서 AI탭이 보이는지 수동 확인 후 `docs/p2_p3_execution_runbook.md` 실행 | 없음 — 즉시 수동 확인 필요 |
 | **P2 DB v5.7 컬럼** | P2와 동시 실행 (Supabase SQL Editor) | — |
 | **P3 점수 모델 v3.1** | 백엔드 로그 `[P3-READY]` WARNING 발생 시 | ✅ 매일 09:15 KST 자동 체크 중 |
+| **데이터 배선 확장** (DataLab API·Playwright 완전 자동화) | 백엔드 로그 `[DATA-WIRING-READY-50]`(50명)/`[DATA-WIRING-READY-100]`(100명) WARNING 발생 시 — `jobs.py:_check_data_wiring_readiness_job` | ✅ 매일 09:20 KST 자동 체크 중 |
 
 **트리거 명령 전체**: `docs/p2_p3_execution_runbook.md` 참조 (런북에 최신 명령 포함)
 
@@ -703,8 +704,8 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - [ ] B2G 공식화 지자체 MOU (Phase 4)
 
 ### 미래 과제 (구독자 확보 후)
-- 네이버 DataLab API 연동 (`naver_datalab.py`) — 100명 이후
-- `smart_place_completeness` Playwright 완전 자동화 — 50명 이후
+- 네이버 DataLab API 연동 (`naver_datalab.py`) — 100명 이후. 조건 충족 자동 감지: `jobs.py:_check_data_wiring_readiness_job`
+- `smart_place_completeness` Playwright 완전 자동화 — 50명 이후. 조건 충족 자동 감지: `jobs.py:_check_data_wiring_readiness_job`
 - 경쟁사 keyword_gap 실시간 자동화 (`_enrich_competitor_excerpts` 잡 이미 구현됨)
 
 ### Google AI Overview 측정 현황 (2026-05-30 Serper.dev 활성)
