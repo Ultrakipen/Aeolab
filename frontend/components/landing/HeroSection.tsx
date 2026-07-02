@@ -250,8 +250,8 @@ export default function HeroSection() {
                 </span>
                 은 검색 상단 <strong style={{ color: "#FFFFFF" }}>AI 브리핑</strong>으로,{" "}
                 그 외 모든 업종은{" "}
-                <strong style={{ color: "#A5F3FC" }}>AI탭·블로그 콘텐츠·일반 검색</strong>으로 —
-                업종에 맞는 채널로 AI 노출 가능성을 진단합니다.
+                <strong style={{ color: "#A5F3FC" }}>AI탭·블로그 콘텐츠·일반 검색</strong>으로 —{" "}
+                블로그 콘텐츠가 채택되면 AI 브리핑도 함께 가능합니다.
               </p>
               <p
                 className="text-sm leading-relaxed break-keep"
