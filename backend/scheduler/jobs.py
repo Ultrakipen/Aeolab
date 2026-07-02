@@ -705,6 +705,22 @@ async def daily_scan_all():
                     else:
                         raise
 
+                # rank_in_category 계산 — 자동 스캔 경로도 카테고리 내 전 사업장 최신 점수 기준으로 채움
+                # (누락 시 market_position.my_rank가 자동 스캔 사용자 전체에서 항상 비어있게 됨)
+                try:
+                    from routers.scan import _calc_rank_in_category
+                    _rank, _total = await _calc_rank_in_category(
+                        supabase, biz.get("category", ""), biz["id"], score["total_score"],
+                    )
+                    await _db(
+                        supabase.table("score_history").update({
+                            "rank_in_category": _rank,
+                            "total_in_category": _total,
+                        }).eq("business_id", biz["id"]).eq("score_date", today_str)
+                    )
+                except Exception as _rank_err:
+                    logger.warning(f"[daily_scan_all] rank_in_category 계산 실패 biz={biz.get('id')}: {_rank_err}")
+
                 # GrowthStage 변화 감지 — 단계 업그레이드 시 로그 + 향후 카카오 알림 연동
                 try:
                     from services.gap_analyzer import _build_growth_stage

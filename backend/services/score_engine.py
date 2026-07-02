@@ -795,6 +795,13 @@ def _is_google_captcha(scan_result: dict) -> bool:
     return bool(google.get("captcha_detected"))
 
 
+def _is_google_unmeasured(scan_result: dict) -> bool:
+    """Google 스캐너가 CAPTCHA 차단이든 API 오류(키 만료·네트워크 실패 등)든
+    측정 자체에 실패했는지 확인 — 실패를 "노출 안 됨"(0점)으로 오집계하지 않기 위함"""
+    google = scan_result.get("google") or scan_result.get("google_result") or {}
+    return bool(google.get("captcha_detected")) or bool(google.get("error"))
+
+
 def calc_google_presence(scan_result: dict) -> float:
     """Google AI Overview 노출 점수 (0~100)"""
     google = scan_result.get("google") or scan_result.get("google_result") or {}
@@ -807,8 +814,8 @@ def calc_track2_score(scan_result: dict, biz: dict, naver_data: dict) -> float:
     schema   = calc_schema_seo(scan_result, biz)
     mentions = calc_online_mentions(naver_data)
 
-    if _is_google_captcha(scan_result):
-        # Google 측정 불가(CAPTCHA 차단) → 나머지 3개 항목 가중치 합(0.90)으로 재배분해 100점 만점 유지
+    if _is_google_unmeasured(scan_result):
+        # Google 측정 불가(CAPTCHA 차단 또는 API 오류) → 나머지 3개 항목 가중치 합(0.90)으로 재배분해 100점 만점 유지
         google_w = GLOBAL_TRACK_WEIGHTS["google_presence"]  # 0.20 (2026-06-23 상향)
         base_w   = 1.0 - google_w                           # 0.90
         score = (

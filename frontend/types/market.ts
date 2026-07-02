@@ -18,6 +18,7 @@ export interface CompetitorProfile {
   name: string;
   address?: string;
   score: number;
+  is_estimated?: boolean;          // 간이 추정 점수 — 내 사업장의 정밀 측정과 다른 방식
   grade?: "A" | "B" | "C" | "D";
   is_naver_smart_place?: boolean;
   is_on_kakao?: boolean;
@@ -48,4 +49,5 @@ export interface MarketLandscape {
   competitors: CompetitorProfile[];
   distribution: MarketDistributionBand[];
   sample_count: number;
+  benchmark_fallback?: "region" | "global" | "insufficient" | null;
 }

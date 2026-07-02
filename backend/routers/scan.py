@@ -19,6 +19,42 @@ import utils.cache as _cache
 
 _logger = logging.getLogger("aeolab")
 
+
+async def _calc_rank_in_category(supabase, category: str, my_business_id: str, my_score: float) -> tuple[int, int]:
+    """카테고리 내 순위 계산 — 각 사업장의 '최신' score_history 기준(당일 스캔 여부 무관).
+    당일에 스캔한 업체끼리만 비교하면 자동 스캔(새벽 일괄) 미대상 업체가 전부 빠져
+    표본이 부당하게 좁아지므로, 카테고리 내 전 사업장의 가장 최근 점수와 비교한다."""
+    same_cat_biz_ids = [
+        b["id"] for b in (
+            await execute(
+                supabase.table("businesses")
+                .select("id")
+                .eq("category", category)
+                .eq("is_active", True)
+            )
+        ).data or []
+    ]
+    if not same_cat_biz_ids:
+        return 1, 1
+    scores_raw = (
+        await execute(
+            supabase.table("score_history")
+            .select("business_id, total_score")
+            .in_("business_id", same_cat_biz_ids)
+            .order("score_date", desc=True)
+            .limit(len(same_cat_biz_ids) * 3)
+        )
+    ).data or []
+    latest: dict = {}
+    for r in scores_raw:
+        bid = r["business_id"]
+        if bid not in latest:
+            latest[bid] = float(r["total_score"])
+    latest[my_business_id] = my_score  # 방금 저장한 내 최신 점수로 갱신 (읽기 지연 대비)
+    total_in_category = len(latest)
+    rank_in_category = sum(1 for v in latest.values() if v > my_score) + 1
+    return rank_in_category, total_in_category
+
 # 업종 value → 한국어 검색 키워드 매핑
 _CATEGORY_KO: dict[str, str] = {
     "restaurant": "음식점", "cafe": "카페", "chicken": "치킨", "bbq": "고기집",
@@ -2312,37 +2348,18 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         except Exception as e:
             _logger.warning(f"review_snapshots insert failed (stream biz={business_id}): {e}")
 
-    # rank_in_category 계산 (score_history upsert 후)
+    # rank_in_category 계산 (score_history upsert 후) — 카테고리 내 전 사업장 최신 점수 기준
     try:
         if biz:
-            same_cat_biz_ids = [
-                b["id"] for b in (
-                    await execute(
-                        supabase.table("businesses")
-                        .select("id")
-                        .eq("category", biz.get("category", ""))
-                        .eq("is_active", True)
-                    )
-                ).data or []
-            ]
-            if same_cat_biz_ids:
-                cat_today = (
-                    await execute(
-                        supabase.table("score_history")
-                        .select("total_score")
-                        .in_("business_id", same_cat_biz_ids)
-                        .eq("score_date", str(_date.today()))
-                    )
-                ).data or []
-                total_in_category = len(cat_today)
-                my_score_val = score["total_score"]
-                rank_in_category = sum(1 for r in cat_today if r["total_score"] > my_score_val) + 1
-                await execute(
-                    supabase.table("score_history").update({
-                        "rank_in_category": rank_in_category,
-                        "total_in_category": total_in_category,
-                    }).eq("business_id", business_id).eq("score_date", str(_date.today()))
-                )
+            rank_in_category, total_in_category = await _calc_rank_in_category(
+                supabase, biz.get("category", ""), business_id, score["total_score"],
+            )
+            await execute(
+                supabase.table("score_history").update({
+                    "rank_in_category": rank_in_category,
+                    "total_in_category": total_in_category,
+                }).eq("business_id", business_id).eq("score_date", str(_date.today()))
+            )
     except Exception as e:
         _logger.warning(f"rank_in_category update failed (stream biz={business_id}): {e}")
 
@@ -3353,35 +3370,17 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 }, on_conflict="business_id,score_date")
             )
 
-            # rank_in_category 계산
+            # rank_in_category 계산 — 카테고리 내 전 사업장 최신 점수 기준
             if biz:
-                same_cat_biz_ids = [
-                    b["id"] for b in (
-                        await execute(
-                            supabase.table("businesses")
-                            .select("id")
-                            .eq("category", biz.get("category", ""))
-                            .eq("is_active", True)
-                        )
-                    ).data or []
-                ]
-                if same_cat_biz_ids:
-                    cat_today = (
-                        await execute(
-                            supabase.table("score_history")
-                            .select("total_score")
-                            .in_("business_id", same_cat_biz_ids)
-                            .eq("score_date", str(_date.today()))
-                        )
-                    ).data or []
-                    total_in_category = len(cat_today)
-                    rank_in_category = sum(1 for r in cat_today if r["total_score"] > score["total_score"]) + 1
-                    await execute(
-                        supabase.table("score_history").update({
-                            "rank_in_category": rank_in_category,
-                            "total_in_category": total_in_category,
-                        }).eq("business_id", req.business_id).eq("score_date", str(_date.today()))
-                    )
+                rank_in_category, total_in_category = await _calc_rank_in_category(
+                    supabase, biz.get("category", ""), req.business_id, score["total_score"],
+                )
+                await execute(
+                    supabase.table("score_history").update({
+                        "rank_in_category": rank_in_category,
+                        "total_in_category": total_in_category,
+                    }).eq("business_id", req.business_id).eq("score_date", str(_date.today()))
+                )
         except Exception as e:
             import logging
             logging.getLogger(__name__).warning(f"score_history save failed: {e}")

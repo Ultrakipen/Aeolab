@@ -504,15 +504,34 @@ async def get_market(biz_id: str, user=Depends(get_current_user)):
         entry = raw_comp_scores.get(c["id"]) or {}
         score = float(entry.get("score", 0)) if isinstance(entry, dict) else float(entry or 0)
         competitor_profiles.append({
-            "id":      c["id"],
-            "name":    c["name"],
-            "address": c.get("address"),
-            "score":   score,
+            "id":           c["id"],
+            "name":         c["name"],
+            "address":      c.get("address"),
+            "score":        score,
+            # 경쟁사 점수는 언급 여부·발췌문 길이 기반 간이 추정치(rule-based)이며,
+            # 내 사업장의 50~100회 멀티 AI 정밀 측정과 동일한 방식이 아님 — 반드시 구분 표시
+            "is_estimated": True,
         })
     competitor_profiles.sort(key=lambda x: x["score"], reverse=True)
 
-    # 업종·지역 벤치마크 (MarketDistribution)
+    # 업종·지역 벤치마크 (MarketDistribution) — /benchmark와 동일한 최소 표본 게이트 적용
+    # (표본 부족 시 "업종 평균"으로 단정 표시하지 않기 위함)
     benchmark_scores = await _query_benchmark_scores(supabase, category=category, region=region)
+    benchmark_fallback = None
+    if not (benchmark_scores and len(benchmark_scores) >= 5):
+        national_scores = await _query_benchmark_scores(supabase, category=category, region=None)
+        if national_scores and len(national_scores) >= 3:
+            benchmark_scores = national_scores
+            benchmark_fallback = "region"
+        else:
+            global_scores = await _query_benchmark_scores(supabase, category=None, region=None)
+            if global_scores:
+                benchmark_scores = global_scores
+                benchmark_fallback = "global"
+            else:
+                benchmark_scores = []
+                benchmark_fallback = "insufficient"
+
     avg_score = top10_score = 0.0
     distribution = []
     percentile   = None
@@ -556,6 +575,7 @@ async def get_market(biz_id: str, user=Depends(get_current_user)):
         # MarketDistribution
         "distribution":   distribution,
         "sample_count":   len(benchmark_scores),
+        "benchmark_fallback": benchmark_fallback,
     }
     _cache.set(cache_key, result, _TTL_RANKING)
     return result
@@ -3383,7 +3403,9 @@ async def get_competitor_faq_gap(
         if comp_only:
             pooled_rows = []
             for kw in comp_only[:10]:
-                sources = comp_kw_sources.get(kw) or []
+                # comp_kw_sources는 {경쟁사명: [키워드,...]}로 구성되므로 kw(키워드)로 직접 조회하면
+                # 항상 빈 값이 됨 — 키워드를 보유한 경쟁사명을 역으로 찾아야 함
+                sources = [name for name, kws in comp_kw_sources.items() if kw in (kws or [])]
                 pooled_rows.append({
                     "question": _kw_to_qa_question(kw),
                     "asked_by": sources[:3] if sources else ["경쟁사"],

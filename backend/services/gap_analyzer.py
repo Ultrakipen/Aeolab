@@ -949,6 +949,9 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
             keyword_gap=keyword_gap_result,
             growth_stage=growth_stage,
             blog_diagnosis=blog_diagnosis,
+            # 경쟁사 미등록 — "업종 평균"은 실제 표본이 아니라 내 점수 기준 수식(+10/+15/55.0 고정)으로
+            # 가공한 값이므로 반드시 추정 플래그를 표시해야 함 (CLAUDE.md "계산 근거 없는 추정 점수" 금지 원칙)
+            is_competitor_estimated=True,
         )
 
     gap_result = analyze_gap(

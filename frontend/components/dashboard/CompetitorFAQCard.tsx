@@ -37,7 +37,7 @@ export default function CompetitorFAQCard({ bizId, accessToken }: Props) {
   useEffect(() => {
     if (!accessToken) return;
     setLoading(true);
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
     fetch(`${apiBase}/api/report/competitor-faq-gap/${bizId}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })

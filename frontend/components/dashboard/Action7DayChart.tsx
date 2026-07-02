@@ -21,6 +21,14 @@ function scoreToLabel(score: number | null | undefined): string {
   return "우수";
 }
 
+function getDeltaLabel(delta: number): string {
+  if (delta > 5)    return "크게 향상";
+  if (delta > 0.5)  return "소폭 향상";
+  if (delta < -5)   return "크게 하락";
+  if (delta < -0.5) return "소폭 하락";
+  return "변화 없음";
+}
+
 interface TimelinePoint {
   date: string;
   score: number | null;
@@ -151,7 +159,7 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
               7일 후{" "}
               <span className={delta >= 0 ? "font-bold text-emerald-700" : "font-bold text-red-600"}>
                 <span className="font-semibold">{scoreToLabel(activeWindow.score_after)}</span>
-                {" "}({delta >= 0 ? "+" : ""}{delta}점)
+                {" "}({getDeltaLabel(delta)})
               </span>
             </>
           )}

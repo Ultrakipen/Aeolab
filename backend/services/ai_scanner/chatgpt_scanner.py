@@ -61,13 +61,16 @@ class ChatGPTScanner:
                 )
                 text = resp.choices[0].message.content or ""
                 m = re.search(r"\{.*?\}", text, re.DOTALL)
-                return json.loads(m.group()) if m else {"mentioned": False}
+                if m:
+                    return json.loads(m.group())
+                _logger.debug("chatgpt _check unparseable response: query=%s", query[:50])
+                return {"mentioned": False, "_measured": False, "_error": "unparseable"}
             except asyncio.TimeoutError:
                 _logger.debug("chatgpt _check timed out (20s): query=%s", query[:50])
-                return {"mentioned": False}
+                return {"mentioned": False, "_measured": False, "_error": "timeout"}
             except Exception as e:
                 _logger.debug("chatgpt _check failed: %s", e)
-                return {"mentioned": False}
+                return {"mentioned": False, "_measured": False, "_error": str(e)}
 
     def _wilson_ci(self, k: int, n: int) -> dict:
         """Wilson 신뢰구간 (95%)"""
@@ -96,27 +99,33 @@ class ChatGPTScanner:
             task_queries.extend([q] * (base + (1 if i < rem else 0)))
 
         mention_count = 0
+        success_count = 0
         citations = []
         for batch_start in range(0, n, 10):
             batch = task_queries[batch_start:batch_start + 10]
             tasks = [self._check(q, target) for q in batch]
             results = await asyncio.gather(*tasks, return_exceptions=True)
             for r in results:
-                if isinstance(r, Exception):
+                if isinstance(r, Exception) or not r.get("_measured", True):
                     continue
+                success_count += 1
                 if r.get("mentioned"):
                     mention_count += 1
                     if r.get("excerpt"):
                         citations.append(r["excerpt"])
             await asyncio.sleep(1.0)
 
+        # sample_size는 실제 성공 측정 건수 — 실패(타임아웃·API 오류·파싱 실패) 건은
+        # "측정 안 됨"으로 분모에서 제외한다 (실패를 "언급 안 됨"으로 오집계 방지)
         return {
             "platform": "chatgpt",
             "exposure_freq": mention_count,
-            "exposure_rate": mention_count / n,
+            "exposure_rate": (mention_count / success_count) if success_count > 0 else 0.0,
             "citations": citations[:5],
-            "confidence": self._wilson_ci(mention_count, n),
-            "sample_size": n,
+            "confidence": self._wilson_ci(mention_count, success_count),
+            "sample_size": success_count,
+            "requested_size": n,
+            "failed_count": n - success_count,
             "queries_used": query_list,
         }
 
