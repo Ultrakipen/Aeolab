@@ -50,8 +50,8 @@ export function IndustryTrendClientWrapper({ category, categoryCode, region, isP
           {/* 샘플 미리보기 — 흐릿하게 */}
           <div className="blur-sm pointer-events-none select-none">
             <div className="flex items-end gap-1 h-20 mb-2">
-              {[40, 55, 48, 62, 70, 65, 78].map((h, i) => (
-                <div key={i} className="flex-1 bg-blue-200 rounded-t" style={{ height: `${h}%` }} />
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="flex-1 bg-gray-200 rounded-t" style={{ height: "50%" }} />
               ))}
             </div>
             <div className="flex justify-between text-sm text-gray-300">
