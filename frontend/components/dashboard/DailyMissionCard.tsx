@@ -40,7 +40,7 @@ const DIMENSION_MESSAGES: Record<string, {
     linkLabel: '소개글 Q&A 복사하러 가기',
   },
   multi_ai_exposure: {
-    reason: 'ChatGPT·Gemini에서 손님이 검색해도 내 가게가 답변에 나오지 않습니다',
+    reason: 'ChatGPT·Gemini AI 검색에서 내 가게 노출이 낮습니다',
     action: 'Google 비즈니스 프로필 무료 등록이 첫 단계입니다. Gemini는 2~4주, ChatGPT는 수개월~1년 소요됩니다.',
     link: '/guide',
     linkLabel: '개선 가이드 보기',
