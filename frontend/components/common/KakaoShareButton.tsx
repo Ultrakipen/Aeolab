@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { trackKakaoShareClick } from "@/lib/analytics";
+import { getStageView } from "@/lib/scoreLabels";
 
 interface KakaoShareButtonProps {
   score: number;
@@ -62,12 +63,12 @@ export default function KakaoShareButton({
   }, [trialId, score, businessName, category, region]);
 
   const buildDescription = useCallback(() => {
+    // 점수 숫자는 표시하지 않고 텍스트 레이블만 노출 (점수 표시 원칙, 2026-06-10 확정)
     const parts: string[] = [];
-    parts.push(`점수 ${Math.round(score)}점 / 100점`);
+    parts.push(getStageView(score).label);
     if (benchmarkAvg && benchmarkAvg > 0) {
-      parts.push(
-        `"${region} ${category}" 업종 평균 ${Math.round(benchmarkAvg)}점`,
-      );
+      const cmp = score >= benchmarkAvg ? "업종 평균 이상" : "업종 평균 이하";
+      parts.push(`"${region} ${category}" ${cmp}`);
     } else if (category || region) {
       parts.push(`${region || ""} ${category || ""}`.trim());
     }

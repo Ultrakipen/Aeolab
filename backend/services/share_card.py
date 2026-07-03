@@ -5,9 +5,13 @@
 
 디자인 (600x400 PNG):
 - 상단 파란색 띠(#2563eb, 56px) + "AEOlab · AI 검색 노출 진단"
-- 중앙 점수 카드: 점수 72px bold + "/ 100점" + 사업장 이름 + 업종 평균 비교
+- 중앙 점수 카드: 텍스트 레이블(예: "AI 검색 노출 양호") + 사업장 이름 + 업종 평균 비교(텍스트)
 - 하단 부가 정보 2줄: 네이버 AI 브리핑 노출률 + ChatGPT 인용 횟수
 - 하단 회색 고지: "무료 진단 · 회원가입 불필요"
+
+⚠️ 점수 숫자(72점 등)는 렌더링하지 않는다 — 텍스트 레이블 전용 원칙
+(CLAUDE.md "점수 표시 원칙", 2026-06-10 확정). 임계값은 frontend
+lib/scoreLabels.ts의 getStageView()와 동일하게 맞출 것(75/55/30).
 """
 import io
 import logging
@@ -65,6 +69,19 @@ def _category_label(category: str) -> str:
     if not category:
         return "사업장"
     return _CATEGORY_LABELS.get(category.lower().strip(), "사업장")
+
+
+def _score_stage_label(score: float) -> str:
+    """점수 → 텍스트 레이블. frontend lib/scoreLabels.ts의 getStageView()와
+    동일 임계값(75/55/30) 유지 — 드리프트 시 두 파일 함께 갱신할 것."""
+    s = score or 0
+    if s >= 75:
+        return "AI 검색 노출 양호"
+    if s >= 55:
+        return "AI 검색 노출 개선 중"
+    if s >= 30:
+        return "AI 검색 노출 미흡"
+    return "AI 검색 노출 시작 전"
 
 
 def _region_label(region: Optional[str]) -> str:
@@ -141,8 +158,7 @@ def render_trial_share_card(
 
     # 폰트 로드
     f_brand    = _load_font(_FONT_BOLD_PATHS, 18)
-    f_score    = _load_font(_FONT_BOLD_PATHS, 72)
-    f_score_u  = _load_font(_FONT_REG_PATHS,  24)
+    f_stage    = _load_font(_FONT_BOLD_PATHS, 34)
     f_biz      = _load_font(_FONT_BOLD_PATHS, 28)
     f_compare  = _load_font(_FONT_REG_PATHS,  16)
     f_sub      = _load_font(_FONT_REG_PATHS,  18)
@@ -152,53 +168,33 @@ def render_trial_share_card(
     draw.text((24, BAND_H // 2), "AEOlab · AI 검색 노출 진단",
               fill="#FFFFFF", font=f_brand, anchor="lm")
 
-    # ── 중앙 점수 영역 ──────────────────────────────────────────
-    # 점수는 정수로 반올림 표기
-    score_int = max(0, min(100, int(round(score or 0))))
-
-    # "67" (큰 숫자) + "/ 100점" 을 한 줄에 조합 배치
-    score_text = str(score_int)
-    unit_text  = " / 100점"
-
-    # 점수 텍스트 너비 측정
-    try:
-        score_bbox = draw.textbbox((0, 0), score_text, font=f_score)
-        score_w = score_bbox[2] - score_bbox[0]
-        unit_bbox = draw.textbbox((0, 0), unit_text, font=f_score_u)
-        unit_w = unit_bbox[2] - unit_bbox[0]
-    except Exception:
-        # 기본 폰트 폴백 시 textbbox 미지원 가능
-        score_w = len(score_text) * 40
-        unit_w = len(unit_text) * 12
-
-    total_w = score_w + unit_w
-    score_y = BAND_H + 32       # 상단 띠 바로 아래 여백
-    start_x = (W - total_w) // 2
-
-    draw.text((start_x, score_y), score_text, fill="#1F2937", font=f_score, anchor="lt")
-    # unit은 숫자 베이스라인과 맞추기 위해 조금 아래
-    draw.text((start_x + score_w, score_y + 38), unit_text,
-              fill="#6B7280", font=f_score_u, anchor="lt")
+    # ── 중앙 상태 레이블 영역 ──────────────────────────────────
+    # 점수 숫자는 표시하지 않고 텍스트 레이블만 노출 (점수 표시 원칙)
+    stage_text = _score_stage_label(score)
+    stage_y = BAND_H + 48       # 상단 띠 바로 아래 여백
+    draw.text((W // 2, stage_y), stage_text, fill="#1F2937",
+              font=f_stage, anchor="mm")
 
     # 사업장 이름 (중앙 정렬, 12자 이상이면 truncate)
     biz_display = business_name or "내 가게"
     if len(biz_display) > 14:
         biz_display = biz_display[:13] + "…"
-    biz_y = score_y + 100
+    biz_y = stage_y + 60
     draw.text((W // 2, biz_y), biz_display, fill="#1F2937",
               font=f_biz, anchor="mm")
 
-    # 업종·지역 비교 (category_avg가 있을 때만)
+    # 업종·지역 비교 (category_avg가 있을 때만) — 숫자 대신 이상/이하 텍스트만
     cat_lbl = category_label or "사업장"
     region_lbl = _region_label(region)
     if category_avg is not None:
         try:
-            avg_int = int(round(float(category_avg)))
+            avg_val = float(category_avg)
         except (TypeError, ValueError):
-            avg_int = None
-        if avg_int is not None:
+            avg_val = None
+        if avg_val is not None:
             prefix = f"{region_lbl} {cat_lbl}" if region_lbl else cat_lbl
-            compare_text = f"{prefix} 업종 평균 {avg_int}점"
+            cmp_word = "평균 이상" if (score or 0) >= avg_val else "평균 이하"
+            compare_text = f"{prefix} 업종 {cmp_word}"
             draw.text((W // 2, biz_y + 30), compare_text,
                       fill="#6B7280", font=f_compare, anchor="mm")
 
