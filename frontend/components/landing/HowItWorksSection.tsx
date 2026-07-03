@@ -35,7 +35,7 @@ const steps = [
     description:
       "7일마다 자동 재측정, AI 맞춤 개선 가이드로 지속 개선합니다. 네이버 관련 노출은 2~4주, Gemini는 수 주~수개월, ChatGPT는 수개월~1년 안에 변화가 나타납니다.",
     tags: ["7일 자동 재측정", "AI 개선 가이드"],
-    emphasis: "월 9,900원 · 위약금 없이 해지",
+    emphasis: "월 9,900원 · 7일 내 환불 가능",
     emphasisClass: "text-emerald-600",
   },
 ] as const;

@@ -1854,7 +1854,7 @@ function StickySignupBanner({
             7일 후 AI가 내 가게를 인식했는지 자동으로 확인해 드립니다
           </p>
           <p className="text-xs text-blue-200 mt-0.5">
-            첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 · 위약금 없이 해지
+            첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 · 7일 내 환불 가능
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">

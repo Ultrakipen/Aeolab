@@ -432,7 +432,7 @@ export default function ConversionGuideSection({ bizId, plan }: Props) {
           <p className="text-sm text-center text-gray-500 mt-2">
             {isPaid
               ? "가이드 페이지에서 리뷰 답변 초안·FAQ·소식 초안을 업종별 맞춤으로 받을 수 있습니다."
-              : "가입 후 모든 복사 문구와 경로별 상세 가이드를 바로 사용할 수 있습니다. 위약금 없이 언제든 취소 가능."}
+              : "가입 후 모든 복사 문구와 경로별 상세 가이드를 바로 사용할 수 있습니다. 7일 이내 미사용 시 100% 환불 가능합니다."}
           </p>
         </div>
       )}

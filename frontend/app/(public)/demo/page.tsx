@@ -1190,7 +1190,7 @@ export default function DemoPage() {
                 1분 무료 회원가입
               </Link>
             </div>
-            <p className="text-sm text-white/50 text-center">Basic 월 9,900원부터 · 위약금 없이 언제든 해지</p>
+            <p className="text-sm text-white/50 text-center">Basic 월 9,900원부터 · 7일 이내 미사용 시 100% 환불</p>
           </div>
           <div className="bg-black/20 px-5 md:px-8 py-5">
             <p className="text-sm md:text-base font-bold text-white/60 mb-3 uppercase tracking-wide">시작하면 이렇게 됩니다</p>
