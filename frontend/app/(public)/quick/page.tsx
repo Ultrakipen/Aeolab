@@ -561,7 +561,7 @@ export default function QuickPage() {
             >
               무료 회원가입으로 매주 자동 분석받기
             </Link>
-            <p className="text-center text-sm text-gray-500">Basic 월 9,900원 · 언제든 해지 가능</p>
+            <p className="text-center text-sm text-gray-500">Basic 월 9,900원 · 위약금 없이 언제든 해지</p>
 
             {/* 다시 진단 */}
             <button

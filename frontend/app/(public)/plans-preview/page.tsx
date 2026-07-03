@@ -535,7 +535,7 @@ function BasicContent({ d }: { d: MockData }) {
         <Link href="/signup?plan=basic" className="inline-block bg-indigo-600 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors">
           지금 구독하기 →
         </Link>
-        <p className="text-sm text-gray-500 mt-3">30일 무료 체험 없이 바로 시작 · 언제든 해지 가능</p>
+        <p className="text-sm text-gray-500 mt-3">30일 무료 체험 없이 바로 시작 · 위약금 없이 언제든 해지</p>
       </div>
     </div>
   );
@@ -930,7 +930,7 @@ export default function PlansPreviewPage() {
           </Link>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-4">언제든 해지 가능 · 구독 후 즉시 이용</p>
+        <p className="text-center text-sm text-gray-500 mt-4">위약금 없이 언제든 해지 · 구독 후 즉시 이용</p>
       </div>
     </div>
   );

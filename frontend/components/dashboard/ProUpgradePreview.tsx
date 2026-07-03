@@ -66,7 +66,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
           <h2 className="text-base md:text-lg font-bold text-gray-900">
             Pro로 업그레이드하면 이런 결과가 추가됩니다
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">Pro · 월 18,900원 · 언제든 해지 가능</p>
+          <p className="text-sm text-gray-500 mt-0.5">Pro · 월 18,900원 · 위약금 없이 언제든 해지</p>
         </div>
         <Link
           href="/pricing"
@@ -282,7 +282,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
               지금 Pro로 전환하면 위 기능을 즉시 이용할 수 있습니다
             </p>
             <p className="text-sm text-gray-400 mt-0.5">
-              현재 스캔 데이터는 Pro 전환 후에도 그대로 유지됩니다 · 언제든 해지 가능
+              현재 스캔 데이터는 Pro 전환 후에도 그대로 유지됩니다 · 위약금 없이 언제든 해지
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">

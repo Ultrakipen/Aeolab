@@ -184,7 +184,7 @@ export default function PlanRecommender() {
           </div>
 
           <p className="text-sm text-gray-400 text-center mt-2">
-            언제든지 설정에서 해지 가능 · 카드 자동결제
+            위약금 없이 언제든지 설정에서 해지 가능 · 카드 자동결제
           </p>
         </div>
       )}

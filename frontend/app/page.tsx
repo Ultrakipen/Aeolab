@@ -1019,7 +1019,7 @@ export default async function LandingPage() {
 
           <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 px-5 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-sm font-semibold text-blue-800 break-keep">
-              모든 기능은 첫 달 4,950원으로 시작 · 언제든 해지 가능
+              Basic 첫 달 4,950원부터 시작 · 위약금 없이 언제든 해지
             </p>
             <a href="/signup" className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold text-white transition-colors" style={{ background: "#2563EB" }}>
               지금 시작 →
@@ -1167,7 +1167,7 @@ export default async function LandingPage() {
                   className="inline-flex items-center gap-1 text-sm px-2 py-1 rounded-full border"
                   style={{ color: "#065F46", background: "#ECFDF5", borderColor: "#6EE7B7" }}
                 >
-                  <Check size={10} strokeWidth={2.5} />언제든 해지
+                  <Check size={10} strokeWidth={2.5} />위약금 없이 해지
                 </span>
               </div>
             </div>
@@ -1184,7 +1184,7 @@ export default async function LandingPage() {
               요금제 보기 →
             </Link>
             <p className="text-sm mt-1.5" style={{ color: "#475569" }}>
-              Basic 첫 달 4,950원 · 언제든 해지 가능
+              Basic 첫 달 4,950원 · 위약금 없이 언제든 해지
             </p>
           </div>
         </div>

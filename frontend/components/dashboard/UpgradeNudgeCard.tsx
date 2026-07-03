@@ -101,7 +101,7 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
         Basic 시작하기 — 첫 달 {discountPrice}원
         <ArrowRight className="w-4 h-4" />
       </Link>
-      <p className="text-sm text-gray-500 mt-2">첫 달 50% 할인 · 언제든 해지 가능</p>
+      <p className="text-sm text-gray-500 mt-2">첫 달 50% 할인 · 위약금 없이 언제든 해지</p>
     </div>
   );
 }
