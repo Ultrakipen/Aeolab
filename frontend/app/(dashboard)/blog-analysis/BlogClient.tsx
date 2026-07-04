@@ -27,6 +27,7 @@ import { addExcludedKeyword } from "@/lib/api";
 import Link from "next/link";
 import { getBriefingEligibility, type BriefingEligibility } from "@/lib/userGroup";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
+import { getScoreTextLabel } from "@/lib/scoreLabels";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 const STALE_DAYS = 7;
@@ -918,6 +919,100 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
   );
 }
 
+/* ── BlogScoreTrendChart ── */
+interface BlogScoreHistoryPoint {
+  analyzed_date: string;
+  citation_score: number;
+  keyword_coverage: number | null;
+  post_count: number | null;
+  freshness: string | null;
+}
+
+function BlogScoreTrendChart({ businessId, token }: { businessId: string; token: string }) {
+  const [history, setHistory] = useState<BlogScoreHistoryPoint[] | null>(null);
+
+  useEffect(() => {
+    if (!businessId || !token) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${BACKEND}/api/blog/score-history/${businessId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setHistory(data?.history ?? []);
+      } catch {
+        if (!cancelled) setHistory([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [businessId, token]);
+
+  if (history === null) return null; // 로딩 중 — 자리 차지 안 함
+  if (history.length < 2) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <TrendingUp className="w-5 h-5 text-gray-400 shrink-0" />
+          <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 진단 점수 추이</h3>
+        </div>
+        <p className="text-sm text-gray-500">분석을 2회 이상 진행하면 추세 차트가 표시됩니다.</p>
+      </div>
+    );
+  }
+
+  const points = history.slice(-30);
+  const latest = points[points.length - 1];
+  const first = points[0];
+
+  const renderSeries = (label: string, key: "citation_score" | "keyword_coverage") => {
+    const vals = points.map((p) => p[key] ?? 0);
+    const max = Math.max(...vals, 1);
+    const min = Math.min(...vals, 0);
+    const range = max - min || 1;
+    return (
+      <div className="mb-4 last:mb-0">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-sm font-semibold text-gray-700">{label}</span>
+          <span className="text-sm text-gray-500">
+            현재 <span className="font-medium text-blue-700">{getScoreTextLabel(latest[key] ?? 0)}</span>
+          </span>
+        </div>
+        <div className="flex items-end gap-1 h-12">
+          {points.map((p, idx) => {
+            const v = p[key] ?? 0;
+            const heightPct = ((v - min) / range) * 70 + 30;
+            const isLatest = idx === points.length - 1;
+            return (
+              <div
+                key={p.analyzed_date}
+                className={`flex-1 rounded-t-sm ${isLatest ? "bg-blue-500" : "bg-blue-200"}`}
+                style={{ height: `${heightPct}%` }}
+                title={`${p.analyzed_date}: ${getScoreTextLabel(v)}`}
+              />
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-1">
+        <TrendingUp className="w-5 h-5 text-blue-500 shrink-0" />
+        <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 진단 점수 추이</h3>
+      </div>
+      <p className="text-sm text-gray-400 mb-4">
+        {first.analyzed_date} ~ {latest.analyzed_date}
+      </p>
+      {renderSeries("AI 인용 준비도", "citation_score")}
+      {renderSeries("키워드 커버리지", "keyword_coverage")}
+    </div>
+  );
+}
+
 /* ── DuplicateTopicsWarning ── */
 function DuplicateTopicsWarning({ topics, isInactive = false }: { topics: NonNullable<BlogAnalysisResult["duplicate_topics"]>; isInactive?: boolean }) {
   if (!topics || topics.length === 0) return null;
@@ -1680,6 +1775,9 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 </div>
               </div>
             )}
+
+            {/* A-2. 블로그 진단 점수 추이 (30일) */}
+            {token && <BlogScoreTrendChart businessId={business.id} token={token} />}
 
             {/* B. AI 브리핑 가장 가까운 포스트 */}
             {result.best_citation_candidate && (

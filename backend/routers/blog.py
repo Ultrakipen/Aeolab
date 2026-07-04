@@ -298,6 +298,22 @@ async def analyze_blog_endpoint(
     except Exception as e:
         _logger.warning(f"blog analysis usage log failed: {e}")
 
+    # blog_score_history upsert — 성공 경로에서만 실행 (_analysis_failed 얼리 리턴으로 보장)
+    try:
+        await execute(
+            supabase.table("blog_score_history")
+            .upsert({
+                "business_id": request.business_id,
+                "analyzed_date": datetime.now(timezone.utc).date().isoformat(),
+                "citation_score": analysis.get("ai_readiness_score", 0),
+                "keyword_coverage": analysis.get("keyword_coverage", 0.0),
+                "post_count": analysis.get("post_count", 0),
+                "freshness": analysis.get("freshness", "outdated"),
+            }, on_conflict="business_id,analyzed_date")
+        )
+    except Exception as e:
+        _logger.warning(f"blog_score_history upsert 실패 [biz={request.business_id}]: {e}")
+
     return analysis_json
 
 
@@ -379,3 +395,47 @@ async def get_blog_result(
         "monthly_used": monthly_used,
         "monthly_limit": limit,
     }
+
+
+@router.get("/score-history/{business_id}")
+async def get_blog_score_history(
+    business_id: str,
+    user: dict = Depends(get_current_user),
+):
+    """블로그 진단 점수 30일 추세 (Basic+)"""
+    user_id = user["id"]
+    supabase = get_client()
+
+    biz_row = (await execute(
+        supabase.table("businesses").select("id, user_id").eq("id", business_id).single()
+    )).data
+    if not biz_row:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+    if biz_row["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="접근 권한 없음")
+
+    plan = await get_user_plan(user_id, supabase)
+    if PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["blog_monthly"] == 0:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "PLAN_REQUIRED",
+                "message": "블로그 진단은 Basic 플랜부터 이용 가능합니다.",
+                "upgrade_url": "/pricing",
+            },
+        )
+
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).date().isoformat()
+    try:
+        rows = (await execute(
+            supabase.table("blog_score_history")
+            .select("analyzed_date, citation_score, keyword_coverage, post_count, freshness")
+            .eq("business_id", business_id)
+            .gte("analyzed_date", cutoff)
+            .order("analyzed_date")
+        )).data or []
+    except Exception as e:
+        _logger.warning(f"blog_score_history 조회 실패 [biz={business_id}]: {e}")
+        rows = []
+
+    return {"business_id": business_id, "history": rows}
