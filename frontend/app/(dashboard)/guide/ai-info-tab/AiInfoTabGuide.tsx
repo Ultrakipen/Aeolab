@@ -201,6 +201,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                   <span className="mt-0.5 flex-shrink-0 font-bold">②</span>
                   <span>
                     <strong>사진 10장 이상</strong> 등록 — 외관·내부·서비스 현장 사진
+                    <span className="ml-1 text-indigo-400">(개수 기준. 아래 &apos;필수 사진 5종&apos;은 어떤 종류를 채워야 하는지 안내)</span>
                     {photoCount !== null && (
                       <span
                         className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-sm font-semibold ${

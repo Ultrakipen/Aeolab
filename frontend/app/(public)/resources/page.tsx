@@ -114,7 +114,7 @@ export default function ResourcesPage() {
           업종별 AI 검색 노출 가이드
         </h1>
         <p className="text-base md:text-lg text-gray-600 max-w-2xl leading-relaxed break-keep mb-2">
-          네이버 AI 브리핑·ChatGPT·Gemini에서 우리 가게가 먼저 언급되려면 무엇을 준비해야 할까요?
+          네이버 AI 브리핑·AI탭·ChatGPT·Gemini에서 우리 가게가 먼저 언급되려면 무엇을 준비해야 할까요?
           업종별 체크리스트로 지금 바로 확인하세요.
         </p>
         <p className="text-sm text-gray-400 mb-8">
