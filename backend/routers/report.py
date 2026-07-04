@@ -3880,7 +3880,11 @@ async def capture_blog_screenshots(
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    # TODO: 개발 중 플랜 제한 비활성화 — 출시 전 복구 필요
+    # 플랜 체크 (Basic 이상, get_user_plan 단일 소스: ADMIN_EMAILS 우회 포함)
+    from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
+    plan = await get_user_plan(user["id"], supabase)
+    if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
+        raise HTTPException(status_code=403, detail="Basic 이상 구독이 필요합니다.")
 
     # 사업장 키워드 + 지역 조회
     biz_res = await execute(
@@ -4039,8 +4043,39 @@ async def run_blog_analysis(
         except Exception as e:
             _logger.warning("admin 이메일 조회 실패 (is_admin=False 유지): %s", e)
 
-    # TODO: 개발 중 플랜·횟수 제한 비활성화 — 출시 전 복구 필요
-    # 플랜 체크 및 하루 1회 제한 임시 해제
+    # 플랜 체크 (Basic 이상, get_user_plan 단일 소스: ADMIN_EMAILS 우회 포함)
+    from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
+    plan = await get_user_plan(user["id"], supabase)
+    if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
+        raise HTTPException(status_code=403, detail="Basic 이상 구독이 필요합니다.")
+
+    # 하루 1회 제한 체크 (관리자 예외)
+    if not is_admin:
+        last_res = await execute(
+            supabase.table("blog_analysis")
+            .select("analyzed_at")
+            .eq("business_id", biz_id)
+            .order("analyzed_at", desc=True)
+            .limit(1)
+        )
+        last_rows = last_res.data or []
+        if last_rows:
+            from datetime import datetime, timezone, timedelta
+            last_at_str = last_rows[0].get("analyzed_at", "")
+            try:
+                last_at = datetime.fromisoformat(last_at_str.replace("Z", "+00:00"))
+                if datetime.now(timezone.utc) - last_at < timedelta(hours=24):
+                    remaining = timedelta(hours=24) - (datetime.now(timezone.utc) - last_at)
+                    hours = int(remaining.total_seconds() // 3600)
+                    mins = int((remaining.total_seconds() % 3600) // 60)
+                    raise HTTPException(
+                        status_code=429,
+                        detail=f"블로그 분석은 하루 1회만 가능합니다. {hours}시간 {mins}분 후 다시 시도하세요."
+                    )
+            except HTTPException:
+                raise
+            except Exception as e:
+                _logger.warning("블로그 쿨다운 체크 실패 (쿨다운 미적용): %s", e)
 
     # 사업장 정보 조회
     biz_res = await execute(
