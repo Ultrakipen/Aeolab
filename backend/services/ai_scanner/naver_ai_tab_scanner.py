@@ -14,6 +14,7 @@
 import asyncio
 import logging
 import os
+import random
 import time
 from typing import Optional
 
@@ -264,11 +265,11 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
         try:
             # 네이버 메인 방문 (세션 활성화)
             await page.goto("https://www.naver.com", timeout=15000)
-            await page.wait_for_timeout(1500)
+            await page.wait_for_timeout(random.randint(1200, 2600))  # 인간 편차 딜레이
 
             # 일반 검색 이동
             await page.goto(search_url, timeout=20000)
-            await page.wait_for_timeout(3000)
+            await page.wait_for_timeout(random.randint(2500, 4500))  # 인간 편차 딜레이
 
             # AI탭 링크 클릭 (직접 URL 차단 우회)
             ai_tab_clicked = False

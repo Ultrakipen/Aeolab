@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import random
 from typing import AsyncIterator
 
 _logger = logging.getLogger("aeolab")
@@ -118,12 +119,15 @@ class MultiAIScanner:
         if os.getenv("NAVER_AI_TAB_ENABLED", "false").lower() == "true":
             _queries = queries if isinstance(queries, list) else [queries]
             _ai_tab_results: dict = {}
+            # 사업장별 배치 스캔 시각을 분산 — 여러 사업장이 짧은 시간에 몰려 스캔되면
+            # 자동화 패턴으로 보여 차단 유발 가능(2026-07-02/07-03 실측) — 시작 전 랜덤 대기
+            await asyncio.sleep(random.uniform(20, 240))
             for _q in _queries[:4]:
                 try:
                     _r = await _naver_ai_tab.scan(_q, target)
                     if _r:
                         _ai_tab_results[_q] = _r
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(random.uniform(3, 8))  # 인간 편차 딜레이
                 except Exception as _tab_e:
                     _logger.warning("[multi_scanner] ai_tab scan skip [%r]: %s", _q, _tab_e)
             if _ai_tab_results:
