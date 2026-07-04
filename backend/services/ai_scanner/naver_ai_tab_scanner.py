@@ -18,7 +18,7 @@ import random
 import time
 from typing import Optional
 
-from services.ai_scanner import get_proxy_config, block_heavy_resources, attach_bandwidth_counter
+from services.ai_scanner import get_proxy_config, attach_bandwidth_counter
 from services.ai_scanner.bandwidth_tracker import record_usage_mb
 
 _logger = logging.getLogger("aeolab")
@@ -256,7 +256,9 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
         naver_cookies = _get_naver_cookies()
         if naver_cookies:
             await ctx.add_cookies(naver_cookies)
-        await ctx.route("**/*", block_heavy_resources)
+        # block_heavy_resources 미적용 — image/media/font 차단이 AI탭 봇 탐지를
+        # 유발함을 실측 확인(2026-07-04, 차단 미적용 시 3/3 성공 vs 적용 시 즉시 차단).
+        # 대역폭 측정만 유지, 리소스 차단은 하지 않음.
         _bw_counter = attach_bandwidth_counter(ctx)
 
         page = await ctx.new_page()
