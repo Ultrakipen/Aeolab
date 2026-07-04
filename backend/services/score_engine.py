@@ -101,12 +101,17 @@ def get_ai_tab_eligibility(category: str) -> str:
     현재 호출처: report.py get_ai_tab_preview (briefing_eligibility 대체 예정)
     P2 예정: naver_ai_tab_scanner.py 구현 후 Track1 naver_ai_tab_visible 항목 연결.
 
-    환경변수 AI_TAB_STATUS(기본값 "beta")로 제어.
-    6월 AI탭 전체 확대 후 운영 서버에서 AI_TAB_STATUS=available 로 변경.
+    환경변수 AI_TAB_STATUS로 제어 (미설정 시 기본값 "beta").
+    2026-06-25 네이버 AI탭 전체 확대 완료 → 운영 서버 .env에 AI_TAB_STATUS=available
+    설정 완료(2026-07-04 확인). 이 함수의 반환값은 report.py/guide.py/briefing_engine.py
+    응답 JSON에 ai_tab_eligibility로 포함되나, 2026-07-04 기준 프론트엔드 .tsx 어디서도
+    이 snake_case 필드를 소비하지 않아 실질적 화면 영향은 없음(프론트는 별도로
+    DashboardInsightZone.tsx에서 aiTabEligibility="beta"를 하드코딩해 AI탭 카드
+    항상 노출 여부만 제어).
 
     Returns:
-        "beta"      — 네이버플러스 구독자 우선 베타 서비스 중 (기본값)
-        "available" — 6월 전체 확대 후 (환경변수로 전환)
+        "beta"      — 미설정 시 기본값 (로컬 개발 환경 등)
+        "available" — 운영 서버 현재 값 (2026-06-25 전체 확대 이후)
     """
     return os.getenv("AI_TAB_STATUS", "beta")
 
