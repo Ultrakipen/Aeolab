@@ -73,6 +73,13 @@ interface CompetitorBlog {
   keyword_coverage: string[];
 }
 
+interface TopicSuggestionV2 {
+  topic: string;
+  reason: string;
+  priority: "high" | "medium" | "low";
+  source: "competitor_gap" | "keyword_gap" | "reuse";
+}
+
 interface CompetitorBlogComparison {
   avg_score: number;
   my_score: number;
@@ -109,6 +116,8 @@ interface BlogAnalysisResult {
   informational_ratio?: number;
   content_issue?: string;
   title_suggestions?: string[];
+  // v2: 이번 달 블로그 주제 추천
+  topic_suggestions_v2?: TopicSuggestionV2[];
   // v3 fields
   posting_frequency?: {
     monthly_counts: Record<string, number>;
@@ -850,6 +859,60 @@ function BestCitationCandidateCard({ candidate }: { candidate: NonNullable<BlogA
         <span className="inline-flex items-center border text-sm font-medium px-3 py-1 rounded-full bg-green-100 text-green-700 border-green-300 mt-3">
           간단한 수정으로 가능
         </span>
+      </div>
+    </div>
+  );
+}
+
+/* ── TopicSuggestionsV2Card ── */
+function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV2[] }) {
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
+  const priorityBadge: Record<TopicSuggestionV2["priority"], string> = {
+    high: "bg-red-50 text-red-600 border-red-200",
+    medium: "bg-amber-50 text-amber-700 border-amber-200",
+    low: "bg-gray-50 text-gray-500 border-gray-200",
+  };
+  const priorityLabel: Record<TopicSuggestionV2["priority"], string> = {
+    high: "경쟁사 갭",
+    medium: "업종 갭",
+    low: "재활용",
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-4">
+        <FileText className="w-5 h-5 text-indigo-500 shrink-0" />
+        <h3 className="text-base md:text-lg font-bold text-gray-900">이번 달 블로그 주제 추천</h3>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {suggestions.map((s, idx) => (
+          <div key={idx} className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2">
+            <span className={`inline-flex items-center self-start border text-sm font-semibold px-2 py-0.5 rounded-full ${priorityBadge[s.priority]}`}>
+              {priorityLabel[s.priority]}
+            </span>
+            <p className="text-sm font-semibold text-gray-900 leading-snug break-keep flex-1">{s.topic}</p>
+            <p className="text-sm text-gray-500 leading-relaxed">{s.reason}</p>
+            <button
+              onClick={() => {
+                copyToClipboard(s.topic, () => {});
+                setCopiedIdx(idx);
+                setTimeout(() => setCopiedIdx(null), 2000);
+              }}
+              className="self-start inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium mt-1"
+            >
+              {copiedIdx === idx ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5" /> 복사됨
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" /> 주제 복사
+                </>
+              )}
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -1631,6 +1694,11 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
             {/* D. 중복 주제 경고 */}
             {result.duplicate_topics && result.duplicate_topics.length > 0 && (
               <DuplicateTopicsWarning topics={result.duplicate_topics} isInactive={isBlogInactive} />
+            )}
+
+            {/* D-2. 이번 달 블로그 주제 추천 */}
+            {result.topic_suggestions_v2 && result.topic_suggestions_v2.length > 0 && (
+              <TopicSuggestionsV2Card suggestions={result.topic_suggestions_v2} />
             )}
 
             {/* E. 이번 주 할 일 카드 */}

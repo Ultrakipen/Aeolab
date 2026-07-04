@@ -170,6 +170,25 @@ async def analyze_blog_endpoint(
     except Exception as e:
         _logger.warning(f"competitor blog comparison failed: {e}")
 
+    # 이번 달 블로그 주제 추천 (경쟁사 갭 + 업종 미커버 키워드 기반, API 호출 없음)
+    topic_suggestions_v2: list[dict] = []
+    try:
+        from services.blog_analyzer import _generate_topic_suggestions
+        comp_kw_gaps = (
+            competitor_blog_comparison.get("competitor_keyword_gaps", [])
+            if competitor_blog_comparison
+            else []
+        )
+        topic_suggestions_v2 = _generate_topic_suggestions(
+            missing_keywords=analysis.get("missing_keywords", []),
+            competitor_keyword_gaps=comp_kw_gaps,
+            region=biz_row.get("region", ""),
+            category=biz_row.get("category", ""),
+            covered_keywords=analysis.get("covered_keywords", []),
+        )
+    except Exception as e:
+        _logger.warning(f"topic suggestions generation failed for biz={request.business_id}: {e}")
+
     # 반환할 전체 결과 객체 (새로고침·재진입 시 복원용으로도 사용)
     analysis_json = {
         "business_id": request.business_id,
@@ -201,6 +220,8 @@ async def analyze_blog_endpoint(
         "best_citation_candidate": analysis.get("best_citation_candidate"),
         "duplicate_topics": analysis.get("duplicate_topics", []),
         "ai_readiness_items": analysis.get("ai_readiness_items", []),
+        # v2: 이번 달 블로그 주제 추천
+        "topic_suggestions_v2": topic_suggestions_v2,
         "analyzed_at": now_iso,
         "error": analysis.get("error"),
         # 월 사용량 — 실패 시 소비하지 않으므로 +1 하지 않음

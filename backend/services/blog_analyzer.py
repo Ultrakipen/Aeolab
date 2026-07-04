@@ -782,6 +782,88 @@ def _build_competitor_comparison(
     }
 
 
+# 주제 추천에 사용할 검색 의도어 (순환 사용 — 인덱스 % len)
+_TOPIC_INTENT_WORDS = ["추천", "가격", "후기", "비용 총정리", "방법"]
+
+
+def _generate_topic_suggestions(
+    missing_keywords: list[str],
+    competitor_keyword_gaps: list[str],
+    region: str,
+    category: str,
+    covered_keywords: list[str],
+) -> list[dict]:
+    """
+    이번 달 블로그 주제 추천 (최대 5개, 최소 0개).
+
+    우선순위:
+    1. competitor_keyword_gaps — 경쟁사에는 있고 내 블로그에는 없는 키워드 (priority=high)
+    2. missing_keywords — 업종 커버리지 갭 키워드 (priority=medium)
+    3. covered_keywords 재활용 — 위 두 소스가 부족할 때 의도어 변형 (priority=low)
+
+    외부 API 호출 없음 — 문자열 조합만 사용.
+    반환 형식: [{"topic": str, "reason": str, "priority": "high"|"medium"|"low", "source": str}]
+    """
+    city = region.strip().split()[0] if region and region.strip() else ""
+
+    results: list[dict] = []
+    seen_keywords: set[str] = set()
+    intent_idx = 0
+
+    def _make_topic(kw: str, idx: int) -> str:
+        intent = _TOPIC_INTENT_WORDS[idx % len(_TOPIC_INTENT_WORDS)]
+        if city:
+            return f"{city} {kw} {intent}"
+        return f"{kw} {intent}"
+
+    # 1. competitor_keyword_gaps (high priority)
+    for kw in (competitor_keyword_gaps or []):
+        if not kw or kw in seen_keywords:
+            continue
+        seen_keywords.add(kw)
+        results.append({
+            "topic": _make_topic(kw, intent_idx),
+            "reason": "경쟁사 블로그에는 있지만 내 블로그에는 없는 키워드입니다",
+            "priority": "high",
+            "source": "competitor_gap",
+        })
+        intent_idx += 1
+        if len(results) >= 5:
+            return results
+
+    # 2. missing_keywords (medium priority)
+    for kw in (missing_keywords or []):
+        if not kw or kw in seen_keywords:
+            continue
+        seen_keywords.add(kw)
+        results.append({
+            "topic": _make_topic(kw, intent_idx),
+            "reason": "업종 주요 키워드인데 아직 블로그에서 다루지 않았습니다",
+            "priority": "medium",
+            "source": "keyword_gap",
+        })
+        intent_idx += 1
+        if len(results) >= 5:
+            return results
+
+    # 3. covered_keywords 재활용 (low priority) — 후보가 부족할 때만
+    for kw in (covered_keywords or []):
+        if not kw or kw in seen_keywords:
+            continue
+        seen_keywords.add(kw)
+        results.append({
+            "topic": _make_topic(kw, intent_idx),
+            "reason": "이미 다루는 키워드에 새로운 검색 의도를 조합한 주제입니다",
+            "priority": "low",
+            "source": "reuse",
+        })
+        intent_idx += 1
+        if len(results) >= 5:
+            return results
+
+    return results
+
+
 _HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; AEOlab-BlogChecker/1.0)",
     "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",

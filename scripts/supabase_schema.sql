@@ -2203,3 +2203,62 @@ BEGIN
   ALTER TABLE delivery_orders ADD CONSTRAINT delivery_orders_status_check
     CHECK (status IN ('received','paid','in_progress','completed','rework','refunded','cancelled'));
 END $$;
+
+-- ============================================================
+-- v6.3 — blog_score_history: 블로그 진단 점수 시계열 (2026-07-04)
+-- 목적: 블로그 분석(citation_score, keyword_coverage) 30일 추세 저장
+-- 배경: score_history는 메인 스캔 주기(하루 여러 번)용.
+--       블로그는 24시간 쿨다운 + 사용자 수동 트리거로 주기가 다름
+-- 구조: 일자별 블로그 진단 결과 기록 (중복 불가)
+-- 실행 시점: 블로그 진단 시계열 기능 출시 전
+-- 미실행 시: 블로그 점수 트렌드 조회 불가
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS blog_score_history (
+  id               UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  business_id      UUID REFERENCES businesses(id) ON DELETE CASCADE,
+  analyzed_date    DATE NOT NULL,
+  citation_score   FLOAT NOT NULL,
+  keyword_coverage FLOAT,
+  post_count       INT,
+  freshness        VARCHAR(10),
+  created_at       TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(business_id, analyzed_date)
+);
+
+COMMENT ON TABLE blog_score_history IS
+  'v6.3: 블로그 진단 점수 시계열. score_history와 독립적으로 사용자 수동 분석 시 기록.';
+
+COMMENT ON COLUMN blog_score_history.analyzed_date IS
+  'v6.3: 블로그 분석 일자 (점수 저장일이 아닌 분석 대상 날짜)';
+
+COMMENT ON COLUMN blog_score_history.citation_score IS
+  'v6.3: AI 인용 기반 블로그 신뢰도 점수 (0~100)';
+
+COMMENT ON COLUMN blog_score_history.keyword_coverage IS
+  'v6.3: 블로그 키워드 커버리지 스코어 (0~100)';
+
+COMMENT ON COLUMN blog_score_history.freshness IS
+  'v6.3: 블로그 최신성 판정 (fresh, stale, old 등)';
+
+CREATE INDEX IF NOT EXISTS idx_blog_score_history_biz_date
+  ON blog_score_history(business_id, analyzed_date DESC);
+
+CREATE INDEX IF NOT EXISTS idx_blog_score_history_date
+  ON blog_score_history(analyzed_date DESC);
+
+ALTER TABLE blog_score_history ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "own_blog_score_history_select" ON blog_score_history
+  FOR SELECT
+  USING (EXISTS (
+    SELECT 1 FROM businesses b
+    WHERE b.id = blog_score_history.business_id AND b.user_id = auth.uid()
+  ));
+
+CREATE POLICY "own_blog_score_history_insert" ON blog_score_history
+  FOR INSERT
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM businesses b
+    WHERE b.id = blog_score_history.business_id AND b.user_id = auth.uid()
+  ));
