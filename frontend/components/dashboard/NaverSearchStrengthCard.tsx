@@ -18,20 +18,10 @@ interface BlogTrendPoint {
   keyword_coverage: number | null;
 }
 
-interface SmartPlaceCompleteness {
-  photo_count?: number | null;
-  has_faq?: boolean | null;
-  has_recent_post?: boolean | null;
-  has_hours?: boolean | null;
-  has_intro?: boolean | null;
-  [key: string]: unknown;
-}
-
 interface NaverSeoStrengthData {
   biz_id: string;
   keyword_rank_trend: KeywordRankPoint[];
   blog_trend: BlogTrendPoint[];
-  smart_place_completeness: SmartPlaceCompleteness | null;
   has_data: boolean;
 }
 
@@ -78,13 +68,6 @@ function TrendLabel({ direction }: { direction: "up" | "down" | "stable" }) {
   if (direction === "down") return <span className="text-sm text-red-600 font-medium">하락 중</span>;
   return                           <span className="text-sm text-gray-500">유지</span>;
 }
-
-const SP_ITEMS = [
-  { key: "has_hours",       label: "영업시간 입력" },
-  { key: "has_intro",       label: "소개글 작성" },
-  { key: "has_recent_post", label: "소식 최근 업데이트" },
-  { key: "has_faq",         label: "소개글 Q&A 포함" },
-] as const;
 
 export default function NaverSearchStrengthCard({ businessId, token }: Props) {
   const [data,       setData]       = useState<NaverSeoStrengthData | null>(null);
@@ -158,8 +141,9 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
     ? data.blog_trend[data.blog_trend.length - 1]
     : null;
 
-  const sp = data?.smart_place_completeness ?? null;
-  const spPhotoOk = sp?.photo_count != null ? sp.photo_count >= 10 : null;
+  // 키워드/블로그 시계열 데이터가 하나라도 있어야 이 카드를 보여준다
+  // (smart_place 요약은 NaverSeoBaseCard가 이미 실시간으로 보여주므로 여기선 제외)
+  const hasTrendData = (data?.keyword_rank_trend?.length ?? 0) > 0 || (data?.blog_trend?.length ?? 0) > 0;
 
   return (
     <section
@@ -174,7 +158,7 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
             id="naver-seo-strength-title"
             className="text-base md:text-lg font-bold text-gray-900 break-keep"
           >
-            네이버 검색 기반 강화 현황
+            네이버 검색·블로그 발행 30일 추이
           </h2>
         </div>
         {planLocked && (
@@ -196,10 +180,10 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
             </div>
             <div>
               <p className="text-base font-semibold text-gray-800 mb-1">
-                네이버 검색 기반 강화 현황
+                네이버 검색·블로그 발행 30일 추이
               </p>
               <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed break-keep">
-                키워드 순위 추이, 블로그 발행 현황, 스마트플레이스 완성도를 한눈에 확인하세요.
+                키워드 순위와 블로그 발행 추이를 30일 단위로 확인하세요.
               </p>
             </div>
             <Link
@@ -231,7 +215,7 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
         )}
 
         {/* 데이터 없음 */}
-        {!planLocked && !loading && !fetchError && data && !data.has_data && (
+        {!planLocked && !loading && !fetchError && data && !hasTrendData && (
           <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
             <span className="text-3xl" aria-hidden="true">📈</span>
             <p className="text-sm text-gray-500 break-keep max-w-xs mx-auto leading-relaxed">
@@ -241,7 +225,7 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
         )}
 
         {/* 데이터 있음 */}
-        {!planLocked && !loading && !fetchError && data?.has_data && (
+        {!planLocked && !loading && !fetchError && data && hasTrendData && (
           <div className="space-y-4">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -288,45 +272,6 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
                 )}
               </div>
             </div>
-
-            {/* 스마트플레이스 완성도 */}
-            {sp && (
-              <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 md:p-4">
-                <p className="text-sm font-semibold text-gray-700 mb-3">스마트플레이스 완성도</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-2 gap-x-3">
-                  {SP_ITEMS.map(({ key, label }) => {
-                    const val = sp[key] ?? null;
-                    return (
-                      <div key={key} className="flex items-center gap-1.5 min-w-0">
-                        <span
-                          className={`text-base leading-none shrink-0 ${val === true ? "text-emerald-500" : "text-gray-300"}`}
-                          aria-hidden="true"
-                        >
-                          {val === true ? "✓" : "○"}
-                        </span>
-                        <span className={`text-sm leading-tight break-keep truncate ${val === true ? "text-gray-700" : "text-gray-400"}`}>
-                          {label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                  {/* 사진 항목: photo_count가 있을 때만 */}
-                  {sp.photo_count != null && (
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span
-                        className={`text-base leading-none shrink-0 ${spPhotoOk ? "text-emerald-500" : "text-gray-300"}`}
-                        aria-hidden="true"
-                      >
-                        {spPhotoOk ? "✓" : "○"}
-                      </span>
-                      <span className={`text-sm leading-tight break-keep truncate ${spPhotoOk ? "text-gray-700" : "text-gray-400"}`}>
-                        대표 사진 {sp.photo_count}장
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* 면책 문구 */}
             <p className="text-sm text-gray-400 leading-snug">
