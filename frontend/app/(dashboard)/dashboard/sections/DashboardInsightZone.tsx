@@ -11,6 +11,7 @@ import PhotoCategoryCard from "@/components/dashboard/PhotoCategoryCard";
 import ReviewKeywordGapCard from "@/components/dashboard/ReviewKeywordGapCard";
 import { SUPPORTED_CATEGORIES as PHOTO_SUPPORTED_CATEGORIES } from "@/lib/photoCategories";
 import SeasonalKeywordBanner from "@/components/dashboard/SeasonalKeywordBanner";
+import NaverSearchStrengthCard from "@/components/dashboard/NaverSearchStrengthCard";
 
 interface BriefingMeta {
   eligibility: "active" | "likely" | "inactive";
@@ -209,6 +210,9 @@ export default function DashboardInsightZone({
           {sectionBriefing}
         </>
       )}
+
+      {/* ─── 네이버 검색 기반 강화 현황 ─── */}
+      <NaverSearchStrengthCard businessId={bizId} token={accessToken} />
 
       {/* ─── 부가 분석 — 기본 접힘 ─── */}
       {!showMore ? (

@@ -397,6 +397,183 @@ function NaverSearchBaseSection({
   )
 }
 
+// ── 네이버 일반 검색 최적화 섹션 ──────────────────────────────────────────────
+function NaverSearchOptimizationSection({
+  eligibility,
+  spStatus,
+}: {
+  eligibility: BriefingEligibility
+  spStatus: { is_smart_place: boolean; has_faq: boolean; has_intro: boolean; has_recent_post: boolean }
+  businessId: string
+  token: string | null
+  category?: string
+}) {
+  const isActive = eligibility === "active"
+  const isLikely = eligibility === "likely"
+
+  const SP_ITEMS: { key: keyof typeof spStatus; label: string; desc: string }[] = [
+    {
+      key: 'is_smart_place',
+      label: '스마트플레이스 등록',
+      desc: '사업장이 네이버 스마트플레이스에 등록되어 있음',
+    },
+    {
+      key: 'has_intro',
+      label: '소개글 500자 이상 작성',
+      desc: '주요 키워드 포함 + Q&A 형식 3개 이상',
+    },
+    {
+      key: 'has_faq',
+      label: '소개글 Q&A 포함',
+      desc: '소개글 하단에 자주 묻는 질문 3개 이상',
+    },
+    {
+      key: 'has_recent_post',
+      label: '14일 이내 소식 게시',
+      desc: '소식 탭에 최근 게시물 업로드',
+    },
+  ]
+
+  const CALENDAR_PLAN = [
+    { days: '1~3일차', task: '소개글 보강 — 500자 이상, Q&A 3개 추가 (핵심 키워드 포함)' },
+    { days: '4~7일차', task: '리뷰 답글 전체 처리 — 키워드 자연스럽게 포함하여 답변' },
+    { days: '8~10일차', task: '블로그 포스트 1개 발행 — "추천·후기" 키워드 포함, 500자 이상' },
+    { days: '11~14일차', task: '소식탭 게시물 업데이트 — 이벤트·신메뉴·운영 근황 등' },
+  ]
+
+  return (
+    <section className="bg-white rounded-xl border border-gray-200 p-4 md:p-6 shadow-sm space-y-5">
+      <div className="flex items-start gap-2.5">
+        <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center shrink-0 text-lg">
+          🗺️
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-bold text-gray-900 text-base">네이버 일반 검색 최적화</h3>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {isActive
+              ? "스마트플레이스 완성도를 높이면 플레이스탭 순위와 AI 브리핑 노출 가능성이 함께 올라갑니다."
+              : isLikely
+              ? "플레이스 완성도가 높을수록 AI탭 노출과 정보형 AI 브리핑 가능성이 높아집니다."
+              : "블로그·콘텐츠가 갖춰질수록 정보형 AI 브리핑·AI탭·네이버 일반 검색 노출이 함께 올라갑니다."}
+          </p>
+        </div>
+      </div>
+
+      {/* §1 플레이스탭 체크리스트 (ACTIVE/LIKELY) 또는 정보형 전략 안내 (INACTIVE) */}
+      {(isActive || isLikely) ? (
+        <div>
+          <p className="text-sm font-semibold text-gray-700 mb-2">§1 스마트플레이스 완성도 현황</p>
+          <div className="space-y-2">
+            {SP_ITEMS.map((item) => {
+              const done = spStatus[item.key]
+              return (
+                <div
+                  key={item.key}
+                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 ${
+                    done ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
+                  }`}
+                >
+                  <span className={`w-5 h-5 flex items-center justify-center rounded-full text-sm shrink-0 font-bold ${
+                    done ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400'
+                  }`}>
+                    {done ? '✓' : '·'}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-sm font-medium ${done ? 'text-green-800' : 'text-gray-700'}`}>
+                      {item.label}
+                    </p>
+                    <p className="text-sm text-gray-500">{item.desc}</p>
+                  </div>
+                  {!done && (
+                    <span className="shrink-0 text-sm text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
+                      미완료
+                    </span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <p className="text-sm text-gray-400 mt-2">
+            현황을 바꾸려면 아래 <strong className="text-gray-600">스마트플레이스 실제 현황</strong> 카드에서 업데이트하세요.
+          </p>
+        </div>
+      ) : (
+        /* INACTIVE: 정보형 콘텐츠 전략 안내 */
+        <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
+          <p className="text-sm font-semibold text-amber-800 mb-1">정보형 콘텐츠 전략</p>
+          <p className="text-sm text-amber-700 leading-relaxed">
+            특정 가게를 요약하는 '플레이스형' AI 브리핑 대상 업종은 아니지만,
+            블로그·콘텐츠가 잘 갖춰지면 <strong>'정보형 AI 브리핑'</strong>에 노출될 수 있습니다.
+            네이버 블로그 후기 5개 이상 + 소개글 키워드 최적화가 AI탭·ChatGPT·Google AI 노출에도
+            장기적으로 도움이 됩니다.
+          </p>
+        </div>
+      )}
+
+      {/* §2 리뷰 유도 QR */}
+      <div>
+        <p className="text-sm font-semibold text-gray-700 mb-2">§2 리뷰 유도 QR 카드</p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+          <p className="text-sm text-gray-600 flex-1">
+            손님에게 QR 카드를 보여주면 리뷰 수가 빠르게 늘어납니다.
+            리뷰는 네이버 AI 브리핑·AI탭 노출의 핵심 신호입니다.
+          </p>
+          <a
+            href="#qr-card-section"
+            className="shrink-0 text-sm font-semibold text-blue-600 hover:underline whitespace-nowrap"
+          >
+            QR 카드 다운로드로 이동 →
+          </a>
+        </div>
+      </div>
+
+      {/* §3 14일 집중 실행 캘린더 */}
+      <div>
+        <p className="text-sm font-semibold text-gray-700 mb-2">§3 14일 집중 실행 캘린더</p>
+        <div className="space-y-2">
+          {CALENDAR_PLAN.map((item, i) => (
+            <div key={i} className="flex gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
+              <span className="text-sm font-semibold text-blue-600 shrink-0 w-20">{item.days}</span>
+              <span className="text-sm text-gray-700">{item.task}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* §4 키워드 순위 참조 */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-blue-800 mb-0.5">§4 키워드별 노출 현황 확인</p>
+          <p className="text-sm text-blue-700">블로그 진단 페이지에서 키워드별 블로그 발견 수와 노출 현황을 확인할 수 있습니다.</p>
+        </div>
+        <a
+          href="/blog-analysis"
+          className="shrink-0 flex items-center gap-1 text-sm font-semibold text-blue-700 bg-white border border-blue-200 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+        >
+          블로그 진단 <ExternalLink className="w-3 h-3" />
+        </a>
+      </div>
+
+      {/* §5 AI 검색 연결 원리 */}
+      <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3">
+        <p className="text-sm font-semibold text-green-800 mb-1">§5 네이버 검색 → AI 노출 연결 원리</p>
+        <p className="text-sm text-green-700 leading-relaxed">
+          {isActive
+            ? "네이버 일반 검색(플레이스탭) 순위가 높아질수록 AI 브리핑·AI탭 노출 가능성도 함께 높아집니다. 소개글·리뷰·소식을 먼저 완성하면 플레이스탭 상위 노출 → AI 브리핑 인용 후보가 됩니다."
+            : isLikely
+            ? "네이버 플레이스탭 완성도가 높아질수록 AI탭 노출 가능성이 높아집니다. 블로그 후기가 쌓이면 정보형 AI 브리핑에서 콘텐츠가 인용될 수 있습니다."
+            : "블로그·콘텐츠 품질이 높아질수록 AI탭·ChatGPT·Gemini 장기 노출 가능성이 높아집니다. 정보형 AI 브리핑에서 콘텐츠가 인용될수록 네이버 일반 검색 순위도 함께 올라갑니다."}
+        </p>
+      </div>
+
+      {/* 면책 문구 */}
+      <p className="text-sm text-gray-400">
+        ※ 네이버 검색 순위는 측정 시점·기기·지역·로그인 상태에 따라 달라질 수 있습니다.
+      </p>
+    </section>
+  )
+}
+
 // ── 스마트플레이스 현황 업데이트 카드 ─────────────────────────────────────────
 function SmartPlaceStatusCard({
   bizId,
@@ -2548,7 +2725,7 @@ function QuickToolsSection({ tools, businessId, token }: { tools: ToolsJson; bus
 
       {/* QR 카드 다운로드 — token 로딩 중에도 섹션 표시 */}
       {businessId && (
-        <div className="bg-gray-50 rounded-xl p-4">
+        <div id="qr-card-section" className="bg-gray-50 rounded-xl p-4">
           <div className="flex items-start justify-between gap-2 mb-3">
             <div>
               <span className="text-sm font-semibold text-gray-700">리뷰 유도 QR 카드</span>
@@ -4051,6 +4228,15 @@ function GuideTabView({
             category={category}
             activeOverride={briefingActiveCategories}
             likelyOverride={briefingLikelyCategories}
+          />
+
+          {/* 네이버 일반 검색 최적화 — 플레이스탭 체크리스트 + 14일 캘린더 + AI 연결 원리 */}
+          <NaverSearchOptimizationSection
+            eligibility={briefingEligibility}
+            spStatus={spStatus}
+            businessId={business.id}
+            token={authToken}
+            category={business.category ?? category}
           />
 
           {/* 스마트플레이스 현황 업데이트 */}

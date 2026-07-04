@@ -5879,3 +5879,113 @@ async def get_competitor_profile(
         "total_competitors":             len(result_comps),
         "synced_competitors":            synced_count,
     }
+
+
+# ── 네이버 검색 기반 강화 현황 ──────────────────────────────────────────────────
+
+@router.get("/naver-seo-strength/{biz_id}")
+async def get_naver_seo_strength(biz_id: str, user: dict = Depends(get_current_user)):
+    """네이버 검색 기반 강화 현황 — keyword_rank_avg 추이 + 블로그 발행 추이 + 스마트플레이스 완성도
+
+    Basic 이상 플랜 전용. 30분 캐시.
+    - keyword_rank_trend: score_history.keyword_rank_avg 30일 시계열
+    - blog_trend: blog_score_history.post_count / keyword_coverage 30일 시계열
+    - smart_place_completeness: 가장 최근 scan_results.smart_place_completeness_result JSONB
+    ⚠ blog_crank_score 컬럼은 실제 INSERT 없이 100% NULL → 절대 사용하지 않음
+    """
+    from middleware.plan_gate import get_user_plan
+
+    supabase = get_client()
+    user_id = user["id"]
+
+    # 소유권 검증
+    await _verify_biz_ownership(supabase, biz_id, user_id)
+
+    # Basic 미만 플랜 차단
+    plan = await get_user_plan(user_id, supabase)
+    if plan not in ("basic", "startup", "pro", "biz", "enterprise"):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "PLAN_REQUIRED",
+                "required_plans": ["basic", "startup", "pro", "biz", "enterprise"],
+                "upgrade_url": "/settings?tab=plan",
+            },
+        )
+
+    # 30분 캐시
+    cache_key = _cache._make_key("naver_seo_strength", biz_id)
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    thirty_days_ago = (date.today() - timedelta(days=30)).isoformat()
+
+    # 1. score_history — keyword_rank_avg 30일 시계열 (NULL 행 제외, 오름차순)
+    keyword_rank_trend: list[dict] = []
+    try:
+        krt_res = await execute(
+            supabase.table("score_history")
+            .select("score_date, keyword_rank_avg")
+            .eq("business_id", biz_id)
+            .not_.is_("keyword_rank_avg", "null")
+            .gte("score_date", thirty_days_ago)
+            .order("score_date", desc=False)
+            .limit(31)
+        )
+        for row in (krt_res.data or []):
+            keyword_rank_trend.append({
+                "date": row["score_date"],
+                "keyword_rank_avg": row["keyword_rank_avg"],
+            })
+    except Exception as e:
+        _logger.warning(f"naver_seo_strength keyword_rank_trend 조회 실패 [biz={biz_id}]: {e}")
+
+    # 2. blog_score_history — post_count / keyword_coverage 30일 시계열
+    blog_trend: list[dict] = []
+    try:
+        bsh_res = await execute(
+            supabase.table("blog_score_history")
+            .select("analyzed_date, post_count, keyword_coverage")
+            .eq("business_id", biz_id)
+            .gte("analyzed_date", thirty_days_ago)
+            .order("analyzed_date", desc=False)
+            .limit(31)
+        )
+        for row in (bsh_res.data or []):
+            blog_trend.append({
+                "date": row["analyzed_date"],
+                "post_count": row["post_count"],
+                "keyword_coverage": row["keyword_coverage"],
+            })
+    except Exception as e:
+        _logger.warning(f"naver_seo_strength blog_trend 조회 실패 [biz={biz_id}]: {e}")
+
+    # 3. 가장 최근 scan_results.smart_place_completeness_result (JSONB)
+    smart_place_completeness = None
+    try:
+        spc_res = await execute(
+            supabase.table("scan_results")
+            .select("smart_place_completeness_result")
+            .eq("business_id", biz_id)
+            .not_.is_("smart_place_completeness_result", "null")
+            .order("scanned_at", desc=True)
+            .limit(1)
+            .maybe_single()
+        )
+        if spc_res.data:
+            smart_place_completeness = spc_res.data.get("smart_place_completeness_result")
+    except Exception as e:
+        _logger.warning(f"naver_seo_strength smart_place_completeness 조회 실패 [biz={biz_id}]: {e}")
+
+    has_data = bool(keyword_rank_trend or blog_trend or smart_place_completeness)
+
+    result = {
+        "biz_id": biz_id,
+        "keyword_rank_trend": keyword_rank_trend,
+        "blog_trend": blog_trend,
+        "smart_place_completeness": smart_place_completeness,
+        "has_data": has_data,
+    }
+    _cache.set(cache_key, result, 1800)
+    return result
