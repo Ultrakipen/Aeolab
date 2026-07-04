@@ -52,6 +52,10 @@ interface PostDetail {
   positives?: string[];
   suggestion: string;
   improved_title: string;
+  // RSS 경로에서만 실측(-1이면 API 전용 수집이라 측정 불가)
+  img_count?: number;
+  heading_count?: number;
+  full_text_len?: number;
 }
 
 interface WeeklyAction {
@@ -132,7 +136,8 @@ interface BlogAnalysisResult {
   }>;
   ai_readiness_items?: Array<{
     label: string;
-    passed: boolean;
+    passed: boolean | null;
+    unavailable?: boolean;
     description?: string;
   }>;
   // 월 사용량 (GET/POST 응답에 포함)
@@ -488,6 +493,11 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                         ✓ {pos}
                       </span>
                     ))}
+                    {p.full_text_len === -1 && (
+                      <span className="bg-gray-50 text-gray-500 border border-gray-200 text-sm px-2 py-0.5 rounded-lg whitespace-normal break-keep leading-snug">
+                        본문 길이 측정 불가 (API 수집)
+                      </span>
+                    )}
                     {p.issues.length === 0 && (p.positives?.length ?? 0) === 0 ? (
                       <span className="text-green-600 text-sm font-medium">양호</span>
                     ) : (
@@ -560,13 +570,18 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
             </div>
 
             {/* positives + issues */}
-            {((p.positives?.length ?? 0) > 0 || p.issues.length > 0) && (
+            {((p.positives?.length ?? 0) > 0 || p.issues.length > 0 || p.full_text_len === -1) && (
               <div className="flex flex-wrap gap-1 mb-2">
                 {(p.positives ?? []).map((pos, i) => (
                   <span key={`pos-${i}`} className="bg-green-50 text-green-700 border border-green-200 text-sm px-2 py-0.5 rounded-lg">
                     ✓ {pos}
                   </span>
                 ))}
+                {p.full_text_len === -1 && (
+                  <span className="bg-gray-50 text-gray-500 border border-gray-200 text-sm px-2 py-0.5 rounded-lg">
+                    본문 길이 측정 불가 (API 수집)
+                  </span>
+                )}
                 {p.issues.map((issue, i) => (
                   <span key={`iss-${i}`} className="bg-red-50 text-red-600 border border-red-200 text-sm px-2 py-0.5 rounded-lg">
                     {issue}
@@ -1565,26 +1580,40 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   </h3>
                 </div>
                 <div className={result.ai_readiness_items.length >= 5 ? "grid grid-cols-1 md:grid-cols-2 gap-2" : "space-y-2"}>
-                  {result.ai_readiness_items.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex items-start gap-3 rounded-xl p-3 border ${item.passed ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
-                    >
-                      <div className={`shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${item.passed ? "bg-green-500" : "bg-red-400"}`}>
-                        {item.passed ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                        ) : (
-                          <AlertTriangle className="w-3.5 h-3.5 text-white" />
-                        )}
+                  {result.ai_readiness_items.map((item, idx) => {
+                    const isUnavailable = item.unavailable || item.passed === null;
+                    const boxClass = isUnavailable
+                      ? "bg-gray-50 border-gray-200"
+                      : item.passed ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200";
+                    const dotClass = isUnavailable
+                      ? "bg-gray-400"
+                      : item.passed ? "bg-green-500" : "bg-red-400";
+                    const labelClass = isUnavailable
+                      ? "text-gray-600"
+                      : item.passed ? "text-green-800" : "text-red-800";
+                    return (
+                      <div key={idx} className={`flex items-start gap-3 rounded-xl p-3 border ${boxClass}`}>
+                        <div className={`shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${dotClass}`}>
+                          {isUnavailable ? (
+                            <span className="text-white text-sm leading-none">-</span>
+                          ) : item.passed ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                          ) : (
+                            <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-semibold ${labelClass}`}>
+                            {item.label}
+                            {isUnavailable && <span className="ml-1.5 text-sm font-normal text-gray-400">(측정 불가)</span>}
+                          </p>
+                          {item.description && (
+                            <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{item.description}</p>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-semibold ${item.passed ? "text-green-800" : "text-red-800"}`}>{item.label}</p>
-                        {item.description && (
-                          <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{item.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

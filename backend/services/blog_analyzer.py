@@ -146,7 +146,7 @@ def _analyze_single_post(
     desc = item.get("desc", "")
     link = item.get("link", "")
     text = f"{title} {desc}"
-    text_len = len(desc.strip())
+    text_len = item.get("full_text_len", -1)
 
     issues: list[str] = []
     positives: list[str] = []
@@ -161,6 +161,17 @@ def _analyze_single_post(
         sample = matched_industry_kws[0]
         positives.append(f"업종 키워드 포함 ('{sample}')")
 
+    # RSS 전용 구조 정보 → 양수일 때만 positives 추가
+    _img = item.get("img_count", -1)
+    _hdg = item.get("heading_count", -1)
+    _htg = item.get("hashtag_count", -1)
+    if isinstance(_img, int) and _img > 0:
+        positives.append(f"이미지 {_img}장 포함")
+    if isinstance(_hdg, int) and _hdg > 0:
+        positives.append("소제목(H2~H4) 있음")
+    if isinstance(_htg, int) and _htg > 0:
+        positives.append(f"해시태그 {_htg}개 포함")
+
     # 2) 검색 의도어 포함 여부 — 누락 시 AI 인용률 저하
     intent_kws = ["추천", "리뷰", "후기", "비용", "가격", "비교", "선택", "방법",
                   "총정리", "근처", "맛집", "하는 법", "알아보기", "순위", "BEST"]
@@ -171,7 +182,7 @@ def _analyze_single_post(
     else:
         positives.append(f"검색 의도어 포함 ('{matched_intent[0]}')")
 
-    if text_len < 300:
+    if text_len >= 0 and text_len < 300:
         issues.append(f"본문 300자 미만 (현재 {text_len}자)")
         score -= 15
 
@@ -213,7 +224,10 @@ def _analyze_single_post(
     elif "90일 이상" in " ".join(issues):
         suggestion = "이 글에 최신 정보를 추가하고 날짜를 업데이트하세요"
     elif "본문 300자 미만" in " ".join(issues):
-        suggestion = "본문에 실제 경험, 가격, 위치 등 구체적 정보를 300자 이상으로 보강하세요"
+        if item.get("source") == "api":
+            suggestion = "본문 길이를 직접 확인할 수 없어 정확한 측정이 어렵습니다. 실제 경험과 구체적 정보를 300자 이상 작성하는 것을 권장합니다."
+        else:
+            suggestion = "본문에 실제 경험, 가격, 위치 등 구체적 정보를 300자 이상으로 보강하세요"
     elif not issues:
         suggestion = "잘 작성된 포스트입니다. 꾸준히 이 패턴을 유지하세요."
 
@@ -230,6 +244,10 @@ def _analyze_single_post(
         "positives": positives,
         "suggestion": suggestion,
         "improved_title": improved_title,
+        # 구조 필드 (프론트 활용용 — RSS: 실측값, API: -1)
+        "img_count": item.get("img_count", -1),
+        "heading_count": item.get("heading_count", -1),
+        "full_text_len": item.get("full_text_len", -1),
     }
 
 
@@ -864,8 +882,9 @@ def _calc_blog_ai_readiness(
     posts_texts: list[str],
     post_dates: list,
     region: str = "",
+    posts_structs: Optional[list[dict]] = None,
 ) -> dict:
-    """AI 브리핑 인용 가능성 체크 (8개 항목)"""
+    """AI 브리핑 인용 가능성 체크 (9개 항목)"""
     items = []
     combined = " ".join(posts_texts)
 
@@ -908,13 +927,25 @@ def _calc_blog_ai_readiness(
         "description": "한 달에 1~2개 포스트를 올리면 AI가 최신 정보로 인식합니다.",
     })
 
-    # 4. 포스트 길이 체크 (평균 300자 이상)
-    has_content = len(combined) > 300
-    items.append({
-        "label": "충분한 본문 내용 (300자 이상)",
-        "passed": has_content,
-        "description": "AI가 인용할 내용이 충분하려면 포스트당 최소 300자 이상 작성이 필요합니다.",
-    })
+    # 4. 포스트 길이 체크 (300자 이상 — full_text_len 측정 가능한 포스트 기준)
+    measurable_4 = [s for s in (posts_structs or []) if isinstance(s.get("full_text_len"), int) and s["full_text_len"] >= 0]
+    if measurable_4:
+        long_enough = [s for s in measurable_4 if s["full_text_len"] >= 300]
+        has_content = len(long_enough) / len(measurable_4) >= 0.5
+        item4: dict = {
+            "label": "충분한 본문 내용 (300자 이상 포스트 50% 이상)",
+            "passed": has_content,
+            "description": "AI가 인용할 내용이 충분하려면 포스트당 최소 300자 이상 작성이 필요합니다.",
+        }
+    else:
+        # 측정 가능한 포스트 없음 (API 전용) → unavailable 처리
+        item4 = {
+            "label": "충분한 본문 내용 (300자 이상)",
+            "passed": None,
+            "unavailable": True,
+            "description": "API 경로로만 수집된 포스트는 본문 길이를 직접 측정할 수 없습니다.",
+        }
+    items.append(item4)
 
     # 5. FAQ/Q&A 구조 포함 여부
     faq_patterns = ["Q.", "A.", "질문", "답변", "Q&A", "자주 묻는", "궁금", "어떻게", "뭔가요", "인가요", "할까요"]
@@ -939,15 +970,25 @@ def _calc_blog_ai_readiness(
         "description": "블로그에 전화번호·주소가 있으면 AI가 스마트플레이스 정보와 연결해 신뢰도를 높입니다.",
     })
 
-    # 7. 포스트 길이 500자 이상 비율 50% 초과
-    long_posts = [t for t in posts_texts if len(t) >= 500]
-    long_ratio = len(long_posts) / max(len(posts_texts), 1)
-    has_long_posts = long_ratio > 0.5
-    items.append({
-        "label": "포스트 길이 500자 이상 비율 50% 초과",
-        "passed": has_long_posts,
-        "description": "500자 이상의 충분한 내용이 있어야 AI가 인용할 근거를 찾을 수 있습니다.",
-    })
+    # 7. 포스트 길이 500자 이상 비율 50% 초과 (full_text_len 기준)
+    measurable_7 = [s for s in (posts_structs or []) if isinstance(s.get("full_text_len"), int) and s["full_text_len"] >= 0]
+    if measurable_7:
+        long_posts_s = [s for s in measurable_7 if s["full_text_len"] >= 500]
+        long_ratio = len(long_posts_s) / len(measurable_7)
+        has_long_posts = long_ratio > 0.5
+        item7: dict = {
+            "label": "포스트 길이 500자 이상 비율 50% 초과",
+            "passed": has_long_posts,
+            "description": "500자 이상의 충분한 내용이 있어야 AI가 인용할 근거를 찾을 수 있습니다.",
+        }
+    else:
+        item7 = {
+            "label": "포스트 길이 500자 이상 비율 50% 초과",
+            "passed": None,
+            "unavailable": True,
+            "description": "API 경로로만 수집된 포스트는 본문 길이를 직접 측정할 수 없습니다.",
+        }
+    items.append(item7)
 
     # 8. 제목에 숫자/구체성 포함 비율 30% 초과
     specific_patterns = re.compile(r'\d|3가지|5곳|TOP|BEST|원|분|km')
@@ -962,8 +1003,30 @@ def _calc_blog_ai_readiness(
         "description": "숫자가 포함된 제목('3가지 방법', 'TOP5')은 AI 검색 인용률이 높습니다.",
     })
 
-    passed_count = sum(1 for i in items if i["passed"])
-    score = round(passed_count / len(items) * 100)
+    # 9. 이미지 포함 비율 30% 초과 (img_count 측정 가능한 포스트 기준)
+    measurable_9 = [s for s in (posts_structs or []) if isinstance(s.get("img_count"), int) and s["img_count"] >= 0]
+    if measurable_9:
+        img_posts = [s for s in measurable_9 if s["img_count"] > 0]
+        img_ratio = len(img_posts) / len(measurable_9)
+        has_images = img_ratio > 0.3
+        item9: dict = {
+            "label": "이미지 포함 포스트 비율 30% 초과",
+            "passed": has_images,
+            "description": "이미지가 포함된 포스트는 AI 검색 인용률과 체류시간이 높습니다.",
+        }
+    else:
+        item9 = {
+            "label": "이미지 포함 포스트 비율 30% 초과",
+            "passed": None,
+            "unavailable": True,
+            "description": "API 경로로만 수집된 포스트는 이미지 수를 직접 측정할 수 없습니다.",
+        }
+    items.append(item9)
+
+    # unavailable 항목은 분모에서 제외 (측정 불가가 점수를 깎지 않도록)
+    scorable_items = [i for i in items if not i.get("unavailable")]
+    passed_count = sum(1 for i in scorable_items if i["passed"])
+    score = round(passed_count / max(len(scorable_items), 1) * 100)
 
     return {
         "score": score,
@@ -1047,6 +1110,12 @@ async def _search_naver_blog_once(
             "link": link,
             "bloggerlink": bloggerlink,
             "postdate": postdate,
+            # API는 150자 스니펫만 반환 — 본문 구조 측정 불가
+            "img_count": -1,
+            "heading_count": -1,
+            "hashtag_count": -1,
+            "full_text_len": -1,
+            "source": "api",
         })
     return result, total
 
@@ -1089,7 +1158,13 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int]:
             link_raw = m2.group(1).strip() if m2 else ""
         link = link_raw.split("?")[0] if link_raw else ""
         desc_raw = _field("description", block)
-        desc = re.sub(r"<[^>]+>", "", desc_raw).strip()[:300]
+        # RSS 본문 HTML에서 구조 정보 추출 (태그 제거 전)
+        img_count = len(re.findall(r"<img", desc_raw, re.IGNORECASE))
+        heading_count = len(re.findall(r"<h[2-4][\s>]", desc_raw, re.IGNORECASE))
+        desc_text_full = re.sub(r"<[^>]+>", "", desc_raw).strip()
+        hashtag_count = len(re.findall(r"#\w+", desc_text_full))
+        full_text_len = len(desc_text_full)
+        desc = desc_text_full[:1000]
         pub_date_str = _field("pubDate", block)
         if not pub_date_str:
             m3 = re.search(r"<pubDate>([^<]+)</pubDate>", block)
@@ -1108,6 +1183,11 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int]:
                 "link": link,
                 "bloggerlink": f"https://blog.naver.com/{blog_id}",
                 "postdate": postdate,
+                "img_count": img_count,
+                "heading_count": heading_count,
+                "hashtag_count": hashtag_count,
+                "full_text_len": full_text_len,
+                "source": "rss",
             })
     return items, len(items)
 
@@ -1229,15 +1309,20 @@ async def _analyze_naver_blog(
             "error": None,
         }
 
-    # 포스트 텍스트 및 날짜 수집
+    # 포스트 텍스트·날짜·구조 수집 (세 리스트 + filtered_items 인덱스 항상 일치)
     posts_texts: list[str] = []
     post_dates: list[Optional[date]] = []
+    posts_structs: list[dict] = []
+    filtered_items: list[dict] = []  # posts_texts와 동일 순서·길이 보장
 
     for item in all_items:
         title = item.get("title", "")
         desc  = item.get("desc", "")
-        if title or desc:
-            posts_texts.append(f"{title} {desc}")
+        if not (title or desc):
+            continue
+
+        posts_texts.append(f"{title} {desc}")
+        filtered_items.append(item)
 
         pub_date_str = item.get("postdate", "")
         if pub_date_str and len(pub_date_str) == 8:
@@ -1252,11 +1337,19 @@ async def _analyze_naver_blog(
         else:
             post_dates.append(None)
 
+        posts_structs.append({
+            "img_count": item.get("img_count", -1),
+            "heading_count": item.get("heading_count", -1),
+            "hashtag_count": item.get("hashtag_count", -1),
+            "full_text_len": item.get("full_text_len", -1),
+            "source": item.get("source", "api"),
+        })
+
     kw_result = _calc_keyword_coverage(
         posts_texts, category,
         custom_keywords=custom_keywords, excluded_keywords=excluded_keywords,
     )
-    readiness = _calc_blog_ai_readiness(posts_texts, post_dates, region)
+    readiness = _calc_blog_ai_readiness(posts_texts, post_dates, region, posts_structs)
 
     post_count = len(all_items)
     top_rec = _build_top_recommendation(
@@ -1274,9 +1367,9 @@ async def _analyze_naver_blog(
         all_titles, region, category, kw_result["missing_keywords"]
     )
 
-    # v2: 개별 포스트 상세 분석 (상위 10개)
+    # v2: 개별 포스트 상세 분석 (상위 10개 — filtered_items 기준으로 post_dates 인덱스 정합)
     posts_detail: list[dict] = []
-    for idx, item in enumerate(all_items[:10]):
+    for idx, item in enumerate(filtered_items[:10]):
         pd = post_dates[idx] if idx < len(post_dates) else None
         detail = _analyze_single_post(
             item, pd, region, category, kw_result["covered_keywords"]
