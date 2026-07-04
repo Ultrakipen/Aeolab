@@ -782,8 +782,13 @@ def _build_competitor_comparison(
     }
 
 
-# 주제 추천에 사용할 검색 의도어 (순환 사용 — 인덱스 % len)
+# 주제 추천에 사용할 검색 의도어 (키워드+월 기반 안정적 순환 — 매달 문구가 바뀌도록)
 _TOPIC_INTENT_WORDS = ["추천", "가격", "후기", "비용 총정리", "방법"]
+
+# "지금 당장 할 수 있는 개선" 카드가 이미 missing_keywords[:5]를 그대로 노출하므로
+# (BlogClient.tsx의 "다음 포스트 제목에 이 키워드를 넣으세요" 섹션),
+# 이번 달 주제 추천은 같은 키워드를 반복 노출하지 않도록 그 뒤 구간만 사용한다.
+_ALREADY_SURFACED_MISSING_KW_COUNT = 5
 
 
 def _generate_topic_suggestions(
@@ -798,51 +803,54 @@ def _generate_topic_suggestions(
 
     우선순위:
     1. competitor_keyword_gaps — 경쟁사에는 있고 내 블로그에는 없는 키워드 (priority=high)
-    2. missing_keywords — 업종 커버리지 갭 키워드 (priority=medium)
+    2. missing_keywords[5:] — 업종 커버리지 갭 키워드, 단 상위 5개는 "지금 당장 할 수 있는
+       개선" 카드가 이미 그대로 노출하므로 제외해 동일 키워드 중복 추천을 방지 (priority=medium)
     3. covered_keywords 재활용 — 위 두 소스가 부족할 때 의도어 변형 (priority=low)
+
+    의도어는 (키워드, 이달 월) 조합의 안정적 해시로 골라 매달 문구가 자연스럽게 바뀌되
+    같은 달 안에서는 재분석해도 동일하게 유지된다.
 
     외부 API 호출 없음 — 문자열 조합만 사용.
     반환 형식: [{"topic": str, "reason": str, "priority": "high"|"medium"|"low", "source": str}]
     """
     city = region.strip().split()[0] if region and region.strip() else ""
+    this_month = date.today().month
 
     results: list[dict] = []
     seen_keywords: set[str] = set()
-    intent_idx = 0
 
-    def _make_topic(kw: str, idx: int) -> str:
-        intent = _TOPIC_INTENT_WORDS[idx % len(_TOPIC_INTENT_WORDS)]
+    def _make_topic(kw: str) -> str:
+        stable_seed = sum(ord(c) for c in kw) + this_month
+        intent = _TOPIC_INTENT_WORDS[stable_seed % len(_TOPIC_INTENT_WORDS)]
         if city:
             return f"{city} {kw} {intent}"
         return f"{kw} {intent}"
 
-    # 1. competitor_keyword_gaps (high priority)
+    # 1. competitor_keyword_gaps (high priority) — 다른 섹션과 겹치지 않는 독립 데이터
     for kw in (competitor_keyword_gaps or []):
         if not kw or kw in seen_keywords:
             continue
         seen_keywords.add(kw)
         results.append({
-            "topic": _make_topic(kw, intent_idx),
+            "topic": _make_topic(kw),
             "reason": "경쟁사 블로그에는 있지만 내 블로그에는 없는 키워드입니다",
             "priority": "high",
             "source": "competitor_gap",
         })
-        intent_idx += 1
         if len(results) >= 5:
             return results
 
-    # 2. missing_keywords (medium priority)
-    for kw in (missing_keywords or []):
+    # 2. missing_keywords — 상위 5개(다른 카드에 이미 노출됨)는 건너뛴다
+    for kw in (missing_keywords or [])[_ALREADY_SURFACED_MISSING_KW_COUNT:]:
         if not kw or kw in seen_keywords:
             continue
         seen_keywords.add(kw)
         results.append({
-            "topic": _make_topic(kw, intent_idx),
+            "topic": _make_topic(kw),
             "reason": "업종 주요 키워드인데 아직 블로그에서 다루지 않았습니다",
             "priority": "medium",
             "source": "keyword_gap",
         })
-        intent_idx += 1
         if len(results) >= 5:
             return results
 
@@ -852,12 +860,11 @@ def _generate_topic_suggestions(
             continue
         seen_keywords.add(kw)
         results.append({
-            "topic": _make_topic(kw, intent_idx),
+            "topic": _make_topic(kw),
             "reason": "이미 다루는 키워드에 새로운 검색 의도를 조합한 주제입니다",
             "priority": "low",
             "source": "reuse",
         })
-        intent_idx += 1
         if len(results) >= 5:
             return results
 

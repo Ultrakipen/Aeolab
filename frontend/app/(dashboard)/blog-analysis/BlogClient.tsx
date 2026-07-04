@@ -880,12 +880,20 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
     low: "재활용",
   };
 
+  // 경쟁사 블로그 갭 기반 추천이 하나도 없으면(경쟁사 분석 데이터 부재) 그 이유를 밝힘
+  const hasCompetitorGap = suggestions.some((s) => s.source === "competitor_gap");
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-1">
         <FileText className="w-5 h-5 text-indigo-500 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">이번 달 블로그 주제 추천</h3>
       </div>
+      <p className="text-sm text-gray-400 mb-3">
+        {hasCompetitorGap
+          ? "경쟁사 블로그와 비교해 우선순위가 높은 주제부터 보여드립니다."
+          : "경쟁사 블로그 진단 데이터가 아직 없어 업종 표준 키워드 기준으로 추천합니다. 경쟁사 데이터가 쌓이면 더 정밀해집니다."}
+      </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {suggestions.map((s, idx) => (
           <div key={idx} className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2">
