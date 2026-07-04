@@ -116,7 +116,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             </p>
             <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">
               {business.is_franchise
-                ? "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다(본사 정책). 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 AI탭·일반 검색·ChatGPT·Gemini에서는 노출 가능합니다."
+                ? "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다(네이버 공식 정책). 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 AI탭·일반 검색·ChatGPT·Gemini에서는 노출 가능합니다."
                 : isInactive
                 ? "이 업종은 '플레이스형' AI 브리핑 비대상이지만, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. 네이버 AI탭(2026-06-25 정식 출시, 업종 제한 발표 없음)을 통한 노출도 준비하세요. 일반 검색 노출과 병행 가능합니다."
                 : isLikely

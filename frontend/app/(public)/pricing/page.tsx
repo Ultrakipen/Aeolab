@@ -318,7 +318,7 @@ export default function PricingPage() {
                 <span className="text-sm font-semibold text-gray-900">음식점 · 카페 · 베이커리 · 바 · 숙박</span>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                네이버 AI 브리핑(플레이스형) + AI탭 + 글로벌 AI까지 3개 채널 모두 노출 가능 (단, 프랜차이즈 가맹점은 본사 정책상 '플레이스형' AI 브리핑 제외 — 정보형 AI 브리핑은 콘텐츠로 노출 가능)
+                네이버 AI 브리핑(플레이스형) + AI탭 + 글로벌 AI까지 3개 채널 모두 노출 가능 (단, 프랜차이즈 가맹점은 네이버 공식 정책상 '플레이스형' AI 브리핑 제외 — 정보형 AI 브리핑은 콘텐츠로 노출 가능)
               </p>
             </div>
 

@@ -786,7 +786,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           </div>
           <p className="text-sm text-amber-800 leading-relaxed mb-2 break-keep">
             {group === "franchise"
-              ? "네이버 본사 정책에 따라 프랜차이즈 가맹점은 '플레이스형' AI 브리핑 노출이 제한됩니다. 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 AI탭·ChatGPT·Gemini·Google AI에서는 노출 가능합니다."
+              ? "네이버 공식 정책에 따라 프랜차이즈 가맹점은 '플레이스형' AI 브리핑 노출이 제한됩니다. 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 AI탭·ChatGPT·Gemini·Google AI에서는 노출 가능합니다."
               : "블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. ChatGPT·Gemini·Google AI 노출 최적화에 집중하고, 네이버 AI탭(업종 제한 없음, 정식 출시)도 확인하세요."}
           </p>
           <div className="flex flex-wrap gap-2">

@@ -111,7 +111,7 @@ export const GROUP_MESSAGES: Record<UserGroup, GroupMessage> = {
   },
   franchise: {
     headline: "네이버 정보형 AI 브리핑 + 검색·블로그 + ChatGPT·Google AI 노출 관리",
-    sub: "프랜차이즈 가맹점은 '플레이스형' AI 브리핑 대상에서 제외됩니다(본사 정책). 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 네이버 일반 검색·지도·ChatGPT·Google AI 노출은 직접 관리할 수 있습니다.",
+    sub: "프랜차이즈 가맹점은 '플레이스형' AI 브리핑 대상에서 제외됩니다(네이버 공식 정책). 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 네이버 일반 검색·지도·ChatGPT·Google AI 노출은 직접 관리할 수 있습니다.",
     badge: "프랜차이즈 맞춤",
     badgeColor: "bg-purple-100 text-purple-800 border border-purple-200",
   },
