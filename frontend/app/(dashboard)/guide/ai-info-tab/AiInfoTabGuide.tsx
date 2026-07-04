@@ -251,7 +251,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 </li>
               </ul>
               <p className="mt-3 text-sm text-indigo-600">
-                * AI탭은 정식 출시됐으며 실제 노출 여부는 확인하기 어렵습니다. 전체 확대 후 측정 기능이 추가됩니다.
+                * AI탭은 정식 출시됐으며, 전체 스캔 시 AI탭 노출 여부(사업장명 언급)를 실측합니다. 노출을 100% 보장하지는 않습니다.
               </p>
             </div>
           </>
