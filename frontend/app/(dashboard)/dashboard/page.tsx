@@ -64,7 +64,7 @@ export default async function DashboardPage({
   // ── 사업장 목록 ──────────────────────────────────────────────
   const { data: businesses } = await supabase
     .from("businesses")
-    .select("id, name, category, region, business_type, website_url, naver_place_id, google_place_id, kakao_place_id, kakao_score, kakao_checklist, kakao_registered, is_active, naver_place_url, review_count, avg_rating, keywords, is_smart_place, has_faq, has_recent_post, has_intro, visitor_review_count, receipt_review_count, blog_url, blog_keyword_coverage, blog_post_count, blog_analyzed_at, checklist_overrides, is_franchise, ai_info_tab_status, naver_intro_draft, naver_intro_generated_at, global_intro_draft, global_intro_generated_at, talktalk_faq_draft, talktalk_faq_generated_at")
+    .select("id, name, category, region, business_type, website_url, naver_place_id, google_place_id, kakao_place_id, kakao_score, kakao_checklist, kakao_registered, is_active, naver_place_url, review_count, avg_rating, keywords, is_smart_place, has_faq, has_recent_post, has_intro, visitor_review_count, receipt_review_count, blog_url, blog_keyword_coverage, blog_post_count, blog_mention_count, blog_analyzed_at, checklist_overrides, is_franchise, ai_info_tab_status, naver_intro_draft, naver_intro_generated_at, global_intro_draft, global_intro_generated_at, talktalk_faq_draft, talktalk_faq_generated_at")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .order("created_at", { ascending: true })
@@ -260,7 +260,6 @@ export default async function DashboardPage({
     briefingCats.active,
     briefingCats.likely,
   );
-  const aiTabEligibility = (process.env.NEXT_PUBLIC_AI_TAB_STATUS ?? "beta") as "beta" | "available";
   const isFranchise = !!business?.is_franchise;
 
   const briefingMeta = (((latestScan?.score_breakdown as Record<string, unknown>)

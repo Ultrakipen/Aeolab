@@ -468,11 +468,10 @@ def _is_naver_unmeasured(scan_result: dict) -> bool:
     """네이버 스캐너가 CAPTCHA 차단이든 API 오류든 측정 자체에 실패했는지 확인
     (_is_google_unmeasured와 동일 패턴) — 실패를 "미노출"(0점)로 오집계하지 않기 위함.
 
-    ⚠️ 2026-07-02 발견: calc_naver_exposure()는 아직 이 플래그로 Track1 가중치를
-    재배분하지 않는다(Google의 calc_track2_score처럼). v3.0/v3.1/v3.2/v3.3 4개
-    버전의 Track1 계산 함수를 모두 손대는 건 블라스트 반경이 커서 별도 세션에서
-    회귀 테스트와 함께 진행 예정 — 현재는 guide.py/guide_generator.py의 사용자
-    노출 문구(미노출 확정 표현)만 이 플래그로 교정한다.
+    2026-07-04: calc_track1_score / _v3_1 / _v3_2(→ _v3_3 상속)에서 이 플래그로
+    naver_exposure_confirmed(또는 ai_briefing_score) 가중치를 제외하고 나머지
+    항목으로 재정규화하도록 수정 완료 (Google의 calc_track2_score와 동일 패턴).
+    guide.py/guide_generator.py의 사용자 노출 문구 교정에도 계속 사용된다.
     """
     naver_result = scan_result.get("naver") or scan_result.get("naver_result") or {}
     return bool(naver_result.get("captcha_detected")) or bool(naver_result.get("error"))
@@ -597,8 +596,8 @@ def calc_track1_score(
     _naver_r_for_check = scan_result.get("naver") or scan_result.get("naver_result") or {}
     _in_briefing_confirmed = bool(_naver_r_for_check.get("in_briefing"))
 
-    if eligibility == "inactive" and not _in_briefing_confirmed:
-        # 정보형 브리핑 미노출: 15% 제외 후 0.85 정규화 (구조적 손실 방지)
+    if (eligibility == "inactive" and not _in_briefing_confirmed) or _is_naver_unmeasured(scan_result):
+        # 정보형 브리핑 미노출 또는 CAPTCHA/오류로 측정 실패: 15% 제외 후 0.85 정규화 (구조적 손실 방지)
         _inactive_w = 1.0 - NAVER_TRACK_WEIGHTS["naver_exposure_confirmed"]  # 0.85
         score = (
             kw_gap        * NAVER_TRACK_WEIGHTS["keyword_gap_score"] +
@@ -1361,14 +1360,27 @@ def calc_track1_score_v3_1(
     if user_group == "INACTIVE" and _naver_r_v31.get("in_briefing"):
         weights = NAVER_TRACK_WEIGHTS_V3_1["LIKELY"]
 
-    score = (
-        kw_search  * weights["keyword_search_rank"] +
-        rv_qual    * weights["review_quality"] +
-        sp_comp    * weights["smart_place_completeness"] +
-        blog_crank * weights["blog_crank"] +
-        local_map  * weights["local_map_score"] +
-        ai_brief   * weights["ai_briefing_score"]
-    )
+    # CAPTCHA/오류로 네이버 측정 실패 시 ai_briefing_score 제외 후 나머지 항목으로 재정규화
+    # (calc_track2_score의 _is_google_unmeasured 처리와 동일 패턴)
+    _ai_brief_w = weights["ai_briefing_score"]
+    if _is_naver_unmeasured(scan_result) and _ai_brief_w > 0:
+        _norm = 1.0 - _ai_brief_w
+        score = (
+            kw_search  * weights["keyword_search_rank"] +
+            rv_qual    * weights["review_quality"] +
+            sp_comp    * weights["smart_place_completeness"] +
+            blog_crank * weights["blog_crank"] +
+            local_map  * weights["local_map_score"]
+        ) / _norm
+    else:
+        score = (
+            kw_search  * weights["keyword_search_rank"] +
+            rv_qual    * weights["review_quality"] +
+            sp_comp    * weights["smart_place_completeness"] +
+            blog_crank * weights["blog_crank"] +
+            local_map  * weights["local_map_score"] +
+            ai_brief   * weights["ai_briefing_score"]
+        )
 
     detail = {
         "user_group":    user_group,
@@ -1477,15 +1489,29 @@ def calc_track1_score_v3_2(
     ai_brief = calc_naver_exposure(scan_result)
     ai_tab_visible = calc_naver_ai_tab_visible_score(scan_result)
 
-    score = (
-        kw_search      * weights["keyword_search_rank"] +
-        rv_qual        * weights["review_quality"] +
-        sp_comp        * weights["smart_place_completeness"] +
-        blog_crank     * weights["blog_crank"] +
-        local_map      * weights["local_map_score"] +
-        ai_brief       * weights["ai_briefing_score"] +
-        ai_tab_visible * weights["naver_ai_tab_visible"]
-    )
+    # CAPTCHA/오류로 네이버 측정 실패 시 ai_briefing_score 제외 후 나머지 항목으로 재정규화
+    # (calc_track2_score의 _is_google_unmeasured 처리와 동일 패턴)
+    _ai_brief_w = weights["ai_briefing_score"]
+    if _is_naver_unmeasured(scan_result) and _ai_brief_w > 0:
+        _norm = 1.0 - _ai_brief_w
+        score = (
+            kw_search      * weights["keyword_search_rank"] +
+            rv_qual        * weights["review_quality"] +
+            sp_comp        * weights["smart_place_completeness"] +
+            blog_crank     * weights["blog_crank"] +
+            local_map      * weights["local_map_score"] +
+            ai_tab_visible * weights["naver_ai_tab_visible"]
+        ) / _norm
+    else:
+        score = (
+            kw_search      * weights["keyword_search_rank"] +
+            rv_qual        * weights["review_quality"] +
+            sp_comp        * weights["smart_place_completeness"] +
+            blog_crank     * weights["blog_crank"] +
+            local_map      * weights["local_map_score"] +
+            ai_brief       * weights["ai_briefing_score"] +
+            ai_tab_visible * weights["naver_ai_tab_visible"]
+        )
 
     detail = {
         "user_group":    user_group,

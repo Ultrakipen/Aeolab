@@ -92,6 +92,7 @@ export default function AIDiagnosisCard({
   briefingEligibility,
 }: Props) {
   const isNaverBriefingInactive = briefingEligibility === "inactive";
+  const naverUnmeasured = !!allPlatformResults["naver"]?.error;
   const naverInBriefing = inBriefing ?? (allPlatformResults["naver"]?.in_briefing === true);
   const naverMentionedOnly = naverMentioned && !naverInBriefing;
 
@@ -197,6 +198,10 @@ export default function AIDiagnosisCard({
         {isNaverBriefingInactive ? (
           <p className="text-xl md:text-2xl font-bold text-white leading-snug">
             {eunNeun(businessName)} '플레이스형' 네이버 AI 브리핑 비대상 업종입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. AI탭·ChatGPT·Gemini는 소개글·리뷰 개선으로 노출을 시작할 수 있습니다.
+          </p>
+        ) : naverUnmeasured ? (
+          <p className="text-xl md:text-2xl font-bold text-slate-300 leading-snug">
+            {eunNeun(businessName)} 네이버 AI 브리핑 노출 여부를 이번 스캔에서 확인하지 못했습니다 (일시적 접속 제한 — 다음 스캔에서 다시 확인됩니다)
           </p>
         ) : naverInBriefing ? (
           <p className="text-xl md:text-2xl font-bold text-green-400 leading-snug">
