@@ -4018,6 +4018,19 @@ async def get_blog_analysis(biz_id: str, user=Depends(get_current_user)):
     return result
 
 
+@router.get("/blog-analysis-status/{biz_id}")
+async def get_blog_analysis_status(biz_id: str, user=Depends(get_current_user)):
+    """가장 최근 블로그 검색 분석 시도에서 CAPTCHA/차단으로 실패한 키워드 조회 (30분 TTL).
+
+    run_blog_analysis()는 실패 시 이전 결과를 그대로 두고 저장을 생략하므로(오기록 방지),
+    프론트가 "재분석했는데 왜 결과가 안 바뀌었는지" 알 수 있도록 실패 신호만 별도 제공.
+    """
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+    status = _cache.get(_cache._make_key("blog_analysis_status", biz_id))
+    return status or {"captcha_keywords": [], "checked_at": None}
+
+
 @router.post("/blog-analysis/{biz_id}")
 async def run_blog_analysis(
     biz_id: str,
@@ -4125,7 +4138,9 @@ async def run_blog_analysis(
     ) -> None:
         from services.blog_search_analyzer import analyze_blog_search
         import asyncio as _asyncio
+        from datetime import datetime as _dt, timezone as _tz
         _log = logging.getLogger("report.blog_analysis")
+        _captcha_kws: list[str] = []
 
         for kw in _keywords:
             try:
@@ -4134,7 +4149,9 @@ async def run_blog_analysis(
                 result = await analyze_blog_search(search_query, _biz_name, _competitor_names, naver_blog_id=_naver_blog_id)
                 if result.get("captcha_detected"):
                     # 측정 실패(캡챠/차단) — my_rank=None을 "10위 밖"으로 오기록하지 않도록 저장 생략
+                    # 단, 실패 자체는 상태 캐시에 남겨 프론트에서 "측정 불가"로 안내 (조용히 묻지 않기)
                     _log.warning(f"blog_analysis captcha/block, skip save | biz={_biz_id} kw={kw!r}")
+                    _captcha_kws.append(kw)
                     continue
                 _supabase = get_client()
                 await execute(
@@ -4163,6 +4180,17 @@ async def run_blog_analysis(
         # 캐시 무효화 — GET과 동일한 키 패턴으로 삭제 (naver_blog_id 포함 필수)
         cache_key = _cache._make_key("blog_analysis", _biz_id, _naver_blog_id or "none")
         _cache.delete(cache_key)
+
+        # CAPTCHA/차단 상태 — 30분 TTL로 별도 저장 (결과 목록 캐시와 분리)
+        # 실패해도 이전 결과는 그대로 유지되므로(위 continue) 프론트가 "왜 안 바뀌었는지" 알 수 있도록
+        status_key = _cache._make_key("blog_analysis_status", _biz_id)
+        if _captcha_kws:
+            _cache.set(status_key, {
+                "captcha_keywords": _captcha_kws,
+                "checked_at": _dt.now(_tz.utc).isoformat(),
+            }, 1800)
+        else:
+            _cache.delete(status_key)
 
     background_tasks.add_task(
         _run_blog_analysis_bg, biz_id, biz_name, biz_region, naver_blog_id, keywords, competitor_names
