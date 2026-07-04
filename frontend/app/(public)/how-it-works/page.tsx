@@ -970,7 +970,7 @@ export default function HowItWorksPage() {
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded p-3 md:p-4 text-sm md:text-base text-gray-700 leading-relaxed break-keep">
             <strong>'플레이스형' AI 브리핑 비대상 업종(병원·법무·교육·쇼핑몰 등) 안내:</strong>{" "}
             '플레이스형' 네이버 AI 브리핑은 지원되지 않지만, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능합니다. <strong>네이버 플레이스 탭 검색 상위 노출</strong>은 업종과 무관하게 개선됩니다.
-            소개글·리뷰·소식·키워드 최적화는 즉시 네이버 검색 순위에 영향을 줍니다.
+            소개글·리뷰·소식·키워드 최적화는 수일~1주 내 네이버 검색 순위에 영향을 줍니다.
             여기에 Gemini·Google AI Overview·ChatGPT 등 글로벌 AI 노출까지 함께 개선됩니다. 구독 전{" "}
             <Link href="/trial" className="text-blue-600 hover:underline font-medium">무료 진단</Link>으로
             자신의 업종과 개선 가능 영역을 확인하세요.

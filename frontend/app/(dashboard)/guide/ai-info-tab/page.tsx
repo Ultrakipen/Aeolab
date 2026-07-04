@@ -101,7 +101,7 @@ export default async function AiInfoTabGuidePage({
           다른 업종·프랜차이즈도 블로그·콘텐츠가 출처로 채택되면 &apos;정보형 AI 브리핑&apos;에 노출될 수 있습니다.
         </p>
         <p className="mt-2 text-sm md:text-base text-blue-700 bg-white border border-blue-100 rounded px-2.5 py-1.5">
-          ℹ️ AI탭은 업종 제한 발표가 없습니다 (2026-04-27 베타, 정식 출시).{' '}
+          ℹ️ AI탭은 업종 제한 발표가 없습니다 (2026-06-25 정식 출시).{' '}
           <Link href="/guide/ai-tab" className="underline font-semibold">AI탭 5항목 가이드 →</Link>
         </p>
       </div>

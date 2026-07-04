@@ -106,7 +106,7 @@ export default async function HistoryPage() {
   const prevScore = scores[1]
   const currentVal = latestScore ? (latestScore.unified_score ?? latestScore.total_score ?? 0) : 0
   const prevVal = prevScore ? (prevScore.unified_score ?? prevScore.total_score ?? 0) : 0
-  const diff = currentVal - prevVal
+  const diff = latestScore?.weekly_change ?? (currentVal - prevVal)
   const maxScore = scores.length > 0
     ? Math.max(...scores.map(s => s.unified_score ?? s.total_score ?? 0))
     : 0

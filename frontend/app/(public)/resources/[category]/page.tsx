@@ -323,7 +323,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
       "교육·학원은 '플레이스형' 네이버 AI 브리핑 비대상 업종이지만, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. ChatGPT·Gemini 중심 노출도 권장됩니다. 커리큘럼, 강사 소개, 수강 후기가 등록 전환 핵심입니다.",
     checklist: [
       "스마트플레이스 소개글 200자 이상 (수업 과목·대상 연령 포함)",
-      "구글 비즈니스 프로필 등록 (business.google.com) — ChatGPT·Gemini 노출 핵심",
+      "구글 비즈니스 프로필 등록 (business.google.com) — Gemini 노출에 특히 중요 (ChatGPT는 학습 데이터 기반이라 반영까지 더 오래 걸림)",
       "강사 프로필 및 자격증·경력 소개 작성",
       "커리큘럼 또는 수업 과정 안내 게시",
       "수강료 정보 입력 (과목별·수준별)",
@@ -346,7 +346,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
       },
       {
         title: "수강 후기 확보",
-        desc: "실제 수강생 후기는 ChatGPT·Gemini 등 글로벌 AI가 '인용할 만한 근거'로 활용합니다.",
+        desc: "실제 수강생 후기가 온라인에 쌓일수록 ChatGPT·Gemini 등 글로벌 AI가 인용할 근거로 활용될 가능성이 높아집니다.",
       },
     ],
   },
