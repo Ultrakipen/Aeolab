@@ -747,13 +747,13 @@ export default function DemoPage() {
 
             {/* AI 채널별 개선 반영 기간 */}
             <div>
-              <p className="text-sm font-semibold text-gray-600 mb-2">개선 후 손님에게 노출되는 기간 (공식 자료 기준)</p>
+              <p className="text-sm font-semibold text-gray-600 mb-2">개선 후 손님에게 노출되는 기간 (채널별 추정 · ChatGPT는 공식 확인)</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {[
-                  { ch: "네이버 AI 브리핑", period: "2~4주",      border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집" },
-                  { ch: "네이버 AI탭",       period: "2~4주",      border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강" },
+                  { ch: "네이버 AI 브리핑", period: "2~4주(추정)",      border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집 · 네이버 비공개로 추정치" },
+                  { ch: "네이버 AI탭",       period: "2~4주(추정)",      border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강 · 네이버 비공개로 추정치" },
                   { ch: "Gemini",            period: "수 주~수개월",  border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 후 수주 내 반영 시작, 안정적 인용까지 수 개월 소요" },
-                  { ch: "ChatGPT",           period: "수개월~1년",  border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "Bing Places 등록 시 빠름 · 웹콘텐츠 기반" },
+                  { ch: "ChatGPT",           period: "수개월~1년",  border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "학습 데이터 기반(공식 확인) — 웹 콘텐츠가 학습에 반영되기까지 수개월~1년 소요" },
                 ].map((item) => (
                   <div key={item.ch} className={`rounded-xl border ${item.border} ${item.bg} px-3 py-2.5`}>
                     <div className={`flex items-center justify-between mb-0.5 ${item.text}`}>
@@ -998,7 +998,7 @@ export default function DemoPage() {
                     <ul className="space-y-1.5">
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">ChatGPT</span>
-                        <span>Bing 실시간 검색 기반 — Bing Places 등록 시 빠름, 웹콘텐츠 기반 수주~수개월</span>
+                        <span>학습 데이터 기반(공식 확인, cutoff 2024-06-01) — 웹 콘텐츠가 반영되기까지 수개월~1년 소요</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">Gemini</span>
@@ -1010,7 +1010,7 @@ export default function DemoPage() {
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">네이버 AI탭</span>
-                        <span>2026-04-27 베타 오픈, 모든 업종 대상 (정식 출시)</span>
+                        <span>2026-06-25 정식 출시, 업종 제한 없음</span>
                       </li>
                     </ul>
                   </div>

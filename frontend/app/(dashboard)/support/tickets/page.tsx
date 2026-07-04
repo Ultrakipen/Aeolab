@@ -42,7 +42,7 @@ interface PageProps {
   searchParams: Promise<{ status?: string }>;
 }
 
-async function fetchMyTickets(token: string, status?: string): Promise<Ticket[]> {
+async function fetchMyTickets(token: string, status?: string): Promise<{ tickets: Ticket[]; failed: boolean }> {
   try {
     const url = new URL(`${BACKEND_URL}/api/support/tickets/me`);
     if (status) url.searchParams.set("status", status);
@@ -50,11 +50,11 @@ async function fetchMyTickets(token: string, status?: string): Promise<Ticket[]>
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
-    if (!res.ok) return [];
+    if (!res.ok) return { tickets: [], failed: true };
     const data = await res.json();
-    return data.tickets ?? data ?? [];
+    return { tickets: data.tickets ?? data ?? [], failed: false };
   } catch {
-    return [];
+    return { tickets: [], failed: true };
   }
 }
 
@@ -73,7 +73,7 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const statusFilter = params.status ?? "";
 
-  const tickets = await fetchMyTickets(token, statusFilter || undefined);
+  const { tickets, failed: ticketsFetchFailed } = await fetchMyTickets(token, statusFilter || undefined);
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("ko-KR", { month: "2-digit", day: "2-digit" });
@@ -115,7 +115,13 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
         </div>
 
         {/* 목록 */}
-        {tickets.length === 0 ? (
+        {ticketsFetchFailed ? (
+          <div className="bg-red-50 border border-red-200 rounded-xl py-12 px-6 text-center">
+            <MessageCircle className="w-10 h-10 text-red-300 mx-auto mb-3" />
+            <p className="text-base font-medium text-red-600 mb-1">문의 내역을 불러오지 못했습니다.</p>
+            <p className="text-sm text-red-400">잠시 후 새로고침해 주세요.</p>
+          </div>
+        ) : tickets.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm py-12 px-6 text-center">
             <MessageCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <p className="text-base font-medium text-gray-500 mb-1">

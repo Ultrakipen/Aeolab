@@ -15,21 +15,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { getScoreTextLabel } from "@/lib/scoreLabels";
-
-// 업종 코드 → 한글
-const CATEGORY_LABEL: Record<string, string> = {
-  restaurant: "음식점",
-  cafe: "카페",
-  beauty: "미용실·뷰티",
-  clinic: "병원·의원",
-  academy: "학원·교육",
-  legal: "법무·법률",
-  fitness: "헬스·피트니스",
-  pet: "반려동물",
-  shopping: "쇼핑몰",
-  photo: "사진·영상",
-  other: "기타 업종",
-};
+import { CATEGORY_LABEL } from "@/lib/categories";
 
 // 행동 타입별 색상
 const ACTION_COLORS: Record<string, string> = {

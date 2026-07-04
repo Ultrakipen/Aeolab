@@ -476,7 +476,7 @@ export default function HowItWorksPage() {
                 <li>• 음식점·카페·숙박 등 ACTIVE 업종에 해당하는 경우 가장 빠른 채널</li>
                 <li>• AI 정보 탭 토글 ON 설정 후 1일 이내 적용 가능</li>
               </ul>
-              <p className="text-sm text-green-700 mt-2 ml-9">※ ACTIVE 업종(음식점·카페·베이커리·바·숙박)에만 해당. 프랜차이즈 제외.</p>
+              <p className="text-sm text-green-700 mt-2 ml-9">※ AI 브리핑은 ACTIVE 업종(음식점·카페·베이커리·바·숙박)에만 해당(프랜차이즈 제외). AI탭은 업종 제한 없이 모든 업종 대상입니다.</p>
             </div>
 
             {/* 2위: Gemini (실사용 앱) */}
@@ -497,7 +497,7 @@ export default function HowItWorksPage() {
             <div className="rounded-xl border-2 border-purple-300 bg-purple-50 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="shrink-0 w-7 h-7 rounded-full bg-purple-500 text-white text-sm font-bold flex items-center justify-center">3</span>
-                <p className="text-sm md:text-base font-bold text-purple-900">Google AI Overview — <span className="text-purple-700">2~4주</span></p>
+                <p className="text-sm md:text-base font-bold text-purple-900">Google AI Overview — <span className="text-purple-700">수 주~수개월</span></p>
               </div>
               <ul className="space-y-1 text-sm text-gray-700 ml-9">
                 <li>• 구글 비즈니스 프로필 완성 (가장 빠른 진입 경로)</li>

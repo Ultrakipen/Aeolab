@@ -180,7 +180,12 @@ function TicketDetailInner() {
               <h1 className="text-lg md:text-xl font-bold text-gray-900 mb-1">{ticket.title}</h1>
               <p className="text-sm text-gray-400">
                 {CATEGORY_LABELS[ticket.category] ?? ticket.category} · {formatDate(ticket.created_at)}
-                {ticket.visibility === "public" && <span className="ml-2 text-green-600 font-medium">공개</span>}
+                {ticket.visibility === "public" && ticket.status === "answered" && (
+                  <span className="ml-2 text-green-600 font-medium">공개</span>
+                )}
+                {ticket.visibility === "public" && ticket.status !== "answered" && (
+                  <span className="ml-2 text-gray-400 font-medium">공개 예정(답변 후)</span>
+                )}
               </p>
             </div>
             <span className={`shrink-0 text-sm font-semibold px-3 py-1.5 rounded-full ${statusMeta.color}`}>

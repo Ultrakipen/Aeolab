@@ -2382,7 +2382,11 @@ async def monthly_growth_card_job():
                     from PIL import Image, ImageDraw, ImageFont
                     from io import BytesIO
                     from services.before_after_card import _FONT_BOLD, _FONT_REG  # 폰트 경로 재사용
+                    from services.share_card import _score_stage_label
                     from pathlib import Path
+
+                    stage_start = _score_stage_label(score_start)
+                    stage_end = _score_stage_label(score_end)
 
                     W, H = 1080, 1080
                     img = Image.new("RGB", (W, H), "#0f172a")
@@ -2401,9 +2405,9 @@ async def monthly_growth_card_job():
                     f_md = _lf(_FONT_BOLD, 48)
                     f_sm = _lf(_FONT_REG, 32)
 
-                    draw.text((540, 180), "이번 달 AI 점수", font=f_sm, fill="#94a3b8", anchor="mm")
-                    draw.text((540, 380), f"+{diff:.1f}점 상승!", font=f_lg, fill="#34d399", anchor="mm")
-                    draw.text((540, 520), f"{score_start:.0f}점 → {score_end:.0f}점", font=f_md, fill="#ffffff", anchor="mm")
+                    draw.text((540, 180), "이번 달 AI 검색 노출", font=f_sm, fill="#94a3b8", anchor="mm")
+                    draw.text((540, 380), "좋아졌어요!", font=f_lg, fill="#34d399", anchor="mm")
+                    draw.text((540, 520), f"{stage_start} → {stage_end}", font=f_md, fill="#ffffff", anchor="mm")
                     draw.text((540, 640), biz["name"], font=f_md, fill="#93c5fd", anchor="mm")
                     draw.text((540, 900), "aeolab.co.kr", font=f_sm, fill="#475569", anchor="mm")
 
@@ -2436,8 +2440,7 @@ async def monthly_growth_card_job():
                         phone=phone,
                         message=(
                             f"[AEOlab] {biz['name']} 이달 성장 리포트\n\n"
-                            f"이번 달 AI 검색 점수가 +{diff:.1f}점 상승했습니다!\n\n"
-                            f"{score_start:.0f}점 → {score_end:.0f}점\n\n"
+                            f"이번 달 AI 검색 노출이 좋아졌습니다! ({stage_start} → {stage_end})\n\n"
                             f"성장 카드를 확인하세요:\n{card_url}"
                         ),
                     )
@@ -3331,12 +3334,16 @@ async def _auto_log_score_change(
     if abs(diff) < 5.0:
         return
 
+    from services.share_card import _score_stage_label
+    stage_old = _score_stage_label(old_score)
+    stage_new = _score_stage_label(new_score)
+
     if diff > 0:
         action_type = "score_up"
-        action_label = f"점수 +{diff:.1f}점 상승 (자동 스캔)"
+        action_label = f"AI 검색 노출 개선 ({stage_old} → {stage_new}, 자동 스캔)"
     else:
         action_type = "score_down"
-        action_label = f"점수 {diff:.1f}점 하락 — 경쟁사 강화 또는 정보 갱신 필요"
+        action_label = f"AI 검색 노출 하락 ({stage_old} → {stage_new}) — 경쟁사 강화 또는 정보 갱신 필요"
 
     today = _dt.utcnow().date().isoformat()
 
@@ -3791,7 +3798,7 @@ async def _detect_competitor_score_spike():
                         last_data.get("unified_score") or last_data.get("total_score") or 0
                     )
                     if this_score > 0 and last_score > 0 and (this_score - last_score) >= threshold:
-                        spike_comps.append((comp_name, this_score - last_score))
+                        spike_comps.append((comp_name, this_score - last_score, this_score))
 
                 if not spike_comps:
                     continue
@@ -3826,16 +3833,18 @@ async def _detect_competitor_score_spike():
 
                 # 가장 급등한 경쟁사 1개만 알림
                 spike_comps.sort(key=lambda x: x[1], reverse=True)
-                comp_name, delta = spike_comps[0]
+                comp_name, delta, comp_score = spike_comps[0]
+
+                from services.share_card import _score_stage_label
+                comp_stage = _score_stage_label(comp_score)
 
                 masked = phone[:3] + "****" + phone[-4:] if len(phone) >= 7 else "***"
                 biz_name = biz.get("name", "")
-                delta_int = int(delta)
                 _nl = "\n"
                 msg = (
                     "[AEOlab] " + biz_name + _nl + _nl
-                    + "경쟁업체 " + comp_name + " AI 노출 점수 "
-                    + str(delta_int) + "점 상승" + _nl + _nl
+                    + "경쟁업체 " + comp_name + " AI 노출 점수 상승"
+                    + " (현재 " + comp_stage + ")" + _nl + _nl
                     + "내 가게 현황 확인 및 FAQ 업데이트를 권장합니다." + _nl
                     + "경쟁사 비교: https://aeolab.co.kr/competitors"
                 )
@@ -3946,7 +3955,10 @@ async def send_monthly_performance_reports():
                 score_now = _get_score(score_now_r)
                 score_before = _get_score(score_before_r)
                 delta = score_now - score_before
-                delta_str = f"+{delta:.1f}" if delta >= 0 else f"{delta:.1f}"
+                from services.share_card import _score_stage_label
+                stage_before = _score_stage_label(score_before)
+                stage_now = _score_stage_label(score_now)
+                trend_text = "상승" if delta > 0 else ("하락" if delta < 0 else "유지")
                 color = "#10B981" if delta >= 0 else "#EF4444"
 
                 # 완료한 행동 수 (30일)
@@ -3980,9 +3992,9 @@ async def send_monthly_performance_reports():
   <h2 style="color:#111;margin-bottom:4px">{biz_name}</h2>
   <p style="color:#6B7280;margin-top:0">{days_since}일 성과 리포트</p>
   <div style="background:#F9FAFB;border-radius:12px;padding:20px;margin:16px 0;border:1px solid #E5E7EB">
-    <p style="color:#6B7280;margin:0 0 4px;font-size:13px">AI 노출 점수 변화 (지난 28일)</p>
-    <p style="font-size:32px;font-weight:700;color:{color};margin:4px 0">{delta_str}점</p>
-    <p style="color:#374151;margin:0">{score_before:.0f}점 → {score_now:.0f}점</p>
+    <p style="color:#6B7280;margin:0 0 4px;font-size:13px">AI 노출 변화 (지난 28일)</p>
+    <p style="font-size:28px;font-weight:700;color:{color};margin:4px 0">{trend_text}</p>
+    <p style="color:#374151;margin:0">{stage_before} → {stage_now}</p>
   </div>
   <p style="color:#374151">이번 달 완료한 행동: <strong>{action_count}건</strong></p>
   <a href="https://aeolab.co.kr/guide"
