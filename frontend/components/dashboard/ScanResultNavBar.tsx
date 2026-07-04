@@ -82,8 +82,9 @@ export default function ScanResultNavBar({
     ? GREEN
     : AMBER;
 
-  const aiTabDot =
-    naverAiTabVisible === true ? GREEN : naverAiTabVisible === false ? AMBER : GRAY;
+  const aiTabDot = naverCaptchaBlocked
+    ? GRAY
+    : naverAiTabVisible === true ? GREEN : naverAiTabVisible === false ? AMBER : GRAY;
 
   const briefingDot = naverCaptchaBlocked
     ? GRAY
@@ -104,7 +105,7 @@ export default function ScanResultNavBar({
 
   const items = [
     { id: "nav-search",   scrollTarget: "section-naver", subTarget: "naver-seo-anchor",     dot: searchDot,   label: "일반검색",  highlight: searchDot === AMBER },
-    { id: "nav-aitab",    scrollTarget: "section-naver", subTarget: "naver-aitab-anchor",    dot: aiTabDot,    label: "AI탭",      highlight: naverAiTabVisible === false },
+    { id: "nav-aitab",    scrollTarget: "section-naver", subTarget: "naver-aitab-anchor",    dot: aiTabDot,    label: "AI탭",      highlight: naverAiTabVisible === false && !naverCaptchaBlocked },
     { id: "nav-briefing", scrollTarget: "section-naver", subTarget: "naver-briefing-anchor", dot: briefingDot, label: "AI브리핑",  highlight: !isInactive && eligibility === "active" && !naverInBriefing && !naverCaptchaBlocked },
     { id: "nav-rank",     scrollTarget: "section-detail", subTarget: undefined,              dot: rankDot,     label: "경쟁현황",  highlight: false },
   ];

@@ -5349,17 +5349,24 @@ async def ai_tab_trigger_check_job():
     - 베타(현재): 네이버플러스 멤버십 한정 → 비로그인 노출 0%
     - 전체 공개 후: 전체 네이버 사용자 대상 → 비로그인에서도 노출 예상
     노출률 80%+ 감지 시 system_status.ai_tab_enabled=true 자동 설정 + Slack 알림.
+
+    2026-07-04 수정: 기존 구현은 `_check_single_page(page, q, "")`로 target을 빈
+    문자열로 넘겼는데, `_name_in_text("", text)`는 `"" in text`가 항상 True이므로
+    실제 렌더 텍스트 길이·내용과 무관하게 셀렉터만 매치되면(빈 래퍼 div 포함) 무조건
+    "노출 감지"로 오탐지했다(`briefing_category_expansion_monitor_job`의 2026-07-01
+    P0 수정과 동일 버그 클래스). 이 잡은 특정 사업장명 매칭이 필요 없는 "AI탭 섹션
+    DOM 존재 확인"이 목적이므로, `_check_single_page` 재사용 대신 셀렉터 직접 조회 +
+    텍스트 길이 검증(빈 래퍼 div 오탐 제거)으로 교체한다.
     """
     try:
         from playwright.async_api import async_playwright
-        from services.ai_scanner.naver_scanner import NaverAIBriefingScanner
+        from services.ai_scanner.naver_scanner import AI_TAB_SELECTORS
     except ImportError as e:
         _logger.warning(f"ai_tab_trigger_check_job: import failed: {e}")
         return
 
     queries = ["강남역 맛집", "홍대 카페", "신사동 미용실", "분당 학원"]
     hit_count = 0
-    scanner = NaverAIBriefingScanner()
 
     try:
         async with async_playwright() as pw:
@@ -5378,10 +5385,22 @@ async def ai_tab_trigger_check_job():
             for q in queries:
                 page = await ctx.new_page()
                 try:
-                    result = await scanner._check_single_page(page, q, "")
-                    if result.get("in_ai_tab"):
+                    await page.goto(
+                        f"https://search.naver.com/search.naver?query={q}",
+                        wait_until="domcontentloaded", timeout=30000,
+                    )
+                    await page.wait_for_timeout(3000)
+                    text = ""
+                    for sel in AI_TAB_SELECTORS:
+                        el = await page.query_selector(sel)
+                        if el:
+                            t = await el.inner_text()
+                            if t and t.strip():
+                                text = t
+                                break
+                    if len(text.strip()) > 20:
                         hit_count += 1
-                        _logger.info(f"[ai_tab_trigger] in_ai_tab=True query='{q}'")
+                        _logger.info(f"[ai_tab_trigger] AI탭 섹션 감지 query='{q}' text_len={len(text.strip())}")
                 except Exception as e:
                     _logger.warning(f"[ai_tab_trigger] query='{q}' failed: {e}")
                 finally:

@@ -379,7 +379,8 @@ async def scan_batch(queries: list[str], business_name: str) -> dict:
         business_name: 사업장명
 
     Returns:
-        {query: result_dict} 형태. 오류 발생 쿼리는 None 값으로 포함.
+        {query: result_dict} 형태. 오류/차단 쿼리는 결과에서 제외한다
+        (전체 실패 시 빈 dict — 호출측이 "미측정"과 "측정됨=False"를 구분할 수 있도록).
     """
     if not await _get_ai_tab_enabled():
         _logger.debug("[naver_ai_tab] scan_batch skip — ai_tab_enabled=false")
@@ -388,8 +389,8 @@ async def scan_batch(queries: list[str], business_name: str) -> dict:
     results: dict = {}
     for query in queries[:4]:  # 최대 4개
         result = await scan(query, business_name)
-        results[query] = result
         if result is not None:
+            results[query] = result
             # 인스턴스 해제 후 짧은 대기 (RAM 복구)
             await asyncio.sleep(2)
     return results

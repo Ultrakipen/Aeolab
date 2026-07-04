@@ -85,12 +85,13 @@ export default function DashboardHeroCard({
     ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 양호",       statusClass: "text-emerald-700", detail: "키워드 모두 포함됨" }
     : { icon: "!", iconClass: "bg-amber-500 text-white",   status: "키워드 보강 필요", statusClass: "text-amber-700",   detail: `${topMissingKeywordCount}개 키워드 추가 필요` };
 
-  const naverAiTabCard =
-    naverAiTabVisible === true
-      ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 중",    statusClass: "text-emerald-700", detail: "AI탭 답변 있음" }
-      : naverAiTabVisible === false
-      ? { icon: "!", iconClass: "bg-amber-500 text-white",   status: "아직 미노출", statusClass: "text-amber-700",   detail: "설정 보강하면 가능" }
-      : { icon: "i", iconClass: "bg-blue-100 text-blue-700 font-black", status: "준비 가능",   statusClass: "text-blue-700",    detail: "가이드로 설정하기" };
+  const naverAiTabCard = naverCaptchaBlocked
+    ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",   statusClass: "text-gray-400",    detail: "일시적으로 확인 어려움" }
+    : naverAiTabVisible === true
+    ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 중",    statusClass: "text-emerald-700", detail: "AI탭 답변 있음" }
+    : naverAiTabVisible === false
+    ? { icon: "!", iconClass: "bg-amber-500 text-white",   status: "아직 미노출", statusClass: "text-amber-700",   detail: "설정 보강하면 가능" }
+    : { icon: "i", iconClass: "bg-blue-100 text-blue-700 font-black", status: "준비 가능",   statusClass: "text-blue-700",    detail: "가이드로 설정하기" };
 
   const naverBriefingCard = naverCaptchaBlocked
     ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",        statusClass: "text-gray-400",    detail: "일시적으로 확인 어려움" }
