@@ -28,12 +28,13 @@ async def generate_startup_report(
 ):
     """창업 패키지 경쟁 분석 리포트 생성 (startup/biz 전용)"""
     supabase = get_client()
-    from middleware.plan_gate import get_user_plan
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
     plan = await get_user_plan(user["id"], supabase)
-    if plan not in ("startup", "biz"):
+    if not PLAN_LIMITS.get(plan, PLAN_LIMITS["free"]).get("startup_report", False):
+        required_plans = [p for p, limits in PLAN_LIMITS.items() if limits.get("startup_report")]
         raise HTTPException(
             status_code=403,
-            detail={"code": "PLAN_REQUIRED", "required_plans": ["startup", "biz"]},
+            detail={"code": "PLAN_REQUIRED", "required_plans": required_plans},
         )
 
     from services.startup_report import StartupReportService

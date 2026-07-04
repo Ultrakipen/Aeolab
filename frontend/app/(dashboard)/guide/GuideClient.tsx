@@ -1455,7 +1455,7 @@ function GrowthStageCard({ stage }: { stage: GrowthStage }) {
                   {isActive ? s.emoji : isPast ? <Check className="w-3.5 h-3.5" /> : (i + 1)}
                 </div>
                 <span className={`text-sm sm:text-base mt-1.5 text-center leading-tight break-keep px-0.5 ${isActive ? 'font-bold' : 'opacity-50'}`}>
-                  {isActive ? `${s.emoji} ${s.label.split(' ')[0]}` : s.label.split(' ')[0]}
+                  {isActive ? `${s.emoji} ${simplify(s.label.split(' ')[0])}` : simplify(s.label.split(' ')[0])}
                 </span>
               </div>
             )

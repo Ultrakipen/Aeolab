@@ -398,8 +398,8 @@ export default function GrowthClient({
                   />
                   <YAxis
                     domain={[0, 100]}
-                    ticks={[0, 40, 60, 80, 100]}
-                    tickFormatter={(v: number) => v === 80 ? '우수' : v === 60 ? '양호' : v === 40 ? '보통' : ''}
+                    ticks={[0, 30, 55, 75, 100]}
+                    tickFormatter={(v: number) => v === 75 ? '양호' : v === 55 ? '보통' : v === 30 ? '주의 필요' : ''}
                     tick={{ fontSize: 10, fill: "#9ca3af" }}
                     tickLine={false}
                     axisLine={false}

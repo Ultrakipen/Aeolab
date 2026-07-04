@@ -4,6 +4,7 @@ import {
   ComposedChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea,
 } from 'recharts'
+import { getScoreTextLabel } from '@/lib/scoreLabels'
 
 interface TrendPoint {
   score_date: string
@@ -82,11 +83,14 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
   }
 
   const latestScore = chartData.length > 0 ? chartData[chartData.length - 1].score : null
+  const GRADE_STYLE: Record<string, { color: string; bg: string }> = {
+    '양호': { color: '#059669', bg: 'bg-emerald-100' },
+    '보통': { color: '#2563eb', bg: 'bg-blue-100' },
+    '주의 필요': { color: '#d97706', bg: 'bg-amber-100' },
+    '시작 전': { color: '#64748b', bg: 'bg-slate-100' },
+  }
   const latestGrade = latestScore == null ? null
-    : latestScore >= 80 ? { label: '우수', color: '#16a34a', bg: 'bg-green-100' }
-    : latestScore >= 60 ? { label: '양호', color: '#2563eb', bg: 'bg-blue-100' }
-    : latestScore >= 40 ? { label: '보통', color: '#d97706', bg: 'bg-yellow-100' }
-    : { label: '개선 필요', color: '#dc2626', bg: 'bg-red-100' }
+    : { label: getScoreTextLabel(latestScore), ...GRADE_STYLE[getScoreTextLabel(latestScore)] }
 
   return (
     <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
@@ -127,23 +131,23 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
       </p>
       <ResponsiveContainer width="100%" height={200}>
         <ComposedChart data={chartData}>
-          {/* 점수 구간 배경 — 우수/양호/보통/개선 필요 */}
-          <ReferenceArea y1={80} y2={100} fill="#f0fdf4" fillOpacity={0.6} ifOverflow="hidden" />
-          <ReferenceArea y1={60} y2={80}  fill="#eff6ff" fillOpacity={0.6} ifOverflow="hidden" />
-          <ReferenceArea y1={40} y2={60}  fill="#fefce8" fillOpacity={0.6} ifOverflow="hidden" />
-          <ReferenceArea y1={0}  y2={40}  fill="#fef2f2" fillOpacity={0.6} ifOverflow="hidden" />
+          {/* 점수 구간 배경 — 양호/보통/주의 필요/시작 전 (scoreLabels.ts 기준과 동일 임계값) */}
+          <ReferenceArea y1={75} y2={100} fill="#f0fdf4" fillOpacity={0.6} ifOverflow="hidden" />
+          <ReferenceArea y1={55} y2={75}  fill="#eff6ff" fillOpacity={0.6} ifOverflow="hidden" />
+          <ReferenceArea y1={30} y2={55}  fill="#fefce8" fillOpacity={0.6} ifOverflow="hidden" />
+          <ReferenceArea y1={0}  y2={30}  fill="#fef2f2" fillOpacity={0.6} ifOverflow="hidden" />
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} />
           <YAxis
             domain={[0, 100]}
             tickLine={false}
             axisLine={false}
-            ticks={[0, 40, 60, 80, 100]}
+            ticks={[0, 30, 55, 75, 100]}
             tick={(props: { x: string | number; y: string | number; payload?: { value: number } }) => {
               const x = typeof props.x === 'string' ? parseInt(props.x) : props.x
               const y = typeof props.y === 'string' ? parseInt(props.y) : props.y
               const v = props.payload?.value ?? 0
-              const grade = v === 80 ? '우수' : v === 60 ? '양호' : v === 40 ? '보통' : ''
+              const grade = v === 75 ? '양호' : v === 55 ? '보통' : v === 30 ? '주의 필요' : ''
               if (!grade) return <g />
               return (
                 <g>
@@ -157,7 +161,7 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
             formatter={(val: unknown, name: unknown) => {
               if (val === null || val === undefined) return ['—', String(name)]
               const n = Number(val)
-              const grade = n >= 80 ? '우수' : n >= 60 ? '양호' : n >= 40 ? '보통' : '개선 필요'
+              const grade = getScoreTextLabel(n)
               const label = name === 'score' ? '일별 측정값' : '7일 평균'
               return [grade, label]
             }}

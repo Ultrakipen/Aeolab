@@ -35,7 +35,7 @@ export default async function AdDefensePage() {
       {
         Icon: BarChart2,
         title: "경쟁사 대비 리스크 진단",
-        desc: "현재 AI 점수 기반으로 광고 경쟁 시 리스크 수준을 수치로 진단합니다.",
+        desc: "현재 AI 점수 기반으로 광고 경쟁 시 리스크 수준을 진단합니다.",
       },
       {
         Icon: Shield,

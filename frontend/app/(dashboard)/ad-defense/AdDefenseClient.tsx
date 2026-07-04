@@ -121,7 +121,7 @@ export function AdDefenseClient({
               {step}
             </div>
             <div className="text-sm font-semibold text-gray-900 mb-0.5">{label}</div>
-            <div className="text-xs text-gray-500 leading-relaxed">{desc}</div>
+            <div className="text-sm text-gray-500 leading-relaxed">{desc}</div>
           </div>
         ))}
       </div>
@@ -143,7 +143,7 @@ export function AdDefenseClient({
           {/* 스캔 신선도 */}
           <div className="mt-2">
             {scanDays === null ? (
-              <p className="text-xs text-amber-600 flex items-center gap-1">
+              <p className="text-sm text-amber-600 flex items-center gap-1">
                 <span>⚠</span>
                 <span>
                   스캔 데이터 없음 —{" "}
@@ -152,12 +152,12 @@ export function AdDefenseClient({
                 </span>
               </p>
             ) : scanDays > 30 ? (
-              <p className="text-xs text-amber-600 flex items-center gap-1">
+              <p className="text-sm text-amber-600 flex items-center gap-1">
                 <span>⚠</span>
                 <span>마지막 스캔 {formatScanDate(lastScanDate!)} — 재스캔하면 최신 데이터로 가이드가 개선됩니다</span>
               </p>
             ) : (
-              <p className="text-xs text-gray-400 flex items-center gap-1">
+              <p className="text-sm text-gray-400 flex items-center gap-1">
                 <span>✓</span>
                 <span>마지막 스캔 {formatScanDate(lastScanDate!)}</span>
               </p>

@@ -901,7 +901,7 @@ function BasicTab({
           <FeatureRow label="매주 월요일 AI 4채널 자동 스캔" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 3곳" />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 3회" />
-          <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 20회" />
+          <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 50회" />
           <FeatureRow label="소개글·Q&A 자동 생성" available={true} note="월 5회" />
           <FeatureRow label="블로그 키워드 진단" available={true} />
           <FeatureRow label="30일 성장 추세 그래프" available={true} />

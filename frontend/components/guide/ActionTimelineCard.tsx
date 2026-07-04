@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react'
 import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts'
 import { PlanGate } from '@/components/common/PlanGate'
+import { getScoreTextLabel } from '@/lib/scoreLabels'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -87,8 +88,7 @@ function MiniChart({ data }: { data: TimelinePoint[] }) {
             formatter={(val: unknown) => {
               if (val === null || val === undefined) return ['—', '점수']
               const n = Number(val)
-              const grade = n >= 80 ? '우수' : n >= 60 ? '양호' : n >= 40 ? '보통' : '개선 필요'
-              return [grade, '점수']
+              return [getScoreTextLabel(n), '점수']
             }}
           />
         </LineChart>
