@@ -660,6 +660,14 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
+### 2026-07-05 — 네이버 DataLab API 이용 승인 확인 + 라이브 검증
+> 사용자가 네이버 개발자센터에서 DataLab(검색어트렌드) API 서비스를 기존 앱에 추가 신청·승인받음. 코드는 이미 완성돼 있었고(`naver_datalab.py`, `/api/report/keyword-trend/{biz_id}`, `KeywordTrendChart.tsx`), 막혀있던 건 API 서비스 승인 여부뿐이었음.
+- **서버 직접 호출로 실제 트렌드 데이터 수신 확인** (카페 키워드 4개월 ratio 값 정상 반환, `unauthorized` 아님)
+- **라이브 대시보드에서 실측 확인**: 홍스튜디오 사업장 "30일 검색량 추이" 섹션 — 등록 키워드 6개 실제 차트 렌더링, `GET /api/report/keyword-trend/{biz_id}` → `200`
+- 서버 `.env`에 `NAVER_DATALAB_ENABLED=true` 추가 + `pm2 restart aeolab-backend` (구독자 100명 조건부 "착수 필요" 오탐 로그 방지 목적, 기능 자체와는 무관)
+- `NAVER_SEARCHAD`(검색광고 API, 실제 월간 검색량 숫자)는 아직 미설정 — DataLab은 상대 검색량 지수(0~100)만 제공, `monthly_volume`은 null
+- CLAUDE.md "미래 과제"에서 DataLab 항목 제거 (완료됨)
+
 ### 2026-06-26 — 대시보드 좌측 메뉴 재편 (소상공인 UX 최적화)
 > `DashboardSidebar.tsx` NAV_GROUPS 재구성. git `4d2a453`. 배포 완료.
 - **그룹 통합**: "진단"(2) + "변화 보기"(2) → **"내 가게 현황"(4)** — 스크롤 없이 712px→350px대 노출
@@ -695,7 +703,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 | **P2 AI탭 스캐너 활성화** | ⚠️ **2026-06-25 정식 출시 완료 — 트리거 충족됨.** 비로그인(헤드리스) 상태에서 AI탭이 보이는지 수동 확인 후 `docs/p2_p3_execution_runbook.md` 실행 | 없음 — 즉시 수동 확인 필요 |
 | **P2 DB v5.7 컬럼** | P2와 동시 실행 (Supabase SQL Editor) | — |
 | **P3 점수 모델 v3.1** | 백엔드 로그 `[P3-READY]` WARNING 발생 시 | ✅ 매일 09:15 KST 자동 체크 중 |
-| **데이터 배선 확장** (DataLab API·Playwright 완전 자동화) | 백엔드 로그 `[DATA-WIRING-READY-50]`(50명)/`[DATA-WIRING-READY-100]`(100명) WARNING 발생 시 — `jobs.py:_check_data_wiring_readiness_job` | ✅ 매일 09:20 KST 자동 체크 중 |
+| **데이터 배선 확장** (Playwright 완전 자동화만 남음, DataLab은 2026-07-05 완료) | 백엔드 로그 `[DATA-WIRING-READY-50]`(50명) WARNING 발생 시 — `jobs.py:_check_data_wiring_readiness_job` | ✅ 매일 09:20 KST 자동 체크 중 |
 
 **트리거 명령 전체**: `docs/p2_p3_execution_runbook.md` 참조 (런북에 최신 명령 포함)
 
@@ -706,7 +714,6 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - [ ] B2G 공식화 지자체 MOU (Phase 4)
 
 ### 미래 과제 (구독자 확보 후)
-- 네이버 DataLab API 연동 (`naver_datalab.py`) — 100명 이후. 조건 충족 자동 감지: `jobs.py:_check_data_wiring_readiness_job`
 - `smart_place_completeness` Playwright 완전 자동화 — 50명 이후. 조건 충족 자동 감지: `jobs.py:_check_data_wiring_readiness_job`
 - 경쟁사 keyword_gap 실시간 자동화 (`_enrich_competitor_excerpts` 잡 이미 구현됨)
 
