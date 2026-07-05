@@ -323,7 +323,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 - AI: `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`
 - 결제: `NEXT_PUBLIC_TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY` (현재 test_)
 - 알림: `KAKAO_APP_KEY`, `KAKAO_SENDER_KEY`, `KAKAO_REST_API_KEY`
-- 검색: `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NAVER_SEARCHAD` (일 25,000건 무료)
+- 검색: `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` (Open API, DataLab 겸용) / `NAVER_SEARCHAD_API_KEY`, `NAVER_SEARCHAD_SECRET_KEY`, `NAVER_SEARCHAD_CUSTOMER_ID` (검색광고 키워드도구 API, searchad.naver.com 별도 발급 — 미설정 시 graceful degradation)
 - 기타: `BACKEND_URL`, `SECRET_KEY`
 
 ---
