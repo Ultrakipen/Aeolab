@@ -101,6 +101,9 @@ def _is_ssrf_blocked(url: str) -> bool:
     return False
 
 _TIMEOUT = aiohttp.ClientTimeout(total=8, connect=5)
+# RSS 재시도 전용 — 원 요청보다 짧게 잡아 전체 분석 예산(35초, blog.py _ANALYZE_TIMEOUT_SECONDS)을
+# 과도하게 잠식하지 않도록 함 (2026-07-06: 같은 블로그가 90초 내 3회 중 1회 RSS 실패 실측)
+_RSS_RETRY_TIMEOUT = aiohttp.ClientTimeout(total=5, connect=3)
 
 # ── 개별 포스트 분석 + 제목 SEO + 주간 액션 ──────────────────────────────────
 
@@ -1222,18 +1225,30 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool]:
     if not blog_id:
         return [], 0, True
     rss_url = f"https://rss.blog.naver.com/{blog_id}"
-    try:
-        async with aiohttp.ClientSession(timeout=_TIMEOUT, headers=_HEADERS) as session:
-            async with session.get(rss_url) as resp:
-                if resp.status != 200:
-                    _logger.warning(
-                        "naver rss non-200 for blog_id=%s: status=%s", blog_id, resp.status
-                    )
-                    return [], 0, False
-                raw = await resp.content.read(_MAX_BODY_BYTES)
-                xml_text = raw.decode("utf-8", errors="replace")
-    except Exception as e:
-        _logger.warning("naver rss fetch failed for blog_id=%s: %s", blog_id, e)
+
+    # 최초 시도 실패 시 1회 재시도 — 별도 세션(DNS/TCP 재비용)이 간헐적 실패의
+    # 원인으로 보여, 짧은 타임아웃으로 1회만 재시도해 안정성을 높인다
+    xml_text: Optional[str] = None
+    for attempt, timeout in enumerate((_TIMEOUT, _RSS_RETRY_TIMEOUT)):
+        try:
+            async with aiohttp.ClientSession(timeout=timeout, headers=_HEADERS) as session:
+                async with session.get(rss_url) as resp:
+                    if resp.status != 200:
+                        _logger.warning(
+                            "naver rss non-200 for blog_id=%s (attempt %d): status=%s",
+                            blog_id, attempt + 1, resp.status,
+                        )
+                        continue
+                    raw = await resp.content.read(_MAX_BODY_BYTES)
+                    xml_text = raw.decode("utf-8", errors="replace")
+                    break
+        except Exception as e:
+            _logger.warning(
+                "naver rss fetch failed for blog_id=%s (attempt %d): %s", blog_id, attempt + 1, e
+            )
+            continue
+
+    if xml_text is None:
         return [], 0, False
 
     def _field(tag: str, block: str) -> str:
@@ -1351,6 +1366,9 @@ async def _analyze_naver_blog(
     # 시도 대비 기술적 실패 횟수 — 전부 실패면 "포스트 0개"가 아니라 "측정 자체가 안 됨"으로 구분
     naver_total_attempts = 0
     naver_failed_attempts = 0
+    # RSS(본문 구조 측정 가능)가 실패해 API-only(스니펫만, 구조 측정 불가)로 대체됐는지 —
+    # 사용자에게 이번 분석의 데이터 품질이 평소보다 낮을 수 있음을 알리는 데 사용
+    rss_failed = False
 
     # 1단계: RSS 피드 먼저 직접 수집 (blog_id 기반, 가장 신뢰할 수 있는 내 블로그 포스트 목록)
     if blog_id:
@@ -1359,6 +1377,7 @@ async def _analyze_naver_blog(
             rss_items, _, rss_ok = await _fetch_naver_rss(blog_id)
             if not rss_ok:
                 naver_failed_attempts += 1
+                rss_failed = True
             for item in rss_items:
                 link = item.get("link", "")
                 # RSS 링크에서 쿼리스트링 제거 후 정규화 (중복 방지)
@@ -1371,6 +1390,7 @@ async def _analyze_naver_blog(
             _logger.info("naver rss collected %d posts for blog_id=%s", len(rss_items), blog_id)
         except Exception as e:
             naver_failed_attempts += 1
+            rss_failed = True
             _logger.warning("naver rss failed for blog_id=%s: %s", blog_id, e)
 
     # 2단계: 검색 API로 RSS에서 누락된 포스트 보완 (중복 제거)
@@ -1401,10 +1421,13 @@ async def _analyze_naver_blog(
     total_post_count = len(all_items)
 
     if not all_items:
-        # 시도한 모든 요청이 기술적으로 실패한 경우 — "블로그에 글이 없다"가 아니라
-        # "네이버 API/RSS 자체에 접근하지 못했다"는 뜻이므로 반드시 구분해서 안내한다
-        # (측정 실패를 측정된 부정 응답으로 오집계하면 사용자에게 잘못된 안내가 나감)
-        if naver_total_attempts > 0 and naver_failed_attempts == naver_total_attempts:
+        # 시도 중 하나라도 기술적으로 실패했다면 "블로그에 글이 없다"고 단정할 수 없다 —
+        # 실패한 시도가 성공했다면 포스트를 찾았을 수도 있으므로 "접근 실패"로 구분해서
+        # 안내한다. 전부 실패했을 때뿐 아니라 일부만 실패했을 때도 동일하게 적용
+        # (측정 실패를 측정된 부정 응답으로 오집계하면 사용자에게 잘못된 안내가 나가고,
+        # blog.py가 이를 "성공"으로 오인해 기존 DB 값을 0으로 덮어쓰고 24시간 쿨다운·
+        # 월 사용량까지 소비시키는 사고로 이어짐 — 2026-07-06 재점검에서 실측 확인)
+        if naver_total_attempts > 0 and naver_failed_attempts > 0:
             return {
                 "platform": "naver",
                 "post_count": 0,
@@ -1534,6 +1557,9 @@ async def _analyze_naver_blog(
         "posting_frequency": _calc_posting_frequency(post_dates),
         "best_citation_candidate": _pick_best_citation_candidate(posts_detail, region),
         "duplicate_topics": _detect_duplicate_topics(posts_detail),
+        # RSS(재시도 포함) 실패로 API 스니펫만으로 분석됨 — 이미지/본문 길이 등 구조 측정치가
+        # 평소보다 부정확할 수 있음을 프론트에 알리는 용도 (2026-07-06 재점검 신설)
+        "rss_failed": rss_failed,
         "error": None,
     }
 

@@ -246,6 +246,9 @@ async def analyze_blog_endpoint(
         "ai_readiness_items": analysis.get("ai_readiness_items", []),
         # v2: 이번 달 블로그 주제 추천
         "topic_suggestions_v2": topic_suggestions_v2,
+        # RSS 실패(재시도 포함)로 API 스니펫만으로 분석됨 — 이미지/본문 길이 측정치가
+        # 평소보다 제한적일 수 있음을 프론트에서 안내하는 데 사용 (2026-07-06 재점검 신설)
+        "rss_failed": bool(analysis.get("rss_failed", False)),
         "analyzed_at": now_iso,
         "error": analysis.get("error"),
         # 월 사용량 — 실패 시 소비하지 않으므로 +1 하지 않음

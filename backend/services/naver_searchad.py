@@ -128,10 +128,20 @@ class NaverSearchAdClient:
                     raw_result = self._parse_keyword_response(data)
 
                     result = dict(raw_result)
+                    unmatched: list[str] = []
                     for stripped, originals in stripped_to_originals.items():
                         if stripped in raw_result:
                             for orig in originals:
                                 result[orig] = raw_result[stripped]
+                        else:
+                            unmatched.extend(originals)
+                    if unmatched:
+                        # SearchAd가 relKeyword에 요청 키워드를 그대로 반환하지 않고
+                        # 연관어만 준 경우 — 검색량이 조용히 None으로 빠지므로 빈도 모니터링용 로그
+                        _logger.info(
+                            "NaverSearchAd: relKeyword에 없어 검색량 매칭 실패한 키워드 %d개: %s",
+                            len(unmatched), unmatched[:10],
+                        )
                     return result
 
         except asyncio.TimeoutError:

@@ -159,6 +159,8 @@ interface BlogAnalysisResult {
   monthly_limit?: number;
   // 측정 자체가 실패한 경우(네이버 API/RSS 접근 불가 등) — null/undefined면 정상 측정
   error?: string | null;
+  // RSS 접근 실패로 API 스니펫만으로 분석했을 때 true (이미지·본문 길이 측정 불가)
+  rss_failed?: boolean;
 }
 
 interface Props {
@@ -530,6 +532,9 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                       ))
                     )}
                   </div>
+                  {p.suggestion && (
+                    <p className="text-sm text-gray-500 mt-1 leading-snug">{p.suggestion}</p>
+                  )}
                 </td>
                 <td className="py-3 pl-3">
                   {p.improved_title && p.improved_title !== p.title ? (
@@ -897,6 +902,13 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
     medium: "업종 갭",
     low: "재활용",
   };
+  // source 필드 기반 레이블 — priority와 1:1로 생성되지만 구조적으로 source를 직접 쓰는 것이 올바름
+  // (향후 백엔드가 priority 산정 로직을 변경해도 레이블이 오표시되지 않음)
+  const sourceLabel: Record<TopicSuggestionV2["source"], string> = {
+    competitor_gap: "경쟁사 갭",
+    keyword_gap: "업종 갭",
+    reuse: "재활용",
+  };
   const competitionLabel: Record<"high" | "medium" | "low", string> = {
     low: "경쟁 낮음",
     medium: "경쟁 보통",
@@ -936,7 +948,7 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
         {suggestions.map((s, idx) => (
           <div key={idx} className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2">
             <span className={`inline-flex items-center self-start border text-sm font-semibold px-2 py-0.5 rounded-full ${priorityBadge[s.priority]}`}>
-              {priorityLabel[s.priority]}
+              {sourceLabel[s.source] ?? priorityLabel[s.priority]}
             </span>
             <p className="text-sm font-semibold text-gray-900 leading-snug break-keep flex-1">
               {s.topic}
@@ -996,27 +1008,45 @@ interface BlogScoreHistoryPoint {
 
 function BlogScoreTrendChart({ businessId, token }: { businessId: string; token: string }) {
   const [history, setHistory] = useState<BlogScoreHistoryPoint[] | null>(null);
+  const [historyFetchFailed, setHistoryFetchFailed] = useState(false);
 
   useEffect(() => {
     if (!businessId || !token) return;
     let cancelled = false;
     (async () => {
+      setHistoryFetchFailed(false);
       try {
         const res = await fetch(`${BACKEND}/api/blog/score-history/${businessId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) return;
+        if (!res.ok) {
+          if (!cancelled) setHistoryFetchFailed(true);
+          return;
+        }
         const data = await res.json();
         if (!cancelled) setHistory(data?.history ?? []);
       } catch {
-        if (!cancelled) setHistory([]);
+        if (!cancelled) setHistoryFetchFailed(true);
       }
     })();
     return () => { cancelled = true; };
   }, [businessId, token]);
 
-  if (history === null) return null; // 로딩 중 — 자리 차지 안 함
-  if (history.length < 2) {
+  if (history === null && !historyFetchFailed) return null; // 로딩 중 — 자리 차지 안 함
+
+  if (historyFetchFailed) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <TrendingUp className="w-5 h-5 text-gray-400 shrink-0" />
+          <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 진단 점수 추이</h3>
+        </div>
+        <p className="text-sm text-gray-500">추이 데이터를 불러오지 못했습니다 — 새로고침해 주세요.</p>
+      </div>
+    );
+  }
+
+  if ((history ?? []).length < 2) {
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
@@ -1028,7 +1058,7 @@ function BlogScoreTrendChart({ businessId, token }: { businessId: string; token:
     );
   }
 
-  const points = history.slice(-30);
+  const points = history!.slice(-30);
   const latest = points[points.length - 1];
   const first = points[0];
 
@@ -1675,7 +1705,12 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                     )}
                   </p>
                   <p className="text-sm text-amber-800 mb-3 leading-relaxed">
-                    다음 달 1일에 초기화됩니다. Pro 플랜으로 업그레이드하면 월 10회까지 분석할 수 있습니다.
+                    다음 달 1일에 초기화됩니다.{" "}
+                    {currentPlan === "pro"
+                      ? "Biz 플랜으로 업그레이드하면 월 무제한으로 분석할 수 있습니다."
+                      : currentPlan === "biz" || currentPlan === "enterprise"
+                        ? null
+                        : "Pro 플랜으로 업그레이드하면 월 10회까지 분석할 수 있습니다."}
                   </p>
                   <Link
                     href="/pricing"
@@ -1727,14 +1762,11 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 mb-4">
             <span className="text-2xl shrink-0">&#x23F3;</span>
             <div>
-              <p className="font-semibold text-amber-800">블로그 첫 분석을 시작합니다</p>
+              <p className="font-semibold text-amber-800">블로그 첫 분석을 자동으로 시작합니다. 잠시만 기다려 주세요.</p>
               <p className="text-sm text-amber-700 mt-0.5 leading-relaxed">
                 등록하신 블로그를 읽고 AI 인용 가능성을 분석합니다. 보통 20~35초 소요됩니다.<br/>
-                완료되면 이 페이지를 새로고침하면 결과를 확인할 수 있습니다.
+                분석이 완료되면 결과가 자동으로 표시됩니다. 오래 걸리면 새로고침해 주세요.
               </p>
-              <button onClick={() => window.location.reload()} className="mt-2 text-sm text-amber-800 underline">
-                새로고침
-              </button>
             </div>
           </div>
         )}
@@ -1821,6 +1853,16 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
         {/* ═══ 분석 결과 ═══ */}
         {result && !result.error && (
           <div ref={resultSectionRef} className="space-y-5">
+
+            {/* RSS 접근 제한 안내 배너 — API 스니펫 전용 분석 시 표시 */}
+            {result.rss_failed && (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-start gap-3">
+                <span className="text-blue-400 shrink-0 mt-0.5">&#x2139;&#xFE0F;</span>
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  이번 분석은 일부 데이터(이미지·본문 길이)에 접근하지 못해 측정이 제한적입니다. 다시 분석하면 더 정확한 결과를 받을 수 있어요.
+                </p>
+              </div>
+            )}
 
             {/* Layer 1+3: 정보형 AI 브리핑 준비도 (상태·근거·변화) */}
             <InfoBriefingReadinessCard
