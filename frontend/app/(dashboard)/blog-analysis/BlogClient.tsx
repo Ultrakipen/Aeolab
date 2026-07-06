@@ -1270,6 +1270,21 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
   const [oldFormatDetected, setOldFormatDetected] = useState(false);
   const [excludingKws, setExcludingKws] = useState<Set<string>>(new Set());
   const [isDashboardReanalyze, setIsDashboardReanalyze] = useState(false);
+  // 상세 데이터 섹션(트렌드·발행주기·포스트별 분석·키워드 관리) 기본 접힘 — 진단 요약 +
+  // 실행 항목만 먼저 보여 페이지를 간결하게 유지. 사용자가 한 번 펼치면 기억함
+  const [showDetail, setShowDetail] = useState(false);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("aeolab_blog_detail_expanded") === "1") setShowDetail(true);
+    } catch {}
+  }, []);
+  const handleToggleDetail = () => {
+    setShowDetail((prev) => {
+      const next = !prev;
+      try { localStorage.setItem("aeolab_blog_detail_expanded", next ? "1" : "0"); } catch {}
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!token) {
@@ -1877,19 +1892,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               </div>
             )}
 
-            {/* A-2. 블로그 진단 점수 추이 (30일) */}
-            {token && <BlogScoreTrendChart businessId={business.id} token={token} />}
-
-            {/* B. AI 브리핑 가장 가까운 포스트 */}
-            {result.best_citation_candidate && (
-              <BestCitationCandidateCard candidate={result.best_citation_candidate} />
-            )}
-
-            {/* C. 발행 주기 분석 */}
-            {result.posting_frequency && (
-              <PostingFrequencyCard freq={result.posting_frequency} />
-            )}
-
+            {/* ═══ 이번 실행 항목 (항상 노출) ═══ */}
             {/* D. 중복 주제 경고 */}
             {result.duplicate_topics && result.duplicate_topics.length > 0 && (
               <DuplicateTopicsWarning topics={result.duplicate_topics} isInactive={isBlogInactive} />
@@ -1905,122 +1908,152 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               <WeeklyActionsCard actions={result.weekly_actions} businessId={business.id} />
             )}
 
-            {/* F. 포스트별 상세 분석 */}
-            {result.posts_detail && result.posts_detail.length > 0 && (
-              <PostDetailSection posts={result.posts_detail} />
-            )}
+            {/* 상세 데이터 펼치기/접기 — 진단 요약+실행 항목만 먼저 보여 페이지를 간결하게 유지 */}
+            <button
+              type="button"
+              onClick={handleToggleDetail}
+              className="w-full flex items-center justify-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-gray-800 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl py-2.5 transition-colors"
+            >
+              {showDetail ? (
+                <>상세 데이터 접기 <ChevronUp className="w-4 h-4" /></>
+              ) : (
+                <>상세 데이터 보기(트렌드·발행주기·포스트별 분석·키워드 관리) <ChevronDown className="w-4 h-4" /></>
+              )}
+            </button>
 
-            {/* G. 경쟁사 블로그 비교 */}
-            {result.competitor_blog_comparison && (
-              <CompetitorComparisonSection
-                comparison={result.competitor_blog_comparison}
-                businessName={business.name}
-              />
-            )}
+            {showDetail && (
+              <div className="space-y-5">
+                {/* A-2. 블로그 진단 점수 추이 (30일) */}
+                {token && <BlogScoreTrendChart businessId={business.id} token={token} />}
 
-            {/* H. 제목 개선 제안 */}
-            {result.posts_detail && result.posts_detail.length > 0 && (
-              <TitleImprovementSection posts={result.posts_detail} businessId={business.id} />
-            )}
+                {/* B. AI 브리핑 가장 가까운 포스트 */}
+                {result.best_citation_candidate && (
+                  <BestCitationCandidateCard candidate={result.best_citation_candidate} />
+                )}
 
-            {/* 키워드 커버리지 */}
-            {result.keyword_coverage && (
-              <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
-                  <h3 className="text-base md:text-lg font-bold text-gray-900">키워드 커버리지</h3>
-                  <button
-                    type="button"
-                    onClick={() => setKeywordModalOpen(true)}
-                    className="shrink-0 inline-flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 text-sm md:text-base font-semibold px-3 py-2 rounded-xl transition-colors"
-                  >
-                    <Settings className="w-4 h-4" />
-                    키워드 설정
-                  </button>
-                </div>
-                <p className="text-sm text-gray-400 mb-4">포스트 제목과 요약글을 기준으로 분석합니다 - 본문까지는 분석되지 않습니다</p>
-                {result.top_recommendation && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
-                    <TrendingUp className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-sm text-amber-800 leading-relaxed">{result.top_recommendation}</p>
+                {/* C. 발행 주기 분석 */}
+                {result.posting_frequency && (
+                  <PostingFrequencyCard freq={result.posting_frequency} />
+                )}
+
+                {/* F. 포스트별 상세 분석 */}
+                {result.posts_detail && result.posts_detail.length > 0 && (
+                  <PostDetailSection posts={result.posts_detail} />
+                )}
+
+                {/* G. 경쟁사 블로그 비교 */}
+                {result.competitor_blog_comparison && (
+                  <CompetitorComparisonSection
+                    comparison={result.competitor_blog_comparison}
+                    businessName={business.name}
+                  />
+                )}
+
+                {/* H. 제목 개선 제안 */}
+                {result.posts_detail && result.posts_detail.length > 0 && (
+                  <TitleImprovementSection posts={result.posts_detail} businessId={business.id} />
+                )}
+
+                {/* 키워드 커버리지 */}
+                {result.keyword_coverage && (
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
+                      <h3 className="text-base md:text-lg font-bold text-gray-900">키워드 커버리지</h3>
+                      <button
+                        type="button"
+                        onClick={() => setKeywordModalOpen(true)}
+                        className="shrink-0 inline-flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 text-sm md:text-base font-semibold px-3 py-2 rounded-xl transition-colors"
+                      >
+                        <Settings className="w-4 h-4" />
+                        키워드 설정
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-400 mb-4">포스트 제목과 요약글을 기준으로 분석합니다 - 본문까지는 분석되지 않습니다</p>
+                    {result.top_recommendation && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
+                        <TrendingUp className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <p className="text-sm text-amber-800 leading-relaxed">{result.top_recommendation}</p>
+                      </div>
+                    )}
+                    <div className="space-y-4">
+                      {(result.keyword_coverage.present?.length ?? 0) > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                            <span className="text-sm font-semibold text-green-700">
+                              확인된 키워드 ({result.keyword_coverage.present.length})
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {result.keyword_coverage.present.map((kw) => (
+                              <span key={kw} className="bg-green-100 text-green-700 border border-green-200 text-sm px-3 py-1 rounded-full">
+                                {kw}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {(result.keyword_coverage.missing?.length ?? 0) > 0 && (
+                        <div>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                              <span className="text-sm font-semibold text-red-700">
+                                없는 키워드 ({result.keyword_coverage.missing.length}) - 제목에 넣으면 AI 노출에 유리합니다
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => copyToClipboard(result.keyword_coverage!.missing.slice(0, 5).join(", "), setKwCopied)}
+                              className="shrink-0 inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-sm font-semibold px-3 py-1.5 rounded-xl transition-colors w-full sm:w-auto justify-center"
+                            >
+                              {kwCopied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                              {kwCopied ? "복사됨" : "상위 5개 복사"}
+                            </button>
+                          </div>
+                          <p className="text-sm text-gray-400 mb-2">관련 없는 키워드는 X를 눌러 제외하면 분석에서 영구히 빠집니다. 복사한 키워드는 네이버 블로그 에디터에 붙여넣어 다음 포스트 제목에 활용하세요.</p>
+                          <div className="flex flex-wrap gap-2">
+                            {result.keyword_coverage.missing.map((kw) => (
+                              <span key={kw} className="inline-flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-sm px-3 py-1 rounded-full">
+                                {kw}
+                                <button
+                                  type="button"
+                                  onClick={() => handleExcludeKeyword(kw)}
+                                  disabled={excludingKws.has(kw)}
+                                  aria-label={`${kw} 제외`}
+                                  title="이 키워드 제외 (다음 분석부터 미표시)"
+                                  className="ml-0.5 w-4 h-4 rounded-full hover:bg-red-300 text-red-500 hover:text-red-800 flex items-center justify-center disabled:opacity-40 transition-colors"
+                                >
+                                  {excludingKws.has(kw) ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <X className="w-3 h-3" />
+                                  )}
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {(result.keyword_coverage.competitor_only?.length ?? 0) > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <TrendingUp className="w-4 h-4 text-blue-500 shrink-0" />
+                            <span className="text-sm font-semibold text-blue-700">
+                              경쟁사 선점 키워드 ({result.keyword_coverage.competitor_only.length})
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {result.keyword_coverage.competitor_only.map((kw) => (
+                              <span key={kw} className="bg-blue-100 text-blue-700 border border-blue-200 text-sm px-3 py-1 rounded-full">
+                                {kw}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
-                <div className="space-y-4">
-                  {(result.keyword_coverage.present?.length ?? 0) > 0 && (
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-                        <span className="text-sm font-semibold text-green-700">
-                          확인된 키워드 ({result.keyword_coverage.present.length})
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {result.keyword_coverage.present.map((kw) => (
-                          <span key={kw} className="bg-green-100 text-green-700 border border-green-200 text-sm px-3 py-1 rounded-full">
-                            {kw}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {(result.keyword_coverage.missing?.length ?? 0) > 0 && (
-                    <div>
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
-                          <span className="text-sm font-semibold text-red-700">
-                            없는 키워드 ({result.keyword_coverage.missing.length}) - 제목에 넣으면 AI 노출에 유리합니다
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => copyToClipboard(result.keyword_coverage!.missing.slice(0, 5).join(", "), setKwCopied)}
-                          className="shrink-0 inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-sm font-semibold px-3 py-1.5 rounded-xl transition-colors w-full sm:w-auto justify-center"
-                        >
-                          {kwCopied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                          {kwCopied ? "복사됨" : "상위 5개 복사"}
-                        </button>
-                      </div>
-                      <p className="text-sm text-gray-400 mb-2">관련 없는 키워드는 X를 눌러 제외하면 분석에서 영구히 빠집니다. 복사한 키워드는 네이버 블로그 에디터에 붙여넣어 다음 포스트 제목에 활용하세요.</p>
-                      <div className="flex flex-wrap gap-2">
-                        {result.keyword_coverage.missing.map((kw) => (
-                          <span key={kw} className="inline-flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-sm px-3 py-1 rounded-full">
-                            {kw}
-                            <button
-                              type="button"
-                              onClick={() => handleExcludeKeyword(kw)}
-                              disabled={excludingKws.has(kw)}
-                              aria-label={`${kw} 제외`}
-                              title="이 키워드 제외 (다음 분석부터 미표시)"
-                              className="ml-0.5 w-4 h-4 rounded-full hover:bg-red-300 text-red-500 hover:text-red-800 flex items-center justify-center disabled:opacity-40 transition-colors"
-                            >
-                              {excludingKws.has(kw) ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <X className="w-3 h-3" />
-                              )}
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {(result.keyword_coverage.competitor_only?.length ?? 0) > 0 && (
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="w-4 h-4 text-blue-500 shrink-0" />
-                        <span className="text-sm font-semibold text-blue-700">
-                          경쟁사 선점 키워드 ({result.keyword_coverage.competitor_only.length})
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {result.keyword_coverage.competitor_only.map((kw) => (
-                          <span key={kw} className="bg-blue-100 text-blue-700 border border-blue-200 text-sm px-3 py-1 rounded-full">
-                            {kw}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             )}
 
