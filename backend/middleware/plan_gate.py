@@ -49,6 +49,7 @@ PLAN_LIMITS = {
         "faq_monthly": 0,
         "blog_monthly": 0,
         "keyword_suggest_monthly": 0,
+        "crisis_reply_monthly": 0,
     },
     "basic": {
         # v3.5 한도 조정: 리뷰답변 20→50회, 소개글+채팅방메뉴 5→10건 (Haiku 추가 비용 <25원/월)
@@ -65,6 +66,7 @@ PLAN_LIMITS = {
         "faq_monthly": 10,
         "blog_monthly": 3,
         "keyword_suggest_monthly": 5,
+        "crisis_reply_monthly": 20,  # 부정 리뷰 위기관리(Claude Haiku) — 무제한 호출 방지용 신설(2026-07-06)
     },
     "pro": {
         # v3.4 강화: 리뷰답변 무제한, 히스토리 90일, FAQ 무제한 (Basic보다 낮으면 안 됨)
@@ -81,6 +83,7 @@ PLAN_LIMITS = {
         "faq_monthly": 30,  # 소개글+FAQ 합산 — 남용 방지. DEV_MODE=true 시 우회.
         "blog_monthly": 10,
         "keyword_suggest_monthly": 20,
+        "crisis_reply_monthly": 999,
     },
     "biz": {
         "competitors": 999,
@@ -96,6 +99,7 @@ PLAN_LIMITS = {
         "faq_monthly": 60,  # 5사업장 합산 — 남용 방지. DEV_MODE=true 시 우회.
         "blog_monthly": 999,
         "keyword_suggest_monthly": 999,
+        "crisis_reply_monthly": 999,
     },
     "startup": {
         # v3.4 강화: 리뷰답변 무제한, FAQ 무제한
@@ -112,6 +116,7 @@ PLAN_LIMITS = {
         "faq_monthly": 20,  # 소개글+FAQ 합산 — 남용 방지. DEV_MODE=true 시 우회.
         "blog_monthly": 5,
         "keyword_suggest_monthly": 10,
+        "crisis_reply_monthly": 999,
     },
     "enterprise": {
         # 영업 전용 200,000원/월 — Biz 한도 전부 + 사업장 무제한 + 팀 20명 + API 키 무제한
@@ -128,6 +133,7 @@ PLAN_LIMITS = {
         "faq_monthly": 999,
         "blog_monthly": 999,
         "keyword_suggest_monthly": 999,
+        "crisis_reply_monthly": 999,
     },
 }
 
@@ -219,6 +225,43 @@ async def check_review_reply_limit(user_id: str, supabase) -> tuple[bool, int, i
         .select("id", count="exact")
         .in_("business_id", biz_ids)
         .gte("created_at", month_start)
+    )
+    used = result.count or 0
+    return used < limit, used, limit
+
+
+async def check_crisis_reply_limit(user_id: str, supabase) -> tuple[bool, int, int]:
+    """월 위기관리 가이드(crisis-reply) 생성 한도 체크 (Claude Haiku, guides.context='crisis_reply' 카운트).
+
+    2026-07-06 신설 — 이전엔 한도 없이 무제한 호출 가능했음.
+    guides.context CHECK 제약에 'crisis_reply' 추가하는 마이그레이션 필요
+    (scripts/supabase_schema.sql 참조, 미실행 시 insert는 실패해도 warning 로그만 남기고
+    응답은 정상 반환 — 한도 카운트만 항상 0으로 표시됨, 사용자 차단 없음).
+
+    Returns:
+        (allowed, used_count, monthly_limit)
+    """
+    plan = await get_user_plan(user_id, supabase)
+    limit = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["crisis_reply_monthly"]
+
+    if limit >= 999:
+        return True, 0, 999
+
+    biz_res = await _exec(
+        supabase.table("businesses").select("id").eq("user_id", user_id)
+    )
+    biz_rows = biz_res.data or []
+    if not biz_rows:
+        return True, 0, limit
+
+    biz_ids = [b["id"] for b in biz_rows]
+    month_start = date.today().replace(day=1).isoformat() + "T00:00:00"
+    result = await _exec(
+        supabase.table("guides")
+        .select("id", count="exact")
+        .in_("business_id", biz_ids)
+        .eq("context", "crisis_reply")
+        .gte("generated_at", month_start)
     )
     used = result.count or 0
     return used < limit, used, limit

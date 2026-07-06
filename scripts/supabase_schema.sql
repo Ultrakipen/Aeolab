@@ -2262,3 +2262,16 @@ CREATE POLICY "own_blog_score_history_insert" ON blog_score_history
     SELECT 1 FROM businesses b
     WHERE b.id = blog_score_history.business_id AND b.user_id = auth.uid()
   ));
+
+
+-- ===========================================================
+-- 2026-07-06: guides.context CHECK 제약에 'crisis_reply' 추가
+-- 위기관리 가이드(POST /api/guide/{biz_id}/crisis-reply)가 이전엔 무제한 호출
+-- 가능했던 것을 월별 한도로 제한하며, 사용량 카운트를 guides 테이블에 기록하기 위해 필요.
+-- ALTER 미실행 시 guide.py의 insert가 CHECK 위반으로 실패하지만 warning 로그만 남기고
+-- 응답은 정상 반환됨(사용자 차단 없음) — 단, 한도 카운트가 항상 0으로 표시됨.
+-- ===========================================================
+ALTER TABLE guides DROP CONSTRAINT IF EXISTS guides_context_check;
+ALTER TABLE guides
+  ADD CONSTRAINT guides_context_check
+  CHECK (context IN ('location_based', 'non_location', 'faq_draft', 'crisis_reply'));

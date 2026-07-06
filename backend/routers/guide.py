@@ -935,6 +935,8 @@ async def generate_crisis_reply_endpoint(
     하지 말아야 할 행동, 오프라인 해결 단계를 생성합니다.
     """
     from services.crisis_guide import generate_crisis_reply
+    from middleware.plan_gate import check_crisis_reply_limit
+    from datetime import datetime, timezone
 
     user_id = current_user.get("id") or current_user.get("sub")
     if not user_id:
@@ -960,6 +962,20 @@ async def generate_crisis_reply_endpoint(
             detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "pro", "biz"]},
         )
 
+    # 월별 한도 체크 (2026-07-06 신설 — 이전엔 무제한 호출 가능했음)
+    allowed, used, limit = await check_crisis_reply_limit(user_id, supabase)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "CRISIS_REPLY_LIMIT_EXCEEDED",
+                "used": used,
+                "limit": limit,
+                "message": f"이번 달 위기관리 가이드 생성 한도({limit}회)를 초과했습니다.",
+                "upgrade_url": "/pricing",
+            },
+        )
+
     # 사업장 정보 조회
     biz = (await execute(
         supabase.table("businesses")
@@ -976,6 +992,23 @@ async def generate_crisis_reply_endpoint(
         category=biz.get("category", ""),
         rating=rating,
     )
+
+    # 사용량 카운트 — 폴백(AI 실패)이면 실제 소비 없음으로 간주해 기록 생략 (review-reply/faq와 동일 원칙)
+    is_fallback = result.get("is_fallback", False)
+    if not is_fallback:
+        try:
+            await execute(
+                supabase.table("guides").insert({
+                    "business_id": biz_id,
+                    "context": "crisis_reply",
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                })
+            )
+        except Exception as e:
+            _logger.warning(f"crisis-reply 사용량 기록 실패 (응답은 정상 반환, biz={biz_id}): {e}")
+
+    result["used"] = used if is_fallback else used + 1
+    result["limit"] = limit
     return result
 
 

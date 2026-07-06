@@ -79,8 +79,10 @@ function CrisisGuidePanel({
           body: JSON.stringify({ review_text: reviewText, rating }),
         })
         if (!res.ok) {
-          const err = await res.json().catch(() => ({})) as { detail?: string }
-          setError(err.detail || '가이드 생성에 실패했습니다.')
+          const err = await res.json().catch(() => ({})) as { detail?: string | { message?: string; code?: string } }
+          const detail = err.detail
+          const message = typeof detail === 'string' ? detail : detail?.message
+          setError(message || '가이드 생성에 실패했습니다.')
           return
         }
         const data = await res.json() as CrisisGuideResult
