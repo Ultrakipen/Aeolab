@@ -426,7 +426,6 @@ function WeeklyActionsCard({ actions, businessId }: { actions: WeeklyAction[]; b
 /* ── PostDetailSection ── */
 function PostDetailSection({ posts }: { posts: PostDetail[] }) {
   const [expanded, setExpanded] = useState(false);
-  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
   if (!posts || posts.length === 0) return null;
 
@@ -451,21 +450,20 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
           </span>
           <br />
           <span className="text-slate-600">
-            <span className="font-semibold">상태</span> 배지는 이 글의 전반적인 진단 결과, <span className="font-semibold">SEO</span> 배지는 제목이 검색에 얼마나 잘 잡히는지를 각각 나타냅니다.
+            <span className="font-semibold">상태</span> 배지는 이 글의 전반적인 진단 결과, <span className="font-semibold">SEO</span> 배지는 제목이 검색에 얼마나 잘 잡히는지를 각각 나타냅니다. 제목 개선 제안은 이 표 아래 카드에서 바로 복사할 수 있습니다.
           </span>
         </p>
       </div>
 
       {/* PC: 테이블 */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="w-full min-w-[900px] text-sm table-fixed">
+        <table className="w-full min-w-[760px] text-sm table-fixed">
           <colgroup>
-            <col className="w-[26%]" />
-            <col className="w-[8%]" />
-            <col className="w-[6%]" />
-            <col className="w-[6%]" />
-            <col className="w-[28%]" />
-            <col className="w-[26%]" />
+            <col className="w-[32%]" />
+            <col className="w-[10%]" />
+            <col className="w-[9%]" />
+            <col className="w-[9%]" />
+            <col className="w-[40%]" />
           </colgroup>
           <thead>
             <tr className="border-b border-gray-200 text-left">
@@ -474,7 +472,6 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
               <th className="pb-3 font-semibold text-gray-600 text-center">상태</th>
               <th className="pb-3 font-semibold text-gray-600 text-center">SEO</th>
               <th className="pb-3 pl-3 font-semibold text-gray-600">문제점</th>
-              <th className="pb-3 pl-3 font-semibold text-gray-600">개선 제목</th>
             </tr>
           </thead>
           <tbody>
@@ -534,31 +531,6 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                   </div>
                   {p.suggestion && (
                     <p className="text-sm text-gray-500 mt-1 leading-snug">{p.suggestion}</p>
-                  )}
-                </td>
-                <td className="py-3 pl-3">
-                  {p.improved_title && p.improved_title !== p.title ? (
-                    <div className="flex items-start gap-1.5">
-                      <span
-                        className="text-sm text-indigo-700 font-medium leading-snug break-keep flex-1 min-w-0"
-                        title={p.improved_title}
-                      >
-                        {p.improved_title}
-                      </span>
-                      <button
-                        onClick={() => {
-                          copyToClipboard(p.improved_title, () => {});
-                          setCopiedIdx(idx);
-                          setTimeout(() => setCopiedIdx(null), 2000);
-                        }}
-                        className="shrink-0 p-1 hover:bg-indigo-100 rounded-lg transition-colors mt-0.5"
-                        title="제목 복사"
-                      >
-                        {copiedIdx === idx ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-indigo-400" />}
-                      </button>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-green-600">변경 불필요</span>
                   )}
                 </td>
               </tr>
@@ -623,26 +595,6 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
             {/* suggestion */}
             {p.suggestion && (
               <p className="text-sm text-gray-600 mb-2">{p.suggestion}</p>
-            )}
-
-            {/* improved title */}
-            {p.improved_title && p.improved_title !== p.title && (
-              <div className="bg-white border border-indigo-200 rounded-lg p-3">
-                <p className="text-sm text-gray-500 mb-1">개선 제목 제안</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-indigo-700 flex-1">{p.improved_title}</p>
-                  <button
-                    onClick={() => {
-                      copyToClipboard(p.improved_title, () => {});
-                      setCopiedIdx(idx);
-                      setTimeout(() => setCopiedIdx(null), 2000);
-                    }}
-                    className="shrink-0 p-1.5 bg-indigo-100 hover:bg-indigo-200 rounded-lg transition-colors"
-                  >
-                    {copiedIdx === idx ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-indigo-600" />}
-                  </button>
-                </div>
-              </div>
             )}
           </div>
         ))}
@@ -1986,6 +1938,12 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   </button>
                 </div>
                 <p className="text-sm text-gray-400 mb-4">포스트 제목과 요약글을 기준으로 분석합니다 - 본문까지는 분석되지 않습니다</p>
+                {result.top_recommendation && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
+                    <TrendingUp className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <p className="text-sm text-amber-800 leading-relaxed">{result.top_recommendation}</p>
+                  </div>
+                )}
                 <div className="space-y-4">
                   {(result.keyword_coverage.present?.length ?? 0) > 0 && (
                     <div>
@@ -2006,13 +1964,22 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   )}
                   {(result.keyword_coverage.missing?.length ?? 0) > 0 && (
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
-                        <span className="text-sm font-semibold text-red-700">
-                          없는 키워드 ({result.keyword_coverage.missing.length}) - 제목에 넣으면 AI 노출에 유리합니다
-                        </span>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                          <span className="text-sm font-semibold text-red-700">
+                            없는 키워드 ({result.keyword_coverage.missing.length}) - 제목에 넣으면 AI 노출에 유리합니다
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => copyToClipboard(result.keyword_coverage!.missing.slice(0, 5).join(", "), setKwCopied)}
+                          className="shrink-0 inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-sm font-semibold px-3 py-1.5 rounded-xl transition-colors w-full sm:w-auto justify-center"
+                        >
+                          {kwCopied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                          {kwCopied ? "복사됨" : "상위 5개 복사"}
+                        </button>
                       </div>
-                      <p className="text-sm text-gray-400 mb-2">관련 없는 키워드는 X를 눌러 제외하면 분석에서 영구히 빠집니다</p>
+                      <p className="text-sm text-gray-400 mb-2">관련 없는 키워드는 X를 눌러 제외하면 분석에서 영구히 빠집니다. 복사한 키워드는 네이버 블로그 에디터에 붙여넣어 다음 포스트 제목에 활용하세요.</p>
                       <div className="flex flex-wrap gap-2">
                         {result.keyword_coverage.missing.map((kw) => (
                           <span key={kw} className="inline-flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-sm px-3 py-1 rounded-full">
@@ -2054,58 +2021,6 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                     </div>
                   )}
                 </div>
-              </div>
-            )}
-
-            {/* 개선 권고사항 */}
-            {result.top_recommendation && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-4 h-4 text-amber-600 shrink-0" />
-                  <h3 className="text-base font-bold text-amber-900">지금 당장 할 수 있는 개선</h3>
-                </div>
-                <p className="text-sm text-amber-800 leading-relaxed">{result.top_recommendation}</p>
-
-                {(result.missing_keywords?.length ?? 0) > 0 && (
-                  <div className="mt-4 border-t border-amber-200 pt-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                      <p className="text-sm font-semibold text-amber-800">
-                        다음 포스트 제목에 이 키워드를 넣으세요:
-                      </p>
-                      <button
-                        onClick={() => copyToClipboard(result.missing_keywords!.slice(0, 5).join(", "), setKwCopied)}
-                        className="shrink-0 inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors w-full sm:w-auto justify-center"
-                      >
-                        {kwCopied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        {kwCopied ? "복사됨" : "키워드 복사"}
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {result.missing_keywords!.slice(0, 5).map((kw) => (
-                        <span key={kw} className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 border border-amber-300 text-sm font-medium px-3 py-1 rounded-full">
-                          {kw}
-                          <button
-                            type="button"
-                            onClick={() => handleExcludeKeyword(kw)}
-                            disabled={excludingKws.has(kw)}
-                            aria-label={`${kw} 제외`}
-                            title="이 키워드 제외"
-                            className="ml-0.5 w-4 h-4 rounded-full hover:bg-amber-300 text-amber-600 hover:text-amber-900 flex items-center justify-center disabled:opacity-40 transition-colors"
-                          >
-                            {excludingKws.has(kw) ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <X className="w-3 h-3" />
-                            )}
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                    <p className="text-sm text-amber-600 mt-2">
-                      복사 후 네이버 블로그 에디터에 붙여넣어 포스트 제목에 활용하세요.
-                    </p>
-                  </div>
-                )}
               </div>
             )}
 
