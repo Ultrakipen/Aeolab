@@ -291,6 +291,15 @@ class KakaoNotifier:
             template_code="AEOLAB_NOTICE_01",
         )
 
+    async def send_payment_recovered(self, phone: str):
+        """유예 기간 중 자동결제 재시도 성공 알림"""
+        await self._send_raw(
+            phone,
+            "[AEOlab] 결제가 정상 처리되어 구독이 계속 유지됩니다.\n"
+            "이용해 주셔서 감사합니다.",
+            template_code="AEOLAB_NOTICE_01",
+        )
+
     async def send_notice(self, phone: str, message: str):
         """관리자 공지 발송"""
         await self._send_raw(phone, f"[AEOlab 공지]\n{message}", template_code="AEOLAB_NOTICE_01")

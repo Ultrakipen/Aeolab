@@ -128,13 +128,6 @@ class SchemaRequest(BaseModel):
     specialty: Optional[str] = Field(None, max_length=300)    # 가게 특징·강점 (자유 텍스트)
 
 
-class PaymentConfirm(BaseModel):
-    paymentKey: str
-    orderId: str
-    amount: int
-    plan: str | None = None  # 클라이언트에서 플랜명 전달 (서버에서 금액으로 교차 검증)
-
-
 class BillingIssueRequest(BaseModel):
     authKey: str
     customerKey: str

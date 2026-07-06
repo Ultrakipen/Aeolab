@@ -1226,6 +1226,7 @@ async def subscription_lifecycle_job():
             .eq("end_at", str(today))
         )
         expired_today = _expired_res.data or []
+        just_entered_grace_ids: set = set()
         for sub in expired_today:
             success = await retry_billing(sub)
             if success:
@@ -1242,28 +1243,47 @@ async def subscription_lifecycle_job():
                         {"status": "grace_period", "grace_until": str(today + timedelta(days=3))}
                     ).eq("id", sub["id"])
                 )
+                just_entered_grace_ids.add(sub["id"])
                 phone = (sub.get("profiles") or {}).get("phone")
                 if phone:
                     await notifier.send_payment_failed(phone)
 
-        # 3. 유예 기간 만료 → 정지
+        # 3. 유예 기간 중 매일 1회 재시도 — 오늘 막 §2에서 진입한 건은 방금 시도했으므로 제외
+        # (카드 일시 오류로 실패한 경우 3일 내내 재시도 없이 정지만 기다리던 버그 수정, 2026-07-06)
         _grace_res = await _db(
             supabase.table("subscriptions")
             .select("*, profiles(phone)")
             .eq("status", "grace_period")
-            .lte("grace_until", str(today))
         )
-        grace_expired = _grace_res.data or []
-        for sub in grace_expired:
-            await _db(
-                supabase.table("subscriptions").update(
-                    {"status": "suspended"}
-                ).eq("id", sub["id"])
-            )
+        grace_subs = [s for s in (_grace_res.data or []) if s["id"] not in just_entered_grace_ids]
+        for sub in grace_subs:
             phone = (sub.get("profiles") or {}).get("phone")
-            if phone:
-                await notifier.send_suspended(phone)
-            logger.info(f"Subscription suspended: {sub['id']}")
+            success = await retry_billing(sub)
+            if success:
+                new_end = today + timedelta(days=30)
+                await _db(
+                    supabase.table("subscriptions").update(
+                        {"end_at": str(new_end), "status": "active", "grace_until": None}
+                    ).eq("id", sub["id"])
+                )
+                if phone:
+                    await notifier.send_payment_recovered(phone)
+                logger.info(f"Subscription recovered during grace period: {sub['id']}")
+                continue
+
+            grace_until_str = sub.get("grace_until")
+            if grace_until_str and str(grace_until_str) <= str(today):
+                # 유예 기간 만료 — 정지
+                await _db(
+                    supabase.table("subscriptions").update(
+                        {"status": "suspended"}
+                    ).eq("id", sub["id"])
+                )
+                if phone:
+                    await notifier.send_suspended(phone)
+                logger.info(f"Subscription suspended: {sub['id']}")
+            else:
+                logger.info(f"Subscription still in grace period, retry failed: {sub['id']}")
 
     except Exception as e:
         logger.error(f"subscription_lifecycle_job failed: {e}")
