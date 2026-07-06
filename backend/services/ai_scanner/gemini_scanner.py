@@ -157,6 +157,8 @@ JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거
 
     def _wilson_ci(self, k: int, n: int) -> dict:
         """Wilson 신뢰구간 계산 (95%)"""
+        if n <= 0:
+            return {"lower": 0, "upper": 0}
         p, z = k / n, 1.96
         d = 1 + z**2 / n
         c = (p + z**2 / (2 * n)) / d
@@ -169,12 +171,16 @@ JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거
         trial 스캔과 달리 exposure_freq를 10 기준으로 반환.
         """
         mention_count = 0
+        success_count = 0
         citations = []
         tasks = [self._check(query, target) for _ in range(10)]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for r in results:
-            if isinstance(r, Exception):
+            # sample_n()과 동일 원칙 — 타임아웃·API 오류(_measured=False)는 "미언급"이 아닌
+            # "측정 안 됨"으로 분모에서 제외 (실패를 부정 응답으로 오집계 방지)
+            if isinstance(r, Exception) or not r.get("_measured", True):
                 continue
+            success_count += 1
             if r.get("mentioned"):
                 mention_count += 1
                 if r.get("excerpt"):
@@ -182,10 +188,11 @@ JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거
         return {
             "platform": "gemini",
             "exposure_freq": mention_count,
-            "exposure_rate": mention_count / 10,
+            "exposure_rate": (mention_count / success_count) if success_count > 0 else 0.0,
             "citations": citations[:3],
-            "confidence": self._wilson_ci(mention_count, 10) if mention_count > 0 else {"lower": 0, "upper": 0.31},
-            "sample_size": 10,
+            "confidence": self._wilson_ci(mention_count, success_count) if success_count > 0 else {"lower": 0, "upper": 0.31},
+            "sample_size": success_count,
+            "failed_count": 10 - success_count,
         }
 
     async def _natural_check(self, query: str, target: str) -> dict:
