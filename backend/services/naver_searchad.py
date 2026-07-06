@@ -113,6 +113,23 @@ class NaverSearchAdClient:
             _logger.warning(f"NaverSearchAd get_keyword_volumes 오류: {e}")
             return {}
 
+    @staticmethod
+    def _parse_qc_count(value) -> int:
+        """monthlyPcQcCnt/monthlyMobileQcCnt 안전 파싱.
+
+        네이버 API는 월 검색량이 10 미만이면 숫자 대신 "< 10" 문자열을 반환한다.
+        정수 변환 실패 시 예외를 전파하면 배치 전체(_parse_keyword_response)가
+        빈 결과로 무너지므로, 측정 불가/저검색량 케이스는 0으로 처리한다.
+        """
+        if value is None:
+            return 0
+        if isinstance(value, (int, float)):
+            return int(value)
+        try:
+            return int(str(value).strip())
+        except ValueError:
+            return 0
+
     def _parse_keyword_response(self, data: dict) -> dict[str, dict]:
         """API 응답에서 키워드별 검색량 파싱"""
         result: dict[str, dict] = {}
@@ -123,8 +140,8 @@ class NaverSearchAdClient:
             if not kw:
                 continue
 
-            monthly_pc = int(item.get("monthlyPcQcCnt", 0) or 0)
-            monthly_mo = int(item.get("monthlyMobileQcCnt", 0) or 0)
+            monthly_pc = self._parse_qc_count(item.get("monthlyPcQcCnt"))
+            monthly_mo = self._parse_qc_count(item.get("monthlyMobileQcCnt"))
             monthly_total = monthly_pc + monthly_mo
 
             # 경쟁도: "높음" / "중간" / "낮음" / 기타 → 영문 매핑
