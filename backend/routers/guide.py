@@ -235,7 +235,7 @@ async def generate_review_reply(
         "draft_response": reply_draft,
         "tone": sentiment,
         "is_fallback": is_fallback,
-        "used": used + 1,
+        "used": used if is_fallback else used + 1,
         "limit": limit,
         "keywords_used": biz.get("keywords") or [],
     }
@@ -862,7 +862,8 @@ async def generate_smartplace_faq(
     except Exception as biz_save_err:
         _logger.warning(f"FAQ draft businesses 저장 실패 (컬럼 없을 수 있음): {biz_save_err}")
 
-    return {"is_fallback": is_fallback, "items": items, "chat_menus": chat_menus, "used": used + 1, "limit": limit, "keywords_used": final_keywords}
+    # 폴백(AI 실패)이면 guides 저장을 건너뛰므로(위 is_fallback 분기) 한도 카운트도 늘리지 않음 — 실제 소비 없이 표시만 부풀리는 것 방지
+    return {"is_fallback": is_fallback, "items": items, "chat_menus": chat_menus, "used": used if is_fallback else used + 1, "limit": limit, "keywords_used": final_keywords}
 
 
 @router.delete("/{biz_id}/smartplace-faq/{faq_index}")
