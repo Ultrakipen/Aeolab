@@ -1152,9 +1152,10 @@ async def _search_naver_blog_once(
     client_secret: str,
     blog_id: str,
     display: int = 100,
-) -> tuple[list[dict], int]:
+) -> tuple[list[dict], int, bool]:
     """
-    단일 쿼리로 네이버 블로그 검색 → blog_id 필터링 → (결과, total) 반환
+    단일 쿼리로 네이버 블로그 검색 → blog_id 필터링 → (결과, total, ok) 반환.
+    ok=False는 API 호출 자체가 실패했다는 뜻 — "포스트 0개 발견"과 구분해야 함.
 
     display: API 최대값 100 (기본값 100으로 변경)
     total: API 응답의 totalResults 필드 — 실제 총 포스트 수 추정에 사용
@@ -1175,11 +1176,11 @@ async def _search_naver_blog_once(
                 _logger.warning(
                     f"naver blog search non-200 for query='{query}': status={resp.status}"
                 )
-                return [], 0
+                return [], 0, False
             data = await resp.json()
     except aiohttp.ClientError as e:
         _logger.warning(f"naver blog search failed for query='{query}': {e}")
-        return [], 0
+        return [], 0, False
 
     total = data.get("total", 0)
     raw_items = data.get("items", [])
@@ -1210,13 +1211,16 @@ async def _search_naver_blog_once(
             "full_text_len": -1,
             "source": "api",
         })
-    return result, total
+    return result, total, True
 
 
-async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int]:
-    """네이버 블로그 RSS regex 파싱 (CDATA 비표준 형식 대응)"""
+async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool]:
+    """네이버 블로그 RSS regex 파싱 (CDATA 비표준 형식 대응).
+    ok=False는 RSS 호출 자체가 실패했다는 뜻 — "포스트 0개 발견"과 구분해야 함.
+    blog_id가 없어 애초에 시도하지 않은 경우는 실패가 아니므로 ok=True로 반환.
+    """
     if not blog_id:
-        return [], 0
+        return [], 0, True
     rss_url = f"https://rss.blog.naver.com/{blog_id}"
     try:
         async with aiohttp.ClientSession(timeout=_TIMEOUT, headers=_HEADERS) as session:
@@ -1225,12 +1229,12 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int]:
                     _logger.warning(
                         "naver rss non-200 for blog_id=%s: status=%s", blog_id, resp.status
                     )
-                    return [], 0
+                    return [], 0, False
                 raw = await resp.content.read(_MAX_BODY_BYTES)
                 xml_text = raw.decode("utf-8", errors="replace")
     except Exception as e:
         _logger.warning("naver rss fetch failed for blog_id=%s: %s", blog_id, e)
-        return [], 0
+        return [], 0, False
 
     def _field(tag: str, block: str) -> str:
         m = re.search(rf"<{tag}[^>]*>\s*<!\[CDATA\[(.*?)(?:\]\]>|$)", block, re.DOTALL)
@@ -1282,7 +1286,7 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int]:
                 "full_text_len": full_text_len,
                 "source": "rss",
             })
-    return items, len(items)
+    return items, len(items), True
 
 
 async def _analyze_naver_blog(
@@ -1344,11 +1348,17 @@ async def _analyze_naver_blog(
     # RSS를 create_task 병렬 방식 대신 직접 await로 변경 (aiohttp 세션 충돌 방지)
     seen_links: set[str] = set()
     all_items: list[dict] = []
+    # 시도 대비 기술적 실패 횟수 — 전부 실패면 "포스트 0개"가 아니라 "측정 자체가 안 됨"으로 구분
+    naver_total_attempts = 0
+    naver_failed_attempts = 0
 
     # 1단계: RSS 피드 먼저 직접 수집 (blog_id 기반, 가장 신뢰할 수 있는 내 블로그 포스트 목록)
     if blog_id:
+        naver_total_attempts += 1
         try:
-            rss_items, _ = await _fetch_naver_rss(blog_id)
+            rss_items, _, rss_ok = await _fetch_naver_rss(blog_id)
+            if not rss_ok:
+                naver_failed_attempts += 1
             for item in rss_items:
                 link = item.get("link", "")
                 # RSS 링크에서 쿼리스트링 제거 후 정규화 (중복 방지)
@@ -1360,12 +1370,14 @@ async def _analyze_naver_blog(
                     all_items.append(item)
             _logger.info("naver rss collected %d posts for blog_id=%s", len(rss_items), blog_id)
         except Exception as e:
+            naver_failed_attempts += 1
             _logger.warning("naver rss failed for blog_id=%s: %s", blog_id, e)
 
     # 2단계: 검색 API로 RSS에서 누락된 포스트 보완 (중복 제거)
     async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
         for query in queries[:4]:  # 최대 4개 쿼리
-            items, _ = await _search_naver_blog_once(
+            naver_total_attempts += 1
+            items, _, query_ok = await _search_naver_blog_once(
                 session=session,
                 query=query,
                 client_id=client_id,
@@ -1373,6 +1385,8 @@ async def _analyze_naver_blog(
                 blog_id=blog_id,
                 display=100,
             )
+            if not query_ok:
+                naver_failed_attempts += 1
 
             for item in items:
                 link = item.get("link", "")
@@ -1387,6 +1401,24 @@ async def _analyze_naver_blog(
     total_post_count = len(all_items)
 
     if not all_items:
+        # 시도한 모든 요청이 기술적으로 실패한 경우 — "블로그에 글이 없다"가 아니라
+        # "네이버 API/RSS 자체에 접근하지 못했다"는 뜻이므로 반드시 구분해서 안내한다
+        # (측정 실패를 측정된 부정 응답으로 오집계하면 사용자에게 잘못된 안내가 나감)
+        if naver_total_attempts > 0 and naver_failed_attempts == naver_total_attempts:
+            return {
+                "platform": "naver",
+                "post_count": 0,
+                "total_post_count": 0,
+                "keyword_coverage": 0.0,
+                "covered_keywords": [],
+                "missing_keywords": [],
+                "ai_readiness_score": 0.0,
+                "ai_readiness_items": [],
+                "freshness": "outdated",
+                "latest_post_date": None,
+                "top_recommendation": "네이버 블로그 검색에 일시적으로 접근하지 못했습니다. 잠시 후 다시 시도해주세요.",
+                "error": "naver_search_unavailable",
+            }
         return {
             "platform": "naver",
             "post_count": 0,
@@ -1620,6 +1652,9 @@ async def _analyze_external_blog(
     return {
         "platform": platform,
         "post_count": post_count,
+        # 티스토리/워드프레스 등은 fetch한 단일 페이지 내 article 태그·제목 개수로 근사한 값 —
+        # 네이버(API 정확 카운트)와 달리 실제 총 포스트 수가 아니므로 반드시 추정 표시 필요
+        "is_post_count_estimated": True,
         "keyword_coverage": kw_result["coverage"],
         "covered_keywords": kw_result["covered_keywords"],
         "missing_keywords": kw_result["missing_keywords"],

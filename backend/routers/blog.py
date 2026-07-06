@@ -217,6 +217,8 @@ async def analyze_blog_endpoint(
         "blog_url": request.blog_url,
         "post_count": analysis.get("post_count", 0),
         "total_post_count": analysis.get("total_post_count", 0),
+        # 티스토리 등 외부 블로그는 단일 페이지 추정치 — 네이버(API 정확 카운트)와 구분 표시 필요
+        "is_post_count_estimated": bool(analysis.get("is_post_count_estimated", False)),
         "platform": analysis.get("platform"),
         "citation_score": analysis.get("ai_readiness_score", 0),
         # freshness_score: freshness 문자열 → 숫자 변환 (ai_readiness_score와 혼용 금지)

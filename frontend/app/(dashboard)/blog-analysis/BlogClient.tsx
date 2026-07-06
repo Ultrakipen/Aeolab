@@ -101,6 +101,8 @@ interface BlogAnalysisResult {
   citation_score?: number;
   post_count?: number;
   total_post_count?: number;
+  // 티스토리 등 외부 블로그는 단일 페이지 추정치 — 네이버(API 정확 카운트)는 false
+  is_post_count_estimated?: boolean;
   freshness_score?: number;
   keyword_coverage?: {
     present: string[];
@@ -155,6 +157,8 @@ interface BlogAnalysisResult {
   // 월 사용량 (GET/POST 응답에 포함)
   monthly_used?: number;
   monthly_limit?: number;
+  // 측정 자체가 실패한 경우(네이버 API/RSS 접근 불가 등) — null/undefined면 정상 측정
+  error?: string | null;
 }
 
 interface Props {
@@ -194,16 +198,14 @@ function scoreColor(score: number) {
   return "text-red-600";
 }
 
-function readinessLabel(score: number) {
-  if (score >= 70) return "양호";
-  if (score >= 40) return "보통";
-  return "주의 필요";
-}
-
+// citation_score 레이블은 반드시 lib/scoreLabels.ts의 getScoreTextLabel과 동일한 기준을 써야 함 —
+// 과거 여기 자체 임계값(70/40)을 썼다가 이 페이지의 추이 차트(getScoreTextLabel, 75/55/30)와
+// 같은 점수에 다른 라벨이 뜨는 모순이 있었음(2026-07-06 발견·수정)
 function scoreBgColor(score: number) {
-  if (score >= 70) return "bg-green-50 border-green-200";
-  if (score >= 40) return "bg-amber-50 border-amber-200";
-  return "bg-red-50 border-red-200";
+  if (score >= 75) return "bg-green-50 border-green-200";
+  if (score >= 55) return "bg-amber-50 border-amber-200";
+  if (score >= 30) return "bg-red-50 border-red-200";
+  return "bg-gray-50 border-gray-200";
 }
 
 function postScoreBadge(score: number) {
@@ -251,14 +253,14 @@ function InfoBriefingReadinessCard({
   blogUrl?: string;
 }) {
   const score = result.citation_score ?? 0;
-  const label = readinessLabel(score);
+  const label = getScoreTextLabel(score);
   const present = result.keyword_coverage?.present?.length ?? 0;
   const total = present + (result.keyword_coverage?.missing?.length ?? 0);
   const posts = result.post_count ?? 0;
 
   // 근거 1줄 — 실측값만 (CLAUDE.md 실측 원칙: 더미·추정 금지)
   const evidenceBits: string[] = [];
-  if (posts > 0) evidenceBits.push(`블로그 글 ${posts}개 분석`);
+  if (posts > 0) evidenceBits.push(`블로그 글 ${posts}개 분석${result.is_post_count_estimated ? " (추정)" : ""}`);
   evidenceBits.push(`최신성 ${freshnessLabel(result.freshness_score ?? 0)}`);
   if (total > 0) evidenceBits.push(`핵심 키워드 ${present}/${total} 반영`);
   if (result.posting_frequency?.consistency) {
@@ -283,7 +285,8 @@ function InfoBriefingReadinessCard({
     } catch { /* localStorage 차단 환경 무시 */ }
   }, [businessId, label]);
 
-  const order = ["주의 필요", "보통", "양호"];
+  // getScoreTextLabel과 동일한 4단계(시작 전 포함) — 순서가 어긋나면 changeDir(변화 방향)이 틀어짐
+  const order = ["시작 전", "주의 필요", "보통", "양호"];
   const changeDir = prevLabel ? order.indexOf(label) - order.indexOf(prevLabel) : 0;
 
   return (
@@ -444,6 +447,10 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
           <span className="text-slate-600">
             예: <span className="font-medium">&quot;창원 웨딩스냅&quot;</span>만 있으면 포트폴리오로 판단, <span className="font-medium">&quot;창원 웨딩스냅 추천&quot;</span>이면 AI 인용 대상.
           </span>
+          <br />
+          <span className="text-slate-600">
+            <span className="font-semibold">상태</span> 배지는 이 글의 전반적인 진단 결과, <span className="font-semibold">SEO</span> 배지는 제목이 검색에 얼마나 잘 잡히는지를 각각 나타냅니다.
+          </span>
         </p>
       </div>
 
@@ -574,9 +581,12 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                 <span className={`inline-flex items-center border text-sm font-bold px-2.5 py-0.5 rounded-full ${postScoreBadge(p.post_score)}`}>
                   {postScoreLabel(p.post_score)}
+                </span>
+                <span className={`inline-flex items-center gap-1 border text-sm font-bold px-2.5 py-0.5 rounded-full ${postScoreBadge(p.title_seo_score)}`}>
+                  <span className="font-normal opacity-70">SEO</span>{postScoreLabel(p.title_seo_score)}
                 </span>
               </div>
             </div>
@@ -652,6 +662,8 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
 /* ── CompetitorComparisonSection ── */
 function CompetitorComparisonSection({ comparison, businessName }: { comparison: CompetitorBlogComparison; businessName: string }) {
   const maxScore = Math.max(comparison.my_score, ...comparison.competitors.map(c => c.score), 1);
+  // 경쟁사가 1곳뿐이면 "평균"이라는 표현이 통계적으로 부정확함 — 표본 1개는 평균이 아니라 그 1곳의 점수 그 자체
+  const isSingleCompetitor = comparison.total_count <= 2;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
@@ -668,9 +680,13 @@ function CompetitorComparisonSection({ comparison, businessName }: { comparison:
         </div>
         <div className={`border rounded-xl p-4 text-center ${comparison.my_score >= comparison.avg_score ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
           <div className={`text-xl md:text-2xl font-bold ${comparison.my_score >= comparison.avg_score ? "text-green-700" : "text-red-700"}`}>
-            {comparison.my_score >= comparison.avg_score ? "평균 이상" : "평균 미달"}
+            {comparison.my_score >= comparison.avg_score
+              ? (isSingleCompetitor ? "경쟁사보다 높음" : "평균 이상")
+              : (isSingleCompetitor ? "경쟁사보다 낮음" : "평균 미달")}
           </div>
-          <div className="text-sm text-gray-600 mt-1">경쟁사 평균 대비</div>
+          <div className="text-sm text-gray-600 mt-1">
+            {isSingleCompetitor ? "등록된 경쟁사 1곳 대비 (평균 아님)" : "경쟁사 평균 대비"}
+          </div>
         </div>
       </div>
 
@@ -1255,6 +1271,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
   const [loading, setLoading] = useState(false);
   const [resultLoading, setResultLoading] = useState(false);
+  // 저장된 분석 결과 조회 자체가 실패한 경우 — "아직 분석 안 함"과 구분해서 안내해야 함
+  const [savedResultFetchFailed, setSavedResultFetchFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<BlogAnalysisResult | null>(null);
   const [monthlyUsed, setMonthlyUsed] = useState<number | null>(null);
@@ -1294,12 +1312,19 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
       setResultLoading(true);
       try {
         const currentToken = token || (await getSafeSession())?.access_token || "";
-        if (!currentToken) return;
+        if (!currentToken) {
+          setSavedResultFetchFailed(true);
+          return;
+        }
         const res = await fetch(`${BACKEND}/api/blog/result/${business.id}`, {
           headers: { Authorization: `Bearer ${currentToken}` },
         });
-        if (!res.ok) return;
+        if (!res.ok) {
+          setSavedResultFetchFailed(true);
+          return;
+        }
         const data = await res.json();
+        setSavedResultFetchFailed(false);
         if (data?.has_blog_analysis && data?.citation_score !== undefined) {
           // 구 형식 캐시 감지 — 다음 중 하나면 재분석 필요
           //  (1) posts_detail 자체가 없음 (v1 구형식)
@@ -1327,6 +1352,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
         }
       } catch (e) {
         console.warn('[Blog] 저장된 분석 결과 조회 실패', e);
+        setSavedResultFetchFailed(true);
       } finally {
         setResultLoading(false);
       }
@@ -1390,11 +1416,16 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
       setIsMonthlyLimitReached(false);
       if (typeof data.monthly_used === "number") setMonthlyUsed(data.monthly_used);
       if (typeof data.monthly_limit === "number") setMonthlyLimit(data.monthly_limit);
-      setToast({ type: "success", message: "블로그 분석이 완료됐습니다." });
-      // 결과 영역으로 스크롤
-      setTimeout(() => {
-        resultSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
+      // 측정 자체가 실패한 응답(HTTP 200이지만 error 필드 있음)은 성공 토스트를 띄우면 안 됨
+      if (data.error) {
+        setToast({ type: "error", message: "블로그 측정에 실패했습니다. 잠시 후 다시 시도해주세요." });
+      } else {
+        setToast({ type: "success", message: "블로그 분석이 완료됐습니다." });
+        // 결과 영역으로 스크롤 (측정 실패 시에는 스크롤하지 않음)
+        setTimeout(() => {
+          resultSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "분석 중 오류가 발생했습니다.";
       setError(msg);
@@ -1708,8 +1739,19 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           </div>
         )}
 
+        {/* 저장된 결과 조회 자체가 실패한 경우 — "분석 결과 없음"과 구분(재분석 유도로 사용량 낭비 방지) */}
+        {savedBlogUrl && !!lastAnalyzedAt && !result && !loading && !autoTriggered && !resultLoading && savedResultFetchFailed && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 md:p-8 text-center">
+            <Search className="w-10 h-10 text-amber-300 mx-auto mb-3" />
+            <p className="text-base font-semibold text-amber-800 mb-1">저장된 분석 결과를 불러오지 못했습니다</p>
+            <p className="text-sm text-amber-700">
+              이전에 분석한 기록은 남아 있어요. 새로고침해서 다시 시도해주세요.
+            </p>
+          </div>
+        )}
+
         {/* 결과 없음 empty state — lastAnalyzedAt 있을 때만 (없으면 "진행 중" 배너가 담당) */}
-        {savedBlogUrl && !!lastAnalyzedAt && !result && !loading && !autoTriggered && !resultLoading && (
+        {savedBlogUrl && !!lastAnalyzedAt && !result && !loading && !autoTriggered && !resultLoading && !savedResultFetchFailed && (
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 md:p-8 text-center">
             <Search className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <p className="text-base font-semibold text-gray-600 mb-1">분석 결과가 없습니다</p>
@@ -1763,8 +1805,21 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           </div>
         )}
 
+        {/* 측정 자체가 실패한 경우 — 점수/카드를 확정적으로 보여주면 안 됨 */}
+        {result && result.error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 mb-4">
+            <span className="text-2xl shrink-0">&#x26A0;&#xFE0F;</span>
+            <div>
+              <p className="font-semibold text-red-800">일시적으로 블로그를 측정하지 못했습니다</p>
+              <p className="text-sm text-red-700 mt-0.5 leading-relaxed">
+                {result.top_recommendation || "네이버 블로그 검색에 일시적으로 접근하지 못했습니다."} 잠시 후 &quot;재분석하기&quot; 버튼을 다시 눌러주세요.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* ═══ 분석 결과 ═══ */}
-        {result && (
+        {result && !result.error && (
           <div ref={resultSectionRef} className="space-y-5">
 
             {/* Layer 1+3: 정보형 AI 브리핑 준비도 (상태·근거·변화) */}
