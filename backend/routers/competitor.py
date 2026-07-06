@@ -471,14 +471,8 @@ async def add_competitor(req: CompetitorCreate, user=Depends(get_current_user)):
         .eq("business_id", req.business_id)
         .eq("is_active", True)
     )
-    sub = await execute(
-        supabase.table("subscriptions")
-        .select("plan")
-        .eq("user_id", x_user_id)
-        .in_("status", ["active", "grace_period"])
-        .maybe_single()
-    )
-    plan = sub.data["plan"] if sub.data else "free"
+    from middleware.plan_gate import get_user_plan
+    plan = await get_user_plan(x_user_id, supabase)
     limits = {k: v["competitors"] for k, v in PLAN_LIMITS.items()}
     if (existing.count or 0) >= limits.get(plan, 0):
         raise HTTPException(

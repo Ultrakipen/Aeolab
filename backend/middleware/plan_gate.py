@@ -140,11 +140,30 @@ PLAN_LIMITS = {
 PLAN_HIERARCHY = {"free": 0, "basic": 1, "startup": 1.5, "pro": 2, "biz": 3, "enterprise": 4}
 
 
+def _end_at_in_future(end_at) -> bool:
+    """end_at(ISO 문자열)이 아직 지나지 않았는지 확인. 파싱 실패/None이면 False(보수적)."""
+    if not end_at:
+        return False
+    from datetime import datetime, timezone
+    try:
+        end_dt = datetime.fromisoformat(str(end_at).replace("Z", "+00:00"))
+        if end_dt.tzinfo is None:
+            end_dt = end_dt.replace(tzinfo=timezone.utc)
+        return end_dt > datetime.now(timezone.utc)
+    except (ValueError, TypeError):
+        return False
+
+
 async def get_user_plan(user_id: str, supabase) -> str:
     """현재 사용자의 활성 구독 플랜 반환.
 
     grace_period 상태(자동결제 실패 후 3일 유예)도 active와 동일하게 취급하여
     유예기간 중 유료 기능이 차단되는 버그를 방지한다.
+
+    cancelled 상태도 end_at 이전이면 active와 동일 취급한다 — settings.py의
+    cancel_subscription()이 "해지해도 end_at까지 서비스 유지"라고 명시하고
+    프론트(SettingsClient.tsx)도 사용자에게 그렇게 안내하는데, 실제로는
+    해지 즉시 free로 강등되던 버그 수정(2026-07-06).
 
     관리자 이메일(ADMIN_EMAILS)은 개발 기간 동안 biz 플랜으로 취급.
     """
@@ -160,12 +179,17 @@ async def get_user_plan(user_id: str, supabase) -> str:
 
     row = await _exec(
         supabase.table("subscriptions")
-        .select("plan")
+        .select("plan, status, end_at")
         .eq("user_id", user_id)
-        .in_("status", ["active", "grace_period"])
+        .in_("status", ["active", "grace_period", "cancelled"])
         .maybe_single()
     )
-    return row.data["plan"] if (row and row.data) else "free"
+    if not (row and row.data):
+        return "free"
+    data = row.data
+    if data["status"] == "cancelled" and not _end_at_in_future(data.get("end_at")):
+        return "free"
+    return data["plan"]
 
 
 async def check_guide_limit(user_id: str, supabase) -> tuple[bool, int, int]:
