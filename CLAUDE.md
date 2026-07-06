@@ -670,6 +670,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - **[P1] RSS 부분실패가 DB를 조용히 훼손**: `blog_analyzer.py` — RSS만 실패하고 API 쿼리가 우연히 0건 매칭이면 "전체 실패" 조건(실패율=총시도)을 통과 못 해 `error=None`으로 빠짐 → `blog.py`가 이를 성공으로 오인해 기존 `blog_post_count`를 0으로 덮어쓰고 24시간 쿨다운 리셋 + 월 사용량 소비. "하나라도 실패하면 불확실"로 조건 완화
 - RSS 재시도 1회 추가(짧은 타임아웃) — 실측 실패율(90초 내 3회 중 1회) 완화. 분석 결과에 `rss_failed` 플래그 신설(API 스니펫 전용 분석 시 프론트 안내용)
 - 프론트 5건: 플랜 무관 업그레이드 문구 하드코딩·추이차트 fetch실패 오분류·첫분석 새로고침 안내 오류·`priorityLabel`이 실제론 `source` 의미를 표현하던 구조 취약점(→ `sourceLabel` 분리)·PC 포스트 테이블 `suggestion` 필드 누락
+- **독립 코드리뷰 2차 검증(git `75f0154`)**: 위 diff를 별도 에이전트로 재검토 → P0 없음 확인 + 3건 추가 수정(`_ANALYZE_TIMEOUT_SECONDS` 35→50초 상향[RSS재시도로 예산초과 확대 발견]·RSS 404 재시도 제거·biz/enterprise 배너 방어)
 - §2-B/C/D 재확인: 활성 구독자 5명·`blog_score_history` 2행·서버 미업그레이드 — 전부 여전히 트리거 미충족
 
 ---
