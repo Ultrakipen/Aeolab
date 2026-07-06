@@ -3526,12 +3526,14 @@ async def weekly_score_report_job():
                 if not history:
                     continue
 
-                current_score = float(
-                    history[0].get("unified_score") or history[0].get("total_score") or 0
-                )
-                prev_score = float(
-                    history[1].get("unified_score") or history[1].get("total_score") or 0
-                ) if len(history) >= 2 else current_score
+                def _hist_score(row: dict) -> float:
+                    _u = row.get("unified_score")
+                    if _u is not None:
+                        return float(_u)
+                    return float(row.get("total_score") or 0)
+
+                current_score = _hist_score(history[0])
+                prev_score = _hist_score(history[1]) if len(history) >= 2 else current_score
 
                 # gap_analysis에서 최우선 할 일 추출
                 top_action = "소개글 안 Q&A 섹션을 1개 추가해보세요 — AI 브리핑 인용 후보 가능성 상승"
@@ -3727,9 +3729,9 @@ async def check_briefing_alert_job():
 
 
 async def _detect_competitor_score_spike():
-    """경쟁사 unified_score가 이번 주 스캔 대비 지난 주 스캔에서 15점 이상 상승 시 알림.
+    """경쟁사 score가 이번 주 스캔 대비 지난 주 스캔에서 15점 이상 상승 시 알림.
 
-    scan_results.competitor_scores JSONB {comp_name: {unified_score: N, ...}} 구조 비교.
+    scan_results.competitor_scores JSONB {comp_id: {name, score, ...}} 구조 비교.
     score_history.business_id는 사업장 기준이므로 경쟁사 점수 조회에 사용 불가.
     """
     import asyncio as _asyncio
@@ -3786,16 +3788,17 @@ async def _detect_competitor_score_spike():
                 if not (this_scores and last_scores):
                     continue
 
-                # 경쟁사별 점수 비교 — unified_score 우선, total_score fallback
+                # 경쟁사별 점수 비교 — competitor_scores 딕셔너리는 comp_id를 키로 하고
+                # 값에는 "score"만 있음("unified_score"/"total_score" 키는 존재한 적 없어
+                # 이전 코드가 이 함수를 사실상 상시 0점 비교로 무력화시키고 있었음)
                 spike_comps = []
-                for comp_name, this_data in this_scores.items():
-                    last_data = last_scores.get(comp_name, {})
-                    this_score = float(
-                        this_data.get("unified_score") or this_data.get("total_score") or 0
-                    )
-                    last_score = float(
-                        last_data.get("unified_score") or last_data.get("total_score") or 0
-                    )
+                for comp_id, this_data in this_scores.items():
+                    last_data = last_scores.get(comp_id, {})
+                    if not last_data:
+                        continue
+                    this_score = float(this_data.get("score") or 0)
+                    last_score = float(last_data.get("score") or 0)
+                    comp_name = this_data.get("name") or comp_id
                     if this_score > 0 and last_score > 0 and (this_score - last_score) >= threshold:
                         spike_comps.append((comp_name, this_score - last_score, this_score))
 
@@ -3854,7 +3857,7 @@ async def _detect_competitor_score_spike():
                     await _kn2._send_raw(phone, msg, template_code="AEOLAB_COMP_01")
                     logger.info(
                         "[competitor_spike] biz=%s comp=%s +%d -> %s 알림",
-                        biz_name, comp_name, delta_int, masked,
+                        biz_name, comp_name, round(delta), masked,
                     )
 
                 await _asyncio.to_thread(
@@ -3949,7 +3952,10 @@ async def send_monthly_performance_reports():
                     if not (r and r.data):
                         return 0.0
                     row = r.data[0]
-                    return float(row.get("unified_score") or row.get("total_score") or 0)
+                    _u = row.get("unified_score")
+                    if _u is not None:
+                        return float(_u)
+                    return float(row.get("total_score") or 0)
 
                 score_now = _get_score(score_now_r)
                 score_before = _get_score(score_before_r)

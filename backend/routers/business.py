@@ -1215,13 +1215,18 @@ async def _import_trial_scan(business_id: str, trial_scan_id: str):
         from datetime import datetime
         now_str = datetime.utcnow().isoformat()
 
+        _trial_unified = trial.get("unified_score")
+        trial_unified_score = (
+            float(_trial_unified) if _trial_unified is not None else float(trial.get("total_score") or 0)
+        )
+
         scan_payload = {
             "business_id": business_id,
             "query_used": f"{trial.get('region', '')} {trial.get('category', '')} 추천".strip(),
             "gemini_result": trial.get("gemini_result"),
             "exposure_freq": trial.get("exposure_freq") or 0,
             "total_score": trial.get("total_score") or 0,
-            "unified_score": trial.get("unified_score") or trial.get("total_score") or 0,
+            "unified_score": trial_unified_score,
             "track1_score": trial.get("track1_score"),
             "track2_score": trial.get("track2_score"),
             "keyword_coverage": trial.get("keyword_coverage"),
@@ -1244,7 +1249,7 @@ async def _import_trial_scan(business_id: str, trial_scan_id: str):
                     "business_id": business_id,
                     "score_date": today_str,
                     "total_score": trial.get("total_score") or 0,
-                    "unified_score": trial.get("unified_score") or trial.get("total_score") or 0,
+                    "unified_score": trial_unified_score,
                     "track1_score": trial.get("track1_score"),
                     "track2_score": trial.get("track2_score"),
                     "exposure_freq": trial.get("exposure_freq") or 0,

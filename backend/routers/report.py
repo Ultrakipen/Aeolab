@@ -5018,10 +5018,19 @@ async def get_visit_delta(
 
     last_visit_iso = last_visit_dt.isoformat()
 
+    # unified_score 컬럼은 나중에 추가돼 과거 행은 NULL일 수 있음 —
+    # `or 0`으로 처리하면 결측치가 진짜 0점으로 둔갑해 허위 급락/급등 배너가 뜬다.
+    def _row_score(row: dict) -> float | None:
+        _u = row.get("unified_score")
+        if _u is not None:
+            return float(_u)
+        _t = row.get("total_score")
+        return float(_t) if _t is not None else None
+
     # 3. score_history에서 기간 내 첫/마지막 행 조회
     history_res = await execute(
         supabase.table("score_history")
-        .select("unified_score, score_date")
+        .select("unified_score, total_score, score_date")
         .eq("business_id", biz_id)
         .gte("score_date", last_visit_iso)
         .order("score_date", desc=False)
@@ -5033,13 +5042,13 @@ async def get_visit_delta(
     has_new_scan = len(history_rows) > 0
 
     if len(history_rows) >= 2:
-        score_before = float(history_rows[0].get("unified_score") or 0)
-        score_now    = float(history_rows[-1].get("unified_score") or 0)
+        score_before = _row_score(history_rows[0])
+        score_now    = _row_score(history_rows[-1])
     elif len(history_rows) == 1:
         # 기간 내 행이 1개뿐 -> 이전 기록을 before로 사용
         before_res = await execute(
             supabase.table("score_history")
-            .select("unified_score, score_date")
+            .select("unified_score, total_score, score_date")
             .eq("business_id", biz_id)
             .lt("score_date", last_visit_iso[:10])
             .order("score_date", desc=True)
@@ -5047,8 +5056,8 @@ async def get_visit_delta(
         )
         before_rows = (before_res.data or []) if before_res else []
         if before_rows:
-            score_before = float(before_rows[0].get("unified_score") or 0)
-            score_now    = float(history_rows[0].get("unified_score") or 0)
+            score_before = _row_score(before_rows[0])
+            score_now    = _row_score(history_rows[0])
 
     # 4. score_history 0건 -> scan_results fallback
     if score_before is None or score_now is None:
