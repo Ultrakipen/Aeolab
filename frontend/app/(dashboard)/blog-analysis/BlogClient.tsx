@@ -883,6 +883,10 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
 
   // 경쟁사 블로그 갭 기반 추천이 하나도 없으면(경쟁사 분석 데이터 부재) 그 이유를 밝힘
   const hasCompetitorGap = suggestions.some((s) => s.source === "competitor_gap");
+  // 검색량 배지가 하나도 안 보이면(전부 null/0) 설명 문구도 함께 숨겨 불필요한 안내를 방지
+  const hasVolumeData = suggestions.some(
+    (s) => s.monthly_volume !== null && s.monthly_volume !== undefined && s.monthly_volume > 0
+  );
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
@@ -894,6 +898,12 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
         {hasCompetitorGap
           ? "경쟁사 블로그와 비교해 우선순위가 높은 주제부터 보여드립니다."
           : "경쟁사 블로그 진단 데이터가 아직 없어 업종 표준 키워드 기준으로 추천합니다. 경쟁사 데이터가 쌓이면 더 정밀해집니다."}
+        {hasVolumeData && (
+          <>
+            {" "}
+            주제 옆 숫자(예: 월 4.1k회)는 최근 1개월간 네이버에서 이 키워드를 검색한 횟수예요 — 숫자가 클수록 찾는 사람이 많다는 뜻입니다.
+          </>
+        )}
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {suggestions.map((s, idx) => (
