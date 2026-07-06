@@ -277,21 +277,24 @@ export function SettingsClient({
       )}
 
       {/* ── 구독 해지 (위험 영역) ── */}
-      <div className="border border-red-100 rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" strokeWidth={1.8} />
-          <h3 className="text-base font-semibold text-red-600">구독 해지</h3>
+      {/* suspended 상태는 이미 해지할 활성 구독이 없으므로(카드 변경 섹션과 동일 게이트) 숨김 */}
+      {isActiveSubscription && (
+        <div className="border border-red-100 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" strokeWidth={1.8} />
+            <h3 className="text-base font-semibold text-red-600">구독 해지</h3>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <p className="text-sm text-gray-500 flex-1">구독을 해지하면 자동 스캔과 알림이 중단됩니다. 현재 구독 기간이 끝날 때까지는 서비스를 계속 이용할 수 있습니다.</p>
+            <button
+              onClick={() => { setShowCancelModal(true); setCancelError(""); setSelectedReason(null); }}
+              className="w-full sm:w-auto text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 px-4 py-2.5 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              구독 해지
+            </button>
+          </div>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <p className="text-sm text-gray-500 flex-1">구독을 해지하면 자동 스캔과 알림이 중단됩니다. 현재 구독 기간이 끝날 때까지는 서비스를 계속 이용할 수 있습니다.</p>
-          <button
-            onClick={() => { setShowCancelModal(true); setCancelError(""); setSelectedReason(null); }}
-            className="w-full sm:w-auto text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 px-4 py-2.5 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            구독 해지
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* ── 해지 방어 모달 ── */}
       {showCancelModal && (
@@ -301,7 +304,7 @@ export function SettingsClient({
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="text-lg font-bold text-gray-900">구독을 해지하시겠습니까?</h3>
-                <p className="text-sm text-gray-500 mt-0.5">해지하면 다음 데이터에 접근할 수 없게 됩니다.</p>
+                <p className="text-sm text-gray-500 mt-0.5">만료일이 지나면 다음 데이터에 대한 분석 기능을 이용할 수 없게 됩니다.</p>
               </div>
               <button
                 onClick={() => setShowCancelModal(false)}
@@ -326,7 +329,7 @@ export function SettingsClient({
                 <span>행동→점수 변화 기록 <strong>{actionCount}건</strong></span>
               </div>
               <p className="text-sm text-red-600 mt-1 pt-2 border-t border-red-100">
-                데이터는 30일간 보관 후 삭제됩니다.
+                데이터 자체는 삭제되지 않고 보관되며, 재가입 시 그대로 이어서 이용할 수 있습니다.
               </p>
             </div>
 
