@@ -32,7 +32,7 @@ async def generate_crisis_reply(
     api_key = os.getenv("ANTHROPIC_API_KEY", "")
     if not api_key:
         _logger.warning("crisis_guide: ANTHROPIC_API_KEY 미설정 — fallback 반환")
-        return _fallback_response(business_name, rating)
+        return {**_fallback_response(business_name, rating), "is_fallback": True}
 
     import anthropic
 
@@ -81,14 +81,16 @@ async def generate_crisis_reply(
         end = text.rfind("}") + 1
         if start == -1 or end == 0:
             _logger.warning("crisis_guide: JSON 파싱 실패 — fallback 반환")
-            return _fallback_response(business_name, rating)
-        return json.loads(text[start:end])
+            return {**_fallback_response(business_name, rating), "is_fallback": True}
+        result = json.loads(text[start:end])
+        result["is_fallback"] = False
+        return result
     except json.JSONDecodeError as e:
         _logger.warning("crisis_guide: JSON decode error: %s", e)
-        return _fallback_response(business_name, rating)
+        return {**_fallback_response(business_name, rating), "is_fallback": True}
     except Exception as e:
         _logger.warning("crisis_guide: Claude Haiku 호출 실패: %s", e)
-        return _fallback_response(business_name, rating)
+        return {**_fallback_response(business_name, rating), "is_fallback": True}
 
 
 def _fallback_response(business_name: str, rating: int) -> dict:

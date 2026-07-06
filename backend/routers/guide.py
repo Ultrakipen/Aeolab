@@ -201,45 +201,47 @@ async def generate_review_reply(
     if not biz:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
 
-    reply_draft, sentiment = await _generate_reply(biz, req.review_text)
+    reply_draft, sentiment, is_fallback = await _generate_reply(biz, req.review_text)
 
-    # 저장
-    try:
-        await execute(
-            supabase.table("review_replies").insert({
-                "business_id": req.business_id,
-                "review_text": req.review_text,
-                "reply_draft": reply_draft,
-                "sentiment": sentiment,
-                "keywords_used": biz.get("keywords") or [],
-            })
-        )
-    except Exception as e:
-        err_str = str(e)
-        if "sentiment" in err_str and "does not exist" in err_str:
-            # sentiment 컬럼 미적용 DB 환경 fallback
-            _logger.warning("review_replies.sentiment 컬럼 미적용 — sentiment 제외 저장 (마이그레이션 필요)")
+    # 저장 — 폴백(AI 실패)이면 한도 소비·이력 오염 방지 위해 저장 건너뜀 (smartplace-faq와 동일 패턴)
+    if not is_fallback:
+        try:
             await execute(
                 supabase.table("review_replies").insert({
                     "business_id": req.business_id,
                     "review_text": req.review_text,
                     "reply_draft": reply_draft,
+                    "sentiment": sentiment,
                     "keywords_used": biz.get("keywords") or [],
                 })
             )
-        else:
-            raise
+        except Exception as e:
+            err_str = str(e)
+            if "sentiment" in err_str and "does not exist" in err_str:
+                # sentiment 컬럼 미적용 DB 환경 fallback
+                _logger.warning("review_replies.sentiment 컬럼 미적용 — sentiment 제외 저장 (마이그레이션 필요)")
+                await execute(
+                    supabase.table("review_replies").insert({
+                        "business_id": req.business_id,
+                        "review_text": req.review_text,
+                        "reply_draft": reply_draft,
+                        "keywords_used": biz.get("keywords") or [],
+                    })
+                )
+            else:
+                raise
 
     return {
         "draft_response": reply_draft,
         "tone": sentiment,
+        "is_fallback": is_fallback,
         "used": used + 1,
         "limit": limit,
         "keywords_used": biz.get("keywords") or [],
     }
 
 
-async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str]:
+async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str, bool]:
     """Claude Haiku로 감정 분류 + 답변 초안 생성"""
     import anthropic
     import os
@@ -280,10 +282,10 @@ reply: <답변 내용>
                 reply = line.split(":", 1)[1].strip()
         if not reply:
             reply = text
-        return reply, sentiment
+        return reply, sentiment, False
     except Exception as e:
         _logger.error(f"review reply generation failed: {e}")
-        return "소중한 리뷰 감사드립니다. 더 나은 서비스로 보답하겠습니다.", "neutral"
+        return "소중한 리뷰 감사드립니다. 더 나은 서비스로 보답하겠습니다.", "neutral", True
 
 
 @router.get("/{biz_id}/review-replies")
@@ -612,6 +614,9 @@ async def _generate_and_save(req: GuideRequest):
                 (score_data.get("chatgpt_result") or {}).get("mentioned")
                 or (score_data.get("chatgpt_result") or {}).get("exposure_freq", 0) > 0
             ),
+            # 네이버와 동일하게 스캔 자체 실패(error)를 "미언급 확정"과 구분
+            "chatgpt_measured": not bool((score_data.get("chatgpt_result") or {}).get("error")),
+            "gemini_measured": not bool((score_data.get("gemini_result") or {}).get("error")),
             "keyword_gap_count": len((_kw_gap_dict_ss or {}).get("missing_keywords") or []),
             "coverage_rate": float((_kw_gap_dict_ss or {}).get("coverage_rate") or 0),
             "competitor_count": len(competitor_data or []),

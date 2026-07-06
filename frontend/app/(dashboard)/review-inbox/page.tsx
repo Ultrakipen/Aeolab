@@ -31,6 +31,7 @@ interface CrisisGuideResult {
   ai_impact_tips: string[]
   do_not_do: string[]
   offline_steps: string[]
+  is_fallback?: boolean
 }
 
 // ── 위기관리 가이드 패널 컴포넌트 ─────────────────────────────────
@@ -155,6 +156,12 @@ function CrisisGuidePanel({
         {/* 결과 */}
         {!loading && result && (
           <div className="space-y-3">
+            {result.is_fallback && (
+              <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                AI 생성이 일시적으로 지연되어 기본 안내 문구로 표시됩니다. 잠시 후 다시 시도해주세요.
+              </div>
+            )}
             {/* 공개 답변 초안 */}
             <div className="bg-white rounded-xl border border-red-200 overflow-hidden">
               <button
@@ -642,6 +649,12 @@ export default function ReviewInboxPage() {
       {/* 생성 결과 */}
       {result && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 mb-6">
+          {result.is_fallback && (
+            <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              AI 생성이 일시적으로 지연되어 기본 안내 문구로 표시됩니다. 잠시 후 다시 시도해주세요.
+            </div>
+          )}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-blue-900">생성된 답변 초안</span>

@@ -55,13 +55,13 @@ async def generate_startup_report(
             )
             total = len(biz_res.data or [])
             if total == 0:
-                timing_data = {"timing": "데이터수집중", "timing_label": "데이터 수집 중", "timing_color": "gray", "reasoning": "등록 데이터가 아직 없습니다.", "opportunity_score": 50}
+                timing_data = {"timing": "데이터수집중", "timing_label": "데이터 수집 중", "timing_color": "gray", "reasoning": "등록 데이터가 아직 없습니다.", "opportunity_score": 50, "is_estimated": True}
             elif total < 3:
-                timing_data = {"timing": "기회있음", "timing_label": "기회 있음 — 선점 가능", "timing_color": "emerald", "reasoning": f"{req.region} {req.category} 업종 경쟁사가 {total}개로 매우 적어 선점이 유리합니다.", "opportunity_score": 85}
+                timing_data = {"timing": "기회있음", "timing_label": "기회 있음 — 선점 가능", "timing_color": "emerald", "reasoning": f"{req.region} {req.category} 업종 경쟁사가 {total}개로 매우 적어 선점이 유리합니다.", "opportunity_score": 85, "is_estimated": True}
             elif result.get("competition_level") in ("매우 치열", "치열"):
-                timing_data = {"timing": "포화", "timing_label": "경쟁 과열 — 차별화 필수", "timing_color": "red", "reasoning": f"{req.region} {req.category} 업종은 경쟁이 치열합니다. 틈새 키워드 전략 없이는 노출이 어렵습니다.", "opportunity_score": 25}
+                timing_data = {"timing": "포화", "timing_label": "경쟁 과열 — 차별화 필수", "timing_color": "red", "reasoning": f"{req.region} {req.category} 업종은 경쟁이 치열합니다. 틈새 키워드 전략 없이는 노출이 어렵습니다.", "opportunity_score": 25, "is_estimated": False}
             else:
-                timing_data = {"timing": "안정", "timing_label": "안정적 — 꾸준한 성장 가능", "timing_color": "blue", "reasoning": f"{req.region} {req.category} 업종은 안정적인 시장입니다. 꾸준한 관리로 경쟁력을 높일 수 있습니다.", "opportunity_score": 60}
+                timing_data = {"timing": "안정", "timing_label": "안정적 — 꾸준한 성장 가능", "timing_color": "blue", "reasoning": f"{req.region} {req.category} 업종은 안정적인 시장입니다. 꾸준한 관리로 경쟁력을 높일 수 있습니다.", "opportunity_score": 60, "is_estimated": False}
             _cache.set(timing_key, timing_data, 1800)
         result["timing"] = timing_data
     except Exception as _e:
@@ -93,7 +93,8 @@ async def get_market_overview(category: str, region: str):
     # 평균 점수 계산 — 단일 IN 쿼리로 N+1 제거
     scores: list[float] = []
     if businesses:
-        biz_ids = [b["id"] for b in businesses[:20]]
+        # competitor_count가 전체 모집단 기준이므로 평균도 동일 모집단이어야 함 (앞 20개만 쓰면 불일치)
+        biz_ids = [b["id"] for b in businesses]
         all_scans = (
             await execute(
                 supabase.table("scan_results")
@@ -178,6 +179,7 @@ async def get_timing_index(category: str, region: str):
             "avg_score": 0,
             "score_trend": 0,
             "opportunity_score": 50,
+            "is_estimated": True,
         }
         _cache.set(cache_key, result, 1800)
         return result
@@ -212,41 +214,44 @@ async def get_timing_index(category: str, region: str):
     score_trend = round(avg_recent - avg_old, 1) if (recent and old) else 0
 
     # 타이밍 판단
+    is_estimated = False
     if not recent:
         timing = "데이터수집중"
         timing_label = "데이터 수집 중"
         timing_color = "gray"
         reasoning = f"{region} {category} 업종 데이터가 수집되고 있습니다. 더 정확한 분석을 위해 데이터를 축적 중입니다."
         opportunity = 50
+        is_estimated = True
     elif total_count < 3:
         timing = "기회있음"
         timing_label = "기회 있음 — 선점 가능"
         timing_color = "emerald"
         reasoning = f"{region} {category} 업종에 등록된 경쟁 사업장이 {total_count}개로 매우 적습니다. 지금 시작하면 AI 노출을 선점할 수 있습니다."
         opportunity = 85
+        is_estimated = True
     elif avg_recent >= 70 and total_count > 10:
         timing = "포화"
         timing_label = "경쟁 과열 — 차별화 필수"
         timing_color = "red"
-        reasoning = f"{region} {category} 업종 평균 점수가 {avg_recent:.0f}점으로 높고 경쟁사가 {total_count}개입니다. 틈새 키워드 전략 없이는 생존이 어렵습니다."
+        reasoning = f"{region} {category} 업종 평균 AI 노출 수준이 높고 경쟁사가 {total_count}개입니다. 틈새 키워드 전략 없이는 생존이 어렵습니다."
         opportunity = 25
     elif score_trend > 3:
         timing = "상승중"
         timing_label = "성장 중 — 지금이 적기"
         timing_color = "blue"
-        reasoning = f"{region} {category} 업종 AI 노출 점수가 최근 30일간 {score_trend:+.1f}점 상승 중입니다. 시장이 성장하는 지금 진입하면 유리합니다."
+        reasoning = f"{region} {category} 업종 AI 노출 수준이 최근 30일간 뚜렷하게 상승 중입니다. 시장이 성장하는 지금 진입하면 유리합니다."
         opportunity = 70
     elif score_trend < -3:
         timing = "쇠퇴"
         timing_label = "하락세 — 신중한 검토 필요"
         timing_color = "amber"
-        reasoning = f"{region} {category} 업종 AI 노출 점수가 최근 {score_trend:.1f}점 하락 중입니다. 시장 변화 원인을 파악한 후 진입 여부를 결정하세요."
+        reasoning = f"{region} {category} 업종 AI 노출 수준이 최근 눈에 띄게 하락 중입니다. 시장 변화 원인을 파악한 후 진입 여부를 결정하세요."
         opportunity = 35
     else:
         timing = "안정"
         timing_label = "안정적 — 꾸준한 성장 가능"
         timing_color = "blue"
-        reasoning = f"{region} {category} 업종은 안정적인 시장입니다. 평균 점수 {avg_recent:.0f}점이며 꾸준한 관리로 경쟁력을 높일 수 있습니다."
+        reasoning = f"{region} {category} 업종은 안정적인 시장입니다. 평균적인 AI 노출 수준이며 꾸준한 관리로 경쟁력을 높일 수 있습니다."
         opportunity = 60
 
     result = {
@@ -260,6 +265,7 @@ async def get_timing_index(category: str, region: str):
         "avg_score": round(avg_recent, 1),
         "score_trend": score_trend,
         "opportunity_score": opportunity,
+        "is_estimated": is_estimated,
     }
     _cache.set(cache_key, result, 1800)
     return result

@@ -47,17 +47,19 @@
 
 ## §3. 잔여 작업 (다음 세션 트리거 후보)
 
-### 3-1. falsy-zero 패턴 전역 스윕 (약 20곳, 우선순위 중)
-동일 패턴(`unified_score or total_score/track1_score`, 또는 `unified_score or 0`)이 아래에 남아있음:
-- `backend/routers/admin.py` (MRR 추세)
-- `backend/services/pdf_generator.py`
-- `backend/services/score_attribution.py`
-- `backend/services/trial_conversion.py`
-- `backend/scheduler/jobs.py`의 성장 리포트/창업 시장 분석 관련 잡들
-- `backend/routers/report.py`의 growth-card/growth-simulation 엔드포인트
-- `backend/routers/report.py:5020` 부근 (`VisitDeltaBanner.tsx`가 쓰는 "오랜만에 방문" 배너 — `unified_score or 0`이 결측치를 진짜 0점으로 취급)
+### 3-1. falsy-zero 패턴 전역 스윕 — ✅ 완료 (2026-07-06, git `b9c40ed`)
 
-시작점: `grep -rn 'unified_score.*or.*total_score\|unified_score.*or.*track1_score\|unified_score.*or 0' backend/`
+`grep -rn 'unified_score.*or.*total_score\|unified_score.*or.*track1_score\|unified_score.*or 0' backend/`로 17개 지점 전수 확인. 각 지점을 "같은 `calculate_score()` 호출에서 나온 값이라 `total_score`가 `unified_score`의 완전한 별칭인가(무해)" vs "DB에 저장된 서로 다른 시점 행을 비교하는가(위험)" 기준으로 판정:
+
+**실제 수정 4건**:
+- `jobs.py _detect_competitor_score_spike` — **최우선 발견**: `competitor_scores` 딕셔너리의 실제 키는 `"score"` 하나뿐인데 존재한 적 없는 `"unified_score"`/`"total_score"`를 읽어 이 함수가 상시 0점 비교로 완전히 무력화돼 있었음(스파이크 알림이 한 번도 발동한 적 없었을 가능성). 표시 이름이 `comp_id`(uuid)로 나오던 버그, 미정의 변수 `delta_int`(NameError로 알림 발송 후 쿨다운 insert가 매번 스킵 → 향후 스팸 위험) 동반 수정
+- `report.py` `/visit-delta` (VisitDeltaBanner) — `unified_score` 컬럼이 나중에 ALTER TABLE로 추가돼 과거 행은 NULL인데 `or 0`이 결측치를 진짜 0점 취급 → 허위 급락/급등 배너. `total_score` fallback 추가
+- `business.py` 트라이얼→사업장 전환 시 `score_history`/`scan_results` 초기값 — is-not-None 체인으로 하드닝
+- `jobs.py` `weekly_score_report_job`/`_get_score`(월간 성과 이메일) — 동일 원칙 하드닝
+
+**수정 불필요 판정(13곳)**: `admin.py`·`guide.py`·`report.py`(87/2920/4300/4317/4421/4454)·`scan.py`(933/990)·`share.py`·`score_attribution.py`·`trial_conversion.py`·`jobs.py`(2158/2665-2666)·`pdf_generator.py`(406/492/746) — `score_engine.py:982-983`에서 `total_score`가 `unified_score`의 완전한 별칭(`"total_score": unified`)으로 반환되므로, 같은 스캔 호출 내에서는 두 필드가 항상 동일해 `or` 폴백이 실질적으로 다른 값을 끌어올 수 없음. 최초 조사 에이전트가 이 13곳도 BUG로 오판했었음 — **직접 `score_engine.py` 반환 구조를 확인해서 반증한 것이 오판을 막은 핵심**.
+
+배포: md5 사전확인(server==git HEAD 일치 확인) → scp → pm2 restart(에러 0건) → 서버 grep 재확인 → 로컬 git 커밋 완료. push는 보류(기존 drift 미해소).
 
 ### 3-2. 미착수 3개 페이지 (nine_pages 계획 잔여, 우선순위 중)
 `docs/nine_pages_measurement_inspection_v1.0.md` §3의 7·8·9번 — 아직 이번 방법론(2단 레이어)으로 감사 안 함:

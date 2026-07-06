@@ -2972,7 +2972,8 @@ async def get_review_sentiment(biz_id: str, user=Depends(get_current_user)):
         excerpts += naver.get("review_excerpts", []) or []
     from services.review_sentiment import analyze_review_sentiment
     result = await analyze_review_sentiment(biz_id, excerpts, biz_name)
-    _cache.set(cache_key, result, 3600)
+    if result.get("status") != "error":
+        _cache.set(cache_key, result, 3600)
     return result
 
 

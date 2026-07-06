@@ -22,7 +22,9 @@ class AdDefenseGuideService:
         )
         gemini_result = scan_result.get("gemini_result") or {}
         exposure_freq = gemini_result.get("exposure_freq", 0)
-        sample_size = gemini_result.get("sample_size", 50)
+        # 스캔 실패 시 gemini_result에 sample_size 키 자체가 없음 — 50으로 기본값을 주면
+        # "50회 측정해서 0회 노출"이라는 허위 확신을 프롬프트·응답에 심게 됨
+        sample_size = gemini_result.get("sample_size", 0)
 
         # 약한 영역 상위 3개 추출 (가이드 품질 향상)
         # score_breakdown은 0~100 척도 점수 외에 불리언(google_captcha_blocked)·dict(track1_detail)·
@@ -48,7 +50,7 @@ class AdDefenseGuideService:
 - 업종: {biz.get('category')}
 - 지역: {biz.get('region')}
 - ChatGPT 현재 언급 여부: {"언급됨" if chatgpt_mentioned else "미언급"}
-- Gemini {sample_size}회 샘플링 노출 빈도: {exposure_freq}회
+- Gemini 노출 측정: {f"{sample_size}회 샘플링 중 {exposure_freq}회 노출" if sample_size > 0 else "이번 스캔에서 측정 실패(데이터 없음)"}
 - 개선이 필요한 영역: {weak_areas_text}
 
 ChatGPT가 한국에 광고 모델(SearchGPT Ads)을 도입할 경우를 대비하여,

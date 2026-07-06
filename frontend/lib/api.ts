@@ -834,6 +834,7 @@ export interface ReviewReplyResult {
   draft_response: string
   keywords_used: string[]
   created_at: string
+  is_fallback?: boolean
 }
 
 export async function generateReviewReply(

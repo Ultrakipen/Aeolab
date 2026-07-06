@@ -31,8 +31,10 @@ class StartupReportService:
         scores: list[float] = []
 
         if businesses:
-            biz_ids = [b["id"] for b in businesses[:10]]
-            biz_name_map = {b["id"]: b["name"] for b in businesses[:10]}
+            # competitor_count가 전체 모집단을 기준으로 표시되므로 평균도 동일 모집단으로
+            # 계산해야 함 — 앞 N개만 샘플링하면 "N개 중 평균"인데 "전체 평균"인 것처럼 보임
+            biz_ids = [b["id"] for b in businesses]
+            biz_name_map = {b["id"]: b["name"] for b in businesses}
 
             # N+1 제거 — 단일 IN 쿼리로 최신 스캔 일괄 조회
             scans_res = await execute(
