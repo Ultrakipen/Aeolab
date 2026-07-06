@@ -74,8 +74,10 @@
 
 방법론 노트: Layer A/B 에이전트가 각자 9건을 보고했고 메인 세션이 file:line 직접 Read로 전수 재확인 후 구현. UNCLEAR로 남긴 항목(crisis-reply 한도 미설정이 의도적 설계인지, `sample_10()` 비-evidence 버전의 데드코드 여부 등)은 이번엔 손대지 않음 — 다음 라운드 후보.
 
-### 3-3. 사소한 정리 (우선순위 낮음, 원하면 진행)
-`backend/routers/guide.py:860` — FAQ 생성이 폴백으로 처리돼도 응답의 `"used": used + 1`이 그대로 반환돼, 그 응답 1회에 한해 사용량이 실제보다 1 부풀려 표시됨(DB엔 저장 안 되므로 다음 조회부턴 정상). 화면 표시상 미미한 오차.
+### 3-3. ✅ 완료 (2026-07-06, git `6cdfb1e`)
+`backend/routers/guide.py` smartplace-faq·review-reply 모두 — 폴백(AI 실패) 시 DB 저장은 건너뛰면서도 응답의 `"used"`는 무조건 +1 하던 불일치. `is_fallback`이면 `used`를 그대로 반환하도록 통일(§3-2에서 review-reply에도 새로 생긴 같은 클래스 버그까지 함께 수정).
+
+**§3 전체 완료 — nine_pages_measurement_inspection_v1.0.md 9개 영역 + 잔여 정리까지 모두 처리됨.**
 
 ## §4. 관련 문서·메모리
 - `docs/nine_pages_measurement_inspection_v1.0.md` — 원본 9개 영역 계획·방법론
