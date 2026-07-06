@@ -67,6 +67,10 @@
 - 대시보드: `ActionCompleteSection.tsx`, `DailyMissionCard.tsx`, `ActionResultCard.tsx` → `backend/routers/actions.py`
 - 가이드: `components/guide/ActionTimelineCard.tsx`, `components/dashboard/Action7DayChart.tsx` → `GET /api/report/action-timeline/{biz_id}` (`report.py`) — **Action7DayChart는 2026-07-02 텍스트 레이블 원칙 회귀 1건 이미 수정됨, 재발 여부만 확인**
 - 성장 리포트: `GET/POST /api/report/action-log/{biz_id}` (`report.py`)
+- **⚠️ §6(블로그 진단) 감사에서 미리 발견된 버그(아직 미수정) — 이 페이지 작업 시 반드시 확인**:
+  - `services/blog_search_analyzer.py:analyze_blog_search` — DOM 파싱/Playwright 실행이 캡챠 외 이유(타임아웃·DOM 구조 변경 등)로 실패해도 `error`/`captcha_detected` 키 없이 `my_rank=None, posts=[]`로 반환됨 → `report.py`(`/blog-analysis` POST 백그라운드 태스크)가 이를 정상 결과로 오인해 `blog_analysis` 테이블의 기존 정상 순위 데이터를 `my_rank=None`으로 덮어씀 (측정 실패가 "10위 밖"으로 오기록되는 데이터 손실)
+  - `services/screenshot.py` — `capture_batch`의 캡처 루프가 로그 없는 `except Exception: pass` 패턴 사용, 실패 원인 추적 불가
+  - `blog_search_analyzer.py` 전체·`screenshot.py`의 블로그/AI 캡처 함수들이 `multi_scanner.py`의 전역 `PLAYWRIGHT_SEMAPHORE`를 쓰지 않음 — 다른 요청과의 동시 실행을 막을 방법이 없어 RAM 4GB 서버에서 OOM 위험
 
 ### 3. 성장 리포트
 - 페이지: `frontend/app/(dashboard)/growth/page.tsx`, `GrowthClient.tsx`
@@ -85,10 +89,12 @@
 - API: `backend/routers/business.py` (intro-generate, global-ai-intro-generate, talktalk-faq-generate), `backend/routers/guide.py` (`/smartplace-faq`)
 - 서비스: `services/guide_generator.py` (generate_naver_intro 등), `services/content_validator.py` (D.I.A. 점수 — 2026-07-02 확인상 AI Visibility 점수와 별개 지표이므로 텍스트 전용 원칙 대상 아님, 혼동 주의)
 
-### 6. 블로그 진단
+### 6. 블로그 진단 ✅ 완료 (2026-07-06, git `a0b78bd`)
 - 페이지: `frontend/app/(dashboard)/blog-analysis/page.tsx`, `BlogClient.tsx`
 - API: `backend/routers/blog.py` (analyze, result), `report.py`(blog-analysis, capture-blog)
 - 서비스: `services/blog_analyzer.py`, `services/blog_search_analyzer.py`, `services/screenshot.py`
+- **결과**: Layer A/B 병렬 감사 → P0 1건(네이버 API/RSS 전체 실패가 "포스트 0개"로 오분류) + P1/P2 6건 확정·수정. 상세는 메모리 `project_blog_analysis_measurement_audit_2026_07_06` 참조.
+- **⚠️ 스코프 정정**: `services/blog_search_analyzer.py`(`analyze_blog_search` — my_rank 덮어쓰기 버그)와 `services/screenshot.py`(로그 없는 예외처리·`PLAYWRIGHT_SEMAPHORE` 미사용)는 호출 그래프 확인 결과 이 페이지가 아니라 **§2 "변화 기록" 페이지(`report.py`의 `/capture-blog`·`/blog-analysis-status`)에서만 쓰임** — §2 감사 시 재검토 필요(아직 미수정 버그로 남아 있음)
 
 ### 7. 리뷰 답변
 - 페이지: `frontend/app/(dashboard)/review-inbox/page.tsx` (인라인 컴포넌트: CrisisGuidePanel, SentimentBadge, CopyButton)

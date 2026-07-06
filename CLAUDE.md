@@ -667,31 +667,15 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - **403 "Invalid Timestamp" 원인 규명**: 서버 `timedatectl status`가 `System clock synchronized: no` — `systemd-timesyncd`가 3주+ 동안 `ntp.ubuntu.com`에 응답을 못 받고 있었음(iwinv가 NTP UDP 123 포트를 막고 있을 가능성). HTTP Date 헤더로 시계를 수동 보정해 임시 해결했으나 **근본 원인 미해결 — NTP가 계속 막혀 있으면 시계가 다시 drift되어 SearchAd 403이 재발할 수 있음**. 주기적 재보정 크론잡 또는 iwinv 문의 필요(사용자 결정 대기)
 - **`_parse_qc_count` 버그 수정**(`naver_searchad.py:116-131`, git `acf9450`): 네이버 API가 월 검색량 10 미만 키워드에 숫자 대신 `"< 10"` 문자열을 반환하는데, 기존 `int()` 직접 변환이 여기서 크래시 → 예외가 바깥 try/except까지 전파돼 **정상 키워드까지 포함한 배치 전체가 빈 결과로 무너지는** 심각한 버그였음. 서버에서 실제 키워드(카페=월 104만회 등)로 재검증 완료
 - **DataLab과의 관계 재확인**: DataLab(2026-07-05 완료)은 상대 검색량 지수(0~100)만 제공, SearchAd가 실제 `monthly_volume` 숫자를 제공 — 둘은 별도 자격증명 체계(DataLab은 기존 `NAVER_CLIENT_ID/SECRET` 재사용, SearchAd는 `searchad.naver.com` 별도 계정)
-- **미완료**: `/api/report/keyword-trend/{biz_id}`·`/api/report/keyword-volume-query`엔 이미 연결돼 있었지만, **블로그 관리 페이지의 소재 추천(`_generate_topic_suggestions`)에는 아직 검색량이 연결 안 됨** — 다음 단계는 `docs/blog_analysis_improvement_v2.0.md` §2-A 참조
+- 블로그 소재 추천 검색량 연동은 같은 날 후속 세션에서 완료 (바로 아래 항목 참조)
 
-### 2026-07-05 — 네이버 DataLab API 이용 승인 확인 + 라이브 검증
-> 사용자가 네이버 개발자센터에서 DataLab(검색어트렌드) API 서비스를 기존 앱에 추가 신청·승인받음. 코드는 이미 완성돼 있었고(`naver_datalab.py`, `/api/report/keyword-trend/{biz_id}`, `KeywordTrendChart.tsx`), 막혀있던 건 API 서비스 승인 여부뿐이었음.
-- **서버 직접 호출로 실제 트렌드 데이터 수신 확인** (카페 키워드 4개월 ratio 값 정상 반환, `unauthorized` 아님)
-- **라이브 대시보드에서 실측 확인**: 홍스튜디오 사업장 "30일 검색량 추이" 섹션 — 등록 키워드 6개 실제 차트 렌더링, `GET /api/report/keyword-trend/{biz_id}` → `200`
-- 서버 `.env`에 `NAVER_DATALAB_ENABLED=true` 추가 + `pm2 restart aeolab-backend` (구독자 100명 조건부 "착수 필요" 오탐 로그 방지 목적, 기능 자체와는 무관)
-- `NAVER_SEARCHAD`(검색광고 API, 실제 월간 검색량 숫자)는 이 시점엔 미설정이었음(2026-07-06 설정 완료, 위 항목 참조) — DataLab은 상대 검색량 지수(0~100)만 제공, `monthly_volume`은 null
-- CLAUDE.md "미래 과제"에서 DataLab 항목 제거 (완료됨)
-
-### 2026-06-26 — 대시보드 좌측 메뉴 재편 (소상공인 UX 최적화)
-> `DashboardSidebar.tsx` NAV_GROUPS 재구성. git `4d2a453`. 배포 완료.
-- **그룹 통합**: "진단"(2) + "변화 보기"(2) → **"내 가게 현황"(4)** — 스크롤 없이 712px→350px대 노출
-- **개선 실행 축소**: 6→4개 (AI 브리핑 5단계·ChatGPT 최적화 가이드 → 도움말 섹션 이동)
-- **"기타" → "도움말"** 명칭 변경, 학습 콘텐츠 2개 추가 (총 5개)
-- **모바일**: `MobileBottomTabs` 하단 "변화" 탭 유지 (변경 불필요)
-
-### 2026-06-26 — 전 서비스 심층 점검 + AI탭 베타 표기 수정
-> 브라우저 직접 접속(hoozdev@gmail.com) 전 페이지 점검. CLAUDE.md 사실 전수 검증 완료.
-- **P1 수정**: 네이버 AI탭 "베타" → "정식 출시 (2026-06-25)" 8개 파일 수정 (SiteFooter·ChannelDifferentiationCard·pricing/page·PlanRecommender·HeroSampleCard·GlobalAiFocusCard·FAQSection·demo/page)
-- **P1 수정**: `SiteFooter.tsx` "네이버 AI 브리핑 노출 관리 서비스" → "AI 검색 노출 관리 서비스" (멀티채널 실제 범위 반영)
-- **CLAUDE.md 검증 결과**: ChatGPT cutoff 2024-06-01 ✅ / AI탭 정식 출시 2026-06-25 ✅ / 가격 전체 ✅ / Gemini 기간 추정 유효 ✅
-- **기준 문서 신설**: `docs/commercial_inspection_standard_v2.0.md` (페이지별 점검 항목 + 오판 방지 체크리스트)
-- **미수정 P1**: 대시보드 Gemini 기간 표기 통일, 대행서비스 02번 업종별 분기 → 다음 세션
-- **P2 잔여**: ad-defense "Q2"→"하반기", 설정 페이지 앵커, Trial 업종 검색 필터
+### 2026-07-06 — 블로그 소재 추천 검색량·경쟁도 연동 + 측정 파이프라인 P0 버그 수정
+> `docs/blog_analysis_improvement_v2.0.md` §2-A 구현 완료 + "블로그 진단" 페이지 Layer A/B 병렬 감사(`docs/nine_pages_measurement_inspection_v1.0.md` §3.6 방법론). git `eeb4615`·`cb9be7f`·`e8ccb6b`·`a0b78bd`.
+- **검색량·경쟁도 연동**: `_generate_topic_suggestions`에 `base_keyword` 필드 추가 → 소재 추천에 실제 SearchAd 검색량("월 XXX회") + 경쟁도("경쟁 낮음/보통/높음") 배지 노출, 검색량 내림차순 정렬. 같은 패턴을 `GuideClient.tsx`·`KeywordTrendChart.tsx`에도 확대 적용(설명 문구 포함)
+- **별건 버그 수정**: `naver_searchad.py get_keyword_volumes`가 배치에 공백 포함 키워드 하나만 있어도 HTTP 400으로 전체가 무너지던 버그(업종 키워드 사전에 흔한 패턴이라 기존 `report.py` 기능도 영향권이었음) — 공백 제거 후 조회+원본 키워드 재매핑으로 근본 수정
+- **[P0] 측정 실패 오분류 버그**: `blog_analyzer.py`의 네이버 API/RSS 헬퍼가 네트워크·인증 실패를 전부 "포스트 0개"로 뭉개 반환 → 전체 다운 시에도 "사업장명/블로그 주소를 확인하세요"라는 오도성 안내 노출. `(items, total, ok)` 형태로 성공 여부 반환하도록 수정, 모든 시도가 기술적으로 실패한 경우만 `error: naver_search_unavailable`로 구분
+- **UI 정합성 6건**: 성공 토스트 오표시·저장결과 조회실패 오인·`citation_score` 임계값 불일치(70/40 vs 75/55/30)·모바일 SEO 배지 누락·약어 설명 부재·외부블로그 post_count 추정 미표기·경쟁사 1곳 "평균" 오표기
+- **스코프 오판 자기정정**: Layer B 보고 6건 중 3건(`blog_search_analyzer.py`·`screenshot.py`)은 호출 그래프 추적 결과 "변화 기록"(history) 페이지 전용 코드로 확인, 이번 커밋에서 제외(향후 §3.2 감사 때 재검토)
 
 ---
 
@@ -733,4 +717,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-06-18 | 상업 점검 13건 완료 + 구버전 업데이트 changelog_archive.md 이관. 2026-05-18~05-26 이관.*
+*최종 업데이트: 2026-07-06 | 블로그 소재 추천 검색량·경쟁도 연동 + 측정 파이프라인 P0 버그 수정. 2026-06-26 이전 업데이트 changelog_archive.md 이관.*
