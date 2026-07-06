@@ -154,6 +154,7 @@
 | **`docs/session_2026_07_01_naver_recheck_and_usergroup_fix_v1.0.md`** ⭐ | **2026-07-01 세션 종합 정리 — 네이버 재검증(오판아님)·모니터잡 P0 버그·Slack무동작→이메일알림·NID_SES추적 신설·monthly_market_news_job PGRST200 수정·getUserGroup/getBriefingEligibility 정적호출 15곳 동적 override 전수 연결(git f7326bf). 잔여: NID_AUT/SES 자동 재로그인 여부(사용자 결정 대기)** |
 | **`docs/naver_briefing_infotype_caveat_standard_v1.0.md`** ⭐ | **네이버 AI 브리핑 "정보형" 캐비엇 점검 표준 — 플레이스형(업종제한)/정보형(전업종) 구분·반복 버그 3유형(LIKELY만 누락/문법변형/암묵적배타)·점검 절차·정당한 예외·수정완료 파일 목록. 11차 스윕(2026-07-01) 종합** |
 | **`docs/nine_pages_measurement_inspection_v1.0.md`** ⭐ | **9개 페이지(경쟁사 관리·변화 기록·성장 리포트·개선 가이드·소개글 콘텐츠·블로그 진단·리뷰 답변·AI 광고 대비·창업 시장 분석) 실측 점검 작업 문서 — 2단 레이어(프론트 UI 하드코딩 + 백엔드 측정 파이프라인 무결성) 방법론, 페이지·컴포넌트·API 매핑, 검증 절차 (2026-07-02)** |
+| **`docs/blog_analysis_improvement_v2.0.md`** ⭐ | **블로그 관리 페이지 개선 v2.0 — v1.0(4건) 완료 확인 + SearchAd 검색량 연동(1순위, 구현 스펙 포함) + 후순위 3건(경쟁사 구조 비교·NLP 품질 채점·포스트별 성과 연결, 트리거 조건 명시). 오판 검증(근거+반증) 포함 (2026-07-06)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
@@ -161,6 +162,7 @@
 > **이번 세션 이어가기**: `docs/session_2026_07_01_naver_recheck_and_usergroup_fix_v1.0.md 기준으로 §7 NID_AUT/NID_SES 자동 재로그인 여부를 결정하고 진행할지 알려줘`
 > **정보형 캐비엇 재점검**: `docs/naver_briefing_infotype_caveat_standard_v1.0.md 기준으로 정보형 캐비엇 재점검 진행`
 > **9개 페이지 실측 점검**: `docs/nine_pages_measurement_inspection_v1.0.md 기준으로 실측 점검 진행`
+> **블로그 관리 페이지 검색량 연동**: `docs/blog_analysis_improvement_v2.0.md 기준으로 1순위(검색량 연동)부터 진행`
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
@@ -660,12 +662,19 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
+### 2026-07-06 — NAVER_SEARCHAD 실검색량 연동 + 파싱 버그 수정 + 서버 시계 drift 발견
+> 사용자가 NAVER_SEARCHAD 3개 자격증명(API_KEY/SECRET_KEY/CUSTOMER_ID)을 신규 발급해 서버 `.env`에 반영. 이 과정에서 두 가지 버그를 발견·수정함.
+- **403 "Invalid Timestamp" 원인 규명**: 서버 `timedatectl status`가 `System clock synchronized: no` — `systemd-timesyncd`가 3주+ 동안 `ntp.ubuntu.com`에 응답을 못 받고 있었음(iwinv가 NTP UDP 123 포트를 막고 있을 가능성). HTTP Date 헤더로 시계를 수동 보정해 임시 해결했으나 **근본 원인 미해결 — NTP가 계속 막혀 있으면 시계가 다시 drift되어 SearchAd 403이 재발할 수 있음**. 주기적 재보정 크론잡 또는 iwinv 문의 필요(사용자 결정 대기)
+- **`_parse_qc_count` 버그 수정**(`naver_searchad.py:116-131`, git `acf9450`): 네이버 API가 월 검색량 10 미만 키워드에 숫자 대신 `"< 10"` 문자열을 반환하는데, 기존 `int()` 직접 변환이 여기서 크래시 → 예외가 바깥 try/except까지 전파돼 **정상 키워드까지 포함한 배치 전체가 빈 결과로 무너지는** 심각한 버그였음. 서버에서 실제 키워드(카페=월 104만회 등)로 재검증 완료
+- **DataLab과의 관계 재확인**: DataLab(2026-07-05 완료)은 상대 검색량 지수(0~100)만 제공, SearchAd가 실제 `monthly_volume` 숫자를 제공 — 둘은 별도 자격증명 체계(DataLab은 기존 `NAVER_CLIENT_ID/SECRET` 재사용, SearchAd는 `searchad.naver.com` 별도 계정)
+- **미완료**: `/api/report/keyword-trend/{biz_id}`·`/api/report/keyword-volume-query`엔 이미 연결돼 있었지만, **블로그 관리 페이지의 소재 추천(`_generate_topic_suggestions`)에는 아직 검색량이 연결 안 됨** — 다음 단계는 `docs/blog_analysis_improvement_v2.0.md` §2-A 참조
+
 ### 2026-07-05 — 네이버 DataLab API 이용 승인 확인 + 라이브 검증
 > 사용자가 네이버 개발자센터에서 DataLab(검색어트렌드) API 서비스를 기존 앱에 추가 신청·승인받음. 코드는 이미 완성돼 있었고(`naver_datalab.py`, `/api/report/keyword-trend/{biz_id}`, `KeywordTrendChart.tsx`), 막혀있던 건 API 서비스 승인 여부뿐이었음.
 - **서버 직접 호출로 실제 트렌드 데이터 수신 확인** (카페 키워드 4개월 ratio 값 정상 반환, `unauthorized` 아님)
 - **라이브 대시보드에서 실측 확인**: 홍스튜디오 사업장 "30일 검색량 추이" 섹션 — 등록 키워드 6개 실제 차트 렌더링, `GET /api/report/keyword-trend/{biz_id}` → `200`
 - 서버 `.env`에 `NAVER_DATALAB_ENABLED=true` 추가 + `pm2 restart aeolab-backend` (구독자 100명 조건부 "착수 필요" 오탐 로그 방지 목적, 기능 자체와는 무관)
-- `NAVER_SEARCHAD`(검색광고 API, 실제 월간 검색량 숫자)는 아직 미설정 — DataLab은 상대 검색량 지수(0~100)만 제공, `monthly_volume`은 null
+- `NAVER_SEARCHAD`(검색광고 API, 실제 월간 검색량 숫자)는 이 시점엔 미설정이었음(2026-07-06 설정 완료, 위 항목 참조) — DataLab은 상대 검색량 지수(0~100)만 제공, `monthly_volume`은 null
 - CLAUDE.md "미래 과제"에서 DataLab 항목 제거 (완료됨)
 
 ### 2026-06-26 — 대시보드 좌측 메뉴 재편 (소상공인 UX 최적화)
