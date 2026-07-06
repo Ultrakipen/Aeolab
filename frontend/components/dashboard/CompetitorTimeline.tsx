@@ -155,11 +155,14 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
       const jitter = compIdx * 2
       if (entry) {
         point[name] = Math.round(entry.score) + jitter
+        point[`${name}__raw`] = Math.round(entry.score)
       } else if (isLast && lastKnownScore[name] !== undefined) {
         // 필터 범위 밖 최신 점수 → 마지막 포인트에 참조용 도트 표시
         point[name] = (lastKnownScore[name] ?? 0) + jitter
+        point[`${name}__raw`] = lastKnownScore[name] ?? 0
       } else {
         point[name] = null
+        point[`${name}__raw`] = null
       }
     })
     return point
@@ -314,8 +317,9 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
               />
               <Tooltip
                 contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
-                formatter={(value) => {
-                  const v = Math.round(Number(value))
+                formatter={(value, name, item) => {
+                  const raw = (item?.payload as Record<string, number | null> | undefined)?.[`${String(name)}__raw`]
+                  const v = Math.round(Number(raw ?? value))
                   const label = v >= 75 ? '지역 1등' : v >= 55 ? '빠른 성장' : v >= 30 ? '성장 중' : '시작 단계'
                   return [label, undefined]
                 }}

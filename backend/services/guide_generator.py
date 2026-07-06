@@ -979,7 +979,7 @@ class GuideGenerator:
 - JSON 문자열 값에 literal 줄바꿈 절대 금지 — 여러 문장은 한 줄에 공백으로 연결 (예: "1단계: 접속. 2단계: 클릭.")
 
 {{
-  "summary": "사장님이 바로 이해할 2문장: 반드시 'AI {my_freq}회/100회({my_score:.1f}점)' 수치로 시작 → {_summary_briefing_hint} → 지금 당장 할 구체적 조치 1개. 수치 없는 일반론 금지.",
+  "summary": "사장님이 바로 이해할 2문장: 반드시 'AI {my_freq}회/100회 노출' 빈도로 시작(점수·등급 숫자는 절대 언급 금지) → {_summary_briefing_hint} → 지금 당장 할 구체적 조치 1개. 수치 없는 일반론 금지.",
   "priority_items": [
     {{
       "rank": 1,

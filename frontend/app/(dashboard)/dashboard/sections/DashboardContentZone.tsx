@@ -57,7 +57,7 @@ export default function DashboardContentZone({
                 스마트플레이스 소개글·톡톡 채팅방 메뉴를 AI가 초안 작성 →<br />
                 직접 수정·복사해서 바로 등록
               </p>
-              <p className="text-sm text-purple-700 font-semibold mt-1.5">Basic 구독 시 월 5회 생성 가능</p>
+              <p className="text-sm text-purple-700 font-semibold mt-1.5">Basic 구독 시 월 10회 생성 가능</p>
             </div>
             <Link
               href="/pricing"

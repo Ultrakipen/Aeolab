@@ -48,6 +48,7 @@ interface BenchmarkData {
   top10_score: number;
   my_score: number;
   rank_percentile: number;
+  fallbackLabel?: string;
 }
 
 interface ActionLog {
@@ -590,6 +591,12 @@ export default function GrowthClient({
 
         {benchmarkData ? (
           <div className="space-y-4">
+            {/* 폴백 배지 */}
+            {benchmarkData.fallbackLabel && (
+              <div className="inline-flex items-center gap-1 bg-gray-100 text-gray-500 text-xs px-2.5 py-1 rounded-full">
+                참고: {benchmarkData.fallbackLabel}
+              </div>
+            )}
             {/* 게이지 바 */}
             <div className="space-y-3">
               {/* 내 가게 */}

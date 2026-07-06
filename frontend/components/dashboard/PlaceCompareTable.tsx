@@ -146,9 +146,11 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
       });
       if (res.ok) {
         await fetchData(t);
+      } else {
+        setError("경쟁사 재동기화에 실패했습니다. 잠시 후 다시 시도해주세요.");
       }
     } catch {
-      // 실패 시 조용히 무시 — 재시도 가능
+      setError("경쟁사 재동기화에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setSyncingIds(prev => ({ ...prev, [competitorId]: false }));
     }

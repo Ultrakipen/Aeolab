@@ -175,7 +175,7 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
 
     result = await execute(
         supabase.table("scan_results")
-        .select("scanned_at, total_score, track1_score, track2_score, unified_score, competitor_scores")
+        .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, competitor_scores")
         .eq("business_id", biz_id)
         .order("scanned_at", desc=True)
         .limit(limit_rows)
@@ -184,6 +184,23 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
     # score_date 별칭 추가 (하위 호환)
     for row in rows:
         row["score_date"] = (row.get("scanned_at") or "")[:10]
+
+    # score_history에서 업종 내 순위·주간 변화 보완 (scan_results엔 없는 컬럼 — /pdf 엔드포인트와 동일 패턴)
+    sh_result = await execute(
+        supabase.table("score_history")
+        .select("score_date, rank_in_category, total_in_category, weekly_change")
+        .eq("business_id", biz_id)
+        .order("score_date", desc=True)
+        .limit(limit_rows)
+    )
+    sh_by_date = {r["score_date"]: r for r in (sh_result.data or []) if r.get("score_date")}
+    for row in rows:
+        sh = sh_by_date.get(row["score_date"])
+        if sh:
+            row["rank_in_category"] = sh.get("rank_in_category")
+            row["total_in_category"] = sh.get("total_in_category")
+            row["weekly_change"] = sh.get("weekly_change")
+
     return rows
 
 

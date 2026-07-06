@@ -122,17 +122,18 @@ async def update_checklist(guide_id: str, payload: ChecklistUpdate, current_user
 
 
 @router.get("/{biz_id}/latest")
-async def get_latest_guide(biz_id: str, user=Depends(get_current_user)):
-    """최신 가이드 조회 (ActionPlan 구조 포함)"""
+async def get_latest_guide(biz_id: str, scan_id: str | None = None, user=Depends(get_current_user)):
+    """최신 가이드 조회 (ActionPlan 구조 포함). scan_id 지정 시 해당 스캔의 가이드만 반환(재생성 폴링용)"""
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
-    result = await execute(
+    query = (
         supabase.table("guides")
         .select("id, business_id, items_json, priority_json, summary, checklist_done, generated_at, context, next_month_goal, tools_json")
         .eq("business_id", biz_id)
-        .order("generated_at", desc=True)
-        .limit(1)
     )
+    if scan_id:
+        query = query.eq("scan_id", scan_id)
+    result = await execute(query.order("generated_at", desc=True).limit(1))
     if not result.data:
         raise HTTPException(status_code=404, detail="No guide found")
     row = result.data[0]
@@ -663,7 +664,7 @@ async def _generate_and_save(req: GuideRequest):
             await execute(supabase.table("guides").insert(base_payload))
 
     except Exception as e:
-        _logger.error(f"Guide generation failed: {e}", exc_info=True)
+        _logger.error(f"Guide generation failed (biz={req.business_id}, scan={req.scan_id}): {e}", exc_info=True)
 
 
 class SmartplaceFAQRequest(BaseModel):
@@ -757,13 +758,34 @@ async def generate_smartplace_faq(
     category_label = _CAT_KO.get(biz.get("category", ""), biz.get("category", ""))
     services = ", ".join(final_keywords) if final_keywords else ""
 
-    result = await generate_talktalk_faq(
-        biz_name=biz.get("name", ""),
-        category_label=category_label,
-        region=biz.get("region", ""),
-        services=services,
-        count=5,
-    )
+    _SMARTPLACE_FAQ_FALLBACK = {
+        "items": [
+            {"question": f"{biz.get('name', '')} 가격이 어떻게 되나요?", "answer": "정확한 가격은 매장으로 문의해 주세요.", "category": "가격"},
+            {"question": "예약은 어떻게 하나요?", "answer": "전화 또는 네이버 예약으로 미리 예약하시면 대기 없이 이용하실 수 있습니다.", "category": "예약"},
+            {"question": "위치가 어디인가요?", "answer": f"{biz.get('region', '')}에 위치해 있습니다. 상세 주소는 네이버 지도를 확인해 주세요.", "category": "위치"},
+            {"question": "주차가 가능한가요?", "answer": "주차 가능 여부는 매장으로 문의해 주세요.", "category": "위치"},
+            {"question": "영업시간이 어떻게 되나요?", "answer": "영업시간은 매장으로 문의하거나 네이버 플레이스에서 확인해 주세요.", "category": "예약"},
+        ],
+        "chat_menus": ["가격 안내", "예약 방법", "위치/교통", "영업시간", "서비스 안내"],
+    }
+
+    is_fallback = False
+    try:
+        result = await generate_talktalk_faq(
+            biz_name=biz.get("name", ""),
+            category_label=category_label,
+            region=biz.get("region", ""),
+            services=services,
+            count=5,
+        )
+        if not result or not isinstance(result.get("items"), list):
+            _logger.warning(f"smartplace-faq 응답 구조 불량 (biz={biz_id}), 폴백 사용")
+            result = _SMARTPLACE_FAQ_FALLBACK
+            is_fallback = True
+    except Exception as e:
+        _logger.warning(f"smartplace-faq Claude 호출 실패 (biz={biz_id}): {e}, 폴백 사용")
+        result = _SMARTPLACE_FAQ_FALLBACK
+        is_fallback = True
 
     items: list = result.get("items") or []
     raw_menus: list = result.get("chat_menus") or []
@@ -808,18 +830,19 @@ async def generate_smartplace_faq(
             name = _clip_name((it.get("category") or "").strip() or (it.get("question") or "").strip() or f"메뉴{idx + 1}")
             chat_menus.append({"menu_name": name, "link_type": "message", "message": ans})
 
-    # guides 테이블에 저장 (이력용)
-    try:
-        await execute(
-            supabase.table("guides").insert({
-                "business_id": biz_id,
-                "context": "faq_draft",
-                "items_json": items,
-                "generated_at": now.isoformat(),
-            })
-        )
-    except Exception as save_err:
-        _logger.warning(f"FAQ draft 저장 실패 (응답은 반환): {save_err}")
+    # guides 테이블에 저장 (이력용) — 폴백(AI 실패)이면 한도 소비 없이 저장 건너뜀 (business.py 패턴과 동일)
+    if not is_fallback:
+        try:
+            await execute(
+                supabase.table("guides").insert({
+                    "business_id": biz_id,
+                    "context": "faq_draft",
+                    "items_json": items,
+                    "generated_at": now.isoformat(),
+                })
+            )
+        except Exception as save_err:
+            _logger.warning(f"FAQ draft 저장 실패 (응답은 반환): {save_err}")
 
     # businesses.talktalk_faq_draft 에 최신 초안 저장 (재방문 시 자동 로드용)
     try:
@@ -834,7 +857,7 @@ async def generate_smartplace_faq(
     except Exception as biz_save_err:
         _logger.warning(f"FAQ draft businesses 저장 실패 (컬럼 없을 수 있음): {biz_save_err}")
 
-    return {"items": items, "chat_menus": chat_menus, "used": used + 1, "limit": limit, "keywords_used": final_keywords}
+    return {"is_fallback": is_fallback, "items": items, "chat_menus": chat_menus, "used": used + 1, "limit": limit, "keywords_used": final_keywords}
 
 
 @router.delete("/{biz_id}/smartplace-faq/{faq_index}")

@@ -191,14 +191,15 @@ export default async function GrowthPage() {
     top10_score: number;
     my_score: number;
     rank_percentile: number;
+    fallbackLabel?: string;
   } | null = null;
   if (benchmarkRes?.ok) {
     const raw = await benchmarkRes.json().catch(() => null);
-    if (raw && !raw.fallback) {
+    if (raw && raw.fallback !== "insufficient") {
       const latestScore = historyData.length > 0
         ? (historyData[historyData.length - 1].unified_score ?? 0)
         : 0;
-      const rankPct = raw.avg_score > 0
+      const rankPct = (raw.top10_score ?? 0) > 0
         ? Math.round(Math.min(100, Math.max(0, (latestScore / raw.top10_score) * 90)))
         : 0;
       benchmarkData = {
@@ -206,6 +207,11 @@ export default async function GrowthPage() {
         top10_score: raw.top10_score ?? 0,
         my_score: latestScore,
         rank_percentile: rankPct,
+        fallbackLabel: raw.fallback === "region"
+          ? "지역 평균 기준"
+          : raw.fallback === "global"
+          ? "전국 평균 기준"
+          : undefined,
       };
     }
   }

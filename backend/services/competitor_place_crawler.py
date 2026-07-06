@@ -157,6 +157,9 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                 if candidate.lower() not in _INVALID_PLACE_NAMES and len(candidate) > 1:
                     place_name = candidate
 
+            # ── 서브스텝 부분 실패 추적 (빈 리스트 = 완전 성공) ──────────
+            partial_failures: list[str] = []
+
             # ── 리뷰 수 파싱 ─────────────────────────────────────────
             # 패턴 우선순위: 블로그 리뷰 → 방문자 리뷰 → 리뷰N (붙음)
             review_count = 0
@@ -251,6 +254,7 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     lines = [l.strip() for l in body_text.split("\n") if l.strip()]
                 except Exception as e:
                     _logger.warning("avg_rating review tab retry failed [%s]: %s", naver_place_id, e)
+                    partial_failures.append("review_tab")
 
             # ── 탭 목록 확인 (네비게이션 영역 텍스트로 탭 추출) ──────────
             # lines[5:35]로 넓게 잡아 업종별 UI 구조 차이 대응 (구: lines[8:20])
@@ -274,6 +278,7 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     has_recent_post = len(feed_text.strip()) > 600
                 except Exception as e:
                     _logger.warning("feed tab load failed [%s]: %s", naver_place_id, e)
+                    partial_failures.append("recent_post")
                 # 홈으로 복귀
                 try:
                     await page.goto(f"{base_url}/home", timeout=15000, wait_until="domcontentloaded")
@@ -299,6 +304,7 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     has_menu = True
             except Exception as e:
                 _logger.warning("menu CSS selector check failed [%s]: %s", naver_place_id, e)
+                partial_failures.append("menu")
 
             # nav_area 범위를 lines[5:35]로 확장 (탭이 8:20 범위 밖에 있는 케이스 대응)
             nav_area_extended = (
@@ -315,6 +321,8 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     has_menu = len(menu_lines) > 20 and len(menu_text.strip()) > 400
                 except Exception as e:
                     _logger.warning("menu tab navigation (nav_area_extended) failed [%s]: %s", naver_place_id, e)
+                    if "menu" not in partial_failures:
+                        partial_failures.append("menu")
                 try:
                     await page.goto(f"{base_url}/home", timeout=15000, wait_until="domcontentloaded")
                     await page.wait_for_timeout(2000)
@@ -332,6 +340,8 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     has_menu = len(menu_lines) > 20 and len(menu_text.strip()) > 400
                 except Exception as e:
                     _logger.warning("menu tab navigation (nav_area fallback) failed [%s]: %s", naver_place_id, e)
+                    if "menu" not in partial_failures:
+                        partial_failures.append("menu")
                 try:
                     await page.goto(f"{base_url}/home", timeout=15000, wait_until="domcontentloaded")
                     await page.wait_for_timeout(2000)
@@ -356,6 +366,7 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     has_menu = bool(re.search(r"가격표|대표\s*메뉴|상품\s*\d+개", info_text))
             except Exception as e:
                 _logger.warning("competitor /information fetch failed naver_place_id=%s: %s", naver_place_id, e)
+                partial_failures.append("info_intro")
 
             # ── 사진 수 파싱 ──────────────────────────────────────────
             # 사진 탭으로 이동해 실제 사진 이미지 수 카운트
@@ -371,6 +382,7 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     photo_count = max(0, total_imgs - 5)
             except Exception as e:
                 _logger.warning("photo count failed [%s]: %s", naver_place_id, e)
+                partial_failures.append("photo")
 
             # ── 소개글 등록 여부 ─────────────────────────────────────
             # /information 탭에 "소개" 섹션 + 30자 이상 본문이 있으면 등록된 것으로 판단
@@ -411,6 +423,7 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                 "has_intro": has_intro,
                 "photo_count": photo_count,
                 "website_url": website_url,
+                "partial_failures": partial_failures,
                 "error": None,
             }
         finally:

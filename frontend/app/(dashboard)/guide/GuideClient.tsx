@@ -61,6 +61,9 @@ function simplify(text: string | undefined | null): string {
     .replace(/네이버\s*AI\s*브리핑에\s*(노출됩니다|노출된다|노출됨)/g, '네이버 AI 브리핑에 노출될 수 있습니다')
     .replace(/"@context"\s*:\s*"https?:\/\/schema\.org"/g, '"@context": "schema.org"')
     .replace(/"@type"\s*:\s*"LocalBusiness"/g, '"@type": "사업장 정보"')
+    .replace(/\d+(\.\d+)?\s*점/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
 }
 
 // 한국어 조사 헬퍼 — 받침 유무에 따라 을/를, 으로/로 자동 선택
@@ -4574,7 +4577,7 @@ export function GuideClient({
       for (let attempt = 0; attempt < 14; attempt++) {
         await new Promise((r) => setTimeout(r, 10000))
         try {
-          const res = await fetch(`${BACKEND}/api/guide/${business.id}/latest`, {
+          const res = await fetch(`${BACKEND}/api/guide/${business.id}/latest?scan_id=${encodeURIComponent(latestScanId ?? '')}`, {
             headers: { 'Authorization': `Bearer ${token}` },
           })
           if (res.ok) {

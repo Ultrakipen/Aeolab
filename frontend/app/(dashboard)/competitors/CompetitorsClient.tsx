@@ -1486,6 +1486,7 @@ export function CompetitorsClient({
   // 전체 평점 동기화 상태
   const [syncAllState, setSyncAllState] = useState<'idle' | 'loading' | 'done'>('idle')
   const [syncAllProgress, setSyncAllProgress] = useState({ done: 0, total: 0 })
+  const [syncAllFailedCount, setSyncAllFailedCount] = useState(0)
 
   // FAQ 수집 상태 (경쟁사 ID)
   const [fetchingFaqId, setFetchingFaqId] = useState<string | null>(null)
@@ -1586,15 +1587,17 @@ export function CompetitorsClient({
     const session = await getSafeSession()
     const token = session?.access_token ?? ''
 
+    let failedCount = 0
     for (let i = 0; i < targets.length; i++) {
       const c = targets[i]
       try {
-        await fetch(`${BACKEND}/api/competitors/${c.id}/sync-place`, {
+        const res = await fetch(`${BACKEND}/api/competitors/${c.id}/sync-place`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         })
+        if (!res.ok) failedCount++
       } catch {
-        // 개별 실패는 무시하고 계속
+        failedCount++
       }
       setSyncAllProgress({ done: i + 1, total: targets.length })
       // 서버 부하 방지: 요청 간 1초 대기
@@ -1603,9 +1606,11 @@ export function CompetitorsClient({
       }
     }
 
+    setSyncAllFailedCount(failedCount)
     setSyncAllState('done')
     setTimeout(() => {
       setSyncAllState('idle')
+      setSyncAllFailedCount(0)
       router.refresh()
     }, 1500)
   }, [competitors, router])
@@ -1947,7 +1952,9 @@ export function CompetitorsClient({
                 {syncAllState === 'loading'
                   ? `동기화 중 (${syncAllProgress.done}/${syncAllProgress.total})`
                   : syncAllState === 'done'
-                  ? '동기화 완료!'
+                  ? syncAllFailedCount > 0
+                    ? `동기화 완료 (${syncAllFailedCount}개 실패)`
+                    : '동기화 완료!'
                   : '미동기화 경쟁사 동기화'}
               </button>
             )}
@@ -2021,9 +2028,9 @@ export function CompetitorsClient({
             return (
               <li key={c.id} className="overflow-hidden transition-colors hover:bg-gray-50/50">
                 <div className="px-4 md:px-6 py-4 min-h-[4rem]">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
                     {/* 순위 + 정보 */}
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className="flex items-start gap-3 flex-1 min-w-[200px]">
                       <div className="shrink-0 mt-0.5">
                         {cs ? <RankBadge rank={compRank} /> : (
                           <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 text-gray-400 font-bold text-sm">{compRank}</span>

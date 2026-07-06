@@ -1091,7 +1091,7 @@ async def generate_talktalk_faq(req: TalktalkFAQGenerateRequest, user=Depends(ge
             supabase.table("guides")
             .select("id", count="exact")
             .eq("business_id", req.biz_id)
-            .eq("context", "talktalk_faq")
+            .in_("context", ["intro_draft", "faq_draft", "talktalk_faq"])
             .gte("generated_at", month_start)
         )
         used = used_res.count or 0

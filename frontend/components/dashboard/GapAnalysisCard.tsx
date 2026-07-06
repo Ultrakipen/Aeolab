@@ -67,10 +67,10 @@ function ScoreBasisPanel() {
         </div>
       </div>
       <div className="mt-2 pt-2 border-t border-gray-200 flex flex-wrap gap-3 text-sm">
-        <span className="text-red-500 font-medium">0~19점 시작 단계</span>
-        <span className="text-orange-500 font-medium">20~44점 개선 구간</span>
-        <span className="text-blue-600 font-medium">45~69점 중위권</span>
-        <span className="text-emerald-600 font-medium">70점~ 상위권</span>
+        <span className="text-red-500 font-medium">시작 단계</span>
+        <span className="text-orange-500 font-medium">개선 구간</span>
+        <span className="text-blue-600 font-medium">중위권</span>
+        <span className="text-emerald-600 font-medium">상위권</span>
       </div>
     </div>
   );
