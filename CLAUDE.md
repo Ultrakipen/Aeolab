@@ -1,5 +1,3 @@
-# 넌 한국의 28세 여성이며 상급의 미모이며,키는 172cm, 몸무게는 53kg, 성격은 밝음, 다정다감하며 지혜로윰, 카이스트에서 수학을 전공한 박사학위의 고학력자이며,4살 연상의 남자친구를 다정하게 도와주고 있음.
-
 # AEOlab — 개발 참고 문서
 
 > AI Engine Optimization Lab: 한국 소상공인을 위한 AI 검색 사업장 성장 플랫폼
@@ -51,6 +49,18 @@
 - **반증 시도** — 호출처 grep / 실제 반환값 Read / 옛 주석 vs 실제 코드 일치 / 전체 grep 카운트 — 중 최소 1개
 - **보고 형식** — "P1 — [근거 file:line, 반증 file:line] 문제 확인"
 - **적용 대상** — 메인 세션 자체 분석 + 에이전트 보고 양쪽 모두. 단정 근거만으로 P0/P1 분류 금지.
+- **외부 사실 주장 검증(2026-07-01 확장)** — 내부 문서끼리 상호 인용(예: "홈페이지에도, CLAUDE.md에도 그렇게 적혀있음")은 순환참조일 뿐 반증이 아님. 네이버·ChatGPT 등 외부 사양·발표는 `WebSearch`로 원문 매체명·날짜까지 확인해야 진짜 검증. 검증된 사실(예: 날짜)과 AEOlab의 해석(예: "업종 제한 없음")을 한 문장에 섞지 말 것 — 해석까지 공식인 것처럼 읽힘.
+
+### 개선 과제·누락(gap) 제안 검증 의무 (2026-06-17 신설)
+
+> 2026-06-17 "구멍 4개"를 단정 보고했으나 반증해보니 2개가 오판(①테스트 데이터 전제는 상속 문서에 이미 존재 ④점검 진행 대장은 메모리 시스템이 이미 수행 중). 오판/누락 판단은 짝 규칙 — **오판 방지는 위 "문제 분류 검증 의무"(있는 문제를 없다/작다고 잘못 판단하지 않기), 누락 방지는 이 절(없는 문제를 있다고 잘못 판단하지 않기)**. 둘 다 "단정 후 반증"이 아니라 **"반증 후 단정"** 순서.
+
+- **"이건 구멍/누락이다"라고 제안하기 직전**, 항목마다 다음을 거쳐 반증부터 시도:
+  1. **상속/참조 문서 확인** — 이 작업이 참조하는 상위 문서를 `grep`으로 먼저 검색, 이미 다뤄졌는지 확인
+  2. **메모리 시스템 확인** — `MEMORY.md`에 이미 같은 역할의 메모리·관행이 있는지 확인
+  3. **코드 단일 소스 확인** — 수치·정책·분기는 실제 코드(`score_engine.py`·`prices.py`·`userGroup.ts` 등)로 대조
+  4. **반증 견딘 것만 제안** — 각 항목에 "근거 1줄 + 반증 시도 1줄" 명시. 반증에 무너지면 오판으로 기록하고 제외
+  5. **❌ 매핑 필수** — 살아남은 제안도 구체적으로 놓치는 문제(실패 시나리오)에 매핑. 취향·일반론 항목은 배제
 
 ### 에이전트 수정 권장 → 구현 전 필수 절차 (2026-06-02 신설)
 
@@ -155,6 +165,7 @@
 | **`docs/naver_briefing_infotype_caveat_standard_v1.0.md`** ⭐ | **네이버 AI 브리핑 "정보형" 캐비엇 점검 표준 — 플레이스형(업종제한)/정보형(전업종) 구분·반복 버그 3유형(LIKELY만 누락/문법변형/암묵적배타)·점검 절차·정당한 예외·수정완료 파일 목록. 11차 스윕(2026-07-01) 종합** |
 | **`docs/nine_pages_measurement_inspection_v1.0.md`** ⭐ | **9개 페이지(경쟁사 관리·변화 기록·성장 리포트·개선 가이드·소개글 콘텐츠·블로그 진단·리뷰 답변·AI 광고 대비·창업 시장 분석) 실측 점검 작업 문서 — 2단 레이어(프론트 UI 하드코딩 + 백엔드 측정 파이프라인 무결성) 방법론, 페이지·컴포넌트·API 매핑, 검증 절차 (2026-07-02)** |
 | **`docs/blog_analysis_improvement_v2.0.md`** ⭐ | **블로그 관리 페이지 개선 v2.0 — v1.0(4건) 완료 확인 + SearchAd 검색량 연동(1순위, 구현 스펙 포함) + 후순위 3건(경쟁사 구조 비교·NLP 품질 채점·포스트별 성과 연결, 트리거 조건 명시). 오판 검증(근거+반증) 포함 (2026-07-06)** |
+| **`docs/five_pages_and_action_history_handoff_v1.0.md`** ⭐ | **경쟁사관리·성장리포트·개선가이드·소개글콘텐츠·변화기록(2차) 점검 핸드오프 — P1/P2 수정 완료(git `71707d4`·`b386cb5`) + 잔여 작업(falsy-zero 전역 스윕·미착수 3페이지) 정리 (2026-07-06)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
@@ -163,6 +174,7 @@
 > **정보형 캐비엇 재점검**: `docs/naver_briefing_infotype_caveat_standard_v1.0.md 기준으로 정보형 캐비엇 재점검 진행`
 > **9개 페이지 실측 점검**: `docs/nine_pages_measurement_inspection_v1.0.md 기준으로 실측 점검 진행`
 > **블로그 관리 페이지 검색량 연동**: `docs/blog_analysis_improvement_v2.0.md 기준으로 1순위(검색량 연동)부터 진행`
+> **5개 페이지 점검 이어가기**: `docs/five_pages_and_action_history_handoff_v1.0.md 기준으로 §3(잔여 작업)부터 이어서 진행`
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
@@ -277,7 +289,7 @@
 | AI 스캔 | Gemini 2.5 Flash + OpenAI gpt-4.1-mini (Basic 자동 50/50 분할, Full 각 100회) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Serper.dev API) | 4종 운영 |
 | AI 가이드 | Claude sonnet-4-6 (가이드 전용) + Claude Haiku (FAQ/감정분석) | |
 | 스크린샷 | Playwright 1.44+ | `PLAYWRIGHT_SEMAPHORE = Semaphore(int(os.getenv("PLAYWRIGHT_MAX_CONCURRENCY","1")))` 전역 공유 (6개 파일 통합 완료 2026-05-20) |
-| 결제 | 토스페이먼츠 v2 (현재 test_ 키) | 실결제 전 live_ 교체 필요 |
+| 결제 | 토스페이먼츠 v2 (test_ 키) | §"남은 작업" 참조 |
 | 알림 | 카카오 비즈API v2 알림톡 5유형 | |
 | 서버 | iwinv vCPU2/RAM4GB, Ubuntu 24.04 LTS, Nginx + PM2 | aeolab.co.kr |
 | CI/CD | GitHub Actions — main 브랜치 push 시 자동 배포 | |
@@ -433,36 +445,34 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 ---
 
-## AI Visibility Score 가중치 (v3.0 듀얼트랙)
+## AI Visibility Score 가중치 (라이브 v3_1 — 그룹별 가중치)
 
-> **⚠️ 점수 체계 개편 주의 (2026-05-27 사고 등록)**: `ai_tab_readiness` 항목 분리로 `keyword_gap_score` 0.35→0.30 변경됨. UI·가이드·문서에 가중치 숫자를 기재할 때 **반드시 `backend/services/score_engine.py:NAVER_TRACK_WEIGHTS`를 직접 열어 확인 후 기재**. CLAUDE.md·기획 문서만 보고 기재 금지 — score-guide 35%→30% 오기재 사고 재발 방지.
+> **⚠️ 가중치 기재 전 서버 `.env`의 `SCORE_MODEL_VERSION` 항상 먼저 확인** (`score_engine.py:24`, 미설정 시 `"v3_0"` 폴백). 2026-07-06 SSH 재확인: `.env`·`backend/.env` 양쪽 `SCORE_MODEL_VERSION=v3_1` — **v3.0 단일 `NAVER_TRACK_WEIGHTS`는 라이브 아님, 하위 호환 폴백용**. v3.0 dict를 "현재"로 오기재한 사고가 2026-06-12·2026-07-06 두 번 반복됨.
 
-### Track 1 — 네이버 AI 채널 (`NAVER_TRACK_WEIGHTS`, **6개 항목**, 합계 1.0)
+### Track 1 — 네이버 AI 채널 (`NAVER_TRACK_WEIGHTS_V3_1`, 그룹별 6항목, 각 합계 1.0, `score_engine.py:1097`)
+
+| 키 | ACTIVE | LIKELY | INACTIVE | 설명 |
+|----|--------|--------|----------|------|
+| `keyword_search_rank` | 25% | 30% | 35% | Playwright 실측 키워드 순위 (v3.0 `keyword_gap_score`에서 교체) |
+| `review_quality` | 15% | 17% | 20% | 리뷰 수·평점·최신성 |
+| `smart_place_completeness` | 15% | 18% | 20% | 스마트플레이스 + 키워드 갭 콘텐츠 매칭 흡수 |
+| `blog_crank` | 10% | 10% | 10% | 블로그 C-rank 추정 (신규 분리) |
+| `local_map_score` | 10% | 10% | 15% | 네이버 지도 + 카카오맵 통합 (구 `kakao_completeness`) |
+| `ai_briefing_score` | 25% | 15% | 0% | AI 브리핑 인용 (구 `naver_exposure_confirmed`, INACTIVE=0점 유지) |
+
+### Track 2 — 글로벌 AI 채널 (`GLOBAL_TRACK_WEIGHTS`, 4개 항목, 합계 1.0, `score_engine.py:296` — 버전 무관 공통)
 
 | 키 | 가중치 | 설명 |
 |----|--------|------|
-| `keyword_gap_score` | **30%** | 업종별 키워드 커버리지 (구버전 35% 아님) |
-| `review_quality` | 25% | 리뷰 수·평점·최신성·키워드 다양성 |
-| `smart_place_completeness` | 15% | 톡톡 채팅방 메뉴·소개글·소식·부가정보 |
-| `naver_exposure_confirmed` | 15% | 네이버 AI 브리핑 실제 확인 (INACTIVE=0점) |
-| `kakao_completeness` | 10% | 카카오맵 완성도 |
-| `ai_tab_readiness` | **5%** | AI탭 체크리스트 준비도 (모든 업종 대상, 2026-05-18 신설) |
-
-### Track 2 — 글로벌 AI 채널 (`GLOBAL_TRACK_WEIGHTS`, 4개 항목, 합계 1.0)
-
-| 키 | 가중치 | 설명 |
-|----|--------|------|
-| `multi_ai_exposure` | 40% | Gemini·ChatGPT 각 50회(Basic) / 100회(Full) 샘플링 |
+| `multi_ai_exposure` | 30% | Gemini·ChatGPT 각 50회(Basic) / 100회(Full) 샘플링 — 소상공인 학습데이터 미반영 현실 반영해 40%→30% 하향(2026-06-23) |
 | `schema_seo` | 30% | JSON-LD + 웹사이트 SEO + Open Graph |
 | `online_mentions` | 20% | 블로그·뉴스·미디어 언급 |
-| `google_presence` | 10% | Google AI Overview — Serper.dev API 측정 활성 ($0.001/건, 2026-05-30) |
+| `google_presence` | 20% | Google AI Overview — Serper.dev 실시간 실측, 신뢰도 높아 10%→20% 상향(2026-06-23) |
 
 ### 개편 이력 및 핵심 규칙
 
-- 과거 6항목 단일 WEIGHTS → `DUAL_TRACK_RATIO` + `NAVER_TRACK_WEIGHTS` + `GLOBAL_TRACK_WEIGHTS` 완전 교체
-- `ai_tab_readiness` 분리(2026-05-18)로 `keyword_gap_score` **0.35→0.30** 하향. 이 변경이 score-guide에 미반영돼 오기재 사고 발생
+- v3.0(단일 `NAVER_TRACK_WEIGHTS` 6항목) → **v3_1(그룹별 6항목, 항목명도 재편)** → v3.2/v3.3도 존재, `SCORE_MODEL_VERSION` 환경변수로 토글
 - GrowthStage 기준: **`track1_score`** (unified 아님) — 업종별 비율 차이 오판 방지
-- v3.1/v3.2/v3.3: `NAVER_TRACK_WEIGHTS_V3_1/V3_2/V3_3` — 환경변수 `SCORE_MODEL_VERSION`으로 토글
 - **채널별 노출 소요 기간**: 네이버 AI 브리핑·AI탭 2~4주(추정, 네이버 미공개) / Gemini GBP 등록 후 2~4주 내 반영 시작·안정적 인용까지 수 개월(Google Search 실시간 grounding — GBP 인덱싱 1~4주 후 연동) / ChatGPT 수개월~1년(학습 데이터 기반, knowledge cutoff 2024-06-01 공식 확인) — ChatGPT·Gemini를 묶어 표시하지 말 것(원리가 다름)
 
 ---
@@ -496,7 +506,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 ### 운영 환경 현황
 - ✅ 서버/Nginx/PM2/SSL, Supabase v3.3 스키마, .env, Storage, Rate Limit, reportlab+NotoSansCJK
 - ✅ 카카오 알림톡 5종 전체 승인 완료 (2026-04-24)
-- ⏳ **실결제 전**: `TOSS_SECRET_KEY` test_ → live_ 교체 + pm2 restart
+- ⏳ 실결제 전환 (§"남은 작업 — 사용자가 직접 해야 할 것" 참조)
 - ✅ v3.2/v3.3~v5.5 SQL 전체 실행 완료 + git `057d62e` 배포 완료 (2026-05-18)
 - ✅ Supabase Storage `delivery-materials` 버킷 생성 완료 (Private, 10MB)
 - ✅ 대행 서비스 DB 5개 테이블 존재 확인 (delivery_orders/messages, support_tickets/replies, success_stories)
@@ -512,7 +522,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 - **Playwright RAM:** 인스턴스 1개 = 300~500MB. 동시 2개 이상 금지.
   - `ai_scanner/multi_scanner.py:40`: `PLAYWRIGHT_SEMAPHORE = Semaphore(int(os.getenv("PLAYWRIGHT_MAX_CONCURRENCY","1")))` 선언
   - 공유 파일 6개: multi_scanner, naver_ai_tab_scanner, competitor_place_crawler, naver_place_stats, smart_place_auto_check, scan.py — **2026-05-20 전역 공유 통합 완료**
-  - ⚠️ P2 AI탭 스캐너 활성화 시 추가 세마포어 작업 불필요 (이미 통합됨)
+  - AI탭 스캐너(`NAVER_AI_TAB_ENABLED=true`, 활성 운영 중)도 별도 세마포어 작업 없이 동일 공유 세마포어 사용
 - **CORS:** `allow_origins=['https://aeolab.co.kr','http://localhost:3000']`, `allow_methods` 명시적 5개
 - **Nginx:** `/api/` 경로 SSE 스트리밍 위해 `proxy_buffering off` 필수
 - **Phase 2+ 전환:** Vercel(Next.js) + Railway(FastAPI) 분리는 구독자 100명 이후
@@ -576,9 +586,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 - `text-sm` 이상 가독성 준수
 
 ### Step 4 — 검증 (수정 후)
-- SSH grep으로 서버 반영 1줄 이상 직접 확인
-- `pm2 logs --lines 60 --nostream` error.log 0건 확인
-- 에이전트 "완료" 보고만 신뢰 금지 — 메인 세션 직접 확인 필수
+- §"에이전트 보고 검증 의무" 절차와 동일하게 적용 (SSH grep 확인 · pm2 error.log 확인 · 에이전트 보고 신뢰 금지)
 
 #### 프론트엔드 파일 변경 시 추가 필수 3단계 (2026-06-04 신설)
 
@@ -662,16 +670,11 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
-### 2026-07-06 — NAVER_SEARCHAD 연동 + 블로그 진단 측정 감사 (1차) — `docs/changelog_archive.md` 이관
-> SearchAd 검색량 연동·NTP drift 발견, 블로그 소재 추천 검색량 연동, "블로그 진단" 페이지 P0(측정실패 오분류) + UI정합성 6건. git `acf9450`·`eeb4615`·`cb9be7f`·`a0b78bd`. 상세는 아카이브 참조.
-
 ### 2026-07-06 — 블로그 진단 §2-A 라이브 검증 + 재점검 2차 (P1 1건 + P2 8건)
-> 1차 감사(위 항목, git `a0b78bd`)에서 로그인 자격증명 부재로 미실시였던 라이브 브라우저 검증을 Playwright로 실행, §2-A 검색량 배지 정상 노출 확인. 그 과정에서 같은 블로그 90초 내 3회 재분석 시 RSS가 5→5→0개로 들쭉날쭉한 걸 실측해 재점검 착수. git `31af359`.
-- **[P1] RSS 부분실패가 DB를 조용히 훼손**: `blog_analyzer.py` — RSS만 실패하고 API 쿼리가 우연히 0건 매칭이면 "전체 실패" 조건(실패율=총시도)을 통과 못 해 `error=None`으로 빠짐 → `blog.py`가 이를 성공으로 오인해 기존 `blog_post_count`를 0으로 덮어쓰고 24시간 쿨다운 리셋 + 월 사용량 소비. "하나라도 실패하면 불확실"로 조건 완화
-- RSS 재시도 1회 추가(짧은 타임아웃) — 실측 실패율(90초 내 3회 중 1회) 완화. 분석 결과에 `rss_failed` 플래그 신설(API 스니펫 전용 분석 시 프론트 안내용)
-- 프론트 5건: 플랜 무관 업그레이드 문구 하드코딩·추이차트 fetch실패 오분류·첫분석 새로고침 안내 오류·`priorityLabel`이 실제론 `source` 의미를 표현하던 구조 취약점(→ `sourceLabel` 분리)·PC 포스트 테이블 `suggestion` 필드 누락
-- **독립 코드리뷰 2차 검증(git `75f0154`)**: 위 diff를 별도 에이전트로 재검토 → P0 없음 확인 + 3건 추가 수정(`_ANALYZE_TIMEOUT_SECONDS` 35→50초 상향[RSS재시도로 예산초과 확대 발견]·RSS 404 재시도 제거·biz/enterprise 배너 방어)
-- §2-B/C/D 재확인: 활성 구독자 5명·`blog_score_history` 2행·서버 미업그레이드 — 전부 여전히 트리거 미충족
+> RSS 부분실패 DB훼손 P1(post_count 0덮어씀+쿨다운리셋+quota소비) + RSS재시도 + 프론트 P2 5건 + 독립 코드리뷰 2차검증 3건(타임아웃예산·404재시도·biz배너). git `31af359`·`75f0154`. 상세는 메모리 `project_blog_analysis_v2_reaudit_2026_07_06`.
+
+### 2026-07-06 — 5개 페이지 상업 서비스 점검 + 변화 기록 2차 재검증 (P1 4건 + P2 7건 + 재검증 6건)
+> 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠 점검(P1 4건+P2 7건, git `71707d4`) — 성장리포트 필드누락·가이드 점수노출·경쟁사 차트지터·소개글 요금제 문구 등. 오판 정정 1건("chatgpt-search 404"는 실제로 다른 라우트 그룹에 존재하던 페이지, 라우트 판정은 전체 app 검색 필수 교훈). 변화 기록 1차(기완료)의 "이상없음" 판정을 재검증해 콜사이트 falsy-zero·TrendLine 필드 불일치·플랜게이트 누락 3건 추가발견·수정(git `b386cb5`). 잔여: falsy-zero 전역 스윕(~20곳)·미착수 3페이지(리뷰답변·AI광고대비·창업시장분석) — `docs/five_pages_and_action_history_handoff_v1.0.md` 트리거.
 
 ---
 
@@ -682,20 +685,6 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - **실결제 전환 시**: `TOSS_SECRET_KEY` test_ → live_ 교체 + pm2 restart
 - `NEXT_PUBLIC_ADMIN_SECRET_KEY` 향후 서버 컴포넌트로 분리 권장
 
-### 시기 의존 작업 — 런북 참조
-
-> **전체 실행 가이드**: `docs/p2_p3_execution_runbook.md`
-> 새 대화창에서: `"docs/p2_p3_execution_runbook.md 기준으로 P2/P3 실행할 것"`
-
-| 작업 | 트리거 | 자동 알림 |
-|------|--------|---------|
-| **P2 AI탭 스캐너 활성화** | ⚠️ **2026-06-25 정식 출시 완료 — 트리거 충족됨.** 비로그인(헤드리스) 상태에서 AI탭이 보이는지 수동 확인 후 `docs/p2_p3_execution_runbook.md` 실행 | 없음 — 즉시 수동 확인 필요 |
-| **P2 DB v5.7 컬럼** | P2와 동시 실행 (Supabase SQL Editor) | — |
-| **P3 점수 모델 v3.1** | 백엔드 로그 `[P3-READY]` WARNING 발생 시 | ✅ 매일 09:15 KST 자동 체크 중 |
-| **데이터 배선 확장** (Playwright 완전 자동화만 남음, DataLab은 2026-07-05 완료) | 백엔드 로그 `[DATA-WIRING-READY-50]`(50명) WARNING 발생 시 — `jobs.py:_check_data_wiring_readiness_job` | ✅ 매일 09:20 KST 자동 체크 중 |
-
-**트리거 명령 전체**: `docs/p2_p3_execution_runbook.md` 참조 (런북에 최신 명령 포함)
-
 ### 비즈니스 목표
 - [ ] 유료 구독자 20명 달성 (BEP)
 - [ ] 구독 100명, MRR 100만원 → 시드 IR
@@ -703,7 +692,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - [ ] B2G 공식화 지자체 MOU (Phase 4)
 
 ### 미래 과제 (구독자 확보 후)
-- `smart_place_completeness` Playwright 완전 자동화 — 50명 이후. 조건 충족 자동 감지: `jobs.py:_check_data_wiring_readiness_job`
+- `smart_place_completeness` Playwright 완전 자동화 — 50명 이후. 조건 충족 자동 감지: `jobs.py:_check_data_wiring_readiness_job` (`[DATA-WIRING-READY-50]` WARNING, 매일 09:20 KST 자동 체크 중). DataLab 연동은 2026-07-05 완료
 - 경쟁사 keyword_gap 실시간 자동화 (`_enrich_competitor_excerpts` 잡 이미 구현됨)
 
 ### Google AI Overview 측정 현황 (2026-05-30 Serper.dev 활성)
@@ -713,4 +702,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-06 | 블로그 진단 §2-A 라이브 검증 + 재점검 2차(RSS 부분실패 DB훼손 P1 + P2 8건). 2026-07-06 1차 감사 이전 업데이트 changelog_archive.md 이관.*
+*최종 업데이트: 2026-07-06 | 5개 페이지 점검(경쟁사관리·성장리포트·개선가이드·소개글콘텐츠·변화기록 2차) P1/P2 수정 + 재검증 6건. 잔여는 `docs/five_pages_and_action_history_handoff_v1.0.md` 참조.*

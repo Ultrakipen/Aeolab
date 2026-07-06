@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-07-06 — NAVER_SEARCHAD 연동 + 블로그 진단 측정 감사 (1차)
+> SearchAd 검색량 연동·NTP drift 발견, 블로그 소재 추천 검색량 연동, "블로그 진단" 페이지 P0(측정실패 오분류) + UI정합성 6건. git `acf9450`·`eeb4615`·`cb9be7f`·`a0b78bd`.
+
+## 2026-07-06 — CLAUDE.md "시기 의존 작업" 표 완료 확인 및 정리 (P2 AI탭·P2 DB·P3 v3.1)
+> "중복·오판 점검" 요청으로 CLAUDE.md 전체를 서버 코드와 대조하던 중, `docs/p2_p3_execution_runbook.md` 연동 표(P2 AI탭 스캐너·P2 DB v5.7·P3 점수모델 v3.1)가 실제로는 이미 오래전에 완료된 채 "대기/트리거 확인 필요" 상태로 남아있던 걸 발견 — SSH 직접 확인으로 완료 검증 후 표에서 제거.
+- **P2 AI탭 스캐너 활성화**: `backend/.env:36 NAVER_AI_TAB_ENABLED=true` 확인, `multi_scanner.py:119` 분기로 실제 스캔 흐름에 연결되어 있음. 이미 활성 운영 중(별도로 `naver_briefing_block_countermeasure_handoff_v1.0.md`에도 "AI탭 ✅우회운영"으로 기록돼 있었음 — CLAUDE.md 본문과 문서 목록 표가 서로 모순된 상태였음)
+- **P2 DB v5.7 컬럼**: CLAUDE.md 운영현황에 이미 "v5.8 컬럼(intro_draft) 실행 완료(2026-05-25)"로 기재돼 있었음 — v5.8까지 끝났으면 v5.7은 당연히 완료
+- **P3 점수 모델 v3.1**: `.env`·`backend/.env` 양쪽 `SCORE_MODEL_VERSION=v3_1` 확인(2026-06-12 최초 확인, 2026-07-06 재확인) — 그룹별(ACTIVE/LIKELY/INACTIVE) 가중치로 이미 라이브 중
+- 잔여 미완료 항목은 "데이터 배선 확장"(`smart_place_completeness` Playwright 완전 자동화, 50명 이후) 하나뿐 — 이건 CLAUDE.md "미래 과제" 절로 이미 별도 기재돼 있어 중복 표 자체를 삭제
+
+---
+
 ## 2026-07-06 — NAVER_SEARCHAD 실검색량 연동 + 파싱 버그 수정 + 서버 시계 drift 발견
 > 사용자가 NAVER_SEARCHAD 3개 자격증명(API_KEY/SECRET_KEY/CUSTOMER_ID)을 신규 발급해 서버 `.env`에 반영. 이 과정에서 두 가지 버그를 발견·수정함.
 - **403 "Invalid Timestamp" 원인 규명**: 서버 `timedatectl status`가 `System clock synchronized: no` — `systemd-timesyncd`가 3주+ 동안 `ntp.ubuntu.com`에 응답을 못 받고 있었음(iwinv가 NTP UDP 123 포트를 막고 있을 가능성). HTTP Date 헤더로 시계를 수동 보정해 임시 해결했으나 **근본 원인 미해결 — NTP가 계속 막혀 있으면 시계가 다시 drift되어 SearchAd 403이 재발할 수 있음**. 주기적 재보정 크론잡 또는 iwinv 문의 필요(사용자 결정 대기)
