@@ -72,7 +72,7 @@
 - `startup.py`/`startup_report.py` — `competitor_count`는 전체 모집단을 보여주면서 `avg_score`는 순서 없는 앞 10~20개만으로 계산하던 불일치 → 전체 모집단 기준 통일. `/report` 인라인 타이밍·`/timing`에 `/market`과 동일한 `is_estimated` 플래그 추가. `/timing` reasoning 텍스트의 원점수 숫자 노출도 텍스트 레이블로 전환(현재 3페이지 미사용 확인, 향후 지뢰 방지)
 - `guide.py` scan_snapshot — `naver_measured`만 있고 `chatgpt`/`gemini`는 스캔 실패를 "미언급 확정"과 구분 못 하던 비일관 처리 → `chatgpt_measured`/`gemini_measured` 추가
 
-방법론 노트: Layer A/B 에이전트가 각자 9건을 보고했고 메인 세션이 file:line 직접 Read로 전수 재확인 후 구현. UNCLEAR로 남긴 항목(crisis-reply 한도 미설정이 의도적 설계인지, `sample_10()` 비-evidence 버전의 데드코드 여부 등)은 이번엔 손대지 않음 — 다음 라운드 후보.
+방법론 노트: Layer A/B 에이전트가 각자 9건을 보고했고 메인 세션이 file:line 직접 Read로 전수 재확인 후 구현. UNCLEAR로 남긴 항목 중 `sample_10()` 비-evidence 버전 데드코드 여부는 후속 재점검(§ 아래, git `963228c`)에서 전수 grep으로 확정 — `chatgpt_scanner.py`는 진짜 데드코드, `gemini_scanner.py`는 `/api/scan/stream` 빠른 진단에서 쓰이는 라이브 코드였고 동일 성공/실패 오집계 버그 + Wilson CI 0나눗셈 크래시 위험까지 있어 수정. crisis-reply 한도 미설정은 여전히 미확정(의도적 설계 가능성 있어 보류).
 
 ### 3-3. ✅ 완료 (2026-07-06, git `6cdfb1e`)
 `backend/routers/guide.py` smartplace-faq·review-reply 모두 — 폴백(AI 실패) 시 DB 저장은 건너뛰면서도 응답의 `"used"`는 무조건 +1 하던 불일치. `is_fallback`이면 `used`를 그대로 반환하도록 통일(§3-2에서 review-reply에도 새로 생긴 같은 클래스 버그까지 함께 수정).
