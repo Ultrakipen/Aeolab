@@ -584,7 +584,7 @@ export default function BlogScreenshotSection({
         {/* 최근 분석 시도 중 일부 키워드가 CAPTCHA/차단으로 측정 실패한 경우 — 이전 결과 유지 안내 */}
         {captchaKeywords.length > 0 && (
           <p className="mt-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            ⚠️ &quot;{captchaKeywords.join(", ")}&quot; 키워드는 네이버 측 일시적 차단으로 측정하지 못해 이전 결과를 그대로 표시 중입니다. 잠시 후 &quot;지금 분석&quot;을 다시 시도해 주세요.
+            ⚠️ &quot;{captchaKeywords.join(", ")}&quot; 키워드는 일시적 차단 또는 측정 오류로 갱신하지 못해 이전 결과를 그대로 표시 중입니다. 잠시 후 &quot;지금 분석&quot;을 다시 시도해 주세요.
           </p>
         )}
 

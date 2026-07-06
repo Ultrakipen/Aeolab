@@ -17,6 +17,13 @@ _logger = logging.getLogger("aeolab.blog_analysis")
 _re_captcha = re.compile(r"로봇이 아님|자동화된 요청|비정상적인 접근|보안 문자")
 
 
+# Playwright 세마포어: multi_scanner.PLAYWRIGHT_SEMAPHORE 공유 (동시 Playwright 전역 1개 보장)
+# competitor_place_crawler.py와 동일한 lazy import 패턴 — 순환 import 방지
+def _get_playwright_sem():
+    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+    return PLAYWRIGHT_SEMAPHORE
+
+
 async def analyze_blog_search(
     keyword: str,
     biz_name: str,
@@ -45,63 +52,65 @@ async def analyze_blog_search(
         f"?where=blog&query={urllib.parse.quote(keyword)}"
     )
     posts: list[dict] = []
+    _measurement_failed = False
 
     browser = None
     try:
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(
-                headless=True,
-                args=[
-                    "--no-sandbox",
-                    "--disable-setuid-sandbox",
-                    "--disable-dev-shm-usage",
-                    "--disable-gpu",
-                    "--single-process",
-                ],
-            )
-            ctx = await browser.new_context(
-                viewport={"width": 1280, "height": 900},
-                locale="ko-KR",
-                timezone_id="Asia/Seoul",
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/120.0.0.0 Safari/537.36"
-                ),
-            )
-            page = await ctx.new_page()
+        async with _get_playwright_sem():
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(
+                    headless=True,
+                    args=[
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--single-process",
+                    ],
+                )
+                ctx = await browser.new_context(
+                    viewport={"width": 1280, "height": 900},
+                    locale="ko-KR",
+                    timezone_id="Asia/Seoul",
+                    user_agent=(
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/120.0.0.0 Safari/537.36"
+                    ),
+                )
+                page = await ctx.new_page()
 
-            try:
-                await page.goto(search_url, timeout=30000)
-                await page.wait_for_timeout(2000)
+                try:
+                    await page.goto(search_url, timeout=30000)
+                    await page.wait_for_timeout(2000)
 
-                # ── 캡챠 / 차단 감지 (naver_scanner.py와 동일 패턴) ──────────
-                _current_url = page.url
-                _page_title = await page.title()
-                _page_text = await page.inner_text("body") or ""
-                if (
-                    any(kw in _current_url for kw in ["captcha", "nid.naver.com", "login.naver.com"]) or
-                    any(kw in _page_title for kw in ["로봇", "자동화", "captcha", "CAPTCHA", "보안문자"]) or
-                    bool(_re_captcha.search(_page_text[:500]))
-                ):
-                    _logger.warning(f"blog_search captcha/block detected | kw={keyword!r}")
-                    await page.close()
-                    await ctx.close()
-                    await browser.close()
-                    return {
-                        "keyword": keyword,
-                        "total_found": 0,
-                        "my_rank": None,
-                        "posts": [],
-                        "analyzed_at": datetime.now(timezone.utc).isoformat(),
-                        "blog_id_registered": bool(naver_blog_id.strip()),
-                        "captcha_detected": True,
-                        "error": "captcha_or_blocked",
-                    }
+                    # ── 캡챠 / 차단 감지 (naver_scanner.py와 동일 패턴) ──────────
+                    _current_url = page.url
+                    _page_title = await page.title()
+                    _page_text = await page.inner_text("body") or ""
+                    if (
+                        any(kw in _current_url for kw in ["captcha", "nid.naver.com", "login.naver.com"]) or
+                        any(kw in _page_title for kw in ["로봇", "자동화", "captcha", "CAPTCHA", "보안문자"]) or
+                        bool(_re_captcha.search(_page_text[:500]))
+                    ):
+                        _logger.warning(f"blog_search captcha/block detected | kw={keyword!r}")
+                        await page.close()
+                        await ctx.close()
+                        await browser.close()
+                        return {
+                            "keyword": keyword,
+                            "total_found": 0,
+                            "my_rank": None,
+                            "posts": [],
+                            "analyzed_at": datetime.now(timezone.utc).isoformat(),
+                            "blog_id_registered": bool(naver_blog_id.strip()),
+                            "captcha_detected": True,
+                            "error": "captcha_or_blocked",
+                        }
 
-                # 네이버 블로그 검색 결과 DOM 파싱
-                # 2024~2026 네이버 블로그 탭 셀렉터 패턴 순서대로 시도
-                js_code = """
+                    # 네이버 블로그 검색 결과 DOM 파싱
+                    # 2024~2026 네이버 블로그 탭 셀렉터 패턴 순서대로 시도
+                    js_code = """
 () => {
     var results = [];
     var allAnchors = Array.from(document.querySelectorAll('a[href]'));
@@ -183,31 +192,47 @@ async def analyze_blog_search(
     return results;
 }
 """
-                raw_posts = await page.evaluate(js_code)
-                posts = raw_posts or []
-                _logger.info(
-                    f"blog_search parsed | kw={keyword!r} count={len(posts)}"
-                )
+                    raw_posts = await page.evaluate(js_code)
+                    posts = raw_posts or []
+                    _logger.info(
+                        f"blog_search parsed | kw={keyword!r} count={len(posts)}"
+                    )
 
-            except Exception as page_exc:
-                _logger.warning(
-                    f"blog_search page error | kw={keyword!r} err={page_exc}"
-                )
-            finally:
-                await page.close()
-                await ctx.close()
-                await browser.close()
-                browser = None
+                except Exception as page_exc:
+                    _logger.warning(
+                        f"blog_search page error | kw={keyword!r} err={page_exc}"
+                    )
+                    _measurement_failed = True
+                finally:
+                    await page.close()
+                    await ctx.close()
+                    await browser.close()
+                    browser = None
 
     except Exception as pw_exc:
         _logger.warning(
             f"blog_search playwright error | kw={keyword!r} err={pw_exc}"
         )
+        _measurement_failed = True
         if browser:
             try:
                 await browser.close()
             except Exception as _e:
                 _logger.warning("blog browser close failed: %s", _e)
+
+    if _measurement_failed:
+        # 캡챠 외 사유(타임아웃·DOM 구조 변경 등)로 측정 실패 — my_rank=None을
+        # "10위 밖"으로 오기록하지 않도록 호출자가 저장을 생략할 수 있게 error 플래그 반환
+        return {
+            "keyword": keyword,
+            "total_found": 0,
+            "my_rank": None,
+            "posts": [],
+            "analyzed_at": datetime.now(timezone.utc).isoformat(),
+            "blog_id_registered": bool(naver_blog_id.strip()),
+            "captcha_detected": False,
+            "error": "measurement_failed",
+        }
 
     # is_mine / is_competitor 판별
     biz_tokens = _normalize_tokens(biz_name)

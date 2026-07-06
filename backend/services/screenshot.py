@@ -9,6 +9,13 @@ from playwright.async_api import async_playwright
 
 _logger = logging.getLogger("aeolab")
 
+
+# Playwright 세마포어: multi_scanner.PLAYWRIGHT_SEMAPHORE 공유 (동시 Playwright 전역 1개 보장)
+# competitor_place_crawler.py와 동일한 lazy import 패턴 — 순환 import 방지
+def _get_playwright_sem():
+    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+    return PLAYWRIGHT_SEMAPHORE
+
 # ── 네이버 블로그 캡처 JS ────────────────────────────────────────────────────
 # 최종 확정 v2 (2026-05-15):
 #   URL: search.naver.com?where=nexearch (통합검색)
@@ -209,90 +216,91 @@ async def capture_ai_result(
     _y_offset: int = 0
     _naver_full: bool = False  # naver 블로그: full_page+PIL 크롭 사용 여부
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-setuid-sandbox"],
-        )
-        ctx = await browser.new_context(
-            viewport={"width": 1280, "height": 800},
-            locale="ko-KR",
-            timezone_id="Asia/Seoul",
-        )
-        page = await ctx.new_page()
+    async with _get_playwright_sem():
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-setuid-sandbox"],
+            )
+            ctx = await browser.new_context(
+                viewport={"width": 1280, "height": 800},
+                locale="ko-KR",
+                timezone_id="Asia/Seoul",
+            )
+            page = await ctx.new_page()
 
-        try:
-            if platform == "naver":
-                import urllib.parse as _urlparse
-                _enc_q = _urlparse.quote(query)
-                # where=view: "인기글" 전용 탭 — headless에서도 블로그 목록 직접 렌더링
-                await page.goto(
-                    f"https://search.naver.com/search.naver?where=view&query={_enc_q}",
-                    timeout=30000,
-                )
-                await page.wait_for_timeout(3000)
-                await page.evaluate(_NAVER_BLOG_CLEAN_JS)
-                _y_offset = 0  # view 탭: 상단부터 블로그 목록 바로 시작
-                _naver_full = True
-                await page.wait_for_timeout(300)
-            elif platform == "perplexity":
-                await page.goto("https://www.perplexity.ai", timeout=30000)
-                await page.fill("textarea[placeholder]", query)
-                await page.keyboard.press("Enter")
-                await page.wait_for_timeout(5000)
-            elif platform == "naver_ai":
-                import urllib.parse as _urlparse
-                _enc_q_ai = _urlparse.quote(query)
-                await page.goto(
-                    f"https://search.naver.com/search.naver?where=nexearch&query={_enc_q_ai}",
-                    timeout=30000,
-                )
-                await page.wait_for_timeout(3000)
-            elif platform == "naver_ai_tab":
-                import urllib.parse as _urlparse
-                _enc_q_ait = _urlparse.quote(query)
-                await page.goto(
-                    f"https://search.naver.com/search.naver?where=nexearch&query={_enc_q_ait}",
-                    timeout=30000,
-                )
-                await page.wait_for_timeout(3000)
-            elif platform == "google":
-                # DataForSEO 실패 후 Playwright 폴백
-                await page.goto(
-                    f"https://www.google.com/search?q={query}",
-                    timeout=30000,
-                )
-                await page.wait_for_timeout(2000)
-                # CAPTCHA 감지 — 봇 차단 페이지는 저장하지 않음
-                if await _is_google_captcha(page):
-                    _logger.warning(
-                        f"Google CAPTCHA detected for query='{query}', skip screenshot"
+            try:
+                if platform == "naver":
+                    import urllib.parse as _urlparse
+                    _enc_q = _urlparse.quote(query)
+                    # where=view: "인기글" 전용 탭 — headless에서도 블로그 목록 직접 렌더링
+                    await page.goto(
+                        f"https://search.naver.com/search.naver?where=view&query={_enc_q}",
+                        timeout=30000,
                     )
-                    return None
+                    await page.wait_for_timeout(3000)
+                    await page.evaluate(_NAVER_BLOG_CLEAN_JS)
+                    _y_offset = 0  # view 탭: 상단부터 블로그 목록 바로 시작
+                    _naver_full = True
+                    await page.wait_for_timeout(300)
+                elif platform == "perplexity":
+                    await page.goto("https://www.perplexity.ai", timeout=30000)
+                    await page.fill("textarea[placeholder]", query)
+                    await page.keyboard.press("Enter")
+                    await page.wait_for_timeout(5000)
+                elif platform == "naver_ai":
+                    import urllib.parse as _urlparse
+                    _enc_q_ai = _urlparse.quote(query)
+                    await page.goto(
+                        f"https://search.naver.com/search.naver?where=nexearch&query={_enc_q_ai}",
+                        timeout=30000,
+                    )
+                    await page.wait_for_timeout(3000)
+                elif platform == "naver_ai_tab":
+                    import urllib.parse as _urlparse
+                    _enc_q_ait = _urlparse.quote(query)
+                    await page.goto(
+                        f"https://search.naver.com/search.naver?where=nexearch&query={_enc_q_ait}",
+                        timeout=30000,
+                    )
+                    await page.wait_for_timeout(3000)
+                elif platform == "google":
+                    # DataForSEO 실패 후 Playwright 폴백
+                    await page.goto(
+                        f"https://www.google.com/search?q={query}",
+                        timeout=30000,
+                    )
+                    await page.wait_for_timeout(2000)
+                    # CAPTCHA 감지 — 봇 차단 페이지는 저장하지 않음
+                    if await _is_google_captcha(page):
+                        _logger.warning(
+                            f"Google CAPTCHA detected for query='{query}', skip screenshot"
+                        )
+                        return None
 
-            fname = f"{biz_id}_{platform}_{capture_type}_{uuid.uuid4().hex[:8]}.png"
-            if platform == "naver" and _naver_full:
-                # full_page + PIL 크롭: viewport 한계 없이 블로그 섹션만 캡처
-                from PIL import Image as _PILImage
-                import io as _io
-                _fb = await page.screenshot(full_page=True)
-                _pil = _PILImage.open(_io.BytesIO(_fb))
-                _pw, _ph = _pil.size
-                _cy0 = min(_y_offset, max(0, _ph - 200))
-                _cy1 = min(_cy0 + 3500, _ph)
-                _buf = _io.BytesIO()
-                _pil.crop((0, _cy0, _pw, _cy1)).save(_buf, format='PNG')
-                img_bytes = _buf.getvalue()
-            else:
-                if platform in ("naver_ai", "naver_ai_tab"):
-                    capture_height = 2500
+                fname = f"{biz_id}_{platform}_{capture_type}_{uuid.uuid4().hex[:8]}.png"
+                if platform == "naver" and _naver_full:
+                    # full_page + PIL 크롭: viewport 한계 없이 블로그 섹션만 캡처
+                    from PIL import Image as _PILImage
+                    import io as _io
+                    _fb = await page.screenshot(full_page=True)
+                    _pil = _PILImage.open(_io.BytesIO(_fb))
+                    _pw, _ph = _pil.size
+                    _cy0 = min(_y_offset, max(0, _ph - 200))
+                    _cy1 = min(_cy0 + 3500, _ph)
+                    _buf = _io.BytesIO()
+                    _pil.crop((0, _cy0, _pw, _cy1)).save(_buf, format='PNG')
+                    img_bytes = _buf.getvalue()
                 else:
-                    capture_height = 1200
-                img_bytes = await page.screenshot(
-                    clip={"x": 0, "y": _y_offset, "width": 1280, "height": capture_height}
-                )
-        finally:
-            await browser.close()
+                    if platform in ("naver_ai", "naver_ai_tab"):
+                        capture_height = 2500
+                    else:
+                        capture_height = 1200
+                    img_bytes = await page.screenshot(
+                        clip={"x": 0, "y": _y_offset, "width": 1280, "height": capture_height}
+                    )
+            finally:
+                await browser.close()
 
     if img_bytes is None or fname is None:
         return None
@@ -517,7 +525,8 @@ async def capture_batch(biz_id: str, queries: list,
         try:
             url = await capture_ai_result("naver", q, biz_id, "before")
             results.append(url)
-        except Exception:
+        except Exception as exc:
+            _logger.warning(f"capture_batch fail | biz={biz_id} platform=naver q={q!r} err={exc}")
             results.append(None)
         await asyncio.sleep(3)
     # 2. 네이버 AI 브리핑 — ACTIVE/LIKELY 업종만
@@ -526,7 +535,8 @@ async def capture_batch(biz_id: str, queries: list,
             try:
                 url = await capture_ai_result("naver_ai", q, biz_id, "before_naver_ai")
                 results.append(url)
-            except Exception:
+            except Exception as exc:
+                _logger.warning(f"capture_batch fail | biz={biz_id} platform=naver_ai q={q!r} err={exc}")
                 results.append(None)
             await asyncio.sleep(3)
     else:
@@ -555,65 +565,66 @@ async def capture_naver_blog_screenshot(keyword: str, biz_id: str, region: str =
     # Supabase Storage는 한글 경로 거부 → MD5 해시로 ASCII 경로 생성
     keyword_hash = hashlib.md5(keyword.strip().encode('utf-8')).hexdigest()[:12]
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-        )
-        ctx = await browser.new_context(
-            viewport={"width": 1280, "height": 900},
-            locale="ko-KR",
-            timezone_id="Asia/Seoul",
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/131.0.0.0 Safari/537.36"
-            ),
-        )
-        page = await ctx.new_page()
-
-        try:
-            import urllib.parse
-            encoded_kw = urllib.parse.quote(search_query)
-            # where=view: 네이버 "인기글" 전용 탭 — 통합검색에서 "인기글" 클릭 시 이동하는 URL
-            # nexearch(통합검색)는 headless 브라우저에 "인기글" 섹션을 렌더링하지 않음(봇 감지)
-            # view 탭은 동일한 블로그 목록을 직접 렌더링 → lazy load 없음
-            url = f"https://search.naver.com/search.naver?where=view&query={encoded_kw}"
-            await page.goto(url, timeout=30000)
-            await page.wait_for_timeout(3000)  # 블로그 목록 완전 로딩 대기
-
-            # 디버그: 블로그 포스트가 DOM에 존재하는지 확인
-            _post_count = await page.evaluate(
-                "() => document.querySelectorAll('.view_wrap .total_wrap .api_subject_bx, "
-                ".view_wrap .lst_view > li, .lst_view > .bx').length"
+    async with _get_playwright_sem():
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
             )
-            _logger.info(
-                f"blog capture(view tab) post_count={_post_count} biz={biz_id} "
-                f"kw={keyword!r} query={search_query!r}"
+            ctx = await browser.new_context(
+                viewport={"width": 1280, "height": 900},
+                locale="ko-KR",
+                timezone_id="Asia/Seoul",
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/131.0.0.0 Safari/537.36"
+                ),
             )
+            page = await ctx.new_page()
 
-            await page.evaluate(_NAVER_BLOG_CLEAN_JS)
-            await page.wait_for_timeout(300)
+            try:
+                import urllib.parse
+                encoded_kw = urllib.parse.quote(search_query)
+                # where=view: 네이버 "인기글" 전용 탭 — 통합검색에서 "인기글" 클릭 시 이동하는 URL
+                # nexearch(통합검색)는 headless 브라우저에 "인기글" 섹션을 렌더링하지 않음(봇 감지)
+                # view 탭은 동일한 블로그 목록을 직접 렌더링 → lazy load 없음
+                url = f"https://search.naver.com/search.naver?where=view&query={encoded_kw}"
+                await page.goto(url, timeout=30000)
+                await page.wait_for_timeout(3000)  # 블로그 목록 완전 로딩 대기
 
-            # full_page=True: 전체 블로그 목록 캡처
-            full_bytes = await page.screenshot(full_page=True)
+                # 디버그: 블로그 포스트가 DOM에 존재하는지 확인
+                _post_count = await page.evaluate(
+                    "() => document.querySelectorAll('.view_wrap .total_wrap .api_subject_bx, "
+                    ".view_wrap .lst_view > li, .lst_view > .bx').length"
+                )
+                _logger.info(
+                    f"blog capture(view tab) post_count={_post_count} biz={biz_id} "
+                    f"kw={keyword!r} query={search_query!r}"
+                )
 
-            # PIL 크롭: 상단 4000px만 (블로그 목록 10~15개 포함)
-            from PIL import Image as _PILImage
-            import io as _io
-            _pil = _PILImage.open(_io.BytesIO(full_bytes))
-            _pw, _ph = _pil.size
-            _cy1 = min(4000, _ph)
-            _buf = _io.BytesIO()
-            _pil.crop((0, 0, _pw, _cy1)).save(_buf, format='PNG')
-            img_bytes = _buf.getvalue()
+                await page.evaluate(_NAVER_BLOG_CLEAN_JS)
+                await page.wait_for_timeout(300)
 
-            _logger.info(
-                f"blog capture: biz={biz_id} kw={keyword!r} "
-                f"img_size={len(img_bytes)} full_h={_ph}"
-            )
-        finally:
-            await browser.close()
+                # full_page=True: 전체 블로그 목록 캡처
+                full_bytes = await page.screenshot(full_page=True)
+
+                # PIL 크롭: 상단 4000px만 (블로그 목록 10~15개 포함)
+                from PIL import Image as _PILImage
+                import io as _io
+                _pil = _PILImage.open(_io.BytesIO(full_bytes))
+                _pw, _ph = _pil.size
+                _cy1 = min(4000, _ph)
+                _buf = _io.BytesIO()
+                _pil.crop((0, 0, _pw, _cy1)).save(_buf, format='PNG')
+                img_bytes = _buf.getvalue()
+
+                _logger.info(
+                    f"blog capture: biz={biz_id} kw={keyword!r} "
+                    f"img_size={len(img_bytes)} full_h={_ph}"
+                )
+            finally:
+                await browser.close()
 
     # Supabase Storage 업로드
     from db.supabase_client import get_storage, get_client, execute

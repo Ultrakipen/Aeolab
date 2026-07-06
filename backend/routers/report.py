@@ -3198,10 +3198,8 @@ async def log_business_action(
             .maybe_single()
         )
         if latest_score and latest_score.data:
-            score_before = (
-                latest_score.data.get("unified_score")
-                or latest_score.data.get("total_score")
-            )
+            _uni = latest_score.data.get("unified_score")
+            score_before = _uni if _uni is not None else latest_score.data.get("total_score")
     except Exception as e:
         _logger.warning("[action_log] score_history 조회 실패: %s", e)
 
@@ -3514,7 +3512,7 @@ async def get_action_timeline(
         except Exception as _e:
             _logger.warning("[action_timeline] action_date 파싱 실패 (value=%r): %s", a_date, _e)
             continue
-        lo = (center - _td(days=2)).isoformat()
+        lo = (center - _td(days=7)).isoformat()
         hi = (center + _td(days=7)).isoformat()
         window_points = [
             {
@@ -4147,10 +4145,14 @@ async def run_blog_analysis(
                 # 지역+키워드 조합으로 검색 (지역 없으면 키워드만)
                 search_query = f"{_biz_region} {kw}".strip() if _biz_region else kw
                 result = await analyze_blog_search(search_query, _biz_name, _competitor_names, naver_blog_id=_naver_blog_id)
-                if result.get("captcha_detected"):
-                    # 측정 실패(캡챠/차단) — my_rank=None을 "10위 밖"으로 오기록하지 않도록 저장 생략
-                    # 단, 실패 자체는 상태 캐시에 남겨 프론트에서 "측정 불가"로 안내 (조용히 묻지 않기)
-                    _log.warning(f"blog_analysis captcha/block, skip save | biz={_biz_id} kw={kw!r}")
+                if result.get("captcha_detected") or result.get("error"):
+                    # 측정 실패(캡챠/차단 또는 타임아웃·DOM 변경 등 기타 오류) — my_rank=None을
+                    # "10위 밖"으로 오기록하지 않도록 저장 생략. 단, 실패 자체는 상태 캐시에 남겨
+                    # 프론트에서 "측정 불가"로 안내 (조용히 묻지 않기)
+                    _log.warning(
+                        f"blog_analysis measurement failed, skip save | biz={_biz_id} kw={kw!r} "
+                        f"reason={result.get('error') or 'captcha_or_blocked'}"
+                    )
                     _captcha_kws.append(kw)
                     continue
                 _supabase = get_client()

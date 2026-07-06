@@ -84,7 +84,8 @@ async def complete_action(
     before_mentioned: Optional[bool] = None
 
     if scan_row.data:
-        before_score = scan_row.data.get("unified_score") or scan_row.data.get("track1_score")
+        _uni = scan_row.data.get("unified_score")
+        before_score = _uni if _uni is not None else scan_row.data.get("track1_score")
         gemini = scan_row.data.get("gemini_result") or {}
         before_mentioned = bool(gemini.get("mentioned") or (gemini.get("exposure_freq", 0) > 0))
 

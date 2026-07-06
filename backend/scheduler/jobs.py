@@ -3155,10 +3155,8 @@ async def check_action_rescans():
                 )
                 after_score = None
                 if score_row.data:
-                    after_score = (
-                        score_row.data.get("unified_score")
-                        or score_row.data.get("track1_score")
-                    )
+                    _uni = score_row.data.get("unified_score")
+                    after_score = _uni if _uni is not None else score_row.data.get("track1_score")
 
                 before_mentioned = action.get("before_mentioned")
 
@@ -3445,10 +3443,8 @@ async def _fill_action_score_after():
                 .maybe_single()
             )
             if score_row and score_row.data:
-                score_val = (
-                    score_row.data.get("unified_score")
-                    or score_row.data.get("total_score")
-                )
+                _uni = score_row.data.get("unified_score")
+                score_val = _uni if _uni is not None else score_row.data.get("total_score")
                 await _execute(
                     supabase.table("business_action_log")
                     .update({"score_after": score_val})
