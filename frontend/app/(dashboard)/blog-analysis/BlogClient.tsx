@@ -1762,8 +1762,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           </div>
         )}
 
-        {/* AI 브리핑 게이팅 안내 배너 (v4.1) */}
-        {isBlogInactive && (
+        {/* 분석 결과가 아직 없을 때(첫 진입·분석 전)만 여기서 안내 — 결과가 있으면 요약 카드 뒤로 이동 */}
+        {isBlogInactive && !result && (
           <div className={`rounded-xl border px-4 md:px-5 py-4 flex items-start gap-3 ${
             isBlogLikely ? "bg-blue-50 border-blue-200" : "bg-amber-50 border-amber-200"
           }`}>
@@ -1833,7 +1833,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               </div>
             )}
 
-            {/* Layer 1+3: 정보형 AI 브리핑 준비도 (상태·근거·변화) */}
+            {/* Layer 1+3: 정보형 AI 브리핑 준비도 (상태·근거·변화) — 개인화된 실제 결과를 가장 먼저 노출 */}
             <InfoBriefingReadinessCard
               result={result}
               eligibility={briefingEligibility}
@@ -1841,6 +1841,50 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               platform={result.platform}
               blogUrl={result.blog_url}
             />
+
+            {/* AI 브리핑 게이팅 안내 배너 (v4.1) — 위 요약 카드 다음 순서로, 체크리스트 해석을 돕는 보충 설명 */}
+            {isBlogInactive && (
+              <div className={`rounded-xl border px-4 md:px-5 py-4 flex items-start gap-3 ${
+                isBlogLikely ? "bg-blue-50 border-blue-200" : "bg-amber-50 border-amber-200"
+              }`}>
+                <span className="text-xl shrink-0 mt-0.5">
+                  {business?.is_franchise ? "🏢" : isBlogLikely ? "🔮" : "ℹ️"}
+                </span>
+                <div className="flex-1 min-w-0">
+                  {business?.is_franchise ? (
+                    <>
+                      <p className="text-base font-bold text-gray-900 mb-1">
+                        프랜차이즈 가맹점 — '플레이스형' AI 브리핑 비대상
+                      </p>
+                      <p className="text-sm md:text-base text-gray-700 leading-relaxed">
+                        프랜차이즈는 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다. 단, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다.
+                        블로그 분석은 <strong>정보형 AI 브리핑·AI탭·일반 검색 노출 및 콘텐츠 품질 점수</strong> 강화에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
+                      </p>
+                    </>
+                  ) : isBlogLikely ? (
+                    <>
+                      <p className="text-base font-bold text-gray-900 mb-1">
+                        AI 브리핑 확대 예상 업종
+                      </p>
+                      <p className="text-sm md:text-base text-gray-700 leading-relaxed">
+                        미리 블로그 최적화를 완료해두면 확대 시 인용 가능성이 높아집니다 (알고리즘 기준, 100% 보장 아님).
+                        현재도 네이버 AI탭·일반 검색 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-base font-bold text-gray-900 mb-1">
+                        현재 '플레이스형' AI 브리핑 비대상 업종 — 블로그 분석은 모든 AI 채널에 효과적입니다
+                      </p>
+                      <p className="text-sm md:text-base text-gray-700 leading-relaxed">
+                        '플레이스형' 네이버 AI 브리핑 비대상이지만, 블로그·콘텐츠가 갖춰지면 '정보형 AI 브리핑'에 노출될 수 있습니다. 아래 분석 결과는
+                        <strong>정보형 AI 브리핑·AI탭·일반 검색 노출</strong> 및 콘텐츠 품질 점수 강화에 활용하세요. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* A. AI 인용 체크리스트 */}
             {result.ai_readiness_items && result.ai_readiness_items.length > 0 && (
