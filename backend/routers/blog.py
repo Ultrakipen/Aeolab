@@ -189,6 +189,27 @@ async def analyze_blog_endpoint(
     except Exception as e:
         _logger.warning(f"topic suggestions generation failed for biz={request.business_id}: {e}")
 
+    # 소재 추천에 실제 월간 검색량 병합 (base_keyword 기준 조회, 표시는 topic 문구 유지)
+    if topic_suggestions_v2:
+        try:
+            from services.naver_searchad import get_searchad_client
+            base_keywords = [
+                t["base_keyword"] for t in topic_suggestions_v2 if t.get("base_keyword")
+            ]
+            ad_client = get_searchad_client()
+            volumes = await ad_client.get_volumes_with_cache(
+                base_keywords, biz_row.get("category", ""), supabase
+            )
+            for t in topic_suggestions_v2:
+                vol = volumes.get(t.get("base_keyword"))
+                t["monthly_volume"] = vol.get("monthly_total") if vol else None
+            # 검색량 내림차순 정렬(None은 맨 뒤), 단 competitor_gap(high) 우선순위는 유지
+            topic_suggestions_v2.sort(
+                key=lambda t: (t.get("priority") != "high", -(t.get("monthly_volume") or -1))
+            )
+        except Exception as e:
+            _logger.warning(f"topic suggestions 검색량 병합 실패: {e}")
+
     # 반환할 전체 결과 객체 (새로고침·재진입 시 복원용으로도 사용)
     analysis_json = {
         "business_id": request.business_id,

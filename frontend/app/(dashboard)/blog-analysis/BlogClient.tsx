@@ -79,6 +79,7 @@ interface TopicSuggestionV2 {
   reason: string;
   priority: "high" | "medium" | "low";
   source: "competitor_gap" | "keyword_gap" | "reuse";
+  monthly_volume?: number | null;
 }
 
 interface CompetitorBlogComparison {
@@ -900,7 +901,19 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
             <span className={`inline-flex items-center self-start border text-sm font-semibold px-2 py-0.5 rounded-full ${priorityBadge[s.priority]}`}>
               {priorityLabel[s.priority]}
             </span>
-            <p className="text-sm font-semibold text-gray-900 leading-snug break-keep flex-1">{s.topic}</p>
+            <p className="text-sm font-semibold text-gray-900 leading-snug break-keep flex-1">
+              {s.topic}
+              {s.monthly_volume !== null && s.monthly_volume !== undefined && s.monthly_volume > 0 && (
+                <span className="text-sm font-normal text-indigo-500 opacity-80">
+                  {' '}
+                  · 월{' '}
+                  {s.monthly_volume >= 10000
+                    ? `${Math.round(s.monthly_volume / 1000)}k`
+                    : s.monthly_volume.toLocaleString()}
+                  회
+                </span>
+              )}
+            </p>
             <p className="text-sm text-gray-500 leading-relaxed">{s.reason}</p>
             <button
               onClick={() => {

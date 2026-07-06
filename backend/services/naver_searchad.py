@@ -82,8 +82,29 @@ class NaverSearchAdClient:
         # 최대 100개 제한
         keywords = keywords[:100]
 
+        # 네이버 SearchAd API는 hintKeywords에 공백이 포함되면 HTTP 400 반환 —
+        # 배치 하나에 공백 포함 키워드가 하나라도 있으면 요청 전체가 무너진다
+        # (업종 키워드 사전에 "주차 가능" 같은 공백 포함 구문이 흔해 실사용 빈도가 높음).
+        # 공백 제거 후 조회하고, 결과는 원본(공백 포함) 키워드로도 매핑해 돌려준다.
+        stripped_to_originals: dict[str, list[str]] = {}
+        hint_terms: list[str] = []
+        for k in keywords:
+            k = k.strip()
+            if not k:
+                continue
+            stripped = k.replace(" ", "")
+            if not stripped:
+                continue
+            if stripped not in stripped_to_originals:
+                hint_terms.append(stripped)
+                stripped_to_originals[stripped] = []
+            stripped_to_originals[stripped].append(k)
+
+        if not hint_terms:
+            return {}
+
         uri = "/keywordstool"
-        hint_str = ",".join(k.strip() for k in keywords if k.strip())
+        hint_str = ",".join(hint_terms)
         params = {"hintKeywords": hint_str, "showDetail": "1"}
 
         try:
@@ -104,7 +125,14 @@ class NaverSearchAdClient:
                         return {}
 
                     data = await resp.json()
-                    return self._parse_keyword_response(data)
+                    raw_result = self._parse_keyword_response(data)
+
+                    result = dict(raw_result)
+                    for stripped, originals in stripped_to_originals.items():
+                        if stripped in raw_result:
+                            for orig in originals:
+                                result[orig] = raw_result[stripped]
+                    return result
 
         except asyncio.TimeoutError:
             _logger.warning("NaverSearchAd: 요청 타임아웃 (10초)")

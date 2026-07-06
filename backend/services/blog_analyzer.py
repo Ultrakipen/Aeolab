@@ -811,7 +811,8 @@ def _generate_topic_suggestions(
     같은 달 안에서는 재분석해도 동일하게 유지된다.
 
     외부 API 호출 없음 — 문자열 조합만 사용.
-    반환 형식: [{"topic": str, "reason": str, "priority": "high"|"medium"|"low", "source": str}]
+    반환 형식: [{"topic": str, "base_keyword": str, "reason": str, "priority": "high"|"medium"|"low", "source": str}]
+    base_keyword는 topic(복합 문구)의 원본 키워드 — SearchAd 검색량 조회는 이 필드로 해야 정확도가 높다.
     """
     city = region.strip().split()[0] if region and region.strip() else ""
     this_month = date.today().month
@@ -833,6 +834,7 @@ def _generate_topic_suggestions(
         seen_keywords.add(kw)
         results.append({
             "topic": _make_topic(kw),
+            "base_keyword": kw,
             "reason": "경쟁사 블로그에는 있지만 내 블로그에는 없는 키워드입니다",
             "priority": "high",
             "source": "competitor_gap",
@@ -847,6 +849,7 @@ def _generate_topic_suggestions(
         seen_keywords.add(kw)
         results.append({
             "topic": _make_topic(kw),
+            "base_keyword": kw,
             "reason": "업종 주요 키워드인데 아직 블로그에서 다루지 않았습니다",
             "priority": "medium",
             "source": "keyword_gap",
@@ -861,6 +864,7 @@ def _generate_topic_suggestions(
         seen_keywords.add(kw)
         results.append({
             "topic": _make_topic(kw),
+            "base_keyword": kw,
             "reason": "이미 다루는 키워드에 새로운 검색 의도를 조합한 주제입니다",
             "priority": "low",
             "source": "reuse",
