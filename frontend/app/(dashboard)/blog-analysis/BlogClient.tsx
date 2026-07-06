@@ -80,6 +80,7 @@ interface TopicSuggestionV2 {
   priority: "high" | "medium" | "low";
   source: "competitor_gap" | "keyword_gap" | "reuse";
   monthly_volume?: number | null;
+  competition?: "high" | "medium" | "low" | "unknown" | null;
 }
 
 interface CompetitorBlogComparison {
@@ -880,6 +881,16 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
     medium: "업종 갭",
     low: "재활용",
   };
+  const competitionLabel: Record<"high" | "medium" | "low", string> = {
+    low: "경쟁 낮음",
+    medium: "경쟁 보통",
+    high: "경쟁 높음",
+  };
+  const competitionColor: Record<"high" | "medium" | "low", string> = {
+    low: "text-green-600",
+    medium: "text-amber-600",
+    high: "text-red-500",
+  };
 
   // 경쟁사 블로그 갭 기반 추천이 하나도 없으면(경쟁사 분석 데이터 부재) 그 이유를 밝힘
   const hasCompetitorGap = suggestions.some((s) => s.source === "competitor_gap");
@@ -925,6 +936,14 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
               )}
             </p>
             <p className="text-sm text-gray-500 leading-relaxed">{s.reason}</p>
+            {s.competition && s.competition !== "unknown" && (
+              <span className={`text-sm font-medium ${competitionColor[s.competition]}`}>
+                {competitionLabel[s.competition]}
+                {s.competition === "low" && s.monthly_volume && s.monthly_volume > 0
+                  ? " · 검색량 대비 선점 기회예요"
+                  : ""}
+              </span>
+            )}
             <button
               onClick={() => {
                 copyToClipboard(s.topic, () => {});

@@ -2022,6 +2022,12 @@ function KeywordGapCard({
 
       <p className="text-sm text-gray-500 mb-3">
         리뷰·AI 스캔 텍스트 기반 분석입니다. 실제 서비스를 제공해도 리뷰에 해당 키워드가 없으면 '부족'으로 표시될 수 있습니다.
+        {Object.values(volumes).some((v) => v?.monthly_total > 0) && (
+          <>
+            {' '}
+            키워드 옆 숫자(예: 월 4.1k건)는 최근 1개월간 네이버에서 검색된 횟수예요 — 숫자가 클수록 찾는 사람이 많다는 뜻입니다.
+          </>
+        )}
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         {gap.covered_keywords.length > 0 && (

@@ -161,6 +161,11 @@ export default function KeywordTrendChart({ bizId, accessToken, categoryKo }: Pr
           ))}
         </div>
       </div>
+      {topKeywords.some((k) => k.monthly_volume !== null && k.monthly_volume > 0) && (
+        <p className="text-sm text-gray-400 mb-3">
+          키워드 옆 숫자(예: 월 4.1k회)는 최근 1개월간 네이버에서 검색된 횟수예요 — 숫자가 클수록 찾는 사람이 많다는 뜻입니다.
+        </p>
+      )}
 
       {/* 차트 */}
       <ResponsiveContainer width="100%" height={200}>

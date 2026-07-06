@@ -203,6 +203,7 @@ async def analyze_blog_endpoint(
             for t in topic_suggestions_v2:
                 vol = volumes.get(t.get("base_keyword"))
                 t["monthly_volume"] = vol.get("monthly_total") if vol else None
+                t["competition"] = vol.get("competition") if vol else None
             # 검색량 내림차순 정렬(None은 맨 뒤), 단 competitor_gap(high) 우선순위는 유지
             topic_suggestions_v2.sort(
                 key=lambda t: (t.get("priority") != "high", -(t.get("monthly_volume") or -1))
