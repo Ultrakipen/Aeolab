@@ -5,7 +5,7 @@
 
 ## §0. 배경
 
-`docs/nine_pages_measurement_inspection_v1.0.md`(2026-07-02 신설) 계획의 9개 영역 중 이번 세션에서 5개를 완료했다: 경쟁사 관리·성장 리포트·개선 가이드·소개글 콘텐츠·변화 기록(2차 재검증). 나머지 4개 중 블로그 진단은 별도 세션에서 이미 완료됐고(`project_blog_analysis_v2_reaudit_2026_07_06` 참조), 3개는 아직 미착수다.
+`docs/nine_pages_measurement_inspection_v1.0.md`(2026-07-02 신설) 계획의 9개 영역 — ✅ 전체 완료(2026-07-06). 경쟁사 관리·성장 리포트·개선 가이드·소개글 콘텐츠·변화 기록(2차 재검증)은 이 문서 §1에서, 블로그 진단은 별도 세션(`project_blog_analysis_v2_reaudit_2026_07_06`), 리뷰 답변·AI 광고 대비·창업 시장 분석은 §3-2(2026-07-06 후속 세션, git `d0d5b3a`)에서 완료.
 
 ## §1. 이번 세션 완료 내역
 
@@ -61,11 +61,18 @@
 
 배포: md5 사전확인(server==git HEAD 일치 확인) → scp → pm2 restart(에러 0건) → 서버 grep 재확인 → 로컬 git 커밋 완료. push는 보류(기존 drift 미해소).
 
-### 3-2. 미착수 3개 페이지 (nine_pages 계획 잔여, 우선순위 중)
-`docs/nine_pages_measurement_inspection_v1.0.md` §3의 7·8·9번 — 아직 이번 방법론(2단 레이어)으로 감사 안 함:
-- 리뷰 답변 (`review-inbox/page.tsx`, `guide.py` review-reply/crisis-reply)
-- AI 광고 대비 (`ad-defense/page.tsx`, `ad_defense_guide.py`)
-- 창업 시장 분석 (`startup/page.tsx`, `startup_report.py`)
+### 3-2. 리뷰 답변·AI 광고 대비·창업 시장 분석 — ✅ 완료 (2026-07-06, git `d0d5b3a`)
+
+`docs/nine_pages_measurement_inspection_v1.0.md` §3의 7·8·9번을 2단 레이어(Layer A 프론트/Layer B 백엔드) 병렬 에이전트 감사 후 9건 수정·배포:
+
+- `guide.py` review-reply — Claude 실패 시 캔드 답변이 실패 표시 없이 `review_replies` 이력에 영구 저장 + 한도 소비. `is_fallback` 플래그 추가, 폴백이면 저장 생략(같은 파일의 `smartplace-faq`에 이미 있던 패턴과 통일). 프론트 폴백 안내 배너 추가
+- `crisis_guide.py` — 위기관리 가이드도 동일 패턴으로 `is_fallback` 부재 → 추가, `CrisisGuidePanel` 안내 배너 추가
+- `report.py` `/sentiment` — 감정분석 실패(`status=error`)가 1시간 캐시에 "0/0/0"인 것처럼 저장되던 버그 → error는 캐시 저장 생략
+- `ad_defense_guide.py` — Gemini 스캔 전체 실패 시 `sample_size`가 50으로 폴백돼 "50회 측정해서 0회 노출"이라는 허위 확신을 프롬프트에 심던 버그 → 0으로 수정
+- `startup.py`/`startup_report.py` — `competitor_count`는 전체 모집단을 보여주면서 `avg_score`는 순서 없는 앞 10~20개만으로 계산하던 불일치 → 전체 모집단 기준 통일. `/report` 인라인 타이밍·`/timing`에 `/market`과 동일한 `is_estimated` 플래그 추가. `/timing` reasoning 텍스트의 원점수 숫자 노출도 텍스트 레이블로 전환(현재 3페이지 미사용 확인, 향후 지뢰 방지)
+- `guide.py` scan_snapshot — `naver_measured`만 있고 `chatgpt`/`gemini`는 스캔 실패를 "미언급 확정"과 구분 못 하던 비일관 처리 → `chatgpt_measured`/`gemini_measured` 추가
+
+방법론 노트: Layer A/B 에이전트가 각자 9건을 보고했고 메인 세션이 file:line 직접 Read로 전수 재확인 후 구현. UNCLEAR로 남긴 항목(crisis-reply 한도 미설정이 의도적 설계인지, `sample_10()` 비-evidence 버전의 데드코드 여부 등)은 이번엔 손대지 않음 — 다음 라운드 후보.
 
 ### 3-3. 사소한 정리 (우선순위 낮음, 원하면 진행)
 `backend/routers/guide.py:860` — FAQ 생성이 폴백으로 처리돼도 응답의 `"used": used + 1`이 그대로 반환돼, 그 응답 1회에 한해 사용량이 실제보다 1 부풀려 표시됨(DB엔 저장 안 되므로 다음 조회부턴 정상). 화면 표시상 미미한 오차.
