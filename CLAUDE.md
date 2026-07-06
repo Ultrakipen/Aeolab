@@ -662,20 +662,15 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
-### 2026-07-06 — NAVER_SEARCHAD 실검색량 연동 + 파싱 버그 수정 + 서버 시계 drift 발견
-> 사용자가 NAVER_SEARCHAD 3개 자격증명(API_KEY/SECRET_KEY/CUSTOMER_ID)을 신규 발급해 서버 `.env`에 반영. 이 과정에서 두 가지 버그를 발견·수정함.
-- **403 "Invalid Timestamp" 원인 규명**: 서버 `timedatectl status`가 `System clock synchronized: no` — `systemd-timesyncd`가 3주+ 동안 `ntp.ubuntu.com`에 응답을 못 받고 있었음(iwinv가 NTP UDP 123 포트를 막고 있을 가능성). HTTP Date 헤더로 시계를 수동 보정해 임시 해결했으나 **근본 원인 미해결 — NTP가 계속 막혀 있으면 시계가 다시 drift되어 SearchAd 403이 재발할 수 있음**. 주기적 재보정 크론잡 또는 iwinv 문의 필요(사용자 결정 대기)
-- **`_parse_qc_count` 버그 수정**(`naver_searchad.py:116-131`, git `acf9450`): 네이버 API가 월 검색량 10 미만 키워드에 숫자 대신 `"< 10"` 문자열을 반환하는데, 기존 `int()` 직접 변환이 여기서 크래시 → 예외가 바깥 try/except까지 전파돼 **정상 키워드까지 포함한 배치 전체가 빈 결과로 무너지는** 심각한 버그였음. 서버에서 실제 키워드(카페=월 104만회 등)로 재검증 완료
-- **DataLab과의 관계 재확인**: DataLab(2026-07-05 완료)은 상대 검색량 지수(0~100)만 제공, SearchAd가 실제 `monthly_volume` 숫자를 제공 — 둘은 별도 자격증명 체계(DataLab은 기존 `NAVER_CLIENT_ID/SECRET` 재사용, SearchAd는 `searchad.naver.com` 별도 계정)
-- 블로그 소재 추천 검색량 연동은 같은 날 후속 세션에서 완료 (바로 아래 항목 참조)
+### 2026-07-06 — NAVER_SEARCHAD 연동 + 블로그 진단 측정 감사 (1차) — `docs/changelog_archive.md` 이관
+> SearchAd 검색량 연동·NTP drift 발견, 블로그 소재 추천 검색량 연동, "블로그 진단" 페이지 P0(측정실패 오분류) + UI정합성 6건. git `acf9450`·`eeb4615`·`cb9be7f`·`a0b78bd`. 상세는 아카이브 참조.
 
-### 2026-07-06 — 블로그 소재 추천 검색량·경쟁도 연동 + 측정 파이프라인 P0 버그 수정
-> `docs/blog_analysis_improvement_v2.0.md` §2-A 구현 완료 + "블로그 진단" 페이지 Layer A/B 병렬 감사(`docs/nine_pages_measurement_inspection_v1.0.md` §3.6 방법론). git `eeb4615`·`cb9be7f`·`e8ccb6b`·`a0b78bd`.
-- **검색량·경쟁도 연동**: `_generate_topic_suggestions`에 `base_keyword` 필드 추가 → 소재 추천에 실제 SearchAd 검색량("월 XXX회") + 경쟁도("경쟁 낮음/보통/높음") 배지 노출, 검색량 내림차순 정렬. 같은 패턴을 `GuideClient.tsx`·`KeywordTrendChart.tsx`에도 확대 적용(설명 문구 포함)
-- **별건 버그 수정**: `naver_searchad.py get_keyword_volumes`가 배치에 공백 포함 키워드 하나만 있어도 HTTP 400으로 전체가 무너지던 버그(업종 키워드 사전에 흔한 패턴이라 기존 `report.py` 기능도 영향권이었음) — 공백 제거 후 조회+원본 키워드 재매핑으로 근본 수정
-- **[P0] 측정 실패 오분류 버그**: `blog_analyzer.py`의 네이버 API/RSS 헬퍼가 네트워크·인증 실패를 전부 "포스트 0개"로 뭉개 반환 → 전체 다운 시에도 "사업장명/블로그 주소를 확인하세요"라는 오도성 안내 노출. `(items, total, ok)` 형태로 성공 여부 반환하도록 수정, 모든 시도가 기술적으로 실패한 경우만 `error: naver_search_unavailable`로 구분
-- **UI 정합성 6건**: 성공 토스트 오표시·저장결과 조회실패 오인·`citation_score` 임계값 불일치(70/40 vs 75/55/30)·모바일 SEO 배지 누락·약어 설명 부재·외부블로그 post_count 추정 미표기·경쟁사 1곳 "평균" 오표기
-- **스코프 오판 자기정정**: Layer B 보고 6건 중 3건(`blog_search_analyzer.py`·`screenshot.py`)은 호출 그래프 추적 결과 "변화 기록"(history) 페이지 전용 코드로 확인, 이번 커밋에서 제외(향후 §3.2 감사 때 재검토)
+### 2026-07-06 — 블로그 진단 §2-A 라이브 검증 + 재점검 2차 (P1 1건 + P2 8건)
+> 1차 감사(위 항목, git `a0b78bd`)에서 로그인 자격증명 부재로 미실시였던 라이브 브라우저 검증을 Playwright로 실행, §2-A 검색량 배지 정상 노출 확인. 그 과정에서 같은 블로그 90초 내 3회 재분석 시 RSS가 5→5→0개로 들쭉날쭉한 걸 실측해 재점검 착수. git `31af359`.
+- **[P1] RSS 부분실패가 DB를 조용히 훼손**: `blog_analyzer.py` — RSS만 실패하고 API 쿼리가 우연히 0건 매칭이면 "전체 실패" 조건(실패율=총시도)을 통과 못 해 `error=None`으로 빠짐 → `blog.py`가 이를 성공으로 오인해 기존 `blog_post_count`를 0으로 덮어쓰고 24시간 쿨다운 리셋 + 월 사용량 소비. "하나라도 실패하면 불확실"로 조건 완화
+- RSS 재시도 1회 추가(짧은 타임아웃) — 실측 실패율(90초 내 3회 중 1회) 완화. 분석 결과에 `rss_failed` 플래그 신설(API 스니펫 전용 분석 시 프론트 안내용)
+- 프론트 5건: 플랜 무관 업그레이드 문구 하드코딩·추이차트 fetch실패 오분류·첫분석 새로고침 안내 오류·`priorityLabel`이 실제론 `source` 의미를 표현하던 구조 취약점(→ `sourceLabel` 분리)·PC 포스트 테이블 `suggestion` 필드 누락
+- §2-B/C/D 재확인: 활성 구독자 5명·`blog_score_history` 2행·서버 미업그레이드 — 전부 여전히 트리거 미충족
 
 ---
 
@@ -717,4 +712,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-06 | 블로그 소재 추천 검색량·경쟁도 연동 + 측정 파이프라인 P0 버그 수정. 2026-06-26 이전 업데이트 changelog_archive.md 이관.*
+*최종 업데이트: 2026-07-06 | 블로그 진단 §2-A 라이브 검증 + 재점검 2차(RSS 부분실패 DB훼손 P1 + P2 8건). 2026-07-06 1차 감사 이전 업데이트 changelog_archive.md 이관.*
