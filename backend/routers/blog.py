@@ -16,8 +16,10 @@ from db.supabase_client import get_client, execute
 from services.blog_analyzer import analyze_blog
 
 # 블로그 분석 전체 작업에 대한 라우터 레벨 타임아웃
-# blog_analyzer 내부 HTTP 타임아웃(8초) × 최대 4쿼리 + RSS 병렬 + 파싱 여유 = 35초
-_ANALYZE_TIMEOUT_SECONDS = 35
+# blog_analyzer 내부 호출은 직렬(RSS 8초 + 실패 시 재시도 5초) + API 쿼리 최대 4개(각 8초) 순차 실행
+# = 최악의 경우 8+5+32=45초. 여유분 포함 50초로 설정 (2026-07-06 재점검: 기존 35초는
+# RSS 재시도 추가 전에도 이미 40초로 예산을 초과하고 있었음 — 독립 코드리뷰로 발견)
+_ANALYZE_TIMEOUT_SECONDS = 50
 
 router = APIRouter()
 _logger = logging.getLogger("aeolab")

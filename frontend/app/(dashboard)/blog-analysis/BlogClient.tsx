@@ -1705,19 +1705,21 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                     )}
                   </p>
                   <p className="text-sm text-amber-800 mb-3 leading-relaxed">
-                    다음 달 1일에 초기화됩니다.{" "}
-                    {currentPlan === "pro"
-                      ? "Biz 플랜으로 업그레이드하면 월 무제한으로 분석할 수 있습니다."
-                      : currentPlan === "biz" || currentPlan === "enterprise"
-                        ? null
-                        : "Pro 플랜으로 업그레이드하면 월 10회까지 분석할 수 있습니다."}
+                    다음 달 1일에 초기화됩니다.
+                    {currentPlan === "pro" && " Biz 플랜으로 업그레이드하면 월 무제한으로 분석할 수 있습니다."}
+                    {currentPlan !== "pro" && currentPlan !== "biz" && currentPlan !== "enterprise" &&
+                      " Pro 플랜으로 업그레이드하면 월 10회까지 분석할 수 있습니다."}
                   </p>
-                  <Link
-                    href="/pricing"
-                    className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-                  >
-                    플랜 업그레이드
-                  </Link>
+                  {/* biz/enterprise는 blog_monthly가 무제한(999)이라 이 배너 자체에 도달하지
+                      않지만, 향후 PLAN_LIMITS 변경 시를 대비해 업그레이드 버튼도 함께 숨김 */}
+                  {currentPlan !== "biz" && currentPlan !== "enterprise" && (
+                    <Link
+                      href="/pricing"
+                      className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+                    >
+                      플랜 업그레이드
+                    </Link>
+                  )}
                 </div>
               </div>
             )}

@@ -1238,7 +1238,9 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool]:
                             "naver rss non-200 for blog_id=%s (attempt %d): status=%s",
                             blog_id, attempt + 1, resp.status,
                         )
-                        continue
+                        # 404/403 등 확정적 HTTP 오류는 재시도해도 결과가 같으므로 즉시 포기 —
+                        # 재시도는 일시적 네트워크 실패(예외/타임아웃)에만 의미가 있음
+                        break
                     raw = await resp.content.read(_MAX_BODY_BYTES)
                     xml_text = raw.decode("utf-8", errors="replace")
                     break
