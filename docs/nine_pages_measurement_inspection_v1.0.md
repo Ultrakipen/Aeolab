@@ -61,16 +61,20 @@
 - API: `backend/routers/competitor.py` (search/add/list/update/remove/sync-place/changes), `report.py`(gap), `business.py`(blog-mentions)
 - 서비스: `services/competitor_place_crawler.py`, `services/gap_analyzer.py`, `services/keyword_taxonomy.py`
 
-### 2. 변화 기록 (행동-결과 기록)
+### 2. 변화 기록 (행동-결과 기록) ✅ 완료 (2026-07-06, git `833be09`)
 > ⚠️ 단일 페이지 아님 — 4갈래로 분산:
 - `frontend/app/(dashboard)/history/page.tsx` — Supabase 직접 조회(백엔드 라우터 미경유), `TrendLine.tsx`, `ExportButton.tsx`, `BlogScreenshotSection.tsx`
 - 대시보드: `ActionCompleteSection.tsx`, `DailyMissionCard.tsx`, `ActionResultCard.tsx` → `backend/routers/actions.py`
-- 가이드: `components/guide/ActionTimelineCard.tsx`, `components/dashboard/Action7DayChart.tsx` → `GET /api/report/action-timeline/{biz_id}` (`report.py`) — **Action7DayChart는 2026-07-02 텍스트 레이블 원칙 회귀 1건 이미 수정됨, 재발 여부만 확인**
+- 가이드: `components/guide/ActionTimelineCard.tsx`, `components/dashboard/Action7DayChart.tsx` → `GET /api/report/action-timeline/{biz_id}` (`report.py`)
 - 성장 리포트: `GET/POST /api/report/action-log/{biz_id}` (`report.py`)
-- **⚠️ §6(블로그 진단) 감사에서 미리 발견된 버그(아직 미수정) — 이 페이지 작업 시 반드시 확인**:
-  - `services/blog_search_analyzer.py:analyze_blog_search` — DOM 파싱/Playwright 실행이 캡챠 외 이유(타임아웃·DOM 구조 변경 등)로 실패해도 `error`/`captcha_detected` 키 없이 `my_rank=None, posts=[]`로 반환됨 → `report.py`(`/blog-analysis` POST 백그라운드 태스크)가 이를 정상 결과로 오인해 `blog_analysis` 테이블의 기존 정상 순위 데이터를 `my_rank=None`으로 덮어씀 (측정 실패가 "10위 밖"으로 오기록되는 데이터 손실)
-  - `services/screenshot.py` — `capture_batch`의 캡처 루프가 로그 없는 `except Exception: pass` 패턴 사용, 실패 원인 추적 불가
-  - `blog_search_analyzer.py` 전체·`screenshot.py`의 블로그/AI 캡처 함수들이 `multi_scanner.py`의 전역 `PLAYWRIGHT_SEMAPHORE`를 쓰지 않음 — 다른 요청과의 동시 실행을 막을 방법이 없어 RAM 4GB 서버에서 OOM 위험
+- **결과**: 사전 등록 3건(§6에서 미리 발견) 검증 후 수정 + Layer A(프론트 8개 컴포넌트, 이상 없음 확인)·Layer B(actions.py·report.py 액션 관련 3개 엔드포인트) 신규 병렬 감사로 4건 추가 발견. 총 6건 수정·배포·커밋 완료. 상세는 메모리 `project_action_history_measurement_audit_2026_07_06` 참조.
+- **사전 등록 3건(수정 완료)**:
+  - `services/blog_search_analyzer.py:analyze_blog_search` — 캡챠 외 이유(타임아웃·DOM 구조 변경 등) 실패 시 `error`/`captcha_detected` 없이 정상처럼 반환되어 `blog_analysis` 테이블의 기존 정상 순위를 `my_rank=None`으로 덮어쓰던 버그 → `error` 플래그 신설 + `report.py` 호출부(`_run_blog_analysis_bg`)가 캡챠와 동일하게 저장 생략하도록 수정
+  - `services/screenshot.py` `capture_batch` — 로그 없는 `except Exception: pass` → `.warning()` 로그 추가
+  - `blog_search_analyzer.py`·`screenshot.py`의 Playwright 캡처 함수 전체가 `multi_scanner.PLAYWRIGHT_SEMAPHORE` 미사용 → 세마포어 적용(호출 그래프 확인 결과 중첩 획득 없음, `asyncio.create_task`/`background_tasks.add_task`로 독립 실행)
+- **Layer B 신규 발견 4건(수정 완료)**: `unified_score or track1_score/total_score` falsy-zero 패턴 — 사업장의 실제 `unified_score`가 0점(AI 노출 전혀 없는 정당한 값)일 때 `or`가 이를 falsy로 취급해 다른 스케일의 필드로 뒤바뀌던 버그. `actions.py:87`(before_score)·`report.py:3201`(score_before)·`jobs.py`의 `check_action_rescans`(after_score)·`_fill_action_score_after`(score_after) 총 4곳 — `report.py:3522`에 이미 있던 올바른 `is not None` 패턴으로 통일. 부수로 `action-timeline`의 `-2/+7일` 윈도우를 독스트링이 주장하는 `±7일`로 일치.
+  - ⚠️ **동일 falsy-zero 패턴이 이 페이지 범위 밖에도 약 20곳 더 존재**(admin.py MRR 추세·pdf_generator.py·score_attribution.py·trial_conversion.py·jobs.py의 성장 리포트/창업 시장 분석 관련 잡 등) — 이번 세션은 §2 페이지에 직접 연결된 4곳만 수정. 전역 스윕은 별도 세션에서 진행할 것(스코프 밖 확산 방지)
+- **Layer A 결과**: 8개 컴포넌트(history/page.tsx, ExportButton.tsx, TrendLine.tsx, ActionCompleteSection.tsx, ActionResultCard.tsx, DailyMissionCard.tsx, ActionTimelineCard.tsx, Action7DayChart.tsx) 전수 확인 — 하드코딩·raw 점수 노출·회귀 없음(Action7DayChart 2026-07-02 수정 재발 없음, 직접 재확인 완료)
 
 ### 3. 성장 리포트
 - 페이지: `frontend/app/(dashboard)/growth/page.tsx`, `GrowthClient.tsx`
