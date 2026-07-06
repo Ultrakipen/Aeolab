@@ -762,11 +762,13 @@ async def daily_scan_all():
 
                 # ── 점수 급변 자동 로그 (TrendLine 이벤트 오버레이용) ───────────────
                 try:
-                    new_unified = float(score.get("unified_score") or score.get("total_score") or 0)
-                    old_unified = float(
-                        (prev_history[0].get("unified_score") or prev_history[0].get("total_score") or 0)
-                        if prev_history else 0
-                    )
+                    _uni_new = score.get("unified_score")
+                    new_unified = float(_uni_new if _uni_new is not None else (score.get("total_score") or 0))
+                    if prev_history:
+                        _uni_old = prev_history[0].get("unified_score")
+                        old_unified = float(_uni_old if _uni_old is not None else (prev_history[0].get("total_score") or 0))
+                    else:
+                        old_unified = 0.0
                     await _auto_log_score_change(supabase, biz["id"], new_unified, old_unified)
                 except Exception as _ale:
                     logger.warning(f"auto_log_score 호출 실패 biz={biz.get('id')}: {_ale}")
@@ -774,7 +776,8 @@ async def daily_scan_all():
                 # ── 경쟁사 역전 자동 로그 ─────────────────────────────────────────
                 try:
                     if competitor_scores:
-                        my_s = float(score.get("unified_score") or score.get("total_score") or 0)
+                        _uni_my = score.get("unified_score")
+                        my_s = float(_uni_my if _uni_my is not None else (score.get("total_score") or 0))
                         for _cid, _cdata in competitor_scores.items():
                             await _auto_log_competitor_overtake(
                                 supabase,
@@ -3327,7 +3330,7 @@ async def _auto_log_score_change(
     old_score: float,
 ) -> None:
     """점수가 ±5점 이상 변동 시 business_action_log에 자동 기록."""
-    from datetime import datetime as _dt
+    from datetime import datetime as _dt, timezone as _tz
     diff = new_score - old_score
     if abs(diff) < 5.0:
         return
@@ -3343,7 +3346,7 @@ async def _auto_log_score_change(
         action_type = "score_down"
         action_label = f"AI 검색 노출 하락 ({stage_old} → {stage_new}) — 경쟁사 강화 또는 정보 갱신 필요"
 
-    today = _dt.utcnow().date().isoformat()
+    today = _dt.now(_tz.utc).date().isoformat()
 
     try:
         existing = await execute(
@@ -3379,12 +3382,12 @@ async def _auto_log_competitor_overtake(
     comp_score: float,
 ) -> None:
     """경쟁사가 내 가게보다 20점 이상 앞서면 business_action_log 기록."""
-    from datetime import datetime as _dt
+    from datetime import datetime as _dt, timezone as _tz
     gap = comp_score - my_score
     if gap < 20.0:
         return
 
-    today = _dt.utcnow().date().isoformat()
+    today = _dt.now(_tz.utc).date().isoformat()
 
     try:
         existing = await execute(

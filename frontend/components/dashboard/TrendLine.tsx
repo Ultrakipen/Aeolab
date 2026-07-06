@@ -9,6 +9,7 @@ import { getScoreTextLabel } from '@/lib/scoreLabels'
 interface TrendPoint {
   score_date: string
   total_score: number
+  unified_score?: number | null
   exposure_freq: number
 }
 
@@ -58,7 +59,7 @@ const ACTION_COLOR: Record<string, string> = {
 export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
   const sorted = [...data].reverse().slice(-30)
 
-  const raw = sorted.map((d) => Math.round(d.total_score))
+  const raw = sorted.map((d) => Math.round(d.unified_score ?? d.total_score))
   const ma7 = movingAvg(raw)
 
   const chartData = sorted.map((d, i) => ({

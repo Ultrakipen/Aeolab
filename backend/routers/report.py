@@ -3220,6 +3220,21 @@ async def log_business_action(
     except Exception as e:
         _logger.warning("[action_log] score_history 조회 실패: %s", e)
 
+    today_str = date.today().isoformat()
+    try:
+        existing = await execute(
+            supabase.table("business_action_log")
+            .select("id")
+            .eq("business_id", biz_id)
+            .eq("action_type", action_type)
+            .eq("action_date", today_str)
+            .limit(1)
+        )
+        if existing.data:
+            return {"ok": True, "score_before": score_before, "duplicate": True}
+    except Exception as e:
+        _logger.warning("[action_log] 중복 확인 실패: %s", e)
+
     try:
         await execute(
             supabase.table("business_action_log")
@@ -3227,6 +3242,7 @@ async def log_business_action(
                 "business_id": biz_id,
                 "action_type": action_type,
                 "action_label": action_label,
+                "action_date": today_str,
                 "score_before": score_before,
             })
         )

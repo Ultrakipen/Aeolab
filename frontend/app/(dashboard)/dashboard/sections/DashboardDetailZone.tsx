@@ -280,7 +280,7 @@ export default function DashboardDetailZone({
     <DashboardAccordion
       tab1Content={
         <div className="space-y-5">
-          {accessToken && (
+          {["basic", "startup", "pro", "biz"].includes(plan) && accessToken && (
             <Action7DayChart bizId={business.id} accessToken={accessToken} />
           )}
           <DualTrackCard

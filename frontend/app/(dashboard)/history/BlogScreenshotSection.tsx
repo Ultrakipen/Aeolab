@@ -385,7 +385,7 @@ export default function BlogScreenshotSection({
         setAnalyses(Array.isArray(data) ? data : [])
       }
     } catch {
-      // 조용히 처리 — 빈 상태로 유지
+      setError('블로그 스크린샷을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.')
     } finally {
       setLoading(false)
     }
