@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { updatePhone } from "@/lib/api";
 import { getSafeSession } from "@/lib/supabase/client";
 import { CreditCard, Bell, Phone, AlertTriangle, CheckCircle2, X, ArrowRight } from "lucide-react";
@@ -64,6 +65,7 @@ export function SettingsClient({
   refundEligible = false,
   cardDisplay = null,
 }: Props) {
+  const router = useRouter();
   const [cancelling, setCancelling] = useState(false);
   const [cancelled, setCancelled] = useState(false);
   const [refunded, setRefunded] = useState(false);
@@ -148,8 +150,9 @@ export function SettingsClient({
         failUrl: `${window.location.origin}/payment/fail`,
       });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "카드 변경 중 오류가 발생했습니다.";
-      if (!msg.includes("PAY_PROCESS_CANCELED")) {
+      const code = (err as { code?: string })?.code;
+      if (code !== "USER_CANCEL") {
+        const msg = err instanceof Error ? err.message : "카드 변경 중 오류가 발생했습니다.";
         setCardError(msg);
       }
     } finally {
@@ -421,6 +424,7 @@ export function SettingsClient({
                       setRefunded(Boolean(body?.refunded));
                       setCancelled(true);
                       setShowCancelModal(false);
+                      router.refresh(); // 상단 "구독 중" 배지 등 서버 컴포넌트 데이터 갱신
                     } else {
                       const err = await res.json().catch(() => ({}));
                       const code = err?.detail?.code ?? "";

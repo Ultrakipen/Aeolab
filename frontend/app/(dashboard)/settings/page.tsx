@@ -293,8 +293,12 @@ export default async function SettingsPage({
             </div>
           </section>
 
-          {/* ── 알림 및 결제 설정 (활성 구독자 + 정지 상태) ── */}
-          {(isActive || currentStatus === "suspended") && (
+          {/* ── 알림 및 결제 설정 (활성 구독자 + 정지 상태 + 방금 해지한 구독자) ──
+              cancelled도 포함 — 그래야 해지 직후 router.refresh()로 currentStatus가
+              바뀌어도 SettingsClient가 언마운트되지 않고 자신의 해지완료 배너를
+              계속 보여줄 수 있음(2026-07-07 라이브 QA: 해지 직후 상단 "구독 중"
+              배지가 갱신 안 되던 버그의 짝 수정) */}
+          {(isActive || currentStatus === "suspended" || currentStatus === "cancelled") && (
             <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-4 md:px-5 py-4 border-b border-gray-100">
                 <h2 className="text-base md:text-lg font-semibold text-gray-800">알림 · 결제 설정</h2>
