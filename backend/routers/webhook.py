@@ -105,7 +105,7 @@ async def issue_billing(body: BillingIssueRequest):
     # customerKey 형식: customer_{user_id} — user_id가 실제 존재하는 계정인지 검증
     user_id = body.customerKey.replace("customer_", "", 1)
     _user_check = await execute(
-        get_client().table("profiles").select("id").eq("id", user_id).limit(1)
+        get_client().table("profiles").select("user_id").eq("user_id", user_id).limit(1)
     )
     if not (_user_check and _user_check.data):
         logger.warning(f"issue_billing 미존재 user_id: {user_id}")
