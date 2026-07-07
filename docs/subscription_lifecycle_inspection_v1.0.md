@@ -25,9 +25,11 @@
 - **수정**: 해지 섹션을 `{isActiveSubscription && (...)}`로 게이트. 모달 문구를 "데이터 자체는 삭제되지 않고 보관되며, 재가입 시 그대로 이어서 이용할 수 있습니다"로 정정.
 - **검증**: 실 서버에서 `cancel_subscription()` 함수를 테스트 구독 행에 직접 호출 — 토스 API 실패(테스트 빌링키라 정상, best-effort 처리 확인)·`status→cancelled` 전환·`get_user_plan()`이 `end_at`까지 플랜 유지 확인 후 원상복구.
 
-## 미해결 — 사용자 결정 대기 ⚠️
+## §5. 7일 청약철회 전액환불 — 구현 완료 (2026-07-07, §7 참조)
 
-### 5. 7일 청약철회 전액환불 — 백엔드 구현 전무
+> 사용자가 "②실제 자동 환불 로직 구현"을 선택해 구현 완료. 아래는 발견 당시(구현 전) 기록.
+
+### 5. 7일 청약철회 전액환불 — 백엔드 구현 전무 (구현 전 기록)
 - **근거**: `terms/page.tsx` 제5조가 "구독 시작일로부터 7일 이내 청약철회 가능, 이메일 또는 **서비스 내 해지 신청**으로 가능, 전자상거래법 제17조에 따라"라고 명시. `pricing/page.tsx` FAQ도 "결제일로부터 7일 이내 + 서비스 미이용 상태면 전액 환불"이라고 명시.
 - **문제**: 백엔드 전체 grep 결과 환불(토스 결제취소 API 호출) 로직이 어디에도 없음. 지금 "구독 해지" 버튼은 빌링키 삭제+`status→cancelled`뿐, 7일 이내/미이용 여부 판단 후 환불 처리하는 코드가 전혀 없음. 약관은 "서비스 내 해지 신청만으로 청약철회된다"고 읽히는데 실제로는 돈이 안 돌아옴.
 - **성격**: 지금까지 발견한 버그와 달리 "잘못 짜인 코드"가 아니라 "자동화가 아예 없는 상태" — 1인 개발 초기엔 이메일 수동 요청 받아 토스 콘솔에서 수동 환불도 정상적인 운영 방식일 수 있음. 다만 현재는 **7일 이내 해지 버튼을 누른 사용자가 자신이 환불 대상인지 전혀 안내받지 못하는 구조**라 최소 안내는 필요해 보임.
@@ -75,7 +77,27 @@
 - 에이전트 보고를 기억(트레이닝 지식)만으로 반박하지 말고 실제 설치된 서드파티 라이브러리 소스(`backend_venv/Lib/site-packages/`)를 직접 열어 1차 소스로 확정할 것 — 이번 세션에서 P1-3 재분류의 신뢰도를 크게 높인 결정적 차이.
 - "위험 없음"이라는 반증에 안주하지 말고 "그 안전장치가 깨지면 어떻게 되는가"를 한 겹 더 파고들 것 — 표면적 반증 성공(APScheduler 기본값 확인)에서 멈췄다면 이번 세션 최대 수확(구조적 정확일치 매칭 취약점)을 놓쳤을 것.
 
-## 새 대화창 트리거
+## §7. 구현·배포 완료 (2026-07-07, git `170b002`)
 
-> **구독 갱신·과금 정확성 수정 진행**: `docs/subscription_lifecycle_inspection_v1.0.md 기준으로 §6의 1차 배포 묶음(P0+P1)부터 진행`
-> **7일 환불 결정** (별도 트랙): `docs/subscription_lifecycle_inspection_v1.0.md 기준으로 §5(7일 환불) 결정하고 이어서 진행`
+§6의 1차 배포 묶음(P0+P1+구조적 결함) 전체 구현 + §5(7일 청약철회 자동환불, 사용자가 "자동 환불 로직 구현" 선택) 구현을 한 세션에서 완료했다.
+
+### 구현 중 새로 발견한 결함 (문서에 없던 것)
+- **`subscriptions↔profiles` FK 미등록으로 인한 PGRST200** — `jobs.py`의 세 쿼리(`select("*, profiles(phone)")`)가 embedded join을 시도했으나 두 테이블 사이에 직접 FK가 없어 매 실행 즉시 예외 발생. 상위 `try/except`가 조용히 삼켜 로그만 남기고 스케줄러는 "정상 종료"로 보였음 — 즉 §6에서 고친 날짜매칭 로직에 도달하기도 전에 잡 전체가 매번 죽어 있었던 것으로, 실질적으로 §6이 파악한 것보다 더 심각한 상태였다. 같은 파일의 `send_trial_day5_reminder`(jobs.py:2064 근방)에 동일 원인의 기존 수정 사례가 있어 그 패턴(분리 쿼리 + user_id→phone dict lookup)을 그대로 적용해 수정.
+- **`first_payment_key` 미저장** — 7일 자동환불에 필요한 Toss 결제취소 API용 `paymentKey`가 어디에도 저장되지 않고 있었음(`billing_key`는 정기결제용 토큰으로 별개). `webhook.py` 최초발급 시점에 캡처하도록 신규 추가.
+
+### 수정 내역
+- `jobs.py`: FK조인 제거(분리쿼리), `end_at` `.eq`→`.lte()` 범위매칭(§1은 2일 윈도우, §2는 개방형), `billing_cycle` 반영 연장일수(30/365일), 구독자별 개별 try/except
+- `toss_billing.py`/`prices.py`: `retry_billing()` 연간 구독 시 `YEARLY_PRICE_MAP` 역매핑 청구
+- `webhook.py`: `end_at` 날짜단위 통일(`.date().isoformat()`), `first_payment_key` 저장
+- `settings.py`: `_check_refund_eligibility()` 신설(시작일 7일 이내 + scan_results/guides 미존재) — `GET /settings/me`에 `refund_eligible` 힌트, `POST /settings/cancel`에서 자격 충족 시 Toss 결제취소 자동 호출(실패 시 `send_operator_alert`+`send_slack_alert`로 수동확인 알림)
+- `SettingsClient.tsx`/`page.tsx`: 해지 모달 환불자격 안내 배너, 해지완료 화면 환불여부 문구 분기
+- `scripts/supabase_schema.sql`: `first_payment_key` 컬럼 추가 + 기존 5개 테스트 행 `end_at` 1회성 정규화(UPDATE) — Supabase SQL Editor에서 사용자가 직접 실행 완료 확인
+
+### 서버 실측 검증 (승인받아 진행 — 실 DB 테스트행 임시변경)
+- FK조인 버그: 수정 전 실제로 PGRST200 재현 확인 → 수정 후 재실행 시 정상 통과 확인
+- `.lte()` 범위매칭: 테스트 구독 행(`d76e1c81...`, billing_key=`test_billing_startup`, 실사용자 아님)의 `end_at`을 어제로 임시변경 → 잡 수동실행 → 가짜 빌링키로 Toss 400 실패(예상된 동작) → `status=grace_period`, `grace_until=+3일` 정확히 전환 확인 → 즉시 원상복구
+- 연간 청구 금액: `YEARLY_PRICE_MAP` 역매핑 단위검증(biz yearly→499000원 등) 확인
+- 프론트: `npm run build` 성공, PM2 재시작 후 에러 없음, 라이브 사이트 200 확인
+
+### 잔여 없음
+§5, §6 모두 배포 완료. 다음 실제 신규 가입자 발생 시 `first_payment_key` 저장 여부와 `end_at` 형식을 1회 더 자연 검증하는 것을 권장(코드는 검증됐으나 실사용자 케이스는 아직 없음).
