@@ -245,6 +245,7 @@ async def analyze_blog_endpoint(
         "posting_frequency": analysis.get("posting_frequency"),
         "best_citation_candidate": analysis.get("best_citation_candidate"),
         "duplicate_topics": analysis.get("duplicate_topics", []),
+        "templated_content": analysis.get("templated_content", []),
         "ai_readiness_items": analysis.get("ai_readiness_items", []),
         # v2: 이번 달 블로그 주제 추천
         "topic_suggestions_v2": topic_suggestions_v2,

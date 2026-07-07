@@ -148,6 +148,12 @@ interface BlogAnalysisResult {
     warning: string;
     suggestion: string;
   }>;
+  templated_content?: Array<{
+    titles: string[];
+    similarity: number;
+    warning: string;
+    suggestion: string;
+  }>;
   ai_readiness_items?: Array<{
     label: string;
     passed: boolean | null;
@@ -720,7 +726,7 @@ function PostingFrequencyCard({ freq }: { freq: NonNullable<BlogAnalysisResult["
 
   function consistencyBadge(c: string) {
     if (c === "active") return { label: "활발", cls: "bg-green-100 text-green-700 border-green-300" };
-    if (c === "bursty") return { label: "집중 발행", cls: "bg-purple-100 text-purple-700 border-purple-300" };
+    if (c === "bursty") return { label: "몰아 발행 주의", cls: "bg-amber-100 text-amber-700 border-amber-300" };
     if (c === "regular") return { label: "규칙적", cls: "bg-blue-100 text-blue-700 border-blue-300" };
     if (c === "irregular") return { label: "불규칙", cls: "bg-amber-100 text-amber-700 border-amber-300" };
     return { label: "비활성", cls: "bg-red-100 text-red-700 border-red-300" };
@@ -1062,36 +1068,72 @@ function BlogScoreTrendChart({ businessId, token }: { businessId: string; token:
 }
 
 /* ── DuplicateTopicsWarning ── */
-function DuplicateTopicsWarning({ topics, isInactive = false }: { topics: NonNullable<BlogAnalysisResult["duplicate_topics"]>; isInactive?: boolean }) {
-  if (!topics || topics.length === 0) return null;
+function DuplicateTopicsWarning({
+  topics,
+  templated,
+  isInactive = false,
+}: {
+  topics: NonNullable<BlogAnalysisResult["duplicate_topics"]>;
+  templated?: BlogAnalysisResult["templated_content"];
+  isInactive?: boolean;
+}) {
+  const hasTopics = !!topics && topics.length > 0;
+  const hasTemplated = !!templated && templated.length > 0;
+  if (!hasTopics && !hasTemplated) return null;
 
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-        <h3 className="text-base md:text-lg font-bold text-amber-900">중복 주제 감지</h3>
+        <h3 className="text-base md:text-lg font-bold text-amber-900">중복·반복 콘텐츠 감지</h3>
       </div>
 
-      <div className="space-y-4">
-        {topics.map((topic, idx) => (
-          <div key={idx} className="bg-white border border-amber-100 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center border text-sm font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-700 border-amber-300">
-                &quot;{topic.keyword}&quot; 관련 포스트 {topic.count}개
-              </span>
+      {hasTopics && (
+        <div className="space-y-4">
+          {topics.map((topic, idx) => (
+            <div key={idx} className="bg-white border border-amber-100 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="inline-flex items-center border text-sm font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-700 border-amber-300">
+                  &quot;{topic.keyword}&quot; 관련 포스트 {topic.count}개
+                </span>
+              </div>
+              <p className="text-sm text-gray-500 mb-2 leading-relaxed">{topic.warning}</p>
+              <div className="space-y-1 mb-3">
+                {topic.titles.slice(0, 3).map((title, tIdx) => (
+                  <p key={tIdx} className="text-sm text-gray-700 line-clamp-1 pl-2 border-l-2 border-amber-200">
+                    {title}
+                  </p>
+                ))}
+              </div>
+              <p className="text-sm text-blue-600 italic leading-relaxed">{topic.suggestion}</p>
             </div>
-            <p className="text-sm text-gray-500 mb-2 leading-relaxed">{topic.warning}</p>
-            <div className="space-y-1 mb-3">
-              {topic.titles.slice(0, 3).map((title, tIdx) => (
-                <p key={tIdx} className="text-sm text-gray-700 line-clamp-1 pl-2 border-l-2 border-amber-200">
-                  {title}
-                </p>
-              ))}
+          ))}
+        </div>
+      )}
+
+      {hasTemplated && (
+        <div className={`space-y-3 ${hasTopics ? "mt-4 pt-4 border-t border-amber-200" : ""}`}>
+          <p className="text-sm font-semibold text-amber-900">제목 템플릿 반복</p>
+          {templated!.map((t, idx) => (
+            <div key={idx} className="bg-white border border-amber-100 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="inline-flex items-center border text-sm font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-700 border-amber-300">
+                  제목 구조 유사도 {t.similarity}%
+                </span>
+              </div>
+              <p className="text-sm text-gray-500 mb-2 leading-relaxed">{t.warning}</p>
+              <div className="space-y-1 mb-3">
+                {t.titles.map((title, tIdx) => (
+                  <p key={tIdx} className="text-sm text-gray-700 line-clamp-1 pl-2 border-l-2 border-amber-200">
+                    {title}
+                  </p>
+                ))}
+              </div>
+              <p className="text-sm text-blue-600 italic leading-relaxed">{t.suggestion}</p>
             </div>
-            <p className="text-sm text-blue-600 italic leading-relaxed">{topic.suggestion}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <p className="text-sm text-amber-700 mt-4 leading-relaxed">
         {isInactive
@@ -1937,9 +1979,14 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
             )}
 
             {/* ═══ 이번 실행 항목 (항상 노출) ═══ */}
-            {/* D. 중복 주제 경고 */}
-            {result.duplicate_topics && result.duplicate_topics.length > 0 && (
-              <DuplicateTopicsWarning topics={result.duplicate_topics} isInactive={isBlogInactive} />
+            {/* D. 중복 주제 + 제목 템플릿 반복 경고 */}
+            {((result.duplicate_topics && result.duplicate_topics.length > 0) ||
+              (result.templated_content && result.templated_content.length > 0)) && (
+              <DuplicateTopicsWarning
+                topics={result.duplicate_topics || []}
+                templated={result.templated_content}
+                isInactive={isBlogInactive}
+              />
             )}
 
             {/* D-2. 이번 달 블로그 주제 추천 */}

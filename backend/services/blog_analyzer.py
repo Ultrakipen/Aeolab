@@ -8,6 +8,7 @@
 import re
 import os
 import asyncio
+import difflib
 import ipaddress
 import logging
 import xml.etree.ElementTree as ET
@@ -568,7 +569,7 @@ def _calc_posting_frequency(post_dates: list) -> dict:
 
     if monthly_avg >= 2 and is_bursty:
         consistency = "bursty"
-        consistency_message = "특정 시기에 집중 발행됐습니다. 매월 2~3개씩 고르게 발행하면 AI 검색 신뢰도가 높아집니다."
+        consistency_message = "특정 시기에 몰아서 발행했습니다 — 네이버가 어뷰징(저품질)으로 오인할 수 있는 패턴입니다. 매월 2~3개씩 고르게 발행하면 AI 검색 신뢰도가 높아집니다."
     elif monthly_avg >= 2:
         consistency = "active"
         consistency_message = "꾸준히 발행하고 있습니다. 월 2회 이상 발행으로 AI 검색 노출을 유지하세요."
@@ -725,6 +726,34 @@ def _detect_duplicate_topics(posts_detail: list[dict]) -> list[dict]:
 
     result.sort(key=lambda x: x["count"], reverse=True)
     return result[:5]
+
+
+def _detect_templated_content(posts_detail: list[dict]) -> list[dict]:
+    """제목 구조 유사도 기반 템플릿 반복 탐지.
+
+    _detect_duplicate_topics는 "같은 주제 키워드"를 찾지만, 인명·지명 등 일부 단어만
+    바뀌고 문장 구조 전체가 거의 동일한 템플릿 반복(저품질/어뷰징 신호)은 놓친다.
+    숫자는 정규화해 비교(날짜·수량 차이는 무시하고 구조만 봄).
+    """
+    entries = [(i, p.get("title", "").strip()) for i, p in enumerate(posts_detail) if p.get("title", "").strip()]
+    warnings = []
+    for a in range(len(entries)):
+        for b in range(a + 1, len(entries)):
+            idx_a, title_a = entries[a]
+            idx_b, title_b = entries[b]
+            norm_a = re.sub(r"\d+", "#", title_a)
+            norm_b = re.sub(r"\d+", "#", title_b)
+            ratio = difflib.SequenceMatcher(None, norm_a, norm_b).ratio()
+            if ratio >= 0.8:
+                warnings.append({
+                    "titles": [title_a, title_b],
+                    "similarity": round(ratio * 100),
+                    "warning": f"제목 구조가 {round(ratio * 100)}% 유사한 글이 있습니다 — 같은 템플릿 반복은 네이버가 저품질로 판단할 수 있습니다.",
+                    "suggestion": "제목 구성(어순·수식어)을 바꾸거나, 본문에 서로 다른 경험·정보를 담아 차별화하세요.",
+                })
+
+    warnings.sort(key=lambda x: x["similarity"], reverse=True)
+    return warnings[:3]
 
 
 def _build_competitor_comparison(
@@ -1559,6 +1588,7 @@ async def _analyze_naver_blog(
         "posting_frequency": _calc_posting_frequency(post_dates),
         "best_citation_candidate": _pick_best_citation_candidate(posts_detail, region),
         "duplicate_topics": _detect_duplicate_topics(posts_detail),
+        "templated_content": _detect_templated_content(posts_detail),
         # RSS(재시도 포함) 실패로 API 스니펫만으로 분석됨 — 이미지/본문 길이 등 구조 측정치가
         # 평소보다 부정확할 수 있음을 프론트에 알리는 용도 (2026-07-06 재점검 신설)
         "rss_failed": rss_failed,
@@ -1703,6 +1733,7 @@ async def _analyze_external_blog(
         "posting_frequency": _calc_posting_frequency(post_dates),
         "best_citation_candidate": _pick_best_citation_candidate(posts_detail, region),
         "duplicate_topics": _detect_duplicate_topics(posts_detail),
+        "templated_content": _detect_templated_content(posts_detail),
         "error": None,
     }
 
@@ -1723,7 +1754,7 @@ def _classify_content_type(titles: list[str]) -> dict:
 
     if promo_ratio > 60:
         verdict = "홍보형"
-        issue = f"글의 {promo_ratio}%가 홍보형입니다 — 네이버 AI는 광고 느낌 글을 잘 인용하지 않습니다"
+        issue = f"글의 {promo_ratio}%가 홍보형입니다 — 네이버 AI는 광고 느낌 글을 잘 인용하지 않고, 일반 네이버 검색 노출에도 불리하게 작용할 수 있습니다"
     elif info_ratio > 60:
         verdict = "정보형"
         issue = None
