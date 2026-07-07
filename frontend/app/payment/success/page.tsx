@@ -132,41 +132,43 @@ function PaymentSuccessContent() {
 
   // success
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center">
-        <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" strokeWidth={1.5} />
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">구독 시작!</h1>
-        <p className="text-gray-600 mb-1">
-          <span className="font-semibold text-blue-600">{planName}</span> 플랜이 활성화되었습니다.
-        </p>
-        <p className="text-gray-400 text-sm mb-2">
-          이제 네이버·Gemini·ChatGPT 3채널 자동 스캔과 개선 가이드를 이용할 수 있습니다.
-        </p>
-        <p className="text-gray-400 text-sm mb-4">
-          {countdown}초 후 대시보드로 이동합니다...
-        </p>
+    <main className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center">
+          <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" strokeWidth={1.5} />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">구독 시작!</h1>
+          <p className="text-gray-600 mb-1">
+            <span className="font-semibold text-blue-600">{planName}</span> 플랜이 활성화되었습니다.
+          </p>
+          <p className="text-gray-400 text-sm mb-2">
+            이제 네이버·Gemini·ChatGPT 3채널 자동 스캔과 개선 가이드를 이용할 수 있습니다.
+          </p>
+          <p className="text-gray-400 text-sm mb-4">
+            {countdown}초 후 대시보드로 이동합니다...
+          </p>
 
-        <div className="bg-blue-50 rounded-xl p-4 mb-4 text-left">
-          <p className="text-sm font-semibold text-blue-800 mb-1">첫 스캔 시작 방법</p>
-          <ol className="text-sm text-blue-700 space-y-1">
-            <li>1. 대시보드에서 사업장을 등록하세요</li>
-            <li>2. [AI 스캔 시작] 버튼을 누르면 약 30초 후 결과가 나옵니다</li>
-          </ol>
-        </div>
+          <div className="bg-blue-50 rounded-xl p-4 mb-4 text-left">
+            <p className="text-sm font-semibold text-blue-800 mb-1">첫 스캔 시작 방법</p>
+            <ol className="text-sm text-blue-700 space-y-1">
+              <li>1. 대시보드에서 사업장을 등록하세요</li>
+              <li>2. [AI 스캔 시작] 버튼을 누르면 약 30초 후 결과가 나옵니다</li>
+            </ol>
+          </div>
 
-        <div className="space-y-3">
-          <Link
-            href="/dashboard"
-            className="block bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
-          >
-            대시보드 바로가기
-          </Link>
-          <Link
-            href="/guide"
-            className="block border border-gray-200 text-gray-700 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
-          >
-            AI 개선 가이드 보기
-          </Link>
+          <div className="space-y-3">
+            <Link
+              href="/dashboard"
+              className="block bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+            >
+              대시보드 바로가기
+            </Link>
+            <Link
+              href="/guide"
+              className="block border border-gray-200 text-gray-700 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+            >
+              AI 개선 가이드 보기
+            </Link>
+          </div>
         </div>
       </div>
       <SiteFooter />
