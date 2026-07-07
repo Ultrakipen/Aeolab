@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { trialScan, searchTrialBusiness, ApiError } from "@/lib/api";
 import { mapNaverCategory } from "@/lib/categories";
 import { getBriefingEligibility } from "@/lib/userGroup";
@@ -683,7 +684,10 @@ export default function TrialPage() {
           <Link href="/" className="text-xl font-bold text-blue-600">
             AEOlab
           </Link>
-          <span className="text-sm text-gray-500">무료 AI 노출 진단</span>
+          <div className="flex items-center gap-2 md:gap-3">
+            <span className="text-sm text-gray-500">무료 AI 노출 진단</span>
+            <AuthNavControlClient />
+          </div>
         </div>
       </header>
 

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { BLOG_POSTS } from "@/lib/blog-posts";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { AuthNavControl } from "@/components/common/AuthNavControl";
 
 export async function generateStaticParams() {
   return BLOG_POSTS.map((p) => ({ slug: p.slug }));
@@ -126,12 +127,15 @@ export default async function BlogPostPage({
           <Link href="/" className="text-xl font-bold text-blue-600">
             AEOlab
           </Link>
-          <Link
-            href="/trial"
-            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            무료 진단 시작
-          </Link>
+          <div className="flex items-center gap-3 md:gap-4">
+            <AuthNavControl />
+            <Link
+              href="/trial"
+              className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              무료 진단 시작
+            </Link>
+          </div>
         </div>
       </header>
 

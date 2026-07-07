@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { SiteFooter } from "@/components/common/SiteFooter"
+import { AuthNavControl } from "@/components/common/AuthNavControl"
 import { ChatGptChecklist } from "./ChatGptChecklist"
 
 export const metadata: Metadata = {
@@ -64,6 +65,7 @@ export default function ChatGptSearchGuidePage() {
             >
               요금제
             </Link>
+            <AuthNavControl />
             <Link
               href="/trial"
               className="bg-blue-600 text-white text-sm md:text-base px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"

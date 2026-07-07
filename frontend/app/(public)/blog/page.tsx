@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BLOG_POSTS } from "@/lib/blog-posts";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { AuthNavControl } from "@/components/common/AuthNavControl";
 
 export const metadata: Metadata = {
   title: "소상공인 AI 검색 노출 가이드 | AEOlab 블로그",
@@ -39,12 +40,15 @@ export default function BlogIndexPage() {
           <Link href="/" className="text-xl font-bold text-blue-600">
             AEOlab
           </Link>
-          <Link
-            href="/trial"
-            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            무료 진단 시작
-          </Link>
+          <div className="flex items-center gap-3 md:gap-4">
+            <AuthNavControl />
+            <Link
+              href="/trial"
+              className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              무료 진단 시작
+            </Link>
+          </div>
         </div>
       </header>
 

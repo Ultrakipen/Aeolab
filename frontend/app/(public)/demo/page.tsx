@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { getBriefingEligibility } from "@/lib/userGroup";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import ResultSummaryHero from "@/components/common/ResultSummaryHero";
@@ -545,6 +546,7 @@ export default function DemoPage() {
             ) : (
               <span className="hidden sm:inline text-sm bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">샘플 결과 화면</span>
             )}
+            <AuthNavControlClient />
             <Link
               href="/trial"
               className="text-sm md:text-base bg-blue-600 text-white px-3 md:px-5 py-1.5 md:py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap"

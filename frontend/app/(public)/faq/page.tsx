@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { AuthNavControl } from "@/components/common/AuthNavControl";
 
 export const metadata: Metadata = {
   title: "자주 묻는 질문 | AEOlab",
@@ -166,6 +167,7 @@ export default function FAQPage() {
               >
                 요금제
               </Link>
+              <AuthNavControl />
               <Link
                 href="/trial"
                 className="bg-blue-600 text-white text-sm md:text-base px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold whitespace-nowrap"

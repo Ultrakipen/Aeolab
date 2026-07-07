@@ -5,6 +5,7 @@ import Link from "next/link";
 import { trialScan, ApiError } from "@/lib/api";
 import type { TrialScanResult } from "@/types";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { getScoreTextLabel } from "@/lib/scoreLabels";
 import { getBriefingEligibility } from "@/lib/userGroup";
 
@@ -261,7 +262,10 @@ export default function QuickPage() {
       <header className="bg-white border-b border-gray-100 px-4 md:px-6 py-3 md:py-4 sticky top-0 z-40">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-blue-600">AEOlab</Link>
-          <span className="text-sm text-gray-500 font-medium">30초 간이 AI 진단</span>
+          <div className="flex items-center gap-2 md:gap-3">
+            <span className="text-sm text-gray-500 font-medium">30초 간이 AI 진단</span>
+            <AuthNavControlClient />
+          </div>
         </div>
       </header>
 
