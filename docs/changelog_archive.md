@@ -501,3 +501,12 @@ CREATE INDEX IF NOT EXISTS idx_trial_scans_claimed
 - 환경변수: `BACKEND_MAX_CONCURRENCY=2`, `KEYWORD_SUGGEST_MODEL=claude-haiku-4-5-20251001`
 - v3.x/v4.1/v5.1~5.4: 프랜차이즈 게이팅·how-it-works·모바일 CTA·온보딩 투어·전환 알림·주간 다이제스트·DB v3.5/v3.6/v4.1·GA4 라이브
 - DB 완료 항목: v3.2/v3.3/v3.5/v3.6/v4.1/profiles.email + v4.1 ALTER 5건(is_franchise·naver_intro_draft 등) + 카카오 알림톡 5종 전체 승인
+
+## 2026-07-06 — 블로그 진단 §2-A 라이브 검증 + 재점검 2차 (P0 1건 + P1/P2 8건)
+> RSS 부분실패 DB훼손 **P0**(post_count 0덮어씀+쿨다운리셋+quota소비 — commercial_inspection_standard_v2.0 §4 "기능 오작동" 기준, 최초 P1로 오분류했다가 정정) + RSS재시도 + 프론트 P2 5건 + 독립 코드리뷰 2차검증 3건(타임아웃예산·404재시도·biz배너) + 페이지 간결화(중복2건 제거→아코디언, -56%)+요약카드 최상단 재배치. git `31af359`~`99e2c34`. 상세는 메모리 `project_blog_analysis_v2_reaudit_2026_07_06`.
+
+## 2026-07-06 — 5개 페이지 상업 서비스 점검 + 변화 기록 2차 재검증 (P1 4건 + P2 7건 + 재검증 6건)
+> 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠 점검(P1 4건+P2 7건, git `71707d4`) — 성장리포트 필드누락·가이드 점수노출·경쟁사 차트지터·소개글 요금제 문구 등. 오판 정정 1건("chatgpt-search 404"는 실제로 다른 라우트 그룹에 존재하던 페이지, 라우트 판정은 전체 app 검색 필수 교훈). 변화 기록 1차(기완료)의 "이상없음" 판정을 재검증해 콜사이트 falsy-zero·TrendLine 필드 불일치·플랜게이트 누락 3건 추가발견·수정(git `b386cb5`).
+
+## 2026-07-06 — falsy-zero 전역 스윕 + nine_pages 잔여 3영역 + 구독 생애주기 점검
+> **falsy-zero 스윕**(git `b9c40ed`): `unified_score or total_score or 0` 패턴 17곳 전수 판정, 실제 버그 4건(경쟁사 급등알림 완전무력화+NameError+표시명오류가 최다심각) 수정·13곳은 `score_engine.py` 별칭구조 확인 후 반증(에이전트 오판 방지). **nine_pages 마지막 3영역**(리뷰답변·AI광고대비·창업분석, git `d0d5b3a`+`6cdfb1e`+`963228c`): review-reply 폴백답변 영구저장+quota소비 버그가 최다심각, gemini `sample_10()` 라이브코드 오집계+Wilson CI 0나눗셈 크래시 수정. **crisis-reply 무제한호출→월별한도 신설**(사용자 명시요청, git `7d06b16`) — ⚠️ Supabase SQL Editor `guides_context_check` 제약 추가 마이그레이션 미실행 시 한도 미작동(§남은 작업 참조). **구독 생애주기 점검**(신규 영역, git `df4f55f`+`c9112c2`+`87fd5ad`+`3ee38fb`): 유예기간 재시도 전무→매일 1회 재시도 신설, 죽은 `/toss/confirm` 삭제, **구독 해지 즉시 유료기능 강등**(약속한 end_at까지 유지 안 됨 — 지금까지 최다심각 신뢰 버그) 수정, 정지상태 해지버튼 노출+거짓 데이터삭제 안내 수정, 고아 SettingsClient.tsx 삭제. **미해결**: 7일 청약철회 전액환불 백엔드 미구현(§남은 작업 참조). `docs/nine_pages_measurement_inspection_v1.0.md` 9개 영역 전체 완료. 상세는 `docs/session_2026_07_06_full_wrapup_handoff_v1.0.md`.

@@ -165,7 +165,7 @@
 | **`docs/naver_briefing_infotype_caveat_standard_v1.0.md`** ⭐ | **네이버 AI 브리핑 "정보형" 캐비엇 점검 표준 — 플레이스형(업종제한)/정보형(전업종) 구분·반복 버그 3유형(LIKELY만 누락/문법변형/암묵적배타)·점검 절차·정당한 예외·수정완료 파일 목록. 11차 스윕(2026-07-01) 종합** |
 | **`docs/nine_pages_measurement_inspection_v1.0.md`** ⭐ | **9개 페이지(경쟁사 관리·변화 기록·성장 리포트·개선 가이드·소개글 콘텐츠·블로그 진단·리뷰 답변·AI 광고 대비·창업 시장 분석) 실측 점검 작업 문서 — 2단 레이어(프론트 UI 하드코딩 + 백엔드 측정 파이프라인 무결성) 방법론, 페이지·컴포넌트·API 매핑, 검증 절차 (2026-07-02)** |
 | **`docs/blog_analysis_improvement_v2.0.md`** ⭐ | **블로그 관리 페이지 개선 v2.0 — v1.0(4건) 완료 확인 + SearchAd 검색량 연동(1순위, 구현 스펙 포함) + 후순위 3건(경쟁사 구조 비교·NLP 품질 채점·포스트별 성과 연결, 트리거 조건 명시). 오판 검증(근거+반증) 포함 (2026-07-06)** |
-| **`docs/five_pages_and_action_history_handoff_v1.0.md`** ⭐ | **경쟁사관리·성장리포트·개선가이드·소개글콘텐츠·변화기록(2차) 점검 핸드오프 — P1/P2 수정 완료(git `71707d4`·`b386cb5`) + 잔여 작업(falsy-zero 전역 스윕·미착수 3페이지) 정리 (2026-07-06)** |
+| `docs/five_pages_and_action_history_handoff_v1.0.md` | 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠·변화기록(2차) 점검 + §3 잔여(falsy-zero 스윕·리뷰답변/AI광고대비/창업분석) 전체 완료(git `71707d4`~`963228c`). `nine_pages_measurement_inspection_v1.0.md` 9개 영역 전체 완료 — 트리거는 완료 이력 확인용만 (2026-07-06) |
 | **`docs/subscription_lifecycle_inspection_v1.0.md`** ⭐ | **구독 생애주기(갱신·카드변경·해지) 점검 — 유예기간재시도·해지즉시강등·정지버튼노출·거짓삭제안내 4건 배포완료(git `df4f55f`~`3ee38fb`). §5 미해결: 7일 청약철회 전액환불 백엔드 미구현, 사용자 결정 대기 (2026-07-07)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
@@ -175,7 +175,6 @@
 > **정보형 캐비엇 재점검**: `docs/naver_briefing_infotype_caveat_standard_v1.0.md 기준으로 정보형 캐비엇 재점검 진행`
 > **9개 페이지 실측 점검**: `docs/nine_pages_measurement_inspection_v1.0.md 기준으로 실측 점검 진행`
 > **블로그 관리 페이지 검색량 연동**: `docs/blog_analysis_improvement_v2.0.md 기준으로 1순위(검색량 연동)부터 진행`
-> **5개 페이지 점검 이어가기**: `docs/five_pages_and_action_history_handoff_v1.0.md 기준으로 §3(잔여 작업)부터 이어서 진행`
 > **구독 생애주기 점검 이어가기**: `docs/subscription_lifecycle_inspection_v1.0.md 기준으로 §5(7일 환불) 결정하고 이어서 진행`
 
 ## 작업 중요 지침
@@ -684,6 +683,8 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
 - **실결제 전환 시**: `TOSS_SECRET_KEY` test_ → live_ 교체 + pm2 restart
 - `NEXT_PUBLIC_ADMIN_SECRET_KEY` 향후 서버 컴포넌트로 분리 권장
+- ⏳ **crisis-reply 월별 한도 SQL 마이그레이션 미실행** — `scripts/supabase_schema.sql:2268` `guides_context_check`에 `'crisis_reply'` 추가하는 ALTER 문을 Supabase SQL Editor에서 수동 실행해야 함(2026-07-06 `7d06b16`에서 코드는 배포됐으나 SQL 미실행 시 한도가 계속 0으로 표시되어 사실상 무제한 유지)
+- ⏳ **7일 청약철회 전액환불 백엔드 미구현** — `terms/page.tsx`·`pricing/page.tsx`가 안내하는 7일 이내 환불이 실제로 자동화돼 있지 않음. 결정 필요(①안내만 추가 ②자동 환불 로직 구현 ③현행 유지) — `docs/subscription_lifecycle_inspection_v1.0.md` §5
 
 ### 비즈니스 목표
 - [ ] 유료 구독자 20명 달성 (BEP)
