@@ -81,7 +81,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // 로그인된 사용자가 대시보드 진입 시 사업장 등록 여부 확인 (layout blocking 방지)
-  if (user && isProtected && !pathname.startsWith("/onboarding")) {
+  // /settings는 예외 — 결제는 마쳤지만 사업장 미등록인 구독자도 구독 해지·카드 변경 등
+  // 계정 관리에 반드시 접근할 수 있어야 함(2026-07-07 라이브 QA 중 발견: 신규 결제 직후
+  // 구독자가 온보딩으로 강제 리다이렉트되어 해지 버튼에 아예 도달 못 하던 버그)
+  if (user && isProtected && !pathname.startsWith("/onboarding") && !pathname.startsWith("/settings")) {
     try {
       const [bizRes, profileRes] = await Promise.all([
         supabase
