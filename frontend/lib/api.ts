@@ -745,14 +745,24 @@ export async function updateBillingCard(
   authKey: string,
   customerKey: string,
   token: string,
-): Promise<{ message: string }> {
-  return apiCall<{ message: string }>(`${BACKEND_URL}/api/settings/card/update`, {
+): Promise<{ message: string; reactivated?: boolean }> {
+  return apiCall<{ message: string; reactivated?: boolean }>(`${BACKEND_URL}/api/settings/card/update`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ authKey, customerKey }),
+  });
+}
+
+// ── 구독 재활성화 (해지 후 잔여기간 내 해지 취소) ──────────────────────────
+export async function reactivateSubscription(
+  token: string,
+): Promise<{ status: string; end_at?: string }> {
+  return apiCall<{ status: string; end_at?: string }>(`${BACKEND_URL}/api/settings/reactivate`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 

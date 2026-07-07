@@ -164,16 +164,10 @@ async def generate_review_reply(
     # 1. 소유권 검증 먼저
     await _verify_biz_ownership(supabase, req.business_id, current_user["id"])
 
-    # 2. 플랜 체크 (free 플랜이면 403)
-    sub = (await execute(
-        supabase.table("subscriptions")
-        .select("plan, status")
-        .eq("user_id", current_user["id"])
-        .maybe_single()
-    )).data
-    _plan = (sub or {}).get("plan", "free")
-    _status = (sub or {}).get("status", "inactive")
-    if _plan == "free" or _status not in ("active", "grace_period"):
+    # 2. 플랜 체크 (free 플랜이면 403) — plan_gate 단일 소스(해지 후 잔여기간도 유료 인정)
+    from middleware.plan_gate import get_user_plan
+    _plan = await get_user_plan(current_user["id"], supabase)
+    if _plan == "free":
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "pro", "biz"]},
@@ -451,17 +445,9 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
     # 소유권 검증 먼저 — 타인 biz_id로 플랜 체크 우회 방지
     await _verify_biz_ownership(supabase, biz_id, x_user_id)
 
-    sub = (
-        await execute(
-            supabase.table("subscriptions")
-            .select("plan, status")
-            .eq("user_id", x_user_id)
-            .maybe_single()
-        )
-    ).data
-    plan = (sub or {}).get("plan", "free")
-    status = (sub or {}).get("status", "inactive")
-    if plan not in ("pro", "biz", "enterprise") or status not in ("active", "grace_period"):
+    from middleware.plan_gate import get_user_plan
+    plan = await get_user_plan(x_user_id, supabase)
+    if plan not in ("pro", "biz", "enterprise"):
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz", "enterprise"]},
@@ -948,15 +934,9 @@ async def generate_crisis_reply_endpoint(
     await _verify_biz_ownership(supabase, biz_id, user_id)
 
     # Basic+ 플랜 체크
-    sub = (await execute(
-        supabase.table("subscriptions")
-        .select("plan, status")
-        .eq("user_id", user_id)
-        .maybe_single()
-    )).data
-    _plan = (sub or {}).get("plan", "free")
-    _status = (sub or {}).get("status", "inactive")
-    if _plan == "free" or _status not in ("active", "grace_period"):
+    from middleware.plan_gate import get_user_plan
+    _plan = await get_user_plan(user_id, supabase)
+    if _plan == "free":
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "pro", "biz"]},

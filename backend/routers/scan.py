@@ -1379,17 +1379,11 @@ def _is_full_scan_plan(plan: str) -> bool:
 
 
 async def _get_user_plan(user_id: str, supabase) -> str:
-    """사용자 구독 플랜 조회. 미구독 또는 inactive → 'free'"""
-    row = await execute(
-        supabase.table("subscriptions")
-        .select("plan, status")
-        .eq("user_id", user_id)
-        .maybe_single()
-    )
-    sub = row.data if row else None
-    if not sub or sub.get("status") not in ("active", "grace_period"):
-        return "free"
-    return sub.get("plan", "free")
+    """사용자 구독 플랜 조회 — middleware.plan_gate.get_user_plan()에 위임.
+    해지(cancelled) 후 end_at 이전 잔여기간에도 기존 플랜을 유지하는 로직을 이 파일에서
+    직접 중복 구현하지 않고 단일 소스를 그대로 재사용한다(2026-07-06 competitor.py와 동일 원칙)."""
+    from middleware.plan_gate import get_user_plan
+    return await get_user_plan(user_id, supabase)
 
 
 # ── Basic 1회 무료 체험 (회원가입 후 결제 없이 Full Scan + 가이드 1회) ─────────

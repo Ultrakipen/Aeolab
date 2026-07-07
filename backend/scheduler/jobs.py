@@ -65,7 +65,7 @@ def start_scheduler():
     )
     scheduler.add_job(
         subscription_lifecycle_job, "cron", hour=1, minute=0, id="subscription_lifecycle",
-        replace_existing=True,
+        replace_existing=True, max_instances=1, misfire_grace_time=3600,
     )
     scheduler.add_job(
         after_screenshot_job, "cron", hour=8, minute=0, id="after_screenshot",
@@ -332,10 +332,12 @@ async def daily_scan_all():
         )
 
         # subscriptions!inner 조인은 FK 없어 PGRST200 에러 → 두 번 조회로 교체
+        # grace_period(결제실패 유예)도 plan_gate.get_user_plan()이 유료로 취급하는 상태이므로
+        # 자동 스캔 대상에 포함 — active만 필터하면 유예 중인 유료 구독자가 스캔에서 부당 제외됨
         _subs_res = await _db(
             supabase.table("subscriptions")
             .select("user_id, plan, status")
-            .eq("status", "active")
+            .in_("status", ["active", "grace_period"])
             .in_("plan", ["basic", "pro", "biz", "startup"])
         )
         _active_subs = {s["user_id"]: s["plan"] for s in (_subs_res.data or [])}

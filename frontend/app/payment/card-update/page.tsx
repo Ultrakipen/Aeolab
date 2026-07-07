@@ -15,6 +15,7 @@ function CardUpdateContent() {
   const router = useRouter();
   const [status, setStatus] = useState<Status>("processing");
   const [errorMsg, setErrorMsg] = useState("");
+  const [reactivated, setReactivated] = useState(false);
 
   useEffect(() => {
     const authKey = searchParams.get("authKey");
@@ -35,7 +36,8 @@ function CardUpdateContent() {
           return;
         }
 
-        await updateBillingCard(authKey, customerKey, session.access_token);
+        const result = await updateBillingCard(authKey, customerKey, session.access_token);
+        setReactivated(Boolean(result?.reactivated));
         setStatus("success");
         // 3초 후 설정 페이지로 자동 이동
         setTimeout(() => router.push("/settings"), 3000);
@@ -95,12 +97,16 @@ function CardUpdateContent() {
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
         <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" strokeWidth={1.5} />
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">카드 변경 완료</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          {reactivated ? "결제 재개 완료" : "카드 변경 완료"}
+        </h1>
         <p className="text-gray-600 text-base mb-1">
-          새 결제 카드가 등록되었습니다.
+          {reactivated
+            ? "새 카드로 결제가 성공해 구독이 다시 활성화되었습니다."
+            : "새 결제 카드가 등록되었습니다."}
         </p>
         <p className="text-gray-400 text-sm mb-2">
-          다음 결제부터 변경된 카드로 자동 청구됩니다.
+          {reactivated ? "다음 결제일부터 정상적으로 자동 청구됩니다." : "다음 결제부터 변경된 카드로 자동 청구됩니다."}
         </p>
         <p className="text-gray-400 text-sm mb-8">3초 후 설정 페이지로 이동합니다...</p>
 

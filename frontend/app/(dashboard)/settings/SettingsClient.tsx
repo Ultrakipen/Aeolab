@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updatePhone } from "@/lib/api";
+import { updatePhone, reactivateSubscription, ApiError } from "@/lib/api";
 import { getSafeSession } from "@/lib/supabase/client";
 import { CreditCard, Bell, Phone, AlertTriangle, CheckCircle2, X, ArrowRight } from "lucide-react";
 
@@ -44,6 +44,7 @@ interface Props {
   kakaoScanNotify?: boolean;
   kakaoCompetitorNotify?: boolean;
   subscriptionStatus?: string;
+  subscriptionEndAt?: string | null;
   userId?: string;
   subscriptionDays?: number;
   competitorCount?: number;
@@ -57,6 +58,7 @@ export function SettingsClient({
   kakaoScanNotify = true,
   kakaoCompetitorNotify = true,
   subscriptionStatus,
+  subscriptionEndAt = null,
   userId,
   subscriptionDays = 0,
   competitorCount = 0,
@@ -78,6 +80,9 @@ export function SettingsClient({
   const [notifySaving, setNotifySaving] = useState(false);
   const [cardChanging, setCardChanging] = useState(false);
   const [cardError, setCardError] = useState("");
+  const [reactivating, setReactivating] = useState(false);
+  const [reactivateError, setReactivateError] = useState("");
+  const [reactivated, setReactivated] = useState(false);
 
   const getToken = async (): Promise<string> => {
     const session = await getSafeSession();
@@ -158,8 +163,30 @@ export function SettingsClient({
     }
   };
 
+  const handleReactivate = async () => {
+    setReactivating(true);
+    setReactivateError("");
+    try {
+      const token = await getToken();
+      await reactivateSubscription(token);
+      setReactivated(true);
+      setTimeout(() => window.location.reload(), 2000);
+    } catch (err: unknown) {
+      setReactivateError(
+        err instanceof ApiError ? err.message : "재활성화 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+      );
+    } finally {
+      setReactivating(false);
+    }
+  };
+
   const isActiveSubscription =
     subscriptionStatus === "active" || subscriptionStatus === "grace_period";
+  const isSuspended = subscriptionStatus === "suspended";
+  const canReactivate =
+    subscriptionStatus === "cancelled" &&
+    !!subscriptionEndAt &&
+    new Date(subscriptionEndAt).getTime() > Date.now();
 
   if (cancelled) {
     return (
@@ -246,8 +273,8 @@ export function SettingsClient({
         </div>
       </div>
 
-      {/* ── 결제 카드 변경 ── */}
-      {isActiveSubscription && (
+      {/* ── 결제 카드 변경 (활성 구독자 + 정지 상태 — 정지 상태는 카드 변경 성공 시 즉시 재결제 시도) ── */}
+      {(isActiveSubscription || isSuspended) && (
         <div className="bg-gray-50 rounded-xl p-4 space-y-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
@@ -255,7 +282,11 @@ export function SettingsClient({
             </div>
             <div>
               <h3 className="text-base font-semibold text-gray-800">결제 카드</h3>
-              <p className="text-sm text-gray-500">새 카드 인증 후 다음 결제부터 적용됩니다.</p>
+              <p className="text-sm text-gray-500">
+                {isSuspended
+                  ? "결제가 계속 실패해 구독이 정지되었습니다. 카드를 변경하면 즉시 재결제를 시도합니다."
+                  : "새 카드 인증 후 다음 결제부터 적용됩니다."}
+              </p>
             </div>
           </div>
           {cardDisplay ? (
@@ -289,6 +320,40 @@ export function SettingsClient({
               </>
             )}
           </button>
+        </div>
+      )}
+
+      {/* ── 해지 취소(재활성화) — cancelled 상태이면서 잔여기간(end_at)이 아직 남은 경우만 ── */}
+      {canReactivate && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" strokeWidth={1.8} />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-800">해지 취소</h3>
+              <p className="text-sm text-gray-500">아직 구독 기간이 남아 있습니다. 지금 재활성화하면 계속 이용할 수 있습니다.</p>
+            </div>
+          </div>
+          {reactivated ? (
+            <p className="text-sm text-emerald-700 font-medium">재활성화가 완료되었습니다. 잠시 후 새로고침됩니다...</p>
+          ) : (
+            <>
+              {reactivateError && (
+                <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
+                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-600">{reactivateError}</p>
+                </div>
+              )}
+              <button
+                onClick={handleReactivate}
+                disabled={reactivating}
+                className="w-full sm:w-auto px-5 py-3 bg-emerald-600 text-white text-base font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              >
+                {reactivating ? "재활성화 중..." : "구독 재활성화"}
+              </button>
+            </>
+          )}
         </div>
       )}
 

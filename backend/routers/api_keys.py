@@ -11,18 +11,12 @@ router = APIRouter()
 
 
 async def _check_plan(user_id: str):
+    """plan_gate.get_user_plan() 단일 소스 재사용 — cancelled+end_at 미래(해지 후 잔여기간)도
+    유료로 인정해 teams.py와 동일하게 취급한다."""
+    from middleware.plan_gate import get_user_plan
     supabase = get_client()
-    sub = (
-        await execute(
-            supabase.table("subscriptions")
-            .select("plan, status")
-            .eq("user_id", user_id)
-            .maybe_single()
-        )
-    ).data
-    plan = (sub or {}).get("plan", "free")
-    status = (sub or {}).get("status", "inactive")
-    if plan not in ("biz", "enterprise") or status not in ("active", "grace_period"):
+    plan = await get_user_plan(user_id, supabase)
+    if plan not in ("biz", "enterprise"):
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": ["biz", "enterprise"]},

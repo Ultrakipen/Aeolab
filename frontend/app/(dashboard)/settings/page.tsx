@@ -310,6 +310,7 @@ export default async function SettingsPage({
                   kakaoScanNotify={profile?.kakao_scan_notify ?? true}
                   kakaoCompetitorNotify={profile?.kakao_competitor_notify ?? true}
                   subscriptionStatus={currentStatus}
+                  subscriptionEndAt={sub?.end_at ?? null}
                   userId={user.id}
                   subscriptionDays={subscriptionDays}
                   competitorCount={competitorCount ?? 0}

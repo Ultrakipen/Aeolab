@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from typing import Optional
 from db.supabase_client import get_client, execute
 from supabase import create_client
-from middleware.plan_gate import get_current_user
+from middleware.plan_gate import get_current_user, _end_at_in_future
 from services.email_sender import send_operator_alert
 from utils.alert import send_slack_alert
 from services.kakao_notify import KakaoNotifier
@@ -195,17 +195,30 @@ async def cancel_subscription(user: dict = Depends(get_current_user)):
                 refund_amount = sub.get("first_payment_amount")
                 logger.info(f"7일 청약철회 자동환불 성공 (user={user_id}, amount={refund_amount})")
             else:
-                logger.error(
-                    f"7일 청약철회 자동환불 실패 (user={user_id}): status={cancel_resp.status_code} body={cancel_resp.text}"
-                )
-                await send_operator_alert(
-                    "7일 청약철회 자동환불 실패 — 수동 확인 필요",
-                    f"user_id={user_id}\nfirst_payment_key={sub['first_payment_key']}\n"
-                    f"status={cancel_resp.status_code}\nbody={cancel_resp.text}",
-                )
-                await send_slack_alert(
-                    "7일 청약철회 자동환불 실패", f"user_id={user_id}, status={cancel_resp.status_code}", level="error"
-                )
+                # 동시 요청 경쟁조건 방어: 이 요청과 거의 동시에 도착한 다른 요청이 먼저 환불을
+                # 완료시켰다면(Toss는 같은 paymentKey 재취소를 4xx로 거부) status가 이미 cancelled로
+                # 바뀌어 있다 — 이 경우는 실패가 아니라 정상적인 중복 응답이므로 오탐 알림을 억제한다.
+                _recheck = (
+                    await execute(
+                        supabase.table("subscriptions").select("status").eq("user_id", user_id).maybe_single()
+                    )
+                ).data
+                if (_recheck or {}).get("status") == "cancelled":
+                    logger.info(
+                        f"7일 청약철회 환불 — 동시 요청으로 이미 처리됨(정상), 오탐 알림 억제 (user={user_id})"
+                    )
+                else:
+                    logger.error(
+                        f"7일 청약철회 자동환불 실패 (user={user_id}): status={cancel_resp.status_code} body={cancel_resp.text}"
+                    )
+                    await send_operator_alert(
+                        "7일 청약철회 자동환불 실패 — 수동 확인 필요",
+                        f"user_id={user_id}\nfirst_payment_key={sub['first_payment_key']}\n"
+                        f"status={cancel_resp.status_code}\nbody={cancel_resp.text}",
+                    )
+                    await send_slack_alert(
+                        "7일 청약철회 자동환불 실패", f"user_id={user_id}, status={cancel_resp.status_code}", level="error"
+                    )
         except Exception as e:
             logger.error(f"7일 청약철회 자동환불 요청 오류 (user={user_id}): {e}")
             await send_operator_alert(
@@ -270,6 +283,35 @@ async def cancel_subscription(user: dict = Depends(get_current_user)):
     }
 
 
+@router.post("/reactivate")
+async def reactivate_subscription(user: dict = Depends(get_current_user)):
+    """해지 취소(재활성화) — cancelled 상태이고 잔여기간(end_at)이 아직 남은 경우에만 허용.
+    토스 빌링키는 해지 시 best-effort로 삭제되므로, 다음 자동갱신 때 결제가 실패해도
+    기존 유예기간(grace_period) 재시도 흐름으로 자연스럽게 이어진다 — 카드 재등록이 필요하면
+    /settings/card/update로 별도 안내."""
+    user_id = user["id"]
+    supabase = get_client()
+    sub = (
+        await execute(
+            supabase.table("subscriptions")
+            .select("status, end_at")
+            .eq("user_id", user_id)
+            .maybe_single()
+        )
+    ).data
+    if not sub or sub.get("status") != "cancelled":
+        raise HTTPException(status_code=400, detail={"code": "NOT_CANCELLED"})
+    if not _end_at_in_future(sub.get("end_at")):
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "PERIOD_EXPIRED", "message": "이미 만료된 구독은 재활성화할 수 없습니다. 새로 구독해주세요."},
+        )
+
+    await execute(supabase.table("subscriptions").update({"status": "active"}).eq("user_id", user_id))
+    logger.info(f"구독 재활성화 완료 (user={user_id})")
+    return {"status": "active", "end_at": sub.get("end_at")}
+
+
 class CardUpdateRequest(BaseModel):
     authKey: str
     customerKey: str
@@ -282,18 +324,19 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
     supabase = get_client()
     secret_key = os.getenv("TOSS_SECRET_KEY", "")
 
-    # 1. 현재 구독에서 기존 billing_key 조회
+    # 1. 현재 구독에서 기존 billing_key 조회 (정지 상태 재시도용 필드 포함)
     sub = (
         await execute(
             supabase.table("subscriptions")
-            .select("billing_key, status")
+            .select("id, plan, billing_cycle, customer_key, billing_key, status")
             .eq("user_id", user_id)
             .maybe_single()
         )
     ).data
-    if not sub or sub.get("status") not in ("active", "grace_period"):
+    if not sub or sub.get("status") not in ("active", "grace_period", "suspended"):
         raise HTTPException(status_code=400, detail={"code": "NO_ACTIVE_SUBSCRIPTION"})
 
+    was_suspended = sub.get("status") == "suspended"
     old_billing_key = sub.get("billing_key")
 
     # 2. 토스 API로 새 빌링키 발급
@@ -344,8 +387,31 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
         .eq("user_id", user_id)
     )
 
+    # 5. 정지(suspended) 상태였다면 새 카드로 즉시 결제 재시도 — 성공 시 active 복귀 + 기간 연장
+    reactivated = False
+    if was_suspended:
+        from services.toss_billing import retry_billing
+        sub["billing_key"] = new_billing_key
+        success = await retry_billing(sub)
+        if success:
+            renew_days = 365 if sub.get("billing_cycle") == "yearly" else 30
+            new_end = date.today() + timedelta(days=renew_days)
+            await execute(
+                supabase.table("subscriptions")
+                .update({"status": "active", "grace_until": None, "end_at": str(new_end)})
+                .eq("user_id", user_id)
+            )
+            reactivated = True
+            logger.info(f"정지 상태에서 카드변경 후 즉시 재결제 성공 (user={user_id})")
+        else:
+            logger.warning(f"정지 상태에서 카드변경했으나 재결제 실패 (user={user_id})")
+
     logger.info(f"카드 변경 완료 (user={user_id})")
-    return {"status": "updated", "message": "카드가 성공적으로 변경되었습니다"}
+    return {
+        "status": "updated",
+        "message": "카드가 성공적으로 변경되었습니다" + (". 결제가 재시도되어 구독이 재개되었습니다" if reactivated else ""),
+        "reactivated": reactivated,
+    }
 
 
 @router.delete("/account")
