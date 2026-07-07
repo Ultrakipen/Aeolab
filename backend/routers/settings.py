@@ -229,7 +229,22 @@ async def cancel_subscription(user: dict = Depends(get_current_user)):
     update_payload = {"status": "cancelled"}
     if refunded:
         update_payload["end_at"] = str(date.today())  # 환불 시 즉시 만료 — 기존처럼 잔여기간 유지 아님
-    await execute(supabase.table("subscriptions").update(update_payload).eq("user_id", user_id))
+    try:
+        await execute(supabase.table("subscriptions").update(update_payload).eq("user_id", user_id))
+    except Exception as e:
+        # 환불이 이미 처리된 뒤 이 DB 갱신이 실패하면 "환불은 됐는데 상태는 active로 남는" 불일치 발생 —
+        # money-moving 이벤트 직후이므로 silent pass 금지, 수동 확인 알림 필수
+        logger.error(f"해지/환불 후 DB 상태 갱신 실패 (user={user_id}, refunded={refunded}): {e}")
+        if refunded:
+            await send_operator_alert(
+                "환불 완료 후 DB 상태 갱신 실패 — 수동 확인 필요",
+                f"user_id={user_id}\nToss 환불은 이미 처리됨(amount={refund_amount}). "
+                f"subscriptions.status를 수동으로 cancelled 처리해야 함.\nerror={e}",
+            )
+            await send_slack_alert(
+                "환불 완료 후 DB 갱신 실패", f"user_id={user_id}, amount={refund_amount}", level="error"
+            )
+        raise HTTPException(status_code=500, detail="처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
     return {
         "status": "cancelled",
         "end_at": update_payload.get("end_at", sub.get("end_at")),
