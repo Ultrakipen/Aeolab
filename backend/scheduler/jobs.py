@@ -1206,84 +1206,117 @@ async def subscription_lifecycle_job():
         today = date.today()
 
         # 1. 7일 후 만료 예정 → 갱신 안내 알림
+        # 정확일치(.eq) 대신 2일 폭 윈도우 — 배치가 하루 못 돌아도 다음 실행에서 잡히도록 하는 안전마진
+        # (완전 개방형 .lte()는 안내가 매일 반복 발송되므로 사용하지 않음)
+        # subscriptions↔profiles FK 미등록 → embedded join(profiles(phone)) 불가, 매 실행 PGRST200으로
+        # 잡 전체가 죽던 버그(2026-07-07 발견, jobs.py:2064 send_trial_day5_reminder와 동일 원인) —
+        # user_id로 분리 조회 후 dict lookup 패턴으로 통일
         _exp_res = await _db(
             supabase.table("subscriptions")
-            .select("*, profiles(phone)")
+            .select("*")
             .eq("status", "active")
-            .eq("end_at", str(today + timedelta(days=7)))
+            .gte("end_at", str(today + timedelta(days=6)))
+            .lte("end_at", str(today + timedelta(days=7)))
         )
         expiring_soon = _exp_res.data or []
-        for sub in expiring_soon:
-            phone = (sub.get("profiles") or {}).get("phone")
-            if phone:
-                await notifier.send_expire_warning(phone, sub["plan"], 7)
 
-        # 2. 오늘 만료 → 갱신 시도 (토스 자동결제)
+        # 2. 오늘(또는 그 이전 — 배치 누락분 포함) 만료 → 갱신 시도 (토스 자동결제)
+        # .eq(today)였던 예전 코드는 하루라도 못 돌면 해당 행을 영구히 못 찾는 P0 버그였음(2026-07-07 발견)
+        # .lte()로 전환해도 갱신 성공/유예 전환 즉시 status가 바뀌므로 중복 처리 위험 없음
         _expired_res = await _db(
             supabase.table("subscriptions")
-            .select("*, profiles(phone)")
+            .select("*")
             .eq("status", "active")
-            .eq("end_at", str(today))
+            .lte("end_at", str(today))
         )
         expired_today = _expired_res.data or []
-        just_entered_grace_ids: set = set()
-        for sub in expired_today:
-            success = await retry_billing(sub)
-            if success:
-                new_end = today + timedelta(days=30)
-                await _db(
-                    supabase.table("subscriptions").update(
-                        {"end_at": str(new_end), "status": "active"}
-                    ).eq("id", sub["id"])
-                )
-                logger.info(f"Subscription renewed: {sub['id']}")
-            else:
-                await _db(
-                    supabase.table("subscriptions").update(
-                        {"status": "grace_period", "grace_until": str(today + timedelta(days=3))}
-                    ).eq("id", sub["id"])
-                )
-                just_entered_grace_ids.add(sub["id"])
-                phone = (sub.get("profiles") or {}).get("phone")
-                if phone:
-                    await notifier.send_payment_failed(phone)
 
         # 3. 유예 기간 중 매일 1회 재시도 — 오늘 막 §2에서 진입한 건은 방금 시도했으므로 제외
         # (카드 일시 오류로 실패한 경우 3일 내내 재시도 없이 정지만 기다리던 버그 수정, 2026-07-06)
         _grace_res = await _db(
             supabase.table("subscriptions")
-            .select("*, profiles(phone)")
+            .select("*")
             .eq("status", "grace_period")
         )
-        grace_subs = [s for s in (_grace_res.data or []) if s["id"] not in just_entered_grace_ids]
-        for sub in grace_subs:
-            phone = (sub.get("profiles") or {}).get("phone")
-            success = await retry_billing(sub)
-            if success:
-                new_end = today + timedelta(days=30)
-                await _db(
-                    supabase.table("subscriptions").update(
-                        {"end_at": str(new_end), "status": "active", "grace_until": None}
-                    ).eq("id", sub["id"])
-                )
-                if phone:
-                    await notifier.send_payment_recovered(phone)
-                logger.info(f"Subscription recovered during grace period: {sub['id']}")
-                continue
+        grace_subs_all = _grace_res.data or []
 
-            grace_until_str = sub.get("grace_until")
-            if grace_until_str and str(grace_until_str) <= str(today):
-                # 유예 기간 만료 — 정지
-                await _db(
-                    supabase.table("subscriptions").update(
-                        {"status": "suspended"}
-                    ).eq("id", sub["id"])
-                )
-                if phone:
-                    await notifier.send_suspended(phone)
-                logger.info(f"Subscription suspended: {sub['id']}")
-            else:
-                logger.info(f"Subscription still in grace period, retry failed: {sub['id']}")
+        # profiles.phone 일괄 조회 (subscriptions↔profiles FK 미등록이라 IN 쿼리로 분리)
+        all_user_ids = list({
+            s["user_id"] for s in (expiring_soon + expired_today + grace_subs_all) if s.get("user_id")
+        })
+        phone_by_user: dict = {}
+        if all_user_ids:
+            _phone_res = await _db(
+                supabase.table("profiles").select("user_id, phone").in_("user_id", all_user_ids)
+            )
+            for p in (_phone_res.data or []):
+                if p.get("phone"):
+                    phone_by_user[p["user_id"]] = p["phone"]
+
+        for sub in expiring_soon:
+            phone = phone_by_user.get(sub.get("user_id"))
+            if phone:
+                await notifier.send_expire_warning(phone, sub["plan"], 7)
+
+        just_entered_grace_ids: set = set()
+        for sub in expired_today:
+            try:
+                success = await retry_billing(sub)
+                renew_days = 365 if sub.get("billing_cycle") == "yearly" else 30
+                if success:
+                    new_end = today + timedelta(days=renew_days)
+                    await _db(
+                        supabase.table("subscriptions").update(
+                            {"end_at": str(new_end), "status": "active"}
+                        ).eq("id", sub["id"])
+                    )
+                    logger.info(f"Subscription renewed: {sub['id']}")
+                else:
+                    await _db(
+                        supabase.table("subscriptions").update(
+                            {"status": "grace_period", "grace_until": str(today + timedelta(days=3))}
+                        ).eq("id", sub["id"])
+                    )
+                    just_entered_grace_ids.add(sub["id"])
+                    phone = phone_by_user.get(sub.get("user_id"))
+                    if phone:
+                        await notifier.send_payment_failed(phone)
+            except Exception as e:
+                logger.error(f"Subscription renewal processing failed for {sub.get('id')}: {e}")
+
+        grace_subs = [s for s in grace_subs_all if s["id"] not in just_entered_grace_ids]
+        for sub in grace_subs:
+            try:
+                phone = phone_by_user.get(sub.get("user_id"))
+                success = await retry_billing(sub)
+                if success:
+                    renew_days = 365 if sub.get("billing_cycle") == "yearly" else 30
+                    new_end = today + timedelta(days=renew_days)
+                    await _db(
+                        supabase.table("subscriptions").update(
+                            {"end_at": str(new_end), "status": "active", "grace_until": None}
+                        ).eq("id", sub["id"])
+                    )
+                    if phone:
+                        await notifier.send_payment_recovered(phone)
+                    logger.info(f"Subscription recovered during grace period: {sub['id']}")
+                    continue
+
+                grace_until_str = sub.get("grace_until")
+                if grace_until_str and str(grace_until_str) <= str(today):
+                    # 유예 기간 만료 — 정지
+                    await _db(
+                        supabase.table("subscriptions").update(
+                            {"status": "suspended"}
+                        ).eq("id", sub["id"])
+                    )
+                    if phone:
+                        await notifier.send_suspended(phone)
+                    logger.info(f"Subscription suspended: {sub['id']}")
+                else:
+                    logger.info(f"Subscription still in grace period, retry failed: {sub['id']}")
+            except Exception as e:
+                logger.error(f"Grace period processing failed for {sub.get('id')}: {e}")
 
     except Exception as e:
         logger.error(f"subscription_lifecycle_job failed: {e}")

@@ -153,7 +153,7 @@ async def issue_billing(body: BillingIssueRequest):
     # 3. 구독 저장
     is_yearly_issue = body.amount in YEARLY_AMOUNTS
     billing_cycle_issue = "yearly" if is_yearly_issue else "monthly"
-    end_at_issue = (datetime.now() + timedelta(days=365 if is_yearly_issue else 30)).isoformat()
+    end_at_issue = (datetime.now() + timedelta(days=365 if is_yearly_issue else 30)).date().isoformat()
 
     supabase = get_client()
     sub_payload = {
@@ -166,6 +166,7 @@ async def issue_billing(body: BillingIssueRequest):
         "billing_key": billing_key,
         "customer_key": body.customerKey,
         "first_payment_amount": body.amount,
+        "first_payment_key": data.get("paymentKey"),
     }
     if discount_until:
         sub_payload["first_month_discount_until"] = discount_until

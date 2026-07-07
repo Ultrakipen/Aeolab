@@ -18,6 +18,14 @@ PLAN_PRICES: dict[int, str] = {
 
 YEARLY_AMOUNTS: set[int] = {99000, 189000, 499000, 129000}
 
+# 연간 구독 갱신 청구액 — plan→연간금액 (retry_billing()이 billing_cycle 반영에 사용, enterprise는 연간가 없음)
+YEARLY_PRICE_MAP: dict[str, int] = {
+    "basic":   99000,
+    "pro":     189000,
+    "biz":     499000,
+    "startup": 129000,
+}
+
 PLAN_PRICE_MAP: dict[str, int] = {
     "basic":      9900,
     "pro":        18900,

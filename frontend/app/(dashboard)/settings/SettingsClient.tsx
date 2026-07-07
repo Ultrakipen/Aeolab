@@ -48,6 +48,7 @@ interface Props {
   subscriptionDays?: number;
   competitorCount?: number;
   actionCount?: number;
+  refundEligible?: boolean;
 }
 
 export function SettingsClient({
@@ -59,9 +60,11 @@ export function SettingsClient({
   subscriptionDays = 0,
   competitorCount = 0,
   actionCount = 0,
+  refundEligible = false,
 }: Props) {
   const [cancelling, setCancelling] = useState(false);
   const [cancelled, setCancelled] = useState(false);
+  const [refunded, setRefunded] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState("");
@@ -160,7 +163,9 @@ export function SettingsClient({
       <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-4">
         <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
         <p className="text-sm text-emerald-800">
-          구독 해지가 완료되었습니다. 현재 기간 만료일까지 서비스를 계속 이용할 수 있습니다.
+          {refunded
+            ? "구독 해지 및 전액 환불이 완료되었습니다. 영업일 기준 3~5일 내 결제 수단으로 환불됩니다."
+            : "구독 해지가 완료되었습니다. 현재 기간 만료일까지 서비스를 계속 이용할 수 있습니다."}
         </p>
       </div>
     );
@@ -314,6 +319,15 @@ export function SettingsClient({
               </button>
             </div>
 
+            {/* 7일 청약철회 자동환불 자격 안내 */}
+            {refundEligible && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-4">
+                <p className="text-sm text-emerald-800 font-medium">
+                  구독 시작 7일 이내 + 서비스 미이용 상태로 확인되어, 해지 시 결제한 금액이 전액 환불됩니다.
+                </p>
+              </div>
+            )}
+
             {/* 잃게 되는 데이터 요약 */}
             <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-4 mb-4 space-y-2">
               <div className="flex items-center gap-2 text-sm text-red-800">
@@ -393,6 +407,8 @@ export function SettingsClient({
                       headers: { Authorization: `Bearer ${token}` },
                     });
                     if (res.ok) {
+                      const body = await res.json().catch(() => ({}));
+                      setRefunded(Boolean(body?.refunded));
                       setCancelled(true);
                       setShowCancelModal(false);
                     } else {

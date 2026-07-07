@@ -2,7 +2,7 @@ import httpx
 import os
 import logging
 from datetime import date
-from config.prices import PLAN_PRICE_MAP
+from config.prices import PLAN_PRICE_MAP, YEARLY_PRICE_MAP
 
 logger = logging.getLogger("aeolab")
 
@@ -29,7 +29,11 @@ async def retry_billing(subscription: dict) -> bool:
         logger.warning(f"No billing_key for subscription {subscription.get('id')}")
         return False
 
-    amount = PLAN_PRICE_MAP.get(subscription.get("plan", "basic"), 9900)
+    plan = subscription.get("plan", "basic")
+    if subscription.get("billing_cycle") == "yearly":
+        amount = YEARLY_PRICE_MAP.get(plan, PLAN_PRICE_MAP.get(plan, 9900))
+    else:
+        amount = PLAN_PRICE_MAP.get(plan, 9900)
 
     try:
         async with httpx.AsyncClient(timeout=30) as c:

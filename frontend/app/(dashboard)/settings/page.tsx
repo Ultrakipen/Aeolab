@@ -81,6 +81,17 @@ export default async function SettingsPage({
       .maybeSingle(),
   ]);
 
+  // 7일 청약철회 자동환불 자격 힌트 (해지 모달 안내용 — 최종 판정은 백엔드 /settings/cancel이 수행)
+  const bizIdsForRefundCheck = (businesses ?? []).map((b) => b.id);
+  const [{ count: scanCountForRefund }, { count: guideCountForRefund }] = bizIdsForRefundCheck.length
+    ? await Promise.all([
+        supabase.from("scan_results").select("id", { count: "exact", head: true }).in("business_id", bizIdsForRefundCheck),
+        supabase.from("guides").select("id", { count: "exact", head: true }).in("business_id", bizIdsForRefundCheck),
+      ])
+    : [{ count: 0 }, { count: 0 }];
+  const withinSevenDays = !!sub?.start_at && (Date.now() - new Date(sub.start_at).getTime()) <= 7 * 24 * 60 * 60 * 1000;
+  const refundEligible = !isAdminUser && withinSevenDays && (scanCountForRefund ?? 0) === 0 && (guideCountForRefund ?? 0) === 0;
+
   // 해지 모달 데이터: 경과일, 경쟁사 수, 행동 수
   const primaryBizId = businesses?.[0]?.id ?? null;
   const [{ count: competitorCount }, { count: actionCount }] = primaryBizId
@@ -291,6 +302,7 @@ export default async function SettingsPage({
                   subscriptionDays={subscriptionDays}
                   competitorCount={competitorCount ?? 0}
                   actionCount={actionCount ?? 0}
+                  refundEligible={refundEligible}
                 />
               </div>
             </section>

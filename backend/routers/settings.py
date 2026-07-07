@@ -2,16 +2,54 @@ import os
 import asyncio
 import logging
 import httpx
+from datetime import date, datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from db.supabase_client import get_client, execute
 from supabase import create_client
 from middleware.plan_gate import get_current_user
+from services.email_sender import send_operator_alert
+from utils.alert import send_slack_alert
 
 logger = logging.getLogger("aeolab")
 
 router = APIRouter()
+
+
+async def _check_refund_eligibility(user_id: str, supabase, start_at, first_payment_key) -> bool:
+    """7일 청약철회 자동환불 자격 확인 — terms/page.tsx 제5조: 구독 시작일로부터 7일 이내
+    + 서비스 미이용(스캔·가이드 생성 등). 판단은 보수적으로(애매하면 환불 거부) — 활성 여부와
+    무관하게 사용자 소유의 모든 사업장을 대상으로 스캔·가이드 이력을 확인한다."""
+    if not first_payment_key or not start_at:
+        return False
+    try:
+        start_dt = datetime.fromisoformat(str(start_at).replace("Z", "+00:00"))
+        if start_dt.tzinfo is None:
+            start_dt = start_dt.replace(tzinfo=timezone.utc)
+    except ValueError:
+        return False
+    if datetime.now(timezone.utc) - start_dt > timedelta(days=7):
+        return False
+
+    biz_res = await execute(supabase.table("businesses").select("id").eq("user_id", user_id))
+    biz_ids = [b["id"] for b in (biz_res.data or [])]
+    if not biz_ids:
+        return True  # 사업장이 없으면 스캔·가이드 생성 자체가 불가능 → 미이용
+
+    scan_res = await execute(
+        supabase.table("scan_results").select("id", count="exact").in_("business_id", biz_ids).limit(1)
+    )
+    if (scan_res.count or 0) > 0:
+        return False
+
+    guide_res = await execute(
+        supabase.table("guides").select("id", count="exact").in_("business_id", biz_ids).limit(1)
+    )
+    if (guide_res.count or 0) > 0:
+        return False
+
+    return True
 
 
 class ProfileUpdate(BaseModel):
@@ -41,11 +79,18 @@ async def get_my_settings(user: dict = Depends(get_current_user)):
     sub = (
         await execute(
             supabase.table("subscriptions")
-            .select("plan, status, start_at, end_at, grace_until")
+            .select("plan, status, start_at, end_at, grace_until, first_payment_key")
             .eq("user_id", user_id)
             .maybe_single()
         )
     ).data
+
+    # 7일 청약철회 자동환불 자격 (해지 모달에서 안내 문구 분기용)
+    refund_eligible = False
+    if sub and sub.get("status") in ("active", "grace_period"):
+        refund_eligible = await _check_refund_eligibility(
+            user_id, supabase, sub.get("start_at"), sub.get("first_payment_key")
+        )
 
     # 이번 달 스캔 횟수 (N+1 제거: 단일 IN 쿼리)
     from datetime import datetime
@@ -71,9 +116,12 @@ async def get_my_settings(user: dict = Depends(get_current_user)):
         )
     ).data
 
+    sub_public = {k: v for k, v in sub.items() if k != "first_payment_key"} if sub else {"plan": "free", "status": "inactive"}
+
     return {
         "user_id": user_id,
-        "subscription": sub or {"plan": "free", "status": "inactive"},
+        "subscription": sub_public,
+        "refund_eligible": refund_eligible,
         "businesses": businesses,
         "scan_count_this_month": scan_count,
         "profile": profile or {},
@@ -109,19 +157,55 @@ async def update_my_settings(body: ProfileUpdate, user: dict = Depends(get_curre
 
 @router.post("/cancel")
 async def cancel_subscription(user: dict = Depends(get_current_user)):
-    """구독 해지 요청 (end_at까지 서비스 유지, status→cancelled + 토스 빌링키 삭제)"""
+    """구독 해지 요청. 7일 청약철회 자격(구독 시작 7일 이내+미이용)이면 토스 결제취소로 즉시 전액환불,
+    아니면 기존처럼 end_at까지 서비스 유지 + status→cancelled + 토스 빌링키 삭제"""
     user_id = user["id"]
     supabase = get_client()
     sub = (
         await execute(
             supabase.table("subscriptions")
-            .select("status, end_at, billing_key")
+            .select("status, start_at, end_at, billing_key, first_payment_key, first_payment_amount")
             .eq("user_id", user_id)
             .maybe_single()
         )
     ).data
     if not sub or sub.get("status") not in ("active", "grace_period"):
         raise HTTPException(status_code=400, detail={"code": "NO_ACTIVE_SUBSCRIPTION"})
+
+    # 7일 청약철회 자동환불 판정 — terms/page.tsx 제5조 근거 (docs/subscription_lifecycle_inspection_v1.0.md §5/§6)
+    refunded = False
+    refund_amount = None
+    if await _check_refund_eligibility(user_id, supabase, sub.get("start_at"), sub.get("first_payment_key")):
+        secret_key = os.getenv("TOSS_SECRET_KEY", "")
+        try:
+            async with httpx.AsyncClient(timeout=15) as c:
+                cancel_resp = await c.post(
+                    f"https://api.tosspayments.com/v1/payments/{sub['first_payment_key']}/cancel",
+                    auth=(secret_key, ""),
+                    json={"cancelReason": "7일 이내 청약철회"},
+                )
+            if cancel_resp.status_code == 200:
+                refunded = True
+                refund_amount = sub.get("first_payment_amount")
+                logger.info(f"7일 청약철회 자동환불 성공 (user={user_id}, amount={refund_amount})")
+            else:
+                logger.error(
+                    f"7일 청약철회 자동환불 실패 (user={user_id}): status={cancel_resp.status_code} body={cancel_resp.text}"
+                )
+                await send_operator_alert(
+                    "7일 청약철회 자동환불 실패 — 수동 확인 필요",
+                    f"user_id={user_id}\nfirst_payment_key={sub['first_payment_key']}\n"
+                    f"status={cancel_resp.status_code}\nbody={cancel_resp.text}",
+                )
+                await send_slack_alert(
+                    "7일 청약철회 자동환불 실패", f"user_id={user_id}, status={cancel_resp.status_code}", level="error"
+                )
+        except Exception as e:
+            logger.error(f"7일 청약철회 자동환불 요청 오류 (user={user_id}): {e}")
+            await send_operator_alert(
+                "7일 청약철회 자동환불 오류 — 수동 확인 필요", f"user_id={user_id}\nerror={e}"
+            )
+            await send_slack_alert("7일 청약철회 자동환불 오류", f"user_id={user_id}, error={e}", level="error")
 
     # 토스 빌링키 삭제 (실패해도 DB는 취소 처리 — 자동결제 재시도 방지 목적이므로 best-effort)
     billing_key = sub.get("billing_key")
@@ -142,8 +226,16 @@ async def cancel_subscription(user: dict = Depends(get_current_user)):
         except Exception as e:
             logger.warning(f"토스 빌링키 삭제 요청 오류 (user={user_id}): {e}")
 
-    await execute(supabase.table("subscriptions").update({"status": "cancelled"}).eq("user_id", user_id))
-    return {"status": "cancelled", "end_at": sub.get("end_at")}
+    update_payload = {"status": "cancelled"}
+    if refunded:
+        update_payload["end_at"] = str(date.today())  # 환불 시 즉시 만료 — 기존처럼 잔여기간 유지 아님
+    await execute(supabase.table("subscriptions").update(update_payload).eq("user_id", user_id))
+    return {
+        "status": "cancelled",
+        "end_at": update_payload.get("end_at", sub.get("end_at")),
+        "refunded": refunded,
+        "refund_amount": refund_amount,
+    }
 
 
 class CardUpdateRequest(BaseModel):

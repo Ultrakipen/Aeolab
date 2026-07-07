@@ -2275,3 +2275,17 @@ ALTER TABLE guides DROP CONSTRAINT IF EXISTS guides_context_check;
 ALTER TABLE guides
   ADD CONSTRAINT guides_context_check
   CHECK (context IN ('location_based', 'non_location', 'faq_draft', 'crisis_reply'));
+
+-- ===========================================================
+-- 2026-07-07: 구독 갱신 정확성 수정 — end_at 날짜 단위 통일 + first_payment_key 추가
+-- 배경: 최초 발급 시 end_at이 시각 포함 isoformat()으로 저장되고, 갱신잡 조회는
+-- 날짜만(str(date))으로 정확일치 비교해 최초 구독의 자동갱신이 영구히 미감지되던 P0
+-- 과금오류 수정(docs/subscription_lifecycle_inspection_v1.0.md §6). 기존 행에 이미
+-- 시각 포함 end_at이 저장돼 있으므로 1회성 정규화 필요.
+-- first_payment_key: 7일 청약철회 자동환불 시 Toss 결제취소 API(POST /payments/{paymentKey}/cancel)
+-- 호출에 필요한 최초 결제 건의 paymentKey(billing_key와 다름 — billing_key는 정기결제용 토큰).
+-- ===========================================================
+UPDATE subscriptions SET end_at = end_at::date WHERE end_at IS NOT NULL;
+
+ALTER TABLE subscriptions
+  ADD COLUMN IF NOT EXISTS first_payment_key TEXT;
