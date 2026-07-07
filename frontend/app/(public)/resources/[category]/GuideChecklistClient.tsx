@@ -84,7 +84,7 @@ export default function GuideChecklistClient({ checklist }: Props) {
       {/* 완료 메시지 */}
       {doneCount === checklist.length && (
         <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-sm md:text-base text-green-800 font-medium text-center break-keep">
-          체크리스트를 모두 완료했습니다. AEOlab으로 실제 노출 점수를 확인해보세요.
+          체크리스트를 모두 완료했습니다. AEOlab으로 실제 노출 현황을 확인해보세요.
         </div>
       )}
 

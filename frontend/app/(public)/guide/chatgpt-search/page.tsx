@@ -196,7 +196,7 @@ export default function ChatGptSearchGuidePage() {
                 ChatGPT 모델 재학습 주기에 의존<br />
                 <strong>수개월~1년</strong> 이상 소요
               </p>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-sm text-gray-500 mt-2">
                 GPT-4.1-mini 학습 데이터 컷오프: 2024년 6월 기준
               </p>
             </div>
@@ -223,7 +223,7 @@ export default function ChatGptSearchGuidePage() {
             AEOlab에서 ChatGPT 소개글 자동 생성
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            ChatGPT·Gemini가 내 사업장을 언급하도록 FAQ 중심 소개글·Q&A를 30초 안에 자동 생성합니다. 구글 비즈니스 프로필·자체 웹사이트에 바로 활용하세요.
+            ChatGPT가 내 사업장을 언급하도록 FAQ 중심 소개글·Q&A를 30초 안에 자동 생성합니다. 구글 비즈니스 프로필·자체 웹사이트에 바로 활용하세요.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link

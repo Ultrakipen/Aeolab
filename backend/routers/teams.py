@@ -8,7 +8,7 @@ from middleware.plan_gate import get_current_user
 
 router = APIRouter()
 
-TEAM_LIMIT = {"biz": 5}
+TEAM_LIMIT = {"biz": 5, "enterprise": 20}
 
 
 class TeamInviteRequest(BaseModel):

@@ -832,7 +832,7 @@ export default function BlogScreenshotSection({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center h-32 text-sm text-gray-300">
+                    <div className="flex items-center justify-center h-32 text-sm text-gray-400">
                       캡처 없음
                     </div>
                   )}
@@ -875,7 +875,7 @@ export default function BlogScreenshotSection({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center h-32 text-sm text-gray-300">
+                    <div className="flex items-center justify-center h-32 text-sm text-gray-400">
                       {shot.baseline ? "아직 변화 없음 (스캔 후 업데이트)" : "캡처 없음"}
                     </div>
                   )}

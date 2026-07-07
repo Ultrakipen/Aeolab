@@ -138,7 +138,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
     top3: [
       {
         title: "시술 전후 사진",
-        desc: "AI탭 검색 및 향후 AI 브리핑 확대 시 '헤어샵 추천' 쿼리에서 시술 전후 사진이 풍부한 업소가 인용되기 유리합니다.",
+        desc: "네이버 AI탭 검색에서 '헤어샵 추천' 쿼리에 인용되기 유리하며, 향후 플레이스형 AI 브리핑 확대 시에도 시술 전후 사진이 풍부한 업소가 유리합니다.",
       },
       {
         title: "가격 정보 투명화",
@@ -171,7 +171,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
     top3: [
       {
         title: "디자인 포트폴리오 사진",
-        desc: "'젤네일 예쁜 곳' 등 비주얼 쿼리에서 AI탭 검색 및 향후 AI 브리핑 확대 시 사진이 많은 업소가 인용되기 유리합니다.",
+        desc: "네이버 AI탭 검색에서 '젤네일 예쁜 곳' 등 비주얼 쿼리에 인용되기 유리하며, 향후 플레이스형 AI 브리핑 확대 시에도 사진이 많은 업소가 유리합니다.",
       },
       {
         title: "시술 소요 시간 안내",
@@ -304,7 +304,7 @@ const GUIDE_DATA: Record<string, GuideData> = {
     top3: [
       {
         title: "전후 비교 사진",
-        desc: "AI탭 검색 및 향후 AI 브리핑 확대 시 '우리 강아지 미용 잘하는 곳' 쿼리에서 미용 전후 사진이 있는 업소가 인용되기 유리합니다.",
+        desc: "네이버 AI탭 검색에서 '우리 강아지 미용 잘하는 곳' 쿼리에 인용되기 유리하며, 향후 플레이스형 AI 브리핑 확대 시에도 미용 전후 사진이 있는 업소가 유리합니다.",
       },
       {
         title: "요금표 투명화",
@@ -499,7 +499,7 @@ export default async function CategoryGuidePage({
           <div className="bg-blue-50 rounded-xl p-6 md:p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <div className="font-bold text-gray-900 text-base md:text-lg break-keep mb-1">
-                체크리스트 완료 후, 실제 점수를 확인하세요
+                체크리스트 완료 후, 실제 노출 현황을 확인하세요
               </div>
               <p className="text-sm md:text-base text-gray-600 break-keep">
                 AEOlab이 내 {guide.label} 사업장을 직접 분석해 부족한 항목과 개선 우선순위를 알려드립니다.

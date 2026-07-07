@@ -677,8 +677,8 @@ export default function DemoPage() {
                   {CATEGORIES.find(c => c.value === category)?.label} 업종 — 네이버 AI 브리핑 확대 예정
                 </p>
                 <p className="text-sm md:text-base text-blue-800 leading-relaxed">
-                  2026-06-25 전체 네이버 사용자 정식 출시됐습니다.
-                  지금 준비해두면 확대 시 바로 유리해집니다. 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출도 지금 가능합니다.
+                  네이버 AI탭은 2026-06-25 전체 사용자 대상 정식 출시됐습니다(업종 제한 없음).
+                  지금 준비해두면 &apos;플레이스형&apos; AI 브리핑 확대 시 바로 유리해집니다. 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출도 지금 가능합니다.
                 </p>
               </div>
             </div>

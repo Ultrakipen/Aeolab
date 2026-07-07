@@ -210,7 +210,7 @@ function TicketDetailInner() {
                     : "bg-white border-gray-100 shadow-sm",
                 ].join(" ")}
               >
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <span className={`text-sm font-semibold ${reply.author_type === "admin" ? "text-blue-700" : "text-gray-700"}`}>
                     {reply.author_type === "admin" ? "운영자" : "나"}
                   </span>

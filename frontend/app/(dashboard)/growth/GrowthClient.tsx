@@ -401,7 +401,7 @@ export default function GrowthClient({
                     domain={[0, 100]}
                     ticks={[0, 30, 55, 75, 100]}
                     tickFormatter={(v: number) => v === 75 ? '양호' : v === 55 ? '보통' : v === 30 ? '주의 필요' : ''}
-                    tick={{ fontSize: 10, fill: "#9ca3af" }}
+                    tick={{ fontSize: 12, fill: "#9ca3af" }}
                     tickLine={false}
                     axisLine={false}
                   />
@@ -593,7 +593,7 @@ export default function GrowthClient({
           <div className="space-y-4">
             {/* 폴백 배지 */}
             {benchmarkData.fallbackLabel && (
-              <div className="inline-flex items-center gap-1 bg-gray-100 text-gray-500 text-xs px-2.5 py-1 rounded-full">
+              <div className="inline-flex items-center gap-1 bg-gray-100 text-gray-500 text-sm px-2.5 py-1 rounded-full">
                 참고: {benchmarkData.fallbackLabel}
               </div>
             )}
@@ -700,11 +700,7 @@ export default function GrowthClient({
               {lastMonthBest !== null && (
                 <>
                   <span className="text-2xl text-gray-300 hidden sm:block">→</span>
-                  <div className="bg-gray-50 border border-gray-100 rounded-xl px-5 py-4 flex-1 text-center sm:hidden">
-                    <p className="text-sm text-gray-400 font-medium mb-1">지난달 최고 상태</p>
-                    <p className="text-lg font-bold text-gray-500">{getScoreTextLabel(lastMonthBest)}</p>
-                  </div>
-                  <div className="hidden sm:flex bg-gray-50 border border-gray-100 rounded-xl px-5 py-4 flex-1 text-center flex-col">
+                  <div className="bg-gray-50 border border-gray-100 rounded-xl px-5 py-4 flex-1 text-center">
                     <p className="text-sm text-gray-400 font-medium mb-1">지난달 최고 상태</p>
                     <p className="text-lg font-bold text-gray-500">{getScoreTextLabel(lastMonthBest)}</p>
                   </div>

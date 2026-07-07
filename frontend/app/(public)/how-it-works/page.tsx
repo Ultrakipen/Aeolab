@@ -293,28 +293,28 @@ export default function HowItWorksPage() {
             </p>
             <div className="space-y-2.5">
               <div className="flex items-start gap-3 bg-white rounded-lg p-3 border border-blue-100">
-                <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-green-500 text-white text-xs font-bold whitespace-nowrap">수일~1주</span>
+                <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-green-500 text-white text-sm font-bold whitespace-nowrap">수일~1주</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">네이버 플레이스 탭 상위 노출</p>
                   <p className="text-sm text-gray-600 leading-relaxed break-keep">소개글 키워드·리뷰 수·영수증 리뷰·사진·소식 게시 최적화 → 플레이스 탭 순위 빠르게 개선. 소식·사진은 즉시 게시되며, 순위 영향은 수일~1주 내 반영됩니다. AI 브리핑과 무관하게 네이버에서 먼저 발견됩니다.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 bg-white rounded-lg p-3 border border-blue-100">
-                <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-blue-500 text-white text-xs font-bold whitespace-nowrap">2~4주</span>
+                <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-blue-500 text-white text-sm font-bold whitespace-nowrap">2~4주</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">네이버 통합검색 블로그 영역 상위 노출</p>
                   <p className="text-sm text-gray-600 leading-relaxed break-keep">D.I.A. 기준 블로그 초안 자동 생성 + 키워드 갭 분석 → 네이버 통합검색 블로그 영역(스마트블록) 상위 노출 가능성 향상.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 bg-white rounded-lg p-3 border border-blue-100">
-                <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-purple-500 text-white text-xs font-bold whitespace-nowrap">수주</span>
+                <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-purple-500 text-white text-sm font-bold whitespace-nowrap">수주</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">Gemini·Google AI Overview 노출</p>
                   <p className="text-sm text-gray-600 leading-relaxed break-keep">구글 비즈니스 프로필 완성 + JSON-LD 구조화 데이터 → 구글 생태계 AI 노출 개선 (구글 실시간 검색 기준). ※ AEOlab Gemini 스캐너 점수는 학습 데이터 기반으로 수개월 이상 소요됩니다.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 bg-white rounded-lg p-3 border border-blue-100">
-                <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-orange-400 text-white text-xs font-bold whitespace-nowrap">장기</span>
+                <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded bg-orange-400 text-white text-sm font-bold whitespace-nowrap">장기</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">ChatGPT 학습 데이터 인지도 축적</p>
                   <p className="text-sm text-gray-600 leading-relaxed break-keep">Bing 인덱싱 플랫폼 등록·언론 노출 누적 → 수개월~1년 후 ChatGPT 학습 데이터 반영.</p>
@@ -566,7 +566,7 @@ export default function HowItWorksPage() {
           <div className="rounded-xl border border-green-200 bg-green-50 p-4 md:p-5 mb-4">
             <p className="text-sm font-bold text-green-800 mb-1">2026-06-25 정식 출시</p>
             <p className="text-sm md:text-base text-gray-700 leading-relaxed break-keep">
-              2026-04-27 베타 출시된 네이버 AI탭은 AI 브리핑과 별개 경로입니다.
+              네이버 AI탭은 AI 브리핑과 별개 경로입니다.
               업종 제한 발표가 없어 장소 기반 모든 업종이 플레이스 에이전트를 통해 노출될 수 있습니다.
               2026-06-25 전체 네이버 사용자 정식 출시됐습니다 (네이버 공식).
             </p>
@@ -582,7 +582,7 @@ export default function HowItWorksPage() {
                 </div>
                 <div className="flex gap-2">
                   <span className="shrink-0 font-semibold text-blue-600">AI탭</span>
-                  <span>2026-04-27 베타 출시 · 2026-06-25 정식 출시 · 업종 제한 발표 없음</span>
+                  <span>2026-06-25 정식 출시 · 업종 제한 발표 없음</span>
                 </div>
               </div>
             </div>
@@ -645,7 +645,7 @@ export default function HowItWorksPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">※ 이 표는 키워드 순위 측정 주기입니다. Gemini·ChatGPT·네이버 AI 자동 스캔 주기와 별도입니다 (AI 스캔: Basic·창업패키지 주 1회, Pro 주 3회, Biz 매일 — 아래 요금제표 참조).</p>
+              <p className="text-sm text-gray-400 mt-1.5 leading-relaxed">※ 이 표는 키워드 순위 측정 주기입니다. Gemini·ChatGPT·네이버 AI 자동 스캔 주기와 별도입니다 (AI 스캔: Basic·창업패키지 주 1회, Pro 주 3회, Biz 매일 — 아래 요금제표 참조).</p>
             </div>
 
             {/* 2. 키워드 자동 추천 */}
@@ -688,7 +688,7 @@ export default function HowItWorksPage() {
                 <span className="px-3 py-1 rounded-full bg-green-100 text-green-700">Biz: 60건/월*</span>
                 <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">Enterprise: 무제한</span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">* 소개글 AI 생성과 합산 한도</p>
+              <p className="text-sm text-gray-400 mt-1">* 소개글 AI 생성과 합산 한도</p>
             </div>
 
             {/* 4. 블로그 콘텐츠 품질 추정 */}
@@ -818,8 +818,8 @@ export default function HowItWorksPage() {
               일반 공개 여부는 <strong>사업주가 스마트플레이스에서 직접 선택</strong>합니다.
             </li>
             <li>
-              <strong>네이버 통합검색 별도 &lsquo;AI 탭&rsquo; 2026년 4월 베타 공개</strong> — 연속적 대화형 검색이 별도 탭으로 분리되어 AI 브리핑 노출 영역이 더 커집니다.
-              2026-06-25 전체 네이버 사용자 정식 출시됐습니다 (네이버 공식).
+              <strong>네이버 통합검색 별도 &lsquo;AI 탭&rsquo; — 2026-06-25 정식 출시</strong> — 연속적 대화형 검색이 별도 탭으로 분리되어 AI 브리핑 노출 영역이 더 커집니다.
+              전체 네이버 사용자 대상 정식 출시 완료 (네이버 공식).
             </li>
             <li>
               <strong>인용 콘텐츠 배지</strong> — AI 브리핑에 인용된 블로그·콘텐츠에 배지가 표시되어
@@ -859,7 +859,7 @@ export default function HowItWorksPage() {
                 <tr className="border-b border-gray-100"><td className="py-2.5 px-3">무료 진단(1회)</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
                 <tr className="border-b border-gray-100"><td className="py-2.5 px-3">AI 자동 스캔 (Gemini·ChatGPT·네이버)</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 3회</td><td className="text-center py-2.5 text-sm">매일</td></tr>
                 <tr className="border-b border-gray-100">
-                  <td className="py-2.5 px-3">AI 콘텐츠 생성<br /><span className="text-xs text-gray-400">소개글+채팅방메뉴 합산</span></td>
+                  <td className="py-2.5 px-3">AI 콘텐츠 생성<br /><span className="text-sm text-gray-400">소개글+채팅방메뉴 합산</span></td>
                   <td className="text-center py-2.5 text-gray-400">—</td>
                   <td className="text-center py-2.5 text-sm">월 5건</td>
                   <td className="text-center py-2.5 text-sm">월 20건</td>

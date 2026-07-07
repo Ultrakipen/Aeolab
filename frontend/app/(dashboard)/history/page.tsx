@@ -160,7 +160,7 @@ export default async function HistoryPage() {
       <div className="space-y-4">
         {/* 최신 상태 요약 카드 */}
         {scores.length >= 2 && (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
               <p className="text-sm text-gray-500 mb-2 font-medium">현재 상태</p>
               <p className={`text-base md:text-lg font-bold ${currentVal >= 75 ? 'text-emerald-600' : currentVal >= 55 ? 'text-blue-600' : currentVal >= 30 ? 'text-amber-600' : 'text-gray-400'}`}>
@@ -200,7 +200,7 @@ export default async function HistoryPage() {
           {/* 점수 계산 설명 */}
           <div className="px-4 md:px-6 py-2 bg-gray-50 border-b border-gray-100">
             <p className="text-sm text-gray-500">
-              통합 점수 = 네이버 AI 점수 × 업종 비율 + 글로벌 AI 점수 × 비율로 계산됩니다
+              통합 점수 = 네이버 AI 점수와 글로벌 AI 점수를 업종별 비율로 가중 합산해 산출됩니다
             </p>
             <p className="text-sm text-gray-400 mt-0.5">
               측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다

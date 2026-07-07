@@ -267,8 +267,8 @@ function InquirySection({
       {/* 신버전 1:1 문의 안내 */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-blue-800">더 빠른 1:1 문의를 원하시면 →</p>
-          <p className="text-sm text-blue-600 mt-0.5">카테고리 선택·상태 추적·추가 코멘트가 가능한 신규 문의 시스템을 이용해 보세요.</p>
+          <p className="text-sm font-semibold text-blue-800">카테고리별 문의·상태 추적이 필요하시면 →</p>
+          <p className="text-sm text-blue-600 mt-0.5">카테고리 선택·답변 상태 확인·추가 코멘트 기능이 있는 1:1 문의 시스템을 이용해 보세요.</p>
         </div>
         <a
           href="/support/tickets/new"
