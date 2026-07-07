@@ -82,7 +82,11 @@ export default async function SettingsPage({
   ]);
 
   // 7일 청약철회 자동환불 자격 힌트 (해지 모달 안내용 — 최종 판정은 백엔드 /settings/cancel이 수행)
-  const bizIdsForRefundCheck = (businesses ?? []).map((b) => b.id);
+  // 백엔드 _check_refund_eligibility()와 동일하게 is_active 필터 없이 전체 사업장 기준으로 확인 —
+  // active만 보면 "스캔 이력 있는 사업장을 비활성화한 사용자"에게 실제로는 거부될 환불을
+  // 잘못 약속하는 배너를 보여주게 됨(자기점검 중 발견해 수정)
+  const { data: allBizForRefund } = await supabase.from("businesses").select("id").eq("user_id", user.id);
+  const bizIdsForRefundCheck = (allBizForRefund ?? []).map((b) => b.id);
   const [{ count: scanCountForRefund }, { count: guideCountForRefund }] = bizIdsForRefundCheck.length
     ? await Promise.all([
         supabase.from("scan_results").select("id", { count: "exact", head: true }).in("business_id", bizIdsForRefundCheck),
