@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
+import { trackDetailsToggle } from "@/lib/analytics";
 
 interface Props {
   id?: string;
@@ -45,7 +46,11 @@ export default function CollapseSectionWrapper({
       highlight ? "border-green-200 shadow-md" : "border-gray-200"
     }`}>
       <button
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={() => setIsOpen((v) => {
+          const next = !v;
+          trackDetailsToggle(`dashboard_${id ?? title}`, next);
+          return next;
+        })}
         className={`w-full px-4 py-3.5 flex items-center justify-between text-left transition-colors ${
           highlight ? "hover:bg-green-50/50" : "hover:bg-gray-50"
         }`}
