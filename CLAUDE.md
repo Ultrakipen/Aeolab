@@ -166,7 +166,7 @@
 | **`docs/nine_pages_measurement_inspection_v1.0.md`** ⭐ | **9개 페이지(경쟁사 관리·변화 기록·성장 리포트·개선 가이드·소개글 콘텐츠·블로그 진단·리뷰 답변·AI 광고 대비·창업 시장 분석) 실측 점검 작업 문서 — 2단 레이어(프론트 UI 하드코딩 + 백엔드 측정 파이프라인 무결성) 방법론, 페이지·컴포넌트·API 매핑, 검증 절차 (2026-07-02)** |
 | **`docs/blog_analysis_improvement_v2.0.md`** ⭐ | **블로그 관리 페이지 개선 v2.0 — v1.0(4건) 완료 확인 + SearchAd 검색량 연동(1순위, 구현 스펙 포함) + 후순위 3건(경쟁사 구조 비교·NLP 품질 채점·포스트별 성과 연결, 트리거 조건 명시). 오판 검증(근거+반증) 포함 (2026-07-06)** |
 | `docs/five_pages_and_action_history_handoff_v1.0.md` | 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠·변화기록(2차) 점검 + §3 잔여(falsy-zero 스윕·리뷰답변/AI광고대비/창업분석) 전체 완료(git `71707d4`~`963228c`). `nine_pages_measurement_inspection_v1.0.md` 9개 영역 전체 완료 — 트리거는 완료 이력 확인용만 (2026-07-06) |
-| **`docs/subscription_lifecycle_inspection_v1.0.md`** ⭐ | **구독 생애주기(갱신·카드변경·해지) 점검 — 유예기간재시도·해지즉시강등·정지버튼노출·거짓삭제안내 4건 배포완료(git `df4f55f`~`3ee38fb`). §5 미해결: 7일 청약철회 전액환불 백엔드 미구현, 사용자 결정 대기 (2026-07-07)** |
+| **`docs/subscription_lifecycle_inspection_v1.0.md`** ⭐ | **구독 생애주기(갱신·카드변경·해지) 점검 — §1~4 배포완료(git `df4f55f`~`3ee38fb`). §6 재점검(2026-07-07): 최초 구독 자동갱신 영구 미감지 **P0**(과금오류) + 연간구독 오청구 P1 + 구조적 정확일치매칭 취약점 발견, 미구현. §5 미해결: 7일 환불 자동화 여부 사용자 결정 대기** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
@@ -175,7 +175,8 @@
 > **정보형 캐비엇 재점검**: `docs/naver_briefing_infotype_caveat_standard_v1.0.md 기준으로 정보형 캐비엇 재점검 진행`
 > **9개 페이지 실측 점검**: `docs/nine_pages_measurement_inspection_v1.0.md 기준으로 실측 점검 진행`
 > **블로그 관리 페이지 검색량 연동**: `docs/blog_analysis_improvement_v2.0.md 기준으로 1순위(검색량 연동)부터 진행`
-> **구독 생애주기 점검 이어가기**: `docs/subscription_lifecycle_inspection_v1.0.md 기준으로 §5(7일 환불) 결정하고 이어서 진행`
+> **구독 갱신·과금 정확성 수정**: `docs/subscription_lifecycle_inspection_v1.0.md 기준으로 §6의 1차 배포 묶음(P0+P1)부터 진행`
+> **7일 환불 결정** (별도 트랙): `docs/subscription_lifecycle_inspection_v1.0.md 기준으로 §5(7일 환불) 결정하고 이어서 진행`
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
@@ -672,12 +673,15 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
 - **2026-07-06 블로그 진단 §2-A**: RSS 부분실패 DB훼손 P0 + P1/P2 8건 수정, 페이지 간결화(-56%). git `31af359`~`99e2c34`. 상세: 메모리 `project_blog_analysis_v2_reaudit_2026_07_06`.
-- **2026-07-06 5개 페이지 + 변화기록 재검증**: 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠 P1 4건+P2 7건(`71707d4`) + 변화기록 재검증 3건(`b386cb5`). 잔여: `docs/five_pages_and_action_history_handoff_v1.0.md`.
-- **2026-07-07 구독 생애주기 점검**: 유예기간재시도·해지즉시강등·정지버튼노출·거짓삭제안내 4건 배포(`df4f55f`~`3ee38fb`). **미해결**: 7일 청약철회 환불 백엔드 미구현 — `docs/subscription_lifecycle_inspection_v1.0.md` §5.
+- **2026-07-06 5개 페이지 + 변화기록 재검증**: 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠 P1 4건+P2 7건(`71707d4`) + 변화기록 재검증 3건(`b386cb5`). `nine_pages_measurement_inspection_v1.0.md` 9개 영역 전체 완료.
+- **2026-07-07 구독 생애주기 점검 + §6 재점검**: 4건 배포(`df4f55f`~`3ee38fb`) + 구독 자동갱신 영구미감지 **P0 과금오류** 발견(미구현) — 상세·계획은 §"개발 진행 대기" + `docs/subscription_lifecycle_inspection_v1.0.md` §6.
 
 ---
 
 ## 남은 작업
+
+### ⚠️ 개발 진행 대기 (P0 과금오류 — 다음 세션 최우선)
+- **구독 자동갱신 영구 미감지**: `end_at`을 최초발급 시엔 시각포함(`isoformat()`), 갱신잡 조회는 날짜만(`str(date)`)으로 비교해 정확일치가 절대 성립 안 함 — 신규 구독자의 첫 자동갱신이 영구히 발동 안 함(무과금 무기한 이용). 연간구독 오청구(P1)·정확일치매칭 구조적 취약점(구독자별 예외처리 없음)도 동일 배포에 묶어야 함. 상세 계획: `docs/subscription_lifecycle_inspection_v1.0.md` §6
 
 ### 사용자가 직접 해야 할 것
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
@@ -703,4 +707,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-07 | 구독 생애주기(갱신·카드변경·해지) 점검 4건 수정·배포. 미해결(7일 환불)은 `docs/subscription_lifecycle_inspection_v1.0.md` 참조.*
+*최종 업데이트: 2026-07-07 | 구독 생애주기 §6 재점검 — 자동갱신 영구미감지 P0 과금오류 발견(미구현). `docs/subscription_lifecycle_inspection_v1.0.md` §5·§6 참조.*
