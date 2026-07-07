@@ -49,6 +49,7 @@ interface Props {
   competitorCount?: number;
   actionCount?: number;
   refundEligible?: boolean;
+  cardDisplay?: string | null;
 }
 
 export function SettingsClient({
@@ -61,6 +62,7 @@ export function SettingsClient({
   competitorCount = 0,
   actionCount = 0,
   refundEligible = false,
+  cardDisplay = null,
 }: Props) {
   const [cancelling, setCancelling] = useState(false);
   const [cancelled, setCancelled] = useState(false);
@@ -255,6 +257,14 @@ export function SettingsClient({
               <p className="text-sm text-gray-500">새 카드 인증 후 다음 결제부터 적용됩니다.</p>
             </div>
           </div>
+          {cardDisplay ? (
+            <div className="bg-white rounded-lg px-4 py-3 border border-gray-100">
+              <p className="text-sm text-gray-500 mb-0.5">현재 등록된 카드</p>
+              <p className="text-base font-semibold text-gray-800">{cardDisplay}</p>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">등록된 카드 정보를 불러올 수 없습니다.</p>
+          )}
           {cardError && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
               <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />

@@ -304,6 +304,22 @@ class KakaoNotifier:
         """관리자 공지 발송"""
         await self._send_raw(phone, f"[AEOlab 공지]\n{message}", template_code="AEOLAB_NOTICE_01")
 
+    async def send_subscription_cancelled(self, phone: str, refunded: bool, refund_amount: int | None = None):
+        """구독 해지 완료 알림 (7일 이내 자동환불 여부에 따라 문구 분기)"""
+        if refunded:
+            amount_str = f"{refund_amount:,}원" if refund_amount else "결제하신 금액"
+            message = (
+                "[AEOlab] 구독 해지 및 전액 환불이 완료되었습니다.\n"
+                f"환불 금액: {amount_str}\n"
+                "영업일 기준 3~5일 내 결제하신 수단으로 환불됩니다."
+            )
+        else:
+            message = (
+                "[AEOlab] 구독 해지가 완료되었습니다.\n"
+                "현재 결제 기간 만료일까지 서비스를 계속 이용하실 수 있습니다."
+            )
+        await self._send_raw(phone, message, template_code="AEOLAB_NOTICE_01")
+
     async def send_competitor_overtake(
         self, phone: str, biz_name: str, comp_name: str,
         my_score: float, comp_score: float, gap: float,

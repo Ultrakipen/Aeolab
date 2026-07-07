@@ -2289,3 +2289,13 @@ UPDATE subscriptions SET end_at = end_at::date WHERE end_at IS NOT NULL;
 
 ALTER TABLE subscriptions
   ADD COLUMN IF NOT EXISTS first_payment_key TEXT;
+
+-- ===========================================================
+-- 2026-07-07: 설정 페이지 등록 카드 정보 표시
+-- 배경: 실 결제 전환 전 라이브 QA 중 사용자 요청 — 어떤 카드가 등록돼 있는지
+-- 확인할 방법이 전혀 없었음. Toss 빌링 인증 응답의 card 객체(issuerCode,
+-- number — number는 Toss가 이미 마스킹해서 내려줌)를 그대로 저장.
+-- ===========================================================
+ALTER TABLE subscriptions
+  ADD COLUMN IF NOT EXISTS card_issuer_code   TEXT,
+  ADD COLUMN IF NOT EXISTS card_number_masked TEXT;

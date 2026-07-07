@@ -11,6 +11,8 @@ from supabase import create_client
 from middleware.plan_gate import get_current_user
 from services.email_sender import send_operator_alert
 from utils.alert import send_slack_alert
+from services.kakao_notify import KakaoNotifier
+from config.card_issuers import card_issuer_name
 
 logger = logging.getLogger("aeolab")
 
@@ -79,7 +81,7 @@ async def get_my_settings(user: dict = Depends(get_current_user)):
     sub = (
         await execute(
             supabase.table("subscriptions")
-            .select("plan, status, start_at, end_at, grace_until, first_payment_key")
+            .select("plan, status, start_at, end_at, grace_until, first_payment_key, card_issuer_code, card_number_masked")
             .eq("user_id", user_id)
             .maybe_single()
         )
@@ -116,7 +118,11 @@ async def get_my_settings(user: dict = Depends(get_current_user)):
         )
     ).data
 
-    sub_public = {k: v for k, v in sub.items() if k != "first_payment_key"} if sub else {"plan": "free", "status": "inactive"}
+    if sub:
+        sub_public = {k: v for k, v in sub.items() if k not in ("first_payment_key", "card_issuer_code")}
+        sub_public["card_issuer"] = card_issuer_name(sub.get("card_issuer_code"))
+    else:
+        sub_public = {"plan": "free", "status": "inactive"}
 
     return {
         "user_id": user_id,
@@ -245,6 +251,17 @@ async def cancel_subscription(user: dict = Depends(get_current_user)):
                 "환불 완료 후 DB 갱신 실패", f"user_id={user_id}, amount={refund_amount}", level="error"
             )
         raise HTTPException(status_code=500, detail="처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+
+    profile = (
+        await execute(supabase.table("profiles").select("phone").eq("user_id", user_id).maybe_single())
+    ).data
+    phone = (profile or {}).get("phone")
+    if phone:
+        try:
+            await KakaoNotifier().send_subscription_cancelled(phone, refunded, refund_amount)
+        except Exception as e:
+            logger.warning(f"해지 완료 카카오 알림 발송 실패 (user={user_id}): {e}")
+
     return {
         "status": "cancelled",
         "end_at": update_payload.get("end_at", sub.get("end_at")),
@@ -290,9 +307,14 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
         logger.error(f"새 빌링키 발급 실패 (user={user_id}): {resp.text}")
         raise HTTPException(status_code=400, detail=f"카드 등록 실패: {resp.text}")
 
-    new_billing_key = resp.json().get("billingKey")
+    issue_resp_json = resp.json()
+    new_billing_key = issue_resp_json.get("billingKey")
     if not new_billing_key:
         raise HTTPException(status_code=500, detail="새 빌링키를 받지 못했습니다")
+
+    card_info = issue_resp_json.get("card") or {}
+    card_issuer_code = card_info.get("issuerCode")
+    card_number_masked = card_info.get("number")
 
     # 3. 기존 빌링키 삭제 (실패해도 새 카드 등록은 유지 — best-effort)
     if old_billing_key and old_billing_key != new_billing_key:
@@ -311,10 +333,14 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
         except Exception as e:
             logger.warning(f"기존 빌링키 삭제 요청 오류 (user={user_id}): {e}")
 
-    # 4. DB subscriptions 테이블에 billing_key 업데이트
+    # 4. DB subscriptions 테이블에 billing_key + 카드정보 업데이트
     await execute(
         supabase.table("subscriptions")
-        .update({"billing_key": new_billing_key})
+        .update({
+            "billing_key": new_billing_key,
+            "card_issuer_code": card_issuer_code,
+            "card_number_masked": card_number_masked,
+        })
         .eq("user_id", user_id)
     )
 

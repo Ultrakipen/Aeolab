@@ -6,6 +6,7 @@ import { SettingsClient } from "./SettingsClient";
 import { BusinessManager } from "./BusinessManager";
 import { AccountClient } from "./AccountClient";
 import { PLAN_PRICES } from "@/lib/plans";
+import { cardIssuerName } from "@/lib/cardIssuers";
 
 const PLAN_META: Record<string, { name: string; color: string; gradient: string; badge: string }> = {
   free:       { name: "무료 플랜",      color: "text-gray-600",    gradient: "from-gray-400 to-slate-500",    badge: "bg-gray-100 text-gray-600" },
@@ -66,7 +67,7 @@ export default async function SettingsPage({
   const [{ data: sub }, { data: businesses }, { data: profile }] = await Promise.all([
     supabase
       .from("subscriptions")
-      .select("plan, status, start_at, end_at, billing_cycle, first_payment_amount")
+      .select("plan, status, start_at, end_at, billing_cycle, first_payment_amount, card_issuer_code, card_number_masked")
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase
@@ -126,6 +127,9 @@ export default async function SettingsPage({
   const billingCycle: string = (sub as { billing_cycle?: string } | null)?.billing_cycle ?? "monthly";
   const isYearly = billingCycle === "yearly";
   const firstPaymentAmount: number | null = (sub as { first_payment_amount?: number } | null)?.first_payment_amount ?? null;
+  const cardIssuerCode = (sub as { card_issuer_code?: string } | null)?.card_issuer_code ?? null;
+  const cardNumberMasked = (sub as { card_number_masked?: string } | null)?.card_number_masked ?? null;
+  const cardDisplay = cardNumberMasked ? `${cardIssuerName(cardIssuerCode) ?? "카드"} ${cardNumberMasked}` : null;
 
   const formatDate = (iso?: string) => {
     if (!iso) return "—";
@@ -307,6 +311,7 @@ export default async function SettingsPage({
                   competitorCount={competitorCount ?? 0}
                   actionCount={actionCount ?? 0}
                   refundEligible={refundEligible}
+                  cardDisplay={cardDisplay}
                 />
               </div>
             </section>

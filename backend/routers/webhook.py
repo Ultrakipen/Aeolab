@@ -98,9 +98,15 @@ async def issue_billing(body: BillingIssueRequest):
         logger.error(f"빌링키 발급 실패: {resp.text}")
         raise HTTPException(status_code=400, detail=f"빌링키 발급 실패: {resp.text}")
 
-    billing_key = resp.json().get("billingKey")
+    issue_resp_json = resp.json()
+    billing_key = issue_resp_json.get("billingKey")
     if not billing_key:
         raise HTTPException(status_code=500, detail="빌링키를 받지 못했습니다")
+
+    # 등록 카드 정보 (설정 페이지에 표시용 — card.number는 Toss가 이미 마스킹해 내려줌)
+    card_info = issue_resp_json.get("card") or {}
+    card_issuer_code = card_info.get("issuerCode")
+    card_number_masked = card_info.get("number")
 
     # customerKey 형식: customer_{user_id} — user_id가 실제 존재하는 계정인지 검증
     user_id = body.customerKey.replace("customer_", "", 1)
@@ -167,6 +173,8 @@ async def issue_billing(body: BillingIssueRequest):
         "customer_key": body.customerKey,
         "first_payment_amount": body.amount,
         "first_payment_key": data.get("paymentKey"),
+        "card_issuer_code": card_issuer_code,
+        "card_number_masked": card_number_masked,
     }
     if discount_until:
         sub_payload["first_month_discount_until"] = discount_until
