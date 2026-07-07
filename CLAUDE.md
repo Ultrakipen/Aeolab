@@ -702,4 +702,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-07 | 구독 갱신 P0 과금오류 + FK조인 버그 수정 + 7일 자동환불 구현·배포 완료 (git `170b002`). `docs/subscription_lifecycle_inspection_v1.0.md` §7 참조.*
+*최종 업데이트: 2026-07-07 | 구독 갱신 P0 과금오류 + FK조인 버그 수정 + 7일 자동환불 구현·배포 완료 (git `170b002`~`e9b9e5d`, 배포 후 자기점검에서 3건 추가 발견·수정 포함). `docs/subscription_lifecycle_inspection_v1.0.md` §7 참조.*
