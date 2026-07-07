@@ -166,6 +166,7 @@
 | **`docs/nine_pages_measurement_inspection_v1.0.md`** ⭐ | **9개 페이지(경쟁사 관리·변화 기록·성장 리포트·개선 가이드·소개글 콘텐츠·블로그 진단·리뷰 답변·AI 광고 대비·창업 시장 분석) 실측 점검 작업 문서 — 2단 레이어(프론트 UI 하드코딩 + 백엔드 측정 파이프라인 무결성) 방법론, 페이지·컴포넌트·API 매핑, 검증 절차 (2026-07-02)** |
 | **`docs/blog_analysis_improvement_v2.0.md`** ⭐ | **블로그 관리 페이지 개선 v2.0 — v1.0(4건) 완료 확인 + SearchAd 검색량 연동(1순위, 구현 스펙 포함) + 후순위 3건(경쟁사 구조 비교·NLP 품질 채점·포스트별 성과 연결, 트리거 조건 명시). 오판 검증(근거+반증) 포함 (2026-07-06)** |
 | **`docs/five_pages_and_action_history_handoff_v1.0.md`** ⭐ | **경쟁사관리·성장리포트·개선가이드·소개글콘텐츠·변화기록(2차) 점검 핸드오프 — P1/P2 수정 완료(git `71707d4`·`b386cb5`) + 잔여 작업(falsy-zero 전역 스윕·미착수 3페이지) 정리 (2026-07-06)** |
+| **`docs/subscription_lifecycle_inspection_v1.0.md`** ⭐ | **구독 생애주기(갱신·카드변경·해지) 점검 — 유예기간재시도·해지즉시강등·정지버튼노출·거짓삭제안내 4건 배포완료(git `df4f55f`~`3ee38fb`). §5 미해결: 7일 청약철회 전액환불 백엔드 미구현, 사용자 결정 대기 (2026-07-07)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
@@ -175,6 +176,7 @@
 > **9개 페이지 실측 점검**: `docs/nine_pages_measurement_inspection_v1.0.md 기준으로 실측 점검 진행`
 > **블로그 관리 페이지 검색량 연동**: `docs/blog_analysis_improvement_v2.0.md 기준으로 1순위(검색량 연동)부터 진행`
 > **5개 페이지 점검 이어가기**: `docs/five_pages_and_action_history_handoff_v1.0.md 기준으로 §3(잔여 작업)부터 이어서 진행`
+> **구독 생애주기 점검 이어가기**: `docs/subscription_lifecycle_inspection_v1.0.md 기준으로 §5(7일 환불) 결정하고 이어서 진행`
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
@@ -670,11 +672,9 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
-### 2026-07-06 — 블로그 진단 §2-A 라이브 검증 + 재점검 2차 (P0 1건 + P1/P2 8건)
-> RSS 부분실패 DB훼손 **P0**(post_count 0덮어씀+쿨다운리셋+quota소비 — commercial_inspection_standard_v2.0 §4 "기능 오작동" 기준, 최초 P1로 오분류했다가 정정) + RSS재시도 + 프론트 P2 5건 + 독립 코드리뷰 2차검증 3건(타임아웃예산·404재시도·biz배너) + 페이지 간결화(중복2건 제거→아코디언, -56%)+요약카드 최상단 재배치. git `31af359`~`99e2c34`. 상세는 메모리 `project_blog_analysis_v2_reaudit_2026_07_06`.
-
-### 2026-07-06 — 5개 페이지 상업 서비스 점검 + 변화 기록 2차 재검증 (P1 4건 + P2 7건 + 재검증 6건)
-> 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠 점검(P1 4건+P2 7건, git `71707d4`) — 성장리포트 필드누락·가이드 점수노출·경쟁사 차트지터·소개글 요금제 문구 등. 오판 정정 1건("chatgpt-search 404"는 실제로 다른 라우트 그룹에 존재하던 페이지, 라우트 판정은 전체 app 검색 필수 교훈). 변화 기록 1차(기완료)의 "이상없음" 판정을 재검증해 콜사이트 falsy-zero·TrendLine 필드 불일치·플랜게이트 누락 3건 추가발견·수정(git `b386cb5`). 잔여: falsy-zero 전역 스윕(~20곳)·미착수 3페이지(리뷰답변·AI광고대비·창업시장분석) — `docs/five_pages_and_action_history_handoff_v1.0.md` 트리거.
+- **2026-07-06 블로그 진단 §2-A**: RSS 부분실패 DB훼손 P0 + P1/P2 8건 수정, 페이지 간결화(-56%). git `31af359`~`99e2c34`. 상세: 메모리 `project_blog_analysis_v2_reaudit_2026_07_06`.
+- **2026-07-06 5개 페이지 + 변화기록 재검증**: 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠 P1 4건+P2 7건(`71707d4`) + 변화기록 재검증 3건(`b386cb5`). 잔여: `docs/five_pages_and_action_history_handoff_v1.0.md`.
+- **2026-07-07 구독 생애주기 점검**: 유예기간재시도·해지즉시강등·정지버튼노출·거짓삭제안내 4건 배포(`df4f55f`~`3ee38fb`). **미해결**: 7일 청약철회 환불 백엔드 미구현 — `docs/subscription_lifecycle_inspection_v1.0.md` §5.
 
 ---
 
@@ -702,4 +702,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-06 | 5개 페이지 점검(경쟁사관리·성장리포트·개선가이드·소개글콘텐츠·변화기록 2차) P1/P2 수정 + 재검증 6건. 잔여는 `docs/five_pages_and_action_history_handoff_v1.0.md` 참조.*
+*최종 업데이트: 2026-07-07 | 구독 생애주기(갱신·카드변경·해지) 점검 4건 수정·배포. 미해결(7일 환불)은 `docs/subscription_lifecycle_inspection_v1.0.md` 참조.*
