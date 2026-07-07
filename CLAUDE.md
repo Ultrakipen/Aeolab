@@ -684,6 +684,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - **실결제 전환 시**: `TOSS_SECRET_KEY` test_ → live_ 교체 + pm2 restart
 - `NEXT_PUBLIC_ADMIN_SECRET_KEY` 향후 서버 컴포넌트로 분리 권장
 - ⏳ **crisis-reply 월별 한도 SQL 마이그레이션 미실행** — `scripts/supabase_schema.sql:2268` `guides_context_check`에 `'crisis_reply'` 추가하는 ALTER 문을 Supabase SQL Editor에서 수동 실행해야 함(2026-07-06 `7d06b16`에서 코드는 배포됐으나 SQL 미실행 시 한도가 계속 0으로 표시되어 사실상 무제한 유지)
+- ⏳ **온보딩 1단계 → pricing 경로 부재** — `onboarding/page.tsx`의 요금제 선택 모달이 3단계(사업장등록→첫스캔안내→시작하기) 완료 후에만 등장. 신규 가입 직후 결제 의사가 있는 사용자가 URL 직접 입력 외엔 pricing에 도달할 방법 없음(2026-07-07 라이브 QA 발견). 수정 여부 결정 필요 — `docs/subscription_lifecycle_inspection_v1.0.md` §7
 
 ### 비즈니스 목표
 - [ ] 유료 구독자 20명 달성 (BEP)
@@ -702,4 +703,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-07 | 구독 갱신 P0 과금오류 + FK조인 버그 수정 + 7일 자동환불 구현·배포 완료 (git `170b002`~`e9b9e5d`, 배포 후 자기점검에서 3건 추가 발견·수정 포함). `docs/subscription_lifecycle_inspection_v1.0.md` §7 참조.*
+*최종 업데이트: 2026-07-07 | 구독 갱신 P0 과금오류 + FK조인 버그 수정 + 7일 자동환불 구현·배포 완료, 실 결제 전환 전 라이브 QA(실카드+Toss 테스트모드)로 webhook.py profiles.id 크래시 등 P0 2건 포함 총 6건 추가 발견·수정 + 카드정보표시·해지알림 신규구현 (git `170b002`~`140b144`). `docs/subscription_lifecycle_inspection_v1.0.md` §7 참조.*
