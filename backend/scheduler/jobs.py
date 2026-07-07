@@ -1205,9 +1205,10 @@ async def subscription_lifecycle_job():
         notifier = KakaoNotifier()
         today = date.today()
 
-        # 1. 7일 후 만료 예정 → 갱신 안내 알림
-        # 정확일치(.eq) 대신 2일 폭 윈도우 — 배치가 하루 못 돌아도 다음 실행에서 잡히도록 하는 안전마진
-        # (완전 개방형 .lte()는 안내가 매일 반복 발송되므로 사용하지 않음)
+        # 1. 7일 후 만료 예정 → 갱신 안내 알림 (정확일치 — 2일 폭 윈도우는 매 구독자에게 반드시
+        # 이틀 연속 중복발송되는 자체 버그였음(2026-07-07 자체점검에서 발견해 되돌림). end_at을
+        # 이제 전부 날짜단위로 통일했으므로 .eq() 단순 정확일치로도 안정적으로 매칭됨 — §2(갱신)와
+        # 달리 이 알림은 하루 놓쳐도 다음날 재고지되지 않는 대신 중복발송도 없는 편이 안전.
         # subscriptions↔profiles FK 미등록 → embedded join(profiles(phone)) 불가, 매 실행 PGRST200으로
         # 잡 전체가 죽던 버그(2026-07-07 발견, jobs.py:2064 send_trial_day5_reminder와 동일 원인) —
         # user_id로 분리 조회 후 dict lookup 패턴으로 통일
@@ -1215,8 +1216,7 @@ async def subscription_lifecycle_job():
             supabase.table("subscriptions")
             .select("*")
             .eq("status", "active")
-            .gte("end_at", str(today + timedelta(days=6)))
-            .lte("end_at", str(today + timedelta(days=7)))
+            .eq("end_at", str(today + timedelta(days=7)))
         )
         expiring_soon = _exp_res.data or []
 
