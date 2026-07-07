@@ -169,12 +169,15 @@ def _analyze_single_post(
     _img = item.get("img_count", -1)
     _hdg = item.get("heading_count", -1)
     _htg = item.get("hashtag_count", -1)
+    _vid = item.get("video_count", -1)
     if isinstance(_img, int) and _img > 0:
         positives.append(f"이미지 {_img}장 포함")
     if isinstance(_hdg, int) and _hdg > 0:
         positives.append("소제목(H2~H4) 있음")
     if isinstance(_htg, int) and _htg > 0:
         positives.append(f"해시태그 {_htg}개 포함")
+    if isinstance(_vid, int) and _vid > 0:
+        positives.append("동영상 포함")
 
     # 2) 검색 의도어 포함 여부 — 누락 시 AI 인용률 저하
     intent_kws = ["추천", "리뷰", "후기", "비용", "가격", "비교", "선택", "방법",
@@ -252,6 +255,7 @@ def _analyze_single_post(
         "img_count": item.get("img_count", -1),
         "heading_count": item.get("heading_count", -1),
         "full_text_len": item.get("full_text_len", -1),
+        "video_count": item.get("video_count", -1),
     }
 
 
@@ -1009,7 +1013,7 @@ def _calc_blog_ai_readiness(
     region: str = "",
     posts_structs: Optional[list[dict]] = None,
 ) -> dict:
-    """AI 브리핑 인용 가능성 체크 (9개 항목)"""
+    """AI 브리핑 인용 가능성 체크 (11개 항목)"""
     items = []
     combined = " ".join(posts_texts)
 
@@ -1148,6 +1152,44 @@ def _calc_blog_ai_readiness(
         }
     items.append(item9)
 
+    # 10. 소제목(H2~H4) 포함 비율 30% 초과 (heading_count 측정 가능한 포스트 기준)
+    measurable_10 = [s for s in (posts_structs or []) if isinstance(s.get("heading_count"), int) and s["heading_count"] >= 0]
+    if measurable_10:
+        heading_posts = [s for s in measurable_10 if s["heading_count"] > 0]
+        heading_ratio = len(heading_posts) / len(measurable_10)
+        has_headings = heading_ratio > 0.3
+        item10: dict = {
+            "label": "소제목(H2~H4) 포함 포스트 비율 30% 초과",
+            "passed": has_headings,
+            "description": "소제목으로 문단을 나누면 AI가 핵심 정보를 더 쉽게 추출해 인용합니다.",
+        }
+    else:
+        item10 = {
+            "label": "소제목(H2~H4) 포함 포스트 비율 30% 초과",
+            "passed": None,
+            "unavailable": True,
+            "description": "API 경로로만 수집된 포스트는 소제목 구조를 직접 측정할 수 없습니다.",
+        }
+    items.append(item10)
+
+    # 11. 동영상 포함 포스트 존재 여부 (video_count 측정 가능한 포스트 기준)
+    measurable_11 = [s for s in (posts_structs or []) if isinstance(s.get("video_count"), int) and s["video_count"] >= 0]
+    if measurable_11:
+        has_video_post = any(s["video_count"] > 0 for s in measurable_11)
+        item11: dict = {
+            "label": "동영상 포함 포스트 존재",
+            "passed": has_video_post,
+            "description": "이미지와 함께 동영상을 넣으면 체류시간이 늘어 네이버가 신뢰도 높은 문서로 판단합니다.",
+        }
+    else:
+        item11 = {
+            "label": "동영상 포함 포스트 존재",
+            "passed": None,
+            "unavailable": True,
+            "description": "API 경로로만 수집된 포스트는 동영상 삽입 여부를 직접 측정할 수 없습니다.",
+        }
+    items.append(item11)
+
     # unavailable 항목은 분모에서 제외 (측정 불가가 점수를 깎지 않도록)
     scorable_items = [i for i in items if not i.get("unavailable")]
     passed_count = sum(1 for i in scorable_items if i["passed"])
@@ -1241,6 +1283,7 @@ async def _search_naver_blog_once(
             "heading_count": -1,
             "hashtag_count": -1,
             "full_text_len": -1,
+            "video_count": -1,
             "source": "api",
         })
     return result, total, True
@@ -1304,6 +1347,8 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool]:
         # RSS 본문 HTML에서 구조 정보 추출 (태그 제거 전)
         img_count = len(re.findall(r"<img", desc_raw, re.IGNORECASE))
         heading_count = len(re.findall(r"<h[2-4][\s>]", desc_raw, re.IGNORECASE))
+        # 네이버 SmartEditor 동영상 삽입 — iframe/video 태그 또는 video 클래스·tv.naver.com 링크로 탐지
+        video_count = len(re.findall(r"<iframe|<video[\s>]|class=\"[^\"]*video|tv\.naver\.com", desc_raw, re.IGNORECASE))
         desc_text_full = re.sub(r"<[^>]+>", "", desc_raw).strip()
         hashtag_count = len(re.findall(r"#\w+", desc_text_full))
         full_text_len = len(desc_text_full)
@@ -1330,6 +1375,7 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool]:
                 "heading_count": heading_count,
                 "hashtag_count": hashtag_count,
                 "full_text_len": full_text_len,
+                "video_count": video_count,
                 "source": "rss",
             })
     return items, len(items), True
@@ -1521,6 +1567,7 @@ async def _analyze_naver_blog(
             "heading_count": item.get("heading_count", -1),
             "hashtag_count": item.get("hashtag_count", -1),
             "full_text_len": item.get("full_text_len", -1),
+            "video_count": item.get("video_count", -1),
             "source": item.get("source", "api"),
         })
 
