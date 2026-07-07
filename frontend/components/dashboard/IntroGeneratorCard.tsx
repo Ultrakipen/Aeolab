@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { getSafeSession } from "@/lib/supabase/client";
-import DiaScoreBadge, { type DiaScore } from "./DiaScoreBadge";
+import DiaScoreBadge, { diaScoreLabel, type DiaScore } from "./DiaScoreBadge";
 import { FeedbackPopup } from "./FeedbackPopup";
 
 interface Props {
@@ -237,7 +237,7 @@ export function IntroGeneratorCard({
                         : "bg-red-100 text-red-800"
                     }`}
                   >
-                    품질 {stats.dia_score.score.toFixed(0)}점
+                    품질 {diaScoreLabel(stats.dia_score.score)}
                   </span>
                 )}
               </div>

@@ -118,6 +118,13 @@ function scoreColor(score: number, max: number) {
   return { bar: "bg-red-500", text: "text-red-700", bg: "bg-red-50" };
 }
 
+export function diaScoreLabel(score: number, max: number = 100): string {
+  const ratio = score / max;
+  if (ratio >= 0.8) return "양호";
+  if (ratio >= 0.5) return "보통";
+  return "개선 필요";
+}
+
 export default function DiaScoreBadge({ dia, onRegenerate }: { dia: DiaScore; onRegenerate?: () => void }) {
   const totalColor = scoreColor(dia.score, 100);
 
@@ -137,9 +144,8 @@ export default function DiaScoreBadge({ dia, onRegenerate }: { dia: DiaScore; on
             AI 브리핑 인용 가능성 — 정규식 기반 사후 검증 (AI 호출 0회)
           </p>
         </div>
-        <div className={`text-2xl md:text-3xl font-extrabold ${totalColor.text}`}>
-          {dia.score.toFixed(0)}
-          <span className="text-base font-semibold text-gray-500">/100</span>
+        <div className={`text-xl md:text-2xl font-extrabold ${totalColor.text}`}>
+          {diaScoreLabel(dia.score)}
         </div>
       </div>
 
@@ -155,7 +161,7 @@ export default function DiaScoreBadge({ dia, onRegenerate }: { dia: DiaScore; on
                   {row.label}
                 </span>
                 <span className={`text-sm md:text-base font-bold ${color.text}`}>
-                  {section.score.toFixed(1)} / {row.maxScore}
+                  {diaScoreLabel(section.score, row.maxScore)}
                 </span>
               </div>
               <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden mb-1.5">
@@ -166,7 +172,7 @@ export default function DiaScoreBadge({ dia, onRegenerate }: { dia: DiaScore; on
                   aria-valuenow={section.score}
                   aria-valuemin={0}
                   aria-valuemax={row.maxScore}
-                  aria-label={`${row.label} ${section.score.toFixed(1)}점 만점 ${row.maxScore}점`}
+                  aria-label={`${row.label} ${diaScoreLabel(section.score, row.maxScore)}`}
                 />
               </div>
               <p className="text-sm text-gray-600 leading-snug">{row.hint(dia)}</p>
@@ -177,7 +183,7 @@ export default function DiaScoreBadge({ dia, onRegenerate }: { dia: DiaScore; on
 
       <div className="px-4 py-3 md:px-5 md:py-4 bg-gray-50 space-y-2">
         <p className="text-sm text-gray-500 leading-snug">
-          콘텐츠 품질 점수가 70점 미만이면 다시 생성 또는 부족 요소 수동 보완을 권장합니다.
+          콘텐츠 품질이 &quot;개선 필요&quot;로 나오면 다시 생성 또는 부족 요소 수동 보완을 권장합니다.
           실제 네이버 AI 브리핑 노출은 측정 시점·경쟁사·키워드 조합에 따라 달라질 수 있습니다.
         </p>
         {dia.score < 70 && (
