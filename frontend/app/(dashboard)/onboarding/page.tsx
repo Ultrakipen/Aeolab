@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient, getSafeSession } from "@/lib/supabase/client";
 import { createBusiness } from "@/lib/api";
 import {
@@ -464,6 +465,18 @@ export default function OnboardingPage() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* 이미 요금제를 정한 사용자를 위한 단축 경로 — 기존엔 3단계를 전부 마쳐야만
+            요금제 모달이 떴고, 그 전엔 pricing으로 갈 방법이 URL 직접 입력 외엔
+            없었음(2026-07-07 라이브 QA 발견) */}
+        <div className="text-center mb-4">
+          <Link
+            href="/pricing"
+            className="text-sm text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+          >
+            이미 요금제를 정하셨나요? 바로 요금제 보기
+          </Link>
         </div>
 
         {/* Step 1: 사업장 등록 */}
