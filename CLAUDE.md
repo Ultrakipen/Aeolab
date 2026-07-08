@@ -562,11 +562,11 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 > scp 직접 배포 ↔ git `reset --hard` 두 경로가 어긋나 누적되던 drift를 막는 3종 + 규칙 1.
 
-- **① deploy.yml 비파괴 가드** — `git reset --hard origin/main` 직전 미커밋 변경을 `/var/www/aeolab_predeploy_backups/predeploy_<ts>.tgz`로 자동 tar 백업(복원 가능, 최근 10개 유지). ⚠️ 이 가드는 **다음 안전 push 후 활성화**됨(GitHub Actions는 origin/main의 워크플로를 실행).
+- **① deploy.yml 비파괴 가드** — `git reset --hard origin/main` 직전 미커밋 변경을 `/var/www/aeolab_predeploy_backups/predeploy_<ts>.tgz`로 자동 tar 백업(복원 가능, 최근 10개 유지). 2026-07-08 push로 **최초 실제 작동 확인**(`predeploy_20260708_174019.tgz`).
 - **③ `.gitattributes`** (`* text=auto` + 소스 `eol=lf`) — Windows(CRLF)↔서버(LF) 유령 diff 제거.
 - **④ drift 점검 스크립트** — `bash scripts/check_server_drift.sh` (읽기 전용). 서버 라이브 vs 로컬 git-tracked 전체를 줄바꿈 정규화 비교 → `[내용DRIFT]`/`[서버에만]`/`[로컬에만]` 리포트. **주 1회 권장**, `[내용DRIFT] 0건`이 정상.
 - **② 위 작업 순서 5번**(scp 후 즉시 커밋)이 drift의 원천 차단책.
-- ⚠️ **현재 미해소 drift 존재**(서버 `master` ↔ 로컬 `main`, 32개 파일 양방향 drift). **즉흥 push 금지** — reconcile은 파일별 방향 판정 후 신중히. 라이브는 scp로 이미 최신이므로 push 없이도 정상 동작.
+- **2026-07-08 drift 해소 완료** — 실제 점검 결과 "32개 파일 양방향 drift"는 과거 기록보다 훨씬 양호했음: `[서버에만]` 0건, `[내용DRIFT]` 5건(문서 3·`plans.ts` 문구·`package-lock.json` 패치버전 — 전부 방향 판정 후 정리), `[로컬에만]` 103건(대부분 문서/스크린샷 + scp로 이미 서버에 실존하는 프론트 컴포넌트, git만 미추적). 서버 전체 백업(`aeolab_live_backup_20260708.tgz`, node_modules·`.next`·venv 제외) 선행 후 440커밋 push, CI/CD 배포 정상 완료(git `62a8bf5`, backend/frontend 재시작 에러 0건). 이제 서버 git HEAD == 로컬 main, 미해소 drift 없음.
 
 ---
 
