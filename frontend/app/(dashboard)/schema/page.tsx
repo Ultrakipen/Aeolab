@@ -4,20 +4,14 @@ import SchemaPageContent from './SchemaClient'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import { getActiveBusinessId } from '@/lib/active-business'
+import { resolveActivePlan } from '@/lib/subscriptionPlan'
 
 export default async function SchemaPage() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   if (!user || error) redirect('/login')
 
-  const { data: sub } = await supabase
-    .from('subscriptions')
-    .select('plan, status')
-    .eq('user_id', user.id)
-    .in('status', ['active', 'grace_period'])
-    .maybeSingle()
-
-  const plan = (sub?.status === "active" || sub?.status === "grace_period") ? (sub?.plan ?? 'free') : 'free'
+  const plan = await resolveActivePlan(supabase, user.id)
   const hasAccess = plan !== 'free'
 
   if (!hasAccess) {

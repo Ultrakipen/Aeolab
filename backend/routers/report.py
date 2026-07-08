@@ -450,7 +450,7 @@ async def get_benchmark(category: str, region: str):
         return result
 
     empty = {"sample_count": 0, "count": 0, "avg_score": 0, "top10_score": 0, "distribution": [],
-             "fallback": "global", "fallback_message": "아직 비교 데이터가 없습니다"}
+             "fallback": "insufficient", "fallback_message": "아직 비교 데이터가 없습니다"}
     _cache.set(cache_key, empty, 300)  # 빈 결과는 5분만 캐시
     return empty
 

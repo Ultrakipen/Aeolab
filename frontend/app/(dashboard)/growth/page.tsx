@@ -4,6 +4,7 @@ import Link from "next/link";
 import { TrendingUp, Lock } from "lucide-react";
 import GrowthClient from "./GrowthClient";
 import { getActiveBusinessId } from "@/lib/active-business";
+import { resolveActivePlan } from "@/lib/subscriptionPlan";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -28,17 +29,7 @@ export default async function GrowthPage() {
   if (!user || error) redirect("/login");
 
   // 구독 정보 조회
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("status, plan")
-    .eq("user_id", user.id)
-    .in("status", ["active", "grace_period"])
-    .maybeSingle();
-
-  const activePlan =
-    (subscription?.status === "active" || subscription?.status === "grace_period")
-      ? (subscription?.plan ?? "free")
-      : "free";
+  const activePlan = await resolveActivePlan(supabase, user.id);
 
   // Free 플랜 차단 (Basic 이상 필요)
   if ((PLAN_RANK[activePlan] ?? 0) < PLAN_RANK["basic"]) {

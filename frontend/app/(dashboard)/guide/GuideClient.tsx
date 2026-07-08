@@ -4564,7 +4564,7 @@ export function GuideClient({
     }
 
     try {
-      await fetch(`${BACKEND}/api/guide/generate`, {
+      const startRes = await fetch(`${BACKEND}/api/guide/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -4572,6 +4572,17 @@ export function GuideClient({
         },
         body: JSON.stringify({ business_id: business.id, scan_id: latestScanId }),
       })
+      if (!startRes.ok) {
+        const errBody = await startRes.json().catch(() => null)
+        const detail = errBody?.detail
+        setError(
+          (typeof detail === 'string' ? detail : detail?.message)
+          ?? '가이드 생성 요청에 실패했습니다. 잠시 후 다시 시도해주세요.'
+        )
+        clearInterval(timer)
+        setLoading(false)
+        return
+      }
       let guideData = null
       // 최대 14회 x 10초 = 140초 대기 (Sonnet 529 재시도 최대 60초 + 생성 시간 여유)
       for (let attempt = 0; attempt < 14; attempt++) {

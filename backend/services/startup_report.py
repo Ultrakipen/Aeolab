@@ -62,7 +62,13 @@ class StartupReportService:
             top_competitors.sort(key=lambda x: x["score"], reverse=True)
 
         # 경쟁 강도 등급 (낮을수록 진입 유리)
-        if avg_score >= 70:
+        # 등록 사업장은 있으나 전부 미스캔(scores 비어있음) = "데이터 없음"이지 "기회 있음"이 아님 — 혼동 금지
+        no_scan_data = bool(businesses) and not scores
+        if no_scan_data:
+            competition_level = "측정 데이터 부족"
+            level_color = "gray"
+            level_score = 0
+        elif avg_score >= 70:
             competition_level = "매우 치열"
             level_color = "red"
             level_score = 1
@@ -80,12 +86,20 @@ class StartupReportService:
             level_score = 4
 
         # Claude로 진입 전략 생성 — 점수 숫자 미포함(strategy 텍스트에 노출 방지)
+        from services.score_engine import get_briefing_eligibility
+        eligibility = get_briefing_eligibility(category, False)
+        briefing_note = {
+            "active": "이 업종은 네이버 AI 브리핑(플레이스형) 대상입니다.",
+            "likely": "이 업종은 네이버 AI 브리핑(플레이스형) 확대 예정 업종으로, 아직 전면 대상은 아닙니다.",
+            "inactive": "이 업종은 네이버 AI 브리핑(플레이스형) 비대상입니다 — 'AI 브리핑 노출'을 핵심 전략으로 제안하지 말 것. 정보형(블로그·콘텐츠)·ChatGPT·Gemini·Google 노출 전략 위주로 제안할 것. 프랜차이즈로 창업하는 경우도 동일하게 비대상.",
+        }.get(eligibility, "")
         top_names = ", ".join(c["name"] for c in top_competitors[:3]) if top_competitors else "데이터 없음"
         prompt = f"""한국 {region} {category} 업종 창업 분석:
 
 - 기존 사업장 수: {competitor_count}개
 - 경쟁 강도: {competition_level}
 - 상위 경쟁사: {top_names}
+- {briefing_note}
 {"- 창업 예정 사업장명: " + business_name if business_name else ""}
 
 위 데이터를 바탕으로 아래 형식으로 창업 전략을 JSON으로 제공해줘:
@@ -99,14 +113,24 @@ class StartupReportService:
 
         msg = await self.client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=800,
+            max_tokens=1600,
             messages=[{"role": "user", "content": prompt}],
         )
         raw = msg.content[0].text.strip()
 
         import json, re
         json_match = re.search(r"\{.*\}", raw, re.DOTALL)
-        strategy = json.loads(json_match.group()) if json_match else {"entry_strategy": raw}
+        if json_match:
+            try:
+                strategy = json.loads(json_match.group())
+            except json.JSONDecodeError:
+                strategy = None
+        else:
+            strategy = None
+        if strategy is None:
+            # 파싱 실패(응답 길이 초과로 JSON이 잘린 경우 등) — 코드펜스만 제거해 원문이라도 읽히게
+            cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw).strip()
+            strategy = {"entry_strategy": cleaned}
 
         return {
             "category": category,
@@ -119,6 +143,7 @@ class StartupReportService:
             "competition_level_score": level_score,  # 1=치열, 4=기회
             "top_competitors": top_competitors[:5],
             "strategy": strategy,
-            # 표본 3개 미만이면 "평균"의 대표성이 낮음 — timing_data(startup.py)와 동일 임계값
-            "is_estimated": competitor_count < 3,
+            # 표본 3개 미만이거나 등록 사업장은 있으나 전부 미스캔이면 "평균"의 대표성이 낮음
+            "is_estimated": competitor_count < 3 or no_scan_data,
+            "no_scan_data": no_scan_data,
         }

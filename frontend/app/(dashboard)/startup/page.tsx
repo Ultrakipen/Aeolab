@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { StartupClient } from "./StartupClient";
 import { PlanGate } from "@/components/common/PlanGate";
 import { BarChart2, MapPin, TrendingUp, Lightbulb } from "lucide-react";
+import { resolveActivePlan } from "@/lib/subscriptionPlan";
 
 export default async function StartupPage() {
   const supabase = await createClient();
@@ -16,13 +17,7 @@ export default async function StartupPage() {
   if (!user) redirect("/login");
 
   // startup/biz 플랜 게이트 — 구독 status까지 검증
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  const activePlan = (sub?.status === "active" || sub?.status === "grace_period") ? (sub?.plan ?? "free") : "free";
+  const activePlan = await resolveActivePlan(supabase, user.id);
   const STARTUP_PLANS = ["startup", "biz", "enterprise"];
 
   if (!STARTUP_PLANS.includes(activePlan)) {

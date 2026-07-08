@@ -177,7 +177,7 @@ function IntroScoreGauge({ introScore }: { introScore: IntroScore }) {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className={`text-lg font-bold ${color.text}`}>{GRADE_LABEL[introScore.grade] ?? '보통'}</span>
-          <span className={`text-xs font-medium ${color.text}`}>{introScore.grade}등급</span>
+          <span className={`text-sm font-medium ${color.text}`}>{introScore.grade}등급</span>
         </div>
       </div>
       <div className="flex-1 min-w-0">
@@ -667,7 +667,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                     {[
                       '사진 5장 이상 첨부 — 내부·메뉴·외부 골고루',
                       '포스트 발행 후 스마트플레이스 관리 → [블로그 연결] 등록',
-                      '월 1~2회 꾸준히 올리면 네이버 AI 브리핑·AI탭 최신성 점수 상승 (ChatGPT·Gemini는 수개월 소요)',
+                      '월 1~2회 꾸준히 올리면 네이버 AI 브리핑·AI탭 최신성 점수 상승 (Gemini는 수 주~수개월, ChatGPT는 수개월~1년 소요)',
                       '리뷰 답글과 동일한 키워드 사용 권장 (네이버 AI 브리핑 활성도 강화)',
                     ].map((tip) => (
                       <p key={tip} className="text-sm text-amber-700 flex items-start gap-1.5">

@@ -4,6 +4,7 @@ import { BlogClient } from './BlogClient'
 import { NoBusiness } from '@/components/dashboard/NoBusiness'
 import { FileText, Search, BarChart2, TrendingUp } from 'lucide-react'
 import { getActiveBusinessId } from '@/lib/active-business'
+import { resolveActivePlan } from '@/lib/subscriptionPlan'
 
 export default async function BlogPage() {
   const supabase = await createClient()
@@ -31,15 +32,7 @@ export default async function BlogPage() {
     />
   )
 
-  const { data: subscription } = await supabase
-    .from('subscriptions')
-    .select('plan, status')
-    .eq('user_id', user.id)
-    .in('status', ['active', 'grace_period'])
-    .maybeSingle()
-
-  const currentPlan = (subscription?.status === 'active' || subscription?.status === 'grace_period')
-    ? (subscription?.plan ?? 'free') : 'free'
+  const currentPlan = await resolveActivePlan(supabase, user.id)
 
   const { data: { session } } = await supabase.auth.getSession()
   const accessToken = session?.access_token ?? ''

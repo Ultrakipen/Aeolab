@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient, getSafeSession } from '@/lib/supabase/client'
+import { resolveActivePlan } from '@/lib/subscriptionPlan'
 import {
   generateReviewReply, getReviewReplies, deleteReviewReply,
   type ReviewReplyResult,
@@ -353,9 +354,7 @@ export default function ReviewInboxPage() {
       setBusinessId(biz.id)
       setBizName(biz.name ?? null)
 
-      const { data: sub } = await supabase
-        .from('subscriptions').select('plan, status').eq('user_id', session.user.id).in('status', ['active', 'grace_period']).maybeSingle()
-      const resolvedPlan = sub?.plan ?? 'free'
+      const resolvedPlan = await resolveActivePlan(supabase, session.user.id)
       setPlan(resolvedPlan)
       setPlanLoading(false)
 
@@ -599,7 +598,7 @@ export default function ReviewInboxPage() {
                     className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${b.id === businessId ? 'font-semibold text-blue-600' : 'text-gray-700'}`}
                   >
                     {b.name}
-                    {b.id === businessId && <span className="ml-1 text-xs text-blue-400">선택됨</span>}
+                    {b.id === businessId && <span className="ml-1 text-sm text-blue-400">선택됨</span>}
                   </button>
                 ))}
               </div>

@@ -8,37 +8,61 @@ from models.schemas import SchemaRequest
 from services.keyword_taxonomy import KEYWORD_TAXONOMY, normalize_category
 
 # ── 업종 한국어 매핑 ──────────────────────────────────────────────────────────
+# 59개 화이트리스트(frontend/lib/categories.ts FLAT_CATEGORY_GROUPS)의 leaf value 전체를 커버해야 함.
+# 레거시 키(chicken/hospital/law 등)는 과거 DB에 남아있을 수 있는 값이라 하위호환을 위해 유지.
 CATEGORY_KO: dict[str, str] = {
-    "restaurant": "음식점", "cafe": "카페", "chicken": "치킨집", "bbq": "고기집",
-    "seafood": "횟집", "bakery": "베이커리·제과점", "bar": "술집", "snack": "분식집",
+    # 음식·음료
+    "restaurant": "음식점", "cafe": "카페", "bakery": "베이커리", "bar": "술집",
+    "kids": "키즈카페",
+    # 뷰티
+    "beauty": "미용실", "nail": "네일샵", "skincare": "피부관리실", "semi_permanent": "반영구화장",
+    # 마사지·스파
+    "massage": "마사지", "spa": "스파", "jjimjil": "찜질방·사우나",
+    # 운동·피트니스
+    "fitness": "헬스장", "yoga": "요가·필라테스", "dance": "댄스", "ballet": "발레",
+    "golf": "골프연습장", "swim": "수영·아쿠아", "martial_arts": "태권도·무술",
+    "climbing": "클라이밍·볼더링",
+    # 의료·건강
+    "dental": "치과", "oriental_medicine": "한의원", "optics": "안경원",
+    "medical": "병원·의원", "pharmacy": "약국",
+    # 반려동물
+    "pet": "반려동물",
+    # 교육·레슨
+    "education": "학원", "tutoring": "과외", "study": "스터디카페",
+    "music_class": "음악교실", "music_lesson": "악기레슨", "cooking": "요리교실·쿠킹",
+    "art_class": "미술학원", "childcare": "어린이집·유치원",
+    # 전문직·서비스
+    "legal": "법률사무소", "accounting": "세무회계사무소", "realestate": "부동산",
+    "interior": "인테리어", "auto": "카센터·정비", "cleaning": "청소",
+    "car_wash": "세차장", "electronics_repair": "핸드폰·가전수리",
+    # 쇼핑·생활
+    "shopping": "쇼핑몰", "fashion": "패션", "clothing": "의류", "footwear": "신발",
+    "stationery": "문구·사무용품", "flower": "꽃집·화원", "laundry": "세탁소",
+    # 사진·영상·디자인
+    "photo": "사진스튜디오", "video": "영상제작", "design": "디자인",
+    # 여가·오락 / 공방·공예
+    "norebang": "노래방", "billiards": "당구장", "workshop": "공방·공예",
+    "escape": "방탈출", "experience": "체험공간",
+    # 숙박 / 기타
+    "accommodation": "숙박", "other": "사업장",
+    # ── 레거시 alias (마이그레이션 이전 DB 값 하위호환) ──
+    "chicken": "치킨집", "bbq": "고기집", "seafood": "횟집", "snack": "분식집",
     "delivery": "배달음식점", "health_food": "건강식품점",
-    "hospital": "의원·병원", "dental": "치과", "oriental": "한의원",
-    "pharmacy": "약국", "skincare": "피부과", "eye": "안과",
+    "hospital": "의원·병원", "oriental": "한의원", "eye": "안과",
     "mental": "심리상담소", "rehab": "물리치료", "checkup": "건강검진",
-    "fitness": "헬스장", "yoga": "요가·필라테스", "swimming": "수영장",
-    "academy": "학원", "language": "영어학원", "coding": "코딩학원",
-    "daycare": "어린이집", "tutoring": "과외", "music_edu": "음악학원",
-    "art_studio": "미술학원", "art_edu": "미술공예학원",
-    "sports_edu": "태권도학원", "driving": "운전학원",
-    "law": "법률사무소", "tax": "세무회계사무소", "realestate": "부동산",
-    "architecture": "건축설계사무소", "insurance": "보험사무소",
-    "it": "IT개발", "design": "디자인사무소", "marketing": "마케팅",
-    "photo": "사진·영상", "photo_wedding": "웨딩스튜디오", "video": "영상제작",
-    "consulting": "컨설팅", "translation": "번역통역",
-    "beauty": "미용실", "nail": "네일샵", "makeup": "메이크업", "spa": "마사지스파",
-    "clothing": "의류", "shoes": "신발", "eyewear": "안경점",
-    "shopping": "매장", "grocery": "식자재", "electronics": "전자제품",
-    "furniture": "가구", "stationery": "문구점", "book": "서점",
-    "supplement": "건강식품", "baby": "유아용품", "interior": "인테리어",
-    "auto": "자동차정비", "laundry": "세탁소", "pet": "반려동물용품",
-    "vet": "동물병원", "cleaning": "청소대행", "moving": "이사",
-    "repair": "가전수리", "flower": "꽃집",
-    "wedding_hall": "웨딩홀", "wedding_plan": "웨딩플래너",
-    "accommodation": "숙박·펜션", "guesthouse": "게스트하우스",
-    "camping": "캠핑·글램핑", "travel": "여행사",
-    "kids": "키즈카페", "study_cafe": "스터디카페",
-    "workshop": "공방·클래스", "karaoke_pro": "노래방",
-    "other": "사업장",
+    "swimming": "수영장", "academy": "학원", "language": "영어학원", "coding": "코딩학원",
+    "daycare": "어린이집", "music_edu": "음악학원", "art_studio": "미술학원",
+    "art_edu": "미술공예학원", "sports_edu": "태권도학원", "driving": "운전학원",
+    "law": "법률사무소", "tax": "세무회계사무소", "architecture": "건축설계사무소",
+    "insurance": "보험사무소", "it": "IT개발", "marketing": "마케팅",
+    "photo_wedding": "웨딩스튜디오", "consulting": "컨설팅", "translation": "번역통역",
+    "makeup": "메이크업", "shoes": "신발", "eyewear": "안경점",
+    "grocery": "식자재", "electronics": "전자제품", "furniture": "가구",
+    "book": "서점", "supplement": "건강식품", "baby": "유아용품",
+    "vet": "동물병원", "moving": "이사", "repair": "가전수리",
+    "wedding_hall": "웨딩홀", "wedding_plan": "웨딩플래너", "guesthouse": "게스트하우스",
+    "camping": "캠핑·글램핑", "travel": "여행사", "study_cafe": "스터디카페",
+    "karaoke_pro": "노래방",
 }
 
 # ── 스마트플레이스 표준 체크리스트 ───────────────────────────────────────────

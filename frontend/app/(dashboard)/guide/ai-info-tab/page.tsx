@@ -7,6 +7,7 @@ import { AiInfoTabGuide } from './AiInfoTabGuide'
 import { getBriefingEligibility } from '@/lib/userGroup'
 import { getActiveBusinessId } from '@/lib/active-business'
 import { fetchBriefingCategories } from '@/lib/briefingCategoriesServer'
+import { resolveActivePlan } from '@/lib/subscriptionPlan'
 
 export const metadata: Metadata = {
   title: 'AI 브리핑 5단계 가이드 | AEOlab',
@@ -39,25 +40,13 @@ export default async function AiInfoTabGuidePage({
     ? businesses?.find(b => b.id === activeBizId)
     : businesses?.[0]) ?? null
 
-  // 사용자 플랜 조회 (요금제별 안내 분기용)
-  const { data: subRow } = await supabase
-    .from('subscriptions')
-    .select('plan, status')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
   // 관리자 이메일 → biz 플랜 부여 (layout.tsx 동일 로직, 불일치 방지)
   const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com")
     .split(",").map((e) => e.trim().toLowerCase())
   const isAdminUser = ADMIN_EMAILS.includes((user.email ?? "").toLowerCase())
 
-  const plan: string = isAdminUser ? "biz" : (
-    (subRow?.status === 'active' || subRow?.status === 'grace_period')
-      ? (subRow?.plan ?? 'free')
-      : 'free'
-  )
+  // 사용자 플랜 조회 (요금제별 안내 분기용)
+  const plan: string = isAdminUser ? "biz" : await resolveActivePlan(supabase, user.id)
 
   const briefingCats = await fetchBriefingCategories()
   const elig = business

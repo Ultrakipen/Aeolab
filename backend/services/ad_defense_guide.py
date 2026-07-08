@@ -10,7 +10,7 @@ class AdDefenseGuideService:
     def __init__(self):
         self.client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
 
-    async def generate(self, biz: dict, scan_result: dict) -> dict:
+    async def generate(self, biz: dict, scan_result: dict, briefing_eligibility: str = "inactive") -> dict:
         """ChatGPT 광고 대응 가이드 생성"""
         score = scan_result.get("total_score", 0)
         chatgpt_result = scan_result.get("chatgpt_result") or {}
@@ -20,6 +20,8 @@ class AdDefenseGuideService:
             chatgpt_result.get("mentioned")
             or (chatgpt_result.get("exposure_freq", 0) or 0) > 0
         )
+        # 네이버·Gemini와 동일하게 스캔 자체 실패(error)를 "미언급 확정"과 구분 (guide.py:604와 동일 패턴)
+        chatgpt_measured = not bool(chatgpt_result.get("error"))
         gemini_result = scan_result.get("gemini_result") or {}
         exposure_freq = gemini_result.get("exposure_freq", 0)
         # 스캔 실패 시 gemini_result에 sample_size 키 자체가 없음 — 50으로 기본값을 주면
@@ -43,13 +45,20 @@ class AdDefenseGuideService:
         )[:3]
         weak_areas_text = ", ".join(k for k, _ in weak_areas) if weak_areas else "없음"
 
+        briefing_note = {
+            "active": "네이버 AI 브리핑(플레이스형) 대상 업종입니다.",
+            "likely": "네이버 AI 브리핑(플레이스형) 확대 예정 업종으로, 아직 전면 대상은 아닙니다.",
+            "inactive": "네이버 AI 브리핑(플레이스형) 비대상 업종/가맹점입니다 — '네이버 AI 브리핑 노출'을 전략으로 제안하지 말 것. 정보형(블로그·콘텐츠 출처)과 ChatGPT·Gemini·Google 노출 전략만 제안할 것.",
+        }.get(briefing_eligibility, "")
+
         prompt = f"""당신은 한국 AI 검색 광고 전략 전문가입니다.
 
 사업장 정보:
 - 이름: {biz.get('name')}
 - 업종: {biz.get('category')}
 - 지역: {biz.get('region')}
-- ChatGPT 현재 언급 여부: {"언급됨" if chatgpt_mentioned else "미언급"}
+- {briefing_note}
+- ChatGPT 현재 언급 여부: {"측정 실패(데이터 없음)" if not chatgpt_measured else ("언급됨" if chatgpt_mentioned else "미언급")}
 - Gemini 노출 측정: {f"{sample_size}회 샘플링 중 {exposure_freq}회 노출" if sample_size > 0 else "이번 스캔에서 측정 실패(데이터 없음)"}
 - 개선이 필요한 영역: {weak_areas_text}
 
@@ -72,14 +81,23 @@ organic_strategies는 5개, 소상공인이 직접 실행 가능한 것 위주�
 
         msg = await self.client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=1000,
+            max_tokens=3000,
             messages=[{"role": "user", "content": prompt}],
         )
         raw = msg.content[0].text.strip()
 
         import json, re
         json_match = re.search(r"\{.*\}", raw, re.DOTALL)
-        guide = json.loads(json_match.group()) if json_match else {"situation_summary": raw}
+        guide = None
+        if json_match:
+            try:
+                guide = json.loads(json_match.group())
+            except json.JSONDecodeError:
+                guide = None
+        if guide is None:
+            # 파싱 실패(응답 길이 초과로 JSON이 잘린 경우 등) — 코드펜스만 제거해 원문이라도 읽히게
+            cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw).strip()
+            guide = {"situation_summary": cleaned}
 
         return {
             "business_id": biz.get("id"),
@@ -87,6 +105,7 @@ organic_strategies는 5개, 소상공인이 직접 실행 가능한 것 위주�
             "guide": guide,
             "current_score": score,
             "chatgpt_mentioned": chatgpt_mentioned,
+            "chatgpt_measured": chatgpt_measured,
             "exposure_freq": exposure_freq,
             "sample_size": sample_size,
         }

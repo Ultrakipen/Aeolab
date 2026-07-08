@@ -7,6 +7,7 @@ import { Lightbulb, Bot, ListChecks, RefreshCw, CheckSquare, Lock, Sparkles, Fil
 import { getActiveBusinessId } from '@/lib/active-business'
 import { getBriefingEligibility } from '@/lib/userGroup'
 import { fetchBriefingCategories } from '@/lib/briefingCategoriesServer'
+import { resolveActivePlan } from '@/lib/subscriptionPlan'
 
 export default async function GuidePage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const supabase = await createClient()
@@ -76,21 +77,11 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
   })()
 
   // 플랜 + 이번 달 가이드 사용 횟수 조회
-  const { data: subscription } = await supabase
-    .from('subscriptions')
-    .select('plan, status')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
   // 관리자 이메일 → 개발 기간 biz 플랜 강제 부여 (layout.tsx와 동일 로직)
   const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com')
     .split(',').map(e => e.trim().toLowerCase())
   const isAdminUser = ADMIN_EMAILS.includes((user.email ?? '').toLowerCase())
-  const currentPlan = isAdminUser ? 'biz' : (
-    (subscription?.status === "active" || subscription?.status === "grace_period")
-      ? (subscription?.plan ?? "free")
-      : "free"
-  )
+  const currentPlan = isAdminUser ? 'biz' : await resolveActivePlan(supabase, user.id)
 
   const GUIDE_LIMITS: Record<string, number> = {
     free: 0, basic: 3, pro: 10, startup: 5, biz: 20, enterprise: 999,
@@ -101,10 +92,12 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
   monthStart.setDate(1)
   monthStart.setHours(0, 0, 0, 0)
 
+  // 가이드 월 한도는 사업장이 아닌 계정 단위(모든 보유 사업장 합산)로 집계됨
+  // (backend/middleware/plan_gate.py check_guide_limit()과 동일 스코프 — 불일치 시 한도 우회 오표시)
   const { count: guideUsed } = await supabase
     .from('guides')
     .select('id', { count: 'exact', head: true })
-    .eq('business_id', business.id)
+    .in('business_id', (businesses ?? []).map(b => b.id))
     .gte('generated_at', monthStart.toISOString())
 
   let initialToken = ''

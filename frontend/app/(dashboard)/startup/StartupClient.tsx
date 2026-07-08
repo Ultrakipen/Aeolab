@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { apiBase } from "@/lib/api";
 import { getSafeSession } from "@/lib/supabase/client";
-import { CATEGORY_GROUPS } from "@/lib/categories";
+import { FLAT_CATEGORY_GROUPS } from "@/lib/categories";
 import { getScoreTextLabel } from "@/lib/scoreLabels";
 
 interface StartupReport {
@@ -20,6 +20,7 @@ interface StartupReport {
     timing_color: string;
     opportunity_score: number;
     reasoning: string;
+    is_estimated?: boolean;
   };
   strategy: {
     entry_strategy?: string;
@@ -35,6 +36,7 @@ const LEVEL_COLORS: Record<string, string> = {
   orange: "text-orange-600 bg-orange-50 border-orange-200",
   yellow: "text-yellow-700 bg-yellow-50 border-yellow-200",
   green: "text-green-700 bg-green-50 border-green-200",
+  gray: "text-gray-500 bg-gray-50 border-gray-200",
 };
 
 export function StartupClient() {
@@ -81,7 +83,7 @@ export function StartupClient() {
   return (
     <div className="p-4 md:p-8 max-w-3xl">
       <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">창업 시장 분석</h1>
-      <p className="text-sm text-gray-500 mb-6">업종·지역 AI 노출 경쟁 강도 + 진입 전략 (창업 패키지 전용)</p>
+      <p className="text-sm text-gray-500 mb-6">업종·지역 AI 노출 경쟁 강도 + 진입 전략 (창업 패키지·Biz·Enterprise 전용)</p>
 
       {/* 입력 폼 */}
       <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-6">
@@ -93,8 +95,12 @@ export function StartupClient() {
               onChange={(e) => setCategory(e.target.value)}
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
-              {CATEGORY_GROUPS.map((g) => (
-                <option key={g.value} value={g.value}>{g.emoji} {g.label}</option>
+              {FLAT_CATEGORY_GROUPS.map((g) => (
+                <optgroup key={g.groupLabel} label={g.groupLabel}>
+                  {g.items.map((item) => (
+                    <option key={item.value} value={item.value}>{item.label}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>
@@ -160,6 +166,9 @@ export function StartupClient() {
               <div className={`rounded-xl p-4 ${report.timing.timing_color === "emerald" ? "bg-emerald-50 border border-emerald-200" : report.timing.timing_color === "blue" ? "bg-blue-50 border border-blue-200" : report.timing.timing_color === "red" ? "bg-red-50 border border-red-200" : report.timing.timing_color === "amber" ? "bg-amber-50 border border-amber-200" : "bg-gray-50 border border-gray-200"}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-base font-bold">{report.timing.timing_label}</span>
+                  {report.timing.is_estimated && (
+                    <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">추정</span>
+                  )}
                 </div>
                 <p className="text-sm md:text-base text-gray-600 leading-relaxed">{report.timing.reasoning}</p>
               </div>

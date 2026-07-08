@@ -4,6 +4,7 @@ import { DashboardShell } from "./DashboardShell";
 import { PageHeader } from "./PageHeader";
 import HelpFAQFloat from "@/components/landing/HelpFAQFloat";
 import { DashboardErrorBoundary } from "@/components/common/DashboardErrorBoundary";
+import { resolveActivePlan } from "@/lib/subscriptionPlan";
 
 export default async function DashboardLayout({
   children,
@@ -29,13 +30,8 @@ export default async function DashboardLayout({
   const userEmail = user!.email ?? "";
 
   // 구독 정보 + 사업장 수 병렬 조회
-  const [{ data: sub }, { data: bizData, count: bizCount }] = await Promise.all([
-    supabase
-      .from("subscriptions")
-      .select("plan, status")
-      .eq("user_id", userId)
-      .in("status", ["active", "grace_period"])
-      .maybeSingle(),
+  const [activePlanResolved, { data: bizData, count: bizCount }] = await Promise.all([
+    resolveActivePlan(supabase, userId),
     supabase
       .from("businesses")
       .select("id", { count: "exact" })
@@ -54,7 +50,7 @@ export default async function DashboardLayout({
   };
 
   // 만료/비활성 구독은 free로 처리 (sidebar 플랜 뱃지 오표시 방지)
-  const activePlan = isAdmin ? "biz" : (sub?.plan ?? null);
+  const activePlan = isAdmin ? "biz" : (activePlanResolved !== "free" ? activePlanResolved : null);
   const planKey = activePlan ?? "free";
   const bizLimit = PLAN_BIZ_LIMITS[planKey] ?? 1;
   const currentBizCount = bizCount ?? (bizData?.length ?? 0);

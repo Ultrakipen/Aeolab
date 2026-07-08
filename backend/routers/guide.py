@@ -455,7 +455,7 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
 
     biz = (await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, keywords, website_url")
+        .select("id, name, category, region, keywords, website_url, is_franchise")
         .eq("id", biz_id).single()
     )).data
     if not biz:
@@ -474,8 +474,10 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
         raise HTTPException(status_code=404, detail="No scan results found")
 
     from services.ad_defense_guide import AdDefenseGuideService
+    from services.score_engine import get_briefing_eligibility
+    eligibility = get_briefing_eligibility(biz.get("category", ""), bool(biz.get("is_franchise")))
     svc = AdDefenseGuideService()
-    return await svc.generate(biz, scan[0])
+    return await svc.generate(biz, scan[0], eligibility)
 
 
 async def _generate_and_save(req: GuideRequest):

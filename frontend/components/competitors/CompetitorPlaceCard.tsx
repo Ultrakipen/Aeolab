@@ -590,7 +590,11 @@ export function CompetitorPlaceCard({
             <span className="text-sm font-medium text-gray-600">경쟁사 소개글 Q&A</span>
             <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">내 소개글 Q&A 참고용</span>
           </div>
-          {(!competitor.faq_questions || competitor.faq_questions.length === 0) ? (
+          {competitor.faq_questions?.[0] === '__deprecated__' ? (
+            <p className="text-sm text-gray-400">
+              네이버 Q&A 탭 폐기(2026-05-01)로 질문 수집이 더 이상 불가합니다. 위 '플레이스 현황'에서 소개글 포함 여부를 확인하세요.
+            </p>
+          ) : (!competitor.faq_questions || competitor.faq_questions.length === 0) ? (
             <button
               onClick={onFetchFaq}
               disabled={isFetchingFaq}

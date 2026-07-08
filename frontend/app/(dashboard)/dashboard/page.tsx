@@ -4,6 +4,7 @@ import { SUPPORTED_CATEGORIES as PHOTO_SUPPORTED_CATEGORIES } from "@/lib/photoC
 import { getBriefingEligibility, getUserGroup } from "@/lib/userGroup";
 import { fetchBriefingCategories } from "@/lib/briefingCategoriesServer";
 import { getActiveBusinessId } from "@/lib/active-business";
+import { resolveActivePlan } from "@/lib/subscriptionPlan";
 import type { WebsiteCheckResult } from "@/types";
 import DashboardHeader from "./sections/DashboardHeader";
 import ScanWithModal from "./ScanWithModal";
@@ -76,14 +77,7 @@ export default async function DashboardPage({
   const todayISO = new Date().toISOString().split("T")[0];
 
   // ── 구독 ─────────────────────────────────────────────────────
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  const _activePlan = (subscription?.status === "active" || subscription?.status === "grace_period")
-    ? subscription.plan : "free";
+  const _activePlan = await resolveActivePlan(supabase, user.id);
   const planLabel = ({ free:"Free", basic:"Basic", startup:"창업패키지", pro:"Pro", biz:"Biz", enterprise:"Enterprise" } as Record<string,string>)[_activePlan ?? "free"] ?? "Free";
   const planFaqLimit = ({ free:0, basic:5, startup:999, pro:999, biz:999, enterprise:999 } as Record<string,number>)[_activePlan ?? "free"] ?? 0;
 
@@ -147,12 +141,8 @@ export default async function DashboardPage({
   // ── 플랜 ─────────────────────────────────────────────────────
   const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com").split(",").map((e) => e.trim().toLowerCase());
   const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? "").toLowerCase());
-  const plan = isAdmin ? "biz"
-    : subscription?.status === "active" || subscription?.status === "grace_period"
-    ? subscription?.plan ?? "free" : "free";
-  const subscriptionPlan = isAdmin ? "biz"
-    : subscription?.status === "active" || subscription?.status === "grace_period"
-    ? subscription?.plan ?? "free" : "free";
+  const plan = isAdmin ? "biz" : _activePlan;
+  const subscriptionPlan = isAdmin ? "biz" : _activePlan;
   const isTrialUser = !!(profileRow?.basic_trial_used) && plan === "free";
   const devMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
   const scanLimit = (isAdmin || devMode) ? 999 : SCAN_DAILY_LIMITS[plan] ?? 0;

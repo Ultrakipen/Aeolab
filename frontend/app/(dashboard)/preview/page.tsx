@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import PreviewClient from "./PreviewClient";
 import { fetchBriefingCategories } from "@/lib/briefingCategoriesServer";
+import { resolveActivePlan } from "@/lib/subscriptionPlan";
 import type { ScanResult } from "@/types";
 
 export const metadata = {
@@ -20,23 +21,13 @@ export default async function PreviewPage() {
     redirect("/login");
   }
 
-  // 구독 플랜 조회
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
   const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com")
     .split(",")
     .map((e) => e.trim().toLowerCase());
   const isAdmin = ADMIN_EMAILS.includes((user.email ?? "").toLowerCase());
 
-  const activePlan = isAdmin
-    ? "biz"
-    : (sub?.status === "active" || sub?.status === "grace_period")
-    ? (sub?.plan ?? "free")
-    : "free";
+  // 구독 플랜 조회
+  const activePlan = isAdmin ? "biz" : await resolveActivePlan(supabase, user.id);
 
   // 첫 번째 활성 사업장 조회
   const { data: biz } = await supabase

@@ -9,6 +9,7 @@ import { History, ImageIcon, TrendingUp, Calendar, Download } from 'lucide-react
 import Link from 'next/link'
 import { getActiveBusinessId } from '@/lib/active-business'
 import { getScoreTextLabel } from '@/lib/scoreLabels'
+import { resolveActivePlan } from '@/lib/subscriptionPlan'
 
 export default async function HistoryPage() {
   const supabase = await createClient()
@@ -42,12 +43,7 @@ export default async function HistoryPage() {
     />
   )
 
-  const { data: sub } = await supabase
-    .from('subscriptions')
-    .select('plan, status')
-    .eq('user_id', user.id)
-    .maybeSingle()
-  const plan = (sub?.status === "active" || sub?.status === "grace_period") ? (sub?.plan ?? "free") : "free"
+  const plan = await resolveActivePlan(supabase, user.id)
 
   let accessToken = ''
   try {
@@ -58,7 +54,7 @@ export default async function HistoryPage() {
   const [historyRes, blogShotsRes] = await Promise.all([
     supabase
       .from('score_history')
-      .select('id, business_id, score_date, total_score, unified_score, track1_score, track2_score, exposure_freq, weekly_change, context, created_at')
+      .select('id, business_id, score_date, total_score, unified_score, track1_score, track2_score, exposure_freq, weekly_change, context')
       .eq('business_id', business.id)
       .order('score_date', { ascending: false })
       .limit(30),
@@ -73,7 +69,6 @@ export default async function HistoryPage() {
   ])
 
   // v3.0 컬럼(unified_score 등) 미마이그레이션 시 fallback: 기본 컬럼만 조회
-  // fallback SELECT의 컬럼 목록이 다른 것은 의도적 — 수정하지 말 것
   type ScoreHistoryRow = {
     id: string
     business_id: string
@@ -85,13 +80,12 @@ export default async function HistoryPage() {
     exposure_freq: number
     weekly_change?: number | null
     context?: string | null
-    created_at?: string | null
   }
   let historyData: ScoreHistoryRow[] | null = historyRes.data as ScoreHistoryRow[] | null
   if (historyRes.error) {
     const fallback = await supabase
       .from('score_history')
-      .select('id, business_id, score_date, total_score, exposure_freq, weekly_change, created_at')
+      .select('id, business_id, score_date, total_score, exposure_freq, weekly_change')
       .eq('business_id', business.id)
       .order('score_date', { ascending: false })
       .limit(30)

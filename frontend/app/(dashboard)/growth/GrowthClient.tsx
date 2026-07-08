@@ -136,6 +136,7 @@ export default function GrowthClient({
   const [shareToast, setShareToast] = useState<string | null>(null);
 
   const categoryLabel = CATEGORY_LABEL[category] ?? category;
+  const hasMyScan = historyData.length > 0;
 
   // 차트용 데이터 변환
   const chartData = historyData.map((entry) => ({
@@ -642,8 +643,29 @@ export default function GrowthClient({
               </div>
             </div>
 
-            {/* 결과 메시지 */}
-            {benchmarkData.my_score >= benchmarkData.avg_score ? (
+            {/* 결과 메시지
+                — my_score/avg_score 둘 중 하나라도 0이면 "측정 없음"이지 실제 비교 결과가 아님(falsy-zero)
+                — 위 게이지의 텍스트 레이블(양호/보통/주의 필요/시작 전)이 같으면 실제 점수가 달라도
+                  "같은 등급인데 왜 높다는거지"로 읽혀 모순처럼 보이므로, 레이블이 같을 땐 우열을 단정하지 않음 */}
+            {!hasMyScan || benchmarkData.my_score <= 0 || benchmarkData.avg_score <= 0 ? (
+              <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                <p className="text-sm font-semibold text-gray-700">
+                  아직 비교할 측정 데이터가 부족합니다
+                </p>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  스캔을 실행하면 업종 평균과 비교한 내 위치를 확인할 수 있습니다.
+                </p>
+              </div>
+            ) : getScoreTextLabel(benchmarkData.my_score) === getScoreTextLabel(benchmarkData.avg_score) ? (
+              <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                <p className="text-sm font-semibold text-gray-700">
+                  업종 평균과 비슷한 수준입니다
+                </p>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  가이드의 개선 방법을 실천하면 격차를 벌릴 수 있습니다.
+                </p>
+              </div>
+            ) : benchmarkData.my_score >= benchmarkData.avg_score ? (
               <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
                 <p className="text-sm font-semibold text-blue-800">
                   업종 평균보다 높습니다 ✓

@@ -78,19 +78,27 @@ async def generate_schema(req: SchemaRequest, user: dict = Depends(get_current_u
     _TIPS_ALIAS: dict[str, str] = {
         "hospital": "clinic", "dental": "clinic", "oriental": "clinic", "skincare": "clinic",
         "rehab": "clinic", "checkup": "clinic", "mental": "clinic", "eye": "clinic",
+        "oriental_medicine": "clinic", "optics": "clinic", "medical": "clinic",
         "nail": "beauty", "makeup": "beauty", "spa": "beauty",
+        "semi_permanent": "beauty", "massage": "beauty", "jjimjil": "beauty",
         "yoga": "fitness", "swimming": "fitness",
+        "dance": "fitness", "ballet": "fitness", "golf": "fitness", "swim": "fitness",
+        "martial_arts": "fitness", "climbing": "fitness",
         "language": "academy", "coding": "academy", "art_studio": "academy",
         "art_edu": "academy", "sports_edu": "academy", "driving": "academy",
         "daycare": "academy", "tutoring": "academy", "music_edu": "academy",
+        "education": "academy", "study": "academy", "music_class": "academy",
+        "music_lesson": "academy", "cooking": "academy", "art_class": "academy",
+        "childcare": "academy",
         "chicken": "restaurant", "bbq": "restaurant", "seafood": "restaurant",
         "bar": "restaurant", "snack": "restaurant", "delivery": "restaurant",
         "bakery": "cafe",
-        "tax": "legal", "architecture": "legal",
+        "tax": "legal", "architecture": "legal", "accounting": "legal",
         "vet": "pet",
         "clothing": "shopping", "shoes": "shopping", "grocery": "shopping",
         "electronics": "shopping", "furniture": "shopping", "stationery": "shopping",
         "book": "shopping", "supplement": "shopping", "baby": "shopping",
+        "fashion": "shopping", "footwear": "shopping", "electronics_repair": "shopping",
     }
     _tips_key = _TIPS_ALIAS.get(req.category, req.category)
     result["category_tips"] = CATEGORY_TIPS.get(_tips_key, {})

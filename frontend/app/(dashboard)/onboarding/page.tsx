@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient, getSafeSession } from "@/lib/supabase/client";
 import { createBusiness } from "@/lib/api";
+import { resolveActivePlan } from "@/lib/subscriptionPlan";
 import {
   Sparkles, Search, Clock, BarChart2, Smartphone, Rocket,
   UtensilsCrossed, Stethoscope, BookOpen, Scale, Scissors,
@@ -322,13 +323,8 @@ export default function OnboardingPage() {
       }
 
       // 이미 활성 구독이 있으면 바로 대시보드로 이동 (신규 사업장 biz_id 파라미터 포함)
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("status, plan")
-        .eq("user_id", user.id)
-        .in("status", ["active", "grace_period"])
-        .maybeSingle();
-      if (sub) {
+      const activePlan = await resolveActivePlan(supabase, user.id);
+      if (activePlan !== "free") {
         const dest = registeredBizId
           ? `/dashboard?biz_id=${registeredBizId}&onboarding=1`
           : "/dashboard?onboarding=1";

@@ -4,6 +4,7 @@ import { AdDefenseClient } from "./AdDefenseClient";
 import { NoBusiness } from "@/components/dashboard/NoBusiness";
 import { PlanGate } from "@/components/common/PlanGate";
 import { Shield, TrendingUp, Bot, BarChart2 } from "lucide-react";
+import { resolveActivePlan } from "@/lib/subscriptionPlan";
 
 export default async function AdDefensePage() {
   const supabase = await createClient();
@@ -11,13 +12,7 @@ export default async function AdDefensePage() {
   if (!user || error) redirect("/login");
 
   // Pro 플랜 게이트 — 구독 status까지 검증
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  const activePlan = (sub?.status === "active" || sub?.status === "grace_period") ? (sub?.plan ?? "free") : "free";
+  const activePlan = await resolveActivePlan(supabase, user.id);
   const PRO_PLANS = ["pro", "biz", "enterprise"];
 
   if (!PRO_PLANS.includes(activePlan)) {
@@ -68,7 +63,18 @@ export default async function AdDefensePage() {
           currentPlan={activePlan}
           feature="ChatGPT 광고 대응 가이드"
         >
-          <div className="bg-white rounded-xl p-6 shadow-sm" />
+          <div className="bg-white rounded-xl p-6 shadow-sm space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="h-16 bg-gray-100 rounded-xl" />
+              <div className="h-16 bg-gray-100 rounded-xl" />
+              <div className="h-16 bg-gray-100 rounded-xl" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 bg-gray-100 rounded w-full" />
+              <div className="h-3 bg-gray-100 rounded w-5/6" />
+              <div className="h-3 bg-gray-100 rounded w-4/6" />
+            </div>
+          </div>
         </PlanGate>
       </div>
     );

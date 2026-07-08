@@ -17,6 +17,7 @@ interface AdDefenseResult {
   business_name: string;
   current_score: number;
   chatgpt_mentioned: boolean;
+  chatgpt_measured?: boolean;
   exposure_freq: number;
   sample_size?: number;
   guide: AdDefenseGuide;
@@ -192,15 +193,28 @@ export function AdDefenseClient({
                 <div className="text-sm text-gray-500 mt-1">AI 노출 상태</div>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-xl">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{result.exposure_freq}</div>
-                <div className="text-sm text-gray-500 mt-1">Gemini 언급(/{result.sample_size ?? 50}회 중)</div>
-              </div>
-              <div className={`text-center p-4 rounded-xl ${result.chatgpt_mentioned ? "bg-green-50" : "bg-red-50"}`}>
-                <div className={`text-xl font-bold ${result.chatgpt_mentioned ? "text-green-700" : "text-red-700"}`}>
-                  {result.chatgpt_mentioned ? "언급됨" : "미언급"}
+                {result.sample_size === 0 ? (
+                  <div className="text-lg md:text-xl font-bold text-gray-400">측정 실패</div>
+                ) : (
+                  <div className="text-2xl md:text-3xl font-bold text-gray-900">{result.exposure_freq}</div>
+                )}
+                <div className="text-sm text-gray-500 mt-1">
+                  {result.sample_size === 0 ? "Gemini 언급 (이번 스캔 측정 안 됨)" : `Gemini 언급(/${result.sample_size ?? 50}회 중)`}
                 </div>
-                <div className="text-sm text-gray-500 mt-1">ChatGPT</div>
               </div>
+              {result.chatgpt_measured === false ? (
+                <div className="text-center p-4 rounded-xl bg-gray-50">
+                  <div className="text-lg md:text-xl font-bold text-gray-400">측정 실패</div>
+                  <div className="text-sm text-gray-500 mt-1">ChatGPT</div>
+                </div>
+              ) : (
+                <div className={`text-center p-4 rounded-xl ${result.chatgpt_mentioned ? "bg-green-50" : "bg-red-50"}`}>
+                  <div className={`text-xl font-bold ${result.chatgpt_mentioned ? "text-green-700" : "text-red-700"}`}>
+                    {result.chatgpt_mentioned ? "언급됨" : "미언급"}
+                  </div>
+                  <div className="text-sm text-gray-500 mt-1">ChatGPT</div>
+                </div>
+              )}
             </div>
 
             {result.guide.situation_summary && (

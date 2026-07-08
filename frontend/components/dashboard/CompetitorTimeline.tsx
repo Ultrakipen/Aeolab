@@ -390,7 +390,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
                       <span className={`text-sm truncate max-w-[130px] ${row.isMe ? 'font-bold text-blue-700' : 'text-gray-600'}`}>
                         {row.isMe ? `${row.name} (내 가게)` : row.name}
                       </span>
-                      <span className={`text-xs font-semibold shrink-0 px-1.5 py-0.5 rounded ${row.isMe ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>{rank === 0 ? '1위' : `${rank + 1}위`}</span>
+                      <span className={`text-sm font-semibold shrink-0 px-1.5 py-0.5 rounded ${row.isMe ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>{rank === 0 ? '1위' : `${rank + 1}위`}</span>
                     </div>
                   ))
                 })()}
