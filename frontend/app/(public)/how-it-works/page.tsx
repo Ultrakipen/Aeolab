@@ -212,30 +212,28 @@ export default function HowItWorksPage() {
           <ul className="space-y-2 text-sm md:text-base text-gray-700 leading-relaxed mb-4">
             <li className="flex gap-2">
               <span className="shrink-0 text-blue-500 font-bold">•</span>
-              <span>AI 브리핑 사용자 <strong>3,000만명+</strong>, 통합검색 질의 약 <strong>20%</strong> 적용</span>
+              <span>
+                AI 브리핑 사용자 <strong>3,000만명+</strong>, 통합검색 질의 약 <strong>20%</strong> 적용{" "}
+                <a href="https://news.nate.com/view/20250808n07723" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:underline whitespace-nowrap">[출처: 네이버 컨콜 2025.08]</a>
+              </span>
             </li>
             <li className="flex gap-2">
               <span className="shrink-0 text-blue-500 font-bold">•</span>
-              <span>음식점 적용 후 — 체류시간 <strong>+10.4%</strong> / 클릭률 <strong>+27.4%</strong> / 예약 <strong>+8%</strong></span>
+              <span>
+                음식점 적용 후 — 체류시간 <strong>+10.4%</strong> / 클릭률 <strong>+27.4%</strong> / 예약 <strong>+8%</strong>{" "}
+                <a href="https://www.hankyung.com/article/202508212669g" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:underline whitespace-nowrap">[출처: 한국경제 2025.08.21]</a>
+              </span>
             </li>
             <li className="flex gap-2">
               <span className="shrink-0 text-blue-500 font-bold">•</span>
-              <span>숙박 <strong>1만 5천 개</strong> 업체 적용 (2026년 기준)</span>
+              <span>
+                숙박 <strong>1만 5천 개</strong> 업체 적용 (2026년 기준){" "}
+                <a href="https://www.viva100.com/article/20260401500944" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:underline whitespace-nowrap">[출처: 브릿지경제 2026.04.01]</a>
+              </span>
             </li>
           </ul>
           <p className="text-sm text-gray-400 leading-relaxed break-keep">
             데이터는 네이버 공식 발표 기준이며 실제 결과는 업종·지역에 따라 다를 수 있습니다.
-            <span className="ml-1">
-              출처:{" "}
-              <a
-                href="https://www.mt.co.kr/tech/2026/04/07/2026040709261836765"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                네이버 공식 발표
-              </a>
-            </span>
           </p>
         </div>
 

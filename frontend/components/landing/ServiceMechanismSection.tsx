@@ -161,28 +161,28 @@ export default function ServiceMechanismSection() {
               <ul className="space-y-2 text-sm leading-relaxed mb-3" style={{ color: "#1E293B" }}>
                 <li className="flex gap-2">
                   <span className="shrink-0 font-bold" style={{ color: "#2563EB" }}>•</span>
-                  AI 브리핑 사용자 <strong>3,000만명+</strong> <span style={{ color: "#64748B", fontSize: "0.75rem" }}>(추정치)</span>, 통합검색 질의 약 <strong>20%</strong> 적용
+                  <span>
+                    AI 브리핑 사용자 <strong>3,000만명+</strong> <span style={{ color: "#64748B", fontSize: "0.75rem" }}>(추정치)</span>, 통합검색 질의 약 <strong>20%</strong> 적용{" "}
+                    <a href="https://news.nate.com/view/20250808n07723" target="_blank" rel="noopener noreferrer" style={{ color: "#64748B" }} className="text-xs hover:underline whitespace-nowrap">[출처: 네이버 컨콜 2025.08]</a>
+                  </span>
                 </li>
                 <li className="flex gap-2">
                   <span className="shrink-0 font-bold" style={{ color: "#2563EB" }}>•</span>
-                  음식점 적용 후 — 체류시간 <strong>+10.4%</strong> / 클릭률 <strong>+27.4%</strong> / 예약 <strong>+8%</strong>
+                  <span>
+                    음식점 적용 후 — 체류시간 <strong>+10.4%</strong> / 클릭률 <strong>+27.4%</strong> / 예약 <strong>+8%</strong>{" "}
+                    <a href="https://www.hankyung.com/article/202508212669g" target="_blank" rel="noopener noreferrer" style={{ color: "#64748B" }} className="text-xs hover:underline whitespace-nowrap">[출처: 한국경제 2025.08.21]</a>
+                  </span>
                 </li>
                 <li className="flex gap-2">
                   <span className="shrink-0 font-bold" style={{ color: "#2563EB" }}>•</span>
-                  숙박 <strong>1만 5천 개</strong> 업체 적용 (2026년 기준)
+                  <span>
+                    숙박 <strong>1만 5천 개</strong> 업체 적용 (2026년 기준){" "}
+                    <a href="https://www.viva100.com/article/20260401500944" target="_blank" rel="noopener noreferrer" style={{ color: "#64748B" }} className="text-xs hover:underline whitespace-nowrap">[출처: 브릿지경제 2026.04.01]</a>
+                  </span>
                 </li>
               </ul>
               <p className="text-sm break-keep" style={{ color: "#475569" }}>
-                네이버 공식 발표 기준 · 실제 결과는 업종·지역에 따라 다를 수 있습니다.{" "}
-                <a
-                  href="https://www.mt.co.kr/tech/2026/04/07/2026040709261836765"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "#2563EB" }}
-                  className="hover:underline"
-                >
-                  출처 →
-                </a>
+                네이버 공식 발표 기준 · 실제 결과는 업종·지역에 따라 다를 수 있습니다.
               </p>
             </div>
 
