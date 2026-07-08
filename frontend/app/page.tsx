@@ -140,6 +140,7 @@ export default async function LandingPage() {
       {/* ── 2. WHY — Before / After (#FFFFFF) ── */}
       <section className="px-4 py-12 md:py-20" style={{ background: "#FFFFFF" }}>
         <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="광고 끊으면 사라집니다, AI 검색은 다릅니다 — 자세히 보기">
           <div className="text-center mb-6 md:mb-8 fade-up">
             <p className="text-sm font-bold tracking-widets mb-2" style={{ color: "#2563EB" }}>
               WHY AEOLAB
@@ -266,6 +267,7 @@ export default async function LandingPage() {
               </div>
             </div>
           </div>
+          </MobileAccordion>
         </div>
       </section>
 
@@ -907,11 +909,16 @@ export default async function LandingPage() {
       <InlineKeywordWidget />
 
       {/* ── 5. HOW AEOLAB — 대시보드 스크롤 연동 (#FFFFFF) ── */}
-      <HowAeolabIntegrated />
+      <div className="px-4 py-10 md:p-0">
+        <MobileAccordion label="AEOlab이 실제로 어떻게 작동하는지 — 자세히 보기">
+          <HowAeolabIntegrated />
+        </MobileAccordion>
+      </div>
 
       {/* ── 5-A. 서비스 기능 명시 — AEOlab이 제공하는 것 ── */}
       <section className="px-4 py-10 md:py-14" style={{ background: "#F8FAFC", borderTop: "1px solid #E2E8F0" }}>
         <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="구독하면 이런 기능을 사용할 수 있습니다 — 9가지 기능 보기">
           <div className="text-center mb-8">
             <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>AEOlab 제공 기능</p>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight break-keep" style={{ color: "#0F172A", letterSpacing: "-0.6px" }}>
@@ -1025,6 +1032,7 @@ export default async function LandingPage() {
               지금 시작 →
             </a>
           </div>
+          </MobileAccordion>
         </div>
       </section>
 
@@ -1059,7 +1067,11 @@ export default async function LandingPage() {
       </div>
 
       {/* ── 7. vs OTHERS — AEO vs 기존 방법 비교 (#FFFFFF) ── */}
-      <AEOCompareSection />
+      <div className="px-4 py-10 md:p-0">
+        <MobileAccordion label="AEOlab만의 기능 — 기존 방법과 비교 보기">
+          <AEOCompareSection />
+        </MobileAccordion>
+      </div>
 
       {/* ── 8-B. FREE TOOLS — 가입 없이 체험 (#F0FDF4) ── */}
       <FreeToolsSection />

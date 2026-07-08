@@ -257,7 +257,7 @@ export default function HeroSection() {
                 className="text-sm leading-relaxed break-keep"
                 style={{ color: "rgba(255,255,255,0.80)" }}
               >
-                <strong style={{ color: "#A5F3FC" }}>ChatGPT·Gemini</strong> 노출까지 함께 확인 —
+                <strong style={{ color: "#A5F3FC" }}>ChatGPT·Gemini·Google AI</strong> 노출까지 함께 확인 —
                 가입 없이 1분 · 무료
               </p>
             </div>
