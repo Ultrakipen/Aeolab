@@ -167,6 +167,7 @@
 | **`docs/blog_analysis_improvement_v2.0.md`** ⭐ | **블로그 관리 페이지 개선 v2.0 — v1.0(4건) 완료 확인 + SearchAd 검색량 연동(1순위, 구현 스펙 포함) + 후순위 3건(경쟁사 구조 비교·NLP 품질 채점·포스트별 성과 연결, 트리거 조건 명시). 오판 검증(근거+반증) 포함 (2026-07-06)** |
 | `docs/five_pages_and_action_history_handoff_v1.0.md` | 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠·변화기록(2차) 점검 + §3 잔여(falsy-zero 스윕·리뷰답변/AI광고대비/창업분석) 전체 완료(git `71707d4`~`963228c`). `nine_pages_measurement_inspection_v1.0.md` 9개 영역 전체 완료 — 트리거는 완료 이력 확인용만 (2026-07-06) |
 | `docs/subscription_lifecycle_inspection_v1.0.md` | 구독 생애주기(갱신·카드변경·해지) 점검 — §1~4(git `df4f55f`~`3ee38fb`) + §6 P0/P1/FK조인버그 + §5 7일 자동환불 전체 배포완료(git `170b002`). 잔여 없음 |
+| **`docs/eight_pages_commercial_professionalism_recheck_v1.0.md`** ⭐ | **8개 페이지 상업적 전문성 재점검 — P0 2건(FAQ한도·SearchGPT)+P1 8건 + 심층개선 6건(DataLab연동 등) + 실API호출로 발견한 최고심각도 2건(가이드 max_tokens 침묵실패, 소개글 허위수치 지어내기) + intro_draft CHECK 제약 사전존재 버그 + keyword_taxonomy law/미술 별칭 버그(전수검증). §13에 잔여 작업 5건 정리(max_tokens 타업종 점검·타업종 소개글 종단테스트·경쟁사 AI언급 추정치 한계·git push 결정 등) (git `258dff7`~`89afa5e`, 2026-07-08)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
@@ -175,6 +176,7 @@
 > **정보형 캐비엇 재점검**: `docs/naver_briefing_infotype_caveat_standard_v1.0.md 기준으로 정보형 캐비엇 재점검 진행`
 > **9개 페이지 실측 점검**: `docs/nine_pages_measurement_inspection_v1.0.md 기준으로 실측 점검 진행`
 > **블로그 관리 페이지 검색량 연동**: `docs/blog_analysis_improvement_v2.0.md 기준으로 1순위(검색량 연동)부터 진행`
+> **8개 페이지 상업적 전문성 재점검 잔여작업**: `docs/eight_pages_commercial_professionalism_recheck_v1.0.md 기준으로 §13 남은 작업 이어서 진행`
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
@@ -190,6 +192,7 @@
    - **신규 기능 출시 전**: 실제 사용자 1명 이상의 데이터로 검증한 화면만 노출. 빈 상태에서는 "아직 데이터 없음 — 첫 스캔 후 표시" 안내
    - **사용자 입력 데이터**(키워드·스마트플레이스·소개글 등)는 즉시 사업장 정보·점수·매뉴얼·트라이얼·보고서 모든 곳에 반영
    - **에러 폴백 시 허위 수치 금지**: API 실패 시 0/N/A로 표시, 무작위 숫자 절대 금지 (과거 히어로 섹션 사고 재발 방지)
+   - **AI 생성 콘텐츠(소개글·FAQ 등)의 사실 지어내기 금지 (2026-07-08 사고)**: 사장님이 그대로 외부(스마트플레이스 등)에 게시하는 AI 생성 텍스트는 가격·영업시간·수용인원·시설(단체석·프라이빗룸 등)·운영기간·수상 등을 실제 입력 데이터 없이 "구체 수치 N개 이상 포함" 식으로 강제 지시하면 안 됨 — 확인 안 된 항목은 반드시 생략하거나 "스마트플레이스에서 확인하세요" 안내로 대체. D.I.A. 등 콘텐츠 품질 지표를 높이려고 이 원칙을 어기지 말 것 (`guide_generator.py` intro 프롬프트 사고, git `fd946a9`~`501b37e`)
 
 ---
 
@@ -674,6 +677,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - **2026-07-06 블로그 진단 §2-A**: RSS 부분실패 DB훼손 P0 + P1/P2 8건 수정, 페이지 간결화(-56%). git `31af359`~`99e2c34`. 상세: 메모리 `project_blog_analysis_v2_reaudit_2026_07_06`.
 - **2026-07-06 5개 페이지 + 변화기록 재검증**: 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠 P1 4건+P2 7건(`71707d4`) + 변화기록 재검증 3건(`b386cb5`). `nine_pages_measurement_inspection_v1.0.md` 9개 영역 전체 완료.
 - **2026-07-07 구독 생애주기 점검 + §6 재점검**: 초기 4건 배포(`df4f55f`~`3ee38fb`), 이후 P0/P1/FK조인버그+7일 자동환불(`170b002`)로 완결 — 위 항목 참조.
+- **2026-07-08 8개 페이지 상업적 전문성 재점검 + 심층개선**: 경쟁사관리·변화기록·성장리포트·개선가이드·소개글콘텐츠·리뷰답변·AI광고대비·창업분석 재점검(3그룹 병렬 조사, PC/모바일·실측·논리모순·이해도·상업전문성 5기준). P0 2건(FAQ/소개글 월한도 프론트-백엔드 불일치·"SearchGPT" 폐기명칭+시제오류, WebSearch 외부검증) + P1 8건(exposure_freq "/100"고정표기→sample_size 동적화, History 페이월부재, action-log 미연동, 톡톡메뉴 5/6개 불일치, 광고대비·창업분석 월한도 전무, 모바일그리드 미반응형, 경쟁강도/타이밍지수 쿼리불일치) 수정·배포·Playwright 라이브검증 완료(git `258dff7`~`ba02b29`). 후속 심층개선 6건(경쟁사 8항목breakdown→3개 축소, D.I.A 자동재시도, 광고대비 프롬프트 경쟁사·키워드데이터 주입, 리뷰답변 구체화 지시, **창업분석 네이버 DataLab 실측 검색트렌드 연동**)까지 완료 — DataLab 연동은 실제 -84.2% 트렌드가 AI 진입전략에 반영됨을 라이브 E2E로 확인. 상세: 메모리 `project_eight_pages_recheck_2026_07_08`.
 
 ---
 
@@ -683,8 +687,6 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
 - **실결제 전환 시**: `TOSS_SECRET_KEY` test_ → live_ 교체 + pm2 restart
 - `NEXT_PUBLIC_ADMIN_SECRET_KEY` 향후 서버 컴포넌트로 분리 권장
-- ⏳ **crisis-reply 월별 한도 SQL 마이그레이션 미실행** — `scripts/supabase_schema.sql:2268` `guides_context_check`에 `'crisis_reply'` 추가하는 ALTER 문을 Supabase SQL Editor에서 수동 실행해야 함(2026-07-06 `7d06b16`에서 코드는 배포됐으나 SQL 미실행 시 한도가 계속 0으로 표시되어 사실상 무제한 유지)
-- ⏳ **온보딩 1단계 → pricing 경로 부재** — `onboarding/page.tsx`의 요금제 선택 모달이 3단계(사업장등록→첫스캔안내→시작하기) 완료 후에만 등장. 신규 가입 직후 결제 의사가 있는 사용자가 URL 직접 입력 외엔 pricing에 도달할 방법 없음(2026-07-07 라이브 QA 발견). 수정 여부 결정 필요 — `docs/subscription_lifecycle_inspection_v1.0.md` §7
 
 ### 비즈니스 목표
 - [ ] 유료 구독자 20명 달성 (BEP)
@@ -703,4 +705,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-07 | 구독 갱신 P0 과금오류 + FK조인 버그 수정 + 7일 자동환불 구현·배포 완료, 실 결제 전환 전 라이브 QA(실카드+Toss 테스트모드)로 webhook.py profiles.id 크래시 등 P0 2건 포함 총 6건 추가 발견·수정 + 카드정보표시·해지알림 신규구현 (git `170b002`~`140b144`). `docs/subscription_lifecycle_inspection_v1.0.md` §7 참조.*
+*최종 업데이트: 2026-07-08 | 8개 페이지(경쟁사관리~창업분석) 상업적 전문성 재점검 + P0 2건·P1 8건 수정·배포·라이브검증 완료 + 후속 심층개선 6건(창업분석 DataLab 실측 검색트렌드 연동 포함) 완료 (git `258dff7`~`ba02b29`). 메모리 `project_eight_pages_recheck_2026_07_08` 참조.*
