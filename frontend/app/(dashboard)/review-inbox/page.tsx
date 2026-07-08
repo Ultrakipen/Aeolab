@@ -298,6 +298,7 @@ function CopyButton({ text }: { text: string }) {
 export default function ReviewInboxPage() {
   const [businessId, setBusinessId] = useState<string | null>(null)
   const [bizName, setBizName] = useState<string | null>(null)
+  const [bizCategory, setBizCategory] = useState<string | null>(null)
   const [businesses, setBusinesses] = useState<{ id: string; name: string }[]>([])
   const [bizDropdownOpen, setBizDropdownOpen] = useState(false)
   const bizDropdownRef = useRef<HTMLDivElement>(null)
@@ -308,6 +309,10 @@ export default function ReviewInboxPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<ReviewReplyResult & { used: number; limit: number } | null>(null)
+  // result 생성 시점의 리뷰 텍스트 스냅샷 — textarea(reviewText)는 계속 편집 가능하므로
+  // 위기관리 가이드는 반드시 이 스냅샷을 봐야 함(라이브 state를 보면 사용자가 그 사이
+  // textarea를 다른 리뷰로 바꿔도 가이드가 새 텍스트를 분석해버리는 불일치가 생김)
+  const [submittedReviewText, setSubmittedReviewText] = useState('')
   const [history, setHistory] = useState<ReviewReply[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -338,7 +343,7 @@ export default function ReviewInboxPage() {
 
       const supabase = createClient()
       const { data: businesses } = await supabase
-        .from('businesses').select('id, name').eq('user_id', session.user.id).eq('is_active', true)
+        .from('businesses').select('id, name, category').eq('user_id', session.user.id).eq('is_active', true)
 
       if (!businesses || businesses.length === 0) return
 
@@ -353,6 +358,7 @@ export default function ReviewInboxPage() {
 
       setBusinessId(biz.id)
       setBizName(biz.name ?? null)
+      setBizCategory(biz.category ?? null)
 
       const resolvedPlan = await resolveActivePlan(supabase, session.user.id)
       setPlan(resolvedPlan)
@@ -383,8 +389,9 @@ export default function ReviewInboxPage() {
       setUsageStat(null)
 
       const supabase = createClient()
-      const { data } = await supabase.from('businesses').select('name').eq('id', bizId).maybeSingle()
+      const { data } = await supabase.from('businesses').select('name, category').eq('id', bizId).maybeSingle()
       setBizName(data?.name ?? null)
+      setBizCategory(data?.category ?? null)
 
       if (!currentToken) return
       try {
@@ -470,12 +477,14 @@ export default function ReviewInboxPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!reviewText.trim() || !businessId || !token) return
+    const textAtSubmit = reviewText
     setLoading(true)
     setError('')
     setResult(null)
     try {
-      const data = await generateReviewReply(businessId, reviewText, token)
+      const data = await generateReviewReply(businessId, textAtSubmit, token)
       setResult(data)
+      setSubmittedReviewText(textAtSubmit)
       setUsageStat({ used: data.used, limit: data.limit })
       setCrisisOnResult(false)
       fetchHistory()
@@ -696,7 +705,7 @@ export default function ReviewInboxPage() {
               </button>
               {crisisOnResult && (
                 <CrisisGuidePanel
-                  reviewText={reviewText}
+                  reviewText={submittedReviewText}
                   businessId={businessId}
                   token={token}
                   onClose={() => setCrisisOnResult(false)}
@@ -799,23 +808,25 @@ export default function ReviewInboxPage() {
           💡 스마트플레이스 리뷰 관련 AI 기능도 있어요
         </p>
         <div className="space-y-3 pr-14 md:pr-0">
-          <div className="flex items-start gap-2.5">
-            <span className="shrink-0 text-base mt-0.5">💬</span>
-            <div>
-              <p className="text-sm font-medium text-gray-800">
-                플레이스 플러스(beta) AI 리뷰 답글
-                <span className="ml-1.5 text-sm bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-1.5 py-0.5 font-normal">
-                  음식점 전용
-                </span>
-              </p>
-              <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
-                스마트플레이스 자체 AI가 리뷰 등록 시 답글 초안을 자동 생성합니다.
-                <span className="block text-gray-400 text-sm mt-0.5">
-                  스마트플레이스 → 업체 홈 → 리뷰 (네이버플러스 구독 계정 beta)
-                </span>
-              </p>
+          {bizCategory === 'restaurant' && (
+            <div className="flex items-start gap-2.5">
+              <span className="shrink-0 text-base mt-0.5">💬</span>
+              <div>
+                <p className="text-sm font-medium text-gray-800">
+                  플레이스 플러스(beta) AI 리뷰 답글
+                  <span className="ml-1.5 text-sm bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-1.5 py-0.5 font-normal">
+                    음식점 전용
+                  </span>
+                </p>
+                <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
+                  스마트플레이스 자체 AI가 리뷰 등록 시 답글 초안을 자동 생성합니다.
+                  <span className="block text-gray-400 text-sm mt-0.5">
+                    스마트플레이스 → 업체 홈 → 리뷰 (네이버플러스 구독 계정 beta)
+                  </span>
+                </p>
+              </div>
             </div>
-          </div>
+          )}
           <div className="flex items-start gap-2.5">
             <span className="shrink-0 text-base mt-0.5">🔔</span>
             <div>

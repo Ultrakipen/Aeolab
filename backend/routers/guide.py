@@ -266,14 +266,23 @@ reply: <답변 내용>
         )
         text = msg.content[0].text.strip()
         sentiment = "neutral"
-        reply = ""
+        reply_lines: list[str] = []
+        reply_started = False
         for line in text.splitlines():
-            if line.lower().startswith("sentiment:"):
+            if not reply_started and line.lower().startswith("sentiment:"):
                 raw = line.split(":", 1)[1].strip().lower()
                 if raw in ("positive", "negative", "neutral"):
                     sentiment = raw
-            elif line.lower().startswith("reply:"):
-                reply = line.split(":", 1)[1].strip()
+                continue
+            if not reply_started and line.lower().startswith("reply:"):
+                reply_started = True
+                reply_lines.append(line.split(":", 1)[1].strip())
+                continue
+            if reply_started:
+                # reply: 다음 줄부터는 필드 구분 없이 답변 본문의 연속으로 취급 —
+                # 이전엔 "reply:"로 시작하는 줄만 잡아 멀티라인 응답이 첫 줄 외엔 유실됐음
+                reply_lines.append(line)
+        reply = "\n".join(reply_lines).strip()
         if not reply:
             reply = text
         return reply, sentiment, False
