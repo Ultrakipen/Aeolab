@@ -476,18 +476,34 @@ async def get_qr_card(biz_id: str, user=Depends(get_current_user)):
 @router.post("/ad-defense/{biz_id}")
 async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(get_current_user)):
     """ChatGPT 광고 대응 가이드 생성 (Pro+ 전용)"""
+    from datetime import datetime, timezone
+    from middleware.plan_gate import get_user_plan, check_ad_defense_limit
+
     supabase = get_client()
     x_user_id = current_user["id"]
 
     # 소유권 검증 먼저 — 타인 biz_id로 플랜 체크 우회 방지
     await _verify_biz_ownership(supabase, biz_id, x_user_id)
 
-    from middleware.plan_gate import get_user_plan
     plan = await get_user_plan(x_user_id, supabase)
     if plan not in ("pro", "biz", "enterprise"):
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz", "enterprise"]},
+        )
+
+    # 월별 한도 체크 (2026-07-08 신설 — 이전엔 무제한 호출 가능했음)
+    allowed, used, limit = await check_ad_defense_limit(x_user_id, supabase)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "AD_DEFENSE_LIMIT_EXCEEDED",
+                "used": used,
+                "limit": limit,
+                "message": f"이번 달 AI 광고 대비 가이드 생성 한도({limit}회)를 초과했습니다.",
+                "upgrade_url": "/pricing",
+            },
         )
 
     biz = (await execute(
@@ -514,7 +530,26 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
     from services.score_engine import get_briefing_eligibility
     eligibility = get_briefing_eligibility(biz.get("category", ""), bool(biz.get("is_franchise")))
     svc = AdDefenseGuideService()
-    return await svc.generate(biz, scan[0], eligibility)
+    result = await svc.generate(biz, scan[0], eligibility)
+
+    # 사용량 카운트 — AI 호출 성공 후에만 기록 (crisis_reply와 동일 원칙)
+    is_fallback = result.get("is_fallback", False) if isinstance(result, dict) else False
+    if not is_fallback:
+        try:
+            await execute(
+                supabase.table("guides").insert({
+                    "business_id": biz_id,
+                    "context": "ad_defense",
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                })
+            )
+        except Exception as e:
+            _logger.warning(f"ad-defense 사용량 기록 실패 (응답은 정상 반환, biz={biz_id}): {e}")
+
+    if isinstance(result, dict):
+        result["used"] = used if is_fallback else used + 1
+        result["limit"] = limit
+    return result
 
 
 async def _generate_and_save(req: GuideRequest):

@@ -2314,3 +2314,18 @@ ALTER TABLE review_replies
 
 CREATE INDEX IF NOT EXISTS idx_review_replies_biz_deleted
   ON review_replies(business_id, deleted_at);
+
+-- ===========================================================
+-- 2026-07-08: guides.context CHECK 제약에 'ad_defense', 'startup_report' 추가
+-- 배경: AI 광고 대비 가이드(POST /api/guide/ad-defense/{biz_id})와
+-- 창업 시장 분석(POST /api/startup/report)이 이전엔 한도 없이 무제한 Claude Sonnet
+-- 호출 가능했던 것을 월별 한도로 제한하며, 사용량 카운트를 guides 테이블에 기록하기 위해 필요.
+-- ALTER 미실행 시 guide.py/startup.py의 insert가 CHECK 위반으로 실패하지만 warning 로그만 남기고
+-- 응답은 정상 반환됨(사용자 차단 없음) — 단, 한도 카운트가 항상 0으로 표시됨.
+-- ad_defense_monthly: free=0, basic=0, pro=5, biz=10, startup=0, enterprise=999
+-- startup_report_monthly: free=0, basic=0, pro=0, biz=10, startup=5, enterprise=999
+-- ===========================================================
+ALTER TABLE guides DROP CONSTRAINT IF EXISTS guides_context_check;
+ALTER TABLE guides
+  ADD CONSTRAINT guides_context_check
+  CHECK (context IN ('location_based', 'non_location', 'faq_draft', 'crisis_reply', 'ad_defense', 'startup_report'));

@@ -27,14 +27,32 @@ async def generate_startup_report(
     user: dict = Depends(get_current_user),
 ):
     """창업 패키지 경쟁 분석 리포트 생성 (startup/biz 전용)"""
+    from datetime import datetime, timezone
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS, check_startup_report_limit
+
     supabase = get_client()
-    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
-    plan = await get_user_plan(user["id"], supabase)
+    user_id = user["id"]
+
+    plan = await get_user_plan(user_id, supabase)
     if not PLAN_LIMITS.get(plan, PLAN_LIMITS["free"]).get("startup_report", False):
         required_plans = [p for p, limits in PLAN_LIMITS.items() if limits.get("startup_report")]
         raise HTTPException(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": required_plans},
+        )
+
+    # 월별 한도 체크 (2026-07-08 신설 — 이전엔 무제한 호출 가능했음)
+    allowed, used, limit = await check_startup_report_limit(user_id, supabase)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "STARTUP_REPORT_LIMIT_EXCEEDED",
+                "used": used,
+                "limit": limit,
+                "message": f"이번 달 창업 시장 분석 생성 한도({limit}회)를 초과했습니다.",
+                "upgrade_url": "/pricing",
+            },
         )
 
     from services.startup_report import StartupReportService
@@ -46,6 +64,30 @@ async def generate_startup_report(
         result["timing"] = timing_data
     except Exception as _e:
         _logger.warning(f"timing_data error: {_e}")
+
+    # 사용량 카운트 — AI 호출 성공 후 기록 (business_id = 첫 번째 사업장, 없으면 기록 생략)
+    is_fallback = result.get("is_fallback", False) if isinstance(result, dict) else False
+    if not is_fallback:
+        try:
+            # startup_report에는 biz_id가 없으므로 user의 첫 번째 사업장에 연결해 기록
+            biz_res = await execute(
+                supabase.table("businesses").select("id").eq("user_id", user_id).limit(1)
+            )
+            biz_rows = biz_res.data or []
+            if biz_rows:
+                await execute(
+                    supabase.table("guides").insert({
+                        "business_id": biz_rows[0]["id"],
+                        "context": "startup_report",
+                        "generated_at": datetime.now(timezone.utc).isoformat(),
+                    })
+                )
+        except Exception as e:
+            _logger.warning(f"startup-report 사용량 기록 실패 (응답은 정상 반환, user={user_id}): {e}")
+
+    if isinstance(result, dict):
+        result["used"] = used if is_fallback else used + 1
+        result["limit"] = limit
     return result
 
 
