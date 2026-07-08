@@ -2,9 +2,12 @@
 창업 패키지 리포트 서비스
 업종·지역 경쟁 강도 분석 + 진입 전략 가이드 (Claude Sonnet)
 """
+import logging
 import os
 import anthropic
 from db.supabase_client import get_client, execute
+
+logger = logging.getLogger(__name__)
 
 
 class StartupReportService:
@@ -85,6 +88,18 @@ class StartupReportService:
             level_color = "green"
             level_score = 4
 
+        # 네이버 DataLab 실측 검색 트렌드 조회 (graceful — 실패해도 리포트 전체 중단 안 함)
+        search_trend: dict = {}
+        try:
+            from services.naver_datalab import get_datalab_client
+            dl_client = get_datalab_client()
+            search_trend = await dl_client.get_trend_with_cache(category, region, supabase)
+            if search_trend.get("error"):
+                logger.warning(f"startup DataLab 트렌드 오류 응답: {search_trend.get('error')}")
+                search_trend = {}
+        except Exception as _e:
+            logger.warning(f"startup DataLab 조회 실패 (graceful): {_e}")
+
         # Claude로 진입 전략 생성 — 점수 숫자 미포함(strategy 텍스트에 노출 방지)
         from services.score_engine import get_briefing_eligibility
         eligibility = get_briefing_eligibility(category, False)
@@ -94,12 +109,26 @@ class StartupReportService:
             "inactive": "이 업종은 네이버 AI 브리핑(플레이스형) 비대상입니다 — 'AI 브리핑 노출'을 핵심 전략으로 제안하지 말 것. 정보형(블로그·콘텐츠)·ChatGPT·Gemini·Google 노출 전략 위주로 제안할 것. 프랜차이즈로 창업하는 경우도 동일하게 비대상.",
         }.get(eligibility, "")
         top_names = ", ".join(c["name"] for c in top_competitors[:3]) if top_competitors else "데이터 없음"
+
+        # 트렌드 데이터가 있을 때만 프롬프트에 삽입 (빈 경우 "안정 +0.0%" 같은 무의미 문구 방지)
+        trend_line = ""
+        if search_trend.get("trend_data"):
+            direction_label = {"rising": "상승세", "falling": "하락세", "stable": "안정"}.get(
+                search_trend.get("trend_direction", "stable"), "안정"
+            )
+            delta = search_trend.get("trend_delta", 0.0)
+            kws = ", ".join(search_trend.get("keywords_used", [])[:3])
+            trend_line = (
+                f"\n- 네이버 검색 수요(최근 3개월): {direction_label}"
+                f" ({delta:+.1f}% 변화) [측정 키워드: {kws}]"
+            )
+
         prompt = f"""한국 {region} {category} 업종 창업 분석:
 
 - 기존 사업장 수: {competitor_count}개
 - 경쟁 강도: {competition_level}
 - 상위 경쟁사: {top_names}
-- {briefing_note}
+- {briefing_note}{trend_line}
 {"- 창업 예정 사업장명: " + business_name if business_name else ""}
 
 위 데이터를 바탕으로 아래 형식으로 창업 전략을 JSON으로 제공해줘:
@@ -146,4 +175,11 @@ class StartupReportService:
             # 표본 3개 미만이거나 등록 사업장은 있으나 전부 미스캔이면 "평균"의 대표성이 낮음
             "is_estimated": competitor_count < 3 or no_scan_data,
             "no_scan_data": no_scan_data,
+            "search_trend": {
+                "trend_direction": search_trend.get("trend_direction", "stable"),
+                "trend_delta": search_trend.get("trend_delta", 0.0),
+                "trend_data": search_trend.get("trend_data", []),
+                "keywords_used": search_trend.get("keywords_used", []),
+                "available": bool(search_trend.get("trend_data")),
+            } if search_trend else {"available": False},
         }
