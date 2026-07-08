@@ -845,7 +845,7 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
     # 소유권 검증
     biz_res = await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, keywords, user_id")
+        .select("id, name, category, region, keywords, user_id, address, phone, review_count, avg_rating")
         .eq("id", req.biz_id)
         .eq("is_active", True)
         .single()
@@ -888,6 +888,10 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
             keywords=keywords,
             target_length=req.target_length,
             category=biz.get("category"),  # LSI 키워드 자동 추출용
+            address=biz.get("address"),
+            phone=biz.get("phone"),
+            review_count=biz.get("review_count"),
+            avg_rating=biz.get("avg_rating"),
         )
     except Exception as e:
         logger.warning(f"intro-generate Claude call failed [biz={req.biz_id}]: {e}")
@@ -918,6 +922,10 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
                     target_length=req.target_length,
                     category=biz.get("category"),
                     lsi_keywords=_lsi,
+                    address=biz.get("address"),
+                    phone=biz.get("phone"),
+                    review_count=biz.get("review_count"),
+                    avg_rating=biz.get("avg_rating"),
                 )
                 _regen_dia = validate_intro_dia(_regen, keywords=keywords, lsi_keywords=_lsi)
                 _regen_score = float(_regen_dia.get("score", 0))
@@ -995,7 +1003,7 @@ async def generate_global_ai_intro_endpoint(
     # 소유권 검증
     biz_res = await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, keywords, user_id")
+        .select("id, name, category, region, keywords, user_id, address, phone, review_count, avg_rating")
         .eq("id", req.biz_id)
         .eq("is_active", True)
         .single()
@@ -1036,6 +1044,10 @@ async def generate_global_ai_intro_endpoint(
             region=biz.get("region", ""),
             keywords=keywords,
             target_length=req.target_length,
+            address=biz.get("address"),
+            phone=biz.get("phone"),
+            review_count=biz.get("review_count"),
+            avg_rating=biz.get("avg_rating"),
         )
     except Exception as e:
         logger.warning(f"global-ai-intro-generate Claude call failed [biz={req.biz_id}]: {e}")

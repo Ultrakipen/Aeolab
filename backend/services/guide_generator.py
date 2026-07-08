@@ -1341,6 +1341,10 @@ _INTRO_PROMPT_TMPL = """당신은 네이버 스마트플레이스 소개글 전�
 - 지역: {region}
 - 핵심 키워드: {keywords}
 - 주요 서비스: {services}
+- 주소: {address}
+- 전화: {phone}
+- 리뷰 수: {review_count}
+- 평균 평점: {avg_rating}
 - LSI 연관 키워드(자연 배치 권장): {lsi_keywords}
 
 [작성 원칙]
@@ -1355,8 +1359,8 @@ _INTRO_PROMPT_TMPL = """당신은 네이버 스마트플레이스 소개글 전�
 
 [D.I.A. 5요소 — 반드시 모두 적용]
 D(Diversity, 다양성): LSI 연관 키워드 중 4개 이상을 본문에 자연스럽게 사용 (단순 나열 금지)
-I(Information, 정보 충실성): 가격대·운영시간·위치·예약방법·결제수단 등 구체 수치를 5개 이상 명시
-A(Authority, 권위): 경력·자격·수상·인증·인기 메뉴 1개 이상 명시 (없으면 "운영 N년" 표기)
+I(Information, 정보 충실성): 위 [사업장 정보]에 실제로 제공된 값(주소·전화·리뷰 수·평균 평점 등)만 활용해 구체적으로 작성. 확인되지 않은 가격대·영업시간·수용인원·결제수단은 절대 지어내지 말 것. 정보가 없는 항목은 "스마트플레이스에서 확인하세요" 같은 안내로 대체하거나 생략할 것.
+A(Authority, 권위): 리뷰 수·평균 평점이 제공된 경우 그 수치를 권위 근거로 활용(예: "리뷰 000개, 평균 평점 0.0"). 확인되지 않은 운영 연수·수상·인증은 절대 지어내지 말 것. 실제 데이터가 없으면 이 요소는 생략하거나 "고객 만족 중심 운영" 같은 검증 가능한 일반 표현만 사용.
 T(Timeliness, 적시성): 마지막 문단 끝에 "[{current_year}년 {current_month}월 기준]" 자동 삽입 (필수)
 O(Originality, 독창성): 다른 가게와 다른 차별점 1개 이상 명시 (분위기·시그니처·가격 정책 등)
 
@@ -1407,6 +1411,10 @@ async def generate_naver_intro(
     target_length: int = 400,
     lsi_keywords: list[str] | None = None,
     category: str | None = None,
+    address: str | None = None,
+    phone: str | None = None,
+    review_count: int | None = None,
+    avg_rating: float | None = None,
 ) -> str:
     """네이버 스마트플레이스 소개글 생성 (Claude Sonnet — guide_generator.py 허용 경로).
 
@@ -1432,6 +1440,10 @@ async def generate_naver_intro(
         region=region,
         keywords=", ".join(keywords[:8]) if keywords else "미등록",
         services="(미입력 — 업종 기반으로 일반적인 서비스 작성)",
+        address=address or "(미입력)",
+        phone=phone or "(미입력)",
+        review_count=f"{review_count}개" if review_count else "(미입력)",
+        avg_rating=f"{avg_rating}점" if avg_rating else "(미입력)",
         target_length=max(300, min(500, target_length)),
         lsi_keywords=", ".join(lsi_keywords) if lsi_keywords else "(없음 — 핵심 키워드만 사용)",
         current_year=now_kst.year,
@@ -1465,14 +1477,18 @@ _GLOBAL_AI_INTRO_PROMPT_TMPL = """당신은 ChatGPT·Google AI Overview·Gemini 
 - 업종: {category_label}
 - 지역: {region}
 - 핵심 키워드: {keywords}
+- 주소: {address}
+- 전화: {phone}
+- 리뷰 수: {review_count}
+- 평균 평점: {avg_rating}
 
 [작성 원칙 — ChatGPT·Gemini·Google AI 노출 최적화]
 1. 첫 문단: 사업장 소개를 명사 중심으로 간결하게 (3줄 이내)
    예: "{name}은 {region}에 위치한 {category_label}입니다. [핵심 서비스 1줄]"
 2. 구조화된 FAQ 섹션 필수 포함 — ChatGPT는 Q&A 형식 콘텐츠를 직접 인용:
    형식: "Q. [질문]\nA. [구체적 답변]" (5개)
-3. 권위 신호 포함: 운영 기간·자격·수상·인기 메뉴·리뷰 수 중 최소 1개
-4. 수치 포함 필수: 가격대·영업시간·위치 등 구체 수치 3개 이상
+3. 권위 신호 포함: 리뷰 수·평균 평점이 제공된 경우 그 수치를 우선 활용. 제공되지 않은 운영 기간·자격·수상은 지어내지 말 것
+4. 제공된 실제 정보(주소·전화·리뷰 수·평균 평점)만 수치로 활용. 확인되지 않은 가격대·영업시간은 절대 지어내지 말 것. 없으면 해당 항목 생략.
 5. 마지막에 "[{current_year}년 {current_month}월 기준]" 삽입 필수
 
 [글자 수]: {target_length}자 ±50자
@@ -1491,6 +1507,10 @@ async def generate_global_ai_intro(
     region: str,
     keywords: list,
     target_length: int = 400,
+    address: str | None = None,
+    phone: str | None = None,
+    review_count: int | None = None,
+    avg_rating: float | None = None,
 ) -> str:
     """ChatGPT·Gemini·Google AI 노출 최적화 소개글 생성.
 
@@ -1502,6 +1522,10 @@ async def generate_global_ai_intro(
         category_label=category_label,
         region=region,
         keywords=", ".join(keywords[:8]) if keywords else "미등록",
+        address=address or "(미입력)",
+        phone=phone or "(미입력)",
+        review_count=f"{review_count}개" if review_count else "(미입력)",
+        avg_rating=f"{avg_rating}점" if avg_rating else "(미입력)",
         target_length=max(300, min(500, target_length)),
         current_year=now_kst.year,
         current_month=now_kst.month,
