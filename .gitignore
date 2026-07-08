@@ -52,6 +52,9 @@ Thumbs.db
 tmp_*.png
 =
 
+# Playwright MCP 자동 생성 산출물 (콘솔 로그·페이지 스냅샷 — 도구 스크래치, 커밋 불필요)
+.playwright-mcp/
+
 # 소스 백업 (docs/backups/ — 코드 백업 절차용, git 추적 불필요)
 docs/backups/
 
