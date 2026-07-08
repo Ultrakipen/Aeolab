@@ -175,7 +175,7 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
 
     result = await execute(
         supabase.table("scan_results")
-        .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, competitor_scores")
+        .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, competitor_scores, score_breakdown")
         .eq("business_id", biz_id)
         .order("scanned_at", desc=True)
         .limit(limit_rows)
