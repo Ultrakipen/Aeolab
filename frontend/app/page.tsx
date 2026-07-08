@@ -366,11 +366,14 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── 1-A. AI 검색 노출 — 업종 분기 다이어그램 + 개선 방법 통합 ── */}
+      {/* ── 1-A. AI 검색 노출 업종 분기 + AI탭 상세 비교 (PC 2단 배치, 원래 §1-A+§4-B) ── */}
       <section className="px-4 py-10 md:py-16" style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
-        <div className="max-w-[1020px] mx-auto">
-          <MobileAccordion label="AI 검색 노출, 업종마다 채널이 다릅니다 — 업종별 채널 보기">
+        <div className="max-w-[1440px] mx-auto">
+          <MobileAccordion label="AI 검색 노출, 업종마다 채널이 다릅니다 — 업종 분기 + AI탭 비교 보기">
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-8 items-start">
+          {/* ── 왼쪽 컬럼: 업종 분기 다이어그램 ── */}
+          <div>
           {/* PART 1 — 도입 */}
           <div className="text-center mb-10">
             <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>업종별 AI 채널 안내</p>
@@ -492,6 +495,163 @@ export default async function LandingPage() {
                 무료 진단 시작 →
               </Link>
             </div>
+          </div>
+          </div>
+          {/* ── 오른쪽 컬럼: AI탭 상세 비교 (원래 §4-B) ── */}
+          <div>
+          <div className="text-center mb-6 md:mb-8 fade-up">
+            <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#6366F1" }}>
+              네이버 AI탭 (검색결과 새 탭)
+            </p>
+            <h2
+              className="text-2xl md:text-3xl font-black tracking-tight break-keep"
+              style={{ color: "#0F172A", letterSpacing: "-0.6px" }}
+            >
+              업종 제한 발표 없음, 2026-06-25 정식 출시 — AI 브리핑과 다른 경로
+            </h2>
+            <p className="text-sm mt-2 break-keep max-w-2xl mx-auto" style={{ color: "#475569" }}>
+              2026-04-27 베타 출시 · 2026-06-25 정식 출시 (네이버 공식)
+            </p>
+          </div>
+
+          {/* 비대상 업종 안심 callout — 학원·병원·미용실 등 방문자 이탈 방지 */}
+          <div
+            className="rounded-xl p-4 md:p-5 border mb-5 fade-up"
+            style={{ borderColor: "#A5B4FC", background: "#EEF2FF" }}
+          >
+            <p className="text-sm md:text-base font-bold break-keep text-center" style={{ color: "#3730A3" }}>
+              학원·병원·미용실·헬스장·법무사 등 — 플레이스형 AI 브리핑 비대상이어도 정보형 AI 브리핑과 <span style={{ color: "#6366F1" }}>AI탭</span> 노출을 준비할 수 있습니다
+            </p>
+          </div>
+
+          {/* AI 브리핑 vs AI탭 상세 비교 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
+
+            {/* ── AI 브리핑 카드 ── */}
+            <div className="rounded-xl border-2 fade-up overflow-hidden" style={{ borderColor: "#BFDBFE", boxShadow: FLOAT_SHADOW }}>
+              {/* 헤더 */}
+              <div className="px-5 py-4" style={{ background: "#1D4ED8" }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🔵</span>
+                  <h3 className="text-base font-black text-white">네이버 AI 브리핑</h3>
+                </div>
+                <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
+                  검색하면 상단에 자동으로 뜨는 AI 추천 박스
+                </p>
+              </div>
+
+              <div className="p-5" style={{ background: "#EFF6FF" }}>
+                {/* 노출 대상 업종 */}
+                <div className="mb-4">
+                  <p className="text-sm font-bold text-blue-700 mb-2 uppercase tracking-wide">노출 대상 업종</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { icon: "🍽️", label: "음식점" },
+                      { icon: "☕", label: "카페" },
+                      { icon: "🥐", label: "베이커리" },
+                      { icon: "🍺", label: "바·주점" },
+                      { icon: "🏨", label: "숙박" },
+                    ].map(({ icon, label }) => (
+                      <span key={label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-semibold" style={{ background: "#DBEAFE", color: "#1E40AF" }}>
+                        {icon} {label}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <span className="text-sm px-2 py-0.5 rounded-full font-semibold" style={{ background: "#FEE2E2", color: "#9F1239" }}>✕ 프랜차이즈 가맹점 제외</span>
+                    <span className="text-sm text-gray-400">(네이버 공식 정책)</span>
+                  </div>
+                </div>
+
+                {/* 특징 */}
+                <div>
+                  <p className="text-sm font-bold text-blue-700 mb-2 uppercase tracking-wide">채널 특징</p>
+                  <div className="space-y-2">
+                    {[
+                      { icon: "📍", text: "검색 결과 최상단 — 광고 영역 위에 자동 표시" },
+                      { icon: "🚫", text: "광고비 없이 지속 노출 (알고리즘 기반)" },
+                      { icon: "📝", text: "핵심 조건: 소개글·소식·리뷰 확보 (임계값 네이버 비공개)" },
+                    ].map(({ icon, text }) => (
+                      <div key={text} className="flex items-start gap-2">
+                        <span className="flex-shrink-0 text-sm">{icon}</span>
+                        <span className="text-sm text-gray-700 break-keep">{text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── AI탭 카드 ── */}
+            <div className="rounded-xl border-2 fade-up overflow-hidden" style={{ borderColor: "#A5B4FC", boxShadow: FLOAT_SHADOW }}>
+              {/* 헤더 */}
+              <div className="px-5 py-4" style={{ background: "#4F46E5" }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🟣</span>
+                  <h3 className="text-base font-black text-white">네이버 AI탭</h3>
+                  <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.25)", color: "#fff" }}>정식 출시</span>
+                </div>
+                <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
+                  검색 탭에서 &apos;AI&apos;를 클릭하면 나오는 AI 답변
+                </p>
+              </div>
+
+              <div className="p-5" style={{ background: "#EEF2FF" }}>
+                {/* 노출 대상 업종 */}
+                <div className="mb-4">
+                  <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">노출 대상 업종</p>
+                  <div className="rounded-lg px-3 py-2.5" style={{ background: "#E0E7FF" }}>
+                    <p className="text-sm font-black text-indigo-800">🏢 업종 제한 발표 없음 · 정식 출시</p>
+                    <p className="text-sm text-indigo-600 mt-0.5">장소 기반 모든 업종 가능 · 베타 첫 달 이용자 300만 달성(2026.05) · 2026-06-25 정식 출시</p>
+                  </div>
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <span className="text-sm px-2 py-0.5 rounded-full font-semibold" style={{ background: "#D1FAE5", color: "#065F46" }}>✓ 프랜차이즈 가맹점도 가능</span>
+                  </div>
+                </div>
+
+                {/* 특징 */}
+                <div>
+                  <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">채널 특징</p>
+                  <div className="space-y-2">
+                    {[
+                      { icon: "👆", text: "검색 결과 탭에서 'AI' 클릭 시 답변에 내 가게 등장" },
+                      { icon: "🌐", text: "업종 제한 발표 없음 — 장소 기반 모든 업종 가능" },
+                      { icon: "📝", text: "노출 기준: 소개글, 사진, 예약 연동, 블로그 UGC" },
+                    ].map(({ icon, text }) => (
+                      <div key={text} className="flex items-start gap-2">
+                        <span className="flex-shrink-0 text-sm">{icon}</span>
+                        <span className="text-sm text-gray-700 break-keep">{text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 안내 박스: AEOlab은 두 경로 모두 측정·가이드 */}
+          <div
+            className="rounded-xl p-4 md:p-5 border text-center fade-up"
+            style={{ borderColor: "#C7D2FE", background: "#EEF2FF" }}
+          >
+            <p className="text-sm md:text-base font-bold mb-2" style={{ color: "#3730A3" }}>
+              AEOlab은 내 업종에 맞는 채널을 자동으로 파악해 가이드합니다
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm">
+              <span className="rounded-full px-3 py-1 font-semibold" style={{ background: "#BFDBFE", color: "#1E40AF" }}>
+                AI 브리핑 대상 업종 → AI 브리핑 5단계 가이드
+              </span>
+              <span className="hidden sm:inline text-gray-400">|</span>
+              <span className="rounded-full px-3 py-1 font-semibold" style={{ background: "#C7D2FE", color: "#3730A3" }}>
+                그 외 업종 → AI탭 + ChatGPT·Gemini·Google AI 가이드
+              </span>
+            </div>
+          </div>
+
+          <p className="text-center text-sm mt-4 fade-up break-keep" style={{ color: "#94A3B8" }}>
+            AI 브리핑·AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+          </p>
+          </div>
           </div>
 
           </MobileAccordion>
@@ -734,168 +894,6 @@ export default async function LandingPage() {
           </p>
           <p className="text-center text-sm mt-2 fade-up break-keep" style={{ color: "#94A3B8" }}>
             AI 브리핑 노출은 네이버 알고리즘 기준으로 보장되지 않으며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
-          </p>
-          </MobileAccordion>
-        </div>
-      </section>
-
-      {/* ── 4-B. AI탭 — 모든 업종 가능 (#FFFFFF) ──
-            AI 브리핑(§4)이 업종 제한이 있어 비대상 업종 방문자가 이탈하는 문제를 보완하는 섹션.
-            네이버 AI 브리핑과 네이버 AI탭은 다른 노출 경로임을 명확히 안내. */}
-      <section className="px-4 py-12 md:py-16" style={{ background: "#FFFFFF" }}>
-        <div className="max-w-[1020px] mx-auto">
-          <MobileAccordion label="네이버 AI탭이란? 모든 업종 노출 가능 — 자세히 보기">
-          <div className="text-center mb-6 md:mb-8 fade-up">
-            <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#6366F1" }}>
-              네이버 AI탭 (검색결과 새 탭)
-            </p>
-            <h2
-              className="text-2xl md:text-3xl font-black tracking-tight break-keep"
-              style={{ color: "#0F172A", letterSpacing: "-0.6px" }}
-            >
-              업종 제한 발표 없음, 2026-06-25 정식 출시 — AI 브리핑과 다른 경로
-            </h2>
-            <p className="text-sm mt-2 break-keep max-w-2xl mx-auto" style={{ color: "#475569" }}>
-              2026-04-27 베타 출시 · 2026-06-25 정식 출시 (네이버 공식)
-            </p>
-          </div>
-
-          {/* 비대상 업종 안심 callout — 학원·병원·미용실 등 방문자 이탈 방지 */}
-          <div
-            className="rounded-xl p-4 md:p-5 border mb-5 fade-up"
-            style={{ borderColor: "#A5B4FC", background: "#EEF2FF" }}
-          >
-            <p className="text-sm md:text-base font-bold break-keep text-center" style={{ color: "#3730A3" }}>
-              학원·병원·미용실·헬스장·법무사 등 — 플레이스형 AI 브리핑 비대상이어도 정보형 AI 브리핑과 <span style={{ color: "#6366F1" }}>AI탭</span> 노출을 준비할 수 있습니다
-            </p>
-          </div>
-
-          {/* AI 브리핑 vs AI탭 상세 비교 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
-
-            {/* ── AI 브리핑 카드 ── */}
-            <div className="rounded-xl border-2 fade-up overflow-hidden" style={{ borderColor: "#BFDBFE", boxShadow: FLOAT_SHADOW }}>
-              {/* 헤더 */}
-              <div className="px-5 py-4" style={{ background: "#1D4ED8" }}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🔵</span>
-                  <h3 className="text-base font-black text-white">네이버 AI 브리핑</h3>
-                </div>
-                <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
-                  검색하면 상단에 자동으로 뜨는 AI 추천 박스
-                </p>
-              </div>
-
-              <div className="p-5" style={{ background: "#EFF6FF" }}>
-                {/* 노출 대상 업종 */}
-                <div className="mb-4">
-                  <p className="text-sm font-bold text-blue-700 mb-2 uppercase tracking-wide">노출 대상 업종</p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { icon: "🍽️", label: "음식점" },
-                      { icon: "☕", label: "카페" },
-                      { icon: "🥐", label: "베이커리" },
-                      { icon: "🍺", label: "바·주점" },
-                      { icon: "🏨", label: "숙박" },
-                    ].map(({ icon, label }) => (
-                      <span key={label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-semibold" style={{ background: "#DBEAFE", color: "#1E40AF" }}>
-                        {icon} {label}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="mt-2 flex items-center gap-1.5">
-                    <span className="text-sm px-2 py-0.5 rounded-full font-semibold" style={{ background: "#FEE2E2", color: "#9F1239" }}>✕ 프랜차이즈 가맹점 제외</span>
-                    <span className="text-sm text-gray-400">(네이버 공식 정책)</span>
-                  </div>
-                </div>
-
-                {/* 특징 */}
-                <div>
-                  <p className="text-sm font-bold text-blue-700 mb-2 uppercase tracking-wide">채널 특징</p>
-                  <div className="space-y-2">
-                    {[
-                      { icon: "📍", text: "검색 결과 최상단 — 광고 영역 위에 자동 표시" },
-                      { icon: "🚫", text: "광고비 없이 지속 노출 (알고리즘 기반)" },
-                      { icon: "📝", text: "핵심 조건: 소개글·소식·리뷰 확보 (임계값 네이버 비공개)" },
-                    ].map(({ icon, text }) => (
-                      <div key={text} className="flex items-start gap-2">
-                        <span className="flex-shrink-0 text-sm">{icon}</span>
-                        <span className="text-sm text-gray-700 break-keep">{text}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ── AI탭 카드 ── */}
-            <div className="rounded-xl border-2 fade-up overflow-hidden" style={{ borderColor: "#A5B4FC", boxShadow: FLOAT_SHADOW }}>
-              {/* 헤더 */}
-              <div className="px-5 py-4" style={{ background: "#4F46E5" }}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🟣</span>
-                  <h3 className="text-base font-black text-white">네이버 AI탭</h3>
-                  <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.25)", color: "#fff" }}>정식 출시</span>
-                </div>
-                <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
-                  검색 탭에서 &apos;AI&apos;를 클릭하면 나오는 AI 답변
-                </p>
-              </div>
-
-              <div className="p-5" style={{ background: "#EEF2FF" }}>
-                {/* 노출 대상 업종 */}
-                <div className="mb-4">
-                  <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">노출 대상 업종</p>
-                  <div className="rounded-lg px-3 py-2.5" style={{ background: "#E0E7FF" }}>
-                    <p className="text-sm font-black text-indigo-800">🏢 업종 제한 발표 없음 · 정식 출시</p>
-                    <p className="text-sm text-indigo-600 mt-0.5">장소 기반 모든 업종 가능 · 베타 첫 달 이용자 300만 달성(2026.05) · 2026-06-25 정식 출시</p>
-                  </div>
-                  <div className="mt-2 flex items-center gap-1.5">
-                    <span className="text-sm px-2 py-0.5 rounded-full font-semibold" style={{ background: "#D1FAE5", color: "#065F46" }}>✓ 프랜차이즈 가맹점도 가능</span>
-                  </div>
-                </div>
-
-                {/* 특징 */}
-                <div>
-                  <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">채널 특징</p>
-                  <div className="space-y-2">
-                    {[
-                      { icon: "👆", text: "검색 결과 탭에서 'AI' 클릭 시 답변에 내 가게 등장" },
-                      { icon: "🌐", text: "업종 제한 발표 없음 — 장소 기반 모든 업종 가능" },
-                      { icon: "📝", text: "노출 기준: 소개글, 사진, 예약 연동, 블로그 UGC" },
-                    ].map(({ icon, text }) => (
-                      <div key={text} className="flex items-start gap-2">
-                        <span className="flex-shrink-0 text-sm">{icon}</span>
-                        <span className="text-sm text-gray-700 break-keep">{text}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 안내 박스: AEOlab은 두 경로 모두 측정·가이드 */}
-          <div
-            className="rounded-xl p-4 md:p-5 border text-center fade-up"
-            style={{ borderColor: "#C7D2FE", background: "#EEF2FF" }}
-          >
-            <p className="text-sm md:text-base font-bold mb-2" style={{ color: "#3730A3" }}>
-              AEOlab은 내 업종에 맞는 채널을 자동으로 파악해 가이드합니다
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm">
-              <span className="rounded-full px-3 py-1 font-semibold" style={{ background: "#BFDBFE", color: "#1E40AF" }}>
-                AI 브리핑 대상 업종 → AI 브리핑 5단계 가이드
-              </span>
-              <span className="hidden sm:inline text-gray-400">|</span>
-              <span className="rounded-full px-3 py-1 font-semibold" style={{ background: "#C7D2FE", color: "#3730A3" }}>
-                그 외 업종 → AI탭 + ChatGPT·Gemini·Google AI 가이드
-              </span>
-            </div>
-          </div>
-
-          <p className="text-center text-sm mt-4 fade-up break-keep" style={{ color: "#94A3B8" }}>
-            AI 브리핑·AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
           </p>
           </MobileAccordion>
         </div>
