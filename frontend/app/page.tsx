@@ -768,9 +768,6 @@ export default async function LandingPage() {
             <p className="text-sm md:text-base font-bold break-keep text-center" style={{ color: "#3730A3" }}>
               학원·병원·미용실·헬스장·법무사 등 — 플레이스형 AI 브리핑 비대상이어도 정보형 AI 브리핑과 <span style={{ color: "#6366F1" }}>AI탭</span> 노출을 준비할 수 있습니다
             </p>
-            <p className="text-sm mt-1.5 break-keep text-center" style={{ color: "#4338CA" }}>
-              2026-04-27 베타 출시 · 2026-06-25 정식 출시
-            </p>
           </div>
 
           {/* AI 브리핑 vs AI탭 상세 비교 */}
@@ -865,7 +862,6 @@ export default async function LandingPage() {
                     {[
                       { icon: "👆", text: "검색 결과 탭에서 'AI' 클릭 시 답변에 내 가게 등장" },
                       { icon: "🌐", text: "업종 제한 발표 없음 — 장소 기반 모든 업종 가능" },
-                      { icon: "🚀", text: "2026-04-27 베타 출시 · 2026-06-25 정식 출시 (네이버 공식)" },
                       { icon: "📝", text: "노출 기준: 소개글, 사진, 예약 연동, 블로그 UGC" },
                     ].map(({ icon, text }) => (
                       <div key={text} className="flex items-start gap-2">
