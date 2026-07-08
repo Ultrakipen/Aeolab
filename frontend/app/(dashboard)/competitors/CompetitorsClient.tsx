@@ -1271,6 +1271,7 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                     ? `내 가게가 ${getGrowthStageText(myTotal).label} 단계로 앞서 있습니다`
                     : '두 가게 같은 성장 단계'}
                 </div>
+                <p className="text-xs text-gray-400 mt-1.5">{`* '지역 1등'·'빠른 성장'·'성장 중'은 변화 기록·성장 리포트의 '양호'·'보통'·'주의 필요'와 같은 구간입니다`}</p>
               </div>
 
               {/* 수치 비교 */}
@@ -1389,40 +1390,49 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
             </div>
           </div>
 
-          {/* 경쟁사 항목별 점수 — PC에서 2열 그리드 */}
-          {compScore && Object.keys(compScore.breakdown).length > 0 && (
+          {/* 경쟁사 요약 점수 — 2~3개 핵심 항목만 (8항목 단조 변환 단순화) */}
+          {compScore && (
             <div className="mt-5 pt-5 border-t border-gray-100">
-              <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5">
-                <Target className="w-4 h-4 text-gray-400" />경쟁사 항목별 점수
+              <p className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-1.5">
+                <Target className="w-4 h-4 text-gray-400" />경쟁사 요약 점수
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
-                {Object.entries(compScore.breakdown)
-                  .filter(([, v]) => typeof v === 'number')
-                  .sort(([, a], [, b]) => (b as number) - (a as number))
-                  .map(([key, val]) => {
-                    const label = COMPARE_BREAKDOWN_LABELS[key] ?? key
-                    const pct   = Math.min(Math.round(val as number), 100)
-                    return (
-                      <div key={key}>
+              <p className="text-xs text-amber-600 bg-amber-50 rounded px-2 py-1 mb-3">{TRACK1_ESTIMATED_NOTE}</p>
+              {(() => {
+                const bd = compScore.breakdown
+                const aiMentionVals = [bd.naver_exposure_confirmed, bd.multi_ai_exposure].filter((v): v is number => typeof v === 'number')
+                const aiMention = aiMentionVals.length > 0 ? Math.round(aiMentionVals.reduce((a, b) => a + b, 0) / aiMentionVals.length) : null
+                const reviewScore = typeof bd.review_quality === 'number' ? Math.round(bd.review_quality) : null
+                const spScore = typeof bd.smart_place_completeness === 'number' ? Math.round(bd.smart_place_completeness) : null
+                const items = [
+                  ...(aiMention !== null ? [{ label: 'AI 언급 여부 (추정)', val: aiMention }] : []),
+                  ...(reviewScore !== null ? [{ label: '리뷰·평점 (추정)', val: reviewScore }] : []),
+                  ...(spScore !== null ? [{ label: '스마트플레이스 완성도 (추정)', val: spScore }] : []),
+                ]
+                if (items.length === 0) return null
+                return (
+                  <div className="space-y-3">
+                    {items.map(({ label, val }) => (
+                      <div key={label}>
                         <div className="flex items-center justify-between text-sm mb-1">
                           <span className="text-gray-600">{label}</span>
                           <span className={`text-sm font-semibold px-1.5 py-0.5 rounded-full ${
-                            pct >= 70 ? 'bg-emerald-50 text-emerald-700' : pct >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+                            val >= 70 ? 'bg-emerald-50 text-emerald-700' : val >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
                           }`}>
-                            {pct >= 70 ? '양호' : pct >= 40 ? '보통' : '미흡'}
+                            {val >= 70 ? '양호' : val >= 40 ? '보통' : '미흡'}
                           </span>
                         </div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${pct >= 70 ? 'bg-emerald-400' : pct >= 40 ? 'bg-amber-400' : 'bg-red-400'}`}
-                            style={{ width: `${pct}%` }}
+                            className={`h-full rounded-full ${val >= 70 ? 'bg-emerald-400' : val >= 40 ? 'bg-amber-400' : 'bg-red-400'}`}
+                            style={{ width: `${Math.min(val, 100)}%` }}
                           />
                         </div>
                       </div>
-                    )
-                  })}
-              </div>
-              <p className="text-sm text-gray-400 mt-3">낮은 점수 항목이 내 가게의 선점 기회입니다.</p>
+                    ))}
+                  </div>
+                )
+              })()}
+              <p className="text-xs text-gray-400 mt-3">낮은 점수 항목이 내 가게의 선점 기회입니다.</p>
             </div>
           )}
         </div>

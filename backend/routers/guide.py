@@ -252,6 +252,8 @@ async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str, bool]:
 1. sentiment: "positive"(긍정), "negative"(부정), "neutral"(일반) 중 하나만
 2. reply: 50~80자 사이의 진심 어린 답변 (업종 키워드 자연스럽게 포함, 혜택·쿠폰 제공 문구 절대 금지, 네이버 정책 준수)
 
+[답변 필수 조건] 리뷰에서 언급된 구체적 내용(메뉴명·서비스명·장소·불만 요인 등)을 답변에 반드시 1개 이상 직접 반영할 것. "소중한 의견 감사합니다" 같은 일반론적 문구만으로 구성하지 말 것.
+
 형식:
 sentiment: <값>
 reply: <답변 내용>
@@ -529,8 +531,29 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
     from services.ad_defense_guide import AdDefenseGuideService
     from services.score_engine import get_briefing_eligibility
     eligibility = get_briefing_eligibility(biz.get("category", ""), bool(biz.get("is_franchise")))
+
+    # 경쟁사 이름 조회 (최대 3개, 미등록 시 빈 배열)
+    competitor_names: list[str] = []
+    try:
+        _comp_res = await execute(
+            supabase.table("competitors").select("name").eq("business_id", biz_id).limit(3)
+        )
+        competitor_names = [c.get("name", "") for c in (_comp_res.data or []) if c.get("name")]
+    except Exception as _ce:
+        _logger.warning(f"ad-defense 경쟁사 조회 실패 — 빈 배열 사용 [biz={biz_id}]: {_ce}")
+
+    # 미확보 키워드 (gap_analyzer 재사용, 실패 시 빈 배열)
+    gap_keywords: list[str] = []
+    try:
+        from services.gap_analyzer import analyze_gap_from_db
+        _gap = await analyze_gap_from_db(biz_id, supabase)
+        if _gap and _gap.review_keyword_gap:
+            gap_keywords = (_gap.review_keyword_gap.missing_keywords or [])[:5]
+    except Exception as _ge:
+        _logger.warning(f"ad-defense gap_keywords 조회 실패 — 빈 배열 사용 [biz={biz_id}]: {_ge}")
+
     svc = AdDefenseGuideService()
-    result = await svc.generate(biz, scan[0], eligibility)
+    result = await svc.generate(biz, scan[0], eligibility, competitor_names, gap_keywords)
 
     # 사용량 카운트 — AI 호출 성공 후에만 기록 (crisis_reply와 동일 원칙)
     is_fallback = result.get("is_fallback", False) if isinstance(result, dict) else False

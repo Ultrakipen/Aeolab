@@ -893,18 +893,51 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
         logger.warning(f"intro-generate Claude call failed [biz={req.biz_id}]: {e}")
         raise HTTPException(status_code=502, detail="AI 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
 
-    qa_count = _count_qa_pairs(intro_text)
-    keywords_included = _count_keyword_matches(intro_text, keywords)
-
-    # D.I.A. 5요소 사후 검증 (AI 호출 0, 실패해도 본 응답 유지)
+    # D.I.A. 품질 게이트 — 70점 미만 시 최대 2회 자동 재생성 (월 한도 추가 소비 없음)
     dia_score: dict | None = None
     try:
         from services.content_validator import validate_intro_dia
         from services.keyword_taxonomy import get_all_keywords_flat
         _lsi = get_all_keywords_flat(biz.get("category", "other"))[:8]
         dia_score = validate_intro_dia(intro_text, keywords=keywords, lsi_keywords=_lsi)
+        _dia_cur = float(dia_score.get("score", 0))
+        _MAX_DIA_RETRIES = 2
+        for _retry in range(_MAX_DIA_RETRIES):
+            if _dia_cur >= 70:
+                break
+            logger.warning(
+                f"intro-generate D.I.A. {_dia_cur:.0f}/100 미달 — "
+                f"재생성 {_retry + 1}/{_MAX_DIA_RETRIES} [biz={req.biz_id}]"
+            )
+            try:
+                _regen = await generate_naver_intro(
+                    biz_name=biz.get("name", ""),
+                    category_label=category_label,
+                    region=biz.get("region", ""),
+                    keywords=keywords,
+                    target_length=req.target_length,
+                    category=biz.get("category"),
+                    lsi_keywords=_lsi,
+                )
+                _regen_dia = validate_intro_dia(_regen, keywords=keywords, lsi_keywords=_lsi)
+                _regen_score = float(_regen_dia.get("score", 0))
+                if _regen_score > _dia_cur:
+                    intro_text = _regen
+                    dia_score = _regen_dia
+                    _dia_cur = _regen_score
+            except Exception as _re:
+                logger.warning(f"intro-generate 재생성 {_retry + 1}회 실패: {_re}")
+                break
+        if _dia_cur < 70:
+            logger.warning(
+                f"intro-generate D.I.A. 3회 시도 후 {_dia_cur:.0f}/100 미달 — "
+                f"마지막 결과 반환 [biz={req.biz_id}]"
+            )
     except Exception as dia_err:
         logger.warning(f"intro-generate D.I.A. validate failed: {dia_err}")
+
+    qa_count = _count_qa_pairs(intro_text)
+    keywords_included = _count_keyword_matches(intro_text, keywords)
 
     # guides 테이블에 사용 이력 기록 + businesses 테이블에 최신 초안 저장
     try:

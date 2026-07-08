@@ -10,7 +10,14 @@ class AdDefenseGuideService:
     def __init__(self):
         self.client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
 
-    async def generate(self, biz: dict, scan_result: dict, briefing_eligibility: str = "inactive") -> dict:
+    async def generate(
+        self,
+        biz: dict,
+        scan_result: dict,
+        briefing_eligibility: str = "inactive",
+        competitor_names: list[str] | None = None,
+        gap_keywords: list[str] | None = None,
+    ) -> dict:
         """ChatGPT 광고 대응 가이드 생성"""
         score = scan_result.get("total_score", 0)
         chatgpt_result = scan_result.get("chatgpt_result") or {}
@@ -51,6 +58,17 @@ class AdDefenseGuideService:
             "inactive": "네이버 AI 브리핑(플레이스형) 비대상 업종/가맹점입니다 — '네이버 AI 브리핑 노출'을 전략으로 제안하지 말 것. 정보형(블로그·콘텐츠 출처)과 ChatGPT·Gemini·Google 노출 전략만 제안할 것.",
         }.get(briefing_eligibility, "")
 
+        _comp_line = (
+            f"- 주요 경쟁사: {', '.join(competitor_names)}"
+            if competitor_names
+            else "- 주요 경쟁사: 미등록"
+        )
+        _gap_line = (
+            f"- 미확보 키워드(경쟁사 대비 부족): {', '.join(gap_keywords)}"
+            if gap_keywords
+            else "- 미확보 키워드: 데이터 없음"
+        )
+
         prompt = f"""당신은 한국 AI 검색 광고 전략 전문가입니다.
 
 사업장 정보:
@@ -61,9 +79,12 @@ class AdDefenseGuideService:
 - ChatGPT 현재 언급 여부: {"측정 실패(데이터 없음)" if not chatgpt_measured else ("언급됨" if chatgpt_mentioned else "미언급")}
 - Gemini 노출 측정: {f"{sample_size}회 샘플링 중 {exposure_freq}회 노출" if sample_size > 0 else "이번 스캔에서 측정 실패(데이터 없음)"}
 - 개선이 필요한 영역: {weak_areas_text}
+{_comp_line}
+{_gap_line}
 
 ChatGPT 광고(ChatGPT Ads)는 2026년 2월 미국 출시 이후 이미 확대 운영 중입니다. 이에 대응하여
-유기적(Organic) AI 검색 노출을 강화하는 전략을 아래 JSON 형식으로 제공해줘:
+유기적(Organic) AI 검색 노출을 강화하는 전략을 아래 JSON 형식으로 제공해줘.
+아래 경쟁사·미확보 키워드를 반드시 반영하여 이 사업장 맞춤으로 구체적으로 작성할 것:
 
 {{
   "situation_summary": "현재 상황 2문장 요약",
