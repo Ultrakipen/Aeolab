@@ -66,8 +66,8 @@ _CATEGORY_ALIASES: dict[str, str] = {
     "피아노": "music", "피아노학원": "music", "피아노교습소": "music",
     "바이올린": "music", "첼로": "music", "기타": "music", "드럼": "music",
     "보컬": "music", "성악": "music", "실용음악": "music", "작곡": "music",
-    "미술": "music", "미술학원": "music", "미술교습소": "music",
-    "발레": "music", "무용": "music", "댄스": "music",
+    "미술": "art_class", "미술학원": "art_class", "미술교습소": "art_class",
+    "발레": "ballet", "무용": "ballet", "댄스": "dance",
     # 법률
     "legal": "legal", "lawyer": "legal", "law": "legal",
     "법률": "legal", "변호사": "legal",
