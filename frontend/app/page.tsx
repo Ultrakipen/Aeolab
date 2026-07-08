@@ -133,7 +133,7 @@ export default async function LandingPage() {
           <span className="hidden sm:block text-gray-400">·</span>
           <span className="whitespace-nowrap">🤖 <strong className="text-purple-700">AI 브리핑·AI탭</strong> 노출 가능성 ↑</span>
           <span className="hidden sm:block text-gray-400">·</span>
-          <span className="whitespace-nowrap">💬 <strong className="text-green-700">ChatGPT·Gemini</strong> 노출 현황 측정·추적</span>
+          <span className="whitespace-nowrap">💬 <strong className="text-green-700">ChatGPT·Gemini·Google AI</strong> 노출 현황 측정·추적</span>
         </div>
       </div>
 
@@ -213,7 +213,7 @@ export default async function LandingPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold shrink-0" style={{ color: "#DC2626" }}>✕</span>
-                  AI 검색(ChatGPT·Gemini·네이버 AI탭·AI 브리핑)엔 전혀 효과 없음
+                  AI 검색(ChatGPT·Gemini·Google AI·네이버 AI탭·AI 브리핑)엔 전혀 효과 없음
                 </li>
               </ul>
             </div>
@@ -252,7 +252,7 @@ export default async function LandingPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-bold shrink-0">✓</span>
-                    ChatGPT·Gemini 현황 정기 측정 — 모든 업종
+                    ChatGPT·Gemini·Google AI 현황 정기 측정 — 모든 업종
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-bold shrink-0">✓</span>
@@ -308,15 +308,15 @@ export default async function LandingPage() {
                   AI 브리핑에 노출되면 손님 클릭이 늘어납니다
                 </p>
                 <p className="text-sm mt-3" style={{ color: "rgba(255,255,255,0.75)" }}>
-                  네이버 2026년 4월 공식 발표 · 음식점 카테고리 기준
+                  네이버 2025년 8월 공식 발표 · 음식점 카테고리 기준
                 </p>
                 <a
-                  href="https://www.mt.co.kr/tech/2026/04/07/2026040709261836765"
+                  href="https://www.hankyung.com/article/202508212669g"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-white/75 underline hover:text-white mt-0.5 block"
                 >
-                  머니투데이 보도 원문 →
+                  한국경제 보도 원문 →
                 </a>
                 <p className="text-sm mt-1.5 break-keep" style={{ color: "rgba(255,255,255,0.88)" }}>
                   측정 시점·지역·업종에 따라 달라질 수 있습니다
@@ -332,7 +332,7 @@ export default async function LandingPage() {
               {[
                 { num: "3,000만+", label: "네이버 AI 서비스 월 이용자 (전체)", sub: "뉴스·검색·플레이스 전체 합산 · 네이버 공식 발표 (2025.11)", delay: "delay-1", isAiTab: false },
                 { num: "2026.04", label: "네이버 AI탭 베타 출시", sub: "2026-04-27 베타 출시 · 2026-06-25 정식 출시 · 네이버 공식", delay: "delay-2", isAiTab: false },
-                { num: "25종+", label: "모든 업종 측정 가능", sub: "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기", delay: "delay-3", isAiTab: true },
+                { num: "59종+", label: "모든 업종 측정 가능", sub: "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기", delay: "delay-3", isAiTab: true },
               ].map((item) => (
                 <div
                   key={item.label}
@@ -410,7 +410,7 @@ export default async function LandingPage() {
                 <div className="flex items-start gap-3 rounded-xl bg-white border border-emerald-100 px-4 py-3">
                   <span className="text-emerald-500 text-base font-bold mt-0.5 flex-shrink-0">✅</span>
                   <div>
-                    <p className="text-sm font-bold text-gray-800">ChatGPT·Gemini 답변</p>
+                    <p className="text-sm font-bold text-gray-800">ChatGPT·Gemini·Google AI 답변</p>
                     <p className="text-sm text-gray-500">글로벌 AI 인용 여부를 측정합니다 (노출 보장 아님)</p>
                     <p className="text-sm text-gray-400 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
                   </div>
@@ -447,7 +447,7 @@ export default async function LandingPage() {
                 <div className="flex items-start gap-3 rounded-xl bg-white border border-blue-100 px-4 py-3">
                   <span className="text-blue-500 text-base font-bold mt-0.5 flex-shrink-0">✅</span>
                   <div>
-                    <p className="text-sm font-bold text-gray-800">ChatGPT·Gemini 답변</p>
+                    <p className="text-sm font-bold text-gray-800">ChatGPT·Gemini·Google AI 답변</p>
                     <p className="text-sm text-gray-500">글로벌 AI 인용 여부를 측정합니다 (노출 보장 아님)</p>
                     <p className="text-sm text-gray-400 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
                   </div>
@@ -631,7 +631,7 @@ export default async function LandingPage() {
             </p>
             <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold" style={{ background: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }}>
               <span>📈</span>
-              <span>"강남 점심 혼밥 한식당" 같은 자세한 검색 전년 대비 <strong>약 2.5배 증가</strong> — 네이버 발표 (2026-05-22 학술대회)</span>
+              <span>AI 브리핑 도입 후 조건이 담긴 자세한 검색(롱테일 쿼리) <strong>약 2배 증가</strong> — 네이버 공식 발표 (2026-01-09, 머니투데이)</span>
             </div>
           </div>
 
@@ -728,7 +728,7 @@ export default async function LandingPage() {
 
           <p className="text-center text-sm fade-up break-keep" style={{ color: "#64748B" }}>
             음식점·카페·베이커리·바·숙박업 등 플레이스형 네이버 AI 브리핑 대상 업종 기준 ·{" "}
-            <strong style={{ color: "#6366F1" }}>그 외 업종도 블로그·콘텐츠 채택 시 정보형 AI 브리핑 노출 가능 + AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini 가이드 자동 제공</strong>
+            <strong style={{ color: "#6366F1" }}>그 외 업종도 블로그·콘텐츠 채택 시 정보형 AI 브리핑 노출 가능 + AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini·Google AI 가이드 자동 제공</strong>
           </p>
           <p className="text-center text-sm mt-2 fade-up break-keep" style={{ color: "#94A3B8" }}>
             AI 브리핑 노출은 네이버 알고리즘 기준으로 보장되지 않으며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
@@ -849,7 +849,7 @@ export default async function LandingPage() {
                   <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">노출 대상 업종</p>
                   <div className="rounded-lg px-3 py-2.5" style={{ background: "#E0E7FF" }}>
                     <p className="text-sm font-black text-indigo-800">🏢 업종 제한 발표 없음 · 정식 출시</p>
-                    <p className="text-sm text-indigo-600 mt-0.5">장소 기반 모든 업종 가능 · AI탭 300만 달성 · 2026-06-25 정식 출시</p>
+                    <p className="text-sm text-indigo-600 mt-0.5">장소 기반 모든 업종 가능 · 베타 첫 달 이용자 300만 달성(2026.05) · 2026-06-25 정식 출시</p>
                   </div>
                   <div className="mt-2 flex items-center gap-1.5">
                     <span className="text-sm px-2 py-0.5 rounded-full font-semibold" style={{ background: "#D1FAE5", color: "#065F46" }}>✓ 프랜차이즈 가맹점도 가능</span>
@@ -891,7 +891,7 @@ export default async function LandingPage() {
               </span>
               <span className="hidden sm:inline text-gray-400">|</span>
               <span className="rounded-full px-3 py-1 font-semibold" style={{ background: "#C7D2FE", color: "#3730A3" }}>
-                그 외 업종 → AI탭 + ChatGPT·Gemini 가이드
+                그 외 업종 → AI탭 + ChatGPT·Gemini·Google AI 가이드
               </span>
             </div>
           </div>
@@ -927,7 +927,7 @@ export default async function LandingPage() {
               {
                 icon: "🔍",
                 title: "AI 노출 자동 스캔",
-                desc: "네이버 AI·ChatGPT·Gemini 3개 채널에서 내 가게가 실제로 몇 번 언급되는지 자동 측정",
+                desc: "네이버 AI·ChatGPT·Gemini·Google AI 4개 채널에서 내 가게가 실제로 몇 번 언급되는지 자동 측정",
                 badge: "핵심",
                 badgeColor: "#2563EB",
               },
