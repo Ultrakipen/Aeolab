@@ -155,6 +155,7 @@ export default async function GrowthPage() {
     track1_score: number;
     track2_score: number;
     exposure_freq?: number;
+    sample_size?: number;
     rank_in_category?: number;
     total_in_category?: number;
     weekly_change?: number;

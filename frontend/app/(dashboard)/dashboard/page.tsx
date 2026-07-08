@@ -79,7 +79,7 @@ export default async function DashboardPage({
   // ── 구독 ─────────────────────────────────────────────────────
   const _activePlan = await resolveActivePlan(supabase, user.id);
   const planLabel = ({ free:"Free", basic:"Basic", startup:"창업패키지", pro:"Pro", biz:"Biz", enterprise:"Enterprise" } as Record<string,string>)[_activePlan ?? "free"] ?? "Free";
-  const planFaqLimit = ({ free:0, basic:5, startup:999, pro:999, biz:999, enterprise:999 } as Record<string,number>)[_activePlan ?? "free"] ?? 0;
+  const planFaqLimit = ({ free:0, basic:10, startup:20, pro:30, biz:60, enterprise:999 } as Record<string,number>)[_activePlan ?? "free"] ?? 0;
 
   // ── 온보딩 ───────────────────────────────────────────────────
   const { data: profileRow } = await supabase

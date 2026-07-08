@@ -139,7 +139,7 @@ export function StartupClient() {
           {/* 경쟁 강도 */}
           <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-4">
             <h2 className="text-base font-semibold text-gray-700 mb-4">시장 현황</h2>
-            <div className="grid grid-cols-3 gap-3 md:gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4">
               <div className="text-center p-3 md:p-4 bg-gray-50 rounded-xl">
                 <div className="text-xl md:text-2xl font-bold text-gray-900">{report.competitor_count}</div>
                 <div className="text-sm text-gray-500 mt-1">등록 사업장</div>

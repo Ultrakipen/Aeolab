@@ -5,11 +5,25 @@ import { ExportButton } from './ExportButton'
 import BlogScreenshotSection from './BlogScreenshotSection'
 import ShareButton from '@/components/share/ShareButton'
 import { NoBusiness } from '@/components/dashboard/NoBusiness'
-import { History, ImageIcon, TrendingUp, Calendar, Download } from 'lucide-react'
+import { History, ImageIcon, TrendingUp, Calendar, Download, Lock } from 'lucide-react'
 import Link from 'next/link'
 import { getActiveBusinessId } from '@/lib/active-business'
 import { getScoreTextLabel } from '@/lib/scoreLabels'
 import { resolveActivePlan } from '@/lib/subscriptionPlan'
+
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+
+const PLAN_RANK: Record<string, number> = {
+  free: 0, basic: 1, startup: 1.5, pro: 2, biz: 3,
+}
+
+interface ActionLog {
+  action_type: string
+  action_label: string
+  action_date: string
+  score_before: number | null
+  score_after: number | null
+}
 
 export default async function HistoryPage() {
   const supabase = await createClient()
@@ -45,16 +59,42 @@ export default async function HistoryPage() {
 
   const plan = await resolveActivePlan(supabase, user.id)
 
+  // Free 플랜 차단 (Basic 이상 필요)
+  if ((PLAN_RANK[plan] ?? 0) < PLAN_RANK['basic']) {
+    return (
+      <div className="p-4 md:p-8 max-w-2xl mx-auto">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8 text-center">
+          <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-7 h-7 text-gray-400" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-lg md:text-xl font-bold text-gray-700 mb-2">
+            변화 기록은 Basic 이상 요금제에서 사용 가능합니다
+          </h2>
+          <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+            AI 스캔 기록과 30일 추세선을 확인하고,<br />
+            내 가게가 어떻게 성장했는지 추적할 수 있습니다.
+          </p>
+          <Link
+            href="/pricing"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-6 py-3 rounded-xl transition-colors"
+          >
+            요금제 보기 →
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   let accessToken = ''
   try {
     const { data: { session } } = await supabase.auth.getSession()
     accessToken = session?.access_token ?? ''
   } catch { /* accessToken = '' */ }
 
-  const [historyRes, blogShotsRes] = await Promise.all([
+  const [historyRes, blogShotsRes, actionLogRes] = await Promise.all([
     supabase
       .from('score_history')
-      .select('id, business_id, score_date, total_score, unified_score, track1_score, track2_score, exposure_freq, weekly_change, context')
+      .select('id, business_id, score_date, total_score, unified_score, track1_score, track2_score, exposure_freq, weekly_change, context, sample_size')
       .eq('business_id', business.id)
       .order('score_date', { ascending: false })
       .limit(30),
@@ -66,6 +106,9 @@ export default async function HistoryPage() {
       .eq('capture_type', 'blog_keyword')
       .order('created_at', { ascending: true })
       .limit(100),
+    fetch(`${BACKEND}/api/report/action-log/${business.id}?days=60`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }).catch(() => null),
   ])
 
   // v3.0 컬럼(unified_score 등) 미마이그레이션 시 fallback: 기본 컬럼만 조회
@@ -80,6 +123,7 @@ export default async function HistoryPage() {
     exposure_freq: number
     weekly_change?: number | null
     context?: string | null
+    sample_size?: number | null
   }
   let historyData: ScoreHistoryRow[] | null = historyRes.data as ScoreHistoryRow[] | null
   if (historyRes.error) {
@@ -93,6 +137,17 @@ export default async function HistoryPage() {
   }
 
   const history = historyData
+
+  // 행동 로그 파싱
+  let actionLogs: ActionLog[] = []
+  if (actionLogRes && typeof actionLogRes === 'object' && 'ok' in actionLogRes && actionLogRes.ok) {
+    const raw = await (actionLogRes as Response).json().catch(() => null)
+    if (Array.isArray(raw)) {
+      actionLogs = raw
+    } else if (raw?.logs && Array.isArray(raw.logs)) {
+      actionLogs = raw.logs
+    }
+  }
 
   // 점수 요약 계산
   const scores = history ?? []
@@ -213,7 +268,7 @@ export default async function HistoryPage() {
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">날짜</th>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">전체 AI 노출</th>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">네이버 AI 노출도</th>
-                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">AI 노출 횟수 (100회 중)</th>
+                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">AI 노출 횟수</th>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">전주 대비</th>
                   </tr>
                 </thead>
@@ -243,7 +298,7 @@ export default async function HistoryPage() {
                           <span className="text-gray-300">—</span>
                         )}
                       </td>
-                      <td className="px-4 md:px-6 py-3 text-gray-600 text-sm">{row.exposure_freq}/100</td>
+                      <td className="px-4 md:px-6 py-3 text-gray-600 text-sm">{row.exposure_freq}/{row.sample_size ?? 100}</td>
                       <td className="px-4 md:px-6 py-3">
                         {(row.weekly_change ?? 0) > 2 ? (
                           <span className="text-green-600 font-semibold">↑ 상승</span>
@@ -284,7 +339,7 @@ export default async function HistoryPage() {
           </div>
         )}
 
-        <TrendLine data={history ?? []} />
+        <TrendLine data={history ?? []} actionLogs={actionLogs} />
 
         {/* 키워드별 AI 검색 노출 변화 — 가입 시점 / 현재 비교 */}
         <BlogScreenshotSection

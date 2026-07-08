@@ -38,6 +38,7 @@ interface HistoryEntry {
   track1_score: number;
   track2_score: number;
   exposure_freq?: number;
+  sample_size?: number;
   rank_in_category?: number;
   total_in_category?: number;
   weekly_change?: number;
@@ -157,8 +158,9 @@ export default function GrowthClient({
   // weekly_change (최신 기록 기준)
   const latestWeeklyChange = latest?.weekly_change ?? null;
 
-  // exposure_freq (최신 기록 기준)
+  // exposure_freq / sample_size (최신 기록 기준)
   const latestExposureFreq = latest?.exposure_freq ?? null;
+  const latestSampleSize = latest?.sample_size ?? null;
 
   // rank_in_category / total_in_category (최신 기록 기준)
   const latestRank = latest?.rank_in_category ?? null;
@@ -332,7 +334,7 @@ export default function GrowthClient({
           {latestExposureFreq !== null && (
             <div className="mt-2 bg-blue-50 rounded-lg px-3 py-1.5">
               <p className="text-sm font-semibold text-blue-700">
-                100번 중 <span className="text-base">{Math.round(latestExposureFreq)}</span>번 노출
+                {latestSampleSize ?? 100}번 중 <span className="text-base">{Math.round(latestExposureFreq)}</span>번 노출
               </p>
             </div>
           )}
@@ -870,7 +872,7 @@ export default function GrowthClient({
                         {getScoreTextLabel(entry.track2_score ?? 0)}
                       </td>
                       <td className="py-3 pr-3 text-right text-gray-500 text-sm">
-                        {expFreq !== null ? `${Math.round(expFreq)}회 / 100` : "–"}
+                        {expFreq !== null ? `${Math.round(expFreq)}회 / ${entry.sample_size ?? 100}` : "–"}
                       </td>
                       <td className={`py-3 text-right font-semibold text-sm ${weeklyChange === null ? "text-gray-300" : weeklyChange > 2 ? "text-emerald-600" : weeklyChange < -2 ? "text-red-500" : "text-gray-400"}`}>
                         {weeklyChange === null ? "–" : weeklyChange > 2 ? "↑ 상승" : weeklyChange < -2 ? "↓ 하락" : "— 유지"}

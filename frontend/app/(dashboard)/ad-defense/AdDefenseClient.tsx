@@ -98,7 +98,7 @@ export function AdDefenseClient({
     <div className="p-4 md:p-8 max-w-3xl">
       <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">AI 광고 대비 가이드</h1>
       <p className="text-base text-gray-500 mb-5">
-        ChatGPT SearchGPT 광고 도입 시 유기적 AI 노출을 유지하는 전략을 제공합니다.
+        이미 도입되어 확대되고 있는 ChatGPT 광고 속 유기적 AI 노출을 유지하는 전략을 제공합니다.
       </p>
 
       {/* 배경 설명 */}

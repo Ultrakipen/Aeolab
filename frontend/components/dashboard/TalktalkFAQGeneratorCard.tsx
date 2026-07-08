@@ -18,7 +18,7 @@ interface ChatMenu {
 
 interface GeneratedResult {
   items: FAQItem[];         // 소개글 Q&A 섹션용
-  chat_menus: ChatMenu[];   // 채팅방 메뉴 6개
+  chat_menus: ChatMenu[];   // 채팅방 메뉴 5개
   is_fallback?: boolean;    // AI 생성 실패로 일반 템플릿이 대신 반환됨
 }
 
@@ -177,13 +177,13 @@ export function TalktalkFAQGeneratorCard({
       </div>
 
       <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
-        네이버 톡톡 채팅방 하단에 노출되는 메뉴 6개를 생성합니다.
+        네이버 톡톡 채팅방 하단에 노출되는 메뉴 5개를 생성합니다.
         메뉴 클릭 시 메시지 전송 또는 URL 실행을 선택할 수 있습니다.
       </p>
 
       {!canGenerate && (
         <div className="bg-amber-50 border border-amber-200 rounded p-3 mb-4 text-sm md:text-base text-gray-700">
-          <strong>Free 플랜은 사용할 수 없습니다.</strong> Basic 이상 플랜에서 월 5회부터 사용 가능합니다.{" "}
+          <strong>Free 플랜은 사용할 수 없습니다.</strong> Basic 이상 플랜에서 월 10회부터 사용 가능합니다.{" "}
           <a href="/pricing" className="text-blue-600 hover:underline font-medium">플랜 보기 →</a>
         </div>
       )}
@@ -217,7 +217,7 @@ export function TalktalkFAQGeneratorCard({
             </p>
           )}
 
-          {/* ── 채팅방 메뉴 6개 카드 ── */}
+          {/* ── 채팅방 메뉴 5개 카드 ── */}
           {generated.chat_menus.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3 flex-wrap gap-2">

@@ -20,7 +20,7 @@ export default async function AdDefensePage() {
       {
         Icon: Bot,
         title: "ChatGPT 광고 환경 분석",
-        desc: "ChatGPT SearchGPT 광고 도입이 내 업종에 미치는 영향을 분석합니다.",
+        desc: "ChatGPT 광고 확대가 내 업종에 미치는 영향을 분석합니다.",
       },
       {
         Icon: TrendingUp,
@@ -42,7 +42,7 @@ export default async function AdDefensePage() {
     return (
       <div className="p-4 md:p-8 max-w-2xl">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">AI 광고 대비 가이드</h1>
-        <p className="text-sm text-gray-500 mb-6">ChatGPT SearchGPT 광고 도입 시 유기적 AI 노출을 유지하는 전략 (Pro 이상 전용)</p>
+        <p className="text-sm text-gray-500 mb-6">이미 도입되어 확대되고 있는 ChatGPT 광고 속 유기적 AI 노출을 유지하는 전략 (Pro 이상 전용)</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {features.map((f) => (
@@ -91,7 +91,7 @@ export default async function AdDefensePage() {
       <NoBusiness
         Icon={Shield}
         title="ChatGPT 광고 대응 가이드"
-        description="ChatGPT SearchGPT 광고 도입 시 유기적 AI 노출을 유지하는 전략을 제공합니다."
+        description="이미 도입되어 확대되고 있는 ChatGPT 광고 속 유기적 AI 노출을 유지하는 전략을 제공합니다."
         features={[
           { Icon: Bot,        title: "AI 광고 환경 분석",     desc: "ChatGPT 광고 도입이 내 사업장에 미치는 영향을 분석합니다." },
           { Icon: TrendingUp, title: "유기적 노출 강화 전략", desc: "광고 없이도 AI 검색에 지속 노출되는 콘텐츠·Schema 전략을 제시합니다." },
