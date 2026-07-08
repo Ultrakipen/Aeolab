@@ -1161,6 +1161,7 @@ interface CompareModalProps {
   myBlogMentions: number | null
   competitor: {
     name: string
+    place_synced_at?: string | null
     place_review_count?: number | null
     place_avg_rating?: number | null
     blog_mention_count?: number | null
@@ -1404,12 +1405,16 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                 const aiMentionVals = [bd.naver_exposure_confirmed, bd.multi_ai_exposure].filter((v): v is number => typeof v === 'number')
                 const aiMention = aiMentionVals.length > 0 ? Math.round(aiMentionVals.reduce((a, b) => a + b, 0) / aiMentionVals.length) : null
 
-                // 리뷰·평점 — sync-place로 수집된 실측값 우선, 없으면 추정치 폴백
-                const reviewHasReal = competitor.place_review_count != null || competitor.place_avg_rating != null
+                // 동기화 여부 — place_synced_at이 유일한 신뢰 게이트
+                // (place_review_count 등은 DB 기본값 0/false로 항상 존재해 null/undefined 체크 불가)
+                const isSynced = competitor.place_synced_at != null
+
+                // 리뷰·평점 — 동기화 완료 시 실측값 표시, 미완료 시 추정치 폴백
+                const reviewHasReal = isSynced
                 const reviewEstScore = !reviewHasReal && typeof bd.review_quality === 'number' ? Math.round(bd.review_quality) : null
 
-                // 스마트플레이스 — sync-place로 수집된 실측값 우선, 없으면 추정치 폴백
-                const spHasReal = competitor.place_has_intro !== undefined || competitor.place_has_recent_post !== undefined || competitor.place_has_menu !== undefined
+                // 스마트플레이스 — 동기화 완료 시 실측 체크리스트 표시, 미완료 시 추정치 폴백
+                const spHasReal = isSynced
                 const spEstScore = !spHasReal && typeof bd.smart_place_completeness === 'number' ? Math.round(bd.smart_place_completeness) : null
 
                 const hasAnything = aiMention !== null || reviewHasReal || reviewEstScore !== null || spHasReal || spEstScore !== null
