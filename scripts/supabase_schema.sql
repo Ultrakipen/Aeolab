@@ -2329,3 +2329,16 @@ ALTER TABLE guides DROP CONSTRAINT IF EXISTS guides_context_check;
 ALTER TABLE guides
   ADD CONSTRAINT guides_context_check
   CHECK (context IN ('location_based', 'non_location', 'faq_draft', 'crisis_reply', 'ad_defense', 'startup_report'));
+
+-- ===========================================================
+-- 2026-07-08: guides.context CHECK 제약에 'intro_draft' 추가 (사전 존재하던 버그)
+-- 배경: business.py의 intro-generate 엔드포인트가 처음부터 context='intro_draft'로
+-- 사용량을 기록해왔으나, 이 값이 CHECK 제약에 단 한 번도 포함된 적이 없어 매번
+-- insert가 실패(warning 로그만 남고 응답은 정상 반환)했음. 그 결과 소개글·FAQ
+-- 합산 한도(faq_monthly) 체크가 faq_draft만 카운트하고 intro_draft는 항상 0으로
+-- 집계되어, 소개글 생성이 사실상 무제한으로 가능했던 사전 존재 취약점.
+-- ===========================================================
+ALTER TABLE guides DROP CONSTRAINT IF EXISTS guides_context_check;
+ALTER TABLE guides
+  ADD CONSTRAINT guides_context_check
+  CHECK (context IN ('location_based', 'non_location', 'faq_draft', 'crisis_reply', 'ad_defense', 'startup_report', 'intro_draft'));
