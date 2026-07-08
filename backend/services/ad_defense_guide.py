@@ -102,7 +102,7 @@ organic_strategies는 5개, 소상공인이 직접 실행 가능한 것 위주�
 
         msg = await self.client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=3000,
+            max_tokens=6000,
             messages=[{"role": "user", "content": prompt}],
         )
         raw = msg.content[0].text.strip()
