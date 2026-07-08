@@ -1289,18 +1289,22 @@ async def _search_naver_blog_once(
     return result, total, True
 
 
-async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool]:
+async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool, bool]:
     """네이버 블로그 RSS regex 파싱 (CDATA 비표준 형식 대응).
     ok=False는 RSS 호출 자체가 실패했다는 뜻 — "포스트 0개 발견"과 구분해야 함.
     blog_id가 없어 애초에 시도하지 않은 경우는 실패가 아니므로 ok=True로 반환.
+    4번째 반환값 not_found: 404(블로그 자체가 존재하지 않음 — 잘못된 blog_id일 가능성 높음)를
+    타임아웃/네트워크 오류 등 일시적 실패와 구분하기 위한 플래그. 잘못된 주소 입력 시
+    "일시적 접근 실패"가 아니라 "주소를 확인해주세요"로 정확히 안내하는 데 사용.
     """
     if not blog_id:
-        return [], 0, True
+        return [], 0, True, False
     rss_url = f"https://rss.blog.naver.com/{blog_id}"
 
     # 최초 시도 실패 시 1회 재시도 — 별도 세션(DNS/TCP 재비용)이 간헐적 실패의
     # 원인으로 보여, 짧은 타임아웃으로 1회만 재시도해 안정성을 높인다
     xml_text: Optional[str] = None
+    not_found = False
     for attempt, timeout in enumerate((_TIMEOUT, _RSS_RETRY_TIMEOUT)):
         try:
             async with aiohttp.ClientSession(timeout=timeout, headers=_HEADERS) as session:
@@ -1310,6 +1314,8 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool]:
                             "naver rss non-200 for blog_id=%s (attempt %d): status=%s",
                             blog_id, attempt + 1, resp.status,
                         )
+                        if resp.status == 404:
+                            not_found = True
                         # 404/403 등 확정적 HTTP 오류는 재시도해도 결과가 같으므로 즉시 포기 —
                         # 재시도는 일시적 네트워크 실패(예외/타임아웃)에만 의미가 있음
                         break
@@ -1323,7 +1329,7 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool]:
             continue
 
     if xml_text is None:
-        return [], 0, False
+        return [], 0, False, not_found
 
     def _field(tag: str, block: str) -> str:
         m = re.search(rf"<{tag}[^>]*>\s*<!\[CDATA\[(.*?)(?:\]\]>|$)", block, re.DOTALL)
@@ -1378,7 +1384,7 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool]:
                 "video_count": video_count,
                 "source": "rss",
             })
-    return items, len(items), True
+    return items, len(items), True, False
 
 
 async def _analyze_naver_blog(
@@ -1446,12 +1452,15 @@ async def _analyze_naver_blog(
     # RSS(본문 구조 측정 가능)가 실패해 API-only(스니펫만, 구조 측정 불가)로 대체됐는지 —
     # 사용자에게 이번 분석의 데이터 품질이 평소보다 낮을 수 있음을 알리는 데 사용
     rss_failed = False
+    # RSS가 404(블로그 자체가 존재하지 않음)로 실패했는지 — "일시적 접근 실패"와
+    # "잘못된 주소 입력"을 구분해 정확한 안내를 주기 위해 추적
+    rss_not_found = False
 
     # 1단계: RSS 피드 먼저 직접 수집 (blog_id 기반, 가장 신뢰할 수 있는 내 블로그 포스트 목록)
     if blog_id:
         naver_total_attempts += 1
         try:
-            rss_items, _, rss_ok = await _fetch_naver_rss(blog_id)
+            rss_items, _, rss_ok, rss_not_found = await _fetch_naver_rss(blog_id)
             if not rss_ok:
                 naver_failed_attempts += 1
                 rss_failed = True
@@ -1498,6 +1507,26 @@ async def _analyze_naver_blog(
     total_post_count = len(all_items)
 
     if not all_items:
+        # RSS가 404로 확정 실패(블로그 자체가 존재하지 않음)했다면 "일시적 접근 실패"가
+        # 아니라 "잘못된 주소 입력"이 진짜 원인이므로, 나머지 API 시도 성공 여부와
+        # 무관하게 우선적으로 정확한 안내를 준다 (2026-07-08 재검증에서 발견한 갭 수정 —
+        # 기존 로직은 이 케이스도 "일시적 접근 실패"로 뭉뚱그려 재시도를 유도했으나
+        # 재시도해도 결과가 같아 사용자에게 도움이 안 됨)
+        if rss_not_found:
+            return {
+                "platform": "naver",
+                "post_count": 0,
+                "total_post_count": 0,
+                "keyword_coverage": 0.0,
+                "covered_keywords": [],
+                "missing_keywords": [],
+                "ai_readiness_score": 0.0,
+                "ai_readiness_items": [],
+                "freshness": "outdated",
+                "latest_post_date": None,
+                "top_recommendation": "등록하신 네이버 블로그 주소를 찾을 수 없습니다. blog.naver.com/ 뒤의 아이디가 정확한지 확인해주세요.",
+                "error": None,
+            }
         # 시도 중 하나라도 기술적으로 실패했다면 "블로그에 글이 없다"고 단정할 수 없다 —
         # 실패한 시도가 성공했다면 포스트를 찾았을 수도 있으므로 "접근 실패"로 구분해서
         # 안내한다. 전부 실패했을 때뿐 아니라 일부만 실패했을 때도 동일하게 적용

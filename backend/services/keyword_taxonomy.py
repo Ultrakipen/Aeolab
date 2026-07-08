@@ -69,7 +69,7 @@ _CATEGORY_ALIASES: dict[str, str] = {
     "미술": "music", "미술학원": "music", "미술교습소": "music",
     "발레": "music", "무용": "music", "댄스": "music",
     # 법률
-    "legal": "legal", "lawyer": "legal",
+    "legal": "legal", "lawyer": "legal", "law": "legal",
     "법률": "legal", "변호사": "legal",
     # 세무·회계 (legal에서 분리)
     "accounting": "accounting", "tax": "accounting",
