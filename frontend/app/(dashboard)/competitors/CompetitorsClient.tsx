@@ -1390,45 +1390,122 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
             </div>
           </div>
 
-          {/* 경쟁사 요약 점수 — 2~3개 핵심 항목만 (8항목 단조 변환 단순화) */}
+          {/* 경쟁사 요약 — AI 언급(추정) + 리뷰·스마트플레이스(실측 우선, 없으면 추정 폴백) */}
           {compScore && (
             <div className="mt-5 pt-5 border-t border-gray-100">
               <p className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-1.5">
-                <Target className="w-4 h-4 text-gray-400" />경쟁사 요약 점수
+                <Target className="w-4 h-4 text-gray-400" />경쟁사 요약
               </p>
               <p className="text-xs text-amber-600 bg-amber-50 rounded px-2 py-1 mb-3">{TRACK1_ESTIMATED_NOTE}</p>
               {(() => {
                 const bd = compScore.breakdown
+
+                // AI 언급 — 항상 추정치 (breakdown 기반)
                 const aiMentionVals = [bd.naver_exposure_confirmed, bd.multi_ai_exposure].filter((v): v is number => typeof v === 'number')
                 const aiMention = aiMentionVals.length > 0 ? Math.round(aiMentionVals.reduce((a, b) => a + b, 0) / aiMentionVals.length) : null
-                const reviewScore = typeof bd.review_quality === 'number' ? Math.round(bd.review_quality) : null
-                const spScore = typeof bd.smart_place_completeness === 'number' ? Math.round(bd.smart_place_completeness) : null
-                const items = [
-                  ...(aiMention !== null ? [{ label: 'AI 언급 여부 (추정)', val: aiMention }] : []),
-                  ...(reviewScore !== null ? [{ label: '리뷰·평점 (추정)', val: reviewScore }] : []),
-                  ...(spScore !== null ? [{ label: '스마트플레이스 완성도 (추정)', val: spScore }] : []),
-                ]
-                if (items.length === 0) return null
+
+                // 리뷰·평점 — sync-place로 수집된 실측값 우선, 없으면 추정치 폴백
+                const reviewHasReal = competitor.place_review_count != null || competitor.place_avg_rating != null
+                const reviewEstScore = !reviewHasReal && typeof bd.review_quality === 'number' ? Math.round(bd.review_quality) : null
+
+                // 스마트플레이스 — sync-place로 수집된 실측값 우선, 없으면 추정치 폴백
+                const spHasReal = competitor.place_has_intro !== undefined || competitor.place_has_recent_post !== undefined || competitor.place_has_menu !== undefined
+                const spEstScore = !spHasReal && typeof bd.smart_place_completeness === 'number' ? Math.round(bd.smart_place_completeness) : null
+
+                const hasAnything = aiMention !== null || reviewHasReal || reviewEstScore !== null || spHasReal || spEstScore !== null
+                if (!hasAnything) return null
+
                 return (
                   <div className="space-y-3">
-                    {items.map(({ label, val }) => (
-                      <div key={label}>
+                    {/* AI 언급 여부 — 항상 추정 */}
+                    {aiMention !== null && (
+                      <div>
                         <div className="flex items-center justify-between text-sm mb-1">
-                          <span className="text-gray-600">{label}</span>
+                          <span className="text-gray-600">AI 언급 여부 (추정)</span>
                           <span className={`text-sm font-semibold px-1.5 py-0.5 rounded-full ${
-                            val >= 70 ? 'bg-emerald-50 text-emerald-700' : val >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+                            aiMention >= 70 ? 'bg-emerald-50 text-emerald-700' : aiMention >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
                           }`}>
-                            {val >= 70 ? '양호' : val >= 40 ? '보통' : '미흡'}
+                            {aiMention >= 70 ? '양호' : aiMention >= 40 ? '보통' : '미흡'}
                           </span>
                         </div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${val >= 70 ? 'bg-emerald-400' : val >= 40 ? 'bg-amber-400' : 'bg-red-400'}`}
-                            style={{ width: `${Math.min(val, 100)}%` }}
+                            className={`h-full rounded-full ${aiMention >= 70 ? 'bg-emerald-400' : aiMention >= 40 ? 'bg-amber-400' : 'bg-red-400'}`}
+                            style={{ width: `${Math.min(aiMention, 100)}%` }}
                           />
                         </div>
                       </div>
-                    ))}
+                    )}
+
+                    {/* 리뷰·평점 — 실측값이 있으면 숫자 직접 표시, 없으면 추정 막대 */}
+                    {reviewHasReal ? (
+                      <div className="flex items-center justify-between text-sm py-0.5">
+                        <span className="text-gray-600">리뷰·평점</span>
+                        <span className="text-gray-700 font-semibold">
+                          {competitor.place_review_count != null && `리뷰 ${competitor.place_review_count}개`}
+                          {competitor.place_review_count != null && competitor.place_avg_rating != null && competitor.place_avg_rating > 0 && ' · '}
+                          {competitor.place_avg_rating != null && competitor.place_avg_rating > 0 && `⭐ ${competitor.place_avg_rating.toFixed(1)}`}
+                        </span>
+                      </div>
+                    ) : reviewEstScore !== null && (
+                      <div>
+                        <div className="flex items-center justify-between text-sm mb-1">
+                          <span className="text-gray-600">리뷰·평점 (추정)</span>
+                          <span className={`text-sm font-semibold px-1.5 py-0.5 rounded-full ${
+                            reviewEstScore >= 70 ? 'bg-emerald-50 text-emerald-700' : reviewEstScore >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+                          }`}>
+                            {reviewEstScore >= 70 ? '양호' : reviewEstScore >= 40 ? '보통' : '미흡'}
+                          </span>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${reviewEstScore >= 70 ? 'bg-emerald-400' : reviewEstScore >= 40 ? 'bg-amber-400' : 'bg-red-400'}`}
+                            style={{ width: `${Math.min(reviewEstScore, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 스마트플레이스 완성도 — 실측 체크리스트가 있으면 항목별 표시, 없으면 추정 막대 */}
+                    {spHasReal ? (
+                      <div className="flex items-start justify-between text-sm py-0.5 gap-2">
+                        <span className="text-gray-600 shrink-0">스마트플레이스</span>
+                        <div className="flex items-center gap-2 flex-wrap justify-end">
+                          {competitor.place_has_intro !== undefined && (
+                            <span className={`font-medium ${competitor.place_has_intro ? 'text-emerald-600' : 'text-gray-400'}`}>
+                              {competitor.place_has_intro ? '✓' : '✗'} 소개글
+                            </span>
+                          )}
+                          {competitor.place_has_recent_post !== undefined && (
+                            <span className={`font-medium ${competitor.place_has_recent_post ? 'text-emerald-600' : 'text-gray-400'}`}>
+                              {competitor.place_has_recent_post ? '✓' : '✗'} 최신 소식
+                            </span>
+                          )}
+                          {competitor.place_has_menu !== undefined && (
+                            <span className={`font-medium ${competitor.place_has_menu ? 'text-emerald-600' : 'text-gray-400'}`}>
+                              {competitor.place_has_menu ? '✓' : '✗'} 메뉴
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : spEstScore !== null && (
+                      <div>
+                        <div className="flex items-center justify-between text-sm mb-1">
+                          <span className="text-gray-600">스마트플레이스 완성도 (추정)</span>
+                          <span className={`text-sm font-semibold px-1.5 py-0.5 rounded-full ${
+                            spEstScore >= 70 ? 'bg-emerald-50 text-emerald-700' : spEstScore >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+                          }`}>
+                            {spEstScore >= 70 ? '양호' : spEstScore >= 40 ? '보통' : '미흡'}
+                          </span>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${spEstScore >= 70 ? 'bg-emerald-400' : spEstScore >= 40 ? 'bg-amber-400' : 'bg-red-400'}`}
+                            style={{ width: `${Math.min(spEstScore, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )
               })()}
