@@ -906,9 +906,11 @@ export default async function LandingPage() {
 
       {/* ── 5. HOW AEOLAB — 대시보드 스크롤 연동 (#FFFFFF) ── */}
       <div className="px-4 py-10 md:p-0">
-        <MobileAccordion label="AEOlab이 실제로 어떻게 작동하는지 — 자세히 보기">
-          <HowAeolabIntegrated />
-        </MobileAccordion>
+        <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="AEOlab이 실제로 어떻게 작동하는지 — 자세히 보기">
+            <HowAeolabIntegrated />
+          </MobileAccordion>
+        </div>
       </div>
 
       {/* ── 5-A. 서비스 기능 명시 — AEOlab이 제공하는 것 ── */}
@@ -1057,16 +1059,20 @@ export default async function LandingPage() {
 
       {/* ── 6. WHY NOT DIY — ChatGPT 직접 vs AEOlab (#F8FAFC) ── */}
       <div className="px-4 py-10 md:p-0" style={{ background: "#F8FAFC" }}>
-        <MobileAccordion label="무료 AI로 직접 하면 되지 않나요? — 비교 보기">
-          <ChatGPTCompareSection />
-        </MobileAccordion>
+        <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="무료 AI로 직접 하면 되지 않나요? — 비교 보기">
+            <ChatGPTCompareSection />
+          </MobileAccordion>
+        </div>
       </div>
 
       {/* ── 7. vs OTHERS — AEO vs 기존 방법 비교 (#FFFFFF) ── */}
       <div className="px-4 py-10 md:p-0">
-        <MobileAccordion label="AEOlab만의 기능 — 기존 방법과 비교 보기">
-          <AEOCompareSection />
-        </MobileAccordion>
+        <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="AEOlab만의 기능 — 기존 방법과 비교 보기">
+            <AEOCompareSection />
+          </MobileAccordion>
+        </div>
       </div>
 
       {/* ── 8-B. FREE TOOLS — 가입 없이 체험 (#F0FDF4) ── */}
@@ -1200,9 +1206,11 @@ export default async function LandingPage() {
 
       {/* ── 9-C. AGENCY SERVICE — 대행 서비스 (#FFFBEB) ── */}
       <div className="px-4 py-10 md:p-0">
-        <MobileAccordion label="직접 할 시간이 없다면 — 전문가 대행 서비스 보기">
-          <AgencyServiceSection />
-        </MobileAccordion>
+        <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="직접 할 시간이 없다면 — 전문가 대행 서비스 보기">
+            <AgencyServiceSection />
+          </MobileAccordion>
+        </div>
       </div>
 
       {/* ── 10. FINAL CTA — 다크+그라디언트 ── */}
