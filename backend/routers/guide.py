@@ -300,28 +300,39 @@ async def get_review_replies(biz_id: str, user=Depends(get_current_user)):
             for r in rows
         ]
 
-    try:
-        result = await execute(
+    async def _query(select_cols: str, filter_deleted: bool):
+        q = (
             supabase.table("review_replies")
-            .select("id, review_text, reply_draft, sentiment, keywords_used, created_at")
+            .select(select_cols)
             .eq("business_id", biz_id)
-            .order("created_at", desc=True)
-            .limit(20)
         )
+        if filter_deleted:
+            q = q.is_("deleted_at", "null")
+        return await execute(q.order("created_at", desc=True).limit(20))
+
+    full_cols = "id, review_text, reply_draft, sentiment, keywords_used, created_at"
+    legacy_cols = "id, review_text, reply_draft, keywords_used, created_at"
+    try:
+        result = await _query(full_cols, filter_deleted=True)
         return _normalize(result.data or [])
     except Exception as e:
-        err_str = str(e)
-        if "sentiment" in err_str and "does not exist" in err_str:
-            _logger.warning("review_replies.sentiment 컬럼 미적용 — 마이그레이션 필요 (sentiment 제외 조회)")
-            result = await execute(
-                supabase.table("review_replies")
-                .select("id, review_text, reply_draft, keywords_used, created_at")
-                .eq("business_id", biz_id)
-                .order("created_at", desc=True)
-                .limit(20)
-            )
+        if "deleted_at" not in str(e) or "does not exist" not in str(e):
+            if "sentiment" in str(e) and "does not exist" in str(e):
+                _logger.warning("review_replies.sentiment 컬럼 미적용 — 마이그레이션 필요 (sentiment 제외 조회)")
+                result = await _query(legacy_cols, filter_deleted=True)
+                return _normalize(result.data or [])
+            raise
+        # deleted_at 컬럼 미적용 — 마이그레이션 전 과도기, 소프트 삭제 필터 없이 조회
+        _logger.warning("review_replies.deleted_at 컬럼 미적용 — 마이그레이션 필요 (소프트 삭제 필터 제외 조회)")
+        try:
+            result = await _query(full_cols, filter_deleted=False)
             return _normalize(result.data or [])
-        raise
+        except Exception as e2:
+            if "sentiment" in str(e2) and "does not exist" in str(e2):
+                _logger.warning("review_replies.sentiment 컬럼 미적용 — 마이그레이션 필요 (sentiment 제외 조회)")
+                result = await _query(legacy_cols, filter_deleted=False)
+                return _normalize(result.data or [])
+            raise
 
 
 @router.get("/{biz_id}/review-reply/usage")
@@ -365,11 +376,28 @@ async def delete_review_reply(
     if not (reply_res and reply_res.data):
         raise HTTPException(status_code=404, detail="이력을 찾을 수 없습니다")
 
+    # 소프트 삭제 — 하드 삭제 시 "삭제 후 재생성"으로 월 한도(check_review_reply_limit) 우회 가능.
+    # deleted_at만 채워 목록에서는 숨기되, 한도 카운트(created_at 기준)에는 계속 반영되게 유지.
     try:
+        from datetime import datetime, timezone
         await execute(
-            supabase.table("review_replies").delete().eq("id", reply_id)
+            supabase.table("review_replies")
+            .update({"deleted_at": datetime.now(timezone.utc).isoformat()})
+            .eq("id", reply_id)
         )
     except Exception as e:
+        err_str = str(e)
+        if "deleted_at" in err_str and "does not exist" in err_str:
+            # 마이그레이션 전 과도기 — 하드 삭제로 폴백(이 경우에 한해 한도 우회 가능성 있음)
+            _logger.warning("review_replies.deleted_at 컬럼 미적용 — 마이그레이션 필요 (하드 삭제로 폴백)")
+            try:
+                await execute(
+                    supabase.table("review_replies").delete().eq("id", reply_id)
+                )
+            except Exception as e2:
+                _logger.warning(f"review reply delete failed reply_id={reply_id}: {e2}")
+                raise HTTPException(status_code=500, detail="삭제 처리 중 오류가 발생했습니다")
+            return {"success": True}
         _logger.warning(f"review reply delete failed reply_id={reply_id}: {e}")
         raise HTTPException(status_code=500, detail="삭제 처리 중 오류가 발생했습니다")
 

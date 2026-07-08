@@ -2299,3 +2299,18 @@ ALTER TABLE subscriptions
 ALTER TABLE subscriptions
   ADD COLUMN IF NOT EXISTS card_issuer_code   TEXT,
   ADD COLUMN IF NOT EXISTS card_number_masked TEXT;
+
+-- ===========================================================
+-- 2026-07-08: review_replies 소프트 삭제 — 삭제 후 재생성으로 월 한도 우회 방지
+-- 배경: check_review_reply_limit()이 이번 달 review_replies 행 수를 COUNT하는데,
+-- 삭제 엔드포인트가 하드 DELETE라 "삭제 → 재생성"을 반복하면 한도를 무제한 우회할 수 있었음.
+-- deleted_at 도입 후 목록 조회는 deleted_at IS NULL만 표시하고,
+-- 한도 COUNT는 deleted_at 여부와 무관하게 이번 달 생성 건수 전체를 그대로 카운트(변경 없음)
+-- → 삭제해도 이번 달 소비한 한도는 복구되지 않음.
+-- ALTER 미실행 시 backend가 자동 감지해 기존 하드 delete로 폴백(경고 로그만, 사용자 차단 없음).
+-- ===========================================================
+ALTER TABLE review_replies
+  ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
+CREATE INDEX IF NOT EXISTS idx_review_replies_biz_deleted
+  ON review_replies(business_id, deleted_at);
