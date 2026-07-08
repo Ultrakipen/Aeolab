@@ -42,6 +42,7 @@ interface HistoryEntry {
   rank_in_category?: number;
   total_in_category?: number;
   weekly_change?: number;
+  score_breakdown?: Record<string, number>;
 }
 
 interface BenchmarkData {
@@ -93,6 +94,35 @@ function formatDateKo(iso: string | null | undefined): string {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return "날짜 없음";
   return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+}
+
+// 항목별 한국어 라벨
+const TRACK1_LABELS: Record<string, string> = {
+  keyword_search_rank: "키워드 검색 순위",
+  review_quality: "리뷰 품질",
+  smart_place_completeness: "스마트플레이스 완성도",
+  blog_crank: "블로그 지수",
+  local_map_score: "지도 노출",
+  ai_briefing_score: "AI 브리핑 노출",
+};
+const TRACK2_LABELS: Record<string, string> = {
+  multi_ai_exposure: "AI 언급 빈도",
+  schema_seo: "웹사이트 SEO",
+  online_mentions: "온라인 언급",
+  google_presence: "구글 AI 노출",
+};
+
+/** 주어진 breakdown에서 trackKeys 중 가장 낮은 항목의 한국어 라벨을 반환한다. 없으면 null. */
+function getWeakestFactorLabel(
+  breakdown: Record<string, number> | undefined | null,
+  trackKeys: string[],
+  labelMap: Record<string, string>
+): string | null {
+  if (!breakdown) return null;
+  const present = trackKeys.filter((k) => k in breakdown);
+  if (present.length === 0) return null;
+  const weakest = present.reduce((a, b) => (breakdown[a] <= breakdown[b] ? a : b));
+  return labelMap[weakest] ?? null;
 }
 
 // 커스텀 툴팁
@@ -354,6 +384,18 @@ export default function GrowthClient({
               <p className="text-sm text-gray-400 mt-1">
                 스마트플레이스 기반 네이버 AI 노출 수준입니다
               </p>
+              {(() => {
+                const weakLabel = getWeakestFactorLabel(
+                  latest?.score_breakdown,
+                  Object.keys(TRACK1_LABELS),
+                  TRACK1_LABELS
+                );
+                return weakLabel ? (
+                  <p className="text-xs text-amber-600 mt-1">
+                    보강하면 좋은 부분: {weakLabel}
+                  </p>
+                ) : null;
+              })()}
             </>
           ) : (
             <p className="text-sm text-gray-400">스캔 후 표시됩니다</p>
@@ -374,6 +416,18 @@ export default function GrowthClient({
               <p className="text-sm text-gray-400 mt-1">
                 Gemini·ChatGPT가 현재 이 사업장을 인식하는 수준입니다
               </p>
+              {(() => {
+                const weakLabel = getWeakestFactorLabel(
+                  latest?.score_breakdown,
+                  Object.keys(TRACK2_LABELS),
+                  TRACK2_LABELS
+                );
+                return weakLabel ? (
+                  <p className="text-xs text-amber-600 mt-1">
+                    보강하면 좋은 부분: {weakLabel}
+                  </p>
+                ) : null;
+              })()}
             </>
           ) : (
             <p className="text-sm text-gray-400">스캔 후 표시됩니다</p>
