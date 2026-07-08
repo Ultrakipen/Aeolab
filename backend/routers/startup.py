@@ -38,37 +38,14 @@ async def generate_startup_report(
         )
 
     from services.startup_report import StartupReportService
-    from services.schema_generator import CATEGORY_KO
     service = StartupReportService()
     result = await service.generate(req.category, req.region, req.business_name)
-    category_ko = CATEGORY_KO.get(req.category, req.category)
-    # 창업 타이밍 지수 추가
+    # 창업 타이밍 지수 — 중복 인라인 로직 제거, get_timing_index() 재사용 (eq 정확 일치 통일)
     try:
-        timing_key = f"timing:{req.category}:{req.region}"
-        timing_data = _cache.get(timing_key)
-        if not timing_data:
-            _supabase = get_client()
-            biz_res = await execute(
-                _supabase.table("businesses")
-                .select("id")
-                .ilike("category", f"{req.category}%")
-                .ilike("region", f"{req.region}%")
-                .eq("is_active", True)
-            )
-            total = len(biz_res.data or [])
-            if total == 0:
-                timing_data = {"timing": "데이터수집중", "timing_label": "데이터 수집 중", "timing_color": "gray", "reasoning": "등록 데이터가 아직 없습니다.", "opportunity_score": 50, "is_estimated": True}
-            elif total < 3:
-                timing_data = {"timing": "기회있음", "timing_label": "기회 있음 — 선점 가능", "timing_color": "emerald", "reasoning": f"{req.region} {category_ko} 업종 경쟁사가 {total}개로 매우 적어 선점이 유리합니다.", "opportunity_score": 85, "is_estimated": True}
-            elif result.get("competition_level") in ("매우 치열", "치열"):
-                timing_data = {"timing": "포화", "timing_label": "경쟁 과열 — 차별화 필수", "timing_color": "red", "reasoning": f"{req.region} {category_ko} 업종은 경쟁이 치열합니다. 틈새 키워드 전략 없이는 노출이 어렵습니다.", "opportunity_score": 25, "is_estimated": False}
-            else:
-                timing_data = {"timing": "안정", "timing_label": "안정적 — 꾸준한 성장 가능", "timing_color": "blue", "reasoning": f"{req.region} {category_ko} 업종은 안정적인 시장입니다. 꾸준한 관리로 경쟁력을 높일 수 있습니다.", "opportunity_score": 60, "is_estimated": False}
-            _cache.set(timing_key, timing_data, 1800)
+        timing_data = await get_timing_index(req.category, req.region)
         result["timing"] = timing_data
     except Exception as _e:
-        import logging
-        logging.getLogger("aeolab.startup").warning(f"timing_data error: {_e}")
+        _logger.warning(f"timing_data error: {_e}")
     return result
 
 
@@ -161,12 +138,12 @@ async def get_timing_index(category: str, region: str):
 
     supabase = get_client()
 
-    # 해당 업종/지역 사업장 목록
+    # 해당 업종/지역 사업장 목록 — eq 정확 일치 (ilike prefix는 다른 지역명 우연 매칭 위험)
     biz_res = await execute(
         supabase.table("businesses")
         .select("id")
-        .ilike("category", f"{category}%")
-        .ilike("region", f"{region}%")
+        .eq("category", category)
+        .eq("region", region)
         .eq("is_active", True)
     )
     biz_list = biz_res.data or []

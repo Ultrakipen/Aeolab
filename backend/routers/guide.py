@@ -250,7 +250,7 @@ async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str, bool]:
 
 다음 리뷰에 대해 두 가지를 응답하세요.
 1. sentiment: "positive"(긍정), "negative"(부정), "neutral"(일반) 중 하나만
-2. reply: 50~80자 사이의 진심 어린 답변 (업종 키워드 자연스럽게 포함, 네이버 정책상 혜택 제공 문구 금지)
+2. reply: 50~80자 사이의 진심 어린 답변 (업종 키워드 자연스럽게 포함, 혜택·쿠폰 제공 문구 절대 금지, 네이버 정책 준수)
 
 형식:
 sentiment: <값>
@@ -839,7 +839,7 @@ async def generate_smartplace_faq(
         return s.strip()[:6].strip()
 
     chat_menus: list = []
-    for i, m in enumerate(raw_menus[:6]):
+    for i, m in enumerate(raw_menus[:5]):
         if isinstance(m, str):
             nm = m.strip()
             chat_menus.append({"menu_name": _clip_name(nm), "link_type": "message", "message": _menu_message_for(nm, i)})

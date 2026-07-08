@@ -188,7 +188,7 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
     # score_history에서 업종 내 순위·주간 변화 보완 (scan_results엔 없는 컬럼 — /pdf 엔드포인트와 동일 패턴)
     sh_result = await execute(
         supabase.table("score_history")
-        .select("score_date, rank_in_category, total_in_category, weekly_change")
+        .select("score_date, rank_in_category, total_in_category, weekly_change, sample_size")
         .eq("business_id", biz_id)
         .order("score_date", desc=True)
         .limit(limit_rows)
@@ -200,6 +200,7 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
             row["rank_in_category"] = sh.get("rank_in_category")
             row["total_in_category"] = sh.get("total_in_category")
             row["weekly_change"] = sh.get("weekly_change")
+            row["sample_size"] = sh.get("sample_size")
 
     return rows
 

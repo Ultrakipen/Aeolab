@@ -2289,6 +2289,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         "score_date": str(_date.today()),
         "total_score": score["total_score"],
         "exposure_freq": (results.get("gemini") or {}).get("exposure_freq", 0),
+        "sample_size": (results.get("gemini") or {}).get("sample_size") or 50,
         "rank_in_category": 0,
         "total_in_category": 0,
         "weekly_change": weekly_change,
@@ -2304,9 +2305,10 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
             supabase.table("score_history").upsert(_sh_payload, on_conflict="business_id,score_date")
         )
     except Exception as e:
-        if "score_breakdown" in str(e):
-            _logger.warning(f"score_history score_breakdown 컬럼 미존재 — ALTER 미실행. fallback 저장 (biz={business_id})")
+        if "score_breakdown" in str(e) or "sample_size" in str(e):
+            _logger.warning(f"score_history 신규 컬럼 미존재 — fallback 저장 (biz={business_id}): {e}")
             _sh_payload.pop("score_breakdown", None)
+            _sh_payload.pop("sample_size", None)
             try:
                 await execute(
                     supabase.table("score_history").upsert(_sh_payload, on_conflict="business_id,score_date")
@@ -2792,6 +2794,7 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
             "score_date": str(_date.today()),
             "total_score": score["total_score"],
             "exposure_freq": (result.get("gemini") or {}).get("exposure_freq", 0),
+            "sample_size": (result.get("gemini") or {}).get("sample_size") or 50,
             "rank_in_category": 0,
             "total_in_category": 0,
             "weekly_change": weekly_change,
@@ -2807,8 +2810,10 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
                 supabase.table("score_history").upsert(_sh_payload_full, on_conflict="business_id,score_date")
             )
         except Exception as _sh_err:
-            if "score_breakdown" in str(_sh_err):
+            if "score_breakdown" in str(_sh_err) or "sample_size" in str(_sh_err):
+                _logger.warning(f"score_history 신규 컬럼 미존재 — fallback 저장 (quick): {_sh_err}")
                 _sh_payload_full.pop("score_breakdown", None)
+                _sh_payload_full.pop("sample_size", None)
                 try:
                     await execute(
                         supabase.table("score_history").upsert(_sh_payload_full, on_conflict="business_id,score_date")
@@ -3356,6 +3361,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "score_date": str(_date.today()),
                     "total_score": score["total_score"],
                     "exposure_freq": result.get("gemini", {}).get("exposure_freq", 0),
+                    "sample_size": result.get("gemini", {}).get("sample_size") or 50,
                     "rank_in_category": 0,
                     "total_in_category": 0,
                     "weekly_change": weekly_change,

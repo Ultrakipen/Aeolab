@@ -1,6 +1,6 @@
 """
 ChatGPT 광고 한국 도입 대응 가이드 생성 서비스
-ChatGPT SearchGPT 광고 모델에 대비하는 유기적 AI 노출 전략 (Claude Sonnet)
+ChatGPT 광고(ChatGPT Ads) 확대 대응 — 유기적 AI 노출 전략 (Claude Sonnet)
 """
 import os
 import anthropic
@@ -62,7 +62,7 @@ class AdDefenseGuideService:
 - Gemini 노출 측정: {f"{sample_size}회 샘플링 중 {exposure_freq}회 노출" if sample_size > 0 else "이번 스캔에서 측정 실패(데이터 없음)"}
 - 개선이 필요한 영역: {weak_areas_text}
 
-ChatGPT가 한국에 광고 모델(SearchGPT Ads)을 도입할 경우를 대비하여,
+ChatGPT 광고(ChatGPT Ads)는 2026년 2월 미국 출시 이후 이미 확대 운영 중입니다. 이에 대응하여
 유기적(Organic) AI 검색 노출을 강화하는 전략을 아래 JSON 형식으로 제공해줘:
 
 {{
