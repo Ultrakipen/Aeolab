@@ -519,10 +519,10 @@ class GuideGenerator:
                 try:
                     message = self.client.messages.create(
                         model=model,
-                        max_tokens=4096,
+                        max_tokens=8192,
                         system=system_prompt,
                         messages=[{"role": "user", "content": user_prompt}],
-                        timeout=90.0,
+                        timeout=150.0,
                     )
                     return message.content[0].text
                 except Exception as e:
