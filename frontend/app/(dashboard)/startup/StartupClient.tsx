@@ -29,6 +29,13 @@ interface StartupReport {
     risk_factors?: string[];
     estimated_time_to_visibility?: string;
   };
+  search_trend?: {
+    trend_direction: "rising" | "falling" | "stable";
+    trend_delta: number;
+    trend_data: Array<{ period: string; ratio: number }>;
+    keywords_used: string[];
+    available: boolean;
+  };
 }
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -193,6 +200,30 @@ export function StartupClient() {
               </div>
             )}
           </section>
+
+          {/* 네이버 검색 수요 트렌드 */}
+          {report.search_trend?.available && (
+            <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-4">
+              <h2 className="text-base font-semibold text-gray-700 mb-3">네이버 검색 수요 트렌드</h2>
+              <div className="flex items-center gap-2 mb-3">
+                <span className={`text-sm font-semibold px-3 py-1 rounded-full ${
+                  report.search_trend.trend_direction === "rising" ? "bg-blue-50 text-blue-700"
+                  : report.search_trend.trend_direction === "falling" ? "bg-amber-50 text-amber-700"
+                  : "bg-gray-50 text-gray-600"
+                }`}>
+                  {report.search_trend.trend_direction === "rising" ? "상승세"
+                    : report.search_trend.trend_direction === "falling" ? "하락세" : "안정"}
+                </span>
+                <span className="text-sm text-gray-500">
+                  최근 3개월 {report.search_trend.trend_delta >= 0 ? "+" : ""}{report.search_trend.trend_delta.toFixed(1)}% 변화
+                </span>
+              </div>
+              {report.search_trend.keywords_used.length > 0 && (
+                <p className="text-xs text-gray-400 mb-2">측정 키워드: {report.search_trend.keywords_used.join(", ")}</p>
+              )}
+              <p className="text-xs text-gray-400">* 네이버 DataLab 모바일 검색 기준. 측정 시점·기기에 따라 달라질 수 있음.</p>
+            </section>
+          )}
 
           {/* 진입 전략 */}
           {report.strategy && (
