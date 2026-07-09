@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { GapAnalysis } from "@/types/gap";
 import { TrendingUp, AlertTriangle, CheckCircle, Info, ChevronDown, ChevronUp } from "lucide-react";
+import { getScoreTextLabel } from "@/lib/scoreLabels";
 
 interface Props {
   gap: GapAnalysis;
@@ -27,12 +28,20 @@ const DIMENSION_LABELS: Record<string, string> = {
   blog_crank:                 "블로그 생태계",
 };
 
-/** 점수 → 수준 레이블 + 색상 */
+/** 점수 → 수준 레이블 + 색상 (사이트 표준 임계값 75/55/30, lib/scoreLabels.ts와 동일 구간) */
 function getScoreLevel(score: number): { label: string; color: string } {
-  if (score >= 70) return { label: "상위권", color: "text-emerald-600" };
-  if (score >= 45) return { label: "중위권", color: "text-blue-600" };
-  if (score >= 20) return { label: "개선 구간", color: "text-orange-500" };
+  if (score >= 75) return { label: "상위권", color: "text-emerald-600" };
+  if (score >= 55) return { label: "중위권", color: "text-blue-600" };
+  if (score >= 30) return { label: "개선 구간", color: "text-orange-500" };
   return { label: "시작 단계", color: "text-red-500" };
+}
+
+/** 총점 배지 색상 — getScoreTextLabel과 동일한 75/55/30 임계값 사용 */
+function scoreBadgeCls(score: number): string {
+  if (score >= 75) return "bg-emerald-50 text-emerald-700 border-emerald-100";
+  if (score >= 55) return "bg-blue-50 text-blue-700 border-blue-100";
+  if (score >= 30) return "bg-amber-50 text-amber-600 border-amber-200";
+  return "bg-red-50 text-red-500 border-red-100";
 }
 
 /** 점수 근거 설명 패널 */
@@ -181,24 +190,16 @@ export function GapAnalysisCard({ gap }: Props) {
                     {/* 상태 비교 */}
                     <div className="flex items-center gap-6 mb-3">
                       <div className="text-center">
-                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${
-                          myScore >= 70 ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                          : myScore >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
-                          : "bg-red-50 text-red-500 border-red-100"
-                        }`}>
-                          {myScore >= 70 ? "양호" : myScore >= 40 ? "보통" : "개선 필요"}
+                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${scoreBadgeCls(myScore)}`}>
+                          {getScoreTextLabel(myScore)}
                         </span>
                         <div className={`text-sm font-semibold mt-1 ${myLevel.color}`}>{myLevel.label}</div>
                         <div className="text-sm text-gray-500 mt-0.5">내 가게</div>
                       </div>
                       <div className="text-gray-300 text-xl">&gt;</div>
                       <div className="text-center">
-                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${
-                          competitorScore >= 70 ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                          : competitorScore >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
-                          : "bg-red-50 text-red-500 border-red-100"
-                        }`}>
-                          {competitorScore >= 70 ? "양호" : competitorScore >= 40 ? "보통" : "개선 필요"}
+                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${scoreBadgeCls(competitorScore)}`}>
+                          {getScoreTextLabel(competitorScore)}
                         </span>
                         <div className={`text-sm font-semibold mt-1 ${compLevel.color}`}>{compLevel.label}</div>
                         <div className="text-sm text-gray-500 mt-0.5">{competitorName}</div>
@@ -219,24 +220,16 @@ export function GapAnalysisCard({ gap }: Props) {
                     {/* 상태 비교 */}
                     <div className="flex items-center gap-6 mb-3">
                       <div className="text-center">
-                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${
-                          myScore >= 70 ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                          : myScore >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
-                          : "bg-red-50 text-red-500 border-red-100"
-                        }`}>
-                          {myScore >= 70 ? "양호" : myScore >= 40 ? "보통" : "개선 필요"}
+                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${scoreBadgeCls(myScore)}`}>
+                          {getScoreTextLabel(myScore)}
                         </span>
                         <div className={`text-sm font-semibold mt-1 ${myLevel.color}`}>{myLevel.label}</div>
                         <div className="text-sm text-gray-500 mt-0.5">내 가게</div>
                       </div>
                       <div className="text-gray-300 text-xl">&lt;</div>
                       <div className="text-center">
-                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${
-                          competitorScore >= 70 ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                          : competitorScore >= 40 ? "bg-amber-50 text-amber-600 border-amber-200"
-                          : "bg-red-50 text-red-500 border-red-100"
-                        }`}>
-                          {competitorScore >= 70 ? "양호" : competitorScore >= 40 ? "보통" : "개선 필요"}
+                        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full border ${scoreBadgeCls(competitorScore)}`}>
+                          {getScoreTextLabel(competitorScore)}
                         </span>
                         <div className={`text-sm font-semibold mt-1 ${compLevel.color}`}>{compLevel.label}</div>
                         <div className="text-sm text-gray-500 mt-0.5">{competitorName}</div>
