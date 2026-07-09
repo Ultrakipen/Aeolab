@@ -169,6 +169,7 @@ function CrisisGuidePanel({
             <div className="bg-white rounded-xl border border-red-200 overflow-hidden">
               <button
                 onClick={() => toggleExpand('reply')}
+                aria-expanded={expanded.reply}
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">공개 답변 초안</span>
@@ -195,6 +196,7 @@ function CrisisGuidePanel({
             <div className="bg-white rounded-xl border border-amber-200 overflow-hidden">
               <button
                 onClick={() => toggleExpand('tips')}
+                aria-expanded={expanded.tips}
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">AI 검색 부정 영향 최소화 팁</span>
@@ -216,6 +218,7 @@ function CrisisGuidePanel({
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <button
                 onClick={() => toggleExpand('doNot')}
+                aria-expanded={expanded.doNot}
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">하지 말아야 할 것</span>
@@ -237,6 +240,7 @@ function CrisisGuidePanel({
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <button
                 onClick={() => toggleExpand('offline')}
+                aria-expanded={expanded.offline}
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">오프라인 해결 단계</span>
@@ -592,6 +596,7 @@ export default function ReviewInboxPage() {
             <button
               type="button"
               onClick={() => setBizDropdownOpen(v => !v)}
+              aria-expanded={bizDropdownOpen}
               className="flex items-center gap-1.5 text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white hover:bg-gray-50 transition-colors max-w-[160px]"
             >
               <span className="truncate font-medium text-gray-800">{bizName ?? '사업장 선택'}</span>
@@ -637,7 +642,7 @@ export default function ReviewInboxPage() {
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
         />
         <div className="flex items-center justify-between mt-3">
-          <span className="text-sm text-gray-400">{reviewText.length} / 500자</span>
+          <span className="text-sm text-gray-500">{reviewText.length} / 500자</span>
           <button
             type="submit"
             disabled={loading || !reviewText.trim() || !businessId}
@@ -732,11 +737,11 @@ export default function ReviewInboxPage() {
         ) : history.length === 0 ? (
           <div className="text-center py-8 bg-white rounded-xl border border-dashed border-gray-200">
             <MessageSquare className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-            <p className="text-sm text-gray-400 mb-1">아직 생성된 답변이 없습니다.</p>
+            <p className="text-sm text-gray-500 mb-1">아직 생성된 답변이 없습니다.</p>
             <button
               type="button"
               onClick={() => document.querySelector('textarea')?.focus()}
-              className="text-sm text-blue-500 hover:text-blue-700 underline underline-offset-2 transition-colors"
+              className="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 transition-colors"
             >
               리뷰 붙여넣고 첫 답변 만들기 →
             </button>
@@ -820,7 +825,7 @@ export default function ReviewInboxPage() {
                 </p>
                 <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
                   스마트플레이스 자체 AI가 리뷰 등록 시 답글 초안을 자동 생성합니다.
-                  <span className="block text-gray-400 text-sm mt-0.5">
+                  <span className="block text-gray-500 text-sm mt-0.5">
                     스마트플레이스 → 업체 홈 → 리뷰 (네이버플러스 구독 계정 beta)
                   </span>
                 </p>
@@ -838,14 +843,14 @@ export default function ReviewInboxPage() {
               </p>
               <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
                 부정·민감 리뷰 등록 시 스마트플레이스 앱 알림을 즉시 받을 수 있습니다.
-                <span className="block text-gray-400 text-sm mt-0.5">
+                <span className="block text-gray-500 text-sm mt-0.5">
                   스마트플레이스 → 설정 → 알림 설정 → ON
                 </span>
               </p>
             </div>
           </div>
         </div>
-        <p className="text-sm text-gray-400 mt-3 pt-3 border-t border-slate-200">
+        <p className="text-sm text-gray-500 mt-3 pt-3 border-t border-slate-200">
           AEOlab 리뷰 답변 생성은 Claude AI 기반으로 모든 업종·다양한 톤 설정을 지원하는 별개 서비스입니다.
         </p>
       </div>
