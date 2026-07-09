@@ -46,7 +46,7 @@ function OpeningHoursBuilder({ rows, onChange }: { rows: HoursRow[]; onChange: (
                 {d.label}
               </button>
             ))}
-            <button type="button" onClick={() => removeRow(row.id)} className="ml-auto text-sm text-gray-400 hover:text-red-400 px-2">삭제</button>
+            <button type="button" onClick={() => removeRow(row.id)} className="ml-auto text-sm text-gray-500 hover:text-red-500 px-2">삭제</button>
           </div>
           <div className="flex items-center gap-2">
             <label className="flex items-center gap-1.5 text-sm text-gray-500 cursor-pointer">
@@ -58,7 +58,7 @@ function OpeningHoursBuilder({ rows, onChange }: { rows: HoursRow[]; onChange: (
                 <select value={row.open} onChange={(e) => updateRow(row.id, 'open', e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
                   {HOURS.map((h) => <option key={h.value} value={h.value}>{h.label}</option>)}
                 </select>
-                <span className="text-gray-400 text-sm">~</span>
+                <span className="text-gray-500 text-sm">~</span>
                 <select value={row.close} onChange={(e) => updateRow(row.id, 'close', e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
                   {HOURS.map((h) => <option key={h.value} value={h.value}>{h.label}</option>)}
                 </select>
@@ -68,7 +68,7 @@ function OpeningHoursBuilder({ rows, onChange }: { rows: HoursRow[]; onChange: (
         </div>
       ))}
       <button type="button" onClick={addRow}
-        className="w-full border border-dashed border-gray-300 text-gray-400 text-sm py-2 rounded-xl hover:border-blue-400 hover:text-blue-500 transition-colors">
+        className="w-full border border-dashed border-gray-300 text-gray-500 text-sm py-2 rounded-xl hover:border-blue-400 hover:text-blue-500 transition-colors">
         + 시간대 추가 (예: 주말 별도 설정)
       </button>
     </div>
@@ -132,7 +132,7 @@ function ChecklistItem({
             : <div className="w-5 h-5 rounded-full border-2 border-gray-300" />}
         </button>
         <span className={`flex-1 text-sm ${checked ? 'text-green-700 line-through' : 'text-gray-700'}`}>{item}</span>
-        <button onClick={() => setOpen(!open)} className="text-gray-400 hover:text-gray-600 shrink-0">
+        <button onClick={() => setOpen(!open)} aria-expanded={open} className="text-gray-400 hover:text-gray-600 shrink-0">
           {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
       </div>
@@ -195,7 +195,7 @@ function IntroScoreGauge({ introScore }: { introScore: IntroScore }) {
         ) : (
           <p className="text-sm text-gray-600 leading-relaxed">
             아래 부족한 키워드를 소개글에 추가하면 <span className="font-semibold text-blue-600">네이버 AI탭·AI 브리핑(대상 업종) 및 글로벌 AI 키워드 커버리지가 높아집니다.</span>
-            <span className="block mt-1 text-gray-400">해당 없는 키워드는 추가하지 않아도 됩니다.</span>
+            <span className="block mt-1 text-gray-500">해당 없는 키워드는 추가하지 않아도 됩니다.</span>
           </p>
         )}
       </div>
@@ -379,7 +379,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
         {/* 메뉴·서비스 (핵심) */}
         <div>
           <label htmlFor="sc-menu-items" className="block text-sm font-medium text-gray-700 mb-1">
-            메뉴 · 서비스 <span className="text-gray-400 font-normal text-sm">(AI가 가장 많이 활용하는 정보)</span>
+            메뉴 · 서비스 <span className="text-gray-500 font-normal text-sm">(AI가 가장 많이 활용하는 정보)</span>
           </label>
           <textarea id="sc-menu-items" rows={2} value={form.menu_items} onChange={(e) => setForm({ ...form, menu_items: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
@@ -389,7 +389,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
         {/* 특징·강점 */}
         <div>
           <label htmlFor="sc-specialty" className="block text-sm font-medium text-gray-700 mb-1">
-            가게 특징 · 강점 <span className="text-gray-400 font-normal text-sm">(소개글에 반영됩니다)</span>
+            가게 특징 · 강점 <span className="text-gray-500 font-normal text-sm">(소개글에 반영됩니다)</span>
           </label>
           <textarea id="sc-specialty" rows={2} value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
@@ -399,14 +399,14 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
         {/* 영업시간 */}
         <div>
           <h2 className="text-sm font-semibold text-gray-700 mb-1">영업시간</h2>
-          <p className="text-sm text-gray-400 mb-3">요일을 선택하고 시간을 설정하세요.</p>
+          <p className="text-sm text-gray-500 mb-3">요일을 선택하고 시간을 설정하세요.</p>
           <OpeningHoursBuilder rows={hoursRows} onChange={setHoursRows} />
         </div>
 
         {/* 홈페이지 (선택) */}
         <div>
           <label htmlFor="sc-website-url" className="block text-sm font-medium text-gray-700 mb-1">
-            홈페이지 주소 <span className="text-gray-400 font-normal text-sm">(없으면 비워도 됩니다)</span>
+            홈페이지 주소 <span className="text-gray-500 font-normal text-sm">(없으면 비워도 됩니다)</span>
           </label>
           <input id="sc-website-url" value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="https://내가게.com (없으면 비워두세요)" />
@@ -551,7 +551,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                   <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border border-gray-100">
                     {result.smartplace_intro}
                   </div>
-                  <div className={`text-sm text-right ${result.smartplace_intro.length < 500 ? 'text-amber-600 font-medium' : 'text-gray-400'}`}>
+                  <div className={`text-sm text-right ${result.smartplace_intro.length < 500 ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
                     {result.smartplace_intro.length}자{result.smartplace_intro.length < 500 ? ' — 500자 이상 권장, 소개글 탭에서 직접 추가하세요' : ' (500자 이상 ✓)'}
                   </div>
 
@@ -626,7 +626,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                           {selectedDraft.content}
                         </div>
                         <div className="flex justify-between items-center mt-2">
-                          <span className="text-sm text-gray-400">복사 후 네이버 블로그 글쓰기에 붙여넣기</span>
+                          <span className="text-sm text-gray-500">복사 후 네이버 블로그 글쓰기에 붙여넣기</span>
                           <CopyButton text={`${selectedDraft.title}\n\n${selectedDraft.content}`} label="전체 복사" />
                         </div>
                       </div>
@@ -836,7 +836,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
               : <>스마트플레이스 소개글과 블로그 초안을 적용한 뒤, 대시보드에서 스캔을 다시 실행하면 변화된 점수를 확인할 수 있습니다.</>
             }
           </div>
-          <p className="text-sm text-center text-gray-400">
+          <p className="text-sm text-center text-gray-500">
             적용 후 네이버 AI 브리핑·AI탭은 2~4주, Gemini는 수 주~수개월, ChatGPT는 수개월~1년 후 AEOlab 스캔에서 점수 변화를 확인하세요.
           </p>
         </div>

@@ -31,7 +31,7 @@ export default async function SchemaPage() {
           <p className="text-base text-gray-500 mb-2 leading-relaxed">
             스마트플레이스 소개글·블로그 초안 3종·AI 인식 코드(JSON-LD) 자동 생성 + 소개글 AI 브리핑 키워드 점수 확인.
           </p>
-          <p className="text-base text-gray-400 mb-6">현재 플랜: 무료 체험</p>
+          <p className="text-base text-gray-500 mb-6">현재 플랜: 무료 체험</p>
           <Link
             href="/pricing"
             className="bg-blue-600 text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-blue-700 transition-colors text-sm"
