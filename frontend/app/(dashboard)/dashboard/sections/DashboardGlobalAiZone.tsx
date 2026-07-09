@@ -62,15 +62,15 @@ export default function DashboardGlobalAiZone({
               <p className="text-sm text-gray-500 mb-1 font-medium">ChatGPT</p>
               {chatgptFreq !== undefined ? (
                 <>
-                  <p className={`text-sm font-bold leading-tight ${chatgptFreq > 0 ? "text-blue-700" : "text-gray-400"}`}>
+                  <p className={`text-sm font-bold leading-tight ${chatgptFreq > 0 ? "text-blue-700" : "text-gray-500"}`}>
                     {chatgptFreq > 0 ? `${chatgptFreq}회 언급` : "미언급"}
                   </p>
                   {chatgptSampleSize != null && chatgptSampleSize > 0 && (
-                    <p className="text-xs text-gray-400 mt-0.5">{chatgptSampleSize}회 중</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{chatgptSampleSize}회 중</p>
                   )}
                 </>
               ) : (
-                <p className="text-sm text-gray-400">–</p>
+                <p className="text-sm text-gray-500">–</p>
               )}
             </div>
             {/* Gemini */}
@@ -78,26 +78,26 @@ export default function DashboardGlobalAiZone({
               <p className="text-sm text-gray-500 mb-1 font-medium">Gemini</p>
               {geminiFreq !== undefined ? (
                 <>
-                  <p className={`text-sm font-bold leading-tight ${geminiFreq > 0 ? "text-blue-700" : "text-gray-400"}`}>
+                  <p className={`text-sm font-bold leading-tight ${geminiFreq > 0 ? "text-blue-700" : "text-gray-500"}`}>
                     {geminiFreq > 0 ? `${geminiFreq}회 언급` : "미언급"}
                   </p>
                   {geminiSampleSize != null && geminiSampleSize > 0 && (
-                    <p className="text-xs text-gray-400 mt-0.5">{geminiSampleSize}회 중</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{geminiSampleSize}회 중</p>
                   )}
                 </>
               ) : (
-                <p className="text-sm text-gray-400">–</p>
+                <p className="text-sm text-gray-500">–</p>
               )}
             </div>
             {/* Google AI */}
             <div className="bg-white rounded-lg border border-blue-100 p-3 text-center">
               <p className="text-sm text-gray-500 mb-1 font-medium">Google AI</p>
               {!googleError && googleMentioned !== undefined && googleMentioned !== null ? (
-                <p className={`text-sm font-bold leading-tight ${googleMentioned ? "text-blue-700" : "text-gray-400"}`}>
+                <p className={`text-sm font-bold leading-tight ${googleMentioned ? "text-blue-700" : "text-gray-500"}`}>
                   {googleMentioned ? "노출 중" : "미확인"}
                 </p>
               ) : (
-                <p className="text-sm text-gray-400">–</p>
+                <p className="text-sm text-gray-500">–</p>
               )}
             </div>
           </div>

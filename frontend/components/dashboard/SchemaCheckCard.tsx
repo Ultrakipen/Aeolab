@@ -178,19 +178,19 @@ export default function SchemaCheckCard({
             <div className="flex-1 min-w-0">
               <span className={`text-sm break-keep ${
                 item.state === "done"
-                  ? "text-gray-400 line-through"
+                  ? "text-gray-500 line-through"
                   : item.state === "unknown"
-                  ? "text-gray-400"
+                  ? "text-gray-500"
                   : "text-gray-700 font-medium"
               }`}>
                 {item.label}
               </span>
               {/* 미설정 항목에만 설명 표시 */}
               {item.state === "undone" && (
-                <p className="text-xs text-gray-400 mt-0.5 break-keep">{item.desc}</p>
+                <p className="text-xs text-gray-500 mt-0.5 break-keep">{item.desc}</p>
               )}
               {item.state === "unknown" && (
-                <p className="text-xs text-gray-400 mt-0.5">확인 불가</p>
+                <p className="text-xs text-gray-500 mt-0.5">확인 불가</p>
               )}
             </div>
 
@@ -226,7 +226,7 @@ export default function SchemaCheckCard({
                 href={item.externalHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 text-xs text-gray-400 hover:underline whitespace-nowrap mt-0.5"
+                className="shrink-0 text-xs text-gray-500 hover:underline whitespace-nowrap mt-0.5"
               >
                 {item.externalLabel}
               </a>
@@ -262,7 +262,7 @@ export default function SchemaCheckCard({
                 href={GOOGLE_RICHRESULTS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-gray-400 hover:underline"
+                className="text-sm text-gray-500 hover:underline"
               >
                 직접 등록 방법 보기 →
               </a>

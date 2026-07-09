@@ -94,7 +94,7 @@ export function NotificationBell() {
             </button>
           </div>
           {messages.length === 0 ? (
-            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">새 알림이 없습니다</p>
+            <p className="text-sm text-gray-500 dark:text-gray-500 text-center py-6">새 알림이 없습니다</p>
           ) : (
             <div className="divide-y divide-gray-50 dark:divide-gray-700">
               {messages.map((msg) => (
@@ -111,7 +111,7 @@ export function NotificationBell() {
                   )}
                   <button
                     onClick={() => markRead(msg.id)}
-                    className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 mt-1 transition-colors"
+                    className="text-sm text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 mt-1 transition-colors"
                   >
                     읽음으로 표시
                   </button>

@@ -414,7 +414,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                   )}
                 </p>
                 {data.data_source !== "measured" && (
-                  <p className="text-sm text-gray-400 mt-0.5">등록된 정보를 바탕으로 AI가 어떻게 답변할지 시뮬레이션한 결과입니다</p>
+                  <p className="text-sm text-gray-500 mt-0.5">등록된 정보를 바탕으로 AI가 어떻게 답변할지 시뮬레이션한 결과입니다</p>
                 )}
               </div>
               {data.ad_only && (
@@ -438,7 +438,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 {data.disclaimer}
               </p>
               {/* AI탭 베타 면책 문구 */}
-              <p className="mt-1 text-sm text-gray-400 leading-snug break-keep">
+              <p className="mt-1 text-sm text-gray-500 leading-snug break-keep">
                 네이버 AI탭 노출 기준은 알고리즘 업데이트에 따라 변경될 수 있습니다.
               </p>
               {/* 실측 정보 — has_reservation / photo_count */}
@@ -464,7 +464,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                   )}
                 </div>
               ) : (
-                <p className="mt-1.5 text-sm text-gray-400 leading-snug">
+                <p className="mt-1.5 text-sm text-gray-500 leading-snug">
                   * 예약 연동·사진 수는 스캔 시 자동 감지됩니다.
                 </p>
               )}
@@ -508,7 +508,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                     <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
                     AI가 파악한 내 가게 정보
                   </p>
-                  <p className="text-sm text-gray-400 mb-2">이 정보들이 AI탭 답변에 반영됩니다</p>
+                  <p className="text-sm text-gray-500 mb-2">이 정보들이 AI탭 답변에 반영됩니다</p>
                   <div className="flex flex-wrap gap-1.5">
                     {data.matched_contexts.map((ctx, i) => (
                       <span
@@ -618,7 +618,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                     <span className="text-sm font-semibold text-gray-700">고객 블로그 후기</span>
                     <span className="block text-sm text-gray-500 mt-0.5 break-keep leading-relaxed">
                       방문 고객이 네이버 블로그에 직접 쓴 후기 수<br />
-                      <span className="text-gray-400">사장님 블로그 포스팅과는 별개로 측정됩니다</span>
+                      <span className="text-gray-500">사장님 블로그 포스팅과는 별개로 측정됩니다</span>
                     </span>
                   </div>
                   <div className="text-right shrink-0">
@@ -630,12 +630,12 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                     ) : (blogMentionCount ?? 0) > 0 ? (
                       <>
                         <span className="text-base font-bold text-amber-600">{blogMentionCount}건</span>
-                        <span className="block text-sm text-gray-400 mt-0.5">5건 이상 권장</span>
+                        <span className="block text-sm text-gray-500 mt-0.5">5건 이상 권장</span>
                       </>
                     ) : (
                       <>
-                        <span className="text-sm text-gray-400">아직 없음</span>
-                        <span className="block text-sm text-gray-400 mt-0.5">5건 이상 권장</span>
+                        <span className="text-sm text-gray-500">아직 없음</span>
+                        <span className="block text-sm text-gray-500 mt-0.5">5건 이상 권장</span>
                       </>
                     )}
                   </div>
@@ -745,7 +745,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                                 ? "text-blue-600"
                                 : "text-emerald-600"
                               : isUnknown
-                              ? "text-gray-400"
+                              ? "text-gray-500"
                               : "text-gray-500"
                           }`}>
                             {isDone
@@ -773,7 +773,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                           <button
                             onClick={() => handleConfirm(it.item, false)}
                             disabled={confirmingItem === it.item}
-                            className="shrink-0 text-sm font-medium text-gray-400 border border-gray-200 rounded-full px-2.5 py-1 hover:border-red-300 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-50 mt-0.5"
+                            className="shrink-0 text-sm font-medium text-gray-500 border border-gray-200 rounded-full px-2.5 py-1 hover:border-red-300 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-50 mt-0.5"
                           >
                             취소
                           </button>
@@ -783,7 +783,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                   })}
                 </ul>
                 {unknownItems.length > 0 && (
-                  <p className="mt-2 text-sm text-gray-400 leading-relaxed break-keep">
+                  <p className="mt-2 text-sm text-gray-500 leading-relaxed break-keep">
                     ○ 원형 표시 항목은 자동 측정이 어렵습니다. 스마트플레이스 관리자에서 직접 확인해주세요.
                   </p>
                 )}

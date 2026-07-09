@@ -145,12 +145,12 @@ function PlatformRow({
       <div className="w-20 text-right shrink-0">
         {hasError ? (
           platform.key === 'google' ? (
-            <span className="text-sm text-gray-400">측정 보류</span>
+            <span className="text-sm text-gray-500">측정 보류</span>
           ) : (
             <span className="text-sm text-gray-300">오류</span>
           )
         ) : platform.key === 'gemini' && exposureFreq !== undefined ? (
-          <span className={`text-sm font-semibold ${mentioned ? 'text-indigo-600' : 'text-gray-400'}`}>
+          <span className={`text-sm font-semibold ${mentioned ? 'text-indigo-600' : 'text-gray-500'}`}>
             {exposureFreq}회/{sampleSize}
           </span>
         ) : mentioned ? (
@@ -185,7 +185,7 @@ export function PlatformDistributionChart({
       <div className="flex items-center justify-between mb-4">
         <div>
           <div className="text-sm font-medium text-gray-700">AI 플랫폼별 노출 현황</div>
-          <p className="text-sm text-gray-400 mt-0.5">
+          <p className="text-sm text-gray-500 mt-0.5">
             네이버 생태계와 글로벌 AI 채널을 분리해 보여줍니다
           </p>
         </div>
@@ -210,15 +210,15 @@ export function PlatformDistributionChart({
           {isNaverInactive ? (
             <>
               <div className="flex items-center gap-3">
-                <div className="w-32 shrink-0 text-sm text-gray-400 font-medium truncate">
+                <div className="w-32 shrink-0 text-sm text-gray-500 font-medium truncate">
                   네이버 AI 브리핑
                 </div>
                 <div className="flex-1 bg-gray-100 rounded-full h-2.5" />
                 <div className="w-20 text-right shrink-0">
-                  <span className="text-sm text-gray-400">이 업종 해당 없음</span>
+                  <span className="text-sm text-gray-500">이 업종 해당 없음</span>
                 </div>
               </div>
-              <p className="text-sm text-gray-400 pl-1">
+              <p className="text-sm text-gray-500 pl-1">
                 → 네이버 일반 검색 상위노출(C-Rank · 리뷰·소식 최적화) 집중 권장
               </p>
               <PlatformRow
@@ -243,7 +243,7 @@ export function PlatformDistributionChart({
           <span className="text-sm font-semibold text-gray-600">
             글로벌 AI 채널
           </span>
-          <span className="text-sm text-gray-400 ml-1">
+          <span className="text-sm text-gray-500 ml-1">
             (ChatGPT 한국 MAU 2,000만+ 대응)
           </span>
         </div>
@@ -266,7 +266,7 @@ export function PlatformDistributionChart({
                 <PlatformRow platform={p} result={result} />
                 {showChannelHint && channelHint && (
                   <div className="pl-[140px] mt-0.5">
-                    <span className="text-sm text-gray-400">{channelHint}</span>
+                    <span className="text-sm text-gray-500">{channelHint}</span>
                   </div>
                 )}
               </div>

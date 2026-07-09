@@ -112,7 +112,7 @@ export default function ScanResultNavBar({
 
   return (
     <div>
-      <p className="text-sm text-gray-400 mb-1.5 pl-0.5">아래 항목을 누르면 상세 개선 방법으로 이동합니다</p>
+      <p className="text-sm text-gray-500 mb-1.5 pl-0.5">아래 항목을 누르면 상세 개선 방법으로 이동합니다</p>
       <div className="flex flex-wrap gap-2">
         {items.map((item) => (
           <button

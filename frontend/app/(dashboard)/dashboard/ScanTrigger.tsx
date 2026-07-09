@@ -199,7 +199,7 @@ export function ScanTrigger({
                 검색어: <span className="font-semibold text-blue-600">&quot;{regionFirst} {scannedKeyword} 추천&quot;</span>
               </p>
             )}
-            <p className="text-sm text-gray-400 mt-0.5">잠시 후 대시보드가 자동으로 업데이트됩니다</p>
+            <p className="text-sm text-gray-500 mt-0.5">잠시 후 대시보드가 자동으로 업데이트됩니다</p>
           </div>
           <a
             href="/guide"
@@ -240,7 +240,7 @@ export function ScanTrigger({
                   <p className="text-sm text-blue-600 font-medium break-keep">
                     검색어: &quot;{regionFirst} {activeKw} 추천&quot;
                   </p>
-                  <p className="text-sm text-gray-400 mt-0.5 break-keep hidden sm:block">
+                  <p className="text-sm text-gray-500 mt-0.5 break-keep hidden sm:block">
                     수동: 선택 키워드 스캔 · 자동(새벽 2시): 키워드 순환 스캔
                   </p>
                 </div>
@@ -264,7 +264,7 @@ export function ScanTrigger({
 
             {/* 스캔 횟수 */}
             {scanLimit > 0 && scanLimit < 999 && (
-              <p className={`text-sm ${stacked ? 'text-center' : 'text-center sm:text-right'} ${limitReached ? 'text-gray-500' : 'text-gray-400'}`}>
+              <p className={`text-sm ${stacked ? 'text-center' : 'text-center sm:text-right'} text-gray-500`}>
                 {limitReached
                   ? '새벽 2시에 자동 스캔이 실행됩니다'
                   : `오늘 ${scanUsed}/${scanLimit}회 사용`}

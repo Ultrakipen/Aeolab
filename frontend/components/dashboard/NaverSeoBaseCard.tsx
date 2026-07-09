@@ -253,7 +253,7 @@ export default function NaverSeoBaseCard({
       </div>
 
       {/* 면책 문구 */}
-      <p className="text-sm text-gray-400 mt-2">
+      <p className="text-sm text-gray-500 mt-2">
         ※ 네이버 검색 순위는 기기·지역·로그인 상태에 따라 다를 수 있으며, 본
         서비스의 측정은 참고용입니다.
       </p>

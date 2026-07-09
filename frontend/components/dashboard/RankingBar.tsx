@@ -12,7 +12,7 @@ interface RankingBarProps {
 }
 
 function relativeLabel(diff: number): { text: string; className: string } {
-  if (diff === 0) return { text: '비슷한 수준', className: 'text-gray-400' }
+  if (diff === 0) return { text: '비슷한 수준', className: 'text-gray-500' }
   if (diff > 0) {
     // 경쟁사가 내 가게보다 앞선 경우
     if (diff <= 5) return { text: '비슷한 수준이에요', className: 'text-gray-500' }
@@ -41,7 +41,7 @@ export function RankingBar({ items, title = '경쟁사 비교' }: RankingBarProp
 
           return (
             <div key={idx} className="flex items-center gap-3">
-              <div className="w-5 text-sm text-gray-400 shrink-0 text-right">{idx + 1}</div>
+              <div className="w-5 text-sm text-gray-500 shrink-0 text-right">{idx + 1}</div>
               <div
                 className={`text-sm shrink-0 w-20 md:w-28 truncate font-medium ${
                   item.isMe ? 'text-blue-600' : 'text-gray-700'

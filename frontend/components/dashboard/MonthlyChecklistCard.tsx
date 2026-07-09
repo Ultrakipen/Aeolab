@@ -124,14 +124,14 @@ export default function MonthlyChecklistCard({ bizId, authToken }: Props) {
               <div className="min-w-0">
                 <p
                   className={`text-sm font-medium leading-snug ${
-                    item.completed ? "line-through text-gray-400" : "text-gray-800"
+                    item.completed ? "line-through text-gray-500" : "text-gray-800"
                   }`}
                 >
                   {item.title}
                 </p>
                 <p
                   className={`text-sm mt-0.5 ${
-                    item.completed ? "text-gray-400" : "text-gray-500"
+                    item.completed ? "text-gray-500" : "text-gray-500"
                   }`}
                 >
                   {item.description}

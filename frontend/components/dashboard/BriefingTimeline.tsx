@@ -46,7 +46,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="text-sm font-semibold text-gray-900 mb-0.5">AI 브리핑 노출 성장 타임라인</div>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-500">
             {formatFullDate(first.score_date)} ~ {formatFullDate(latest.score_date)}
           </p>
         </div>
@@ -60,12 +60,12 @@ export function BriefingTimeline({ history, businessName }: Props) {
           )}
           <span
             className={`text-sm font-bold ${
-              totalChange > 0 ? 'text-green-600' : totalChange < 0 ? 'text-red-500' : 'text-gray-400'
+              totalChange > 0 ? 'text-green-600' : totalChange < 0 ? 'text-red-500' : 'text-gray-500'
             }`}
           >
             {totalChange > 0 ? '향상 중' : totalChange < 0 ? '하락 중' : '유지'}
           </span>
-          <span className="text-sm text-gray-400 ml-1">전체 변화</span>
+          <span className="text-sm text-gray-500 ml-1">전체 변화</span>
         </div>
       </div>
 
@@ -103,7 +103,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
                 className={`w-full rounded-t-sm ${barColor} transition-all`}
                 style={{ height: `${heightPct}%` }}
               />
-              <span className="text-sm text-gray-400 leading-none">{formatDate(p.score_date)}</span>
+              <span className="text-sm text-gray-500 leading-none">{formatDate(p.score_date)}</span>
             </div>
           )
         })}
@@ -116,7 +116,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
             <Star className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span className="text-gray-500">
               최고점 <span className="font-medium text-amber-700">{getScoreTextLabel(peakPoint.total_score)}</span> 달성
-              <span className="text-gray-400 ml-1">({formatFullDate(peakPoint.score_date)})</span>
+              <span className="text-gray-500 ml-1">({formatFullDate(peakPoint.score_date)})</span>
             </span>
           </div>
         )}
@@ -127,7 +127,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
             </div>
             <span className="text-gray-500">
               A등급 첫 달성
-              <span className="text-gray-400 ml-1">({formatFullDate(firstAGrade.score_date)})</span>
+              <span className="text-gray-500 ml-1">({formatFullDate(firstAGrade.score_date)})</span>
             </span>
           </div>
         )}
@@ -137,7 +137,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
           </div>
           <span className="text-gray-500">
             현재 <span className="font-medium text-blue-700">{getScoreTextLabel(latest.total_score)}</span>
-            <span className="text-gray-400 ml-1">({formatFullDate(latest.score_date)})</span>
+            <span className="text-gray-500 ml-1">({formatFullDate(latest.score_date)})</span>
           </span>
         </div>
       </div>

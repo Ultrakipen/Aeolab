@@ -102,7 +102,7 @@ export function SidebarBusinessSwitcher({ onClose }: Props) {
   if (businesses.length === 0) {
     return (
       <div className="mx-3 mb-3 flex items-center justify-between px-3 py-2 rounded-lg border border-dashed border-gray-200">
-        <span className="text-[14px] text-gray-400">사업장 없음</span>
+        <span className="text-[14px] text-gray-500">사업장 없음</span>
         <Link
           href="/onboarding"
           onClick={onClose}

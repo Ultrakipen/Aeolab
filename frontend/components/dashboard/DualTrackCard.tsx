@@ -205,7 +205,7 @@ function ScoreBar({
       </div>
       <p className="text-base text-gray-500 leading-relaxed">{sublabel}</p>
       {sourceNote && (
-        <p className="text-sm text-gray-400 mt-1">{sourceNote}</p>
+        <p className="text-sm text-gray-500 mt-1">{sourceNote}</p>
       )}
       {/* 30점 미만: 개선 기회 프레임 메시지 */}
       {isVeryLow && opportunityMsg && (
@@ -451,7 +451,7 @@ export default function DualTrackCard({
                   = 네이버 AI 채널 × {naverPct}%<br />
                   + 글로벌 AI 채널 × {globalPct}%
                 </p>
-                <p className="text-gray-400 mt-1.5 text-sm">업종별 비율이 다릅니다. 소상공인 가게는 네이버 비중이 높습니다.</p>
+                <p className="text-gray-500 mt-1.5 text-sm">업종별 비율이 다릅니다. 소상공인 가게는 네이버 비중이 높습니다.</p>
               </div>
             )}
           </div>
@@ -491,7 +491,7 @@ export default function DualTrackCard({
           }`}>
             {STAGE_ICONS[growthStage]} {growthStageLabel}
             {isKeywordEstimated && (
-              <span className="text-gray-400 font-normal ml-1">(추정)</span>
+              <span className="text-gray-500 font-normal ml-1">(추정)</span>
             )}
           </span>
         </div>
@@ -508,7 +508,7 @@ export default function DualTrackCard({
             <MapPin className="w-3.5 h-3.5 inline-block" />
             {track1LabelText}
             {isKeywordEstimated && (
-              <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full ml-2">키워드 추정값</span>
+              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full ml-2">키워드 추정값</span>
             )}
           </span>
         }
@@ -589,7 +589,7 @@ export default function DualTrackCard({
         channelType="global"
       />
       {/* Track 2 면책 문구 — AI 데이터 유무와 무관하게 항상 표시 */}
-      <p className="text-xs text-gray-400 -mt-1 leading-relaxed px-1">
+      <p className="text-xs text-gray-500 -mt-1 leading-relaxed px-1">
         ChatGPT·Gemini 스캐너 점수는 AI 학습 데이터 기반 — 한국 소상공인 포함률이 낮아 낮은 점수가 일반적, 스캐너 점수 개선 반영 수개월~1년. 단, Google AI Overview(구글 검색 상단 AI 요약)는 구글 비즈니스 프로필 등록 후 수 주 내 개선 시작 가능.
       </p>
 
@@ -612,7 +612,7 @@ export default function DualTrackCard({
                   <span>ChatGPT</span>
                   <span className="font-semibold">
                     {chatgptRate}%
-                    <span className="text-xs text-gray-400 font-normal ml-1">
+                    <span className="text-xs text-gray-500 font-normal ml-1">
                       ({aiExposureData.chatgptSampleSize}번 질의 중 {aiExposureData.chatgptFreq}번 가게명 언급)
                     </span>
                   </span>
@@ -622,7 +622,7 @@ export default function DualTrackCard({
                 </div>
               </div>
             ) : (
-              <div className="flex justify-between text-sm text-gray-400">
+              <div className="flex justify-between text-sm text-gray-500">
                 <span>ChatGPT</span>
                 <span className="text-sm">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
               </div>
@@ -633,7 +633,7 @@ export default function DualTrackCard({
                   <span>Google Gemini</span>
                   <span className="font-semibold">
                     {geminiRate}%
-                    <span className="text-xs text-gray-400 font-normal ml-1">
+                    <span className="text-xs text-gray-500 font-normal ml-1">
                       ({aiExposureData.geminiSampleSize}번 질의 중 {aiExposureData.geminiFreq}번 가게명 언급)
                     </span>
                   </span>
@@ -643,13 +643,13 @@ export default function DualTrackCard({
                 </div>
               </div>
             ) : (
-              <div className="flex justify-between text-sm text-gray-400">
+              <div className="flex justify-between text-sm text-gray-500">
                 <span>Google Gemini</span>
                 <span className="text-sm">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
               </div>
             )}
           </div>
-          <p className="text-sm text-gray-400 mt-2.5 leading-relaxed">
+          <p className="text-sm text-gray-500 mt-2.5 leading-relaxed">
             ChatGPT는 과거 학습 데이터 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
           </p>
         </div>

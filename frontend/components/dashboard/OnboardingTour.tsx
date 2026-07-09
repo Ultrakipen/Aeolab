@@ -193,7 +193,7 @@ export default function OnboardingTour({ userId, initialOnboardingDone, initialS
               }`}
             />
           ))}
-          <span className="ml-auto text-sm text-gray-400 shrink-0">
+          <span className="ml-auto text-sm text-gray-500 shrink-0">
             {stepIndex + 1} / {STEPS.length}
           </span>
         </div>
@@ -204,7 +204,7 @@ export default function OnboardingTour({ userId, initialOnboardingDone, initialS
         <div className="flex items-center gap-2">
           <button
             onClick={handleSkip}
-            className="flex-shrink-0 text-sm text-gray-400 hover:text-gray-600 transition-colors px-2 py-1"
+            className="flex-shrink-0 text-sm text-gray-500 hover:text-gray-600 transition-colors px-2 py-1"
           >
             건너뛰기
           </button>

@@ -95,7 +95,7 @@ export default function ConditionSearchCard({
             <p className="text-sm text-gray-700 leading-relaxed">
               소개글·키워드가 AI 검색 의도에 얼마나 잘 맞는지 분석합니다. (실제 노출 횟수와 별개)
             </p>
-            <p className="text-sm text-gray-400 mt-1">Pro 플랜에서 이용 가능합니다.</p>
+            <p className="text-sm text-gray-500 mt-1">Pro 플랜에서 이용 가능합니다.</p>
           </div>
         </div>
       </div>
@@ -141,7 +141,7 @@ export default function ConditionSearchCard({
             등록 키워드와 소개글이<br />
             AI 검색 의도에 얼마나 적합한지 분석합니다
           </p>
-          <p className="text-sm text-gray-400 mb-5">소요 시간: 약 30초 / 1시간 캐시</p>
+          <p className="text-sm text-gray-500 mb-5">소요 시간: 약 30초 / 1시간 캐시</p>
           {error && (
             <p className="text-sm text-red-500 mb-3">{error}</p>
           )}
@@ -273,7 +273,7 @@ export default function ConditionSearchCard({
                   </div>
                 </div>
               )}
-              <p className="text-xs text-gray-400 pt-1">
+              <p className="text-xs text-gray-500 pt-1">
                 측정 시점·로그인 상태에 따라 달라질 수 있습니다
               </p>
             </div>

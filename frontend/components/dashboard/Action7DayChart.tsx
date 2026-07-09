@@ -213,7 +213,7 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
         </p>
       )}
 
-      <p className="text-sm text-gray-400 mt-3 text-center">
+      <p className="text-sm text-gray-500 mt-3 text-center">
         행동 시점 기준 -2일 ~ +7일 일별 측정값 · 대화형 ChatGPT로는 측정 불가능한 영역
       </p>
     </div>

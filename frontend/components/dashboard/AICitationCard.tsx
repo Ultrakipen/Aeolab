@@ -208,22 +208,22 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
                   </div>
                 )
               ) : c.platform === 'google' ? (
-                <p className="text-sm text-gray-400 italic">
+                <p className="text-sm text-gray-500 italic">
                   이번 스캔에서 Google AI Overview에 노출되지 않았습니다.
                   구글 비즈니스 프로필 등록 시 2~4주 내 인식이 개선될 수 있습니다.
                 </p>
               ) : c.platform === 'chatgpt' ? (
-                <p className="text-sm text-gray-400 italic">
+                <p className="text-sm text-gray-500 italic">
                   ChatGPT 학습 데이터에 아직 포함되지 않았습니다.
                   한국 소상공인 ChatGPT 평균 언급률 약 1~3%(추정) — 현재 수준이 일반적입니다.
                 </p>
               ) : c.platform === 'gemini' ? (
-                <p className="text-sm text-gray-400 italic">
+                <p className="text-sm text-gray-500 italic">
                   이번 스캔에서 Gemini가 가게를 언급하지 않았습니다.
                   구글 비즈니스 프로필 등록 시 개선 가능합니다.
                 </p>
               ) : (
-                <p className="text-sm text-gray-400 italic">
+                <p className="text-sm text-gray-500 italic">
                   이번 스캔에서 인용 문장이 감지되지 않았습니다.
                 </p>
               )}

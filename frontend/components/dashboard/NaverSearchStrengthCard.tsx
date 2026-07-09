@@ -242,12 +242,12 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
                       <TrendIcon direction={rankTrend} />
                       <TrendLabel direction={rankTrend} />
                     </div>
-                    <p className="text-sm text-gray-400 leading-snug">
+                    <p className="text-sm text-gray-500 leading-snug">
                       최근 {data.keyword_rank_trend.length}회 측정 기준
                     </p>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400">아직 순위 데이터 없음</p>
+                  <p className="text-sm text-gray-500">아직 순위 데이터 없음</p>
                 )}
               </div>
 
@@ -263,18 +263,18 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
                       <TrendIcon direction={blogTrend} />
                       <TrendLabel direction={blogTrend} />
                     </div>
-                    <p className="text-sm text-gray-400 leading-snug">
+                    <p className="text-sm text-gray-500 leading-snug">
                       최근 {data.blog_trend.length}회 측정 기준
                     </p>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400">블로그 분석 후 표시됩니다</p>
+                  <p className="text-sm text-gray-500">블로그 분석 후 표시됩니다</p>
                 )}
               </div>
             </div>
 
             {/* 면책 문구 */}
-            <p className="text-sm text-gray-400 leading-snug">
+            <p className="text-sm text-gray-500 leading-snug">
               네이버 검색 순위는 측정 시점·기기·지역·로그인 상태에 따라 달라질 수 있습니다
             </p>
           </div>

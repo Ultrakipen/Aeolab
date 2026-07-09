@@ -147,8 +147,8 @@ export default function ChatGPTDiffCard({
             key={item.label}
             className={`rounded-xl border p-3 flex flex-col gap-1 ${'inactive' in item && item.inactive ? 'bg-gray-50 border-gray-100' : 'bg-white border-slate-100'}`}
           >
-            <p className={`text-sm font-semibold ${'inactive' in item && item.inactive ? 'text-gray-400' : 'text-slate-600'}`}>{item.label}</p>
-            <p className={`text-sm font-bold ${'inactive' in item && item.inactive ? 'text-gray-400' : item.highlight ? 'text-blue-700' : 'text-slate-700'}`}>
+            <p className={`text-sm font-semibold ${'inactive' in item && item.inactive ? 'text-gray-500' : 'text-slate-600'}`}>{item.label}</p>
+            <p className={`text-sm font-bold ${'inactive' in item && item.inactive ? 'text-gray-500' : item.highlight ? 'text-blue-700' : 'text-slate-700'}`}>
               {item.value}
             </p>
             <p className="text-sm text-slate-500 leading-relaxed">{item.detail}</p>

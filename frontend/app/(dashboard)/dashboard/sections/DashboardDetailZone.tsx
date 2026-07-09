@@ -215,7 +215,7 @@ export default function DashboardDetailZone({
           ].map((p) => (
             <div key={p.name} className="bg-gray-50 rounded-xl py-3 px-2 border border-gray-100 text-center">
               <div className="font-semibold text-gray-800 text-sm">{p.name}</div>
-              <div className="text-gray-400 text-sm mt-0.5">{p.note}</div>
+              <div className="text-gray-500 text-sm mt-0.5">{p.note}</div>
             </div>
           ))}
         </div>
@@ -309,13 +309,13 @@ export default function DashboardDetailZone({
             const variation = calcScoreVariation(history ?? []);
             if (variation.hasData) {
               return (
-                <p className="text-sm text-gray-400 mt-1 px-1">
+                <p className="text-sm text-gray-500 mt-1 px-1">
                   지난 30일 변동 폭: ±{Math.round((variation.range ?? 0) / 2)}점 (측정 조건 따라 자연 변동)
                 </p>
               );
             }
             return (
-              <p className="text-sm text-gray-400 mt-1 px-1">
+              <p className="text-sm text-gray-500 mt-1 px-1">
                 측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다 (실측 데이터 축적 후 변동 폭 표시)
               </p>
             );
@@ -621,7 +621,7 @@ export default function DashboardDetailZone({
                 <h3 className="text-base md:text-lg font-bold text-gray-800">
                   최근 사람들이 내 가게를 어떻게 쓰고 있나요?
                 </h3>
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-gray-500">
                   {naverResult?.blog_mentions?.toLocaleString()}건 언급
                 </span>
               </div>
@@ -648,7 +648,7 @@ export default function DashboardDetailZone({
                         <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{blog.description}</p>
                       )}
                       {blog.postdate && (
-                        <p className="text-sm text-gray-400 mt-1">
+                        <p className="text-sm text-gray-500 mt-1">
                           {blog.postdate.replace(/(\d{4})(\d{2})(\d{2})/, "$1.$2.$3")}
                         </p>
                       )}

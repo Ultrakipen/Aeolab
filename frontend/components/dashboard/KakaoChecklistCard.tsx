@@ -228,7 +228,7 @@ export default function KakaoChecklistCard({
           >
             {grade.label}
           </span>
-          <p className="text-sm text-gray-400 mt-1">{completedCount}/{CHECKLIST_ITEMS.length} 항목 완료</p>
+          <p className="text-sm text-gray-500 mt-1">{completedCount}/{CHECKLIST_ITEMS.length} 항목 완료</p>
         </div>
       </div>
 
@@ -346,7 +346,7 @@ export default function KakaoChecklistCard({
       )}
 
       {/* 점수 안내 */}
-      <p className="text-sm text-gray-400 leading-relaxed">
+      <p className="text-sm text-gray-500 leading-relaxed">
         카카오맵은 한국 최대 POI DB(지역 정보)로, 등록 완성도가 높을수록 카카오 AI 검색 및 카카오 내비 노출이 향상됩니다.
       </p>
     </div>

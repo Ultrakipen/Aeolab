@@ -37,7 +37,7 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
             <span><strong>AI탭 콘텐츠 준비</strong> — 자연어 질문형 키워드를 소개글에 포함</span>
           </li>
           <li className="flex items-start gap-2 text-sm text-gray-500">
-            <span className="text-gray-400 font-bold shrink-0">④</span>
+            <span className="text-gray-500 font-bold shrink-0">④</span>
             <span>ChatGPT·Gemini — Google 비즈니스 프로필 등록 후 장기 준비</span>
           </li>
         </ul>

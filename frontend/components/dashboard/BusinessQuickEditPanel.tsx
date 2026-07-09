@@ -358,7 +358,7 @@ export default function BusinessQuickEditPanel({
                         title={s.rationale}
                         className={`text-sm px-2 py-0.5 rounded-full border transition-colors ${
                           already
-                            ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                            ? "bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed"
                             : "bg-white text-blue-700 border-blue-300 hover:bg-blue-50"
                         }`}
                       >
@@ -376,7 +376,7 @@ export default function BusinessQuickEditPanel({
             <p className="text-sm font-semibold text-gray-500 mb-3">스마트플레이스 현황</p>
             <div className="space-y-3">
               {[
-                { label: "소개글 Q&A 포함됨", hint: "(점수 미반영)", hintClass: "text-gray-400", value: hasFaq, setter: setHasFaq },
+                { label: "소개글 Q&A 포함됨", hint: "(점수 미반영)", hintClass: "text-gray-500", value: hasFaq, setter: setHasFaq },
                 { label: "소개글 작성됨", hint: "(AI 노출 핵심 조건)", hintClass: "text-emerald-600 font-semibold", value: hasIntro, setter: setHasIntro },
                 { label: "최근 소식 등록됨", hint: "(검색 신선도 향상)", hintClass: "text-emerald-600 font-semibold", value: hasRecentPost, setter: setHasRecentPost },
               ].map(({ label, hint, hintClass, value, setter }) => (
@@ -430,7 +430,7 @@ export default function BusinessQuickEditPanel({
                 disabled={syncing || syncCooldown || !initialData.naver_place_id}
                 className={`flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-lg border transition-colors ${
                   syncing || syncCooldown || !initialData.naver_place_id
-                    ? "border-gray-200 text-gray-400 cursor-not-allowed"
+                    ? "border-gray-200 text-gray-500 cursor-not-allowed"
                     : "border-blue-300 text-blue-600 hover:bg-blue-50"
                 }`}
                 title={
@@ -498,7 +498,7 @@ export default function BusinessQuickEditPanel({
               placeholder="https://map.naver.com/v5/entry/..."
               className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 placeholder-gray-400"
             />
-            <p className="text-sm text-gray-400 mt-1.5">
+            <p className="text-sm text-gray-500 mt-1.5">
               네이버 지도에서 내 가게 페이지 주소를 입력하세요
             </p>
           </section>

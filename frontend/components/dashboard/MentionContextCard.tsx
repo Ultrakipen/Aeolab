@@ -94,7 +94,7 @@ export function MentionContextCard({ citation }: Props) {
             </div>
             <span className="font-semibold text-sm text-gray-500">{platformLabel}</span>
           </div>
-          <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-medium">
+          <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
             <XCircle className="w-3 h-3" />
             미언급
           </span>
@@ -102,10 +102,10 @@ export function MentionContextCard({ citation }: Props) {
         {citation.query && (
           <div className="inline-flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1 mb-3">
             <Search className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-            <span className="text-sm text-gray-400 font-medium">&ldquo;{citation.query}&rdquo;</span>
+            <span className="text-sm text-gray-500 font-medium">&ldquo;{citation.query}&rdquo;</span>
           </div>
         )}
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-500">
           이 검색어에서 아직 언급되지 않았습니다.{' '}
           <span className="text-xs">온라인 콘텐츠가 쌓이면 수개월 내 개선됩니다.</span>
         </p>

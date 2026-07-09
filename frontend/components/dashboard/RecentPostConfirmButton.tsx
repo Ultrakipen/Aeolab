@@ -57,7 +57,7 @@ export default function RecentPostConfirmButton({
         <span className="text-sm text-gray-800">
           ✅ 90일 이내 소식 게시 확인됨
           {displayDate && (
-            <span className="text-sm text-gray-400 ml-1">
+            <span className="text-sm text-gray-500 ml-1">
               ({displayDate} 직접 확인 · 90일 후 만료)
             </span>
           )}

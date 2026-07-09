@@ -48,7 +48,7 @@ function ChannelBlock({
         </span>
       )}
       {topExcerpt && (
-        <p className="text-sm text-gray-400 leading-snug line-clamp-2 break-all">
+        <p className="text-sm text-gray-500 leading-snug line-clamp-2 break-all">
           &ldquo;{topExcerpt.length > 60 ? topExcerpt.slice(0, 60) + "…" : topExcerpt}&rdquo;
         </p>
       )}
@@ -95,7 +95,7 @@ export default function NaverMultiChannelCard({ cafeResult, jisikResult }: Props
       </div>
 
       {/* 면책 문구 */}
-      <p className="mt-4 text-sm text-gray-400 leading-snug">
+      <p className="mt-4 text-sm text-gray-500 leading-snug">
         측정 시점·검색어에 따라 달라질 수 있음. 일 25,000건 API 공유 한도 내 측정.
       </p>
     </div>

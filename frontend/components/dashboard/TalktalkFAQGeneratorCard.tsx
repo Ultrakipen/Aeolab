@@ -277,7 +277,7 @@ export function TalktalkFAQGeneratorCard({
                         {menu.message}
                       </p>
                     ) : (
-                      <p className="text-sm text-gray-400 italic leading-relaxed">
+                      <p className="text-sm text-gray-500 italic leading-relaxed">
                         &lsquo;다시 생성&rsquo;을 누르면 메뉴 클릭 시 보낼 안내 메시지가 자동 작성됩니다
                       </p>
                     )}

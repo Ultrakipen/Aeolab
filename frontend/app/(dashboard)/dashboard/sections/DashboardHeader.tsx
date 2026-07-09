@@ -72,7 +72,7 @@ export default function DashboardHeader({
     ? "bg-green-100 text-green-700"
     : plan === "basic"
     ? "bg-gray-100 text-gray-600"
-    : "bg-gray-50 text-gray-400";
+    : "bg-gray-50 text-gray-500";
 
   const planBadgeText = isAdmin
     ? "관리자"
@@ -206,7 +206,7 @@ export default function DashboardHeader({
                     ChatGPT·Gemini 노출 가능 업종
                   </span>
                 )}
-                <span className="text-sm text-gray-400 items-center gap-1 hidden sm:inline-flex">
+                <span className="text-sm text-gray-500 items-center gap-1 hidden sm:inline-flex">
                   <RefreshCw className="w-3 h-3 shrink-0" />
                   <span className="break-keep">{scanInfo.label}</span>
                 </span>

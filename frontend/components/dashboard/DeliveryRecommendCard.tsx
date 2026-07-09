@@ -75,7 +75,7 @@ export default function DeliveryRecommendCard({ score, isSmartPlace }: Props) {
         <p className="text-base font-black text-gray-900">{pkg.name}</p>
         <p className="text-2xl font-black text-blue-600 mt-1">
           {pkg.price.toLocaleString()}원
-          <span className="text-sm font-normal text-gray-400 ml-1">1회</span>
+          <span className="text-sm font-normal text-gray-500 ml-1">1회</span>
         </p>
       </div>
 

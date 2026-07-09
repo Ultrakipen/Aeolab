@@ -16,7 +16,7 @@ function CalendarIcon({ dayIndex }: { dayIndex: number }) {
       className={`flex flex-col items-center justify-center w-9 h-9 rounded-lg text-sm font-bold border ${
         isProDay
           ? "bg-emerald-500 border-emerald-400 text-white"
-          : "bg-gray-100 border-gray-200 text-gray-400"
+          : "bg-gray-100 border-gray-200 text-gray-500"
       }`}
     >
       {WEEKDAY_LABELS[dayIndex]}
@@ -82,7 +82,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
         {/* A. 스캔 빈도 비교 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
           <h3 className="text-sm font-bold text-gray-700 mb-1">전체 AI 스캔 빈도</h3>
-          <p className="text-sm text-gray-400 mb-4">7개 AI 채널을 한 번에 분석하는 전체 스캔 횟수</p>
+          <p className="text-sm text-gray-500 mb-4">7개 AI 채널을 한 번에 분석하는 전체 스캔 횟수</p>
 
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
@@ -98,14 +98,14 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                   className={`flex flex-col items-center justify-center w-9 h-9 rounded-lg text-sm font-bold border ${
                     i === 0
                       ? "bg-emerald-500 border-emerald-400 text-white"
-                      : "bg-gray-100 border-gray-200 text-gray-400"
+                      : "bg-gray-100 border-gray-200 text-gray-500"
                   }`}
                 >
                   {label}
                 </div>
               ))}
             </div>
-            <p className="text-sm text-gray-400 mt-1.5">나머지 날: Gemini+네이버만 분석</p>
+            <p className="text-sm text-gray-500 mt-1.5">나머지 날: Gemini+네이버만 분석</p>
           </div>
 
           <div>
@@ -129,7 +129,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
         {/* B. 히스토리 90일 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
           <h3 className="text-sm font-bold text-gray-700 mb-1">점수 추이 히스토리</h3>
-          <p className="text-sm text-gray-400 mb-4">장기 추이 분석으로 계절성·이벤트 효과 파악</p>
+          <p className="text-sm text-gray-500 mb-4">장기 추이 분석으로 계절성·이벤트 효과 파악</p>
 
           <div className="relative h-28 w-full mb-3">
             <svg viewBox="0 0 280 80" className="w-full h-full" preserveAspectRatio="none">
@@ -176,7 +176,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
         {/* C. 조건 검색 결과 미리보기 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
           <h3 className="text-sm font-bold text-gray-700 mb-1">조건 검색 분석</h3>
-          <p className="text-sm text-gray-400 mb-3">
+          <p className="text-sm text-gray-500 mb-3">
             고객이 &ldquo;추천&rdquo; &ldquo;맛집&rdquo; &ldquo;근처&rdquo; 같은 조건으로 검색할 때 내 가게가 나오는지 분석
           </p>
           <LockedOverlay label="Pro 전용 기능">
@@ -202,7 +202,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
         {/* D. ChatGPT 광고 대응 분석 미리보기 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
           <h3 className="text-sm font-bold text-gray-700 mb-1">ChatGPT 광고 대응 분석</h3>
-          <p className="text-sm text-gray-400 mb-3">
+          <p className="text-sm text-gray-500 mb-3">
             ChatGPT가 내 업종에서 경쟁사 광고를 어떻게 표시하는지 분석하고 대응 전략 제공
           </p>
           <LockedOverlay label="Pro 전용 기능">
@@ -231,7 +231,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
         {/* E. PDF 리포트 & CSV 내보내기 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6 md:col-span-2">
           <h3 className="text-sm font-bold text-gray-700 mb-1">리포트 내보내기</h3>
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="text-sm text-gray-500 mb-4">
             전체 AI 노출 분석 결과를 PDF·CSV로 다운로드
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -242,7 +242,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">AI 노출 분석 리포트</p>
-                  <p className="text-sm text-gray-400">사업장 전체 분석 1페이지 요약 PDF</p>
+                  <p className="text-sm text-gray-500">사업장 전체 분석 1페이지 요약 PDF</p>
                 </div>
               </div>
               <div className="absolute inset-0 flex items-center justify-center gap-2 bg-white/80">
@@ -260,7 +260,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">스캔 이력 데이터</p>
-                  <p className="text-sm text-gray-400">90일 점수 이력을 엑셀로 내보내기</p>
+                  <p className="text-sm text-gray-500">90일 점수 이력을 엑셀로 내보내기</p>
                 </div>
               </div>
               <div className="absolute inset-0 flex items-center justify-center gap-2 bg-white/80">
@@ -281,7 +281,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
             <p className="text-sm font-semibold text-gray-700">
               지금 Pro로 전환하면 위 기능을 즉시 이용할 수 있습니다
             </p>
-            <p className="text-sm text-gray-400 mt-0.5">
+            <p className="text-sm text-gray-500 mt-0.5">
               현재 스캔 데이터는 Pro 전환 후에도 그대로 유지됩니다 · 7일 이내 미사용 시 100% 환불
             </p>
           </div>

@@ -88,7 +88,7 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
   if (chartData.length === 0) {
     return (
       <div className="bg-white rounded-xl p-6 shadow-sm flex items-center justify-center h-48">
-        <p className="text-gray-400 text-base">30일 추세 데이터가 없습니다.</p>
+        <p className="text-gray-500 text-base">30일 추세 데이터가 없습니다.</p>
       </div>
     )
   }
@@ -117,7 +117,7 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3 text-sm text-gray-400 flex-wrap">
+        <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
           <span className="flex items-center gap-1">
             <span className="inline-block w-6 h-px bg-blue-200 border-dashed border-t-2 border-blue-300" />
             일별 측정값

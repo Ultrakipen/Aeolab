@@ -62,7 +62,7 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
         <li className="flex items-start gap-2">
           <span className="text-amber-500 font-bold shrink-0">→</span>
           <span>
-            <span className="line-through text-gray-400">수동 스캔 0회/일</span>
+            <span className="line-through text-gray-500">수동 스캔 0회/일</span>
             {" → "}
             <span className="font-medium text-emerald-700">2회/일</span>
             <span className="text-gray-500 text-sm ml-1">(스캔 버튼 비활성화 이유)</span>
@@ -71,7 +71,7 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
         <li className="flex items-start gap-2">
           <span className="text-amber-500 font-bold shrink-0">→</span>
           <span>
-            <span className="line-through text-gray-400">경쟁사 분석 잠금</span>
+            <span className="line-through text-gray-500">경쟁사 분석 잠금</span>
             {" → "}
             <span className="font-medium text-emerald-700">최대 3곳 비교</span>
           </span>
@@ -79,7 +79,7 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
         <li className="flex items-start gap-2">
           <span className="text-amber-500 font-bold shrink-0">→</span>
           <span>
-            <span className="line-through text-gray-400">AI 개선 가이드 잠금</span>
+            <span className="line-through text-gray-500">AI 개선 가이드 잠금</span>
             {" → "}
             <span className="font-medium text-emerald-700">월 3회 맞춤 가이드</span>
           </span>
@@ -87,7 +87,7 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
         <li className="flex items-start gap-2">
           <span className="text-amber-500 font-bold shrink-0">→</span>
           <span>
-            <span className="line-through text-gray-400">키워드 순위 추적 잠금</span>
+            <span className="line-through text-gray-500">키워드 순위 추적 잠금</span>
             {" → "}
             <span className="font-medium text-emerald-700">주 1회 자동 측정</span>
           </span>

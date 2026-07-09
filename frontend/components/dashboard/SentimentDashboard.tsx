@@ -70,7 +70,7 @@ export function SentimentDashboard({ bizId, token }: Props) {
       <div className="flex items-center gap-2 mb-4">
         <BarChart3 className="w-5 h-5 text-blue-600" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">리뷰 감정 분석</h3>
-        <span className="ml-auto text-sm text-gray-400">{data.total}건 분석</span>
+        <span className="ml-auto text-sm text-gray-500">{data.total}건 분석</span>
       </div>
 
       {/* 비율 바 */}

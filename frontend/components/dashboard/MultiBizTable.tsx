@@ -35,7 +35,7 @@ export function MultiBizTable({ token }: Props) {
   }, [token]);
 
   function scoreStatusLabel(score: number | null) {
-    if (score === null) return { text: "–",      cls: "bg-gray-50 text-gray-400 border-gray-200" };
+    if (score === null) return { text: "–",      cls: "bg-gray-50 text-gray-500 border-gray-200" };
     if (score >= 70)   return { text: "양호",    cls: "bg-emerald-50 text-emerald-700 border-emerald-100" };
     if (score >= 40)   return { text: "보통",    cls: "bg-amber-50 text-amber-700 border-amber-200" };
     return                    { text: "개선 필요", cls: "bg-red-50 text-red-600 border-red-100" };
@@ -69,7 +69,7 @@ export function MultiBizTable({ token }: Props) {
         <h3 className="text-base md:text-lg font-bold text-gray-900">
           전체 사업장 현황
         </h3>
-        <span className="ml-auto text-sm text-gray-400">{items.length}개 사업장</span>
+        <span className="ml-auto text-sm text-gray-500">{items.length}개 사업장</span>
       </div>
 
       {/* PC 테이블 */}
@@ -90,7 +90,7 @@ export function MultiBizTable({ token }: Props) {
               <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                 <td className="py-3 px-3">
                   <div className="font-medium text-gray-900">{item.name}</div>
-                  <div className="text-sm text-gray-400">{item.region} · {item.category}</div>
+                  <div className="text-sm text-gray-500">{item.region} · {item.category}</div>
                 </td>
                 <td className="text-center py-3 px-3">
                   {(() => { const s = scoreStatusLabel(item.unified_score); return (
@@ -110,7 +110,7 @@ export function MultiBizTable({ token }: Props) {
                 <td className="text-center py-3 px-3 text-gray-600">
                   {item.competitor_count}개
                 </td>
-                <td className="text-center py-3 px-3 text-gray-400 text-sm">
+                <td className="text-center py-3 px-3 text-gray-500 text-sm">
                   {formatDate(item.last_scanned_at)}
                 </td>
               </tr>
@@ -126,7 +126,7 @@ export function MultiBizTable({ token }: Props) {
             <div className="flex items-center justify-between mb-2">
               <div>
                 <div className="font-medium text-gray-900 text-sm">{item.name}</div>
-                <div className="text-sm text-gray-400">{item.region} · {item.category}</div>
+                <div className="text-sm text-gray-500">{item.region} · {item.category}</div>
               </div>
               {(() => { const s = scoreStatusLabel(item.unified_score); return (
                 <span className={`text-sm px-2.5 py-0.5 rounded-full border font-semibold ${s.cls}`}>{s.text}</span>

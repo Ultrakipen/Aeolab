@@ -125,9 +125,10 @@ function AttributionItem({ item }: { item: ActionAttribution }) {
       <button
         className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left"
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-sm text-gray-400 shrink-0">{dateStr}</span>
+          <span className="text-sm text-gray-500 shrink-0">{dateStr}</span>
           <span className="text-sm font-medium text-gray-800 truncate">{item.action_label}</span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2">
@@ -265,7 +266,7 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
         ))}
       </div>
 
-      <div className="px-5 pb-4 text-sm text-gray-400">
+      <div className="px-5 pb-4 text-sm text-gray-500">
         재스캔 후 최신 효과를 확인할 수 있습니다.
       </div>
     </div>

@@ -106,7 +106,7 @@ export default function ActionResultCard({ actions }: Props) {
                       </p>
                     )}
                   </div>
-                  <span className="text-sm text-gray-400 shrink-0">{formatDate(a.completed_at)}</span>
+                  <span className="text-sm text-gray-500 shrink-0">{formatDate(a.completed_at)}</span>
                 </div>
               </div>
             ))}
@@ -144,7 +144,7 @@ export default function ActionResultCard({ actions }: Props) {
                       </span>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-400 mt-1">{formatDate(a.completed_at)} 완료 등록</p>
+                  <p className="text-sm text-gray-500 mt-1">{formatDate(a.completed_at)} 완료 등록</p>
                 </div>
               )
             })}

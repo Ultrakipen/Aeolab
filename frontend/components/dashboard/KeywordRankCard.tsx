@@ -72,7 +72,7 @@ function rankBadge(rank: number | null | undefined): {
   text: string;
   cls: string;
 } {
-  if (!rank || rank <= 0) return { text: "미노출", cls: "text-gray-400 bg-gray-50" };
+  if (!rank || rank <= 0) return { text: "미노출", cls: "text-gray-500 bg-gray-50" };
   if (rank === 1) return { text: "1위", cls: "text-emerald-700 bg-emerald-100 font-bold" };
   if (rank <= 3) return { text: `${rank}위`, cls: "text-emerald-700 bg-emerald-50" };
   if (rank <= 10) return { text: `${rank}위`, cls: "text-amber-700 bg-amber-50" };
@@ -511,12 +511,13 @@ export default function KeywordRankCard({
         <button
           type="button"
           onClick={handleTrendToggle}
+          aria-expanded={trendOpen}
           className="w-full flex items-center justify-between gap-2 text-left px-1 py-1 rounded-lg hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-blue-500 shrink-0" />
             <span className="text-sm font-semibold text-gray-800">30일 검색량 추이</span>
-            <span className="text-sm text-gray-400 hidden sm:inline">네이버 DataLab 기준</span>
+            <span className="text-sm text-gray-500 hidden sm:inline">네이버 DataLab 기준</span>
           </div>
           {trendOpen ? (
             <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
@@ -636,7 +637,7 @@ export default function KeywordRankCard({
                 </div>
 
                 {/* 면책 문구 */}
-                <p className="mt-2 text-sm text-gray-400 break-keep leading-snug">
+                <p className="mt-2 text-sm text-gray-500 break-keep leading-snug">
                   검색 순위는 기기·지역·로그인 상태에 따라 다를 수 있습니다. 위 그래프는 네이버 DataLab 기준 상대 검색량 추이입니다.
                 </p>
               </div>

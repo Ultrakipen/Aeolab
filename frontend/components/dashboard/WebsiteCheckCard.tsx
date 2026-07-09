@@ -59,7 +59,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
       <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <div className="text-sm font-medium text-gray-700 mb-2">웹사이트 AI 인식</div>
         <p className="text-sm text-gray-600 font-medium mb-1">등록된 웹사이트에 일시적으로 접속이 안 됩니다</p>
-        <p className="text-sm text-gray-400 mb-3">
+        <p className="text-sm text-gray-500 mb-3">
           서비스 이용에는 문제 없습니다. 사이트가 복구되면 다음 스캔 시 자동으로 반영됩니다.
           주소가 잘못됐다면 설정에서 수정할 수 있습니다.
         </p>
@@ -122,14 +122,14 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
         <div>
           <div className="text-sm font-medium text-gray-700">웹사이트 AI 인식 점검</div>
           {checkResult.title && (
-            <p className="text-sm text-gray-400 mt-0.5 truncate max-w-xs">{checkResult.title}</p>
+            <p className="text-sm text-gray-500 mt-0.5 truncate max-w-xs">{checkResult.title}</p>
           )}
         </div>
         <div className="text-right">
           <div className={`text-lg font-bold ${passCount >= 5 ? 'text-green-600' : passCount >= 3 ? 'text-amber-600' : 'text-red-500'}`}>
             {passCount}/{items.length}
           </div>
-          <div className="text-sm text-gray-400">통과</div>
+          <div className="text-sm text-gray-500">통과</div>
         </div>
       </div>
 
@@ -155,7 +155,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
                 )}
               </div>
               {!item.ok && (
-                <p className="text-sm text-gray-400 mt-0.5">{item.tip}</p>
+                <p className="text-sm text-gray-500 mt-0.5">{item.tip}</p>
               )}
             </div>
           </div>

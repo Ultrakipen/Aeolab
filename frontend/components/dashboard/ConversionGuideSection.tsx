@@ -241,7 +241,7 @@ function TipCard({ tip, bizId }: { tip: ConversionTip; bizId: string }) {
               <button
                 type="button"
                 onClick={handleReset}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-gray-600 border border-gray-200 hover:border-gray-300 bg-white px-3 py-1.5 rounded-lg transition-colors"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-600 border border-gray-200 hover:border-gray-300 bg-white px-3 py-1.5 rounded-lg transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 원래대로

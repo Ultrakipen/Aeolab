@@ -143,7 +143,7 @@ export function OnboardingProgressBar({ userId, token }: Props) {
           return (
           <li key={stepKey}>
             {step.done ? (
-              <div className="flex items-center gap-2.5 text-sm text-gray-400">
+              <div className="flex items-center gap-2.5 text-sm text-gray-500">
                 <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
                 <span className="line-through">{step.label}</span>
               </div>
