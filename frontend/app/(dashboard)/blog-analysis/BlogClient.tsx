@@ -609,6 +609,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
       {posts.length > 5 && (
         <button
           onClick={() => setExpanded(!expanded)}
+          aria-expanded={expanded}
           className="mt-4 w-full flex items-center justify-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 py-2"
         >
           {expanded ? (
@@ -2003,6 +2004,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
             <button
               type="button"
               onClick={handleToggleDetail}
+              aria-expanded={showDetail}
               className="w-full flex items-center justify-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-gray-800 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl py-2.5 transition-colors"
             >
               {showDetail ? (
