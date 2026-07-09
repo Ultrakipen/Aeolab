@@ -78,7 +78,7 @@ export default function DashboardHeroCard({
   })();
 
   const naverSeoCard = naverCaptchaBlocked
-    ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",       statusClass: "text-gray-400",    detail: "일시적으로 확인 어려움" }
+    ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",       statusClass: "text-gray-500",    detail: "일시적으로 확인 어려움" }
     : (latestAdOnly ?? false)
     ? { icon: "!", iconClass: "bg-amber-500 text-white",   status: "광고만 노출",      statusClass: "text-amber-700",   detail: "유료광고 결과만 노출" }
     : topMissingKeywordCount === 0
@@ -86,7 +86,7 @@ export default function DashboardHeroCard({
     : { icon: "!", iconClass: "bg-amber-500 text-white",   status: "키워드 보강 필요", statusClass: "text-amber-700",   detail: `${topMissingKeywordCount}개 키워드 추가 필요` };
 
   const naverAiTabCard = naverCaptchaBlocked
-    ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",   statusClass: "text-gray-400",    detail: "일시적으로 확인 어려움" }
+    ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",   statusClass: "text-gray-500",    detail: "일시적으로 확인 어려움" }
     : naverAiTabVisible === true
     ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "노출 중",    statusClass: "text-emerald-700", detail: "AI탭 답변 있음" }
     : naverAiTabVisible === false
@@ -94,11 +94,11 @@ export default function DashboardHeroCard({
     : { icon: "i", iconClass: "bg-blue-100 text-blue-700 font-black", status: "준비 가능",   statusClass: "text-blue-700",    detail: "가이드로 설정하기" };
 
   const naverBriefingCard = naverCaptchaBlocked
-    ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",        statusClass: "text-gray-400",    detail: "일시적으로 확인 어려움" }
+    ? { icon: "?", iconClass: "bg-gray-200 text-gray-500", status: "측정 불가",        statusClass: "text-gray-500",    detail: "일시적으로 확인 어려움" }
     : isInactiveOrFranchise && (naverInBriefing ?? false)
     ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "정보형 노출 중",   statusClass: "text-emerald-700", detail: "콘텐츠 기반 AI 브리핑 노출" }
     : isInactiveOrFranchise
-    ? { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "이 업종 해당 없음", statusClass: "text-gray-400",    detail: "네이버 검색·AI탭으로 노출 가능" }
+    ? { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "이 업종 해당 없음", statusClass: "text-gray-500",    detail: "네이버 검색·AI탭으로 노출 가능" }
     : briefingEligibility === "likely" && (naverInBriefing ?? false)
     ? { icon: "✓", iconClass: "bg-emerald-500 text-white", status: "정보형 노출 중",   statusClass: "text-emerald-700", detail: "콘텐츠 기반 AI 브리핑 노출" }
     : briefingEligibility === "likely"
@@ -114,7 +114,7 @@ export default function DashboardHeroCard({
       ? myRankInList === 1
         ? { icon: "1", iconClass: "bg-emerald-500 text-white", status: "동네 1위",  statusClass: "text-emerald-700", detail: `경쟁 ${totalCompetitors}곳 중 1위` }
         : { icon: String(myRankInList), iconClass: "bg-amber-500 text-white", status: `${myRankInList}위`, statusClass: "text-amber-700", detail: `경쟁 ${totalCompetitors}곳 중 ${myRankInList}위` }
-      : { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "비교 준비 중", statusClass: "text-gray-400", detail: "경쟁사 등록 후 표시" };
+      : { icon: "–", iconClass: "bg-gray-200 text-gray-500", status: "비교 준비 중", statusClass: "text-gray-500", detail: "경쟁사 등록 후 표시" };
 
   const ANCHOR_MAP: Record<string, string> = {
     "naver-seo":      "#naver-seo-anchor",
@@ -150,7 +150,7 @@ export default function DashboardHeroCard({
               <p className="text-sm font-bold text-gray-800 mt-1 break-keep">{evidenceText}</p>
             )}
             {(lastScannedLabel || staleRescan) && (
-              <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+              <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
                 {lastScannedLabel && <span>{lastScannedLabel}</span>}
                 {staleRescan && (
                   <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-100 font-semibold px-1.5 py-0.5 rounded">
@@ -175,7 +175,7 @@ export default function DashboardHeroCard({
         <div className="flex items-center gap-1.5 mb-3">
           <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" aria-hidden="true" />
           <p className="text-sm font-bold text-gray-700">{isInactiveOrFranchise ? "네이버 노출 현황" : "네이버 AI 현황"}</p>
-          <span className="ml-1 text-xs text-gray-400 hidden sm:inline">소상공인 핵심 채널</span>
+          <span className="ml-1 text-xs text-gray-500 hidden sm:inline">소상공인 핵심 채널</span>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {naverChannels.map((card) => (
@@ -190,7 +190,7 @@ export default function DashboardHeroCard({
               <div>
                 <p className="text-sm font-medium text-gray-500 leading-tight break-keep">{card.platform}</p>
                 <p className={`text-sm font-bold mt-0.5 leading-tight ${card.statusClass}`}>{card.status}</p>
-                <p className="text-xs text-gray-400 mt-0.5 leading-tight break-keep group-hover:text-blue-400 transition-colors">{card.detail}</p>
+                <p className="text-xs text-gray-500 mt-0.5 leading-tight break-keep group-hover:text-blue-400 transition-colors">{card.detail}</p>
               </div>
             </a>
           ))}

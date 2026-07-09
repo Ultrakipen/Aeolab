@@ -244,7 +244,7 @@ function V31SixItems({
             <p className="text-sm text-gray-500">등록한 키워드로 네이버에서 직접 검색해 내 사업장이 몇 위에 나오는지 확인합니다</p>
           </div>
           {kwSearchItem?.measured === false ? (
-            <span className="text-sm text-gray-400 font-medium w-28 text-right shrink-0">측정 대기</span>
+            <span className="text-sm text-gray-500 font-medium w-28 text-right shrink-0">측정 대기</span>
           ) : (
             <ScoreBadge value={kwSearchItem?.score ?? 0} />
           )}
@@ -319,7 +319,7 @@ function V31SixItems({
               </span>
               <WeightBadge pct={weights["smart_place_completeness"]} color="text-blue-700 bg-blue-50 border-blue-200" />
               {spItem?.kw_gap_estimated && (
-                <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">(추정)</span>
+                <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">(추정)</span>
               )}
             </div>
             <p className="text-sm text-gray-500">
@@ -377,7 +377,7 @@ function V31SixItems({
               )}
             </div>
             {isKeywordEstimated && (
-              <p className="text-sm text-gray-400 italic mt-2">
+              <p className="text-sm text-gray-500 italic mt-2">
                 리뷰가 쌓이면 정확해집니다. 현재는 블로그 텍스트 기반 추정값입니다.
               </p>
             )}
@@ -394,7 +394,7 @@ function V31SixItems({
                 ④ 블로그 생태계
               </span>
               <WeightBadge pct={weights["blog_crank"]} color="text-purple-700 bg-purple-50 border-purple-200" />
-              <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">(추정)</span>
+              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">(추정)</span>
             </div>
             <p className="text-sm text-gray-500">블로그 발행 빈도·외부 인용·업체명 매칭으로 콘텐츠 품질을 추정합니다</p>
           </div>
@@ -403,7 +403,7 @@ function V31SixItems({
         <div className="flex items-center gap-2 mb-2">
           <ScoreBar value={blogItem?.score ?? 0} color={barColor(blogItem?.score ?? 0)} />
         </div>
-        <p className="text-sm text-gray-400 italic">
+        <p className="text-sm text-gray-500 italic">
           측정 시점·기기·검색 환경에 따라 달라질 수 있습니다
         </p>
         {(blogItem?.score ?? 0) < 40 && (
@@ -540,7 +540,7 @@ function V31SixItems({
                 {aiTabApplicable ? (
                   <WeightBadge pct={weights["naver_ai_tab_visible"]} color="text-indigo-700 bg-indigo-50 border-indigo-200" />
                 ) : (
-                  <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
+                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
                     가중치 0%
                   </span>
                 )}
@@ -633,7 +633,7 @@ function V30FourItems({
                 영향도 ★★★ (가중치 30%)
               </span>
               {isKeywordEstimated && (
-                <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">(추정값)</span>
+                <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">(추정값)</span>
               )}
             </div>
             <p className="text-sm text-gray-500 leading-relaxed">
@@ -646,7 +646,7 @@ function V30FourItems({
           <ScoreBar value={kws} color={barColor(kws)} />
         </div>
         {isKeywordEstimated && (
-          <p className="text-sm text-gray-400 italic mb-2">
+          <p className="text-sm text-gray-500 italic mb-2">
             리뷰가 쌓이면 정확해집니다. 현재는 블로그 텍스트 기반 추정값입니다.
           </p>
         )}
@@ -925,7 +925,7 @@ export default function ScoreEvidenceCard({
                 글로벌 AI {globalWeight}%
               </span>
             </div>
-            <p className="text-sm text-gray-400">이 업종 고객이 네이버 vs 글로벌 AI를 사용하는 비율</p>
+            <p className="text-sm text-gray-500">이 업종 고객이 네이버 vs 글로벌 AI를 사용하는 비율</p>
           </div>
         </div>
       </div>
@@ -982,6 +982,18 @@ export default function ScoreEvidenceCard({
                   소개글 200자 이상·사진 10장 이상·블로그 후기 확보가 핵심입니다.
                 </p>
               </div>
+            </div>
+          )}
+
+          {/* ACTIVE/LIKELY: 이 서비스의 개선 항목 = 네이버 SEO 상위노출로 직결된다는 정방향 안내 (2026-07-09 신설) */}
+          {(effectiveGroup === "ACTIVE" || effectiveGroup === "LIKELY") && (
+            <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50 p-3 flex items-start gap-2">
+              <span className="text-blue-500 text-sm shrink-0 mt-0.5">🔍</span>
+              <p className="text-sm text-blue-900 leading-relaxed">
+                <strong>아래 항목 점수를 올리면 네이버 일반 검색 상위 노출도 함께 좋아집니다.</strong>{" "}
+                <strong>①키워드 검색 노출</strong>은 네이버에서 실제 검색했을 때의 순위 그 자체이며,
+                소개글·리뷰·블로그 개선은 AI 브리핑·AI탭 노출과 네이버 일반 검색 순위를 동시에 끌어올립니다.
+              </p>
             </div>
           )}
 
@@ -1055,21 +1067,21 @@ export default function ScoreEvidenceCard({
                 <div
                   key={key}
                   className={`flex items-center gap-2 rounded-lg px-3 py-2.5 border ${
-                    hasError ? "bg-gray-50 border-gray-100 text-gray-400" :
+                    hasError ? "bg-gray-50 border-gray-100 text-gray-500" :
                     ok ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"
                   }`}
                 >
                   {hasError
-                    ? <span className="text-gray-400 text-sm font-bold">?</span>
+                    ? <span className="text-gray-500 text-sm font-bold">?</span>
                     : ok
                       ? <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
                       : <XCircle className="w-4 h-4 text-red-500 shrink-0" />
                   }
-                  <span className={`text-sm ${hasError ? "text-gray-400" : ok ? "text-green-800 font-medium" : "text-red-700"}`}>
+                  <span className={`text-sm ${hasError ? "text-gray-500" : ok ? "text-green-800 font-medium" : "text-red-700"}`}>
                     {label}
                   </span>
                   {r.exposure_freq !== undefined && r.exposure_freq > 0 && (
-                    <span className="text-sm text-gray-400 ml-auto">
+                    <span className="text-sm text-gray-500 ml-auto">
                       {r.exposure_freq}회
                     </span>
                   )}
@@ -1093,7 +1105,7 @@ export default function ScoreEvidenceCard({
         </div>
 
         {/* 면책 문구 */}
-        <p className="text-sm text-gray-400 border-t border-gray-100 pt-4">
+        <p className="text-sm text-gray-500 border-t border-gray-100 pt-4">
           측정 시점·기기·검색 환경에 따라 달라질 수 있습니다
         </p>
 

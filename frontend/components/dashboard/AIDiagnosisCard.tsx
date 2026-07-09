@@ -274,7 +274,7 @@ export default function AIDiagnosisCard({
                           '플레이스형' AI 브리핑은 이 업종에 미적용 — '정보형 AI 브리핑'·AI탭·ChatGPT·Gemini는 동일한 개선 방법으로 노출 가능
                         </span>
                       </div>
-                      <span className="text-sm font-semibold text-gray-400 shrink-0">'플레이스형' AI 브리핑 제외</span>
+                      <span className="text-sm font-semibold text-gray-500 shrink-0">'플레이스형' AI 브리핑 제외</span>
                     </div>
                     <div className="col-span-2 flex items-start gap-2 rounded-xl px-3 py-3 border bg-indigo-50 border-indigo-200">
                       <Minus className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
@@ -386,7 +386,7 @@ export default function AIDiagnosisCard({
                   <span className={`text-sm font-medium leading-tight ${inAiOverview ? "text-green-800" : googleMentioned ? "text-amber-800" : scanned ? "text-red-800" : "text-gray-500"}`}>
                     {label}
                   </span>
-                  <span className={`ml-auto text-sm font-semibold ${inAiOverview ? "text-green-700" : googleMentioned ? "text-amber-700" : scanned ? "text-red-600" : "text-gray-400"}`}>
+                  <span className={`ml-auto text-sm font-semibold ${inAiOverview ? "text-green-700" : googleMentioned ? "text-amber-700" : scanned ? "text-red-600" : "text-gray-500"}`}>
                     {inAiOverview ? "AI 노출" : googleMentioned ? "검색만 노출" : scanned ? "미노출" : "미측정"}
                   </span>
                 </div>
@@ -424,10 +424,10 @@ export default function AIDiagnosisCard({
                 <span className={`text-sm font-medium leading-tight ${known ? "text-green-800" : scanned ? "text-red-800" : "text-gray-500"}`}>
                   {label}
                 </span>
-                <span className={`ml-auto text-sm font-semibold ${known ? "text-green-700" : scanned ? "text-red-600" : "text-gray-400"}`}>
+                <span className={`ml-auto text-sm font-semibold ${known ? "text-green-700" : scanned ? "text-red-600" : "text-gray-500"}`}>
                   {exposurePct !== null ? `${exposurePct}%` : known ? "노출됨" : scanned ? "미노출" : "미측정"}
                   {r.exposure_freq !== undefined && r.sample_size ? (
-                    <span className="text-xs font-normal text-gray-400 ml-1">
+                    <span className="text-xs font-normal text-gray-500 ml-1">
                       ({r.sample_size}번 중 {r.exposure_freq}번)
                     </span>
                   ) : null}
@@ -586,12 +586,12 @@ export default function AIDiagnosisCard({
             )}
           </div>
           {naverPlaceUrl ? (
-            <p className="text-sm text-gray-400 mt-2">
+            <p className="text-sm text-gray-500 mt-2">
               스마트플레이스 세부 항목(소개글 Q&A·소식 등)은 아래{" "}
               <span className="font-medium text-blue-500">실시간 점검</span>에서 확인하세요.
             </p>
           ) : (
-            <p className="text-sm text-gray-400 mt-2">
+            <p className="text-sm text-gray-500 mt-2">
               스마트플레이스 세부 항목(소개글 Q&A·소식 등)은{" "}
               <span className="font-medium text-blue-500">채널별 분석 근거</span>에서 확인하세요.{" "}
               <a href="/onboarding" className="text-blue-400 hover:underline">URL 등록 →</a>

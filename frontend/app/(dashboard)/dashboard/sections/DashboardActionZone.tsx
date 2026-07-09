@@ -117,7 +117,7 @@ export default function DashboardActionZone({
               >
                 Basic 구독으로 가이드 확인 →
               </Link>
-              <p className="text-xs text-gray-400 mt-1.5">첫 달 4,950원 · 이후 9,900원/월</p>
+              <p className="text-xs text-gray-500 mt-1.5">첫 달 4,950원 · 이후 9,900원/월</p>
             </div>
           </div>
         </div>
@@ -179,7 +179,8 @@ export default function DashboardActionZone({
       {!showMore ? (
         <button
           onClick={() => setShowMore(true)}
-          className="w-full flex items-center justify-center gap-1 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+          aria-expanded={false}
+          className="w-full flex items-center justify-center gap-1 py-2 text-sm text-gray-500 hover:text-gray-600 transition-colors"
         >
           <ChevronDown className="w-4 h-4" />
           이달 체크리스트 · 행동 효과 · 대행 추천 보기

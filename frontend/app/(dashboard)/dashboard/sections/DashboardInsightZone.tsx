@@ -85,7 +85,7 @@ function CollapsibleSub({
         {open ? (
           <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
         ) : (
-          <span className="flex items-center gap-1 text-xs text-gray-400 font-medium shrink-0 whitespace-nowrap">
+          <span className="flex items-center gap-1 text-xs text-gray-500 font-medium shrink-0 whitespace-nowrap">
             눌러서 보기 <ChevronDown className="w-4 h-4" />
           </span>
         )}
@@ -218,7 +218,8 @@ export default function DashboardInsightZone({
       {!showMore ? (
         <button
           onClick={() => setShowMore(true)}
-          className="w-full flex items-center justify-center gap-1 py-2.5 text-sm text-gray-400 hover:text-gray-600 transition-colors border border-dashed border-gray-200 rounded-lg"
+          aria-expanded={false}
+          className="w-full flex items-center justify-center gap-1 py-2.5 text-sm text-gray-500 hover:text-gray-600 transition-colors border border-dashed border-gray-200 rounded-lg"
         >
           <ChevronDown className="w-4 h-4" />
           카페·지식채널 · 사진 카테고리 · 리뷰 키워드 상세 보기
@@ -238,7 +239,8 @@ export default function DashboardInsightZone({
           <ReviewKeywordGapCard bizId={bizId} plan={plan} />
           <button
             onClick={() => setShowMore(false)}
-            className="w-full flex items-center justify-center gap-1 py-2 text-sm text-gray-400 hover:text-gray-600"
+            aria-expanded={true}
+            className="w-full flex items-center justify-center gap-1 py-2 text-sm text-gray-500 hover:text-gray-600"
           >
             <ChevronUp className="w-4 h-4" />
             접기
