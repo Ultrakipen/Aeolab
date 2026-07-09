@@ -61,6 +61,18 @@ interface ActionLog {
   score_after: number | null;
 }
 
+interface GrowthDriver {
+  label: string;
+  key: string;
+  delta: number;
+  current: number;
+}
+
+interface KeywordResolution {
+  resolved: string[];
+  still_missing: string[];
+}
+
 interface Props {
   businessName: string;
   category: string;
@@ -69,6 +81,31 @@ interface Props {
   growthCardUrl: string | null;
   benchmarkData: BenchmarkData | null;
   actionLogs?: ActionLog[];
+  headline?: string | null;
+  headlineType?: string | null;
+  growthDrivers?: GrowthDriver[];
+  briefingTotal?: number;
+  keywordResolution?: KeywordResolution;
+}
+
+/** delta(원본 점수 차) → 방향 텍스트만. 원본 점수 숫자는 노출하지 않는다(점수 표시 원칙). */
+function getDriverDirectionLabel(delta: number): string {
+  if (delta > 0.5) return "↑ 개선됨";
+  if (delta < -0.5) return "↓ 하락";
+  return "— 유지";
+}
+
+function getHeadlineStyle(headlineType: string | null | undefined): { box: string; text: string } {
+  switch (headlineType) {
+    case "growth":
+      return { box: "bg-emerald-50 border-emerald-200", text: "text-emerald-800" };
+    case "decline":
+      return { box: "bg-amber-50 border-amber-200", text: "text-amber-800" };
+    case "alert":
+      return { box: "bg-orange-50 border-orange-200", text: "text-orange-800" };
+    default:
+      return { box: "bg-gray-50 border-gray-200", text: "text-gray-600" };
+  }
 }
 
 function formatDateShort(iso: string | null | undefined): string {
@@ -162,6 +199,11 @@ export default function GrowthClient({
   growthCardUrl,
   benchmarkData,
   actionLogs = [],
+  headline = null,
+  headlineType = null,
+  growthDrivers = [],
+  briefingTotal = 0,
+  keywordResolution = { resolved: [], still_missing: [] },
 }: Props) {
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
@@ -324,6 +366,15 @@ export default function GrowthClient({
         )}
       </div>
 
+      {/* 헤드라인 배너 — /api/report/growth 자연어 요약 (스캔 2회 이상부터 의미 있음) */}
+      {headline && (
+        <div className={`rounded-xl border px-4 py-3 ${getHeadlineStyle(headlineType).box}`}>
+          <p className={`text-sm font-semibold ${getHeadlineStyle(headlineType).text}`}>
+            {headline}
+          </p>
+        </div>
+      )}
+
       {/* 요약 카드 3개 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* 전체 AI 노출 상태 */}
@@ -390,6 +441,11 @@ export default function GrowthClient({
               <p className="text-sm text-gray-400 mt-1">
                 스마트플레이스 기반 네이버 AI 노출 수준입니다
               </p>
+              {briefingTotal > 0 && (
+                <p className="text-sm text-blue-600 font-medium mt-1">
+                  지금까지 AI 브리핑에 {briefingTotal}번 노출됐습니다
+                </p>
+              )}
               {(() => {
                 const weakLabel = getWeakestFactorLabel(
                   latest?.score_breakdown,
@@ -440,6 +496,30 @@ export default function GrowthClient({
           )}
         </div>
       </div>
+
+      {/* 섹션: 성장 요인 TOP4 — 첫 스캔 대비 어떤 항목이 가장 오르내렸는지 (숫자 없이 방향만) */}
+      {growthDrivers.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
+          <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">성장 요인</h2>
+          <p className="text-sm text-gray-400 mb-4">
+            첫 스캔 대비 어떤 항목이 가장 많이 움직였는지 보여줍니다
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {growthDrivers.map((d) => (
+              <div key={d.key} className="flex items-center justify-between gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                <span className="text-sm text-gray-600 truncate">{d.label}</span>
+                <span
+                  className={`text-sm font-semibold shrink-0 ${
+                    d.delta > 0.5 ? "text-emerald-600" : d.delta < -0.5 ? "text-red-500" : "text-gray-400"
+                  }`}
+                >
+                  {getDriverDirectionLabel(d.delta)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 섹션 1: AI 노출 점수 변화 차트 */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
@@ -642,6 +722,45 @@ export default function GrowthClient({
           </div>
         )}
       </div>
+
+      {/* 섹션: 키워드 해결 현황 — 첫 스캔 대비 해결된 키워드 vs 여전히 부족한 키워드 */}
+      {(keywordResolution.resolved.length > 0 || keywordResolution.still_missing.length > 0) && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
+          <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">키워드 해결 현황</h2>
+          <p className="text-sm text-gray-400 mb-4">
+            AI 검색에 잡히지 않던 키워드가 얼마나 해결됐는지 보여줍니다
+          </p>
+          <div className="space-y-3">
+            {keywordResolution.resolved.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-emerald-700 mb-1.5">✓ 해결된 키워드</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {keywordResolution.resolved.map((kw) => (
+                    <span key={kw} className="text-sm bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full">
+                      {kw}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {keywordResolution.still_missing.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-amber-700 mb-1.5">아직 부족한 키워드</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {keywordResolution.still_missing.map((kw) => (
+                    <span key={kw} className="text-sm bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full">
+                      {kw}
+                    </span>
+                  ))}
+                </div>
+                <Link href="/guide" className="inline-block mt-2 text-sm text-blue-600 font-semibold underline">
+                  개선 가이드에서 해결 방법 보기 →
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 섹션 2: 업종 평균 대비 내 위치 */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">

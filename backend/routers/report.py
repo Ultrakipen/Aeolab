@@ -2050,23 +2050,21 @@ async def get_smart_place_result(biz_id: str, user=Depends(get_current_user)):
 # ── 성장 리포트 ─────────────────────────────────────────────────────────────
 
 BREAKDOWN_LABELS = {
-    "exposure_freq":            "AI 검색 노출",
-    "review_quality":           "리뷰 평판",
-    "schema_score":             "온라인 정보",
+    # Track 1 — v3.1 그룹별 6항목 (score_engine.py:1097 NAVER_TRACK_WEIGHTS_V3_1)
+    "keyword_search_rank":      "키워드 검색 순위",
+    "review_quality":           "리뷰 품질",
+    "smart_place_completeness": "스마트플레이스 완성도",
+    "blog_crank":               "블로그 지수",
+    "local_map_score":          "지도 노출",
+    "ai_briefing_score":        "AI 브리핑 노출",
+    # Track 2 — 공통 4항목 (score_engine.py:296 GLOBAL_TRACK_WEIGHTS)
+    "multi_ai_exposure":        "AI 언급 빈도",
+    "schema_seo":               "웹사이트 SEO",
     "online_mentions":          "온라인 언급",
-    "info_completeness":        "기본 정보 완성도",
-    "content_freshness":        "최근 활동",
+    "google_presence":          "구글 AI 노출",
+    # 집계 synthetic 키 (타임라인 하위 호환용 보존)
     "track1_naver":             "네이버 AI 채널",
     "track2_global":            "글로벌 AI 채널",
-    # score_engine.py breakdown 실제 키
-    "keyword_gap_score":        "핵심 키워드 보유",
-    "smart_place_completeness": "스마트플레이스 완성도",
-    "schema_seo":               "AI 검색 등록(JSON-LD)",
-    "multi_ai_exposure":        "ChatGPT·구글 AI 노출",
-    "naver_exposure_confirmed": "네이버 AI 브리핑 노출",
-    "online_mentions_t2":       "온라인 언급",
-    "google_presence":          "구글 검색 노출",
-    "kakao_completeness":       "카카오맵 정보 완성도",
 }
 
 
@@ -2210,7 +2208,11 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
         drivers: list[dict] = []
         all_keys = set(first_bd.keys()) | set(latest_bd.keys())
         for key in all_keys:
-            label   = BREAKDOWN_LABELS.get(key, key)
+            # 오래된 스캔이 v3.0 구 키(예: keyword_gap_score)를 갖고 있으면 라벨이 없어
+            # 원본 스네이크케이스 키가 그대로 노출될 수 있으므로 매핑 없는 항목은 제외
+            if key not in BREAKDOWN_LABELS:
+                continue
+            label   = BREAKDOWN_LABELS[key]
             current = _safe_float(latest_bd.get(key))
             prev    = _safe_float(first_bd.get(key))
             delta   = round(current - prev, 1)
@@ -2329,12 +2331,15 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
     if scans_raw:
         latest_bd = scans_raw[-1].get("score_breakdown") or {}
         _checklist_map = {
-            "keyword_gap_score":        {"text": "가이드에서 추천 키워드 1개를 포스트 제목에 추가하세요", "link": "/guide", "minutes": 5},
+            "keyword_search_rank":      {"text": "가이드에서 추천 키워드 1개를 포스트 제목에 추가하세요", "link": "/guide", "minutes": 5},
             "smart_place_completeness": {"text": "스마트플레이스 소개글에 Q&A 1개를 추가하세요", "link": "/guide", "minutes": 5},
             "schema_seo":               {"text": "AI 검색 등록(JSON-LD) 코드를 내 사이트에 적용하세요", "link": "/schema", "minutes": 10},
             "review_quality":           {"text": "최근 리뷰에 키워드가 담긴 답변을 달아주세요", "link": "/guide", "minutes": 3},
-            "content_freshness":        {"text": "스마트플레이스 소식 1건을 이번 주 안에 올리세요", "link": "/guide", "minutes": 10},
-            "naver_exposure_confirmed": {"text": "네이버 AI 브리핑 노출을 확인하세요", "link": "/dashboard", "minutes": 2},
+            "blog_crank":               {"text": "스마트플레이스 소식 1건을 이번 주 안에 올리세요", "link": "/guide", "minutes": 10},
+            "ai_briefing_score":        {"text": "네이버 AI 브리핑 노출 여부를 대시보드에서 확인하세요", "link": "/dashboard", "minutes": 2},
+            "local_map_score":          {"text": "네이버 지도·카카오맵 정보를 최신 상태로 업데이트하세요", "link": "/guide", "minutes": 10},
+            "multi_ai_exposure":        {"text": "ChatGPT·Gemini 노출을 높이려면 온라인 언급을 늘리세요", "link": "/guide", "minutes": 5},
+            "google_presence":          {"text": "구글 비즈니스 프로필을 업데이트하세요", "link": "/guide", "minutes": 10},
         }
         sorted_bd = sorted(latest_bd.items(), key=lambda x: _safe_float(x[1]))
         for key, _ in sorted_bd:

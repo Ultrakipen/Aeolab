@@ -130,8 +130,8 @@ export default async function GrowthPage() {
     token = session?.access_token ?? ""
   } catch { /* token = "" */ }
 
-  // 점수 이력 · 성장카드 · 벤치마크 · 행동 로그 병렬 조회
-  const [historyRes, growthCardRes, benchmarkRes, actionLogRes] = await Promise.all([
+  // 점수 이력 · 성장카드 · 벤치마크 · 행동 로그 · 성장 리포트(헤드라인 등) 병렬 조회
+  const [historyRes, growthCardRes, benchmarkRes, actionLogRes, growthReportRes] = await Promise.all([
     fetch(`${BACKEND}/api/report/history/${business.id}`, {
       headers: { Authorization: `Bearer ${token}` },
       next: { revalidate: 300 },
@@ -145,6 +145,10 @@ export default async function GrowthPage() {
     ).catch(() => null),
     fetch(`${BACKEND}/api/report/action-log/${business.id}?days=60`, {
       headers: { Authorization: `Bearer ${token}` },
+    }).catch(() => null),
+    fetch(`${BACKEND}/api/report/growth/${business.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      next: { revalidate: 1800 },
     }).catch(() => null),
   ]);
 
@@ -218,6 +222,23 @@ export default async function GrowthPage() {
     }
   }
 
+  // 성장 리포트 헤드라인 · 성장 요인 · 키워드 해결 현황 (Basic+, 30분 캐시)
+  let headline: string | null = null;
+  let headlineType: string | null = null;
+  let growthDrivers: Array<{ label: string; key: string; delta: number; current: number }> = [];
+  let briefingTotal = 0;
+  let keywordResolution: { resolved: string[]; still_missing: string[] } = { resolved: [], still_missing: [] };
+  if (growthReportRes?.ok) {
+    const raw = await growthReportRes.json().catch(() => null);
+    if (raw && !raw.locked) {
+      headline = raw.headline ?? null;
+      headlineType = raw.headline_type ?? null;
+      growthDrivers = Array.isArray(raw.growth_drivers) ? raw.growth_drivers : [];
+      briefingTotal = raw.briefing_total ?? 0;
+      keywordResolution = raw.keyword_resolution ?? { resolved: [], still_missing: [] };
+    }
+  }
+
   return (
     <GrowthClient
       businessName={business.name}
@@ -227,6 +248,11 @@ export default async function GrowthPage() {
       growthCardUrl={growthCardUrl}
       benchmarkData={benchmarkData}
       actionLogs={actionLogs}
+      headline={headline}
+      headlineType={headlineType}
+      growthDrivers={growthDrivers}
+      briefingTotal={briefingTotal}
+      keywordResolution={keywordResolution}
     />
   );
 }
