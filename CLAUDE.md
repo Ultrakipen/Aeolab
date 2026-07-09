@@ -168,6 +168,7 @@
 | `docs/five_pages_and_action_history_handoff_v1.0.md` | 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠·변화기록(2차) 점검 + §3 잔여(falsy-zero 스윕·리뷰답변/AI광고대비/창업분석) 전체 완료(git `71707d4`~`963228c`). `nine_pages_measurement_inspection_v1.0.md` 9개 영역 전체 완료 — 트리거는 완료 이력 확인용만 (2026-07-06) |
 | `docs/subscription_lifecycle_inspection_v1.0.md` | 구독 생애주기(갱신·카드변경·해지) 점검 — §1~4(git `df4f55f`~`3ee38fb`) + §6 P0/P1/FK조인버그 + §5 7일 자동환불 전체 배포완료(git `170b002`). 잔여 없음 |
 | **`docs/eight_pages_commercial_professionalism_recheck_v1.0.md`** ⭐ | **8개 페이지 상업적 전문성 재점검 — P0 2건(FAQ한도·SearchGPT)+P1 8건 + 심층개선 6건(DataLab연동 등) + 실API호출로 발견한 최고심각도 2건(가이드 max_tokens 침묵실패, 소개글 허위수치 지어내기) + intro_draft CHECK 제약 사전존재 버그 + keyword_taxonomy law/미술 별칭 버그(전수검증). §13에 잔여 작업 5건 정리(max_tokens 타업종 점검·타업종 소개글 종단테스트·경쟁사 AI언급 추정치 한계·git push 결정 등) (git `258dff7`~`89afa5e`, 2026-07-08)** |
+| **`docs/external_benchmark_commercial_quality_v1.0.md`** ⭐ | **외부 벤치마크(Nielsen 10휴리스틱·상업 SaaS 도구·감사이력 UX 관행) 기반 상업적 수준 점검 방법론 — 7단계 절차(과거이력→코드재검증→라이브접속→외부조사→반증→수정→드리프트확인) + 반복실수 방지 목록. 경쟁사관리 3건·변화기록 2건 수정 완료(git `ed95b9f`~`41111c7`, 2026-07-09). 미점검 페이지 목록 §4에 정리** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
@@ -177,6 +178,7 @@
 > **9개 페이지 실측 점검**: `docs/nine_pages_measurement_inspection_v1.0.md 기준으로 실측 점검 진행`
 > **블로그 관리 페이지 검색량 연동**: `docs/blog_analysis_improvement_v2.0.md 기준으로 1순위(검색량 연동)부터 진행`
 > **8개 페이지 상업적 전문성 재점검 잔여작업**: `docs/eight_pages_commercial_professionalism_recheck_v1.0.md 기준으로 §13 남은 작업 이어서 진행`
+> **외부 벤치마크 기반 상업적 수준 점검**: `docs/external_benchmark_commercial_quality_v1.0.md 기준으로 <페이지명> 페이지를 점검해줘` (§4 미점검 후보: 성장리포트·개선가이드·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석·대시보드)
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
