@@ -169,7 +169,8 @@
 | `docs/subscription_lifecycle_inspection_v1.0.md` | 구독 생애주기(갱신·카드변경·해지) 점검 — §1~4(git `df4f55f`~`3ee38fb`) + §6 P0/P1/FK조인버그 + §5 7일 자동환불 전체 배포완료(git `170b002`). 잔여 없음 |
 | **`docs/eight_pages_commercial_professionalism_recheck_v1.0.md`** ⭐ | **8개 페이지 상업적 전문성 재점검 — P0 2건(FAQ한도·SearchGPT)+P1 8건 + 심층개선 6건(DataLab연동 등) + 실API호출로 발견한 최고심각도 2건(가이드 max_tokens 침묵실패, 소개글 허위수치 지어내기) + intro_draft CHECK 제약 사전존재 버그 + keyword_taxonomy law/미술 별칭 버그(전수검증). §13에 잔여 작업 5건 정리(max_tokens 타업종 점검·타업종 소개글 종단테스트·경쟁사 AI언급 추정치 한계·git push 결정 등) (git `258dff7`~`89afa5e`, 2026-07-08)** |
 | **`docs/external_benchmark_commercial_quality_v1.0.md`** ⭐ | **외부 벤치마크(Nielsen 10휴리스틱·WCAG 2.1 AA·상업 SaaS 도구·감사이력 UX 관행) 기반 상업적 수준 점검 방법론 — 7단계 절차(과거이력→코드재검증→라이브접속→외부조사→반증→수정→드리프트확인). 경쟁사관리 3건·변화기록 2건·성장리포트 2건+P1·개선가이드 6건(1라운드 정보구조4건+2라운드 WCAG접근성2건) 수정 완료. 미점검 6개 페이지는 `docs/six_pages_external_benchmark_inspection_plan_v1.0.md`로 이관 (2026-07-09)** |
-| **`docs/six_pages_external_benchmark_inspection_plan_v1.0.md`** ⭐ | **변화기록·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석 6개 페이지 외부벤치마크 점검 계획 — §1 선행이력 충돌 정리(변화기록은 이미 1라운드 완료, 회귀확인만), §2 통합 7단계+성능·WCAG접근성·시각위계·카피톤 4축 처음부터 포함, §3 페이지별 벤치마크 후보(Jasper·Birdeye·SOC대시보드 등 실제 조사 완료) (2026-07-09)** |
+| **`docs/six_pages_external_benchmark_inspection_plan_v1.0.md`** ⭐ | **변화기록·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석 6개 페이지 외부벤치마크 점검 계획 — 전체 완료(git `368c1f2`~`4cc68ca`, 2026-07-09). §1 선행이력 충돌 정리, §2 통합 7단계+성능·WCAG접근성·시각위계·카피톤 4축, §3 페이지별 벤치마크 후보. 트리거는 완료 이력 확인용만** |
+| **`docs/dashboard_external_benchmark_inspection_plan_v1.0.md`** ⭐ | **대시보드 외부벤치마크 점검 계획 — 이 축(Nielsen/WCAG)에서 유일하게 남은 대상. §2에 과거 점검 이력 전수 정리(콘텐츠구조 6체크리스트 완료·27컴포넌트 실측무결성 완료·개별 UX수정 4건) + "닫힌 이슈 재점검 금지" 명시, §1에 편집 지뢰(DualTrackCard 고아파일 경로) 경고, §4에 27개+ 컴포넌트 구역별 분할 진행 순서 (2026-07-09)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
@@ -179,8 +180,8 @@
 > **9개 페이지 실측 점검**: `docs/nine_pages_measurement_inspection_v1.0.md 기준으로 실측 점검 진행`
 > **블로그 관리 페이지 검색량 연동**: `docs/blog_analysis_improvement_v2.0.md 기준으로 1순위(검색량 연동)부터 진행`
 > **8개 페이지 상업적 전문성 재점검 잔여작업**: `docs/eight_pages_commercial_professionalism_recheck_v1.0.md 기준으로 §13 남은 작업 이어서 진행`
-> **외부 벤치마크 기반 상업적 수준 점검**: `docs/external_benchmark_commercial_quality_v1.0.md 기준으로 <페이지명> 페이지를 점검해줘` (성장리포트·개선가이드 완료, 대시보드는 미점검)
-> **6개 페이지 외부벤치마크 점검 이어가기**: `docs/six_pages_external_benchmark_inspection_plan_v1.0.md 기준으로 §4 순서대로 진행` (변화기록·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석)
+> **외부 벤치마크 기반 상업적 수준 점검**: 9개 페이지(경쟁사관리·성장리포트·개선가이드·변화기록·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석) 전체 완료. 남은 건 대시보드뿐
+> **대시보드 외부벤치마크 점검**: `docs/dashboard_external_benchmark_inspection_plan_v1.0.md 기준으로 대시보드 점검 진행`
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
