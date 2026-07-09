@@ -91,13 +91,19 @@ export default async function HistoryPage() {
     accessToken = session?.access_token ?? ''
   } catch { /* accessToken = '' */ }
 
+  // "30일 추세"는 최근 30개 행이 아니라 최근 30일(날짜) 기준이어야 함 — 스캔이
+  // 뜸한 계정에서 limit(30)이 실제로는 몇 달 전 데이터까지 끌어와 actionLogs(날짜
+  // 기준 60일 조회)와 표시 범위가 어긋나던 구조적 원인. 날짜 필터로 통일.
+  const historyCutoff = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
+
   const [historyRes, blogShotsRes, actionLogRes] = await Promise.all([
     supabase
       .from('score_history')
       .select('id, business_id, score_date, total_score, unified_score, track1_score, track2_score, exposure_freq, weekly_change, context, sample_size')
       .eq('business_id', business.id)
+      .gte('score_date', historyCutoff)
       .order('score_date', { ascending: false })
-      .limit(30),
+      .limit(200),
     // 블로그 스크린샷: blog_keyword 타입만, 오름차순 조회 (가장 오래된 것 = baseline, 가장 최신 = latest)
     supabase
       .from('before_after')
@@ -131,12 +137,28 @@ export default async function HistoryPage() {
       .from('score_history')
       .select('id, business_id, score_date, total_score, exposure_freq, weekly_change')
       .eq('business_id', business.id)
+      .gte('score_date', historyCutoff)
       .order('score_date', { ascending: false })
-      .limit(30)
+      .limit(200)
     historyData = fallback.data as ScoreHistoryRow[] | null
   }
 
   const history = historyData
+
+  // 30일 창 안에 기록이 없는 경우 — "한 번도 스캔 안 함"과 "예전엔 스캔했지만
+  // 최근 30일엔 없음"을 구분해야 함(후자에 "첫 스캔을 진행하면"이라고 하면
+  // 이미 여러 번 스캔한 사용자에게 사실과 다른 안내가 됨)
+  let lastScanDateEver: string | null = null
+  if ((history ?? []).length === 0) {
+    const { data: lastScanRow } = await supabase
+      .from('score_history')
+      .select('score_date')
+      .eq('business_id', business.id)
+      .order('score_date', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    lastScanDateEver = lastScanRow?.score_date ?? null
+  }
 
   // 행동 로그 파싱
   let actionLogs: ActionLog[] = []
@@ -257,8 +279,22 @@ export default async function HistoryPage() {
           </div>
           {(history ?? []).length === 0 ? (
             <div className="p-4 sm:p-6 md:p-8 text-center">
-              <p className="text-gray-500 text-sm font-medium mb-1">아직 스캔 기록이 없습니다.</p>
-              <p className="text-gray-400 text-sm">대시보드에서 첫 AI 스캔을 진행하면 여기에 기록이 쌓입니다.</p>
+              {lastScanDateEver ? (
+                <>
+                  <p className="text-gray-500 text-sm font-medium mb-1">
+                    최근 30일간 스캔 기록이 없습니다. (마지막 스캔: {new Date(lastScanDateEver).toLocaleDateString('ko-KR')})
+                  </p>
+                  <p className="text-gray-400 text-sm mb-3">재스캔하면 최신 AI 검색 노출 상태가 여기에 기록됩니다.</p>
+                  <Link href="/dashboard" className="inline-block text-sm font-semibold text-blue-600 hover:underline">
+                    대시보드에서 지금 재스캔 →
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p className="text-gray-500 text-sm font-medium mb-1">아직 스캔 기록이 없습니다.</p>
+                  <p className="text-gray-400 text-sm">대시보드에서 첫 AI 스캔을 진행하면 여기에 기록이 쌓입니다.</p>
+                </>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
