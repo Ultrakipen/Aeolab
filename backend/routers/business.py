@@ -1097,7 +1097,8 @@ async def generate_talktalk_faq(req: TalktalkFAQGenerateRequest, user=Depends(ge
     """톡톡 채팅방 메뉴 콘텐츠 자동 생성.
 
     톡톡파트너센터 → 채팅방 메뉴관리에 등록할 메뉴 5개 + 자주 묻는 질문 자동 생성.
-    플랜 게이트: free=불가, basic=월 5회(faq_monthly 공유), pro/biz=무제한.
+    플랜 게이트: free=불가, basic=월 5회(faq_monthly 공유), pro/biz/startup/enterprise는
+    각 플랜 faq_monthly 한도 내(PLAN_LIMITS 참조 — enterprise 외엔 무제한 아님).
     """
     from middleware.plan_gate import get_user_plan, PLAN_LIMITS
     from datetime import datetime, timezone
