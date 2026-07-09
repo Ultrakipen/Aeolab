@@ -144,7 +144,7 @@ export function AdDefenseClient({
           {/* 스캔 신선도 */}
           <div className="mt-2">
             {scanDays === null ? (
-              <p className="text-sm text-amber-600 flex items-center gap-1">
+              <p className="text-sm text-amber-700 flex items-center gap-1">
                 <span>⚠</span>
                 <span>
                   스캔 데이터 없음 —{" "}
@@ -153,12 +153,12 @@ export function AdDefenseClient({
                 </span>
               </p>
             ) : scanDays > 30 ? (
-              <p className="text-sm text-amber-600 flex items-center gap-1">
+              <p className="text-sm text-amber-700 flex items-center gap-1">
                 <span>⚠</span>
                 <span>마지막 스캔 {formatScanDate(lastScanDate!)} — 재스캔하면 최신 데이터로 가이드가 개선됩니다</span>
               </p>
             ) : (
-              <p className="text-sm text-gray-400 flex items-center gap-1">
+              <p className="text-sm text-gray-500 flex items-center gap-1">
                 <span>✓</span>
                 <span>마지막 스캔 {formatScanDate(lastScanDate!)}</span>
               </p>
@@ -194,7 +194,7 @@ export function AdDefenseClient({
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-xl">
                 {result.sample_size === 0 ? (
-                  <div className="text-lg md:text-xl font-bold text-gray-400">측정 실패</div>
+                  <div className="text-lg md:text-xl font-bold text-gray-500">측정 실패</div>
                 ) : (
                   <div className="text-2xl md:text-3xl font-bold text-gray-900">{result.exposure_freq}</div>
                 )}
@@ -204,7 +204,7 @@ export function AdDefenseClient({
               </div>
               {result.chatgpt_measured === false ? (
                 <div className="text-center p-4 rounded-xl bg-gray-50">
-                  <div className="text-lg md:text-xl font-bold text-gray-400">측정 실패</div>
+                  <div className="text-lg md:text-xl font-bold text-gray-500">측정 실패</div>
                   <div className="text-sm text-gray-500 mt-1">ChatGPT</div>
                 </div>
               ) : (
