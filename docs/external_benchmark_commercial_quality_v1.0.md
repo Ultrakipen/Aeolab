@@ -52,10 +52,11 @@ docs/external_benchmark_commercial_quality_v1.0.md 기준으로 <페이지명> �
 | 성장 리포트 (`/growth`) | 2건(업종 순위 배지 게이팅, 성장카드 문구 정정) + P1 기능 연결(고아 엔드포인트 `GET /api/report/growth/{biz_id}` 연결: v3.1 키 마이그레이션 + 레거시 키 필터링 + 헤드라인·성장요인·키워드해소 UI 3종 추가) + 모바일 그리드 라벨잘림 수정. 실 사업장 2곳(education/restaurant)에 직접 함수 호출로 검증 — 라벨 누락·크래시 없음. **P2 전체 기각** — 이달체크리스트는 `dashboard/page.tsx:169-184`의 오늘/이번주/이번달 카드와 중복, 경쟁사비교는 `/competitors`(CompetitorsClient.tsx)에 이미 1:1 비교모달·막대차트로 훨씬 상세히 구현돼 있고 팀이 과거 "Hero카드와 중복" 이유로 유사기능 제거한 전례(`:2989` 주석)까지 있어 추가 구현 없이 종료 | `3438949` `d1b8054` `47ccd88` |
 | 블로그 진단 (`/blog-analysis`) | 1건(아코디언 토글 2곳 `aria-expanded` 누락, WCAG 4.1.2). 대비율·TTFB(1867ms vs 대시보드 2120ms)·시각위계·카피톤 문제 없음(테스트 계정 블로그 미등록으로 빈 상태 화면만 라이브 확인, 상세 아코디언은 코드 검증) | `c7d7e32` |
 | 리뷰 답변 (`/review-inbox`) | 11건(aria-expanded 누락 5곳 — 아코디언 4+드롭다운 1, WCAG 4.1.2) + (대비율 미달 6곳 — 정적안내·디스클레이머 text-gray-400 5곳+text-blue-500 링크 1곳, 2.49~3.76:1→4.5:1 이상). TTFB(1154ms)·시각위계·카피톤 문제 없음 | `890c89e` |
+| AI 광고 대비 (`/ad-defense`) | 3건(대비율 미달 — 스캔신선도 경고 text-amber-600 2곳 3.20:1, 측정실패 라벨 text-gray-400 2.60:1 → amber-700/gray-500). aria-expanded 대상 없음(접기 UI 미사용), TTFB(1765ms)·시각위계·카피톤 문제 없음 | `ec79bc0` |
 | 개선 가이드 (`/guide`) | 1라운드 4건 — ①측정실패 배너 침묵→안내 ②격차분석 실패 침묵→인라인 에러 ③키워드제외 무피드백→인라인 에러 ④`alert()` 4곳→인라인, "전체 가이드" 탭 15카드→도구/FAQ 2그룹 접기(NN/G Progressive Disclosure·Error-Message Guidelines). 2라운드(사용자 실계정 라이브 로그인 후 재질문) — WCAG 2.1 AA 2건: A.대비율(`text-gray-400` 2.60:1→`text-gray-500` 4.83:1, 정적안내문구 37곳만 안전상향, 위계표현 27곳 제외) B.`aria-expanded` 9곳 누락. **1차 grep으로 "5곳"이라 오카운트했으나 재검증 질문에 실제 재확인해 9곳으로 정정**(회전아이콘 패턴이 정규식에서 누락). 성능(TTFB)·시각위계·카피톤은 점검했으나 새 문제 없음(성능은 서버 인프라 전역 특성으로 기존 이슈, 억지로 재보고 안 함) | `71816a9` `61bf527` |
 
 ---
 
 ## §4. 미점검 페이지 후보 (다음 트리거 시 우선순위)
 
-소개글·콘텐츠 · AI 광고 대비 · 창업 시장 분석 · 대시보드 — 모두 `nine_pages_measurement_inspection_v1.0.md`/`eight_pages_commercial_professionalism_recheck_v1.0.md`로 **사실 정확성**은 이미 점검됐으나, 이 문서의 **외부 벤치마크 기반 상업적 수준**(Nielsen 등) 축으로는 아직 미점검. (개선 가이드는 §3에서 완료로 이동)
+소개글·콘텐츠 · 창업 시장 분석 · 대시보드 — 모두 `nine_pages_measurement_inspection_v1.0.md`/`eight_pages_commercial_professionalism_recheck_v1.0.md`로 **사실 정확성**은 이미 점검됐으나, 이 문서의 **외부 벤치마크 기반 상업적 수준**(Nielsen 등) 축으로는 아직 미점검. (개선 가이드는 §3에서 완료로 이동)
