@@ -234,19 +234,19 @@ export default async function HistoryPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
               <p className="text-sm text-gray-500 mb-2 font-medium">현재 상태</p>
-              <p className={`text-base md:text-lg font-bold ${currentVal >= 75 ? 'text-emerald-600' : currentVal >= 55 ? 'text-blue-600' : currentVal >= 30 ? 'text-amber-600' : 'text-gray-400'}`}>
+              <p className={`text-base md:text-lg font-bold ${currentVal >= 75 ? 'text-emerald-700' : currentVal >= 55 ? 'text-blue-600' : currentVal >= 30 ? 'text-amber-700' : 'text-gray-400'}`}>
                 {getScoreTextLabel(currentVal)}
               </p>
             </div>
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
               <p className="text-sm text-gray-500 mb-2 font-medium">지난주 대비</p>
-              <p className={`text-base md:text-lg font-bold ${diff > 2 ? 'text-emerald-600' : diff < -2 ? 'text-red-500' : 'text-gray-400'}`}>
+              <p className={`text-base md:text-lg font-bold ${diff > 2 ? 'text-emerald-700' : diff < -2 ? 'text-red-600' : 'text-gray-400'}`}>
                 {diff > 2 ? '↑ 상승' : diff < -2 ? '↓ 하락' : '— 유지'}
               </p>
             </div>
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
               <p className="text-sm text-gray-500 mb-2 font-medium">최고 도달 상태</p>
-              <p className={`text-base md:text-lg font-bold ${maxScore >= 75 ? 'text-emerald-600' : maxScore >= 55 ? 'text-blue-600' : maxScore >= 30 ? 'text-amber-600' : 'text-gray-400'}`}>
+              <p className={`text-base md:text-lg font-bold ${maxScore >= 75 ? 'text-emerald-700' : maxScore >= 55 ? 'text-blue-600' : maxScore >= 30 ? 'text-amber-700' : 'text-gray-400'}`}>
                 {getScoreTextLabel(maxScore)}
               </p>
             </div>
@@ -259,10 +259,10 @@ export default async function HistoryPage() {
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <div className="flex-1">
                 <div className="text-base font-medium text-gray-700">AI 노출 상태 기록</div>
-                <div className="text-sm text-gray-400 mt-0.5">스캔할 때마다 AI 검색 노출 상태가 기록됩니다</div>
+                <div className="text-sm text-gray-500 mt-0.5">스캔할 때마다 AI 검색 노출 상태가 기록됩니다</div>
               </div>
               {/* 모바일 전용 스크롤 안내 */}
-              <div className="md:hidden flex items-center gap-1.5 text-sm text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 self-start">
+              <div className="md:hidden flex items-center gap-1.5 text-sm text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 self-start">
                 <span className="text-base">←</span>
                 <span>좌우로 밀어서 더 보기</span>
               </div>
@@ -273,7 +273,7 @@ export default async function HistoryPage() {
             <p className="text-sm text-gray-500">
               통합 점수 = 네이버 AI 점수와 글로벌 AI 점수를 업종별 비율로 가중 합산해 산출됩니다
             </p>
-            <p className="text-sm text-gray-400 mt-0.5">
+            <p className="text-sm text-gray-500 mt-0.5">
               측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다
             </p>
           </div>
@@ -318,7 +318,7 @@ export default async function HistoryPage() {
                         {(() => {
                           const s = row.unified_score ?? row.total_score ?? 0
                           const lbl = getScoreTextLabel(s)
-                          const cls = s >= 75 ? 'text-emerald-600' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-600' : 'text-gray-400'
+                          const cls = s >= 75 ? 'text-emerald-700' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-700' : 'text-gray-400'
                           return <span className={`font-semibold text-sm ${cls}`}>{lbl}</span>
                         })()}
                       </td>
@@ -327,7 +327,7 @@ export default async function HistoryPage() {
                           (() => {
                             const s = row.track1_score
                             const lbl = getScoreTextLabel(s)
-                            const cls = s >= 75 ? 'text-emerald-600' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-600' : 'text-gray-400'
+                            const cls = s >= 75 ? 'text-emerald-700' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-700' : 'text-gray-400'
                             return <span className={`font-medium text-sm ${cls}`}>{lbl}</span>
                           })()
                         ) : (
@@ -337,9 +337,9 @@ export default async function HistoryPage() {
                       <td className="px-4 md:px-6 py-3 text-gray-600 text-sm">{row.exposure_freq}/{row.sample_size ?? 100}</td>
                       <td className="px-4 md:px-6 py-3">
                         {(row.weekly_change ?? 0) > 2 ? (
-                          <span className="text-green-600 font-semibold">↑ 상승</span>
+                          <span className="text-green-700 font-semibold">↑ 상승</span>
                         ) : (row.weekly_change ?? 0) < -2 ? (
-                          <span className="text-red-500 font-semibold">↓ 하락</span>
+                          <span className="text-red-600 font-semibold">↓ 하락</span>
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}
@@ -370,7 +370,7 @@ export default async function HistoryPage() {
             <span className="text-xl shrink-0">🎉</span>
             <div>
               <p className="font-semibold text-emerald-700">AI 노출 상태가 개선됐습니다!</p>
-              <p className="text-sm text-emerald-600 mt-1">지속적으로 유지하려면 FAQ와 소식 업데이트를 주 1회 이어가세요.</p>
+              <p className="text-sm text-emerald-700 mt-1">지속적으로 유지하려면 FAQ와 소식 업데이트를 주 1회 이어가세요.</p>
             </div>
           </div>
         )}

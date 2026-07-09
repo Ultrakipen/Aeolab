@@ -640,7 +640,7 @@ export default function BlogScreenshotSection({
           <div className="text-center py-10 px-4">
             <Search className="w-10 h-10 text-gray-200 mx-auto mb-3" />
             <p className="text-sm font-medium text-gray-600 mb-1">아직 분석 결과가 없습니다.</p>
-            <p className="text-sm text-gray-400 mb-4">"지금 분석" 버튼을 눌러 블로그 노출 순위를 확인하세요.</p>
+            <p className="text-sm text-gray-500 mb-4">"지금 분석" 버튼을 눌러 블로그 노출 순위를 확인하세요.</p>
           </div>
         )}
 

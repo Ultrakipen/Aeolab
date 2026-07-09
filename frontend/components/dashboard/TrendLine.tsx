@@ -49,11 +49,13 @@ function deltaLabel(log: ActionLog): string {
 
 /** action_type별 색상 */
 const ACTION_COLOR: Record<string, string> = {
-  faq_registered: '#f59e0b',
-  intro_updated: '#10b981',
-  post_published: '#8b5cf6',
-  review_replied: '#3b82f6',
-  guide_generated: '#ec4899',
+  faq_registered: '#b45309',
+  intro_updated: '#047857',
+  post_published: '#6d28d9',
+  review_replied: '#1d4ed8',
+  guide_generated: '#be185d',
+  auto_recommended: '#4338ca',
+  competitor_ahead: '#be123c',
 }
 
 export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
@@ -76,7 +78,7 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
     return {
       ...log,
       dateKey,
-      color: ACTION_COLOR[log.action_type] ?? '#f59e0b',
+      color: ACTION_COLOR[log.action_type] ?? '#b45309',
       // 점수 차트에 해당 날짜 데이터가 없으면(재스캔 뜸함) 점선을 그릴 수 없음 — 배지에 안내 필요
       inRange: chartDates.has(dateKey),
       daysSince,
@@ -93,10 +95,10 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
 
   const latestScore = chartData.length > 0 ? chartData[chartData.length - 1].score : null
   const GRADE_STYLE: Record<string, { color: string; bg: string }> = {
-    '양호': { color: '#059669', bg: 'bg-emerald-100' },
-    '보통': { color: '#2563eb', bg: 'bg-blue-100' },
-    '주의 필요': { color: '#d97706', bg: 'bg-amber-100' },
-    '시작 전': { color: '#64748b', bg: 'bg-slate-100' },
+    '양호': { color: '#065f46', bg: 'bg-emerald-100' },
+    '보통': { color: '#1d4ed8', bg: 'bg-blue-100' },
+    '주의 필요': { color: '#92400e', bg: 'bg-amber-100' },
+    '시작 전': { color: '#475569', bg: 'bg-slate-100' },
   }
   const latestGrade = latestScore == null ? null
     : { label: getScoreTextLabel(latestScore), ...GRADE_STYLE[getScoreTextLabel(latestScore)] }
@@ -132,10 +134,10 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
           )}
         </div>
       </div>
-      <p className="text-sm text-gray-400 mb-4">
+      <p className="text-sm text-gray-500 mb-4">
         일별 측정값은 통계 변동이 있으므로 <strong className="text-gray-500">7일 평균선</strong>으로 실제 추세를 확인하세요.
         {logsForChart.length > 0 && (
-          <span className="ml-1 text-amber-600">점선은 행동을 기록한 날짜입니다.</span>
+          <span className="ml-1 text-amber-700">점선은 행동을 기록한 날짜입니다.</span>
         )}
       </p>
       <ResponsiveContainer width="100%" height={200}>
