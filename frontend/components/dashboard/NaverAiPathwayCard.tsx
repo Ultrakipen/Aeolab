@@ -284,7 +284,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">
               채널별 측정 원리
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
               <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/30 p-3">
                 <p className="font-semibold text-emerald-900 dark:text-emerald-100">네이버 AI 브리핑·AI탭</p>
                 <p className="text-emerald-800 dark:text-emerald-300 leading-snug mt-1">
@@ -292,9 +292,15 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                 </p>
               </div>
               <div className="rounded-lg bg-violet-50 dark:bg-violet-900/30 p-3">
-                <p className="font-semibold text-violet-900 dark:text-violet-100">ChatGPT·Gemini</p>
+                <p className="font-semibold text-violet-900 dark:text-violet-100">ChatGPT</p>
                 <p className="text-violet-800 dark:text-violet-300 leading-snug mt-1">
-                  학습 데이터·웹 검색 기반. 블로그·후기·구조화 데이터가 핵심.
+                  학습 데이터 기반. 블로그·뉴스 인용도가 핵심 — 반영까지 수개월~1년.
+                </p>
+              </div>
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-3">
+                <p className="font-semibold text-blue-900 dark:text-blue-100">Gemini</p>
+                <p className="text-blue-800 dark:text-blue-300 leading-snug mt-1">
+                  Google 실시간 검색 일부 반영. 구글 비즈니스 프로필 등록이 핵심 — 2~4주 내 개선 가능.
                 </p>
               </div>
             </div>

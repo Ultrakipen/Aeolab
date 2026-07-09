@@ -671,7 +671,7 @@ export default function AIDiagnosisCard({
                 &ldquo;{businessName} 검색 후 별점과 한 줄 후기 남겨주시면 감사해요&rdquo;
               </p>
               <p className="text-sm text-amber-700 mt-1">
-                리뷰 1개만 있어도 점수가 올라갑니다.
+                리뷰 1개가 시작점입니다. 10개 이상 쌓이면 네이버 AI 브리핑 인용 가능성이 높아집니다.
               </p>
             </div>
           </div>
