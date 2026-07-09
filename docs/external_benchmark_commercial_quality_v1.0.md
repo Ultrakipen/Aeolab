@@ -53,10 +53,11 @@ docs/external_benchmark_commercial_quality_v1.0.md 기준으로 <페이지명> �
 | 블로그 진단 (`/blog-analysis`) | 1건(아코디언 토글 2곳 `aria-expanded` 누락, WCAG 4.1.2). 대비율·TTFB(1867ms vs 대시보드 2120ms)·시각위계·카피톤 문제 없음(테스트 계정 블로그 미등록으로 빈 상태 화면만 라이브 확인, 상세 아코디언은 코드 검증) | `c7d7e32` |
 | 리뷰 답변 (`/review-inbox`) | 11건(aria-expanded 누락 5곳 — 아코디언 4+드롭다운 1, WCAG 4.1.2) + (대비율 미달 6곳 — 정적안내·디스클레이머 text-gray-400 5곳+text-blue-500 링크 1곳, 2.49~3.76:1→4.5:1 이상). TTFB(1154ms)·시각위계·카피톤 문제 없음 | `890c89e` |
 | AI 광고 대비 (`/ad-defense`) | 3건(대비율 미달 — 스캔신선도 경고 text-amber-600 2곳 3.20:1, 측정실패 라벨 text-gray-400 2.60:1 → amber-700/gray-500). aria-expanded 대상 없음(접기 UI 미사용), TTFB(1765ms)·시각위계·카피톤 문제 없음 | `ec79bc0` |
+| 소개글·콘텐츠 (`/schema`) | 12건 — aria-expanded 누락 1곳(키워드 팁 아코디언) + WCAG 대비율 미달 11곳(text-gray-400 필드힌트·안내문구 9곳, text-amber-600 글자수카운터 1곳, paygate "현재 플랜" 1곳, 전부 2.60~3.19:1→4.5:1). AI콘텐츠생성도구(Jasper/Birdeye) 벤치마크 축 — 블로그 초안에 "AI 작성 샘플, 실제 경험 바탕 수정 후 사용" 경고 이미 존재 확인(`SchemaClient.tsx:597`), 추가조치 불필요. TTFB(1406ms)·시각위계·카피톤 문제 없음 | `e537f4d` |
 | 개선 가이드 (`/guide`) | 1라운드 4건 — ①측정실패 배너 침묵→안내 ②격차분석 실패 침묵→인라인 에러 ③키워드제외 무피드백→인라인 에러 ④`alert()` 4곳→인라인, "전체 가이드" 탭 15카드→도구/FAQ 2그룹 접기(NN/G Progressive Disclosure·Error-Message Guidelines). 2라운드(사용자 실계정 라이브 로그인 후 재질문) — WCAG 2.1 AA 2건: A.대비율(`text-gray-400` 2.60:1→`text-gray-500` 4.83:1, 정적안내문구 37곳만 안전상향, 위계표현 27곳 제외) B.`aria-expanded` 9곳 누락. **1차 grep으로 "5곳"이라 오카운트했으나 재검증 질문에 실제 재확인해 9곳으로 정정**(회전아이콘 패턴이 정규식에서 누락). 성능(TTFB)·시각위계·카피톤은 점검했으나 새 문제 없음(성능은 서버 인프라 전역 특성으로 기존 이슈, 억지로 재보고 안 함) | `71816a9` `61bf527` |
 
 ---
 
 ## §4. 미점검 페이지 후보 (다음 트리거 시 우선순위)
 
-소개글·콘텐츠 · 창업 시장 분석 · 대시보드 — 모두 `nine_pages_measurement_inspection_v1.0.md`/`eight_pages_commercial_professionalism_recheck_v1.0.md`로 **사실 정확성**은 이미 점검됐으나, 이 문서의 **외부 벤치마크 기반 상업적 수준**(Nielsen 등) 축으로는 아직 미점검. (개선 가이드는 §3에서 완료로 이동)
+창업 시장 분석 · 대시보드 — 모두 `nine_pages_measurement_inspection_v1.0.md`/`eight_pages_commercial_professionalism_recheck_v1.0.md`로 **사실 정확성**은 이미 점검됐으나, 이 문서의 **외부 벤치마크 기반 상업적 수준**(Nielsen 등) 축으로는 아직 미점검. (개선 가이드는 §3에서 완료로 이동)
