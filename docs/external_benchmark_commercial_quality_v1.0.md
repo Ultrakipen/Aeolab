@@ -49,7 +49,7 @@ docs/external_benchmark_commercial_quality_v1.0.md 기준으로 <페이지명> �
 |--------|--------------|------|
 | 경쟁사 관리 (`/competitors`) | 3건(배지 임계값 불일치, 리뷰/평점 데이터신뢰성, keyword_search_rank 라벨누락) | `ed95b9f` `bd184bb` `31dc115` |
 | 변화 기록 (`/history`) | 2건(TrendLine 마커 차트범위 밖 방치, score_history 행→날짜 기준 근본수정+빈상태문구 회귀수정) | `368c1f2` `41111c7` |
-| 성장 리포트 (`/growth`) | 2건(업종 순위 배지가 total_in_category<3에서도 트로피 노출 → `/benchmark`와 동일하게 3곳 미만 게이팅, "1주일 뒤 자동 생성" 안내가 실제 monthly_growth_card_job(매월 말일+점수상승시만) 로직과 불일치 → 문구 정정). 부수 발견: `GET /api/report/growth/{biz_id}`(헤드라인·성장드라이버·경쟁사비교·키워드해소 포함, ~200줄)이 완전히 구현돼 있으나 어떤 프론트도 호출하지 않는 고아 엔드포인트 — `BREAKDOWN_LABELS`도 v3.0 구키(`keyword_gap_score` 등) 잔존. 연결 여부는 `next-feature`로 별도 설계 예정(사용자 결정) | `3438949` |
+| 성장 리포트 (`/growth`) | 2건(업종 순위 배지 게이팅, 성장카드 문구 정정) + P1 기능 연결(고아 엔드포인트 `GET /api/report/growth/{biz_id}` 연결: v3.1 키 마이그레이션 + 레거시 키 필터링 + 헤드라인·성장요인·키워드해소 UI 3종 추가). 실 사업장 2곳(education/restaurant)에 직접 함수 호출로 검증 — 라벨 누락·크래시 없음. P2(경쟁사비교·이달체크리스트)는 보류 | `3438949` `d1b8054` |
 
 ---
 
