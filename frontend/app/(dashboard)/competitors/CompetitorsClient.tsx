@@ -1444,13 +1444,22 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
 
                     {/* 리뷰·평점 — 실측값이 있으면 숫자 직접 표시, 없으면 추정 막대 */}
                     {reviewHasReal ? (
-                      <div className="flex items-center justify-between text-sm py-0.5">
-                        <span className="text-gray-600">리뷰·평점</span>
-                        <span className="text-gray-700 font-semibold">
-                          {competitor.place_review_count != null && `리뷰 ${competitor.place_review_count}개`}
-                          {competitor.place_review_count != null && competitor.place_avg_rating != null && competitor.place_avg_rating > 0 && ' · '}
-                          {competitor.place_avg_rating != null && competitor.place_avg_rating > 0 && `⭐ ${competitor.place_avg_rating.toFixed(1)}`}
-                        </span>
+                      <div className="py-0.5">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">리뷰·평점</span>
+                          <span className="text-gray-700 font-semibold">
+                            {competitor.place_review_count != null && `리뷰 ${competitor.place_review_count}개`}
+                            {competitor.place_review_count != null && competitor.place_avg_rating != null && competitor.place_avg_rating > 0 && ' · '}
+                            {competitor.place_avg_rating != null && competitor.place_avg_rating > 0 && `⭐ ${competitor.place_avg_rating.toFixed(1)}`}
+                          </span>
+                        </div>
+                        {/* 리뷰 0개인데 평점만 존재 — 크롤링 부분 실패 가능성, 사용자 혼동 방지 캐비엇 */}
+                        {competitor.place_review_count === 0 && typeof competitor.place_avg_rating === 'number' && competitor.place_avg_rating > 0 && (
+                          <p className="text-sm text-amber-600 mt-0.5 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            동기화 불완전 — 리뷰 수 미확인. 재스캔을 권장합니다.
+                          </p>
+                        )}
                       </div>
                     ) : reviewEstScore !== null && (
                       <div>
@@ -2265,6 +2274,13 @@ export function CompetitorsClient({
                               </span>
                             )}
                           </div>
+                        )}
+                        {/* 리뷰 0개인데 평점만 존재 — 크롤링 부분 실패 가능성, 사용자 혼동 방지 캐비엇 */}
+                        {c.place_synced_at && c.place_review_count === 0 && typeof c.place_avg_rating === 'number' && c.place_avg_rating > 0 && (
+                          <p className="text-sm text-amber-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            동기화 불완전 — 리뷰 수 미확인. 재스캔을 권장합니다.
+                          </p>
                         )}
 
                         {cs ? (
