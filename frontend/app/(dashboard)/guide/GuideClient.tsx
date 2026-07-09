@@ -1925,6 +1925,7 @@ function KeywordGapCard({
   const STORAGE_KEY = `excluded_pioneer_${bizId}`
   const [excludedPioneer, setExcludedPioneer] = useState<string[]>([])
   const [excluding, setExcluding] = useState<Set<string>>(new Set())
+  const [excludeError, setExcludeError] = useState(false)
 
   useEffect(() => {
     // DB 우선, 실패 시 localStorage fallback
@@ -1982,12 +1983,14 @@ function KeywordGapCard({
     if (!accessToken) return
     if (excluding.has(kw)) return
     setExcluding((s) => { const n = new Set(s); n.add(kw); return n })
+    setExcludeError(false)
     try {
       const { addExcludedKeyword } = await import('@/lib/api')
       await addExcludedKeyword(bizId, kw, accessToken)
       onChange?.()
     } catch {
-      // silent — 사용자가 재시도 가능
+      setExcludeError(true)
+      setTimeout(() => setExcludeError(false), 4000)
     } finally {
       setExcluding((s) => { const n = new Set(s); n.delete(kw); return n })
     }
@@ -2013,6 +2016,9 @@ function KeywordGapCard({
         <Hash className="w-4 h-4 text-purple-500" />
         <div className="text-sm font-semibold text-gray-900">내가 놓친 키워드 현황</div>
       </div>
+      {excludeError && (
+        <p className="text-sm text-red-500 mb-2">키워드 제외에 실패했습니다. 다시 시도해주세요.</p>
+      )}
       <div className="flex items-center gap-2 mb-4">
         <div className="flex-1 bg-gray-100 rounded-full h-2">
           <div
@@ -2682,6 +2688,7 @@ function WeeklyPostDraftSection({ businessId, token }: { businessId: string; tok
 // ── 리뷰 유도 문구 + 소식 템플릿 ──────────────────────────────────────────────
 function QuickToolsSection({ tools, businessId, token }: { tools: ToolsJson; businessId: string; token: string | null }) {
   const hasSomething = tools.review_request_message || tools.naver_post_template || (tools.keyword_list?.length)
+  const [toolError, setToolError] = useState('')
   if (!hasSomething) return null
 
   return (
@@ -2690,6 +2697,9 @@ function QuickToolsSection({ tools, businessId, token }: { tools: ToolsJson; bus
         <FileText className="w-4 h-4 text-indigo-500" />
         <div className="text-sm font-semibold text-gray-900">즉시 활용 가능한 도구</div>
       </div>
+      {toolError && (
+        <p className="text-sm text-red-500">{toolError}</p>
+      )}
 
       {tools.review_request_message && (
         <div className="bg-gray-50 rounded-xl p-3">
@@ -2748,6 +2758,7 @@ function QuickToolsSection({ tools, businessId, token }: { tools: ToolsJson; bus
               {/* 이미지 다운로드 */}
               <button
                 onClick={() => {
+                  setToolError('')
                   fetch(`${BACKEND}/api/guide/${businessId}/qr-card`, {
                     headers: { Authorization: `Bearer ${token}` },
                   })
@@ -2758,7 +2769,7 @@ function QuickToolsSection({ tools, businessId, token }: { tools: ToolsJson; bus
                       a.href = url; a.download = 'review_qr.png'; a.click()
                       URL.revokeObjectURL(url)
                     })
-                    .catch(() => alert('QR 카드 생성에 실패했습니다.'))
+                    .catch(() => setToolError('QR 카드 생성에 실패했습니다.'))
                 }}
                 className="flex-1 flex items-center justify-center gap-1.5 text-sm bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors font-medium"
               >
@@ -2767,25 +2778,26 @@ function QuickToolsSection({ tools, businessId, token }: { tools: ToolsJson; bus
               {/* 바로 인쇄 */}
               <button
                 onClick={async () => {
+                  setToolError('')
                   try {
                     const res = await fetch(`${BACKEND}/api/guide/${businessId}/qr-card`, {
                       headers: { Authorization: `Bearer ${token}` },
                     })
-                    if (!res.ok) { alert('QR 카드 생성에 실패했습니다.'); return }
+                    if (!res.ok) { setToolError('QR 카드 생성에 실패했습니다.'); return }
                     const blob = await res.blob()
                     const imgUrl = URL.createObjectURL(blob)
                     const printWindow = window.open('', '_blank')
-                    if (!printWindow) { alert('팝업이 차단되었습니다. 팝업을 허용해주세요.'); return }
+                    if (!printWindow) { setToolError('팝업이 차단되었습니다. 브라우저에서 팝업을 허용해주세요.'); return }
                     printWindow.document.write(`<!DOCTYPE html>
 <html><head><title>리뷰 유도 QR 카드</title>
 <style>* { margin:0; padding:0; box-sizing:border-box; }
 body { display:flex; justify-content:center; align-items:center; min-height:100vh; background:white; }
 img { max-width:148mm; max-height:210mm; object-fit:contain; }
 @media print { body { margin:0; } }</style></head>
-<body><img src="${imgUrl}" onload="window.print();setTimeout(()=>window.close(),500)" onerror="alert('이미지 로드 실패');window.close()" /></body></html>`)
+<body><img src="${imgUrl}" onload="window.print();setTimeout(()=>window.close(),500)" onerror="document.title='이미지 로드 실패'" /></body></html>`)
                     printWindow.document.close()
                   } catch {
-                    alert('인쇄 준비 중 오류가 발생했습니다.')
+                    setToolError('인쇄 준비 중 오류가 발생했습니다.')
                   }
                 }}
                 className="flex-1 flex items-center justify-center gap-1.5 text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors font-medium"
@@ -2809,6 +2821,7 @@ img { max-width:148mm; max-height:210mm; object-fit:contain; }
           </div>
           <button
             onClick={() => {
+              setToolError('')
               fetch(`${BACKEND}/api/tools/menu-template.xlsx`, {
                 headers: { Authorization: `Bearer ${token}` },
               })
@@ -2821,7 +2834,7 @@ img { max-width:148mm; max-height:210mm; object-fit:contain; }
                   a.click()
                   URL.revokeObjectURL(url)
                 })
-                .catch(() => alert('양식 다운로드에 실패했습니다. 잠시 후 다시 시도해주세요.'))
+                .catch(() => setToolError('양식 다운로드에 실패했습니다. 잠시 후 다시 시도해주세요.'))
             }}
             className="flex items-center gap-1.5 text-sm bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-2 rounded-lg transition-colors font-medium"
           >
@@ -3525,6 +3538,7 @@ function GuideTabView({
   weeklyRoadmap,
   growthStage,
   gapLoading,
+  gapError = false,
   keywordGap,
   keywordVolumes,
   volLoading,
@@ -3564,6 +3578,7 @@ function GuideTabView({
   weeklyRoadmap: WeeklyRoadmapWeek[]
   growthStage: GrowthStage | null
   gapLoading: boolean
+  gapError?: boolean
   keywordGap: ReviewKeywordGap | null
   keywordVolumes: Record<string, { monthly_total: number }>
   volLoading: boolean
@@ -4106,6 +4121,11 @@ function GuideTabView({
               {/* 이달의 소식 아이디어 */}
               <ContentCalendarSection category={category} />
             </>
+          ) : gapError ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-4 text-center">
+              <p className="text-sm text-amber-700 font-medium mb-1">성장 단계 정보를 불러오지 못했습니다</p>
+              <p className="text-sm text-amber-600">잠시 후 새로고침해 다시 시도해주세요.</p>
+            </div>
           ) : null}
 
           {/* 이번 주 미션 */}
@@ -4201,77 +4221,93 @@ function GuideTabView({
             </>
           )}
 
-          {/* 나머지 즉시 도구 (소식 초안 + 키워드 목록 + QR 카드) */}
-          <QuickToolsSection tools={tools} businessId={business.id} token={authToken} />
+          {/* 추가 도구·체크리스트 — 기본 접힘 (프로그레시브 디스클로저) */}
+          <button
+            onClick={() => setShowQuickTools((v) => !v)}
+            className="w-full flex items-center justify-between bg-white rounded-xl border border-gray-200 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+          >
+            <span className="text-sm font-semibold text-gray-700">
+              추가 도구·체크리스트 {showQuickTools ? '접기' : '펼치기'}
+              <span className="font-normal text-gray-400"> (소식 초안·QR카드·외부 채널·스마트플레이스 현황 등)</span>
+            </span>
+            {showQuickTools ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
+          </button>
 
-          {/* 섹션 B: 커뮤니티 글 초안 */}
-          {briefingPaths.length > 0 && (
-            <CommunityDraftsSection paths={briefingPaths} />
-          )}
+          {showQuickTools && (
+            <>
+              {/* 나머지 즉시 도구 (소식 초안 + 키워드 목록 + QR 카드) */}
+              <QuickToolsSection tools={tools} businessId={business.id} token={authToken} />
 
-          {/* 외부 플랫폼 체크리스트 (섹션 C·D 포함) */}
-          <ExternalPlatformChecklist
-            bizId={business.id}
-            bizName={business.name}
-            bizRegion={region}
-            naverMapUrl={tools.naver_map_url}
-          />
+              {/* 섹션 B: 커뮤니티 글 초안 */}
+              {briefingPaths.length > 0 && (
+                <CommunityDraftsSection paths={briefingPaths} />
+              )}
 
-          {/* 이번 주 소식 초안 */}
-          <WeeklyPostDraftSection businessId={business.id} token={authToken} />
+              {/* 외부 플랫폼 체크리스트 (섹션 C·D 포함) */}
+              <ExternalPlatformChecklist
+                bizId={business.id}
+                bizName={business.name}
+                bizRegion={region}
+                naverMapUrl={tools.naver_map_url}
+              />
 
-          {/* 내 가게를 위한 블로그 주제 아이디어 — AI 자동 생성 */}
-          <BlogTopicsSection bizId={business.id} token={authToken} plan={currentPlan} />
+              {/* 이번 주 소식 초안 */}
+              <WeeklyPostDraftSection businessId={business.id} token={authToken} />
 
-          {/* 우리 지역 TOP5 소개글 초안 — 경쟁사 데이터 기반 리스트형 */}
-          <ListContentSection
-            bizId={business.id}
-            token={authToken}
-            region={region}
-            category={category}
-            bizName={business.name}
-          />
+              {/* 내 가게를 위한 블로그 주제 아이디어 — AI 자동 생성 */}
+              <BlogTopicsSection bizId={business.id} token={authToken} plan={currentPlan} />
 
-          {/* 네이버 검색 기반 → AI 노출 연결 체크리스트 */}
-          <NaverSearchBaseSection
-            category={category}
-            activeOverride={briefingActiveCategories}
-            likelyOverride={briefingLikelyCategories}
-          />
+              {/* 우리 지역 TOP5 소개글 초안 — 경쟁사 데이터 기반 리스트형 */}
+              <ListContentSection
+                bizId={business.id}
+                token={authToken}
+                region={region}
+                category={category}
+                bizName={business.name}
+              />
 
-          {/* 네이버 일반 검색 최적화 — 플레이스탭 체크리스트 + 14일 캘린더 + AI 연결 원리 */}
-          <NaverSearchOptimizationSection
-            eligibility={briefingEligibility}
-            spStatus={spStatus}
-            businessId={business.id}
-            token={authToken}
-            category={business.category ?? category}
-          />
+              {/* 네이버 검색 기반 → AI 노출 연결 체크리스트 */}
+              <NaverSearchBaseSection
+                category={category}
+                activeOverride={briefingActiveCategories}
+                likelyOverride={briefingLikelyCategories}
+              />
 
-          {/* 스마트플레이스 현황 업데이트 */}
-          <SmartPlaceStatusCard
-            bizId={business.id}
-            initial={spStatus}
-            authToken={authToken}
-            onSaved={(saved) => {
-              if (saved) setSpStatus(saved)
-              fetchGapData()
-              setSpSavedNotice(true)
-              setTimeout(() => setSpSavedNotice(false), 5000)
-            }}
-          />
+              {/* 네이버 일반 검색 최적화 — 플레이스탭 체크리스트 + 14일 캘린더 + AI 연결 원리 */}
+              <NaverSearchOptimizationSection
+                eligibility={briefingEligibility}
+                spStatus={spStatus}
+                businessId={business.id}
+                token={authToken}
+                category={business.category ?? category}
+              />
 
-          {spSavedNotice && (
-            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <p className="text-sm text-green-700">현황이 저장됐습니다. 가이드를 재생성하면 완료된 항목이 자동으로 제외됩니다.</p>
-              <button
-                onClick={generateGuide}
-                disabled={loading || guideExhausted}
-                className="shrink-0 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-              >
-                재생성
-              </button>
-            </div>
+              {/* 스마트플레이스 현황 업데이트 */}
+              <SmartPlaceStatusCard
+                bizId={business.id}
+                initial={spStatus}
+                authToken={authToken}
+                onSaved={(saved) => {
+                  if (saved) setSpStatus(saved)
+                  fetchGapData()
+                  setSpSavedNotice(true)
+                  setTimeout(() => setSpSavedNotice(false), 5000)
+                }}
+              />
+
+              {spSavedNotice && (
+                <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <p className="text-sm text-green-700">현황이 저장됐습니다. 가이드를 재생성하면 완료된 항목이 자동으로 제외됩니다.</p>
+                  <button
+                    onClick={generateGuide}
+                    disabled={loading || guideExhausted}
+                    className="shrink-0 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    재생성
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
           {/* Claude 가이드 전체 항목 */}
@@ -4299,12 +4335,29 @@ function GuideTabView({
             </div>
           )}
 
-          {/* FAQ 섹션 */}
-          {spFaqs.length > 0 && (
-            <FAQSection faqs={spFaqs} title="소개글 하단 추가용 Q&A" />
-          )}
-          {aiFaqs.length > 0 && (
-            <FAQSection faqs={aiFaqs} title="AI 검색 최적화 FAQ" />
+          {/* FAQ 섹션 — 기본 접힘 (프로그레시브 디스클로저) */}
+          {(spFaqs.length > 0 || aiFaqs.length > 0) && (
+            <>
+              <button
+                onClick={() => setShowFAQSection((v) => !v)}
+                className="w-full flex items-center justify-between bg-white rounded-xl border border-gray-200 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-sm font-semibold text-gray-700">
+                  FAQ 모음 {showFAQSection ? '접기' : '펼치기'} ({spFaqs.length + aiFaqs.length}개)
+                </span>
+                {showFAQSection ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
+              </button>
+              {showFAQSection && (
+                <>
+                  {spFaqs.length > 0 && (
+                    <FAQSection faqs={spFaqs} title="소개글 하단 추가용 Q&A" />
+                  )}
+                  {aiFaqs.length > 0 && (
+                    <FAQSection faqs={aiFaqs} title="AI 검색 최적화 FAQ" />
+                  )}
+                </>
+              )}
+            </>
           )}
           {spFaqs.length === 0 && aiFaqs.length === 0 && guide && (
             <div className="bg-gray-50 rounded-xl px-4 py-4 text-center">
@@ -4347,6 +4400,7 @@ export function GuideClient({
   const [growthStage, setGrowthStage] = useState<GrowthStage | null>(null)
   const [keywordGap, setKeywordGap] = useState<ReviewKeywordGap | null>(null)
   const [gapLoading, setGapLoading] = useState(false)
+  const [gapError, setGapError] = useState(false)
   const [authToken, setAuthToken] = useState<string | null>(initialToken ?? null)
   const [keywordVolumes, setKeywordVolumes] = useState<Record<string, { monthly_total: number }>>({})
   const [volLoading, setVolLoading] = useState(false)
@@ -4421,17 +4475,19 @@ export function GuideClient({
   // 격차 분석 (성장 단계 + 키워드 갭) 로드
   const fetchGapData = useCallback(async () => {
     setGapLoading(true)
+    setGapError(false)
     try {
       const gapToken = await getToken()
       const res = await fetch(`${BACKEND}/api/report/gap/${business.id}`, {
         headers: gapToken ? { 'Authorization': `Bearer ${gapToken}` } : {},
       })
-      if (!res.ok) return
+      if (!res.ok) { setGapError(true); return }
       const data = await res.json()
       if (data.growth_stage) setGrowthStage(data.growth_stage)
       if (data.keyword_gap) setKeywordGap(data.keyword_gap)
-    } catch {}
-    finally { setGapLoading(false) }
+    } catch {
+      setGapError(true)
+    } finally { setGapLoading(false) }
   }, [business.id, getToken])
 
   useEffect(() => {
@@ -4865,6 +4921,12 @@ export function GuideClient({
             <p className="text-base font-semibold text-green-800">현재 네이버 AI 브리핑에 노출 중입니다! 아래 가이드로 빈도를 더 높이세요.</p>
           </div>
         )}
+        {!isBriefingInactive && guide && !loading && latestScanMentioned === null && (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 md:px-5 py-3 flex items-start gap-3">
+            <span className="text-gray-400 text-xl shrink-0 mt-0.5">•</span>
+            <p className="text-base font-medium text-gray-600">이번 스캔에서는 AI 브리핑 노출 여부를 확인하지 못했습니다. 다음 스캔에서 다시 확인됩니다.</p>
+          </div>
+        )}
 
         {guide && !loading && (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -4899,6 +4961,7 @@ export function GuideClient({
                   weeklyRoadmap={weeklyRoadmap}
                   growthStage={growthStage}
                   gapLoading={gapLoading}
+                  gapError={gapError}
                   keywordGap={keywordGap}
                   keywordVolumes={keywordVolumes}
                   volLoading={volLoading}
