@@ -308,12 +308,18 @@ export default function GrowthClient({
         <p className="text-sm text-gray-400 mt-1">
           측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다
         </p>
-        {/* 업종 내 순위 배지 */}
+        {/* 업종 내 순위 배지 — /benchmark와 동일하게 표본 3곳 미만이면 순위 대신 안내만 표시 */}
         {latestRank !== null && latestTotal !== null && (
           <div className="mt-2">
-            <span className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold px-3 py-1 rounded-full">
-              🏆 {categoryLabel} 업종 중 {latestRank}위 / {latestTotal}곳
-            </span>
+            {latestTotal >= 3 ? (
+              <span className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold px-3 py-1 rounded-full">
+                🏆 {categoryLabel} 업종 중 {latestRank}위 / {latestTotal}곳
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-500 text-sm font-medium px-3 py-1 rounded-full">
+                {categoryLabel} 업종 비교 데이터 수집 중 (현재 {latestTotal}곳)
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -827,18 +833,18 @@ export default function GrowthClient({
         )}
       </div>
 
-      {/* 섹션 4: 개선 전·후 비교 이미지 */}
+      {/* 섹션 4: 이달의 성장 카드 이미지 */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
-        <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">개선 전·후 비교</h2>
+        <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">이달의 성장 카드</h2>
         <p className="text-sm text-gray-400 mb-5">
-          스캔을 반복할수록 내 가게의 변화를 사진으로 기록합니다
+          매달 말, AI 노출 점수가 오르면 성장 카드 이미지를 자동으로 만들어 드립니다
         </p>
 
         {growthCardUrl ? (
           <div>
             <img
               src={growthCardUrl}
-              alt="개선 전후 비교 이미지"
+              alt="이달의 성장 카드"
               className="w-full max-w-sm mx-auto rounded-xl shadow-md"
             />
             <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -872,9 +878,9 @@ export default function GrowthClient({
         ) : (
           <div className="flex flex-col items-center justify-center py-10 gap-3 text-center border border-dashed border-gray-200 rounded-xl">
             <span className="text-4xl">🖼</span>
-            <p className="text-sm font-semibold text-gray-600">아직 비교 이미지가 없습니다</p>
+            <p className="text-sm font-semibold text-gray-600">아직 성장 카드가 없습니다</p>
             <p className="text-sm text-gray-400">
-              첫 스캔 후 1주일 뒤 자동으로 생성됩니다.
+              이번 달 AI 노출 점수가 지난달보다 오르면 말일에 자동으로 생성됩니다.
             </p>
           </div>
         )}
