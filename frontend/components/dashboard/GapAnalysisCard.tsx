@@ -20,6 +20,7 @@ const DIMENSION_LABELS: Record<string, string> = {
   smart_place_completeness:   "스마트플레이스 완성도",
   schema_seo:                 "웹사이트 AI 구조화",
   keyword_gap_score:          "키워드 격차",
+  keyword_search_rank:        "네이버 키워드 검색 노출",
   multi_ai_exposure:          "다중 AI 플랫폼 노출",
   online_mentions_t2:         "온라인 언급 빈도",
   google_presence:            "구글 검색 노출",
