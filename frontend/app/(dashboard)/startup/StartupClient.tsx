@@ -161,7 +161,7 @@ export function StartupClient() {
               </div>
             </div>
             {report.is_estimated && (
-              <p className="text-sm text-gray-400 -mt-2 mb-2">
+              <p className="text-sm text-gray-500 -mt-2 mb-2">
                 * 등록 사업장 표본이 적어 참고용 추정치입니다. 사업장이 더 등록되면 정확도가 올라갑니다.
               </p>
             )}
@@ -174,7 +174,7 @@ export function StartupClient() {
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-base font-bold">{report.timing.timing_label}</span>
                   {report.timing.is_estimated && (
-                    <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">추정</span>
+                    <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">추정</span>
                   )}
                 </div>
                 <p className="text-sm md:text-base text-gray-600 leading-relaxed">{report.timing.reasoning}</p>
@@ -219,9 +219,9 @@ export function StartupClient() {
                 </span>
               </div>
               {report.search_trend.keywords_used.length > 0 && (
-                <p className="text-xs text-gray-400 mb-2">측정 키워드: {report.search_trend.keywords_used.join(", ")}</p>
+                <p className="text-sm text-gray-500 mb-2">측정 키워드: {report.search_trend.keywords_used.join(", ")}</p>
               )}
-              <p className="text-xs text-gray-400">* 네이버 DataLab 모바일 검색 기준. 측정 시점·기기에 따라 달라질 수 있음.</p>
+              <p className="text-sm text-gray-500">* 네이버 DataLab 모바일 검색 기준. 측정 시점·기기에 따라 달라질 수 있음.</p>
             </section>
           )}
 
