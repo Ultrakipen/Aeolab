@@ -49,9 +49,10 @@ docs/external_benchmark_commercial_quality_v1.0.md 기준으로 <페이지명> �
 |--------|--------------|------|
 | 경쟁사 관리 (`/competitors`) | 3건(배지 임계값 불일치, 리뷰/평점 데이터신뢰성, keyword_search_rank 라벨누락) | `ed95b9f` `bd184bb` `31dc115` |
 | 변화 기록 (`/history`) | 2건(TrendLine 마커 차트범위 밖 방치, score_history 행→날짜 기준 근본수정+빈상태문구 회귀수정) | `368c1f2` `41111c7` |
+| 성장 리포트 (`/growth`) | 2건(업종 순위 배지가 total_in_category<3에서도 트로피 노출 → `/benchmark`와 동일하게 3곳 미만 게이팅, "1주일 뒤 자동 생성" 안내가 실제 monthly_growth_card_job(매월 말일+점수상승시만) 로직과 불일치 → 문구 정정). 부수 발견: `GET /api/report/growth/{biz_id}`(헤드라인·성장드라이버·경쟁사비교·키워드해소 포함, ~200줄)이 완전히 구현돼 있으나 어떤 프론트도 호출하지 않는 고아 엔드포인트 — `BREAKDOWN_LABELS`도 v3.0 구키(`keyword_gap_score` 등) 잔존. 연결 여부는 `next-feature`로 별도 설계 예정(사용자 결정) | `3438949` |
 
 ---
 
 ## §4. 미점검 페이지 후보 (다음 트리거 시 우선순위)
 
-성장 리포트 · 개선 가이드 · 소개글·콘텐츠 · 블로그 진단 · 리뷰 답변 · AI 광고 대비 · 창업 시장 분석 · 대시보드 — 모두 `nine_pages_measurement_inspection_v1.0.md`/`eight_pages_commercial_professionalism_recheck_v1.0.md`로 **사실 정확성**은 이미 점검됐으나, 이 문서의 **외부 벤치마크 기반 상업적 수준**(Nielsen 등) 축으로는 아직 미점검.
+개선 가이드 · 소개글·콘텐츠 · 블로그 진단 · 리뷰 답변 · AI 광고 대비 · 창업 시장 분석 · 대시보드 — 모두 `nine_pages_measurement_inspection_v1.0.md`/`eight_pages_commercial_professionalism_recheck_v1.0.md`로 **사실 정확성**은 이미 점검됐으나, 이 문서의 **외부 벤치마크 기반 상업적 수준**(Nielsen 등) 축으로는 아직 미점검.
