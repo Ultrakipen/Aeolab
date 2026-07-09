@@ -50,9 +50,10 @@ docs/external_benchmark_commercial_quality_v1.0.md 기준으로 <페이지명> �
 | 경쟁사 관리 (`/competitors`) | 3건(배지 임계값 불일치, 리뷰/평점 데이터신뢰성, keyword_search_rank 라벨누락) | `ed95b9f` `bd184bb` `31dc115` |
 | 변화 기록 (`/history`) | 2건(TrendLine 마커 차트범위 밖 방치, score_history 행→날짜 기준 근본수정+빈상태문구 회귀수정) | `368c1f2` `41111c7` |
 | 성장 리포트 (`/growth`) | 2건(업종 순위 배지 게이팅, 성장카드 문구 정정) + P1 기능 연결(고아 엔드포인트 `GET /api/report/growth/{biz_id}` 연결: v3.1 키 마이그레이션 + 레거시 키 필터링 + 헤드라인·성장요인·키워드해소 UI 3종 추가) + 모바일 그리드 라벨잘림 수정. 실 사업장 2곳(education/restaurant)에 직접 함수 호출로 검증 — 라벨 누락·크래시 없음. **P2 전체 기각** — 이달체크리스트는 `dashboard/page.tsx:169-184`의 오늘/이번주/이번달 카드와 중복, 경쟁사비교는 `/competitors`(CompetitorsClient.tsx)에 이미 1:1 비교모달·막대차트로 훨씬 상세히 구현돼 있고 팀이 과거 "Hero카드와 중복" 이유로 유사기능 제거한 전례(`:2989` 주석)까지 있어 추가 구현 없이 종료 | `3438949` `d1b8054` `47ccd88` |
+| 개선 가이드 (`/guide`) | 4건 — ①AI 브리핑 측정실패(`latestScanMentioned=null`) 배너 침묵→"측정 실패, 다음 스캔 재확인" 안내 ②격차분석 API 실패 시 "이번 주" 탭 침묵 누락→인라인 에러 메시지 ③키워드 제외 버튼 실패 무피드백→인라인 에러 ④`alert()` 4곳(QR/인쇄/양식다운로드)→인라인 에러 교체, "전체 가이드" 탭 평평한 카드 15개→도구/FAQ 2그룹 접기(기존 미사용 `showQuickTools`/`showFAQSection` state 활용). 외부 근거: NN/G Progressive Disclosure, NN/G Error-Message Guidelines. 로그인 세션 라이브 검증은 Windows DPAPI 쿠키복호화 실패로 불가 — TS 타입체크·서버 빌드·PM2 에러로그 0건·`/guide` HTTP 307 정상 응답으로 대체 검증 | `71816a9` |
 
 ---
 
 ## §4. 미점검 페이지 후보 (다음 트리거 시 우선순위)
 
-개선 가이드 · 소개글·콘텐츠 · 블로그 진단 · 리뷰 답변 · AI 광고 대비 · 창업 시장 분석 · 대시보드 — 모두 `nine_pages_measurement_inspection_v1.0.md`/`eight_pages_commercial_professionalism_recheck_v1.0.md`로 **사실 정확성**은 이미 점검됐으나, 이 문서의 **외부 벤치마크 기반 상업적 수준**(Nielsen 등) 축으로는 아직 미점검.
+소개글·콘텐츠 · 블로그 진단 · 리뷰 답변 · AI 광고 대비 · 창업 시장 분석 · 대시보드 — 모두 `nine_pages_measurement_inspection_v1.0.md`/`eight_pages_commercial_professionalism_recheck_v1.0.md`로 **사실 정확성**은 이미 점검됐으나, 이 문서의 **외부 벤치마크 기반 상업적 수준**(Nielsen 등) 축으로는 아직 미점검. (개선 가이드는 §3에서 완료로 이동)
