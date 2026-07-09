@@ -504,10 +504,10 @@ export default function GrowthClient({
           <p className="text-sm text-gray-400 mb-4">
             첫 스캔 대비 어떤 항목이 가장 많이 움직였는지 보여줍니다
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {growthDrivers.map((d) => (
               <div key={d.key} className="flex items-center justify-between gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                <span className="text-sm text-gray-600 truncate">{d.label}</span>
+                <span className="text-sm text-gray-600">{d.label}</span>
                 <span
                   className={`text-sm font-semibold shrink-0 ${
                     d.delta > 0.5 ? "text-emerald-600" : d.delta < -0.5 ? "text-red-500" : "text-gray-400"
