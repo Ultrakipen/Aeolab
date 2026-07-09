@@ -69,11 +69,19 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
   }))
 
   // action_date를 "MM-DD" 형식으로 변환해 X축과 매칭
-  const logsForChart = actionLogs.map((log) => ({
-    ...log,
-    dateKey: log.action_date.slice(5),  // "YYYY-MM-DD" → "MM-DD"
-    color: ACTION_COLOR[log.action_type] ?? '#f59e0b',
-  }))
+  const chartDates = new Set(chartData.map((d) => d.date))
+  const logsForChart = actionLogs.map((log) => {
+    const dateKey = log.action_date.slice(5)  // "YYYY-MM-DD" → "MM-DD"
+    const daysSince = Math.floor((Date.now() - new Date(log.action_date).getTime()) / 86400000)
+    return {
+      ...log,
+      dateKey,
+      color: ACTION_COLOR[log.action_type] ?? '#f59e0b',
+      // 점수 차트에 해당 날짜 데이터가 없으면(재스캔 뜸함) 점선을 그릴 수 없음 — 배지에 안내 필요
+      inRange: chartDates.has(dateKey),
+      daysSince,
+    }
+  })
 
   if (chartData.length === 0) {
     return (
@@ -167,8 +175,8 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
               return [grade, label]
             }}
           />
-          {/* 행동 기록 세로 점선 오버레이 */}
-          {logsForChart.map((log, idx) => (
+          {/* 행동 기록 세로 점선 오버레이 — 차트 날짜 범위 밖이면 그릴 수 없으므로 제외 */}
+          {logsForChart.filter((log) => log.inRange).map((log, idx) => (
             <ReferenceLine
               key={`${log.action_date}-${idx}`}
               x={log.dateKey}
@@ -217,11 +225,22 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
               className="flex items-center gap-1.5 text-sm px-2 py-1 rounded-full border"
               style={{ borderColor: log.color, color: log.color, backgroundColor: `${log.color}10` }}
             >
-              <span
-                className="inline-block w-px h-3 border-l-2 border-dashed"
-                style={{ borderColor: log.color }}
-              />
+              {log.inRange && (
+                <span
+                  className="inline-block w-px h-3 border-l-2 border-dashed"
+                  style={{ borderColor: log.color }}
+                />
+              )}
               <span>{log.action_date.slice(5)} {deltaLabel(log)}</span>
+              {/* 차트 범위 밖(재스캔 뜸함) — 점선을 그릴 수 없어 대신 안내 */}
+              {!log.inRange && (
+                <span className="text-gray-500">
+                  · {log.daysSince}일 전 완료 · 재스캔 시 반영 —{' '}
+                  <a href="/dashboard" className="underline underline-offset-2 hover:opacity-80">
+                    지금 재스캔 →
+                  </a>
+                </span>
+              )}
             </div>
           ))}
         </div>
