@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { PLAN_PRICES } from "@/lib/plans";
 
@@ -705,15 +704,15 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   // 잠시 잘못 노출되지 않도록 스피너만 표시 — authed 확정 전 깜빡임 방지
   if (checkingSession) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </main>
+      </div>
     );
   }
 
   if (!authed) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="flex items-center justify-center px-4 py-16">
         <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full">
           <h1 className="text-xl font-bold text-gray-900 mb-6">관리자 접근</h1>
           <input
@@ -733,15 +732,15 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
             {loading ? "확인 중..." : "확인"}
           </button>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </main>
+      </div>
     );
   }
 
@@ -758,81 +757,34 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   const subTotalPages = Math.max(1, Math.ceil(subTotal / SUB_PAGE_SIZE));
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        {/* 헤더 */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900">AEOlab 관리자</h1>
-            <p className="text-sm text-gray-400">구독자·매출·공지사항·FAQ·Q&A 관리</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => { fetchAll(); loadSubs(); }}
-              className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-            >
-              새로고침
-            </button>
-            <button
-              onClick={() => {
-                try { localStorage.removeItem("aeolab_admin_authed"); } catch { /* ignore */ }
-                setAuthed(false);
-                setInputKey("");
-              }}
-              className="text-sm text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              로그아웃
-            </button>
-          </div>
+    <>
+      {/* 헤더 — 브랜드/내비게이션은 app/admin/layout.tsx 공통 헤더가 담당 */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">대시보드</h1>
+          <p className="text-sm text-gray-400">구독자·매출·공지사항·FAQ·Q&A 관리</p>
         </div>
-
-        {/* 외부 링크 — next/link 사용(풀 리로드 방지: 뒤로가기 시 "관리자 접근" 깜빡임 원인이었음) */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          <Link
-            href="/admin/delivery"
+        <div className="flex gap-2">
+          <button
+            onClick={() => { fetchAll(); loadSubs(); }}
             className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
           >
-            대행 의뢰 관리 →
-          </Link>
-          <Link
-            href="/admin/support"
-            className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+            새로고침
+          </button>
+          <button
+            onClick={() => {
+              try { localStorage.removeItem("aeolab_admin_authed"); } catch { /* ignore */ }
+              setAuthed(false);
+              setInputKey("");
+            }}
+            className="text-sm text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Q&A 문의 관리 →
-          </Link>
-          <Link
-            href="/admin/feedback"
-            className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-          >
-            피드백 현황 →
-          </Link>
-          <Link
-            href="/admin/notices"
-            className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-          >
-            공지사항 관리 →
-          </Link>
-          <Link
-            href="/admin/score-comparison"
-            className="text-sm text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
-          >
-            점수 모델 v3.1 비교 →
-          </Link>
-          <Link
-            href="/admin/business"
-            className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-          >
-            사업장 조회 →
-          </Link>
-          <Link
-            href="/admin/ops"
-            className="text-sm text-gray-600 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            운영 현황(감사로그·알림·결제이력) →
-          </Link>
+            로그아웃
+          </button>
         </div>
+      </div>
 
-        {/* 탭 */}
+      {/* 탭 */}
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 flex-wrap">
           {([
             ["dashboard", "대시보드"],
@@ -1245,7 +1197,6 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
             )}
           </>
         )}
-      </div>
 
       {/* 관리자 구독 취소/환불 확인 모달 — 되돌릴 수 없는 금전 이동이므로 2단계 확인 */}
       {cancelTarget && (
@@ -1321,6 +1272,6 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
           </div>
         </div>
       )}
-    </main>
+    </>
   );
 }

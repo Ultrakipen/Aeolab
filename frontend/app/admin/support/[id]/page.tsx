@@ -101,7 +101,7 @@ export default async function AdminSupportDetailPage({
 
   if (!ticket) {
     return (
-      <div className="p-4 md:p-8 max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto">
         <div className="bg-red-50 border border-red-200 rounded-xl p-5 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
           <div>
@@ -134,7 +134,7 @@ export default async function AdminSupportDetailPage({
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto">
+    <>
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-4 flex-wrap">
         <Link href="/admin" className="hover:text-blue-600 transition-colors">
@@ -220,6 +220,6 @@ export default async function AdminSupportDetailPage({
         currentStatus={ticket.status}
         isPublic={ticket.visibility === "public"}
       />
-    </div>
+    </>
   );
 }

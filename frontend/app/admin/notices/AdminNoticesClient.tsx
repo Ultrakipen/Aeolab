@@ -213,9 +213,8 @@ export default function AdminNoticesClient() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* 헤더 */}
+    <>
+      {/* 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -245,13 +244,6 @@ export default function AdminNoticesClient() {
             </button>
           </div>
         </div>
-
-        <a
-          href="/admin"
-          className="inline-flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline mb-6"
-        >
-          ← 관리자 대시보드로
-        </a>
 
         {/* 결과 메시지 */}
         {msg && (
@@ -483,7 +475,6 @@ export default function AdminNoticesClient() {
             </div>
           )}
         </div>
-      </div>
-    </main>
+    </>
   );
 }

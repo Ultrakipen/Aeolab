@@ -68,15 +68,10 @@ export default function AdminBusinessSearchClient() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">사업장 조회</h1>
-          <p className="text-sm text-gray-400 mt-1">사업장명·이메일로 검색 후 스캔이력·가이드·경쟁사까지 한 번에 확인</p>
-        </div>
-        <Link href="/admin" className="text-sm text-gray-500 hover:text-blue-600 transition-colors">
-          ← 관리자 메인
-        </Link>
+    <>
+      <div className="mb-6">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">사업장 조회</h1>
+        <p className="text-sm text-gray-400 mt-1">사업장명·이메일로 검색 후 스캔이력·가이드·경쟁사까지 한 번에 확인</p>
       </div>
 
       <div className="relative mb-5">
@@ -155,6 +150,6 @@ export default function AdminBusinessSearchClient() {
           )}
         </>
       )}
-    </div>
+    </>
   );
 }

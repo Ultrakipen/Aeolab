@@ -170,7 +170,7 @@ export default function AdminStoriesPage() {
     new Date(iso).toLocaleDateString("ko-KR", { month: "2-digit", day: "2-digit" });
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto">
+    <>
       {/* 헤더 */}
       <div className="flex items-center justify-between gap-4 mb-6">
         <div>
@@ -479,17 +479,11 @@ export default function AdminStoriesPage() {
         </>
       )}
 
-      {/* 하단 네비게이션 */}
-      <div className="mt-6 flex items-center gap-3">
-        <Link
-          href="/admin"
-          className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
-        >
-          ← 관리자 메인
-        </Link>
-        <Trash2 className="w-4 h-4 text-gray-200 ml-auto" aria-hidden="true" />
+      {/* 하단 안내 */}
+      <div className="mt-6 flex items-center gap-2">
+        <Trash2 className="w-4 h-4 text-gray-200" aria-hidden="true" />
         <span className="text-sm text-gray-300">삭제 기능은 Supabase에서 직접 처리</span>
       </div>
-    </div>
+    </>
   );
 }

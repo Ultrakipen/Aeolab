@@ -105,7 +105,7 @@ export default async function AdminBusinessDetailPage({
 
   if (!detail) {
     return (
-      <div className="p-4 md:p-8 max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto">
         <div className="bg-red-50 border border-red-200 rounded-xl p-5 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
           <div>
@@ -122,7 +122,7 @@ export default async function AdminBusinessDetailPage({
   const { business, owner_email, scans, guides, competitors, blog_analysis, action_log } = detail;
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto">
+    <>
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-4 flex-wrap">
         <Link href="/admin" className="hover:text-blue-600 transition-colors">관리자</Link>
         <ChevronRight className="w-4 h-4" />
@@ -258,6 +258,6 @@ export default async function AdminBusinessDetailPage({
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }

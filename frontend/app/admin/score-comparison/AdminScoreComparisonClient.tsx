@@ -243,35 +243,27 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
   // 빈 상태 (Shadow 데이터 없음)
   if (error === "__empty__" || (data && data.total_scans === 0)) {
     return (
-      <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-center gap-3 mb-6">
-            <Link href="/admin" className="text-blue-600 dark:text-blue-400 text-sm hover:underline">
-              ← 관리자
-            </Link>
-            <span className="text-gray-400">/</span>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">점수 모델 v3.1 비교</h1>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 md:p-12 text-center">
-            <div className="text-4xl mb-4">📊</div>
-            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2">
-              아직 v3.1 Shadow 데이터가 없습니다
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-md mx-auto">
-              Supabase SQL Editor에서 v3.1 Shadow 컬럼 ALTER를 실행하고,
-              30일 자동 스캔이 쌓인 후 다시 확인해 주세요.
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">점수 모델 v3.1 비교</h1>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 md:p-12 text-center">
+          <div className="text-4xl mb-4">📊</div>
+          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2">
+            아직 v3.1 Shadow 데이터가 없습니다
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-md mx-auto">
+            Supabase SQL Editor에서 v3.1 Shadow 컬럼 ALTER를 실행하고,
+            30일 자동 스캔이 쌓인 후 다시 확인해 주세요.
+          </p>
+          <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-left">
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">
+              ALTER TABLE scan_results<br />
+              &nbsp;&nbsp;ADD COLUMN IF NOT EXISTS track1_score_v31 FLOAT,<br />
+              &nbsp;&nbsp;ADD COLUMN IF NOT EXISTS track2_score_v31 FLOAT,<br />
+              &nbsp;&nbsp;ADD COLUMN IF NOT EXISTS unified_score_v31 FLOAT;
             </p>
-            <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-left">
-              <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">
-                ALTER TABLE scan_results<br />
-                &nbsp;&nbsp;ADD COLUMN IF NOT EXISTS track1_score_v31 FLOAT,<br />
-                &nbsp;&nbsp;ADD COLUMN IF NOT EXISTS track2_score_v31 FLOAT,<br />
-                &nbsp;&nbsp;ADD COLUMN IF NOT EXISTS unified_score_v31 FLOAT;
-              </p>
-            </div>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -290,15 +282,10 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="space-y-6">
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Link href="/admin" className="text-blue-600 dark:text-blue-400 text-sm hover:underline">
-              ← 관리자
-            </Link>
-            <span className="text-gray-400">/</span>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
               점수 모델 v3.1 비교
             </h1>
@@ -487,7 +474,6 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
             </div>
           </>
         )}
-      </div>
-    </main>
+    </div>
   );
 }

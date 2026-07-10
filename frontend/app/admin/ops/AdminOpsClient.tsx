@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { RefreshCw, ShieldCheck, Bell, CreditCard, Users, Trash2, Rocket } from "lucide-react";
 
 const ADMIN_PROXY = "/api/admin-proxy";
@@ -185,25 +184,20 @@ export default function AdminOpsClient() {
   }, [load]);
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto">
+    <>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">운영 현황</h1>
           <p className="text-sm text-gray-400 mt-1">관리자 감사 로그 · 시스템 알림 이력</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={load}
-            disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 disabled:opacity-50 transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            새로고침
-          </button>
-          <Link href="/admin" className="text-sm text-gray-500 hover:text-blue-600 transition-colors">
-            ← 관리자 메인
-          </Link>
-        </div>
+        <button
+          onClick={load}
+          disabled={loading}
+          className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 disabled:opacity-50 transition-colors"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          새로고침
+        </button>
       </div>
 
       {error && (
@@ -423,6 +417,6 @@ export default function AdminOpsClient() {
           </>
         )}
       </div>
-    </div>
+    </>
   );
 }
