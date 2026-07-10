@@ -152,9 +152,13 @@ async def issue_billing(body: BillingIssueRequest):
         )
     if resp.status_code != 200:
         logger.error(f"첫 결제 실패: {resp.text}")
+        from utils.payment_event_log import record_payment_event
+        await record_payment_event(user_id, "billing_issue", "failed", body.amount, resp.text)
         raise HTTPException(status_code=400, detail=f"결제 실패: {resp.text}")
 
     data = resp.json()
+    from utils.payment_event_log import record_payment_event
+    await record_payment_event(user_id, "billing_issue", "success", body.amount, data.get("paymentKey"))
 
     # 3. 구독 저장
     is_yearly_issue = body.amount in YEARLY_AMOUNTS

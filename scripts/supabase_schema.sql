@@ -2418,3 +2418,50 @@ CREATE TABLE IF NOT EXISTS system_alerts (
 CREATE INDEX IF NOT EXISTS idx_system_alerts_created ON system_alerts(created_at DESC);
 
 ALTER TABLE system_alerts ENABLE ROW LEVEL SECURITY;
+
+-- ===========================================================
+-- 2026-07-10: 관리자 서비스 총괄 대시보드 6단계 — 결제 이벤트 로그
+-- 배경: docs/admin_service_oversight_design_v1.0.md §3-A P1-구조적.
+-- "결제했는데 구독이 안 됐어요" 문의 시 subscriptions의 현재 상태만 보이고
+-- 결제 시도 이력(성공/실패)이 없었다 — PM2 로그는 로테이트로 며칠 뒤 소멸.
+-- 소급 적용 불가(이 테이블 생성 이후 이벤트부터만 쌓임). E·F와 동일하게
+-- RLS만 활성화하고 정책은 생략 — service_role만 접근.
+-- ===========================================================
+
+CREATE TABLE IF NOT EXISTS payment_events (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id     UUID,
+  event_type  TEXT NOT NULL,   -- billing_issue(최초결제) | renewal(자동갱신재시도)
+  status      TEXT NOT NULL,   -- success | failed
+  amount      INT,
+  detail      TEXT,            -- 실패 사유 요약 또는 paymentKey
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_payment_events_user ON payment_events(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_payment_events_created ON payment_events(created_at DESC);
+
+ALTER TABLE payment_events ENABLE ROW LEVEL SECURITY;
+
+-- ===========================================================
+-- 2026-07-10: 관리자 서비스 총괄 대시보드 H단계 — 개별 관리자 권한 체계
+-- 배경: docs/admin_service_oversight_design_v1.0.md §3-A-H. 지금까지
+-- ADMIN_SECRET_KEY 단일 공유 시크릿이라 모든 관리자가 구독 강제해지/환불 같은
+-- 금전이동 액션까지 동일하게 접근 가능했다. owner(전체 권한)/support(조회+
+-- 콘텐츠 관리, 금전이동 불가) 2단계로 분리. 최초 실행 시 프론트 ADMIN_EMAILS
+-- 시딩 대상(hoozdev@gmail.com)을 owner로 자동 등록 — 실행 직후 잠금 방지.
+-- ===========================================================
+
+CREATE TABLE IF NOT EXISTS admin_users (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  email       TEXT NOT NULL UNIQUE,
+  role        TEXT NOT NULL DEFAULT 'support',  -- owner | support
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users(email);
+
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+
+INSERT INTO admin_users (email, role) VALUES ('hoozdev@gmail.com', 'owner')
+ON CONFLICT (email) DO NOTHING;

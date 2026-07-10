@@ -9,6 +9,7 @@ from fastapi.responses import HTMLResponse
 from db.supabase_client import get_client, execute
 from config.prices import PLAN_PRICE_MAP
 from services.score_engine import BRIEFING_ACTIVE_CATEGORIES, BRIEFING_LIKELY_CATEGORIES
+from utils.admin_auth import require_owner
 
 _logger = logging.getLogger("aeolab")
 
@@ -99,16 +100,20 @@ async def get_stats(_=Depends(verify_admin)):
 
 
 @router.post("/subscriptions/{user_id}/cancel")
-async def admin_cancel_subscription(user_id: str, _=Depends(verify_admin)):
+async def admin_cancel_subscription(user_id: str, owner_email: str = Depends(require_owner)):
     """관리자 강제 구독 해지/환불 — 고객지원 요청 시 사용 (금전 이동 가능).
 
     _cancel_subscription_core는 settings.py의 본인 해지(POST /settings/cancel)와
     동일한 함수 — 경쟁조건 방어·DB 갱신 실패 시 운영자 알림·7일 청약철회 자동환불 분기
     안전장치를 전부 그대로 공유한다(admin_functional_gaps_implementation_plan_v1.0.md §5).
     별도로 재구현하지 않는다 — 안전장치 누락 재발 방지(2026-06-02 CLAUDE.md 사고 참조).
+
+    verify_admin 대신 require_owner 적용(§3-A-H) — 금전이동 액션이라 owner 역할만
+    실행 가능하도록 제한. support 역할은 403.
     """
     from routers.settings import _cancel_subscription_core
 
+    _logger.info(f"[admin] owner={owner_email}가 구독 강제해지 실행 — target user_id={user_id}")
     return await _cancel_subscription_core(user_id)
 
 
@@ -294,6 +299,85 @@ async def get_system_alerts(limit: int = Query(100, ge=1, le=500), _=Depends(ver
     return rows
 
 
+@router.get("/payment-events")
+async def get_payment_events(limit: int = Query(100, ge=1, le=500), _=Depends(verify_admin)):
+    """결제 이벤트 이력 조회 (§3-A P1-구조적). webhook.py issue_billing(최초결제)·
+    services/toss_billing.py retry_billing(자동갱신)에서 utils.payment_event_log.
+    record_payment_event가 자동 기록 — 이 엔드포인트는 조회 전용. 테이블 생성
+    시점(2026-07-10) 이후 이벤트만 존재 — 소급 이력 없음."""
+    supabase = get_supabase()
+    rows = (
+        await execute(
+            supabase.table("payment_events")
+            .select("id, user_id, event_type, status, amount, detail, created_at")
+            .order("created_at", desc=True)
+            .limit(limit)
+        )
+    ).data or []
+    if not rows:
+        return rows
+
+    email_map: dict = {}
+    try:
+        users = await asyncio.to_thread(
+            lambda: supabase.auth.admin.list_users(page=1, per_page=1000)
+        )
+        email_map = {u.id: u.email for u in users}
+    except Exception as e:
+        _logger.warning(f"[admin] 결제 이벤트 이메일 조회 실패: {e}")
+
+    for row in rows:
+        row["email"] = email_map.get(row.get("user_id"))
+
+    return rows
+
+
+# ────────────────────────────────────────────────────────────────
+# 관리자 계정 권한 체계 (§3-A-H) — owner만 조회/추가/삭제 가능.
+# ────────────────────────────────────────────────────────────────
+
+@router.get("/admin-users")
+async def list_admin_users(_owner: str = Depends(require_owner)):
+    """등록된 관리자 계정 + 역할 목록 (owner 전용)."""
+    supabase = get_supabase()
+    rows = (
+        await execute(
+            supabase.table("admin_users").select("id, email, role, created_at").order("created_at")
+        )
+    ).data or []
+    return rows
+
+
+@router.post("/admin-users")
+async def add_admin_user(email: str, role: str = "support", owner_email: str = Depends(require_owner)):
+    """관리자 계정 추가 (owner 전용). role: owner | support."""
+    if role not in ("owner", "support"):
+        raise HTTPException(status_code=400, detail="role은 owner 또는 support여야 합니다")
+    email = email.strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="이메일을 입력해 주세요")
+
+    supabase = get_supabase()
+    res = await execute(
+        supabase.table("admin_users").upsert({"email": email, "role": role}, on_conflict="email")
+    )
+    _logger.info(f"[admin] owner={owner_email}가 관리자 계정 추가/변경: {email} -> {role}")
+    return (res.data or [{}])[0]
+
+
+@router.delete("/admin-users/{email}")
+async def remove_admin_user(email: str, owner_email: str = Depends(require_owner)):
+    """관리자 계정 제거 (owner 전용). 자기 자신은 제거 불가(전원 잠금 방지)."""
+    email = email.strip().lower()
+    if email == owner_email.strip().lower():
+        raise HTTPException(status_code=400, detail="자기 자신의 owner 권한은 제거할 수 없습니다")
+
+    supabase = get_supabase()
+    await execute(supabase.table("admin_users").delete().eq("email", email))
+    _logger.info(f"[admin] owner={owner_email}가 관리자 계정 제거: {email}")
+    return {"ok": True}
+
+
 @router.get("/revenue")
 async def get_revenue(_=Depends(verify_admin)):
     """월별 매출 추이 (최근 12개월)"""
@@ -319,6 +403,78 @@ async def get_revenue(_=Depends(verify_admin)):
         {"month": m, "revenue": v["revenue"], "subscriber_count": v["subscriber_count"]}
         for m, v in sorted(monthly.items())[-12:]
     ]
+
+
+# ────────────────────────────────────────────────────────────────
+# 비즈니스 인텔리전스 — 가입 코호트별 유지율 (§3-A-I)
+# ────────────────────────────────────────────────────────────────
+
+@router.get("/cohort-analysis")
+async def get_cohort_analysis(_=Depends(verify_admin)):
+    """가입 코호트별 현재 유지율 스냅샷 + 누적 이탈률 + 평균 유지 기간.
+
+    admin_service_oversight_design_v1.0.md §3-A-I. subscriptions는 상태 변경
+    이력을 별도로 남기지 않는 단일 row(현재 상태만 덮어씀) — 그래서 "몇 월에
+    이탈했는지" 같은 정밀한 시계열은 계산할 수 없다. 실측 이상을 지어내지
+    않기 위해 "현재 상태 스냅샷 기준"으로 범위를 명확히 좁혔다(data_caveat 참조).
+    """
+    supabase = get_supabase()
+    rows = (
+        await execute(
+            supabase.table("subscriptions")
+            .select("plan, status, start_at, end_at, created_at")
+            .limit(5000)
+        )
+    ).data or []
+
+    status_dist: dict = {}
+    cohorts: dict = {}
+    tenure_days: list = []
+
+    for r in rows:
+        status = r.get("status") or "unknown"
+        status_dist[status] = status_dist.get(status, 0) + 1
+
+        created = r.get("created_at")
+        if created:
+            cohort_month = str(created)[:7]  # "YYYY-MM"
+            c = cohorts.setdefault(cohort_month, {"total": 0, "active_now": 0})
+            c["total"] += 1
+            if status in ("active", "grace_period"):
+                c["active_now"] += 1
+
+        if status in ("cancelled", "expired") and r.get("start_at") and r.get("end_at"):
+            try:
+                start_dt = datetime.fromisoformat(str(r["start_at"]).replace("Z", "+00:00"))
+                end_dt = datetime.fromisoformat(str(r["end_at"]).replace("Z", "+00:00"))
+                days = (end_dt - start_dt).days
+                if days >= 0:
+                    tenure_days.append(days)
+            except (ValueError, TypeError):
+                pass
+
+    signup_cohorts = [
+        {
+            "cohort_month": m,
+            "total": c["total"],
+            "active_now": c["active_now"],
+            "retention_pct": round(c["active_now"] / c["total"] * 100, 1) if c["total"] else 0,
+        }
+        for m, c in sorted(cohorts.items())
+    ]
+
+    total = len(rows)
+    churned = status_dist.get("cancelled", 0) + status_dist.get("expired", 0)
+    cumulative_churn_rate_pct = round(churned / total * 100, 1) if total else 0
+    avg_tenure_days = round(sum(tenure_days) / len(tenure_days), 1) if tenure_days else None
+
+    return {
+        "signup_cohorts": signup_cohorts,
+        "status_distribution": status_dist,
+        "cumulative_churn_rate_pct": cumulative_churn_rate_pct,
+        "avg_tenure_days": avg_tenure_days,
+        "data_caveat": "구독 상태 변경 이력이 별도로 기록되지 않아 정확한 월별 이탈 시점은 계산할 수 없습니다 — 위 수치는 현재 상태 스냅샷 기준입니다.",
+    }
 
 
 @router.get("/category-distribution")

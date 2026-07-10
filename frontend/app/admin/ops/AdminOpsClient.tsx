@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { RefreshCw, ShieldCheck, Bell } from "lucide-react";
+import { RefreshCw, ShieldCheck, Bell, CreditCard, Users, Trash2 } from "lucide-react";
 
 const ADMIN_PROXY = "/api/admin-proxy";
 
@@ -22,6 +22,29 @@ interface SystemAlertRow {
   message: string | null;
   level: "info" | "warning" | "error";
   source: string | null;
+  created_at: string;
+}
+
+interface PaymentEventRow {
+  id: string;
+  user_id: string;
+  email: string | null;
+  event_type: "billing_issue" | "renewal";
+  status: "success" | "failed";
+  amount: number | null;
+  detail: string | null;
+  created_at: string;
+}
+
+const EVENT_TYPE_LABEL: Record<string, string> = {
+  billing_issue: "최초 결제",
+  renewal: "자동 갱신",
+};
+
+interface AdminUserRow {
+  id: string;
+  email: string;
+  role: "owner" | "support";
   created_at: string;
 }
 
@@ -50,26 +73,92 @@ function formatDate(iso: string) {
 export default function AdminOpsClient() {
   const [auditLog, setAuditLog] = useState<AuditLogRow[]>([]);
   const [alerts, setAlerts] = useState<SystemAlertRow[]>([]);
+  const [paymentEvents, setPaymentEvents] = useState<PaymentEventRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
+  const [adminUsersError, setAdminUsersError] = useState("");
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminRole, setNewAdminRole] = useState<"owner" | "support">("support");
+  const [adminUserSubmitting, setAdminUserSubmitting] = useState(false);
+
+  const loadAdminUsers = useCallback(async () => {
+    setAdminUsersError("");
+    try {
+      const res = await fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/admin-users")}`);
+      if (res.status === 403) {
+        setAdminUsersError("owner 권한 계정만 관리자 목록을 볼 수 있습니다.");
+        return;
+      }
+      if (!res.ok) throw new Error("API 오류");
+      setAdminUsers(await res.json());
+    } catch {
+      setAdminUsersError("관리자 목록을 불러오지 못했습니다.");
+    }
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const [auditRes, alertRes] = await Promise.all([
+      const [auditRes, alertRes, paymentRes] = await Promise.all([
         fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/audit-log?limit=100")}`),
         fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/system-alerts?limit=100")}`),
+        fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/payment-events?limit=100")}`),
       ]);
-      if (!auditRes.ok || !alertRes.ok) throw new Error("API 오류");
+      if (!auditRes.ok || !alertRes.ok || !paymentRes.ok) throw new Error("API 오류");
       setAuditLog(await auditRes.json());
       setAlerts(await alertRes.json());
+      setPaymentEvents(await paymentRes.json());
     } catch {
       setError("운영 현황을 불러오지 못했습니다.");
     } finally {
       setLoading(false);
     }
-  }, []);
+    loadAdminUsers();
+  }, [loadAdminUsers]);
+
+  const handleAddAdminUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = newAdminEmail.trim();
+    if (!email) return;
+    setAdminUserSubmitting(true);
+    setAdminUsersError("");
+    try {
+      const res = await fetch(
+        `${ADMIN_PROXY}?path=${encodeURIComponent(`admin/admin-users?email=${encodeURIComponent(email)}&role=${newAdminRole}`)}`,
+        { method: "POST" }
+      );
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d?.detail ?? "추가 실패");
+      }
+      setNewAdminEmail("");
+      setNewAdminRole("support");
+      loadAdminUsers();
+    } catch (err: unknown) {
+      setAdminUsersError((err as Error).message ?? "추가에 실패했습니다.");
+    } finally {
+      setAdminUserSubmitting(false);
+    }
+  };
+
+  const handleRemoveAdminUser = async (email: string) => {
+    if (!confirm(`${email} 관리자 권한을 제거하시겠습니까?`)) return;
+    try {
+      const res = await fetch(`${ADMIN_PROXY}?path=${encodeURIComponent(`admin/admin-users/${encodeURIComponent(email)}`)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d?.detail ?? "제거 실패");
+      }
+      loadAdminUsers();
+    } catch (err: unknown) {
+      setAdminUsersError((err as Error).message ?? "제거에 실패했습니다.");
+    }
+  };
 
   useEffect(() => {
     load();
@@ -124,6 +213,101 @@ export default function AdminOpsClient() {
                 </div>
                 <p className="text-sm font-medium text-gray-900">{a.subject}</p>
                 {a.message && <p className="text-sm text-gray-500 mt-0.5 whitespace-pre-wrap line-clamp-3">{a.message}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 결제 이벤트 이력 */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+        <div className="flex items-center gap-2 mb-1">
+          <CreditCard className="w-4 h-4 text-gray-400" />
+          <h2 className="text-base font-semibold text-gray-800">결제 이벤트 이력 ({paymentEvents.length}건)</h2>
+        </div>
+        <p className="text-sm text-gray-400 mb-4">2026-07-10 이후 이벤트만 기록됩니다(소급 이력 없음). 최초 결제·자동 갱신 재시도를 성공/실패와 함께 기록합니다.</p>
+        {loading ? (
+          <div className="text-sm text-gray-400 py-4">불러오는 중...</div>
+        ) : paymentEvents.length === 0 ? (
+          <div className="text-sm text-gray-400 py-4">아직 기록된 결제 이벤트가 없습니다.</div>
+        ) : (
+          <div className="space-y-2 max-h-[420px] overflow-y-auto">
+            {paymentEvents.map((p) => (
+              <div key={p.id} className="border border-gray-100 rounded-lg p-3">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${p.status === "success" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+                    {p.status === "success" ? "성공" : "실패"}
+                  </span>
+                  <span className="text-sm text-gray-500">{EVENT_TYPE_LABEL[p.event_type] ?? p.event_type}</span>
+                  {p.amount != null && <span className="text-sm text-gray-500">{p.amount.toLocaleString()}원</span>}
+                  <span className="text-sm text-gray-400 ml-auto">{formatDate(p.created_at)}</span>
+                </div>
+                <p className="text-sm text-gray-700">{p.email ?? p.user_id}</p>
+                {p.status === "failed" && p.detail && (
+                  <p className="text-sm text-red-500 mt-0.5 whitespace-pre-wrap line-clamp-2">{p.detail}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 관리자 계정 권한 관리 (owner 전용) */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+        <div className="flex items-center gap-2 mb-1">
+          <Users className="w-4 h-4 text-gray-400" />
+          <h2 className="text-base font-semibold text-gray-800">관리자 계정 ({adminUsers.length}명)</h2>
+        </div>
+        <p className="text-sm text-gray-400 mb-4">owner는 구독 강제해지/환불까지 전체 권한, support는 조회·콘텐츠 관리만 가능(금전이동 불가). owner 계정으로 로그인해야 이 섹션을 관리할 수 있습니다.</p>
+
+        {adminUsersError && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3 text-sm text-amber-700">{adminUsersError}</div>
+        )}
+
+        <form onSubmit={handleAddAdminUser} className="flex flex-col sm:flex-row gap-2 mb-4">
+          <input
+            type="email"
+            value={newAdminEmail}
+            onChange={(e) => setNewAdminEmail(e.target.value)}
+            placeholder="관리자 이메일"
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <select
+            value={newAdminRole}
+            onChange={(e) => setNewAdminRole(e.target.value as "owner" | "support")}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="support">support (조회·콘텐츠)</option>
+            <option value="owner">owner (전체 권한)</option>
+          </select>
+          <button
+            type="submit"
+            disabled={adminUserSubmitting || !newAdminEmail.trim()}
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {adminUserSubmitting ? "추가 중..." : "추가"}
+          </button>
+        </form>
+
+        {adminUsers.length === 0 && !adminUsersError ? (
+          <div className="text-sm text-gray-400 py-2">등록된 관리자 계정이 없습니다.</div>
+        ) : (
+          <div className="space-y-2">
+            {adminUsers.map((u) => (
+              <div key={u.id} className="flex items-center justify-between gap-3 border border-gray-100 rounded-lg p-3">
+                <div>
+                  <span className="text-sm font-medium text-gray-800">{u.email}</span>
+                  <span className={`ml-2 text-sm px-2 py-0.5 rounded-full ${u.role === "owner" ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+                    {u.role}
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleRemoveAdminUser(u.email)}
+                  className="text-gray-400 hover:text-red-600 transition-colors"
+                  aria-label={`${u.email} 제거`}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             ))}
           </div>

@@ -47,12 +47,20 @@ async def retry_billing(subscription: dict) -> bool:
                     "orderName": f"AEOlab {subscription['plan']} 구독 갱신",
                 },
             )
+        from utils.payment_event_log import record_payment_event
         if r.status_code == 200:
             logger.info(f"Billing success for subscription {subscription['id']}")
+            await record_payment_event(subscription.get("user_id"), "renewal", "success", amount)
             return True
         else:
             logger.warning(f"Billing failed ({r.status_code}) for subscription {subscription['id']}: {r.text}")
+            await record_payment_event(subscription.get("user_id"), "renewal", "failed", amount, r.text)
             return False
     except Exception as e:
         logger.error(f"Billing error for subscription {subscription['id']}: {e}")
+        try:
+            from utils.payment_event_log import record_payment_event
+            await record_payment_event(subscription.get("user_id"), "renewal", "failed", amount, str(e))
+        except Exception:
+            pass
         return False

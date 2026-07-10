@@ -46,6 +46,14 @@ interface AiUsage {
   assistant_chat_count: number;
 }
 
+interface CohortAnalysis {
+  signup_cohorts: { cohort_month: string; total: number; active_now: number; retention_pct: number }[];
+  status_distribution: Record<string, number>;
+  cumulative_churn_rate_pct: number;
+  avg_tenure_days: number | null;
+  data_caveat: string;
+}
+
 interface SubRow {
   user_id: string;
   email?: string;
@@ -508,6 +516,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   const [cancelResult, setCancelResult] = useState<{ refunded: boolean; refund_amount: number | null } | null>(null);
   const [catDist, setCatDist] = useState<CategoryDist | null>(null);
   const [aiUsage, setAiUsage] = useState<AiUsage | null>(null);
+  const [cohort, setCohort] = useState<CohortAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -518,12 +527,13 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
     setLoading(true);
     setError("");
     try {
-      const [statsRes, revenueRes, subsRes, catRes, aiUsageRes] = await Promise.all([
+      const [statsRes, revenueRes, subsRes, catRes, aiUsageRes, cohortRes] = await Promise.all([
         fetch(`${ADMIN_PROXY}?path=admin/stats`),
         fetch(`${ADMIN_PROXY}?path=admin/revenue`),
         fetch(`${ADMIN_PROXY}?path=admin/subscriptions`),
         fetch(`${ADMIN_PROXY}?path=admin/category-distribution`),
         fetch(`${ADMIN_PROXY}?path=admin/ai-usage?days=30`),
+        fetch(`${ADMIN_PROXY}?path=admin/cohort-analysis`),
       ]);
       if (!statsRes.ok) {
         if (statsRes.status === 403) {
@@ -538,6 +548,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
       setSubs(await subsRes.json());
       if (catRes.ok) setCatDist(await catRes.json());
       if (aiUsageRes.ok) setAiUsage(await aiUsageRes.json());
+      if (cohortRes.ok) setCohort(await cohortRes.json());
       setAuthed(true);
     } catch {
       setError("데이터를 불러오는 중 오류가 발생했습니다.");
@@ -592,16 +603,18 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
       if (!res.ok) throw new Error("API 오류");
       setStats(await res.json());
       // 나머지 데이터 로드
-      const [revenueRes, subsRes, catRes2, aiUsageRes2] = await Promise.all([
+      const [revenueRes, subsRes, catRes2, aiUsageRes2, cohortRes2] = await Promise.all([
         fetch(`${ADMIN_PROXY}?path=admin/revenue`),
         fetch(`${ADMIN_PROXY}?path=admin/subscriptions`),
         fetch(`${ADMIN_PROXY}?path=admin/category-distribution`),
         fetch(`${ADMIN_PROXY}?path=admin/ai-usage?days=30`),
+        fetch(`${ADMIN_PROXY}?path=admin/cohort-analysis`),
       ]);
       setRevenue(await revenueRes.json());
       setSubs(await subsRes.json());
       if (catRes2.ok) setCatDist(await catRes2.json());
       if (aiUsageRes2.ok) setAiUsage(await aiUsageRes2.json());
+      if (cohortRes2.ok) setCohort(await cohortRes2.json());
       setAuthed(true);
       // 세션 유지 (새로고침 대응)
       try { localStorage.setItem("aeolab_admin_authed", "1"); } catch { /* ignore */ }
@@ -742,7 +755,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
             href="/admin/ops"
             className="text-sm text-gray-600 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            운영 현황(감사로그·알림) →
+            운영 현황(감사로그·알림·결제이력) →
           </a>
         </div>
 
@@ -1078,6 +1091,50 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                     <div className="text-xl font-bold text-gray-800">{aiUsage.assistant_chat_count}건</div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* 가입 코호트 유지율 (§3-A-I) — 상태변경 이력 부재로 스냅샷 기준, data_caveat 명시 */}
+            {cohort && (
+              <div className="bg-white rounded-xl p-5 shadow-sm mt-6">
+                <h2 className="text-sm font-semibold text-gray-700 mb-1">가입 코호트 유지율</h2>
+                <p className="text-sm text-gray-400 mb-4">{cohort.data_caveat}</p>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="rounded-xl p-3 border border-gray-100">
+                    <div className="text-sm text-gray-500 mb-0.5">누적 이탈률</div>
+                    <div className="text-xl font-bold text-gray-800">{cohort.cumulative_churn_rate_pct}%</div>
+                  </div>
+                  <div className="rounded-xl p-3 border border-gray-100">
+                    <div className="text-sm text-gray-500 mb-0.5">평균 유지 기간</div>
+                    <div className="text-xl font-bold text-gray-800">
+                      {cohort.avg_tenure_days != null ? `${cohort.avg_tenure_days}일` : "—"}
+                    </div>
+                  </div>
+                </div>
+                {cohort.signup_cohorts.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-sm text-gray-400 border-b border-gray-100">
+                          <th className="pb-2 pr-3">가입월</th>
+                          <th className="pb-2 pr-3">가입자수</th>
+                          <th className="pb-2 pr-3">현재 유지</th>
+                          <th className="pb-2">유지율</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cohort.signup_cohorts.map((c) => (
+                          <tr key={c.cohort_month} className="border-b border-gray-50">
+                            <td className="py-2 pr-3 text-gray-700">{c.cohort_month}</td>
+                            <td className="py-2 pr-3 text-gray-500">{c.total}명</td>
+                            <td className="py-2 pr-3 text-gray-500">{c.active_now}명</td>
+                            <td className="py-2 font-semibold text-gray-800">{c.retention_pct}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 

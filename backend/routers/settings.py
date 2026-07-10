@@ -401,6 +401,7 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
     if was_suspended:
         from services.toss_billing import retry_billing
         sub["billing_key"] = new_billing_key
+        sub["user_id"] = user_id  # select에 user_id가 없어 payment_events 기록 시 NULL 방지
         success = await retry_billing(sub)
         if success:
             renew_days = 365 if sub.get("billing_cycle") == "yearly" else 30
