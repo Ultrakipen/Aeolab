@@ -171,8 +171,10 @@
 | **`docs/external_benchmark_commercial_quality_v1.0.md`** ⭐ | **외부 벤치마크(Nielsen 10휴리스틱·WCAG 2.1 AA·상업 SaaS 도구·감사이력 UX 관행) 기반 상업적 수준 점검 방법론 — 7단계 절차(과거이력→코드재검증→라이브접속→외부조사→반증→수정→드리프트확인). 경쟁사관리 3건·변화기록 2건·성장리포트 2건+P1·개선가이드 6건(1라운드 정보구조4건+2라운드 WCAG접근성2건) 수정 완료. 미점검 6개 페이지는 `docs/six_pages_external_benchmark_inspection_plan_v1.0.md`로 이관 (2026-07-09)** |
 | **`docs/six_pages_external_benchmark_inspection_plan_v1.0.md`** ⭐ | **변화기록·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석 6개 페이지 외부벤치마크 점검 계획 — 전체 완료(git `368c1f2`~`4cc68ca`, 2026-07-09). §1 선행이력 충돌 정리, §2 통합 7단계+성능·WCAG접근성·시각위계·카피톤 4축, §3 페이지별 벤치마크 후보. 트리거는 완료 이력 확인용만** |
 | **`docs/dashboard_external_benchmark_inspection_plan_v1.0.md`** ⭐ | **대시보드 외부벤치마크 점검 계획 — 이 축(Nielsen/WCAG)에서 유일하게 남은 대상. §1 필수 참고(소상공인은 네이버 100% 신뢰·대행업체 의뢰 실증 → 네이버 정보 최상단 배치·"AI노출개선→네이버SEO상위노출" 정방향 메시징·AI채널별 노출기간 정확 안내 3대 원칙), §3에 과거 점검 이력 전수 정리("닫힌 이슈 재점검 금지"), §2에 편집 지뢰(DualTrackCard 고아파일 경로) 경고, §5에 27개+ 컴포넌트 구역별 분할 진행 순서 (2026-07-09)** |
+| **`docs/admin_screens_inspection_plan_v1.0.md`** ⭐ | **관리자(`/admin/*`) 화면 전체 점검 계획 — 6개 페이지 실측재현 세션에서 발견한 P0(신청·문의 500다운)·supabase-py `insert().select()` 체이닝 버그를 `inquiry.py` admin 답변에서도 선제 발견·수정. 프론트 10페이지+백엔드 admin 엔드포인트 전체 인벤토리, 인증 이중구조(Supabase세션+ADMIN_EMAILS→서버프록시) 확인, §4 P0(delivery/support 처리)~P2(notices/stories/comms) 우선순위, §5 표준 실측재현 절차 (2026-07-10)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
+> **관리자 화면 점검**: `docs/admin_screens_inspection_plan_v1.0.md 기준으로 관리자 화면 점검 진행. §4 P0부터 시작`
 > **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
 > **네이버 차단 대응 이어가기**: `docs/naver_briefing_block_countermeasure_handoff_v1.0.md 기준으로 작업 시작. 먼저 §3 선결 검증부터 실측한 뒤 §4 진행`
 > **이번 세션 이어가기**: `docs/session_2026_07_01_naver_recheck_and_usergroup_fix_v1.0.md 기준으로 §7 NID_AUT/NID_SES 자동 재로그인 여부를 결정하고 진행할지 알려줘`
@@ -692,7 +694,6 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 ### 사용자가 직접 해야 할 것
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
 - **실결제 전환 시**: `TOSS_SECRET_KEY` test_ → live_ 교체 + pm2 restart
-- `NEXT_PUBLIC_ADMIN_SECRET_KEY` 향후 서버 컴포넌트로 분리 권장
 
 ### 비즈니스 목표
 - [ ] 유료 구독자 20명 달성 (BEP)
