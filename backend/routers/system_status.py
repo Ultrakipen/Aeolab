@@ -23,6 +23,7 @@ async def get_system_status(supabase=Depends(get_client)):
             "maintenance_message": rows.get("maintenance", {}).get("message", ""),
             "scan_status": rows.get("scan_status", {}).get("value", "normal"),
             "scan_message": rows.get("scan_status", {}).get("message", ""),
+            "ai_tab_enabled": rows.get("ai_tab_enabled", {}).get("value") == "true",
         }
     except Exception as _e:
         _logger.warning(f"[system_status] get_system_status 실패 — {_e}")
@@ -31,6 +32,7 @@ async def get_system_status(supabase=Depends(get_client)):
             "maintenance_message": "",
             "scan_status": "normal",
             "scan_message": "",
+            "ai_tab_enabled": False,
         }
 
 
