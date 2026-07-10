@@ -16,10 +16,10 @@ import {
 // ─── 타입 정의 ─────────────────────────────────────────────────────────────────
 interface GroupStats {
   count: number;
-  v30_avg: number;
-  v31_avg: number;
-  diff_avg: number;
-  diff_stddev: number;
+  v30_avg: number | null;
+  v31_avg: number | null;
+  diff_avg: number | null;
+  diff_stddev: number | null;
 }
 
 interface OutlierRow {
@@ -40,10 +40,9 @@ interface ScatterPoint {
 interface ComparisonResponse {
   total_scans: number;
   groups: {
-    active: GroupStats;
-    likely: GroupStats;
-    inactive: GroupStats;
-    franchise: GroupStats;
+    ACTIVE: GroupStats;
+    LIKELY: GroupStats;
+    INACTIVE: GroupStats;
   };
   outliers: OutlierRow[];
   scatter: ScatterPoint[];
@@ -61,17 +60,15 @@ const PERIOD_OPTIONS = [
 ] as const;
 
 const GROUP_LABELS: Record<string, string> = {
-  active: "ACTIVE (음식점·카페·숙박)",
-  likely: "LIKELY (미용·피트니스·반려)",
-  inactive: "INACTIVE (법무·교육·쇼핑 등)",
-  franchise: "프랜차이즈",
+  ACTIVE: "ACTIVE (음식점·카페·숙박)",
+  LIKELY: "LIKELY (미용·피트니스·반려)",
+  INACTIVE: "INACTIVE (법무·교육·쇼핑 등, 프랜차이즈 포함)",
 };
 
 const GROUP_COLORS: Record<string, string> = {
-  active: "#10b981",
-  likely: "#6366f1",
-  inactive: "#f59e0b",
-  franchise: "#8b5cf6",
+  ACTIVE: "#10b981",
+  LIKELY: "#6366f1",
+  INACTIVE: "#f59e0b",
 };
 
 const DIAGNOSIS_CONFIG = {
@@ -108,7 +105,23 @@ const ACTIVATE_CMD = `ssh root@115.68.231.57 'sed -i "s/SCORE_MODEL_VERSION=v3_0
 
 // ─── 그룹 통계 카드 컴포넌트 ────────────────────────────────────────────────────
 function GroupCard({ groupKey, stats }: { groupKey: string; stats: GroupStats }) {
-  const diff = stats.diff_avg;
+  if (!stats || stats.count === 0) {
+    return (
+      <div className="rounded-xl border p-4 md:p-5 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div className="flex items-center gap-2 mb-3">
+          <div
+            className="w-3 h-3 rounded-full flex-shrink-0"
+            style={{ backgroundColor: GROUP_COLORS[groupKey] ?? "#6b7280" }}
+          />
+          <span className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+            {GROUP_LABELS[groupKey] ?? groupKey}
+          </span>
+        </div>
+        <p className="text-sm text-gray-400 dark:text-gray-500">데이터 없음</p>
+      </div>
+    );
+  }
+  const diff = stats.diff_avg ?? 0;
   const isSignificant = Math.abs(diff) >= 5;
   const diffColor = diff > 0
     ? "text-emerald-600 dark:text-emerald-400"
@@ -143,15 +156,15 @@ function GroupCard({ groupKey, stats }: { groupKey: string; stats: GroupStats })
         </div>
         <div>
           <span className="text-gray-500 dark:text-gray-400">v3.0 평균</span>
-          <div className="font-semibold text-gray-800 dark:text-gray-200">{stats.v30_avg.toFixed(1)}</div>
+          <div className="font-semibold text-gray-800 dark:text-gray-200">{(stats.v30_avg ?? 0).toFixed(1)}</div>
         </div>
         <div>
           <span className="text-gray-500 dark:text-gray-400">v3.1 평균</span>
-          <div className="font-semibold text-gray-800 dark:text-gray-200">{stats.v31_avg.toFixed(1)}</div>
+          <div className="font-semibold text-gray-800 dark:text-gray-200">{(stats.v31_avg ?? 0).toFixed(1)}</div>
         </div>
       </div>
       <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-        <span className="text-gray-400 dark:text-gray-500 text-xs">표준편차: {stats.diff_stddev.toFixed(1)}</span>
+        <span className="text-gray-400 dark:text-gray-500 text-xs">표준편차: {(stats.diff_stddev ?? 0).toFixed(1)}</span>
       </div>
     </div>
   );
@@ -353,7 +366,7 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
                 그룹별 평균 변화량
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                {(["active", "likely", "inactive", "franchise"] as const).map((key) => (
+                {(["ACTIVE", "LIKELY", "INACTIVE"] as const).map((key) => (
                   <GroupCard key={key} groupKey={key} stats={data.groups[key]} />
                 ))}
               </div>
