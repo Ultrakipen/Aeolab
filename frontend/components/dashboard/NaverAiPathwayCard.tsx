@@ -300,7 +300,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               <div className="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-3">
                 <p className="font-semibold text-blue-900 dark:text-blue-100">Gemini</p>
                 <p className="text-blue-800 dark:text-blue-300 leading-snug mt-1">
-                  Google 실시간 검색 일부 반영. 구글 비즈니스 프로필 등록이 핵심 — 2~4주 내 개선 가능.
+                  Google 실시간 검색 일부 반영. 구글 비즈니스 프로필 등록이 핵심 — 2~4주 내 반영 시작, 안정적 인용까지 수개월 소요.
                 </p>
               </div>
             </div>

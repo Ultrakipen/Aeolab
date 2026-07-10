@@ -192,6 +192,19 @@ export default function DashboardInsightZone({
   return (
     <div id="section-insight" className="space-y-6">
 
+      {/* 핵심 가치 제안 한 줄 배너 — 상세 설명은 하단 "상세 분석 데이터" ScoreEvidenceCard가 유일 소스(중복 금지 원칙 유지),
+          여기는 항상 보이는 섹션 최상단에 짧게 노출해 클릭 2회 없이도 인지 가능하게 함 (2026-07-11) */}
+      <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 flex items-start gap-2">
+        <span className="text-blue-500 text-sm shrink-0 mt-0.5" aria-hidden="true">🔍</span>
+        <p className="text-sm text-blue-900 leading-relaxed break-keep">
+          {isActiveOrLikely ? (
+            <><strong>아래 AI 브리핑·AI탭 노출을 높이는 개선 활동은 네이버 일반 검색 상위 노출에도 함께 도움이 됩니다.</strong> 소개글·리뷰·블로그를 채울수록 검색 순위와 AI 노출이 같이 올라갑니다.</>
+          ) : (
+            <><strong>네이버 일반 검색 상위 노출은 지금도 가능합니다.</strong> 스마트플레이스 최적화·블로그 후기로 검색 결과 상위에 노출될 수 있습니다.</>
+          )}
+        </p>
+      </div>
+
       {/* 이번 달 시즌 키워드 — InsightZone 상단 배치 */}
       <SeasonalKeywordBanner category={category} />
 

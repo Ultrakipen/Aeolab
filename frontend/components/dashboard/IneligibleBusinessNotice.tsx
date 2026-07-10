@@ -60,7 +60,7 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
       <div className="space-y-1.5 text-sm text-gray-700">
         <p>✅ 네이버 AI탭 — 모든 업종 대상 대화형 검색 지원</p>
         <p>✅ 네이버 블로그·일반 검색 — 지금도 최적화 가능</p>
-        <p>🔮 AI 브리핑 — 업종 확대 시 즉시 자동 활성화</p>
+        <p>🔮 AI 브리핑(플레이스형) — 업종 확대 시 자동 활성화 · 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출은 지금도 가능</p>
         <p>🎯 ChatGPT·Gemini·Google AI — 글로벌 채널 데이터 축적 중</p>
       </div>
       <Link
