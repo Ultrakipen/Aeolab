@@ -158,7 +158,7 @@ export default async function AdminDeliveryDetailPage({
   };
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-4 flex-wrap">
         <Link href="/admin" className="hover:text-blue-600 transition-colors">관리자</Link>

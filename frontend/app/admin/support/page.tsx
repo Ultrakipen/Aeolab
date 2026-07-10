@@ -90,7 +90,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
     });
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto">
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">Q&A 문의 관리</h1>
