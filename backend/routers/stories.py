@@ -9,29 +9,18 @@
 """
 
 import logging
-import os
-import secrets
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, field_validator
 
 from db.supabase_client import get_client, execute
+from utils.admin_auth import verify_admin
 
 _logger = logging.getLogger("aeolab")
 
 router = APIRouter()
 admin_router = APIRouter()
-
-
-# ── 관리자 인증 ────────────────────────────────────────────────────────────────
-def verify_admin(x_admin_key: str = Header(None)) -> None:
-    """delivery.py와 동일한 verify_admin 패턴."""
-    secret = os.getenv("ADMIN_SECRET_KEY")
-    if not secret:
-        raise HTTPException(status_code=503, detail="관리자 키가 설정되지 않았습니다")
-    if not x_admin_key or not secrets.compare_digest(x_admin_key, secret):
-        raise HTTPException(status_code=403, detail="관리자 전용")
 
 
 # ── Pydantic 모델 ──────────────────────────────────────────────────────────────

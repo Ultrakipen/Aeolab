@@ -23,16 +23,16 @@ import aiohttp
 import base64
 import logging
 import os
-import secrets
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, field_validator
 
 from config.prices import DELIVERY_PRICES
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
+from utils.admin_auth import verify_admin
 
 _logger = logging.getLogger("aeolab")
 
@@ -87,13 +87,7 @@ PACKAGES: dict[str, dict] = {
 VALID_STATUSES = {"received", "paid", "in_progress", "completed", "cancelled", "rework", "refunded"}
 
 
-# ── 관리자 인증 ────────────────────────────────────────────────────────────────
-def verify_admin(x_admin_key: str = Header(None)) -> None:
-    secret = os.getenv("ADMIN_SECRET_KEY")
-    if not secret:
-        raise HTTPException(status_code=503, detail="관리자 키가 설정되지 않았습니다")
-    if not x_admin_key or not secrets.compare_digest(x_admin_key, secret):
-        raise HTTPException(status_code=403, detail="관리자 전용")
+# ── 관리자 인증: utils.admin_auth.verify_admin 사용(위에서 import) ──────────────
 
 
 # ── Pydantic 모델 ──────────────────────────────────────────────────────────────
@@ -187,7 +181,7 @@ async def _get_order_or_404(order_id: str) -> dict:
     supabase = get_client()
     res = await execute(
         supabase.table("delivery_orders")
-        .select("id, user_id, business_id, package_type, request_title, request_body, status, amount, consent_agreed, consent_signed_at, consent_ip, completion_report, materials_url, created_at")
+        .select("id, user_id, business_id, package_type, request_title, request_body, status, amount, consent_agreed, consent_signed_at, consent_ip, completion_report, materials_url, created_at, payment_key, rework_count")
         .eq("id", order_id)
         .single()
     )
@@ -202,6 +196,60 @@ async def _get_order_owned_or_403(order_id: str, user_id: str) -> dict:
     if order["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
     return order
+
+
+async def _get_latest_business_score(business_id: Optional[str]) -> Optional[float]:
+    """사업장의 가장 최근 scan_results.unified_score(없으면 total_score) 조회.
+
+    delivery_orders.score_before/score_after 채우기용 — 스캔 이력이 없으면 None.
+    """
+    if not business_id:
+        return None
+    try:
+        supabase = get_client()
+        res = await execute(
+            supabase.table("scan_results")
+            .select("unified_score, total_score")
+            .eq("business_id", business_id)
+            .order("created_at", desc=True)
+            .limit(1)
+            .maybe_single()
+        )
+        row = res.data if (res and res.data) else None
+        if not row:
+            return None
+        val = row.get("unified_score")
+        if val is None:
+            val = row.get("total_score")
+        return float(val) if val is not None else None
+    except Exception as _e:
+        _logger.debug(f"[delivery] 최근 점수 조회 실패 (무시): {_e}")
+        return None
+
+
+async def _toss_cancel_payment(payment_key: str, reason: str) -> tuple[bool, str]:
+    """토스 결제취소(전액 환불) API 호출. 성공 시 (True, ""), 실패 시 (False, 사유)."""
+    toss_secret = os.getenv("TOSS_SECRET_KEY", "")
+    if not toss_secret:
+        return False, "TOSS_SECRET_KEY 미설정 — 환불 처리 불가"
+
+    encoded = base64.b64encode(f"{toss_secret}:".encode()).decode()
+    try:
+        async with aiohttp.ClientSession(timeout=_TOSS_TIMEOUT) as session:
+            async with session.post(
+                f"https://api.tosspayments.com/v1/payments/{payment_key}/cancel",
+                headers={
+                    "Authorization": f"Basic {encoded}",
+                    "Content-Type": "application/json",
+                },
+                json={"cancelReason": reason},
+            ) as resp:
+                data = await resp.json()
+                if resp.status != 200:
+                    return False, data.get("message", f"토스 환불 실패 (status={resp.status})")
+                return True, ""
+    except aiohttp.ClientError as e:
+        return False, f"결제 서버 연결 실패: {e}"
 
 
 async def _send_status_kakao(order_id: str, new_status: str) -> None:
@@ -335,6 +383,10 @@ async def create_order(
     pkg = PACKAGES[body.package_type]
     now = datetime.now(timezone.utc).isoformat()
 
+    # 성공사례(후기) score_delta 채우기용 기준점 — 신청 시점 최근 스캔 점수를
+    # "작업 전" 점수로 저장. 스캔 이력이 없으면 None(추후에도 채워지지 않음, 정상).
+    score_before = await _get_latest_business_score(body.business_id)
+
     payload = {
         "user_id": user_id,
         "business_id": body.business_id,
@@ -345,6 +397,7 @@ async def create_order(
         "amount": pkg["amount"],
         "consent_agreed": True,
         "consent_signed_at": now,
+        "score_before": score_before,
     }
 
     insert_res = await execute(
@@ -705,17 +758,76 @@ async def admin_update_status(
     body: AdminStatusUpdate,
     _: None = Depends(verify_admin),
 ):
-    """주문 상태 변경 + 카카오 알림톡 트리거."""
-    # 주문 존재 확인
-    await _get_order_or_404(order_id)
+    """주문 상태 변경 + 카카오 알림톡 트리거.
 
+    2026-07-11: 결제된(paid/in_progress/rework) 주문의 취소·환불은 반드시 토스 결제취소
+    API를 실제로 호출한 뒤에만 status를 바꾼다 (이전엔 DB status만 바꾸고 실제 환불은
+    발생하지 않아 고객은 "환불" 표시를 보지만 돈은 그대로인 사고 위험이 있었음).
+    """
+    order = await _get_order_or_404(order_id)
     supabase = get_client()
-    now = datetime.now(timezone.utc).isoformat()
-    await execute(
-        supabase.table("delivery_orders")
-        .update({"status": body.status})
-        .eq("id", order_id)
-    )
+
+    if body.status == "completed":
+        # 완료 처리는 완료보고서가 함께 등록되는 /complete 엔드포인트로만 허용
+        raise HTTPException(
+            status_code=400,
+            detail="완료 처리는 완료 보고서 등록(완료 처리 버튼)을 통해서만 가능합니다",
+        )
+
+    if body.status == "cancelled":
+        if order["status"] != "received":
+            raise HTTPException(
+                status_code=400,
+                detail="결제가 완료된 주문은 '취소'가 아닌 '환불 처리'를 사용해 주세요",
+            )
+        await execute(
+            supabase.table("delivery_orders")
+            .update({"status": "cancelled"})
+            .eq("id", order_id)
+        )
+
+    elif body.status == "refunded":
+        if order["status"] not in ("paid", "in_progress", "rework"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"환불 처리는 결제완료 상태의 주문만 가능합니다 (현재 status={order['status']})",
+            )
+        payment_key = order.get("payment_key")
+        if not payment_key:
+            raise HTTPException(
+                status_code=400,
+                detail="결제 키가 없어 자동 환불이 불가합니다. 토스 관리자 콘솔에서 수동 확인 후 처리해 주세요",
+            )
+        ok, err = await _toss_cancel_payment(payment_key, "관리자 수동 환불 처리")
+        if not ok:
+            _logger.error(f"[admin/delivery] 수동 환불 실패: order_id={order_id}, error={err}")
+            raise HTTPException(status_code=502, detail=f"토스 환불 실패: {err}")
+        await execute(
+            supabase.table("delivery_orders")
+            .update({
+                "status": "refunded",
+                "refund_amount": order.get("amount"),
+                "refund_reason": "관리자 수동 환불 처리",
+            })
+            .eq("id", order_id)
+        )
+        _logger.info(f"[admin/delivery] 수동 환불 완료: order_id={order_id}, amount={order.get('amount')}")
+
+    elif body.status == "rework":
+        # rework_count 증가 (스키마 주석 기준 최대 2회 권장 — 강제 차단은 아니고 가시화만)
+        current_count = order.get("rework_count") or 0
+        await execute(
+            supabase.table("delivery_orders")
+            .update({"status": "rework", "rework_count": current_count + 1})
+            .eq("id", order_id)
+        )
+
+    else:
+        await execute(
+            supabase.table("delivery_orders")
+            .update({"status": body.status})
+            .eq("id", order_id)
+        )
 
     _logger.info(f"[admin/delivery] 상태 변경: order_id={order_id}, status={body.status}")
 
@@ -793,6 +905,24 @@ async def submit_testimonial(
     if len(testimonial_body) < 10:
         raise HTTPException(status_code=422, detail="후기는 10자 이상 입력해주세요")
 
+    # score_after — 후기 작성 시점 최신 스캔 점수를 "작업 후" 점수로 확정 저장.
+    # (2026-07-11 발견: 이전엔 delivery_orders.score_after를 채우는 코드가 어디에도
+    # 없어 success_stories.score_delta가 항상 NULL이었음 — 점수 개선 사례가 전혀
+    # 노출되지 않는 버그였음.)
+    score_after = order.get("score_after")
+    if score_after is None:
+        score_after = await _get_latest_business_score(order.get("business_id"))
+        if score_after is not None:
+            try:
+                await execute(
+                    supabase.table("delivery_orders")
+                    .update({"score_after": score_after})
+                    .eq("id", order_id)
+                )
+                order["score_after"] = score_after
+            except Exception as _e:
+                _logger.debug(f"[delivery/testimonial] score_after 저장 실패 (무시): {_e}")
+
     # businesses에서 category/region 조회 (delivery_orders에 해당 컬럼 없음)
     biz_category = "other"
     biz_region = ""
@@ -836,6 +966,19 @@ async def submit_testimonial(
 
     _logger.info(f"[delivery/testimonial] 후기 작성 완료: order={order_id}")
 
+    # "코칭 쿠폰은 카카오톡으로 보내드립니다" 안내를 실제로 이행하려면 운영자가 수동으로
+    # 카카오톡을 보내야 함(자동 발송 기능 없음) — 2026-07-11 점검에서 이 약속을 상기시킬
+    # 장치가 전혀 없었음을 발견해 최소한의 운영자 알림을 추가.
+    try:
+        from services.email_sender import send_operator_alert
+        await send_operator_alert(
+            "대행 서비스 후기 등록 — 코칭 쿠폰 발송 필요",
+            f"order_id={order_id}\nuser_id={user['id']}\n"
+            f"후기가 등록되었습니다. 1:1 화상 코칭 쿠폰(30,000원 상당)을 카카오톡으로 수동 발송해 주세요.",
+        )
+    except Exception as _alert_e:
+        _logger.warning(f"[delivery/testimonial] 운영자 알림 실패 (무시): {_alert_e}")
+
     return {"ok": True, "coupon_message": "코칭 쿠폰은 카카오톡으로 보내드립니다"}
 
 
@@ -845,8 +988,19 @@ async def admin_complete_order(
     body: AdminCompleteReport,
     _: None = Depends(verify_admin),
 ):
-    """완료 보고서 등록 + 상태 completed 로 변경."""
-    await _get_order_or_404(order_id)
+    """완료 보고서 등록 + 상태 completed 로 변경.
+
+    work_completed_at을 여기서 기록해야 delivery_30day_rescan_job(종합 풀패키지 30일 후
+    자동 재진단)의 조회 조건(work_completed_at < now()-30일)이 충족된다 — 2026-07-11
+    점검에서 이 컬럼이 어디서도 설정되지 않아 재진단 잡이 영구적으로 대상 0건이었던
+    버그를 발견해 수정.
+    """
+    order = await _get_order_or_404(order_id)
+    if order["status"] not in ("paid", "in_progress", "rework"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"결제완료 상태의 주문만 완료 처리할 수 있습니다 (현재 status={order['status']})",
+        )
 
     supabase = get_client()
     now = datetime.now(timezone.utc).isoformat()
@@ -855,6 +1009,7 @@ async def admin_complete_order(
         .update({
             "completion_report": body.completion_report,
             "status": "completed",
+            "work_completed_at": now,
         })
         .eq("id", order_id)
     )

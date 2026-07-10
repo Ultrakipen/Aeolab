@@ -521,11 +521,12 @@ function InquiryTab() {
 }
 
 // ─── 메인 대시보드 ────────────────────────────────────────────
-// 로그인: 입력받은 key를 서버 프록시로 검증. key는 state에만 보관하며 번들에 포함되지 않음.
-export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
-  const [inputKey, setInputKey] = useState("");
-  const [authed, setAuthed] = useState(false);
-  const [checkingSession, setCheckingSession] = useState(true);
+// 인증은 app/admin/layout.tsx(Supabase 세션 + ADMIN_EMAILS)가 서버에서 이미 검증한
+// 뒤에만 이 컴포넌트가 렌더링된다 — 과거 있던 클라이언트 측 "관리자 키 입력" 게이트는
+// 실제로는 입력값을 검증에 쓰지 않는 죽은 UI였고(2026-07-10 발견), 로그아웃도 이
+// localStorage 플래그만 지울 뿐 Supabase 세션은 그대로 남아 실제로는 로그아웃되지
+// 않는 버그였다 — 둘 다 제거하고 즉시 데이터를 불러온다.
+export function AdminDashboard() {
   const [tab, setTab] = useState<"dashboard" | "faq" | "inquiry">("dashboard");
   const [stats, setStats] = useState<Stats | null>(null);
   const [revenue, setRevenue] = useState<RevenueRow[]>([]);
@@ -545,11 +546,8 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   const [catDist, setCatDist] = useState<CategoryDist | null>(null);
   const [aiUsage, setAiUsage] = useState<AiUsage | null>(null);
   const [cohort, setCohort] = useState<CohortAnalysis | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  // initialKey prop은 더 이상 사용하지 않음 (하위호환용 파라미터만 유지)
-  void initialKey;
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -562,20 +560,12 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
         fetch(`${ADMIN_PROXY}?path=admin/ai-usage?days=30`),
         fetch(`${ADMIN_PROXY}?path=admin/cohort-analysis`),
       ]);
-      if (!statsRes.ok) {
-        if (statsRes.status === 403) {
-          setError("관리자 키가 올바르지 않습니다.");
-          setAuthed(false);
-          return;
-        }
-        throw new Error("API 오류");
-      }
+      if (!statsRes.ok) throw new Error("API 오류");
       setStats(await statsRes.json());
       setRevenue(await revenueRes.json());
       if (catRes.ok) setCatDist(await catRes.json());
       if (aiUsageRes.ok) setAiUsage(await aiUsageRes.json());
       if (cohortRes.ok) setCohort(await cohortRes.json());
-      setAuthed(true);
     } catch {
       setError("데이터를 불러오는 중 오류가 발생했습니다.");
     } finally {
@@ -611,8 +601,12 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   }, [subPage, subPlanFilter, subStatusFilter, subSearch]);
 
   useEffect(() => {
-    if (authed) loadSubs();
-  }, [authed, loadSubs]);
+    fetchAll();
+  }, [fetchAll]);
+
+  useEffect(() => {
+    loadSubs();
+  }, [loadSubs]);
 
   // 검색어 디바운스(300ms) — 필터/검색어가 바뀌면 페이지를 0으로 초기화
   useEffect(() => {
@@ -654,55 +648,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
     setCancelResult(null);
   };
 
-  // 로그인 검증: 입력한 키를 서버 프록시에 전달해 403 여부로 확인
-  const handleLogin = useCallback(async () => {
-    if (!inputKey.trim()) return;
-    setLoading(true);
-    setError("");
-    try {
-      // 임시로 쿠키/세션 없이 서버 환경변수 ADMIN_SECRET_KEY와 비교하는 경량 검증
-      // 프록시가 ADMIN_KEY를 header에 붙이므로 stats 호출 성공 = 인증 성공
-      const res = await fetch(`${ADMIN_PROXY}?path=admin/stats`);
-      if (res.status === 403) {
-        setError("관리자 키가 올바르지 않습니다.");
-        return;
-      }
-      if (!res.ok) throw new Error("API 오류");
-      setStats(await res.json());
-      // 나머지 데이터 로드
-      const [revenueRes, catRes2, aiUsageRes2, cohortRes2] = await Promise.all([
-        fetch(`${ADMIN_PROXY}?path=admin/revenue`),
-        fetch(`${ADMIN_PROXY}?path=admin/category-distribution`),
-        fetch(`${ADMIN_PROXY}?path=admin/ai-usage?days=30`),
-        fetch(`${ADMIN_PROXY}?path=admin/cohort-analysis`),
-      ]);
-      setRevenue(await revenueRes.json());
-      if (catRes2.ok) setCatDist(await catRes2.json());
-      if (aiUsageRes2.ok) setAiUsage(await aiUsageRes2.json());
-      if (cohortRes2.ok) setCohort(await cohortRes2.json());
-      setAuthed(true);
-      // 세션 유지 (새로고침 대응)
-      try { localStorage.setItem("aeolab_admin_authed", "1"); } catch { /* ignore */ }
-    } catch {
-      setError("데이터를 불러오는 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  }, [inputKey]);
-
-  useEffect(() => {
-    // localStorage 기반 간단 세션 유지
-    const saved = (() => { try { return localStorage.getItem("aeolab_admin_authed"); } catch { return null; } })();
-    if (saved === "1") {
-      fetchAll().finally(() => setCheckingSession(false));
-    } else {
-      setCheckingSession(false);
-    }
-  }, [fetchAll]);
-
-  // 세션 확인 중(뒤로가기·새로고침 직후)에는 "관리자 접근" 로그인 게이트가
-  // 잠시 잘못 노출되지 않도록 스피너만 표시 — authed 확정 전 깜빡임 방지
-  if (checkingSession) {
+  if (loading && !stats) {
     return (
       <div className="flex items-center justify-center py-24">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
@@ -710,36 +656,16 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
     );
   }
 
-  if (!authed) {
+  if (error && !stats) {
     return (
-      <div className="flex items-center justify-center px-4 py-16">
-        <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full">
-          <h1 className="text-xl font-bold text-gray-900 mb-6">관리자 접근</h1>
-          <input
-            type="password"
-            placeholder="관리자 키 입력"
-            value={inputKey}
-            onChange={(e) => setInputKey(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-          />
-          {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
-          <button
-            onClick={handleLogin}
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
-            {loading ? "확인 중..." : "확인"}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="text-center py-24">
+        <p className="text-red-500 text-sm mb-3">{error}</p>
+        <button
+          onClick={() => { fetchAll(); loadSubs(); }}
+          className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+        >
+          다시 시도
+        </button>
       </div>
     );
   }
@@ -770,16 +696,6 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
             className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
           >
             새로고침
-          </button>
-          <button
-            onClick={() => {
-              try { localStorage.removeItem("aeolab_admin_authed"); } catch { /* ignore */ }
-              setAuthed(false);
-              setInputKey("");
-            }}
-            className="text-sm text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            로그아웃
           </button>
         </div>
       </div>

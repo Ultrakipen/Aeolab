@@ -16,15 +16,15 @@
 
 import logging
 import os
-import secrets
 from datetime import date, datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, field_validator
 
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user, get_user_plan
+from utils.admin_auth import verify_admin
 
 _logger = logging.getLogger("aeolab")
 
@@ -56,13 +56,7 @@ _VALID_STATUSES = {"open", "answered", "closed"}
 _ADMIN_AUTHOR_ID = "00000000-0000-0000-0000-000000000000"
 
 
-# ── 관리자 인증 ────────────────────────────────────────────────────────────────
-def verify_admin(x_admin_key: str = Header(None)) -> None:
-    secret = os.getenv("ADMIN_SECRET_KEY")
-    if not secret:
-        raise HTTPException(status_code=503, detail="관리자 키가 설정되지 않았습니다")
-    if not x_admin_key or not secrets.compare_digest(x_admin_key, secret):
-        raise HTTPException(status_code=403, detail="관리자 전용")
+# ── 관리자 인증: utils.admin_auth.verify_admin 사용(위에서 import) ──────────────
 
 
 # ── Pydantic 모델 ──────────────────────────────────────────────────────────────

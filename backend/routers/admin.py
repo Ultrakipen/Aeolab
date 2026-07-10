@@ -4,24 +4,16 @@ import os
 import secrets
 import statistics
 from datetime import date, datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, Header, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from db.supabase_client import get_client, execute
 from config.prices import PLAN_PRICE_MAP
 from services.score_engine import BRIEFING_ACTIVE_CATEGORIES, BRIEFING_LIKELY_CATEGORIES
-from utils.admin_auth import require_owner
+from utils.admin_auth import require_owner, verify_admin
 
 _logger = logging.getLogger("aeolab")
 
 router = APIRouter()
-
-
-def verify_admin(x_admin_key: str = Header(None)):
-    secret = os.getenv("ADMIN_SECRET_KEY")
-    if not secret:
-        raise HTTPException(status_code=503, detail="관리자 키가 설정되지 않았습니다")
-    if not x_admin_key or not secrets.compare_digest(x_admin_key, secret):
-        raise HTTPException(status_code=403, detail="관리자 전용")
 
 
 def get_supabase():
