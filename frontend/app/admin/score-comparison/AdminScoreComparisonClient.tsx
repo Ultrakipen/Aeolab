@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   ScatterChart,
   Scatter,
@@ -162,7 +163,7 @@ function GroupCard({ groupKey, stats }: { groupKey: string; stats: GroupStats })
         </div>
       </div>
       <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-        <span className="text-gray-400 dark:text-gray-500 text-xs">표준편차: {(stats.diff_stddev ?? 0).toFixed(1)}</span>
+        <span className="text-gray-400 dark:text-gray-500 text-sm">표준편차: {(stats.diff_stddev ?? 0).toFixed(1)}</span>
       </div>
     </div>
   );
@@ -231,9 +232,9 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
       <main className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm max-w-sm w-full text-center">
           <p className="text-gray-600 dark:text-gray-300 text-base">관리자만 접근할 수 있습니다.</p>
-          <a href="/admin" className="mt-4 inline-block text-blue-600 dark:text-blue-400 text-sm hover:underline">
+          <Link href="/admin" className="mt-4 inline-block text-blue-600 dark:text-blue-400 text-sm hover:underline">
             관리자 페이지로 돌아가기
-          </a>
+          </Link>
         </div>
       </main>
     );
@@ -245,9 +246,9 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
       <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-8">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
-            <a href="/admin" className="text-blue-600 dark:text-blue-400 text-sm hover:underline">
+            <Link href="/admin" className="text-blue-600 dark:text-blue-400 text-sm hover:underline">
               ← 관리자
-            </a>
+            </Link>
             <span className="text-gray-400">/</span>
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">점수 모델 v3.1 비교</h1>
           </div>
@@ -261,7 +262,7 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
               30일 자동 스캔이 쌓인 후 다시 확인해 주세요.
             </p>
             <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-left">
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">
                 ALTER TABLE scan_results<br />
                 &nbsp;&nbsp;ADD COLUMN IF NOT EXISTS track1_score_v31 FLOAT,<br />
                 &nbsp;&nbsp;ADD COLUMN IF NOT EXISTS track2_score_v31 FLOAT,<br />
@@ -294,9 +295,9 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <a href="/admin" className="text-blue-600 dark:text-blue-400 text-sm hover:underline">
+            <Link href="/admin" className="text-blue-600 dark:text-blue-400 text-sm hover:underline">
               ← 관리자
-            </a>
+            </Link>
             <span className="text-gray-400">/</span>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
               점수 모델 v3.1 비교
@@ -426,7 +427,7 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
                         {["사업장명", "업종", "v3.0", "v3.1", "변화량"].map((h) => (
                           <th
                             key={h}
-                            className="text-left py-2 pr-3 text-gray-500 dark:text-gray-400 font-medium text-xs uppercase tracking-wide"
+                            className="text-left py-2 pr-3 text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wide"
                           >
                             {h}
                           </th>
@@ -478,7 +479,7 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
                 v3.1은 이미 라이브 적용 중입니다
               </h2>
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                서버 <code className="text-xs bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">SCORE_MODEL_VERSION=v3_1</code>로
+                서버 <code className="text-sm bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">SCORE_MODEL_VERSION=v3_1</code>로
                 전환 완료되어 위 &quot;v3.0 평균&quot;/&quot;v3.1 평균&quot;은 실제로는 라이브 점수와
                 동일 포뮬러의 shadow 재계산값을 비교한 것입니다. diff가 0에 가까울수록 정상(회귀 없음)이며,
                 차기 모델 버전(v3.2 등) 전환 검토 시 이 페이지를 다시 활용할 수 있습니다.

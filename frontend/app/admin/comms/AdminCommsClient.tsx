@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 const PROXY = "/api/admin-proxy";
 
@@ -188,7 +189,7 @@ export function AdminCommsClient() {
     <div className="max-w-4xl mx-auto p-4 md:p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-900">운영자 소통 관리</h1>
-        <a href="/admin" className="text-sm text-blue-600 hover:underline">← 어드민 홈</a>
+        <Link href="/admin" className="text-sm text-blue-600 hover:underline">← 어드민 홈</Link>
       </div>
 
       {msg && (
@@ -255,7 +256,7 @@ export function AdminCommsClient() {
                         await loadStatus();
                         notify(`scan_status → ${v}`);
                       }}
-                      className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                         status.scan_status === v
                           ? "bg-blue-600 text-white"
                           : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -281,7 +282,7 @@ export function AdminCommsClient() {
             <p className="text-sm font-semibold text-gray-700">새 팁 추가</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="min-w-0">
-                <label className="text-xs text-gray-500 mb-1 block">섹션</label>
+                <label className="text-sm text-gray-500 mb-1 block">섹션</label>
                 <select
                   value={tipForm.section}
                   onChange={(e) => setTipForm((f) => ({ ...f, section: e.target.value }))}
@@ -293,7 +294,7 @@ export function AdminCommsClient() {
                 </select>
               </div>
               <div className="min-w-0">
-                <label className="text-xs text-gray-500 mb-1 block">우선순위 (낮을수록 먼저)</label>
+                <label className="text-sm text-gray-500 mb-1 block">우선순위 (낮을수록 먼저)</label>
                 <input
                   type="number"
                   value={tipForm.priority}
@@ -332,23 +333,23 @@ export function AdminCommsClient() {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">{tip.section}</span>
-                      <span className="text-xs text-gray-400">p{tip.priority}</span>
-                      {!tip.is_active && <span className="text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded">비활성</span>}
+                      <span className="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded">{tip.section}</span>
+                      <span className="text-sm text-gray-400">p{tip.priority}</span>
+                      {!tip.is_active && <span className="text-sm bg-gray-200 text-gray-500 px-2 py-0.5 rounded">비활성</span>}
                     </div>
                     <p className="text-sm font-medium text-gray-900 truncate">{tip.title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{tip.body}</p>
+                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{tip.body}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button
                       onClick={() => toggleTip(tip)}
-                      className="px-3 py-1.5 text-xs rounded border hover:bg-gray-50 transition-colors"
+                      className="px-3 py-1.5 text-sm rounded border hover:bg-gray-50 transition-colors"
                     >
                       {tip.is_active ? "비활성화" : "활성화"}
                     </button>
                     <button
                       onClick={() => deleteTip(tip)}
-                      className="px-3 py-1.5 text-xs rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                      className="px-3 py-1.5 text-sm rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
                     >
                       삭제
                     </button>
@@ -368,7 +369,7 @@ export function AdminCommsClient() {
             <p className="text-sm font-semibold text-gray-700">새 메시지 추가</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="min-w-0">
-                <label className="text-xs text-gray-500 mb-1 block">대상 세그먼트</label>
+                <label className="text-sm text-gray-500 mb-1 block">대상 세그먼트</label>
                 <select
                   value={msgForm.target_segment}
                   onChange={(e) => setMsgForm((f) => ({ ...f, target_segment: e.target.value }))}
@@ -380,7 +381,7 @@ export function AdminCommsClient() {
                 </select>
               </div>
               <div className="min-w-0">
-                <label className="text-xs text-gray-500 mb-1 block">CTA 버튼 텍스트 (선택)</label>
+                <label className="text-sm text-gray-500 mb-1 block">CTA 버튼 텍스트 (선택)</label>
                 <input
                   placeholder="예: 자세히 보기"
                   value={msgForm.cta_label}
@@ -427,22 +428,22 @@ export function AdminCommsClient() {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">{m.target_segment}</span>
-                      {!m.is_active && <span className="text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded">비활성</span>}
+                      <span className="text-sm bg-purple-100 text-purple-700 px-2 py-0.5 rounded">{m.target_segment}</span>
+                      {!m.is_active && <span className="text-sm bg-gray-200 text-gray-500 px-2 py-0.5 rounded">비활성</span>}
                     </div>
                     <p className="text-sm font-medium text-gray-900 truncate">{m.title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{m.body}</p>
+                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{m.body}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button
                       onClick={() => toggleMessage(m)}
-                      className="px-3 py-1.5 text-xs rounded border hover:bg-gray-50 transition-colors"
+                      className="px-3 py-1.5 text-sm rounded border hover:bg-gray-50 transition-colors"
                     >
                       {m.is_active ? "비활성화" : "활성화"}
                     </button>
                     <button
                       onClick={() => deleteMessage(m)}
-                      className="px-3 py-1.5 text-xs rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                      className="px-3 py-1.5 text-sm rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
                     >
                       삭제
                     </button>

@@ -1,6 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { CATEGORY_LABEL } from "@/lib/categories";
+import { PLAN_PRICES } from "@/lib/plans";
+
+const SUB_PAGE_SIZE = 50;
 
 // 관리자 API는 서버 사이드 프록시를 통해 호출 (키 노출 방지)
 // 가격 정보는 백엔드 plan_stats에서 직접 받음 — lib/plans.ts PLAN_PRICES는 layout.tsx JSON-LD 등 클라이언트 표시용
@@ -504,10 +509,15 @@ function InquiryTab() {
 export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   const [inputKey, setInputKey] = useState("");
   const [authed, setAuthed] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [tab, setTab] = useState<"dashboard" | "faq" | "inquiry">("dashboard");
   const [stats, setStats] = useState<Stats | null>(null);
   const [revenue, setRevenue] = useState<RevenueRow[]>([]);
   const [subs, setSubs] = useState<SubRow[]>([]);
+  const [subTotal, setSubTotal] = useState(0);
+  const [subPage, setSubPage] = useState(0);
+  const [subLoading, setSubLoading] = useState(false);
+  const [subSearchInput, setSubSearchInput] = useState("");
   const [subSearch, setSubSearch] = useState("");
   const [subPlanFilter, setSubPlanFilter] = useState("all");
   const [subStatusFilter, setSubStatusFilter] = useState("all");
@@ -529,10 +539,9 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
     setLoading(true);
     setError("");
     try {
-      const [statsRes, revenueRes, subsRes, catRes, aiUsageRes, cohortRes] = await Promise.all([
+      const [statsRes, revenueRes, catRes, aiUsageRes, cohortRes] = await Promise.all([
         fetch(`${ADMIN_PROXY}?path=admin/stats`),
         fetch(`${ADMIN_PROXY}?path=admin/revenue`),
-        fetch(`${ADMIN_PROXY}?path=admin/subscriptions`),
         fetch(`${ADMIN_PROXY}?path=admin/category-distribution`),
         fetch(`${ADMIN_PROXY}?path=admin/ai-usage?days=30`),
         fetch(`${ADMIN_PROXY}?path=admin/cohort-analysis`),
@@ -547,7 +556,6 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
       }
       setStats(await statsRes.json());
       setRevenue(await revenueRes.json());
-      setSubs(await subsRes.json());
       if (catRes.ok) setCatDist(await catRes.json());
       if (aiUsageRes.ok) setAiUsage(await aiUsageRes.json());
       if (cohortRes.ok) setCohort(await cohortRes.json());
@@ -558,6 +566,47 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
       setLoading(false);
     }
   }, []);
+
+  // 구독자 목록 전용 로더 — 검색/필터/페이지 변경 시에만 재호출.
+  // 이전에는 fetchAll이 구독자 전체를 한 번에 불러와 화면에 다 그렸으나,
+  // 구독자 수가 늘어나면 응답 크기·렌더링 DOM 노드 수가 무한정 커지는 문제가 있어
+  // 서버사이드 limit/offset 페이지네이션으로 전환(2026-07-11).
+  const loadSubs = useCallback(async () => {
+    setSubLoading(true);
+    try {
+      const params = new URLSearchParams({
+        path: "admin/subscriptions",
+        limit: String(SUB_PAGE_SIZE),
+        offset: String(subPage * SUB_PAGE_SIZE),
+      });
+      if (subPlanFilter !== "all") params.set("plan", subPlanFilter);
+      if (subStatusFilter !== "all") params.set("status", subStatusFilter);
+      if (subSearch.trim()) params.set("email", subSearch.trim());
+      const res = await fetch(`${ADMIN_PROXY}?${params}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setSubs(data.items ?? []);
+      setSubTotal(data.total ?? 0);
+    } catch {
+      // 구독자 목록 로드 실패는 대시보드 전체를 막지 않음 — 다음 새로고침/필터 변경 시 재시도
+    } finally {
+      setSubLoading(false);
+    }
+  }, [subPage, subPlanFilter, subStatusFilter, subSearch]);
+
+  useEffect(() => {
+    if (authed) loadSubs();
+  }, [authed, loadSubs]);
+
+  // 검색어 디바운스(300ms) — 필터/검색어가 바뀌면 페이지를 0으로 초기화
+  useEffect(() => {
+    const t = setTimeout(() => setSubSearch(subSearchInput), 300);
+    return () => clearTimeout(t);
+  }, [subSearchInput]);
+
+  useEffect(() => {
+    setSubPage(0);
+  }, [subSearch, subPlanFilter, subStatusFilter]);
 
   // 관리자 강제 구독 취소/환불 — 2단계 확인 모달의 최종 확정 버튼에서 호출 (금전 이동)
   const handleAdminCancelSubscription = useCallback(async () => {
@@ -605,15 +654,13 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
       if (!res.ok) throw new Error("API 오류");
       setStats(await res.json());
       // 나머지 데이터 로드
-      const [revenueRes, subsRes, catRes2, aiUsageRes2, cohortRes2] = await Promise.all([
+      const [revenueRes, catRes2, aiUsageRes2, cohortRes2] = await Promise.all([
         fetch(`${ADMIN_PROXY}?path=admin/revenue`),
-        fetch(`${ADMIN_PROXY}?path=admin/subscriptions`),
         fetch(`${ADMIN_PROXY}?path=admin/category-distribution`),
         fetch(`${ADMIN_PROXY}?path=admin/ai-usage?days=30`),
         fetch(`${ADMIN_PROXY}?path=admin/cohort-analysis`),
       ]);
       setRevenue(await revenueRes.json());
-      setSubs(await subsRes.json());
       if (catRes2.ok) setCatDist(await catRes2.json());
       if (aiUsageRes2.ok) setAiUsage(await aiUsageRes2.json());
       if (cohortRes2.ok) setCohort(await cohortRes2.json());
@@ -630,8 +677,22 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   useEffect(() => {
     // localStorage 기반 간단 세션 유지
     const saved = (() => { try { return localStorage.getItem("aeolab_admin_authed"); } catch { return null; } })();
-    if (saved === "1") fetchAll();
+    if (saved === "1") {
+      fetchAll().finally(() => setCheckingSession(false));
+    } else {
+      setCheckingSession(false);
+    }
   }, [fetchAll]);
+
+  // 세션 확인 중(뒤로가기·새로고침 직후)에는 "관리자 접근" 로그인 게이트가
+  // 잠시 잘못 노출되지 않도록 스피너만 표시 — authed 확정 전 깜빡임 방지
+  if (checkingSession) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </main>
+    );
+  }
 
   if (!authed) {
     return (
@@ -673,18 +734,11 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   const SUB_STATUS_LABELS: Record<string, string> = {
     active: "활성", grace_period: "유예", suspended: "정지", cancelled: "해지", expired: "만료",
   };
-  const subStatusOptions = Array.from(new Set(subs.map((s) => s.status)));
-  const subPlanOptions = Array.from(new Set(subs.map((s) => s.plan)));
-  const filteredSubs = subs.filter((s) => {
-    if (subPlanFilter !== "all" && s.plan !== subPlanFilter) return false;
-    if (subStatusFilter !== "all" && s.status !== subStatusFilter) return false;
-    if (subSearch.trim()) {
-      const needle = subSearch.trim().toLowerCase();
-      const haystack = `${s.email ?? ""} ${s.user_id}`.toLowerCase();
-      if (!haystack.includes(needle)) return false;
-    }
-    return true;
-  });
+  // 페이지네이션 전환(2026-07-11) 이후 현재 페이지에 로드된 행만으로는 필터 옵션이
+  // 매번 달라지므로, 고정된 전체 상태/플랜 목록을 사용(서버에 plan/status로 필터 위임)
+  const subStatusOptions = Object.keys(SUB_STATUS_LABELS);
+  const subPlanOptions = Object.keys(PLAN_PRICES);
+  const subTotalPages = Math.max(1, Math.ceil(subTotal / SUB_PAGE_SIZE));
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -697,7 +751,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => fetchAll()}
+              onClick={() => { fetchAll(); loadSubs(); }}
               className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
             >
               새로고침
@@ -715,50 +769,50 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
           </div>
         </div>
 
-        {/* 외부 링크 */}
+        {/* 외부 링크 — next/link 사용(풀 리로드 방지: 뒤로가기 시 "관리자 접근" 깜빡임 원인이었음) */}
         <div className="flex flex-wrap gap-2 mb-4">
-          <a
+          <Link
             href="/admin/delivery"
             className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
           >
             대행 의뢰 관리 →
-          </a>
-          <a
+          </Link>
+          <Link
             href="/admin/support"
             className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
           >
             Q&A 문의 관리 →
-          </a>
-          <a
+          </Link>
+          <Link
             href="/admin/feedback"
             className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
           >
             피드백 현황 →
-          </a>
-          <a
+          </Link>
+          <Link
             href="/admin/notices"
             className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
           >
             공지사항 관리 →
-          </a>
-          <a
+          </Link>
+          <Link
             href="/admin/score-comparison"
             className="text-sm text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
           >
             점수 모델 v3.1 비교 →
-          </a>
-          <a
+          </Link>
+          <Link
             href="/admin/business"
             className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
           >
             사업장 조회 →
-          </a>
-          <a
+          </Link>
+          <Link
             href="/admin/ops"
             className="text-sm text-gray-600 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
           >
             운영 현황(감사로그·알림·결제이력) →
-          </a>
+          </Link>
         </div>
 
         {/* 탭 */}
@@ -922,16 +976,16 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
               </div>
             )}
 
-            {subs.length > 0 && (
+            {(subTotal > 0 || subSearch.trim() || subStatusFilter !== "all" || subPlanFilter !== "all") && (
               <div className="bg-white rounded-xl p-5 shadow-sm">
                 <h2 className="text-sm font-semibold text-gray-700 mb-4">
-                  구독자 목록 ({filteredSubs.length}/{subs.length}명)
+                  구독자 목록 (총 {subTotal.toLocaleString()}명)
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-2 mb-4">
                   <input
                     type="text"
-                    value={subSearch}
-                    onChange={(e) => setSubSearch(e.target.value)}
+                    value={subSearchInput}
+                    onChange={(e) => setSubSearchInput(e.target.value)}
                     placeholder="이메일 검색"
                     className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -956,7 +1010,9 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                     ))}
                   </select>
                 </div>
-                {filteredSubs.length === 0 ? (
+                {subLoading ? (
+                  <div className="text-sm text-gray-400 py-8 text-center">불러오는 중...</div>
+                ) : subs.length === 0 ? (
                   <div className="text-sm text-gray-400 py-4 text-center">검색 조건에 맞는 구독자가 없습니다.</div>
                 ) : (
                 <div className="overflow-x-auto">
@@ -972,7 +1028,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredSubs.map((sub) => (
+                      {subs.map((sub) => (
                         <tr key={sub.user_id} className="border-b border-gray-50">
                           <td className="py-2 text-gray-700 text-sm">{sub.email ?? sub.user_id.slice(0, 8) + "..."}</td>
                           <td className="py-2">
@@ -1015,6 +1071,25 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                   </table>
                 </div>
                 )}
+                {subTotalPages > 1 && (
+                  <div className="flex items-center justify-center gap-3 mt-4">
+                    <button
+                      onClick={() => setSubPage((p) => Math.max(0, p - 1))}
+                      disabled={subPage === 0}
+                      className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      ← 이전
+                    </button>
+                    <span className="text-sm text-gray-500">{subPage + 1} / {subTotalPages} 페이지</span>
+                    <button
+                      onClick={() => setSubPage((p) => Math.min(subTotalPages - 1, p + 1))}
+                      disabled={subPage >= subTotalPages - 1}
+                      className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      다음 →
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1042,8 +1117,8 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                   <p className="text-sm text-gray-500 mb-2">업종별 상세</p>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(catDist.per_category).slice(0, 20).map(([cat, cnt]) => (
-                      <span key={cat} className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2.5 py-1 text-xs">
-                        {cat} <span className="font-semibold text-gray-500">{cnt}</span>
+                      <span key={cat} className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2.5 py-1 text-sm">
+                        {CATEGORY_LABEL[cat] ?? cat} <span className="font-semibold text-gray-500">{cnt}</span>
                       </span>
                     ))}
                   </div>

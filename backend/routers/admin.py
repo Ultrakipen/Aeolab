@@ -122,9 +122,11 @@ async def list_subscriptions(
     plan: str = None,
     status: str = None,
     email: str = None,
+    limit: int = 50,
+    offset: int = 0,
     _=Depends(verify_admin),
 ):
-    """구독자 목록 (검색/필터 지원).
+    """구독자 목록 (검색/필터/페이지네이션 지원).
 
     status 생략 시 전체 상태(active/cancelled/expired/grace_period/suspended) 조회.
     email 지정 시 부분 일치 검색 — auth.users(email)는 postgrest 조인 대상이 아니므로
@@ -132,6 +134,12 @@ async def list_subscriptions(
     채우지 않음) Supabase Auth Admin API로 별도 조회 후 파이썬에서 merge한다.
     subscriptions↔profiles FK 미등록으로 인한 PGRST200 위험(embedded join 함정)도
     이 방식으로 원천 회피된다.
+
+    구독자 수가 늘어나도 프론트가 전체 목록을 한 번에 렌더링하지 않도록
+    limit/offset 페이지네이션 적용(2026-07-11). 응답 형태가 배열 →
+    {items, total}로 변경됨 — 프론트 AdminDashboard.tsx도 함께 수정해야 함.
+    team_member_count/api_key_count 배치 조회는 반환되는 페이지 분량에만 수행해
+    구독자 수가 늘어도 매 요청 비용이 커지지 않도록 함.
     """
     supabase = get_supabase()
     query = supabase.table("subscriptions").select(
@@ -144,7 +152,7 @@ async def list_subscriptions(
     rows = (await execute(query.order("start_at", desc=True))).data or []
 
     if not rows:
-        return rows
+        return {"items": [], "total": 0}
 
     # auth.users에서 이메일 일괄 조회 (최대 1000명 — BEP 20명·목표 100명 규모에서 충분)
     email_map: dict = {}
@@ -159,9 +167,16 @@ async def list_subscriptions(
     for row in rows:
         row["email"] = email_map.get(row.get("user_id"))
 
+    if email:
+        needle = email.strip().lower()
+        rows = [r for r in rows if needle in (r.get("email") or "").lower()]
+
+    total = len(rows)
+    page_rows = rows[offset: offset + limit]
+
     # 팀원수·API키수 — Biz+ 전용 기능 사용 현황(§3-A "팀·API키" 잔여 항목).
-    # team_members(owner_id)·api_keys(user_id) 둘 다 배치 IN 쿼리로 N+1 회피.
-    user_ids = [r["user_id"] for r in rows if r.get("user_id")]
+    # 반환되는 페이지 분량(user_ids)에만 배치 IN 쿼리로 N+1 회피.
+    user_ids = [r["user_id"] for r in page_rows if r.get("user_id")]
     team_count_map: dict = {}
     api_key_count_map: dict = {}
     if user_ids:
@@ -186,37 +201,43 @@ async def list_subscriptions(
         except Exception as e:
             _logger.warning(f"[admin] API키수 조회 실패: {e}")
 
-    for row in rows:
+    for row in page_rows:
         row["team_member_count"] = team_count_map.get(row.get("user_id"), 0)
         row["api_key_count"] = api_key_count_map.get(row.get("user_id"), 0)
 
-    if email:
-        needle = email.strip().lower()
-        rows = [r for r in rows if needle in (r.get("email") or "").lower()]
-
-    return rows
+    return {"items": page_rows, "total": total}
 
 
 @router.get("/businesses")
-async def search_businesses(q: str = None, _=Depends(verify_admin)):
+async def search_businesses(q: str = None, limit: int = 50, offset: int = 0, _=Depends(verify_admin)):
     """사업장 검색(이름 또는 소유자 이메일) — 고객지원용 통합 조회 P0.
 
     admin_service_oversight_design_v1.0.md §3(P0). 지금까지는 사용자가 문의
     티켓을 남긴 경우에만 support.py 경유로 사업장을 볼 수 있었다 — 임의 사업장을
     직접 검색하는 화면이 없었다. list_subscriptions와 동일하게 auth.admin
     list_users로 이메일을 merge(embedded join 위험 회피).
+
+    limit/offset 페이지네이션 적용(2026-07-11) — 이전에는 500건 하드캡 이후
+    사업장이 목록에서 조용히 사라지는 문제가 있었다. 이제 total로 실제 규모를
+    노출하고, 안전 상한(2000건 DB 스캔)에 걸리면 로그로 남긴다. 응답 형태가
+    배열 → {items, total}로 변경됨 — 프론트 AdminBusinessSearchClient.tsx도
+    함께 수정해야 함. q 검색이 이름·이메일 양쪽을 봐야 하므로 owner_email
+    병합 자체는 전체 행에 수행하되, 실제 반환은 페이지 분량으로 슬라이스한다.
     """
     supabase = get_supabase()
+    DB_SCAN_CAP = 2000
     rows = (
         await execute(
             supabase.table("businesses")
             .select("id, user_id, name, category, region, is_active, created_at")
             .order("created_at", desc=True)
-            .limit(500)  # list_users(per_page=1000)와 동일한 규모 상한 — 드리프트 방지 안전장치
+            .limit(DB_SCAN_CAP)
         )
     ).data or []
+    if len(rows) >= DB_SCAN_CAP:
+        _logger.warning(f"[admin] 사업장 검색이 DB 스캔 상한({DB_SCAN_CAP}건)에 도달 — 페이지네이션/인덱싱 재검토 필요")
     if not rows:
-        return rows
+        return {"items": [], "total": 0}
 
     email_map: dict = {}
     try:
@@ -237,7 +258,9 @@ async def search_businesses(q: str = None, _=Depends(verify_admin)):
             if needle in (r.get("name") or "").lower() or needle in (r.get("owner_email") or "").lower()
         ]
 
-    return rows
+    total = len(rows)
+    page_rows = rows[offset: offset + limit]
+    return {"items": page_rows, "total": total}
 
 
 @router.get("/businesses/{business_id}")

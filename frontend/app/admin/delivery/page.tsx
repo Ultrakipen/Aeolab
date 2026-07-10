@@ -84,9 +84,14 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
 
   return (
     <div className="p-4 md:p-8">
-      <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900">대행 의뢰 관리</h1>
-        <p className="text-sm text-gray-500 mt-1">전체 대행 의뢰 목록 및 상태 관리</p>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">대행 의뢰 관리</h1>
+          <p className="text-sm text-gray-500 mt-1">전체 대행 의뢰 목록 및 상태 관리</p>
+        </div>
+        <Link href="/admin" className="text-sm text-gray-500 hover:text-blue-600 transition-colors shrink-0">
+          ← 관리자 메인
+        </Link>
       </div>
 
       {/* 상태 필터 */}

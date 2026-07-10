@@ -465,7 +465,7 @@ export default function AdminFeedbackClient() {
                     key={item.label}
                     className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3"
                   >
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-0.5">
                       {item.label}
                     </div>
                     <div className={`text-lg font-bold ${item.color}`}>{item.value}</div>
@@ -488,11 +488,11 @@ export default function AdminFeedbackClient() {
                 <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
                   아직 D.I.A. 점수가 기록된 가이드가 없습니다.
                   <br />
-                  <span className="text-xs">가이드 생성 후 tools_json.dia_score 필드가 저장되면 표시됩니다.</span>
+                  <span className="text-sm">가이드 생성 후 tools_json.dia_score 필드가 저장되면 표시됩니다.</span>
                 </p>
               )}
 
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-3">
                 최근 {diaStats.period_days}일 기준 · 90점+ 초회 통과 · 70~89점 조건부 통과 · 70점 미만 재생성 트리거
               </p>
             </div>
