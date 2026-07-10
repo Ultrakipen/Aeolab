@@ -26,12 +26,13 @@ async function fetchNotice(id: string): Promise<Notice | null> {
   }
 }
 
-export default async function NoticeDetailPage({ params }: { params: { id: string } }) {
+export default async function NoticeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const notice = await fetchNotice(params.id);
+  const { id } = await params;
+  const notice = await fetchNotice(id);
   if (!notice) notFound();
 
   const formattedDate = new Date(notice.created_at).toLocaleDateString("ko-KR", {
