@@ -15,12 +15,14 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
 
 async function proxy(req: NextRequest, method: string): Promise<NextResponse> {
   // 관리자 세션 검증 — 유효한 Supabase 관리자 계정만 통과
+  let adminEmail = "";
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.email || !ADMIN_EMAILS.includes(user.email)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
+    adminEmail = user.email;
   } catch {
     return NextResponse.json({ error: "Auth error" }, { status: 500 });
   }
@@ -38,6 +40,7 @@ async function proxy(req: NextRequest, method: string): Promise<NextResponse> {
 
   const headers: Record<string, string> = {
     "X-Admin-Key": ADMIN_KEY,
+    "X-Admin-Email": adminEmail,
   };
 
   let body: string | undefined;

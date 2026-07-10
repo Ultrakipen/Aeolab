@@ -1447,6 +1447,9 @@ async def send_operator_alert(subject: str, message: str) -> bool:
     SLACK_WEBHOOK_URL 미설정 시 utils.alert.send_slack_alert가 무동작(no-op)이므로,
     이미 설정된 Resend 이메일 채널로 대체 발송한다(2026-07-01).
     """
+    from utils.system_alert_log import record_alert
+    await record_alert(subject, message, level="error", source="email")
+
     operator_email = os.getenv("OPERATOR_EMAIL", "contact@aeolab.co.kr")
     html = f"""
 <div style="font-family: 'Apple SD Gothic Neo', sans-serif; max-width:480px; margin:0 auto; padding:24px; color:#1e293b;">

@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.events import EVENT_JOB_ERROR
 from datetime import date, datetime, timedelta
 from utils.alert import send_slack_alert
 from db.supabase_client import execute as _db
@@ -294,8 +295,29 @@ def start_scheduler():
         id="naver_cookie_health_check", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
+    scheduler.add_listener(_on_job_error, EVENT_JOB_ERROR)
     scheduler.start()
     logger.info("Scheduler started")
+
+
+def _on_job_error(event) -> None:
+    """APScheduler 잡 실패 시 운영자 알림.
+
+    이전에는 잡이 실패해도 PM2 로그(로테이트로 며칠 뒤 소멸)에만 남고 admin이
+    알 방법이 없었다(admin_service_oversight_design_v1.0.md §3-A-G). Claude를
+    호출하는 잡(weekly_post_draft_job 등)이 조용히 실패하면 사용자 문의가 오기
+    전까지 아무도 모르는 문제였다 — send_operator_alert가 record_alert를 내부
+    호출하므로 system_alerts 이력에도 함께 남는다.
+    """
+    job_id = event.job_id
+    exc = event.exception
+    detail = f"job_id={job_id}\nexception={exc}"
+    logger.error(f"[scheduler] 잡 실패: {job_id}: {exc}")
+    try:
+        from services.email_sender import send_operator_alert
+        asyncio.create_task(send_operator_alert(f"스케줄러 잡 실패: {job_id}", detail))
+    except Exception as e:
+        logger.warning(f"[scheduler] 잡 실패 알림 발송 준비 중 오류: {e}")
 
 
 async def _cleanup_memory_stores():

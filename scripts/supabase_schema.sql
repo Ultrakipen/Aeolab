@@ -2380,3 +2380,41 @@ ALTER TABLE guides DROP CONSTRAINT IF EXISTS guides_context_check;
 ALTER TABLE guides
   ADD CONSTRAINT guides_context_check
   CHECK (context IN ('location_based', 'non_location', 'faq_draft', 'crisis_reply', 'ad_defense', 'startup_report', 'intro_draft'));
+
+-- ===========================================================
+-- 2026-07-10: 관리자 서비스 총괄 대시보드 1~4단계 — 감사로그 + 알림이력
+-- 배경: docs/admin_service_oversight_design_v1.0.md §3-A(E·F). 관리자 강제
+-- 구독해지/환불처럼 되돌릴 수 없는 금전 이동 액션이 "누가 언제 했는지" 기록이
+-- 전혀 없었고, 운영 알림(send_operator_alert/send_slack_alert)도 fire-and-forget
+-- 이라 이력 조회가 불가능했다. 둘 다 서비스 이용자와 무관한 내부 운영 테이블이라
+-- RLS는 활성화하되 정책은 두지 않는다 — service_role만 접근 가능(anon/authenticated
+-- 완전 차단), trial_scans처럼 정책 자체를 생략해 원천 차단.
+-- ===========================================================
+
+CREATE TABLE IF NOT EXISTS admin_audit_log (
+  id           UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  admin_email  TEXT,                    -- 프록시가 못 붙이면 NULL (curl 등 직접 호출)
+  method       TEXT NOT NULL,
+  path         TEXT NOT NULL,
+  status_code  INT,
+  body_snippet TEXT,                    -- 요청 바디 앞 2000자만 (민감정보 없는 콘텐츠성 payload)
+  created_at   TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_audit_log_created ON admin_audit_log(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_log_email ON admin_audit_log(admin_email, created_at DESC);
+
+ALTER TABLE admin_audit_log ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS system_alerts (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  subject     TEXT NOT NULL,
+  message     TEXT,
+  level       TEXT DEFAULT 'warning',   -- info | warning | error
+  source      TEXT,                     -- email | slack | scheduler_job 등 발신 경로
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_system_alerts_created ON system_alerts(created_at DESC);
+
+ALTER TABLE system_alerts ENABLE ROW LEVEL SECURITY;

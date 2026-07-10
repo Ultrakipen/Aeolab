@@ -719,6 +719,18 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
           >
             점수 모델 v3.1 비교 →
           </a>
+          <a
+            href="/admin/business"
+            className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+          >
+            사업장 조회 →
+          </a>
+          <a
+            href="/admin/ops"
+            className="text-sm text-gray-600 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            운영 현황(감사로그·알림) →
+          </a>
         </div>
 
         {/* 탭 */}

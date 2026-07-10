@@ -76,6 +76,42 @@ app.add_middleware(
 )
 
 
+class AdminAuditMiddleware(BaseHTTPMiddleware):
+    """관리자 액션(POST/PATCH/DELETE, X-Admin-Key 보유) 감사 로그 기록.
+
+    admin_service_oversight_design_v1.0.md §3-A-E. 조회(GET)는 노이즈가 커서
+    제외하고 "되돌릴 수 없는 행동" 위주로만 남긴다. Starlette 0.38+의
+    BaseHTTPMiddleware는 request.body() 호출 후에도 downstream 핸들러가 동일
+    바디를 읽을 수 있도록 자동으로 캐시·재생하므로 별도 receive 조작이 필요 없다.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        is_mutation = request.method in ("POST", "PATCH", "DELETE")
+        is_admin_path = request.url.path.startswith("/admin") or request.url.path.startswith("/api/admin")
+        has_admin_key = bool(request.headers.get("x-admin-key"))
+        should_log = is_mutation and is_admin_path and has_admin_key
+
+        body_snippet = None
+        if should_log:
+            try:
+                body_bytes = await request.body()
+                body_snippet = body_bytes.decode("utf-8", errors="ignore")[:2000]
+            except Exception:
+                body_snippet = None
+
+        response = await call_next(request)
+
+        if should_log:
+            import asyncio
+            from utils.admin_audit import record_admin_action
+            admin_email = request.headers.get("x-admin-email")
+            asyncio.create_task(record_admin_action(
+                admin_email, request.method, request.url.path, response.status_code, body_snippet
+            ))
+
+        return response
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """XSS·클릭재킹·MIME 스니핑 방지 보안 헤더 추가"""
     async def dispatch(self, request: Request, call_next):
@@ -98,6 +134,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(AdminAuditMiddleware)
 
 app.include_router(scan.router,       prefix="/api/scan",    tags=["scan"])
 app.include_router(report.router,     prefix="/api/report",  tags=["report"])

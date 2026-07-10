@@ -161,6 +161,138 @@ async def list_subscriptions(
     return rows
 
 
+@router.get("/businesses")
+async def search_businesses(q: str = None, _=Depends(verify_admin)):
+    """사업장 검색(이름 또는 소유자 이메일) — 고객지원용 통합 조회 P0.
+
+    admin_service_oversight_design_v1.0.md §3(P0). 지금까지는 사용자가 문의
+    티켓을 남긴 경우에만 support.py 경유로 사업장을 볼 수 있었다 — 임의 사업장을
+    직접 검색하는 화면이 없었다. list_subscriptions와 동일하게 auth.admin
+    list_users로 이메일을 merge(embedded join 위험 회피).
+    """
+    supabase = get_supabase()
+    rows = (
+        await execute(
+            supabase.table("businesses")
+            .select("id, user_id, name, category, region, is_active, created_at")
+            .order("created_at", desc=True)
+        )
+    ).data or []
+    if not rows:
+        return rows
+
+    email_map: dict = {}
+    try:
+        users = await asyncio.to_thread(
+            lambda: supabase.auth.admin.list_users(page=1, per_page=1000)
+        )
+        email_map = {u.id: u.email for u in users}
+    except Exception as e:
+        _logger.warning(f"[admin] 사업장 검색 이메일 조회 실패: {e}")
+
+    for row in rows:
+        row["owner_email"] = email_map.get(row.get("user_id"))
+
+    if q:
+        needle = q.strip().lower()
+        rows = [
+            r for r in rows
+            if needle in (r.get("name") or "").lower() or needle in (r.get("owner_email") or "").lower()
+        ]
+
+    return rows
+
+
+@router.get("/businesses/{business_id}")
+async def get_business_detail(business_id: str, _=Depends(verify_admin)):
+    """사업장 상세 — 스캔이력·가이드이력·경쟁사 통합 (P0).
+
+    support.py admin_get_ticket에서 만든 businesses+scan_results dict-merge
+    패턴을 독립 엔드포인트로 승격 — 문의 티켓 없이도 임의 사업장을 조회 가능.
+    """
+    supabase = get_supabase()
+    biz_res = await execute(
+        supabase.table("businesses")
+        .select("id, user_id, name, category, region, is_active, created_at")
+        .eq("id", business_id)
+        .maybe_single()
+    )
+    if not (biz_res and biz_res.data):
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+    biz = biz_res.data
+
+    owner_email = None
+    try:
+        auth_resp = await asyncio.to_thread(
+            lambda: supabase.auth.admin.get_user_by_id(biz["user_id"])
+        )
+        if auth_resp and auth_resp.user:
+            owner_email = auth_resp.user.email
+    except Exception as e:
+        _logger.warning(f"[admin] 사업장 상세 이메일 조회 실패: {e}")
+
+    scans_res = await execute(
+        supabase.table("scan_results")
+        .select("id, scanned_at, total_score, track1_score, track2_score, unified_score")
+        .eq("business_id", business_id)
+        .order("scanned_at", desc=True)
+        .limit(10)
+    )
+    guides_res = await execute(
+        supabase.table("guides")
+        .select("id, generated_at, summary, context")
+        .eq("business_id", business_id)
+        .order("generated_at", desc=True)
+        .limit(10)
+    )
+    competitors_res = await execute(
+        supabase.table("competitors")
+        .select("id, name, address, is_active")
+        .eq("business_id", business_id)
+        .eq("is_active", True)
+    )
+
+    return {
+        "business": biz,
+        "owner_email": owner_email,
+        "scans": scans_res.data or [],
+        "guides": guides_res.data or [],
+        "competitors": competitors_res.data or [],
+    }
+
+
+@router.get("/audit-log")
+async def get_audit_log(limit: int = Query(100, ge=1, le=500), _=Depends(verify_admin)):
+    """관리자 액션 감사 로그 조회 (§3-A-E). admin_audit_log는 AdminAuditMiddleware가
+    POST/PATCH/DELETE 관리자 요청마다 자동 기록 — 이 엔드포인트는 조회 전용."""
+    supabase = get_supabase()
+    rows = (
+        await execute(
+            supabase.table("admin_audit_log")
+            .select("id, admin_email, method, path, status_code, body_snippet, created_at")
+            .order("created_at", desc=True)
+            .limit(limit)
+        )
+    ).data or []
+    return rows
+
+
+@router.get("/system-alerts")
+async def get_system_alerts(limit: int = Query(100, ge=1, le=500), _=Depends(verify_admin)):
+    """운영 알림 이력 조회 (§3-A-F). send_operator_alert/send_slack_alert 호출 시
+    utils.system_alert_log.record_alert가 자동 기록 — 이 엔드포인트는 조회 전용."""
+    supabase = get_supabase()
+    rows = (
+        await execute(
+            supabase.table("system_alerts")
+            .select("id, subject, message, level, source, created_at")
+            .order("created_at", desc=True)
+            .limit(limit)
+        )
+    ).data or []
+    return rows
+
+
 @router.get("/revenue")
 async def get_revenue(_=Depends(verify_admin)):
     """월별 매출 추이 (최근 12개월)"""
