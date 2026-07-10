@@ -114,17 +114,23 @@ export default function AdminOpsClient() {
     setLoading(true);
     setError("");
     try {
+      // 섹션별 독립 로드 — 하나가 실패(예: 신규 테이블 SQL 마이그레이션 미실행으로 500)해도
+      // 나머지 섹션은 정상 표시하고, 실패한 섹션만 빈 배열로 남겨 원인 파악이 쉽도록 함
+      // (재점검에서 발견: 기존 OR조건 일괄 실패 처리는 generic 에러만 보여 진단이 어려웠음).
+      const failedSections: string[] = [];
       const [auditRes, alertRes, paymentRes, startupRes] = await Promise.all([
         fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/audit-log?limit=100")}`),
         fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/system-alerts?limit=100")}`),
         fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/payment-events?limit=100")}`),
         fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/startup-reports?limit=100")}`),
       ]);
-      if (!auditRes.ok || !alertRes.ok || !paymentRes.ok || !startupRes.ok) throw new Error("API 오류");
-      setAuditLog(await auditRes.json());
-      setAlerts(await alertRes.json());
-      setPaymentEvents(await paymentRes.json());
-      setStartupReports(await startupRes.json());
+      if (auditRes.ok) setAuditLog(await auditRes.json()); else failedSections.push("감사 로그");
+      if (alertRes.ok) setAlerts(await alertRes.json()); else failedSections.push("시스템 알림");
+      if (paymentRes.ok) setPaymentEvents(await paymentRes.json()); else failedSections.push("결제 이벤트");
+      if (startupRes.ok) setStartupReports(await startupRes.json()); else failedSections.push("창업리포트");
+      if (failedSections.length > 0) {
+        setError(`다음 섹션을 불러오지 못했습니다: ${failedSections.join(", ")} (신규 테이블 마이그레이션 미실행일 수 있음)`);
+      }
     } catch {
       setError("운영 현황을 불러오지 못했습니다.");
     } finally {
