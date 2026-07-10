@@ -324,7 +324,7 @@ function InfoBriefingReadinessCard({
         </div>
         <div className="text-right">
           <div className={`text-2xl font-bold ${scoreColor(score)}`}>{label}</div>
-          <div className="text-sm text-gray-400 mt-0.5">분석 시점 기준 — 측정 시점·기기에 따라 달라질 수 있음</div>
+          <div className="text-sm text-gray-500 mt-0.5">분석 시점 기준 — 측정 시점·기기에 따라 달라질 수 있음</div>
         </div>
       </div>
 
@@ -344,7 +344,7 @@ function InfoBriefingReadinessCard({
       <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="bg-white/70 rounded-xl p-3 text-center">
           <div className="text-xl font-bold text-gray-900">{posts}</div>
-          <div className="text-sm text-gray-400 mt-0.5">(제목·요약 기준)</div>
+          <div className="text-sm text-gray-500 mt-0.5">(제목·요약 기준)</div>
           <div className="text-sm text-gray-500 mt-0.5">분석 포스트</div>
         </div>
         <div className="bg-white/70 rounded-xl p-3 text-center">
@@ -442,7 +442,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
       <div className="flex items-center gap-2 mb-3">
         <FileText className="w-5 h-5 text-indigo-600 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">포스트별 상세 분석</h3>
-        <span className="text-sm text-gray-400 ml-auto">상위 {posts.length}개</span>
+        <span className="text-sm text-gray-500 ml-auto">상위 {posts.length}개</span>
       </div>
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 text-sm text-slate-700 leading-relaxed">
         <p className="font-semibold text-slate-800 mb-1">💡 두 가지 키워드를 구분해서 보여드립니다</p>
@@ -559,7 +559,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                   <span className="text-sm font-semibold text-gray-900 line-clamp-2">{p.title || "(제목 없음)"}</span>
                 )}
                 {p.date && (
-                  <p className="text-sm text-gray-400 mt-0.5">
+                  <p className="text-sm text-gray-500 mt-0.5">
                     {new Date(p.date).toLocaleDateString("ko-KR", { year: "numeric", month: "short", day: "numeric" })}
                   </p>
                 )}
@@ -719,7 +719,7 @@ function PostingFrequencyCard({ freq }: { freq: NonNullable<BlogAnalysisResult["
   }
 
   function heatmapColor(count: number) {
-    if (count === 0) return "bg-gray-100 text-gray-400";
+    if (count === 0) return "bg-gray-100 text-gray-500";
     if (count === 1) return "bg-blue-200 text-blue-700";
     if (count === 2) return "bg-blue-400 text-white";
     return "bg-blue-600 text-white";
@@ -762,7 +762,7 @@ function PostingFrequencyCard({ freq }: { freq: NonNullable<BlogAnalysisResult["
               <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg flex flex-col items-center justify-center font-bold text-sm ${heatmapColor(count)}`}>
                 {count}
               </div>
-              <span className="text-sm text-gray-400">건</span>
+              <span className="text-sm text-gray-500">건</span>
             </div>
           );
         })}
@@ -792,7 +792,7 @@ function PostingFrequencyCard({ freq }: { freq: NonNullable<BlogAnalysisResult["
           <div className={`rounded-xl px-4 py-3 ${isPast ? "bg-gray-50 border border-gray-200" : "bg-amber-50 border border-amber-200"}`}>
             <p className={`text-sm font-semibold ${isPast ? "text-gray-500" : "text-amber-800"}`}>
               다음 발행 권장일: {formatNextDate(freq.recommended_next_date)}
-              {isPast && <span className="ml-2 text-gray-400 font-normal">(이미 지났습니다 — 지금 작성하세요)</span>}
+              {isPast && <span className="ml-2 text-gray-500 font-normal">(이미 지났습니다 — 지금 작성하세요)</span>}
             </p>
           </div>
         );
@@ -892,7 +892,7 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
         <FileText className="w-5 h-5 text-indigo-500 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">이번 달 블로그 주제 추천</h3>
       </div>
-      <p className="text-sm text-gray-400 mb-3">
+      <p className="text-sm text-gray-500 mb-3">
         {hasCompetitorGap
           ? "경쟁사 블로그와 비교해 우선순위가 높은 주제부터 보여드립니다."
           : "경쟁사 블로그 진단 데이터가 아직 없어 업종 표준 키워드 기준으로 추천합니다. 경쟁사 데이터가 쌓이면 더 정밀해집니다."}
@@ -1059,7 +1059,7 @@ function BlogScoreTrendChart({ businessId, token }: { businessId: string; token:
         <TrendingUp className="w-5 h-5 text-blue-500 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 진단 점수 추이</h3>
       </div>
-      <p className="text-sm text-gray-400 mb-4">
+      <p className="text-sm text-gray-500 mb-4">
         {first.analyzed_date} ~ {latest.analyzed_date}
       </p>
       {renderSeries("AI 인용 준비도", "citation_score")}
@@ -1268,6 +1268,52 @@ function TitleImprovementSection({ posts, businessId }: { posts: PostDetail[]; b
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── 업종별 AI 브리핑 비대상 안내 배너 — 결과 유무와 무관하게 동일 문구 사용(중복 방지) ── */
+function BriefingIneligibilityBanner({ business, isBlogLikely }: { business?: Business; isBlogLikely: boolean }) {
+  return (
+    <div className={`rounded-xl border px-4 md:px-5 py-4 flex items-start gap-3 ${
+      isBlogLikely ? "bg-blue-50 border-blue-200" : "bg-amber-50 border-amber-200"
+    }`}>
+      <span className="text-xl shrink-0 mt-0.5">
+        {business?.is_franchise ? "🏢" : isBlogLikely ? "🔮" : "ℹ️"}
+      </span>
+      <div className="flex-1 min-w-0">
+        {business?.is_franchise ? (
+          <>
+            <p className="text-base font-bold text-gray-900 mb-1">
+              프랜차이즈 가맹점 — '플레이스형' AI 브리핑 비대상
+            </p>
+            <p className="text-sm md:text-base text-gray-700 leading-relaxed">
+              프랜차이즈는 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다. 단, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다.
+              블로그 분석은 <strong>정보형 AI 브리핑·AI탭·일반 검색 노출 및 콘텐츠 품질 점수</strong> 강화에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
+            </p>
+          </>
+        ) : isBlogLikely ? (
+          <>
+            <p className="text-base font-bold text-gray-900 mb-1">
+              AI 브리핑 확대 예상 업종
+            </p>
+            <p className="text-sm md:text-base text-gray-700 leading-relaxed">
+              미리 블로그 최적화를 완료해두면 확대 시 인용 가능성이 높아집니다 (알고리즘 기준, 100% 보장 아님).
+              현재도 네이버 AI탭·일반 검색 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-base font-bold text-gray-900 mb-1">
+              현재 '플레이스형' AI 브리핑 비대상 업종 — 블로그 분석은 모든 AI 채널에 효과적입니다
+            </p>
+            <p className="text-sm md:text-base text-gray-700 leading-relaxed">
+              '플레이스형' 네이버 AI 브리핑 비대상이지만, 블로그·콘텐츠가 갖춰지면 '정보형 AI 브리핑'에 노출될 수 있습니다. 아래 분석 결과는
+              <strong>정보형 AI 브리핑·AI탭·일반 검색 노출</strong> 및 콘텐츠 품질 점수 강화에 활용하세요. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
+            </p>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -1664,7 +1710,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                 </a>
                 {lastAnalyzedAt && (
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-gray-500">
                     마지막 분석: {new Date(lastAnalyzedAt).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}
                     {isStale(lastAnalyzedAt) && (
                       <span className="ml-2 text-amber-500 font-medium">- 7일 이상 지났습니다</span>
@@ -1672,7 +1718,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   </p>
                 )}
                 {!lastAnalyzedAt && (
-                  <p className="text-sm text-gray-400">아직 분석 기록이 없습니다</p>
+                  <p className="text-sm text-gray-500">아직 분석 기록이 없습니다</p>
                 )}
               </div>
 
@@ -1807,46 +1853,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
         {/* 분석 결과가 아직 없을 때(첫 진입·분석 전)만 여기서 안내 — 결과가 있으면 요약 카드 뒤로 이동 */}
         {isBlogInactive && !result && (
-          <div className={`rounded-xl border px-4 md:px-5 py-4 flex items-start gap-3 ${
-            isBlogLikely ? "bg-blue-50 border-blue-200" : "bg-amber-50 border-amber-200"
-          }`}>
-            <span className="text-xl shrink-0 mt-0.5">
-              {business?.is_franchise ? "🏢" : isBlogLikely ? "🔮" : "ℹ️"}
-            </span>
-            <div className="flex-1 min-w-0">
-              {business?.is_franchise ? (
-                <>
-                  <p className="text-base font-bold text-gray-900 mb-1">
-                    프랜차이즈 가맹점 — '플레이스형' AI 브리핑 비대상
-                  </p>
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    프랜차이즈는 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다. 단, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다.
-                    블로그 분석은 <strong>정보형 AI 브리핑·AI탭·일반 검색 노출 및 콘텐츠 품질 점수</strong> 강화에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
-                  </p>
-                </>
-              ) : isBlogLikely ? (
-                <>
-                  <p className="text-base font-bold text-gray-900 mb-1">
-                    AI 브리핑 확대 예상 업종
-                  </p>
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    미리 블로그 최적화를 완료해두면 확대 시 인용 가능성이 높아집니다 (알고리즘 기준, 100% 보장 아님).
-                    현재도 네이버 AI탭·일반 검색 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-base font-bold text-gray-900 mb-1">
-                    현재 '플레이스형' AI 브리핑 비대상 업종 — 블로그 분석은 모든 AI 채널에 효과적입니다
-                  </p>
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    '플레이스형' 네이버 AI 브리핑 비대상이지만, 블로그·콘텐츠가 갖춰지면 '정보형 AI 브리핑'에 노출될 수 있습니다. 아래 분석 결과는
-                    <strong>정보형 AI 브리핑·AI탭·일반 검색 노출</strong> 및 콘텐츠 품질 점수 강화에 활용하세요. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
+          <BriefingIneligibilityBanner business={business} isBlogLikely={isBlogLikely} />
         )}
 
         {/* 측정 자체가 실패한 경우 — 점수/카드를 확정적으로 보여주면 안 됨 */}
@@ -1887,46 +1894,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
             {/* AI 브리핑 게이팅 안내 배너 (v4.1) — 위 요약 카드 다음 순서로, 체크리스트 해석을 돕는 보충 설명 */}
             {isBlogInactive && (
-              <div className={`rounded-xl border px-4 md:px-5 py-4 flex items-start gap-3 ${
-                isBlogLikely ? "bg-blue-50 border-blue-200" : "bg-amber-50 border-amber-200"
-              }`}>
-                <span className="text-xl shrink-0 mt-0.5">
-                  {business?.is_franchise ? "🏢" : isBlogLikely ? "🔮" : "ℹ️"}
-                </span>
-                <div className="flex-1 min-w-0">
-                  {business?.is_franchise ? (
-                    <>
-                      <p className="text-base font-bold text-gray-900 mb-1">
-                        프랜차이즈 가맹점 — '플레이스형' AI 브리핑 비대상
-                      </p>
-                      <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                        프랜차이즈는 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다. 단, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다.
-                        블로그 분석은 <strong>정보형 AI 브리핑·AI탭·일반 검색 노출 및 콘텐츠 품질 점수</strong> 강화에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
-                      </p>
-                    </>
-                  ) : isBlogLikely ? (
-                    <>
-                      <p className="text-base font-bold text-gray-900 mb-1">
-                        AI 브리핑 확대 예상 업종
-                      </p>
-                      <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                        미리 블로그 최적화를 완료해두면 확대 시 인용 가능성이 높아집니다 (알고리즘 기준, 100% 보장 아님).
-                        현재도 네이버 AI탭·일반 검색 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-base font-bold text-gray-900 mb-1">
-                        현재 '플레이스형' AI 브리핑 비대상 업종 — 블로그 분석은 모든 AI 채널에 효과적입니다
-                      </p>
-                      <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                        '플레이스형' 네이버 AI 브리핑 비대상이지만, 블로그·콘텐츠가 갖춰지면 '정보형 AI 브리핑'에 노출될 수 있습니다. 아래 분석 결과는
-                        <strong>정보형 AI 브리핑·AI탭·일반 검색 노출</strong> 및 콘텐츠 품질 점수 강화에 활용하세요. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
+              <BriefingIneligibilityBanner business={business} isBlogLikely={isBlogLikely} />
             )}
 
             {/* A. AI 인용 체크리스트 */}
@@ -1966,7 +1934,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm font-semibold ${labelClass}`}>
                             {item.label}
-                            {isUnavailable && <span className="ml-1.5 text-sm font-normal text-gray-400">(측정 불가)</span>}
+                            {isUnavailable && <span className="ml-1.5 text-sm font-normal text-gray-500">(측정 불가)</span>}
                           </p>
                           {item.description && (
                             <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{item.description}</p>
@@ -2061,7 +2029,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                         키워드 설정
                       </button>
                     </div>
-                    <p className="text-sm text-gray-400 mb-4">포스트 제목과 요약글을 기준으로 분석합니다 - 본문까지는 분석되지 않습니다</p>
+                    <p className="text-sm text-gray-500 mb-4">포스트 제목과 본문 내용을 기준으로 분석합니다 (일부 포스트는 API로만 수집되어 제목·요약 정보만 반영될 수 있습니다)</p>
                     {result.top_recommendation && (
                       <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
                         <TrendingUp className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -2103,7 +2071,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                               {kwCopied ? "복사됨" : "상위 5개 복사"}
                             </button>
                           </div>
-                          <p className="text-sm text-gray-400 mb-2">관련 없는 키워드는 X를 눌러 제외하면 분석에서 영구히 빠집니다. 복사한 키워드는 네이버 블로그 에디터에 붙여넣어 다음 포스트 제목에 활용하세요.</p>
+                          <p className="text-sm text-gray-500 mb-2">관련 없는 키워드는 X를 눌러 제외하면 분석에서 영구히 빠집니다. 복사한 키워드는 네이버 블로그 에디터에 붙여넣어 다음 포스트 제목에 활용하세요.</p>
                           <div className="flex flex-wrap gap-2">
                             {result.keyword_coverage.missing.map((kw) => (
                               <span key={kw} className="inline-flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-sm px-3 py-1 rounded-full">
@@ -2152,7 +2120,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
             {/* 분석 일시 */}
             {result.analyzed_at && (
-              <p className="text-sm text-gray-400 text-right">
+              <p className="text-sm text-gray-500 text-right">
                 분석 일시: {new Date(result.analyzed_at).toLocaleString("ko-KR")}
               </p>
             )}
