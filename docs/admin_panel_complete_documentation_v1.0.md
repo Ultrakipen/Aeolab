@@ -1,6 +1,8 @@
 # 관리자(Admin) 페이지 종합 문서 v1.0
 
 > 2026-07-11 작성. "관리자가 서비스하고 있는 모든 것을 총괄 확인 가능한가"라는 질문에서 시작된 세션(2026-07-10~11)의 전체 작업을 정리한 단일 참조 문서. 설계 배경은 `docs/admin_service_oversight_design_v1.0.md`, 이번 문서는 **as-built(실제 구현된 최종 상태)** 기준.
+>
+> **2026-07-11 저녁 추가 세션**(§10) — 실사용 중 발견된 내비게이션·표기 버그 4건 수정 + 관리자 전용 공통 레이아웃(`app/admin/layout.tsx`) 신설. §2 인벤토리·§0 알려진 이슈는 이 세션 반영 기준으로 갱신됨.
 
 ---
 
@@ -30,10 +32,12 @@
 
 ## 2. 관리자 페이지 전체 인벤토리 (13개)
 
+> **공통 레이아웃**(2026-07-11 저녁 세션 신설): `app/admin/layout.tsx`가 모든 하위 페이지에 고정 헤더(브랜드 링크 + 7개 섹션 내비게이션) + `max-w-5xl` 폭 제한을 공통 적용. 각 페이지는 더 이상 자체 `min-h-screen`/폭 제한/뒤로가기 링크를 갖지 않음(§10 참조).
+
 | 경로 | 파일 | 기능 | 신규(이번 세션) |
 |---|---|---|---|
 | `/admin` | `page.tsx`, `AdminDashboard.tsx` | 대시보드(구독·매출·업종분포) + FAQ탭 + 문의탭 + **AI사용량** + **코호트분석** | 일부 확장 |
-| `/admin/business` | `page.tsx`, `AdminBusinessSearchClient.tsx` | 사업장 검색(이름·이메일) | ✅ 신규 |
+| `/admin/business` | `page.tsx`, `AdminBusinessSearchClient.tsx` | 사업장 검색(이름·이메일, 서버사이드 페이지네이션 §10) | ✅ 신규 |
 | `/admin/business/[id]` | `page.tsx` | 사업장 상세 — 스캔이력·가이드·경쟁사·블로그진단·변화기록 통합 | ✅ 신규 |
 | `/admin/ops` | `page.tsx`, `AdminOpsClient.tsx` | 감사로그·시스템알림·결제이벤트·창업리포트·관리자계정 관리 | ✅ 신규 |
 | `/admin/delivery`, `/admin/delivery/[id]` | — | 대행서비스 의뢰 목록·상세 | 기존 |
@@ -139,3 +143,51 @@ CHECK 제약: `payment_events_event_type_check`, `payment_events_status_check`, 
 ## 9. 새 대화창 트리거
 
 > `docs/admin_panel_complete_documentation_v1.0.md 기준으로 관리자 페이지 현황 확인` — 이 문서를 참조점으로 관리자 기능 추가/수정 작업 시작 가능.
+
+---
+
+## 10. 2026-07-11 저녁 세션 — 내비게이션·표기 버그 수정 + 공통 레이아웃 신설
+
+> 사용자가 실사용 중 스크린샷으로 제보한 문제 3건("상단 메뉴 클릭 시 정렬 깨짐 + 뒤로가기 시 '관리자 접근' 플래시", "업종/가이드 생성 영어 표기", "구독자·사업장 늘어나면 목록 처리 방안")을 조사·수정. 1차 breadcrumb 패치로는 재현이 계속돼, 사용자가 재현 스크린샷을 다시 제공 → 진짜 원인(폭 제한 누락)을 특정. 이후 "헤더·푸터가 아예 없다"는 질문을 계기로 근본 구조(공통 레이아웃 부재)까지 해결.
+
+### 10.1 발견 → 수정 흐름
+
+| 순서 | 증상 | 실제 원인(재현/근거) | 수정 |
+|---|---|---|---|
+| 1 | 상단 메뉴 클릭 후 뒤로가기 시 "관리자 접근" 로그인 게이트가 잠깐 노출 | `AdminDashboard.tsx`가 `authed=false`로 시작, localStorage 확인 후 비동기 `fetchAll()`이 끝나야 `authed=true`가 됨. 상단 메뉴가 `<a href>`(완전 새로고침)라 뒤로가기 시 컴포넌트가 처음부터 재마운트되며 그 틈이 노출됨 | `checkingSession` 상태 추가(세션 확인 중엔 스피너만 표시) + 상단 메뉴·comms·score-comparison에 남아있던 `<a>` 11곳을 전부 `next/link` `Link`로 전환 |
+| 2(1차 패치, 불완전) | "메뉴 페이지가 여전히 안 맞음" 재제보 | 1차엔 delivery/support에 다른 페이지와 동일한 "← 관리자 메인" 브레드크럼만 추가 — 진짜 원인을 놓침 | 사용자가 `/admin/delivery` 재현 스크린샷 제공 → **delivery·support 목록+상세 4개 파일만** 다른 모든 관리자 페이지에 있는 `max-w-*.mx-auto` 폭 제한이 빠져 있어 넓은 화면에서 콘텐츠가 가장자리까지 늘어남을 확인. 4개 파일 `max-w-5xl mx-auto` 통일 |
+| 3 | "업종별 상세" 칩이 `restaurant`, `education` 등 영어 원본 노출 | `AdminDashboard.tsx`가 `lib/categories.ts`의 `CATEGORY_LABEL` 매핑을 안 쓰고 원본 키를 그대로 출력(이미 `AdminBusinessSearchClient.tsx`는 이 매핑 사용 중이었음) | `CATEGORY_LABEL[cat] ?? cat`로 교체 |
+| 4 | "가이드 생성(Claude Sonnet)" 칩이 `startup_report`, `crisis_reply`, `faq_draft` 등 영어 노출 | `guides.context` 컬럼은 두 종류가 섞여 있음 — ① 전용 가이드 타입(`faq_draft`·`crisis_reply`·`startup_report`·`ad_defense`·`talktalk_faq`·`intro_draft`·`post_draft`), ② 일반 월간 가이드는 `context=business_type`(예: `restaurant`)을 그대로 저장(`routers/guide.py:620`) | `GUIDE_CONTEXT_LABEL`(①용) 신설 + `CATEGORY_LABEL`(②용) 폴백 이중 매핑: `GUIDE_CONTEXT_LABEL[ctx] ?? CATEGORY_LABEL[ctx] ?? ctx` |
+| 5 | "헤더·푸터는 생략했는지?" 질문 | 확인 결과 `admin` 라우트 그룹은 `(public)`(자체 Header+SiteFooter import)·`(dashboard)`(자체 PageHeader) 그룹과 달리 **공용 layout.tsx 자체가 없어** 완전히 빈 페이지 + 페이지마다 제각각인 인라인 링크 구조였음 — 위 1·2번 문제의 근본 원인이 바로 이것 | `app/admin/layout.tsx` 신설(§10.2) |
+
+### 10.2 관리자 공통 레이아웃(`app/admin/layout.tsx`)
+
+- 서버 컴포넌트에서 Supabase 세션 + `ADMIN_EMAILS` 재검증 → 관리자면 고정 헤더(브랜드 링크 "AEOlab 관리자" + 7개 섹션 내비게이션: 대행의뢰·Q&A문의·피드백·공지사항·점수모델비교·사업장조회·운영현황) + `max-w-5xl mx-auto p-4 md:p-8` 컨테이너로 `children`을 감쌈
+- 비관리자는 `children`을 그대로(래핑 없음) 반환 — 각 페이지 자체의 401 메시지/`redirect("/admin")` 처리를 그대로 보존하고, 내부 섹션 목록이 비관리자에게 노출되지 않도록 함
+- 13개 하위 페이지에서 개별 `min-h-screen`/`bg-gray-50`/`p-4 md:p-8`/`max-w-*`/"← 관리자 ○○" 링크(comms·notices·feedback은 `<Link>`가 아닌 `<a>`로 남아있던 것도 이번에 함께 발견·제거)를 전부 제거하고 레이아웃에 위임 — 페이지별 스타일 드리프트가 파일 단위로 재발하는 구조적 원인을 제거
+- 각 상세 페이지(`delivery/[id]`, `support/[id]`, `business/[id]`)의 "관리자 > 하위메뉴 > 상세명" 드릴다운 브레드크럼은 레이아웃 내비게이션과 성격이 달라(구체적 경로 표시) 그대로 유지
+
+### 10.3 부가 개선 (같은 세션에서 함께 처리)
+
+- **가독성**: `comms`·`feedback`·`score-comparison` 3개 파일의 `text-xs`(라벨·버튼·본문 미리보기 등 31곳)를 프로젝트 표준(`text-sm` 이상)으로 전부 상향
+- **확장성**(사용자 질의: "구독자·사업장 늘어나면 목록을 어떻게 처리?"): 무한스크롤 대신 관리자 도구에 적합한 **서버사이드 페이지네이션** 채택
+  - `backend/routers/admin.py` `GET /subscriptions`·`GET /businesses`에 `limit`/`offset` 추가, 응답을 배열 → `{items, total}`로 변경
+  - 이메일/사업장명 검색, 플랜/상태 필터를 서버로 위임(기존엔 전체 로드 후 클라이언트 필터링)
+  - `team_member_count`/`api_key_count` 집계도 반환 페이지 분량에만 수행 — 구독자 규모 증가에 따른 응답 크기·연산량 증가 방지
+  - `businesses`는 기존 500건 하드캡(초과분 조용히 사라짐)을 2000건 안전 상한 + 도달 시 경고 로그로 교체
+  - 프론트 `AdminDashboard.tsx`(구독자 목록)·`AdminBusinessSearchClient.tsx`(사업장 목록)에 "이전/다음" 페이지 컨트롤 + "총 N건 중 X–Y건" 표시 + 300ms 디바운스 검색 추가
+
+### 10.4 git 커밋
+
+| 커밋 | 내용 |
+|---|---|
+| `292b775` | 인증 플래시(`checkingSession`)·`<a>`→`Link` 전환·delivery/support 브레드크럼 추가(1차, 불완전)·업종별상세 한글화·text-xs 가독성·구독자/사업장 서버사이드 페이지네이션 |
+| `ea923b0` | 가이드 생성 컨텍스트 칩 한글화(`GUIDE_CONTEXT_LABEL`+`CATEGORY_LABEL` 이중매핑) |
+| `e2226ce` | delivery/support 목록·상세 4개 파일 `max-w-5xl mx-auto` 폭 제한 추가(진짜 원인 수정) |
+| `0135c26` | `app/admin/layout.tsx` 신설 + 13개 페이지 중복 wrapper 제거 |
+
+### 10.5 검증 방법 및 한계
+
+- `tsc --noEmit`·`eslint`(신규 오류 0건, comms의 기존 pre-existing 경고 1건은 이번 변경과 무관) 통과, 서버 `npm run build` 성공(13개 admin 라우트 정상 빌드), PM2 재시작 후 에러 0건
+- 신규 페이지네이션 API는 서버에서 직접 curl로 `{items, total}` 정상 응답 확인
+- **한계**: 로컬 Playwright 브라우저가 세션 내내 다른 프로세스에 점유돼 있어(`Browser is already in use`) 실제 클릭 스루 화면 검증은 못함 — curl 200 확인 + 서버 grep으로 반영 확인까지만 완료. 사용자가 직접 새로고침 후 눈으로 재확인 권장.
