@@ -5204,6 +5204,10 @@ async def delivery_auto_refund_job():
     from db.supabase_client import get_client
     from services.email_sender import send_operator_alert
 
+    # routers/delivery.py의 관리자 수동 환불(admin_update_status)과 값을 동일하게 유지할 것 —
+    # 이중 환불(double refund) 방지용 원자적 락 마커(refund_reason IS NULL 조건부 UPDATE로 선점).
+    _REFUND_CLAIM_MARKER = "__refund_processing__"
+
     toss_secret = os.getenv("TOSS_SECRET_KEY", "")
     if not toss_secret:
         logger.warning("[delivery_auto_refund_job] TOSS_SECRET_KEY 미설정 — 잡 스킵")
@@ -5247,6 +5251,22 @@ async def delivery_auto_refund_job():
                 )
                 continue
 
+            # 이중 환불 방지 — 조건부 UPDATE로 선점(claim) 후에만 토스 API 호출.
+            # routers/delivery.py admin_update_status(관리자 수동 환불)와 동일 마커 사용 —
+            # 동시 실행/경합 시 둘 중 하나만 이 UPDATE에 성공(영향 행 1건)한다.
+            claim_res = await _db(
+                supabase.table("delivery_orders")
+                .update({"refund_reason": _REFUND_CLAIM_MARKER})
+                .eq("id", order_id)
+                .eq("status", "paid")
+                .is_("refund_reason", "null")
+            )
+            if not (claim_res and claim_res.data):
+                logger.info(
+                    f"[delivery_auto_refund_job] 잠금 선점 실패(관리자 수동 처리와 경합 또는 이미 처리됨), skip: order_id={order_id}"
+                )
+                continue
+
             try:
                 async with httpx.AsyncClient(timeout=15) as c:
                     cancel_resp = await c.post(
@@ -5256,6 +5276,12 @@ async def delivery_auto_refund_job():
                     )
             except Exception as e:
                 logger.error(f"[delivery_auto_refund_job] 토스 API 요청 오류: order_id={order_id}, error={e}")
+                await _db(
+                    supabase.table("delivery_orders")
+                    .update({"refund_reason": None})
+                    .eq("id", order_id)
+                    .eq("refund_reason", _REFUND_CLAIM_MARKER)
+                )
                 await send_operator_alert(
                     "대행 서비스 자동환불 오류 — 수동 확인 필요", f"order_id={order_id}\nerror={e}"
                 )
@@ -5265,6 +5291,13 @@ async def delivery_auto_refund_job():
                 continue
 
             if cancel_resp.status_code != 200:
+                # 락 해제 — 재시도 가능하도록 원복
+                await _db(
+                    supabase.table("delivery_orders")
+                    .update({"refund_reason": None})
+                    .eq("id", order_id)
+                    .eq("refund_reason", _REFUND_CLAIM_MARKER)
+                )
                 # 경쟁조건 방어: 운영자가 먼저 수동 환불/상태변경했을 수 있음 — 재조회 후 이미
                 # paid가 아니면 정상적인 중복 응답으로 간주하고 오탐 알림 억제.
                 _recheck = await _db(
@@ -5356,7 +5389,7 @@ async def delivery_30day_rescan_job():
 
         res = await _db(
             supabase.table("delivery_orders")
-            .select("id, business_id, work_completed_at")
+            .select("id, business_id, work_completed_at, score_after")
             .eq("package_type", "comprehensive")
             .eq("status", "completed")
             .lt("work_completed_at", cutoff_iso)
@@ -5382,7 +5415,7 @@ async def delivery_30day_rescan_job():
                 # 사업장 기본 정보 조회
                 biz_res = await _db(
                     supabase.table("businesses")
-                    .select("id, name, category, region, keywords, has_recent_post, has_intro")
+                    .select("id, name, category, region, keywords, has_recent_post, has_intro, user_id")
                     .eq("id", biz_id)
                     .maybe_single()
                 )
@@ -5452,16 +5485,25 @@ async def delivery_30day_rescan_job():
                     )
                     continue
 
-                # followup_scan_id 갱신
+                # followup_scan_id 갱신 + score_after 미기록 시 30일 재측정 점수로 확정
+                # (2026-07-11: 후기 작성 시 score_after가 이미 채워졌다면 덮어쓰지 않음 —
+                # 사용자가 자발적으로 남긴 후기 시점 점수를 더 신뢰할 수 있는 값으로 우선함)
+                _update_fields = {"followup_scan_id": new_scan_id}
+                if order.get("score_after") is None:
+                    _new_unified = score.get("unified_score", score.get("total_score"))
+                    if _new_unified is not None:
+                        _update_fields["score_after"] = _new_unified
                 await _db(
                     supabase.table("delivery_orders")
-                    .update({"followup_scan_id": new_scan_id})
+                    .update(_update_fields)
                     .eq("id", order_id)
                 )
 
                 # 이메일 발송 — RESEND_API_KEY 미설정 시 graceful skip
                 try:
                     from services.email_sender import _get_resend, FROM_EMAIL
+                    from services.share_card import _score_stage_label
+
                     resend = _get_resend()
 
                     # 이메일 수신자 조회 (profiles.email 또는 auth users)
@@ -5475,6 +5517,8 @@ async def delivery_30day_rescan_job():
                         prof_res.data.get("email") if (prof_res and prof_res.data) else None
                     )
                     if recipient_email:
+                        # 점수 숫자 직접 노출 금지 원칙(CLAUDE.md) — 텍스트 레이블로만 안내
+                        stage_label = _score_stage_label(score.get("unified_score", score.get("total_score", 0)) or 0)
                         resend.Emails.send({
                             "from": FROM_EMAIL,
                             "to": recipient_email,
@@ -5483,7 +5527,7 @@ async def delivery_30day_rescan_job():
                                 f"<h2>30일 후 AI 노출 재측정 결과</h2>"
                                 f"<p>안녕하세요, {biz_data.get('name', '사업장')} 사장님.</p>"
                                 f"<p>종합 풀패키지 완료 후 30일이 지나 재측정을 진행했습니다.</p>"
-                                f"<p>현재 통합 점수: <strong>{score.get('unified_score', 0):.1f}점</strong></p>"
+                                f"<p>현재 상태: <strong>{stage_label}</strong></p>"
                                 f"<p>대시보드에서 상세 결과를 확인하세요: "
                                 f"<a href='https://aeolab.co.kr/dashboard'>aeolab.co.kr/dashboard</a></p>"
                             ),
