@@ -67,6 +67,9 @@ function FAQTab() {
   const [form, setForm] = useState({ question: "", answer: "", category: "general", order_num: 0 });
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ question: "", answer: "", category: "general", order_num: 0 });
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -110,6 +113,35 @@ function FAQTab() {
       method: "DELETE",
     });
     load();
+  }
+
+  function handleEditStart(f: FAQ) {
+    setEditingId(f.id);
+    setEditForm({ question: f.question, answer: f.answer, category: f.category, order_num: f.order_num });
+  }
+
+  function handleEditCancel() {
+    setEditingId(null);
+  }
+
+  async function handleEditSave(id: number) {
+    if (!editForm.question.trim() || !editForm.answer.trim()) return;
+    setEditSubmitting(true);
+    try {
+      const res = await fetch(`${ADMIN_PROXY}?path=api/faq/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editForm),
+      });
+      if (res.ok) {
+        setEditingId(null);
+        load();
+      } else {
+        setMsg("수정 실패");
+      }
+    } finally {
+      setEditSubmitting(false);
+    }
   }
 
   const grouped = Object.entries(FAQ_CATEGORY_LABELS).map(([key, label]) => ({
@@ -182,7 +214,54 @@ function FAQTab() {
               <div key={g.key}>
                 <p className="text-sm font-semibold text-gray-400 uppercase mb-2">{g.label}</p>
                 <div className="space-y-2">
-                  {g.items.map((f) => (
+                  {g.items.map((f) => editingId === f.id ? (
+                    <div key={f.id} className="py-3 border-b border-gray-50 last:border-0 space-y-2">
+                      <div className="flex gap-3">
+                        <select
+                          value={editForm.category}
+                          onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {Object.entries(FAQ_CATEGORY_LABELS).map(([k, v]) => (
+                            <option key={k} value={k}>{v}</option>
+                          ))}
+                        </select>
+                        <input
+                          type="number"
+                          value={editForm.order_num}
+                          onChange={(e) => setEditForm({ ...editForm, order_num: parseInt(e.target.value) || 0 })}
+                          className="w-20 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={editForm.question}
+                        onChange={(e) => setEditForm({ ...editForm, question: e.target.value })}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <textarea
+                        value={editForm.answer}
+                        onChange={(e) => setEditForm({ ...editForm, answer: e.target.value })}
+                        rows={4}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      />
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleEditSave(f.id)}
+                          disabled={editSubmitting}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                        >
+                          {editSubmitting ? "저장 중..." : "수정 저장"}
+                        </button>
+                        <button
+                          onClick={handleEditCancel}
+                          className="text-sm text-gray-500 hover:text-gray-700"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
                     <div key={f.id} className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-800">{f.question}</p>
@@ -190,6 +269,12 @@ function FAQTab() {
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-400">#{f.order_num}</span>
+                        <button
+                          onClick={() => handleEditStart(f)}
+                          className="text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          수정
+                        </button>
                         <button
                           onClick={() => handleDelete(f.id)}
                           className="text-sm text-red-500 hover:text-red-700"
