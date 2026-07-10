@@ -691,6 +691,77 @@ async def get_dia_stats(
     }
 
 
+# ────────────────────────────────────────────────────────────────
+# AI 비용/사용량 모니터링 (§3-A P1) — CLAUDE.md의 API 비용 수치가 전부
+# "추정치"였던 것을 실측으로 보완. 정확한 토큰·원화 비용까지는 범위 밖(별도
+# 과제로 분리) — 채널별 "실행 횟수" 집계까지만. DB 변경 없음(전부 기존 테이블).
+# ────────────────────────────────────────────────────────────────
+
+@router.get("/ai-usage")
+async def get_ai_usage(
+    days: int = Query(30, ge=1, le=90, description="집계 기간(일)"),
+    _: None = Depends(verify_admin),
+):
+    """기간별 AI 채널 실행 횟수 + Claude 호출량(가이드·어시스턴트).
+
+    scan_results의 각 *_result 컬럼 not null 여부로 "그 스캔에 해당 채널이
+    포함됐는지"를 센다 — 스캔 1건이 내부적으로 Gemini/ChatGPT를 50~100회
+    샘플링하므로 이 수치는 API 콜 수가 아니라 "채널이 실행된 스캔 세션 수"다.
+    """
+    supabase = get_supabase()
+    cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+
+    total_scans = await execute(
+        supabase.table("scan_results").select("id", count="exact").gte("scanned_at", cutoff)
+    )
+    gemini_scans = await execute(
+        supabase.table("scan_results").select("id", count="exact")
+        .gte("scanned_at", cutoff).not_.is_("gemini_result", "null")
+    )
+    chatgpt_scans = await execute(
+        supabase.table("scan_results").select("id", count="exact")
+        .gte("scanned_at", cutoff).not_.is_("chatgpt_result", "null")
+    )
+    naver_scans = await execute(
+        supabase.table("scan_results").select("id", count="exact")
+        .gte("scanned_at", cutoff).not_.is_("naver_result", "null")
+    )
+    google_scans = await execute(
+        supabase.table("scan_results").select("id", count="exact")
+        .gte("scanned_at", cutoff).not_.is_("google_result", "null")
+    )
+
+    guide_rows = (
+        await execute(
+            supabase.table("guides").select("context")
+            .gte("generated_at", cutoff)
+            .limit(5000)
+        )
+    ).data or []
+    guide_by_context: dict = {}
+    for g in guide_rows:
+        ctx = g.get("context") or "unknown"
+        guide_by_context[ctx] = guide_by_context.get(ctx, 0) + 1
+
+    assistant_count = await execute(
+        supabase.table("assistant_logs").select("id", count="exact").gte("created_at", cutoff)
+    )
+
+    return {
+        "period_days": days,
+        "scan_counts": {
+            "total_scans": total_scans.count or 0,
+            "gemini": gemini_scans.count or 0,
+            "chatgpt": chatgpt_scans.count or 0,
+            "naver": naver_scans.count or 0,
+            "google": google_scans.count or 0,
+        },
+        "guide_generation_count": len(guide_rows),
+        "guide_by_context": guide_by_context,
+        "assistant_chat_count": assistant_count.count or 0,
+    }
+
+
 # ─── 이메일 미리보기 / 테스트 발송 ────────────────────────────────────────────
 
 _EMAIL_DUMMY = {

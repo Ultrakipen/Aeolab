@@ -38,6 +38,14 @@ interface CategoryDist {
   per_category: Record<string, number>;
 }
 
+interface AiUsage {
+  period_days: number;
+  scan_counts: { total_scans: number; gemini: number; chatgpt: number; naver: number; google: number };
+  guide_generation_count: number;
+  guide_by_context: Record<string, number>;
+  assistant_chat_count: number;
+}
+
 interface SubRow {
   user_id: string;
   email?: string;
@@ -499,6 +507,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   const [cancelError, setCancelError] = useState("");
   const [cancelResult, setCancelResult] = useState<{ refunded: boolean; refund_amount: number | null } | null>(null);
   const [catDist, setCatDist] = useState<CategoryDist | null>(null);
+  const [aiUsage, setAiUsage] = useState<AiUsage | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -509,11 +518,12 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
     setLoading(true);
     setError("");
     try {
-      const [statsRes, revenueRes, subsRes, catRes] = await Promise.all([
+      const [statsRes, revenueRes, subsRes, catRes, aiUsageRes] = await Promise.all([
         fetch(`${ADMIN_PROXY}?path=admin/stats`),
         fetch(`${ADMIN_PROXY}?path=admin/revenue`),
         fetch(`${ADMIN_PROXY}?path=admin/subscriptions`),
         fetch(`${ADMIN_PROXY}?path=admin/category-distribution`),
+        fetch(`${ADMIN_PROXY}?path=admin/ai-usage?days=30`),
       ]);
       if (!statsRes.ok) {
         if (statsRes.status === 403) {
@@ -527,6 +537,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
       setRevenue(await revenueRes.json());
       setSubs(await subsRes.json());
       if (catRes.ok) setCatDist(await catRes.json());
+      if (aiUsageRes.ok) setAiUsage(await aiUsageRes.json());
       setAuthed(true);
     } catch {
       setError("데이터를 불러오는 중 오류가 발생했습니다.");
@@ -581,14 +592,16 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
       if (!res.ok) throw new Error("API 오류");
       setStats(await res.json());
       // 나머지 데이터 로드
-      const [revenueRes, subsRes, catRes2] = await Promise.all([
+      const [revenueRes, subsRes, catRes2, aiUsageRes2] = await Promise.all([
         fetch(`${ADMIN_PROXY}?path=admin/revenue`),
         fetch(`${ADMIN_PROXY}?path=admin/subscriptions`),
         fetch(`${ADMIN_PROXY}?path=admin/category-distribution`),
+        fetch(`${ADMIN_PROXY}?path=admin/ai-usage?days=30`),
       ]);
       setRevenue(await revenueRes.json());
       setSubs(await subsRes.json());
       if (catRes2.ok) setCatDist(await catRes2.json());
+      if (aiUsageRes2.ok) setAiUsage(await aiUsageRes2.json());
       setAuthed(true);
       // 세션 유지 (새로고침 대응)
       try { localStorage.setItem("aeolab_admin_authed", "1"); } catch { /* ignore */ }
@@ -1012,6 +1025,57 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                         {cat} <span className="font-semibold text-gray-500">{cnt}</span>
                       </span>
                     ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* AI 비용/사용량 모니터링 (§3-A P1) — 채널별 실행 횟수, 정확한 토큰비용 아님 */}
+            {aiUsage && (
+              <div className="bg-white rounded-xl p-5 shadow-sm mt-6">
+                <h2 className="text-sm font-semibold text-gray-700 mb-1">AI 사용량 (최근 {aiUsage.period_days}일)</h2>
+                <p className="text-sm text-gray-400 mb-4">
+                  채널이 포함된 스캔 세션 수 — 실제 API 콜 수(스캔당 50~100회 샘플링)와는 다름
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+                  <div className="rounded-xl p-3 border border-gray-100">
+                    <div className="text-sm text-gray-500 mb-0.5">전체 스캔</div>
+                    <div className="text-xl font-bold text-gray-800">{aiUsage.scan_counts.total_scans}</div>
+                  </div>
+                  <div className="rounded-xl p-3 border border-gray-100">
+                    <div className="text-sm text-gray-500 mb-0.5">Gemini</div>
+                    <div className="text-xl font-bold text-gray-800">{aiUsage.scan_counts.gemini}</div>
+                  </div>
+                  <div className="rounded-xl p-3 border border-gray-100">
+                    <div className="text-sm text-gray-500 mb-0.5">ChatGPT</div>
+                    <div className="text-xl font-bold text-gray-800">{aiUsage.scan_counts.chatgpt}</div>
+                  </div>
+                  <div className="rounded-xl p-3 border border-gray-100">
+                    <div className="text-sm text-gray-500 mb-0.5">네이버</div>
+                    <div className="text-xl font-bold text-gray-800">{aiUsage.scan_counts.naver}</div>
+                  </div>
+                  <div className="rounded-xl p-3 border border-gray-100">
+                    <div className="text-sm text-gray-500 mb-0.5">Google</div>
+                    <div className="text-xl font-bold text-gray-800">{aiUsage.scan_counts.google}</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="rounded-xl p-3 border border-gray-100">
+                    <div className="text-sm text-gray-500 mb-1">가이드 생성(Claude Sonnet) — {aiUsage.guide_generation_count}건</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Object.entries(aiUsage.guide_by_context).map(([ctx, cnt]) => (
+                        <span key={ctx} className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2 py-0.5 text-sm">
+                          {ctx} <span className="font-semibold text-gray-500">{cnt}</span>
+                        </span>
+                      ))}
+                      {Object.keys(aiUsage.guide_by_context).length === 0 && (
+                        <span className="text-sm text-gray-400">기간 내 생성 없음</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-xl p-3 border border-gray-100">
+                    <div className="text-sm text-gray-500 mb-0.5">AI 어시스턴트 채팅(Claude Haiku)</div>
+                    <div className="text-xl font-bold text-gray-800">{aiUsage.assistant_chat_count}건</div>
                   </div>
                 </div>
               </div>
