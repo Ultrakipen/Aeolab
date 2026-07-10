@@ -2465,3 +2465,22 @@ ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 
 INSERT INTO admin_users (email, role) VALUES ('hoozdev@gmail.com', 'owner')
 ON CONFLICT (email) DO NOTHING;
+
+-- ===========================================================
+-- 2026-07-10: 6·H단계 재점검(code-review) 후속 — CHECK 제약 추가
+-- payment_events.event_type/status, admin_users.role에 허용값 제약이 없어
+-- 임의 문자열 삽입이 가능했음(P2). 기존 데이터는 전부 허용값 내이므로
+-- NOT VALID 없이 즉시 검증 가능.
+-- ===========================================================
+
+ALTER TABLE payment_events
+  ADD CONSTRAINT payment_events_event_type_check
+  CHECK (event_type IN ('billing_issue', 'renewal'));
+
+ALTER TABLE payment_events
+  ADD CONSTRAINT payment_events_status_check
+  CHECK (status IN ('success', 'failed'));
+
+ALTER TABLE admin_users
+  ADD CONSTRAINT admin_users_role_check
+  CHECK (role IN ('owner', 'support'));

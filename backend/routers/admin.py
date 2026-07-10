@@ -350,12 +350,20 @@ async def list_admin_users(_owner: str = Depends(require_owner)):
 
 @router.post("/admin-users")
 async def add_admin_user(email: str, role: str = "support", owner_email: str = Depends(require_owner)):
-    """관리자 계정 추가 (owner 전용). role: owner | support."""
+    """관리자 계정 추가 (owner 전용). role: owner | support.
+
+    자기 자신의 role을 support로 낮추는 것은 금지 — upsert라 remove와 달리
+    막혀있지 않으면 유일한 owner가 실수로 스스로를 강등해 전원 잠기는 사고가
+    가능하다(재점검에서 발견, admin_users seed는 ON CONFLICT DO NOTHING이라
+    자동 복구 안 됨).
+    """
     if role not in ("owner", "support"):
         raise HTTPException(status_code=400, detail="role은 owner 또는 support여야 합니다")
     email = email.strip().lower()
     if not email:
         raise HTTPException(status_code=400, detail="이메일을 입력해 주세요")
+    if email == owner_email.strip().lower() and role != "owner":
+        raise HTTPException(status_code=400, detail="자기 자신의 role을 낮출 수 없습니다")
 
     supabase = get_supabase()
     res = await execute(

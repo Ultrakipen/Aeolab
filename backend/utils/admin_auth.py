@@ -58,7 +58,9 @@ async def require_owner(
     try:
         supabase = get_client()
         res = await execute(
-            supabase.table("admin_users").select("role").eq("email", x_admin_email).maybe_single()
+            supabase.table("admin_users").select("role")
+            .eq("email", x_admin_email.strip().lower())
+            .maybe_single()
         )
         role = (res.data or {}).get("role") if res else None
     except Exception as e:
@@ -68,4 +70,4 @@ async def require_owner(
     if role != "owner":
         raise HTTPException(status_code=403, detail="Owner 권한이 필요한 기능입니다")
 
-    return x_admin_email
+    return x_admin_email.strip().lower()

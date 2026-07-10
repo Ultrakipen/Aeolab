@@ -61,6 +61,6 @@ async def retry_billing(subscription: dict) -> bool:
         try:
             from utils.payment_event_log import record_payment_event
             await record_payment_event(subscription.get("user_id"), "renewal", "failed", amount, str(e))
-        except Exception:
-            pass
+        except Exception as log_err:
+            logger.warning(f"[toss_billing] 결제 이벤트 기록 실패: {log_err}")
         return False
