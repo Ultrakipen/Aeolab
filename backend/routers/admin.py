@@ -211,10 +211,13 @@ async def search_businesses(q: str = None, _=Depends(verify_admin)):
 
 @router.get("/businesses/{business_id}")
 async def get_business_detail(business_id: str, _=Depends(verify_admin)):
-    """사업장 상세 — 스캔이력·가이드이력·경쟁사 통합 (P0).
+    """사업장 상세 — 스캔이력·가이드이력·경쟁사·블로그진단·변화기록 통합 (P0).
 
     support.py admin_get_ticket에서 만든 businesses+scan_results dict-merge
     패턴을 독립 엔드포인트로 승격 — 문의 티켓 없이도 임의 사업장을 조회 가능.
+
+    blog_analysis·business_action_log는 설계 문서 §3 P2에서 "P0에 흡수"라고
+    명시했으나 최초 구현 시 누락됐던 것을 재점검 중 발견해 추가함(2026-07-10).
     """
     supabase = get_supabase()
     biz_res = await execute(
@@ -257,6 +260,20 @@ async def get_business_detail(business_id: str, _=Depends(verify_admin)):
         .eq("business_id", business_id)
         .eq("is_active", True)
     )
+    blog_res = await execute(
+        supabase.table("blog_analysis")
+        .select("keyword, my_rank, analyzed_at")
+        .eq("business_id", business_id)
+        .order("analyzed_at", desc=True)
+        .limit(10)
+    )
+    actions_res = await execute(
+        supabase.table("business_action_log")
+        .select("action_type, action_label, action_date, score_before, score_after")
+        .eq("business_id", business_id)
+        .order("action_date", desc=True)
+        .limit(10)
+    )
 
     return {
         "business": biz,
@@ -264,6 +281,8 @@ async def get_business_detail(business_id: str, _=Depends(verify_admin)):
         "scans": scans_res.data or [],
         "guides": guides_res.data or [],
         "competitors": competitors_res.data or [],
+        "blog_analysis": blog_res.data or [],
+        "action_log": actions_res.data or [],
     }
 
 

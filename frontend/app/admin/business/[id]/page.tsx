@@ -32,6 +32,18 @@ interface CompetitorRow {
   address: string | null;
   is_active: boolean;
 }
+interface BlogAnalysisRow {
+  keyword: string;
+  my_rank: number | null;
+  analyzed_at: string;
+}
+interface ActionLogRow {
+  action_type: string;
+  action_label: string;
+  action_date: string;
+  score_before: number | null;
+  score_after: number | null;
+}
 interface BusinessDetail {
   business: {
     id: string; name: string; category: string; region: string;
@@ -41,6 +53,8 @@ interface BusinessDetail {
   scans: ScanRow[];
   guides: GuideRow[];
   competitors: CompetitorRow[];
+  blog_analysis: BlogAnalysisRow[];
+  action_log: ActionLogRow[];
 }
 
 async function fetchDetail(id: string, adminKey: string): Promise<BusinessDetail | null> {
@@ -61,6 +75,16 @@ const formatDate = (iso?: string) => {
   return new Date(iso).toLocaleString("ko-KR", {
     year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
   });
+};
+
+const formatDateOnly = (iso?: string) => {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("ko-KR", { year: "numeric", month: "short", day: "numeric" });
+};
+
+const ACTION_TYPE_LABEL: Record<string, string> = {
+  faq_registered: "톡톡메뉴 등록", intro_updated: "소개글 수정", post_published: "포스팅 발행",
+  review_replied: "리뷰 답변", guide_generated: "가이드 생성",
 };
 
 export default async function AdminBusinessDetailPage({
@@ -95,7 +119,7 @@ export default async function AdminBusinessDetailPage({
     );
   }
 
-  const { business, owner_email, scans, guides, competitors } = detail;
+  const { business, owner_email, scans, guides, competitors, blog_analysis, action_log } = detail;
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
@@ -187,6 +211,47 @@ export default async function AdminBusinessDetailPage({
                 <li key={c.id} className="text-sm text-gray-700">
                   <span className="font-medium">{c.name}</span>
                   {c.address && <span className="text-gray-400"> · {c.address}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+        {/* 블로그 진단 */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h2 className="text-base font-semibold text-gray-800 mb-3">블로그 진단 ({blog_analysis.length}건)</h2>
+          {blog_analysis.length === 0 ? (
+            <p className="text-sm text-gray-400">아직 블로그 진단 이력이 없습니다.</p>
+          ) : (
+            <ul className="space-y-2">
+              {blog_analysis.map((b) => (
+                <li key={b.keyword} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-700">{b.keyword}</span>
+                  <span className="text-gray-500">{b.my_rank != null ? `${b.my_rank}위` : "10위권 밖"}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* 변화 기록 */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h2 className="text-base font-semibold text-gray-800 mb-3">변화 기록 ({action_log.length}건)</h2>
+          {action_log.length === 0 ? (
+            <p className="text-sm text-gray-400">아직 기록된 변화가 없습니다.</p>
+          ) : (
+            <ul className="space-y-2">
+              {action_log.map((a, i) => (
+                <li key={i} className="text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-700">{ACTION_TYPE_LABEL[a.action_type] ?? a.action_label}</span>
+                    <span className="text-gray-400">{formatDateOnly(a.action_date)}</span>
+                  </div>
+                  {a.score_before != null && a.score_after != null && (
+                    <span className="text-sm text-gray-500">{a.score_before.toFixed(1)} → {a.score_after.toFixed(1)}</span>
+                  )}
                 </li>
               ))}
             </ul>
