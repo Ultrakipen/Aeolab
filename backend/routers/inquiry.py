@@ -181,7 +181,7 @@ async def admin_answer_inquiry(
             raise HTTPException(status_code=404, detail="문의를 찾을 수 없습니다.")
 
         now_iso = datetime.now(timezone.utc).isoformat()
-        res = await execute(
+        await execute(
             supabase.table("inquiries")
             .update({
                 "answer": body.answer.strip(),
@@ -189,8 +189,6 @@ async def admin_answer_inquiry(
                 "answered_at": now_iso,
             })
             .eq("id", inquiry_id)
-            .select("id, status, answered_at")
-            .single()
         )
         _logger.info("inquiry answered id=%s", inquiry_id)
         return {"id": inquiry_id, "status": "answered", "message": "답변이 등록되었습니다."}
