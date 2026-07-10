@@ -173,3 +173,34 @@ P0(대행서비스·문의답변 처리) → P1(통계 정확성 + 탭 이원화
 ### 남은 것
 
 P1(통계 정확성 + `NoticesTab` vs `/admin/notices` 탭 이원화 정리) · P2(공지·FAQ·후기·피드백·comms) — 이 세션에서 미착수. 별도로 `notices` 테이블 `severity`/`target_segment`/`cta_label`/`cta_url` 필드 소실 버그도 같은 세션에서 발견·수정 완료(git `2fe3df9`, 이 문서 범위 밖이지만 연관 발견).
+
+---
+
+## 8. P1 실측 재현 완료 (2026-07-10, git `332af48`~`270df92`)
+
+> 정적 코드리뷰만으로는 못 잡는 런타임 크래시를 실제 로그인 후 브라우저 콘솔 확인으로 발견 — §0 교훈이 P1에서도 재현됨.
+
+### 신규 발견 + 수정 완료 (3건)
+
+| # | 위치 | 증상 | 근본 원인 | 상태 |
+|---|------|------|----------|------|
+| 1 | `/admin/score-comparison` | **페이지 진입 시 100% 크래시**(`Cannot read properties of undefined (reading 'diff_avg')`) | 프론트가 `data.groups["active"\|"likely"\|"inactive"\|"franchise"]`(소문자+존재하지 않는 franchise)로 접근하는데 백엔드는 `"ACTIVE"\|"LIKELY"\|"INACTIVE"`(대문자, franchise 키 없음) 반환. 실제 curl로 백엔드 응답 확인 후 확정 | ✅ 키 대소문자 통일 + franchise 제거 + `count:0` null 안전 가드 |
+| 2 | `/admin/score-comparison` "v3.1 활성화 1-click 명령" | 서버가 이미 수 주 전 `SCORE_MODEL_VERSION=v3_1` 전환 완료(2026-07-06 확인)인데도 "아직 비활성"인 것처럼 활성화 명령을 노출하는 죽은 UI. `calc_shadow_v3_1()`이 라이브 경로와 동일한 `calc_track1_score_v3_1()`을 호출해 v30/v31 비교값이 사실상 동일 포뮬러 비교(실측 데이터 31건 중 28건 diff=0)임도 확인 | 코드 추적(`score_engine.py:915-918` vs `:1443`)으로 확정, 사용자 확인 후 처리 방향 결정 | ✅ 활성화 CTA 제거 → "이미 라이브 적용 중" 안내 배너로 교체 |
+| 3 | `/admin` 내장 `NoticesTab` vs `/admin/notices` | 같은 `api/notices`를 다루는 중복 구현. 내장 탭은 `severity`/`target_segment`/`cta_label`/`cta_url` 필드가 아예 없어 이 탭으로 작성 시 필드 소실(git `2fe3df9`가 고친 문제가 이 탭에서는 재발 가능) | 실제 `notices` 테이블 조회 결과 두 화면 다 사용 이력 없음(seed 데이터만 존재) → 완전성 기준으로 `/admin/notices`를 canonical로 판단(사용자 확인) | ✅ 내장 탭 제거, 상단 "공지사항 관리 →" 링크만 유지 |
+
+### 확인 완료, 문제 없음
+
+- `/admin` 대시보드 `/stats`·`/subscriptions`·`/revenue` — Supabase REST 직접 조회로 5개 구독 전부 대조, MRR 181,500원·플랜별 분포·월별 매출 전부 코드 로직대로 정확히 일치. `end_at` 자정-파싱 오프셋 버그(기존에 별도 수정됨)는 이 통계 집계 경로에 영향 없음(상태 필드만 사용, end_at 비교 없음)
+
+### 검증 방법
+
+1. 실제 로그인 세션으로 Playwright 브라우저 콘솔 에러 확인 → 크래시 최초 포착
+2. 서버 SSH로 `curl -H 'X-Admin-Key: ...'`로 백엔드 원본 JSON 응답 직접 확인 → 키 불일치 확정
+3. 코드 추적으로 `calc_shadow_v3_1`과 라이브 `calculate_score` 경로가 동일 함수 호출함을 확인
+4. Supabase REST로 `subscriptions`·`notices` 테이블 직접 조회해 화면 표시값과 대조
+5. 수정 후 md5 확인 → scp 배포 → `npm run build` → `pm2 restart` → 에러로그 확인 → 같은 재현 스텝으로 재검증(크래시 소멸, 콘솔 에러 0건)
+6. git 커밋 3건(`332af48` 크래시 수정, `e702cc8` CTA→배너, `270df92` NoticesTab 제거)
+
+### 남은 것
+
+P2(공지·FAQ·후기·피드백·comms 콘텐츠관리) — 미착수.
