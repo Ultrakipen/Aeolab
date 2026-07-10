@@ -49,7 +49,7 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-6">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm sm:max-w-md">
 
         {/* 로고 */}
         <div className="text-center mb-8">
@@ -67,7 +67,7 @@ export default function LoginPage() {
         )}
 
         {/* 폼 */}
-        <form onSubmit={handleLogin} className="bg-white rounded-xl p-6 shadow-sm space-y-5">
+        <form onSubmit={handleLogin} className="bg-white rounded-xl p-6 sm:p-8 shadow-sm space-y-5">
           <h1 className="text-xl font-bold text-gray-900 text-center">로그인</h1>
 
           <div>
