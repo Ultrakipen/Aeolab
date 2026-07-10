@@ -516,3 +516,9 @@ CREATE INDEX IF NOT EXISTS idx_trial_scans_claimed
 
 ## 2026-07-07 — 구독 갱신 P0 과금오류 + FK조인 버그 + 7일 자동환불
 > `jobs.py subscription_lifecycle_job`이 `subscriptions↔profiles` FK 미등록으로 매 실행 PGRST200 발생해 잡 전체가 항상 죽어있던 치명적 버그 신규 발견·수정(분리쿼리 패턴). `end_at` 정확일치→`.lte()` 범위매칭 전환(P0), 연간구독 오청구 수정(P1), 구독자별 try/except 격리, 7일 청약철회 자동환불(대행서비스 delivery_orders 대상, Toss 결제취소 API+운영자 알림) 신규 구현. git `170b002`. 상세: `docs/subscription_lifecycle_inspection_v1.0.md` §7. 구독 생애주기 초기 점검(§6 재점검 포함)도 이 세션에 완결.
+
+## 2026-07-08 — 8개 페이지 상업적 전문성 재점검 + 심층개선
+> 경쟁사관리·변화기록·성장리포트·개선가이드·소개글콘텐츠·리뷰답변·AI광고대비·창업분석 재점검(3그룹 병렬 조사, 5기준). P0 2건(FAQ/소개글 월한도 프론트-백엔드 불일치·"SearchGPT" 폐기명칭+시제오류) + P1 8건(exposure_freq 고정표기·History 페이월부재·action-log 미연동 등) 수정·배포·검증(git `258dff7`~`ba02b29`). 후속 심층개선 6건(D.I.A 자동재시도, **창업분석 네이버 DataLab 실측 검색트렌드 연동** 등)까지 완료. 상세: 메모리 `project_eight_pages_recheck_2026_07_08`.
+
+## 2026-07-08~09 — 루트 잔재 332개 제거 + 인용 링크 오류 수정 + git 이메일 정정
+> root-level `app/`·`components/`(332개, `frontend/` 구버전 중복, 2026-06-04 이후 미사용) 서버 전체 백업 후 로컬+서버 양쪽 git rm. 홈페이지·`how-it-works`의 "네이버 공식 발표 데이터" 인용 박스가 3개 통계를 무관한 기사 1개에 뭉뚱그려 인용하던 버그를 WebSearch 개별 재검증 후 통계별 출처로 분리. git commit author 이메일을 `hoozdev@gmail.com`으로 통일. git `4bc5b7e`~`bf2cf50`.
