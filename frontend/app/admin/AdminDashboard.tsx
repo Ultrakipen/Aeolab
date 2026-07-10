@@ -7,6 +7,23 @@ import { PLAN_PRICES } from "@/lib/plans";
 
 const SUB_PAGE_SIZE = 50;
 
+// guides.context는 두 종류가 섞여 있음: ① 전용 가이드 타입(faq_draft 등)
+// ② 일반 월간 가이드는 context=business_type(예: restaurant)을 그대로 저장.
+// ①은 아래 맵으로, ②는 CATEGORY_LABEL로 한글화(guide_by_context 렌더링에서 함께 사용).
+const GUIDE_CONTEXT_LABEL: Record<string, string> = {
+  location_based: "지역기반 업종 가이드",
+  non_location: "비지역기반 업종 가이드",
+  ad_defense: "AI 광고 대비 가이드",
+  faq_draft: "톡톡 FAQ 초안",
+  crisis_reply: "위기관리 답변",
+  startup_report: "창업 시장 분석",
+  talktalk_faq: "톡톡 채팅방 메뉴",
+  intro_draft: "소개글 초안",
+  post_draft: "블로그 포스트 초안",
+  keyword_rank: "키워드 순위 체크",
+  unknown: "기타",
+};
+
 // 관리자 API는 서버 사이드 프록시를 통해 호출 (키 노출 방지)
 // 가격 정보는 백엔드 plan_stats에서 직접 받음 — lib/plans.ts PLAN_PRICES는 layout.tsx JSON-LD 등 클라이언트 표시용
 const ADMIN_PROXY = "/api/admin-proxy";
@@ -1161,7 +1178,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                     <div className="flex flex-wrap gap-1.5">
                       {Object.entries(aiUsage.guide_by_context).map(([ctx, cnt]) => (
                         <span key={ctx} className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2 py-0.5 text-sm">
-                          {ctx} <span className="font-semibold text-gray-500">{cnt}</span>
+                          {GUIDE_CONTEXT_LABEL[ctx] ?? CATEGORY_LABEL[ctx] ?? ctx} <span className="font-semibold text-gray-500">{cnt}</span>
                         </span>
                       ))}
                       {Object.keys(aiUsage.guide_by_context).length === 0 && (
