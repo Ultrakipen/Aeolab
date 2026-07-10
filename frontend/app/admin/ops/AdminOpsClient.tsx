@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { RefreshCw, ShieldCheck, Bell, CreditCard, Users, Trash2 } from "lucide-react";
+import { RefreshCw, ShieldCheck, Bell, CreditCard, Users, Trash2, Rocket } from "lucide-react";
 
 const ADMIN_PROXY = "/api/admin-proxy";
 
@@ -48,6 +48,17 @@ interface AdminUserRow {
   created_at: string;
 }
 
+interface StartupReportRow {
+  id: string;
+  user_id: string;
+  business_id: string | null;
+  email: string | null;
+  category: string;
+  region: string;
+  business_name: string | null;
+  created_at: string;
+}
+
 const LEVEL_STYLE: Record<string, string> = {
   error: "bg-red-50 text-red-700",
   warning: "bg-amber-50 text-amber-700",
@@ -74,6 +85,7 @@ export default function AdminOpsClient() {
   const [auditLog, setAuditLog] = useState<AuditLogRow[]>([]);
   const [alerts, setAlerts] = useState<SystemAlertRow[]>([]);
   const [paymentEvents, setPaymentEvents] = useState<PaymentEventRow[]>([]);
+  const [startupReports, setStartupReports] = useState<StartupReportRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -102,15 +114,17 @@ export default function AdminOpsClient() {
     setLoading(true);
     setError("");
     try {
-      const [auditRes, alertRes, paymentRes] = await Promise.all([
+      const [auditRes, alertRes, paymentRes, startupRes] = await Promise.all([
         fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/audit-log?limit=100")}`),
         fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/system-alerts?limit=100")}`),
         fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/payment-events?limit=100")}`),
+        fetch(`${ADMIN_PROXY}?path=${encodeURIComponent("admin/startup-reports?limit=100")}`),
       ]);
-      if (!auditRes.ok || !alertRes.ok || !paymentRes.ok) throw new Error("API 오류");
+      if (!auditRes.ok || !alertRes.ok || !paymentRes.ok || !startupRes.ok) throw new Error("API 오류");
       setAuditLog(await auditRes.json());
       setAlerts(await alertRes.json());
       setPaymentEvents(await paymentRes.json());
+      setStartupReports(await startupRes.json());
     } catch {
       setError("운영 현황을 불러오지 못했습니다.");
     } finally {
@@ -246,6 +260,33 @@ export default function AdminOpsClient() {
                 {p.status === "failed" && p.detail && (
                   <p className="text-sm text-red-500 mt-0.5 whitespace-pre-wrap line-clamp-2">{p.detail}</p>
                 )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 창업 시장 분석 리포트 이력 */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+        <div className="flex items-center gap-2 mb-1">
+          <Rocket className="w-4 h-4 text-gray-400" />
+          <h2 className="text-base font-semibold text-gray-800">창업 시장 분석 리포트 ({startupReports.length}건)</h2>
+        </div>
+        <p className="text-sm text-gray-400 mb-4">2026-07-10 이후 요청만 기록됩니다(소급 이력 없음). 사업장 미등록(예비 창업자)이면 &quot;미등록&quot;으로 표시됩니다.</p>
+        {startupReports.length === 0 ? (
+          <div className="text-sm text-gray-400 py-2">아직 기록된 창업리포트 요청이 없습니다.</div>
+        ) : (
+          <div className="space-y-2 max-h-[420px] overflow-y-auto">
+            {startupReports.map((r) => (
+              <div key={r.id} className="border border-gray-100 rounded-lg p-3">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="text-sm font-medium text-gray-800">{r.category} · {r.region}</span>
+                  {!r.business_id && (
+                    <span className="text-sm text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">미등록(예비 창업자)</span>
+                  )}
+                  <span className="text-sm text-gray-400 ml-auto">{formatDate(r.created_at)}</span>
+                </div>
+                <p className="text-sm text-gray-500">{r.email ?? r.user_id}{r.business_name ? ` · ${r.business_name}` : ""}</p>
               </div>
             ))}
           </div>

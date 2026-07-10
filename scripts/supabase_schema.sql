@@ -2484,3 +2484,28 @@ ALTER TABLE payment_events
 ALTER TABLE admin_users
   ADD CONSTRAINT admin_users_role_check
   CHECK (role IN ('owner', 'support'));
+
+-- ===========================================================
+-- 2026-07-10: 관리자 서비스 총괄 대시보드 잔여 — 창업리포트 로그
+-- 배경: docs/admin_service_oversight_design_v1.0.md 미완료 항목("창업리포트").
+-- startup.py generate_startup_report는 사업장 있는 사용자만 guides에 카운트
+-- 기록되고(business_id FK NOT NULL이라 없으면 아예 기록 불가), 예비 창업자
+-- (사업장 미등록)의 리포트 생성 요청은 30분 in-memory 캐시 외엔 서버 어디에도
+-- 영구 저장되지 않았다 — "관리자 화면이 없다"가 아니라 "데이터 자체가 없던"
+-- 구조적 공백. business_id를 nullable로 둬 예비 창업자도 기록 가능하게 함.
+-- ===========================================================
+
+CREATE TABLE IF NOT EXISTS startup_report_log (
+  id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id       UUID,
+  business_id   UUID REFERENCES businesses(id) ON DELETE SET NULL,
+  category      TEXT NOT NULL,
+  region        TEXT NOT NULL,
+  business_name TEXT,
+  created_at    TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_startup_report_log_created ON startup_report_log(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_startup_report_log_user ON startup_report_log(user_id, created_at DESC);
+
+ALTER TABLE startup_report_log ENABLE ROW LEVEL SECURITY;

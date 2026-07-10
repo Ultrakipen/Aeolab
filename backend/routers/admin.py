@@ -159,6 +159,37 @@ async def list_subscriptions(
     for row in rows:
         row["email"] = email_map.get(row.get("user_id"))
 
+    # 팀원수·API키수 — Biz+ 전용 기능 사용 현황(§3-A "팀·API키" 잔여 항목).
+    # team_members(owner_id)·api_keys(user_id) 둘 다 배치 IN 쿼리로 N+1 회피.
+    user_ids = [r["user_id"] for r in rows if r.get("user_id")]
+    team_count_map: dict = {}
+    api_key_count_map: dict = {}
+    if user_ids:
+        try:
+            team_rows = (
+                await execute(
+                    supabase.table("team_members").select("owner_id").in_("owner_id", user_ids)
+                )
+            ).data or []
+            for t in team_rows:
+                team_count_map[t["owner_id"]] = team_count_map.get(t["owner_id"], 0) + 1
+        except Exception as e:
+            _logger.warning(f"[admin] 팀원수 조회 실패: {e}")
+        try:
+            key_rows = (
+                await execute(
+                    supabase.table("api_keys").select("user_id").eq("is_active", True).in_("user_id", user_ids)
+                )
+            ).data or []
+            for k in key_rows:
+                api_key_count_map[k["user_id"]] = api_key_count_map.get(k["user_id"], 0) + 1
+        except Exception as e:
+            _logger.warning(f"[admin] API키수 조회 실패: {e}")
+
+    for row in rows:
+        row["team_member_count"] = team_count_map.get(row.get("user_id"), 0)
+        row["api_key_count"] = api_key_count_map.get(row.get("user_id"), 0)
+
     if email:
         needle = email.strip().lower()
         rows = [r for r in rows if needle in (r.get("email") or "").lower()]
@@ -502,6 +533,41 @@ async def get_cohort_analysis(_=Depends(verify_admin)):
         "avg_tenure_days": avg_tenure_days,
         "data_caveat": "구독 상태 변경 이력이 별도로 기록되지 않아 정확한 월별 이탈 시점은 계산할 수 없습니다 — 위 수치는 현재 상태 스냅샷 기준입니다.",
     }
+
+
+@router.get("/startup-reports")
+async def get_startup_reports(limit: int = Query(100, ge=1, le=500), _=Depends(verify_admin)):
+    """창업 시장 분석 리포트 요청 이력 (사업장 유무 무관 전체).
+
+    startup_report_log는 2026-07-10 신설 — 그 이전 요청 이력은 없음(소급 불가).
+    사업장이 있는 요청은 business_id로 사업장 상세뷰와 연결해 볼 수 있고,
+    예비 창업자(business_id NULL)는 이 목록이 유일한 조회 경로다.
+    """
+    supabase = get_supabase()
+    rows = (
+        await execute(
+            supabase.table("startup_report_log")
+            .select("id, user_id, business_id, category, region, business_name, created_at")
+            .order("created_at", desc=True)
+            .limit(limit)
+        )
+    ).data or []
+    if not rows:
+        return rows
+
+    email_map: dict = {}
+    try:
+        users = await asyncio.to_thread(
+            lambda: supabase.auth.admin.list_users(page=1, per_page=1000)
+        )
+        email_map = {u.id: u.email for u in users}
+    except Exception as e:
+        _logger.warning(f"[admin] 창업리포트 이메일 조회 실패: {e}")
+
+    for row in rows:
+        row["email"] = email_map.get(row.get("user_id"))
+
+    return rows
 
 
 @router.get("/category-distribution")

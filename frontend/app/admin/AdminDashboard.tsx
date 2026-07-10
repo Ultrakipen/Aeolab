@@ -61,6 +61,8 @@ interface SubRow {
   status: string;
   start_at: string;
   end_at: string;
+  team_member_count?: number;
+  api_key_count?: number;
 }
 
 interface FAQ {
@@ -965,6 +967,7 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                         <th className="pb-2">플랜</th>
                         <th className="pb-2">상태</th>
                         <th className="pb-2">만료일</th>
+                        <th className="pb-2">팀/API키</th>
                         <th className="pb-2">액션</th>
                       </tr>
                     </thead>
@@ -988,6 +991,11 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                           </td>
                           <td className="py-2 text-sm text-gray-400">
                             {sub.end_at ? new Date(sub.end_at).toLocaleDateString("ko-KR") : "—"}
+                          </td>
+                          <td className="py-2 text-sm text-gray-500">
+                            {(sub.team_member_count || sub.api_key_count)
+                              ? `팀 ${sub.team_member_count ?? 0}명 · 키 ${sub.api_key_count ?? 0}개`
+                              : "—"}
                           </td>
                           <td className="py-2">
                             {(sub.status === "active" || sub.status === "grace_period") ? (

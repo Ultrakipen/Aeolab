@@ -67,6 +67,7 @@ async def generate_startup_report(
 
     # 사용량 카운트 — AI 호출 성공 후 기록 (business_id = 첫 번째 사업장, 없으면 기록 생략)
     is_fallback = result.get("is_fallback", False) if isinstance(result, dict) else False
+    biz_id_for_log = None
     if not is_fallback:
         try:
             # startup_report에는 biz_id가 없으므로 user의 첫 번째 사업장에 연결해 기록
@@ -75,15 +76,31 @@ async def generate_startup_report(
             )
             biz_rows = biz_res.data or []
             if biz_rows:
+                biz_id_for_log = biz_rows[0]["id"]
                 await execute(
                     supabase.table("guides").insert({
-                        "business_id": biz_rows[0]["id"],
+                        "business_id": biz_id_for_log,
                         "context": "startup_report",
                         "generated_at": datetime.now(timezone.utc).isoformat(),
                     })
                 )
         except Exception as e:
             _logger.warning(f"startup-report 사용량 기록 실패 (응답은 정상 반환, user={user_id}): {e}")
+
+        # 사업장 유무와 무관하게 항상 기록 — 예비 창업자(사업장 미등록)는 guides에 남길 방법이
+        # 없어(FK NOT NULL) 관리자가 아예 볼 수 없었다(admin_service_oversight_design_v1.0.md).
+        try:
+            await execute(
+                supabase.table("startup_report_log").insert({
+                    "user_id": user_id,
+                    "business_id": biz_id_for_log,
+                    "category": req.category,
+                    "region": req.region,
+                    "business_name": req.business_name or None,
+                })
+            )
+        except Exception as e:
+            _logger.warning(f"startup_report_log 기록 실패 (응답은 정상 반환, user={user_id}): {e}")
 
     if isinstance(result, dict):
         result["used"] = used if is_fallback else used + 1
