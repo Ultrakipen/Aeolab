@@ -3,7 +3,10 @@ import Link from "next/link";
 
 export const metadata = { title: "대행 의뢰 관리 | AEOlab Admin" };
 
-const ADMIN_EMAILS = ["hoozdev@gmail.com"];
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((e) => e.trim())
+  .filter(Boolean);
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
   received: { label: "접수", color: "bg-blue-100 text-blue-700" },

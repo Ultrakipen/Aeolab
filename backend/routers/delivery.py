@@ -39,6 +39,10 @@ _logger = logging.getLogger("aeolab")
 router = APIRouter()
 admin_router = APIRouter()
 
+# delivery_messages.sender_id는 NOT NULL UUID. 운영자 메시지는 X-Admin-Key 헤더 기반이라
+# Supabase user_id가 없으므로 고정 sentinel UUID를 사용 (FK 없음, 조회 시 sender_id 미사용 확인함).
+_ADMIN_SENDER_ID = "00000000-0000-0000-0000-000000000000"
+
 # 토스 API 호출 timeout (무한 대기 방지)
 _TOSS_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
@@ -739,7 +743,7 @@ async def admin_create_message(
     payload = {
         "order_id": order_id,
         "sender_type": "admin",
-        "sender_id": "admin",
+        "sender_id": _ADMIN_SENDER_ID,
         "body": body.body,
         "created_at": now,
     }

@@ -5,7 +5,10 @@ import { AdminDeliveryDetailClient } from "./AdminDeliveryDetailClient";
 
 export const metadata = { title: "의뢰 상세 | AEOlab Admin" };
 
-const ADMIN_EMAILS = ["hoozdev@gmail.com"];
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((e) => e.trim())
+  .filter(Boolean);
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 interface Message {

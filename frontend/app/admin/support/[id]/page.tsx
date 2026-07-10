@@ -5,7 +5,10 @@ import { AdminSupportClient } from "./AdminSupportClient";
 
 export const metadata = { title: "문의 상세 | AEOlab Admin" };
 
-const ADMIN_EMAILS = ["hoozdev@gmail.com"];
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((e) => e.trim())
+  .filter(Boolean);
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
@@ -24,9 +27,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 interface Reply {
   id: string;
-  sender_type: "user" | "admin";
+  author_type: "user" | "admin";
   body: string;
-  is_public: boolean;
   created_at: string;
 }
 
@@ -36,7 +38,7 @@ interface TicketDetail {
   body: string;
   category: string;
   status: string;
-  is_public: boolean;
+  visibility: "public" | "private";
   created_at: string;
   replies?: Reply[];
 }
@@ -158,7 +160,7 @@ export default async function AdminSupportDetailPage({
         ticketId={ticket.id}
         initialReplies={replies}
         currentStatus={ticket.status}
-        isPublic={ticket.is_public ?? true}
+        isPublic={ticket.visibility === "public"}
       />
     </div>
   );

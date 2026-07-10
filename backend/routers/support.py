@@ -51,6 +51,10 @@ _VALID_CATEGORIES = {"payment", "feature", "score", "bug", "other"}
 # 유효한 문의 상태
 _VALID_STATUSES = {"open", "answered", "closed"}
 
+# support_replies.author_id는 NOT NULL UUID. 운영자 답글은 X-Admin-Key 헤더 기반이라
+# Supabase user_id가 없으므로 고정 sentinel UUID를 사용 (FK 없음, 조회 시 값 미사용 확인함).
+_ADMIN_AUTHOR_ID = "00000000-0000-0000-0000-000000000000"
+
 
 # ── 관리자 인증 ────────────────────────────────────────────────────────────────
 def verify_admin(x_admin_key: str = Header(None)) -> None:
@@ -523,7 +527,7 @@ async def admin_reply_ticket(
     payload = {
         "ticket_id": ticket_id,
         "author_type": "admin",
-        "author_id": "system",
+        "author_id": _ADMIN_AUTHOR_ID,
         "body": body.body,
         "created_at": now,
     }

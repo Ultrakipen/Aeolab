@@ -9,9 +9,8 @@ const ADMIN_PROXY = "/api/admin-proxy";
 
 interface Reply {
   id: string;
-  sender_type: "user" | "admin";
+  author_type: "user" | "admin";
   body: string;
-  is_public: boolean;
   created_at: string;
 }
 
@@ -71,9 +70,8 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
       const data = await res.json();
       const newReply: Reply = data.reply ?? {
         id: Date.now().toString(),
-        sender_type: "admin",
+        author_type: "admin",
         body,
-        is_public: true,
         created_at: new Date().toISOString(),
       };
       setReplies((prev) => [...prev, newReply]);
@@ -93,7 +91,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
       const res = await fetch(`${ADMIN_PROXY}?path=${encodeURIComponent(`admin/support/${ticketId}/visibility`)}`, {
         method: "PATCH",
         headers: proxyHeaders,
-        body: JSON.stringify({ is_public: !isPublic }),
+        body: JSON.stringify({ visibility: isPublic ? "private" : "public" }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -156,18 +154,18 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
                 <div
                   key={reply.id}
                   className={`flex flex-col gap-1 ${
-                    reply.sender_type === "admin" ? "items-end" : "items-start"
+                    reply.author_type === "admin" ? "items-end" : "items-start"
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-sm font-semibold ${
-                        reply.sender_type === "admin" ? "text-blue-600" : "text-gray-600"
+                        reply.author_type === "admin" ? "text-blue-600" : "text-gray-600"
                       }`}
                     >
-                      {reply.sender_type === "admin" ? "운영자" : "사용자"}
+                      {reply.author_type === "admin" ? "운영자" : "사용자"}
                     </span>
-                    {reply.sender_type === "admin" && !reply.is_public && (
+                    {reply.author_type === "admin" && !isPublic && (
                       <span className="text-sm text-gray-400 flex items-center gap-0.5">
                         <EyeOff className="w-3.5 h-3.5" />
                         비공개
@@ -177,7 +175,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
                   <div
                     className={[
                       "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
-                      reply.sender_type === "admin"
+                      reply.author_type === "admin"
                         ? "bg-blue-600 text-white"
                         : "bg-gray-100 text-gray-800",
                     ].join(" ")}
