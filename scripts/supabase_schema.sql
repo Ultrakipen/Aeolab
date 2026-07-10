@@ -687,6 +687,13 @@ CREATE TABLE IF NOT EXISTS notices (
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- v5.10: /admin/notices 폼이 이미 수집하던 필드가 테이블에 없어 조용히 소실되던 버그 수정
+-- (severity/target_segment/cta_label/cta_url — AdminNoticesClient.tsx는 전송하지만 저장은 안 됐음)
+ALTER TABLE notices ADD COLUMN IF NOT EXISTS severity TEXT NOT NULL DEFAULT 'info';  -- info / warning / critical
+ALTER TABLE notices ADD COLUMN IF NOT EXISTS target_segment TEXT;                    -- NULL=전체, free/basic/pro/biz
+ALTER TABLE notices ADD COLUMN IF NOT EXISTS cta_label TEXT;
+ALTER TABLE notices ADD COLUMN IF NOT EXISTS cta_url TEXT;
+
 CREATE TABLE IF NOT EXISTS faqs (
   id          BIGSERIAL PRIMARY KEY,
   question    TEXT NOT NULL,

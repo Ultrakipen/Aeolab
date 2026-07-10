@@ -512,6 +512,10 @@ export interface Notice {
   content: string;
   category: "general" | "update" | "maintenance";
   is_pinned: boolean;
+  severity?: "info" | "warning" | "critical";
+  target_segment?: string | null;
+  cta_label?: string | null;
+  cta_url?: string | null;
   created_at: string;
   updated_at: string;
 }

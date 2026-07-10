@@ -16,6 +16,10 @@ class NoticeCreate(BaseModel):
     content: str
     category: str = "general"
     is_pinned: bool = False
+    severity: str = "info"
+    target_segment: Optional[str] = None
+    cta_label: Optional[str] = None
+    cta_url: Optional[str] = None
 
 
 class NoticeUpdate(BaseModel):
@@ -23,6 +27,10 @@ class NoticeUpdate(BaseModel):
     content: Optional[str] = None
     category: Optional[str] = None
     is_pinned: Optional[bool] = None
+    severity: Optional[str] = None
+    target_segment: Optional[str] = None
+    cta_label: Optional[str] = None
+    cta_url: Optional[str] = None
 
 
 class NoticeResponse(BaseModel):
@@ -31,6 +39,10 @@ class NoticeResponse(BaseModel):
     content: str
     category: str
     is_pinned: bool
+    severity: str
+    target_segment: Optional[str] = None
+    cta_label: Optional[str] = None
+    cta_url: Optional[str] = None
     created_at: str
     updated_at: str
 
@@ -57,7 +69,7 @@ async def list_notices(
 
         # 목록 쿼리: pinned DESC, created_at DESC
         q = supabase.table("notices").select(
-            "id, title, content, category, is_pinned, created_at, updated_at"
+            "id, title, content, category, is_pinned, severity, target_segment, cta_label, cta_url, created_at, updated_at"
         ).order("is_pinned", desc=True).order("created_at", desc=True).range(offset, offset + limit - 1)
         if category:
             q = q.eq("category", category)
@@ -76,7 +88,7 @@ async def get_notice(notice_id: int):
         supabase = get_client()
         res = await execute(
             supabase.table("notices")
-            .select("id, title, content, category, is_pinned, created_at, updated_at")
+            .select("id, title, content, category, is_pinned, severity, target_segment, cta_label, cta_url, created_at, updated_at")
             .eq("id", notice_id)
             .single()
         )
@@ -100,6 +112,10 @@ async def create_notice(body: NoticeCreate, _: None = Depends(verify_admin)):
                 "content": body.content,
                 "category": body.category,
                 "is_pinned": body.is_pinned,
+                "severity": body.severity,
+                "target_segment": body.target_segment,
+                "cta_label": body.cta_label,
+                "cta_url": body.cta_url,
             })
         )
         row_id = ins.data[0]["id"] if ins.data else None
@@ -107,7 +123,7 @@ async def create_notice(body: NoticeCreate, _: None = Depends(verify_admin)):
             raise Exception("insert returned no id")
         res = await execute(
             supabase.table("notices")
-            .select("id, title, content, category, is_pinned, created_at, updated_at")
+            .select("id, title, content, category, is_pinned, severity, target_segment, cta_label, cta_url, created_at, updated_at")
             .eq("id", row_id).single()
         )
         return res.data
@@ -128,7 +144,9 @@ async def update_notice(notice_id: int, body: NoticeUpdate, _: None = Depends(ve
         if not chk.data:
             raise HTTPException(status_code=404, detail="공지사항을 찾을 수 없습니다")
 
-        update_data = {k: v for k, v in body.model_dump().items() if v is not None}
+        # exclude_unset: target_segment/cta_label/cta_url은 null이 "값 지우기"라는 유효한 의도이므로
+        # (구 `v is not None` 필터는 null 전송 시 무시해 지울 수 없었음)
+        update_data = body.model_dump(exclude_unset=True)
         if not update_data:
             raise HTTPException(status_code=400, detail="수정할 내용이 없습니다")
 
@@ -140,7 +158,7 @@ async def update_notice(notice_id: int, body: NoticeUpdate, _: None = Depends(ve
         )
         res = await execute(
             supabase.table("notices")
-            .select("id, title, content, category, is_pinned, created_at, updated_at")
+            .select("id, title, content, category, is_pinned, severity, target_segment, cta_label, cta_url, created_at, updated_at")
             .eq("id", notice_id).single()
         )
         return res.data
