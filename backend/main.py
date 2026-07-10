@@ -96,7 +96,8 @@ class AdminAuditMiddleware(BaseHTTPMiddleware):
             try:
                 body_bytes = await request.body()
                 body_snippet = body_bytes.decode("utf-8", errors="ignore")[:2000]
-            except Exception:
+            except Exception as e:
+                _logger.warning(f"[admin_audit] middleware body read failed: {e}")
                 body_snippet = None
 
         response = await call_next(request)

@@ -176,6 +176,7 @@ async def search_businesses(q: str = None, _=Depends(verify_admin)):
             supabase.table("businesses")
             .select("id, user_id, name, category, region, is_active, created_at")
             .order("created_at", desc=True)
+            .limit(500)  # list_users(per_page=1000)와 동일한 규모 상한 — 드리프트 방지 안전장치
         )
     ).data or []
     if not rows:
