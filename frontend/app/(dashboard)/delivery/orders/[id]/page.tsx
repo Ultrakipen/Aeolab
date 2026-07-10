@@ -44,7 +44,7 @@ const PACKAGE_DISPLAY: Record<string, string> = {
 
 const STATUS_STEPS = ["received", "paid", "in_progress", "completed"];
 const STATUS_LABELS: Record<string, string> = {
-  received: "접수",
+  received: "결제 대기",
   paid: "결제완료",
   in_progress: "진행중",
   completed: "완료",
@@ -53,7 +53,7 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled: "취소",
 };
 const STATUS_META: Record<string, { label: string; color: string }> = {
-  received: { label: "접수", color: "bg-blue-100 text-blue-700" },
+  received: { label: "결제 대기", color: "bg-blue-100 text-blue-700" },
   paid: { label: "결제완료", color: "bg-indigo-100 text-indigo-700" },
   in_progress: { label: "진행중", color: "bg-orange-100 text-orange-700" },
   completed: { label: "완료", color: "bg-green-100 text-green-700" },
@@ -178,8 +178,9 @@ export default async function DeliveryOrderDetailPage({
         <span className="text-gray-700 truncate max-w-[120px] md:max-w-none">{order.request_title}</span>
       </div>
 
-      {/* 결제 실패 배너 */}
-      {payment === "fail" && (
+      {/* 결제 실패 배너 — status==="received"일 때는 아래 결제 재시도 배너와 메시지가
+          중복·상충(이 배너는 "운영자 연락 대기", 아래는 "직접 재시도 버튼")되므로 그때는 숨김 */}
+      {payment === "fail" && order.status !== "received" && (
         <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
           <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
           <div>

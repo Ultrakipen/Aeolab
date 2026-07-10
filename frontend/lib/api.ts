@@ -745,8 +745,8 @@ export async function updateBillingCard(
   authKey: string,
   customerKey: string,
   token: string,
-): Promise<{ message: string; reactivated?: boolean }> {
-  return apiCall<{ message: string; reactivated?: boolean }>(`${BACKEND_URL}/api/settings/card/update`, {
+): Promise<{ message: string; reactivated?: boolean; retry_failed?: boolean }> {
+  return apiCall<{ message: string; reactivated?: boolean; retry_failed?: boolean }>(`${BACKEND_URL}/api/settings/card/update`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

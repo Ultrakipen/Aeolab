@@ -406,11 +406,20 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
         else:
             logger.warning(f"정지 상태에서 카드변경했으나 재결제 실패 (user={user_id})")
 
-    logger.info(f"카드 변경 완료 (user={user_id})")
+    retry_failed = was_suspended and not reactivated
+    logger.info(f"카드 변경 완료 (user={user_id}, was_suspended={was_suspended}, reactivated={reactivated})")
     return {
         "status": "updated",
-        "message": "카드가 성공적으로 변경되었습니다" + (". 결제가 재시도되어 구독이 재개되었습니다" if reactivated else ""),
+        "message": (
+            "카드가 성공적으로 변경되었습니다" + (". 결제가 재시도되어 구독이 재개되었습니다" if reactivated else "")
+            if not retry_failed
+            else "카드는 변경됐지만 재결제에 실패했습니다. 카드 정보를 다시 확인하거나 다른 카드로 시도해 주세요."
+        ),
         "reactivated": reactivated,
+        # 정지 상태였는데 새 카드로도 재결제가 실패한 경우 — 구독은 여전히 suspended로 남아있음을
+        # 프론트가 명확히 구분해서 안내해야 함(2026-07-10 실측: 이 케이스에서 "카드 변경 완료"
+        # 성공 메시지만 뜨고 구독 정지 상태는 그대로라는 사실이 전혀 전달되지 않던 버그).
+        "retry_failed": retry_failed,
     }
 
 

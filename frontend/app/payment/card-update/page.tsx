@@ -16,6 +16,7 @@ function CardUpdateContent() {
   const [status, setStatus] = useState<Status>("processing");
   const [errorMsg, setErrorMsg] = useState("");
   const [reactivated, setReactivated] = useState(false);
+  const [retryFailed, setRetryFailed] = useState(false);
 
   useEffect(() => {
     const authKey = searchParams.get("authKey");
@@ -38,9 +39,12 @@ function CardUpdateContent() {
 
         const result = await updateBillingCard(authKey, customerKey, session.access_token);
         setReactivated(Boolean(result?.reactivated));
+        setRetryFailed(Boolean(result?.retry_failed));
         setStatus("success");
-        // 3초 후 설정 페이지로 자동 이동
-        setTimeout(() => router.push("/settings"), 3000);
+        // retry_failed 상태는 사용자가 직접 확인해야 하므로 자동 이동하지 않음
+        if (!result?.retry_failed) {
+          setTimeout(() => router.push("/settings"), 3000);
+        }
       } catch (e) {
         setStatus("error");
         setErrorMsg(
@@ -85,6 +89,39 @@ function CardUpdateContent() {
               className="block border border-gray-200 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
             >
               대시보드로 이동
+            </Link>
+          </div>
+        </div>
+        <SiteFooter />
+      </main>
+    );
+  }
+
+  if (retryFailed) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
+          <XCircle className="w-14 h-14 text-amber-500 mx-auto mb-4" strokeWidth={1.5} />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">카드는 등록됐지만 구독은 아직 정지 상태입니다</h1>
+          <p className="text-gray-600 text-base mb-1">
+            새 카드로 즉시 재결제를 시도했지만 실패했습니다.
+          </p>
+          <p className="text-gray-400 text-sm mb-8">
+            카드 한도·잔액을 확인하시거나 다른 카드로 다시 시도해 주세요. 계속 실패하면 1:1 문의로 알려주세요.
+          </p>
+
+          <div className="space-y-3">
+            <Link
+              href="/settings"
+              className="block bg-blue-600 text-white py-3 rounded-xl font-semibold text-base hover:bg-blue-700 transition-colors"
+            >
+              설정 페이지에서 다시 시도
+            </Link>
+            <Link
+              href="/support/tickets/new"
+              className="block border border-gray-200 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+            >
+              1:1 문의하기
             </Link>
           </div>
         </div>

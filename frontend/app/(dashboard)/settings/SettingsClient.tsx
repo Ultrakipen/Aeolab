@@ -183,10 +183,16 @@ export function SettingsClient({
   const isActiveSubscription =
     subscriptionStatus === "active" || subscriptionStatus === "grace_period";
   const isSuspended = subscriptionStatus === "suspended";
+  // subscriptionEndAt이 날짜만 있는 문자열("2026-07-15")이면 그 날짜 00:00 UTC(09:00 KST)로
+  // 파싱되어 마지막 날 오전 9시부터 이미 만료 취급되던 버그 — 날짜만 온 경우 하루를 더해
+  // 그 날짜 전체를 포함하도록 보정 (백엔드 plan_gate.py _end_at_in_future와 동일 로직)
+  const endAtMs = subscriptionEndAt
+    ? new Date(subscriptionEndAt).getTime() + (subscriptionEndAt.length <= 10 ? 86400000 : 0)
+    : 0;
   const canReactivate =
     subscriptionStatus === "cancelled" &&
     !!subscriptionEndAt &&
-    new Date(subscriptionEndAt).getTime() > Date.now();
+    endAtMs > Date.now();
 
   if (cancelled) {
     return (

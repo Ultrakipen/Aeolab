@@ -2222,6 +2222,20 @@ CREATE INDEX IF NOT EXISTS idx_delivery_paid_refund_check
   WHERE status = 'paid';
 
 -- ============================================================
+-- v6.2c — support_tickets.updated_at 컬럼 누락 (P0, 2026-07-10)
+-- 원인: backend/routers/support.py가 티켓 생성(create_ticket)·답글(reply)·
+--       공개설정 변경·상태 변경·목록 조회(SELECT) 등 8곳에서 updated_at 컬럼을
+--       읽거나 쓰는데, 원본 CREATE TABLE(§"1. support_tickets")에 이 컬럼이
+--       애초에 없었음. 라이브 실측(2026-07-10)으로 확인:
+--       PGRST204 "Could not find the 'updated_at' column of 'support_tickets'
+--       in the schema cache" — 1:1 문의 등록 자체가 500 에러로 전면 불가했음
+--       (별도로 존재했던 supabase-py .insert().select() 체이닝 버그와 겹쳐 있어
+--       그 버그를 먼저 고친 뒤에야 이 스키마 누락이 드러남).
+-- 실행 시점: 즉시 필수 — 미실행 시 1:1 문의 등록·답글·목록 조회 전부 500/400 에러
+-- ============================================================
+ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+-- ============================================================
 -- v6.3 — blog_score_history: 블로그 진단 점수 시계열 (2026-07-04)
 -- 목적: 블로그 분석(citation_score, keyword_coverage) 30일 추세 저장
 -- 배경: score_history는 메인 스캔 주기(하루 여러 번)용.

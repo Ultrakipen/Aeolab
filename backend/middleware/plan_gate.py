@@ -153,14 +153,25 @@ PLAN_HIERARCHY = {"free": 0, "basic": 1, "startup": 1.5, "pro": 2, "biz": 3, "en
 
 
 def _end_at_in_future(end_at) -> bool:
-    """end_at(ISO 문자열)이 아직 지나지 않았는지 확인. 파싱 실패/None이면 False(보수적)."""
+    """end_at(ISO 문자열)이 아직 지나지 않았는지 확인. 파싱 실패/None이면 False(보수적).
+
+    end_at은 날짜만 있는 문자열("2026-07-15")로 저장되는 경우가 많은데(webhook.py/jobs.py가
+    date().isoformat()로 기록), 그대로 파싱하면 그 날짜의 00:00:00 UTC(=09:00 KST)로 해석되어
+    "그 날짜까지 서비스 유지"라고 안내한 마지막 날 오전 9시(KST)부터 이미 만료 취급되는
+    실측 버그가 있었다(2026-07-10). 시각 정보가 없는 날짜 문자열은 그 날짜의 하루 전체를
+    포함하도록(자정 직전까지) 보정한다.
+    """
     if not end_at:
         return False
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
+    end_at_str = str(end_at)
     try:
-        end_dt = datetime.fromisoformat(str(end_at).replace("Z", "+00:00"))
+        end_dt = datetime.fromisoformat(end_at_str.replace("Z", "+00:00"))
         if end_dt.tzinfo is None:
             end_dt = end_dt.replace(tzinfo=timezone.utc)
+        # 시각 정보 없이 날짜만 온 경우(HH:MM:SS 부분이 없음) — 해당 날짜 전체를 포함
+        if len(end_at_str) <= 10:
+            end_dt = end_dt + timedelta(days=1)
         return end_dt > datetime.now(timezone.utc)
     except (ValueError, TypeError):
         return False

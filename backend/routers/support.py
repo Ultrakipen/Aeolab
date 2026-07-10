@@ -309,7 +309,7 @@ async def create_ticket(
         "updated_at": now,
     }
     insert_res = await execute(
-        supabase.table("support_tickets").insert(payload).select("id, category, title, status, visibility, created_at")
+        supabase.table("support_tickets").insert(payload)
     )
     if not (insert_res and insert_res.data):
         _logger.warning(f"[support] support_tickets INSERT 실패: user_id={user_id}")
@@ -421,7 +421,6 @@ async def create_reply(
     insert_res = await execute(
         supabase.table("support_replies")
         .insert(payload)
-        .select("id, author_type, body, created_at")
     )
     if not (insert_res and insert_res.data):
         _logger.warning(f"[support] support_replies INSERT 실패: ticket_id={ticket_id}")
@@ -531,7 +530,6 @@ async def admin_reply_ticket(
     insert_res = await execute(
         supabase.table("support_replies")
         .insert(payload)
-        .select("id, author_type, body, created_at")
     )
     if not (insert_res and insert_res.data):
         _logger.warning(f"[admin/support] support_replies INSERT 실패: ticket_id={ticket_id}")

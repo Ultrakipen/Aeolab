@@ -138,8 +138,13 @@ export default async function SettingsPage({
     });
   };
 
+  // end_at이 날짜만 있는 문자열이면 UTC 자정(=KST 오전 9시) 기준으로 계산되어 마지막 날
+  // 오전에 "0일 후"로 표시되는 오차가 있어 날짜만 온 경우 하루를 보정한다.
   const daysUntilEnd = sub?.end_at
-    ? Math.ceil((new Date(sub.end_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    ? Math.ceil(
+        (new Date(sub.end_at).getTime() + (sub.end_at.length <= 10 ? 86400000 : 0) - Date.now()) /
+          (1000 * 60 * 60 * 24)
+      )
     : null;
 
   return (

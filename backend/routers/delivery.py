@@ -344,7 +344,7 @@ async def create_order(
     }
 
     insert_res = await execute(
-        supabase.table("delivery_orders").insert(payload).select("id")
+        supabase.table("delivery_orders").insert(payload)
     )
     if not (insert_res and insert_res.data):
         _logger.warning(f"[delivery] delivery_orders INSERT 실패: user_id={user_id}")
@@ -474,7 +474,7 @@ async def create_message(
         "created_at": now,
     }
     insert_res = await execute(
-        supabase.table("delivery_messages").insert(payload).select("id, sender_type, body, created_at")
+        supabase.table("delivery_messages").insert(payload)
     )
     if not (insert_res and insert_res.data):
         _logger.warning(f"[delivery] 메시지 INSERT 실패: order_id={order_id}")
@@ -744,7 +744,7 @@ async def admin_create_message(
         "created_at": now,
     }
     insert_res = await execute(
-        supabase.table("delivery_messages").insert(payload).select("id, sender_type, body, created_at")
+        supabase.table("delivery_messages").insert(payload)
     )
     if not (insert_res and insert_res.data):
         _logger.warning(f"[admin/delivery] 운영자 메시지 INSERT 실패: order_id={order_id}")
