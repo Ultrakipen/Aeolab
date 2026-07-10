@@ -171,10 +171,12 @@
 | **`docs/external_benchmark_commercial_quality_v1.0.md`** ⭐ | **외부 벤치마크(Nielsen 10휴리스틱·WCAG 2.1 AA·상업 SaaS 도구·감사이력 UX 관행) 기반 상업적 수준 점검 방법론 — 7단계 절차(과거이력→코드재검증→라이브접속→외부조사→반증→수정→드리프트확인). 경쟁사관리 3건·변화기록 2건·성장리포트 2건+P1·개선가이드 6건(1라운드 정보구조4건+2라운드 WCAG접근성2건) 수정 완료. 미점검 6개 페이지는 `docs/six_pages_external_benchmark_inspection_plan_v1.0.md`로 이관 (2026-07-09)** |
 | **`docs/six_pages_external_benchmark_inspection_plan_v1.0.md`** ⭐ | **변화기록·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석 6개 페이지 외부벤치마크 점검 계획 — 전체 완료(git `368c1f2`~`4cc68ca`, 2026-07-09). §1 선행이력 충돌 정리, §2 통합 7단계+성능·WCAG접근성·시각위계·카피톤 4축, §3 페이지별 벤치마크 후보. 트리거는 완료 이력 확인용만** |
 | **`docs/dashboard_external_benchmark_inspection_plan_v1.0.md`** ⭐ | **대시보드 외부벤치마크 점검 계획 — 이 축(Nielsen/WCAG)에서 유일하게 남은 대상. §1 필수 참고(소상공인은 네이버 100% 신뢰·대행업체 의뢰 실증 → 네이버 정보 최상단 배치·"AI노출개선→네이버SEO상위노출" 정방향 메시징·AI채널별 노출기간 정확 안내 3대 원칙), §3에 과거 점검 이력 전수 정리("닫힌 이슈 재점검 금지"), §2에 편집 지뢰(DualTrackCard 고아파일 경로) 경고, §5에 27개+ 컴포넌트 구역별 분할 진행 순서 (2026-07-09)** |
-| **`docs/admin_screens_inspection_plan_v1.0.md`** ⭐ | **관리자(`/admin/*`) 화면 전체 점검 계획 — 6개 페이지 실측재현 세션에서 발견한 P0(신청·문의 500다운)·supabase-py `insert().select()` 체이닝 버그를 `inquiry.py` admin 답변에서도 선제 발견·수정. 프론트 10페이지+백엔드 admin 엔드포인트 전체 인벤토리, 인증 이중구조(Supabase세션+ADMIN_EMAILS→서버프록시) 확인, §4 P0(delivery/support 처리)~P2(notices/stories/comms) 우선순위, §5 표준 실측재현 절차 (2026-07-10)** |
+| `docs/admin_screens_inspection_plan_v1.0.md` | 관리자(`/admin/*`) 화면 전체 점검 — P0(delivery/support/inquiry 500다운 4건)·P1(score-comparison 크래시·죽은UI·NoticesTab중복 3건)·P2(notices 404·FAQ콘텐츠10건·comms모바일버그 등)까지 **전체 완료**(git `27ddf98`~`6da216c`). §10 사후재검증(오판없음 확인+기능공백4건 식별)까지 완료. 트리거는 완료 이력 확인용만 |
+| **`docs/admin_functional_gaps_implementation_plan_v1.0.md`** ⭐ | **관리자 화면 기능 공백 4건 구현 계획 — 위 점검에서 식별한 "버그 아닌 미구현 기능"(구독자 검색·고객지원용 사업장조회·구독환불UI·성공사례수정)의 근거(file:line)·정확한 구현범위·재사용 가능 함수를 재조사로 확정. §0에 조사 중 뒤집힌 전제 1건(구독환불 재사용 대상 오판→`settings.py cancel_subscription`으로 정정) 기록. 난이도순 착수 권장: 4(간단)→1→2(보통)→3(복잡·금전이동) (2026-07-10)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
-> **관리자 화면 점검**: `docs/admin_screens_inspection_plan_v1.0.md 기준으로 관리자 화면 점검 진행. §4 P0부터 시작`
+> **관리자 화면 점검**: 완료됨 — 재점검 불필요(위 표 참조)
+> **관리자 기능 공백 구현**: `docs/admin_functional_gaps_implementation_plan_v1.0.md 기준으로 항목 4(성공사례 수정)부터 구현 시작`
 > **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
 > **네이버 차단 대응 이어가기**: `docs/naver_briefing_block_countermeasure_handoff_v1.0.md 기준으로 작업 시작. 먼저 §3 선결 검증부터 실측한 뒤 §4 진행`
 > **이번 세션 이어가기**: `docs/session_2026_07_01_naver_recheck_and_usergroup_fix_v1.0.md 기준으로 §7 NID_AUT/NID_SES 자동 재로그인 여부를 결정하고 진행할지 알려줘`
@@ -680,12 +682,9 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
-- **2026-07-07 구독 갱신 P0 과금오류 + FK조인 버그 수정 + 7일 자동환불 구현**: `jobs.py subscription_lifecycle_job`이 `subscriptions↔profiles` FK 미등록으로 매 실행 PGRST200 발생해 잡 전체가 항상 죽어있던 치명적 버그 신규 발견·수정(분리쿼리 패턴). `end_at` 정확일치→`.lte()` 범위매칭 전환(P0), 연간구독 오청구 수정(P1), 구독자별 try/except 격리, 7일 청약철회 자동환불(Toss 결제취소 API+운영자 알림) 신규 구현. 서버 실측으로 FK에러 재현→수정 확인, `.lte()` 매칭+`grace_period` 전환 실측 검증 완료. git `170b002`. 상세: `docs/subscription_lifecycle_inspection_v1.0.md` §7.
-- **2026-07-06 블로그 진단 §2-A**: RSS 부분실패 DB훼손 P0 + P1/P2 8건 수정, 페이지 간결화(-56%). git `31af359`~`99e2c34`. 상세: 메모리 `project_blog_analysis_v2_reaudit_2026_07_06`.
-- **2026-07-06 5개 페이지 + 변화기록 재검증**: 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠 P1 4건+P2 7건(`71707d4`) + 변화기록 재검증 3건(`b386cb5`). `nine_pages_measurement_inspection_v1.0.md` 9개 영역 전체 완료.
-- **2026-07-07 구독 생애주기 점검 + §6 재점검**: 초기 4건 배포(`df4f55f`~`3ee38fb`), 이후 P0/P1/FK조인버그+7일 자동환불(`170b002`)로 완결 — 위 항목 참조.
 - **2026-07-08 8개 페이지 상업적 전문성 재점검 + 심층개선**: 경쟁사관리·변화기록·성장리포트·개선가이드·소개글콘텐츠·리뷰답변·AI광고대비·창업분석 재점검(3그룹 병렬 조사, PC/모바일·실측·논리모순·이해도·상업전문성 5기준). P0 2건(FAQ/소개글 월한도 프론트-백엔드 불일치·"SearchGPT" 폐기명칭+시제오류, WebSearch 외부검증) + P1 8건(exposure_freq "/100"고정표기→sample_size 동적화, History 페이월부재, action-log 미연동, 톡톡메뉴 5/6개 불일치, 광고대비·창업분석 월한도 전무, 모바일그리드 미반응형, 경쟁강도/타이밍지수 쿼리불일치) 수정·배포·Playwright 라이브검증 완료(git `258dff7`~`ba02b29`). 후속 심층개선 6건(경쟁사 8항목breakdown→3개 축소, D.I.A 자동재시도, 광고대비 프롬프트 경쟁사·키워드데이터 주입, 리뷰답변 구체화 지시, **창업분석 네이버 DataLab 실측 검색트렌드 연동**)까지 완료 — DataLab 연동은 실제 -84.2% 트렌드가 AI 진입전략에 반영됨을 라이브 E2E로 확인. 상세: 메모리 `project_eight_pages_recheck_2026_07_08`.
 - **2026-07-08~09 루트 잔재 332개 제거 + 인용 링크 오류 수정 + git 이메일 정정**: 대시보드 점검 중 발견된 root-level `app/`·`components/`(332개, `frontend/`의 구버전 중복, 2026-06-04 이후 미사용) 서버 전체 백업 후 로컬+서버 양쪽 git rm — PM2 cwd·빌드 경로 추적으로 실사용 무관 확인, 배포 전/후 홈페이지 byte-diff로 무영향 검증. 이어서 홈페이지·`how-it-works`·`ServiceMechanismSection`(고아 컴포넌트, 내용만 정정)의 "네이버 공식 발표 데이터" 인용 박스가 3개 통계(3천만명+/20%, 체류시간 등, 숙박 1만5천개)를 무관한 기사 1개(`mt.co.kr` 2026-04-07자, 연관검색어 종료 기사)에 뭉뚱그려 인용하던 버그를 WebSearch 개별 재검증 후 통계별 출처로 분리(네이트뉴스·한국경제·브릿지경제). 전체 사이트 외부 인용 링크 재감사(멀티라인 `<a href>` 포함 전수 grep)로 추가 오류 없음 확인. 부수적으로 git commit author 이메일을 `hoozdev@gmail.com`으로 로컬·서버 통일(과거 커밋 3건 `--amend`). git `4bc5b7e`~`bf2cf50`.
+- **2026-07-10 관리자 화면 전체 점검 P0~P2 + 사후재검증 완료**: 6개 사용자화면 점검 세션에서 이어진 관리자(`/admin/*`) 전수 점검. P0(대행의뢰·1:1문의·내부문의 500다운 4건, git `27ddf98`) → P1(score-comparison 100%크래시·죽은"v3.1활성화"UI·NoticesTab중복 3건, git `332af48`~`27b9883`) → P2(notices상세 전체404·FAQ 15개중10개가 4월런칭일오류콘텐츠 그대로방치[가격·폐기AI플랫폼·스캔주기]·FAQ수정UI부재·AI탭스캐너상태GET필드누락으로 항상OFF오표시 4건, git `1857415`~`103e072`)까지 실측재현으로 발견·수정. 사후 재검증에서 오판없음 확인 + 기능공백 4건 식별 + 전 12개 화면 모바일 scrollWidth 실측으로 comms 가로스크롤 버그 추가 발견·수정(git `5424329`). 기능공백 4건은 재조사로 구현범위 확정해 `docs/admin_functional_gaps_implementation_plan_v1.0.md`로 문서화(구독환불 재사용대상 오판 정정 1건 포함).
 
 ---
 
@@ -712,4 +711,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-09 | 루트 잔재 332개 파일 제거(로컬+서버) + 네이버 통계 인용 링크 오류 수정(3개 파일) + git 계정 이메일 정정 완료 (git `4bc5b7e`~`bf2cf50`).*
+*최종 업데이트: 2026-07-10 | 관리자 화면 전체 점검 P0~P2 완료 + 사후재검증(오판없음·모바일버그1건) + 기능공백 4건 구현계획 문서화 (git `27ddf98`~`6da216c`).*
