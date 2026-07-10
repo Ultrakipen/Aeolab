@@ -172,11 +172,12 @@
 | **`docs/six_pages_external_benchmark_inspection_plan_v1.0.md`** ⭐ | **변화기록·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석 6개 페이지 외부벤치마크 점검 계획 — 전체 완료(git `368c1f2`~`4cc68ca`, 2026-07-09). §1 선행이력 충돌 정리, §2 통합 7단계+성능·WCAG접근성·시각위계·카피톤 4축, §3 페이지별 벤치마크 후보. 트리거는 완료 이력 확인용만** |
 | **`docs/dashboard_external_benchmark_inspection_plan_v1.0.md`** ⭐ | **대시보드 외부벤치마크 점검 계획 — 이 축(Nielsen/WCAG)에서 유일하게 남은 대상. §1 필수 참고(소상공인은 네이버 100% 신뢰·대행업체 의뢰 실증 → 네이버 정보 최상단 배치·"AI노출개선→네이버SEO상위노출" 정방향 메시징·AI채널별 노출기간 정확 안내 3대 원칙), §3에 과거 점검 이력 전수 정리("닫힌 이슈 재점검 금지"), §2에 편집 지뢰(DualTrackCard 고아파일 경로) 경고, §5에 27개+ 컴포넌트 구역별 분할 진행 순서 (2026-07-09)** |
 | `docs/admin_screens_inspection_plan_v1.0.md` | 관리자(`/admin/*`) 화면 전체 점검 — P0(delivery/support/inquiry 500다운 4건)·P1(score-comparison 크래시·죽은UI·NoticesTab중복 3건)·P2(notices 404·FAQ콘텐츠10건·comms모바일버그 등)까지 **전체 완료**(git `27ddf98`~`6da216c`). §10 사후재검증(오판없음 확인+기능공백4건 식별)까지 완료. 트리거는 완료 이력 확인용만 |
-| **`docs/admin_functional_gaps_implementation_plan_v1.0.md`** ⭐ | **관리자 화면 기능 공백 4건 구현 계획 — 위 점검에서 식별한 "버그 아닌 미구현 기능"(구독자 검색·고객지원용 사업장조회·구독환불UI·성공사례수정)의 근거(file:line)·정확한 구현범위·재사용 가능 함수를 재조사로 확정. §0에 조사 중 뒤집힌 전제 1건(구독환불 재사용 대상 오판→`settings.py cancel_subscription`으로 정정) 기록. 난이도순 착수 권장: 4(간단)→1→2(보통)→3(복잡·금전이동) (2026-07-10)** |
+| `docs/admin_functional_gaps_implementation_plan_v1.0.md` | 관리자 화면 기능 공백 4건 구현 계획 — **전체 완료됨**(§ 아래 종합문서로 흡수). 트리거는 완료 이력 확인용만 |
+| **`docs/admin_panel_complete_documentation_v1.0.md`** ⭐ | **관리자 페이지 종합 문서(as-built) — 접속정보·인증구조 3단계·페이지 13개 전체 인벤토리·신규 DB테이블 5개·신규 엔드포인트 13개·git커밋 이력·알려진 제약 6건. 관리자 기능 추가/수정 작업 전 필수 참조 (2026-07-11)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **관리자 화면 점검**: 완료됨 — 재점검 불필요(위 표 참조)
-> **관리자 기능 공백 구현**: `docs/admin_functional_gaps_implementation_plan_v1.0.md 기준으로 항목 4(성공사례 수정)부터 구현 시작`
+> **관리자 기능 작업**: `docs/admin_panel_complete_documentation_v1.0.md 기준으로 관리자 페이지 현황 확인 후 진행`
 > **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
 > **네이버 차단 대응 이어가기**: `docs/naver_briefing_block_countermeasure_handoff_v1.0.md 기준으로 작업 시작. 먼저 §3 선결 검증부터 실측한 뒤 §4 진행`
 > **이번 세션 이어가기**: `docs/session_2026_07_01_naver_recheck_and_usergroup_fix_v1.0.md 기준으로 §7 NID_AUT/NID_SES 자동 재로그인 여부를 결정하고 진행할지 알려줘`
