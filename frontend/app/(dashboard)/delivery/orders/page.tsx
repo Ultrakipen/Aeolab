@@ -18,7 +18,7 @@ interface DeliveryOrder {
 }
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
-  received: { label: "접수", color: "bg-blue-100 text-blue-700" },
+  received: { label: "결제 대기", color: "bg-blue-100 text-blue-700" },
   paid: { label: "결제완료", color: "bg-indigo-100 text-indigo-700" },
   in_progress: { label: "진행중", color: "bg-orange-100 text-orange-700" },
   completed: { label: "완료", color: "bg-green-100 text-green-700" },
@@ -130,7 +130,7 @@ export default async function DeliveryOrdersPage() {
                         <span className={`shrink-0 text-sm font-semibold px-2.5 py-1 rounded-full ${statusMeta.color}`}>
                           {statusMeta.label}
                         </span>
-                        <span className="text-sm text-gray-400 md:hidden">{formatDate(order.created_at)}</span>
+                        <span className="text-sm text-gray-500 md:hidden">{formatDate(order.created_at)}</span>
                       </div>
 
                       {/* 제목 */}
@@ -139,7 +139,7 @@ export default async function DeliveryOrdersPage() {
                           {order.request_title}
                         </p>
                         {order.business_name && (
-                          <p className="text-sm text-gray-400 mt-0.5">{order.business_name}</p>
+                          <p className="text-sm text-gray-500 mt-0.5">{order.business_name}</p>
                         )}
                       </div>
 
@@ -154,7 +154,7 @@ export default async function DeliveryOrdersPage() {
                       </span>
 
                       {/* 날짜 (PC) */}
-                      <span className="hidden md:block text-sm text-gray-400 text-right whitespace-nowrap">
+                      <span className="hidden md:block text-sm text-gray-500 text-right whitespace-nowrap">
                         {formatDate(order.created_at)}
                       </span>
                     </Link>

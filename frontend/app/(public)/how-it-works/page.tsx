@@ -38,7 +38,7 @@ export default function HowItWorksPage() {
           네이버 AI 브리핑·AI탭·Gemini·ChatGPT·Google AI Overview — 5개 채널에서 내 가게가 노출되는 원리와 개선 방법을 설명합니다.
         </p>
         <p className="text-sm md:text-base text-gray-500 mb-8">
-          마지막 업데이트: 2026-06-28 · 출처:{" "}
+          마지막 업데이트: 2026-07-10 · 출처:{" "}
           <a
             href="https://help.naver.com/service/30026/contents/24632"
             target="_blank"
@@ -72,7 +72,7 @@ export default function HowItWorksPage() {
               <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center mt-0.5">1</span>
               <div>
                 <p className="text-sm md:text-base font-semibold text-gray-800">내 업종에 따라 점수 기준이 다릅니다</p>
-                <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">음식점·카페는 네이버 AI 브리핑 비중이 70%, 법률·교육·온라인몰은 ChatGPT·Google AI 비중이 60~90%입니다. 같은 점수라도 업종이 다르면 개선 방향이 다릅니다.</p>
+                <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">음식점은 네이버 AI 브리핑 비중이 80%, 카페는 75%, 법률·교육·온라인몰은 ChatGPT·Google AI 비중이 60~90%입니다. 같은 점수라도 업종이 다르면 개선 방향이 다릅니다.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 px-4 py-3.5">
@@ -232,7 +232,7 @@ export default function HowItWorksPage() {
               </span>
             </li>
           </ul>
-          <p className="text-sm text-gray-400 leading-relaxed break-keep">
+          <p className="text-sm text-gray-500 leading-relaxed break-keep">
             데이터는 네이버 공식 발표 기준이며 실제 결과는 업종·지역에 따라 다를 수 있습니다.
           </p>
         </div>
@@ -645,7 +645,7 @@ export default function HowItWorksPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="text-sm text-gray-400 mt-1.5 leading-relaxed">※ 이 표는 키워드 순위 측정 주기입니다. Gemini·ChatGPT·네이버 AI 자동 스캔 주기와 별도입니다 (AI 스캔: Basic·창업패키지 주 1회, Pro 주 3회, Biz 매일 — 아래 요금제표 참조).</p>
+              <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">※ 이 표는 키워드 순위 측정 주기입니다. Gemini·ChatGPT·네이버 AI 자동 스캔 주기와 별도입니다 (AI 스캔: Basic·창업패키지 주 1회, Pro 주 3회, Biz 매일 — 아래 요금제표 참조).</p>
             </div>
 
             {/* 2. 키워드 자동 추천 */}
@@ -1061,7 +1061,7 @@ export default function HowItWorksPage() {
             AEOlab은 이 방식의 최적화에 집중합니다.
           </div>
 
-          <p className="text-sm text-gray-400 mt-2 leading-relaxed break-keep">
+          <p className="text-sm text-gray-500 mt-2 leading-relaxed break-keep">
             광고 도입 일정·형태는 네이버 공식 발표 전까지 변경될 수 있습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있음.
           </p>
         </section>

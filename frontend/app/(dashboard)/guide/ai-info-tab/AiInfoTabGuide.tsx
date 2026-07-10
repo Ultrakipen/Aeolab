@@ -594,6 +594,8 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             <button
               key={item.id}
               type="button"
+              role="checkbox"
+              aria-checked={checkedPhotos[item.id] ?? false}
               onClick={() => togglePhoto(item.id)}
               className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
                 checkedPhotos[item.id]
@@ -618,7 +620,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             </button>
           ))}
         </div>
-        <p className="text-sm text-gray-500 leading-relaxed break-keep">
+        <p className="text-sm text-gray-600 leading-relaxed break-keep">
           체크는 화면 확인용이며 저장되지 않습니다. 실제 등록은{" "}
           <a
             href="https://smartplace.naver.com"
@@ -645,6 +647,8 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             <button
               key={item.key}
               type="button"
+              role="checkbox"
+              aria-checked={checkedCrank[item.key] ?? false}
               onClick={() => toggleCrank(item.key)}
               className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
                 checkedCrank[item.key]
@@ -678,7 +682,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             </button>
           ))}
         </div>
-        <p className="text-sm text-gray-500 leading-relaxed break-keep">
+        <p className="text-sm text-gray-600 leading-relaxed break-keep">
           네이버 콘텐츠 품질 점수는 비공개 알고리즘이며, 위 항목은 영향 요소 추정입니다.
         </p>
       </div>
@@ -729,7 +733,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             목표: <strong>월 3건 이상</strong> 신규 블로그 후기 유지.
           </p>
         )}
-        <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
+        <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
           블로그 언급 수는 스캔 시점 기준이며, 측정 방식에 따라 실제와 차이가 있을 수 있습니다.
         </p>
       </div>

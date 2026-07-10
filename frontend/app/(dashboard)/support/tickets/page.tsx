@@ -127,7 +127,7 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
             <p className="text-base font-medium text-gray-500 mb-1">
               {statusFilter ? "해당 상태의 문의가 없습니다." : "아직 문의가 없습니다."}
             </p>
-            <p className="text-sm text-gray-400 mb-5">결제·기능 사용·점수 해석·버그 등 궁금한 점을 문의해 주세요. 평균 1~2 영업일 이내 답변 드립니다.</p>
+            <p className="text-sm text-gray-500 mb-5">결제·기능 사용·점수 해석·버그 등 궁금한 점을 문의해 주세요. 평균 1~2 영업일 이내 답변 드립니다.</p>
             <Link
               href="/support/tickets/new"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
@@ -173,7 +173,7 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
                               {sm.label}
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-right text-sm text-gray-400">
+                          <td className="px-5 py-4 text-right text-sm text-gray-500">
                             {ticket.status === "answered" && ticket.answered_at ? (
                               <span className="text-green-600 font-medium">답변 {formatDate(ticket.answered_at)}</span>
                             ) : (
@@ -211,7 +211,7 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
                       {ticket.status === "answered" && ticket.answered_at ? (
                         <span className="text-green-600 font-medium">답변 {formatDate(ticket.answered_at)}</span>
                       ) : (
-                        <span className="text-gray-400">{formatDate(ticket.created_at)}</span>
+                        <span className="text-gray-500">{formatDate(ticket.created_at)}</span>
                       )}
                     </p>
                   </Link>

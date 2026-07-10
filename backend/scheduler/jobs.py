@@ -236,10 +236,16 @@ def start_scheduler():
         id="inactive_post_alert", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
-    # v5.8 대행 서비스 — 자료 미제출 7일 자동 취소 (매일 10:30 KST = UTC 01:30)
+    # v5.8 대행 서비스 — 미결제 7일 방치 자동 취소 (매일 10:30 KST = UTC 01:30)
     scheduler.add_job(
         delivery_auto_cancel_job, "cron", hour=1, minute=30,
         id="delivery_auto_cancel", replace_existing=True,
+        max_instances=1, misfire_grace_time=600,
+    )
+    # v6.2b 대행 서비스 — 결제완료+자료 미제출 7일 자동 환불 (매일 11:30 KST = UTC 02:30)
+    scheduler.add_job(
+        delivery_auto_refund_job, "cron", hour=2, minute=30,
+        id="delivery_auto_refund", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
     # v5.8 대행 서비스 — 종합 풀패키지 완료 30일 후 자동 재스캔 (매일 11:00 KST = UTC 02:00)
@@ -5092,14 +5098,21 @@ async def inactive_post_alert_job() -> None:
 
 
 async def delivery_auto_cancel_job():
-    """결제 완료 후 자료 미제출 7일 경과 주문 자동 취소 (매일 10:30 KST).
+    """미결제 상태로 7일 경과한 대행 신청 자동 취소 (매일 10:30 KST).
 
     조건:
-    - status = 'received' (결제 완료 + 자료 미제출 상태)
+    - status = 'received' (주문 접수만 되고 결제가 완료되지 않은 상태 — 결제 완료 시
+      confirm 엔드포인트가 즉시 'paid'로 전환하므로, 'received'가 7일간 유지된다는 것은
+      곧 미결제 방치를 뜻한다. "결제완료+자료미제출" 케이스는 이 잡의 대상이 아니며
+      delivery_auto_refund_job이 별도로 처리한다.)
     - created_at < now() - 7일
-    - materials_url IS NULL 또는 빈 배열 (자료를 제출하지 않은 경우)
+    - materials_url IS NULL 또는 빈 배열 (참고용 필터 — 결제 전이라 사실상 항상 비어있음)
     멱등성: 이미 cancelled 상태인 행은 조회 자체에서 제외됨.
+    환불 없음: 결제 자체가 이뤄지지 않았으므로 Toss 결제취소 API 호출 불필요.
     """
+    from datetime import timezone  # 2026-07-10: 누락 발견 — 이 import 없이는 timezone.utc가
+    # NameError를 던지고 아래 broad try/except가 삼켜, 이 잡이 배포 이후 매일 조용히
+    # 실패해왔을 가능성이 높음. jobs.py의 다른 함수들은 전부 로컬 import를 갖고 있었음.
     from db.supabase_client import get_client
 
     try:
@@ -5135,7 +5148,7 @@ async def delivery_auto_cancel_job():
             supabase.table("delivery_orders")
             .update({
                 "status": "cancelled",
-                "refund_reason": "자료 미제출 7일 경과 자동 취소",
+                "refund_reason": "미결제 7일 경과 자동 취소 (결제 자체가 이뤄지지 않음)",
             })
             .in_("id", cancelled_ids)
         )
@@ -5146,6 +5159,153 @@ async def delivery_auto_cancel_job():
 
     except Exception as e:
         logger.warning(f"[delivery_auto_cancel_job] 잡 실패: {e}")
+
+
+async def delivery_auto_refund_job():
+    """결제완료 + 자료 미제출 7일 경과 주문 자동 환불 (매일 11:30 KST).
+
+    랜딩 페이지 안내("결제 후 담당자가 카카오톡으로 연락드립니다 · 7일 내 자료 미제출 시
+    자동 환불")가 실제로 지켜지도록 하는 잡. delivery_auto_cancel_job(미결제 방치 취소)과는
+    별개 — 이 잡은 결제까지 완료했지만 자료를 안 보낸 고객을 대상으로 한다.
+
+    조건:
+    - status = 'paid'
+    - paid_at IS NOT NULL AND paid_at < now() - 7일 (v6.2b 마이그레이션 필요 — 없으면 대상 0건)
+    - materials_url IS NULL 또는 빈 배열
+    처리: Toss 결제취소 API로 전액 환불 → 성공 시 status='refunded', refund_amount 기록,
+    delivery_messages에 고객이 볼 수 있는 시스템 안내 메시지 삽입(카카오 환불 전용 템플릿
+    미보유). 실패 시 이메일+Slack 운영자 알림(수동 확인 필요 — money-moving 이벤트).
+    멱등성: status='paid' 조건이라 이미 refunded/cancelled된 행은 재조회되지 않음.
+    """
+    import httpx
+    from datetime import timezone
+    from db.supabase_client import get_client
+    from services.email_sender import send_operator_alert
+
+    toss_secret = os.getenv("TOSS_SECRET_KEY", "")
+    if not toss_secret:
+        logger.warning("[delivery_auto_refund_job] TOSS_SECRET_KEY 미설정 — 잡 스킵")
+        return
+
+    try:
+        supabase = get_client()
+        cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+        cutoff_iso = cutoff.isoformat()
+
+        res = await _db(
+            supabase.table("delivery_orders")
+            .select("id, user_id, business_id, package_type, amount, payment_key, paid_at, materials_url")
+            .eq("status", "paid")
+            .not_.is_("paid_at", "null")
+            .lt("paid_at", cutoff_iso)
+        )
+        rows = (res.data if res and res.data else []) or []
+        targets = [r for r in rows if not r.get("materials_url")]
+
+        if not targets:
+            logger.info("[delivery_auto_refund_job] 환불 대상 없음")
+            return
+
+        logger.info(f"[delivery_auto_refund_job] 환불 대상 {len(targets)}건")
+
+        for order in targets:
+            order_id = order["id"]
+            payment_key = order.get("payment_key")
+            amount = order.get("amount")
+            if not payment_key:
+                logger.error(
+                    f"[delivery_auto_refund_job] payment_key 없음 — 수동 확인 필요: order_id={order_id}"
+                )
+                await send_operator_alert(
+                    "대행 서비스 자동환불 실패 — payment_key 없음",
+                    f"order_id={order_id}\n결제는 paid 상태인데 payment_key가 비어있어 환불 API 호출 불가. 수동 확인 필요.",
+                )
+                await send_slack_alert(
+                    "대행 서비스 자동환불 실패", f"order_id={order_id}, payment_key 없음", level="error"
+                )
+                continue
+
+            try:
+                async with httpx.AsyncClient(timeout=15) as c:
+                    cancel_resp = await c.post(
+                        f"https://api.tosspayments.com/v1/payments/{payment_key}/cancel",
+                        auth=(toss_secret, ""),
+                        json={"cancelReason": "대행 서비스 자료 미제출 7일 경과 자동 환불"},
+                    )
+            except Exception as e:
+                logger.error(f"[delivery_auto_refund_job] 토스 API 요청 오류: order_id={order_id}, error={e}")
+                await send_operator_alert(
+                    "대행 서비스 자동환불 오류 — 수동 확인 필요", f"order_id={order_id}\nerror={e}"
+                )
+                await send_slack_alert(
+                    "대행 서비스 자동환불 오류", f"order_id={order_id}, error={e}", level="error"
+                )
+                continue
+
+            if cancel_resp.status_code != 200:
+                # 경쟁조건 방어: 운영자가 먼저 수동 환불/상태변경했을 수 있음 — 재조회 후 이미
+                # paid가 아니면 정상적인 중복 응답으로 간주하고 오탐 알림 억제.
+                _recheck = await _db(
+                    supabase.table("delivery_orders").select("status").eq("id", order_id).single()
+                )
+                if (_recheck.data or {}).get("status") != "paid":
+                    logger.info(
+                        f"[delivery_auto_refund_job] 이미 처리됨(정상), 오탐 알림 억제: order_id={order_id}"
+                    )
+                    continue
+                logger.error(
+                    f"[delivery_auto_refund_job] 토스 환불 실패: order_id={order_id}, "
+                    f"status={cancel_resp.status_code} body={cancel_resp.text}"
+                )
+                await send_operator_alert(
+                    "대행 서비스 자동환불 실패 — 수동 확인 필요",
+                    f"order_id={order_id}\npayment_key={payment_key}\n"
+                    f"status={cancel_resp.status_code}\nbody={cancel_resp.text}",
+                )
+                await send_slack_alert(
+                    "대행 서비스 자동환불 실패", f"order_id={order_id}, status={cancel_resp.status_code}", level="error"
+                )
+                continue
+
+            try:
+                await _db(
+                    supabase.table("delivery_orders")
+                    .update({
+                        "status": "refunded",
+                        "refund_amount": amount,
+                        "refund_reason": "자료 미제출 7일 경과 자동 환불",
+                    })
+                    .eq("id", order_id)
+                )
+                await _db(
+                    supabase.table("delivery_messages")
+                    .insert({
+                        "order_id": order_id,
+                        "sender_type": "admin",
+                        "sender_id": "system",
+                        "body": (
+                            "결제 후 7일 이내 자료 제출이 확인되지 않아 자동으로 전액 환불 처리되었습니다. "
+                            f"환불 금액: {amount:,}원. 다시 신청을 원하시면 새로 대행 서비스를 신청해 주세요."
+                        ),
+                    })
+                )
+                logger.info(f"[delivery_auto_refund_job] 환불 완료: order_id={order_id}, amount={amount}")
+            except Exception as e:
+                # 토스 환불은 이미 성공했는데 DB 갱신이 실패하면 "돈은 나갔는데 상태는 paid로
+                # 남는" 불일치 발생 — money-moving 이후이므로 silent pass 금지.
+                logger.error(
+                    f"[delivery_auto_refund_job] 환불 완료 후 DB 갱신 실패: order_id={order_id}, error={e}"
+                )
+                await send_operator_alert(
+                    "대행 서비스 환불 완료 후 DB 갱신 실패 — 수동 확인 필요",
+                    f"order_id={order_id}\nToss 환불은 이미 처리됨(amount={amount}). DB 상태를 수동으로 refunded로 변경해 주세요.\nerror={e}",
+                )
+                await send_slack_alert(
+                    "대행 서비스 환불 DB 갱신 실패", f"order_id={order_id}, amount={amount}", level="error"
+                )
+
+    except Exception as e:
+        logger.warning(f"[delivery_auto_refund_job] 잡 실패: {e}")
 
 
 async def delivery_30day_rescan_job():
@@ -5162,6 +5322,8 @@ async def delivery_30day_rescan_job():
     완료 후 followup_scan_id 에 새 scan_results.id 저장 + 이메일 발송.
     실패 시 raise 하지 않고 warning 로그만 기록.
     """
+    from datetime import timezone  # 2026-07-10: 누락 발견 — delivery_auto_cancel_job과 동일한
+    # 버그. import 없이 timezone.utc 참조 시 NameError → 아래 try/except가 삼켜 매일 조용히 실패.
     from db.supabase_client import get_client
     from services.score_engine import calculate_score
 

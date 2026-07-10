@@ -58,6 +58,8 @@ export function ChatGptChecklist({ items }: Props) {
         <button
           key={item.id}
           type="button"
+          role="checkbox"
+          aria-checked={checked[item.id] ?? false}
           onClick={() => toggle(item.id)}
           className={`w-full flex items-center gap-3 rounded-xl border p-3 md:p-4 text-left transition-colors ${
             checked[item.id]

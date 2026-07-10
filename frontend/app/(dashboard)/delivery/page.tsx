@@ -34,7 +34,7 @@ const PACKAGE_META: Record<string, { badge?: string; highlight?: boolean }> = {
 };
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
-  received: { label: "접수", color: "bg-blue-100 text-blue-700" },
+  received: { label: "결제 대기", color: "bg-blue-100 text-blue-700" },
   paid: { label: "결제완료", color: "bg-indigo-100 text-indigo-700" },
   in_progress: { label: "진행중", color: "bg-orange-100 text-orange-700" },
   completed: { label: "완료", color: "bg-green-100 text-green-700" },
@@ -188,7 +188,7 @@ export default async function DeliveryPage() {
                   <p className="text-sm text-gray-500">{pkg.description}</p>
                   <div className="flex items-center gap-2 mt-2">
                     <Clock className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-sm text-gray-400">{pkg.work_hours}</span>
+                    <span className="text-sm text-gray-500">{pkg.work_hours}</span>
                   </div>
                 </div>
 
@@ -210,7 +210,7 @@ export default async function DeliveryPage() {
                     </span>
                     <span className="text-base text-gray-500">원</span>
                     {pkg.type === "comprehensive" && (
-                      <span className="ml-1 text-sm text-gray-400 line-through">158,000원</span>
+                      <span className="ml-1 text-sm text-gray-500 line-through">158,000원</span>
                     )}
                   </div>
                   <Link
@@ -257,7 +257,7 @@ export default async function DeliveryPage() {
         {orders.length === 0 ? (
           <div className="px-5 py-10 text-center">
             <p className="text-base text-gray-500 mb-2">아직 신청 내역이 없습니다.</p>
-            <p className="text-sm text-gray-400">위에서 패키지를 선택해 첫 대행을 신청해 보세요.</p>
+            <p className="text-sm text-gray-500">위에서 패키지를 선택해 첫 대행을 신청해 보세요.</p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-50">
@@ -274,7 +274,7 @@ export default async function DeliveryPage() {
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{order.request_title}</p>
-                      <p className="text-sm text-gray-400 mt-0.5">
+                      <p className="text-sm text-gray-500 mt-0.5">
                         {PACKAGE_DISPLAY[order.package_type] ?? order.package_type} · {order.amount?.toLocaleString()}원
                       </p>
                     </div>

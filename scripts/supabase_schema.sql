@@ -2205,6 +2205,23 @@ BEGIN
 END $$;
 
 -- ============================================================
+-- v6.2b — delivery_orders.paid_at: 결제 확인 시각 (2026-07-10)
+-- 목적: "결제완료 + 자료 미제출 7일 경과" 자동환불 잡(delivery_auto_refund_job)이
+--       주문 생성일(created_at)이 아닌 실제 결제 확정일 기준으로 7일을 계산하기 위함.
+--       created_at 기준으로 계산하면 결제가 며칠 늦게 이뤄진 주문의 자료 제출 기한이
+--       부당하게 짧아진다.
+-- 미실행 시: confirm 핸들러의 paid_at 기록은 best-effort 별도 호출이라 실패해도 결제
+--            확정(status=paid) 자체는 정상 진행됨. 단, delivery_auto_refund_job은
+--            paid_at IS NULL인 주문을 대상에서 제외하므로 이 마이그레이션 전까지는
+--            자동환불이 작동하지 않는다.
+-- 실행 시점: 자동환불 배포 전 필수 (Supabase SQL Editor에서 실행)
+-- ============================================================
+ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_delivery_paid_refund_check
+  ON delivery_orders(status, paid_at)
+  WHERE status = 'paid';
+
+-- ============================================================
 -- v6.3 — blog_score_history: 블로그 진단 점수 시계열 (2026-07-04)
 -- 목적: 블로그 분석(citation_score, keyword_coverage) 30일 추세 저장
 -- 배경: score_history는 메인 스캔 주기(하루 여러 번)용.

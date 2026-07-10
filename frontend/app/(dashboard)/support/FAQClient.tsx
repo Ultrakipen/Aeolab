@@ -69,7 +69,7 @@ function FAQSection({ initialItems, onSwitchToInquiry }: { initialItems: FAQ[]; 
         <div className="py-16 text-center">
           <HelpCircle className="w-8 h-8 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500 text-base font-medium mb-1">아직 FAQ가 준비되지 않았습니다.</p>
-          <p className="text-gray-400 text-sm">궁금한 점은 <button onClick={onSwitchToInquiry} className="text-blue-500 underline hover:no-underline">문의하기</button> 탭에서 직접 문의해 주세요.</p>
+          <p className="text-gray-500 text-sm">궁금한 점은 <button onClick={onSwitchToInquiry} className="text-blue-500 underline hover:no-underline">문의하기</button> 탭에서 직접 문의해 주세요.</p>
         </div>
       )}
 
@@ -83,6 +83,8 @@ function FAQSection({ initialItems, onSwitchToInquiry }: { initialItems: FAQ[]; 
             >
               <button
                 onClick={() => toggle(faq.id)}
+                aria-expanded={isOpen}
+                aria-controls={`faq-panel-${faq.id}`}
                 className="w-full flex items-center justify-between gap-3 p-4 text-left bg-white hover:bg-gray-50 transition-colors"
               >
                 <span className="text-sm md:text-base font-semibold text-gray-900 leading-snug">
@@ -95,7 +97,7 @@ function FAQSection({ initialItems, onSwitchToInquiry }: { initialItems: FAQ[]; 
                 )}
               </button>
               {isOpen && (
-                <div className="px-4 pb-4 bg-gray-50 border-t border-gray-100">
+                <div id={`faq-panel-${faq.id}`} className="px-4 pb-4 bg-gray-50 border-t border-gray-100">
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap pt-3">
                     {faq.answer}
                   </p>
@@ -145,7 +147,7 @@ function MyInquiryList() {
     return (
       <div className="mt-6 py-10 text-center border border-dashed border-gray-200 rounded-xl">
         <MessageSquare className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-        <p className="text-sm text-gray-400">아직 문의 내역이 없습니다.</p>
+        <p className="text-sm text-gray-500">아직 문의 내역이 없습니다.</p>
       </div>
     );
   }
@@ -159,6 +161,8 @@ function MyInquiryList() {
           <div key={item.id} className="border border-gray-200 rounded-xl overflow-hidden">
             <button
               onClick={() => toggle(item.id)}
+              aria-expanded={isOpen}
+              aria-controls={`inquiry-panel-${item.id}`}
               className="w-full flex items-center justify-between gap-3 p-4 text-left bg-white hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -177,7 +181,7 @@ function MyInquiryList() {
                 </span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-gray-500">
                   {new Date(item.created_at).toLocaleDateString("ko-KR")}
                 </span>
                 {isOpen ? (
@@ -188,15 +192,15 @@ function MyInquiryList() {
               </div>
             </button>
             {isOpen && (
-              <div className="bg-gray-50 border-t border-gray-100">
+              <div id={`inquiry-panel-${item.id}`} className="bg-gray-50 border-t border-gray-100">
                 <div className="p-4 border-b border-gray-100">
-                  <p className="text-sm text-gray-400 mb-1">문의 내용</p>
+                  <p className="text-sm text-gray-500 mb-1">문의 내용</p>
                   <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                     {item.content}
                   </p>
                 </div>
                 <div className="p-4">
-                  <p className="text-sm text-gray-400 mb-1">
+                  <p className="text-sm text-gray-500 mb-1">
                     {item.status === "answered" && item.answered_at
                       ? `답변 (${new Date(item.answered_at).toLocaleDateString("ko-KR")})`
                       : "답변"}
@@ -206,7 +210,7 @@ function MyInquiryList() {
                       {item.answer}
                     </p>
                   ) : (
-                    <p className="text-sm text-gray-400 italic">검토 중입니다.</p>
+                    <p className="text-sm text-gray-500 italic">검토 중입니다.</p>
                   )}
                 </div>
               </div>

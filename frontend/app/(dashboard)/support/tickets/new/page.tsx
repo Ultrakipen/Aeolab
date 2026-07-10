@@ -142,7 +142,7 @@ function SupportNewForm() {
   if (loadingMeta) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-blue-700" />
       </div>
     );
   }
@@ -152,7 +152,7 @@ function SupportNewForm() {
       <div className="max-w-2xl mx-auto">
         {/* 헤더 */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
             <a href="/support/tickets" className="hover:text-blue-600 transition-colors">1:1 문의</a>
             <ChevronRight className="w-4 h-4" />
             <span className="text-gray-700">새 문의 작성</span>
@@ -174,14 +174,14 @@ function SupportNewForm() {
             <span className="font-medium">무제한 문의 가능 · 평균 1~2 영업일 이내 답변</span>
           ) : remaining === null ? (
             <span>
-              <span className="text-blue-500">{planInfo.label}</span>
-              <span className="ml-2 text-blue-400">· 평균 1~2 영업일 이내 답변</span>
+              <span className="text-blue-700">{planInfo.label}</span>
+              <span className="ml-2 text-blue-700">· 평균 1~2 영업일 이내 답변</span>
             </span>
           ) : remaining > 0 ? (
             <span>
               이번 달 남은 문의 <strong>{remaining}건</strong>
-              <span className="text-blue-500 ml-1">({planInfo.label})</span>
-              <span className="ml-2 text-blue-400">· 평균 1~2 영업일 이내 답변</span>
+              <span className="text-blue-700 ml-1">({planInfo.label})</span>
+              <span className="ml-2 text-blue-700">· 평균 1~2 영업일 이내 답변</span>
             </span>
           ) : (
             <span>
@@ -255,7 +255,7 @@ function SupportNewForm() {
                 placeholder="문의 제목을 간단히 입력해 주세요."
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400"
               />
-              <p className="text-sm text-gray-400 mt-1 text-right">{title.length}/100</p>
+              <p className="text-sm text-gray-500 mt-1 text-right">{title.length}/100</p>
             </div>
 
             {/* 내용 */}
@@ -271,7 +271,7 @@ function SupportNewForm() {
                 placeholder="문의 내용을 상세히 작성해 주세요. 스크린샷은 구글 드라이브 등 외부 링크로 내용에 포함해 주세요."
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400 resize-none"
               />
-              <p className="text-sm text-gray-400 mt-1 text-right">{body.length}/3000</p>
+              <p className="text-sm text-gray-500 mt-1 text-right">{body.length}/3000</p>
             </div>
           </div>
 
@@ -316,7 +316,7 @@ export default function SupportNewPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-blue-700" />
       </div>
     }>
       <SupportNewForm />

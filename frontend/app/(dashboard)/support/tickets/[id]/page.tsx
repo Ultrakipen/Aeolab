@@ -167,7 +167,7 @@ function TicketDetailInner() {
     <div className="p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-400 mb-4 flex-wrap">
+        <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 flex-wrap">
           <a href="/support/tickets" className="hover:text-blue-600 transition-colors">1:1 문의</a>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-700 truncate max-w-[180px]">{ticket.title}</span>
@@ -178,13 +178,13 @@ function TicketDetailInner() {
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex-1 min-w-0">
               <h1 className="text-lg md:text-xl font-bold text-gray-900 mb-1">{ticket.title}</h1>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-500">
                 {CATEGORY_LABELS[ticket.category] ?? ticket.category} · {formatDate(ticket.created_at)}
                 {ticket.visibility === "public" && ticket.status === "answered" && (
                   <span className="ml-2 text-green-600 font-medium">공개</span>
                 )}
                 {ticket.visibility === "public" && ticket.status !== "answered" && (
-                  <span className="ml-2 text-gray-400 font-medium">공개 예정(답변 후)</span>
+                  <span className="ml-2 text-gray-500 font-medium">공개 예정(답변 후)</span>
                 )}
               </p>
             </div>
@@ -214,7 +214,7 @@ function TicketDetailInner() {
                   <span className={`text-sm font-semibold ${reply.author_type === "admin" ? "text-blue-700" : "text-gray-700"}`}>
                     {reply.author_type === "admin" ? "운영자" : "나"}
                   </span>
-                  <span className="text-sm text-gray-400">{formatDate(reply.created_at)}</span>
+                  <span className="text-sm text-gray-500">{formatDate(reply.created_at)}</span>
                   {reply.author_type === "admin" && (
                     <span className="text-sm bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium">답변</span>
                   )}
@@ -255,7 +255,7 @@ function TicketDetailInner() {
                 {submittingReply ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-sm text-gray-400 mt-1 text-right">{replyBody.length}/2000</p>
+            <p className="text-sm text-gray-500 mt-1 text-right">{replyBody.length}/2000</p>
           </div>
         )}
 

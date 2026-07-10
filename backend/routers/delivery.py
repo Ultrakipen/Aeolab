@@ -590,6 +590,21 @@ async def confirm_delivery_payment(
 
     _logger.info(f"[delivery/confirm] 결제 확인 완료: order_id={order_id}, user_id={user_id}")
 
+    # 5b. paid_at 기록 (best-effort — delivery_auto_refund_job의 7일 기산점).
+    # 별도 UPDATE로 분리: paid_at 마이그레이션(v6.2b) 미실행 시에도 위 status=paid
+    # 확정은 절대 막히면 안 되므로 실패해도 결제 확인 응답에 영향 없음.
+    try:
+        await execute(
+            supabase.table("delivery_orders")
+            .update({"paid_at": now})
+            .eq("id", order_id)
+        )
+    except Exception as _paid_at_e:
+        _logger.warning(
+            f"[delivery/confirm] paid_at 기록 실패 (무시, 자동환불 잡 대상 제외됨 — "
+            f"v6.2b 마이그레이션 미실행 가능성): order_id={order_id}, error={_paid_at_e}"
+        )
+
     # 6. 카카오 알림톡 접수 완료 발송 (실패해도 응답에 영향 없음)
     try:
         from services.kakao_notify import KakaoNotifier
