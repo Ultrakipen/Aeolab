@@ -161,11 +161,14 @@ async def update_my_settings(body: ProfileUpdate, user: dict = Depends(get_curre
     return {"status": "updated"}
 
 
-@router.post("/cancel")
-async def cancel_subscription(user: dict = Depends(get_current_user)):
-    """구독 해지 요청. 7일 청약철회 자격(구독 시작 7일 이내+미이용)이면 토스 결제취소로 즉시 전액환불,
-    아니면 기존처럼 end_at까지 서비스 유지 + status→cancelled + 토스 빌링키 삭제"""
-    user_id = user["id"]
+async def _cancel_subscription_core(user_id: str) -> dict:
+    """구독 해지 핵심 로직. 7일 청약철회 자격(구독 시작 7일 이내+미이용)이면 토스 결제취소로 즉시 전액환불,
+    아니면 기존처럼 end_at까지 서비스 유지 + status→cancelled + 토스 빌링키 삭제.
+
+    사용자 본인 해지(POST /settings/cancel)와 관리자 강제 해지/환불(POST /admin/subscriptions/{user_id}/cancel)
+    양쪽이 이 함수를 공유한다 — 안전장치(경쟁조건 방어·DB 갱신 실패 알림·7일 분기)를 두 경로에서
+    동일하게 보장하기 위해 분리했다(admin_functional_gaps_implementation_plan_v1.0.md §5).
+    """
     supabase = get_client()
     sub = (
         await execute(
@@ -281,6 +284,12 @@ async def cancel_subscription(user: dict = Depends(get_current_user)):
         "refunded": refunded,
         "refund_amount": refund_amount,
     }
+
+
+@router.post("/cancel")
+async def cancel_subscription(user: dict = Depends(get_current_user)):
+    """구독 해지 요청 (본인). 로직은 _cancel_subscription_core 참조."""
+    return await _cancel_subscription_core(user["id"])
 
 
 @router.post("/reactivate")

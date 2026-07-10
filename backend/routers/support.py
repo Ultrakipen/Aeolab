@@ -498,7 +498,13 @@ async def admin_get_ticket(
     ticket_id: str,
     _: None = Depends(verify_admin),
 ):
-    """관리자 단건 상세 조회 (replies 포함)."""
+    """관리자 단건 상세 조회 (replies + 문의자 사업장·최근 스캔 요약 포함).
+
+    고객지원 시 "이 사용자가 어떤 사업장을 등록했고 최근 점수가 어땠는지"를
+    바로 확인할 수 있도록 businesses.eq("user_id", ...) 조회를 추가한다
+    (business.py의 모든 사용자 대면 엔드포인트는 소유권 검증으로 막혀있어
+    관리자가 우회할 경로가 없었음 — 신규 공백, 조회 전용).
+    """
     ticket = await _get_ticket_or_404(ticket_id)
     supabase = get_client()
     replies_res = await execute(
@@ -508,6 +514,35 @@ async def admin_get_ticket(
         .order("created_at", desc=False)
     )
     ticket["replies"] = replies_res.data or []
+
+    biz_res = await execute(
+        supabase.table("businesses")
+        .select("id, name, category, region, is_active, created_at")
+        .eq("user_id", ticket["user_id"])
+        .order("created_at", desc=True)
+        .limit(5)
+    )
+    businesses = biz_res.data or []
+    biz_ids = [b["id"] for b in businesses]
+
+    latest_scans: dict = {}
+    if biz_ids:
+        scan_res = await execute(
+            supabase.table("scan_results")
+            .select("business_id, scanned_at, total_score, track1_score, track2_score, unified_score")
+            .in_("business_id", biz_ids)
+            .order("scanned_at", desc=True)
+            .limit(200)
+        )
+        for row in (scan_res.data or []):
+            bid = row["business_id"]
+            if bid not in latest_scans:  # order(desc)로 첫 등장이 최신
+                latest_scans[bid] = row
+
+    for b in businesses:
+        b["latest_scan"] = latest_scans.get(b["id"])
+
+    ticket["businesses"] = businesses
     return {"ticket": ticket}
 
 

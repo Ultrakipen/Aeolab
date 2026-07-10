@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Trash2, Eye, Loader2 } from "lucide-react";
+import { Plus, Trash2, Eye, Loader2, Pencil } from "lucide-react";
 import Link from "next/link";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
@@ -72,6 +72,7 @@ export default function AdminStoriesPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(DEFAULT_FORM);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchStories = useCallback(async () => {
     setLoading(true);
@@ -114,19 +115,23 @@ export default function AdminStoriesPage() {
         display_name: form.is_anonymous ? null : (form.display_name.trim() || null),
       };
 
-      const res = await fetch(`/api/admin-proxy?path=admin/stories`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        editingId ? `/api/admin-proxy?path=admin/stories/${editingId}` : `/api/admin-proxy?path=admin/stories`,
+        {
+          method: editingId ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail ?? "등록에 실패했습니다.");
+        throw new Error(err.detail ?? (editingId ? "수정에 실패했습니다." : "등록에 실패했습니다."));
       }
 
-      setSuccess("성공 사례가 등록되었습니다.");
+      setSuccess(editingId ? "성공 사례가 수정되었습니다." : "성공 사례가 등록되었습니다.");
       setForm(DEFAULT_FORM);
+      setEditingId(null);
       setShowForm(false);
       fetchStories();
     } catch (err: unknown) {
@@ -134,6 +139,31 @@ export default function AdminStoriesPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEditStart = (story: StoryItem) => {
+    setEditingId(story.id);
+    setForm({
+      title: story.title,
+      category: story.category,
+      region: story.region,
+      body: story.body,
+      score_before: story.score_before !== null ? String(story.score_before) : "",
+      score_after: story.score_after !== null ? String(story.score_after) : "",
+      is_anonymous: story.is_anonymous,
+      display_name: story.display_name ?? "",
+    });
+    setError(null);
+    setSuccess(null);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleFormCancel = () => {
+    setShowForm(false);
+    setForm(DEFAULT_FORM);
+    setEditingId(null);
+    setError(null);
   };
 
   const formatDate = (iso: string) =>
@@ -148,7 +178,15 @@ export default function AdminStoriesPage() {
           <p className="text-sm text-gray-500 mt-1">고객 성공 사례 등록 및 목록 관리</p>
         </div>
         <button
-          onClick={() => setShowForm((v) => !v)}
+          onClick={() => {
+            if (showForm && !editingId) {
+              handleFormCancel();
+            } else {
+              setEditingId(null);
+              setForm(DEFAULT_FORM);
+              setShowForm(true);
+            }
+          }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -172,7 +210,9 @@ export default function AdminStoriesPage() {
       {/* 작성 폼 */}
       {showForm && (
         <div className="bg-white rounded-xl border border-blue-200 shadow-sm p-5 mb-6">
-          <h2 className="text-base font-bold text-gray-900 mb-4">새 성공 사례 작성</h2>
+          <h2 className="text-base font-bold text-gray-900 mb-4">
+            {editingId ? "성공 사례 수정" : "새 성공 사례 작성"}
+          </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* 제목 */}
             <div>
@@ -299,15 +339,15 @@ export default function AdminStoriesPage() {
                 {submitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    등록 중...
+                    {editingId ? "저장 중..." : "등록 중..."}
                   </>
                 ) : (
-                  "등록하기"
+                  editingId ? "수정 저장" : "등록하기"
                 )}
               </button>
               <button
                 type="button"
-                onClick={() => { setShowForm(false); setForm(DEFAULT_FORM); setError(null); }}
+                onClick={handleFormCancel}
                 className="px-5 py-2.5 border border-gray-200 text-sm font-medium text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"
               >
                 취소
@@ -373,14 +413,23 @@ export default function AdminStoriesPage() {
                         {formatDate(story.published_at)}
                       </td>
                       <td className="px-5 py-4 text-center">
-                        <Link
-                          href={`/stories/${story.id}`}
-                          className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                          target="_blank"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          보기
-                        </Link>
+                        <div className="flex items-center justify-center gap-3">
+                          <Link
+                            href={`/stories/${story.id}`}
+                            className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                            target="_blank"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            보기
+                          </Link>
+                          <button
+                            onClick={() => handleEditStart(story)}
+                            className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 font-medium"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                            수정
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -406,14 +455,23 @@ export default function AdminStoriesPage() {
                 <p className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">{story.title}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-400">{formatDate(story.published_at)}</span>
-                  <Link
-                    href={`/stories/${story.id}`}
-                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                    target="_blank"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    보기
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/stories/${story.id}`}
+                      className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      target="_blank"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      보기
+                    </Link>
+                    <button
+                      onClick={() => handleEditStart(story)}
+                      className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 font-medium"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      수정
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

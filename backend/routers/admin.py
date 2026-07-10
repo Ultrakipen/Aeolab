@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import secrets
@@ -97,18 +98,66 @@ async def get_stats(_=Depends(verify_admin)):
     }
 
 
+@router.post("/subscriptions/{user_id}/cancel")
+async def admin_cancel_subscription(user_id: str, _=Depends(verify_admin)):
+    """관리자 강제 구독 해지/환불 — 고객지원 요청 시 사용 (금전 이동 가능).
+
+    _cancel_subscription_core는 settings.py의 본인 해지(POST /settings/cancel)와
+    동일한 함수 — 경쟁조건 방어·DB 갱신 실패 시 운영자 알림·7일 청약철회 자동환불 분기
+    안전장치를 전부 그대로 공유한다(admin_functional_gaps_implementation_plan_v1.0.md §5).
+    별도로 재구현하지 않는다 — 안전장치 누락 재발 방지(2026-06-02 CLAUDE.md 사고 참조).
+    """
+    from routers.settings import _cancel_subscription_core
+
+    return await _cancel_subscription_core(user_id)
+
+
 @router.get("/subscriptions")
-async def list_subscriptions(plan: str = None, status: str = "active", _=Depends(verify_admin)):
-    """구독자 목록"""
+async def list_subscriptions(
+    plan: str = None,
+    status: str = None,
+    email: str = None,
+    _=Depends(verify_admin),
+):
+    """구독자 목록 (검색/필터 지원).
+
+    status 생략 시 전체 상태(active/cancelled/expired/grace_period/suspended) 조회.
+    email 지정 시 부분 일치 검색 — auth.users(email)는 postgrest 조인 대상이 아니므로
+    (profiles.email 컬럼은 2026-07-10 기준 라이브 DB에 존재하나 전량 NULL — 가입 트리거가
+    채우지 않음) Supabase Auth Admin API로 별도 조회 후 파이썬에서 merge한다.
+    subscriptions↔profiles FK 미등록으로 인한 PGRST200 위험(embedded join 함정)도
+    이 방식으로 원천 회피된다.
+    """
     supabase = get_supabase()
-    query = supabase.table("subscriptions").select("id, user_id, plan, status, start_at, end_at, grace_until, customer_key")
+    query = supabase.table("subscriptions").select(
+        "id, user_id, plan, status, start_at, end_at, grace_until, customer_key"
+    )
     if status:
         query = query.eq("status", status)
     if plan:
         query = query.eq("plan", plan)
-    rows = (await execute(query.order("start_at", desc=True))).data
+    rows = (await execute(query.order("start_at", desc=True))).data or []
 
-    # 이메일은 auth.users 조인이 서비스 롤로만 가능 — user_id로 대체
+    if not rows:
+        return rows
+
+    # auth.users에서 이메일 일괄 조회 (최대 1000명 — BEP 20명·목표 100명 규모에서 충분)
+    email_map: dict = {}
+    try:
+        users = await asyncio.to_thread(
+            lambda: supabase.auth.admin.list_users(page=1, per_page=1000)
+        )
+        email_map = {u.id: u.email for u in users}
+    except Exception as e:
+        _logger.warning(f"[admin] 구독자 이메일 조회 실패(auth.admin.list_users): {e}")
+
+    for row in rows:
+        row["email"] = email_map.get(row.get("user_id"))
+
+    if email:
+        needle = email.strip().lower()
+        rows = [r for r in rows if needle in (r.get("email") or "").lower()]
+
     return rows
 
 
@@ -196,22 +245,34 @@ async def get_scan_logs(limit: int = 50, _=Depends(verify_admin)):
 
 @router.post("/broadcast")
 async def broadcast_kakao(message: str, _=Depends(verify_admin)):
-    """전체 활성 구독자에게 카카오 공지 발송 (profiles.phone 기준)"""
+    """전체 활성 구독자에게 카카오 공지 발송 (profiles.phone 기준).
+
+    subscriptions↔profiles FK 미등록(jobs.py 전역 6곳에 문서화된 기존 P0 클래스,
+    2026-07-07 사고)으로 embedded join(profiles(phone))은 매 호출 PGRST200으로
+    실패한다 — 분리 조회 후 dict merge로 교체.
+    """
     supabase = get_supabase()
     from services.kakao_notify import KakaoNotifier
 
-    # 활성 구독자의 profiles.phone 조회
     active_subs = (
         await execute(
-            supabase.table("subscriptions")
-            .select("user_id, profiles(phone)")
-            .eq("status", "active")
+            supabase.table("subscriptions").select("user_id").eq("status", "active")
         )
     ).data or []
+    user_ids = [s["user_id"] for s in active_subs if s.get("user_id")]
+    phone_map: dict = {}
+    if user_ids:
+        prof_rows = (
+            await execute(
+                supabase.table("profiles").select("user_id, phone").in_("user_id", user_ids)
+            )
+        ).data or []
+        phone_map = {p["user_id"]: p.get("phone") for p in prof_rows}
+
     notifier = KakaoNotifier()
     sent = 0
-    for sub in active_subs:
-        phone = (sub.get("profiles") or {}).get("phone")
+    for uid in user_ids:
+        phone = phone_map.get(uid)
         if phone:
             try:
                 await notifier.send_notice(phone, message)

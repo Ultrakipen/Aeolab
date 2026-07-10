@@ -76,6 +76,51 @@ class StoryCreate(BaseModel):
         return v
 
 
+class StoryUpdate(BaseModel):
+    category: Optional[str] = None
+    region: Optional[str] = None
+    title: Optional[str] = None
+    body: Optional[str] = None
+    score_before: Optional[float] = None
+    score_after: Optional[float] = None
+    is_anonymous: Optional[bool] = None
+    display_name: Optional[str] = None
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        v = v.strip()
+        if not v:
+            raise ValueError("카테고리를 입력해 주세요")
+        return v
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        v = v.strip()
+        if not v:
+            raise ValueError("제목을 입력해 주세요")
+        if len(v) > 200:
+            raise ValueError("제목은 200자 이내로 입력해 주세요")
+        return v
+
+    @field_validator("body")
+    @classmethod
+    def validate_body(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        v = v.strip()
+        if not v:
+            raise ValueError("내용을 입력해 주세요")
+        if len(v) > 5000:
+            raise ValueError("내용은 5000자 이내로 입력해 주세요")
+        return v
+
+
 # ── 공개 엔드포인트 ────────────────────────────────────────────────────────────
 @router.get("")
 async def list_stories(
@@ -210,3 +255,51 @@ async def create_story(
     except Exception as e:
         _logger.warning(f"[stories] 게시 실패: {e}")
         raise HTTPException(status_code=500, detail="성공 사례 게시에 실패했습니다")
+
+
+@admin_router.patch("/{story_id}")
+async def update_story(
+    story_id: str,
+    payload: StoryUpdate,
+    _: None = Depends(verify_admin),
+):
+    """성공 사례 수정 (관리자 전용, X-Admin-Key 헤더 필수).
+
+    score_delta는 GENERATED STORED 컬럼이라 직접 갱신 불가 — score_before/after
+    갱신 시 DB가 자동 재계산한다.
+    """
+    try:
+        supabase = get_client()
+
+        # single()은 0건일 때도 PostgrestAPIError(PGRST116)를 던져 generic except에 걸려
+        # 500으로 오응답한다(faq.py update_faq에 있는 기존 결함과 동일 클래스) — maybe_single()로
+        # 0건을 None으로 안전 처리해 의도한 404를 반환하도록 함.
+        chk = await execute(
+            supabase.table("success_stories").select("id").eq("id", story_id).maybe_single()
+        )
+        if not (chk and chk.data):
+            raise HTTPException(status_code=404, detail="성공 사례를 찾을 수 없습니다")
+
+        update_data = {k: v for k, v in payload.model_dump().items() if v is not None}
+        if not update_data:
+            raise HTTPException(status_code=400, detail="수정할 내용이 없습니다")
+
+        await execute(
+            supabase.table("success_stories").update(update_data).eq("id", story_id)
+        )
+        res = await execute(
+            supabase.table("success_stories")
+            .select(
+                "id, category, region, title, body, score_before, score_after, "
+                "score_delta, is_anonymous, display_name, published_at, view_count"
+            )
+            .eq("id", story_id)
+            .single()
+        )
+        return res.data
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        _logger.warning(f"[stories] 수정 실패 id={story_id}: {e}")
+        raise HTTPException(status_code=500, detail="성공 사례 수정에 실패했습니다")

@@ -490,6 +490,14 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [revenue, setRevenue] = useState<RevenueRow[]>([]);
   const [subs, setSubs] = useState<SubRow[]>([]);
+  const [subSearch, setSubSearch] = useState("");
+  const [subPlanFilter, setSubPlanFilter] = useState("all");
+  const [subStatusFilter, setSubStatusFilter] = useState("all");
+  const [cancelTarget, setCancelTarget] = useState<SubRow | null>(null);
+  const [cancelStep, setCancelStep] = useState<1 | 2>(1);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
+  const [cancelResult, setCancelResult] = useState<{ refunded: boolean; refund_amount: number | null } | null>(null);
   const [catDist, setCatDist] = useState<CategoryDist | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -526,6 +534,36 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
       setLoading(false);
     }
   }, []);
+
+  // 관리자 강제 구독 취소/환불 — 2단계 확인 모달의 최종 확정 버튼에서 호출 (금전 이동)
+  const handleAdminCancelSubscription = useCallback(async () => {
+    if (!cancelTarget) return;
+    setCancelling(true);
+    setCancelError("");
+    try {
+      const res = await fetch(
+        `${ADMIN_PROXY}?path=${encodeURIComponent(`admin/subscriptions/${cancelTarget.user_id}/cancel`)}`,
+        { method: "POST" }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.detail?.code === "NO_ACTIVE_SUBSCRIPTION" ? "이미 해지되었거나 활성 구독이 아닙니다." : (data?.detail ?? "취소 처리에 실패했습니다."));
+      }
+      setCancelResult({ refunded: !!data.refunded, refund_amount: data.refund_amount ?? null });
+      setSubs((prev) => prev.map((s) => s.user_id === cancelTarget.user_id ? { ...s, status: "cancelled", end_at: data.end_at ?? s.end_at } : s));
+    } catch (err: unknown) {
+      setCancelError((err as Error).message ?? "오류가 발생했습니다.");
+    } finally {
+      setCancelling(false);
+    }
+  }, [cancelTarget]);
+
+  const closeCancelModal = () => {
+    setCancelTarget(null);
+    setCancelStep(1);
+    setCancelError("");
+    setCancelResult(null);
+  };
 
   // 로그인 검증: 입력한 키를 서버 프록시에 전달해 403 여부로 확인
   const handleLogin = useCallback(async () => {
@@ -603,6 +641,22 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
 
   const BEP_TARGET = 20;
   const bepPct = stats ? Math.min(100, Math.round((stats.active_subscribers / BEP_TARGET) * 100)) : 0;
+
+  const SUB_STATUS_LABELS: Record<string, string> = {
+    active: "활성", grace_period: "유예", suspended: "정지", cancelled: "해지", expired: "만료",
+  };
+  const subStatusOptions = Array.from(new Set(subs.map((s) => s.status)));
+  const subPlanOptions = Array.from(new Set(subs.map((s) => s.plan)));
+  const filteredSubs = subs.filter((s) => {
+    if (subPlanFilter !== "all" && s.plan !== subPlanFilter) return false;
+    if (subStatusFilter !== "all" && s.status !== subStatusFilter) return false;
+    if (subSearch.trim()) {
+      const needle = subSearch.trim().toLowerCase();
+      const haystack = `${s.email ?? ""} ${s.user_id}`.toLowerCase();
+      if (!haystack.includes(needle)) return false;
+    }
+    return true;
+  });
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -831,8 +885,40 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
             {subs.length > 0 && (
               <div className="bg-white rounded-xl p-5 shadow-sm">
                 <h2 className="text-sm font-semibold text-gray-700 mb-4">
-                  구독자 목록 ({subs.length}명)
+                  구독자 목록 ({filteredSubs.length}/{subs.length}명)
                 </h2>
+                <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                  <input
+                    type="text"
+                    value={subSearch}
+                    onChange={(e) => setSubSearch(e.target.value)}
+                    placeholder="이메일 검색"
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <select
+                    value={subStatusFilter}
+                    onChange={(e) => setSubStatusFilter(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="all">전체 상태</option>
+                    {subStatusOptions.map((s) => (
+                      <option key={s} value={s}>{SUB_STATUS_LABELS[s] ?? s}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={subPlanFilter}
+                    onChange={(e) => setSubPlanFilter(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white capitalize"
+                  >
+                    <option value="all">전체 플랜</option>
+                    {subPlanOptions.map((p) => (
+                      <option key={p} value={p} className="capitalize">{p}</option>
+                    ))}
+                  </select>
+                </div>
+                {filteredSubs.length === 0 ? (
+                  <div className="text-sm text-gray-400 py-4 text-center">검색 조건에 맞는 구독자가 없습니다.</div>
+                ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -841,10 +927,11 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                         <th className="pb-2">플랜</th>
                         <th className="pb-2">상태</th>
                         <th className="pb-2">만료일</th>
+                        <th className="pb-2">액션</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {subs.map((sub) => (
+                      {filteredSubs.map((sub) => (
                         <tr key={sub.user_id} className="border-b border-gray-50">
                           <td className="py-2 text-gray-700 text-sm">{sub.email ?? sub.user_id.slice(0, 8) + "..."}</td>
                           <td className="py-2">
@@ -858,17 +945,30 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
                               sub.status === "grace_period" ? "bg-yellow-50 text-yellow-700" :
                               "bg-gray-100 text-gray-500"
                             }`}>
-                              {sub.status}
+                              {SUB_STATUS_LABELS[sub.status] ?? sub.status}
                             </span>
                           </td>
                           <td className="py-2 text-sm text-gray-400">
                             {sub.end_at ? new Date(sub.end_at).toLocaleDateString("ko-KR") : "—"}
+                          </td>
+                          <td className="py-2">
+                            {(sub.status === "active" || sub.status === "grace_period") ? (
+                              <button
+                                onClick={() => { setCancelTarget(sub); setCancelStep(1); setCancelError(""); setCancelResult(null); }}
+                                className="text-sm text-red-600 hover:text-red-800 font-medium"
+                              >
+                                구독 취소
+                              </button>
+                            ) : (
+                              <span className="text-sm text-gray-300">—</span>
+                            )}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
+                )}
               </div>
             )}
 
@@ -913,6 +1013,81 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
           </>
         )}
       </div>
+
+      {/* 관리자 구독 취소/환불 확인 모달 — 되돌릴 수 없는 금전 이동이므로 2단계 확인 */}
+      {cancelTarget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-5">
+            {cancelResult ? (
+              <>
+                <h3 className="text-base font-bold text-gray-900 mb-2">처리 완료</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  {cancelTarget.email ?? cancelTarget.user_id} 구독이 해지되었습니다.
+                  {cancelResult.refunded
+                    ? ` 7일 이내 청약철회 대상으로 ${cancelResult.refund_amount?.toLocaleString() ?? ""}원이 환불 처리되었습니다.`
+                    : " 환불 대상이 아니며(가입 7일 경과 또는 서비스 이용 이력 있음) 잔여 기간까지 서비스가 유지됩니다."}
+                </p>
+                <button
+                  onClick={closeCancelModal}
+                  className="w-full py-2.5 rounded-xl bg-gray-800 text-white text-sm font-semibold hover:bg-gray-900 transition-colors"
+                >
+                  닫기
+                </button>
+              </>
+            ) : cancelStep === 1 ? (
+              <>
+                <h3 className="text-base font-bold text-gray-900 mb-2">구독 취소 확인</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  <span className="font-semibold">{cancelTarget.email ?? cancelTarget.user_id}</span>
+                  {" "}({cancelTarget.plan}) 구독을 취소하시겠습니까?
+                  <br />가입 7일 이내 + 미이용 상태면 <span className="font-semibold text-red-600">즉시 전액 환불</span>이 실행됩니다.
+                  이 작업은 되돌릴 수 없습니다.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCancelStep(2)}
+                    className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+                  >
+                    계속
+                  </button>
+                  <button
+                    onClick={closeCancelModal}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    닫기
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="text-base font-bold text-red-700 mb-2">최종 확인 — 금전 이동 가능</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  마지막 확인입니다. &quot;취소 확정&quot;을 누르면 즉시 처리되며 취소할 수 없습니다.
+                </p>
+                {cancelError && (
+                  <p className="text-sm text-red-600 mb-3">{cancelError}</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleAdminCancelSubscription}
+                    disabled={cancelling}
+                    className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
+                  >
+                    {cancelling ? "처리 중..." : "취소 확정"}
+                  </button>
+                  <button
+                    onClick={closeCancelModal}
+                    disabled={cancelling}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  >
+                    닫기
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { ChevronRight, AlertCircle } from "lucide-react";
+import { ChevronRight, AlertCircle, Store } from "lucide-react";
 import { AdminSupportClient } from "./AdminSupportClient";
+import { CATEGORY_LABEL } from "@/lib/categories";
 
 export const metadata = { title: "문의 상세 | AEOlab Admin" };
 
@@ -32,6 +33,24 @@ interface Reply {
   created_at: string;
 }
 
+interface LatestScan {
+  scanned_at: string;
+  total_score: number | null;
+  track1_score: number | null;
+  track2_score: number | null;
+  unified_score: number | null;
+}
+
+interface BusinessSummary {
+  id: string;
+  name: string;
+  category: string;
+  region: string;
+  is_active: boolean;
+  created_at: string;
+  latest_scan: LatestScan | null;
+}
+
 interface TicketDetail {
   id: string;
   title: string;
@@ -41,6 +60,7 @@ interface TicketDetail {
   visibility: "public" | "private";
   created_at: string;
   replies?: Reply[];
+  businesses?: BusinessSummary[];
 }
 
 async function fetchTicket(id: string, adminKey: string): Promise<TicketDetail | null> {
@@ -153,6 +173,44 @@ export default async function AdminSupportDetailPage({
             {ticket.body}
           </p>
         </div>
+      </div>
+
+      {/* 문의자 사업장 정보 (고객지원 조회용) */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Store className="w-4 h-4 text-gray-400" />
+          <h2 className="text-base font-semibold text-gray-800">문의자 사업장</h2>
+        </div>
+        {!ticket.businesses || ticket.businesses.length === 0 ? (
+          <p className="text-sm text-gray-400">등록된 사업장이 없습니다.</p>
+        ) : (
+          <div className="space-y-3">
+            {ticket.businesses.map((biz) => (
+              <div key={biz.id} className="border border-gray-100 rounded-xl p-4">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <span className="text-sm font-semibold text-gray-900">{biz.name}</span>
+                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                    {CATEGORY_LABEL[biz.category] ?? biz.category}
+                  </span>
+                  {biz.region && <span className="text-sm text-gray-400">{biz.region}</span>}
+                  {!biz.is_active && (
+                    <span className="text-sm text-red-600 bg-red-50 px-2 py-0.5 rounded-full">비활성</span>
+                  )}
+                </div>
+                {biz.latest_scan ? (
+                  <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-600">
+                    <span>최근 스캔: {formatDate(biz.latest_scan.scanned_at)}</span>
+                    <span>종합 {biz.latest_scan.unified_score?.toFixed(1) ?? "—"}점</span>
+                    <span>네이버 트랙 {biz.latest_scan.track1_score?.toFixed(1) ?? "—"}점</span>
+                    <span>글로벌 트랙 {biz.latest_scan.track2_score?.toFixed(1) ?? "—"}점</span>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400">아직 스캔 이력이 없습니다.</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 클라이언트 컴포넌트: 답글 스레드 + 액션 패널 */}
