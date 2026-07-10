@@ -139,6 +139,37 @@ CLAUDE.md "남은 작업" 절에 `NEXT_PUBLIC_ADMIN_SECRET_KEY 향후 서버 컴
 
 새 대화창에서 이 문서 기준으로 재개할 때 트리거 문구 예:
 
-> `docs/admin_screens_inspection_plan_v1.0.md 기준으로 관리자 화면 점검 진행. §4 P0부터 시작`
+> `docs/admin_screens_inspection_plan_v1.0.md 기준으로 관리자 화면 점검 진행. §4 P1부터 시작`
 
 P0(대행서비스·문의답변 처리) → P1(통계 정확성 + 탭 이원화 정리) → P2(공지·FAQ·후기·피드백·comms 콘텐츠관리) 순으로 진행 권장. `/admin/comms`는 카카오 발송과 무관해 안전하게 진행 가능(§1.1 정정). 실제 발송 리스크가 있는 건 §1.3의 `POST /broadcast`뿐이며 이건 프론트 UI가 없어 이 점검 대상에서 제외됨 — 절대 curl로 직접 호출해 점검하지 말 것.
+
+---
+
+## 7. P0 실측 재현 완료 (2026-07-10, git `27ddf98`)
+
+> 재점검(오판 0건 확인) 후 실제 admin 계정으로 로그인해 브라우저 조작으로 P0 전체 실측 재현. 정적 코드리뷰만으로는 절대 못 잡는 4건의 실제 라이브 버그를 이 세션에서 처음 발견·수정·검증함 — §0의 교훈("코드 읽고 괜찮아 보인다로 끝내지 말 것")이 이번에도 그대로 재현됨.
+
+### 신규 발견 + 수정 완료 (4건)
+
+| # | 위치 | 증상 | 근본 원인 | 상태 |
+|---|------|------|----------|------|
+| 1 | `delivery.py admin_create_message` | 운영자 메시지 전송 **100% 500 에러** | `delivery_messages.sender_id`는 `NOT NULL UUID`인데 문자열 `"admin"` 삽입 → Postgres `22P02` | ✅ sentinel UUID로 수정 |
+| 2 | `support.py admin_reply_ticket` | 관리자 답글 등록 **100% 500 에러** | 동일 클래스: `support_replies.author_id`에 문자열 `"system"` 삽입 | ✅ sentinel UUID로 수정 |
+| 3 | `AdminSupportClient.tsx` 답글 스레드 | 운영자 답글도 항상 "사용자"로 표시 | 존재하지 않는 `sender_type` 참조(실제 필드명 `author_type`) | ✅ 필드명 수정 |
+| 4 | `admin/support/[id]` 공개설정 토글 | 상태 표시 항상 "공개 중" 고정 + 토글 클릭 시 **100% 422 에러** | 존재하지 않는 `is_public` boolean 참조(실제는 `visibility` 문자열 "public"/"private") | ✅ 필드명+타입 수정 |
+
+### 부수 발견 — ADMIN_EMAILS 하드코딩 (6개 페이지, 이 문서 §2 조사 범위 밖에서 발견)
+
+`/admin`, `/admin/delivery`, `/admin/delivery/[id]`, `/admin/support`, `/admin/support/[id]`, `/admin/score-comparison` **6개 page.tsx**가 `ADMIN_EMAILS = ["hoozdev@gmail.com"]`로 하드코딩되어 있어, 서버 `.env`의 실제 화이트리스트(`hoozsay@gmail.com,hoozdev@gmail.com`) 중 `hoozsay@gmail.com`은 이 6개 페이지에서 전부 차단당하는 상태였음(`/admin`은 빈 화면, 나머지는 "접근 권한이 없습니다"). 이 세션의 테스트 계정이 우연히 `hoozdev@gmail.com`이라 최초엔 안 보였다가, admin-proxy 등 다른 파일과 대조하며 발견함. `admin/notices/page.tsx`·`admin/feedback/page.tsx`가 이미 쓰던 env 기반 패턴으로 6개 파일 전부 통일.
+
+### 검증 방법 (그대로 재사용 가능한 패턴)
+
+1. 실제 DB에 테스트 데이터 직접 INSERT(Supabase REST, service role key) — 결제 플로우 없이도 관리자 액션 테스트 가능
+2. Playwright로 실제 로그인 세션에서 버튼 클릭 → `browser_console_messages(level: "error")`로 즉시 확인
+3. 500/422 재현 시 서버 `pm2 logs aeolab-backend --err`로 실제 스택트레이스 확인(추측 금지)
+4. 수정 후 **같은 재현 스텝을 다시 실행**해 실제로 고쳐졌는지 확인(코드만 보고 "맞다" 판단 금지)
+5. 테스트 데이터는 전부 REST DELETE로 정리
+
+### 남은 것
+
+P1(통계 정확성 + `NoticesTab` vs `/admin/notices` 탭 이원화 정리) · P2(공지·FAQ·후기·피드백·comms) — 이 세션에서 미착수. 별도로 `notices` 테이블 `severity`/`target_segment`/`cta_label`/`cta_url` 필드 소실 버그도 같은 세션에서 발견·수정 완료(git `2fe3df9`, 이 문서 범위 밖이지만 연관 발견).
