@@ -279,8 +279,8 @@ export function AdminCommsClient() {
           {/* 추가 폼 */}
           <div className="p-4 bg-gray-50 rounded-xl border space-y-3">
             <p className="text-sm font-semibold text-gray-700">새 팁 추가</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="min-w-0">
                 <label className="text-xs text-gray-500 mb-1 block">섹션</label>
                 <select
                   value={tipForm.section}
@@ -292,7 +292,7 @@ export function AdminCommsClient() {
                   ))}
                 </select>
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className="text-xs text-gray-500 mb-1 block">우선순위 (낮을수록 먼저)</label>
                 <input
                   type="number"
@@ -329,7 +329,7 @@ export function AdminCommsClient() {
             {tips.length === 0 && <p className="text-sm text-gray-500">팁이 없습니다.</p>}
             {tips.map((tip) => (
               <div key={tip.id} className={`p-4 border rounded-xl ${tip.is_active ? "bg-white" : "bg-gray-50 opacity-60"}`}>
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">{tip.section}</span>
@@ -366,8 +366,8 @@ export function AdminCommsClient() {
           {/* 추가 폼 */}
           <div className="p-4 bg-gray-50 rounded-xl border space-y-3">
             <p className="text-sm font-semibold text-gray-700">새 메시지 추가</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="min-w-0">
                 <label className="text-xs text-gray-500 mb-1 block">대상 세그먼트</label>
                 <select
                   value={msgForm.target_segment}
@@ -379,7 +379,7 @@ export function AdminCommsClient() {
                   ))}
                 </select>
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className="text-xs text-gray-500 mb-1 block">CTA 버튼 텍스트 (선택)</label>
                 <input
                   placeholder="예: 자세히 보기"
@@ -424,7 +424,7 @@ export function AdminCommsClient() {
             {messages.length === 0 && <p className="text-sm text-gray-500">메시지가 없습니다.</p>}
             {messages.map((m) => (
               <div key={m.id} className={`p-4 border rounded-xl ${m.is_active ? "bg-white" : "bg-gray-50 opacity-60"}`}>
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">{m.target_segment}</span>
