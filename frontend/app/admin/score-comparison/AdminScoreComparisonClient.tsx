@@ -101,8 +101,6 @@ const DIAGNOSIS_CONFIG = {
   },
 };
 
-const ACTIVATE_CMD = `ssh root@115.68.231.57 'sed -i "s/SCORE_MODEL_VERSION=v3_0/SCORE_MODEL_VERSION=v3_1/" /var/www/aeolab/.env && pm2 restart aeolab-backend'`;
-
 // ─── 그룹 통계 카드 컴포넌트 ────────────────────────────────────────────────────
 function GroupCard({ groupKey, stats }: { groupKey: string; stats: GroupStats }) {
   if (!stats || stats.count === 0) {
@@ -195,7 +193,6 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showAllOutliers, setShowAllOutliers] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const load = useCallback(async (d: number) => {
     setLoading(true);
@@ -228,16 +225,6 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
   useEffect(() => {
     if (isAdmin) load(days);
   }, [isAdmin, days, load]);
-
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(ACTIVATE_CMD);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      /* ignore */
-    }
-  }
 
   if (!isAdmin) {
     return (
@@ -483,33 +470,20 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
               </div>
             )}
 
-            {/* 5. 활성화 명령 박스 — GREEN일 때만 표시 */}
-            {data.safety_diagnosis === "green" && (
-              <div className="bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-700 rounded-xl p-4 md:p-6">
-                <h2 className="text-base font-bold text-emerald-800 dark:text-emerald-200 mb-2">
-                  v3.1 활성화 1-click 명령
-                </h2>
-                <p className="text-sm text-emerald-700 dark:text-emerald-300 mb-3">
-                  안전 진단 GREEN — 활성화를 진행할 수 있습니다. 아래 명령을 복사해 터미널에서 실행하세요.
-                </p>
-                <div className="bg-gray-900 rounded-lg p-3 mb-3 overflow-x-auto">
-                  <code className="text-emerald-400 text-xs font-mono whitespace-nowrap">
-                    {ACTIVATE_CMD}
-                  </code>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <button
-                    onClick={handleCopy}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors"
-                  >
-                    {copied ? "복사됨!" : "명령 복사"}
-                  </button>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 self-center">
-                    활성화 후 백엔드 send_v3_1_activation_notice() 1-click 발송 권장
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* 5. v3.1 라이브 적용 안내 배너 (2026-07-10: SCORE_MODEL_VERSION=v3_1 서버 전환 완료로
+                "활성화 유도" UI → 현황 안내로 교체. 아래 비교값은 이제 v3.1(라이브) vs v3.1(shadow)
+                동일 포뮬러 비교이므로 diff가 항상 0에 가까운 것이 정상 — 회귀 없음을 나타냄 */}
+            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 rounded-xl p-4 md:p-6">
+              <h2 className="text-base font-bold text-blue-800 dark:text-blue-200 mb-2">
+                v3.1은 이미 라이브 적용 중입니다
+              </h2>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                서버 <code className="text-xs bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">SCORE_MODEL_VERSION=v3_1</code>로
+                전환 완료되어 위 &quot;v3.0 평균&quot;/&quot;v3.1 평균&quot;은 실제로는 라이브 점수와
+                동일 포뮬러의 shadow 재계산값을 비교한 것입니다. diff가 0에 가까울수록 정상(회귀 없음)이며,
+                차기 모델 버전(v3.2 등) 전환 검토 시 이 페이지를 다시 활용할 수 있습니다.
+              </p>
+            </div>
           </>
         )}
       </div>
