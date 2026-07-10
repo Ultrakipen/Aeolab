@@ -47,15 +47,6 @@ interface SubRow {
   end_at: string;
 }
 
-interface Notice {
-  id: number;
-  title: string;
-  content: string;
-  category: string;
-  is_pinned: boolean;
-  created_at: string;
-}
-
 interface FAQ {
   id: number;
   question: string;
@@ -65,162 +56,9 @@ interface FAQ {
   is_active: boolean;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  general: "일반", update: "업데이트", maintenance: "점검 안내",
-};
 const FAQ_CATEGORY_LABELS: Record<string, string> = {
   general: "서비스 이용", pricing: "요금제", scan: "스캔", guide: "개선 가이드",
 };
-
-// ─── 공지사항 탭 ──────────────────────────────────────────────
-function NoticesTab() {
-  const [notices, setNotices] = useState<Notice[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ title: "", content: "", category: "general", is_pinned: false });
-  const [submitting, setSubmitting] = useState(false);
-  const [msg, setMsg] = useState("");
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${ADMIN_PROXY}?path=api/notices&limit=50`);
-      const data = await res.json();
-      setNotices(data.items ?? []);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    if (!form.title.trim() || !form.content.trim()) return;
-    setSubmitting(true);
-    setMsg("");
-    try {
-      const res = await fetch(`${ADMIN_PROXY}?path=api/notices`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (res.ok) {
-        setMsg("공지사항이 등록되었습니다.");
-        setForm({ title: "", content: "", category: "general", is_pinned: false });
-        load();
-      } else {
-        setMsg("등록 실패");
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handleDelete(id: number) {
-    if (!confirm("삭제하시겠습니까?")) return;
-    await fetch(`${ADMIN_PROXY}?path=api/notices/${id}`, {
-      method: "DELETE",
-    });
-    load();
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* 작성 폼 */}
-      <div className="bg-white rounded-xl p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">공지사항 작성</h2>
-        <form onSubmit={handleCreate} className="space-y-3">
-          <div className="flex gap-3">
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
-            <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.is_pinned}
-                onChange={(e) => setForm({ ...form, is_pinned: e.target.checked })}
-                className="rounded"
-              />
-              📌 상단 고정
-            </label>
-          </div>
-          <input
-            type="text"
-            placeholder="제목"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <textarea
-            placeholder="내용"
-            value={form.content}
-            onChange={(e) => setForm({ ...form, content: e.target.value })}
-            rows={5}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-            required
-          />
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              {submitting ? "등록 중..." : "등록"}
-            </button>
-            {msg && <span className="text-sm text-green-600">{msg}</span>}
-          </div>
-        </form>
-      </div>
-
-      {/* 목록 */}
-      <div className="bg-white rounded-xl p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">등록된 공지사항 ({notices.length}개)</h2>
-        {loading ? (
-          <div className="text-sm text-gray-400">불러오는 중...</div>
-        ) : notices.length === 0 ? (
-          <div className="text-sm text-gray-400">등록된 공지사항이 없습니다.</div>
-        ) : (
-          <div className="space-y-2">
-            {notices.map((n) => (
-              <div key={n.id} className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    {n.is_pinned && <span className="text-sm">📌</span>}
-                    <span className={`text-sm px-2 py-0.5 rounded-full ${
-                      n.category === "update" ? "bg-blue-50 text-blue-700" :
-                      n.category === "maintenance" ? "bg-amber-50 text-amber-700" :
-                      "bg-gray-100 text-gray-600"
-                    }`}>
-                      {CATEGORY_LABELS[n.category] ?? n.category}
-                    </span>
-                    <span className="text-sm text-gray-400">
-                      {new Date(n.created_at).toLocaleDateString("ko-KR")}
-                    </span>
-                  </div>
-                  <p className="text-sm font-medium text-gray-800 truncate">{n.title}</p>
-                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{n.content}</p>
-                </div>
-                <button
-                  onClick={() => handleDelete(n.id)}
-                  className="text-sm text-red-500 hover:text-red-700 whitespace-nowrap"
-                >
-                  삭제
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ─── FAQ 탭 ──────────────────────────────────────────────────
 function FAQTab() {
@@ -563,7 +401,7 @@ function InquiryTab() {
 export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
   const [inputKey, setInputKey] = useState("");
   const [authed, setAuthed] = useState(false);
-  const [tab, setTab] = useState<"dashboard" | "notices" | "faq" | "inquiry">("dashboard");
+  const [tab, setTab] = useState<"dashboard" | "faq" | "inquiry">("dashboard");
   const [stats, setStats] = useState<Stats | null>(null);
   const [revenue, setRevenue] = useState<RevenueRow[]>([]);
   const [subs, setSubs] = useState<SubRow[]>([]);
@@ -748,7 +586,6 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 flex-wrap">
           {([
             ["dashboard", "대시보드"],
-            ["notices", "공지사항"],
             ["faq", "FAQ"],
             ["inquiry", "문의"],
           ] as const).map(([key, label]) => (
@@ -767,7 +604,6 @@ export function AdminDashboard({ initialKey = "" }: { initialKey?: string }) {
         </div>
 
         {/* 탭 콘텐츠 */}
-        {tab === "notices" && <NoticesTab />}
         {tab === "faq" && <FAQTab />}
         {tab === "inquiry" && <InquiryTab />}
 
