@@ -70,7 +70,7 @@ CLAUDE.md "남은 작업" 절에 `NEXT_PUBLIC_ADMIN_SECRET_KEY 향후 서버 컴
 
 **결론**: 이중 인증(Supabase 세션 + ADMIN_EMAILS 화이트리스트 → 서버 프록시가 ADMIN_SECRET_KEY 부착) 구조가 이미 견고하게 구현되어 있다. 이 문서의 점검 항목이 아니다. **CLAUDE.md "남은 작업" 절에서 이 항목을 제거할 것** (이 점검 실행 시 함께 정리 권장).
 
-**실측 재현에 필요한 것**: 서버 `.env`의 `ADMIN_EMAILS`에 등록된 이메일로 Supabase 로그인한 세션. 사용자에게 해당 계정 로그인 정보를 요청할 것.
+**실측 재현에 필요한 것**: 서버 `.env`의 `ADMIN_EMAILS`에 등록된 이메일로 Supabase 로그인한 세션. 계정 목록은 `docs/.admin_credentials.local`(git 추적 제외, `.gitignore` 등록됨 — 비밀번호 등 민감정보는 이 파일에만 기록) 참조. 화이트리스트 이메일 자체(`hoozsay@gmail.com`, `hoozdev@gmail.com`)는 서버 `.env`에도 있는 비민감 정보.
 
 ---
 
