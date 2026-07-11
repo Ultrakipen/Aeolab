@@ -399,14 +399,13 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
     # 5. 정지(suspended) 상태였다면 새 카드로 즉시 결제 재시도 — 성공 시 active 복귀 + 기간 연장
     reactivated = False
     if was_suspended:
-        from services.toss_billing import retry_billing
+        from services.toss_billing import retry_billing, compute_renewal_amount
         sub["billing_key"] = new_billing_key
         sub["user_id"] = user_id  # select에 user_id가 없어 payment_events 기록 시 NULL 방지
 
         # 이중 청구 방지: retry_billing(Toss 청구) 성공 후 바로 아래 상태 업데이트가
         # 실패해 사용자가 카드 변경을 재시도하면 재청구로 이어지는 문제 차단
         # (webhook.py issue_billing과 동일 패턴, 2026-07-11)
-        from services.toss_billing import compute_renewal_amount
         from utils.payment_event_log import find_recent_success_event
         expected_amount = compute_renewal_amount(sub)
         recent_match = await find_recent_success_event(user_id, "renewal", expected_amount, window_minutes=10)
