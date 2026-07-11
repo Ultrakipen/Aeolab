@@ -219,7 +219,7 @@ export default async function HistoryPage() {
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">변화 기록</h1>
           <p className="text-gray-500 text-sm mt-1 leading-relaxed">스캔을 진행할 때마다 기록이 쌓입니다. AI 검색 노출이 어떻게 개선되었는지 확인하세요.</p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
           <ShareButton
             title={`${business.name} AI 노출 리포트`}
             text={`AEOlab으로 분석한 AI 검색 노출 결과를 확인해보세요.`}
@@ -239,7 +239,7 @@ export default async function HistoryPage() {
               </p>
             </div>
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
-              <p className="text-sm text-gray-500 mb-2 font-medium">지난주 대비</p>
+              <p className="text-sm text-gray-500 mb-2 font-medium">{latestScore?.weekly_change != null ? "지난주 대비" : "이전 스캔 대비"}</p>
               <p className={`text-base md:text-lg font-bold ${diff > 2 ? 'text-emerald-700' : diff < -2 ? 'text-red-600' : 'text-gray-400'}`}>
                 {diff > 2 ? '↑ 상승' : diff < -2 ? '↓ 하락' : '— 유지'}
               </p>
@@ -304,7 +304,7 @@ export default async function HistoryPage() {
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">날짜</th>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">전체 AI 노출</th>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">네이버 AI 노출도</th>
-                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">AI 노출 횟수</th>
+                    <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">AI 언급 횟수(샘플 대비)</th>
                     <th className="text-left px-4 md:px-6 py-3 text-sm text-gray-500 font-medium whitespace-nowrap">전주 대비</th>
                   </tr>
                 </thead>
@@ -334,7 +334,7 @@ export default async function HistoryPage() {
                           <span className="text-gray-300">—</span>
                         )}
                       </td>
-                      <td className="px-4 md:px-6 py-3 text-gray-600 text-sm">{row.exposure_freq}/{row.sample_size ?? 100}</td>
+                      <td className="px-4 md:px-6 py-3 text-gray-600 text-sm">{row.exposure_freq ?? 0}/{row.sample_size ?? 100}</td>
                       <td className="px-4 md:px-6 py-3">
                         {(row.weekly_change ?? 0) > 2 ? (
                           <span className="text-green-700 font-semibold">↑ 상승</span>

@@ -216,11 +216,13 @@ export default async function CompetitorsPage({
         )
       })()}
 
-      {/* 경쟁사 미등록 fallback 배너 — 추정 데이터 안내 */}
+      {/* 경쟁사 추정 데이터 안내 배너 — 미등록/미스캔 두 경우를 구분해 안내 */}
       {gapAnalysis && (gapAnalysis as GapAnalysis & { is_competitor_estimated?: boolean }).is_competitor_estimated && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-800">
-          <strong>현재는 업종 평균과 비교한 추정 데이터입니다.</strong>
-          아래에서 경쟁사를 직접 등록하면 실제 가게 간 비교 데이터가 표시됩니다.
+          <strong>현재는 업종 평균과 비교한 추정 데이터입니다.</strong>{' '}
+          {(competitors?.length ?? 0) > 0
+            ? '등록된 경쟁사의 AI 스캔이 아직 완료되지 않아 실제 비교 데이터 대신 업종 평균을 사용했습니다. 스캔이 끝나면 자동으로 실제 비교 데이터로 전환됩니다.'
+            : '아래에서 경쟁사를 직접 등록하면 실제 가게 간 비교 데이터가 표시됩니다.'}
         </div>
       )}
 

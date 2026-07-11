@@ -2236,7 +2236,7 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
             for cid in latest_comp_raw
         )
         if total_delta_val >= 2:
-            headline = "AI 검색 노출이 개선되고 있습니다. 잘 하고 계십니다!"
+            headline = "첫 스캔 이후 AI 검색 노출이 꾸준히 개선되고 있습니다. 잘 하고 계십니다!"
             headline_type = "growth"
         elif total_delta_val <= -2:
             if growth_drivers:
@@ -2250,7 +2250,7 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
             headline = "경쟁 가게가 점수를 올리고 있습니다. 지금 조치가 필요합니다."
             headline_type = "alert"
         else:
-            headline = "큰 변화 없이 유지 중입니다. FAQ 추가 1건으로 다음 단계를 노려보세요."
+            headline = "큰 변화 없이 유지 중입니다. 스마트플레이스 소개글이나 키워드를 다듬어 다음 단계를 노려보세요."
             headline_type = "stable"
 
     # ── 5-C. 경쟁사 비교 ─────────────────────────────────────────────
