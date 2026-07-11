@@ -126,9 +126,28 @@
 
 **배치 2 이후 잔여**: 488건 / 153개 파일
 
-**다음 배치 후보**(파일별 건수 내림차순, `.bak*` 제외): `GuideClient.tsx`(27)·`onboarding/page.tsx`(23)·`AdminScoreComparisonClient.tsx`(14)·`AdminNoticesClient.tsx`(14)·`AdminFeedbackClient.tsx`(12)·`TrialResultStep.tsx`(12)·`admin/business/[id]/page.tsx`(11)·`how-it-works/page.tsx`(11)·`review-inbox/page.tsx`(11)·`demo/page.tsx`(10)
+**배치 3 완료** (git `6eb7a70`, 같은 세션 이어서 진행):
+- 대상: `GuideClient.tsx`(27, 1건 제외)·`onboarding/page.tsx`(23, placeholder 8건 제외)·`AdminScoreComparisonClient.tsx`(14, dark 12건 제외)·`AdminNoticesClient.tsx`(14, dark4+placeholder4=8건 제외)·`AdminFeedbackClient.tsx`(12, dark 7건 제외)·`TrialResultStep.tsx`(12)·`admin/business/[id]/page.tsx`(11)·`how-it-works/page.tsx`(11)·`review-inbox/page.tsx`(11)·`demo/page.tsx`(10) = **109건 치환**
+- **패턴 정정**: 관리자 3개 파일(`AdminScoreComparisonClient`·`AdminNoticesClient`·`AdminFeedbackClient`)은 실제 다크모드 지원 파일이라 `text-gray-400 dark:text-gray-500` 형태 페어가 다수 — 라이트모드 토큰(`text-gray-400`)만 교체하고 `dark:text-gray-500`는 그대로 둠(다크모드 자체의 대비 적정성은 이번 스코프 밖). `perl` 정규식을 `(?<!dark:)(?<!placeholder:)text-gray-400`로 확장해 두 접두사 모두 보존
+- 신규 예외: `GuideClient.tsx:1406` disabled ternary 1건 제외
+- 검증: md5 사전일치 → scp → 서버 grep 정확히 예상 카운트 일치(0/8/12/8/7/0/0/0/0/0) → 빌드 성공 → pm2 재시작 에러 없음 → curl how-it-works 200 확인 → 라이브 HTML에 `text-gray-400` 6건 잔존 확인했으나 `page.tsx` 자체는 0건 → **원인: `SiteFooter`/`AuthNavControl` 공용 컴포넌트가 아직 미처리 배치라 다른 페이지에서도 계속 보일 것(정상, 버그 아님)**
 
-**다음 세션 트리거**: `docs/master_inspection_plan_v1.0.md §5.1-A 기준으로 배치 3 진행 (다음 배치 후보 목록부터)`
+**배치 3 이후 잔여**: 379건 / 148개 파일
+
+**배치 4 완료** (git `2b932c9`, 같은 세션 이어서 진행):
+- 대상: `history/page.tsx`(9)·`BlogScreenshotSection.tsx`(9, 1건 제외)·`DeliveryOrderClient.tsx`(9, placeholder 2건 제외)·`ResultTable.tsx`(8)·`settings/page.tsx`(8)·`ScoreModelV31Client.tsx`(8, dark 5건 제외)·`ad-cost-calculator/page.tsx`(7)·`pricing/page.tsx`(7)·`signup/page.tsx`(7, placeholder 3건 제외)·`(auth)/page.tsx`(7, placeholder 3건 제외)·`TrialStatusSummary.tsx`(6) = **71건 치환**
+- `pricing`·`signup`·`(auth)/page.tsx`(로그인)를 §4 P1(gap-1·gap-2, 전환 퍼널 L3) 페이지와 겹치므로 우선 포함시킴 — 대비율만이지만 P1 범위 일부 선반영 효과
+- 신규 예외: `BlogScreenshotSection.tsx:568` disabled 상태 배지 1건 제외
+- 검증: md5 사전일치 → scp → 서버 grep 정확히 예상 카운트 일치(0/1/2/0/0/5/0/0/3/3/0) → 빌드 성공(에러 0) → pm2 재시작 → curl pricing/signup/login/ad-cost-calc 전부 200 → pricing 라이브 HTML에 9건 잔존(다른 미처리 공용 컴포넌트發, page.tsx 자체는 0건 확인)
+
+**배치 4 이후 잔여**: 276건 위반후보(dark:/placeholder: 제외 기준) / 308건(dark:만 제외, 원 baseline과 동일 집계 기준) / 142개 파일
+
+**누적 진행**: 배치1~4 합계 **452건 수정** (원 baseline 905건 대비, `dark:` 제외 기준으로는 905→308, 약 66% 처리)
+
+**다음 배치 후보 — `components/common/`**(여러 페이지에서 반복 노출되는 공용 컴포넌트라 우선순위 높음, 수정 시 파급 효과 큼): `HelpSearchInput.tsx`(6)·`SiteFooter.tsx`(2)·`ResultSummaryHero.tsx`(2)·`ChannelTimelineBox.tsx`(2)·`AIAssistant.tsx`(2)·`PlanGate.tsx`(1)·`ChannelDifferentiationCard.tsx`(1) — `*.md` 가이드 문서 2건은 코드 아니므로 스코프 제외
+- 그 외 잔여 다수는 `components/dashboard/`·`components/landing/`·`app/(dashboard)/*` 산재 — 다음 세션 시작 시 `grep -rln text-gray-400 app components | grep -v '\.bak' | xargs -I{} sh -c 'echo "$(grep -c text-gray-400 {}) {}"' | sort -rn`로 재산출
+
+**다음 세션 트리거**: `docs/master_inspection_plan_v1.0.md §5.1-A 기준으로 배치 5 진행 — components/common 공용 컴포넌트 우선`
 
 ### §5.2 나머지 항목 병렬 창 트리거 (2026-07-11 준비, §5.1 대비율 창과 파일 겹침 없도록 분리)
 
