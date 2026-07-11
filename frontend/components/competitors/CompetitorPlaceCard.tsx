@@ -150,7 +150,7 @@ function CompletenessItem({
             <CheckCircle className="w-3 h-3" /> 경쟁사 등록
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+          <span className="inline-flex items-center gap-1 text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">
             <XCircle className="w-3 h-3" /> 미등록
           </span>
         )}
@@ -169,7 +169,7 @@ function SeoItem({ label, hasComp }: { label: string; hasComp: boolean }) {
           <CheckCircle className="w-3 h-3" /> 적용
         </span>
       ) : (
-        <span className="inline-flex items-center gap-1 text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+        <span className="inline-flex items-center gap-1 text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
           <XCircle className="w-3 h-3" /> 미적용
         </span>
       )}
@@ -181,7 +181,7 @@ function LockedFeature({ requiredPlan, feature }: { requiredPlan: string; featur
   return (
     <div className="flex items-center gap-2 py-2 px-3 bg-gray-50 rounded-lg border border-dashed border-gray-200">
       <Lock className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-      <span className="text-sm text-gray-400">{feature} — {requiredPlan} 플랜부터 이용 가능</span>
+      <span className="text-sm text-gray-500">{feature} — {requiredPlan} 플랜부터 이용 가능</span>
     </div>
   );
 }
@@ -228,7 +228,7 @@ function BlogMentionBar({
           <span className="px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 text-sm">동률</span>
         )}
       </div>
-      <p className="text-sm text-gray-400 leading-relaxed">
+      <p className="text-sm text-gray-500 leading-relaxed">
         블로그 포스팅이 많을수록 AI 검색에서 더 자주 인용됩니다.
       </p>
     </div>
@@ -340,7 +340,7 @@ export function CompetitorPlaceCard({
               )}
             </button>
           </div>
-          <p className="text-sm text-gray-400 leading-relaxed">
+          <p className="text-sm text-gray-500 leading-relaxed">
             네이버 지도에서 업체 검색 후 URL의 숫자 복사 (예: map.naver.com/p/entry/place/<strong>1234567890</strong>)
           </p>
           {saveError && (
@@ -378,12 +378,12 @@ export function CompetitorPlaceCard({
         <span className="text-sm font-semibold text-gray-700">네이버 플레이스 비교</span>
         <div className="flex items-center gap-2">
           {syncedTimeLabel && (
-            <span className="text-sm text-gray-400">{syncedTimeLabel} 기준</span>
+            <span className="text-sm text-gray-500">{syncedTimeLabel} 기준</span>
           )}
           <button
             onClick={handleSync}
             disabled={syncing}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-600 transition-colors disabled:opacity-50"
             title="수동 새로고침"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />
@@ -420,7 +420,7 @@ export function CompetitorPlaceCard({
                 평점 {ratingDiff.toFixed(1)} 높음
               </span>
             ) : (
-              <span className="text-sm text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
+              <span className="text-sm text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
                 비슷한 평점
               </span>
             )}
@@ -432,7 +432,7 @@ export function CompetitorPlaceCard({
       <div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-600">스마트플레이스 현황</span>
-          <span className="text-sm text-gray-400">경쟁사 기준</span>
+          <span className="text-sm text-gray-500">경쟁사 기준</span>
         </div>
         <div className="bg-gray-50 rounded-xl px-3 py-1">
           <CompletenessItem
@@ -464,7 +464,7 @@ export function CompetitorPlaceCard({
         </div>
         {/* 모두 미등록인 경우 안내 */}
         {!(competitor.place_has_intro || competitor.place_has_faq || competitor.place_has_recent_post || competitor.place_has_menu) && (
-          <p className="text-sm text-gray-400 mt-2 px-1">
+          <p className="text-sm text-gray-500 mt-2 px-1">
             경쟁사도 아직 미등록 — 먼저 등록하면 AI 검색에서 앞설 수 있습니다.
           </p>
         )}
@@ -481,7 +481,7 @@ export function CompetitorPlaceCard({
             <p className="text-sm text-blue-900 leading-relaxed italic">"{competitor.ai_excerpt}"</p>
             <p className="text-sm text-blue-500 mt-1.5">Gemini AI 스캔 기준</p>
           </blockquote>
-          <p className="text-sm text-gray-400 mt-1.5 leading-relaxed">
+          <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">
             AI가 경쟁사를 이렇게 소개하고 있습니다. 내 가게도 이런 키워드가 포함되도록 소개글을 작성하세요.
           </p>
         </div>
@@ -494,17 +494,17 @@ export function CompetitorPlaceCard({
             <span>📰</span>
             <span className="text-sm font-medium text-gray-600">네이버 블로그 언급 수</span>
           </div>
-          <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">자동 수집</span>
+          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">자동 수집</span>
         </div>
-        <p className="text-sm text-gray-400 mb-2 leading-relaxed">
+        <p className="text-sm text-gray-500 mb-2 leading-relaxed">
           경쟁사 이름으로 네이버 블로그를 자동 검색해 몇 개의 포스팅이 있는지 확인합니다. 블로그 포스팅이 많을수록 AI 검색에서 더 자주 인용됩니다.
         </p>
         {competitor.blog_mention_count == null ? (
-          <p className="text-sm text-gray-400 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
+          <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
             새로고침 버튼을 누르면 자동으로 수집됩니다.
           </p>
         ) : myBlogMentions == null ? (
-          <p className="text-sm text-gray-400 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
+          <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
             내 가게 블로그 언급 수 측정에 실패했습니다. 잠시 후 다시 시도해주세요.
           </p>
         ) : (
@@ -577,7 +577,7 @@ export function CompetitorPlaceCard({
             <span className="inline-flex items-center gap-1 text-sm text-gray-500 bg-gray-100 border border-gray-200 px-2.5 py-0.5 rounded-full">
               <XCircle className="w-3.5 h-3.5" /> 경쟁사 웹사이트 없음
             </span>
-            <span className="text-sm text-gray-400">— 내 가게에 웹사이트가 있다면 유리합니다</span>
+            <span className="text-sm text-gray-500">— 내 가게에 웹사이트가 있다면 유리합니다</span>
           </div>
         )}
       </div>
@@ -588,10 +588,10 @@ export function CompetitorPlaceCard({
           <div className="flex items-center gap-1.5 mb-2">
             <span>❓</span>
             <span className="text-sm font-medium text-gray-600">경쟁사 소개글 Q&A</span>
-            <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">내 소개글 Q&A 참고용</span>
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">내 소개글 Q&A 참고용</span>
           </div>
           {competitor.faq_questions?.[0] === '__deprecated__' ? (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-500">
               네이버 Q&A 탭 폐기(2026-05-01)로 질문 수집이 더 이상 불가합니다. 위 '플레이스 현황'에서 소개글 포함 여부를 확인하세요.
             </p>
           ) : (!competitor.faq_questions || competitor.faq_questions.length === 0) ? (
@@ -611,7 +611,7 @@ export function CompetitorPlaceCard({
                   <p className="text-sm text-gray-700 leading-relaxed">{q}</p>
                 </div>
               ))}
-              <p className="text-sm text-gray-400 mt-2">위 질문들을 참고해 소개글 Q&A를 작성하면 AI 검색 노출에 유리합니다.</p>
+              <p className="text-sm text-gray-500 mt-2">위 질문들을 참고해 소개글 Q&A를 작성하면 AI 검색 노출에 유리합니다.</p>
             </div>
           )}
         </div>
@@ -628,7 +628,7 @@ export function CompetitorPlaceCard({
             feature="경쟁사 키워드 분석"
           />
         ) : competitor.comp_keywords == null ? (
-          <p className="text-sm text-gray-400 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
+          <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
             키워드 데이터 동기화가 필요합니다.
           </p>
         ) : (
@@ -692,7 +692,7 @@ export function CompetitorPlaceCard({
             <span>🎯</span>
             <span className="text-sm font-medium text-gray-600">경쟁사 약점 — 내 가게 공략 포인트</span>
           </div>
-          <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">블로그 분석</span>
+          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">블로그 분석</span>
         </div>
         {competitor.weakness_data == null ? (
           <button
@@ -711,7 +711,7 @@ export function CompetitorPlaceCard({
           </div>
         ) : (
           <div className="space-y-2">
-            <p className="text-sm text-gray-400">블로그 {competitor.weakness_data.total_posts_analyzed}개 포스팅 분석 결과:</p>
+            <p className="text-sm text-gray-500">블로그 {competitor.weakness_data.total_posts_analyzed}개 포스팅 분석 결과:</p>
             {competitor.weakness_data.weaknesses.map((w, i) => (
               <div key={i} className="bg-red-50 border border-red-100 rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-1">

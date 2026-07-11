@@ -207,7 +207,7 @@ function CompetitorRow({ item, nextRankScore }: { item: Competitor; nextRankScor
     <div className={`flex items-center gap-2 rounded-xl px-3 py-2.5 ${
       item.me ? "bg-red-50 border border-red-200" : "bg-gray-50 border border-gray-100"
     }`}>
-      <span className={`text-sm font-bold w-4 text-center shrink-0 ${item.me ? "text-red-500" : "text-gray-400"}`}>
+      <span className={`text-sm font-bold w-4 text-center shrink-0 ${item.me ? "text-red-500" : "text-gray-500"}`}>
         {item.rank}
       </span>
       <div className="flex-1 min-w-0">
@@ -232,7 +232,7 @@ function CompetitorRow({ item, nextRankScore }: { item: Competitor; nextRankScor
           </div>
           <span
             aria-hidden
-            className="absolute text-sm leading-none text-gray-400 whitespace-nowrap"
+            className="absolute text-sm leading-none text-gray-500 whitespace-nowrap"
             style={{ left: `${INDUSTRY_AVG_SCORE}%`, transform: "translateX(-50%)", top: "9px" }}
           >
             평균
@@ -261,10 +261,10 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
     <div className="space-y-3">
       {/* 질문 버블 */}
       <div>
-        <p className="text-sm font-bold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+        <p className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
           <span className="w-2 h-2 bg-blue-400 rounded-full inline-block" />
           사용자가 AI에게 물어봅니다
-          <span className="ml-auto normal-case font-normal text-gray-400">(예시)</span>
+          <span className="ml-auto normal-case font-normal text-gray-500">(예시)</span>
         </p>
         <div className="inline-block bg-blue-600 text-white text-sm px-4 py-2.5 rounded-2xl rounded-bl-sm font-medium max-w-[90%]">
           &ldquo;{sample.query}&rdquo;
@@ -282,7 +282,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
               <span className="text-sm font-bold text-emerald-800">네이버 AI 브리핑</span>
               <span className="ml-2 text-sm bg-emerald-200 text-emerald-800 font-semibold px-1.5 py-0.5 rounded-full">핵심 채널</span>
             </div>
-            <span className="text-sm text-gray-400 ml-auto">(예시)</span>
+            <span className="text-sm text-gray-500 ml-auto">(예시)</span>
           </div>
           <p className="text-sm text-gray-700 leading-relaxed">
             {naverMentioned.map((c, i) => (
@@ -324,7 +324,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
           {!sample.naverActiveCategory && (
             <span className="ml-1 text-sm bg-orange-100 text-orange-700 font-semibold px-1.5 py-0.5 rounded-full">핵심 채널</span>
           )}
-          <span className="text-sm text-gray-400 ml-auto">50회 질의 기반 (예시)</span>
+          <span className="text-sm text-gray-500 ml-auto">50회 질의 기반 (예시)</span>
         </div>
         <p className="text-sm text-gray-700 leading-relaxed">
           {renderHighlighted(sample.chatgptTemplate, nonMe.map((c) => c.name))}
@@ -333,7 +333,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
           <span>❌</span>
           <span>{myComp.name}는 AI 응답에 포함되지 않음</span>
         </div>
-        <p className="text-sm text-gray-400 mt-1.5">
+        <p className="text-sm text-gray-500 mt-1.5">
           * ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 검색 결과와 다를 수 있습니다
         </p>
       </div>
@@ -352,7 +352,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
       >
         내 가게 AI 추천 현황 무료 진단하기 →
       </Link>
-      <p className="text-sm text-gray-400 text-center">가입 불필요 · 신용카드 필요 없음</p>
+      <p className="text-sm text-gray-500 text-center">가입 불필요 · 신용카드 필요 없음</p>
     </div>
   );
 }
@@ -369,7 +369,7 @@ function ComparisonPanel({ sample }: { sample: SampleData }) {
     <div className="space-y-3">
       {/* 범례 — 네이버 PRIMARY 강조 */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">AI 추천 현황 비교 <span className="text-gray-400">(예시)</span></p>
+        <p className="text-sm text-gray-500">AI 추천 현황 비교 <span className="text-gray-500">(예시)</span></p>
         <span className="flex items-center gap-2 text-sm font-semibold">
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-600 inline-block" />
@@ -419,7 +419,7 @@ function ComparisonPanel({ sample }: { sample: SampleData }) {
         </div>
       </div>
 
-      <p className="text-sm text-gray-400 leading-relaxed">
+      <p className="text-sm text-gray-500 leading-relaxed">
         Gemini·ChatGPT 각 50회 (총 100회) 질의 기반 · 업종 평균 기준 · 2026.05
         <br />
         ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
@@ -483,7 +483,7 @@ function ScoreExplainPanel({ sample }: { sample: SampleData }) {
             <p className="text-sm text-green-500 mt-0.5">노출 가능</p>
           </div>
         </div>
-        <p className="text-sm text-gray-400 mt-1.5 text-center">위 수치는 예시입니다. 실제 진단 결과는 내 가게에 따라 다릅니다.</p>
+        <p className="text-sm text-gray-500 mt-1.5 text-center">위 수치는 예시입니다. 실제 진단 결과는 내 가게에 따라 다릅니다.</p>
       </div>
 
       {/* 4가지 노출 요소 */}
@@ -563,7 +563,7 @@ export default function HeroSampleCard({ variant }: Props) {
                 className={`flex-1 flex flex-col items-center gap-0.5 py-3 px-2 text-sm font-bold border-b-2 transition-all ${
                   tab === i
                     ? "border-blue-600 text-blue-600 bg-blue-50"
-                    : "border-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+                    : "border-transparent text-gray-500 hover:text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <span className="text-base">{t.icon}</span>
@@ -582,7 +582,7 @@ export default function HeroSampleCard({ variant }: Props) {
 
           {/* 업종 탭 네비게이터 */}
           <div className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-50 border-t border-gray-100 overflow-x-auto">
-            <span className="text-sm text-gray-400 shrink-0 mr-1">업종 예시:</span>
+            <span className="text-sm text-gray-500 shrink-0 mr-1">업종 예시:</span>
             {SAMPLES.map((s, i) => (
               <button
                 key={i}
@@ -611,7 +611,7 @@ export default function HeroSampleCard({ variant }: Props) {
       <div className="bg-white rounded-xl border border-gray-200 p-5 w-full max-w-2xl mx-auto" style={{ boxShadow: "0 2px 4px -1px rgba(0,0,0,0.04),0 8px 16px -4px rgba(0,100,255,0.08)" }}>
         {/* 업종 선택 탭 */}
         <div className="flex flex-wrap gap-1.5 mb-4">
-          <span className="text-sm text-gray-400 self-center mr-0.5">업종 예시:</span>
+          <span className="text-sm text-gray-500 self-center mr-0.5">업종 예시:</span>
           {SAMPLES.map((s, i) => (
             <button
               key={i}
@@ -633,7 +633,7 @@ export default function HeroSampleCard({ variant }: Props) {
           <div>
             <p className="text-sm text-gray-500">
               {sample.region} · {sample.category}{" "}
-              <span className="text-gray-400">(예시)</span>
+              <span className="text-gray-500">(예시)</span>
             </p>
             <p className="text-sm font-bold text-gray-800 mt-0.5">우리 동네 AI 노출 현황</p>
           </div>
@@ -641,7 +641,7 @@ export default function HeroSampleCard({ variant }: Props) {
             <p className="text-base font-black leading-none" style={{ color: me && me.score >= 60 ? "#16A34A" : me && me.score >= 40 ? "#D97706" : "#DC2626" }}>
               {me && me.score >= 60 ? "AI 노출 양호" : me && me.score >= 40 ? "AI 노출 보통" : "AI 노출 낮음"}
             </p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-500">
               {me && me.score >= 60 ? "현상 유지" : me && me.score >= 40 ? "개선 여지 있음" : "개선 필요"}
             </p>
           </div>
@@ -673,7 +673,7 @@ export default function HeroSampleCard({ variant }: Props) {
             전체 데모 보기 →
           </Link>
         </p>
-        <p className="text-sm text-gray-400 text-center mt-1.5">
+        <p className="text-sm text-gray-500 text-center mt-1.5">
           위 수치는 예시입니다. 실제 결과는 가게마다 다릅니다.
         </p>
       </div>
@@ -683,7 +683,7 @@ export default function HeroSampleCard({ variant }: Props) {
   // ── mobile / fullwidth: 기존 단일 컬럼 구조 유지 ──
   const industryTabs = (
     <div className="mb-2.5">
-      <p className="text-sm text-gray-400 mb-1.5">업종별 예시 보기</p>
+      <p className="text-sm text-gray-500 mb-1.5">업종별 예시 보기</p>
       <div className="flex flex-wrap gap-1.5">
         {SAMPLES.map((s, i) => (
           <button
@@ -708,7 +708,7 @@ export default function HeroSampleCard({ variant }: Props) {
       <div className="flex items-center justify-between gap-2 mb-2">
         <div className="min-w-0">
           <p className="text-sm text-gray-500 break-keep">
-            {sample.region} · AI 추천 현황 <span className="text-gray-400">(예시)</span>
+            {sample.region} · AI 추천 현황 <span className="text-gray-500">(예시)</span>
           </p>
           <p className="text-sm font-bold text-gray-900">우리 동네 경쟁 현황</p>
         </div>
@@ -815,7 +815,7 @@ export default function HeroSampleCard({ variant }: Props) {
               className={`flex-1 flex flex-col items-center gap-0.5 py-3 px-2 text-sm font-bold border-b-2 transition-all ${
                 tab === i
                   ? "border-blue-600 text-blue-600 bg-blue-50"
-                  : "border-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+                  : "border-transparent text-gray-500 hover:text-gray-600 hover:bg-gray-50"
               }`}
             >
               <span className="text-base">{t.icon}</span>
@@ -832,7 +832,7 @@ export default function HeroSampleCard({ variant }: Props) {
         </div>
         {/* 업종 탭 네비게이터 */}
         <div className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-50 border-t border-gray-100 overflow-x-auto">
-          <span className="text-sm text-gray-400 shrink-0 mr-1">업종 예시:</span>
+          <span className="text-sm text-gray-500 shrink-0 mr-1">업종 예시:</span>
           {SAMPLES.map((s, i) => (
             <button
               key={i}

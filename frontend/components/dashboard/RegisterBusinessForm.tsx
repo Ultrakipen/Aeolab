@@ -507,7 +507,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             })}
           </div>
         ) : (
-          <p className="text-sm text-gray-400 mb-5">이 업종은 바로 다음 단계로 진행합니다.</p>
+          <p className="text-sm text-gray-500 mb-5">이 업종은 바로 다음 단계로 진행합니다.</p>
         )}
 
         {selectedTags.length > 0 && (
@@ -567,12 +567,12 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
       </div>
 
       <h2 className="font-semibold text-gray-900 mb-1">사업장 정보 입력</h2>
-      <p className="text-sm text-gray-400 mb-4">가게 이름으로 검색하면 정보가 자동으로 입력됩니다.</p>
+      <p className="text-sm text-gray-500 mb-4">가게 이름으로 검색하면 정보가 자동으로 입력됩니다.</p>
 
       {/* 가게 이름으로 자동완성 검색 */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          가게 검색 <span className="text-gray-400 font-normal">(네이버·카카오 자동입력)</span>
+          가게 검색 <span className="text-gray-500 font-normal">(네이버·카카오 자동입력)</span>
         </label>
         <p className="text-sm text-gray-500 mb-1.5">가게 이름으로 검색하면 정보를 자동으로 입력합니다</p>
         <BusinessSearchDropdown
@@ -601,7 +601,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
         {/* 지역 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            지역{businessType === 'location_based' ? ' *' : <span className="text-gray-400 font-normal ml-1">(선택)</span>}
+            지역{businessType === 'location_based' ? ' *' : <span className="text-gray-500 font-normal ml-1">(선택)</span>}
           </label>
           <input
             required={businessType === 'location_based'}
@@ -647,7 +647,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                 >
                   <div className="text-sm font-medium text-gray-900">{c.name}</div>
                   <div className="text-sm text-gray-500 mt-0.5">{c.address}</div>
-                  {c.phone && <div className="text-sm text-gray-400">{c.phone}</div>}
+                  {c.phone && <div className="text-sm text-gray-500">{c.phone}</div>}
                 </button>
               ))}
             </div>
@@ -679,7 +679,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
         {/* 블로그 URL */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            블로그 주소 <span className="text-gray-400 font-normal">(선택 · 네이버·티스토리·워드프레스 등)</span>
+            블로그 주소 <span className="text-gray-500 font-normal">(선택 · 네이버·티스토리·워드프레스 등)</span>
           </label>
           <input
             placeholder="https://blog.naver.com/내계정"
@@ -687,7 +687,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             onChange={(e) => setForm({ ...form, blog_url: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="text-sm text-gray-400 mt-1">블로그 주소 입력 시 네이버 AI 브리핑 언급 분석에 활용됩니다.</p>
+          <p className="text-sm text-gray-500 mt-1">블로그 주소 입력 시 네이버 AI 브리핑 언급 분석에 활용됩니다.</p>
         </div>
 
         {/* 스마트플레이스 현황 */}
@@ -722,7 +722,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                 />
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-medium text-gray-700">{label}</span>
-                  <span className="block text-sm text-gray-400">{desc}</span>
+                  <span className="block text-sm text-gray-500">{desc}</span>
                 </div>
               </label>
             ))}
@@ -732,7 +732,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
         {/* 고객 리뷰 샘플 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            고객 리뷰 샘플 <span className="text-gray-400 font-normal">(선택 · AI 분석에 활용)</span>
+            고객 리뷰 샘플 <span className="text-gray-500 font-normal">(선택 · AI 분석에 활용)</span>
           </label>
           <textarea
             rows={3}
@@ -756,7 +756,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           <button
             type="button"
             onClick={() => setShowAdvanced((v) => !v)}
-            className="w-full flex items-center justify-between text-sm text-gray-400 hover:text-blue-600 transition-colors py-1"
+            className="w-full flex items-center justify-between text-sm text-gray-500 hover:text-blue-600 transition-colors py-1"
           >
             <span>📌 Google / 카카오 Place ID 입력 <span className="text-gray-300">(선택 · 고급)</span></span>
             <span>{showAdvanced ? '▲ 접기' : '▼ 펼치기'}</span>
@@ -770,7 +770,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   네이버 스마트플레이스 URL
-                  <span className="text-gray-400 font-normal ml-1">(선택 · FAQ/소식 자동 체크)</span>
+                  <span className="text-gray-500 font-normal ml-1">(선택 · FAQ/소식 자동 체크)</span>
                 </label>
                 <input
                   placeholder="예: https://naver.me/xxxxx 또는 https://map.naver.com/p/entry/place/12345"
@@ -778,14 +778,14 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                   onChange={(e) => setForm({ ...form, naver_place_url: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 />
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-gray-500 mt-1">
                   입력 시 스캔 때 FAQ·소식·소개글 등록 여부를 자동으로 확인합니다.
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Google 비즈니스 프로필 ID
-                  <span className="text-gray-400 font-normal ml-1">(선택)</span>
+                  <span className="text-gray-500 font-normal ml-1">(선택)</span>
                 </label>
                 <input
                   placeholder="예: ChIJN1t_tDeuEmsRUsoyG83frY4"
@@ -793,14 +793,14 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                   onChange={(e) => setForm({ ...form, google_place_id: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 />
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-gray-500 mt-1">
                   Google 지도 → 내 가게 클릭 → 주소창 URL에서 <code className="bg-gray-100 px-1 rounded">place_id=</code> 뒤의 값
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   카카오맵 Place ID
-                  <span className="text-gray-400 font-normal ml-1">(선택)</span>
+                  <span className="text-gray-500 font-normal ml-1">(선택)</span>
                 </label>
                 <input
                   placeholder="예: 1234567890"
@@ -808,7 +808,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                   onChange={(e) => setForm({ ...form, kakao_place_id: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 />
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-gray-500 mt-1">
                   카카오맵 → 내 가게 클릭 → 주소창 URL 맨 끝 숫자 (예: map.kakao.com/장소/1234567890)
                 </p>
               </div>
@@ -816,7 +816,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     네이버 리뷰 수
-                    <span className="text-gray-400 font-normal ml-1">(선택)</span>
+                    <span className="text-gray-500 font-normal ml-1">(선택)</span>
                   </label>
                   <input
                     type="number"
@@ -830,7 +830,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     평균 평점
-                    <span className="text-gray-400 font-normal ml-1">(선택)</span>
+                    <span className="text-gray-500 font-normal ml-1">(선택)</span>
                   </label>
                   <input
                     type="number"
@@ -843,7 +843,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   />
                 </div>
-                <p className="col-span-2 text-sm text-gray-400">
+                <p className="col-span-2 text-sm text-gray-500">
                   네이버 플레이스 URL을 입력하면 스캔 시 자동으로 갱신됩니다. 없는 경우 직접 입력하세요.
                 </p>
               </div>
@@ -949,7 +949,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             <div className="flex flex-wrap gap-1.5 mb-2">
               {selectedTags.map((t) => (
                 <span key={`tag-${t}`} className="inline-flex items-center gap-1 px-2.5 py-1 text-sm bg-white border border-gray-200 rounded-full text-gray-700">
-                  {t} <span className="text-sm text-gray-400">(서비스)</span>
+                  {t} <span className="text-sm text-gray-500">(서비스)</span>
                 </span>
               ))}
               {trackingKeywords.map((t) => (

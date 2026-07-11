@@ -188,7 +188,7 @@ export default function AdminOpsClient() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">운영 현황</h1>
-          <p className="text-sm text-gray-400 mt-1">관리자 감사 로그 · 시스템 알림 이력</p>
+          <p className="text-sm text-gray-500 mt-1">관리자 감사 로그 · 시스템 알림 이력</p>
         </div>
         <button
           onClick={load}
@@ -207,13 +207,13 @@ export default function AdminOpsClient() {
       {/* 시스템 알림 이력 */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <Bell className="w-4 h-4 text-gray-400" />
+          <Bell className="w-4 h-4 text-gray-500" />
           <h2 className="text-base font-semibold text-gray-800">시스템 알림 이력 ({alerts.length}건)</h2>
         </div>
         {loading ? (
-          <div className="text-sm text-gray-400 py-4">불러오는 중...</div>
+          <div className="text-sm text-gray-500 py-4">불러오는 중...</div>
         ) : alerts.length === 0 ? (
-          <div className="text-sm text-gray-400 py-4">아직 기록된 알림이 없습니다.</div>
+          <div className="text-sm text-gray-500 py-4">아직 기록된 알림이 없습니다.</div>
         ) : (
           <div className="space-y-2 max-h-[420px] overflow-y-auto">
             {alerts.map((a) => (
@@ -222,8 +222,8 @@ export default function AdminOpsClient() {
                   <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${LEVEL_STYLE[a.level] ?? "bg-gray-100 text-gray-600"}`}>
                     {a.level}
                   </span>
-                  {a.source && <span className="text-sm text-gray-400">{a.source}</span>}
-                  <span className="text-sm text-gray-400 ml-auto">{formatDate(a.created_at)}</span>
+                  {a.source && <span className="text-sm text-gray-500">{a.source}</span>}
+                  <span className="text-sm text-gray-500 ml-auto">{formatDate(a.created_at)}</span>
                 </div>
                 <p className="text-sm font-medium text-gray-900">{a.subject}</p>
                 {a.message && <p className="text-sm text-gray-500 mt-0.5 whitespace-pre-wrap line-clamp-3">{a.message}</p>}
@@ -236,14 +236,14 @@ export default function AdminOpsClient() {
       {/* 결제 이벤트 이력 */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <CreditCard className="w-4 h-4 text-gray-400" />
+          <CreditCard className="w-4 h-4 text-gray-500" />
           <h2 className="text-base font-semibold text-gray-800">결제 이벤트 이력 ({paymentEvents.length}건)</h2>
         </div>
-        <p className="text-sm text-gray-400 mb-4">2026-07-10 이후 이벤트만 기록됩니다(소급 이력 없음). 최초 결제·자동 갱신 재시도를 성공/실패와 함께 기록합니다.</p>
+        <p className="text-sm text-gray-500 mb-4">2026-07-10 이후 이벤트만 기록됩니다(소급 이력 없음). 최초 결제·자동 갱신 재시도를 성공/실패와 함께 기록합니다.</p>
         {loading ? (
-          <div className="text-sm text-gray-400 py-4">불러오는 중...</div>
+          <div className="text-sm text-gray-500 py-4">불러오는 중...</div>
         ) : paymentEvents.length === 0 ? (
-          <div className="text-sm text-gray-400 py-4">아직 기록된 결제 이벤트가 없습니다.</div>
+          <div className="text-sm text-gray-500 py-4">아직 기록된 결제 이벤트가 없습니다.</div>
         ) : (
           <div className="space-y-2 max-h-[420px] overflow-y-auto">
             {paymentEvents.map((p) => (
@@ -254,7 +254,7 @@ export default function AdminOpsClient() {
                   </span>
                   <span className="text-sm text-gray-500">{EVENT_TYPE_LABEL[p.event_type] ?? p.event_type}</span>
                   {p.amount != null && <span className="text-sm text-gray-500">{p.amount.toLocaleString()}원</span>}
-                  <span className="text-sm text-gray-400 ml-auto">{formatDate(p.created_at)}</span>
+                  <span className="text-sm text-gray-500 ml-auto">{formatDate(p.created_at)}</span>
                 </div>
                 <p className="text-sm text-gray-700">{p.email ?? p.user_id}</p>
                 {p.status === "failed" && p.detail && (
@@ -269,12 +269,12 @@ export default function AdminOpsClient() {
       {/* 창업 시장 분석 리포트 이력 */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <Rocket className="w-4 h-4 text-gray-400" />
+          <Rocket className="w-4 h-4 text-gray-500" />
           <h2 className="text-base font-semibold text-gray-800">창업 시장 분석 리포트 ({startupReports.length}건)</h2>
         </div>
-        <p className="text-sm text-gray-400 mb-4">2026-07-10 이후 요청만 기록됩니다(소급 이력 없음). 사업장 미등록(예비 창업자)이면 &quot;미등록&quot;으로 표시됩니다.</p>
+        <p className="text-sm text-gray-500 mb-4">2026-07-10 이후 요청만 기록됩니다(소급 이력 없음). 사업장 미등록(예비 창업자)이면 &quot;미등록&quot;으로 표시됩니다.</p>
         {startupReports.length === 0 ? (
-          <div className="text-sm text-gray-400 py-2">아직 기록된 창업리포트 요청이 없습니다.</div>
+          <div className="text-sm text-gray-500 py-2">아직 기록된 창업리포트 요청이 없습니다.</div>
         ) : (
           <div className="space-y-2 max-h-[420px] overflow-y-auto">
             {startupReports.map((r) => (
@@ -284,7 +284,7 @@ export default function AdminOpsClient() {
                   {!r.business_id && (
                     <span className="text-sm text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">미등록(예비 창업자)</span>
                   )}
-                  <span className="text-sm text-gray-400 ml-auto">{formatDate(r.created_at)}</span>
+                  <span className="text-sm text-gray-500 ml-auto">{formatDate(r.created_at)}</span>
                 </div>
                 <p className="text-sm text-gray-500">{r.email ?? r.user_id}{r.business_name ? ` · ${r.business_name}` : ""}</p>
               </div>
@@ -296,10 +296,10 @@ export default function AdminOpsClient() {
       {/* 관리자 계정 권한 관리 (owner 전용) */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <Users className="w-4 h-4 text-gray-400" />
+          <Users className="w-4 h-4 text-gray-500" />
           <h2 className="text-base font-semibold text-gray-800">관리자 계정 ({adminUsers.length}명)</h2>
         </div>
-        <p className="text-sm text-gray-400 mb-4">owner는 구독 강제해지/환불까지 전체 권한, support는 조회·콘텐츠 관리만 가능(금전이동 불가). owner 계정으로 로그인해야 이 섹션을 관리할 수 있습니다.</p>
+        <p className="text-sm text-gray-500 mb-4">owner는 구독 강제해지/환불까지 전체 권한, support는 조회·콘텐츠 관리만 가능(금전이동 불가). owner 계정으로 로그인해야 이 섹션을 관리할 수 있습니다.</p>
 
         {adminUsersError && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3 text-sm text-amber-700">{adminUsersError}</div>
@@ -331,7 +331,7 @@ export default function AdminOpsClient() {
         </form>
 
         {adminUsers.length === 0 && !adminUsersError ? (
-          <div className="text-sm text-gray-400 py-2">등록된 관리자 계정이 없습니다.</div>
+          <div className="text-sm text-gray-500 py-2">등록된 관리자 계정이 없습니다.</div>
         ) : (
           <div className="space-y-2">
             {adminUsers.map((u) => (
@@ -344,7 +344,7 @@ export default function AdminOpsClient() {
                 </div>
                 <button
                   onClick={() => handleRemoveAdminUser(u.email)}
-                  className="text-gray-400 hover:text-red-600 transition-colors"
+                  className="text-gray-500 hover:text-red-600 transition-colors"
                   aria-label={`${u.email} 제거`}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -358,21 +358,21 @@ export default function AdminOpsClient() {
       {/* 관리자 감사 로그 */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
         <div className="flex items-center gap-2 mb-4">
-          <ShieldCheck className="w-4 h-4 text-gray-400" />
+          <ShieldCheck className="w-4 h-4 text-gray-500" />
           <h2 className="text-base font-semibold text-gray-800">관리자 감사 로그 ({auditLog.length}건)</h2>
         </div>
-        <p className="text-sm text-gray-400 mb-4">POST·PATCH·DELETE 관리자 액션만 기록됩니다(조회는 제외). admin_email이 비어있으면 curl 등 직접 호출입니다.</p>
+        <p className="text-sm text-gray-500 mb-4">POST·PATCH·DELETE 관리자 액션만 기록됩니다(조회는 제외). admin_email이 비어있으면 curl 등 직접 호출입니다.</p>
         {loading ? (
-          <div className="text-sm text-gray-400 py-4">불러오는 중...</div>
+          <div className="text-sm text-gray-500 py-4">불러오는 중...</div>
         ) : auditLog.length === 0 ? (
-          <div className="text-sm text-gray-400 py-4">아직 기록된 관리자 액션이 없습니다.</div>
+          <div className="text-sm text-gray-500 py-4">아직 기록된 관리자 액션이 없습니다.</div>
         ) : (
           <>
             {/* PC 테이블 */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-sm text-gray-400 border-b border-gray-100">
+                  <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
                     <th className="pb-2 pr-3">시각</th>
                     <th className="pb-2 pr-3">관리자</th>
                     <th className="pb-2 pr-3">액션</th>
@@ -383,7 +383,7 @@ export default function AdminOpsClient() {
                 <tbody>
                   {auditLog.map((row) => (
                     <tr key={row.id} className="border-b border-gray-50 align-top">
-                      <td className="py-2 pr-3 text-gray-400 whitespace-nowrap">{formatDate(row.created_at)}</td>
+                      <td className="py-2 pr-3 text-gray-500 whitespace-nowrap">{formatDate(row.created_at)}</td>
                       <td className="py-2 pr-3 text-gray-700">{row.admin_email ?? <span className="text-gray-300">직접호출</span>}</td>
                       <td className="py-2 pr-3">
                         <span className={`px-2 py-0.5 rounded-full font-medium ${METHOD_STYLE[row.method] ?? "bg-gray-100 text-gray-600"}`}>
@@ -405,7 +405,7 @@ export default function AdminOpsClient() {
                     <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${METHOD_STYLE[row.method] ?? "bg-gray-100 text-gray-600"}`}>
                       {row.method}
                     </span>
-                    <span className="text-sm text-gray-400">{formatDate(row.created_at)}</span>
+                    <span className="text-sm text-gray-500">{formatDate(row.created_at)}</span>
                   </div>
                   <p className="text-sm text-gray-700 font-mono break-all">{row.path}</p>
                   <p className="text-sm text-gray-500 mt-1">

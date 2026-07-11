@@ -317,7 +317,7 @@ function KeywordEditor({
       <div className="flex items-center justify-between">
         <label className="block text-sm font-semibold text-gray-800">
           핵심 키워드
-          <span className="ml-1.5 text-sm font-normal text-gray-400">AI가 이 키워드로 검색합니다</span>
+          <span className="ml-1.5 text-sm font-normal text-gray-500">AI가 이 키워드로 검색합니다</span>
         </label>
         {keywords.length > 0 && (
           <span className="text-sm text-blue-600 font-medium">{keywords.length}/10개 등록됨</span>
@@ -352,7 +352,7 @@ function KeywordEditor({
           className="flex-1 min-w-[120px] text-sm outline-none bg-transparent"
         />
       </div>
-      <p className="text-sm text-gray-400 -mt-1">Enter 또는 쉼표로 추가 · 칩의 ×로 삭제 · Backspace로 마지막 삭제</p>
+      <p className="text-sm text-gray-500 -mt-1">Enter 또는 쉼표로 추가 · 칩의 ×로 삭제 · Backspace로 마지막 삭제</p>
 
       {/* 업종별 추천 키워드 */}
       {suggestions.length > 0 && (
@@ -713,7 +713,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               {/* 아이콘: 항상 표시 */}
               <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${isActive ? colors.bg : "bg-transparent"}`}>
                 {IconComp
-                  ? <IconComp className={`w-3.5 h-3.5 ${isActive ? colors.icon : "text-gray-400"}`} strokeWidth={1.8} />
+                  ? <IconComp className={`w-3.5 h-3.5 ${isActive ? colors.icon : "text-gray-500"}`} strokeWidth={1.8} />
                   : <span className="text-sm">{biz.category.slice(0, 1).toUpperCase()}</span>
                 }
               </div>
@@ -749,7 +749,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               })()}
               <div className="min-w-0">
                 <div className="text-sm font-semibold text-gray-900 truncate">{activeBiz.name}</div>
-                <div className="text-sm text-gray-400 truncate">
+                <div className="text-sm text-gray-500 truncate">
                   {activeBiz.region} · {getCategoryLabel(activeBiz.category)} · {formatDate(activeBiz.created_at)}
                 </div>
               </div>
@@ -846,7 +846,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 블로그 주소
-                <span className="ml-1 font-normal text-gray-400 text-sm">(선택)</span>
+                <span className="ml-1 font-normal text-gray-500 text-sm">(선택)</span>
               </label>
               <input
                 value={editForm.blog_url ?? ""}
@@ -861,13 +861,13 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               {editForm.blog_url && !(editForm.blog_url.startsWith('http://') || editForm.blog_url.startsWith('https://')) && (
                 <p className="text-sm text-red-500 mt-1">http:// 또는 https://로 시작하는 주소를 입력해주세요.</p>
               )}
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 블로그 주소를 등록하면 가이드 페이지에서 AI 브리핑 최적화 진단을 받을 수 있습니다.
               </p>
             </div>
             {/* 네이버 스마트플레이스 ID + URL + 카카오 */}
             <div className="bg-gray-100 rounded-xl px-4 py-3 space-y-3">
-              <p className="text-sm font-semibold text-gray-700">플랫폼 등록 정보 <span className="font-normal text-gray-400">(선택)</span></p>
+              <p className="text-sm font-semibold text-gray-700">플랫폼 등록 정보 <span className="font-normal text-gray-500">(선택)</span></p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -879,7 +879,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                     placeholder="예: 12345678"
                     className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-sm text-gray-400 mt-1">예: place.naver.com/place/<strong className="text-gray-500">12345678</strong> → 12345678</p>
+                  <p className="text-sm text-gray-500 mt-1">예: place.naver.com/place/<strong className="text-gray-500">12345678</strong> → 12345678</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -891,7 +891,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                     placeholder="예: ChIJN1t_..."
                     className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-sm text-gray-400 mt-1">Google 지도 → 공유 → "장소 삽입"에서 확인 · 등록 시 AI 노출 점수 +10점</p>
+                  <p className="text-sm text-gray-500 mt-1">Google 지도 → 공유 → "장소 삽입"에서 확인 · 등록 시 AI 노출 점수 +10점</p>
                 </div>
               </div>
               <div>
@@ -904,7 +904,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   placeholder="예: https://map.naver.com/p/entry/place/12345678"
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-sm text-gray-400 mt-1">입력 시 소식·소개글 등록 여부를 스캔 때 자동으로 확인합니다.</p>
+                <p className="text-sm text-gray-500 mt-1">입력 시 소식·소개글 등록 여부를 스캔 때 자동으로 확인합니다.</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -916,7 +916,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   placeholder="예: 1234567890"
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-sm text-gray-400 mt-1">카카오맵 주소창 맨 끝 숫자 (예: map.kakao.com/장소/<strong className="text-gray-500">1234567890</strong>)</p>
+                <p className="text-sm text-gray-500 mt-1">카카오맵 주소창 맨 끝 숫자 (예: map.kakao.com/장소/<strong className="text-gray-500">1234567890</strong>)</p>
               </div>
             </div>
             {/* ── 핵심 키워드 편집 ─────────────────────────────── */}
@@ -956,7 +956,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     영수증 리뷰 수
-                    <span className="block font-normal text-gray-400 text-sm">네이버페이 결제 후 작성</span>
+                    <span className="block font-normal text-gray-500 text-sm">네이버페이 결제 후 작성</span>
                   </label>
                   <input
                     type="number"
@@ -969,7 +969,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     방문자 리뷰 수
-                    <span className="block font-normal text-gray-400 text-sm">일반 방문자 작성</span>
+                    <span className="block font-normal text-gray-500 text-sm">일반 방문자 작성</span>
                   </label>
                   <input
                     type="number"
@@ -982,7 +982,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     평균 별점
-                    <span className="block font-normal text-gray-400 text-sm">0.0 ~ 5.0</span>
+                    <span className="block font-normal text-gray-500 text-sm">0.0 ~ 5.0</span>
                   </label>
                   <input
                     type="number"
@@ -1002,7 +1002,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                     const rating = editForm.avg_rating ?? 0;
                     return total > 0
                       ? <><strong>{total}개</strong> · 별점 <strong>{rating.toFixed(1)}점</strong></>
-                      : <><strong>0개</strong> <span className="text-gray-400 font-normal">(별점 미확인)</span></>;
+                      : <><strong>0개</strong> <span className="text-gray-500 font-normal">(별점 미확인)</span></>;
                   })()}
                 </span>
                 <button
@@ -1071,7 +1071,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 />
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-semibold text-gray-800 group-hover:text-gray-900">네이버 스마트플레이스 등록됨</span>
-                  <span className="block text-sm text-gray-400">네이버 지도·검색에서 내 가게 정보 카드가 뜨면 체크</span>
+                  <span className="block text-sm text-gray-500">네이버 지도·검색에서 내 가게 정보 카드가 뜨면 체크</span>
                 </div>
                 <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded shrink-0">
                   AI 노출 점수 반영
@@ -1092,7 +1092,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                     />
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{label}</span>
-                      <span className="block text-sm text-gray-400">{desc}</span>
+                      <span className="block text-sm text-gray-500">{desc}</span>
                     </div>
                     <span className={`text-sm font-semibold px-1.5 py-0.5 rounded shrink-0 ${
                       points === "고영향"
@@ -1146,7 +1146,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   {syncSmartplaceMsg.startsWith("✓") && " 결과가 실제와 다를 수 있으니 체크 항목을 직접 확인해 주세요."}
                 </p>
               ) : (
-                <p className="text-sm text-gray-400 mt-1">자동 확인은 1시간에 1회 가능 · 결과가 실제와 다를 수 있으니 직접 확인 후 체크하면 더 정확합니다.</p>
+                <p className="text-sm text-gray-500 mt-1">자동 확인은 1시간에 1회 가능 · 결과가 실제와 다를 수 있으니 직접 확인 후 체크하면 더 정확합니다.</p>
               )}
             </div>
 
@@ -1154,7 +1154,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 고객 리뷰 샘플
-                <span className="ml-1 font-normal text-gray-400">(키워드 갭 분석에 사용, 선택)</span>
+                <span className="ml-1 font-normal text-gray-500">(키워드 갭 분석에 사용, 선택)</span>
               </label>
               <textarea
                 rows={4}
@@ -1163,7 +1163,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 placeholder={"네이버 플레이스에서 받은 리뷰 2~3개를 붙여넣으세요.\n예: \"맛있어요, 분위기 좋아요, 다시 오고 싶어요\"\n\"친절하고 음식이 빨리 나와서 좋았습니다\""}
                 className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 리뷰 내 키워드를 분석해 부족한 키워드를 찾아드립니다
               </p>
             </div>
