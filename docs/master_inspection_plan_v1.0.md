@@ -101,6 +101,27 @@
 - **다음 세션 트리거 명령**: `docs/master_inspection_plan_v1.0.md §5.1 기준으로 text-gray-400 800건 규모 대비율 잔여 작업 이어서 진행. 파일별 확인(다크모드·아이콘·의도된 저대비 예외 배제) 후 일괄 수정`
 - 상세 근거: memory `project_master_inspection_plan_and_contrast_scale_2026_07_11`
 
+#### §5.1-A 배치 진행 로그 (별도 세션에서 실행 착수, 2026-07-11)
+
+**분류 기준 확정** (`app/`+`components/`, `.bak*` 파일 15개는 죽은 코드라 스코프 제외):
+- **제외(예외)**: `dark:text-gray-400`(다크모드 전용) · 자체닫힘 아이콘 태그(`<IconName className="... text-gray-400" ... />`, 텍스트 없음) · `placeholder`류 · `disabled:`/`cursor-not-allowed` 문맥
+- **grep 1차 분류**: 전체 905건(비-dark) → 아이콘 106건 + placeholder 32건 + disabled류 13건 제외 → 위반 후보 667건 → `.bak*` 제외 후 **614건 / 134개 실파일**
+- **위반 판정**: 후보 샘플(`CompetitorsClient.tsx` 등) Read로 문맥 확인 — ternary 상태배지(`측정 실패`·`두 가게 같은 성장 단계` 등 의미있는 텍스트)도 위반으로 판정(장식 아닌 실제 정보). 기존 커밋(`00bbcff`)과 동일하게 `text-gray-400`→`text-gray-500` 치환
+
+**배치 1 완료** (git `ddd74a0`):
+- 대상: `CompetitorsClient.tsx`(62건)·`GrowthClient.tsx`(44건)·`PreviewClient.tsx`(34건) — 3개 파일 모두 `dark:`/`placeholder`/`disabled` 패턴 없음 확인 후 파일 전체 치환
+- 검증: md5 사전일치 → scp(tar 파이프) → 서버 grep 0건 → `npm run build` 성공 → pm2 재시작 error.log 신규 에러 없음(recharts 경고는 기존 누적분) → curl 3페이지 307(로그인 리다이렉트, 500 아님) → **라이브 브라우저는 동시 세션 lock으로 실측 불가**(3회 재시도 실패) → WCAG 공식 수학 검증으로 대체: `text-gray-500(#6B7280)` on white 4.83:1 / gray-50 4.63:1 / gray-100 4.39:1 (gray-400의 2.3~2.5:1 대비 대폭 개선)
+- **경미 flag(차단 아님)**: `bg-gray-100 text-gray-500` 배지 조합 12곳(`CompetitorsClient.tsx:189,204,1223` 등)은 4.39:1로 AA 4.5:1 근소 미달 — 기존에도 있던 배경조합이라 이번에 악화된 건 아님, 향후 배지류만 `text-gray-600` 상향 검토 여지(보류 목록)
+- 로컬 git 커밋 완료, push는 보류(drift 정책)
+
+**배치 1 이후 잔여**: 약 620건 / 158개 파일(다크 제외, `.bak*` 포함 카운트)
+
+**판단 보류 목록**: `bg-gray-100 text-gray-500` 배지류 12곳+ · `.bak*` 파일 15개(청소 여부 별도 판단 필요) · 어두운 배경 카드 내부 여부는 배치마다 개별 확인 필요
+
+**다음 배치 후보**(파일별 건수 내림차순, `.bak*` 제외): `AdminDashboard.tsx`(23)·`HeroSampleCard.tsx`(21)·`CompetitorPlaceCard.tsx`(21)·`AdminOpsClient.tsx`(21)·`RegisterBusinessForm.tsx`(20)·`BusinessManager.tsx`(19)·`onboarding/page.tsx`(14)·`GuideClient.tsx`(13)·`admin/business/[id]/page.tsx`(11)·`TrialResultStep.tsx`(11)·`how-it-works/page.tsx`(11)
+
+**다음 세션 트리거**: `docs/master_inspection_plan_v1.0.md §5.1-A 기준으로 배치 2 진행 (다음 배치 후보 목록부터)`
+
 ### §5.2 나머지 항목 병렬 창 트리거 (2026-07-11 준비, §5.1 대비율 창과 파일 겹침 없도록 분리)
 
 > 공통 규칙: 대비율(색상 hex·`text-gray-400`류) 수정은 §5.1 창이 전담 — 다른 창은 발견해도 직접 고치지 말고 목록만 남길 것.
