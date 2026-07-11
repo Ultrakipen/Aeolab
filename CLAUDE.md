@@ -170,7 +170,8 @@
 | **`docs/eight_pages_commercial_professionalism_recheck_v1.0.md`** ⭐ | **8개 페이지 상업적 전문성 재점검 — P0 2건(FAQ한도·SearchGPT)+P1 8건 + 심층개선 6건(DataLab연동 등) + 실API호출로 발견한 최고심각도 2건(가이드 max_tokens 침묵실패, 소개글 허위수치 지어내기) + intro_draft CHECK 제약 사전존재 버그 + keyword_taxonomy law/미술 별칭 버그(전수검증). §13에 잔여 작업 5건 정리(max_tokens 타업종 점검·타업종 소개글 종단테스트·경쟁사 AI언급 추정치 한계·git push 결정 등) (git `258dff7`~`89afa5e`, 2026-07-08)** |
 | **`docs/external_benchmark_commercial_quality_v1.0.md`** ⭐ | **외부 벤치마크(Nielsen 10휴리스틱·WCAG 2.1 AA·상업 SaaS 도구·감사이력 UX 관행) 기반 상업적 수준 점검 방법론 — 7단계 절차(과거이력→코드재검증→라이브접속→외부조사→반증→수정→드리프트확인). 경쟁사관리 3건·변화기록 2건·성장리포트 2건+P1·개선가이드 6건(1라운드 정보구조4건+2라운드 WCAG접근성2건) 수정 완료. 미점검 6개 페이지는 `docs/six_pages_external_benchmark_inspection_plan_v1.0.md`로 이관 (2026-07-09)** |
 | **`docs/six_pages_external_benchmark_inspection_plan_v1.0.md`** ⭐ | **변화기록·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석 6개 페이지 외부벤치마크 점검 계획 — 전체 완료(git `368c1f2`~`4cc68ca`, 2026-07-09). §1 선행이력 충돌 정리, §2 통합 7단계+성능·WCAG접근성·시각위계·카피톤 4축, §3 페이지별 벤치마크 후보. 트리거는 완료 이력 확인용만** |
-| **`docs/dashboard_external_benchmark_inspection_plan_v1.0.md`** ⭐ | **대시보드 외부벤치마크 점검 계획 — 이 축(Nielsen/WCAG)에서 유일하게 남은 대상. §1 필수 참고(소상공인은 네이버 100% 신뢰·대행업체 의뢰 실증 → 네이버 정보 최상단 배치·"AI노출개선→네이버SEO상위노출" 정방향 메시징·AI채널별 노출기간 정확 안내 3대 원칙), §3에 과거 점검 이력 전수 정리("닫힌 이슈 재점검 금지"), §2에 편집 지뢰(DualTrackCard 고아파일 경로) 경고, §5에 27개+ 컴포넌트 구역별 분할 진행 순서 (2026-07-09)** |
+| **`docs/master_inspection_plan_v1.0.md`** ⭐ | **8개 파편화 점검 문서를 4-레이어(L1사실정확성·L2기능정합성·L3외부벤치마크·L4실측재현)로 통합 + 영역×레이어 매트릭스. 핵심 발견: 전환 퍼널(랜딩·요금제·trial·온보딩)은 L3 미적용. §5.1: 랜딩 실측으로 text-gray-400 대비율 위반 800+건(161개 파일) 발견, 8건만 수정(git `00bbcff`), 잔여 대량 작업 다음 세션 트리거 (2026-07-11)** |
+| `docs/dashboard_external_benchmark_inspection_plan_v1.0.md` | 대시보드 외부벤치마크 점검 계획 — 이 축(Nielsen/WCAG)에서 유일하게 남은 대상. §1 필수 참고(소상공인은 네이버 100% 신뢰·대행업체 의뢰 실증 → 네이버 정보 최상단 배치·"AI노출개선→네이버SEO상위노출" 정방향 메시징·AI채널별 노출기간 정확 안내 3대 원칙), §3에 과거 점검 이력 전수 정리("닫힌 이슈 재점검 금지"), §2에 편집 지뢰(DualTrackCard 고아파일 경로) 경고, §5에 27개+ 컴포넌트 구역별 분할 진행 순서 (2026-07-09)** |
 | `docs/admin_screens_inspection_plan_v1.0.md` | 관리자(`/admin/*`) 화면 전체 점검 — P0(delivery/support/inquiry 500다운 4건)·P1(score-comparison 크래시·죽은UI·NoticesTab중복 3건)·P2(notices 404·FAQ콘텐츠10건·comms모바일버그 등)까지 **전체 완료**(git `27ddf98`~`6da216c`). §10 사후재검증(오판없음 확인+기능공백4건 식별)까지 완료. 트리거는 완료 이력 확인용만 |
 | `docs/admin_functional_gaps_implementation_plan_v1.0.md` | 관리자 화면 기능 공백 4건 구현 계획 — **전체 완료됨**(§ 아래 종합문서로 흡수). 트리거는 완료 이력 확인용만 |
 | **`docs/admin_panel_complete_documentation_v1.0.md`** ⭐ | **관리자 페이지 종합 문서(as-built) — 접속정보·인증구조 3단계·페이지 13개 전체 인벤토리·신규 DB테이블 5개·신규 엔드포인트 13개·git커밋 이력·알려진 제약 6건. 관리자 기능 추가/수정 작업 전 필수 참조 (2026-07-11)** |
@@ -187,6 +188,7 @@
 > **8개 페이지 상업적 전문성 재점검 잔여작업**: `docs/eight_pages_commercial_professionalism_recheck_v1.0.md 기준으로 §13 남은 작업 이어서 진행`
 > **외부 벤치마크 기반 상업적 수준 점검**: 9개 페이지(경쟁사관리·성장리포트·개선가이드·변화기록·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석) 전체 완료. 남은 건 대시보드뿐
 > **대시보드 외부벤치마크 점검**: `docs/dashboard_external_benchmark_inspection_plan_v1.0.md 기준으로 대시보드 점검 진행`
+> **마스터 점검 계획 이어가기(전환 퍼널 L3 + 대비율 800건 잔여)**: `docs/master_inspection_plan_v1.0.md §5.1 기준으로 이어서 진행`
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
