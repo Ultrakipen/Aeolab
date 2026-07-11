@@ -169,9 +169,15 @@
 
 **배치 7 이후 잔여**: 199건(dark: 제외 기준) / 파일 수 재확인 필요
 
-**누적 진행**: 배치1~7 합계 **556건 수정** (원 baseline 905건 대비 잔여 199건, 약 78% 처리) — `.bak*` 15개(죽은 코드)·orphan `DualTrackCard.tsx`(1개) 스코프 확정 제외
+**배치 8 완료** (git `19afa57`, 같은 세션 이어서 진행):
+- 대상: `TrialDetailAccordion.tsx`·`QuickDiagnosisForm.tsx`·`KeywordCompletenessGauge.tsx`·`ActionTimelineCard.tsx`·`PlaceCompareTable.tsx`·`NaverSearchStrengthCard.tsx`·`KeywordManagerModal.tsx`(disabled: 2건 제외)·`AiTabPreviewCard.tsx`·`AIDiagnosisCard.tsx`·`tools/keyword/page.tsx`(placeholder 1건 제외)·`StoriesClient.tsx`·`blog/[slug]/page.tsx`·`settings/team/page.tsx`·`SettingsClient.tsx`·`AccountClient.tsx` 15개 파일 = **42건 치환**
+- 검증: md5 일치 → scp → 서버 grep 전부 예상치 일치(disabled·placeholder 제외분만 잔존) → 빌드 성공 → 재시작 전후 error.log 불변(2420) → curl settings/stories/tools-keyword 정상(500 없음)
 
-**다음 세션 트리거**: `docs/master_inspection_plan_v1.0.md §5.1-A 기준으로 배치 8 진행 — 잔여 199건, grep으로 파일 목록 재산출 후 이어서`
+**배치 8 이후 잔여**: 157건(dark: 제외 기준) / 103개 파일
+
+**누적 진행**: 배치1~8 합계 **598건 수정** (원 baseline 905건 대비, raw grep 기준 905→157 = 약 82.6% 감소) — `.bak*` 15개(죽은 코드)·orphan `DualTrackCard.tsx`(1개) 스코프 확정 제외. 남은 157건은 대부분 파일당 1~3건 산재라 배치 규모가 계속 작아지는 추세(수렴 단계)
+
+**다음 세션 트리거**: `docs/master_inspection_plan_v1.0.md §5.1-A 기준으로 배치 9 진행 — 잔여 157건, grep으로 파일 목록 재산출 후 이어서 (수렴 단계, 완주 가능한 규모)`
 
 ### §5.2 나머지 항목 병렬 창 트리거 (2026-07-11 준비, §5.1 대비율 창과 파일 겹침 없도록 분리)
 
