@@ -13,7 +13,7 @@ import { getBriefingEligibility } from "@/lib/userGroup";
 
 const QUICK_LS_KEY   = "aeolab_trial_v2";
 const TRIAL_DAY_MS   = 24 * 60 * 60 * 1000;
-const TRIAL_DAY_LIMIT = 999; // 개발 중 무제한
+const TRIAL_DAY_LIMIT = 3; // 1일 3회 — 운영값 (CLAUDE.md 코드리뷰 체크리스트)
 
 interface TrialStore { count: number; resetAt: number }
 
@@ -52,13 +52,13 @@ const CATEGORIES = [
   { value: "restaurant",  label: "음식점·식당" },
   { value: "cafe",        label: "카페·디저트" },
   { value: "beauty",      label: "미용·뷰티" },
-  { value: "health",      label: "병원·의원" },
+  { value: "medical",     label: "병원·의원" },
   { value: "education",   label: "학원·교육" },
   { value: "fitness",     label: "운동·헬스" },
   { value: "pet",         label: "반려동물" },
-  { value: "professional",label: "법률·세무·전문직" },
+  { value: "legal",       label: "법률·세무·전문직" },
   { value: "shopping",    label: "쇼핑몰·온라인" },
-  { value: "living",      label: "인테리어·생활" },
+  { value: "interior",    label: "인테리어·생활" },
 ];
 
 // 점수 → 색상
@@ -117,7 +117,7 @@ function buildIssues(result: TrialScanResult, track1: number, track2: number, ca
     issues.push({
       icon: "🌐",
       title: "글로벌 AI(ChatGPT 등) 미등록",
-      desc: "ChatGPT·Gemini·Claude 등 글로벌 AI에서 내 가게가 인식되지 않고 있습니다.",
+      desc: "ChatGPT·Gemini 등 글로벌 AI에서 내 가게가 인식되지 않고 있습니다.",
     });
   }
   if (gs === "survival") {
@@ -469,7 +469,7 @@ export default function QuickPage() {
             {/* 빠른 결과 안내 배너 */}
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-center">
               <p className="text-sm text-amber-700 font-medium">
-                빠른 체험 결과 (10회 샘플 기준) — 정밀 분석은 구독 후 100회 스캔
+                빠른 체험 결과 (ChatGPT 5회 샘플 기준) — 정밀 분석은 구독 후 100회 스캔
               </p>
             </div>
 

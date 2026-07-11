@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { AuthNavControl } from "@/components/common/AuthNavControl";
 
 export const metadata: Metadata = {
   title: "점수 계산 방식 | AEOlab",
@@ -27,6 +28,15 @@ export default function ScoreGuidePage() {
           >
             전체 동작 원리 매뉴얼 →
           </Link>
+          <div className="flex items-center gap-3 ml-auto">
+            <AuthNavControl />
+            <Link
+              href="/trial"
+              className="bg-blue-600 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+            >
+              무료 진단 시작 →
+            </Link>
+          </div>
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mt-2">
           AEOlab AI 가시성 점수란?

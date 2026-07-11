@@ -45,7 +45,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // 공개 가이드 경로 (비로그인 SEO 페이지) — protected 보다 우선
-  const publicGuidePaths = ["/guide/chatgpt-search"];
+  const publicGuidePaths = ["/guide/chatgpt-search", "/guide/channels"];
   const isPublicGuide = publicGuidePaths.some((p) =>
     request.nextUrl.pathname === p || request.nextUrl.pathname.startsWith(p + "/")
   );

@@ -142,7 +142,7 @@ export default function AdCostCalculatorPage() {
           {/* 가정 표시 */}
           <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl p-3">
             <p className="text-sm text-amber-700">
-              <span className="font-semibold">계산 기준:</span> 현재 광고비의 30%를 AI 노출로 대체할 수 있다고 가정합니다.
+              <span className="font-semibold">계산 기준 (추정):</span> 업계 평균 데이터가 아닌 이해를 돕기 위한 가정값으로, 현재 광고비의 30%를 AI 노출로 대체할 수 있다고 가정합니다.
             </p>
           </div>
         </div>

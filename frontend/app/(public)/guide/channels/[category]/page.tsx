@@ -60,7 +60,7 @@ function getChannelCards(entry: ChannelGuideEntry) {
     {
       id: "aitab",
       title: "네이버 AI탭",
-      subtitle: "2026 베타 공개",
+      subtitle: "2026-06-25 정식 출시",
       status: "2026-04-27 베타 · 정식 출시",
       statusColor: "bg-violet-100 text-violet-800",
       detail:
