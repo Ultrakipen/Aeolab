@@ -111,6 +111,16 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
       setShowCompleteModal(true);
       return;
     }
+    if (newStatus === "refunded") {
+      const ok = window.confirm(
+        "환불 처리하면 토스 결제취소 API가 실제로 호출되어 고객에게 결제 금액이 환불됩니다. 계속하시겠습니까?",
+      );
+      if (!ok) return;
+    }
+    if (newStatus === "cancelled") {
+      const ok = window.confirm("이 의뢰를 취소하시겠습니까? (결제 전 상태만 취소 가능합니다)");
+      if (!ok) return;
+    }
     setChangingStatus(newStatus);
     setStatusError("");
     try {
@@ -273,7 +283,11 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
           )}
 
           <div className="space-y-2">
-            {(currentStatus === "received" || currentStatus === "paid") && (
+            {currentStatus === "received" && (
+              <p className="text-sm text-gray-400 mb-1">결제 대기 중 — 결제 완료 전에는 진행/완료 처리할 수 없습니다.</p>
+            )}
+
+            {currentStatus === "paid" && (
               <button
                 onClick={() => handleStatusChange("in_progress")}
                 disabled={changingStatus === "in_progress"}
@@ -284,7 +298,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
               </button>
             )}
 
-            {(currentStatus === "received" || currentStatus === "paid" || currentStatus === "in_progress") && (
+            {(currentStatus === "paid" || currentStatus === "in_progress" || currentStatus === "rework") && (
               <button
                 onClick={() => handleStatusChange("completed")}
                 disabled={!!changingStatus || completing}
@@ -316,23 +330,23 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
               </button>
             )}
 
-            {!isDone && (
+            {currentStatus === "received" && (
               <button
                 onClick={() => handleStatusChange("cancelled")}
                 disabled={!!changingStatus}
                 className="w-full py-3 rounded-xl bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
-                취소
+                취소 (미결제)
               </button>
             )}
 
-            {!isDone && (
+            {(currentStatus === "paid" || currentStatus === "in_progress" || currentStatus === "rework") && (
               <button
                 onClick={() => handleStatusChange("refunded")}
                 disabled={!!changingStatus}
                 className="w-full py-3 rounded-xl bg-gray-50 text-gray-500 text-sm font-medium hover:bg-gray-100 transition-colors disabled:opacity-50 border border-gray-200"
               >
-                환불 처리
+                환불 처리 (토스 실환불)
               </button>
             )}
 
