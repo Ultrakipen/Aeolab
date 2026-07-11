@@ -244,17 +244,17 @@ function FeatureRow({
       <div className="flex-1 min-w-0">
         <span
           className={`text-sm font-medium leading-snug ${
-            available ? "text-gray-800" : "text-gray-400"
+            available ? "text-gray-800" : "text-gray-500"
           }`}
         >
           {label}
         </span>
         {note && (
-          <span className="ml-1.5 text-sm text-gray-400 font-normal">({note})</span>
+          <span className="ml-1.5 text-sm text-gray-500 font-normal">({note})</span>
         )}
       </div>
       {!available && (
-        <span className="shrink-0 flex items-center gap-1 text-sm text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
+        <span className="shrink-0 flex items-center gap-1 text-sm text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
           <Lock className="w-3 h-3" /> 잠금
         </span>
       )}
@@ -272,7 +272,7 @@ function LockedBlock({ requiredPlan }: { requiredPlan: string }) {
         <div className="h-8 bg-gray-200 rounded mt-2" />
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-white/60 backdrop-blur-[1px]">
-        <Lock className="w-6 h-6 text-gray-400" />
+        <Lock className="w-6 h-6 text-gray-500" />
         <p className="text-sm font-semibold text-gray-600">
           {PLAN_LABEL[requiredPlan]} 이상에서 사용 가능
         </p>
@@ -310,7 +310,7 @@ function ScoreBarDemo({
           style={{ width: `${Math.min(100, score)}%` }}
         />
       </div>
-      <span className="text-sm text-gray-400">최종 점수의 {Math.round(weight * 100)}%</span>
+      <span className="text-sm text-gray-500">최종 점수의 {Math.round(weight * 100)}%</span>
     </div>
   );
 }
@@ -371,7 +371,7 @@ function PlatformResultTable({ showAll }: { showAll: boolean }) {
                     <CheckCircle2 className="w-3 h-3" /> 노출
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
+                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
                     <XCircle className="w-3 h-3" /> 미노출
                   </span>
                 )}
@@ -393,7 +393,7 @@ function PlatformResultTable({ showAll }: { showAll: boolean }) {
             ))}
           </div>
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 gap-1.5 rounded">
-            <Lock className="w-4 h-4 text-gray-400" />
+            <Lock className="w-4 h-4 text-gray-500" />
             <span className="text-sm font-medium text-gray-500">Basic 이상에서 전체 공개 (AI 전체 채널)</span>
           </div>
         </div>
@@ -425,7 +425,7 @@ function ServiceOverviewGrid() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-800 leading-tight truncate">{s.label}</p>
-              <p className="text-sm text-gray-400">{s.plan}+</p>
+              <p className="text-sm text-gray-500">{s.plan}+</p>
             </div>
           </div>
         ))}
@@ -539,7 +539,7 @@ function FreeTab({
             <div className="h-3 bg-gray-200 rounded w-1/2" />
           </div>
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 gap-1.5">
-            <Lock className="w-4 h-4 text-gray-400" />
+            <Lock className="w-4 h-4 text-gray-500" />
             <span className="text-sm font-medium text-gray-500">Basic 이상에서 전체 공개</span>
           </div>
         </div>
@@ -658,7 +658,7 @@ function BasicTab({
             <div className="text-xl font-extrabold text-indigo-600">
               {getScoreTextLabel(Math.round(unified))}
             </div>
-            <span className="text-sm text-gray-400">통합 상태</span>
+            <span className="text-sm text-gray-500">통합 상태</span>
           </div>
         </div>
         <ScoreBarDemo
@@ -674,7 +674,7 @@ function BasicTab({
           weight={globalWeight}
         />
         {!scan && (
-          <p className="text-sm text-gray-400 text-center">
+          <p className="text-sm text-gray-500 text-center">
             * 예시 데이터입니다. 실제 스캔 후 내 사업장 점수로 표시됩니다.
           </p>
         )}
@@ -688,7 +688,7 @@ function BasicTab({
           subtitle="네이버·ChatGPT·Gemini·Google AI 노출 현황 · 매주 자동 업데이트"
         />
         <PlatformResultTable showAll={true} />
-        <p className="text-sm text-gray-400 mt-2">* 예시 데이터입니다.</p>
+        <p className="text-sm text-gray-500 mt-2">* 예시 데이터입니다.</p>
       </div>
 
       {/* ② 결과 미리보기 — 리뷰 답변 초안 */}
@@ -713,12 +713,12 @@ function BasicTab({
         </div>
         <div className="relative rounded-lg overflow-hidden border border-dashed border-gray-300">
           <div className="blur-[2px] p-3 space-y-2 pointer-events-none select-none">
-            <p className="text-sm text-gray-400">부정 리뷰 답변 초안</p>
+            <p className="text-sm text-gray-500">부정 리뷰 답변 초안</p>
             <div className="h-3 bg-gray-200 rounded w-full" />
             <div className="h-3 bg-gray-200 rounded w-4/5" />
           </div>
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 gap-1.5">
-            <Lock className="w-4 h-4 text-gray-400" />
+            <Lock className="w-4 h-4 text-gray-500" />
             <span className="text-sm font-medium text-gray-500">월 10회 제공 · Basic 포함</span>
           </div>
         </div>
@@ -743,7 +743,7 @@ function BasicTab({
             <Copy className="w-3.5 h-3.5" /> Q&A 5개 한 번에 복사
           </button>
         </div>
-        <p className="text-sm text-gray-400">* 예시 데이터 · 월 10회 자동 생성 (Basic 기준)</p>
+        <p className="text-sm text-gray-500">* 예시 데이터 · 월 10회 자동 생성 (Basic 기준)</p>
       </div>
 
       {/* ② 결과 미리보기 — 블로그 키워드 진단 */}
@@ -784,7 +784,7 @@ function BasicTab({
             "{d.missingKeyword}" 블로그 언급 없음 — 소식 탭 포스팅 1개 추가 시 AI 인용 가능성 상승
           </p>
         </div>
-        <p className="text-sm text-gray-400">* 예시 데이터</p>
+        <p className="text-sm text-gray-500">* 예시 데이터</p>
       </div>
 
       {/* ② 결과 미리보기 — 30일 추세 차트 (모바일 섹션 과부하 방지) */}
@@ -821,7 +821,7 @@ function BasicTab({
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-sm text-gray-400 text-center mt-1">* 예시 데이터</p>
+        <p className="text-sm text-gray-500 text-center mt-1">* 예시 데이터</p>
       </div>
 
       {/* ② 결과 미리보기 — 경쟁사 비교 (최대 3개) */}
@@ -860,11 +860,11 @@ function BasicTab({
               </div>
             );
           })}
-          <p className="text-sm text-gray-400 mt-1">* 예시 데이터</p>
+          <p className="text-sm text-gray-500 mt-1">* 예시 데이터</p>
         </div>
         <div className="mt-3 pt-3 border-t border-gray-100">
           <LockedBlock requiredPlan="startup" />
-          <p className="text-sm text-gray-400 text-center mt-1.5">
+          <p className="text-sm text-gray-500 text-center mt-1.5">
             경쟁사 5개는 창업패키지 / Pro 이상
           </p>
         </div>
@@ -887,7 +887,7 @@ function BasicTab({
             <p className="text-sm text-amber-600">다음 개선 포인트 → 소식 업데이트 1건 등록 / 톡톡 채팅방 메뉴 설정</p>
           </div>
         </div>
-        <p className="text-sm text-gray-400 mt-2 text-right">* 예시 데이터</p>
+        <p className="text-sm text-gray-500 mt-2 text-right">* 예시 데이터</p>
       </div>
 
       {/* ③ 기능 목록 */}
@@ -1006,7 +1006,7 @@ function StartupTab({
             <p className="text-sm text-gray-500 mt-0.5">내 예상</p>
           </div>
         </div>
-        <p className="text-sm text-gray-400">* 예시 데이터입니다.</p>
+        <p className="text-sm text-gray-500">* 예시 데이터입니다.</p>
       </div>
 
       {/* ② 결과 미리보기 — 틈새 키워드 */}
@@ -1037,7 +1037,7 @@ function StartupTab({
               <div className="h-4 bg-gray-200 rounded w-2/3" />
             </div>
             <div className="absolute inset-0 flex items-center justify-center bg-white/70 gap-1.5">
-              <Lock className="w-4 h-4 text-gray-400" />
+              <Lock className="w-4 h-4 text-gray-500" />
               <span className="text-sm font-medium text-gray-500">더보기 (창업패키지 전용)</span>
             </div>
           </div>
@@ -1068,7 +1068,7 @@ function StartupTab({
               ))}
             </div>
           </div>
-          <p className="text-sm text-gray-400">* 예시 데이터입니다.</p>
+          <p className="text-sm text-gray-500">* 예시 데이터입니다.</p>
         </div>
       </div>
 
@@ -1092,7 +1092,7 @@ function StartupTab({
             <p className="text-sm text-orange-800 leading-relaxed">{d.reviewReply}</p>
           </div>
         </div>
-        <p className="text-sm text-gray-400 mt-2 text-right">* 예시 데이터</p>
+        <p className="text-sm text-gray-500 mt-2 text-right">* 예시 데이터</p>
       </div>
 
       {/* ③ 기능 목록 */}
@@ -1250,7 +1250,7 @@ function ProTab({
             </div>
           </div>
         </div>
-        <p className="text-sm text-gray-400">* 예시 데이터입니다. 월 10회 제공.</p>
+        <p className="text-sm text-gray-500">* 예시 데이터입니다. 월 10회 제공.</p>
       </div>
 
       {/* ② 결과 미리보기 — 경쟁사 5곳 비교 */}
@@ -1289,7 +1289,7 @@ function ProTab({
               </div>
             );
           })}
-          <p className="text-sm text-gray-400">경쟁사 최대 5개 등록 가능 · 예시 데이터</p>
+          <p className="text-sm text-gray-500">경쟁사 최대 5개 등록 가능 · 예시 데이터</p>
         </div>
       </div>
 
@@ -1352,7 +1352,7 @@ function ProTab({
           ))}
           <span className="ml-1 text-sm text-indigo-500 font-semibold shrink-0">↑ 성장 중</span>
         </div>
-        <p className="text-sm text-gray-400 mt-1">* 예시 데이터</p>
+        <p className="text-sm text-gray-500 mt-1">* 예시 데이터</p>
       </div>
 
       {/* ② 결과 미리보기 — ChatGPT 광고 대응 가이드 */}
@@ -1407,7 +1407,7 @@ function ProTab({
             </div>
           ))}
         </div>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-500">
           * ChatGPT 한국 광고 도입 시 위 전략으로 대응하는 맞춤 가이드를 매달 제공합니다.
         </p>
       </div>
@@ -1540,7 +1540,7 @@ function BizTab({
                           ? "text-green-600"
                           : store.change < 0
                           ? "text-red-500"
-                          : "text-gray-400"
+                          : "text-gray-500"
                       }`}
                     >
                       {store.change > 0 ? "↑ 개선" : store.change < 0 ? "↓ 하락" : "–"}
@@ -1549,14 +1549,14 @@ function BizTab({
                 </tr>
               ))}
               <tr>
-                <td className="py-2 px-3 text-sm text-gray-400 italic" colSpan={3}>
+                <td className="py-2 px-3 text-sm text-gray-500 italic" colSpan={3}>
                   + 2개 더 등록 가능 (최대 5개)
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <p className="text-sm text-gray-400 mt-2">* 예시 데이터입니다.</p>
+        <p className="text-sm text-gray-500 mt-2">* 예시 데이터입니다.</p>
       </div>
 
       {/* ② 결과 미리보기 — 엑셀 내보내기 */}
@@ -1580,7 +1580,7 @@ function BizTab({
             다운로드
           </button>
         </div>
-        <p className="text-sm text-gray-400 mt-2">Biz 플랜 전용 · 무제한 제공</p>
+        <p className="text-sm text-gray-500 mt-2">Biz 플랜 전용 · 무제한 제공</p>
       </div>
 
       {/* ② 결과 미리보기 — 팀 계정 */}
@@ -1606,7 +1606,7 @@ function BizTab({
             </div>
           ))}
         </div>
-        <p className="text-sm text-gray-400 mt-2">+ 최대 5명까지 초대 가능</p>
+        <p className="text-sm text-gray-500 mt-2">+ 최대 5명까지 초대 가능</p>
       </div>
 
       {/* ② 결과 미리보기 — API 키 */}
@@ -1784,7 +1784,7 @@ export default function PreviewClient({ currentPlan, businessData, latestScan, b
             </option>
           ))}
         </select>
-        <span className="text-sm text-gray-400 shrink-0 hidden sm:block">선택하면 미리보기가 바뀝니다</span>
+        <span className="text-sm text-gray-500 shrink-0 hidden sm:block">선택하면 미리보기가 바뀝니다</span>
       </div>
 
       {/* 채널 분기 안내 — 업종별 "0채널 없음" 이탈 방지 */}

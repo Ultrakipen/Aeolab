@@ -179,7 +179,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-4 py-3 text-sm min-w-[140px]">
-      <p className="text-gray-400 text-sm mb-2">{label}</p>
+      <p className="text-gray-500 text-sm mb-2">{label}</p>
       {payload.map((p, i) => (
         <div key={i} className="flex items-center justify-between gap-3 mb-0.5">
           <span style={{ color: p.color }} className="font-medium text-sm">{p.name}</span>
@@ -346,7 +346,7 @@ export default function GrowthClient({
         <p className="text-sm md:text-base text-gray-500 mt-1">
           {region} · {categoryLabel} · AI 스캔 결과를 기반으로 내 가게가 얼마나 성장했는지 확인하세요
         </p>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-sm text-gray-500 mt-1">
           측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다
         </p>
         {/* 업종 내 순위 배지 — /benchmark와 동일하게 표본 3곳 미만이면 순위 대신 안내만 표시 */}
@@ -382,11 +382,11 @@ export default function GrowthClient({
           {historyData.length >= 2 ? (
             <>
               <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <span className="text-sm text-gray-400">{getScoreTextLabel(firstScore)}</span>
+                <span className="text-sm text-gray-500">{getScoreTextLabel(firstScore)}</span>
                 <span className="text-gray-300">→</span>
                 {(() => {
                   const lbl = getScoreTextLabel(currentScore)
-                  const cls = currentScore >= 75 ? 'text-emerald-600' : currentScore >= 55 ? 'text-blue-600' : currentScore >= 30 ? 'text-amber-600' : 'text-gray-400'
+                  const cls = currentScore >= 75 ? 'text-emerald-600' : currentScore >= 55 ? 'text-blue-600' : currentScore >= 30 ? 'text-amber-600' : 'text-gray-500'
                   return <span className={`text-lg font-bold ${cls}`}>{lbl}</span>
                 })()}
               </div>
@@ -400,13 +400,13 @@ export default function GrowthClient({
                   이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
               )}
-              <p className="text-sm text-gray-400 mt-1">첫 스캔부터 현재까지</p>
+              <p className="text-sm text-gray-500 mt-1">첫 스캔부터 현재까지</p>
             </>
           ) : (
             <>
               {(() => {
                 const lbl = getScoreTextLabel(currentScore)
-                const cls = currentScore >= 75 ? 'text-emerald-600' : currentScore >= 55 ? 'text-blue-600' : currentScore >= 30 ? 'text-amber-600' : 'text-gray-400'
+                const cls = currentScore >= 75 ? 'text-emerald-600' : currentScore >= 55 ? 'text-blue-600' : currentScore >= 30 ? 'text-amber-600' : 'text-gray-500'
                 return <p className={`text-lg font-bold mb-1 ${cls}`}>{lbl}</p>
               })()}
               {latestWeeklyChange !== null && latestWeeklyChange !== 0 && (
@@ -414,7 +414,7 @@ export default function GrowthClient({
                   이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
               )}
-              <p className="text-sm text-gray-400 mt-1">스캔 2회 이상부터 변화 추적</p>
+              <p className="text-sm text-gray-500 mt-1">스캔 2회 이상부터 변화 추적</p>
             </>
           )}
           {latestExposureFreq !== null && (
@@ -434,10 +434,10 @@ export default function GrowthClient({
               {(() => {
                 const s = latest.track1_score
                 const lbl = getScoreTextLabel(s)
-                const cls = s >= 75 ? 'text-emerald-600' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-600' : 'text-gray-400'
+                const cls = s >= 75 ? 'text-emerald-600' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-600' : 'text-gray-500'
                 return <p className={`text-lg font-bold mb-1 ${cls}`}>{lbl}</p>
               })()}
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 스마트플레이스 기반 네이버 AI 노출 수준입니다
               </p>
               {briefingTotal > 0 && (
@@ -459,7 +459,7 @@ export default function GrowthClient({
               })()}
             </>
           ) : (
-            <p className="text-sm text-gray-400">스캔 후 표시됩니다</p>
+            <p className="text-sm text-gray-500">스캔 후 표시됩니다</p>
           )}
         </div>
 
@@ -471,10 +471,10 @@ export default function GrowthClient({
               {(() => {
                 const s = latest.track2_score ?? 0
                 const lbl = getScoreTextLabel(s)
-                const cls = s >= 75 ? 'text-purple-600' : s >= 55 ? 'text-purple-500' : s >= 30 ? 'text-amber-600' : 'text-gray-400'
+                const cls = s >= 75 ? 'text-purple-600' : s >= 55 ? 'text-purple-500' : s >= 30 ? 'text-amber-600' : 'text-gray-500'
                 return <p className={`text-lg font-bold mb-1 ${cls}`}>{lbl}</p>
               })()}
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 Gemini·ChatGPT가 현재 이 사업장을 인식하는 수준입니다
               </p>
               {(() => {
@@ -491,7 +491,7 @@ export default function GrowthClient({
               })()}
             </>
           ) : (
-            <p className="text-sm text-gray-400">스캔 후 표시됩니다</p>
+            <p className="text-sm text-gray-500">스캔 후 표시됩니다</p>
           )}
         </div>
       </div>
@@ -500,7 +500,7 @@ export default function GrowthClient({
       {growthDrivers.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
           <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">성장 요인</h2>
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="text-sm text-gray-500 mb-4">
             첫 스캔 대비 어떤 항목이 가장 많이 움직였는지 보여줍니다
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -509,7 +509,7 @@ export default function GrowthClient({
                 <span className="text-sm text-gray-600">{d.label}</span>
                 <span
                   className={`text-sm font-semibold shrink-0 ${
-                    d.delta > 0.5 ? "text-emerald-600" : d.delta < -0.5 ? "text-red-500" : "text-gray-400"
+                    d.delta > 0.5 ? "text-emerald-600" : d.delta < -0.5 ? "text-red-500" : "text-gray-500"
                   }`}
                 >
                   {getDriverDirectionLabel(d.delta)}
@@ -523,7 +523,7 @@ export default function GrowthClient({
       {/* 섹션 1: AI 노출 점수 변화 차트 */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">AI 노출 점수 변화</h2>
-        <p className="text-sm text-gray-400 mb-5">
+        <p className="text-sm text-gray-500 mb-5">
           최근 30일 동안 내 가게가 AI에 노출되는 정도가 어떻게 변했는지 보여줍니다
         </p>
 
@@ -609,7 +609,7 @@ export default function GrowthClient({
             {/* 행동 타임라인 목록 (차트 아래) */}
             {actionLogs.length > 0 && (
               <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">행동 이력</p>
+                <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wide">행동 이력</p>
                 <div className="space-y-1.5">
                   {actionLogs.slice(0, 5).map((log, i) => {
                     const scoreDelta =
@@ -622,10 +622,10 @@ export default function GrowthClient({
                           className="w-2.5 h-2.5 rounded-full shrink-0"
                           style={{ backgroundColor: getActionColor(log.action_type) }}
                         />
-                        <span className="text-gray-400 shrink-0 text-sm">{formatDateKo(log.action_date)}</span>
+                        <span className="text-gray-500 shrink-0 text-sm">{formatDateKo(log.action_date)}</span>
                         <span className="text-gray-700 font-medium">{log.action_label}</span>
                         {scoreDelta !== null && (
-                          <span className={`text-sm font-semibold ${scoreDelta > 0 ? "text-emerald-600" : scoreDelta < 0 ? "text-red-500" : "text-gray-400"}`}>
+                          <span className={`text-sm font-semibold ${scoreDelta > 0 ? "text-emerald-600" : scoreDelta < 0 ? "text-red-500" : "text-gray-500"}`}>
                             {scoreDelta > 0 ? "↑ 점수 상승" : scoreDelta < 0 ? "↓ 점수 하락" : "변화 없음"}
                           </span>
                         )}
@@ -644,7 +644,7 @@ export default function GrowthClient({
             <p className="text-sm font-semibold text-gray-700">
               현재 AI 노출: <span className="text-blue-600 text-base font-bold">{getScoreTextLabel(chartData[0].score)}</span>
             </p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-500">
               스캔을 1회 더 하면 노출 변화 추이가 그래프로 나타납니다.
             </p>
             <Link
@@ -658,7 +658,7 @@ export default function GrowthClient({
           <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
             <span className="text-4xl">📊</span>
             <p className="text-sm font-semibold text-gray-700">아직 스캔 기록이 없습니다</p>
-            <p className="text-sm text-gray-400">대시보드에서 AI 스캔을 시작해 보세요.</p>
+            <p className="text-sm text-gray-500">대시보드에서 AI 스캔을 시작해 보세요.</p>
             <Link
               href="/dashboard"
               className="mt-2 inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
@@ -672,7 +672,7 @@ export default function GrowthClient({
       {/* 섹션: 내가 한 행동 기록 */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">내가 한 행동 기록</h2>
-        <p className="text-sm text-gray-400 mb-4">
+        <p className="text-sm text-gray-500 mb-4">
           가이드에서 체크한 항목들이 여기에 기록됩니다. 7일 후 점수 변화를 자동으로 측정합니다.
         </p>
         {actionLogs.length > 0 ? (
@@ -700,10 +700,10 @@ export default function GrowthClient({
                         </span>
                       )}
                       {log.score_after === null && (
-                        <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">측정 대기 중</span>
+                        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">측정 대기 중</span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-400">{formatDateFull(log.action_date)}</p>
+                    <p className="text-sm text-gray-500">{formatDateFull(log.action_date)}</p>
                   </div>
                 </div>
               );
@@ -711,7 +711,7 @@ export default function GrowthClient({
           </div>
         ) : (
           <div className="text-center py-8 border border-dashed border-gray-200 rounded-xl">
-            <p className="text-sm text-gray-400">가이드 체크박스를 체크하면 여기에 기록됩니다</p>
+            <p className="text-sm text-gray-500">가이드 체크박스를 체크하면 여기에 기록됩니다</p>
             <Link
               href="/guide"
               className="mt-2 inline-block text-sm text-blue-600 font-semibold underline"
@@ -726,7 +726,7 @@ export default function GrowthClient({
       {(keywordResolution.resolved.length > 0 || keywordResolution.still_missing.length > 0) && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
           <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">키워드 해결 현황</h2>
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="text-sm text-gray-500 mb-4">
             AI 검색에 잡히지 않던 키워드가 얼마나 해결됐는지 보여줍니다
           </p>
           <div className="space-y-3">
@@ -766,7 +766,7 @@ export default function GrowthClient({
         <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">
           우리 업종에서 내 위치
         </h2>
-        <p className="text-sm text-gray-400 mb-5">
+        <p className="text-sm text-gray-500 mb-5">
           같은 업종의 다른 가게들과 비교했을 때 내 가게의 AI 노출 수준입니다
         </p>
 
@@ -875,7 +875,7 @@ export default function GrowthClient({
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-500">
               아직 비교할 업종 데이터가 충분하지 않습니다.
             </p>
             <p className="text-sm text-gray-300 mt-1">더 많은 가게가 등록될수록 정확해집니다.</p>
@@ -886,7 +886,7 @@ export default function GrowthClient({
       {/* 섹션 3: 이번 달 성과 */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">이번 달 성과</h2>
-        <p className="text-sm text-gray-400 mb-5">
+        <p className="text-sm text-gray-500 mb-5">
           이번 달 가장 높은 점수와 지난달을 비교합니다
         </p>
 
@@ -895,7 +895,7 @@ export default function GrowthClient({
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4 flex-1 text-center">
                 <p className="text-sm text-blue-500 font-medium mb-1">이번 달 최고 상태</p>
-                <p className={`text-lg font-bold ${thisMonthBest >= 75 ? 'text-emerald-600' : thisMonthBest >= 55 ? 'text-blue-600' : thisMonthBest >= 30 ? 'text-amber-600' : 'text-gray-400'}`}>
+                <p className={`text-lg font-bold ${thisMonthBest >= 75 ? 'text-emerald-600' : thisMonthBest >= 55 ? 'text-blue-600' : thisMonthBest >= 30 ? 'text-amber-600' : 'text-gray-500'}`}>
                   {getScoreTextLabel(thisMonthBest)}
                 </p>
               </div>
@@ -903,7 +903,7 @@ export default function GrowthClient({
                 <>
                   <span className="text-2xl text-gray-300 hidden sm:block">→</span>
                   <div className="bg-gray-50 border border-gray-100 rounded-xl px-5 py-4 flex-1 text-center">
-                    <p className="text-sm text-gray-400 font-medium mb-1">지난달 최고 상태</p>
+                    <p className="text-sm text-gray-500 font-medium mb-1">지난달 최고 상태</p>
                     <p className="text-lg font-bold text-gray-500">{getScoreTextLabel(lastMonthBest)}</p>
                   </div>
                 </>
@@ -935,12 +935,12 @@ export default function GrowthClient({
             )}
 
             {lastMonthBest === null && (
-              <p className="text-sm text-gray-400">지난달 스캔 기록이 없어 비교할 수 없습니다.</p>
+              <p className="text-sm text-gray-500">지난달 스캔 기록이 없어 비교할 수 없습니다.</p>
             )}
           </div>
         ) : (
           <div className="text-center py-6">
-            <p className="text-sm text-gray-400">이번 달 아직 스캔 기록이 없습니다.</p>
+            <p className="text-sm text-gray-500">이번 달 아직 스캔 기록이 없습니다.</p>
             <Link
               href="/dashboard"
               className="mt-3 inline-block text-sm text-blue-600 font-semibold underline"
@@ -954,7 +954,7 @@ export default function GrowthClient({
       {/* 섹션 4: 이달의 성장 카드 이미지 */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">이달의 성장 카드</h2>
-        <p className="text-sm text-gray-400 mb-5">
+        <p className="text-sm text-gray-500 mb-5">
           매달 말, AI 노출 점수가 오르면 성장 카드 이미지를 자동으로 만들어 드립니다
         </p>
 
@@ -997,7 +997,7 @@ export default function GrowthClient({
           <div className="flex flex-col items-center justify-center py-10 gap-3 text-center border border-dashed border-gray-200 rounded-xl">
             <span className="text-4xl">🖼</span>
             <p className="text-sm font-semibold text-gray-600">아직 성장 카드가 없습니다</p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-500">
               이번 달 AI 노출 점수가 지난달보다 오르면 말일에 자동으로 생성됩니다.
             </p>
           </div>
@@ -1008,18 +1008,18 @@ export default function GrowthClient({
       {historyData.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
           <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">스캔 기록</h2>
-          <p className="text-sm text-gray-400 mb-5">AI 스캔을 할 때마다 점수가 기록됩니다</p>
+          <p className="text-sm text-gray-500 mb-5">AI 스캔을 할 때마다 점수가 기록됩니다</p>
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 pr-3 text-gray-400 font-medium text-sm">날짜</th>
-                  <th className="text-right py-2 pr-3 text-gray-400 font-medium text-sm">전체 상태</th>
-                  <th className="text-right py-2 pr-3 text-gray-400 font-medium text-sm">네이버 AI</th>
-                  <th className="text-right py-2 pr-3 text-gray-400 font-medium text-sm">글로벌 AI</th>
-                  <th className="text-right py-2 pr-3 text-gray-400 font-medium text-sm">노출 빈도</th>
-                  <th className="text-right py-2 text-gray-400 font-medium text-sm">주간 변화</th>
+                  <th className="text-left py-2 pr-3 text-gray-500 font-medium text-sm">날짜</th>
+                  <th className="text-right py-2 pr-3 text-gray-500 font-medium text-sm">전체 상태</th>
+                  <th className="text-right py-2 pr-3 text-gray-500 font-medium text-sm">네이버 AI</th>
+                  <th className="text-right py-2 pr-3 text-gray-500 font-medium text-sm">글로벌 AI</th>
+                  <th className="text-right py-2 pr-3 text-gray-500 font-medium text-sm">노출 빈도</th>
+                  <th className="text-right py-2 text-gray-500 font-medium text-sm">주간 변화</th>
                 </tr>
               </thead>
               <tbody>
@@ -1052,7 +1052,7 @@ export default function GrowthClient({
                       <td className="py-3 pr-3 text-right text-gray-500 text-sm">
                         {expFreq !== null ? `${Math.round(expFreq)}회 / ${entry.sample_size ?? 100}` : "–"}
                       </td>
-                      <td className={`py-3 text-right font-semibold text-sm ${weeklyChange === null ? "text-gray-300" : weeklyChange > 2 ? "text-emerald-600" : weeklyChange < -2 ? "text-red-500" : "text-gray-400"}`}>
+                      <td className={`py-3 text-right font-semibold text-sm ${weeklyChange === null ? "text-gray-300" : weeklyChange > 2 ? "text-emerald-600" : weeklyChange < -2 ? "text-red-500" : "text-gray-500"}`}>
                         {weeklyChange === null ? "–" : weeklyChange > 2 ? "↑ 상승" : weeklyChange < -2 ? "↓ 하락" : "— 유지"}
                       </td>
                     </tr>
@@ -1065,7 +1065,7 @@ export default function GrowthClient({
           {historyData.length > 5 && (
             <button
               onClick={() => setShowAllHistory((prev) => !prev)}
-              className="mt-4 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              className="mt-4 text-sm text-gray-500 hover:text-gray-600 transition-colors"
             >
               {showAllHistory
                 ? "접기 ▲"
