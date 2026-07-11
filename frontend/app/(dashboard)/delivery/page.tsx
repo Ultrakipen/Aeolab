@@ -196,7 +196,7 @@ export default async function DeliveryPage() {
                 <ul className="space-y-2 mb-5 flex-1">
                   {(pkg.features ?? []).map((feature, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0 mt-0.5" />
                       <span className="text-sm text-gray-700">{feature}</span>
                     </li>
                   ))}

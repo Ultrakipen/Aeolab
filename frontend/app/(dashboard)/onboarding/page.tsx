@@ -105,7 +105,7 @@ function CategoryDropdown({
                   <span className={`flex-1 text-left font-medium text-base ${isSelected ? "text-blue-700" : "text-gray-700"}`}>
                     {g.label}
                   </span>
-                  {isSelected && <Check className="w-5 h-5 text-blue-500 shrink-0" />}
+                  {isSelected && <Check className="w-5 h-5 text-blue-600 shrink-0" />}
                 </button>
               );
             })}
@@ -369,9 +369,9 @@ export default function OnboardingPage() {
               </div>
               <p className="text-sm font-semibold text-orange-500 mb-2">첫 달 4,950원 (50% 할인)</p>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
-                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-500 shrink-0" />주 1회 자동 AI 스캔</li>
-                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-500 shrink-0" />경쟁사 5곳 비교</li>
-                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-500 shrink-0" />리뷰 답변 · FAQ 무제한</li>
+                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />주 1회 자동 AI 스캔</li>
+                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />경쟁사 5곳 비교</li>
+                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />리뷰 답변 · FAQ 무제한</li>
               </ul>
               <button
                 onClick={handleGoToPricing}
@@ -887,7 +887,7 @@ export default function OnboardingPage() {
                 },
               ].map(item => (
                 <div key={item.title} className="flex gap-4 p-4 bg-blue-50 rounded-xl">
-                  <item.Icon className="w-6 h-6 text-blue-500 shrink-0 mt-0.5" strokeWidth={1.5} />
+                  <item.Icon className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" strokeWidth={1.5} />
                   <div>
                     <div className="text-base font-bold text-gray-900 mb-1">{item.title}</div>
                     <div className="text-base text-gray-600 leading-relaxed">{item.desc}</div>
@@ -1037,13 +1037,13 @@ export default function OnboardingPage() {
               <ul className="space-y-3">
                 {/* 사업장 등록: step 3에 도달했다면 항상 완료 */}
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0 mt-0.5" />
                   <span className="text-base font-semibold text-green-700">사업장 등록 완료</span>
                 </li>
                 {/* 첫 AI 스캔 */}
                 <li className="flex items-start gap-3">
                   {hasFirstScan
-                    ? <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                    ? <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0 mt-0.5" />
                     : <Circle className="w-5 h-5 text-gray-300 shrink-0 mt-0.5" />
                   }
                   <span className={`text-base font-medium ${hasFirstScan ? "text-green-700" : "text-gray-700"}`}>
@@ -1054,7 +1054,7 @@ export default function OnboardingPage() {
                 {/* 경쟁사 등록 */}
                 <li className="flex items-start gap-3">
                   {hasCompetitor
-                    ? <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                    ? <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0 mt-0.5" />
                     : <Circle className="w-5 h-5 text-gray-300 shrink-0 mt-0.5" />
                   }
                   <span className={`text-base font-medium ${hasCompetitor ? "text-green-700" : "text-gray-700"}`}>

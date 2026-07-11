@@ -1223,7 +1223,7 @@ function BriefingCategoryBadge({
   }
   return (
     <div className="bg-blue-50 border border-blue-300 rounded-xl px-4 py-2.5 mb-3 flex items-start gap-2">
-      <Globe className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+      <Globe className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
       <div>
         <p className="text-sm font-bold text-blue-800">
           AI탭 + ChatGPT·Gemini·Google AI — 4채널 노출이 가능합니다

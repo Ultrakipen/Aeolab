@@ -243,7 +243,7 @@ export default async function DeliveryOrderDetailPage({
                 <ul className="space-y-2 mb-4">
                   {order.completion_report.items!.map((item, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0 mt-0.5" />
                       <span className="text-sm text-green-700">{item}</span>
                     </li>
                   ))}
@@ -283,7 +283,7 @@ export default async function DeliveryOrderDetailPage({
                       rel="noopener noreferrer"
                       className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors group"
                     >
-                      <Download className="w-4 h-4 text-blue-500 shrink-0" />
+                      <Download className="w-4 h-4 text-blue-600 shrink-0" />
                       <span className="text-sm font-medium text-blue-700 group-hover:underline truncate">
                         {m.filename}
                       </span>

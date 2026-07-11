@@ -377,32 +377,32 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 return (
                   <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-4 mb-5">
                     <div className="flex items-start gap-2">
-                      <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" aria-hidden="true" />
+                      <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
                       <div className="flex-1">
                         <p className="text-sm font-bold text-blue-900 mb-1">
                           '플레이스형' 네이버 AI 브리핑 대상 업종이 아닙니다 — 그래도 개선 효과가 있습니다
                         </p>
                         <ul className="space-y-1.5 mt-2">
                           <li className="flex items-start gap-1.5">
-                            <span className="text-blue-500 shrink-0 mt-0.5">•</span>
+                            <span className="text-blue-600 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
                               <strong>ChatGPT·Gemini·Google AI</strong> 검색에서 찾히도록 최적화
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
-                            <span className="text-blue-500 shrink-0 mt-0.5">•</span>
+                            <span className="text-blue-600 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
                               <strong>블로그 포스팅·리뷰</strong>가 쌓이면 '정보형 AI 브리핑'과 네이버 검색 노출에 직접 효과
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
-                            <span className="text-blue-500 shrink-0 mt-0.5">•</span>
+                            <span className="text-blue-600 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
                               <strong>스마트플레이스·소개글</strong> 개선 → 네이버 지도 상위 노출 가능
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
-                            <span className="text-blue-500 shrink-0 mt-0.5">•</span>
+                            <span className="text-blue-600 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
                               <strong>네이버 AI탭</strong>은 2026-04-27 베타 출시, 2026-06-25 전체 사용자 정식 출시됨 (업종 제한 발표 없음)
                             </p>
@@ -417,26 +417,26 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 return (
                   <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-4 mb-5">
                     <div className="flex items-start gap-2">
-                      <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" aria-hidden="true" />
+                      <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
                       <div className="flex-1">
                         <p className="text-sm font-bold text-blue-900 mb-1">
                           네이버 AI 브리핑 확대 예정 업종 — AI탭(정식 출시)은 이미 노출 가능
                         </p>
                         <ul className="space-y-1.5 mt-2">
                           <li className="flex items-start gap-1.5">
-                            <span className="text-blue-500 shrink-0 mt-0.5">•</span>
+                            <span className="text-blue-600 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
                               <strong>네이버 플레이스·지도</strong> 노출 + <strong>ChatGPT·Gemini</strong> 검색을 중심으로 진단
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
-                            <span className="text-blue-500 shrink-0 mt-0.5">•</span>
+                            <span className="text-blue-600 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
                               <strong>블로그 포스팅·리뷰</strong>가 쌓이면 네이버 검색 노출에 직접 효과
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
-                            <span className="text-blue-500 shrink-0 mt-0.5">•</span>
+                            <span className="text-blue-600 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
                               '플레이스형' AI 브리핑 대상이 아니어도 <strong>스마트플레이스·소개글·블로그 개선</strong>은 '정보형 AI 브리핑'과 검색 노출에 도움
                             </p>
@@ -688,7 +688,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
               return (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Info className="w-5 h-5 text-blue-500 shrink-0" aria-hidden="true" />
+                    <Info className="w-5 h-5 text-blue-600 shrink-0" aria-hidden="true" />
                     <p className="text-base font-bold text-blue-900">분석 기준 키워드 확인</p>
                   </div>
                   <p className="text-sm text-blue-700 mb-1 leading-relaxed">

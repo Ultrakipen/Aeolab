@@ -74,7 +74,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
           {/* 로그인 CTA */}
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-start gap-3">
-              <MessageCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+              <MessageCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-blue-800">직접 문의하려면 로그인이 필요합니다.</p>
                 <p className="text-sm text-blue-600">로그인 후 1:1 문의를 작성할 수 있습니다.</p>

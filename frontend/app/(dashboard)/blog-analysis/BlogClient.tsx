@@ -1056,7 +1056,7 @@ function BlogScoreTrendChart({ businessId, token }: { businessId: string; token:
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-1">
-        <TrendingUp className="w-5 h-5 text-blue-500 shrink-0" />
+        <TrendingUp className="w-5 h-5 text-blue-600 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 진단 점수 추이</h3>
       </div>
       <p className="text-sm text-gray-500 mb-4">
@@ -2098,7 +2098,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                       {(result.keyword_coverage.competitor_only?.length ?? 0) > 0 && (
                         <div>
                           <div className="flex items-center gap-2 mb-2">
-                            <TrendingUp className="w-4 h-4 text-blue-500 shrink-0" />
+                            <TrendingUp className="w-4 h-4 text-blue-600 shrink-0" />
                             <span className="text-sm font-semibold text-blue-700">
                               경쟁사 선점 키워드 ({result.keyword_coverage.competitor_only.length})
                             </span>

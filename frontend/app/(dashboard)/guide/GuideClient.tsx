@@ -3751,13 +3751,13 @@ function GuideTabView({
             className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-400 hover:bg-blue-50 transition-colors group"
           >
             <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-blue-500 shrink-0" />
+              <FileText className="w-4 h-4 text-blue-600 shrink-0" />
               <div>
                 <span className="text-sm font-semibold text-gray-800">내 블로그 AI 최적화 진단</span>
                 <p className="text-sm text-gray-500 mt-0.5">블로그가 AI 브리핑에 얼마나 최적화됐는지 확인하세요</p>
               </div>
             </div>
-            <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-500 shrink-0" />
+            <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 shrink-0" />
           </a>
 
           {/* AI 브리핑 직접 관리 경로 — 기본 접힘 */}
@@ -5061,7 +5061,7 @@ export function GuideClient({
                 <p className="text-base font-semibold text-gray-800">스캔 재실행</p>
                 <p className="text-sm text-gray-500 mt-0.5">대시보드에서 최신 결과 확인</p>
               </div>
-              <RefreshCw className="w-4 h-4 text-gray-300 group-hover:text-blue-500 shrink-0" />
+              <RefreshCw className="w-4 h-4 text-gray-300 group-hover:text-blue-600 shrink-0" />
             </a>
             <a
               href="/competitors"
@@ -5071,7 +5071,7 @@ export function GuideClient({
                 <p className="text-base font-semibold text-gray-800">경쟁사 분석</p>
                 <p className="text-sm text-gray-500 mt-0.5">내 가게와 경쟁사 비교</p>
               </div>
-              <TrendingUp className="w-4 h-4 text-gray-300 group-hover:text-blue-500 shrink-0" />
+              <TrendingUp className="w-4 h-4 text-gray-300 group-hover:text-blue-600 shrink-0" />
             </a>
             <a
               href="/report"
@@ -5081,7 +5081,7 @@ export function GuideClient({
                 <p className="text-base font-semibold text-gray-800">점수 현황</p>
                 <p className="text-sm text-gray-500 mt-0.5">AI 노출 점수 상세 리포트</p>
               </div>
-              <Star className="w-4 h-4 text-gray-300 group-hover:text-blue-500 shrink-0" />
+              <Star className="w-4 h-4 text-gray-300 group-hover:text-blue-600 shrink-0" />
             </a>
           </div>
         </div>

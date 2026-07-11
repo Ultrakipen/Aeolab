@@ -255,7 +255,7 @@ export function AdDefenseClient({
                 <ul className="space-y-2.5">
                   {result.guide.content_actions.map((a, i) => (
                     <li key={i} className="text-sm md:text-base text-gray-700 flex gap-2 leading-relaxed">
-                      <span className="text-blue-500 shrink-0 mt-0.5">→</span>{a}
+                      <span className="text-blue-600 shrink-0 mt-0.5">→</span>{a}
                     </li>
                   ))}
                 </ul>
@@ -267,7 +267,7 @@ export function AdDefenseClient({
                 <ul className="space-y-2.5">
                   {result.guide.schema_recommendations.map((r, i) => (
                     <li key={i} className="text-sm md:text-base text-gray-700 flex gap-2 leading-relaxed">
-                      <span className="text-green-500 shrink-0 mt-0.5">✓</span>{r}
+                      <span className="text-green-700 shrink-0 mt-0.5">✓</span>{r}
                     </li>
                   ))}
                 </ul>
