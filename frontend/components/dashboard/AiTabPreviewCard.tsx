@@ -291,7 +291,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         {/* 에러 상태 */}
         {NAVER_AI_TAB_ENABLED && !loading && error && !forbidden && (
           <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
-            <AlertCircle className="w-4 h-4 text-gray-400 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-gray-500 shrink-0" />
             잠시 후 다시 시도해주세요.
           </div>
         )}
@@ -300,7 +300,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
         {NAVER_AI_TAB_ENABLED && !loading && (forbidden || isFree) && (
           <div className="flex flex-col items-center gap-4 py-6 text-center">
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-              <Lock className="w-6 h-6 text-gray-400" />
+              <Lock className="w-6 h-6 text-gray-500" />
             </div>
             <div>
               <p className="text-base font-semibold text-gray-800 mb-1">
@@ -352,7 +352,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             )}
             {isMeasured && !isVisible && (
               <div className="flex items-start gap-2.5 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
-                <AlertCircle className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-gray-500 shrink-0 mt-0.5" />
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-gray-700">AI탭 미노출</p>
                   <p className="text-sm text-gray-600 mt-0.5 leading-snug break-keep">

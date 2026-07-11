@@ -165,11 +165,11 @@ function DiagnosisAccordionHeader({
     >
       <span className="flex items-center gap-2 min-w-0">
         {isOpen
-          ? <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
-          : <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />}
+          ? <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
+          : <ChevronRight className="w-4 h-4 text-gray-500 shrink-0" />}
         <span className="text-base font-bold text-gray-900">심층 진단 · 측정 상세</span>
       </span>
-      <span className="text-sm text-gray-400 shrink-0 ml-2">
+      <span className="text-sm text-gray-500 shrink-0 ml-2">
         {isOpen ? "접기" : "자세히 보기"}
       </span>
     </button>

@@ -73,7 +73,7 @@ function EmptyState() {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
       <p className="text-base font-medium text-gray-600">아직 등록된 성공 사례가 없습니다.</p>
-      <p className="text-sm text-gray-400 mt-1">첫 번째 성공 사례를 기다리고 있습니다.</p>
+      <p className="text-sm text-gray-500 mt-1">첫 번째 성공 사례를 기다리고 있습니다.</p>
     </div>
   );
 }
@@ -220,14 +220,14 @@ export default function StoriesClient() {
                   <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
                     {story.score_before !== null && story.score_after !== null ? (
                       <div className="flex items-center gap-1.5 text-sm">
-                        <span className="text-gray-400">{getScoreTextLabel(story.score_before)}</span>
+                        <span className="text-gray-500">{getScoreTextLabel(story.score_before)}</span>
                         <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
                         <span className="font-bold text-emerald-600">{getScoreTextLabel(story.score_after)}</span>
                       </div>
                     ) : (
                       <span />
                     )}
-                    <span className="text-sm text-gray-400">{formatDate(story.published_at)}</span>
+                    <span className="text-sm text-gray-500">{formatDate(story.published_at)}</span>
                   </div>
                 </Link>
               ))}

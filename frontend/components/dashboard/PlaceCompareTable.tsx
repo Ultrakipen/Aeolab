@@ -332,7 +332,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
             {/* 모바일 스크롤 인디케이터 — md 이상에서는 숨김 */}
             <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent md:hidden" />
           </div>
-          <p className="md:hidden text-center text-sm text-gray-400 py-1.5">← 좌우로 스와이프하세요</p>
+          <p className="md:hidden text-center text-sm text-gray-500 py-1.5">← 좌우로 스와이프하세요</p>
 
             {/* 블로그 언급 수 데이터 출처 안내 */}
             {data.rows.some((r) => r.field === "blog_mention_count") && (
@@ -417,7 +417,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
       {/* 동기화 시각 */}
       {data?.synced_at && (
         <div className="px-4 md:px-6 py-2 border-t border-gray-100 text-right">
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-gray-500">
             마지막 동기화: {new Date(data.synced_at).toLocaleString("ko-KR")}
           </span>
         </div>
@@ -425,7 +425,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
 
       {/* 초기 로딩 중 */}
       {!data && loading && (
-        <div className="px-4 md:px-6 py-8 text-center text-sm text-gray-400">
+        <div className="px-4 md:px-6 py-8 text-center text-sm text-gray-500">
           <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-400" />
           <p>경쟁사 비교 데이터를 불러오고 있습니다...</p>
         </div>

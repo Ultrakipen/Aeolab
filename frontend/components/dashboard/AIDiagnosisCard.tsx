@@ -267,7 +267,7 @@ export default function AIDiagnosisCard({
                 return (
                   <Fragment key={key}>
                     <div className="col-span-2 flex items-start gap-2 rounded-xl px-3 py-3 border bg-gray-50 border-gray-200">
-                      <Minus className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                      <Minus className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <span className="text-sm font-semibold text-gray-600">네이버 검색 노출</span>
                         <span className="block text-sm text-gray-500 mt-0.5">
@@ -381,7 +381,7 @@ export default function AIDiagnosisCard({
                     ? <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
                     : googleMentioned
                     ? <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-                    : <XCircle className={`w-4 h-4 shrink-0 ${scanned ? "text-red-500" : "text-gray-400"}`} />
+                    : <XCircle className={`w-4 h-4 shrink-0 ${scanned ? "text-red-500" : "text-gray-500"}`} />
                   }
                   <span className={`text-sm font-medium leading-tight ${inAiOverview ? "text-green-800" : googleMentioned ? "text-amber-800" : scanned ? "text-red-800" : "text-gray-500"}`}>
                     {label}
@@ -419,7 +419,7 @@ export default function AIDiagnosisCard({
               >
                 {known
                   ? <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-                  : <XCircle className={`w-4 h-4 shrink-0 ${scanned ? "text-red-500" : "text-gray-400"}`} />
+                  : <XCircle className={`w-4 h-4 shrink-0 ${scanned ? "text-red-500" : "text-gray-500"}`} />
                 }
                 <span className={`text-sm font-medium leading-tight ${known ? "text-green-800" : scanned ? "text-red-800" : "text-gray-500"}`}>
                   {label}

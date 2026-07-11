@@ -118,8 +118,8 @@ export default function TeamPage() {
         <h2 className="text-base md:text-lg font-semibold text-gray-700 mb-3">팀원 목록 ({members.length}명)</h2>
         {members.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm text-gray-400">초대된 팀원이 없습니다.</p>
-            <p className="text-sm text-gray-400 mt-1">위에서 이메일 주소를 입력해 팀원을 초대하세요.</p>
+            <p className="text-sm text-gray-500">초대된 팀원이 없습니다.</p>
+            <p className="text-sm text-gray-500 mt-1">위에서 이메일 주소를 입력해 팀원을 초대하세요.</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -127,7 +127,7 @@ export default function TeamPage() {
               <div key={m.id} className="flex items-center justify-between py-3 px-1 border-b border-gray-50 last:border-0">
                 <div className="min-w-0 mr-3">
                   <p className="text-sm md:text-base font-medium text-gray-900 truncate">{m.email}</p>
-                  <p className="text-sm text-gray-400 mt-0.5">
+                  <p className="text-sm text-gray-500 mt-0.5">
                     {m.role === "member" ? "멤버" : "뷰어"} ·{" "}
                     <span className={m.status === "pending" ? "text-yellow-600" : "text-green-600"}>
                       {m.status === "pending" ? "초대 대기" : "활성"}

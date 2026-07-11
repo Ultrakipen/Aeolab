@@ -147,7 +147,7 @@ function KeywordCompletenessContent({ businessId, authToken }: { businessId: str
             style={{ width: `${Math.min(data.overall_pct, 100)}%` }}
           />
         </div>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-sm text-gray-500 mt-1">
           {data.overall_pct < 40
             ? '업종 표준 키워드 대비 커버리지가 낮습니다'
             : data.overall_pct < 70
@@ -188,11 +188,11 @@ function KeywordCompletenessContent({ businessId, authToken }: { businessId: str
               <CopyBadge key={kw} keyword={kw} />
             ))}
           </div>
-          <p className="text-sm text-gray-400 mt-1.5">배지를 클릭하면 클립보드에 복사됩니다</p>
+          <p className="text-sm text-gray-500 mt-1.5">배지를 클릭하면 클립보드에 복사됩니다</p>
         </div>
       )}
 
-      <p className="text-sm text-gray-400">
+      <p className="text-sm text-gray-500">
         키워드는 설정 &gt; 사업장 편집에서 추가할 수 있습니다
       </p>
     </div>

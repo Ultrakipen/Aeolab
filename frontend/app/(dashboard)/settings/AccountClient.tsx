@@ -107,7 +107,7 @@ export function AccountClient({ currentEmail }: Props) {
       {/* 비밀번호 변경 */}
       <div className="border border-gray-100 rounded-xl p-4 md:p-5">
         <h3 className="text-base font-semibold text-gray-800 mb-1">비밀번호 변경</h3>
-        <p className="text-sm text-gray-400 mb-3">새 비밀번호는 8자 이상이어야 합니다.</p>
+        <p className="text-sm text-gray-500 mb-3">새 비밀번호는 8자 이상이어야 합니다.</p>
         <form onSubmit={handlePasswordChange} className="space-y-2.5">
           <input
             type="password"
@@ -143,7 +143,7 @@ export function AccountClient({ currentEmail }: Props) {
       {/* 이메일 변경 */}
       <div className="border border-gray-100 rounded-xl p-4 md:p-5">
         <h3 className="text-base font-semibold text-gray-800 mb-1">이메일 변경</h3>
-        <p className="text-sm text-gray-400 mb-3">
+        <p className="text-sm text-gray-500 mb-3">
           현재: <span className="text-gray-600">{currentEmail}</span>
           <br className="sm:hidden" />
           <span className="hidden sm:inline">{" "}—{" "}</span>
@@ -175,7 +175,7 @@ export function AccountClient({ currentEmail }: Props) {
       {/* 계정 탈퇴 */}
       <div className="border border-red-100 rounded-xl p-4 md:p-5">
         <h3 className="text-base font-semibold text-red-700 mb-1">계정 탈퇴</h3>
-        <p className="text-sm text-gray-400 mb-3">탈퇴 시 모든 사업장, 스캔 기록, 구독이 영구 삭제됩니다.</p>
+        <p className="text-sm text-gray-500 mb-3">탈퇴 시 모든 사업장, 스캔 기록, 구독이 영구 삭제됩니다.</p>
         {!showDeleteConfirm ? (
           <button
             onClick={() => setShowDeleteConfirm(true)}

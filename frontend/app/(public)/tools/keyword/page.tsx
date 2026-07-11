@@ -198,7 +198,7 @@ export default function KeywordToolPage() {
             </button>
 
             {/* Rate limit 안내 */}
-            <p className="text-sm text-gray-400 text-center">
+            <p className="text-sm text-gray-500 text-center">
               분당 3회 생성 가능 · 생성 후 {COOLDOWN_SECONDS}초 대기
             </p>
           </div>
@@ -209,7 +209,7 @@ export default function KeywordToolPage() {
           <div className="bg-white rounded-xl border border-emerald-100 shadow-sm p-5 md:p-6 mb-6">
             <h2 className="text-base font-bold text-gray-900 mb-4">
               추천 키워드
-              <span className="ml-2 text-sm font-normal text-gray-400">{keywords.length}개</span>
+              <span className="ml-2 text-sm font-normal text-gray-500">{keywords.length}개</span>
             </h2>
             <div className="flex flex-wrap gap-2 mb-5">
               {keywords.map((kw, i) => (

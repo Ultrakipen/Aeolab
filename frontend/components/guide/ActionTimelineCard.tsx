@@ -39,7 +39,7 @@ interface Props {
 
 function DeltaBadge({ before, after }: { before: number | null; after: number | null }) {
   if (before === null || after === null) {
-    return <span className="text-sm text-gray-400">측정 중</span>
+    return <span className="text-sm text-gray-500">측정 중</span>
   }
   const delta = after - before
   if (Math.abs(delta) < 0.1) {
@@ -168,7 +168,7 @@ function ActionTimelineContent({ businessId, authToken }: { businessId: string; 
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-gray-800 truncate">{w.action_label}</p>
-                  <p className="text-sm text-gray-400 mt-0.5">
+                  <p className="text-sm text-gray-500 mt-0.5">
                     {new Date(w.action_date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}
                   </p>
                 </div>
@@ -182,7 +182,7 @@ function ActionTimelineContent({ businessId, authToken }: { businessId: string; 
         </div>
       )}
 
-      <p className="text-sm text-gray-400 mt-3 text-center">
+      <p className="text-sm text-gray-500 mt-3 text-center">
         더 많은 행동 기록은 대시보드에서 확인하세요
       </p>
     </div>

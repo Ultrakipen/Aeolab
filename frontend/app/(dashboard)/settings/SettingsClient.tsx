@@ -261,7 +261,7 @@ export function SettingsClient({
             <div key={field} className="flex items-center justify-between gap-4 bg-white rounded-lg px-4 py-3.5 border border-gray-100">
               <div className="min-w-0">
                 <div className="text-sm md:text-base font-medium text-gray-700">{label}</div>
-                <div className="text-sm text-gray-400 mt-0.5">{desc}</div>
+                <div className="text-sm text-gray-500 mt-0.5">{desc}</div>
               </div>
               <button
                 role="switch"
@@ -301,7 +301,7 @@ export function SettingsClient({
               <p className="text-base font-semibold text-gray-800">{cardDisplay}</p>
             </div>
           ) : (
-            <p className="text-sm text-gray-400">등록된 카드 정보를 불러올 수 없습니다.</p>
+            <p className="text-sm text-gray-500">등록된 카드 정보를 불러올 수 없습니다.</p>
           )}
           {cardError && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
@@ -395,7 +395,7 @@ export function SettingsClient({
               </div>
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors ml-3 shrink-0"
+                className="text-gray-500 hover:text-gray-600 transition-colors ml-3 shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
