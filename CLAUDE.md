@@ -175,6 +175,7 @@
 | `docs/admin_screens_inspection_plan_v1.0.md` | 관리자(`/admin/*`) 화면 전체 점검 — P0(delivery/support/inquiry 500다운 4건)·P1(score-comparison 크래시·죽은UI·NoticesTab중복 3건)·P2(notices 404·FAQ콘텐츠10건·comms모바일버그 등)까지 **전체 완료**(git `27ddf98`~`6da216c`). §10 사후재검증(오판없음 확인+기능공백4건 식별)까지 완료. 트리거는 완료 이력 확인용만 |
 | `docs/admin_functional_gaps_implementation_plan_v1.0.md` | 관리자 화면 기능 공백 4건 구현 계획 — **전체 완료됨**(§ 아래 종합문서로 흡수). 트리거는 완료 이력 확인용만 |
 | **`docs/admin_panel_complete_documentation_v1.0.md`** ⭐ | **관리자 페이지 종합 문서(as-built) — 접속정보·인증구조 3단계·페이지 13개 전체 인벤토리·신규 DB테이블 5개·신규 엔드포인트 13개·git커밋 이력·알려진 제약 6건. 관리자 기능 추가/수정 작업 전 필수 참조 (2026-07-11)** |
+| **`docs/session_2026_07_11_next_steps_handoff_v1.0.md`** ⭐ | **마스터 점검 계획 전체 완료 후 다음 단계 핸드오프 — A(정리: origin 대비 51커밋 push·스크린샷93개 정리·stale 문서 정리)와 B(신규 기능: next-feature 에이전트로 스코프 재기획) 2트랙. A 먼저 권장 (2026-07-11)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **관리자 화면 점검**: 완료됨 — 재점검 불필요(위 표 참조)
@@ -188,7 +189,8 @@
 > **8개 페이지 상업적 전문성 재점검 잔여작업**: `docs/eight_pages_commercial_professionalism_recheck_v1.0.md 기준으로 §13 남은 작업 이어서 진행`
 > **외부 벤치마크 기반 상업적 수준 점검**: 9개 페이지(경쟁사관리·성장리포트·개선가이드·변화기록·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석) 전체 완료. 남은 건 대시보드뿐
 > **대시보드 외부벤치마크 점검**: `docs/dashboard_external_benchmark_inspection_plan_v1.0.md 기준으로 대시보드 점검 진행`
-> **마스터 점검 계획 이어가기(전환 퍼널 L3 + 대비율 800건 잔여)**: `docs/master_inspection_plan_v1.0.md §5.1 기준으로 이어서 진행`
+> **마스터 점검 계획 이어가기(전환 퍼널 L3 + 대비율 800건 잔여)**: `docs/master_inspection_plan_v1.0.md §5.1 기준으로 이어서 진행` — 2026-07-11 전 항목 완료됨, 재점검 불필요
+> **마스터 점검 종료 후 다음 단계(정리 또는 신규 기획)**: `docs/session_2026_07_11_next_steps_handoff_v1.0.md 기준으로 A(정리) 먼저 진행 후 B(신규 기능 기획)로 넘어가줘`
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
