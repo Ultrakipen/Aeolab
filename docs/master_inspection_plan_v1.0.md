@@ -216,7 +216,7 @@
 - **대비율**: `text-gray-400` 9곳 목록만 남김(§5.1 배치 창에서 처리) — 직접 수정 안 함
 - 검증: md5 사전 확인(서버==git HEAD, drift 없음) → scp → 서버 grep 확인 → `npm run build` 성공 → pm2 재시작 error.log 신규 에러 0건(기존 recharts 경고만) → curl 3페이지 200
 - **발견 2의 근본 수정 추가 완료**(같은 세션, 사용자 지시 "지금할것", git `dd691aa`): 프론트 안내 문구만으론 부족 판단 — `webhook.py` 첫 결제(2단계) 직전에 `payment_events`에서 같은 금액·10분 이내 성공 이벤트를 조회, 있으면 Toss 재청구를 건너뛰고 구독 저장(3단계)만 재시도하도록 이중청구 방지 로직 추가. md5 사전확인(drift 없음) → scp → 서버 grep 확인 → pm2 재시작(`Application startup complete`, 에러 0건) → `/health` ok 확인
-- **card-update 라이브 재검증 시도**: gstack `/browse`로 실제 로그인(hoozdev@gmail.com) 후 `/settings` 진입·카드 변경 버튼 확인까지는 성공했으나, 같은 시간대 다른 세션이 동일 공유 브라우저 데몬을 사용 중이라 클릭 직후 스크린샷이 엉뚱한 페이지(`/support/tickets/new`)를 찍는 등 신뢰할 수 없는 간섭 발생 → 라이브 클릭 검증은 중단, 코드 대조 수준으로 한정(memory `feedback_shared_browser_lock_verification` 갱신)
+- **card-update 라이브 재검증 — 다른 세션 종료 후 재시도, 3건 전부 시각 확인 완료**: 다른 세션 종료로 mcp playwright 공유 lock 해제 확인 후 재시도. 실제 로그인(hoozdev@gmail.com) → `/settings` → "카드 변경" 클릭 → Toss 위젯(`payment-gateway-sandbox.tosspayments.com`) 정상 오픈 스크린샷 확보, 콘솔 에러 0건. "결제 취소" 클릭 시 `USER_CANCEL` 정상 처리(에러 미노출) 확인. `/payment/fail?from=card-update` 직접 접속으로 카드변경 문맥 분기(제목 "카드 등록 실패"·CTA "설정으로 돌아가 다시 시도"→`/settings`) 스크린샷 확인. `/payment/success`에 실패 파라미터 주입 후 에러 분기(중복결제 경고문구+1:1 문의 링크+SiteFooter) 스크린샷 확인 — 콘솔에는 예상된 400(가짜 authKey) 외 에러 없음. 3건 전부 코드 대조에서 라이브 시각 확인으로 격상 완료. (참고: settings 계정의 "다음 결제일 2036년" · "등록된 카드 정보를 불러올 수 없습니다"는 이 테스트 계정이 정상 Toss 결제 플로우를 거치지 않은 시드 데이터라 card_number_masked가 비어있는 것으로 판단됨 — 코드 버그 아님, 별도 조치 불요)
 
 ### §5.4 P1 나머지 + P2 완료 (2026-07-11)
 
