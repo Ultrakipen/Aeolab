@@ -217,6 +217,12 @@
 - 검증: md5 사전 확인(서버==git HEAD, drift 없음) → scp → 서버 grep 확인 → `npm run build` 성공 → pm2 재시작 error.log 신규 에러 0건(기존 recharts 경고만) → curl 3페이지 200
 - **발견 2의 근본 수정 추가 완료**(같은 세션, 사용자 지시 "지금할것", git `dd691aa`): 프론트 안내 문구만으론 부족 판단 — `webhook.py` 첫 결제(2단계) 직전에 `payment_events`에서 같은 금액·10분 이내 성공 이벤트를 조회, 있으면 Toss 재청구를 건너뛰고 구독 저장(3단계)만 재시도하도록 이중청구 방지 로직 추가. md5 사전확인(drift 없음) → scp → 서버 grep 확인 → pm2 재시작(`Application startup complete`, 에러 0건) → `/health` ok 확인
 - **card-update 라이브 재검증 — 다른 세션 종료 후 재시도, 3건 전부 시각 확인 완료**: 다른 세션 종료로 mcp playwright 공유 lock 해제 확인 후 재시도. 실제 로그인(hoozdev@gmail.com) → `/settings` → "카드 변경" 클릭 → Toss 위젯(`payment-gateway-sandbox.tosspayments.com`) 정상 오픈 스크린샷 확보, 콘솔 에러 0건. "결제 취소" 클릭 시 `USER_CANCEL` 정상 처리(에러 미노출) 확인. `/payment/fail?from=card-update` 직접 접속으로 카드변경 문맥 분기(제목 "카드 등록 실패"·CTA "설정으로 돌아가 다시 시도"→`/settings`) 스크린샷 확인. `/payment/success`에 실패 파라미터 주입 후 에러 분기(중복결제 경고문구+1:1 문의 링크+SiteFooter) 스크린샷 확인 — 콘솔에는 예상된 400(가짜 authKey) 외 에러 없음. 3건 전부 코드 대조에서 라이브 시각 확인으로 격상 완료. (참고: settings 계정의 "다음 결제일 2036년" · "등록된 카드 정보를 불러올 수 없습니다"는 이 테스트 계정이 정상 Toss 결제 플로우를 거치지 않은 시드 데이터라 card_number_masked가 비어있는 것으로 판단됨 — 코드 버그 아님, 별도 조치 불요)
+- **추가 개선 — 이중청구 방지 범위 확대 + 자동갱신 잡의 최고심각도 결함 발견**(사용자 질문 "더 추가 개선이 있는지?"에 대한 재점검, git `a985660`~`7a4cfe9`): 이미 고친 `webhook.py issue_billing`과 같은 구조("Toss 청구 성공 → 그 다음 DB 갱신 실패")를 다른 결제 경로에도 적용해보니 2곳 더 발견됨.
+  1. `routers/settings.py update_card()`의 정지(suspended)→즉시재결제 분기 — 사용자가 "카드 변경"을 재시도하면 재청구 가능
+  2. `scheduler/jobs.py subscription_lifecycle_job()`(매일 오전 1시 자동 갱신 잡) — **가장 심각**. 사용자 개입 없이 완전 자동 실행되므로, 방치 시 어제 청구 성공했으나 DB 갱신 실패한 구독을 오늘 잡이 그대로 재선택해 재청구할 수 있었음. 실사고 이력은 없으나(events 조회로 과거 실제 이중 이벤트 없음 확인) 구조적으로 열려있던 위험.
+  - 3곳의 중복 로직을 `utils/payment_event_log.py find_recent_success_event()` + `services/toss_billing.py compute_renewal_amount()` 공통 헬퍼로 통합. jobs.py는 잡 주기(24h)보다 짧은 20시간 창으로 가드.
+  - 검증: 로컬 venv python으로 5개 파일 전체 ast 파싱 통과 → md5/diff(CRLF 제외)로 서버 drift 없음 확인 → scp → grep 확인 → pm2 재시작 에러 0건 → `/health` ok (3회 반복 배포)
+  - **알려진 잔여 한계(미해결, 의도적으로 남김)**: 이 가드는 "실패 후 나중에 재시도"는 막지만, 완전히 동시에 들어오는 두 요청(예: 사용자가 "카드 변경" 버튼을 초 단위로 연타)까지는 막지 못하는 순수 레이스 컨디션이 이론상 남아있음 — 이건 DB 레벨 락/유니크 제약이 필요한 별개 작업이라 이번 스코프에서는 제외
 
 ### §5.4 P1 나머지 + P2 완료 (2026-07-11)
 
