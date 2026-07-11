@@ -280,7 +280,7 @@ function PostItem({ post }: PostItemProps) {
         href={post.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="shrink-0 p-1 text-gray-400 hover:text-blue-500 transition-colors mt-0.5"
+        className="shrink-0 p-1 text-gray-500 hover:text-blue-500 transition-colors mt-0.5"
         aria-label="새 탭에서 열기"
       >
         <ExternalLink className="w-4 h-4" />
@@ -509,7 +509,7 @@ export default function BlogScreenshotSection({
       <div className="bg-white rounded-xl shadow-sm p-6 text-center">
         <Search className="w-8 h-8 text-gray-300 mx-auto mb-3" />
         <p className="text-sm font-medium text-gray-600 mb-1">등록된 키워드가 없습니다.</p>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-500">
           사업장 설정에서 키워드를 등록하면 블로그 노출 분석을 확인할 수 있습니다.
         </p>
       </div>
@@ -605,7 +605,7 @@ export default function BlogScreenshotSection({
       <div className="px-4 md:px-6 py-3 border-b border-gray-100 bg-gray-50">
         <p className="text-sm text-gray-500 mb-2">
           내 네이버 블로그 ID를 등록하면 검색 결과에서 내 포스팅 순위를 정확히 표시합니다.
-          <span className="ml-1 text-gray-400">(blog.naver.com/<strong>여기</strong> 부분)</span>
+          <span className="ml-1 text-gray-500">(blog.naver.com/<strong>여기</strong> 부분)</span>
         </p>
         <div className="flex items-center gap-2">
           <input
@@ -712,7 +712,7 @@ export default function BlogScreenshotSection({
                                 ))}
                               </div>
                             ) : (
-                              <p className="text-sm text-gray-400 text-center py-4">포스팅 데이터가 없습니다.</p>
+                              <p className="text-sm text-gray-500 text-center py-4">포스팅 데이터가 없습니다.</p>
                             )}
                             <div className="pt-3 text-right">
                               <a
@@ -786,7 +786,7 @@ export default function BlogScreenshotSection({
             <div className="text-center py-10">
               <Camera className="w-10 h-10 text-gray-200 mx-auto mb-3" />
               <p className="text-sm font-medium text-gray-600 mb-1">아직 캡처된 스크린샷이 없습니다.</p>
-              <p className="text-sm text-gray-400">"첫 스크린샷 촬영" 버튼을 누르면 현재 네이버 블로그 검색 화면을 저장합니다.<br />약 1~2분 후 새로고침하세요.</p>
+              <p className="text-sm text-gray-500">"첫 스크린샷 촬영" 버튼을 누르면 현재 네이버 블로그 검색 화면을 저장합니다.<br />약 1~2분 후 새로고침하세요.</p>
             </div>
           ) : initialShots.filter((s) => s.baseline || s.latest).map((shot) => (
             <div key={shot.keyword}>
@@ -800,7 +800,7 @@ export default function BlogScreenshotSection({
                     <span className="w-2 h-2 rounded-full bg-gray-400 shrink-0" />
                     가입 시점 (Before)
                     {shot.baseline?.captured_at && (
-                      <span className="ml-auto text-gray-400">
+                      <span className="ml-auto text-gray-500">
                         {new Date(shot.baseline.captured_at).toLocaleDateString("ko-KR")}
                       </span>
                     )}
@@ -832,7 +832,7 @@ export default function BlogScreenshotSection({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center h-32 text-sm text-gray-400">
+                    <div className="flex items-center justify-center h-32 text-sm text-gray-500">
                       캡처 없음
                     </div>
                   )}
@@ -875,7 +875,7 @@ export default function BlogScreenshotSection({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center h-32 text-sm text-gray-400">
+                    <div className="flex items-center justify-center h-32 text-sm text-gray-500">
                       {shot.baseline ? "아직 변화 없음 (스캔 후 업데이트)" : "캡처 없음"}
                     </div>
                   )}

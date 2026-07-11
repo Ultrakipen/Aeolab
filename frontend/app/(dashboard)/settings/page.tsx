@@ -215,14 +215,14 @@ export default async function SettingsPage({
                     {/* 날짜 정보 */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
-                        <Calendar className="w-4 h-4 text-gray-400 shrink-0" strokeWidth={1.8} />
+                        <Calendar className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={1.8} />
                         <div>
                           <div className="text-sm text-gray-500">구독 시작</div>
                           <div className="text-base font-semibold text-gray-800">{formatDate(sub.start_at)}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
-                        <Clock className="w-4 h-4 text-gray-400 shrink-0" strokeWidth={1.8} />
+                        <Clock className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={1.8} />
                         <div>
                           <div className="text-sm text-gray-500">
                             {isYearly ? "연간 구독 갱신일" : "다음 결제일"}
@@ -230,13 +230,13 @@ export default async function SettingsPage({
                           <div className="text-base font-semibold text-gray-800">
                             {formatDate(sub.end_at)}
                             {daysUntilEnd !== null && daysUntilEnd > 0 && (
-                              <span className="ml-1.5 text-sm text-gray-400 font-normal">({daysUntilEnd}일 후)</span>
+                              <span className="ml-1.5 text-sm text-gray-500 font-normal">({daysUntilEnd}일 후)</span>
                             )}
                           </div>
                         </div>
                       </div>
                       {firstPaymentAmount !== null && sub.start_at && (
-                        <p className="text-sm text-gray-400 px-1">
+                        <p className="text-sm text-gray-500 px-1">
                           첫 결제: {firstPaymentAmount.toLocaleString("ko-KR")}원 · {formatDate(sub.start_at)}
                         </p>
                       )}
@@ -447,10 +447,10 @@ export default async function SettingsPage({
                       </div>
                       <div>
                         <div className="text-base font-medium text-gray-800 group-hover:text-gray-900">팀 계정 관리</div>
-                        <div className="text-sm text-gray-400">최대 5명 초대 가능</div>
+                        <div className="text-sm text-gray-500">최대 5명 초대 가능</div>
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
                   </Link>
                   <Link
                     href="/settings/api-keys"
@@ -462,10 +462,10 @@ export default async function SettingsPage({
                       </div>
                       <div>
                         <div className="text-base font-medium text-gray-800 group-hover:text-gray-900">Public API 키 관리</div>
-                        <div className="text-sm text-gray-400">최대 5개 발급 가능</div>
+                        <div className="text-sm text-gray-500">최대 5개 발급 가능</div>
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
                   </Link>
                 </div>
               </div>

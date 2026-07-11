@@ -65,7 +65,7 @@ export default async function HistoryPage() {
       <div className="p-4 md:p-8 max-w-2xl mx-auto">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8 text-center">
           <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-7 h-7 text-gray-400" strokeWidth={1.5} />
+            <Lock className="w-7 h-7 text-gray-500" strokeWidth={1.5} />
           </div>
           <h2 className="text-lg md:text-xl font-bold text-gray-700 mb-2">
             변화 기록은 Basic 이상 요금제에서 사용 가능합니다
@@ -234,19 +234,19 @@ export default async function HistoryPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
               <p className="text-sm text-gray-500 mb-2 font-medium">현재 상태</p>
-              <p className={`text-base md:text-lg font-bold ${currentVal >= 75 ? 'text-emerald-700' : currentVal >= 55 ? 'text-blue-600' : currentVal >= 30 ? 'text-amber-700' : 'text-gray-400'}`}>
+              <p className={`text-base md:text-lg font-bold ${currentVal >= 75 ? 'text-emerald-700' : currentVal >= 55 ? 'text-blue-600' : currentVal >= 30 ? 'text-amber-700' : 'text-gray-500'}`}>
                 {getScoreTextLabel(currentVal)}
               </p>
             </div>
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
               <p className="text-sm text-gray-500 mb-2 font-medium">{latestScore?.weekly_change != null ? "지난주 대비" : "이전 스캔 대비"}</p>
-              <p className={`text-base md:text-lg font-bold ${diff > 2 ? 'text-emerald-700' : diff < -2 ? 'text-red-600' : 'text-gray-400'}`}>
+              <p className={`text-base md:text-lg font-bold ${diff > 2 ? 'text-emerald-700' : diff < -2 ? 'text-red-600' : 'text-gray-500'}`}>
                 {diff > 2 ? '↑ 상승' : diff < -2 ? '↓ 하락' : '— 유지'}
               </p>
             </div>
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
               <p className="text-sm text-gray-500 mb-2 font-medium">최고 도달 상태</p>
-              <p className={`text-base md:text-lg font-bold ${maxScore >= 75 ? 'text-emerald-700' : maxScore >= 55 ? 'text-blue-600' : maxScore >= 30 ? 'text-amber-700' : 'text-gray-400'}`}>
+              <p className={`text-base md:text-lg font-bold ${maxScore >= 75 ? 'text-emerald-700' : maxScore >= 55 ? 'text-blue-600' : maxScore >= 30 ? 'text-amber-700' : 'text-gray-500'}`}>
                 {getScoreTextLabel(maxScore)}
               </p>
             </div>
@@ -284,7 +284,7 @@ export default async function HistoryPage() {
                   <p className="text-gray-500 text-sm font-medium mb-1">
                     최근 30일간 스캔 기록이 없습니다. (마지막 스캔: {new Date(lastScanDateEver).toLocaleDateString('ko-KR')})
                   </p>
-                  <p className="text-gray-400 text-sm mb-3">재스캔하면 최신 AI 검색 노출 상태가 여기에 기록됩니다.</p>
+                  <p className="text-gray-500 text-sm mb-3">재스캔하면 최신 AI 검색 노출 상태가 여기에 기록됩니다.</p>
                   <Link href="/dashboard" className="inline-block text-sm font-semibold text-blue-600 hover:underline">
                     대시보드에서 지금 재스캔 →
                   </Link>
@@ -292,7 +292,7 @@ export default async function HistoryPage() {
               ) : (
                 <>
                   <p className="text-gray-500 text-sm font-medium mb-1">아직 스캔 기록이 없습니다.</p>
-                  <p className="text-gray-400 text-sm">대시보드에서 첫 AI 스캔을 진행하면 여기에 기록이 쌓입니다.</p>
+                  <p className="text-gray-500 text-sm">대시보드에서 첫 AI 스캔을 진행하면 여기에 기록이 쌓입니다.</p>
                 </>
               )}
             </div>
@@ -318,7 +318,7 @@ export default async function HistoryPage() {
                         {(() => {
                           const s = row.unified_score ?? row.total_score ?? 0
                           const lbl = getScoreTextLabel(s)
-                          const cls = s >= 75 ? 'text-emerald-700' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-700' : 'text-gray-400'
+                          const cls = s >= 75 ? 'text-emerald-700' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-700' : 'text-gray-500'
                           return <span className={`font-semibold text-sm ${cls}`}>{lbl}</span>
                         })()}
                       </td>
@@ -327,7 +327,7 @@ export default async function HistoryPage() {
                           (() => {
                             const s = row.track1_score
                             const lbl = getScoreTextLabel(s)
-                            const cls = s >= 75 ? 'text-emerald-700' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-700' : 'text-gray-400'
+                            const cls = s >= 75 ? 'text-emerald-700' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-700' : 'text-gray-500'
                             return <span className={`font-medium text-sm ${cls}`}>{lbl}</span>
                           })()
                         ) : (
@@ -341,7 +341,7 @@ export default async function HistoryPage() {
                         ) : (row.weekly_change ?? 0) < -2 ? (
                           <span className="text-red-600 font-semibold">↓ 하락</span>
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-gray-500">—</span>
                         )}
                       </td>
                     </tr>

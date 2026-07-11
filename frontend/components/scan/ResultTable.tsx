@@ -58,7 +58,7 @@ function NaverSection({
           </td>
           <td className="px-4 md:px-6 py-3">
             {naver.error ? (
-              <span className="text-gray-400 text-sm">오류</span>
+              <span className="text-gray-500 text-sm">오류</span>
             ) : inSearch ? (
               <span className="inline-flex items-center gap-1 text-green-600 font-medium text-sm">
                 ✓ 검색 노출{placeRank ? ` (${placeRank}위)` : ''}
@@ -73,7 +73,7 @@ function NaverSection({
                 블로그 언급 <strong className="text-gray-700">{naver.blog_mentions}건</strong>
               </span>
             ) : (
-              <span className="text-sm text-gray-400">—</span>
+              <span className="text-sm text-gray-500">—</span>
             )}
           </td>
         </tr>
@@ -87,7 +87,7 @@ function NaverSection({
           </td>
           <td className="px-4 md:px-6 py-3">
             {naver.error ? (
-              <span className="text-gray-400 text-sm">오류</span>
+              <span className="text-gray-500 text-sm">오류</span>
             ) : inBrief ? (
               <span className="inline-flex items-center gap-1 bg-green-600 text-white text-sm px-2.5 py-0.5 rounded-full font-medium w-fit">
                 🤖 브리핑 포함
@@ -105,7 +105,7 @@ function NaverSection({
             )}
           </td>
           <td className="px-4 md:px-6 py-3">
-            <span className="text-sm text-gray-400">—</span>
+            <span className="text-sm text-gray-500">—</span>
           </td>
         </tr>
       )}
@@ -134,7 +134,7 @@ function NaverSection({
             {aiTabVisible && aiTab.excerpt ? (
               <span className="text-sm text-gray-500 truncate max-w-xs block">&ldquo;{aiTab.excerpt}&rdquo;</span>
             ) : (
-              <span className="text-sm text-gray-400">—</span>
+              <span className="text-sm text-gray-500">—</span>
             )}
           </td>
         </tr>
@@ -154,8 +154,8 @@ function GlobalRow({ platformKey, result }: { platformKey: string; result: AIRes
   const statusCell = () => {
     if (result.error) return (
       platformKey === 'google'
-        ? <span className="text-gray-400 text-sm">측정 보류</span>
-        : <span className="text-gray-400 text-sm">오류</span>
+        ? <span className="text-gray-500 text-sm">측정 보류</span>
+        : <span className="text-gray-500 text-sm">오류</span>
     )
     if (!result.mentioned) return <span className="text-gray-500 text-sm">미노출</span>
     return (
@@ -186,7 +186,7 @@ function GlobalRow({ platformKey, result }: { platformKey: string; result: AIRes
     if (result.excerpt) return (
       <span className="text-sm text-gray-500 truncate max-w-xs block">&ldquo;{result.excerpt}&rdquo;</span>
     )
-    return <span className="text-sm text-gray-400">—</span>
+    return <span className="text-sm text-gray-500">—</span>
   }
 
   return (

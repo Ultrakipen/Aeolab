@@ -127,7 +127,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
           >
             ← 가이드 허브
           </Link>
-          <span className="text-gray-400">/</span>
+          <span className="text-gray-500">/</span>
           <span className="text-sm text-gray-500 dark:text-gray-400">점수 기준 개선 안내</span>
         </div>
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -166,7 +166,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
           <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${groupContent.badge}`}>
             {groupContent.badgeText}
           </span>
-          {userGroup && <span className="text-sm text-gray-400">(내 업종)</span>}
+          {userGroup && <span className="text-sm text-gray-500">(내 업종)</span>}
         </div>
         <ul className="space-y-2 mb-4">
           {groupContent.changes.map((change, i) => (
@@ -223,7 +223,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
             <details key={i} className="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
               <summary className="flex items-center justify-between p-4 cursor-pointer text-sm font-semibold text-gray-800 dark:text-gray-200 select-none list-none">
                 <span className="break-keep pr-4">{item.q}</span>
-                <span className="flex-shrink-0 text-gray-400 group-open:rotate-180 transition-transform duration-200">▼</span>
+                <span className="flex-shrink-0 text-gray-500 group-open:rotate-180 transition-transform duration-200">▼</span>
               </summary>
               <div className="px-4 pb-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-keep">

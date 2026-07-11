@@ -60,7 +60,7 @@ export default function AdCostCalculatorPage() {
             <span className="text-3xl md:text-4xl font-black text-gray-900">
               {adCostManWon}만원
             </span>
-            <span className="text-base text-gray-400 ml-1">/월</span>
+            <span className="text-base text-gray-500 ml-1">/월</span>
           </div>
 
           {/* 슬라이더 */}
@@ -76,7 +76,7 @@ export default function AdCostCalculatorPage() {
           />
 
           {/* 최소/최대 레이블 */}
-          <div className="flex justify-between text-sm text-gray-400 mt-1.5">
+          <div className="flex justify-between text-sm text-gray-500 mt-1.5">
             <span>1만원</span>
             <span>200만원</span>
           </div>
@@ -116,11 +116,11 @@ export default function AdCostCalculatorPage() {
             <div className="flex items-center justify-between gap-4 py-4 border-b border-gray-50">
               <div>
                 <p className="text-sm font-semibold text-gray-700">6개월 절감 예상</p>
-                <p className="text-sm text-gray-400 mt-0.5">
+                <p className="text-sm text-gray-500 mt-0.5">
                   광고비 {formatWon(adCost)} × 30% × 6개월 − AEOlab {formatWon(aeolab6mo)}
                 </p>
               </div>
-              <span className={`text-xl font-black shrink-0 ${saving6mo > 0 ? "text-emerald-600" : "text-gray-400"}`}>
+              <span className={`text-xl font-black shrink-0 ${saving6mo > 0 ? "text-emerald-600" : "text-gray-500"}`}>
                 {saving6mo > 0 ? `+${formatWon(saving6mo)}` : "효과 미미"}
               </span>
             </div>
@@ -129,11 +129,11 @@ export default function AdCostCalculatorPage() {
             <div className="flex items-center justify-between gap-4 py-4">
               <div>
                 <p className="text-sm font-semibold text-gray-700">1년 절감 예상</p>
-                <p className="text-sm text-gray-400 mt-0.5">
+                <p className="text-sm text-gray-500 mt-0.5">
                   광고비 {formatWon(adCost)} × 30% × 12개월 − AEOlab {formatWon(aeolab12mo)}
                 </p>
               </div>
-              <span className={`text-xl font-black shrink-0 ${saving12mo > 0 ? "text-emerald-600" : "text-gray-400"}`}>
+              <span className={`text-xl font-black shrink-0 ${saving12mo > 0 ? "text-emerald-600" : "text-gray-500"}`}>
                 {saving12mo > 0 ? `+${formatWon(saving12mo)}` : "효과 미미"}
               </span>
             </div>
@@ -148,7 +148,7 @@ export default function AdCostCalculatorPage() {
         </div>
 
         {/* 면책 문구 */}
-        <p className="text-sm text-gray-400 text-center leading-relaxed">
+        <p className="text-sm text-gray-500 text-center leading-relaxed">
           절감 효과는 업종·지역·경쟁 강도에 따라 다릅니다.
           실제 효과는 AEOlab 스캔 후 확인하세요.
         </p>

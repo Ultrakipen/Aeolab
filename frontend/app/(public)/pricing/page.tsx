@@ -133,7 +133,7 @@ export default function PricingPage() {
 
         {/* ─── Biz 플랜 앵커 안내 ─── */}
         <div className="flex items-center justify-center gap-3 mb-6 -mt-4">
-          <span className="text-sm text-gray-400">여러 사업장·팀 계정이 필요하신가요?</span>
+          <span className="text-sm text-gray-500">여러 사업장·팀 계정이 필요하신가요?</span>
           <a href="#plan-Biz" className="text-sm font-semibold text-blue-600 hover:underline">
             Biz 플랜 보기 ↓
           </a>
@@ -218,7 +218,7 @@ export default function PricingPage() {
         {/* ─── 플랜 기능 비교표 ─── */}
         <div className="overflow-x-auto mb-14">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 text-center">플랜 기능 비교</h2>
-          <p className="text-sm text-gray-400 text-center mb-4 md:hidden">← 좌우로 밀어 비교하세요</p>
+          <p className="text-sm text-gray-500 text-center mb-4 md:hidden">← 좌우로 밀어 비교하세요</p>
           <table className="w-full min-w-[560px] text-sm border-collapse">
             <thead>
               <tr className="border-b border-gray-200">
@@ -261,7 +261,7 @@ export default function PricingPage() {
               ))}
             </tbody>
           </table>
-          <p className="text-sm text-gray-400 mt-2 text-right">— : 해당 플랜에 포함되지 않음</p>
+          <p className="text-sm text-gray-500 mt-2 text-right">— : 해당 플랜에 포함되지 않음</p>
         </div>
 
         {/* ─── 포함된 진단 도구 ─── */}
@@ -395,14 +395,14 @@ export default function PricingPage() {
               <div>
                 <div className="text-2xl font-bold text-red-500 mb-1">300,000원</div>
                 <div className="text-sm text-gray-500">키워드 광고 월 1일치</div>
-                <div className="text-sm text-gray-400 mt-1">광고 끄면 즉시 노출 0</div>
+                <div className="text-sm text-gray-500 mt-1">광고 끄면 즉시 노출 0</div>
               </div>
-              <div className="flex items-center justify-center text-gray-400 text-3xl font-thin hidden sm:flex">vs</div>
+              <div className="flex items-center justify-center text-gray-500 text-3xl font-thin hidden sm:flex">vs</div>
               <div className="sm:hidden border-t border-gray-200 pt-3" />
               <div>
                 <div className="text-2xl font-bold text-blue-600 mb-1">9,900원</div>
                 <div className="text-sm text-gray-500">AEOlab Basic 한 달</div>
-                <div className="text-sm text-gray-400 mt-1">AI 노출 구조 자체를 개선</div>
+                <div className="text-sm text-gray-500 mt-1">AI 노출 구조 자체를 개선</div>
               </div>
             </div>
 
@@ -478,7 +478,7 @@ export default function PricingPage() {
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-sm text-gray-400 leading-relaxed text-center">
+            <p className="mt-3 text-sm text-gray-500 leading-relaxed text-center">
               ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
               측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
             </p>

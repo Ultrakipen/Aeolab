@@ -172,7 +172,7 @@ export default function TrialStatusSummary({
   if (userGroup === "INACTIVE" || userGroup === "franchise") {
     briefingStatus = "na";
     briefingValue = userGroup === "franchise" ? "프랜차이즈 제외" : "비대상 업종";
-    briefingStatusColor = "text-gray-400";
+    briefingStatusColor = "text-gray-500";
   } else if (userGroup === "LIKELY") {
     briefingStatus = "na";
     briefingValue = "확장 예정";
@@ -211,7 +211,7 @@ export default function TrialStatusSummary({
   if (!isSmartPlace) {
     faqStatus = "na";
     faqValue = "스마트플레이스 미등록";
-    faqStatusColor = "text-gray-400";
+    faqStatusColor = "text-gray-500";
   } else if (hasFaq) {
     faqStatus = "ok";
     faqValue = "있음";
@@ -241,7 +241,7 @@ export default function TrialStatusSummary({
             {businessName} AI 검색 현황
           </p>
           {categoryLabel && region && (
-            <p className="text-sm text-gray-400 mb-2">
+            <p className="text-sm text-gray-500 mb-2">
               {categoryLabel} · {region}
             </p>
           )}
@@ -259,7 +259,7 @@ export default function TrialStatusSummary({
               <span className={`text-4xl font-black leading-none ${scoreColor}`}>
                 {score}
               </span>
-              <span className="text-lg text-gray-400 font-normal mb-1">/ 100</span>
+              <span className="text-lg text-gray-500 font-normal mb-1">/ 100</span>
             </div>
           </div>
 
@@ -273,11 +273,11 @@ export default function TrialStatusSummary({
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex gap-4 text-sm">
               <div>
-                <span className="text-gray-400">네이버</span>
+                <span className="text-gray-500">네이버</span>
                 <span className="ml-1.5 font-bold text-blue-700">{track1}점</span>
               </div>
               <div>
-                <span className="text-gray-400">글로벌 AI</span>
+                <span className="text-gray-500">글로벌 AI</span>
                 <span className="ml-1.5 font-bold text-gray-600">{track2}점</span>
               </div>
             </div>

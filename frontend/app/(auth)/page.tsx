@@ -87,7 +87,7 @@ function SignupForm() {
               <span className="font-medium text-gray-900 break-all">{email}</span>
             </p>
             <p className="text-base text-gray-500 mb-2">으로 인증 링크를 발송했습니다.</p>
-            <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+            <p className="text-sm text-gray-500 mb-4 leading-relaxed">
               링크를 클릭하면 자동으로 로그인됩니다.<br />
               메일이 오지 않으면 스팸함을 확인해주세요.
             </p>
@@ -156,7 +156,7 @@ function SignupForm() {
           <div>
             <label className="block text-base font-medium text-gray-700 mb-1.5">
               비밀번호 <span className="text-blue-600">*</span>
-              <span className="text-sm font-normal text-gray-400 ml-1">(8자 이상)</span>
+              <span className="text-sm font-normal text-gray-500 ml-1">(8자 이상)</span>
             </label>
             <input
               type="password"
@@ -252,7 +252,7 @@ function SignupForm() {
                 className="w-5 h-5 accent-blue-600 shrink-0"
               />
               <span className="text-base text-gray-700 leading-snug">
-                <span className="text-gray-400 font-medium">[선택]</span>{" "}
+                <span className="text-gray-500 font-medium">[선택]</span>{" "}
                 AI 노출 분석 리포트·서비스 소식 수신 동의
               </span>
             </label>
@@ -281,7 +281,7 @@ function SignupForm() {
           </Link>
         </p>
         <p className="text-center mt-3">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
+          <Link href="/" className="text-sm text-gray-500 hover:text-gray-600">
             ← 홈으로
           </Link>
         </p>

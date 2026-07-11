@@ -152,17 +152,17 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col">
       <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-        <MessageSquare className="w-4 h-4 text-gray-400" strokeWidth={1.5} />
+        <MessageSquare className="w-4 h-4 text-gray-500" strokeWidth={1.5} />
         <h2 className="text-base font-semibold text-gray-800">메시지</h2>
         {isDisabled && (
-          <span className="ml-auto text-sm text-gray-400">종료된 의뢰</span>
+          <span className="ml-auto text-sm text-gray-500">종료된 의뢰</span>
         )}
       </div>
 
       {/* 메시지 목록 */}
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-1 min-h-[240px] max-h-[480px]">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-gray-400">
+          <div className="flex flex-col items-center justify-center h-40 text-gray-500">
             <MessageSquare className="w-8 h-8 mb-2 opacity-30" strokeWidth={1.2} />
             <p className="text-sm">아직 메시지가 없습니다.</p>
             <p className="text-sm">의뢰 내용을 담당자에게 문의해 보세요.</p>
@@ -180,7 +180,7 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
                 {showDateDivider && (
                   <div className="flex items-center gap-3 py-2">
                     <div className="flex-1 h-px bg-gray-100" />
-                    <span className="text-sm text-gray-400 shrink-0">{dateLabel}</span>
+                    <span className="text-sm text-gray-500 shrink-0">{dateLabel}</span>
                     <div className="flex-1 h-px bg-gray-100" />
                   </div>
                 )}
@@ -199,7 +199,7 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
                     >
                       <p className="whitespace-pre-wrap break-words">{msg.body}</p>
                     </div>
-                    <span className="text-sm text-gray-400 px-1">{formatTime(msg.created_at)}</span>
+                    <span className="text-sm text-gray-500 px-1">{formatTime(msg.created_at)}</span>
                   </div>
                 </div>
               </div>
@@ -215,7 +215,7 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
           <p className="text-sm text-red-600 mb-2">{error}</p>
         )}
         {isDisabled ? (
-          <p className="text-center text-sm text-gray-400 py-2">
+          <p className="text-center text-sm text-gray-500 py-2">
             완료 또는 취소된 의뢰는 메시지를 보낼 수 없습니다.
           </p>
         ) : (
@@ -307,7 +307,7 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
               </div>
               <button
                 onClick={() => setShowTestimonialModal(false)}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-400"
+                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
                 aria-label="모달 닫기"
               >
                 <X className="w-5 h-5" />
