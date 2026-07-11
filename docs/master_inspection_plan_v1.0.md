@@ -218,6 +218,16 @@
 - **발견 2의 근본 수정 추가 완료**(같은 세션, 사용자 지시 "지금할것", git `dd691aa`): 프론트 안내 문구만으론 부족 판단 — `webhook.py` 첫 결제(2단계) 직전에 `payment_events`에서 같은 금액·10분 이내 성공 이벤트를 조회, 있으면 Toss 재청구를 건너뛰고 구독 저장(3단계)만 재시도하도록 이중청구 방지 로직 추가. md5 사전확인(drift 없음) → scp → 서버 grep 확인 → pm2 재시작(`Application startup complete`, 에러 0건) → `/health` ok 확인
 - **card-update 라이브 재검증 시도**: gstack `/browse`로 실제 로그인(hoozdev@gmail.com) 후 `/settings` 진입·카드 변경 버튼 확인까지는 성공했으나, 같은 시간대 다른 세션이 동일 공유 브라우저 데몬을 사용 중이라 클릭 직후 스크린샷이 엉뚱한 페이지(`/support/tickets/new`)를 찍는 등 신뢰할 수 없는 간섭 발생 → 라이브 클릭 검증은 중단, 코드 대조 수준으로 한정(memory `feedback_shared_browser_lock_verification` 갱신)
 
+### §5.4 P1 나머지 + P2 완료 (2026-07-11)
+
+- **실행**: §5.2-1(P1 나머지)·§5.2-2(P2) 2개 백그라운드 에이전트 병렬 실행. 대비율은 양쪽 다 목록만(§5.1 창 전담 원칙 준수).
+- **P1 나머지 발견+수정**(에이전트가 직접 Edit, 메인 세션 grep 검증 후 배포): onboarding 플랜모달 경쟁사 한도 오기재(`plan_gate.py` Basic=3/Pro=5와 불일치하던 5곳/10곳 표기 정정), `trial/page.tsx` `TRIAL_DAY_LIMIT=999` 미복구, signup "이미 가입" 에러에 로그인 링크 누락(Nielsen #9), onboarding CTA 앵커라우팅·모바일 스텝라벨·aria-expanded 3건.
+- **P2 발견**(에이전트는 보고서만, Edit 금지 지시): `quick/page.tsx`에도 `TRIAL_DAY_LIMIT=999` 동일 반복 + 백엔드 59개 화이트리스트에 없는 비표준 업종코드(`health`/`professional`/`living`) 사용 중이던 실버그, Claude 스캐너 잔존 언급, Trial 5회를 "10회 샘플"로 오기재, AI탭 subtitle "베타 공개" 잔존, score-guide `AuthNavControl` 누락, ad-cost-calculator 30% 가정값 (추정)배지 누락, `share/[bizId]` 성장단계 설명 점수구간 수치 노출.
+- **메인 세션 자체 발견(에이전트 보고에 없던 것, 가장 중요)**: 라이브 curl 스모크테스트 중 `/guide/channels/[category]`(59업종 SSG 공개 SEO 페이지, `(public)` 라우트 그룹)가 `/login`으로 307 리다이렉트되는 것을 발견. `middleware.ts`의 `protectedPaths`가 `/guide` 전체를 프리픽스로 보호 처리하는데 `publicGuidePaths`는 `/guide/chatgpt-search`만 예외 — `/guide/channels/*`는 비로그인 사용자·검색엔진 크롤러 전부 로그인 페이지로 리다이렉트되어 SEO 목적이 완전히 무력화되고 있었음. `publicGuidePaths`에 `/guide/channels` 추가로 수정.
+- **검증**: P2발견분+middleware(6파일)·P1에이전트 직접수정분(3파일) 총 9개 파일 전부 md5 사전일치(drift 없음) → scp → `npm run build` 성공 → pm2 재시작 error.log 0건 → curl 실측(`/guide/channels/restaurant`·`/cafe` 200, `/dashboard`·`/onboarding`은 여전히 307로 정상 보호, `/quick`·`/score-guide`·`/tools/ad-cost-calculator`·`/trial`·`/signup` 200) 전부 확인
+- git 커밋 `5b1f915`(P2발견분+middleware), `f65d090`(P1에이전트 직접수정분). push는 drift 정책상 보류.
+- 상세: memory `project_p1_p2_gap5_inspection_2026_07_11`
+
 ---
 
 ## §6. "외부 사이트 대비 현재 수준" — 현재까지의 결론
