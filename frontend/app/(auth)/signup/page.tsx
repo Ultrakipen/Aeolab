@@ -60,7 +60,7 @@ function SignupForm() {
     if (signupError) {
       const msg = signupError.message;
       if (msg.includes("already registered") || msg.includes("User already registered")) {
-        setError("이미 가입된 이메일입니다. 로그인해 주세요.");
+        setError("ALREADY_REGISTERED");
       } else if (msg.includes("Password should be at least")) {
         setError("비밀번호는 최소 8자 이상이어야 합니다.");
       } else if (msg.includes("rate limit") || msg.includes("too many")) {
@@ -318,7 +318,16 @@ function SignupForm() {
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              <p className="text-base text-red-600">{error}</p>
+              {error === "ALREADY_REGISTERED" ? (
+                <p className="text-base text-red-600">
+                  이미 가입된 이메일입니다.{" "}
+                  <Link href="/login" className="underline font-semibold hover:text-red-800">
+                    로그인 →
+                  </Link>
+                </p>
+              ) : (
+                <p className="text-base text-red-600">{error}</p>
+              )}
             </div>
           )}
 

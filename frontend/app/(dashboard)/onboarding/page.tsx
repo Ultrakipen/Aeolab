@@ -68,6 +68,8 @@ function CategoryDropdown({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
         className={`w-full flex items-center gap-2 border rounded-lg px-3 py-3 text-base bg-white transition-all
           ${open ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-300 hover:border-gray-400"}`}
       >
@@ -343,9 +345,9 @@ export default function OnboardingPage() {
     router.push(dest);
   };
 
-  const handleGoToPricing = () => {
+  const handleGoToPricing = (anchor?: string) => {
     setShowPlanModal(false);
-    router.push("/pricing");
+    router.push(anchor ? `/pricing#${anchor}` : "/pricing");
   };
 
   return (
@@ -370,11 +372,11 @@ export default function OnboardingPage() {
               <p className="text-sm font-semibold text-orange-500 mb-2">첫 달 4,950원 (50% 할인)</p>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />주 1회 자동 AI 스캔</li>
-                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />경쟁사 5곳 비교</li>
-                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />리뷰 답변 · FAQ 무제한</li>
+                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />경쟁사 3곳 비교</li>
+                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />리뷰 답변 월 50회</li>
               </ul>
               <button
-                onClick={handleGoToPricing}
+                onClick={() => handleGoToPricing("plan-Basic")}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg text-base font-semibold hover:bg-blue-700 transition-colors"
               >
                 지금 결제
@@ -388,12 +390,12 @@ export default function OnboardingPage() {
                 {PLAN_PRICES.pro.toLocaleString()}원<span className="text-sm font-normal text-gray-500">/월</span>
               </div>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
-                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-indigo-400 shrink-0" />경쟁사 10곳 비교</li>
+                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-indigo-400 shrink-0" />경쟁사 5곳 비교</li>
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-indigo-400 shrink-0" />경쟁사 변화 즉시 알림</li>
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-indigo-400 shrink-0" />PDF 성과 보고서</li>
               </ul>
               <button
-                onClick={handleGoToPricing}
+                onClick={() => handleGoToPricing("plan-Pro")}
                 className="w-full border border-indigo-300 text-indigo-600 py-3 rounded-lg text-base font-semibold hover:bg-indigo-50 transition-colors"
               >
                 지금 결제
@@ -412,7 +414,7 @@ export default function OnboardingPage() {
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 shrink-0" />팀 계정 5명</li>
               </ul>
               <button
-                onClick={handleGoToPricing}
+                onClick={() => handleGoToPricing("plan-Biz")}
                 className="w-full border border-emerald-300 text-emerald-600 py-3 rounded-lg text-base font-semibold hover:bg-emerald-50 transition-colors"
               >
                 지금 결제
@@ -446,11 +448,11 @@ export default function OnboardingPage() {
                 }`}>
                   {step > s.id ? <Check className="w-5 h-5" /> : s.id}
                 </div>
-                <div className="hidden sm:block">
-                  <div className={`text-sm font-semibold leading-tight ${step === s.id ? "text-gray-900" : "text-gray-500"}`}>
+                <div>
+                  <div className={`text-xs sm:text-sm font-semibold leading-tight ${step === s.id ? "text-gray-900" : "text-gray-500"}`}>
                     {s.label}
                   </div>
-                  <div className={`text-sm leading-tight ${step === s.id ? "text-gray-500" : "text-gray-300"}`}>
+                  <div className={`hidden sm:block text-sm leading-tight ${step === s.id ? "text-gray-500" : "text-gray-300"}`}>
                     {s.desc}
                   </div>
                 </div>
@@ -568,6 +570,7 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={() => setShowManualInput(v => !v)}
+                  aria-expanded={showManualInput}
                   className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors"
                 >
                   <ChevronDown className={`w-4 h-4 transition-transform ${showManualInput ? "rotate-180" : ""}`} />
