@@ -137,46 +137,71 @@ async def issue_billing(body: BillingIssueRequest):
         discount_until = (datetime.now() + timedelta(days=30)).date().isoformat()
 
     order_id = f"first_{user_id}_{int(datetime.now().timestamp())}"
-
-    # 2. 첫 결제
-    async with httpx.AsyncClient(timeout=30) as c:
-        resp = await c.post(
-            f"https://api.tosspayments.com/v1/billing/{billing_key}",
-            auth=(secret_key, ""),
-            json={
-                "customerKey": body.customerKey,
-                "amount": body.amount,
-                "orderId": order_id,
-                "orderName": f"AEOlab {body.plan} 구독",
-            },
-        )
-    if resp.status_code != 200:
-        logger.error(f"첫 결제 실패: {resp.text}")
-        from utils.payment_event_log import record_payment_event
-        await record_payment_event(user_id, "billing_issue", "failed", body.amount, resp.text)
-        raise HTTPException(status_code=400, detail=f"결제 실패: {resp.text}")
-
-    data = resp.json()
-    from utils.payment_event_log import record_payment_event
-    await record_payment_event(user_id, "billing_issue", "success", body.amount, data.get("paymentKey"))
-
-    # 3. 구독 저장
     is_yearly_issue = body.amount in YEARLY_AMOUNTS
     billing_cycle_issue = "yearly" if is_yearly_issue else "monthly"
     end_at_issue = (datetime.now() + timedelta(days=365 if is_yearly_issue else 30)).date().isoformat()
 
+    # 이중 청구 방지: Toss 청구(2번)는 성공했지만 그 직후 구독 저장(3번)이 실패해
+    # 프론트가 에러로 표시 → 사용자가 재시도하면, 같은 금액의 성공 이벤트가 10분
+    # 이내에 이미 있으므로 Toss에 재청구하지 않고 구독 저장만 다시 시도한다.
+    recent = await execute(
+        get_client().table("payment_events")
+        .select("amount, detail, created_at")
+        .eq("user_id", user_id)
+        .eq("event_type", "billing_issue")
+        .eq("status", "success")
+        .order("created_at", desc=True)
+        .limit(1)
+    )
+    payment_key = None
+    charge_start_at = datetime.now().isoformat()
+    skip_charge = False
+    if recent and recent.data:
+        last = recent.data[0]
+        last_created = datetime.fromisoformat(last["created_at"].replace("Z", "+00:00"))
+        if last.get("amount") == body.amount and (datetime.now(last_created.tzinfo) - last_created) < timedelta(minutes=10):
+            logger.warning(f"issue_billing 중복 청구 방지 — 최근 성공 이벤트 재사용: user_id={user_id}, amount={body.amount}")
+            skip_charge = True
+            payment_key = last.get("detail")
+
+    if not skip_charge:
+        # 2. 첫 결제
+        async with httpx.AsyncClient(timeout=30) as c:
+            resp = await c.post(
+                f"https://api.tosspayments.com/v1/billing/{billing_key}",
+                auth=(secret_key, ""),
+                json={
+                    "customerKey": body.customerKey,
+                    "amount": body.amount,
+                    "orderId": order_id,
+                    "orderName": f"AEOlab {body.plan} 구독",
+                },
+            )
+        if resp.status_code != 200:
+            logger.error(f"첫 결제 실패: {resp.text}")
+            from utils.payment_event_log import record_payment_event
+            await record_payment_event(user_id, "billing_issue", "failed", body.amount, resp.text)
+            raise HTTPException(status_code=400, detail=f"결제 실패: {resp.text}")
+
+        data = resp.json()
+        from utils.payment_event_log import record_payment_event
+        await record_payment_event(user_id, "billing_issue", "success", body.amount, data.get("paymentKey"))
+        payment_key = data.get("paymentKey")
+        charge_start_at = data.get("approvedAt") or charge_start_at
+
+    # 3. 구독 저장
     supabase = get_client()
     sub_payload = {
         "user_id": user_id,
         "plan": plan,
         "status": "active",
         "billing_cycle": billing_cycle_issue,
-        "start_at": data.get("approvedAt"),
+        "start_at": charge_start_at,
         "end_at": end_at_issue,
         "billing_key": billing_key,
         "customer_key": body.customerKey,
         "first_payment_amount": body.amount,
-        "first_payment_key": data.get("paymentKey"),
+        "first_payment_key": payment_key,
         "card_issuer_code": card_issuer_code,
         "card_number_masked": card_number_masked,
     }
