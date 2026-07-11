@@ -101,6 +101,18 @@
 - **다음 세션 트리거 명령**: `docs/master_inspection_plan_v1.0.md §5.1 기준으로 text-gray-400 800건 규모 대비율 잔여 작업 이어서 진행. 파일별 확인(다크모드·아이콘·의도된 저대비 예외 배제) 후 일괄 수정`
 - 상세 근거: memory `project_master_inspection_plan_and_contrast_scale_2026_07_11`
 
+### §5.2 나머지 항목 병렬 창 트리거 (2026-07-11 준비, §5.1 대비율 창과 파일 겹침 없도록 분리)
+
+> 공통 규칙: 대비율(색상 hex·`text-gray-400`류) 수정은 §5.1 창이 전담 — 다른 창은 발견해도 직접 고치지 말고 목록만 남길 것.
+
+1. **P1 나머지**(랜딩·요금제·trial·온보딩, 대비율 제외 L3): `docs/master_inspection_plan_v1.0.md §4 P1 기준으로 랜딩(/)·요금제(/pricing)·trial(/trial)·온보딩(/onboarding) 라이브 점검. 대비율은 목록만. Nielsen 10휴리스틱·정보위계·카피톤 실측.`
+2. **P2**(공개 콘텐츠 ~20개): `docs/master_inspection_plan_v1.0.md §2 그룹A 기준으로 /demo,/how-it-works,/faq,/help,/terms,/privacy,/score-guide,/guide/chatgpt-search,/guide/channels/[category],/blog,/blog/[slug],/stories,/resources,/tools/keyword,/tools/ad-cost-calculator,/keywords,/quick,/share/* L3 4축 점검. 대비율은 목록만. 빈상태·더미데이터 확인 포함.`
+3. **P3**(결제): `docs/master_inspection_plan_v1.0.md §4 P3 기준으로 /payment/success,/payment/fail,/payment/card-update 결제 신뢰 UX 점검. card-update 로그인 필요·인증 한계 명시. 대비율은 목록만.`
+4. **P4**(사용자 지원): `docs/master_inspection_plan_v1.0.md §4 P4 기준으로 /support,/support/tickets,/support/tickets/new(사용자단만) 점검. 로그인 필요·인증 한계 명시. 대비율은 목록만.`
+5. **gap-5**(실제 경쟁 서비스 라이브 비교): `docs/master_inspection_plan_v1.0.md gap-5 기준으로 아이보스(iboss.co.kr) 등 실제 경쟁 서비스를 Playwright로 방문해 AEOlab과 스크린샷 비교. 코드 수정 없는 조사 리포트, §6 갱신.`
+
+> 5개 전부 동시 실행은 1인 Max 5x 플랜 기준 토큰 소모가 크다 — 병렬/순차는 사용자 판단.
+
 ---
 
 ## §6. "외부 사이트 대비 현재 수준" — 현재까지의 결론
