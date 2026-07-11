@@ -150,7 +150,7 @@ export function SettingsClient({
       await tossPayments.requestBillingAuth("카드", {
         customerKey: `customer_${effectiveUserId}`,
         successUrl: `${window.location.origin}/payment/card-update`,
-        failUrl: `${window.location.origin}/payment/fail`,
+        failUrl: `${window.location.origin}/payment/fail?from=card-update`,
       });
     } catch (err: unknown) {
       const code = (err as { code?: string })?.code;

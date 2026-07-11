@@ -33,6 +33,7 @@ function PaymentSuccessContent() {
   const router = useRouter();
   const [status, setStatus] = useState<Status>("processing");
   const [planName, setPlanName] = useState("");
+  const [chargedAmount, setChargedAmount] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [countdown, setCountdown] = useState(3);
   const calledRef = useRef(false);
@@ -53,6 +54,7 @@ function PaymentSuccessContent() {
     }
 
     setPlanName(plan);
+    setChargedAmount(amount);
     setStatus("billing");
 
     issueBilling({ authKey, customerKey, plan, amount })
@@ -114,18 +116,32 @@ function PaymentSuccessContent() {
 
   if (status === "error") {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
-          <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" strokeWidth={1.5} />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">결제 오류</h1>
-          <p className="text-gray-500 text-sm mb-6">{errorMsg}</p>
-          <Link
-            href="/pricing"
-            className="block bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
-          >
-            다시 시도
-          </Link>
+      <main className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
+            <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" strokeWidth={1.5} />
+            <h1 className="text-xl font-bold text-gray-900 mb-2">결제 오류</h1>
+            <p className="text-gray-500 text-sm mb-2">{errorMsg}</p>
+            <p className="text-gray-400 text-sm mb-6">
+              카드 승인이 이미 진행되었을 수 있습니다. 중복 결제를 막기 위해 다시 시도하기 전에 1:1 문의로 결제 여부를 확인해주세요.
+            </p>
+            <div className="space-y-3">
+              <Link
+                href="/pricing"
+                className="block bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+              >
+                다시 시도
+              </Link>
+              <Link
+                href="/support/tickets/new"
+                className="block border border-gray-200 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+              >
+                1:1 문의하기
+              </Link>
+            </div>
+          </div>
         </div>
+        <SiteFooter />
       </main>
     );
   }
@@ -140,6 +156,11 @@ function PaymentSuccessContent() {
           <p className="text-gray-600 mb-1">
             <span className="font-semibold text-blue-600">{planName}</span> 플랜이 활성화되었습니다.
           </p>
+          {chargedAmount > 0 && (
+            <p className="text-gray-600 text-sm mb-1">
+              오늘 <span className="font-semibold">{chargedAmount.toLocaleString()}원</span>이 결제되었습니다.
+            </p>
+          )}
           <p className="text-gray-400 text-sm mb-2">
             이제 네이버·Gemini·ChatGPT 3채널 자동 스캔과 개선 가이드를 이용할 수 있습니다.
           </p>

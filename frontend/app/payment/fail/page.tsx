@@ -21,22 +21,21 @@ function PaymentFailContent() {
   const searchParams = useSearchParams();
   const errorCode = searchParams.get("code") ?? "";
   const errorMsg = searchParams.get("message") ?? "";
-  const orderId = searchParams.get("orderId");
+  const isCardUpdate = searchParams.get("from") === "card-update";
 
   const displayMsg =
     ERROR_MESSAGES[errorCode] ||
     errorMsg ||
-    "결제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+    "카드 등록이 완료되지 않았습니다. 결제는 진행되지 않았으니 안심하고 다시 시도해주세요.";
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center">
         <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" strokeWidth={1.5} />
-        <h1 className="text-xl font-bold text-gray-900 mb-2">결제 실패</h1>
-        <p className="text-gray-500 text-sm mb-2">{displayMsg}</p>
-        {orderId && (
-          <p className="text-sm text-gray-400 mb-6">주문번호: {orderId}</p>
-        )}
+        <h1 className="text-xl font-bold text-gray-900 mb-2">
+          {isCardUpdate ? "카드 등록 실패" : "결제 실패"}
+        </h1>
+        <p className="text-gray-500 text-sm mb-6">{displayMsg}</p>
 
         <div className="bg-blue-50 rounded-xl p-4 mb-6 text-left">
           <p className="text-sm font-medium text-blue-800 mb-2">이런 경우 확인해보세요</p>
@@ -50,16 +49,16 @@ function PaymentFailContent() {
 
         <div className="space-y-3">
           <Link
-            href="/pricing"
+            href={isCardUpdate ? "/settings" : "/pricing"}
             className="block bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
           >
-            다시 결제하기
+            {isCardUpdate ? "설정으로 돌아가 다시 시도" : "다시 결제하기"}
           </Link>
           <Link
-            href="/"
+            href={isCardUpdate ? "/dashboard" : "/"}
             className="block text-sm text-gray-400 hover:text-gray-600 transition-colors"
           >
-            홈으로
+            {isCardUpdate ? "대시보드로 이동" : "홈으로"}
           </Link>
         </div>
       </div>
