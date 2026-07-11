@@ -157,7 +157,21 @@
 
 **다음 배치 후보**(파일별 건수 내림차순, 이미 처리된 dark:-only 파일 제외): `BeforeAfterCard.tsx`(6)·`admin/support/[id]/page.tsx`(6)·`DualTrackCard.tsx`(6, ⚠️`project_dashboard_full_scale_inspection_2026_07_02` 메모리에 "고아 파일" 경고 있음 — 먼저 실제 import 여부 확인 후 진행)·`BlogDiagnosisCard.tsx`(5)·`ScoreCard.tsx`(5)·`BusinessSearchDropdown.tsx`(5)·`admin/stories/page.tsx`(5)·`AdminDeliveryDetailClient.tsx`(5)·`AdminBusinessSearchClient.tsx`(5)·`support/FAQClient.tsx`(5)
 
-**다음 세션 트리거**: `docs/master_inspection_plan_v1.0.md §5.1-A 기준으로 배치 6 진행 — DualTrackCard.tsx는 import 여부 먼저 확인`
+**배치 6 완료** (git `38a8002`, 같은 세션 이어서 진행):
+- `DualTrackCard.tsx` import 확인 결과 **확정 오판 방지**: `app/(dashboard)/dashboard/DualTrackCard.tsx`(6건)는 실제로 임포트되지 않는 고아 파일(디렉터리 착오로 남은 구버전), 진짜 사용 컴포넌트는 `components/dashboard/DualTrackCard.tsx`(`DashboardDetailZone.tsx`가 임포트, 이미 0건) — 6건 전부 스코프 제외
+- 나머지 9개 파일(BeforeAfterCard·admin/support상세·BlogDiagnosisCard·ScoreCard·BusinessSearchDropdown·admin/stories·AdminDeliveryDetailClient·AdminBusinessSearchClient·FAQClient) = **42건 치환**, 예외 0건
+- 검증: md5 일치 → scp → 서버 grep 전부 0 → 빌드 성공 → 재시작 전후 error.log 라인수 불변(2420, 신규 에러 없음 — 배치5의 일시 이상 재발 안 함 확인)
+
+**배치 7 완료** (git `43c65a0`, 같은 세션 이어서 진행):
+- 대상: `delivery/new/page.tsx`(5, placeholder 2건 제외)·`DashboardPreview.tsx`(4)·`CompetitorKeywordAlert.tsx`(4)·`payment/success/page.tsx`(4)·`payment/card-update/page.tsx`(4)·`app/page.tsx`(랜딩 추가분, 4)·`AdminSupportClient.tsx`(4)·`stories/[id]/page.tsx`(4)·`guide/channels/[category]/page.tsx`(4)·`blog/page.tsx`(4)·`settings/api-keys/page.tsx`(4)·`NoticesClient.tsx`(4)·`DashboardSidebar.tsx`(4) = **51건 치환**(커밋 메시지에 47로 오기재, 실제 diff는 51 — 문서에 정정 기록)
+- `payment/success`·`payment/card-update`는 gap-4(P3) 범위와 겹침 — §5.3(병렬 P3 세션)과 파일 중복 없음(§5.3은 로직/문구, 이쪽은 대비율만) 확인
+- 검증: md5 일치 → scp → 서버 grep 전부 예상치 일치(delivery/new만 2, 나머지 0) → 빌드 성공 → 재시작 전후 error.log 불변(2420) → curl landing/pricing/blog/payment 전부 200 → 랜딩페이지 라이브 HTML `text-gray-400` 26건→4건(공용 컴포넌트 미처리분만 잔존)
+
+**배치 7 이후 잔여**: 199건(dark: 제외 기준) / 파일 수 재확인 필요
+
+**누적 진행**: 배치1~7 합계 **556건 수정** (원 baseline 905건 대비 잔여 199건, 약 78% 처리) — `.bak*` 15개(죽은 코드)·orphan `DualTrackCard.tsx`(1개) 스코프 확정 제외
+
+**다음 세션 트리거**: `docs/master_inspection_plan_v1.0.md §5.1-A 기준으로 배치 8 진행 — 잔여 199건, grep으로 파일 목록 재산출 후 이어서`
 
 ### §5.2 나머지 항목 병렬 창 트리거 (2026-07-11 준비, §5.1 대비율 창과 파일 겹침 없도록 분리)
 
