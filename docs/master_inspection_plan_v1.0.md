@@ -145,9 +145,19 @@
 **누적 진행**: 배치1~4 합계 **452건 수정** (원 baseline 905건 대비, `dark:` 제외 기준으로는 905→308, 약 66% 처리)
 
 **다음 배치 후보 — `components/common/`**(여러 페이지에서 반복 노출되는 공용 컴포넌트라 우선순위 높음, 수정 시 파급 효과 큼): `HelpSearchInput.tsx`(6)·`SiteFooter.tsx`(2)·`ResultSummaryHero.tsx`(2)·`ChannelTimelineBox.tsx`(2)·`AIAssistant.tsx`(2)·`PlanGate.tsx`(1)·`ChannelDifferentiationCard.tsx`(1) — `*.md` 가이드 문서 2건은 코드 아니므로 스코프 제외
-- 그 외 잔여 다수는 `components/dashboard/`·`components/landing/`·`app/(dashboard)/*` 산재 — 다음 세션 시작 시 `grep -rln text-gray-400 app components | grep -v '\.bak' | xargs -I{} sh -c 'echo "$(grep -c text-gray-400 {}) {}"' | sort -rn`로 재산출
 
-**다음 세션 트리거**: `docs/master_inspection_plan_v1.0.md §5.1-A 기준으로 배치 5 진행 — components/common 공용 컴포넌트 우선`
+**배치 5 완료** (git `b9907d7`, 같은 세션 이어서 진행):
+- 대상: `components/common/` 7개 파일 = **11건 치환**
+- 신규 예외 발견: `AIAssistant.tsx:235` `disabled:text-gray-400`(실제 Tailwind `disabled:` 변형자, ternary 클래스가 아닌 진짜 상태 접두사) — `perl` 정규식에 `(?<!disabled:)` 추가해 배치6부터 반영
+- `PlanGate.tsx`는 md5 불일치로 발견됐으나 diff 대조 결과 **CRLF/LF 줄바꿈 차이일 뿐 내용은 동일**(유령 diff, `.gitattributes` 정규화 미적용 잔재) — 서버 재확인 없이 안전하게 로컬 편집 진행
+- **⚠️ 배포 중 관측된 일시적 이상(해결됨, 기록용)**: `pm2 restart` 직후 error.log에 `/dashboard` 라우트 `client reference manifest` InvariantError + `/500.html` ENOENT 각 2회 발생 → 재시작 순간의 Next.js 콜드스타트 경합으로 추정(수 초 내 자연 소멸, 이후 재시작 1회 추가 + 요청 8회에도 재발 0건, `.next` 빌드 산출물 실존 확인) → CSS 클래스명 문자열 치환만 한 이번 변경과 인과관계 낮음, 다만 다음 배치에서도 재시작 직후 error.log 재확인 습관화 권장
+- 검증: md5 사전확인(PlanGate 유령diff 처리) → scp → 서버 grep 정확히 일치(4/0/0/0/1/0/0) → 빌드 성공 → pm2 재시작(위 일시 이상 관측 후 재재시작으로 안정 확인) → curl 다중 요청 정상
+
+**배치 5 이후 잔여**: 약 294건(dark:/placeholder:/disabled: 제외 기준 재산정 필요) / `components/common` 소진, 다음은 `components/dashboard/`·`app/admin/*`·`app/(dashboard)/*` 산재분
+
+**다음 배치 후보**(파일별 건수 내림차순, 이미 처리된 dark:-only 파일 제외): `BeforeAfterCard.tsx`(6)·`admin/support/[id]/page.tsx`(6)·`DualTrackCard.tsx`(6, ⚠️`project_dashboard_full_scale_inspection_2026_07_02` 메모리에 "고아 파일" 경고 있음 — 먼저 실제 import 여부 확인 후 진행)·`BlogDiagnosisCard.tsx`(5)·`ScoreCard.tsx`(5)·`BusinessSearchDropdown.tsx`(5)·`admin/stories/page.tsx`(5)·`AdminDeliveryDetailClient.tsx`(5)·`AdminBusinessSearchClient.tsx`(5)·`support/FAQClient.tsx`(5)
+
+**다음 세션 트리거**: `docs/master_inspection_plan_v1.0.md §5.1-A 기준으로 배치 6 진행 — DualTrackCard.tsx는 import 여부 먼저 확인`
 
 ### §5.2 나머지 항목 병렬 창 트리거 (2026-07-11 준비, §5.1 대비율 창과 파일 겹침 없도록 분리)
 
