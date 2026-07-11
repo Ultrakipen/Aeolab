@@ -173,7 +173,7 @@ function CrisisGuidePanel({
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">공개 답변 초안</span>
-                {expanded.reply ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                {expanded.reply ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
               </button>
               {expanded.reply && (
                 <div className="px-4 pb-4">
@@ -200,7 +200,7 @@ function CrisisGuidePanel({
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">AI 검색 부정 영향 최소화 팁</span>
-                {expanded.tips ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                {expanded.tips ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
               </button>
               {expanded.tips && (
                 <ul className="px-4 pb-4 space-y-2">
@@ -222,7 +222,7 @@ function CrisisGuidePanel({
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">하지 말아야 할 것</span>
-                {expanded.doNot ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                {expanded.doNot ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
               </button>
               {expanded.doNot && (
                 <ul className="px-4 pb-4 space-y-2">
@@ -244,7 +244,7 @@ function CrisisGuidePanel({
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">오프라인 해결 단계</span>
-                {expanded.offline ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                {expanded.offline ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
               </button>
               {expanded.offline && (
                 <ol className="px-4 pb-4 space-y-2">
@@ -600,7 +600,7 @@ export default function ReviewInboxPage() {
               className="flex items-center gap-1.5 text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white hover:bg-gray-50 transition-colors max-w-[160px]"
             >
               <span className="truncate font-medium text-gray-800">{bizName ?? '사업장 선택'}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-500 shrink-0" />
             </button>
             {bizDropdownOpen && (
               <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1">
@@ -628,7 +628,7 @@ export default function ReviewInboxPage() {
             리뷰 텍스트 붙여넣기
           </label>
           {usageStat && usageStat.limit < 999 && (
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-gray-500">
               이번 달 {usageStat.used}/{usageStat.limit}회 사용
             </span>
           )}
@@ -677,7 +677,7 @@ export default function ReviewInboxPage() {
             </div>
             <div className="flex items-center gap-2">
               {result.limit < 999 && (
-                <span className="text-sm text-gray-400">{result.used}/{result.limit}회 사용</span>
+                <span className="text-sm text-gray-500">{result.used}/{result.limit}회 사용</span>
               )}
               <CopyButton text={result.draft_response} />
             </div>
@@ -687,7 +687,7 @@ export default function ReviewInboxPage() {
           </p>
           {result.keywords_used && result.keywords_used.length > 0 && (
             <div className="flex flex-wrap items-center gap-1 mt-2">
-              <span className="text-sm text-gray-400 shrink-0">사용 키워드:</span>
+              <span className="text-sm text-gray-500 shrink-0">사용 키워드:</span>
               {result.keywords_used.map((kw, i) => (
                 <span key={i} className="text-sm bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-medium">
                   {kw}
@@ -726,7 +726,7 @@ export default function ReviewInboxPage() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold text-gray-800">최근 답변 이력</h2>
           {history.length > 0 && (
-            <span className="text-sm text-gray-400">{history.length}개</span>
+            <span className="text-sm text-gray-500">{history.length}개</span>
           )}
         </div>
         {historyLoading ? (
@@ -751,7 +751,7 @@ export default function ReviewInboxPage() {
             {history.map((h) => (
               <div key={h.id} className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className="text-sm text-gray-400 leading-relaxed flex-1 line-clamp-3">
+                  <p className="text-sm text-gray-500 leading-relaxed flex-1 line-clamp-3">
                     리뷰: {h.review_text}
                   </p>
                   <div className="flex items-center gap-2 shrink-0">
@@ -798,7 +798,7 @@ export default function ReviewInboxPage() {
                     )}
                   </div>
                 )}
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="text-sm text-gray-500 mt-2">
                   {h.created_at ? relativeDate(h.created_at) : ''}
                 </p>
               </div>

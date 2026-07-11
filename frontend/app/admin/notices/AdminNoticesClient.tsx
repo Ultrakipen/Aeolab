@@ -220,7 +220,7 @@ export default function AdminNoticesClient() {
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
               공지사항 관리
             </h1>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-0.5">
               작성·수정·삭제·인앱 발송
             </p>
           </div>
@@ -362,7 +362,7 @@ export default function AdminNoticesClient() {
                     className="rounded"
                   />
                   전체 사용자에게 인앱 메시지로도 발송
-                  <span className="text-sm text-gray-400 dark:text-gray-500">(대상 세그먼트 적용)</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-500">(대상 세그먼트 적용)</span>
                 </label>
               )}
 
@@ -390,7 +390,7 @@ export default function AdminNoticesClient() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
             등록된 공지사항{" "}
-            <span className="text-gray-400 dark:text-gray-500 font-normal">
+            <span className="text-gray-500 dark:text-gray-500 font-normal">
               ({notices.length}개)
             </span>
           </h2>
@@ -404,7 +404,7 @@ export default function AdminNoticesClient() {
               <p className="text-base font-medium text-gray-600 dark:text-gray-300">
                 아직 공지가 없습니다
               </p>
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
                 첫 공지를 작성해보세요.
               </p>
             </div>
@@ -433,7 +433,7 @@ export default function AdminNoticesClient() {
                             n.target_segment}
                         </span>
                       )}
-                      <span className="text-sm text-gray-400 dark:text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-gray-500">
                         {new Date(n.created_at).toLocaleDateString("ko-KR")}
                       </span>
                     </div>
@@ -460,7 +460,7 @@ export default function AdminNoticesClient() {
                       className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       aria-label="수정"
                     >
-                      <Pencil className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                      <Pencil className="w-4 h-4 text-gray-500 dark:text-gray-500" />
                     </button>
                     <button
                       onClick={() => handleDelete(n.id, n.title)}

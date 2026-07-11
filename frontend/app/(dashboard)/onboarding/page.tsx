@@ -77,7 +77,7 @@ function CategoryDropdown({
           </div>
         )}
         <span className="flex-1 text-left text-gray-800 font-medium text-base">{selected?.label ?? "선택"}</span>
-        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
@@ -365,7 +365,7 @@ export default function OnboardingPage() {
               <span className="absolute -top-3 left-3 bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full">가장 인기</span>
               <div className="text-base font-bold text-gray-900 mb-1 mt-1">Basic</div>
               <div className="text-2xl font-extrabold text-blue-600 mb-0.5">
-                {PLAN_PRICES.basic.toLocaleString()}원<span className="text-sm font-normal text-gray-400">/월</span>
+                {PLAN_PRICES.basic.toLocaleString()}원<span className="text-sm font-normal text-gray-500">/월</span>
               </div>
               <p className="text-sm font-semibold text-orange-500 mb-2">첫 달 4,950원 (50% 할인)</p>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
@@ -385,7 +385,7 @@ export default function OnboardingPage() {
             <div className="border border-gray-200 rounded-xl p-4">
               <div className="text-base font-bold text-gray-900 mb-1">Pro</div>
               <div className="text-2xl font-extrabold text-indigo-600 mb-2">
-                {PLAN_PRICES.pro.toLocaleString()}원<span className="text-sm font-normal text-gray-400">/월</span>
+                {PLAN_PRICES.pro.toLocaleString()}원<span className="text-sm font-normal text-gray-500">/월</span>
               </div>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-indigo-400 shrink-0" />경쟁사 10곳 비교</li>
@@ -404,7 +404,7 @@ export default function OnboardingPage() {
             <div className="border border-gray-200 rounded-xl p-4">
               <div className="text-base font-bold text-gray-900 mb-1">Biz</div>
               <div className="text-2xl font-extrabold text-emerald-600 mb-2">
-                {PLAN_PRICES.biz.toLocaleString()}원<span className="text-sm font-normal text-gray-400">/월</span>
+                {PLAN_PRICES.biz.toLocaleString()}원<span className="text-sm font-normal text-gray-500">/월</span>
               </div>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 shrink-0" />사업장 5개 관리</li>
@@ -422,7 +422,7 @@ export default function OnboardingPage() {
 
           <button
             onClick={handleGoToDashboard}
-            className="w-full text-base text-gray-400 hover:text-gray-600 py-3 transition-colors"
+            className="w-full text-base text-gray-500 hover:text-gray-600 py-3 transition-colors"
           >
             나중에 결제 — 대시보드로 이동
           </button>
@@ -442,12 +442,12 @@ export default function OnboardingPage() {
                 <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-base transition-colors ${
                   step === s.id ? "bg-blue-600 text-white shadow-md shadow-blue-200" :
                   step > s.id  ? "bg-green-500 text-white" :
-                  "bg-gray-200 text-gray-400"
+                  "bg-gray-200 text-gray-500"
                 }`}>
                   {step > s.id ? <Check className="w-5 h-5" /> : s.id}
                 </div>
                 <div className="hidden sm:block">
-                  <div className={`text-sm font-semibold leading-tight ${step === s.id ? "text-gray-900" : "text-gray-400"}`}>
+                  <div className={`text-sm font-semibold leading-tight ${step === s.id ? "text-gray-900" : "text-gray-500"}`}>
                     {s.label}
                   </div>
                   <div className={`text-sm leading-tight ${step === s.id ? "text-gray-500" : "text-gray-300"}`}>
@@ -469,7 +469,7 @@ export default function OnboardingPage() {
         <div className="text-center mb-4">
           <Link
             href="/pricing"
-            className="text-sm text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+            className="text-sm text-gray-500 hover:text-gray-600 underline underline-offset-2 transition-colors"
           >
             이미 요금제를 정하셨나요? 바로 요금제 보기
           </Link>
@@ -675,7 +675,7 @@ export default function OnboardingPage() {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
                   블로그 URL
-                  <span className="ml-1 text-sm font-normal text-gray-400">(네이버·티스토리·워드프레스 등)</span>
+                  <span className="ml-1 text-sm font-normal text-gray-500">(네이버·티스토리·워드프레스 등)</span>
                 </label>
                 <input
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
@@ -693,7 +693,7 @@ export default function OnboardingPage() {
               {/* ─── 핵심 키워드 ─── */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
-                  핵심 키워드 <span className="text-gray-400 font-normal">(쉼표로 구분)</span>
+                  핵심 키워드 <span className="text-gray-500 font-normal">(쉼표로 구분)</span>
                 </label>
                 <input
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
@@ -707,7 +707,7 @@ export default function OnboardingPage() {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
                   네이버 스마트플레이스 ID
-                  <span className="ml-1 text-sm font-normal text-gray-400">(선택사항 — 없어도 됩니다)</span>
+                  <span className="ml-1 text-sm font-normal text-gray-500">(선택사항 — 없어도 됩니다)</span>
                 </label>
 
                 {/* 스마트플레이스 안내 박스 — 항상 표시 */}
@@ -1048,7 +1048,7 @@ export default function OnboardingPage() {
                   }
                   <span className={`text-base font-medium ${hasFirstScan ? "text-green-700" : "text-gray-700"}`}>
                     첫 AI 스캔 실행
-                    {!hasFirstScan && <span className="ml-1 text-sm text-gray-400 font-normal">(대시보드에서)</span>}
+                    {!hasFirstScan && <span className="ml-1 text-sm text-gray-500 font-normal">(대시보드에서)</span>}
                   </span>
                 </li>
                 {/* 경쟁사 등록 */}
@@ -1059,7 +1059,7 @@ export default function OnboardingPage() {
                   }
                   <span className={`text-base font-medium ${hasCompetitor ? "text-green-700" : "text-gray-700"}`}>
                     경쟁사 최소 1개 등록
-                    {!hasCompetitor && <span className="ml-1 text-sm text-gray-400 font-normal">(경쟁사 메뉴에서)</span>}
+                    {!hasCompetitor && <span className="ml-1 text-sm text-gray-500 font-normal">(경쟁사 메뉴에서)</span>}
                     <span className="block text-sm text-gray-500 mt-0.5 font-normal">경쟁사를 등록하면 비교 분석이 가능합니다</span>
                   </span>
                 </li>
@@ -1067,14 +1067,14 @@ export default function OnboardingPage() {
                   <Circle className="w-5 h-5 text-gray-300 shrink-0 mt-0.5" />
                   <span className="text-base font-medium text-gray-700">
                     카카오 알림 수신 번호 등록
-                    <span className="ml-1 text-sm text-gray-400 font-normal">(설정에서)</span>
+                    <span className="ml-1 text-sm text-gray-500 font-normal">(설정에서)</span>
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Circle className="w-5 h-5 text-gray-300 shrink-0 mt-0.5" />
                   <span className="text-base font-medium text-gray-700">
                     네이버 리뷰 수·별점 입력
-                    <span className="ml-1 text-sm text-gray-400 font-normal">(설정 → 내 가게 수정에서)</span>
+                    <span className="ml-1 text-sm text-gray-500 font-normal">(설정 → 내 가게 수정에서)</span>
                     <span className="block text-sm text-amber-600 mt-0.5 font-normal">리뷰 수를 입력하면 AI 노출 점수 정확도가 높아집니다</span>
                   </span>
                 </li>

@@ -208,7 +208,7 @@ export default function AdminFeedbackClient() {
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
               피드백 현황
             </h1>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-0.5">
               이벤트별 만족도 집계
             </p>
           </div>
@@ -262,7 +262,7 @@ export default function AdminFeedbackClient() {
             <p className="text-base font-medium text-gray-600 dark:text-gray-300">
               아직 피드백 데이터가 없습니다
             </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
               사용자가 피드백을 제출하면 여기에 표시됩니다.
             </p>
           </div>
@@ -326,7 +326,7 @@ export default function AdminFeedbackClient() {
                             <ThumbsDown className="w-3.5 h-3.5" aria-hidden="true" />
                             {val.bad}
                           </span>
-                          <span className="text-gray-400 dark:text-gray-500">
+                          <span className="text-gray-500 dark:text-gray-500">
                             총 {total}건
                           </span>
                         </div>
@@ -476,14 +476,14 @@ export default function AdminFeedbackClient() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
+                <p className="text-sm text-gray-500 dark:text-gray-500 text-center py-4">
                   아직 D.I.A. 점수가 기록된 가이드가 없습니다.
                   <br />
                   <span className="text-sm">가이드 생성 후 tools_json.dia_score 필드가 저장되면 표시됩니다.</span>
                 </p>
               )}
 
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-3">
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-3">
                 최근 {diaStats.period_days}일 기준 · 90점+ 초회 통과 · 70~89점 조건부 통과 · 70점 미만 재생성 트리거
               </p>
             </div>

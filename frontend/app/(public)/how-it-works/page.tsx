@@ -388,7 +388,7 @@ export default function HowItWorksPage() {
                   <td className="px-3 py-2 font-medium">AI 브리핑 인용</td>
                   <td className="px-3 py-2 text-center font-bold text-emerald-700">25%</td>
                   <td className="px-3 py-2 text-center">15%</td>
-                  <td className="px-3 py-2 text-center text-gray-400">0%</td>
+                  <td className="px-3 py-2 text-center text-gray-500">0%</td>
                   <td className="px-3 py-2 hidden md:table-cell text-sm text-gray-500">네이버 AI 브리핑 노출 여부 자동 확인 + 스마트플레이스 AI 정보 탭 ON 여부</td>
                 </tr>
                 <tr className="border-t-2 border-gray-300 font-semibold bg-blue-50">
@@ -688,7 +688,7 @@ export default function HowItWorksPage() {
                 <span className="px-3 py-1 rounded-full bg-green-100 text-green-700">Biz: 60건/월*</span>
                 <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">Enterprise: 무제한</span>
               </div>
-              <p className="text-sm text-gray-400 mt-1">* 소개글 AI 생성과 합산 한도</p>
+              <p className="text-sm text-gray-500 mt-1">* 소개글 AI 생성과 합산 한도</p>
             </div>
 
             {/* 4. 블로그 콘텐츠 품질 추정 */}
@@ -824,7 +824,7 @@ export default function HowItWorksPage() {
             <li>
               <strong>인용 콘텐츠 배지</strong> — AI 브리핑에 인용된 블로그·콘텐츠에 배지가 표시되어
               추가 트래픽이 유입됩니다. <strong>사장님 자체 블로그 운영의 가치가 높아집니다.</strong>
-              <span className="text-gray-400 text-sm ml-1">(다수 사용자 관측 기반 — 네이버 미공식)</span>
+              <span className="text-gray-500 text-sm ml-1">(다수 사용자 관측 기반 — 네이버 미공식)</span>
             </li>
           </ul>
           <div className="bg-blue-50 border border-blue-200 rounded p-3 md:p-4 text-sm md:text-base text-gray-700 leading-relaxed break-keep">
@@ -857,20 +857,20 @@ export default function HowItWorksPage() {
               </thead>
               <tbody>
                 <tr className="border-b border-gray-100"><td className="py-2.5 px-3">무료 진단(1회)</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">AI 자동 스캔 (Gemini·ChatGPT·네이버)</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 3회</td><td className="text-center py-2.5 text-sm">매일</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">AI 자동 스캔 (Gemini·ChatGPT·네이버)</td><td className="text-center py-2.5 text-gray-500">—</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 3회</td><td className="text-center py-2.5 text-sm">매일</td></tr>
                 <tr className="border-b border-gray-100">
-                  <td className="py-2.5 px-3">AI 콘텐츠 생성<br /><span className="text-sm text-gray-400">소개글+채팅방메뉴 합산</span></td>
-                  <td className="text-center py-2.5 text-gray-400">—</td>
+                  <td className="py-2.5 px-3">AI 콘텐츠 생성<br /><span className="text-sm text-gray-500">소개글+채팅방메뉴 합산</span></td>
+                  <td className="text-center py-2.5 text-gray-500">—</td>
                   <td className="text-center py-2.5 text-sm">월 10건</td>
                   <td className="text-center py-2.5 text-sm">월 20건</td>
                   <td className="text-center py-2.5 text-sm">월 30건</td>
                   <td className="text-center py-2.5 text-sm">월 60건</td>
                 </tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">소식 자동 초안 (매주)</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">리뷰 답변 생성</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">월 50회</td><td className="text-center py-2.5">무제한</td><td className="text-center py-2.5">무제한</td><td className="text-center py-2.5">무제한</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">QR 리뷰 카드 다운로드</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">경쟁사 분석</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">3개</td><td className="text-center py-2.5">5개</td><td className="text-center py-2.5">5개</td><td className="text-center py-2.5">무제한</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">창업 시장 분석</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5">✅</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">소식 자동 초안 (매주)</td><td className="text-center py-2.5 text-gray-500">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">리뷰 답변 생성</td><td className="text-center py-2.5 text-gray-500">—</td><td className="text-center py-2.5">월 50회</td><td className="text-center py-2.5">무제한</td><td className="text-center py-2.5">무제한</td><td className="text-center py-2.5">무제한</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">QR 리뷰 카드 다운로드</td><td className="text-center py-2.5 text-gray-500">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">경쟁사 분석</td><td className="text-center py-2.5 text-gray-500">—</td><td className="text-center py-2.5">3개</td><td className="text-center py-2.5">5개</td><td className="text-center py-2.5">5개</td><td className="text-center py-2.5">무제한</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">창업 시장 분석</td><td className="text-center py-2.5 text-gray-500">—</td><td className="text-center py-2.5 text-gray-500">—</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5 text-gray-500">—</td><td className="text-center py-2.5">✅</td></tr>
                 <tr><td className="py-2.5 px-3">멀티 사업장</td><td className="text-center py-2.5">1개</td><td className="text-center py-2.5">1개</td><td className="text-center py-2.5">1개</td><td className="text-center py-2.5">2개</td><td className="text-center py-2.5">5개</td></tr>
               </tbody>
             </table>

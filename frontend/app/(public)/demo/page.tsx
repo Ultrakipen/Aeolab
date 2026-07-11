@@ -769,7 +769,7 @@ export default function DemoPage() {
                 <p className="text-sm text-gray-500 mb-1">네이버 플레이스 순위</p>
                 <p className="text-2xl font-black leading-tight">
                   <span className={m.naverRank <= 3 ? "text-green-600" : "text-amber-600"}>{m.naverRank}위</span>
-                  <span className="text-sm font-normal text-gray-400 ml-1">/ {m.naverCompetitors.length}개 업체</span>
+                  <span className="text-sm font-normal text-gray-500 ml-1">/ {m.naverCompetitors.length}개 업체</span>
                 </p>
                 <p className={`text-sm font-medium mt-1 ${m.naverRank <= 3 ? "text-green-600" : "text-amber-600"}`}>
                   {m.naverRank === 1 ? "✓ 지역 1위" : m.naverRank <= 3 ? "✓ 상위 노출" : "⚠ 순위 개선 가능"}
@@ -790,7 +790,7 @@ export default function DemoPage() {
                 ) : (
                   <>
                     <p className="text-base font-bold text-gray-500">이 업종 해당 없음</p>
-                    <p className="text-sm text-gray-400 mt-1">검색·AI탭에 집중</p>
+                    <p className="text-sm text-gray-500 mt-1">검색·AI탭에 집중</p>
                   </>
                 )}
               </div>
@@ -821,7 +821,7 @@ export default function DemoPage() {
 
           {/* 푸터 */}
           <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-2">
-            <p className="text-sm text-gray-400 leading-relaxed">
+            <p className="text-sm text-gray-500 leading-relaxed">
               측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
             </p>
             <Link
@@ -883,16 +883,16 @@ export default function DemoPage() {
                   />
                 </div>
                 <div className="flex justify-between mt-1">
-                  <span className="text-sm text-gray-400">시작</span>
-                  <span className="text-sm text-gray-400">{CATEGORIES.find(c => c.value === category)?.label} 업종 평균</span>
-                  <span className="text-sm text-gray-400">최적화</span>
+                  <span className="text-sm text-gray-500">시작</span>
+                  <span className="text-sm text-gray-500">{CATEGORIES.find(c => c.value === category)?.label} 업종 평균</span>
+                  <span className="text-sm text-gray-500">최적화</span>
                 </div>
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-500">
                 내 가게 AI 검색 노출은 {isRealBiz ? "창원시" : m.region} {CATEGORIES.find(c => c.value === category)?.label} 업종 평균 {m.totalScore >= m.benchmark.avg ? "이상입니다" : "대비 개선 여지가 있습니다"}.
-                <span className="ml-1 text-sm bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">추정</span>
+                <span className="ml-1 text-sm bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">추정</span>
               </p>
-              <p className="text-sm text-gray-400 mt-2">업종 평균은 참고용 추정치이며 실측 기반으로 계속 개선됩니다</p>
+              <p className="text-sm text-gray-500 mt-2">업종 평균은 참고용 추정치이며 실측 기반으로 계속 개선됩니다</p>
             </div>
 
             {/* Google 비즈니스 프로필 안내 — 컴팩트 버전 */}
@@ -1106,7 +1106,7 @@ export default function DemoPage() {
                       <p className="text-sm text-gray-500 leading-relaxed">무료 체험은 ChatGPT 5회 질의입니다. Basic 구독: 주 1회(월요일) Gemini·ChatGPT 각 50회 자동 측정.</p>
                     </>
                   )}
-                  <p className="mt-2 text-sm text-gray-400 leading-relaxed">
+                  <p className="mt-2 text-sm text-gray-500 leading-relaxed">
                     ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
                     측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
                   </p>

@@ -1467,19 +1467,19 @@ function NaverBriefingResultCard({
               <ul className="space-y-1.5">
                 {confirmedReasons.map((reason, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-                    <span className="text-gray-400 shrink-0 mt-px">•</span>
+                    <span className="text-gray-500 shrink-0 mt-px">•</span>
                     {reason}
                   </li>
                 ))}
                 {!hasConfirmed && (
                   <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-400 shrink-0 mt-px">•</span>
+                    <span className="text-gray-500 shrink-0 mt-px">•</span>
                     리뷰 키워드 다양성 부족 — 업종 대표 키워드가 리뷰에 충분히 쌓이지 않음
                   </li>
                 )}
                 {!hasConfirmed && (
                   <li className="flex items-start gap-2 text-sm text-gray-500">
-                    <span className="text-gray-400 shrink-0 mt-px">•</span>
+                    <span className="text-gray-500 shrink-0 mt-px">•</span>
                     정확한 원인은 구독 후 상세 분석에서 확인 가능합니다
                   </li>
                 )}
@@ -1516,7 +1516,7 @@ function NaverBriefingResultCard({
 
       {/* 면책 */}
       <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100">
-        <p className="text-sm text-gray-400 leading-relaxed">
+        <p className="text-sm text-gray-500 leading-relaxed">
           네이버 AI 브리핑은 검색어·시점·기기·로그인 상태에 따라 달라질 수 있습니다.
         </p>
       </div>
@@ -1556,7 +1556,7 @@ function ChatGPTResultCard({
           </div>
           <span className="text-sm font-semibold text-gray-700">ChatGPT 검색 결과</span>
         </div>
-        <span className="text-sm text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
+        <span className="text-sm text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
           {sampleSize}회 질의 기준
         </span>
       </div>
@@ -1565,7 +1565,7 @@ function ChatGPTResultCard({
       <div className="px-4 py-4 space-y-3">
         {/* 질의 목록 */}
         <div>
-          <p className="text-sm text-gray-400 mb-1.5 leading-snug">
+          <p className="text-sm text-gray-500 mb-1.5 leading-snug">
             실제 손님이 AI에게 묻는 방식으로 {sampleSize}회 테스트했습니다
             <span className="ml-1 text-slate-400">(정식 스캔은 50회 — 표본이 많을수록 정확도 높아짐)</span>
           </p>
@@ -1576,7 +1576,7 @@ function ChatGPTResultCard({
               </li>
             ))}
           </ul>
-          <p className="text-sm text-gray-400 leading-snug">
+          <p className="text-sm text-gray-500 leading-snug">
             손님은 가게 이름을 모른 채 업종·지역 키워드로 AI에 묻습니다.
             위 질의에 &ldquo;{businessName}&rdquo;이 추천됐는지 확인한 결과입니다.
           </p>
@@ -1621,18 +1621,18 @@ function ChatGPTResultCard({
               <ul className="space-y-1.5">
                 {diagnosedReasons.map((reason, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-                    <span className="text-gray-400 shrink-0 mt-px">•</span>
+                    <span className="text-gray-500 shrink-0 mt-px">•</span>
                     {reason}
                   </li>
                 ))}
                 {!hasConfirmed && (
                   <>
                     <li className="flex items-start gap-2 text-sm text-gray-600">
-                      <span className="text-gray-400 shrink-0 mt-px">•</span>
+                      <span className="text-gray-500 shrink-0 mt-px">•</span>
                       소개글·리뷰 키워드 데이터가 아직 AI 학습에 충분히 반영되지 않았을 수 있습니다
                     </li>
                     <li className="flex items-start gap-2 text-sm text-gray-500">
-                      <span className="text-gray-400 shrink-0 mt-px">•</span>
+                      <span className="text-gray-500 shrink-0 mt-px">•</span>
                       정확한 원인은 구독 후 상세 분석에서 확인 가능합니다
                     </li>
                   </>
@@ -1670,7 +1670,7 @@ function ChatGPTResultCard({
 
       {/* 면책 */}
       <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100">
-        <p className="text-sm text-gray-400 leading-relaxed">
+        <p className="text-sm text-gray-500 leading-relaxed">
           ChatGPT 측정은 AI 학습 데이터 기반입니다. 실제 ChatGPT 앱의 검색 결과와 다를 수 있으며, 단기 콘텐츠 변경으로 점수가 즉시 변동되지 않습니다.
         </p>
       </div>
@@ -2032,7 +2032,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
                 {check.has_reservation ? (
                   <Check className="w-4 h-4 text-blue-600 shrink-0" />
                 ) : (
-                  <Info className="w-4 h-4 text-gray-400 shrink-0" />
+                  <Info className="w-4 h-4 text-gray-500 shrink-0" />
                 )}
                 <span className="text-sm text-gray-700 flex-1 break-keep">
                   {check.has_reservation

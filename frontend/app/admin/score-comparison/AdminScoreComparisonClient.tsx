@@ -116,7 +116,7 @@ function GroupCard({ groupKey, stats }: { groupKey: string; stats: GroupStats })
             {GROUP_LABELS[groupKey] ?? groupKey}
           </span>
         </div>
-        <p className="text-sm text-gray-400 dark:text-gray-500">데이터 없음</p>
+        <p className="text-sm text-gray-500 dark:text-gray-500">데이터 없음</p>
       </div>
     );
   }
@@ -163,7 +163,7 @@ function GroupCard({ groupKey, stats }: { groupKey: string; stats: GroupStats })
         </div>
       </div>
       <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-        <span className="text-gray-400 dark:text-gray-500 text-sm">표준편차: {(stats.diff_stddev ?? 0).toFixed(1)}</span>
+        <span className="text-gray-500 dark:text-gray-500 text-sm">표준편차: {(stats.diff_stddev ?? 0).toFixed(1)}</span>
       </div>
     </div>
   );

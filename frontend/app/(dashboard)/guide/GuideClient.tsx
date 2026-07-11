@@ -477,7 +477,7 @@ function NaverSearchOptimizationSection({
                   }`}
                 >
                   <span className={`w-5 h-5 flex items-center justify-center rounded-full text-sm shrink-0 font-bold ${
-                    done ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400'
+                    done ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
                   }`}>
                     {done ? '✓' : '·'}
                   </span>
@@ -793,7 +793,7 @@ function ThisWeekMissionCard({
               )}
             </div>
             <span className={`text-sm md:text-base leading-relaxed ${
-              checkedSteps.has(i) ? 'text-gray-400 line-through' : 'text-gray-700'
+              checkedSteps.has(i) ? 'text-gray-500 line-through' : 'text-gray-700'
             }`}>
               {i + 1}단계: {simplify(step)}
             </span>
@@ -1135,7 +1135,7 @@ function TwoWeekPlanSection({
                     </svg>
                   )}
                 </div>
-                <span className={`text-sm md:text-base leading-relaxed ${checked1[idx] ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+                <span className={`text-sm md:text-base leading-relaxed ${checked1[idx] ? 'text-gray-500 line-through' : 'text-gray-700'}`}>
                   {task}
                 </span>
               </button>
@@ -1164,7 +1164,7 @@ function TwoWeekPlanSection({
                     </svg>
                   )}
                 </div>
-                <span className={`text-sm md:text-base leading-relaxed ${checked2[idx] ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+                <span className={`text-sm md:text-base leading-relaxed ${checked2[idx] ? 'text-gray-500 line-through' : 'text-gray-700'}`}>
                   {task}
                 </span>
               </button>
@@ -1705,7 +1705,7 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
                       ? 'bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-100'
                       : isPast
                         ? 'bg-indigo-100 text-indigo-600'
-                        : 'bg-gray-100 text-gray-400'
+                        : 'bg-gray-100 text-gray-500'
                   }`}>
                     {isPast ? <Check className="w-4 h-4" /> : week.week}
                   </div>
@@ -1721,7 +1721,7 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
                     isCurrent ? 'font-bold' : ''
                   }`}
                 >
-                  <div className={`text-sm md:text-base ${isCurrent ? 'text-indigo-700' : isPast ? 'text-gray-500' : 'text-gray-400'}`}>
+                  <div className={`text-sm md:text-base ${isCurrent ? 'text-indigo-700' : isPast ? 'text-gray-500' : 'text-gray-500'}`}>
                     {week.week}주차
                   </div>
                   <div className={`text-sm md:text-base mt-0.5 ${isCurrent ? 'text-gray-900' : 'text-gray-600'}`}>
@@ -1752,7 +1752,7 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
                     ? 'bg-indigo-600 text-white shadow ring-2 ring-indigo-100'
                     : isPast
                       ? 'bg-indigo-100 text-indigo-600'
-                      : 'bg-gray-100 text-gray-400'
+                      : 'bg-gray-100 text-gray-500'
                 }`}>
                   {isPast ? <Check className="w-3.5 h-3.5" /> : week.week}
                 </div>
@@ -1761,7 +1761,7 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
                 )}
               </div>
               <div className="flex-1 min-w-0 pb-1">
-                <div className={`text-base font-medium ${isCurrent ? 'text-indigo-700 font-bold' : isPast ? 'text-gray-500' : 'text-gray-400'}`}>
+                <div className={`text-base font-medium ${isCurrent ? 'text-indigo-700 font-bold' : isPast ? 'text-gray-500' : 'text-gray-500'}`}>
                   {week.week}주차{isCurrent && ' (현재)'}
                 </div>
                 <div className={`text-base ${isCurrent ? 'text-gray-900 font-semibold' : 'text-gray-600'}`}>
@@ -1769,8 +1769,8 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
                 </div>
               </div>
               {expandedWeek === i
-                ? <ChevronUp className="w-4 h-4 text-gray-400 mt-1 shrink-0" />
-                : <ChevronDown className="w-4 h-4 text-gray-400 mt-1 shrink-0" />}
+                ? <ChevronUp className="w-4 h-4 text-gray-500 mt-1 shrink-0" />
+                : <ChevronDown className="w-4 h-4 text-gray-500 mt-1 shrink-0" />}
             </button>
           )
         })}
@@ -1855,7 +1855,7 @@ function BriefingPathsSection({
                   <div className="text-base font-medium text-gray-800">{path.label}</div>
                   <div className="text-sm text-gray-500">{path.time_required} · {path.effect}</div>
                 </div>
-                {isOpen ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
+                {isOpen ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />}
               </button>
 
               {isOpen && (
@@ -2276,7 +2276,7 @@ function ReviewDraftsSection({
                 {isLocked ? (
                   <span className="text-sm text-gray-500 shrink-0">Pro</span>
                 ) : (
-                  <ChevronDown className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-gray-500 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                 )}
               </button>
 
@@ -3074,7 +3074,7 @@ A. ${a}`).catch(() => {})
                         setSelectedFaqKeywords(prev => prev.filter(k => k !== kw))
                       }}
                       className={`pr-2 text-sm font-bold leading-none transition-colors ${
-                        selectedFaqKeywords.includes(kw) ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-red-500'
+                        selectedFaqKeywords.includes(kw) ? 'text-blue-200 hover:text-white' : 'text-gray-500 hover:text-red-500'
                       }`}
                       title="관련 없는 키워드 제외"
                       aria-label={`"${kw}" 제외`}
@@ -3148,7 +3148,7 @@ A. ${a}`).catch(() => {})
                       if (!window.confirm('이 FAQ 항목을 삭제할까요?')) return
                       setFaqs(prev => prev.filter((_, i) => i !== idx))
                     }}
-                    className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition-colors"
+                    className="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition-colors"
                     title="이 항목 삭제"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -3204,7 +3204,7 @@ function FAQSection({ faqs, title }: { faqs: FAQ[]; title: string }) {
           <span className="text-sm font-semibold text-gray-900">{title}</span>
           <span className="text-sm bg-teal-50 text-teal-600 px-1.5 py-0.5 rounded-full">{faqs.length}개</span>
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+        {open ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
       </button>
       {open && (
         <div className="border-t border-gray-100 divide-y divide-gray-100">
@@ -3303,7 +3303,7 @@ function GuideItemCard({
                 {DIMENSION_LABEL[item.dimension ?? ''] ?? DIMENSION_LABEL[item.category ?? ''] ?? item.dimension ?? item.category}
               </span>
             )}
-            <div className={`font-semibold leading-snug ${done ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+            <div className={`font-semibold leading-snug ${done ? 'line-through text-gray-500' : 'text-gray-900'}`}>
               {simplify(((item as unknown) as Record<string, unknown>).title as string
                 ?? ((item as unknown) as Record<string, unknown>).text as string
                 ?? ((item as unknown) as Record<string, unknown>).description as string
@@ -3471,7 +3471,7 @@ function TodayKeywordHero({
                 <button
                   onClick={(e) => excludeKw(kw, e)}
                   className={`text-sm font-bold leading-none transition-colors ${
-                    active === kw ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-red-500'
+                    active === kw ? 'text-blue-200 hover:text-white' : 'text-gray-500 hover:text-red-500'
                   }`}
                   title="관련 없는 키워드 제외"
                   aria-label={`"${kw}" 제외`}
@@ -3757,7 +3757,7 @@ function GuideTabView({
                 <p className="text-sm text-gray-500 mt-0.5">블로그가 AI 브리핑에 얼마나 최적화됐는지 확인하세요</p>
               </div>
             </div>
-            <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 shrink-0" />
+            <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-blue-600 shrink-0" />
           </a>
 
           {/* AI 브리핑 직접 관리 경로 — 기본 접힘 */}
@@ -3768,7 +3768,7 @@ function GuideTabView({
               aria-expanded={showBriefingPaths}
             >
               <span className="font-semibold text-gray-800 text-sm md:text-base">📋 AI가 내 가게 얘기하게 만드는 방법 (4가지)</span>
-              <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showBriefingPaths ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${showBriefingPaths ? 'rotate-180' : ''}`} />
             </button>
             {showBriefingPaths && (
               briefingPaths.length > 0 ? (
@@ -3819,7 +3819,7 @@ function GuideTabView({
                 aria-expanded={showReviewDrafts}
               >
                 <div className="flex items-center gap-2">
-                  <MessageSquare className={`w-4 h-4 transition-colors ${showReviewDrafts ? 'text-blue-500' : 'text-gray-400'}`} />
+                  <MessageSquare className={`w-4 h-4 transition-colors ${showReviewDrafts ? 'text-blue-500' : 'text-gray-500'}`} />
                   <span className={`font-semibold text-sm md:text-base transition-colors ${showReviewDrafts ? 'text-blue-900' : 'text-gray-800'}`}>
                     리뷰 답변 초안 ({reviewDrafts.length}개)
                   </span>
@@ -3827,7 +3827,7 @@ function GuideTabView({
                     <span className="text-sm text-gray-500 font-normal hidden sm:inline">키워드 포함 초안</span>
                   )}
                 </div>
-                <ChevronDown className={`w-5 h-5 transition-all duration-300 ${showReviewDrafts ? 'text-blue-500 rotate-180' : 'text-gray-400'}`} />
+                <ChevronDown className={`w-5 h-5 transition-all duration-300 ${showReviewDrafts ? 'text-blue-500 rotate-180' : 'text-gray-500'}`} />
               </button>
               <div
                 className={`grid transition-all duration-300 ease-in-out ${showReviewDrafts ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
@@ -4237,7 +4237,7 @@ function GuideTabView({
               추가 도구·체크리스트 {showQuickTools ? '접기' : '펼치기'}
               <span className="font-normal text-gray-500"> (소식 초안·QR카드·외부 채널·스마트플레이스 현황 등)</span>
             </span>
-            {showQuickTools ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
+            {showQuickTools ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />}
           </button>
 
           {showQuickTools && (
@@ -4353,7 +4353,7 @@ function GuideTabView({
                 <span className="text-sm font-semibold text-gray-700">
                   FAQ 모음 {showFAQSection ? '접기' : '펼치기'} ({spFaqs.length + aiFaqs.length}개)
                 </span>
-                {showFAQSection ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
+                {showFAQSection ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />}
               </button>
               {showFAQSection && (
                 <>
@@ -4931,7 +4931,7 @@ export function GuideClient({
         )}
         {!isBriefingInactive && guide && !loading && latestScanMentioned === null && (
           <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 md:px-5 py-3 flex items-start gap-3">
-            <span className="text-gray-400 text-xl shrink-0 mt-0.5">•</span>
+            <span className="text-gray-500 text-xl shrink-0 mt-0.5">•</span>
             <p className="text-base font-medium text-gray-600">이번 스캔에서는 AI 브리핑 노출 여부를 확인하지 못했습니다. 다음 스캔에서 다시 확인됩니다.</p>
           </div>
         )}
@@ -4952,8 +4952,8 @@ export function GuideClient({
                 </p>
               </div>
               {showGuideDetail
-                ? <ChevronUp className="w-5 h-5 text-gray-400 shrink-0" />
-                : <ChevronDown className="w-5 h-5 text-gray-400 shrink-0" />
+                ? <ChevronUp className="w-5 h-5 text-gray-500 shrink-0" />
+                : <ChevronDown className="w-5 h-5 text-gray-500 shrink-0" />
               }
             </button>
             <div className={`border-t border-gray-100 ${showGuideDetail ? 'block' : 'hidden'}`}>

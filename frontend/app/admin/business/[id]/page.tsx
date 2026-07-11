@@ -123,7 +123,7 @@ export default async function AdminBusinessDetailPage({
 
   return (
     <>
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-4 flex-wrap">
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 flex-wrap">
         <Link href="/admin" className="hover:text-blue-600 transition-colors">관리자</Link>
         <ChevronRight className="w-4 h-4" />
         <Link href="/admin/business" className="hover:text-blue-600 transition-colors">사업장 조회</Link>
@@ -145,19 +145,19 @@ export default async function AdminBusinessDetailPage({
         <p className="text-sm text-gray-500">
           {owner_email ?? business.user_id} {business.region && `· ${business.region}`}
         </p>
-        <p className="text-sm text-gray-400 mt-1">등록일 {formatDate(business.created_at)}</p>
+        <p className="text-sm text-gray-500 mt-1">등록일 {formatDate(business.created_at)}</p>
       </div>
 
       {/* 스캔 이력 */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-5">
         <h2 className="text-base font-semibold text-gray-800 mb-3">최근 스캔 이력 ({scans.length}건)</h2>
         {scans.length === 0 ? (
-          <p className="text-sm text-gray-400">아직 스캔 이력이 없습니다.</p>
+          <p className="text-sm text-gray-500">아직 스캔 이력이 없습니다.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-sm text-gray-400 border-b border-gray-100">
+                <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
                   <th className="pb-2 pr-3">일시</th>
                   <th className="pb-2 pr-3">종합</th>
                   <th className="pb-2 pr-3">네이버 트랙</th>
@@ -184,14 +184,14 @@ export default async function AdminBusinessDetailPage({
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="text-base font-semibold text-gray-800 mb-3">가이드 생성 이력 ({guides.length}건)</h2>
           {guides.length === 0 ? (
-            <p className="text-sm text-gray-400">아직 생성된 가이드가 없습니다.</p>
+            <p className="text-sm text-gray-500">아직 생성된 가이드가 없습니다.</p>
           ) : (
             <div className="space-y-2">
               {guides.map((g) => (
                 <div key={g.id} className="border border-gray-50 rounded-lg p-3">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{g.context}</span>
-                    <span className="text-sm text-gray-400">{formatDate(g.generated_at)}</span>
+                    <span className="text-sm text-gray-500">{formatDate(g.generated_at)}</span>
                   </div>
                   {g.summary && <p className="text-sm text-gray-600 line-clamp-2">{g.summary}</p>}
                 </div>
@@ -204,13 +204,13 @@ export default async function AdminBusinessDetailPage({
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="text-base font-semibold text-gray-800 mb-3">등록된 경쟁사 ({competitors.length}건)</h2>
           {competitors.length === 0 ? (
-            <p className="text-sm text-gray-400">등록된 경쟁사가 없습니다.</p>
+            <p className="text-sm text-gray-500">등록된 경쟁사가 없습니다.</p>
           ) : (
             <ul className="space-y-2">
               {competitors.map((c) => (
                 <li key={c.id} className="text-sm text-gray-700">
                   <span className="font-medium">{c.name}</span>
-                  {c.address && <span className="text-gray-400"> · {c.address}</span>}
+                  {c.address && <span className="text-gray-500"> · {c.address}</span>}
                 </li>
               ))}
             </ul>
@@ -223,7 +223,7 @@ export default async function AdminBusinessDetailPage({
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="text-base font-semibold text-gray-800 mb-3">블로그 진단 ({blog_analysis.length}건)</h2>
           {blog_analysis.length === 0 ? (
-            <p className="text-sm text-gray-400">아직 블로그 진단 이력이 없습니다.</p>
+            <p className="text-sm text-gray-500">아직 블로그 진단 이력이 없습니다.</p>
           ) : (
             <ul className="space-y-2">
               {blog_analysis.map((b) => (
@@ -240,14 +240,14 @@ export default async function AdminBusinessDetailPage({
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="text-base font-semibold text-gray-800 mb-3">변화 기록 ({action_log.length}건)</h2>
           {action_log.length === 0 ? (
-            <p className="text-sm text-gray-400">아직 기록된 변화가 없습니다.</p>
+            <p className="text-sm text-gray-500">아직 기록된 변화가 없습니다.</p>
           ) : (
             <ul className="space-y-2">
               {action_log.map((a, i) => (
                 <li key={i} className="text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-700">{ACTION_TYPE_LABEL[a.action_type] ?? a.action_label}</span>
-                    <span className="text-gray-400">{formatDateOnly(a.action_date)}</span>
+                    <span className="text-gray-500">{formatDateOnly(a.action_date)}</span>
                   </div>
                   {a.score_before != null && a.score_after != null && (
                     <span className="text-sm text-gray-500">{a.score_before.toFixed(1)} → {a.score_after.toFixed(1)}</span>
