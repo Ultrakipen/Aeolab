@@ -142,6 +142,18 @@
 
 > 5개 전부 동시 실행은 1인 Max 5x 플랜 기준 토큰 소모가 크다 — 병렬/순차는 사용자 판단.
 
+### §5.3 P3(결제 3페이지) 완료 (2026-07-11)
+
+- **점검 대상**: `/payment/success`, `/payment/fail`, `/payment/card-update` — 코드 직접 확인 + Toss `requestBillingAuth` 콜백 파라미터 공식 문서 대조(WebSearch). 라이브 브라우저는 동시 세션 lock으로 실측 불가(curl 200 확인만 가능, memory `feedback_shared_browser_lock_verification` 동일 제약) — card-update는 로그인 필요라 이 세션에서 실제 로그인 흐름 재현은 하지 않음(코드 대조로 한정).
+- **발견 + 수정 3건**(git `5a86a17`):
+  1. `success` 성공 화면에 실제 청구 금액 미표시 — `amount`를 파싱만 하고 렌더링 안 함. 청구액 표시 추가
+  2. `success` 에러 분기 — 백엔드 `issueBilling`이 Toss 인증 성공 이후(2단계: 빌링키 발급→실제 청구) 실패할 경우 이미 카드가 청구됐을 수 있는데도 안내 없이 "다시 시도"(→`/pricing`, 재청구 유도)만 노출 → 중복결제 위험. `backend/routers/webhook.py:142-185` 확인(청구 성공 후 DB upsert 실패 시 사용자에게 청구 여부 불명확). 중복결제 경고 문구 + 1:1 문의 링크 추가
+  3. `fail` 페이지를 신규구독 결제 실패(PayButton)와 카드 변경 실패(SettingsClient)가 공유하는데 CTA가 항상 "다시 결제하기→/pricing" 고정 — 카드 변경 실패 사용자를 새 구독 결제로 잘못 유도. `SettingsClient.tsx` failUrl에 `?from=card-update` 추가 + `fail/page.tsx` 문맥 분기
+  4. (부수 정리) `fail` 페이지의 "주문번호: {orderId}" 블록은 Toss billing-auth 콜백이 `orderId`를 보내지 않아(공식 문서 확인) 항상 미표시되는 죽은 코드 — 제거
+- **오판 아님으로 확인**: 결제 페이지 3곳 모두 `SiteFooter`에 상호명·대표자·사업자등록번호·통신판매업번호 표시 완료(전자상거래법 요건 충족) — 별도 조치 불요
+- **대비율**: `text-gray-400` 9곳 목록만 남김(§5.1 배치 창에서 처리) — 직접 수정 안 함
+- 검증: md5 사전 확인(서버==git HEAD, drift 없음) → scp → 서버 grep 확인 → `npm run build` 성공 → pm2 재시작 error.log 신규 에러 0건(기존 recharts 경고만) → curl 3페이지 200
+
 ---
 
 ## §6. "외부 사이트 대비 현재 수준" — 현재까지의 결론
