@@ -107,7 +107,7 @@ export default async function StoryDetailPage({
           <h1 className="text-xl md:text-2xl font-black text-gray-900 leading-tight break-keep">
             {story.title}
           </h1>
-          <p className="text-sm text-gray-400 mt-2">{formatDate(story.published_at)}</p>
+          <p className="text-sm text-gray-500 mt-2">{formatDate(story.published_at)}</p>
         </div>
       </div>
 
@@ -119,8 +119,8 @@ export default async function StoryDetailPage({
             <div className="flex items-center justify-center gap-4 md:gap-8">
               {/* Before */}
               <div className="text-center">
-                <p className="text-sm text-gray-400 mb-1">시작 전</p>
-                <p className="text-2xl font-black text-gray-400">
+                <p className="text-sm text-gray-500 mb-1">시작 전</p>
+                <p className="text-2xl font-black text-gray-500">
                   {story.score_before !== null ? getScoreTextLabel(story.score_before) : "—"}
                 </p>
               </div>
@@ -151,7 +151,7 @@ export default async function StoryDetailPage({
             {story.body}
           </div>
           {story.display_name && !story.is_anonymous && (
-            <p className="text-sm text-gray-400 mt-4 pt-4 border-t border-gray-50">
+            <p className="text-sm text-gray-500 mt-4 pt-4 border-t border-gray-50">
               — {story.display_name}
             </p>
           )}

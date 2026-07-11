@@ -187,7 +187,7 @@ function DeliveryNewForm() {
       <div className="max-w-xl mx-auto">
         {/* 헤더 */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
             <a href="/delivery" className="hover:text-blue-600 transition-colors">대행 서비스</a>
             <ChevronRight className="w-4 h-4" />
             <span className="text-gray-700">의뢰 작성</span>
@@ -286,7 +286,7 @@ function DeliveryNewForm() {
                   placeholder="예: 한식당 스마트플레이스 최적화 의뢰"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400"
                 />
-                <p className="text-sm text-gray-400 mt-1 text-right">{title.length}/100</p>
+                <p className="text-sm text-gray-500 mt-1 text-right">{title.length}/100</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -300,7 +300,7 @@ function DeliveryNewForm() {
                   placeholder="매장 콘셉트, 시그니처 메뉴, 특별 요청사항 등을 작성해 주세요."
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400 resize-none"
                 />
-                <p className="text-sm text-gray-400 mt-1 text-right">{body.length}/2000</p>
+                <p className="text-sm text-gray-500 mt-1 text-right">{body.length}/2000</p>
               </div>
             </div>
           </div>

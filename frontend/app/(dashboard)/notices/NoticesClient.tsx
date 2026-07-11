@@ -95,14 +95,14 @@ export default function NoticesClient({ initialItems, initialTotal }: Props) {
       </div>
 
       {loading && (
-        <div className="flex justify-center py-10 text-gray-400 text-sm">
+        <div className="flex justify-center py-10 text-gray-500 text-sm">
           불러오는 중...
         </div>
       )}
 
       {!loading && items.length === 0 && (
         <div className="py-16 text-center">
-          <p className="text-gray-400 text-base">등록된 공지사항이 없습니다.</p>
+          <p className="text-gray-500 text-base">등록된 공지사항이 없습니다.</p>
         </div>
       )}
 
@@ -131,7 +131,7 @@ export default function NoticesClient({ initialItems, initialTotal }: Props) {
                         <span className={notice.is_pinned ? "font-medium" : ""}>{notice.title}</span>
                       </Link>
                     </td>
-                    <td className="py-3 pl-3 text-gray-400 text-right whitespace-nowrap">
+                    <td className="py-3 pl-3 text-gray-500 text-right whitespace-nowrap">
                       {formatDate(notice.created_at)}
                     </td>
                   </tr>
@@ -151,7 +151,7 @@ export default function NoticesClient({ initialItems, initialTotal }: Props) {
                   <span className={"inline-block px-2 py-0.5 rounded text-sm font-medium " + CATEGORY_BADGE[notice.category]}>
                     {CATEGORY_LABEL[notice.category]}
                   </span>
-                  <span className="text-sm text-gray-400">{formatDate(notice.created_at)}</span>
+                  <span className="text-sm text-gray-500">{formatDate(notice.created_at)}</span>
                 </div>
               </Link>
             ))}

@@ -155,7 +155,7 @@ export function DashboardSidebar({
             {isFree && (
               <a
                 href="/pricing"
-                className="text-sm text-gray-400 hover:text-blue-600 transition-colors"
+                className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
                 onClick={() => setOpen(false)}
               >
                 업그레이드
@@ -201,7 +201,7 @@ export function DashboardSidebar({
                         active
                           ? "bg-blue-50 text-blue-700 font-semibold border border-blue-300"
                           : locked
-                          ? "text-gray-400 hover:bg-gray-50"
+                          ? "text-gray-500 hover:bg-gray-50"
                           : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                       ].join(" ")}
                       title={locked ? "업그레이드 후 이용 가능" : undefined}
@@ -260,7 +260,7 @@ export function DashboardSidebar({
           {query && filteredGroups.length === 0 && filteredFooter.length === 0 && (
             <div className="px-3 py-8 text-center">
               <Search className="w-8 h-8 text-gray-200 mx-auto mb-2" aria-hidden="true" />
-              <p className="text-sm text-gray-400">검색 결과 없음</p>
+              <p className="text-sm text-gray-500">검색 결과 없음</p>
             </div>
           )}
         </nav>
@@ -289,7 +289,7 @@ export function DashboardSidebar({
             <Settings className="w-[18px] h-[18px] shrink-0" />
             <span className="flex flex-col min-w-0">
               <span className="font-medium text-[15px]">설정</span>
-              <span className="truncate text-sm text-gray-400">{email}</span>
+              <span className="truncate text-sm text-gray-500">{email}</span>
             </span>
           </Link>
           <LogoutButton />

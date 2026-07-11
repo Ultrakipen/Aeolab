@@ -128,11 +128,11 @@ export default async function LandingPage() {
       <div className="bg-blue-50 border-b border-blue-100 py-3 px-4">
         <div className="max-w-[1020px] mx-auto flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-1.5 sm:gap-6 text-sm text-gray-700 text-center">
           <span className="font-semibold text-gray-800 whitespace-nowrap">스마트플레이스·블로그 개선 방법을 알면</span>
-          <span className="hidden sm:block text-gray-400">→</span>
+          <span className="hidden sm:block text-gray-500">→</span>
           <span className="whitespace-nowrap">🔍 <strong className="text-blue-700">네이버 검색 상위노출</strong> 가능성 ↑</span>
-          <span className="hidden sm:block text-gray-400">·</span>
+          <span className="hidden sm:block text-gray-500">·</span>
           <span className="whitespace-nowrap">🤖 <strong className="text-purple-700">AI 브리핑·AI탭</strong> 노출 가능성 ↑</span>
-          <span className="hidden sm:block text-gray-400">·</span>
+          <span className="hidden sm:block text-gray-500">·</span>
           <span className="whitespace-nowrap">💬 <strong className="text-green-700">ChatGPT·Gemini·Google AI</strong> 노출 현황 측정·추적</span>
         </div>
       </div>
@@ -887,7 +887,7 @@ export default async function LandingPage() {
               <span className="rounded-full px-3 py-1 font-semibold" style={{ background: "#BFDBFE", color: "#1E40AF" }}>
                 AI 브리핑 대상 업종 → AI 브리핑 5단계 가이드
               </span>
-              <span className="hidden sm:inline text-gray-400">|</span>
+              <span className="hidden sm:inline text-gray-500">|</span>
               <span className="rounded-full px-3 py-1 font-semibold" style={{ background: "#C7D2FE", color: "#3730A3" }}>
                 그 외 업종 → AI탭 + ChatGPT·Gemini·Google AI 가이드
               </span>

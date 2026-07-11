@@ -84,10 +84,10 @@ export default function BlogIndexPage() {
             >
               {featured.category}
             </span>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-gray-500">
               {formatDate(featured.publishedAt)}
             </span>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-gray-500">
               읽기 {featured.readTime}분
             </span>
           </div>
@@ -118,7 +118,7 @@ export default function BlogIndexPage() {
                 >
                   {post.category}
                 </span>
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-gray-500">
                   읽기 {post.readTime}분
                 </span>
               </div>
@@ -129,7 +129,7 @@ export default function BlogIndexPage() {
                 {post.description}
               </p>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-gray-500">
                   {formatDate(post.publishedAt)}
                 </span>
                 <span className="text-sm font-semibold text-blue-600 group-hover:underline">

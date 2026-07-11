@@ -63,7 +63,7 @@ function CardUpdateContent() {
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-base">카드 변경 처리 중...</p>
-          <p className="text-gray-400 text-sm mt-1">잠시만 기다려 주세요.</p>
+          <p className="text-gray-500 text-sm mt-1">잠시만 기다려 주세요.</p>
         </div>
       </main>
     );
@@ -106,7 +106,7 @@ function CardUpdateContent() {
           <p className="text-gray-600 text-base mb-1">
             새 카드로 즉시 재결제를 시도했지만 실패했습니다.
           </p>
-          <p className="text-gray-400 text-sm mb-8">
+          <p className="text-gray-500 text-sm mb-8">
             카드 한도·잔액을 확인하시거나 다른 카드로 다시 시도해 주세요. 계속 실패하면 1:1 문의로 알려주세요.
           </p>
 
@@ -142,10 +142,10 @@ function CardUpdateContent() {
             ? "새 카드로 결제가 성공해 구독이 다시 활성화되었습니다."
             : "새 결제 카드가 등록되었습니다."}
         </p>
-        <p className="text-gray-400 text-sm mb-2">
+        <p className="text-gray-500 text-sm mb-2">
           {reactivated ? "다음 결제일부터 정상적으로 자동 청구됩니다." : "다음 결제부터 변경된 카드로 자동 청구됩니다."}
         </p>
-        <p className="text-gray-400 text-sm mb-8">3초 후 설정 페이지로 이동합니다...</p>
+        <p className="text-gray-500 text-sm mb-8">3초 후 설정 페이지로 이동합니다...</p>
 
         <div className="space-y-3">
           <Link

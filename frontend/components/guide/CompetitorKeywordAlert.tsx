@@ -74,7 +74,7 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
-          <AlertTriangle className="w-4 h-4 text-gray-400" />
+          <AlertTriangle className="w-4 h-4 text-gray-500" />
           <span className="text-sm font-semibold text-gray-900">경쟁사 키워드 위협 분석</span>
         </div>
         <div className="bg-gray-50 rounded-xl p-4 text-center">
@@ -103,7 +103,7 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
           <span className="text-sm font-semibold text-gray-900">경쟁사 키워드 위협 분석</span>
         </div>
         {data.scan_date_previous && data.scan_date_current && (
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-gray-500">
             {formatDate(data.scan_date_previous)} ~ {formatDate(data.scan_date_current)}
           </span>
         )}
@@ -176,7 +176,7 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
                   {highThreats.map((t, i) => (
                     <div key={i} className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium text-gray-700">{t.competitor_name}</span>
-                      <span className="text-sm text-gray-400">→</span>
+                      <span className="text-sm text-gray-500">→</span>
                       <span className="text-sm bg-red-50 text-red-600 px-2 py-0.5 rounded-full">
                         {t.keyword}
                       </span>
@@ -197,7 +197,7 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
                   {mediumThreats.map((t, i) => (
                     <div key={i} className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium text-gray-700">{t.competitor_name}</span>
-                      <span className="text-sm text-gray-400">→</span>
+                      <span className="text-sm text-gray-500">→</span>
                       <span className="text-sm bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full">
                         {t.keyword}
                       </span>

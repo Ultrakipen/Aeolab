@@ -108,8 +108,8 @@ export default function ApiKeysPage() {
         <h2 className="text-base md:text-lg font-semibold text-gray-700 mb-3">발급된 키 ({keys.length}/5)</h2>
         {keys.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm text-gray-400">발급된 API 키가 없습니다.</p>
-            <p className="text-sm text-gray-400 mt-1">위에서 키 이름을 입력해 발급하세요.</p>
+            <p className="text-sm text-gray-500">발급된 API 키가 없습니다.</p>
+            <p className="text-sm text-gray-500 mt-1">위에서 키 이름을 입력해 발급하세요.</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -117,7 +117,7 @@ export default function ApiKeysPage() {
               <div key={k.id} className="flex items-center justify-between py-3 px-1 border-b border-gray-50 last:border-0">
                 <div className="min-w-0 mr-3">
                   <p className="text-sm md:text-base font-medium text-gray-900">{k.name}</p>
-                  <p className="text-sm text-gray-400 font-mono mt-0.5">
+                  <p className="text-sm text-gray-500 font-mono mt-0.5">
                     {k.key_prefix}... · 생성: {k.created_at.slice(0, 10)}
                     {k.last_used_at && ` · 최근: ${k.last_used_at.slice(0, 10)}`}
                   </p>
@@ -139,7 +139,7 @@ export default function ApiKeysPage() {
         <p className="text-sm text-gray-500">
           API 키 사용: <code className="font-mono text-sm bg-white px-1.5 py-0.5 rounded border border-gray-200">Authorization: Bearer &lt;api_key&gt;</code> 헤더로 전송.
         </p>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-sm text-gray-500 mt-1">
           문서: <span className="text-blue-600">aeolab.co.kr/docs/api</span> (준비 중)
         </p>
       </section>

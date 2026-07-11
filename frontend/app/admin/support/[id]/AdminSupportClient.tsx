@@ -146,7 +146,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
             style={{ maxHeight: "520px" }}
           >
             {replies.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">
+              <p className="text-sm text-gray-500 text-center py-8">
                 아직 답글이 없습니다.
               </p>
             ) : (
@@ -166,7 +166,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
                       {reply.author_type === "admin" ? "운영자" : "사용자"}
                     </span>
                     {reply.author_type === "admin" && !isPublic && (
-                      <span className="text-sm text-gray-400 flex items-center gap-0.5">
+                      <span className="text-sm text-gray-500 flex items-center gap-0.5">
                         <EyeOff className="w-3.5 h-3.5" />
                         비공개
                       </span>
@@ -182,7 +182,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
                   >
                     {reply.body}
                   </div>
-                  <span className="text-sm text-gray-400">{formatDate(reply.created_at)}</span>
+                  <span className="text-sm text-gray-500">{formatDate(reply.created_at)}</span>
                 </div>
               ))
             )}
@@ -269,7 +269,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
             <div>
               <p className="text-sm text-gray-500 mb-1.5">문의 종료</p>
               {isClosed ? (
-                <p className="text-sm text-gray-400 py-2 text-center">종료된 문의입니다.</p>
+                <p className="text-sm text-gray-500 py-2 text-center">종료된 문의입니다.</p>
               ) : (
                 <button
                   onClick={handleClose}

@@ -165,7 +165,7 @@ export default async function ChannelGuidePage({
             </div>
             <span className="text-sm text-gray-500 w-16 shrink-0 text-right">글로벌 {entry.globalRatio}%</span>
           </div>
-          <p className="text-sm text-gray-400 leading-relaxed break-keep">
+          <p className="text-sm text-gray-500 leading-relaxed break-keep">
             AEOlab 듀얼트랙 모델 기준. 점수 = 네이버 채널 점수 × {entry.naverRatio}% + 글로벌 AI 점수 × {entry.globalRatio}%.
             측정 시점·기기·로그인 상태에 따라 달라질 수 있음.
           </p>
@@ -218,7 +218,7 @@ export default async function ChannelGuidePage({
               </div>
             ))}
           </div>
-          <p className="text-sm text-gray-400 mt-3 leading-relaxed break-keep">
+          <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
             행동 5요소는 AEOlab 분석 기반 권장 사항이며, 노출 결과는 네이버·AI 플랫폼 정책에 따라 달라질 수 있습니다.
           </p>
         </section>
@@ -239,7 +239,7 @@ export default async function ChannelGuidePage({
               </Link>
             ))}
             {CHANNEL_GUIDE.length > 17 && (
-              <span className="px-3 py-1.5 text-sm text-gray-400">
+              <span className="px-3 py-1.5 text-sm text-gray-500">
                 +{CHANNEL_GUIDE.length - 17}개 업종
               </span>
             )}
@@ -268,7 +268,7 @@ export default async function ChannelGuidePage({
               AI 브리핑 5단계 가이드
             </Link>
           </div>
-          <p className="text-sm text-gray-400 mt-3 leading-relaxed break-keep">
+          <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
             회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인(4,950원).
           </p>
         </section>

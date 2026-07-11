@@ -108,7 +108,7 @@ function PaymentSuccessContent() {
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600 font-medium">플랜 활성화 확인 중...</p>
-          <p className="text-gray-400 text-sm mt-1">잠시만 기다려 주세요</p>
+          <p className="text-gray-500 text-sm mt-1">잠시만 기다려 주세요</p>
         </div>
       </main>
     );
@@ -122,7 +122,7 @@ function PaymentSuccessContent() {
             <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" strokeWidth={1.5} />
             <h1 className="text-xl font-bold text-gray-900 mb-2">결제 오류</h1>
             <p className="text-gray-500 text-sm mb-2">{errorMsg}</p>
-            <p className="text-gray-400 text-sm mb-6">
+            <p className="text-gray-500 text-sm mb-6">
               카드 승인이 이미 진행되었을 수 있습니다. 중복 결제를 막기 위해 다시 시도하기 전에 1:1 문의로 결제 여부를 확인해주세요.
             </p>
             <div className="space-y-3">
@@ -161,10 +161,10 @@ function PaymentSuccessContent() {
               오늘 <span className="font-semibold">{chargedAmount.toLocaleString()}원</span>이 결제되었습니다.
             </p>
           )}
-          <p className="text-gray-400 text-sm mb-2">
+          <p className="text-gray-500 text-sm mb-2">
             이제 네이버·Gemini·ChatGPT 3채널 자동 스캔과 개선 가이드를 이용할 수 있습니다.
           </p>
-          <p className="text-gray-400 text-sm mb-4">
+          <p className="text-gray-500 text-sm mb-4">
             {countdown}초 후 대시보드로 이동합니다...
           </p>
 
