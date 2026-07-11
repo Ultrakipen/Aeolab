@@ -137,7 +137,7 @@ export function SidebarBusinessSwitcher({ onClose }: Props) {
         </span>
         {canSwitch && (
           <ChevronDown
-            className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+            className={`w-4 h-4 text-gray-500 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
             aria-hidden="true"
           />
         )}

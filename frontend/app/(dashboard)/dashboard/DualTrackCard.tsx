@@ -260,7 +260,7 @@ export default function DualTrackCard({
             <span className="text-gray-500">{CATEGORY_LABELS[category] || "이 업종"} 기준</span>
             <span className="text-gray-300">·</span>
             <span className="font-semibold text-green-600">네이버 {Math.round(naverWeight * 100)}%</span>
-            <span className="text-gray-400">+</span>
+            <span className="text-gray-500">+</span>
             <span className="font-semibold text-blue-600">글로벌 AI {Math.round(globalWeight * 100)}%</span>
           </div>
         </div>
@@ -292,7 +292,7 @@ export default function DualTrackCard({
           >
             {STAGE_ICONS[growthStage]} {growthStageLabel}
             {isKeywordEstimated && (
-              <span className="text-gray-400 font-normal ml-1">(추정)</span>
+              <span className="text-gray-500 font-normal ml-1">(추정)</span>
             )}
           </span>
           {/* 성장 단계 기준 명시 */}
@@ -389,7 +389,7 @@ export default function DualTrackCard({
                 </div>
               </div>
             ) : (
-              <div className="flex justify-between text-sm text-gray-400">
+              <div className="flex justify-between text-sm text-gray-500">
                 <span>ChatGPT</span>
                 <span className="text-sm text-gray-500">정식 스캔(Basic+) 후 확인</span>
               </div>
@@ -421,7 +421,7 @@ export default function DualTrackCard({
                 </div>
               </div>
             ) : (
-              <div className="flex justify-between text-sm text-gray-400">
+              <div className="flex justify-between text-sm text-gray-500">
                 <span>Google Gemini</span>
                 <span className="text-sm text-gray-500">정식 스캔(Basic+) 후 확인</span>
               </div>
@@ -432,7 +432,7 @@ export default function DualTrackCard({
               (aiExposureData?.chatgptSampleSize != null && aiExposureData.chatgptSampleSize <= 10) ||
               (aiExposureData?.geminiSampleSize != null && aiExposureData.geminiSampleSize <= 10);
             return isFastDiagnosis ? (
-              <p className="text-sm text-gray-400 mt-2">
+              <p className="text-sm text-gray-500 mt-2">
                 빠른 진단 결과 (10/5회) · 정밀 자동 스캔 (50회)은 스케줄러가 오늘 실행합니다
               </p>
             ) : null;
@@ -480,7 +480,7 @@ export default function DualTrackCard({
 
       {/* 추정값 안내 */}
       {isKeywordEstimated && (
-        <p className="text-base text-gray-400 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">
+        <p className="text-base text-gray-500 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">
           리뷰 데이터가 없어 키워드 지수는 업종 평균으로 추정됩니다.
           리뷰 3개를 붙여넣으면 정확한 키워드 갭을 확인할 수 있습니다.
         </p>

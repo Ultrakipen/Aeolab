@@ -103,7 +103,7 @@ function FAQItem({ q, a, index }: FAQItemProps) {
           {index + 1}
         </span>
         <h3 className="text-base font-semibold text-gray-900 break-keep leading-snug flex-1">{q}</h3>
-        <span className="shrink-0 ml-2 text-gray-400 group-open:rotate-180 transition-transform duration-200" aria-hidden="true">
+        <span className="shrink-0 ml-2 text-gray-500 group-open:rotate-180 transition-transform duration-200" aria-hidden="true">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </span>
       </summary>

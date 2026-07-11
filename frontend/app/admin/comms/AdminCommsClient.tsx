@@ -332,7 +332,7 @@ export function AdminCommsClient() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded">{tip.section}</span>
-                      <span className="text-sm text-gray-400">p{tip.priority}</span>
+                      <span className="text-sm text-gray-500">p{tip.priority}</span>
                       {!tip.is_active && <span className="text-sm bg-gray-200 text-gray-500 px-2 py-0.5 rounded">비활성</span>}
                     </div>
                     <p className="text-sm font-medium text-gray-900 truncate">{tip.title}</p>

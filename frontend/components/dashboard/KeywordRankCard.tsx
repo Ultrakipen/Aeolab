@@ -520,9 +520,9 @@ export default function KeywordRankCard({
             <span className="text-sm text-gray-500 hidden sm:inline">네이버 DataLab 기준</span>
           </div>
           {trendOpen ? (
-            <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
+            <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
+            <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
           )}
         </button>
 

@@ -46,7 +46,7 @@ export default function OneLineConclusion({
         업종 평균{" "}
         <strong>{benchmarkAvg}점</strong>
         {isEstimatedBenchmark && (
-          <span className="ml-1 text-sm text-gray-400 font-normal">(추정 · 실측 누적 후 갱신)</span>
+          <span className="ml-1 text-sm text-gray-500 font-normal">(추정 · 실측 누적 후 갱신)</span>
         )}{" "}
         vs 내 점수{" "}
         <strong className={isAboveAvg ? "text-emerald-700" : "text-red-700"}>{myScore}점</strong>

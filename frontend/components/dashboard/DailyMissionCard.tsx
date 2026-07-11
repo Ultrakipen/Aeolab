@@ -333,7 +333,7 @@ export default function DailyMissionCard({
                       </div>
                       <p className="text-sm text-gray-600">{task.desc}</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-400 shrink-0 mt-1.5" />
+                    <ChevronRight className="w-4 h-4 text-gray-500 shrink-0 mt-1.5" />
                   </Link>
                 ))}
               </div>

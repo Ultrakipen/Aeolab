@@ -114,7 +114,7 @@ export function ScoreDeltaBanner({ bizId, accessToken }: Props) {
                 : data.delta >= 2
                 ? "개선 예상"
                 : "소폭 개선 예상"}
-              <span className="text-xs text-gray-400 ml-1">(추정)</span>
+              <span className="text-xs text-gray-500 ml-1">(추정)</span>
             </span>
           )}
           <span className="text-sm text-gray-500 flex items-center gap-1">
@@ -134,7 +134,7 @@ export function ScoreDeltaBanner({ bizId, accessToken }: Props) {
       </div>
 
       {/* 면책 문구 */}
-      <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+      <p className="text-xs text-gray-500 mt-2 leading-relaxed">
         키워드 커버리지·AI 브리핑 노출은 마지막 스캔 기준이며 실제 점수는 측정 후 확정됩니다.
       </p>
     </div>

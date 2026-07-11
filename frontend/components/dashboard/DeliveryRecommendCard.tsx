@@ -63,7 +63,7 @@ export default function DeliveryRecommendCard({ score, isSmartPlace }: Props) {
     <div className={`bg-white rounded-xl border ${pkg.accent} shadow-sm p-5`}>
       {/* 헤더 */}
       <div className="flex items-center gap-2 mb-3">
-        <Package className="w-4 h-4 text-gray-400 shrink-0" />
+        <Package className="w-4 h-4 text-gray-500 shrink-0" />
         <span className="text-sm font-bold text-gray-700">전문가 추천 서비스</span>
         <span className={`ml-auto text-sm font-bold px-2.5 py-0.5 rounded-full ${pkg.badgeBg} ${pkg.badgeText}`}>
           {pkg.number}

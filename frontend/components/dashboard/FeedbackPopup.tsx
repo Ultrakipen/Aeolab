@@ -52,7 +52,7 @@ export function FeedbackPopup({ eventType, trigger, accessToken }: Props) {
     <div className="fixed bottom-24 right-4 lg:bottom-8 lg:right-8 z-50 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-4 w-72">
       <button
         onClick={() => setVisible(false)}
-        className="absolute top-3 right-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+        className="absolute top-3 right-3 text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         aria-label="닫기"
       >
         <X className="w-4 h-4" />

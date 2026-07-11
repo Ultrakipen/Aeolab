@@ -94,7 +94,7 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
           <p className="text-sm font-bold text-gray-800">소개글에 추가하면 좋은 키워드</p>
         </div>
         <p className="text-sm text-emerald-700 font-semibold flex items-center gap-1.5"><Check className="w-4 h-4" aria-hidden="true" /> 제안된 키워드를 모두 확인했습니다.</p>
-        <p className="text-sm text-gray-400 mt-1">Basic 플랜에서 전체 키워드 목록과 월별 변화를 추적할 수 있습니다.</p>
+        <p className="text-sm text-gray-500 mt-1">Basic 플랜에서 전체 키워드 목록과 월별 변화를 추적할 수 있습니다.</p>
       </div>
     );
   }
@@ -190,7 +190,7 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
           키워드 전체 목록과 월별 변화 추적은 대시보드 → 갭 분석에서 확인하세요.
         </p>
       ) : (
-        <p className="text-sm text-gray-400 mt-2.5 leading-relaxed">
+        <p className="text-sm text-gray-500 mt-2.5 leading-relaxed">
           키워드 전체 목록 + 월별 변화 추적 + 소개글 직접 분석은 Basic 플랜에서 제공합니다.
         </p>
       )}

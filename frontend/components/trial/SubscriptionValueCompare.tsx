@@ -54,7 +54,7 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
               <li
                 key={f.label}
                 className={`flex items-start gap-2 text-sm leading-relaxed break-keep ${
-                  f.locked ? "text-gray-400" : "text-gray-700"
+                  f.locked ? "text-gray-500" : "text-gray-700"
                 }`}
               >
                 {f.locked

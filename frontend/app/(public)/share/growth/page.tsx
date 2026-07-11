@@ -113,7 +113,7 @@ export default async function GrowthSharePage({ searchParams }: Props) {
             >
               내 가게도 무료로 진단받기 →
             </Link>
-            <p className="text-center text-sm text-gray-400">
+            <p className="text-center text-sm text-gray-500">
               회원가입 불필요 · 1분 완성
             </p>
           </div>

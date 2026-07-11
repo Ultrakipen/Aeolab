@@ -69,7 +69,7 @@ function PaymentConfirmInner() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-4">
         <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
         <p className="text-base font-medium text-gray-700">결제를 확인하는 중입니다...</p>
-        <p className="text-sm text-gray-400">잠시만 기다려 주세요.</p>
+        <p className="text-sm text-gray-500">잠시만 기다려 주세요.</p>
       </div>
     );
   }
@@ -83,7 +83,7 @@ function PaymentConfirmInner() {
         <div className="text-center">
           <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">결제 완료!</h1>
           <p className="text-base text-gray-600">의뢰가 접수되었습니다.</p>
-          <p className="text-sm text-gray-400 mt-1">아래 버튼을 눌러 의뢰 상세 페이지로 이동하세요.</p>
+          <p className="text-sm text-gray-500 mt-1">아래 버튼을 눌러 의뢰 상세 페이지로 이동하세요.</p>
         </div>
         <button
           onClick={() => router.push(`/delivery/orders/${orderId}`)}
@@ -105,7 +105,7 @@ function PaymentConfirmInner() {
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">결제 확인 오류</h1>
         <p className="text-base text-gray-600">결제 확인 중 오류가 발생했습니다.</p>
         <p className="text-sm text-red-500 mt-1">{errorMsg}</p>
-        <p className="text-sm text-gray-400 mt-2">고객센터에 문의해 주세요.</p>
+        <p className="text-sm text-gray-500 mt-2">고객센터에 문의해 주세요.</p>
       </div>
       <button
         onClick={() => router.push("/delivery/orders")}

@@ -93,7 +93,7 @@ export default function KeywordTrendChart({ bizId, accessToken, categoryKo }: Pr
     return (
       <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-5 h-5 text-gray-400" />
+          <TrendingUp className="w-5 h-5 text-gray-500" />
           <h3 className="text-base font-bold text-gray-700">키워드 검색 트렌드</h3>
         </div>
         <p className="text-sm text-gray-500">네이버 DataLab 분석은 추후 제공 예정입니다.</p>
@@ -106,7 +106,7 @@ export default function KeywordTrendChart({ bizId, accessToken, categoryKo }: Pr
     return (
       <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-5 h-5 text-gray-400" />
+          <TrendingUp className="w-5 h-5 text-gray-500" />
           <h3 className="text-base font-bold text-gray-700">키워드 트렌드</h3>
         </div>
         <p className="text-sm text-gray-500">트렌드 데이터를 불러올 수 없습니다.</p>

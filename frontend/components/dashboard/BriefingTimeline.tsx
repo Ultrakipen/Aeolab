@@ -56,7 +56,7 @@ export function BriefingTimeline({ history, businessName }: Props) {
           ) : totalChange < 0 ? (
             <TrendingDown className="w-4 h-4 text-red-500" />
           ) : (
-            <Minus className="w-4 h-4 text-gray-400" />
+            <Minus className="w-4 h-4 text-gray-500" />
           )}
           <span
             className={`text-sm font-bold ${

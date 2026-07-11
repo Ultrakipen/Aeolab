@@ -675,7 +675,7 @@ export default async function DashboardPage({
           </CollapseSectionWrapper>
 
           {/* ⑧ AI 채널 안내 · 심화 가이드 — 접힘, 최하단 */}
-          <CollapseSectionWrapper id="section-guidance" title="AI 채널 안내 · 심화 가이드" description="채널 노출 조건 · 단계 가이드 · 경쟁사 분석" iconColor="text-gray-400">
+          <CollapseSectionWrapper id="section-guidance" title="AI 채널 안내 · 심화 가이드" description="채널 노출 조건 · 단계 가이드 · 경쟁사 분석" iconColor="text-gray-500">
             <>
               <NaverAiPathwayCard
                 briefingEligibility={briefingEligibility}

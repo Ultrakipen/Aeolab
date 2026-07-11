@@ -133,7 +133,7 @@ function AttributionItem({ item }: { item: ActionAttribution }) {
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2">
           <DeltaBadge delta={item.delta} />
-          {open ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
+          {open ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
         </div>
       </button>
 

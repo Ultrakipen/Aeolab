@@ -118,7 +118,7 @@ export default function ActionResultCard({ actions }: Props) {
       {pending.length > 0 && (
         <div className="bg-white rounded-xl border p-4 md:p-6">
           <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-gray-400" />
+            <Clock className="w-5 h-5 text-gray-500" />
             분석 대기 중
           </h3>
           <div className="space-y-3">
@@ -136,7 +136,7 @@ export default function ActionResultCard({ actions }: Props) {
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <Clock className="w-3.5 h-3.5 text-gray-400" />
+                      <Clock className="w-3.5 h-3.5 text-gray-500" />
                       <span className="text-sm text-gray-500">
                         {daysLeft > 0
                           ? `${daysLeft}일 후 자동 확인 예정`

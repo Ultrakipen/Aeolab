@@ -422,7 +422,7 @@ export default async function CategoryGuidePage({
 
       <article className="max-w-3xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {/* 브레드크럼 */}
-        <nav className="text-sm text-gray-400 mb-4" aria-label="브레드크럼">
+        <nav className="text-sm text-gray-500 mb-4" aria-label="브레드크럼">
           <Link href="/resources" className="hover:text-gray-600">
             업종별 가이드
           </Link>
@@ -518,7 +518,7 @@ export default async function CategoryGuidePage({
 
         {/* 면책 문구 */}
         <div className="border-t border-gray-100 pt-6">
-          <p className="text-sm text-gray-400 leading-relaxed break-keep">
+          <p className="text-sm text-gray-500 leading-relaxed break-keep">
             이 가이드는 일반적인 권장 사항이며, 실제 노출 결과는 업종·지역·경쟁 강도에 따라 다를 수 있습니다.
           </p>
         </div>

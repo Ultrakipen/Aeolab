@@ -57,7 +57,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
     return (
       <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
-          <MessageSquare className="w-5 h-5 text-gray-400" />
+          <MessageSquare className="w-5 h-5 text-gray-500" />
           <h2 className="text-base font-bold text-gray-700">AI 언급 맥락 분석</h2>
           <span className="ml-auto text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Pro</span>
         </div>
@@ -80,7 +80,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
             </div>
           </div>
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 rounded-xl">
-            <Lock className="w-6 h-6 text-gray-400 mb-2" />
+            <Lock className="w-6 h-6 text-gray-500 mb-2" />
             <p className="text-sm font-semibold text-gray-700 text-center px-4">AI가 내 가게를 어떤 질문에서 언급하는지,<br/>어떤 질문에서 빠지는지 확인합니다.</p>
             <a href="/pricing" className="mt-3 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-1.5 rounded-full transition-colors">Pro로 업그레이드 →</a>
           </div>
@@ -95,7 +95,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <div className="flex items-center gap-2 mb-2">
-          <MessageSquare className="w-5 h-5 text-gray-400" />
+          <MessageSquare className="w-5 h-5 text-gray-500" />
           <h2 className="text-base font-bold text-gray-700">AI 언급 맥락 분석</h2>
         </div>
         <p className="text-sm text-gray-500">

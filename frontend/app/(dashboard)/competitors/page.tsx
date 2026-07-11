@@ -191,11 +191,11 @@ export default async function CompetitorsPage({
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
                   s.n < step ? 'bg-blue-500 text-white' :
                   s.n === step ? 'bg-blue-600 text-white ring-2 ring-blue-200' :
-                  'bg-gray-200 text-gray-400'
+                  'bg-gray-200 text-gray-500'
                 }`}>
                   {s.n < step ? '✓' : s.n}
                 </div>
-                <span className={`text-sm font-semibold truncate ${s.n === step ? 'text-blue-700' : s.n < step ? 'text-blue-500' : 'text-gray-400'}`}>
+                <span className={`text-sm font-semibold truncate ${s.n === step ? 'text-blue-700' : s.n < step ? 'text-blue-500' : 'text-gray-500'}`}>
                   {s.label}
                 </span>
                 {i < steps.length - 1 && (

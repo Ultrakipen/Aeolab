@@ -310,7 +310,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                             {cat.label}
                           </span>
                           {cat.typeTags && cat.typeTags.length > 0 && (
-                            <span className="text-xs text-gray-400 text-center leading-tight truncate w-full px-1">
+                            <span className="text-xs text-gray-500 text-center leading-tight truncate w-full px-1">
                               {cat.typeTags.slice(0, 2).join("·")} 등
                             </span>
                           )}

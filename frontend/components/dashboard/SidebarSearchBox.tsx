@@ -26,7 +26,7 @@ export function SidebarSearchBox({ value, onChange }: Props) {
   return (
     <div className="mx-3 mb-3 relative flex items-center">
       <Search
-        className="absolute left-2.5 w-4 h-4 text-gray-400 pointer-events-none"
+        className="absolute left-2.5 w-4 h-4 text-gray-500 pointer-events-none"
         aria-hidden="true"
       />
       <input

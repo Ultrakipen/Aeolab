@@ -483,14 +483,14 @@ export default function ScoreGuidePage() {
                   </td>
                   <td
                     className={`py-2.5 px-3 text-center font-bold ${
-                      row.naverDominant ? "text-blue-600" : "text-gray-400"
+                      row.naverDominant ? "text-blue-600" : "text-gray-500"
                     }`}
                   >
                     {row.naver}%
                   </td>
                   <td
                     className={`py-2.5 px-3 text-center font-bold ${
-                      !row.naverDominant ? "text-purple-600" : "text-gray-400"
+                      !row.naverDominant ? "text-purple-600" : "text-gray-500"
                     }`}
                   >
                     {row.global}%

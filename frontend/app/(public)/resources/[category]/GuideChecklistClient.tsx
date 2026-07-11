@@ -71,7 +71,7 @@ export default function GuideChecklistClient({ checklist }: Props) {
               {/* 텍스트 */}
               <span
                 className={`text-sm md:text-base leading-snug break-keep ${
-                  checked[idx] ? "line-through text-gray-400" : "text-gray-800"
+                  checked[idx] ? "line-through text-gray-500" : "text-gray-800"
                 }`}
               >
                 {item}
@@ -89,7 +89,7 @@ export default function GuideChecklistClient({ checklist }: Props) {
       )}
 
       {/* 초기화 안내 */}
-      <p className="mt-3 text-sm text-gray-400">
+      <p className="mt-3 text-sm text-gray-500">
         체크 상태는 새로고침 시 초기화됩니다.
       </p>
     </div>

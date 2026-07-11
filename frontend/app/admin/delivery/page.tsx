@@ -153,7 +153,7 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
                       <td className="px-5 py-4 text-right text-sm font-semibold text-gray-900">
                         {order.amount?.toLocaleString()}원
                       </td>
-                      <td className="px-5 py-4 text-right text-sm text-gray-400">
+                      <td className="px-5 py-4 text-right text-sm text-gray-500">
                         {formatDate(order.created_at)}
                       </td>
                       <td className="px-5 py-4 text-center">
@@ -192,7 +192,7 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
                   <span className={`shrink-0 text-sm font-semibold px-2.5 py-1 rounded-full ${sm.color}`}>
                     {sm.label}
                   </span>
-                  <span className="text-sm text-gray-400">{formatDate(order.created_at)}</span>
+                  <span className="text-sm text-gray-500">{formatDate(order.created_at)}</span>
                 </div>
                 <p className="text-sm font-semibold text-gray-900 mb-1 truncate">
                   {order.request_title}

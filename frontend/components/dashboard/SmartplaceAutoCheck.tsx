@@ -194,7 +194,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
       {/* 오류 */}
       {!loading && checkError && (
         <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 text-center">
-          <AlertCircle className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+          <AlertCircle className="w-6 h-6 text-gray-500 mx-auto mb-2" />
           <p className="text-sm text-gray-600 mb-2">
             자동 점검을 사용할 수 없습니다. 수동으로 확인해주세요.
           </p>

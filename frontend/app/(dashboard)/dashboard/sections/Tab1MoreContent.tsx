@@ -15,7 +15,7 @@ export default function Tab1MoreContent({ children }: Props) {
   return (
     <button
       onClick={() => setShow(true)}
-      className="w-full flex items-center justify-center gap-1.5 py-3 text-sm text-gray-400 hover:text-gray-600 border border-dashed border-gray-200 rounded-xl transition-colors"
+      className="w-full flex items-center justify-center gap-1.5 py-3 text-sm text-gray-500 hover:text-gray-600 border border-dashed border-gray-200 rounded-xl transition-colors"
     >
       <ChevronDown className="w-4 h-4" />
       상세 차트 · AI 인용 · 리뷰 감정 더 보기

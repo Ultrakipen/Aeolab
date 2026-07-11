@@ -56,7 +56,7 @@ function PaymentFailContent() {
           </Link>
           <Link
             href={isCardUpdate ? "/dashboard" : "/"}
-            className="block text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            className="block text-sm text-gray-500 hover:text-gray-600 transition-colors"
           >
             {isCardUpdate ? "대시보드로 이동" : "홈으로"}
           </Link>

@@ -361,7 +361,7 @@ export default function CaseStudySection() {
         </div>
 
         {/* 하단 안내 문구 */}
-        <p className="text-center text-sm text-gray-400 mt-6 break-keep">
+        <p className="text-center text-sm text-gray-500 mt-6 break-keep">
           위 사례는 실제 분석 시나리오 기반 가상 페르소나입니다. 개별 결과는 업종·경쟁 강도에 따라 다를 수 있습니다.
         </p>
 

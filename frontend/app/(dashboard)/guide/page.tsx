@@ -177,7 +177,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
 
       {/* 채널별 심화 가이드 — 가이드 본문 아래에 배치 (탐색 링크) */}
       <div className="mt-10 pt-8 border-t border-gray-100">
-        <p className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">채널별 심화 가이드</p>
+        <p className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">채널별 심화 가이드</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
           {/* AI 브리핑 가이드 */}
           <Link

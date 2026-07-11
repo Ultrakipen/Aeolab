@@ -92,7 +92,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         className="w-full flex items-center justify-between gap-3 px-4 py-4 text-left bg-white hover:bg-gray-50 transition-colors"
       >
         <span className="text-sm md:text-base font-medium text-gray-800">{q}</span>
-        <span className="flex-shrink-0 text-gray-400 text-lg leading-none">
+        <span className="flex-shrink-0 text-gray-500 text-lg leading-none">
           {open ? "−" : "+"}
         </span>
       </button>

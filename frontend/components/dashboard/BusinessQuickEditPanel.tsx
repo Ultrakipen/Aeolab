@@ -235,7 +235,7 @@ export default function BusinessQuickEditPanel({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
             aria-label="닫기"
           >
             <X className="w-5 h-5" />

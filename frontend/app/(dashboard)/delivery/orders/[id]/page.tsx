@@ -170,7 +170,7 @@ export default async function DeliveryOrderDetailPage({
   return (
     <div className="p-4 md:p-8">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
         <a href="/delivery" className="hover:text-blue-600 transition-colors">대행 서비스</a>
         <ChevronRight className="w-4 h-4" />
         <a href="/delivery/orders" className="hover:text-blue-600 transition-colors">내 의뢰 목록</a>
@@ -326,7 +326,7 @@ export default async function DeliveryOrderDetailPage({
                             ? "bg-blue-600 border-blue-600 text-white"
                             : isDone
                             ? "bg-green-500 border-green-500 text-white"
-                            : "bg-white border-gray-200 text-gray-400",
+                            : "bg-white border-gray-200 text-gray-500",
                         ].join(" ")}>
                           {isDone ? "✓" : idx + 1}
                         </div>
@@ -335,7 +335,7 @@ export default async function DeliveryOrderDetailPage({
                         )}
                       </div>
                       <div className="pt-1 pb-8 last:pb-0">
-                        <p className={`text-sm font-semibold ${isActive ? "text-blue-700" : isDone ? "text-green-700" : "text-gray-400"}`}>
+                        <p className={`text-sm font-semibold ${isActive ? "text-blue-700" : isDone ? "text-green-700" : "text-gray-500"}`}>
                           {STATUS_LABELS[step]}
                         </p>
                         {isActive && (

@@ -183,7 +183,7 @@ export default function PlanRecommender() {
             )}
           </div>
 
-          <p className="text-sm text-gray-400 text-center mt-2">
+          <p className="text-sm text-gray-500 text-center mt-2">
             7일 이내 미사용 시 100% 환불 · 카드 자동결제
           </p>
         </div>

@@ -85,7 +85,7 @@ export default function ActionHeroCard({
               {exposureCount !== null ? (
                 <span className="text-xl md:text-2xl">{exposureCount}</span>
               ) : (
-                <span className="text-gray-400">측정 중</span>
+                <span className="text-gray-500">측정 중</span>
               )}
               {exposureCount !== null && "번"} 언급
             </span>

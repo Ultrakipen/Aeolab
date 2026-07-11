@@ -136,7 +136,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
                 ? `첫 달 ${firstMonthAmount.toLocaleString()}원 결제 후, 30일 뒤부터 매월 ${amount.toLocaleString()}원이 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다.`
                 : "카드를 등록하면 매월 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다."}
             </p>
-            <p className="text-sm text-gray-400 mb-5">
+            <p className="text-sm text-gray-500 mb-5">
               구독 시작일로부터 7일 이내 청약철회 신청 가능 (단, 서비스 이용 시 제한됩니다) ·{" "}
               <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">이용약관</a>
             </p>

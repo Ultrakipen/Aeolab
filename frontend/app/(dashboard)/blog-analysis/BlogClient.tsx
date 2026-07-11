@@ -997,7 +997,7 @@ function BlogScoreTrendChart({ businessId, token }: { businessId: string; token:
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-5 h-5 text-gray-400 shrink-0" />
+          <TrendingUp className="w-5 h-5 text-gray-500 shrink-0" />
           <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 진단 점수 추이</h3>
         </div>
         <p className="text-sm text-gray-500">추이 데이터를 불러오지 못했습니다 — 새로고침해 주세요.</p>
@@ -1009,7 +1009,7 @@ function BlogScoreTrendChart({ businessId, token }: { businessId: string; token:
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-5 h-5 text-gray-400 shrink-0" />
+          <TrendingUp className="w-5 h-5 text-gray-500 shrink-0" />
           <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 진단 점수 추이</h3>
         </div>
         <p className="text-sm text-gray-500">분석을 2회 이상 진행하면 추세 차트가 표시됩니다.</p>
@@ -1225,7 +1225,7 @@ function TitleImprovementSection({ posts, businessId }: { posts: PostDetail[]; b
                 onClick={() => handleDismiss(p.title)}
                 aria-label="이 제안 삭제"
                 title="이 제안 삭제"
-                className="absolute top-2 right-2 w-8 h-8 inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                className="absolute top-2 right-2 w-8 h-8 inline-flex items-center justify-center rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>

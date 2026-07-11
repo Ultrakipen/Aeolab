@@ -114,7 +114,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
             <p className="text-base font-medium text-gray-500 mb-1">
               {categoryFilter ? "해당 카테고리의 FAQ가 없습니다." : "아직 공개 FAQ가 없습니다."}
             </p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-500">
               궁금한 점은{" "}
               <Link href="/login?next=/support/tickets/new" className="text-blue-600 hover:underline">
                 로그인 후 직접 문의
@@ -134,7 +134,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
                       <span className="shrink-0 inline-block text-sm font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">
                         {CATEGORY_LABELS[ticket.category] ?? ticket.category}
                       </span>
-                      <span className="text-sm text-gray-400 mt-1">{formatDate(ticket.created_at)}</span>
+                      <span className="text-sm text-gray-500 mt-1">{formatDate(ticket.created_at)}</span>
                     </div>
                     <h2 className="text-base font-semibold text-gray-900 mb-2">Q. {ticket.title}</h2>
                     <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{ticket.body}</p>

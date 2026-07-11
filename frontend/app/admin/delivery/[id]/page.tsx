@@ -160,7 +160,7 @@ export default async function AdminDeliveryDetailPage({
   return (
     <>
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-4 flex-wrap">
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 flex-wrap">
         <Link href="/admin" className="hover:text-blue-600 transition-colors">관리자</Link>
         <ChevronRight className="w-4 h-4" />
         <Link href="/admin/delivery" className="hover:text-blue-600 transition-colors">대행 의뢰 관리</Link>

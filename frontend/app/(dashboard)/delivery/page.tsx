@@ -187,7 +187,7 @@ export default async function DeliveryPage() {
                   <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">{pkg.name}</h2>
                   <p className="text-sm text-gray-500">{pkg.description}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <Clock className="w-3.5 h-3.5 text-gray-400" />
+                    <Clock className="w-3.5 h-3.5 text-gray-500" />
                     <span className="text-sm text-gray-500">{pkg.work_hours}</span>
                   </div>
                 </div>
@@ -278,7 +278,7 @@ export default async function DeliveryPage() {
                         {PACKAGE_DISPLAY[order.package_type] ?? order.package_type} · {order.amount?.toLocaleString()}원
                       </p>
                     </div>
-                    <span className="text-sm text-gray-400 shrink-0">{formatDate(order.created_at)}</span>
+                    <span className="text-sm text-gray-500 shrink-0">{formatDate(order.created_at)}</span>
                   </Link>
                 </li>
               );

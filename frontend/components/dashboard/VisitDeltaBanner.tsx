@@ -115,7 +115,7 @@ export default function VisitDeltaBanner({ bizId }: Props) {
       <button
         onClick={handleDismiss}
         aria-label="배너 닫기"
-        className="shrink-0 text-gray-400 hover:text-gray-600 transition-colors ml-1"
+        className="shrink-0 text-gray-500 hover:text-gray-600 transition-colors ml-1"
       >
         <X className="w-4 h-4" />
       </button>

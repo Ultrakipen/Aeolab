@@ -71,7 +71,7 @@ export default function TrialCompetitorGapCard({
                 }`}>
                   <div>
                     <p className="text-sm font-medium text-gray-700">&ldquo;{displayQuery}&rdquo; 검색</p>
-                    <p className="text-sm text-gray-400 mt-0.5">네이버 지역 검색</p>
+                    <p className="text-sm text-gray-500 mt-0.5">네이버 지역 검색</p>
                   </div>
                   {kr.exposed && kr.rank ? (
                     <span className="text-sm font-bold text-green-700 shrink-0 ml-2">{kr.rank}위 노출</span>
@@ -94,7 +94,7 @@ export default function TrialCompetitorGapCard({
               <span className="text-sm text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">&ldquo;{searchQuery}&rdquo; 기준</span>
             )}
           </div>
-          <p className="text-sm text-gray-400 mb-2 leading-relaxed">
+          <p className="text-sm text-gray-500 mb-2 leading-relaxed">
             업종 전체 기준 경쟁사입니다. 내 가게 특화 키워드 노출은 위 &lsquo;내 입력 키워드 순위&rsquo;를 확인하세요.
           </p>
         </div>

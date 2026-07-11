@@ -139,7 +139,7 @@ export function GapAnalysisCard({ gap }: Props) {
       {showBasis && <ScoreBasisPanel />}
 
       {dimensions.length === 0 ? (
-        <p className="text-sm text-gray-400">경쟁사를 먼저 등록하면 격차 분석이 가능합니다.</p>
+        <p className="text-sm text-gray-500">경쟁사를 먼저 등록하면 격차 분석이 가능합니다.</p>
       ) : (
         <>
           {top3WithGap.length > 0 ? (

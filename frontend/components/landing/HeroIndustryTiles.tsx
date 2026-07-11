@@ -110,7 +110,7 @@ export default function HeroIndustryTiles({ variant = "default" }: Props) {
               : "bg-gray-50 hover:bg-blue-50/30 hover:border-blue-200 border-gray-200 text-gray-500"
           }`}
         >
-          <span className={isCompact ? "text-white/60" : "text-gray-400"}>
+          <span className={isCompact ? "text-white/60" : "text-gray-500"}>
             <Plus size={18} strokeWidth={1.8} aria-hidden="true" />
           </span>
           <span className="text-sm font-medium leading-none">기타</span>
@@ -139,7 +139,7 @@ export default function HeroIndustryTiles({ variant = "default" }: Props) {
               type="button"
               onClick={() => setSelected(null)}
               aria-label="닫기"
-              className={`shrink-0 mt-0.5 ${isCompact ? "text-white/60 hover:text-white" : "text-gray-400 hover:text-gray-600"}`}
+              className={`shrink-0 mt-0.5 ${isCompact ? "text-white/60 hover:text-white" : "text-gray-500 hover:text-gray-600"}`}
             >
               <X size={16} />
             </button>

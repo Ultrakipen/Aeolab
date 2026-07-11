@@ -72,7 +72,7 @@ export default async function DeliveryOrdersPage() {
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-5 md:mb-6">
         <div>
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
             <a href="/delivery" className="hover:text-blue-600 transition-colors">대행 서비스</a>
             <ChevronRight className="w-4 h-4" />
             <span className="text-gray-700">내 의뢰 목록</span>

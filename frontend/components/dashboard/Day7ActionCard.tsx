@@ -253,7 +253,7 @@ export default function Day7ActionCard({
           type="button"
           onClick={onSkip}
           aria-label="건너뛰기"
-          className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1"
+          className="text-gray-500 hover:text-gray-600 transition-colors p-1 -m-1"
         >
           <X className="w-4 h-4" />
         </button>
@@ -287,7 +287,7 @@ export default function Day7ActionCard({
               <Copy className="w-4 h-4 text-gray-500" />
               붙여넣기용 문구
             </span>
-            {copyOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+            {copyOpen ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
           </button>
           {copyOpen && (
             <div className="px-3 pb-3 border-t border-gray-100">

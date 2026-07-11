@@ -85,12 +85,12 @@ export default function ConditionSearchCard({
     return (
       <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
-          <Search className="w-5 h-5 text-gray-400" />
+          <Search className="w-5 h-5 text-gray-500" />
           <h3 className="text-base font-bold text-gray-700">내 키워드로 AI에서 찾히는지 확인</h3>
           <span className="ml-auto text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Pro</span>
         </div>
         <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-          <Lock className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+          <Lock className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm text-gray-700 leading-relaxed">
               소개글·키워드가 AI 검색 의도에 얼마나 잘 맞는지 분석합니다. (실제 노출 횟수와 별개)

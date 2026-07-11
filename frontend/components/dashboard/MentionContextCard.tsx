@@ -151,7 +151,7 @@ export function MentionContextCard({ citation }: Props) {
       {/* 2. 검색어 pill */}
       {citation.query && (
         <div className="inline-flex items-center gap-1.5 bg-white/80 border border-white rounded-full px-3 py-1 mb-3">
-          <Search className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+          <Search className="w-3.5 h-3.5 text-gray-500 shrink-0" />
           <span className="text-sm text-gray-700 font-medium">&ldquo;{citation.query}&rdquo;</span>
         </div>
       )}

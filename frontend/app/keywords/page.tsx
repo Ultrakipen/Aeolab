@@ -138,7 +138,7 @@ export default function KeywordsIndexPage() {
                           {kw}
                         </span>
                       ))}
-                      <span className="text-sm text-gray-400 px-1 py-0.5">
+                      <span className="text-sm text-gray-500 px-1 py-0.5">
                         +{page.keywords.length - 3}
                       </span>
                     </div>

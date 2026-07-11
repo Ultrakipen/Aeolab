@@ -279,7 +279,7 @@ export default function NaverTrackCard({
       )}
 
       {/* 면책 문구 */}
-      <p className="text-sm text-gray-400 mt-3 leading-relaxed">
+      <p className="text-sm text-gray-500 mt-3 leading-relaxed">
         업종별 가중치로 계산된 네이버 점수입니다.
       </p>
     </div>

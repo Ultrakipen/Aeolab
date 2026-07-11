@@ -127,7 +127,7 @@ export default async function SharePage({ params }: Props) {
                   style={{ width: `${Math.min(data.score, 100)}%` }}
                 />
               </div>
-              <p className="text-sm text-gray-400 mt-1 text-right">{stage.label} 기준</p>
+              <p className="text-sm text-gray-500 mt-1 text-right">{stage.label} 기준</p>
             </div>
           </div>
 

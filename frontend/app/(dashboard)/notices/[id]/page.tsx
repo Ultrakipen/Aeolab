@@ -58,7 +58,7 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
           </span>
         </div>
         <h1 className="text-lg md:text-xl font-bold text-gray-900 leading-snug mb-2">{notice.title}</h1>
-        <p className="text-sm text-gray-400">{formattedDate}</p>
+        <p className="text-sm text-gray-500">{formattedDate}</p>
       </div>
 
       <div className="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">

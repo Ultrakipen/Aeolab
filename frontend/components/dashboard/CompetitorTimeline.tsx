@@ -354,7 +354,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
           </ResponsiveContainer>
 
           {compNames.length === 0 && (
-            <p className="text-sm text-gray-400 text-center mt-2">
+            <p className="text-sm text-gray-500 text-center mt-2">
               경쟁사를 등록하면 비교 선이 표시됩니다.
             </p>
           )}
@@ -380,7 +380,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
                   const maxScore = Math.max(...rows.map(r => r.score), 10)
                   return rows.map((row, rank) => (
                     <div key={row.name} className="flex items-center gap-2">
-                      <span className="text-sm text-gray-400 w-5 shrink-0">#{rank + 1}</span>
+                      <span className="text-sm text-gray-500 w-5 shrink-0">#{rank + 1}</span>
                       <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all"

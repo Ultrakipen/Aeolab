@@ -146,7 +146,7 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
         {isFree && (
           <div className="flex flex-col items-center gap-4 py-6 text-center">
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-              <Lock className="w-6 h-6 text-gray-400" />
+              <Lock className="w-6 h-6 text-gray-500" />
             </div>
             <div>
               <p className="text-base font-semibold text-gray-800 mb-1">
@@ -176,7 +176,7 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
         {/* 에러 */}
         {!isFree && !loading && error && (
           <div className="flex items-center gap-2 text-sm text-gray-500 py-4">
-            <AlertCircle className="w-4 h-4 text-gray-400 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-gray-500 shrink-0" />
             데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
           </div>
         )}

@@ -58,7 +58,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
             <span className="text-sm font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
               현재 Basic
             </span>
-            <span className="text-gray-400 text-sm">→</span>
+            <span className="text-gray-500 text-sm">→</span>
             <span className="text-sm font-semibold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
               Pro 업그레이드 시 추가
             </span>

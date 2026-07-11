@@ -169,7 +169,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
                           {sm.label}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-right text-sm text-gray-400">
+                      <td className="px-5 py-4 text-right text-sm text-gray-500">
                         {formatDate(ticket.created_at)}
                       </td>
                       <td className="px-5 py-4 text-center">
@@ -214,7 +214,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
                       {sm.label}
                     </span>
                   </div>
-                  <span className="text-sm text-gray-400 shrink-0">{formatDate(ticket.created_at)}</span>
+                  <span className="text-sm text-gray-500 shrink-0">{formatDate(ticket.created_at)}</span>
                 </div>
                 <p className="text-sm font-semibold text-gray-900 truncate">
                   {ticket.title}

@@ -119,7 +119,7 @@ export default function ResourcesPage() {
           네이버 AI 브리핑·AI탭·ChatGPT·Gemini에서 우리 가게가 먼저 언급되려면 무엇을 준비해야 할까요?
           업종별 체크리스트로 지금 바로 확인하세요.
         </p>
-        <p className="text-sm text-gray-400 mb-8">
+        <p className="text-sm text-gray-500 mb-8">
           10개 업종 · 각 10~12개 항목 · 로그인 불필요
         </p>
 
@@ -174,7 +174,7 @@ export default function ResourcesPage() {
 
       {/* 면책 문구 */}
       <section className="max-w-5xl mx-auto px-4 md:px-6 pb-8">
-        <p className="text-sm text-gray-400 leading-relaxed break-keep">
+        <p className="text-sm text-gray-500 leading-relaxed break-keep">
           이 가이드는 일반적인 권장 사항이며, 실제 노출 결과는 업종·지역·경쟁 강도에 따라 다를 수 있습니다.
         </p>
       </section>

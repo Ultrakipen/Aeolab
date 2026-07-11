@@ -132,7 +132,7 @@ function ChecklistItem({
             : <div className="w-5 h-5 rounded-full border-2 border-gray-300" />}
         </button>
         <span className={`flex-1 text-sm ${checked ? 'text-green-700 line-through' : 'text-gray-700'}`}>{item}</span>
-        <button onClick={() => setOpen(!open)} aria-expanded={open} className="text-gray-400 hover:text-gray-600 shrink-0">
+        <button onClick={() => setOpen(!open)} aria-expanded={open} className="text-gray-500 hover:text-gray-600 shrink-0">
           {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
       </div>

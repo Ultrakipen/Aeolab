@@ -118,7 +118,7 @@ export function ScanProgress({ eventSource, onComplete, onError }: ScanProgressP
                 {status === 'error' && <span className="text-red-400">✗</span>}
                 {!status && <span className="text-gray-300">○</span>}
               </div>
-              <span className={status === 'done' ? 'text-gray-700' : status === 'running' ? 'text-blue-600 font-medium' : 'text-gray-400'}>
+              <span className={status === 'done' ? 'text-gray-700' : status === 'running' ? 'text-blue-600 font-medium' : 'text-gray-500'}>
                 {label}
               </span>
             </div>

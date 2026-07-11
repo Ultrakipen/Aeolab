@@ -59,7 +59,7 @@ export default function DashboardGeneratorZone({
           )}
         </div>
         <ChevronDown
-          className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (

@@ -130,7 +130,7 @@ export default function LoginPage() {
           </Link>
         </p>
         <p className="text-center mt-3">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">
+          <Link href="/" className="text-sm text-gray-500 hover:text-gray-600">
             ← 홈으로
           </Link>
         </p>

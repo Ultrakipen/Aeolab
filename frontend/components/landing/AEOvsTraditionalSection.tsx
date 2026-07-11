@@ -78,7 +78,7 @@ export default function AEOvsTraditionalSection() {
                     {item.good ? (
                       <Check size={16} className="text-emerald-500 shrink-0 mt-0.5" strokeWidth={2.5} aria-hidden="true" />
                     ) : (
-                      <X size={16} className="text-gray-400 shrink-0 mt-0.5" strokeWidth={2.5} aria-hidden="true" />
+                      <X size={16} className="text-gray-500 shrink-0 mt-0.5" strokeWidth={2.5} aria-hidden="true" />
                     )}
                     <span
                       className={`text-sm md:text-base break-keep leading-snug ${

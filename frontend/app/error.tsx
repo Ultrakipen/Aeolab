@@ -36,7 +36,7 @@ export default function GlobalError({ error, reset }: Props) {
           <p className="text-gray-500 text-base mb-2">
             서비스가 새로 업데이트되었습니다.
           </p>
-          <p className="text-gray-400 text-sm mb-8">
+          <p className="text-gray-500 text-sm mb-8">
             새로고침하면 최신 버전으로 이동합니다.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -70,7 +70,7 @@ export default function GlobalError({ error, reset }: Props) {
         <p className="text-gray-500 text-base mb-2">
           서버 또는 네트워크 문제가 발생했습니다.
         </p>
-        <p className="text-gray-400 text-sm mb-8">
+        <p className="text-gray-500 text-sm mb-8">
           잠시 후 다시 시도하거나 홈으로 이동해주세요.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

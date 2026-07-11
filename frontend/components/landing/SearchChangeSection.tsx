@@ -11,7 +11,7 @@ export default function SearchChangeSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
           {/* 예전 */}
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
-            <p className="text-sm font-bold text-gray-400 tracking-widest mb-3">예전</p>
+            <p className="text-sm font-bold text-gray-500 tracking-widest mb-3">예전</p>
             <div className="space-y-3">
               {["네이버 검색", "블로그 광고 클릭", "가게 방문"].map((step, i) => (
                 <div key={step} className="flex items-center gap-3">
