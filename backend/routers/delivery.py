@@ -725,8 +725,10 @@ async def confirm_delivery_payment(
     except Exception as _email_e:
         _logger.warning(f"[delivery/confirm] 운영자 이메일 발송 실패 (무시): {_email_e}")
 
-    # 업데이트된 order 반환
-    updated_order = {**order, "status": "paid", "payment_key": body.payment_key}
+    # 업데이트된 order 반환 (payment_key는 토스 결제취소 자격증명이라 사용자 응답에서 제외 —
+    # get_order와 동일한 원칙, 2026-07-11 재점검에서 이 엔드포인트 누락 발견)
+    updated_order = {**order, "status": "paid"}
+    updated_order.pop("payment_key", None)
     return {"order": updated_order}
 
 
