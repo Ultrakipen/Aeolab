@@ -117,7 +117,7 @@ export default function HelpFAQFloat() {
             onNoResult={handleNoResult}
             className="w-full"
           />
-          <p className="mt-3 text-sm text-gray-400 text-center">
+          <p className="mt-3 text-sm text-gray-500 text-center">
             요금제, 스캔, 개선 가이드 등을 검색해보세요
           </p>
         </div>
