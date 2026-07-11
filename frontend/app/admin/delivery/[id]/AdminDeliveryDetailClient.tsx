@@ -215,7 +215,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
 
           <div className="flex-1 overflow-y-auto p-5 space-y-4" style={{ maxHeight: "500px" }}>
             {messages.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">메시지가 없습니다.</p>
+              <p className="text-sm text-gray-500 text-center py-8">메시지가 없습니다.</p>
             ) : (
               messages.map((msg) => (
                 <div
@@ -235,7 +235,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
                   >
                     {msg.body}
                   </div>
-                  <span className="text-sm text-gray-400">{formatDate(msg.created_at)}</span>
+                  <span className="text-sm text-gray-500">{formatDate(msg.created_at)}</span>
                 </div>
               ))
             )}
@@ -284,7 +284,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
 
           <div className="space-y-2">
             {currentStatus === "received" && (
-              <p className="text-sm text-gray-400 mb-1">결제 대기 중 — 결제 완료 전에는 진행/완료 처리할 수 없습니다.</p>
+              <p className="text-sm text-gray-500 mb-1">결제 대기 중 — 결제 완료 전에는 진행/완료 처리할 수 없습니다.</p>
             )}
 
             {currentStatus === "paid" && (
@@ -351,7 +351,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
             )}
 
             {isDone && (
-              <p className="text-sm text-gray-400 text-center py-2">
+              <p className="text-sm text-gray-500 text-center py-2">
                 이미 종료된 의뢰입니다.
               </p>
             )}
@@ -410,7 +410,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
           </ul>
         )}
         {materials.length === 0 && (
-          <p className="text-sm text-gray-400 text-center py-2">등록된 납품 파일이 없습니다.</p>
+          <p className="text-sm text-gray-500 text-center py-2">등록된 납품 파일이 없습니다.</p>
         )}
         </div>
       </div>

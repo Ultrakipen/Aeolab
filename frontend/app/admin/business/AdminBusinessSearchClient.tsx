@@ -71,11 +71,11 @@ export default function AdminBusinessSearchClient() {
     <>
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">사업장 조회</h1>
-        <p className="text-sm text-gray-400 mt-1">사업장명·이메일로 검색 후 스캔이력·가이드·경쟁사까지 한 번에 확인</p>
+        <p className="text-sm text-gray-500 mt-1">사업장명·이메일로 검색 후 스캔이력·가이드·경쟁사까지 한 번에 확인</p>
       </div>
 
       <div className="relative mb-5">
-        <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
         <input
           type="text"
           value={queryInput}
@@ -90,13 +90,13 @@ export default function AdminBusinessSearchClient() {
       )}
 
       {!loading && total > 0 && (
-        <p className="text-sm text-gray-400 mb-3">
+        <p className="text-sm text-gray-500 mb-3">
           총 {total.toLocaleString()}건 중 {page * PAGE_SIZE + 1}–{Math.min(total, (page + 1) * PAGE_SIZE)}건 표시
         </p>
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-16 text-gray-400">
+        <div className="flex items-center justify-center py-16 text-gray-500">
           <Loader2 className="w-6 h-6 animate-spin mr-2" />
           불러오는 중...
         </div>
@@ -121,7 +121,7 @@ export default function AdminBusinessSearchClient() {
                       <span className="text-sm text-red-600 bg-red-50 px-2 py-0.5 rounded-full">비활성</span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-400 mt-0.5">
+                  <p className="text-sm text-gray-500 mt-0.5">
                     {biz.owner_email ?? biz.user_id.slice(0, 8) + "..."} {biz.region && `· ${biz.region}`}
                   </p>
                 </div>

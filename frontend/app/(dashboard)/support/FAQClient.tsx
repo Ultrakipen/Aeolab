@@ -101,9 +101,9 @@ function FAQSection({ initialItems, faqLoadFailed, onSwitchToInquiry }: { initia
                   {faq.question}
                 </span>
                 {isOpen ? (
-                  <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
+                  <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
                 )}
               </button>
               {isOpen && (
@@ -165,7 +165,7 @@ function MyInquiryList() {
   return (
     <div className="mt-6 space-y-2">
       <h3 className="text-sm font-semibold text-gray-700 mb-1">간편 문의 내역</h3>
-      <p className="text-sm text-gray-400 mb-3">
+      <p className="text-sm text-gray-500 mb-3">
         아래 폼으로 보낸 문의만 표시됩니다. 1:1 문의(Q&A)로 보낸 답변은{" "}
         <a href="/support/tickets" className="text-blue-600 hover:underline">내 문의 목록</a>에서 확인하세요.
       </p>
@@ -199,9 +199,9 @@ function MyInquiryList() {
                   {new Date(item.created_at).toLocaleDateString("ko-KR")}
                 </span>
                 {isOpen ? (
-                  <ChevronUp className="w-4 h-4 text-gray-400" />
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
                 )}
               </div>
             </button>

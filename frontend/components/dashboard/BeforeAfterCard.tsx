@@ -145,7 +145,7 @@ function ImageThumb({ item, label, isBefore, onClick }: ImageThumbProps) {
             className={`w-full rounded-lg border ${borderClass} bg-gray-50 aspect-video flex flex-col items-center justify-center gap-1`}
           >
             <span className="text-gray-300 text-2xl">🖼</span>
-            <span className="text-sm text-gray-400 text-center px-2">이미지를 불러올 수 없습니다</span>
+            <span className="text-sm text-gray-500 text-center px-2">이미지를 불러올 수 없습니다</span>
           </div>
         ) : (
           <div className={`relative w-full aspect-video overflow-hidden rounded-lg border ${borderClass}`}>
@@ -172,7 +172,7 @@ function ImageThumb({ item, label, isBefore, onClick }: ImageThumbProps) {
           </div>
         )}
       </div>
-      <div className="text-sm text-gray-400 text-center mt-1">{dateStr}</div>
+      <div className="text-sm text-gray-500 text-center mt-1">{dateStr}</div>
     </div>
   )
 }
@@ -252,7 +252,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
     return (
       <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
         <div className="text-base font-medium text-gray-700 mb-2">Before / After 비교</div>
-        <p className="text-sm text-gray-400">Before 스크린샷이 아직 준비되지 않았습니다.</p>
+        <p className="text-sm text-gray-500">Before 스크린샷이 아직 준비되지 않았습니다.</p>
       </div>
     )
   }
@@ -335,7 +335,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
             ))}
             {afters.length === 0 && (
               <div className="col-span-3 flex items-center justify-center bg-gray-50 rounded-lg h-24">
-                <p className="text-sm text-gray-400 text-center px-4">
+                <p className="text-sm text-gray-500 text-center px-4">
                   가입 1주 후 After 스크린샷이
                   <br />
                   자동으로 생성됩니다.
@@ -350,7 +350,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
               <div key={group.key}>
                 {/* 섹션 제목 */}
                 <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600 mb-3">
-                  <Search className="w-4 h-4 text-gray-400 shrink-0" />
+                  <Search className="w-4 h-4 text-gray-500 shrink-0" />
                   <span className="truncate max-w-full">{group.sectionLabel}</span>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -383,7 +383,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
                     ))}
                   {idx === 0 && afters.length === 0 && (
                     <div className="col-span-2 md:col-span-3 flex items-center justify-center bg-gray-50 rounded-lg h-20">
-                      <p className="text-sm text-gray-400 text-center px-4">
+                      <p className="text-sm text-gray-500 text-center px-4">
                         1주 후 After 스크린샷이 자동 생성됩니다.
                       </p>
                     </div>

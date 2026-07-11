@@ -46,7 +46,7 @@ export function ScoreCard({ score, grade, exposureFreq, prevScore, scannedAt }: 
         <div className={`text-5xl font-bold ${GRADE_COLOR[grade] ?? 'text-gray-900'}`}>
           {score}
         </div>
-        <div className="text-2xl font-bold text-gray-400 mb-1">/ 100</div>
+        <div className="text-2xl font-bold text-gray-500 mb-1">/ 100</div>
         {change !== null && (
           <div className={`text-sm font-medium mb-2 ${change >= 0 ? 'text-green-600' : 'text-red-500'}`}>
             {change >= 0 ? `+${change.toFixed(1)}` : change.toFixed(1)}
@@ -62,9 +62,9 @@ export function ScoreCard({ score, grade, exposureFreq, prevScore, scannedAt }: 
         aria-label={`${grade}등급 상세 보기`}
       >
         <span className={`text-3xl font-bold ${GRADE_COLOR[grade] ?? 'text-gray-900'}`}>{grade}</span>
-        <span className="text-sm text-gray-400">등급</span>
+        <span className="text-sm text-gray-500">등급</span>
         {gradeInfo && (
-          <span className="text-sm text-gray-400 ml-auto">{showGradeDetail ? '▲' : '▼'} {gradeInfo.percentile}</span>
+          <span className="text-sm text-gray-500 ml-auto">{showGradeDetail ? '▲' : '▼'} {gradeInfo.percentile}</span>
         )}
       </button>
 
@@ -80,7 +80,7 @@ export function ScoreCard({ score, grade, exposureFreq, prevScore, scannedAt }: 
         <div className="text-sm text-gray-500 mb-1">AI 노출 빈도</div>
         <div className="flex items-center gap-2">
           <div className="text-2xl font-semibold text-gray-900">{exposureFreq}</div>
-          <div className="text-sm text-gray-400">/ 100회</div>
+          <div className="text-sm text-gray-500">/ 100회</div>
         </div>
         <div className="w-full bg-gray-100 rounded-full h-2 mt-2">
           <div
@@ -90,7 +90,7 @@ export function ScoreCard({ score, grade, exposureFreq, prevScore, scannedAt }: 
         </div>
       </div>
       {scannedAt && (
-        <div className="text-sm text-gray-400 mt-3">
+        <div className="text-sm text-gray-500 mt-3">
           마지막 스캔: {new Date(scannedAt).toLocaleDateString('ko-KR')}
         </div>
       )}

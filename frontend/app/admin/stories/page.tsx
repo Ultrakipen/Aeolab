@@ -359,14 +359,14 @@ export default function AdminStoriesPage() {
 
       {/* 목록 */}
       {loading ? (
-        <div className="flex items-center justify-center py-16 text-gray-400">
+        <div className="flex items-center justify-center py-16 text-gray-500">
           <Loader2 className="w-6 h-6 animate-spin mr-2" />
           불러오는 중...
         </div>
       ) : stories.length === 0 ? (
         <div className="py-16 text-center text-gray-500 bg-white rounded-xl border border-gray-100">
           <p className="text-base">등록된 성공 사례가 없습니다.</p>
-          <p className="text-sm text-gray-400 mt-1">새 사례 작성 버튼으로 추가해보세요.</p>
+          <p className="text-sm text-gray-500 mt-1">새 사례 작성 버튼으로 추가해보세요.</p>
         </div>
       ) : (
         <>
@@ -403,13 +403,13 @@ export default function AdminStoriesPage() {
                             +{story.score_delta.toFixed(0)}점
                           </span>
                         ) : (
-                          <span className="text-sm text-gray-400">—</span>
+                          <span className="text-sm text-gray-500">—</span>
                         )}
                       </td>
                       <td className="px-5 py-4 text-right text-sm text-gray-500">
                         {story.view_count.toLocaleString()}
                       </td>
-                      <td className="px-5 py-4 text-right text-sm text-gray-400">
+                      <td className="px-5 py-4 text-right text-sm text-gray-500">
                         {formatDate(story.published_at)}
                       </td>
                       <td className="px-5 py-4 text-center">
@@ -454,7 +454,7 @@ export default function AdminStoriesPage() {
                 </div>
                 <p className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">{story.title}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">{formatDate(story.published_at)}</span>
+                  <span className="text-sm text-gray-500">{formatDate(story.published_at)}</span>
                   <div className="flex items-center gap-3">
                     <Link
                       href={`/stories/${story.id}`}

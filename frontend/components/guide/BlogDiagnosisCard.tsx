@@ -155,7 +155,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
           <div className="text-sm font-semibold text-gray-900">내 블로그 AI 최적화 진단</div>
         </div>
         {analyzedAt && (
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-gray-500">
             {new Date(analyzedAt).toLocaleDateString('ko-KR')} 분석
           </span>
         )}
@@ -259,7 +259,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
               <div className="w-full bg-gray-100 rounded-full h-2 mb-1.5">
                 <div className="bg-purple-500 h-2 rounded-full transition-all" style={{ width: `${coveragePct}%` }} />
               </div>
-              <p className="text-sm text-gray-400">내 블로그에 포함된 업종 키워드 비율</p>
+              <p className="text-sm text-gray-500">내 블로그에 포함된 업종 키워드 비율</p>
             </div>
           )}
 
@@ -283,7 +283,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
                       <span key={kw} className="text-sm bg-red-50 text-red-600 px-2 py-0.5 rounded-full">{kw}</span>
                     ))}
                   </div>
-                  <p className="text-sm text-gray-400 mt-1.5">다음 포스팅에 이 키워드를 사용하세요.</p>
+                  <p className="text-sm text-gray-500 mt-1.5">다음 포스팅에 이 키워드를 사용하세요.</p>
                 </div>
               )}
             </div>
@@ -295,13 +295,13 @@ export function BlogDiagnosisCard({ businessId }: Props) {
               <div className={`${(result.ai_readiness_items ?? []).length >= 5 ? 'grid grid-cols-1 sm:grid-cols-2 gap-2' : 'space-y-2'}`}>
                 {(result.ai_readiness_items ?? []).map((item, i) => (
                   <div key={i} className={`flex items-start gap-2 p-2.5 rounded-lg ${item.passed ? 'bg-green-50' : 'bg-gray-50'}`}>
-                    <div className={`shrink-0 mt-0.5 ${item.passed ? 'text-green-500' : 'text-gray-400'}`}>
+                    <div className={`shrink-0 mt-0.5 ${item.passed ? 'text-green-500' : 'text-gray-500'}`}>
                       {item.passed ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm font-medium ${item.passed ? 'text-green-700' : 'text-gray-600'}`}>{item.label}</p>
                       {!item.passed && item.tip && (
-                        <p className="text-sm text-gray-400 mt-0.5">{item.tip}</p>
+                        <p className="text-sm text-gray-500 mt-0.5">{item.tip}</p>
                       )}
                     </div>
                   </div>
