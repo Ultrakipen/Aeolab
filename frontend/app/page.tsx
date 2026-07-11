@@ -414,7 +414,7 @@ export default async function LandingPage() {
                   <div>
                     <p className="text-sm font-bold text-gray-800">ChatGPT·Gemini·Google AI 답변</p>
                     <p className="text-sm text-gray-500">글로벌 AI 인용 여부를 측정합니다 (노출 보장 아님)</p>
-                    <p className="text-sm text-gray-400 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
+                    <p className="text-sm text-gray-500 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
                   </div>
                 </div>
               </div>
@@ -436,7 +436,7 @@ export default async function LandingPage() {
                   <div>
                     <p className="text-sm font-bold text-gray-800">네이버 AI 브리핑 (정보형)</p>
                     <p className="text-sm text-gray-500">블로그·콘텐츠가 출처로 채택되면 지금도 노출 가능</p>
-                    <p className="text-sm text-gray-400 mt-0.5">플레이스형(가게 카드 요약)은 연내 두 자릿수 업종 확대 예정 (네이버 공식)</p>
+                    <p className="text-sm text-gray-500 mt-0.5">플레이스형(가게 카드 요약)은 연내 두 자릿수 업종 확대 예정 (네이버 공식)</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 rounded-xl bg-white border border-blue-100 px-4 py-3">
@@ -451,7 +451,7 @@ export default async function LandingPage() {
                   <div>
                     <p className="text-sm font-bold text-gray-800">ChatGPT·Gemini·Google AI 답변</p>
                     <p className="text-sm text-gray-500">글로벌 AI 인용 여부를 측정합니다 (노출 보장 아님)</p>
-                    <p className="text-sm text-gray-400 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
+                    <p className="text-sm text-gray-500 mt-0.5">AI 학습 데이터 기반 · 실시간 웹 검색과 다를 수 있음</p>
                   </div>
                 </div>
               </div>
@@ -805,7 +805,7 @@ export default async function LandingPage() {
                   </div>
                   <div className="mt-2 flex items-center gap-1.5">
                     <span className="text-sm px-2 py-0.5 rounded-full font-semibold" style={{ background: "#FEE2E2", color: "#9F1239" }}>✕ 프랜차이즈 가맹점 제외</span>
-                    <span className="text-sm text-gray-400">(네이버 공식 정책)</span>
+                    <span className="text-sm text-gray-500">(네이버 공식 정책)</span>
                   </div>
                 </div>
 

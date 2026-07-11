@@ -162,7 +162,7 @@ export function HowAeolabIntegrated() {
         <p className="text-sm font-bold" style={{ color: "#0F172A" }}>
           키워드 갭 + 7주 추세
         </p>
-        <span className="text-sm text-gray-400">(예시)</span>
+        <span className="text-sm text-gray-500">(예시)</span>
       </div>
       <div className="space-y-1.5 mb-3">
         {[
@@ -183,7 +183,7 @@ export function HowAeolabIntegrated() {
           </span>
         ))}
       </div>
-      <p className="text-sm text-center py-2" style={{ color: "#94A3B8" }}>
+      <p className="text-sm text-center py-2" style={{ color: "#475569" }}>
         첫 스캔 후 추세가 표시됩니다
       </p>
     </div>
@@ -211,7 +211,7 @@ export function HowAeolabIntegrated() {
               className="rounded-lg p-2.5 border"
               style={{ background: "#F8FAFC", borderColor: "#E2E8F0" }}
             >
-              <p className="text-sm mb-0.5" style={{ color: "#64748B" }}>{label}</p>
+              <p className="text-sm mb-0.5" style={{ color: "#475569" }}>{label}</p>
               <p className="text-sm font-bold" style={{ color: "#0F172A" }}>{val}</p>
             </div>
           ))}
@@ -221,7 +221,7 @@ export function HowAeolabIntegrated() {
           >
             진단 시작 →
           </div>
-          <p className="text-center text-sm" style={{ color: "#64748B" }}>
+          <p className="text-center text-sm" style={{ color: "#475569" }}>
             1분 소요 · 가입 불필요 · 예시
           </p>
         </div>
@@ -253,10 +253,10 @@ export function HowAeolabIntegrated() {
             </div>
             <div className="space-y-1.5">
               {[
-                { label: "네이버 AI 브리핑·AI탭", status: "일부 노출 중", color: "#16A34A", bg: "#DCFCE7" },
-                { label: "ChatGPT 언급", status: "언급 낮음", color: "#D97706", bg: "#FEF3C7" },
+                { label: "네이버 AI 브리핑·AI탭", status: "일부 노출 중", color: "#15803D", bg: "#DCFCE7" },
+                { label: "ChatGPT 언급", status: "언급 낮음", color: "#B45309", bg: "#FEF3C7" },
                 { label: "Gemini 언급", status: "인식 시작 단계", color: "#7C3AED", bg: "#EDE9FE" },
-                { label: "키워드 커버리지", status: "3개 공백 있음", color: "#DC2626", bg: "#FEE2E2" },
+                { label: "키워드 커버리지", status: "3개 공백 있음", color: "#B91C1C", bg: "#FEE2E2" },
               ].map(({ label, status, color, bg }) => (
                 <div key={label} className="flex items-center justify-between">
                   <span className="text-sm" style={{ color: "#475569" }}>{label}</span>
@@ -298,7 +298,7 @@ export function HowAeolabIntegrated() {
             <p className="text-sm" style={{ color: "#475569" }}>
               노출 상태 개선 · 예시
             </p>
-            <p className="text-sm mt-1" style={{ color: "#94A3B8" }}>
+            <p className="text-sm mt-1" style={{ color: "#475569" }}>
               실제 변화는 업종·지역에 따라 다릅니다
             </p>
           </div>
@@ -342,7 +342,7 @@ export function HowAeolabIntegrated() {
           </h2>
           <p className="text-sm mt-2 break-keep" style={{ color: "#475569" }}>
             복잡한 설정 없이 3단계로 시작합니다 ·{" "}
-            <span style={{ color: "#64748B" }}>
+            <span style={{ color: "#475569" }}>
               7일 가이드 실행 기준, 지역·업종별 차이 있음
             </span>
           </p>
@@ -439,7 +439,7 @@ export function HowAeolabIntegrated() {
         </div>
 
         {/* 면책 문구 */}
-        <p className="text-center text-sm mt-6" style={{ color: "#94A3B8" }}>
+        <p className="text-center text-sm mt-6" style={{ color: "#475569" }}>
           카카오 알림 카드·노출 상태 변화는 예시 데이터입니다 · 실제 수치는 내 가게 스캔 후 표시됩니다
         </p>
 
