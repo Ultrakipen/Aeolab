@@ -5173,6 +5173,7 @@ async def delivery_auto_cancel_job():
                 "refund_reason": "미결제 7일 경과 자동 취소 (결제 자체가 이뤄지지 않음)",
             })
             .in_("id", cancelled_ids)
+            .eq("status", "received")  # TOCTOU 방지 — 조회~UPDATE 사이 결제완료된 주문 보호
         )
 
         logger.warning(

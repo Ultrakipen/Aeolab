@@ -39,8 +39,9 @@ _logger = logging.getLogger("aeolab")
 router = APIRouter()
 admin_router = APIRouter()
 
-# delivery_messages.sender_id는 NOT NULL UUID. 운영자 메시지는 X-Admin-Key 헤더 기반이라
-# Supabase user_id가 없으므로 고정 sentinel UUID를 사용 (FK 없음, 조회 시 sender_id 미사용 확인함).
+# delivery_messages.sender_id는 TEXT NOT NULL(UUID 아님, scripts/supabase_schema.sql:1833 —
+# 과거 이 주석이 "UUID"로 잘못 기재돼 코드리뷰에서 오탐을 유발한 적 있음, 2026-07-11 정정).
+# 운영자 메시지는 X-Admin-Key 헤더 기반이라 Supabase user_id가 없으므로 고정 sentinel 문자열 사용.
 _ADMIN_SENDER_ID = "00000000-0000-0000-0000-000000000000"
 
 # 토스 API 호출 timeout (무한 대기 방지)
@@ -584,11 +585,13 @@ async def confirm_delivery_payment(
     user_id = user["id"]
     order = await _get_order_owned_or_403(order_id, user_id)
 
-    # 2. 중복 확인 방지
-    if order["status"] in ("paid", "in_progress", "completed"):
+    # 2. 중복 확인 방지 — refunded/cancelled/rework도 차단(허용 시 실제 토스 결제 완료라는
+    # 조건은 있지만 이미 종료·환불 처리된 주문이 결제로 역행하는 것을 서버가 원천 차단해야
+    # 함, 프론트 버튼 가시성만 믿으면 안 됨). 재결제가 필요하면 새 주문을 생성해야 함.
+    if order["status"] != "received":
         raise HTTPException(
             status_code=409,
-            detail=f"이미 결제 처리된 의뢰입니다 (status={order['status']})",
+            detail=f"결제할 수 없는 상태입니다 (status={order['status']})",
         )
 
     # 3. 금액 서버 검증 (클라이언트 조작 방어)
@@ -666,10 +669,20 @@ async def confirm_delivery_payment(
             .eq("id", order_id)
         )
     except Exception as _paid_at_e:
+        # v6.2b 마이그레이션은 이미 적용됨(2026-07 확인) — 이 실패는 이제 일시적 DB 오류일
+        # 가능성이 높고, paid_at이 비면 delivery_auto_refund_job의 7일 안전망에서 해당
+        # 주문이 영구 제외되므로(자료 미제출 방치 시 환불 누락 위험) 운영자 알림 필수.
         _logger.warning(
-            f"[delivery/confirm] paid_at 기록 실패 (무시, 자동환불 잡 대상 제외됨 — "
-            f"v6.2b 마이그레이션 미실행 가능성): order_id={order_id}, error={_paid_at_e}"
+            f"[delivery/confirm] paid_at 기록 실패: order_id={order_id}, error={_paid_at_e}"
         )
+        try:
+            from services.email_sender import send_operator_alert
+            await send_operator_alert(
+                "대행 서비스 paid_at 기록 실패 — 7일 자동환불 안전망 제외 위험",
+                f"order_id={order_id}\nerror={_paid_at_e}\npaid_at 수동 확인/기록 필요.",
+            )
+        except Exception as _alert_e:
+            _logger.warning(f"[delivery/confirm] 운영자 알림 실패 (무시): {_alert_e}")
 
     # 6. 카카오 알림톡 접수 완료 발송 (실패해도 응답에 영향 없음)
     try:
@@ -826,7 +839,18 @@ async def admin_update_status(
                 detail="이미 환불 처리 중이거나 처리된 주문입니다 (동시 요청 감지)",
             )
 
-        ok, err = await _toss_cancel_payment(payment_key, "관리자 수동 환불 처리")
+        # _toss_cancel_payment 내부에서 못 잡는 예외(비-JSON 응답의 json.JSONDecodeError,
+        # asyncio.TimeoutError 등)가 여기까지 전파되면 락 해제 코드가 실행되지 못하고
+        # __refund_processing__ 마커가 영구 잔류해 재시도가 전부 409로 막히므로 반드시 감쌈
+        try:
+            ok, err = await _toss_cancel_payment(payment_key, "관리자 수동 환불 처리")
+        except Exception as _toss_e:
+            await execute(
+                supabase.table("delivery_orders").update({"refund_reason": None}).eq("id", order_id)
+            )
+            _logger.error(f"[admin/delivery] 수동 환불 중 예외: order_id={order_id}, error={_toss_e}")
+            raise HTTPException(status_code=502, detail=f"토스 환불 처리 중 오류: {_toss_e}")
+
         if not ok:
             # 락 해제 — 재시도 가능하도록 원복
             await execute(
@@ -867,9 +891,17 @@ async def admin_update_status(
             .eq("id", order_id)
         )
 
+    elif body.status in ("received", "paid"):
+        # received/paid는 결제 확인(confirm_delivery_payment)·의뢰 생성 시 시스템이 자동
+        # 설정하는 상태라 관리자가 직접 지정할 대상이 아님 — 이전엔 이 분기가 없어 completed/
+        # refunded 주문도 무조건 received/paid로 되돌릴 수 있었음(2026-07-11 재점검 발견).
+        raise HTTPException(
+            status_code=400,
+            detail=f"'{body.status}' 상태는 관리자가 직접 지정할 수 없습니다 (시스템이 자동 설정)",
+        )
+
     else:
-        # 남은 target은 사실상 in_progress뿐(received/paid는 결제 확인·의뢰 생성 시 시스템이
-        # 자동 설정하며 관리자가 직접 지정할 대상이 아님) — paid/rework에서만 전이 허용.
+        # 남은 target은 사실상 in_progress뿐 — paid/rework에서만 전이 허용.
         if body.status == "in_progress" and order["status"] not in ("paid", "rework"):
             raise HTTPException(
                 status_code=400,
@@ -1005,9 +1037,14 @@ async def submit_testimonial(
         "display_name": body.get("display_name"),
         "published_at": None,
     }
-    await execute(
+    story_res = await execute(
         supabase.table("success_stories").insert(story_payload)
     )
+    if not (story_res and story_res.data):
+        # INSERT 실패를 무시하면 아래에서 testimonial_submitted_at만 찍혀 후기가 DB엔
+        # 없는데 "이미 제출됨" 409로 재시도까지 영구 차단되는 데이터 유실 — 반드시 중단.
+        _logger.error(f"[delivery/testimonial] success_stories INSERT 실패: order_id={order_id}")
+        raise HTTPException(status_code=500, detail="후기 저장에 실패했습니다. 다시 시도해 주세요")
 
     # 주문에 후기 제출 타임스탬프
     now = datetime.now(timezone.utc).isoformat()
