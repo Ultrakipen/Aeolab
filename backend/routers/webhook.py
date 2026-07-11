@@ -144,25 +144,15 @@ async def issue_billing(body: BillingIssueRequest):
     # 이중 청구 방지: Toss 청구(2번)는 성공했지만 그 직후 구독 저장(3번)이 실패해
     # 프론트가 에러로 표시 → 사용자가 재시도하면, 같은 금액의 성공 이벤트가 10분
     # 이내에 이미 있으므로 Toss에 재청구하지 않고 구독 저장만 다시 시도한다.
-    recent = await execute(
-        get_client().table("payment_events")
-        .select("amount, detail, created_at")
-        .eq("user_id", user_id)
-        .eq("event_type", "billing_issue")
-        .eq("status", "success")
-        .order("created_at", desc=True)
-        .limit(1)
-    )
+    from utils.payment_event_log import find_recent_success_event
+    recent_match = await find_recent_success_event(user_id, "billing_issue", body.amount, window_minutes=10)
     payment_key = None
     charge_start_at = datetime.now().isoformat()
     skip_charge = False
-    if recent and recent.data:
-        last = recent.data[0]
-        last_created = datetime.fromisoformat(last["created_at"].replace("Z", "+00:00"))
-        if last.get("amount") == body.amount and (datetime.now(last_created.tzinfo) - last_created) < timedelta(minutes=10):
-            logger.warning(f"issue_billing 중복 청구 방지 — 최근 성공 이벤트 재사용: user_id={user_id}, amount={body.amount}")
-            skip_charge = True
-            payment_key = last.get("detail")
+    if recent_match:
+        logger.warning(f"issue_billing 중복 청구 방지 — 최근 성공 이벤트 재사용: user_id={user_id}, amount={body.amount}")
+        skip_charge = True
+        payment_key = recent_match.get("detail")
 
     if not skip_charge:
         # 2. 첫 결제

@@ -406,29 +406,14 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
         # 이중 청구 방지: retry_billing(Toss 청구) 성공 후 바로 아래 상태 업데이트가
         # 실패해 사용자가 카드 변경을 재시도하면 재청구로 이어지는 문제 차단
         # (webhook.py issue_billing과 동일 패턴, 2026-07-11)
-        from config.prices import PLAN_PRICE_MAP, YEARLY_PRICE_MAP
-        expected_amount = (
-            YEARLY_PRICE_MAP.get(sub.get("plan"), PLAN_PRICE_MAP.get(sub.get("plan"), 9900))
-            if sub.get("billing_cycle") == "yearly"
-            else PLAN_PRICE_MAP.get(sub.get("plan"), 9900)
-        )
-        recent = await execute(
-            supabase.table("payment_events")
-            .select("amount, created_at")
-            .eq("user_id", user_id)
-            .eq("event_type", "renewal")
-            .eq("status", "success")
-            .order("created_at", desc=True)
-            .limit(1)
-        )
-        success = False
-        if recent and recent.data:
-            last = recent.data[0]
-            last_created = datetime.fromisoformat(last["created_at"].replace("Z", "+00:00"))
-            if last.get("amount") == expected_amount and (datetime.now(last_created.tzinfo) - last_created) < timedelta(minutes=10):
-                logger.warning(f"카드변경 재결제 이중청구 방지 — 최근 성공 이벤트 재사용 (user={user_id})")
-                success = True
-        if not success:
+        from services.toss_billing import compute_renewal_amount
+        from utils.payment_event_log import find_recent_success_event
+        expected_amount = compute_renewal_amount(sub)
+        recent_match = await find_recent_success_event(user_id, "renewal", expected_amount, window_minutes=10)
+        if recent_match:
+            logger.warning(f"카드변경 재결제 이중청구 방지 — 최근 성공 이벤트 재사용 (user={user_id})")
+            success = True
+        else:
             success = await retry_billing(sub)
         if success:
             renew_days = 365 if sub.get("billing_cycle") == "yearly" else 30

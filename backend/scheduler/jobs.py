@@ -1227,8 +1227,23 @@ async def daily_kakao_notify():
 async def subscription_lifecycle_job():
     """매일 오전 1시: 구독 만료/갱신/정지 처리"""
     from db.supabase_client import get_client
-    from services.toss_billing import retry_billing
+    from services.toss_billing import retry_billing, compute_renewal_amount
     from services.kakao_notify import KakaoNotifier
+    from utils.payment_event_log import find_recent_success_event
+
+    # 이중 청구 방지: retry_billing(Toss 청구) 성공 후 바로 아래 status/end_at 갱신이
+    # 실패하면(예: Supabase 일시 오류) 그 구독 행이 그대로 "만료됨"으로 남아, 다음날
+    # 이 잡이 다시 돌 때 같은 구독을 또 결제 대상으로 골라 재청구할 수 있었다
+    # (2026-07-11, settings.py update_card·webhook.py issue_billing과 동일 패턴 발견).
+    # 매일 1회 실행되는 잡이라 24시간보다 짧은 20시간 창으로 "어제 이미 성공한 결제"를 재사용.
+    RENEWAL_DEDUP_WINDOW_MIN = 20 * 60
+
+    async def _charge_once(sub: dict) -> bool:
+        expected_amount = compute_renewal_amount(sub)
+        if await find_recent_success_event(sub.get("user_id"), "renewal", expected_amount, window_minutes=RENEWAL_DEDUP_WINDOW_MIN):
+            logger.warning(f"subscription_lifecycle_job 이중청구 방지 — 최근 성공 이벤트 재사용 (sub={sub.get('id')})")
+            return True
+        return await retry_billing(sub)
 
     try:
         supabase = get_client()
@@ -1252,7 +1267,9 @@ async def subscription_lifecycle_job():
 
         # 2. 오늘(또는 그 이전 — 배치 누락분 포함) 만료 → 갱신 시도 (토스 자동결제)
         # .eq(today)였던 예전 코드는 하루라도 못 돌면 해당 행을 영구히 못 찾는 P0 버그였음(2026-07-07 발견)
-        # .lte()로 전환해도 갱신 성공/유예 전환 즉시 status가 바뀌므로 중복 처리 위험 없음
+        # .lte()로 전환하면 갱신 성공 직후 status가 바뀌어 보통은 중복 처리되지 않지만, 그 상태
+        # 갱신 자체가 실패하는 경우(Toss 청구는 성공, DB 저장만 실패)엔 다음날 재선택돼 재청구
+        # 위험이 있었음(2026-07-11 발견) — _charge_once()의 이중청구 방지 가드로 대응
         _expired_res = await _db(
             supabase.table("subscriptions")
             .select("*")
@@ -1291,7 +1308,7 @@ async def subscription_lifecycle_job():
         just_entered_grace_ids: set = set()
         for sub in expired_today:
             try:
-                success = await retry_billing(sub)
+                success = await _charge_once(sub)
                 renew_days = 365 if sub.get("billing_cycle") == "yearly" else 30
                 if success:
                     new_end = today + timedelta(days=renew_days)
@@ -1318,7 +1335,7 @@ async def subscription_lifecycle_job():
         for sub in grace_subs:
             try:
                 phone = phone_by_user.get(sub.get("user_id"))
-                success = await retry_billing(sub)
+                success = await _charge_once(sub)
                 if success:
                     renew_days = 365 if sub.get("billing_cycle") == "yearly" else 30
                     new_end = today + timedelta(days=renew_days)

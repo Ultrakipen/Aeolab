@@ -22,6 +22,15 @@ async def issue_billing_key(customer_key: str, auth_key: str) -> str:
     return data["billingKey"]
 
 
+def compute_renewal_amount(subscription: dict) -> int:
+    """구독 plan/billing_cycle 기준 갱신 청구액 계산 — retry_billing과 이중청구 방지
+    가드(webhook.py·settings.py·jobs.py) 양쪽에서 같은 금액 기준을 쓰기 위해 분리."""
+    plan = subscription.get("plan", "basic")
+    if subscription.get("billing_cycle") == "yearly":
+        return YEARLY_PRICE_MAP.get(plan, PLAN_PRICE_MAP.get(plan, 9900))
+    return PLAN_PRICE_MAP.get(plan, 9900)
+
+
 async def retry_billing(subscription: dict) -> bool:
     """구독 갱신 자동결제 시도"""
     billing_key = subscription.get("billing_key")
@@ -29,11 +38,7 @@ async def retry_billing(subscription: dict) -> bool:
         logger.warning(f"No billing_key for subscription {subscription.get('id')}")
         return False
 
-    plan = subscription.get("plan", "basic")
-    if subscription.get("billing_cycle") == "yearly":
-        amount = YEARLY_PRICE_MAP.get(plan, PLAN_PRICE_MAP.get(plan, 9900))
-    else:
-        amount = PLAN_PRICE_MAP.get(plan, 9900)
+    amount = compute_renewal_amount(subscription)
 
     try:
         async with httpx.AsyncClient(timeout=30) as c:
