@@ -54,6 +54,7 @@ def send_alert_email(subject: str, message: str) -> None:
         headers={
             'Authorization': f'Bearer {RESEND_API_KEY}',
             'Content-Type': 'application/json',
+            'User-Agent': 'AEOlab-Backup-Script/1.0',
         },
         method='POST',
     )
