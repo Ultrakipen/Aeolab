@@ -52,14 +52,15 @@ interface BusinessLite {
   has_intro?: boolean
   has_recent_post?: boolean
   ai_info_tab_status?: string
-  review_count?: number
+  review_count?: number | null
 }
 
 interface Props {
   business: BusinessLite | null
   eligibility: Eligibility
   plan: string  // free | basic | startup | pro | biz | enterprise
-  blogMentionCount?: number
+  // null = 아직 스캔 전이라 미측정, number = 실측된 리뷰 수
+  blogMentionCount?: number | null
   // P1-B-1 (2026-05-18 연결): smart_place_auto_check.py에서 측정된 네이버 예약 연동 여부.
   // null = 미측정 (스마트플레이스 미연결 또는 스캔 전), boolean = 측정 완료.
   hasReservation?: boolean | null
@@ -68,17 +69,19 @@ interface Props {
 }
 
 // 플랜별 소개글/FAQ 자동 생성 한도 (faq_monthly 공유, plan_gate.py 기준)
-// 백엔드 plan_gate.py PLAN_LIMITS.faq_monthly와 동기화 (Pro·창업패키지·Biz·Enterprise = 무제한 999)
+// 백엔드 plan_gate.py PLAN_LIMITS.faq_monthly와 동기화 필수 — 값 변경 시 양쪽 동시 수정
 const PLAN_LIMITS: Record<string, { intro_faq: number; label: string; color: string }> = {
   free:       { intro_faq: 0,   label: "Free",     color: "gray" },
-  basic:      { intro_faq: 5,   label: "Basic",    color: "blue" },
-  startup:    { intro_faq: 999, label: "창업패키지", color: "indigo" },
-  pro:        { intro_faq: 999, label: "Pro",      color: "purple" },
-  biz:        { intro_faq: 999, label: "Biz",      color: "green" },
+  basic:      { intro_faq: 10,  label: "Basic",    color: "blue" },
+  startup:    { intro_faq: 20,  label: "창업패키지", color: "indigo" },
+  pro:        { intro_faq: 30,  label: "Pro",      color: "purple" },
+  biz:        { intro_faq: 60,  label: "Biz",      color: "green" },
   enterprise: { intro_faq: 999, label: "Enterprise", color: "emerald" },
 }
 
-export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount = 0, hasReservation = null, photoCount = null }: Props) {
+export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount = null, hasReservation = null, photoCount = null }: Props) {
+  const blogScanned = blogMentionCount !== null
+  const blogCount = blogMentionCount ?? 0
   const planInfo = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free
   const canGenerate = planInfo.intro_faq > 0
   const isInactive = eligibility === "inactive"
@@ -260,7 +263,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             num={1}
             title="🔍 네이버 스마트플레이스에서 AI 정보 탭 찾기"
             time="2분"
-            done={!!business?.ai_info_tab_status && business.ai_info_tab_status !== "unknown"}
+            done={business?.ai_info_tab_status === "on" || business?.ai_info_tab_status === "off" || business?.ai_info_tab_status === "disabled"}
           >
             <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed">
               스마트플레이스 관리자에 로그인 후 <strong>업체정보 → AI 정보</strong> 탭으로 이동합니다.
@@ -486,7 +489,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           num={5}
           title="🌟 리뷰 확보 — 영수증 리뷰 10건 이상 권장"
           time="지속"
-          done={!!business?.review_count && business.review_count >= 10}
+          done={typeof business?.review_count === "number" && business.review_count >= 10}
         >
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed">
             {isInactive
@@ -496,8 +499,9 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                   정확한 임계값은 비공개이나, 영수증 리뷰 10건 이상이면 안전합니다.</>}
           </p>
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed">
-            현재 리뷰: <strong>{business?.review_count ?? 0}건</strong>
-            {(business?.review_count ?? 0) < 10 && " — 10건 이상 권장"}
+            {typeof business?.review_count === "number"
+              ? <>현재 리뷰: <strong>{business.review_count}건</strong>{business.review_count < 10 && " — 10건 이상 권장"}</>
+              : <>현재 리뷰: <strong>스캔 후 확인 가능</strong> — 첫 스캔을 진행하면 실측 리뷰 수가 표시됩니다.</>}
           </p>
           {plan !== "free" && (
             <div className="bg-purple-50 border border-purple-200 rounded p-3 text-sm md:text-base text-gray-700 mb-3">
@@ -689,35 +693,39 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
 
       {/* ── §M2-3 블로그 UGC 강화 카드 ──────────────────────────── */}
       <div className={`rounded-xl border p-4 md:p-6 ${
-        blogMentionCount === 0
+        !blogScanned
+          ? "border-gray-200 bg-gray-50"
+          : blogCount === 0
           ? "border-rose-200 bg-rose-50"
           : "border-green-200 bg-green-50"
       }`}>
         <div className="flex items-start gap-3 mb-3">
           <span className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-            blogMentionCount === 0 ? "bg-rose-100 text-rose-700" : "bg-green-100 text-green-700"
+            !blogScanned ? "bg-gray-100 text-gray-500" : blogCount === 0 ? "bg-rose-100 text-rose-700" : "bg-green-100 text-green-700"
           }`}>
-            {blogMentionCount === 0 ? "!" : blogMentionCount}
+            {!blogScanned ? "?" : blogCount === 0 ? "!" : blogCount}
           </span>
           <div className="flex-1 min-w-0">
             <h3 className={`text-base md:text-lg font-bold mb-0.5 break-keep ${
-              blogMentionCount === 0 ? "text-rose-900" : "text-green-900"
+              !blogScanned ? "text-gray-800" : blogCount === 0 ? "text-rose-900" : "text-green-900"
             }`}>
               블로그·SNS 후기
             </h3>
             <p className={`text-sm md:text-base leading-relaxed break-keep ${
-              blogMentionCount === 0 ? "text-rose-700" : "text-green-700"
+              !blogScanned ? "text-gray-600" : blogCount === 0 ? "text-rose-700" : "text-green-700"
             }`}>
-              {blogMentionCount === 0
+              {!blogScanned
+                ? "아직 스캔 전이라 블로그 언급 수를 확인할 수 없습니다. 첫 스캔을 진행하면 실측 결과가 표시됩니다."
+                : blogCount === 0
                 ? "아직 블로그 후기가 감지되지 않았습니다. AI 검색 노출에 블로그 언급은 핵심 신호입니다."
-                : `네이버 블로그에서 "${blogMentionCount}건" 검색 결과가 발견되었습니다 (가게명 키워드 검색 기준). AI탭은 블로그·SNS 후기가 풍부한 플레이스를 우선 노출하는 경향이 있습니다 (실측 기반 권장값, 알고리즘 미공개).`}
+                : `네이버 블로그에서 "${blogCount}건" 검색 결과가 발견되었습니다 (가게명 키워드 검색 기준). AI탭은 블로그·SNS 후기가 풍부한 플레이스를 우선 노출하는 경향이 있습니다 (실측 기반 권장값, 알고리즘 미공개).`}
             </p>
           </div>
         </div>
-        {blogMentionCount === 0 ? (
+        {blogScanned && blogCount === 0 ? (
           <div className="space-y-2">
             <p className="text-sm text-rose-700 leading-relaxed break-keep">
-              외부 블로그 후기 5개 이상 확보 시 AI 브리핑·AI탭 노출 가능성이 높아집니다.
+              외부 블로그 후기 5개 이상 확보 시 AI 브리핑·AI탭 노출 가능성이 높아집니다 (AEOlab 권장 기준, 네이버 알고리즘 비공개).
               리뷰어 초대, 체험단 운영, 소셜 공유 이벤트를 활용해보세요.
             </p>
             <Link
@@ -727,15 +735,17 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               블로그 후기 늘리기 전략 →
             </Link>
           </div>
-        ) : (
+        ) : blogScanned ? (
           <p className="text-sm text-green-700 leading-relaxed break-keep">
             블로그 언급 수를 꾸준히 늘리면 AI 탭 노출 빈도와 인용 가능성이 함께 상승합니다.
-            목표: <strong>월 3건 이상</strong> 신규 블로그 후기 유지.
+            목표: <strong>월 3건 이상</strong> 신규 블로그 후기 유지 (AEOlab 권장 기준).
+          </p>
+        ) : null}
+        {blogScanned && (
+          <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
+            블로그 언급 수는 스캔 시점 기준이며, 측정 방식에 따라 실제와 차이가 있을 수 있습니다.
           </p>
         )}
-        <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
-          블로그 언급 수는 스캔 시점 기준이며, 측정 방식에 따라 실제와 차이가 있을 수 있습니다.
-        </p>
       </div>
 
       {/* ── 플랜 업그레이드 CTA (free 사용자) ────────────────────── */}

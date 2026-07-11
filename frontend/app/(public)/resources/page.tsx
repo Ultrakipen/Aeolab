@@ -124,7 +124,7 @@ export default function ResourcesPage() {
         </p>
 
         {/* 업종 카드 그리드 */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
           {GUIDES.map((g) => (
             <Link
               key={g.category}
@@ -132,7 +132,7 @@ export default function ResourcesPage() {
               className="group bg-white border border-gray-200 rounded-xl p-4 md:p-5 hover:border-blue-300 hover:shadow-md transition-all"
             >
               {/* 아이콘 영역 */}
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-3 text-blue-600 text-xl font-bold select-none">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-3 text-blue-600 text-xl font-bold select-none" aria-hidden="true">
                 {g.icon}
               </div>
               {/* 업종명 */}

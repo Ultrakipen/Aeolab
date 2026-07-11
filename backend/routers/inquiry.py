@@ -1,18 +1,61 @@
 import asyncio
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, EmailStr
 
 from db.supabase_client import get_client, execute
-from middleware.plan_gate import get_current_user
+from middleware.plan_gate import get_current_user, get_user_plan
 from utils.admin_auth import verify_admin
 
 router = APIRouter()
 _logger = logging.getLogger("aeolab.inquiry")
+
+# support.py MONTHLY_LIMITS와 동기화 필수 — 값 변경 시 양쪽 동시 수정.
+# 구 문의 폼(inquiries)과 신 Q&A 티켓(support_tickets)이 별개 테이블이라
+# 한쪽 한도만 걸면 다른 쪽으로 우회 가능했던 버그 수정(2026-07-11) — 두 테이블 합산으로 검사.
+_INQUIRY_MONTHLY_LIMITS: dict[str, Optional[int]] = {
+    "free": 1,
+    "basic": 3,
+    "pro": None,
+    "biz": None,
+    "startup": None,
+    "enterprise": None,
+}
+
+
+async def _check_monthly_limit(user_id: str) -> None:
+    """이번 달 문의(구 폼 + Q&A 티켓 합산) 건수가 요금제 한도를 초과하면 429."""
+    supabase = get_client()
+    plan = await get_user_plan(user_id, supabase)
+    limit = _INQUIRY_MONTHLY_LIMITS.get(plan, 1)
+    if limit is None:
+        return  # 무제한 플랜
+
+    month_start = date.today().replace(day=1).isoformat() + "T00:00:00"
+    inquiry_res = await execute(
+        supabase.table("inquiries").select("id", count="exact")
+        .eq("user_id", user_id).gte("created_at", month_start)
+    )
+    ticket_res = await execute(
+        supabase.table("support_tickets").select("id", count="exact")
+        .eq("user_id", user_id).gte("created_at", month_start)
+    )
+    used = (inquiry_res.count or 0) + (ticket_res.count or 0)
+    if used >= limit:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "TICKET_MONTHLY_LIMIT",
+                "used": used,
+                "limit": limit,
+                "message": f"이번 달 문의 작성 한도({limit}건)를 모두 사용했습니다. 플랜을 업그레이드하면 더 많은 문의를 작성할 수 있습니다.",
+                "upgrade_url": "/pricing",
+            },
+        )
 
 
 async def _notify_admin_new_inquiry(name: str, email: str, subject: str, inquiry_id) -> None:
@@ -83,6 +126,7 @@ async def submit_inquiry(
         raise HTTPException(status_code=422, detail="문의 내용을 입력해 주세요.")
 
     try:
+        await _check_monthly_limit(str(user["id"]))
         supabase = get_client()
         ins = await execute(
             supabase.table("inquiries").insert({

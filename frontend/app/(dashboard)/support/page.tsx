@@ -5,15 +5,15 @@ import FAQClient from "./FAQClient";
 
 export const metadata = { title: "고객 지원 | AEOlab" };
 
-async function fetchFAQs(): Promise<FAQ[]> {
+async function fetchFAQs(): Promise<{ items: FAQ[]; failed: boolean }> {
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
   try {
     const res = await fetch(BACKEND_URL + "/api/faq", { cache: "no-store" });
-    if (!res.ok) return [];
+    if (!res.ok) return { items: [], failed: true };
     const data = await res.json();
-    return data.items ?? [];
+    return { items: data.items ?? [], failed: false };
   } catch {
-    return [];
+    return { items: [], failed: true };
   }
 }
 
@@ -28,7 +28,7 @@ export default async function FAQPage() {
   }
   if (!user) redirect("/login");
 
-  const items = await fetchFAQs();
+  const { items, failed: faqLoadFailed } = await fetchFAQs();
 
   // 프로필에서 이름 조회 시도 (profiles 테이블은 user_id 컬럼으로 참조)
   const { data: profile } = await supabase
@@ -45,6 +45,7 @@ export default async function FAQPage() {
       </div>
       <FAQClient
         initialItems={items}
+        faqLoadFailed={faqLoadFailed}
         userEmail={user.email}
         userName={(profile as { full_name?: string } | null)?.full_name ?? undefined}
         isLoggedIn={true}

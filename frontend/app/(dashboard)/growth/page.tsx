@@ -163,6 +163,7 @@ export default async function GrowthPage() {
     rank_in_category?: number;
     total_in_category?: number;
     weekly_change?: number;
+    score_breakdown?: Record<string, number>;
   }> = [];
   if (historyRes?.ok) {
     const raw = await historyRes.json().catch(() => []);
@@ -186,7 +187,6 @@ export default async function GrowthPage() {
     avg_score: number;
     top10_score: number;
     my_score: number;
-    rank_percentile: number;
     fallbackLabel?: string;
   } | null = null;
   if (benchmarkRes?.ok) {
@@ -195,14 +195,10 @@ export default async function GrowthPage() {
       const latestScore = historyData.length > 0
         ? (historyData[historyData.length - 1].unified_score ?? 0)
         : 0;
-      const rankPct = (raw.top10_score ?? 0) > 0
-        ? Math.round(Math.min(100, Math.max(0, (latestScore / raw.top10_score) * 90)))
-        : 0;
       benchmarkData = {
         avg_score: raw.avg_score ?? 0,
         top10_score: raw.top10_score ?? 0,
         my_score: latestScore,
-        rank_percentile: rankPct,
         fallbackLabel: raw.fallback === "region"
           ? "지역 평균 기준"
           : raw.fallback === "global"

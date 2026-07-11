@@ -49,7 +49,6 @@ interface BenchmarkData {
   avg_score: number;
   top10_score: number;
   my_score: number;
-  rank_percentile: number;
   fallbackLabel?: string;
 }
 
@@ -453,7 +452,7 @@ export default function GrowthClient({
                   TRACK1_LABELS
                 );
                 return weakLabel ? (
-                  <p className="text-xs text-amber-600 mt-1">
+                  <p className="text-sm text-amber-600 mt-1">
                     보강하면 좋은 부분: {weakLabel}
                   </p>
                 ) : null;
@@ -485,7 +484,7 @@ export default function GrowthClient({
                   TRACK2_LABELS
                 );
                 return weakLabel ? (
-                  <p className="text-xs text-amber-600 mt-1">
+                  <p className="text-sm text-amber-600 mt-1">
                     보강하면 좋은 부분: {weakLabel}
                   </p>
                 ) : null;

@@ -24,12 +24,23 @@ const PLAN_LIMIT: Record<string, { label: string; limit: number | null }> = {
   enterprise: { label: "무제한 문의 가능", limit: null },
 };
 
+function endAtInFuture(endAt: string | null | undefined): boolean {
+  // plan_gate.py _end_at_in_future()와 동일 로직 — 날짜만 있는 문자열은 그 날짜 전체를 포함
+  if (!endAt) return false;
+  const raw = String(endAt);
+  let d = new Date(raw.length <= 10 ? `${raw}T00:00:00Z` : raw);
+  if (isNaN(d.getTime())) return false;
+  if (raw.length <= 10) d = new Date(d.getTime() + 24 * 60 * 60 * 1000);
+  return d.getTime() > Date.now();
+}
+
 function SupportNewForm() {
   const router = useRouter();
 
   const [plan, setPlan] = useState<string>("free");
   const [remaining, setRemaining] = useState<number | null>(null);
   const [loadingMeta, setLoadingMeta] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const [category, setCategory] = useState("feature");
   const [isPublic, setIsPublic] = useState(false);
@@ -50,30 +61,42 @@ function SupportNewForm() {
         }
         const { data: sub } = await supabase
           .from("subscriptions")
-          .select("plan, status")
+          .select("plan, status, end_at")
           .eq("user_id", user.id)
-          .eq("status", "active")
+          .in("status", ["active", "grace_period", "cancelled"])
           .maybeSingle();
-        const activePlan = sub?.status === "active" ? (sub?.plan ?? "free") : "free";
+        const activePlan = sub
+          ? (sub.status === "cancelled" && !endAtInFuture(sub.end_at) ? "free" : (sub.plan ?? "free"))
+          : "free";
         setPlan(activePlan);
 
-        // 이번 달 문의 수 조회
+        // 이번 달 문의 수 조회 — 백엔드(inquiry.py _check_monthly_limit)와 동일하게
+        // 구 문의 폼(inquiries) + Q&A 티켓(support_tickets) 합산 (2026-07-11 한도 우회 버그 수정과 동기화)
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
-        const { count } = await supabase
-          .from("support_tickets")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .gte("created_at", startOfMonth.toISOString());
+        const [{ count: ticketCount }, { count: inquiryCount }] = await Promise.all([
+          supabase
+            .from("support_tickets")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .gte("created_at", startOfMonth.toISOString()),
+          supabase
+            .from("inquiries")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .gte("created_at", startOfMonth.toISOString()),
+        ]);
+        const usedCount = (ticketCount ?? 0) + (inquiryCount ?? 0);
         const planInfo = PLAN_LIMIT[activePlan] ?? PLAN_LIMIT["free"];
         if (planInfo.limit !== null) {
-          setRemaining(Math.max(0, planInfo.limit - (count ?? 0)));
+          setRemaining(Math.max(0, planInfo.limit - usedCount));
         } else {
           setRemaining(null); // 무제한
         }
-      } catch {
-        // 조회 실패 시 무시
+      } catch (err) {
+        console.error("[support/tickets/new] 플랜/잔여 건수 조회 실패:", err);
+        setLoadError(true);
       } finally {
         setLoadingMeta(false);
       }
@@ -160,6 +183,13 @@ function SupportNewForm() {
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">새 문의 작성</h1>
           <p className="text-sm text-gray-500 mt-1">궁금한 점이나 불편한 사항을 남겨 주세요.</p>
         </div>
+
+        {/* 플랜/잔여 건수 조회 실패 안내 */}
+        {loadError && (
+          <div className="rounded-xl p-4 mb-5 text-sm bg-amber-50 border border-amber-200 text-amber-700">
+            플랜 정보를 불러오지 못했습니다. 아래 한도는 실제와 다를 수 있으니 새로고침 후 다시 확인해 주세요.
+          </div>
+        )}
 
         {/* 요금제 한도 안내 배너 */}
         <div className={[

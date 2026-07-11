@@ -123,7 +123,7 @@ export default async function AiInfoTabGuidePage({
         business={business}
         eligibility={elig}
         plan={plan}
-        blogMentionCount={(business as { blog_mention_count?: number } | null)?.blog_mention_count ?? 0}
+        blogMentionCount={(business as { blog_mention_count?: number | null } | null)?.blog_mention_count ?? null}
         hasReservation={(() => {
           const sp = (business as { sp_completeness_json?: { has_reservation?: boolean } } | null)?.sp_completeness_json
           return sp && typeof sp.has_reservation === 'boolean' ? sp.has_reservation : null

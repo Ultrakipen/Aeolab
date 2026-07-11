@@ -72,7 +72,7 @@ export default function HowItWorksPage() {
               <span className="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center mt-0.5">1</span>
               <div>
                 <p className="text-sm md:text-base font-semibold text-gray-800">내 업종에 따라 점수 기준이 다릅니다</p>
-                <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">음식점은 네이버 AI 브리핑 비중이 80%, 카페는 75%, 법률·교육·온라인몰은 ChatGPT·Google AI 비중이 60~90%입니다. 같은 점수라도 업종이 다르면 개선 방향이 다릅니다.</p>
+                <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">음식점은 네이버 채널(AI 브리핑·키워드 순위·리뷰 등) 비중이 80%, 카페는 75%, 법률·교육·온라인몰은 ChatGPT·Google AI 비중이 60~90%입니다. 같은 점수라도 업종이 다르면 개선 방향이 다릅니다.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 px-4 py-3.5">
@@ -214,21 +214,21 @@ export default function HowItWorksPage() {
               <span className="shrink-0 text-blue-500 font-bold">•</span>
               <span>
                 AI 브리핑 사용자 <strong>3,000만명+</strong>, 통합검색 질의 약 <strong>20%</strong> 적용{" "}
-                <a href="https://news.nate.com/view/20250808n07723" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:underline whitespace-nowrap">[출처: 네이버 컨콜 2025.08]</a>
+                <a href="https://news.nate.com/view/20250808n07723" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:underline whitespace-nowrap">[출처: 네이버 컨콜 2025.08]</a>
               </span>
             </li>
             <li className="flex gap-2">
               <span className="shrink-0 text-blue-500 font-bold">•</span>
               <span>
                 음식점 적용 후 — 체류시간 <strong>+10.4%</strong> / 클릭률 <strong>+27.4%</strong> / 예약 <strong>+8%</strong>{" "}
-                <a href="https://www.hankyung.com/article/202508212669g" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:underline whitespace-nowrap">[출처: 한국경제 2025.08.21]</a>
+                <a href="https://www.hankyung.com/article/202508212669g" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:underline whitespace-nowrap">[출처: 한국경제 2025.08.21]</a>
               </span>
             </li>
             <li className="flex gap-2">
               <span className="shrink-0 text-blue-500 font-bold">•</span>
               <span>
                 숙박 <strong>1만 5천 개</strong> 업체 적용 (2026년 기준){" "}
-                <a href="https://www.viva100.com/article/20260401500944" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:underline whitespace-nowrap">[출처: 브릿지경제 2026.04.01]</a>
+                <a href="https://www.viva100.com/article/20260401500944" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:underline whitespace-nowrap">[출처: 브릿지경제 2026.04.01]</a>
               </span>
             </li>
           </ul>
@@ -261,7 +261,7 @@ export default function HowItWorksPage() {
                   <td className="py-3 px-3 align-top">
                     <strong>① 노출 가능 업종?</strong>
                     <p className="text-sm text-gray-500 mt-1 leading-relaxed">음식점·카페·베이커리·바·숙박</p>
-                    <p className="text-sm text-amber-600 mt-1 leading-relaxed">확대 예정: 뷰티·네일·펫·피트니스·요가·약국</p>
+                    <p className="text-sm text-amber-600 mt-1 leading-relaxed">확대 예정: 뷰티·네일·스킨케어·마사지·스파·펫·피트니스·요가·약국·댄스·발레·반영구화장</p>
                   </td>
                   <td className="py-3 px-3 align-top text-gray-700">업종 선택 시 자동 판정. '플레이스형 AI 브리핑 비대상' 업종은 대시보드에 안내 배너 표시 + 정보형 AI 브리핑·글로벌 AI 채널로 가치 전달</td>
                   <td className="py-3 px-3 align-top text-gray-700">업종 선택</td>
@@ -659,11 +659,11 @@ export default function HowItWorksPage() {
                 사업장 등록·수정 시 또는 대시보드에서 요청할 수 있습니다.
               </p>
               <div className="flex flex-wrap gap-2 text-sm">
-                <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-600">Free: 월 1회</span>
-                <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700">Basic: 월 1회</span>
-                <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">창업패키지: 월 4회</span>
-                <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-700">Pro: 월 4회</span>
-                <span className="px-3 py-1 rounded-full bg-green-100 text-green-700">Biz: 월 10회</span>
+                <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-500">Free: 0건/월</span>
+                <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700">Basic: 월 5회</span>
+                <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">창업패키지: 월 10회</span>
+                <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-700">Pro: 월 20회</span>
+                <span className="px-3 py-1 rounded-full bg-green-100 text-green-700">Biz: 무제한</span>
                 <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">Enterprise: 무제한</span>
               </div>
             </div>
@@ -682,7 +682,7 @@ export default function HowItWorksPage() {
               </p>
               <div className="flex flex-wrap gap-2 text-sm">
                 <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-500">Free: 0건/월</span>
-                <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700">Basic: 5건/월*</span>
+                <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700">Basic: 10건/월*</span>
                 <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">창업패키지: 20건/월*</span>
                 <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-700">Pro: 30건/월*</span>
                 <span className="px-3 py-1 rounded-full bg-green-100 text-green-700">Biz: 60건/월*</span>
@@ -733,25 +733,25 @@ export default function HowItWorksPage() {
           </p>
           <ul className="space-y-3 text-sm md:text-base text-gray-700 leading-relaxed">
             <li className="flex gap-3">
-              <span className="text-blue-500 shrink-0">●</span>
+              <span className="text-blue-600 shrink-0">●</span>
               <div>
                 <strong>네이버 AI 브리핑 노출 자동 확인</strong> — 가게명 검색 시 AI 브리핑 영역에 노출되는지 직접 확인
               </div>
             </li>
             <li className="flex gap-3">
-              <span className="text-blue-500 shrink-0">●</span>
+              <span className="text-blue-600 shrink-0">●</span>
               <div>
                 <strong>AI 인용 실증</strong> — 어떤 키워드로 어떻게 인용됐는지 누적 (ChatGPT·Gemini·Google·네이버)
               </div>
             </li>
             <li className="flex gap-3">
-              <span className="text-blue-500 shrink-0">●</span>
+              <span className="text-blue-600 shrink-0">●</span>
               <div>
                 <strong>30일 점수 추세</strong> — 사장님의 개선 행동이 점수에 반영되는지 검증
               </div>
             </li>
             <li className="flex gap-3">
-              <span className="text-blue-500 shrink-0">●</span>
+              <span className="text-blue-600 shrink-0">●</span>
               <div>
                 <strong>경쟁사 비교</strong> — 같은 업종·지역의 상위 10% 사업장과 갭 분석
               </div>
@@ -861,7 +861,7 @@ export default function HowItWorksPage() {
                 <tr className="border-b border-gray-100">
                   <td className="py-2.5 px-3">AI 콘텐츠 생성<br /><span className="text-sm text-gray-400">소개글+채팅방메뉴 합산</span></td>
                   <td className="text-center py-2.5 text-gray-400">—</td>
-                  <td className="text-center py-2.5 text-sm">월 5건</td>
+                  <td className="text-center py-2.5 text-sm">월 10건</td>
                   <td className="text-center py-2.5 text-sm">월 20건</td>
                   <td className="text-center py-2.5 text-sm">월 30건</td>
                   <td className="text-center py-2.5 text-sm">월 60건</td>
@@ -877,7 +877,7 @@ export default function HowItWorksPage() {
           </div>
 
           <p className="mt-3 text-sm text-gray-500">
-            * AI 콘텐츠 생성(소개글+채팅방메뉴) 월 합산 한도: Basic 5건·창업패키지 20건·Pro 30건·Biz 60건.<br />
+            * AI 콘텐츠 생성(소개글+채팅방메뉴) 월 합산 한도: Basic 10건·창업패키지 20건·Pro 30건·Biz 60건.<br />
             * 창업패키지는 예비 창업자 전용으로 창업 시장 분석 + Basic 기능 전체 포함.
           </p>
           <p className="mt-2 text-sm md:text-base text-gray-600 leading-relaxed break-keep">

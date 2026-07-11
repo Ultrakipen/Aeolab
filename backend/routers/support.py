@@ -33,6 +33,8 @@ admin_router = APIRouter()
 
 # ── 요금제별 월 문의 한도 ─────────────────────────────────────────────────────────
 # None = 무제한
+# inquiry.py _INQUIRY_MONTHLY_LIMITS와 동기화 필수 — 값 변경 시 양쪽 동시 수정.
+# support_tickets만으로 한도를 걸면 inquiries 쪽으로 우회 가능하므로 두 테이블 합산 필수.
 MONTHLY_LIMITS: dict[str, Optional[int]] = {
     "free": 1,
     "basic": 3,
@@ -176,13 +178,19 @@ async def _check_monthly_limit(user_id: str) -> None:
         return  # 무제한 플랜
 
     month_start = date.today().replace(day=1).isoformat() + "T00:00:00"
-    res = await execute(
+    ticket_res = await execute(
         supabase.table("support_tickets")
         .select("id", count="exact")
         .eq("user_id", user_id)
         .gte("created_at", month_start)
     )
-    used = res.count or 0
+    inquiry_res = await execute(
+        supabase.table("inquiries")
+        .select("id", count="exact")
+        .eq("user_id", user_id)
+        .gte("created_at", month_start)
+    )
+    used = (ticket_res.count or 0) + (inquiry_res.count or 0)
     if used >= limit:
         raise HTTPException(
             status_code=429,
@@ -424,10 +432,14 @@ async def create_reply(
         _logger.warning(f"[support] support_replies INSERT 실패: ticket_id={ticket_id}")
         raise HTTPException(status_code=500, detail="답글 등록에 실패했습니다")
 
-    # updated_at 갱신
+    # updated_at 갱신 + "답변 완료" 상태에서 사용자가 추가 코멘트를 달면 "열림"으로 되돌림
+    # (2026-07-11 수정: 그대로 두면 관리자가 open 필터로만 봐서 추가 코멘트를 놓치는 버그)
+    _update_fields: dict = {"updated_at": now}
+    if ticket.get("status") == "answered":
+        _update_fields["status"] = "open"
     await execute(
         supabase.table("support_tickets")
-        .update({"updated_at": now})
+        .update(_update_fields)
         .eq("id", ticket_id)
     )
 

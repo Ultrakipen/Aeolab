@@ -228,7 +228,7 @@
 > **⚠️ 플레이스형 vs 정보형 구분 (2026-06-29 실측 신설)**: 네이버 AI 브리핑 5유형 중 ACTIVE/LIKELY/INACTIVE 분류는 **"플레이스형(가게 플레이스 카드 요약형)" 한정**이다. **"정보형/공식형 멀티출처(추천형)"는 업종 제한이 없어 블로그·콘텐츠가 출처로 채택되면 전 업종이 노출**된다(2026-06-29 "창원 웨딩 스냅 촬영 추천" → 사진/웨딩스냅 노출 실측). 따라서 INACTIVE 업종을 "네이버 AI 브리핑 전면 불가"로 안내 금지 — `userGroup.ts GROUP_MESSAGES`가 "플레이스형 미대상이나 정보형은 콘텐츠로 노출 가능"으로 정정됨(git `aeb5c2b`). 처방 차이: 플레이스형=스마트플레이스 완성도 / 정보형=블로그·콘텐츠 C-rank·D.I.A.
 
 - **ACTIVE 업종**: restaurant, cafe, bakery, bar, accommodation — 네이버 AI 브리핑 **플레이스형** 노출 대상 (beauty·nail은 LIKELY, 코드 `score_engine.py:30` 기준)
-- **LIKELY 업종**: beauty, nail, pet, fitness, yoga, pharmacy — **AI 브리핑 플레이스형** 노출 확대 예정 업종 (안내 톤 분기). ※ AI탭(대화형 검색)은 업종 무관 — 2026-04-27 베타 출시 → **2026-06-25 전체 네이버 사용자 정식 출시 완료** (사용자 확대이며 업종 확대 아님, 네이버 공식)
+- **LIKELY 업종**: beauty, nail, skincare, massage, spa, pet, fitness, yoga, pharmacy, dance, ballet, semi_permanent (12개, `score_engine.py:37-38`) — **AI 브리핑 플레이스형** 노출 확대 예정 업종 (안내 톤 분기). ※ AI탭(대화형 검색)은 업종 무관 — 2026-04-27 베타 출시 → **2026-06-25 전체 네이버 사용자 정식 출시 완료** (사용자 확대이며 업종 확대 아님, 네이버 공식)
 - **INACTIVE 업종**: 그 외 모든 업종 → 글로벌 AI(ChatGPT·Gemini·Google AI) 중심 안내
 - **프랜차이즈는 ACTIVE 업종이라도 제외** (네이버 공식 정책) — `get_briefing_eligibility(category, is_franchise)` 사용
 - **단일 소스 동기화**: backend `score_engine.py:30` `BRIEFING_ACTIVE_CATEGORIES` ↔ frontend `lib/userGroup.ts:43` `BRIEFING_ACTIVE_CATEGORIES` — 한쪽 변경 시 양쪽 동시 수정 필수 (RegisterBusinessForm.tsx·dashboard/page.tsx는 userGroup.ts를 import)
@@ -318,11 +318,11 @@
 
 **제거됨:** Perplexity(미사용), Grok, Claude 스캐너, 뤼튼/Zeta (비용·ROI 이유)
 
-**스캔 모드 (2026-05-04 A안 50/50 적용):**
+**스캔 모드 (2026-05-04 A안 50/50 적용, 2026-07-11 Google 포함 범위 정정):**
 - Trial(ChatGPT 5회 — sample_5 구현)
 - Quick(ChatGPT 5회 + Naver)
-- **Basic 자동(Gemini 50회 + ChatGPT 50회 + Naver)** — 한국 사용자 인지도 높은 ChatGPT 동등 측정
-- Full 유료(Gemini 100회 + ChatGPT 100회 + Naver + Google)
+- **Basic 자동(Gemini 50회 + ChatGPT 50회 + Naver + Google)** — `multi_scanner.py:167 scan_basic()` 확인, Basic·창업패키지·Pro(경량일)도 Google 포함. 한국 사용자 인지도 높은 ChatGPT 동등 측정
+- Full 유료(Gemini 100회 + ChatGPT 100회 + Naver + Google) — Pro(풀스캔일)·Biz·Enterprise
 
 **점수 산식 (calc_multi_ai_exposure):** Gemini 45점 + ChatGPT 45점 = 90점 → 100점 재배분. sample_size 자동 처리로 50회·100회·boolean 모두 호환.
 

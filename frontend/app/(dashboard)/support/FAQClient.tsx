@@ -7,6 +7,7 @@ import { submitInquiry, getMyInquiries } from "@/lib/api";
 
 interface Props {
   initialItems: FAQ[];
+  faqLoadFailed?: boolean;
   userEmail?: string;
   userName?: string;
   isLoggedIn: boolean;
@@ -28,7 +29,7 @@ const SUBJECT_OPTIONS = [
 ];
 
 // ─── FAQ 아코디언 섹션 ────────────────────────────────────────
-function FAQSection({ initialItems, onSwitchToInquiry }: { initialItems: FAQ[]; onSwitchToInquiry: () => void }) {
+function FAQSection({ initialItems, faqLoadFailed, onSwitchToInquiry }: { initialItems: FAQ[]; faqLoadFailed?: boolean; onSwitchToInquiry: () => void }) {
   const [activeCategory, setActiveCategory] = useState("");
   const [openIds, setOpenIds] = useState<Set<number>>(new Set());
 
@@ -68,8 +69,17 @@ function FAQSection({ initialItems, onSwitchToInquiry }: { initialItems: FAQ[]; 
       {filtered.length === 0 && (
         <div className="py-16 text-center">
           <HelpCircle className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-base font-medium mb-1">아직 FAQ가 준비되지 않았습니다.</p>
-          <p className="text-gray-500 text-sm">궁금한 점은 <button onClick={onSwitchToInquiry} className="text-blue-500 underline hover:no-underline">문의하기</button> 탭에서 직접 문의해 주세요.</p>
+          {faqLoadFailed ? (
+            <>
+              <p className="text-gray-500 text-base font-medium mb-1">FAQ를 불러오지 못했습니다.</p>
+              <p className="text-gray-500 text-sm">일시적인 오류일 수 있습니다. 새로고침 후 다시 시도해 주세요.</p>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-500 text-base font-medium mb-1">아직 FAQ가 준비되지 않았습니다.</p>
+              <p className="text-gray-500 text-sm">궁금한 점은 <button onClick={onSwitchToInquiry} className="text-blue-500 underline hover:no-underline">문의하기</button> 탭에서 직접 문의해 주세요.</p>
+            </>
+          )}
         </div>
       )}
 
@@ -154,7 +164,11 @@ function MyInquiryList() {
 
   return (
     <div className="mt-6 space-y-2">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">내 문의 내역</h3>
+      <h3 className="text-sm font-semibold text-gray-700 mb-1">간편 문의 내역</h3>
+      <p className="text-sm text-gray-400 mb-3">
+        아래 폼으로 보낸 문의만 표시됩니다. 1:1 문의(Q&A)로 보낸 답변은{" "}
+        <a href="/support/tickets" className="text-blue-600 hover:underline">내 문의 목록</a>에서 확인하세요.
+      </p>
       {items.map((item) => {
         const isOpen = openIds.has(item.id);
         return (
@@ -396,6 +410,7 @@ function InquirySection({
 // ─── 메인 컴포넌트 ────────────────────────────────────────────
 export default function FAQClient({
   initialItems,
+  faqLoadFailed,
   userEmail,
   userName,
   isLoggedIn,
@@ -429,7 +444,7 @@ export default function FAQClient({
       </div>
 
       {/* 탭 콘텐츠 */}
-      {activeTab === "faq" && <FAQSection initialItems={initialItems} onSwitchToInquiry={() => setActiveTab("inquiry")} />}
+      {activeTab === "faq" && <FAQSection initialItems={initialItems} faqLoadFailed={faqLoadFailed} onSwitchToInquiry={() => setActiveTab("inquiry")} />}
       {activeTab === "inquiry" && (
         <InquirySection
           userEmail={userEmail}

@@ -225,7 +225,7 @@ export default function ChatGptSearchGuidePage() {
             AEOlab에서 ChatGPT 소개글 자동 생성
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            ChatGPT가 내 사업장을 언급하도록 FAQ 중심 소개글·Q&A를 30초 안에 자동 생성합니다. 구글 비즈니스 프로필·자체 웹사이트에 바로 활용하세요.
+            ChatGPT가 내 사업장을 언급하도록 FAQ 중심 소개글·Q&A를 빠르게 자동 생성합니다. 구글 비즈니스 프로필·자체 웹사이트에 바로 활용하세요.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
@@ -245,7 +245,7 @@ export default function ChatGptSearchGuidePage() {
 
       </article>
 
-      <SiteFooter />
+      <SiteFooter activePage="/guide/chatgpt-search" />
     </main>
   )
 }

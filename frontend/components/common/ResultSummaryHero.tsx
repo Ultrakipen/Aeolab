@@ -76,7 +76,7 @@ export default function ResultSummaryHero({
               <div>
                 <p className="text-sm font-medium text-gray-500 leading-tight break-keep">{card.platform}</p>
                 <p className={`text-sm font-bold mt-0.5 leading-tight ${card.statusClass}`}>{card.status}</p>
-                <p className="text-sm text-gray-400 mt-0.5 leading-tight break-keep hidden sm:block">{card.detail}</p>
+                <p className="text-sm text-gray-400 mt-0.5 leading-tight break-keep">{card.detail}</p>
               </div>
             </div>
           ))}

@@ -424,7 +424,56 @@ function getMock(category: string, region: string) {
     },
   };
 
-  const tpl = templates[category] ?? templates.restaurant;
+  // 26개 업종 선택지 중 예시 데이터를 직접 작성한 건 7개뿐 — 나머지 19개는
+  // 구조가 비슷한 업종의 예시를 빌려오되, 업체명·검색어·"내 가게" 항목만은
+  // 선택한 업종에 맞게 교체한다 (2026-07-11: 네일샵을 선택해도 식당 예시
+  // "한우마당"이 그대로 나오던 신뢰도 버그 수정 — 완전히 무관한 업종명이
+  // 노출되는 것을 막는 최소 조치이며, 세부 리뷰·경쟁사 문구는 여전히
+  // 빌려온 업종의 것이라 "샘플 결과 화면" 배지로 예시임을 항상 별도 안내함)
+  type BorrowableTpl = typeof templates.restaurant & {
+    businessName: string; query: string; aiExcerpt: string;
+    naverCompetitors: { rank: number; name: string; address: string; isMe: boolean }[];
+    kakaoCompetitors: { rank: number; name: string; isMe: boolean }[];
+  };
+  const directTpl = templates[category];
+  if (directTpl) return { ...base, ...directTpl };
+
+  const FALLBACK_SOURCE: Record<string, string> = {
+    bakery: "cafe", bar: "restaurant", nail: "beauty", pharmacy: "medical",
+    fitness: "beauty", yoga: "beauty", pet: "beauty", tutoring: "education",
+    legal: "medical", realestate: "medical", interior: "beauty", auto: "medical",
+    cleaning: "beauty", shopping: "beauty", fashion: "beauty", video: "photo",
+    design: "photo", accommodation: "restaurant", other: "restaurant",
+  };
+  const FALLBACK_NAME: Record<string, string> = {
+    bakery: "달콤 베이커리", bar: "미도리 이자카야", nail: "블링 네일샵",
+    pharmacy: "건강 약국", fitness: "파워짐 헬스장", yoga: "숨 요가필라테스",
+    pet: "댕댕이 동물병원", tutoring: "1등 과외방", legal: "정도 법무사사무소",
+    realestate: "새터 공인중개사", interior: "모던 인테리어", auto: "튼튼 자동차공업사",
+    cleaning: "클린업 세탁소", shopping: "온새미 편집숍", fashion: "스타일 부티크",
+    video: "브라이트 영상제작소", design: "픽셀 디자인스튜디오", accommodation: "포근한 게스트하우스",
+    other: "예시 사업장",
+  };
+  const FALLBACK_QUERY: Record<string, string> = {
+    bakery: "빵집 추천", bar: "술집 추천", nail: "네일샵 추천", pharmacy: "약국 추천",
+    fitness: "헬스장 추천", yoga: "요가 필라테스 추천", pet: "동물병원 추천",
+    tutoring: "과외 튜터링 추천", legal: "법무사 추천", realestate: "부동산 추천",
+    interior: "인테리어 업체 추천", auto: "자동차 정비 추천", cleaning: "세탁소 추천",
+    shopping: "쇼핑몰 추천", fashion: "옷가게 추천", video: "영상 제작 업체 추천",
+    design: "디자인 업체 추천", accommodation: "숙소 추천", other: "사업장 추천",
+  };
+  const sourceKey = FALLBACK_SOURCE[category] ?? "restaurant";
+  const source = (templates[sourceKey] ?? templates.restaurant) as BorrowableTpl;
+  const newName = `${region} ${FALLBACK_NAME[category] ?? "예시 사업장"}`;
+  const categoryLabel = CATEGORIES.find((c) => c.value === category)?.label ?? "사업장";
+  const tpl: BorrowableTpl = {
+    ...source,
+    businessName: newName,
+    query: `${region} ${FALLBACK_QUERY[category] ?? "사업장 추천"}`,
+    aiExcerpt: `${region}에서 ${categoryLabel}을(를) 찾는다면 '${newName}'이 자주 언급됩니다.`,
+    naverCompetitors: source.naverCompetitors.map((c) => (c.isMe ? { ...c, name: newName } : c)),
+    kakaoCompetitors: source.kakaoCompetitors.map((c) => (c.isMe ? { ...c, name: newName } : c)),
+  };
   return { ...base, ...tpl };
 }
 
@@ -481,7 +530,7 @@ export default function DemoPage() {
   const globalItems = pickItems(GLOBAL_KEYS);
   const briefingNote =
     briefingStatus === "active"
-      ? "네이버 AI 브리핑 대상 업종 — 소개글 Q&A·소식·리뷰를 보강하면 브리핑 인용 후보에 진입합니다 (업데이트 후 2~4주)."
+      ? "네이버 AI 브리핑 대상 업종 — 소개글 Q&A·소식·리뷰를 보강하면 브리핑 인용 후보에 진입합니다 (업데이트 후 2~4주, 추정)."
       : briefingStatus === "likely"
       ? "네이버 '플레이스형' AI 브리핑 확대 예정 업종 — 지금 준비해두면 확대 시 바로 유리합니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 지금 가능합니다."
       : "이 업종은 '플레이스형' 네이버 AI 브리핑 비대상입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능. 네이버 일반검색·AI탭 노출에 집중하세요.";
@@ -731,7 +780,7 @@ export default function DemoPage() {
                 {briefingStatus === "active" ? (
                   <>
                     <p className="text-base font-bold text-purple-700">대상 업종 ✓</p>
-                    <p className="text-sm text-purple-600 mt-1">소개글 개선 후 2~4주</p>
+                    <p className="text-sm text-purple-600 mt-1">소개글 개선 후 2~4주(추정)</p>
                   </>
                 ) : briefingStatus === "likely" ? (
                   <>
@@ -816,7 +865,7 @@ export default function DemoPage() {
                 <span className="text-sm text-slate-700">📝 블로그 후기 {m.blogMentions}건 발견</span>
                 <span className="text-sm text-slate-700">✅ 스마트플레이스 자동 점검</span>
               </div>
-              <p className="text-sm text-slate-500">⏱ 스마트플레이스 개선 후 네이버 검색 순위 변화까지 보통 2~4주 소요됩니다.</p>
+              <p className="text-sm text-slate-500">⏱ 스마트플레이스 개선 후 네이버 검색 순위 변화까지 보통 2~4주(추정) 소요됩니다.</p>
             </div>
 
             {/* 업종 평균 대비 내 위치 (교육용 보조 — 성장단계·채널·오늘할일은 위 종합결론 히어로에 표시) */}
@@ -1014,6 +1063,10 @@ export default function DemoPage() {
                         <span className="shrink-0 font-medium text-gray-700 mt-px">네이버 AI탭</span>
                         <span>2026-06-25 정식 출시, 업종 제한 없음</span>
                       </li>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="shrink-0 font-medium text-gray-700 mt-px">Google AI Overview</span>
+                        <span>Google 검색 결과 상단 AI 요약 — 실시간 측정 (Serper.dev), 구독 시 자동 스캔에 포함</span>
+                      </li>
                     </ul>
                   </div>
 
@@ -1192,7 +1245,7 @@ export default function DemoPage() {
                 1분 무료 회원가입
               </Link>
             </div>
-            <p className="text-sm text-white/50 text-center">Basic 월 9,900원부터 · 7일 이내 미사용 시 100% 환불</p>
+            <p className="text-sm text-white/50 text-center">Basic 첫 달 4,950원(이후 월 9,900원) · 7일 이내 미사용 시 100% 환불</p>
           </div>
           <div className="bg-black/20 px-5 md:px-8 py-5">
             <p className="text-sm md:text-base font-bold text-white/60 mb-3 uppercase tracking-wide">시작하면 이렇게 됩니다</p>
