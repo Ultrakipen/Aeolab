@@ -86,6 +86,12 @@ PACKAGES: dict[str, dict] = {
 # 유효한 주문 상태 목록
 VALID_STATUSES = {"received", "paid", "in_progress", "completed", "cancelled", "rework", "refunded"}
 
+# 환불 이중 처리 방지용 원자적 락 마커. delivery_orders.refund_reason은 결제완료
+# (paid/in_progress/rework) 상태에서는 정상 흐름상 항상 NULL이므로, 이 값을 조건부
+# UPDATE(IS NULL 확인)로 선점해 관리자 수동 환불 ↔ delivery_auto_refund_job(스케줄러) ↔
+# 동시 클릭 간 경합을 막는다. scheduler/jobs.py delivery_auto_refund_job과 값 동기화 필수.
+_REFUND_CLAIM_MARKER = "__refund_processing__"
+
 
 # ── 관리자 인증: utils.admin_auth.verify_admin 사용(위에서 import) ──────────────
 
@@ -438,6 +444,9 @@ async def get_order(
 ):
     """의뢰 상세 조회 (본인 소유 검증)."""
     order = await _get_order_owned_or_403(order_id, user["id"])
+    # payment_key는 토스 결제취소 API 자격증명이라 사용자에게 노출 금지
+    # (2026-07-11: _get_order_or_404 select에 관리자 환불 로직용으로 추가하며 발생한 회귀 방지)
+    order.pop("payment_key", None)
     pkg_type = order.get("package_type", "")
     order["package_name"] = PACKAGES.get(pkg_type, {}).get("name", pkg_type)
 
@@ -798,11 +807,33 @@ async def admin_update_status(
                 status_code=400,
                 detail="결제 키가 없어 자동 환불이 불가합니다. 토스 관리자 콘솔에서 수동 확인 후 처리해 주세요",
             )
+
+        # 이중 환불 방지 — 조건부 UPDATE로 선점(claim) 후에만 토스 API 호출.
+        # 동시 클릭이나 delivery_auto_refund_job(스케줄러, 매일 11:30)과 경합 시
+        # 둘 중 하나만 이 UPDATE에 성공(영향 행 1건)하고 나머지는 0건 → 409.
+        claim_res = await execute(
+            supabase.table("delivery_orders")
+            .update({"refund_reason": _REFUND_CLAIM_MARKER})
+            .eq("id", order_id)
+            .eq("status", order["status"])
+            .is_("refund_reason", "null")
+        )
+        if not (claim_res and claim_res.data):
+            raise HTTPException(
+                status_code=409,
+                detail="이미 환불 처리 중이거나 처리된 주문입니다 (동시 요청 감지)",
+            )
+
         ok, err = await _toss_cancel_payment(payment_key, "관리자 수동 환불 처리")
         if not ok:
+            # 락 해제 — 재시도 가능하도록 원복
+            await execute(
+                supabase.table("delivery_orders").update({"refund_reason": None}).eq("id", order_id)
+            )
             _logger.error(f"[admin/delivery] 수동 환불 실패: order_id={order_id}, error={err}")
             raise HTTPException(status_code=502, detail=f"토스 환불 실패: {err}")
-        await execute(
+
+        update_res = await execute(
             supabase.table("delivery_orders")
             .update({
                 "status": "refunded",
@@ -811,6 +842,18 @@ async def admin_update_status(
             })
             .eq("id", order_id)
         )
+        if not (update_res and update_res.data):
+            # 토스 환불은 이미 성공 — DB 갱신 실패는 money-moving 이후이므로 silent pass 금지
+            _logger.error(f"[admin/delivery] 환불 완료 후 DB 갱신 실패: order_id={order_id}")
+            try:
+                from services.email_sender import send_operator_alert
+                await send_operator_alert(
+                    "대행 서비스 수동 환불 완료 후 DB 갱신 실패 — 수동 확인 필요",
+                    f"order_id={order_id}\n토스 환불은 이미 처리됨(amount={order.get('amount')}). "
+                    f"DB 상태를 수동으로 refunded로 변경해 주세요.",
+                )
+            except Exception as _alert_e:
+                _logger.warning(f"[admin/delivery] 운영자 알림 실패 (무시): {_alert_e}")
         _logger.info(f"[admin/delivery] 수동 환불 완료: order_id={order_id}, amount={order.get('amount')}")
 
     elif body.status == "rework":
@@ -823,6 +866,13 @@ async def admin_update_status(
         )
 
     else:
+        # 남은 target은 사실상 in_progress뿐(received/paid는 결제 확인·의뢰 생성 시 시스템이
+        # 자동 설정하며 관리자가 직접 지정할 대상이 아님) — paid/rework에서만 전이 허용.
+        if body.status == "in_progress" and order["status"] not in ("paid", "rework"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"진행 시작은 결제완료 또는 재작업 상태에서만 가능합니다 (현재 status={order['status']})",
+            )
         await execute(
             supabase.table("delivery_orders")
             .update({"status": body.status})
@@ -831,8 +881,9 @@ async def admin_update_status(
 
     _logger.info(f"[admin/delivery] 상태 변경: order_id={order_id}, status={body.status}")
 
-    # 카카오 알림톡 비동기 발송 (실패해도 응답에 영향 없음)
-    if body.status in ("in_progress", "completed"):
+    # 카카오 알림톡 비동기 발송 (실패해도 응답에 영향 없음) — completed는 admin_complete_order가
+    # 별도로 직접 호출하며 이 엔드포인트는 completed로의 전이를 위에서 이미 차단함
+    if body.status == "in_progress":
         try:
             await _send_status_kakao(order_id, body.status)
         except Exception as e:
@@ -947,7 +998,7 @@ async def submit_testimonial(
         "title": body.get("title") or "서비스 후기",
         "body": testimonial_body,
         "score_before": order.get("score_before"),
-        "score_after": order.get("score_after"),
+        "score_after": score_after,
         "is_anonymous": bool(body.get("is_anonymous", True)),
         "display_name": body.get("display_name"),
         "published_at": None,
