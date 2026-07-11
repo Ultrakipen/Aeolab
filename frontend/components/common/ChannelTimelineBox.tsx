@@ -84,7 +84,7 @@ export default function ChannelTimelineBox({
             <span className={`font-bold ${row.durationColor}`}>{row.duration}</span>
           </span>
         ))}
-        <span className="text-xs text-gray-400 ml-auto">참고값</span>
+        <span className="text-xs text-gray-500 ml-auto">참고값</span>
       </div>
     );
   }
@@ -119,7 +119,7 @@ export default function ChannelTimelineBox({
           </div>
         ))}
       </div>
-      <p className="text-xs text-gray-400 mt-2 leading-snug">
+      <p className="text-xs text-gray-500 mt-2 leading-snug">
         꾸준한 관리 활동 기준 참고값입니다
       </p>
     </div>

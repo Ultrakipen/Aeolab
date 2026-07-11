@@ -100,7 +100,7 @@ function ChannelCard({
         <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
       )}
 
-      <p className="text-sm text-gray-400 leading-snug">{disclaimer}</p>
+      <p className="text-sm text-gray-500 leading-snug">{disclaimer}</p>
     </div>
   );
 }

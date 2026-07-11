@@ -158,7 +158,7 @@ export default function AIAssistant({ bizId, plan, authToken }: Props) {
                     </button>
                   ))}
                 </div>
-                <p className="text-sm text-gray-400 mt-3">
+                <p className="text-sm text-gray-500 mt-3">
                   {plan} 플랜: 월 {monthlyLimit}회 사용 가능
                 </p>
               </div>

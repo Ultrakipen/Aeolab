@@ -162,7 +162,7 @@ export default function HelpSearchInput({
       {/* 입력창 */}
       <div className="relative flex items-center">
         <Search
-          className="absolute left-3 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none"
+          className="absolute left-3 w-4 h-4 text-gray-500 dark:text-gray-500 pointer-events-none"
           aria-hidden="true"
         />
         <input
@@ -188,7 +188,7 @@ export default function HelpSearchInput({
             className="absolute right-2.5 p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             aria-label="검색어 지우기"
           >
-            <X className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+            <X className="w-3.5 h-3.5 text-gray-500 dark:text-gray-500" />
           </button>
         )}
       </div>
