@@ -182,6 +182,8 @@
 - **오판 아님으로 확인**: 결제 페이지 3곳 모두 `SiteFooter`에 상호명·대표자·사업자등록번호·통신판매업번호 표시 완료(전자상거래법 요건 충족) — 별도 조치 불요
 - **대비율**: `text-gray-400` 9곳 목록만 남김(§5.1 배치 창에서 처리) — 직접 수정 안 함
 - 검증: md5 사전 확인(서버==git HEAD, drift 없음) → scp → 서버 grep 확인 → `npm run build` 성공 → pm2 재시작 error.log 신규 에러 0건(기존 recharts 경고만) → curl 3페이지 200
+- **발견 2의 근본 수정 추가 완료**(같은 세션, 사용자 지시 "지금할것", git `dd691aa`): 프론트 안내 문구만으론 부족 판단 — `webhook.py` 첫 결제(2단계) 직전에 `payment_events`에서 같은 금액·10분 이내 성공 이벤트를 조회, 있으면 Toss 재청구를 건너뛰고 구독 저장(3단계)만 재시도하도록 이중청구 방지 로직 추가. md5 사전확인(drift 없음) → scp → 서버 grep 확인 → pm2 재시작(`Application startup complete`, 에러 0건) → `/health` ok 확인
+- **card-update 라이브 재검증 시도**: gstack `/browse`로 실제 로그인(hoozdev@gmail.com) 후 `/settings` 진입·카드 변경 버튼 확인까지는 성공했으나, 같은 시간대 다른 세션이 동일 공유 브라우저 데몬을 사용 중이라 클릭 직후 스크린샷이 엉뚱한 페이지(`/support/tickets/new`)를 찍는 등 신뢰할 수 없는 간섭 발생 → 라이브 클릭 검증은 중단, 코드 대조 수준으로 한정(memory `feedback_shared_browser_lock_verification` 갱신)
 
 ---
 
