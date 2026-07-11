@@ -39,7 +39,7 @@ export default function Testimonials() {
               </p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4 shadow-sm">
-              <p className="text-2xl md:text-3xl font-bold text-blue-600">25종</p>
+              <p className="text-2xl md:text-3xl font-bold text-blue-600">59종+</p>
               <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
                 지원 업종<br />
                 <span className="text-sm text-gray-500">음식점·미용<br />법무·교육 등</span>

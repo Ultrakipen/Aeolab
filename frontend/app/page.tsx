@@ -7,6 +7,7 @@ import DashboardPreview from "@/components/landing/DashboardPreview";
 import TrackedCTA from "@/components/analytics/TrackedCTA";
 import PricingAnchorTracker from "@/components/analytics/PricingAnchorTracker";
 import FAQSection from "@/components/landing/FAQSection";
+import Testimonials from "@/components/landing/Testimonials";
 import FreeToolsSection from "@/components/landing/FreeToolsSection";
 import AgencyServiceSection from "@/components/landing/AgencyServiceSection";
 import InlineKeywordWidget from "@/components/landing/InlineKeywordWidget";
@@ -365,6 +366,15 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── 3-B. TRUST — AEOlab 서비스 신뢰 지표 (모바일 접힘, 스크롤 길이 영향 없음) ── */}
+      <div className="px-4 py-10 md:p-0">
+        <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="AEOlab이 실제로 측정하는 것 — 신뢰 지표 보기">
+            <Testimonials />
+          </MobileAccordion>
+        </div>
+      </div>
 
       {/* ── 1-A. AI 검색 노출 — 업종 분기 다이어그램 + 개선 방법 통합 ── */}
       <section className="px-4 py-10 md:py-16" style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
