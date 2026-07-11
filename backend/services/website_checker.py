@@ -8,12 +8,33 @@
 - ChatGPT·Gemini·Google AI 인용 가능성 판단에 사용
 """
 import re
+import ipaddress
 import logging
 from urllib.parse import urlparse
 
 import aiohttp
 
 _logger  = logging.getLogger("aeolab")
+
+
+def _is_safe_url(raw: str) -> bool:
+    """SSRF 방지 — 사설/루프백 IP 리터럴 차단. 도메인명은 통과(DNS는 요청 시점에 해석됨).
+
+    scan.py 트라이얼(비인증) 경로에 있던 동일 로직을 여기로 통합해 인증된
+    스트림/전체 스캔 경로도 동일하게 보호한다 (2026-07-11 보안 감사 F1).
+    """
+    try:
+        p = urlparse(raw)
+        if p.scheme not in ("http", "https"):
+            return False
+        host = p.hostname or ""
+        try:
+            addr = ipaddress.ip_address(host)
+            return addr.is_global
+        except ValueError:
+            return True  # 도메인명 — 허용
+    except Exception:  # noqa: intentional-fallback — URL 파싱 오류 시 안전하게 차단
+        return False
 _TIMEOUT = aiohttp.ClientTimeout(total=8, connect=5)
 _HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; AEOlab-SEOChecker/1.0)",
@@ -55,6 +76,10 @@ async def check_website_seo(url: str) -> dict:
     # https:// 없으면 추가
     if not url.startswith("http"):
         url = "https://" + url.strip()
+
+    if not _is_safe_url(url):
+        result["error"] = "허용되지 않는 URL"
+        return result
 
     parsed = urlparse(url)
     result["is_https"] = parsed.scheme == "https"

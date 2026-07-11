@@ -1053,7 +1053,16 @@ _EMAIL_DUMMY = {
 
 
 def _verify_admin_key(key: str) -> None:
-    secret = os.getenv("ADMIN_SECRET_KEY", "")
+    """이메일 미리보기 전용 키 검증.
+
+    2026-07-11 보안 감사 F2: 과거 ADMIN_SECRET_KEY(30개 verify_admin 보호 엔드포인트 +
+    require_owner의 X-Admin-Email 위조 경로까지 공유하는 마스터 키)를 그대로 재사용했으나,
+    이 엔드포인트는 쿼리 파라미터로 키를 받아 Nginx 로그·브라우저 히스토리에 남는 구조라
+    마스터 키 유출 경로가 됨. 미리보기 데이터가 전부 더미(_EMAIL_DUMMY)라 이 엔드포인트
+    자체의 노출 가치는 낮으므로, 전용 저가치 키(EMAIL_PREVIEW_KEY)로 분리해 유출 시
+    피해 범위를 이 엔드포인트 하나로 제한한다.
+    """
+    secret = os.getenv("EMAIL_PREVIEW_KEY", "")
     if not secret or not key or not secrets.compare_digest(key, secret):
         raise HTTPException(status_code=403, detail="관리자 전용")
 

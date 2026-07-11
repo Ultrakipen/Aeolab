@@ -625,24 +625,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         ]
         if req.website_url:
             from services.website_checker import check_website_seo
-            import ipaddress, urllib.parse as _urlparse
-            def _is_safe_url(raw: str) -> bool:
-                try:
-                    p = _urlparse.urlparse(raw)
-                    if p.scheme not in ("http", "https"):
-                        return False
-                    host = p.hostname or ""
-                    try:
-                        addr = ipaddress.ip_address(host)
-                        return addr.is_global
-                    except ValueError:
-                        return True  # 도메인명 — 허용
-                except Exception:  # noqa: intentional-fallback — URL 파싱 오류 시 안전하게 차단
-                    return False
-            if _is_safe_url(req.website_url):
-                coros.append(check_website_seo(req.website_url))
-            else:
-                coros.append(asyncio.sleep(0))
+            coros.append(check_website_seo(req.website_url))
         else:
             coros.append(asyncio.sleep(0))  # placeholder
 

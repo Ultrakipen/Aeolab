@@ -14,7 +14,7 @@
 관리자 라우터 (X-Admin-Key 헤더):
   GET  /admin/delivery/{order_id}           — 주문 상세 조회
   GET  /admin/delivery/{order_id}/messages  — 메시지 목록 조회
-  POST /admin/delivery/{order_id}/status    — 상태 변경 + 카카오 알림톡
+  POST /admin/delivery/{order_id}/status    — 상태 변경(환불 포함 금전이동) — X-Admin-Key + X-Admin-Email(owner 전용, 2026-07-11 보안감사 F3)
   POST /admin/delivery/{order_id}/messages  — 운영자 메시지
   POST /admin/delivery/{order_id}/complete  — 완료 보고서 등록
 """
@@ -32,7 +32,7 @@ from pydantic import BaseModel, field_validator
 from config.prices import DELIVERY_PRICES
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
-from utils.admin_auth import verify_admin
+from utils.admin_auth import verify_admin, require_owner
 
 _logger = logging.getLogger("aeolab")
 
@@ -780,13 +780,19 @@ async def admin_get_messages(
 async def admin_update_status(
     order_id: str,
     body: AdminStatusUpdate,
-    _: None = Depends(verify_admin),
+    _owner: str = Depends(require_owner),
 ):
     """주문 상태 변경 + 카카오 알림톡 트리거.
 
     2026-07-11: 결제된(paid/in_progress/rework) 주문의 취소·환불은 반드시 토스 결제취소
     API를 실제로 호출한 뒤에만 status를 바꾼다 (이전엔 DB status만 바꾸고 실제 환불은
     발생하지 않아 고객은 "환불" 표시를 보지만 돈은 그대로인 사고 위험이 있었음).
+
+    2026-07-11 보안 감사 F3: status="refunded" 분기가 실제 토스 결제취소(금전이동)를
+    발생시키는데도 verify_admin(role 구분 없음)만 적용돼 있었음 — admin.py의
+    admin_cancel_subscription과 동일하게 require_owner로 격상(금전이동은 owner 전용 원칙).
+    "취소"(cancelled, 미결제 주문)는 금전이동이 아니지만 같은 엔드포인트를 공유하므로
+    함께 owner 전용이 됨 — 대행 서비스 관리자 규모(1인 운영)에서 실질적 제약 없음.
     """
     order = await _get_order_or_404(order_id)
     supabase = get_client()
