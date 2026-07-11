@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Gift, Sparkles, Loader2, Lock } from "lucide-react";
 import { getBasicTrialStatus, runBasicTrial, ApiError, type BasicTrialStatus } from "@/lib/api";
+import { FIRST_MONTH_DISCOUNT_PRICES, PLAN_PRICES } from "@/lib/plans";
 
 interface Props {
   businessId: string;
@@ -163,15 +164,18 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               무료 체험을 사용하셨습니다
             </h3>
             <p className="text-sm md:text-base text-slate-600 mt-1 leading-relaxed">
-              계속 이용하려면 <strong className="text-slate-900">Basic 플랜(월 9,900원)</strong>에 가입해 주세요.
+              계속 이용하려면 <strong className="text-slate-900">Basic 플랜</strong>에 가입해 주세요.
               매일 AI 자동 스캔과 개선 가이드를 받을 수 있습니다.
+            </p>
+            <p className="text-sm md:text-base font-semibold text-emerald-700 mt-2">
+              🎉 지금 가입하면 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원
             </p>
             <div className="mt-3 flex flex-col sm:flex-row gap-2">
               <a
                 href="/pricing"
                 className="inline-flex items-center justify-center px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm md:text-base font-semibold rounded-lg transition-colors"
               >
-                요금제 보기
+                첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원으로 시작하기
               </a>
               <a
                 href="/guide"
