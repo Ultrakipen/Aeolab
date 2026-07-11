@@ -118,9 +118,17 @@
 
 **판단 보류 목록**: `bg-gray-100 text-gray-500` 배지류 12곳+ · `.bak*` 파일 15개(청소 여부 별도 판단 필요) · 어두운 배경 카드 내부 여부는 배치마다 개별 확인 필요
 
-**다음 배치 후보**(파일별 건수 내림차순, `.bak*` 제외): `AdminDashboard.tsx`(23)·`HeroSampleCard.tsx`(21)·`CompetitorPlaceCard.tsx`(21)·`AdminOpsClient.tsx`(21)·`RegisterBusinessForm.tsx`(20)·`BusinessManager.tsx`(19)·`onboarding/page.tsx`(14)·`GuideClient.tsx`(13)·`admin/business/[id]/page.tsx`(11)·`TrialResultStep.tsx`(11)·`how-it-works/page.tsx`(11)
+**배치 2 완료** (git `f5170a5`, 같은 세션 이어서 진행):
+- 대상: `AdminDashboard.tsx`(23)·`HeroSampleCard.tsx`(21)·`CompetitorPlaceCard.tsx`(22)·`AdminOpsClient.tsx`(26)·`RegisterBusinessForm.tsx`(21, 1건 제외)·`BusinessManager.tsx`(20) = **132건 치환**
+- 신규 예외 발견: `RegisterBusinessForm.tsx:990` — `disabled={already}` 버튼의 ternary 클래스(`'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'`, 이미 선택된 키워드 태그 표시)는 진짜 disabled 상태라 제외. `cursor-not-allowed`가 파일 내 다른 줄에도 있었지만 실제로 `text-gray-400`과 같은 줄인 건 이 1곳뿐이었음(같은-줄 grep으로 확인, 파일 전체 매치 카운트로 오판하지 않도록 주의)
+- 검증: md5 사전일치(6파일 전부) → scp → 서버 grep(5파일 0건, RegisterBusinessForm 1건=의도된 예외 정확히 일치) → 빌드 성공(error 0) → pm2 재시작(recharts 경고만, 신규 에러 없음) → curl 4페이지 200/307(500 없음) → **라이브 브라우저 재시도 3회 추가 실패**(계속 lock) → `/`(공개 페이지)는 curl로 실제 배포 HTML 확인: `text-gray-500` 69건 존재(빌드 반영 확인), `HeroSampleCard.tsx` 외 랜딩의 다른 26건은 아직 배치 3 이후 대상이라 잔존 정상
+- 로컬 git 커밋, push 보류
 
-**다음 세션 트리거**: `docs/master_inspection_plan_v1.0.md §5.1-A 기준으로 배치 2 진행 (다음 배치 후보 목록부터)`
+**배치 2 이후 잔여**: 488건 / 153개 파일
+
+**다음 배치 후보**(파일별 건수 내림차순, `.bak*` 제외): `GuideClient.tsx`(27)·`onboarding/page.tsx`(23)·`AdminScoreComparisonClient.tsx`(14)·`AdminNoticesClient.tsx`(14)·`AdminFeedbackClient.tsx`(12)·`TrialResultStep.tsx`(12)·`admin/business/[id]/page.tsx`(11)·`how-it-works/page.tsx`(11)·`review-inbox/page.tsx`(11)·`demo/page.tsx`(10)
+
+**다음 세션 트리거**: `docs/master_inspection_plan_v1.0.md §5.1-A 기준으로 배치 3 진행 (다음 배치 후보 목록부터)`
 
 ### §5.2 나머지 항목 병렬 창 트리거 (2026-07-11 준비, §5.1 대비율 창과 파일 겹침 없도록 분리)
 
