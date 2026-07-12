@@ -304,6 +304,20 @@ class KakaoNotifier:
         """관리자 공지 발송"""
         await self._send_raw(phone, f"[AEOlab 공지]\n{message}", template_code="AEOLAB_NOTICE_01")
 
+    async def send_price_increase_notice(self, phone: str, regular_price: int):
+        """첫 달 50% 할인 종료 D-3 사전고지 (legal_compliance_and_infra_resilience_audit_v1.0.md B축 P1).
+
+        전자상거래법 시행령 — 정기결제 대금 증액 시 그 증액 시점 임박 시 별도 고지 의무.
+        가입 시점 1회 안내(PayButton.tsx)만으로는 이 요건을 충족하는지 해석이 갈려
+        실무 관행에 따라 증액 3일 전 별도 알림을 추가한다.
+        """
+        await self._send_raw(
+            phone,
+            f"[AEOlab] 3일 후부터 정상가 월 {regular_price:,}원으로 자동 결제됩니다.\n"
+            f"첫 달 50% 할인 기간이 종료됩니다. 해지를 원하시면 설정 페이지에서 미리 처리해주세요.",
+            template_code="AEOLAB_NOTICE_01",
+        )
+
     async def send_subscription_cancelled(self, phone: str, refunded: bool, refund_amount: int | None = None):
         """구독 해지 완료 알림 (7일 이내 자동환불 여부에 따라 문구 분기)"""
         if refunded:

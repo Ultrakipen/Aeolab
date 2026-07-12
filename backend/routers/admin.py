@@ -434,7 +434,8 @@ async def add_admin_user(email: str, role: str = "support", owner_email: str = D
     res = await execute(
         supabase.table("admin_users").upsert({"email": email, "role": role}, on_conflict="email")
     )
-    _logger.info(f"[admin] owner={owner_email}가 관리자 계정 추가/변경: {email} -> {role}")
+    from services.email_sender import _mask_email
+    _logger.info(f"[admin] owner={_mask_email(owner_email)}가 관리자 계정 추가/변경: {_mask_email(email)} -> {role}")
     return (res.data or [{}])[0]
 
 
@@ -447,7 +448,8 @@ async def remove_admin_user(email: str, owner_email: str = Depends(require_owner
 
     supabase = get_supabase()
     await execute(supabase.table("admin_users").delete().eq("email", email))
-    _logger.info(f"[admin] owner={owner_email}가 관리자 계정 제거: {email}")
+    from services.email_sender import _mask_email
+    _logger.info(f"[admin] owner={_mask_email(owner_email)}가 관리자 계정 제거: {_mask_email(email)}")
     return {"ok": True}
 
 
@@ -742,12 +744,15 @@ async def get_scan_logs(limit: int = 50, _=Depends(verify_admin)):
 
 
 @router.post("/broadcast")
-async def broadcast_kakao(message: str, _=Depends(verify_admin)):
+async def broadcast_kakao(message: str, owner_email: str = Depends(require_owner)):
     """전체 활성 구독자에게 카카오 공지 발송 (profiles.phone 기준).
 
     subscriptions↔profiles FK 미등록(jobs.py 전역 6곳에 문서화된 기존 P0 클래스,
     2026-07-07 사고)으로 embedded join(profiles(phone))은 매 호출 PGRST200으로
     실패한다 — 분리 조회 후 dict merge로 교체.
+
+    require_owner 적용(security_audit_v1.0.md M1, 2026-07-12) — 전 구독자 대상
+    메시지 발송은 스팸/사칭 리스크가 있어 support 역할은 실행 불가, owner만 가능.
     """
     supabase = get_supabase()
     from services.kakao_notify import KakaoNotifier

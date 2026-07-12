@@ -2,7 +2,7 @@ import httpx
 import os
 import logging
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from models.schemas import BillingIssueRequest
 from db.supabase_client import get_client, execute
 from config.prices import (
@@ -10,10 +10,34 @@ from config.prices import (
     YEARLY_AMOUNTS,
     DISCOUNT_TO_REGULAR,
 )
+from utils import cache as _cache
 
 logger = logging.getLogger("aeolab")
 
 router = APIRouter()
+
+# IP당 분당 5회 rate limit (security_audit_v1.0.md M3) — 인증 없는 엔드포인트라
+# 잘못된 authKey로도 Toss API를 무제한 호출해 남용/비용 리스크가 있음. public_briefing.py 패턴 통일.
+_BILLING_ISSUE_RATE_LIMIT = 5
+_BILLING_ISSUE_RATE_WINDOW = 60  # seconds
+
+
+def _check_billing_issue_rate_limit(ip: str) -> None:
+    key = f"billing_issue:{ip}"
+    count: int = _cache.get(key) or 0
+    if count >= _BILLING_ISSUE_RATE_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "RATE_LIMIT",
+                "message": "잠시 후 다시 시도해 주세요 (분당 5회 제한).",
+                "retry_after": _BILLING_ISSUE_RATE_WINDOW,
+            },
+        )
+    if count == 0:
+        _cache.set(key, 1, _BILLING_ISSUE_RATE_WINDOW)
+    else:
+        _cache.set(key, count + 1, _BILLING_ISSUE_RATE_WINDOW)
 
 
 async def _is_first_time_subscriber(user_id: str) -> bool:
@@ -80,8 +104,11 @@ PLAN_NAME_TO_KEY = {
 
 
 @router.post("/toss/billing/issue")
-async def issue_billing(body: BillingIssueRequest):
+async def issue_billing(body: BillingIssueRequest, request: Request):
     """빌링키 발급 + 첫 결제 → 구독 활성화"""
+    client_ip = (request.client.host if request.client else "unknown")
+    _check_billing_issue_rate_limit(client_ip)
+
     import re as _re
     if not _re.match(r"^customer_[a-f0-9\-]{36}$", body.customerKey):
         raise HTTPException(status_code=400, detail="유효하지 않은 customerKey 형식입니다")

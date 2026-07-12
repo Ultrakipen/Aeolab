@@ -13,6 +13,12 @@ from middleware.plan_gate import get_current_user
 _logger = logging.getLogger("aeolab")
 router = APIRouter()
 
+# 월별 가이드 생성 한도 TOCTOU 레이스 방지(security_audit_v1.0.md M2, 2026-07-12).
+# check_guide_limit()는 COUNT 쿼리 시점 스냅샷이고 실제 insert는 백그라운드 태스크
+# 완료 후에나 일어나 그 사이 동시 요청이 같은 한도를 여러 번 통과할 수 있었다.
+# 단일 프로세스(PM2 fork) 배포라 in-memory set으로 충분 — scan.py _active_scans와 동일 패턴.
+_guide_generation_locks: set[str] = set()
+
 
 async def _verify_biz_ownership(supabase, biz_id: str, user_id: str) -> None:
     """사업장 소유권 검증 — 타인 소유 또는 없는 경우 404 반환"""
@@ -47,57 +53,74 @@ async def generate_guide(
     # 소유권 검증 — 타인 business_id로 가이드 생성 우회 방지
     await _verify_biz_ownership(supabase, req.business_id, current_user["id"])
 
-    # Basic 체험 사용자: 체험 대상 사업장에 한해 1회 가이드 생성 허용
-    if await is_basic_trial_user(current_user["id"], supabase):
-        prof = await execute(
-            supabase.table("profiles")
-            .select("basic_trial_business_id")
-            .eq("user_id", current_user["id"])
-            .maybe_single()
+    user_id = current_user["id"]
+    if user_id in _guide_generation_locks:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "GUIDE_GENERATION_IN_PROGRESS",
+                "message": "이미 가이드 생성이 진행 중입니다. 완료 후 다시 시도해 주세요.",
+            },
         )
-        trial_biz_id = (prof.data or {}).get("basic_trial_business_id") if (prof and prof.data) else None
-        if trial_biz_id != req.business_id:
-            raise HTTPException(
-                status_code=403,
-                detail={
-                    "code": "PLAN_REQUIRED",
-                    "message": "무료 체험은 체험 스캔한 사업장에만 가이드를 생성할 수 있습니다.",
-                    "upgrade_url": "/pricing",
-                },
+    _guide_generation_locks.add(user_id)
+
+    try:
+        # Basic 체험 사용자: 체험 대상 사업장에 한해 1회 가이드 생성 허용
+        if await is_basic_trial_user(user_id, supabase):
+            prof = await execute(
+                supabase.table("profiles")
+                .select("basic_trial_business_id")
+                .eq("user_id", user_id)
+                .maybe_single()
             )
-        # 체험 기간 중 해당 사업장 가이드 존재 여부 확인 (1회 제한)
-        existing = await execute(
-            supabase.table("guides")
-            .select("id")
-            .eq("business_id", req.business_id)
-            .limit(1)
-        )
-        if existing and existing.data:
+            trial_biz_id = (prof.data or {}).get("basic_trial_business_id") if (prof and prof.data) else None
+            if trial_biz_id != req.business_id:
+                raise HTTPException(
+                    status_code=403,
+                    detail={
+                        "code": "PLAN_REQUIRED",
+                        "message": "무료 체험은 체험 스캔한 사업장에만 가이드를 생성할 수 있습니다.",
+                        "upgrade_url": "/pricing",
+                    },
+                )
+            # 체험 기간 중 해당 사업장 가이드 존재 여부 확인 (1회 제한)
+            existing = await execute(
+                supabase.table("guides")
+                .select("id")
+                .eq("business_id", req.business_id)
+                .limit(1)
+            )
+            if existing and existing.data:
+                raise HTTPException(
+                    status_code=429,
+                    detail={
+                        "code": "BASIC_TRIAL_GUIDE_USED",
+                        "message": "무료 체험 가이드는 1회만 생성 가능합니다. 구독 후 이용하세요.",
+                        "upgrade_url": "/pricing",
+                    },
+                )
+            bg.add_task(_generate_and_save_release_lock, req, user_id)
+            return {"status": "generating", "business_id": req.business_id, "trial": True}
+
+        allowed, used, limit = await check_guide_limit(user_id, supabase)
+        if not allowed:
             raise HTTPException(
                 status_code=429,
                 detail={
-                    "code": "BASIC_TRIAL_GUIDE_USED",
-                    "message": "무료 체험 가이드는 1회만 생성 가능합니다. 구독 후 이용하세요.",
+                    "code": "GUIDE_LIMIT_EXCEEDED",
+                    "used": used,
+                    "limit": limit,
+                    "message": f"이번 달 가이드 생성 한도({limit}회)를 초과했습니다. 다음 달 1일에 초기화됩니다.",
                     "upgrade_url": "/pricing",
                 },
             )
-        bg.add_task(_generate_and_save, req)
-        return {"status": "generating", "business_id": req.business_id, "trial": True}
-
-    allowed, used, limit = await check_guide_limit(current_user["id"], supabase)
-    if not allowed:
-        raise HTTPException(
-            status_code=429,
-            detail={
-                "code": "GUIDE_LIMIT_EXCEEDED",
-                "used": used,
-                "limit": limit,
-                "message": f"이번 달 가이드 생성 한도({limit}회)를 초과했습니다. 다음 달 1일에 초기화됩니다.",
-                "upgrade_url": "/pricing",
-            },
-        )
-    bg.add_task(_generate_and_save, req)
-    return {"status": "generating", "business_id": req.business_id}
+        bg.add_task(_generate_and_save_release_lock, req, user_id)
+        return {"status": "generating", "business_id": req.business_id}
+    except Exception:
+        # bg.add_task 스케줄링 전 경로에서 예외가 나면 락을 여기서 해제.
+        # 스케줄링 성공 후에는 이 블록에 도달하지 않고, 락은 백그라운드 태스크가 해제한다.
+        _guide_generation_locks.discard(user_id)
+        raise
 
 
 @router.patch("/{guide_id}/checklist")
@@ -573,6 +596,14 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
         result["used"] = used if is_fallback else used + 1
         result["limit"] = limit
     return result
+
+
+async def _generate_and_save_release_lock(req: GuideRequest, user_id: str):
+    """_generate_and_save 실행 후 월별 한도 락 해제 (M2 레이스 방지, _guide_generation_locks 참조)."""
+    try:
+        await _generate_and_save(req)
+    finally:
+        _guide_generation_locks.discard(user_id)
 
 
 async def _generate_and_save(req: GuideRequest):

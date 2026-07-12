@@ -197,9 +197,15 @@ async def startup():
     start_scheduler()
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health():
-    """Nginx, PM2, 외부 모니터링이 주기적으로 호출 (UptimeRobot 5분 간격)"""
+    """Nginx, PM2, 외부 모니터링이 주기적으로 호출 (UptimeRobot 5분 간격).
+
+    HEAD도 명시적으로 허용 — FastAPI의 APIRoute는 Starlette Route와 달리
+    GET 등록만으로 HEAD를 자동 추가해주지 않아, UptimeRobot의 HEAD 방식
+    체크가 이 라우트 신설 이래 계속 405를 받고 있었다(2026-07-12 nginx
+    access.log 실측으로 발견 — UptimeRobot UA의 모든 요청이 405).
+    """
     checks: dict = {}
 
     # DB 연결 확인

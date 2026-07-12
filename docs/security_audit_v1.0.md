@@ -1,5 +1,8 @@
 # AEOlab 보안 감사 보고서 v1.0 (2026-07-11)
 
+> **2026-07-11 업데이트**: F1~F5 전체 수정+배포+라이브 검증 완료 (git `0562ff8`).
+> **2026-07-12 업데이트**: M1~M5 전체 수정+code-review 에이전트 검증+배포+라이브 검증 완료. M1(`/admin/broadcast` → `require_owner`), M2(`guide.py` 월 한도 TOCTOU를 in-memory per-user 락으로 차단), M3(webhook `billing/issue` IP 분당 5회), M4(`feedback.py` IP 분당 10회 + context 5000자 제한), M5(관리자 계정 추가/삭제 로그 이메일 마스킹). 이 감사 문서의 CRITICAL/HIGH/MEDIUM 전 항목 완료 — 재작업 불필요.
+
 > `docs/commercial_launch_readiness_audit_v1.0.md` §A(보안) 실행 결과. `/cso comprehensive` 방법론(OWASP Top 10 + STRIDE + 시크릿 아카이브 + 공급망) 기반이나, gstack 온보딩(텔레메트리·라우팅 등)은 본 작업과 무관해 생략하고 실제 감사 로직만 수행.
 >
 > **검증 방식**: 5개 병렬 서브에이전트(IDOR·관리자권한·rate limit·XSS/SSRF·PII로그)가 1차 스캔 → 메인 세션이 각 CRITICAL/HIGH 후보를 `Read`/`Grep`/SSH로 직접 재확인 (CLAUDE.md "문제 분류 검증 의무" 준수). 아래 CRITICAL/HIGH 5건은 전부 근거 라인을 메인 세션이 직접 읽고 확인함.

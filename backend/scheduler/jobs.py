@@ -1311,6 +1311,33 @@ async def subscription_lifecycle_job():
             if phone:
                 await notifier.send_expire_warning(phone, sub["plan"], 7)
 
+        # 1-B. 첫 달 50% 할인 종료 D-3 → 정상가 자동전환 사전고지
+        # (legal_compliance_and_infra_resilience_audit_v1.0.md B축 P1, 전자상거래법 시행령 대응)
+        # first_month_discount_until은 webhook.py issue_billing에서 가입 시점 1회만 기록되고
+        # 이후 다시 쓰이지 않는 컬럼(grep 확인) — end_at 갱신 로직과 독립적이라 별도 조회로 처리.
+        try:
+            _price_up_res = await _db(
+                supabase.table("subscriptions")
+                .select("user_id, plan")
+                .eq("status", "active")
+                .eq("first_month_discount_until", str(today + timedelta(days=3)))
+            )
+            price_increase_soon = _price_up_res.data or []
+            if price_increase_soon:
+                from config.prices import PLAN_PRICE_MAP
+                _pu_user_ids = [s["user_id"] for s in price_increase_soon if s.get("user_id")]
+                _pu_phone_res = await _db(
+                    supabase.table("profiles").select("user_id, phone").in_("user_id", _pu_user_ids)
+                )
+                pu_phone_by_user = {p["user_id"]: p["phone"] for p in (_pu_phone_res.data or []) if p.get("phone")}
+                for sub in price_increase_soon:
+                    phone = pu_phone_by_user.get(sub.get("user_id"))
+                    if phone:
+                        regular_price = PLAN_PRICE_MAP.get(sub.get("plan"), 9900)
+                        await notifier.send_price_increase_notice(phone, regular_price)
+        except Exception as e:
+            logger.error(f"subscription_lifecycle_job 가격인상 사전고지 실패: {e}")
+
         just_entered_grace_ids: set = set()
         for sub in expired_today:
             try:
