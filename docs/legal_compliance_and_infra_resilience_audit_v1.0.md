@@ -62,19 +62,17 @@
 - Supabase Free Tier 사용량 한도 대비 현재 사용량: 실사용자 0명 상태라 리스크 낮음 — 구독자 확보 후 재점검.
 - 서버 단일 인스턴스(SPOF): 현 규모에서 의도적 트레이드오프로 판단, 이중화는 시기상조.
 
-## C. 사업성 — 이번 세션 생략
-
-감사 문서 자체가 "수치 가정이 많아 사용자 논의 필요"라고 명시. 사용자 결정으로 이번 세션 생략, 별도 세션에서 진행.
-
-### P1(신규 발견, 2026-07-12) — nginx가 Cloudflare 실제 방문자 IP를 복원하지 않음 (미해결 — 사용자 확인 대기)
+### P1(신규 발견, 2026-07-12) — nginx가 Cloudflare 실제 방문자 IP를 복원하지 않음 → 수정 완료 (2026-07-13)
 
 - **경위**: M3(webhook rate limit) 라이브 검증 중 발견 — 같은 curl 클라이언트로 6회 연속 호출했는데 rate limit(분당 5회)이 전혀 걸리지 않음.
 - **근거**: `curl -sI https://aeolab.co.kr`에 `Server: cloudflare`+`CF-RAY` 헤더 존재, DNS가 Cloudflare Anycast 대역(`104.21.x`, `172.67.x`)으로 응답 — 사이트가 Cloudflare 프록시(orange-cloud) 뒤에 있음을 확인. `ssh ... grep -rn 'set_real_ip_from\|real_ip_header' /etc/nginx/` 결과 0건 — Cloudflare의 실제 방문자 IP 복원 설정이 nginx에 없음.
 - **의미**: nginx의 `proxy_set_header X-Real-IP $remote_addr`이 실제로 넘기는 값은 방문자의 진짜 IP가 아니라 **Cloudflare 엣지 노드의 IP**(요청마다 다른 엣지로 라우팅되어 값이 자주 바뀜). 이 백엔드의 IP 기반 rate limit(`scan.py` trial·trial-search·naver briefing·claim-stats 등 6곳 + 오늘 신설한 webhook/feedback 2곳) 전부가 "실제 방문자 단위"가 아닌 "Cloudflare 엣지 단위"로 카운트되고 있어, 설계 의도(예: 무료 체험 스캔 IP당 분당 10회·일 3~5회 — 유료 AI API 호출 남용 방지용 핵심 장치)가 실효를 갖지 못할 가능성이 있음. `_is_admin_request()`의 IP 화이트리스트 우회 경로도 같은 이유로 사실상 항상 미매치(다만 `X-Admin-Key` 헤더 경로가 별도로 있어 완전히 막힌 기능은 아님).
 - **반증 시도**: nginx 설정 전체(`/etc/nginx/sites-enabled/*`)를 grep해 다른 파일·다른 서버블록에 real_ip 설정이 있는지 확인 — 0건, 반증 실패(진짜 공백).
-- **권장 조치**: nginx `http` 블록에 Cloudflare 공식 IP 대역(`https://www.cloudflare.com/ips/`) 전체에 대한 `set_real_ip_from` + `real_ip_header CF-Connecting-IP;` 추가. 표준적이고 잘 문서화된 설정이나, **프로덕션 nginx 전역 설정 변경이라 사용자 확인 후 진행 권장** — 이번 세션에서는 발견까지만 하고 실제 변경은 보류.
+- **조치(2026-07-13)**: `/etc/nginx/conf.d/cloudflare-realip.conf` 신설 — Cloudflare 공식 IPv4/IPv6 전체 대역(`https://www.cloudflare.com/ips-v4`, `-v6`) `set_real_ip_from` + `real_ip_header CF-Connecting-IP;`. 변경 전 `/root/nginx_backups/pre_cloudflare_realip_<timestamp>/`에 `sites-enabled`+`conf.d` 백업. `nginx -t` 통과 → `systemctl reload nginx`(무중단) → 라이브 검증 완료.
+- **라이브 검증**: `curl https://api.ipify.org`로 확인한 실제 로컬 IP가 리로드 이후 요청부터 nginx `access.log`에 그대로 찍힘(리로드 전 로그는 여전히 Cloudflare 엣지 IP로 남아있어 전/후 대조 가능). M3 webhook rate limit 재테스트 — 동일 클라이언트 6회 연속 호출 시 이번엔 정확히 6번째 호출에서 `429` 발생(리로드 전엔 6회 전부 통과했었음) — IP 기반 rate limit이 실제로 작동하기 시작했음을 직접 확인.
+- **참고(별도 발견, 미조치)**: 검증 중 `nginx -t`가 `conflicting server name "aeolab.co.kr"` 등 6개 경고를 냄 — 원인은 `sites-enabled/aeolab.bak.20260404_234049`가 여전히 활성 폴더에 있어 `include sites-enabled/*`(확장자 필터 없음)로 같이 로드되기 때문(3개월 이상 방치된 백업 파일, 실제 서비스는 정상 파일이 먼저 매치돼 문제 없음). 이번 작업 범위 밖이라 조치 안 함 — 향후 정리 시 `sites-available/`로 옮기거나 삭제 권장.
 
 ## 다음 단계 트리거
 
-- `docs/legal_compliance_and_infra_resilience_audit_v1.0.md 기준으로 nginx Cloudflare 실 IP 복원 설정 진행` — 프로덕션 nginx 전역 설정 변경, 사용자 확인 후 진행
 - `docs/commercial_launch_readiness_audit_v1.0.md 기준으로 C(사업성) 점검 진행` — 별도 세션 권장
+- (선택) `sites-enabled`의 stale `.bak` 파일 정리 — 낮은 우선순위, 현재 위험 없음
