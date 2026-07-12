@@ -75,7 +75,7 @@ export default function PrivacyPage() {
               <li>결제 정보: 관련 법령에 따라 5년 보관 (전자상거래법)</li>
               <li>스캔 결과 및 분석 데이터: 회원 탈퇴 후 30일까지</li>
               <li>로그인 기록: 3개월</li>
-              <li>IP 해시 (무료 체험): 24시간 후 자동 삭제</li>
+              <li>IP 해시·이메일 (무료 체험): 개인 식별 없이 서비스 통계·업종 벤치마크 산정 목적으로 보유</li>
             </ul>
           </section>
 
@@ -104,6 +104,12 @@ export default function PrivacyPage() {
                     <td className="border border-gray-200 px-3 py-2">결제 처리</td>
                     <td className="border border-gray-200 px-3 py-2">이메일, 결제 정보</td>
                     <td className="border border-gray-200 px-3 py-2">5년 (법령 의거)</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">Resend</td>
+                    <td className="border border-gray-200 px-3 py-2">이메일 발송 (무료 체험 결과 요약 등)</td>
+                    <td className="border border-gray-200 px-3 py-2">이메일 주소</td>
+                    <td className="border border-gray-200 px-3 py-2">무료 체험 데이터와 함께 보유 (제3항 참조)</td>
                   </tr>
                 </tbody>
               </table>
