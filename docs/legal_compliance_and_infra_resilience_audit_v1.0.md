@@ -5,12 +5,13 @@
 
 ## B. 법적/컴플라이언스
 
-### P1 — 정기결제 요금 인상 사전고지 미비 (법률 자문 권장)
+### P1 — 정기결제 요금 인상 사전고지 미비 → 수정 완료 (2026-07-12)
 
 - **근거**: 전자상거래법 시행령 — 정기결제 대금 증액 또는 무료→유료 전환 시 "그 이전 30일 이내"에 소비자 동의를 받고 취소 조건·방법을 고지할 의무. 2025-02-14 시행(이미 17개월 시행 중인 기존 법령, WebSearch로 정책브리핑·이데일리 등 복수 매체 확인).
-- **현황**: Basic 플랜은 첫 달 4,950원 → 30일 후 9,900원으로 자동 인상(`backend/routers/webhook.py:199`가 `first_month_discount_until`을 기록). 그러나 이 컬럼을 읽어 인상 임박 시점에 재고지하는 로직이 전무(`grep -rn "first_month_discount_until" backend/` 결과 1건, 쓰기만 존재). 고지는 최초 결제 시점(가입 시, `PayButton.tsx:136`) 1회뿐.
-- **반증 시도**: 결제 확인 모달에 "30일 뒤부터 매월 9,900원 자동 결제" 문구가 이미 존재함을 확인 — 즉 "정보 제공"은 있으나, 법령이 요구하는 "그 증액 시점 임박 30일 이내 동의"를 최초 가입 시점의 사전 안내가 충족하는지는 해석 영역. 정식 법률 자문 없이 위반 단정은 불가.
-- **권장 조치**: 안전하게 가려면 day-30 인상 전 별도 알림(이메일/알림톡)을 추가하는 것이 실무 관행에 부합. 코드 변경 필요 — 사용자 논의 후 별도 세션에서 구현 권장.
+- **현황(당시)**: Basic 플랜은 첫 달 4,950원 → 30일 후 9,900원으로 자동 인상(`backend/routers/webhook.py:199`가 `first_month_discount_until`을 기록). 그러나 이 컬럼을 읽어 인상 임박 시점에 재고지하는 로직이 전무(`grep -rn "first_month_discount_until" backend/` 결과 1건, 쓰기만 존재). 고지는 최초 결제 시점(가입 시, `PayButton.tsx:136`) 1회뿐.
+- **반증 시도**: 결제 확인 모달에 "30일 뒤부터 매월 9,900원 자동 결제" 문구가 이미 존재함을 확인 — 즉 "정보 제공"은 있으나, 법령이 요구하는 "그 증액 시점 임박 30일 이내 동의"를 최초 가입 시점의 사전 안내가 충족하는지는 해석 영역. 정식 법률 자문 없이 위반 단정은 불가 — 다만 실무 관행(증액 임박 시점 별도 고지)에 맞춰 안전하게 보완.
+- **조치**: `backend/scheduler/jobs.py` `subscription_lifecycle_job`에 새 단계 추가 — `first_month_discount_until` D-3에 정확일치로 조회해 `KakaoNotifier.send_price_increase_notice()`(신규, 기존 승인 템플릿 `AEOLAB_NOTICE_01` 재사용, 신규 템플릿 승인 불필요)로 카카오 알림톡 발송. 로컬 임포트·날짜 포맷 일치 검증 + code-review 에이전트 검증 완료, 서버 배포·pm2 재시작 무에러 확인(git `7df5e95`).
+- **잔여**: PM2가 같은 날 재시작되면 중복발송 가능(기존 `send_expire_warning`과 동일한 무-dedup 패턴, 신규 도입 위험 아님) — 필요 시 다음 스프린트에서 두 알림 함수를 묶어 idempotency key 적용 검토.
 
 ### P2 — 개인정보처리방침 §2 수집 항목과 실제 코드 불일치 (2건)
 
@@ -47,11 +48,14 @@
 - 기존에는 백업 스크립트가 스케줄러 잡 알림 시스템(`send_operator_alert`)과 분리된 순수 bash+cron이라 실패해도 아무도 알 수 없었음. 이번 수정으로 실패 시 이메일 알림 연결(Resend API, git `8c95e22` — Cloudflare가 기본 Python urllib User-Agent를 차단하던 문제를 `User-Agent` 헤더 추가로 해결·HTTP 200 실측 확인).
 - 추가로 Healthchecks.io 외부 하트비트(start/success/fail 핑, git `fe1022d`)도 연결 — 이메일 알림과 달리 "스크립트 자체가 실행 안 됨"까지 잡는 독립 안전망. 03:00 무인 실행에서 curl 에러 없이 정상 핑 확인.
 
-### P1 — 외부 업타임 모니터링 전무 (미해결 — 별도 결정 필요)
+### P1 — 외부 업타임 모니터링이 등록돼 있었으나 전 체크가 405로 실패 중이었음 → 수정 완료 (2026-07-12)
 
-- **근거**: 서버 crontab에 백업 잡 1건만 존재(외부 헬스체크 핑 없음), 리포지토리 전체에 UptimeRobot/Healthchecks.io 등 외부 모니터링 연동 레퍼런스 0건.
-- **의미**: 백엔드 프로세스 자체가 다운·행(hang)되면 알림 메커니즘(`send_operator_alert`)도 같은 프로세스 안에 있어 함께 죽음 — PM2 auto-restart만이 유일한 방어선이고, 그마저 실패하면 아무도 모름.
-- **권장 조치**: 무료 외부 서비스(UptimeRobot 등)로 `/health` 엔드포인트를 5~10분 간격으로 핑하고 다운 시 이메일 알림 — 코드 변경 없이 외부 설정만으로 가능. 사용자 계정 가입이 필요해 이번 세션에서는 보류, 별도 트리거로 진행 권장.
+- **경위**: 이 문서 작성 시점(2026-07-12 이전)엔 "미해결·계정 가입 필요"로 기록했으나, 이후 사용자가 이미 UptimeRobot에 가입해 `/health`를 모니터링 중이라고 알려옴. 신뢰 대신 실측 검증(CLAUDE.md 검증 문화) — `main.py:202` 독스트링에도 "UptimeRobot 5분 간격"이라는 기존 주석이 있어 실제 동작 여부를 nginx 로그로 직접 확인.
+- **근거(발견)**: `ssh ... grep -i uptimerobot /var/log/nginx/access.log*` 결과 실제 UptimeRobot User-Agent 요청이 존재했으나 **전부 `HEAD /health` → `405 Method Not Allowed`**. 원인: FastAPI의 `APIRoute`는 Starlette 기본 `Route`와 달리 `methods=["GET"]` 등록만으로 `HEAD`를 자동 추가해주지 않음(`backend_venv/Lib/site-packages/fastapi/routing.py`에 Starlette `routing.py:234`의 `if "GET" in self.methods: self.methods.add("HEAD")` 로직이 없음 — 직접 소스 대조 확인).
+- **반증 시도**: 같은 엔드포인트에 `GET`은 로컬·라이브 전부 200 정상 — 문제가 엔드포인트 전체 장애가 아니라 정확히 HTTP 메서드 불일치임을 격리 확인. 이 버그는 오늘 세션의 FastAPI/Starlette 업그레이드와 무관 — `/health` 라우트가 생긴 이래(구버전에서도 동일 구조) 계속 있었던 결함으로 추정.
+- **의미**: UptimeRobot이 HTTP(s) 모니터를 HEAD 방식으로 체크하도록 설정돼 있었다면, 가입 이래 모든 체크가 실패(다운)로 기록되고 있었을 가능성이 높음 — 있으나 마나 한 모니터링 상태.
+- **조치**: `backend/main.py` `/health` 라우트를 `@app.get(...)` → `@app.api_route("/health", methods=["GET", "HEAD"])`로 변경. 로컬 GET/HEAD 200 확인 → 서버 배포·pm2 재시작 무에러 → 라이브 `curl -X HEAD https://aeolab.co.kr/health` 200 확인(git `7df5e95`).
+- **잔여**: UptimeRobot 대시보드 자체의 과거 다운타임 기록(이 버그로 인한 오탐)은 그대로 남아있을 수 있음 — 사용자가 UptimeRobot 대시보드에서 직접 확인 권장.
 
 ### 정보 제공 (조치 불필요, 현재 리스크 낮음)
 
@@ -62,8 +66,15 @@
 
 감사 문서 자체가 "수치 가정이 많아 사용자 논의 필요"라고 명시. 사용자 결정으로 이번 세션 생략, 별도 세션에서 진행.
 
+### P1(신규 발견, 2026-07-12) — nginx가 Cloudflare 실제 방문자 IP를 복원하지 않음 (미해결 — 사용자 확인 대기)
+
+- **경위**: M3(webhook rate limit) 라이브 검증 중 발견 — 같은 curl 클라이언트로 6회 연속 호출했는데 rate limit(분당 5회)이 전혀 걸리지 않음.
+- **근거**: `curl -sI https://aeolab.co.kr`에 `Server: cloudflare`+`CF-RAY` 헤더 존재, DNS가 Cloudflare Anycast 대역(`104.21.x`, `172.67.x`)으로 응답 — 사이트가 Cloudflare 프록시(orange-cloud) 뒤에 있음을 확인. `ssh ... grep -rn 'set_real_ip_from\|real_ip_header' /etc/nginx/` 결과 0건 — Cloudflare의 실제 방문자 IP 복원 설정이 nginx에 없음.
+- **의미**: nginx의 `proxy_set_header X-Real-IP $remote_addr`이 실제로 넘기는 값은 방문자의 진짜 IP가 아니라 **Cloudflare 엣지 노드의 IP**(요청마다 다른 엣지로 라우팅되어 값이 자주 바뀜). 이 백엔드의 IP 기반 rate limit(`scan.py` trial·trial-search·naver briefing·claim-stats 등 6곳 + 오늘 신설한 webhook/feedback 2곳) 전부가 "실제 방문자 단위"가 아닌 "Cloudflare 엣지 단위"로 카운트되고 있어, 설계 의도(예: 무료 체험 스캔 IP당 분당 10회·일 3~5회 — 유료 AI API 호출 남용 방지용 핵심 장치)가 실효를 갖지 못할 가능성이 있음. `_is_admin_request()`의 IP 화이트리스트 우회 경로도 같은 이유로 사실상 항상 미매치(다만 `X-Admin-Key` 헤더 경로가 별도로 있어 완전히 막힌 기능은 아님).
+- **반증 시도**: nginx 설정 전체(`/etc/nginx/sites-enabled/*`)를 grep해 다른 파일·다른 서버블록에 real_ip 설정이 있는지 확인 — 0건, 반증 실패(진짜 공백).
+- **권장 조치**: nginx `http` 블록에 Cloudflare 공식 IP 대역(`https://www.cloudflare.com/ips/`) 전체에 대한 `set_real_ip_from` + `real_ip_header CF-Connecting-IP;` 추가. 표준적이고 잘 문서화된 설정이나, **프로덕션 nginx 전역 설정 변경이라 사용자 확인 후 진행 권장** — 이번 세션에서는 발견까지만 하고 실제 변경은 보류.
+
 ## 다음 단계 트리거
 
-- `docs/legal_compliance_and_infra_resilience_audit_v1.0.md 기준으로 D축 외부 업타임 모니터링(UptimeRobot) 설정 진행` — 계정 가입 필요, 사용자 참여 필요
-- `... B축 정기결제 사전고지 알림(day-30) 구현 진행` — 법률 자문 후 또는 실무 관행 기준으로 구현할지 결정 필요
+- `docs/legal_compliance_and_infra_resilience_audit_v1.0.md 기준으로 nginx Cloudflare 실 IP 복원 설정 진행` — 프로덕션 nginx 전역 설정 변경, 사용자 확인 후 진행
 - `docs/commercial_launch_readiness_audit_v1.0.md 기준으로 C(사업성) 점검 진행` — 별도 세션 권장
