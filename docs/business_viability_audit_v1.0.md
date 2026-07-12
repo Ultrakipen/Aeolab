@@ -9,10 +9,11 @@
 
 | 항목 | 결론 |
 |---|---|
-| Gemini thinking 토큰 미실측 | **원인 확인** — SDK(`google-generativeai==0.8.3`)가 thinking_config 자체 미지원, 코드로 끌 방법 없음. 비용 텔레메트리 신설(§1) — 단, thinking만 분리 표시는 Developer API 특성상 불가능함을 구현 중 자체 발견·정정(비용 합계 자체는 정확) |
+| Gemini thinking 토큰 미실측 | **원인 확인** — SDK(`google-generativeai==0.8.3`)가 thinking_config 자체 미지원, 코드로 끌 방법 없음. 비용 텔레메트리 신설·배포·실측 검증 완료(§1) — 단, thinking만 분리 표시는 Developer API 특성상 불가능함을 구현 중 자체 발견·정정(비용 합계 자체는 정확) |
+| **[P0, 검증 중 발견] ChatGPT 스캔 전면 실패 — OpenAI 결제수단 미등록** | 텔레메트리 실동작 검증 도중 우연히 발견. OpenAI 조직이 Free trial 상태로 크레딧 $0.00 소진 → `insufficient_quota`로 전 호출 실패, `chatgpt_scanner.py`가 예외를 삼키고 `mentioned: False`로 조용히 폴백 중이었음(§1-A). 사용자가 결제수단 등록 후 즉시 재검증 완료 |
 | 마진율 수치 충돌(CLAUDE.md 85/78/70% vs plan_limits_v1.0.md 81/84/83/92%) | **PG 수수료 누락이 원인** — 두 문서 다 결제대행 수수료(4.3%+VAT) 미반영. 재계산 후 반영(§2) |
 | 경쟁사 가격 포지셔닝 "없음" 주장 | **오판** — `competitor_talkb_analysis_v1.0.md`에 TalkB 정식 비교표 이미 존재. 재작업 불필요(§3) |
-| 선행지표(trial 전환율) 부재 | **실제 공백 확인**(반증 실패 — cohort-analysis는 유료구독자 유지율만 다룸) → `/admin/growth-funnel` 신설(§4) |
+| 선행지표(trial 전환율) 부재 | **실제 공백 확인**(반증 실패 — cohort-analysis는 유료구독자 유지율만 다룸) → `/admin/growth-funnel` 신설·배포 완료(§4) |
 | BEP 고정비 27,800원 외 항목 | PG 수수료는 변동비로 재분류, 도메인 갱신비 소액 미반영(정확한 금액은 사용자만 확인 가능)(§5) |
 
 ---
@@ -33,7 +34,7 @@
 - Gemini·ChatGPT·Claude(Sonnet/Haiku) 어떤 호출 경로에도 `usage_metadata`/`usage` 토큰 카운트를 로깅하는 코드가 전혀 없었음(`grep -rn "usage_metadata|prompt_token_count|completion_tokens"` backend 전체 0건)
 - 결론: **CLAUDE.md·`plan_limits_v1.0.md`의 모든 마진율 수치는 코드 출시 이후 단 한 번도 실측 검증된 적이 없다.** 실사용자 0명이라는 사실과 별개로, 지금 서비스 중인 무료 체험(trial) 트래픽조차 비용이 전혀 계측되지 않고 있었음.
 
-### 조치 (구현 완료, 배포 대기)
+### 조치 (구현·배포·실측 검증 완료 — 2026-07-12)
 
 1. `backend/services/ai_usage_logger.py` 신설 — provider/model/purpose/tokens_in/tokens_out/thinking_tokens/estimated_cost_krw를 fire-and-forget으로 `ai_usage_log` 테이블에 기록. 실패해도 스캔 흐름에 영향 없음(try/except 전체 흡수)
 2. **1차 구현 오류 자체 발견·수정**: 처음엔 thinking 토큰을 `total_token_count - prompt_token_count - candidates_token_count`로 역산하려 했으나, WebSearch로 Google 공식 문서 재확인 결과 **Gemini Developer API(이 코드가 쓰는 `genai.configure()` 방식)는 `candidates_token_count`에 thinking 토큰이 이미 포함**되어 있음(Vertex AI만 별도 분리) — 즉 `total == prompt + candidates`가 항상 성립해 역산값은 늘 0에 가까웠고 "사고를 안 했다"로 오독될 위험이 있었음. **비용 계산 자체는 정확**(candidates_token_count에 이미 thinking 비용이 녹아있어 `tokens_out`만으로 정확한 청구액 산출)하지만 `thinking_tokens` 필드는 분리 표시가 SDK 레벨에서 불가능해 항상 `NULL`로 수정 — 컬럼은 향후 Vertex AI 전환 대비 보존
@@ -41,9 +42,21 @@
    - `gemini_scanner.py`: `_check()`, `_check_with_context()`, `_natural_check()`, `single_check_with_competitors()`, `analyze_mention_context()` — 5개 직접 호출부 전체(`single_check()`은 `_check()`를 내부 호출하므로 간접 커버). `grep -n "generate_content|_log_usage" gemini_scanner.py`로 1:1 대응 확인 완료
    - `chatgpt_scanner.py`: `_check()`, `check_citation()` — 2개 직접 호출부 전체(`sample_5/10/50/100`은 전부 `_check()` 내부 호출이라 간접 커버, trial의 실제 진입점인 `sample_5`도 포함)
    - Haiku 호출부(`guide_generator.py` 등)는 여전히 미포함 — 응답에서 `.content[0].text`만 추출하고 전체 응답 객체를 버리는 구조라 계측하려면 각 호출부 리팩터링이 필요함(더 큰 변경, §6 후속 과제로 명시적 이관. "누락"이 아니라 "범위 밖으로 의도적으로 뺀 것"임을 구분)
-4. 신규 테이블 `ai_usage_log` — `scripts/supabase_schema.sql` 하단에 추가. **Supabase SQL Editor에서 수동 실행 필요**(Management API 미지원, CLAUDE.md 표준 절차)
+4. 신규 테이블 `ai_usage_log` — `scripts/supabase_schema.sql` 하단에 추가, **사용자가 Supabase SQL Editor에서 실행 완료**(Management API 미지원, CLAUDE.md 표준 절차)
 5. `/admin/growth-funnel`과 별개로, 이 데이터가 1~2주 누적되면 `ai_usage_log` 집계로 진짜 마진율을 계산할 수 있는 관리자 엔드포인트를 후속 세션에서 추가 권장(이번 세션은 계측 인프라까지만)
 6. **code-review 검증 완료** — P0 없음. P1 1건(`_insert`에 `asyncio.wait_for` timeout 5초 미지정 시 스레드풀 고갈 위험) + P2 2건(`RuntimeError`·insert 실패 로그가 `debug`라 운영 로그에 안 보임, `/growth-funnel`의 `auth.users.created_at` 문자열 비교가 포맷 불일치로 경계일 데이터 누락 가능) 전부 즉시 수정·재검증 완료
+7. **서버 배포·실동작 검증 완료** — scp 4개 파일 md5 일치 확인 → pm2 재시작 → 에러 로그 0건 → `grep`으로 서버 파일 내 계측 코드 5+2곳 실존 확인 → `ai_usage_log` 테이블 생성 확인(0행) → `check_citation()` 실경로 직접 호출로 실제 API 호출 1건이 `ai_usage_log`에 정상 적재됨을 확인(row: `check_citation`/gpt-4.1-mini/in 78/out 15/0.0773원) → 테스트 행 정리 완료. git 커밋 `aa42587`(push는 보류)
+
+### 1-A. [P0, 텔레메트리 검증 중 우연히 발견] ChatGPT 스캔 전면 실패 — OpenAI 결제수단 미등록
+
+**발견 경위**: §1 텔레메트리가 실제로 동작하는지 검증하기 위해 `check_mention()`으로 실제 API를 1회 호출했더니 `httpx.HTTPStatusError: 429` + `insufficient_quota` 오류 발생. 텔레메트리 점검이 목적이었으나 부수적으로 라이브 장애를 포착함.
+
+- **근거**: (1) `check_citation()` 실경로 호출, (2) OpenAI SDK 원시 호출 — 두 방식 모두 동일 오류로 재현(2/2)
+- **반증 시도**: pm2 운영 로그에 `insufficient_quota` 기록이 전혀 없어 "최근 발생"으로 오판할 뻔했으나, `chatgpt_scanner.py`의 실패 로그가 `_logger.debug()`(운영 로그레벨 INFO에서 노출 안 됨)로 찍혀 **로그 부재가 무결함의 증거가 되지 못함**을 코드로 직접 확인 — 즉 장애 시작 시점은 로그로 특정 불가, "조용히 계속 실패 중이었을 가능성"을 배제하지 못함
+- **근본 원인**: OpenAI 대시보드 Billing 확인 결과 조직이 **Free trial 상태, Credit remaining $0.00**, 결제수단 등록 이력 자체가 없었음(사용자 스크린샷으로 직접 확인) — 자동충전 OFF가 아니라 애초에 유료 계정 전환이 된 적이 없었음
+- **실제 영향**: `_check()`/`check_citation()`이 예외를 삼키고 `{"mentioned": False}`로 폴백하는 구조라, 장애 기간 중 모든 구독자의 스캔에서 **ChatGPT 인용 결과가 전부 "노출 없음"으로 오표시**됐을 가능성이 높음(Track2 `multi_ai_exposure` 점수 훼손) — 그러나 실사용자 0명 전제([[project_next_steps_handoff_execution_2026_07_11]]) 하에서는 trial 트래픽에 한정된 영향으로 추정(확정 아님, 실사용자 유입 전 발견된 것이 오히려 다행)
+- **조치**: 사용자가 즉시 OpenAI Billing에서 결제수단 등록 → 원시 API 호출 재검증 성공 → `check_mention()` 실경로 재검증 성공 + `ai_usage_log`에 정상 적재 확인(§1 조치 7)
+- **잔여 과제**: 이 장애를 사전에 감지할 알림 체계가 없었다는 점이 근본 공백 — `ai_usage_log`가 이제 누적되므로, insert 실패율 급증 또는 특정 provider의 연속 실패를 감지하는 모니터링 잡 신설을 §6 후속 과제에 추가
 
 ### 미조치 — SDK 마이그레이션(권장, 실행은 보류)
 
@@ -132,6 +145,7 @@ WebSearch 중 "RanketAI"라는 국내 AI 가시성(GEO/AEO) 진단 도구가 발
 4. **RanketAI 등 신규 경쟁사 정식 분석** — TalkB 수준의 검증된 비교 필요 시
 5. **trial_scans 개인 단위 코호트 추적** — `user_id` 컬럼 추가 + 로그인 시점 재설계, 별도 기능 기획 필요
 6. **PG 수수료 우대 등급 확인** — 국세청 영세/중소 우대 적용 여부 사용자 확인(적용되면 4.3%보다 낮아져 마진율 추가 개선 가능)
+7. **[신규, §1-A 발견 기반] AI 프로바이더 장애 알림 신설** — `ai_usage_log` insert 실패율 급증 또는 provider별 연속 실패(예: 10분 내 5회+)를 감지해 카카오/이메일 알림하는 스케줄러 잡. OpenAI 결제 미등록처럼 "예외를 삼키고 조용히 폴백"하는 실패는 로그만으로 감지 불가능함을 이번에 실증 — Claude Haiku·Gemini도 동일 위험 구조(§6-2와 별개로 우선순위 상향 권장)
 
 ---
 
@@ -140,3 +154,4 @@ WebSearch 중 "RanketAI"라는 국내 AI 가시성(GEO/AEO) 진단 도구가 발
 - "마진율: Basic 85%, Pro 78%, Biz 70%" → PG 수수료 반영한 §2 수치로 교정
 - "AI Visibility Score" 섹션 근처 "API 비용 관리" 표에 PG 수수료 누락 사실 및 텔레메트리 신설 각주 추가
 - 데이터베이스 테이블 목록에 `ai_usage_log` 추가
+- §1-A(OpenAI 결제수단 미등록으로 ChatGPT 스캔 전면 실패, 사용자 카드 등록으로 해결) "최근 업데이트"에 한 줄 반영

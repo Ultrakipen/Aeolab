@@ -178,7 +178,7 @@
 | **`docs/session_2026_07_11_next_steps_handoff_v1.0.md`** ⭐ | **마스터 점검 계획 전체 완료 후 다음 단계 핸드오프 — A(정리: origin 대비 51커밋 push·스크린샷93개 정리·stale 문서 정리)와 B(신규 기능: next-feature 에이전트로 스코프 재기획) 2트랙. A 먼저 권장 (2026-07-11)** |
 | **`docs/commercial_launch_readiness_audit_v1.0.md`** ⭐ | **상업 서비스 총괄 점검 계획 — 4개 신규 축(A보안·B법적컴플라이언스·C사업성·D인프라복원력). A·B·C·D 전체 완료(2026-07-12)** |
 | **`docs/legal_compliance_and_infra_resilience_audit_v1.0.md`** ⭐ | **B(법적)+D(인프라) 점검 결과 — D축 P0(DB 백업 생성 이래 0회 성공, pg_dump 아웃바운드 차단+비밀번호 미설정 이중원인) 발견 즉시 수정(REST API 전환, 43개 테이블, 실패알림, git `3ab9545`). B축 P1(정기결제 요금인상 사전고지, 법률자문 권장)+P2 3건은 문서화만(사용자 결정 대기). 잔여: 외부 업타임 모니터링·day-30 알림 구현 (2026-07-12)** |
-| **`docs/business_viability_audit_v1.0.md`** ⭐ | **C(사업성) 점검 결과 — Gemini SDK(0.8.3) thinking_config 미지원+AI 호출 텔레메트리 전무 발견(ai_usage_logger.py 신설, `ai_usage_log` 테이블 SQL 수동 실행 필요), 마진율 계산에서 PG수수료(토스 4.3%+VAT) 누락 발견·재계산(Basic 76.3%/Pro 78.6%/Biz 87.1%), 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재), trial→가입→유료전환 선행지표 실제공백 확인→`/admin/growth-funnel` 신설. 후속과제 6건 잔여 (2026-07-12)** |
+| **`docs/business_viability_audit_v1.0.md`** ⭐ | **C(사업성) 점검 결과 — Gemini SDK(0.8.3) thinking_config 미지원+AI 호출 텔레메트리 전무 발견(ai_usage_logger.py 신설·배포·SQL실행·실측검증 완료), 마진율 계산에서 PG수수료(토스 4.3%+VAT) 누락 발견·재계산(Basic 76.3%/Pro 78.6%/Biz 87.1%), 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재), trial→가입→유료전환 선행지표 실제공백 확인→`/admin/growth-funnel` 신설. **§1-A: 실측검증 도중 OpenAI 결제수단 미등록으로 ChatGPT 스캔 전면실패(insufficient_quota) P0 우연 발견·사용자 카드등록으로 해결**. 후속과제 7건 잔여 (2026-07-12)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **관리자 화면 점검**: 완료됨 — 재점검 불필요(위 표 참조)
@@ -696,7 +696,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
 - **2026-07-10~11 관리자 화면 전체 점검 + 서비스 총괄 대시보드 신설**: P0~P2 전수 점검(git `27ddf98`~`5424329`) + 감사로그·알림·결제이벤트·권한체계·코호트분석·AI사용량·창업리포트·사업장통합조회 신설(git `9bc825f`~`d6b6025`). 상세는 `docs/changelog_archive.md` 참조.
-- **2026-07-12 상업 서비스 총괄 점검 C(사업성) 축 완료**: Gemini SDK(0.8.3) thinking_config 미지원 + AI 호출 텔레메트리 전무 발견 → `ai_usage_logger.py` 신설(Gemini/ChatGPT 계측, `ai_usage_log` 테이블 SQL 수동 실행 필요). 마진율 계산 PG수수료(토스 4.3%+VAT) 누락 발견·재계산. 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재). trial→가입→전환 선행지표 공백 확인 → `/admin/growth-funnel` 신설. 상세 `docs/business_viability_audit_v1.0.md`.
+- **2026-07-12 상업 서비스 총괄 점검 C(사업성) 축 완료 + 배포·실측 검증 + P0 라이브 장애 발견**: Gemini SDK(0.8.3) thinking_config 미지원 + AI 호출 텔레메트리 전무 발견 → `ai_usage_logger.py` 신설(Gemini 5곳·ChatGPT 2곳 계측) 배포 완료, `ai_usage_log` 테이블 SQL 실행 완료·실동작 검증 완료(git `aa42587`). 마진율 계산 PG수수료(토스 4.3%+VAT) 누락 발견·재계산. 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재). trial→가입→전환 선행지표 공백 확인 → `/admin/growth-funnel` 신설·배포. **텔레메트리 검증 도중 우연히 발견(P0)**: OpenAI 조직이 결제수단 미등록(Free trial 크레딧 $0.00 소진)으로 ChatGPT 스캔 전체가 `insufficient_quota`로 실패 중이었고 `chatgpt_scanner.py`가 예외를 삼켜 조용히 "노출 없음"으로 폴백 — 사용자 카드 등록으로 즉시 해결·재검증 완료. 상세 `docs/business_viability_audit_v1.0.md §1-A`.
 
 ---
 
