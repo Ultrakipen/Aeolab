@@ -3,7 +3,7 @@ import logging
 import os
 import secrets
 import statistics
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from db.supabase_client import get_client, execute
@@ -547,6 +547,107 @@ async def get_cohort_analysis(_=Depends(verify_admin)):
         "cumulative_churn_rate_pct": cumulative_churn_rate_pct,
         "avg_tenure_days": avg_tenure_days,
         "data_caveat": "구독 상태 변경 이력이 별도로 기록되지 않아 정확한 월별 이탈 시점은 계산할 수 없습니다 — 위 수치는 현재 상태 스냅샷 기준입니다.",
+    }
+
+
+@router.get("/growth-funnel")
+async def get_growth_funnel(weeks: int = Query(12, ge=1, le=52), _=Depends(verify_admin)):
+    """주차별 성장 퍼널 스냅샷 — 무료체험→가입→사업장등록→유료전환.
+
+    2026-07-12 사업성 점검(commercial_launch_readiness_audit_v1.0.md C축)에서 발견한
+    공백을 메움: cohort-analysis(§3-A-I)는 "이미 유료 구독한 사람의 유지율"만 다루고,
+    맨 위 깔때기(trial→signup→paid) 전환은 어디에도 집계되지 않았음.
+
+    data_caveat: trial_scans는 비로그인 익명 스캔이라 user_id가 없어 개인 단위로
+    "이 트라이얼 사용자가 결국 가입했는지"를 추적할 방법이 없다(이메일은 선택 입력이라
+    매칭 신뢰 불가). 아래는 주차별 "단계별 발생 건수" 스냅샷이며, 동일 인물을 추적한
+    코호트 전환율이 아니다 — 개인 추적이 필요하면 trial_scans에 user_id 컬럼을 추가하고
+    로그인 유도 시점을 옮기는 별도 설계가 필요하다(이번 세션 범위 밖, 후속 과제로 기재).
+    """
+    supabase = get_supabase()
+    since_dt = datetime.now(timezone.utc) - timedelta(weeks=weeks)
+    since = since_dt.isoformat()
+
+    trial_rows = (await execute(
+        supabase.table("trial_scans").select("scanned_at").gte("scanned_at", since).limit(5000)
+    )).data or []
+    biz_rows = (await execute(
+        supabase.table("businesses").select("created_at").gte("created_at", since).limit(5000)
+    )).data or []
+    payment_rows = (await execute(
+        supabase.table("payment_events").select("created_at, status, event_type")
+        .eq("event_type", "billing_issue").eq("status", "success")
+        .gte("created_at", since).limit(5000)
+    )).data or []
+
+    try:
+        # per_page=1000 고정 — BEP 20명·목표 100명 규모에서 충분(다른 admin.py 엔드포인트와 동일 관례).
+        # 1000명 초과 시 페이지네이션 추가 필요(현재 미해당).
+        users_resp = await asyncio.to_thread(
+            lambda: supabase.auth.admin.list_users(page=1, per_page=1000)
+        )
+        signup_rows = [
+            {"created_at": u.created_at} for u in users_resp
+            if getattr(u, "created_at", None) and u.created_at >= since_dt
+        ]
+    except Exception as e:
+        _logger.warning(f"[admin] growth-funnel auth.admin.list_users 실패: {e}")
+        signup_rows = []
+
+    def _week_bucket(ts) -> str:
+        d = datetime.fromisoformat(str(ts).replace("Z", "+00:00").split(".")[0].split("+")[0])
+        monday = d - timedelta(days=d.weekday())
+        return monday.strftime("%Y-%m-%d")
+
+    def _weekly_counts(rows: list, field: str) -> dict:
+        out: dict = {}
+        for r in rows:
+            v = r.get(field)
+            if not v:
+                continue
+            try:
+                wk = _week_bucket(v)
+            except (ValueError, TypeError):
+                continue
+            out[wk] = out.get(wk, 0) + 1
+        return out
+
+    trial_by_week = _weekly_counts(trial_rows, "scanned_at")
+    signup_by_week = _weekly_counts(signup_rows, "created_at")
+    biz_by_week = _weekly_counts(biz_rows, "created_at")
+    paid_by_week = _weekly_counts(payment_rows, "created_at")
+
+    all_weeks = sorted(set(trial_by_week) | set(signup_by_week) | set(biz_by_week) | set(paid_by_week))
+    weekly = [
+        {
+            "week": wk,
+            "trial_scans": trial_by_week.get(wk, 0),
+            "signups": signup_by_week.get(wk, 0),
+            "businesses_registered": biz_by_week.get(wk, 0),
+            "paid_conversions": paid_by_week.get(wk, 0),
+        }
+        for wk in all_weeks
+    ]
+
+    totals = {
+        "trial_scans": len(trial_rows),
+        "signups": len(signup_rows),
+        "businesses_registered": len(biz_rows),
+        "paid_conversions": len(payment_rows),
+    }
+
+    return {
+        "weekly": weekly,
+        "totals": totals,
+        "signup_to_paid_rate_pct": (
+            round(totals["paid_conversions"] / totals["signups"] * 100, 1) if totals["signups"] else 0
+        ),
+        "data_caveat": (
+            "trial_scans는 익명(user_id 없음)이라 개인 단위 전환 추적이 아닌 "
+            "주차별 단계 발생 건수 스냅샷입니다. signup_to_paid_rate_pct만 "
+            "auth.users↔payment_events 실제 매칭 기반(신뢰 가능), 나머지 비율은 "
+            "상관관계 참고용입니다."
+        ),
     }
 
 

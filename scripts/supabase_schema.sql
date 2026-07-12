@@ -2509,3 +2509,31 @@ CREATE INDEX IF NOT EXISTS idx_startup_report_log_created ON startup_report_log(
 CREATE INDEX IF NOT EXISTS idx_startup_report_log_user ON startup_report_log(user_id, created_at DESC);
 
 ALTER TABLE startup_report_log ENABLE ROW LEVEL SECURITY;
+
+-- ===========================================================
+-- 2026-07-12: 사업성 점검 — AI 실사용 토큰 텔레메트리
+-- 배경: docs/commercial_launch_readiness_audit_v1.0.md C(사업성) 축.
+-- 발견: Gemini/ChatGPT/Claude 어떤 호출 경로에도 토큰 사용량 로깅이 없어
+-- CLAUDE.md·plan_limits_v1.0.md의 마진율 수치가 출시 이후 단 한 번도 실측
+-- 검증된 적 없었음. 특히 Gemini 2.5 Flash는 설치 SDK(0.8.3)가 thinking_config
+-- 필드 자체를 지원하지 않아 thinking 토큰을 코드로 끌 수 없고 사용량도 몰랐음.
+-- 우선 스캔 비용의 대부분을 차지하는 Gemini/ChatGPT 스캔 호출부터 계측.
+-- ===========================================================
+
+CREATE TABLE IF NOT EXISTS ai_usage_log (
+  id                  UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  provider            TEXT NOT NULL,          -- 'gemini' | 'chatgpt' | 'claude'
+  model               TEXT NOT NULL,
+  purpose             TEXT NOT NULL,          -- 'scan_check' | 'trial_natural_check' | 'check_citation' 등
+  tokens_in           INTEGER NOT NULL DEFAULT 0,
+  tokens_out          INTEGER NOT NULL DEFAULT 0,
+  thinking_tokens      INTEGER,                -- 현재 항상 NULL(Gemini Developer API는 candidates_token_count에 thinking 이미 포함 — 분리 불가, tokens_out 비용계산엔 영향 없음). 컬럼은 향후 Vertex AI 전환 등 대비 보존
+  estimated_cost_krw  NUMERIC,
+  created_at          TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_usage_log_created ON ai_usage_log(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_usage_log_provider ON ai_usage_log(provider, model, created_at DESC);
+
+ALTER TABLE ai_usage_log ENABLE ROW LEVEL SECURITY;
+-- service_role만 기록/조회 (백엔드 전용, 사용자 접근 불필요 — RLS 정책 미부여 시 기본 전면 차단)

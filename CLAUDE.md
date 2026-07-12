@@ -176,6 +176,9 @@
 | `docs/admin_functional_gaps_implementation_plan_v1.0.md` | 관리자 화면 기능 공백 4건 구현 계획 — **전체 완료됨**(§ 아래 종합문서로 흡수). 트리거는 완료 이력 확인용만 |
 | **`docs/admin_panel_complete_documentation_v1.0.md`** ⭐ | **관리자 페이지 종합 문서(as-built) — 접속정보·인증구조 3단계·페이지 13개 전체 인벤토리·신규 DB테이블 5개·신규 엔드포인트 13개·git커밋 이력·알려진 제약 6건. 관리자 기능 추가/수정 작업 전 필수 참조 (2026-07-11)** |
 | **`docs/session_2026_07_11_next_steps_handoff_v1.0.md`** ⭐ | **마스터 점검 계획 전체 완료 후 다음 단계 핸드오프 — A(정리: origin 대비 51커밋 push·스크린샷93개 정리·stale 문서 정리)와 B(신규 기능: next-feature 에이전트로 스코프 재기획) 2트랙. A 먼저 권장 (2026-07-11)** |
+| **`docs/commercial_launch_readiness_audit_v1.0.md`** ⭐ | **상업 서비스 총괄 점검 계획 — 4개 신규 축(A보안·B법적컴플라이언스·C사업성·D인프라복원력). A·B·C·D 전체 완료(2026-07-12)** |
+| **`docs/legal_compliance_and_infra_resilience_audit_v1.0.md`** ⭐ | **B(법적)+D(인프라) 점검 결과 — D축 P0(DB 백업 생성 이래 0회 성공, pg_dump 아웃바운드 차단+비밀번호 미설정 이중원인) 발견 즉시 수정(REST API 전환, 43개 테이블, 실패알림, git `3ab9545`). B축 P1(정기결제 요금인상 사전고지, 법률자문 권장)+P2 3건은 문서화만(사용자 결정 대기). 잔여: 외부 업타임 모니터링·day-30 알림 구현 (2026-07-12)** |
+| **`docs/business_viability_audit_v1.0.md`** ⭐ | **C(사업성) 점검 결과 — Gemini SDK(0.8.3) thinking_config 미지원+AI 호출 텔레메트리 전무 발견(ai_usage_logger.py 신설, `ai_usage_log` 테이블 SQL 수동 실행 필요), 마진율 계산에서 PG수수료(토스 4.3%+VAT) 누락 발견·재계산(Basic 76.3%/Pro 78.6%/Biz 87.1%), 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재), trial→가입→유료전환 선행지표 실제공백 확인→`/admin/growth-funnel` 신설. 후속과제 6건 잔여 (2026-07-12)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **관리자 화면 점검**: 완료됨 — 재점검 불필요(위 표 참조)
@@ -191,6 +194,7 @@
 > **대시보드 외부벤치마크 점검**: `docs/dashboard_external_benchmark_inspection_plan_v1.0.md 기준으로 대시보드 점검 진행`
 > **마스터 점검 계획 이어가기(전환 퍼널 L3 + 대비율 800건 잔여)**: `docs/master_inspection_plan_v1.0.md §5.1 기준으로 이어서 진행` — 2026-07-11 전 항목 완료됨, 재점검 불필요
 > **마스터 점검 종료 후 다음 단계(정리 또는 신규 기획)**: `docs/session_2026_07_11_next_steps_handoff_v1.0.md 기준으로 A(정리) 먼저 진행 후 B(신규 기능 기획)로 넘어가줘`
+> **상업 서비스 총괄 점검(보안/법적/사업성/인프라)**: A·B·C·D 전체 완료(2026-07-12) — A·B·D는 `docs/legal_compliance_and_infra_resilience_audit_v1.0.md`(git `3ab9545`), C는 `docs/business_viability_audit_v1.0.md` 참조. 재점검 불필요, 후속 과제만 `docs/business_viability_audit_v1.0.md §6` 참조
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
@@ -410,6 +414,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 | business_action_log | 행동-결과 타임라인 (action_type, action_date, score_before/after) |
 | gap_cards | 갭 분석 카드 |
 | weekly_scores | 주간 점수 뷰 |
+| ai_usage_log | AI 실사용 토큰·비용 텔레메트리 (provider/model/purpose/tokens_in/out/thinking_tokens/estimated_cost_krw, 2026-07-12 신설, SQL 수동 실행 필요) |
 
 ### 업종 화이트리스트 59개 (v5.8, 2026-05-18 확장)
 > 전체 목록은 `backend/tests/test_category_alias.py:WHITELIST_59` 참조 (25개→59개로 확장됨, alias 포함)
@@ -497,6 +502,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 ## API 비용 관리 (BEP 20명 기준, A안 50/50 반영)
 
 > **단가 기준 (2026-06-25 공식 확인):** Gemini = Standard Tier (gemini_scanner.py가 실시간 `generate_content` 사용). 월 비용은 실측 데이터 미확보로 추정값 — 실구독자 확보 후 재산정 필요.
+> **2026-07-12 발견 (`docs/business_viability_audit_v1.0.md` §1):** 설치된 SDK(`google-generativeai==0.8.3`)는 protobuf `GenerationConfig`에 `thinking_config` 필드 자체가 없어 Gemini 2.5 Flash의 동적 사고(thinking, 기본값 Auto)를 코드로 끌 방법이 없었음 — 그리고 어떤 AI 호출에도 토큰 사용량 로깅이 전무해 아래 표 전체가 출시 이후 한 번도 실측 검증되지 않았음. `ai_usage_logger.py` 신설로 Gemini/ChatGPT 스캔 호출 계측 시작(배포 후 실측 누적 예정, `ai_usage_log` 테이블 — 아직 SQL 미실행 시 수동 실행 필요).
 
 | API | 단가 | 월 비용 (추정) | 용도 |
 |-----|------|--------------|------|
@@ -507,9 +513,11 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 | iwinv 서버 | 고정 | 27,800원 | |
 | **합계** | | **~8~15만원** | Gemini thinking 토큰 실측 전 상단 불확실 |
 
+> **PG(결제대행) 수수료 — 2026-07-12까지 마진율 계산에서 누락돼 있었음**: 토스페이먼츠 정기결제(빌링) 수수료 4.3%+VAT(실효 ~4.73%, WebSearch 공식 확인) — 위 표는 API 비용만 다루고 매출 대비 변동비인 PG 수수료는 별도. 마진율 재계산은 `docs/business_viability_audit_v1.0.md` §2 참조.
+
 > ⚠️ **Gemini 2.5 Flash thinking 토큰 주의**: 출력 단가 $2.50에 thinking 토큰 포함. 단순 JSON 태스크에서 thinking이 최소화되면 실제 비용은 하단에 가까움. 구독자 확보 후 실측 필요. Batch Tier($0.15/$1.25) 전환 시 비용 절반 이하로 감소 가능.
 
-**마진율:** Basic 85%, Pro 78%, Biz 70% — API 단가 정정으로 실제 마진율 재검토 필요 (특히 Gemini thinking 토큰 실측 후)
+**마진율(2026-07-12 재계산, `docs/business_viability_audit_v1.0.md` §2):** Basic 76.3%, 창업패키지 79.6%, Pro 78.6%, Biz(1사업장) 87.1% — 기존 수치(85/78/70%, 81/84/83/92%)는 **결제대행(PG) 수수료(토스 정기결제 4.3%+VAT, 실효 ~4.73%)가 전혀 반영되지 않은 값**이었음. 위 수치는 PG 수수료만 교정한 것이며, Gemini thinking 토큰 실측(아래 각주)은 아직 미반영 — 두 불확실성이 남아있음을 구분할 것
 
 ---
 
@@ -687,8 +695,8 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
-- **2026-07-10 관리자 화면 전체 점검 P0~P2 + 사후재검증 완료**: 6개 사용자화면 점검 세션에서 이어진 관리자(`/admin/*`) 전수 점검. P0(대행의뢰·1:1문의·내부문의 500다운 4건, git `27ddf98`) → P1(score-comparison 100%크래시·죽은"v3.1활성화"UI·NoticesTab중복 3건, git `332af48`~`27b9883`) → P2(notices상세 전체404·FAQ 15개중10개가 4월런칭일오류콘텐츠 그대로방치[가격·폐기AI플랫폼·스캔주기]·FAQ수정UI부재·AI탭스캐너상태GET필드누락으로 항상OFF오표시 4건, git `1857415`~`103e072`)까지 실측재현으로 발견·수정. 사후 재검증에서 오판없음 확인 + 기능공백 4건 식별 + 전 12개 화면 모바일 scrollWidth 실측으로 comms 가로스크롤 버그 추가 발견·수정(git `5424329`). 기능공백 4건은 재조사로 구현범위 확정해 `docs/admin_functional_gaps_implementation_plan_v1.0.md`로 문서화(구독환불 재사용대상 오판 정정 1건 포함).
-- **2026-07-10~11 관리자 서비스 총괄 대시보드 신설**: "관리자가 서비스하는 모든 것을 총괄 확인 가능한가" 질문에서 시작 — 백엔드 라우터 39개 전수 감사로 3대 공백(고객운영·관찰가능성·거버넌스) 식별 후 설계(`docs/admin_service_oversight_design_v1.0.md`) 및 전 단계 구현. 신규 테이블 6개(`admin_audit_log`·`system_alerts`·`payment_events`·`admin_users`·`startup_report_log` 등): 관리자 액션 자동 감사로그(`AdminAuditMiddleware`, Starlette `_CachedRequest` 바디재생 활용) · 운영알림 영구저장 · 결제이벤트(최초결제·자동갱신) 성공/실패 이력 · owner/support 권한분리(`require_owner`, 금전이동 액션 제한) · 스케줄러 잡 실패 자동알림(`EVENT_JOB_ERROR` 리스너) · 가입코호트 유지율(상태이력 부재 한계를 `data_caveat`로 명시) · AI채널별 사용량 · 창업리포트(예비창업자 포함) · 사업장 통합조회(스캔·가이드·경쟁사·블로그진단·변화기록, P0 설계 약속 중 블로그/변화기록 최초 누락을 자체 재점검으로 발견해 보완) · 팀/API키 현황. 신규 페이지 `/admin/business`(검색+상세)·`/admin/ops`(감사로그·알림·결제·창업리포트·권한관리). code-review 홀리스틱 재검토 3회(P0 0건 유지) — self-downgrade 전원잠금 위험·이메일 대소문자 미정규화 등 P1/P2 다수 발견·수정. 실데이터 삽입까지 포함한 라이브 검증(빈 상태만 확인하고 실데이터 렌더링을 누락했던 경로 3곳을 자체 재점검으로 발견·보완) + `/settings`(결제코드 회귀) 확인. git `9bc825f`~`d6b6025`, push 완료.
+- **2026-07-10~11 관리자 화면 전체 점검 + 서비스 총괄 대시보드 신설**: P0~P2 전수 점검(git `27ddf98`~`5424329`) + 감사로그·알림·결제이벤트·권한체계·코호트분석·AI사용량·창업리포트·사업장통합조회 신설(git `9bc825f`~`d6b6025`). 상세는 `docs/changelog_archive.md` 참조.
+- **2026-07-12 상업 서비스 총괄 점검 C(사업성) 축 완료**: Gemini SDK(0.8.3) thinking_config 미지원 + AI 호출 텔레메트리 전무 발견 → `ai_usage_logger.py` 신설(Gemini/ChatGPT 계측, `ai_usage_log` 테이블 SQL 수동 실행 필요). 마진율 계산 PG수수료(토스 4.3%+VAT) 누락 발견·재계산. 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재). trial→가입→전환 선행지표 공백 확인 → `/admin/growth-funnel` 신설. 상세 `docs/business_viability_audit_v1.0.md`.
 
 ---
 
@@ -715,4 +723,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-11 | 관리자 서비스 총괄 대시보드 신설 완료 — 감사로그·알림이력·결제이벤트·권한체계·코호트분석·AI사용량·창업리포트·사업장통합조회 (git `9bc825f`~`d6b6025`).*
+*최종 업데이트: 2026-07-12 | 상업 서비스 총괄 점검 C(사업성) 축 완료 — Gemini SDK thinking 미지원+텔레메트리 전무 발견, PG수수료 마진율 반영, growth-funnel 신설. A·B·C·D 4개 축 전체 완료.*

@@ -7,6 +7,8 @@ import math
 import google.generativeai as genai
 from typing import Optional
 
+from services.ai_usage_logger import log_ai_usage
+
 _logger = logging.getLogger(__name__)
 
 # Google Search 그라운딩 게이트 (기본값 false — 현재 서비스 동작 불변)
@@ -101,6 +103,7 @@ class GeminiScanner:
                 asyncio.to_thread(self.model.generate_content, prompt),
                 timeout=15.0,
             )
+            self._log_usage(resp, "scan_check")
             m = re.search(r"\{.*?\}", resp.text, re.DOTALL)
             if m:
                 return json.loads(m.group())
@@ -112,6 +115,28 @@ class GeminiScanner:
         except Exception as e:
             _logger.debug("gemini _check failed: %s", e)
             return {"mentioned": False, "_measured": False, "_error": str(e)}
+
+    def _log_usage(self, resp, purpose: str) -> None:
+        """실제 토큰 사용량 기록.
+
+        2026-07-12 최초 구현: total_token_count - prompt - candidates로 thinking을
+        역산하려 했으나 오류로 확인돼 제거함 — Gemini **Developer API**(이 코드가 쓰는
+        genai.configure() 방식, Vertex AI 아님)에서는 candidates_token_count에 thinking
+        토큰이 이미 포함된다(Google 공식 문서 확인, Vertex AI만 별도 분리).
+        즉 total == prompt + candidates가 항상 성립해 역산 결과는 늘 0에 가까웠고,
+        "사고 안 함"으로 오독될 위험이 있었음. 설치 SDK(0.8.3)의 UsageMetadata proto엔
+        thoughts_token_count 필드 자체가 없어 thinking만 분리 표시는 애초에 불가능하지만,
+        candidates_token_count 자체에 thinking 비용이 이미 녹아 있으므로 비용 계산은 정확함.
+        """
+        try:
+            um = getattr(resp, "usage_metadata", None)
+            if not um:
+                return
+            p_in = um.prompt_token_count or 0
+            p_out = um.candidates_token_count or 0  # thinking 토큰 포함(Developer API 특성)
+            log_ai_usage("gemini", "gemini-2.5-flash", purpose, p_in, p_out, thinking_tokens=None)
+        except Exception as e:
+            _logger.debug("gemini usage 로깅 실패(무시): %s", e)
 
     async def _check_with_context(
         self,
@@ -146,6 +171,7 @@ JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거
                 asyncio.to_thread(self.model.generate_content, prompt),
                 timeout=15.0,
             )
+            self._log_usage(resp, "condition_search")
             m = re.search(r"\{.*?\}", resp.text, re.DOTALL)
             return json.loads(m.group()) if m else {"mentioned": False}
         except asyncio.TimeoutError:
@@ -216,6 +242,7 @@ JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거
                 asyncio.to_thread(self.model.generate_content, prompt),
                 timeout=15.0,
             )
+            self._log_usage(resp, "trial_natural_check")
             raw = (resp.text or "").strip()
         except asyncio.TimeoutError:
             _logger.debug("gemini _natural_check timed out (15s): query=%s", query[:50])
@@ -326,6 +353,7 @@ competitors는 실제 해당 지역에 존재할 법한 업체명으로 작성�
                 asyncio.to_thread(self.model.generate_content, prompt),
                 timeout=15.0,
             )
+            self._log_usage(resp, "single_check_with_competitors")
             m = re.search(r"\{.*\}", resp.text, re.DOTALL)
             data = json.loads(m.group()) if m else {}
             mentioned = bool(data.get("mentioned"))
@@ -404,6 +432,7 @@ AI 응답:
 
         try:
             resp = await asyncio.to_thread(self.model.generate_content, prompt)
+            self._log_usage(resp, "analyze_mention_context")
             m = re.search(r"\{.*?\}", resp.text, re.DOTALL)
             if m:
                 return json.loads(m.group())

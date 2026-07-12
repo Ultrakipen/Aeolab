@@ -5,6 +5,8 @@ import os
 import re
 from openai import AsyncOpenAI
 
+from services.ai_usage_logger import log_ai_usage
+
 _logger = logging.getLogger(__name__)
 
 
@@ -31,6 +33,7 @@ class ChatGPTScanner:
                 ),
                 timeout=20.0,
             )
+            self._log_usage(response, "check_citation")
             text = response.choices[0].message.content or ""
             m = re.search(r"\{.*?\}", text, re.DOTALL)
             result = json.loads(m.group()) if m else {"mentioned": False}
@@ -59,6 +62,7 @@ class ChatGPTScanner:
                     ),
                     timeout=20.0,
                 )
+                self._log_usage(resp, "scan_check")
                 text = resp.choices[0].message.content or ""
                 m = re.search(r"\{.*?\}", text, re.DOTALL)
                 if m:
@@ -71,6 +75,16 @@ class ChatGPTScanner:
             except Exception as e:
                 _logger.debug("chatgpt _check failed: %s", e)
                 return {"mentioned": False, "_measured": False, "_error": str(e)}
+
+    def _log_usage(self, resp, purpose: str) -> None:
+        """gpt-4.1-mini는 reasoning 모델이 아니라 thinking 토큰 개념 없음 — prompt/completion만 기록."""
+        try:
+            usage = getattr(resp, "usage", None)
+            if not usage:
+                return
+            log_ai_usage("chatgpt", "gpt-4.1-mini", purpose, usage.prompt_tokens or 0, usage.completion_tokens or 0)
+        except Exception as e:
+            _logger.debug("chatgpt usage 로깅 실패(무시): %s", e)
 
     def _wilson_ci(self, k: int, n: int) -> dict:
         """Wilson 신뢰구간 (95%)"""
