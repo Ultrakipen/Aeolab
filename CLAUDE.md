@@ -179,6 +179,7 @@
 | **`docs/commercial_launch_readiness_audit_v1.0.md`** ⭐ | **상업 서비스 총괄 점검 계획 — 4개 신규 축(A보안·B법적컴플라이언스·C사업성·D인프라복원력). A·B·C·D 전체 완료(2026-07-12)** |
 | **`docs/legal_compliance_and_infra_resilience_audit_v1.0.md`** ⭐ | **B(법적)+D(인프라) 점검 결과 — D축 P0(DB 백업 생성 이래 0회 성공, pg_dump 아웃바운드 차단+비밀번호 미설정 이중원인) 발견 즉시 수정(REST API 전환, 43개 테이블, 실패알림, git `3ab9545`). B축 P1(정기결제 요금인상 사전고지, 법률자문 권장)+P2 3건은 문서화만(사용자 결정 대기). 잔여: 외부 업타임 모니터링·day-30 알림 구현 (2026-07-12)** |
 | **`docs/business_viability_audit_v1.0.md`** ⭐ | **C(사업성) 점검 결과 — Gemini SDK(0.8.3) thinking_config 미지원+AI 호출 텔레메트리 전무 발견(ai_usage_logger.py 신설·배포·SQL실행·실측검증 완료), 마진율 계산에서 PG수수료(토스 4.3%+VAT) 누락 발견·재계산(Basic 76.3%/Pro 78.6%/Biz 87.1%), 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재), trial→가입→유료전환 선행지표 실제공백 확인→`/admin/growth-funnel` 신설. **§1-A: 실측검증 도중 OpenAI 결제수단 미등록으로 ChatGPT 스캔 전면실패(insufficient_quota) P0 우연 발견·사용자 카드등록으로 해결**. 후속과제 7건 잔여 (2026-07-12)** |
+| **`docs/fastapi_starlette_upgrade_handoff_v1.0.md`** ⭐ | **A·B·C·D 3개 문서 재검증 세션(2026-07-12) 결과물 — 병렬 에이전트 3개+메인세션 재검증 오판 0건, 실제 공백 5건(privacy §4 Resend 위탁 누락·§3 IP해시 문구 불일치·DMARC 부재·성능측정 이력 0건·pip-audit 미실행) 전부 수정·배포·검증 완료(git `f51f490`·`6c65ab8`). **잔여**: `starlette` CVE 7건 수정에 `fastapi` 동반 업그레이드 필요 — 버전 조사로 `fastapi==0.135.0`+`starlette==1.3.1`(pydantic 안 건드리는 최소 점프) 타겟 확정, 절차·롤백계획 문서화 완료, 미실행** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **관리자 화면 점검**: 완료됨 — 재점검 불필요(위 표 참조)
@@ -195,6 +196,7 @@
 > **마스터 점검 계획 이어가기(전환 퍼널 L3 + 대비율 800건 잔여)**: `docs/master_inspection_plan_v1.0.md §5.1 기준으로 이어서 진행` — 2026-07-11 전 항목 완료됨, 재점검 불필요
 > **마스터 점검 종료 후 다음 단계(정리 또는 신규 기획)**: `docs/session_2026_07_11_next_steps_handoff_v1.0.md 기준으로 A(정리) 먼저 진행 후 B(신규 기능 기획)로 넘어가줘`
 > **상업 서비스 총괄 점검(보안/법적/사업성/인프라)**: A·B·C·D 전체 완료(2026-07-12) — A·B·D는 `docs/legal_compliance_and_infra_resilience_audit_v1.0.md`(git `3ab9545`), C는 `docs/business_viability_audit_v1.0.md` 참조. 재점검 불필요, 후속 과제만 `docs/business_viability_audit_v1.0.md §6` 참조
+> **FastAPI/Starlette 업그레이드 진행**: `docs/fastapi_starlette_upgrade_handoff_v1.0.md 기준으로 FastAPI/Starlette 업그레이드 진행` — 타겟 버전·절차·롤백계획 전부 확정됨, 로컬 사전검증부터 시작
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
@@ -723,4 +725,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-12 | 상업 서비스 총괄 점검 C(사업성) 축 완료 — Gemini SDK thinking 미지원+텔레메트리 전무 발견, PG수수료 마진율 반영, growth-funnel 신설. A·B·C·D 4개 축 전체 완료.*
+*최종 업데이트: 2026-07-12 | A·B·C·D 3개 문서 재검증 세션 — 병렬 에이전트+메인세션 재검증으로 오판 0건 확인, 실제 공백 5건(privacy 위탁표·IP해시 문구·DMARC·성능측정·pip-audit) 수정 완료. FastAPI/Starlette 업그레이드만 별도 세션으로 이관(`docs/fastapi_starlette_upgrade_handoff_v1.0.md`).*
