@@ -179,7 +179,7 @@
 | **`docs/commercial_launch_readiness_audit_v1.0.md`** ⭐ | **상업 서비스 총괄 점검 계획 — 4개 신규 축(A보안·B법적컴플라이언스·C사업성·D인프라복원력). A·B·C·D 전체 완료(2026-07-12)** |
 | **`docs/legal_compliance_and_infra_resilience_audit_v1.0.md`** ⭐ | **B(법적)+D(인프라) 점검 결과 — D축 P0(DB 백업 생성 이래 0회 성공, pg_dump 아웃바운드 차단+비밀번호 미설정 이중원인) 발견 즉시 수정(REST API 전환, 43개 테이블, 실패알림, git `3ab9545`). B축 P1(정기결제 요금인상 사전고지, 법률자문 권장)+P2 3건은 문서화만(사용자 결정 대기). 잔여: 외부 업타임 모니터링·day-30 알림 구현 (2026-07-12)** |
 | **`docs/business_viability_audit_v1.0.md`** ⭐ | **C(사업성) 점검 결과 — Gemini SDK(0.8.3) thinking_config 미지원+AI 호출 텔레메트리 전무 발견(ai_usage_logger.py 신설·배포·SQL실행·실측검증 완료), 마진율 계산에서 PG수수료(토스 4.3%+VAT) 누락 발견·재계산(Basic 76.3%/Pro 78.6%/Biz 87.1%), 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재), trial→가입→유료전환 선행지표 실제공백 확인→`/admin/growth-funnel` 신설. **§1-A: 실측검증 도중 OpenAI 결제수단 미등록으로 ChatGPT 스캔 전면실패(insufficient_quota) P0 우연 발견·사용자 카드등록으로 해결**. 후속과제 7건 잔여 (2026-07-12)** |
-| **`docs/fastapi_starlette_upgrade_handoff_v1.0.md`** ⭐ | **A·B·C·D 3개 문서 재검증 세션(2026-07-12) 결과물 — 병렬 에이전트 3개+메인세션 재검증 오판 0건, 실제 공백 5건(privacy §4 Resend 위탁 누락·§3 IP해시 문구 불일치·DMARC 부재·성능측정 이력 0건·pip-audit 미실행) 전부 수정·배포·검증 완료(git `f51f490`·`6c65ab8`). **잔여**: `starlette` CVE 7건 수정에 `fastapi` 동반 업그레이드 필요 — 버전 조사로 `fastapi==0.135.0`+`starlette==1.3.1`(pydantic 안 건드리는 최소 점프) 타겟 확정, 절차·롤백계획 문서화 완료, 미실행** |
+| `docs/fastapi_starlette_upgrade_handoff_v1.0.md` | A·B·C·D 3개 문서 재검증 세션(2026-07-12) 결과물 — privacy §4 Resend 위탁 누락·§3 IP해시 문구 불일치·DMARC 부재·성능측정 이력 0건·pip-audit 미실행 5건 수정·배포(git `f51f490`·`6c65ab8`). `starlette` CVE 7건 → **fastapi 0.135.0+starlette 1.3.1 업그레이드 완료**(로컬 회귀검증 후 서버 배포·라이브 검증, git `7d23596`) — 이 문서 시리즈 전체 종료, 재작업 불필요 |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **관리자 화면 점검**: 완료됨 — 재점검 불필요(위 표 참조)
@@ -196,7 +196,7 @@
 > **마스터 점검 계획 이어가기(전환 퍼널 L3 + 대비율 800건 잔여)**: `docs/master_inspection_plan_v1.0.md §5.1 기준으로 이어서 진행` — 2026-07-11 전 항목 완료됨, 재점검 불필요
 > **마스터 점검 종료 후 다음 단계(정리 또는 신규 기획)**: `docs/session_2026_07_11_next_steps_handoff_v1.0.md 기준으로 A(정리) 먼저 진행 후 B(신규 기능 기획)로 넘어가줘`
 > **상업 서비스 총괄 점검(보안/법적/사업성/인프라)**: A·B·C·D 전체 완료(2026-07-12) — A·B·D는 `docs/legal_compliance_and_infra_resilience_audit_v1.0.md`(git `3ab9545`), C는 `docs/business_viability_audit_v1.0.md` 참조. 재점검 불필요, 후속 과제만 `docs/business_viability_audit_v1.0.md §6` 참조
-> **FastAPI/Starlette 업그레이드 진행**: `docs/fastapi_starlette_upgrade_handoff_v1.0.md 기준으로 FastAPI/Starlette 업그레이드 진행` — 타겟 버전·절차·롤백계획 전부 확정됨, 로컬 사전검증부터 시작
+> **FastAPI/Starlette 업그레이드**: 완료됨(2026-07-12, git `7d23596`) — 재작업 불필요
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
@@ -699,6 +699,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 - **2026-07-10~11 관리자 화면 전체 점검 + 서비스 총괄 대시보드 신설**: P0~P2 전수 점검(git `27ddf98`~`5424329`) + 감사로그·알림·결제이벤트·권한체계·코호트분석·AI사용량·창업리포트·사업장통합조회 신설(git `9bc825f`~`d6b6025`). 상세는 `docs/changelog_archive.md` 참조.
 - **2026-07-12 상업 서비스 총괄 점검 C(사업성) 축 완료 + 배포·실측 검증 + P0 라이브 장애 발견·재발방지**: Gemini SDK(0.8.3) thinking_config 미지원 + AI 호출 텔레메트리 전무 발견 → `ai_usage_logger.py` 신설(Gemini 5곳·ChatGPT 2곳 계측) 배포, `ai_usage_log` 테이블 SQL 실행·실동작 검증 완료. 마진율 계산 PG수수료(토스 4.3%+VAT) 누락 발견·재계산. 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재). trial→가입→전환 선행지표 공백 확인 → `/admin/growth-funnel` 신설·배포. **텔레메트리 검증 도중 우연히 발견(P0)**: OpenAI 조직이 결제수단 미등록(Free trial 크레딧 $0.00 소진)으로 ChatGPT 스캔 전체가 `insufficient_quota`로 실패 중이었고 `chatgpt_scanner.py`가 예외를 삼켜 조용히 "노출 없음"으로 폴백 — 사용자 카드 등록으로 즉시 해결. **재발방지**: `_log_failure()` 실패계측 대칭 추가(성공만 재던 비대칭 해소) + `ai_provider_health_check_job`(30분 간격, dedup 6시간) 신설 → 합성장애로 탐지·알림·dedup 전부 실측 검증(git `aa42587`~). 상세 `docs/business_viability_audit_v1.0.md §1-A, §8`.
+- **2026-07-12 FastAPI/Starlette 업그레이드 완료**: pip-audit로 발견된 `starlette` CVE/PYSEC 7건(최고 CVE-2026-48817/48818) 해결 위해 `fastapi==0.115.0`→`0.135.0`, `starlette==0.38.6`→`1.3.1` (pydantic은 그대로 — 0.135는 `pydantic>=2.7.0` 요구, 현재 2.8.2로 충족돼 변경범위 최소화). 로컬 사전검증(임포트·부팅·SSE스트림·webhook검증·인증경로 회귀 확인, deprecation 경고 0건) → 서버 배포 → 라이브 `/health`·webhook 422·auth 401·CORS 전부 로컬과 동일 동작 확인. git `7d23596`.
 
 ---
 
@@ -725,4 +726,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-12 | A·B·C·D 3개 문서 재검증 세션 — 병렬 에이전트+메인세션 재검증으로 오판 0건 확인, 실제 공백 5건(privacy 위탁표·IP해시 문구·DMARC·성능측정·pip-audit) 수정 완료. FastAPI/Starlette 업그레이드만 별도 세션으로 이관(`docs/fastapi_starlette_upgrade_handoff_v1.0.md`).*
+*최종 업데이트: 2026-07-12 | A·B·C·D 3개 문서 재검증 세션 — 병렬 에이전트+메인세션 재검증으로 오판 0건 확인, 실제 공백 5건(privacy 위탁표·IP해시 문구·DMARC·성능측정·pip-audit) 수정 완료. 이어서 FastAPI 0.135.0/Starlette 1.3.1 업그레이드까지 완료 — 이 재검증 세션의 잔여 작업 전부 종료(git `7d23596`).*
