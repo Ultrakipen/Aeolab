@@ -295,6 +295,12 @@ def start_scheduler():
         id="naver_cookie_health_check", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
+    # AI 프로바이더(Gemini/ChatGPT) 전면 장애 감지 — 30분마다 (2026-07-12 OpenAI 결제미등록 사고 이후 신설)
+    scheduler.add_job(
+        ai_provider_health_check_job, "interval", minutes=30,
+        id="ai_provider_health_check", replace_existing=True,
+        max_instances=1, misfire_grace_time=600,
+    )
     scheduler.add_listener(_on_job_error, EVENT_JOB_ERROR)
     scheduler.start()
     logger.info("Scheduler started")
@@ -6088,3 +6094,79 @@ async def check_naver_cookie_health_job():
         _logger.info("[naver_cookie_health] NID_AUT 자동 갱신 완료 ✅ — .env + 인메모리 업데이트")
     except Exception as _e:
         _logger.warning(f"[naver_cookie_health] .env 갱신 실패: {_e}")
+
+
+async def ai_provider_health_check_job() -> None:
+    """AI 프로바이더(Gemini/ChatGPT) 전면 장애 감지 — 30분마다 실행.
+
+    2026-07-12 발견: OpenAI 결제수단 미등록으로 ChatGPT 스캔이 insufficient_quota로
+    전량 실패했으나, 스캐너가 예외를 삼키고 mentioned:False로 조용히 폴백하는 구조라
+    운영 로그(debug 레벨)에도 안 남고 아무도 몰랐음(business_viability_audit_v1.0.md §1-A).
+    gemini_scanner.py/chatgpt_scanner.py의 _log_failure()가 이제 실패도 ai_usage_log에
+    purpose="...:FAILED:에러타입"으로 남기므로, 이 잡이 최근 30분 창을 집계해
+    "호출은 있었는데 성공이 0건"인 프로바이더를 찾아 운영자에게 알린다.
+
+    dedup: 같은 프로바이더로 최근 6시간 내 이미 보낸 알림이 있으면 재발송하지 않음
+    (system_alerts 조회) — 장기 장애 중 30분마다 스팸 발송 방지.
+    """
+    from db.supabase_client import get_client
+    from services.email_sender import send_operator_alert
+
+    supabase = get_client()
+    window_start = (datetime.utcnow() - timedelta(minutes=30)).isoformat()
+
+    try:
+        rows = (
+            await _db(
+                supabase.table("ai_usage_log")
+                .select("provider, purpose")
+                .gte("created_at", window_start)
+                .limit(2000)
+            )
+        ).data or []
+    except Exception as e:
+        # ai_usage_log 테이블 미생성 등 — 헬스체크 잡 자체 실패가 알림 오발송으로
+        # 이어지면 안 되므로 조용히 종료 (다음 스캔 트래픽 발생 시 재시도)
+        _logger.debug(f"[ai_provider_health] ai_usage_log 조회 실패(스킵): {e}")
+        return
+
+    if not rows:
+        return  # 최근 30분간 스캔 트래픽 자체가 없으면 판단 불가 — 정상 케이스
+
+    stats: dict[str, dict[str, int]] = {}
+    for r in rows:
+        provider = r.get("provider") or "unknown"
+        s = stats.setdefault(provider, {"total": 0, "failed": 0})
+        s["total"] += 1
+        if ":FAILED:" in (r.get("purpose") or ""):
+            s["failed"] += 1
+
+    for provider, s in stats.items():
+        # 호출은 3건 이상 있었는데 전부 실패 — 개별 API 오류가 아닌 전면 장애로 판단
+        if s["total"] >= 3 and s["failed"] == s["total"]:
+            try:
+                recent_alert = (
+                    await _db(
+                        supabase.table("system_alerts")
+                        .select("id")
+                        .ilike("subject", f"%{provider}%")
+                        .gte("created_at", (datetime.utcnow() - timedelta(hours=6)).isoformat())
+                        .limit(1)
+                    )
+                ).data or []
+            except Exception as e:
+                _logger.debug(f"[ai_provider_health] system_alerts 조회 실패: {e}")
+                recent_alert = []
+
+            if recent_alert:
+                _logger.info(f"[ai_provider_health] {provider} 장애 지속 중 — 6시간 내 알림 기발송, 재발송 스킵")
+                continue
+
+            _logger.warning(f"[ai_provider_health] {provider} 전면 실패 감지 — 최근 30분 {s['total']}건 전부 실패")
+            await send_operator_alert(
+                f"{provider} AI 스캔 전면 실패 감지",
+                f"최근 30분간 {provider} 호출 {s['total']}건 중 {s['failed']}건 전부 실패했습니다.\n"
+                f"결제수단/API 키/한도를 확인해주세요(2026-07-12 OpenAI 결제 미등록 사고와 동일 패턴 가능).\n"
+                "스캐너는 실패 시 '노출 없음'으로 조용히 폴백하므로, 해결 전까지 모든 신규 스캔의 "
+                f"{provider} 결과가 부정확합니다.",
+            )

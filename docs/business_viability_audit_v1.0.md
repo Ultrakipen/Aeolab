@@ -145,7 +145,7 @@ WebSearch 중 "RanketAI"라는 국내 AI 가시성(GEO/AEO) 진단 도구가 발
 4. **RanketAI 등 신규 경쟁사 정식 분석** — TalkB 수준의 검증된 비교 필요 시
 5. **trial_scans 개인 단위 코호트 추적** — `user_id` 컬럼 추가 + 로그인 시점 재설계, 별도 기능 기획 필요
 6. **PG 수수료 우대 등급 확인** — 국세청 영세/중소 우대 적용 여부 사용자 확인(적용되면 4.3%보다 낮아져 마진율 추가 개선 가능)
-7. **[신규, §1-A 발견 기반] AI 프로바이더 장애 알림 신설** — `ai_usage_log` insert 실패율 급증 또는 provider별 연속 실패(예: 10분 내 5회+)를 감지해 카카오/이메일 알림하는 스케줄러 잡. OpenAI 결제 미등록처럼 "예외를 삼키고 조용히 폴백"하는 실패는 로그만으로 감지 불가능함을 이번에 실증 — Claude Haiku·Gemini도 동일 위험 구조(§6-2와 별개로 우선순위 상향 권장)
+7. ~~**[신규, §1-A 발견 기반] AI 프로바이더 장애 알림 신설**~~ — **구현·배포·실측 검증 완료(2026-07-12)**. 상세는 §8 참조
 
 ---
 
@@ -155,3 +155,25 @@ WebSearch 중 "RanketAI"라는 국내 AI 가시성(GEO/AEO) 진단 도구가 발
 - "AI Visibility Score" 섹션 근처 "API 비용 관리" 표에 PG 수수료 누락 사실 및 텔레메트리 신설 각주 추가
 - 데이터베이스 테이블 목록에 `ai_usage_log` 추가
 - §1-A(OpenAI 결제수단 미등록으로 ChatGPT 스캔 전면 실패, 사용자 카드 등록으로 해결) "최근 업데이트"에 한 줄 반영
+
+---
+
+## 8. AI 프로바이더 장애 알림 구현 (§6-7, 2026-07-12 사용자 지시로 즉시 실행)
+
+§1-A 발견 직후 사용자가 "진행할것" 지시 → 같은 세션에서 구현·배포·실측 검증까지 완료.
+
+### 설계
+- 스키마 변경 없이 기존 `ai_usage_log` 재사용 — 호출 실패 시 `purpose` 필드에 `"{원래purpose}:FAILED:{예외타입명}"` 규칙으로 0토큰/0비용 행을 남김(집계 시 성공 계측과 문자열 매칭으로 구분 가능, 별도 컬럼 불필요 → 오늘 두 번째 수동 SQL 실행을 피함)
+- 계측 위치 — §1에서 `_log_usage()`를 넣었던 동일 7개 호출부(Gemini 5 + ChatGPT 2)의 except 블록에 대칭으로 `_log_failure()` 추가. 범위를 §1과 일치시켜 "성공은 재는데 실패는 안 잰다"는 비대칭을 제거
+- 신규 스케줄러 잡 `ai_provider_health_check_job`(`jobs.py`, 30분 간격 interval) — 최근 30분 창에서 provider별 호출 3건 이상 + 전부 실패면 전면 장애로 판단, `send_operator_alert()`(기존 Resend 이메일 채널, `check_naver_cookie_health_job`과 동일 인프라 재사용)로 발송
+- **dedup**: `system_alerts`에서 같은 provider 문자열을 포함한 알림이 최근 6시간 내 있으면 재발송 스킵 — 장기 장애 중 30분마다 스팸 방지
+
+### 실측 검증
+1. 3개 파일(`gemini_scanner.py`, `chatgpt_scanner.py`, `jobs.py`) scp → md5 일치 확인 → pm2 재시작 → 에러 로그 0건 → 스케줄러 시작 로그에서 `"Added job \"ai_provider_health_check_job\""` 확인
+2. `test_provider`라는 가짜 프로바이더로 실패 행 3건 합성 삽입 → 잡 직접 실행 → `"test_provider 전면 실패 감지"` 로그 + `system_alerts`에 1건 기록 확인(정상 탐지)
+3. 동일 조건에서 잡 즉시 재실행 → `system_alerts` 행 수 그대로 1건 유지 확인(dedup 정상)
+4. 테스트 데이터(`ai_usage_log`, `system_alerts`) 전량 삭제로 정리 완료
+
+### 한계 (의도적 범위 제한)
+- Claude/Haiku 호출부는 §6-2와 동일 이유로 미포함(응답 객체를 버리는 구조라 별도 리팩터링 필요) — 이 알림 잡도 Gemini/ChatGPT만 커버
+- "호출 3건 이상 + 전부 실패"라는 임계값은 임의 설정값 — 실사용자 확보 후 스캔 트래픽 패턴을 보고 재조정 필요할 수 있음(현재는 trial 트래픽 기준 추정치)

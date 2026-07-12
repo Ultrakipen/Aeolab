@@ -109,11 +109,13 @@ class GeminiScanner:
                 return json.loads(m.group())
             _logger.debug("gemini _check unparseable response: query=%s", query[:50])
             return {"mentioned": False, "_measured": False, "_error": "unparseable"}
-        except asyncio.TimeoutError:
+        except asyncio.TimeoutError as e:
             _logger.debug("gemini _check timed out (15s): query=%s", query[:50])
+            self._log_failure("scan_check", e)
             return {"mentioned": False, "_measured": False, "_error": "timeout"}
         except Exception as e:
             _logger.debug("gemini _check failed: %s", e)
+            self._log_failure("scan_check", e)
             return {"mentioned": False, "_measured": False, "_error": str(e)}
 
     def _log_usage(self, resp, purpose: str) -> None:
@@ -137,6 +139,12 @@ class GeminiScanner:
             log_ai_usage("gemini", "gemini-2.5-flash", purpose, p_in, p_out, thinking_tokens=None)
         except Exception as e:
             _logger.debug("gemini usage 로깅 실패(무시): %s", e)
+
+    def _log_failure(self, purpose: str, error: Exception) -> None:
+        """API 호출 실패 기록 — 2026-07-12 OpenAI 결제 미등록 장애가 예외를 삼키고 조용히
+        폴백되던 걸 로그로 감지 못 했던 사고 이후 신설. purpose에 오류 유형을 붙여
+        ai_usage_log에 0토큰/0비용으로 남긴다(집계 시 성공 계측과 구분 가능)."""
+        log_ai_usage("gemini", "gemini-2.5-flash", f"{purpose}:FAILED:{type(error).__name__}", 0, 0)
 
     async def _check_with_context(
         self,
@@ -174,11 +182,13 @@ JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거
             self._log_usage(resp, "condition_search")
             m = re.search(r"\{.*?\}", resp.text, re.DOTALL)
             return json.loads(m.group()) if m else {"mentioned": False}
-        except asyncio.TimeoutError:
+        except asyncio.TimeoutError as e:
             _logger.debug("gemini _check_with_context timed out: query=%s", query[:50])
+            self._log_failure("condition_search", e)
             return {"mentioned": False}
         except Exception as e:
             _logger.debug("gemini _check_with_context failed: %s", e)
+            self._log_failure("condition_search", e)
             return {"mentioned": False}
 
     def _wilson_ci(self, k: int, n: int) -> dict:
@@ -244,11 +254,13 @@ JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거
             )
             self._log_usage(resp, "trial_natural_check")
             raw = (resp.text or "").strip()
-        except asyncio.TimeoutError:
+        except asyncio.TimeoutError as e:
             _logger.debug("gemini _natural_check timed out (15s): query=%s", query[:50])
+            self._log_failure("trial_natural_check", e)
             return {"query": query, "raw_text": "", "mentioned": False, "excerpt": ""}
         except Exception as e:
             _logger.debug("gemini _natural_check failed: %s", e)
+            self._log_failure("trial_natural_check", e)
             return {"query": query, "raw_text": "", "mentioned": False, "excerpt": ""}
 
         raw_trim = raw[:1500]
@@ -375,6 +387,7 @@ competitors는 실제 해당 지역에 존재할 법한 업체명으로 작성�
             }
         except (asyncio.TimeoutError, Exception) as e:
             _logger.debug("gemini single_check_with_competitors failed (%s): %s", type(e).__name__, e)
+            self._log_failure("single_check_with_competitors", e)
             # 파싱 실패 / 타임아웃 시 기본 single_check 결과 반환
             fallback = await self._check(query, target)
             return {
@@ -438,4 +451,5 @@ AI 응답:
                 return json.loads(m.group())
         except Exception as e:
             _logger.debug("gemini analyze_mention_context failed: %s", e)
+            self._log_failure("analyze_mention_context", e)
         return {"mentioned": True, "sentiment": "neutral", "excerpt": ""}

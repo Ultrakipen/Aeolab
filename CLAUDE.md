@@ -696,7 +696,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
 - **2026-07-10~11 관리자 화면 전체 점검 + 서비스 총괄 대시보드 신설**: P0~P2 전수 점검(git `27ddf98`~`5424329`) + 감사로그·알림·결제이벤트·권한체계·코호트분석·AI사용량·창업리포트·사업장통합조회 신설(git `9bc825f`~`d6b6025`). 상세는 `docs/changelog_archive.md` 참조.
-- **2026-07-12 상업 서비스 총괄 점검 C(사업성) 축 완료 + 배포·실측 검증 + P0 라이브 장애 발견**: Gemini SDK(0.8.3) thinking_config 미지원 + AI 호출 텔레메트리 전무 발견 → `ai_usage_logger.py` 신설(Gemini 5곳·ChatGPT 2곳 계측) 배포 완료, `ai_usage_log` 테이블 SQL 실행 완료·실동작 검증 완료(git `aa42587`). 마진율 계산 PG수수료(토스 4.3%+VAT) 누락 발견·재계산. 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재). trial→가입→전환 선행지표 공백 확인 → `/admin/growth-funnel` 신설·배포. **텔레메트리 검증 도중 우연히 발견(P0)**: OpenAI 조직이 결제수단 미등록(Free trial 크레딧 $0.00 소진)으로 ChatGPT 스캔 전체가 `insufficient_quota`로 실패 중이었고 `chatgpt_scanner.py`가 예외를 삼켜 조용히 "노출 없음"으로 폴백 — 사용자 카드 등록으로 즉시 해결·재검증 완료. 상세 `docs/business_viability_audit_v1.0.md §1-A`.
+- **2026-07-12 상업 서비스 총괄 점검 C(사업성) 축 완료 + 배포·실측 검증 + P0 라이브 장애 발견·재발방지**: Gemini SDK(0.8.3) thinking_config 미지원 + AI 호출 텔레메트리 전무 발견 → `ai_usage_logger.py` 신설(Gemini 5곳·ChatGPT 2곳 계측) 배포, `ai_usage_log` 테이블 SQL 실행·실동작 검증 완료. 마진율 계산 PG수수료(토스 4.3%+VAT) 누락 발견·재계산. 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재). trial→가입→전환 선행지표 공백 확인 → `/admin/growth-funnel` 신설·배포. **텔레메트리 검증 도중 우연히 발견(P0)**: OpenAI 조직이 결제수단 미등록(Free trial 크레딧 $0.00 소진)으로 ChatGPT 스캔 전체가 `insufficient_quota`로 실패 중이었고 `chatgpt_scanner.py`가 예외를 삼켜 조용히 "노출 없음"으로 폴백 — 사용자 카드 등록으로 즉시 해결. **재발방지**: `_log_failure()` 실패계측 대칭 추가(성공만 재던 비대칭 해소) + `ai_provider_health_check_job`(30분 간격, dedup 6시간) 신설 → 합성장애로 탐지·알림·dedup 전부 실측 검증(git `aa42587`~). 상세 `docs/business_viability_audit_v1.0.md §1-A, §8`.
 
 ---
 

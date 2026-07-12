@@ -40,6 +40,7 @@ class ChatGPTScanner:
             return {"platform": "chatgpt", **result}
         except Exception as e:
             _logger.debug("chatgpt check_citation failed: %s", e)
+            self._log_failure("check_citation", e)
             return {"platform": "chatgpt", "mentioned": False}
 
     async def check_mention(self, query: str, target: str) -> dict:
@@ -69,11 +70,13 @@ class ChatGPTScanner:
                     return json.loads(m.group())
                 _logger.debug("chatgpt _check unparseable response: query=%s", query[:50])
                 return {"mentioned": False, "_measured": False, "_error": "unparseable"}
-            except asyncio.TimeoutError:
+            except asyncio.TimeoutError as e:
                 _logger.debug("chatgpt _check timed out (20s): query=%s", query[:50])
+                self._log_failure("scan_check", e)
                 return {"mentioned": False, "_measured": False, "_error": "timeout"}
             except Exception as e:
                 _logger.debug("chatgpt _check failed: %s", e)
+                self._log_failure("scan_check", e)
                 return {"mentioned": False, "_measured": False, "_error": str(e)}
 
     def _log_usage(self, resp, purpose: str) -> None:
@@ -85,6 +88,11 @@ class ChatGPTScanner:
             log_ai_usage("chatgpt", "gpt-4.1-mini", purpose, usage.prompt_tokens or 0, usage.completion_tokens or 0)
         except Exception as e:
             _logger.debug("chatgpt usage 로깅 실패(무시): %s", e)
+
+    def _log_failure(self, purpose: str, error: Exception) -> None:
+        """API 호출 실패 기록 — 2026-07-12 OpenAI 결제 미등록 장애가 예외를 삼키고 조용히
+        폴백되던 걸 로그로 감지 못 했던 사고 이후 신설."""
+        log_ai_usage("chatgpt", "gpt-4.1-mini", f"{purpose}:FAILED:{type(error).__name__}", 0, 0)
 
     def _wilson_ci(self, k: int, n: int) -> dict:
         """Wilson 신뢰구간 (95%)"""
