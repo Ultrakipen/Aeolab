@@ -1008,8 +1008,10 @@ async def get_competitor_detail(competitor_id: str, user=Depends(get_current_use
             .eq("id", competitor_id)
             .maybe_single()
         )
-    except Exception:
+    except Exception as e:
         # place_intro_text/place_menu_sample 컬럼 마이그레이션 전 fallback (2026-07-13)
+        # 컬럼 누락 외 DB 연결/타임아웃 등 실제 장애도 이 분기로 빠질 수 있어 반드시 로깅
+        _logger.warning(f"competitor 신규 컬럼 SELECT 실패, base_fields로 재시도 [{competitor_id}]: {e}")
         comp = await execute(
             supabase.table("competitors")
             .select(_comp_base_fields)
@@ -1075,8 +1077,11 @@ async def get_competitor_detail(competitor_id: str, user=Depends(get_current_use
             f"competitor detail keyword analysis failed [{competitor_id}]: {e}"
         )
 
+    # place_intro_text/place_menu_sample은 서버 내부 키워드 분석용 원문(제3자 크롤링 텍스트)이라
+    # 프론트에서 쓰지 않음 — 데이터 최소화 원칙상 응답에서 제외
+    comp_response = {k: v for k, v in comp.data.items() if k not in ("place_intro_text", "place_menu_sample")}
     return {
-        **comp.data,
+        **comp_response,
         "comp_keywords": comp_keywords,
     }
 

@@ -408,9 +408,15 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
             # 이 경로에서도 정상 수집됨.
             place_intro_text = ""
             if info_text:
-                idx = info_text.find("소개")
-                if idx >= 0:
-                    place_intro_text = info_text[idx + 2:idx + 500].strip()
+                # has_intro 판정(line 392)과 동일한 정규식 우선 사용 — "메뉴 소개"·"공간 소개" 등
+                # 다른 섹션이 "소개"로 먼저 매칭되는 오탐 방지, 실패 시 기존 find() fallback 유지
+                intro_match = re.search(r"소개\s*\n(.+)", info_text)
+                if intro_match:
+                    place_intro_text = intro_match.group(1).strip()[:500]
+                else:
+                    idx = info_text.find("소개")
+                    if idx >= 0:
+                        place_intro_text = info_text[idx + 2:idx + 500].strip()
             place_menu_sample = menu_text.strip()[:500] if menu_text else ""
 
             # ── 외부 웹사이트 URL 추출 ───────────────────────────────

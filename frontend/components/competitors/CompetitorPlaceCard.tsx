@@ -636,7 +636,7 @@ export function CompetitorPlaceCard({
             {/* present 키워드 */}
             {(competitor.comp_keywords.present?.length ?? 0) > 0 && (
               <div>
-                <p className="text-sm text-gray-500 mb-1.5">경쟁사 리뷰에서 자주 나오는 키워드:</p>
+                <p className="text-sm text-gray-500 mb-1.5">경쟁사 소개글·메뉴에서 확인된 키워드:</p>
                 <div className="flex flex-wrap gap-1.5">
                   {competitor.comp_keywords.present!.map((kw) => (
                     <span
