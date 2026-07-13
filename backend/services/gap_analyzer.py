@@ -811,6 +811,27 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
     except Exception as e:
         _logger.warning(f"ai_citations query failed: {e}")
 
+    # 경쟁사 실제 크롤링 텍스트 조회 (2026-07-13)
+    # competitor_place_crawler가 네이버 플레이스 /information, /menu 탭에서 수집한 원문.
+    # Gemini의 "이 경쟁사를 언급했을까" 추측(excerpt)은 소상공인급 경쟁사에 대해
+    # 거의 항상 빈 문자열을 반환해 실효성이 없었음(실측: 경쟁사 5곳x스캔3회 전부 공백) —
+    # 실제 공개 페이지에서 크롤링한 텍스트를 1순위 소스로 사용.
+    competitor_place_texts: dict[str, str] = {}  # {경쟁사명: 원문}
+    try:
+        comp_rows = (await execute(
+            supabase.table("competitors")
+            .select("name, place_intro_text, place_menu_sample")
+            .eq("business_id", business_id)
+            .eq("is_active", True)
+        )).data or []
+        for row in comp_rows:
+            name = row.get("name") or ""
+            text = " ".join(filter(None, [row.get("place_intro_text"), row.get("place_menu_sample")])).strip()
+            if name and text:
+                competitor_place_texts[name] = text
+    except Exception as e:
+        _logger.warning(f"competitors place_text query failed: {e}")
+
     # 경쟁사 점수 + 리뷰 발췌문 수집 (scan_results.competitor_scores JSONB)
     raw_comp_scores = scan.get("competitor_scores") or {}
     competitor_scores = []
@@ -824,15 +845,23 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
                 "score": float(data.get("score", 0)),
                 "breakdown": data.get("breakdown", {}),
             })
-            # Gemini 스캔 시 저장된 발췌문 수집 (scan.py에서 저장)
+            # 1순위: 실제 크롤링 텍스트 / 2순위: Gemini 시뮬레이션 추측 excerpt (scan.py 저장)
             excerpt = data.get("excerpt", "")
-            if excerpt and isinstance(excerpt, str):
-                competitor_review_excerpts.append(excerpt)
+            source_text = competitor_place_texts.get(comp_name) or (excerpt if isinstance(excerpt, str) else "")
+            if source_text:
+                competitor_review_excerpts.append(source_text)
                 # 경쟁사 이름별로도 저장 (키워드 출처 추적용)
                 if comp_name not in competitor_excerpts_by_name:
-                    competitor_excerpts_by_name[comp_name] = excerpt
+                    competitor_excerpts_by_name[comp_name] = source_text
                 else:
-                    competitor_excerpts_by_name[comp_name] += " " + excerpt
+                    competitor_excerpts_by_name[comp_name] += " " + source_text
+
+    # scan_results.competitor_scores에 없지만 competitors 크롤링 텍스트는 있는 경쟁사도 포함
+    # (스캔 이후 신규 등록됐거나 Gemini 매칭 실패로 competitor_scores에서 빠진 경우)
+    for comp_name, text in competitor_place_texts.items():
+        if comp_name not in competitor_excerpts_by_name:
+            competitor_excerpts_by_name[comp_name] = text
+            competitor_review_excerpts.append(text)
 
     # 블로그 진단 결과 — DB에 저장된 분석 결과를 GapAnalysis에 포함
     blog_diagnosis: dict | None = None

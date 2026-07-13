@@ -2536,4 +2536,22 @@ CREATE INDEX IF NOT EXISTS idx_ai_usage_log_created ON ai_usage_log(created_at D
 CREATE INDEX IF NOT EXISTS idx_ai_usage_log_provider ON ai_usage_log(provider, model, created_at DESC);
 
 ALTER TABLE ai_usage_log ENABLE ROW LEVEL SECURITY;
+
+-- ===========================================================
+-- 2026-07-13: 경쟁사 키워드 노출 기능 — 실제 크롤링 텍스트 보관
+-- 배경: 경쟁사 관리 > 키워드 격차 분석의 "경쟁사 독점"/"경쟁사별" 탭이
+-- Gemini의 LLM 추측(single_check_with_competitors) excerpt에만 의존해
+-- 소상공인급 경쟁사는 거의 항상 빈 문자열로 반환되어 항상 비활성 상태였음
+-- (실제 계정 데이터 검증: 경쟁사 5곳 x 스캔 3회 = 15건 전부 excerpt="").
+-- competitor_place_crawler.py가 이미 Playwright로 경쟁사 네이버 플레이스
+-- /information, /menu 탭을 방문해 텍스트를 파싱하지만 boolean(has_intro,
+-- has_menu)으로만 변환하고 원문은 버리고 있었음 — 신규 크롤링 없이 원문만
+-- 보관하도록 확장. 매주 목요일 03:00 enrich_competitor_details_job이
+-- 기존 competitors 전량에 자동 백필.
+-- ===========================================================
+
+ALTER TABLE competitors
+  ADD COLUMN IF NOT EXISTS place_intro_text TEXT,       -- 네이버 플레이스 /information 탭 소개글 원문 (최대 500자)
+  ADD COLUMN IF NOT EXISTS place_menu_sample TEXT,       -- 네이버 플레이스 /menu 탭 원문 (최대 500자)
+  ADD COLUMN IF NOT EXISTS place_text_updated_at TIMESTAMPTZ;
 -- service_role만 기록/조회 (백엔드 전용, 사용자 접근 불필요 — RLS 정책 미부여 시 기본 전면 차단)

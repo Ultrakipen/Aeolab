@@ -294,6 +294,7 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
             #   2) 홈 body에 "가격표" 키워드 있으면 True (스튜디오 등 비음식 업종)
             #   3) 정보(/info) 탭에서 "가격표" 확인 (홈에 없는 경우 대비)
             has_menu = False
+            menu_text = ""
 
             # 0) CSS selector: 메뉴·상품·가격 탭 링크 (href 패턴)
             try:
@@ -398,6 +399,20 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                         after_intro = info_text[idx+2:idx+500].strip()
                         has_intro = len(after_intro) > 50
 
+            # ── 소개글/메뉴 원문 보관 (키워드 격차 분석용, 2026-07-13) ──
+            # 위에서 boolean 판정에만 쓰던 info_text/menu_text를 그대로 버리지 않고
+            # 500자 이내로 보관 — 경쟁사 키워드 노출 분석의 실제 소스로 사용
+            # 알려진 제약: has_menu가 0)CSS selector 경로(line ~300)로 확정된 경우 /menu 탭을
+            # 방문하지 않아 menu_text가 빈 채로 남음 — 신규 페이지 방문 추가는 네이버 요청 증가로
+            # 이어져(차단 위험) 의도적으로 보완하지 않음. place_intro_text(/information, 항상 방문)는
+            # 이 경로에서도 정상 수집됨.
+            place_intro_text = ""
+            if info_text:
+                idx = info_text.find("소개")
+                if idx >= 0:
+                    place_intro_text = info_text[idx + 2:idx + 500].strip()
+            place_menu_sample = menu_text.strip()[:500] if menu_text else ""
+
             # ── 외부 웹사이트 URL 추출 ───────────────────────────────
             website_url = None
             try:
@@ -421,6 +436,8 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                 "has_recent_post": has_recent_post,
                 "has_menu": has_menu,
                 "has_intro": has_intro,
+                "place_intro_text": place_intro_text,
+                "place_menu_sample": place_menu_sample,
                 "photo_count": photo_count,
                 "website_url": website_url,
                 "partial_failures": partial_failures,
@@ -665,36 +682,45 @@ async def sync_competitor_place(
     # has_intro: 컬럼이 존재하면 저장 (없으면 별도 예외 처리)
     if data.get("has_intro") is not None:
         update_payload["has_intro"] = data["has_intro"]
+    # place_intro_text/place_menu_sample: 경쟁사 키워드 노출 분석용 원문 (2026-07-13)
+    if data.get("place_intro_text"):
+        update_payload["place_intro_text"] = data["place_intro_text"]
+    if data.get("place_menu_sample"):
+        update_payload["place_menu_sample"] = data["place_menu_sample"]
+    if data.get("place_intro_text") or data.get("place_menu_sample"):
+        update_payload["place_text_updated_at"] = now_iso
 
-    try:
-        await execute(
-            supabase.table("competitors")
-            .update(update_payload)
-            .eq("id", competitor_id)
-        )
-        _logger.info(
-            f"sync_competitor_place [{competitor_id}] 완료: "
-            f"reviews={data['review_count']}, rating={data['avg_rating']}, "
-            f"menu={data.get('has_menu')}, intro={data.get('has_intro')}, "
-            f"blog={blog_count}, seo={seo_score}"
-        )
-    except Exception as e:
-        # has_intro 컬럼 없는 경우 fallback: has_intro 제외하고 재시도
-        if "has_intro" in str(e):
-            _logger.warning(f"has_intro 컬럼 없음 [{competitor_id}] — 컬럼 제외 재시도")
-            update_payload.pop("has_intro", None)
-            try:
-                await execute(
-                    supabase.table("competitors")
-                    .update(update_payload)
-                    .eq("id", competitor_id)
-                )
-            except Exception as e2:
-                _logger.warning(f"sync_competitor_place DB 업데이트 실패 [{competitor_id}]: {e2}")
-                data["db_error"] = str(e2)
-        else:
-            _logger.warning(f"sync_competitor_place DB 업데이트 실패 [{competitor_id}]: {e}")
-            data["db_error"] = str(e)
+    optional_columns = ("has_intro", "place_intro_text", "place_menu_sample", "place_text_updated_at")
+
+    # 신규 컬럼(has_intro/place_intro_text 등) 미존재 시 fallback: 에러에 실제 언급된 컬럼만
+    # 한 번에 하나씩 제외하며 재시도 (여러 컬럼이 동시에 없어도 PostgREST는 1개씩만 보고하므로 루프 필요)
+    for _attempt in range(len(optional_columns) + 1):
+        try:
+            await execute(
+                supabase.table("competitors")
+                .update(update_payload)
+                .eq("id", competitor_id)
+            )
+            _logger.info(
+                f"sync_competitor_place [{competitor_id}] 완료: "
+                f"reviews={data['review_count']}, rating={data['avg_rating']}, "
+                f"menu={data.get('has_menu')}, intro={data.get('has_intro')}, "
+                f"blog={blog_count}, seo={seo_score}"
+            )
+            break
+        except Exception as e:
+            err_str = str(e)
+            missing = [c for c in optional_columns if c in err_str and c in update_payload]
+            if not missing:
+                _logger.warning(f"sync_competitor_place DB 업데이트 실패 [{competitor_id}]: {e}")
+                data["db_error"] = str(e)
+                break
+            _logger.warning(f"컬럼 없음 {missing} [{competitor_id}] — 제외 재시도")
+            for c in missing:
+                update_payload.pop(c, None)
+    else:
+        _logger.warning(f"sync_competitor_place DB 업데이트 재시도 소진 [{competitor_id}]")
+        data["db_error"] = "update retry exhausted"
 
     data["blog_mention_count"] = int(blog_count) if blog_count else 0
     data["website_seo_score"] = seo_score

@@ -991,21 +991,31 @@ async def get_competitor_detail(competitor_id: str, user=Depends(get_current_use
         )
 
     # 소유권 검증: competitor → business_id → user_id
-    comp = await execute(
-        supabase.table("competitors")
-        .select(
-            "id, name, address, is_active, created_at, "
-            "kakao_place_id, naver_place_id, "
-            "naver_review_count, naver_avg_rating, "
-            "has_faq, has_recent_post, has_menu, "
-            "naver_photo_count, naver_place_last_synced_at, "
-            "blog_mention_count, website_url, "
-            "website_seo_score, website_seo_result, detail_synced_at, "
-            "business_id"
-        )
-        .eq("id", competitor_id)
-        .maybe_single()
+    _comp_base_fields = (
+        "id, name, address, is_active, created_at, "
+        "kakao_place_id, naver_place_id, "
+        "naver_review_count, naver_avg_rating, "
+        "has_faq, has_recent_post, has_menu, "
+        "naver_photo_count, naver_place_last_synced_at, "
+        "blog_mention_count, website_url, "
+        "website_seo_score, website_seo_result, detail_synced_at, "
+        "business_id"
     )
+    try:
+        comp = await execute(
+            supabase.table("competitors")
+            .select(_comp_base_fields + ", place_intro_text, place_menu_sample")
+            .eq("id", competitor_id)
+            .maybe_single()
+        )
+    except Exception:
+        # place_intro_text/place_menu_sample 컬럼 마이그레이션 전 fallback (2026-07-13)
+        comp = await execute(
+            supabase.table("competitors")
+            .select(_comp_base_fields)
+            .eq("id", competitor_id)
+            .maybe_single()
+        )
     if not comp.data:
         raise HTTPException(status_code=404, detail="경쟁사를 찾을 수 없습니다")
 
@@ -1035,6 +1045,15 @@ async def get_competitor_detail(competitor_id: str, user=Depends(get_current_use
 
         comp_excerpts: list[str] = []
         comp_name = comp.data.get("name", "")
+
+        # 1순위: 실제 크롤링 텍스트 (competitor_place_crawler가 수집한 원문, 2026-07-13)
+        real_text = " ".join(filter(None, [
+            comp.data.get("place_intro_text"), comp.data.get("place_menu_sample"),
+        ])).strip()
+        if real_text:
+            comp_excerpts.append(real_text)
+
+        # 2순위: Gemini 시뮬레이션 추측 excerpt (scan_results.competitor_scores, 신뢰도 낮음)
         for row in scan_rows:
             scores = row.get("competitor_scores") or {}
             # competitor_scores: {name: {score, excerpt, ...}}
