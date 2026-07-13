@@ -14,7 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { CATEGORY_GROUPS } from "@/lib/categories";
+import { FLAT_CATEGORY_GROUPS, FLAT_CATEGORY_MAP } from "@/lib/categories";
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import BusinessSearchDropdown from "@/components/dashboard/BusinessSearchDropdown";
 import { mapNaverCategory as mapKakaoCategory } from "@/lib/categories";
@@ -59,8 +59,8 @@ function CategoryDropdown({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const selected = CATEGORY_GROUPS.find((g) => g.value === value);
-  const cfg = selected ? (CATEGORY_ICON_CONFIG[selected.value] ?? null) : null;
+  const selected = FLAT_CATEGORY_MAP[value];
+  const cfg = selected ? (CATEGORY_ICON_CONFIG[selected.group] ?? null) : null;
   const SelIcon = cfg?.icon ?? null;
 
   return (
@@ -84,33 +84,38 @@ function CategoryDropdown({
 
       {open && (
         <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
-          <div className="py-1 max-h-64 overflow-y-auto">
-            {CATEGORY_GROUPS.map((g) => {
-              const c = CATEGORY_ICON_CONFIG[g.value];
-              const Icon = c?.icon ?? null;
-              const isSelected = g.value === value;
-              return (
-                <button
-                  key={g.value}
-                  type="button"
-                  onClick={() => { onChange(g.value); setOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-3 text-base transition-colors
-                    ${isSelected ? "bg-blue-50" : "hover:bg-gray-50"}`}
-                >
-                  {c && Icon ? (
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br ${c.gradient} shrink-0 shadow-sm`}>
-                      <Icon className="w-5 h-5 text-white" strokeWidth={1.8} />
-                    </div>
-                  ) : (
-                    <span className="text-xl w-9 text-center">{g.emoji}</span>
-                  )}
-                  <span className={`flex-1 text-left font-medium text-base ${isSelected ? "text-blue-700" : "text-gray-700"}`}>
-                    {g.label}
-                  </span>
-                  {isSelected && <Check className="w-5 h-5 text-blue-600 shrink-0" />}
-                </button>
-              );
-            })}
+          <div className="py-1 max-h-72 overflow-y-auto">
+            {FLAT_CATEGORY_GROUPS.map((grp) => (
+              <div key={grp.groupLabel}>
+                <div className="px-3 pt-2 pb-1 text-sm font-bold text-gray-400 sticky top-0 bg-white">{grp.groupLabel}</div>
+                {grp.items.map((item) => {
+                  const c = CATEGORY_ICON_CONFIG[item.group];
+                  const Icon = c?.icon ?? null;
+                  const isSelected = item.value === value;
+                  return (
+                    <button
+                      key={item.value}
+                      type="button"
+                      onClick={() => { onChange(item.value); setOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 text-base transition-colors
+                        ${isSelected ? "bg-blue-50" : "hover:bg-gray-50"}`}
+                    >
+                      {c && Icon ? (
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br ${c.gradient} shrink-0 shadow-sm`}>
+                          <Icon className="w-4 h-4 text-white" strokeWidth={1.8} />
+                        </div>
+                      ) : (
+                        <span className="text-lg w-8 text-center">📌</span>
+                      )}
+                      <span className={`flex-1 text-left font-medium text-base ${isSelected ? "text-blue-700" : "text-gray-700"}`}>
+                        {item.label}
+                      </span>
+                      {isSelected && <Check className="w-5 h-5 text-blue-600 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -543,7 +548,7 @@ export default function OnboardingPage() {
                     <div>
                       <span className="text-gray-500 block">업종</span>
                       <span className="font-medium text-gray-800">
-                        {CATEGORY_GROUPS.find(g => g.value === form.category)?.label || form.category}
+                        {FLAT_CATEGORY_MAP[form.category]?.label || form.category}
                       </span>
                     </div>
                   </div>
