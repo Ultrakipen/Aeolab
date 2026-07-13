@@ -15,17 +15,18 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
     { label: "ChatGPT가 내 가게를 아는지 확인" },
     { label: "스마트플레이스 부족 항목 체크" },
     { label: "다음 주 변화는 알 수 없음", locked: true },
-    { label: "경쟁사와 순위 비교 불가", locked: true },
+    { label: "경쟁사 지속 추적·상세 비교 불가", locked: true },
     { label: "개선 효과 추적 불가", locked: true },
   ];
 
   const subscriptionFeatures = [
     { label: "매주 네이버 순위 변화 자동 추적" },
     { label: "순위가 오르면 카톡으로 바로 알림" },
-    { label: "경쟁사 3곳과 매주 비교" },
+    { label: "경쟁사 3곳 직접 등록 + 1:1 상세 비교" },
     { label: "이번 주 해야 할 1가지 개선 가이드" },
     { label: "30일 추세로 개선 효과 직접 확인" },
-    { label: "소개글 Q&A 5개 자동 생성 + 1번에 복사" },
+    { label: "우리 가게 데이터 기반 소개글 Q&A 5개 자동 생성" },
+    { label: "AI 질의 50회 표본으로 결과 신뢰도 향상" },
   ];
 
   return (
