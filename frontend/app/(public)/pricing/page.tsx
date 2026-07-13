@@ -90,7 +90,7 @@ export default function PricingPage() {
                 </div>
               )}
               {plan.valueTag && (
-                <div className={`mt-3 text-xs md:text-sm font-medium px-3 py-1.5 rounded-lg self-start ${
+                <div className={`mt-3 text-sm md:text-base font-medium px-3 py-1.5 rounded-lg self-start ${
                   plan.highlight ? "bg-blue-500/50 text-blue-100" : "bg-green-50 text-green-700 border border-green-200"
                 }`}>
                   {plan.valueTag}
@@ -153,7 +153,7 @@ export default function PricingPage() {
               <div className="text-2xl font-bold text-gray-900 mb-0.5">{plan.name}</div>
               <div className="text-sm md:text-base text-gray-500 mb-1">{plan.description}</div>
               {plan.valueTag && (
-                <div className="text-xs md:text-sm font-medium mb-3 px-3 py-1.5 rounded-lg inline-block self-start bg-green-50 text-green-700 border border-green-200">
+                <div className="text-sm md:text-base font-medium mb-3 px-3 py-1.5 rounded-lg inline-block self-start bg-green-50 text-green-700 border border-green-200">
                   {plan.valueTag}
                 </div>
               )}
