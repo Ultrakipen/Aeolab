@@ -141,6 +141,10 @@ class ChatGPTScanner:
         # "측정 안 됨"으로 분모에서 제외한다 (실패를 "언급 안 됨"으로 오집계 방지)
         return {
             "platform": "chatgpt",
+            # ResultTable/PlatformDistributionChart/ChannelScoreCards가 노출여부 판정에
+            # mentioned를 직접 참조 — 누락 시 exposure_freq가 있어도 "미노출"로 잘못 표시됨
+            # (2026-07-13 발견: scan_basic/scan_all 전 구간에서 mentioned 누락 확인)
+            "mentioned": mention_count > 0,
             "exposure_freq": mention_count,
             "exposure_rate": (mention_count / success_count) if success_count > 0 else 0.0,
             "citations": citations[:5],

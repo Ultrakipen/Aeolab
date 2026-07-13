@@ -388,7 +388,7 @@ async def get_last_known_visibility(business_id: str) -> tuple[Optional[bool], O
             .select("naver_ai_tab_visible, naver_ai_tab_excerpt")
             .eq("business_id", business_id)
             .not_.is_("naver_ai_tab_visible", "null")
-            .order("created_at", desc=True)
+            .order("scanned_at", desc=True)
             .limit(1)
         )
         if res and res.data:
