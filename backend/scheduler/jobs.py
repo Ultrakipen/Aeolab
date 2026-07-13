@@ -348,8 +348,10 @@ async def daily_scan_all():
     - biz           : 매일 풀스캔
     """
     from db.supabase_client import get_client
-    from services.ai_scanner.multi_scanner import MultiAIScanner
+    from services.ai_scanner.multi_scanner import MultiAIScanner, _CATEGORY_KO
     from services.score_engine import calculate_score
+    from services.kakao_visibility import get_kakao_visibility
+    from services.website_checker import check_website_seo
 
     try:
         supabase = get_client()
@@ -474,6 +476,23 @@ async def daily_scan_all():
                 else:
                     _naver_captcha_count = 0  # 정상 응답 시 카운터 리셋
 
+                # 카카오맵 가시성 + 웹사이트 SEO 체크 — score_engine의 local_map_score·schema_seo(Track2 30%)가
+                # 이 값을 읽는데 자동 스캔에서 한 번도 호출되지 않아 매번 빈 값({})으로 채점되고 있었음
+                # (2026-07-14 발견: 수동 전체 스캔 직후엔 정상 반영되다가 다음 자동 스캔에서 null로 되돌아감).
+                # Playwright 아닌 경량 API/HTTP 체크라 세마포어·차단 위험 없이 추가.
+                _sched_keyword_ko = _CATEGORY_KO.get(biz.get("category", ""), biz.get("category", ""))
+                _sched_kakao_data, _sched_website_check = await asyncio.gather(
+                    get_kakao_visibility(biz["name"], _sched_keyword_ko, biz.get("region", "")),
+                    check_website_seo(biz.get("website_url", "") or ""),
+                    return_exceptions=True,
+                )
+                if isinstance(_sched_kakao_data, Exception):
+                    logger.warning(f"[daily_scan_all] kakao_visibility 실패 biz={biz['id']}: {_sched_kakao_data}")
+                    _sched_kakao_data = None
+                if isinstance(_sched_website_check, Exception):
+                    logger.warning(f"[daily_scan_all] website_seo 체크 실패 biz={biz['id']}: {_sched_website_check}")
+                    _sched_website_check = None
+
                 # 블로그 covered 키워드를 biz에 병합해 keyword_gap 정확도 향상
                 _sched_blog_json = biz.get("blog_analysis_json") or {}
                 _sched_blog_covered = (_sched_blog_json.get("keyword_coverage") or {}).get("present") or []
@@ -481,7 +500,8 @@ async def daily_scan_all():
                     biz = {**biz, "blog_covered_keywords": " ".join(_sched_blog_covered)}
                 _sched_blog_kw_cov = float(biz.get("blog_keyword_coverage") or 0)
                 _sched_kw_rate = _sched_blog_kw_cov / 100 if _sched_blog_kw_cov >= 5 else None
-                score = calculate_score(result, biz, keyword_coverage_rate=_sched_kw_rate)
+                _sched_combined_result = {**result, "kakao": _sched_kakao_data or {}, "website_check": _sched_website_check or {}}
+                score = calculate_score(_sched_combined_result, biz, keyword_coverage_rate=_sched_kw_rate)
 
                 naver_channel = score.get("naver_channel_score")
                 global_channel = score.get("global_channel_score")
@@ -605,6 +625,8 @@ async def daily_scan_all():
                             "chatgpt_result": result.get("chatgpt"),
                             "naver_result": result.get("naver"),
                             "google_result": result.get("google"),
+                            "kakao_result": _sched_kakao_data,
+                            "website_check_result": _sched_website_check,
                             "exposure_freq": result.get("gemini", {}).get("exposure_freq", 0),
                             "total_score": score["total_score"],
                             "unified_score": score.get("unified_score", score["total_score"]),
