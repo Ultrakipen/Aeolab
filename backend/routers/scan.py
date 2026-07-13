@@ -2931,27 +2931,28 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             if "has_intro" in smart_place_check:
                 biz = {**biz, "has_intro": smart_place_check["has_intro"]}
 
-        # AI탭 스캔 (P2 — NAVER_AI_TAB_ENABLED=true 시 실행, 별도 세마포어 _AI_TAB_SEMAPHORE)
+        # AI탭 결과 — scan_all() 내부에서 이미 스캔 완료(_scan_queries[:4], multi_scanner.py 참고).
+        # 2026-07-14 수정: 기존엔 이 result를 버리고 별도로 scan_batch()를 다시 호출해
+        # Naver AI탭을 스캔당 최대 6회(scan_all 4회 + 중복 2회)까지 조회하고 있었음
+        # (호출 그래프 확인: jobs.py의 daily_scan_all은 이미 result["naver_ai_tab"]만 사용 —
+        # 이 엔드포인트만 별도로 재스캔하던 것으로, 의도된 재시도가 아니라 중복 구현이었음).
+        # 재스캔 제거 후 result["naver_ai_tab"]에서 바로 파생 — Naver 접근 횟수 감소.
         from services.ai_scanner import naver_ai_tab_scanner as _naver_ai_tab
         _ai_tab_visible: "bool | None" = None
         _ai_tab_excerpt: "str | None" = None
-        if await _naver_ai_tab._get_ai_tab_enabled():
-            try:
-                _ai_tab_res = await _naver_ai_tab.scan_batch(_scan_queries[:2], req.business_name)
-                if _ai_tab_res:
-                    # tab_available=True(AI탭 섹션 DOM 존재) 인 경우만 visible로 인정
-                    # body fallback(tab_available=False)만으로 mentioned=True 시 거짓 양성 방지
-                    _ai_tab_visible = any(
-                        bool((r or {}).get("mentioned")) and bool((r or {}).get("tab_available"))
-                        for r in _ai_tab_res.values()
-                    )
-                    _ai_tab_excerpt = next(
-                        ((r or {}).get("excerpt") for r in _ai_tab_res.values()
-                         if (r or {}).get("excerpt") and (r or {}).get("tab_available")),
-                        None,
-                    )
-            except Exception as _e_tab:
-                _logger.warning(f"naver_ai_tab scan_batch failed (full biz={req.business_id}): {_e_tab}")
+        _ai_tab_raw_full = result.get("naver_ai_tab") or {}
+        if _ai_tab_raw_full:
+            # tab_available=True(AI탭 섹션 DOM 존재) 인 경우만 visible로 인정
+            # body fallback(tab_available=False)만으로 mentioned=True 시 거짓 양성 방지
+            _ai_tab_visible = any(
+                bool((r or {}).get("mentioned")) and bool((r or {}).get("tab_available"))
+                for r in _ai_tab_raw_full.values()
+            )
+            _ai_tab_excerpt = next(
+                ((r or {}).get("excerpt") for r in _ai_tab_raw_full.values()
+                 if (r or {}).get("excerpt") and (r or {}).get("tab_available")),
+                None,
+            )
 
         # 이번 스캔에서 AI탭이 측정되지 않았으면(비활성·차단·타임아웃) 최근 실측값 carry-forward
         # — "측정 예정"으로 되돌아가 보이는 플리커 방지
