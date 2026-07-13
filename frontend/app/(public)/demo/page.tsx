@@ -8,6 +8,7 @@ import { getBriefingEligibility } from "@/lib/userGroup";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import ResultSummaryHero from "@/components/common/ResultSummaryHero";
 import { aiTabTile, briefingTile, rankTile, makeTile, type ChannelTile } from "@/lib/scoreLabels";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 // ── 업종 / 지역 선택지 ────────────────────────────────────────────────
 const CATEGORIES = [
@@ -40,6 +41,10 @@ const CATEGORIES = [
 ];
 
 const REGIONS = ["창원시", "강남구", "홍대·마포", "수원시", "부산 해운대", "대구 중구"];
+
+// 업종 칩 26개를 전부 기본 노출하면 선택기가 화면 대부분을 차지해 결과 확인이 늦어짐 →
+// 손수 작성한 예시(실사례 2개 + 직접 템플릿 5개, getMock()의 templates 키와 동일)만 기본 노출
+const DEFAULT_VISIBLE_CATEGORIES = ["photo", "music", "restaurant", "cafe", "beauty", "education", "medical"];
 
 // 네이버 AI 브리핑 분류는 lib/userGroup.ts getBriefingEligibility 단일 소스 사용
 
@@ -484,6 +489,8 @@ type Mock = ReturnType<typeof getMock>;
 export default function DemoPage() {
   const [category, setCategory] = useState("photo");
   const [region, setRegion]     = useState("창원시");
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [showJourney, setShowJourney] = useState(false);
   const briefingCats = useBriefingCategories();
   const m = getMock(category, region) as Mock & {
     businessName: string; query: string; aiExcerpt: string; aiExcerptFail: boolean;
@@ -508,6 +515,12 @@ export default function DemoPage() {
 
   // 네이버 AI 브리핑 노출 상태 (단일 소스 헬퍼 사용)
   const briefingStatus = getBriefingEligibility(category, false, briefingCats?.active, briefingCats?.likely);
+
+  // 업종 칩 압축 — 기본은 손수 작성 예시만, 나머지는 "더보기". 현재 선택된 업종은 항상 노출.
+  const visibleCategories = showAllCategories
+    ? CATEGORIES
+    : CATEGORIES.filter((c) => DEFAULT_VISIBLE_CATEGORIES.includes(c.value) || c.value === category);
+  const hiddenCategoryCount = CATEGORIES.length - visibleCategories.length;
 
   // ── 종합 결론 히어로 (대시보드 HeroCard 구조 복제) ──────────────────────
   // 네이버 검색 타일: demo는 키워드 커버리지 대신 지역검색 순위(실측 신호)로 표시
@@ -539,7 +552,7 @@ export default function DemoPage() {
   const channelDefs: Record<string, ChannelDef> = {
     briefing:    { icon: "✨", label: "네이버 AI 브리핑", border: "border-purple-400", note: briefingNote },
     naverSearch: { icon: "🔍", label: "네이버 일반검색", border: "border-green-400", items: naverSearchItems },
-    aitab:       { icon: "🤖", label: "네이버 AI탭", border: "border-blue-400", note: "네이버 AI탭은 모든 업종 대상(2026-06-25 정식 출시). 소개글·리뷰 키워드를 보강하면 AI탭 답변 후보에 들어갑니다." },
+    aitab:       { icon: "🤖", label: "네이버 AI탭", border: "border-blue-400", note: "모든 업종 대상 — 소개글·리뷰 키워드를 보강하면 AI탭 답변 후보에 들어갑니다." },
     global:      { icon: "🌐", label: "글로벌 AI (ChatGPT·Gemini)", border: "border-slate-400", items: globalItems },
   };
   // 업종그룹 순서분기 — 대시보드 InsightZone과 동일
@@ -640,7 +653,7 @@ export default function DemoPage() {
           <div className="mb-3 md:mb-4">
             <p className="text-sm font-medium text-gray-500 mb-2">업종</p>
             <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((c) => (
+              {visibleCategories.map((c) => (
                 <button
                   key={c.value}
                   onClick={() => setCategory(c.value)}
@@ -656,6 +669,14 @@ export default function DemoPage() {
                   )}
                 </button>
               ))}
+              {hiddenCategoryCount > 0 && (
+                <button
+                  onClick={() => setShowAllCategories(true)}
+                  className="text-sm md:text-base px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-dashed border-gray-300 text-gray-500 font-medium hover:border-blue-300 hover:text-blue-600 transition-colors"
+                >
+                  + {hiddenCategoryCount}개 업종 더보기
+                </button>
+              )}
             </div>
           </div>
 
@@ -933,6 +954,19 @@ export default function DemoPage() {
                 <p className="text-sm text-gray-500 mt-0.5">"{m.query}" 로 검색했을 때 예시</p>
               </div>
 
+              <button
+                onClick={() => setShowJourney((v) => !v)}
+                className="w-full flex items-center justify-between px-4 md:px-6 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-50"
+                aria-expanded={showJourney}
+              >
+                <span className="text-sm font-semibold text-gray-700">
+                  {showJourney ? "접기" : "네이버·블로그·AI 검색 과정 자세히 보기"}
+                </span>
+                {showJourney ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />}
+              </button>
+
+              {showJourney && (
+              <>
               {/* STEP 1: 네이버 */}
               <div className="px-4 md:px-6 py-4 border-b border-gray-50">
                 <div className="flex items-center gap-2 mb-3">
@@ -1113,6 +1147,8 @@ export default function DemoPage() {
 
                 </div>
               </div>
+              </>
+              )}
             </div>
 
             {/* 항목별 분석 — 채널 구조로 재배치 (대시보드 채널 taxonomy와 일치) */}
