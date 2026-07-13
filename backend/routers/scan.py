@@ -2953,6 +2953,11 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             except Exception as _e_tab:
                 _logger.warning(f"naver_ai_tab scan_batch failed (full biz={req.business_id}): {_e_tab}")
 
+        # 이번 스캔에서 AI탭이 측정되지 않았으면(비활성·차단·타임아웃) 최근 실측값 carry-forward
+        # — "측정 예정"으로 되돌아가 보이는 플리커 방지
+        if _ai_tab_visible is None:
+            _ai_tab_visible, _ai_tab_excerpt = await _naver_ai_tab.get_last_known_visibility(req.business_id)
+
         # naver_data: naver_visibility_multi 결과 + AI 브리핑 스캔 결과 병합
         naver_scanner_result_full = result.get("naver") or {}
         naver_data_full = {**(naver_visibility_full if isinstance(naver_visibility_full, dict) else {}), **naver_scanner_result_full}

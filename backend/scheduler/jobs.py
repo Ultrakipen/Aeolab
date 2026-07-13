@@ -590,6 +590,12 @@ async def daily_scan_all():
                                 _sched_ai_tab_excerpt = (_v["excerpt"] or "")[:500] or None
                                 break
 
+                # 이번 스캔이 경량 스캔(scan_basic)이었거나 AI탭 측정이 실패해 None이면
+                # 최근 실측값을 carry-forward — "측정 예정"으로 되돌아가 보이는 플리커 방지
+                if _sched_ai_tab_visible is None:
+                    from services.ai_scanner.naver_ai_tab_scanner import get_last_known_visibility
+                    _sched_ai_tab_visible, _sched_ai_tab_excerpt = await get_last_known_visibility(biz["id"])
+
                 _insert_res = await _db(
                     supabase.table("scan_results").insert(
                         {

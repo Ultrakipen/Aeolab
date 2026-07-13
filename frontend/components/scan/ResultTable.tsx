@@ -12,7 +12,7 @@ interface AIResult {
   naver_place_rank?: number
   blog_mentions?: number
   is_smart_place?: boolean
-  // naver_ai_tab 전용 — null: 스캐너 P2 대기 중, boolean: 실측값
+  // naver_ai_tab 전용 — null: 아직 실측 이력 없음(신규 사업장 등), boolean: 실측값(최근 이력 carry-forward 포함)
   _naver_ai_tab_visible?: boolean | null
   sample_size?: number
 }
@@ -119,8 +119,8 @@ function NaverSection({
           <td className="px-4 md:px-6 py-3">
             {aiTabVisible === null || aiTabVisible === undefined ? (
               <div className="space-y-1">
-                <span className="text-gray-600 text-sm font-medium block">측정 예정 (6월+)</span>
-                <span className="text-gray-500 text-sm block">네이버 AI탭 정식 출시 후 자동 측정됩니다</span>
+                <span className="text-gray-600 text-sm font-medium block">측정 예정</span>
+                <span className="text-gray-500 text-sm block">다음 정기 스캔에서 자동 측정됩니다</span>
               </div>
             ) : aiTabVisible ? (
               <span className="inline-flex items-center gap-1 text-green-600 font-medium text-sm">

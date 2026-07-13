@@ -77,7 +77,7 @@ export type PlatformResult = {
   in_briefing?: boolean;
   in_ai_overview?: boolean;
   error?: string;
-  // naver_ai_tab 전용 — null: 스캐너 미활성(P2 대기), boolean: 실측값
+  // naver_ai_tab 전용 — null: 아직 실측 이력 없음(신규 사업장 등), boolean: 실측값(최근 이력 carry-forward 포함)
   _naver_ai_tab_visible?: boolean | null;
   excerpt?: string | null;
   // Gemini/ChatGPT 다중 쿼리 목록 (단일 쿼리 플랫폼은 없거나 1개)

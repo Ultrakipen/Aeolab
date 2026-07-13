@@ -371,6 +371,34 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
             await record_usage_mb(_bw_counter[0] / 1024 / 1024)
 
 
+async def get_last_known_visibility(business_id: str) -> tuple[Optional[bool], Optional[str]]:
+    """이번 스캔에서 AI탭이 측정되지 않았을 때(scan_basic 경량일·차단·타임아웃) 참조할
+    해당 사업장의 가장 최근 실측값. None을 "미노출"로 오인해 덮어쓰지 않기 위한 carry-forward.
+
+    scan_results.naver_ai_tab_visible은 스캔마다 새로 INSERT되며 미측정 시 None으로 남는데,
+    대시보드가 최신 1건만 보여줘 실측 있던 값이 다음날 "측정 예정"으로 되돌아가 보이는 문제 방지.
+
+    Returns: (naver_ai_tab_visible, naver_ai_tab_excerpt) — 이력 없으면 (None, None)
+    """
+    try:
+        from db.supabase_client import get_client, execute
+        supabase = get_client()
+        res = await execute(
+            supabase.table("scan_results")
+            .select("naver_ai_tab_visible, naver_ai_tab_excerpt")
+            .eq("business_id", business_id)
+            .not_.is_("naver_ai_tab_visible", "null")
+            .order("created_at", desc=True)
+            .limit(1)
+        )
+        if res and res.data:
+            row = res.data[0]
+            return row.get("naver_ai_tab_visible"), row.get("naver_ai_tab_excerpt")
+    except Exception as e:
+        _logger.debug(f"[naver_ai_tab] get_last_known_visibility 조회 실패 (무시): {e}")
+    return None, None
+
+
 async def scan_batch(queries: list[str], business_name: str) -> dict:
     """여러 쿼리에 대해 네이버 AI탭 스캔을 순차 실행한다.
 

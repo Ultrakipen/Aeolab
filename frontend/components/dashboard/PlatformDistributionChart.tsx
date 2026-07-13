@@ -89,7 +89,7 @@ function PlatformRow({
       ? 'AI탭 노출됨'
       : tabVisible === false
       ? '미노출'
-      : '측정 예정 (6월+)'
+      : '측정 예정'
     const statusClass = tabVisible === true
       ? 'text-sm font-semibold'
       : tabVisible === null || tabVisible === undefined
