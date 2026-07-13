@@ -106,7 +106,7 @@ export function naverSeoTile(args: {
 export function aiTabTile(visible: boolean | null | undefined): ChannelTile {
   if (visible === true)  return makeTile("naver-aitab", "네이버 AI탭", "good", "노출 중", "AI탭 답변 있음");
   if (visible === false) return makeTile("naver-aitab", "네이버 AI탭", "warn", "아직 미노출", "설정 보강하면 가능");
-  return makeTile("naver-aitab", "네이버 AI탭", "pending", "준비 중", "정식 공개 후 측정");
+  return makeTile("naver-aitab", "네이버 AI탭", "pending", "준비 가능", "가이드로 설정하기");
 }
 
 /** AI 브리핑 타일 (DashboardHeroCard naverBriefingCard) */
