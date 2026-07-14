@@ -23,8 +23,13 @@ def _get_playwright_sem():
     from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
     return PLAYWRIGHT_SEMAPHORE
 
-# place_name 검증: pcmap 페이지 헤더에 나타나는 비정상 값 목록
-_INVALID_PLACE_NAMES: set[str] = {"플레이스", "네이버", "지도", "place", "naver", "map"}
+# place_name 검증: pcmap 페이지 헤더/오버레이(모달·팝업 닫기 버튼 등)에 나타나는 비정상 값 목록
+# "페이지 닫기" 실사고(2026-07-14): 경쟁사 5곳이 전부 이 문자열을 업체명으로 오인식해
+# 블로그 검색 쿼리가 동일해지고, blog_mention_count가 5곳 모두 같은 값(296)으로 오염됨
+_INVALID_PLACE_NAMES: set[str] = {
+    "플레이스", "네이버", "지도", "place", "naver", "map",
+    "페이지 닫기", "닫기", "확인", "동의", "취소", "더보기", "홈",
+}
 
 # User-Agent 로테이션 (Chrome 최신 버전 교대 — 단일 UA 봇 패턴 탐지 회피)
 _USER_AGENTS = [
