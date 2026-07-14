@@ -21,7 +21,7 @@ interface CompetitorWithPlace {
   website_url?: string | null;
   website_seo_score?: number | null;
   website_seo_result?: Record<string, boolean | number | string> | null;
-  comp_keywords?: Record<string, string[]> | null;
+  comp_keywords?: string[] | null;  // DB 컬럼이 TEXT[] — 경쟁사 자체 보유 키워드 목록(covered)만 저장됨
   // 신규 필드 (v5.5)
   place_has_intro?: boolean;
   ai_excerpt?: string | null;
@@ -632,7 +632,7 @@ export function CompetitorPlaceCard({
             requiredPlan="창업패키지"
             feature="경쟁사 키워드 분석"
           />
-        ) : (competitor.comp_keywords?.covered?.length ?? 0) === 0
+        ) : (competitor.comp_keywords?.length ?? 0) === 0
           && competitorOnlyKeywords.length === 0
           && pioneerKeywords.length === 0 ? (
           <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
@@ -641,11 +641,11 @@ export function CompetitorPlaceCard({
         ) : (
           <div className="space-y-3">
             {/* covered 키워드 — 경쟁사 소개글/메뉴 원문에서 실제로 확인된 키워드 */}
-            {(competitor.comp_keywords?.covered?.length ?? 0) > 0 && (
+            {(competitor.comp_keywords?.length ?? 0) > 0 && (
               <div>
                 <p className="text-sm text-gray-500 mb-1.5">경쟁사 소개글·메뉴에서 확인된 키워드:</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {competitor.comp_keywords!.covered!.map((kw) => (
+                  {competitor.comp_keywords!.map((kw) => (
                     <span
                       key={kw}
                       className="bg-blue-100 text-blue-700 text-sm px-2.5 py-0.5 rounded-full border border-blue-200 font-medium"

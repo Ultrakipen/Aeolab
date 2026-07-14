@@ -722,9 +722,12 @@ async def sync_competitor_place(
     if data.get("place_intro_text") or data.get("place_menu_sample"):
         update_payload["place_text_updated_at"] = now_iso
     if comp_keywords_covered:
-        update_payload["comp_keywords"] = {"covered": comp_keywords_covered}
+        # comp_keywords 컬럼은 TEXT[](단순 문자열 배열) — {"covered": [...]} 같은 객체를 넣으면
+        # "expected JSON array" 에러로 update() 전체가 실패함(2026-07-14 백필 중 실측 발견).
+        # 이 컬럼엔 covered 목록만 저장하므로 배열 그대로 저장.
+        update_payload["comp_keywords"] = comp_keywords_covered
 
-    optional_columns = ("has_intro", "place_intro_text", "place_menu_sample", "place_text_updated_at")
+    optional_columns = ("has_intro", "place_intro_text", "place_menu_sample", "place_text_updated_at", "comp_keywords")
 
     # 신규 컬럼(has_intro/place_intro_text 등) 미존재 시 fallback: 에러에 실제 언급된 컬럼만
     # 한 번에 하나씩 제외하며 재시도 (여러 컬럼이 동시에 없어도 PostgREST는 1개씩만 보고하므로 루프 필요)

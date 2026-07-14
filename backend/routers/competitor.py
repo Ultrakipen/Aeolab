@@ -1030,12 +1030,13 @@ async def get_competitor_detail(competitor_id: str, user=Depends(get_current_use
     if not biz.data or biz.data["user_id"] != user["id"]:
         raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
 
-    # 경쟁사 자체 키워드 프로필(comp_keywords.covered)은 sync_competitor_place()가 크롤링 직후
-    # 계산해 DB에 저장한 값을 그대로 사용한다 (2026-07-14) — 이 엔드포인트에서 다시 계산하면
-    # "내 가게 텍스트"가 없어 review_excerpts에 경쟁사 텍스트를 잘못 넣는 버그가 재발하기 쉬움.
+    # 경쟁사 자체 키워드 프로필은 sync_competitor_place()가 크롤링 직후 계산해 DB에 저장한
+    # 값을 그대로 사용한다 (2026-07-14) — 이 엔드포인트에서 다시 계산하면 "내 가게 텍스트"가
+    # 없어 review_excerpts에 경쟁사 텍스트를 잘못 넣는 버그가 재발하기 쉬움.
+    # comp_keywords 컬럼은 TEXT[](단순 배열) — covered 목록만 저장됨.
     # "missing"/"pioneer"(내 가게 대비 격차)는 여기서 다루지 않음 — gap_analyzer.py의
     # competitor_keyword_sources/pioneer_keywords가 유일한 정답 소스이며 프론트가 그쪽을 사용한다.
-    comp_keywords: dict = comp.data.get("comp_keywords") or {}
+    comp_keywords: list[str] = comp.data.get("comp_keywords") or []
 
     # place_intro_text/place_menu_sample은 서버 내부 키워드 분석용 원문(제3자 크롤링 텍스트)이라
     # 프론트에서 쓰지 않음 — 데이터 최소화 원칙상 응답에서 제외

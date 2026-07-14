@@ -45,7 +45,7 @@ interface Competitor {
   website_url?: string | null
   website_seo_score?: number | null
   website_seo_result?: Record<string, boolean | number | string> | null
-  comp_keywords?: Record<string, string[]> | null
+  comp_keywords?: string[] | null  // DB 컬럼이 TEXT[] — 경쟁사 자체 보유 키워드(covered)만 저장됨
   detail_synced_at?: string | null
   // 신규 필드 (v5.5)
   place_has_intro?: boolean
