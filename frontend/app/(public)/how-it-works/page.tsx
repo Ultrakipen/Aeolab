@@ -202,6 +202,9 @@ export default function HowItWorksPage() {
             따라서 AEOlab은 <strong>정보형 검색 쿼리에서의 AI 검색 노출을 집중 분석합니다.</strong>
             "우리 동네 맛집", "근처 카페 추천"처럼 AI가 다양한 옵션을 제안하는 검색에서 사업장이 먼저 언급되도록 최적화합니다.
           </div>
+          <p className="text-sm text-gray-500 mt-2 leading-relaxed break-keep">
+            ※ 여기서 &lsquo;정보형&rsquo;은 검색 쿼리의 의도 분류입니다. 아래 1단계에 나오는 &lsquo;정보형 AI 브리핑&rsquo;(가게 카드형인 &lsquo;플레이스형&rsquo;과 대비되는 AI 브리핑 유형)과는 다른 개념이니 혼동하지 마세요.
+          </p>
         </section>
 
         {/* ─── §3.6 네이버 공식 발표 데이터 인용 박스 ─── */}
