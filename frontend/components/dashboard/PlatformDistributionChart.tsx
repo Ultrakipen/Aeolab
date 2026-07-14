@@ -207,26 +207,41 @@ export function PlatformDistributionChart({
           </span>
         </div>
         <div className="space-y-2 pl-4">
-          {isNaverInactive ? (
-            <>
-              <div className="flex items-center gap-3">
-                <div className="w-36 shrink-0 text-sm text-gray-500 font-medium truncate">
-                  네이버 AI 브리핑
+          {isNaverInactive ? (() => {
+            // 플레이스형(가게 카드 요약형)만 이 업종 미대상 — 정보형(블로그·콘텐츠 출처 멀티출처형)은
+            // 업종 제한이 없어 실측 노출될 수 있음. scoreLabels.ts briefingTile()과 동일 문구로 통일.
+            const infoTypeExposed = results['naver']?.in_briefing === true
+            return (
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="w-36 shrink-0 text-sm text-gray-500 font-medium truncate">
+                    네이버 AI 브리핑
+                  </div>
+                  <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                    {infoTypeExposed && (
+                      <div className="h-full rounded-full bg-green-500 transition-all duration-500" style={{ width: '100%' }} />
+                    )}
+                  </div>
+                  <div className="w-20 text-right shrink-0">
+                    {infoTypeExposed ? (
+                      <span className="text-sm font-semibold text-green-600">정보형 노출 중</span>
+                    ) : (
+                      <span className="text-sm text-gray-500">플레이스형 해당 없음</span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 bg-gray-100 rounded-full h-2.5" />
-                <div className="w-20 text-right shrink-0">
-                  <span className="text-sm text-gray-500">이 업종 해당 없음</span>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 pl-1">
-                → 네이버 일반 검색 상위노출(C-Rank · 리뷰·소식 최적화) 집중 권장
-              </p>
-              <PlatformRow
-                platform={{ key: 'naver_ai_tab', label: '네이버 AI탭', color: '#0ea5e9' }}
-                result={results['naver_ai_tab']}
-              />
-            </>
-          ) : (
+                <p className="text-sm text-gray-500 pl-1">
+                  {infoTypeExposed
+                    ? '→ 블로그·콘텐츠 기반 정보형 AI 브리핑에 노출 중입니다 (가게 카드형은 이 업종 미대상)'
+                    : '→ 블로그·콘텐츠로 정보형 AI 브리핑 노출 가능 · 네이버 일반 검색 상위노출(C-Rank · 리뷰·소식 최적화) 집중 권장'}
+                </p>
+                <PlatformRow
+                  platform={{ key: 'naver_ai_tab', label: '네이버 AI탭', color: '#0ea5e9' }}
+                  result={results['naver_ai_tab']}
+                />
+              </>
+            )
+          })() : (
             NAVER_PLATFORMS.map((p) => (
               <PlatformRow key={p.key} platform={p} result={results[p.key]} />
             ))
@@ -253,20 +268,24 @@ export function PlatformDistributionChart({
             const isMentioned = result?.mentioned ?? false
             const hasError = !!result?.error
 
-            // 수정 C: 미노출 시 채널별 성격 라벨 추가 (Gemini·ChatGPT만 해당)
-            const showChannelHint = !isMentioned && !hasError && (p.key === 'gemini' || p.key === 'chatgpt')
+            // 수정 C: 미노출 시 채널별 성격 라벨 추가 — 3개 채널 모두 표시해 경계를 대칭적으로 명확화
+            // (Gemini만/ChatGPT만 있고 Google만 없으면 바로 위 힌트가 Google 것으로 오인되기 쉬움, 2026-07-14)
+            const showChannelHint = !isMentioned && !hasError
             const channelHint = p.key === 'gemini'
               ? '구글 비즈니스 등록 시 개선 가능'
               : p.key === 'chatgpt'
-              ? '학습 데이터 기반·단기 개선 어려움'
-              : null
+              ? '학습 데이터 기반 · 단기 개선 어려움'
+              : '실시간 검색 기반 · 웹사이트 SEO 개선 시 반영'
 
             return (
               <div key={p.key}>
                 <PlatformRow platform={p} result={result} />
                 {showChannelHint && channelHint && (
-                  <div className="pl-[140px] mt-0.5">
-                    <span className="text-sm text-gray-500">{channelHint}</span>
+                  <div className="pl-[140px] mt-0.5 mb-0.5">
+                    <span className="text-sm">
+                      <span className="font-medium" style={{ color: p.color }}>{p.label}</span>
+                      <span className="text-gray-500"> — {channelHint}</span>
+                    </span>
                   </div>
                 )}
               </div>
@@ -283,9 +302,10 @@ export function PlatformDistributionChart({
             return (
               <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg p-3">
                 <p className="text-sm text-blue-800 leading-relaxed">
-                  ChatGPT·Gemini 미노출은 한국 소상공인의 일반적인 현재 상태입니다.<br />
+                  3개 채널 모두 미노출은 한국 소상공인의 일반적인 현재 상태입니다.<br />
                   Gemini는 구글 비즈니스 프로필 등록 후 수주 내 개선 가능합니다.<br />
-                  ChatGPT는 학습 데이터 기반으로 단기 개선이 어렵습니다.
+                  ChatGPT는 학습 데이터 기반으로 단기 개선이 어렵습니다.<br />
+                  Google AI Overview는 실시간 검색 기반이라 웹사이트 SEO 개선이 반영되면 비교적 빠르게 변화합니다.
                 </p>
               </div>
             )
