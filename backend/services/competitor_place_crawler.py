@@ -543,6 +543,10 @@ async def fetch_competitor_blog_mentions(competitor_name: str, region: str) -> i
 
     전략: 지역+이름 쿼리 우선 → 0이면 이름 단독 쿼리 재시도.
     지역 접두어는 _extract_city_prefix()로 시·군 단위 추출 ("경상남도 창원시" → "창원").
+    2026-07-14 실측 발견: 업체명에 따옴표 exact match가 빠져 있어 네이버 블로그 검색이
+    형태소 단위로 매칭돼(예: "라움뮤직스튜디오"→라움/뮤직/스튜디오 개별 매칭) 동명 업체(타 지역)나
+    일반 명사 조합(예: "OO레슨")이 섞여 수천 건까지 과대 집계되던 버그 — naver_visibility.py가
+    이미 쓰고 있던 검증된 exact-match 패턴(`f'"{{name}}"'`)을 동일하게 적용해 통일.
     실패 시 0 반환.
     """
     naver_id     = os.getenv("NAVER_CLIENT_ID", "")
@@ -550,9 +554,10 @@ async def fetch_competitor_blog_mentions(competitor_name: str, region: str) -> i
     if not naver_id or not naver_secret:
         return 0
 
+    _quoted_name  = f'"{competitor_name}"'
     region_prefix = _extract_city_prefix(region) if region else ""
-    query_region  = f"{region_prefix} {competitor_name}".strip() if region_prefix else competitor_name
-    query_name    = competitor_name
+    query_region  = f"{region_prefix} {_quoted_name}".strip() if region_prefix else _quoted_name
+    query_name    = _quoted_name
 
     headers = {
         "X-Naver-Client-Id": naver_id,
