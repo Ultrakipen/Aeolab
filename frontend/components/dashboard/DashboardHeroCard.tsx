@@ -53,13 +53,18 @@ export default function DashboardHeroCard({
 
   // INACTIVE/프랜차이즈는 네이버 AI 브리핑 비대상 — 부정 점수 레이블("노출 미흡") 대신
   // 네이버 검색·플레이스가 핵심 무기임을 긍정 리드로. 실제 채널 상태는 아래 3채널 그리드가 정직하게 표시.
+  // 단, in_briefing 실측이 true면 "가능합니다"(가정형) 대신 "노출 중입니다"(확정형)로 — 실측과 문구가
+  // 어긋나 보이지 않도록 통일(2026-07-14, 그리드는 이미 "정보형 노출 중"으로 실측 분기하고 있었음).
+  const infoBriefingExposed = isInactiveOrFranchise && (naverInBriefing ?? false);
   const headerView = isInactiveOrFranchise
     ? {
         label: "네이버 검색·플레이스가 핵심 무기",
         labelColor: "text-green-800",
         bg: "bg-green-50",
         cardBorder: "border-green-300",
-        sub: isFranchise
+        sub: infoBriefingExposed
+          ? "네이버 검색·플레이스·AI탭이 핵심 노출 채널 — 블로그·콘텐츠 기반 '정보형 AI 브리핑'에도 노출 중입니다"
+          : isFranchise
           ? "네이버 검색·플레이스·AI탭 집중 전략 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다"
           : "네이버 검색·플레이스·AI탭이 핵심 노출 채널 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다",
       }
