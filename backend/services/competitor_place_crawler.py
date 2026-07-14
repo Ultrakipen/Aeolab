@@ -241,12 +241,16 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     except Exception as e:
                         _logger.warning("avg_rating CSS selector [%s] failed [%s]: %s", sel, naver_place_id, e)
 
-            # 3) 리뷰 탭 이동 후 재시도
-            if avg_rating == 0.0:
-                try:
-                    await page.goto(f"{base_url}/review/visitor", timeout=12000, wait_until="domcontentloaded")
-                    await page.wait_for_timeout(2000)
-                    review_body = await page.inner_text("body")
+            # 3) 리뷰 탭 이동 — 별점 재시도 + 리뷰 수 정정(항상 실행)
+            # 2026-07-14 실측 발견: 홈 탭의 "카테고리+리뷰+공백+숫자"(예: "장소대여리뷰 22")는
+            # 네이버 리뷰 클렌징 시스템 적용 전 집계로, 실제 리뷰 탭 상단의 "리뷰NN"(공백 없음,
+            # 예: "리뷰17")과 다름(사용자 실측: 자기 업체 91 vs 42 불일치로 발견). 리뷰 탭이
+            # 클렌징 후 진짜 노출 리뷰 수라 항상 재확인해 있으면 덮어씀.
+            try:
+                await page.goto(f"{base_url}/review/visitor", timeout=12000, wait_until="domcontentloaded")
+                await page.wait_for_timeout(4000)
+                review_body = await page.inner_text("body")
+                if avg_rating == 0.0:
                     for pat in [
                         r"별점\s*(\d+\.\d{1,2})",
                         r"(\d+\.\d{1,2})\s*점",
@@ -258,13 +262,16 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                             if 1.0 <= val <= 5.0:
                                 avg_rating = val
                                 break
-                    await page.goto(f"{base_url}/home", timeout=12000, wait_until="domcontentloaded")
-                    await page.wait_for_timeout(2000)
-                    body_text = await page.inner_text("body")
-                    lines = [l.strip() for l in body_text.split("\n") if l.strip()]
-                except Exception as e:
-                    _logger.warning("avg_rating review tab retry failed [%s]: %s", naver_place_id, e)
-                    partial_failures.append("review_tab")
+                _rc_match = re.search(r"리뷰(\d[\d,]+)", review_body)
+                if _rc_match:
+                    review_count = int(_rc_match.group(1).replace(",", ""))
+                await page.goto(f"{base_url}/home", timeout=12000, wait_until="domcontentloaded")
+                await page.wait_for_timeout(2000)
+                body_text = await page.inner_text("body")
+                lines = [l.strip() for l in body_text.split("\n") if l.strip()]
+            except Exception as e:
+                _logger.warning("avg_rating/review_count review tab retry failed [%s]: %s", naver_place_id, e)
+                partial_failures.append("review_tab")
 
             # ── 탭 목록 확인 (네비게이션 영역 텍스트로 탭 추출) ──────────
             # lines[5:35]로 넓게 잡아 업종별 UI 구조 차이 대응 (구: lines[8:20])
