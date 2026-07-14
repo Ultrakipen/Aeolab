@@ -146,6 +146,8 @@
 
 | 파일 | 내용 |
 |------|------|
+| **`docs/naver_scraping_legal_risk_assessment_v1.0.md`** ⭐ | **네이버 AI브리핑 스캔의 로그인우회·CAPTCHA우회 기법(NID_AUT/NID_SES 쿠키 주입+stealth+IP로테이션)에 대한 정보통신망법 제48조·판례(대법원 2021도1533, 부산지법 2017노4344) 기반 법적 리스크 평가. 결론: 회색지대, 변호사 자문 필요 — 핵심 사업가치라 코드 임의 축소 금지 (2026-07-13)** |
+| **`docs/commercial_launch_inspection_status_v1.0.md`** ⭐ | **상업 서비스 점검 이력·비중분석·잔여과제 마스터 요약 — L1~L4(페이지단위)+A~D(서비스전체) 두 축 정리, 어디에 비중을 뒀는지·어디가 공백이었는지(A/D축 3개월 무점검이 최대 공백) 분석. §6에 실제 미해결 잔여과제 전체 정리(개인정보방침 문구 2건·PG우대등급확인·pip-audit 등). 신규 배포마다 L1+A 스팟체크 반복 필요 원칙 명시 (2026-07-13)** |
 | **`docs/inspection_request_full.md`** ⭐ | **새 대화창 1줄 트리거용 종합 점검 문서 (§3.1~§3.10 영역)** |
 | **`docs/naver_ai_prelaunch_inspection_v1.0.md`** ⭐ | **상업 서비스 전 AI 브리핑·AI탭·ChatGPT 차별화 14개 체크포인트 점검 (2026-05-19 재검토 확정본)** |
 | **`docs/agency_service_and_iboss_improvements_v1.0.md`** ⭐ | **대행 서비스(3종) + Q&A 게시판 + 아이보스 착안 개선안 — 5 Sprint 구현 기획. 새 대화창에서 §0 트리거 명령으로 즉시 작업 시작 가능** |
@@ -197,6 +199,7 @@
 > **마스터 점검 종료 후 다음 단계(정리 또는 신규 기획)**: `docs/session_2026_07_11_next_steps_handoff_v1.0.md 기준으로 A(정리) 먼저 진행 후 B(신규 기능 기획)로 넘어가줘`
 > **상업 서비스 총괄 점검(보안/법적/사업성/인프라)**: A·B·C·D 전체 완료(2026-07-12) — A·B·D는 `docs/legal_compliance_and_infra_resilience_audit_v1.0.md`(git `3ab9545`), C는 `docs/business_viability_audit_v1.0.md` 참조. 재점검 불필요, 후속 과제만 `docs/business_viability_audit_v1.0.md §6` 참조
 > **FastAPI/Starlette 업그레이드**: 완료됨(2026-07-12, git `7d23596`) — 재작업 불필요
+> **상업 서비스 점검 현황 파악/이어가기**: `docs/commercial_launch_inspection_status_v1.0.md 기준으로 §6-1(즉시 가치) 항목부터 진행`
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
@@ -697,6 +700,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (완료 내역은 `docs/changelog_archive.md`)
 
+- **2026-07-14 경쟁사 페이지 종합 점검·수정**: 사용자 점검 요청 + 스크린샷 제보로 총 6개 버그 발견·수정·배포. ①`comp_keywords` DB 컬럼(TEXT[])이 백엔드 어디에서도 write된 적 없어 "경쟁사 보유 키워드" 섹션이 전원 영구 빈 상태였음 — `sync_competitor_place()`에 계산·저장 신설(단, 첫 구현이 `{"covered":[...]}` 객체로 저장하려다 실제 컬럼타입과 안 맞아 매칭 키워드 있는 경쟁사는 UPDATE 전체가 실패하는 회귀를 백필 도중 자체 발견·즉시 수정). ②`competitors.naver_place_name`/블로그 언급 수 — 네이버가 페이지에 추가한 "페이지 닫기" 접근성 스킵링크를 사업장명으로 오인식(`lines[1]`→`lines[0]`로 수정)해 경쟁사 전원이 동일한 틀린 이름으로 블로그 검색, 블로그 언급 수가 전부 296건으로 동일하게 나오던 버그. ③리뷰 수 파싱 정규식이 "장소대여리뷰 22" 같은 카테고리접두+공백 형식과 불일치해 리뷰 수가 항상 0으로 나오던 버그(평점은 있는데 리뷰 0건인 모순으로 발견). ④경쟁사 점수 산식(`scan.py` 2곳+`competitor.py` 1곳)이 Gemini "미언급" 판정 시 소수점까지 완전 동일한 고정값(15.0)+가짜 배수 breakdown을 부여해 CompetitorTrendChart 등 비교 그래프가 미분화 데이터를 실측처럼 표시 — `compute_competitor_score()` 단일 함수로 통합, 크롤링 실측(리뷰수·완성도·블로그·SEO)을 breakdown에 반영하고 미측정 항목은 정직하게 0/제외 처리. ⑤`ReviewKeywordGap` 프론트 타입에 백엔드에 없는 유령 필드(`present_keywords`)가 있어 "격차 분석" 공통 탭이 영구 비활성. ⑥GrowthStage 라벨(`CompareModal`·`heroCard`)이 track1_score 아닌 unified score 기준이던 버그. 전부 배포 후 라이브 DB 재검증(경쟁사 9곳 전원 실측 재동기화, 재현 테스트로 실측치 일치 확인). git `3515d78`~`766f188`.
 - **2026-07-13 경쟁사 키워드 노출 기능 실동작화**: 경쟁사 관리 > 키워드 격차 분석의 "경쟁사 독점"/"경쟁사별" 탭이 항상 비활성이던 버그 근본원인 확인·수정 — 유일한 소스가 Gemini의 "이 경쟁사를 언급했을까" LLM 추측(single_check_with_competitors)이었는데 소상공인급 경쟁사엔 거의 항상 빈 문자열 반환(실측: 홍뮤직스튜디오 계정 경쟁사 5곳x스캔3회=15건 전부 excerpt=""). `competitor_place_crawler.py`가 이미 Playwright로 크롤링하지만 boolean으로만 쓰고 버리던 `/information`·`/menu` 탭 원문을 `competitors.place_intro_text`/`place_menu_sample`(신규 컬럼)에 보관해 1순위 소스로 전환, Gemini 추측은 2순위 fallback으로 강등(`gap_analyzer.py`, `competitor.py`). 신규 크롤링 요청 없음(네이버 차단 위험 미증가), 기존 목요일 03:00 `enrich_competitor_details_job`이 자동 백필. 라이브 실측: 5곳 중 4곳 원문 수집 성공, "소수정예" 키워드가 pioneer→competitor_only로 정확히 재분류·"라포뮤직" 출처 표시 확인.
 
 - **2026-07-10~11 관리자 화면 전체 점검 + 서비스 총괄 대시보드 신설**: P0~P2 전수 점검(git `27ddf98`~`5424329`) + 감사로그·알림·결제이벤트·권한체계·코호트분석·AI사용량·창업리포트·사업장통합조회 신설(git `9bc825f`~`d6b6025`). 상세는 `docs/changelog_archive.md` 참조.
