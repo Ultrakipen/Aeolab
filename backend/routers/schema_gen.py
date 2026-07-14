@@ -35,7 +35,7 @@ async def generate_schema(req: SchemaRequest, user: dict = Depends(get_current_u
             status_code=403,
             detail={
                 "code": "PLAN_REQUIRED",
-                "message": "Schema 생성은 Basic 플랜(월 9,900원)부터 이용 가능합니다.",
+                "message": "Schema 생성은 Basic 플랜(월 11,900원)부터 이용 가능합니다.",
                 "upgrade_url": "/pricing",
             },
         )

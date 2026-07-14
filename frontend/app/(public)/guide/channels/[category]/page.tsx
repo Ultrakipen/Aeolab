@@ -269,7 +269,7 @@ export default async function ChannelGuidePage({
             </Link>
           </div>
           <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
-            회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인(4,950원).
+            회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인(5,950원).
           </p>
         </section>
       </div>

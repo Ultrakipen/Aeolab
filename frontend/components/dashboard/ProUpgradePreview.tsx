@@ -66,7 +66,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
           <h2 className="text-base md:text-lg font-bold text-gray-900">
             Pro로 업그레이드하면 이런 결과가 추가됩니다
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">Pro · 월 18,900원 · 7일 이내 미사용 시 100% 환불</p>
+          <p className="text-sm text-gray-500 mt-0.5">Pro · 월 23,900원 · 7일 이내 미사용 시 100% 환불</p>
         </div>
         <Link
           href="/pricing"
@@ -296,7 +296,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
               href="/pricing"
               className="inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-colors shadow-sm"
             >
-              Pro 업그레이드 · 18,900원/월 →
+              Pro 업그레이드 · 23,900원/월 →
             </Link>
           </div>
         </div>

@@ -1414,7 +1414,7 @@ function NaverBriefingResultCard({
                 href="/pricing"
                 className="flex items-center justify-center gap-1.5 w-full text-center font-semibold text-sm px-4 py-3 rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-colors"
               >
-                내 가게 AI 브리핑 노출 확인하기 → Basic 시작 (첫 달 4,950원)
+                내 가게 AI 브리핑 노출 확인하기 → Basic 시작 (첫 달 5,950원)
               </a>
             </div>
           ) : (

@@ -417,7 +417,7 @@ export default function ConversionGuideSection({ bizId, plan }: Props) {
               className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white text-base font-bold px-5 py-3 rounded-xl transition-colors"
             >
               <Lock className="w-4 h-4" />
-              Basic 플랜 시작하기 — 월 9,900원
+              Basic 플랜 시작하기 — 월 11,900원
               <ArrowRight className="w-4 h-4" />
             </Link>
           ) : (

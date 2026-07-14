@@ -755,8 +755,8 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             소개글·채팅방 메뉴 AI 자동 생성으로 시간을 절약하세요
           </h3>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
-            Basic 플랜(월 9,900원)부터 소개글·톡톡 채팅방 메뉴 AI 자동 생성을 사용할 수 있습니다.
-            첫 달 50% 할인(4,950원).
+            Basic 플랜(월 11,900원)부터 소개글·톡톡 채팅방 메뉴 AI 자동 생성을 사용할 수 있습니다.
+            첫 달 50% 할인(5,950원).
           </p>
           <Link
             href="/pricing"

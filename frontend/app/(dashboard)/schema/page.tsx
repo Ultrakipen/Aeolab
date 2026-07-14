@@ -36,7 +36,7 @@ export default async function SchemaPage() {
             href="/pricing"
             className="bg-blue-600 text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-blue-700 transition-colors text-sm"
           >
-            Basic 플랜 시작하기 (월 9,900원)
+            Basic 플랜 시작하기 (월 11,900원)
           </Link>
         </div>
       </div>

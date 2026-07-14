@@ -237,7 +237,7 @@ export default async function LandingPage() {
                 <h3 className="text-base md:text-lg font-bold mb-0.5 break-keep">
                   AI 검색 노출 조건을 체계적으로 관리합니다
                 </h3>
-                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.75)" }}>월 9,900원 (광고비 30만원 기준의 약 1/30) · 모든 업종</p>
+                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.75)" }}>월 11,900원 (광고비 30만원 기준의 약 1/25) · 모든 업종</p>
                 <svg viewBox="0 0 300 100" className="w-full h-auto">
                   <line x1="0" y1="75" x2="300" y2="75" stroke="rgba(255,255,255,.15)" strokeWidth="1" />
                   <path d="M 0,70 L 50,57 L 100,50 L 150,40 L 200,30 L 250,22 L 300,15 L 300,100 L 0,100 Z" fill="rgba(255,255,255,0.08)" />
@@ -1034,7 +1034,7 @@ export default async function LandingPage() {
 
           <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 px-5 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-sm font-semibold text-blue-800 break-keep">
-              Basic 첫 달 4,950원부터 시작 · 7일 이내 미사용 시 100% 환불
+              Basic 첫 달 5,950원부터 시작 · 7일 이내 미사용 시 100% 환불
             </p>
             <a href="/signup" className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold text-white transition-colors" style={{ background: "#2563EB" }}>
               지금 시작 →
@@ -1177,13 +1177,13 @@ export default async function LandingPage() {
                   fontFamily: "var(--font-pretendard,'Pretendard Variable',sans-serif)",
                 }}
               >
-                월 9,900원
+                월 11,900원
               </p>
               <span
                 className="inline-flex items-center gap-1 text-sm font-bold px-3 py-1 rounded-full mt-1"
                 style={{ background: "#ECFDF5", color: "#065F46", border: "1px solid #6EE7B7" }}
               >
-                ✓ 첫 달 4,950원
+                ✓ 첫 달 5,950원
               </span>
               <p className="text-sm mt-2" style={{ color: "#475569" }}>광고 없이<br className="sm:hidden" /> AI 노출 시작</p>
               <div className="flex items-center gap-1 mt-2 flex-wrap justify-center">
@@ -1208,7 +1208,7 @@ export default async function LandingPage() {
               요금제 보기 →
             </Link>
             <p className="text-sm mt-1.5" style={{ color: "#475569" }}>
-              Basic 첫 달 4,950원 · 7일 이내 미사용 시 100% 환불
+              Basic 첫 달 5,950원 · 7일 이내 미사용 시 100% 환불
             </p>
           </div>
         </div>

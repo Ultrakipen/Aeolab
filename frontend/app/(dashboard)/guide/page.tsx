@@ -123,7 +123,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
             href="/pricing"
             className="inline-block w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-base transition-colors"
           >
-            플랜 업그레이드 (월 9,900원~) →
+            플랜 업그레이드 (월 11,900원~) →
           </a>
           <a href="/dashboard" className="block text-sm text-gray-500 hover:text-gray-700 transition-colors">
             대시보드로 돌아가기

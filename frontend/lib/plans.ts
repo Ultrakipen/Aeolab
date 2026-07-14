@@ -8,8 +8,8 @@
  *   biz             : 4종 AI 풀스캔 매일
  *
  * 요금 구조:
- *   Basic      9,900원/월
- *   Pro        18,900원/월
+ *   Basic      11,900원/월
+ *   Pro        23,900원/월
  *   Biz        49,900원/월  ← 수동 스캔 10회/일, 5사업장
  *   창업패키지 12,900원/월  ← 특수 목적 플랜 (마지막 배치)
  *
@@ -23,6 +23,9 @@
  *   PDF:            Pro·Biz (Basic·창업 제외)
  *   광고대응:       Pro·Biz
  *   창업분석:       창업·Biz
+ *
+ * v3.6 변경 요약 (2026-07-14):
+ *   - 가격: Basic 11,900 / Pro 23,900 / Biz 49,900 / 창업 12,900 (Basic·Pro 인상, 구독자 0명 시점 반영)
  *
  * v3.5 변경 요약 (2026-04-22):
  *   - 가격: Basic 9,900 / Pro 18,900 / Biz 49,900 / 창업 12,900
@@ -72,13 +75,13 @@ export const PLANS: PlanInfo[] = [
   },
   {
     name: "Basic",
-    price: "9,900원",
+    price: "11,900원",
     period: "/ 월",
-    amount: 9900,
+    amount: 11900,
     highlight: true,
     badge: "소상공인 첫 시작",
     description: "내 가게 AI 노출 주 1회 자동 감시 + 콘텐츠 도구 무제한",
-    valueTag: "네이버·ChatGPT·구글 AI 노출과 검색 최적화 안내 — 주 1회 자동 진단, 월 9,900원",
+    valueTag: "네이버·ChatGPT·구글 AI 노출과 검색 최적화 안내 — 주 1회 자동 진단, 월 11,900원",
     killerFeature: "내 가게가 네이버 AI·ChatGPT·구글 AI에 지금 나오는지 매주 자동으로 확인합니다",
     features: [
       "주 1회 자동 AI 진단 (매주 월요일) — 내가 안 켜도 알아서 분석",
@@ -101,9 +104,9 @@ export const PLANS: PlanInfo[] = [
   },
   {
     name: "Pro",
-    price: "18,900원",
+    price: "23,900원",
     period: "/ 월",
-    amount: 18900,
+    amount: 23900,
     highlight: false,
     badge: "성장 중인 가게",
     description: "경쟁사 움직임 즉시 포착 + 내 행동이 AI에 반영됐는지 증명",
@@ -184,14 +187,14 @@ export const PLANS: PlanInfo[] = [
 // 가격 단일 소스 — backend/config/prices.py PLAN_PRICES와 일치해야 함
 // AdminDashboard MRR 계산, layout.tsx JSON-LD AggregateOffer 등에서 import해서 사용
 export const PLAN_PRICES: Record<string, number> = {
-  basic:      9900,
+  basic:      11900,
   startup:    12900,
-  pro:        18900,
+  pro:        23900,
   biz:        49900,
   enterprise: 200000,  // 영업 전용 (PLAN_LIMITS·결제 흐름 미정의)
 };
 
 export const FIRST_MONTH_DISCOUNT_PRICES: Record<string, number> = {
-  basic: 4950,
+  basic: 5950,
 };
 

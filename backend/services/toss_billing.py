@@ -27,8 +27,8 @@ def compute_renewal_amount(subscription: dict) -> int:
     가드(webhook.py·settings.py·jobs.py) 양쪽에서 같은 금액 기준을 쓰기 위해 분리."""
     plan = subscription.get("plan", "basic")
     if subscription.get("billing_cycle") == "yearly":
-        return YEARLY_PRICE_MAP.get(plan, PLAN_PRICE_MAP.get(plan, 9900))
-    return PLAN_PRICE_MAP.get(plan, 9900)
+        return YEARLY_PRICE_MAP.get(plan, PLAN_PRICE_MAP.get(plan, 11900))
+    return PLAN_PRICE_MAP.get(plan, 11900)
 
 
 async def retry_billing(subscription: dict) -> bool:

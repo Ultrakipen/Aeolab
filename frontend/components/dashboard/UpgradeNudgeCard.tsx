@@ -36,7 +36,7 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
 
   if (plan !== "free" || !hasLatestScan || dismissed) return null;
 
-  const discountPrice = (FIRST_MONTH_DISCOUNT_PRICES.basic ?? 4950).toLocaleString();
+  const discountPrice = (FIRST_MONTH_DISCOUNT_PRICES.basic ?? 5950).toLocaleString();
 
   return (
     <div className="relative rounded-xl bg-amber-50 border border-amber-200 p-4">

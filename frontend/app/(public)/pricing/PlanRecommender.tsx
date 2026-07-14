@@ -177,7 +177,7 @@ export default function PlanRecommender() {
                 className="block text-center w-full py-3 rounded-xl font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm md:text-base"
               >
                 {selectedOption.planKey === "basic"
-                  ? "1분 가입 후 첫 달 4,950원으로 시작 →"
+                  ? "1분 가입 후 첫 달 5,950원으로 시작 →"
                   : "1분 가입 후 바로 시작 →"}
               </Link>
             )}

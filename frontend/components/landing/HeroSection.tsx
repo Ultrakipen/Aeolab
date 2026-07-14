@@ -188,7 +188,7 @@ export default function HeroSection() {
                   source: "네이버 플레이스 분석 기준",
                 },
                 {
-                  num: "9,900원",
+                  num: "11,900원",
                   label: "월 최저 요금",
                   highlight: false,
                   source: null,

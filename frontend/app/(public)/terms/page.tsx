@@ -81,9 +81,9 @@ export default function TermsPage() {
             <ol className="list-decimal pl-5 space-y-2">
               <li>서비스 구독 요금은 다음과 같습니다.
                 <ul className="list-disc pl-5 mt-2 space-y-1">
-                  <li>Basic: 월 9,900원 (신규 가입 첫 달 4,950원, 이후 정상가)</li>
+                  <li>Basic: 월 11,900원 (신규 가입 첫 달 5,950원, 이후 정상가)</li>
                   <li>창업패키지: 월 12,900원</li>
-                  <li>Pro: 월 18,900원</li>
+                  <li>Pro: 월 23,900원</li>
                   <li>Biz: 월 49,900원</li>
                   <li>Enterprise: 월 200,000원</li>
                 </ul>

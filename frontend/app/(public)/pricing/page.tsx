@@ -11,9 +11,9 @@ import ChannelDifferentiationCard from "@/components/common/ChannelDifferentiati
 
 export const metadata: Metadata = {
   title: "요금제 | AEOlab — AI 검색 노출 진단 서비스",
-  description: "Basic 월 9,900원부터 Biz까지. 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 4채널 노출 진단. 신규 가입 첫 달 50% 할인.",
+  description: "Basic 월 11,900원부터 Biz까지. 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 4채널 노출 진단. 신규 가입 첫 달 50% 할인.",
   openGraph: {
-    title: "AEOlab 요금제 — 월 9,900원부터",
+    title: "AEOlab 요금제 — 월 11,900원부터",
     description: "Basic·창업패키지·Pro·Biz 비교. 소상공인 AI 검색 노출 진단 서비스. 신규 첫 달 50% 할인.",
   },
 };
@@ -86,7 +86,7 @@ export default function PricingPage() {
                 <div className={`mt-2 rounded-lg px-3 py-2 text-sm font-semibold ${
                   plan.highlight ? "bg-emerald-400/20 text-emerald-100" : "bg-emerald-50 text-emerald-700"
                 }`}>
-                  첫 달 50% 할인 — 4,950원 (이후 월 9,900원)
+                  첫 달 50% 할인 — 5,950원 (이후 월 11,900원)
                 </div>
               )}
               {plan.valueTag && (
@@ -224,8 +224,8 @@ export default function PricingPage() {
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-3 text-gray-500 font-medium w-36">기능</th>
                 <th className="text-center py-3 px-2 text-gray-700 font-semibold">창업패키지<br/><span className="font-normal text-gray-500 text-sm">12,900원</span></th>
-                <th className="text-center py-3 px-2 text-blue-600 font-semibold">Basic<br/><span className="font-normal text-blue-400 text-sm">9,900원</span></th>
-                <th className="text-center py-3 px-2 text-gray-700 font-semibold">Pro<br/><span className="font-normal text-gray-500 text-sm">18,900원</span></th>
+                <th className="text-center py-3 px-2 text-blue-600 font-semibold">Basic<br/><span className="font-normal text-blue-400 text-sm">11,900원</span></th>
+                <th className="text-center py-3 px-2 text-gray-700 font-semibold">Pro<br/><span className="font-normal text-gray-500 text-sm">23,900원</span></th>
                 <th className="text-center py-3 px-2 text-gray-700 font-semibold">Biz<br/><span className="font-normal text-gray-500 text-sm">49,900원</span></th>
               </tr>
             </thead>
@@ -400,7 +400,7 @@ export default function PricingPage() {
               <div className="flex items-center justify-center text-gray-500 text-3xl font-thin hidden sm:flex">vs</div>
               <div className="sm:hidden border-t border-gray-200 pt-3" />
               <div>
-                <div className="text-2xl font-bold text-blue-600 mb-1">9,900원</div>
+                <div className="text-2xl font-bold text-blue-600 mb-1">11,900원</div>
                 <div className="text-sm text-gray-500">AEOlab Basic 한 달</div>
                 <div className="text-sm text-gray-500 mt-1">AI 노출 구조 자체를 개선</div>
               </div>
@@ -504,7 +504,7 @@ export default function PricingPage() {
               },
               {
                 q: "첫 달 50% 할인은 어떻게 적용되나요?",
-                a: "Basic 플랜 신규 가입 시 첫 달은 4,950원으로 결제됩니다. 이후 매달 자동으로 정상가 9,900원이 청구됩니다. 이전에 한 번이라도 구독한 이력이 있는 경우 할인이 적용되지 않습니다.",
+                a: "Basic 플랜 신규 가입 시 첫 달은 5,950원으로 결제됩니다. 이후 매달 자동으로 정상가 11,900원이 청구됩니다. 이전에 한 번이라도 구독한 이력이 있는 경우 할인이 적용되지 않습니다.",
               },
               {
                 q: "플랜 업그레이드·다운그레이드는 가능한가요?",

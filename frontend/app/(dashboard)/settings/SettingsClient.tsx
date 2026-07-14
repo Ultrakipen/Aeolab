@@ -24,7 +24,7 @@ const CANCEL_REASONS = [
   {
     id: "expensive",
     label: "가격이 부담돼요",
-    response: "Basic 플랜(월 9,900원)으로 다운그레이드하면 핵심 기능을 더 저렴하게 유지할 수 있습니다.",
+    response: "Basic 플랜(월 11,900원)으로 다운그레이드하면 핵심 기능을 더 저렴하게 유지할 수 있습니다.",
     link: "/pricing",
     linkLabel: "Basic 플랜 보기",
   },

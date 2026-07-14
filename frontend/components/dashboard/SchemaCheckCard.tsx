@@ -253,7 +253,7 @@ export default function SchemaCheckCard({
           </Link>
         ) : (
           <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
-            <p className="text-sm text-gray-500 mb-2">AI 검색 코드 자동 생성은 Basic 플랜(월 9,900원)부터</p>
+            <p className="text-sm text-gray-500 mb-2">AI 검색 코드 자동 생성은 Basic 플랜(월 11,900원)부터</p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <Link href="/pricing" className="text-sm font-semibold text-blue-600 hover:underline">
                 플랜 업그레이드 →

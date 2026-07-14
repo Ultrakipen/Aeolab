@@ -327,7 +327,7 @@ function ComparisonTable() {
     { feature: "창업 타이밍 지수", basic: false, pro: false, startup: true },
     { feature: "경쟁 가게 분석 리포트", basic: false, pro: false, startup: true },
     { feature: "AI 진입 전략", basic: false, pro: false, startup: true },
-    { feature: "월 가격", basic: "9,900원", pro: "18,900원", startup: "12,900원" },
+    { feature: "월 가격", basic: "11,900원", pro: "23,900원", startup: "12,900원" },
   ];
 
   const renderCell = (val: boolean | string) => {
@@ -342,8 +342,8 @@ function ComparisonTable() {
         <thead>
           <tr className="bg-gray-50">
             <th className="text-left p-3 font-semibold text-gray-700 w-48">기능</th>
-            <th className="p-3 font-semibold text-gray-700 text-center">Basic<br /><span className="text-indigo-600">9,900원</span></th>
-            <th className="p-3 font-bold text-indigo-700 text-center bg-indigo-50">Pro<br /><span className="text-indigo-600">18,900원</span></th>
+            <th className="p-3 font-semibold text-gray-700 text-center">Basic<br /><span className="text-indigo-600">11,900원</span></th>
+            <th className="p-3 font-bold text-indigo-700 text-center bg-indigo-50">Pro<br /><span className="text-indigo-600">23,900원</span></th>
             <th className="p-3 font-semibold text-gray-700 text-center">창업패키지<br /><span className="text-emerald-600">12,900원</span></th>
           </tr>
         </thead>
@@ -530,7 +530,7 @@ function BasicContent({ d }: { d: MockData }) {
 
       {/* CTA */}
       <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-5 md:p-8 text-center">
-        <p className="text-lg md:text-xl font-black text-indigo-900 mb-1">Basic으로 시작하기 — 9,900원/월</p>
+        <p className="text-lg md:text-xl font-black text-indigo-900 mb-1">Basic으로 시작하기 — 11,900원/월</p>
         <p className="text-sm text-indigo-600 mb-4">&quot;AI 분석 한 번에 커피값입니다&quot;</p>
         <Link href="/signup?plan=basic" className="inline-block bg-indigo-600 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors">
           지금 구독하기 →
@@ -639,8 +639,8 @@ function ProContent({ d }: { d: MockData }) {
 
       {/* CTA */}
       <div className="bg-indigo-600 rounded-xl p-5 md:p-8 text-center text-white">
-        <p className="text-lg md:text-xl font-black mb-1">Pro로 업그레이드 — 18,900원/월</p>
-        <p className="text-sm text-indigo-200 mb-4">Basic보다 월 8,000원 더. 조건 검색 분석 1개로 새 손님 1명 더 오면 본전입니다</p>
+        <p className="text-lg md:text-xl font-black mb-1">Pro로 업그레이드 — 23,900원/월</p>
+        <p className="text-sm text-indigo-200 mb-4">Basic보다 월 12,000원 더. 조건 검색 분석 1개로 새 손님 1명 더 오면 본전입니다</p>
         <Link href="/signup?plan=pro" className="inline-block bg-white text-indigo-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-50 transition-colors">
           지금 구독하기 →
         </Link>
@@ -820,8 +820,8 @@ export default function PlansPreviewPage() {
   ];
 
   const planButtons: { key: PlanKey; label: string; price: string }[] = [
-    { key: "basic", label: "Basic", price: "9,900원" },
-    { key: "pro", label: "Pro", price: "18,900원" },
+    { key: "basic", label: "Basic", price: "11,900원" },
+    { key: "pro", label: "Pro", price: "23,900원" },
     { key: "startup", label: "창업패키지", price: "12,900원" },
   ];
 
@@ -915,12 +915,12 @@ export default function PlansPreviewPage() {
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Link href="/signup?plan=basic" className="block bg-white border-2 border-indigo-200 text-indigo-700 font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-indigo-50 transition-colors">
             <div className="text-base font-black">Basic</div>
-            <div className="text-indigo-600 font-black">9,900원/월</div>
+            <div className="text-indigo-600 font-black">11,900원/월</div>
             <div className="text-sm text-gray-500 mt-1">지금 시작하기 →</div>
           </Link>
           <Link href="/signup?plan=pro" className="block bg-indigo-600 text-white font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-md">
             <div className="text-base font-black">Pro</div>
-            <div className="font-black">18,900원/월</div>
+            <div className="font-black">23,900원/월</div>
             <div className="text-sm text-indigo-200 mt-1">지금 시작하기 →</div>
           </Link>
           <Link href="/signup?plan=startup" className="block bg-white border-2 border-emerald-200 text-emerald-700 font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-emerald-50 transition-colors">

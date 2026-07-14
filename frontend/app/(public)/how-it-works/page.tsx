@@ -1001,7 +1001,7 @@ export default function HowItWorksPage() {
             <li>
               <strong>2.</strong>{" "}
               <Link href="/pricing" className="text-blue-600 hover:underline font-medium">요금제 보기</Link>{" "}
-              — Basic 첫 달 50% 할인(4,950원)으로 시작
+              — Basic 첫 달 50% 할인(5,950원)으로 시작
             </li>
             <li>
               <strong>3.</strong>{" "}

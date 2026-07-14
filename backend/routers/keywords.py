@@ -184,7 +184,7 @@ async def add_custom_keyword(
             status_code=403,
             detail={
                 "code": "PLAN_REQUIRED",
-                "message": "맞춤 키워드 추가는 Basic 플랜(월 9,900원)부터 이용 가능합니다.",
+                "message": "맞춤 키워드 추가는 Basic 플랜(월 11,900원)부터 이용 가능합니다.",
                 "upgrade_url": "/pricing",
             },
         )

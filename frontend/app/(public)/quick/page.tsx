@@ -565,7 +565,7 @@ export default function QuickPage() {
             >
               무료 회원가입으로 매주 자동 분석받기
             </Link>
-            <p className="text-center text-sm text-gray-500">Basic 월 9,900원 · 7일 이내 미사용 시 100% 환불</p>
+            <p className="text-center text-sm text-gray-500">Basic 월 11,900원 · 7일 이내 미사용 시 100% 환불</p>
 
             {/* 다시 진단 */}
             <button

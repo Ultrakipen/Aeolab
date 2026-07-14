@@ -220,7 +220,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
         externalLink: "/pricing",
         externalLinkLabel: null,
         isSubscriptionCta: true,
-        subscriptionCtaLabel: "→ Basic 플랜에서 자동 생성 (첫 달 4,950원)",
+        subscriptionCtaLabel: "→ Basic 플랜에서 자동 생성 (첫 달 5,950원)",
       },
       score: 6,
     });

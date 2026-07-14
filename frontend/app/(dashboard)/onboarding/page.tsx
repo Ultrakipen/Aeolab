@@ -374,7 +374,7 @@ export default function OnboardingPage() {
               <div className="text-2xl font-extrabold text-blue-600 mb-0.5">
                 {PLAN_PRICES.basic.toLocaleString()}원<span className="text-sm font-normal text-gray-500">/월</span>
               </div>
-              <p className="text-sm font-semibold text-orange-500 mb-2">첫 달 4,950원 (50% 할인)</p>
+              <p className="text-sm font-semibold text-orange-500 mb-2">첫 달 5,950원 (50% 할인)</p>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />주 1회 자동 AI 스캔</li>
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />경쟁사 3곳 비교</li>

@@ -1365,7 +1365,7 @@ async def subscription_lifecycle_job():
                 for sub in price_increase_soon:
                     phone = pu_phone_by_user.get(sub.get("user_id"))
                     if phone:
-                        regular_price = PLAN_PRICE_MAP.get(sub.get("plan"), 9900)
+                        regular_price = PLAN_PRICE_MAP.get(sub.get("plan"), 11900)
                         await notifier.send_price_increase_notice(phone, regular_price)
         except Exception as e:
             logger.error(f"subscription_lifecycle_job 가격인상 사전고지 실패: {e}")
@@ -2248,7 +2248,7 @@ async def send_trial_day5_reminder():
                     f"[AEOlab] {biz_name}\n\n"
                     "5\uc77c \uc804\uc5d0 \ubb34\ub8cc \uccb4\ud5d8\uc744 \ubc1b\uc73c\uc168\ub124\uc694.\n"
                     "AI \uac80\uc0c9 \uac1c\uc120\uc744 \uacc4\uc18d \ubc1b\uc544\ubcf4\uc138\uc694.\n\n"
-                    "Basic \ud50c\ub79c(\uc6d4 9,900\uc6d0)\uc73c\ub85c \uc2dc\uc791\ud558\uba74\n"
+                    "Basic \ud50c\ub79c(\uc6d4 11,900\uc6d0)\uc73c\ub85c \uc2dc\uc791\ud558\uba74\n"
                     "\u2022 \ub9e4\uc8fc \uc790\ub3d9 AI \uc2a4\uce94\n"
                     "\u2022 \uacbd\uc7c1\uc0ac \ube44\uad50 \ubd84\uc11d\n"
                     "\u2022 \ub9de\ucda4 \uac1c\uc120 \uac00\uc774\ub4dc\n\n"
@@ -4510,7 +4510,7 @@ async def conversion_followup_job():
                                 else:  # day == 30
                                     msg = (
                                         "[AEOlab] 마지막 안내입니다.\n"
-                                        "지금 시작하면 첫 달 4,950원 (50% 할인).\n"
+                                        "지금 시작하면 첫 달 5,950원 (50% 할인).\n"
                                         "https://aeolab.co.kr/pricing"
                                     )
                                 await _notifier._send_raw(

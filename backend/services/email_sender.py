@@ -139,7 +139,7 @@ def _day1_html(
 
   <div style="border-top:1px solid #f1f5f9; padding-top:14px;">
     <p style="font-size:12px; color:#94a3b8; margin:0 0 6px;">개선 후 2~4주 뒤 네이버 반영 기대 · ChatGPT·Gemini는 수개월 소요</p>
-    <a href="https://aeolab.co.kr/pricing" style="font-size:12px; color:#64748b;">매주 자동 변화 추적 → Basic 첫 달 4,950원</a>
+    <a href="https://aeolab.co.kr/pricing" style="font-size:12px; color:#64748b;">매주 자동 변화 추적 → Basic 첫 달 5,950원</a>
   </div>
 
   <p style="font-size:11px; color:#cbd5e1; margin-top:20px; text-align:center; line-height:1.6;">
@@ -229,7 +229,7 @@ def _day3_html(
 
   <div style="border-top:1px solid #f1f5f9; padding-top:14px;">
     <p style="font-size:12px; color:#64748b; margin:0 0 4px;">4일 뒤(D+7) 이메일에서 다시 스캔 결과를 비교해 드립니다.</p>
-    <a href="https://aeolab.co.kr/pricing" style="font-size:12px; color:#64748b;">매주 자동 변화 추적 → Basic 첫 달 4,950원</a>
+    <a href="https://aeolab.co.kr/pricing" style="font-size:12px; color:#64748b;">매주 자동 변화 추적 → Basic 첫 달 5,950원</a>
   </div>
 
   <p style="font-size:11px; color:#cbd5e1; margin-top:20px; text-align:center; line-height:1.6;">
@@ -296,8 +296,8 @@ def _day7_html(
 
   <div style="border-top:1px solid #f1f5f9; padding-top:14px; text-align:center;">
     <p style="font-size:12px; color:#64748b; margin:0 0 6px;">변화를 매주 자동으로 추적하려면</p>
-    <a href="https://aeolab.co.kr/pricing" style="font-size:13px; color:#1d4ed8; font-weight:600; text-decoration:none;">Basic 첫 달 4,950원으로 시작 →</a>
-    <p style="font-size:11px; color:#94a3b8; margin:4px 0 0;">이후 9,900원/월 · 언제든 해지</p>
+    <a href="https://aeolab.co.kr/pricing" style="font-size:13px; color:#1d4ed8; font-weight:600; text-decoration:none;">Basic 첫 달 5,950원으로 시작 →</a>
+    <p style="font-size:11px; color:#94a3b8; margin:4px 0 0;">이후 11,900원/월 · 언제든 해지</p>
   </div>
 
   <p style="font-size:11px; color:#cbd5e1; margin-top:20px; text-align:center; line-height:1.6;">
@@ -946,7 +946,7 @@ async def send_trial_claim_link(
     <p style="font-size:13px; color:#475569; margin:0 0 12px; line-height:1.6;">이 스캔 결과를 30일 보관하고 매주 변화를 자동 추적하려면 아래 링크로 가입하세요.</p>
     <div style="text-align:center;">
       <a href="{magic_link}" style="background:#1d4ed8; color:#ffffff; text-decoration:none; padding:11px 24px; border-radius:8px; font-size:13px; font-weight:700; display:inline-block;">결과 보관하고 매주 추적하기 →</a>
-      <p style="font-size:11px; color:#94a3b8; margin:6px 0 0;">링크 유효 24시간 · 첫 달 50% 할인 Basic 4,950원 · 언제든 해지</p>
+      <p style="font-size:11px; color:#94a3b8; margin:6px 0 0;">링크 유효 24시간 · 첫 달 50% 할인 Basic 5,950원 · 언제든 해지</p>
     </div>
   </div>
 
@@ -1003,8 +1003,8 @@ def _conversion_d7_html(biz_name: str = "", category: str = "") -> tuple[str, st
 
   <div style="background:#eff6ff; border-radius:10px; padding:16px 20px; margin-bottom:28px; text-align:center;">
     <p style="font-size:13px; color:#1d4ed8; margin:0 0 4px; font-weight:600;">첫 달 50% 할인 중</p>
-    <p style="font-size:28px; font-weight:bold; color:#1d4ed8; margin:0;">월 4,950원</p>
-    <p style="font-size:12px; color:#64748b; margin:4px 0 0;">이후 9,900원/월 · 언제든 해지 가능</p>
+    <p style="font-size:28px; font-weight:bold; color:#1d4ed8; margin:0;">월 5,950원</p>
+    <p style="font-size:12px; color:#64748b; margin:4px 0 0;">이후 11,900원/월 · 언제든 해지 가능</p>
   </div>
 
   <div style="text-align:center; margin-bottom:32px;">
@@ -1056,7 +1056,7 @@ def _conversion_d14_html(biz_name: str = "", category: str = "") -> tuple[str, s
       <li>경쟁사 3곳 점수 비교 분석</li>
       <li>내 업종 평균 대비 순위 확인</li>
     </ul>
-    <p style="font-size:13px; color:#1d4ed8; margin:10px 0 0; font-weight:700;">첫 달 4,950원 (이후 9,900원/월)</p>
+    <p style="font-size:13px; color:#1d4ed8; margin:10px 0 0; font-weight:700;">첫 달 5,950원 (이후 11,900원/월)</p>
   </div>
 
   <div style="text-align:center; margin-bottom:32px;">
@@ -1096,8 +1096,8 @@ def _conversion_d30_html(biz_name: str = "", category: str = "") -> tuple[str, s
 
   <div style="background:#fef2f2; border:2px solid #fca5a5; border-radius:10px; padding:18px 20px; margin-bottom:20px; text-align:center;">
     <p style="font-size:14px; color:#991b1b; margin:0 0 8px; font-weight:600;">첫 달 50% 할인은 지금만 해당돼요</p>
-    <p style="font-size:36px; font-weight:bold; color:#dc2626; margin:0;">4,950원</p>
-    <p style="font-size:14px; color:#991b1b; margin:4px 0 0;">/ 첫 달 · 이후 9,900원/월 · 언제든 해지 가능</p>
+    <p style="font-size:36px; font-weight:bold; color:#dc2626; margin:0;">5,950원</p>
+    <p style="font-size:14px; color:#991b1b; margin:4px 0 0;">/ 첫 달 · 이후 11,900원/월 · 언제든 해지 가능</p>
   </div>
 
   <div style="background:#f8fafc; border-radius:10px; padding:16px 20px; margin-bottom:24px;">
@@ -1111,7 +1111,7 @@ def _conversion_d30_html(biz_name: str = "", category: str = "") -> tuple[str, s
 
   <div style="text-align:center; margin-bottom:32px;">
     <a href="https://aeolab.co.kr/pricing" style="background:#dc2626; color:#ffffff; text-decoration:none; padding:14px 36px; border-radius:8px; font-size:16px; font-weight:700; display:inline-block;">
-      첫 달 4,950원으로 시작하기 →
+      첫 달 5,950원으로 시작하기 →
     </a>
     <p style="font-size:12px; color:#94a3b8; margin-top:10px;">이 안내는 더 이상 발송되지 않습니다.</p>
   </div>
