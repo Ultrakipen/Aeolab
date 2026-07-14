@@ -114,7 +114,7 @@ interface CompetitorScore {
   breakdown: { [key: string]: number }
 }
 
-const TRACK1_ESTIMATED_NOTE = '경쟁사 데이터는 Gemini AI 단일 스캔 기반 추정값입니다'
+const TRACK1_ESTIMATED_NOTE = '경쟁사 데이터는 Gemini AI 언급 여부 + 네이버 플레이스 실측(리뷰·소개글·블로그 등) 병행 추정값입니다'
 const TRACK1_LABELS: Record<string, string> = {
   keyword_gap_score:        '키워드 커버리지 (추정)',
   review_quality:           '리뷰·평점 (추정)',
@@ -861,6 +861,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
             점수 올리는 방법 보기 <ArrowRight className="w-3.5 h-3.5" />
           </a>
         </div>
+        <p className="text-sm text-amber-600 bg-amber-50 rounded px-2 py-1">{TRACK1_ESTIMATED_NOTE}</p>
       </div>
     </div>
   )

@@ -1412,21 +1412,32 @@ async def _scan_new_competitor(comp_id: str, comp_name: str, business_id: str, s
         gemini = GeminiScanner()
         result = await gemini.single_check_with_competitors(query, comp_name)
 
-        # Gemini 단일 스캔은 "AI 언급 여부" 1개 신호만 실측한다 — review_quality·
-        # smart_place_completeness 등 세부 항목은 측정하지 않았으므로 가짜 breakdown을
-        # 만들지 않는다. breakdown을 비워두면 gap_analyzer._is_competitor_estimated
-        # 로직이 총점 기반 추정치로 자동 대체하며 "추정" 플래그를 올바르게 표시한다.
         if not result.get("_measured", True):
             _logger.warning(f"[competitor_scan] Gemini 측정 실패, 스캔 생략 — comp={comp_name}: {result.get('_error')}")
             return
         mentioned = bool(result.get("mentioned"))
         excerpt = result.get("excerpt", "")
-        base_score = 60.0 if mentioned else 30.0
+        exposure_freq = result.get("exposure_freq", 0) or 0
+
+        # 등록 직후라 크롤링(sync_competitor_place)이 아직 안 끝났을 수 있음 — 그 시점 기준
+        # 실측값(있으면)만 반영. scan.py와 동일 함수를 써서 breakdown 산식을 단일화(2026-07-14).
+        from services.competitor_place_crawler import compute_competitor_score
+        comp_row = await execute(
+            supabase.table("competitors")
+            .select(
+                "naver_review_count, naver_avg_rating, has_intro, has_menu, "
+                "has_recent_post, blog_mention_count, website_seo_score, comp_keywords, detail_synced_at"
+            )
+            .eq("id", comp_id)
+            .maybe_single()
+        )
+        base_score, breakdown = compute_competitor_score(comp_row.data or {}, mentioned, exposure_freq, excerpt)
         new_entry = {
             "name": comp_name,
             "mentioned": mentioned,
             "score": base_score,
             "excerpt": excerpt,
+            "breakdown": breakdown,
             "score_estimated": True,
         }
 

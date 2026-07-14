@@ -582,6 +582,79 @@ async def fetch_competitor_blog_mentions(competitor_name: str, region: str) -> i
     return best
 
 
+# competitor_scores 컬럼(TEXT[] 아닌 JSONB) breakdown 산정 — Gemini "미언급" 판정 시 모든
+# 경쟁사가 소수점까지 동일한 고정값(15.0, 그 배수 breakdown)을 받던 버그 수정 (2026-07-14).
+# 이 함수 이전에는 scan.py 2곳 + competitor.py _scan_new_competitor 3곳이 각각 다른 고정
+# 상수(15.0/30.0/60.0)와 breakdown 배수 공식을 따로 갖고 있었음 — 단일 소스로 통합.
+def compute_competitor_score(
+    comp_row: dict,
+    mentioned: bool,
+    exposure_freq: float = 0,
+    excerpt: str = "",
+) -> tuple[float, dict]:
+    """경쟁사 점수+breakdown 계산 — Gemini 신호(AI 언급) + 크롤링 실측(리뷰·완성도·SEO·블로그) 병합.
+
+    설계 원칙(허위 수치 금지):
+    - naver_exposure_confirmed/multi_ai_exposure: Gemini가 실제로 측정한 유일한 항목이므로
+      mentioned=False면 정직하게 0 (예전처럼 base_score의 배수로 부풀리지 않음)
+    - review_quality/smart_place_completeness/schema_seo/online_mentions_t2: competitor_place_crawler가
+      실제로 크롤링한 값(naver_review_count/avg_rating/has_intro/has_menu/has_recent_post/
+      website_seo_score/blog_mention_count)에서 직접 산출 — 더 이상 base_score의 임의 배수 아님
+    - google_presence: 경쟁사에 대해 측정한 적 없는 항목 — 0 유지(과거에도 미측정이었고 여전히 미측정)
+    - 크롤링이 한 번도 안 된 경쟁사(detail_synced_at 없음)는 review_quality 등 실측 항목을
+      0으로 강제하지 않고 평균 계산에서 제외 — "측정 안 됨"과 "측정했더니 0점"을 구분
+
+    Returns:
+        (score, breakdown) — score는 breakdown 중 실제로 계산된 항목들의 평균(0~100)
+    """
+    if mentioned:
+        excerpt_len = len(excerpt) if excerpt else 0
+        freq_bonus = min(20, (exposure_freq or 0) * 2)
+        ai_signal = min(80.0, (55.0 if excerpt_len > 100 else 40.0) + freq_bonus)
+    else:
+        ai_signal = 0.0
+
+    components: list[float] = [ai_signal]
+    breakdown: dict[str, float] = {
+        "naver_exposure_confirmed": round(ai_signal, 1),
+        "multi_ai_exposure": round(ai_signal, 1),
+        "google_presence": 0.0,  # 경쟁사 Google 노출 미측정
+    }
+
+    is_crawled = bool(comp_row.get("detail_synced_at"))
+    if is_crawled:
+        review_count = comp_row.get("naver_review_count") or 0
+        rating = comp_row.get("naver_avg_rating") or 0.0
+        has_intro = bool(comp_row.get("has_intro"))
+        has_menu = bool(comp_row.get("has_menu"))
+        has_recent_post = bool(comp_row.get("has_recent_post"))
+        blog_count = comp_row.get("blog_mention_count") or 0
+        seo_score = comp_row.get("website_seo_score")
+
+        review_quality = round(min(100.0, min(70.0, review_count * 3.5) + (rating / 5.0 * 30.0 if rating else 0.0)), 1)
+        smart_place = round((34.0 if has_intro else 0.0) + (33.0 if has_menu else 0.0) + (33.0 if has_recent_post else 0.0), 1)
+        online_mentions = round(min(100.0, blog_count * 5.0), 1)
+
+        breakdown["review_quality"] = review_quality
+        breakdown["smart_place_completeness"] = smart_place
+        breakdown["online_mentions_t2"] = online_mentions
+        components += [review_quality, smart_place, online_mentions]
+
+        if seo_score is not None:
+            schema_seo = round(float(seo_score), 1)
+            breakdown["schema_seo"] = schema_seo
+            components.append(schema_seo)
+
+    covered_kw = comp_row.get("comp_keywords") or []
+    if covered_kw:
+        keyword_gap = round(min(100.0, len(covered_kw) * 20.0), 1)
+        breakdown["keyword_gap_score"] = keyword_gap
+        components.append(keyword_gap)
+
+    score = round(sum(components) / len(components), 1) if components else 0.0
+    return score, breakdown
+
+
 async def fetch_competitor_website_seo(website_url: str) -> dict:
     """website_checker.check_website_seo() 래퍼.
 

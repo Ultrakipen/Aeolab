@@ -1978,11 +1978,15 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         score["total_score"] - prev_history[0]["total_score"], 2
     ) if prev_history else 0.0
 
-    # 경쟁사 목록만 조회 (스캔은 백그라운드에서 수행)
+    # 경쟁사 목록 조회 (스캔은 백그라운드에서 수행) — 크롤링 실측 필드도 함께 조회해
+    # compute_competitor_score()가 Gemini "미언급" 판정 시에도 경쟁사별로 차등 점수를 낼 수 있게 함
     competitors = (
         await execute(
             supabase.table("competitors")
-            .select("id, name")
+            .select(
+                "id, name, naver_review_count, naver_avg_rating, has_intro, has_menu, "
+                "has_recent_post, blog_mention_count, website_seo_score, comp_keywords, detail_synced_at"
+            )
             .eq("business_id", business_id)
             .eq("is_active", True)
         )
@@ -2499,6 +2503,7 @@ async def _enrich_scan_background(
     competitor_scores: dict = {}
     if competitors:
         try:
+            from services.competitor_place_crawler import compute_competitor_score
             gemini = GeminiScanner()
             comp_results = await _asyncio.gather(
                 *[gemini.single_check_with_competitors(query, c["name"]) for c in competitors],
@@ -2511,26 +2516,7 @@ async def _enrich_scan_background(
                 mentioned = bool(result.get("mentioned") or result.get("exposure_freq", 0) > 0)
                 excerpt = result.get("excerpt") or ""
                 exposure_freq = result.get("exposure_freq", 0) or 0
-                # 결정적 점수: AI 노출 빈도 + 언급 여부 + 발췌문 상세도
-                if mentioned:
-                    excerpt_len = len(excerpt) if excerpt else 0
-                    freq_bonus = min(20, exposure_freq * 2)  # 노출 빈도 보너스 (최대 20)
-                    if excerpt_len > 100:
-                        base_score = round(min(80, 55 + freq_bonus), 1)  # 구체적 언급
-                    else:
-                        base_score = round(min(65, 40 + freq_bonus), 1)  # 단순 언급
-                else:
-                    base_score = 15.0  # 미언급 고정
-                breakdown = {
-                    "keyword_gap_score": round(base_score * 1.05, 1),
-                    "review_quality": round(base_score * 0.9, 1),
-                    "smart_place_completeness": round(base_score, 1),
-                    "naver_exposure_confirmed": round(base_score * 1.1 if mentioned else 5.0, 1),
-                    "multi_ai_exposure": round(base_score * 0.8, 1),
-                    "schema_seo": round(base_score * 0.85, 1),
-                    "online_mentions_t2": round(base_score * 0.75, 1),
-                    "google_presence": round(base_score * 0.7, 1),
-                }
+                base_score, breakdown = compute_competitor_score(comp, mentioned, exposure_freq, excerpt)
                 competitor_scores[comp["id"]] = {
                     "name": comp["name"],
                     "mentioned": mentioned,
@@ -2988,16 +2974,21 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             score["total_score"] - prev_history[0]["total_score"], 2
         ) if prev_history else 0.0
 
-        # 경쟁사 단일 스캔으로 competitor_scores 계산
+        # 경쟁사 단일 스캔으로 competitor_scores 계산 — 크롤링 실측 필드도 함께 조회
+        # (compute_competitor_score()가 Gemini "미언급" 판정 시에도 경쟁사별 차등 점수를 내는 데 사용)
         competitors = (
             await execute(
                 supabase.table("competitors")
-                .select("id, name")
+                .select(
+                    "id, name, naver_review_count, naver_avg_rating, has_intro, has_menu, "
+                    "has_recent_post, blog_mention_count, website_seo_score, comp_keywords, detail_synced_at"
+                )
                 .eq("business_id", req.business_id)
                 .eq("is_active", True)
             )
         ).data or []
         competitor_scores: dict = {}
+        comp_by_id: dict = {c["id"]: c for c in competitors}
         if competitors:
             try:
                 gemini = GeminiScanner()
@@ -3005,23 +2996,15 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     *[gemini.single_check_with_competitors(query, c["name"]) for c in competitors],
                     return_exceptions=True,
                 )
+                from services.competitor_place_crawler import compute_competitor_score
                 for comp, r in zip(competitors, comp_results):
                     if isinstance(r, Exception):
                         _logger.warning(f"competitor scan failed for {comp['name']}: {r}")
                         continue
                     mentioned = bool(r.get("mentioned") or r.get("exposure_freq", 0) > 0)
                     excerpt = r.get("excerpt") or ""
-                    base_score = 55.0 if mentioned else 15.0
-                    breakdown = {
-                        "keyword_gap_score": round(base_score * 1.05, 1),
-                        "review_quality": round(base_score * 0.9, 1),
-                        "smart_place_completeness": round(base_score, 1),
-                        "naver_exposure_confirmed": round(base_score * 1.1 if mentioned else 5.0, 1),
-                        "multi_ai_exposure": round(base_score * 0.8, 1),
-                        "schema_seo": round(base_score * 0.85, 1),
-                        "online_mentions_t2": round(base_score * 0.75, 1),
-                        "google_presence": round(base_score * 0.7, 1),
-                    }
+                    exposure_freq = r.get("exposure_freq", 0) or 0
+                    base_score, breakdown = compute_competitor_score(comp, mentioned, exposure_freq, excerpt)
                     competitor_scores[comp["id"]] = {
                         "name": comp["name"],
                         "mentioned": mentioned,
@@ -3036,13 +3019,14 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         if competitor_scores and biz:
             comp_rows = []
             for comp_id, comp_data in competitor_scores.items():
+                _src = comp_by_id.get(comp_id, {})
                 comp_rows.append({
                     "category": (biz or {}).get("category", req.category),
                     "region": (biz or {}).get("region", req.region),
                     "mentioned": bool(comp_data.get("mentioned")),
                     "score": int(comp_data["score"]) if comp_data.get("score") is not None else None,
-                    "review_count": None,   # 경쟁사 리뷰는 현재 Gemini 단일체크로 미수집 → None
-                    "avg_rating": None,
+                    "review_count": _src.get("naver_review_count"),
+                    "avg_rating": _src.get("naver_avg_rating"),
                 })
             if comp_rows:
                 try:
