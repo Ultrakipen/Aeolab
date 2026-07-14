@@ -13,6 +13,7 @@ import { AICitationHighlight } from '@/components/guide/AICitationHighlight'
 import { KeywordCompletenessGauge } from '@/components/guide/KeywordCompletenessGauge'
 import { CompetitorKeywordAlert } from '@/components/guide/CompetitorKeywordAlert'
 import { getBriefingEligibility, type BriefingEligibility } from '@/lib/userGroup'
+import { getScoreTextLabel } from '@/lib/scoreLabels'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -225,11 +226,14 @@ interface ThisWeekMission {
 interface ScanSnapshot {
   my_score?: number
   my_freq?: number
+  my_freq_max?: number
   track1_score?: number | null
   track2_score?: number | null
   naver_in_briefing?: boolean
   naver_measured?: boolean
   chatgpt_mentioned?: boolean
+  chatgpt_measured?: boolean
+  gemini_measured?: boolean
   keyword_gap_count?: number
   coverage_rate?: number
   competitor_count?: number
@@ -826,16 +830,23 @@ function ThisWeekMissionCard({
 function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnapshot; isInactive?: boolean }) {
   const score = snapshot.my_score ?? 0
   const freq = snapshot.my_freq ?? 0
+  // 표본 크기(플랜별 50/100)로 정규화한 노출 비율 — 절대 카운트로 등급화하면
+  // Basic(50회 표본)과 Full(100회 표본) 사업장이 같은 실제 노출률이라도 다르게 표시됨
+  const freqMax = snapshot.my_freq_max ?? 50
+  const freqRatio = freqMax > 0 ? freq / freqMax : 0
   const naverOk = snapshot.naver_in_briefing ?? false
   const naverMeasured = snapshot.naver_measured ?? true
+  const chatgptMeasured = snapshot.chatgpt_measured ?? true
   const gapCount = snapshot.keyword_gap_count ?? 0
   const coverageRate = snapshot.coverage_rate ?? 0
 
-  const scoreColor = score >= 70 ? 'text-green-700' : score >= 50 ? 'text-yellow-700' : 'text-red-600'
-  const scoreBg   = score >= 70 ? 'bg-green-50 border-green-200' : score >= 50 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'
-  const freqColor = freq >= 30 ? 'text-blue-700' : freq >= 10 ? 'text-yellow-700' : 'text-red-600'
-  const scoreLabel = score >= 70 ? '높음' : score >= 50 ? '보통' : '개선 필요'
-  const freqLabel  = freq >= 30 ? '자주 노출' : freq >= 10 ? '가끔 노출' : '미노출'
+  // 사이트 단일 소스(scoreLabels.ts getScoreTextLabel, 75/55/30 기준)와 동일 임계값 사용 —
+  // 이 카드만 별도 임계값(과거 70/50)을 쓰면 같은 점수가 페이지 안에서 다르게 표시됨
+  const scoreLabel = getScoreTextLabel(score)
+  const scoreColor = score >= 75 ? 'text-green-700' : score >= 55 ? 'text-blue-700' : score >= 30 ? 'text-yellow-700' : 'text-red-600'
+  const scoreBg   = score >= 75 ? 'bg-green-50 border-green-200' : score >= 55 ? 'bg-blue-50 border-blue-200' : score >= 30 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'
+  const freqColor = freqRatio >= 0.3 ? 'text-blue-700' : freqRatio >= 0.1 ? 'text-yellow-700' : 'text-red-600'
+  const freqLabel  = freqRatio >= 0.3 ? '자주 노출' : freqRatio >= 0.1 ? '가끔 노출' : '미노출'
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5">
@@ -886,12 +897,12 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
           {gapCount > 0 && <div className="text-sm md:text-base text-amber-600 mt-0.5">{gapCount}개 키워드 부족</div>}
         </div>
       </div>
-      {/* ChatGPT 노출 여부 (보조 정보) */}
+      {/* ChatGPT 노출 여부 (보조 정보) — 측정 자체가 실패한 경우(API 오류 등) "미노출 확정"과 구분 */}
       {snapshot.chatgpt_mentioned !== undefined && (
         <div className="mt-2 flex flex-col gap-1">
           <div className="flex gap-2 text-sm md:text-base text-gray-500">
-            <span className={snapshot.chatgpt_mentioned ? 'text-green-600' : 'text-gray-500'}>
-              ChatGPT {snapshot.chatgpt_mentioned ? '✓ 노출' : '미노출'}
+            <span className={!chatgptMeasured ? 'text-gray-400' : snapshot.chatgpt_mentioned ? 'text-green-600' : 'text-gray-500'}>
+              ChatGPT {!chatgptMeasured ? '측정 실패 (다음 스캔에서 재확인)' : snapshot.chatgpt_mentioned ? '✓ 노출' : '미노출'}
             </span>
             {snapshot.competitor_count !== undefined && snapshot.competitor_count > 0 && (
               <span>· 경쟁사 {snapshot.competitor_count}곳 비교 기반</span>

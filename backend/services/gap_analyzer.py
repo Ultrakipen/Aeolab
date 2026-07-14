@@ -695,7 +695,7 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
     # 사업장 정보 (category, name, 블로그 분석 결과 + 스마트플레이스 실제 상태 포함)
     biz_row = (await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, business_type, review_sample, keywords, blog_url, blog_keyword_coverage, blog_analysis_json, blog_post_count, blog_latest_post_date, blog_analyzed_at, is_smart_place, has_faq, has_intro, has_recent_post, review_count, naver_intro_draft")
+        .select("id, name, category, region, business_type, review_sample, keywords, blog_url, blog_keyword_coverage, blog_analysis_json, blog_post_count, blog_latest_post_date, blog_analyzed_at, is_smart_place, has_faq, has_intro, has_recent_post, review_count, naver_intro_draft, is_franchise")
         .eq("id", business_id)
         .single()
     )).data

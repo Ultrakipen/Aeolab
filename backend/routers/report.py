@@ -3150,8 +3150,11 @@ async def get_ai_citations(
     enriched_real = []
     for c in real_rows:
         platform = c.get("platform", "")
-        # INACTIVE 업종(플레이스형 네이버 AI 브리핑 비대상)은 naver 인용 제외
-        if eligibility == "inactive" and platform == "naver":
+        # INACTIVE 업종(플레이스형 네이버 AI 브리핑 비대상)은 "미언급" naver 행만 제외
+        # (플레이스형 관점에서 무의미한 정보라 노출하지 않음). 단, mentioned=True인 행은
+        # 정보형 AI 브리핑 실측 인용일 수 있어(업종 무관 노출 가능, CLAUDE.md 정보형 캐비엇
+        # 원칙) 절대 버리지 않는다 — 실제 측정된 긍정 신호를 삭제하는 실수 방지.
+        if eligibility == "inactive" and platform == "naver" and not c.get("mentioned"):
             continue
         enriched_real.append({
             "id": None,

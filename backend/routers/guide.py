@@ -612,7 +612,7 @@ async def _generate_and_save(req: GuideRequest):
         supabase = get_client()
         biz = (await execute(
             supabase.table("businesses")
-            .select("id, name, category, region, keywords, website_url, google_place_id, kakao_place_id, business_type, naver_place_id, address, phone, is_smart_place, has_faq, has_intro, has_recent_post, review_count, avg_rating, visitor_review_count, receipt_review_count, blog_analysis_json, sp_completeness_json")
+            .select("id, name, category, region, keywords, website_url, google_place_id, kakao_place_id, business_type, naver_place_id, address, phone, is_smart_place, has_faq, has_intro, has_recent_post, review_count, avg_rating, visitor_review_count, receipt_review_count, blog_analysis_json, sp_completeness_json, is_franchise")
             .eq("id", req.business_id).single()
         )).data
         if not biz:
@@ -644,6 +644,7 @@ async def _generate_and_save(req: GuideRequest):
                 "name": v.get("name", k),
                 "score": float(v.get("score", 0)),
                 "exposure_freq": float(v.get("exposure_freq", 0)),
+                "breakdown": v.get("breakdown", {}),
             }
             for k, v in raw_comp.items()
         ] if isinstance(raw_comp, dict) else []
@@ -675,13 +676,16 @@ async def _generate_and_save(req: GuideRequest):
             "ai_tab_eligibility": ai_tab_eligibility,
         }
 
-        # gap_analyzer로 keyword_gap 조회 (경쟁사 실데이터 기반 구체 조언 제공)
+        # gap_analyzer로 keyword_gap + growth_stage 조회 (경쟁사 실데이터 기반 구체 조언 제공)
         keyword_gap = None
+        growth_stage_dict = None
         try:
             from services.gap_analyzer import analyze_gap_from_db
             gap_result = await analyze_gap_from_db(req.business_id, supabase)
             if gap_result and gap_result.keyword_gap:
                 keyword_gap = gap_result.keyword_gap
+            if gap_result and gap_result.growth_stage:
+                growth_stage_dict = gap_result.growth_stage.model_dump()
         except Exception as e:
             _logger.warning(f"Guide gen: keyword_gap 조회 실패 (biz={req.business_id}): {e}")
 
@@ -695,6 +699,7 @@ async def _generate_and_save(req: GuideRequest):
             naver_data=None,
             website_health=scan.get("website_check_result"),
             keyword_gap=keyword_gap,
+            growth_stage=growth_stage_dict,
         )
 
         # guides 테이블에 저장 — 새 컬럼(v2.1) 우선 시도, 없으면 레거시 폴백
@@ -716,6 +721,8 @@ async def _generate_and_save(req: GuideRequest):
         tools_data["scan_snapshot"] = {
             "my_score": round(float(score_data.get("total_score") or 0), 1),
             "my_freq": int(score_data.get("exposure_freq") or 0),
+            # 노출 횟수의 분모(플랜별 표본 크기 50/100) — 절대값 임계값 판정 시 정규화용
+            "my_freq_max": int((score_data.get("gemini_result") or {}).get("sample_size") or 50),
             "track1_score": round(float(score_data.get("track1_score") or 0), 1) if score_data.get("track1_score") is not None else None,
             "track2_score": round(float(score_data.get("track2_score") or 0), 1) if score_data.get("track2_score") is not None else None,
             "naver_in_briefing": bool((score_data.get("naver_result") or {}).get("mentioned", False)),

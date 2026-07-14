@@ -81,7 +81,9 @@ function AICitationContent({ businessId, authToken, isInactive }: { businessId: 
   if (!data) return null
 
   const rawCitations = data.citations ?? []
-  const allCitations = isInactive ? rawCitations.filter((c) => c.platform !== 'naver') : rawCitations
+  // INACTIVE 업종은 "미언급" naver 항목만 숨김 — mentioned=true는 정보형 AI 브리핑
+  // 실측 인용일 수 있어(업종 무관 노출 가능) 절대 숨기지 않는다.
+  const allCitations = isInactive ? rawCitations.filter((c) => c.platform !== 'naver' || c.mentioned) : rawCitations
   const mentionedCitations = allCitations.filter((c) => c.mentioned).slice(0, 3)
   const totalMentioned = allCitations.filter((c) => c.mentioned).length
   const totalNotMentioned = allCitations.filter((c) => !c.mentioned && c.mention_type !== 'synthetic').length
