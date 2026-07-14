@@ -19,6 +19,11 @@ router = APIRouter()
 # 단일 프로세스(PM2 fork) 배포라 in-memory set으로 충분 — scan.py _active_scans와 동일 패턴.
 _guide_generation_locks: set[str] = set()
 
+# review-reply/crisis-reply도 COUNT 체크 후 Claude 호출(수백ms~수초) 사이 동시요청이
+# 같은 월별 한도를 여러 번 통과할 수 있는 동일한 TOCTOU 구조 — 위와 같은 이유로 락 추가.
+_review_reply_locks: set[str] = set()
+_crisis_reply_locks: set[str] = set()
+
 
 async def _verify_biz_ownership(supabase, biz_id: str, user_id: str) -> None:
     """사업장 소유권 검증 — 타인 소유 또는 없는 경우 404 반환"""
@@ -179,7 +184,7 @@ async def generate_review_reply(
 ):
     """리뷰 답변 초안 생성 (Claude Haiku, Basic+ 전용).
 
-    월별 한도: Basic 20회 / Startup·Pro·Biz·Enterprise 무제한(999)
+    월별 한도: Basic 50회 / Startup·Pro·Biz·Enterprise 무제한(999) — PLAN_LIMITS 단일 소스
     """
     from middleware.plan_gate import check_review_reply_limit
     supabase = get_client()
@@ -196,76 +201,90 @@ async def generate_review_reply(
             detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "pro", "biz"]},
         )
 
-    # 3. 월별 한도 체크
-    allowed, used, limit = await check_review_reply_limit(current_user["id"], supabase)
-    if not allowed:
+    # 3. 월별 한도 체크 — COUNT 스냅샷 후 Claude 호출까지 TOCTOU 레이스 방지 락(M2와 동일 패턴)
+    user_id = current_user["id"]
+    if user_id in _review_reply_locks:
         raise HTTPException(
-            status_code=429,
+            status_code=409,
             detail={
-                "code": "REVIEW_REPLY_LIMIT_EXCEEDED",
-                "used": used,
-                "limit": limit,
-                "message": f"이번 달 리뷰 답변 생성 한도({limit}회)를 초과했습니다.",
-                "upgrade_url": "/pricing",
+                "code": "REVIEW_REPLY_IN_PROGRESS",
+                "message": "이미 리뷰 답변 생성이 진행 중입니다. 완료 후 다시 시도해 주세요.",
             },
         )
-
-    biz = (await execute(
-        supabase.table("businesses")
-        .select("name, category, keywords")
-        .eq("id", req.business_id).single()
-    )).data
-    if not biz:
-        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
-
-    reply_draft, sentiment, is_fallback = await _generate_reply(biz, req.review_text)
-
-    # 저장 — 폴백(AI 실패)이면 한도 소비·이력 오염 방지 위해 저장 건너뜀 (smartplace-faq와 동일 패턴)
-    if not is_fallback:
-        try:
-            await execute(
-                supabase.table("review_replies").insert({
-                    "business_id": req.business_id,
-                    "review_text": req.review_text,
-                    "reply_draft": reply_draft,
-                    "sentiment": sentiment,
-                    "keywords_used": biz.get("keywords") or [],
-                })
+    _review_reply_locks.add(user_id)
+    try:
+        allowed, used, limit = await check_review_reply_limit(user_id, supabase)
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "code": "REVIEW_REPLY_LIMIT_EXCEEDED",
+                    "used": used,
+                    "limit": limit,
+                    "message": f"이번 달 리뷰 답변 생성 한도({limit}회)를 초과했습니다.",
+                    "upgrade_url": "/pricing",
+                },
             )
-        except Exception as e:
-            err_str = str(e)
-            if "sentiment" in err_str and "does not exist" in err_str:
-                # sentiment 컬럼 미적용 DB 환경 fallback
-                _logger.warning("review_replies.sentiment 컬럼 미적용 — sentiment 제외 저장 (마이그레이션 필요)")
+
+        biz = (await execute(
+            supabase.table("businesses")
+            .select("name, category, keywords")
+            .eq("id", req.business_id).single()
+        )).data
+        if not biz:
+            raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+        reply_draft, sentiment, is_fallback = await _generate_reply(biz, req.review_text)
+
+        # 저장 — 폴백(AI 실패)이면 한도 소비·이력 오염 방지 위해 저장 건너뜀 (smartplace-faq와 동일 패턴)
+        if not is_fallback:
+            try:
                 await execute(
                     supabase.table("review_replies").insert({
                         "business_id": req.business_id,
                         "review_text": req.review_text,
                         "reply_draft": reply_draft,
+                        "sentiment": sentiment,
                         "keywords_used": biz.get("keywords") or [],
                     })
                 )
-            else:
-                raise
+            except Exception as e:
+                err_str = str(e)
+                if "sentiment" in err_str and "does not exist" in err_str:
+                    # sentiment 컬럼 미적용 DB 환경 fallback
+                    _logger.warning("review_replies.sentiment 컬럼 미적용 — sentiment 제외 저장 (마이그레이션 필요)")
+                    await execute(
+                        supabase.table("review_replies").insert({
+                            "business_id": req.business_id,
+                            "review_text": req.review_text,
+                            "reply_draft": reply_draft,
+                            "keywords_used": biz.get("keywords") or [],
+                        })
+                    )
+                else:
+                    raise
 
-    return {
-        "draft_response": reply_draft,
-        "tone": sentiment,
-        "is_fallback": is_fallback,
-        "used": used if is_fallback else used + 1,
-        "limit": limit,
-        "keywords_used": biz.get("keywords") or [],
-    }
+        return {
+            "draft_response": reply_draft,
+            "tone": sentiment,
+            "is_fallback": is_fallback,
+            "used": used if is_fallback else used + 1,
+            "limit": limit,
+            "keywords_used": biz.get("keywords") or [],
+        }
+    finally:
+        _review_reply_locks.discard(user_id)
 
 
 async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str, bool]:
     """Claude Haiku로 감정 분류 + 답변 초안 생성"""
     import anthropic
     import os
+    from services.schema_generator import CATEGORY_KO
 
     client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
     keywords = ", ".join((biz.get("keywords") or [])[:5])
-    category = biz.get("category", "")
+    category = CATEGORY_KO.get(biz.get("category", ""), biz.get("category", ""))
     biz_name = biz.get("name", "저희 가게")
 
     prompt = f"""당신은 한국 소상공인({biz_name}, 업종: {category})의 고객 리뷰 답변을 작성하는 전문가입니다.
@@ -1080,54 +1099,67 @@ async def generate_crisis_reply_endpoint(
             detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "pro", "biz"]},
         )
 
-    # 월별 한도 체크 (2026-07-06 신설 — 이전엔 무제한 호출 가능했음)
-    allowed, used, limit = await check_crisis_reply_limit(user_id, supabase)
-    if not allowed:
+    # 월별 한도 체크 (2026-07-06 신설) — COUNT 스냅샷 후 Claude 호출까지 TOCTOU 레이스 방지 락(M2와 동일 패턴)
+    if user_id in _crisis_reply_locks:
         raise HTTPException(
-            status_code=429,
+            status_code=409,
             detail={
-                "code": "CRISIS_REPLY_LIMIT_EXCEEDED",
-                "used": used,
-                "limit": limit,
-                "message": f"이번 달 위기관리 가이드 생성 한도({limit}회)를 초과했습니다.",
-                "upgrade_url": "/pricing",
+                "code": "CRISIS_REPLY_IN_PROGRESS",
+                "message": "이미 위기관리 가이드 생성이 진행 중입니다. 완료 후 다시 시도해 주세요.",
             },
         )
-
-    # 사업장 정보 조회
-    biz = (await execute(
-        supabase.table("businesses")
-        .select("name, category")
-        .eq("id", biz_id)
-        .single()
-    )).data
-    if not biz:
-        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
-
-    result = await generate_crisis_reply(
-        review_text=review_text,
-        business_name=biz.get("name", ""),
-        category=biz.get("category", ""),
-        rating=rating,
-    )
-
-    # 사용량 카운트 — 폴백(AI 실패)이면 실제 소비 없음으로 간주해 기록 생략 (review-reply/faq와 동일 원칙)
-    is_fallback = result.get("is_fallback", False)
-    if not is_fallback:
-        try:
-            await execute(
-                supabase.table("guides").insert({
-                    "business_id": biz_id,
-                    "context": "crisis_reply",
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
-                })
+    _crisis_reply_locks.add(user_id)
+    try:
+        allowed, used, limit = await check_crisis_reply_limit(user_id, supabase)
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "code": "CRISIS_REPLY_LIMIT_EXCEEDED",
+                    "used": used,
+                    "limit": limit,
+                    "message": f"이번 달 위기관리 가이드 생성 한도({limit}회)를 초과했습니다.",
+                    "upgrade_url": "/pricing",
+                },
             )
-        except Exception as e:
-            _logger.warning(f"crisis-reply 사용량 기록 실패 (응답은 정상 반환, biz={biz_id}): {e}")
 
-    result["used"] = used if is_fallback else used + 1
-    result["limit"] = limit
-    return result
+        # 사업장 정보 조회
+        biz = (await execute(
+            supabase.table("businesses")
+            .select("name, category")
+            .eq("id", biz_id)
+            .single()
+        )).data
+        if not biz:
+            raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+
+        from services.schema_generator import CATEGORY_KO
+        result = await generate_crisis_reply(
+            review_text=review_text,
+            business_name=biz.get("name", ""),
+            category=CATEGORY_KO.get(biz.get("category", ""), biz.get("category", "")),
+            rating=rating,
+        )
+
+        # 사용량 카운트 — 폴백(AI 실패)이면 실제 소비 없음으로 간주해 기록 생략 (review-reply/faq와 동일 원칙)
+        is_fallback = result.get("is_fallback", False)
+        if not is_fallback:
+            try:
+                await execute(
+                    supabase.table("guides").insert({
+                        "business_id": biz_id,
+                        "context": "crisis_reply",
+                        "generated_at": datetime.now(timezone.utc).isoformat(),
+                    })
+                )
+            except Exception as e:
+                _logger.warning(f"crisis-reply 사용량 기록 실패 (응답은 정상 반환, biz={biz_id}): {e}")
+
+        result["used"] = used if is_fallback else used + 1
+        result["limit"] = limit
+        return result
+    finally:
+        _crisis_reply_locks.discard(user_id)
 
 
 @router.get("/{biz_id}/pioneer-detail")
@@ -1283,19 +1315,8 @@ async def generate_blog_topics(
     if scan_row.data:
         top_missing = (scan_row.data.get("top_missing_keywords") or [])[:5]
 
-    category_ko = {
-        "restaurant": "음식점", "cafe": "카페", "bakery": "베이커리·빵집",
-        "bar": "주점·바", "beauty": "미용·뷰티", "nail": "네일샵",
-        "medical": "병원·의원", "pharmacy": "약국", "fitness": "운동·헬스",
-        "yoga": "요가·필라테스", "pet": "반려동물", "education": "교육·학원",
-        "tutoring": "과외·튜터링", "legal": "법률·행정", "realestate": "부동산",
-        "interior": "인테리어", "auto": "자동차", "cleaning": "청소·세탁",
-        "shopping": "쇼핑몰", "fashion": "패션·의류", "photo": "사진·영상",
-        "video": "영상제작", "design": "디자인", "accommodation": "숙박·펜션",
-        "other": "소상공인",
-        # 구버전 호환
-        "hair": "미용실",
-    }.get(category, category)
+    from services.schema_generator import CATEGORY_KO
+    category_ko = CATEGORY_KO.get(category, category)
 
     kw_hint = (", ".join(top_missing[:3])) if top_missing else f"{region} {category_ko}"
 

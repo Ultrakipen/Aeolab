@@ -94,11 +94,20 @@ async def generate_schema(req: SchemaRequest, user: dict = Depends(get_current_u
         "bar": "restaurant", "snack": "restaurant", "delivery": "restaurant",
         "bakery": "cafe",
         "tax": "legal", "architecture": "legal", "accounting": "legal",
+        "realestate": "legal",
         "vet": "pet",
         "clothing": "shopping", "shoes": "shopping", "grocery": "shopping",
         "electronics": "shopping", "furniture": "shopping", "stationery": "shopping",
         "book": "shopping", "supplement": "shopping", "baby": "shopping",
-        "fashion": "shopping", "footwear": "shopping", "electronics_repair": "shopping",
+        "fashion": "shopping", "footwear": "shopping", "flower": "shopping",
+        # 생활서비스(출장·시공형) — 2026-07-14 신설 그룹
+        "interior": "service", "auto": "service", "cleaning": "service",
+        "car_wash": "service", "laundry": "service", "electronics_repair": "service",
+        # 사진·영상·디자인(포트폴리오형) — 2026-07-14 신설 그룹
+        "photo": "creative", "video": "creative", "design": "creative",
+        # 여가·오락·공방(공간 예약형) — 2026-07-14 신설 그룹
+        "norebang": "leisure", "billiards": "leisure", "workshop": "leisure",
+        "escape": "leisure", "experience": "leisure",
     }
     _tips_key = _TIPS_ALIAS.get(req.category, req.category)
     result["category_tips"] = CATEGORY_TIPS.get(_tips_key, {})
