@@ -80,6 +80,7 @@ class NaverPlaceStatsService:
                     r'"visitorReviewCount"\s*:\s*(\d+)',    # JSON 내장 포맷
                     r'"reviewCount"\s*:\s*(\d+)',           # JSON 내장 포맷 변형
                     r"방문자\s+(\d[\d,]+)",                  # "방문자 16"
+                    r"리뷰[ \t]+(\d[\d,]*)",                # "장소대여리뷰 22"(업종 카테고리 접두, 공백) — 2026-07-14 실측
                 ]
                 for _pat in _review_patterns:
                     _m = re.search(_pat, body_text)
@@ -102,6 +103,26 @@ class NaverPlaceStatsService:
                         logger.info(f"[place_stats] mobile fallback review_count={visitor_review_count} for {naver_place_id}")
                     except Exception as _e:
                         logger.warning("review mobile fallback failed [%s]: %s", naver_place_id, _e)
+
+                # 그래도 미감지 시 pcmap.place.naver.com 직접 접근으로 재시도.
+                # 2026-07-14 실측: map.naver.com/p/entry(위 경로)는 body_text에 리뷰 섹션이
+                # 아예 안 잡히는 경우가 잦았던 반면, competitor_place_crawler.py가 쓰는
+                # pcmap.place.naver.com/place/{id}/home 직접 접근은 "카테고리리뷰 22" 형식이
+                # 초기 렌더에 바로 포함돼 안정적으로 파싱됨(경쟁사 9곳 실측 검증 완료) — 동일 경로 재사용.
+                if visitor_review_count == 0:
+                    try:
+                        pcmap_url = f"https://pcmap.place.naver.com/place/{naver_place_id}/home"
+                        await page.goto(pcmap_url, timeout=15000, wait_until="domcontentloaded")
+                        await page.wait_for_timeout(5000)
+                        pcmap_body = await page.inner_text("body")
+                        for _pat in _review_patterns:
+                            _m = re.search(_pat, pcmap_body)
+                            if _m:
+                                visitor_review_count = int(_m.group(1).replace(",", ""))
+                                break
+                        logger.info(f"[place_stats] pcmap fallback review_count={visitor_review_count} for {naver_place_id}")
+                    except Exception as _e:
+                        logger.warning("review pcmap fallback failed [%s]: %s", naver_place_id, _e)
 
                 # 영수증 리뷰 수 파싱
                 receipt_review_count = 0
