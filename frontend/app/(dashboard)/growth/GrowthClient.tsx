@@ -395,7 +395,7 @@ export default function GrowthClient({
                   {totalDelta > 0 ? "↑ 첫 스캔 대비 개선됨" : "↓ 첫 스캔 대비 하락"}
                 </p>
               )}
-              {latestWeeklyChange !== null && latestWeeklyChange !== 0 && (
+              {latestWeeklyChange !== null && Math.abs(latestWeeklyChange) > 2 && (
                 <p className={`text-sm font-semibold mt-1 ${latestWeeklyChange > 0 ? "text-emerald-600" : "text-red-400"}`}>
                   이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
@@ -409,7 +409,7 @@ export default function GrowthClient({
                 const cls = currentScore >= 75 ? 'text-emerald-600' : currentScore >= 55 ? 'text-blue-600' : currentScore >= 30 ? 'text-amber-600' : 'text-gray-500'
                 return <p className={`text-lg font-bold mb-1 ${cls}`}>{lbl}</p>
               })()}
-              {latestWeeklyChange !== null && latestWeeklyChange !== 0 && (
+              {latestWeeklyChange !== null && Math.abs(latestWeeklyChange) > 2 && (
                 <p className={`text-sm font-semibold mb-1 ${latestWeeklyChange > 0 ? "text-emerald-600" : "text-red-400"}`}>
                   이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
@@ -420,7 +420,11 @@ export default function GrowthClient({
           {latestExposureFreq !== null && (
             <div className="mt-2 bg-blue-50 rounded-lg px-3 py-1.5">
               <p className="text-sm font-semibold text-blue-700">
-                {latestSampleSize ?? 100}번 중 <span className="text-base">{Math.round(latestExposureFreq)}</span>번 노출
+                {latestSampleSize !== null ? (
+                  <>{latestSampleSize}번 중 <span className="text-base">{Math.round(latestExposureFreq)}</span>번 노출</>
+                ) : (
+                  <><span className="text-base">{Math.round(latestExposureFreq)}</span>번 노출</>
+                )}
               </p>
             </div>
           )}
@@ -1050,7 +1054,9 @@ export default function GrowthClient({
                         {getScoreTextLabel(entry.track2_score ?? 0)}
                       </td>
                       <td className="py-3 pr-3 text-right text-gray-500 text-sm">
-                        {expFreq !== null ? `${Math.round(expFreq)}회 / ${entry.sample_size ?? 100}` : "–"}
+                        {expFreq !== null
+                          ? (entry.sample_size != null ? `${Math.round(expFreq)}회 / ${entry.sample_size}` : `${Math.round(expFreq)}회`)
+                          : "–"}
                       </td>
                       <td className={`py-3 text-right font-semibold text-sm ${weeklyChange === null ? "text-gray-300" : weeklyChange > 2 ? "text-emerald-600" : weeklyChange < -2 ? "text-red-500" : "text-gray-500"}`}>
                         {weeklyChange === null ? "–" : weeklyChange > 2 ? "↑ 상승" : weeklyChange < -2 ? "↓ 하락" : "— 유지"}

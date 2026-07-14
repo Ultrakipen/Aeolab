@@ -962,7 +962,7 @@ def calculate_score(
     # v3.1/v3.2 토글 시 신규 항목 평탄화 (briefing_engine·gap_analyzer·guide_generator 호환)
     if SCORE_MODEL_VERSION in ("v3_1", "v3_2") and isinstance(track1_detail, dict):
         items = track1_detail.get("items") or {}
-        for key in ("keyword_search_rank", "blog_crank", "local_map_score", "ai_briefing_score", "naver_ai_tab_visible"):
+        for key in ("keyword_search_rank", "smart_place_completeness", "blog_crank", "local_map_score", "ai_briefing_score", "naver_ai_tab_visible"):
             item = items.get(key)
             if isinstance(item, dict) and "score" in item:
                 breakdown[key] = item["score"]

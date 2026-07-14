@@ -2201,10 +2201,23 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
         prev_score = s
 
     # ── 5. 성장 드라이버 (첫 스캔 vs 최신 스캔 breakdown 비교) ──────
+    # 항목별 가중치가 서로 달라(예: ai_briefing_score 25% vs blog_crank 10%, INACTIVE는 0%)
+    # raw delta만 비교하면 실제 unified_score 변화에 기여하지 않은 항목이 "가장 많이 움직인 항목"으로
+    # 잘못 뽑힐 수 있음 — 가중치를 곱한 weighted_delta로 정렬·원인 판정한다.
+    from services.score_engine import NAVER_TRACK_WEIGHTS_V3_1, GLOBAL_TRACK_WEIGHTS
+
+    def _driver_weight(key: str, user_group: str) -> float:
+        if key in GLOBAL_TRACK_WEIGHTS:
+            return GLOBAL_TRACK_WEIGHTS[key]
+        group_weights = NAVER_TRACK_WEIGHTS_V3_1.get(user_group) or NAVER_TRACK_WEIGHTS_V3_1["ACTIVE"]
+        return group_weights.get(key, 0.0)
+
     growth_drivers: list[dict] = []
+    worst_driver: dict | None = None
     if scans_raw:
-        first_bd  = scans_raw[0].get("score_breakdown")  or {}
-        latest_bd = scans_raw[-1].get("score_breakdown") or {}
+        first_bd   = scans_raw[0].get("score_breakdown")  or {}
+        latest_bd  = scans_raw[-1].get("score_breakdown") or {}
+        user_group = latest_bd.get("user_group") or first_bd.get("user_group") or "ACTIVE"
         drivers: list[dict] = []
         all_keys = set(first_bd.keys()) | set(latest_bd.keys())
         for key in all_keys:
@@ -2216,11 +2229,20 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
             current = _safe_float(latest_bd.get(key))
             prev    = _safe_float(first_bd.get(key))
             delta   = round(current - prev, 1)
-            drivers.append({"label": label, "key": key, "delta": delta, "current": current})
-        # delta가 모두 0이면 current 값 기준 정렬 (초기 단계 사용자 대응)
-        all_zero = all(d["delta"] == 0 for d in drivers)
-        sort_key = (lambda x: x["current"]) if all_zero else (lambda x: x["delta"])
+            weight  = _driver_weight(key, user_group)
+            drivers.append({
+                "label": label, "key": key, "delta": delta, "current": current,
+                "weighted_delta": round(delta * weight, 2),
+            })
+        # weighted_delta가 모두 0이면 current 값 기준 정렬 (초기 단계 사용자 대응)
+        all_zero = all(d["weighted_delta"] == 0 for d in drivers)
+        sort_key = (lambda x: x["current"]) if all_zero else (lambda x: x["weighted_delta"])
         growth_drivers = sorted(drivers, key=sort_key, reverse=True)[:4]
+        # 헤드라인의 "가장 큰 원인"은 상위 4개(=가장 많이 개선된 항목들)로 자르기 전
+        # 전체 후보(drivers)에서 실제 최솟값을 찾아야 한다 — top4 안에서만 찾으면
+        # 전부 플러스인 항목들 중 "가장 덜 오른 것"이 하락 원인으로 잘못 지목될 수 있음
+        if drivers:
+            worst_driver = min(drivers, key=lambda d: d["weighted_delta"])
 
     # ── 5-B. 헤드라인 문장 ───────────────────────────────────────────
     total_delta_val = round(current_score - start_score, 1)
@@ -2239,9 +2261,8 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
             headline = "첫 스캔 이후 AI 검색 노출이 꾸준히 개선되고 있습니다. 잘 하고 계십니다!"
             headline_type = "growth"
         elif total_delta_val <= -2:
-            if growth_drivers:
-                worst = min(growth_drivers, key=lambda d: d["delta"])
-                label = worst["label"]
+            if worst_driver:
+                label = worst_driver["label"]
                 headline = f"이번 달 노출이 줄었습니다. 가장 큰 원인은 '{label}' 부족입니다."
             else:
                 headline = "이번 달 AI 검색 노출이 줄었습니다. 가이드에서 원인을 확인하세요."
