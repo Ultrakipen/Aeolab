@@ -344,7 +344,14 @@ function NaverSearchBaseSection({
     { icon: "💬", label: "리뷰 10개+ (영수증 리뷰 포함)", effect: isActive ? "플레이스탭 · AI 브리핑" : "플레이스탭", priority: "high" },
     { icon: "📅", label: "14일 이내 소식 1개 이상 게시", effect: "플레이스탭 · AI탭", priority: "mid" },
     { icon: "📆", label: "네이버 예약 연동", effect: "플레이스탭 · AI탭", priority: "mid" },
-    { icon: "📝", label: "네이버 블로그 후기 5개 이상 확보", effect: isActive ? "AI탭 · AI 브리핑 (2~4주)" : "AI탭 · ChatGPT · Gemini", priority: "mid" },
+    {
+      icon: "📝",
+      label: "네이버 블로그 후기 5개 이상 확보",
+      // 정보형 AI 브리핑은 업종 제한 없이 블로그·콘텐츠가 출처로 채택되면 노출됨(2026-06-29 실측 확인)
+      // — ACTIVE만 "AI 브리핑"을 언급하고 LIKELY·INACTIVE는 누락하면 정보형 가능성을 숨기게 됨
+      effect: isActive ? "AI탭 · AI 브리핑 (2~4주)" : isLikely ? "AI탭 · 정보형 AI 브리핑" : "AI탭 · 정보형 AI 브리핑 · ChatGPT · Gemini",
+      priority: "mid",
+    },
   ]
 
   return (
@@ -392,8 +399,8 @@ function NaverSearchBaseSection({
           {isActive
             ? "이 4가지가 네이버 AI 브리핑·AI탭 노출의 직접 조건입니다. 블로그 후기는 네이버 AI 브리핑·AI탭에 효과적입니다. ChatGPT·Gemini는 Bing 인덱싱 경로가 달라 직접 효과가 낮습니다."
             : isLikely
-            ? "이 4가지가 네이버 AI탭 노출의 직접 기반입니다. 블로그 후기는 AI탭 노출에 효과적이며 ChatGPT·Gemini 장기 노출에도 도움이 됩니다."
-            : "이 4가지가 네이버 검색 순위를 높이고 AI탭·ChatGPT·Gemini 노출 가능성을 함께 높입니다. 블로그 후기는 AI탭·ChatGPT·Gemini 노출에 장기적으로 도움이 됩니다."}
+            ? "이 4가지가 네이버 AI탭 노출의 직접 기반입니다. 블로그 후기는 정보형 AI 브리핑·AI탭 노출에 효과적이며 ChatGPT·Gemini 장기 노출에도 도움이 됩니다."
+            : "이 4가지가 네이버 검색 순위를 높이고 AI탭·ChatGPT·Gemini 노출 가능성을 함께 높입니다. 블로그 후기는 정보형 AI 브리핑·AI탭·ChatGPT·Gemini 노출에 장기적으로 도움이 됩니다."}
         </p>
       </div>
 
@@ -862,15 +869,19 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
           <div className="text-sm md:text-base text-gray-500 mb-1">AI 검색 노출</div>
           <div className={`text-lg font-bold ${freqColor}`}>{freqLabel}</div>
         </div>
-        {/* 네이버 AI 브리핑 / 비대상 업종은 AI 검색으로 표시 */}
-        <div className={`rounded-xl border p-3 ${isInactive ? 'bg-gray-50 border-gray-200' : !naverMeasured ? 'bg-gray-50 border-gray-200' : naverOk ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+        {/* 네이버 AI 브리핑 — INACTIVE 업종도 정보형 실측 노출(naverOk)이 있으면 숨기지 않는다 */}
+        <div className={`rounded-xl border p-3 ${isInactive ? (naverOk ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200') : !naverMeasured ? 'bg-gray-50 border-gray-200' : naverOk ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
           <div className="text-sm md:text-base text-gray-500 mb-1">
-            {isInactive ? "AI 검색 노출" : "네이버 AI 브리핑"}
+            네이버 AI 브리핑
           </div>
           {isInactive ? (
-            <div className="text-sm md:text-base font-semibold mt-1 text-gray-600">
-              비대상 업종
-            </div>
+            naverOk ? (
+              <div className="text-base font-bold mt-1 text-green-700">✓ 정보형 노출 중</div>
+            ) : (
+              <div className="text-sm md:text-base font-semibold mt-1 text-gray-600">
+                플레이스형 비대상
+              </div>
+            )
           ) : !naverMeasured ? (
             <>
               <div className="text-base font-bold mt-1 text-gray-600">측정 실패</div>
@@ -4893,21 +4904,22 @@ export function GuideClient({
               ) : isBriefingLikely ? (
                 <>
                   <p className="text-base font-bold text-gray-900 mb-1">
-                    이 업종은 AI 브리핑 확대 예상 업종입니다
+                    이 업종은 '플레이스형' AI 브리핑 확대 예상 업종입니다
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
                     미리 아래 가이드를 완료해두면 확대 즉시 노출됩니다.
-                    현재도 네이버 AI탭·일반 검색 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
+                    블로그·콘텐츠가 출처로 채택되면 지금도 <strong>'정보형 AI 브리핑'</strong>에 노출될 수 있으며, 네이버 AI탭·일반 검색 노출에도 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
                   </p>
                 </>
               ) : (
                 <>
                   <p className="text-base font-bold text-gray-900 mb-1">
-                    현재 비대상 업종 — 아래 가이드는 모든 AI 채널에 효과적입니다
+                    이 업종은 '플레이스형' AI 브리핑 비대상입니다 — '정보형'은 가능합니다
                   </p>
                   <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    네이버 AI 브리핑은 음식점·카페·숙박 중심이지만, 아래 개선 항목은{' '}
-                    <strong>네이버 AI탭·카카오맵·일반 검색 노출</strong>에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
+                    네이버 AI 브리핑 중 가게 요약형인 '플레이스형'은 음식점·카페·숙박 등이 중심이지만,
+                    블로그·콘텐츠가 출처로 채택되면 업종 제한 없이 <strong>'정보형 AI 브리핑'</strong>에 노출될 수 있습니다.
+                    아래 개선 항목은 정보형 AI 브리핑·<strong>네이버 AI탭·카카오맵·일반 검색 노출</strong>에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
                   </p>
                 </>
               )}
