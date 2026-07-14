@@ -565,6 +565,9 @@ class GuideGenerator:
     ) -> str:
         my_score = scan_result.get("total_score", 0)
         my_freq = scan_result.get("exposure_freq", 0)
+        # 표본 크기는 플랜별로 다름(Basic 자동 50회 / Full 100회) — 프롬프트에 고정 100회로
+        # 적으면 Basic 사용자의 실제 노출률을 Claude가 과소평가해 서술할 수 있음
+        my_freq_max = int((scan_result.get("gemini_result") or {}).get("sample_size") or 50)
         top_comp = sorted(competitor_data, key=lambda x: x.get("score", 0), reverse=True)[:3]
         breakdown = scan_result.get("breakdown", scan_result.get("score_breakdown", {}))
 
@@ -579,9 +582,11 @@ class GuideGenerator:
         eligibility = _get_eligibility(biz.get("category", ""), is_franchise)
         briefing_header = _briefing_strategy_header(eligibility, is_franchise)
 
-        # 네이버 AI 브리핑 노출 여부
+        # 네이버 AI 브리핑 노출 여부 — mentioned은 일반 플레이스 검색 노출까지 포함하는 넓은 신호,
+        # in_briefing이 실제 AI 브리핑 박스 인용 여부다(naver_scanner.py:244-245 참고).
+        # "있음 ✅"으로 Claude 프롬프트에 단정하려면 in_briefing을 봐야 한다.
         _naver_res_gg = scan_result.get("naver_result") or {}
-        naver_in_briefing = _naver_res_gg.get("mentioned", False)
+        naver_in_briefing = _naver_res_gg.get("in_briefing", False)
         # CAPTCHA 차단·API 오류로 측정 자체가 안 된 경우 "미노출"로 단정하지 않음
         naver_unmeasured = bool(_naver_res_gg.get("captcha_detected")) or bool(_naver_res_gg.get("error"))
 
@@ -954,7 +959,7 @@ class GuideGenerator:
 {smart_place_section}
 
 ## AI 스캔 결과
-- 현재 AI 노출 빈도: {my_freq}/100회 (종합 {my_score:.1f}점)
+- 현재 AI 노출 빈도: {my_freq}/{my_freq_max}회 (종합 {my_score:.1f}점)
 - 네이버 AI 브리핑 노출: {_naver_briefing_exposure_msg(naver_in_briefing, eligibility, naver_unmeasured)}
 - ChatGPT 노출: {'있음' if ((scan_result.get('chatgpt_result') or {}).get('mentioned') or (scan_result.get('chatgpt_result') or {}).get('exposure_freq', 0) > 0) else '없음'}
 

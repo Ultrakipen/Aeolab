@@ -725,7 +725,10 @@ async def _generate_and_save(req: GuideRequest):
             "my_freq_max": int((score_data.get("gemini_result") or {}).get("sample_size") or 50),
             "track1_score": round(float(score_data.get("track1_score") or 0), 1) if score_data.get("track1_score") is not None else None,
             "track2_score": round(float(score_data.get("track2_score") or 0), 1) if score_data.get("track2_score") is not None else None,
-            "naver_in_briefing": bool((score_data.get("naver_result") or {}).get("mentioned", False)),
+            # 주의: naver_result.mentioned은 일반 플레이스 검색결과 노출까지 포함하는 넓은 신호이고,
+            # in_briefing이 실제 AI 브리핑 박스 인용 여부다(naver_scanner.py:244-245 "mentioned": mentioned or in_briefing).
+            # "AI 브리핑에 있다"고 단정하려면 반드시 in_briefing을 봐야 한다.
+            "naver_in_briefing": bool((score_data.get("naver_result") or {}).get("in_briefing", False)),
             # CAPTCHA 차단·API 오류로 측정 자체가 안 된 경우 프론트가 "미노출 확정"으로 표시하지 않도록
             "naver_measured": not (
                 bool((score_data.get("naver_result") or {}).get("captcha_detected"))
