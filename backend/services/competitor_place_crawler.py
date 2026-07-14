@@ -153,25 +153,30 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                 return {**default, "error": "ip_blocked"}
 
             # ── 사업장명 파싱 ─────────────────────────────────────────
+            # 2026-07-14 실측 재확인: 네이버가 lines[1]에 접근성용 "페이지 닫기" 스킵링크를
+            # 추가해 기존 lines[1] 기준이 깨짐 — 실제 업체명은 lines[0](3개 업체 실측 일치:
+            # '히든태'/'창원음악창작소 플레이스튜디오'/'아이리스넵'). lines[1]은 폴백용으로만 유지.
             place_name = ""
             lines = [l.strip() for l in body_text.split("\n") if l.strip()]
-            # 홈 탭에서 두 번째 비어있지 않은 라인이 업체명 (실측: lines[1] = '글래드스냅')
-            # 단, pcmap 헤더 텍스트("플레이스" 등)가 잡히는 경우 무효 처리
-            if len(lines) >= 2:
-                candidate = lines[1]
-                if candidate.lower() not in _INVALID_PLACE_NAMES and len(candidate) > 1:
+            for candidate in (lines[0] if lines else None, lines[1] if len(lines) >= 2 else None):
+                if candidate and candidate.lower() not in _INVALID_PLACE_NAMES and len(candidate) > 1:
                     place_name = candidate
+                    break
 
             # ── 서브스텝 부분 실패 추적 (빈 리스트 = 완전 성공) ──────────
             partial_failures: list[str] = []
 
             # ── 리뷰 수 파싱 ─────────────────────────────────────────
-            # 패턴 우선순위: 블로그 리뷰 → 방문자 리뷰 → 리뷰N (붙음)
+            # 패턴 우선순위: 블로그 리뷰 → 방문자 리뷰 → 카테고리 접두 리뷰(예: "장소대여리뷰 22") → 리뷰N(붙음)
+            # 2026-07-14 실측 발견: 업종별 카테고리가 "리뷰" 앞에 붙고 숫자 앞에 공백이 있는
+            # 형식("장소대여리뷰 22", "음반기획,제작리뷰 125")이 기존 3개 패턴 모두와 불일치해
+            # review_count가 항상 0으로 나오던 버그 — 리뷰 4번째 패턴으로 공백 허용 일반형 추가.
             review_count = 0
             _review_patterns = [
                 r"블로그\s*리뷰\s*(\d[\d,]*)",
                 r"방문자\s*리뷰\s*(\d[\d,]*)",
                 r"리뷰(\d[\d,]+)",
+                r"리뷰[ \t]+(\d[\d,]*)",  # 줄바꿈은 제외(같은 줄 내 공백만) — 탭 라벨 "리뷰" 뒤 무관한 숫자 오탐 방지
             ]
             for _pat in _review_patterns:
                 _m = re.search(_pat, body_text)
