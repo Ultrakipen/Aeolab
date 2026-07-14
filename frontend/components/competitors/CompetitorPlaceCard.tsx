@@ -31,6 +31,7 @@ interface CompetitorWithPlace {
     competitor_name: string;
     total_posts_analyzed: number;
     has_weakness: boolean;
+    fetch_failed?: boolean;
     weaknesses: Array<{
       keyword: string;
       count: number;
@@ -48,6 +49,8 @@ interface Props {
   onPlaceIdSaved?: () => void;
   myBlogMentions?: number | null;   // 내 가게 블로그 언급 수 (비교용) — null=측정 실패
   canViewStartup?: boolean;  // 창업패키지+ 여부 (키워드 섹션 잠금)
+  competitorOnlyKeywords?: string[];  // 경쟁사가 가진, 내겐 없는 키워드 (gap_analyzer 계산, 내 가게 텍스트 기준)
+  pioneerKeywords?: string[];         // 아무도 선점하지 않은 키워드 (gap_analyzer 전체 계산, 경쟁사 무관 공통값)
   onFetchFaq?: () => void;
   isFetchingFaq?: boolean;
   onFetchWeakness?: () => void;
@@ -244,6 +247,8 @@ export function CompetitorPlaceCard({
   onPlaceIdSaved,
   myBlogMentions = 0,
   canViewStartup = false,
+  competitorOnlyKeywords = [],
+  pioneerKeywords = [],
   onFetchFaq,
   isFetchingFaq = false,
   onFetchWeakness,
@@ -627,18 +632,20 @@ export function CompetitorPlaceCard({
             requiredPlan="창업패키지"
             feature="경쟁사 키워드 분석"
           />
-        ) : competitor.comp_keywords == null ? (
+        ) : (competitor.comp_keywords?.covered?.length ?? 0) === 0
+          && competitorOnlyKeywords.length === 0
+          && pioneerKeywords.length === 0 ? (
           <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
             키워드 데이터 동기화가 필요합니다.
           </p>
         ) : (
           <div className="space-y-3">
-            {/* present 키워드 */}
-            {(competitor.comp_keywords.present?.length ?? 0) > 0 && (
+            {/* covered 키워드 — 경쟁사 소개글/메뉴 원문에서 실제로 확인된 키워드 */}
+            {(competitor.comp_keywords?.covered?.length ?? 0) > 0 && (
               <div>
                 <p className="text-sm text-gray-500 mb-1.5">경쟁사 소개글·메뉴에서 확인된 키워드:</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {competitor.comp_keywords.present!.map((kw) => (
+                  {competitor.comp_keywords!.covered!.map((kw) => (
                     <span
                       key={kw}
                       className="bg-blue-100 text-blue-700 text-sm px-2.5 py-0.5 rounded-full border border-blue-200 font-medium"
@@ -649,12 +656,12 @@ export function CompetitorPlaceCard({
                 </div>
               </div>
             )}
-            {/* missing 키워드 (경쟁사에 있고 나는 없음) */}
-            {(competitor.comp_keywords.missing?.length ?? 0) > 0 && (
+            {/* 경쟁사가 가진, 내 가게엔 없는 키워드 — 내 가게 텍스트 기준으로 계산된 값(gap_analyzer) */}
+            {competitorOnlyKeywords.length > 0 && (
               <div>
-                <p className="text-sm font-semibold text-red-600 mb-1.5">우리 가게에 없는 키워드:</p>
+                <p className="text-sm font-semibold text-red-600 mb-1.5">경쟁사가 가진, 우리 가게에 없는 키워드:</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {competitor.comp_keywords.missing!.map((kw) => (
+                  {competitorOnlyKeywords.map((kw) => (
                     <span
                       key={kw}
                       className="bg-red-100 text-red-700 text-sm px-2.5 py-0.5 rounded-full border border-red-200 font-semibold"
@@ -665,12 +672,12 @@ export function CompetitorPlaceCard({
                 </div>
               </div>
             )}
-            {/* pioneer 키워드 */}
-            {(competitor.comp_keywords.pioneer?.length ?? 0) > 0 && (
+            {/* 아무도 선점하지 않은 키워드 — 경쟁사와 무관하게 업종 전체 기준으로 계산된 공통값 */}
+            {pioneerKeywords.length > 0 && (
               <div>
-                <p className="text-sm text-gray-500 mb-1.5">경쟁사 선점 키워드:</p>
+                <p className="text-sm text-gray-500 mb-1.5">아무도 선점하지 않은 키워드 (선점 기회):</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {competitor.comp_keywords.pioneer!.map((kw) => (
+                  {pioneerKeywords.map((kw) => (
                     <span
                       key={kw}
                       className="bg-emerald-100 text-emerald-700 text-sm px-2.5 py-0.5 rounded-full border border-emerald-200 font-medium"
@@ -703,10 +710,26 @@ export function CompetitorPlaceCard({
             <RefreshCw className={`w-3.5 h-3.5 ${isFetchingWeakness ? 'animate-spin' : ''}`} />
             {isFetchingWeakness ? '블로그 분석 중...' : '경쟁사 약점 분석하기'}
           </button>
+        ) : competitor.weakness_data.fetch_failed ? (
+          <div className="bg-amber-50 rounded-lg px-3 py-2.5 border border-dashed border-amber-200 space-y-2">
+            <p className="text-sm text-amber-700">
+              블로그 검색에 실패해 분석하지 못했습니다. 잠시 후 다시 시도해주세요.
+            </p>
+            <button
+              onClick={onFetchWeakness}
+              disabled={isFetchingWeakness}
+              className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isFetchingWeakness ? 'animate-spin' : ''}`} />
+              {isFetchingWeakness ? '재시도 중...' : '다시 분석하기'}
+            </button>
+          </div>
         ) : !competitor.weakness_data.has_weakness ? (
           <div className="bg-gray-50 rounded-lg px-3 py-2.5 border border-dashed border-gray-200">
             <p className="text-sm text-gray-500">
-              최근 블로그 {competitor.weakness_data.total_posts_analyzed}개 포스팅에서 뚜렷한 약점이 발견되지 않았습니다.
+              {competitor.weakness_data.total_posts_analyzed > 0
+                ? `최근 블로그 ${competitor.weakness_data.total_posts_analyzed}개 포스팅에서 뚜렷한 약점이 발견되지 않았습니다.`
+                : '경쟁사의 블로그 포스팅이 검색되지 않아 분석할 대상이 없습니다.'}
             </p>
           </div>
         ) : (

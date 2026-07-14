@@ -606,27 +606,29 @@ async def sync_competitor_place(
     """
     from db.supabase_client import execute
 
-    # region 미전달 시 competitors → businesses 테이블에서 자동 조회
+    # region/category — competitors → businesses 테이블에서 조회 (category는 comp_keywords 계산에 필요)
     resolved_region = region
-    if not resolved_region:
-        try:
-            comp_row = await execute(
-                supabase.table("competitors")
-                .select("business_id")
-                .eq("id", competitor_id)
+    category = ""
+    try:
+        comp_row = await execute(
+            supabase.table("competitors")
+            .select("business_id")
+            .eq("id", competitor_id)
+            .maybe_single()
+        )
+        if comp_row.data:
+            biz_row = await execute(
+                supabase.table("businesses")
+                .select("region, category")
+                .eq("id", comp_row.data["business_id"])
                 .maybe_single()
             )
-            if comp_row.data:
-                biz_row = await execute(
-                    supabase.table("businesses")
-                    .select("region")
-                    .eq("id", comp_row.data["business_id"])
-                    .maybe_single()
-                )
-                if biz_row.data:
+            if biz_row.data:
+                if not resolved_region:
                     resolved_region = biz_row.data.get("region", "")
-        except Exception as e:
-            _logger.warning(f"sync_competitor_place region 조회 실패 [{competitor_id}]: {e}")
+                category = biz_row.data.get("category", "")
+    except Exception as e:
+        _logger.warning(f"sync_competitor_place region/category 조회 실패 [{competitor_id}]: {e}")
 
     data = await fetch_competitor_place_data(naver_place_id)
     if data.get("error"):
@@ -663,6 +665,25 @@ async def sync_competitor_place(
         passed = sum(1 for k in seo_checks if website_seo.get(k, False))
         seo_score = round(passed / len(seo_checks) * 100)
 
+    # 경쟁사 자체 키워드 프로필 — 소개글/메뉴 원문에서 업종 키워드 추출해 comp_keywords.covered로 저장.
+    # 과거엔 이 컬럼을 쓰는 코드가 어디에도 없어 프론트 "경쟁사 보유 키워드" 섹션이 항상 빈 상태였음 (2026-07-14 발견).
+    # "missing"/"pioneer"(내 가게 대비 격차)는 여기서 계산하지 않음 — 이 함수는 내 가게 텍스트에 접근하지 않으므로
+    # gap_analyzer.py가 이미 올바르게 계산하는 competitor_keyword_sources/pioneer_keywords를 프론트에서 사용한다.
+    comp_keywords_covered: list[str] = []
+    if category:
+        _real_text = " ".join(filter(None, [
+            data.get("place_intro_text"), data.get("place_menu_sample"),
+        ])).strip()
+        if _real_text:
+            try:
+                from services.keyword_taxonomy import analyze_keyword_coverage
+                comp_keywords_covered = analyze_keyword_coverage(
+                    category=category,
+                    review_excerpts=[_real_text],
+                )["covered"]
+            except Exception as e:
+                _logger.warning(f"comp_keywords 계산 실패 [{competitor_id}]: {e}")
+
     now_iso = datetime.now(timezone.utc).isoformat()
     update_payload: dict = {
         "naver_review_count": data["review_count"],
@@ -695,6 +716,8 @@ async def sync_competitor_place(
         update_payload["place_menu_sample"] = data["place_menu_sample"]
     if data.get("place_intro_text") or data.get("place_menu_sample"):
         update_payload["place_text_updated_at"] = now_iso
+    if comp_keywords_covered:
+        update_payload["comp_keywords"] = {"covered": comp_keywords_covered}
 
     optional_columns = ("has_intro", "place_intro_text", "place_menu_sample", "place_text_updated_at")
 

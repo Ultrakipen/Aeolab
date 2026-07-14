@@ -999,7 +999,7 @@ async def get_competitor_detail(competitor_id: str, user=Depends(get_current_use
         "naver_photo_count, naver_place_last_synced_at, "
         "blog_mention_count, website_url, "
         "website_seo_score, website_seo_result, detail_synced_at, "
-        "business_id"
+        "business_id, comp_keywords"
     )
     try:
         comp = await execute(
@@ -1023,59 +1023,19 @@ async def get_competitor_detail(competitor_id: str, user=Depends(get_current_use
 
     biz = await execute(
         supabase.table("businesses")
-        .select("user_id, category, region")
+        .select("user_id")
         .eq("id", comp.data["business_id"])
         .maybe_single()
     )
     if not biz.data or biz.data["user_id"] != user["id"]:
         raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
 
-    category = biz.data.get("category", "")
-
-    # 업종 키워드 분석: scan_results.competitor_scores에서 해당 경쟁사 excerpt 추출
-    comp_keywords: dict = {}
-    try:
-        scan_rows = (
-            await execute(
-                supabase.table("scan_results")
-                .select("competitor_scores")
-                .eq("business_id", comp.data["business_id"])
-                .order("scanned_at", desc=True)
-                .limit(3)
-            )
-        ).data or []
-
-        comp_excerpts: list[str] = []
-        comp_name = comp.data.get("name", "")
-
-        # 1순위: 실제 크롤링 텍스트 (competitor_place_crawler가 수집한 원문, 2026-07-13)
-        real_text = " ".join(filter(None, [
-            comp.data.get("place_intro_text"), comp.data.get("place_menu_sample"),
-        ])).strip()
-        if real_text:
-            comp_excerpts.append(real_text)
-
-        # 2순위: Gemini 시뮬레이션 추측 excerpt (scan_results.competitor_scores, 신뢰도 낮음)
-        for row in scan_rows:
-            scores = row.get("competitor_scores") or {}
-            # competitor_scores: {name: {score, excerpt, ...}}
-            for name, score_data in scores.items():
-                if isinstance(score_data, dict) and comp_name and comp_name in name:
-                    excerpt = score_data.get("excerpt", "")
-                    if excerpt:
-                        comp_excerpts.append(excerpt)
-
-        if category and comp_excerpts:
-            from services.keyword_taxonomy import analyze_keyword_coverage
-            comp_keywords = analyze_keyword_coverage(
-                category=category,
-                review_excerpts=comp_excerpts,
-            )
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).warning(
-            f"competitor detail keyword analysis failed [{competitor_id}]: {e}"
-        )
+    # 경쟁사 자체 키워드 프로필(comp_keywords.covered)은 sync_competitor_place()가 크롤링 직후
+    # 계산해 DB에 저장한 값을 그대로 사용한다 (2026-07-14) — 이 엔드포인트에서 다시 계산하면
+    # "내 가게 텍스트"가 없어 review_excerpts에 경쟁사 텍스트를 잘못 넣는 버그가 재발하기 쉬움.
+    # "missing"/"pioneer"(내 가게 대비 격차)는 여기서 다루지 않음 — gap_analyzer.py의
+    # competitor_keyword_sources/pioneer_keywords가 유일한 정답 소스이며 프론트가 그쪽을 사용한다.
+    comp_keywords: dict = comp.data.get("comp_keywords") or {}
 
     # place_intro_text/place_menu_sample은 서버 내부 키워드 분석용 원문(제3자 크롤링 텍스트)이라
     # 프론트에서 쓰지 않음 — 데이터 최소화 원칙상 응답에서 제외
@@ -1273,18 +1233,21 @@ _NEGATIVE_TO_OPPORTUNITY: dict[str, str] = {
 }
 
 
-async def _fetch_blog_snippets(name: str, region: str) -> tuple[list[str], list[dict]]:
+async def _fetch_blog_snippets(name: str, region: str) -> tuple[list[str], list[dict], bool]:
     """경쟁사 이름으로 네이버 블로그 검색.
 
     Returns:
-        (snippets, posts) 튜플.
+        (snippets, posts, ok) 튜플.
         snippets: description 텍스트 리스트 (약점 분석용).
         posts: [{"title": str, "link": str, "pubDate": str}] 최대 5개 최신순.
+        ok: 실제로 API 응답을 정상 수신했는지 여부. False면 snippets가 비어 있어도
+            "약점 없음"이 아니라 "수집 실패"로 취급해야 함 (2026-07-14 — 예외/비200/키미설정이
+            모두 빈 리스트로 뭉개져 "블로그 0개 분석해서 약점 없음"으로 오인되던 버그).
     """
     client_id = os.getenv("NAVER_CLIENT_ID", "")
     client_secret = os.getenv("NAVER_CLIENT_SECRET", "")
     if not client_id or not client_secret:
-        return [], []
+        return [], [], False
 
     region_prefix = region.split()[0] if region else ""
     query = f"{region_prefix} {name}".strip() if region_prefix else name
@@ -1301,7 +1264,7 @@ async def _fetch_blog_snippets(name: str, region: str) -> tuple[list[str], list[
                 timeout=aiohttp.ClientTimeout(total=8),
             ) as res:
                 if res.status != 200:
-                    return [], []
+                    return [], [], False
                 data = await res.json()
                 snippets: list[str] = []
                 posts: list[dict] = []
@@ -1315,10 +1278,10 @@ async def _fetch_blog_snippets(name: str, region: str) -> tuple[list[str], list[
                         pub_date = item.get("postdate", "") or item.get("pubDate", "")
                         if title:
                             posts.append({"title": title, "link": link, "pubDate": pub_date})
-                return snippets, posts
+                return snippets, posts, True
     except Exception as e:
         _logger.warning(f"[weakness] 블로그 검색 실패 — {name}: {e}")
-        return [], []
+        return [], [], False
 
 
 def _analyze_weakness(snippets: list[str]) -> dict:
@@ -1405,11 +1368,12 @@ async def get_competitor_weakness(competitor_id: str, user=Depends(get_current_u
     comp_name: str = comp.data.get("name", "")
     region: str = biz.data.get("region", "")
 
-    snippets, recent_posts = await _fetch_blog_snippets(comp_name, region)
+    snippets, recent_posts, fetch_ok = await _fetch_blog_snippets(comp_name, region)
     analysis = _analyze_weakness(snippets)
 
     return {
         "competitor_name": comp_name,
+        "fetch_failed": not fetch_ok,
         **analysis,
         "recent_posts": recent_posts,
     }

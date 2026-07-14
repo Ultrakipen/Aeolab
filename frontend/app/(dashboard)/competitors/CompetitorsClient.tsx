@@ -56,6 +56,7 @@ interface Competitor {
     competitor_name: string
     total_posts_analyzed: number
     has_weakness: boolean
+    fetch_failed?: boolean
     weaknesses: Array<{ keyword: string; count: number; opportunity: string }>
     recent_posts?: Array<{ title: string; link: string; pubDate: string }>
   } | null
@@ -532,6 +533,7 @@ interface Props {
   business: Business
   competitors: Competitor[]
   myScore: number
+  myTrack1Score?: number | null
   myReviewCount?: number
   myAvgRating?: number
   myBlogMentions?: number | null
@@ -1156,6 +1158,7 @@ function CompetitorSparkline({ competitorName, trendScans }: { competitorName: s
 interface CompareModalProps {
   bizName: string
   myScore: number
+  myStageScore: number
   myReviewCount: number
   myAvgRating: number
   myBlogMentions: number | null
@@ -1190,12 +1193,13 @@ const COMPARE_BREAKDOWN_LABELS: Record<string, string> = {
   google_presence:          'Google AI 노출 (추정)',
 }
 
-function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMentions, competitor, compScore, onClose }: CompareModalProps) {
+function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRating, myBlogMentions, competitor, compScore, onClose }: CompareModalProps) {
   const compReview = competitor.place_review_count ?? 0
   const compRating = competitor.place_avg_rating ?? 0
   const compBlog   = competitor.blog_mention_count ?? 0
   const compTotal  = compScore ? Math.round(compScore.score) : 0
   const myTotal    = Math.round(myScore)
+  const myStageTotal = Math.round(myStageScore)
   const maxScore   = Math.max(myTotal, compTotal, 1)
 
   const statRows = [
@@ -1237,8 +1241,8 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                   <BarChart2 className="w-4 h-4 text-gray-500" />AI 노출 총점
                 </p>
                 {[
-                  { name: `${bizName}`, label: '내 가게', score: myTotal, isMe: true },
-                  { name: competitor.name, label: '경쟁사', score: compTotal, isMe: false },
+                  { name: `${bizName}`, label: '내 가게', score: myTotal, stageScore: myStageTotal, isMe: true },
+                  { name: competitor.name, label: '경쟁사', score: compTotal, stageScore: compTotal, isMe: false },
                 ].map(e => (
                   <div key={e.name} className="mb-3">
                     <div className="flex items-center justify-between text-sm mb-1.5 gap-2">
@@ -1247,9 +1251,9 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                       </span>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${
-                          e.isMe ? 'bg-blue-50 text-blue-700 border-blue-200' : getGrowthStageText(e.score).cls
+                          e.isMe ? 'bg-blue-50 text-blue-700 border-blue-200' : getGrowthStageText(e.stageScore).cls
                         }`}>
-                          {getGrowthStageText(e.score).label}
+                          {getGrowthStageText(e.stageScore).label}
                         </span>
                       </div>
                     </div>
@@ -1269,7 +1273,7 @@ function CompareModal({ bizName, myScore, myReviewCount, myAvgRating, myBlogMent
                   {compTotal > myTotal
                     ? `경쟁사가 ${getGrowthStageText(compTotal).label} 단계로 앞서 있습니다`
                     : compTotal < myTotal
-                    ? `내 가게가 ${getGrowthStageText(myTotal).label} 단계로 앞서 있습니다`
+                    ? `내 가게가 ${getGrowthStageText(myStageTotal).label} 단계로 앞서 있습니다`
                     : '두 가게 같은 성장 단계'}
                 </div>
                 <p className="text-xs text-gray-500 mt-1.5">{`* '지역 1등'·'빠른 성장'·'성장 중'은 변화 기록·성장 리포트의 '양호'·'보통'·'주의 필요'와 같은 구간입니다`}</p>
@@ -1551,6 +1555,7 @@ export function CompetitorsClient({
   business,
   competitors: initial,
   myScore,
+  myTrack1Score = null,
   myReviewCount = 0,
   myAvgRating = 0,
   myBlogMentions = 0,
@@ -1564,6 +1569,8 @@ export function CompetitorsClient({
   gapAnalysis = null,
 }: Props) {
   const router = useRouter()
+  // "성장 단계" 라벨(지역 1등 등)은 track1_score 기준 — myScore(unified)는 순위·막대 비교에만 사용
+  const myStageScore = myTrack1Score ?? myScore
   const [competitors, setCompetitors] = useState(initial)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [tab, setTab] = useState<AddTab>('search')
@@ -2313,7 +2320,7 @@ export function CompetitorsClient({
                                 {cs.score > myScore ? (
                                   <>
                                     <span className="text-sm text-red-500 font-medium">경쟁사가 앞서 있습니다</span>
-                                    {getGrowthStageText(cs.score).label !== getGrowthStageText(myScore).label && (
+                                    {getGrowthStageText(cs.score).label !== getGrowthStageText(myStageScore).label && (
                                       <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(cs.score).cls}`}>
                                         {getGrowthStageText(cs.score).label}
                                       </span>
@@ -2323,7 +2330,7 @@ export function CompetitorsClient({
                                 ) : cs.score < myScore ? (
                                   <>
                                     <span className="text-sm text-emerald-600 font-medium">내 가게가 앞서 있습니다</span>
-                                    {getGrowthStageText(cs.score).label !== getGrowthStageText(myScore).label && (
+                                    {getGrowthStageText(cs.score).label !== getGrowthStageText(myStageScore).label && (
                                       <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(cs.score).cls}`}>
                                         {getGrowthStageText(cs.score).label}
                                       </span>
@@ -2443,6 +2450,8 @@ export function CompetitorsClient({
                       accessToken={accessToken}
                       myBlogMentions={myBlogMentions}
                       canViewStartup={canViewTrack1}
+                      competitorOnlyKeywords={gapAnalysis?.keyword_gap?.competitor_keyword_sources?.[c.name] ?? []}
+                      pioneerKeywords={gapAnalysis?.keyword_gap?.pioneer_keywords ?? []}
                       onSyncRequest={async () => {
                         const token = await getFreshToken()
                         await syncCompetitorPlace(c.id, token)
@@ -3036,14 +3045,14 @@ export function CompetitorsClient({
         const kw = gapAnalysis.keyword_gap!
         const hasExclusive = (kw.competitor_only_keywords?.length ?? 0) > 0
         const hasPioneer = (kw.pioneer_keywords?.length ?? 0) > 0
-        const hasCommon = (kw.present_keywords?.length ?? 0) > 0
+        const hasCommon = (kw.covered_keywords?.length ?? 0) > 0
         const hasCompare = !!(gapAnalysis.keyword_gap?.competitor_keyword_sources &&
           Object.keys(gapAnalysis.keyword_gap.competitor_keyword_sources).length > 0)
 
         const tabs = [
           { key: 'exclusive' as const, label: '경쟁사 독점', count: kw.competitor_only_keywords?.length ?? 0, show: hasExclusive },
           { key: 'pioneer' as const, label: '내 선점', count: kw.pioneer_keywords?.length ?? 0, show: hasPioneer },
-          { key: 'common' as const, label: '공통', count: kw.present_keywords?.length ?? 0, show: hasCommon },
+          { key: 'common' as const, label: '공통', count: kw.covered_keywords?.length ?? 0, show: hasCommon },
           { key: 'compare' as const, label: '경쟁사별', count: 0, show: hasCompare },
         ]
 
@@ -3113,7 +3122,7 @@ export function CompetitorsClient({
               <div>
                 <p className="text-sm text-blue-600 mb-3">이미 보유한 키워드이지만 경쟁사도 동일하게 가지고 있어 차별화가 되지 않습니다.</p>
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {kw.present_keywords.slice(0, 10).map((w: string) => (
+                  {kw.covered_keywords.slice(0, 10).map((w: string) => (
                     <span key={w} className="bg-blue-100 text-blue-600 text-sm px-3 py-1 rounded-full border border-blue-200">{w}</span>
                   ))}
                 </div>
@@ -3188,8 +3197,8 @@ export function CompetitorsClient({
                 <span className={`font-semibold ${myRank === 1 ? 'text-emerald-700' : gap > 15 ? 'text-red-600' : 'text-amber-700'}`}>
                   내 가게
                 </span>
-                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(Math.round(myScore)).cls}`}>
-                  {getGrowthStageText(Math.round(myScore)).label}
+                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(Math.round(myStageScore)).cls}`}>
+                  {getGrowthStageText(Math.round(myStageScore)).label}
                 </span>
               </span>
               {!leader.isMe && (
@@ -3453,6 +3462,7 @@ export function CompetitorsClient({
           <CompareModal
             bizName={business.name}
             myScore={myScore}
+            myStageScore={myStageScore}
             myReviewCount={myReviewCount}
             myAvgRating={myAvgRating}
             myBlogMentions={myBlogMentions}

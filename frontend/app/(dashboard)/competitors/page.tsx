@@ -92,9 +92,11 @@ export default async function CompetitorsPage({
     myBlogMentions,
   ] = await Promise.all([
     // competitor_scores가 있는 최신 스캔 결과 (경쟁사 점수 표시용)
+    // track1_score: "성장 단계" 라벨(지역 1등 등)은 track1_score 기준이어야 함(CLAUDE.md 표준,
+    // 업종별 naver/global 비율 차이로 인한 오판 방지) — unified인 total_score는 순위·막대용으로만 사용
     supabase
       .from('scan_results')
-      .select('competitor_scores, total_score, scanned_at')
+      .select('competitor_scores, total_score, track1_score, scanned_at')
       .eq('business_id', business.id)
       .not('competitor_scores', 'is', null)
       .order('scanned_at', { ascending: false })
@@ -231,6 +233,7 @@ export default async function CompetitorsPage({
         business={business}
         competitors={competitors ?? []}
         myScore={latestScanWithScores?.total_score ?? latestScans?.[0]?.total_score ?? 0}
+        myTrack1Score={latestScanWithScores?.track1_score ?? null}
         myReviewCount={business.review_count ?? 0}
         myAvgRating={business.avg_rating ?? 0}
         myBlogMentions={myBlogMentions}

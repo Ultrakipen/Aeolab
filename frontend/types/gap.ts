@@ -26,13 +26,11 @@ export interface CompetitorGap {
 }
 
 export interface ReviewKeywordGap {
-  present_keywords: string[];
+  covered_keywords: string[];
   missing_keywords: string[];
   competitor_only_keywords: string[];
   pioneer_keywords: string[];
-  coverage_score: number;
-  covered_keywords?: string[];
-  coverage_rate?: number;
+  coverage_rate: number;
   top_priority_keyword?: string | null;
   qr_card_message?: string;
   category_scores?: Record<string, { score: number; covered: number; total: number; weight: number }>;
