@@ -46,7 +46,7 @@ const PACKAGES: Package[] = [
       "1:1 화상 코칭 60분",
       "30일 후 자동 재진단 보고서",
     ],
-    extra: "개별 합산 158,000원 → 24.7% 할인",
+    extra: "개별 합산 128,000원 → 7% 할인",
     badge: "추천",
     highlight: true,
   },

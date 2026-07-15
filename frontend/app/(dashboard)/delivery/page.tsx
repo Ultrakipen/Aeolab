@@ -115,7 +115,7 @@ const FALLBACK_PACKAGES: DeliveryPackage[] = [
     type: "comprehensive",
     name: "03 종합 풀패키지",
     price: 119000,
-    description: "등록+최적화+코칭+30일 재진단 — 개별 합산 158,000원 → 119,000원",
+    description: "등록+최적화+코칭+30일 재진단 — 개별 합산 128,000원 → 119,000원",
     work_hours: "11.2h 작업",
     features: [
       "01 등록 대행 전체 포함",
@@ -210,7 +210,7 @@ export default async function DeliveryPage() {
                     </span>
                     <span className="text-base text-gray-500">원</span>
                     {pkg.type === "comprehensive" && (
-                      <span className="ml-1 text-sm text-gray-500 line-through">158,000원</span>
+                      <span className="ml-1 text-sm text-gray-500 line-through">128,000원</span>
                     )}
                   </div>
                   <Link

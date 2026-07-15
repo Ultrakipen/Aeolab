@@ -30,7 +30,7 @@ const PACKAGES = [
     type: "comprehensive",
     name: "03 종합 풀패키지",
     price: 119000,
-    description: "등록+최적화+코칭+30일 재진단 (개별 158,000원 → 119,000원)",
+    description: "등록+최적화+코칭+30일 재진단 (개별 128,000원 → 119,000원)",
   },
 ];
 
@@ -348,7 +348,7 @@ function DeliveryNewForm() {
               <div className="text-right">
                 <p className="text-2xl font-bold text-white">{pkg.price.toLocaleString()}원</p>
                 {pkg.type === "comprehensive" && (
-                  <p className="text-sm text-blue-300 line-through">158,000원</p>
+                  <p className="text-sm text-blue-300 line-through">128,000원</p>
                 )}
               </div>
             </div>

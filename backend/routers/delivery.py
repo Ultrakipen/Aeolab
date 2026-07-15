@@ -74,7 +74,7 @@ PACKAGES: dict[str, dict] = {
     "comprehensive": {
         "name": "03 종합 풀패키지",
         "amount": DELIVERY_PRICES["comprehensive"],
-        "description": "등록+최적화+코칭+30일 재진단 — 개별 합산 158,000원 → 119,000원",
+        "description": "등록+최적화+코칭+30일 재진단 — 개별 합산 128,000원 → 119,000원",
         "work_hours": "11.2h 작업",
         "features": [
             "01 등록 대행 전체 포함",
