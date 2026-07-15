@@ -15,30 +15,17 @@ const CATEGORIES = [
   { value: "other", label: "기타" },
 ];
 
-const PLAN_LIMIT: Record<string, { label: string; limit: number | null }> = {
-  free: { label: "Free 플랜: 월 1건", limit: 1 },
-  basic: { label: "Basic 플랜: 월 3건", limit: 3 },
-  pro: { label: "무제한 문의 가능", limit: null },
-  biz: { label: "무제한 문의 가능", limit: null },
-  startup: { label: "무제한 문의 가능", limit: null },
-  enterprise: { label: "무제한 문의 가능", limit: null },
-};
-
-function endAtInFuture(endAt: string | null | undefined): boolean {
-  // plan_gate.py _end_at_in_future()와 동일 로직 — 날짜만 있는 문자열은 그 날짜 전체를 포함
-  if (!endAt) return false;
-  const raw = String(endAt);
-  let d = new Date(raw.length <= 10 ? `${raw}T00:00:00Z` : raw);
-  if (isNaN(d.getTime())) return false;
-  if (raw.length <= 10) d = new Date(d.getTime() + 24 * 60 * 60 * 1000);
-  return d.getTime() > Date.now();
+interface TicketQuota {
+  used: number;
+  limit: number | null;
+  remaining: number | null;
+  unlimited: boolean;
 }
 
 function SupportNewForm() {
   const router = useRouter();
 
-  const [plan, setPlan] = useState<string>("free");
-  const [remaining, setRemaining] = useState<number | null>(null);
+  const [quota, setQuota] = useState<TicketQuota | null>(null);
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
@@ -59,43 +46,20 @@ function SupportNewForm() {
           router.push("/login");
           return;
         }
-        const { data: sub } = await supabase
-          .from("subscriptions")
-          .select("plan, status, end_at")
-          .eq("user_id", user.id)
-          .in("status", ["active", "grace_period", "cancelled"])
-          .maybeSingle();
-        const activePlan = sub
-          ? (sub.status === "cancelled" && !endAtInFuture(sub.end_at) ? "free" : (sub.plan ?? "free"))
-          : "free";
-        setPlan(activePlan);
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token ?? "";
 
-        // 이번 달 문의 수 조회 — 백엔드(inquiry.py _check_monthly_limit)와 동일하게
-        // 구 문의 폼(inquiries) + Q&A 티켓(support_tickets) 합산 (2026-07-11 한도 우회 버그 수정과 동기화)
-        const startOfMonth = new Date();
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
-        const [{ count: ticketCount }, { count: inquiryCount }] = await Promise.all([
-          supabase
-            .from("support_tickets")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", user.id)
-            .gte("created_at", startOfMonth.toISOString()),
-          supabase
-            .from("inquiries")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", user.id)
-            .gte("created_at", startOfMonth.toISOString()),
-        ]);
-        const usedCount = (ticketCount ?? 0) + (inquiryCount ?? 0);
-        const planInfo = PLAN_LIMIT[activePlan] ?? PLAN_LIMIT["free"];
-        if (planInfo.limit !== null) {
-          setRemaining(Math.max(0, planInfo.limit - usedCount));
-        } else {
-          setRemaining(null); // 무제한
-        }
+        // 잔여 건수는 백엔드 단일 소스(plan_gate.py PLAN_LIMITS.support_ticket_monthly)로 조회 —
+        // 프론트가 플랜별 한도를 따로 하드코딩하지 않도록 quota 엔드포인트 하나로 통합(2026-07-15)
+        const res = await fetch(`${BACKEND_URL}/api/support/tickets/quota`, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error("quota fetch failed");
+        const data: TicketQuota = await res.json();
+        setQuota(data);
       } catch (err) {
-        console.error("[support/tickets/new] 플랜/잔여 건수 조회 실패:", err);
+        console.error("[support/tickets/new] 잔여 건수 조회 실패:", err);
         setLoadError(true);
       } finally {
         setLoadingMeta(false);
@@ -159,8 +123,7 @@ function SupportNewForm() {
     }
   };
 
-  const planInfo = PLAN_LIMIT[plan] ?? PLAN_LIMIT["free"];
-  const isLimitExceeded = planInfo.limit !== null && remaining !== null && remaining <= 0;
+  const isLimitExceeded = !!quota && !quota.unlimited && (quota.remaining ?? 0) <= 0;
 
   if (loadingMeta) {
     return (
@@ -184,42 +147,39 @@ function SupportNewForm() {
           <p className="text-sm text-gray-500 mt-1">궁금한 점이나 불편한 사항을 남겨 주세요.</p>
         </div>
 
-        {/* 플랜/잔여 건수 조회 실패 안내 */}
+        {/* 잔여 건수 조회 실패 안내 */}
         {loadError && (
           <div className="rounded-xl p-4 mb-5 text-sm bg-amber-50 border border-amber-200 text-amber-700">
-            플랜 정보를 불러오지 못했습니다. 아래 한도는 실제와 다를 수 있으니 새로고침 후 다시 확인해 주세요.
+            잔여 문의 건수를 불러오지 못했습니다. 아래 한도는 실제와 다를 수 있으니 새로고침 후 다시 확인해 주세요.
           </div>
         )}
 
         {/* 요금제 한도 안내 배너 */}
-        <div className={[
-          "rounded-xl p-4 mb-5 text-sm",
-          isLimitExceeded
-            ? "bg-red-50 border border-red-200 text-red-700"
-            : planInfo.limit === null
-            ? "bg-green-50 border border-green-200 text-green-700"
-            : "bg-blue-50 border border-blue-200 text-blue-700",
-        ].join(" ")}>
-          {planInfo.limit === null ? (
-            <span className="font-medium">무제한 문의 가능 · 평균 1~2 영업일 이내 답변</span>
-          ) : remaining === null ? (
-            <span>
-              <span className="text-blue-700">{planInfo.label}</span>
-              <span className="ml-2 text-blue-700">· 평균 1~2 영업일 이내 답변</span>
-            </span>
-          ) : remaining > 0 ? (
-            <span>
-              이번 달 남은 문의 <strong>{remaining}건</strong>
-              <span className="text-blue-700 ml-1">({planInfo.label})</span>
-              <span className="ml-2 text-blue-700">· 평균 1~2 영업일 이내 답변</span>
-            </span>
-          ) : (
-            <span>
-              이번 달 문의 한도를 초과했습니다.
-              <a href="/pricing" className="underline ml-1">플랜 업그레이드</a>로 더 많은 문의를 보내세요.
-            </span>
-          )}
-        </div>
+        {quota && (
+          <div className={[
+            "rounded-xl p-4 mb-5 text-sm",
+            isLimitExceeded
+              ? "bg-red-50 border border-red-200 text-red-700"
+              : quota.unlimited
+              ? "bg-green-50 border border-green-200 text-green-700"
+              : "bg-blue-50 border border-blue-200 text-blue-700",
+          ].join(" ")}>
+            {quota.unlimited ? (
+              <span className="font-medium">무제한 문의 가능 · 평균 1~2 영업일 이내 답변</span>
+            ) : (quota.remaining ?? 0) > 0 ? (
+              <span>
+                이번 달 남은 문의 <strong>{quota.remaining}건</strong>
+                <span className="text-blue-700 ml-1">(월 한도 {quota.limit}건)</span>
+                <span className="ml-2 text-blue-700">· 평균 1~2 영업일 이내 답변</span>
+              </span>
+            ) : (
+              <span>
+                이번 달 문의 한도를 초과했습니다.
+                <a href="/pricing" className="underline ml-1">플랜 업그레이드</a>로 더 많은 문의를 보내세요.
+              </span>
+            )}
+          </div>
+        )}
 
         <div className="space-y-4">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">

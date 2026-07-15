@@ -23,7 +23,9 @@ ADMIN_EMAILS: set[str] = {
 #
 # auto_scan_mode:
 #   None     → 자동 스캔 없음 (free)
-#   "basic"  → Gemini 50회 + ChatGPT 50회 + 네이버 주 1회(월요일) 자동 스캔 (A안 50/50)
+#   "basic"  → Gemini 50회 + ChatGPT 50회 + 네이버 자동 스캔 (A안 50/50).
+#              실행 주기는 auto_scan_mode 문자열이 아니라 scheduler/jobs.py의 plan 값으로 분기:
+#              basic 플랜=주 2회(월·목, 2026-07-15 창업패키지 대비 차별화) / startup 플랜=주 1회(월요일만)
 #   "pro"    → 8개 AI 전체 스캔 주 3회(월·수·금) / 나머지 날 basic (pro)
 #   "full"   → 8개 AI 매일 (biz)
 #
@@ -52,6 +54,7 @@ PLAN_LIMITS = {
         "keyword_suggest_monthly": 0,
         "crisis_reply_monthly": 0,
         "startup_report_monthly": 0,
+        "support_ticket_monthly": 1,  # support.py/inquiry.py 단일 소스 (2026-07-15 통합)
     },
     "basic": {
         # v3.5 한도 조정: 리뷰답변 20→50회, 소개글+채팅방메뉴 5→10건 (Haiku 추가 비용 <25원/월)
@@ -71,6 +74,7 @@ PLAN_LIMITS = {
         "keyword_suggest_monthly": 5,
         "crisis_reply_monthly": 20,  # 부정 리뷰 위기관리(Claude Haiku) — 무제한 호출 방지용 신설(2026-07-06)
         "startup_report_monthly": 0,  # basic은 startup_report 미제공
+        "support_ticket_monthly": 3,
     },
     "pro": {
         # v3.4 강화: 리뷰답변 무제한, 히스토리 90일, FAQ 무제한 (Basic보다 낮으면 안 됨)
@@ -90,6 +94,7 @@ PLAN_LIMITS = {
         "keyword_suggest_monthly": 20,
         "crisis_reply_monthly": 999,
         "startup_report_monthly": 0,  # pro는 startup_report 미제공
+        "support_ticket_monthly": 999,
     },
     "biz": {
         "competitors": 999,
@@ -108,6 +113,7 @@ PLAN_LIMITS = {
         "keyword_suggest_monthly": 999,
         "crisis_reply_monthly": 999,
         "startup_report_monthly": 10,  # 창업 시장 분석(Claude Sonnet) — 무제한 호출 방지용 신설(2026-07-08)
+        "support_ticket_monthly": 999,
     },
     "startup": {
         # v3.4 강화: 리뷰답변 무제한, FAQ 무제한
@@ -127,6 +133,7 @@ PLAN_LIMITS = {
         "keyword_suggest_monthly": 10,
         "crisis_reply_monthly": 999,
         "startup_report_monthly": 5,  # 창업 시장 분석(Claude Sonnet) — 무제한 호출 방지용 신설(2026-07-08)
+        "support_ticket_monthly": 999,
     },
     "enterprise": {
         # 영업 전용 200,000원/월 — Biz 한도 전부 + 사업장 무제한 + 팀 20명 + API 키 무제한
@@ -146,6 +153,7 @@ PLAN_LIMITS = {
         "keyword_suggest_monthly": 999,
         "crisis_reply_monthly": 999,
         "startup_report_monthly": 999,
+        "support_ticket_monthly": 999,
     },
 }
 
@@ -274,6 +282,35 @@ async def check_review_reply_limit(user_id: str, supabase) -> tuple[bool, int, i
         .gte("created_at", month_start)
     )
     used = result.count or 0
+    return used < limit, used, limit
+
+
+async def check_support_ticket_limit(user_id: str, supabase) -> tuple[bool, int, int]:
+    """월 1:1 문의 한도 체크 — 구 문의 폼(inquiries) + Q&A 티켓(support_tickets) 합산.
+
+    support.py/inquiry.py 양쪽이 각자 한도 dict를 들고 있던 것을 단일 소스로 통합(2026-07-15).
+    두 테이블 중 하나로만 한도를 걸면 다른 테이블로 우회 가능하므로(2026-07-11 실제 발견된 버그)
+    항상 두 테이블 합산으로 검사한다.
+
+    Returns:
+        (allowed, used_count, monthly_limit)
+    """
+    plan = await get_user_plan(user_id, supabase)
+    limit = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["support_ticket_monthly"]
+
+    if limit >= 999:
+        return True, 0, 999
+
+    month_start = date.today().replace(day=1).isoformat() + "T00:00:00"
+    ticket_res = await _exec(
+        supabase.table("support_tickets").select("id", count="exact")
+        .eq("user_id", user_id).gte("created_at", month_start)
+    )
+    inquiry_res = await _exec(
+        supabase.table("inquiries").select("id", count="exact")
+        .eq("user_id", user_id).gte("created_at", month_start)
+    )
+    used = (ticket_res.count or 0) + (inquiry_res.count or 0)
     return used < limit, used, limit
 
 

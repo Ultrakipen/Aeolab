@@ -1869,7 +1869,6 @@ CREATE TABLE IF NOT EXISTS support_tickets (
   title TEXT NOT NULL,
   body TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','answered','closed')),
-  attachment_urls JSONB DEFAULT '[]'::jsonb,
   view_count INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   answered_at TIMESTAMPTZ,
@@ -1897,7 +1896,6 @@ COMMENT ON TABLE support_tickets IS '사용자 Q&A 게시판 글';
 COMMENT ON COLUMN support_tickets.category IS '카테고리: payment(결제), feature(기능), score(점수), bug(버그), other(기타)';
 COMMENT ON COLUMN support_tickets.visibility IS '공개 범위: private(비공개), public(공개)';
 COMMENT ON COLUMN support_tickets.status IS '상태: open(열림), answered(답변됨), closed(종료)';
-COMMENT ON COLUMN support_tickets.attachment_urls IS '첨부 파일 URL 배열 (Storage 퍼블릭 파일)';
 COMMENT ON COLUMN support_tickets.view_count IS '조회수 (public answered만 증가)';
 
 -- ──────────────────────────────────────────
@@ -2554,4 +2552,15 @@ ALTER TABLE competitors
   ADD COLUMN IF NOT EXISTS place_intro_text TEXT,       -- 네이버 플레이스 /information 탭 소개글 원문 (최대 500자)
   ADD COLUMN IF NOT EXISTS place_menu_sample TEXT,       -- 네이버 플레이스 /menu 탭 원문 (최대 500자)
   ADD COLUMN IF NOT EXISTS place_text_updated_at TIMESTAMPTZ;
+
+-- ===========================================================
+-- 2026-07-15: support_tickets.attachment_urls 미사용 컬럼 제거
+-- 배경: 첨부파일 업로드 기능이 실제로 구현된 적이 없어(create_ticket()이
+-- attachment_urls를 받지도, 쓰지도 않음) 이 컬럼은 항상 기본값 '[]'로 방치돼
+-- 있었음. 프론트(new/page.tsx)는 이미 "스크린샷은 구글 드라이브 등 외부
+-- 링크로 본문에 포함해 주세요" 안내로 이 기능 부재를 사용자에게 우회 안내
+-- 중이라 기능 손실 없음 — 죽은 컬럼만 정리.
+-- 실행 시점: 아무 때나(참조 코드 없음, 데이터 손실 리스크 0)
+-- ===========================================================
+ALTER TABLE support_tickets DROP COLUMN IF EXISTS attachment_urls;
 -- service_role만 기록/조회 (백엔드 전용, 사용자 접근 불필요 — RLS 정책 미부여 시 기본 전면 차단)

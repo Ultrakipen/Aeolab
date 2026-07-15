@@ -16,14 +16,14 @@
 
 import logging
 import os
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, field_validator
 
 from db.supabase_client import get_client, execute
-from middleware.plan_gate import get_current_user, get_user_plan
+from middleware.plan_gate import get_current_user, check_support_ticket_limit
 from utils.admin_auth import verify_admin
 
 _logger = logging.getLogger("aeolab")
@@ -31,21 +31,13 @@ _logger = logging.getLogger("aeolab")
 router = APIRouter()
 admin_router = APIRouter()
 
-# ── 요금제별 월 문의 한도 ─────────────────────────────────────────────────────────
-# None = 무제한
-# inquiry.py _INQUIRY_MONTHLY_LIMITS와 동기화 필수 — 값 변경 시 양쪽 동시 수정.
-# support_tickets만으로 한도를 걸면 inquiries 쪽으로 우회 가능하므로 두 테이블 합산 필수.
-MONTHLY_LIMITS: dict[str, Optional[int]] = {
-    "free": 1,
-    "basic": 3,
-    "pro": None,
-    "biz": None,
-    "startup": None,
-    "enterprise": None,
-}
+# 요금제별 월 문의 한도는 middleware/plan_gate.py PLAN_LIMITS["support_ticket_monthly"]가 단일 소스
+# (2026-07-15 통합 — support.py/inquiry.py 각자 dict를 들고 있어 값 변경 시 양쪽 동기화가 필요했던
+# 구조를 제거함). inquiries + support_tickets 두 테이블 합산 검사는 check_support_ticket_limit() 참조.
 
-# 결제/계정 카테고리는 공개 전환 금지
-_PRIVATE_CATEGORIES = {"payment", "account"}
+# 결제 카테고리는 공개 전환 금지 ("account"는 _VALID_CATEGORIES에 없어 실제 발생 불가능한
+# 값이라 2026-07-15 제거 — DB CHECK 제약도 payment/feature/score/bug/other만 허용)
+_PRIVATE_CATEGORIES = {"payment"}
 
 # 유효한 문의 카테고리
 _VALID_CATEGORIES = {"payment", "feature", "score", "bug", "other"}
@@ -168,40 +160,25 @@ async def _get_ticket_or_404(ticket_id: str) -> dict:
     return res.data
 
 
+def _limit_exceeded_error(used: int, limit: int) -> HTTPException:
+    return HTTPException(
+        status_code=429,
+        detail={
+            "code": "TICKET_MONTHLY_LIMIT",
+            "used": used,
+            "limit": limit,
+            "message": f"이번 달 문의 작성 한도({limit}건)를 모두 사용했습니다. 플랜을 업그레이드하면 더 많은 문의를 작성할 수 있습니다.",
+            "upgrade_url": "/pricing",
+        },
+    )
+
+
 async def _check_monthly_limit(user_id: str) -> None:
     """이번 달 문의 작성 건수가 요금제 한도를 초과하면 429."""
     supabase = get_client()
-    plan = await get_user_plan(user_id, supabase)
-    limit = MONTHLY_LIMITS.get(plan, 1)
-
-    if limit is None:
-        return  # 무제한 플랜
-
-    month_start = date.today().replace(day=1).isoformat() + "T00:00:00"
-    ticket_res = await execute(
-        supabase.table("support_tickets")
-        .select("id", count="exact")
-        .eq("user_id", user_id)
-        .gte("created_at", month_start)
-    )
-    inquiry_res = await execute(
-        supabase.table("inquiries")
-        .select("id", count="exact")
-        .eq("user_id", user_id)
-        .gte("created_at", month_start)
-    )
-    used = (ticket_res.count or 0) + (inquiry_res.count or 0)
-    if used >= limit:
-        raise HTTPException(
-            status_code=429,
-            detail={
-                "code": "TICKET_MONTHLY_LIMIT",
-                "used": used,
-                "limit": limit,
-                "message": f"이번 달 문의 작성 한도({limit}건)를 모두 사용했습니다. 플랜을 업그레이드하면 더 많은 문의를 작성할 수 있습니다.",
-                "upgrade_url": "/pricing",
-            },
-        )
+    allowed, used, limit = await check_support_ticket_limit(user_id, supabase)
+    if not allowed:
+        raise _limit_exceeded_error(used, limit)
 
 
 async def _notify_admin_new_ticket(ticket_id, category: str, title: str, user_id: str) -> None:
@@ -322,11 +299,37 @@ async def create_ticket(
         raise HTTPException(status_code=500, detail="문의 등록에 실패했습니다")
 
     ticket = insert_res.data[0]
+
+    # 동시 제출 레이스 보정: 사전 체크(check-then-insert)는 원자적이지 않아 같은 사용자가
+    # 거의 동시에 두 번 제출하면 둘 다 통과할 수 있다. INSERT 직후 재확인해 한도를 넘겼으면
+    # 방금 넣은 행을 되돌린다(2026-07-15, 월 1~3건 한도라 실사용자 재시도 부담은 낮음).
+    supabase = get_client()
+    allowed_after, used_after, limit_after = await check_support_ticket_limit(user_id, supabase)
+    if not allowed_after:
+        await execute(supabase.table("support_tickets").delete().eq("id", ticket["id"]))
+        _logger.warning(f"[support] 동시 제출 레이스 감지 — 티켓 롤백: ticket_id={ticket['id']}, user_id={user_id}")
+        raise _limit_exceeded_error(used_after, limit_after)
+
     _logger.info(f"[support] 문의 등록: ticket_id={ticket['id']}, user_id={user_id}, category={body.category}")
 
     import asyncio as _asyncio
     _asyncio.create_task(_notify_admin_new_ticket(ticket["id"], body.category, body.title, user_id))
     return {"ticket": ticket}
+
+
+@router.get("/tickets/quota")
+async def get_ticket_quota(user: dict = Depends(get_current_user)):
+    """이번 달 문의 잔여 건수 — 프론트가 자체적으로 플랜별 한도를 하드코딩하지 않고
+    이 응답 하나로 배너를 그릴 수 있도록 신설(2026-07-15, 3중 중복 제거)."""
+    supabase = get_client()
+    allowed, used, limit = await check_support_ticket_limit(user["id"], supabase)
+    unlimited = limit >= 999
+    return {
+        "used": used,
+        "limit": None if unlimited else limit,
+        "remaining": None if unlimited else max(0, limit - used),
+        "unlimited": unlimited,
+    }
 
 
 @router.get("/tickets/me")

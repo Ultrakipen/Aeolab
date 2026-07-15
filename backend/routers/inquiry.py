@@ -1,61 +1,44 @@
 import asyncio
 import logging
 import os
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, EmailStr
 
 from db.supabase_client import get_client, execute
-from middleware.plan_gate import get_current_user, get_user_plan
+from middleware.plan_gate import get_current_user, check_support_ticket_limit
 from utils.admin_auth import verify_admin
 
 router = APIRouter()
 _logger = logging.getLogger("aeolab.inquiry")
 
-# support.py MONTHLY_LIMITS와 동기화 필수 — 값 변경 시 양쪽 동시 수정.
-# 구 문의 폼(inquiries)과 신 Q&A 티켓(support_tickets)이 별개 테이블이라
-# 한쪽 한도만 걸면 다른 쪽으로 우회 가능했던 버그 수정(2026-07-11) — 두 테이블 합산으로 검사.
-_INQUIRY_MONTHLY_LIMITS: dict[str, Optional[int]] = {
-    "free": 1,
-    "basic": 3,
-    "pro": None,
-    "biz": None,
-    "startup": None,
-    "enterprise": None,
-}
+# 요금제별 월 문의 한도는 middleware/plan_gate.py PLAN_LIMITS["support_ticket_monthly"]가 단일 소스
+# (2026-07-15 통합 — support.py와 각자 dict를 들고 있어 값 변경 시 양쪽 동기화가 필요했던 구조를 제거).
+# 구 문의 폼(inquiries)과 신 Q&A 티켓(support_tickets) 두 테이블 합산 검사는 check_support_ticket_limit() 참조
+# (2026-07-11 한쪽 테이블 한도만 걸어 다른 쪽으로 우회 가능했던 버그 수정 이력).
+
+
+def _limit_exceeded_error(used: int, limit: int) -> HTTPException:
+    return HTTPException(
+        status_code=429,
+        detail={
+            "code": "TICKET_MONTHLY_LIMIT",
+            "used": used,
+            "limit": limit,
+            "message": f"이번 달 문의 작성 한도({limit}건)를 모두 사용했습니다. 플랜을 업그레이드하면 더 많은 문의를 작성할 수 있습니다.",
+            "upgrade_url": "/pricing",
+        },
+    )
 
 
 async def _check_monthly_limit(user_id: str) -> None:
     """이번 달 문의(구 폼 + Q&A 티켓 합산) 건수가 요금제 한도를 초과하면 429."""
     supabase = get_client()
-    plan = await get_user_plan(user_id, supabase)
-    limit = _INQUIRY_MONTHLY_LIMITS.get(plan, 1)
-    if limit is None:
-        return  # 무제한 플랜
-
-    month_start = date.today().replace(day=1).isoformat() + "T00:00:00"
-    inquiry_res = await execute(
-        supabase.table("inquiries").select("id", count="exact")
-        .eq("user_id", user_id).gte("created_at", month_start)
-    )
-    ticket_res = await execute(
-        supabase.table("support_tickets").select("id", count="exact")
-        .eq("user_id", user_id).gte("created_at", month_start)
-    )
-    used = (inquiry_res.count or 0) + (ticket_res.count or 0)
-    if used >= limit:
-        raise HTTPException(
-            status_code=429,
-            detail={
-                "code": "TICKET_MONTHLY_LIMIT",
-                "used": used,
-                "limit": limit,
-                "message": f"이번 달 문의 작성 한도({limit}건)를 모두 사용했습니다. 플랜을 업그레이드하면 더 많은 문의를 작성할 수 있습니다.",
-                "upgrade_url": "/pricing",
-            },
-        )
+    allowed, used, limit = await check_support_ticket_limit(user_id, supabase)
+    if not allowed:
+        raise _limit_exceeded_error(used, limit)
 
 
 async def _notify_admin_new_inquiry(name: str, email: str, subject: str, inquiry_id) -> None:
@@ -126,11 +109,12 @@ async def submit_inquiry(
         raise HTTPException(status_code=422, detail="문의 내용을 입력해 주세요.")
 
     try:
-        await _check_monthly_limit(str(user["id"]))
+        user_id = str(user["id"])
+        await _check_monthly_limit(user_id)
         supabase = get_client()
         ins = await execute(
             supabase.table("inquiries").insert({
-                "user_id": str(user["id"]),
+                "user_id": user_id,
                 "name": body.name.strip(),
                 "email": body.email.strip(),
                 "subject": body.subject.strip(),
@@ -139,6 +123,14 @@ async def submit_inquiry(
             })
         )
         inquiry_id = ins.data[0]["id"] if ins.data else None
+
+        # 동시 제출 레이스 보정 — support.py create_ticket()과 동일 패턴(2026-07-15)
+        allowed_after, used_after, limit_after = await check_support_ticket_limit(user_id, supabase)
+        if not allowed_after and inquiry_id is not None:
+            await execute(supabase.table("inquiries").delete().eq("id", inquiry_id))
+            _logger.warning("동시 제출 레이스 감지 — 문의 롤백: id=%s user=%s", inquiry_id, user_id)
+            raise _limit_exceeded_error(used_after, limit_after)
+
         _logger.info("inquiry submitted id=%s user=%s", inquiry_id, user["id"])
         asyncio.create_task(_notify_admin_new_inquiry(
             body.name.strip(), body.email.strip(), body.subject.strip(), inquiry_id
