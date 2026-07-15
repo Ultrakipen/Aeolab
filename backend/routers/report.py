@@ -2099,13 +2099,19 @@ def _next_goal(current_score: float, breakdown: dict) -> dict:
         next_label, already_top = "주의 필요", False
 
     # 가장 낮은 breakdown 항목 찾아 action 문구 생성
+    # score_breakdown은 v3.0 하위호환 키(예: google_captcha_blocked bool)와 v3.1 평탄화 키가
+    # 함께 저장돼 있음(score_engine.py:939-970) — bool도 Python isinstance(int) 통과라 여기서
+    # 걸러내지 않으면 "google_captcha_blocked 개선으로..." 같은 raw 키가 그대로 노출될 수 있다.
+    # growth_drivers(위 5번)와 동일하게 BREAKDOWN_LABELS에 매핑된 키만 후보로 허용한다.
     action = "스마트플레이스 소개글에 Q&A를 추가하면 AI 브리핑 인용 후보 가능성이 올라갑니다"
     if breakdown:
-        valid = {k: v for k, v in breakdown.items() if isinstance(v, (int, float))}
+        valid = {
+            k: v for k, v in breakdown.items()
+            if k in BREAKDOWN_LABELS and isinstance(v, (int, float)) and not isinstance(v, bool)
+        }
         if valid:
             worst_key = min(valid, key=lambda k: valid[k])
-            label = BREAKDOWN_LABELS.get(worst_key, worst_key)
-            action = f"{label} 개선으로 점수를 올릴 수 있습니다"
+            action = f"{BREAKDOWN_LABELS[worst_key]} 개선으로 점수를 올릴 수 있습니다"
 
     return {
         "next_label":    next_label,

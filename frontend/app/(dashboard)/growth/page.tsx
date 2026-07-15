@@ -167,11 +167,15 @@ export default async function GrowthPage() {
   }> = [];
   if (historyRes?.ok) {
     const raw = await historyRes.json().catch(() => []);
-    // 백엔드가 desc 반환 → 차트·최신 판단 모두 asc(과거→최신) 기준으로 정렬
+    // 백엔드가 desc 반환 → 차트·최신 판단 모두 asc(과거→최신) 기준으로 정렬.
+    // scanned_at(전체 타임스탬프)을 score_date(날짜만)보다 우선해야 한다 — 하루에 여러 번
+    // 스캔한 경우(Pro+ manual_scan_daily) score_date만으로는 동률이라 안정정렬이 원래 순서를
+    // 유지하는데, 그러면 배열 마지막 요소(= "최신"으로 취급되는 행)가 그날의 가장 오래된
+    // 스캔이 되어버려 "최신" 배지·상단 요약이 실제로는 옛 스캔 값을 가리키게 된다.
     historyData = Array.isArray(raw)
       ? raw.sort((a: Record<string, string>, b: Record<string, string>) => {
-          const da = a.score_date ?? a.scanned_at ?? "";
-          const db = b.score_date ?? b.scanned_at ?? "";
+          const da = a.scanned_at ?? a.score_date ?? "";
+          const db = b.scanned_at ?? b.score_date ?? "";
           return da.localeCompare(db);
         })
       : [];
