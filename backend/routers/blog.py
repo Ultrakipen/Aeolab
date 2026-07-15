@@ -6,6 +6,7 @@ GET  /api/blog/result/{business_id} — 블로그 분석 결과 조회
 """
 import asyncio
 import logging
+import os
 from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -34,6 +35,13 @@ _logger = logging.getLogger("aeolab")
 _blog_analysis_locks: set[str] = set()
 _BLOG_RATE_LIMIT = 3
 _BLOG_RATE_WINDOW = 60  # seconds
+
+# 전역 동시성 상한(2026-07-15 신설) — 위 두 장치는 "한 사용자의 남용"만 막을 뿐,
+# 서로 다른 여러 사용자가 동시에 분석을 실행하면 서버 단일 IP에서 네이버로 나가는
+# 요청이 그만큼 겹쳐 나간다. Playwright 스캐너의 PLAYWRIGHT_SEMAPHORE와 동일한 이유로
+# 전역 상한을 둔다 — 서버 사양 업그레이드 시 환경변수로 상향 가능하도록 분리.
+_BLOG_ANALYZE_MAX_CONCURRENCY = int(os.getenv("BLOG_ANALYZE_MAX_CONCURRENCY", "3"))
+_blog_analyze_semaphore = asyncio.Semaphore(_BLOG_ANALYZE_MAX_CONCURRENCY)
 
 
 def _check_blog_rate_limit(user_id: str) -> None:
@@ -170,18 +178,19 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
     category = biz_row.get("category", "restaurant")
     region = biz_row.get("region", "")
 
-    # 블로그 분석 실행
+    # 블로그 분석 실행 — 전역 세마포어로 서버가 네이버에 동시에 내보내는 요청 수 자체를 제한
     try:
-        analysis = await asyncio.wait_for(
-            analyze_blog(
-                blog_url=request.blog_url,
-                business_name=business_name,
-                category=category,
-                region=region,
-                business_id=request.business_id,
-            ),
-            timeout=_ANALYZE_TIMEOUT_SECONDS,
-        )
+        async with _blog_analyze_semaphore:
+            analysis = await asyncio.wait_for(
+                analyze_blog(
+                    blog_url=request.blog_url,
+                    business_name=business_name,
+                    category=category,
+                    region=region,
+                    business_id=request.business_id,
+                ),
+                timeout=_ANALYZE_TIMEOUT_SECONDS,
+            )
     except asyncio.TimeoutError:
         _logger.warning(f"blog analysis timeout (>{_ANALYZE_TIMEOUT_SECONDS}s) for biz={request.business_id}")
         raise HTTPException(status_code=504, detail="블로그 분석 시간이 초과됐습니다. 잠시 후 다시 시도해 주세요.")
