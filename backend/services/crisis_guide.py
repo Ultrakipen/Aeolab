@@ -12,6 +12,18 @@ import logging
 
 _logger = logging.getLogger("aeolab")
 
+# AsyncAnthropic 클라이언트 재사용 — 호출마다 새로 만들면 커넥션풀을 재사용하지
+# 못해 매번 TLS 핸드셰이크가 발생, 동시 사용자 늘 때 지연이 누적됨(2026-07-15).
+_client = None
+
+
+def _get_client(api_key: str):
+    global _client
+    if _client is None:
+        import anthropic
+        _client = anthropic.AsyncAnthropic(api_key=api_key)
+    return _client
+
 
 async def generate_crisis_reply(
     review_text: str,
@@ -34,9 +46,7 @@ async def generate_crisis_reply(
         _logger.warning("crisis_guide: ANTHROPIC_API_KEY 미설정 — fallback 반환")
         return {**_fallback_response(business_name, rating), "is_fallback": True}
 
-    import anthropic
-
-    client = anthropic.AsyncAnthropic(api_key=api_key)
+    client = _get_client(api_key)
 
     prompt = f"""당신은 한국 소상공인의 리뷰 위기관리 전문가입니다.
 

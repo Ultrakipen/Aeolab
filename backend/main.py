@@ -194,6 +194,19 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.on_event("startup")
 async def startup():
+    # DB 호출용 스레드풀 확장 — db/supabase_client.py의 execute()가 동기
+    # supabase-py 호출을 asyncio.to_thread()로 실행하는데, 기본 executor는
+    # CPU 코어 수 기반(min(32, cpu_count+4))이라 vCPU2 서버에서 6개로 제한됨.
+    # Supabase 호출은 CPU 작업이 아닌 네트워크 대기라 코어 수와 무관하게
+    # 늘려도 안전 — 동시 사용자 증가 대응 1순위 병목 해소(2026-07-15).
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor
+    _db_threadpool_size = int(os.getenv("DB_THREADPOOL_MAX_WORKERS", "40"))
+    asyncio.get_running_loop().set_default_executor(
+        ThreadPoolExecutor(max_workers=_db_threadpool_size)
+    )
+    _logger.info(f"DB 스레드풀 확장: max_workers={_db_threadpool_size}")
+
     start_scheduler()
 
 

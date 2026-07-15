@@ -49,6 +49,20 @@ def _check_ai_reply_rate_limit(user_id: str, scope: str) -> None:
     _cache.set(key, count + 1, _AI_REPLY_RATE_WINDOW)
 
 
+# review-reply(_generate_reply)용 AsyncAnthropic 클라이언트 재사용 — 호출마다
+# 새로 만들면 커넥션풀을 재사용하지 못해 매번 TLS 핸드셰이크가 발생, 동시 사용자
+# 늘 때 지연이 누적됨(2026-07-15). crisis_guide.py도 동일 패턴 적용됨.
+_review_reply_ai_client = None
+
+
+def _get_review_reply_ai_client(api_key: str):
+    global _review_reply_ai_client
+    if _review_reply_ai_client is None:
+        import anthropic
+        _review_reply_ai_client = anthropic.AsyncAnthropic(api_key=api_key)
+    return _review_reply_ai_client
+
+
 async def _verify_biz_ownership(supabase, biz_id: str, user_id: str) -> None:
     """사업장 소유권 검증 — 타인 소유 또는 없는 경우 404 반환"""
     from db.supabase_client import execute as _exec
@@ -305,11 +319,10 @@ async def generate_review_reply(
 
 async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str, bool]:
     """Claude Haiku로 감정 분류 + 답변 초안 생성"""
-    import anthropic
     import os
     from services.schema_generator import CATEGORY_KO
 
-    client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+    client = _get_review_reply_ai_client(os.getenv("ANTHROPIC_API_KEY", ""))
     keywords = ", ".join((biz.get("keywords") or [])[:5])
     category = CATEGORY_KO.get(biz.get("category", ""), biz.get("category", ""))
     biz_name = biz.get("name", "저희 가게")
