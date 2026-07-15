@@ -1,17 +1,19 @@
 "use client";
 
 /**
- * HelpFAQFloat — 랜딩 페이지 전용 모바일 우하단 FAQ 물음표 버튼 + bottom-sheet
+ * HelpFAQFloat — 모바일 우하단 FAQ 물음표 버튼 + bottom-sheet (랜딩 `app/layout.tsx` + 대시보드 `(dashboard)/layout.tsx` 공용)
  *
  * - md:hidden — PC에서는 완전히 숨김
- * - fixed bottom-20 right-4 z-40 — MobileFloatingCTA(bottom-0, z-50)와 겹치지 않음
+ * - fixed bottom-24 right-4 z-40 — 랜딩 MobileFloatingCTA(bottom-0, z-50)·대시보드 하단 탭바와 겹치지 않도록 여유 확보
  * - 클릭 시 bottom-sheet 모달로 HelpSearchInput 노출
  * - 결과 없을 때 /support 링크 fallback 표시
  * - safe-area-inset-bottom 적용
+ * - 경로 변경 시 자동 닫힘(usePathname) — 열어둔 채 다른 페이지로 이동해도 다음 화면을 가리지 않음
  * - GA4 이벤트: help_search_query / help_search_result_click / help_search_no_result
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { X, HelpCircle } from "lucide-react";
 import HelpSearchInput from "@/components/common/HelpSearchInput";
 import {
@@ -22,6 +24,12 @@ import {
 
 export default function HelpFAQFloat() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  // 페이지 이동 시 열려있던 패널 자동 닫기 (다음 화면의 바텀탭·콘텐츠를 가리는 것 방지)
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   // ESC 키로 닫기
   useEffect(() => {
@@ -64,7 +72,7 @@ export default function HelpFAQFloat() {
       <button
         onClick={() => setOpen(true)}
         aria-label="도움말 검색 열기"
-        className="md:hidden fixed bottom-20 right-4 z-40 w-12 h-12 rounded-full bg-blue-600 text-white shadow-lg flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all"
+        className="md:hidden fixed bottom-24 right-4 z-40 w-12 h-12 rounded-full bg-blue-600 text-white shadow-lg flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all"
         style={{ paddingBottom: 0 }}
       >
         <HelpCircle className="w-6 h-6" aria-hidden="true" />

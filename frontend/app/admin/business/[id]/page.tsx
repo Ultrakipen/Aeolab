@@ -160,8 +160,8 @@ export default async function AdminBusinessDetailPage({
                 <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
                   <th className="pb-2 pr-3">일시</th>
                   <th className="pb-2 pr-3">종합</th>
-                  <th className="pb-2 pr-3">네이버 트랙</th>
-                  <th className="pb-2">글로벌 트랙</th>
+                  <th className="pb-2 pr-3 whitespace-nowrap">네이버 트랙</th>
+                  <th className="pb-2 whitespace-nowrap">글로벌 트랙</th>
                 </tr>
               </thead>
               <tbody>

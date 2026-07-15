@@ -29,37 +29,39 @@ function PaymentFailContent() {
     "카드 등록이 완료되지 않았습니다. 결제는 진행되지 않았으니 안심하고 다시 시도해주세요.";
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center">
-        <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" strokeWidth={1.5} />
-        <h1 className="text-xl font-bold text-gray-900 mb-2">
-          {isCardUpdate ? "카드 등록 실패" : "결제 실패"}
-        </h1>
-        <p className="text-gray-500 text-sm mb-6">{displayMsg}</p>
+    <main className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" strokeWidth={1.5} />
+          <h1 className="text-xl font-bold text-gray-900 mb-2">
+            {isCardUpdate ? "카드 등록 실패" : "결제 실패"}
+          </h1>
+          <p className="text-gray-500 text-sm mb-6">{displayMsg}</p>
 
-        <div className="bg-blue-50 rounded-xl p-4 mb-6 text-left">
-          <p className="text-sm font-medium text-blue-800 mb-2">이런 경우 확인해보세요</p>
-          <ul className="text-sm text-blue-700 space-y-1">
-            <li>• 카드 한도 초과 여부</li>
-            <li>• 카드 번호·유효기간·CVC 정확도</li>
-            <li>• 해외 결제 차단 설정</li>
-            <li>• 카드사 앱에서 1회성 비밀번호 설정 여부</li>
-          </ul>
-        </div>
+          <div className="bg-blue-50 rounded-xl p-4 mb-6 text-left">
+            <p className="text-sm font-medium text-blue-800 mb-2">이런 경우 확인해보세요</p>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• 카드 한도 초과 여부</li>
+              <li>• 카드 번호·유효기간·CVC 정확도</li>
+              <li>• 해외 결제 차단 설정</li>
+              <li>• 카드사 앱에서 1회성 비밀번호 설정 여부</li>
+            </ul>
+          </div>
 
-        <div className="space-y-3">
-          <Link
-            href={isCardUpdate ? "/settings" : "/pricing"}
-            className="block bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
-          >
-            {isCardUpdate ? "설정으로 돌아가 다시 시도" : "다시 결제하기"}
-          </Link>
-          <Link
-            href={isCardUpdate ? "/dashboard" : "/"}
-            className="block text-sm text-gray-500 hover:text-gray-600 transition-colors"
-          >
-            {isCardUpdate ? "대시보드로 이동" : "홈으로"}
-          </Link>
+          <div className="space-y-3">
+            <Link
+              href={isCardUpdate ? "/settings" : "/pricing"}
+              className="block bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+            >
+              {isCardUpdate ? "설정으로 돌아가 다시 시도" : "다시 결제하기"}
+            </Link>
+            <Link
+              href={isCardUpdate ? "/dashboard" : "/"}
+              className="block text-sm text-gray-500 hover:text-gray-600 transition-colors"
+            >
+              {isCardUpdate ? "대시보드로 이동" : "홈으로"}
+            </Link>
+          </div>
         </div>
       </div>
       <SiteFooter />

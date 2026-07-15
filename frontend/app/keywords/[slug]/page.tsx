@@ -12,7 +12,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const page = KEYWORD_PAGES.find((p) => p.slug === slug);
+  const decodedSlug = decodeURIComponent(slug);
+  const page = KEYWORD_PAGES.find((p) => p.slug === decodedSlug);
   if (!page) return {};
   return {
     title: `${page.title} | AEOlab`,
@@ -30,7 +31,8 @@ export default async function KeywordPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const page = KEYWORD_PAGES.find((p) => p.slug === slug);
+  const decodedSlug = decodeURIComponent(slug);
+  const page = KEYWORD_PAGES.find((p) => p.slug === decodedSlug);
   if (!page) notFound();
 
   const competitionColor: Record<string, string> = {

@@ -337,7 +337,9 @@ function ComparisonTable() {
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div>
+      <p className="text-sm text-gray-500 text-center mb-2 md:hidden">← 좌우로 밀어 비교하세요</p>
+      <div className="overflow-x-auto">
       <table className="w-full min-w-[480px] text-sm border-collapse">
         <thead>
           <tr className="bg-gray-50">
@@ -358,6 +360,7 @@ function ComparisonTable() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

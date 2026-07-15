@@ -250,6 +250,7 @@ export default function HowItWorksPage() {
             콘텐츠가 아무리 좋아도 노출되지 않으므로, AEOlab은 가장 먼저 이를 점검합니다.
           </p>
 
+          <p className="text-sm text-gray-500 text-center mb-1 md:hidden">← 좌우로 밀어 비교하세요</p>
           <div className="overflow-x-auto mb-4">
             <table className="w-full text-sm md:text-base border-collapse min-w-[640px]">
               <thead>
@@ -340,8 +341,9 @@ export default function HowItWorksPage() {
             '플레이스형' AI 브리핑 비대상 업종(글로벌 AI 중심 그룹)은 키워드 검색·스마트플레이스 비중이 자동 상향되고 플레이스형 AI 브리핑 비중이 0%로 빠져, 비대상 업종이라도 점수상 불이익이 없도록 설계됩니다.
           </p>
 
+          <p className="text-sm text-gray-500 text-center mb-1 md:hidden">← 좌우로 밀어 비교하세요</p>
           <div className="overflow-x-auto mb-4">
-            <table className="w-full text-sm border border-gray-200 rounded-lg">
+            <table className="w-full text-sm border border-gray-200 rounded-lg min-w-[480px]">
               <thead className="bg-gray-50">
                 <tr className="text-left text-sm uppercase text-gray-500">
                   <th className="px-3 py-2 font-medium">항목</th>

@@ -487,7 +487,7 @@ export default async function LandingPage() {
               <p className="text-sm text-green-700 mt-1 break-keep">
                 스마트플레이스 → 네이버 플레이스 탭 순위 상승 / 블로그 → VIEW탭 상위 노출 → AI 브리핑·AI탭 노출 가능성도 함께 높아집니다
               </p>
-              <p className="text-xs text-green-600 mt-1.5">네이버 검색 순위는 네이버 알고리즘이 결정하며 보장되지 않습니다</p>
+              <p className="text-sm text-green-600 mt-1.5">네이버 검색 순위는 네이버 알고리즘이 결정하며 보장되지 않습니다</p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl bg-white border border-blue-200 px-5 py-4">

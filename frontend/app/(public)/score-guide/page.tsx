@@ -292,7 +292,7 @@ export default function ScoreGuidePage() {
               {[
                 {
                   item: "AI 노출 빈도",
-                  weight: "40%",
+                  weight: "30%",
                   desc: "Gemini·ChatGPT 각 50회 (총 100회, Basic 기준)",
                 },
                 {
@@ -307,7 +307,7 @@ export default function ScoreGuidePage() {
                 },
                 {
                   item: "Google AI Overview",
-                  weight: "10%",
+                  weight: "20%",
                   desc: "구글 AI 검색 결과 노출 여부 (Serper.dev API로 측정, 2026-05-30 활성화)",
                 },
               ].map((row, i) => (

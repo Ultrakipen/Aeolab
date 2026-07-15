@@ -550,6 +550,8 @@ export default function GrowthClient({
                     tick={{ fontSize: 12, fill: "#9ca3af" }}
                     tickLine={false}
                     axisLine={false}
+                    interval="preserveStartEnd"
+                    minTickGap={24}
                   />
                   <YAxis
                     domain={[0, 100]}

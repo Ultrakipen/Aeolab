@@ -71,25 +71,27 @@ function CardUpdateContent() {
 
   if (status === "error") {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
-          <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" strokeWidth={1.5} />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">카드 변경 실패</h1>
-          <p className="text-gray-500 text-sm mb-6 leading-relaxed">{errorMsg}</p>
-          <div className="space-y-3">
-            <Link
-              href="/settings"
-              className="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-semibold text-base hover:bg-blue-700 transition-colors"
-            >
-              <CreditCard className="w-4 h-4" strokeWidth={1.5} />
-              다시 시도
-            </Link>
-            <Link
-              href="/dashboard"
-              className="block border border-gray-200 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
-            >
-              대시보드로 이동
-            </Link>
+      <main className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
+            <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" strokeWidth={1.5} />
+            <h1 className="text-xl font-bold text-gray-900 mb-2">카드 변경 실패</h1>
+            <p className="text-gray-500 text-sm mb-6 leading-relaxed">{errorMsg}</p>
+            <div className="space-y-3">
+              <Link
+                href="/settings"
+                className="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-semibold text-base hover:bg-blue-700 transition-colors"
+              >
+                <CreditCard className="w-4 h-4" strokeWidth={1.5} />
+                다시 시도
+              </Link>
+              <Link
+                href="/dashboard"
+                className="block border border-gray-200 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+              >
+                대시보드로 이동
+              </Link>
+            </div>
           </div>
         </div>
         <SiteFooter />
@@ -99,30 +101,32 @@ function CardUpdateContent() {
 
   if (retryFailed) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
-          <XCircle className="w-14 h-14 text-amber-500 mx-auto mb-4" strokeWidth={1.5} />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">카드는 등록됐지만 구독은 아직 정지 상태입니다</h1>
-          <p className="text-gray-600 text-base mb-1">
-            새 카드로 즉시 재결제를 시도했지만 실패했습니다.
-          </p>
-          <p className="text-gray-500 text-sm mb-8">
-            카드 한도·잔액을 확인하시거나 다른 카드로 다시 시도해 주세요. 계속 실패하면 1:1 문의로 알려주세요.
-          </p>
+      <main className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
+            <XCircle className="w-14 h-14 text-amber-500 mx-auto mb-4" strokeWidth={1.5} />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">카드는 등록됐지만 구독은 아직 정지 상태입니다</h1>
+            <p className="text-gray-600 text-base mb-1">
+              새 카드로 즉시 재결제를 시도했지만 실패했습니다.
+            </p>
+            <p className="text-gray-500 text-sm mb-8">
+              카드 한도·잔액을 확인하시거나 다른 카드로 다시 시도해 주세요. 계속 실패하면 1:1 문의로 알려주세요.
+            </p>
 
-          <div className="space-y-3">
-            <Link
-              href="/settings"
-              className="block bg-blue-600 text-white py-3 rounded-xl font-semibold text-base hover:bg-blue-700 transition-colors"
-            >
-              설정 페이지에서 다시 시도
-            </Link>
-            <Link
-              href="/support/tickets/new"
-              className="block border border-gray-200 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
-            >
-              1:1 문의하기
-            </Link>
+            <div className="space-y-3">
+              <Link
+                href="/settings"
+                className="block bg-blue-600 text-white py-3 rounded-xl font-semibold text-base hover:bg-blue-700 transition-colors"
+              >
+                설정 페이지에서 다시 시도
+              </Link>
+              <Link
+                href="/support/tickets/new"
+                className="block border border-gray-200 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+              >
+                1:1 문의하기
+              </Link>
+            </div>
           </div>
         </div>
         <SiteFooter />
@@ -131,35 +135,37 @@ function CardUpdateContent() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
-        <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" strokeWidth={1.5} />
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {reactivated ? "결제 재개 완료" : "카드 변경 완료"}
-        </h1>
-        <p className="text-gray-600 text-base mb-1">
-          {reactivated
-            ? "새 카드로 결제가 성공해 구독이 다시 활성화되었습니다."
-            : "새 결제 카드가 등록되었습니다."}
-        </p>
-        <p className="text-gray-500 text-sm mb-2">
-          {reactivated ? "다음 결제일부터 정상적으로 자동 청구됩니다." : "다음 결제부터 변경된 카드로 자동 청구됩니다."}
-        </p>
-        <p className="text-gray-500 text-sm mb-8">3초 후 설정 페이지로 이동합니다...</p>
+    <main className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
+          <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" strokeWidth={1.5} />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {reactivated ? "결제 재개 완료" : "카드 변경 완료"}
+          </h1>
+          <p className="text-gray-600 text-base mb-1">
+            {reactivated
+              ? "새 카드로 결제가 성공해 구독이 다시 활성화되었습니다."
+              : "새 결제 카드가 등록되었습니다."}
+          </p>
+          <p className="text-gray-500 text-sm mb-2">
+            {reactivated ? "다음 결제일부터 정상적으로 자동 청구됩니다." : "다음 결제부터 변경된 카드로 자동 청구됩니다."}
+          </p>
+          <p className="text-gray-500 text-sm mb-8">3초 후 설정 페이지로 이동합니다...</p>
 
-        <div className="space-y-3">
-          <Link
-            href="/settings"
-            className="block bg-blue-600 text-white py-3 rounded-xl font-semibold text-base hover:bg-blue-700 transition-colors"
-          >
-            설정 페이지로 이동
-          </Link>
-          <Link
-            href="/dashboard"
-            className="block border border-gray-200 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
-          >
-            대시보드로 이동
-          </Link>
+          <div className="space-y-3">
+            <Link
+              href="/settings"
+              className="block bg-blue-600 text-white py-3 rounded-xl font-semibold text-base hover:bg-blue-700 transition-colors"
+            >
+              설정 페이지로 이동
+            </Link>
+            <Link
+              href="/dashboard"
+              className="block border border-gray-200 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+            >
+              대시보드로 이동
+            </Link>
+          </div>
         </div>
       </div>
       <SiteFooter />

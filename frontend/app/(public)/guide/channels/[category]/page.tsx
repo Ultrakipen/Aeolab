@@ -262,10 +262,10 @@ export default async function ChannelGuidePage({
               무료 진단 시작 →
             </Link>
             <Link
-              href="/guide/ai-info-tab"
+              href="/how-it-works"
               className="flex-1 text-center px-6 py-3 border border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
             >
-              AI 브리핑 5단계 가이드
+              AI 브리핑 노출 원리 알아보기
             </Link>
           </div>
           <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
