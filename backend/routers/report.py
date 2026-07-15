@@ -1,3 +1,4 @@
+import asyncio
 import csv
 import io
 import logging
@@ -837,7 +838,11 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
     import urllib.parse
     from services.pdf_generator import generate_pdf_report
     try:
-        pdf_bytes = generate_pdf_report(
+        # reportlab 렌더링은 CPU 바운드 동기 함수 — 단일 uvicorn 워커에서 이벤트 루프에
+        # 직접 실행하면 그 시간 동안 다른 모든 사용자 요청이 함께 멈춘다. to_thread로
+        # 분리(2026-07-15, DB_THREADPOOL_MAX_WORKERS 40개 스레드풀 공유)
+        pdf_bytes = await asyncio.to_thread(
+            generate_pdf_report,
             biz=biz,
             latest_scan=latest_scan[0],
             history=history,
@@ -1021,10 +1026,9 @@ async def generate_share_card(biz_id: str):
     grade = "A" if score >= 80 else "B" if score >= 60 else "C" if score >= 40 else "D"
     freq = score_data[0].get("exposure_freq", 0)
 
-    try:
+    def _build_share_card_png() -> bytes:
         from PIL import Image, ImageDraw, ImageFont
         import io as _io
-        from datetime import datetime
 
         img = Image.new("RGB", (1080, 1080), color="#0f172a")
         draw = ImageDraw.Draw(img)
@@ -1054,8 +1058,15 @@ async def generate_share_card(biz_id: str):
 
         buf = _io.BytesIO()
         img.save(buf, format="PNG", optimize=True)
+        return buf.getvalue()
+
+    try:
+        # PIL 렌더링(폰트 로드+텍스트 드로잉)은 CPU 바운드 동기 작업 — 단일 uvicorn
+        # 워커에서 이벤트 루프에 직접 실행하면 그 시간 동안 다른 모든 사용자 요청이
+        # 함께 멈춘다. to_thread로 분리(2026-07-15)
+        png_bytes = await asyncio.to_thread(_build_share_card_png)
         return Response(
-            content=buf.getvalue(),
+            content=png_bytes,
             media_type="image/png",
             headers={
                 "Content-Disposition": f'attachment; filename="aeolab_score_{biz_id}.png"',
@@ -1284,7 +1295,10 @@ async def get_gap_card(biz_id: str, user=Depends(get_current_user)):
     hint = HINT_MESSAGES.get(lowest[0], "") if lowest[0] else ""
 
     from services.gap_card import generate_gap_card
-    png_bytes = generate_gap_card(
+    # PIL 렌더링은 CPU 바운드 동기 작업 — 단일 uvicorn 워커에서 이벤트 루프에 직접
+    # 실행하면 그 시간 동안 다른 모든 사용자 요청이 함께 멈춘다. to_thread로 분리(2026-07-15)
+    png_bytes = await asyncio.to_thread(
+        generate_gap_card,
         business_name=biz["name"],
         region=biz.get("region", ""),
         category=biz.get("category", ""),
