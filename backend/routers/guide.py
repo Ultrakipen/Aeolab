@@ -9,6 +9,7 @@ from models.schemas import GuideRequest
 from services.guide_generator import GuideGenerator
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
+from utils import cache as _cache
 
 _logger = logging.getLogger("aeolab")
 router = APIRouter()
@@ -23,6 +24,29 @@ _guide_generation_locks: set[str] = set()
 # 같은 월별 한도를 여러 번 통과할 수 있는 동일한 TOCTOU 구조 — 위와 같은 이유로 락 추가.
 _review_reply_locks: set[str] = set()
 _crisis_reply_locks: set[str] = set()
+
+# review-reply/crisis-reply 요청속도 제한 — Pro·창업패키지·Biz·Enterprise는
+# review_reply_monthly/crisis_reply_monthly가 999(=무제한)라 월별 한도가 사실상 없음.
+# 콜당 비용은 Haiku 기준 저렴(약 2~3원)하지만 스크립트로 연속 호출하면 무제한 티어에서
+# 비용이 통제 없이 쌓일 수 있어 feedback.py/webhook.py와 동일한 패턴으로 캡 추가.
+# 인증 엔드포인트라 IP 대신 user_id 기준.
+_AI_REPLY_RATE_LIMIT = 10
+_AI_REPLY_RATE_WINDOW = 60  # seconds
+
+
+def _check_ai_reply_rate_limit(user_id: str, scope: str) -> None:
+    key = f"ai_reply_rate:{scope}:{user_id}"
+    count: int = _cache.get(key) or 0
+    if count >= _AI_REPLY_RATE_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "RATE_LIMIT",
+                "message": "잠시 후 다시 시도해 주세요 (분당 10회 제한).",
+                "retry_after": _AI_REPLY_RATE_WINDOW,
+            },
+        )
+    _cache.set(key, count + 1, _AI_REPLY_RATE_WINDOW)
 
 
 async def _verify_biz_ownership(supabase, biz_id: str, user_id: str) -> None:
@@ -188,6 +212,9 @@ async def generate_review_reply(
     """
     from middleware.plan_gate import check_review_reply_limit
     supabase = get_client()
+
+    # 0. 요청속도 제한 — 무제한(999) 티어 스크립트 남용 방지, DB 조회 전에 먼저 차단
+    _check_ai_reply_rate_limit(current_user["id"], "review_reply")
 
     # 1. 소유권 검증 먼저
     await _verify_biz_ownership(supabase, req.business_id, current_user["id"])
@@ -1084,6 +1111,9 @@ async def generate_crisis_reply_endpoint(
     user_id = current_user.get("id") or current_user.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="인증 정보가 없습니다")
+
+    # 요청속도 제한 — 무제한(999) 티어 스크립트 남용 방지, DB 조회 전에 먼저 차단
+    _check_ai_reply_rate_limit(user_id, "crisis_reply")
 
     supabase = get_client()
 
