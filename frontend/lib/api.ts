@@ -46,6 +46,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   SCAN_IN_PROGRESS: "이미 스캔이 진행 중입니다. 잠시 후 다시 시도해주세요.",
   AI_UNAVAILABLE:   "일부 AI 서비스가 일시적으로 이용 불가합니다.",
   PAYMENT_FAILED:   "결제에 실패했습니다. 카드 정보를 확인해주세요.",
+  RATE_LIMIT:       "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
   SERVER_ERROR:     "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
 };
 
