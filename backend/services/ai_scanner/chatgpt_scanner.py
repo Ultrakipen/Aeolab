@@ -52,32 +52,41 @@ class ChatGPTScanner:
         prompt = f"""검색어: {query}
 다음 사업장이 추천되는지 JSON으로만 답하세요: {target}
 {{"mentioned": true/false, "rank": 순위또는null, "excerpt": "인용텍스트"}}"""
+        # 429(rate limit) 한정 1회 재시도(2026-07-15) — 동시 스캔이 겹치면 OpenAI API가
+        # 순간 429를 반환할 수 있는데, 재시도 없이 그 샘플만 조용히 _measured=False로
+        # 빠져 유효 샘플 수가 줄어들었음. 다른 오류(타임아웃·파싱실패 등)는 재시도하지 않음.
         async with _CHATGPT_SEM:
-            try:
-                resp = await asyncio.wait_for(
-                    self.client.chat.completions.create(
-                        model="gpt-4.1-mini",
-                        messages=[{"role": "user", "content": prompt}],
-                        temperature=1.0,
-                        max_tokens=200,
-                    ),
-                    timeout=20.0,
-                )
-                self._log_usage(resp, "scan_check")
-                text = resp.choices[0].message.content or ""
-                m = re.search(r"\{.*?\}", text, re.DOTALL)
-                if m:
-                    return json.loads(m.group())
-                _logger.debug("chatgpt _check unparseable response: query=%s", query[:50])
-                return {"mentioned": False, "_measured": False, "_error": "unparseable"}
-            except asyncio.TimeoutError as e:
-                _logger.debug("chatgpt _check timed out (20s): query=%s", query[:50])
-                self._log_failure("scan_check", e)
-                return {"mentioned": False, "_measured": False, "_error": "timeout"}
-            except Exception as e:
-                _logger.debug("chatgpt _check failed: %s", e)
-                self._log_failure("scan_check", e)
-                return {"mentioned": False, "_measured": False, "_error": str(e)}
+            for attempt in range(2):
+                try:
+                    resp = await asyncio.wait_for(
+                        self.client.chat.completions.create(
+                            model="gpt-4.1-mini",
+                            messages=[{"role": "user", "content": prompt}],
+                            temperature=1.0,
+                            max_tokens=200,
+                        ),
+                        timeout=20.0,
+                    )
+                    self._log_usage(resp, "scan_check")
+                    text = resp.choices[0].message.content or ""
+                    m = re.search(r"\{.*?\}", text, re.DOTALL)
+                    if m:
+                        return json.loads(m.group())
+                    _logger.debug("chatgpt _check unparseable response: query=%s", query[:50])
+                    return {"mentioned": False, "_measured": False, "_error": "unparseable"}
+                except asyncio.TimeoutError as e:
+                    _logger.debug("chatgpt _check timed out (20s): query=%s", query[:50])
+                    self._log_failure("scan_check", e)
+                    return {"mentioned": False, "_measured": False, "_error": "timeout"}
+                except Exception as e:
+                    is_rate_limit = type(e).__name__ == "RateLimitError" or "429" in str(e)
+                    if is_rate_limit and attempt == 0:
+                        _logger.debug("chatgpt _check rate-limited, retrying in 1.5s: query=%s", query[:50])
+                        await asyncio.sleep(1.5)
+                        continue
+                    _logger.debug("chatgpt _check failed: %s", e)
+                    self._log_failure("scan_check", e)
+                    return {"mentioned": False, "_measured": False, "_error": str(e)}
 
     def _log_usage(self, resp, purpose: str) -> None:
         """gpt-4.1-mini는 reasoning 모델이 아니라 thinking 토큰 개념 없음 — prompt/completion만 기록."""

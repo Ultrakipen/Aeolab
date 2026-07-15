@@ -1286,21 +1286,28 @@ async def trial_naver_briefing(req: NaverBriefingRequest, request: Request):
 
             from services.ai_scanner.naver_scanner import NaverAIBriefingScanner
             from services.naver_visibility import get_naver_visibility
-            from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+            from services.ai_scanner.multi_scanner import (
+                PLAYWRIGHT_SEMAPHORE, PLAYWRIGHT_QUEUE_TIMEOUT_SEC,
+            )
 
             # get_naver_visibility는 Playwright 미사용 — create_task로 병렬 시작
             # check_mention은 PLAYWRIGHT_SEMAPHORE로 보호 (multi_scanner._run_playwright와 동일 패턴)
+            # 세마포어 획득 자체도 대기열 타임아웃 적용(2026-07-15) — 무제한 대기 시
+            # nginx proxy_read_timeout에 걸려 원인불명 504로 실패하는 문제 방지
             vis_task = asyncio.create_task(
                 get_naver_visibility(req.business_name, vis_kw, req.region)
             )
             try:
-                async with PLAYWRIGHT_SEMAPHORE:
+                await asyncio.wait_for(PLAYWRIGHT_SEMAPHORE.acquire(), timeout=PLAYWRIGHT_QUEUE_TIMEOUT_SEC)
+                try:
                     naver_result = await asyncio.wait_for(
                         NaverAIBriefingScanner().check_mention(
                             query, req.business_name, category=req.category
                         ),
                         timeout=40.0,
                     )
+                finally:
+                    PLAYWRIGHT_SEMAPHORE.release()
             except Exception as e:
                 _logger.warning(f"naver_briefing scanner error: {e}")
                 naver_result = {"mentioned": False, "in_briefing": False, "rank": None}

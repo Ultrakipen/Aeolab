@@ -40,6 +40,12 @@ _CATEGORY_KO: dict[str, str] = {
 # RAM 4GB 서버: 1 유지. 업그레이드 후 서버 .env에 PLAYWRIGHT_MAX_CONCURRENCY=2 추가
 PLAYWRIGHT_SEMAPHORE = asyncio.Semaphore(int(os.getenv("PLAYWRIGHT_MAX_CONCURRENCY", "1")))
 
+# 세마포어 대기열 상한 (2026-07-15 신설) — 기존엔 세마포어 획득 자체가 무제한 대기라
+# 동시 스캔 요청이 몰리면 뒷사람은 nginx proxy_read_timeout(60s)에 걸려 원인불명 504로
+# 실패했음(실행 자체엔 40s 타임아웃이 있었지만 대기열엔 없었음). 대기 15s + 실행 40s로
+# nginx 60s 타임아웃 안에 항상 친절한 오류를 먼저 반환하도록 예산 분리.
+PLAYWRIGHT_QUEUE_TIMEOUT_SEC = float(os.getenv("PLAYWRIGHT_QUEUE_TIMEOUT_SEC", "15"))
+
 
 class MultiAIScanner:
     def __init__(self, mode: str = "full"):
@@ -75,9 +81,16 @@ class MultiAIScanner:
         return {"chatgpt": result}
 
     async def _run_playwright(self, fn, *args):
-        """Playwright 기반 스캐너 세마포어 제한 (최대 동시 1개) + 40초 타임아웃"""
-        async with PLAYWRIGHT_SEMAPHORE:
+        """Playwright 기반 스캐너 세마포어 제한 (최대 동시 1개) — 대기열 15초 + 실행 40초 타임아웃"""
+        try:
+            await asyncio.wait_for(PLAYWRIGHT_SEMAPHORE.acquire(), timeout=PLAYWRIGHT_QUEUE_TIMEOUT_SEC)
+        except asyncio.TimeoutError:
+            _logger.warning("[multi_scanner] Playwright 세마포어 대기열 초과(%.0fs) — 동시 요청 과다", PLAYWRIGHT_QUEUE_TIMEOUT_SEC)
+            raise asyncio.TimeoutError("PLAYWRIGHT_QUEUE_TIMEOUT")
+        try:
             return await asyncio.wait_for(fn(*args), timeout=40.0)
+        finally:
+            PLAYWRIGHT_SEMAPHORE.release()
 
     async def scan_all(self, queries: "str | list[str]", target: str) -> dict:
         """전체 4개 AI 병렬 스캔 — Gemini·ChatGPT·Naver·Google

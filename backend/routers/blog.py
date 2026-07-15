@@ -43,6 +43,12 @@ _BLOG_RATE_WINDOW = 60  # seconds
 _BLOG_ANALYZE_MAX_CONCURRENCY = int(os.getenv("BLOG_ANALYZE_MAX_CONCURRENCY", "3"))
 _blog_analyze_semaphore = asyncio.Semaphore(_BLOG_ANALYZE_MAX_CONCURRENCY)
 
+# 세마포어 대기열 상한(2026-07-15 신설) — 세마포어 획득 자체는 원래 무제한 대기라
+# 동시 요청이 몰리면 뒷사람이 nginx proxy_read_timeout(60s)까지 대기하다 원인불명
+# 502/504로 실패함. 대기 8s + 실행 50s(_ANALYZE_TIMEOUT_SECONDS)로 nginx 60s 안에
+# 항상 친절한 오류를 먼저 반환하도록 예산 분리.
+_BLOG_ANALYZE_QUEUE_TIMEOUT_SEC = float(os.getenv("BLOG_ANALYZE_QUEUE_TIMEOUT_SEC", "8"))
+
 
 def _check_blog_rate_limit(user_id: str) -> None:
     key = f"blog_analyze_rate:{user_id}"
@@ -179,8 +185,11 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
     region = biz_row.get("region", "")
 
     # 블로그 분석 실행 — 전역 세마포어로 서버가 네이버에 동시에 내보내는 요청 수 자체를 제한
+    # 세마포어 획득도 대기열 타임아웃 적용 — 무제한 대기 시 nginx 타임아웃에 걸려
+    # 원인불명 오류로 실패하는 문제 방지(2026-07-15)
     try:
-        async with _blog_analyze_semaphore:
+        await asyncio.wait_for(_blog_analyze_semaphore.acquire(), timeout=_BLOG_ANALYZE_QUEUE_TIMEOUT_SEC)
+        try:
             analysis = await asyncio.wait_for(
                 analyze_blog(
                     blog_url=request.blog_url,
@@ -191,6 +200,8 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
                 ),
                 timeout=_ANALYZE_TIMEOUT_SECONDS,
             )
+        finally:
+            _blog_analyze_semaphore.release()
     except asyncio.TimeoutError:
         _logger.warning(f"blog analysis timeout (>{_ANALYZE_TIMEOUT_SECONDS}s) for biz={request.business_id}")
         raise HTTPException(status_code=504, detail="블로그 분석 시간이 초과됐습니다. 잠시 후 다시 시도해 주세요.")

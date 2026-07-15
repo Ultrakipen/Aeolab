@@ -102,25 +102,34 @@ class GeminiScanner:
         prompt = f"""검색어: {query}
 다음 사업장이 추천되는지 JSON으로만 답하세요: {target}
 {{"mentioned": true/false, "rank": 순위또는null, "excerpt": "인용텍스트"}}"""
-        try:
-            resp = await asyncio.wait_for(
-                asyncio.to_thread(self.model.generate_content, prompt),
-                timeout=15.0,
-            )
-            self._log_usage(resp, "scan_check")
-            m = re.search(r"\{.*?\}", resp.text, re.DOTALL)
-            if m:
-                return json.loads(m.group())
-            _logger.debug("gemini _check unparseable response: query=%s", query[:50])
-            return {"mentioned": False, "_measured": False, "_error": "unparseable"}
-        except asyncio.TimeoutError as e:
-            _logger.debug("gemini _check timed out (15s): query=%s", query[:50])
-            self._log_failure("scan_check", e)
-            return {"mentioned": False, "_measured": False, "_error": "timeout"}
-        except Exception as e:
-            _logger.debug("gemini _check failed: %s", e)
-            self._log_failure("scan_check", e)
-            return {"mentioned": False, "_measured": False, "_error": str(e)}
+        # 429(rate limit) 한정 1회 재시도(2026-07-15) — 동시 스캔이 겹치면 Gemini API가
+        # 순간 429를 반환할 수 있는데, 재시도 없이 그 샘플만 조용히 _measured=False로
+        # 빠져 유효 샘플 수가 줄어들었음. 다른 오류(타임아웃·파싱실패 등)는 재시도하지 않음.
+        for attempt in range(2):
+            try:
+                resp = await asyncio.wait_for(
+                    asyncio.to_thread(self.model.generate_content, prompt),
+                    timeout=15.0,
+                )
+                self._log_usage(resp, "scan_check")
+                m = re.search(r"\{.*?\}", resp.text, re.DOTALL)
+                if m:
+                    return json.loads(m.group())
+                _logger.debug("gemini _check unparseable response: query=%s", query[:50])
+                return {"mentioned": False, "_measured": False, "_error": "unparseable"}
+            except asyncio.TimeoutError as e:
+                _logger.debug("gemini _check timed out (15s): query=%s", query[:50])
+                self._log_failure("scan_check", e)
+                return {"mentioned": False, "_measured": False, "_error": "timeout"}
+            except Exception as e:
+                is_rate_limit = "429" in str(e) or "ResourceExhausted" in type(e).__name__ or "rate limit" in str(e).lower()
+                if is_rate_limit and attempt == 0:
+                    _logger.debug("gemini _check rate-limited, retrying in 1.5s: query=%s", query[:50])
+                    await asyncio.sleep(1.5)
+                    continue
+                _logger.debug("gemini _check failed: %s", e)
+                self._log_failure("scan_check", e)
+                return {"mentioned": False, "_measured": False, "_error": str(e)}
 
     def _log_usage(self, resp, purpose: str) -> None:
         """실제 토큰 사용량 기록.
