@@ -147,7 +147,7 @@ export default function PlanRecommender() {
 
           {picked === "global" && (
             <p className="text-sm text-blue-700 mt-2 mb-3 leading-relaxed">
-              Basic 플랜은 ChatGPT·Gemini·Google AI 노출을 주 1회 자동 측정합니다.
+              Basic 플랜은 ChatGPT·Gemini·Google AI 노출을 주 2회 자동 측정합니다.
               네이버 AI 탭(2026-06-25 정식 출시) 연동 데이터도 포함됩니다.
             </p>
           )}

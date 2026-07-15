@@ -357,9 +357,10 @@ async def daily_scan_all():
     """활성 구독자 사업장 자동 AI 스캔 (새벽 2시)
 
     플랜별 스캔 전략:
-    - basic/startup : 월요일 1회만 풀스캔 (Gemini 100 + ChatGPT 100 + Naver + Google) — 나머지 날 스킵
-    - pro           : 월·수·금 풀스캔 / 나머지 날 경량 스캔 (Gemini 50 + ChatGPT 50)
-    - biz           : 매일 풀스캔
+    - basic   : 월·목 풀스캔 (Gemini 100 + ChatGPT 100 + Naver + Google) — 주 2회, 창업패키지 대비 차별화(2026-07-15)
+    - startup : 월요일 1회만 풀스캔 (동일 구성) — 나머지 날 스킵
+    - pro     : 월·수·금 풀스캔 / 나머지 날 경량 스캔 (Gemini 50 + ChatGPT 50)
+    - biz     : 매일 풀스캔
     """
     from db.supabase_client import get_client
     from services.ai_scanner.multi_scanner import MultiAIScanner, _CATEGORY_KO
@@ -442,11 +443,16 @@ async def daily_scan_all():
                     logger.debug("[daily_scan_all] naver_prescan 조회 실패 (테이블 없으면 무시): %s", _pe)
 
                 # 플랜별 스캐너 선택 (plan_gate.py auto_scan_mode 기준)
-                # basic/startup: 월요일만 풀스캔 — 나머지 날 스킵 (UI "주 1회 자동 AI 진단"과 일치)
-                # pro:           월·수·금 → 풀스캔 / 나머지 → 경량 스캔 (주 3회 풀스캔)
+                # startup: 월요일만 풀스캔 — 나머지 날 스킵 (UI "주 1회 자동 AI 진단"과 일치)
+                # basic:   월·목 풀스캔 (주 2회 — 창업패키지 대비 차별화, 2026-07-15)
+                # pro:     월·수·금 → 풀스캔 / 나머지 → 경량 스캔 (주 3회 풀스캔)
                 # biz: 매일 풀스캔
-                if plan in ("basic", "startup") and not is_monday:
-                    logger.debug("[daily_scan_all] basic/startup 비월요일 스킵 biz=%s", biz.get("id"))
+                is_thursday = today.weekday() == 3
+                if plan == "startup" and not is_monday:
+                    logger.debug("[daily_scan_all] startup 비월요일 스킵 biz=%s", biz.get("id"))
+                    continue
+                elif plan == "basic" and not (is_monday or is_thursday):
+                    logger.debug("[daily_scan_all] basic 비월/목 스킵 biz=%s", biz.get("id"))
                     continue
                 elif plan == "pro" and not is_pro_scan_day:
                     result = await basic_scanner.scan_basic(_scan_queries, biz["name"])

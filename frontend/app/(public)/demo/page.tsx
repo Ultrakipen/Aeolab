@@ -1137,7 +1137,7 @@ export default function DemoPage() {
                           ChatGPT·Gemini 합산 AI 노출 확률: <span className="text-green-800">{m.geminiRate}%</span>
                         </p>
                       </div>
-                      <p className="text-sm text-gray-500 leading-relaxed">무료 체험은 ChatGPT 5회 질의입니다. Basic 구독: 주 1회(월요일) Gemini·ChatGPT 각 50회 자동 측정.</p>
+                      <p className="text-sm text-gray-500 leading-relaxed">무료 체험은 ChatGPT 5회 질의입니다. Basic 구독: 주 2회(월·목) Gemini·ChatGPT 각 50회 자동 측정.</p>
                     </>
                   )}
                   <p className="mt-2 text-sm text-gray-500 leading-relaxed">
@@ -1234,7 +1234,7 @@ export default function DemoPage() {
                   <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                     <p className="text-sm font-bold text-blue-700 mb-2">구독 시작 후 (Basic 기준)</p>
                     <ul className="space-y-1.5 text-sm text-blue-700">
-                      <li>· 주 1회(월요일) 자동 스캔 — Gemini·ChatGPT 각 50회 + 네이버 AI 브리핑</li>
+                      <li>· 주 2회(월·목) 자동 스캔 — Gemini·ChatGPT 각 50회 + 네이버 AI 브리핑</li>
                       <li>· 수동 스캔 하루 2회 (원할 때 직접 실행)</li>
                       <li>· 경쟁사 3곳 추적 + 6개 차원 갭 분석</li>
                       <li>· 업종 시장 순위·분포 확인</li>

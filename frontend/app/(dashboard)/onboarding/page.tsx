@@ -330,7 +330,11 @@ export default function OnboardingPage() {
       }
 
       // 이미 활성 구독이 있으면 바로 대시보드로 이동 (신규 사업장 biz_id 파라미터 포함)
-      const activePlan = await resolveActivePlan(supabase, user.id);
+      // 관리자 우회 — 클라이언트 컴포넌트라 서버 전용 env는 못 읽고, 빌드 시 인라인되는
+      // NEXT_PUBLIC 접두 변수를 사용해야 함(competitors/page.tsx 서버측 값과 동기화 유지)
+      const ADMIN_EMAILS_LIST = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "hoozdev@gmail.com").split(",").map((e) => e.trim().toLowerCase());
+      const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? "").toLowerCase());
+      const activePlan = isAdmin ? "biz" : await resolveActivePlan(supabase, user.id);
       if (activePlan !== "free") {
         const dest = registeredBizId
           ? `/dashboard?biz_id=${registeredBizId}&onboarding=1`
@@ -376,7 +380,7 @@ export default function OnboardingPage() {
               </div>
               <p className="text-sm font-semibold text-orange-500 mb-2">첫 달 5,950원 (50% 할인)</p>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
-                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />주 1회 자동 AI 스캔</li>
+                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />주 2회 자동 AI 스캔</li>
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />경쟁사 3곳 비교</li>
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />리뷰 답변 월 50회</li>
               </ul>
