@@ -648,7 +648,7 @@ export default function HowItWorksPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">※ 이 표는 키워드 순위 측정 주기입니다. Gemini·ChatGPT·네이버 AI 자동 스캔 주기와 별도입니다 (AI 스캔: Basic·창업패키지 주 1회, Pro 주 3회, Biz 매일 — 아래 요금제표 참조).</p>
+              <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">※ 이 표는 키워드 순위 측정 주기입니다. Gemini·ChatGPT·네이버 AI 자동 스캔 주기와 별도입니다 (AI 스캔: Basic 주 2회, 창업패키지 주 1회, Pro 주 3회, Biz 매일 — 아래 요금제표 참조).</p>
             </div>
 
             {/* 2. 키워드 자동 추천 */}
@@ -860,7 +860,7 @@ export default function HowItWorksPage() {
               </thead>
               <tbody>
                 <tr className="border-b border-gray-100"><td className="py-2.5 px-3">무료 진단(1회)</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td><td className="text-center py-2.5">✅</td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">AI 자동 스캔 (Gemini·ChatGPT·네이버)</td><td className="text-center py-2.5 text-gray-500">—</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 3회</td><td className="text-center py-2.5 text-sm">매일</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">AI 자동 스캔 (Gemini·ChatGPT·네이버)</td><td className="text-center py-2.5 text-gray-500">—</td><td className="text-center py-2.5 text-sm">주 2회</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 3회</td><td className="text-center py-2.5 text-sm">매일</td></tr>
                 <tr className="border-b border-gray-100">
                   <td className="py-2.5 px-3">AI 콘텐츠 생성<br /><span className="text-sm text-gray-500">소개글+채팅방메뉴 합산</span></td>
                   <td className="text-center py-2.5 text-gray-500">—</td>
@@ -881,7 +881,7 @@ export default function HowItWorksPage() {
 
           <p className="mt-3 text-sm text-gray-500">
             * AI 콘텐츠 생성(소개글+채팅방메뉴) 월 합산 한도: Basic 10건·창업패키지 20건·Pro 30건·Biz 60건.<br />
-            * 창업패키지는 예비 창업자 전용으로 창업 시장 분석 + Basic 기능 전체 포함.
+            * 창업패키지는 예비 창업자 전용으로 창업 시장 분석을 제공하며 경쟁사·가이드·리뷰 답변 등 대부분의 한도가 Basic 이상입니다 — 단, 자동 스캔은 주 1회로 Basic(주 2회)보다 적습니다.
           </p>
           <p className="mt-2 text-sm md:text-base text-gray-600 leading-relaxed break-keep">
             전체 요금제 비교는{" "}
