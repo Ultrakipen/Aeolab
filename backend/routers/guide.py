@@ -25,6 +25,13 @@ _guide_generation_locks: set[str] = set()
 _review_reply_locks: set[str] = set()
 _crisis_reply_locks: set[str] = set()
 
+# ad-defense도 동일한 TOCTOU 구조 — check_ad_defense_limit() COUNT 체크 후 Claude Sonnet
+# 호출(10~20초, 프론트 안내 문구 기준)까지의 창이 review-reply보다 훨씬 길어 동시요청(중복
+# 클릭·다중 탭)이 월별 한도(Pro 5회/Biz 10회)를 여러 번 통과하기 더 쉬움. 2026-07-08
+# check_ad_defense_limit 신설(c4ee252) 시 review-reply/crisis-reply와 달리 락이 누락돼
+# 있었음 — 동일 패턴으로 추가(2026-07-15).
+_ad_defense_locks: set[str] = set()
+
 # review-reply/crisis-reply 요청속도 제한 — Pro·창업패키지·Biz·Enterprise는
 # review_reply_monthly/crisis_reply_monthly가 999(=무제한)라 월별 한도가 사실상 없음.
 # 콜당 비용은 Haiku 기준 저렴(약 2~3원)하지만 스크립트로 연속 호출하면 무제한 티어에서
@@ -578,85 +585,98 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
             detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz", "enterprise"]},
         )
 
-    # 월별 한도 체크 (2026-07-08 신설 — 이전엔 무제한 호출 가능했음)
-    allowed, used, limit = await check_ad_defense_limit(x_user_id, supabase)
-    if not allowed:
+    # 월별 한도 체크 — COUNT 스냅샷 후 Claude 호출까지 TOCTOU 레이스 방지 락(M2와 동일 패턴)
+    if x_user_id in _ad_defense_locks:
         raise HTTPException(
-            status_code=429,
+            status_code=409,
             detail={
-                "code": "AD_DEFENSE_LIMIT_EXCEEDED",
-                "used": used,
-                "limit": limit,
-                "message": f"이번 달 AI 광고 대비 가이드 생성 한도({limit}회)를 초과했습니다.",
-                "upgrade_url": "/pricing",
+                "code": "AD_DEFENSE_GENERATION_IN_PROGRESS",
+                "message": "이미 가이드 생성이 진행 중입니다. 완료 후 다시 시도해 주세요.",
             },
         )
-
-    biz = (await execute(
-        supabase.table("businesses")
-        .select("id, name, category, region, keywords, website_url, is_franchise")
-        .eq("id", biz_id).single()
-    )).data
-    if not biz:
-        raise HTTPException(status_code=404, detail="Business not found")
-
-    scan = (
-        await execute(
-            supabase.table("scan_results")
-            .select("id, total_score, score_breakdown, gemini_result, chatgpt_result, naver_result, google_result, naver_channel_score, global_channel_score")
-            .eq("business_id", biz_id)
-            .order("scanned_at", desc=True)
-            .limit(1)
-        )
-    ).data
-    if not scan:
-        raise HTTPException(status_code=404, detail="No scan results found")
-
-    from services.ad_defense_guide import AdDefenseGuideService
-    from services.score_engine import get_briefing_eligibility
-    eligibility = get_briefing_eligibility(biz.get("category", ""), bool(biz.get("is_franchise")))
-
-    # 경쟁사 이름 조회 (최대 3개, 미등록 시 빈 배열)
-    competitor_names: list[str] = []
+    _ad_defense_locks.add(x_user_id)
     try:
-        _comp_res = await execute(
-            supabase.table("competitors").select("name").eq("business_id", biz_id).limit(3)
-        )
-        competitor_names = [c.get("name", "") for c in (_comp_res.data or []) if c.get("name")]
-    except Exception as _ce:
-        _logger.warning(f"ad-defense 경쟁사 조회 실패 — 빈 배열 사용 [biz={biz_id}]: {_ce}")
-
-    # 미확보 키워드 (gap_analyzer 재사용, 실패 시 빈 배열)
-    gap_keywords: list[str] = []
-    try:
-        from services.gap_analyzer import analyze_gap_from_db
-        _gap = await analyze_gap_from_db(biz_id, supabase)
-        if _gap and _gap.review_keyword_gap:
-            gap_keywords = (_gap.review_keyword_gap.missing_keywords or [])[:5]
-    except Exception as _ge:
-        _logger.warning(f"ad-defense gap_keywords 조회 실패 — 빈 배열 사용 [biz={biz_id}]: {_ge}")
-
-    svc = AdDefenseGuideService()
-    result = await svc.generate(biz, scan[0], eligibility, competitor_names, gap_keywords)
-
-    # 사용량 카운트 — AI 호출 성공 후에만 기록 (crisis_reply와 동일 원칙)
-    is_fallback = result.get("is_fallback", False) if isinstance(result, dict) else False
-    if not is_fallback:
-        try:
-            await execute(
-                supabase.table("guides").insert({
-                    "business_id": biz_id,
-                    "context": "ad_defense",
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
-                })
+        # 월별 한도 체크 (2026-07-08 신설 — 이전엔 무제한 호출 가능했음)
+        allowed, used, limit = await check_ad_defense_limit(x_user_id, supabase)
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "code": "AD_DEFENSE_LIMIT_EXCEEDED",
+                    "used": used,
+                    "limit": limit,
+                    "message": f"이번 달 AI 광고 대비 가이드 생성 한도({limit}회)를 초과했습니다.",
+                    "upgrade_url": "/pricing",
+                },
             )
-        except Exception as e:
-            _logger.warning(f"ad-defense 사용량 기록 실패 (응답은 정상 반환, biz={biz_id}): {e}")
 
-    if isinstance(result, dict):
-        result["used"] = used if is_fallback else used + 1
-        result["limit"] = limit
-    return result
+        biz = (await execute(
+            supabase.table("businesses")
+            .select("id, name, category, region, keywords, website_url, is_franchise")
+            .eq("id", biz_id).single()
+        )).data
+        if not biz:
+            raise HTTPException(status_code=404, detail="Business not found")
+
+        scan = (
+            await execute(
+                supabase.table("scan_results")
+                .select("id, total_score, score_breakdown, gemini_result, chatgpt_result, naver_result, google_result, naver_channel_score, global_channel_score")
+                .eq("business_id", biz_id)
+                .order("scanned_at", desc=True)
+                .limit(1)
+            )
+        ).data
+        if not scan:
+            raise HTTPException(status_code=404, detail="No scan results found")
+
+        from services.ad_defense_guide import AdDefenseGuideService
+        from services.score_engine import get_briefing_eligibility
+        eligibility = get_briefing_eligibility(biz.get("category", ""), bool(biz.get("is_franchise")))
+
+        # 경쟁사 이름 조회 (최대 3개, 미등록 시 빈 배열)
+        competitor_names: list[str] = []
+        try:
+            _comp_res = await execute(
+                supabase.table("competitors").select("name").eq("business_id", biz_id).limit(3)
+            )
+            competitor_names = [c.get("name", "") for c in (_comp_res.data or []) if c.get("name")]
+        except Exception as _ce:
+            _logger.warning(f"ad-defense 경쟁사 조회 실패 — 빈 배열 사용 [biz={biz_id}]: {_ce}")
+
+        # 미확보 키워드 (gap_analyzer 재사용, 실패 시 빈 배열)
+        gap_keywords: list[str] = []
+        try:
+            from services.gap_analyzer import analyze_gap_from_db
+            _gap = await analyze_gap_from_db(biz_id, supabase)
+            if _gap and _gap.review_keyword_gap:
+                gap_keywords = (_gap.review_keyword_gap.missing_keywords or [])[:5]
+        except Exception as _ge:
+            _logger.warning(f"ad-defense gap_keywords 조회 실패 — 빈 배열 사용 [biz={biz_id}]: {_ge}")
+
+        svc = AdDefenseGuideService()
+        result = await svc.generate(biz, scan[0], eligibility, competitor_names, gap_keywords)
+
+        # 사용량 카운트 — AI 호출 성공 후에만 기록 (crisis_reply와 동일 원칙)
+        is_fallback = result.get("is_fallback", False) if isinstance(result, dict) else False
+        if not is_fallback:
+            try:
+                await execute(
+                    supabase.table("guides").insert({
+                        "business_id": biz_id,
+                        "context": "ad_defense",
+                        "generated_at": datetime.now(timezone.utc).isoformat(),
+                    })
+                )
+            except Exception as e:
+                _logger.warning(f"ad-defense 사용량 기록 실패 (응답은 정상 반환, biz={biz_id}): {e}")
+
+        if isinstance(result, dict):
+            result["used"] = used if is_fallback else used + 1
+            result["limit"] = limit
+        return result
+    finally:
+        _ad_defense_locks.discard(x_user_id)
 
 
 async def _generate_and_save_release_lock(req: GuideRequest, user_id: str):

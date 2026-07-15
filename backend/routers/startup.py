@@ -14,6 +14,12 @@ router = APIRouter()
 
 _TTL_MARKET = 1800  # 시장 현황 캐시: 30분
 
+# check_startup_report_limit() COUNT 체크 후 StartupReportService.generate()(Claude Sonnet
+# 호출) 완료까지의 창에서 동시요청이 같은 월별 한도를 여러 번 통과할 수 있는 TOCTOU 구조.
+# guide.py _guide_generation_locks/_ad_defense_locks와 동일 패턴으로 락 추가(2026-07-15,
+# ad-defense와 같은 날 신설된 한도(c4ee252)라 같은 결함을 공유하고 있었음).
+_startup_report_locks: set[str] = set()
+
 
 class StartupReportRequest(BaseModel):
     category: str
@@ -41,71 +47,84 @@ async def generate_startup_report(
             detail={"code": "PLAN_REQUIRED", "required_plans": required_plans},
         )
 
-    # 월별 한도 체크 (2026-07-08 신설 — 이전엔 무제한 호출 가능했음)
-    allowed, used, limit = await check_startup_report_limit(user_id, supabase)
-    if not allowed:
+    # 월별 한도 체크 — COUNT 스냅샷 후 Claude 호출까지 TOCTOU 레이스 방지 락(M2와 동일 패턴)
+    if user_id in _startup_report_locks:
         raise HTTPException(
-            status_code=429,
+            status_code=409,
             detail={
-                "code": "STARTUP_REPORT_LIMIT_EXCEEDED",
-                "used": used,
-                "limit": limit,
-                "message": f"이번 달 창업 시장 분석 생성 한도({limit}회)를 초과했습니다.",
-                "upgrade_url": "/pricing",
+                "code": "STARTUP_REPORT_GENERATION_IN_PROGRESS",
+                "message": "이미 창업 시장 분석이 생성 중입니다. 완료 후 다시 시도해 주세요.",
             },
         )
-
-    from services.startup_report import StartupReportService
-    service = StartupReportService()
-    result = await service.generate(req.category, req.region, req.business_name)
-    # 창업 타이밍 지수 — 중복 인라인 로직 제거, get_timing_index() 재사용 (eq 정확 일치 통일)
+    _startup_report_locks.add(user_id)
     try:
-        timing_data = await get_timing_index(req.category, req.region)
-        result["timing"] = timing_data
-    except Exception as _e:
-        _logger.warning(f"timing_data error: {_e}")
-
-    # 사용량 카운트 — AI 호출 성공 후 기록 (business_id = 첫 번째 사업장, 없으면 기록 생략)
-    is_fallback = result.get("is_fallback", False) if isinstance(result, dict) else False
-    biz_id_for_log = None
-    if not is_fallback:
-        try:
-            # startup_report에는 biz_id가 없으므로 user의 첫 번째 사업장에 연결해 기록
-            biz_res = await execute(
-                supabase.table("businesses").select("id").eq("user_id", user_id).limit(1)
+        # 월별 한도 체크 (2026-07-08 신설 — 이전엔 무제한 호출 가능했음)
+        allowed, used, limit = await check_startup_report_limit(user_id, supabase)
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "code": "STARTUP_REPORT_LIMIT_EXCEEDED",
+                    "used": used,
+                    "limit": limit,
+                    "message": f"이번 달 창업 시장 분석 생성 한도({limit}회)를 초과했습니다.",
+                    "upgrade_url": "/pricing",
+                },
             )
-            biz_rows = biz_res.data or []
-            if biz_rows:
-                biz_id_for_log = biz_rows[0]["id"]
+
+        from services.startup_report import StartupReportService
+        service = StartupReportService()
+        result = await service.generate(req.category, req.region, req.business_name)
+        # 창업 타이밍 지수 — 중복 인라인 로직 제거, get_timing_index() 재사용 (eq 정확 일치 통일)
+        try:
+            timing_data = await get_timing_index(req.category, req.region)
+            result["timing"] = timing_data
+        except Exception as _e:
+            _logger.warning(f"timing_data error: {_e}")
+
+        # 사용량 카운트 — AI 호출 성공 후 기록 (business_id = 첫 번째 사업장, 없으면 기록 생략)
+        is_fallback = result.get("is_fallback", False) if isinstance(result, dict) else False
+        biz_id_for_log = None
+        if not is_fallback:
+            try:
+                # startup_report에는 biz_id가 없으므로 user의 첫 번째 사업장에 연결해 기록
+                biz_res = await execute(
+                    supabase.table("businesses").select("id").eq("user_id", user_id).limit(1)
+                )
+                biz_rows = biz_res.data or []
+                if biz_rows:
+                    biz_id_for_log = biz_rows[0]["id"]
+                    await execute(
+                        supabase.table("guides").insert({
+                            "business_id": biz_id_for_log,
+                            "context": "startup_report",
+                            "generated_at": datetime.now(timezone.utc).isoformat(),
+                        })
+                    )
+            except Exception as e:
+                _logger.warning(f"startup-report 사용량 기록 실패 (응답은 정상 반환, user={user_id}): {e}")
+
+            # 사업장 유무와 무관하게 항상 기록 — 예비 창업자(사업장 미등록)는 guides에 남길 방법이
+            # 없어(FK NOT NULL) 관리자가 아예 볼 수 없었다(admin_service_oversight_design_v1.0.md).
+            try:
                 await execute(
-                    supabase.table("guides").insert({
+                    supabase.table("startup_report_log").insert({
+                        "user_id": user_id,
                         "business_id": biz_id_for_log,
-                        "context": "startup_report",
-                        "generated_at": datetime.now(timezone.utc).isoformat(),
+                        "category": req.category,
+                        "region": req.region,
+                        "business_name": req.business_name or None,
                     })
                 )
-        except Exception as e:
-            _logger.warning(f"startup-report 사용량 기록 실패 (응답은 정상 반환, user={user_id}): {e}")
+            except Exception as e:
+                _logger.warning(f"startup_report_log 기록 실패 (응답은 정상 반환, user={user_id}): {e}")
 
-        # 사업장 유무와 무관하게 항상 기록 — 예비 창업자(사업장 미등록)는 guides에 남길 방법이
-        # 없어(FK NOT NULL) 관리자가 아예 볼 수 없었다(admin_service_oversight_design_v1.0.md).
-        try:
-            await execute(
-                supabase.table("startup_report_log").insert({
-                    "user_id": user_id,
-                    "business_id": biz_id_for_log,
-                    "category": req.category,
-                    "region": req.region,
-                    "business_name": req.business_name or None,
-                })
-            )
-        except Exception as e:
-            _logger.warning(f"startup_report_log 기록 실패 (응답은 정상 반환, user={user_id}): {e}")
-
-    if isinstance(result, dict):
-        result["used"] = used if is_fallback else used + 1
-        result["limit"] = limit
-    return result
+        if isinstance(result, dict):
+            result["used"] = used if is_fallback else used + 1
+            result["limit"] = limit
+        return result
+    finally:
+        _startup_report_locks.discard(user_id)
 
 
 @router.get("/market/{category}/{region}")

@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
+from utils import cache as _cache
 
 router = APIRouter()
 _logger = logging.getLogger(__name__)
@@ -26,6 +27,30 @@ _MONTHLY_LIMITS = {
     "biz": 999,
     "enterprise": 999,
 }
+
+# _check_monthly_limit()의 COUNT 체크 후 Claude Haiku 호출(최대 30초 타임아웃) 완료까지의
+# 창에서 동시요청(다중 탭·연타)이 Basic/startup(월 20회)의 같은 한도를 여러 번 통과할 수
+# 있는 TOCTOU 구조 — guide.py _guide_generation_locks/_ad_defense_locks와 동일 패턴으로
+# 락 추가(2026-07-15). Pro+는 한도가 999(사실상 무제한)라 별도로 요청속도 제한을 둔다
+# (guide.py review-reply/crisis-reply의 _check_ai_reply_rate_limit과 동일 패턴).
+_assistant_chat_locks: set[str] = set()
+_CHAT_RATE_LIMIT = 10
+_CHAT_RATE_WINDOW = 60  # seconds
+
+
+def _check_chat_rate_limit(user_id: str) -> None:
+    key = f"assistant_chat_rate:{user_id}"
+    count: int = _cache.get(key) or 0
+    if count >= _CHAT_RATE_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "RATE_LIMIT",
+                "message": "잠시 후 다시 시도해 주세요 (분당 10회 제한).",
+                "retry_after": _CHAT_RATE_WINDOW,
+            },
+        )
+    _cache.set(key, count + 1, _CHAT_RATE_WINDOW)
 
 _QUICK_QUESTIONS = [
     "내 점수가 왜 낮아요?",
@@ -131,6 +156,9 @@ async def chat(
     user_id = current_user["id"]
     supabase = get_client()
 
+    # 요청속도 제한 — Pro+ 무제한(999) 티어 스크립트 남용 방지, DB 조회 전에 먼저 차단
+    _check_chat_rate_limit(user_id)
+
     # 플랜 확인
     plan = await get_user_plan(user_id, supabase)
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 0):
@@ -139,62 +167,74 @@ async def chat(
             detail={"code": "PLAN_REQUIRED", "message": "Basic 이상 플랜에서 이용할 수 있습니다", "upgrade_url": "/pricing"},
         )
 
-    # 월별 한도 체크
-    if not await _check_monthly_limit(user_id, plan):
+    # 월별 한도 체크 — COUNT 스냅샷 후 Claude 호출까지 TOCTOU 레이스 방지 락(M2와 동일 패턴)
+    if user_id in _assistant_chat_locks:
         raise HTTPException(
-            status_code=429,
-            detail="이번 달 AI 어시스턴트 사용 횟수를 초과했습니다 (Basic: 월 20회)",
+            status_code=409,
+            detail={
+                "code": "ASSISTANT_CHAT_IN_PROGRESS",
+                "message": "이전 질문에 답변 중입니다. 완료 후 다시 시도해 주세요.",
+            },
         )
-
-    # 컨텍스트 구성
-    context = ""
-    if req.business_id:
-        context = await _get_biz_context(req.business_id, user_id)
-
-    system = _SYSTEM_PROMPT.format(context=context or "사업장 정보 없음")
-
-    if not _ANTHROPIC_API_KEY:
-        raise HTTPException(status_code=503, detail="AI 서비스를 사용할 수 없습니다")
-
-    # Claude Haiku 호출
-    answer = "죄송합니다. 답변을 생성하지 못했습니다. 잠시 후 다시 시도해주세요."
+    _assistant_chat_locks.add(user_id)
     try:
-        async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30)
-        ) as session:
-            async with session.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": _ANTHROPIC_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json={
-                    "model": _HAIKU_MODEL,
-                    "max_tokens": _MAX_TOKENS,
-                    "system": system,
-                    "messages": [{"role": "user", "content": req.question}],
-                },
-            ) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    answer = data["content"][0]["text"]
-                else:
-                    _logger.warning("claude haiku returned status %d", resp.status)
-    except Exception as e:
-        _logger.warning("claude haiku chat failed: %s", e)
+        if not await _check_monthly_limit(user_id, plan):
+            raise HTTPException(
+                status_code=429,
+                detail="이번 달 AI 어시스턴트 사용 횟수를 초과했습니다 (Basic: 월 20회)",
+            )
 
-    # 로그 저장
-    try:
-        await execute(
-            supabase.table("assistant_logs").insert({
-                "user_id": user_id,
-                "business_id": req.business_id,
-                "question": req.question[:500],
-                "answer": answer[:1000],
-            })
-        )
-    except Exception as e:
-        _logger.warning("assistant log save failed: %s", e)
+        # 컨텍스트 구성
+        context = ""
+        if req.business_id:
+            context = await _get_biz_context(req.business_id, user_id)
 
-    return ChatResponse(answer=answer)
+        system = _SYSTEM_PROMPT.format(context=context or "사업장 정보 없음")
+
+        if not _ANTHROPIC_API_KEY:
+            raise HTTPException(status_code=503, detail="AI 서비스를 사용할 수 없습니다")
+
+        # Claude Haiku 호출
+        answer = "죄송합니다. 답변을 생성하지 못했습니다. 잠시 후 다시 시도해주세요."
+        try:
+            async with aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=30)
+            ) as session:
+                async with session.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers={
+                        "x-api-key": _ANTHROPIC_API_KEY,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json",
+                    },
+                    json={
+                        "model": _HAIKU_MODEL,
+                        "max_tokens": _MAX_TOKENS,
+                        "system": system,
+                        "messages": [{"role": "user", "content": req.question}],
+                    },
+                ) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        answer = data["content"][0]["text"]
+                    else:
+                        _logger.warning("claude haiku returned status %d", resp.status)
+        except Exception as e:
+            _logger.warning("claude haiku chat failed: %s", e)
+
+        # 로그 저장
+        try:
+            await execute(
+                supabase.table("assistant_logs").insert({
+                    "user_id": user_id,
+                    "business_id": req.business_id,
+                    "question": req.question[:500],
+                    "answer": answer[:1000],
+                })
+            )
+        except Exception as e:
+            _logger.warning("assistant log save failed: %s", e)
+
+        return ChatResponse(answer=answer)
+    finally:
+        _assistant_chat_locks.discard(user_id)

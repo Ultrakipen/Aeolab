@@ -84,7 +84,22 @@ export function AdDefenseClient({
         setLoading(false);
         return;
       }
-      if (!res.ok) throw new Error("API 오류");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        const code = body?.detail?.code;
+        const message = body?.detail?.message;
+        if (code === "AD_DEFENSE_LIMIT_EXCEEDED") {
+          setError(`이번 달 AI 광고 대비 가이드 생성 한도(${body.detail.limit ?? ""}회)를 초과했습니다. 요금제 페이지에서 업그레이드하세요.`);
+        } else if (code === "AD_DEFENSE_GENERATION_IN_PROGRESS") {
+          setError("이미 가이드 생성이 진행 중입니다. 완료 후 다시 시도해주세요.");
+        } else if (message) {
+          setError(message);
+        } else {
+          throw new Error("API 오류");
+        }
+        setLoading(false);
+        return;
+      }
       const data = await res.json();
       setResult(data);
     } catch {
