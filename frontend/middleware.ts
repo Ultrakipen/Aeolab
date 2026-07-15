@@ -85,32 +85,52 @@ export async function middleware(request: NextRequest) {
   // 계정 관리에 반드시 접근할 수 있어야 함(2026-07-07 라이브 QA 중 발견: 신규 결제 직후
   // 구독자가 온보딩으로 강제 리다이렉트되어 해지 버튼에 아예 도달 못 하던 버그)
   if (user && isProtected && !pathname.startsWith("/onboarding") && !pathname.startsWith("/settings")) {
-    try {
-      const [bizRes, profileRes] = await Promise.all([
-        supabase
-          .from("businesses")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("is_active", true),
-        supabase
-          .from("profiles")
-          .select("onboarding_done")
-          .eq("user_id", user.id)
-          .maybeSingle(),
-      ]);
-      const bizCount = bizRes.count ?? 0;
-      const onboardingDone = profileRes.data?.onboarding_done ?? false;
-      if (bizCount === 0 && !onboardingDone) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/onboarding";
-        const redirectResponse = NextResponse.redirect(url);
-        supabaseResponse.cookies.getAll().forEach(({ name, value, ...rest }) => {
-          redirectResponse.cookies.set(name, value, rest);
+    // 온보딩 완료 캐시(2026-07-15 신설) — 매 보호경로 진입마다 DB 쿼리 2개(사업장 수+
+    // 프로필)가 나가던 것을, 완료 판정이 한 번 나오면 쿠키에 캐싱해 재확인 생략.
+    // ⚠️ 긍정(완료) 결과만 캐시하고 부정(미완료) 결과는 절대 캐시하지 않는다 — 이래야
+    // 캐시가 잘못돼도 최악의 경우가 "DB 재확인 한 번 더"이지 "완료한 사용자가 온보딩
+    // 리다이렉트에 갇히는 것"은 구조적으로 불가능하다. 쿠키 값은 user.id 자체로 저장해
+    // 공유 브라우저에서 다른 계정으로 로그인해도 캐시가 새지 않도록 한다.
+    const ONBOARD_CACHE_COOKIE = "aeolab_onboarded";
+    const cachedFor = request.cookies.get(ONBOARD_CACHE_COOKIE)?.value;
+    const isCachedOnboarded = cachedFor === user.id;
+
+    if (!isCachedOnboarded) {
+      try {
+        const [bizRes, profileRes] = await Promise.all([
+          supabase
+            .from("businesses")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .eq("is_active", true),
+          supabase
+            .from("profiles")
+            .select("onboarding_done")
+            .eq("user_id", user.id)
+            .maybeSingle(),
+        ]);
+        const bizCount = bizRes.count ?? 0;
+        const onboardingDone = profileRes.data?.onboarding_done ?? false;
+        if (bizCount === 0 && !onboardingDone) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/onboarding";
+          const redirectResponse = NextResponse.redirect(url);
+          supabaseResponse.cookies.getAll().forEach(({ name, value, ...rest }) => {
+            redirectResponse.cookies.set(name, value, rest);
+          });
+          return redirectResponse;
+        }
+        // 완료 확인됨 — 다음 요청부터 DB 재확인 없이 통과하도록 캐시
+        supabaseResponse.cookies.set(ONBOARD_CACHE_COOKIE, user.id, {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60 * 24 * 365,
+          path: "/",
         });
-        return redirectResponse;
+      } catch {
+        // 조회 실패 시 통과 (layout에서 재처리) — 캐시는 쓰지 않아 다음 요청에서 재확인
       }
-    } catch {
-      // 조회 실패 시 통과 (layout에서 재처리)
     }
   }
 
