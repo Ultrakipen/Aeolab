@@ -11,7 +11,10 @@ export default async function SchemaPage() {
   const { data: { user }, error } = await supabase.auth.getUser()
   if (!user || error) redirect('/login')
 
-  const plan = await resolveActivePlan(supabase, user.id)
+  // 관리자 우회 (competitors/page.tsx:78-80과 동일 패턴)
+  const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com').split(',').map((e) => e.trim().toLowerCase())
+  const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? '').toLowerCase())
+  const plan = isAdmin ? 'biz' : await resolveActivePlan(supabase, user.id)
   const hasAccess = plan !== 'free'
 
   if (!hasAccess) {

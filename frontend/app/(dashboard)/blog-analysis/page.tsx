@@ -32,7 +32,10 @@ export default async function BlogPage() {
     />
   )
 
-  const currentPlan = await resolveActivePlan(supabase, user.id)
+  // 관리자 우회 (competitors/page.tsx:78-80과 동일 패턴)
+  const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com').split(',').map((e) => e.trim().toLowerCase())
+  const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? '').toLowerCase())
+  const currentPlan = isAdmin ? 'biz' : await resolveActivePlan(supabase, user.id)
 
   const { data: { session } } = await supabase.auth.getSession()
   const accessToken = session?.access_token ?? ''

@@ -6,6 +6,7 @@ import logging
 import os
 import anthropic
 from db.supabase_client import get_client, execute
+from utils.region_match import region_matches
 
 logger = logging.getLogger(__name__)
 
@@ -30,15 +31,19 @@ class StartupReportService:
         """창업 패키지 리포트 생성"""
         supabase = get_client()
 
-        # 해당 업종·지역 기존 사업장 조회
+        # 해당 업종 기존 사업장 조회 — region은 자유 입력이라 category만 DB에서 필터하고
+        # region_matches()로 표기 차이(서울 강남/강남구 등)를 흡수 (get_market_overview/
+        # get_timing_index와 동일 기준 공유, startup.py 참조)
         biz_res = await execute(
             supabase.table("businesses")
-            .select("id, name")
+            .select("id, name, region")
             .eq("category", category)
-            .eq("region", region)
             .eq("is_active", True)
         )
-        businesses = biz_res.data or []
+        businesses = [
+            b for b in (biz_res.data or [])
+            if region_matches(b.get("region") or "", region)
+        ]
         competitor_count = len(businesses)
 
         avg_score = 0.0
@@ -77,9 +82,17 @@ class StartupReportService:
             top_competitors.sort(key=lambda x: x["score"], reverse=True)
 
         # 경쟁 강도 등급 (낮을수록 진입 유리)
+        # 등록 사업장이 0건 = "데이터 없음"이지 "기회 있음"이 아님 — /market, /timing과 동일
+        # 기준 적용(2026-07-15 발견: 이 분기가 없어 count=0일 때 else로 떨어져 "기회 있음"
+        # 녹색 라벨이 표시되고, 같은 리포트의 timing 섹션은 "데이터 수집 중"이라 자기모순 발생)
+        no_business_data = not businesses
         # 등록 사업장은 있으나 전부 미스캔(scores 비어있음) = "데이터 없음"이지 "기회 있음"이 아님 — 혼동 금지
         no_scan_data = bool(businesses) and not scores
-        if no_scan_data:
+        if no_business_data:
+            competition_level = "데이터 수집 중"
+            level_color = "gray"
+            level_score = 0
+        elif no_scan_data:
             competition_level = "측정 데이터 부족"
             level_color = "gray"
             level_score = 0
@@ -121,6 +134,12 @@ class StartupReportService:
             "inactive": "이 업종은 네이버 AI 브리핑(플레이스형) 비대상입니다 — 'AI 브리핑 노출'을 핵심 전략으로 제안하지 말 것. 정보형(블로그·콘텐츠)·ChatGPT·Gemini·Google 노출 전략 위주로 제안할 것. 프랜차이즈로 창업하는 경우도 동일하게 비대상.",
         }.get(eligibility, "")
         top_names = ", ".join(c["name"] for c in top_competitors[:3]) if top_competitors else "데이터 없음"
+        data_caveat = (
+            "\n- 참고: 위 경쟁 강도는 AEOlab에 가입한 사업장 기준이며, 등록 사업장이 아직 없어"
+            " 실제 시장 경쟁 여부를 판단할 근거가 부족합니다. '경쟁이 없다/기회다'라고 단정하지 말고,"
+            " 데이터가 부족하다는 점을 전제로 일반적인 진입 전략을 제시할 것."
+            if no_business_data else ""
+        )
 
         # 트렌드 데이터가 있을 때만 프롬프트에 삽입 (빈 경우 "안정 +0.0%" 같은 무의미 문구 방지)
         trend_line = ""
@@ -140,7 +159,7 @@ class StartupReportService:
 - 기존 사업장 수: {competitor_count}개
 - 경쟁 강도: {competition_level}
 - 상위 경쟁사: {top_names}
-- {briefing_note}{trend_line}
+- {briefing_note}{trend_line}{data_caveat}
 {"- 창업 예정 사업장명: " + business_name if business_name else ""}
 
 위 데이터를 바탕으로 아래 형식으로 창업 전략을 JSON으로 제공해줘:

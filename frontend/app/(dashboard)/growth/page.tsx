@@ -28,8 +28,10 @@ export default async function GrowthPage() {
   } = await supabase.auth.getUser();
   if (!user || error) redirect("/login");
 
-  // 구독 정보 조회
-  const activePlan = await resolveActivePlan(supabase, user.id);
+  // 구독 정보 조회 — 관리자 우회 (competitors/page.tsx:78-80과 동일 패턴)
+  const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com").split(",").map((e) => e.trim().toLowerCase());
+  const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? "").toLowerCase());
+  const activePlan = isAdmin ? "biz" : await resolveActivePlan(supabase, user.id);
 
   // Free 플랜 차단 (Basic 이상 필요)
   if ((PLAN_RANK[activePlan] ?? 0) < PLAN_RANK["basic"]) {

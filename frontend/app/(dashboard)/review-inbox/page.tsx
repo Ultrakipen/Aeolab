@@ -364,7 +364,11 @@ export default function ReviewInboxPage() {
       setBizName(biz.name ?? null)
       setBizCategory(biz.category ?? null)
 
-      const resolvedPlan = await resolveActivePlan(supabase, session.user.id)
+      // 관리자 우회 — 클라이언트 컴포넌트라 빌드 시 인라인되는 NEXT_PUBLIC 접두 변수 사용
+      // (competitors/page.tsx 서버측 값과 동기화 유지)
+      const ADMIN_EMAILS_LIST = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? 'hoozdev@gmail.com').split(',').map((e) => e.trim().toLowerCase())
+      const isAdmin = ADMIN_EMAILS_LIST.includes((session.user.email ?? '').toLowerCase())
+      const resolvedPlan = isAdmin ? 'biz' : await resolveActivePlan(supabase, session.user.id)
       setPlan(resolvedPlan)
       setPlanLoading(false)
 

@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
 from utils import cache as _cache
+from utils.region_match import region_matches
 
 _logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -75,7 +76,7 @@ async def generate_startup_report(
         from services.startup_report import StartupReportService
         service = StartupReportService()
         result = await service.generate(req.category, req.region, req.business_name)
-        # 창업 타이밍 지수 — 중복 인라인 로직 제거, get_timing_index() 재사용 (eq 정확 일치 통일)
+        # 창업 타이밍 지수 — 중복 인라인 로직 제거, get_timing_index() 재사용 (region 매칭 기준 통일)
         try:
             timing_data = await get_timing_index(req.category, req.region)
             result["timing"] = timing_data
@@ -136,15 +137,17 @@ async def get_market_overview(category: str, region: str):
         return cached
 
     supabase = get_client()
-    businesses = (
+    # region은 자유 입력 텍스트라 완전일치(eq)로는 "서울 강남"과 "강남구" 같은 동일 지역의
+    # 표기 차이를 못 잡음 — category로만 1차 필터 후 정규화 매칭으로 좁힘(region_match.py)
+    candidates = (
         await execute(
             supabase.table("businesses")
-            .select("id")
+            .select("id, region")
             .eq("category", category)
-            .eq("region", region)
             .eq("is_active", True)
         )
     ).data or []
+    businesses = [b for b in candidates if region_matches(b.get("region") or "", region)]
     count = len(businesses)
 
     # 평균 점수 계산 — 단일 IN 쿼리로 N+1 제거
@@ -216,15 +219,16 @@ async def get_timing_index(category: str, region: str):
 
     supabase = get_client()
 
-    # 해당 업종/지역 사업장 목록 — eq 정확 일치 (ilike prefix는 다른 지역명 우연 매칭 위험)
+    # 해당 업종 사업장 후보 — category로 1차 필터 후 region_matches()로 정규화 매칭
+    # (완전일치는 "서울 강남"/"강남구" 같은 표기 차이를 놓침. ilike prefix 대신 정규화 매칭을
+    # 쓰는 이유는 get_market_overview()와 동일 기준을 공유해 두 엔드포인트 간 모순을 막기 위함)
     biz_res = await execute(
         supabase.table("businesses")
-        .select("id")
+        .select("id, region")
         .eq("category", category)
-        .eq("region", region)
         .eq("is_active", True)
     )
-    biz_list = biz_res.data or []
+    biz_list = [b for b in (biz_res.data or []) if region_matches(b.get("region") or "", region)]
     total_count = len(biz_list)
 
     if total_count == 0:
