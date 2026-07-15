@@ -71,9 +71,9 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">3. 개인정보의 처리 및 보유 기간</h2>
             <ul className="list-disc pl-5 space-y-2">
-              <li>회원 정보: 회원 탈퇴 후 30일까지 (이후 즉시 파기)</li>
+              <li>회원 정보: 회원 탈퇴 시 즉시 파기 (단, 법령상 보존 의무가 있는 결제 정보는 제외)</li>
               <li>결제 정보: 관련 법령에 따라 5년 보관 (전자상거래법)</li>
-              <li>스캔 결과 및 분석 데이터: 회원 탈퇴 후 30일까지</li>
+              <li>스캔 결과 및 분석 데이터: 회원 탈퇴 시 즉시 파기</li>
               <li>로그인 기록: 3개월</li>
               <li>IP 해시·이메일 (무료 체험): 개인 식별 없이 서비스 통계·업종 벤치마크 산정 목적으로 보유</li>
             </ul>
