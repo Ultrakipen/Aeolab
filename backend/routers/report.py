@@ -2087,11 +2087,16 @@ def _score_to_grade(score: float) -> str:
 
 
 def _next_goal(current_score: float, breakdown: dict) -> dict:
-    """다음 등급 목표 계산."""
-    grade = _score_to_grade(current_score)
-    thresholds = {"D": (40, "C"), "C": (60, "B"), "B": (80, "A"), "A": (80, "A")}
-    target_score, target_grade = thresholds[grade]
-    gap = max(0.0, round(target_score - current_score, 1))
+    """다음 목표 안내 — 원점수 대신 텍스트 레이블만 사용(점수 표시 원칙, CLAUDE.md 2026-06-10).
+    getScoreTextLabel(frontend/lib/scoreLabels.ts)과 동일한 구간(30/55/75)을 써서 어휘를 맞춘다."""
+    if current_score >= 75:
+        next_label, already_top = "양호", True
+    elif current_score >= 55:
+        next_label, already_top = "양호", False
+    elif current_score >= 30:
+        next_label, already_top = "보통", False
+    else:
+        next_label, already_top = "주의 필요", False
 
     # 가장 낮은 breakdown 항목 찾아 action 문구 생성
     action = "스마트플레이스 소개글에 Q&A를 추가하면 AI 브리핑 인용 후보 가능성이 올라갑니다"
@@ -2103,9 +2108,8 @@ def _next_goal(current_score: float, breakdown: dict) -> dict:
             action = f"{label} 개선으로 점수를 올릴 수 있습니다"
 
     return {
-        "target_score":  float(target_score),
-        "target_grade":  target_grade,
-        "gap":           gap,
+        "next_label":    next_label,
+        "already_top":   already_top,
         "action":        action,
     }
 
@@ -2282,64 +2286,14 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
             headline = "큰 변화 없이 유지 중입니다. 스마트플레이스 소개글이나 키워드를 다듬어 다음 단계를 노려보세요."
             headline_type = "stable"
 
-    # ── 5-C. 경쟁사 비교 ─────────────────────────────────────────────
-    competitor_comparison: list[dict] = []
-    if scans_raw:
-        latest_comp_scores = scans_raw[-1].get("competitor_scores") or {}
-        prev_comp_scores   = scans_raw[-2].get("competitor_scores") if len(scans_raw) >= 2 else {}
-        for cid, cdata in latest_comp_scores.items():
-            if not isinstance(cdata, dict):
-                continue
-            cscore = _safe_float(cdata.get("score") or cdata.get("total_score"))
-            prev_cscore = _safe_float(
-                (prev_comp_scores.get(cid) or {}).get("score") or
-                (prev_comp_scores.get(cid) or {}).get("total_score")
-            )
-            cdelta = round(cscore - prev_cscore, 1) if prev_cscore else 0.0
-            competitor_comparison.append({
-                "name":  cdata.get("name", "경쟁사"),
-                "score": round(cscore, 1),
-                "delta": cdelta,
-            })
-        competitor_comparison.sort(key=lambda x: x["score"], reverse=True)
-
-    # ── 5-D. 행동→결과 연결 ───────────────────────────────────────────
-    action_results: list[dict] = []
-    try:
-        from datetime import datetime as _dt, timezone as _tz, timedelta
-        thirty_ago = (_dt.now(_tz.utc) - timedelta(days=30)).date().isoformat()
-        logs_res = await execute(
-            supabase.table("business_action_log")
-            .select("action_label, action_date, score_before, score_after, action_type")
-            .eq("business_id", biz_id)
-            .gte("action_date", thirty_ago)
-            .order("action_date", desc=False)
-            .limit(10)
-        )
-        for log in (logs_res.data or []):
-            sb = log.get("score_before")
-            sa = log.get("score_after")
-            action_results.append({
-                "action_label": log.get("action_label", ""),
-                "action_date":  log.get("action_date", ""),
-                "score_before": round(_safe_float(sb), 1) if sb is not None else None,
-                "score_after":  round(_safe_float(sa), 1) if sa is not None else None,
-                "action_type":  log.get("action_type", ""),
-                "delta":        round(_safe_float(sa) - _safe_float(sb), 1) if (sb is not None and sa is not None) else None,
-                "pending":      sb is not None and sa is None,
-            })
-    except Exception as e:
-        _logger.warning("action_results 조회 실패: %s", e)
-
     # ── 5-E. AI 브리핑 노출 추이 ─────────────────────────────────────
-    briefing_trend: list[dict] = []
-    for scan in scans_raw:
-        naver_r = scan.get("naver_result") or {}
-        briefing_trend.append({
-            "date":      (scan.get("scanned_at") or "")[:10],
-            "mentioned": bool(naver_r.get("briefing_mentioned", False)),
-        })
-    briefing_total = sum(1 for b in briefing_trend if b["mentioned"])
+    # (2026-07-15: competitor_comparison·action_results·전체 briefing_trend 배열은
+    #  프론트 어디서도 소비하지 않는 죽은 계산이라 제거 — competitor_comparison·action_results는
+    #  각각 /competitors, /api/report/action-log 페이지에 이미 더 상세히 구현돼 중복이었음)
+    briefing_total = sum(
+        1 for scan in scans_raw
+        if bool((scan.get("naver_result") or {}).get("briefing_mentioned", False))
+    )
 
     # ── 5-F. 키워드 해결 추이 ─────────────────────────────────────────
     keyword_resolution: dict = {"resolved": [], "still_missing": []}
@@ -2354,36 +2308,6 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
         keyword_resolution["still_missing"] = sorted(
             scans_raw[-1].get("top_missing_keywords") or []
         )
-
-    # ── 5-G. 이번 달 할 일 3가지 ─────────────────────────────────────
-    monthly_checklist: list[dict] = []
-    if scans_raw:
-        latest_bd = scans_raw[-1].get("score_breakdown") or {}
-        _checklist_map = {
-            "keyword_search_rank":      {"text": "가이드에서 추천 키워드 1개를 포스트 제목에 추가하세요", "link": "/guide", "minutes": 5},
-            "smart_place_completeness": {"text": "스마트플레이스 소개글에 Q&A 1개를 추가하세요", "link": "/guide", "minutes": 5},
-            "schema_seo":               {"text": "AI 검색 등록(JSON-LD) 코드를 내 사이트에 적용하세요", "link": "/schema", "minutes": 10},
-            "review_quality":           {"text": "최근 리뷰에 키워드가 담긴 답변을 달아주세요", "link": "/guide", "minutes": 3},
-            "blog_crank":               {"text": "스마트플레이스 소식 1건을 이번 주 안에 올리세요", "link": "/guide", "minutes": 10},
-            "ai_briefing_score":        {"text": "네이버 AI 브리핑 노출 여부를 대시보드에서 확인하세요", "link": "/dashboard", "minutes": 2},
-            "local_map_score":          {"text": "네이버 지도·카카오맵 정보를 최신 상태로 업데이트하세요", "link": "/guide", "minutes": 10},
-            "multi_ai_exposure":        {"text": "ChatGPT·Gemini 노출을 높이려면 온라인 언급을 늘리세요", "link": "/guide", "minutes": 5},
-            "google_presence":          {"text": "구글 비즈니스 프로필을 업데이트하세요", "link": "/guide", "minutes": 10},
-        }
-        sorted_bd = sorted(latest_bd.items(), key=lambda x: _safe_float(x[1]))
-        for key, _ in sorted_bd:
-            if key in _checklist_map and len(monthly_checklist) < 3:
-                monthly_checklist.append(_checklist_map[key])
-        defaults = [
-            {"text": "가이드에서 추천 키워드 1개를 포스트 제목에 추가하세요", "link": "/guide", "minutes": 5},
-            {"text": "스마트플레이스 소개글에 Q&A 1개를 추가하세요", "link": "/guide", "minutes": 5},
-            {"text": "스마트플레이스 소식 1건을 이번 주 안에 올리세요", "link": "/guide", "minutes": 10},
-        ]
-        for d in defaults:
-            if len(monthly_checklist) >= 3:
-                break
-            if not any(c["text"] == d["text"] for c in monthly_checklist):
-                monthly_checklist.append(d)
 
     # ── 6. summary ────────────────────────────────────────────────────
     start_stage = (
@@ -2454,12 +2378,8 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
         "locked":                locked,
         "headline":              headline,
         "headline_type":         headline_type,
-        "competitor_comparison": [] if locked else competitor_comparison,
-        "action_results":        [] if locked else action_results,
-        "briefing_trend":        [] if locked else briefing_trend,
         "briefing_total":        0  if locked else briefing_total,
         "keyword_resolution":    {"resolved": [], "still_missing": []} if locked else keyword_resolution,
-        "monthly_checklist":     [] if locked else monthly_checklist,
     }
 
     _cache.set(cache_key, result, _TTL_RANKING)  # 30분

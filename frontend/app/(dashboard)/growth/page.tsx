@@ -224,6 +224,7 @@ export default async function GrowthPage() {
   let growthDrivers: Array<{ label: string; key: string; delta: number; current: number }> = [];
   let briefingTotal = 0;
   let keywordResolution: { resolved: string[]; still_missing: string[] } = { resolved: [], still_missing: [] };
+  let nextGoal: { next_label: string; already_top: boolean; action: string } | null = null;
   if (growthReportRes?.ok) {
     const raw = await growthReportRes.json().catch(() => null);
     if (raw && !raw.locked) {
@@ -232,6 +233,7 @@ export default async function GrowthPage() {
       growthDrivers = Array.isArray(raw.growth_drivers) ? raw.growth_drivers : [];
       briefingTotal = raw.briefing_total ?? 0;
       keywordResolution = raw.keyword_resolution ?? { resolved: [], still_missing: [] };
+      nextGoal = raw.next_goal ?? null;
     }
   }
 
@@ -249,6 +251,7 @@ export default async function GrowthPage() {
       growthDrivers={growthDrivers}
       briefingTotal={briefingTotal}
       keywordResolution={keywordResolution}
+      nextGoal={nextGoal}
     />
   );
 }
