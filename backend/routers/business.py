@@ -14,6 +14,13 @@ import utils.cache as _cache
 router = APIRouter()
 logger = logging.getLogger("aeolab")
 
+# /intro-generate·/global-ai-intro-generate·/talktalk-faq-generate 3개 엔드포인트가
+# faq_monthly 한도를 공유(guides.context in intro_draft/faq_draft/talktalk_faq COUNT)하는데
+# "COUNT 체크 → Claude 호출(수 초~수십 초) → insert" 사이 동시요청이 같은 월별 한도를 여러 번
+# 통과할 수 있는 TOCTOU 구조 — guide.py _guide_generation_locks와 동일 패턴으로 3개 엔드포인트가
+# 공유하는 락 하나로 방어(한도 자체를 공유하므로 락도 공유, 2026-07-15).
+_intro_faq_generation_locks: set[str] = set()
+
 NTS_API_KEY = os.getenv("NTS_API_KEY", "")
 NTS_STATUS_URL = "https://api.odcloud.kr/api/nts-businessman/v1/status"
 
@@ -856,128 +863,142 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
     if biz["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="접근 권한 없음")
 
-    # 월별 사용 횟수 체크 — intro_draft + faq_draft 합산 (plan_gate faq_monthly 공유 한도)
-    # DEV_MODE=true 시 한도 검사 전체 우회
-    now = datetime.now(timezone.utc)
-    if limit < 999 and not _DEV_MODE:
-        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
-        used_res = await execute(
-            supabase.table("guides")
-            .select("id", count="exact")
-            .eq("business_id", req.biz_id)
-            .in_("context", ["intro_draft", "faq_draft"])
-            .gte("generated_at", month_start)
+    # 동시 중복 생성 방지 — COUNT 체크~insert 사이 TOCTOU 레이스 방지
+    # (intro-generate/global-ai-intro-generate/talktalk-faq-generate 공유 락)
+    if user_id in _intro_faq_generation_locks:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "INTRO_GENERATION_IN_PROGRESS",
+                "message": "이미 생성이 진행 중입니다. 완료 후 다시 시도해 주세요.",
+            },
         )
-        used = used_res.count or 0
-        if used >= limit:
-            raise HTTPException(
-                status_code=429,
-                detail=f"이번 달 소개글·FAQ 합산 한도({limit}회)에 도달했습니다",
-            )
-
-    # Claude Sonnet 호출 — guide_generator.py 허용 경로로 위임
-    from services.guide_generator import generate_naver_intro
-    category_label = _CATEGORY_LABELS.get(biz.get("category", "other"), biz.get("category", ""))
-    keywords = biz.get("keywords") or []
-
+    _intro_faq_generation_locks.add(user_id)
     try:
-        intro_text = await generate_naver_intro(
-            biz_name=biz.get("name", ""),
-            category_label=category_label,
-            region=biz.get("region", ""),
-            keywords=keywords,
-            target_length=req.target_length,
-            category=biz.get("category"),  # LSI 키워드 자동 추출용
-            address=biz.get("address"),
-            phone=biz.get("phone"),
-            review_count=biz.get("review_count"),
-            avg_rating=biz.get("avg_rating"),
-        )
-    except Exception as e:
-        logger.warning(f"intro-generate Claude call failed [biz={req.biz_id}]: {e}")
-        raise HTTPException(status_code=502, detail="AI 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-
-    # D.I.A. 품질 게이트 — 70점 미만 시 최대 2회 자동 재생성 (월 한도 추가 소비 없음)
-    dia_score: dict | None = None
-    try:
-        from services.content_validator import validate_intro_dia
-        from services.keyword_taxonomy import get_all_keywords_flat
-        _lsi = get_all_keywords_flat(biz.get("category", "other"))[:8]
-        dia_score = validate_intro_dia(intro_text, keywords=keywords, lsi_keywords=_lsi)
-        _dia_cur = float(dia_score.get("score", 0))
-        _MAX_DIA_RETRIES = 2
-        for _retry in range(_MAX_DIA_RETRIES):
-            if _dia_cur >= 70:
-                break
-            logger.warning(
-                f"intro-generate D.I.A. {_dia_cur:.0f}/100 미달 — "
-                f"재생성 {_retry + 1}/{_MAX_DIA_RETRIES} [biz={req.biz_id}]"
+        # 월별 사용 횟수 체크 — intro_draft + faq_draft 합산 (plan_gate faq_monthly 공유 한도)
+        # DEV_MODE=true 시 한도 검사 전체 우회
+        now = datetime.now(timezone.utc)
+        if limit < 999 and not _DEV_MODE:
+            month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+            used_res = await execute(
+                supabase.table("guides")
+                .select("id", count="exact")
+                .eq("business_id", req.biz_id)
+                .in_("context", ["intro_draft", "faq_draft"])
+                .gte("generated_at", month_start)
             )
-            try:
-                _regen = await generate_naver_intro(
-                    biz_name=biz.get("name", ""),
-                    category_label=category_label,
-                    region=biz.get("region", ""),
-                    keywords=keywords,
-                    target_length=req.target_length,
-                    category=biz.get("category"),
-                    lsi_keywords=_lsi,
-                    address=biz.get("address"),
-                    phone=biz.get("phone"),
-                    review_count=biz.get("review_count"),
-                    avg_rating=biz.get("avg_rating"),
+            used = used_res.count or 0
+            if used >= limit:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"이번 달 소개글·FAQ 합산 한도({limit}회)에 도달했습니다",
                 )
-                _regen_dia = validate_intro_dia(_regen, keywords=keywords, lsi_keywords=_lsi)
-                _regen_score = float(_regen_dia.get("score", 0))
-                if _regen_score > _dia_cur:
-                    intro_text = _regen
-                    dia_score = _regen_dia
-                    _dia_cur = _regen_score
-            except Exception as _re:
-                logger.warning(f"intro-generate 재생성 {_retry + 1}회 실패: {_re}")
-                break
-        if _dia_cur < 70:
-            logger.warning(
-                f"intro-generate D.I.A. 3회 시도 후 {_dia_cur:.0f}/100 미달 — "
-                f"마지막 결과 반환 [biz={req.biz_id}]"
+
+        # Claude Sonnet 호출 — guide_generator.py 허용 경로로 위임
+        from services.guide_generator import generate_naver_intro
+        category_label = _CATEGORY_LABELS.get(biz.get("category", "other"), biz.get("category", ""))
+        keywords = biz.get("keywords") or []
+
+        try:
+            intro_text = await generate_naver_intro(
+                biz_name=biz.get("name", ""),
+                category_label=category_label,
+                region=biz.get("region", ""),
+                keywords=keywords,
+                target_length=req.target_length,
+                category=biz.get("category"),  # LSI 키워드 자동 추출용
+                address=biz.get("address"),
+                phone=biz.get("phone"),
+                review_count=biz.get("review_count"),
+                avg_rating=biz.get("avg_rating"),
             )
-    except Exception as dia_err:
-        logger.warning(f"intro-generate D.I.A. validate failed: {dia_err}")
+        except Exception as e:
+            logger.warning(f"intro-generate Claude call failed [biz={req.biz_id}]: {e}")
+            raise HTTPException(status_code=502, detail="AI 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
 
-    qa_count = _count_qa_pairs(intro_text)
-    keywords_included = _count_keyword_matches(intro_text, keywords)
+        # D.I.A. 품질 게이트 — 70점 미만 시 최대 2회 자동 재생성 (월 한도 추가 소비 없음)
+        dia_score: dict | None = None
+        try:
+            from services.content_validator import validate_intro_dia
+            from services.keyword_taxonomy import get_all_keywords_flat
+            _lsi = get_all_keywords_flat(biz.get("category", "other"))[:8]
+            dia_score = validate_intro_dia(intro_text, keywords=keywords, lsi_keywords=_lsi)
+            _dia_cur = float(dia_score.get("score", 0))
+            _MAX_DIA_RETRIES = 2
+            for _retry in range(_MAX_DIA_RETRIES):
+                if _dia_cur >= 70:
+                    break
+                logger.warning(
+                    f"intro-generate D.I.A. {_dia_cur:.0f}/100 미달 — "
+                    f"재생성 {_retry + 1}/{_MAX_DIA_RETRIES} [biz={req.biz_id}]"
+                )
+                try:
+                    _regen = await generate_naver_intro(
+                        biz_name=biz.get("name", ""),
+                        category_label=category_label,
+                        region=biz.get("region", ""),
+                        keywords=keywords,
+                        target_length=req.target_length,
+                        category=biz.get("category"),
+                        lsi_keywords=_lsi,
+                        address=biz.get("address"),
+                        phone=biz.get("phone"),
+                        review_count=biz.get("review_count"),
+                        avg_rating=biz.get("avg_rating"),
+                    )
+                    _regen_dia = validate_intro_dia(_regen, keywords=keywords, lsi_keywords=_lsi)
+                    _regen_score = float(_regen_dia.get("score", 0))
+                    if _regen_score > _dia_cur:
+                        intro_text = _regen
+                        dia_score = _regen_dia
+                        _dia_cur = _regen_score
+                except Exception as _re:
+                    logger.warning(f"intro-generate 재생성 {_retry + 1}회 실패: {_re}")
+                    break
+            if _dia_cur < 70:
+                logger.warning(
+                    f"intro-generate D.I.A. 3회 시도 후 {_dia_cur:.0f}/100 미달 — "
+                    f"마지막 결과 반환 [biz={req.biz_id}]"
+                )
+        except Exception as dia_err:
+            logger.warning(f"intro-generate D.I.A. validate failed: {dia_err}")
 
-    # guides 테이블에 사용 이력 기록 + businesses 테이블에 최신 초안 저장
-    try:
-        await execute(
-            supabase.table("guides").insert({
-                "business_id": req.biz_id,
-                "context": "intro_draft",
-                "items_json": {"intro_text": intro_text, "style": req.style},
-                "generated_at": now.isoformat(),
-            })
+        qa_count = _count_qa_pairs(intro_text)
+        keywords_included = _count_keyword_matches(intro_text, keywords)
+
+        # guides 테이블에 사용 이력 기록 + businesses 테이블에 최신 초안 저장
+        try:
+            await execute(
+                supabase.table("guides").insert({
+                    "business_id": req.biz_id,
+                    "context": "intro_draft",
+                    "items_json": {"intro_text": intro_text, "style": req.style},
+                    "generated_at": now.isoformat(),
+                })
+            )
+        except Exception as save_err:
+            logger.warning(f"intro-generate guides 저장 실패: {save_err}")
+
+        # businesses.naver_intro_draft 에 최신 초안 저장 (재방문 시 재로드용)
+        try:
+            await execute(
+                supabase.table("businesses").update({
+                    "naver_intro_draft": intro_text,
+                    "naver_intro_generated_at": now.isoformat(),
+                }).eq("id", req.biz_id)
+            )
+        except Exception as save_err:
+            logger.warning(f"intro-generate businesses 저장 실패 (컬럼 없을 수 있음): {save_err}")
+
+        return IntroGenerateResponse(
+            intro_text=intro_text,
+            char_count=len(intro_text),
+            qa_count=qa_count,
+            keywords_included=keywords_included,
+            dia_score=dia_score,
         )
-    except Exception as save_err:
-        logger.warning(f"intro-generate guides 저장 실패: {save_err}")
-
-    # businesses.naver_intro_draft 에 최신 초안 저장 (재방문 시 재로드용)
-    try:
-        await execute(
-            supabase.table("businesses").update({
-                "naver_intro_draft": intro_text,
-                "naver_intro_generated_at": now.isoformat(),
-            }).eq("id", req.biz_id)
-        )
-    except Exception as save_err:
-        logger.warning(f"intro-generate businesses 저장 실패 (컬럼 없을 수 있음): {save_err}")
-
-    return IntroGenerateResponse(
-        intro_text=intro_text,
-        char_count=len(intro_text),
-        qa_count=qa_count,
-        keywords_included=keywords_included,
-        dia_score=dia_score,
-    )
+    finally:
+        _intro_faq_generation_locks.discard(user_id)
 
 
 @router.post("/global-ai-intro-generate", response_model=GlobalAiIntroResponse)
@@ -1014,82 +1035,95 @@ async def generate_global_ai_intro_endpoint(
     if biz["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="접근 권한 없음")
 
-    # 월별 사용 횟수 체크 — intro_draft + faq_draft 합산 (plan_gate faq_monthly 공유 한도)
-    # DEV_MODE=true 시 한도 검사 전체 우회
-    now = datetime.now(timezone.utc)
-    if limit < 999 and not _DEV_MODE:
-        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
-        used_res = await execute(
-            supabase.table("guides")
-            .select("id", count="exact")
-            .eq("business_id", req.biz_id)
-            .in_("context", ["intro_draft", "faq_draft"])
-            .gte("generated_at", month_start)
+    # 동시 중복 생성 방지 — intro-generate와 동일한 공유 락(같은 월별 한도를 씀)
+    if user_id in _intro_faq_generation_locks:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "INTRO_GENERATION_IN_PROGRESS",
+                "message": "이미 생성이 진행 중입니다. 완료 후 다시 시도해 주세요.",
+            },
         )
-        used = used_res.count or 0
-        if used >= limit:
-            raise HTTPException(
-                status_code=429,
-                detail=f"이번 달 소개글·FAQ 합산 한도({limit}회)에 도달했습니다",
+    _intro_faq_generation_locks.add(user_id)
+    try:
+        # 월별 사용 횟수 체크 — intro_draft + faq_draft 합산 (plan_gate faq_monthly 공유 한도)
+        # DEV_MODE=true 시 한도 검사 전체 우회
+        now = datetime.now(timezone.utc)
+        if limit < 999 and not _DEV_MODE:
+            month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+            used_res = await execute(
+                supabase.table("guides")
+                .select("id", count="exact")
+                .eq("business_id", req.biz_id)
+                .in_("context", ["intro_draft", "faq_draft"])
+                .gte("generated_at", month_start)
             )
+            used = used_res.count or 0
+            if used >= limit:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"이번 달 소개글·FAQ 합산 한도({limit}회)에 도달했습니다",
+                )
 
-    from services.guide_generator import generate_global_ai_intro
-    category_label = _CATEGORY_LABELS.get(biz.get("category", "other"), biz.get("category", ""))
-    keywords = biz.get("keywords") or []
+        from services.guide_generator import generate_global_ai_intro
+        category_label = _CATEGORY_LABELS.get(biz.get("category", "other"), biz.get("category", ""))
+        keywords = biz.get("keywords") or []
 
-    try:
-        intro_text = await generate_global_ai_intro(
-            biz_name=biz.get("name", ""),
-            category_label=category_label,
-            region=biz.get("region", ""),
-            keywords=keywords,
-            target_length=req.target_length,
-            address=biz.get("address"),
-            phone=biz.get("phone"),
-            review_count=biz.get("review_count"),
-            avg_rating=biz.get("avg_rating"),
+        try:
+            intro_text = await generate_global_ai_intro(
+                biz_name=biz.get("name", ""),
+                category_label=category_label,
+                region=biz.get("region", ""),
+                keywords=keywords,
+                target_length=req.target_length,
+                address=biz.get("address"),
+                phone=biz.get("phone"),
+                review_count=biz.get("review_count"),
+                avg_rating=biz.get("avg_rating"),
+            )
+        except Exception as e:
+            logger.warning(f"global-ai-intro-generate Claude call failed [biz={req.biz_id}]: {e}")
+            raise HTTPException(status_code=502, detail="AI 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+
+        # D.I.A. 사후 검증 (AI 호출 0)
+        dia_score: dict | None = None
+        try:
+            from services.content_validator import validate_intro_dia
+            dia_score = validate_intro_dia(intro_text, keywords=keywords)
+        except Exception as dia_err:
+            logger.warning(f"global-ai-intro D.I.A. validate failed: {dia_err}")
+
+        # 사용 이력 기록
+        try:
+            await execute(
+                supabase.table("guides").insert({
+                    "business_id": req.biz_id,
+                    "context": "intro_draft",
+                    "items_json": {"intro_text": intro_text, "type": "global_ai"},
+                    "generated_at": now.isoformat(),
+                })
+            )
+        except Exception as save_err:
+            logger.warning(f"global-ai-intro guides 저장 실패: {save_err}")
+
+        # businesses.global_intro_draft 에 최신 초안 저장 (재방문 시 재로드용)
+        try:
+            await execute(
+                supabase.table("businesses").update({
+                    "global_intro_draft": intro_text,
+                    "global_intro_generated_at": now.isoformat(),
+                }).eq("id", req.biz_id)
+            )
+        except Exception as save_err:
+            logger.warning(f"global-ai-intro businesses 저장 실패 (컬럼 없을 수 있음): {save_err}")
+
+        return GlobalAiIntroResponse(
+            intro=intro_text,
+            char_count=len(intro_text),
+            dia_score=dia_score,
         )
-    except Exception as e:
-        logger.warning(f"global-ai-intro-generate Claude call failed [biz={req.biz_id}]: {e}")
-        raise HTTPException(status_code=502, detail="AI 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-
-    # D.I.A. 사후 검증 (AI 호출 0)
-    dia_score: dict | None = None
-    try:
-        from services.content_validator import validate_intro_dia
-        dia_score = validate_intro_dia(intro_text, keywords=keywords)
-    except Exception as dia_err:
-        logger.warning(f"global-ai-intro D.I.A. validate failed: {dia_err}")
-
-    # 사용 이력 기록
-    try:
-        await execute(
-            supabase.table("guides").insert({
-                "business_id": req.biz_id,
-                "context": "intro_draft",
-                "items_json": {"intro_text": intro_text, "type": "global_ai"},
-                "generated_at": now.isoformat(),
-            })
-        )
-    except Exception as save_err:
-        logger.warning(f"global-ai-intro guides 저장 실패: {save_err}")
-
-    # businesses.global_intro_draft 에 최신 초안 저장 (재방문 시 재로드용)
-    try:
-        await execute(
-            supabase.table("businesses").update({
-                "global_intro_draft": intro_text,
-                "global_intro_generated_at": now.isoformat(),
-            }).eq("id", req.biz_id)
-        )
-    except Exception as save_err:
-        logger.warning(f"global-ai-intro businesses 저장 실패 (컬럼 없을 수 있음): {save_err}")
-
-    return GlobalAiIntroResponse(
-        intro=intro_text,
-        char_count=len(intro_text),
-        dia_score=dia_score,
-    )
+    finally:
+        _intro_faq_generation_locks.discard(user_id)
 
 
 @router.post("/talktalk-faq-generate", response_model=TalktalkFAQGenerateResponse)
@@ -1129,103 +1163,116 @@ async def generate_talktalk_faq(req: TalktalkFAQGenerateRequest, user=Depends(ge
     if biz["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="접근 권한 없음")
 
-    # 월별 사용 횟수 체크 (guides 테이블 context="talktalk_faq")
-    now = datetime.now(timezone.utc)
-    if limit < 999:
-        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
-        used_res = await execute(
-            supabase.table("guides")
-            .select("id", count="exact")
-            .eq("business_id", req.biz_id)
-            .in_("context", ["intro_draft", "faq_draft", "talktalk_faq"])
-            .gte("generated_at", month_start)
+    # 동시 중복 생성 방지 — intro-generate·global-ai-intro-generate와 동일한 공유 락
+    if user_id in _intro_faq_generation_locks:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "INTRO_GENERATION_IN_PROGRESS",
+                "message": "이미 생성이 진행 중입니다. 완료 후 다시 시도해 주세요.",
+            },
         )
-        used = used_res.count or 0
-        if used >= limit:
-            raise HTTPException(
-                status_code=429,
-                detail=f"이번 달 톡톡 채팅방 메뉴 생성 한도({limit}회)에 도달했습니다",
-            )
-
-    # Claude Sonnet 호출 — guide_generator.py 허용 경로로 위임
-    from services.guide_generator import generate_talktalk_faq as _gen_talktalk
-    count = max(5, min(20, req.count))
-    category_label = _CATEGORY_LABELS.get(biz.get("category", "other"), biz.get("category", ""))
-    keywords = biz.get("keywords") or []
-    services_text = ", ".join(keywords[:6]) if keywords else "업종 기반 일반 서비스"
-
-    _TALKTALK_FALLBACK = {
-        "items": [
-            {"question": f"{biz.get('name', '')} 가격이 어떻게 되나요?", "answer": "정확한 가격은 매장으로 문의해 주세요.", "category": "가격"},
-            {"question": "예약은 어떻게 하나요?", "answer": "전화 또는 네이버 예약으로 미리 예약하시면 대기 없이 이용하실 수 있습니다.", "category": "예약"},
-            {"question": "위치가 어디인가요?", "answer": f"{biz.get('region', '')}에 위치해 있습니다. 상세 주소는 네이버 지도를 확인해 주세요.", "category": "위치"},
-            {"question": "주차가 가능한가요?", "answer": "주차 가능 여부는 매장으로 문의해 주세요.", "category": "위치"},
-            {"question": "영업시간이 어떻게 되나요?", "answer": "영업시간은 매장으로 문의하거나 네이버 플레이스에서 확인해 주세요.", "category": "예약"},
-        ],
-        "chat_menus": ["가격 안내", "예약 방법", "위치/교통", "영업시간", "서비스 안내"],
-    }
-
-    is_fallback = False
+    _intro_faq_generation_locks.add(user_id)
     try:
-        parsed = await _gen_talktalk(
-            biz_name=biz.get("name", ""),
-            category_label=category_label,
-            region=biz.get("region", ""),
-            services=services_text,
-            count=count,
-        )
-    except Exception as e:
-        logger.warning(f"talktalk-faq-generate Claude call failed [biz={req.biz_id}]: {e}. using fallback")
-        parsed = _TALKTALK_FALLBACK
-        is_fallback = True
+        # 월별 사용 횟수 체크 (guides 테이블 context="talktalk_faq")
+        now = datetime.now(timezone.utc)
+        if limit < 999:
+            month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+            used_res = await execute(
+                supabase.table("guides")
+                .select("id", count="exact")
+                .eq("business_id", req.biz_id)
+                .in_("context", ["intro_draft", "faq_draft", "talktalk_faq"])
+                .gte("generated_at", month_start)
+            )
+            used = used_res.count or 0
+            if used >= limit:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"이번 달 톡톡 채팅방 메뉴 생성 한도({limit}회)에 도달했습니다",
+                )
 
-    if not parsed or not isinstance(parsed.get("items"), list):
-        logger.warning(f"talktalk-faq-generate invalid response, using fallback [biz={req.biz_id}]")
-        parsed = _TALKTALK_FALLBACK
-        is_fallback = True
+        # Claude Sonnet 호출 — guide_generator.py 허용 경로로 위임
+        from services.guide_generator import generate_talktalk_faq as _gen_talktalk
+        count = max(5, min(20, req.count))
+        category_label = _CATEGORY_LABELS.get(biz.get("category", "other"), biz.get("category", ""))
+        keywords = biz.get("keywords") or []
+        services_text = ", ".join(keywords[:6]) if keywords else "업종 기반 일반 서비스"
 
-    items = [
-        TalktalkFAQItem(
-            question=item.get("question", ""),
-            answer=item.get("answer", ""),
-            category=item.get("category", "서비스"),
-        )
-        for item in (parsed.get("items") or [])
-        if item.get("question") and item.get("answer")
-    ]
-    chat_menus = (parsed.get("chat_menus") or [])[:5]
+        _TALKTALK_FALLBACK = {
+            "items": [
+                {"question": f"{biz.get('name', '')} 가격이 어떻게 되나요?", "answer": "정확한 가격은 매장으로 문의해 주세요.", "category": "가격"},
+                {"question": "예약은 어떻게 하나요?", "answer": "전화 또는 네이버 예약으로 미리 예약하시면 대기 없이 이용하실 수 있습니다.", "category": "예약"},
+                {"question": "위치가 어디인가요?", "answer": f"{biz.get('region', '')}에 위치해 있습니다. 상세 주소는 네이버 지도를 확인해 주세요.", "category": "위치"},
+                {"question": "주차가 가능한가요?", "answer": "주차 가능 여부는 매장으로 문의해 주세요.", "category": "위치"},
+                {"question": "영업시간이 어떻게 되나요?", "answer": "영업시간은 매장으로 문의하거나 네이버 플레이스에서 확인해 주세요.", "category": "예약"},
+            ],
+            "chat_menus": ["가격 안내", "예약 방법", "위치/교통", "영업시간", "서비스 안내"],
+        }
 
-    # guides 테이블에 사용 이력 저장 (월 한도 소비) — AI가 실제로 생성한 경우에만.
-    # 일반 템플릿 fallback은 사용자 요청에 응답하지 못한 것이므로 한도를 소비시키지 않는다.
-    if not is_fallback:
+        is_fallback = False
+        try:
+            parsed = await _gen_talktalk(
+                biz_name=biz.get("name", ""),
+                category_label=category_label,
+                region=biz.get("region", ""),
+                services=services_text,
+                count=count,
+            )
+        except Exception as e:
+            logger.warning(f"talktalk-faq-generate Claude call failed [biz={req.biz_id}]: {e}. using fallback")
+            parsed = _TALKTALK_FALLBACK
+            is_fallback = True
+
+        if not parsed or not isinstance(parsed.get("items"), list):
+            logger.warning(f"talktalk-faq-generate invalid response, using fallback [biz={req.biz_id}]")
+            parsed = _TALKTALK_FALLBACK
+            is_fallback = True
+
+        items = [
+            TalktalkFAQItem(
+                question=item.get("question", ""),
+                answer=item.get("answer", ""),
+                category=item.get("category", "서비스"),
+            )
+            for item in (parsed.get("items") or [])
+            if item.get("question") and item.get("answer")
+        ]
+        chat_menus = (parsed.get("chat_menus") or [])[:5]
+
+        # guides 테이블에 사용 이력 저장 (월 한도 소비) — AI가 실제로 생성한 경우에만.
+        # 일반 템플릿 fallback은 사용자 요청에 응답하지 못한 것이므로 한도를 소비시키지 않는다.
+        if not is_fallback:
+            try:
+                await execute(
+                    supabase.table("guides").insert({
+                        "business_id": req.biz_id,
+                        "context": "talktalk_faq",
+                        "items_json": {"items": [i.model_dump() for i in items], "chat_menus": chat_menus},
+                        "generated_at": now.isoformat(),
+                    })
+                )
+            except Exception as save_err:
+                logger.warning(f"talktalk-faq-generate guides 저장 실패: {save_err}")
+
+        # businesses.talktalk_faq_draft 에 최신 초안 저장 (재방문 시 재로드용)
         try:
             await execute(
-                supabase.table("guides").insert({
-                    "business_id": req.biz_id,
-                    "context": "talktalk_faq",
-                    "items_json": {"items": [i.model_dump() for i in items], "chat_menus": chat_menus},
-                    "generated_at": now.isoformat(),
-                })
+                supabase.table("businesses").update({
+                    "talktalk_faq_draft": {
+                        "items": [i.model_dump() for i in items],
+                        "chat_menus": chat_menus,
+                        "is_fallback": is_fallback,
+                    },
+                    "talktalk_faq_generated_at": now.isoformat(),
+                }).eq("id", req.biz_id)
             )
         except Exception as save_err:
-            logger.warning(f"talktalk-faq-generate guides 저장 실패: {save_err}")
+            logger.warning(f"talktalk-faq-generate businesses 저장 실패 (컬럼 없을 수 있음): {save_err}")
 
-    # businesses.talktalk_faq_draft 에 최신 초안 저장 (재방문 시 재로드용)
-    try:
-        await execute(
-            supabase.table("businesses").update({
-                "talktalk_faq_draft": {
-                    "items": [i.model_dump() for i in items],
-                    "chat_menus": chat_menus,
-                    "is_fallback": is_fallback,
-                },
-                "talktalk_faq_generated_at": now.isoformat(),
-            }).eq("id", req.biz_id)
-        )
-    except Exception as save_err:
-        logger.warning(f"talktalk-faq-generate businesses 저장 실패 (컬럼 없을 수 있음): {save_err}")
-
-    return TalktalkFAQGenerateResponse(items=items, chat_menus=chat_menus, is_fallback=is_fallback)
+        return TalktalkFAQGenerateResponse(items=items, chat_menus=chat_menus, is_fallback=is_fallback)
+    finally:
+        _intro_faq_generation_locks.discard(user_id)
 
 
 async def _import_trial_scan(business_id: str, trial_scan_id: str):

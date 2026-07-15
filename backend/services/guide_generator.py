@@ -214,24 +214,13 @@ _EXTERNAL_CHANNEL_MAP: dict[str, list[tuple[str, str]]] = {
     ],
 }
 
-# 모듈 로드 시 즉시 초기화하지 않고 첫 호출 시 생성 (ANTHROPIC_API_KEY 미설정 방지)
-_client: anthropic.Anthropic | None = None
-
-
-def _get_client() -> anthropic.Anthropic:
-    global _client
-    if _client is None:
-        api_key = os.getenv("ANTHROPIC_API_KEY")
-        if not api_key:
-            raise RuntimeError("ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다")
-        _client = anthropic.Anthropic(api_key=api_key, timeout=60.0)
-    return _client
-
-
-# generate_smartplace_intro(schema 페이지) 전용 AsyncAnthropic 싱글턴 — 동기 클라이언트를
-# asyncio.to_thread()로 호출하면 max_tokens=4096(소개글+블로그 3종)짜리 긴 응답 동안 DB 호출과
-# 공유하는 스레드풀 슬롯 하나를 몇 초~10여 초씩 붙잡아, 동시 사용자가 늘면 스레드풀 고갈로
-# 사이트 전체가 느려질 수 있음. 진짜 async 클라이언트로 전환해 스레드풀을 아예 안 씀(2026-07-15).
+# 이 모듈의 모든 Claude 호출부(GuideGenerator._call_claude_async·generate_smartplace_intro·
+# generate_naver_intro·generate_global_ai_intro·generate_talktalk_faq)가 공유하는 AsyncAnthropic
+# 싱글턴 — 이전엔 동기 Anthropic 클라이언트를 asyncio.to_thread()로 호출해, 긴 응답(가이드 생성은
+# max_tokens=8192 + 재시도 최대 3회×2모델, schema는 4096) 내내 DB 호출과 공유하는 스레드풀 슬롯을
+# 붙잡아 동시 사용자가 늘면 스레드풀 고갈로 사이트 전체가 느려질 수 있었음. 전부 진짜 async
+# 클라이언트로 전환해 스레드풀을 아예 안 씀 — 동기 클라이언트(_client/_get_client)는 더 이상
+# 쓰는 곳이 없어 제거함(2026-07-15).
 _async_client: anthropic.AsyncAnthropic | None = None
 
 
@@ -290,9 +279,6 @@ def _format_competitor_gaps(my_breakdown: dict, top_competitors: list) -> str:
 
 
 class GuideGenerator:
-    def __init__(self):
-        self.client = _get_client()
-
     async def generate(
         self,
         biz: dict,
@@ -304,7 +290,7 @@ class GuideGenerator:
         """Claude Sonnet으로 한국어 AI 노출 개선 가이드 생성 (하위호환 dict 반환)"""
         system_prompt = build_industry_system_prompt(biz.get("category", "other"))
         prompt = self._build_prompt(biz, score_data, competitor_data, keyword_gap, growth_stage)
-        raw = await asyncio.to_thread(self._call_claude, prompt, system_prompt)
+        raw = await self._call_claude_async(prompt, system_prompt)
         return self._parse_response(raw)
 
     async def generate_action_plan(
@@ -339,7 +325,7 @@ class GuideGenerator:
         # Claude 가이드 생성 — 업종별 시스템 프롬프트 + 키워드 갭 데이터 포함
         system_prompt = build_industry_system_prompt(biz.get("category", "other"))
         prompt = self._build_prompt(biz, score_data, competitor_data, _kw_gap_for_prompt, growth_stage)
-        raw = await asyncio.to_thread(self._call_claude, prompt, system_prompt)
+        raw = await self._call_claude_async(prompt, system_prompt)
         guide = self._parse_response(raw)
 
         # §C D.I.A. 점수 게이트 — 70점 미만 시 자동 재생성 (최대 2회)
@@ -388,7 +374,7 @@ class GuideGenerator:
                     f"[guide_generator] D.I.A. 점수 {_dia_score}/100 — 재생성 {_retry + 1}/{_max_retries} 시도 "
                     f"(부족: {_weak_elements})"
                 )
-                raw = await asyncio.to_thread(self._call_claude, prompt, _regen_system)
+                raw = await self._call_claude_async(prompt, _regen_system)
                 guide = self._parse_response(raw)
                 _dia_validation = _run_dia(raw or "")
                 _dia_score = float(_dia_validation.get("score", 0))
@@ -525,8 +511,11 @@ class GuideGenerator:
 
         return items
 
-    def _call_claude(self, user_prompt: str, system_prompt: str | None = None) -> str:
-        import time as _time
+    async def _call_claude_async(self, user_prompt: str, system_prompt: str | None = None) -> str:
+        """AsyncAnthropic 진짜 비동기 호출 — 이전엔 동기 클라이언트를 asyncio.to_thread()로
+        감싸 호출해, 재시도(최대 3회 × 2모델)·529 백오프(time.sleep, 최대 30초)까지 전부
+        DB 호출과 공유하는 스레드풀 슬롯 하나를 점유했음. /api/guide/generate의 핵심 호출부라
+        가장 자주·가장 오래 스레드풀을 붙잡던 지점 — async 전환으로 스레드풀을 아예 안 씀(2026-07-15)."""
         if system_prompt is None:
             system_prompt = build_industry_system_prompt("other")
         models = ["claude-sonnet-4-6", "claude-haiku-4-5-20251001"]
@@ -534,7 +523,7 @@ class GuideGenerator:
         for model in models:
             for attempt in range(3):
                 try:
-                    message = self.client.messages.create(
+                    message = await _get_async_client().messages.create(
                         model=model,
                         max_tokens=8192,
                         system=system_prompt,
@@ -548,7 +537,7 @@ class GuideGenerator:
                     if "529" in str(e) or "overloaded" in str(e).lower():
                         wait = (attempt + 1) * 10
                         _logger.warning(f"Claude {model} 과부하(529), {wait}초 대기 후 재시도 ({attempt+1}/3)")
-                        _time.sleep(wait)
+                        await asyncio.sleep(wait)
                     else:
                         break  # 529 외 오류는 즉시 다음 모델로
         raise last_err
@@ -1315,8 +1304,6 @@ async def generate_faq_drafts(
     """스마트플레이스 Q&A용 FAQ 초안 생성 (Claude Haiku)"""
     import json
     import re
-    import os
-    import anthropic
 
     kw_str = ", ".join(keywords[:10]) if keywords else "없음"
     prompt = (
@@ -1333,8 +1320,7 @@ async def generate_faq_drafts(
         '[{"question": "질문1", "answer": "답변1"}]'
     )
     try:
-        client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        msg = await client.messages.create(
+        msg = await _get_async_client().messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}],
@@ -1470,14 +1456,13 @@ async def generate_naver_intro(
         current_month=now_kst.month,
     )
     try:
-        text = await asyncio.to_thread(
-            lambda: _get_client().messages.create(
-                model="claude-sonnet-4-6",
-                max_tokens=1500,
-                messages=[{"role": "user", "content": prompt}],
-                timeout=60.0,
-            ).content[0].text.strip()
+        message = await _get_async_client().messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=1500,
+            messages=[{"role": "user", "content": prompt}],
+            timeout=60.0,
         )
+        text = message.content[0].text.strip()
         # 적시성 마커 폴백 (Claude가 누락한 경우 자동 보강)
         if not re.search(r"\[20\d{2}년\s*\d{1,2}월", text):
             text = text.rstrip() + f"\n\n[{now_kst.year}년 {now_kst.month}월 기준]"
@@ -1551,14 +1536,13 @@ async def generate_global_ai_intro(
         current_month=now_kst.month,
     )
     try:
-        text = await asyncio.to_thread(
-            lambda: _get_client().messages.create(
-                model="claude-sonnet-4-6",
-                max_tokens=1500,
-                messages=[{"role": "user", "content": prompt}],
-                timeout=60.0,
-            ).content[0].text.strip()
+        message = await _get_async_client().messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=1500,
+            messages=[{"role": "user", "content": prompt}],
+            timeout=60.0,
         )
+        text = message.content[0].text.strip()
         if not re.search(r"\[20\d{2}년\s*\d{1,2}월", text):
             text = text.rstrip() + f"\n\n[{now_kst.year}년 {now_kst.month}월 기준]"
         return text
@@ -1586,14 +1570,13 @@ async def generate_talktalk_faq(
         count=count,
     )
     try:
-        raw = await asyncio.to_thread(
-            lambda: _get_client().messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=2000,
-                messages=[{"role": "user", "content": prompt}],
-                timeout=60.0,
-            ).content[0].text.strip()
+        message = await _get_async_client().messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=2000,
+            messages=[{"role": "user", "content": prompt}],
+            timeout=60.0,
         )
+        raw = message.content[0].text.strip()
     except Exception as e:
         _logger.warning(f"generate_talktalk_faq Claude call failed: {e}")
         raise
