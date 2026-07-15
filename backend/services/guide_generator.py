@@ -234,6 +234,26 @@ def _get_async_client() -> anthropic.AsyncAnthropic:
     return _async_client
 
 
+async def _create_message_with_retry(**kwargs):
+    """429(rate limit) 한정 1회 재시도 — Gemini/ChatGPT 스캐너와 동일 패턴(2026-07-15).
+    generate_smartplace_intro·generate_faq_drafts·generate_naver_intro·
+    generate_global_ai_intro·generate_talktalk_faq 5곳이 공유. _call_claude_async는
+    이미 자체 모델폴백+529재시도 루프가 있어 대상에서 제외."""
+    try:
+        return await _get_async_client().messages.create(**kwargs)
+    except Exception as e:
+        is_rate_limit = (
+            type(e).__name__ == "RateLimitError"
+            or "429" in str(e)
+            or "rate limit" in str(e).lower()
+        )
+        if not is_rate_limit:
+            raise
+        _logger.warning("Claude rate-limited(429), retrying in 1.5s: model=%s", kwargs.get("model"))
+        await asyncio.sleep(1.5)
+        return await _get_async_client().messages.create(**kwargs)
+
+
 # v3.0 breakdown 키 기준 (score_engine.py calculate_score() 반환 breakdown과 일치)
 # v3.1 신규 4개 항목 추가 — model_version=="v3.1" 시 breakdown에 평탄화되어 존재
 _DIMENSION_LABELS = {
@@ -533,13 +553,18 @@ class GuideGenerator:
                     return message.content[0].text
                 except Exception as e:
                     last_err = e
-                    # 529 Overloaded: 대기 후 재시도
+                    is_rate_limit = type(e).__name__ == "RateLimitError" or "429" in str(e)
+                    # 529 Overloaded / 429 Rate limit: 대기 후 재시도
                     if "529" in str(e) or "overloaded" in str(e).lower():
                         wait = (attempt + 1) * 10
                         _logger.warning(f"Claude {model} 과부하(529), {wait}초 대기 후 재시도 ({attempt+1}/3)")
                         await asyncio.sleep(wait)
+                    elif is_rate_limit:
+                        wait = 1.5
+                        _logger.warning(f"Claude {model} rate-limited(429), {wait}초 대기 후 재시도 ({attempt+1}/3)")
+                        await asyncio.sleep(wait)
                     else:
-                        break  # 529 외 오류는 즉시 다음 모델로
+                        break  # 529/429 외 오류는 즉시 다음 모델로
         raise last_err
 
     @staticmethod
@@ -1221,7 +1246,7 @@ async def generate_smartplace_intro(
 - target_keyword는 실제 네이버 검색에서 사용될 법한 구체적인 구문"""
 
     try:
-        message = await _get_async_client().messages.create(
+        message = await _create_message_with_retry(
             model="claude-haiku-4-5-20251001",
             max_tokens=4096,
             messages=[{"role": "user", "content": prompt}],
@@ -1320,7 +1345,7 @@ async def generate_faq_drafts(
         '[{"question": "질문1", "answer": "답변1"}]'
     )
     try:
-        msg = await _get_async_client().messages.create(
+        msg = await _create_message_with_retry(
             model="claude-haiku-4-5-20251001",
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}],
@@ -1456,7 +1481,7 @@ async def generate_naver_intro(
         current_month=now_kst.month,
     )
     try:
-        message = await _get_async_client().messages.create(
+        message = await _create_message_with_retry(
             model="claude-sonnet-4-6",
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}],
@@ -1536,7 +1561,7 @@ async def generate_global_ai_intro(
         current_month=now_kst.month,
     )
     try:
-        message = await _get_async_client().messages.create(
+        message = await _create_message_with_retry(
             model="claude-sonnet-4-6",
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}],
@@ -1570,7 +1595,7 @@ async def generate_talktalk_faq(
         count=count,
     )
     try:
-        message = await _get_async_client().messages.create(
+        message = await _create_message_with_retry(
             model="claude-haiku-4-5-20251001",
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}],

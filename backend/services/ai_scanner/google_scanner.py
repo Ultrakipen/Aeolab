@@ -1,4 +1,5 @@
 from playwright.async_api import async_playwright
+import asyncio
 import logging
 import re
 import os
@@ -140,26 +141,34 @@ async def _scan_via_serper(query: str, business_name: str) -> dict:
     }
 
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                "https://google.serper.dev/search",
-                headers={
-                    "X-API-KEY": SERPER_API_KEY,
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-                timeout=aiohttp.ClientTimeout(total=20),
-            ) as resp:
-                if resp.status != 200:
-                    body = await resp.text()
-                    logger.warning(f"[google_scanner] serper HTTP {resp.status}: {body[:200]}")
-                    return {
-                        "platform": "google", "mentioned": False, "in_ai_overview": False,
-                        "rank": None, "excerpt": "", "captcha_detected": False,
-                        "error": f"serper_http_{resp.status}",
-                        "queries_used": [query],
-                    }
-                data = await resp.json()
+        # 429(rate limit) 한정 1회 재시도 — Gemini/ChatGPT 스캐너와 동일 패턴(2026-07-15)
+        data = None
+        for attempt in range(2):
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    "https://google.serper.dev/search",
+                    headers={
+                        "X-API-KEY": SERPER_API_KEY,
+                        "Content-Type": "application/json",
+                    },
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=20),
+                ) as resp:
+                    if resp.status == 429 and attempt == 0:
+                        logger.warning("[google_scanner] serper rate-limited(429), retrying in 1.5s")
+                        await asyncio.sleep(1.5)
+                        continue
+                    if resp.status != 200:
+                        body = await resp.text()
+                        logger.warning(f"[google_scanner] serper HTTP {resp.status}: {body[:200]}")
+                        return {
+                            "platform": "google", "mentioned": False, "in_ai_overview": False,
+                            "rank": None, "excerpt": "", "captcha_detected": False,
+                            "error": f"serper_http_{resp.status}",
+                            "queries_used": [query],
+                        }
+                    data = await resp.json()
+                    break
 
         in_ai_overview = False
         mentioned = False
