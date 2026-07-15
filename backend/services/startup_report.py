@@ -9,10 +9,22 @@ from db.supabase_client import get_client, execute
 
 logger = logging.getLogger(__name__)
 
+# AsyncAnthropic 클라이언트 재사용 — StartupReportService가 요청마다 새로
+# 인스턴스화되면서(startup.py:59) 매번 클라이언트도 새로 만들어 커넥션 재사용을
+# 못했음. 모듈 레벨 싱글턴으로 전환(2026-07-15).
+_ai_client: anthropic.AsyncAnthropic | None = None
+
+
+def _get_ai_client() -> anthropic.AsyncAnthropic:
+    global _ai_client
+    if _ai_client is None:
+        _ai_client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+    return _ai_client
+
 
 class StartupReportService:
     def __init__(self):
-        self.client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+        self.client = _get_ai_client()
 
     async def generate(self, category: str, region: str, business_name: str = "") -> dict:
         """창업 패키지 리포트 생성"""

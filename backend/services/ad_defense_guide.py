@@ -5,10 +5,22 @@ ChatGPT 광고(ChatGPT Ads) 확대 대응 — 유기적 AI 노출 전략 (Claude
 import os
 import anthropic
 
+# AsyncAnthropic 클라이언트 재사용 — AdDefenseGuideService가 요청마다 새로
+# 인스턴스화되면서(guide.py:637) 매번 클라이언트도 새로 만들어 커넥션 재사용을
+# 못했음. 모듈 레벨 싱글턴으로 전환(2026-07-15).
+_client: anthropic.AsyncAnthropic | None = None
+
+
+def _get_client() -> anthropic.AsyncAnthropic:
+    global _client
+    if _client is None:
+        _client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+    return _client
+
 
 class AdDefenseGuideService:
     def __init__(self):
-        self.client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+        self.client = _get_client()
 
     async def generate(
         self,

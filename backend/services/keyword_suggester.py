@@ -25,6 +25,19 @@ _logger = logging.getLogger("aeolab")
 KEYWORD_SUGGEST_MODEL = os.getenv("KEYWORD_SUGGEST_MODEL", "claude-haiku-4-5-20251001")
 KEYWORD_SUGGEST_TIMEOUT = float(os.getenv("KEYWORD_SUGGEST_TIMEOUT", "30.0"))
 
+# AsyncAnthropic 클라이언트 재사용 — 호출마다 새로 만들면 커넥션풀을 재사용하지
+# 못해 동시 사용자 늘 때 지연이 누적됨(2026-07-15).
+_client = None
+
+
+def _get_client():
+    global _client
+    if _client is None:
+        import anthropic
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        _client = anthropic.AsyncAnthropic(api_key=api_key, timeout=KEYWORD_SUGGEST_TIMEOUT)
+    return _client
+
 
 _PROMPT_TMPL = """당신은 한국 소상공인의 네이버 검색·AI 노출 최적화 전문가입니다.
 
@@ -160,8 +173,7 @@ async def generate_keyword_suggestions(
         }
 
     try:
-        import anthropic
-        client = anthropic.AsyncAnthropic(api_key=api_key, timeout=KEYWORD_SUGGEST_TIMEOUT)
+        client = _get_client()
         msg = await client.messages.create(
             model=KEYWORD_SUGGEST_MODEL,
             max_tokens=1200,

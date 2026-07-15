@@ -7,6 +7,19 @@ from typing import Optional
 
 _logger = logging.getLogger("aeolab.review_sentiment")
 
+# AsyncAnthropic 클라이언트 재사용 — 호출마다 새로 만들면(+동기 클라이언트를
+# asyncio.to_thread()로 감싸 스레드풀까지 점유) 커넥션 재사용을 못해 동시 사용자
+# 늘 때 지연이 누적됨. 진짜 async 클라이언트로 전환(2026-07-15).
+_client = None
+
+
+def _get_client():
+    global _client
+    if _client is None:
+        import anthropic
+        _client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    return _client
+
 
 async def analyze_review_sentiment(
     biz_id: str,
@@ -47,15 +60,10 @@ JSON 형식으로만 응답:
 }}"""
 
     try:
-        import anthropic
-        import asyncio as _aio
-        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        msg = await _aio.to_thread(
-            lambda: client.messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=500,
-                messages=[{"role": "user", "content": prompt}],
-            )
+        msg = await _get_client().messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=500,
+            messages=[{"role": "user", "content": prompt}],
         )
         raw = msg.content[0].text.strip()
         m = re.search(r"\{.*\}", raw, re.DOTALL)

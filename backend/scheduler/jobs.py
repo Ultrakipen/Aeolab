@@ -15,6 +15,20 @@ logger = logging.getLogger(__name__)
 _logger = logger  # index_aggregator 패턴 통일용 alias
 scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
 
+# monthly_market_news_job·weekly_post_draft_job이 공유하는 AsyncAnthropic 싱글턴 —
+# 이전엔 잡 실행마다 새 클라이언트를 만들었음. 두 잡 다 월간/주간이라 동시 사용자
+# 트래픽과는 무관하지만(순차 배치 잡), 일관성 차원에서 다른 호출부와 동일하게 재사용
+# 패턴 적용(2026-07-15).
+_ai_client = None
+
+
+def _get_ai_client():
+    global _ai_client
+    if _ai_client is None:
+        import anthropic
+        _ai_client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+    return _ai_client
+
 
 def _estimate_competitor_score(naver_result: dict) -> float:
     """
@@ -1588,8 +1602,6 @@ async def monthly_market_news_job():
     """매월 1일 오전 10시: 업종별 시장 변화 뉴스 카카오 알림 (AEOLAB_NEWS_01)"""
     from db.supabase_client import get_client
     from services.kakao_notify import KakaoNotifier
-    import anthropic
-    import os
 
     try:
         supabase = get_client()
@@ -1630,7 +1642,7 @@ async def monthly_market_news_job():
 
         # 업종별 카테고리 집계 후 Claude로 뉴스 생성 (카테고리당 1회 API 호출로 비용 절감)
         category_news: dict = {}
-        client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+        client = _get_ai_client()
         MAX_CLAUDE_CALLS = int(os.getenv("MAX_CLAUDE_CALLS_PER_JOB", "50"))
         _claude_call_count = 0
 
@@ -2348,8 +2360,6 @@ async def weekly_post_draft_job():
     Claude Haiku로 업종별 이번 주 소식 초안 생성 → guides(type='post_draft') 저장.
     카카오 알림: "이번 주 소식 초안이 준비됐습니다"
     """
-    import anthropic
-    import os
     from db.supabase_client import get_client
     from services.kakao_notify import KakaoNotifier
     from datetime import date
@@ -2357,7 +2367,7 @@ async def weekly_post_draft_job():
     try:
         supabase = get_client()
         notifier = KakaoNotifier()
-        client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+        client = _get_ai_client()
 
         # 구독 중인 사업장 조회 (basic 이상)
         _wpd_subs_res = await _db(

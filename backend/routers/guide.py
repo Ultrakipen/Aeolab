@@ -49,18 +49,20 @@ def _check_ai_reply_rate_limit(user_id: str, scope: str) -> None:
     _cache.set(key, count + 1, _AI_REPLY_RATE_WINDOW)
 
 
-# review-reply(_generate_reply)용 AsyncAnthropic 클라이언트 재사용 — 호출마다
-# 새로 만들면 커넥션풀을 재사용하지 못해 매번 TLS 핸드셰이크가 발생, 동시 사용자
-# 늘 때 지연이 누적됨(2026-07-15). crisis_guide.py도 동일 패턴 적용됨.
-_review_reply_ai_client = None
+# 이 라우터의 AsyncAnthropic 클라이언트 재사용 — 호출마다 새로 만들면 커넥션풀을
+# 재사용하지 못해 매번 TLS 핸드셰이크가 발생, 동시 사용자 늘 때 지연이 누적됨.
+# review-reply(_generate_reply) + pioneer-detail 둘 다 공유(2026-07-15 pioneer-detail
+# 편입, 이전엔 _review_reply_ai_client란 이름으로 review-reply 전용이었음).
+# crisis_guide.py·guide_generator.py도 동일 패턴 적용됨.
+_guide_ai_client = None
 
 
-def _get_review_reply_ai_client(api_key: str):
-    global _review_reply_ai_client
-    if _review_reply_ai_client is None:
+def _get_guide_ai_client(api_key: str):
+    global _guide_ai_client
+    if _guide_ai_client is None:
         import anthropic
-        _review_reply_ai_client = anthropic.AsyncAnthropic(api_key=api_key)
-    return _review_reply_ai_client
+        _guide_ai_client = anthropic.AsyncAnthropic(api_key=api_key)
+    return _guide_ai_client
 
 
 async def _verify_biz_ownership(supabase, biz_id: str, user_id: str) -> None:
@@ -322,7 +324,7 @@ async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str, bool]:
     import os
     from services.schema_generator import CATEGORY_KO
 
-    client = _get_review_reply_ai_client(os.getenv("ANTHROPIC_API_KEY", ""))
+    client = _get_guide_ai_client(os.getenv("ANTHROPIC_API_KEY", ""))
     keywords = ", ".join((biz.get("keywords") or [])[:5])
     category = CATEGORY_KO.get(biz.get("category", ""), biz.get("category", ""))
     biz_name = biz.get("name", "저희 가게")
@@ -1262,14 +1264,11 @@ async def get_pioneer_detail(biz_id: str, current_user: dict = Depends(get_curre
 [{{"keyword": "키워드", "reason": "이유", "example": "예시문장"}}]"""
 
     try:
-        import asyncio as _aio
-        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        msg = await _aio.to_thread(
-            lambda: client.messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=1000,
-                messages=[{"role": "user", "content": prompt}],
-            )
+        client = _get_guide_ai_client(os.getenv("ANTHROPIC_API_KEY", ""))
+        msg = await client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1000,
+            messages=[{"role": "user", "content": prompt}],
         )
         raw = msg.content[0].text.strip()
         m = re.search(r"\[.*\]", raw, re.DOTALL)
