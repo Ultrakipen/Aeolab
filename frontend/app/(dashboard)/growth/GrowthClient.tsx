@@ -1092,13 +1092,13 @@ export default function GrowthClient({
       {/* CTA: 가이드 */}
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 md:p-6">
         <h2 className="text-base md:text-lg font-semibold text-blue-900 mb-2">
-          {nextGoal && !nextGoal.already_top ? `다음 목표: ${nextGoal.next_label} 단계` : "점수를 올리고 싶다면?"}
+          {nextGoal && !nextGoal.already_top ? "지금보다 한 단계 올라서려면?" : "점수를 올리고 싶다면?"}
         </h2>
         <p className="text-sm md:text-base text-blue-700 leading-relaxed mb-4">
           {nextGoal
             ? nextGoal.already_top
               ? `이미 AI 검색 노출 ${nextGoal.next_label} 단계입니다. ${nextGoal.action}`
-              : nextGoal.action
+              : `${nextGoal.action} 이렇게 하면 '${nextGoal.next_label}' 단계에 가까워집니다.`
             : "AI 개선 가이드에서 오늘 바로 할 수 있는 방법을 확인해 보세요. 스마트플레이스 소개글 안 Q&A 추가, 리뷰 답변 방법 등을 단계별로 안내합니다."}
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
