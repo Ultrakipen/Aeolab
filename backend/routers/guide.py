@@ -2,6 +2,7 @@
 가이드 생성 라우터
 도메인 모델 v2.1 Phase D: ActionPlan 타입 반환
 """
+import asyncio
 import logging
 from fastapi import APIRouter, Body, Header, HTTPException, BackgroundTasks, Depends
 from pydantic import BaseModel
@@ -546,7 +547,10 @@ async def get_qr_card(biz_id: str, user=Depends(get_current_user)):
     qr_message = build_qr_message(biz.get("category", ""), top_keyword)
 
     try:
-        buf = generate_review_qr_card(
+        # QR+PIL 렌더링은 CPU 바운드 동기 작업 — 단일 uvicorn 워커에서 이벤트 루프에
+        # 직접 실행하면 그 시간 동안 다른 모든 사용자 요청이 함께 멈춘다. to_thread로 분리(2026-07-15)
+        buf = await asyncio.to_thread(
+            generate_review_qr_card,
             business_name=biz["name"],
             naver_review_url=review_url,
             qr_message=qr_message,

@@ -11,6 +11,7 @@ GET /api/share/image?score=67&name=...    — 쿼리 폴백 (DB 저장 전 상�
 """
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import io
 import logging
@@ -214,7 +215,9 @@ async def share_image_by_trial(trial_id: str, request: Request):
 
     # supabase-py 2.7.4 패턴: .data 확인 필수 (if not res 는 항상 False)
     if not (res and res.data):
-        png = render_placeholder_share_card()
+        # PIL 렌더링은 CPU 바운드 동기 작업 — 단일 uvicorn 워커에서 이벤트 루프에 직접
+        # 실행하면 그 시간 동안 다른 모든 사용자 요청이 함께 멈춘다. to_thread로 분리(2026-07-15)
+        png = await asyncio.to_thread(render_placeholder_share_card)
         _cache_set(_make_cache_key("trial", trial_id), png)
         return _png_response(png)
 
@@ -230,7 +233,8 @@ async def share_image_by_trial(trial_id: str, request: Request):
     chatgpt_rate = _extract_chatgpt_cite_rate(row)
 
     try:
-        png = render_trial_share_card(
+        png = await asyncio.to_thread(
+            render_trial_share_card,
             score=score,
             business_name=business_name,
             category_label=cat_lbl,
@@ -241,7 +245,7 @@ async def share_image_by_trial(trial_id: str, request: Request):
         )
     except Exception as e:
         _logger.warning(f"share_image_by_trial 렌더 실패 trial_id={trial_id}: {e}")
-        png = render_placeholder_share_card()
+        png = await asyncio.to_thread(render_placeholder_share_card)
 
     _cache_set(cache_key, png)
     return _png_response(png)
@@ -263,7 +267,7 @@ async def share_image_by_query(
     """
     # 최소한 score 또는 name 중 하나는 있어야 유의미한 카드
     if score is None and not name:
-        png = render_placeholder_share_card()
+        png = await asyncio.to_thread(render_placeholder_share_card)
         return _png_response(png)
 
     cache_key = _make_cache_key(
@@ -276,7 +280,8 @@ async def share_image_by_query(
 
     cat_lbl = category_label(category or "")
     try:
-        png = render_trial_share_card(
+        png = await asyncio.to_thread(
+            render_trial_share_card,
             score=float(score) if score is not None else 0.0,
             business_name=name or "내 가게",
             category_label=cat_lbl,
@@ -287,7 +292,7 @@ async def share_image_by_query(
         )
     except Exception as e:
         _logger.warning(f"share_image_by_query 렌더 실패: {e}")
-        png = render_placeholder_share_card()
+        png = await asyncio.to_thread(render_placeholder_share_card)
 
     _cache_set(cache_key, png)
     return _png_response(png)
