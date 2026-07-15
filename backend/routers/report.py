@@ -194,9 +194,17 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
         .limit(limit_rows)
     )
     sh_by_date = {r["score_date"]: r for r in (sh_result.data or []) if r.get("score_date")}
+    # score_history는 (business_id, score_date) 유일값이라 같은 날 여러 번 스캔하면(Pro+ manual_scan_daily)
+    # 전부 같은 하루 단위 스냅샷을 가리키게 됨 — 그 날짜의 가장 최근 scan_results 행에만
+    # 순위·주간변화·표본수를 붙이고, 같은 날의 다른 행은 자기 스캔 값이 아닌 수치를
+    # 잘못 표시하지 않도록 비워둔다(rows는 scanned_at desc 정렬이라 날짜별 첫 등장이 최신 행).
+    seen_dates: set[str] = set()
     for row in rows:
-        sh = sh_by_date.get(row["score_date"])
-        if sh:
+        d = row["score_date"]
+        is_latest_of_day = d not in seen_dates
+        seen_dates.add(d)
+        sh = sh_by_date.get(d)
+        if sh and is_latest_of_day:
             row["rank_in_category"] = sh.get("rank_in_category")
             row["total_in_category"] = sh.get("total_in_category")
             row["weekly_change"] = sh.get("weekly_change")
