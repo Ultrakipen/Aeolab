@@ -46,7 +46,7 @@ DISCOUNT_TO_REGULAR: dict[int, int] = {
 
 # 대행 서비스 패키지 가격 단일 소스 (delivery.py에서 import)
 DELIVERY_PRICES: dict[str, int] = {
-    "smartplace_register": 49000,
+    "smartplace_register": 59000,
     "ai_optimization":     79000,
-    "comprehensive":       119000,
+    "comprehensive":       129000,
 }
