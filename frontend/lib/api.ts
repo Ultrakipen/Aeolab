@@ -44,6 +44,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   PLAN_REQUIRED:    "이 기능은 유료 플랜에서 이용할 수 있습니다.",
   SCAN_LIMIT:       "이번 달 무료 스캔 횟수(3회)를 모두 사용했습니다.",
   SCAN_IN_PROGRESS: "이미 스캔이 진행 중입니다. 잠시 후 다시 시도해주세요.",
+  SCHEMA_GENERATION_IN_PROGRESS: "이미 생성이 진행 중입니다. 완료 후 다시 시도해주세요.",
   AI_UNAVAILABLE:   "일부 AI 서비스가 일시적으로 이용 불가합니다.",
   PAYMENT_FAILED:   "결제에 실패했습니다. 카드 정보를 확인해주세요.",
   RATE_LIMIT:       "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",

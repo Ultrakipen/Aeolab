@@ -264,8 +264,13 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
       setTab('briefing')
       setCheckedCount(0)
       setTimeout(() => document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth' }), 100)
-    } catch {
-      setGenerateError('생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    } catch (err: unknown) {
+      // ApiError.message는 code별 안내문(ERROR_MESSAGES)로 이미 채워져 있음 —
+      // RATE_LIMIT·PLAN_REQUIRED·SCHEMA_GENERATION_IN_PROGRESS 등을 그대로 표시
+      const message = err instanceof Error && err.message
+        ? err.message
+        : '생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+      setGenerateError(message)
     } finally {
       setLoading(false)
     }

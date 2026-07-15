@@ -228,6 +228,23 @@ def _get_client() -> anthropic.Anthropic:
     return _client
 
 
+# generate_smartplace_intro(schema 페이지) 전용 AsyncAnthropic 싱글턴 — 동기 클라이언트를
+# asyncio.to_thread()로 호출하면 max_tokens=4096(소개글+블로그 3종)짜리 긴 응답 동안 DB 호출과
+# 공유하는 스레드풀 슬롯 하나를 몇 초~10여 초씩 붙잡아, 동시 사용자가 늘면 스레드풀 고갈로
+# 사이트 전체가 느려질 수 있음. 진짜 async 클라이언트로 전환해 스레드풀을 아예 안 씀(2026-07-15).
+_async_client: anthropic.AsyncAnthropic | None = None
+
+
+def _get_async_client() -> anthropic.AsyncAnthropic:
+    global _async_client
+    if _async_client is None:
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise RuntimeError("ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다")
+        _async_client = anthropic.AsyncAnthropic(api_key=api_key, timeout=60.0)
+    return _async_client
+
+
 # v3.0 breakdown 키 기준 (score_engine.py calculate_score() 반환 breakdown과 일치)
 # v3.1 신규 4개 항목 추가 — model_version=="v3.1" 시 breakdown에 평탄화되어 존재
 _DIMENSION_LABELS = {
@@ -1215,12 +1232,10 @@ async def generate_smartplace_intro(
 - target_keyword는 실제 네이버 검색에서 사용될 법한 구체적인 구문"""
 
     try:
-        message = await asyncio.to_thread(
-            lambda: _get_client().messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=4096,
-                messages=[{"role": "user", "content": prompt}],
-            )
+        message = await _get_async_client().messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=4096,
+            messages=[{"role": "user", "content": prompt}],
         )
         raw = message.content[0].text.strip()
         if raw.startswith("```"):
