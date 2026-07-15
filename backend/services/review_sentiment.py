@@ -60,7 +60,9 @@ JSON 형식으로만 응답:
 }}"""
 
     try:
-        msg = await _get_client().messages.create(
+        from services.anthropic_retry import create_message_with_retry
+        msg = await create_message_with_retry(
+            _get_client(),
             model="claude-haiku-4-5-20251001",
             max_tokens=500,
             messages=[{"role": "user", "content": prompt}],

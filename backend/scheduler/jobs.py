@@ -1671,7 +1671,9 @@ async def monthly_market_news_job():
                         logger.warning(f"[monthly_market_news_job] MAX_CLAUDE_CALLS({MAX_CLAUDE_CALLS}) 도달 — 조기 종료")
                         break
                     _claude_call_count += 1
-                    msg = await client.messages.create(
+                    from services.anthropic_retry import create_message_with_retry
+                    msg = await create_message_with_retry(
+                        client,
                         model="claude-haiku-4-5-20251001",
                         max_tokens=300,
                         messages=[{
@@ -2441,7 +2443,9 @@ async def weekly_post_draft_job():
                     logger.warning(f"[weekly_post_draft_job] MAX_CLAUDE_CALLS({MAX_CLAUDE_CALLS}) 도달 — 조기 종료")
                     break
                 _claude_call_count += 1
-                msg = await client.messages.create(
+                from services.anthropic_retry import create_message_with_retry
+                msg = await create_message_with_retry(
+                    client,
                     model="claude-haiku-4-5-20251001",
                     max_tokens=200,
                     messages=[{"role": "user", "content": prompt}],

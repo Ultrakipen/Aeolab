@@ -80,7 +80,9 @@ async def generate_crisis_reply(
 - offline_steps는 실제로 할 수 있는 오프라인/온라인 조치"""
 
     try:
-        resp = await client.messages.create(
+        from services.anthropic_retry import create_message_with_retry
+        resp = await create_message_with_retry(
+            client,
             model="claude-haiku-4-5-20251001",
             max_tokens=900,
             messages=[{"role": "user", "content": prompt}],

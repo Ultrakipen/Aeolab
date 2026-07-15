@@ -353,7 +353,9 @@ reply: <답변 내용>
 리뷰: {review_text[:500]}"""
 
     try:
-        msg = await client.messages.create(
+        from services.anthropic_retry import create_message_with_retry
+        msg = await create_message_with_retry(
+            client,
             model="claude-haiku-4-5-20251001",
             max_tokens=256,
             messages=[{"role": "user", "content": prompt}],
@@ -1288,8 +1290,10 @@ async def get_pioneer_detail(biz_id: str, current_user: dict = Depends(get_curre
 [{{"keyword": "키워드", "reason": "이유", "example": "예시문장"}}]"""
 
     try:
+        from services.anthropic_retry import create_message_with_retry
         client = _get_guide_ai_client(os.getenv("ANTHROPIC_API_KEY", ""))
-        msg = await client.messages.create(
+        msg = await create_message_with_retry(
+            client,
             model="claude-haiku-4-5-20251001",
             max_tokens=1000,
             messages=[{"role": "user", "content": prompt}],

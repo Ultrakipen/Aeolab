@@ -171,7 +171,9 @@ class StartupReportService:
   "estimated_time_to_visibility": "AI 검색 노출까지 예상 기간 (예: 2~3개월)"
 }}"""
 
-        msg = await self.client.messages.create(
+        from services.anthropic_retry import create_message_with_retry
+        msg = await create_message_with_retry(
+            self.client,
             model="claude-sonnet-4-6",
             max_tokens=3200,
             messages=[{"role": "user", "content": prompt}],

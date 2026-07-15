@@ -173,8 +173,10 @@ async def generate_keyword_suggestions(
         }
 
     try:
+        from services.anthropic_retry import create_message_with_retry
         client = _get_client()
-        msg = await client.messages.create(
+        msg = await create_message_with_retry(
+            client,
             model=KEYWORD_SUGGEST_MODEL,
             max_tokens=1200,
             messages=[{"role": "user", "content": prompt}],

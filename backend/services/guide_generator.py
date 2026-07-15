@@ -235,23 +235,12 @@ def _get_async_client() -> anthropic.AsyncAnthropic:
 
 
 async def _create_message_with_retry(**kwargs):
-    """429(rate limit) 한정 1회 재시도 — Gemini/ChatGPT 스캐너와 동일 패턴(2026-07-15).
+    """429(rate limit) 한정 1회 재시도 — services/anthropic_retry.py 공유 헬퍼로 위임(2026-07-15).
     generate_smartplace_intro·generate_faq_drafts·generate_naver_intro·
     generate_global_ai_intro·generate_talktalk_faq 5곳이 공유. _call_claude_async는
     이미 자체 모델폴백+529재시도 루프가 있어 대상에서 제외."""
-    try:
-        return await _get_async_client().messages.create(**kwargs)
-    except Exception as e:
-        is_rate_limit = (
-            type(e).__name__ == "RateLimitError"
-            or "429" in str(e)
-            or "rate limit" in str(e).lower()
-        )
-        if not is_rate_limit:
-            raise
-        _logger.warning("Claude rate-limited(429), retrying in 1.5s: model=%s", kwargs.get("model"))
-        await asyncio.sleep(1.5)
-        return await _get_async_client().messages.create(**kwargs)
+    from services.anthropic_retry import create_message_with_retry
+    return await create_message_with_retry(_get_async_client(), **kwargs)
 
 
 # v3.0 breakdown 키 기준 (score_engine.py calculate_score() 반환 breakdown과 일치)
