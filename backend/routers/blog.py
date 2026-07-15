@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from middleware.plan_gate import get_current_user, get_user_plan, PLAN_LIMITS
 from db.supabase_client import get_client, execute
 from services.blog_analyzer import analyze_blog
+from utils import cache as _cache
 
 # 블로그 분석 전체 작업에 대한 라우터 레벨 타임아웃
 # blog_analyzer 내부 호출은 직렬(RSS 8초 + 실패 시 재시도 5초) + API 쿼리 최대 4개(각 8초) 순차 실행
@@ -23,6 +24,31 @@ _ANALYZE_TIMEOUT_SECONDS = 50
 
 router = APIRouter()
 _logger = logging.getLogger("aeolab")
+
+# 동시 사용자 증가 대응(2026-07-15, schema.py 55055b9와 동일 패턴) — 이 엔드포인트는
+# 월별 한도 체크(COUNT 스냅샷)가 최대 50초 걸리는 실제 네이버 RSS/API·SearchAd 호출
+# 완료 후에나 소비되는 TOCTOU 구조였고, biz/enterprise(blog_monthly=999)는 24시간
+# 쿨다운도 건너뛰어 어떤 요청속도 제한도 없었다(guide.py M2가 고친 것과 동일한 취약 계열).
+# 네이버 쪽 서버 단일 IP에서 나가는 요청이라 동시 다발 호출은 봇 탐지·차단 리스크도 키운다
+# (docs/naver_scraping_legal_risk_assessment_v1.0.md 참조) — 요청속도 제한 + 중복생성 락으로 보강.
+_blog_analysis_locks: set[str] = set()
+_BLOG_RATE_LIMIT = 3
+_BLOG_RATE_WINDOW = 60  # seconds
+
+
+def _check_blog_rate_limit(user_id: str) -> None:
+    key = f"blog_analyze_rate:{user_id}"
+    count: int = _cache.get(key) or 0
+    if count >= _BLOG_RATE_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "RATE_LIMIT",
+                "message": "잠시 후 다시 시도해 주세요 (분당 3회 제한).",
+                "retry_after": _BLOG_RATE_WINDOW,
+            },
+        )
+    _cache.set(key, count + 1, _BLOG_RATE_WINDOW)
 
 
 async def _get_monthly_blog_count(user_id: str, supabase) -> int:
@@ -60,8 +86,31 @@ async def analyze_blog_endpoint(
     - 분석 결과를 businesses 테이블에 저장
     """
     user_id = user["id"]
+
+    # 0. 요청속도 제한 — DB 조회 전에 먼저 차단 (모든 플랜 공통, biz/enterprise도 예외 없음)
+    _check_blog_rate_limit(user_id)
+
+    # 0-1. 동시 중복 분석 방지 — 같은 사용자가 이전 요청 처리 중(최대 50초) 새 요청을 보내면
+    # 월별 한도 COUNT 체크가 TOCTOU 레이스로 여러 번 통과할 수 있었음(guide.py M2와 동일 패턴)
+    if user_id in _blog_analysis_locks:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "BLOG_ANALYSIS_IN_PROGRESS",
+                "message": "이미 블로그 분석이 진행 중입니다. 완료 후 다시 시도해 주세요.",
+            },
+        )
+    _blog_analysis_locks.add(user_id)
+
     supabase = get_client()
 
+    try:
+        return await _run_blog_analysis(request, user_id, supabase)
+    finally:
+        _blog_analysis_locks.discard(user_id)
+
+
+async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase) -> dict:
     # 플랜 체크 (basic 이상)
     plan = await get_user_plan(user_id, supabase)
     limit = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["blog_monthly"]
