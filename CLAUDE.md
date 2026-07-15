@@ -370,9 +370,9 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 ## 요금제 최종 가격 (4곳 모두 일치)
 
-- **Basic 9,900원** (신규 첫 달 50% 할인 4,950원, 이후 정상가)
+- **Basic 11,900원** (신규 첫 달 50% 할인 5,950원, 이후 정상가)
 - **창업패키지 12,900원**
-- **Pro 18,900원**
+- **Pro 23,900원**
 - **Biz 49,900원**
 - **Enterprise 200,000원**
 
@@ -389,11 +389,11 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 ### 첫 달 50% 할인 인프라 (v3.3, 2026-04-22)
 
-- `pricing/PayButton`: `subscriptions` 이력 조회 → 없으면 `chargeAmount=4950`, 있으면 정상가
+- `pricing/PayButton`: `subscriptions` 이력 조회 → 없으면 `chargeAmount=5950`, 있으면 정상가
 - `/api/webhook/toss/billing/issue` 서버 재검증 (`_is_first_time_subscriber()`)
-- 통과 시 `first_month_discount_until=today+30` + `first_payment_amount=4950` 기록
-- 30일 후 자동 재결제 → `PLAN_PRICE["basic"]=9900` 정상가 청구
-- **악용 차단:** 클라이언트가 `amount=4950` 조작해도 서버 400 거부
+- 통과 시 `first_month_discount_until=today+30` + `first_payment_amount=5950` 기록
+- 30일 후 자동 재결제 → `PLAN_PRICE["basic"]=11900` 정상가 청구
+- **악용 차단:** 클라이언트가 `amount=5950` 조작해도 서버 400 거부
 
 ---
 
@@ -703,10 +703,9 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - **2026-07-14 경쟁사 페이지 종합 점검·수정**: 사용자 점검 요청 + 스크린샷 제보로 총 6개 버그 발견·수정·배포. ①`comp_keywords` DB 컬럼(TEXT[])이 백엔드 어디에서도 write된 적 없어 "경쟁사 보유 키워드" 섹션이 전원 영구 빈 상태였음 — `sync_competitor_place()`에 계산·저장 신설(단, 첫 구현이 `{"covered":[...]}` 객체로 저장하려다 실제 컬럼타입과 안 맞아 매칭 키워드 있는 경쟁사는 UPDATE 전체가 실패하는 회귀를 백필 도중 자체 발견·즉시 수정). ②`competitors.naver_place_name`/블로그 언급 수 — 네이버가 페이지에 추가한 "페이지 닫기" 접근성 스킵링크를 사업장명으로 오인식(`lines[1]`→`lines[0]`로 수정)해 경쟁사 전원이 동일한 틀린 이름으로 블로그 검색, 블로그 언급 수가 전부 296건으로 동일하게 나오던 버그. ③리뷰 수 파싱 정규식이 "장소대여리뷰 22" 같은 카테고리접두+공백 형식과 불일치해 리뷰 수가 항상 0으로 나오던 버그(평점은 있는데 리뷰 0건인 모순으로 발견). ④경쟁사 점수 산식(`scan.py` 2곳+`competitor.py` 1곳)이 Gemini "미언급" 판정 시 소수점까지 완전 동일한 고정값(15.0)+가짜 배수 breakdown을 부여해 CompetitorTrendChart 등 비교 그래프가 미분화 데이터를 실측처럼 표시 — `compute_competitor_score()` 단일 함수로 통합, 크롤링 실측(리뷰수·완성도·블로그·SEO)을 breakdown에 반영하고 미측정 항목은 정직하게 0/제외 처리. ⑤`ReviewKeywordGap` 프론트 타입에 백엔드에 없는 유령 필드(`present_keywords`)가 있어 "격차 분석" 공통 탭이 영구 비활성. ⑥GrowthStage 라벨(`CompareModal`·`heroCard`)이 track1_score 아닌 unified score 기준이던 버그. 전부 배포 후 라이브 DB 재검증(경쟁사 9곳 전원 실측 재동기화, 재현 테스트로 실측치 일치 확인). git `3515d78`~`766f188`.
 - **2026-07-13 경쟁사 키워드 노출 기능 실동작화**: 경쟁사 관리 > 키워드 격차 분석의 "경쟁사 독점"/"경쟁사별" 탭이 항상 비활성이던 버그 근본원인 확인·수정 — 유일한 소스가 Gemini의 "이 경쟁사를 언급했을까" LLM 추측(single_check_with_competitors)이었는데 소상공인급 경쟁사엔 거의 항상 빈 문자열 반환(실측: 홍뮤직스튜디오 계정 경쟁사 5곳x스캔3회=15건 전부 excerpt=""). `competitor_place_crawler.py`가 이미 Playwright로 크롤링하지만 boolean으로만 쓰고 버리던 `/information`·`/menu` 탭 원문을 `competitors.place_intro_text`/`place_menu_sample`(신규 컬럼)에 보관해 1순위 소스로 전환, Gemini 추측은 2순위 fallback으로 강등(`gap_analyzer.py`, `competitor.py`). 신규 크롤링 요청 없음(네이버 차단 위험 미증가), 기존 목요일 03:00 `enrich_competitor_details_job`이 자동 백필. 라이브 실측: 5곳 중 4곳 원문 수집 성공, "소수정예" 키워드가 pioneer→competitor_only로 정확히 재분류·"라포뮤직" 출처 표시 확인.
 
-- **2026-07-10~11 관리자 화면 전체 점검 + 서비스 총괄 대시보드 신설**: P0~P2 전수 점검(git `27ddf98`~`5424329`) + 감사로그·알림·결제이벤트·권한체계·코호트분석·AI사용량·창업리포트·사업장통합조회 신설(git `9bc825f`~`d6b6025`). 상세는 `docs/changelog_archive.md` 참조.
 - **2026-07-12 상업 서비스 총괄 점검 C(사업성) 축 완료 + 배포·실측 검증 + P0 라이브 장애 발견·재발방지**: Gemini SDK(0.8.3) thinking_config 미지원 + AI 호출 텔레메트리 전무 발견 → `ai_usage_logger.py` 신설(Gemini 5곳·ChatGPT 2곳 계측) 배포, `ai_usage_log` 테이블 SQL 실행·실동작 검증 완료. 마진율 계산 PG수수료(토스 4.3%+VAT) 누락 발견·재계산. 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재). trial→가입→전환 선행지표 공백 확인 → `/admin/growth-funnel` 신설·배포. **텔레메트리 검증 도중 우연히 발견(P0)**: OpenAI 조직이 결제수단 미등록(Free trial 크레딧 $0.00 소진)으로 ChatGPT 스캔 전체가 `insufficient_quota`로 실패 중이었고 `chatgpt_scanner.py`가 예외를 삼켜 조용히 "노출 없음"으로 폴백 — 사용자 카드 등록으로 즉시 해결. **재발방지**: `_log_failure()` 실패계측 대칭 추가(성공만 재던 비대칭 해소) + `ai_provider_health_check_job`(30분 간격, dedup 6시간) 신설 → 합성장애로 탐지·알림·dedup 전부 실측 검증(git `aa42587`~). 상세 `docs/business_viability_audit_v1.0.md §1-A, §8`.
-- **2026-07-12 FastAPI/Starlette 업그레이드 완료**: pip-audit로 발견된 `starlette` CVE/PYSEC 7건(최고 CVE-2026-48817/48818) 해결 위해 `fastapi==0.115.0`→`0.135.0`, `starlette==0.38.6`→`1.3.1` (pydantic은 그대로 — 0.135는 `pydantic>=2.7.0` 요구, 현재 2.8.2로 충족돼 변경범위 최소화). 로컬 사전검증(임포트·부팅·SSE스트림·webhook검증·인증경로 회귀 확인, deprecation 경고 0건) → 서버 배포 → 라이브 `/health`·webhook 422·auth 401·CORS 전부 로컬과 동일 동작 확인. git `7d23596`.
 - **2026-07-12 보안 M1~M5 수정 + day-30 사전고지 + UptimeRobot HEAD/405 버그 발견·수정**: `security_audit_v1.0.md` MEDIUM 5건(admin broadcast owner-gate, 가이드 한도 TOCTOU 락, webhook/feedback rate limit, 관리자 로그 이메일 마스킹) 전부 code-review 에이전트 검증+배포. 첫 달 할인 종료 D-3 카카오 사전고지 신설(전자상거래법 대응). **부수 발견**: 사용자가 이미 가입해 쓰던 UptimeRobot의 HEAD 체크가 FastAPI `APIRoute`의 HEAD 자동미지원으로 계속 405를 받고 있었음(nginx 로그 실측) → `/health`에 HEAD 허용 추가로 수정. **신규 발견 + 수정 완료(2026-07-13)**: nginx가 Cloudflare 실제 방문자 IP를 복원하지 않아(`set_real_ip_from` 미설정) 전체 IP 기반 rate limit이 Cloudflare 엣지 단위로만 작동 중이었음 → `conf.d/cloudflare-realip.conf` 신설(공식 IP대역+`CF-Connecting-IP`), 백업 후 무중단 reload, access.log 전/후 대조 + webhook rate limit 재테스트(429 발생 확인)로 라이브 검증 완료. 상세 `docs/legal_compliance_and_infra_resilience_audit_v1.0.md`. git `7df5e95`·`ded2528`.
+- **2026-07-15 동시 사용자 증가 대응 종합(네트워크 대기·CPU블로킹·미들웨어 3계층)**: "동시 접속자 많아지면 오류 대응" 요청으로 시작 — 조사 중 같은 날 이미 진행 중이던 선행 작업(DB 스레드풀 6→40 확장·Claude 클라이언트 싱글턴화·블로그 진단 요청속도제한+세마포어, git `945c64f`~`b42f03a`)을 뒤늦게 발견해 재확인 후, 근거+반증 원칙으로 잔여 갭 3종 추가 수정·배포·검증. ①**세마포어 대기열 타임아웃 부재**: Playwright(`multi_scanner.py`, `scan.py` naver_briefing SSE)·블로그 세마포어 모두 "획득 자체"는 무제한 대기라 동시 요청 몰릴 때 nginx `proxy_read_timeout`(60s)에 걸려 원인불명 504/502로 실패 — 대기열 타임아웃(15s/15s/8s) 추가로 실행타임아웃과 합쳐도 60s 안에 항상 친절한 오류 반환. ②**Gemini/ChatGPT 429 재시도 부재**: 동시 스캔이 겹쳐 프로바이더 rate limit(429) 발생 시 재시도 없이 그 샘플만 조용히 누락되던 것 → 429 한정 1회 backoff 재시도 추가(git `3065558`). ③**CPU 블로킹 미분리(신규 발견)**: 단일 uvicorn 워커에서 reportlab PDF·PIL 이미지 렌더링이 `asyncio.to_thread` 없이 직접 호출돼 렌더링 중 이벤트 루프 전체가 멈춰 다른 모든 동시 접속자가 함께 정지하던 문제 — `report.py`(PDF·갭카드·성적표)·`share.py`(공유카드 6곳, 인증불필요 공개엔드포인트라 바이럴 공유 시 리스크 최대)·`guide.py`(QR카드) 전수 검색 후 `asyncio.to_thread`로 분리(git `666edab`·`3e5d412`). ④**미들웨어 온보딩 DB쿼리 반복(신규 발견)**: `middleware.ts`가 보호경로 진입마다 businesses+profiles 쿼리 2개를 매번 실행하던 것을 쿠키 캐싱 — 2026-07-07 리다이렉트 버그 이력이 있는 민감한 코드라 **긍정(완료) 결과만 캐시, 부정은 캐시 안 함**으로 설계해 캐시 오류의 최대 피해를 "DB 재확인 한 번 더"로 제한(git `e5ac9e1`). 실계정(Biz플랜, 온보딩완료)으로 Playwright 직접 로그인해 `/dashboard`·`/competitors`·`/settings`·`/history` 연속 이동+로그아웃까지 실측 검증, 온보딩 리다이렉트 오발생 0건 확인. **기각한 후보**: `naver_visibility.py`(공식 네이버 API, IP차단 리스크 없음)·DB 인덱스 추가(현재 테이블 크기에서 조기 최적화)는 반증으로 기각. **외부 한도로 확인만 하고 수정 안 함**: Supabase 프리티어 Supavisor 커넥션 풀(direct 60/pooler 200, WebSearch로 확인)은 코드로 조정 불가한 하드 리밋이라 "지켜볼 항목"으로만 기록. 부하테스트(k6/Locust) 미실시 — 정확한 동시접속 숫자가 필요하면 별도 진행 권장.
 
 ---
 
@@ -733,4 +732,4 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-*최종 업데이트: 2026-07-12 | A·B·C·D 3개 문서 재검증 세션 — 병렬 에이전트+메인세션 재검증으로 오판 0건 확인, 실제 공백 5건(privacy 위탁표·IP해시 문구·DMARC·성능측정·pip-audit) 수정 완료. 이어서 FastAPI 0.135.0/Starlette 1.3.1 업그레이드까지 완료 — 이 재검증 세션의 잔여 작업 전부 종료(git `7d23596`).*
+*최종 업데이트: 2026-07-15 | 동시 사용자 증가 대응 종합 — 세마포어 대기열 타임아웃·AI 429재시도·CPU블로킹(asyncio.to_thread) 분리·미들웨어 온보딩 캐시 4계층 수정, 실계정 라이브 로그인 검증까지 완료(git `3065558`~`e5ac9e1`). 이 세션의 잔여 작업 없음 — 정확한 동시접속 한계치가 필요하면 별도 부하테스트(k6/Locust) 진행 권장.*
