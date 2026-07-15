@@ -48,6 +48,73 @@ const DEFAULT_VISIBLE_CATEGORIES = ["photo", "music", "restaurant", "cafe", "bea
 
 // 네이버 AI 브리핑 분류는 lib/userGroup.ts getBriefingEligibility 단일 소스 사용
 
+// ── 차용(fallback) 업종 문구 제네릭화 ──────────────────────────────────
+// 26개 업종 중 손수 작성한 예시는 7개뿐 — 나머지 19개는 구조가 비슷한 업종의
+// 예시를 빌려온다. 2026-07-11 수정은 상호명·검색어·"내 가게" 항목만 교체했는데,
+// weakItem·breakdown(what/일부 stateMsg)·topBlogs·경쟁사 목록의 "내 가게 아님"
+// 항목은 빌려온 업종의 문구가 그대로 남아 "법무사" 데모에 "한의원"·"환자" 문구가,
+// "영상" 데모에 무관한 실제 사업장명("홍스튜디오")이 노출되는 등 업종·상호가
+// 뒤섞여 있었다(2026-07-15 발견). label·key가 7개 템플릿 공통으로 5~6종뿐이라
+// 아래 사전으로 일반화된 문구를 만들어 어떤 업종을 선택해도 앞뒤가 맞게 한다.
+type BorrowCtx = { region: string; categoryLabel: string; bizName: string };
+
+// 받침 유무에 따라 을/를 등 조사를 고른다 ("블링 네일샵를" 같은 어색한 문장 방지)
+const josa = (word: string, withBatchim: string, withoutBatchim: string) => {
+  const code = word.trim().slice(-1).charCodeAt(0) - 0xac00;
+  if (code < 0 || code > 11171) return withoutBatchim;
+  return code % 28 === 0 ? withoutBatchim : withBatchim;
+};
+
+const GENERIC_WEAK_REASON: Record<string, (ctx: BorrowCtx) => string> = {
+  "AI 검색 노출": ({ categoryLabel, bizName }) =>
+    `소개글에 가격·이용방법 등 구조화된 정보가 부족해 AI가 "${categoryLabel} 추천"을 물어봐도 ${bizName}${josa(bizName, "을", "를")} 인용 후보로 선택하기 어렵습니다. 소개글 Q&A 섹션 없이는 AI 브리핑·AI탭 노출 가능성이 낮습니다.`,
+  "리뷰 평판": ({ bizName }) =>
+    `리뷰 수가 경쟁 업체 대비 적고 영수증 리뷰(방문 인증)가 없어 AI 신뢰도 점수가 낮습니다. ${bizName}의 실제 방문 후기가 더 필요합니다.`,
+  "온라인 정보 정리": () =>
+    "스마트플레이스 소개글에 키워드가 부족하고 블로그 포스트가 없어 AI가 인용할 정보가 충분하지 않습니다.",
+  "온라인 언급 수": ({ bizName }) =>
+    `블로그·카페에서 ${bizName} 언급이 부족해 AI가 신뢰도를 낮게 평가합니다. 후기가 쌓일수록 AI 추천 빈도가 높아집니다.`,
+  "최근 활동": () =>
+    "최근 3개월간 새 리뷰나 게시물이 없어 AI가 현재 운영 중인지 불확실하게 인식합니다.",
+};
+const GENERIC_WEAK_IMPACT: Record<string, (ctx: BorrowCtx) => string> = {
+  "AI 검색 노출": ({ categoryLabel }) => `소개글에 Q&A 3~5개 추가만으로 AI 인용 후보 진입 가능 — 경쟁 ${categoryLabel} 중 선점 기회`,
+  "리뷰 평판": () => "영수증 리뷰(방문 인증)가 쌓이면 AI가 실제 방문 경험이 있는 가게로 인식해 신뢰도 점수가 개선됩니다",
+  "온라인 정보 정리": () => "스마트플레이스 소개글 최적화 + 블로그 포스트 1건으로 이 항목 개선 시작 가능",
+  "온라인 언급 수": () => "후기가 쌓일수록 AI가 신뢰할 수 있는 정보로 인식해 추천 빈도가 높아집니다",
+  "최근 활동": () => "스마트플레이스 '소식' 탭 업데이트만으로 이 항목 즉시 개선 시작 가능",
+};
+const GENERIC_BREAKDOWN_WHAT: Record<string, (ctx: BorrowCtx) => string> = {
+  exposure_freq: ({ categoryLabel }) => `손님이 AI에 "${categoryLabel} 추천해줘"라고 물어봤을 때 내 가게가 답변에 나오는 빈도입니다.`,
+  review_quality: () => "네이버·카카오맵에 등록된 리뷰 수와 평점입니다.",
+  schema_score: () => "스마트플레이스 소개글과 블로그에 영업시간·가격·특징이 얼마나 잘 정리돼 있는지입니다.",
+  online_mentions: () => "블로그·SNS에서 내 가게가 언급된 횟수입니다.",
+  info_completeness: () => "전화번호·주소·영업시간 등 기본 정보 등록 여부입니다.",
+  content_freshness: () => "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.",
+};
+const GENERIC_BREAKDOWN_STATE: Record<string, (ctx: BorrowCtx, isLow: boolean) => string> = {
+  exposure_freq: ({ bizName }, isLow) =>
+    isLow
+      ? `이번 측정에서 AI가 ${bizName}${josa(bizName, "을", "를")} 언급하지 않았습니다.`
+      : `이번 측정에서 AI가 ${bizName}${josa(bizName, "을", "를")} 언급했습니다.`,
+  schema_score: (_ctx, isLow) =>
+    isLow ? "소개글은 있지만 세부 정보(가격·이용방법 등) 설명이 부족합니다." : "소개글에 필요한 정보가 잘 정리돼 있습니다.",
+};
+const genericTopBlogs = (ctx: BorrowCtx, slots: { dateLabel: string; isOld: boolean }[]) => [
+  { title: `${ctx.region} ${ctx.categoryLabel} 후기 — ${ctx.bizName}`, desc: "직접 이용해보니 꼼꼼하고 만족스러웠어요...", dateLabel: slots[0]?.dateLabel ?? "2개월 전", isOld: slots[0]?.isOld ?? false },
+  { title: `[${ctx.region}] ${ctx.categoryLabel} 추천 후기`, desc: `${ctx.bizName} 이용 후기 — 가격도 합리적이고 응대도 친절했어요...`, dateLabel: slots[1]?.dateLabel ?? "5개월 전", isOld: slots[1]?.isOld ?? false },
+  { title: `${ctx.region} ${ctx.categoryLabel} 업체 비교`, desc: `${ctx.bizName}도 비교 대상에 포함됐는데 최신 정보가 아닐 수 있어요...`, dateLabel: slots[2]?.dateLabel ?? "11개월 전", isOld: slots[2]?.isOld ?? true },
+];
+const genericizeCompetitors = <T extends { rank: number; name: string; isMe: boolean; address?: string }>(
+  list: T[],
+  ctx: BorrowCtx
+): T[] =>
+  list.map((c) =>
+    c.isMe
+      ? { ...c, name: ctx.bizName }
+      : { ...c, name: `${ctx.region} ${ctx.categoryLabel} ${c.rank}위 업체`, ...("address" in c ? { address: `${ctx.region} 인근` } : {}) }
+  );
+
 // ── 업종별 목업 데이터 ────────────────────────────────────────────────
 function getMock(category: string, region: string) {
   const benchmarks: Record<string, { avg: number; rank: string }> = {
@@ -430,15 +497,17 @@ function getMock(category: string, region: string) {
   };
 
   // 26개 업종 선택지 중 예시 데이터를 직접 작성한 건 7개뿐 — 나머지 19개는
-  // 구조가 비슷한 업종의 예시를 빌려오되, 업체명·검색어·"내 가게" 항목만은
-  // 선택한 업종에 맞게 교체한다 (2026-07-11: 네일샵을 선택해도 식당 예시
-  // "한우마당"이 그대로 나오던 신뢰도 버그 수정 — 완전히 무관한 업종명이
-  // 노출되는 것을 막는 최소 조치이며, 세부 리뷰·경쟁사 문구는 여전히
-  // 빌려온 업종의 것이라 "샘플 결과 화면" 배지로 예시임을 항상 별도 안내함)
-  type BorrowableTpl = typeof templates.restaurant & {
+  // 구조가 비슷한 업종의 예시를 빌려온다. 상호명·검색어·"내 가게" 항목은 물론,
+  // weakItem·breakdown(what/일부 stateMsg)·블로그 후기·경쟁사 목록도 위 GENERIC_*
+  // 헬퍼로 일반화해 빌려온 업종의 문구(한의원·환자·홍스튜디오 등)가 그대로
+  // 노출되지 않도록 한다(2026-07-11 최소조치 → 2026-07-15 전면 정합화).
+  type BorrowableTpl = {
     businessName: string; query: string; aiExcerpt: string;
     naverCompetitors: { rank: number; name: string; address: string; isMe: boolean }[];
     kakaoCompetitors: { rank: number; name: string; isMe: boolean }[];
+    topBlogs: { title: string; desc: string; dateLabel: string; isOld: boolean }[];
+    weakItem: { label: string; score: number; icon: string; reason: string; impact: string };
+    breakdown: Record<string, { label: string; icon: string; score: number; what: string; stateMsg: string; isLow: boolean }>;
   };
   const directTpl = templates[category];
   if (directTpl) return { ...base, ...directTpl };
@@ -471,13 +540,31 @@ function getMock(category: string, region: string) {
   const source = (templates[sourceKey] ?? templates.restaurant) as BorrowableTpl;
   const newName = `${region} ${FALLBACK_NAME[category] ?? "예시 사업장"}`;
   const categoryLabel = CATEGORIES.find((c) => c.value === category)?.label ?? "사업장";
+  const ctx: BorrowCtx = { region, categoryLabel, bizName: newName };
+  const genericBreakdown = Object.fromEntries(
+    Object.entries(source.breakdown).map(([key, item]) => [
+      key,
+      {
+        ...item,
+        what: (GENERIC_BREAKDOWN_WHAT[key] ?? (() => item.what))(ctx),
+        stateMsg: GENERIC_BREAKDOWN_STATE[key] ? GENERIC_BREAKDOWN_STATE[key](ctx, item.isLow) : item.stateMsg,
+      },
+    ])
+  ) as typeof source.breakdown;
   const tpl: BorrowableTpl = {
     ...source,
     businessName: newName,
     query: `${region} ${FALLBACK_QUERY[category] ?? "사업장 추천"}`,
     aiExcerpt: `${region}에서 ${categoryLabel}을(를) 찾는다면 '${newName}'이 자주 언급됩니다.`,
-    naverCompetitors: source.naverCompetitors.map((c) => (c.isMe ? { ...c, name: newName } : c)),
-    kakaoCompetitors: source.kakaoCompetitors.map((c) => (c.isMe ? { ...c, name: newName } : c)),
+    naverCompetitors: genericizeCompetitors(source.naverCompetitors, ctx),
+    kakaoCompetitors: genericizeCompetitors(source.kakaoCompetitors, ctx),
+    topBlogs: genericTopBlogs(ctx, source.topBlogs.map((b) => ({ dateLabel: b.dateLabel, isOld: b.isOld }))),
+    weakItem: {
+      ...source.weakItem,
+      reason: (GENERIC_WEAK_REASON[source.weakItem.label] ?? (() => source.weakItem.reason))(ctx),
+      impact: (GENERIC_WEAK_IMPACT[source.weakItem.label] ?? (() => source.weakItem.impact))(ctx),
+    },
+    breakdown: genericBreakdown,
   };
   return { ...base, ...tpl };
 }
