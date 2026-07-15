@@ -505,13 +505,15 @@ def _build_weekly_actions(
             "reason": "AI는 오래된 블로그를 신뢰하지 않습니다",
         })
 
-    # 4순위: 홍보형 비율이 높은 경우
+    # 4순위: 홍보형 비율이 높은 경우 — content_issue 원문(비율·"네이버 검색 노출에도 불리"
+    # 문구 포함, 2026-07-07 신설)을 그대로 노출한다. 과거엔 이 필드가 트리거 조건으로만
+    # 쓰이고 실제 문구는 화면 어디에도 표시되지 않아 신설 취지가 무효화돼 있었음(2026-07-15 발견).
     if content_issue and "홍보형" in content_issue:
         actions.append({
             "priority": len(actions) + 1,
             "action": "다음 3개 포스트는 '추천', '비교', '총정리' 형식으로 작성",
             "impact": "medium",
-            "reason": "홍보형 글은 AI 인용률이 낮습니다",
+            "reason": content_issue,
         })
 
     # 5순위: 지역명 미포함 포스트 개선
