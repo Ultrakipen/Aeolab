@@ -258,7 +258,7 @@ async def get_before_after(biz_id: str, user=Depends(get_current_user)):
 
 
 @router.get("/ranking/{category}/{region}")
-async def get_industry_ranking(category: str, region: str):
+async def get_industry_ranking(category: str, region: str, user=Depends(get_current_user)):
     """업종·지역 AI 노출 랭킹 TOP10 (캐시 30분)"""
     cache_key = _cache._make_key("ranking", category, region)
     cached = _cache.get(cache_key)
