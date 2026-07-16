@@ -84,7 +84,7 @@
 - **A(보안)**: 완료. `docs/security_audit_v1.0.md`, git `0562ff8`.
 - **B(법적/컴플라이언스)**: 완료. `docs/legal_compliance_and_infra_resilience_audit_v1.0.md`. P1 1건(정기결제 요금인상 사전고지, 법률자문 권장)+P2 3건 발견, 코드수정 없이 문서화(사용자 결정 대기).
 - **D(인프라 복원력)**: 완료. 같은 문서. **P0 발견 즉시 수정** — DB 백업이 생성 이래 단 한 번도 성공한 적 없었음(pg_dump 아웃바운드 차단+DB비밀번호 미설정 이중원인) → REST API 방식 전환, 43개 테이블 커버, 실패 알림 추가, 라이브 검증 완료(git `3ab9545`). 외부 업타임 모니터링은 사용자 계정 가입 필요해 별도 트리거로 이관.
-- **C(사업성)**: 완료(2026-07-12). `docs/business_viability_audit_v1.0.md`. 핵심 발견: ① Gemini SDK(0.8.3)가 thinking_config 미지원 → 코드로 thinking 제어 불가 + 전체 AI 호출 텔레메트리 전무 확인 → `ai_usage_logger.py` 신설(Gemini/ChatGPT 스캔 호출 계측 시작, `ai_usage_log` 테이블 SQL 수동 실행 필요). ② 마진율 계산에서 PG 수수료(토스 4.3%+VAT) 전 문서 누락 발견 → 재계산 반영(Basic 76.3%/창업 79.6%/Pro 78.6%/Biz 87.1%). ③ 경쟁사 가격 비교 "없음" 주장은 오판(TalkB 비교표 기존재) — 반증으로 확인. ④ trial→가입→유료전환 선행지표는 실제 공백 확인 → `/admin/growth-funnel` 신설. 후속 과제 6건은 문서 §6 참조.
+- **C(사업성)**: 완료(2026-07-12, PG 수수료 수치는 2026-07-16 재확인·교정). `docs/business_viability_audit_v1.0.md`. 핵심 발견: ① Gemini SDK(0.8.3)가 thinking_config 미지원 → 코드로 thinking 제어 불가 + 전체 AI 호출 텔레메트리 전무 확인 → `ai_usage_logger.py` 신설(Gemini/ChatGPT 스캔 호출 계측 시작, `ai_usage_log` 테이블 SQL 실행·가동 확인 완료). ② 마진율 계산에서 PG 수수료 전 문서 누락 발견 → 반영했으나 최초 수치(토스 4.3%+VAT, Basic 76.3%/창업 79.6%/Pro 78.6%/Biz 87.1%)는 상품 카테고리 오류(브랜드페이 vs 실제 사용 중인 표준카드 자동결제)였음 — 2026-07-16 재확인으로 표준카드 3.4% + 사용자 확인된 영세 등급 0.40%(+VAT) 반영, **최종 Basic 83.8%/창업 83.9%/Pro 86.4%/Biz 91.4%**. ③ 경쟁사 가격 비교 "없음" 주장은 오판(TalkB 비교표 기존재) — 반증으로 확인. ④ trial→가입→유료전환 선행지표는 실제 공백 확인 → `/admin/growth-funnel` 신설. 후속 과제는 문서 §6 참조(PG 우대등급 확인 항목은 2026-07-16 해소).
 
 ## 3. 우선순위 제안
 

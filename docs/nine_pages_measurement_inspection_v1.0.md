@@ -55,7 +55,8 @@
 
 > ⚠️ 아래는 조사 시점 스냅샷. 실제 작업 시작 전 각 파일이 여전히 존재하는지, 라우터 prefix가 맞는지 재확인할 것 (`backend/main.py`의 `from routers import ...` 확인).
 
-### 1. 경쟁사 관리
+### 1. 경쟁사 관리 ✅ 완료 (2026-07-14, git `3515d78`~`766f188`~`2ead5c8`)
+> 2026-07-16 재검증: 이 세션의 종합 점검이 nine_pages Layer B 체크리스트(성공/실패 구분 없이 집계, dict 키 불일치로 인한 데이터 은닉)에 정확히 해당하는 버그들을 이미 발견·수정함 — `comp_keywords` 컬럼 미기록, 경쟁사 점수 고정값(15.0)+가짜 breakdown, 리뷰수 파싱 실패(0으로 오집계). 상세는 메모리 `project_competitor_page_inspection_2026_07_14` 참조. 재점검 불필요.
 - 페이지: `frontend/app/(dashboard)/competitors/page.tsx`, `CompetitorsClient.tsx`, `PioneerKeywordsCard.tsx`
 - 컴포넌트: `components/competitors/CompetitorPlaceCard.tsx`, `components/dashboard/CompetitorTimeline.tsx`, `GapAnalysisCard.tsx`, `CompetitorKeywordCompare.tsx`, `PlaceCompareTable.tsx`, `KeywordManagerModal.tsx`
 - API: `backend/routers/competitor.py` (search/add/list/update/remove/sync-place/changes), `report.py`(gap), `business.py`(blog-mentions)
@@ -76,10 +77,11 @@
   - ⚠️ **동일 falsy-zero 패턴이 이 페이지 범위 밖에도 약 20곳 더 존재**(admin.py MRR 추세·pdf_generator.py·score_attribution.py·trial_conversion.py·jobs.py의 성장 리포트/창업 시장 분석 관련 잡 등) — 이번 세션은 §2 페이지에 직접 연결된 4곳만 수정. 전역 스윕은 별도 세션에서 진행할 것(스코프 밖 확산 방지)
 - **Layer A 결과**: 8개 컴포넌트(history/page.tsx, ExportButton.tsx, TrendLine.tsx, ActionCompleteSection.tsx, ActionResultCard.tsx, DailyMissionCard.tsx, ActionTimelineCard.tsx, Action7DayChart.tsx) 전수 확인 — 하드코딩·raw 점수 노출·회귀 없음(Action7DayChart 2026-07-02 수정 재발 없음, 직접 재확인 완료)
 
-### 3. 성장 리포트
+### 3. 성장 리포트 ✅ 완료 (2026-07-14, git `bab501f`)
 - 페이지: `frontend/app/(dashboard)/growth/page.tsx`, `GrowthClient.tsx`
-- API: `report.py`의 `/history`, `/growth-card`, `/benchmark`, `/action-log` (서버 컴포넌트 병렬 fetch)
+- API: `report.py`의 `/history`, `/growth-card`, `/benchmark`, `/action-log`, `/growth` (서버 컴포넌트 병렬 fetch)
 - 서비스: `services/score_engine.py`, `services/gap_card.py`
+- **결과**: 실측(score_engine.py 계산값) vs 표시 정보 불일치 3건 + 프론트 자체 모순 1건 발견·독립 재검증(오판 0건)·수정·배포. 상세는 메모리 `project_growth_report_measurement_audit_2026_07_14` 참조. 2026-07-06(사실오류 4건)·2026-07-09(UX벤치마크+고아엔드포인트)는 별개 축으로 이미 완료 — 이번은 그 이후 남아있던 측정 무결성(Layer A/B) 축.
 
 ### 4. 개선 가이드
 - 페이지: `frontend/app/(dashboard)/guide/page.tsx` + 하위 `guide/ai-info-tab`, `guide/ai-tab`, `guide/blog-strategy`, `guide/score-model-v3-1`
@@ -87,7 +89,10 @@
 - API: `backend/routers/guide.py` (generate/latest/checklist)
 - 서비스: `services/guide_generator.py`(핵심), `services/gap_analyzer.py`, `services/score_engine.py`
 
-### 5. 소개글·콘텐츠 생성
+**4번(개선 가이드) 측정 무결성 축 ✅ 완료 (2026-07-14, git `94ce558`)**: `GuideClient.tsx` 5092줄 전체 + `components/guide/*` 전수 점검, 오판0(독립 재검증 2회) 확정 7건 수정 — is_franchise SELECT 누락(P0, 프랜차이즈 AI브리핑 게이팅 상시오분류)·경쟁사 breakdown 유실(2026-07-14 신설 실측데이터가 가이드 프롬프트에 도달 못함)·INACTIVE naver 인용 전체삭제("암묵적배타" 반복버그, `naver_briefing_infotype_caveat_standard_v1.0.md` 유형③)·ScanSnapshotCard 자체 임계값(70/50)이 사이트 단일소스(75/55/30)와 불일치·my_freq 표본크기(50/100) 미정규화·ChatGPT측정실패=미노출 오분류·growth_stage 미전달. `BlogDiagnosisCard.tsx`는 버그 있으나 고아파일(0 import)로 확인, 수정 스코프 제외. 상세는 메모리 `project_guide_page_measurement_audit_2026_07_14` 참조.
+
+### 5. 소개글·콘텐츠 생성 ✅ 완료 (2026-07-16 재검증)
+> `eight_pages_commercial_professionalism_recheck_v1.0.md` 4~7차(2026-07-08, git `fd946a9`~`89afa5e`)가 D.I.A. 허위사실 생성(가격·시설 지어내기)·max_tokens 침묵실패·keyword_taxonomy 별칭버그를 이미 광범위하게 수정함. 남은 관점이던 `content_validator.py` Layer B 감사도 직접 Read로 확인 — 이 모듈은 파일 최상단 독스트링에 "AI 호출 0회, 정규식·문자열 패턴 기반"이라 명시돼 있고 실제로 `except Exception` 0건(외부 I/O 자체가 없어 실패할 지점이 없음). Layer B 위반 대상이 아님을 확인. 재점검 불필요.
 > ⚠️ 독립 페이지 아님 — 대시보드 메인 페이지의 `dashboard/sections/DashboardGeneratorZone.tsx`(또는 현재 사용 중인 `DashboardContentZone.tsx` — 2026-07-02 감사에서 `DashboardGeneratorZone.tsx`가 미사용 고아 파일로 확인됨, **`DashboardContentZone.tsx`가 실제 사용 경로이니 우선 grep으로 재확인할 것**)에 임베드
 - 컴포넌트: `components/dashboard/IntroGeneratorCard.tsx`, `TalktalkFAQGeneratorCard.tsx`
 - API: `backend/routers/business.py` (intro-generate, global-ai-intro-generate, talktalk-faq-generate), `backend/routers/guide.py` (`/smartplace-faq`)
@@ -100,17 +105,20 @@
 - **결과**: Layer A/B 병렬 감사 → P0 1건(네이버 API/RSS 전체 실패가 "포스트 0개"로 오분류) + P1/P2 6건 확정·수정. 상세는 메모리 `project_blog_analysis_measurement_audit_2026_07_06` 참조.
 - **⚠️ 스코프 정정**: `services/blog_search_analyzer.py`(`analyze_blog_search` — my_rank 덮어쓰기 버그)와 `services/screenshot.py`(로그 없는 예외처리·`PLAYWRIGHT_SEMAPHORE` 미사용)는 호출 그래프 확인 결과 이 페이지가 아니라 **§2 "변화 기록" 페이지(`report.py`의 `/capture-blog`·`/blog-analysis-status`)에서만 쓰임** — §2 감사 시 재검토 필요(아직 미수정 버그로 남아 있음)
 
-### 7. 리뷰 답변
+### 7. 리뷰 답변 — 사실상 완료 (2026-07-16 재검증)
+> 2026-06-13 구버전 감사(다른 4축 방법론) + eight_pages_recheck 3차(응답길이 스펙 수정, git `4082aa8`)에 더해, 2026-07-16 `crisis_guide.py`·`review_sentiment.py`의 `except Exception` 처리를 직접 grep·Read로 확인 — 둘 다 `.warning()` 로그 + `is_fallback`/`status:"error"` 플래그로 성공/실패를 정직하게 구분하는 정상 패턴(Layer B 위반 없음). 남은 작업 사실상 없음.
 - 페이지: `frontend/app/(dashboard)/review-inbox/page.tsx` (인라인 컴포넌트: CrisisGuidePanel, SentimentBadge, CopyButton)
 - API: `backend/routers/guide.py` (review-reply, review-replies, usage, crisis-reply)
 - 서비스: `services/crisis_guide.py`, `services/review_sentiment.py`, `services/reply_templates.py`
 
-### 8. AI 광고 대비
+### 8. AI 광고 대비 ✅ 완료 (2026-07-16 재검증)
+> eight_pages_recheck(SearchGPT 브랜딩 수정·프롬프트에 경쟁사 데이터 주입)+`ad_defense_concurrency_audit_2026_07_15`(TOCTOU 락)에 이어, `ad_defense_guide.py`의 Layer B 감사(except 패턴)도 직접 Read로 확인 — Claude 호출부에 `except` 래핑 자체가 없어 실패 시 예외가 그대로 위(라우터)로 전파됨. "측정 실패를 성공으로 오집계"하는 Layer B 패턴과는 정반대(실패를 숨기지 않고 크게 드러냄) — 위반 없음. 재점검 불필요.
 - 페이지: `frontend/app/(dashboard)/ad-defense/page.tsx`, `AdDefenseClient.tsx`
 - API: `POST /api/guide/ad-defense/{biz_id}` (`guide.py`)
 - 서비스: `services/ad_defense_guide.py` (`AdDefenseGuideService`)
 
-### 9. 창업 시장 분석
+### 9. 창업 시장 분석 ✅ 완료 (2026-07-15, git `060c079`)
+> 2026-07-16 재검증: "등록 사업장 0건일 때 '기회 있음'(녹색)으로 오분류"는 nine_pages Layer B "성공/실패 구분 없이 집계"의 정확한 사례이자 핵심 버그였고 이미 수정됨. region 매칭 버그도 함께 수정. 상세는 메모리 `project_startup_page_inspection_2026_07_15` 참조. 재점검 불필요.
 - 페이지: `frontend/app/(dashboard)/startup/page.tsx`, `StartupClient.tsx`
 - API: `backend/routers/startup.py` (report, market, timing)
 - 서비스: `services/startup_report.py` (`StartupReportService`)
