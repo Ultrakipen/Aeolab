@@ -775,8 +775,14 @@ def _build_competitor_comparison(
 
     competitor_comp_keywords: [{name, comp_keywords}] — competitors 테이블의 comp_keywords(TEXT[])
     블로그 키워드 분석 데이터가 없는 경쟁사를 보완하는 2차 소스로 사용.
+
+    2026-07-17 발견: competitors.blog_analysis_json 컬럼이 실제로는 존재한 적 없어(어떤 job도
+    쓴 적 없음) competitor_blogs는 실전에서 항상 빈 리스트다. 그래서 키워드 갭·봉쇄 분석은
+    competitor_comp_keywords(실제로 채워지는 데이터)만으로도 동작하도록 게이트를 완화했다.
+    단, 점수·순위 비교(avg_score/my_rank)는 blog_analysis_json 없이는 의미가 없으므로
+    "score_comparison_available" 플래그로 구분해 프론트가 순위 카드를 숨길 수 있게 한다.
     """
-    if not competitor_blogs:
+    if not competitor_blogs and not competitor_comp_keywords:
         return None
 
     competitors = []
@@ -818,19 +824,21 @@ def _build_competitor_comparison(
     all_scores.sort(reverse=True)
     my_rank = all_scores.index(my_score) + 1
 
-    # 경쟁사에는 있고 내 블로그에는 없는 키워드
-    my_covered = set(my_covered_keywords or [])
-    competitor_keyword_gaps = list(comp_all_keywords - my_covered)[:10]
-
     # C. 경쟁사 키워드 봉쇄 원인 분석
-    # 1차: blog_analysis_json 블로그 키워드 (가장 정확 — gap 계산과 동일 소스)
-    # 2차: comp_keywords DB 컬럼 보완 (blog 데이터 없는 경쟁사 포함)
+    # 1차: blog_analysis_json 블로그 키워드 (가장 정확 — gap 계산과 동일 소스, 현재 실전에서는 항상 없음)
+    # 2차: comp_keywords DB 컬럼 보완 (실제로 채워지는 유일한 소스 — comp_all_keywords에도 합류)
     if competitor_comp_keywords:
         for ck in competitor_comp_keywords:
             ck_name = ck.get("name", "")
             db_kws = [k for k in (ck.get("comp_keywords") or []) if k]
+            if db_kws:
+                comp_all_keywords.update(db_kws)
             if ck_name and db_kws and ck_name not in comp_blog_kw_map:
                 comp_blog_kw_map[ck_name] = set(db_kws)
+
+    # 경쟁사에는 있고 내 블로그에는 없는 키워드
+    my_covered = set(my_covered_keywords or [])
+    competitor_keyword_gaps = list(comp_all_keywords - my_covered)[:10]
 
     competitor_keyword_detail: list[dict] = []
     for kw in competitor_keyword_gaps:
@@ -857,6 +865,10 @@ def _build_competitor_comparison(
         "my_rank": my_rank,
         "total_count": len(competitors) + 1,
         "competitors": competitors,
+        # blog_analysis_json 기반 실제 경쟁사 점수가 없으면(현재 실전에서 항상 이 경우)
+        # my_rank/avg_score/total_count는 의미 없는 값(예: "1개 중 1위")이 되므로
+        # 프론트가 이 값을 숨기고 키워드 분석만 보여줄 수 있도록 플래그로 구분한다.
+        "score_comparison_available": bool(competitor_blogs),
         "competitor_keyword_gaps": competitor_keyword_gaps,  # 하위 호환 유지
         "competitor_keyword_detail": competitor_keyword_detail,  # C. 봉쇄 원인 분석 (신규)
         "competitor_gap_message": f"경쟁사 블로그에는 있고 내 블로그에는 없는 키워드 {len(competitor_keyword_gaps)}개가 발견됐습니다.",

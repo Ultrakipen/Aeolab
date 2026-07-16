@@ -105,6 +105,9 @@ interface CompetitorBlogComparison {
   my_rank: number;
   total_count: number;
   competitors: CompetitorBlog[];
+  // false면 실제 경쟁사 블로그 점수 데이터가 없어 my_rank/avg_score/total_count가
+  // 의미 없는 값("1개 중 1위" 등)이므로 순위 카드를 숨겨야 함 (2026-07-17)
+  score_comparison_available?: boolean;
   competitor_keyword_gaps?: string[];
   competitor_gap_message?: string;
   // 키워드별 경쟁사 점유 현황 (백엔드 v4+ 신규 필드)
@@ -700,49 +703,57 @@ function CompetitorComparisonSection({ comparison, businessName }: { comparison:
         <h3 className="text-base md:text-lg font-bold text-gray-900">경쟁사 블로그 비교</h3>
       </div>
 
-      {/* 순위 + 평균 비교 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
-          <div className="text-2xl md:text-3xl font-bold text-blue-700">{comparison.my_rank}위</div>
-          <div className="text-sm text-blue-600 mt-1">{comparison.total_count}개 사업장 중</div>
+      {/* 순위 + 평균 비교 + 바 차트 — 경쟁사 블로그 실측 점수가 있을 때만 표시 */}
+      {comparison.score_comparison_available === false ? (
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-500 mb-5">
+          경쟁사 블로그 진단 데이터가 아직 없어 순위·점수 비교는 표시할 수 없습니다. 아래 키워드 분석은 실측 데이터 기준입니다.
         </div>
-        <div className={`border rounded-xl p-4 text-center ${comparison.my_score >= comparison.avg_score ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
-          <div className={`text-xl md:text-2xl font-bold ${comparison.my_score >= comparison.avg_score ? "text-green-700" : "text-red-700"}`}>
-            {comparison.my_score >= comparison.avg_score
-              ? (isSingleCompetitor ? "경쟁사보다 높음" : "평균 이상")
-              : (isSingleCompetitor ? "경쟁사보다 낮음" : "평균 미달")}
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+              <div className="text-2xl md:text-3xl font-bold text-blue-700">{comparison.my_rank}위</div>
+              <div className="text-sm text-blue-600 mt-1">{comparison.total_count}개 사업장 중</div>
+            </div>
+            <div className={`border rounded-xl p-4 text-center ${comparison.my_score >= comparison.avg_score ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
+              <div className={`text-xl md:text-2xl font-bold ${comparison.my_score >= comparison.avg_score ? "text-green-700" : "text-red-700"}`}>
+                {comparison.my_score >= comparison.avg_score
+                  ? (isSingleCompetitor ? "경쟁사보다 높음" : "평균 이상")
+                  : (isSingleCompetitor ? "경쟁사보다 낮음" : "평균 미달")}
+              </div>
+              <div className="text-sm text-gray-600 mt-1">
+                {isSingleCompetitor ? "등록된 경쟁사 1곳 대비 (평균 아님)" : "경쟁사 평균 대비"}
+              </div>
+            </div>
           </div>
-          <div className="text-sm text-gray-600 mt-1">
-            {isSingleCompetitor ? "등록된 경쟁사 1곳 대비 (평균 아님)" : "경쟁사 평균 대비"}
-          </div>
-        </div>
-      </div>
 
-      {/* 바 차트 */}
-      <div className="space-y-3">
-        {/* 내 블로그 */}
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-semibold text-blue-700">{businessName} (나)</span>
-            <span className="text-sm font-bold text-blue-700">{postScoreLabel(comparison.my_score)}</span>
-          </div>
-          <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${Math.max((comparison.my_score / maxScore) * 100, 2)}%` }} />
-          </div>
-        </div>
-        {/* 경쟁사 */}
-        {comparison.competitors.map((c, idx) => (
-          <div key={idx}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium text-gray-600 truncate max-w-[60%]">{c.name}</span>
-              <span className="text-sm font-semibold text-gray-700">{postScoreLabel(c.score)} · {c.post_count}개</span>
+          {/* 바 차트 */}
+          <div className="space-y-3">
+            {/* 내 블로그 */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-semibold text-blue-700">{businessName} (나)</span>
+                <span className="text-sm font-bold text-blue-700">{postScoreLabel(comparison.my_score)}</span>
+              </div>
+              <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${Math.max((comparison.my_score / maxScore) * 100, 2)}%` }} />
+              </div>
             </div>
-            <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full bg-gray-400 rounded-full transition-all" style={{ width: `${Math.max((c.score / maxScore) * 100, 2)}%` }} />
-            </div>
+            {/* 경쟁사 */}
+            {comparison.competitors.map((c, idx) => (
+              <div key={idx}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-600 truncate max-w-[60%]">{c.name}</span>
+                  <span className="text-sm font-semibold text-gray-700">{postScoreLabel(c.score)} · {c.post_count}개</span>
+                </div>
+                <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-gray-400 rounded-full transition-all" style={{ width: `${Math.max((c.score / maxScore) * 100, 2)}%` }} />
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
       {/* 경쟁사 키워드 갭 */}
       {comparison.competitor_keyword_gaps && comparison.competitor_keyword_gaps.length > 0 && (
