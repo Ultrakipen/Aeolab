@@ -43,6 +43,7 @@ const GLOBAL_WEIGHTS: Record<string, number> = {
   art_class: 0.50,
   music_class: 0.50,
   music_lesson: 0.50,
+  music_studio: 0.50,
   // 인테리어·디자인·미디어
   interior: 0.50,
   design: 0.65,

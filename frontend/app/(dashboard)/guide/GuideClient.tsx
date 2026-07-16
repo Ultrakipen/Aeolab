@@ -107,7 +107,7 @@ const CATEGORY_KO: Record<string, string> = {
   auto: '자동차', cleaning: '청소', laundry: '세탁소',
   shopping: '쇼핑몰', fashion: '패션·의류', clothing: '의류',
   flower: '꽃집·플라워', kids: '어린이·키즈', study: '독서실·스터디카페',
-  workshop: '공방·원데이클래스', music_class: '음악학원', music_lesson: '음악레슨',
+  workshop: '공방·원데이클래스', music_class: '음악학원', music_lesson: '음악레슨', music_studio: '작곡·레코딩 스튜디오',
   cooking: '요리·쿠킹', experience: '체험·액티비티',
   dental: '치과', oriental_medicine: '한의원', optics: '안경원',
   martial_arts: '무술·무도', climbing: '클라이밍', art_class: '미술학원',
@@ -1275,7 +1275,7 @@ const CONTENT_CALENDAR: Record<string, { theme: string; ideas: string[] }[]> = {
 const FOOD_CATS = new Set(['restaurant', 'cafe', 'bakery', 'bar'])
 const BEAUTY_CATS = new Set(['beauty', 'nail', 'skincare', 'massage', 'spa', 'semi_permanent'])
 const FITNESS_CATS = new Set(['fitness', 'yoga', 'dance', 'ballet', 'martial_arts', 'climbing', 'swim', 'golf'])
-const EDUCATION_CATS = new Set(['education', 'tutoring', 'music_class', 'music_lesson', 'art_class', 'cooking', 'kids', 'study', 'workshop'])
+const EDUCATION_CATS = new Set(['education', 'tutoring', 'music_class', 'music_lesson', 'music_studio', 'art_class', 'cooking', 'kids', 'study', 'workshop'])
 
 function getCalendarKey(category?: string): keyof typeof CONTENT_CALENDAR {
   if (!category) return 'default'
@@ -3402,7 +3402,7 @@ function getBizPlaceLabel(category?: string): string {
   const medical = new Set(['medical', 'dental', 'oriental_medicine', 'optics', 'pharmacy'])
   const office = new Set(['legal', 'accounting', 'realestate'])
   const creative = new Set(['photo', 'video', 'design'])
-  const academy = new Set(['education', 'tutoring', 'music_class', 'music_lesson', 'art_class', 'cooking', 'dance', 'ballet', 'martial_arts'])
+  const academy = new Set(['education', 'tutoring', 'music_class', 'music_lesson', 'music_studio', 'art_class', 'cooking', 'dance', 'ballet', 'martial_arts'])
   const studio = new Set(['fitness', 'yoga', 'climbing', 'swim', 'golf', 'childcare'])
   if (!category) return '가게'
   if (medical.has(category)) return '병원'

@@ -2000,6 +2000,40 @@ COMMENT ON CONSTRAINT businesses_category_check ON businesses IS
   'v5.8: 60개 업종 화이트리스트 (2026-05-18). keyword_taxonomy.py 완비에 맞춘 확장';
 
 -- =============================================
+-- v5.9 마이그레이션 (2026-07-17)
+-- music_studio 업종 신설 — 작곡·레코딩 스튜디오 (keyword_taxonomy.py "music" taxonomy 대응)
+-- =============================================
+
+ALTER TABLE businesses DROP CONSTRAINT IF EXISTS businesses_category_check;
+ALTER TABLE businesses ADD CONSTRAINT businesses_category_check
+  CHECK (category IN (
+    'restaurant','cafe','bakery','bar','accommodation',
+    'beauty','nail','skincare','massage','spa','ballet','semi_permanent',
+    'medical','pharmacy','dental','oriental_medicine',
+    'fitness','yoga','dance','golf','swim','martial_arts','climbing',
+    'pet',
+    'education','tutoring','music_lesson','music_class','music_studio','cooking','kids','study','art_class',
+    'legal','realestate','accounting',
+    'interior','auto','cleaning','laundry','flower','car_wash','electronics_repair',
+    'shopping','fashion','clothing','footwear','stationery',
+    'photo','video','design','experience',
+    'workshop','escape','optics','norebang','billiards','jjimjil',
+    'childcare',
+    'other'
+  ));
+
+COMMENT ON CONSTRAINT businesses_category_check ON businesses IS
+  'v5.9: 60개 업종 화이트리스트 (2026-07-17). music_studio 신규 추가';
+
+-- 기존 오분류 데이터 수정 — 홍뮤직스튜디오 2건: education → music_studio
+UPDATE businesses
+SET category = 'music_studio'
+WHERE id IN (
+  '696cebc5-df1c-490e-8909-7ce04870ca05',
+  'fccf289b-169d-4543-b827-68fb7d2604ba'
+);
+
+-- =============================================
 -- v5.6 마이그레이션 (2026-05-17)
 -- main_engine_optimization_v1.1.md §3.3 — 소식 14일 미작성 알림
 -- =============================================

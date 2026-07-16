@@ -14,7 +14,7 @@ _VALID_CATEGORIES = Literal[
     # 반려동물
     "pet",
     # 교육
-    "education", "tutoring", "study", "music_class", "music_lesson", "cooking", "art_class", "childcare",
+    "education", "tutoring", "study", "music_class", "music_lesson", "music_studio", "cooking", "art_class", "childcare",
     # 전문직·서비스
     "legal", "accounting", "realestate", "interior", "auto", "cleaning", "car_wash", "electronics_repair",
     # 쇼핑·생활

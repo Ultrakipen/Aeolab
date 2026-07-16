@@ -302,6 +302,8 @@ export const FLAT_CATEGORY_GROUPS: { groupLabel: string; items: FlatCategory[] }
         tags: ["피아노 교실", "바이올린 교실", "첼로 교실", "플루트 교실", "드럼 교실", "입시반", "취미반", "어린이 전용", "성인 가능", "그룹 레슨"] },
       { value: "music_lesson",  label: "악기레슨",        group: "education", groupLabel: "교육·레슨",
         tags: ["1:1 개인 레슨", "방문 레슨", "기타 레슨", "드럼 레슨", "보컬 레슨", "악기 구매 상담", "초보 환영", "성인 가능", "자격증 과정", "입시 준비"] },
+      { value: "music_studio", label: "작곡·레코딩 스튜디오", group: "education", groupLabel: "교육·레슨",
+        tags: ["작곡 레슨", "편곡 레슨", "녹음 가능", "미디 작업", "레코딩 스튜디오", "홈레코딩 강의", "실용음악 전문", "소수정예", "콩쿠르 수상 강사", "음악 제작"] },
       { value: "cooking",   label: "요리교실·쿠킹",  group: "education", groupLabel: "교육·레슨",
         tags: ["원데이 쿡킹", "베이킹 클래스", "한식 요리", "이탈리안 쿠킹", "소수정예", "재료비 포함", "초보 환영", "어린이 요리", "커플 클래스", "자격증 과정"] },
       { value: "art_class",  label: "미술학원",      group: "education", groupLabel: "교육·레슨",
@@ -479,6 +481,7 @@ export function mapNaverCategory(naverCat?: string): string {
   // 교육 세분화 — education보다 먼저 체크
   if (/스터디카페|독서실|스터디룸/.test(c)) return "study";
   if (/과외/.test(c)) return "tutoring";
+  if (/작곡교습소|작곡학원|레코딩스튜디오|음악스튜디오|녹음스튜디오/.test(c)) return "music_studio";
   if (/음악교실|음악학원|피아노학원|바이올린학원|첼로학원/.test(c)) return "music_class";
   if (/피아노레슨|기타레슨|드럼레슨|보컬레슨|악기레슨|개인레슨/.test(c)) return "music_lesson";
   if (/요리교실|쿠킹|베이킹클래스|요리학원|쿡클래스/.test(c)) return "cooking";

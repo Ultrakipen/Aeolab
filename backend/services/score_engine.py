@@ -42,7 +42,7 @@ BRIEFING_INACTIVE_CATEGORIES = [
     "medical", "clinic", "legal", "accounting", "education", "tutoring", "academy",
     "photo", "video", "design", "realestate", "interior",
     "auto", "cleaning", "laundry", "shopping", "fashion", "clothing",
-    "flower", "kids", "study", "workshop", "music", "music_class", "music_lesson",
+    "flower", "kids", "study", "workshop", "music", "music_class", "music_lesson", "music_studio",
     "cooking", "experience", "other",
     # 신규 14개 중 semi_permanent 제외 13개 (v5.7 — 2026-05-13)
     "dental", "oriental_medicine", "optics",

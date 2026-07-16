@@ -62,10 +62,13 @@ _CATEGORY_ALIASES: dict[str, str] = {
     # 스터디카페·독서실
     "study": "study", "스터디카페": "study", "독서실": "study", "스터디룸": "study",
     # 음악·예체능 교습소 (학원과 구분 — 원어민 키워드 오추천 방지)
-    "music": "music", "음악": "music", "음악교습소": "music", "음악학원": "music",
-    "피아노": "music", "피아노학원": "music", "피아노교습소": "music",
-    "바이올린": "music", "첼로": "music", "기타": "music", "드럼": "music",
+    # "음악학원"/"피아노학원" → L162-163 music_class가 최종. "기타" → L221 restaurant(fallback) 최종.
+    # 작곡·레코딩 특화는 "music_studio" value를 통해서만 "music" taxonomy에 도달하도록 설계.
+    "music": "music", "음악": "music", "음악교습소": "music",
+    "피아노": "music", "피아노교습소": "music",
+    "바이올린": "music", "첼로": "music", "드럼": "music",
     "보컬": "music", "성악": "music", "실용음악": "music", "작곡": "music",
+    "music_studio": "music",  # 작곡·레코딩 스튜디오 신규 value (2026-07-17)
     "미술": "art_class", "미술학원": "art_class", "미술교습소": "art_class",
     "발레": "ballet", "무용": "ballet", "댄스": "dance",
     # 법률

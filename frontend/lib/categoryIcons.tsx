@@ -63,6 +63,7 @@ import {
   PenLine,
   Mic,
   Dices,
+  Radio,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -136,6 +137,7 @@ export const CATEGORY_ICON_MAP: Record<string, CategoryIconConfig> = {
   spa:          { Icon: Gem,            bg: 'bg-fuchsia-100',text: 'text-fuchsia-600',border: 'border-fuchsia-200'},
   ballet:       { Icon: PersonStanding, bg: 'bg-pink-100',   text: 'text-pink-600',   border: 'border-pink-200'   },
   music_class:  { Icon: Music,          bg: 'bg-sky-100',    text: 'text-sky-600',    border: 'border-sky-200'    },
+  music_studio: { Icon: Radio,          bg: 'bg-violet-100', text: 'text-violet-600', border: 'border-violet-200' },
   clothing:     { Icon: Tag,            bg: 'bg-green-100',  text: 'text-green-700',  border: 'border-green-200'  },
   experience:   { Icon: Gamepad2,       bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-200' },
 

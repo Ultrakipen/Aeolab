@@ -291,6 +291,11 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
     keyActions: ["레슨 가능 악기 종류 명시", "강사 경력 공개", "1:1/그룹 레슨 가격 안내", "수업 시간 및 방문 레슨 가능 여부 명시", "초보자·입시반 구분 안내"],
   },
   {
+    value: "music_studio", label: "작곡·레코딩 스튜디오", group: "D",
+    briefing: "inactive", naverRatio: 45, globalRatio: 55,
+    keyActions: ["스튜디오 장비·부스 사진 등록", "녹음·믹싱·마스터링 포트폴리오 공개", "이용 요금 및 패키지 안내", "예약 방법 명시", "작업 가능 장르·편곡 서비스 안내"],
+  },
+  {
     value: "cooking", label: "요리교실·쿠킹", group: "D",
     briefing: "inactive", naverRatio: 45, globalRatio: 55,
     keyActions: ["요리 종류·수업 사진 등록", "강사 경력 명시", "가격·재료비 포함 여부 공개", "수업 일정·예약 안내", "초보자 환영 여부 명시"],

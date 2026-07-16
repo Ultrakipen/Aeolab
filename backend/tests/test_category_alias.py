@@ -23,7 +23,7 @@ WHITELIST_59 = [
     "medical", "legal", "accounting", "education", "tutoring",
     "photo", "video", "design", "realestate", "interior",
     "auto", "cleaning", "laundry", "shopping", "fashion", "clothing",
-    "flower", "kids", "study", "workshop", "music_class", "music_lesson",
+    "flower", "kids", "study", "workshop", "music_class", "music_lesson", "music_studio",
     "cooking", "experience", "other",
     "dental", "oriental_medicine", "optics",
     "martial_arts", "climbing", "art_class", "childcare",
@@ -33,7 +33,7 @@ WHITELIST_59 = [
 
 
 def test_whitelist_count():
-    assert len(WHITELIST_59) == 59, f"WHITELIST_59 count: {len(WHITELIST_59)}"
+    assert len(WHITELIST_59) == 60, f"WHITELIST_59 count: {len(WHITELIST_59)}"  # music_studio 추가로 60개 (2026-07-17)
 
 
 def test_all_have_eligibility():
