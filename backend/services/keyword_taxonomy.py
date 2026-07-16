@@ -50,11 +50,11 @@ _CATEGORY_ALIASES: dict[str, str] = {
     "skincare": "skincare", "피부관리": "skincare", "에스테틱": "skincare",
     "스킨케어": "skincare", "피부샵": "skincare", "피부": "skincare",
     # 마사지·스파
-    "massage": "massage", "마사지": "massage", "스파": "massage",
+    "massage": "massage", "마사지": "massage",
     "체형관리": "massage", "안마": "massage", "아로마": "massage", "타이마사지": "massage",
-    # 병원·한의원
+    # 병원·한의원 ("한의원"→oriental_medicine, "치과"→dental로 별도 세분화돼 아래 항목이 최종 유효값)
     "clinic": "clinic", "hospital": "clinic", "medical": "clinic",
-    "병원": "clinic", "한의원": "clinic", "치과": "clinic",
+    "병원": "clinic",
     "의원": "clinic", "약국": "clinic",
     # 학원·교육
     "academy": "academy", "education": "academy", "tutoring": "academy",
@@ -69,8 +69,8 @@ _CATEGORY_ALIASES: dict[str, str] = {
     "바이올린": "music", "첼로": "music", "드럼": "music",
     "보컬": "music", "성악": "music", "실용음악": "music", "작곡": "music",
     "music_studio": "music",  # 작곡·레코딩 스튜디오 신규 value (2026-07-17)
-    "미술": "art_class", "미술학원": "art_class", "미술교습소": "art_class",
-    "발레": "ballet", "무용": "ballet", "댄스": "dance",
+    "미술": "art_class", "미술교습소": "art_class",  # "미술학원"은 아래 art_class 세분화 항목이 최종
+    # "발레"/"무용"/"댄스"는 아래 ballet/dance 세분화 항목에 동일 값으로 이미 정의됨
     # 법률
     "legal": "legal", "lawyer": "legal", "law": "legal",
     "법률": "legal", "변호사": "legal",
@@ -112,7 +112,7 @@ _CATEGORY_ALIASES: dict[str, str] = {
     "펜션": "accommodation", "모텔": "accommodation", "호텔": "accommodation",
     # 생활서비스
     "living": "living", "세탁": "living",
-    "이사": "living", "청소": "living",
+    "이사": "living",  # "청소"는 아래 cleaning 세분화 항목이 최종 유효값
     # ── 폼 25개 업종 추가 매핑 (2026-04-23) ──
     # 음식 계열 alias
     "bakery": "bakery", "베이커리": "bakery", "빵집": "bakery", "디저트": "bakery",

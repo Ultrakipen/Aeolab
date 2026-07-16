@@ -14,7 +14,7 @@ import {
   // 신규 추가 아이콘
   Pen, Waves, Thermometer, Music2, Wind, Target, Swords, Mountain,
   Smile, Leaf, Eye, Music, Headphones, ChefHat, Paintbrush, Heart,
-  Droplet, Wrench, Tag, Footprints, Pencil, Mic, Circle, Lock, Compass,
+  Droplet, Wrench, Tag, Footprints, Pencil, Mic, Circle, Lock, Compass, Radio,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -63,7 +63,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   // 신규
   Pen, Waves, Thermometer, Music2, Wind, Target, Swords, Mountain,
   Smile, Leaf, Eye, Music, Headphones, ChefHat, Paintbrush, Heart,
-  Droplet, Wrench, Tag, Footprints, Pencil, Mic, Circle, Lock, Compass,
+  Droplet, Wrench, Tag, Footprints, Pencil, Mic, Circle, Lock, Compass, Radio,
 };
 
 const COLOR_MAP: Record<string, { bg: string; icon: string; border: string; ring: string; gradient: string }> = {
@@ -129,6 +129,7 @@ const EDIT_CATEGORIES = [
   { value: "study",       label: "스터디카페",     icon: "BookOpen",        color: "indigo"  },
   { value: "music_class", label: "음악교실",       icon: "Music",           color: "violet"  },
   { value: "music_lesson",label: "악기레슨",       icon: "Headphones",      color: "purple"  },
+  { value: "music_studio",label: "작곡·레코딩 스튜디오", icon: "Radio",     color: "violet"  },
   { value: "cooking",     label: "요리교실",       icon: "ChefHat",         color: "amber"   },
   { value: "art_class",   label: "미술학원",       icon: "Paintbrush",      color: "rose"    },
   { value: "childcare",   label: "어린이집·유치원",icon: "Heart",           color: "pink"    },

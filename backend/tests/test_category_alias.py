@@ -66,6 +66,47 @@ def test_yoga_not_mapped_to_fitness():
     assert normalize_category("yoga") == "yoga", "yoga should not alias to fitness"
 
 
+def test_no_duplicate_alias_keys():
+    """_CATEGORY_ALIASES dict literal에 동일 키가 두 번 정의되면 Python이 조용히
+    나중 값으로 덮어써서(예외·경고 없음) 의도한 카테고리가 죽은 코드가 될 수 있다
+    (2026-07-17 "음악학원"/"피아노학원"이 music → music_class로 가려진 사고 재발 방지).
+    dict 객체는 이미 병합된 뒤라 런타임에서 감지 불가능 — 소스 코드를 AST로 직접 파싱해야 한다.
+    """
+    import ast
+    import inspect
+    import services.keyword_taxonomy as kt
+
+    source = inspect.getsource(kt)
+    tree = ast.parse(source)
+
+    alias_dict_node = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "_CATEGORY_ALIASES":
+                    alias_dict_node = node.value
+                    break
+        if alias_dict_node is not None:
+            break
+
+    assert alias_dict_node is not None, "_CATEGORY_ALIASES 정의를 찾지 못함 (변수명 변경됐는지 확인)"
+    assert isinstance(alias_dict_node, ast.Dict)
+
+    keys = [k.value for k in alias_dict_node.keys if isinstance(k, ast.Constant)]
+    seen: dict[str, int] = {}
+    dups = []
+    for k in keys:
+        seen[k] = seen.get(k, 0) + 1
+    for k, count in seen.items():
+        if count > 1:
+            dups.append(f'"{k}" x{count}')
+
+    assert not dups, (
+        "_CATEGORY_ALIASES에 중복 키 발견 — 나중 정의가 앞의 값을 조용히 덮어씀: "
+        + ", ".join(dups)
+    )
+
+
 def test_cleaning_not_mapped_to_living():
     assert normalize_category("cleaning") == "cleaning", "cleaning should not alias to living"
 
