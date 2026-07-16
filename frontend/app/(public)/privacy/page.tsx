@@ -55,6 +55,7 @@ export default function PrivacyPage() {
                   <li>전화번호 (카카오 알림톡 수신용)</li>
                   <li>사업장 웹사이트 URL</li>
                   <li>Google Place ID, 카카오 Place ID</li>
+                  <li>사업자등록번호 (세금계산서 발행 요청 시 사용)</li>
                 </ul>
               </div>
               <div>
@@ -62,7 +63,7 @@ export default function PrivacyPage() {
                 <ul className="list-disc pl-5 space-y-1">
                   <li>서비스 이용 기록, 접속 로그</li>
                   <li>IP 주소 (무료 체험 스캔 횟수 제한용, 해시 처리 후 저장)</li>
-                  <li>결제 수단 정보 (카드 번호 제외, 빌링키 형태로 토스페이먼츠 위탁 저장)</li>
+                  <li>결제 수단 정보 (마스킹된 카드번호 일부·카드사 정보를 자사 DB에 보관; 전체 카드번호는 수집하지 않으며, 빌링키는 토스페이먼츠에 위탁 저장)</li>
                 </ul>
               </div>
             </div>

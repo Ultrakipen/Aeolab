@@ -2,8 +2,13 @@
 ChatGPT 광고 한국 도입 대응 가이드 생성 서비스
 ChatGPT 광고(ChatGPT Ads) 확대 대응 — 유기적 AI 노출 전략 (Claude Sonnet)
 """
+import logging
 import os
 import anthropic
+
+from services.ai_usage_logger import log_ai_usage
+
+_logger = logging.getLogger("aeolab")
 
 # AsyncAnthropic 클라이언트 재사용 — AdDefenseGuideService가 요청마다 새로
 # 인스턴스화되면서(guide.py:637) 매번 클라이언트도 새로 만들어 커넥션 재사용을
@@ -119,6 +124,10 @@ organic_strategies는 5개, 소상공인이 직접 실행 가능한 것 위주�
             max_tokens=6000,
             messages=[{"role": "user", "content": prompt}],
         )
+        try:
+            log_ai_usage("claude", "claude-sonnet-4-6", "ad_defense_guide", msg.usage.input_tokens, msg.usage.output_tokens)
+        except Exception as _le:
+            _logger.debug("ad_defense_guide usage 로깅 실패(무시): %s", _le)
         raw = msg.content[0].text.strip()
 
         import json, re

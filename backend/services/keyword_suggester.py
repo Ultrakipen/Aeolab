@@ -20,6 +20,8 @@ import re
 import logging
 from typing import Optional
 
+from services.ai_usage_logger import log_ai_usage
+
 _logger = logging.getLogger("aeolab")
 
 KEYWORD_SUGGEST_MODEL = os.getenv("KEYWORD_SUGGEST_MODEL", "claude-haiku-4-5-20251001")
@@ -181,6 +183,10 @@ async def generate_keyword_suggestions(
             max_tokens=1200,
             messages=[{"role": "user", "content": prompt}],
         )
+        try:
+            log_ai_usage("claude", KEYWORD_SUGGEST_MODEL, "keyword_suggest", msg.usage.input_tokens, msg.usage.output_tokens)
+        except Exception as _le:
+            _logger.debug("keyword_suggest usage 로깅 실패(무시): %s", _le)
         raw = (msg.content[0].text or "").strip()
         m = re.search(r"\[.*\]", raw, re.DOTALL)
         if not m:

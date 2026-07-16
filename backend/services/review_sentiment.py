@@ -5,6 +5,8 @@ import logging
 import re
 from typing import Optional
 
+from services.ai_usage_logger import log_ai_usage
+
 _logger = logging.getLogger("aeolab.review_sentiment")
 
 # AsyncAnthropic 클라이언트 재사용 — 호출마다 새로 만들면(+동기 클라이언트를
@@ -67,6 +69,10 @@ JSON 형식으로만 응답:
             max_tokens=500,
             messages=[{"role": "user", "content": prompt}],
         )
+        try:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", "review_sentiment", msg.usage.input_tokens, msg.usage.output_tokens)
+        except Exception as _le:
+            _logger.debug("review_sentiment usage 로깅 실패(무시): %s", _le)
         raw = msg.content[0].text.strip()
         m = re.search(r"\{.*\}", raw, re.DOTALL)
         if m:

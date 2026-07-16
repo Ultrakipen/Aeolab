@@ -10,6 +10,8 @@ import json
 import os
 import logging
 
+from services.ai_usage_logger import log_ai_usage
+
 _logger = logging.getLogger("aeolab")
 
 # AsyncAnthropic 클라이언트 재사용 — 호출마다 새로 만들면 커넥션풀을 재사용하지
@@ -87,6 +89,10 @@ async def generate_crisis_reply(
             max_tokens=900,
             messages=[{"role": "user", "content": prompt}],
         )
+        try:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", "crisis_reply", resp.usage.input_tokens, resp.usage.output_tokens)
+        except Exception as _le:
+            _logger.debug("crisis_reply usage 로깅 실패(무시): %s", _le)
         text = resp.content[0].text.strip()
         # JSON 블록 추출
         start = text.find("{")

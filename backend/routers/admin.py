@@ -1132,6 +1132,80 @@ async def get_ai_usage(
     }
 
 
+# ────────────────────────────────────────────────────────────────
+# AI 토큰·원화 비용 집계 — ai_usage_log 테이블 기반 실측 텔레메트리
+# (2026-07-12 신설된 ai_usage_logger.py가 Gemini/ChatGPT/Claude 호출 후 기록)
+# ────────────────────────────────────────────────────────────────
+
+@router.get("/ai-cost")
+async def get_ai_cost(
+    days: int = Query(30, ge=1, le=90, description="집계 기간(일)"),
+    _: None = Depends(verify_admin),
+):
+    """기간별 AI 실사용 토큰·원화 비용 집계 (provider/model/purpose 조합별).
+
+    ai_usage_log 테이블이 비어있거나(SQL 미실행 등) 쿼리 실패 시
+    500이 아닌 빈 집계 결과를 반환한다 — 신설 텔레메트리라 초기엔 데이터가 적음.
+    /ai-usage(채널별 실행 횟수, scan_results 기반)와 별개 엔드포인트.
+    """
+    supabase = get_supabase()
+    cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+
+    try:
+        rows_res = await execute(
+            supabase.table("ai_usage_log")
+            .select("provider, model, purpose, tokens_in, tokens_out, estimated_cost_krw, created_at")
+            .gte("created_at", cutoff)
+            .limit(10000)
+        )
+        rows = rows_res.data or []
+    except Exception as e:
+        _logger.warning("ai_cost: ai_usage_log 쿼리 실패(테이블 미생성 가능성): %s", e)
+        rows = []
+
+    # Python에서 그룹별 집계 (Supabase 클라이언트가 GROUP BY 미지원)
+    by_combo: dict[tuple, dict] = {}
+    by_provider: dict[str, dict] = {}
+
+    for row in rows:
+        provider = row.get("provider") or "unknown"
+        model = row.get("model") or "unknown"
+        purpose = row.get("purpose") or "unknown"
+        tokens_in = row.get("tokens_in") or 0
+        tokens_out = row.get("tokens_out") or 0
+        cost_krw = row.get("estimated_cost_krw") or 0.0
+
+        key = (provider, model, purpose)
+        if key not in by_combo:
+            by_combo[key] = {"provider": provider, "model": model, "purpose": purpose,
+                             "calls": 0, "tokens_in": 0, "tokens_out": 0, "cost_krw": 0.0}
+        by_combo[key]["calls"] += 1
+        by_combo[key]["tokens_in"] += tokens_in
+        by_combo[key]["tokens_out"] += tokens_out
+        by_combo[key]["cost_krw"] = round(by_combo[key]["cost_krw"] + cost_krw, 4)
+
+        if provider not in by_provider:
+            by_provider[provider] = {"calls": 0, "tokens_in": 0, "tokens_out": 0, "cost_krw": 0.0}
+        by_provider[provider]["calls"] += 1
+        by_provider[provider]["tokens_in"] += tokens_in
+        by_provider[provider]["tokens_out"] += tokens_out
+        by_provider[provider]["cost_krw"] = round(by_provider[provider]["cost_krw"] + cost_krw, 4)
+
+    # cost_krw 내림차순 정렬
+    detail = sorted(by_combo.values(), key=lambda x: x["cost_krw"], reverse=True)
+
+    total_cost = round(sum(r["cost_krw"] for r in detail), 4)
+    total_calls = sum(r["calls"] for r in detail)
+
+    return {
+        "period_days": days,
+        "total_calls": total_calls,
+        "total_cost_krw": total_cost,
+        "by_provider": by_provider,
+        "detail": detail,
+    }
+
+
 # ─── 이메일 미리보기 / 테스트 발송 ────────────────────────────────────────────
 
 _EMAIL_DUMMY = {

@@ -73,6 +73,8 @@ export default function TrialInputStep(props: TrialInputStepProps) {
   const [keywordError, setKeywordError] = useState(false);
   const [regionError, setRegionError] = useState(false);
   const [categorySearch, setCategorySearch] = useState("");
+  const [agreeEmailPrivacy, setAgreeEmailPrivacy] = useState(false);
+  const [emailConsentError, setEmailConsentError] = useState(false);
   const briefingCats = useBriefingCategories();
 
   useEffect(() => {
@@ -121,6 +123,14 @@ export default function TrialInputStep(props: TrialInputStepProps) {
       return;
     }
     setRegionError(false);
+
+    // 3. 이메일 입력 시 개인정보 수집 동의 필수
+    if (form.email.trim() && !agreeEmailPrivacy) {
+      e.preventDefault();
+      setEmailConsentError(true);
+      return;
+    }
+    setEmailConsentError(false);
 
     onSearch(e);
   };
@@ -1058,12 +1068,42 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   type="email"
                   placeholder="example@email.com"
                   value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, email: e.target.value });
+                    if (!e.target.value.trim()) setEmailConsentError(false);
+                  }}
                   className="w-full border border-slate-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <p className="text-xs text-slate-500 mt-1.5">
                   입력하시면 스캔 완료 후 결과 요약을 바로 이메일로 보내드립니다.
                 </p>
+                {form.email.trim() && (
+                  <div className="mt-2.5">
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={agreeEmailPrivacy}
+                        onChange={(e) => {
+                          setAgreeEmailPrivacy(e.target.checked);
+                          if (e.target.checked) setEmailConsentError(false);
+                        }}
+                        className="w-4 h-4 accent-blue-600 shrink-0 mt-0.5"
+                      />
+                      <span className="text-sm text-slate-600">
+                        <span className="text-blue-600 font-medium">[필수]</span>{" "}
+                        이메일 주소를 결과 발송 목적으로 수집하는 데 동의합니다.{" "}
+                        <Link href="/privacy" target="_blank" className="underline hover:text-blue-600">
+                          개인정보처리방침
+                        </Link>
+                      </span>
+                    </label>
+                    {emailConsentError && (
+                      <p className="text-red-500 text-sm mt-1" role="alert">
+                        이메일 수신을 원하시면 개인정보 수집·이용에 동의해주세요.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* 리뷰 붙여넣기 토글 */}

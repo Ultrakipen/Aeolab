@@ -7,6 +7,7 @@ import os
 import anthropic
 from db.supabase_client import get_client, execute
 from utils.region_match import region_matches
+from services.ai_usage_logger import log_ai_usage
 
 logger = logging.getLogger(__name__)
 
@@ -178,6 +179,10 @@ class StartupReportService:
             max_tokens=3200,
             messages=[{"role": "user", "content": prompt}],
         )
+        try:
+            log_ai_usage("claude", "claude-sonnet-4-6", "startup_report", msg.usage.input_tokens, msg.usage.output_tokens)
+        except Exception as _le:
+            logger.debug("startup_report usage 로깅 실패(무시): %s", _le)
         raw = msg.content[0].text.strip()
 
         import json, re

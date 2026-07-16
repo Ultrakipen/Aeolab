@@ -18,6 +18,7 @@ from models.context import ScanContext
 from models.action import ActionItem, ActionPlan
 from services.action_tools import build_action_tools
 from services.industry_prompt_rules import build_industry_system_prompt
+from services.ai_usage_logger import log_ai_usage
 
 _logger = logging.getLogger("aeolab")
 
@@ -539,6 +540,10 @@ class GuideGenerator:
                         messages=[{"role": "user", "content": user_prompt}],
                         timeout=150.0,
                     )
+                    try:
+                        log_ai_usage("claude", model, "guide_generate", message.usage.input_tokens, message.usage.output_tokens)
+                    except Exception as _le:
+                        _logger.debug("guide_generate usage 로깅 실패(무시): %s", _le)
                     return message.content[0].text
                 except Exception as e:
                     last_err = e
@@ -1240,6 +1245,10 @@ async def generate_smartplace_intro(
             max_tokens=4096,
             messages=[{"role": "user", "content": prompt}],
         )
+        try:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", "smartplace_intro", message.usage.input_tokens, message.usage.output_tokens)
+        except Exception as _le:
+            _logger.debug("smartplace_intro usage 로깅 실패(무시): %s", _le)
         raw = message.content[0].text.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
@@ -1339,6 +1348,10 @@ async def generate_faq_drafts(
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}],
         )
+        try:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", "faq_drafts", msg.usage.input_tokens, msg.usage.output_tokens)
+        except Exception as _le:
+            _logger.debug("faq_drafts usage 로깅 실패(무시): %s", _le)
         raw = msg.content[0].text.strip()
         m = re.search(r"\[.*\]", raw, re.DOTALL)
         if m:
@@ -1476,6 +1489,10 @@ async def generate_naver_intro(
             messages=[{"role": "user", "content": prompt}],
             timeout=60.0,
         )
+        try:
+            log_ai_usage("claude", "claude-sonnet-4-6", "naver_intro", message.usage.input_tokens, message.usage.output_tokens)
+        except Exception as _le:
+            _logger.debug("naver_intro usage 로깅 실패(무시): %s", _le)
         text = message.content[0].text.strip()
         # 적시성 마커 폴백 (Claude가 누락한 경우 자동 보강)
         if not re.search(r"\[20\d{2}년\s*\d{1,2}월", text):
@@ -1556,6 +1573,10 @@ async def generate_global_ai_intro(
             messages=[{"role": "user", "content": prompt}],
             timeout=60.0,
         )
+        try:
+            log_ai_usage("claude", "claude-sonnet-4-6", "global_ai_intro", message.usage.input_tokens, message.usage.output_tokens)
+        except Exception as _le:
+            _logger.debug("global_ai_intro usage 로깅 실패(무시): %s", _le)
         text = message.content[0].text.strip()
         if not re.search(r"\[20\d{2}년\s*\d{1,2}월", text):
             text = text.rstrip() + f"\n\n[{now_kst.year}년 {now_kst.month}월 기준]"
@@ -1590,6 +1611,10 @@ async def generate_talktalk_faq(
             messages=[{"role": "user", "content": prompt}],
             timeout=60.0,
         )
+        try:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", "talktalk_faq", message.usage.input_tokens, message.usage.output_tokens)
+        except Exception as _le:
+            _logger.debug("talktalk_faq usage 로깅 실패(무시): %s", _le)
         raw = message.content[0].text.strip()
     except Exception as e:
         _logger.warning(f"generate_talktalk_faq Claude call failed: {e}")
