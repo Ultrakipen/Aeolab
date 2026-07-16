@@ -108,14 +108,16 @@ class NaverAIBriefingScanner:
 
     async def _check_single_page(self, page, query: str, target: str, category: str = "") -> dict:
         """단일 페이지에서 AI 브리핑 및 플레이스 결과 확인"""
-        mentioned      = False
-        in_briefing    = False
-        excerpt        = ""
-        rank           = None
-        page_text      = ""
-        in_ai_tab      = False
-        ai_tab_excerpt = ""
-        ad_only        = False
+        mentioned        = False
+        in_briefing      = False
+        excerpt          = ""
+        rank             = None
+        page_text        = ""
+        in_ai_tab        = False
+        ai_tab_excerpt   = ""
+        ad_only          = False
+        source_urls:     list      = []
+        source_blog_ids: list[str] = []
 
         try:
             url = f"https://search.naver.com/search.naver?query={query}"
@@ -143,6 +145,7 @@ class NaverAIBriefingScanner:
                     "error": "captcha_or_blocked", "_query_used": query,
                     "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
                     "queries_used": [query],
+                    "source_urls": [], "source_blog_ids": [],
                 }
 
             # ── AI 브리핑 "펼쳐서 더보기" 확장 ─────────────────────
@@ -178,6 +181,36 @@ class NaverAIBriefingScanner:
                             in_briefing = True
                             lines = [l for l in text.split("\n") if _name_in_text(target, l)]
                             excerpt = lines[0][:120] if lines else ""
+                            # ── 정보형 AI 브리핑 출처 URL 추출 ──────────────
+                            # fds-aib-multi-source-scroll-area 하위 <a href> 수집.
+                            # 광고(클립·피드백) 링크는 className으로 필터링.
+                            try:
+                                source_urls = await el.evaluate("""el => {
+                                    const src_area = el.querySelector(
+                                        'div[class*="fds-aib-multi-source-scroll-area"]'
+                                    );
+                                    if (!src_area) return [];
+                                    const seen = new Set();
+                                    const links = [];
+                                    src_area.querySelectorAll('a[href]').forEach(a => {
+                                        const url = a.href;
+                                        if (!seen.has(url) &&
+                                            !a.className.includes('sds-rego-feedback') &&
+                                            !a.className.includes('_shortform_trigger')) {
+                                            seen.add(url);
+                                            links.push(url);
+                                        }
+                                    });
+                                    return links;
+                                }""")
+                                for _su in (source_urls or []):
+                                    _m = re.search(r'blog\.naver\.com/([^/]+)/', _su)
+                                    if _m:
+                                        _bid = _m.group(1)
+                                        if _bid not in source_blog_ids:
+                                            source_blog_ids.append(_bid)
+                            except Exception as _se:
+                                logger.debug(f"[naver_scanner] source_urls extraction failed — {_se}")
                         break
                 except Exception as _e:
                     logger.debug(f"[naver_scanner] briefing selector failed — {_e}")
@@ -240,16 +273,18 @@ class NaverAIBriefingScanner:
             logger.warning(f"NaverAIBriefingScanner page check error for '{query}': {e}")
 
         return {
-            "platform":      "naver",
-            "mentioned":     mentioned or in_briefing,
-            "in_briefing":   in_briefing,
-            "rank":          rank,
-            "excerpt":       excerpt,
-            "_query_used":   query,
-            "in_ai_tab":     in_ai_tab,
-            "ai_tab_excerpt": ai_tab_excerpt,
-            "ad_only":       ad_only,
-            "queries_used":  [query],
+            "platform":        "naver",
+            "mentioned":       mentioned or in_briefing,
+            "in_briefing":     in_briefing,
+            "rank":            rank,
+            "excerpt":         excerpt,
+            "_query_used":     query,
+            "in_ai_tab":       in_ai_tab,
+            "ai_tab_excerpt":  ai_tab_excerpt,
+            "ad_only":         ad_only,
+            "queries_used":    [query],
+            "source_urls":     source_urls,
+            "source_blog_ids": source_blog_ids,
         }
 
     async def check_mention(self, query: str, target: str, category: str = "") -> dict:
@@ -297,7 +332,7 @@ class NaverAIBriefingScanner:
                 "platform": "naver", "mentioned": False, "in_briefing": False,
                 "rank": None, "excerpt": "", "keyword_results": [],
                 "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
-                "queries_used": [],
+                "queries_used": [], "source_urls": [], "source_blog_ids": [],
             }
 
         proxy = get_proxy_config()

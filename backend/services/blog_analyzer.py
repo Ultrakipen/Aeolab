@@ -769,8 +769,13 @@ def _build_competitor_comparison(
     my_keyword_coverage: float,
     competitor_blogs: list[dict],
     my_covered_keywords: list[str] = None,
+    competitor_comp_keywords: list[dict] = None,
 ) -> Optional[dict]:
-    """경쟁사 블로그 비교 — competitor_blogs: [{name, blog_analysis_json}]"""
+    """경쟁사 블로그 비교 — competitor_blogs: [{name, blog_analysis_json}]
+
+    competitor_comp_keywords: [{name, comp_keywords}] — competitors 테이블의 comp_keywords(TEXT[])
+    블로그 키워드 분석 데이터가 없는 경쟁사를 보완하는 2차 소스로 사용.
+    """
     if not competitor_blogs:
         return None
 
@@ -778,19 +783,27 @@ def _build_competitor_comparison(
     scores = []
     comp_all_keywords: set[str] = set()
 
+    # 경쟁사별 블로그 키워드 맵 (C. 봉쇄 원인 분석용)
+    comp_blog_kw_map: dict[str, set[str]] = {}
+
     for cb in competitor_blogs:
+        name = cb.get("name", "경쟁사")
         analysis = cb.get("blog_analysis_json") or {}
         c_score = analysis.get("citation_score", 0)
         c_count = analysis.get("post_count", 0)
         # 경쟁사 키워드 수집 (keyword_coverage.present + covered_keywords)
         kw_cov = analysis.get("keyword_coverage", {})
+        kws_from_blog: set[str] = set()
         if isinstance(kw_cov, dict):
-            comp_all_keywords.update(kw_cov.get("present", []))
+            kws_from_blog.update(kw_cov.get("present", []))
         covered = analysis.get("covered_keywords", [])
         if isinstance(covered, list):
-            comp_all_keywords.update(covered)
+            kws_from_blog.update(covered)
+        comp_all_keywords.update(kws_from_blog)
+        if kws_from_blog:
+            comp_blog_kw_map[name] = kws_from_blog
         competitors.append({
-            "name": cb.get("name", "경쟁사"),
+            "name": name,
             "score": c_score,
             "post_count": c_count,
             "freshness": analysis.get("freshness", "unknown"),
@@ -809,15 +822,81 @@ def _build_competitor_comparison(
     my_covered = set(my_covered_keywords or [])
     competitor_keyword_gaps = list(comp_all_keywords - my_covered)[:10]
 
+    # C. 경쟁사 키워드 봉쇄 원인 분석
+    # 1차: blog_analysis_json 블로그 키워드 (가장 정확 — gap 계산과 동일 소스)
+    # 2차: comp_keywords DB 컬럼 보완 (blog 데이터 없는 경쟁사 포함)
+    if competitor_comp_keywords:
+        for ck in competitor_comp_keywords:
+            ck_name = ck.get("name", "")
+            db_kws = [k for k in (ck.get("comp_keywords") or []) if k]
+            if ck_name and db_kws and ck_name not in comp_blog_kw_map:
+                comp_blog_kw_map[ck_name] = set(db_kws)
+
+    competitor_keyword_detail: list[dict] = []
+    for kw in competitor_keyword_gaps:
+        kw_lower = kw.lower()
+        covered_by: list[str] = []
+        for cname, kws in comp_blog_kw_map.items():
+            # 대소문자 무시, 부분 일치 허용 (짧은 쪽이 긴 쪽에 포함)
+            if any(
+                kw_lower == k.lower()
+                or kw_lower in k.lower()
+                or k.lower() in kw_lower
+                for k in kws
+            ):
+                covered_by.append(cname)
+        competitor_keyword_detail.append({
+            "keyword": kw,
+            "covered_by": covered_by,
+            "my_status": "미커버",
+        })
+
     return {
         "avg_score": avg_score,
         "my_score": my_score,
         "my_rank": my_rank,
         "total_count": len(competitors) + 1,
         "competitors": competitors,
-        "competitor_keyword_gaps": competitor_keyword_gaps,
+        "competitor_keyword_gaps": competitor_keyword_gaps,  # 하위 호환 유지
+        "competitor_keyword_detail": competitor_keyword_detail,  # C. 봉쇄 원인 분석 (신규)
         "competitor_gap_message": f"경쟁사 블로그에는 있고 내 블로그에는 없는 키워드 {len(competitor_keyword_gaps)}개가 발견됐습니다.",
     }
+
+
+def _annotate_posts_with_citations(
+    posts_detail: list[dict],
+    cited_source_urls: set[str],
+    cited_blog_ids: set[str],
+) -> list[dict]:
+    """각 포스트에 is_cited, cited_confirmed 필드를 추가한 새 리스트를 반환.
+
+    - cited_confirmed=True : source_url 정확 매칭 (쿼리스트링 무시, 높은 신뢰도)
+    - is_cited=True, cited_confirmed=False : blog_id 레벨 매칭만 (fallback, 낮은 신뢰도)
+    - is_cited=False, cited_confirmed=False : 인용 확인 안 됨
+
+    과거 스캔 레코드의 source_url이 NULL이면 cited_source_urls/cited_blog_ids가 비어
+    모든 포스트가 is_cited=False로 반환되므로, 프론트는 데이터 부재를 '확인 안 됨'으로 표시.
+    외부 블로그(티스토리 등)는 blog.naver.com 패턴과 불일치하므로 blog_id 매칭은 건너뜀.
+    """
+    result: list[dict] = []
+    for post in posts_detail:
+        # 쿼리스트링 제거 + 모바일 도메인 정규화(m.blog.naver.com → blog.naver.com)
+        link = (post.get("link") or "").split("?")[0].replace("//m.blog.naver.com/", "//blog.naver.com/")
+
+        # 1. source_url 정확 매칭
+        cited_confirmed = bool(link and link in cited_source_urls)
+
+        # 2. blog_id 레벨 매칭 (fallback) — 네이버 블로그만
+        blog_id: Optional[str] = None
+        if link and not cited_confirmed:
+            m = re.match(r"https?://blog\.naver\.com/([^/?#]+)", link)
+            if m:
+                blog_id = m.group(1)
+
+        is_cited = cited_confirmed or bool(blog_id and blog_id in cited_blog_ids)
+
+        result.append({**post, "is_cited": is_cited, "cited_confirmed": cited_confirmed})
+    return result
 
 
 # 주제 추천에 사용할 검색 의도어 (키워드+월 기반 안정적 순환 — 매달 문구가 바뀌도록)

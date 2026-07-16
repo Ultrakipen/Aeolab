@@ -693,6 +693,8 @@ async def daily_scan_all():
                                     "excerpt": (kw_r.get("excerpt") or "").strip()[:500],
                                     "sentiment": "neutral",
                                     "mention_type": "information",
+                                    "source_url": (kw_r.get("source_urls") or [None])[0],
+                                    "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
                                 })
                         elif "mentioned" in r or "exposure_freq" in r:
                             _mentioned = bool(r.get("mentioned")) or (r.get("exposure_freq", 0) > 0)

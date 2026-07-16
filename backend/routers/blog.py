@@ -50,6 +50,85 @@ _blog_analyze_semaphore = asyncio.Semaphore(_BLOG_ANALYZE_MAX_CONCURRENCY)
 _BLOG_ANALYZE_QUEUE_TIMEOUT_SEC = float(os.getenv("BLOG_ANALYZE_QUEUE_TIMEOUT_SEC", "8"))
 
 
+async def _fetch_multi_channel_citations(business_id: str, supabase) -> dict:
+    """최근 3회 스캔의 platform별 AI 인용 통계. 신규 AI 호출 없음 — ai_citations SELECT만.
+
+    반환 형식:
+    {"gemini": {"mentioned_count": 2, "total": 3}, "chatgpt": {...}, ...}
+    """
+    try:
+        # 최근 3 scan_results ID 조회
+        scan_res = (await execute(
+            supabase.table("scan_results")
+            .select("id")
+            .eq("business_id", business_id)
+            .order("scanned_at", desc=True)
+            .limit(3)
+        )).data or []
+        if not scan_res:
+            return {}
+
+        scan_ids = [r["id"] for r in scan_res]
+        cit_res = (await execute(
+            supabase.table("ai_citations")
+            .select("platform, mentioned")
+            .in_("scan_id", scan_ids)
+        )).data or []
+
+        result: dict[str, dict] = {}
+        for c in cit_res:
+            p = c.get("platform") or "unknown"
+            if p not in result:
+                result[p] = {"mentioned_count": 0, "total": 0}
+            result[p]["total"] += 1
+            if c.get("mentioned"):
+                result[p]["mentioned_count"] += 1
+        return result
+    except Exception as e:
+        _logger.warning(f"multi_channel_citations 조회 실패 [biz={business_id}]: {e}")
+        return {}
+
+
+async def _fetch_competitor_blog_mentions(business_id: str, supabase) -> dict:
+    """내 사업장 + 경쟁사 블로그 언급 수 벤치마크. 신규 API 호출 없음 — 기존 컬럼 SELECT만.
+
+    반환 형식:
+    {"my_count": 42, "competitors": [{"name": "라포뮤직", "blog_mention_count": 296}], "avg_count": 169.0}
+    """
+    try:
+        biz_res = (await execute(
+            supabase.table("businesses")
+            .select("blog_mention_count")
+            .eq("id", business_id)
+            .single()
+        )).data
+        my_count = int((biz_res or {}).get("blog_mention_count") or 0)
+
+        comp_res = (await execute(
+            supabase.table("competitors")
+            .select("name, blog_mention_count")
+            .eq("business_id", business_id)
+        )).data or []
+
+        competitors = [
+            {
+                "name": c.get("name") or "경쟁사",
+                "blog_mention_count": int(c.get("blog_mention_count") or 0),
+            }
+            for c in comp_res
+        ]
+        all_counts = [my_count] + [c["blog_mention_count"] for c in competitors]
+        avg_count = round(sum(all_counts) / max(len(all_counts), 1), 1)
+        return {
+            "my_count": my_count,
+            "competitors": competitors,
+            "avg_count": avg_count,
+        }
+    except Exception as e:
+        _logger.warning(f"competitor_blog_mentions 조회 실패 [biz={business_id}]: {e}")
+        return {}
+
+
 def _check_blog_rate_limit(user_id: str) -> None:
     key = f"blog_analyze_rate:{user_id}"
     count: int = _cache.get(key) or 0
@@ -218,16 +297,17 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
         "competitor_only": [],
     }
 
-    # v2: 경쟁사 블로그 비교 데이터 수집
+    # v2: 경쟁사 블로그 비교 데이터 수집 (C. competitor_keyword_detail 포함)
     competitor_blog_comparison = None
     try:
         from services.blog_analyzer import _build_competitor_comparison
+        # comp_keywords: TEXT[] — C. 봉쇄 원인 분석에서 blog 데이터 없는 경쟁사 보완 소스
         comp_rows = (await execute(
             supabase.table("competitors")
-            .select("name, blog_analysis_json")
+            .select("name, blog_analysis_json, comp_keywords")
             .eq("business_id", request.business_id)
         )).data or []
-        # blog_analysis_json이 있는 경쟁사만
+        # blog_analysis_json이 있는 경쟁사만 점수 비교에 사용
         comp_with_blog = [c for c in comp_rows if c.get("blog_analysis_json")]
         if comp_with_blog:
             competitor_blog_comparison = _build_competitor_comparison(
@@ -237,6 +317,11 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
                 my_keyword_coverage=analysis.get("keyword_coverage", 0),
                 competitor_blogs=comp_with_blog,
                 my_covered_keywords=analysis.get("covered_keywords", []),
+                # C: comp_keywords — 전체 경쟁사 대상(blog 데이터 없는 경쟁사도 포함)
+                competitor_comp_keywords=[
+                    {"name": c.get("name"), "comp_keywords": c.get("comp_keywords") or []}
+                    for c in comp_rows
+                ],
             )
     except Exception as e:
         _logger.warning(f"competitor blog comparison failed: {e}")
@@ -326,7 +411,54 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
         # 월 사용량 — 실패 시 소비하지 않으므로 +1 하지 않음
         "monthly_used": monthly_used if analysis.get("error") else monthly_used + 1,
         "monthly_limit": limit,
+        # A~D 기본값 — 아래 블록에서 실제 값으로 덮어씀 (실패해도 키 존재 보장)
+        "multi_channel_citations": {},
+        "competitor_blog_mentions": {},
     }
+
+    # A. 포스트별 실측 인용 여부 매핑
+    # naver platform ai_citations에서 source_url IS NOT NULL 레코드만 조회.
+    # 과거 스캔 데이터(source_url=NULL)는 제외 — cited 셋이 비면 전부 is_cited=False 반환.
+    try:
+        from services.blog_analyzer import _annotate_posts_with_citations
+        cit_src_res = (await execute(
+            supabase.table("ai_citations")
+            .select("source_url, source_blog_id")
+            .eq("business_id", request.business_id)
+            .eq("platform", "naver")
+            .not_.is_("source_url", "null")
+        )).data or []
+        cited_urls: set[str] = {
+            (r.get("source_url") or "").split("?")[0].replace("//m.blog.naver.com/", "//blog.naver.com/")
+            for r in cit_src_res
+            if r.get("source_url")
+        }
+        cited_blog_ids: set[str] = {
+            r["source_blog_id"] for r in cit_src_res if r.get("source_blog_id")
+        }
+        analysis_json["posts_detail"] = _annotate_posts_with_citations(
+            analysis_json.get("posts_detail", []),
+            cited_urls,
+            cited_blog_ids,
+        )
+    except Exception as _e:
+        _logger.warning(f"post citation annotation 실패 [biz={request.business_id}]: {_e}")
+
+    # B. 5채널 AI 인용 영향 대시보드
+    try:
+        analysis_json["multi_channel_citations"] = await _fetch_multi_channel_citations(
+            request.business_id, supabase
+        )
+    except Exception as _e:
+        _logger.warning(f"multi_channel_citations 추가 실패 [biz={request.business_id}]: {_e}")
+
+    # D. 블로그 언급 수 벤치마크
+    try:
+        analysis_json["competitor_blog_mentions"] = await _fetch_competitor_blog_mentions(
+            request.business_id, supabase
+        )
+    except Exception as _e:
+        _logger.warning(f"competitor_blog_mentions 추가 실패 [biz={request.business_id}]: {_e}")
 
     # 분석이 실패한 경우(크롤링/API 오류 등) — 기존에 저장된 실제 값을 0으로 덮어쓰지 않고,
     # 24시간 쿨다운·월 사용량도 소비시키지 않는다 (우리 쪽 오류로 사용자에게 불이익 금지)
@@ -471,12 +603,25 @@ async def get_blog_result(
     limit = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["blog_monthly"]
     monthly_used = await _get_monthly_blog_count(user_id, supabase) if limit < 999 else 0
 
-    # blog_analysis_json이 있으면 전체 결과 그대로 반환 (새로고침 후 복원)
+    # blog_analysis_json이 있으면 전체 결과 반환 (새로고침 후 복원)
+    # B, D는 ai_citations·competitors 데이터가 스캔마다 업데이트되므로 매 조회 시 신선하게 갱신
     if has_json_column:
         saved_json = biz_row.get("blog_analysis_json")
         if saved_json and isinstance(saved_json, dict):
+            live_multi_channel: dict = {}
+            live_blog_mentions: dict = {}
+            try:
+                live_multi_channel = await _fetch_multi_channel_citations(business_id, supabase)
+            except Exception as _e:
+                _logger.warning(f"get_blog_result multi_channel 조회 실패: {_e}")
+            try:
+                live_blog_mentions = await _fetch_competitor_blog_mentions(business_id, supabase)
+            except Exception as _e:
+                _logger.warning(f"get_blog_result blog_mentions 조회 실패: {_e}")
             return {
                 **saved_json,
+                "multi_channel_citations": live_multi_channel,  # B: 최신 데이터로 갱신
+                "competitor_blog_mentions": live_blog_mentions,  # D: 최신 데이터로 갱신
                 "has_blog_analysis": True,
                 "monthly_used": monthly_used,
                 "monthly_limit": limit,

@@ -20,7 +20,20 @@ import {
   Zap,
   CalendarDays,
   X,
+  Globe,
+  BarChart2,
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+  Cell,
+} from "recharts";
 import { PlanGate } from "@/components/common/PlanGate";
 import { KeywordManagerModal } from "@/components/dashboard/KeywordManagerModal";
 import { addExcludedKeyword } from "@/lib/api";
@@ -57,6 +70,9 @@ interface PostDetail {
   img_count?: number;
   heading_count?: number;
   full_text_len?: number;
+  // AI 인용 매칭 (백엔드 v4+ 신규 필드)
+  is_cited?: boolean;
+  cited_confirmed?: boolean;
 }
 
 interface WeeklyAction {
@@ -91,6 +107,12 @@ interface CompetitorBlogComparison {
   competitors: CompetitorBlog[];
   competitor_keyword_gaps?: string[];
   competitor_gap_message?: string;
+  // 키워드별 경쟁사 점유 현황 (백엔드 v4+ 신규 필드)
+  competitor_keyword_detail?: Array<{
+    keyword: string;
+    covered_by: string[];
+    my_status: string;
+  }>;
 }
 
 interface BlogAnalysisResult {
@@ -167,6 +189,14 @@ interface BlogAnalysisResult {
   error?: string | null;
   // RSS 접근 실패로 API 스니펫만으로 분석했을 때 true (이미지·본문 길이 측정 불가)
   rss_failed?: boolean;
+  // 채널별 AI 인용 현황 (최근 3회 스캔, 백엔드 v4+ 신규 필드)
+  multi_channel_citations?: Record<string, { mentioned_count: number; total: number }>;
+  // 블로그 언급 수 경쟁사 비교 (백엔드 v4+ 신규 필드)
+  competitor_blog_mentions?: {
+    my_count: number;
+    competitors: Array<{ name: string; blog_mention_count: number }>;
+    avg_count: number;
+  };
 }
 
 interface Props {
@@ -232,6 +262,36 @@ function freshnessLabel(score: number) {
   if (score >= 70) return "최신 콘텐츠 양호";
   if (score >= 40) return "업데이트 권장";
   return "오래된 콘텐츠";
+}
+
+// 포스트 AI 인용 상태 배지 — is_cited/cited_confirmed 3단계
+// - cited_confirmed=true: 정확 매칭 (높은 신뢰도)
+// - is_cited=true, cited_confirmed=false: 블로그 단위 매칭 (낮은 신뢰도)
+// - is_cited=false: 과거 스캔 데이터라 미확인일 수 있음 → "단정 금지" 원칙 준수 ("아직 미인용" 아님)
+// - undefined: 구 분석 결과 (필드 없음) → null 반환해 렌더 생략
+function citationStatusBadge(p: PostDetail) {
+  if (p.cited_confirmed) {
+    return (
+      <span className="inline-flex items-center border text-sm font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 border-green-300">
+        AI 인용 확인됨
+      </span>
+    );
+  }
+  if (p.is_cited === true) {
+    return (
+      <span className="inline-flex items-center border text-sm font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border-blue-300">
+        인용 가능성 있음
+      </span>
+    );
+  }
+  if (p.is_cited === false) {
+    return (
+      <span className="inline-flex items-center border text-sm font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border-gray-200">
+        확인 안 됨
+      </span>
+    );
+  }
+  return null;
 }
 
 function impactBadge(impact: string) {
@@ -484,7 +544,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
             {shown.map((p, idx) => (
               <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 align-top">
                 <td className="py-3 pr-3">
-                  <div className="flex items-start gap-1">
+                  <div className="flex flex-col gap-1">
                     {p.link ? (
                       <a href={p.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium line-clamp-2 break-keep">
                         {p.title || "(제목 없음)"}
@@ -492,6 +552,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                     ) : (
                       <span className="text-gray-800 font-medium line-clamp-2 break-keep">{p.title || "(제목 없음)"}</span>
                     )}
+                    {citationStatusBadge(p)}
                   </div>
                 </td>
                 <td className="py-3 text-center text-gray-500 whitespace-nowrap">
@@ -562,6 +623,9 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                   <p className="text-sm text-gray-500 mt-0.5">
                     {new Date(p.date).toLocaleDateString("ko-KR", { year: "numeric", month: "short", day: "numeric" })}
                   </p>
+                )}
+                {citationStatusBadge(p) !== null && (
+                  <div className="mt-1">{citationStatusBadge(p)}</div>
                 )}
               </div>
               <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
@@ -1272,6 +1336,297 @@ function TitleImprovementSection({ posts, businessId }: { posts: PostDetail[]; b
   );
 }
 
+/* ────────────────────────────────────────────────────────────
+   섹션 A — MultiChannelCitationPanel
+   채널별 AI 인용 횟수 (최근 3회 스캔 기준)
+   ─────────────────────────────────────────────────────────── */
+const CHANNEL_LABELS: Record<string, string> = {
+  gemini: "Gemini",
+  chatgpt: "ChatGPT",
+  naver: "네이버 AI 브리핑",
+  google: "Google AI Overview",
+};
+const CHANNEL_ORDER = ["naver", "chatgpt", "gemini", "google"];
+
+function MultiChannelCitationPanel({
+  citations,
+}: {
+  citations: Record<string, { mentioned_count: number; total: number }>;
+}) {
+  const entries = CHANNEL_ORDER
+    .filter((k) => citations[k] !== undefined)
+    .map((k) => [k, citations[k]] as [string, { mentioned_count: number; total: number }]);
+
+  // 정의된 채널 외의 것도 뒤에 붙임
+  const extra = Object.entries(citations).filter(([k]) => !CHANNEL_ORDER.includes(k));
+  const all = [...entries, ...extra];
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-1">
+        <Globe className="w-5 h-5 text-indigo-600 shrink-0" />
+        <h3 className="text-base md:text-lg font-bold text-gray-900">채널별 AI 인용 현황</h3>
+        <span className="text-sm text-gray-400 ml-auto shrink-0">최근 3회 스캔 기준</span>
+      </div>
+      <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+        각 AI 채널에서 사업장 또는 블로그 콘텐츠가 인용된 횟수입니다.
+        측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+      </p>
+
+      {all.length === 0 ? (
+        <p className="text-sm text-gray-400">아직 측정 데이터 없음 — 스캔 후 표시됩니다.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {all.map(([platform, data]) => {
+            const pct = data.total > 0 ? Math.round((data.mentioned_count / data.total) * 100) : 0;
+            const label = CHANNEL_LABELS[platform] ?? platform;
+            const isHigh = pct >= 50;
+            const isMid = pct >= 20;
+            const barClass = isHigh
+              ? "bg-green-500"
+              : isMid
+              ? "bg-amber-400"
+              : "bg-gray-300";
+            const badgeClass = isHigh
+              ? "bg-green-100 text-green-700 border-green-300"
+              : isMid
+              ? "bg-amber-100 text-amber-700 border-amber-300"
+              : "bg-gray-100 text-gray-600 border-gray-300";
+            const textClass = isHigh
+              ? "text-green-700"
+              : isMid
+              ? "text-amber-600"
+              : "text-gray-500";
+            return (
+              <div key={platform} className="border border-gray-200 rounded-xl p-4">
+                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                  <span className="text-sm font-semibold text-gray-900">{label}</span>
+                  <span className={`inline-flex items-center border text-sm font-bold px-2.5 py-0.5 rounded-full shrink-0 ${badgeClass}`}>
+                    {data.mentioned_count}/{data.total}회 인용
+                  </span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-1.5">
+                  <div
+                    className={`h-full rounded-full transition-all ${barClass}`}
+                    style={{ width: `${data.total > 0 ? Math.max(pct, 4) : 0}%` }}
+                  />
+                </div>
+                <p className={`text-sm font-semibold ${textClass}`}>
+                  {data.total > 0 ? `${pct}% 인용률` : "측정 데이터 없음"}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
+   섹션 B — CompetitorKeywordBlockedPanel
+   키워드별 경쟁사 점유 현황 테이블
+   ─────────────────────────────────────────────────────────── */
+function CompetitorKeywordBlockedPanel({
+  keywordDetail,
+}: {
+  keywordDetail: Array<{ keyword: string; covered_by: string[]; my_status: string }>;
+}) {
+  if (!keywordDetail || keywordDetail.length === 0) return null;
+
+  const pioneerCount = keywordDetail.filter((k) => k.covered_by.length === 0).length;
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-1">
+        <Target className="w-5 h-5 text-orange-500 shrink-0" />
+        <h3 className="text-base md:text-lg font-bold text-gray-900">경쟁사 키워드 점유 현황</h3>
+      </div>
+      <p className="text-sm text-gray-500 mb-1 leading-relaxed">
+        경쟁사들이 블로그에서 이미 다루고 있는 키워드를 분석합니다.
+      </p>
+      {pioneerCount > 0 && (
+        <div className="inline-flex items-center border text-sm font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700 border-green-300 mb-4">
+          선점 기회 {pioneerCount}개 발견 — 경쟁사 미사용
+        </div>
+      )}
+
+      {/* PC: 테이블 */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full min-w-[560px] text-sm">
+          <thead>
+            <tr className="border-b border-gray-200 text-left">
+              <th className="pb-2 pr-4 font-semibold text-gray-600 w-[28%]">키워드</th>
+              <th className="pb-2 pr-4 font-semibold text-gray-600 w-[38%]">커버한 경쟁사</th>
+              <th className="pb-2 font-semibold text-gray-600">권장 액션</th>
+            </tr>
+          </thead>
+          <tbody>
+            {keywordDetail.map((item, idx) => {
+              const isPioneer = item.covered_by.length === 0;
+              return (
+                <tr
+                  key={idx}
+                  className={`border-b border-gray-100 ${isPioneer ? "bg-green-50/50" : "bg-red-50/20"}`}
+                >
+                  <td className="py-3 pr-4">
+                    <span className={`inline-flex items-center border text-sm font-semibold px-2.5 py-0.5 rounded-full ${
+                      isPioneer
+                        ? "bg-green-100 text-green-700 border-green-300"
+                        : "bg-red-50 text-red-700 border-red-200"
+                    }`}>
+                      {item.keyword}
+                    </span>
+                  </td>
+                  <td className="py-3 pr-4 text-sm text-gray-700">
+                    {isPioneer ? (
+                      <span className="font-medium text-green-700">없음 — 선점 기회</span>
+                    ) : (
+                      item.covered_by.join(", ")
+                    )}
+                  </td>
+                  <td className="py-3 text-sm text-gray-600">
+                    {isPioneer
+                      ? "이 키워드로 포스트 작성 시 선점 가능"
+                      : "경쟁사 대비 차별화 필요"}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 모바일: 카드 */}
+      <div className="md:hidden space-y-2">
+        {keywordDetail.map((item, idx) => {
+          const isPioneer = item.covered_by.length === 0;
+          return (
+            <div
+              key={idx}
+              className={`rounded-xl border p-3 ${isPioneer ? "bg-green-50 border-green-200" : "bg-red-50/30 border-red-100"}`}
+            >
+              <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                <span className={`inline-flex items-center border text-sm font-semibold px-2.5 py-0.5 rounded-full ${
+                  isPioneer ? "bg-green-100 text-green-700 border-green-300" : "bg-red-50 text-red-700 border-red-200"
+                }`}>
+                  {item.keyword}
+                </span>
+                {isPioneer && (
+                  <span className="text-sm font-semibold text-green-700">선점 기회</span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">
+                {isPioneer
+                  ? "이 키워드로 포스트 작성 시 선점 가능"
+                  : `경쟁사: ${item.covered_by.join(", ")} — 차별화 필요`}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
+   섹션 C — BlogMentionBenchmarkCard
+   블로그 언급 수 가로 막대 차트 (Recharts)
+   ─────────────────────────────────────────────────────────── */
+function BlogMentionBenchmarkCard({
+  data,
+  businessName,
+}: {
+  data: NonNullable<BlogAnalysisResult["competitor_blog_mentions"]>;
+  businessName: string;
+}) {
+  const chartData = [
+    { name: `${businessName} (나)`, count: data.my_count, isMe: true },
+    ...data.competitors.map((c) => ({ name: c.name, count: c.blog_mention_count, isMe: false })),
+  ];
+
+  const chartHeight = Math.max(160, chartData.length * 52 + 24);
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-1 flex-wrap">
+        <BarChart2 className="w-5 h-5 text-blue-600 shrink-0" />
+        <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 언급 수 비교</h3>
+        <span className="inline-flex items-center border text-sm px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border-gray-200 ml-auto">(추정)</span>
+      </div>
+      <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+        네이버 블로그 검색 기준 언급 수입니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+      </p>
+
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart
+          data={chartData}
+          layout="vertical"
+          margin={{ top: 4, right: 32, left: 8, bottom: 4 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
+          <XAxis
+            type="number"
+            tick={{ fontSize: 12, fill: "#6b7280" }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis
+            type="category"
+            dataKey="name"
+            width={110}
+            tick={{ fontSize: 12, fill: "#374151" }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <Tooltip
+            formatter={(value: unknown) => [`${Number(value).toLocaleString()}건`]}
+            contentStyle={{ fontSize: 13, borderRadius: 8, border: "1px solid #e5e7eb" }}
+            cursor={{ fill: "#f9fafb" }}
+          />
+          {data.avg_count > 0 && (
+            <ReferenceLine
+              x={data.avg_count}
+              stroke="#f59e0b"
+              strokeDasharray="5 4"
+              strokeWidth={1.5}
+              label={{
+                value: `평균 ${data.avg_count}건`,
+                position: "insideTopRight",
+                fontSize: 11,
+                fill: "#d97706",
+              }}
+            />
+          )}
+          <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={32}>
+            {chartData.map((entry, idx) => (
+              <Cell key={idx} fill={entry.isMe ? "#3b82f6" : "#94a3b8"} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+
+      {/* 범례 */}
+      <div className="mt-3 flex items-center gap-5 flex-wrap">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-blue-500" />
+          <span className="text-sm text-gray-600">내 사업장</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-slate-400" />
+          <span className="text-sm text-gray-600">경쟁사</span>
+        </div>
+        {data.avg_count > 0 && (
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-0.5 border-t-2 border-dashed border-amber-400" style={{ borderStyle: "dashed" }} />
+            <span className="text-sm text-gray-600">평균 {data.avg_count.toLocaleString()}건</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── 업종별 AI 브리핑 비대상 안내 배너 — 결과 유무와 무관하게 동일 문구 사용(중복 방지) ── */
 function BriefingIneligibilityBanner({ business, isBlogLikely }: { business?: Business; isBlogLikely: boolean }) {
   return (
@@ -1947,6 +2302,12 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               </div>
             )}
 
+            {/* ═══ 섹션 A: 채널별 AI 인용 현황 ═══ */}
+            {result.multi_channel_citations &&
+              Object.keys(result.multi_channel_citations).length > 0 && (
+                <MultiChannelCitationPanel citations={result.multi_channel_citations} />
+              )}
+
             {/* ═══ 이번 실행 항목 (항상 노출) ═══ */}
             {/* D. 중복 주제 + 제목 템플릿 반복 경고 */}
             {((result.duplicate_topics && result.duplicate_topics.length > 0) ||
@@ -2009,6 +2370,26 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                     businessName={business.name}
                   />
                 )}
+
+                {/* 섹션 B. 경쟁사 키워드 점유 현황 — competitor_keyword_detail */}
+                {result.competitor_blog_comparison?.competitor_keyword_detail &&
+                  result.competitor_blog_comparison.competitor_keyword_detail.length > 0 && (
+                    <CompetitorKeywordBlockedPanel
+                      keywordDetail={result.competitor_blog_comparison.competitor_keyword_detail}
+                    />
+                  )}
+
+                {/* 섹션 C. 블로그 언급 수 비교 차트 */}
+                {/* 백엔드 조회 실패 시 competitor_blog_mentions가 빈 객체({})로 올 수 있음 —
+                    {}도 truthy라 my_count 존재 여부로 실제 데이터 유무를 구분 (data.competitors.map 크래시 방지) */}
+                {result.competitor_blog_mentions &&
+                  typeof result.competitor_blog_mentions.my_count === "number" &&
+                  Array.isArray(result.competitor_blog_mentions.competitors) && (
+                    <BlogMentionBenchmarkCard
+                      data={result.competitor_blog_mentions}
+                      businessName={business.name}
+                    />
+                  )}
 
                 {/* H. 제목 개선 제안 */}
                 {result.posts_detail && result.posts_detail.length > 0 && (

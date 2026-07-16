@@ -2263,6 +2263,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                         "excerpt": (kw_r.get("excerpt") or "").strip()[:500],
                         "sentiment": "neutral",
                         "mention_type": "information",
+                        "source_url": (kw_r.get("source_urls") or [None])[0],
+                        "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
                     })
             elif "mentioned" in r or "exposure_freq" in r:
                 # sample_n 결과(exposure_freq) + 단일 호출(mentioned) 모두 호환
@@ -3311,6 +3313,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                         "excerpt": (kw_r.get("excerpt") or "").strip()[:500],
                         "sentiment": "neutral",
                         "mention_type": "information",
+                        "source_url": (kw_r.get("source_urls") or [None])[0],
+                        "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
                     })
             elif "mentioned" in r or "exposure_freq" in r:
                 # sample_n 결과(exposure_freq) + 단일 호출(mentioned) 모두 호환

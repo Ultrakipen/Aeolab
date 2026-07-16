@@ -2575,3 +2575,22 @@ ALTER TABLE support_tickets DROP COLUMN IF EXISTS attachment_urls;
 ALTER TABLE profiles
   ADD COLUMN IF NOT EXISTS free_scan_month        TEXT,           -- 'YYYY-MM' 형식, 마지막 사용 달
   ADD COLUMN IF NOT EXISTS free_scan_monthly_count INT DEFAULT 0;  -- 해당 달 사용 횟수
+
+-- ===========================================================
+-- 2026-07-16: ai_citations 블로그 출처 추적 컬럼 추가
+-- 배경: 네이버 AI 브리핑(정보형) 노출이 블로그 포스트 출처로 인용되는 경우,
+-- 사용자의 "어떤 블로그 포스트가 인용됐는지" 실측 추적이 필요함.
+-- - source_url: 네이버 AI 브리핑 정보형이 출처로 인용한 블로그 포스트 URL
+--   (예: https://blog.naver.com/siwoo83/221897930643)
+-- - source_blog_id: source_url에서 추출한 블로그 아이디
+--   (예: 위 URL의 'siwoo83')
+-- 플레이스형이거나 출처 미확인일 때는 NULL.
+-- ===========================================================
+ALTER TABLE ai_citations
+  ADD COLUMN IF NOT EXISTS source_url      TEXT,
+  ADD COLUMN IF NOT EXISTS source_blog_id  TEXT;
+
+-- 블로그 출처 조회 최적화 인덱스 (IS NOT NULL 조건으로 회피 가능 행 제외)
+CREATE INDEX IF NOT EXISTS idx_ai_citations_source_url
+  ON ai_citations(source_url)
+  WHERE source_url IS NOT NULL;
