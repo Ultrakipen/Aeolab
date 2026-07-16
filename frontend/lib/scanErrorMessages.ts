@@ -29,7 +29,7 @@ export function getScanErrorInfo(status: number, code = ""): ScanErrorInfo {
   }
   if (code === "PLAN_REQUIRED") {
     return {
-      message: "무료 체험 스캔 1회를 이미 사용했습니다. 계속 이용하려면 Basic 플랜으로 업그레이드하세요.",
+      message: "이번 달 무료 스캔을 이미 사용했습니다. 다음 달에 다시 이용하거나, 계속 이용하려면 유료 플랜으로 업그레이드하세요.",
       retryable: false,
     };
   }

@@ -83,12 +83,19 @@ export default async function DashboardPage({
 
   // ── 온보딩 ───────────────────────────────────────────────────
   const { data: profileRow } = await supabase
-    .from("profiles").select("onboarding_done, basic_trial_used").eq("id", user.id).maybeSingle();
+    .from("profiles").select("onboarding_done, basic_trial_used, free_scan_month, free_scan_monthly_count").eq("id", user.id).maybeSingle();
   let onboardingDone = profileRow?.onboarding_done ?? false;
   if (!onboardingDone && business) {
     await supabase.from("profiles").upsert({ id: user.id, onboarding_done: true }, { onConflict: "id" });
     onboardingDone = true;
   }
+
+  // UTC 기준 현재 월 — 백엔드 datetime.now(timezone.utc).strftime('%Y-%m') 기준과 통일
+  const currentMonthUTC = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
+  const freeScanAvailable = !(
+    profileRow?.free_scan_month === currentMonthUTC &&
+    ((profileRow?.free_scan_monthly_count as number | null) ?? 0) >= 1
+  );
 
   // ── 병렬 페칭 ────────────────────────────────────────────────
   const [
@@ -392,6 +399,13 @@ export default async function DashboardPage({
                   stacked
                   secondary={!!latestScan}
                 />
+                {plan === "free" && (
+                  freeScanAvailable ? (
+                    <p className="text-sm text-green-600 font-medium mt-2">이번 달 무료 스캔 1회 사용 가능해요</p>
+                  ) : (
+                    <p className="text-sm text-gray-500 font-medium mt-2">이번 달 무료 스캔을 사용했어요 · 다음 달에 다시 가능</p>
+                  )
+                )}
                 <div className="mt-3 pt-3 border-t border-gray-100 space-y-0.5">
                   <p className="text-sm font-semibold text-slate-600 leading-snug">📅 개선 후 반영 예상 기간</p>
                   <p className="text-sm text-slate-500 leading-snug">· 스마트플레이스 정보 업데이트: <strong className="text-slate-700">즉시~수일</strong></p>

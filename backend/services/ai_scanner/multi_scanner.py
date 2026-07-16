@@ -271,6 +271,45 @@ class MultiAIScanner:
                 yield {"step": name, "status": "error", "error": str(e), "progress": int((i + 1) / total * 80)}
         yield {"step": "complete", "status": "done", "progress": 100}
 
+    async def scan_free_with_progress(self, req) -> AsyncIterator[dict]:
+        """무료 플랜 월 1회 스캔 전용 SSE 진행률 스트리밍 — ChatGPT 5회 샘플링 + 네이버 AI 브리핑
+
+        Trial 수준 (Gemini·Google 제외). 비용: ~2.5원/회.
+        사용처: /api/scan/stream (plan=="free" 분기)
+        """
+        region = getattr(req, "region", None) or ""
+        category = getattr(req, "category", "")
+        keywords = getattr(req, "keywords", None) or []
+        valid_kw = [k.strip() for k in keywords if k.strip() and len(k.strip()) >= 2]
+        category_ko = _CATEGORY_KO.get(category, category)
+        if not region:
+            query = f"{valid_kw[0]} 추천" if valid_kw else f"{category_ko} 추천"
+            _raw = [f"{kw} 추천" for kw in valid_kw] + ([f"{category_ko} 추천"] if category_ko else [])
+        else:
+            query = f"{region} {valid_kw[0]} 추천" if valid_kw else f"{region} {category_ko} 추천"
+            _raw = [f"{region} {kw} 추천" for kw in valid_kw] + ([f"{region} {category_ko} 추천"] if category_ko else [])
+        all_kw_queries = list(dict.fromkeys(_raw))[:4] or [query]
+
+        platforms = [
+            ("chatgpt", "ChatGPT 5회 샘플링 중...", self.chatgpt.sample_5),
+            ("naver",   "네이버 AI 브리핑 파싱 중...", self.naver.check_mention_multi),
+        ]
+        total = len(platforms)
+        for i, (name, msg, fn) in enumerate(platforms):
+            yield {"step": name, "status": "running", "message": msg, "progress": int(i / total * 80)}
+            try:
+                if name == "naver":
+                    result = await self._run_playwright(
+                        self.naver.check_mention_multi, all_kw_queries, req.business_name
+                    )
+                    await asyncio.sleep(2)
+                else:
+                    result = await fn(query, req.business_name)
+                yield {"step": name, "status": "done", "result": result, "progress": int((i + 1) / total * 80)}
+            except Exception as e:
+                yield {"step": name, "status": "error", "error": str(e), "progress": int((i + 1) / total * 80)}
+        yield {"step": "complete", "status": "done", "progress": 100}
+
     async def scan_with_progress(self, req) -> AsyncIterator[dict]:
         """SSE 실시간 진행률 스트리밍 — Playwright 계열은 세마포어 제한
 

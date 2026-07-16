@@ -2564,3 +2564,14 @@ ALTER TABLE competitors
 -- ===========================================================
 ALTER TABLE support_tickets DROP COLUMN IF EXISTS attachment_urls;
 -- service_role만 기록/조회 (백엔드 전용, 사용자 접근 불필요 — RLS 정책 미부여 시 기본 전면 차단)
+
+-- ===========================================================
+-- 2026-07-16: profiles.free_scan 월별 리셋 기능
+-- 배경: 기존 free_scan_used는 1회성 영구 차단(boolean).
+-- 개선: 매월 반복되는 무료 스캔 1회를 지원하기 위해 월별 추적 컬럼 추가.
+-- 로직: 이번 달(free_scan_month != 현재 'YYYY-MM')이면 카운트 리셋 후 1회 허용.
+-- 기존 free_scan_used/free_scan_used_at는 하위 호환 유지(과거 데이터용).
+-- ===========================================================
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS free_scan_month        TEXT,           -- 'YYYY-MM' 형식, 마지막 사용 달
+  ADD COLUMN IF NOT EXISTS free_scan_monthly_count INT DEFAULT 0;  -- 해당 달 사용 횟수

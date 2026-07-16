@@ -498,13 +498,25 @@ async def is_basic_trial_user(user_id: str, supabase) -> bool:
         return False
 
 
-async def check_manual_scan_limit(user_id: str, supabase, business_id: Optional[str] = None) -> tuple[bool, int, int]:
-    """하루 수동 스캔 한도 체크 (plan_gate PLAN_LIMITS manual_scan_daily 기준).
+# free 플랜 월 1회 스캔 TOCTOU 방지 락 (guide.py _guide_generation_locks와 동일 패턴)
+# 단일 uvicorn 워커 환경에서 동일 user_id 동시 호출을 직렬화. 워커 수 늘릴 경우
+# (ecosystem.config.js 경고 참조) Redis 기반 분산 락으로 교체 필요.
+_free_plan_scan_lock: set[str] = set()
 
-    free 플랜: 해당 사업장의 전체 스캔 이력이 0건이면 첫 스캔 1회 허용.
+
+async def check_manual_scan_limit(user_id: str, supabase, business_id: Optional[str] = None) -> tuple[bool, int, int]:
+    """수동 스캔 한도 체크 (plan_gate PLAN_LIMITS manual_scan_daily 기준).
+
+    free 플랜: 매월 1회 무료 스캔. 달이 바뀌면 자동 리셋 (free_scan_month 'YYYY-MM').
+    - free_scan_month(TEXT), free_scan_monthly_count(INT DEFAULT 0) 기준
+    - 하위 호환: free_scan_used / free_scan_used_at 도 함께 갱신
+
+    NOTE: SSE 경로(/scan/stream)에서는 /stream/prepare가 이미 이 함수를 호출해
+    free 플랜 사용 기록을 마킹한다. SSE 제너레이터에서 재호출하면 "이미 사용됨"으로
+    차단되므로, scan.py SSE gen() 내부에서는 free 플랜을 재확인하지 않는다.
 
     Returns:
-        (allowed, used_count, daily_limit)
+        (allowed, used_count, monthly_or_daily_limit)
     """
     if _DEV_MODE:
         return True, 0, 999
@@ -515,38 +527,67 @@ async def check_manual_scan_limit(user_id: str, supabase, business_id: Optional[
     if limit >= 999:
         return True, 0, 999
     if limit == 0:
-        # free 플랜: user 단위로 무료 스캔 1회 사용 여부 체크
-        # 사업장 삭제 후 재등록해도 우회 불가
-        try:
-            profile_row = await _exec(
-                supabase.table("profiles")
-                .select("free_scan_used")
-                .eq("user_id", user_id)
-                .single()
+        # free 플랜: 월 1회 무료 스캔 (매월 리셋)
+        # TOCTOU 방어: 동일 user_id의 동시 요청을 직렬화 (단일 워커 내)
+        if user_id in _free_plan_scan_lock:
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "code": "SCAN_IN_PROGRESS",
+                    "message": "스캔 요청이 처리 중입니다. 잠시 후 다시 시도해 주세요.",
+                },
             )
-            already_used = profile_row.data.get("free_scan_used", False) if profile_row and profile_row.data else False
-        except Exception as e:
-            _logger.warning(f"free_scan_used 조회 실패 (profiles 컬럼 미존재 가능): {e}")
-            already_used = False
 
-        if not already_used:
-            # 무료 스캔 사용 처리 (사용 완료로 마킹)
+        _free_plan_scan_lock.add(user_id)
+        try:
             from datetime import datetime, timezone
+            current_month = datetime.now(timezone.utc).strftime('%Y-%m')
+
+            try:
+                profile_row = await _exec(
+                    supabase.table("profiles")
+                    .select("free_scan_month, free_scan_monthly_count, free_scan_used")
+                    .eq("user_id", user_id)
+                    .single()
+                )
+                data = profile_row.data if (profile_row and profile_row.data) else {}
+            except Exception as e:
+                _logger.warning(f"free_scan 상태 조회 실패 (profiles 컬럼 미존재 가능): {e}")
+                # 안전 방향: 차단 (통과 허용 시 컬럼 장애마다 무제한 스캔이 됨)
+                raise HTTPException(
+                    status_code=503,
+                    detail={
+                        "code": "SERVICE_UNAVAILABLE",
+                        "message": "무료 스캔 상태 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+                    },
+                )
+
+            db_month = data.get("free_scan_month")
+            db_count = int(data.get("free_scan_monthly_count") or 0)
+
+            if db_month == current_month and db_count >= 1:
+                raise HTTPException(
+                    status_code=403,
+                    detail={
+                        "code": "PLAN_REQUIRED",
+                        "message": "이번 달 무료 스캔을 이미 사용했습니다. 다음 달에 다시 이용하거나, 계속 이용하려면 유료 플랜으로 업그레이드하세요.",
+                        "upgrade_url": "/pricing",
+                    },
+                )
+
+            # 통과 — 이달 사용 기록 마킹
+            now_iso = datetime.now(timezone.utc).isoformat()
             await _exec(supabase.table("profiles").upsert({
                 "user_id": user_id,
-                "free_scan_used": True,
-                "free_scan_used_at": datetime.now(timezone.utc).isoformat()
+                "free_scan_month": current_month,
+                "free_scan_monthly_count": 1,
+                "free_scan_used": True,       # 하위 호환: "한 번이라도 사용했는지" 유지
+                "free_scan_used_at": now_iso,
             }))
-            return True, 0, 1  # 첫 스캔 통과
+            return True, 0, 1  # 통과 (used=0, monthly_limit=1)
 
-        raise HTTPException(
-            status_code=403,
-            detail={
-                "code": "PLAN_REQUIRED",
-                "message": "무료 체험 스캔을 이미 사용했습니다. 계속 이용하려면 유료 플랜으로 업그레이드하세요.",
-                "upgrade_url": "/pricing",
-            },
-        )
+        finally:
+            _free_plan_scan_lock.discard(user_id)
 
     today_str = date.today().isoformat() + "T00:00:00"
     biz_res = await _exec(

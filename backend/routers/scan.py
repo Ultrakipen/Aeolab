@@ -1606,6 +1606,28 @@ async def full_scan(req: ScanRequest, bg: BackgroundTasks, user=Depends(get_curr
     return {"scan_id": scan_id, "status": "started", "scan_mode": "quick", "scan_type": "quick"}
 
 
+async def _rollback_free_scan(user_id: str, reason: str) -> None:
+    """free 플랜 월 스캔 슬롯 롤백 (완전 실패 시만).
+
+    /stream/prepare에서 마킹한 free_scan_monthly_count=1을 0으로 되돌린다.
+    부분 성공(1개 채널이라도 결과 있음)에는 호출하지 말 것 — 부분 결과도 사용자에게 가치 있음.
+    DB 호출 실패해도 예외를 전파하지 않음 — 추가 오류로 사용자 경험을 막지 말 것.
+    """
+    try:
+        await execute(
+            get_client().table("profiles")
+            .update({"free_scan_monthly_count": 0})
+            .eq("user_id", user_id)
+        )
+        _logger.info(
+            "[scan/stream] free 스캔 슬롯 롤백 완료: user_id=%s reason=%s", user_id, reason
+        )
+    except Exception as _rb_exc:
+        _logger.warning(
+            "[scan/stream] free 스캔 슬롯 롤백 실패(로그만 남김): user_id=%s exc=%s", user_id, _rb_exc
+        )
+
+
 @router.post("/stream/prepare")
 async def prepare_stream(biz_id: str, selected_keyword: str = "", user=Depends(get_current_user)):
     """SSE 스트림 시작 전 단기 토큰 발급 (60초 유효) — Bearer 인증"""
@@ -1644,11 +1666,15 @@ async def prepare_stream(biz_id: str, selected_keyword: str = "", user=Depends(g
     from middleware.plan_gate import check_manual_scan_limit
     await check_manual_scan_limit(user_id, supabase, business_id=biz_id)
 
+    _plan_lookup_failed = False
     try:
         plan = await _get_user_plan(user_id, supabase)
     except Exception as e:
-        _logger.warning(f"_get_user_plan failed for user {user_id}, fallback to free: {e}")
+        _logger.warning(
+            f"_get_user_plan 실패 — plan 조회 실패로 인한 폴백, 실제 plan 불명: user_id={user_id} exc={e}"
+        )
         plan = "free"
+        _plan_lookup_failed = True
     _effective_kw = selected_keyword.strip()
 
     token = secrets.token_urlsafe(32)
@@ -1656,6 +1682,7 @@ async def prepare_stream(biz_id: str, selected_keyword: str = "", user=Depends(g
         "user_id": user["id"],
         "biz_id": biz_id,
         "plan": plan,
+        "plan_lookup_failed": _plan_lookup_failed,
         "selected_keyword": _effective_kw,
         "expires_at": datetime.now(timezone.utc) + timedelta(seconds=60),
     }
@@ -1678,7 +1705,12 @@ async def stream_scan(stream_token: str):
     user_id = token_data["user_id"]
     biz_id = token_data["biz_id"]
     _stream_selected_kw = token_data.get("selected_keyword", "")
-    # 수동 스캔은 전 플랜 quick scan으로 통일 (plan 분기 불필요)
+    # free 플랜: /stream/prepare에서 이미 한도 체크+마킹 완료 → SSE gen()에서 재확인 생략
+    # free 이외: gen() 내부에서 재확인 (belt-and-suspenders)
+    _plan_from_token = token_data.get("plan", "free")
+    # plan_lookup_failed=True 시: _get_user_plan 조회 실패로 실제 플랜 불명.
+    # 유료 사용자를 free로 강등하지 않도록 scan_quick_with_progress(전 채널)를 유지한다.
+    _plan_lookup_failed = token_data.get("plan_lookup_failed", False)
 
     # 사업장 정보 조회
     supabase = get_client()
@@ -1719,19 +1751,29 @@ async def stream_scan(stream_token: str):
                 _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "월간 스캔 한도에 도달했습니다.", "support": "support@aeolab.co.kr"}
                 yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
                 return
-            from middleware.plan_gate import check_manual_scan_limit
-            try:
-                await check_manual_scan_limit(user_id, get_client(), business_id=biz_id)
-            except HTTPException as e:
-                _logger.warning("[scan/stream] manual_limit blocked: user=%s detail=%s", user_id, e.detail)
-                _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "일별 수동 스캔 한도에 도달했습니다. 내일 다시 시도해 주세요.", "support": "support@aeolab.co.kr"}
-                yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
-                return
+            # free 플랜은 /stream/prepare에서 이미 check_manual_scan_limit 호출 + 마킹 완료.
+            # 여기서 재호출하면 "이번 달 이미 사용됨" 으로 즉시 차단되므로 생략.
+            # non-free 플랜은 belt-and-suspenders 재확인 유지.
+            if _plan_from_token != "free":
+                from middleware.plan_gate import check_manual_scan_limit
+                try:
+                    await check_manual_scan_limit(user_id, get_client(), business_id=biz_id)
+                except HTTPException as e:
+                    _logger.warning("[scan/stream] manual_limit blocked: user=%s detail=%s", user_id, e.detail)
+                    _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "일별 수동 스캔 한도에 도달했습니다. 내일 다시 시도해 주세요.", "support": "support@aeolab.co.kr"}
+                    yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
+                    return
 
             scanner = MultiAIScanner(mode="quick")
             scan_results: dict = {}
-            # 전 플랜 quick scan으로 통일 (수동 스캔 정책 변경 2026-04-03)
-            progress_iter = scanner.scan_quick_with_progress(req)
+            # free 플랜: Trial 수준 (ChatGPT 5회 + 네이버만, Gemini·Google 제외) — 비용 절감
+            # plan 조회 실패(plan_lookup_failed) 시에는 full 채널(scan_quick_with_progress) 유지
+            # — 유료 사용자를 무료 스캔 품질로 조용히 강등하지 않도록 보호
+            # 그 외 플랜: Gemini 10회 + ChatGPT 5회 + 네이버 + Google
+            if _plan_from_token == "free" and not _plan_lookup_failed:
+                progress_iter = scanner.scan_free_with_progress(req)
+            else:
+                progress_iter = scanner.scan_quick_with_progress(req)
 
             try:
                 async for progress in progress_iter:
@@ -1747,6 +1789,10 @@ async def stream_scan(stream_token: str):
                     "[scan/stream] scanner exception: endpoint=%s biz_id=%s code=%s exc=%s",
                     _stream_endpoint, biz_id, _err_code, repr(scan_exc),
                 )
+                # free 플랜 완전 실패: 월 슬롯 롤백.
+                # plan_lookup_failed(실제 플랜 불명) 시에는 마킹 자체가 없었을 수 있으므로 롤백 제외.
+                if _plan_from_token == "free" and not _plan_lookup_failed:
+                    await _rollback_free_scan(user_id, f"scanner_exception:{_err_code}")
                 _msg_map = {
                     "PLAYWRIGHT_TIMEOUT": "네이버·Google 페이지 로딩 시간이 초과됐습니다. 잠시 후 다시 시도해 주세요.",
                     "AI_SERVICE_UNAVAILABLE": "AI 서비스 일시 응답 지연입니다. 잠시 후 다시 시도해 주세요.",
@@ -1755,6 +1801,19 @@ async def stream_scan(stream_token: str):
                 _err = {
                     "code": _err_code,
                     "message": _msg_map.get(_err_code, "일시적인 오류가 발생했습니다."),
+                    "support": "support@aeolab.co.kr",
+                }
+                yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
+                return
+
+            # free 플랜: 모든 채널 오류(scan_results 비어있음) 시 월 슬롯 롤백.
+            # 예외 없이 스캔 루프가 끝났지만 모든 채널이 error 상태로 결과를 못 모은 경우 해당.
+            # plan_lookup_failed 시에는 롤백 대상 아님 (마킹 경로가 다름).
+            if _plan_from_token == "free" and not _plan_lookup_failed and not scan_results:
+                await _rollback_free_scan(user_id, "no_channel_results")
+                _err = {
+                    "code": "SCAN_FAILED",
+                    "message": "스캔 중 오류가 발생했습니다. 이번 달 무료 스캔 기회가 복원됩니다. 잠시 후 다시 시도해 주세요.",
                     "support": "support@aeolab.co.kr",
                 }
                 yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
