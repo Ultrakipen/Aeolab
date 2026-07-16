@@ -17,7 +17,7 @@ export function ContactModal({ open, onClose }: Props) {
 
   if (!open) return null;
 
-  const EMAIL = "contact@aeolab.co.kr";
+  const EMAIL = "support@aeolab.co.kr";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(EMAIL).then(() => {

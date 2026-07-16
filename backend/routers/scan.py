@@ -1705,7 +1705,7 @@ async def stream_scan(stream_token: str):
         # 중복 스캔 방지
         scan_key = f"{user_id}:{biz_id}"
         if scan_key in _active_scans:
-            _err = {"code": "SCAN_IN_PROGRESS", "message": "이미 스캔이 진행 중입니다. 완료 후 다시 시도해 주세요.", "support": "contact@aeolab.co.kr"}
+            _err = {"code": "SCAN_IN_PROGRESS", "message": "이미 스캔이 진행 중입니다. 완료 후 다시 시도해 주세요.", "support": "support@aeolab.co.kr"}
             yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
             return
         _active_scans.add(scan_key)
@@ -1716,7 +1716,7 @@ async def stream_scan(stream_token: str):
                 await check_monthly_scan_limit(user_id, get_client())
             except HTTPException as e:
                 _logger.warning("[scan/stream] rate_limit blocked: user=%s detail=%s", user_id, e.detail)
-                _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "월간 스캔 한도에 도달했습니다.", "support": "contact@aeolab.co.kr"}
+                _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "월간 스캔 한도에 도달했습니다.", "support": "support@aeolab.co.kr"}
                 yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
                 return
             from middleware.plan_gate import check_manual_scan_limit
@@ -1724,7 +1724,7 @@ async def stream_scan(stream_token: str):
                 await check_manual_scan_limit(user_id, get_client(), business_id=biz_id)
             except HTTPException as e:
                 _logger.warning("[scan/stream] manual_limit blocked: user=%s detail=%s", user_id, e.detail)
-                _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "일별 수동 스캔 한도에 도달했습니다. 내일 다시 시도해 주세요.", "support": "contact@aeolab.co.kr"}
+                _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "일별 수동 스캔 한도에 도달했습니다. 내일 다시 시도해 주세요.", "support": "support@aeolab.co.kr"}
                 yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
                 return
 
@@ -1755,7 +1755,7 @@ async def stream_scan(stream_token: str):
                 _err = {
                     "code": _err_code,
                     "message": _msg_map.get(_err_code, "일시적인 오류가 발생했습니다."),
-                    "support": "contact@aeolab.co.kr",
+                    "support": "support@aeolab.co.kr",
                 }
                 yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
                 return

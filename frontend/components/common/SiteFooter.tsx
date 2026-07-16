@@ -32,7 +32,7 @@ export function SiteFooter({ activePage }: { activePage?: string }) {
                 {label}
               </Link>
             ))}
-            <a href="mailto:contact@aeolab.co.kr" className="hover:text-gray-700 whitespace-nowrap">문의</a>
+            <a href="mailto:support@aeolab.co.kr" className="hover:text-gray-700 whitespace-nowrap">문의</a>
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap justify-start sm:justify-end">
             {legalLinks.map(({ href, label }) => (

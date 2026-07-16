@@ -298,7 +298,7 @@ export function ScanTrigger({
               </button>
             )}
             <a
-              href="mailto:contact@aeolab.co.kr"
+              href="mailto:support@aeolab.co.kr"
               className="text-sm font-semibold text-gray-500 underline hover:text-gray-700 transition-colors"
             >
               문제 지속 시 문의하기
