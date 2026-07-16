@@ -3,7 +3,7 @@ import csv
 import io
 import logging
 from datetime import date, timedelta
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, Header, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse, Response
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
@@ -315,6 +315,145 @@ async def get_industry_ranking(category: str, region: str, user=Depends(get_curr
 
     _cache.set(cache_key, top10, _TTL_RANKING)
     return top10
+
+
+# ── 공개 랭킹 ──────────────────────────────────────────────────────────────
+
+_MIN_PUBLIC_RANK_COUNT = 3  # 이 수 미만이면 insufficient_data 반환
+
+
+def _score_band(rank: int, total: int) -> str:
+    """순위·전체 수 → 백분위 텍스트 레이블.
+
+    점수 원본 숫자를 사용자에게 노출하지 않는다 (CLAUDE.md 점수 숫자 미노출 원칙).
+    rank는 1-based(1위=최상위), total은 대상 전체 수.
+    """
+    if total == 0:
+        return "정보 없음"
+    pct = (rank - 1) / total  # 0.0(1위) ~ 1.0 미만
+    if pct < 0.10:
+        return "상위 10%"
+    if pct < 0.30:
+        return "상위 30%"
+    if pct < 0.50:
+        return "상위 50%"
+    if pct < 0.70:
+        return "상위 70%"
+    return "하위 30%"
+
+
+# IP당 분당 20회 rate limit (인메모리 카운터, public_briefing.py 패턴 통일)
+_RANKING_PUB_LIMIT = 20
+_RANKING_PUB_WINDOW = 60  # seconds
+
+
+def _check_ranking_pub_rate(ip: str) -> None:
+    """비인증 공개 엔드포인트 — 업종×지역 조합 열거 스크래핑 방지"""
+    key = f"ranking_pub:{ip}"
+    count: int = _cache.get(key) or 0
+    if count >= _RANKING_PUB_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "RATE_LIMIT",
+                "message": "잠시 후 다시 시도해 주세요.",
+                "retry_after": _RANKING_PUB_WINDOW,
+            },
+        )
+    if count == 0:
+        _cache.set(key, 1, _RANKING_PUB_WINDOW)
+    else:
+        _cache.set(key, count + 1, _RANKING_PUB_WINDOW)
+
+
+@router.get("/ranking-public/{category}/{region}")
+async def get_public_industry_ranking(category: str, region: str, request: Request):
+    """익명 업종·지역 AI 노출 공개 랭킹 (비인증, 캐시 30분)
+
+    - 사업장 실명·business_id·점수 원본 미포함
+    - 3곳 미만 데이터 시 insufficient_data=True 반환 (더미 금지)
+    - 상위 10건만 반환
+    """
+    _check_ranking_pub_rate(request.client.host if request.client else "unknown")
+
+    cache_key = _cache._make_key("ranking_public", category, region)
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    supabase = get_client()
+
+    # 사업장 ID만 조회 (실명 SELECT 금지)
+    businesses = (
+        await execute(
+            supabase.table("businesses")
+            .select("id")
+            .eq("category", category)
+            .eq("region", region)
+            .eq("is_active", True)
+            .limit(50)
+        )
+    ).data or []
+
+    insufficient = {
+        "category": category,
+        "region": region,
+        "insufficient_data": True,
+        "message": "데이터 수집 중입니다. 해당 지역·업종의 사업장이 더 모이면 공개됩니다.",
+        "entries": [],
+    }
+
+    if len(businesses) < _MIN_PUBLIC_RANK_COUNT:
+        _cache.set(cache_key, insufficient, _TTL_RANKING)
+        return insufficient
+
+    biz_ids = [b["id"] for b in businesses]
+
+    # N+1 제거: 단일 IN 쿼리로 최신 점수 수집
+    scores_raw = (
+        await execute(
+            supabase.table("score_history")
+            .select("business_id, total_score, score_date")
+            .in_("business_id", biz_ids)
+            .order("score_date", desc=True)
+            .limit(len(biz_ids) * 2)
+        )
+    ).data or []
+
+    # 사업장별 최신 점수만 유지
+    latest: dict[str, float] = {}
+    for s in scores_raw:
+        bid = s["business_id"]
+        if bid not in latest:
+            latest[bid] = s["total_score"]
+
+    if len(latest) < _MIN_PUBLIC_RANK_COUNT:
+        _cache.set(cache_key, insufficient, _TTL_RANKING)
+        return insufficient
+
+    # 점수 내림차순 정렬 → 순위 부여 → 백분위 레이블
+    ranked = sorted(latest.values(), reverse=True)
+    total = len(ranked)
+
+    entries = [
+        {
+            "rank": i + 1,
+            "score_band": _score_band(i + 1, total),
+            "category": category,
+            "region": region,
+        }
+        for i in range(min(10, total))
+    ]
+
+    result = {
+        "category": category,
+        "region": region,
+        "insufficient_data": False,
+        "total_in_region": total,
+        "entries": entries,
+    }
+    _cache.set(cache_key, result, _TTL_RANKING)
+    return result
 
 
 def _compute_benchmark_stats(scores: list[float], category: str, region: str | None) -> dict:

@@ -4,6 +4,7 @@ export function SiteFooter({ activePage }: { activePage?: string }) {
   const mainLinks = [
     { href: '/how-it-works',         label: '서비스 안내' },
     { href: '/resources',            label: '업종별 가이드' },
+    { href: '/ranking',              label: 'AI 노출 랭킹' },
     { href: '/guide/chatgpt-search', label: 'ChatGPT 가이드' },
     { href: '/faq',     label: 'FAQ' },
     { href: '/pricing', label: '요금제' },
