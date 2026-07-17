@@ -1275,23 +1275,34 @@ async def _search_naver_blog_once(
     def strip_tags(text: str) -> str:
         return re.sub(r"<[^>]+>", "", text or "").strip()
 
-    try:
-        async with session.get(
-            "https://openapi.naver.com/v1/search/blog.json",
-            params={"query": query, "display": display, "sort": "date"},
-            headers={
-                "X-Naver-Client-Id": client_id,
-                "X-Naver-Client-Secret": client_secret,
-            },
-        ) as resp:
-            if resp.status != 200:
-                _logger.warning(
-                    f"naver blog search non-200 for query='{query}': status={resp.status}"
-                )
-                return [], 0, False
-            data = await resp.json()
-    except aiohttp.ClientError as e:
-        _logger.warning(f"naver blog search failed for query='{query}': {e}")
+    request_kwargs = dict(
+        url="https://openapi.naver.com/v1/search/blog.json",
+        params={"query": query, "display": display, "sort": "date"},
+        headers={
+            "X-Naver-Client-Id": client_id,
+            "X-Naver-Client-Secret": client_secret,
+        },
+    )
+    data = None
+    # 429(rate limit)만 1회 재시도(backoff) — RSS(_fetch_naver_rss)·Gemini/ChatGPT/Claude와
+    # 동일 패턴(2026-07-15 도입). 그 외 non-200/네트워크 예외는 기존대로 즉시 포기.
+    for attempt in range(2):
+        try:
+            async with session.get(**request_kwargs) as resp:
+                if resp.status != 200:
+                    _logger.warning(
+                        f"naver blog search non-200 for query='{query}' (attempt {attempt + 1}): status={resp.status}"
+                    )
+                    if resp.status == 429 and attempt == 0:
+                        await asyncio.sleep(1.5)
+                        continue
+                    return [], 0, False
+                data = await resp.json()
+                break
+        except aiohttp.ClientError as e:
+            _logger.warning(f"naver blog search failed for query='{query}' (attempt {attempt + 1}): {e}")
+            return [], 0, False
+    if data is None:
         return [], 0, False
 
     total = data.get("total", 0)
@@ -1343,7 +1354,8 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool, bool]:
     # 원인으로 보여, 짧은 타임아웃으로 1회만 재시도해 안정성을 높인다
     xml_text: Optional[str] = None
     not_found = False
-    for attempt, timeout in enumerate((_TIMEOUT, _RSS_RETRY_TIMEOUT)):
+    attempts = (_TIMEOUT, _RSS_RETRY_TIMEOUT)
+    for attempt, timeout in enumerate(attempts):
         try:
             async with aiohttp.ClientSession(timeout=timeout, headers=_HEADERS) as session:
                 async with session.get(rss_url) as resp:
@@ -1354,8 +1366,14 @@ async def _fetch_naver_rss(blog_id: str) -> tuple[list[dict], int, bool, bool]:
                         )
                         if resp.status == 404:
                             not_found = True
-                        # 404/403 등 확정적 HTTP 오류는 재시도해도 결과가 같으므로 즉시 포기 —
-                        # 재시도는 일시적 네트워크 실패(예외/타임아웃)에만 의미가 있음
+                            break
+                        # 429(rate limit)만 예외적으로 재시도 — Gemini/ChatGPT/Claude 호출에
+                        # 이미 적용된 "429 한정 1회 backoff 재시도" 패턴과 동일(2026-07-15).
+                        # 그 외(403/500 등)는 재시도해도 결과가 같으리라 볼 근거가 약해 즉시 포기.
+                        if resp.status == 429 and attempt < len(attempts) - 1:
+                            _logger.warning("naver rss rate-limited(429), retrying: blog_id=%s", blog_id)
+                            await asyncio.sleep(1.5)
+                            continue
                         break
                     raw = await resp.content.read(_MAX_BODY_BYTES)
                     xml_text = raw.decode("utf-8", errors="replace")

@@ -79,6 +79,10 @@ def test_no_duplicate_alias_keys():
     source = inspect.getsource(kt)
     tree = ast.parse(source)
 
+    # _CATEGORY_ALIASES: dict[str, str] = {...} 는 ast.AnnAssign(타입 어노테이션 있는 대입)이라
+    # ast.Assign만 확인하면 못 찾는다 — 2026-07-17 pytest를 처음 실제로 실행해보고 나서야
+    # 이 테스트 자체가 계속 실패(수집 못 함) 상태였던 걸 발견함(지금까지 CI가 테스트를 돌린
+    # 적이 없어 아무도 몰랐음). 두 노드 타입 모두 확인하도록 수정.
     alias_dict_node = None
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):
@@ -86,6 +90,9 @@ def test_no_duplicate_alias_keys():
                 if isinstance(target, ast.Name) and target.id == "_CATEGORY_ALIASES":
                     alias_dict_node = node.value
                     break
+        elif isinstance(node, ast.AnnAssign):
+            if isinstance(node.target, ast.Name) and node.target.id == "_CATEGORY_ALIASES":
+                alias_dict_node = node.value
         if alias_dict_node is not None:
             break
 
