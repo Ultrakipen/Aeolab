@@ -129,6 +129,13 @@ async def _fetch_competitor_blog_mentions(business_id: str, supabase) -> dict:
         return {}
 
 
+# get_blog_result 라이브 재조회 캐시 TTL(2026-07-17 신설) — citation_benchmark는 peer 최대 20곳 x
+# 2회 쿼리를 매 페이지 로드마다 동시 실행해 사용자가 새로고침만 해도 DB 부담이 발생했다.
+# 실제 값은 스캔 1회 완료 시에만 바뀌므로(스캔은 요청속도 제한이 걸려 있어 짧은 주기로 안 바뀜)
+# TTL 캐시로 매 로드마다의 재계산을 흡수한다. 분석 직후 응답(_run_blog_analysis)은 이 캐시를
+# 거치지 않고 항상 새로 계산 — 방금 실행한 분석 결과가 지연 없이 반영되어야 하므로.
+_LIVE_BLOG_DATA_TTL_SEC = int(os.getenv("BLOG_LIVE_DATA_CACHE_TTL_SEC", "1800"))
+
 _CITATION_BENCHMARK_MIN_PEERS = 3  # report.py의 _MIN_PUBLIC_RANK_COUNT 패턴과 동일한 최소 표본 기준
 
 
@@ -209,6 +216,52 @@ async def _fetch_citation_benchmark(business_id: str, category: str, my_citation
     except Exception as e:
         _logger.warning(f"citation_benchmark 조회 실패 [biz={business_id}]: {e}")
         return None
+
+
+async def _get_live_blog_bundle(business_id: str, category: str, saved_json: dict, supabase) -> dict:
+    """get_blog_result 전용 — multi_channel/blog_mentions/citation_benchmark 3종을 묶어서
+    TTL 캐시로 재조회 부담을 흡수한다 (위 _LIVE_BLOG_DATA_TTL_SEC 설명 참조).
+
+    saved_json은 캐시 미스일 때만 폴백 값으로 쓰이므로 캐시 키에는 포함하지 않는다
+    (같은 business_id는 어느 saved_json을 넘겨받든 동일한 라이브 조회 결과가 나와야 함).
+    """
+    cache_key = _cache._make_key("blog_live_bundle", business_id)
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    live_multi_channel: dict = {}
+    live_blog_mentions: dict = {}
+    live_citation_benchmark: dict | None = None
+    try:
+        live_multi_channel = await _fetch_multi_channel_citations(business_id, supabase)
+    except Exception as _e:
+        _logger.warning(f"get_blog_result multi_channel 조회 실패: {_e}")
+    try:
+        live_blog_mentions = await _fetch_competitor_blog_mentions(business_id, supabase)
+    except Exception as _e:
+        _logger.warning(f"get_blog_result blog_mentions 조회 실패: {_e}")
+    try:
+        live_citation_benchmark = await _fetch_citation_benchmark(
+            business_id,
+            category,
+            live_multi_channel or saved_json.get("multi_channel_citations", {}),
+            supabase,
+        )
+    except Exception as _e:
+        _logger.warning(f"get_blog_result citation_benchmark 조회 실패: {_e}")
+
+    bundle = {
+        "multi_channel_citations": live_multi_channel or saved_json.get("multi_channel_citations", {}),
+        "competitor_blog_mentions": live_blog_mentions or saved_json.get("competitor_blog_mentions", {}),
+        "citation_benchmark": (
+            saved_json.get("citation_benchmark", {})
+            if live_citation_benchmark is None
+            else live_citation_benchmark
+        ),
+    }
+    _cache.set(cache_key, bundle, _LIVE_BLOG_DATA_TTL_SEC)
+    return bundle
 
 
 def _check_blog_rate_limit(user_id: str) -> None:
@@ -607,6 +660,13 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
         else:
             _logger.warning(f"blog analysis DB save failed for biz={request.business_id}: {e}")
 
+    # 방금 분석을 새로 실행했으므로, get_blog_result의 TTL 캐시에 분석 전 값이 남아 있으면
+    # 무효화 — 안 지우면 분석 직후 새로고침에서 최대 _LIVE_BLOG_DATA_TTL_SEC까지 옛 값이 보임
+    try:
+        _cache.delete(_cache._make_key("blog_live_bundle", request.business_id))
+    except Exception:
+        pass
+
     # 월 사용 기록 (biz=무제한 포함 모두 기록 — 통계 목적, 실측 성공 시에만)
     try:
         await execute(
@@ -701,39 +761,15 @@ async def get_blog_result(
     if has_json_column:
         saved_json = biz_row.get("blog_analysis_json")
         if saved_json and isinstance(saved_json, dict):
-            live_multi_channel: dict = {}
-            live_blog_mentions: dict = {}
-            live_citation_benchmark: dict | None = None
-            try:
-                live_multi_channel = await _fetch_multi_channel_citations(business_id, supabase)
-            except Exception as _e:
-                _logger.warning(f"get_blog_result multi_channel 조회 실패: {_e}")
-            try:
-                live_blog_mentions = await _fetch_competitor_blog_mentions(business_id, supabase)
-            except Exception as _e:
-                _logger.warning(f"get_blog_result blog_mentions 조회 실패: {_e}")
-            try:
-                live_citation_benchmark = await _fetch_citation_benchmark(
-                    business_id,
-                    biz_row.get("category", ""),
-                    live_multi_channel or saved_json.get("multi_channel_citations", {}),
-                    supabase,
-                )
-            except Exception as _e:
-                _logger.warning(f"get_blog_result citation_benchmark 조회 실패: {_e}")
-            # 라이브 조회 실패(빈 dict) 시 이전 저장값을 빈 값으로 덮어쓰지 않고 마지막 정상값 유지
-            # (2026-07-17 code-review 발견 — DB 간헐 오류 시 정상 섹션이 일시적으로 사라지던 문제)
-            # citation_benchmark만 예외: {}가 "peers 3곳 미만"이라는 정상 결과일 수 있어
-            # None(조회 자체 실패)일 때만 캐시로 폴백 — {}를 stale 값으로 덮지 않음
+            # B/D/C 3종 라이브 재조회는 TTL 캐시로 묶어 매 페이지 로드마다의 DB 부담을 흡수
+            # (_LIVE_BLOG_DATA_TTL_SEC 설명 참조, 2026-07-17). 분석 직후엔 위에서 캐시를 지워
+            # 최신 값이 바로 반영됨.
+            live_bundle = await _get_live_blog_bundle(
+                business_id, biz_row.get("category", ""), saved_json, supabase
+            )
             return {
                 **saved_json,
-                "multi_channel_citations": live_multi_channel or saved_json.get("multi_channel_citations", {}),
-                "competitor_blog_mentions": live_blog_mentions or saved_json.get("competitor_blog_mentions", {}),
-                "citation_benchmark": (
-                    saved_json.get("citation_benchmark", {})
-                    if live_citation_benchmark is None
-                    else live_citation_benchmark
-                ),
+                **live_bundle,
                 "has_blog_analysis": True,
                 "monthly_used": monthly_used,
                 "monthly_limit": limit,

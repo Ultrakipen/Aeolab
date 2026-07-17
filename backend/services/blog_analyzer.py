@@ -1724,6 +1724,26 @@ async def _analyze_naver_blog(
         )
         posts_detail.append(detail)
 
+    # v2-C: LLM 기반 품질 판정(진솔한 경험담 vs 홍보 문구) — 상위 5개만, 단일 호출.
+    # 실패해도 위 규칙 기반 posts_detail은 그대로 유지되는 부가 기능(2026-07-17 신설).
+    try:
+        from services.blog_quality_scorer import score_posts_quality
+        quality_input = [
+            {"title": filtered_items[i].get("title", ""), "text": filtered_items[i].get("desc", "")}
+            for i in range(len(posts_detail))
+        ]
+        quality_results = await score_posts_quality(quality_input)
+        for q_idx, q in quality_results.items():
+            if q_idx >= len(posts_detail):
+                continue
+            reason = q.get("reason") or ""
+            if q.get("genuine"):
+                posts_detail[q_idx]["positives"].append(f"AI 판단: 진솔한 경험담{f' ({reason})' if reason else ''}")
+            else:
+                posts_detail[q_idx]["issues"].append(f"AI 판단: 홍보 문구 위주{f' ({reason})' if reason else ''} — 구체적 경험 추가 권장")
+    except Exception as e:
+        _logger.warning(f"blog quality scoring integration failed: {e}")
+
     # v2: 이번 주 할 일
     weekly_actions = _build_weekly_actions(
         posts_analysis=posts_detail,
