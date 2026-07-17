@@ -977,7 +977,7 @@ export default async function LandingPage() {
               {
                 icon: "📰",
                 title: "블로그 진단",
-                desc: "내 블로그 포스트가 실제로 AI에 인용되고 있는지 포스트 단위로 확인. 5채널 인용 현황·경쟁사 비교로 개선 방향 제시",
+                desc: "내 블로그 포스트가 네이버 AI 브리핑에 실제로 인용되고 있는지 포스트 단위로 확인. 4채널 인용 현황·경쟁사 비교로 개선 방향 제시",
                 badge: null,
                 badgeColor: "",
               },

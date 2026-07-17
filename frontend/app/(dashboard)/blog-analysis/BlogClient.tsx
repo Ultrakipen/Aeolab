@@ -279,14 +279,14 @@ function citationStatusBadge(p: PostDetail) {
   if (p.cited_confirmed) {
     return (
       <span className="inline-flex items-center border text-sm font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 border-green-300">
-        AI 인용 확인됨
+        네이버 인용 확인됨
       </span>
     );
   }
   if (p.is_cited === true) {
     return (
       <span className="inline-flex items-center border text-sm font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border-blue-300">
-        인용 가능성 있음
+        네이버 인용 가능성 있음
       </span>
     );
   }
@@ -555,6 +555,11 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
           <br />
           <span className="text-slate-600">
             <span className="font-semibold">상태</span> 배지는 이 글의 전반적인 진단 결과, <span className="font-semibold">SEO</span> 배지는 제목이 검색에 얼마나 잘 잡히는지를 각각 나타냅니다. 제목 개선 제안은 이 표 아래 카드에서 바로 복사할 수 있습니다.
+          </span>
+          <br />
+          <span className="text-slate-600">
+            <span className="font-semibold">네이버 인용 확인됨/가능성 있음</span> 배지는 네이버 AI 브리핑(정보형)이 이 포스트를 출처로 쓴 기록을 실측 대조한 결과입니다.
+            ChatGPT·Gemini·Google의 채널별 인용 여부는 이 글 단위가 아닌 사업장 단위로 위 &quot;채널별 AI 인용 현황&quot;에서 확인하세요.
           </span>
         </p>
       </div>
@@ -2096,11 +2101,11 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
                   <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
                     <Search className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-sm text-amber-900">등록하면 포스트별로 실제 AI 인용 여부를 확인할 수 있습니다</p>
+                    <p className="text-sm text-amber-900">등록하면 포스트별로 네이버 AI 브리핑 인용 여부를 확인할 수 있습니다</p>
                   </div>
                   <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
                     <BarChart2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-sm text-amber-900">Gemini·ChatGPT·네이버·Google 5채널 인용 현황을 한눈에 봅니다</p>
+                    <p className="text-sm text-amber-900">Gemini·ChatGPT·네이버·Google 4채널 인용 현황을 한눈에 봅니다</p>
                   </div>
                   <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
                     <Target className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
