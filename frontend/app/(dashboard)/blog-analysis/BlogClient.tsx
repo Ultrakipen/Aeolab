@@ -2319,6 +2319,11 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 <MultiChannelCitationPanel citations={result.multi_channel_citations} />
               )}
 
+            {/* F. 포스트별 상세 분석 — naeo.kr 핵심 대응 기능(실측 인용 배지)이라 상단으로 이동 (2026-07-17) */}
+            {result.posts_detail && result.posts_detail.length > 0 && (
+              <PostDetailSection posts={result.posts_detail} />
+            )}
+
             {/* ═══ 이번 실행 항목 (항상 노출) ═══ */}
             {/* D. 중복 주제 + 제목 템플릿 반복 경고 */}
             {((result.duplicate_topics && result.duplicate_topics.length > 0) ||
@@ -2350,30 +2355,12 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               {showDetail ? (
                 <>상세 데이터 접기 <ChevronUp className="w-4 h-4" /></>
               ) : (
-                <>상세 데이터 보기(트렌드·발행주기·포스트별 분석·키워드 관리) <ChevronDown className="w-4 h-4" /></>
+                <>상세 데이터 보기(경쟁사 비교·트렌드·발행주기·키워드 관리) <ChevronDown className="w-4 h-4" /></>
               )}
             </button>
 
             {showDetail && (
               <div className="space-y-5">
-                {/* A-2. 블로그 진단 점수 추이 (30일) */}
-                {token && <BlogScoreTrendChart businessId={business.id} token={token} />}
-
-                {/* B. AI 브리핑 가장 가까운 포스트 */}
-                {result.best_citation_candidate && (
-                  <BestCitationCandidateCard candidate={result.best_citation_candidate} />
-                )}
-
-                {/* C. 발행 주기 분석 */}
-                {result.posting_frequency && (
-                  <PostingFrequencyCard freq={result.posting_frequency} />
-                )}
-
-                {/* F. 포스트별 상세 분석 */}
-                {result.posts_detail && result.posts_detail.length > 0 && (
-                  <PostDetailSection posts={result.posts_detail} />
-                )}
-
                 {/* G. 경쟁사 블로그 비교 */}
                 {result.competitor_blog_comparison && (
                   <CompetitorComparisonSection
@@ -2401,6 +2388,19 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                       businessName={business.name}
                     />
                   )}
+
+                {/* A-2. 블로그 진단 점수 추이 (30일) */}
+                {token && <BlogScoreTrendChart businessId={business.id} token={token} />}
+
+                {/* B. AI 브리핑 가장 가까운 포스트 */}
+                {result.best_citation_candidate && (
+                  <BestCitationCandidateCard candidate={result.best_citation_candidate} />
+                )}
+
+                {/* C. 발행 주기 분석 */}
+                {result.posting_frequency && (
+                  <PostingFrequencyCard freq={result.posting_frequency} />
+                )}
 
                 {/* H. 제목 개선 제안 */}
                 {result.posts_detail && result.posts_detail.length > 0 && (
