@@ -83,10 +83,10 @@ export default async function DashboardPage({
 
   // ── 온보딩 ───────────────────────────────────────────────────
   const { data: profileRow } = await supabase
-    .from("profiles").select("onboarding_done, basic_trial_used, free_scan_month, free_scan_monthly_count").eq("id", user.id).maybeSingle();
+    .from("profiles").select("onboarding_done, basic_trial_used, free_scan_month, free_scan_monthly_count").eq("user_id", user.id).maybeSingle();
   let onboardingDone = profileRow?.onboarding_done ?? false;
   if (!onboardingDone && business) {
-    await supabase.from("profiles").upsert({ id: user.id, onboarding_done: true }, { onConflict: "id" });
+    await supabase.from("profiles").upsert({ user_id: user.id, onboarding_done: true }, { onConflict: "user_id" });
     onboardingDone = true;
   }
 

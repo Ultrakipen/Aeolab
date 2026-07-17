@@ -124,7 +124,7 @@ export default function OnboardingTour({ userId, initialOnboardingDone, initialS
     const supabase = createClient();
     void supabase
       .from("profiles")
-      .upsert({ id: userId, onboarding_done: true }, { onConflict: "id" });
+      .upsert({ user_id: userId, onboarding_done: true }, { onConflict: "user_id" });
   };
 
   const handleNext = () => {

@@ -324,7 +324,7 @@ export default function OnboardingPage() {
     if (user) {
       const { error: updateErr } = await supabase
         .from("profiles")
-        .upsert({ id: user.id, onboarding_done: true }, { onConflict: "id" });
+        .upsert({ user_id: user.id, onboarding_done: true }, { onConflict: "user_id" });
       if (updateErr) {
         console.warn("[onboarding] profiles 업데이트 실패:", updateErr.message);
       }
