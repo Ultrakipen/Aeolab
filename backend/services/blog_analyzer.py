@@ -1726,13 +1726,17 @@ async def _analyze_naver_blog(
 
     # v2-C: LLM 기반 품질 판정(진솔한 경험담 vs 홍보 문구) — 상위 5개만, 단일 호출.
     # 실패해도 위 규칙 기반 posts_detail은 그대로 유지되는 부가 기능(2026-07-17 신설).
+    # 명시적 타임아웃 필수 — 이 함수 위 RSS(8초)·RSS재시도(5초)·API쿼리(각 8초)는 전부 자체
+    # 타임아웃이 있는데(총 예산 45초, _ANALYZE_TIMEOUT_SECONDS=50초 설명 참조) 이 부가 기능만
+    # 무제한 대기라면 느려질 때 "덤" 기능 하나 때문에 핵심 분석 전체가 504로 실패할 수 있음
+    # (자체 재검토로 발견 — 최초 구현엔 타임아웃 누락).
     try:
         from services.blog_quality_scorer import score_posts_quality
         quality_input = [
             {"title": filtered_items[i].get("title", ""), "text": filtered_items[i].get("desc", "")}
             for i in range(len(posts_detail))
         ]
-        quality_results = await score_posts_quality(quality_input)
+        quality_results = await asyncio.wait_for(score_posts_quality(quality_input), timeout=8)
         for q_idx, q in quality_results.items():
             if q_idx >= len(posts_detail):
                 continue
