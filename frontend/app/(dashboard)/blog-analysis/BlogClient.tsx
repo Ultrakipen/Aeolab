@@ -22,6 +22,7 @@ import {
   X,
   Globe,
   BarChart2,
+  Info,
 } from "lucide-react";
 import {
   BarChart,
@@ -194,6 +195,8 @@ interface BlogAnalysisResult {
   rss_failed?: boolean;
   // 채널별 AI 인용 현황 (최근 3회 스캔, 백엔드 v4+ 신규 필드)
   multi_channel_citations?: Record<string, { mentioned_count: number; total: number }>;
+  // 업종 평균 대비 채널별 인용률 텍스트 레이블 (2026-07-17 신규)
+  citation_benchmark?: Record<string, string>;
   // 블로그 언급 수 경쟁사 비교 (백엔드 v4+ 신규 필드)
   competitor_blog_mentions?: {
     my_count: number;
@@ -307,6 +310,36 @@ function isStale(lastAnalyzedAt: string | null): boolean {
   if (!lastAnalyzedAt) return true;
   const elapsed = Date.now() - new Date(lastAnalyzedAt).getTime();
   return elapsed > STALE_DAYS * 24 * 60 * 60 * 1000;
+}
+
+/* ── MethodologyDisclosureBar: 이 진단의 근거 — 실측 수치만 정직하게 표시 ── */
+function MethodologyDisclosureBar({
+  postCount,
+  citations,
+}: {
+  postCount: number;
+  citations: Record<string, { mentioned_count: number; total: number }>;
+}) {
+  const totalMeasurements = Object.values(citations || {}).reduce(
+    (sum, c) => sum + (c?.total || 0), 0
+  );
+  const channelCount = Object.keys(citations || {}).length;
+  if (postCount === 0 && totalMeasurements === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
+      <Info className="w-4 h-4 text-gray-400 shrink-0" />
+      <span>
+        이 진단의 근거 · 블로그 포스트 <strong className="text-gray-700">{postCount}개</strong> 실측 분석
+        {totalMeasurements > 0 && (
+          <> · {channelCount}개 채널 총 <strong className="text-gray-700">{totalMeasurements}회</strong> 실측 스캔 기반</>
+        )}
+      </span>
+      <Link href="/how-it-works" className="text-indigo-600 hover:underline ml-auto shrink-0">
+        측정 방법론 보기
+      </Link>
+    </div>
+  );
 }
 
 /* ── Layer 1+3: 정보형 AI 브리핑 준비도 (상태 레이블·실측 근거·변화 확인) ── */
@@ -1359,10 +1392,19 @@ const CHANNEL_LABELS: Record<string, string> = {
 };
 const CHANNEL_ORDER = ["naver", "chatgpt", "gemini", "google"];
 
+const BENCHMARK_LABEL_CLASS: Record<string, string> = {
+  "업종 평균 상회": "text-green-600",
+  "업종 평균 수준": "text-gray-500",
+  "업종 평균 이하": "text-amber-600",
+  "데이터 수집 중": "text-gray-400",
+};
+
 function MultiChannelCitationPanel({
   citations,
+  benchmark,
 }: {
   citations: Record<string, { mentioned_count: number; total: number }>;
+  benchmark?: Record<string, string>;
 }) {
   const entries = CHANNEL_ORDER
     .filter((k) => citations[k] !== undefined)
@@ -1425,6 +1467,11 @@ function MultiChannelCitationPanel({
                 <p className={`text-sm font-semibold ${textClass}`}>
                   {data.total > 0 ? `${pct}% 인용률` : "측정 데이터 없음"}
                 </p>
+                {benchmark?.[platform] && (
+                  <p className={`text-sm mt-0.5 ${BENCHMARK_LABEL_CLASS[benchmark[platform]] ?? "text-gray-400"}`}>
+                    {benchmark[platform]}
+                  </p>
+                )}
               </div>
             );
           })}
@@ -2249,6 +2296,12 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               </div>
             )}
 
+            {/* 진단 근거 요약 바 — 실측 데이터 수치만 정직하게 표시 (신뢰 장치, CLAUDE.md 허위수치 금지 원칙 준수) */}
+            <MethodologyDisclosureBar
+              postCount={result.posts_detail?.length || 0}
+              citations={result.multi_channel_citations || {}}
+            />
+
             {/* Layer 1+3: 정보형 AI 브리핑 준비도 (상태·근거·변화) — 개인화된 실제 결과를 가장 먼저 노출 */}
             <InfoBriefingReadinessCard
               result={result}
@@ -2316,7 +2369,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
             {/* ═══ 섹션 A: 채널별 AI 인용 현황 ═══ */}
             {result.multi_channel_citations &&
               Object.keys(result.multi_channel_citations).length > 0 && (
-                <MultiChannelCitationPanel citations={result.multi_channel_citations} />
+                <MultiChannelCitationPanel citations={result.multi_channel_citations} benchmark={result.citation_benchmark} />
               )}
 
             {/* F. 포스트별 상세 분석 — naeo.kr 핵심 대응 기능(실측 인용 배지)이라 상단으로 이동 (2026-07-17) */}

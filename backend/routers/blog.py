@@ -129,6 +129,88 @@ async def _fetch_competitor_blog_mentions(business_id: str, supabase) -> dict:
         return {}
 
 
+_CITATION_BENCHMARK_MIN_PEERS = 3  # report.py의 _MIN_PUBLIC_RANK_COUNT 패턴과 동일한 최소 표본 기준
+
+
+async def _fetch_citation_benchmark(business_id: str, category: str, my_citations: dict, supabase) -> dict | None:
+    """업종 내 동종 사업장 대비 채널별 인용률 비교 텍스트 레이블.
+
+    my_citations: _fetch_multi_channel_citations() 반환값을 그대로 재사용(중복 조회 방지).
+    반환 형식: {"naver": "업종 평균 상회", "chatgpt": "데이터 수집 중", ...}
+    peers 3곳 미만 등 정당한 사유로 비교 불가 시 {}(빈 dict, 정상) 반환.
+    조회 자체가 실패한 경우에만 None 반환 — 호출부가 "정상 empty"와 "일시 실패"를
+    구별해 실패 시에만 이전 캐시값을 유지하도록 함(2026-07-17 code-review 발견).
+    점수 숫자는 절대 반환하지 않음 — 텍스트 레이블만 (CLAUDE.md 점수 텍스트전용 원칙).
+    """
+    try:
+        peers = (await execute(
+            supabase.table("businesses")
+            .select("id")
+            .eq("category", category)
+            .eq("is_active", True)
+            .neq("id", business_id)
+            .limit(20)  # 2026-07-17 code-review: 50이면 peer당 2쿼리 x 50 = 동시 100요청 burst 위험
+        )).data or []
+        if len(peers) < _CITATION_BENCHMARK_MIN_PEERS:
+            return {}
+
+        peer_ids = [p["id"] for p in peers]
+
+        async def _peer_rates(pid: str) -> dict:
+            scan_res = (await execute(
+                supabase.table("scan_results")
+                .select("id")
+                .eq("business_id", pid)
+                .order("scanned_at", desc=True)
+                .limit(3)
+            )).data or []
+            if not scan_res:
+                return {}
+            scan_ids = [r["id"] for r in scan_res]
+            cit_res = (await execute(
+                supabase.table("ai_citations")
+                .select("platform, mentioned")
+                .in_("scan_id", scan_ids)
+            )).data or []
+            agg: dict[str, dict] = {}
+            for c in cit_res:
+                p = c.get("platform") or "unknown"
+                agg.setdefault(p, {"mentioned": 0, "total": 0})
+                agg[p]["total"] += 1
+                if c.get("mentioned"):
+                    agg[p]["mentioned"] += 1
+            return agg
+
+        peer_aggs = await asyncio.gather(*[_peer_rates(pid) for pid in peer_ids])
+
+        platform_rates: dict[str, list] = {}
+        for agg in peer_aggs:
+            for platform, v in agg.items():
+                if v["total"] > 0:
+                    platform_rates.setdefault(platform, []).append(v["mentioned"] / v["total"])
+
+        labels: dict[str, str] = {}
+        for platform, my in my_citations.items():
+            if not isinstance(my, dict) or my.get("total", 0) == 0:
+                continue
+            my_rate = my["mentioned_count"] / my["total"]
+            peer_list = platform_rates.get(platform, [])
+            if len(peer_list) < _CITATION_BENCHMARK_MIN_PEERS:
+                labels[platform] = "데이터 수집 중"
+                continue
+            avg_rate = sum(peer_list) / len(peer_list)
+            if my_rate > avg_rate + 0.05:
+                labels[platform] = "업종 평균 상회"
+            elif my_rate < avg_rate - 0.05:
+                labels[platform] = "업종 평균 이하"
+            else:
+                labels[platform] = "업종 평균 수준"
+        return labels
+    except Exception as e:
+        _logger.warning(f"citation_benchmark 조회 실패 [biz={business_id}]: {e}")
+        return None
+
+
 def _check_blog_rate_limit(user_id: str) -> None:
     key = f"blog_analyze_rate:{user_id}"
     count: int = _cache.get(key) or 0
@@ -415,6 +497,7 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
         # A~D 기본값 — 아래 블록에서 실제 값으로 덮어씀 (실패해도 키 존재 보장)
         "multi_channel_citations": {},
         "competitor_blog_mentions": {},
+        "citation_benchmark": {},
     }
 
     # A. 포스트별 실측 인용 여부 매핑
@@ -452,6 +535,15 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
         )
     except Exception as _e:
         _logger.warning(f"multi_channel_citations 추가 실패 [biz={request.business_id}]: {_e}")
+
+    # C. 업종 평균 대비 인용률 벤치마크
+    try:
+        _benchmark_result = await _fetch_citation_benchmark(
+            request.business_id, category, analysis_json["multi_channel_citations"], supabase
+        )
+        analysis_json["citation_benchmark"] = _benchmark_result if _benchmark_result is not None else {}
+    except Exception as _e:
+        _logger.warning(f"citation_benchmark 추가 실패 [biz={request.business_id}]: {_e}")
 
     # D. 블로그 언급 수 벤치마크
     try:
@@ -569,7 +661,7 @@ async def get_blog_result(
     try:
         biz_row = (await execute(
             supabase.table("businesses")
-            .select("id, user_id, blog_url, blog_keyword_coverage, blog_post_count, blog_latest_post_date, blog_analyzed_at, blog_analysis_json")
+            .select("id, user_id, category, blog_url, blog_keyword_coverage, blog_post_count, blog_latest_post_date, blog_analyzed_at, blog_analysis_json")
             .eq("id", business_id)
             .single()
         )).data
@@ -585,7 +677,7 @@ async def get_blog_result(
             try:
                 biz_row = (await execute(
                     supabase.table("businesses")
-                    .select("id, user_id, blog_url, blog_keyword_coverage, blog_post_count, blog_latest_post_date, blog_analyzed_at")
+                    .select("id, user_id, category, blog_url, blog_keyword_coverage, blog_post_count, blog_latest_post_date, blog_analyzed_at")
                     .eq("id", business_id)
                     .single()
                 )).data
@@ -611,6 +703,7 @@ async def get_blog_result(
         if saved_json and isinstance(saved_json, dict):
             live_multi_channel: dict = {}
             live_blog_mentions: dict = {}
+            live_citation_benchmark: dict | None = None
             try:
                 live_multi_channel = await _fetch_multi_channel_citations(business_id, supabase)
             except Exception as _e:
@@ -619,12 +712,28 @@ async def get_blog_result(
                 live_blog_mentions = await _fetch_competitor_blog_mentions(business_id, supabase)
             except Exception as _e:
                 _logger.warning(f"get_blog_result blog_mentions 조회 실패: {_e}")
+            try:
+                live_citation_benchmark = await _fetch_citation_benchmark(
+                    business_id,
+                    biz_row.get("category", ""),
+                    live_multi_channel or saved_json.get("multi_channel_citations", {}),
+                    supabase,
+                )
+            except Exception as _e:
+                _logger.warning(f"get_blog_result citation_benchmark 조회 실패: {_e}")
             # 라이브 조회 실패(빈 dict) 시 이전 저장값을 빈 값으로 덮어쓰지 않고 마지막 정상값 유지
             # (2026-07-17 code-review 발견 — DB 간헐 오류 시 정상 섹션이 일시적으로 사라지던 문제)
+            # citation_benchmark만 예외: {}가 "peers 3곳 미만"이라는 정상 결과일 수 있어
+            # None(조회 자체 실패)일 때만 캐시로 폴백 — {}를 stale 값으로 덮지 않음
             return {
                 **saved_json,
                 "multi_channel_citations": live_multi_channel or saved_json.get("multi_channel_citations", {}),
                 "competitor_blog_mentions": live_blog_mentions or saved_json.get("competitor_blog_mentions", {}),
+                "citation_benchmark": (
+                    saved_json.get("citation_benchmark", {})
+                    if live_citation_benchmark is None
+                    else live_citation_benchmark
+                ),
                 "has_blog_analysis": True,
                 "monthly_used": monthly_used,
                 "monthly_limit": limit,
