@@ -442,10 +442,10 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
         "competitor_only": [],
     }
 
-    # v2: 경쟁사 블로그 비교 데이터 수집 (C. competitor_keyword_detail 포함)
-    # 2026-07-17 발견: competitors.blog_analysis_json 컬럼이 실제로 존재한 적 없어(어떤 job도
-    # 쓴 적 없음) 이 SELECT가 항상 DB 에러(42703)로 실패해 이 기능 전체가 조용히 죽어 있었다.
-    # comp_keywords(TEXT[], 실제로 채워짐)만으로 키워드 분석이 동작하도록 아래에서 처리.
+    # v2: 경쟁사 블로그 키워드 갭 분석 (C. competitor_keyword_detail 포함)
+    # 2026-07-17: 점수·순위 비교(경쟁사 블로그 실측 크롤링 필요, §2-B)는 사용자 확인 후 제외 —
+    # 경쟁사 블로그 URL 자체를 모르는 데이터 소스 문제라 "실시간화"로 해결 안 됨. comp_keywords
+    # (TEXT[], 실제로 채워지는 유일한 소스)만으로 키워드 갭 분석만 제공.
     competitor_blog_comparison = None
     try:
         from services.blog_analyzer import _build_competitor_comparison
@@ -456,13 +456,6 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
         )).data or []
         if comp_rows:
             competitor_blog_comparison = _build_competitor_comparison(
-                my_score=analysis.get("ai_readiness_score", 0),
-                my_post_count=analysis.get("post_count", 0),
-                my_freshness=analysis.get("freshness", "outdated"),
-                my_keyword_coverage=analysis.get("keyword_coverage", 0),
-                competitor_blogs=[],  # blog_analysis_json 데이터 소스 없음(위 발견 사항)
-                # 이 컬럼이 나중에 competitors 테이블에 실제로 추가·적재되면:
-                # ① 위 SELECT에 blog_analysis_json 복원 ② 이 인수에 실제 comp_rows 전달 — 둘 다 해야 활성화됨
                 my_covered_keywords=analysis.get("covered_keywords", []),
                 competitor_comp_keywords=[
                     {"name": c.get("name"), "comp_keywords": c.get("comp_keywords") or []}

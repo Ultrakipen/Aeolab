@@ -15,7 +15,6 @@ import {
   Settings,
   ChevronDown,
   ChevronUp,
-  Trophy,
   Target,
   Zap,
   CalendarDays,
@@ -83,14 +82,6 @@ interface WeeklyAction {
   reason: string;
 }
 
-interface CompetitorBlog {
-  name: string;
-  score: number;
-  post_count: number;
-  freshness: string;
-  keyword_coverage: string[];
-}
-
 interface TopicSuggestionV2 {
   topic: string;
   reason: string;
@@ -101,16 +92,6 @@ interface TopicSuggestionV2 {
 }
 
 interface CompetitorBlogComparison {
-  avg_score: number;
-  my_score: number;
-  my_rank: number;
-  total_count: number;
-  competitors: CompetitorBlog[];
-  // false면 실제 경쟁사 블로그 점수 데이터가 없어 my_rank/avg_score/total_count가
-  // 의미 없는 값("1개 중 1위" 등)이므로 순위 카드를 숨겨야 함 (2026-07-17)
-  score_comparison_available?: boolean;
-  competitor_keyword_gaps?: string[];
-  competitor_gap_message?: string;
   // 키워드별 경쟁사 점유 현황 (백엔드 v4+ 신규 필드)
   competitor_keyword_detail?: Array<{
     keyword: string;
@@ -725,96 +706,6 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
             <>나머지 {posts.length - 5}개 더 보기 <ChevronDown className="w-4 h-4" /></>
           )}
         </button>
-      )}
-    </div>
-  );
-}
-
-/* ── CompetitorComparisonSection ── */
-function CompetitorComparisonSection({ comparison, businessName }: { comparison: CompetitorBlogComparison; businessName: string }) {
-  const maxScore = Math.max(comparison.my_score, ...comparison.competitors.map(c => c.score), 1);
-  // 경쟁사가 1곳뿐이면 "평균"이라는 표현이 통계적으로 부정확함 — 표본 1개는 평균이 아니라 그 1곳의 점수 그 자체
-  const isSingleCompetitor = comparison.total_count <= 2;
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
-        <h3 className="text-base md:text-lg font-bold text-gray-900">경쟁사 블로그 비교</h3>
-      </div>
-
-      {/* 순위 + 평균 비교 + 바 차트 — 경쟁사 블로그 실측 점수가 있을 때만 표시 */}
-      {comparison.score_comparison_available === false ? (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-500 mb-5">
-          경쟁사 블로그 진단 데이터가 아직 없어 순위·점수 비교는 표시할 수 없습니다. 아래 키워드 분석은 실측 데이터 기준입니다.
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
-              <div className="text-2xl md:text-3xl font-bold text-blue-700">{comparison.my_rank}위</div>
-              <div className="text-sm text-blue-600 mt-1">{comparison.total_count}개 사업장 중</div>
-            </div>
-            <div className={`border rounded-xl p-4 text-center ${comparison.my_score >= comparison.avg_score ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
-              <div className={`text-xl md:text-2xl font-bold ${comparison.my_score >= comparison.avg_score ? "text-green-700" : "text-red-700"}`}>
-                {comparison.my_score >= comparison.avg_score
-                  ? (isSingleCompetitor ? "경쟁사보다 높음" : "평균 이상")
-                  : (isSingleCompetitor ? "경쟁사보다 낮음" : "평균 미달")}
-              </div>
-              <div className="text-sm text-gray-600 mt-1">
-                {isSingleCompetitor ? "등록된 경쟁사 1곳 대비 (평균 아님)" : "경쟁사 평균 대비"}
-              </div>
-            </div>
-          </div>
-
-          {/* 바 차트 */}
-          <div className="space-y-3">
-            {/* 내 블로그 */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold text-blue-700">{businessName} (나)</span>
-                <span className="text-sm font-bold text-blue-700">{postScoreLabel(comparison.my_score)}</span>
-              </div>
-              <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${Math.max((comparison.my_score / maxScore) * 100, 2)}%` }} />
-              </div>
-            </div>
-            {/* 경쟁사 */}
-            {comparison.competitors.map((c, idx) => (
-              <div key={idx}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-600 truncate max-w-[60%]">{c.name}</span>
-                  <span className="text-sm font-semibold text-gray-700">{postScoreLabel(c.score)} · {c.post_count}개</span>
-                </div>
-                <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-gray-400 rounded-full transition-all" style={{ width: `${Math.max((c.score / maxScore) * 100, 2)}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* 경쟁사 키워드 갭 */}
-      {comparison.competitor_keyword_gaps && comparison.competitor_keyword_gaps.length > 0 && (
-        <div className="mt-5 pt-5 border-t border-gray-200">
-          <h4 className="text-sm font-bold text-gray-900 mb-1">
-            경쟁사 블로그에는 있고 내 블로그에는 없는 키워드
-          </h4>
-          {comparison.competitor_gap_message && (
-            <p className="text-sm text-gray-500 mb-3 leading-relaxed">{comparison.competitor_gap_message}</p>
-          )}
-          <div className="flex flex-wrap gap-2 mb-3">
-            {comparison.competitor_keyword_gaps.map((kw) => (
-              <span key={kw} className="inline-flex items-center border text-sm font-semibold px-3 py-1 rounded-full bg-red-50 border-red-200 text-red-700">
-                {kw}
-              </span>
-            ))}
-          </div>
-          <p className="text-sm text-blue-600 leading-relaxed">
-            이 키워드들로 포스팅하면 경쟁사 대비 AI 노출 개선에 유리합니다 (알고리즘 기준, 100% 보장 아님).
-          </p>
-        </div>
       )}
     </div>
   );
@@ -2436,15 +2327,10 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
             {showDetail && (
               <div className="space-y-5">
-                {/* G. 경쟁사 블로그 비교 */}
-                {result.competitor_blog_comparison && (
-                  <CompetitorComparisonSection
-                    comparison={result.competitor_blog_comparison}
-                    businessName={business.name}
-                  />
-                )}
-
-                {/* 섹션 B. 경쟁사 키워드 점유 현황 — competitor_keyword_detail */}
+                {/* 섹션 B. 경쟁사 키워드 점유 현황 — competitor_keyword_detail
+                    (2026-07-17: 점수·순위 비교 카드는 제거함 — 경쟁사 블로그 URL을 몰라
+                    실측 불가능한 채 영구 비활성 상태였고, 이 패널이 같은 키워드 갭을
+                    더 상세히(경쟁사별 점유 여부) 보여주므로 중복이었음) */}
                 {result.competitor_blog_comparison?.competitor_keyword_detail &&
                   result.competitor_blog_comparison.competitor_keyword_detail.length > 0 && (
                     <CompetitorKeywordBlockedPanel
