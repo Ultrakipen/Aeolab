@@ -2,7 +2,7 @@
 // Track 1 6항목: 키워드 검색 노출 · 리뷰 품질 · 스마트플레이스 · 블로그 C-rank · 지도/카카오 · AI 브리핑
 // v3.0 응답(model_version 없음·"v3.0") → 기존 4항목 유지
 
-import { CheckCircle2, XCircle, AlertTriangle, AlertOctagon } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, AlertOctagon, Lock } from "lucide-react";
 import type { MissingItem } from "@/types/diagnosis";
 import MissingKeywordBadges from "@/components/dashboard/MissingKeywordBadges";
 import { SCORE_LABELS } from "@/lib/score-labels";
@@ -77,6 +77,8 @@ interface PlatformResult {
 }
 
 interface Props {
+  locked?: boolean;
+  hiddenKeywordCount?: number;
   breakdown: Record<string, number | object>;
   naverResult: NaverResult | null;
   kakaoResult: KakaoResult | null;
@@ -165,6 +167,8 @@ function decodeSmartPlace(completeness: number): { registered: boolean; faq: boo
 
 // ── v3.1 전용: 6항목 렌더러
 function V31SixItems({
+  locked = false,
+  hiddenKeywordCount = 0,
   detail,
   naverResult,
   kakaoResult,
@@ -180,6 +184,8 @@ function V31SixItems({
   token,
   naverPlaceUrl,
 }: {
+  locked?: boolean;
+  hiddenKeywordCount?: number;
   detail: V31Detail;
   naverResult: NaverResult | null;
   kakaoResult: KakaoResult | null;
@@ -338,6 +344,36 @@ function V31SixItems({
               스마트플레이스 등록 · 소식 · 소개글 — 3항목 모두 완료
             </span>
           </div>
+        ) : locked ? (
+          // free 플랜: 어느 항목이 비었는지(✓/✗ + 구체 문구)는 그 자체로 처방전이므로
+          // CSS 블러가 아니라 실제 값(spActual)을 아예 참조하지 않는 스켈레톤으로 렌더링
+          // (블러는 DOM에 실값이 남아 view-source/요소검사로 그대로 드러남 — 2026-07-17 자체발견)
+          // — 전체 완료(위 분기) 여부만은 안심 신호라 잠금 없이 노출
+          <div className="relative rounded-lg overflow-hidden mb-2">
+            <div className="space-y-1.5" aria-hidden="true">
+              <div className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-gray-300 shrink-0" />
+                <span className="h-3.5 w-32 bg-gray-300 rounded" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-gray-300 shrink-0" />
+                <span className="h-3.5 w-24 bg-gray-300 rounded" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full bg-gray-300 shrink-0" />
+                <span className="h-3.5 w-28 bg-gray-300 rounded" />
+              </div>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+              <a
+                href="/pricing"
+                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 px-3 py-1.5 rounded-full shadow-sm hover:bg-gray-50"
+              >
+                <Lock className="w-4 h-4" />
+                어떤 항목이 부족한지 Basic에서 확인
+              </a>
+            </div>
+          </div>
         ) : (
           <div className="space-y-1.5 mb-2">
             <div className="flex items-center gap-2">
@@ -374,6 +410,15 @@ function V31SixItems({
                     {kw}
                   </span>
                 ))
+              )}
+              {locked && hiddenKeywordCount > 0 && (
+                <a
+                  href="/pricing"
+                  className="inline-flex items-center gap-1 text-sm bg-amber-200 text-amber-900 px-2.5 py-1 rounded-full font-semibold hover:bg-amber-300 transition-colors"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  +{hiddenKeywordCount}개 더 — Basic에서 확인
+                </a>
               )}
             </div>
             {isKeywordEstimated && (
@@ -854,6 +899,8 @@ function V30FourItems({
 
 // ── 메인 컴포넌트
 export default function ScoreEvidenceCard({
+  locked = false,
+  hiddenKeywordCount = 0,
   breakdown,
   naverResult,
   kakaoResult,
@@ -1000,6 +1047,8 @@ export default function ScoreEvidenceCard({
           {/* v3.1 / v3.0 분기 렌더링 */}
           {isV31 && track1Detail ? (
             <V31SixItems
+              locked={locked}
+              hiddenKeywordCount={hiddenKeywordCount}
               detail={track1Detail}
               naverResult={naverResult}
               kakaoResult={kakaoResult}

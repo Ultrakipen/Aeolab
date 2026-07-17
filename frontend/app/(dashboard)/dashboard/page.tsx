@@ -166,10 +166,13 @@ export default async function DashboardPage({
   const faqQuestion = guideData?.tools_json?.faq_list?.[0]?.question ?? null;
   const _allMissingKeywords: string[] = Array.isArray(latestScan?.top_missing_keywords)
     ? (latestScan!.top_missing_keywords as string[]) : [];
-  const topMissingKeywords: string[] = isTrialUser
+  // free 플랜 전체(체험 전/후 모두)에 적용 — 이전엔 isTrialUser(체험 1회 소진 후)에만 걸려
+  // 체험을 아직 안 쓴 순수 free 가입자는 놓친 키워드 실명을 8개까지 전부 봤음(진단→해결책 무료 유출)
+  const isFreePlan = plan === "free";
+  const topMissingKeywords: string[] = isFreePlan
     ? _allMissingKeywords.slice(0, 4)
     : _allMissingKeywords.slice(0, 8);
-  const trialHiddenKeywordCount = isTrialUser
+  const trialHiddenKeywordCount = isFreePlan
     ? Math.max(0, _allMissingKeywords.slice(0, 8).length - 4)
     : 0;
 
@@ -641,6 +644,7 @@ export default async function DashboardPage({
               growthStageLabel={growthStageLabel}
               isKeywordEstimated={isKeywordEstimated}
               topMissingKeywords={topMissingKeywords}
+              hiddenKeywordCount={trialHiddenKeywordCount}
               benchmarkAvg={benchmark?.fallback ? undefined : benchmark?.avg_score}
               smartPlaceStatus={smartPlaceStatus}
               allPlatformResults={allPlatformResults}

@@ -116,6 +116,7 @@ interface Props {
   growthStageLabel: string;
   isKeywordEstimated: boolean;
   topMissingKeywords: string[];
+  hiddenKeywordCount?: number;
   benchmarkAvg?: number;
   smartPlaceStatus: SmartPlaceStatus;
   allPlatformResults: Record<string, PlatformResult>;
@@ -168,6 +169,7 @@ export default function DashboardDetailZone({
   growthStageLabel,
   isKeywordEstimated,
   topMissingKeywords,
+  hiddenKeywordCount = 0,
   benchmarkAvg,
   smartPlaceStatus,
   allPlatformResults,
@@ -515,10 +517,12 @@ export default function DashboardDetailZone({
           />
           {scoreBreakdown && (
             <ScoreEvidenceCard
+              locked={plan === "free"}
               breakdown={scoreBreakdown}
               naverResult={naverResult ?? null}
               kakaoResult={kakaoResult ?? null}
               topMissingKeywords={topMissingKeywords}
+              hiddenKeywordCount={hiddenKeywordCount}
               isKeywordEstimated={isKeywordEstimated}
               track1Score={track1Score}
               track2Score={track2Score}
