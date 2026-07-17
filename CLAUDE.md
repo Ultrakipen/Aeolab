@@ -166,7 +166,7 @@
 | **`docs/session_2026_07_01_naver_recheck_and_usergroup_fix_v1.0.md`** ⭐ | **2026-07-01 세션 종합 정리 — 네이버 재검증(오판아님)·모니터잡 P0 버그·Slack무동작→이메일알림·NID_SES추적 신설·monthly_market_news_job PGRST200 수정·getUserGroup/getBriefingEligibility 정적호출 15곳 동적 override 전수 연결(git f7326bf). 잔여: NID_AUT/SES 자동 재로그인 여부(사용자 결정 대기)** |
 | **`docs/naver_briefing_infotype_caveat_standard_v1.0.md`** ⭐ | **네이버 AI 브리핑 "정보형" 캐비엇 점검 표준 — 플레이스형(업종제한)/정보형(전업종) 구분·반복 버그 3유형(LIKELY만 누락/문법변형/암묵적배타)·점검 절차·정당한 예외·수정완료 파일 목록. 11차 스윕(2026-07-01) 종합** |
 | **`docs/nine_pages_measurement_inspection_v1.0.md`** ⭐ | **9개 페이지(경쟁사 관리·변화 기록·성장 리포트·개선 가이드·소개글 콘텐츠·블로그 진단·리뷰 답변·AI 광고 대비·창업 시장 분석) 실측 점검 작업 문서 — 2단 레이어(프론트 UI 하드코딩 + 백엔드 측정 파이프라인 무결성) 방법론, 페이지·컴포넌트·API 매핑, 검증 절차 (2026-07-02)** |
-| **`docs/blog_analysis_improvement_v2.0.md`** ⭐ | **블로그 관리 페이지 개선 v2.0 — v1.0(4건) 완료 확인 + SearchAd 검색량 연동(1순위, 구현 스펙 포함) + 후순위 3건(경쟁사 구조 비교·NLP 품질 채점·포스트별 성과 연결, 트리거 조건 명시). 오판 검증(근거+반증) 포함 (2026-07-06)** |
+| `docs/blog_analysis_improvement_v2.0.md` | 블로그 관리 페이지 개선 v2.0 — v1.0(4건)·검색량 연동·§2-B(경쟁사 실시간비교, 완전배제 확정)·§2-C(LLM 품질판정, 구현완료) 전부 결론남(§4, 2026-07-17). 잔여: CI테스트게이트·비동기 테스트·git reconcile — 트리거는 완료 이력 확인용만 |
 | `docs/five_pages_and_action_history_handoff_v1.0.md` | 경쟁사관리·성장리포트·개선가이드·소개글콘텐츠·변화기록(2차) 점검 + §3 잔여(falsy-zero 스윕·리뷰답변/AI광고대비/창업분석) 전체 완료(git `71707d4`~`963228c`). `nine_pages_measurement_inspection_v1.0.md` 9개 영역 전체 완료 — 트리거는 완료 이력 확인용만 (2026-07-06) |
 | `docs/subscription_lifecycle_inspection_v1.0.md` | 구독 생애주기(갱신·카드변경·해지) 점검 — §1~4(git `df4f55f`~`3ee38fb`) + §6 P0/P1/FK조인버그 + §5 7일 자동환불 전체 배포완료(git `170b002`). 잔여 없음 |
 | **`docs/eight_pages_commercial_professionalism_recheck_v1.0.md`** ⭐ | **8개 페이지 상업적 전문성 재점검 — P0 2건(FAQ한도·SearchGPT)+P1 8건 + 심층개선 6건(DataLab연동 등) + 실API호출로 발견한 최고심각도 2건(가이드 max_tokens 침묵실패, 소개글 허위수치 지어내기) + intro_draft CHECK 제약 사전존재 버그 + keyword_taxonomy law/미술 별칭 버그(전수검증). §13에 잔여 작업 5건 정리(max_tokens 타업종 점검·타업종 소개글 종단테스트·경쟁사 AI언급 추정치 한계·git push 결정 등) (git `258dff7`~`89afa5e`, 2026-07-08)** |
@@ -193,7 +193,7 @@
 > **이번 세션 이어가기**: `docs/session_2026_07_01_naver_recheck_and_usergroup_fix_v1.0.md 기준으로 §7 NID_AUT/NID_SES 자동 재로그인 여부를 결정하고 진행할지 알려줘`
 > **정보형 캐비엇 재점검**: `docs/naver_briefing_infotype_caveat_standard_v1.0.md 기준으로 정보형 캐비엇 재점검 진행`
 > **9개 페이지 실측 점검**: `docs/nine_pages_measurement_inspection_v1.0.md 기준으로 실측 점검 진행`
-> **블로그 관리 페이지 검색량 연동**: `docs/blog_analysis_improvement_v2.0.md 기준으로 1순위(검색량 연동)부터 진행`
+> **블로그 진단 페이지 잔여작업**: `docs/blog_analysis_improvement_v2.0.md §4 기준으로 CI테스트게이트·비동기테스트·git reconcile 중 진행할 것 선택`
 > **8개 페이지 상업적 전문성 재점검 잔여작업**: `docs/eight_pages_commercial_professionalism_recheck_v1.0.md 기준으로 §13 남은 작업 이어서 진행`
 > **외부 벤치마크 기반 상업적 수준 점검**: 9개 페이지(경쟁사관리·성장리포트·개선가이드·변화기록·소개글콘텐츠·블로그진단·리뷰답변·AI광고대비·창업시장분석) 전체 완료. 남은 건 대시보드뿐
 > **대시보드 외부벤치마크 점검**: `docs/dashboard_external_benchmark_inspection_plan_v1.0.md 기준으로 대시보드 점검 진행`
