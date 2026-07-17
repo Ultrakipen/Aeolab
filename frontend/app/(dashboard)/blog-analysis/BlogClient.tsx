@@ -315,9 +315,11 @@ function isStale(lastAnalyzedAt: string | null): boolean {
 /* ── MethodologyDisclosureBar: 이 진단의 근거 — 실측 수치만 정직하게 표시 ── */
 function MethodologyDisclosureBar({
   postCount,
+  isPostCountEstimated,
   citations,
 }: {
   postCount: number;
+  isPostCountEstimated?: boolean;
   citations: Record<string, { mentioned_count: number; total: number }>;
 }) {
   const totalMeasurements = Object.values(citations || {}).reduce(
@@ -330,7 +332,7 @@ function MethodologyDisclosureBar({
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
       <Info className="w-4 h-4 text-gray-400 shrink-0" />
       <span>
-        이 진단의 근거 · 블로그 포스트 <strong className="text-gray-700">{postCount}개</strong> 실측 분석
+        이 진단의 근거 · 블로그 포스트 <strong className="text-gray-700">{postCount}개</strong> 실측 분석{isPostCountEstimated ? " (추정)" : ""}
         {totalMeasurements > 0 && (
           <> · {channelCount}개 채널 총 <strong className="text-gray-700">{totalMeasurements}회</strong> 실측 스캔 기반</>
         )}
@@ -2298,7 +2300,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
             {/* 진단 근거 요약 바 — 실측 데이터 수치만 정직하게 표시 (신뢰 장치, CLAUDE.md 허위수치 금지 원칙 준수) */}
             <MethodologyDisclosureBar
-              postCount={result.posts_detail?.length || 0}
+              postCount={result.post_count ?? 0}
+              isPostCountEstimated={result.is_post_count_estimated}
               citations={result.multi_channel_citations || {}}
             />
 
