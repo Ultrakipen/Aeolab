@@ -552,6 +552,43 @@ async def daily_scan_all():
                             )
                             if _blog_result and not _blog_result.get("error"):
                                 logger.info(f"[scheduler] 블로그 자동 재분석 완료: biz={biz['id']}")
+                                # 2026-07-17 발견: 여기까지만 하고 저장을 안 해 매일 RSS/검색API(+
+                                # 네이버 블로그면 Claude Haiku 품질판정까지) 비용만 쓰고 결과는 버려지던
+                                # 버그 — blog.py _run_blog_analysis()의 저장 패턴과 동일하게 반영.
+                                # A/B/C/D(인용매칭·벤치마크 등) 보강은 생략 — get_blog_result가 조회
+                                # 시점에 항상 라이브로 다시 채우므로 여기서 중복 계산할 필요 없음.
+                                from datetime import timezone as _blog_tz
+                                _blog_now_iso = datetime.now(_blog_tz.utc).isoformat()
+                                _blog_base_payload = {
+                                    "blog_analyzed_at": _blog_now_iso,
+                                    "blog_keyword_coverage": _blog_result.get("keyword_coverage", 0.0),
+                                    "blog_post_count": _blog_result.get("post_count", 0),
+                                }
+                                if _blog_result.get("latest_post_date"):
+                                    _blog_base_payload["blog_latest_post_date"] = _blog_result["latest_post_date"]
+                                try:
+                                    await _db(
+                                        supabase.table("businesses")
+                                        .update({**_blog_base_payload, "blog_analysis_json": _blog_result})
+                                        .eq("id", biz["id"])
+                                    )
+                                except Exception as _blog_save_err:
+                                    _save_err_str = str(_blog_save_err)
+                                    if (
+                                        "blog_analysis_json" in _save_err_str
+                                        or "42703" in _save_err_str
+                                        or ("column" in _save_err_str.lower() and "does not exist" in _save_err_str.lower())
+                                    ):
+                                        try:
+                                            await _db(
+                                                supabase.table("businesses")
+                                                .update(_blog_base_payload)
+                                                .eq("id", biz["id"])
+                                            )
+                                        except Exception as _blog_save_err2:
+                                            logger.warning(f"[scheduler] 블로그 자동 재분석 기본필드 저장 실패 biz={biz['id']}: {_blog_save_err2}")
+                                    else:
+                                        logger.warning(f"[scheduler] 블로그 자동 재분석 결과 저장 실패 biz={biz['id']}: {_blog_save_err}")
                 except Exception as _blog_err:
                     logger.warning(f"[scheduler] 블로그 재분석 실패 biz={biz['id']}: {_blog_err}")
 
