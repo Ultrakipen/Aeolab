@@ -282,21 +282,23 @@ async def get_industry_ranking(category: str, region: str, user=Depends(get_curr
     biz_ids = [b["id"] for b in businesses]
     biz_map = {b["id"]: b["name"] for b in businesses}
 
-    # N+1 제거: score_history 단일 IN 쿼리로 모든 사업장 최신 점수 조회
-    scores_raw = (
-        await execute(
-            supabase.table("score_history")
-            .select("business_id, total_score, exposure_freq, score_date")
-            .in_("business_id", biz_ids)
-            .order("score_date", desc=True)
-            .limit(len(biz_ids) * 2)
-        )
-    ).data or []
-    latest: dict = {}
-    for s in scores_raw:
-        bid = s["business_id"]
-        if bid not in latest:
-            latest[bid] = s
+    # 사업장별 최신 점수 1건씩 병렬 조회 (2026-07-17 code-review 발견 수정:
+    # 이전엔 전체를 score_date DESC 정렬 후 len(biz_ids)*2로만 잘라서, 스캔이
+    # 잦은 사업장들이 슬롯을 소진하면 오래된 사업장의 최신 점수가 조용히 누락됐음)
+    async def _latest_score_row(bid: str) -> tuple[str, dict | None]:
+        row = (
+            await execute(
+                supabase.table("score_history")
+                .select("total_score, exposure_freq, score_date")
+                .eq("business_id", bid)
+                .order("score_date", desc=True)
+                .limit(1)
+            )
+        ).data or []
+        return bid, (row[0] if row else None)
+
+    _results = await asyncio.gather(*[_latest_score_row(bid) for bid in biz_ids])
+    latest: dict = {bid: s for bid, s in _results if s is not None}
 
     results = [
         {
@@ -409,23 +411,23 @@ async def get_public_industry_ranking(category: str, region: str, request: Reque
 
     biz_ids = [b["id"] for b in businesses]
 
-    # N+1 제거: 단일 IN 쿼리로 최신 점수 수집
-    scores_raw = (
-        await execute(
-            supabase.table("score_history")
-            .select("business_id, total_score, score_date")
-            .in_("business_id", biz_ids)
-            .order("score_date", desc=True)
-            .limit(len(biz_ids) * 2)
-        )
-    ).data or []
+    # 사업장별 최신 점수 1건씩 병렬 조회 (2026-07-17 code-review 발견 수정:
+    # 이전엔 전체를 score_date DESC로 정렬 후 len(biz_ids)*2로만 잘라서, 스캔이
+    # 잦은 사업장들이 슬롯을 소진하면 오래된 사업장의 최신 점수가 조용히 누락됐음)
+    async def _latest_score(bid: str) -> tuple[str, float | None]:
+        row = (
+            await execute(
+                supabase.table("score_history")
+                .select("total_score")
+                .eq("business_id", bid)
+                .order("score_date", desc=True)
+                .limit(1)
+            )
+        ).data or []
+        return bid, (row[0]["total_score"] if row else None)
 
-    # 사업장별 최신 점수만 유지
-    latest: dict[str, float] = {}
-    for s in scores_raw:
-        bid = s["business_id"]
-        if bid not in latest:
-            latest[bid] = s["total_score"]
+    results = await asyncio.gather(*[_latest_score(bid) for bid in biz_ids])
+    latest: dict[str, float] = {bid: score for bid, score in results if score is not None}
 
     if len(latest) < _MIN_PUBLIC_RANK_COUNT:
         _cache.set(cache_key, insufficient, _TTL_RANKING)

@@ -619,10 +619,12 @@ async def get_blog_result(
                 live_blog_mentions = await _fetch_competitor_blog_mentions(business_id, supabase)
             except Exception as _e:
                 _logger.warning(f"get_blog_result blog_mentions 조회 실패: {_e}")
+            # 라이브 조회 실패(빈 dict) 시 이전 저장값을 빈 값으로 덮어쓰지 않고 마지막 정상값 유지
+            # (2026-07-17 code-review 발견 — DB 간헐 오류 시 정상 섹션이 일시적으로 사라지던 문제)
             return {
                 **saved_json,
-                "multi_channel_citations": live_multi_channel,  # B: 최신 데이터로 갱신
-                "competitor_blog_mentions": live_blog_mentions,  # D: 최신 데이터로 갱신
+                "multi_channel_citations": live_multi_channel or saved_json.get("multi_channel_citations", {}),
+                "competitor_blog_mentions": live_blog_mentions or saved_json.get("competitor_blog_mentions", {}),
                 "has_blog_analysis": True,
                 "monthly_used": monthly_used,
                 "monthly_limit": limit,
