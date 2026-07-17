@@ -977,7 +977,7 @@ export default async function LandingPage() {
               {
                 icon: "📰",
                 title: "블로그 진단",
-                desc: "내 가게를 언급한 블로그 콘텐츠 분석. 빠진 키워드·경쟁사 대비 언급량 비교로 콘텐츠 방향 제시",
+                desc: "내 블로그 포스트가 실제로 AI에 인용되고 있는지 포스트 단위로 확인. 5채널 인용 현황·경쟁사 비교로 개선 방향 제시",
                 badge: null,
                 badgeColor: "",
               },

@@ -2093,6 +2093,20 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   블로그 AI 진단을 사용하려면 사업장 설정에서 블로그 주소를 먼저 등록해 주세요.
                   네이버 블로그, 티스토리, 워드프레스 등 외부 블로그 주소도 사용 가능합니다.
                 </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
+                  <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
+                    <Search className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-sm text-amber-900">등록하면 포스트별로 실제 AI 인용 여부를 확인할 수 있습니다</p>
+                  </div>
+                  <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
+                    <BarChart2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-sm text-amber-900">Gemini·ChatGPT·네이버·Google 5채널 인용 현황을 한눈에 봅니다</p>
+                  </div>
+                  <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
+                    <Target className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-sm text-amber-900">경쟁사가 점유한 키워드와 선점 기회를 비교합니다</p>
+                  </div>
+                </div>
                 <Link
                   href={`/settings?tab=business&biz_id=${encodeURIComponent(business.id)}`}
                   className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"

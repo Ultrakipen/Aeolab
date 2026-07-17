@@ -698,7 +698,7 @@ export default function OnboardingPage() {
                 {/* 블로그 자동 분석 안내 */}
                 <p className="text-sm text-blue-600 mt-1 flex items-start gap-1.5">
                   <span className="shrink-0 mt-0.5">💡</span>
-                  <span>블로그 주소를 입력하면 등록 후 자동으로 분석됩니다. AI 브리핑 노출 가능성을 진단해 드립니다.</span>
+                  <span>블로그 주소를 입력하면 등록 후 자동으로 분석됩니다. 포스트별 AI 인용 여부·5채널 인용 현황·경쟁사 비교까지 확인할 수 있습니다.</span>
                 </p>
               </div>
 
