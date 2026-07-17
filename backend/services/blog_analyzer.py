@@ -786,7 +786,9 @@ def _build_competitor_comparison(
         db_kws = [k for k in (ck.get("comp_keywords") or []) if k]
         if db_kws:
             comp_all_keywords.update(db_kws)
-        if ck_name and db_kws:
+        # 동일 이름의 경쟁사 행이 중복 존재할 경우 먼저 본 값을 유지(덮어쓰기 방지) —
+        # 정리 전 원본 코드의 기존 동작과 동일하게 유지 (2026-07-17 재검토로 확인)
+        if ck_name and db_kws and ck_name not in comp_blog_kw_map:
             comp_blog_kw_map[ck_name] = set(db_kws)
 
     # 경쟁사에는 있고 내 블로그에는 없는 키워드
