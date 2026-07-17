@@ -1001,14 +1001,27 @@ def _calc_keyword_coverage(
     normalized = normalize_category(category)
     taxonomy = KEYWORD_TAXONOMY.get(normalized, KEYWORD_TAXONOMY.get("restaurant", {}))
 
+    # 2026-07-18 발견: (1) ai_tab_context는 briefing_engine.py의 AI탭 매칭 전용 하위카테고리라
+    # 블로그 키워드 갭 분석에 섞으면 안 되는데 섞여 있었음. (2) 하위카테고리를 dict 삽입 순서
+    # 그대로 이어붙인 뒤 [:20]으로 자르고 있어서, taxonomy 총 키워드 수가 20개를 넘는 업종은
+    # 뒤쪽에 있는(대개 나중에 추가된 특화·고가중치) 하위카테고리가 통째로 잘려나갔음 — 실측:
+    # music_studio(홍뮤직스튜디오 실계정)의 "스튜디오전문성"(작곡 레슨·레코딩 스튜디오 등,
+    # weight=0.25로 최고 가중치 중 하나, 이 업종 대응으로 별도 추가됐던 카테고리)가 앞의
+    # 4개 카테고리 누적 20개에 밀려 한 글자도 검사 대상에 못 들어가고 있었음. 가중치 내림차순
+    # 정렬 후 상한 없이 전부 포함하도록 수정 — 이후 필요하면 missing_keywords[:10]에서만 노출 제한.
+    subcats = [
+        v for k, v in taxonomy.items()
+        if k != "ai_tab_context" and isinstance(v, dict) and "keywords" in v
+    ]
+    subcats.sort(key=lambda v: v.get("weight", 0), reverse=True)
+
     all_keywords: list[str] = []
-    for cat_data in taxonomy.values():
-        if isinstance(cat_data, dict) and "keywords" in cat_data:
-            all_keywords.extend(cat_data["keywords"])
+    for cat_data in subcats:
+        all_keywords.extend(cat_data["keywords"])
 
-    unique_keywords = list(dict.fromkeys(all_keywords))[:20]
+    unique_keywords = list(dict.fromkeys(all_keywords))
 
-    # custom 키워드 union (taxonomy에 없는 것만 합류, 최종 20개 제한 준수)
+    # custom 키워드 union (taxonomy에 없는 것만 합류)
     if custom_keywords:
         existing_nospace = {k.replace(" ", "") for k in unique_keywords}
         for ck in custom_keywords:
