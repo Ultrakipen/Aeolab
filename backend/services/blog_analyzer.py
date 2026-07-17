@@ -25,17 +25,14 @@ _logger = logging.getLogger("aeolab")
 
 
 # ── SSRF 방지 ─────────────────────────────────────────────────────────────────
-
-# 허용된 외부 도메인 화이트리스트 (naver 검색 API — _analyze_naver_blog 전용)
-_NAVER_API_HOST = "openapi.naver.com"
-
-# 외부 블로그 허용 호스트 접미사 (티스토리·워드프레스·기타 공개 블로그)
-_ALLOWED_BLOG_SUFFIXES = (
-    ".tistory.com",
-    ".wordpress.com",
-    ".blog.me",        # 구 네이버 블로그 (blog.me)
-    "blog.naver.com",  # 네이버 블로그 — _analyze_external_blog 경로에서 도달하지 않음
-)
+#
+# 2026-07-17 발견·정리: 이 아래 있던 _NAVER_API_HOST·_ALLOWED_BLOG_SUFFIXES(도메인
+# 접미사 화이트리스트) 상수는 정의만 되고 어디서도 실제로 쓰인 적이 없는 죽은 코드였음.
+# 실제 SSRF 차단은 아래 _is_ssrf_blocked()의 IP대역·스킴·포트 검사가 전담하고 있어
+# 이 상수들 없이도 이미 안전했음. 반증: 도메인 접미사 화이트리스트를 실제로 연결하면
+# _detect_blog_platform()이 URL 패턴(wp-content/wp-json)으로 인식하는 자체 호스팅
+# 워드프레스(예: 자체 도메인 + 워드프레스, .wordpress.com 아님)가 오탐으로 차단돼
+# 정당한 사용자를 막는 회귀가 생김 — 화이트리스트를 살리는 대신 죽은 코드로 제거.
 
 def _is_ssrf_blocked(url: str) -> bool:
     """
@@ -1157,17 +1154,18 @@ def _calc_blog_ai_readiness(
         }
     items.append(item7)
 
-    # 8. 제목에 숫자/구체성 포함 비율 30% 초과
+    # 8. 제목/본문에 숫자·구체성 포함 비율 30% 초과
+    # posts_texts는 "제목 본문스니펫" 결합 문자열(호출부에서 f"{title} {desc}"로 생성)이라
+    # 제목만 분리해 볼 수 없음 — 라벨을 실제 측정 범위(제목+본문)에 맞게 정정
+    # (2026-07-17 재검토: 이전엔 "제목에"라고만 표시해 실측 범위와 라벨이 불일치했음)
     specific_patterns = re.compile(r'\d|3가지|5곳|TOP|BEST|원|분|km')
-    titles = [t.split(" ")[0] for t in posts_texts if t.strip()]  # 첫 단어(제목 근사)
-    # 전체 texts에서 숫자 포함 텍스트 비율 계산
     specific_texts = [t for t in posts_texts if specific_patterns.search(t)]
     specific_ratio = len(specific_texts) / max(len(posts_texts), 1)
     has_specific_titles = specific_ratio > 0.3
     items.append({
-        "label": "제목에 숫자/구체적 표현 포함 비율 30% 초과",
+        "label": "제목·본문에 숫자/구체적 표현 포함 비율 30% 초과",
         "passed": has_specific_titles,
-        "description": "숫자가 포함된 제목('3가지 방법', 'TOP5')은 AI 검색 인용률이 높습니다.",
+        "description": "숫자가 포함된 제목이나 본문('3가지 방법', 'TOP5')은 AI 검색 인용률이 높습니다.",
     })
 
     # 9. 이미지 포함 비율 30% 초과 (img_count 측정 가능한 포스트 기준)
@@ -1675,7 +1673,7 @@ async def _analyze_naver_blog(
     all_titles = [item.get("title", "") for item in all_items]
     content_cls = _classify_content_type(all_titles)
     title_suggestions = _generate_title_suggestions(
-        all_titles, region, category, kw_result["missing_keywords"]
+        region, category, kw_result["missing_keywords"]
     )
 
     # v2: 개별 포스트 상세 분석 (상위 10개 — filtered_items 기준으로 post_dates 인덱스 정합)
@@ -1842,16 +1840,20 @@ async def _analyze_external_blog(
     # 콘텐츠 유형 분류
     content_cls = _classify_content_type(post_titles)
     title_suggestions = _generate_title_suggestions(
-        post_titles, region, category, kw_result["missing_keywords"]
+        region, category, kw_result["missing_keywords"]
     )
 
     # v2: 개별 포스트 상세 분석 (외부 블로그용 — 제목 기반)
+    # post_dates는 페이지 전체 HTML에서 날짜 패턴만 훑어 모은 목록이라(제목 추출과
+    # 별개의 정규식 스캔) 몇 번째 제목과 몇 번째 날짜가 실제로 같은 글인지 알 수 없다.
+    # 이전엔 post_dates[idx]로 인덱스만 맞춰 넣어 "이 글은 N일 전"처럼 실제로는 무관한
+    # 다른 글의 날짜를 이 글의 것으로 보여줄 위험이 있었음(2026-07-17 재검토로 발견) —
+    # 포스트별 날짜 귀속은 신뢰할 근거가 없으므로 항상 None(날짜 없음)으로 전달.
     posts_detail: list[dict] = []
-    for idx, t in enumerate(post_titles[:10]):
-        pd = post_dates[idx] if idx < len(post_dates) else None
+    for t in post_titles[:10]:
         item_stub = {"title": t, "desc": "", "link": url}
         detail = _analyze_single_post(
-            item_stub, pd, region, category, kw_result["covered_keywords"]
+            item_stub, None, region, category, kw_result["covered_keywords"]
         )
         posts_detail.append(detail)
 
@@ -1926,7 +1928,7 @@ def _classify_content_type(titles: list[str]) -> dict:
     }
 
 
-def _generate_title_suggestions(titles: list[str], region: str, category: str, missing_keywords: list[str]) -> list[str]:
+def _generate_title_suggestions(region: str, category: str, missing_keywords: list[str]) -> list[str]:
     """기존 홍보형 제목을 정보형으로 변환한 예시 3개 생성"""
     city = region.strip().split()[0] if region else ""
     import re as _re
@@ -1990,9 +1992,15 @@ def _generate_title_suggestions(titles: list[str], region: str, category: str, m
     from services.keyword_taxonomy import normalize_category
     cat_key = normalize_category(category)
 
-    suggestions = templates.get(cat_key, templates["restaurant"])[:3]
-    # city가 없으면 city 포함 여부 상관없이 반환
-    return suggestions[:3]
+    # templates는 10개 업종만 수작업으로 채워져 있음 — 나머지 업종(전체 60개 중 약 50개)에
+    # restaurant 템플릿("맛집 추천" 등)을 조용히 폴백시키면 업종과 무관한 문구가 그대로
+    # guide_generator.py 프롬프트에 "이것을 직접 추천할 것"으로 들어가 실제로 잘못된 추천이
+    # 나감 — 2026-07-17 music_studio 계정으로 실측 재현해 확인. 매핑 없는 업종은 잘못된
+    # 내용을 보여주는 대신 빈 리스트로 정직하게 생략(호출부 title_suggestions는 이미
+    # "있으면"만 사용하도록 방어돼 있어 빈 리스트가 안전함).
+    if cat_key not in templates:
+        return []
+    return templates[cat_key][:3]
 
 
 # ── 에러 결과 헬퍼 ────────────────────────────────────────────────────────────
