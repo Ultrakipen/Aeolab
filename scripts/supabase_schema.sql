@@ -2628,3 +2628,31 @@ ALTER TABLE ai_citations
 CREATE INDEX IF NOT EXISTS idx_ai_citations_source_url
   ON ai_citations(source_url)
   WHERE source_url IS NOT NULL;
+
+-- ===========================================================
+-- 2026-07-18: naeo.kr 경쟁 분석 후 3개 기능 추가
+-- 배경: naeo.kr(블로그 전용 AEO 진단 툴) 실측 비교 결과 AEOlab에 없던
+-- ①키워드 검색량 시계열 추이 ②AI 인용 텍스트/이미지 유형 구분
+-- ③전체 사업장 랭킹+배지 3개를 사용자 확인 후 구현(docs/naeo_kr_comparison_v1.0.md).
+-- ===========================================================
+
+-- ① 키워드 검색량 시계열 이력 (naver_searchad.py get_volumes_with_cache가
+-- 캐시 갱신 시점에만 append — 기존 keyword_volumes는 upsert라 이력이 안 남음)
+CREATE TABLE IF NOT EXISTS keyword_volume_history (
+  id             BIGSERIAL PRIMARY KEY,
+  keyword        TEXT NOT NULL,
+  category       TEXT NOT NULL,
+  monthly_pc     INT,
+  monthly_mo     INT,
+  monthly_total  INT,
+  competition    TEXT,
+  recorded_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_keyword_volume_history_lookup
+  ON keyword_volume_history(keyword, category, recorded_at DESC);
+
+-- ② AI 인용 텍스트/이미지 유형 — 네이버 AI 브리핑 DOM에서만 실측 가능(다른 채널은 NULL)
+ALTER TABLE ai_citations
+  ADD COLUMN IF NOT EXISTS mention_format TEXT;  -- 'text' | 'image' | NULL(미확인/타 채널)
+
+-- ③ 전체 랭킹은 blog_score_history 기존 컬럼만으로 실시간 계산 — 신규 테이블 불필요

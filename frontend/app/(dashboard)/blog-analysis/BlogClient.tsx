@@ -22,6 +22,7 @@ import {
   Globe,
   BarChart2,
   Info,
+  Trophy,
 } from "lucide-react";
 import {
   BarChart,
@@ -89,6 +90,13 @@ interface TopicSuggestionV2 {
   source: "competitor_gap" | "keyword_gap" | "reuse";
   monthly_volume?: number | null;
   competition?: "high" | "medium" | "low" | "unknown" | null;
+  volume_trend?: {
+    from_date: string;
+    to_date: string;
+    from_volume: number;
+    to_volume: number;
+    pct_change: number | null;
+  } | null;
 }
 
 interface CompetitorBlogComparison {
@@ -175,7 +183,7 @@ interface BlogAnalysisResult {
   // RSS 접근 실패로 API 스니펫만으로 분석했을 때 true (이미지·본문 길이 측정 불가)
   rss_failed?: boolean;
   // 채널별 AI 인용 현황 (최근 3회 스캔, 백엔드 v4+ 신규 필드)
-  multi_channel_citations?: Record<string, { mentioned_count: number; total: number }>;
+  multi_channel_citations?: Record<string, { mentioned_count: number; total: number; text_count?: number; image_count?: number }>;
   // 업종 평균 대비 채널별 인용률 텍스트 레이블 (2026-07-17 신규)
   citation_benchmark?: Record<string, string>;
   // 블로그 언급 수 경쟁사 비교 (백엔드 v4+ 신규 필드)
@@ -183,6 +191,13 @@ interface BlogAnalysisResult {
     my_count: number;
     competitors: Array<{ name: string; blog_mention_count: number }>;
     avg_count: number;
+  };
+  // 전체 블로그 진단 랭킹 (2026-07-18 신규, naeo.kr 대응)
+  blog_ranking?: {
+    rank?: number;
+    total?: number;
+    badges?: string[];
+    show_tier?: boolean;
   };
 }
 
@@ -937,6 +952,15 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
                   : ""}
               </span>
             )}
+            {s.volume_trend && s.volume_trend.pct_change !== null && (
+              <p className="text-sm text-gray-500">
+                검색량 추이({s.volume_trend.from_date}→{s.volume_trend.to_date}):{' '}
+                {s.volume_trend.from_volume.toLocaleString()}회 → {s.volume_trend.to_volume.toLocaleString()}회{' '}
+                <span className={s.volume_trend.pct_change >= 0 ? "text-red-500 font-medium" : "text-blue-500 font-medium"}>
+                  {s.volume_trend.pct_change >= 0 ? "▲" : "▼"}{Math.abs(s.volume_trend.pct_change)}%
+                </span>
+              </p>
+            )}
             <button
               onClick={() => {
                 copyToClipboard(s.topic, () => {});
@@ -1297,16 +1321,23 @@ const BENCHMARK_LABEL_CLASS: Record<string, string> = {
   "데이터 수집 중": "text-gray-400",
 };
 
+interface ChannelCitationData {
+  mentioned_count: number;
+  total: number;
+  text_count?: number;
+  image_count?: number;
+}
+
 function MultiChannelCitationPanel({
   citations,
   benchmark,
 }: {
-  citations: Record<string, { mentioned_count: number; total: number }>;
+  citations: Record<string, ChannelCitationData>;
   benchmark?: Record<string, string>;
 }) {
   const entries = CHANNEL_ORDER
     .filter((k) => citations[k] !== undefined)
-    .map((k) => [k, citations[k]] as [string, { mentioned_count: number; total: number }]);
+    .map((k) => [k, citations[k]] as [string, ChannelCitationData]);
 
   // 정의된 채널 외의 것도 뒤에 붙임
   const extra = Object.entries(citations).filter(([k]) => !CHANNEL_ORDER.includes(k));
@@ -1365,6 +1396,11 @@ function MultiChannelCitationPanel({
                 <p className={`text-sm font-semibold ${textClass}`}>
                   {data.total > 0 ? `${pct}% 인용률` : "측정 데이터 없음"}
                 </p>
+                {((data.text_count ?? 0) > 0 || (data.image_count ?? 0) > 0) && (
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    텍스트 {data.text_count ?? 0} · 이미지 썸네일 {data.image_count ?? 0}
+                  </p>
+                )}
                 {benchmark?.[platform] && (
                   <p className={`text-sm mt-0.5 ${BENCHMARK_LABEL_CLASS[benchmark[platform]] ?? "text-gray-400"}`}>
                     {benchmark[platform]}
@@ -1375,6 +1411,51 @@ function MultiChannelCitationPanel({
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
+   전체 블로그 진단 랭킹 (2026-07-18 신규, naeo.kr 대응)
+   최소표본(20곳) 미달 시 등급/배지 대신 긍정적 성장 안내만 노출 — 표본이 작을 때
+   percentile을 보여주면 왜곡된 인상을 주므로 의도적으로 생략함(허위 수치 금지 원칙).
+   ─────────────────────────────────────────────────────────── */
+function BlogRankingCard({
+  ranking,
+}: {
+  ranking?: { rank?: number; total?: number; badges?: string[]; show_tier?: boolean };
+}) {
+  if (!ranking || !ranking.rank || !ranking.total) return null;
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-1">
+        <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
+        <h3 className="text-base md:text-lg font-bold text-gray-900">전체 블로그 진단 순위</h3>
+      </div>
+      <p className="text-sm text-gray-500 mb-3 leading-relaxed">
+        AEOlab에 등록된 전체 사업장 블로그를 AI 노출 점수 기준으로 비교한 순위입니다.
+      </p>
+      <div className="flex items-end gap-2 mb-2">
+        <span className="text-2xl font-bold text-indigo-600">{ranking.rank}위</span>
+        <span className="text-sm text-gray-500 mb-0.5">/ 전체 {ranking.total}곳</span>
+      </div>
+      {ranking.badges && ranking.badges.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {ranking.badges.map((b) => (
+            <span
+              key={b}
+              className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 text-sm font-semibold px-2.5 py-1 rounded-full"
+            >
+              🏅 {b}
+            </span>
+          ))}
+        </div>
+      )}
+      <p className="text-sm text-gray-400 leading-relaxed">
+        {ranking.show_tier
+          ? "등급·상위 % 배지는 참여 사업장 수를 반영해 주기적으로 갱신됩니다."
+          : "지금은 순위만 보여드려요 — 더 많은 사업장이 모일수록 등급·상위 % 배지까지 정확하게 제공됩니다."}
+      </p>
     </div>
   );
 }
@@ -2451,7 +2532,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               {showDetail ? (
                 <>추가 분석 접기 <ChevronUp className="w-4 h-4" /></>
               ) : (
-                <>추가 분석 보기(AI 브리핑 후보 포스트·발행 주기·제목 개선) <ChevronDown className="w-4 h-4" /></>
+                <>추가 분석 보기(AI 브리핑 후보 포스트·발행 주기·제목 개선·전체 순위) <ChevronDown className="w-4 h-4" /></>
               )}
             </button>
 
@@ -2471,6 +2552,9 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 {result.posts_detail && result.posts_detail.length > 0 && (
                   <TitleImprovementSection posts={result.posts_detail} businessId={business.id} />
                 )}
+
+                {/* I. 전체 블로그 진단 랭킹 (2026-07-18 신규) */}
+                <BlogRankingCard ranking={result.blog_ranking} />
               </div>
             )}
 

@@ -118,6 +118,7 @@ class NaverAIBriefingScanner:
         ad_only          = False
         source_urls:     list      = []
         source_blog_ids: list[str] = []
+        briefing_has_image: bool   = False
 
         try:
             url = f"https://search.naver.com/search.naver?query={query}"
@@ -145,7 +146,7 @@ class NaverAIBriefingScanner:
                     "error": "captcha_or_blocked", "_query_used": query,
                     "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
                     "queries_used": [query],
-                    "source_urls": [], "source_blog_ids": [],
+                    "source_urls": [], "source_blog_ids": [], "briefing_has_image": False,
                 }
 
             # ── AI 브리핑 "펼쳐서 더보기" 확장 ─────────────────────
@@ -185,11 +186,14 @@ class NaverAIBriefingScanner:
                             # fds-aib-multi-source-scroll-area 하위 <a href> 수집.
                             # 광고(클립·피드백) 링크는 className으로 필터링.
                             try:
-                                source_urls = await el.evaluate("""el => {
+                                # 2026-07-18: 기존에 이미 조회 중이던 src_area에서 썸네일 이미지
+                                # 유무도 함께 반환(신규 페이지 접근·신규 스크래핑 타겟 없음 —
+                                # 같은 DOM 조회 범위 내 속성만 추가 판독)
+                                _src_info = await el.evaluate("""el => {
                                     const src_area = el.querySelector(
                                         'div[class*="fds-aib-multi-source-scroll-area"]'
                                     );
-                                    if (!src_area) return [];
+                                    if (!src_area) return {links: [], hasImage: false};
                                     const seen = new Set();
                                     const links = [];
                                     src_area.querySelectorAll('a[href]').forEach(a => {
@@ -201,8 +205,11 @@ class NaverAIBriefingScanner:
                                             links.push(url);
                                         }
                                     });
-                                    return links;
+                                    const hasImage = src_area.querySelectorAll('img').length > 0;
+                                    return {links, hasImage};
                                 }""")
+                                source_urls = _src_info.get("links", []) if _src_info else []
+                                briefing_has_image = bool(_src_info.get("hasImage")) if _src_info else False
                                 for _su in (source_urls or []):
                                     _m = re.search(r'blog\.naver\.com/([^/]+)/', _su)
                                     if _m:
@@ -285,6 +292,7 @@ class NaverAIBriefingScanner:
             "queries_used":    [query],
             "source_urls":     source_urls,
             "source_blog_ids": source_blog_ids,
+            "briefing_has_image": briefing_has_image,
         }
 
     async def check_mention(self, query: str, target: str, category: str = "") -> dict:
@@ -332,7 +340,7 @@ class NaverAIBriefingScanner:
                 "platform": "naver", "mentioned": False, "in_briefing": False,
                 "rank": None, "excerpt": "", "keyword_results": [],
                 "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
-                "queries_used": [], "source_urls": [], "source_blog_ids": [],
+                "queries_used": [], "source_urls": [], "source_blog_ids": [], "briefing_has_image": False,
             }
 
         proxy = get_proxy_config()

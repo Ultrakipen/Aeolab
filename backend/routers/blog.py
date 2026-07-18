@@ -71,7 +71,7 @@ async def _fetch_multi_channel_citations(business_id: str, supabase) -> dict:
         scan_ids = [r["id"] for r in scan_res]
         cit_res = (await execute(
             supabase.table("ai_citations")
-            .select("platform, mentioned")
+            .select("platform, mentioned, mention_format")
             .in_("scan_id", scan_ids)
         )).data or []
 
@@ -83,6 +83,12 @@ async def _fetch_multi_channel_citations(business_id: str, supabase) -> dict:
             result[p]["total"] += 1
             if c.get("mentioned"):
                 result[p]["mentioned_count"] += 1
+                # naeo.kr 대응(2026-07-18) — 네이버만 텍스트/이미지 썸네일 구분 가능(DOM 실측),
+                # 다른 채널은 mention_format이 항상 None이라 자연히 집계되지 않음
+                _fmt = c.get("mention_format")
+                if _fmt in ("text", "image"):
+                    key = f"{_fmt}_count"
+                    result[p][key] = result[p].get(key, 0) + 1
         return result
     except Exception as e:
         _logger.warning(f"multi_channel_citations 조회 실패 [biz={business_id}]: {e}")
@@ -238,6 +244,103 @@ async def _get_cached_citation_benchmark(
     return result
 
 
+# 전체 랭킹(2026-07-18, naeo.kr 대응) — 신규 테이블 없이 blog_score_history 최신 행만으로
+# 실시간 계산. 1시간 캐시(전체 순위라 초 단위로 안 바뀜, citation_benchmark와 동일 성격).
+_BLOG_RANKING_TTL_SEC = int(os.getenv("BLOG_RANKING_CACHE_TTL_SEC", "3600"))
+# 이 미만이면 등급/배지(percentile) 텍스트는 생략하고 순위·총수만 표시 — "1/7=14%"처럼
+# 표본이 작을 때 percentile을 보여주면 왜곡된 인상을 준다(naeo.kr 대비 반영 결정사항).
+_BLOG_RANKING_MIN_TOTAL_FOR_TIER = 20
+# blog.py 자체 freshness_score 매핑(위 analysis_json 구성부)과 동일 값 재사용 — 두 곳에서
+# 서로 다른 프레시니스 점수를 쓰면 "프레시니스 점수"라는 개념 자체가 흔들림
+_FRESHNESS_SCORE_MAP = {"fresh": 80, "stale": 50, "outdated": 20}
+
+
+def _compute_blog_visibility_score(row: dict) -> float:
+    citation = row.get("citation_score") or 0
+    coverage = row.get("keyword_coverage") or 0  # 0~100 스케일(_calc_keyword_coverage 기준)
+    freshness_score = _FRESHNESS_SCORE_MAP.get(row.get("freshness"), 20)
+    return round(citation * 0.5 + coverage * 0.3 + freshness_score * 0.2, 1)
+
+
+async def _fetch_blog_ranking(business_id: str, supabase) -> dict | None:
+    """블로그 진단 전체 랭킹 — blog_score_history 최신 행만으로 계산, 신규 테이블 불필요.
+
+    최소표본(20곳) 미달이어도 순위·총수는 실측값 그대로 정직하게 반환한다(허위 아님) —
+    다만 등급/배지 같은 percentile 해석은 표본이 작으면 왜곡되므로 여기서 생략하고,
+    "사업장이 늘어날수록 더 정확해집니다" 식 긍정적 안내는 프론트에서 담당한다.
+
+    ⚠️ 규모 참고: 현재(2026-07-18) 전체 사업장 7곳이라 전체 이력을 그대로 fetch해도
+    문제없지만, 구독자가 수백 단위로 늘면 business_id별 최신 행만 뽑는 쿼리(DISTINCT ON
+    또는 RPC)로 전환 필요 — 지금은 최적화 시기상조.
+    구체적 파손 시점: Supabase PostgREST 기본 응답 한도 1000행. UNIQUE(business_id,
+    analyzed_date)라 사업장당 하루 최대 1행이므로, 사업장이 ~1000개를 넘어 당일 분석을
+    실행할 때부터 일부 최신 행이 누락될 수 있음(code-review 2026-07-18 발견).
+    """
+    try:
+        rows = (await execute(
+            supabase.table("blog_score_history")
+            .select("business_id, citation_score, keyword_coverage, freshness, analyzed_date")
+            .order("analyzed_date", desc=True)
+        )).data or []
+    except Exception as e:
+        _logger.warning(f"blog_ranking 조회 실패: {e}")
+        return None
+
+    latest: dict[str, dict] = {}
+    for r in rows:
+        bid = r["business_id"]
+        if bid not in latest:  # desc 정렬이므로 처음 만난 값이 최신
+            latest[bid] = r
+
+    scored = sorted(
+        ((bid, _compute_blog_visibility_score(r)) for bid, r in latest.items()),
+        key=lambda x: x[1],
+        reverse=True,
+    )
+    total = len(scored)
+    my_rank = next((i + 1 for i, (bid, _) in enumerate(scored) if bid == business_id), None)
+    if my_rank is None:
+        return {}  # 이 사업장은 아직 blog_score_history 없음 — 정상적인 빈 값
+
+    badges: list[str] = []
+    if total >= _BLOG_RANKING_MIN_TOTAL_FOR_TIER:
+        pct = my_rank / total
+        if pct <= 0.05:
+            badges.append("상위 5%")
+        elif pct <= 0.20:
+            badges.append("상위 20%")
+
+    # 표본 크기와 무관하게 안전한 배지 — percentile이 아니라 "과거의 나 대비" 관찰이라
+    # N이 작아도 왜곡되지 않음
+    my_history = sorted(
+        (r for r in rows if r["business_id"] == business_id),
+        key=lambda r: r["analyzed_date"],
+    )
+    if len(my_history) >= 2:
+        first_score = _compute_blog_visibility_score(my_history[0])
+        last_score = _compute_blog_visibility_score(my_history[-1])
+        if last_score > first_score + 5:
+            badges.append("상승세")
+
+    return {
+        "rank": my_rank,
+        "total": total,
+        "badges": badges,
+        "show_tier": total >= _BLOG_RANKING_MIN_TOTAL_FOR_TIER,
+    }
+
+
+async def _get_cached_blog_ranking(business_id: str, supabase) -> dict | None:
+    cache_key = _cache._make_key("blog_ranking", business_id)
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
+    result = await _fetch_blog_ranking(business_id, supabase)
+    if result is not None:
+        _cache.set(cache_key, result, _BLOG_RANKING_TTL_SEC)
+    return result
+
+
 async def _get_live_blog_bundle(business_id: str, category: str, saved_json: dict, supabase) -> dict:
     """get_blog_result 전용 — multi_channel/blog_mentions는 매번 라이브로,
     citation_benchmark만 TTL 캐시를 거쳐 3종을 묶어 반환한다.
@@ -263,6 +366,12 @@ async def _get_live_blog_bundle(business_id: str, category: str, saved_json: dic
     except Exception as _e:
         _logger.warning(f"get_blog_result citation_benchmark 조회 실패: {_e}")
 
+    live_blog_ranking: dict | None = None
+    try:
+        live_blog_ranking = await _get_cached_blog_ranking(business_id, supabase)
+    except Exception as _e:
+        _logger.warning(f"get_blog_result blog_ranking 조회 실패: {_e}")
+
     return {
         "multi_channel_citations": live_multi_channel or saved_json.get("multi_channel_citations", {}),
         "competitor_blog_mentions": live_blog_mentions or saved_json.get("competitor_blog_mentions", {}),
@@ -270,6 +379,11 @@ async def _get_live_blog_bundle(business_id: str, category: str, saved_json: dic
             saved_json.get("citation_benchmark", {})
             if live_citation_benchmark is None
             else live_citation_benchmark
+        ),
+        "blog_ranking": (
+            saved_json.get("blog_ranking", {})
+            if live_blog_ranking is None
+            else live_blog_ranking
         ),
     }
 
@@ -503,6 +617,11 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
             topic_suggestions_v2.sort(
                 key=lambda t: (t.get("priority") != "high", -(t.get("monthly_volume") or -1))
             )
+            # 검색량 추이 병합(2026-07-18, naeo.kr 대응) — history 2건 이상 쌓인 키워드만 표시,
+            # 신규 키워드는 자연히 빠짐(허위 추이 방지)
+            trends = await ad_client.get_volume_trend(base_keywords, biz_row.get("category", ""), supabase)
+            for t in topic_suggestions_v2:
+                t["volume_trend"] = trends.get(t.get("base_keyword"))
         except Exception as e:
             _logger.warning(f"topic suggestions 검색량 병합 실패: {e}")
 
@@ -554,6 +673,7 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
         "multi_channel_citations": {},
         "competitor_blog_mentions": {},
         "citation_benchmark": {},
+        "blog_ranking": {},
     }
 
     # A. 포스트별 실측 인용 여부 매핑
@@ -700,6 +820,13 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
         )
     except Exception as e:
         _logger.warning(f"blog_score_history upsert 실패 [biz={request.business_id}]: {e}")
+
+    # E. 전체 랭킹 — 방금 upsert한 이번 분석 결과가 반영되도록 캐시 무효화 후 재계산
+    try:
+        _cache.delete(_cache._make_key("blog_ranking", request.business_id))
+        analysis_json["blog_ranking"] = await _get_cached_blog_ranking(request.business_id, supabase) or {}
+    except Exception as e:
+        _logger.warning(f"blog_ranking 추가 실패 [biz={request.business_id}]: {e}")
 
     return analysis_json
 

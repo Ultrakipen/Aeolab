@@ -750,6 +750,10 @@ async def daily_scan_all():
                                     "mention_type": "information",
                                     "source_url": (kw_r.get("source_urls") or [None])[0],
                                     "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
+                                    "mention_format": (
+                                        ("image" if kw_r.get("briefing_has_image") else "text")
+                                        if kw_r.get("in_briefing") else None
+                                    ),
                                 })
                         elif "mentioned" in r or "exposure_freq" in r:
                             _mentioned = bool(r.get("mentioned")) or (r.get("exposure_freq", 0) > 0)

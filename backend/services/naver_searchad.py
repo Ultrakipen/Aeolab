@@ -275,7 +275,78 @@ class NaverSearchAdClient:
         except Exception as e:
             _logger.warning(f"keyword_volumes 캐시 저장 실패: {e}")
 
+        # 시계열 이력 적재 — 캐시가 실제로 갱신될 때(API 신규 호출)만 append.
+        # 캐시 히트마다 쓰면 7일 내 같은 값이 중복 적재되므로, 갱신 주기(7일)와
+        # 동일한 카덴스로만 기록해 자연스러운 추이 데이터를 만든다.
+        try:
+            history_rows = [
+                {
+                    "keyword": kw,
+                    "category": category,
+                    "monthly_pc": vol["monthly_pc"],
+                    "monthly_mo": vol["monthly_mo"],
+                    "monthly_total": vol["monthly_total"],
+                    "competition": vol["competition"],
+                    "recorded_at": now_iso,
+                }
+                for kw, vol in api_result.items()
+            ]
+            await execute(supabase.table("keyword_volume_history").insert(history_rows))
+        except Exception as e:
+            _logger.warning(f"keyword_volume_history 적재 실패: {e}")
+
         return {**cached_result, **api_result}
+
+    async def get_volume_trend(
+        self,
+        keywords: list[str],
+        category: str,
+        supabase,
+    ) -> dict[str, dict]:
+        """
+        키워드별 검색량 추이(최초 이력 대비 현재) 조회 — history 테이블에 2개 이상
+        레코드가 쌓인 키워드만 반환. 신규 키워드는 이력이 없어 자연히 빠짐(허위 추이 방지).
+        """
+        from db.supabase_client import execute
+
+        if not keywords:
+            return {}
+        try:
+            rows = (
+                await execute(
+                    supabase.table("keyword_volume_history")
+                    .select("keyword, monthly_total, recorded_at")
+                    .in_("keyword", keywords)
+                    .eq("category", category)
+                    .order("recorded_at", desc=False)
+                )
+            ).data or []
+        except Exception as e:
+            _logger.warning(f"keyword_volume_history 조회 실패: {e}")
+            return {}
+
+        by_kw: dict[str, list[dict]] = {}
+        for r in rows:
+            by_kw.setdefault(r["keyword"], []).append(r)
+
+        trends: dict[str, dict] = {}
+        for kw, history in by_kw.items():
+            if len(history) < 2:
+                continue  # 이력 1개뿐이면 추이 계산 불가 — 표시 안 함(허위 추이 방지)
+            first, last = history[0], history[-1]
+            first_vol = first.get("monthly_total") or 0
+            last_vol = last.get("monthly_total") or 0
+            pct_change = None
+            if first_vol > 0:
+                pct_change = round((last_vol - first_vol) / first_vol * 100)
+            trends[kw] = {
+                "from_date": first["recorded_at"][:10],
+                "to_date": last["recorded_at"][:10],
+                "from_volume": first_vol,
+                "to_volume": last_vol,
+                "pct_change": pct_change,
+            }
+        return trends
 
 
 # 모듈 레벨 싱글톤 (환경변수는 런타임에 읽음)

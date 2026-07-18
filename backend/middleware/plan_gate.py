@@ -70,7 +70,7 @@ PLAN_LIMITS = {
         "ad_defense_monthly": 0,  # basic은 ad_defense 기능 미제공
         "review_reply_monthly": 50,
         "faq_monthly": 10,
-        "blog_monthly": 3,
+        "blog_monthly": 5,  # 2026-07-18 naeo.kr 경쟁분석 후 3→5 상향(무료 경쟁사도 월5회라 최소 동등 수준 확보)
         "keyword_suggest_monthly": 5,
         "crisis_reply_monthly": 20,  # 부정 리뷰 위기관리(Claude Haiku) — 무제한 호출 방지용 신설(2026-07-06)
         "startup_report_monthly": 0,  # basic은 startup_report 미제공

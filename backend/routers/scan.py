@@ -2265,6 +2265,10 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                         "mention_type": "information",
                         "source_url": (kw_r.get("source_urls") or [None])[0],
                         "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
+                        "mention_format": (
+                            ("image" if kw_r.get("briefing_has_image") else "text")
+                            if kw_r.get("in_briefing") else None
+                        ),
                     })
             elif "mentioned" in r or "exposure_freq" in r:
                 # sample_n 결과(exposure_freq) + 단일 호출(mentioned) 모두 호환
@@ -3315,6 +3319,10 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                         "mention_type": "information",
                         "source_url": (kw_r.get("source_urls") or [None])[0],
                         "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
+                        "mention_format": (
+                            ("image" if kw_r.get("briefing_has_image") else "text")
+                            if kw_r.get("in_briefing") else None
+                        ),
                     })
             elif "mentioned" in r or "exposure_freq" in r:
                 # sample_n 결과(exposure_freq) + 단일 호출(mentioned) 모두 호환
