@@ -589,6 +589,24 @@ async def daily_scan_all():
                                             logger.warning(f"[scheduler] 블로그 자동 재분석 기본필드 저장 실패 biz={biz['id']}: {_blog_save_err2}")
                                     else:
                                         logger.warning(f"[scheduler] 블로그 자동 재분석 결과 저장 실패 biz={biz['id']}: {_blog_save_err}")
+
+                                # blog_score_history upsert (2026-07-18 발견: businesses 요약필드만
+                                # 갱신하고 이 테이블엔 안 남겨 자동 재분석분이 자기추세 차트에 반영 안 됨 —
+                                # blog.py _run_blog_analysis()의 저장 패턴과 동일하게 반영)
+                                try:
+                                    await _db(
+                                        supabase.table("blog_score_history")
+                                        .upsert({
+                                            "business_id": biz["id"],
+                                            "analyzed_date": datetime.now(_blog_tz.utc).date().isoformat(),
+                                            "citation_score": _blog_result.get("ai_readiness_score", 0),
+                                            "keyword_coverage": _blog_result.get("keyword_coverage", 0.0),
+                                            "post_count": _blog_result.get("post_count", 0),
+                                            "freshness": _blog_result.get("freshness", "outdated"),
+                                        }, on_conflict="business_id,analyzed_date")
+                                    )
+                                except Exception as _blog_hist_err:
+                                    logger.warning(f"[scheduler] blog_score_history upsert 실패 biz={biz['id']}: {_blog_hist_err}")
                 except Exception as _blog_err:
                     logger.warning(f"[scheduler] 블로그 재분석 실패 biz={biz['id']}: {_blog_err}")
 
