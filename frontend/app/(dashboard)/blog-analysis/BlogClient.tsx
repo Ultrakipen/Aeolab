@@ -2310,91 +2310,10 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               <BriefingIneligibilityBanner business={business} isBlogLikely={isBlogLikely} />
             )}
 
-            {/* A. AI 인용 체크리스트 */}
-            {result.ai_readiness_items && result.ai_readiness_items.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
-                  <h3 className="text-base md:text-lg font-bold text-gray-900">
-                    {isBlogInactive
-                      ? "정보형 AI 브리핑·ChatGPT·Gemini·Google 인용 체크리스트"
-                      : "AI 브리핑 인용 체크리스트"}
-                  </h3>
-                </div>
-                <div className={result.ai_readiness_items.length >= 5 ? "grid grid-cols-1 md:grid-cols-2 gap-2" : "space-y-2"}>
-                  {result.ai_readiness_items.map((item, idx) => {
-                    const isUnavailable = item.unavailable || item.passed === null;
-                    const boxClass = isUnavailable
-                      ? "bg-gray-50 border-gray-200"
-                      : item.passed ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200";
-                    const dotClass = isUnavailable
-                      ? "bg-gray-400"
-                      : item.passed ? "bg-green-500" : "bg-red-400";
-                    const labelClass = isUnavailable
-                      ? "text-gray-600"
-                      : item.passed ? "text-green-800" : "text-red-800";
-                    return (
-                      <div key={idx} className={`flex items-start gap-3 rounded-xl p-3 border ${boxClass}`}>
-                        <div className={`shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${dotClass}`}>
-                          {isUnavailable ? (
-                            <span className="text-white text-sm leading-none">-</span>
-                          ) : item.passed ? (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                          ) : (
-                            <AlertTriangle className="w-3.5 h-3.5 text-white" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-semibold ${labelClass}`}>
-                            {item.label}
-                            {isUnavailable && <span className="ml-1.5 text-sm font-normal text-gray-500">(측정 불가)</span>}
-                          </p>
-                          {item.description && (
-                            <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{item.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* ═══ 섹션 A: 채널별 AI 인용 현황 ═══ */}
-            {result.multi_channel_citations &&
-              Object.keys(result.multi_channel_citations).length > 0 && (
-                <MultiChannelCitationPanel citations={result.multi_channel_citations} benchmark={result.citation_benchmark} />
-              )}
-
-            {/* F. 포스트별 상세 분석 — naeo.kr 핵심 대응 기능(실측 인용 배지)이라 상단으로 이동 (2026-07-17) */}
-            {result.posts_detail && result.posts_detail.length > 0 && (
-              <PostDetailSection posts={result.posts_detail} />
-            )}
-
-            {/* ═══ 이번 실행 항목 (항상 노출) ═══ */}
-            {/* D. 중복 주제 + 제목 템플릿 반복 경고 */}
-            {((result.duplicate_topics && result.duplicate_topics.length > 0) ||
-              (result.templated_content && result.templated_content.length > 0)) && (
-              <DuplicateTopicsWarning
-                topics={result.duplicate_topics || []}
-                templated={result.templated_content}
-                isInactive={isBlogInactive}
-              />
-            )}
-
-            {/* D-2. 이번 달 블로그 주제 추천 */}
-            {result.topic_suggestions_v2 && result.topic_suggestions_v2.length > 0 && (
-              <TopicSuggestionsV2Card suggestions={result.topic_suggestions_v2} />
-            )}
-
-            {/* E. 이번 주 할 일 카드 */}
-            {result.weekly_actions && result.weekly_actions.length > 0 && (
-              <WeeklyActionsCard actions={result.weekly_actions} businessId={business.id} />
-            )}
-
-            {/* ═══ 핵심 3축 진단 (항상 노출, 2026-07-18 토글 재설계 — showDetail 뒤에 숨어있던
-                ①내 블로그 현황(키워드 커버리지) ②자기추세 ③경쟁사 대비를 승격. §6-1 핸드오프 참조) ═══ */}
-            {/* 키워드 커버리지 */}
+            {/* ═══ 핵심 3축 진단 (2026-07-18 순서 재배치 — 헤드라인 카드 바로 다음으로 승격.
+                체크리스트·포스트상세·액션카드보다 먼저 노출해 "내 블로그 현황"을 최우선 노출.
+                이전엔 07-18 낮 세션에서 showDetail 토글 밖으로만 꺼내고 위치는 그대로였음) ═══ */}
+            {/* 키워드 커버리지 — ①내 블로그 현황 본체 */}
             {result.keyword_coverage && (
               <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
@@ -2520,6 +2439,88 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   businessName={business.name}
                 />
               )}
+
+            {/* A. AI 인용 체크리스트 */}
+            {result.ai_readiness_items && result.ai_readiness_items.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                  <h3 className="text-base md:text-lg font-bold text-gray-900">
+                    {isBlogInactive
+                      ? "정보형 AI 브리핑·ChatGPT·Gemini·Google 인용 체크리스트"
+                      : "AI 브리핑 인용 체크리스트"}
+                  </h3>
+                </div>
+                <div className={result.ai_readiness_items.length >= 5 ? "grid grid-cols-1 md:grid-cols-2 gap-2" : "space-y-2"}>
+                  {result.ai_readiness_items.map((item, idx) => {
+                    const isUnavailable = item.unavailable || item.passed === null;
+                    const boxClass = isUnavailable
+                      ? "bg-gray-50 border-gray-200"
+                      : item.passed ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200";
+                    const dotClass = isUnavailable
+                      ? "bg-gray-400"
+                      : item.passed ? "bg-green-500" : "bg-red-400";
+                    const labelClass = isUnavailable
+                      ? "text-gray-600"
+                      : item.passed ? "text-green-800" : "text-red-800";
+                    return (
+                      <div key={idx} className={`flex items-start gap-3 rounded-xl p-3 border ${boxClass}`}>
+                        <div className={`shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${dotClass}`}>
+                          {isUnavailable ? (
+                            <span className="text-white text-sm leading-none">-</span>
+                          ) : item.passed ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                          ) : (
+                            <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-semibold ${labelClass}`}>
+                            {item.label}
+                            {isUnavailable && <span className="ml-1.5 text-sm font-normal text-gray-500">(측정 불가)</span>}
+                          </p>
+                          {item.description && (
+                            <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{item.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ═══ 섹션 A: 채널별 AI 인용 현황 ═══ */}
+            {result.multi_channel_citations &&
+              Object.keys(result.multi_channel_citations).length > 0 && (
+                <MultiChannelCitationPanel citations={result.multi_channel_citations} benchmark={result.citation_benchmark} />
+              )}
+
+            {/* F. 포스트별 상세 분석 — naeo.kr 핵심 대응 기능(실측 인용 배지)이라 상단으로 이동 (2026-07-17) */}
+            {result.posts_detail && result.posts_detail.length > 0 && (
+              <PostDetailSection posts={result.posts_detail} />
+            )}
+
+            {/* ═══ 이번 실행 항목 (항상 노출) ═══ */}
+            {/* D. 중복 주제 + 제목 템플릿 반복 경고 */}
+            {((result.duplicate_topics && result.duplicate_topics.length > 0) ||
+              (result.templated_content && result.templated_content.length > 0)) && (
+              <DuplicateTopicsWarning
+                topics={result.duplicate_topics || []}
+                templated={result.templated_content}
+                isInactive={isBlogInactive}
+              />
+            )}
+
+            {/* D-2. 이번 달 블로그 주제 추천 */}
+            {result.topic_suggestions_v2 && result.topic_suggestions_v2.length > 0 && (
+              <TopicSuggestionsV2Card suggestions={result.topic_suggestions_v2} />
+            )}
+
+            {/* E. 이번 주 할 일 카드 */}
+            {result.weekly_actions && result.weekly_actions.length > 0 && (
+              <WeeklyActionsCard actions={result.weekly_actions} businessId={business.id} />
+            )}
 
             {/* 추가 분석 펼치기/접기 — 핵심 3축(키워드 커버리지·자기추세·경쟁사 대비)은 위에서 항상 노출,
                 보조 항목(AI 브리핑 후보 포스트·발행주기·제목 개선)만 접어서 페이지 길이 관리 */}
