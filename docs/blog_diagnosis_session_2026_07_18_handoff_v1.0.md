@@ -105,7 +105,7 @@ naeo.kr 대비: 콘텐츠 정성판정(LLM 기반)은 AEOlab이 우위. "AI 랭�
 1. **[완료, 2026-07-18] `showDetail` 토글 재설계** — (b)안 채택: 핵심 3축(키워드 커버리지·`BlogScoreTrendChart`·`CompetitorKeywordBlockedPanel`+`BlogMentionBenchmarkCard`)을 토글 밖으로 승격해 기본 노출, 보조 항목(`BestCitationCandidateCard`·`PostingFrequencyCard`·`TitleImprovementSection`)만 "추가 분석 보기" 토글에 남김. (a)(기본값 true)는 "진단 요약+실행 항목만 먼저 보여 페이지를 간결하게" 유지한다는 기존 설계 의도와 충돌해 기각, (c)(요약/상세 기준 재설계)는 이번 문제 해결에 비해 과설계라 기각. `frontend/app/(dashboard)/blog-analysis/BlogClient.tsx` 수정·서버 빌드·pm2 재시작·error.log 0건·grep 실서버 반영 확인 후 배포(git `cf84913`). git push는 §6-4와 별개로 보류.
 2. **③-a(업종 평균 대비, citation_benchmark) 신규 개발은 지금 하지 말 것** — 코드가 정상이어도 표본 부족(전체 사업장 7곳)으로 못 채움. 구독자 20명 이상, 업종당 3곳 이상 모이는 시점에 재점검. (③-b 경쟁사 대비는 이 제약이 없음 — 1번 참조)
 3. **comp_keywords 백필 자동화 확인** — 목요일 03:00 `enrich_competitor_details_job`이 이번에 수동 백필한 것과 동일하게 stale 데이터를 알아서 재동기화하는지 다음 주 목요일 이후 실측 확인 권장(현재는 코드 로직상 될 것으로 추정만 함, 실측 미확인).
-4. **git push** — 이 세션과 별개 작업으로 보류 중(140+ 서버-로컬 diverge 파일, 서버 git HEAD `917b650` 이후 정체). `scripts/check_server_drift.sh`로 방향 판정 후 진행 — 사용자가 별도 요청 시에만.
+4. **[완료, 2026-07-18] git push** — 서버 전체 백업(`aeolab_prereconcile_backup_20260718.tgz`) 선행 후 122커밋 push(`917b650`→`b879e16`). CI(`pytest tests/ -v` 28개) 통과 확인 후 배포 완료, 백엔드·프론트엔드 재시작 에러 0건. 배포 중 npm install이 재생성한 `package-lock.json` 패치버전 drift 1건 추가 발견·동기화(`5b446ec`). `scripts/check_server_drift.sh` 재실행으로 **drift 0건** 최종 확인.
 5. **외부 블로그(Tistory/WordPress) LLM 품질판정** — 의도적 제외 상태(제목만 확보 가능, 본문 텍스트 없음). 크롤링 방식이 바뀌지 않는 한 재검토 불필요.
 
 ## 7. 관련 문서·메모리 인덱스
