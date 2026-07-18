@@ -22,7 +22,6 @@ import {
   Globe,
   BarChart2,
   Info,
-  Trophy,
 } from "lucide-react";
 import {
   BarChart,
@@ -191,13 +190,6 @@ interface BlogAnalysisResult {
     my_count: number;
     competitors: Array<{ name: string; blog_mention_count: number }>;
     avg_count: number;
-  };
-  // 전체 블로그 진단 랭킹 (2026-07-18 신규, naeo.kr 대응)
-  blog_ranking?: {
-    rank?: number;
-    total?: number;
-    badges?: string[];
-    show_tier?: boolean;
   };
 }
 
@@ -1416,51 +1408,6 @@ function MultiChannelCitationPanel({
 }
 
 /* ────────────────────────────────────────────────────────────
-   전체 블로그 진단 랭킹 (2026-07-18 신규, naeo.kr 대응)
-   최소표본(20곳) 미달 시 등급/배지 대신 긍정적 성장 안내만 노출 — 표본이 작을 때
-   percentile을 보여주면 왜곡된 인상을 주므로 의도적으로 생략함(허위 수치 금지 원칙).
-   ─────────────────────────────────────────────────────────── */
-function BlogRankingCard({
-  ranking,
-}: {
-  ranking?: { rank?: number; total?: number; badges?: string[]; show_tier?: boolean };
-}) {
-  if (!ranking || !ranking.rank || !ranking.total) return null;
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-1">
-        <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
-        <h3 className="text-base md:text-lg font-bold text-gray-900">전체 블로그 진단 순위</h3>
-      </div>
-      <p className="text-sm text-gray-500 mb-3 leading-relaxed">
-        AEOlab에 등록된 전체 사업장 블로그를 AI 노출 점수 기준으로 비교한 순위입니다.
-      </p>
-      <div className="flex items-end gap-2 mb-2">
-        <span className="text-2xl font-bold text-indigo-600">{ranking.rank}위</span>
-        <span className="text-sm text-gray-500 mb-0.5">/ 전체 {ranking.total}곳</span>
-      </div>
-      {ranking.badges && ranking.badges.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-2">
-          {ranking.badges.map((b) => (
-            <span
-              key={b}
-              className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 text-sm font-semibold px-2.5 py-1 rounded-full"
-            >
-              🏅 {b}
-            </span>
-          ))}
-        </div>
-      )}
-      <p className="text-sm text-gray-400 leading-relaxed">
-        {ranking.show_tier
-          ? "등급·상위 % 배지는 참여 사업장 수를 반영해 주기적으로 갱신됩니다."
-          : "지금은 순위만 보여드려요 — 더 많은 사업장이 모일수록 등급·상위 % 배지까지 정확하게 제공됩니다."}
-      </p>
-    </div>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────
    섹션 B — CompetitorKeywordBlockedPanel
    키워드별 경쟁사 점유 현황 테이블
    ─────────────────────────────────────────────────────────── */
@@ -2522,8 +2469,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               <WeeklyActionsCard actions={result.weekly_actions} businessId={business.id} />
             )}
 
-            {/* 추가 분석 펼치기/접기 — 핵심 3축(키워드 커버리지·자기추세·경쟁사 대비)은 위에서 항상 노출,
-                보조 항목(AI 브리핑 후보 포스트·발행주기·제목 개선)만 접어서 페이지 길이 관리 */}
+            {/* 추가 분석 펼치기/접기 — 핵심 3축(키워드 커버리지·자기추세·경쟁사 대비)+전체 순위는
+                위에서 항상 노출, 보조 항목(AI 브리핑 후보 포스트·발행주기·제목 개선)만 접어서 페이지 길이 관리 */}
             <button
               type="button"
               onClick={handleToggleDetail}
@@ -2533,7 +2480,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               {showDetail ? (
                 <>추가 분석 접기 <ChevronUp className="w-4 h-4" /></>
               ) : (
-                <>추가 분석 보기(AI 브리핑 후보 포스트·발행 주기·제목 개선·전체 순위) <ChevronDown className="w-4 h-4" /></>
+                <>추가 분석 보기(AI 브리핑 후보 포스트·발행 주기·제목 개선) <ChevronDown className="w-4 h-4" /></>
               )}
             </button>
 
@@ -2553,9 +2500,6 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 {result.posts_detail && result.posts_detail.length > 0 && (
                   <TitleImprovementSection posts={result.posts_detail} businessId={business.id} />
                 )}
-
-                {/* I. 전체 블로그 진단 랭킹 (2026-07-18 신규) */}
-                <BlogRankingCard ranking={result.blog_ranking} />
               </div>
             )}
 
