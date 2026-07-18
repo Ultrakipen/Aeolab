@@ -277,11 +277,20 @@ async def _fetch_blog_ranking(business_id: str, supabase) -> dict | None:
     실행할 때부터 일부 최신 행이 누락될 수 있음(code-review 2026-07-18 발견).
     """
     try:
+        # 2026-07-18 재점검 발견: is_active 필터 누락 — _fetch_citation_benchmark의
+        # peer 조회(위 참조)는 이 필터를 쓰는데 랭킹 쿼리에만 빠져있었음. 탈퇴/비활성
+        # 사업장의 과거 blog_score_history가 순위·총수에 계속 섞여 왜곡될 수 있었음.
+        active_rows = (await execute(
+            supabase.table("businesses").select("id").eq("is_active", True)
+        )).data or []
+        active_ids = {r["id"] for r in active_rows}
+
         rows = (await execute(
             supabase.table("blog_score_history")
             .select("business_id, citation_score, keyword_coverage, freshness, analyzed_date")
             .order("analyzed_date", desc=True)
         )).data or []
+        rows = [r for r in rows if r["business_id"] in active_ids]
     except Exception as e:
         _logger.warning(f"blog_ranking 조회 실패: {e}")
         return None

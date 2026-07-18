@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -1952,7 +1953,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         "keywords, naver_place_id, google_place_id, kakao_place_id, "
         "review_count, avg_rating, keyword_diversity, receipt_review_count, "
         "has_faq, has_recent_post, has_intro, review_sample, "
-        "blog_keyword_coverage, blog_analysis_json, blog_latest_post_date, blog_analyzed_at"
+        "blog_keyword_coverage, blog_analysis_json, blog_latest_post_date, blog_analyzed_at, blog_url"
     ).eq("id", business_id).single())).data
 
     keyword_ko = _CATEGORY_KO.get((biz or {}).get("category", req.category), req.category)
@@ -2243,6 +2244,17 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         _biz_franchise = bool((biz or {}).get("is_franchise"))
         _biz_eligibility = _get_elig(_biz_category, _biz_franchise)
 
+        # 2026-07-18 재점검 수정: mention_format은 "업종명이 언급된 브리핑 어딘가에 이미지가
+        # 있었는가"가 아니라 "내 블로그가 실제로 그 소스로 인용되며 이미지로 표시됐는가"를
+        # 물어야 함 — 내 blog_url에서 blog_id를 추출해 source_blog_ids에 내 블로그가 실제로
+        # 있을 때만 판정(없으면 이름만 언급된 것이라 text/image 자체가 성립하지 않아 None).
+        _my_blog_id = None
+        _biz_blog_url = (biz or {}).get("blog_url") or ""
+        if _biz_blog_url:
+            _bm = re.search(r'blog\.naver\.com/([^/?]+)', _biz_blog_url)
+            if _bm:
+                _my_blog_id = _bm.group(1)
+
         citation_rows = []
         for key, label in _PLATFORM_LABELS.items():
             r = results.get(key) or {}
@@ -2254,6 +2266,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
             # Naver: keyword_results가 있으면 키워드별 개별 저장 (in_briefing 여부 모두)
             if key == "naver" and r.get("keyword_results"):
                 for kw_r in r["keyword_results"]:
+                    _my_cited = bool(_my_blog_id and _my_blog_id in (kw_r.get("source_blog_ids") or []))
                     citation_rows.append({
                         "scan_id": new_scan_id,
                         "business_id": business_id,
@@ -2266,8 +2279,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                         "source_url": (kw_r.get("source_urls") or [None])[0],
                         "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
                         "mention_format": (
-                            ("image" if kw_r.get("briefing_has_image") else "text")
-                            if kw_r.get("in_briefing") else None
+                            ("image" if kw_r.get("source_image_map", {}).get(_my_blog_id) else "text")
+                            if _my_cited else None
                         ),
                     })
             elif "mentioned" in r or "exposure_freq" in r:
@@ -2914,7 +2927,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         scanner = MultiAIScanner(mode="full")
 
         supabase = get_client()
-        biz = (await execute(supabase.table("businesses").select("id, name, category, region, business_type, website_url, naver_place_url, keywords, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, keyword_diversity, receipt_review_count, has_faq, has_recent_post, has_intro, review_sample, blog_keyword_coverage, blog_analysis_json, blog_latest_post_date, blog_analyzed_at").eq("id", req.business_id).single())).data
+        biz = (await execute(supabase.table("businesses").select("id, name, category, region, business_type, website_url, naver_place_url, keywords, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, keyword_diversity, receipt_review_count, has_faq, has_recent_post, has_intro, review_sample, blog_keyword_coverage, blog_analysis_json, blog_latest_post_date, blog_analyzed_at, blog_url").eq("id", req.business_id).single())).data
 
         # AI 스캔 + 카카오 가시성 + 웹사이트 SEO + 스마트플레이스 병렬 실행
         keyword_ko = _CATEGORY_KO.get((biz or {}).get("category", req.category), req.category)
@@ -3300,6 +3313,15 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 _logger.warning(f"smart_place update failed: {e}")
 
         # ai_citations 저장 (언급 여부 관계없이 모든 플랫폼 저장)
+        # mention_format 판정 기준은 위 _save_scan_results와 동일(내 blog_url→blog_id가
+        # source_blog_ids에 실제로 있을 때만 text/image 판정, 아니면 None — 2026-07-18 재점검 수정)
+        _my_blog_id2 = None
+        _biz_blog_url2 = (biz or {}).get("blog_url") or ""
+        if _biz_blog_url2:
+            _bm2 = re.search(r'blog\.naver\.com/([^/?]+)', _biz_blog_url2)
+            if _bm2:
+                _my_blog_id2 = _bm2.group(1)
+
         citation_rows = []
         for key, label in _PLATFORM_LABELS.items():
             r = result.get(key) or {}
@@ -3308,6 +3330,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             # Naver: keyword_results가 있으면 키워드별 개별 저장 (in_briefing 여부 모두)
             if key == "naver" and r.get("keyword_results"):
                 for kw_r in r["keyword_results"]:
+                    _my_cited2 = bool(_my_blog_id2 and _my_blog_id2 in (kw_r.get("source_blog_ids") or []))
                     citation_rows.append({
                         "scan_id": scan_id,
                         "business_id": req.business_id,
@@ -3320,8 +3343,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                         "source_url": (kw_r.get("source_urls") or [None])[0],
                         "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
                         "mention_format": (
-                            ("image" if kw_r.get("briefing_has_image") else "text")
-                            if kw_r.get("in_briefing") else None
+                            ("image" if kw_r.get("source_image_map", {}).get(_my_blog_id2) else "text")
+                            if _my_cited2 else None
                         ),
                     })
             elif "mentioned" in r or "exposure_freq" in r:

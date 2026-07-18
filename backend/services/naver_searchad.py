@@ -304,9 +304,15 @@ class NaverSearchAdClient:
         supabase,
     ) -> dict[str, dict]:
         """
-        키워드별 검색량 추이(최초 이력 대비 현재) 조회 — history 테이블에 2개 이상
+        키워드별 검색량 추이(최근 구간 대비 현재) 조회 — history 테이블에 2개 이상
         레코드가 쌓인 키워드만 반환. 신규 키워드는 이력이 없어 자연히 빠짐(허위 추이 방지).
+
+        2026-07-18 재점검 발견·수정: "최초 이력 대비"로 계산하면 시간이 지날수록
+        비교 시점이 계속 과거(예: 서비스 가입 시점)로 고정돼, 몇 달 뒤엔 "최근 추이"라는
+        UI 문구와 실제 계산 범위가 어긋나는 문제가 있었음 — 최근 N개(캐시 갱신 주기
+        7일 기준 약 6주 분량) 구간으로 제한해 "최근 추이"라는 표현과 실제 일치시킴.
         """
+        _RECENT_WINDOW = 6
         from db.supabase_client import execute
 
         if not keywords:
@@ -333,7 +339,8 @@ class NaverSearchAdClient:
         for kw, history in by_kw.items():
             if len(history) < 2:
                 continue  # 이력 1개뿐이면 추이 계산 불가 — 표시 안 함(허위 추이 방지)
-            first, last = history[0], history[-1]
+            recent = history[-_RECENT_WINDOW:]
+            first, last = recent[0], recent[-1]
             first_vol = first.get("monthly_total") or 0
             last_vol = last.get("monthly_total") or 0
             pct_change = None

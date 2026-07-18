@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import re
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.events import EVENT_JOB_ERROR
 from datetime import date, datetime, timedelta
@@ -732,6 +733,15 @@ async def daily_scan_all():
                 # ai_citations 저장 (자동 스캔 결과도 누적 — weekly_digest/keyword_alert 데이터 정확도)
                 _new_scan_id = scan_row[0]["id"] if (scan_row and scan_row[0]) else None
                 if _new_scan_id:
+                    # mention_format 판정 기준은 routers/scan.py와 동일(2026-07-18 재점검 수정):
+                    # 내 blog_url→blog_id가 source_blog_ids에 실제로 있을 때만 text/image 판정
+                    _my_blog_id3 = None
+                    _biz_blog_url3 = (biz or {}).get("blog_url") or ""
+                    if _biz_blog_url3:
+                        _bm3 = re.search(r'blog\.naver\.com/([^/?]+)', _biz_blog_url3)
+                        if _bm3:
+                            _my_blog_id3 = _bm3.group(1)
+
                     citation_rows = []
                     for _key in ("gemini", "chatgpt", "naver", "google"):
                         r = result.get(_key) or {}
@@ -739,6 +749,7 @@ async def daily_scan_all():
                             continue
                         if _key == "naver" and r.get("keyword_results"):
                             for kw_r in r["keyword_results"]:
+                                _my_cited3 = bool(_my_blog_id3 and _my_blog_id3 in (kw_r.get("source_blog_ids") or []))
                                 citation_rows.append({
                                     "scan_id": _new_scan_id,
                                     "business_id": biz["id"],
@@ -751,8 +762,8 @@ async def daily_scan_all():
                                     "source_url": (kw_r.get("source_urls") or [None])[0],
                                     "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
                                     "mention_format": (
-                                        ("image" if kw_r.get("briefing_has_image") else "text")
-                                        if kw_r.get("in_briefing") else None
+                                        ("image" if kw_r.get("source_image_map", {}).get(_my_blog_id3) else "text")
+                                        if _my_cited3 else None
                                     ),
                                 })
                         elif "mentioned" in r or "exposure_freq" in r:

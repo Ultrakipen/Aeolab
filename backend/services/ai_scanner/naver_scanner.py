@@ -118,7 +118,7 @@ class NaverAIBriefingScanner:
         ad_only          = False
         source_urls:     list      = []
         source_blog_ids: list[str] = []
-        briefing_has_image: bool   = False
+        source_image_map: dict[str, bool] = {}  # blog_id -> 이미지 썸네일과 함께 인용됐는지
 
         try:
             url = f"https://search.naver.com/search.naver?query={query}"
@@ -146,7 +146,7 @@ class NaverAIBriefingScanner:
                     "error": "captcha_or_blocked", "_query_used": query,
                     "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
                     "queries_used": [query],
-                    "source_urls": [], "source_blog_ids": [], "briefing_has_image": False,
+                    "source_urls": [], "source_blog_ids": [], "source_image_map": {},
                 }
 
             # ── AI 브리핑 "펼쳐서 더보기" 확장 ─────────────────────
@@ -186,36 +186,40 @@ class NaverAIBriefingScanner:
                             # fds-aib-multi-source-scroll-area 하위 <a href> 수집.
                             # 광고(클립·피드백) 링크는 className으로 필터링.
                             try:
-                                # 2026-07-18: 기존에 이미 조회 중이던 src_area에서 썸네일 이미지
-                                # 유무도 함께 반환(신규 페이지 접근·신규 스크래핑 타겟 없음 —
-                                # 같은 DOM 조회 범위 내 속성만 추가 판독)
-                                _src_info = await el.evaluate("""el => {
+                                # 2026-07-18: 기존에 이미 조회 중이던 src_area에서 소스별 썸네일
+                                # 이미지 유무도 함께 반환(신규 페이지 접근·신규 스크래핑 타겟 없음 —
+                                # 같은 DOM 조회 범위 내 속성만 추가 판독).
+                                # 2026-07-18 재점검 수정: 최초 구현은 "영역 전체에 이미지가 하나라도
+                                # 있는가"만 봐서 내 블로그가 아닌 다른 소스의 이미지까지 내 인용
+                                # 형식으로 잘못 귀속시킬 수 있었음 — 소스(링크)별로 개별 판독하도록 수정.
+                                _src_list = await el.evaluate("""el => {
                                     const src_area = el.querySelector(
                                         'div[class*="fds-aib-multi-source-scroll-area"]'
                                     );
-                                    if (!src_area) return {links: [], hasImage: false};
+                                    if (!src_area) return [];
                                     const seen = new Set();
-                                    const links = [];
+                                    const results = [];
                                     src_area.querySelectorAll('a[href]').forEach(a => {
                                         const url = a.href;
                                         if (!seen.has(url) &&
                                             !a.className.includes('sds-rego-feedback') &&
                                             !a.className.includes('_shortform_trigger')) {
                                             seen.add(url);
-                                            links.push(url);
+                                            const card = a.closest('li') || a.closest('div') || a;
+                                            results.push({url, hasImage: !!card.querySelector('img')});
                                         }
                                     });
-                                    const hasImage = src_area.querySelectorAll('img').length > 0;
-                                    return {links, hasImage};
+                                    return results;
                                 }""")
-                                source_urls = _src_info.get("links", []) if _src_info else []
-                                briefing_has_image = bool(_src_info.get("hasImage")) if _src_info else False
-                                for _su in (source_urls or []):
-                                    _m = re.search(r'blog\.naver\.com/([^/]+)/', _su)
+                                source_urls = [item["url"] for item in (_src_list or [])]
+                                for item in (_src_list or []):
+                                    _m = re.search(r'blog\.naver\.com/([^/]+)/', item["url"])
                                     if _m:
                                         _bid = _m.group(1)
                                         if _bid not in source_blog_ids:
                                             source_blog_ids.append(_bid)
+                                        # 같은 블로그가 여러 소스 카드로 잡히면 하나라도 이미지가 있으면 True
+                                        source_image_map[_bid] = source_image_map.get(_bid, False) or bool(item.get("hasImage"))
                             except Exception as _se:
                                 logger.debug(f"[naver_scanner] source_urls extraction failed — {_se}")
                         break
@@ -292,7 +296,7 @@ class NaverAIBriefingScanner:
             "queries_used":    [query],
             "source_urls":     source_urls,
             "source_blog_ids": source_blog_ids,
-            "briefing_has_image": briefing_has_image,
+            "source_image_map": source_image_map,
         }
 
     async def check_mention(self, query: str, target: str, category: str = "") -> dict:
@@ -340,7 +344,7 @@ class NaverAIBriefingScanner:
                 "platform": "naver", "mentioned": False, "in_briefing": False,
                 "rank": None, "excerpt": "", "keyword_results": [],
                 "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
-                "queries_used": [], "source_urls": [], "source_blog_ids": [], "briefing_has_image": False,
+                "queries_used": [], "source_urls": [], "source_blog_ids": [], "source_image_map": {},
             }
 
         proxy = get_proxy_config()
