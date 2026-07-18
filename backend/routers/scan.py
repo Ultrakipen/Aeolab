@@ -2266,7 +2266,16 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
             # Naver: keyword_results가 있으면 키워드별 개별 저장 (in_briefing 여부 모두)
             if key == "naver" and r.get("keyword_results"):
                 for kw_r in r["keyword_results"]:
-                    _my_cited = bool(_my_blog_id and _my_blog_id in (kw_r.get("source_blog_ids") or []))
+                    # 2026-07-18 실측 재점검: 텍스트 소스 목록·이미지 썸네일 목록은 완전히
+                    # 별개 DOM 영역이라 상호배타적이지 않음 — 같은 글이 양쪽에 동시 인용 가능
+                    _my_texted = bool(_my_blog_id and _my_blog_id in (kw_r.get("source_blog_ids") or []))
+                    _my_imaged = bool(_my_blog_id and kw_r.get("source_image_map", {}).get(_my_blog_id))
+                    _my_format = (
+                        "text_and_image" if (_my_texted and _my_imaged)
+                        else "image" if _my_imaged
+                        else "text" if _my_texted
+                        else None
+                    )
                     citation_rows.append({
                         "scan_id": new_scan_id,
                         "business_id": business_id,
@@ -2278,10 +2287,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                         "mention_type": "information",
                         "source_url": (kw_r.get("source_urls") or [None])[0],
                         "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
-                        "mention_format": (
-                            ("image" if kw_r.get("source_image_map", {}).get(_my_blog_id) else "text")
-                            if _my_cited else None
-                        ),
+                        "mention_format": _my_format,
                     })
             elif "mentioned" in r or "exposure_freq" in r:
                 # sample_n 결과(exposure_freq) + 단일 호출(mentioned) 모두 호환
@@ -3330,7 +3336,14 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             # Naver: keyword_results가 있으면 키워드별 개별 저장 (in_briefing 여부 모두)
             if key == "naver" and r.get("keyword_results"):
                 for kw_r in r["keyword_results"]:
-                    _my_cited2 = bool(_my_blog_id2 and _my_blog_id2 in (kw_r.get("source_blog_ids") or []))
+                    _my_texted2 = bool(_my_blog_id2 and _my_blog_id2 in (kw_r.get("source_blog_ids") or []))
+                    _my_imaged2 = bool(_my_blog_id2 and kw_r.get("source_image_map", {}).get(_my_blog_id2))
+                    _my_format2 = (
+                        "text_and_image" if (_my_texted2 and _my_imaged2)
+                        else "image" if _my_imaged2
+                        else "text" if _my_texted2
+                        else None
+                    )
                     citation_rows.append({
                         "scan_id": scan_id,
                         "business_id": req.business_id,
@@ -3342,10 +3355,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                         "mention_type": "information",
                         "source_url": (kw_r.get("source_urls") or [None])[0],
                         "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
-                        "mention_format": (
-                            ("image" if kw_r.get("source_image_map", {}).get(_my_blog_id2) else "text")
-                            if _my_cited2 else None
-                        ),
+                        "mention_format": _my_format2,
                     })
             elif "mentioned" in r or "exposure_freq" in r:
                 # sample_n 결과(exposure_freq) + 단일 호출(mentioned) 모두 호환

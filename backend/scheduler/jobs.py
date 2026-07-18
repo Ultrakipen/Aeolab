@@ -749,7 +749,14 @@ async def daily_scan_all():
                             continue
                         if _key == "naver" and r.get("keyword_results"):
                             for kw_r in r["keyword_results"]:
-                                _my_cited3 = bool(_my_blog_id3 and _my_blog_id3 in (kw_r.get("source_blog_ids") or []))
+                                _my_texted3 = bool(_my_blog_id3 and _my_blog_id3 in (kw_r.get("source_blog_ids") or []))
+                                _my_imaged3 = bool(_my_blog_id3 and kw_r.get("source_image_map", {}).get(_my_blog_id3))
+                                _my_format3 = (
+                                    "text_and_image" if (_my_texted3 and _my_imaged3)
+                                    else "image" if _my_imaged3
+                                    else "text" if _my_texted3
+                                    else None
+                                )
                                 citation_rows.append({
                                     "scan_id": _new_scan_id,
                                     "business_id": biz["id"],
@@ -761,10 +768,7 @@ async def daily_scan_all():
                                     "mention_type": "information",
                                     "source_url": (kw_r.get("source_urls") or [None])[0],
                                     "source_blog_id": (kw_r.get("source_blog_ids") or [None])[0],
-                                    "mention_format": (
-                                        ("image" if kw_r.get("source_image_map", {}).get(_my_blog_id3) else "text")
-                                        if _my_cited3 else None
-                                    ),
+                                    "mention_format": _my_format3,
                                 })
                         elif "mentioned" in r or "exposure_freq" in r:
                             _mentioned = bool(r.get("mentioned")) or (r.get("exposure_freq", 0) > 0)

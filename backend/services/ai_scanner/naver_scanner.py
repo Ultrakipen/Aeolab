@@ -186,42 +186,65 @@ class NaverAIBriefingScanner:
                             # fds-aib-multi-source-scroll-area 하위 <a href> 수집.
                             # 광고(클립·피드백) 링크는 className으로 필터링.
                             try:
-                                # 2026-07-18: 기존에 이미 조회 중이던 src_area에서 소스별 썸네일
-                                # 이미지 유무도 함께 반환(신규 페이지 접근·신규 스크래핑 타겟 없음 —
-                                # 같은 DOM 조회 범위 내 속성만 추가 판독).
-                                # 2026-07-18 재점검 수정: 최초 구현은 "영역 전체에 이미지가 하나라도
-                                # 있는가"만 봐서 내 블로그가 아닌 다른 소스의 이미지까지 내 인용
-                                # 형식으로 잘못 귀속시킬 수 있었음 — 소스(링크)별로 개별 판독하도록 수정.
-                                _src_list = await el.evaluate("""el => {
+                                source_urls = await el.evaluate("""el => {
                                     const src_area = el.querySelector(
                                         'div[class*="fds-aib-multi-source-scroll-area"]'
                                     );
                                     if (!src_area) return [];
                                     const seen = new Set();
-                                    const results = [];
+                                    const links = [];
                                     src_area.querySelectorAll('a[href]').forEach(a => {
                                         const url = a.href;
                                         if (!seen.has(url) &&
                                             !a.className.includes('sds-rego-feedback') &&
                                             !a.className.includes('_shortform_trigger')) {
                                             seen.add(url);
-                                            const card = a.closest('li') || a.closest('div') || a;
-                                            results.push({url, hasImage: !!card.querySelector('img')});
+                                            links.push(url);
                                         }
                                     });
-                                    return results;
+                                    return links;
                                 }""")
-                                source_urls = [item["url"] for item in (_src_list or [])]
-                                for item in (_src_list or []):
-                                    _m = re.search(r'blog\.naver\.com/([^/]+)/', item["url"])
+                                for _su in (source_urls or []):
+                                    _m = re.search(r'blog\.naver\.com/([^/]+)/', _su)
                                     if _m:
                                         _bid = _m.group(1)
                                         if _bid not in source_blog_ids:
                                             source_blog_ids.append(_bid)
-                                        # 같은 블로그가 여러 소스 카드로 잡히면 하나라도 이미지가 있으면 True
-                                        source_image_map[_bid] = source_image_map.get(_bid, False) or bool(item.get("hasImage"))
                             except Exception as _se:
                                 logger.debug(f"[naver_scanner] source_urls extraction failed — {_se}")
+
+                            # ── 이미지 인용 소스 추출 (2026-07-18 실측 재점검으로 신설) ──────
+                            # 최초 구현은 위 multi-source-scroll-area 안의 <img>로 이미지 인용을
+                            # 판정했으나, 실제 DOM을 직접 열어 확인한 결과 그 영역의 이미지는
+                            # 전부 16x16 원형 "블로거 프로필 아바타"였음(거의 모든 소스에 항상 존재
+                            # — 의미 있는 신호 아님). 실제 콘텐츠 썸네일은 완전히 별도 영역인
+                            # fds-multimedia-container(252x168, <a href>로 개별 글에 연결)에 있고,
+                            # 같은 글이 텍스트 소스 목록과 이미지 목록 양쪽에 동시에 나올 수 있어
+                            # 서로 배타적이지 않음(naeo.kr "텍스트 N / 이미지 M"이 합이 총량과
+                            # 안 맞던 이유와 일치) — 별도 영역·별도 판정으로 분리.
+                            try:
+                                image_urls = await el.evaluate("""el => {
+                                    const media_area = el.querySelector(
+                                        'div[class*="fds-multimedia-container"]'
+                                    );
+                                    if (!media_area) return [];
+                                    const seen = new Set();
+                                    const links = [];
+                                    media_area.querySelectorAll('a[href]').forEach(a => {
+                                        const url = a.href;
+                                        if (!seen.has(url)) {
+                                            seen.add(url);
+                                            links.push(url);
+                                        }
+                                    });
+                                    return links;
+                                }""")
+                                for _iu in (image_urls or []):
+                                    _im = re.search(r'blog\.naver\.com/([^/]+)/', _iu)
+                                    if _im:
+                                        source_image_map[_im.group(1)] = True
+                            except Exception as _ie:
+                                logger.debug(f"[naver_scanner] image_urls extraction failed — {_ie}")
                         break
                 except Exception as _e:
                     logger.debug(f"[naver_scanner] briefing selector failed — {_e}")

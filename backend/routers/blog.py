@@ -84,11 +84,15 @@ async def _fetch_multi_channel_citations(business_id: str, supabase) -> dict:
             if c.get("mentioned"):
                 result[p]["mentioned_count"] += 1
                 # naeo.kr 대응(2026-07-18) — 네이버만 텍스트/이미지 썸네일 구분 가능(DOM 실측),
-                # 다른 채널은 mention_format이 항상 None이라 자연히 집계되지 않음
+                # 다른 채널은 mention_format이 항상 None이라 자연히 집계되지 않음.
+                # 2026-07-18 재점검: 텍스트 소스 목록·이미지 썸네일 목록은 서로 다른 DOM
+                # 영역이라 배타적이지 않음 — 같은 인용이 양쪽에 동시 집계될 수 있어
+                # text_count+image_count가 mentioned_count보다 클 수 있음(정상, naeo.kr도 동일 패턴).
                 _fmt = c.get("mention_format")
-                if _fmt in ("text", "image"):
-                    key = f"{_fmt}_count"
-                    result[p][key] = result[p].get(key, 0) + 1
+                if _fmt in ("text", "text_and_image"):
+                    result[p]["text_count"] = result[p].get("text_count", 0) + 1
+                if _fmt in ("image", "text_and_image"):
+                    result[p]["image_count"] = result[p].get("image_count", 0) + 1
         return result
     except Exception as e:
         _logger.warning(f"multi_channel_citations 조회 실패 [biz={business_id}]: {e}")
