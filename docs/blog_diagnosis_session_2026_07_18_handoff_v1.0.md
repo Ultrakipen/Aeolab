@@ -102,7 +102,7 @@ naeo.kr 대비: 콘텐츠 정성판정(LLM 기반)은 AEOlab이 우위. "AI 랭�
 
 ## 6. 잔여 개선사항 (우선순위순)
 
-1. **[최우선, 범위 수정됨] `showDetail` 토글 재설계** — §5-1에서 확인했듯 ①의 절반(키워드 커버리지)·②(자기추세)·③-b(경쟁사 대비) 전부가 기본값 `false`인 단일 토글 뒤에 숨어있음. 개별 패널을 위로 옮기는 게 아니라 **토글 자체의 설계를 바꿔야** 함 — 후보: (a) 기본값을 `true`로, (b) 가치가 가장 큰 2~3개(키워드 커버리지·자기추세·경쟁사 대비 중)만 토글 밖으로 빼서 기본 노출하고 나머지만 접기, (c) "요약 vs 상세" 구분 기준 자체를 재설계. **아직 미착수, 방향 결정 필요.**
+1. **[완료, 2026-07-18] `showDetail` 토글 재설계** — (b)안 채택: 핵심 3축(키워드 커버리지·`BlogScoreTrendChart`·`CompetitorKeywordBlockedPanel`+`BlogMentionBenchmarkCard`)을 토글 밖으로 승격해 기본 노출, 보조 항목(`BestCitationCandidateCard`·`PostingFrequencyCard`·`TitleImprovementSection`)만 "추가 분석 보기" 토글에 남김. (a)(기본값 true)는 "진단 요약+실행 항목만 먼저 보여 페이지를 간결하게" 유지한다는 기존 설계 의도와 충돌해 기각, (c)(요약/상세 기준 재설계)는 이번 문제 해결에 비해 과설계라 기각. `frontend/app/(dashboard)/blog-analysis/BlogClient.tsx` 수정·서버 빌드·pm2 재시작·error.log 0건·grep 실서버 반영 확인 후 배포(git `cf84913`). git push는 §6-4와 별개로 보류.
 2. **③-a(업종 평균 대비, citation_benchmark) 신규 개발은 지금 하지 말 것** — 코드가 정상이어도 표본 부족(전체 사업장 7곳)으로 못 채움. 구독자 20명 이상, 업종당 3곳 이상 모이는 시점에 재점검. (③-b 경쟁사 대비는 이 제약이 없음 — 1번 참조)
 3. **comp_keywords 백필 자동화 확인** — 목요일 03:00 `enrich_competitor_details_job`이 이번에 수동 백필한 것과 동일하게 stale 데이터를 알아서 재동기화하는지 다음 주 목요일 이후 실측 확인 권장(현재는 코드 로직상 될 것으로 추정만 함, 실측 미확인).
 4. **git push** — 이 세션과 별개 작업으로 보류 중(140+ 서버-로컬 diverge 파일, 서버 git HEAD `917b650` 이후 정체). `scripts/check_server_drift.sh`로 방향 판정 후 진행 — 사용자가 별도 요청 시에만.
