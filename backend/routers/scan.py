@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import re
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -2244,16 +2243,10 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         _biz_franchise = bool((biz or {}).get("is_franchise"))
         _biz_eligibility = _get_elig(_biz_category, _biz_franchise)
 
-        # 2026-07-18 재점검 수정: mention_format은 "업종명이 언급된 브리핑 어딘가에 이미지가
-        # 있었는가"가 아니라 "내 블로그가 실제로 그 소스로 인용되며 이미지로 표시됐는가"를
-        # 물어야 함 — 내 blog_url에서 blog_id를 추출해 source_blog_ids에 내 블로그가 실제로
-        # 있을 때만 판정(없으면 이름만 언급된 것이라 text/image 자체가 성립하지 않아 None).
-        _my_blog_id = None
-        _biz_blog_url = (biz or {}).get("blog_url") or ""
-        if _biz_blog_url:
-            _bm = re.search(r'blog\.naver\.com/([^/?]+)', _biz_blog_url)
-            if _bm:
-                _my_blog_id = _bm.group(1)
+        # 2026-07-18 재점검 수정: mention_format 판정을 naver_scanner.extract_my_blog_id()·
+        # compute_naver_mention_format() 공유 헬퍼로 통합(3개 호출부 중복 로직 제거 + 테스트 고정)
+        from services.ai_scanner.naver_scanner import extract_my_blog_id, compute_naver_mention_format
+        _my_blog_id = extract_my_blog_id((biz or {}).get("blog_url") or "")
 
         citation_rows = []
         for key, label in _PLATFORM_LABELS.items():
@@ -2266,16 +2259,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
             # Naver: keyword_results가 있으면 키워드별 개별 저장 (in_briefing 여부 모두)
             if key == "naver" and r.get("keyword_results"):
                 for kw_r in r["keyword_results"]:
-                    # 2026-07-18 실측 재점검: 텍스트 소스 목록·이미지 썸네일 목록은 완전히
-                    # 별개 DOM 영역이라 상호배타적이지 않음 — 같은 글이 양쪽에 동시 인용 가능
-                    _my_texted = bool(_my_blog_id and _my_blog_id in (kw_r.get("source_blog_ids") or []))
-                    _my_imaged = bool(_my_blog_id and kw_r.get("source_image_map", {}).get(_my_blog_id))
-                    _my_format = (
-                        "text_and_image" if (_my_texted and _my_imaged)
-                        else "image" if _my_imaged
-                        else "text" if _my_texted
-                        else None
-                    )
+                    _my_format = compute_naver_mention_format(_my_blog_id, kw_r)
                     citation_rows.append({
                         "scan_id": new_scan_id,
                         "business_id": business_id,
@@ -3319,14 +3303,9 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 _logger.warning(f"smart_place update failed: {e}")
 
         # ai_citations 저장 (언급 여부 관계없이 모든 플랫폼 저장)
-        # mention_format 판정 기준은 위 _save_scan_results와 동일(내 blog_url→blog_id가
-        # source_blog_ids에 실제로 있을 때만 text/image 판정, 아니면 None — 2026-07-18 재점검 수정)
-        _my_blog_id2 = None
-        _biz_blog_url2 = (biz or {}).get("blog_url") or ""
-        if _biz_blog_url2:
-            _bm2 = re.search(r'blog\.naver\.com/([^/?]+)', _biz_blog_url2)
-            if _bm2:
-                _my_blog_id2 = _bm2.group(1)
+        # mention_format 판정은 naver_scanner의 공유 헬퍼로 통합(2026-07-18)
+        from services.ai_scanner.naver_scanner import extract_my_blog_id, compute_naver_mention_format
+        _my_blog_id2 = extract_my_blog_id((biz or {}).get("blog_url") or "")
 
         citation_rows = []
         for key, label in _PLATFORM_LABELS.items():
@@ -3336,14 +3315,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             # Naver: keyword_results가 있으면 키워드별 개별 저장 (in_briefing 여부 모두)
             if key == "naver" and r.get("keyword_results"):
                 for kw_r in r["keyword_results"]:
-                    _my_texted2 = bool(_my_blog_id2 and _my_blog_id2 in (kw_r.get("source_blog_ids") or []))
-                    _my_imaged2 = bool(_my_blog_id2 and kw_r.get("source_image_map", {}).get(_my_blog_id2))
-                    _my_format2 = (
-                        "text_and_image" if (_my_texted2 and _my_imaged2)
-                        else "image" if _my_imaged2
-                        else "text" if _my_texted2
-                        else None
-                    )
+                    _my_format2 = compute_naver_mention_format(_my_blog_id2, kw_r)
                     citation_rows.append({
                         "scan_id": scan_id,
                         "business_id": req.business_id,

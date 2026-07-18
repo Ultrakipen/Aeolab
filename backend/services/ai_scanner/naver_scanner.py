@@ -418,3 +418,32 @@ class NaverAIBriefingScanner:
             or keyword_results[0]
         )
         return {**best, "keyword_results": keyword_results, "queries_used": queries}
+
+
+def extract_my_blog_id(blog_url: str) -> str | None:
+    """businesses.blog_url(네이버 블로그)에서 blog_id만 추출. routers/scan.py·scheduler/jobs.py
+    3개 호출부가 동일 로직을 각자 구현하던 것을 2026-07-18 재점검 중 하나로 통합."""
+    if not blog_url:
+        return None
+    m = re.search(r'blog\.naver\.com/([^/?]+)', blog_url)
+    return m.group(1) if m else None
+
+
+def compute_naver_mention_format(my_blog_id: str | None, kw_r: dict) -> str | None:
+    """내 블로그가 이번 검색결과의 텍스트 소스 목록(source_blog_ids)·이미지 소스 목록
+    (source_image_map)에 각각 실제로 있었는지로 인용 형식을 판정.
+
+    2026-07-18 실측 DOM 검증 발견: 두 목록은 서로 다른 DOM 영역(텍스트=
+    fds-aib-multi-source-scroll-area, 이미지=fds-multimedia-container)이라
+    상호배타적이지 않음 — 같은 글이 양쪽에 동시 인용될 수 있어 text_and_image 반환 가능.
+    둘 다 아니면 None(업종명은 언급됐어도 내 블로그가 실제 소스가 아닌 경우 포함).
+    """
+    texted = bool(my_blog_id and my_blog_id in (kw_r.get("source_blog_ids") or []))
+    imaged = bool(my_blog_id and kw_r.get("source_image_map", {}).get(my_blog_id))
+    if texted and imaged:
+        return "text_and_image"
+    if imaged:
+        return "image"
+    if texted:
+        return "text"
+    return None
