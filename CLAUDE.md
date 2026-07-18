@@ -183,6 +183,7 @@
 | **`docs/business_viability_audit_v1.0.md`** ⭐ | **C(사업성) 점검 결과 — Gemini SDK(0.8.3) thinking_config 미지원+AI 호출 텔레메트리 전무 발견(ai_usage_logger.py 신설·배포·SQL실행·실측검증 완료), 마진율 계산에서 PG수수료 누락 발견·재계산 — **2026-07-16 재확인으로 브랜드페이(4.3%)→표준카드(3.4%) 카테고리 정정 + 영세등급(0.40%) 사용자 확인 + 현재가 반영, 최종 Basic 83.8%/창업 83.9%/Pro 86.4%/Biz 91.4%**, 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재), trial→가입→유료전환 선행지표 실제공백 확인→`/admin/growth-funnel` 신설. **§1-A: 실측검증 도중 OpenAI 결제수단 미등록으로 ChatGPT 스캔 전면실패(insufficient_quota) P0 우연 발견·사용자 카드등록으로 해결**. 후속과제 잔여: max_tokens 등 (2026-07-12, PG 우대등급 항목은 2026-07-16 해소)** |
 | **`docs/naver_api_hub_migration_v1.0.md`** ⭐ | **네이버 개발자센터 Search API·DataLab API가 NAVER API Hub(NCP)로 이관 — 2027-06-30 전면 종료 전까지만 마이그레이션 완료하면 됨(현재 수정 불필요). 사용 파일 9개 전수 확인 포함 (2026-07-15)** |
 | **`docs/chargeback_response_checklist_v1.0.md`** ⭐ | **카드 분쟁(차지백) 대응 체크리스트 — 결제 라이브 키 승인 전 점검에서 발견한 누락(코드·문서 0건). 이미 있는 증빙 소스(payment_events·subscriptions 등) 정리 + 통보받았을 때 절차만 문서화, 코드 변경 없음 (2026-07-16)** |
+| **`docs/blog_diagnosis_session_2026_07_18_handoff_v1.0.md`** ⭐ | **블로그 진단 페이지 종합 핸드오프 — 20개상한 키워드누락 P0(git `a8f76ec`)·자기추세 upsert 누락(git `dc59ae4`)·comp_keywords 오판 2회 정정(저장버그+데이터희소성 반반) 상세. 잔여: BlogScoreTrendChart 상단배치·comp_keywords 자동백필 실측확인 (2026-07-18)** |
 | `docs/fastapi_starlette_upgrade_handoff_v1.0.md` | A·B·C·D 3개 문서 재검증 세션(2026-07-12) 결과물 — privacy §4 Resend 위탁 누락·§3 IP해시 문구 불일치·DMARC 부재·성능측정 이력 0건·pip-audit 미실행 5건 수정·배포(git `f51f490`·`6c65ab8`). `starlette` CVE 7건 → **fastapi 0.135.0+starlette 1.3.1 업그레이드 완료**(로컬 회귀검증 후 서버 배포·라이브 검증, git `7d23596`) — 이 문서 시리즈 전체 종료, 재작업 불필요 |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
@@ -202,6 +203,7 @@
 > **상업 서비스 총괄 점검(보안/법적/사업성/인프라)**: A·B·C·D 전체 완료(2026-07-12) — A·B·D는 `docs/legal_compliance_and_infra_resilience_audit_v1.0.md`(git `3ab9545`), C는 `docs/business_viability_audit_v1.0.md` 참조. 재점검 불필요, 후속 과제만 `docs/business_viability_audit_v1.0.md §6` 참조
 > **FastAPI/Starlette 업그레이드**: 완료됨(2026-07-12, git `7d23596`) — 재작업 불필요
 > **상업 서비스 점검 현황 파악/이어가기**: `docs/commercial_launch_inspection_status_v1.0.md 기준으로 §6-1(즉시 가치) 항목부터 진행`
+> **블로그 진단 페이지 잔여작업 이어가기**: `docs/blog_diagnosis_session_2026_07_18_handoff_v1.0.md 기준으로 §6 잔여 개선사항 이어서 진행`
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)

@@ -1,0 +1,88 @@
+# 블로그 진단 페이지 — 2026-07-17~18 세션 종합 핸드오프
+
+> 새 대화창에서 이어가려면: `docs/blog_diagnosis_session_2026_07_18_handoff_v1.0.md 기준으로 §6 잔여 개선사항 이어서 진행`
+
+## 1. 이 작업의 목적
+
+사용자가 세션 중반에 명시적으로 우선순위를 재확정한 문장이 이 작업 전체의 기준이다:
+
+> "이 창에서 가장 중요한 개선 작업은 사용자의 네이버 블로그 AI 노출 진단이야. 모두 개선이 되었는지?"
+
+이후 다음 요구가 이어졌다:
+
+> "솔직하게 오판과 누락없이 실질적으로 사용자가 블로그 진단을 하면 많은 정보제공과 AI노출의 현재 상황, 어떻게 개선하면 좋은지 알려주는 블로그 진단 페이지로 해줘."
+>
+> "경쟁사의 격차, 나의 위치를 확인할 필요가 있는지부터 점검을 원함. '블로그 진단' 페이지에서 나의 블로그만 전문적인 진단을 한다면 사용자가 만족도가 높지 않는지? 경쟁사와 비교를 한다면 나의 블로그 vs 경쟁사 블로그 상황인데 비교를 해야하는지?"
+
+즉 목표는 **기능 추가가 아니라 "이미 만든 것이 실제로 정직하고 정확하게 동작하는가"를 실측으로 검증하고, 발견되는 구조적 결함을 그때그때 고치는 것**이었다. 매 라운드마다 사용자가 "오판과 누락이 없었는지?"를 재차 물었고, 그때마다 자체 반증에서 실제 버그를 찾아냈다(아래 §3).
+
+## 2. 세션 시작 전 상태 (전제)
+
+`docs/blog_analysis_improvement_v2.0.md`가 상위 문서. 이 세션 진입 시점에 이미 결정·완료된 것:
+- **§2-B(경쟁사 블로그 실시간 구조비교)는 영구 제외** — 사용자 명시 결정: "사용자의 블로그가 AI에 최적으로 노출되고 있는지가 가장 중요함"
+- **§2-C(LLM 콘텐츠 품질 판정)는 구현 완료** — Claude Haiku, 네이버 블로그만 대상(티스토리/워드프레스는 본문 텍스트 확보 불가로 제외)
+- citation_benchmark TTL 캐시 구현, RSS/검색API 429 재시도, pytest 인프라 최초 도입 등도 이 세션 이전에 완료(자세한 내역은 memory `project_blog_analysis_*_2026_07_17.md` 5개 파일 참조)
+
+## 3. 이번 세션(2026-07-18)에서 실제로 한 일
+
+### 3-1. 실계정 전체 응답 재검토 → 최대 구조적 버그 발견·수정 (git `a8f76ec`)
+
+실제 사업장(홍뮤직스튜디오작곡교습소, `fccf289b-169d-4543-b827-68fb7d2604ba`)의 `GET /result/{business_id}` 전체 JSON을 처음부터 다시 훑어보다 발견.
+
+- **증상**: `missing_keywords`에 "주차 무료"·"셔틀버스" 같은 일반 학원 키워드만 있고, 이 업종을 위해 이미 taxonomy에 추가돼 있던 "작곡 레슨"·"레코딩 스튜디오"·"음악 제작"(스튜디오전문성 카테고리, weight=0.25, taxonomy 최고 가중치 중 하나)이 present/missing 어디에도 없음.
+- **원인**: `_calc_keyword_coverage()`(`backend/services/blog_analyzer.py`)가 taxonomy 하위카테고리를 dict 삽입 순서 그대로 이어붙인 뒤 `[:20]`으로 잘라서, 총 키워드가 20개 넘는 업종은 뒤쪽(대개 나중에 추가된 특화·고가중치) 카테고리가 통째로 빠짐. **music_studio만의 문제가 아니라 20개 넘는 모든 업종(예: restaurant 57개)에 해당하는 구조적 버그.** 여기에 `ai_tab_context`(briefing_engine.py AI탭 매칭 전용 하위카테고리)가 실수로 이 계산에 섞여 20개 상한을 더 빨리 소진시키던 2차 원인도 있었음.
+- **수정**: `ai_tab_context` 제외 + weight 내림차순 정렬 후 상한 제거.
+- **실측 검증**: `covered_keywords` 2개("입시 전문","월 단위 등록") → 13개(작곡 레슨·레코딩 스튜디오·음대 합격 사례 등 실제 콘텐츠와 정확히 일치)로 증가.
+- 회귀 테스트 3건 신설: `backend/tests/test_blog_keyword_coverage.py`
+
+### 3-2. 자기추세 차트(BlogScoreTrendChart) 자동갱신 누락 발견·수정 (git `dc59ae4`)
+
+블로그 진단 페이지가 "내 위치"를 알려줄 수 있는 방법이 3가지(§5 참조)라는 걸 재확인하던 중 발견.
+
+- **증상**: `backend/scheduler/jobs.py`의 `daily_scan_all()` 자동 재분석(14일 이상 미분석 블로그 대상)이 `businesses` 요약 컬럼(`blog_keyword_coverage` 등)은 갱신하지만, 자기추세 차트(`BlogClient.tsx` `BlogScoreTrendChart`)의 데이터 소스인 `blog_score_history` 테이블엔 upsert하지 않음. 즉 사용자가 "재분석하기" 버튼을 수동으로 누르지 않는 한(Basic 플랜 월 3회 한도) 추세 데이터가 거의 안 쌓이는 상태.
+- **수정**: `blog.py _run_blog_analysis()`와 동일한 upsert 패턴 추가.
+- **검증**: 실계정의 실제 `keyword_coverage` 값(요약 컬럼, float)으로 upsert 성공 확인. 검증 스크립트 1차 시도에서 `blog_analysis_json` 내부의 **다른 타입(dict)** "keyword_coverage" 필드를 잘못 참조해 DB 타입에러(22P02)가 났는데, 이는 `blog.py:439`에 프론트엔드 응답용 동명(同名) 지역변수(`{present, missing, competitor_only}` 구조)가 별도로 존재하기 때문 — 원인을 추적해 **프로덕션 코드(blog.py·jobs.py)는 항상 올바른 float 소스를 쓰고 있음을 확인**, 내 테스트 스크립트만의 실수였음을 재확인.
+- pytest 28개 전부 통과, 배포·md5 검증·pm2 재시작 후 error.log 0건 확인.
+
+### 3-3. comp_keywords null 원인 재규명 (프로덕션 코드 변경 없음, 데이터 백필만)
+
+지난 턴에 "comp_keywords null은 전 카테고리에 걸친 데이터 희소성 패턴"이라고 판단했던 게 **틀렸음을 자체 반증으로 확인**.
+
+- 실제 카테고리별 조인 결과: photo(2/2 정상 저장), restaurant(1건, `naver_place_id` 자체가 없어 크롤링 미실행 — 정상), **music_studio(5/5 null)만 문제**.
+- `analyze_keyword_coverage()`(`keyword_taxonomy.py`)를 실제 경쟁사 소개글 텍스트로 직접 재현 → 함수 자체는 정상 매칭("창원작곡레슨" 텍스트 → covered=["작곡 레슨"]).
+- `sync_competitor_place()`를 5곳 전부 수동 재호출 → **2곳(라포뮤직·창원작곡레슨)은 즉시 정상 저장됨** (저장 경로에 일시적 문제가 있었다는 뜻, 재동기화로 해결). 나머지 3곳은 재동기화해도 여전히 null인데, 원문("댄스 연습실입니다", "3시간에 2만원 할인은 없어집니다")에 애초에 taxonomy 키워드가 없어 정상적인 결과.
+- **결론: "저장 경로 문제"와 "데이터 희소성" 둘 다 섞여 있었음.** 목요일 03:00 `enrich_competitor_details_job`이 정기 재동기화하므로 코드 수정은 하지 않음(과거 sync 결과가 stale하게 남아있던 것이 문제였고, 지금 코드는 정상 동작 확인됨).
+
+## 4. 이번 세션에서 반증했지만 뒤집히지 않은 것
+
+- `_CITATION_BENCHMARK_MIN_PEERS = 3`(`blog.py:142`), `_MIN_PUBLIC_RANK_COUNT = 3`(`report.py:324`) — 앱 전체가 동일한 최소표본 원칙 사용. 실 서버 전체 사업장 **7곳**, 최다 업종(restaurant)도 **3곳뿐** → 자기 제외 시 2곳 < 3 → citation_benchmark·공개랭킹 **100% "데이터 수집 중"**. 코드 결함 아님, 순수 구독자 규모 문제.
+- peer 쿼리(`_fetch_citation_benchmark`)는 category만 필터, region 필터 없음 — 확인 완료.
+- `BlogScoreTrendChart`가 `BlogClient.tsx` 전체 2497줄 중 2354번째 줄(체크리스트·키워드갭·인용패널 다음, 사실상 페이지 최하단)에 배치 — 확인 완료, 아직 미조치(§6 참조).
+
+## 5. 현재 페이지가 "전문적 진단"인지에 대한 최종 판단
+
+블로그 진단은 이미 3중 구조다 — "내 블로그만 본다"는 지적은 정확하지 않음:
+
+| 축 | 기능 | 현재 상태 |
+|---|---|---|
+| ① 절대 기준 | 8항목 체크리스트 (+ Claude Haiku 정성판정) | 정상 작동 |
+| ② 자기 자신 대비 추세 | `BlogScoreTrendChart` (`blog_score_history`) | §3-2 수정으로 이제 자동재분석도 반영됨 |
+| ③ 업종/경쟁사 대비 위치 | `citation_benchmark`, `competitor_blog_comparison` | 코드 정상, **현재 스케일(7개 사업장)에서 구조적으로 100% 비어있음** — 구독자 늘면 자동 해소, 추가 개발 불필요 |
+
+naeo.kr 대비: 콘텐츠 정성판정(LLM 기반)은 AEOlab이 우위. "AI 랭킹"(업종 내 TOP3 리더보드)은 naeo.kr에 있고 AEOlab엔 없음 — 단, 이것도 ③과 동일하게 최소표본 문제라 지금 만들어도 못 채움.
+
+## 6. 잔여 개선사항 (우선순위순)
+
+1. **`BlogScoreTrendChart` 배치 개선** — 지금 페이지 최하단(§4 참조). ③(경쟁사비교)이 구조적으로 비어있는 지금, "내가 나아지고 있나"를 보여줄 수 있는 유일하게 실질적인 축인데 우선순위가 낮게 배치돼 있음. 체크리스트 직후(상단)로 옮기는 걸 권장 — **아직 미착수, 사용자 확인 필요**.
+2. **③ 동종/경쟁사 비교는 지금 손대지 말 것** — 코드가 정상이어도 표본 부족으로 못 채움. 구독자 20명 이상, 업종당 3곳 이상 모이는 시점에 재점검.
+3. **comp_keywords 백필 자동화 확인** — 목요일 03:00 `enrich_competitor_details_job`이 이번에 수동 백필한 것과 동일하게 stale 데이터를 알아서 재동기화하는지 다음 주 목요일 이후 실측 확인 권장(현재는 코드 로직상 될 것으로 추정만 함, 실측 미확인).
+4. **git push** — 이 세션과 별개 작업으로 보류 중(140+ 서버-로컬 diverge 파일, 서버 git HEAD `917b650` 이후 정체). `scripts/check_server_drift.sh`로 방향 판정 후 진행 — 사용자가 별도 요청 시에만.
+5. **외부 블로그(Tistory/WordPress) LLM 품질판정** — 의도적 제외 상태(제목만 확보 가능, 본문 텍스트 없음). 크롤링 방식이 바뀌지 않는 한 재검토 불필요.
+
+## 7. 관련 문서·메모리 인덱스
+
+- `docs/blog_analysis_improvement_v2.0.md` — 상위 기획 문서 (§2-B/§2-C 최종 결론)
+- memory: `project_blog_keyword_coverage_cap_bug_2026_07_18.md` (§3-1 상세)
+- memory: `project_blog_competitor_position_recheck_2026_07_18.md` (§3-2, §3-3 상세)
+- memory: `project_blog_auto_reanalysis_not_persisted_2026_07_17.md` (전신 버그, 이번 §3-2와 다른 부분)
+- git: `53b36cb`(daily_scan_all 저장 누락) → `a8f76ec`(20개 상한 버그) → `dc59ae4`(blog_score_history 누락)
