@@ -118,12 +118,16 @@ ChatGPT 광고(ChatGPT Ads)는 2026년 2월 미국 출시 이후 이미 확대 �
 organic_strategies는 5개, 소상공인이 직접 실행 가능한 것 위주로."""
 
         from services.anthropic_retry import create_message_with_retry
-        msg = await create_message_with_retry(
-            self.client,
-            model="claude-sonnet-4-6",
-            max_tokens=6000,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        try:
+            msg = await create_message_with_retry(
+                self.client,
+                model="claude-sonnet-4-6",
+                max_tokens=6000,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-sonnet-4-6", f"ad_defense_guide:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
         try:
             log_ai_usage("claude", "claude-sonnet-4-6", "ad_defense_guide", msg.usage.input_tokens, msg.usage.output_tokens)
         except Exception as _le:

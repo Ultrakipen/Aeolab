@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 from utils.alert import send_slack_alert
 from db.supabase_client import execute as _db
 from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_queries
+from services.ai_usage_logger import log_ai_usage
 
 # 카카오 알림 키 설정 여부 — 미설정 시 알림 발송 시도 자체를 스킵해 에러 로그 누적 방지
 _KAKAO_CONFIGURED = bool(os.getenv("KAKAO_APP_KEY") and os.getenv("KAKAO_SENDER_KEY"))
@@ -314,6 +315,12 @@ def start_scheduler():
         ai_provider_health_check_job, "interval", minutes=30,
         id="ai_provider_health_check", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
+    )
+    # AI 프로바이더 일일 호출량 사전 경보 — 매일 00:05 KST(UTC 15:05) (외부 API 한도 확장 대응, 2026-07-19)
+    scheduler.add_job(
+        ai_daily_usage_alert_job, "cron", hour=15, minute=5,
+        id="ai_daily_usage_alert", replace_existing=True,
+        max_instances=1, misfire_grace_time=3600,
     )
     scheduler.add_listener(_on_job_error, EVENT_JOB_ERROR)
     scheduler.start()
@@ -1735,18 +1742,28 @@ async def monthly_market_news_job():
                         break
                     _claude_call_count += 1
                     from services.anthropic_retry import create_message_with_retry
-                    msg = await create_message_with_retry(
-                        client,
-                        model="claude-haiku-4-5-20251001",
-                        max_tokens=300,
-                        messages=[{
-                            "role": "user",
-                            "content": (
-                                f"한국 {region} {category} 업종의 이달 AI 검색 트렌드를 "
-                                f"3줄 이내로 요약해줘. 소상공인이 알아야 할 핵심만."
-                            ),
-                        }],
-                    )
+                    try:
+                        msg = await create_message_with_retry(
+                            client,
+                            model="claude-haiku-4-5-20251001",
+                            max_tokens=300,
+                            messages=[{
+                                "role": "user",
+                                "content": (
+                                    f"한국 {region} {category} 업종의 이달 AI 검색 트렌드를 "
+                                    f"3줄 이내로 요약해줘. 소상공인이 알아야 할 핵심만."
+                                ),
+                            }],
+                        )
+                    except Exception as _ce:
+                        log_ai_usage("claude", "claude-haiku-4-5-20251001",
+                                     f"monthly_market_news:FAILED:{type(_ce).__name__}", 0, 0)
+                        raise
+                    try:
+                        log_ai_usage("claude", "claude-haiku-4-5-20251001", "monthly_market_news",
+                                     msg.usage.input_tokens, msg.usage.output_tokens)
+                    except Exception as _le:
+                        logger.debug("monthly_market_news usage 로깅 실패(무시): %s", _le)
                     category_news[cache_key] = msg.content[0].text.strip()
 
                 news_text = category_news[cache_key]
@@ -2507,12 +2524,22 @@ async def weekly_post_draft_job():
                     break
                 _claude_call_count += 1
                 from services.anthropic_retry import create_message_with_retry
-                msg = await create_message_with_retry(
-                    client,
-                    model="claude-haiku-4-5-20251001",
-                    max_tokens=200,
-                    messages=[{"role": "user", "content": prompt}],
-                )
+                try:
+                    msg = await create_message_with_retry(
+                        client,
+                        model="claude-haiku-4-5-20251001",
+                        max_tokens=200,
+                        messages=[{"role": "user", "content": prompt}],
+                    )
+                except Exception as _ce:
+                    log_ai_usage("claude", "claude-haiku-4-5-20251001",
+                                 f"weekly_post_draft:FAILED:{type(_ce).__name__}", 0, 0)
+                    raise
+                try:
+                    log_ai_usage("claude", "claude-haiku-4-5-20251001", "weekly_post_draft",
+                                 msg.usage.input_tokens, msg.usage.output_tokens)
+                except Exception as _le:
+                    logger.debug("weekly_post_draft usage 로깅 실패(무시): %s", _le)
                 draft = msg.content[0].text.strip()
 
                 # guides 테이블에 저장 (guide_type='post_draft')
@@ -6312,3 +6339,85 @@ async def ai_provider_health_check_job() -> None:
                 "스캐너는 실패 시 '노출 없음'으로 조용히 폴백하므로, 해결 전까지 모든 신규 스캔의 "
                 f"{provider} 결과가 부정확합니다.",
             )
+
+
+# 프로바이더별 일일 호출 수 경보 임계값 — 실제 프로바이더 대시보드 한도를 반영한 값이
+# 아니라 보수적 placeholder다. 실사용 데이터(ai_usage_log) 누적 후 재조정 필요.
+_AI_DAILY_WARN_THRESHOLDS = {
+    "gemini": int(os.getenv("GEMINI_DAILY_CALL_WARN", "3000")),
+    "chatgpt": int(os.getenv("CHATGPT_DAILY_CALL_WARN", "3000")),
+    "claude": int(os.getenv("CLAUDE_DAILY_CALL_WARN", "500")),
+}
+
+
+async def ai_daily_usage_alert_job() -> None:
+    """AI 프로바이더 일별 호출량이 임계값에 도달했는지 사전 경보 — 매일 00:05 KST.
+
+    ai_provider_health_check_job(30분 간격)은 "전면 장애(100% 실패)"만 감지한다.
+    이 잡은 그와 달리 "정상 작동 중이지만 호출량 자체가 늘어나는 추세"를 매일 집계해
+    구독자 증가에 따른 프로바이더 한도 상향 필요 시점을 사전에 포착한다
+    (외부 API 한도 확장 대응 설계, 2026-07-19). Claude(가이드 생성 등)도 포함 —
+    ai_provider_health_check_job이 Gemini/ChatGPT 전면 장애만 보도록 의도적으로
+    좁게 설계된 것과 달리, 이 잡은 처음부터 3개 프로바이더 전부를 대상으로 한다.
+    """
+    from db.supabase_client import get_client
+    from services.email_sender import send_operator_alert
+
+    supabase = get_client()
+    window_start = (datetime.utcnow() - timedelta(hours=24)).isoformat()
+
+    try:
+        rows = (
+            await _db(
+                supabase.table("ai_usage_log")
+                .select("provider, purpose")
+                .gte("created_at", window_start)
+                .limit(20000)
+            )
+        ).data or []
+    except Exception as e:
+        _logger.debug(f"[ai_daily_usage_alert] ai_usage_log 조회 실패(스킵): {e}")
+        return
+
+    if not rows:
+        return
+
+    stats: dict[str, dict[str, int]] = {}
+    for r in rows:
+        provider = r.get("provider") or "unknown"
+        s = stats.setdefault(provider, {"total": 0, "failed": 0})
+        s["total"] += 1
+        if ":FAILED:" in (r.get("purpose") or ""):
+            s["failed"] += 1
+
+    today = date.today().isoformat()
+    for provider, s in stats.items():
+        threshold = _AI_DAILY_WARN_THRESHOLDS.get(provider)
+        if not threshold or s["total"] < threshold:
+            continue
+        try:
+            recent_alert = (
+                await _db(
+                    supabase.table("system_alerts")
+                    .select("id")
+                    .ilike("subject", f"%{provider} 일일 호출량%")
+                    .gte("created_at", (datetime.utcnow() - timedelta(hours=20)).isoformat())
+                    .limit(1)
+                )
+            ).data or []
+        except Exception as e:
+            _logger.debug(f"[ai_daily_usage_alert] system_alerts 조회 실패: {e}")
+            recent_alert = []
+
+        if recent_alert:
+            continue
+
+        _logger.warning(f"[ai_daily_usage_alert] {provider} 일일 호출량 {s['total']}건 — 임계값({threshold}) 도달")
+        await send_operator_alert(
+            f"{provider} 일일 호출량 경보",
+            f"{today} 최근 24시간 {provider} 호출 {s['total']}건(실패 {s['failed']}건) — "
+            f"설정 임계값 {threshold}건에 도달했습니다.\n"
+            "구독자 증가로 호출량이 늘고 있을 수 있습니다 — 프로바이더 대시보드에서 실제 "
+            "RPM/RPD/TPM 한도 대비 여유를 확인하고, 필요 시 티어 상향 또는 세마포어/배치 "
+            "env 값(CHATGPT_MAX_CONCURRENCY, GEMINI_BATCH_SIZE 등) 조정을 검토하세요.",
+        )

@@ -58,12 +58,16 @@ async def score_posts_quality(posts: list[dict]) -> dict[int, dict]:
 
     try:
         from services.anthropic_retry import create_message_with_retry
-        msg = await create_message_with_retry(
-            _get_client(),
-            model="claude-haiku-4-5-20251001",
-            max_tokens=400,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        try:
+            msg = await create_message_with_retry(
+                _get_client(),
+                model="claude-haiku-4-5-20251001",
+                max_tokens=400,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", f"blog_quality:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
         try:
             log_ai_usage(
                 "claude", "claude-haiku-4-5-20251001", "blog_quality",

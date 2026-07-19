@@ -173,12 +173,16 @@ class StartupReportService:
 }}"""
 
         from services.anthropic_retry import create_message_with_retry
-        msg = await create_message_with_retry(
-            self.client,
-            model="claude-sonnet-4-6",
-            max_tokens=3200,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        try:
+            msg = await create_message_with_retry(
+                self.client,
+                model="claude-sonnet-4-6",
+                max_tokens=3200,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-sonnet-4-6", f"startup_report:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
         try:
             log_ai_usage("claude", "claude-sonnet-4-6", "startup_report", msg.usage.input_tokens, msg.usage.output_tokens)
         except Exception as _le:

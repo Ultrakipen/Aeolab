@@ -63,12 +63,16 @@ JSON 형식으로만 응답:
 
     try:
         from services.anthropic_retry import create_message_with_retry
-        msg = await create_message_with_retry(
-            _get_client(),
-            model="claude-haiku-4-5-20251001",
-            max_tokens=500,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        try:
+            msg = await create_message_with_retry(
+                _get_client(),
+                model="claude-haiku-4-5-20251001",
+                max_tokens=500,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", f"review_sentiment:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
         try:
             log_ai_usage("claude", "claude-haiku-4-5-20251001", "review_sentiment", msg.usage.input_tokens, msg.usage.output_tokens)
         except Exception as _le:

@@ -10,7 +10,7 @@ from services.ai_usage_logger import log_ai_usage
 _logger = logging.getLogger(__name__)
 
 
-_CHATGPT_SEM = asyncio.Semaphore(5)  # OpenAI rate limit 대응: 동시 호출 5개 상한
+_CHATGPT_SEM = asyncio.Semaphore(max(1, int(os.getenv("CHATGPT_MAX_CONCURRENCY", "5"))))  # OpenAI rate limit 대응: 동시 호출 상한 (env로 조정 가능, 0 입력 시 영구 블로킹 방지로 최소 1)
 
 
 class ChatGPTScanner:

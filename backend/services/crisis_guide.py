@@ -83,12 +83,16 @@ async def generate_crisis_reply(
 
     try:
         from services.anthropic_retry import create_message_with_retry
-        resp = await create_message_with_retry(
-            client,
-            model="claude-haiku-4-5-20251001",
-            max_tokens=900,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        try:
+            resp = await create_message_with_retry(
+                client,
+                model="claude-haiku-4-5-20251001",
+                max_tokens=900,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", f"crisis_reply:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
         try:
             log_ai_usage("claude", "claude-haiku-4-5-20251001", "crisis_reply", resp.usage.input_tokens, resp.usage.output_tokens)
         except Exception as _le:

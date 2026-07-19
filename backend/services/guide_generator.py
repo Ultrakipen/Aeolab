@@ -559,6 +559,10 @@ class GuideGenerator:
                         await asyncio.sleep(wait)
                     else:
                         break  # 529/429 외 오류는 즉시 다음 모델로
+        try:
+            log_ai_usage("claude", models[-1], f"guide_generate:FAILED:{type(last_err).__name__}", 0, 0)
+        except Exception as _le:
+            _logger.debug("guide_generate 실패 로깅 실패(무시): %s", _le)
         raise last_err
 
     @staticmethod
@@ -1240,11 +1244,15 @@ async def generate_smartplace_intro(
 - target_keyword는 실제 네이버 검색에서 사용될 법한 구체적인 구문"""
 
     try:
-        message = await _create_message_with_retry(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=4096,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        try:
+            message = await _create_message_with_retry(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=4096,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", f"smartplace_intro:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
         try:
             log_ai_usage("claude", "claude-haiku-4-5-20251001", "smartplace_intro", message.usage.input_tokens, message.usage.output_tokens)
         except Exception as _le:
@@ -1343,11 +1351,15 @@ async def generate_faq_drafts(
         '[{"question": "질문1", "answer": "답변1"}]'
     )
     try:
-        msg = await _create_message_with_retry(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=1500,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        try:
+            msg = await _create_message_with_retry(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=1500,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", f"faq_drafts:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
         try:
             log_ai_usage("claude", "claude-haiku-4-5-20251001", "faq_drafts", msg.usage.input_tokens, msg.usage.output_tokens)
         except Exception as _le:
@@ -1483,12 +1495,16 @@ async def generate_naver_intro(
         current_month=now_kst.month,
     )
     try:
-        message = await _create_message_with_retry(
-            model="claude-sonnet-4-6",
-            max_tokens=1500,
-            messages=[{"role": "user", "content": prompt}],
-            timeout=60.0,
-        )
+        try:
+            message = await _create_message_with_retry(
+                model="claude-sonnet-4-6",
+                max_tokens=1500,
+                messages=[{"role": "user", "content": prompt}],
+                timeout=60.0,
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-sonnet-4-6", f"naver_intro:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
         try:
             log_ai_usage("claude", "claude-sonnet-4-6", "naver_intro", message.usage.input_tokens, message.usage.output_tokens)
         except Exception as _le:
@@ -1567,12 +1583,16 @@ async def generate_global_ai_intro(
         current_month=now_kst.month,
     )
     try:
-        message = await _create_message_with_retry(
-            model="claude-sonnet-4-6",
-            max_tokens=1500,
-            messages=[{"role": "user", "content": prompt}],
-            timeout=60.0,
-        )
+        try:
+            message = await _create_message_with_retry(
+                model="claude-sonnet-4-6",
+                max_tokens=1500,
+                messages=[{"role": "user", "content": prompt}],
+                timeout=60.0,
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-sonnet-4-6", f"global_ai_intro:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
         try:
             log_ai_usage("claude", "claude-sonnet-4-6", "global_ai_intro", message.usage.input_tokens, message.usage.output_tokens)
         except Exception as _le:
@@ -1605,12 +1625,16 @@ async def generate_talktalk_faq(
         count=count,
     )
     try:
-        message = await _create_message_with_retry(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=2000,
-            messages=[{"role": "user", "content": prompt}],
-            timeout=60.0,
-        )
+        try:
+            message = await _create_message_with_retry(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=2000,
+                messages=[{"role": "user", "content": prompt}],
+                timeout=60.0,
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", f"talktalk_faq:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
         try:
             log_ai_usage("claude", "claude-haiku-4-5-20251001", "talktalk_faq", message.usage.input_tokens, message.usage.output_tokens)
         except Exception as _le:

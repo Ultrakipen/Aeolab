@@ -177,12 +177,16 @@ async def generate_keyword_suggestions(
     try:
         from services.anthropic_retry import create_message_with_retry
         client = _get_client()
-        msg = await create_message_with_retry(
-            client,
-            model=KEYWORD_SUGGEST_MODEL,
-            max_tokens=1200,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        try:
+            msg = await create_message_with_retry(
+                client,
+                model=KEYWORD_SUGGEST_MODEL,
+                max_tokens=1200,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", KEYWORD_SUGGEST_MODEL, f"keyword_suggest:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
         try:
             log_ai_usage("claude", KEYWORD_SUGGEST_MODEL, "keyword_suggest", msg.usage.input_tokens, msg.usage.output_tokens)
         except Exception as _le:

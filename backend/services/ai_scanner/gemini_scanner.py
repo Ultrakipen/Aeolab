@@ -17,6 +17,10 @@ _logger = logging.getLogger(__name__)
 # 비용 주의: 그라운딩 활성화 시 API 단가 상승 가능. 구독자 확보 후 검토 권장.
 _GROUNDING_ENABLED: bool = os.getenv("GEMINI_GROUNDING_ENABLED", "false").lower() == "true"
 
+# 배치 크기·배치 간 대기 — 프로바이더 티어 상향 시 코드 수정 없이 env로 조정
+GEMINI_BATCH_SIZE = max(1, int(os.getenv("GEMINI_BATCH_SIZE", "10")))  # 0 입력 시 range() ValueError 방지로 최소 1
+GEMINI_BATCH_SLEEP = float(os.getenv("GEMINI_BATCH_SLEEP", "0.5"))
+
 
 class GeminiScanner:
     def __init__(self):
@@ -44,7 +48,7 @@ class GeminiScanner:
 
         queries가 list인 경우 균등 분산 — 검색 의도 다양성 반영.
         예: ["강남 음식점 추천", "강남 음식점"] × n/2회씩
-        batch_size는 10 고정.
+        batch_size는 GEMINI_BATCH_SIZE(env, 기본 10).
         """
         query_list = [queries] if isinstance(queries, str) else [q for q in queries if q]
         if not query_list:
@@ -58,8 +62,8 @@ class GeminiScanner:
         mention_count = 0
         success_count = 0
         citations = []
-        for batch_start in range(0, n, 10):
-            batch = task_queries[batch_start:batch_start + 10]
+        for batch_start in range(0, n, GEMINI_BATCH_SIZE):
+            batch = task_queries[batch_start:batch_start + GEMINI_BATCH_SIZE]
             tasks = [self._check(q, target) for q in batch]
             results = await asyncio.gather(*tasks, return_exceptions=True)
             for r in results:
@@ -70,7 +74,7 @@ class GeminiScanner:
                     mention_count += 1
                     if r.get("excerpt"):
                         citations.append(r["excerpt"])
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(GEMINI_BATCH_SLEEP)
 
         # sample_size는 실제 성공 측정 건수 — 실패(타임아웃·API 오류·파싱 실패) 건은
         # "측정 안 됨"으로 분모에서 제외한다 (실패를 "언급 안 됨"으로 오집계 방지)
