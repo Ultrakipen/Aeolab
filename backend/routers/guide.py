@@ -7,6 +7,7 @@ import logging
 from fastapi import APIRouter, Body, Header, HTTPException, BackgroundTasks, Depends
 from pydantic import BaseModel
 from models.schemas import GuideRequest
+from services.ai_usage_logger import log_ai_usage
 from services.guide_generator import GuideGenerator
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
@@ -354,12 +355,20 @@ reply: <답변 내용>
 
     try:
         from services.anthropic_retry import create_message_with_retry
-        msg = await create_message_with_retry(
-            client,
-            model="claude-haiku-4-5-20251001",
-            max_tokens=256,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        try:
+            msg = await create_message_with_retry(
+                client,
+                model="claude-haiku-4-5-20251001",
+                max_tokens=256,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", f"review_reply:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
+        try:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", "review_reply", msg.usage.input_tokens, msg.usage.output_tokens)
+        except Exception as _le:
+            logging.getLogger(__name__).debug("review_reply usage 로깅 실패(무시): %s", _le)
         text = msg.content[0].text.strip()
         sentiment = "neutral"
         reply_lines: list[str] = []
@@ -1292,12 +1301,21 @@ async def get_pioneer_detail(biz_id: str, current_user: dict = Depends(get_curre
     try:
         from services.anthropic_retry import create_message_with_retry
         client = _get_guide_ai_client(os.getenv("ANTHROPIC_API_KEY", ""))
-        msg = await create_message_with_retry(
-            client,
-            model="claude-haiku-4-5-20251001",
-            max_tokens=1000,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        try:
+            msg = await create_message_with_retry(
+                client,
+                model="claude-haiku-4-5-20251001",
+                max_tokens=1000,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as _ce:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", f"pioneer_detail:FAILED:{type(_ce).__name__}", 0, 0)
+            raise
+        try:
+            log_ai_usage("claude", "claude-haiku-4-5-20251001", "pioneer_detail", msg.usage.input_tokens, msg.usage.output_tokens)
+        except Exception as _le:
+            import logging as _logging
+            _logging.getLogger(__name__).debug("pioneer_detail usage 로깅 실패(무시): %s", _le)
         raw = msg.content[0].text.strip()
         m = re.search(r"\[.*\]", raw, re.DOTALL)
         items = json.loads(m.group()) if m else []
