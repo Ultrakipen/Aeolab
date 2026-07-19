@@ -322,6 +322,13 @@ def start_scheduler():
         id="ai_daily_usage_alert", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
+    # 백엔드 --workers 1 확장 트리거 조건 점검 — 매일 09:25 KST(UTC 00:25)
+    # (docs/backend_worker_scaling_trigger_v1.0.md, 2026-07-19)
+    scheduler.add_job(
+        backend_scaling_trigger_check_job, "cron", hour=0, minute=25,
+        id="backend_scaling_trigger_check", replace_existing=True,
+        max_instances=1, misfire_grace_time=3600,
+    )
     scheduler.add_listener(_on_job_error, EVENT_JOB_ERROR)
     scheduler.start()
     logger.info("Scheduler started")
@@ -6421,3 +6428,116 @@ async def ai_daily_usage_alert_job() -> None:
             "RPM/RPD/TPM 한도 대비 여유를 확인하고, 필요 시 티어 상향 또는 세마포어/배치 "
             "env 값(CHATGPT_MAX_CONCURRENCY, GEMINI_BATCH_SIZE 등) 조정을 검토하세요.",
         )
+
+
+async def backend_scaling_trigger_check_job() -> None:
+    """백엔드 `--workers 1` 확장 트리거 조건 점검 — 매일 09:25 KST.
+
+    docs/backend_worker_scaling_trigger_v1.0.md(2026-07-19)의 트리거 조건을 자동
+    점검한다. 이 잡은 판단 근거만 수집·알림한다 — Redis/DB 락 마이그레이션
+    착수 여부는 사람이 최종 판단(과거 세마포어 관련 데드락 사고로 자동 조치는
+    하지 않음, docs §"트리거 충족 시 권장 마이그레이션 방향" 참조).
+
+    조건 1·2는 각 발생 지점(multi_scanner.py·scan.py의 PLAYWRIGHT_SEMAPHORE
+    대기열 타임아웃, 9개 락의 409 응답)에서 record_alert()로 남긴
+    system_alerts(source="playwright_queue_timeout"/"lock_contention")를 집계한다.
+    """
+    from db.supabase_client import get_client
+    from services.email_sender import send_operator_alert
+
+    supabase = get_client()
+    now = datetime.utcnow()
+    # 4일 창으로 넉넉히 조회 — 오늘(부분 집계일)을 명시적으로 제외해야 "완성된 3일"만 본다.
+    # 3일 창 + 단순 정렬 [-3:]이면 잡 실행 시각(오늘 00:25) 이후 발생한 소량 이벤트가
+    # 오늘 키를 만들어 [day-3, day-2, today_partial]을 골라버리고, today_partial은
+    # 아직 25분치뿐이라 임계값 미달 — 직전 3일이 전부 충족해도 트리거가 하루 늦어짐
+    # (code-review 2026-07-19 발견).
+    window_start = (now - timedelta(days=4)).isoformat()
+
+    try:
+        rows = (
+            await _db(
+                supabase.table("system_alerts")
+                .select("source, created_at")
+                .in_("source", ["playwright_queue_timeout", "lock_contention"])
+                .gte("created_at", window_start)
+                .limit(5000)
+            )
+        ).data or []
+    except Exception as e:
+        _logger.debug(f"[backend_scaling_trigger] system_alerts 조회 실패(스킵): {e}")
+        rows = []
+
+    daily_counts: dict[str, dict[str, int]] = {}
+    for r in rows:
+        day = (r.get("created_at") or "")[:10]
+        if not day:
+            continue
+        d = daily_counts.setdefault(day, {"playwright_queue_timeout": 0, "lock_contention": 0})
+        src = r.get("source")
+        if src in d:
+            d[src] += 1
+
+    today_str = now.strftime("%Y-%m-%d")
+    days_sorted = sorted(d for d in daily_counts if d < today_str)[-3:]
+    playwright_trigger = len(days_sorted) >= 3 and all(
+        daily_counts[d]["playwright_queue_timeout"] >= 10 for d in days_sorted
+    )
+    lock_trigger = len(days_sorted) >= 3 and all(
+        daily_counts[d]["lock_contention"] >= 20 for d in days_sorted
+    )
+
+    try:
+        _subs_res = await _db(
+            supabase.table("subscriptions").select("user_id").eq("status", "active")
+        )
+        sub_count = len({s["user_id"] for s in (_subs_res.data or [])})
+    except Exception as e:
+        _logger.debug(f"[backend_scaling_trigger] subscriptions 조회 실패(스킵): {e}")
+        sub_count = 0
+
+    subscriber_trigger = sub_count >= 50
+
+    if not (playwright_trigger or lock_trigger or subscriber_trigger):
+        return
+
+    try:
+        recent_alert = (
+            await _db(
+                supabase.table("system_alerts")
+                .select("id")
+                .ilike("subject", "%워커 확장 트리거%")
+                .gte("created_at", (now - timedelta(days=7)).isoformat())
+                .limit(1)
+            )
+        ).data or []
+    except Exception as e:
+        _logger.debug(f"[backend_scaling_trigger] dedup 조회 실패: {e}")
+        recent_alert = []
+
+    if recent_alert:
+        _logger.info("[backend_scaling_trigger] 최근 7일 내 알림 기발송 — 재발송 스킵")
+        return
+
+    reasons = []
+    if playwright_trigger:
+        reasons.append(
+            f"Playwright 세마포어 대기열 초과 3일 연속 10건+ (최근일: "
+            f"{daily_counts[days_sorted[-1]]['playwright_queue_timeout']}건)"
+        )
+    if lock_trigger:
+        reasons.append(
+            f"9개 락 충돌(409) 3일 연속 20건+ (최근일: {daily_counts[days_sorted[-1]]['lock_contention']}건)"
+        )
+    if subscriber_trigger:
+        reasons.append(f"활성 구독자 {sub_count}명 — 50명 도달, 위 신호 적극 관찰 시작 시점")
+
+    _logger.warning(f"[backend_scaling_trigger] 트리거 조건 충족: {reasons}")
+    await send_operator_alert(
+        "백엔드 워커 확장 트리거 조건 충족",
+        "docs/backend_worker_scaling_trigger_v1.0.md의 트리거 조건이 충족됐습니다:\n\n"
+        + "\n".join(f"- {r}" for r in reasons)
+        + "\n\nRedis/DB 락 마이그레이션(uvicorn --workers 확장) 착수 여부를 검토하세요. "
+        "자동 조치는 하지 않습니다 — 과거 세마포어 관련 데드락 사고 재발 방지를 위해 "
+        "코드 확인 후 사람이 직접 결정할 것.",
+    )

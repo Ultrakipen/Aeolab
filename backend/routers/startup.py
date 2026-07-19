@@ -50,6 +50,12 @@ async def generate_startup_report(
 
     # 월별 한도 체크 — COUNT 스냅샷 후 Claude 호출까지 TOCTOU 레이스 방지 락(M2와 동일 패턴)
     if user_id in _startup_report_locks:
+        import asyncio
+        from utils.system_alert_log import record_alert
+        asyncio.create_task(record_alert(
+            "STARTUP_REPORT_GENERATION_IN_PROGRESS", "창업 시장 분석 생성 락 충돌(동시 요청)",
+            level="info", source="lock_contention",
+        ))
         raise HTTPException(
             status_code=409,
             detail={

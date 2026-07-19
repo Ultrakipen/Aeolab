@@ -72,6 +72,12 @@ async def generate_schema(req: SchemaRequest, user: dict = Depends(get_current_u
     # 동시 중복 생성 방지 — Claude Haiku 호출(소개글+블로그 3종, 수 초~10여 초 소요) 중
     # 같은 사용자의 중복 요청 차단(review-reply/crisis-reply와 동일 패턴)
     if user_id in _schema_generation_locks:
+        import asyncio
+        from utils.system_alert_log import record_alert
+        asyncio.create_task(record_alert(
+            "SCHEMA_GENERATION_IN_PROGRESS", "JSON-LD 생성 락 충돌(동시 요청)",
+            level="info", source="lock_contention",
+        ))
         raise HTTPException(
             status_code=409,
             detail={

@@ -866,6 +866,11 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
     # 동시 중복 생성 방지 — COUNT 체크~insert 사이 TOCTOU 레이스 방지
     # (intro-generate/global-ai-intro-generate/talktalk-faq-generate 공유 락)
     if user_id in _intro_faq_generation_locks:
+        from utils.system_alert_log import record_alert
+        asyncio.create_task(record_alert(
+            "INTRO_GENERATION_IN_PROGRESS", "소개글·FAQ 생성 락 충돌(동시 요청)",
+            level="info", source="lock_contention",
+        ))
         raise HTTPException(
             status_code=409,
             detail={
@@ -1037,6 +1042,11 @@ async def generate_global_ai_intro_endpoint(
 
     # 동시 중복 생성 방지 — intro-generate와 동일한 공유 락(같은 월별 한도를 씀)
     if user_id in _intro_faq_generation_locks:
+        from utils.system_alert_log import record_alert
+        asyncio.create_task(record_alert(
+            "INTRO_GENERATION_IN_PROGRESS", "소개글·FAQ 생성 락 충돌(동시 요청)",
+            level="info", source="lock_contention",
+        ))
         raise HTTPException(
             status_code=409,
             detail={
@@ -1165,6 +1175,11 @@ async def generate_talktalk_faq(req: TalktalkFAQGenerateRequest, user=Depends(ge
 
     # 동시 중복 생성 방지 — intro-generate·global-ai-intro-generate와 동일한 공유 락
     if user_id in _intro_faq_generation_locks:
+        from utils.system_alert_log import record_alert
+        asyncio.create_task(record_alert(
+            "INTRO_GENERATION_IN_PROGRESS", "소개글·FAQ 생성 락 충돌(동시 요청)",
+            level="info", source="lock_contention",
+        ))
         raise HTTPException(
             status_code=409,
             detail={

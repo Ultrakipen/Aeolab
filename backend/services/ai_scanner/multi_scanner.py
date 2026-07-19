@@ -86,6 +86,11 @@ class MultiAIScanner:
             await asyncio.wait_for(PLAYWRIGHT_SEMAPHORE.acquire(), timeout=PLAYWRIGHT_QUEUE_TIMEOUT_SEC)
         except asyncio.TimeoutError:
             _logger.warning("[multi_scanner] Playwright 세마포어 대기열 초과(%.0fs) — 동시 요청 과다", PLAYWRIGHT_QUEUE_TIMEOUT_SEC)
+            from utils.system_alert_log import record_alert
+            asyncio.create_task(record_alert(
+                "PLAYWRIGHT_QUEUE_TIMEOUT", f"multi_scanner.py 대기열 {PLAYWRIGHT_QUEUE_TIMEOUT_SEC:.0f}초 초과",
+                level="info", source="playwright_queue_timeout",
+            ))
             raise asyncio.TimeoutError("PLAYWRIGHT_QUEUE_TIMEOUT")
         try:
             return await asyncio.wait_for(fn(*args), timeout=40.0)

@@ -109,6 +109,11 @@ async def generate_guide(
 
     user_id = current_user["id"]
     if user_id in _guide_generation_locks:
+        from utils.system_alert_log import record_alert
+        asyncio.create_task(record_alert(
+            "GUIDE_GENERATION_IN_PROGRESS", "가이드 생성 락 충돌(동시 요청)",
+            level="info", source="lock_contention",
+        ))
         raise HTTPException(
             status_code=409,
             detail={
@@ -256,6 +261,11 @@ async def generate_review_reply(
     # 3. 월별 한도 체크 — COUNT 스냅샷 후 Claude 호출까지 TOCTOU 레이스 방지 락(M2와 동일 패턴)
     user_id = current_user["id"]
     if user_id in _review_reply_locks:
+        from utils.system_alert_log import record_alert
+        asyncio.create_task(record_alert(
+            "REVIEW_REPLY_IN_PROGRESS", "리뷰 답변 생성 락 충돌(동시 요청)",
+            level="info", source="lock_contention",
+        ))
         raise HTTPException(
             status_code=409,
             detail={
@@ -602,6 +612,11 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
 
     # 월별 한도 체크 — COUNT 스냅샷 후 Claude 호출까지 TOCTOU 레이스 방지 락(M2와 동일 패턴)
     if x_user_id in _ad_defense_locks:
+        from utils.system_alert_log import record_alert
+        asyncio.create_task(record_alert(
+            "AD_DEFENSE_GENERATION_IN_PROGRESS", "AI 광고 대비 가이드 생성 락 충돌(동시 요청)",
+            level="info", source="lock_contention",
+        ))
         raise HTTPException(
             status_code=409,
             detail={
@@ -1181,6 +1196,11 @@ async def generate_crisis_reply_endpoint(
 
     # 월별 한도 체크 (2026-07-06 신설) — COUNT 스냅샷 후 Claude 호출까지 TOCTOU 레이스 방지 락(M2와 동일 패턴)
     if user_id in _crisis_reply_locks:
+        from utils.system_alert_log import record_alert
+        asyncio.create_task(record_alert(
+            "CRISIS_REPLY_IN_PROGRESS", "위기관리 가이드 생성 락 충돌(동시 요청)",
+            level="info", source="lock_contention",
+        ))
         raise HTTPException(
             status_code=409,
             detail={

@@ -341,6 +341,11 @@ async def analyze_blog_endpoint(
     # 0-1. 동시 중복 분석 방지 — 같은 사용자가 이전 요청 처리 중(최대 50초) 새 요청을 보내면
     # 월별 한도 COUNT 체크가 TOCTOU 레이스로 여러 번 통과할 수 있었음(guide.py M2와 동일 패턴)
     if user_id in _blog_analysis_locks:
+        from utils.system_alert_log import record_alert
+        asyncio.create_task(record_alert(
+            "BLOG_ANALYSIS_IN_PROGRESS", "블로그 분석 락 충돌(동시 요청)",
+            level="info", source="lock_contention",
+        ))
         raise HTTPException(
             status_code=409,
             detail={

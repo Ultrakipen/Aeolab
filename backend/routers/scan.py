@@ -1298,7 +1298,15 @@ async def trial_naver_briefing(req: NaverBriefingRequest, request: Request):
                 get_naver_visibility(req.business_name, vis_kw, req.region)
             )
             try:
-                await asyncio.wait_for(PLAYWRIGHT_SEMAPHORE.acquire(), timeout=PLAYWRIGHT_QUEUE_TIMEOUT_SEC)
+                try:
+                    await asyncio.wait_for(PLAYWRIGHT_SEMAPHORE.acquire(), timeout=PLAYWRIGHT_QUEUE_TIMEOUT_SEC)
+                except asyncio.TimeoutError:
+                    from utils.system_alert_log import record_alert
+                    asyncio.create_task(record_alert(
+                        "PLAYWRIGHT_QUEUE_TIMEOUT", f"scan.py naver_briefing 대기열 {PLAYWRIGHT_QUEUE_TIMEOUT_SEC:.0f}초 초과",
+                        level="info", source="playwright_queue_timeout",
+                    ))
+                    raise
                 try:
                     naver_result = await asyncio.wait_for(
                         NaverAIBriefingScanner().check_mention(

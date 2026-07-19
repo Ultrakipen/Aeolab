@@ -169,6 +169,12 @@ async def chat(
 
     # 월별 한도 체크 — COUNT 스냅샷 후 Claude 호출까지 TOCTOU 레이스 방지 락(M2와 동일 패턴)
     if user_id in _assistant_chat_locks:
+        import asyncio
+        from utils.system_alert_log import record_alert
+        asyncio.create_task(record_alert(
+            "ASSISTANT_CHAT_IN_PROGRESS", "AI 어시스턴트 채팅 락 충돌(동시 요청)",
+            level="info", source="lock_contention",
+        ))
         raise HTTPException(
             status_code=409,
             detail={
