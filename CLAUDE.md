@@ -733,6 +733,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 ### 미래 과제 (구독자 확보 후)
 - `smart_place_completeness` Playwright 완전 자동화 — 50명 이후. 조건 충족 자동 감지: `jobs.py:_check_data_wiring_readiness_job` (`[DATA-WIRING-READY-50]` WARNING, 매일 09:20 KST 자동 체크 중). DataLab 연동은 2026-07-05 완료
 - 경쟁사 keyword_gap 실시간 자동화 (`_enrich_competitor_excerpts` 잡 이미 구현됨)
+- 백엔드 `--workers 1` → Redis/DB 락 마이그레이션 — in-memory 락 9개(6파일)·Playwright 세마포어가 프로세스 간 미공유라 보류 중. 트리거 조건·현황 전체: `docs/backend_worker_scaling_trigger_v1.0.md` (2026-07-19)
 
 ### Google AI Overview 측정 현황 (2026-05-30 Serper.dev 활성)
 - **AI Overview 노출 측정**: `GOOGLE_SCANNER_BACKEND=serper` + `SERPER_API_KEY` 설정 완료. `captcha_detected=false`로 정상 측정 중
