@@ -339,11 +339,12 @@ class KakaoNotifier:
         my_score: float, comp_score: float, gap: float,
     ):
         """경쟁사 역전 알림 (템플릿 코드: AEOLAB_COMP_02)"""
+        gap_note = "근소한 차이로" if gap < 10 else "큰 격차로"
         message = (
             f"[AEOlab] {biz_name}\n\n"
             f"경쟁사 '{comp_name}'이(가) AI 검색에서 앞섰습니다!\n\n"
             f"내 등급: {_grade(my_score)}\n"
-            f"{comp_name}: {_grade(comp_score)} (차이: {int(gap)}점)\n\n"
+            f"{comp_name}: {_grade(comp_score)} ({gap_note} 앞서고 있어요)\n\n"
             f"지금 바로 개선 가이드를 확인하고 역전하세요."
         )
         await self._send_raw(phone, message, template_code="AEOLAB_COMP_02")
@@ -408,11 +409,20 @@ class KakaoNotifier:
             masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
             logger.warning(f"send_monthly_report skipped (KAKAO_APP_KEY 미설정): {masked}")
             return
-        change_sign = "+" if score_change >= 0 else ""
+        if score_change > 5:
+            trend = "뚜렷한 상승세"
+        elif score_change > 0:
+            trend = "소폭 상승"
+        elif score_change == 0:
+            trend = "변동 없음"
+        elif score_change > -5:
+            trend = "소폭 하락"
+        else:
+            trend = "하락 — 점검 필요"
         message = (
             f"[AEOlab] {month_str}월 성장 리포트\n"
             f"사업장: {biz_name}\n\n"
-            f"📊 AI 가시성 점수: {change_sign}{score_change:.1f}점\n"
+            f"📊 AI 가시성 변화: {trend}\n"
             f"🔍 스캔 횟수: {scan_count}회\n"
             f"💬 AI 인용: {citation_count}건\n\n"
             f"전체 리포트 보기 →\n"
@@ -538,8 +548,7 @@ class KakaoNotifier:
             params={
                 "#{주문번호}": str(order_id)[:20],
                 "#{사업장명}": business_name,
-                "#{점수전}": str(round(score_before, 1)),
-                "#{점수후}": str(round(score_after, 1)),
+                "#{등급변화}": _grade_change(score_before, score_after),
             },
             log_tag="delivery_rescan",
         )
@@ -620,15 +629,21 @@ class KakaoNotifier:
             return False
 
     async def send_growth_stage_upgrade(
-        self, phone: str, biz_name: str, prev_stage: str, curr_stage: str, track1_score: float
+        self, phone: str, biz_name: str, prev_stage: str, curr_stage: str, this_week_action: str = ""
     ):
-        """성장 단계 업그레이드 알림 — AEOLAB_SCORE_01 템플릿 재활용"""
+        """성장 단계 업그레이드 알림 — AEOLAB_SCORE_01 템플릿 재활용.
+
+        this_week_action: 이번 주 추천 액션(gap_analyzer._build_growth_stage 반환값) — 숫자 아님.
+        """
         stage_labels = {
             "survival": "생존기", "stable": "안정기",
             "growth": "성장기", "dominance": "지배기",
         }
         prev_label = stage_labels.get(prev_stage, prev_stage)
         curr_label = stage_labels.get(curr_stage, curr_stage)
+        change_note = f"↑ {prev_label} → {curr_label} 단계 상승!"
+        if this_week_action:
+            change_note += f" 이번 주 추천: {this_week_action}"
         await self._send(
             phone,
             "score_change",
@@ -636,9 +651,9 @@ class KakaoNotifier:
                 "#{사업장명}": biz_name,
                 "#{이전점수}": prev_label,
                 "#{현재점수}": curr_label,
-                "#{변화}": f"↑ {prev_label} → {curr_label} 단계 상승!",
+                "#{변화}": change_note,
                 "#{이전순위}": "-",
-                "#{현재순위}": str(int(track1_score)),
+                "#{현재순위}": "-",
             },
         )
 
