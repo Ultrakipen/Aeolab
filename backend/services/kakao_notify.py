@@ -1,6 +1,7 @@
 import httpx
 import os
 import logging
+from datetime import date
 
 logger = logging.getLogger("aeolab")
 
@@ -213,6 +214,7 @@ class KakaoNotifier:
                 "#{AI플랫폼}": platform,
                 "#{검색어}": query,
                 "#{인용내용}": excerpt[:50],
+                "#{확인일시}": date.today().strftime("%Y-%m-%d"),
             },
         )
 
@@ -224,6 +226,7 @@ class KakaoNotifier:
                 "#{사업장명}": biz_name,
                 "#{경쟁사명}": comp_name,
                 "#{순위변화}": str(rank_change),
+                "#{확인일시}": date.today().strftime("%Y-%m-%d"),
             },
         )
 
@@ -235,6 +238,7 @@ class KakaoNotifier:
             {
                 "#{사업장명}": biz_name,
                 "#{할일목록}": items_text,
+                "#{기준일}": date.today().strftime("%Y-%m-%d"),
             },
         )
 
