@@ -108,7 +108,9 @@ https://aeolab.co.kr/dashboard
 
 > 현재 코드는 구독 만료·결제 실패·서비스 정지·해지 완료·가격 인상 고지 등 **서로 다른 6종의 자유 텍스트**를 전부 `AEOLAB_NOTICE_01`이라는 하나의 코드로 보내고 있습니다(`kakao_notify.py:267~335`). 알림톡은 승인된 고정 문안 기반이라 이 방식은 정상 작동을 보장할 수 없어 목적별로 분리 신청합니다. 매출·법적 리스크(전자상거래법 사전고지 의무 등)와 직결돼 **최우선 신청 권장**.
 
-### 2-1. `AEOLAB_NOTICE_EXPIRE_01` — 구독 만료 예정 안내
+> **⚠️ 코드명 단축(2026-07-20):** 비즈센터 템플릿 코드는 **최대 20자**입니다(`AEOLAB_NOTICE_PAYFAIL_01` 24자 입력 시 20자에서 잘리는 것 실사용 중 확인). 아래 7개는 원래 `AEOLAB_NOTICE_XXX_01` 형태였으나 `NOTICE_`를 빼고 `AEOLAB_XXX_01`로 단축했습니다.
+
+### 2-1. `AEOLAB_EXPIRE_01` — 구독 만료 예정 안내
 
 - **본문:**
 ```
@@ -122,7 +124,7 @@ https://aeolab.co.kr/settings
 - **변수:** `#{플랜명}`(예: BASIC), `#{잔여일}`(예: 7)
 - **발송 함수:** `send_expire_warning()` (`kakao_notify.py:267`), 만료 D-7 스케줄러 발송
 
-### 2-2. `AEOLAB_NOTICE_PAYFAIL_01` — 자동결제 실패 안내
+### 2-2. `AEOLAB_PAYFAIL_01` — 자동결제 실패 안내
 
 - **본문:**
 ```
@@ -136,7 +138,7 @@ https://aeolab.co.kr/settings
 - **변수:** 없음(고정 문안)
 - **발송 함수:** `send_payment_failed()` (`kakao_notify.py:276`)
 
-### 2-3. `AEOLAB_NOTICE_SUSPEND_01` — 서비스 정지 안내
+### 2-3. `AEOLAB_SUSPEND_01` — 서비스 정지 안내
 
 - **본문:**
 ```
@@ -147,7 +149,7 @@ aeolab.co.kr 에서 결제를 완료하면 즉시 재개됩니다.
 - **변수:** 없음
 - **발송 함수:** `send_suspended()` (`kakao_notify.py:285`)
 
-### 2-4. `AEOLAB_NOTICE_RESUME_01` — 결제 재개(유예 중 재시도 성공) 안내
+### 2-4. `AEOLAB_RESUME_01` — 결제 재개(유예 중 재시도 성공) 안내
 
 - **본문:**
 ```
@@ -158,7 +160,7 @@ aeolab.co.kr 에서 결제를 완료하면 즉시 재개됩니다.
 - **변수:** 없음
 - **발송 함수:** `send_payment_recovered()` (`kakao_notify.py:294`)
 
-### 2-5. `AEOLAB_NOTICE_PRICEUP_01` — 정상가 전환 사전고지 (전자상거래법 대응)
+### 2-5. `AEOLAB_PRICEUP_01` — 정상가 전환 사전고지 (전자상거래법 대응)
 
 - **본문:**
 ```
@@ -170,7 +172,7 @@ aeolab.co.kr 에서 결제를 완료하면 즉시 재개됩니다.
 - **발송 함수:** `send_price_increase_notice()` (`kakao_notify.py:307`), 할인 종료 D-3
 - **비고:** 정기결제 대금 증액 임박 고지 의무(전자상거래법 시행령) 대응용 — 법적 리스크와 직결되므로 이 그룹 내에서도 우선순위 최상.
 
-### 2-6. `AEOLAB_NOTICE_CANCEL_01` — 구독 해지 완료(환불 있음)
+### 2-6. `AEOLAB_CANCEL_01` — 구독 해지 완료(환불 있음)
 
 - **본문:**
 ```
@@ -183,7 +185,7 @@ aeolab.co.kr 에서 결제를 완료하면 즉시 재개됩니다.
 - **변수:** `#{환불금액}`(예: 11,900원)
 - **발송 함수:** `send_subscription_cancelled(refunded=True)` (`kakao_notify.py:321`)
 
-### 2-7. `AEOLAB_NOTICE_CANCEL_02` — 구독 해지 완료(환불 없음)
+### 2-7. `AEOLAB_CANCEL_02` — 구독 해지 완료(환불 없음)
 
 - **본문:**
 ```
@@ -194,7 +196,7 @@ aeolab.co.kr 에서 결제를 완료하면 즉시 재개됩니다.
 - **변수:** 없음
 - **발송 함수:** `send_subscription_cancelled(refunded=False)` (`kakao_notify.py:321`)
 
-> **코드 반영 필요(승인 후):** `_send_raw()` 호출부 7곳(`kakao_notify.py:267~335`)의 `template_code="AEOLAB_NOTICE_01"`을 각각 위 코드명으로 교체.
+> **코드 반영 필요(승인 후):** `_send_raw()` 호출부 7곳(`kakao_notify.py:267~335`)의 `template_code="AEOLAB_NOTICE_01"`을 각각 `AEOLAB_EXPIRE_01`/`AEOLAB_PAYFAIL_01`/`AEOLAB_SUSPEND_01`/`AEOLAB_RESUME_01`/`AEOLAB_PRICEUP_01`/`AEOLAB_CANCEL_01`/`AEOLAB_CANCEL_02`로 교체.
 
 ---
 
