@@ -1,7 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { SiteFooter } from "@/components/common/SiteFooter"
-import { AuthNavControl } from "@/components/common/AuthNavControl"
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
 import { PLAN_PRICES } from "@/lib/plans"
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export default function HowItWorksPage() {
           <div className="flex items-center gap-3 md:gap-4">
             <Link href="/faq" className="hidden md:block text-sm text-gray-600 hover:text-gray-900">FAQ</Link>
             <Link href="/pricing" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">요금제</Link>
-            <AuthNavControl />
+            <AuthNavControlClient />
             <Link href="/trial" className="bg-blue-600 text-white text-sm md:text-base px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
               무료 진단
             </Link>

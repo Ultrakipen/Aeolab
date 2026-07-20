@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
-import { AuthNavControl } from "@/components/common/AuthNavControl";
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { PayButton } from "./PayButton";
 import { BizContactButton } from "./BizContactButton";
 import PlanRecommender from "./PlanRecommender";
@@ -28,7 +28,7 @@ export default function PricingPage() {
             <Link href="/how-it-works" className="hidden lg:block text-sm text-gray-600 hover:text-gray-900 whitespace-nowrap">서비스 안내</Link>
             <Link href="/faq" className="hidden md:block text-sm text-gray-600 hover:text-gray-900">FAQ</Link>
             <Link href="/demo" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">미리보기</Link>
-            <AuthNavControl />
+            <AuthNavControlClient />
             <Link href="/trial" className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
               무료 체험
             </Link>

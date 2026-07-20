@@ -13,8 +13,7 @@ import AgencyServiceSection from "@/components/landing/AgencyServiceSection";
 import InlineKeywordWidget from "@/components/landing/InlineKeywordWidget";
 import { HowAeolabIntegrated } from "@/components/landing/HowAeolabIntegrated";
 import { MobileAccordion } from "@/components/landing/MobileAccordion";
-import { createClient } from "@/lib/supabase/server";
-import { LandingLogout } from "./LandingLogout";
+import { LandingHeaderNav } from "./LandingHeaderNav";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import LandingScrollAnimation from "@/components/landing/LandingScrollAnimation";
 import HeaderHelpSearch from "@/components/landing/HeaderHelpSearch";
@@ -22,9 +21,7 @@ import HelpFAQFloat from "@/components/landing/HelpFAQFloat";
 
 const FLOAT_SHADOW = "var(--aeo-shadow-float)";
 
-export default async function LandingPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export default function LandingPage() {
 
   return (
     <main className="min-h-screen" style={{ background: "#FFFFFF" }}>
@@ -89,35 +86,7 @@ export default async function LandingPage() {
             <div className="hidden lg:flex items-center ml-2">
               <HeaderHelpSearch />
             </div>
-            {user ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
-                  style={{ color: "#475569" }}
-                >
-                  대시보드
-                </Link>
-                <LandingLogout email={user.email ?? ""} />
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="hidden sm:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
-                  style={{ color: "#475569" }}
-                >
-                  로그인
-                </Link>
-                <Link
-                  href="/trial"
-                  className="ml-1.5 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors hover:bg-[#1D4ED8] whitespace-nowrap"
-                  style={{ background: "#2563EB" }}
-                >
-                  무료 진단
-                </Link>
-              </>
-            )}
+            <LandingHeaderNav />
           </nav>
         </div>
       </header>

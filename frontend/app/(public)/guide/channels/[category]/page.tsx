@@ -2,7 +2,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { SiteFooter } from "@/components/common/SiteFooter"
-import { AuthNavControl } from "@/components/common/AuthNavControl"
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
 import {
   CHANNEL_GUIDE_MAP,
   CHANNEL_GUIDE,
@@ -108,7 +108,7 @@ export default async function ChannelGuidePage({
             <Link href="/trial" className="text-gray-600 hover:text-blue-600">
               무료 진단
             </Link>
-            <AuthNavControl />
+            <AuthNavControlClient />
             <Link
               href="/trial"
               className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"

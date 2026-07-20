@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SiteFooter } from "@/components/common/SiteFooter";
-import { AuthNavControl } from "@/components/common/AuthNavControl";
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 
 export const metadata: Metadata = {
   title: "점수 계산 방식 | AEOlab",
@@ -29,7 +29,7 @@ export default function ScoreGuidePage() {
             전체 동작 원리 매뉴얼 →
           </Link>
           <div className="flex items-center gap-3 ml-auto">
-            <AuthNavControl />
+            <AuthNavControlClient />
             <Link
               href="/trial"
               className="bg-blue-600 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"

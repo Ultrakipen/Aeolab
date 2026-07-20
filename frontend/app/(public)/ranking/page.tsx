@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BarChart2 } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
-import { AuthNavControl } from "@/components/common/AuthNavControl";
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import RankingClient from "./RankingClient";
 
 export const metadata: Metadata = {
@@ -36,7 +36,7 @@ export default function RankingPage() {
             >
               무료 체험
             </Link>
-            <AuthNavControl />
+            <AuthNavControlClient />
           </div>
         </div>
       </header>
