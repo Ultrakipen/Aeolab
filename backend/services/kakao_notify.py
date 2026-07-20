@@ -385,7 +385,7 @@ class KakaoNotifier:
         await self._send_raw(phone, message, template_code="AEOLAB_NOTICE_01")
 
     async def send_low_rating_alert(
-        self, phone: str, biz_name: str, rating: int, review_excerpt: str
+        self, phone: str, biz_name: str, rating: int, review_excerpt: str, review_url: str = ""
     ):
         """별점 2점 이하 리뷰 긴급 알림 (템플릿 코드: AEOLAB_ALERT_01)"""
         app_key = os.getenv("KAKAO_APP_KEY", "")
@@ -394,12 +394,13 @@ class KakaoNotifier:
             logger.warning(f"send_low_rating_alert skipped (KAKAO_APP_KEY 미설정): {masked}")
             return
         excerpt_short = review_excerpt[:50] if review_excerpt else "(내용 없음)"
+        link = review_url or "https://smartplace.naver.com"
         message = (
             f"[AEOlab] {biz_name}\n\n"
             f"별점 {rating}점 리뷰가 등록됐습니다.\n\n"
             f"내용: {excerpt_short}\n\n"
             f"빠른 답변으로 신뢰를 지키세요.\n"
-            f"스마트플레이스에서 답변하기 →"
+            f"스마트플레이스에서 답변하기 → {link}"
         )
         await self._send_raw(phone, message, template_code="AEOLAB_ALERT_01")
 

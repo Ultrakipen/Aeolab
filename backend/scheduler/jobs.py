@@ -2822,6 +2822,7 @@ async def check_low_rating_reviews():
                         biz_name=biz["name"],
                         rating=rating,
                         review_excerpt=excerpt,
+                        review_url=f"https://smartplace.naver.com/places/{naver_place_id}/review",
                     )
 
                     # 발송 이력 저장
