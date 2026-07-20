@@ -6,7 +6,7 @@ import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { trialScan, searchTrialBusiness, ApiError } from "@/lib/api";
-import { mapNaverCategory } from "@/lib/categories";
+import { mapNaverCategory, FLAT_CATEGORY_MAP } from "@/lib/categories";
 import { getBriefingEligibility } from "@/lib/userGroup";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import { getSafeSession } from "@/lib/supabase/client";
@@ -247,13 +247,17 @@ export default function TrialPage() {
 
     // naver_place_id 있으면: 이름/지역 채우고 info 단계로 바로 이동
     if (paramPlaceId && paramName) {
+      const effectiveCategory = paramCategory || "restaurant"; // 기본값
       setForm((prev) => ({
         ...prev,
         business_name: paramName,
         ...(paramRegion ? { region: paramRegion } : {}),
       }));
-      if (!paramCategory) setSelectedCategory("restaurant"); // 기본값
-      else setSelectedCategory(paramCategory);
+      setSelectedCategory(effectiveCategory);
+      // "서비스(태그)" 단계를 건너뛰므로 primaryKeyword가 비어 있으면 분석 기준
+      // 키워드 입력창이 placeholder만 채워진 채(실제 값은 빈 문자열) 제출 검증에
+      // 걸린다 — 업종 한글명으로 최소 기본값을 채워둔다 (2026-07-20 발견 버그 수정).
+      setPrimaryKeyword(FLAT_CATEGORY_MAP[effectiveCategory]?.label || effectiveCategory);
       setStep("info");
       return;
     }
@@ -266,6 +270,7 @@ export default function TrialPage() {
           business_name: paramName,
           ...(paramRegion ? { region: paramRegion } : {}),
         }));
+        setPrimaryKeyword(FLAT_CATEGORY_MAP[paramCategory]?.label || paramCategory);
         setStep("info");
       } else {
         setStep("tags");
