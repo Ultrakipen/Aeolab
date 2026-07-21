@@ -16,6 +16,15 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isFirstTime, setIsFirstTime] = useState<boolean | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // 이미 로그인한 사용자에게는 "회원가입" 문구 대신 결제 지향 문구를 보여줌
+  useEffect(() => {
+    (async () => {
+      const session = await getSafeSession();
+      setIsLoggedIn(!!session?.user);
+    })();
+  }, []);
 
   // 모달 열릴 때 구독 이력 확인 — 없으면 첫 달 할인가 적용
   useEffect(() => {
@@ -37,6 +46,8 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
       setIsFirstTime(!data);
     })();
   }, [showConfirm, firstMonthAmount]);
+
+  const displayCta = isLoggedIn && ctaText === "1분 무료 회원가입" ? "결제하기" : (ctaText ?? "시작하기");
 
   const chargeAmount = firstMonthAmount && isFirstTime ? firstMonthAmount : amount;
 
@@ -88,7 +99,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
             : "bg-blue-600 text-white hover:bg-blue-700"
         }`}
       >
-        {ctaText ?? "시작하기"}
+        {displayCta}
       </button>
 
       {showConfirm && (
