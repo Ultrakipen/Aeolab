@@ -48,5 +48,5 @@ DISCOUNT_TO_REGULAR: dict[int, int] = {
 DELIVERY_PRICES: dict[str, int] = {
     "smartplace_register": 59000,
     "ai_optimization":     79000,
-    "comprehensive":       129000,
+    "comprehensive":       119000,
 }

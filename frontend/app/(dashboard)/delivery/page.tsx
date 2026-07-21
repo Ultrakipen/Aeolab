@@ -114,8 +114,8 @@ const FALLBACK_PACKAGES: DeliveryPackage[] = [
     id: "comprehensive",
     type: "comprehensive",
     name: "03 종합 풀패키지",
-    price: 129000,
-    description: "등록+최적화+코칭+30일 재진단 — 개별 구매 시 138,000원 → 129,000원",
+    price: 119000,
+    description: "등록+최적화+코칭+30일 재진단 — 개별 구매 시 138,000원 → 119,000원",
     work_hours: "11.2h 작업",
     features: [
       "01 등록 대행 전체 포함",
@@ -127,16 +127,15 @@ const FALLBACK_PACKAGES: DeliveryPackage[] = [
 
 export default async function DeliveryPage() {
   const supabase = await createClient();
-  let user = null;
-  try {
-    const { data, error } = await supabase.auth.getUser();
-    if (!error && data.user) user = data.user;
-  } catch {}
-  if (!user) redirect("/login");
+  // getUser(인증 검증)와 getSession(토큰 추출 전용)은 서로 독립적이므로 병렬 실행
+  const [userRes, sessionRes] = await Promise.all([
+    supabase.auth.getUser().catch(() => ({ data: { user: null }, error: null })),
+    supabase.auth.getSession().catch(() => ({ data: { session: null } })),
+  ]);
+  const user = userRes.data.user;
+  if (!user || userRes.error) redirect("/login");
 
-  // 토큰 추출 전용 — 인증 검증은 위 getUser()로 완료됨
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData.session?.access_token ?? "";
+  const token = sessionRes.data.session?.access_token ?? "";
 
   const [packages, orders] = await Promise.all([
     fetchPackages(token),

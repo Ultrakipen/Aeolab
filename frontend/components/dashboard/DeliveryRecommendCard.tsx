@@ -47,7 +47,7 @@ function getRecommendedPackage(score: number, isSmartPlace: boolean): PackageInf
   return {
     number: "03",
     name: "종합 풀패키지",
-    price: 129000,
+    price: 119000,
     packageType: "comprehensive",
     reason: "한 번에 완성도 높여 경쟁사와 격차를 벌리세요",
     accent: "border-purple-200",

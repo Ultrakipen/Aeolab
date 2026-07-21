@@ -29,8 +29,8 @@ const PACKAGES = [
   {
     type: "comprehensive",
     name: "03 종합 풀패키지",
-    price: 129000,
-    description: "등록+최적화+코칭+30일 재진단 (개별 구매 시 138,000원 → 129,000원)",
+    price: 119000,
+    description: "등록+최적화+코칭+30일 재진단 (개별 구매 시 138,000원 → 119,000원)",
   },
 ];
 

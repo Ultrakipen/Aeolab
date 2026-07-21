@@ -264,6 +264,14 @@ def start_scheduler():
         id="delivery_auto_refund", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
+    # 대행 서비스 — 진행중 14일 경과+납품물 없음 운영자 알림 (매일 12:30 KST = UTC 03:30,
+    # 2026-07-21 발견: delivery_auto_refund_job은 status='paid'만 감시해 in_progress 전환 후
+    # 방치된 주문은 안전망에서 영구 제외됨 — 자동환불 대신 운영자 알림으로 보완)
+    scheduler.add_job(
+        delivery_stalled_in_progress_alert_job, "cron", hour=3, minute=30,
+        id="delivery_stalled_in_progress_alert", replace_existing=True,
+        max_instances=1, misfire_grace_time=600,
+    )
     # v5.8 대행 서비스 — 종합 풀패키지 완료 30일 후 자동 재스캔 (매일 11:00 KST = UTC 02:00)
     scheduler.add_job(
         delivery_30day_rescan_job, "cron", hour=2, minute=0,
@@ -5562,6 +5570,64 @@ async def delivery_auto_refund_job():
 
     except Exception as e:
         logger.warning(f"[delivery_auto_refund_job] 잡 실패: {e}")
+
+
+async def delivery_stalled_in_progress_alert_job():
+    """진행중(in_progress/rework) 14일 경과 + 납품물 없음 주문 — 운영자 알림 전용 (매일 12:30 KST).
+
+    delivery_auto_refund_job은 status='paid'(작업 미착수)만 감시한다. 관리자가 in_progress로
+    전환한 뒤 materials_url을 계속 올리지 않으면 랜딩 페이지가 약속하는 "7일 내 자료 미제출 시
+    자동 환불" 안전망이 그 순간부터 영구히 빠진다(2026-07-21 코드 추적으로 발견 — 위 잡의 쿼리가
+    status='paid'만 대상으로 하고, delivery.py의 in_progress 전환 로직에는 materials_url 요구
+    조건이 없다).
+    자동환불이 아닌 운영자 알림만 발송한다 — in_progress 주문은 완료보고서(completion_report)가
+    /complete 엔드포인트로 별도 존재하고, 화상 코칭처럼 파일 전달 없이 완결되는 작업도 있어
+    materials_url 부재가 곧 "방치"를 의미하지 않을 수 있다(자동환불은 과할 위험).
+    중복 알림 방지: paid_at 기준 정확히 14일 경과 시점(1일 창)에만 발송 — new_user_day7_rescan_job과
+    동일한 날짜창 매칭 패턴(별도 멱등 컬럼 없이 1회만 매칭).
+    """
+    from db.supabase_client import get_client
+    from services.email_sender import send_operator_alert
+
+    try:
+        supabase = get_client()
+        target = datetime.now(timezone.utc) - timedelta(days=14)
+        window_start = (target - timedelta(days=1)).isoformat()
+        window_end = target.isoformat()
+
+        res = await _db(
+            supabase.table("delivery_orders")
+            .select("id, package_type, amount, paid_at, materials_url, status")
+            .in_("status", ["in_progress", "rework"])
+            .not_.is_("paid_at", "null")
+            .gte("paid_at", window_start)
+            .lt("paid_at", window_end)
+        )
+        rows = (res.data if res and res.data else []) or []
+        targets = [r for r in rows if not r.get("materials_url")]
+
+        if not targets:
+            logger.info("[delivery_stalled_in_progress_alert_job] 대상 없음")
+            return
+
+        for order in targets:
+            order_id = order["id"]
+            logger.warning(
+                f"[delivery_stalled_in_progress_alert_job] 진행중 14일 경과+납품물 없음: "
+                f"order_id={order_id}, package={order.get('package_type')}, paid_at={order.get('paid_at')}"
+            )
+            await send_operator_alert(
+                "대행 서비스 진행 지연 — 확인 필요 (14일 경과, 납품물 없음)",
+                f"order_id={order_id}\npackage_type={order.get('package_type')}\n"
+                f"paid_at={order.get('paid_at')}\n결제 후 14일이 지났지만 진행중 상태에서 "
+                f"납품 파일이 한 건도 등록되지 않았습니다. 작업 상태를 확인해 주세요.",
+            )
+            await send_slack_alert(
+                "대행 서비스 진행 지연", f"order_id={order_id}, 14일 경과, 납품물 없음", level="warning"
+            )
+
+    except Exception as e:
+        logger.warning(f"[delivery_stalled_in_progress_alert_job] 잡 실패: {e}")
 
 
 async def delivery_30day_rescan_job():
