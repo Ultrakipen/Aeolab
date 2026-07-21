@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { getSafeSession } from "@/lib/supabase/client";
 import { HeaderLogoutButton } from "@/components/common/HeaderLogoutButton";
@@ -9,11 +9,15 @@ import { HeaderLogoutButton } from "@/components/common/HeaderLogoutButton";
  * 랜딩 페이지 헤더 전용 인증 네비게이션
  * - 세션 확인 전: 무료 진단 버튼만 표시 (비로그인 기본값, SSR 캐시 가능)
  * - 비로그인: 로그인 링크 + 무료 진단 버튼
- * - 로그인: 대시보드 링크 + 로그아웃 버튼
+ * - 로그인(lg 미만): 대시보드 · 이메일(sm+) · 로그아웃 텍스트 나열
+ * - 로그인(lg 이상): 계정 아바타 드롭다운으로 통합 (넓은 화면에서 네비 항목이
+ *   많아져 산만해지는 것 방지 — 모바일/태블릿은 항목 수가 적어 그대로 유지)
  */
 export function LandingHeaderNav() {
   const [email, setEmail] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -26,6 +30,17 @@ export function LandingHeaderNav() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
 
   // 세션 확인 전: 무료 진단 버튼만 표시
   if (!checked) {
@@ -65,21 +80,61 @@ export function LandingHeaderNav() {
   // 로그인 상태
   return (
     <>
-      <Link
-        href="/dashboard"
-        className="text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
-        style={{ color: "#475569" }}
-      >
-        대시보드
-      </Link>
-      <Link
-        href="/settings"
-        title={email}
-        className="hidden sm:block text-sm text-gray-600 hover:text-blue-600 transition-colors whitespace-nowrap max-w-[220px] truncate mx-3"
-      >
-        {email}
-      </Link>
-      <HeaderLogoutButton />
+      {/* lg 미만: 텍스트 나열 (항목 적어 그대로 유지) */}
+      <div className="flex items-center gap-0.5 lg:hidden">
+        <Link
+          href="/dashboard"
+          className="text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
+          style={{ color: "#475569" }}
+        >
+          대시보드
+        </Link>
+        <Link
+          href="/settings"
+          title={email}
+          className="hidden sm:block text-sm text-gray-600 hover:text-blue-600 transition-colors whitespace-nowrap max-w-[220px] truncate mx-3"
+        >
+          {email}
+        </Link>
+        <HeaderLogoutButton />
+      </div>
+
+      {/* lg 이상: 아바타 드롭다운 */}
+      <div className="hidden lg:block relative ml-2" ref={menuRef}>
+        <button
+          type="button"
+          onClick={() => setMenuOpen((v) => !v)}
+          className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white transition-transform hover:scale-105"
+          style={{ background: "#2563EB" }}
+          aria-haspopup="true"
+          aria-expanded={menuOpen}
+          aria-label="계정 메뉴"
+        >
+          {email.charAt(0).toUpperCase()}
+        </button>
+        {menuOpen && (
+          <div className="absolute right-0 top-full mt-2 w-56 rounded-lg border border-slate-200 bg-white shadow-lg py-1 z-50">
+            <Link
+              href="/settings"
+              title={email}
+              onClick={() => setMenuOpen(false)}
+              className="block px-3 py-2 text-sm text-gray-500 truncate border-b border-slate-100 hover:text-blue-600"
+            >
+              {email}
+            </Link>
+            <Link
+              href="/dashboard"
+              onClick={() => setMenuOpen(false)}
+              className="block px-3 py-2 text-sm text-gray-700 hover:bg-slate-50"
+            >
+              대시보드
+            </Link>
+            <div className="px-1 py-1">
+              <HeaderLogoutButton className="w-full text-left px-2 py-1.5 text-sm text-gray-700 hover:bg-slate-50 rounded transition-colors" />
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 }

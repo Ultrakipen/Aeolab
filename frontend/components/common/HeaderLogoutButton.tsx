@@ -3,7 +3,11 @@
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
-export function HeaderLogoutButton() {
+export function HeaderLogoutButton({
+  className = "text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap",
+}: {
+  className?: string;
+}) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -14,10 +18,7 @@ export function HeaderLogoutButton() {
   };
 
   return (
-    <button
-      onClick={handleLogout}
-      className="text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap"
-    >
+    <button onClick={handleLogout} className={className}>
       로그아웃
     </button>
   );
