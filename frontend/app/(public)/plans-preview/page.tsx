@@ -225,7 +225,7 @@ function LockedCard({ title, planLabel, children }: {
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/75 rounded-xl">
           <span className="text-2xl">🔒</span>
           <span className="text-sm font-bold text-gray-700">{planLabel}</span>
-          <Link href="/signup" className="text-sm text-indigo-600 font-semibold hover:underline">
+          <Link href="/pricing" className="text-sm text-indigo-600 font-semibold hover:underline">
             구독하면 바로 확인 →
           </Link>
         </div>
@@ -451,7 +451,7 @@ function BasicContent({ d }: { d: MockData }) {
           </p>
         </div>
 
-        <Link href="/signup" className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors">
+        <Link href="/pricing#plan-Basic" className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors">
           가이드에서 해결 방법 보기 →
         </Link>
       </div>
@@ -535,7 +535,7 @@ function BasicContent({ d }: { d: MockData }) {
       <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-5 md:p-8 text-center">
         <p className="text-lg md:text-xl font-black text-indigo-900 mb-1">Basic으로 시작하기 — 11,900원/월</p>
         <p className="text-sm text-indigo-600 mb-4">&quot;AI 분석 한 번에 커피값입니다&quot;</p>
-        <Link href="/signup?plan=basic" className="inline-block bg-indigo-600 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors">
+        <Link href="/pricing#plan-Basic" className="inline-block bg-indigo-600 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors">
           지금 구독하기 →
         </Link>
         <p className="text-sm text-gray-500 mt-3">30일 무료 체험 없이 바로 시작 · 7일 이내 미사용 시 100% 환불</p>
@@ -644,7 +644,7 @@ function ProContent({ d }: { d: MockData }) {
       <div className="bg-indigo-600 rounded-xl p-5 md:p-8 text-center text-white">
         <p className="text-lg md:text-xl font-black mb-1">Pro로 업그레이드 — 23,900원/월</p>
         <p className="text-sm text-indigo-200 mb-4">Basic보다 월 12,000원 더. 조건 검색 분석 1개로 새 손님 1명 더 오면 본전입니다</p>
-        <Link href="/signup?plan=pro" className="inline-block bg-white text-indigo-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-50 transition-colors">
+        <Link href="/pricing#plan-Pro" className="inline-block bg-white text-indigo-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-50 transition-colors">
           지금 구독하기 →
         </Link>
       </div>
@@ -798,7 +798,7 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
       <div className="bg-emerald-600 rounded-xl p-5 md:p-8 text-center text-white">
         <p className="text-lg md:text-xl font-black mb-1">창업 준비 중이라면 창업패키지 — 12,900원/월</p>
         <p className="text-sm text-emerald-200 mb-4">창업 컨설팅 한 번 비용으로 6개월 AI 데이터 확보</p>
-        <Link href="/signup?plan=startup" className="inline-block bg-white text-emerald-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-emerald-50 transition-colors">
+        <Link href="/pricing#plan-창업패키지" className="inline-block bg-white text-emerald-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-emerald-50 transition-colors">
           지금 구독하기 →
         </Link>
       </div>
@@ -916,17 +916,17 @@ export default function PlansPreviewPage() {
 
         {/* 하단 CTA 3개 */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Link href="/signup?plan=basic" className="block bg-white border-2 border-indigo-200 text-indigo-700 font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-indigo-50 transition-colors">
+          <Link href="/pricing#plan-Basic" className="block bg-white border-2 border-indigo-200 text-indigo-700 font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-indigo-50 transition-colors">
             <div className="text-base font-black">Basic</div>
             <div className="text-indigo-600 font-black">11,900원/월</div>
             <div className="text-sm text-gray-500 mt-1">지금 시작하기 →</div>
           </Link>
-          <Link href="/signup?plan=pro" className="block bg-indigo-600 text-white font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-md">
+          <Link href="/pricing#plan-Pro" className="block bg-indigo-600 text-white font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-md">
             <div className="text-base font-black">Pro</div>
             <div className="font-black">23,900원/월</div>
             <div className="text-sm text-indigo-200 mt-1">지금 시작하기 →</div>
           </Link>
-          <Link href="/signup?plan=startup" className="block bg-white border-2 border-emerald-200 text-emerald-700 font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-emerald-50 transition-colors">
+          <Link href="/pricing#plan-창업패키지" className="block bg-white border-2 border-emerald-200 text-emerald-700 font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-emerald-50 transition-colors">
             <div className="text-base font-black">창업패키지</div>
             <div className="text-emerald-600 font-black">12,900원/월</div>
             <div className="text-sm text-gray-500 mt-1">지금 시작하기 →</div>
