@@ -568,7 +568,7 @@ function FreeTab({
         <p className="text-base font-bold">전체 분석 + 매주 자동 업데이트</p>
         <p className="text-sm opacity-90">월 {PLAN_PRICES.basic.toLocaleString()}원으로 네이버·ChatGPT·Google AI 자동 추적</p>
         <Link
-          href="/signup?plan=basic"
+          href="/pricing#plan-Basic"
           className="inline-flex items-center gap-1.5 mt-1 bg-white text-blue-600 text-sm font-bold rounded-lg px-5 py-2.5 hover:bg-blue-50 transition-colors"
         >
           Basic 시작하기 <ChevronRight className="w-4 h-4" />
@@ -925,10 +925,10 @@ function BasicTab({
           <p className="text-base font-bold">Basic 시작하기</p>
           <p className="text-sm opacity-90">월 {PLAN_PRICES.basic.toLocaleString()}원 · 7일 이내 미사용 시 100% 환불</p>
           <Link
-            href="/signup?plan=basic"
+            href="/pricing#plan-Basic"
             className="inline-flex items-center gap-1.5 mt-1 bg-white text-blue-600 text-sm font-bold rounded-lg px-5 py-2.5 hover:bg-blue-50 transition-colors"
           >
-            1분 무료 회원가입 <ChevronRight className="w-4 h-4" />
+            결제하고 시작하기 <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
       )}
@@ -1134,7 +1134,7 @@ function StartupTab({
           <p className="text-base font-bold">창업패키지 시작하기</p>
           <p className="text-sm opacity-90">월 {PLAN_PRICES.startup.toLocaleString()}원 · 창업 준비부터 오픈 후까지</p>
           <Link
-            href="/signup?plan=startup"
+            href="/pricing#plan-창업패키지"
             className="inline-flex items-center gap-1.5 mt-1 bg-white text-orange-600 text-sm font-bold rounded-lg px-5 py-2.5 hover:bg-orange-50 transition-colors"
           >
             시작하기 <ChevronRight className="w-4 h-4" />
@@ -1451,7 +1451,7 @@ function ProTab({
             월 {PLAN_PRICES.pro.toLocaleString()}원 · 광고비 하루치로 한 달 AI 노출 전략
           </p>
           <Link
-            href="/signup?plan=pro"
+            href="/pricing#plan-Pro"
             className="inline-flex items-center gap-1.5 mt-1 bg-white text-indigo-600 text-sm font-bold rounded-lg px-5 py-2.5 hover:bg-indigo-50 transition-colors"
           >
             시작하기 <ChevronRight className="w-4 h-4" />
