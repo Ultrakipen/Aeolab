@@ -66,18 +66,18 @@ export function LandingHeaderNav() {
   return (
     <>
       <Link
-        href="/settings"
-        title={email}
-        className="hidden sm:block text-sm text-gray-600 hover:text-blue-600 transition-colors whitespace-nowrap max-w-[220px] truncate"
-      >
-        {email}
-      </Link>
-      <Link
         href="/dashboard"
         className="text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
         style={{ color: "#475569" }}
       >
         대시보드
+      </Link>
+      <Link
+        href="/settings"
+        title={email}
+        className="hidden sm:block text-sm text-gray-600 hover:text-blue-600 transition-colors whitespace-nowrap max-w-[220px] truncate mx-3"
+      >
+        {email}
       </Link>
       <HeaderLogoutButton />
     </>
