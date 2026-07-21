@@ -133,7 +133,7 @@ export default function PricingPage() {
 
         {/* ─── Biz 플랜 앵커 안내 ─── */}
         <div className="flex items-center justify-center gap-3 mb-6 -mt-4">
-          <span className="text-sm text-gray-500">여러 사업장·팀 계정이 필요하신가요?</span>
+          <span className="text-sm text-gray-500">여러 사업장이 필요하신가요?</span>
           <a href="#plan-Biz" className="text-sm font-semibold text-blue-600 hover:underline">
             Biz 플랜 보기 ↓
           </a>
@@ -246,8 +246,6 @@ export default function PricingPage() {
                 ["PDF 리포트", "—", "—", "✓", "✓"],
                 ["광고 대응 가이드", "—", "—", "✓", "✓"],
                 ["창업 시장 분석", "✓", "—", "—", "✓"],
-                ["팀 계정", "—", "—", "—", "5명"],
-                ["API 키 발급", "—", "—", "—", "✓"],
                 ["사업장 수", "1개", "1개", "2개", "5개"],
               ].map(([feature, ...vals]) => (
                 <tr key={feature as string} className="hover:bg-gray-50">

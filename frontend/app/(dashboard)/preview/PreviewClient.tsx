@@ -16,7 +16,6 @@ import {
   BarChart3,
   FileText,
   Users,
-  Key,
   Zap,
   Star,
   MapPin,
@@ -907,8 +906,6 @@ function BasicTab({
           <FeatureRow label="수동 스캔" available={true} note="하루 2회" />
           <FeatureRow label="CSV 내보내기" available={true} />
           <FeatureRow label="PDF 리포트" available={false} />
-          <FeatureRow label="팀 계정" available={false} />
-          <FeatureRow label="API 키" available={false} />
         </div>
       </div>
 
@@ -1113,8 +1110,6 @@ function StartupTab({
           <FeatureRow label="수동 스캔" available={true} note="하루 3회" />
           <FeatureRow label="PDF 리포트" available={false} />
           <FeatureRow label="ChatGPT 광고 대응 가이드" available={false} />
-          <FeatureRow label="팀 계정" available={false} />
-          <FeatureRow label="API 키" available={false} />
         </div>
       </div>
 
@@ -1428,8 +1423,6 @@ function ProTab({
           <FeatureRow label="ChatGPT 광고 대응 가이드" available={true} />
           <FeatureRow label="90일 히스토리 + Before/After 카드" available={true} />
           <FeatureRow label="수동 스캔" available={true} note="하루 5회" />
-          <FeatureRow label="팀 계정" available={false} />
-          <FeatureRow label="API 키" available={false} />
         </div>
       </div>
 
@@ -1583,49 +1576,6 @@ function BizTab({
         <p className="text-sm text-gray-500 mt-2">Biz 플랜 전용 · 무제한 제공</p>
       </div>
 
-      {/* ② 결과 미리보기 — 팀 계정 */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4">
-        <SectionTitle
-          icon={<Users className="w-4 h-4 text-emerald-500" />}
-          title="팀 계정 5명 관리"
-          subtitle="직원·대행사와 함께 관리 및 공유"
-        />
-        <div className="grid grid-cols-3 gap-2">
-          {["관리자", "직원 1", "직원 2"].map((role, i) => (
-            <div
-              key={role}
-              className="bg-emerald-50 rounded-lg p-3 text-center border border-emerald-100"
-            >
-              <div className="w-8 h-8 bg-emerald-200 rounded-full flex items-center justify-center mx-auto mb-1.5">
-                <Users className="w-4 h-4 text-emerald-600" />
-              </div>
-              <p className="text-sm font-semibold text-emerald-700">{role}</p>
-              <p className="text-sm text-emerald-500 mt-0.5">
-                {i === 0 ? "전체 관리" : "조회만"}
-              </p>
-            </div>
-          ))}
-        </div>
-        <p className="text-sm text-gray-500 mt-2">+ 최대 5명까지 초대 가능</p>
-      </div>
-
-      {/* ② 결과 미리보기 — API 키 */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4">
-        <SectionTitle
-          icon={<Key className="w-4 h-4 text-emerald-500" />}
-          title="Public API 키 발급"
-          subtitle="외부 서비스·자체 시스템 연동"
-        />
-        <div className="bg-gray-900 rounded-lg p-3 font-mono">
-          <p className="text-sm text-green-400">// API 키 예시</p>
-          <p className="text-sm text-gray-300 mt-1">
-            <span className="text-blue-300">Authorization</span>:{" "}
-            <span className="text-yellow-300">Bearer ael_••••••••••••••••</span>
-          </p>
-        </div>
-        <p className="text-sm text-gray-500 mt-2">최대 5개 발급 · SHA256 해시 저장</p>
-      </div>
-
       {/* ② 결과 미리보기 — 무제한 항목 강조 */}
       <div className="bg-white border border-gray-200 rounded-xl p-4">
         <SectionTitle
@@ -1662,10 +1612,8 @@ function BizTab({
           <FeatureRow label="경쟁사 무제한" available={true} />
           <FeatureRow label="리뷰 답변 초안 무제한" available={true} />
           <FeatureRow label="사업장 5개 × AI 4채널 매일 자동 스캔" available={true} />
-          <FeatureRow label="팀 계정 5명" available={true} />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 20회" />
           <FeatureRow label="창업·신규 지점 시장 분석 리포트" available={true} />
-          <FeatureRow label="Public API 키 발급 (최대 5개)" available={true} />
           <FeatureRow label="히스토리 무제한 + 엑셀·PDF 무제한" available={true} />
           <FeatureRow label="ChatGPT 광고 대응 가이드" available={true} />
         </div>

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Crown, Zap, Users, Key, ChevronRight, Calendar, Clock } from "lucide-react";
+import { Crown, Zap, Calendar, Clock } from "lucide-react";
 import { SettingsClient } from "./SettingsClient";
 import { BusinessManager } from "./BusinessManager";
 import { AccountClient } from "./AccountClient";
@@ -366,7 +366,6 @@ export default async function SettingsPage({
                       ["카카오 알림톡",  "—",  "✓",       "✓",        "✓",       "✓"],
                       ["엑셀 내보내기",  "—",  "✓",       "✓",        "✓",       "✓"],
                       ["PDF 리포트",     "—",  "—",       "—",        "✓",       "✓"],
-                      ["팀 계정",        "—",  "—",       "—",        "—",       "5명"],
                     ] as [string, string, string, string, string, string][]).map(([feature, free, basic, startup, pro, biz]) => (
                       <tr key={feature} className="border-b border-gray-50 last:border-0">
                         <td className="py-2.5 pr-4 text-gray-700 font-medium text-sm">{feature}</td>
@@ -428,49 +427,6 @@ export default async function SettingsPage({
               <AccountClient currentEmail={user.email ?? ""} />
             </div>
           </section>
-
-          {/* ── 고급 설정 (Biz+) ── */}
-          {currentPlan === "biz" && isActive && (
-            <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-4 md:px-5 py-4 border-b border-gray-100">
-                <h2 className="text-base md:text-lg font-semibold text-gray-800">고급 설정</h2>
-              </div>
-              <div className="p-4 md:p-5">
-                <div className="space-y-1">
-                  <Link
-                    href="/settings/team"
-                    className="flex items-center justify-between px-4 py-3.5 rounded-xl hover:bg-gray-50 transition-colors group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
-                        <Users className="w-4 h-4 text-purple-500" strokeWidth={1.8} />
-                      </div>
-                      <div>
-                        <div className="text-base font-medium text-gray-800 group-hover:text-gray-900">팀 계정 관리</div>
-                        <div className="text-sm text-gray-500">최대 5명 초대 가능</div>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                  </Link>
-                  <Link
-                    href="/settings/api-keys"
-                    className="flex items-center justify-between px-4 py-3.5 rounded-xl hover:bg-gray-50 transition-colors group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
-                        <Key className="w-4 h-4 text-emerald-500" strokeWidth={1.8} />
-                      </div>
-                      <div>
-                        <div className="text-base font-medium text-gray-800 group-hover:text-gray-900">Public API 키 관리</div>
-                        <div className="text-sm text-gray-500">최대 5개 발급 가능</div>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                  </Link>
-                </div>
-              </div>
-            </section>
-          )}
 
       </div>
     </div>

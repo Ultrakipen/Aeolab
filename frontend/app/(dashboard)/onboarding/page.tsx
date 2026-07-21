@@ -420,7 +420,6 @@ export default function OnboardingPage() {
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 shrink-0" />사업장 5개 관리</li>
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 shrink-0" />경쟁사 무제한</li>
-                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 shrink-0" />팀 계정 5명</li>
               </ul>
               <button
                 onClick={() => handleGoToPricing("plan-Biz")}
