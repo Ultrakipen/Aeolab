@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { HeaderLogoutButton } from "@/components/common/HeaderLogoutButton";
 
 const NAV_ITEMS = [
+  { href: "/admin/growth-funnel", label: "성장 퍼널" },
   { href: "/admin/delivery", label: "대행 의뢰" },
   { href: "/admin/support", label: "Q&A 문의" },
   { href: "/admin/stories", label: "성공 사례" },

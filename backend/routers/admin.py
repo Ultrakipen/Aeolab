@@ -638,6 +638,62 @@ async def get_growth_funnel(weeks: int = Query(12, ge=1, le=52), _=Depends(verif
         "paid_conversions": len(payment_rows),
     }
 
+    # ── 대행 서비스 퍼널 (2026-07-21 추가) — 신청→결제→진행→완료→후기.
+    # "페이지 방문"·"신청 클릭"은 GA4 클라이언트 이벤트로만 확인 가능해 이 DB 기반
+    # 엔드포인트에는 포함하지 않는다(주문 생성 이후 단계만 신뢰 가능한 서버 기록).
+    delivery_rows = (await execute(
+        supabase.table("delivery_orders")
+        .select("created_at, paid_at, status, testimonial_submitted_at")
+        .gte("created_at", since)
+        .limit(5000)
+    )).data or []
+
+    delivery_created_by_week = _weekly_counts(delivery_rows, "created_at")
+    delivery_paid_by_week = _weekly_counts(
+        [r for r in delivery_rows if r.get("paid_at")], "paid_at"
+    )
+    delivery_weeks = sorted(set(delivery_created_by_week) | set(delivery_paid_by_week))
+    delivery_weekly = [
+        {
+            "week": wk,
+            "orders_created": delivery_created_by_week.get(wk, 0),
+            "paid": delivery_paid_by_week.get(wk, 0),
+        }
+        for wk in delivery_weeks
+    ]
+
+    delivery_total = len(delivery_rows)
+    delivery_paid = sum(1 for r in delivery_rows if r.get("paid_at"))
+    delivery_in_progress_or_later = sum(
+        1 for r in delivery_rows if r.get("status") in ("in_progress", "rework", "completed")
+    )
+    delivery_completed = sum(1 for r in delivery_rows if r.get("status") == "completed")
+    delivery_refunded = sum(1 for r in delivery_rows if r.get("status") == "refunded")
+    delivery_testimonials = sum(1 for r in delivery_rows if r.get("testimonial_submitted_at"))
+
+    delivery_funnel = {
+        "weekly": delivery_weekly,
+        "totals": {
+            "orders_created": delivery_total,
+            "paid": delivery_paid,
+            "in_progress_or_later": delivery_in_progress_or_later,
+            "completed": delivery_completed,
+            "refunded": delivery_refunded,
+            "testimonials": delivery_testimonials,
+        },
+        "created_to_paid_rate_pct": (
+            round(delivery_paid / delivery_total * 100, 1) if delivery_total else 0
+        ),
+        "paid_to_completed_rate_pct": (
+            round(delivery_completed / delivery_paid * 100, 1) if delivery_paid else 0
+        ),
+        "data_caveat": (
+            "주문 생성(신청) 이후 단계만 포함합니다 — 배달 페이지 방문·신청 버튼 클릭은 "
+            "GA4 클라이언트 이벤트로만 확인 가능해 이 표에는 없습니다. in_progress_or_later· "
+            "completed는 상태 전이 이력이 별도 기록되지 않아 현재 상태 스냅샷 기준입니다."
+        ),
+    }
+
     return {
         "weekly": weekly,
         "totals": totals,
@@ -650,6 +706,7 @@ async def get_growth_funnel(weeks: int = Query(12, ge=1, le=52), _=Depends(verif
             "auth.users↔payment_events 실제 매칭 기반(신뢰 가능), 나머지 비율은 "
             "상관관계 참고용입니다."
         ),
+        "delivery_funnel": delivery_funnel,
     }
 
 
