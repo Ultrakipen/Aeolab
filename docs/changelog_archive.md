@@ -534,3 +534,9 @@ CREATE INDEX IF NOT EXISTS idx_trial_scans_claimed
 
 ## 2026-07-08~09 — 루트 잔재 332개 제거 + 인용 링크 오류 수정 + git 이메일 정정
 > root-level `app/`·`components/`(332개, `frontend/` 구버전 중복, 2026-06-04 이후 미사용) 서버 전체 백업 후 로컬+서버 양쪽 git rm. 홈페이지·`how-it-works`의 "네이버 공식 발표 데이터" 인용 박스가 3개 통계를 무관한 기사 1개에 뭉뚱그려 인용하던 버그를 WebSearch 개별 재검증 후 통계별 출처로 분리. git commit author 이메일을 `hoozdev@gmail.com`으로 통일. git `4bc5b7e`~`bf2cf50`.
+
+## 2026-07-12 — 보안 M1~M5 + day-30 사전고지 + UptimeRobot/Cloudflare 인프라 수정
+> `security_audit_v1.0.md` MEDIUM 5건(admin broadcast owner-gate, 가이드 한도 TOCTOU 락, webhook/feedback rate limit, 관리자 로그 이메일 마스킹) 전부 수정·배포. 첫 달 할인 종료 D-3 카카오 사전고지 신설. UptimeRobot HEAD 체크가 FastAPI APIRoute HEAD 자동미지원으로 계속 405였던 것 발견·수정(`/health` HEAD 허용). nginx가 Cloudflare 실제 방문자 IP를 복원 안 해 IP기반 rate limit이 엣지 단위로만 작동하던 것 발견 → `cloudflare-realip.conf` 신설, 전후대조 검증 완료. 상세 `docs/legal_compliance_and_infra_resilience_audit_v1.0.md`. git `7df5e95`·`ded2528`.
+
+## 2026-07-13 — 경쟁사 키워드 노출 기능 실동작화
+> 경쟁사 관리 > 키워드 격차 분석의 "경쟁사 독점"/"경쟁사별" 탭이 항상 비활성이던 버그 근본원인 확인·수정 — 유일한 소스였던 Gemini LLM 추측(single_check_with_competitors)이 소상공인급 경쟁사엔 거의 항상 빈 문자열 반환하던 것을, 이미 크롤링만 하고 버리던 `/information`·`/menu` 탭 원문을 `competitors.place_intro_text`/`place_menu_sample`(신규 컬럼)에 보관해 1순위 소스로 전환(`gap_analyzer.py`, `competitor.py`). 라이브 실측: 5곳 중 4곳 원문 수집 성공, 키워드 재분류·출처 표시 확인.
