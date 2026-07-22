@@ -368,6 +368,7 @@ class KakaoNotifier:
         )
         message = (
             f"[AEOlab] {biz_name} AI 스캔 완료\n\n"
+            f"해당 메시지는 고객님께서 설정에서 켜신 스캔 완료 알림으로, AI 검색 노출 스캔이 완료될 경우 발송됩니다.\n\n"
             f"📊 AI 노출 등급: {curr_grade} {grade_change_note}\n"
             f"{change_emoji} 지난주 대비: {_grade_change(score - weekly_change, score)}\n"
             f"✅ {top_platform}에서 가장 많이 언급됨\n"
