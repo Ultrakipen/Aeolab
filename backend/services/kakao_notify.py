@@ -346,7 +346,8 @@ class KakaoNotifier:
         gap_note = "근소한 차이로" if gap < 10 else "큰 격차로"
         message = (
             f"[AEOlab] {biz_name}\n\n"
-            f"AEOlab에 사업장을 등록하고 AI 노출 모니터링을 받고 계신 고객님께 안내드립니다.\n"
+            f"해당 메시지는 고객님께서 가입하신 AEOlab AI 노출 모니터링의 경쟁사 비교 알림으로, "
+            f"경쟁사가 AI 검색 노출에서 앞선 것이 확인될 경우 발송됩니다.\n\n"
             f"경쟁사 '{comp_name}'이(가) AI 검색에서 앞섰습니다!\n\n"
             f"내 등급: {_grade(my_score)}\n"
             f"{comp_name}: {_grade(comp_score)} ({gap_note} 앞서고 있어요)\n\n"
