@@ -152,6 +152,7 @@ https://aeolab.co.kr/dashboard
 
 ### AEOLAB_COMP_02
 템플릿명: 경쟁사 역전 긴급 알림
+> ⚠️ 2026-07-22 반려 후 수정: CTA 문구에 링크 없던 결함 발견, 가이드 링크 추가함
 ```
 [AEOlab] #{사업장명}
 
@@ -161,6 +162,7 @@ https://aeolab.co.kr/dashboard
 #{경쟁사명}: #{경쟁사등급} (#{격차설명} 앞서고 있어요)
 
 지금 바로 개선 가이드를 확인하고 역전하세요.
+https://aeolab.co.kr/guide
 ```
 
 ### AEOLAB_ALERT_01

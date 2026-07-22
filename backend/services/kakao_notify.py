@@ -349,7 +349,8 @@ class KakaoNotifier:
             f"경쟁사 '{comp_name}'이(가) AI 검색에서 앞섰습니다!\n\n"
             f"내 등급: {_grade(my_score)}\n"
             f"{comp_name}: {_grade(comp_score)} ({gap_note} 앞서고 있어요)\n\n"
-            f"지금 바로 개선 가이드를 확인하고 역전하세요."
+            f"지금 바로 개선 가이드를 확인하고 역전하세요.\n"
+            f"https://aeolab.co.kr/guide"
         )
         await self._send_raw(phone, message, template_code="AEOLAB_COMP_02")
 
