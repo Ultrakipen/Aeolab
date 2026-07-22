@@ -30,8 +30,16 @@ export default async function HistoryPage() {
   const { data: { user }, error } = await supabase.auth.getUser()
   if (!user || error) redirect('/login')
 
-  // cookie 기반 활성 사업장 결정
-  const activeBizId = await getActiveBusinessId(user.id)
+  const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com').split(',').map((e) => e.trim().toLowerCase())
+  const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? '').toLowerCase())
+
+  // user.id만 있으면 되는 조회들 — activeBizId 결정, 플랜 조회, 세션 조회는
+  // 서로 독립적이므로 병렬 실행 (plan/session은 activeBizId·business와 무관)
+  const [activeBizId, plan, sessionRes] = await Promise.all([
+    getActiveBusinessId(user.id),
+    isAdmin ? Promise.resolve('biz') : resolveActivePlan(supabase, user.id),
+    supabase.auth.getSession().catch(() => ({ data: { session: null } })),
+  ])
 
   const { data: activeBizData } = activeBizId
     ? await supabase
@@ -56,11 +64,6 @@ export default async function HistoryPage() {
       ]}
     />
   )
-
-  // 관리자 우회 (competitors/page.tsx:78-80과 동일 패턴)
-  const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com').split(',').map((e) => e.trim().toLowerCase())
-  const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? '').toLowerCase())
-  const plan = isAdmin ? 'biz' : await resolveActivePlan(supabase, user.id)
 
   // Free 플랜 차단 (Basic 이상 필요)
   if ((PLAN_RANK[plan] ?? 0) < PLAN_RANK['basic']) {
@@ -88,11 +91,7 @@ export default async function HistoryPage() {
     )
   }
 
-  let accessToken = ''
-  try {
-    const { data: { session } } = await supabase.auth.getSession()
-    accessToken = session?.access_token ?? ''
-  } catch { /* accessToken = '' */ }
+  const accessToken = sessionRes.data.session?.access_token ?? ''
 
   // "30일 추세"는 최근 30개 행이 아니라 최근 30일(날짜) 기준이어야 함 — 스캔이
   // 뜸한 계정에서 limit(30)이 실제로는 몇 달 전 데이터까지 끌어와 actionLogs(날짜

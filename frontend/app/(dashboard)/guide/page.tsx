@@ -16,16 +16,27 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
 
   const params = await searchParams
   const selectedBizId = params.biz_id ?? null
-  // URL param이 없으면 cookie 기반 활성 사업장 결정
-  const activeBizId = selectedBizId ?? await getActiveBusinessId(user.id)
 
-  const { data: businesses } = await supabase
-    .from('businesses')
-    .select('id, name, category, region, keywords, is_smart_place, has_faq, has_intro, has_recent_post, review_count, naver_place_id, kakao_place_id, website_url, is_franchise, naver_intro_draft, talktalk_faq_draft')
-    .eq('user_id', user.id)
-    .eq('is_active', true)
-    .order('created_at', { ascending: true })
-    .limit(10)
+  // 관리자 이메일 → 개발 기간 biz 플랜 강제 부여 (layout.tsx와 동일 로직) — 아래
+  // Promise.all의 resolveActivePlan 분기에서 먼저 필요해 여기로 끌어올림
+  const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com')
+    .split(',').map(e => e.trim().toLowerCase())
+  const isAdminUser = ADMIN_EMAILS.includes((user.email ?? '').toLowerCase())
+
+  // user.id만 있으면 되는 조회들 — activeBizId 결정, businesses 목록, 플랜, 세션은
+  // 서로 독립적이므로 병렬 실행 (businesses는 user_id로만 필터링해 activeBizId와 무관)
+  const [activeBizId, { data: businesses }, currentPlan, sessionRes] = await Promise.all([
+    selectedBizId ? Promise.resolve(selectedBizId) : getActiveBusinessId(user.id),
+    supabase
+      .from('businesses')
+      .select('id, name, category, region, keywords, is_smart_place, has_faq, has_intro, has_recent_post, review_count, naver_place_id, kakao_place_id, website_url, is_franchise, naver_intro_draft, talktalk_faq_draft')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
+      .limit(10),
+    isAdminUser ? Promise.resolve('biz') : resolveActivePlan(supabase, user.id),
+    supabase.auth.getSession().catch(() => ({ data: { session: null } })),
+  ])
 
   const business = (activeBizId
     ? businesses?.find(b => b.id === activeBizId)
@@ -44,25 +55,48 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
     />
   )
 
-  // ⚠️ Bug Fix: title·growth_stage·created_at 컬럼은 guides 테이블에 존재하지 않음
-  // 존재하지 않는 컬럼 SELECT 시 PostgREST 오류 → data=null → "가이드 없음" 오표시 버그
-  const { data: guides, error: guidesError } = await supabase
-    .from('guides')
-    .select('id, business_id, context, next_month_goal, priority_json, tools_json, scan_id, summary, items_json, generated_at')
-    .eq('business_id', business.id)
-    .order('generated_at', { ascending: false })
-    .limit(1)
+  const GUIDE_LIMITS: Record<string, number> = {
+    free: 0, basic: 3, pro: 10, startup: 5, biz: 20, enterprise: 999,
+  }
+  const guideLimit = GUIDE_LIMITS[currentPlan] ?? 0
+
+  const monthStart = new Date()
+  monthStart.setDate(1)
+  monthStart.setHours(0, 0, 0, 0)
+
+  // business.id 확정 후 필요한 조회들 — guides/scans/guideUsed count는 서로
+  // 독립적이므로 병렬 실행 (⚠️ Bug Fix: title·growth_stage·created_at 컬럼은
+  // guides 테이블에 존재하지 않음 — 존재하지 않는 컬럼 SELECT 시 PostgREST 오류
+  // → data=null → "가이드 없음" 오표시 버그)
+  const [
+    { data: guides, error: guidesError },
+    { data: scans },
+    { count: guideUsed },
+  ] = await Promise.all([
+    supabase
+      .from('guides')
+      .select('id, business_id, context, next_month_goal, priority_json, tools_json, scan_id, summary, items_json, generated_at')
+      .eq('business_id', business.id)
+      .order('generated_at', { ascending: false })
+      .limit(1),
+    supabase
+      .from('scan_results')
+      .select('id, total_score, scanned_at, gemini_result, naver_result')
+      .eq('business_id', business.id)
+      .order('scanned_at', { ascending: false })
+      .limit(1),
+    // 가이드 월 한도는 사업장이 아닌 계정 단위(모든 보유 사업장 합산)로 집계됨
+    // (backend/middleware/plan_gate.py check_guide_limit()과 동일 스코프 — 불일치 시 한도 우회 오표시)
+    supabase
+      .from('guides')
+      .select('id', { count: 'exact', head: true })
+      .in('business_id', (businesses ?? []).map(b => b.id))
+      .gte('generated_at', monthStart.toISOString()),
+  ])
 
   if (guidesError) {
     console.error('[GuidePage] guides query error:', guidesError.message)
   }
-
-  const { data: scans } = await supabase
-    .from('scan_results')
-    .select('id, total_score, scanned_at, gemini_result, naver_result')
-    .eq('business_id', business.id)
-    .order('scanned_at', { ascending: false })
-    .limit(1)
 
   // 최신 스캔에서 네이버 AI 브리핑 또는 Gemini 노출 여부 추출
   const latestScan = scans?.[0]
@@ -76,35 +110,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
     return null
   })()
 
-  // 플랜 + 이번 달 가이드 사용 횟수 조회
-  // 관리자 이메일 → 개발 기간 biz 플랜 강제 부여 (layout.tsx와 동일 로직)
-  const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com')
-    .split(',').map(e => e.trim().toLowerCase())
-  const isAdminUser = ADMIN_EMAILS.includes((user.email ?? '').toLowerCase())
-  const currentPlan = isAdminUser ? 'biz' : await resolveActivePlan(supabase, user.id)
-
-  const GUIDE_LIMITS: Record<string, number> = {
-    free: 0, basic: 3, pro: 10, startup: 5, biz: 20, enterprise: 999,
-  }
-  const guideLimit = GUIDE_LIMITS[currentPlan] ?? 0
-
-  const monthStart = new Date()
-  monthStart.setDate(1)
-  monthStart.setHours(0, 0, 0, 0)
-
-  // 가이드 월 한도는 사업장이 아닌 계정 단위(모든 보유 사업장 합산)로 집계됨
-  // (backend/middleware/plan_gate.py check_guide_limit()과 동일 스코프 — 불일치 시 한도 우회 오표시)
-  const { count: guideUsed } = await supabase
-    .from('guides')
-    .select('id', { count: 'exact', head: true })
-    .in('business_id', (businesses ?? []).map(b => b.id))
-    .gte('generated_at', monthStart.toISOString())
-
-  let initialToken = ''
-  try {
-    const { data: { session } } = await supabase.auth.getSession()
-    initialToken = session?.access_token ?? ''
-  } catch { /* initialToken = '' */ }
+  const initialToken = sessionRes.data.session?.access_token ?? ''
 
   // Free 사용자 상단 게이트 — 가이드 생성 한도 0이면 업그레이드 안내
   if (guideLimit === 0) {

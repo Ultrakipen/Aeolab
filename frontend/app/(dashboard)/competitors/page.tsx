@@ -23,15 +23,26 @@ export default async function CompetitorsPage({
 
   const params = await searchParams
   const selectedBizId = params.biz_id ?? null
-  // URL param이 없으면 cookie 기반 활성 사업장 결정
-  const activeBizId = selectedBizId ?? await getActiveBusinessId(user.id)
 
-  const { data: businesses } = await supabase
-    .from('businesses')
-    .select('id, name, category, region, keywords, is_smart_place, naver_place_id, kakao_place_id, website_url, review_count, avg_rating')
-    .eq('user_id', user.id)
-    .eq('is_active', true)
-    .order('created_at', { ascending: true })
+  const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com').split(',').map(e => e.trim().toLowerCase())
+  const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? '').toLowerCase())
+
+  // user.id만 있으면 되는 조회들 — 서로 독립적이므로 병렬 실행
+  // (activeBizId 결정과 businesses 목록 조회는 서로 의존관계 없음: businesses는
+  // user_id로만 필터링하고, activeBizId는 businesses 목록과 무관하게 쿠키/URL로 결정됨)
+  const [resolvedActiveBizId, { data: businesses }, currentPlan, { data: sd }] = await Promise.all([
+    selectedBizId ? Promise.resolve(selectedBizId) : getActiveBusinessId(user.id),
+    supabase
+      .from('businesses')
+      .select('id, name, category, region, keywords, is_smart_place, naver_place_id, kakao_place_id, website_url, review_count, avg_rating')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true }),
+    isAdmin ? Promise.resolve('biz') : resolveActivePlan(supabase, user.id),
+    // 백엔드 API 호출용 토큰 — auth 검증은 위 getUser()로 완료. 토큰 추출 목적으로만 사용
+    supabase.auth.getSession(),
+  ])
+  const activeBizId = resolvedActiveBizId
 
   // cookie/URL param 기반 활성 사업장 결정 (없으면 첫 번째 사업장)
   const business = activeBizId
@@ -75,13 +86,7 @@ export default async function CompetitorsPage({
   const COMPETITOR_LIMITS: Record<string, number> = {
     free: 0, basic: 3, startup: 5, pro: 5, biz: 999, enterprise: 999,
   }
-  const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com').split(',').map(e => e.trim().toLowerCase())
-  const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? '').toLowerCase())
-  const currentPlan = isAdmin ? 'biz' : await resolveActivePlan(supabase, user.id)
   const competitorLimit = COMPETITOR_LIMITS[currentPlan] ?? 3
-
-  // 백엔드 API 호출용 토큰 — auth 검증은 위 getUser()로 완료. 토큰 추출 목적으로만 사용
-  const { data: sd } = await supabase.auth.getSession()
   const accessToken = sd.session?.access_token ?? ''
 
   const [

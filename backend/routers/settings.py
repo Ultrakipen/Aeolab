@@ -535,15 +535,18 @@ async def get_onboarding_status(user: dict = Depends(get_current_user)):
     supabase = get_client()
     uid = user["id"]
 
-    # 구독 생성일 기준 7일 이내만 표시
-    sub = (await execute(
-        supabase.table("subscriptions").select("created_at, plan")
-        .eq("user_id", uid).maybe_single()
-    )).data
+    # 구독 정보 + 사업장 — 둘 다 user_id만 필요하고 서로 독립, 병렬 조회 (Round 1)
+    sub_r, biz_r = await asyncio.gather(
+        execute(supabase.table("subscriptions").select("created_at, plan").eq("user_id", uid).maybe_single()),
+        execute(supabase.table("businesses").select("id").eq("user_id", uid).eq("is_active", True).limit(1)),
+    )
+    sub = sub_r.data
+    biz = biz_r.data or []
 
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc)
 
+    # 구독 생성일 기준 7일 이내만 표시
     if sub and sub.get("created_at"):
         try:
             sub_created = datetime.fromisoformat(sub["created_at"].replace("Z", "+00:00"))
@@ -553,40 +556,27 @@ async def get_onboarding_status(user: dict = Depends(get_current_user)):
         except Exception as e:
             logger.warning(f"onboarding_status created_at 파싱 오류 (user={uid}): {e}")
 
-    # 내 사업장
-    biz = (await execute(
-        supabase.table("businesses").select("id").eq("user_id", uid).eq("is_active", True).limit(1)
-    )).data
     biz_id = biz[0]["id"] if biz else None
 
-    # 첫 스캔 여부
-    has_scan = False
+    # 스캔·경쟁사·가이드(biz_id 필요) + 프로필(uid 필요) — 모두 독립, 병렬 조회 (Round 2)
     if biz_id:
-        scan_row = (await execute(
-            supabase.table("scan_results").select("id").eq("business_id", biz_id).limit(1)
-        )).data
-        has_scan = bool(scan_row)
+        scan_r, comp_r, guide_r, profile_r = await asyncio.gather(
+            execute(supabase.table("scan_results").select("id").eq("business_id", biz_id).limit(1)),
+            execute(supabase.table("competitors").select("id").eq("business_id", biz_id).eq("is_active", True).limit(1)),
+            execute(supabase.table("guides").select("id").eq("business_id", biz_id).limit(1)),
+            execute(supabase.table("profiles").select("phone").eq("user_id", uid).maybe_single()),
+        )
+        has_scan = bool(scan_r.data)
+        has_competitor = bool(comp_r.data)
+        has_guide = bool(guide_r.data)
+        profile = profile_r.data
+    else:
+        has_scan = False
+        has_competitor = False
+        has_guide = False
+        profile_r = await execute(supabase.table("profiles").select("phone").eq("user_id", uid).maybe_single())
+        profile = profile_r.data
 
-    # 경쟁사 등록 여부
-    has_competitor = False
-    if biz_id:
-        comp_row = (await execute(
-            supabase.table("competitors").select("id").eq("business_id", biz_id).eq("is_active", True).limit(1)
-        )).data
-        has_competitor = bool(comp_row)
-
-    # 가이드 생성 여부
-    has_guide = False
-    if biz_id:
-        guide_row = (await execute(
-            supabase.table("guides").select("id").eq("business_id", biz_id).limit(1)
-        )).data
-        has_guide = bool(guide_row)
-
-    # 카카오 알림 번호 등록 여부
-    profile = (await execute(
-        supabase.table("profiles").select("phone").eq("user_id", uid).maybe_single()
-    )).data
     has_phone = bool((profile or {}).get("phone"))
 
     steps = [

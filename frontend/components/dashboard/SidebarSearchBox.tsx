@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 
 interface Props {
@@ -10,6 +10,14 @@ interface Props {
 
 export function SidebarSearchBox({ value, onChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  // Mac 감지 — 서버(window 없음)와 클라이언트가 동일하게 false로 시작하고
+  // 마운트 후 정확한 값으로 갱신. typeof window 직접 사용 시 SSR/클라이언트
+  // 하이드레이션 불일치가 발생해 React가 서브트리를 강제 재조정함.
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    setIsMac(/Mac/i.test(navigator.platform));
+  }, []);
 
   // Ctrl+K / Cmd+K 단축키로 포커스
   useEffect(() => {
@@ -44,7 +52,7 @@ export function SidebarSearchBox({ value, onChange }: Props) {
           className="hidden lg:flex absolute right-2.5 items-center text-sm text-gray-500 font-mono bg-gray-100 rounded px-1 py-0.5 pointer-events-none select-none"
           aria-hidden="true"
         >
-          {typeof window !== "undefined" && navigator.platform.includes("Mac") ? "⌘K" : "Ctrl K"}
+          {isMac ? "⌘K" : "Ctrl K"}
         </span>
       )}
     </div>

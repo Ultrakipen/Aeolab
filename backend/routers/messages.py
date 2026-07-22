@@ -1,7 +1,8 @@
+import asyncio
 import os
 import secrets
 from fastapi import APIRouter, Depends, Header, HTTPException
-from db.supabase_client import get_client
+from db.supabase_client import get_client, execute as _db_execute
 from typing import Optional
 import logging
 
@@ -33,19 +34,19 @@ async def get_unread_messages(
         from datetime import datetime, timezone
         now = datetime.now(timezone.utc).isoformat()
 
-        msgs_res = (
-            supabase.table("in_app_messages")
-            .select("id,title,body,cta_label,cta_url,target_segment,created_at")
-            .eq("is_active", True)
-            .or_(f"expires_at.is.null,expires_at.gt.{now}")
-            .execute()
-        )
-
-        reads_res = (
-            supabase.table("message_reads")
-            .select("message_id")
-            .eq("user_id", user_id)
-            .execute()
+        # in_app_messages와 message_reads는 서로 독립적이므로 병렬 조회
+        msgs_res, reads_res = await asyncio.gather(
+            _db_execute(
+                supabase.table("in_app_messages")
+                .select("id,title,body,cta_label,cta_url,target_segment,created_at")
+                .eq("is_active", True)
+                .or_(f"expires_at.is.null,expires_at.gt.{now}")
+            ),
+            _db_execute(
+                supabase.table("message_reads")
+                .select("message_id")
+                .eq("user_id", user_id)
+            ),
         )
         read_ids = {r["message_id"] for r in (reads_res.data or [])}
 

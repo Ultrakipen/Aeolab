@@ -4989,23 +4989,41 @@ async def get_onboarding_action(biz_id: str, user=Depends(get_current_user)):
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    biz_row = (await execute(
-        supabase.table("businesses")
-        .select("id, name, category")
-        .eq("id", biz_id)
-        .single()
-    )).data
+    from services.action_tools import pick_top_action
+    from services.gap_analyzer import analyze_gap_from_db as _analyze_gap
+
+    # biz_row, scan_rows, keyword_gap — 3개 모두 서로 독립적이므로 병렬 조회
+    async def _safe_gap():
+        try:
+            _r = await _analyze_gap(biz_id, supabase)
+            if _r and _r.keyword_gap:
+                return _r.keyword_gap
+        except Exception as e:
+            _logger.warning(f"[onboarding_action] gap_analyzer 조회 실패: {e}")
+        return None
+
+    biz_res, scan_res, _keyword_gap = await asyncio.gather(
+        execute(
+            supabase.table("businesses")
+            .select("id, name, category")
+            .eq("id", biz_id)
+            .single()
+        ),
+        execute(
+            supabase.table("scan_results")
+            .select("id, scanned_at, score_breakdown, naver_result")
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+        ),
+        _safe_gap(),
+    )
+
+    biz_row = biz_res.data
     if not biz_row:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
 
-    scan_rows = (await execute(
-        supabase.table("scan_results")
-        .select("id, scanned_at, score_breakdown, naver_result")
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
-    )).data or []
-
+    scan_rows = scan_res.data or []
     if not scan_rows:
         raise HTTPException(
             status_code=412,
@@ -5013,18 +5031,6 @@ async def get_onboarding_action(biz_id: str, user=Depends(get_current_user)):
         )
 
     scan = scan_rows[0]
-
-    from services.action_tools import pick_top_action
-    from services.gap_analyzer import analyze_gap_from_db as _analyze_gap
-
-    # keyword_gap 조회 (graceful — 실패해도 pick_top_action은 계속 실행)
-    _keyword_gap = None
-    try:
-        _gap_result = await _analyze_gap(biz_id, supabase)
-        if _gap_result and _gap_result.keyword_gap:
-            _keyword_gap = _gap_result.keyword_gap
-    except Exception as e:
-        _logger.warning(f"[onboarding_action] gap_analyzer 조회 실패: {e}")
 
     try:
         action = pick_top_action(scan, biz_row.get("category") or "", keyword_gap=_keyword_gap)
@@ -5147,15 +5153,26 @@ async def get_visit_delta(
         _t = row.get("total_score")
         return float(_t) if _t is not None else None
 
-    # 3. score_history에서 기간 내 첫/마지막 행 조회
-    history_res = await execute(
-        supabase.table("score_history")
-        .select("unified_score, total_score, score_date")
-        .eq("business_id", biz_id)
-        .gte("score_date", last_visit_iso)
-        .order("score_date", desc=False)
+    # 3+4. score_history 와 scan_results fallback 병렬 조회
+    # scan_results는 score_history 0건 시 fallback이지만 서로 독립적이므로 투기적 병렬 fetch
+    history_res, scan_full_res = await asyncio.gather(
+        execute(
+            supabase.table("score_history")
+            .select("unified_score, total_score, score_date")
+            .eq("business_id", biz_id)
+            .gte("score_date", last_visit_iso)
+            .order("score_date", desc=False)
+        ),
+        execute(
+            supabase.table("scan_results")
+            .select("total_score, scanned_at")
+            .eq("business_id", biz_id)
+            .gte("scanned_at", last_visit_iso)
+            .order("scanned_at", desc=False)
+        ),
     )
     history_rows = (history_res.data or []) if history_res else []
+    scan_rows = (scan_full_res.data or []) if scan_full_res else []
 
     score_before: float | None = None
     score_now: float | None = None
@@ -5165,7 +5182,7 @@ async def get_visit_delta(
         score_before = _row_score(history_rows[0])
         score_now    = _row_score(history_rows[-1])
     elif len(history_rows) == 1:
-        # 기간 내 행이 1개뿐 -> 이전 기록을 before로 사용
+        # 기간 내 행이 1개뿐 -> 이전 기록을 before로 사용 (count 의존, 순차 실행)
         before_res = await execute(
             supabase.table("score_history")
             .select("unified_score, total_score, score_date")
@@ -5179,22 +5196,14 @@ async def get_visit_delta(
             score_before = _row_score(before_rows[0])
             score_now    = _row_score(history_rows[0])
 
-    # 4. score_history 0건 -> scan_results fallback
+    # scan_results fallback — 위에서 병렬 prefetch한 결과 재사용
     if score_before is None or score_now is None:
-        scan_res = await execute(
-            supabase.table("scan_results")
-            .select("total_score, scanned_at")
-            .eq("business_id", biz_id)
-            .gte("scanned_at", last_visit_iso)
-            .order("scanned_at", desc=False)
-        )
-        scan_rows = (scan_res.data or []) if scan_res else []
-
         if len(scan_rows) >= 2:
             score_before = float(scan_rows[0].get("total_score") or 0)
             score_now    = float(scan_rows[-1].get("total_score") or 0)
             has_new_scan = True
         elif len(scan_rows) == 1:
+            # 스캔 1건 -> 이전 스캔 조회 (count 의존, 순차 실행)
             before_scan_res = await execute(
                 supabase.table("scan_results")
                 .select("total_score, scanned_at")
@@ -6085,62 +6094,68 @@ async def get_naver_seo_strength(biz_id: str, user: dict = Depends(get_current_u
 
     thirty_days_ago = (date.today() - timedelta(days=30)).isoformat()
 
-    # 1. score_history — keyword_rank_avg 30일 시계열 (NULL 행 제외, 오름차순)
-    keyword_rank_trend: list[dict] = []
-    try:
-        krt_res = await execute(
-            supabase.table("score_history")
-            .select("score_date, keyword_rank_avg")
-            .eq("business_id", biz_id)
-            .not_.is_("keyword_rank_avg", "null")
-            .gte("score_date", thirty_days_ago)
-            .order("score_date", desc=False)
-            .limit(31)
-        )
-        for row in (krt_res.data or []):
-            keyword_rank_trend.append({
-                "date": row["score_date"],
-                "keyword_rank_avg": row["keyword_rank_avg"],
-            })
-    except Exception as e:
-        _logger.warning(f"naver_seo_strength keyword_rank_trend 조회 실패 [biz={biz_id}]: {e}")
+    # 1, 2, 3 — 서로 독립적이므로 asyncio.gather로 병렬 조회
+    async def _fetch_krt():
+        try:
+            res = await execute(
+                supabase.table("score_history")
+                .select("score_date, keyword_rank_avg")
+                .eq("business_id", biz_id)
+                .not_.is_("keyword_rank_avg", "null")
+                .gte("score_date", thirty_days_ago)
+                .order("score_date", desc=False)
+                .limit(31)
+            )
+            return [
+                {"date": row["score_date"], "keyword_rank_avg": row["keyword_rank_avg"]}
+                for row in (res.data or [])
+            ]
+        except Exception as e:
+            _logger.warning(f"naver_seo_strength keyword_rank_trend 조회 실패 [biz={biz_id}]: {e}")
+            return []
 
-    # 2. blog_score_history — post_count / keyword_coverage 30일 시계열
-    blog_trend: list[dict] = []
-    try:
-        bsh_res = await execute(
-            supabase.table("blog_score_history")
-            .select("analyzed_date, post_count, keyword_coverage")
-            .eq("business_id", biz_id)
-            .gte("analyzed_date", thirty_days_ago)
-            .order("analyzed_date", desc=False)
-            .limit(31)
-        )
-        for row in (bsh_res.data or []):
-            blog_trend.append({
-                "date": row["analyzed_date"],
-                "post_count": row["post_count"],
-                "keyword_coverage": row["keyword_coverage"],
-            })
-    except Exception as e:
-        _logger.warning(f"naver_seo_strength blog_trend 조회 실패 [biz={biz_id}]: {e}")
+    async def _fetch_bsh():
+        try:
+            res = await execute(
+                supabase.table("blog_score_history")
+                .select("analyzed_date, post_count, keyword_coverage")
+                .eq("business_id", biz_id)
+                .gte("analyzed_date", thirty_days_ago)
+                .order("analyzed_date", desc=False)
+                .limit(31)
+            )
+            return [
+                {
+                    "date": row["analyzed_date"],
+                    "post_count": row["post_count"],
+                    "keyword_coverage": row["keyword_coverage"],
+                }
+                for row in (res.data or [])
+            ]
+        except Exception as e:
+            _logger.warning(f"naver_seo_strength blog_trend 조회 실패 [biz={biz_id}]: {e}")
+            return []
 
-    # 3. 가장 최근 scan_results.smart_place_completeness_result (JSONB)
-    smart_place_completeness = None
-    try:
-        spc_res = await execute(
-            supabase.table("scan_results")
-            .select("smart_place_completeness_result")
-            .eq("business_id", biz_id)
-            .not_.is_("smart_place_completeness_result", "null")
-            .order("scanned_at", desc=True)
-            .limit(1)
-            .maybe_single()
-        )
-        if spc_res.data:
-            smart_place_completeness = spc_res.data.get("smart_place_completeness_result")
-    except Exception as e:
-        _logger.warning(f"naver_seo_strength smart_place_completeness 조회 실패 [biz={biz_id}]: {e}")
+    async def _fetch_spc():
+        try:
+            res = await execute(
+                supabase.table("scan_results")
+                .select("smart_place_completeness_result")
+                .eq("business_id", biz_id)
+                .not_.is_("smart_place_completeness_result", "null")
+                .order("scanned_at", desc=True)
+                .limit(1)
+                .maybe_single()
+            )
+            if res.data:
+                return res.data.get("smart_place_completeness_result")
+        except Exception as e:
+            _logger.warning(f"naver_seo_strength smart_place_completeness 조회 실패 [biz={biz_id}]: {e}")
+        return None
+
+    keyword_rank_trend, blog_trend, smart_place_completeness = await asyncio.gather(
+        _fetch_krt(), _fetch_bsh(), _fetch_spc()
+    )
 
     has_data = bool(keyword_rank_trend or blog_trend or smart_place_completeness)
 

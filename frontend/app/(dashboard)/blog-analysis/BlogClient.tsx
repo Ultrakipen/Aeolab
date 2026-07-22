@@ -1735,14 +1735,24 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
     if (!selectedBiz || !savedBlogUrl || !business.id) return;
     const fetchSavedResult = async () => {
       setResultLoading(true);
+      // getSafeSession()/fetch()가 드물게 응답 없이 멈추면(supabase-js 세션 락 등) 이 스피너가
+      // 영구히 "이전 분석 결과를 불러오는 중..."에 멈춰 있었음 — 두 구간 모두 타임아웃으로
+      // 감싸 항상 finally에 도달하도록 방어 (2026-07-18 라이브 무한로딩 신고로 발견)
+      const controller = new AbortController();
+      const abortTimer = setTimeout(() => controller.abort(), 15000);
       try {
-        const currentToken = token || (await getSafeSession())?.access_token || "";
+        const sessionOrTimeout = await Promise.race([
+          getSafeSession(),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
+        ]);
+        const currentToken = token || sessionOrTimeout?.access_token || "";
         if (!currentToken) {
           setSavedResultFetchFailed(true);
           return;
         }
         const res = await fetch(`${BACKEND}/api/blog/result/${business.id}`, {
           headers: { Authorization: `Bearer ${currentToken}` },
+          signal: controller.signal,
         });
         if (!res.ok) {
           setSavedResultFetchFailed(true);
@@ -1779,6 +1789,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
         console.warn('[Blog] 저장된 분석 결과 조회 실패', e);
         setSavedResultFetchFailed(true);
       } finally {
+        clearTimeout(abortTimer);
         setResultLoading(false);
       }
     };

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from db.supabase_client import get_client
+from db.supabase_client import get_client, execute
 from utils.admin_auth import verify_admin
 import logging
 
@@ -13,7 +13,7 @@ async def get_system_status(supabase=Depends(get_client)):
     캐시 불필요 — 긴급 상황 실시간 반영.
     """
     try:
-        res = supabase.table("system_status").select("key,value,message").execute()
+        res = await execute(supabase.table("system_status").select("key,value,message"))
         rows = {
             r["key"]: {"value": r["value"], "message": r.get("message", "")}
             for r in (res.data or [])

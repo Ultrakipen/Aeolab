@@ -1,7 +1,9 @@
 import os
 import asyncio
 import logging
+import httpx
 from supabase import create_client, Client
+from postgrest.utils import SyncClient as _PostgrestSyncClient
 
 _client: Client | None = None
 _storage = None
@@ -20,7 +22,26 @@ def _create_client() -> Client:
     key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
     if not url or not key:
         raise RuntimeError("SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set")
-    return create_client(url, key)
+    client = create_client(url, key)
+
+    # postgrest-py가 기본으로 만드는 세션은 http2=True — httpx의 h2 구현은 스레드
+    # 안전을 위해 내부 락을 쓰는데, execute()가 asyncio.to_thread()로 여러 쿼리를
+    # 동시에 이 락을 두고 경쟁시키면 병렬 실행이 사실상 직렬화된다(실측: gather(8)
+    # http2 1034ms vs http1.1+넉넉한 커넥션풀 175ms, 2026-07-20). REST 세션만
+    # HTTP/1.1 + 넉넉한 커넥션풀로 교체 — 도메인당 실제 TCP 커넥션을 여러 개 열어
+    # 진짜 병렬 I/O가 되도록 한다.
+    old = client.postgrest.session
+    client.postgrest.session = _PostgrestSyncClient(
+        base_url=old.base_url,
+        headers=dict(old.headers),
+        timeout=old.timeout,
+        follow_redirects=True,
+        http2=False,
+        limits=httpx.Limits(max_connections=50, max_keepalive_connections=50),
+    )
+    old.close()
+
+    return client
 
 
 def _reset_client() -> Client:
