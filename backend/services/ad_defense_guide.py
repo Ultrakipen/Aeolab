@@ -71,7 +71,7 @@ class AdDefenseGuideService:
 
         briefing_note = {
             "active": "네이버 AI 브리핑(플레이스형) 대상 업종입니다.",
-            "likely": "네이버 AI 브리핑(플레이스형) 확대 예정 업종으로, 아직 전면 대상은 아닙니다.",
+            "likely": "네이버 AI 브리핑(플레이스형) 확대 예정 업종으로, 아직 전면 대상은 아닙니다. 다만 정보형(블로그·콘텐츠 출처)은 업종 제한이 없어 지금도 노출 가능 — 정보형 콘텐츠 전략도 함께 제안할 것.",
             "inactive": "네이버 AI 브리핑(플레이스형) 비대상 업종/가맹점입니다 — '네이버 AI 브리핑 노출'을 전략으로 제안하지 말 것. 정보형(블로그·콘텐츠 출처)과 ChatGPT·Gemini·Google 노출 전략만 제안할 것.",
         }.get(briefing_eligibility, "")
 
