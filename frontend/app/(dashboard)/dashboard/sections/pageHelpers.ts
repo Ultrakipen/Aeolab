@@ -187,7 +187,10 @@ export function castWebsiteCheckResult(
 }
 
 // ── 미싱 아이템 추출 ─────────────────────────────────────────
+// score_breakdown(JSONB)에 "missing" 필드로 저장됨 (scan_results에 별도 컬럼 없음).
+// scan.missing 폴백은 과거 호환용 — 실제로 채워진 적은 없음.
 export function extractMissingItems(scan: Record<string, unknown> | null | undefined): MissingItem[] {
-  if (!Array.isArray(scan?.missing)) return [];
-  return scan!.missing as MissingItem[];
+  const breakdown = scan?.score_breakdown as Record<string, unknown> | null | undefined;
+  const list = breakdown?.missing ?? scan?.missing;
+  return Array.isArray(list) ? (list as MissingItem[]) : [];
 }

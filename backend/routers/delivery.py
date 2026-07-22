@@ -611,6 +611,11 @@ async def confirm_delivery_payment(
 
     # 4. 토스 서버 재검증
     toss_secret = os.getenv("TOSS_SECRET_KEY", "")
+    if not toss_secret and os.getenv("APP_ENV", "development") == "production":
+        # 운영 환경에서 키 미설정 시 무검증 통과를 막기 위해 fail-closed
+        # (개발 환경은 아래 else 분기에서 경고 로그 후 스킵 유지)
+        _logger.error(f"[delivery/confirm] 운영 환경에서 TOSS_SECRET_KEY 미설정 — 결제 확정 거부 (order_id={order_id})")
+        raise HTTPException(status_code=500, detail="결제 검증 설정 오류입니다. 잠시 후 다시 시도하거나 고객센터로 문의해 주세요.")
     if toss_secret:
         encoded = base64.b64encode(f"{toss_secret}:".encode()).decode()
         try:

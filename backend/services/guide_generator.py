@@ -41,8 +41,9 @@ def _briefing_strategy_header(eligibility: str, is_franchise: bool) -> str:
         return ""
     if eligibility == "likely":
         return (
-            "ℹ️ 이 업종은 AI 브리핑 확대 예상 업종입니다. "
-            "미리 5단계를 완료해두면 확대 즉시 노출됩니다."
+            "ℹ️ 이 업종은 '플레이스형' AI 브리핑 확대 예상 업종입니다. "
+            "미리 5단계를 완료해두면 확대 즉시 노출됩니다. "
+            "단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'은 지금도 노출 가능합니다."
         )
     # inactive
     if is_franchise:
@@ -971,7 +972,7 @@ class GuideGenerator:
         elif eligibility == "inactive":
             _summary_briefing_hint = "이 업종은 '플레이스형' 네이버 AI 브리핑 비대상 — 블로그·콘텐츠 기반 '정보형 AI 브리핑' + ChatGPT·Gemini·Google AI 노출 개선이 핵심"
         elif eligibility == "likely":
-            _summary_briefing_hint = "AI 브리핑 확대 예상 업종 — 미리 5단계 준비 권장"
+            _summary_briefing_hint = "'플레이스형' AI 브리핑 확대 예상 업종 — 미리 5단계 준비 권장. 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'은 지금도 노출 가능"
         else:
             _summary_briefing_hint = "네이버 AI 브리핑 미노출이 가장 큰 문제"
 

@@ -554,6 +554,82 @@ def _briefing_explanation(eligibility: str, ai_status: str) -> str:
     return "AI 정보 탭 상태를 확인해주세요. 메뉴가 안 보이면 비대상 업종일 가능성이 높습니다."
 
 
+def _build_missing_items(biz: dict, naver_data: dict, category: str, eligibility: str, ai_status: str) -> list[dict]:
+    """
+    네이버 진단 개선 항목(missing) 리스트 — score_breakdown.missing으로 저장되어
+    대시보드 "빠른 지수 상승 항목" 섹션(ScoreEvidenceCard)에 표시된다.
+    v3.0(calc_track1_score)·v3.1(calc_track1_score_v3_1) 공통 사용.
+    """
+    is_sp = bool(
+        naver_data.get("is_smart_place")
+        or biz.get("is_smart_place")
+        or biz.get("naver_place_id")
+    )
+    has_recent_post = bool(biz.get("has_recent_post"))
+    has_intro = bool(biz.get("has_intro")) or bool((biz.get("naver_intro_draft") or "").strip())
+
+    missing = []
+    if not is_sp:
+        missing.append({"item": "스마트플레이스 등록", "gain": 25, "desc": "스마트플레이스 신청"})
+    if not has_recent_post:
+        missing.append({"item": "소식", "gain": 25, "desc": "이번 주 소식 1개 게시"})
+    if not has_intro:
+        missing.append({
+            "item": "소개글",
+            "gain": 20,
+            "desc": "300~500자 소개글에 Q&A 형식 5개 포함 (AI 인용 후보)",
+        })
+
+    # 사진 카테고리 부족 항목 추가 (점수 변경 없음 — 가이드용 missing 힌트)
+    # 단일 진실 소스: services/photo_categories.py
+    _photo_categories = naver_data.get("photo_categories") or {}
+    if _photo_categories:
+        from services.photo_categories import find_missing as _find_missing_photos
+        _eff_cat_for_photo = category or biz.get("category", "restaurant")
+        for _cat in _find_missing_photos(_photo_categories, _eff_cat_for_photo):
+            missing.append({
+                "item": f"사진_{_cat}_없음",
+                "gain": 0,
+                "desc": f"'{_cat}' 카테고리 사진을 등록하면 AI 이미지 필터 노출이 늘어납니다.",
+                "type": "photo_category",
+            })
+
+    # AI 정보 탭 상태 → missing 리스트 최우선 삽입
+    # active: gain 실질적. likely: 현재 미대상 → 미리 준비 안내 (gain 10, 오인 방지)
+    if eligibility == "active":
+        if ai_status == "off":
+            missing.insert(0, {
+                "item": "AI 브리핑 노출 설정",
+                "gain": 50,
+                "desc": "스마트플레이스 → 업체정보 → AI 정보 탭 → 'AI 브리핑 노출하기' ON",
+                "priority": "critical",
+            })
+        elif ai_status == "disabled":
+            missing.insert(0, {
+                "item": "AI 브리핑 활성화 조건 미달",
+                "gain": 30,
+                "desc": "리뷰 30개+ 누적 시 자동 활성화. 리뷰 늘리기 우선",
+                "priority": "important",
+            })
+    elif eligibility == "likely":
+        if ai_status == "off":
+            missing.insert(0, {
+                "item": "AI 브리핑 노출 설정 (확대 예정 업종 — 미리 준비)",
+                "gain": 10,
+                "desc": "네이버 AI 브리핑 확대 예정 업종입니다. 스마트플레이스 → AI 정보 탭 → 설정 ON으로 미리 준비해두세요.",
+                "priority": "optional",
+            })
+        elif ai_status == "unknown":
+            missing.insert(0, {
+                "item": "AI 정보 탭 상태 확인",
+                "gain": 0,
+                "desc": "스마트플레이스 → 업체정보 → AI 정보 탭 메뉴 존재 여부 확인",
+                "priority": "important",
+            })
+
+    return missing
+
+
 def calc_track1_score(
     scan_result: dict,
     biz: dict,
@@ -646,64 +722,7 @@ def calc_track1_score(
         5  if _rank else 0
     )
 
-    missing = []
-    if not is_sp:
-        missing.append({"item": "스마트플레이스 등록", "gain": 25, "desc": "스마트플레이스 신청"})
-    if not has_recent_post:
-        missing.append({"item": "소식", "gain": 25, "desc": "이번 주 소식 1개 게시"})
-    if not has_intro:
-        missing.append({
-            "item": "소개글",
-            "gain": 20,
-            "desc": "300~500자 소개글에 Q&A 형식 5개 포함 (AI 인용 후보)",
-        })
-
-    # 사진 카테고리 부족 항목 추가 (점수 변경 없음 — 가이드용 missing 힌트)
-    # 단일 진실 소스: services/photo_categories.py
-    _photo_categories = naver_data.get("photo_categories") or {}
-    if _photo_categories:
-        from services.photo_categories import find_missing as _find_missing_photos
-        _eff_cat_for_photo = category or biz.get("category", "restaurant")
-        for _cat in _find_missing_photos(_photo_categories, _eff_cat_for_photo):
-            missing.append({
-                "item": f"사진_{_cat}_없음",
-                "gain": 0,
-                "desc": f"'{_cat}' 카테고리 사진을 등록하면 AI 이미지 필터 노출이 늘어납니다.",
-                "type": "photo_category",
-            })
-
-    # AI 정보 탭 상태 → missing 리스트 최우선 삽입
-    # active: gain 실질적. likely: 현재 미대상 → 미리 준비 안내 (gain 10, 오인 방지)
-    if eligibility == "active":
-        if ai_status == "off":
-            missing.insert(0, {
-                "item": "AI 브리핑 노출 설정",
-                "gain": 50,
-                "desc": "스마트플레이스 → 업체정보 → AI 정보 탭 → 'AI 브리핑 노출하기' ON",
-                "priority": "critical",
-            })
-        elif ai_status == "disabled":
-            missing.insert(0, {
-                "item": "AI 브리핑 활성화 조건 미달",
-                "gain": 30,
-                "desc": "리뷰 30개+ 누적 시 자동 활성화. 리뷰 늘리기 우선",
-                "priority": "important",
-            })
-    elif eligibility == "likely":
-        if ai_status == "off":
-            missing.insert(0, {
-                "item": "AI 브리핑 노출 설정 (확대 예정 업종 — 미리 준비)",
-                "gain": 10,
-                "desc": "네이버 AI 브리핑 확대 예정 업종입니다. 스마트플레이스 → AI 정보 탭 → 설정 ON으로 미리 준비해두세요.",
-                "priority": "optional",
-            })
-        elif ai_status == "unknown":
-            missing.insert(0, {
-                "item": "AI 정보 탭 상태 확인",
-                "gain": 0,
-                "desc": "스마트플레이스 → 업체정보 → AI 정보 탭 메뉴 존재 여부 확인",
-                "priority": "important",
-            })
+    missing = _build_missing_items(biz, naver_data, category, eligibility, ai_status)
 
     track1_detail = {
         "smart_place": {
@@ -957,6 +976,13 @@ def calculate_score(
         "online_mentions":          round(calc_online_mentions(naver_data), 1),
         "info_completeness":        round(calc_smart_place_completeness(naver_data, biz), 1),
         "content_freshness":        round(_calc_freshness(biz, scan_result), 1),
+        # 대시보드 "빠른 지수 상승 항목" — v3.0은 track1_detail.smart_place.missing,
+        # v3.1+는 track1_detail.missing에 위치 (calc_track1_score_v3_1 참고)
+        "missing": (
+            track1_detail.get("missing")
+            or (track1_detail.get("smart_place") or {}).get("missing")
+            or []
+        ) if isinstance(track1_detail, dict) else [],
     }
 
     # v3.1/v3.2 토글 시 신규 항목 평탄화 (briefing_engine·gap_analyzer·guide_generator 호환)
@@ -1387,10 +1413,16 @@ def calc_track1_score_v3_1(
             ai_brief   * weights["ai_briefing_score"]
         )
 
+    # 대시보드 "빠른 지수 상승 항목" 섹션용 — v3.0 calc_track1_score와 동일 소스 사용
+    _eligibility_v31 = get_briefing_eligibility(_eff_category, bool(biz.get("is_franchise")))
+    _ai_status_v31 = biz.get("ai_info_tab_status", "unknown")
+    missing = _build_missing_items(biz, naver_data, _eff_category, _eligibility_v31, _ai_status_v31)
+
     detail = {
         "user_group":    user_group,
         "model_version": "v3.1",
         "weights":       weights,
+        "missing":       missing,
         "items": {
             "keyword_search_rank":      {"score": round(kw_search, 1),  "measured": kw_measured},
             "review_quality":           {"score": round(rv_qual, 1)},
