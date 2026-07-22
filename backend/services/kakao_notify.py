@@ -778,6 +778,7 @@ class KakaoNotifier:
         message = (
             f"[AEOlab 주간 성적표]\n"
             f"{business_name}\n\n"
+            f"해당 메시지는 고객님께서 가입하신 AEOlab AI 노출 모니터링 서비스의 주간 성적표 알림으로, 매주 정기 발송됩니다.\n\n"
             f"이번 주 AI 노출 등급: {grade_note} {direction}\n\n"
             f"이번 주 할 일:\n{top_action}\n\n"
             f"자세한 분석 보기 → https://aeolab.co.kr/dashboard"
