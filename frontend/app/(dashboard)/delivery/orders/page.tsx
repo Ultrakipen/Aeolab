@@ -68,7 +68,7 @@ export default async function DeliveryOrdersPage() {
     });
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 max-w-3xl mx-auto">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-5 md:mb-6">
         <div>

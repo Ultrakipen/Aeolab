@@ -150,7 +150,7 @@ export default async function DeliveryPage() {
     });
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto">
       {/* 헤더 */}
       <div className="mb-6 md:mb-8">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">대행 서비스 신청</h1>
