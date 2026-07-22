@@ -346,6 +346,7 @@ class KakaoNotifier:
         gap_note = "근소한 차이로" if gap < 10 else "큰 격차로"
         message = (
             f"[AEOlab] {biz_name}\n\n"
+            f"AEOlab에 사업장을 등록하고 AI 노출 모니터링을 받고 계신 고객님께 안내드립니다.\n"
             f"경쟁사 '{comp_name}'이(가) AI 검색에서 앞섰습니다!\n\n"
             f"내 등급: {_grade(my_score)}\n"
             f"{comp_name}: {_grade(comp_score)} ({gap_note} 앞서고 있어요)\n\n"
@@ -637,29 +638,19 @@ class KakaoNotifier:
     async def send_growth_stage_upgrade(
         self, phone: str, biz_name: str, prev_stage: str, curr_stage: str, this_week_action: str = ""
     ):
-        """성장 단계 업그레이드 알림 — AEOLAB_SCORE_01 템플릿 재활용.
+        """성장 단계 업그레이드 알림 (템플릿 코드: AEOLAB_GROWTH_01)
 
+        prev_stage/curr_stage: 호출측(jobs.py)에서 이미 한글 레이블(생존기/안정기/성장기/지배기)로 전달됨.
         this_week_action: 이번 주 추천 액션(gap_analyzer._build_growth_stage 반환값) — 숫자 아님.
         """
-        stage_labels = {
-            "survival": "생존기", "stable": "안정기",
-            "growth": "성장기", "dominance": "지배기",
-        }
-        prev_label = stage_labels.get(prev_stage, prev_stage)
-        curr_label = stage_labels.get(curr_stage, curr_stage)
-        change_note = f"↑ {prev_label} → {curr_label} 단계 상승!"
-        if this_week_action:
-            change_note += f" 이번 주 추천: {this_week_action}"
         await self._send(
             phone,
-            "score_change",
+            "growth_stage_up",
             {
                 "#{사업장명}": biz_name,
-                "#{이전점수}": prev_label,
-                "#{현재점수}": curr_label,
-                "#{변화}": change_note,
-                "#{이전순위}": "-",
-                "#{현재순위}": "-",
+                "#{이전단계}": prev_stage,
+                "#{현재단계}": curr_stage,
+                "#{이번주추천}": this_week_action or "대시보드에서 맞춤 개선 가이드를 확인해보세요.",
             },
         )
 

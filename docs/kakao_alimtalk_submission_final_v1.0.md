@@ -57,7 +57,7 @@ https://aeolab.co.kr/dashboard
 
 - **버튼:** 없음(URL 본문 텍스트 포함)
 - **발송 조건:** 스캔 후 등급 변동 시 자동 발송. 승인 후 `send_score_change()`의 params 키를 `#{이전등급}`/`#{현재등급}`으로만 교체하면 코드 추가 변경 불필요.
-- **참고:** `send_growth_stage_upgrade()`(성장 단계 업그레이드, GrowthStage 상승 시)도 현재 이 템플릿 코드를 재사용 중 — §3-2 참조(향후 `AEOLAB_GROWTH_01` 전용 승인 후 분리 권장하되, 급하지 않으면 당분간 공용 유지 가능).
+- **참고:** `send_growth_stage_upgrade()`(성장 단계 업그레이드, GrowthStage 상승 시)는 2026-07-22부로 `AEOLAB_GROWTH_01` 전용 발송으로 분리 완료 — §3-2 참조. 더 이상 이 템플릿을 재사용하지 않음.
 
 ### 1-2. `AEOLAB_NEWS_01` — 이달의 업종 시장 동향
 
@@ -230,10 +230,12 @@ aeolab.co.kr 에서 자세한 결과 확인
 
 ### 3-2. `AEOLAB_GROWTH_01` — 성장 단계 업그레이드 안내
 
+- **⚠️ 2026-07-22 정정(NHN 반려 사유 회신 반영):** COMP_02 반려 시 NHN이 알려준 실제 사유는 "수신자가 어떤 액션으로 이 메시지를 받는지 본문에 명시" — 링크 유무 문제가 아니었음(이전 COMP_02 항목의 "링크 없음" 추정은 오판으로 정정). 이 템플릿에도 동일 결함이 있어 트리거 문구 추가. 겸사겸사 `send_growth_stage_upgrade()`가 SCORE_01을 임시 재사용하던 것도 이번에 GROWTH_01 전용 발송으로 정식 교체함(`#{이번주추천}` 공란 시 안내문구 fallback 추가).
 - **본문:**
 ```
 #{사업장명} 성장 단계 업그레이드 안내
 
+AEOlab에 사업장을 등록하고 AI 노출 모니터링을 받고 계신 고객님께 안내드립니다.
 AI 검색 노출 성장 단계가 올랐습니다!
 
 이전 단계: #{이전단계}
@@ -250,9 +252,9 @@ https://aeolab.co.kr/dashboard
 | `#{사업장명}` | 홍뮤직스튜디오 |
 | `#{이전단계}` | 생존기 |
 | `#{현재단계}` | 안정기 |
-| `#{이번주추천}` | 이번 주 추천: 스마트플레이스에서 사진 5장 등록하기 (없으면 공란) |
+| `#{이번주추천}` | 이번 주 추천: 스마트플레이스에서 사진 5장 등록하기 (공란이면 "대시보드에서 맞춤 개선 가이드를 확인해보세요."로 대체) |
 
-- **발송 함수:** `send_growth_stage_upgrade()` (`kakao_notify.py:631`) — **2026-07-20 크래시 버그 수정 완료**(문자열 인자에 `int()` 호출로 매번 예외 발생하던 것을 수정, git `1db25d6`). 현재 SCORE_01 코드를 임시로 재사용 중이니 이 템플릿 승인 후 전용 코드로 교체 권장.
+- **발송 함수:** `send_growth_stage_upgrade()` (`kakao_notify.py:637`) — 2026-07-22 GROWTH_01 전용 발송으로 교체 완료(SCORE_01 임시 재사용 종료).
 
 ### 3-3. `AEOLAB_MONTHLY_01` — 월간 성장 리포트
 
@@ -509,7 +511,7 @@ https://aeolab.co.kr/dashboard
 2. **§1(재신청 2종)** 승인 → `AEOLAB_SCORE_01`은 `send_score_change()`의 params 키를 `#{이전등급}`/`#{현재등급}`으로 교체(현재 `#{이전점수}`/`#{현재점수}` 키 사용 중 — 승인 문안의 변수명과 일치시켜야 함), `AEOLAB_NEWS_01`은 코드 변경 불필요
 2-보강. **§1-보강(CITE_01·COMP_01·ACTION_01)** — 이미 코드 수정·배포 완료, 비즈센터 조치 불필요
 3. **§3-6(WEEKLY_01)** 승인 → `kakao_notify.py:799`의 `template_code="AEOLAB_SCORE_01"`을 `"AEOLAB_WEEKLY_01"`로 교체 (SCORE_01과의 코드 공유 충돌 해소)
-4. **§3-2(GROWTH_01)** 승인 → `kakao_notify.py:647` 인근 `_send(phone, "score_change", ...)` 호출을 `AEOLAB_GROWTH_01` 전용 발송으로 교체(현재 SCORE_01 임시 재사용 중)
+4. **§3-2(GROWTH_01)** — 2026-07-22 코드 교체 이미 완료(`send_growth_stage_upgrade()`가 `AEOLAB_GROWTH_01` 전용 발송). 비즈센터 승인만 남음, 추가 코드 변경 불필요
 5. **§4(KW_01)** 승인 → `.env`에 `KAKAO_TEMPLATE_KEYWORD_CHANGE=<승인코드>` 등록
 6. **§5(DELIVERY 4종)** 승인 → `.env`에 `KAKAO_TEMPLATE_DELIVERY_01~04=<승인코드>` 각각 등록
 7. 모든 `.env` 변경 후 `pm2 restart aeolab-backend`
