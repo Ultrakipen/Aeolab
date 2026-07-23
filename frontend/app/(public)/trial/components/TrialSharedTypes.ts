@@ -20,6 +20,7 @@ export interface TrialFormState {
   extra_keyword: string;
   email: string;
   is_smart_place: boolean | undefined;
+  is_franchise: boolean;
 }
 
 // 네이버 AI 브리핑 직접 확인 상태

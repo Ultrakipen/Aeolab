@@ -778,6 +778,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         "has_intro": req.has_intro,
         "review_text": req.review_text or "",
         "description": getattr(req, "description", None) or "",
+        "is_franchise": bool(getattr(req, "is_franchise", False)),
     }
     score = calculate_score(
         combined_result,
@@ -866,6 +867,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
                 "keyword": keyword_ko,
                 "email": req.email,
                 "is_smart_place": naver.get("is_smart_place"),
+                "is_franchise": bool(getattr(req, "is_franchise", False)),
                 "naver_rank": naver.get("my_rank"),
                 "blog_mentions": naver.get("blog_mentions"),
                 "search_query": naver.get("search_query") or query,

@@ -140,6 +140,7 @@ export default function OnboardingPage() {
     naver_place_id: "",
     naver_place_url: "",
     kakao_place_id: "",
+    is_franchise: false,
   });
   const [autoFillMsg, setAutoFillMsg] = useState("");
   const [showManualInput, setShowManualInput] = useState(false);
@@ -155,13 +156,14 @@ export default function OnboardingPage() {
     try {
       const saved = localStorage.getItem("aeolab_trial_prefill");
       if (saved) {
-        const data = JSON.parse(saved) as { name?: string; category?: string; region?: string };
+        const data = JSON.parse(saved) as { name?: string; category?: string; region?: string; is_franchise?: boolean };
         if (data.name || data.category || data.region) {
           setForm(prev => ({
             ...prev,
             name: data.name || prev.name,
             category: data.category || prev.category,
             region: data.region || prev.region,
+            is_franchise: data.is_franchise ?? prev.is_franchise,
           }));
           setAutoFillMsg("무료 체험 입력 정보가 자동으로 채워졌습니다 ✓");
           setTimeout(() => setAutoFillMsg(""), 5000);
@@ -271,6 +273,7 @@ export default function OnboardingPage() {
         naver_place_url: form.naver_place_url || undefined,
         kakao_place_id: form.kakao_place_id || undefined,
         keywords: form.keywords ? form.keywords.split(",").map(k => k.trim()).filter(Boolean) : [],
+        is_franchise: form.is_franchise,
       }, session.user.id, session.access_token) as { id?: string } | null;
       if (biz?.id) setRegisteredBizId(biz.id);
       setStep(2);
@@ -700,6 +703,22 @@ export default function OnboardingPage() {
                   <span>블로그 주소를 입력하면 등록 후 자동으로 분석됩니다. 포스트별 네이버 AI 브리핑 인용 여부·4채널 인용 현황·경쟁사 비교까지 확인할 수 있습니다.</span>
                 </p>
               </div>
+
+              {/* ─── 프랜차이즈 여부 ─── */}
+              <label className="flex items-start gap-3 cursor-pointer group p-3 md:p-4 rounded-xl border border-gray-200 hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={form.is_franchise}
+                  onChange={e => setForm(f => ({ ...f, is_franchise: e.target.checked }))}
+                  className="w-4 h-4 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm md:text-base font-medium text-gray-800">프랜차이즈 가맹점입니다</span>
+                  <span className="block text-sm text-gray-500 mt-0.5">
+                    네이버 공식: 프랜차이즈는 현재 &apos;플레이스형&apos; AI 브리핑 제공 대상에서 제외됩니다(2026-04-30 확인)
+                  </span>
+                </div>
+              </label>
 
               {/* ─── 핵심 키워드 ─── */}
               <div>

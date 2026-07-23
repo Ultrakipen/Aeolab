@@ -1053,6 +1053,22 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 </div>
               )}
 
+              {/* 프랜차이즈 여부 */}
+              <label className="flex items-start gap-3 cursor-pointer group p-3 rounded-xl border border-slate-200 hover:bg-slate-50">
+                <input
+                  type="checkbox"
+                  checked={!!form.is_franchise}
+                  onChange={(e) => setForm({ ...form, is_franchise: e.target.checked })}
+                  className="w-4 h-4 mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-base font-medium text-slate-800">프랜차이즈 가맹점입니다</span>
+                  <span className="block text-sm text-slate-500 mt-0.5">
+                    네이버 공식: 프랜차이즈는 현재 &apos;플레이스형&apos; AI 브리핑 제공 대상에서 제외됩니다(2026-04-30 확인)
+                  </span>
+                </div>
+              </label>
+
               <div>
                 <label
                   htmlFor="trial-email"

@@ -159,6 +159,7 @@ export default function TrialPage() {
     extra_keyword: "",
     email: "",
     is_smart_place: undefined,
+    is_franchise: false,
   });
   const [hasFaq, setHasFaq] = useState<boolean | undefined>(undefined);
   const [hasRecentPost, setHasRecentPost] = useState<boolean | undefined>(undefined);
@@ -231,6 +232,7 @@ export default function TrialPage() {
           name: form.business_name,
           category: selectedCategory,
           region: form.region,
+          is_franchise: form.is_franchise,
         }),
       );
     } catch {
@@ -510,6 +512,7 @@ export default function TrialPage() {
         has_recent_post: hasRecentPost ?? false,
         has_intro: hasIntro ?? false,
         is_smart_place: form.is_smart_place,
+        is_franchise: form.is_franchise,
         review_text: reviewText || undefined,
         description: description || undefined,
         naver_place_id: naverPlaceId || undefined,
@@ -573,6 +576,7 @@ export default function TrialPage() {
       extra_keyword: "",
       email: "",
       is_smart_place: undefined,
+      is_franchise: false,
     });
     setScanStep(0);
     setNaverCheckState("idle");

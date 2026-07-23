@@ -191,6 +191,7 @@ export interface TrialScanRequest {
   has_recent_post?: boolean;
   has_intro?: boolean;
   is_smart_place?: boolean;  // 사용자 직접 입력 — API 결과보다 우선 적용
+  is_franchise?: boolean;  // 프랜차이즈 가맹점 여부 (네이버 공식: '플레이스형' AI 브리핑 비대상)
   review_text?: string;
   description?: string;
   // 신뢰도 강화 1라운드: 네이버 지역검색에서 선택한 가게의 place ID

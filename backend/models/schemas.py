@@ -51,6 +51,7 @@ class TrialScanRequest(BaseModel):
     website_url: Optional[str] = Field(None, max_length=200)  # non_location: WebsiteChecker 실행용
     # v3.0 스마트플레이스 체크박스 (Track 1 점수에 즉시 반영)
     is_smart_place: Optional[bool] = None  # 사용자 직접 확인 → Naver API 결과보다 우선 적용
+    is_franchise: Optional[bool] = False  # 프랜차이즈 가맹점 여부 (네이버 공식: '플레이스형' AI 브리핑 비대상)
     has_faq: bool = False              # Q&A(FAQ) 탭 등록 여부 → AI 브리핑 가장 직접적 경로
     has_recent_post: bool = False      # 최근 7일 내 소식 업데이트 여부
     has_intro: bool = False            # 소개글 작성 여부
@@ -87,6 +88,7 @@ class BusinessCreate(BaseModel):
     review_count: Optional[int] = Field(None, ge=0)               # 리뷰 수 (사용자 직접 입력)
     avg_rating: Optional[float] = Field(None, ge=0, le=5)         # 평균 평점 (사용자 직접 입력)
     trial_scan_id: Optional[str] = Field(None, max_length=36)     # 무료 체험 결과 자동 이전용 (UUID)
+    is_franchise: Optional[bool] = False  # 프랜차이즈 가맹점 여부 (네이버 공식: '플레이스형' AI 브리핑 비대상)
 
     @field_validator('trial_scan_id')
     @classmethod

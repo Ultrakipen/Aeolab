@@ -2656,3 +2656,18 @@ ALTER TABLE ai_citations
   ADD COLUMN IF NOT EXISTS mention_format TEXT;  -- 'text' | 'image' | NULL(미확인/타 채널)
 
 -- ③ 전체 랭킹은 blog_score_history 기존 컬럼만으로 실시간 계산 — 신규 테이블 불필요
+
+-- ===========================================================
+-- 2026-07-23: 프랜차이즈 온보딩/트라이얼 입력 경로 부재 수정
+-- 배경: businesses.is_franchise는 이미 존재하지만 이 값을 True로 만들 수 있는
+-- 살아있는 UI 경로가 가입 온보딩·설정·트라이얼 어디에도 없었음(체크박스가 있던
+-- 유일한 컴포넌트가 어디서도 import되지 않는 고아 컴포넌트였고, BusinessCreate
+-- 스키마도 필드 자체가 없어 값을 보내도 무시됨). 온보딩·트라이얼 폼에 체크박스
+-- 추가 + BusinessCreate/TrialScanRequest 스키마 필드 추가로 수정, trial_scans에도
+-- 동일 컬럼 추가.
+-- ===========================================================
+ALTER TABLE trial_scans
+  ADD COLUMN IF NOT EXISTS is_franchise BOOLEAN DEFAULT FALSE;
+
+COMMENT ON COLUMN trial_scans.is_franchise IS
+  '프랜차이즈 가맹점 여부 (네이버 공식: 플레이스형 AI 브리핑 비대상)';

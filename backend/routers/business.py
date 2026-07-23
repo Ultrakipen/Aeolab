@@ -188,6 +188,7 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
         "review_count": req.review_count or 0,
         "avg_rating": req.avg_rating or 0,
         "is_active": True,
+        "is_franchise": bool(req.is_franchise),
     }
     if req.business_registration_no:
         insert_payload["business_registration_no"] = req.business_registration_no
