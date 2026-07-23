@@ -123,7 +123,7 @@ async def issue_billing(body: BillingIssueRequest, request: Request):
         )
     if resp.status_code != 200:
         logger.error(f"빌링키 발급 실패: {resp.text}")
-        raise HTTPException(status_code=400, detail=f"빌링키 발급 실패: {resp.text}")
+        raise HTTPException(status_code=400, detail="빌링키 발급에 실패했습니다. 카드 정보를 확인 후 다시 시도해 주세요.")
 
     issue_resp_json = resp.json()
     billing_key = issue_resp_json.get("billingKey")
@@ -198,7 +198,7 @@ async def issue_billing(body: BillingIssueRequest, request: Request):
             logger.error(f"첫 결제 실패: {resp.text}")
             from utils.payment_event_log import record_payment_event
             await record_payment_event(user_id, "billing_issue", "failed", body.amount, resp.text)
-            raise HTTPException(status_code=400, detail=f"결제 실패: {resp.text}")
+            raise HTTPException(status_code=400, detail="결제에 실패했습니다. 카드 한도·잔액을 확인 후 다시 시도해 주세요.")
 
         data = resp.json()
         from utils.payment_event_log import record_payment_event

@@ -357,7 +357,7 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
         )
     if resp.status_code != 200:
         logger.error(f"새 빌링키 발급 실패 (user={user_id}): {resp.text}")
-        raise HTTPException(status_code=400, detail=f"카드 등록 실패: {resp.text}")
+        raise HTTPException(status_code=400, detail="카드 등록에 실패했습니다. 카드 정보를 확인 후 다시 시도해 주세요.")
 
     issue_resp_json = resp.json()
     new_billing_key = issue_resp_json.get("billingKey")

@@ -1550,10 +1550,17 @@ def calc_track1_score_v3_2(
             ai_tab_visible * weights["naver_ai_tab_visible"]
         )
 
+    # 대시보드 "빠른 지수 상승 항목" 섹션용 — v3.0/v3.1과 동일 소스 사용
+    # (v3.3은 이 detail을 **base_detail로 상속하므로 별도 처리 불필요)
+    _eligibility_v32 = get_briefing_eligibility(_eff_category, bool(biz.get("is_franchise")))
+    _ai_status_v32 = biz.get("ai_info_tab_status", "unknown")
+    missing = _build_missing_items(biz, naver_data, _eff_category, _eligibility_v32, _ai_status_v32)
+
     detail = {
         "user_group":    user_group,
         "model_version": "v3.2",
         "weights":       weights,
+        "missing":       missing,
         "items": {
             "keyword_search_rank":      {"score": round(kw_search, 1),  "measured": kw_measured},
             "review_quality":           {"score": round(rv_qual, 1)},
