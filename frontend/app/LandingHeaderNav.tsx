@@ -61,7 +61,7 @@ export function LandingHeaderNav() {
       <>
         <Link
           href="/login"
-          className="hidden sm:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
+          className="inline-block text-sm font-medium px-2 sm:px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
           style={{ color: "#475569" }}
         >
           로그인
