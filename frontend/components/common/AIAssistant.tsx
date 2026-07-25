@@ -120,7 +120,7 @@ export default function AIAssistant({ bizId, plan, authToken }: Props) {
     <>
       {/* 채팅창 */}
       {open && (
-        <div className="fixed bottom-24 right-4 md:right-6 z-50 w-[calc(100vw-2rem)] max-w-xs md:max-w-sm bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col"
+        <div className="fixed bottom-[272px] lg:bottom-24 right-4 md:right-6 z-50 w-[calc(100vw-2rem)] max-w-xs md:max-w-sm bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col"
           style={{ maxHeight: "min(420px, calc(100vh - 140px))" }}
         >
           {/* 헤더 */}
@@ -246,7 +246,7 @@ export default function AIAssistant({ bizId, plan, authToken }: Props) {
       {/* 플로팅 버튼 */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`fixed bottom-6 right-4 md:right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 ${
+        className={`fixed bottom-[208px] lg:bottom-6 right-4 md:right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 ${
           open
             ? "bg-gray-700 hover:bg-gray-800 rotate-0"
             : "bg-blue-600 hover:bg-blue-700 hover:scale-105"
