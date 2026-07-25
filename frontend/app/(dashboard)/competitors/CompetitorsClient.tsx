@@ -785,14 +785,12 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
 
   const myRank  = entities.findIndex(e => e.isMe) + 1
   const maxScore = Math.max(...entities.map(e => e.score), 10)
-  // 순위 인덱스로 색을 순환시키지 않고, 옆 배지와 같은 성장 단계 색상을 재사용
-  // (과거엔 1위=빨강처럼 "위험" 색이 최상위 경쟁사에 붙어 배지·막대가 서로 다른 신호를 주던 문제)
-  const STAGE_BAR_COLOR: Record<string, string> = {
-    '지역 1등': '#10b981',
-    '빠른 성장': '#3b82f6',
-    '성장 중': '#f59e0b',
-    '시작 단계': '#9ca3af',
-  }
+  // 막대 색: 순위(배열 순서) 기반 단일 색조 그라데이션 — 1위가 가장 진하고 아래로 갈수록 옅어짐.
+  // "내 가게"는 브랜드 블루로 고정해 항상 한눈에 구분되도록 함(경쟁사는 이 파랑을 쓰지 않음).
+  // 과거 이력: ①무지개 순환(1위=빨강 오신호) → ②성장단계 색 재사용(같은 단계 경쟁사끼리
+  // 막대가 똑같아져 순위 구분 불가, "내 가게"도 우연히 같은 파랑이라 더 혼동) → 이번이 3차 수정.
+  // 단계 의미는 이미 옆 배지(빠른 성장/성장 중 등)가 전담하므로, 막대는 순수히 "순위 강도"만 표현.
+  const RANK_SHADES = ['#4338ca', '#4f46e5', '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff']
 
   const latestDate = new Date(latest.scanned_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
   const prevDate   = prev ? new Date(prev.scanned_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }) : null
@@ -815,7 +813,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
       {/* 가로 막대 차트 — 각 업체가 독립 행으로 표시 */}
       <div className="space-y-2">
         {entities.map((e, i) => {
-          const barColor = e.isMe ? '#3b82f6' : STAGE_BAR_COLOR[getGrowthStageText(e.score).label]
+          const barColor = e.isMe ? '#2563eb' : RANK_SHADES[Math.min(i, RANK_SHADES.length - 1)]
           const barPct   = Math.round((e.score / maxScore) * 100)
           return (
             <div key={e.name}>
