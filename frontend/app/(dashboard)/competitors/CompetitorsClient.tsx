@@ -2717,7 +2717,7 @@ export function CompetitorsClient({
                 <span className="font-semibold text-gray-700">{business.region}</span> 지역 내 경쟁 가게를 검색합니다.
                 같은 업종의 가게 이름이나 업종을 입력하세요.
               </p>
-              <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
+              <form onSubmit={handleSearch} className="flex gap-2">
                 <input
                   placeholder="예: 미용실, 치킨집, 헬스장"
                   value={searchQuery}
@@ -2727,7 +2727,7 @@ export function CompetitorsClient({
                 <button
                   type="submit"
                   disabled={searching || limitReached}
-                  className="bg-blue-600 text-white px-4 py-3 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shrink-0 whitespace-nowrap flex items-center justify-center gap-1.5 min-h-[48px] w-full sm:w-auto"
+                  className="bg-blue-600 text-white px-4 py-3 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shrink-0 whitespace-nowrap flex items-center justify-center gap-1.5 min-h-[48px]"
                 >
                   {searching ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" />검색 중</> : <><Search className="w-3.5 h-3.5" />검색</>}
                 </button>
