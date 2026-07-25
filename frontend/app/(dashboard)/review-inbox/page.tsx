@@ -586,12 +586,12 @@ export default function ReviewInboxPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto">
-      <div className="flex items-start justify-between gap-3 mb-6">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-start gap-3 mb-6">
+        <div className="flex items-center gap-3 flex-1 min-w-[200px]">
           <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
             <MessageSquare className="w-5 h-5 text-blue-600" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
             <p className="text-sm text-gray-500">리뷰를 붙여넣으면 AI가 업종 키워드를 포함한 답변 초안을 드립니다</p>
           </div>

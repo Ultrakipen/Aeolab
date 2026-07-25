@@ -97,7 +97,7 @@ function FAQSection({ initialItems, faqLoadFailed, onSwitchToInquiry }: { initia
                 aria-controls={`faq-panel-${faq.id}`}
                 className="w-full flex items-center justify-between gap-3 p-4 text-left bg-white hover:bg-gray-50 transition-colors"
               >
-                <span className="text-sm md:text-base font-semibold text-gray-900 leading-snug">
+                <span className="text-sm md:text-base font-semibold text-gray-900 leading-snug break-keep">
                   {faq.question}
                 </span>
                 {isOpen ? (
