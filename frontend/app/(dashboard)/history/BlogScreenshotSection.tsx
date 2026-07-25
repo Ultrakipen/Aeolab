@@ -613,7 +613,7 @@ export default function BlogScreenshotSection({
             value={blogIdInput}
             onChange={(e) => setBlogIdInput(e.target.value)}
             placeholder="예: hongstudio123"
-            className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="flex-1 min-w-0 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-300"
             onKeyDown={(e) => e.key === "Enter" && handleSaveBlogId()}
           />
           <button
