@@ -1524,9 +1524,12 @@ function BlogMentionBenchmarkCard({
   data: NonNullable<BlogAnalysisResult["competitor_blog_mentions"]>;
   businessName: string;
 }) {
+  const truncateChartName = (name: string, max = 7) =>
+    name.length > max ? `${name.slice(0, max)}…` : name;
+
   const chartData = [
-    { name: `${businessName} (나)`, count: data.my_count, isMe: true },
-    ...data.competitors.map((c) => ({ name: c.name, count: c.blog_mention_count, isMe: false })),
+    { name: `${truncateChartName(businessName)} (나)`, count: data.my_count, isMe: true },
+    ...data.competitors.map((c) => ({ name: truncateChartName(c.name), count: c.blog_mention_count, isMe: false })),
   ];
 
   const chartHeight = Math.max(160, chartData.length * 52 + 24);
@@ -1546,7 +1549,7 @@ function BlogMentionBenchmarkCard({
         <BarChart
           data={chartData}
           layout="vertical"
-          margin={{ top: 4, right: 32, left: 8, bottom: 4 }}
+          margin={{ top: 20, right: 32, left: 8, bottom: 4 }}
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
           <XAxis
@@ -1576,7 +1579,7 @@ function BlogMentionBenchmarkCard({
               strokeWidth={1.5}
               label={{
                 value: `평균 ${data.avg_count}건`,
-                position: "insideTopRight",
+                position: "top",
                 fontSize: 11,
                 fill: "#d97706",
               }}
@@ -1996,9 +1999,9 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
         {/* 복수 사업장일 때 현재 선택 사업장 + 변경 버튼 */}
         {businesses.length > 1 && selectedBiz && (
-          <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-            <span className="text-sm text-gray-500">분석 중인 사업장:</span>
-            <span className="text-sm font-semibold text-gray-900">{selectedBiz.name}</span>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+            <span className="text-sm text-gray-500 shrink-0">분석 중인 사업장:</span>
+            <span className="text-sm font-semibold text-gray-900 truncate min-w-0">{selectedBiz.name}</span>
             <button
               onClick={() => {
                 setSelectedBiz(null);
@@ -2009,7 +2012,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 setMonthlyLimit(null);
                 setIsMonthlyLimitReached(false);
               }}
-              className="ml-auto inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+              className="ml-auto inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors shrink-0 whitespace-nowrap"
             >
               <X className="w-4 h-4" />
               사업장 변경
