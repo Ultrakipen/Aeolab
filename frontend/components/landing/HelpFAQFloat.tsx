@@ -4,8 +4,9 @@
  * HelpFAQFloat — 모바일 우하단 FAQ 물음표 버튼 + bottom-sheet (랜딩 `app/layout.tsx` + 대시보드 `(dashboard)/layout.tsx` 공용)
  *
  * - md:hidden — PC에서는 완전히 숨김
- * - fixed bottom-[148px] right-4 z-40 — 랜딩 MobileFloatingCTA(bottom-0, z-50)·대시보드 하단 탭바 +
- *   FloatingChatButton(bottom-[80px], h-14)과 겹치지 않도록 여유 확보 (2026-07-25 겹침 버그 수정)
+ * - fixed bottom-[92px] right-4 z-40 — 랜딩 MobileFloatingCTA(bottom-0, z-50)·대시보드 하단 탭바와
+ *   겹치지 않도록 여유 확보. AIAssistant(❓ AI도우미, /dashboard 유료전용)와는 겹칠 수 있어
+ *   그 쪽을 bottom-[152px]로 위에 배치 (2026-07-25 플로팅 버튼 정리 — 1:1문의 버튼 제거로 2개만 유지)
  * - 클릭 시 bottom-sheet 모달로 HelpSearchInput 노출
  * - 결과 없을 때 /support 링크 fallback 표시
  * - safe-area-inset-bottom 적용
@@ -73,7 +74,7 @@ export default function HelpFAQFloat() {
       <button
         onClick={() => setOpen(true)}
         aria-label="도움말 검색 열기"
-        className="md:hidden fixed bottom-[148px] right-4 z-40 w-12 h-12 rounded-full bg-blue-600 text-white shadow-lg flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all"
+        className="md:hidden fixed bottom-[92px] right-4 z-40 w-12 h-12 rounded-full bg-blue-600 text-white shadow-lg flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all"
         style={{ paddingBottom: 0 }}
       >
         <HelpCircle className="w-6 h-6" aria-hidden="true" />

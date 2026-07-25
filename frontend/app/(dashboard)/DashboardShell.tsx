@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { MobileBottomTabs } from "@/components/dashboard/MobileBottomTabs";
-import { FloatingChatButton } from "@/components/common/FloatingChatButton";
 
 interface Props {
   email: string;
@@ -47,8 +46,9 @@ export function DashboardShell({
       {/* 모바일 하단 5탭바 */}
       <MobileBottomTabs onMoreClick={() => setSidebarOpen(true)} />
 
-      {/* 플로팅 1:1 문의 버튼 */}
-      <FloatingChatButton />
+      {/* 플로팅 1:1 문의 버튼 제거(2026-07-25) — 도움말 검색(HelpFAQFloat) 폴백과
+          더보기 메뉴의 "1:1 문의" 링크가 이미 같은 목적지(/support, /support/tickets)를
+          제공해 화면 우하단에 플로팅 버튼 3개가 겹치던 중복 진입점이었음 */}
     </div>
   );
 }
