@@ -63,10 +63,10 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
 
         {briefingInactive && (
           <div className="mb-3 rounded-xl border border-green-300 bg-green-50 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-green-600 text-white">N</span>
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-green-600 text-white shrink-0">N</span>
               <h3 className="text-sm md:text-base font-bold text-green-900">네이버 검색 상위노출 ★ 핵심</h3>
-              <span className="ml-auto inline-flex items-center rounded-full bg-green-600 text-white px-2 py-0.5 text-sm font-bold">지금 바로 가능</span>
+              <span className="ml-auto inline-flex items-center rounded-full bg-green-600 text-white px-2 py-0.5 text-sm font-bold shrink-0 whitespace-nowrap">지금 바로 가능</span>
             </div>
             <ul className="space-y-1 text-sm text-slate-700 leading-snug">
               <li>• 스마트플레이스 소개글·사진·소식 업데이트 → 플레이스탭 상위 노출</li>
@@ -87,8 +87,8 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                 : "bg-slate-50 border-slate-200"
             }`}
           >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+              <div className="flex items-center gap-2 shrink-0">
                 <span
                   className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-blue-600 text-white"
                   aria-hidden="true"
@@ -100,17 +100,17 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                 </h3>
               </div>
               {briefingActive && (
-                <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5 text-sm font-bold">
+                <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5 text-sm font-bold shrink-0 whitespace-nowrap">
                   내 업종 대상
                 </span>
               )}
               {briefingLikely && (
-                <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-sm font-semibold">
+                <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 text-sm font-semibold shrink-0 whitespace-nowrap">
                   확대 예정 (네이버 공식 발표 기준)
                 </span>
               )}
               {briefingInactive && (
-                <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-sm font-semibold">
+                <span className="inline-flex items-center rounded-full bg-slate-200 text-slate-600 px-2 py-0.5 text-sm font-semibold shrink-0 whitespace-nowrap">
                   플레이스형 비대상
                 </span>
               )}
@@ -146,8 +146,8 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
 
           {/* 우측: AI탭 */}
           <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+              <div className="flex items-center gap-2 shrink-0">
                 <span
                   className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-indigo-600 text-white"
                   aria-hidden="true"
@@ -158,7 +158,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                   네이버 AI탭
                 </h3>
               </div>
-              <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-sm font-bold gap-1">
+              <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-sm font-bold gap-1 shrink-0 whitespace-nowrap">
                 <Sparkles className="w-3 h-3" /> 정식 출시
               </span>
             </div>
@@ -180,15 +180,15 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* ChatGPT */}
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <span
                   className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-emerald-600 text-white"
                   aria-hidden="true"
                 >
                   C
                 </span>
-                <h3 className="text-sm font-bold text-emerald-900">ChatGPT</h3>
-                <span className="ml-auto inline-flex items-center rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 text-sm font-semibold">
+                <h3 className="text-sm font-bold text-emerald-900 shrink-0">ChatGPT</h3>
+                <span className="ml-auto inline-flex items-center rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 text-sm font-semibold shrink-0 whitespace-nowrap">
                   모든 업종
                 </span>
               </div>
@@ -200,15 +200,15 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             </div>
             {/* Gemini */}
             <div className="rounded-xl border border-violet-200 bg-violet-50 p-3">
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <span
                   className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-violet-600 text-white"
                   aria-hidden="true"
                 >
                   G
                 </span>
-                <h3 className="text-sm font-bold text-violet-900">Gemini</h3>
-                <span className="ml-auto inline-flex items-center rounded-full bg-violet-100 text-violet-700 border border-violet-200 px-1.5 py-0.5 text-sm font-semibold">
+                <h3 className="text-sm font-bold text-violet-900 shrink-0">Gemini</h3>
+                <span className="ml-auto inline-flex items-center rounded-full bg-violet-100 text-violet-700 border border-violet-200 px-1.5 py-0.5 text-sm font-semibold shrink-0 whitespace-nowrap">
                   모든 업종
                 </span>
               </div>
@@ -220,15 +220,15 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             </div>
             {/* Google AI */}
             <div className="rounded-xl border border-orange-200 bg-orange-50 p-3">
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <span
                   className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-orange-500 text-white"
                   aria-hidden="true"
                 >
                   O
                 </span>
-                <h3 className="text-sm font-bold text-orange-900">Google AI</h3>
-                <span className="ml-auto inline-flex items-center rounded-full bg-orange-100 text-orange-700 border border-orange-200 px-1.5 py-0.5 text-sm font-semibold">
+                <h3 className="text-sm font-bold text-orange-900 shrink-0">Google AI</h3>
+                <span className="ml-auto inline-flex items-center rounded-full bg-orange-100 text-orange-700 border border-orange-200 px-1.5 py-0.5 text-sm font-semibold shrink-0 whitespace-nowrap">
                   모든 업종
                 </span>
               </div>
