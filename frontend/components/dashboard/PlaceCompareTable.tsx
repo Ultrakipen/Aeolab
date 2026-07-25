@@ -223,11 +223,6 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
         return (
           <>
           <div className="relative">
-            {/* 모바일 전용 스크롤 안내 — history/page.tsx와 동일 패턴 */}
-            <div className="md:hidden flex items-center gap-1.5 text-sm text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 mb-2 self-start">
-              <span className="text-base">←</span>
-              <span>좌우로 밀어서 더 보기</span>
-            </div>
             <div className="overflow-x-auto">
             <table className="w-full text-sm md:text-base">
               <thead>
@@ -273,10 +268,10 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                       <td className="px-4 py-3 font-medium text-gray-700">
                         <div className="flex items-center gap-1.5">
                           {isWeak && <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0" />}
-                          <span>{row.label}</span>
+                          <span className="break-keep">{row.label}</span>
                         </div>
                         {isBlogRow && (
-                          <span className="text-sm text-gray-500 mt-0.5 block leading-tight">
+                          <span className="text-sm text-gray-500 mt-0.5 block leading-tight break-keep">
                             네이버 블로그 검색 결과 건수
                           </span>
                         )}
@@ -288,16 +283,9 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                       {/* 내 가게 셀 */}
                       <td className="px-4 py-3 text-center bg-blue-50/30">
                         {isBlogRow ? (
-                          <div className="flex flex-col items-center gap-0.5">
-                            <span className={`font-semibold text-sm ${isWeak ? "text-red-600" : "text-gray-800"}`}>
-                              {row.mine !== null ? `${(row.mine as number).toLocaleString()}건` : "-"}
-                            </span>
-                            {data.mine_name && (
-                              <span className="text-sm text-gray-500 leading-tight">
-                                &ldquo;{data.mine_name}&rdquo; 검색
-                              </span>
-                            )}
-                          </div>
+                          <span className={`font-semibold text-sm ${isWeak ? "text-red-600" : "text-gray-800"}`}>
+                            {row.mine !== null ? `${(row.mine as number).toLocaleString()}건` : "-"}
+                          </span>
                         ) : row.type === "bool" ? (
                           <div className="flex justify-center"><BoolCell value={row.mine as boolean | null} /></div>
                         ) : row.type === "rating" ? (
@@ -311,14 +299,9 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                       {visibleCompCells.map((c) => (
                         <td key={c.name} className="px-4 py-3 text-center">
                           {isBlogRow ? (
-                            <div className="flex flex-col items-center gap-0.5">
-                              <span className="font-semibold text-sm text-gray-800">
-                                {c.value !== null ? `${(c.value as number).toLocaleString()}건` : "-"}
-                              </span>
-                              <span className="text-sm text-gray-500 leading-tight">
-                                &ldquo;{c.name}&rdquo; 검색
-                              </span>
-                            </div>
+                            <span className="font-semibold text-sm text-gray-800">
+                              {c.value !== null ? `${(c.value as number).toLocaleString()}건` : "-"}
+                            </span>
                           ) : row.type === "bool" ? (
                             <div className="flex justify-center"><BoolCell value={c.value as boolean | null} /></div>
                           ) : row.type === "rating" ? (
