@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import KeywordRankCard from "@/components/dashboard/KeywordRankCard";
 import { AiInfoTabStatusCard } from "@/components/dashboard/AiInfoTabStatusCard";
@@ -12,6 +12,31 @@ import ReviewKeywordGapCard from "@/components/dashboard/ReviewKeywordGapCard";
 import { SUPPORTED_CATEGORIES as PHOTO_SUPPORTED_CATEGORIES } from "@/lib/photoCategories";
 import SeasonalKeywordBanner from "@/components/dashboard/SeasonalKeywordBanner";
 import NaverSearchStrengthCard from "@/components/dashboard/NaverSearchStrengthCard";
+
+/** 키워드 순위 접힘 상태에서도 모바일 발견성을 지키기 위한 1줄 요약 집계.
+    "1페이지"는 KeywordRankCard.tsx의 rankBadge() 기준(rank<=10)과 동일 — 임의 수치 금지 원칙 준수 */
+function summarizeKeywordRanks(
+  keywords: string[] | undefined,
+  ranks: Record<string, unknown> | null | undefined
+): { total: number; measured: number; onFirstPage: number } | null {
+  if (!keywords || keywords.length === 0) return null;
+  let measured = 0;
+  let onFirstPage = 0;
+  keywords.forEach((kw) => {
+    const r = ranks?.[kw];
+    if (r && typeof r === "object" && !Array.isArray(r)) {
+      const d = r as { pc_rank?: number | null; mobile_rank?: number | null; place_rank?: number | null };
+      const vals = [d.pc_rank, d.mobile_rank, d.place_rank].filter(
+        (v): v is number => typeof v === "number" && v > 0
+      );
+      if (vals.length > 0) {
+        measured += 1;
+        if (vals.some((v) => v <= 10)) onFirstPage += 1;
+      }
+    }
+  });
+  return { total: keywords.length, measured, onFirstPage };
+}
 
 interface BriefingMeta {
   eligibility: "active" | "likely" | "inactive";
@@ -67,9 +92,19 @@ function SubSectionLabel({ icon, label, borderClass }: { icon: string; label: st
 /** 접이식 소섹션 — 헤더가 SubSectionLabel과 동일 스타일이되 클릭 토글.
     점진적 공개: 무거운 카드(순위표·AI탭·브리핑)를 기본 접힘으로 두어 읽기 부담 감소 */
 function CollapsibleSub({
-  icon, label, borderClass, defaultOpen = false, id, children,
-}: { icon: string; label: string; borderClass: string; defaultOpen?: boolean; id?: string; children: ReactNode }) {
+  icon, label, borderClass, defaultOpen = false, mobileDefaultOpen, id, children,
+}: { icon: string; label: string; borderClass: string; defaultOpen?: boolean; mobileDefaultOpen?: boolean; id?: string; children: ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
+
+  // 모바일(<768px) 전용 기본 상태 — CollapseSectionWrapper와 동일 패턴 (하이드레이션 후 적용)
+  useEffect(() => {
+    if (mobileDefaultOpen === undefined) return;
+    if (window.innerWidth < 768) {
+      setOpen(mobileDefaultOpen);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div id={id}>
       <button
@@ -175,7 +210,19 @@ export default function DashboardInsightZone({
       />
       {keywords && keywords.length > 0 && region && (
         <div className="mt-3">
-          <CollapsibleSub icon="📊" label="내 키워드 네이버 검색 순위" borderClass="border-green-400" defaultOpen={true}>
+          {/* 모바일 전용 1줄 요약 — 토글이 접혀도 발견성 유지 (2026-07-25 스크롤 길이 개선) */}
+          {(() => {
+            const summary = summarizeKeywordRanks(keywords, initialKeywordRanks);
+            if (!summary) return null;
+            return (
+              <p className="md:hidden text-sm font-semibold text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-2 break-keep">
+                {summary.measured === 0
+                  ? `🎯 등록 키워드 ${summary.total}개 — 순위 측정 전, 눌러서 확인`
+                  : `🎯 등록 키워드 ${summary.total}개 중 ${summary.onFirstPage}개 1페이지 노출 중`}
+              </p>
+            );
+          })()}
+          <CollapsibleSub icon="📊" label="내 키워드 네이버 검색 순위" borderClass="border-green-400" defaultOpen={true} mobileDefaultOpen={false}>
             <KeywordRankCard
               bizId={bizId}
               keywords={keywords}
