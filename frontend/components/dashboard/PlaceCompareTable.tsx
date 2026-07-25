@@ -223,14 +223,19 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
         return (
           <>
           <div className="relative">
+            {/* 모바일 전용 스크롤 안내 — history/page.tsx와 동일 패턴 */}
+            <div className="md:hidden flex items-center gap-1.5 text-sm text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 mb-2 self-start">
+              <span className="text-base">←</span>
+              <span>좌우로 밀어서 더 보기</span>
+            </div>
             <div className="overflow-x-auto">
-            <table className="min-w-[540px] w-full text-sm md:text-base">
+            <table className="w-full text-sm md:text-base">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="text-left px-4 py-3 font-semibold text-gray-700 w-32">항목</th>
-                  <th className="text-center px-4 py-3 font-semibold text-blue-700 bg-blue-50">내 가게</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-700 w-32 min-w-[110px]">항목</th>
+                  <th className="text-center px-4 py-3 font-semibold text-blue-700 bg-blue-50 min-w-[90px]">내 가게</th>
                   {visibleComps.map((c) => (
-                    <th key={c.name} className="text-center px-4 py-3 font-semibold text-gray-700">
+                    <th key={c.name} className="text-center px-4 py-3 font-semibold text-gray-700 min-w-[120px]">
                       <div className="flex flex-col items-center gap-1">
                         <span className="leading-tight">{c.name}</span>
                         {c.id && (

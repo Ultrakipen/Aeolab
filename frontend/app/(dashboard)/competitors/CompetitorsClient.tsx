@@ -785,8 +785,14 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
 
   const myRank  = entities.findIndex(e => e.isMe) + 1
   const maxScore = Math.max(...entities.map(e => e.score), 10)
-  const COMP_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#8b5cf6']
-  let compColorIdx = 0
+  // 순위 인덱스로 색을 순환시키지 않고, 옆 배지와 같은 성장 단계 색상을 재사용
+  // (과거엔 1위=빨강처럼 "위험" 색이 최상위 경쟁사에 붙어 배지·막대가 서로 다른 신호를 주던 문제)
+  const STAGE_BAR_COLOR: Record<string, string> = {
+    '지역 1등': '#10b981',
+    '빠른 성장': '#3b82f6',
+    '성장 중': '#f59e0b',
+    '시작 단계': '#9ca3af',
+  }
 
   const latestDate = new Date(latest.scanned_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
   const prevDate   = prev ? new Date(prev.scanned_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }) : null
@@ -809,7 +815,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
       {/* 가로 막대 차트 — 각 업체가 독립 행으로 표시 */}
       <div className="space-y-2">
         {entities.map((e, i) => {
-          const barColor = e.isMe ? '#3b82f6' : COMP_COLORS[compColorIdx++ % COMP_COLORS.length]
+          const barColor = e.isMe ? '#3b82f6' : STAGE_BAR_COLOR[getGrowthStageText(e.score).label]
           const barPct   = Math.round((e.score / maxScore) * 100)
           return (
             <div key={e.name}>
@@ -2711,17 +2717,17 @@ export function CompetitorsClient({
                 <span className="font-semibold text-gray-700">{business.region}</span> 지역 내 경쟁 가게를 검색합니다.
                 같은 업종의 가게 이름이나 업종을 입력하세요.
               </p>
-              <form onSubmit={handleSearch} className="flex gap-2">
+              <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
                 <input
                   placeholder="예: 미용실, 치킨집, 헬스장"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors"
+                  className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors"
                 />
                 <button
                   type="submit"
                   disabled={searching || limitReached}
-                  className="bg-blue-600 text-white px-4 py-3 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1.5 min-h-[48px]"
+                  className="bg-blue-600 text-white px-4 py-3 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shrink-0 whitespace-nowrap flex items-center justify-center gap-1.5 min-h-[48px] w-full sm:w-auto"
                 >
                   {searching ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" />검색 중</> : <><Search className="w-3.5 h-3.5" />검색</>}
                 </button>
@@ -2910,11 +2916,11 @@ export function CompetitorsClient({
       {/* 추천 경쟁사 */}
       <div className="rounded-xl border-2 border-blue-200 overflow-hidden shadow-sm">
         {/* 헤더 — 그라디언트 배경으로 시각적 강조 */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 shrink-0">
             <Zap className="w-4 h-4 text-white shrink-0" />
             <span className="text-sm font-bold text-white">추천 경쟁사</span>
-            <span className="text-sm font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full">최대 5개</span>
+            <span className="text-sm font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">최대 5개</span>
           </div>
           <span className="text-sm text-blue-200">같은 업종·지역 미등록 업체</span>
         </div>
