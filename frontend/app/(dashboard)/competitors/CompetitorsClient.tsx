@@ -3187,9 +3187,9 @@ export function CompetitorsClient({
                 : '조금만 더 노력하면 1위에 올라갈 수 있습니다.'}
             </p>
             {topTip && (
-              <div className="flex items-center gap-2 mt-2.5 bg-white/80 rounded-xl px-3 py-2 border border-gray-200">
+              <div className="flex items-center gap-2 mt-2.5 bg-white/80 rounded-xl px-3 py-2 border border-gray-200 flex-wrap">
                 <Zap className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                <span className="text-sm text-gray-700 flex-1 min-w-0"><strong className="text-gray-900">지금 할 일:</strong> {topTip}</span>
+                <span className="text-sm text-gray-700 flex-1 min-w-[140px]"><strong className="text-gray-900">지금 할 일:</strong> {topTip}</span>
                 <a href="/guide" className="text-sm text-blue-600 font-semibold shrink-0 hover:underline whitespace-nowrap">가이드 →</a>
               </div>
             )}
