@@ -773,7 +773,7 @@ export default function OnboardingPage() {
                       </a>
                     </div>
                   </div>
-                  <p className="mt-2 text-sm text-blue-500">
+                  <p className="mt-2 text-sm text-blue-500 break-all">
                     예시 URL: map.naver.com/v5/entry/place/<strong>12345678</strong> ← 이 숫자가 ID입니다
                   </p>
                 </div>

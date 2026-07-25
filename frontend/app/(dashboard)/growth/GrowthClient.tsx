@@ -1024,6 +1024,10 @@ export default function GrowthClient({
           <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">스캔 기록</h2>
           <p className="text-sm text-gray-500 mb-5">AI 스캔을 할 때마다 점수가 기록됩니다</p>
 
+          <div className="md:hidden flex items-center gap-1.5 text-sm text-gray-500 mb-3">
+            <span>←</span>
+            <span>좌우로 밀어서 더 보기</span>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
               <thead>
