@@ -2689,7 +2689,7 @@ export function CompetitorsClient({
               <span className="flex items-center gap-1 text-sm font-semibold whitespace-nowrap">
                 <Search className="w-3.5 h-3.5 shrink-0" />지역 검색
               </span>
-              <span className="text-sm font-normal text-gray-500 leading-tight whitespace-nowrap">카카오맵 근처 동종업체</span>
+              <span className="text-sm font-normal text-gray-500 leading-tight text-center">카카오맵 근처 동종업체</span>
             </button>
             <button
               onClick={() => !limitReached && setTab('manual')}
@@ -2705,7 +2705,7 @@ export function CompetitorsClient({
               <span className="flex items-center gap-1 text-sm font-semibold whitespace-nowrap">
                 <Plus className="w-3.5 h-3.5 shrink-0" />직접 입력
               </span>
-              <span className="text-sm font-normal text-gray-500 leading-tight whitespace-nowrap">이름·주소 직접 입력</span>
+              <span className="text-sm font-normal text-gray-500 leading-tight text-center">이름·주소 직접 입력</span>
             </button>
           </div>
         </div>
