@@ -397,6 +397,7 @@ function PlatformResultTable({ showAll }: { showAll: boolean }) {
           </div>
         </div>
       )}
+      <p className="text-sm text-gray-400 mt-1">← 좌우로 밀어보세요</p>
     </div>
   );
 }
@@ -1751,6 +1752,7 @@ export default function PreviewClient({ currentPlan, businessData, latestScan, b
 
       {/* 탭 네비게이션 */}
       <div className="bg-white border border-gray-200 rounded-xl mb-5 overflow-hidden">
+        <div className="relative">
         <div className="flex overflow-x-auto scrollbar-hide border-b border-gray-100">
           {TABS.map((tab) => {
             const isActive = activeTab === tab;
@@ -1775,6 +1777,8 @@ export default function PreviewClient({ currentPlan, businessData, latestScan, b
               </button>
             );
           })}
+        </div>
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent" />
         </div>
 
         {/* 탭 컨텐츠 */}
