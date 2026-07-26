@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Search, RefreshCw, Share2, CheckCircle2 } from "lucide-react";
 import BusinessQuickEditButton from "../BusinessQuickEditButton";
+import { BusinessTabLink } from "@/components/dashboard/BusinessTabLink";
 import { RescanBanner } from "../RescanBanner";
 import { NewCompetitorAlert } from "@/components/dashboard/NewCompetitorAlert";
 import { OnboardingProgressBar } from "@/components/dashboard/OnboardingProgressBar";
@@ -104,17 +105,14 @@ export default function DashboardHeader({
       {businesses && (businesses.length > 1 || businesses.length < (PLAN_BIZ_LIMITS[plan] ?? 1)) && (
         <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-2 mb-3">
           {businesses.map((b) => (
-            <a
+            <BusinessTabLink
               key={b.id}
               href={`/dashboard?biz_id=${b.id}`}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${
-                b.id === business?.id
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
-              }`}
+              bizId={b.id}
+              active={b.id === business?.id}
             >
               {b.name}
-            </a>
+            </BusinessTabLink>
           ))}
           {(() => {
             const limit = PLAN_BIZ_LIMITS[plan] ?? 1;

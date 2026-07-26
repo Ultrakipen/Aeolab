@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { Store } from 'lucide-react'
+import { syncActiveBusinessCookie } from '@/lib/active-business-client'
 
 interface Business {
   id: string
@@ -18,6 +19,7 @@ export function BusinessSwitcherClient({ businesses, currentBizId }: Props) {
 
   const handleSwitch = (bizId: string) => {
     if (bizId === currentBizId) return
+    syncActiveBusinessCookie(bizId)
     router.push(`?biz_id=${bizId}`, { scroll: false })
     router.refresh()
   }

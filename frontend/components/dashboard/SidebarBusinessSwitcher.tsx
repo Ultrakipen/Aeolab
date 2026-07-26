@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { syncActiveBusinessCookie } from "@/lib/active-business-client";
 
 interface BizOption {
   id: string;
@@ -79,15 +80,7 @@ export function SidebarBusinessSwitcher({ onClose }: Props) {
 
   function handleSelect(id: string) {
     setActiveBizId(id);
-    // cookie 설정 (SSR 페이지가 읽는 값)
-    document.cookie = `aeolab_active_biz=${id}; path=/; max-age=31536000; samesite=lax`;
-    // localStorage 하위 호환
-    try {
-      localStorage.setItem("aeolab.activeBizId", id);
-    } catch {
-      // ignore
-    }
-    window.dispatchEvent(new CustomEvent("aeolab:active-biz-changed", { detail: { bizId: id } }));
+    syncActiveBusinessCookie(id);
     setOpen(false);
     // 서버 컴포넌트(SSR 페이지) 재렌더 트리거
     router.refresh();
