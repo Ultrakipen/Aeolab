@@ -1,20 +1,19 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser, getCachedActivePlan } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import SchemaPageContent from './SchemaClient'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import { getActiveBusinessId } from '@/lib/active-business'
-import { resolveActivePlan } from '@/lib/subscriptionPlan'
 
 export default async function SchemaPage() {
+  const user = await getCachedUser()
+  if (!user) redirect('/login')
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (!user || error) redirect('/login')
 
   // 관리자 우회 (competitors/page.tsx:78-80과 동일 패턴)
   const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com').split(',').map((e) => e.trim().toLowerCase())
   const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? '').toLowerCase())
-  const plan = isAdmin ? 'biz' : await resolveActivePlan(supabase, user.id)
+  const plan = isAdmin ? 'biz' : await getCachedActivePlan(user.id)
   const hasAccess = plan !== 'free'
 
   if (!hasAccess) {

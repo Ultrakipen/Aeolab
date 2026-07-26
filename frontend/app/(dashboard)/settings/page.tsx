@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCachedUser } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Crown, Zap, Calendar, Clock } from "lucide-react";
@@ -51,9 +51,9 @@ export default async function SettingsPage({
   const autoEditBizId = params.biz_id ?? null;
   const autoEditField = params.field ?? null;
 
+  const user = await getCachedUser();
+  if (!user) redirect("/login");
   const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (!user || error) redirect("/login");
 
   // plan_gate.py ADMIN_EMAILS 우회 로직과 동기화 (서버 컴포넌트에서만 접근)
   const adminEmailSet = new Set(

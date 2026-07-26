@@ -1,15 +1,14 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser, getCachedActivePlan } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { BlogClient } from './BlogClient'
 import { NoBusiness } from '@/components/dashboard/NoBusiness'
 import { FileText, Search, BarChart2, TrendingUp } from 'lucide-react'
 import { getActiveBusinessId } from '@/lib/active-business'
-import { resolveActivePlan } from '@/lib/subscriptionPlan'
 
 export default async function BlogPage() {
+  const user = await getCachedUser()
+  if (!user) redirect('/login')
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (!user || error) redirect('/login')
 
   const { data: businesses } = await supabase
     .from('businesses')
@@ -35,7 +34,7 @@ export default async function BlogPage() {
   // 관리자 우회 (competitors/page.tsx:78-80과 동일 패턴)
   const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com').split(',').map((e) => e.trim().toLowerCase())
   const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? '').toLowerCase())
-  const currentPlan = isAdmin ? 'biz' : await resolveActivePlan(supabase, user.id)
+  const currentPlan = isAdmin ? 'biz' : await getCachedActivePlan(user.id)
 
   const { data: { session } } = await supabase.auth.getSession()
   const accessToken = session?.access_token ?? ''

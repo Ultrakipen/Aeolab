@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser, getCachedActivePlan } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { CompetitorsClient } from './CompetitorsClient'
@@ -8,7 +8,6 @@ import { BusinessSwitcherClient } from './BusinessSwitcherClient'
 import type { GapAnalysis } from '@/types/gap'
 import type { Competitor } from '@/types/entities'
 import { getActiveBusinessId } from '@/lib/active-business'
-import { resolveActivePlan } from '@/lib/subscriptionPlan'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -17,9 +16,9 @@ export default async function CompetitorsPage({
 }: {
   searchParams: Promise<{ biz_id?: string }>
 }) {
+  const user = await getCachedUser()
+  if (!user) redirect('/login')
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (!user || error) redirect('/login')
 
   const params = await searchParams
   const selectedBizId = params.biz_id ?? null
@@ -38,7 +37,7 @@ export default async function CompetitorsPage({
       .eq('user_id', user.id)
       .eq('is_active', true)
       .order('created_at', { ascending: true }),
-    isAdmin ? Promise.resolve('biz') : resolveActivePlan(supabase, user.id),
+    isAdmin ? Promise.resolve('biz') : getCachedActivePlan(user.id),
     // 백엔드 API 호출용 토큰 — auth 검증은 위 getUser()로 완료. 토큰 추출 목적으로만 사용
     supabase.auth.getSession(),
   ])
@@ -76,26 +75,27 @@ export default async function CompetitorsPage({
     }
   }
 
-  const { data: rawCompetitors } = await supabase
-    .from('competitors')
-    .select('id, business_id, name, address, naver_place_id, is_active, created_at, lat, lng, blog_mention_count, website_url, website_seo_score, website_seo_result, comp_keywords, detail_synced_at, naver_review_count, naver_avg_rating, has_faq, has_recent_post, has_menu, has_intro, naver_photo_count, naver_place_last_synced_at')
-    .eq('business_id', business.id)
-    .eq('is_active', true)
-  const competitors: Competitor[] = rawCompetitors?.map(mapCompetitorFields) ?? []
-
   const COMPETITOR_LIMITS: Record<string, number> = {
     free: 0, basic: 3, startup: 5, pro: 5, biz: 999, enterprise: 999,
   }
   const competitorLimit = COMPETITOR_LIMITS[currentPlan] ?? 3
   const accessToken = sd.session?.access_token ?? ''
 
+  // competitors 조회는 이후 스캔 결과 조회들과 서로 의존관계 없음(둘 다 business.id만
+  // 필요) — 순차 실행되던 것을 하나의 Promise.all로 합쳐 왕복 1회를 절약
   const [
+    { data: rawCompetitors },
     { data: scanResults },
     { data: latestScans },
     { data: trendScans },
     gapAnalysis,
     myBlogMentions,
   ] = await Promise.all([
+    supabase
+      .from('competitors')
+      .select('id, business_id, name, address, naver_place_id, is_active, created_at, lat, lng, blog_mention_count, website_url, website_seo_score, website_seo_result, comp_keywords, detail_synced_at, naver_review_count, naver_avg_rating, has_faq, has_recent_post, has_menu, has_intro, naver_photo_count, naver_place_last_synced_at')
+      .eq('business_id', business.id)
+      .eq('is_active', true),
     // competitor_scores가 있는 최신 스캔 결과 (경쟁사 점수 표시용)
     // track1_score: "성장 단계" 라벨(지역 1등 등)은 track1_score 기준이어야 함(CLAUDE.md 표준,
     // 업종별 naver/global 비율 차이로 인한 오판 방지) — unified인 total_score는 순위·막대용으로만 사용
@@ -135,6 +135,8 @@ export default async function CompetitorsPage({
           .catch(() => null)
       : Promise.resolve(null),
   ])
+
+  const competitors: Competitor[] = rawCompetitors?.map(mapCompetitorFields) ?? []
 
   // competitor_scores가 있는 최신 스캔 결과
   const latestScanWithScores = scanResults?.[0] ?? null

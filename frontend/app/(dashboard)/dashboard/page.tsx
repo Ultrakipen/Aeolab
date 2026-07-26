@@ -1,10 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCachedUser, getCachedActivePlan } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SUPPORTED_CATEGORIES as PHOTO_SUPPORTED_CATEGORIES } from "@/lib/photoCategories";
 import { getBriefingEligibility, getUserGroup } from "@/lib/userGroup";
 import { fetchBriefingCategories } from "@/lib/briefingCategoriesServer";
 import { getActiveBusinessId } from "@/lib/active-business";
-import { resolveActivePlan } from "@/lib/subscriptionPlan";
 import type { WebsiteCheckResult } from "@/types";
 import DashboardHeader from "./sections/DashboardHeader";
 import ScanWithModal from "./ScanWithModal";
@@ -54,22 +53,34 @@ export default async function DashboardPage({
   const isFromOnboarding = params.onboarding === "1";
   const selectedBizId = params.biz_id ?? null;
 
+  const user = await getCachedUser();
+  if (!user) redirect("/login");
   const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (!user || error) redirect("/login");
 
-  const { data: { session } } = await supabase.auth.getSession();
+  // 서로 의존관계 없는 조회 5개(세션·활성사업장ID·사업장목록·플랜·프로필)를
+  // 순차 실행하던 것을 하나로 병합 — 페이지 이동마다 쌓이던 Supabase 왕복 축소
+  const [
+    { data: { session } },
+    resolvedActiveBizId,
+    { data: businesses },
+    _activePlan,
+    { data: profileRow },
+  ] = await Promise.all([
+    supabase.auth.getSession(),
+    selectedBizId ? Promise.resolve(selectedBizId) : getActiveBusinessId(user.id),
+    supabase
+      .from("businesses")
+      .select("id, name, category, region, business_type, website_url, naver_place_id, google_place_id, kakao_place_id, kakao_score, kakao_checklist, kakao_registered, is_active, naver_place_url, review_count, avg_rating, keywords, is_smart_place, has_faq, has_recent_post, has_intro, visitor_review_count, receipt_review_count, blog_url, blog_keyword_coverage, blog_post_count, blog_mention_count, blog_analyzed_at, checklist_overrides, is_franchise, ai_info_tab_status, naver_intro_draft, naver_intro_generated_at, global_intro_draft, global_intro_generated_at, talktalk_faq_draft, talktalk_faq_generated_at")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: true })
+      .limit(5),
+    getCachedActivePlan(user.id),
+    supabase
+      .from("profiles").select("onboarding_done, basic_trial_used, free_scan_month, free_scan_monthly_count").eq("user_id", user.id).maybeSingle(),
+  ]);
   const accessToken = session?.access_token ?? "";
-  const activeBizId = selectedBizId ?? await getActiveBusinessId(user.id);
-
-  // ── 사업장 목록 ──────────────────────────────────────────────
-  const { data: businesses } = await supabase
-    .from("businesses")
-    .select("id, name, category, region, business_type, website_url, naver_place_id, google_place_id, kakao_place_id, kakao_score, kakao_checklist, kakao_registered, is_active, naver_place_url, review_count, avg_rating, keywords, is_smart_place, has_faq, has_recent_post, has_intro, visitor_review_count, receipt_review_count, blog_url, blog_keyword_coverage, blog_post_count, blog_mention_count, blog_analyzed_at, checklist_overrides, is_franchise, ai_info_tab_status, naver_intro_draft, naver_intro_generated_at, global_intro_draft, global_intro_generated_at, talktalk_faq_draft, talktalk_faq_generated_at")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("created_at", { ascending: true })
-    .limit(5);
+  const activeBizId = resolvedActiveBizId;
 
   const business = (activeBizId
     ? businesses?.find((b) => b.id === activeBizId)
@@ -77,13 +88,10 @@ export default async function DashboardPage({
   const todayISO = new Date().toISOString().split("T")[0];
 
   // ── 구독 ─────────────────────────────────────────────────────
-  const _activePlan = await resolveActivePlan(supabase, user.id);
   const planLabel = ({ free:"Free", basic:"Basic", startup:"창업패키지", pro:"Pro", biz:"Biz", enterprise:"Enterprise" } as Record<string,string>)[_activePlan ?? "free"] ?? "Free";
   const planFaqLimit = ({ free:0, basic:10, startup:20, pro:30, biz:60, enterprise:999 } as Record<string,number>)[_activePlan ?? "free"] ?? 0;
 
   // ── 온보딩 ───────────────────────────────────────────────────
-  const { data: profileRow } = await supabase
-    .from("profiles").select("onboarding_done, basic_trial_used, free_scan_month, free_scan_monthly_count").eq("user_id", user.id).maybeSingle();
   let onboardingDone = profileRow?.onboarding_done ?? false;
   if (!onboardingDone && business) {
     await supabase.from("profiles").upsert({ user_id: user.id, onboarding_done: true }, { onConflict: "user_id" });

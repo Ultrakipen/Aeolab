@@ -1,29 +1,22 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCachedUser, getCachedActivePlan } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "./DashboardShell";
 import { PageHeader } from "./PageHeader";
 import HelpFAQFloat from "@/components/landing/HelpFAQFloat";
 import { DashboardErrorBoundary } from "@/components/common/DashboardErrorBoundary";
-import { resolveActivePlan } from "@/lib/subscriptionPlan";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-
-  let user = null;
-  try {
-    const { data, error } = await supabase.auth.getUser();
-    if (!error && data.user) user = data.user;
-  } catch {
-    // Invalid Refresh Token 등 인증 에러 → 비로그인 처리
-  }
+  const user = await getCachedUser();
 
   if (!user) {
     redirect("/login");
   }
+
+  const supabase = await createClient();
 
   // TypeScript non-null 보장 (redirect() 위에서 처리됨)
   const userId = user!.id;
@@ -31,7 +24,7 @@ export default async function DashboardLayout({
 
   // 구독 정보 + 사업장 수 병렬 조회
   const [activePlanResolved, { data: bizData, count: bizCount }] = await Promise.all([
-    resolveActivePlan(supabase, userId),
+    getCachedActivePlan(userId),
     supabase
       .from("businesses")
       .select("id", { count: "exact" })

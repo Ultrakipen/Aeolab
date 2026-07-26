@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser, getCachedActivePlan } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { TrendLine } from '@/components/dashboard/TrendLine'
 import { ExportButton } from './ExportButton'
@@ -9,7 +9,6 @@ import { History, ImageIcon, TrendingUp, Calendar, Download, Lock } from 'lucide
 import Link from 'next/link'
 import { getActiveBusinessId } from '@/lib/active-business'
 import { getScoreTextLabel } from '@/lib/scoreLabels'
-import { resolveActivePlan } from '@/lib/subscriptionPlan'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -26,9 +25,9 @@ interface ActionLog {
 }
 
 export default async function HistoryPage() {
+  const user = await getCachedUser()
+  if (!user) redirect('/login')
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (!user || error) redirect('/login')
 
   const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? 'hoozdev@gmail.com').split(',').map((e) => e.trim().toLowerCase())
   const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? '').toLowerCase())
@@ -37,7 +36,7 @@ export default async function HistoryPage() {
   // 서로 독립적이므로 병렬 실행 (plan/session은 activeBizId·business와 무관)
   const [activeBizId, plan, sessionRes] = await Promise.all([
     getActiveBusinessId(user.id),
-    isAdmin ? Promise.resolve('biz') : resolveActivePlan(supabase, user.id),
+    isAdmin ? Promise.resolve('biz') : getCachedActivePlan(user.id),
     supabase.auth.getSession().catch(() => ({ data: { session: null } })),
   ])
 

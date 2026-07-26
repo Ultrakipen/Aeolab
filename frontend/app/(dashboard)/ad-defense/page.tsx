@@ -1,20 +1,19 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCachedUser, getCachedActivePlan } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AdDefenseClient } from "./AdDefenseClient";
 import { NoBusiness } from "@/components/dashboard/NoBusiness";
 import { PlanGate } from "@/components/common/PlanGate";
 import { Shield, TrendingUp, Bot, BarChart2 } from "lucide-react";
-import { resolveActivePlan } from "@/lib/subscriptionPlan";
 
 export default async function AdDefensePage() {
+  const user = await getCachedUser();
+  if (!user) redirect("/login");
   const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (!user || error) redirect("/login");
 
   // Pro 플랜 게이트 — 구독 status까지 검증. 관리자 우회(competitors/page.tsx:78-80과 동일 패턴)
   const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com").split(",").map((e) => e.trim().toLowerCase());
   const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? "").toLowerCase());
-  const activePlan = isAdmin ? "biz" : await resolveActivePlan(supabase, user.id);
+  const activePlan = isAdmin ? "biz" : await getCachedActivePlan(user.id);
   const PRO_PLANS = ["pro", "biz", "enterprise"];
 
   if (!PRO_PLANS.includes(activePlan)) {

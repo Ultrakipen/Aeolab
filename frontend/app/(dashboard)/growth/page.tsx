@@ -1,10 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCachedUser, getCachedActivePlan } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { TrendingUp, Lock } from "lucide-react";
 import GrowthClient from "./GrowthClient";
 import { getActiveBusinessId } from "@/lib/active-business";
-import { resolveActivePlan } from "@/lib/subscriptionPlan";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -21,17 +20,14 @@ interface ActionLog {
 }
 
 export default async function GrowthPage() {
+  const user = await getCachedUser();
+  if (!user) redirect("/login");
   const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-  if (!user || error) redirect("/login");
 
   // 구독 정보 조회 — 관리자 우회 (competitors/page.tsx:78-80과 동일 패턴)
   const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com").split(",").map((e) => e.trim().toLowerCase());
   const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? "").toLowerCase());
-  const activePlan = isAdmin ? "biz" : await resolveActivePlan(supabase, user.id);
+  const activePlan = isAdmin ? "biz" : await getCachedActivePlan(user.id);
 
   // Free 플랜 차단 (Basic 이상 필요)
   if ((PLAN_RANK[activePlan] ?? 0) < PLAN_RANK["basic"]) {

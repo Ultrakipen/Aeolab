@@ -1,20 +1,13 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCachedUser, getCachedActivePlan } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { StartupClient } from "./StartupClient";
 import { PlanGate } from "@/components/common/PlanGate";
 import { BarChart2, MapPin, TrendingUp, LineChart } from "lucide-react";
-import { resolveActivePlan } from "@/lib/subscriptionPlan";
 
 export default async function StartupPage() {
-  const supabase = await createClient();
-  let user = null;
-  try {
-    const { data, error } = await supabase.auth.getUser();
-    if (!error && data.user) user = data.user;
-  } catch {
-    // Invalid Refresh Token 등
-  }
+  const user = await getCachedUser();
   if (!user) redirect("/login");
+  const supabase = await createClient();
 
   // startup/biz 플랜 게이트 — 구독 status까지 검증
   // 관리자 우회 — competitors/page.tsx:78-80, dashboard/page.tsx:142-143 등과 동일 패턴.
@@ -22,7 +15,7 @@ export default async function StartupPage() {
   // 프론트 게이트만 자유 요금제로 보고 잠금 화면을 보여주던 버그(2026-07-15 스크린샷으로 발견)
   const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com").split(",").map((e) => e.trim().toLowerCase());
   const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? "").toLowerCase());
-  const activePlan = isAdmin ? "biz" : await resolveActivePlan(supabase, user.id);
+  const activePlan = isAdmin ? "biz" : await getCachedActivePlan(user.id);
   const STARTUP_PLANS = ["startup", "biz", "enterprise"];
 
   if (!STARTUP_PLANS.includes(activePlan)) {

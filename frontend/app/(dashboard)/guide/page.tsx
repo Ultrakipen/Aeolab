@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser, getCachedActivePlan } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { GuideClient } from './GuideClient'
@@ -8,12 +8,11 @@ import { Lightbulb, Bot, ListChecks, RefreshCw, CheckSquare, Lock, Sparkles, Fil
 import { getActiveBusinessId } from '@/lib/active-business'
 import { getBriefingEligibility } from '@/lib/userGroup'
 import { fetchBriefingCategories } from '@/lib/briefingCategoriesServer'
-import { resolveActivePlan } from '@/lib/subscriptionPlan'
 
 export default async function GuidePage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  const user = await getCachedUser()
+  if (!user) redirect('/login')
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (!user || error) redirect('/login')
 
   const params = await searchParams
   const selectedBizId = params.biz_id ?? null
@@ -35,7 +34,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
       .eq('is_active', true)
       .order('created_at', { ascending: true })
       .limit(10),
-    isAdminUser ? Promise.resolve('biz') : resolveActivePlan(supabase, user.id),
+    isAdminUser ? Promise.resolve('biz') : getCachedActivePlan(user.id),
     supabase.auth.getSession().catch(() => ({ data: { session: null } })),
   ])
 
