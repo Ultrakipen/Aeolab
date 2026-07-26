@@ -8,7 +8,6 @@ import TrackedCTA from "@/components/analytics/TrackedCTA";
 import PricingAnchorTracker from "@/components/analytics/PricingAnchorTracker";
 import FAQSection from "@/components/landing/FAQSection";
 import Testimonials from "@/components/landing/Testimonials";
-import FreeToolsSection from "@/components/landing/FreeToolsSection";
 import AgencyServiceSection from "@/components/landing/AgencyServiceSection";
 import InlineKeywordWidget from "@/components/landing/InlineKeywordWidget";
 import { HowAeolabIntegrated } from "@/components/landing/HowAeolabIntegrated";
@@ -1054,10 +1053,9 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* ── 8-B. FREE TOOLS — 가입 없이 체험 (#F0FDF4) ── */}
-      <FreeToolsSection />
-
-      {/* ── 1-C. AD COST CALCULATOR SECTION ── */}
+      {/* ── 1-C. AD COST CALCULATOR SECTION ──
+            (구 8-B FreeToolsSection 삭제 — 키워드 생성기는 위 InlineKeywordWidget과,
+             광고비 계산기는 바로 아래 이 섹션과 완전 중복이라 2026-07-26 제거) ── */}
       <section className="px-4 py-8 md:py-12" style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
         <div className="max-w-[1020px] mx-auto">
           <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-5 md:p-7 flex flex-col md:flex-row items-center md:items-start gap-5 md:gap-8">
