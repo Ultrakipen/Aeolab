@@ -177,7 +177,7 @@ function CrisisGuidePanel({
               </button>
               {expanded.reply && (
                 <div className="px-4 pb-4">
-                  <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-lg p-3 mb-2 whitespace-pre-wrap">
+                  <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-lg p-3 mb-2 whitespace-pre-wrap break-words">
                     {result.public_reply}
                   </p>
                   <button

@@ -105,7 +105,7 @@ export default function PostScanModal({
                 {faqCopyText && (
                   <div className="bg-white border border-amber-200 rounded-lg p-3 mb-3">
                     <p className="text-sm font-semibold text-gray-600 mb-1.5">바로 복사해서 소개글 Q&A에 붙여넣기</p>
-                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{faqCopyText}</p>
+                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words">{faqCopyText}</p>
                   </div>
                 )}
                 <button

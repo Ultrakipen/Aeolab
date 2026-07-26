@@ -553,7 +553,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                     </div>
                     <CopyButton text={result.smartplace_intro} label="소개글 복사" />
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border border-gray-100">
+                  <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed border border-gray-100">
                     {result.smartplace_intro}
                   </div>
                   <div className={`text-sm text-right ${result.smartplace_intro.length < 500 ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
@@ -627,7 +627,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                       {/* 본문 */}
                       <div>
                         <div className="text-sm text-gray-500 mb-1">포스트 본문</div>
-                        <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border border-gray-100 max-h-80 overflow-y-auto">
+                        <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed border border-gray-100 max-h-80 overflow-y-auto">
                           {selectedDraft.content}
                         </div>
                         <div className="flex justify-between items-center mt-2">
@@ -648,7 +648,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                       </div>
                       <div>
                         <div className="text-sm text-gray-500 mb-1">포스트 본문</div>
-                        <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border border-gray-100 max-h-80 overflow-y-auto">
+                        <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed border border-gray-100 max-h-80 overflow-y-auto">
                           {result.blog_content}
                         </div>
                         <div className="flex justify-end mt-2">
@@ -782,7 +782,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                   </div>
 
                   {result.no_website_guide && (
-                    <div className="bg-blue-50 rounded-xl p-4 text-sm text-blue-800 leading-relaxed whitespace-pre-wrap">
+                    <div className="bg-blue-50 rounded-xl p-4 text-sm text-blue-800 leading-relaxed whitespace-pre-wrap break-words">
                       {result.no_website_guide}
                     </div>
                   )}

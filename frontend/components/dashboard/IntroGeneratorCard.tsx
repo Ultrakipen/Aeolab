@@ -201,7 +201,7 @@ export function IntroGeneratorCard({
           {introType === "global" && globalCurrentIntro && !stats && (
             <p className="text-sm text-gray-500 mb-2">이전에 생성된 글로벌 AI용 소개글입니다. 하단 &apos;다시 생성&apos; 버튼으로 새로 만들 수 있습니다.</p>
           )}
-          <div className="p-4 bg-gray-50 rounded border whitespace-pre-wrap text-sm md:text-base text-gray-900 leading-relaxed">
+          <div className="p-4 bg-gray-50 rounded border whitespace-pre-wrap break-words text-sm md:text-base text-gray-900 leading-relaxed">
             {generated}
           </div>
 

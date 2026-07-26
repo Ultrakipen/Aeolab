@@ -1599,7 +1599,7 @@ function ListContentSection({ bizId, token, region, category, bizName }: {
           </div>
           <div className="bg-gray-50 rounded-xl p-3 mb-3">
             <p className="text-sm font-medium text-gray-700 mb-2">초안 미리보기</p>
-            <pre className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-sans break-keep">
+            <pre className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-sans break-keep break-words">
               {buildDraft().slice(0, 300)}...
             </pre>
           </div>
@@ -1899,7 +1899,7 @@ function BriefingPathsSection({
                           <span className="text-sm font-medium text-blue-700">바로 붙여넣기 가능한 문구</span>
                           <CopyButton text={path.ready_text} label="문구 복사" />
                         </div>
-                        <p className="text-base text-blue-800 leading-relaxed whitespace-pre-wrap">{path.ready_text}</p>
+                        <p className="text-base text-blue-800 leading-relaxed whitespace-pre-wrap break-words">{path.ready_text}</p>
                       </div>
                     )
                   )}
@@ -2218,7 +2218,7 @@ function KeywordGapCard({
             <span className="text-sm font-medium text-gray-700">QR 리뷰 유도 문구</span>
             <CopyButton text={gap.qr_card_message} />
           </div>
-          <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{gap.qr_card_message}</p>
+          <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap break-words">{gap.qr_card_message}</p>
         </div>
       )}
     </div>
@@ -2309,7 +2309,7 @@ function ReviewDraftsSection({
                     {d.review_snippet && (
                       <p className="text-sm text-gray-500 italic mb-2">원본: &quot;{d.review_snippet}&quot;</p>
                     )}
-                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap mb-3">{d.draft_response}</p>
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words mb-3">{d.draft_response}</p>
                     <CopyButton text={d.draft_response} />
                   </div>
                 </div>
@@ -2423,7 +2423,7 @@ function CommunityDraftsSection({ paths }: { paths: BriefingPath[] }) {
               </button>
               {isOpen && (
                 <div className="px-3 pb-3 border-t border-gray-50">
-                  <div className="bg-gray-50 rounded-lg p-3 mt-2 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed break-keep">
+                  <div className="bg-gray-50 rounded-lg p-3 mt-2 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed break-keep break-words">
                     {draft.text}
                   </div>
                   <button
@@ -2689,7 +2689,7 @@ function WeeklyPostDraftSection({ businessId, token }: { businessId: string; tok
       </div>
       <div className="bg-green-50 rounded-xl p-3">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap flex-1">{draft}</p>
+          <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap break-words flex-1">{draft}</p>
           <CopyButton text={draft} label="복사" />
         </div>
       </div>
@@ -2731,7 +2731,7 @@ function QuickToolsSection({ tools, businessId, token }: { tools: ToolsJson; bus
             <span className="text-sm font-medium text-gray-700">QR/영수증용 리뷰 유도 문구</span>
             <CopyButton text={tools.review_request_message} />
           </div>
-          <p className="text-base text-gray-600 leading-relaxed whitespace-pre-wrap">{tools.review_request_message}</p>
+          <p className="text-base text-gray-600 leading-relaxed whitespace-pre-wrap break-words">{tools.review_request_message}</p>
         </div>
       )}
 
@@ -2741,7 +2741,7 @@ function QuickToolsSection({ tools, businessId, token }: { tools: ToolsJson; bus
             <span className="text-sm font-medium text-gray-700">스마트플레이스 소식 공지 초안</span>
             <CopyButton text={tools.naver_post_template} />
           </div>
-          <p className="text-base text-gray-600 leading-relaxed whitespace-pre-wrap">{tools.naver_post_template}</p>
+          <p className="text-base text-gray-600 leading-relaxed whitespace-pre-wrap break-words">{tools.naver_post_template}</p>
         </div>
       )}
 
@@ -3354,7 +3354,7 @@ function GuideItemCard({
             <span className="text-sm font-medium text-blue-700">복사 가능한 예시</span>
             <CopyButton text={copyable} />
           </div>
-          <p className="text-base text-blue-800 leading-relaxed whitespace-pre-wrap">{copyable}</p>
+          <p className="text-base text-blue-800 leading-relaxed whitespace-pre-wrap break-words">{copyable}</p>
         </div>
       )}
 
@@ -3508,7 +3508,7 @@ function TodayKeywordHero({
           {faqText && (
             <div className="bg-white rounded-lg border border-amber-200 p-3 mb-3">
               <p className="text-sm text-amber-600 font-semibold mb-1.5">스마트플레이스 Q&A 복사 문구</p>
-              <p className="text-base text-gray-700 whitespace-pre-wrap leading-relaxed">{faqText}</p>
+              <p className="text-base text-gray-700 whitespace-pre-wrap leading-relaxed break-words">{faqText}</p>
             </div>
           )}
 
@@ -3882,7 +3882,7 @@ function GuideTabView({
               </div>
               <p className="text-sm text-gray-500 mb-3">이 문구를 영수증·테이블 카드·QR 카드에 인쇄하여 리뷰를 유도하세요.</p>
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap mb-4">{tools.review_request_message}</p>
+                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words mb-4">{tools.review_request_message}</p>
                 <div className="flex items-center justify-between pt-3 border-t border-amber-200">
                   <span className="text-sm text-amber-700 font-medium">복사 후 바로 사용 가능</span>
                   <CopyButton text={tools.review_request_message} />
@@ -4104,7 +4104,7 @@ function GuideTabView({
                           <span className="text-sm font-medium text-gray-700">바로 붙여넣기 가능한 초안</span>
                           <CopyButton text={ch.text} />
                         </div>
-                        <p className="text-base text-gray-700 whitespace-pre-wrap leading-relaxed break-keep">{ch.text}</p>
+                        <p className="text-base text-gray-700 whitespace-pre-wrap leading-relaxed break-keep break-words">{ch.text}</p>
                       </div>
                     </div>
                   ))}
@@ -4854,7 +4854,7 @@ export function GuideClient({
                     복사
                   </button>
                 </div>
-                <p className="text-base text-white leading-relaxed whitespace-pre-wrap">{heroReadyText}</p>
+                <p className="text-base text-white leading-relaxed whitespace-pre-wrap break-words">{heroReadyText}</p>
               </div>
             )}
             <div className="flex items-center justify-between">

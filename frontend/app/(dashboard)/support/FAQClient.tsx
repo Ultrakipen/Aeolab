@@ -108,7 +108,7 @@ function FAQSection({ initialItems, faqLoadFailed, onSwitchToInquiry }: { initia
               </button>
               {isOpen && (
                 <div id={`faq-panel-${faq.id}`} className="px-4 pb-4 bg-gray-50 border-t border-gray-100">
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap pt-3">
+                  <p className="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap break-words pt-3">
                     {faq.answer}
                   </p>
                 </div>
@@ -209,7 +209,7 @@ function MyInquiryList() {
               <div id={`inquiry-panel-${item.id}`} className="bg-gray-50 border-t border-gray-100">
                 <div className="p-4 border-b border-gray-100">
                   <p className="text-sm text-gray-500 mb-1">문의 내용</p>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed">
                     {item.content}
                   </p>
                 </div>
@@ -220,7 +220,7 @@ function MyInquiryList() {
                       : "답변"}
                   </p>
                   {item.answer ? (
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed">
                       {item.answer}
                     </p>
                   ) : (

@@ -172,7 +172,7 @@ function TipCard({ tip, bizId }: { tip: ConversionTip; bizId: string }) {
           {tip.locked ? (
             /* 잠금: blur 처리 */
             <div className="relative">
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed blur-[3px] select-none max-h-20 overflow-hidden">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-800 whitespace-pre-wrap break-words leading-relaxed blur-[3px] select-none max-h-20 overflow-hidden">
                 {tip.copy_text.slice(0, 60) + " …"}
               </div>
               <div className="absolute inset-0 flex items-center justify-center bg-white/70 rounded-lg">
@@ -200,7 +200,7 @@ function TipCard({ tip, bizId }: { tip: ConversionTip; bizId: string }) {
           ) : (
             /* 표시 모드 */
             <div className="relative">
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-800 whitespace-pre-wrap break-words leading-relaxed">
                 {editedText}
               </div>
               {isModified && (

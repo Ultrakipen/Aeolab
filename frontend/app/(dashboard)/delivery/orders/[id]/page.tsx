@@ -210,7 +210,7 @@ export default async function DeliveryOrderDetailPage({
               </span>
             </div>
             <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{order.request_body}</p>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed">{order.request_body}</p>
             </div>
 
             {/* 결제 대기 — received 상태에서 결제 재시도 */}

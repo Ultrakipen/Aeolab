@@ -170,7 +170,7 @@ export default function AIAssistant({ bizId, plan, authToken }: Props) {
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-xl px-3 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+                  className={`max-w-[85%] rounded-xl px-3 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words ${
                     msg.role === "user"
                       ? "bg-blue-600 text-white rounded-br-sm"
                       : "bg-gray-100 text-gray-800 rounded-bl-sm"

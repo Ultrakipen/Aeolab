@@ -137,7 +137,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
                       <span className="text-sm text-gray-500 mt-1">{formatDate(ticket.created_at)}</span>
                     </div>
                     <h2 className="text-base font-semibold text-gray-900 mb-2">Q. {ticket.title}</h2>
-                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{ticket.body}</p>
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words">{ticket.body}</p>
                   </div>
 
                   {/* 운영자 답변 */}
@@ -147,7 +147,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
                         <span className="text-sm font-semibold text-blue-700">운영자</span>
                         <span className="text-sm bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium">답변</span>
                       </div>
-                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{adminReply.body}</p>
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words">{adminReply.body}</p>
                     </div>
                   )}
                 </div>

@@ -193,7 +193,7 @@ function TicketDetailInner() {
             </span>
           </div>
           <div className="bg-gray-50 rounded-xl p-4">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{ticket.body}</p>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed">{ticket.body}</p>
           </div>
         </div>
 
@@ -219,7 +219,7 @@ function TicketDetailInner() {
                     <span className="text-sm bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium">답변</span>
                   )}
                 </div>
-                <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">{reply.body}</p>
+                <p className="text-sm text-gray-800 whitespace-pre-wrap break-words leading-relaxed">{reply.body}</p>
               </div>
             ))}
             <div ref={bottomRef} />

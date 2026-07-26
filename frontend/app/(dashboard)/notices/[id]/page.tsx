@@ -61,7 +61,7 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
         <p className="text-sm text-gray-500">{formattedDate}</p>
       </div>
 
-      <div className="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
+      <div className="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
         {notice.content}
       </div>
 
