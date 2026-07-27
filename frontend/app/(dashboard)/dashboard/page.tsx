@@ -109,7 +109,7 @@ export default async function DashboardPage({
   const [
     { data: scanResults }, { data: competitors }, { data: history },
     benchmarkRes, { data: latestGuide }, { count: scanUsedToday },
-    actionLogRes, gapRes, photoGuideRes,
+    actionLogRes, gapRes, photoGuideRes, blogCitationRes,
   ] = business
     ? await Promise.all([
         supabase.from("scan_results")
@@ -136,10 +136,13 @@ export default async function DashboardPage({
         business.category && PHOTO_SUPPORTED_CATEGORIES.includes(business.category)
           ? fetch(`${BACKEND}/api/report/photo-guide/${business.category}`).then((r) => r.ok ? r.json() : null).catch(() => null)
           : Promise.resolve(null),
+        business.blog_url && accessToken
+          ? fetch(`${BACKEND}/api/blog/result/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
+          : Promise.resolve(null),
       ])
     : [
         { data: null }, { data: null }, { data: null }, null, { data: null },
-        { count: 0 }, null, null, null,
+        { count: 0 }, null, null, null, null,
       ];
 
   // ── 데이터 조합 ──────────────────────────────────────────────
@@ -311,12 +314,19 @@ export default async function DashboardPage({
   const cafeResult = (latestScan?.naver_result as Record<string, unknown> | null | undefined)?.cafe_result as { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null ?? null;
   const jisikResult = (latestScan?.naver_result as Record<string, unknown> | null | undefined)?.jisik_result as { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null ?? null;
   const blogBiz = business as { blog_url?: string; blog_analyzed_at?: string; blog_post_count?: number; blog_keyword_coverage?: number } | null;
+  const _blogCitData = blogCitationRes as { multi_channel_citations?: Record<string, { mentioned_count?: number }> } | null;
+  const blogAiCitedChannels: string[] = _blogCitData?.multi_channel_citations
+    ? Object.entries(_blogCitData.multi_channel_citations)
+        .filter(([, v]) => (v?.mentioned_count ?? 0) > 0)
+        .map(([k]) => k)
+    : [];
   const blogContribution = blogBiz?.blog_url ? {
     active: !!(blogBiz.blog_analyzed_at) && !isKeywordEstimated,
     postCount: blogBiz.blog_post_count ?? 0,
     keywordCoverage: blogBiz.blog_keyword_coverage ?? 0,
     analyzedAt: blogBiz.blog_analyzed_at,
     blogUrl: blogBiz.blog_url,
+    aiCitedChannels: blogAiCitedChannels,
   } : undefined;
 
   const dimensions = (gapRes as { dimensions?: Array<{ dimension_key: string; dimension_label: string; current_score: number; max_score: number; gap_to_top: number; gap_reason: string; priority: number }>; is_competitor_estimated?: boolean } | null)?.dimensions;

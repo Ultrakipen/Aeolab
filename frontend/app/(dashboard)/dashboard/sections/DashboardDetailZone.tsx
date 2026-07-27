@@ -79,6 +79,7 @@ interface BlogContribution {
   keywordCoverage: number;
   analyzedAt?: string;
   blogUrl?: string;
+  aiCitedChannels?: string[];
 }
 
 interface Props {

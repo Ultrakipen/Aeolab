@@ -7,6 +7,7 @@
 import re
 import os
 import logging
+import asyncio
 import aiohttp
 
 _logger = logging.getLogger("aeolab")
@@ -122,6 +123,32 @@ async def _get(endpoint: str, params: dict) -> dict:
     except Exception as e:
         _logger.warning(f"Naver API {endpoint} error: {e}")
     return {}
+
+
+async def get_blog_doc_counts(keywords: list[str], max_concurrent: int = 5) -> dict[str, int]:
+    """키워드별 네이버 블로그 검색 전체 문서수 조회 (포화도 계산용).
+    실패한 키워드는 결과 dict에서 빠짐 — 0으로 오판하지 않도록."""
+    if not keywords:
+        return {}
+
+    sem = asyncio.Semaphore(max_concurrent)
+
+    async def _one(kw: str) -> tuple[str, int | None]:
+        async with sem:
+            data = await _get("blog.json", {"query": kw, "display": 1})
+            total = data.get("total")
+            return kw, (int(total) if isinstance(total, int) else None)
+
+    results = await asyncio.gather(*[_one(k) for k in keywords], return_exceptions=True)
+    out: dict[str, int] = {}
+    for item in results:
+        if isinstance(item, Exception):
+            _logger.warning(f"get_blog_doc_counts 개별 실패: {item}")
+            continue
+        kw, total = item
+        if total is not None:
+            out[kw] = total
+    return out
 
 
 async def get_naver_visibility(business_name: str, keyword: str, region: str) -> dict:
@@ -465,3 +492,47 @@ async def get_naver_visibility_multi(business_name: str, keywords: list[str], re
     ]
 
     return best
+
+
+async def get_mini_serp(keyword: str) -> dict:
+    """키워드의 네이버 블로그 상위 3개 + 최근 뉴스 3개를 병렬 조회한다.
+
+    네이버 오픈API blog.json / news.json 엔드포인트를 재사용.
+    API 키 미설정 또는 개별 실패 시 빈 리스트로 graceful degradation —
+    한쪽이 실패해도 나머지 데이터는 반환한다.
+
+    Returns:
+        {
+            "top_blogs":   [{"title": str, "link": str, "postdate": str}, ...],  # 최대 3개
+            "recent_news": [{"title": str, "link": str, "pub_date": str}, ...],  # 최대 3개
+        }
+    """
+    blog_data, news_data = await asyncio.gather(
+        _get("blog.json", {"query": keyword, "display": 3, "sort": "sim"}),
+        _get("news.json", {"query": keyword, "display": 3, "sort": "date"}),
+        return_exceptions=True,
+    )
+
+    top_blogs: list[dict] = []
+    if isinstance(blog_data, dict):
+        for item in blog_data.get("items", []):
+            top_blogs.append({
+                "title": _strip_html(item.get("title", "")),
+                "link": item.get("link", ""),
+                "postdate": item.get("postdate", ""),
+            })
+    elif isinstance(blog_data, Exception):
+        _logger.warning(f"get_mini_serp blog 조회 실패 [kw={keyword}]: {blog_data}")
+
+    recent_news: list[dict] = []
+    if isinstance(news_data, dict):
+        for item in news_data.get("items", []):
+            recent_news.append({
+                "title": _strip_html(item.get("title", "")),
+                "link": item.get("link", ""),
+                "pub_date": item.get("pubDate", ""),
+            })
+    elif isinstance(news_data, Exception):
+        _logger.warning(f"get_mini_serp news 조회 실패 [kw={keyword}]: {news_data}")
+
+    return {"top_blogs": top_blogs, "recent_news": recent_news}

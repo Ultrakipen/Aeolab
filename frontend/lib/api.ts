@@ -742,6 +742,35 @@ export async function getBlogResult(businessId: string, token?: string): Promise
   }
 }
 
+export async function getKeywordSerp(
+  businessId: string,
+  keyword: string,
+  token?: string
+): Promise<{
+  keyword: string;
+  related_keywords: Array<{ keyword: string; monthly_volume: number; competition: string }>;
+  top_blogs: Array<{ title: string; link: string; postdate?: string }>;
+  recent_news: Array<{ title: string; link: string; pub_date?: string }>;
+  from_cache?: boolean;
+} | null> {
+  try {
+    return await apiCall<{
+      keyword: string;
+      related_keywords: Array<{ keyword: string; monthly_volume: number; competition: string }>;
+      top_blogs: Array<{ title: string; link: string; postdate?: string }>;
+      recent_news: Array<{ title: string; link: string; pub_date?: string }>;
+      from_cache?: boolean;
+    }>(
+      `${BACKEND_URL}/api/blog/keyword-serp?business_id=${businessId}&keyword=${encodeURIComponent(keyword)}`,
+      {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      }
+    );
+  } catch {
+    return null;
+  }
+}
+
 // ── 카드 변경 ─────────────────────────────────────────────────
 export async function updateBillingCard(
   authKey: string,

@@ -15,6 +15,8 @@ from pydantic import BaseModel, Field
 from middleware.plan_gate import get_current_user, get_user_plan, PLAN_LIMITS
 from db.supabase_client import get_client, execute
 from services.blog_analyzer import analyze_blog
+from services.naver_searchad import get_searchad_client
+from services.naver_visibility import get_mini_serp
 from utils import cache as _cache
 
 # 블로그 분석 전체 작업에 대한 라우터 레벨 타임아웃
@@ -25,6 +27,21 @@ _ANALYZE_TIMEOUT_SECONDS = 50
 
 router = APIRouter()
 _logger = logging.getLogger("aeolab")
+
+
+def compute_saturation(blog_doc_count: int | None, monthly_volume: int | None) -> float | None:
+    """블로그 문서수 대비 검색량 비율 기반 포화도(0~1, naeo.kr 대응 2026-07-27).
+
+    - ratio = blog_doc_count / monthly_volume (글이 많을수록 경쟁 포화)
+    - sigmoid 계열 변환으로 0~1 스케일 정규화, 기준점(ratio=5) 에서 ≈ 0.5
+    - 데이터 부족 시 None 반환 — 추정 금지(CLAUDE.md 실측 원칙)
+    """
+    if not monthly_volume or blog_doc_count is None:
+        return None
+    ratio = blog_doc_count / monthly_volume
+    saturation = 1 - 1 / (1 + ratio / 5)
+    return round(min(1.0, max(0.0, saturation)), 2)
+
 
 # 동시 사용자 증가 대응(2026-07-15, schema.py 55055b9와 동일 패턴) — 이 엔드포인트는
 # 월별 한도 체크(COUNT 스냅샷)가 최대 50초 걸리는 실제 네이버 RSS/API·SearchAd 호출
@@ -299,6 +316,31 @@ def _check_blog_rate_limit(user_id: str) -> None:
     _cache.set(key, count + 1, _BLOG_RATE_WINDOW)
 
 
+# 키워드 SERP 조회 전용 rate limit (2026-07-27 신설, code-review High findings 반영) —
+# 위 _check_blog_rate_limit(분당 3회)과 별도 예산. 이 엔드포인트는 사용자가 추천 카드를
+# 여러 개 탐색하며 정상적으로 여러 번 클릭하는 흐름이라 더 관대한 한도가 필요하고,
+# /analyze 쿼터를 함께 소진시키면 혼란스러운 UX가 된다. 24h DB 캐시가 동일 키워드 반복
+# 호출은 막아주지만, 캐시 미스 상태에서 카드 여러 개를 한 번에 열 때의 burst(SearchAd+
+# blog.json+news.json 3콜/카드)를 막기 위한 최소 방어선.
+_KEYWORD_SERP_RATE_LIMIT = 10
+_KEYWORD_SERP_RATE_WINDOW = 60  # seconds
+
+
+def _check_keyword_serp_rate_limit(user_id: str) -> None:
+    key = f"keyword_serp_rate:{user_id}"
+    count: int = _cache.get(key) or 0
+    if count >= _KEYWORD_SERP_RATE_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "RATE_LIMIT",
+                "message": "잠시 후 다시 시도해 주세요 (분당 10회 제한).",
+                "retry_after": _KEYWORD_SERP_RATE_WINDOW,
+            },
+        )
+    _cache.set(key, count + 1, _KEYWORD_SERP_RATE_WINDOW)
+
+
 async def _get_monthly_blog_count(user_id: str, supabase) -> int:
     """이번 달 블로그 분석 사용 횟수 조회 (notifications.sent_at 기준 UTC)"""
     today = datetime.now(timezone.utc)
@@ -525,6 +567,33 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
                 t["volume_trend"] = trends.get(t.get("base_keyword"))
         except Exception as e:
             _logger.warning(f"topic suggestions 검색량 병합 실패: {e}")
+
+    # 포화도 점수 병합 (naeo.kr 대응, 2026-07-27) — 네이버 블로그 문서수로 정량 포화도(0~1) 계산
+    if topic_suggestions_v2:
+        try:
+            from services.naver_visibility import get_blog_doc_counts
+            sat_base_kws = [t["base_keyword"] for t in topic_suggestions_v2 if t.get("base_keyword")]
+            doc_counts = await get_blog_doc_counts(sat_base_kws)
+            for t in topic_suggestions_v2:
+                bk = t.get("base_keyword")
+                t["saturation_score"] = compute_saturation(doc_counts.get(bk), t.get("monthly_volume"))
+            # keyword_volumes에 blog_doc_count 저장 (검색량 캐시 upsert는 get_volumes_with_cache에서 완료 — 여기서는 해당 행만 업데이트)
+            if doc_counts:
+                update_tasks = [
+                    execute(
+                        supabase.table("keyword_volumes")
+                        .update({"blog_doc_count": count})
+                        .eq("keyword", kw)
+                        .eq("category", category)
+                    )
+                    for kw, count in doc_counts.items()
+                ]
+                _update_results = await asyncio.gather(*update_tasks, return_exceptions=True)
+                for _ur in _update_results:
+                    if isinstance(_ur, Exception):
+                        _logger.warning(f"keyword_volumes blog_doc_count UPDATE 실패: {_ur}")
+        except Exception as e:
+            _logger.warning(f"topic suggestions 포화도 계산 실패: {e}")
 
     # 반환할 전체 결과 객체 (새로고침·재진입 시 복원용으로도 사용)
     analysis_json = {
@@ -852,3 +921,139 @@ async def get_blog_score_history(
         rows = []
 
     return {"business_id": business_id, "history": rows}
+
+
+@router.get("/keyword-serp")
+async def get_keyword_serp(
+    business_id: str,
+    keyword: str,
+    user: dict = Depends(get_current_user),
+):
+    """키워드 미니 SERP 뷰: 연관 키워드 + 상위 블로그 TOP3 + 최근 뉴스 3개 (Basic+, 24h 캐시).
+
+    naeo.kr 벤치마킹 대응 — 블로그 진단 페이지의 키워드 추천 카드 클릭 시 인라인 SERP 패널
+    에 필요한 데이터를 한 번에 조합해 반환한다. 연관 키워드는 SearchAd keywordstool API,
+    블로그/뉴스는 네이버 오픈API를 각각 재사용한다. 24시간 DB 캐시로 비용·속도 최적화.
+
+    Response:
+        keyword         : 조회한 키워드
+        related_keywords: [{keyword, monthly_volume, competition}] — 최대 5개
+        top_blogs       : [{title, link, postdate}] — 최대 3개
+        recent_news     : [{title, link, pub_date}] — 최대 3개
+        from_cache      : 캐시에서 반환됐는지 여부
+    """
+    user_id = user["id"]
+    supabase = get_client()
+
+    # 소유권 검증 + 카테고리 조회 (캐시 키로 사용)
+    biz_row = (await execute(
+        supabase.table("businesses")
+        .select("id, user_id, category")
+        .eq("id", business_id)
+        .single()
+    )).data
+    if not biz_row:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+    if biz_row["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="접근 권한 없음")
+
+    # 플랜 게이트 (Basic+)
+    plan = await get_user_plan(user_id, supabase)
+    if PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["blog_monthly"] == 0:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "PLAN_REQUIRED",
+                "message": "키워드 SERP 조회는 Basic 플랜부터 이용 가능합니다.",
+                "upgrade_url": "/pricing",
+            },
+        )
+
+    # 외부 API 남용 방지 (code-review High) — 캐시 미스 시 3콜/키워드가 나가므로
+    # 캐시 확인 전에 먼저 체크
+    _check_keyword_serp_rate_limit(user_id)
+
+    keyword = keyword.strip()
+    if not keyword:
+        raise HTTPException(status_code=422, detail="keyword는 비어 있을 수 없습니다")
+
+    category = biz_row.get("category") or ""
+
+    # ── 24h DB 캐시 우선 조회 ────────────────────────────────────────
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    try:
+        cache_rows = (await execute(
+            supabase.table("keyword_serp_cache")
+            .select("related_keywords, top_blogs, recent_news")
+            .eq("keyword", keyword)
+            .eq("category", category)
+            .gte("cached_at", cutoff)
+            .limit(1)
+        )).data or []
+    except Exception as e:
+        _logger.warning(f"keyword_serp_cache 조회 실패 [kw={keyword}]: {e}")
+        cache_rows = []
+
+    if cache_rows:
+        cached = cache_rows[0]
+        return {
+            "keyword": keyword,
+            "related_keywords": cached.get("related_keywords") or [],
+            "top_blogs": cached.get("top_blogs") or [],
+            "recent_news": cached.get("recent_news") or [],
+            "from_cache": True,
+        }
+
+    # ── 캐시 미스: SearchAd + 네이버 오픈API 병렬 호출 ───────────────
+    ad_client = get_searchad_client()
+
+    related_keywords: list[dict] = []
+    top_blogs: list[dict] = []
+    recent_news: list[dict] = []
+
+    try:
+        raw_related, raw_serp = await asyncio.gather(
+            ad_client.get_related_keywords(keyword, limit=5),
+            get_mini_serp(keyword),
+            return_exceptions=True,
+        )
+
+        if isinstance(raw_related, Exception):
+            _logger.warning(f"get_related_keywords 실패 [kw={keyword}]: {raw_related}")
+        elif isinstance(raw_related, list):
+            related_keywords = raw_related
+
+        if isinstance(raw_serp, Exception):
+            _logger.warning(f"get_mini_serp 실패 [kw={keyword}]: {raw_serp}")
+        elif isinstance(raw_serp, dict):
+            top_blogs = raw_serp.get("top_blogs", [])
+            recent_news = raw_serp.get("recent_news", [])
+
+    except Exception as e:
+        _logger.warning(f"keyword_serp 병렬 조회 오류 [kw={keyword}]: {e}")
+
+    # ── DB 캐시 저장 (부분 실패해도 가능한 데이터를 저장) ─────────────
+    try:
+        await execute(
+            supabase.table("keyword_serp_cache").upsert(
+                {
+                    "keyword": keyword,
+                    "category": category,
+                    "related_keywords": related_keywords,
+                    "top_blogs": top_blogs,
+                    "recent_news": recent_news,
+                    "cached_at": datetime.now(timezone.utc).isoformat(),
+                },
+                on_conflict="keyword,category",
+            )
+        )
+    except Exception as e:
+        _logger.warning(f"keyword_serp_cache 저장 실패 [kw={keyword}]: {e}")
+
+    return {
+        "keyword": keyword,
+        "related_keywords": related_keywords,
+        "top_blogs": top_blogs,
+        "recent_news": recent_news,
+        "from_cache": False,
+    }

@@ -36,7 +36,7 @@ import {
 } from "recharts";
 import { PlanGate } from "@/components/common/PlanGate";
 import { KeywordManagerModal } from "@/components/dashboard/KeywordManagerModal";
-import { addExcludedKeyword } from "@/lib/api";
+import { addExcludedKeyword, getKeywordSerp } from "@/lib/api";
 import Link from "next/link";
 import { getBriefingEligibility, type BriefingEligibility } from "@/lib/userGroup";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
@@ -96,6 +96,8 @@ interface TopicSuggestionV2 {
     to_volume: number;
     pct_change: number | null;
   } | null;
+  saturation_score?: number | null;
+  base_keyword?: string;
 }
 
 interface CompetitorBlogComparison {
@@ -861,8 +863,20 @@ function BestCitationCandidateCard({ candidate }: { candidate: NonNullable<BlogA
 }
 
 /* ── TopicSuggestionsV2Card ── */
-function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV2[] }) {
+function TopicSuggestionsV2Card({
+  suggestions,
+  businessId,
+  token,
+}: {
+  suggestions: TopicSuggestionV2[];
+  businessId: string;
+  token?: string;
+}) {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  type SerpResult = Awaited<ReturnType<typeof getKeywordSerp>>;
+  const [serpCache, setSerpCache] = useState<Record<number, SerpResult>>({});
+  const [loadingIdx, setLoadingIdx] = useState<number | null>(null);
 
   const priorityBadge: Record<TopicSuggestionV2["priority"], string> = {
     high: "bg-red-50 text-red-600 border-red-200",
@@ -918,7 +932,30 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {suggestions.map((s, idx) => (
-          <div key={idx} className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2">
+          <div
+            key={idx}
+            className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2 cursor-pointer hover:border-indigo-300 transition-colors"
+            role="button"
+            tabIndex={0}
+            onClick={async () => {
+              if (expandedIdx === idx) {
+                setExpandedIdx(null);
+                return;
+              }
+              setExpandedIdx(idx);
+              if (serpCache[idx] !== undefined) return;
+              setLoadingIdx(idx);
+              const serp = await getKeywordSerp(businessId, s.base_keyword ?? s.topic, token);
+              setSerpCache((prev) => ({ ...prev, [idx]: serp }));
+              setLoadingIdx(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                (e.currentTarget as HTMLElement).click();
+              }
+            }}
+          >
             <span className={`inline-flex items-center self-start border text-sm font-semibold px-2 py-0.5 rounded-full ${priorityBadge[s.priority]}`}>
               {sourceLabel[s.source] ?? priorityLabel[s.priority]}
             </span>
@@ -936,13 +973,46 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
               )}
             </p>
             <p className="text-sm text-gray-500 leading-relaxed">{s.reason}</p>
-            {s.competition && s.competition !== "unknown" && (
-              <span className={`text-sm font-medium ${competitionColor[s.competition]}`}>
-                {competitionLabel[s.competition]}
-                {s.competition === "low" && s.monthly_volume && s.monthly_volume > 0
-                  ? " · 검색량 대비 선점 기회예요"
-                  : ""}
-              </span>
+            {typeof s.saturation_score === "number" ? (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`h-2 rounded-full transition-all ${
+                        s.saturation_score < 0.33
+                          ? "bg-green-500"
+                          : s.saturation_score < 0.67
+                          ? "bg-amber-500"
+                          : "bg-red-500"
+                      }`}
+                      style={{ width: `${Math.round(s.saturation_score * 100)}%` }}
+                    />
+                  </div>
+                  <span
+                    className={`text-sm font-medium shrink-0 ${
+                      s.saturation_score < 0.33
+                        ? "text-green-600"
+                        : s.saturation_score < 0.67
+                        ? "text-amber-600"
+                        : "text-red-500"
+                    }`}
+                  >
+                    포화도 {s.saturation_score.toFixed(2)}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500">
+                  네이버 블로그 문서수 대비 검색량 기준 추정치 · 측정 시점에 따라 달라질 수 있음
+                </p>
+              </div>
+            ) : (
+              s.competition && s.competition !== "unknown" && (
+                <span className={`text-sm font-medium ${competitionColor[s.competition]}`}>
+                  {competitionLabel[s.competition]}
+                  {s.competition === "low" && s.monthly_volume && s.monthly_volume > 0
+                    ? " · 검색량 대비 선점 기회예요"
+                    : ""}
+                </span>
+              )
             )}
             {s.volume_trend && s.volume_trend.pct_change !== null && (
               <p className="text-sm text-gray-500">
@@ -954,7 +1024,8 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
               </p>
             )}
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 copyToClipboard(s.topic, () => {});
                 setCopiedIdx(idx);
                 setTimeout(() => setCopiedIdx(null), 2000);
@@ -971,6 +1042,78 @@ function TopicSuggestionsV2Card({ suggestions }: { suggestions: TopicSuggestionV
                 </>
               )}
             </button>
+            {expandedIdx === idx && (
+              <div
+                className="mt-2 pt-2 border-t border-gray-100 space-y-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {loadingIdx === idx ? (
+                  <p className="text-sm text-gray-400">불러오는 중...</p>
+                ) : serpCache[idx] ? (
+                  <>
+                    {serpCache[idx]!.related_keywords.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-1">연관 키워드</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {serpCache[idx]!.related_keywords.map((rk, i) => (
+                            <span
+                              key={i}
+                              className="text-sm bg-gray-100 text-gray-600 rounded-full px-2 py-0.5"
+                            >
+                              {rk.keyword}
+                              {rk.monthly_volume > 0
+                                ? ` · 월 ${rk.monthly_volume.toLocaleString()}회`
+                                : ""}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {serpCache[idx]!.top_blogs.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-1">상위 블로그</p>
+                        {serpCache[idx]!.top_blogs.map((b, i) => (
+                          <a
+                            key={i}
+                            href={b.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block text-sm text-blue-600 underline truncate hover:text-blue-800"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {b.title}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    {serpCache[idx]!.recent_news.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-1">최근 뉴스</p>
+                        {serpCache[idx]!.recent_news.map((n, i) => (
+                          <a
+                            key={i}
+                            href={n.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block text-sm text-gray-600 underline truncate hover:text-gray-800"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {n.title}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    {serpCache[idx]!.related_keywords.length === 0 &&
+                      serpCache[idx]!.top_blogs.length === 0 &&
+                      serpCache[idx]!.recent_news.length === 0 && (
+                        <p className="text-sm text-gray-400">추가 데이터 없음</p>
+                      )}
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-400">데이터를 불러오지 못했습니다</p>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -2475,7 +2618,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
             {/* D-2. 이번 달 블로그 주제 추천 */}
             {result.topic_suggestions_v2 && result.topic_suggestions_v2.length > 0 && (
-              <TopicSuggestionsV2Card suggestions={result.topic_suggestions_v2} />
+              <TopicSuggestionsV2Card suggestions={result.topic_suggestions_v2} businessId={business.id} token={token} />
             )}
 
             {/* E. 이번 주 할 일 카드 */}

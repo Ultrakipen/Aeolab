@@ -1209,6 +1209,10 @@ CREATE TABLE IF NOT EXISTS keyword_volumes (
   UNIQUE(keyword, category)
 );
 
+-- 키워드 포화도(saturation) 계산용: 네이버 블로그 검색 API 결과 문서 수
+ALTER TABLE keyword_volumes
+  ADD COLUMN IF NOT EXISTS blog_doc_count INT DEFAULT NULL;
+
 ALTER TABLE keyword_volumes ENABLE ROW LEVEL SECURITY;
 
 -- 인증 사용자 읽기 허용 (공통 참조 데이터)
@@ -2648,6 +2652,11 @@ CREATE TABLE IF NOT EXISTS keyword_volume_history (
   competition    TEXT,
   recorded_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- 키워드 포화도 추이 추적: 네이버 블로그 검색 API 결과 문서 수 (시계열)
+ALTER TABLE keyword_volume_history
+  ADD COLUMN IF NOT EXISTS blog_doc_count INT DEFAULT NULL;
+
 CREATE INDEX IF NOT EXISTS idx_keyword_volume_history_lookup
   ON keyword_volume_history(keyword, category, recorded_at DESC);
 
@@ -2671,3 +2680,47 @@ ALTER TABLE trial_scans
 
 COMMENT ON COLUMN trial_scans.is_franchise IS
   '프랜차이즈 가맹점 여부 (네이버 공식: 플레이스형 AI 브리핑 비대상)';
+
+-- ===========================================================
+-- 2026-07-27: naeo.kr 벤치마킹 기능 — 미니 SERP 캐싱
+-- 배경: naeo.kr 경쟁 분석 후 "키워드 클릭 시 미니 SERP 뷰" 기능 추가
+-- (연관 키워드 + 상위 블로그 + 최근 뉴스 3개 항목)
+-- 외부 API 호출(SearchAd/DataLab/Naver 검색/뉴스) 결과를 24시간 캐싱
+-- ===========================================================
+CREATE TABLE IF NOT EXISTS keyword_serp_cache (
+  id               BIGSERIAL PRIMARY KEY,
+  keyword          TEXT NOT NULL,
+  category         TEXT NOT NULL DEFAULT '',
+  related_keywords JSONB,                    -- [{text, volume, trend}] — SearchAd 관련 검색어 캐시
+  top_blogs        JSONB,                    -- [{title, url, date, snippet}] — 상위 블로그 포스트 캐시
+  recent_news      JSONB,                    -- [{title, url, date, source}] — 최근 뉴스/매체 캐시
+  cached_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(keyword, category)
+);
+
+-- 키워드+업종 조합 빠른 조회
+CREATE INDEX IF NOT EXISTS idx_keyword_serp_cache_lookup
+  ON keyword_serp_cache(keyword, category, cached_at DESC);
+
+-- RLS: 읽기는 인증 사용자, 쓰기는 service_role만 (백엔드 캐싱용)
+ALTER TABLE keyword_serp_cache ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "authenticated users can read keyword serp cache"
+  ON keyword_serp_cache FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "service role can manage keyword serp cache"
+  ON keyword_serp_cache FOR ALL
+  USING (auth.role() = 'service_role');
+
+COMMENT ON TABLE keyword_serp_cache IS
+  'naeo.kr 벤치마킹 기능 — 키워드 클릭 시 미니 SERP 뷰 캐싱 (연관키워드, 상위블로그, 뉴스)';
+
+COMMENT ON COLUMN keyword_serp_cache.related_keywords IS
+  '네이버 SearchAd API 연관 검색어 (최대 10개, 월간 검색량/트렌드 포함)';
+
+COMMENT ON COLUMN keyword_serp_cache.top_blogs IS
+  '네이버 블로그 검색 상위 결과 (최대 5개, 제목/URL/작성일/스니펫)';
+
+COMMENT ON COLUMN keyword_serp_cache.recent_news IS
+  '뉴스 API 또는 구글 검색 최근 기사 (최대 3개, 제목/URL/작성일/출처)';

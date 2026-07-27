@@ -53,3 +53,23 @@
 
 - naeo.kr: Playwright로 `https://www.naeo.kr/`, `/pricing` 직접 접속, FAQ 버튼 클릭해 원문 펼침 확인(2026-07-18)
 - AEOlab: `grep "blog_monthly" backend/middleware/plan_gate.py`, `grep "volume_trend\|volume_history" backend/services/blog_analyzer.py`, `grep "mention_type" backend/` + `gemini_scanner.py` 프롬프트 원문 확인
+
+## 7. 재점검 (2026-07-27) — 지난 격차 2건 이미 해소, 진짜 잔여 2건 확정
+
+> naeo.kr `/`, `/pricing`, `/mcp`를 WebFetch로 재확인 + AEOlab 코드/프론트를 grep으로 재검증. naeo.kr 쪽 가격(19,900원 50%할인)·한도(무료 월5/베이직 월50)·MCP 5단계 흐름은 07-18/07-20 대비 변동 없음.
+
+**§3에서 "없다"고 기재했던 항목 중 이미 구현·배포된 것 (재검증으로 발견, 오판 방지 원칙에 따라 반증 완료 후 확정)**:
+
+| 항목 | 07-18 당시 상태 | 07-27 재확인 결과 |
+|---|---|---|
+| 키워드 검색량 추이 | `volume_trend/volume_history` 0건 | `naver_searchad.py:get_volume_trend()` 구현 + `blog.py:523-525`에서 병합 + `BlogClient.tsx:947-952`에 "검색량(4/22→5/13): 12,400→22,400 ▲80%" 형식으로 실제 노출 확인. `blog_monthly` 3→5 상향도 이 재점검 때 같이 반영됨(`plan_gate.py:73` 주석 확인) |
+| 텍스트 vs 이미지 인용 구분 | `mention_type`은 의미유형(recommendation 등)뿐, 형식구분 없음 | 별도 `mention_format`(text/image/text_and_image) 필드 신설 + `naver_scanner.py` DOM 실측으로 아바타 오탐까지 자체 발견·수정 + `blog.py:91-95`에서 `text_count`/`image_count` 집계 + `BlogClient.tsx:1391-1395`에 "텍스트 N · 이미지 썸네일 N"으로 조건 없이 상시 노출 확인 |
+
+**§3에서 "없다"고 기재한 항목 중 여전히 미구현 (재검증 후 생존 — 진짜 잔여 격차)**:
+
+1. **정량적 포화도 점수** — naeo.kr은 키워드별 0~1 float(예 `0.21`, `0.32`). AEOlab `naver_searchad.py:71,194,241,265,289` 전부 `"high"/"medium"/"low"/"unknown"` 정성적 값뿐, float 미도입.
+2. **미니 SERP 뷰** — naeo.kr은 키워드 클릭 시 연관키워드 5개+상위블로그 TOP3(실제 제목)+최근뉴스 3개가 그 자리에서 펼쳐짐. AEOlab 전체 코드에서 `related_keywords`/`top_blogs`/`recent_news` 등 대응 필드 0건 — 미구현 확정.
+
+**§3에서 이미 의도적 보류로 확정됐던 항목(재확인, 새 발견 아님)**: 전사용자 랭킹+게이미피케이션(사업장 7곳 표본부족), 카테고리별 포스트 분포(사업장 단위 진단 모델과 불일치), 완전 무료 스탠드얼론 플랜(사업모델 차이).
+
+**판단**: 미니 SERP뷰(연관키워드+상위블로그+뉴스 API 필요, 비용·스코프 있음)와 포화도 정량화(검색량/문서수 기반 공식 설계 필요)는 둘 다 "빠른 수정"이 아니라 신규 설계가 필요한 항목 — §5 결론(직접경쟁 아님, 시급한 추격 대상 아님) 그대로 유지하되, 우선순위 재검토 시 이 2건을 후보로 삼을 것.

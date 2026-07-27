@@ -38,6 +38,7 @@ interface DualTrackCardProps {
     keywordCoverage: number;
     analyzedAt?: string;
     blogUrl?: string;
+    aiCitedChannels?: string[];
   };
   eligibility?: "active" | "likely" | "inactive";
   aiExposureData?: {
@@ -50,6 +51,14 @@ interface DualTrackCardProps {
   token?: string;
   plan?: string;
 }
+
+// 블로그 AI 인용 채널 한글 라벨 (BlogClient.tsx CHANNEL_LABELS와 동일)
+const BLOG_CHANNEL_LABELS: Record<string, string> = {
+  naver: "네이버 AI 브리핑",
+  chatgpt: "ChatGPT",
+  gemini: "Gemini",
+  google: "Google AI Overview",
+};
 
 // 업종별 맞춤 메시지 (§7.1 기준)
 const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }> = {
@@ -666,17 +675,30 @@ export default function DualTrackCard({
 
       {/* 블로그 분석 반영 배지 */}
       {blogContribution?.active && (
-        <div className="mt-3 flex items-center justify-between bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-sm">
-          <span className="text-blue-700 font-medium">
-            블로그 {blogContribution.postCount}개 포스트 분석 반영 · 키워드 커버리지 {Math.round(blogContribution.keywordCoverage)}%
-          </span>
-          <Link
-            href="/blog-analysis?reanalyze=1"
-            className="text-blue-500 underline text-sm whitespace-nowrap ml-2"
-            onClick={(e) => { e.currentTarget.textContent = "재분석 중..."; }}
-          >
-            재분석
-          </Link>
+        <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-sm space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-blue-700 font-medium">
+              블로그 {blogContribution.postCount}개 포스트 분석 반영 · 키워드 커버리지 {Math.round(blogContribution.keywordCoverage)}%
+            </span>
+            <Link
+              href="/blog-analysis?reanalyze=1"
+              className="text-blue-500 underline text-sm whitespace-nowrap ml-2"
+              onClick={(e) => { e.currentTarget.textContent = "재분석 중..."; }}
+            >
+              재분석
+            </Link>
+          </div>
+          {blogContribution.aiCitedChannels && blogContribution.aiCitedChannels.length > 0 ? (
+            <p className="text-sm text-green-700 font-medium">
+              ✓ {blogContribution.aiCitedChannels.map((ch) => BLOG_CHANNEL_LABELS[ch] ?? ch).join(" · ")}에서 내 블로그 인용 확인됨
+              <Link href="/blog-analysis" className="text-blue-500 underline ml-1">자세히 →</Link>
+            </p>
+          ) : (
+            <p className="text-sm text-gray-500">
+              아직 AI 채널 인용 확인 안 됨 · 블로그 진단에서 자세히 확인하세요
+              <Link href="/blog-analysis" className="text-blue-500 underline ml-1">바로가기 →</Link>
+            </p>
+          )}
         </div>
       )}
 

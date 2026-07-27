@@ -57,6 +57,46 @@ class NaverSearchAdClient:
             "Content-Type": "application/json; charset=UTF-8",
         }
 
+    async def _fetch_raw(self, hint_terms: list[str]) -> dict[str, dict]:
+        """SearchAd /keywordstool API 호출 → 파싱된 raw dict 반환 (내부 공용 헬퍼).
+
+        hint_terms: 공백이 이미 제거된 키워드 리스트.
+        반환 dict의 키도 API가 반환하는 relKeyword 그대로(공백 제거 형태).
+        get_keyword_volumes / get_related_keywords 양쪽이 이 헬퍼를 공유한다.
+        """
+        if not self._is_configured():
+            _logger.debug("NaverSearchAd: API 미설정, 빈 결과 반환")
+            return {}
+        if not hint_terms:
+            return {}
+        uri = "/keywordstool"
+        hint_str = ",".join(hint_terms)
+        params = {"hintKeywords": hint_str, "showDetail": "1"}
+        try:
+            async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
+                async with session.get(
+                    f"{SEARCHAD_BASE}{uri}",
+                    headers=self._build_headers("GET", uri),
+                    params=params,
+                ) as resp:
+                    if resp.status == 401:
+                        _logger.warning("NaverSearchAd: 인증 실패 (API 키/서명 확인 필요)")
+                        return {}
+                    if resp.status == 429:
+                        _logger.warning("NaverSearchAd: 요청 한도 초과")
+                        return {}
+                    if resp.status != 200:
+                        _logger.warning(f"NaverSearchAd: HTTP {resp.status}")
+                        return {}
+                    data = await resp.json()
+                    return self._parse_keyword_response(data)
+        except asyncio.TimeoutError:
+            _logger.warning("NaverSearchAd: 요청 타임아웃 (10초)")
+            return {}
+        except Exception as e:
+            _logger.warning(f"NaverSearchAd _fetch_raw 오류: {e}")
+            return {}
+
     async def get_keyword_volumes(self, keywords: list[str]) -> dict[str, dict]:
         """
         키워드 월간 검색량 일괄 조회 (배치 최대 100개).
@@ -103,53 +143,61 @@ class NaverSearchAdClient:
         if not hint_terms:
             return {}
 
-        uri = "/keywordstool"
-        hint_str = ",".join(hint_terms)
-        params = {"hintKeywords": hint_str, "showDetail": "1"}
-
-        try:
-            async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
-                async with session.get(
-                    f"{SEARCHAD_BASE}{uri}",
-                    headers=self._build_headers("GET", uri),
-                    params=params,
-                ) as resp:
-                    if resp.status == 401:
-                        _logger.warning("NaverSearchAd: 인증 실패 (API 키/서명 확인 필요)")
-                        return {}
-                    if resp.status == 429:
-                        _logger.warning("NaverSearchAd: 요청 한도 초과")
-                        return {}
-                    if resp.status != 200:
-                        _logger.warning(f"NaverSearchAd: HTTP {resp.status}")
-                        return {}
-
-                    data = await resp.json()
-                    raw_result = self._parse_keyword_response(data)
-
-                    result = dict(raw_result)
-                    unmatched: list[str] = []
-                    for stripped, originals in stripped_to_originals.items():
-                        if stripped in raw_result:
-                            for orig in originals:
-                                result[orig] = raw_result[stripped]
-                        else:
-                            unmatched.extend(originals)
-                    if unmatched:
-                        # SearchAd가 relKeyword에 요청 키워드를 그대로 반환하지 않고
-                        # 연관어만 준 경우 — 검색량이 조용히 None으로 빠지므로 빈도 모니터링용 로그
-                        _logger.info(
-                            "NaverSearchAd: relKeyword에 없어 검색량 매칭 실패한 키워드 %d개: %s",
-                            len(unmatched), unmatched[:10],
-                        )
-                    return result
-
-        except asyncio.TimeoutError:
-            _logger.warning("NaverSearchAd: 요청 타임아웃 (10초)")
+        raw_result = await self._fetch_raw(hint_terms)
+        if not raw_result:
             return {}
-        except Exception as e:
-            _logger.warning(f"NaverSearchAd get_keyword_volumes 오류: {e}")
-            return {}
+
+        result = dict(raw_result)
+        unmatched: list[str] = []
+        for stripped, originals in stripped_to_originals.items():
+            if stripped in raw_result:
+                for orig in originals:
+                    result[orig] = raw_result[stripped]
+            else:
+                unmatched.extend(originals)
+        if unmatched:
+            # SearchAd가 relKeyword에 요청 키워드를 그대로 반환하지 않고
+            # 연관어만 준 경우 — 검색량이 조용히 None으로 빠지므로 빈도 모니터링용 로그
+            _logger.info(
+                "NaverSearchAd: relKeyword에 없어 검색량 매칭 실패한 키워드 %d개: %s",
+                len(unmatched), unmatched[:10],
+            )
+        return result
+
+    async def get_related_keywords(self, keyword: str, limit: int = 5) -> list[dict]:
+        """단일 키워드로 SearchAd 조회 시 함께 반환되는 연관 키워드 상위 N개.
+
+        SearchAd keywordstool API는 hintKeywords에 단일 키워드를 넣으면 해당 키워드와
+        관련된 복수의 relKeyword를 keywordList에 함께 반환한다. 이 중 요청한 키워드
+        자신(공백 제거 형태 일치)을 제외한 나머지가 "연관 키워드"다.
+
+        API 미설정 시 빈 리스트 반환 (graceful degradation).
+
+        Returns:
+            [{"keyword": str, "monthly_volume": int, "competition": str}, ...]
+            검색량 내림차순 정렬, 최대 limit개.
+        """
+        if not self._is_configured() or not keyword:
+            return []
+        stripped = keyword.strip().replace(" ", "")
+        if not stripped:
+            return []
+
+        raw_result = await self._fetch_raw([stripped])
+        if not raw_result:
+            return []
+
+        related = [
+            {
+                "keyword": kw,
+                "monthly_volume": info.get("monthly_total", 0),
+                "competition": info.get("competition", "unknown"),
+            }
+            for kw, info in raw_result.items()
+            if kw != stripped  # 요청한 키워드 자신 제외
+        ]
+        related.sort(key=lambda x: x["monthly_volume"], reverse=True)
+        return related[:limit]
 
     @staticmethod
     def _parse_qc_count(value) -> int:
