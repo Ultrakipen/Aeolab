@@ -328,18 +328,18 @@
 
 | 스캐너 | 파일 | 방식 | 용도 |
 |--------|------|------|------|
-| Gemini 2.5 Flash | `gemini_scanner.py` | API | sample_n(n=50/100) — Basic 자동 50회, Full 100회 |
-| ChatGPT gpt-4.1-mini | `chatgpt_scanner.py` | API | sample_n(n=50/100) — Basic 자동 50회, Full 100회, **Trial 5회** |
+| Gemini 2.5 Flash | `gemini_scanner.py` | API | sample_n(n=50/100) — scan_basic()은 50회, scan_all()은 100회 |
+| ChatGPT gpt-4.1-mini | `chatgpt_scanner.py` | API | sample_n(n=50/100) — scan_basic()은 50회, scan_all()은 100회, **Trial 5회** |
 | 네이버 AI 브리핑 | `naver_scanner.py` | Playwright | 네이버 AI 브리핑 DOM 파싱 |
 | Google AI Overview | `google_scanner.py` | Serper.dev API | 구글 SGE + AI Overview 노출 확인 ($0.001/건, CAPTCHA 없음) |
 
 **제거됨:** Perplexity(미사용), Grok, Claude 스캐너, 뤼튼/Zeta (비용·ROI 이유)
 
-**스캔 모드 (2026-05-04 A안 50/50 적용, 2026-07-11 Google 포함 범위 정정):**
-- Trial(ChatGPT 5회 — sample_5 구현)
+**스캔 모드 (2026-07-27 `jobs.py:467-482` 재확인 — "Basic=scan_basic()" 서술이 stale이었음을 발견·정정):**
+- Trial(ChatGPT 5회 — sample_5 구현, 비로그인 1회성)
 - Quick(ChatGPT 5회 + Naver)
-- **Basic 자동(Gemini 50회 + ChatGPT 50회 + Naver + Google)** — `multi_scanner.py:167 scan_basic()` 확인, Basic·창업패키지·Pro(경량일)도 Google 포함. 한국 사용자 인지도 높은 ChatGPT 동등 측정
-- Full 유료(Gemini 100회 + ChatGPT 100회 + Naver + Google) — Pro(풀스캔일)·Biz·Enterprise
+- **`scan_basic()`(Gemini 50회 + ChatGPT 50회 + Naver + Google)** — `multi_scanner.py:185`. ⚠️ 실제 호출처는 전체 백엔드에 `jobs.py:480` 단 1곳뿐이며 **Pro 플랜의 경량 스캔일(화·수·목·토·일 — 월·수·금만 풀스캔)에만 쓰임**. 이름과 달리 Basic 플랜에는 쓰이지 않음
+- **`scan_all()`(Gemini 100회 + ChatGPT 100회 + Naver AI브리핑 + Google + AI탭)** — Basic(월·목, 주2회)·창업패키지(월, 주1회)·Pro(월·수·금, 주3회)·Biz(매일) **전부** 이 풀스캔 사용(`jobs.py:467-482`). Basic 무료체험(`run_basic_trial`)도 동일하게 `scan_all()` 재사용. "Basic 자동 50회"로 기재됐던 과거 서술은 오류 — Basic도 스캔할 때는 실제로 100회씩 측정함
 
 **점수 산식 (calc_multi_ai_exposure):** Gemini 45점 + ChatGPT 45점 = 90점 → 100점 재배분. sample_size 자동 처리로 50회·100회·boolean 모두 호환.
 
@@ -515,12 +515,14 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 | API | 단가 | 월 비용 (추정) | 용도 |
 |-----|------|--------------|------|
-| Gemini 2.5 Flash | **$0.30/1M in, $2.50/1M out** (Standard, thinking 포함) | ~$3~8 | Basic 자동 50회 / Full 100회 (2026-05-31 2.0→2.5 마이그레이션) |
-| OpenAI gpt-4.1-mini | **$0.40/1M in, $1.60/1M out** | ~$1~3 | Basic 자동 50회 / Full 100회 (A안 신규) |
+| Gemini 2.5 Flash | **$0.30/1M in, $2.50/1M out** (Standard, thinking 포함) | ~$3~8 | scan_basic() 50회 / scan_all() 100회 (2026-05-31 2.0→2.5 마이그레이션) |
+| OpenAI gpt-4.1-mini | **$0.40/1M in, $1.60/1M out** | ~$1~3 | scan_basic() 50회 / scan_all() 100회 |
 | Claude Sonnet | $3/1M in | ~$3 | 가이드 생성 시만 |
 | 카카오 알림톡 | 8~15원/건 | ~800원 | 변화 있을 때 |
 | iwinv 서버 | 고정 | 27,800원 | |
 | **합계** | | **~8~15만원** | Gemini thinking 토큰 실측 전 상단 불확실 |
+
+> **⚠️ 2026-07-27 재확인**: 위 추정치는 "Basic 자동 스캔=scan_basic()(50회)"라는 전제로 산정됐으나, 실제 `jobs.py:467-482`는 Basic·창업패키지·Biz 전부 `scan_all()`(100회)을 씀 — Basic 스캔 1회당 실제 API 호출량이 이 표 산정 전제의 약 2배. 구독자당 스캔 빈도(Basic 주2회)까지 고려한 재추정 필요 — `ai_usage_log` 실측 데이터 누적 후 정확히 재계산할 것.
 
 > **PG(결제대행) 수수료 — 2026-07-16 재확인, 카테고리·등급 2건 정정**: 2026-07-12엔 "정기결제(빌링) 4.3%+VAT"로 기재했으나, 이는 토스의 **브랜드페이** 상품 수수료였음 — AEOlab이 실제 쓰는 API(`webhook.py`의 `/v1/billing/authorizations/issue`, `/v1/billing/{billingKey}`)는 브랜드페이가 아닌 **표준 신용카드 자동결제(빌링키)** 상품이라 일반 등급은 **3.4%+VAT**가 맞는 카테고리(토스 공식 수수료 페이지 확인). 여기에 **사용자 확인 결과 AEOlab 사업자는 연매출 3억원 이하 "영세" 등급**(국세청 매년 1·7월 자동 산정·소급적용, 토스페이먼츠 공식 문서 확인) → 신용카드 **0.40%+VAT(실효 0.44%)**. 마진율 재계산은 `docs/business_viability_audit_v1.0.md` §2 참조.
 
