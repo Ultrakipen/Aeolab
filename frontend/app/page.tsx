@@ -476,121 +476,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 1-A2. 메커니즘 — 점검→개선→AI노출 인과관계 ── */}
-      <section className="px-4 py-3 md:py-14" style={{ background: "#FFFFFF", borderBottom: "1px solid #E2E8F0" }}>
-        <div className="max-w-[1020px] mx-auto">
-          <MobileAccordion label="AI가 내 가게를 추천하는 4가지 기준 — 작동 원리 보기">
-          <div className="text-center mb-10">
-            <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>AEOlab 작동 원리</p>
-            <h2 className="text-2xl md:text-3xl font-black tracking-tight break-keep" style={{ color: "#0F172A", letterSpacing: "-0.6px" }}>
-              AI가 내 가게를 추천하는 기준은<br className="hidden md:block" /> 4가지입니다
-            </h2>
-            <p className="mt-3 text-sm md:text-base break-keep max-w-xl mx-auto" style={{ color: "#475569" }}>
-              스마트플레이스 완성도·리뷰·키워드·블로그 콘텐츠 — 이 4가지가 충실할수록 AI가 신뢰할 수 있는 가게로 인식하고 추천합니다.
-            </p>
-          </div>
-
-          {/* 3단계 흐름 */}
-          <div className="relative">
-            {/* 연결선 (PC) */}
-            <div className="hidden md:block absolute top-[52px] left-[calc(16.66%+16px)] right-[calc(16.66%+16px)] h-0.5" style={{ background: "linear-gradient(90deg, #BFDBFE 0%, #A5B4FC 50%, #BFDBFE 100%)" }} aria-hidden="true" />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4">
-              {/* ① AI 기준 */}
-              <div className="flex flex-col items-center text-center">
-                <div className="relative mb-4">
-                  <div className="w-[104px] h-[104px] rounded-2xl flex flex-col items-center justify-center gap-1.5 shadow-md" style={{ background: "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)", border: "2px solid #BFDBFE" }}>
-                    <span className="text-2xl">📋</span>
-                    <span className="text-sm font-bold text-blue-700">스마트플레이스</span>
-                  </div>
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#2563EB" }}>①</span>
-                </div>
-                <h3 className="text-base font-bold text-gray-900 mb-2">AI는 4가지 기준으로 가게를 판단합니다</h3>
-                <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 w-full text-left">
-                  <p className="text-sm font-semibold text-blue-700 mb-1.5">AI 추천 4대 기준</p>
-                  <div className="space-y-1.5">
-                    {[
-                      { label: "① 스마트플레이스", desc: "소개글·사진·소식·예약 연동 완성도" },
-                      { label: "② 리뷰", desc: "리뷰 수 + 사장님 답변율" },
-                      { label: "③ 키워드", desc: "업종 관련 키워드 소개글·소식 포함 여부" },
-                      { label: "④ 블로그·외부 콘텐츠", desc: "네이버 블로그·SNS 등 온라인 언급량" },
-                    ].map(({ label, desc }) => (
-                      <div key={label} className="flex items-start gap-1.5">
-                        <span className="text-blue-600 text-sm font-bold flex-shrink-0 mt-0.5">{label}</span>
-                        <span className="text-sm text-gray-600 break-keep">{desc}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* ② AEOlab 점검 */}
-              <div className="flex flex-col items-center text-center">
-                <div className="relative mb-4">
-                  <div className="w-[104px] h-[104px] rounded-2xl flex flex-col items-center justify-center gap-1.5 shadow-md" style={{ background: "linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)", border: "2px solid #A5B4FC" }}>
-                    <span className="text-2xl">🔍</span>
-                    <span className="text-sm font-bold text-indigo-700">AEOlab 진단</span>
-                  </div>
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#6366F1" }}>②</span>
-                </div>
-                <h3 className="text-base font-bold text-gray-900 mb-2">AEOlab이 내 가게를 자동 점검합니다</h3>
-                <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 w-full text-left">
-                  <p className="text-sm font-semibold text-indigo-700 mb-1.5">자동 진단 내용</p>
-                  <div className="space-y-1">
-                    {["항목별 노출 상태 진단 (양호·보통·주의)", "경쟁사 대비 부족한 부분 파악", "ChatGPT·Gemini 실제 언급 횟수", "키워드 노출 현황 분석", "개선 우선순위 자동 제시"].map(item => (
-                      <div key={item} className="flex items-center gap-1.5">
-                        <span className="text-indigo-400 text-sm flex-shrink-0">▸</span>
-                        <span className="text-sm text-gray-700 break-keep">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* ③ AI 노출 증가 */}
-              <div className="flex flex-col items-center text-center">
-                <div className="relative mb-4">
-                  <div className="w-[104px] h-[104px] rounded-2xl flex flex-col items-center justify-center gap-1.5 shadow-md" style={{ background: "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)", border: "2px solid #6EE7B7" }}>
-                    <span className="text-2xl">📈</span>
-                    <span className="text-sm font-bold text-green-700">AI 노출 증가</span>
-                  </div>
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#059669" }}>③</span>
-                </div>
-                <h3 className="text-base font-bold text-gray-900 mb-2">개선하면 AI 추천 가능성이 높아집니다</h3>
-                <div className="rounded-xl border border-green-100 bg-green-50 p-3 w-full text-left">
-                  <p className="text-sm font-semibold text-green-700 mb-1.5">개선 후 결과</p>
-                  <div className="space-y-1">
-                    {["네이버 AI 브리핑 상단 노출 (음식점·카페 등)", "네이버 AI탭 답변에 내 가게 등장", "ChatGPT·Gemini 현황 정기 모니터링", "매주 자동 점검으로 노출 지속 유지", "경쟁사 대비 AI 노출 준비도 우위 확보"].map(item => (
-                      <div key={item} className="flex items-center gap-1.5">
-                        <span className="text-green-500 text-sm flex-shrink-0">✓</span>
-                        <span className="text-sm text-gray-700 break-keep">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 요약 + CTA */}
-          <div className="mt-8 rounded-2xl p-5 md:p-6 text-center" style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #4F46E5 100%)" }}>
-            <p className="text-base md:text-lg font-black text-white mb-1 break-keep">
-              스마트플레이스·리뷰·키워드·블로그를 함께 관리하면 AI 추천 가능성이 높아집니다
-            </p>
-            <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.75)" }}>
-              AEOlab이 4가지 기준을 자동 점검하고 개선 순서를 알려드립니다 — 1분 무료 진단
-            </p>
-            <a
-              href="/trial"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-blue-700 bg-white hover:bg-blue-50 transition-colors"
-            >
-              무료 진단 시작 →
-            </a>
-          </div>
-          </MobileAccordion>
-        </div>
-      </section>
-
       {/* ── 4. HOW CUSTOMERS — AI 브리핑 3단계 (#F8FAFC) ── */}
       <section className="px-4 py-3 md:py-20" style={{ background: "#F8FAFC" }}>
         <div className="max-w-[1020px] mx-auto">
@@ -875,6 +760,121 @@ export default function LandingPage() {
           <p className="text-center text-sm mt-4 fade-up break-keep" style={{ color: "#94A3B8" }}>
             AI 브리핑·AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
           </p>
+          </MobileAccordion>
+        </div>
+      </section>
+
+      {/* ── 4-C. 메커니즘 — 점검→개선→AI노출 인과관계 (2026-07-27 채널 설명 뒤로 재배치: 개요→브리핑상세→AI탭상세→종합기준 순) ── */}
+      <section className="px-4 py-3 md:py-14" style={{ background: "#FFFFFF", borderBottom: "1px solid #E2E8F0" }}>
+        <div className="max-w-[1020px] mx-auto">
+          <MobileAccordion label="AI가 내 가게를 추천하는 4가지 기준 — 작동 원리 보기">
+          <div className="text-center mb-10">
+            <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>AEOlab 작동 원리</p>
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight break-keep" style={{ color: "#0F172A", letterSpacing: "-0.6px" }}>
+              AI가 내 가게를 추천하는 기준은<br className="hidden md:block" /> 4가지입니다
+            </h2>
+            <p className="mt-3 text-sm md:text-base break-keep max-w-xl mx-auto" style={{ color: "#475569" }}>
+              스마트플레이스 완성도·리뷰·키워드·블로그 콘텐츠 — 이 4가지가 충실할수록 AI가 신뢰할 수 있는 가게로 인식하고 추천합니다.
+            </p>
+          </div>
+
+          {/* 3단계 흐름 */}
+          <div className="relative">
+            {/* 연결선 (PC) */}
+            <div className="hidden md:block absolute top-[52px] left-[calc(16.66%+16px)] right-[calc(16.66%+16px)] h-0.5" style={{ background: "linear-gradient(90deg, #BFDBFE 0%, #A5B4FC 50%, #BFDBFE 100%)" }} aria-hidden="true" />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4">
+              {/* ① AI 기준 */}
+              <div className="flex flex-col items-center text-center">
+                <div className="relative mb-4">
+                  <div className="w-[104px] h-[104px] rounded-2xl flex flex-col items-center justify-center gap-1.5 shadow-md" style={{ background: "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)", border: "2px solid #BFDBFE" }}>
+                    <span className="text-2xl">📋</span>
+                    <span className="text-sm font-bold text-blue-700">스마트플레이스</span>
+                  </div>
+                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#2563EB" }}>①</span>
+                </div>
+                <h3 className="text-base font-bold text-gray-900 mb-2">AI는 4가지 기준으로 가게를 판단합니다</h3>
+                <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 w-full text-left">
+                  <p className="text-sm font-semibold text-blue-700 mb-1.5">AI 추천 4대 기준</p>
+                  <div className="space-y-1.5">
+                    {[
+                      { label: "① 스마트플레이스", desc: "소개글·사진·소식·예약 연동 완성도" },
+                      { label: "② 리뷰", desc: "리뷰 수 + 사장님 답변율" },
+                      { label: "③ 키워드", desc: "업종 관련 키워드 소개글·소식 포함 여부" },
+                      { label: "④ 블로그·외부 콘텐츠", desc: "네이버 블로그·SNS 등 온라인 언급량" },
+                    ].map(({ label, desc }) => (
+                      <div key={label} className="flex items-start gap-1.5">
+                        <span className="text-blue-600 text-sm font-bold flex-shrink-0 mt-0.5">{label}</span>
+                        <span className="text-sm text-gray-600 break-keep">{desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* ② AEOlab 점검 */}
+              <div className="flex flex-col items-center text-center">
+                <div className="relative mb-4">
+                  <div className="w-[104px] h-[104px] rounded-2xl flex flex-col items-center justify-center gap-1.5 shadow-md" style={{ background: "linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)", border: "2px solid #A5B4FC" }}>
+                    <span className="text-2xl">🔍</span>
+                    <span className="text-sm font-bold text-indigo-700">AEOlab 진단</span>
+                  </div>
+                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#6366F1" }}>②</span>
+                </div>
+                <h3 className="text-base font-bold text-gray-900 mb-2">AEOlab이 내 가게를 자동 점검합니다</h3>
+                <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 w-full text-left">
+                  <p className="text-sm font-semibold text-indigo-700 mb-1.5">자동 진단 내용</p>
+                  <div className="space-y-1">
+                    {["항목별 노출 상태 진단 (양호·보통·주의)", "경쟁사 대비 부족한 부분 파악", "ChatGPT·Gemini 실제 언급 횟수", "키워드 노출 현황 분석", "개선 우선순위 자동 제시"].map(item => (
+                      <div key={item} className="flex items-center gap-1.5">
+                        <span className="text-indigo-400 text-sm flex-shrink-0">▸</span>
+                        <span className="text-sm text-gray-700 break-keep">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* ③ AI 노출 증가 */}
+              <div className="flex flex-col items-center text-center">
+                <div className="relative mb-4">
+                  <div className="w-[104px] h-[104px] rounded-2xl flex flex-col items-center justify-center gap-1.5 shadow-md" style={{ background: "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)", border: "2px solid #6EE7B7" }}>
+                    <span className="text-2xl">📈</span>
+                    <span className="text-sm font-bold text-green-700">AI 노출 증가</span>
+                  </div>
+                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#059669" }}>③</span>
+                </div>
+                <h3 className="text-base font-bold text-gray-900 mb-2">개선하면 AI 추천 가능성이 높아집니다</h3>
+                <div className="rounded-xl border border-green-100 bg-green-50 p-3 w-full text-left">
+                  <p className="text-sm font-semibold text-green-700 mb-1.5">개선 후 결과</p>
+                  <div className="space-y-1">
+                    {["네이버 AI 브리핑 상단 노출 (음식점·카페 등)", "네이버 AI탭 답변에 내 가게 등장", "ChatGPT·Gemini 현황 정기 모니터링", "매주 자동 점검으로 노출 지속 유지", "경쟁사 대비 AI 노출 준비도 우위 확보"].map(item => (
+                      <div key={item} className="flex items-center gap-1.5">
+                        <span className="text-green-500 text-sm flex-shrink-0">✓</span>
+                        <span className="text-sm text-gray-700 break-keep">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 요약 + CTA */}
+          <div className="mt-8 rounded-2xl p-5 md:p-6 text-center" style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #4F46E5 100%)" }}>
+            <p className="text-base md:text-lg font-black text-white mb-1 break-keep">
+              스마트플레이스·리뷰·키워드·블로그를 함께 관리하면 AI 추천 가능성이 높아집니다
+            </p>
+            <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.75)" }}>
+              AEOlab이 4가지 기준을 자동 점검하고 개선 순서를 알려드립니다 — 1분 무료 진단
+            </p>
+            <a
+              href="/trial"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-blue-700 bg-white hover:bg-blue-50 transition-colors"
+            >
+              무료 진단 시작 →
+            </a>
+          </div>
           </MobileAccordion>
         </div>
       </section>
