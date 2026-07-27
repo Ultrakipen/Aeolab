@@ -107,7 +107,7 @@ export default function LandingPage() {
       </div>
 
       {/* ── 2. WHY — Before / After (#FFFFFF) ── */}
-      <section className="px-4 py-12 md:py-20" style={{ background: "#FFFFFF" }}>
+      <section className="px-4 py-3 md:py-20" style={{ background: "#FFFFFF" }}>
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="광고 끊으면 사라집니다, AI 검색은 다릅니다 — 자세히 보기">
           <div className="text-center mb-6 md:mb-8 fade-up">
@@ -592,7 +592,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 4. HOW CUSTOMERS — AI 브리핑 3단계 (#F8FAFC) ── */}
-      <section className="px-4 py-12 md:py-20" style={{ background: "#F8FAFC" }}>
+      <section className="px-4 py-3 md:py-20" style={{ background: "#F8FAFC" }}>
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="요즘 손님은 네이버 AI 추천 목록을 봅니다 — 자세히 보기">
           <div className="text-center mb-6 md:mb-8 fade-up">
@@ -720,7 +720,7 @@ export default function LandingPage() {
       {/* ── 4-B. AI탭 — 모든 업종 가능 (#FFFFFF) ──
             AI 브리핑(§4)이 업종 제한이 있어 비대상 업종 방문자가 이탈하는 문제를 보완하는 섹션.
             네이버 AI 브리핑과 네이버 AI탭은 다른 노출 경로임을 명확히 안내. */}
-      <section className="px-4 py-12 md:py-16" style={{ background: "#FFFFFF" }}>
+      <section className="px-4 py-3 md:py-16" style={{ background: "#FFFFFF" }}>
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="네이버 AI탭이란? 모든 업종 노출 가능 — 자세히 보기">
           <div className="text-center mb-6 md:mb-8 fade-up">
@@ -883,7 +883,7 @@ export default function LandingPage() {
       <InlineKeywordWidget />
 
       {/* ── 5. HOW AEOLAB — 대시보드 스크롤 연동 (#FFFFFF) ── */}
-      <div className="px-4 py-10 md:p-0">
+      <div className="px-4 py-3 md:p-0">
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="AEOlab이 실제로 어떻게 작동하는지 — 자세히 보기">
             <HowAeolabIntegrated />
@@ -892,7 +892,7 @@ export default function LandingPage() {
       </div>
 
       {/* ── 5-A. 서비스 기능 명시 — AEOlab이 제공하는 것 ── */}
-      <section className="px-4 py-10 md:py-14" style={{ background: "#F8FAFC", borderTop: "1px solid #E2E8F0" }}>
+      <section className="px-4 py-3 md:py-14" style={{ background: "#F8FAFC", borderTop: "1px solid #E2E8F0" }}>
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="구독하면 이런 기능을 사용할 수 있습니다 — 9가지 기능 보기">
           <div className="text-center mb-8">
@@ -1013,7 +1013,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 5-B. DASHBOARD PREVIEW — 구독 가치 미리보기 (#F8FAFC) ── */}
-      <section className="py-12 md:py-16 px-4" style={{ background: "#F8FAFC" }}>
+      <section className="py-3 md:py-16 px-4" style={{ background: "#F8FAFC" }}>
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="대시보드 미리보기 — 예시 화면 보기">
           <div className="text-center mb-7 fade-up">
@@ -1036,7 +1036,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 6. WHY NOT DIY — ChatGPT 직접 vs AEOlab (#F8FAFC) ── */}
-      <div className="px-4 py-10 md:p-0" style={{ background: "#F8FAFC" }}>
+      <div className="px-4 py-3 md:p-0" style={{ background: "#F8FAFC" }}>
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="무료 AI로 직접 하면 되지 않나요? — 비교 보기">
             <ChatGPTCompareSection />
@@ -1045,7 +1045,7 @@ export default function LandingPage() {
       </div>
 
       {/* ── 7. vs OTHERS — AEO vs 기존 방법 비교 (#FFFFFF) ── */}
-      <div className="px-4 py-10 md:p-0">
+      <div className="px-4 py-3 md:p-0">
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="AEOlab만의 기능 — 기존 방법과 비교 보기">
             <AEOCompareSection />
@@ -1182,7 +1182,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 9-C. AGENCY SERVICE — 대행 서비스 (#FFFBEB) ── */}
-      <div className="px-4 py-10 md:p-0">
+      <div className="px-4 py-3 md:p-0">
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="직접 할 시간이 없다면 — 전문가 대행 서비스 보기">
             <AgencyServiceSection />
