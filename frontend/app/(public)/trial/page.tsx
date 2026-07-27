@@ -21,8 +21,6 @@ import type {
   Step,
   BusinessType,
   TrialFormState,
-  NaverBriefingCheckState,
-  NaverBriefingCheckResult,
 } from "./components/TrialSharedTypes";
 
 // ── 모듈 레벨 상수 ────────────────────────────────────────────────────
@@ -185,12 +183,6 @@ export default function TrialPage() {
   const [inlineSelectedCandidate, setInlineSelectedCandidate] = useState<TrialBusinessCandidate | null>(null);
   const [forceManualEntry, setForceManualEntry] = useState(false);
 
-  // ── 네이버 AI 브리핑 직접 확인 state ─────────────────────────────────
-  const [naverCheckState, setNaverCheckState] =
-    useState<NaverBriefingCheckState>("idle");
-  const [naverCheckResult, setNaverCheckResult] =
-    useState<NaverBriefingCheckResult | null>(null);
-  const [naverCheckError, setNaverCheckError] = useState("");
   const [apiBenchmark, setApiBenchmark] = useState<{
     count: number;
     avg_score: number;
@@ -579,9 +571,6 @@ export default function TrialPage() {
       is_franchise: false,
     });
     setScanStep(0);
-    setNaverCheckState("idle");
-    setNaverCheckResult(null);
-    setNaverCheckError("");
     setCandidates([]);
     setSearchLoading(false);
     setSearchError("");
@@ -606,83 +595,6 @@ export default function TrialPage() {
     setIsRestored(true);
     setRestoreBanner("hidden");
     setStep("result");
-  };
-
-  const handleNaverBriefingCheck = async () => {
-    if (!result || naverCheckState !== "idle") return;
-    setNaverCheckState("loading");
-    setNaverCheckError("");
-
-    try {
-      const keyword = buildKeyword();
-      const res = await fetch(`${BACKEND_URL}/api/scan/trial/naver-briefing`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          business_name: form.business_name,
-          region: form.region || undefined,
-          keyword: keyword || undefined,
-        }),
-      });
-
-      if (res.status === 429) {
-        setNaverCheckError("요청이 너무 많습니다. 잠시 후 다시 시도해주세요.");
-        setNaverCheckState("error");
-        return;
-      }
-      if (!res.ok) {
-        setNaverCheckError(
-          "확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
-        );
-        setNaverCheckState("error");
-        return;
-      }
-
-      // 백엔드가 SSE(text/event-stream) 스트림으로 응답하므로 line-by-line 파싱
-      const reader = res.body?.getReader();
-      const decoder = new TextDecoder();
-      let finalResult: NaverBriefingCheckResult | null = null;
-      if (reader) {
-        let buffer = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            try {
-              const event = JSON.parse(line.slice(6));
-              if (event.type === "result") {
-                finalResult = event as NaverBriefingCheckResult;
-              } else if (event.type === "error") {
-                setNaverCheckError(event.message || "확인 중 오류가 발생했습니다.");
-                setNaverCheckState("error");
-                return;
-              }
-            } catch { /* 불완전 라인 무시 */ }
-          }
-        }
-      }
-      if (finalResult) {
-        setNaverCheckResult(finalResult);
-        setNaverCheckState("done");
-      } else {
-        setNaverCheckError("결과를 받지 못했습니다. 잠시 후 다시 시도해주세요.");
-        setNaverCheckState("error");
-      }
-    } catch {
-      setNaverCheckError(
-        "확인 요청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
-      );
-      setNaverCheckState("error");
-    }
-  };
-
-  const handleNaverCheckReset = () => {
-    setNaverCheckState("idle");
-    setNaverCheckError("");
   };
 
   // ── 렌더 ────────────────────────────────────────────────────────────
@@ -804,11 +716,6 @@ export default function TrialPage() {
           hasIntro={hasIntro ?? false}
           isLoggedIn={isLoggedIn}
           apiBenchmark={apiBenchmark}
-          naverCheckState={naverCheckState}
-          naverCheckResult={naverCheckResult}
-          naverCheckError={naverCheckError}
-          onNaverBriefingCheck={handleNaverBriefingCheck}
-          onNaverCheckReset={handleNaverCheckReset}
           onSaveTrialData={saveTrialData}
           onReset={reset}
           isRestored={isRestored}

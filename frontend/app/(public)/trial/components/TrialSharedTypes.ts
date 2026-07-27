@@ -23,17 +23,6 @@ export interface TrialFormState {
   is_franchise: boolean;
 }
 
-// 네이버 AI 브리핑 직접 확인 상태
-export type NaverBriefingCheckState = "idle" | "loading" | "done" | "error";
-
-export interface NaverBriefingCheckResult {
-  exposed: boolean;
-  in_briefing: boolean;
-  briefing_text?: string;
-  rank?: number;
-  blog_count?: number;
-}
-
 // 결과 step에 넘겨주는 모든 데이터 (page.tsx에서 계산 후 전달)
 export interface TrialResultProps {
   result: TrialScanResult;
@@ -46,11 +35,6 @@ export interface TrialResultProps {
   hasIntro: boolean;
   isLoggedIn: boolean;
   apiBenchmark: { count: number; avg_score: number; top10_score: number; fallback?: string } | null;
-  naverCheckState: NaverBriefingCheckState;
-  naverCheckResult: NaverBriefingCheckResult | null;
-  naverCheckError: string;
-  onNaverBriefingCheck: () => Promise<void>;
-  onNaverCheckReset: () => void;
   onSaveTrialData: () => void;
   onReset: () => void;
   /** sessionStorage에서 복원된 결과인지 여부 */

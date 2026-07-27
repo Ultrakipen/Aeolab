@@ -378,11 +378,6 @@ export default function TrialResultStep(props: TrialResultProps) {
     hasIntro,
     isLoggedIn,
     apiBenchmark,
-    naverCheckState,
-    naverCheckResult,
-    naverCheckError,
-    onNaverBriefingCheck,
-    onNaverCheckReset,
     onSaveTrialData,
     onReset,
     isRestored = false,
@@ -1060,7 +1055,7 @@ function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number })
       <div className="bg-slate-600 rounded-lg px-3 py-2 mb-3">
         <p className="text-sm text-slate-300 leading-relaxed">
           <span className="text-white font-semibold">Basic 구독</span>에서는 Gemini·ChatGPT 각{" "}
-          <span className="text-white font-semibold">50회씩(총 100회)</span> + 네이버 스마트플레이스 주기 측정. Pro 이상에서 Google AI Overview 추가 측정합니다.
+          <span className="text-white font-semibold">50회씩(총 100회)</span> + 네이버 스마트플레이스 주기 측정 + Google AI Overview까지 포함됩니다.
         </p>
       </div>
       <div className="border-t border-slate-500 pt-2.5 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
