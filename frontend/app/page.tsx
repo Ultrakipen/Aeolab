@@ -336,7 +336,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 3-B. TRUST — AEOlab 서비스 신뢰 지표 (모바일 접힘, 스크롤 길이 영향 없음) ── */}
-      <div className="px-4 py-5 md:p-0">
+      <div className="px-4 py-3 md:p-0">
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="AEOlab이 실제로 측정하는 것 — 신뢰 지표 보기">
             <Testimonials />
@@ -345,7 +345,7 @@ export default function LandingPage() {
       </div>
 
       {/* ── 1-A. AI 검색 노출 — 업종 분기 다이어그램 + 개선 방법 통합 ── */}
-      <section className="px-4 py-5 md:py-16" style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
+      <section className="px-4 py-3 md:py-16" style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="AI 검색 노출, 업종마다 채널이 다릅니다 — 업종별 채널 보기">
 
@@ -477,7 +477,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 1-A2. 메커니즘 — 점검→개선→AI노출 인과관계 ── */}
-      <section className="px-4 py-5 md:py-14" style={{ background: "#FFFFFF", borderBottom: "1px solid #E2E8F0" }}>
+      <section className="px-4 py-3 md:py-14" style={{ background: "#FFFFFF", borderBottom: "1px solid #E2E8F0" }}>
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="AI가 내 가게를 추천하는 4가지 기준 — 작동 원리 보기">
           <div className="text-center mb-10">
