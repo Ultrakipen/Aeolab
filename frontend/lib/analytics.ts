@@ -175,6 +175,7 @@ export function trackTrialComplete(payload: {
   trial_id?: string;
   category?: string;
   score?: number;
+  has_email?: boolean;
 }): void {
   if (!claimSessionFlag("trial_complete")) return;
   trackEvent("trial_complete", payload);

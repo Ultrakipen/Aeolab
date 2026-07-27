@@ -1193,6 +1193,18 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 </p>
               )}
 
+              {/* 체험 범위 기대치 안내 */}
+              <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm text-slate-600 space-y-1.5">
+                <p className="font-semibold text-slate-700">이번 체험에서 확인 가능</p>
+                <p className="leading-relaxed break-keep">
+                  ChatGPT AI 노출 여부 · 스마트플레이스 완성도 · 네이버 검색 순위 · 블로그 언급 수
+                </p>
+                <p className="font-semibold text-slate-700 pt-0.5">구독 후 추가 확인 가능</p>
+                <p className="leading-relaxed break-keep">
+                  네이버 AI 브리핑 실제 인용 여부 · Gemini·Google AI Overview 노출 · 네이버 AI탭 · 매주 자동 측정 + 변화 알림
+                </p>
+              </div>
+
               <button
                 type="submit"
                 disabled={cooldownMs > 0 || searchLoading}

@@ -40,108 +40,6 @@ import {
 } from "lucide-react";
 
 
-// ── 잠긴 상세 분석 카드 (점수는 위에서 공개, 여기서는 항목별 분석 유도) ────
-function LockedScoreCard({
-  score,
-  track1,
-  track2,
-  userGroup,
-  breakdown,
-}: {
-  score: number;
-  track1: number;
-  track2: number;
-  userGroup?: string;
-  breakdown?: {
-    keyword_gap_score?: number;
-    smart_place_completeness?: number;
-    review_quality?: number;
-    kakao_completeness?: number;
-  };
-}) {
-  const kgPct = breakdown?.keyword_gap_score !== undefined
-    ? Math.round(breakdown.keyword_gap_score)
-    : null;
-  const spPct = breakdown?.smart_place_completeness !== undefined
-    ? Math.round(breakdown.smart_place_completeness)
-    : null;
-
-  return (
-    <div className="rounded-xl border-2 border-blue-100 bg-white overflow-hidden mb-4">
-      <div className="px-4 py-3 border-b border-blue-100">
-        <p className="text-base font-bold text-slate-700">📊 항목별 상세 분석</p>
-        <p className="text-sm text-slate-500 mt-0.5">5가지 항목 개별 점수 + 경쟁사 비교 + 매주 자동 측정</p>
-      </div>
-
-      {/* 공개 힌트 — 실측 항목 1~2개만 */}
-      {(kgPct !== null || spPct !== null) && (
-        <div className="px-4 pt-4 space-y-2">
-          {kgPct !== null && (
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm text-slate-700 font-medium">핵심 키워드 보유율</span>
-                <span className="text-sm font-bold text-slate-800">{kgPct >= 65 ? "양호" : kgPct >= 40 ? "보완 필요" : "개선 필요"}</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div
-                  className="h-2 rounded-full bg-blue-500"
-                  style={{ width: `${kgPct}%` }}
-                />
-              </div>
-            </div>
-          )}
-          {spPct !== null && (
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm text-slate-700 font-medium">네이버 프로필 완성도</span>
-                <span className="text-sm font-bold text-slate-800">{spPct >= 65 ? "양호" : spPct >= 40 ? "보완 필요" : "개선 필요"}</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div
-                  className="h-2 rounded-full bg-blue-500"
-                  style={{ width: `${spPct}%` }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 블러: 나머지 항목 */}
-      <div className="relative">
-        <div className="px-4 pt-3 pb-5 blur-sm select-none pointer-events-none opacity-50" aria-hidden="true">
-          {[
-            { label: "고객 후기 신뢰도", barW: 50 },
-            { label: userGroup === "INACTIVE" ? "키워드·리뷰 최적화" : "AI 브리핑 노출", barW: 50 },
-            { label: "카카오맵 등록", barW: 50 },
-          ].map((item) => (
-            <div key={item.label} className="mb-3">
-              <div className="flex justify-between mb-1">
-                <span className="text-sm text-slate-600">{item.label}</span>
-                <span className="text-sm text-slate-400">--</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className="h-2 rounded-full bg-blue-400" style={{ width: `${item.barW}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-[2px]">
-          <div className="text-center px-6">
-            <p className="text-sm font-bold text-slate-800 mb-1">🔒 나머지 항목 점수 + 경쟁사 비교</p>
-            <p className="text-sm text-slate-500 mb-3 leading-relaxed break-keep">
-              구독하면 5개 항목 전부 + 경쟁사 대비 순위 + 매주 자동 측정
-            </p>
-            <Link href="/pricing" className="inline-block text-sm font-bold text-white bg-blue-600 rounded-xl px-5 py-2 hover:bg-blue-700 transition-colors">
-              구독 시작하기 →
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── 구독 행동 기능 잠금 카드 ────────────────────────────────────────
 function ActionFeaturesLock({ onSave }: { onSave: () => void }) {
   const actions = [
@@ -167,7 +65,10 @@ function ActionFeaturesLock({ onSave }: { onSave: () => void }) {
       </div>
       <Link
         href="/signup"
-        onClick={onSave}
+        onClick={() => {
+          onSave();
+          trackEvent("trial_signup_cta_click", { location: "action_features_lock" });
+        }}
         className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3 rounded-xl transition-colors"
       >
         무료로 시작하기
@@ -617,26 +518,6 @@ export default function TrialResultStep(props: TrialResultProps) {
   const isFranchise = (form as { is_franchise?: boolean }).is_franchise === true;
   const userGroupValue = getUserGroup(selectedCategory, isFranchise, briefingCats?.active, briefingCats?.likely);
 
-  function getSignupCTALabel(group: string): string {
-    if (group === "ACTIVE") return "가입하고 네이버 AI 브리핑 노출 시작하기";
-    if (group === "LIKELY") return "가입하고 AI탭 노출 + 확대 예정 대비하기";
-    if (group === "franchise") return "가입하고 글로벌 AI 노출 시작하기";
-    return "가입하고 ChatGPT·Gemini 최적화 진단 받기";
-  }
-
-  function handleSignupCTAClick(group: string) {
-    const dimMap: Record<string, string> = {
-      ACTIVE: "signup_cta_clicked_active",
-      LIKELY: "signup_cta_clicked_likely",
-      INACTIVE: "signup_cta_clicked_inactive",
-      franchise: "signup_cta_clicked_franchise",
-    };
-    trackEvent(dimMap[group] ?? "signup_cta_clicked_inactive", {
-      category: selectedCategory,
-      group,
-    });
-  }
-
   const naverChannelScore = result.score?.naver_channel_score ?? track1;
   const globalChannelScore = result.score?.global_channel_score ?? track2;
 
@@ -758,6 +639,7 @@ export default function TrialResultStep(props: TrialResultProps) {
       trial_id: trialId,
       category: selectedCategory,
       score,
+      has_email: !!form.email,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1146,6 +1028,9 @@ export default function TrialResultStep(props: TrialResultProps) {
           </button>
         </div>
       </div>
+
+      {/* ── 18. 하단 고정 가입 배너 ─────────────────────────────── */}
+      <StickySignupBanner isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
     </>
   );
 }
@@ -1860,7 +1745,10 @@ function StickySignupBanner({
         <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/signup"
-            onClick={onSave}
+            onClick={() => {
+              onSave();
+              trackEvent("trial_signup_cta_click", { location: "sticky_banner" });
+            }}
             className="bg-white text-blue-700 font-bold text-sm md:text-base px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-colors whitespace-nowrap shadow-md"
           >
             회원가입하기 (1분)

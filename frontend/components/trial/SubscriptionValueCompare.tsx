@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import { Check, X, Lightbulb } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 interface SubscriptionValueCompareProps {
   isLoggedIn: boolean;
@@ -97,7 +98,10 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
       {!isLoggedIn ? (
         <Link
           href="/signup"
-          onClick={onSave}
+          onClick={() => {
+            onSave();
+            trackEvent("trial_signup_cta_click", { location: "subscription_value_compare" });
+          }}
           className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-black text-lg md:text-xl py-4 md:py-5 rounded-2xl transition-colors shadow-lg"
         >
           매주 자동 추적 시작 — 첫 달 <span className="text-emerald-300">{FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원</span>
