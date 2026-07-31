@@ -48,11 +48,13 @@ function formatScanDate(dateStr: string): string {
 export function AdDefenseClient({
   businesses,
   lastScanByBiz = {},
+  initialBizId,
 }: {
   businesses: Array<{ id: string; name: string }>;
   lastScanByBiz?: Record<string, string>;
+  initialBizId?: string;
 }) {
-  const [bizId, setBizId] = useState(businesses[0]?.id ?? "");
+  const [bizId, setBizId] = useState(initialBizId ?? businesses[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AdDefenseResult | null>(null);
   const [error, setError] = useState("");

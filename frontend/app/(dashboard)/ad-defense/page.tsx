@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AdDefenseClient } from "./AdDefenseClient";
 import { NoBusiness } from "@/components/dashboard/NoBusiness";
 import { PlanGate } from "@/components/common/PlanGate";
+import { getActiveBusinessId } from "@/lib/active-business";
 import { Shield, TrendingUp, Bot, BarChart2 } from "lucide-react";
 
 export default async function AdDefensePage() {
@@ -103,18 +104,28 @@ export default async function AdDefensePage() {
     );
   }
 
-  // 사업장별 마지막 스캔 날짜
+  // 사업장별 마지막 스캔 날짜 — scan_results에는 created_at 컬럼이 없어(존재하는 컬럼은
+  // scanned_at) 이 쿼리가 항상 42703 에러로 조용히 실패, lastScanByBiz가 매번 빈 객체가
+  // 되어 실제로 스캔 이력이 있는 계정에도 "스캔 데이터 없음"이 상시 노출되던 버그.
   const bizIds = businesses.map((b) => b.id);
   const { data: recentScans } = await supabase
     .from("scan_results")
-    .select("business_id, created_at")
+    .select("business_id, scanned_at")
     .in("business_id", bizIds)
-    .order("created_at", { ascending: false });
+    .order("scanned_at", { ascending: false });
 
   const lastScanByBiz: Record<string, string> = {};
   recentScans?.forEach((s) => {
-    if (!lastScanByBiz[s.business_id]) lastScanByBiz[s.business_id] = s.created_at;
+    if (!lastScanByBiz[s.business_id]) lastScanByBiz[s.business_id] = s.scanned_at;
   });
 
-  return <AdDefenseClient businesses={businesses} lastScanByBiz={lastScanByBiz} />;
+  // 다른 페이지(대시보드·경쟁사·가이드 등)와 동일하게 aeolab_active_biz 쿠키 기준으로 기본
+  // 선택 사업장을 맞춘다 — businesses[0] 고정 시 사업장 전환 후 이 페이지로 오면 항상
+  // 첫 번째 등록 사업장으로 되돌아가던 버그(553bc54와 동일 클래스, 이 페이지는 누락돼 있었음).
+  const activeBizId = await getActiveBusinessId(user.id);
+  const initialBizId = (activeBizId && businesses.some((b) => b.id === activeBizId))
+    ? activeBizId
+    : businesses[0].id;
+
+  return <AdDefenseClient businesses={businesses} lastScanByBiz={lastScanByBiz} initialBizId={initialBizId} />;
 }
