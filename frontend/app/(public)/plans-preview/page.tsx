@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 
 // ────────────────────────────────────────────────────────────
 // 점수 → 텍스트 레이블 (실제 대시보드와 동일 정책: 숫자 비노출)
@@ -849,8 +850,9 @@ export default function PlansPreviewPage() {
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="text-indigo-600 font-bold text-sm">← AEOlab</Link>
+          <AuthNavControlClient />
         </div>
       </div>
 

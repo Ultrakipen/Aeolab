@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
+import { HelpContactCTA } from "./HelpContactCTA";
 
 export const metadata = { title: "도움말 FAQ | AEOlab" };
 
@@ -63,30 +65,30 @@ export default async function HelpPage({ searchParams }: PageProps) {
 
   return (
     <>
+    <header className="border-b border-gray-100 px-4 md:px-6 py-4 bg-white">
+      <div className="max-w-3xl mx-auto flex items-center justify-between">
+        <Link href="/" className="text-xl font-bold text-blue-600">AEOlab</Link>
+        <div className="flex items-center gap-3 md:gap-4">
+          <Link href="/faq" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">FAQ</Link>
+          <AuthNavControlClient />
+          <Link
+            href="/trial"
+            className="bg-blue-600 text-white text-sm px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+          >
+            무료 진단
+          </Link>
+        </div>
+      </div>
+    </header>
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto p-4 md:p-8">
         {/* 헤더 */}
         <div className="mb-6 md:mb-8">
-          <Link href="/" className="text-xl font-bold text-blue-600 block mb-4">AEOlab</Link>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">도움말 FAQ</h1>
           <p className="text-sm md:text-base text-gray-500">자주 묻는 질문과 운영자 답변을 모아 두었습니다.</p>
 
-          {/* 로그인 CTA */}
-          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <MessageCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-blue-800">직접 문의하려면 로그인이 필요합니다.</p>
-                <p className="text-sm text-blue-600">로그인 후 1:1 문의를 작성할 수 있습니다.</p>
-              </div>
-            </div>
-            <Link
-              href="/login?next=/support/tickets/new"
-              className="shrink-0 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors text-center"
-            >
-              로그인 후 문의하기 →
-            </Link>
-          </div>
+          {/* 문의 CTA (로그인 상태에 따라 문구·링크 전환) */}
+          <HelpContactCTA variant="banner" />
         </div>
 
         {/* 카테고리 필터 */}
@@ -114,13 +116,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
             <p className="text-base font-medium text-gray-500 mb-1">
               {categoryFilter ? "해당 카테고리의 FAQ가 없습니다." : "아직 공개 FAQ가 없습니다."}
             </p>
-            <p className="text-sm text-gray-500">
-              궁금한 점은{" "}
-              <Link href="/login?next=/support/tickets/new" className="text-blue-600 hover:underline">
-                로그인 후 직접 문의
-              </Link>
-              해 주세요.
-            </p>
+            <HelpContactCTA variant="footer" />
           </div>
         ) : (
           <div className="space-y-4">
@@ -159,13 +155,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
         {/* 하단 문의 CTA */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500 mb-3">원하는 답변을 찾지 못하셨나요?</p>
-          <Link
-            href="/login?next=/support/tickets/new"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
-          >
-            <MessageCircle className="w-4 h-4" />
-            1:1 직접 문의하기
-          </Link>
+          <HelpContactCTA variant="button" />
         </div>
       </div>
     </div>
