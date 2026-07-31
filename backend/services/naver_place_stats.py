@@ -272,6 +272,7 @@ async def _check_completeness(url: str) -> dict:
         )
         page = await ctx.new_page()
         await _as2(page)
+        _NAVER_BLOCK = "플레이스 서비스 이용이 제한"
         try:
             # ── 1단계: 홈 탭 — 사진·메뉴·is_smart_place ─────────────────
             home_url = f"{base_url}/home" if base_url else url
@@ -279,6 +280,9 @@ async def _check_completeness(url: str) -> dict:
             await page.wait_for_timeout(_TAB_WAIT)
             body = await page.inner_text("body")
             logger.info(f"[sp_check] home body_len={len(body)} sample={body[:300]!r}")
+            _home_blocked = _NAVER_BLOCK in body
+            if _home_blocked:
+                logger.warning(f"[sp_check] home tab blocked (IP restriction) [{base_url}]")
 
             # 사진 수 — 텍스트 패턴("사진 N") 우선
             # img.count() 폴백은 제거 — 내비게이션 아이콘 등 무관한 이미지까지 카운트해 오류 발생
@@ -293,15 +297,20 @@ async def _check_completeness(url: str) -> dict:
                     pass
 
             # 예약 연동 여부 — 홈 탭 텍스트·DOM 기반
-            has_reservation = bool(re.search(r"네이버\s*예약|예약하기", body))
-            if not has_reservation:
-                try:
-                    for _sel in ["a[href*='/booking']", "button[aria-label*='예약']", ".booking_btn", "a[data-type='reservation']"]:
-                        if await page.query_selector(_sel):
-                            has_reservation = True
-                            break
-                except Exception as e:
-                    logger.debug("[naver_place_stats] reservation selector check failed: %s", e)
+            # 홈 탭 차단 시 None(측정 불가) — 차단을 "미연동"으로 오판하지 않도록 has_recent_post/has_intro와 동일 패턴 적용
+            has_reservation: bool | None
+            if _home_blocked:
+                has_reservation = None
+            else:
+                has_reservation = bool(re.search(r"네이버\s*예약|예약하기", body))
+                if not has_reservation:
+                    try:
+                        for _sel in ["a[href*='/booking']", "button[aria-label*='예약']", ".booking_btn", "a[data-type='reservation']"]:
+                            if await page.query_selector(_sel):
+                                has_reservation = True
+                                break
+                    except Exception as e:
+                        logger.debug("[naver_place_stats] reservation selector check failed: %s", e)
 
             # 메뉴·서비스 — 홈탭 또는 메뉴탭에서 감지
             has_menu = bool(
@@ -320,7 +329,6 @@ async def _check_completeness(url: str) -> dict:
                     logger.warning(f"check_completeness menu tab skipped: {e}")
 
             # ── 2단계: 소식 탭 — 최근 90일 내 게시물 ───────────────────────
-            _NAVER_BLOCK = "플레이스 서비스 이용이 제한"
             has_recent_post: bool | None = None  # None = 측정 불가(차단)
             recent_post_date = None
             if base_url:
@@ -416,7 +424,7 @@ async def _check_completeness(url: str) -> dict:
                 "photo_count": photo_count,
                 "has_menu": has_menu,
                 "has_hours": has_hours,
-                "has_reservation": has_reservation,
+                "has_reservation": has_reservation,     # None=측정 불가(홈 탭 차단), bool=실측
                 "completeness_score": min(score, 100),
                 "photo_categories": photo_categories,  # AI 이미지 필터 카테고리별 사진 수 (실패 시 {})
             }

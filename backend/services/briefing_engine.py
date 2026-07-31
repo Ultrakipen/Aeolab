@@ -1781,7 +1781,8 @@ def simulate_ai_tab_answer(
     sp_json = biz.get("sp_completeness_json")
     if isinstance(sp_json, dict):
         if "has_reservation" in sp_json:
-            has_reservation_sig = bool(sp_json.get("has_reservation"))
+            # bool()로 강제 캐스팅하면 None(미측정)이 False(측정됨·미연동)로 오염됨 — 그대로 보존
+            has_reservation_sig = sp_json.get("has_reservation")
         if "photo_count" in sp_json:
             try:
                 photo_count_sig = int(sp_json.get("photo_count") or 0)

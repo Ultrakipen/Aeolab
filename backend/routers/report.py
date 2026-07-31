@@ -1790,7 +1790,8 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
     sp_json = biz_row.get("sp_completeness_json") or {}
     has_reservation_val: bool | None = None
     if isinstance(sp_json, dict) and "has_reservation" in sp_json:
-        has_reservation_val = bool(sp_json.get("has_reservation"))
+        # bool()로 강제 캐스팅하면 None(미측정)이 False(측정됨·미연동)로 오염됨 — 그대로 보존
+        has_reservation_val = sp_json.get("has_reservation")
 
     # briefing paths 생성 (AI 호출 없음, 순수 템플릿)
     review_sample_val = biz_row.get("review_sample") or None
