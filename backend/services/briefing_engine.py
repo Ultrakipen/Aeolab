@@ -1392,13 +1392,14 @@ def _make_list_content_draft(
     blog_draft = (
         f"[제목] [{date_tag} 업데이트] {region_short} {category_ko} — {business_name} 소개\n\n"
         f"[도입부] 안녕하세요, {business_name} 운영하고 있습니다.\n"
-        f"{region_short}에서 {category_ko}를 찾고 계신 분들께 저희 가게를 {date_tag} 기준으로 소개드립니다.\n\n"
+        f"{region_short}에서 {category_ko}{_select_josa(category_ko, '을', '를')} 찾고 계신 분들께 저희 가게를 {date_tag} 기준으로 소개드립니다.\n\n"
         f"[소개] {business_name}\n"
         f"· 위치: {region_short}\n"
         f"· 특징: {keyword1} · {keyword2} 전문\n"
         f"· 이용 안내: 네이버 예약 또는 전화로 간편하게 예약하실 수 있습니다\n"
         f"· 정보 기준일: {now.strftime('%Y.%m.%d')}\n\n"
-        f"[마무리] {region_short}에서 {category_ko}로 고민 중이시라면 {business_name}을 방문해 주세요.\n"
+        f"[마무리] {region_short}에서 {category_ko}로 고민 중이시라면 "
+        f"{business_name}{_select_josa(business_name, '을', '를')} 방문해 주세요.\n"
         f"태그: #{region_short}{category_ko} #{kw_tag} #{business_name.replace(' ', '')} #{now.year}년최신"
     )
 
@@ -1478,7 +1479,7 @@ def _make_community_drafts(
 
     jiskin_text = (
         f"안녕하세요, {business_name} 운영자입니다.\n"
-        f"{region_short}에서 {category_ko}를 찾으신다면 저희 {noun}{_select_josa(noun, '을', '를')} 추천드립니다.\n"
+        f"{region_short}에서 {category_ko}{_select_josa(category_ko, '을', '를')} 찾으신다면 저희 {noun}{_select_josa(noun, '을', '를')} 추천드립니다.\n"
         f"{keyword1} · {keyword2} 전문으로 운영하고 있으며, {region_short} 위치라 접근하기 편합니다.\n"
         f"궁금한 점은 네이버 예약 또는 전화로 문의해 주세요."
     )

@@ -5,6 +5,7 @@
 import os
 import logging
 from datetime import date, timedelta
+from services.briefing_engine import _select_josa
 
 logger = logging.getLogger("aeolab")
 
@@ -192,7 +193,7 @@ def _day3_html(
 
     # 핵심: 키워드 + 붙여넣기 문장
     if kw0:
-        example_sentence = f"저희 {cat_ko}는 {kw0} 서비스를 제공하고 있습니다. 방문 전 미리 문의해 주세요."
+        example_sentence = f"저희 {cat_ko}{_select_josa(cat_ko, '은', '는')} {kw0} 서비스를 제공하고 있습니다. 방문 전 미리 문의해 주세요."
         keyword_block = f"""
   <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:16px 18px; margin:0 0 20px;">
     <p style="font-size:12px; color:#92400e; font-weight:700; margin:0 0 8px;">경쟁 가게가 쓰는데 내 가게 소개글엔 없는 키워드</p>

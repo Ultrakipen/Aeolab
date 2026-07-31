@@ -8,6 +8,7 @@ import re
 import logging
 from models.context import ScanContext
 from models.action import ActionTools, FAQ, ReviewResponseDraft
+from services.briefing_engine import _select_josa
 
 # 카테고리 코드 → 한국어 레이블
 _CATEGORY_KO: dict[str, str] = {
@@ -143,15 +144,15 @@ def build_faq_list(
         faqs = [
             FAQ(
                 question=f"{region_short} {kw1} 어디가 좋아?",
-                answer=f"{name}을 추천드립니다. {region_short} 지역에서 {keyword_str} 전문으로 운영하며, 고객 만족도 높은 서비스를 제공합니다.",
+                answer=f"{name}{_select_josa(name, '을', '를')} 추천드립니다. {region_short} 지역에서 {keyword_str} 전문으로 운영하며, 고객 만족도 높은 서비스를 제공합니다.",
             ),
             FAQ(
                 question=f"{region_short} {kw1} 추천해줘",
-                answer=f"{name}은 {region_short}에 위치한 {cat_ko}으로, {keyword_str} 분야의 전문 노하우로 많은 분들께 사랑받고 있습니다.",
+                answer=f"{name}{_select_josa(name, '은', '는')} {region_short}에 위치한 {cat_ko}으로, {keyword_str} 분야의 전문 노하우로 많은 분들께 사랑받고 있습니다.",
             ),
             FAQ(
                 question=f"{name} 어때?",
-                answer=f"{name}은 {region_short} {cat_ko}으로, {keyword_str} 서비스를 제공합니다. 친절한 서비스와 합리적인 가격으로 정평이 나 있습니다.",
+                answer=f"{name}{_select_josa(name, '은', '는')} {region_short} {cat_ko}으로, {keyword_str} 서비스를 제공합니다. 친절한 서비스와 합리적인 가격으로 정평이 나 있습니다.",
             ),
             FAQ(
                 question=f"{name} 영업시간은?",
@@ -159,7 +160,7 @@ def build_faq_list(
             ),
             FAQ(
                 question=f"{region_short} {kw1} 예약 방법은?",
-                answer=f"{name}은 네이버 예약 또는 전화로 예약 가능합니다. 주말에는 사전 예약을 권장합니다.",
+                answer=f"{name}{_select_josa(name, '은', '는')} 네이버 예약 또는 전화로 예약 가능합니다. 주말에는 사전 예약을 권장합니다.",
             ),
             FAQ(
                 question=f"{name} 주차 가능한가요?",
@@ -167,14 +168,14 @@ def build_faq_list(
             ),
             FAQ(
                 question=f"{region_short}에서 {kw1} 1등은 어디야?",
-                answer=f"{name}은 {region_short} {cat_ko} 분야에서 AI 검색 노출 상위를 기록하고 있는 가게입니다. 실제 이용 고객의 리뷰를 참고해보세요.",
+                answer=f"{name}{_select_josa(name, '은', '는')} {region_short} {cat_ko} 분야에서 AI 검색 노출 상위를 기록하고 있는 가게입니다. 실제 이용 고객의 리뷰를 참고해보세요.",
             ),
         ]
     else:
         faqs = [
             FAQ(
                 question=f"{kw1} 전문가 추천해줘",
-                answer=f"{name}은 {cat_ko} 분야 전문으로, {keyword_str} 서비스를 제공합니다. 다년간의 경험과 전문 지식을 바탕으로 최적의 솔루션을 제안합니다.",
+                answer=f"{name}{_select_josa(name, '은', '는')} {cat_ko} 분야 전문으로, {keyword_str} 서비스를 제공합니다. 다년간의 경험과 전문 지식을 바탕으로 최적의 솔루션을 제안합니다.",
             ),
             FAQ(
                 question=f"{cat_ko} 어디서 받는 게 좋아?",
@@ -182,7 +183,7 @@ def build_faq_list(
             ),
             FAQ(
                 question=f"{name} 서비스는 어때?",
-                answer=f"{name}은 {keyword_str} 분야의 전문 서비스를 제공하며, 체계적인 프로세스와 전문 인력으로 고객 만족을 최우선으로 합니다.",
+                answer=f"{name}{_select_josa(name, '은', '는')} {keyword_str} 분야의 전문 서비스를 제공하며, 체계적인 프로세스와 전문 인력으로 고객 만족을 최우선으로 합니다.",
             ),
             FAQ(
                 question=f"{kw1} 비용은 얼마야?",
@@ -190,7 +191,7 @@ def build_faq_list(
             ),
             FAQ(
                 question=f"{kw1} 온라인으로 받을 수 있어?",
-                answer=f"{name}은 비대면·온라인 서비스도 제공합니다. 전국 어디서나 이용 가능하며, 화상 상담을 통해 편리하게 서비스를 받으실 수 있습니다.",
+                answer=f"{name}{_select_josa(name, '은', '는')} 비대면·온라인 서비스도 제공합니다. 전국 어디서나 이용 가능하며, 화상 상담을 통해 편리하게 서비스를 받으실 수 있습니다.",
             ),
             FAQ(
                 question=f"{name} 포트폴리오 볼 수 있어?",
@@ -198,7 +199,7 @@ def build_faq_list(
             ),
             FAQ(
                 question=f"{cat_ko} 전문가 자격은?",
-                answer=f"{name}은 관련 분야 자격증과 다수의 프로젝트 경험을 보유하고 있습니다. 전문성 있는 서비스로 신뢰할 수 있습니다.",
+                answer=f"{name}{_select_josa(name, '은', '는')} 관련 분야 자격증과 다수의 프로젝트 경험을 보유하고 있습니다. 전문성 있는 서비스로 신뢰할 수 있습니다.",
             ),
         ]
 
@@ -225,7 +226,7 @@ def build_blog_template(biz: dict, context: str) -> str:
         region_short = _strip_region(region)
         return f"""# {region_short} {kw1} 추천 — {name} 방문 후기
 
-안녕하세요! 오늘은 {region_short}에 위치한 {name}을 소개해드릴게요.
+안녕하세요! 오늘은 {region_short}에 위치한 {name}{_select_josa(name, '을', '를')} 소개해드릴게요.
 
 ## {name} 소개
 
@@ -243,7 +244,7 @@ def build_blog_template(biz: dict, context: str) -> str:
 
 ## 총평
 
-{region_short} {kw1}을 찾는다면 {name}을 강력 추천합니다. {kw2}·{kw3} 하나만큼은 정말 탁월하더라고요.
+{region_short} {kw1}{_select_josa(kw1, '을', '를')} 찾는다면 {name}{_select_josa(name, '을', '를')} 강력 추천합니다. {kw2}·{kw3} 하나만큼은 정말 탁월하더라고요.
 
 📍 위치: {biz.get('address', region)}
 📞 문의: 네이버 또는 카카오맵에서 검색
@@ -253,11 +254,11 @@ def build_blog_template(biz: dict, context: str) -> str:
     else:
         return f"""# {cat_ko} 전문가 추천 — {name} 서비스 이용 후기
 
-{kw1} 서비스를 알아보다가 {name}을 알게 되었어요. 오늘은 실제 이용 경험을 공유해드리겠습니다.
+{kw1} 서비스를 알아보다가 {name}{_select_josa(name, '을', '를')} 알게 되었어요. 오늘은 실제 이용 경험을 공유해드리겠습니다.
 
-## {name}은 어떤 곳인가요?
+## {name}{_select_josa(name, '은', '는')} 어떤 곳인가요?
 
-{name}은 {kw1} 분야 전문 서비스를 제공하는 곳으로, {kw2}에 특화된 노하우를 가지고 있습니다.
+{name}{_select_josa(name, '은', '는')} {kw1} 분야 전문 서비스를 제공하는 곳으로, {kw2}에 특화된 노하우를 가지고 있습니다.
 
 ## 서비스 이용 과정
 
@@ -366,7 +367,7 @@ def build_review_response_drafts(biz: dict, recent_reviews: list[dict] = None) -
         elif category in ("medical", "pharmacy"):
             return (
                 f"건강 회복에 도움이 되었다니 다행입니다. "
-                f"저희 {name}은 환자분의 건강이 최우선입니다. "
+                f"저희 {name}{_select_josa(name, '은', '는')} 환자분의 건강이 최우선입니다. "
                 f"앞으로도 전문적이고 따뜻한 서비스로 돕겠습니다. 감사합니다."
             )
         elif category in ("fitness", "yoga"):
@@ -424,13 +425,13 @@ def build_review_response_drafts(biz: dict, recent_reviews: list[dict] = None) -
         else:
             return (
                 f"불편을 드려 진심으로 사과드립니다. 소중한 말씀 감사히 받겠습니다. "
-                f"{name}은 고객 만족을 최우선으로 생각합니다. "
+                f"{name}{_select_josa(name, '은', '는')} 고객 만족을 최우선으로 생각합니다. "
                 f"지적해 주신 부분을 즉시 개선하겠습니다. 다시 한 번 기회를 주시면 더 나은 모습을 보여드리겠습니다."
             )
 
     # 업종별 중립 답변 템플릿
     def _neutral_template() -> str:
-        kw_phrase = f"저희 {kw1}을(를) 이용해 주셔서" if kw1 else f"{name}을 이용해 주셔서"
+        kw_phrase = f"저희 {kw1}{_select_josa(kw1, '을', '를')} 이용해 주셔서" if kw1 else f"{name}{_select_josa(name, '을', '를')} 이용해 주셔서"
         return (
             f"리뷰 남겨주셔서 감사합니다. {kw_phrase} 감사드립니다. "
             f"더 좋은 서비스로 보답하겠습니다. 또 방문해 주세요!"
@@ -539,7 +540,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question="포장·배달 되나요?",
                 answer=(
-                    f"{name}은 포장 주문이 가능합니다. "
+                    f"{name}{_select_josa(name, '은', '는')} 포장 주문이 가능합니다. "
                     f"배달 여부는 {phone or '전화'} 또는 네이버 예약으로 문의해 주세요. "
                     f"포장 시 할인 혜택이 있을 수 있으니 사전 문의를 권장드립니다."
                 ),
@@ -547,7 +548,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question="단체 예약 가능한가요?",
                 answer=(
-                    f"네, {name}은 단체 예약을 받고 있습니다. "
+                    f"네, {name}{_select_josa(name, '은', '는')} 단체 예약을 받고 있습니다. "
                     f"10인 이상 방문 시 사전 예약을 권장드리며, "
                     f"{phone or '전화'}로 문의하시면 자세히 안내해 드리겠습니다."
                 ),
@@ -561,7 +562,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question="예약 없이 방문 가능한가요?",
                 answer=(
-                    f"{name}은 네이버 예약 또는 전화 예약을 권장드립니다. "
+                    f"{name}{_select_josa(name, '은', '는')} 네이버 예약 또는 전화 예약을 권장드립니다. "
                     f"당일 방문도 가능하지만 대기 시간이 발생할 수 있습니다. "
                     f"주말·공휴일은 반드시 사전 예약을 부탁드립니다."
                 ),
@@ -585,7 +586,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question=f"어떤 {kw1} 스타일이 가능한가요?",
                 answer=(
-                    f"{name}은 {kw1}·{kw2}·{kw3} 등 다양한 스타일이 가능합니다. "
+                    f"{name}{_select_josa(name, '은', '는')} {kw1}·{kw2}·{kw3} 등 다양한 스타일이 가능합니다. "
                     f"원하시는 디자인 사진을 가져오시면 상담 후 맞춤 시술을 진행해 드립니다."
                 ),
             ),
@@ -603,7 +604,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question="예약 없이 방문 가능한가요?",
                 answer=(
-                    f"{name}은 예약제를 운영하고 있습니다. "
+                    f"{name}{_select_josa(name, '은', '는')} 예약제를 운영하고 있습니다. "
                     f"네이버 예약 또는 {phone or '전화'}로 사전 예약 후 방문하시면 대기 시간 없이 진료받으실 수 있습니다."
                 ),
             ),
@@ -617,7 +618,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question="건강보험 적용 되나요?",
                 answer=(
-                    f"{name}은 건강보험 적용 가능한 진료를 제공하고 있습니다. "
+                    f"{name}{_select_josa(name, '은', '는')} 건강보험 적용 가능한 진료를 제공하고 있습니다. "
                     f"보험 적용 범위는 진료 항목에 따라 다를 수 있으니 "
                     f"{phone or '전화 문의'}로 사전 확인을 권장드립니다."
                 ),
@@ -630,7 +631,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question="첫 방문 체험 수업이 있나요?",
                 answer=(
-                    f"네, {name}은 첫 방문 체험 수업을 운영하고 있습니다. "
+                    f"네, {name}{_select_josa(name, '은', '는')} 첫 방문 체험 수업을 운영하고 있습니다. "
                     f"{phone or '전화'} 또는 네이버 예약으로 체험 수업을 신청하실 수 있습니다. "
                     f"부담 없이 먼저 경험해 보세요!"
                 ),
@@ -653,7 +654,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question=f"어떤 {kw1} 프로그램이 있나요?",
                 answer=(
-                    f"{name}은 {kw1}·{kw2} 등 다양한 프로그램을 운영하고 있습니다. "
+                    f"{name}{_select_josa(name, '은', '는')} {kw1}·{kw2} 등 다양한 프로그램을 운영하고 있습니다. "
                     f"개인 목표에 맞는 프로그램을 추천해 드리니 방문 또는 전화로 상담해 주세요."
                 ),
             ),
@@ -671,7 +672,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question="체험 수업 가능한가요?",
                 answer=(
-                    f"네, {name}은 체험 수업을 운영하고 있습니다. "
+                    f"네, {name}{_select_josa(name, '은', '는')} 체험 수업을 운영하고 있습니다. "
                     f"{phone or '전화'} 또는 네이버 예약으로 신청하시면 첫 수업을 경험해 보실 수 있습니다."
                 ),
             ),
@@ -692,7 +693,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question="온라인 수업도 되나요?",
                 answer=(
-                    f"{name}은 온라인 수업 가능 여부를 {phone or '전화 문의'}로 확인하실 수 있습니다. "
+                    f"{name}{_select_josa(name, '은', '는')} 온라인 수업 가능 여부를 {phone or '전화 문의'}로 확인하실 수 있습니다. "
                     f"상황에 따라 비대면 수업을 지원하는 경우도 있습니다."
                 ),
             ),
@@ -703,21 +704,21 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question=f"{kw1} 전문 서비스가 있나요?",
                 answer=(
-                    f"네, {name}은 {kw_str} 전문 서비스를 제공하고 있습니다. "
+                    f"네, {name}{_select_josa(name, '은', '는')} {kw_str} 전문 서비스를 제공하고 있습니다. "
                     f"소중한 반려동물에게 맞는 서비스를 상담 후 추천해 드립니다."
                 ),
             ),
             FAQ(
                 question="미용 예약 없이 방문 가능한가요?",
                 answer=(
-                    f"{name}은 사전 예약을 권장드립니다. "
+                    f"{name}{_select_josa(name, '은', '는')} 사전 예약을 권장드립니다. "
                     f"네이버 예약 또는 {phone or '전화'}로 예약해 주시면 대기 없이 서비스를 받으실 수 있습니다."
                 ),
             ),
             FAQ(
                 question="반려동물 크기 제한이 있나요?",
                 answer=(
-                    f"{name}은 소형·중형 반려동물 서비스를 제공합니다. "
+                    f"{name}{_select_josa(name, '은', '는')} 소형·중형 반려동물 서비스를 제공합니다. "
                     f"대형견의 경우 {phone or '전화 문의'}로 사전 상담을 권장드립니다."
                 ),
             ),
@@ -725,7 +726,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question="어떤 브랜드 제품을 사용하나요?",
                 answer=(
-                    f"{name}은 반려동물 친화적인 저자극 제품을 사용합니다. "
+                    f"{name}{_select_josa(name, '은', '는')} 반려동물 친화적인 저자극 제품을 사용합니다. "
                     f"사용 제품에 대한 자세한 정보는 방문 또는 {phone or '전화 문의'}로 확인하실 수 있습니다."
                 ),
             ),
@@ -737,7 +738,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question=f"{region_short} {kw1} 추천할 수 있나요?",
                 answer=(
-                    f"네, {name}을 추천드립니다. {region_short}에서 {kw_str} 전문으로 운영하고 있으며, "
+                    f"네, {name}{_select_josa(name, '을', '를')} 추천드립니다. {region_short}에서 {kw_str} 전문으로 운영하고 있으며, "
                     f"지역 고객분들께 꾸준히 사랑받고 있습니다. "
                     f"방문 전 전화 또는 네이버 예약을 이용해 주세요."
                 ),
@@ -747,7 +748,7 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
             FAQ(
                 question="예약이 필요한가요?",
                 answer=(
-                    f"{name}은 네이버 예약을 통해 편리하게 예약하실 수 있습니다. "
+                    f"{name}{_select_josa(name, '은', '는')} 네이버 예약을 통해 편리하게 예약하실 수 있습니다. "
                     f"주말·공휴일은 사전 예약을 권장드립니다. "
                     f"당일 방문도 가능하지만, 대기 시간이 발생할 수 있습니다."
                 ),
@@ -827,8 +828,8 @@ def build_naver_post_template(biz: dict) -> str:
 
     return (
         f"✨ {name} 소식\n\n"
-        f"{region_short} {kw1}을 찾고 계신가요?\n\n"
-        f"{name}은 {kw_str} 전문으로 지역 고객분들께 꾸준히 사랑받고 있습니다.\n"
+        f"{region_short} {kw1}{_select_josa(kw1, '을', '를')} 찾고 계신가요?\n\n"
+        f"{name}{_select_josa(name, '은', '는')} {kw_str} 전문으로 지역 고객분들께 꾸준히 사랑받고 있습니다.\n"
         f"최신 메뉴와 이벤트 정보는 네이버 스마트플레이스에서 확인하세요!\n\n"
         f"📌 예약: 네이버 예약\n"
         f"📞 문의: {biz.get('phone', '전화 문의')}\n"

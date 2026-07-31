@@ -19,6 +19,7 @@ from models.action import ActionItem, ActionPlan
 from services.action_tools import build_action_tools
 from services.industry_prompt_rules import build_industry_system_prompt
 from services.ai_usage_logger import log_ai_usage
+from services.briefing_engine import _select_josa
 
 _logger = logging.getLogger("aeolab")
 
@@ -1274,14 +1275,14 @@ async def generate_smartplace_intro(
     except Exception as e:
         _logger.warning(f"generate_smartplace_intro failed: {e}")
         fallback_intro = (
-            f"{business_name}은 {region}에 위치한 {category_ko}입니다.\n"
+            f"{business_name}{_select_josa(business_name, '은', '는')} {region}에 위치한 {category_ko}입니다.\n"
             f"{description or f'{region} {category_ko} 전문점으로 지역 주민들에게 사랑받고 있습니다.'}\n\n"
             f"위치: {address or region} | 전화: {phone or '문의 주세요'}\n"
             f"영업시간: {opening_hours or '전화 문의'}"
         )
         fallback_blog_content = (
-            f"안녕하세요, {business_name}을 소개합니다!\n\n"
-            f"{region}에 위치한 {category_ko}으로, "
+            f"안녕하세요, {business_name}{_select_josa(business_name, '을', '를')} 소개합니다!\n\n"
+            f"{region}에 위치한 {category_ko}{_select_josa(category_ko, '으로', '로')}, "
             f"{description or '지역 주민들에게 사랑받고 있습니다.'}\n\n"
             f"■ 위치 및 연락처\n주소: {address or region}\n전화: {phone or '문의 주세요'}\n\n"
             f"■ 영업시간\n{opening_hours or '영업시간은 전화로 확인해 주세요.'}\n\n"
@@ -1313,10 +1314,11 @@ async def generate_smartplace_intro(
                     "template_type": "리뷰_모음",
                     "title": f"{business_name} 방문 후기",
                     "content": (
-                        f"{region}에서 {category_ko}을 찾다가 {business_name}을 방문했습니다.\n\n"
+                        f"{region}에서 {category_ko}{_select_josa(category_ko, '을', '를')} 찾다가 "
+                        f"{business_name}{_select_josa(business_name, '을', '를')} 방문했습니다.\n\n"
                         f"{description or '처음 방문이었지만 정말 만족스러웠습니다.'}\n\n"
                         f"위치도 접근하기 편리하고, 직원분들도 친절했습니다.\n\n"
-                        f"재방문 의향 있으며, {region} {category_ko}을 찾으신다면 강력 추천합니다!"
+                        f"재방문 의향 있으며, {region} {category_ko}{_select_josa(category_ko, '을', '를')} 찾으신다면 강력 추천합니다!"
                     ),
                     "target_keyword": f"{region} {category_ko} 후기",
                 },
