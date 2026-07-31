@@ -44,6 +44,43 @@ async def _verify_biz_ownership(supabase, biz_id: str, user_id: str) -> None:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
 
 
+async def _fetch_competitor_profiles(supabase, biz_id: str, competitor_scores: dict | None) -> list[dict]:
+    """등록 경쟁사 + 최신 스캔의 competitor_scores(JSONB)로 이름·점수 목록 구성.
+    DB 조회만 사용 — 추가 API 비용 없음. CSV/PDF export 공용."""
+    comp_rows = (
+        await execute(
+            supabase.table("competitors")
+            .select("id, name")
+            .eq("business_id", biz_id)
+            .eq("is_active", True)
+        )
+    ).data or []
+    raw = competitor_scores or {}
+    profiles = []
+    for c in comp_rows:
+        entry = raw.get(c["id"]) or {} if isinstance(raw, dict) else {}
+        score = float(entry.get("score", 0)) if isinstance(entry, dict) else float(entry or 0)
+        profiles.append({"name": c["name"], "score": score})
+    return profiles
+
+
+def _fetch_ai_tab_data(biz: dict, latest_scan: dict) -> dict:
+    """AI탭 준비도 + 예상 답변 시뮬레이션. AI 호출 0회(규칙 기반), 업종 무관 전원 대상.
+    CSV/PDF export 공용."""
+    from services.briefing_engine import simulate_ai_tab_answer
+    from services.score_engine import calc_ai_tab_readiness, get_ai_tab_readiness_label
+    score = calc_ai_tab_readiness(
+        biz.get("category", ""),
+        biz.get("checklist_overrides") or {},
+        biz.get("sp_completeness_json") or {},
+    )
+    return {
+        "readiness_score": score,
+        "readiness_label": get_ai_tab_readiness_label(score),
+        **simulate_ai_tab_answer(biz, latest_scan),
+    }
+
+
 @router.get("/score/{biz_id}")
 async def get_score(biz_id: str, user=Depends(get_current_user)):
     """DiagnosisReport — AI Visibility Score 전체 조회 (Domain 1)
@@ -764,10 +801,19 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
             detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "startup", "pro", "biz"]},
         )
 
+    biz = (
+        await execute(
+            supabase.table("businesses")
+            .select("id, name, category, is_franchise, checklist_overrides, sp_completeness_json")
+            .eq("id", biz_id)
+            .maybe_single()
+        )
+    ).data or {}
+
     rows = (
         await execute(
             supabase.table("scan_results")
-            .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, query_used, score_breakdown")
+            .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, query_used, score_breakdown, competitor_scores, naver_result")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(100)
@@ -880,6 +926,38 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
                 "30일평균", "", "",
             ])
 
+    # ── [지역 내 경쟁 현황] — PDF와 동일 데이터, DB 조회만(추가 API 비용 없음) ──
+    if rows:
+        my_total = float(rows[0].get("total_score") or rows[0].get("unified_score") or 0)
+        competitor_profiles = await _fetch_competitor_profiles(supabase, biz_id, rows[0].get("competitor_scores"))
+        if competitor_profiles:
+            entries = [{"name": biz.get("name") or "우리 가게", "score": my_total, "is_me": True}]
+            for c in competitor_profiles:
+                entries.append({"name": c["name"], "score": c["score"], "is_me": False})
+            entries.sort(key=lambda e: e["score"], reverse=True)
+
+            writer.writerow([])
+            writer.writerow(["[지역 내 경쟁 현황]", "", "", "", "", "", "", ""])
+            writer.writerow(["순위", "사업장명", "점수", "비고", "", "", "", ""])
+            for i, e in enumerate(entries, 1):
+                name = f"{e['name']} (우리 가게)" if e["is_me"] else e["name"]
+                note = "" if e["is_me"] else "간이 추정치(언급 여부·발췌문 길이 기반)"
+                writer.writerow([i, _csv_safe(name), e["score"], _csv_safe(note), "", "", "", ""])
+
+        # ── [네이버 AI탭 준비도] — AI 호출 0회(규칙 기반 추정) ──────────────────
+        ai_tab_data = _fetch_ai_tab_data(biz, rows[0])
+        if ai_tab_data.get("simulated_answer"):
+            rl = ai_tab_data.get("readiness_label") or {}
+            writer.writerow([])
+            writer.writerow(["[네이버 AI탭 준비도]", "", "", "", "", "", "", ""])
+            writer.writerow(["항목", "값", "", "", "", "", "", ""])
+            writer.writerow(["준비도점수", ai_tab_data.get("readiness_score", ""), "", "", "", "", "", ""])
+            writer.writerow(["준비도등급", _csv_safe(rl.get("short", "")), "", "", "", "", "", ""])
+            writer.writerow(["설명", _csv_safe(rl.get("description", "")), "", "", "", "", "", ""])
+            writer.writerow(["예상 답변 예시", _csv_safe(ai_tab_data.get("simulated_answer", "")), "", "", "", "", "", ""])
+            writer.writerow(["반영된 키워드", _csv_safe("/".join(ai_tab_data.get("matched_contexts") or [])), "", "", "", "", "", ""])
+            writer.writerow(["빠진 키워드", _csv_safe("/".join(ai_tab_data.get("missing_contexts") or [])), "", "", "", "", "", ""])
+
     output.seek(0)
     import urllib.parse
     _raw_name = f"aeolab_report_{biz_id[:8]}.csv"
@@ -931,34 +1009,8 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
     if not latest_scan:
         raise HTTPException(status_code=404, detail="No scan results found")
 
-    # 경쟁사 비교 (report/market과 동일 로직 — DB 조회만, 추가 API 비용 없음)
-    comp_rows = (
-        await execute(
-            supabase.table("competitors")
-            .select("id, name")
-            .eq("business_id", biz_id)
-            .eq("is_active", True)
-        )
-    ).data or []
-    _raw_comp_scores = latest_scan[0].get("competitor_scores") or {}
-    competitor_profiles = []
-    for c in comp_rows:
-        entry = _raw_comp_scores.get(c["id"]) or {} if isinstance(_raw_comp_scores, dict) else {}
-        c_score = float(entry.get("score", 0)) if isinstance(entry, dict) else float(entry or 0)
-        competitor_profiles.append({"name": c["name"], "score": c_score})
-
-    # AI탭 준비도 + 예상 답변 (AI 호출 0회 — 규칙 기반 추정, 업종 무관 전원 대상)
-    from services.briefing_engine import simulate_ai_tab_answer
-    from services.score_engine import calc_ai_tab_readiness, get_ai_tab_readiness_label
-    ai_tab_readiness_score = calc_ai_tab_readiness(
-        biz.get("category", ""),
-        biz.get("checklist_overrides") or {},
-        biz.get("sp_completeness_json") or {},
-    )
-    ai_tab_data = {
-        "readiness_label": get_ai_tab_readiness_label(ai_tab_readiness_score),
-        **simulate_ai_tab_answer(biz, latest_scan[0]),
-    }
+    competitor_profiles = await _fetch_competitor_profiles(supabase, biz_id, latest_scan[0].get("competitor_scores"))
+    ai_tab_data = _fetch_ai_tab_data(biz, latest_scan[0])
 
     history = (
         await execute(
