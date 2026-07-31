@@ -804,7 +804,7 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
     biz = (
         await execute(
             supabase.table("businesses")
-            .select("id, name, category, is_franchise, checklist_overrides, sp_completeness_json")
+            .select("id, name, category, is_franchise, checklist_overrides, sp_completeness_json, has_intro")
             .eq("id", biz_id)
             .maybe_single()
         )
@@ -989,7 +989,7 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
     biz = (
         await execute(
             supabase.table("businesses")
-            .select("id, name, category, region, address, phone, website_url, keywords, is_franchise, blog_analysis_json, checklist_overrides, sp_completeness_json")
+            .select("id, name, category, region, address, phone, website_url, keywords, is_franchise, blog_analysis_json, checklist_overrides, sp_completeness_json, has_intro")
             .eq("id", biz_id)
             .single()
         )
