@@ -12,7 +12,18 @@ Page 3: 이번 달 실행 체크리스트 + 키워드 순위
 import io
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+
+_KST = timezone(timedelta(hours=9))
+
+
+def _scanned_at_to_kst_date(scanned_at) -> str:
+    """scanned_at(UTC 저장) → 서버 로컬(KST) 기준 날짜 문자열. report.py의 동명 헬퍼와 동일 로직."""
+    raw = scanned_at or ""
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00")).astimezone(_KST).date().isoformat()
+    except ValueError:
+        return raw[:10]
 from typing import Optional
 
 from reportlab.lib import colors
@@ -764,7 +775,7 @@ def generate_pdf_report(
     is_franc   = bool(biz.get("is_franchise", False))
     bd         = latest_scan.get("score_breakdown") or {}
     total      = float(latest_scan.get("total_score") or latest_scan.get("unified_score") or 0)
-    scan_date  = (latest_scan.get("scanned_at") or "")[:10]
+    scan_date  = _scanned_at_to_kst_date(latest_scan.get("scanned_at"))
     elig       = _elig(category, is_franc, bd)
     stage_lbl, stage_desc = _stage(total)
 

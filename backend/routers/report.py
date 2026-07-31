@@ -2,7 +2,7 @@ import asyncio
 import csv
 import io
 import logging
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, Header, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse, Response
 from db.supabase_client import get_client, execute
@@ -12,6 +12,22 @@ from utils import cache as _cache
 _logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+_KST = timezone(timedelta(hours=9))
+
+
+def _scanned_at_to_kst_date(scanned_at: str | None) -> str:
+    """scanned_at(UTC 저장) → score_history.score_date와 동일 기준(서버 로컬 KST)의 날짜 문자열.
+
+    단순 [:10] 슬라이싱은 UTC 기준이라 자정~오전9시 KST(=일일 02:00 KST 스캔 직후)에
+    측정된 스캔이 하루 전 날짜로 표시/조인되는 오류가 반복 발견됨(report.py get_history 참조).
+    """
+    raw = scanned_at or ""
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00")).astimezone(_KST).date().isoformat()
+    except ValueError:
+        return raw[:10]
 
 
 def _csv_safe(s):
@@ -219,9 +235,11 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
         .limit(limit_rows)
     )
     rows = result.data or []
-    # score_date 별칭 추가 (하위 호환)
+    # score_date 별칭 추가 (하위 호환) — 아래 sh_by_date 조인이 score_history.score_date(KST
+    # 기준)와 맞아떨어지려면 scanned_at(UTC 저장)도 KST로 변환해야 함. 일일 스캔이 02:00 KST
+    # 고정 스케줄이라 단순 [:10] 슬라이싱 시 사실상 모든 계정에서 하루 전 행과 상시 오조인됨.
     for row in rows:
-        row["score_date"] = (row.get("scanned_at") or "")[:10]
+        row["score_date"] = _scanned_at_to_kst_date(row.get("scanned_at"))
 
     # score_history에서 업종 내 순위·주간 변화 보완 (scan_results엔 없는 컬럼 — /pdf 엔드포인트와 동일 패턴)
     sh_result = await execute(
@@ -872,7 +890,7 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
         from collections import defaultdict
         kw_stats: dict[str, list[dict]] = defaultdict(list)
         for scan_row in kw_rows:
-            scan_date = (scan_row.get("scanned_at") or "")[:10]
+            scan_date = _scanned_at_to_kst_date(scan_row.get("scanned_at"))
             ranks = scan_row.get("keyword_ranks") or {}
             if isinstance(ranks, dict):
                 for kw, rank_data in ranks.items():
@@ -1157,7 +1175,7 @@ async def export_keyword_rank_csv(biz_id: str, user=Depends(get_current_user)):
                 return "99"
 
         for row in kw_rows:
-            scan_date = (row.get("scanned_at") or "")[:10]
+            scan_date = _scanned_at_to_kst_date(row.get("scanned_at"))
             ranks = row.get("keyword_ranks") or {}
             if not isinstance(ranks, dict):
                 continue
@@ -5749,8 +5767,8 @@ async def get_competitor_keyword_delta(
     scan_date_current: str | None = None
     scan_date_previous: str | None = None
     try:
-        scan_date_current = str(current_scan.get("scanned_at", ""))[:10] or None
-        scan_date_previous = str(previous_scan.get("scanned_at", ""))[:10] or None
+        scan_date_current = _scanned_at_to_kst_date(current_scan.get("scanned_at")) or None
+        scan_date_previous = _scanned_at_to_kst_date(previous_scan.get("scanned_at")) or None
     except Exception as e:
         _logger.warning("[competitor_keyword_delta] 날짜 파싱 실패: %s", e)
 
