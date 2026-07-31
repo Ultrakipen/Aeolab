@@ -911,7 +911,7 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
     biz = (
         await execute(
             supabase.table("businesses")
-            .select("id, name, category, region, address, phone, website_url, keywords, is_franchise, blog_analysis_json")
+            .select("id, name, category, region, address, phone, website_url, keywords, is_franchise, blog_analysis_json, checklist_overrides, sp_completeness_json")
             .eq("id", biz_id)
             .single()
         )
@@ -922,7 +922,7 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
     latest_scan = (
         await execute(
             supabase.table("scan_results")
-            .select("id, scanned_at, total_score, exposure_freq, score_breakdown, naver_channel_score, global_channel_score, query_used, gemini_result, chatgpt_result, naver_result, google_result")
+            .select("id, scanned_at, total_score, exposure_freq, score_breakdown, naver_channel_score, global_channel_score, query_used, gemini_result, chatgpt_result, naver_result, google_result, competitor_scores")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(1)
@@ -930,6 +930,35 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
     ).data
     if not latest_scan:
         raise HTTPException(status_code=404, detail="No scan results found")
+
+    # 경쟁사 비교 (report/market과 동일 로직 — DB 조회만, 추가 API 비용 없음)
+    comp_rows = (
+        await execute(
+            supabase.table("competitors")
+            .select("id, name")
+            .eq("business_id", biz_id)
+            .eq("is_active", True)
+        )
+    ).data or []
+    _raw_comp_scores = latest_scan[0].get("competitor_scores") or {}
+    competitor_profiles = []
+    for c in comp_rows:
+        entry = _raw_comp_scores.get(c["id"]) or {} if isinstance(_raw_comp_scores, dict) else {}
+        c_score = float(entry.get("score", 0)) if isinstance(entry, dict) else float(entry or 0)
+        competitor_profiles.append({"name": c["name"], "score": c_score})
+
+    # AI탭 준비도 + 예상 답변 (AI 호출 0회 — 규칙 기반 추정, 업종 무관 전원 대상)
+    from services.briefing_engine import simulate_ai_tab_answer
+    from services.score_engine import calc_ai_tab_readiness, get_ai_tab_readiness_label
+    ai_tab_readiness_score = calc_ai_tab_readiness(
+        biz.get("category", ""),
+        biz.get("checklist_overrides") or {},
+        biz.get("sp_completeness_json") or {},
+    )
+    ai_tab_data = {
+        "readiness_label": get_ai_tab_readiness_label(ai_tab_readiness_score),
+        **simulate_ai_tab_answer(biz, latest_scan[0]),
+    }
 
     history = (
         await execute(
@@ -990,6 +1019,8 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
             guide=guide[0] if guide else None,
             keyword_ranks_history=kw_rank_history if kw_rank_history else None,
             screenshots=screenshots,
+            competitors=competitor_profiles,
+            ai_tab=ai_tab_data,
             blog_analysis=biz.get("blog_analysis_json"),
         )
     except Exception as e:

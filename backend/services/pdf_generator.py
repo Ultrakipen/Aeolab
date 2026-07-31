@@ -88,6 +88,21 @@ def _grade(val) -> str:
     except (TypeError, ValueError):
         return "low"
 
+def _text_label(score) -> str:
+    """frontend/lib/scoreLabels.ts getScoreTextLabel()과 동일 기준(75/55/30) —
+    블로그 진단 등 개별 지표를 대시보드와 동일한 문구로 표시할 때 사용."""
+    try:
+        v = float(score)
+    except (TypeError, ValueError):
+        v = 0.0
+    if v >= 75:
+        return "양호"
+    if v >= 55:
+        return "보통"
+    if v >= 30:
+        return "주의 필요"
+    return "시작 전"
+
 def _stage(score: float) -> tuple[str, str]:
     for thr, lbl, desc in [
         (85, "최적화 완료",  "AI 검색 최적화가 매우 잘 되어 있습니다."),
@@ -407,7 +422,7 @@ def _trend(history: list) -> str:
     diff = _s(history[0]) - _s(history[-1])
     if abs(diff) < 1:
         return f"최근 {len(history)}회 측정 동안 점수 변화 거의 없음"
-    return f"최근 {len(history)}회 측정 동안 {abs(diff):.1f}점 {'상승' if diff > 0 else '하락'}"
+    return f"최근 {len(history)}회 측정 동안 {'상승' if diff > 0 else '하락'} 추세"
 
 
 def _section_bg(story: list, text: str, bg: str = "#eff6ff", fg: str = "#1d4ed8"):
@@ -464,7 +479,7 @@ def _score_card_row(total: float, nav: dict, gpt: dict, gem: dict, elig: str) ->
     gem_ok = gem["rate"] > 0
 
     row = [
-        _card("종합 점수", f"{total:.0f}점", stage_lbl, "#eff6ff", "#1e40af"),
+        _card("종합 점수", stage_lbl, "AI 노출 종합 단계", "#eff6ff", "#1e40af"),
         _card("네이버 AI", n_v, n_s, n_bg, n_fg),
         _card("ChatGPT", f"{gpt['rate']:.0f}%", f"{gpt['freq']}/{gpt['n']}회",
               "#dcfce7" if gpt_ok else "#fef2f2", "#166534" if gpt_ok else "#991b1b"),
@@ -520,15 +535,14 @@ def _history_chart(history: list) -> Optional[Drawing]:
 
     d = Drawing(W, H)
 
-    # Y축 격자선 (0/25/50/75/100)
-    for y_val in (0, 25, 50, 75, 100):
+    # Y축 기준선 — 숫자 대신 등급 컷오프(40/70, _grade()와 동일 기준)만 옅게 표시
+    for y_val, band_lbl in ((40, "보통"), (70, "양호")):
         y_px = PB + chart_h * (y_val / 100)
         line = Line(PL, y_px, W - PR, y_px)
         line.strokeColor = colors.HexColor("#e5e7eb")
         line.strokeWidth = 0.5
         d.add(line)
-        # Y축 레이블
-        lbl = String(PL - 4, y_px - 3, str(y_val),
+        lbl = String(PL - 4, y_px - 3, band_lbl,
                      fontName=FONT_NAME, fontSize=6,
                      textAnchor="end",
                      fillColor=colors.HexColor("#9ca3af"))
@@ -557,14 +571,6 @@ def _history_chart(history: list) -> Optional[Drawing]:
                     strokeColor=colors.HexColor(bar_color),
                     strokeWidth=0)
         d.add(rect)
-
-        # 막대 위 점수 레이블
-        score_lbl = String(x + bar_w / 2, y + bar_h + 2,
-                           f"{score:.0f}",
-                           fontName=FONT_NAME, fontSize=6,
-                           textAnchor="middle",
-                           fillColor=colors.HexColor("#374151"))
-        d.add(score_lbl)
 
         # 하단 날짜 레이블
         date_lbl = String(x + bar_w / 2, PB - 10,
@@ -604,7 +610,6 @@ def _breakdown_table(bd: dict, elig: str) -> Table:
     rows = [[
         Paragraph("구분",     header_ps),
         Paragraph("항목",     header_ps),
-        Paragraph("점수",     header_ps),
         Paragraph("평가",     header_ps),
         Paragraph("측정 의미", header_ps),
     ]]
@@ -638,56 +643,104 @@ def _breakdown_table(bd: dict, elig: str) -> Table:
         else:
             div_bg, div_fg = "#f5f3ff", "#7c3aed"
 
-        # 점수·평가 셀 색상
+        # 평가 셀 색상 (등급 컷오프는 _grade()와 동일 70/40 — 강점·개선포인트 분류와 일관)
         if val is None:
-            score_txt = "—"
-            eval_txt  = "—"
-            score_bg  = "#f9fafb"
-            score_fg  = "#6b7280"
-            eval_bg   = "#f9fafb"
-            eval_fg   = "#6b7280"
+            eval_txt = "—"
+            eval_bg  = "#f9fafb"
+            eval_fg  = "#6b7280"
         else:
             try:
                 fval = float(val)
             except (TypeError, ValueError):
                 fval = 0.0
-            score_txt = f"{fval:.0f}점"
             if fval >= 70:
-                score_bg, score_fg = "#dcfce7", "#166534"
-                eval_bg,  eval_fg  = "#dcfce7", "#166534"
+                eval_bg, eval_fg = "#dcfce7", "#166534"
                 eval_txt = "우수"
             elif fval >= 40:
-                score_bg, score_fg = "#fef9c3", "#92400e"
-                eval_bg,  eval_fg  = "#fef9c3", "#92400e"
+                eval_bg, eval_fg = "#fef9c3", "#92400e"
                 eval_txt = "보통"
             else:
-                score_bg, score_fg = "#fef2f2", "#991b1b"
-                eval_bg,  eval_fg  = "#fef2f2", "#991b1b"
+                eval_bg, eval_fg = "#fef2f2", "#991b1b"
                 eval_txt = "개선필요"
 
         rows.append([
             Paragraph(f"{track} {division}", _cell_ps(div_fg)),
             Paragraph(label,     _cell_ps("#1f2937")),
-            Paragraph(score_txt, _cell_ps(score_fg)),
             Paragraph(eval_txt,  _cell_ps(eval_fg)),
             Paragraph(meaning,   _cell_ps("#374151")),
         ])
 
         # 구분 셀 배경
         style_cmds.append(("BACKGROUND", (0, row_idx), (0, row_idx), colors.HexColor(div_bg)))
-        # 점수 셀 배경
-        style_cmds.append(("BACKGROUND", (2, row_idx), (2, row_idx), colors.HexColor(score_bg)))
         # 평가 셀 배경
-        style_cmds.append(("BACKGROUND", (3, row_idx), (3, row_idx), colors.HexColor(eval_bg)))
+        style_cmds.append(("BACKGROUND", (2, row_idx), (2, row_idx), colors.HexColor(eval_bg)))
 
         row_idx += 1
 
-    t = Table(rows, colWidths=[1.8 * cm, 3.8 * cm, 1.8 * cm, 2.2 * cm, 6.0 * cm])
+    t = Table(rows, colWidths=[1.8 * cm, 4.2 * cm, 2.4 * cm, 7.1 * cm])
     t.setStyle(TableStyle(style_cmds))
     return t
 
 
 # ── 키워드 순위 색상 헬퍼 (Page 3 개선) ──────────────────────────────────────
+
+# ── 지역 내 경쟁 현황 표 (Page 1) ─────────────────────────────────────────────
+
+def _competitor_table(biz_name: str, my_total: float, competitors: list) -> tuple[Optional[Table], int, int]:
+    """내 사업장 + 등록 경쟁사를 점수순으로 정렬한 순위표.
+    경쟁사 점수는 언급 여부·발췌문 길이 기반 간이 추정치라 원점수 대신
+    등급 텍스트만 표시(우리 사업장 정밀 측정과 다른 방식임을 구분).
+    반환: (표, 내 순위, 전체 인원)"""
+    if not competitors:
+        return None, 0, 0
+
+    entries = [{"name": biz_name, "score": my_total, "is_me": True}]
+    for c in competitors:
+        entries.append({"name": c.get("name") or "경쟁사", "score": float(c.get("score") or 0), "is_me": False})
+    entries.sort(key=lambda e: e["score"], reverse=True)
+
+    def _cell_ps(fg: str, bold: bool = False) -> ParagraphStyle:
+        return ParagraphStyle("", fontName=FONT_NAME, fontSize=9,
+                              textColor=colors.HexColor(fg), leading=13)
+
+    header_ps = ParagraphStyle("", fontName=FONT_NAME, fontSize=9,
+                                textColor=colors.white, leading=12)
+    rows = [[
+        Paragraph("순위",   header_ps),
+        Paragraph("사업장", header_ps),
+        Paragraph("평가",   header_ps),
+    ]]
+    style_cmds = [
+        ("BACKGROUND",    (0, 0), (-1, 0), colors.HexColor("#1e3a5f")),
+        ("FONTNAME",      (0, 0), (-1, -1), FONT_NAME),
+        ("FONTSIZE",      (0, 0), (-1, -1), 9),
+        ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING",    (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING",   (0, 0), (-1, -1), 8),
+        ("LINEBELOW",     (0, 0), (-1, -1), 0.3, colors.HexColor("#e2e8f0")),
+        ("BOX",           (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+    ]
+
+    my_rank = 1
+    for i, e in enumerate(entries, 1):
+        grade_txt = _text_label(e["score"])
+        fg = "#1e40af" if e["is_me"] else "#374151"
+        name_txt = f"{e['name']}  (우리 가게)" if e["is_me"] else e["name"]
+        rows.append([
+            Paragraph(f"{i}위", _cell_ps(fg)),
+            Paragraph(name_txt, _cell_ps(fg)),
+            Paragraph(grade_txt, _cell_ps(fg)),
+        ])
+        if e["is_me"]:
+            my_rank = i
+            style_cmds.append(("BACKGROUND", (0, i), (-1, i), colors.HexColor("#eff6ff")))
+            style_cmds.append(("FONTNAME", (0, i), (-1, i), FONT_NAME))
+
+    t = Table(rows, colWidths=[1.8 * cm, 8.6 * cm, 5.2 * cm])
+    t.setStyle(TableStyle(style_cmds))
+    return t, my_rank, len(entries)
+
 
 def _rank_info(entries: list, key: str) -> tuple[str, str, str]:
     """(표시텍스트, 텍스트색, 배경색) 반환.
@@ -725,6 +778,8 @@ def generate_pdf_report(
     keyword_ranks_history: Optional[list] = None,
     screenshots: Optional[list] = None,
     blog_analysis: Optional[dict] = None,
+    competitors: Optional[list] = None,
+    ai_tab: Optional[dict] = None,
 ) -> bytes:
     buf = io.BytesIO()
     S   = _S(FONT_NAME)
@@ -778,8 +833,9 @@ def generate_pdf_report(
                  "이 사업장은 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 ChatGPT · Gemini · Google AI 최적화에 집중하세요.")
         story.append(_banner(btext, "#fef9c3", "#ca8a04", S))
     elif elig == "likely":
-        btext = ("【확대 예정 업종】  현재 네이버 AI 탭 베타 확대 중인 업종입니다. "
-                 "지금 스마트플레이스를 최적화해 두면 정식 오픈 시 유리합니다.")
+        btext = ("【정보형 AI 브리핑 대상 · 플레이스형 확대 예상 업종】  특정 가게를 요약하는 '플레이스형' AI 브리핑 공식 대상은 "
+                 "아니지만, 블로그·콘텐츠 기반 '정보형 AI 브리핑'에는 지금도 노출될 수 있습니다. "
+                 "네이버 지도 상위 노출과 ChatGPT·Gemini도 함께 최적화하세요.")
         story.append(_banner(btext, "#ecfdf5", "#059669", S))
     else:
         btext = ("【노출 대상 업종】  네이버 AI 브리핑 노출 대상 업종입니다. "
@@ -885,6 +941,40 @@ def generate_pdf_report(
     story.append(pf_table)
     story.append(Spacer(1, 10))
 
+    # ── 네이버 AI탭 준비도 (업종 무관 전 업종 대상, AI 브리핑과 별개 채널) ─────
+    if ai_tab and ai_tab.get("simulated_answer"):
+        _section_bg(story, "네이버 AI탭 준비도  (대화형 검색, 업종 무관)", bg="#f5f3ff", fg="#7c3aed")
+        rl = ai_tab.get("readiness_label") or {}
+        story.append(Paragraph(
+            f"<b>{rl.get('short', '측정 중')}</b>  —  {rl.get('description', '')}",
+            S["body"],
+        ))
+        story.append(Spacer(1, 3))
+        story.append(Paragraph(
+            f"예상 답변 예시: “{ai_tab['simulated_answer']}”",
+            ParagraphStyle("aitab_ans", fontName=FONT_NAME, fontSize=9, leftIndent=8,
+                          textColor=colors.HexColor("#4c1d95"), leading=13, spaceAfter=3),
+        ))
+        matched = ai_tab.get("matched_contexts") or []
+        missing = ai_tab.get("missing_contexts") or []
+        if matched:
+            story.append(Paragraph(
+                "✓  반영된 키워드:  " + "  /  ".join(str(k) for k in matched[:6]),
+                ParagraphStyle("aitab_ok", fontName=FONT_NAME, fontSize=8,
+                              textColor=colors.HexColor("#166534"), leading=12),
+            ))
+        if missing:
+            story.append(Paragraph(
+                "✗  빠진 키워드:  " + "  /  ".join(str(k) for k in missing[:6]),
+                ParagraphStyle("aitab_ng", fontName=FONT_NAME, fontSize=8,
+                              textColor=colors.HexColor("#991b1b"), leading=12),
+            ))
+        story.append(Paragraph(
+            ai_tab.get("disclaimer") or "실제 AI탭 응답과 다를 수 있는 시뮬레이션 미리보기입니다.",
+            S["small"],
+        ))
+        story.append(Spacer(1, 8))
+
     # ── 스크린샷 분류: 블로그 vs AI 브리핑 ──────────────────────────────────
     # 버그 수정: "blog" 포함 또는 before/blog_keyword/naver/keyword 타입 모두 수집
     blog_shots, ai_shots = [], []
@@ -971,8 +1061,8 @@ def generate_pdf_report(
             [_st("플랫폼", "#374151", bold=True), _st(b_platform, "#1f2937"),
              _st("총 포스트", "#374151", bold=True), _st(f"{b_post_cnt}개", "#1f2937")],
             [_st("발행 빈도", "#374151", bold=True), _st(b_freshness, "#1f2937"),
-             _st("AI 적합도", "#374151", bold=True), _st(f"{b_readiness:.0f}점 / 100점", "#1f2937")],
-            [_st("키워드 커버율", "#374151", bold=True), _st(f"{b_coverage:.0f}%", "#1f2937"),
+             _st("AI 적합도", "#374151", bold=True), _st(_text_label(b_readiness), "#1f2937")],
+            [_st("키워드 커버율", "#374151", bold=True), _st(_text_label(b_coverage), "#1f2937"),
              _st("", "#374151"), _st("", "#374151")],
         ]
         bl_t = Table(bl_summary_rows, colWidths=[3.2*cm, 4.5*cm, 3.2*cm, 4.7*cm])
@@ -1030,6 +1120,23 @@ def generate_pdf_report(
         ))
         story.append(Spacer(1, 6))
 
+    # ── 지역 내 경쟁 현황 ────────────────────────────────────────────────────
+    comp_table, comp_my_rank, comp_total_n = _competitor_table(biz_name, total, competitors or [])
+    if comp_table:
+        _section_bg(story, "지역 내 경쟁 현황", bg="#f8fafc", fg="#374151")
+        story.append(Paragraph(
+            f"등록된 경쟁사와 비교했을 때 우리 가게는 {comp_total_n}곳 중 {comp_my_rank}위입니다.",
+            S["body"],
+        ))
+        story.append(Spacer(1, 4))
+        story.append(comp_table)
+        story.append(Paragraph(
+            "※ 경쟁사 평가는 언급 여부·발췌문 길이 기반 간이 추정치이며, 우리 가게처럼 "
+            "다회 측정을 거치지 않아 정밀도가 다릅니다. 참고용으로만 활용하세요.",
+            S["small"],
+        ))
+        story.append(Spacer(1, 8))
+
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # PAGE 2 — 점수 분석 + 강점 + 개선 포인트
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1040,7 +1147,8 @@ def generate_pdf_report(
     chart = _history_chart(history)
     if chart:
         _section_bg(story, "30일 점수 추이  (측정 이력)")
-        story.append(Paragraph("※ 초록 70점+, 주황 40-70점, 빨강 40점 미만", S["small"]))
+        trend_txt = _trend(history) or "측정 이력이 쌓이는 중입니다"
+        story.append(Paragraph(f"※ 막대 색상: 초록 양호 · 주황 보통 · 빨강 개선 필요  |  {trend_txt}", S["small"]))
         story.append(Spacer(1, 4))
         story.append(chart)
         story.append(Spacer(1, 8))
@@ -1059,10 +1167,9 @@ def generate_pdf_report(
             continue
         val = bd.get(key)
         if val is not None and _grade(val) == "high":
-            pct = float(val)
             strengths_found = True
             block = [
-                Paragraph(f"✓  {lbl}  ({pct:.0f}점)", S["good"]),
+                Paragraph(f"✓  {lbl}", S["good"]),
                 Paragraph(f"   {desc}", S["sub"]),
                 Paragraph(f"   {why}", S["good_sub"]),
             ]
@@ -1095,17 +1202,17 @@ def generate_pdf_report(
             w_desc = info.get("w_desc", "")
 
         steps = info.get(step_key) or info.get("steps_with_website") or []
-        entry = (key, info["label"], w_desc, steps, score)
+        entry = (key, info["label"], w_desc, steps, score, lv)
         if lv == "low":
             low_items.append(entry)
         elif lv == "mid":
             mid_items.append(entry)
 
     all_items = (low_items + mid_items)[:5]
-    for i, (key, label, w_desc, steps, score) in enumerate(all_items, 1):
-        score_txt = f"현재 {score:.0f}점" if score > 0 else "미측정"
+    for i, (key, label, w_desc, steps, score, lv) in enumerate(all_items, 1):
+        priority_txt = "미측정" if score <= 0 else ("우선 개선 필요" if lv == "low" else "개선 여지 있음")
         block = [
-            Paragraph(f"{i}.  {label}  ({score_txt})", S["warn"]),
+            Paragraph(f"{i}.  {label}  ({priority_txt})", S["warn"]),
             Paragraph(f"   현황: {w_desc}", S["sub"]),
             Spacer(1, 2),
         ]
@@ -1138,7 +1245,7 @@ def generate_pdf_report(
                         checklist.append((str(title), str(desc)[:120]))
 
     # 가이드 항목이 부족하면 개선 항목 첫 번째 step으로 보충
-    for _, label, _, steps, _ in all_items:
+    for _, label, _, steps, _, _ in all_items:
         if len(checklist) >= 6:
             break
         first_step = (steps[0] if steps else "").split("\n")[0][:80]
