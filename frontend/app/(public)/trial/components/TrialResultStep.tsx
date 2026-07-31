@@ -1900,11 +1900,11 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
       )}
 
       {/* AI탭 품질 향상 참고 사항 — 점수 미반영, advisory only */}
-      {(check.has_reservation !== undefined || check.photo_count != null) && (
+      {(check.has_reservation != null || check.photo_count != null) && (
         <div className="mt-3 border-t border-gray-100 pt-3">
           <p className="text-sm text-gray-500 mb-2">AI탭 품질 향상 참고 사항 (점수 미반영)</p>
           <div className="flex flex-col gap-2">
-            {check.has_reservation !== undefined && (
+            {check.has_reservation != null && (
               <div
                 className={`flex items-center gap-2 rounded-xl px-3 py-2.5 border ${
                   check.has_reservation

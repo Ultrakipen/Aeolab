@@ -247,7 +247,7 @@ export interface TrialSmartPlaceCheck {
   has_faq: boolean;
   has_recent_post: boolean;
   has_intro: boolean;
-  has_reservation?: boolean;        // [P1-B-1] 네이버 예약 연동 여부 (점수 미반영)
+  has_reservation?: boolean | null; // [P1-B-1] 네이버 예약 연동 여부 (점수 미반영). null=측정 불가
   photo_count?: number;             // [P1-B-2] 등록 사진 수 추정 (점수 미반영)
   visitor_review_count?: number;    // 방문자 리뷰 수 (홈 탭 텍스트 추출, 0=미감지)
   avg_rating?: number;              // 별점 (홈 탭 텍스트 추출, 0=미감지)

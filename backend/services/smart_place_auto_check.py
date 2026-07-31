@@ -90,7 +90,7 @@ async def auto_check_smart_place(naver_place_id: str) -> dict:
             has_faq: bool,           # [DEPRECATED] 항상 False
             has_recent_post: bool,
             has_intro: bool,
-            has_reservation: bool,   # [P1-B-1] 네이버 예약 연동 여부 (점수 미반영)
+            has_reservation: bool | None,  # [P1-B-1] 네이버 예약 연동 여부. None=측정 불가(차단 등)
             photo_count: int,        # [P1-B-2] 등록 사진 수 추정 (점수 미반영)
             score_loss: int,
             action_links: dict[str, str],
@@ -124,7 +124,7 @@ def _failed_result(error_code: str, naver_place_id: str = "") -> dict:
         "has_faq": False,
         "has_recent_post": False,
         "has_intro": False,
-        "has_reservation": False,
+        "has_reservation": None,  # None=측정 불가 (진단 자체가 실패해 미연동으로 오판 방지)
         "photo_count": None,
         "visitor_review_count": 0,
         "avg_rating": None,
@@ -189,7 +189,7 @@ async def _run_check(naver_place_id: str) -> dict:
         "has_recent_post": False,
         "recent_post_measured": True,   # False = 차단으로 측정 불가
         "has_intro": False,
-        "has_reservation": False,
+        "has_reservation": None,  # None=측정 불가. 홈 탭 차단·실패 시 덮어써지지 않고 그대로 반환됨
         "photo_count": None,      # 감지 성공 시 int, 미감지 시 None (프론트 "0장" 오표시 방지)
         "visitor_review_count": 0,
         "avg_rating": None,       # 감지 성공 시 float, 미감지 시 None
