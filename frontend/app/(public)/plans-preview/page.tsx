@@ -523,11 +523,28 @@ function BasicContent({ d }: { d: MockData }) {
         </div>
       </LockedCard>
 
-      <LockedCard title="PDF 분석 리포트" planLabel="Pro 전용 · 인쇄·제출용 공식 보고서">
-        <div className="p-3 border border-gray-200 rounded-xl text-center">
-          <p className="text-sm font-bold text-gray-700">AI 노출 분석 리포트</p>
-          <p className="text-sm text-gray-500 mt-1">2024년 12월 | {d.name} | 종합 {scoreLabel(d.unified)}</p>
-          <div className="mt-2 h-12 bg-gray-100 rounded-lg" />
+      <LockedCard title="PDF 분석 리포트" planLabel="Pro 전용 · 매달 확인한 내용을 파일로 남겨두는 부가 기능">
+        <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+          <div className="bg-gray-50 border-b border-gray-200 px-3 py-2">
+            <p className="text-sm font-bold text-gray-700">AI 노출 분석 리포트 · 1/3</p>
+            <p className="text-sm text-gray-500">2024년 12월 | {d.name}</p>
+          </div>
+          <div className="p-3 grid grid-cols-4 gap-1.5">
+            {[
+              { label: "종합", value: scoreLabel(d.unified) },
+              { label: "네이버 AI", value: "노출중" },
+              { label: "ChatGPT", value: "미노출" },
+              { label: "Gemini", value: "노출중" },
+            ].map((c) => (
+              <div key={c.label} className="border border-gray-100 rounded-lg px-1.5 py-2 text-center">
+                <p className="text-sm text-gray-400">{c.label}</p>
+                <p className="text-sm font-bold text-gray-700 mt-0.5">{c.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="px-3 pb-3">
+            <p className="text-sm text-gray-400">30일 추이 · 항목별 분석 (2p) · 이달의 실행 체크리스트 (3p)</p>
+          </div>
         </div>
       </LockedCard>
 
@@ -629,7 +646,7 @@ function ProContent({ d }: { d: MockData }) {
             📊 엑셀로 데이터 내보내기
           </button>
         </div>
-        <p className="text-sm text-gray-500 mt-2">세무사·컨설턴트에게 제출하거나 직접 기록용으로 보관</p>
+        <p className="text-sm text-gray-500 mt-2">핵심은 매일 보는 대시보드이며, PDF·CSV는 필요할 때 내려받는 보조 자료입니다</p>
       </div>
 
       {/* 잠금: 창업패키지 전용 */}
