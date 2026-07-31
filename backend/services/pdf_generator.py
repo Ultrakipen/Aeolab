@@ -585,112 +585,81 @@ def _history_chart(history: list) -> Optional[Drawing]:
 
 # ── 항목별 점수 분석 표 (Page 2 신규) ────────────────────────────────────────
 
-def _breakdown_table(bd: dict, elig: str) -> Table:
-    """Track1/Track2 항목별 점수를 표로 반환."""
+# 항목 정의: (bd_key, 항목명, 트랙, 측정 의미) — 차트·범례 공용
+_BREAKDOWN_ITEMS = [
+    ("keyword_gap_score",        "키워드 노출",         "T1", "검색어 발견 가능성"),
+    ("smart_place_completeness", "스마트플레이스 완성도", "T1", "정보 완성도·신뢰도"),
+    ("review_quality",           "리뷰 관리",           "T1", "고객 반응 신호"),
+    ("naver_exposure_confirmed", "네이버 AI 브리핑",    "T1", "AI 브리핑 직접 노출"),
+    ("multi_ai_exposure",        "글로벌 AI 노출",      "T2", "ChatGPT·Gemini 언급"),
+    ("schema_seo",               "웹사이트 SEO",        "T2", "웹사이트 AI 인식"),
+    ("online_mentions_t2",       "온라인 언급량",        "T2", "온라인 콘텐츠 양"),
+    ("google_presence",          "Google AI 노출",      "T2", "Google AI 노출"),
+]
 
-    # 항목 정의: (bd_key, 항목명, 트랙, 구분, 측정 의미)
-    _ITEMS = [
-        ("keyword_gap_score",        "키워드 노출",         "T1", "네이버", "검색어 발견 가능성"),
-        ("smart_place_completeness", "스마트플레이스 완성도", "T1", "네이버", "정보 완성도·신뢰도"),
-        ("review_quality",           "리뷰 관리",           "T1", "네이버", "고객 반응 신호"),
-        ("naver_exposure_confirmed", "네이버 AI 브리핑",    "T1", "네이버", "AI 브리핑 직접 노출"),
-        ("multi_ai_exposure",        "글로벌 AI 노출",      "T2", "글로벌", "ChatGPT·Gemini 언급"),
-        ("schema_seo",               "웹사이트 SEO",        "T2", "글로벌", "웹사이트 AI 인식"),
-        ("online_mentions_t2",       "온라인 언급량",        "T2", "글로벌", "온라인 콘텐츠 양"),
-        ("google_presence",          "Google AI 노출",      "T2", "글로벌", "Google AI 노출"),
-    ]
 
-    def _cell_ps(fg: str, size: int = 8) -> ParagraphStyle:
-        return ParagraphStyle("", fontName=FONT_NAME, fontSize=size,
-                              textColor=colors.HexColor(fg), leading=11)
-
-    header_ps = ParagraphStyle("", fontName=FONT_NAME, fontSize=8,
-                                textColor=colors.white, leading=11)
-
-    rows = [[
-        Paragraph("구분",     header_ps),
-        Paragraph("항목",     header_ps),
-        Paragraph("평가",     header_ps),
-        Paragraph("측정 의미", header_ps),
-    ]]
-
-    style_cmds = [
-        ("BACKGROUND",    (0, 0), (-1, 0), colors.HexColor("#1e3a5f")),
-        ("TEXTCOLOR",     (0, 0), (-1, 0), colors.white),
-        ("FONTNAME",      (0, 0), (-1, -1), FONT_NAME),
-        ("FONTSIZE",      (0, 0), (-1, -1), 8),
-        ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING",    (0, 0), (-1, -1), 5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-        ("LEFTPADDING",   (0, 0), (-1, -1), 6),
-        ("RIGHTPADDING",  (0, 0), (-1, -1), 6),
-        ("LINEBELOW",     (0, 0), (-1, -1), 0.3, colors.HexColor("#e2e8f0")),
-        ("LINEBELOW",     (0, 0), (-1, 0),  1.0, colors.HexColor("#3b82f6")),
-        ("BOX",           (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-    ]
-
-    row_idx = 1
-    for bd_key, label, track, division, meaning in _ITEMS:
-        # INACTIVE 업종은 네이버 AI 브리핑 제외
+def _breakdown_chart(bd: dict, elig: str) -> tuple[Optional[Drawing], list]:
+    """Track1/Track2 항목별 평가를 수평 막대그래프로 반환.
+    막대 길이·색상만으로 비교(원점수 비노출) — 라벨 배경으로 T1(네이버)/T2(글로벌) 구분.
+    반환: (차트, [(항목명, 측정의미), ...]) — 후자는 캡션용 범례."""
+    rows = []
+    legend = []
+    for bd_key, label, track, meaning in _BREAKDOWN_ITEMS:
         if elig == "inactive" and bd_key == "naver_exposure_confirmed":
             continue
-
         val = bd.get(bd_key)
+        score = float(val) if val is not None else 0.0
+        rows.append({"label": label, "score": score, "track": track, "measured": val is not None})
+        legend.append((label, meaning))
+    if not rows:
+        return None, legend
 
-        # 구분 셀 색상
-        if track == "T1":
-            div_bg, div_fg = "#eff6ff", "#1d4ed8"
+    W  = 15.6 * cm
+    LW = 4.6 * cm
+    RH = 0.85 * cm
+    H  = RH * len(rows)
+    bar_area_w = W - LW - 0.2 * cm
+    d = Drawing(W, H)
+
+    for i, r in enumerate(rows):
+        row_top    = H - i * RH
+        row_bottom = row_top - RH
+
+        # 라벨 영역 배경 — T1(네이버)=파랑 / T2(글로벌)=보라
+        group_bg = "#eff6ff" if r["track"] == "T1" else "#f5f3ff"
+        d.add(Rect(0, row_bottom, LW - 0.1 * cm, RH, fillColor=colors.HexColor(group_bg), strokeColor=None))
+        d.add(String(4, row_bottom + RH * 0.35, r["label"][:12],
+                     fontName=FONT_NAME, fontSize=8, fillColor=colors.HexColor("#374151")))
+
+        if not r["measured"]:
+            d.add(String(LW + 4, row_bottom + RH * 0.35, "미측정",
+                         fontName=FONT_NAME, fontSize=7.5, fillColor=colors.HexColor("#9ca3af")))
+            continue
+
+        score = max(0.0, min(r["score"], 100.0))
+        bar_w = bar_area_w * score / 100.0
+        if score >= 70:
+            bar_color = "#22c55e"
+        elif score >= 40:
+            bar_color = "#f59e0b"
         else:
-            div_bg, div_fg = "#f5f3ff", "#7c3aed"
+            bar_color = "#ef4444"
+        bar_h = RH * 0.55
+        bar_y = row_bottom + (RH - bar_h) / 2
+        d.add(Rect(LW, bar_y, max(bar_w, 3), bar_h, fillColor=colors.HexColor(bar_color), strokeColor=None))
 
-        # 평가 셀 색상 (등급 컷오프는 _grade()와 동일 70/40 — 강점·개선포인트 분류와 일관)
-        if val is None:
-            eval_txt = "—"
-            eval_bg  = "#f9fafb"
-            eval_fg  = "#6b7280"
-        else:
-            try:
-                fval = float(val)
-            except (TypeError, ValueError):
-                fval = 0.0
-            if fval >= 70:
-                eval_bg, eval_fg = "#dcfce7", "#166534"
-                eval_txt = "우수"
-            elif fval >= 40:
-                eval_bg, eval_fg = "#fef9c3", "#92400e"
-                eval_txt = "보통"
-            else:
-                eval_bg, eval_fg = "#fef2f2", "#991b1b"
-                eval_txt = "개선필요"
-
-        rows.append([
-            Paragraph(f"{track} {division}", _cell_ps(div_fg)),
-            Paragraph(label,     _cell_ps("#1f2937")),
-            Paragraph(eval_txt,  _cell_ps(eval_fg)),
-            Paragraph(meaning,   _cell_ps("#374151")),
-        ])
-
-        # 구분 셀 배경
-        style_cmds.append(("BACKGROUND", (0, row_idx), (0, row_idx), colors.HexColor(div_bg)))
-        # 평가 셀 배경
-        style_cmds.append(("BACKGROUND", (2, row_idx), (2, row_idx), colors.HexColor(eval_bg)))
-
-        row_idx += 1
-
-    t = Table(rows, colWidths=[1.8 * cm, 4.2 * cm, 2.4 * cm, 7.1 * cm])
-    t.setStyle(TableStyle(style_cmds))
-    return t
+    return d, legend
 
 
 # ── 키워드 순위 색상 헬퍼 (Page 3 개선) ──────────────────────────────────────
 
 # ── 지역 내 경쟁 현황 표 (Page 1) ─────────────────────────────────────────────
 
-def _competitor_table(biz_name: str, my_total: float, competitors: list) -> tuple[Optional[Table], int, int]:
-    """내 사업장 + 등록 경쟁사를 점수순으로 정렬한 순위표.
+def _competitor_chart(biz_name: str, my_total: float, competitors: list) -> tuple[Optional[Drawing], int, int]:
+    """내 사업장 + 등록 경쟁사를 점수순으로 정렬한 수평 막대그래프.
     경쟁사 점수는 언급 여부·발췌문 길이 기반 간이 추정치라 원점수 대신
-    등급 텍스트만 표시(우리 사업장 정밀 측정과 다른 방식임을 구분).
-    반환: (표, 내 순위, 전체 인원)"""
+    막대 길이+색상만 사용(우리 사업장 정밀 측정과 다른 방식임을 구분).
+    반환: (차트, 내 순위, 전체 인원)"""
     if not competitors:
         return None, 0, 0
 
@@ -698,48 +667,44 @@ def _competitor_table(biz_name: str, my_total: float, competitors: list) -> tupl
     for c in competitors:
         entries.append({"name": c.get("name") or "경쟁사", "score": float(c.get("score") or 0), "is_me": False})
     entries.sort(key=lambda e: e["score"], reverse=True)
+    my_rank = next(i for i, e in enumerate(entries, 1) if e["is_me"])
 
-    def _cell_ps(fg: str, bold: bool = False) -> ParagraphStyle:
-        return ParagraphStyle("", fontName=FONT_NAME, fontSize=9,
-                              textColor=colors.HexColor(fg), leading=13)
+    W  = 15.6 * cm
+    LW = 5.4 * cm
+    RH = 0.85 * cm
+    H  = RH * len(entries)
+    bar_area_w = W - LW - 0.2 * cm
+    d = Drawing(W, H)
 
-    header_ps = ParagraphStyle("", fontName=FONT_NAME, fontSize=9,
-                                textColor=colors.white, leading=12)
-    rows = [[
-        Paragraph("순위",   header_ps),
-        Paragraph("사업장", header_ps),
-        Paragraph("평가",   header_ps),
-    ]]
-    style_cmds = [
-        ("BACKGROUND",    (0, 0), (-1, 0), colors.HexColor("#1e3a5f")),
-        ("FONTNAME",      (0, 0), (-1, -1), FONT_NAME),
-        ("FONTSIZE",      (0, 0), (-1, -1), 9),
-        ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING",    (0, 0), (-1, -1), 5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-        ("LEFTPADDING",   (0, 0), (-1, -1), 8),
-        ("LINEBELOW",     (0, 0), (-1, -1), 0.3, colors.HexColor("#e2e8f0")),
-        ("BOX",           (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-    ]
+    for i, e in enumerate(entries):
+        row_top    = H - i * RH
+        row_bottom = row_top - RH
 
-    my_rank = 1
-    for i, e in enumerate(entries, 1):
-        grade_txt = _text_label(e["score"])
-        fg = "#1e40af" if e["is_me"] else "#374151"
-        name_txt = f"{e['name']}  (우리 가게)" if e["is_me"] else e["name"]
-        rows.append([
-            Paragraph(f"{i}위", _cell_ps(fg)),
-            Paragraph(name_txt, _cell_ps(fg)),
-            Paragraph(grade_txt, _cell_ps(fg)),
-        ])
         if e["is_me"]:
-            my_rank = i
-            style_cmds.append(("BACKGROUND", (0, i), (-1, i), colors.HexColor("#eff6ff")))
-            style_cmds.append(("FONTNAME", (0, i), (-1, i), FONT_NAME))
+            d.add(Rect(0, row_bottom, W, RH, fillColor=colors.HexColor("#eff6ff"), strokeColor=None))
 
-    t = Table(rows, colWidths=[1.8 * cm, 8.6 * cm, 5.2 * cm])
-    t.setStyle(TableStyle(style_cmds))
-    return t, my_rank, len(entries)
+        rank_fg = "#1e40af" if e["is_me"] else "#9ca3af"
+        d.add(String(2, row_bottom + RH * 0.35, f"{i + 1}위",
+                     fontName=FONT_NAME, fontSize=7.5, fillColor=colors.HexColor(rank_fg)))
+
+        name_fg  = "#1e40af" if e["is_me"] else "#374151"
+        name_txt = f"{e['name']} (우리 가게)" if e["is_me"] else e["name"]
+        d.add(String(1.1 * cm, row_bottom + RH * 0.35, name_txt[:16],
+                     fontName=FONT_NAME, fontSize=8, fillColor=colors.HexColor(name_fg)))
+
+        score = max(0.0, min(e["score"], 100.0))
+        bar_w = bar_area_w * score / 100.0
+        if score >= 70:
+            bar_color = "#22c55e"
+        elif score >= 40:
+            bar_color = "#f59e0b"
+        else:
+            bar_color = "#ef4444"
+        bar_h = RH * 0.55
+        bar_y = row_bottom + (RH - bar_h) / 2
+        d.add(Rect(LW, bar_y, max(bar_w, 3), bar_h, fillColor=colors.HexColor(bar_color), strokeColor=None))
+
+    return d, my_rank, len(entries)
 
 
 def _rank_info(entries: list, key: str) -> tuple[str, str, str]:
@@ -1121,15 +1086,16 @@ def generate_pdf_report(
         story.append(Spacer(1, 6))
 
     # ── 지역 내 경쟁 현황 ────────────────────────────────────────────────────
-    comp_table, comp_my_rank, comp_total_n = _competitor_table(biz_name, total, competitors or [])
-    if comp_table:
+    comp_chart, comp_my_rank, comp_total_n = _competitor_chart(biz_name, total, competitors or [])
+    if comp_chart:
         _section_bg(story, "지역 내 경쟁 현황", bg="#f8fafc", fg="#374151")
         story.append(Paragraph(
-            f"등록된 경쟁사와 비교했을 때 우리 가게는 {comp_total_n}곳 중 {comp_my_rank}위입니다.",
+            f"등록된 경쟁사와 비교했을 때 우리 가게는 {comp_total_n}곳 중 {comp_my_rank}위입니다. "
+            "(막대가 길고 초록색일수록 우수)",
             S["body"],
         ))
         story.append(Spacer(1, 4))
-        story.append(comp_table)
+        story.append(comp_chart)
         story.append(Paragraph(
             "※ 경쟁사 평가는 언급 여부·발췌문 길이 기반 간이 추정치이며, 우리 가게처럼 "
             "다회 측정을 거치지 않아 정밀도가 다릅니다. 참고용으로만 활용하세요.",
@@ -1153,9 +1119,16 @@ def generate_pdf_report(
         story.append(chart)
         story.append(Spacer(1, 8))
 
-    # ── [NEW] 항목별 점수 분석 표 ────────────────────────────────────────────
-    _section_bg(story, "항목별 점수 분석  (Track1 네이버 + Track2 글로벌)")
-    story.append(_breakdown_table(bd, elig))
+    # ── [NEW] 항목별 점수 분석 차트 ───────────────────────────────────────────
+    _section_bg(story, "항목별 점수 분석  (파랑 라벨=네이버 · 보라 라벨=글로벌)")
+    story.append(Paragraph("※ 막대 길이·색상(초록 양호·주황 보통·빨강 개선 필요)만으로 항목 간 비교", S["small"]))
+    story.append(Spacer(1, 3))
+    breakdown_chart, breakdown_legend = _breakdown_chart(bd, elig)
+    if breakdown_chart:
+        story.append(breakdown_chart)
+        story.append(Spacer(1, 4))
+        legend_txt = "  ·  ".join(f"{lbl}: {meaning}" for lbl, meaning in breakdown_legend)
+        story.append(Paragraph(legend_txt, S["small"]))
     story.append(Spacer(1, 10))
     _hr(story)
 
