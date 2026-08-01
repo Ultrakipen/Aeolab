@@ -25,5 +25,5 @@ sentry-sdk[fastapi]==2.66.1
 
 # 테스트 전용(2026-07-17) — backend/tests/ 실행에 필요. 운영 서버에는 불필요하지만
 # 실행환경 통일을 위해 여기 유지(CI에서 테스트를 도는 단계는 아직 없음 — deploy.yml은 배포만 함)
-pytest==8.3.3
-pytest-asyncio==0.24.0
+pytest==9.0.3
+pytest-asyncio==1.4.0
