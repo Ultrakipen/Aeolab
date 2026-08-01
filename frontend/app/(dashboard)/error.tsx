@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -22,6 +23,8 @@ export default function DashboardError({ error, reset }: Props) {
       msg.includes("Loading chunk")
     ) {
       setIsStale(true);
+    } else {
+      Sentry.captureException(error);
     }
   }, [error]);
 

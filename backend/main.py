@@ -1,6 +1,18 @@
 from dotenv import load_dotenv
 load_dotenv()  # backend/.env 파일 자동 로드 (uvicorn 시작 시점에 os.environ 등록)
 
+import os
+import sentry_sdk
+
+_SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+if _SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=_SENTRY_DSN,
+        environment=os.getenv("APP_ENV", "development"),
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+    )
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -27,7 +39,6 @@ from routers import feedback as feedback_router
 from routers import system_status as system_status_router
 from scheduler.jobs import start_scheduler
 from utils.logger import setup_logging
-import os
 import logging
 
 setup_logging()
@@ -183,6 +194,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     모든 미처리 예외를 여기서 잡아 JSON 응답으로 변환합니다.
     운영 환경에서는 내부 오류 메시지를 클라이언트에 노출하지 않습니다."""
     _logger.error(f"Unhandled exception: {type(exc).__name__}: {exc}", exc_info=exc)
+    sentry_sdk.capture_exception(exc)
     # 운영 환경: 내부 오류 상세 숨김 (정보 노출 방지)
     is_prod = os.getenv("APP_ENV", "development") == "production"
     message = "서버 내부 오류가 발생했습니다" if is_prod else str(exc)

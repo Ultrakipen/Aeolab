@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -20,6 +21,8 @@ export default function GlobalError({ error, reset }: Props) {
       msg.includes("older or newer deployment")
     ) {
       setIsStaleDeployment(true);
+    } else {
+      Sentry.captureException(error);
     }
   }, [error]);
 

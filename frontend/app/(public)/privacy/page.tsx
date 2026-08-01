@@ -142,6 +142,10 @@ export default function PrivacyPage() {
                     <td className="border border-gray-200 px-3 py-2">토스페이먼츠</td>
                     <td className="border border-gray-200 px-3 py-2">결제 처리 및 빌링키 관리</td>
                   </tr>
+                  <tr className="bg-gray-50">
+                    <td className="border border-gray-200 px-3 py-2">Sentry (Functional Software, Inc.)</td>
+                    <td className="border border-gray-200 px-3 py-2">서비스 오류 모니터링 (오류 발생 시 코드 실행 정보 수집, 개인 식별정보는 수집하지 않도록 설정)</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
