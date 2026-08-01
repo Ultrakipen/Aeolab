@@ -22,6 +22,7 @@ HEADERS = {'apikey': KEY, 'Authorization': f'Bearer {KEY}'}
 RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
 OPERATOR_EMAIL = os.getenv('OPERATOR_EMAIL', 'contact@aeolab.co.kr')
 FROM_EMAIL = os.getenv('FROM_EMAIL', 'noreply@aeolab.co.kr')
+SLACK_WEBHOOK_URL = os.getenv('SLACK_WEBHOOK_URL', '')
 
 OFFSITE_BUCKET = 'db-backups-offsite'
 OFFSITE_RETENTION_DAYS = 30
@@ -72,6 +73,38 @@ def send_alert_email(subject: str, message: str) -> None:
             r.read()
     except Exception as e:
         print(f'  알림 이메일 발송 실패: {e}')
+
+
+def send_slack_alert(subject: str, message: str) -> None:
+    """backend/utils/alert.py send_slack_alert()와 동일한 웹훅·페이로드 스타일 —
+    2026-08-01 백업 13일 무중단 사고에서 이메일 단일 채널이 13일간 미확인 상태로
+    방치된 걸 계기로 이중화. 웹훅 미설정 시 조용히 스킵(이메일 알림은 그대로 유지)."""
+    if not SLACK_WEBHOOK_URL:
+        print(f'  SLACK_WEBHOOK_URL 미설정 — Slack 알림 건너뜀: {subject}')
+        return
+    payload = json.dumps({
+        'attachments': [{
+            'color': '#FF0000',
+            'title': f'[AEOlab] {subject}',
+            'text': message,
+            'footer': 'AEOlab Backup Script',
+        }]
+    }).encode('utf-8')
+    req = urllib.request.Request(
+        SLACK_WEBHOOK_URL, data=payload,
+        headers={'Content-Type': 'application/json'}, method='POST',
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            r.read()
+    except Exception as e:
+        print(f'  Slack 알림 발송 실패: {e}')
+
+
+def notify(subject: str, message: str) -> None:
+    """이메일+Slack 이중 채널 알림 — 한쪽이 미확인 상태로 방치돼도 다른 쪽이 잡도록."""
+    send_alert_email(subject, message)
+    send_slack_alert(subject, message)
 
 
 def _storage_request(method: str, path: str, data: bytes | None = None, content_type: str = 'application/json') -> tuple[int, bytes]:
@@ -151,7 +184,7 @@ def main() -> int:
     if not SUPABASE_URL or not KEY:
         msg = 'SUPABASE_URL 또는 SUPABASE_SERVICE_ROLE_KEY 미설정 — 백업 중단'
         print(msg)
-        send_alert_email('DB 백업 실패 — 환경변수 누락', msg)
+        notify('DB 백업 실패 — 환경변수 누락', msg)
         return 1
 
     os.makedirs(BACKUP_DIR, exist_ok=True)
@@ -200,17 +233,17 @@ def main() -> int:
         if offsite_ok:
             cleanup_offsite_old()
         else:
-            send_alert_email(
+            notify(
                 'DB 오프사이트 백업 실패',
                 f'{DATE} 로컬 백업은 성공했으나 Supabase Storage 오프사이트 사본 업로드가 실패했습니다. '
                 f'서버 자체 손실 시 이 날짜 백업은 복구 불가할 수 있습니다.',
             )
     except Exception as e:
         print(f'  오프사이트 백업 예외: {e}')
-        send_alert_email('DB 오프사이트 백업 예외', f'{DATE} 오프사이트 백업 중 예외 발생: {e}')
+        notify('DB 오프사이트 백업 예외', f'{DATE} 오프사이트 백업 중 예외 발생: {e}')
 
     if failed_tables:
-        send_alert_email(
+        notify(
             'DB 백업 일부 실패',
             f'{DATE} 백업에서 {len(failed_tables)}개 테이블 실패: {", ".join(failed_tables)}',
         )
