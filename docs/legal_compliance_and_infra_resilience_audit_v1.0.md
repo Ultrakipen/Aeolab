@@ -49,6 +49,14 @@
 - 기존에는 백업 스크립트가 스케줄러 잡 알림 시스템(`send_operator_alert`)과 분리된 순수 bash+cron이라 실패해도 아무도 알 수 없었음. 이번 수정으로 실패 시 이메일 알림 연결(Resend API, git `8c95e22` — Cloudflare가 기본 Python urllib User-Agent를 차단하던 문제를 `User-Agent` 헤더 추가로 해결·HTTP 200 실측 확인).
 - 추가로 Healthchecks.io 외부 하트비트(start/success/fail 핑, git `fe1022d`)도 연결 — 이메일 알림과 달리 "스크립트 자체가 실행 안 됨"까지 잡는 독립 안전망. 03:00 무인 실행에서 curl 에러 없이 정상 핑 확인.
 
+### P0 — 백업이 2026-07-18~08-01(2주) 실행권한 유실로 재차 조용히 중단됨 → 수정 완료 (2026-08-01)
+
+- **근거**: `/var/log/aeolab_backup.log`·서버·오프사이트 버킷 전부 최신 파일이 `20260718_0300`에서 멈춰있음(그 이후 신규 항목 0건, 8/1 기준 13일 공백). `backup_db.sh` 파일 권한이 `-rw-r--r--`(실행 비트 없음), mtime이 정확히 마지막 성공 시각과 일치 — 2026-07-18 git drift 재동기화 배포(`git b879e16~4c56cf0`) 과정에서 파일이 재배포되며 실행권한이 유실, 이후 cron이 매일 정시에 실행을 "시도"했으나 권한 없어 즉시 실패, stdout/stderr가 cron 기본 동작상 별도 로그 없이 사라짐. `crontab -l`엔 등록이 여전히 정상으로 보여 겉보기엔 문제가 없었음.
+- **반증**: `journalctl`에서 다른 cron 잡(`debian-sa1`, `run-parts`)은 8/1까지도 정상 실행 중 — cron 데몬 자체 문제가 아니라 이 스크립트 하나의 권한 문제로 확정.
+- **조치**: `chmod +x` 즉시 복구 + 수동 백업 1회 실행으로 공백 즉시 해소(43테이블 10,426행, 오프사이트 업로드 확인) + crontab을 `/var/www/aeolab/scripts/backup_db.sh` 직접 호출 → `/bin/bash /var/www/aeolab/scripts/backup_db.sh`로 변경(실행권한 유실에 근본적으로 면역, 향후 배포로 +x가 다시 빠져도 재발 안 함).
+- **미확인**: Healthchecks.io 하트비트(§P1)가 원래 "스크립트 자체가 실행 안 됨"을 잡기 위한 안전망이었는데 13일간 알림이 왔는지 사용자 확인 필요 — 스크립트가 아예 실행 안 되면 `start` 핑조차 안 갔을 것이므로 Healthchecks 쪽에서 "예정된 핑 누락" 알림이 발송됐어야 함. 이메일함 확인 권장(누락됐다면 Healthchecks 알림 채널 자체도 별도 점검 필요).
+- **복구(restore) 경로 실측 검증도 병행**: `scripts/restore_json.py` 신설 + `restore_drill_businesses`/`restore_drill_scan_results` 임시 테이블(운영 테이블과 완전 분리)에 실제 백업 파일로 복구 실행 → 소스 테이블과 필드 단위 전수 비교, mismatch 0건(businesses 8/8, scan_results 131/131, JSONB·배열·타임스탬프 포함). "백업이 생성된다"뿐 아니라 "그 백업으로 실제 복구된다"까지 최초로 실측 확인.
+
 ### P1 — 외부 업타임 모니터링이 등록돼 있었으나 전 체크가 405로 실패 중이었음 → 수정 완료 (2026-07-12)
 
 - **경위**: 이 문서 작성 시점(2026-07-12 이전)엔 "미해결·계정 가입 필요"로 기록했으나, 이후 사용자가 이미 UptimeRobot에 가입해 `/health`를 모니터링 중이라고 알려옴. 신뢰 대신 실측 검증(CLAUDE.md 검증 문화) — `main.py:202` 독스트링에도 "UptimeRobot 5분 간격"이라는 기존 주석이 있어 실제 동작 여부를 nginx 로그로 직접 확인.
