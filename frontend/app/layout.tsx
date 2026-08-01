@@ -36,6 +36,9 @@ export const metadata: Metadata = {
     canonical: "https://aeolab.co.kr",
     languages: { "ko-KR": "https://aeolab.co.kr" },
   },
+  verification: process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION
+    ? { other: { "naver-site-verification": process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION } }
+    : undefined,
   robots: {
     index: true,
     follow: true,
