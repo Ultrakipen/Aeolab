@@ -57,6 +57,25 @@
 - **미확인**: Healthchecks.io 하트비트(§P1)가 원래 "스크립트 자체가 실행 안 됨"을 잡기 위한 안전망이었는데 13일간 알림이 왔는지 사용자 확인 필요 — 스크립트가 아예 실행 안 되면 `start` 핑조차 안 갔을 것이므로 Healthchecks 쪽에서 "예정된 핑 누락" 알림이 발송됐어야 함. 이메일함 확인 권장(누락됐다면 Healthchecks 알림 채널 자체도 별도 점검 필요).
 - **복구(restore) 경로 실측 검증도 병행**: `scripts/restore_json.py` 신설 + `restore_drill_businesses`/`restore_drill_scan_results` 임시 테이블(운영 테이블과 완전 분리)에 실제 백업 파일로 복구 실행 → 소스 테이블과 필드 단위 전수 비교, mismatch 0건(businesses 8/8, scan_results 131/131, JSONB·배열·타임스탬프 포함). "백업이 생성된다"뿐 아니라 "그 백업으로 실제 복구된다"까지 최초로 실측 확인.
 
+### P1 — SSL 인증서 갱신 실패 알림 부재 → 수정 완료 (2026-08-01)
+
+- **점검**: `certbot certificates`로 실측 확인 결과 인증서 자체는 정상(84일 유효, 2026-10-24 만료) + `certbot.timer`가 하루 여러 차례 정상 발동 중(`journalctl` 확인). 다만 `renewal-hooks/deploy`·`post` 둘 다 비어있어 **갱신이 실패해도 알림 경로가 전혀 없었음** — 위 백업 사고와 동일한 클래스의 위험.
+- **조치**: `scripts/ops_alert.py`(신규, `backup_json.py`의 이메일+Slack `notify()` 패턴을 CLI로 분리) + 서버 전용 systemd 유닛 2개(git 비추적, 서버 재구축 시 재생성 필요 — 아래 원문 보존):
+  ```
+  # /etc/systemd/system/aeolab-cert-alert.service
+  [Unit]
+  Description=AEOlab SSL 인증서 갱신 실패 알림
+  [Service]
+  Type=oneshot
+  EnvironmentFile=/var/www/aeolab/backend/.env
+  ExecStart=/usr/bin/python3 /var/www/aeolab/scripts/ops_alert.py "SSL 인증서 갱신 실패" "certbot.service가 실패했습니다. /var/log/letsencrypt/letsencrypt.log를 확인하세요. 인증서가 만료되면 https://aeolab.co.kr 전체가 접속 불가 상태가 됩니다."
+
+  # /etc/systemd/system/certbot.service.d/override.conf
+  [Unit]
+  OnFailure=aeolab-cert-alert.service
+  ```
+- **라이브 검증**: `certbot.service`의 `ExecStart`를 드롭인으로 `/bin/false`로 임시 교체 → `systemctl start certbot.service` → 강제 실패 → `OnFailure`로 `aeolab-cert-alert.service` 자동 발동 확인 → 즉시 원복(`daemon-reload`로 정상 `ExecStart` 복귀 확인). 1차 시도는 `ops_alert.py` 서버 배포를 빠뜨려 "can't open file" 오류로 실패했던 걸 스스로 발견해 배포 후 재검증 — Slack 채널에 실제 알림 도착까지 사용자 확인 완료(git `09d7d15`).
+
 ### P1 — 외부 업타임 모니터링이 등록돼 있었으나 전 체크가 405로 실패 중이었음 → 수정 완료 (2026-07-12)
 
 - **경위**: 이 문서 작성 시점(2026-07-12 이전)엔 "미해결·계정 가입 필요"로 기록했으나, 이후 사용자가 이미 UptimeRobot에 가입해 `/health`를 모니터링 중이라고 알려옴. 신뢰 대신 실측 검증(CLAUDE.md 검증 문화) — `main.py:202` 독스트링에도 "UptimeRobot 5분 간격"이라는 기존 주석이 있어 실제 동작 여부를 nginx 로그로 직접 확인.
