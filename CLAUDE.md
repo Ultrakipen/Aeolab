@@ -547,6 +547,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 - ✅ Supabase Storage `delivery-materials` 버킷 생성 완료 (Private, 10MB)
 - ✅ 대행 서비스 DB 5개 테이블 존재 확인 (delivery_orders/messages, support_tickets/replies, success_stories)
 - ✅ `profiles` v5.8 컬럼 (intro_draft) — 실행 완료 (2026-05-25)
+- ✅ Sentry 에러 모니터링 프론트+백엔드 도입 완료 (2026-08-01, git `4b38856`) — `SENTRY_DSN`/`NEXT_PUBLIC_SENTRY_DSN` 서버 `.env` 설정됨, `send_default_pii=False`
 
 ---
 
