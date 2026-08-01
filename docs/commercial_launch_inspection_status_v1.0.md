@@ -136,7 +136,7 @@ AEOlab의 상업 서비스 점검은 처음부터 설계된 게 아니라 **결�
 
 ### 6-3. 방법론 자체의 한계 (도구 문제, 사용자 결정 불필요)
 
-- `pip-audit` 로컬 미설치로 Python 의존성 CVE 스캔 미수행(`security_audit_v1.0.md §4`) — npm 쪽은 이미 완료(F4, next.js 업그레이드)
+- ~~`pip-audit` 로컬 미설치로 Python 의존성 CVE 스캔 미수행~~ — **2026-08-01 조치 완료**: 로컬 실행 결과 `pytest==8.3.3`(PYSEC-2026-1845, 테스트 전용·운영 미배포) 1건만 발견, 9.0.3+`pytest-asyncio` 1.4.0으로 업그레이드(테스트 34건 전부 통과). 같은 세션에서 `npm audit` 재실행 결과 **next 16.2.10 자체에 SSRF 2건 포함 HIGH 7건 CVE**(F4 이후 신규 공개분, `>=16.0.0 <16.2.11`) 발견 → 16.2.11 패치 + 내부 번들 postcss/sharp `overrides` 강제 패치로 0 vulnerabilities 확인, 서버 배포·빌드·라이브 검증 완료(git `1f9c27a`). "npm 쪽은 이미 완료"는 F4 시점 기준이었고 이후 신규 CVE가 다시 쌓인 것 — **정기적 `npm audit`/`pip-audit` 재실행 필요** (일회성 완료가 아님, 지속 관리 항목으로 전환)
 - `naver_place_stats.py:257` `_normalize_place_base_url()` None 폴백 시 미검증 URL을 Playwright에 전달하는 LOW 항목 — F1(SSRF) 수정 시 같은 패턴으로 함께 처리 권장했으나 별도 확인 필요
 
 ### 6-4. 신규 배포마다 반복해야 하는 것 (일회성 아님)
