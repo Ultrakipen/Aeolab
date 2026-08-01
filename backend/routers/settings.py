@@ -450,6 +450,15 @@ async def delete_account(user: dict = Depends(get_current_user)):
     user_id = user["id"]
     supabase = get_client()
 
+    # 0. 활성 구독이 있으면 해지 로직을 먼저 실행 — _cancel_subscription_core가 7일 청약철회
+    #    자동환불 판정+토스 결제취소를 수행한다. 이 단계 없이 곧장 아래로 진행하면 환불 자격이
+    #    있는 사용자가 "해지" 대신 "탈퇴"를 선택하는 것만으로 환불 없이 구독 기록이 삭제되던 버그.
+    sub_status_res = await execute(
+        supabase.table("subscriptions").select("status").eq("user_id", user_id).maybe_single()
+    )
+    if (sub_status_res.data or {}).get("status") in ("active", "grace_period"):
+        await _cancel_subscription_core(user_id)
+
     # 1. 사업장 ID 수집 (하위 테이블 삭제 기준)
     biz_res = await execute(
         supabase.table("businesses").select("id").eq("user_id", user_id)
