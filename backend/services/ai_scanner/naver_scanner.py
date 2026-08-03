@@ -5,7 +5,7 @@ import random
 import re
 
 from services.keyword_taxonomy import log_ad_only_mismatch
-from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua, get_naver_cookies, build_chrome_ua, block_heavy_resources, attach_bandwidth_counter
+from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua, get_naver_cookies, build_chrome_ua, block_heavy_resources, attach_bandwidth_counter, note_proxy_result
 from services.ai_scanner.bandwidth_tracker import record_usage_mb
 
 logger = logging.getLogger("aeolab")
@@ -123,6 +123,7 @@ class NaverAIBriefingScanner:
         try:
             url = f"https://search.naver.com/search.naver?query={query}"
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            note_proxy_result(None)  # goto 성공 — 프록시 정상, 실패 카운터 리셋
             await page.wait_for_timeout(random.randint(2800, 4800))  # 인간 편차 딜레이
 
             try:
@@ -305,6 +306,7 @@ class NaverAIBriefingScanner:
 
         except Exception as e:
             logger.warning(f"NaverAIBriefingScanner page check error for '{query}': {e}")
+            note_proxy_result(e)
 
         return {
             "platform":        "naver",

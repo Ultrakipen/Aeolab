@@ -38,6 +38,8 @@ class NaverPlaceStatsService:
             return {"error": "timeout", "naver_place_id": naver_place_id}
         except Exception as e:
             logger.error(f"NaverPlaceStats error: {e}")
+            from services.ai_scanner import note_proxy_result
+            note_proxy_result(e)
             return {"error": str(e), "naver_place_id": naver_place_id}
 
     async def _run(self, naver_place_id: str) -> dict:

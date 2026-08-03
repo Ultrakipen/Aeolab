@@ -111,6 +111,49 @@ _proxy_pool: list[dict] = []
 _proxy_pool_loaded = False
 _proxy_index: int = 0  # 라운드로빈 인덱스 — 균등 소진
 
+# ── 프록시 회로차단기 (2026-08-03 신설) ──────────────────────────────────────
+# 2026-08-03 발견: DataImpulse 프록시 계정 트래픽 소진(HTTP 407 TRAFFIC_EXHAUSTED)이
+# Chromium에서 ERR_PROXY_AUTH_UNSUPPORTED로 나타나 naver_scanner·naver_ai_tab 등
+# 네이버 Playwright 스캔 전체가 2026-08-01부터 100% 실패 중이었음(코드 버그 아닌 외부
+# 계정/잔액 문제). 연속 실패 감지 시 일정 시간 프록시를 비활성화(직접 연결로 폴백)해
+# 이런 외부 장애가 전체 기능을 100% 마비시키지 않도록 함.
+_proxy_circuit_fail_count = 0
+_proxy_circuit_open_until: float = 0.0  # epoch seconds, 0 = 회로 닫힘(정상)
+_PROXY_CIRCUIT_FAIL_THRESHOLD = 2
+_PROXY_CIRCUIT_COOLDOWN_SEC = 1800  # 30분
+_PROXY_ERROR_SIGNATURES = (
+    "PROXY_AUTH_UNSUPPORTED",
+    "PROXY_CONNECTION_FAILED",
+    "TUNNEL_CONNECTION_FAILED",
+    "PROXY_AUTH_REQUESTED",
+    "SOCKS_CONNECTION_FAILED",
+)
+
+
+def note_proxy_result(error: Optional[BaseException] = None) -> None:
+    """프록시 경유 Playwright 호출 성공/실패 보고 — 연속 인증/연결 실패 시 회로차단.
+
+    error=None(성공)이면 실패 카운터 리셋. 프록시와 무관한 오류(사이트 자체 타임아웃 등)는
+    시그니처에 없으면 카운트하지 않음. 가장 빈번히 호출되는 naver_scanner 경로 한 곳만
+    보고해도, get_proxy_config()가 전역 상태를 참조하므로 다른 모든 호출자가 즉시 폴백 혜택을 받음.
+    """
+    global _proxy_circuit_fail_count, _proxy_circuit_open_until
+    if error is None:
+        _proxy_circuit_fail_count = 0
+        return
+    msg = str(error)
+    if not any(sig in msg for sig in _PROXY_ERROR_SIGNATURES):
+        return
+    _proxy_circuit_fail_count += 1
+    if _proxy_circuit_fail_count >= _PROXY_CIRCUIT_FAIL_THRESHOLD and not _proxy_circuit_open_until:
+        import time as _time
+        _proxy_circuit_open_until = _time.time() + _PROXY_CIRCUIT_COOLDOWN_SEC
+        _logger.error(
+            "[proxy] 연속 %d회 프록시 인증/연결 실패 — %d분간 직접연결로 폴백. "
+            "NAVER_PROXY_LIST 계정 잔액/설정 확인 필요(DataImpulse 등 잔액 소진 가능성)",
+            _proxy_circuit_fail_count, _PROXY_CIRCUIT_COOLDOWN_SEC // 60,
+        )
+
 
 def _load_proxy_pool() -> list[dict]:
     global _proxy_pool, _proxy_pool_loaded
@@ -235,8 +278,16 @@ def get_proxy_config() -> Optional[dict]:
 
     random.choice → 라운드로빈: 10개 IP를 균등하게 소진해 특정 IP 집중 방지.
     asyncio 단일 스레드 환경이므로 전역 카운터 증분은 안전.
+    회로차단기 열림(연속 인증/연결 실패) 중에는 None 반환 — 직접 연결로 폴백.
     """
-    global _proxy_index
+    global _proxy_index, _proxy_circuit_open_until, _proxy_circuit_fail_count
+    if _proxy_circuit_open_until:
+        import time as _time
+        if _time.time() < _proxy_circuit_open_until:
+            return None
+        _logger.info("[proxy] 회로차단 쿨다운 종료 — 프록시 재사용 재개")
+        _proxy_circuit_open_until = 0.0
+        _proxy_circuit_fail_count = 0
     pool = _load_proxy_pool()
     if not pool:
         return None

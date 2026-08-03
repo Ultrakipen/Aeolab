@@ -740,7 +740,11 @@ async def daily_scan_all():
                             "competitor_scores": competitor_scores if competitor_scores else None,
                             "blog_post_count": int(_sched_blog_json.get("post_count") or 0) or None,
                             "blog_ai_readiness": float(_sched_blog_json.get("ai_readiness_score") or 0) or None,
-                            "blog_keyword_coverage": float(_sched_blog_json.get("keyword_coverage") or 0) or None,
+                            # blog_analysis_json["keyword_coverage"]는 {present,missing,competitor_only} dict
+                            # (routers/blog.py:496 구성) — 숫자 커버리지%는 biz.blog_keyword_coverage 컬럼
+                            # (line 543 _sched_blog_kw_cov)이 정답. 여기서 dict를 float()에 넣어 매 스캔마다
+                            # 크래시하던 버그 (2026-08-03 Sentry로 발견, 홍뮤직스튜디오작곡교습소 등).
+                            "blog_keyword_coverage": _sched_blog_kw_cov or None,
                             "blog_platform": _sched_blog_json.get("platform") or None,
                             "blog_top_recommendation": (_sched_blog_json.get("top_recommendation") or "")[:500] or None,
                             "smart_place_completeness_result": (_prescan_sp if _prescan_sp and not _prescan_sp.get("error") else None),
@@ -3521,7 +3525,7 @@ async def detect_competitor_changes():
             .select(
                 "id, business_id, name, "
                 "has_faq, has_menu, has_recent_post, "
-                "review_count, photo_count, "
+                "naver_review_count, naver_photo_count, "
                 "prev_has_faq, prev_has_menu, prev_has_recent_post, "
                 "prev_review_count, prev_photo_count"
             )
@@ -3552,16 +3556,16 @@ async def detect_competitor_changes():
                 _chk_flag("has_faq", "prev_has_faq", "FAQ")
                 _chk_flag("has_menu", "prev_has_menu", "메뉴")
                 _chk_flag("has_recent_post", "prev_has_recent_post", "소식")
-                _chk_count("review_count", "prev_review_count", "리뷰")
-                _chk_count("photo_count", "prev_photo_count", "사진")
+                _chk_count("naver_review_count", "prev_review_count", "리뷰")
+                _chk_count("naver_photo_count", "prev_photo_count", "사진")
 
                 now_iso = datetime.now(timezone.utc).isoformat()
                 update_data = {
                     "prev_has_faq": comp.get("has_faq"),
                     "prev_has_menu": comp.get("has_menu"),
                     "prev_has_recent_post": comp.get("has_recent_post"),
-                    "prev_review_count": comp.get("review_count") or 0,
-                    "prev_photo_count": comp.get("photo_count") or 0,
+                    "prev_review_count": comp.get("naver_review_count") or 0,
+                    "prev_photo_count": comp.get("naver_photo_count") or 0,
                 }
 
                 if changes:
@@ -4355,7 +4359,7 @@ async def new_user_day7_rescan_job():
         # 1) 가입 7일 전인 profiles 조회 (created_at 기준)
         prof_res = await _db(
             supabase.table("profiles")
-            .select("id, phone")
+            .select("user_id, phone")
             .gte("created_at", target_start)
             .lte("created_at", target_end)
             .limit(500)
@@ -4365,8 +4369,8 @@ async def new_user_day7_rescan_job():
             logger.info("[day7_rescan] 대상 사용자 없음")
             return
 
-        user_ids = [p["id"] for p in profiles if p.get("id")]
-        phone_by_user = {p["id"]: p.get("phone") for p in profiles if p.get("id")}
+        user_ids = [p["user_id"] for p in profiles if p.get("user_id")]
+        phone_by_user = {p["user_id"]: p.get("phone") for p in profiles if p.get("user_id")}
 
         # 2) 각자의 첫 사업장 조회 (가장 먼저 등록한 사업장)
         biz_res = await _db(
@@ -4508,7 +4512,7 @@ async def conversion_followup_job():
             # 1) 해당 날짜에 가입한 profiles 조회
             prof_res = await _db(
                 supabase.table("profiles")
-                .select("id, phone, kakao_scan_notify")
+                .select("user_id, phone, kakao_scan_notify")
                 .gte("created_at", target_start)
                 .lte("created_at", target_end)
                 .limit(500)
@@ -4518,7 +4522,7 @@ async def conversion_followup_job():
                 logger.info(f"[conversion_followup] D+{day}: 대상 사용자 없음")
                 continue
 
-            user_ids = [p["id"] for p in profiles if p.get("id")]
+            user_ids = [p["user_id"] for p in profiles if p.get("user_id")]
 
             # 2) 구독 활성 사용자 제외 (subscriptions.status='active')
             subs_res = await _db(
@@ -4545,9 +4549,9 @@ async def conversion_followup_job():
             # 4) 대상 필터링 (미결제 + 미발송)
             target_profiles = [
                 p for p in profiles
-                if p.get("id")
-                and p["id"] not in active_user_ids
-                and p["id"] not in sent_user_ids
+                if p.get("user_id")
+                and p["user_id"] not in active_user_ids
+                and p["user_id"] not in sent_user_ids
             ]
             logger.info(
                 f"[conversion_followup] D+{day}: 가입 {len(profiles)}명 / "
@@ -4559,9 +4563,9 @@ async def conversion_followup_job():
                 continue
 
             # 5) auth.users 이메일 조회 — Supabase admin API 접근은 service_role로
-            target_user_ids = [p["id"] for p in target_profiles]
-            phone_by_user = {p["id"]: p.get("phone") for p in target_profiles}
-            kakao_by_user = {p["id"]: bool(p.get("kakao_scan_notify")) for p in target_profiles}
+            target_user_ids = [p["user_id"] for p in target_profiles]
+            phone_by_user = {p["user_id"]: p.get("phone") for p in target_profiles}
+            kakao_by_user = {p["user_id"]: bool(p.get("kakao_scan_notify")) for p in target_profiles}
 
             # 사업장명·업종 조회 (개인화 이메일용)
             biz_by_user: dict[str, dict] = {}
@@ -4618,7 +4622,7 @@ async def conversion_followup_job():
             # 6) 각 사용자에게 발송
             sent_count = 0
             for profile in target_profiles:
-                uid = profile.get("id")
+                uid = profile.get("user_id")
                 if not uid:
                     continue
                 email = email_by_user.get(uid)
@@ -5006,6 +5010,8 @@ async def _measure_keyword_rank_for_biz(biz: dict) -> bool:
     반환: 성공 여부 (True/False).
     실패 시 로그만 남기고 다음 사업장 진행 (전체 잡 중단 안 함).
     """
+    from db.supabase_client import get_client, execute
+
     biz_id = biz.get("id")
     keywords = biz.get("keywords") or []
     keywords = [k.strip() for k in keywords if isinstance(k, str) and k.strip()]
@@ -5099,6 +5105,8 @@ async def _run_keyword_rank_for_plans(plans: list[str]) -> None:
     Semaphore로 동시성 제한 (BACKEND_MAX_CONCURRENCY 환경변수, 기본 2).
     사업장 간 5초 sleep으로 RAM peak 회피.
     """
+    from db.supabase_client import get_client, execute
+
     supabase = get_client()
     try:
         subs = await execute(
@@ -5148,6 +5156,8 @@ async def _maybe_notify_keyword_change(biz: dict, prev: dict, curr: dict) -> Non
     """
     if not isinstance(prev, dict) or not isinstance(curr, dict) or not prev:
         return  # 첫 측정이면 비교 없음
+
+    from db.supabase_client import get_client, execute
 
     def _best_rank(d: dict) -> int:
         if not isinstance(d, dict):
@@ -5249,10 +5259,10 @@ async def inactive_post_alert_job() -> None:
         return
 
     try:
-        from db.supabase_client import get_supabase
+        from db.supabase_client import get_client
         from services.kakao_notify import KakaoNotifier
 
-        supabase = get_supabase()
+        supabase = get_client()
         notifier = KakaoNotifier()
         cutoff = datetime.now() - timedelta(days=14)
         cutoff_iso = cutoff.isoformat()

@@ -18,7 +18,7 @@ import random
 import time
 from typing import Optional
 
-from services.ai_scanner import get_proxy_config, attach_bandwidth_counter
+from services.ai_scanner import get_proxy_config, attach_bandwidth_counter, note_proxy_result
 from services.ai_scanner.bandwidth_tracker import record_usage_mb
 
 _logger = logging.getLogger("aeolab")
@@ -211,6 +211,7 @@ async def scan(query: str, business_name: str) -> Optional[dict]:
         return None
     except Exception as e:
         _logger.warning(f"[naver_ai_tab] scan 오류: query={query!r}, error={e}")
+        note_proxy_result(e)
         return None
 
 
