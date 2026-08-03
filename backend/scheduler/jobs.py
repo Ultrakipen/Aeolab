@@ -1249,14 +1249,32 @@ async def weekly_kakao_notify():
 
         _u_res = await _db(
             supabase.table("subscriptions")
-            .select("user_id, plan, profiles(phone), businesses(*)")
+            .select("user_id, plan")
             .eq("status", "active")
             .in_("plan", ["basic"])
         )
-        users = _u_res.data or []
+        subs_data = _u_res.data or []
 
-        for user in users:
+        for sub in subs_data:
             try:
+                uid = sub["user_id"]
+                # profiles/businesses 별도 조회 (subscriptions↔profiles FK 미등록, daily_kakao_notify와 동일 패턴)
+                _ph_res = await _db(
+                    supabase.table("profiles").select("phone").eq("user_id", uid).limit(1)
+                )
+                _biz_res = await _db(
+                    supabase.table("businesses")
+                    .select("id, name, category, region")
+                    .eq("user_id", uid)
+                    .eq("is_active", True)
+                    .limit(1)
+                )
+                user = {
+                    "user_id": uid,
+                    "plan": sub["plan"],
+                    "profiles": (_ph_res.data or [{}])[0],
+                    "businesses": _biz_res.data or [],
+                }
                 await _send_kakao_notifications(supabase, notifier, user)
             except Exception as e:
                 logger.error(f"Notify failed for user: {e}")
