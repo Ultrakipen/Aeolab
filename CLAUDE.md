@@ -717,6 +717,8 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
+- **2026-08-04 notifications 테이블 컬럼 누락 P0 발견·수정**: 사용자가 전달한 Sentry 오류(`inactive_post_alert_job` "column notifications.business_id does not exist")를 계기로 전수조사 — `scheduler/jobs.py`·`services/monthly_report.py`가 애초부터 `business_id`/`idempotency_key`/`payload`/`title`/`message`/`metadata`/`is_read`/`created_at` 8개 컬럼을 참조해왔으나 실제 `notifications` 테이블(스키마 원본)엔 `id/user_id/type/content/sent_at/channel/status/keyword_change_payload`만 존재 — 라이브 REST API 직접 조회로 확인. **완전 크래시(알림 0건, 잡 자체 실패)**: `inactive_post_alert_job`(어제 08-03 커밋에서 import버그 고치고 나니 노출된 다음 버그) · `check_competitor_overtake` · `_detect_competitor_score_spike` · `weekly_digest_job` · monthly_report 발송기 — 5개 잡이 이 컬럼들이 생긴 이래 한 번도 정상 발송된 적 없었을 가능성. **저하(발송은 되나 이력 미저장→중복발송 위험)**: new_competitor·low_rating_alert·competitor_change·day7_rescan·conversion_followup. 코드는 원래부터 정답이었으므로 수정 없이 컬럼만 추가(`scripts/supabase_schema.sql` ALTER, SQL Editor 수동실행) → 라이브 재검증 완료(컬럼 조회 200, 크래시났던 쿼리 재현시 200 `[]`, backend error.log 0건).
+
 ## 남은 작업
 
 ### 사용자가 직접 해야 할 것

@@ -1725,6 +1725,31 @@ ALTER TABLE notifications
 COMMENT ON COLUMN notifications.keyword_change_payload IS
   '키워드 순위 변동 알림 세부 내용. {keyword, prev_rank, curr_rank, delta}';
 
+-- notifications: scheduler/jobs.py + monthly_report.py가 처음부터 참조해온 컬럼인데
+-- 실제 테이블엔 없었음 (2026-08-04 Sentry로 발견) — inactive_post_alert_job은 크래시로
+-- 잡 전체 실패, check_competitor_overtake/_detect_competitor_score_spike/weekly_digest_job/
+-- 월간리포트는 개별 try/except에 캐치돼 조용히 알림이 한 번도 발송되지 않았음.
+-- 컬럼만 추가하면 기존 코드가 그대로 정상 동작함 (코드 수정 불필요).
+ALTER TABLE notifications
+  ADD COLUMN IF NOT EXISTS business_id UUID REFERENCES businesses(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS idempotency_key TEXT,
+  ADD COLUMN IF NOT EXISTS payload JSONB,
+  ADD COLUMN IF NOT EXISTS title TEXT,
+  ADD COLUMN IF NOT EXISTS message TEXT,
+  ADD COLUMN IF NOT EXISTS metadata JSONB,
+  ADD COLUMN IF NOT EXISTS is_read BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+
+CREATE INDEX IF NOT EXISTS idx_notifications_business_type
+  ON notifications(business_id, type, idempotency_key);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at
+  ON notifications(created_at DESC);
+
+COMMENT ON COLUMN notifications.business_id IS
+  '알림 대상 사업장 (경쟁사 역전/급상승, 주간 다이제스트, 소식 미작성 알림 등 멱등 체크용)';
+COMMENT ON COLUMN notifications.idempotency_key IS
+  '중복 발송 방지 키 (예: post_remind_{biz_id}_{cutoff_date})';
+
 -- profiles: 키워드 자동 추천 월별 한도 + 리셋 타임스탬프
 ALTER TABLE profiles
   ADD COLUMN IF NOT EXISTS keyword_suggest_count_month INT DEFAULT 0,
