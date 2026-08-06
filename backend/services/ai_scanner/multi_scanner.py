@@ -97,17 +97,21 @@ class MultiAIScanner:
         finally:
             PLAYWRIGHT_SEMAPHORE.release()
 
-    async def scan_all(self, queries: "str | list[str]", target: str) -> dict:
+    async def scan_all(self, queries: "str | list[str]", target: str, sample_size: int = 100) -> dict:
         """전체 4개 AI 병렬 스캔 — Gemini·ChatGPT·Naver·Google
 
         API 기반 스캐너는 동시 실행, Playwright 기반은 세마포어 제한 직렬 실행.
-        queries가 list인 경우 Gemini·ChatGPT 100회를 쿼리별 균등 분산.
+        queries가 list인 경우 Gemini·ChatGPT를 쿼리별 균등 분산.
+
+        sample_size: Gemini·ChatGPT 샘플링 횟수 (기본 100 — 구독자 정기 스캔).
+        가입 후 1회 무료체험(run_basic_trial)은 50으로 낮춰 호출해 구독과
+        차별화 — 채널 수(4~5개, AI탭 포함)는 동일하게 유지된다(2026-08-06).
         """
         primary_query = queries if isinstance(queries, str) else (queries[0] if queries else "")
         # API 기반 스캐너: 동시 실행 (다중 쿼리 분산 샘플링)
         api_tasks = [
-            self.gemini.sample_100(queries, target),
-            self.chatgpt.sample_100(queries, target),
+            self.gemini.sample_n(queries, target, n=sample_size),
+            self.chatgpt.sample_n(queries, target, n=sample_size),
         ]
         api_keys = ["gemini", "chatgpt"]
         api_results = await asyncio.gather(*api_tasks, return_exceptions=True)

@@ -1067,13 +1067,13 @@ function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number })
         <div className="bg-slate-600 rounded-lg px-3 py-2">
           <p className="text-sm text-emerald-300 font-semibold mb-0.5">② 가입하면 (결제 없이 1회 무료)</p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            Gemini·ChatGPT 각 <span className="text-white font-semibold">100회씩(총 200회)</span> + 네이버 AI 브리핑 + Google AI Overview까지 4채널 전체 분석
+            Gemini·ChatGPT 각 <span className="text-white font-semibold">50회씩(총 100회)</span> + 네이버 AI 브리핑 + Google AI Overview까지 4채널 전체 분석
           </p>
         </div>
         <div className="bg-slate-600 rounded-lg px-3 py-2">
           <p className="text-sm text-blue-300 font-semibold mb-0.5">③ Basic 구독하면</p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            ②와 같은 전체 분석을 매주(월·목) 자동 반복 + 점수 변화 추적 + 경쟁사 비교
+            같은 4채널을 각 <span className="text-white font-semibold">100회씩(총 200회)</span>로 정확도를 높여 매주(월·목) 자동 반복 + 점수 변화 추적 + 경쟁사 비교
           </p>
         </div>
       </div>
@@ -1464,7 +1464,7 @@ function ChatGPTResultCard({
         <div>
           <p className="text-sm text-gray-500 mb-1.5 leading-snug">
             실제 손님이 AI에게 묻는 방식으로 {sampleSize}회 테스트했습니다
-            <span className="ml-1 text-slate-400">(가입 후 1회 무료 체험·구독 시에는 100회 — 표본이 많을수록 정확도 높아짐)</span>
+            <span className="ml-1 text-slate-400">(가입 후 1회 무료체험은 50회, 구독 시엔 100회 — 표본이 많을수록 정확도 높아짐)</span>
           </p>
           <ul className="space-y-0.5 mb-2">
             {queries.map((q, i) => (

@@ -2777,7 +2777,11 @@ async def _auto_generate_guide(business_id: str, scan_id: str) -> None:
 
 
 async def _run_full_scan(scan_id: str, req: ScanRequest):
-    """백그라운드 전체 스캔 실행"""
+    """백그라운드 전체 스캔 실행 — run_basic_trial() 전용(가입 후 1회 무료체험).
+
+    구독자 정기 스캔(jobs.py의 daily_scan_all)과 채널 구성(4~5채널, AI탭 포함)은
+    동일하되 표본만 50회로 낮춰 구독 시(100회)와 차별화한다(2026-08-06).
+    """
     import asyncio as _asyncio
     from datetime import date as _date
     from services.ai_scanner.gemini_scanner import GeminiScanner
@@ -2822,7 +2826,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             _logger.debug("[scan/full] naver_prescan 조회 실패 (무시): %s", _pe_f)
 
         result, kakao_data, website_check, smart_place_check, naver_visibility_full, place_stats_fresh = await _asyncio.gather(
-            scanner.scan_all(_scan_queries, req.business_name),
+            scanner.scan_all(_scan_queries, req.business_name, sample_size=50),
             get_kakao_visibility(req.business_name, keyword_ko, req.region),
             check_website_seo((biz or {}).get("website_url", "")),
             check_smart_place_completeness(naver_place_url) if naver_place_url else _asyncio.sleep(0),

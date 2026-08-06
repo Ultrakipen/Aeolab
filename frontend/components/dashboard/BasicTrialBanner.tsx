@@ -106,9 +106,10 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               어떻게 소개하는지 확인할 수 있습니다.
             </p>
             <ul className="text-sm text-emerald-700 mt-2 space-y-0.5 leading-relaxed">
-              <li>• Gemini·ChatGPT 각 100회 샘플링으로 AI 노출 빈도 측정</li>
+              <li>• Gemini·ChatGPT 각 50회 샘플링으로 AI 노출 빈도 측정</li>
               <li>• AI 개선 가이드 1회 자동 생성</li>
               <li>• 약 1분 소요 · 평생 1회 무료</li>
+              <li className="text-emerald-600">• Basic 구독 시 각 100회로 정확도 상승 + 주 2회 자동 반복 측정</li>
             </ul>
           </div>
         </div>
@@ -165,7 +166,8 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
             </h3>
             <p className="text-sm md:text-base text-slate-600 mt-1 leading-relaxed">
               계속 이용하려면 <strong className="text-slate-900">Basic 플랜</strong>에 가입해 주세요.
-              매일 AI 자동 스캔과 개선 가이드를 받을 수 있습니다.
+              방금 체험한 50회 샘플링이 <strong className="text-slate-900">100회로 늘어나 정확도가 높아지고</strong>,
+              주 2회(월·목) 자동 스캔과 개선 가이드를 지속해서 받을 수 있습니다.
             </p>
             <p className="text-sm md:text-base font-semibold text-emerald-700 mt-2">
               🎉 지금 가입하면 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원

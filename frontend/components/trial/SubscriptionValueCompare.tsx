@@ -27,7 +27,7 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
     { label: "이번 주 해야 할 1가지 개선 가이드" },
     { label: "30일 추세로 개선 효과 직접 확인" },
     { label: "우리 가게 데이터 기반 소개글 Q&A 5개 자동 생성" },
-    { label: "AI 질의 50회 표본으로 결과 신뢰도 향상" },
+    { label: "AI 질의 100회 표본으로 결과 신뢰도 향상" },
   ];
 
   return (
