@@ -2749,3 +2749,17 @@ COMMENT ON COLUMN keyword_serp_cache.top_blogs IS
 
 COMMENT ON COLUMN keyword_serp_cache.recent_news IS
   '뉴스 API 또는 구글 검색 최근 기사 (최대 3개, 제목/URL/작성일/출처)';
+
+-- ===========================================================
+-- 2026-08-06: guides.context CHECK 제약에 'talktalk_faq' 추가 (사전 존재하던 버그)
+-- 배경: business.py의 talktalk-faq-generate 엔드포인트가 처음부터 context='talktalk_faq'로
+-- 사용량을 기록해왔으나, 이 값이 CHECK 제약에 단 한 번도 포함된 적이 없어 매번
+-- insert가 23514(check_violation)로 실패(warning 로그만 남고 응답은 정상 반환)했음. 실측:
+-- 라이브 guides 테이블 전체 23행 중 talktalk_faq 행 0건, 진단용 insert 재현 시 즉시 실패 확인.
+-- 그 결과 소개글+FAQ+채팅방메뉴 합산 한도(faq_monthly)가 톡톡 채팅방 메뉴 생성 이력을
+-- 전혀 못 보고 그 부분만 사실상 무제한으로 생성 가능했던 사전 존재 취약점(2026-08-06 발견).
+-- ===========================================================
+ALTER TABLE guides DROP CONSTRAINT IF EXISTS guides_context_check;
+ALTER TABLE guides
+  ADD CONSTRAINT guides_context_check
+  CHECK (context IN ('location_based', 'non_location', 'faq_draft', 'crisis_reply', 'ad_defense', 'startup_report', 'intro_draft', 'talktalk_faq'));

@@ -970,7 +970,7 @@ async def generate_smartplace_faq(
             supabase.table("guides")
             .select("id", count="exact")
             .eq("business_id", biz_id)
-            .in_("context", ["intro_draft", "faq_draft"])
+            .in_("context", ["intro_draft", "faq_draft", "talktalk_faq"])
             .gte("generated_at", month_start)
         )
         used = used_res.count or 0

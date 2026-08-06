@@ -5086,13 +5086,33 @@ async def _measure_keyword_rank_for_biz(biz: dict) -> bool:
                 })
             )
         if avg_rank is not None:
-            await execute(
-                supabase.table("score_history").insert({
-                    "business_id": biz_id,
-                    "context": "keyword_rank",
-                    "keyword_rank_avg": avg_rank,
-                })
+            # score_date NOT NULL + UNIQUE(business_id, score_date) — 당일 풀스캔이 이미
+            # score_history 행을 만들어둔 경우가 흔해(basic 월요일=풀스캔+키워드순위잡 동시 실행),
+            # 무조건 insert하면 score_date 누락(NOT NULL 위반) 또는 중복(UNIQUE 위반)으로 항상 실패했음.
+            # 기존 행이 있으면 keyword_rank_avg만 갱신, 없으면 새 행 생성 (위 scan_results 처리와 동일 패턴).
+            today_str = date.today().isoformat()
+            existing_sh = await execute(
+                supabase.table("score_history")
+                    .select("id")
+                    .eq("business_id", biz_id)
+                    .eq("score_date", today_str)
+                    .limit(1)
             )
+            if existing_sh and existing_sh.data:
+                await execute(
+                    supabase.table("score_history")
+                        .update({"keyword_rank_avg": avg_rank})
+                        .eq("id", existing_sh.data[0]["id"])
+                )
+            else:
+                await execute(
+                    supabase.table("score_history").insert({
+                        "business_id": biz_id,
+                        "score_date": today_str,
+                        "context": "keyword_rank",
+                        "keyword_rank_avg": avg_rank,
+                    })
+                )
         return True
     except Exception as e:
         logger.warning(f"[keyword_rank] biz={biz_id} 저장 실패: {e}")

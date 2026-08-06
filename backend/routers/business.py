@@ -890,7 +890,7 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
                 supabase.table("guides")
                 .select("id", count="exact")
                 .eq("business_id", req.biz_id)
-                .in_("context", ["intro_draft", "faq_draft"])
+                .in_("context", ["intro_draft", "faq_draft", "talktalk_faq"])
                 .gte("generated_at", month_start)
             )
             used = used_res.count or 0
@@ -1066,7 +1066,7 @@ async def generate_global_ai_intro_endpoint(
                 supabase.table("guides")
                 .select("id", count="exact")
                 .eq("business_id", req.biz_id)
-                .in_("context", ["intro_draft", "faq_draft"])
+                .in_("context", ["intro_draft", "faq_draft", "talktalk_faq"])
                 .gte("generated_at", month_start)
             )
             used = used_res.count or 0
@@ -1403,33 +1403,27 @@ class KeywordSuggestResponse(BaseModel):
     error: str | None = None
 
 
-# 플랜별 키워드 자동 추천 월 한도 (service_unification_v1.0.md §6)
-_KEYWORD_SUGGEST_MONTHLY_LIMIT = {
-    "free":       1,
-    "basic":      1,
-    "startup":    4,
-    "pro":        4,
-    "biz":        10,
-    "enterprise": 999,
-}
+# 플랜별 키워드 자동 추천 월 한도 — plan_gate.py PLAN_LIMITS["keyword_suggest_monthly"]가
+# 단일 소스(가격표 pricing/page.tsx에 노출되는 수치와 동일). 과거 여기 별도 하드코딩된
+# _KEYWORD_SUGGEST_MONTHLY_LIMIT(basic=1/startup=4/pro=4/biz=10)이 PLAN_LIMITS(basic=5/
+# startup=10/pro=20/biz=999)와 전혀 다른 값이었고, 그마저도 /keyword-suggest(등록된
+# 사업장용 실사용 엔드포인트)에는 아예 연결이 안 돼 있어 사실상 전 플랜 무제한이었던
+# 버그를 통합 수정(2026-08-06). free는 회원가입 유도용 "가입 시 1회 무료" 의도된 예외 유지.
+_KEYWORD_SUGGEST_FREE_LIMIT = 1
 
 
 async def _check_keyword_suggest_quota(user_id: str) -> tuple[bool, int, int]:
     """플랜별 월 한도 검증.
     반환: (allowed, used, limit)
     """
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
+
     supabase = get_client()
-    sub_res = await execute(
-        supabase.table("subscriptions")
-            .select("plan, status")
-            .eq("user_id", user_id)
-            .single()
+    plan = await get_user_plan(user_id, supabase)
+    limit = (
+        _KEYWORD_SUGGEST_FREE_LIMIT if plan == "free"
+        else PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["keyword_suggest_monthly"]
     )
-    plan = (sub_res.data or {}).get("plan", "free") if sub_res and sub_res.data else "free"
-    status = (sub_res.data or {}).get("status", "inactive") if sub_res and sub_res.data else "inactive"
-    if status != "active":
-        plan = "free"
-    limit = _KEYWORD_SUGGEST_MONTHLY_LIMIT.get(plan, 1)
 
     # profiles.keyword_suggest_count_month + reset_at 사용 (graceful fallback)
     used = 0
@@ -1515,7 +1509,7 @@ async def keyword_suggest_preview(
         raise HTTPException(status_code=400, detail="name·category 필수")
 
     # 플랜별 월 한도 검증
-    allowed, used, limit = await _check_keyword_suggest_quota(user.id)
+    allowed, used, limit = await _check_keyword_suggest_quota(user["id"])
     if not allowed:
         raise HTTPException(
             status_code=429,
@@ -1532,7 +1526,7 @@ async def keyword_suggest_preview(
     ctx = result.get("_context", {})
     # 폴백 아닌 경우만 카운터 증분 (실패 시 한도 안 깎이도록)
     if not ctx.get("fallback_used") and (result.get("suggestions") or []):
-        await _increment_keyword_suggest_counter(user.id)
+        await _increment_keyword_suggest_counter(user["id"])
     return KeywordSuggestResponse(
         suggestions=[KeywordSuggestItem(**s) for s in (result.get("suggestions") or [])],
         fallback_used=bool(ctx.get("fallback_used", False)),
@@ -1547,9 +1541,8 @@ async def keyword_suggest(
 ):
     """사업장 정보(업종·지역·이름) 기반 키워드 자동 추천 10개 반환.
 
-    플랜별 한도 (service_unification_v1.0.md §6):
-      Free=가입 시 1회, Basic=월 1회, Pro=월 4회, Biz=월 10회, Enterprise=무제한
-      ※ 한도 강제는 Phase A-4 후속 단계 (별도 카운터 컬럼).
+    플랜별 월 한도 — plan_gate.py PLAN_LIMITS["keyword_suggest_monthly"] 단일 소스
+    (가격표 표시값과 동일). free는 가입 시 1회 무료.
 
     실패 시: keyword_taxonomy 베이스 키워드로 폴백 (가짜 추천 금지).
     """
@@ -1563,8 +1556,16 @@ async def keyword_suggest(
     if not (res and res.data):
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
     biz = res.data
-    if biz.get("user_id") != user.id:
+    if biz.get("user_id") != user["id"]:
         raise HTTPException(status_code=403, detail="권한이 없습니다")
+
+    # 플랜별 월 한도 검증 — 과거 이 체크 자체가 없어 전 플랜 무제한 호출 가능했던 버그(2026-08-06 수정)
+    allowed, used, limit = await _check_keyword_suggest_quota(user["id"])
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail=f"이번 달 자동 추천 한도 도달 ({used}/{limit}회). 다음 달 재설정 또는 상위 플랜으로 업그레이드하세요."
+        )
 
     from services.keyword_suggester import generate_keyword_suggestions
     result = await generate_keyword_suggestions(
@@ -1576,6 +1577,9 @@ async def keyword_suggest(
     )
 
     ctx = result.get("_context", {})
+    # 폴백 아닌 경우만 카운터 증분 (실패 시 한도 안 깎이도록, keyword-suggest-preview와 동일 패턴)
+    if not ctx.get("fallback_used") and (result.get("suggestions") or []):
+        await _increment_keyword_suggest_counter(user["id"])
     return KeywordSuggestResponse(
         suggestions=[KeywordSuggestItem(**s) for s in (result.get("suggestions") or [])],
         fallback_used=bool(ctx.get("fallback_used", False)),
