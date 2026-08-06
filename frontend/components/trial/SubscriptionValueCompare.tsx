@@ -109,7 +109,13 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
             이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 7일 이내 미사용 시 100% 환불
           </span>
         </Link>
-      ) : (
+      ) : null}
+      {!isLoggedIn && (
+        <p className="text-center text-sm text-slate-500 mt-2 leading-relaxed break-keep">
+          가입 자체는 무료입니다 · 사업장을 등록하면 결제 없이 <strong className="text-slate-700">전체 AI 분석(4채널) 1회</strong>를 먼저 체험할 수 있어요
+        </p>
+      )}
+      {isLoggedIn && (
         <Link
           href="/dashboard"
           className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-black text-lg md:text-xl py-4 md:py-5 rounded-2xl transition-colors shadow-lg"

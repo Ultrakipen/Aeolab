@@ -73,6 +73,9 @@ function ActionFeaturesLock({ onSave }: { onSave: () => void }) {
       >
         무료로 시작하기
       </Link>
+      <p className="text-center text-sm text-slate-500 mt-2 leading-relaxed break-keep">
+        가입은 무료 · 사업장 등록 시 결제 없이 전체 AI 분석 1회를 추가로 체험할 수 있어요
+      </p>
     </div>
   );
 }
@@ -1734,7 +1737,7 @@ function StickySignupBanner({
             7일 후 AI가 내 가게를 인식했는지 자동으로 확인해 드립니다
           </p>
           <p className="text-xs text-blue-200 mt-0.5">
-            첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 · 7일 내 환불 가능
+            가입은 무료 · 전체 AI 분석 1회 추가 체험 · 구독 시 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 · 7일 내 환불 가능
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
