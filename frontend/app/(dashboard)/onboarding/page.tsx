@@ -369,8 +369,8 @@ export default function OnboardingPage() {
       <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-5 md:p-8">
           <div className="text-center mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">요금제를 선택해 주세요</h2>
-            <p className="text-base text-gray-500">첫 달부터 경쟁사와 비교하고 싶다면 지금 시작하세요.</p>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">요금제를 선택하거나, 먼저 무료로 체험해 보세요</h2>
+            <p className="text-base text-gray-500">결제 없이 전체 AI 분석을 1회 체험할 수 있습니다. 마음에 들면 그때 구독하세요.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
@@ -435,9 +435,9 @@ export default function OnboardingPage() {
 
           <button
             onClick={handleGoToDashboard}
-            className="w-full text-base text-gray-500 hover:text-gray-600 py-3 transition-colors"
+            className="w-full border-2 border-emerald-500 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 py-3 rounded-lg text-base font-semibold transition-colors"
           >
-            나중에 결제 — 대시보드로 이동
+            먼저 무료로 전체 AI 1회 체험하기 →
           </button>
         </div>
       </div>
