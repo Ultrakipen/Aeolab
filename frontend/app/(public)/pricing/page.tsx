@@ -413,7 +413,7 @@ export default function PricingPage() {
                 {
                   icon: "📊",
                   title: "내 가게가 AI에 몇 % 확률로 나오는지",
-                  why: "Gemini·ChatGPT 각 50회 (총 100회) 질의 → ± 오차 범위 표시 (ChatGPT 단발 질의는 오차 범위 표시 불가)",
+                  why: "Gemini·ChatGPT 각 100회 (총 200회) 질의 → ± 오차 범위 표시 (ChatGPT 단발 질의는 오차 범위 표시 불가)",
                 },
                 {
                   icon: "📡",

@@ -23,9 +23,9 @@ export const BREAKDOWN_ACTIONS: Record<string, { action: string; link: string }>
 export function nextScanLabel(plan: string | null | undefined): { label: string; desc: string } {
   const p = plan ?? "free";
   if (p === "biz")     return { label: "매일 새벽 자동 스캔", desc: "내일 새벽 2시에 전체 AI 채널 분석합니다" };
-  if (p === "startup") return { label: "매일 빠른 스캔 (월요일 전체)", desc: "매일 주요 AI 빠른 스캔, 월요일 새벽 2시에 전체 분석합니다" };
+  if (p === "startup") return { label: "주 1회 자동 스캔 (월요일)", desc: "월요일 새벽 2시에 전체 AI 채널 분석합니다" };
   if (p === "pro")     return { label: "주 3회 자동 스캔 (월·수·금)", desc: "월·수·금 새벽 2시에 전체 AI 채널 분석합니다" };
-  if (p === "basic")   return { label: "매일 빠른 스캔 (월요일 전체)", desc: "매일 주요 AI 빠른 스캔, 월요일 새벽 2시에 전체 분석합니다" };
+  if (p === "basic")   return { label: "주 2회 자동 스캔 (월·목)", desc: "월·목 새벽 2시에 전체 AI 채널 분석합니다" };
   return { label: "자동 스캔 없음", desc: "유료 플랜으로 업그레이드하면 자동 스캔을 이용할 수 있습니다" };
 }
 

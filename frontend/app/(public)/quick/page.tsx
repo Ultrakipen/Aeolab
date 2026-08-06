@@ -312,7 +312,7 @@ export default function QuickPage() {
                   href="/signup"
                   className="inline-block bg-amber-500 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-amber-600 transition-colors"
                 >
-                  회원가입하면 매주 자동 진단
+                  회원가입하면 결제 없이 전체 AI 1회 무료체험
                 </Link>
               </div>
             )}

@@ -271,11 +271,11 @@ export default async function SettingsPage({
               ) : (
                 <div className="space-y-4">
                   <p className="text-sm md:text-base text-gray-600">
-                    유료 플랜으로 업그레이드하면 Gemini·ChatGPT 각 50회 (총 100회) AI 샘플링, 경쟁사 분석, 자동 개선 가이드를 이용할 수 있습니다.
+                    유료 플랜으로 업그레이드하면 Gemini·ChatGPT 각 100회 (총 200회) AI 샘플링, 경쟁사 분석, 자동 개선 가이드를 이용할 수 있습니다.
                   </p>
                   <div className="grid grid-cols-3 gap-2 md:gap-3">
                     {[
-                      { label: "AI 스캔",    value: "100회", desc: "Gemini·ChatGPT 각 50회" },
+                      { label: "AI 스캔",    value: "200회", desc: "Gemini·ChatGPT 각 100회" },
                       { label: "경쟁사",     value: "3개",   desc: "비교 분석" },
                       { label: "개선 가이드", value: "매월",  desc: "Claude AI 생성" },
                     ].map(({ label, value, desc }) => (
