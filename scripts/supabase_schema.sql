@@ -2763,3 +2763,18 @@ ALTER TABLE guides DROP CONSTRAINT IF EXISTS guides_context_check;
 ALTER TABLE guides
   ADD CONSTRAINT guides_context_check
   CHECK (context IN ('location_based', 'non_location', 'faq_draft', 'crisis_reply', 'ad_defense', 'startup_report', 'intro_draft', 'talktalk_faq'));
+
+-- ===========================================================
+-- 2026-08-06: guides.context CHECK 제약에 'post_draft' 추가 (동일 사전 존재 버그, 5번째 사례)
+-- 배경: scheduler/jobs.py의 weekly_post_draft_job(매주 월요일 09:00, Claude Haiku로 주간
+-- 소식 초안 생성)이 처음부터 context='post_draft'로 저장을 시도해왔으나 이 값도 CHECK
+-- 제약에 단 한 번도 포함된 적이 없어 매번 insert가 23514로 실패(warning 로그만 남음).
+-- 신규 배포한 test_plan_feature_enforcement.py(정적 분석 테스트)가 자동으로 찾아냄.
+-- 실측: 라이브 post_draft 행 0건, 진단용 insert 재현 시 즉시 실패 확인. 이 잡은 초안 저장이
+-- 실패해도 카카오 알림("이번 주 소식 초안이 준비됐습니다")은 그대로 발송돼, 사용자가
+-- 알림을 보고 확인하러 가면 아무것도 없는 상태였을 가능성이 있음.
+-- ===========================================================
+ALTER TABLE guides DROP CONSTRAINT IF EXISTS guides_context_check;
+ALTER TABLE guides
+  ADD CONSTRAINT guides_context_check
+  CHECK (context IN ('location_based', 'non_location', 'faq_draft', 'crisis_reply', 'ad_defense', 'startup_report', 'intro_draft', 'talktalk_faq', 'post_draft'));

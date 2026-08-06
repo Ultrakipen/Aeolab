@@ -14,12 +14,13 @@ import utils.cache as _cache
 router = APIRouter()
 logger = logging.getLogger("aeolab")
 
-# /intro-generate·/global-ai-intro-generate·/talktalk-faq-generate 3개 엔드포인트가
-# faq_monthly 한도를 공유(guides.context in intro_draft/faq_draft/talktalk_faq COUNT)하는데
-# "COUNT 체크 → Claude 호출(수 초~수십 초) → insert" 사이 동시요청이 같은 월별 한도를 여러 번
-# 통과할 수 있는 TOCTOU 구조 — guide.py _guide_generation_locks와 동일 패턴으로 3개 엔드포인트가
-# 공유하는 락 하나로 방어(한도 자체를 공유하므로 락도 공유, 2026-07-15).
-_intro_faq_generation_locks: set[str] = set()
+# /intro-generate·/global-ai-intro-generate·/talktalk-faq-generate 3개 엔드포인트 +
+# guide.py의 /{biz_id}/smartplace-faq까지 총 4개가 faq_monthly 한도를 공유(guides.context
+# in intro_draft/faq_draft/talktalk_faq COUNT)하는데 "COUNT 체크 → Claude 호출(수 초~수십 초)
+# → insert" 사이 동시요청이 같은 월별 한도를 여러 번 통과할 수 있는 TOCTOU 구조.
+# 과거엔 이 파일 3곳만 로컬 set으로 방어하고 guide.py의 smartplace-faq는 락이 아예 없어
+# 4번째 경로로 우회 가능했음 — plan_gate.py의 공유 락으로 4곳 전부 통일(2026-08-06).
+from middleware.plan_gate import _faq_monthly_generation_locks as _intro_faq_generation_locks
 
 NTS_API_KEY = os.getenv("NTS_API_KEY", "")
 NTS_STATUS_URL = "https://api.odcloud.kr/api/nts-businessman/v1/status"

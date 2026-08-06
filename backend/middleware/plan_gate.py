@@ -503,6 +503,14 @@ async def is_basic_trial_user(user_id: str, supabase) -> bool:
 # (ecosystem.config.js 경고 참조) Redis 기반 분산 락으로 교체 필요.
 _free_plan_scan_lock: set[str] = set()
 
+# faq_monthly 공유 한도(소개글+FAQ+채팅방메뉴 합산) TOCTOU 방지 락 — business.py의
+# /intro-generate·/global-ai-intro-generate·/talktalk-faq-generate 3곳과 guide.py의
+# /{biz_id}/smartplace-faq 4곳 전부가 같은 월별 카운트(guides.context in intro_draft/
+# faq_draft/talktalk_faq)를 공유하는데, 과거 business.py 3곳은 자체 로컬 락을 쓰고
+# smartplace-faq는 락이 아예 없어 4번째 경로로 동시 요청 시 한도를 넘길 수 있었다
+# (2026-08-06 발견·수정). 4곳 전부 이 하나의 락으로 통일.
+_faq_monthly_generation_locks: set[str] = set()
+
 
 async def check_manual_scan_limit(user_id: str, supabase, business_id: Optional[str] = None) -> tuple[bool, int, int]:
     """수동 스캔 한도 체크 (plan_gate PLAN_LIMITS manual_scan_daily 기준).

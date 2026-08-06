@@ -960,146 +960,161 @@ async def generate_smartplace_faq(
 
     biz = biz_row.data
 
-    # 월별 사용 횟수 체크 — intro_draft + faq_draft 합산 (plan_gate faq_monthly 공유 한도)
-    # DEV_MODE=true 시 한도 검사 전체 우회
-    now = datetime.now(timezone.utc)
-    used = 0
-    if not _DEV_MODE:
-        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
-        used_res = await execute(
-            supabase.table("guides")
-            .select("id", count="exact")
-            .eq("business_id", biz_id)
-            .in_("context", ["intro_draft", "faq_draft", "talktalk_faq"])
-            .gte("generated_at", month_start)
+    # TOCTOU 방지 락 — business.py의 intro-generate/global-ai-intro-generate/talktalk-faq-generate
+    # 3곳과 faq_monthly 한도를 공유하는 4번째 경로라 같은 공유 락으로 방어(2026-08-06, plan_gate.py 참조)
+    from middleware.plan_gate import _faq_monthly_generation_locks
+    if user_id in _faq_monthly_generation_locks:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "INTRO_GENERATION_IN_PROGRESS",
+                "message": "이미 생성이 진행 중입니다. 완료 후 다시 시도해 주세요.",
+            },
         )
-        used = used_res.count or 0
-        if used >= limit:
-            raise HTTPException(
-                status_code=429,
-                detail=f"이번 달 소개글·FAQ 합산 한도({limit}회)에 도달했습니다",
-            )
-
-    # 키워드 결정: 사용자 제공 키워드 우선, 없으면 최신 스캔에서 자동 추출
-    # (top_missing_keywords는 scan_results의 top-level 컬럼 — gemini_result 안에 없음. 2026-07-02 수정)
-    if req.keywords:
-        final_keywords = req.keywords
-    else:
-        scan_res = await execute(
-            supabase.table("scan_results")
-            .select("top_missing_keywords")
-            .eq("business_id", biz_id)
-            .order("scanned_at", desc=True)
-            .limit(1)
-        )
-        final_keywords = []
-        if scan_res.data:
-            final_keywords = scan_res.data[0].get("top_missing_keywords") or []
-
-    category_label = _CAT_KO.get(biz.get("category", ""), biz.get("category", ""))
-    services = ", ".join(final_keywords) if final_keywords else ""
-
-    _SMARTPLACE_FAQ_FALLBACK = {
-        "items": [
-            {"question": f"{biz.get('name', '')} 가격이 어떻게 되나요?", "answer": "정확한 가격은 매장으로 문의해 주세요.", "category": "가격"},
-            {"question": "예약은 어떻게 하나요?", "answer": "전화 또는 네이버 예약으로 미리 예약하시면 대기 없이 이용하실 수 있습니다.", "category": "예약"},
-            {"question": "위치가 어디인가요?", "answer": f"{biz.get('region', '')}에 위치해 있습니다. 상세 주소는 네이버 지도를 확인해 주세요.", "category": "위치"},
-            {"question": "주차가 가능한가요?", "answer": "주차 가능 여부는 매장으로 문의해 주세요.", "category": "위치"},
-            {"question": "영업시간이 어떻게 되나요?", "answer": "영업시간은 매장으로 문의하거나 네이버 플레이스에서 확인해 주세요.", "category": "예약"},
-        ],
-        "chat_menus": ["가격 안내", "예약 방법", "위치/교통", "영업시간", "서비스 안내"],
-    }
-
-    is_fallback = False
+    _faq_monthly_generation_locks.add(user_id)
     try:
-        result = await generate_talktalk_faq(
-            biz_name=biz.get("name", ""),
-            category_label=category_label,
-            region=biz.get("region", ""),
-            services=services,
-            count=5,
-        )
-        if not result or not isinstance(result.get("items"), list):
-            _logger.warning(f"smartplace-faq 응답 구조 불량 (biz={biz_id}), 폴백 사용")
+        # 월별 사용 횟수 체크 — intro_draft + faq_draft + talktalk_faq 합산 (plan_gate faq_monthly 공유 한도)
+        # DEV_MODE=true 시 한도 검사 전체 우회
+        now = datetime.now(timezone.utc)
+        used = 0
+        if not _DEV_MODE:
+            month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+            used_res = await execute(
+                supabase.table("guides")
+                .select("id", count="exact")
+                .eq("business_id", biz_id)
+                .in_("context", ["intro_draft", "faq_draft", "talktalk_faq"])
+                .gte("generated_at", month_start)
+            )
+            used = used_res.count or 0
+            if used >= limit:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"이번 달 소개글·FAQ 합산 한도({limit}회)에 도달했습니다",
+                )
+
+        # 키워드 결정: 사용자 제공 키워드 우선, 없으면 최신 스캔에서 자동 추출
+        # (top_missing_keywords는 scan_results의 top-level 컬럼 — gemini_result 안에 없음. 2026-07-02 수정)
+        if req.keywords:
+            final_keywords = req.keywords
+        else:
+            scan_res = await execute(
+                supabase.table("scan_results")
+                .select("top_missing_keywords")
+                .eq("business_id", biz_id)
+                .order("scanned_at", desc=True)
+                .limit(1)
+            )
+            final_keywords = []
+            if scan_res.data:
+                final_keywords = scan_res.data[0].get("top_missing_keywords") or []
+
+        category_label = _CAT_KO.get(biz.get("category", ""), biz.get("category", ""))
+        services = ", ".join(final_keywords) if final_keywords else ""
+
+        _SMARTPLACE_FAQ_FALLBACK = {
+            "items": [
+                {"question": f"{biz.get('name', '')} 가격이 어떻게 되나요?", "answer": "정확한 가격은 매장으로 문의해 주세요.", "category": "가격"},
+                {"question": "예약은 어떻게 하나요?", "answer": "전화 또는 네이버 예약으로 미리 예약하시면 대기 없이 이용하실 수 있습니다.", "category": "예약"},
+                {"question": "위치가 어디인가요?", "answer": f"{biz.get('region', '')}에 위치해 있습니다. 상세 주소는 네이버 지도를 확인해 주세요.", "category": "위치"},
+                {"question": "주차가 가능한가요?", "answer": "주차 가능 여부는 매장으로 문의해 주세요.", "category": "위치"},
+                {"question": "영업시간이 어떻게 되나요?", "answer": "영업시간은 매장으로 문의하거나 네이버 플레이스에서 확인해 주세요.", "category": "예약"},
+            ],
+            "chat_menus": ["가격 안내", "예약 방법", "위치/교통", "영업시간", "서비스 안내"],
+        }
+
+        is_fallback = False
+        try:
+            result = await generate_talktalk_faq(
+                biz_name=biz.get("name", ""),
+                category_label=category_label,
+                region=biz.get("region", ""),
+                services=services,
+                count=5,
+            )
+            if not result or not isinstance(result.get("items"), list):
+                _logger.warning(f"smartplace-faq 응답 구조 불량 (biz={biz_id}), 폴백 사용")
+                result = _SMARTPLACE_FAQ_FALLBACK
+                is_fallback = True
+        except Exception as e:
+            _logger.warning(f"smartplace-faq Claude 호출 실패 (biz={biz_id}): {e}, 폴백 사용")
             result = _SMARTPLACE_FAQ_FALLBACK
             is_fallback = True
-    except Exception as e:
-        _logger.warning(f"smartplace-faq Claude 호출 실패 (biz={biz_id}): {e}, 폴백 사용")
-        result = _SMARTPLACE_FAQ_FALLBACK
-        is_fallback = True
 
-    items: list = result.get("items") or []
-    raw_menus: list = result.get("chat_menus") or []
+        items: list = result.get("items") or []
+        raw_menus: list = result.get("chat_menus") or []
 
-    # 톡톡 채팅방 메뉴 객체화 — AI는 chat_menus를 ["가격 안내", ...] 형태의 string[](메뉴명만)로 반환한다.
-    # 그대로 두면 프론트 normalizeChatMenus가 message==menu_name으로 변환해 "메뉴명==메시지" 저가치 표시가 된다.
-    # → 메뉴명을 items의 카테고리와 매칭해 해당 Q&A 답변을 메시지로 채운다(클릭 시 보낼 실제 안내문).
-    def _menu_message_for(name: str, idx: int) -> str:
-        # 1순위: 메뉴명에 카테고리가 포함된 Q&A 답변 (예: "가격 안내" → 카테고리 "가격")
-        for it in items:
-            cat = (it.get("category") or "").strip()
-            if cat and cat in name:
-                return (it.get("answer") or "").strip()
-        # 2순위: 같은 순번 Q&A (AI가 메뉴·Q&A를 동일 주제 순서로 생성하므로 위치/서비스 등 명칭 불일치 보정)
-        if 0 <= idx < len(items):
-            return (items[idx].get("answer") or "").strip()
-        return ""
+        # 톡톡 채팅방 메뉴 객체화 — AI는 chat_menus를 ["가격 안내", ...] 형태의 string[](메뉴명만)로 반환한다.
+        # 그대로 두면 프론트 normalizeChatMenus가 message==menu_name으로 변환해 "메뉴명==메시지" 저가치 표시가 된다.
+        # → 메뉴명을 items의 카테고리와 매칭해 해당 Q&A 답변을 메시지로 채운다(클릭 시 보낼 실제 안내문).
+        def _menu_message_for(name: str, idx: int) -> str:
+            # 1순위: 메뉴명에 카테고리가 포함된 Q&A 답변 (예: "가격 안내" → 카테고리 "가격")
+            for it in items:
+                cat = (it.get("category") or "").strip()
+                if cat and cat in name:
+                    return (it.get("answer") or "").strip()
+            # 2순위: 같은 순번 Q&A (AI가 메뉴·Q&A를 동일 주제 순서로 생성하므로 위치/서비스 등 명칭 불일치 보정)
+            if 0 <= idx < len(items):
+                return (items[idx].get("answer") or "").strip()
+            return ""
 
-    # 메뉴명 6자 제한(네이버 톡톡 메뉴명 제약) — 잘림 후 끝 공백 제거로 "자주 묻는 " 같은 어색한 표시 방지
-    def _clip_name(s: str) -> str:
-        return s.strip()[:6].strip()
+        # 메뉴명 6자 제한(네이버 톡톡 메뉴명 제약) — 잘림 후 끝 공백 제거로 "자주 묻는 " 같은 어색한 표시 방지
+        def _clip_name(s: str) -> str:
+            return s.strip()[:6].strip()
 
-    chat_menus: list = []
-    for i, m in enumerate(raw_menus[:5]):
-        if isinstance(m, str):
-            nm = m.strip()
-            chat_menus.append({"menu_name": _clip_name(nm), "link_type": "message", "message": _menu_message_for(nm, i)})
-        elif isinstance(m, dict):
-            nm = str(m.get("menu_name") or m.get("name") or "").strip()
-            msg = (m.get("message") or "").strip() or _menu_message_for(nm, i)
-            entry = {"menu_name": _clip_name(nm), "link_type": m.get("link_type") or "message", "message": msg}
-            if m.get("url"):
-                entry["url"] = m.get("url")
-            chat_menus.append(entry)
+        chat_menus: list = []
+        for i, m in enumerate(raw_menus[:5]):
+            if isinstance(m, str):
+                nm = m.strip()
+                chat_menus.append({"menu_name": _clip_name(nm), "link_type": "message", "message": _menu_message_for(nm, i)})
+            elif isinstance(m, dict):
+                nm = str(m.get("menu_name") or m.get("name") or "").strip()
+                msg = (m.get("message") or "").strip() or _menu_message_for(nm, i)
+                entry = {"menu_name": _clip_name(nm), "link_type": m.get("link_type") or "message", "message": msg}
+                if m.get("url"):
+                    entry["url"] = m.get("url")
+                chat_menus.append(entry)
 
-    # AI가 chat_menus를 누락한 경우 items(Q&A)로부터 직접 파생
-    if not chat_menus and items:
-        for idx, it in enumerate(items[:6]):
-            ans = (it.get("answer") or "").strip()
-            if not ans:
-                continue
-            name = _clip_name((it.get("category") or "").strip() or (it.get("question") or "").strip() or f"메뉴{idx + 1}")
-            chat_menus.append({"menu_name": name, "link_type": "message", "message": ans})
+        # AI가 chat_menus를 누락한 경우 items(Q&A)로부터 직접 파생
+        if not chat_menus and items:
+            for idx, it in enumerate(items[:6]):
+                ans = (it.get("answer") or "").strip()
+                if not ans:
+                    continue
+                name = _clip_name((it.get("category") or "").strip() or (it.get("question") or "").strip() or f"메뉴{idx + 1}")
+                chat_menus.append({"menu_name": name, "link_type": "message", "message": ans})
 
-    # guides 테이블에 저장 (이력용) — 폴백(AI 실패)이면 한도 소비 없이 저장 건너뜀 (business.py 패턴과 동일)
-    if not is_fallback:
+        # guides 테이블에 저장 (이력용) — 폴백(AI 실패)이면 한도 소비 없이 저장 건너뜀 (business.py 패턴과 동일)
+        if not is_fallback:
+            try:
+                await execute(
+                    supabase.table("guides").insert({
+                        "business_id": biz_id,
+                        "context": "faq_draft",
+                        "items_json": items,
+                        "generated_at": now.isoformat(),
+                    })
+                )
+            except Exception as save_err:
+                _logger.warning(f"FAQ draft 저장 실패 (응답은 반환): {save_err}")
+
+        # businesses.talktalk_faq_draft 에 최신 초안 저장 (재방문 시 자동 로드용)
         try:
             await execute(
-                supabase.table("guides").insert({
-                    "business_id": biz_id,
-                    "context": "faq_draft",
-                    "items_json": items,
-                    "generated_at": now.isoformat(),
+                supabase.table("businesses")
+                .update({
+                    "talktalk_faq_draft": {"items": items, "chat_menus": chat_menus},
+                    "talktalk_faq_generated_at": now.isoformat(),
                 })
+                .eq("id", biz_id)
             )
-        except Exception as save_err:
-            _logger.warning(f"FAQ draft 저장 실패 (응답은 반환): {save_err}")
+        except Exception as biz_save_err:
+            _logger.warning(f"FAQ draft businesses 저장 실패 (컬럼 없을 수 있음): {biz_save_err}")
 
-    # businesses.talktalk_faq_draft 에 최신 초안 저장 (재방문 시 자동 로드용)
-    try:
-        await execute(
-            supabase.table("businesses")
-            .update({
-                "talktalk_faq_draft": {"items": items, "chat_menus": chat_menus},
-                "talktalk_faq_generated_at": now.isoformat(),
-            })
-            .eq("id", biz_id)
-        )
-    except Exception as biz_save_err:
-        _logger.warning(f"FAQ draft businesses 저장 실패 (컬럼 없을 수 있음): {biz_save_err}")
-
-    # 폴백(AI 실패)이면 guides 저장을 건너뛰므로(위 is_fallback 분기) 한도 카운트도 늘리지 않음 — 실제 소비 없이 표시만 부풀리는 것 방지
-    return {"is_fallback": is_fallback, "items": items, "chat_menus": chat_menus, "used": used if is_fallback else used + 1, "limit": limit, "keywords_used": final_keywords}
+        # 폴백(AI 실패)이면 guides 저장을 건너뛰므로(위 is_fallback 분기) 한도 카운트도 늘리지 않음 — 실제 소비 없이 표시만 부풀리는 것 방지
+        return {"is_fallback": is_fallback, "items": items, "chat_menus": chat_menus, "used": used if is_fallback else used + 1, "limit": limit, "keywords_used": final_keywords}
+    finally:
+        _faq_monthly_generation_locks.discard(user_id)
 
 
 @router.delete("/{biz_id}/smartplace-faq/{faq_index}")
