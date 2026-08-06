@@ -1051,22 +1051,36 @@ function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number })
             이번 체험 스캔 기준
           </p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            네이버 스마트플레이스 자동 점검 + ChatGPT <strong className="text-white font-semibold">{chatgptSampleSize}회 질의</strong>로 측정한 결과입니다. Gemini는 Basic 구독 시 측정됩니다.
+            네이버 스마트플레이스 자동 점검 + ChatGPT <strong className="text-white font-semibold">{chatgptSampleSize}회 질의</strong>로 측정한 결과입니다.
           </p>
         </div>
       </div>
-      <div className="bg-slate-600 rounded-lg px-3 py-2 mb-3">
-        <p className="text-sm text-slate-300 leading-relaxed">
-          <span className="text-white font-semibold">Basic 구독</span>에서는 Gemini·ChatGPT 각{" "}
-          <span className="text-white font-semibold">50회씩(총 100회)</span> + 네이버 스마트플레이스 주기 측정 + Google AI Overview까지 포함됩니다.
-        </p>
+
+      {/* 3단계 비교 — 비회원 체험 / 가입 후 1회 무료체험 / 구독 */}
+      <div className="space-y-2 mb-3">
+        <div className="bg-slate-600 rounded-lg px-3 py-2">
+          <p className="text-sm text-slate-200 font-semibold mb-0.5">① 지금 (비회원 체험)</p>
+          <p className="text-sm text-slate-300 leading-relaxed">
+            ChatGPT {chatgptSampleSize}회 + 스마트플레이스 자동 점검
+          </p>
+        </div>
+        <div className="bg-slate-600 rounded-lg px-3 py-2">
+          <p className="text-sm text-emerald-300 font-semibold mb-0.5">② 가입하면 (결제 없이 1회 무료)</p>
+          <p className="text-sm text-slate-300 leading-relaxed">
+            Gemini·ChatGPT 각 <span className="text-white font-semibold">100회씩(총 200회)</span> + 네이버 AI 브리핑 + Google AI Overview까지 4채널 전체 분석
+          </p>
+        </div>
+        <div className="bg-slate-600 rounded-lg px-3 py-2">
+          <p className="text-sm text-blue-300 font-semibold mb-0.5">③ Basic 구독하면</p>
+          <p className="text-sm text-slate-300 leading-relaxed">
+            ②와 같은 전체 분석을 매주(월·목) 자동 반복 + 점수 변화 추적 + 경쟁사 비교
+          </p>
+        </div>
       </div>
-      <div className="border-t border-slate-500 pt-2.5 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+
+      <div className="border-t border-slate-500 pt-2.5">
         <p className="text-sm text-slate-400">
           측정 시점: <span className="text-slate-300">{now}</span>
-        </p>
-        <p className="text-sm text-slate-400 sm:before:content-['·'] sm:before:mr-3">
-          Basic 가입 시 → 매주 자동 측정 + 점수 변화 추적
         </p>
       </div>
     </div>
@@ -1450,7 +1464,7 @@ function ChatGPTResultCard({
         <div>
           <p className="text-sm text-gray-500 mb-1.5 leading-snug">
             실제 손님이 AI에게 묻는 방식으로 {sampleSize}회 테스트했습니다
-            <span className="ml-1 text-slate-400">(정식 스캔은 50회 — 표본이 많을수록 정확도 높아짐)</span>
+            <span className="ml-1 text-slate-400">(가입 후 1회 무료 체험·구독 시에는 100회 — 표본이 많을수록 정확도 높아짐)</span>
           </p>
           <ul className="space-y-0.5 mb-2">
             {queries.map((q, i) => (
