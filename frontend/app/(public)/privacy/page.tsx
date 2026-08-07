@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/common/SiteFooter";
 export const metadata = {
   title: "개인정보처리방침 | AEOlab",
   description: "AEOlab 개인정보처리방침",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

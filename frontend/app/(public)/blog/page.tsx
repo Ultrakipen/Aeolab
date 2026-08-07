@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "소상공인 AI 검색 노출 가이드 | AEOlab 블로그",
   description:
     "네이버 AI 브리핑·ChatGPT에 내 가게가 노출되는 방법을 실제 사례와 함께 알아봅니다. 소상공인을 위한 AI 검색 최적화 가이드.",
+  alternates: { canonical: "/blog" },
   openGraph: {
     title: "소상공인 AI 검색 노출 가이드 | AEOlab 블로그",
     description:

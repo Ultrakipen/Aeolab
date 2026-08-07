@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "자주 묻는 질문 | AEOlab",
   description:
     "ChatGPT·네이버 AI 브리핑이 가게를 추천하는 기준, AEOlab 점수 계산 방식, 구독 해지 방법 등 자주 묻는 질문에 답합니다.",
+  alternates: { canonical: "/faq" },
   openGraph: {
     title: "자주 묻는 질문 | AEOlab",
     description:

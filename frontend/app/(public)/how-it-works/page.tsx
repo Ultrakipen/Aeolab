@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "AI 브리핑·AI탭·Gemini·ChatGPT·Google AI 노출 완전 설명 | AEOlab",
   description:
     "네이버 AI 브리핑·AI탭·Gemini·ChatGPT·Google AI Overview — 5개 채널에서 내 가게가 노출되는 원리를 업종별로 설명합니다. 게이트 조건·노출 속도·점수 기준·5단계 행동·한계까지.",
+  alternates: { canonical: "/how-it-works" },
 }
 
 export default function HowItWorksPage() {

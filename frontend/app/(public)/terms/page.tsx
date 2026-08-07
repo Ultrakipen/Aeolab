@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/common/SiteFooter";
 export const metadata = {
   title: "서비스 이용약관 | AEOlab",
   description: "AEOlab 서비스 이용약관",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {

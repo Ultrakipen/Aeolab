@@ -18,6 +18,7 @@ export async function generateMetadata({
   return {
     title: `${page.title} | AEOlab`,
     description: page.description,
+    alternates: { canonical: `/keywords/${page.slug}` },
     openGraph: {
       title: `${page.title} | AEOlab`,
       description: page.description,

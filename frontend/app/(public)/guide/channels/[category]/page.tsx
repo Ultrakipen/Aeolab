@@ -37,6 +37,7 @@ export async function generateMetadata({
   return {
     title: `${entry.label} AI 검색 노출 채널 가이드 | AEOlab`,
     description: `${entry.label} 업종의 AI 노출 채널 분석. ${briefingText}. 핵심 행동 5요소와 최적화 방법을 확인하세요.`,
+    alternates: { canonical: `/guide/channels/${entry.value}` },
   }
 }
 

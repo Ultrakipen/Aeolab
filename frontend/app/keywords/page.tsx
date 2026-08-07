@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "지역별 AI 검색 노출 현황 분석 | AEOlab",
   description:
     "창원·김해·부산·서울·수원·대구 등 지역별, 맛집·카페·미용실·헬스장 업종별 AI 검색 노출 현황과 핵심 키워드를 분석합니다.",
+  alternates: { canonical: "/keywords" },
   openGraph: {
     title: "지역별 AI 검색 노출 현황 분석 | AEOlab",
     description:

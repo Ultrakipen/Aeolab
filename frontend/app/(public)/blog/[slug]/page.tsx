@@ -19,6 +19,7 @@ export async function generateMetadata({
   return {
     title: `${post.title} | AEOlab 블로그`,
     description: post.description,
+    alternates: { canonical: `/blog/${post.slug}` },
     openGraph: {
       title: `${post.title} | AEOlab 블로그`,
       description: post.description,
