@@ -724,7 +724,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 ### 사용자가 직접 해야 할 것
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
 - **실결제 전환 시**: `TOSS_SECRET_KEY` test_ → live_ 교체 + pm2 restart
-- ⏳ **네이버 서치어드바이저 사이트 등록** (2026-08-01 신설, 코드 준비 완료·git `ccd68d0`) — `public/robots.txt`가 `app/robots.ts`를 가려 2개월간 `/guide` 전체가 검색 차단 상태였던 버그 발견·해소(git `f5eafb1`) 후, 실제 색인을 위해 필요: ① https://searchadvisor.naver.com 로그인 → 사이트 등록 → `https://aeolab.co.kr` 입력 ② "HTML 태그" 방식 선택 시 발급되는 `naver-site-verification` 토큰 값을 서버 `.env`에 `NEXT_PUBLIC_NAVER_SITE_VERIFICATION=<토큰>` 추가 후 `pm2 restart aeolab-frontend`만 하면 자동 반영(코드 재수정 불필요) ③ 서치어드바이저에서 소유 확인 완료 후 "요청 → 사이트맵 제출"에 `https://aeolab.co.kr/sitemap.xml` 등록
+- ✅ **네이버 서치어드바이저 사이트 등록 + 사이트맵 제출 완료** (2026-08-07) — HTML 파일 방식으로 소유확인(`frontend/public/naver90ab854379ebb072c6795b390f874ac8.html`, git `b45b952`, 라이브 200 확인) 후 사이트맵 제출까지 사용자 완료. 색인 반영은 네이버 측 처리 시간 소요 — 재작업 불필요
 
 ### 비즈니스 목표
 - [ ] 유료 구독자 20명 달성 (BEP)
