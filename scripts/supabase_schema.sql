@@ -2778,3 +2778,25 @@ ALTER TABLE guides DROP CONSTRAINT IF EXISTS guides_context_check;
 ALTER TABLE guides
   ADD CONSTRAINT guides_context_check
   CHECK (context IN ('location_based', 'non_location', 'faq_draft', 'crisis_reply', 'ad_defense', 'startup_report', 'intro_draft', 'talktalk_faq', 'post_draft'));
+
+-- ===========================================================
+-- 2026-08-07: 상업 오픈 전 최종 점검에서 발견된 컬럼 누락 2건 수정
+-- 배경: notifications(2026-08-04)와 같은 클래스의 "코드는 참조하는데 컬럼이
+-- schema에 없는" 패턴을 전수 재확인하는 과정에서 신규 발견.
+--   1) team_members: routers/teams.py:54가 invited_at/joined_at을 SELECT하나
+--      CREATE TABLE 이후 이 컬럼들을 추가한 ALTER가 한 번도 없었음 — 조회 시 매번
+--      PGRST204 에러. 실사용 0건(2026-07-21 확인, 팀 초대 이메일 발송 플로우 자체가
+--      미구현)이라 지금까지 발견되지 않았음.
+--   2) trial_scans.imported_business_id: routers/business.py의
+--      _import_trial_scan_to_biz()가 처음부터 이 컬럼으로 중복 이전 방지 필터링 +
+--      이전 완료 마킹을 시도해왔으나 컬럼 자체가 없어 매번 조용히 실패(try/except가
+--      삼킴, 사업장 등록 자체엔 영향 없어 지금까지 미발견). gemini_result/
+--      naver_channel_score/global_channel_score/exposure_freq 4개는 trial_scans가
+--      애초에 수집하지 않는 필드라 컬럼 추가 대신 business.py 코드에서 참조 제거.
+-- ===========================================================
+ALTER TABLE team_members
+  ADD COLUMN IF NOT EXISTS invited_at TIMESTAMPTZ DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS joined_at  TIMESTAMPTZ;
+
+ALTER TABLE trial_scans
+  ADD COLUMN IF NOT EXISTS imported_business_id UUID REFERENCES businesses(id);

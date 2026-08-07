@@ -1295,7 +1295,7 @@ async def generate_talktalk_faq(req: TalktalkFAQGenerateRequest, user=Depends(ge
 async def _import_trial_scan(business_id: str, trial_scan_id: str):
     """무료 체험 스캔 결과를 사업장 스캔 결과로 이전.
 
-    trial_scans 테이블의 gemini_result / total_score 등을
+    trial_scans 테이블의 total_score / track1_score 등을
     scan_results + score_history 에 복사하고,
     trial_scans.imported_business_id 를 업데이트한다.
     에러 발생 시 로그만 남기고 조용히 실패 (사업장 등록에 영향 없음).
@@ -1309,9 +1309,8 @@ async def _import_trial_scan(business_id: str, trial_scan_id: str):
                 supabase.table("trial_scans")
                 .select(
                     "id, business_name, category, region, "
-                    "gemini_result, total_score, track1_score, track2_score, "
-                    "unified_score, keyword_coverage, naver_channel_score, "
-                    "global_channel_score, score_breakdown, exposure_freq"
+                    "total_score, track1_score, track2_score, "
+                    "unified_score, keyword_coverage, score_breakdown"
                 )
                 .eq("id", trial_scan_id)
                 .is_("imported_business_id", "null")
@@ -1333,15 +1332,11 @@ async def _import_trial_scan(business_id: str, trial_scan_id: str):
         scan_payload = {
             "business_id": business_id,
             "query_used": f"{trial.get('region', '')} {trial.get('category', '')} 추천".strip(),
-            "gemini_result": trial.get("gemini_result"),
-            "exposure_freq": trial.get("exposure_freq") or 0,
             "total_score": trial.get("total_score") or 0,
             "unified_score": trial_unified_score,
             "track1_score": trial.get("track1_score"),
             "track2_score": trial.get("track2_score"),
             "keyword_coverage": trial.get("keyword_coverage"),
-            "naver_channel_score": trial.get("naver_channel_score"),
-            "global_channel_score": trial.get("global_channel_score"),
             "score_breakdown": trial.get("score_breakdown"),
             "scanned_at": now_str,
         }
@@ -1362,10 +1357,7 @@ async def _import_trial_scan(business_id: str, trial_scan_id: str):
                     "unified_score": trial_unified_score,
                     "track1_score": trial.get("track1_score"),
                     "track2_score": trial.get("track2_score"),
-                    "exposure_freq": trial.get("exposure_freq") or 0,
                     "weekly_change": 0.0,
-                    "naver_channel_score": trial.get("naver_channel_score"),
-                    "global_channel_score": trial.get("global_channel_score"),
                 },
                 on_conflict="business_id,score_date",
             )
