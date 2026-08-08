@@ -1021,7 +1021,9 @@ def generate_pdf_report(
         b_platform  = platform_map.get(blog_analysis.get("platform", ""), "블로그")
         b_post_cnt  = blog_analysis.get("post_count", 0)
         b_freshness = fresh_map.get(blog_analysis.get("freshness", ""), "측정 중")
-        b_readiness = float(blog_analysis.get("ai_readiness_score") or 0)
+        # citation_score: 온디맨드 분석 저장본 키명(routers/blog.py에서 ai_readiness_score를 리네임),
+        # ai_readiness_score: 구형/스케줄러 raw 저장본 키명 — 둘 다 지원
+        b_readiness = float(blog_analysis.get("citation_score", blog_analysis.get("ai_readiness_score")) or 0)
         # keyword_coverage: 온디맨드 분석 저장본은 {present,missing,competitor_only} 객체
         # (routers/blog.py 저장 shape), 구형/스케줄러 raw 저장본은 float — 둘 다 지원
         _kw_cov_raw = blog_analysis.get("keyword_coverage")
