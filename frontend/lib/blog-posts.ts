@@ -17,7 +17,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: "네이버 AI",
     readTime: 5,
     publishedAt: "2026-04-20",
-    content: `이** 사장님이 이런 질문을 하셨습니다.
+    content: `사장님들께 이런 질문을 자주 받습니다.
 
 "인스타 팔로워가 800명인데 왜 손님이 안 오나요?"
 
@@ -71,7 +71,7 @@ AI는 검색어와 매칭되는 키워드를 여러 신호 소스에서 확인�
     category: "ChatGPT 노출",
     readTime: 6,
     publishedAt: "2026-04-18",
-    content: `박** 사장님이 이런 말씀을 하셨습니다.
+    content: `사장님들께 이런 말씀을 자주 듣습니다.
 
 "ChatGPT에 '창원 치킨'이라고 검색하면 우리 가게가 왜 안 나오죠? 네이버 리뷰도 200개 넘는데."
 
@@ -236,7 +236,7 @@ AEOlab은 내 업종과 지역에 맞는 채널 우선순위를 자동으로 분
     category: "키워드 전략",
     readTime: 7,
     publishedAt: "2026-04-05",
-    content: `최** 원장님이 이런 말씀을 하셨습니다.
+    content: `원장님들께 이런 말씀을 자주 듣습니다.
 
 "단골은 있는데 신규 고객이 6개월째 안 늘어요. 우리 가게를 모르는 사람들에게 어떻게 알려야 하나요?"
 
