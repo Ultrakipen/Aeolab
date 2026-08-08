@@ -33,7 +33,7 @@ export default function HowItWorksPage() {
         {/* ─── Hero ─── */}
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 leading-tight break-keep">
           AEOlab 서비스 완전 설명<br className="hidden md:block" />
-          — 네이버·Gemini·ChatGPT·Google AI 5채널 노출
+          — 네이버<wbr />·Gemini<wbr />·ChatGPT<wbr />·Google AI 5채널 노출
         </h1>
         <p className="text-base md:text-lg text-gray-600 mb-2 leading-relaxed break-keep">
           네이버 AI 브리핑·AI탭·Gemini·ChatGPT·Google AI Overview — 5개 채널에서 내 가게가 노출되는 원리와 개선 방법을 설명합니다.
