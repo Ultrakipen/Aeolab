@@ -770,7 +770,7 @@ def generate_pdf_report(
     biz_name   = biz.get("name", "")
     category   = biz.get("category", "")
     region     = biz.get("region", "")
-    has_web    = bool(biz.get("website_url", "").strip())
+    has_web    = bool((biz.get("website_url") or "").strip())
     keywords   = biz.get("keywords") or []
     is_franc   = bool(biz.get("is_franchise", False))
     bd         = latest_scan.get("score_breakdown") or {}
