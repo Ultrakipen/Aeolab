@@ -793,7 +793,8 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
     # 3.5순위: blog_analysis_json.keyword_coverage.present — 실제 블로그 포스트에 등장하는 커버 키워드
     # 리뷰가 없어도 블로그에 키워드가 있으면 "missing"으로 오분류하지 않기 위해 추가
     _blog_kw_json = biz_row.get("blog_analysis_json") or {}
-    _blog_covered_list = (_blog_kw_json.get("keyword_coverage") or {}).get("present") or []
+    _blog_kw_cov = _blog_kw_json.get("keyword_coverage")
+    _blog_covered_list = (_blog_kw_cov.get("present") if isinstance(_blog_kw_cov, dict) else None) or []
     if isinstance(_blog_covered_list, list) and _blog_covered_list:
         _add_excerpt(" ".join(_blog_covered_list))
 

@@ -1892,7 +1892,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
     }
     # 블로그 분석 covered 키워드를 biz에 병합해 score_engine cold start 개선
     _blog_json_calc = (biz or {}).get("blog_analysis_json") or {}
-    _blog_covered_calc = (_blog_json_calc.get("keyword_coverage") or {}).get("present") or []
+    _blog_kw_cov_calc = _blog_json_calc.get("keyword_coverage")
+    _blog_covered_calc = (_blog_kw_cov_calc.get("present") if isinstance(_blog_kw_cov_calc, dict) else None) or []
     if isinstance(_blog_covered_calc, list) and _blog_covered_calc:
         biz = {**(biz or {}), "blog_covered_keywords": " ".join(_blog_covered_calc)}
     _blog_kw_cov = float((biz or {}).get("blog_keyword_coverage") or 0)
@@ -1958,7 +1959,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                 _stream_review_text = " ".join(str(b.get("title", "")) for b in (_naver_res_s.get("top_blogs") or []))
             # 블로그 분석 covered 키워드 추가 (blog_analysis_json.keyword_coverage.present)
             _blog_json_s = (biz or {}).get("blog_analysis_json") or {}
-            _blog_covered_s = (_blog_json_s.get("keyword_coverage") or {}).get("present") or []
+            _blog_kw_cov_s = _blog_json_s.get("keyword_coverage")
+            _blog_covered_s = (_blog_kw_cov_s.get("present") if isinstance(_blog_kw_cov_s, dict) else None) or []
             _blog_covered_text_s = " ".join(_blog_covered_s) if isinstance(_blog_covered_s, list) else ""
             _intro_draft_s = ((biz or {}).get("naver_intro_draft") or "").strip()
             _stream_combined_text = " ".join(filter(None, [_selected_kw, _stream_biz_kw_text, _stream_review_text, _intro_draft_s, _blog_covered_text_s]))
@@ -2908,7 +2910,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         combined_result = {**result, "kakao": kakao_data or {}, "website_check": website_check or {}}
         # 블로그 covered 키워드를 biz에 병합해 score_engine cold start 개선
         _blog_json_full = (biz or {}).get("blog_analysis_json") or {}
-        _blog_covered_full = (_blog_json_full.get("keyword_coverage") or {}).get("present") or []
+        _blog_kw_cov_full2 = _blog_json_full.get("keyword_coverage")
+        _blog_covered_full = (_blog_kw_cov_full2.get("present") if isinstance(_blog_kw_cov_full2, dict) else None) or []
         if isinstance(_blog_covered_full, list) and _blog_covered_full:
             biz = {**(biz or {}), "blog_covered_keywords": " ".join(_blog_covered_full)}
         _blog_kw_cov_full = float((biz or {}).get("blog_keyword_coverage") or 0)
@@ -3035,7 +3038,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 _full_review_text = " ".join(str(b.get("title", "")) for b in (_naver_res.get("top_blogs") or []))
             # blog_analysis_json.keyword_coverage.present — 블로그에 실제로 존재하는 키워드는 "있는 것"으로 처리
             _blog_kw_json = (biz or {}).get("blog_analysis_json") or {}
-            _blog_covered_kws = ((_blog_kw_json.get("keyword_coverage") or {}).get("present") or [])
+            _blog_kw_cov_f = _blog_kw_json.get("keyword_coverage")
+            _blog_covered_kws = (_blog_kw_cov_f.get("present") if isinstance(_blog_kw_cov_f, dict) else None) or []
             _full_blog_kw_text = " ".join(_blog_covered_kws) if isinstance(_blog_covered_kws, list) else ""
             _full_intro_draft = ((biz or {}).get("naver_intro_draft") or "").strip()
             # 등록 키워드 앞에 추가 (우선순위 높음)

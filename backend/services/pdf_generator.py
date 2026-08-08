@@ -1022,15 +1022,22 @@ def generate_pdf_report(
         b_post_cnt  = blog_analysis.get("post_count", 0)
         b_freshness = fresh_map.get(blog_analysis.get("freshness", ""), "측정 중")
         b_readiness = float(blog_analysis.get("ai_readiness_score") or 0)
-        # keyword_coverage: float (0~100 퍼센트 단위), covered/missing_keywords: list
-        _kw_cov_raw = blog_analysis.get("keyword_coverage") or 0
-        b_covered   = blog_analysis.get("covered_keywords") or []
-        b_missing   = blog_analysis.get("missing_keywords") or []
-        b_coverage  = float(_kw_cov_raw) if not isinstance(_kw_cov_raw, dict) else 0.0
-        # 저장된 coverage가 0이지만 covered_keywords가 있으면 리스트에서 역산 (과거 DB 불일치 보정)
-        if b_coverage == 0 and (b_covered or b_missing):
+        # keyword_coverage: 온디맨드 분석 저장본은 {present,missing,competitor_only} 객체
+        # (routers/blog.py 저장 shape), 구형/스케줄러 raw 저장본은 float — 둘 다 지원
+        _kw_cov_raw = blog_analysis.get("keyword_coverage")
+        if isinstance(_kw_cov_raw, dict):
+            b_covered = _kw_cov_raw.get("present") or []
+            b_missing = _kw_cov_raw.get("missing") or blog_analysis.get("missing_keywords") or []
             _total_kw = len(b_covered) + len(b_missing)
             b_coverage = round(len(b_covered) / _total_kw * 100, 1) if _total_kw > 0 else 0.0
+        else:
+            b_covered  = blog_analysis.get("covered_keywords") or []
+            b_missing  = blog_analysis.get("missing_keywords") or []
+            b_coverage = float(_kw_cov_raw or 0)
+            # 저장된 coverage가 0이지만 covered_keywords가 있으면 리스트에서 역산 (과거 DB 불일치 보정)
+            if b_coverage == 0 and (b_covered or b_missing):
+                _total_kw = len(b_covered) + len(b_missing)
+                b_coverage = round(len(b_covered) / _total_kw * 100, 1) if _total_kw > 0 else 0.0
         b_top_rec   = blog_analysis.get("top_recommendation") or ""
 
         bl_summary_rows = [

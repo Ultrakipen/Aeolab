@@ -537,7 +537,8 @@ async def daily_scan_all():
 
                 # 블로그 covered 키워드를 biz에 병합해 keyword_gap 정확도 향상
                 _sched_blog_json = biz.get("blog_analysis_json") or {}
-                _sched_blog_covered = (_sched_blog_json.get("keyword_coverage") or {}).get("present") or []
+                _sched_blog_kw_cov_raw = _sched_blog_json.get("keyword_coverage")
+                _sched_blog_covered = (_sched_blog_kw_cov_raw.get("present") if isinstance(_sched_blog_kw_cov_raw, dict) else None) or []
                 if isinstance(_sched_blog_covered, list) and _sched_blog_covered:
                     biz = {**biz, "blog_covered_keywords": " ".join(_sched_blog_covered)}
                 _sched_blog_kw_cov = float(biz.get("blog_keyword_coverage") or 0)
