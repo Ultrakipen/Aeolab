@@ -106,15 +106,14 @@ export default async function KeywordPage({
           </p>
         </div>
 
-        {/* 실제 사장님 질문 */}
+        {/* 사장님들이 자주 묻는 질문 (예시 — 특정 인물의 실제 발언 아님) */}
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-8">
           <p className="text-sm font-bold text-gray-500 mb-2">
-            {page.region} {page.category} 사장님 실제 질문
+            {page.region} {page.category} 사장님들이 자주 묻는 질문
           </p>
           <p className="text-base font-semibold text-gray-800 break-keep">
             &ldquo;{page.personaQuestion}&rdquo;
           </p>
-          <p className="text-sm text-gray-500 mt-2">— {page.personaName} 사장님</p>
         </div>
 
         {/* AI 추천 패턴 */}
