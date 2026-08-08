@@ -588,10 +588,45 @@ async def daily_scan_all():
                                 }
                                 if _blog_result.get("latest_post_date"):
                                     _blog_base_payload["blog_latest_post_date"] = _blog_result["latest_post_date"]
+                                # 2026-08-08 발견(P0): analyze_blog()의 raw 반환값을 그대로 blog_analysis_json에
+                                # 저장하면 blog.py _run_blog_analysis()가 만드는 enriched shape(citation_score
+                                # 리네임·keyword_coverage 객체화·competitor_blog_comparison/topic_suggestions_v2)와
+                                # 어긋나, 프론트(BlogClient.tsx:1909)가 citation_score undefined를 "구버전 캐시"로
+                                # 오인해 result를 세팅하지 않고 "마지막 분석: 오늘"과 "분석 결과가 없습니다"가
+                                # 동시에 뜨는 모순 상태가 됨(자동 재트리거도 안 걸림 — 방금 분석돼 stale 아님).
+                                # 기존 저장값 위에 raw 필드를 같은 shape로 병합 — 재계산 비용이 드는 경쟁사비교/
+                                # 소재추천/A~D는 RSS 재분석만으로는 값이 안 바뀌므로 이전 값을 그대로 유지.
+                                _prev_blog_json = biz.get("blog_analysis_json")
+                                if not isinstance(_prev_blog_json, dict):
+                                    _prev_blog_json = {}
+                                _prev_kw_coverage = _prev_blog_json.get("keyword_coverage")
+                                _blog_result_json = {
+                                    **_blog_result,
+                                    "business_id": biz["id"],
+                                    "blog_url": _blog_url,
+                                    "analyzed_at": _blog_now_iso,
+                                    "citation_score": _blog_result.get("ai_readiness_score", 0),
+                                    "freshness_score": {"fresh": 80, "stale": 50, "outdated": 20}.get(
+                                        _blog_result.get("freshness", "outdated"), 50
+                                    ),
+                                    "keyword_coverage": {
+                                        "present": _blog_result.get("covered_keywords", []),
+                                        "missing": _blog_result.get("missing_keywords", []),
+                                        "competitor_only": (
+                                            _prev_kw_coverage.get("competitor_only", [])
+                                            if isinstance(_prev_kw_coverage, dict) else []
+                                        ),
+                                    },
+                                    "competitor_blog_comparison": _prev_blog_json.get("competitor_blog_comparison"),
+                                    "topic_suggestions_v2": _prev_blog_json.get("topic_suggestions_v2", []),
+                                    "multi_channel_citations": _prev_blog_json.get("multi_channel_citations", {}),
+                                    "competitor_blog_mentions": _prev_blog_json.get("competitor_blog_mentions", {}),
+                                    "citation_benchmark": _prev_blog_json.get("citation_benchmark", {}),
+                                }
                                 try:
                                     await _db(
                                         supabase.table("businesses")
-                                        .update({**_blog_base_payload, "blog_analysis_json": _blog_result})
+                                        .update({**_blog_base_payload, "blog_analysis_json": _blog_result_json})
                                         .eq("id", biz["id"])
                                     )
                                 except Exception as _blog_save_err:
