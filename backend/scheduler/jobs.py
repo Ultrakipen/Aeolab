@@ -3110,10 +3110,10 @@ async def competitor_place_sync_job():
                 errors = [r for r in results if r.get("error")]
                 total_synced += len(results) - len(errors)
                 total_errors += len(errors)
-                # 배치 내 ip_blocked 발생 시 남은 사업장 전체 중단
-                if any(r.get("error") == "ip_blocked" for r in results):
+                # 배치 내 ip_blocked/quota_exceeded 발생 시 남은 사업장 전체 중단
+                if any(r.get("error") in ("ip_blocked", "quota_exceeded") for r in results):
                     ip_banned = True
-                    logger.warning("competitor_place_sync_job: IP 차단 감지, 전체 잡 조기 종료")
+                    logger.warning("competitor_place_sync_job: IP차단/상한도달 감지, 전체 잡 조기 종료")
             except Exception as e:
                 logger.warning(f"competitor_place_sync_job [{biz_id}] 오류: {e}")
                 total_errors += 1
@@ -3241,8 +3241,8 @@ async def enrich_competitor_details_job():
                     competitor_id, naver_place_id, supabase, region=region,
                     registered_name=row.get("name", ""),
                 )
-                if result.get("error") == "ip_blocked":
-                    logger.warning("enrich_competitor_details_job: IP 차단 감지, 전체 잡 조기 종료")
+                if result.get("error") in ("ip_blocked", "quota_exceeded"):
+                    logger.warning(f"enrich_competitor_details_job: {result['error']} 감지, 전체 잡 조기 종료")
                     ip_banned = True
                     total_err += 1
                     break
@@ -4968,8 +4968,8 @@ async def weekly_competitor_sync_job():
                         comp_id, naver_place_id, supabase,
                         registered_name=comp.get("name", ""),
                     )
-                    if result and result.get("error") == "ip_blocked":
-                        logger.warning("[weekly_competitor_sync] IP 차단 감지, 전체 잡 조기 종료")
+                    if result and result.get("error") in ("ip_blocked", "quota_exceeded"):
+                        logger.warning(f"[weekly_competitor_sync] {result['error']} 감지, 전체 잡 조기 종료")
                         ip_banned = True
                         total_errors += 1
                         break
@@ -5941,6 +5941,39 @@ async def _check_data_wiring_readiness_job():
                 "네이버 DataLab API 연동(naver_datalab.py) 착수 조건 충족. "
                 "새 대화창에서 CLAUDE.md 남은 작업 항목 확인 후 설계 시작."
             )
+
+        # 2026-08-08 신설: 네이버 Playwright 전역 일일상한(NAVER_PLAYWRIGHT_DAILY_CAP, 기본
+        # 250) 재검토 트리거. naver_scraping_legal_risk_resolution_plan_v1.0.md §10 산정 시
+        # 소규모(구독 6명 미만) 기준이라 20명 근처부터 이미 빠듯해질 것으로 계산됨 — 다른 두
+        # 조건(50/100명)보다 낮은 임계치. 유료구독 스캔과 가입후1회체험(run_basic_trial)이
+        # 같은 예산을 공유해 체험 트래픽이 유료구독 스캔을 밀어낼 수 있는 점도 함께 검토 필요.
+        naver_quota_reviewed = os.getenv("NAVER_QUOTA_REVIEWED", "false").lower() == "true"
+        if not naver_quota_reviewed and count >= 20:
+            _logger.warning(
+                f"[DATA-WIRING-READY-NAVER-QUOTA] {today} -- active subscriber count={count} -- "
+                "네이버 Playwright 일일상한 재검토 필요. 현재 상한값이 실제 트래픽 대비 "
+                "충분한지 system_alerts(source 없음, [naver_quota] 로그 검색)로 확인하고, "
+                "유료구독/무료체험 우선순위 분리(버킷 분리)도 함께 검토. "
+                "naver_scraping_legal_risk_resolution_plan_v1.0.md §10 참조. "
+                "검토 완료 후 NAVER_QUOTA_REVIEWED=true로 이 경고 해제."
+            )
+
+        # 2026-08-08 신설: 네이버 스크래핑 구조전환(Phase 2 — 사용자 본인계정+크롬 익스텐션)
+        # 착수 검토 트리거. 50명 = 기존 smart_place_completeness 자동화 마일스톤과 동일 지점
+        # 재사용(이 규모부턴 "소규모라 안전" 반증논리가 약해짐, naver_scraping_legal_risk_
+        # resolution_plan_v1.0.md §12). [DATA-WIRING-READY-NAVER-QUOTA](20명)가 이미 여러 번
+        # 반복 발생했다면 50명 전이라도 이 검토를 앞당길 것 — 조기신호로 취급.
+        phase2_reviewed = os.getenv("PHASE2_EXTENSION_REVIEWED", "false").lower() == "true"
+        if not phase2_reviewed and count >= 50:
+            _logger.warning(
+                f"[DATA-WIRING-READY-PHASE2] {today} -- active subscriber count={count} -- "
+                "네이버 스크래핑 구조전환(Phase 2: 크롬 익스텐션) 착수 검토 시점 도달. "
+                "지금까지 [DATA-WIRING-READY-NAVER-QUOTA] 알림 발생 빈도도 함께 확인해 "
+                "이미 반복적으로 상한에 걸렸다면 우선순위를 높일 것. "
+                "naver_scraping_legal_risk_resolution_plan_v1.0.md §4(구조전환 설계) 및 §12 "
+                "참조. 검토 완료(착수 또는 보류 결정) 후 PHASE2_EXTENSION_REVIEWED=true로 "
+                "이 경고 해제."
+            )
     except Exception as e:
         _logger.warning(f"[DATA-WIRING-READY] subscriber check failed: {e}")
 
@@ -6068,7 +6101,7 @@ async def briefing_category_expansion_monitor_job():
     try:
         from playwright.async_api import async_playwright
         from services.ai_scanner.naver_scanner import BRIEFING_SELECTORS
-        from services.ai_scanner import get_naver_cookies, build_chrome_ua, get_proxy_config
+        from services.ai_scanner import get_naver_cookies, build_chrome_ua, get_proxy_config, check_naver_playwright_quota
     except ImportError as e:
         _logger.warning(f"briefing_category_expansion_monitor_job: import failed: {e}")
         return
@@ -6112,6 +6145,9 @@ async def briefing_category_expansion_monitor_job():
                 place_hit = 0
                 info_hit = 0
                 for q in queries:
+                    if not check_naver_playwright_quota("briefing_category_expansion_monitor_job"):
+                        _logger.info(f"[briefing_expansion] 일일 상한 도달 — 나머지 쿼리 스킵 (query={q!r})")
+                        continue
                     page = await ctx.new_page()
                     try:
                         await page.goto(
@@ -6183,19 +6219,26 @@ async def briefing_category_expansion_monitor_job():
 
 
 async def check_naver_cookie_health_job():
-    """매주 월요일 09:30 KST — 네이버 NID_AUT/NID_SES 쿠키 유효성 검사 + 만료 시 자동 재로그인.
+    """매주 월요일 00:30 KST(cron 등록 기준, `hour=0, minute=30`) — 네이버 NID_AUT/NID_SES
+    쿠키 유효성 검사 + 만료 시 자동 재로그인.
 
     작동 순서:
       1. NID_AUT로 naver.com 방문 → 로그인 상태 확인
       2. 유효: 정상 로그 기록 후 종료
-      3. 만료: NAVER_LOGIN_ID/PW로 자동 재로그인 시도
-         - 성공: 새 NID_AUT 추출 → .env 파일 + os.environ 즉시 갱신
-         - 실패(2FA·캡챠): pm2 logs + 운영자 이메일 알림 (수동 교체 필요)
+      3. 만료: NAVER_AUTO_RELOGIN_ENABLED=true **이고** NAVER_LOGIN_ID/PW가 모두 설정된 경우만
+         자동 재로그인 시도 — 성공 시 새 NID_AUT 추출 → .env 파일 + os.environ 즉시 갱신,
+         실패(2FA·캡챠)는 pm2 logs + 운영자 이메일 알림 (수동 교체 필요)
 
     2026-07-01 추가: SLACK_WEBHOOK_URL이 서버에 미설정이라 기존 send_slack_alert류 알림은
     무동작(no-op)이었음. 이미 동작 중인 Resend 이메일 채널(send_operator_alert)로 대체 발송.
     또한 NID_SES(AI 브리핑 전용, ~30일 만료 — NID_AUT의 365일보다 훨씬 짧음)는 기존에 만료
     추적이 전혀 없어 별도 블록으로 추가.
+
+    2026-08-08 추가: `naver_scraping_legal_risk_resolution_plan_v1.0.md` 검토 중 자동
+    재로그인 코드가 NAVER_LOGIN_ID/PW 두 값만으로 활성화되는 구조임을 발견 — 네이버 약관이
+    금지한다고 알려진 "자동화된 로그인"과 정확히 일치하는 동작이라, 다른 목적으로 두 값이
+    설정되는 경우에도 의도치 않게 켜지지 않도록 별도 킬스위치(NAVER_AUTO_RELOGIN_ENABLED)를
+    추가한다. 법률 자문 결과가 나오기 전까지는 이 값을 절대 true로 설정하지 말 것.
     """
     import subprocess, re as _re
     from datetime import datetime as _dt, timedelta as _td
@@ -6314,7 +6357,27 @@ async def check_naver_cookie_health_job():
         return
 
     # ── Step 2: 만료 감지 → 자동 재로그인 ──────────────────────────────────────
-    _logger.warning("[naver_cookie_health] NID_AUT 만료 감지 — 자동 재로그인 시도")
+    _logger.warning("[naver_cookie_health] NID_AUT 만료 감지")
+
+    # 2026-08-08 킬스위치 — NAVER_LOGIN_ID/PW가 설정돼 있어도 이 값이 명시적으로
+    # true가 아니면 자동 재로그인 코드 자체에 진입하지 않는다(naver_scraping_legal_
+    # risk_resolution_plan_v1.0.md 참조 — 네이버 약관이 금지하는 "자동화된 로그인"과
+    # 정확히 일치하는 동작이라 의도치 않은 활성화를 막기 위한 안전장치).
+    if os.getenv("NAVER_AUTO_RELOGIN_ENABLED", "false").lower() != "true":
+        _logger.warning(
+            "[naver_cookie_health] 자동 재로그인 비활성화(NAVER_AUTO_RELOGIN_ENABLED != true) "
+            "→ 수동 교체 필요\n"
+            "  Chrome → naver.com 로그인 → F12 → Application → Cookies → NID_AUT 복사 → .env 갱신"
+        )
+        await send_operator_alert(
+            "NID_AUT 만료 — 수동 교체 필요",
+            "네이버 AI탭/AI브리핑 스캔용 로그인쿠키가 만료됐습니다.\n"
+            "자동 재로그인은 비활성화돼 있습니다(법률 자문 결과 전까지 의도적으로 꺼둔 상태).\n"
+            "Chrome → naver.com 로그인 → F12 → Application → Cookies → NID_AUT 복사 → "
+            ".env NAVER_COOKIE_NID_AUT 수동 교체 필요.",
+        )
+        return
+
     login_id = os.getenv("NAVER_LOGIN_ID", "")
     login_pw  = os.getenv("NAVER_LOGIN_PW", "")
 
@@ -6374,13 +6437,17 @@ async def check_naver_cookie_health_job():
         return
 
     # ── Step 3: .env 파일 + os.environ 즉시 갱신 ───────────────────────────────
+    # 2026-08-08: 임시파일에 먼저 쓰고 os.replace로 원자적 치환 — 쓰기 도중 프로세스가
+    # 죽어도 원본 .env가 반쪽 상태로 손상되지 않는다(장기 무인운영 안전성).
     try:
         _env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
         with open(_env_path, "r") as _f:
             _env_txt = _f.read()
         _env_txt = _re.sub(r"NAVER_COOKIE_NID_AUT=.*", f"NAVER_COOKIE_NID_AUT={new_nid_aut}", _env_txt)
-        with open(_env_path, "w") as _f:
+        _tmp_path = _env_path + ".tmp"
+        with open(_tmp_path, "w") as _f:
             _f.write(_env_txt)
+        os.replace(_tmp_path, _env_path)
         os.environ["NAVER_COOKIE_NID_AUT"] = new_nid_aut
         _logger.info("[naver_cookie_health] NID_AUT 자동 갱신 완료 ✅ — .env + 인메모리 업데이트")
     except Exception as _e:

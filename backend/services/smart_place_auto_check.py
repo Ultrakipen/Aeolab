@@ -103,6 +103,10 @@ async def auto_check_smart_place(naver_place_id: str) -> dict:
 
     place_id = str(naver_place_id).strip()
 
+    from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
+    if not _check_naver_quota("smart_place_auto_check.auto_check_smart_place"):
+        return _failed_result("quota_exceeded", place_id)
+
     try:
         async with _get_playwright_sem():
             return await asyncio.wait_for(

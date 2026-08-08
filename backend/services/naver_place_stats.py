@@ -30,6 +30,9 @@ class NaverPlaceStatsService:
         """네이버 플레이스 공개 페이지에서 기본 통계 파싱"""
         if not naver_place_id:
             return {"error": "naver_place_id required"}
+        from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
+        if not _check_naver_quota("naver_place_stats.fetch_stats"):
+            return {"error": "quota_exceeded", "naver_place_id": naver_place_id}
         try:
             async with _get_playwright_sem():
                 return await asyncio.wait_for(self._run(naver_place_id), timeout=30)
@@ -211,6 +214,10 @@ async def check_smart_place_completeness(naver_place_url: str) -> dict:
         "photo_count": 0, "has_menu": False, "has_hours": False,
         "completeness_score": 0,
     }
+
+    from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
+    if not _check_naver_quota("naver_place_stats.check_smart_place_completeness"):
+        return {**default, "error": "quota_exceeded"}
 
     try:
         async with _get_playwright_sem():
@@ -654,6 +661,10 @@ async def get_recent_low_rating_reviews(
         [{rating: int, excerpt: str, review_id: str}, ...]
     """
     if not naver_place_id:
+        return []
+
+    from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
+    if not _check_naver_quota("naver_place_stats.get_recent_low_rating_reviews"):
         return []
 
     try:

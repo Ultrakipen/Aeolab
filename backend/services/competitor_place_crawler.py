@@ -13,7 +13,7 @@ from typing import Optional
 
 import aiohttp
 from playwright.async_api import async_playwright
-from services.ai_scanner import apply_stealth as _apply_stealth, get_proxy_config as _get_proxy_config
+from services.ai_scanner import apply_stealth as _apply_stealth, get_proxy_config as _get_proxy_config, check_naver_playwright_quota as _check_naver_quota
 
 _logger = logging.getLogger(__name__)
 
@@ -84,6 +84,12 @@ async def fetch_competitor_place_data(naver_place_id: str) -> dict:
         "photo_count": 0,
         "error": None,
     }
+
+    # 2026-08-08: 전역 일일 상한(check_naver_playwright_quota) 도달 시 크롤링 스킵 —
+    # jobs.py의 competitor_place_sync_job·enrich_competitor_details_job·weekly_competitor_sync_job
+    # 3개 잡이 전부 이 함수 하나를 거치므로 여기 한 곳만 고치면 전부 적용됨.
+    if not _check_naver_quota("competitor_place_crawler.fetch_competitor_place_data"):
+        return {**default, "error": "quota_exceeded"}
 
     try:
         async with _get_playwright_sem():

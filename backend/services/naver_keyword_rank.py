@@ -1,11 +1,18 @@
 """
-네이버 키워드 검색 순위 측정 (Playwright)
+네이버 키워드 검색 순위 측정 (Playwright + 공식 API 혼합)
 service_unification_v1.0.md §4.1 / §5.3 측정 환경 표준화 적용
 
 측정 대상:
-  - PC 통합검색 (search.naver.com)
-  - 모바일 통합검색 (m.search.naver.com)
-  - 플레이스 탭 순위 (search.naver.com?where=place — 가장 정확)
+  - PC 통합검색 (search.naver.com, Playwright)
+  - 모바일 통합검색 (m.search.naver.com, Playwright)
+  - 플레이스 탭 순위 (공식 지역검색 API `local.json`, 2026-08-08부터 Playwright→API 전환)
+
+2026-08-08 변경 사유(naver_scraping_legal_risk_resolution_plan_v1.0.md §3 후속):
+  search.naver.com/robots.txt가 `User-agent: * / Disallow: /`로 전체 차단 확인됨.
+  PC/모바일 통합검색 순위는 대응하는 공식 API가 없어 Playwright를 유지하지만,
+  플레이스 순위는 네이버 API Hub의 "지역 정보 검색" API(무료, 일 25,000건 한도 공유)로
+  이미 `services/naver_visibility.py`가 사용 중이던 것과 동일 소스 — 중복 구현 없이
+  재사용해 Playwright 요청을 키워드당 3건→2건으로 줄인다(약 33% 감소, 로봇배제 위반 요소 제거).
 
 측정 환경 (재현성 보장):
   - 위치: 서버 IP (서울 기준 가정 — 측정 환경은 measurement_context에 기록)
@@ -20,16 +27,19 @@ service_unification_v1.0.md §4.1 / §5.3 측정 환경 표준화 적용
   - 임의 수치 절대 금지
 
 서버 부담:
-  - 1키워드 × 3채널 = ~9초/키워드
+  - 1키워드 × (Playwright 2채널 + API 1건) = ~6초/키워드(종전 ~9초)
   - BACKEND_MAX_CONCURRENCY 환경변수로 동시 실행 제한 (기본 2)
 """
 import os
+import re
 import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Optional
 
 from playwright.async_api import async_playwright, Page, TimeoutError as PWTimeout
+from services.naver_visibility import _get as _naver_open_api_get, _name_matches as _nv_name_matches
+from services.ai_scanner import check_naver_playwright_quota
 
 _logger = logging.getLogger("aeolab")
 
@@ -122,14 +132,6 @@ _PC_SELECTORS = [
     "#main_pack a[href]",
 ]
 
-# 플레이스 탭 셀렉터 목록 (where=place 전용 URL)
-_PLACE_TAB_SELECTORS = [
-    "ul.place_section_content li",
-    "ul[class*='list'] li",
-    "li[data-nclk-index]",
-    "ul li",
-]
-
 # 모바일 셀렉터 목록
 _MOBILE_SELECTORS = [
     "#ct li.bx",
@@ -173,36 +175,28 @@ async def _measure_pc(
     return None
 
 
-async def _measure_place(
-    page: Page,
+async def _measure_place_api(
     keyword: str,
-    biz_name_norm: str,
+    biz_name: str,
     place_id: Optional[str],
 ) -> Optional[int]:
-    """네이버 플레이스 탭 순위 (where=place — 가장 정확)."""
-    url = f"https://search.naver.com/search.naver?query={keyword}&where=place"
-    try:
-        await page.goto(url, wait_until="networkidle", timeout=PAGE_TIMEOUT_MS)
-    except PWTimeout:
-        try:
-            await page.goto(url, wait_until="domcontentloaded", timeout=PAGE_TIMEOUT_MS)
-        except Exception:
-            _logger.warning(f"keyword_rank place tab timeout: {keyword}")
-            return None
-    except Exception as e:
-        _logger.warning(f"keyword_rank place tab 실패 ({keyword}): {e}")
+    """네이버 플레이스 순위를 공식 지역검색 API(local.json)로 측정.
+
+    2026-08-08: Playwright `where=place` 스크래핑 대신 공식 API로 전환(모듈 docstring 참조).
+    place_id가 검색결과 link에 포함되면 그걸 우선 신뢰(가장 정확), 없으면 상호명 매칭.
+    """
+    data = await _naver_open_api_get(
+        "local.json", {"query": keyword, "display": RESULT_LIMIT, "sort": "sim"}
+    )
+    if not isinstance(data, dict):
         return None
-
-    for sel in _PLACE_TAB_SELECTORS:
-        rank = await _find_rank_in_elements(page, sel, biz_name_norm, place_id)
-        if rank is not None:
-            _logger.debug(f"Place rank found: '{keyword}' → {rank}위 (sel={sel})")
-            return rank
-
-    if place_id and await _page_contains_place_id(page, place_id):
-        _logger.debug(f"Place rank fallback (page html): '{keyword}' → 1")
-        return 1
-
+    for i, item in enumerate(data.get("items", [])):
+        link = item.get("link", "") or ""
+        if place_id and place_id in link:
+            return i + 1
+        name = re.sub(r"<[^>]+>", "", item.get("title", "") or "")
+        if _nv_name_matches(biz_name, name):
+            return i + 1
     return None
 
 
@@ -275,7 +269,6 @@ async def _run_with_browser(
             )
             try:
                 pc_ctx = await browser.new_context(locale="ko-KR", user_agent=UA_PC)
-                place_ctx = await browser.new_context(locale="ko-KR", user_agent=UA_PC)
                 mobile_ctx = await browser.new_context(
                     locale="ko-KR",
                     user_agent=UA_MOBILE,
@@ -283,7 +276,6 @@ async def _run_with_browser(
                 )
 
                 pc_page = await pc_ctx.new_page()
-                place_page = await place_ctx.new_page()
                 mobile_page = await mobile_ctx.new_page()
 
                 region_norm = _norm(region)
@@ -298,9 +290,19 @@ async def _run_with_browser(
                         search_query = kw
 
                     try:
-                        pc_rank = await _measure_pc(pc_page, search_query, biz_name_norm, place_id)
-                        place_rank = await _measure_place(place_page, search_query, biz_name_norm, place_id)
-                        mobile_rank = await _measure_mobile(mobile_page, search_query, biz_name_norm, place_id)
+                        # 2026-08-08: 기존 순차 실행 타이밍 패턴 유지(봇탐지 회피 목적 변경 없음) —
+                        # place_rank만 Playwright→공식API로 교체, PC/모바일 순서·간격은 그대로.
+                        # 전역 일일 상한(check_naver_playwright_quota) 도달 시 해당 채널은 None
+                        # (미측정) — 임의 수치 대체 없음, 다음 사이클에 재시도.
+                        pc_rank = (
+                            await _measure_pc(pc_page, search_query, biz_name_norm, place_id)
+                            if check_naver_playwright_quota("naver_keyword_rank.pc") else None
+                        )
+                        place_rank = await _measure_place_api(search_query, biz_name, place_id)
+                        mobile_rank = (
+                            await _measure_mobile(mobile_page, search_query, biz_name_norm, place_id)
+                            if check_naver_playwright_quota("naver_keyword_rank.mobile") else None
+                        )
                         _logger.info(
                             f"keyword_rank '{search_query}': "
                             f"PC={pc_rank} Place={place_rank} Mobile={mobile_rank}"

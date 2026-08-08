@@ -5,7 +5,7 @@ import random
 import re
 
 from services.keyword_taxonomy import log_ad_only_mismatch
-from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua, get_naver_cookies, build_chrome_ua, block_heavy_resources, attach_bandwidth_counter, note_proxy_result
+from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua, get_naver_cookies, build_chrome_ua, block_heavy_resources, attach_bandwidth_counter, note_proxy_result, note_naver_auth_result, check_naver_playwright_quota
 from services.ai_scanner.bandwidth_tracker import record_usage_mb
 
 logger = logging.getLogger("aeolab")
@@ -141,6 +141,7 @@ class NaverAIBriefingScanner:
                 bool(re.search(r"로봇이 아님|자동화된 요청|비정상적인 접근|보안 문자", page_text[:500]))
             ):
                 logger.warning(f"[naver_scanner] captcha/block detected for query: {query}")
+                note_naver_auth_result(False, "naver_scanner(AI브리핑)")
                 return {
                     "platform": "naver", "mentioned": False, "in_briefing": False,
                     "rank": None, "excerpt": "", "captcha_detected": True,
@@ -149,6 +150,8 @@ class NaverAIBriefingScanner:
                     "queries_used": [query],
                     "source_urls": [], "source_blog_ids": [], "source_image_map": {},
                 }
+
+            note_naver_auth_result(True, "naver_scanner(AI브리핑)")
 
             # ── AI 브리핑 "펼쳐서 더보기" 확장 ─────────────────────
             # 정보형 AI 브리핑은 기본 텍스트가 잘려 있어 사업장명이 숨겨질 수 있음.
@@ -324,7 +327,22 @@ class NaverAIBriefingScanner:
             "source_image_map": source_image_map,
         }
 
+    @staticmethod
+    def _quota_skipped_result(query: str) -> dict:
+        """일일 네이버 Playwright 상한 도달 시 반환 — captcha_detected와 동일하게 mentioned/
+        in_briefing 오버라이드를 막기 위해 quota_skipped=True로 표시(scan.py 가드 참조)."""
+        return {
+            "platform": "naver", "mentioned": False, "in_briefing": False,
+            "rank": None, "excerpt": "", "captcha_detected": False, "quota_skipped": True,
+            "error": "naver_playwright_quota_exceeded", "_query_used": query,
+            "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
+            "queries_used": [query],
+            "source_urls": [], "source_blog_ids": [], "source_image_map": {},
+        }
+
     async def check_mention(self, query: str, target: str, category: str = "") -> dict:
+        if not check_naver_playwright_quota("naver_scanner.check_mention"):
+            return self._quota_skipped_result(query)
         proxy = get_proxy_config()
         ua = build_chrome_ua()
         async with async_playwright() as pw:
@@ -399,6 +417,9 @@ class NaverAIBriefingScanner:
             _bw_counter = attach_bandwidth_counter(ctx)
             keyword_results = []
             for q in queries:
+                if not check_naver_playwright_quota("naver_scanner.check_mention_multi"):
+                    keyword_results.append(self._quota_skipped_result(q))
+                    break
                 page = await ctx.new_page()
                 # apply_stealth 제거 — 봇 감지 유발 (2026-06-28 AI탭 실측 확인)
                 try:

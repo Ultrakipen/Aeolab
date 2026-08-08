@@ -18,7 +18,7 @@ import random
 import time
 from typing import Optional
 
-from services.ai_scanner import get_proxy_config, attach_bandwidth_counter, note_proxy_result
+from services.ai_scanner import get_proxy_config, attach_bandwidth_counter, note_proxy_result, note_naver_auth_result, get_naver_cookies, check_naver_playwright_quota
 from services.ai_scanner.bandwidth_tracker import record_usage_mb
 
 _logger = logging.getLogger("aeolab")
@@ -27,38 +27,8 @@ _logger = logging.getLogger("aeolab")
 NAVER_AI_TAB_ENABLED: bool = os.getenv("NAVER_AI_TAB_ENABLED", "false").lower() == "true"
 
 
-def _get_naver_cookies() -> list[dict]:
-    """환경변수에서 네이버 로그인 쿠키를 읽어 Playwright cookie 형식으로 반환.
-
-    설정 방법 (backend/.env):
-        NAVER_COOKIE_NID_AUT=<값>
-        NAVER_COOKIE_NID_SES=<값>
-        NAVER_COOKIE_NID_JKL=<값>  (선택)
-
-    쿠키 추출: Chrome → F12 → Application → Cookies → .naver.com
-    만료 주기: NID_SES 약 30일, NID_AUT 약 1년 → 월 1회 수동 교체
-    """
-    cookies = []
-    for name, env_key in [
-        ("NID_AUT", "NAVER_COOKIE_NID_AUT"),
-        ("NID_SES", "NAVER_COOKIE_NID_SES"),
-        ("NID_JKL", "NAVER_COOKIE_NID_JKL"),
-    ]:
-        val = os.getenv(env_key, "").strip()
-        if val:
-            cookies.append({
-                "name": name,
-                "value": val,
-                "domain": ".naver.com",
-                "path": "/",
-                "httpOnly": True,
-                "secure": True,
-            })
-    if cookies:
-        _logger.info(f"[naver_ai_tab] 네이버 쿠키 {len(cookies)}개 로드 ({[c['name'] for c in cookies]})")
-    else:
-        _logger.debug("[naver_ai_tab] 네이버 쿠키 없음 (NAVER_COOKIE_* 미설정)")
-    return cookies
+# 2026-08-08: 로컬 중복 구현 제거 — services.ai_scanner.get_naver_cookies()로 통합
+# (백업 계정 자동전환 로직이 naver_scanner.py와 동일하게 적용되도록 단일 소스화).
 
 # Chrome UA 캐시 — channel="chrome" 실행 시 "HeadlessChrome"이 HTTP 헤더에 노출돼 봇 감지됨.
 # subprocess로 실제 Chrome 버전을 읽어 "Chrome/X.0.0.0"으로 교체.
@@ -200,6 +170,10 @@ async def scan(query: str, business_name: str) -> Optional[dict]:
         _logger.debug(f"[naver_ai_tab] scan skip — ai_tab_enabled=false (query={query!r})")
         return None
 
+    if not check_naver_playwright_quota("naver_ai_tab_scanner.scan"):
+        _logger.info(f"[naver_ai_tab] scan skip — 일일 상한 도달 (query={query!r})")
+        return None
+
     try:
         async with _get_ai_tab_semaphore():
             return await asyncio.wait_for(
@@ -254,7 +228,7 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
             user_agent=ua,
         )
         # 네이버 로그인 쿠키 주입
-        naver_cookies = _get_naver_cookies()
+        naver_cookies = get_naver_cookies()
         if naver_cookies:
             await ctx.add_cookies(naver_cookies)
         # block_heavy_resources 미적용 — image/media/font 차단이 AI탭 봇 탐지를
@@ -312,6 +286,7 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
                             f"[naver_ai_tab] 🚨 연속 {_scan_consecutive_failures}회 쿠키 만료 — "
                             "AI탭 스캔 중단됨. 즉시 NID_AUT 교체 필요."
                         )
+                    note_naver_auth_result(False, "naver_ai_tab_scanner")
                     return None
 
                 body_check = await page.inner_text("body")
@@ -330,6 +305,7 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
                 if len(body_stripped) > 200 and "분석 중" not in body_check:
                     ai_text = body_check
                     _scan_consecutive_failures = 0  # 성공 시 카운터 리셋
+                    note_naver_auth_result(True, "naver_ai_tab_scanner")
                     _logger.debug(f"[naver_ai_tab] AI 답변 완성 ({round_n*5+5}s): body_len={len(body_stripped)}")
                     break
 
