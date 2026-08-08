@@ -641,23 +641,32 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
                 },
             )
 
-        biz = (await execute(
-            supabase.table("businesses")
-            .select("id, name, category, region, keywords, website_url, is_franchise")
-            .eq("id", biz_id).single()
-        )).data
-        if not biz:
-            raise HTTPException(status_code=404, detail="Business not found")
-
-        scan = (
-            await execute(
+        biz_res, scan_res, comp_res = await asyncio.gather(
+            execute(
+                supabase.table("businesses")
+                .select("id, name, category, region, keywords, website_url, is_franchise")
+                .eq("id", biz_id).single()
+            ),
+            execute(
                 supabase.table("scan_results")
                 .select("id, total_score, score_breakdown, gemini_result, chatgpt_result, naver_result, google_result, naver_channel_score, global_channel_score")
                 .eq("business_id", biz_id)
                 .order("scanned_at", desc=True)
                 .limit(1)
-            )
-        ).data
+            ),
+            execute(
+                supabase.table("competitors").select("name").eq("business_id", biz_id).limit(3)
+            ),
+            return_exceptions=True,
+        )
+        if isinstance(biz_res, Exception):
+            raise biz_res
+        biz = biz_res.data
+        if not biz:
+            raise HTTPException(status_code=404, detail="Business not found")
+        if isinstance(scan_res, Exception):
+            raise scan_res
+        scan = scan_res.data
         if not scan:
             raise HTTPException(status_code=404, detail="No scan results found")
 
@@ -668,10 +677,9 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
         # 경쟁사 이름 조회 (최대 3개, 미등록 시 빈 배열)
         competitor_names: list[str] = []
         try:
-            _comp_res = await execute(
-                supabase.table("competitors").select("name").eq("business_id", biz_id).limit(3)
-            )
-            competitor_names = [c.get("name", "") for c in (_comp_res.data or []) if c.get("name")]
+            if isinstance(comp_res, Exception):
+                raise comp_res
+            competitor_names = [c.get("name", "") for c in (comp_res.data or []) if c.get("name")]
         except Exception as _ce:
             _logger.warning(f"ad-defense 경쟁사 조회 실패 — 빈 배열 사용 [biz={biz_id}]: {_ce}")
 
@@ -722,32 +730,33 @@ async def _generate_and_save(req: GuideRequest):
     """가이드 생성 백그라운드 태스크 — ActionPlan 구조로 저장"""
     try:
         supabase = get_client()
-        biz = (await execute(
-            supabase.table("businesses")
-            .select("id, name, category, region, keywords, website_url, google_place_id, kakao_place_id, business_type, naver_place_id, address, phone, is_smart_place, has_faq, has_intro, has_recent_post, review_count, avg_rating, visitor_review_count, receipt_review_count, blog_analysis_json, sp_completeness_json, is_franchise")
-            .eq("id", req.business_id).single()
-        )).data
-        if not biz:
-            _logger.error(f"Guide gen: business {req.business_id} not found")
-            return
-
-        scan = (await execute(
-            supabase.table("scan_results")
-            .select("id, total_score, score_breakdown, naver_channel_score, global_channel_score, kakao_result, website_check_result, chatgpt_result, naver_result, google_result, gemini_result, exposure_freq, track1_score, track2_score, competitor_scores")
-            .eq("id", req.scan_id).single()
-        )).data
-        if not scan:
-            _logger.error(f"Guide gen: scan {req.scan_id} not found")
-            return
-
-        competitors = (
-            await execute(
+        biz_res, scan_res, comp_res = await asyncio.gather(
+            execute(
+                supabase.table("businesses")
+                .select("id, name, category, region, keywords, website_url, google_place_id, kakao_place_id, business_type, naver_place_id, address, phone, is_smart_place, has_faq, has_intro, has_recent_post, review_count, avg_rating, visitor_review_count, receipt_review_count, blog_analysis_json, sp_completeness_json, is_franchise")
+                .eq("id", req.business_id).single()
+            ),
+            execute(
+                supabase.table("scan_results")
+                .select("id, total_score, score_breakdown, naver_channel_score, global_channel_score, kakao_result, website_check_result, chatgpt_result, naver_result, google_result, gemini_result, exposure_freq, track1_score, track2_score, competitor_scores")
+                .eq("id", req.scan_id).single()
+            ),
+            execute(
                 supabase.table("competitors")
                 .select("id, name")
                 .eq("business_id", req.business_id)
                 .eq("is_active", True)
-            )
-        ).data or []
+            ),
+        )
+        biz = biz_res.data
+        if not biz:
+            _logger.error(f"Guide gen: business {req.business_id} not found")
+            return
+        scan = scan_res.data
+        if not scan:
+            _logger.error(f"Guide gen: scan {req.scan_id} not found")
+            return
+        competitors = comp_res.data or []
 
         # 경쟁사 점수 (scan_results.competitor_scores)
         raw_comp = scan.get("competitor_scores") or {}
@@ -1411,12 +1420,22 @@ async def generate_blog_topics(
     if cached:
         return cached
 
-    # 사업장 정보 조회
-    biz_row = await execute(
-        supabase.table("businesses")
-        .select("name, region, category")
-        .eq("id", biz_id)
-        .maybe_single()
+    # 사업장 정보 + 최신 스캔 키워드 병렬 조회 (두 쿼리 독립적)
+    biz_row, scan_row = await asyncio.gather(
+        execute(
+            supabase.table("businesses")
+            .select("name, region, category")
+            .eq("id", biz_id)
+            .maybe_single()
+        ),
+        execute(
+            supabase.table("scan_results")
+            .select("top_missing_keywords")
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+            .maybe_single()
+        ),
     )
     if not biz_row.data:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
@@ -1426,15 +1445,6 @@ async def generate_blog_topics(
     region = biz.get("region", "")
     category = biz.get("category", "")
 
-    # 최신 스캔에서 top_missing_keywords 추출 (scan_results의 top-level 컬럼 — gemini_result 안에 없음)
-    scan_row = await execute(
-        supabase.table("scan_results")
-        .select("top_missing_keywords")
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
-        .maybe_single()
-    )
     top_missing: list[str] = []
     if scan_row.data:
         top_missing = (scan_row.data.get("top_missing_keywords") or [])[:5]

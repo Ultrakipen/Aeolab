@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -318,13 +319,15 @@ async def get_trial_count(request: Request):
     supabase = get_client()
     try:
         from datetime import date
-        r = await execute(supabase.table("trial_scans").select("id", count="exact").limit(1))
-        count = r.count if hasattr(r, "count") and r.count else 0
         today_start = date.today().isoformat() + "T00:00:00+00:00"
-        today_r = await execute(
-            supabase.table("trial_scans").select("id", count="exact")
-            .gte("scanned_at", today_start).limit(1)
+        r, today_r = await asyncio.gather(
+            execute(supabase.table("trial_scans").select("id", count="exact").limit(1)),
+            execute(
+                supabase.table("trial_scans").select("id", count="exact")
+                .gte("scanned_at", today_start).limit(1)
+            ),
         )
+        count = r.count if hasattr(r, "count") and r.count else 0
         today_count = today_r.count if hasattr(today_r, "count") and today_r.count else 0
         result = {"count": count, "today": today_count}
         _cache.set("trial_count_public", result, ttl=300)
@@ -1260,23 +1263,24 @@ async def get_basic_trial_status(user=Depends(get_current_user)):
     supabase = get_client()
     user_id = str(user["id"])
 
-    prof = await execute(
-        supabase.table("profiles")
-        .select("basic_trial_used, basic_trial_used_at")
-        .eq("user_id", user_id)
-        .maybe_single()
+    prof, sub = await asyncio.gather(
+        execute(
+            supabase.table("profiles")
+            .select("basic_trial_used, basic_trial_used_at")
+            .eq("user_id", user_id)
+            .maybe_single()
+        ),
+        execute(
+            supabase.table("subscriptions")
+            .select("status")
+            .eq("user_id", user_id)
+            .in_("status", ["active", "grace_period"])
+            .maybe_single()
+        ),
     )
     prof_data = prof.data if (prof and prof.data) else {}
     used = bool(prof_data.get("basic_trial_used"))
     used_at = prof_data.get("basic_trial_used_at")
-
-    sub = await execute(
-        supabase.table("subscriptions")
-        .select("status")
-        .eq("user_id", user_id)
-        .in_("status", ["active", "grace_period"])
-        .maybe_single()
-    )
     has_active_subscription = bool(sub and sub.data)
 
     return {
@@ -1873,9 +1877,10 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
 
     # naver_data: naver_visibility API 결과(is_smart_place, blog_mentions) + AI 브리핑 스캔 결과 병합
     # 캡챠 차단 시 mentioned/in_briefing을 False로 덮어쓰면 실제 미노출로 오집계됨 — captcha_detected 시 제거
+    # 2026-08-08: 일일 상한(quota_skipped) 도달 시에도 동일하게 적용 — 측정 스킵을 "미노출"로 오집계 금지
     naver_scanner_result = results.get("naver") or {}
-    if naver_scanner_result.get("captcha_detected"):
-        _logger.warning("naver_scanner: captcha detected — skipping mentioned/in_briefing override to prevent false-negative")
+    if naver_scanner_result.get("captcha_detected") or naver_scanner_result.get("quota_skipped"):
+        _logger.warning("naver_scanner: captcha/quota skip — skipping mentioned/in_briefing override to prevent false-negative")
         naver_scanner_result = {k: v for k, v in naver_scanner_result.items() if k not in ("mentioned", "in_briefing", "rank")}
     naver_data = {**(naver_visibility if isinstance(naver_visibility, dict) else {}), **naver_scanner_result}
 

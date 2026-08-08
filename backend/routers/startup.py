@@ -2,6 +2,7 @@
 창업 패키지 API 라우터
 업종·지역 경쟁 강도 분석 + 진입 전략 (startup 플랜 전용)
 """
+import asyncio
 import logging
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
@@ -260,19 +261,21 @@ async def get_timing_index(category: str, region: str):
     month_ago = (now - timedelta(days=30)).isoformat()
     two_month_ago = (now - timedelta(days=60)).isoformat()
 
-    recent_scores = await execute(
-        supabase.table("score_history")
-        .select("total_score, score_date")
-        .in_("business_id", biz_ids)
-        .gte("score_date", month_ago[:10])
-        .order("score_date", desc=True)
-    )
-    old_scores = await execute(
-        supabase.table("score_history")
-        .select("total_score")
-        .in_("business_id", biz_ids)
-        .gte("score_date", two_month_ago[:10])
-        .lt("score_date", month_ago[:10])
+    recent_scores, old_scores = await asyncio.gather(
+        execute(
+            supabase.table("score_history")
+            .select("total_score, score_date")
+            .in_("business_id", biz_ids)
+            .gte("score_date", month_ago[:10])
+            .order("score_date", desc=True)
+        ),
+        execute(
+            supabase.table("score_history")
+            .select("total_score")
+            .in_("business_id", biz_ids)
+            .gte("score_date", two_month_ago[:10])
+            .lt("score_date", month_ago[:10])
+        ),
     )
 
     recent = [r["total_score"] for r in (recent_scores.data or []) if r.get("total_score")]

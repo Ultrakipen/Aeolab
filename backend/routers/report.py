@@ -105,29 +105,33 @@ async def get_score(biz_id: str, user=Depends(get_current_user)):
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    row = (await execute(
-        supabase.table("scan_results")
-        .select(
-            "id, scanned_at, total_score, exposure_freq, score_breakdown, "
-            "competitor_scores, query_used, "
-            "naver_channel_score, global_channel_score, "
-            "website_check_result, kakao_result, "
-            "track1_score, track2_score, unified_score, keyword_coverage, is_keyword_estimated"
-        )
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
-    )).data
+    _scan_res, _biz_res = await asyncio.gather(
+        execute(
+            supabase.table("scan_results")
+            .select(
+                "id, scanned_at, total_score, exposure_freq, score_breakdown, "
+                "competitor_scores, query_used, "
+                "naver_channel_score, global_channel_score, "
+                "website_check_result, kakao_result, "
+                "track1_score, track2_score, unified_score, keyword_coverage, is_keyword_estimated"
+            )
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+        ),
+        execute(
+            supabase.table("businesses")
+            .select("blog_url, blog_analyzed_at, blog_post_count, blog_keyword_coverage, category, is_franchise")
+            .eq("id", biz_id)
+            .single()
+        ),
+    )
+    row = _scan_res.data
     if not row:
         raise HTTPException(status_code=404, detail="No scan results found")
 
     # 블로그 분석 기여 여부 + 사업장 업종·프랜차이즈 여부 조회
-    biz_meta_row = (await execute(
-        supabase.table("businesses")
-        .select("blog_url, blog_analyzed_at, blog_post_count, blog_keyword_coverage, category, is_franchise")
-        .eq("id", biz_id)
-        .single()
-    )).data or {}
+    biz_meta_row = _biz_res.data or {}
     biz_blog_row = biz_meta_row  # 하위 호환 별칭
 
     # AI 브리핑·AI탭 게이팅 (프론트 UI 분기용)
@@ -227,14 +231,23 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
     if limit_rows == 0:
         return []
 
-    result = await execute(
-        supabase.table("scan_results")
-        .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, competitor_scores, score_breakdown")
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(limit_rows)
+    _scan_res, _sh_res = await asyncio.gather(
+        execute(
+            supabase.table("scan_results")
+            .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, competitor_scores, score_breakdown")
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(limit_rows)
+        ),
+        execute(
+            supabase.table("score_history")
+            .select("score_date, rank_in_category, total_in_category, weekly_change, sample_size")
+            .eq("business_id", biz_id)
+            .order("score_date", desc=True)
+            .limit(limit_rows)
+        ),
     )
-    rows = result.data or []
+    rows = _scan_res.data or []
     # score_date 별칭 추가 (하위 호환) — 아래 sh_by_date 조인이 score_history.score_date(KST
     # 기준)와 맞아떨어지려면 scanned_at(UTC 저장)도 KST로 변환해야 함. 일일 스캔이 02:00 KST
     # 고정 스케줄이라 단순 [:10] 슬라이싱 시 사실상 모든 계정에서 하루 전 행과 상시 오조인됨.
@@ -242,14 +255,7 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
         row["score_date"] = _scanned_at_to_kst_date(row.get("scanned_at"))
 
     # score_history에서 업종 내 순위·주간 변화 보완 (scan_results엔 없는 컬럼 — /pdf 엔드포인트와 동일 패턴)
-    sh_result = await execute(
-        supabase.table("score_history")
-        .select("score_date, rank_in_category, total_in_category, weekly_change, sample_size")
-        .eq("business_id", biz_id)
-        .order("score_date", desc=True)
-        .limit(limit_rows)
-    )
-    sh_by_date = {r["score_date"]: r for r in (sh_result.data or []) if r.get("score_date")}
+    sh_by_date = {r["score_date"]: r for r in (_sh_res.data or []) if r.get("score_date")}
     # score_history는 (business_id, score_date) 유일값이라 같은 날 여러 번 스캔하면(Pro+ manual_scan_daily)
     # 전부 같은 하루 단위 스냅샷을 가리키게 됨 — 그 날짜의 가장 최근 scan_results 행에만
     # 순위·주간변화·표본수를 붙이고, 같은 날의 다른 행은 자기 스캔 값이 아닌 수치를
@@ -275,23 +281,23 @@ async def get_competitors(biz_id: str, user=Depends(get_current_user)):
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    my_score = (
-        await execute(
+    _my_res, _comp_res = await asyncio.gather(
+        execute(
             supabase.table("scan_results")
             .select("total_score, score_breakdown")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(1)
-        )
-    ).data
-    competitors = (
-        await execute(
+        ),
+        execute(
             supabase.table("competitors")
             .select("id, name, address, is_active, created_at")
             .eq("business_id", biz_id)
             .eq("is_active", True)
-        )
-    ).data
+        ),
+    )
+    my_score = _my_res.data
+    competitors = _comp_res.data
     return {
         "my_score": my_score[0] if my_score else None,
         "competitors": competitors,
@@ -688,34 +694,39 @@ async def get_market(biz_id: str, user=Depends(get_current_user)):
     category = biz["category"]
     region   = biz.get("region") if context == "location_based" else None
 
-    # 내 최신 점수 + 카테고리 내 순위
-    my_hist = (await execute(
-        supabase.table("score_history")
-        .select("total_score, rank_in_category, total_in_category, score_date")
-        .eq("business_id", biz_id)
-        .order("score_date", desc=True)
-        .limit(1)
-    )).data
+    # 내 최신 점수 + 경쟁사 목록 + 경쟁사 점수 — 모두 biz_id만 필요, 병렬 조회
+    _hist_res, _comp_res, _scan_res = await asyncio.gather(
+        execute(
+            supabase.table("score_history")
+            .select("total_score, rank_in_category, total_in_category, score_date")
+            .eq("business_id", biz_id)
+            .order("score_date", desc=True)
+            .limit(1)
+        ),
+        execute(
+            supabase.table("competitors")
+            .select("id, name, address")
+            .eq("business_id", biz_id)
+            .eq("is_active", True)
+        ),
+        execute(
+            supabase.table("scan_results")
+            .select("competitor_scores")
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+        ),
+    )
+    my_hist = _hist_res.data
     my_score      = float(my_hist[0]["total_score"])     if my_hist else 0.0
     my_rank       = my_hist[0].get("rank_in_category")   if my_hist else None
     total_in_cat  = my_hist[0].get("total_in_category")  if my_hist else None
 
     # 등록 경쟁사 목록
-    comp_rows = (await execute(
-        supabase.table("competitors")
-        .select("id, name, address")
-        .eq("business_id", biz_id)
-        .eq("is_active", True)
-    )).data or []
+    comp_rows = _comp_res.data or []
 
     # 경쟁사 점수 (최신 스캔의 competitor_scores JSONB)
-    scan_row = (await execute(
-        supabase.table("scan_results")
-        .select("competitor_scores")
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
-    )).data
+    scan_row = _scan_res.data
     raw_comp_scores = {}
     if scan_row:
         raw = scan_row[0].get("competitor_scores") or {}
@@ -819,24 +830,31 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
             detail={"code": "PLAN_REQUIRED", "required_plans": ["basic", "startup", "pro", "biz"]},
         )
 
-    biz = (
-        await execute(
+    _biz_res, _rows_res, _kw_res = await asyncio.gather(
+        execute(
             supabase.table("businesses")
             .select("id, name, category, is_franchise, checklist_overrides, sp_completeness_json, has_intro")
             .eq("id", biz_id)
             .maybe_single()
-        )
-    ).data or {}
-
-    rows = (
-        await execute(
+        ),
+        execute(
             supabase.table("scan_results")
             .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, query_used, score_breakdown, competitor_scores, naver_result")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(100)
-        )
-    ).data
+        ),
+        execute(
+            supabase.table("scan_results")
+            .select("scanned_at, keyword_ranks")
+            .eq("business_id", biz_id)
+            .not_.is_("keyword_ranks", "null")
+            .order("scanned_at", desc=True)
+            .limit(30)
+        ),
+    )
+    biz = _biz_res.data or {}
+    rows = _rows_res.data
 
     output = io.StringIO()
     writer = csv.writer(output)
@@ -865,16 +883,7 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
         ])
 
     # ── 키워드 노출 현황 섹션 (keyword_ranks 기반, 측정 미완료 시 안내 행) ──────
-    kw_rows = (
-        await execute(
-            supabase.table("scan_results")
-            .select("scanned_at, keyword_ranks")
-            .eq("business_id", biz_id)
-            .not_.is_("keyword_ranks", "null")
-            .order("scanned_at", desc=True)
-            .limit(30)
-        )
-    ).data or []
+    kw_rows = _kw_res.data or []
 
     writer.writerow([])  # 빈 행으로 구분
     writer.writerow(["[키워드 노출 현황]", "", "", "", "", "", "", ""])
@@ -1003,68 +1012,63 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
             detail={"code": "PLAN_REQUIRED", "required_plans": ["pro", "biz"]},
         )
 
-    # 데이터 조회 (PDF 생성에 필요한 필드만 선택)
-    biz = (
-        await execute(
+    # 데이터 조회 — 1차: 사업장·스캔 동시 조회 (둘 다 없으면 404)
+    _biz_res, _scan_res = await asyncio.gather(
+        execute(
             supabase.table("businesses")
             .select("id, name, category, region, address, phone, website_url, keywords, is_franchise, blog_analysis_json, checklist_overrides, sp_completeness_json, has_intro")
             .eq("id", biz_id)
             .single()
-        )
-    ).data
-    if not biz:
-        raise HTTPException(status_code=404, detail="Business not found")
-
-    latest_scan = (
-        await execute(
+        ),
+        execute(
             supabase.table("scan_results")
             .select("id, scanned_at, total_score, exposure_freq, score_breakdown, naver_channel_score, global_channel_score, query_used, gemini_result, chatgpt_result, naver_result, google_result, competitor_scores")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(1)
-        )
-    ).data
+        ),
+    )
+    biz = _biz_res.data
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business not found")
+    latest_scan = _scan_res.data
     if not latest_scan:
         raise HTTPException(status_code=404, detail="No scan results found")
 
-    competitor_profiles = await _fetch_competitor_profiles(supabase, biz_id, latest_scan[0].get("competitor_scores"))
     ai_tab_data = _fetch_ai_tab_data(biz, latest_scan[0])
 
-    history = (
-        await execute(
+    # 2차: 나머지 5개 쿼리 + competitor_profiles 병렬 조회
+    (
+        competitor_profiles,
+        _hist_res,
+        _guide_res,
+        _kw_res,
+        _screenshots_res,
+    ) = await asyncio.gather(
+        _fetch_competitor_profiles(supabase, biz_id, latest_scan[0].get("competitor_scores")),
+        execute(
             supabase.table("score_history")
             .select("score_date, total_score, track1_score, track2_score, unified_score, exposure_freq, rank_in_category, total_in_category, weekly_change")
             .eq("business_id", biz_id)
             .order("score_date", desc=True)
             .limit(30)
-        )
-    ).data
-
-    guide = (
-        await execute(
+        ),
+        execute(
             supabase.table("guides")
             .select("summary, items_json")
             .eq("business_id", biz_id)
             .order("generated_at", desc=True)
             .limit(1)
-        )
-    ).data
-
-    # 키워드 순위 이력 조회 (keyword_ranks 컬럼 있는 스캔만, 최근 30개)
-    kw_rank_history = (
-        await execute(
+        ),
+        execute(
             supabase.table("scan_results")
             .select("scanned_at, keyword_ranks")
             .eq("business_id", biz_id)
             .not_.is_("keyword_ranks", "null")
             .order("scanned_at", desc=True)
             .limit(30)
-        )
-    ).data or []
-
-    # 스크린샷 조회 — Google 제외 (봇 감지 CAPTCHA 방지)
-    screenshots = (
-        await execute(
+        ),
+        execute(
             supabase.table("before_after")
             .select("keyword, image_url, capture_type, platform, created_at")
             .eq("business_id", biz_id)
@@ -1072,8 +1076,12 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
             .not_.is_("image_url", "null")
             .order("created_at", desc=True)
             .limit(4)
-        )
-    ).data or []
+        ),
+    )
+    history = _hist_res.data
+    guide = _guide_res.data
+    kw_rank_history = _kw_res.data or []
+    screenshots = _screenshots_res.data or []
 
     import urllib.parse
     from services.pdf_generator import generate_pdf_report
@@ -1131,17 +1139,22 @@ async def export_keyword_rank_csv(biz_id: str, user=Depends(get_current_user)):
             },
         )
 
-    # keyword_ranks가 있는 스캔 결과만 최근 30개 조회
-    kw_rows = (
-        await execute(
+    # keyword_ranks가 있는 스캔 결과 + 사업장명 동시 조회
+    _kw_res, _biz_name_res = await asyncio.gather(
+        execute(
             supabase.table("scan_results")
             .select("scanned_at, keyword_ranks")
             .eq("business_id", biz_id)
             .not_.is_("keyword_ranks", "null")
             .order("scanned_at", desc=True)
             .limit(30)
-        )
-    ).data or []
+        ),
+        execute(
+            supabase.table("businesses").select("name").eq("id", biz_id).single()
+        ),
+    )
+    kw_rows = _kw_res.data or []
+    biz_name_row = _biz_name_res.data or {}
 
     output = io.StringIO()
     writer = csv.writer(output)
@@ -1192,11 +1205,6 @@ async def export_keyword_rank_csv(biz_id: str, user=Depends(get_current_user)):
                 ])
 
     output.seek(0)
-    biz_name_row = (
-        await execute(
-            supabase.table("businesses").select("name").eq("id", biz_id).single()
-        )
-    ).data or {}
     import urllib.parse
     safe_name = (biz_name_row.get("name") or biz_id[:8]).replace("/", "_").replace(" ", "_")
     filename = f"aeolab_keyword_rank_{safe_name}.csv"
@@ -1214,19 +1222,20 @@ async def export_keyword_rank_csv(biz_id: str, user=Depends(get_current_user)):
 async def get_share_page_data(biz_id: str):
     """공개 공유 페이지용 데이터 (민감 정보 제외, 인증 불필요)"""
     supabase = get_client()
-    biz = (await execute(supabase.table("businesses").select("name, category, region").eq("id", biz_id).single())).data
-    if not biz:
-        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
-
-    score_data = (
-        await execute(
+    _biz_res, _score_res = await asyncio.gather(
+        execute(supabase.table("businesses").select("name, category, region").eq("id", biz_id).single()),
+        execute(
             supabase.table("score_history")
             .select("total_score, exposure_freq, score_date")
             .eq("business_id", biz_id)
             .order("score_date", desc=True)
             .limit(1)
-        )
-    ).data
+        ),
+    )
+    biz = _biz_res.data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+    score_data = _score_res.data
     if not score_data:
         raise HTTPException(status_code=404, detail="스캔 결과가 없습니다")
 
@@ -1248,19 +1257,20 @@ async def get_share_page_data(biz_id: str):
 async def generate_share_card(biz_id: str):
     """SNS 공유용 AI 성적표 이미지 생성 (PNG, 1080×1080)"""
     supabase = get_client()
-    biz = (await execute(supabase.table("businesses").select("name, category, region").eq("id", biz_id).single())).data
-    if not biz:
-        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
-
-    score_data = (
-        await execute(
+    _biz_res, _score_res = await asyncio.gather(
+        execute(supabase.table("businesses").select("name, category, region").eq("id", biz_id).single()),
+        execute(
             supabase.table("score_history")
             .select("total_score, exposure_freq")
             .eq("business_id", biz_id)
             .order("score_date", desc=True)
             .limit(1)
-        )
-    ).data
+        ),
+    )
+    biz = _biz_res.data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+    score_data = _score_res.data
     if not score_data:
         raise HTTPException(status_code=404, detail="스캔 결과가 없습니다")
 
@@ -1481,25 +1491,28 @@ async def get_gap_card(biz_id: str, user=Depends(get_current_user)):
             detail={"code": "PLAN_REQUIRED", "message": "Basic 이상 플랜에서 이용할 수 있습니다", "upgrade_url": "/pricing"},
         )
 
-    # 사업장 정보
-    biz = (
-        await execute(supabase.table("businesses").select("id, name, category, region, business_type").eq("id", biz_id).maybe_single())
-    ).data
-    if not biz:
-        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
-
-    # 최신 스캔 결과
-    scan = (
-        await execute(
+    # 사업장 정보·스캔·경쟁사 동시 조회
+    _biz_res, _scan_res, _comp_res = await asyncio.gather(
+        execute(supabase.table("businesses").select("id, name, category, region, business_type").eq("id", biz_id).maybe_single()),
+        execute(
             supabase.table("scan_results")
             .select("total_score, competitor_scores, score_breakdown")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(1)
             .maybe_single()
-        )
-    ).data
-
+        ),
+        execute(
+            supabase.table("competitors")
+            .select("id, name")
+            .eq("business_id", biz_id)
+            .eq("is_active", True)
+        ),
+    )
+    biz = _biz_res.data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+    scan = _scan_res.data
     if not scan:
         raise HTTPException(status_code=404, detail="스캔 결과가 없습니다. 먼저 AI 스캔을 실행해주세요.")
 
@@ -1507,14 +1520,7 @@ async def get_gap_card(biz_id: str, user=Depends(get_current_user)):
     competitor_scores: dict = scan.get("competitor_scores") or {}
 
     # 경쟁사 이름 조회
-    comp_rows = (
-        await execute(
-            supabase.table("competitors")
-            .select("id, name")
-            .eq("business_id", biz_id)
-            .eq("is_active", True)
-        )
-    ).data or []
+    comp_rows = _comp_res.data or []
     comp_name_map = {c["id"]: c["name"] for c in comp_rows}
 
     competitor_items = [
@@ -1582,22 +1588,23 @@ async def get_gap_analysis(biz_id: str, user=Depends(get_current_user)):
 
     # 리뷰 키워드 카테고리별 분포 분석 — AI 호출 0회, 데이터 없으면 data_unavailable=True
     try:
-        biz_res = await execute(
-            supabase.table("businesses")
-            .select("id, blog_analysis_json, review_sample, category, keywords")
-            .eq("id", biz_id)
-            .limit(1)
+        _biz_res, _comp_res = await asyncio.gather(
+            execute(
+                supabase.table("businesses")
+                .select("id, blog_analysis_json, review_sample, category, keywords")
+                .eq("id", biz_id)
+                .limit(1)
+            ),
+            execute(
+                supabase.table("competitors")
+                .select("id, name")
+                .eq("business_id", biz_id)
+                .eq("is_active", True)
+                .limit(10)
+            ),
         )
-        biz_row = biz_res.data[0] if (biz_res and biz_res.data) else {}
-
-        comp_res = await execute(
-            supabase.table("competitors")
-            .select("id, name")
-            .eq("business_id", biz_id)
-            .eq("is_active", True)
-            .limit(10)
-        )
-        comp_rows = comp_res.data if (comp_res and comp_res.data) else []
+        biz_row = _biz_res.data[0] if (_biz_res and _biz_res.data) else {}
+        comp_rows = _comp_res.data if (_comp_res and _comp_res.data) else []
 
         gap_dict["review_keyword_distribution"] = analyze_review_keyword_distribution(
             biz_row, comp_rows
@@ -1637,16 +1644,25 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
     if cached is not None:
         return cached
 
-    # 사업장 정보 조회
-    biz_res = await execute(
-        supabase.table("businesses")
-        .select("id, name, category, region, keywords, is_franchise, sp_completeness_json, has_intro, blog_analysis_json, checklist_overrides")
-        .eq("id", biz_id)
-        .maybe_single()
+    # 사업장 정보 + 최신 스캔 동시 조회
+    _biz_res, _scan_res = await asyncio.gather(
+        execute(
+            supabase.table("businesses")
+            .select("id, name, category, region, keywords, is_franchise, sp_completeness_json, has_intro, blog_analysis_json, checklist_overrides")
+            .eq("id", biz_id)
+            .maybe_single()
+        ),
+        execute(
+            supabase.table("scan_results")
+            .select("id, keyword_coverage, score_breakdown, naver_result, naver_ai_tab_visible")
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+        ),
     )
-    if not (biz_res and biz_res.data):
+    if not (_biz_res and _biz_res.data):
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
-    biz = biz_res.data
+    biz = _biz_res.data
 
     # AI 브리핑 게이팅 (프론트 UI 분기용 — AI탭은 모든 업종 가능)
     # AI탭(2026-04-27 베타): 업종 제한 없음. INACTIVE도 available=True.
@@ -1657,15 +1673,7 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
         bool(biz.get("is_franchise", False)),
     )
 
-    # 최신 스캔 결과 조회 (옵션)
-    scan_res = await execute(
-        supabase.table("scan_results")
-        .select("id, keyword_coverage, score_breakdown, naver_result, naver_ai_tab_visible")
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
-    )
-    scan_row = (scan_res.data[0] if scan_res and scan_res.data else None)
+    scan_row = (_scan_res.data[0] if _scan_res and _scan_res.data else None)
 
     from services.briefing_engine import simulate_ai_tab_answer
     from services.score_engine import calc_ai_tab_readiness, get_ai_tab_readiness_label
@@ -1799,23 +1807,27 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
     plan_rank = PLAN_HIERARCHY.get(plan, 0)
     is_paid = plan_rank >= PLAN_HIERARCHY.get("basic", 0)
 
-    # 사업장 + 최신 스캔 로드
-    biz_row = (await execute(
-        supabase.table("businesses")
-        .select("id, name, category, region, naver_place_id, keywords, has_faq, has_intro, has_recent_post, review_count, sp_completeness_json, review_sample")
-        .eq("id", biz_id)
-        .single()
-    )).data
+    # 사업장 + 최신 스캔 동시 로드
+    _biz_res, _scan_res = await asyncio.gather(
+        execute(
+            supabase.table("businesses")
+            .select("id, name, category, region, naver_place_id, keywords, has_faq, has_intro, has_recent_post, review_count, sp_completeness_json, review_sample")
+            .eq("id", biz_id)
+            .single()
+        ),
+        execute(
+            supabase.table("scan_results")
+            .select("id, total_score, track1_score, score_breakdown, chatgpt_result, google_result, naver_result, gemini_result, scanned_at")
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+        ),
+    )
+    biz_row = _biz_res.data
     if not biz_row:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
 
-    scan_row = (await execute(
-        supabase.table("scan_results")
-        .select("id, total_score, track1_score, score_breakdown, chatgpt_result, google_result, naver_result, gemini_result, scanned_at")
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
-    )).data or []
+    scan_row = _scan_res.data or []
 
     scan = scan_row[0] if scan_row else {}
     breakdown: dict = scan.get("score_breakdown") or {}
@@ -2083,35 +2095,35 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    _biz_res = await execute(
-        supabase.table("businesses")
-        .select("id, name, category, region, naver_place_id, website_url, keywords, has_faq, has_intro, has_recent_post, has_photos, has_review_response")
-        .eq("id", biz_id)
-        .single()
+    # 사업장·스캔·가이드 동시 조회
+    _biz_res, _scan_res, _guide_res = await asyncio.gather(
+        execute(
+            supabase.table("businesses")
+            .select("id, name, category, region, naver_place_id, website_url, keywords, has_faq, has_intro, has_recent_post, has_photos, has_review_response")
+            .eq("id", biz_id)
+            .single()
+        ),
+        execute(
+            supabase.table("scan_results")
+            .select("naver_result, website_check_result, score_breakdown, smart_place_completeness_result, scanned_at")
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+        ),
+        execute(
+            supabase.table("guides")
+            .select("tools_json")
+            .eq("business_id", biz_id)
+            .order("generated_at", desc=True)
+            .limit(1)
+            .maybe_single()
+        ),
     )
     biz = _biz_res.data if _biz_res else None
     if not biz:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다.")
-
-    _scan_res = await execute(
-        supabase.table("scan_results")
-        .select("naver_result, website_check_result, score_breakdown, smart_place_completeness_result, scanned_at")
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
-    )
     scan_rows = _scan_res.data if _scan_res else None
     scan = scan_rows[0] if scan_rows else {}
-
-    # tools_json은 guides 테이블에 저장됨
-    _guide_res = await execute(
-        supabase.table("guides")
-        .select("tools_json")
-        .eq("business_id", biz_id)
-        .order("generated_at", desc=True)
-        .limit(1)
-        .maybe_single()
-    )
     guide_row = _guide_res.data if _guide_res else None
 
     naver = scan.get("naver_result") or {}
@@ -2418,26 +2430,23 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
 
     plan = await get_user_plan(user_id, supabase)
 
-    # ── 1. scan_results 이력 조회 (최대 100개, ASC) ───────────────────
-    scans_raw = (
-        await execute(
-            supabase.table("scan_results")
-            .select(
-                "id, scanned_at, unified_score, track1_score, track2_score, "
-                "score_breakdown, growth_stage, top_missing_keywords, "
-                "naver_weight, global_weight, naver_result, competitor_scores"
-            )
-            .eq("business_id", biz_id)
-            .order("scanned_at", desc=False)
-            .limit(100)
+    # ── 1+2. scan_results 이력 + trial_scans(이메일 매칭) 병렬 조회 ──
+    _scans_coro = execute(
+        supabase.table("scan_results")
+        .select(
+            "id, scanned_at, unified_score, track1_score, track2_score, "
+            "score_breakdown, growth_stage, top_missing_keywords, "
+            "naver_weight, global_weight, naver_result, competitor_scores"
         )
-    ).data or []
-
-    # ── 2. trial_scans 최신 1개 (이메일 매칭) ────────────────────────
+        .eq("business_id", biz_id)
+        .order("scanned_at", desc=False)
+        .limit(100)
+    )
     trial_raw = None
     if user_email:
-        trial_rows = (
-            await execute(
+        _scans_res, _trial_res = await asyncio.gather(
+            _scans_coro,
+            execute(
                 supabase.table("trial_scans")
                 .select(
                     "id, scanned_at, business_name, unified_score, "
@@ -2447,10 +2456,14 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
                 .eq("email", user_email)
                 .order("scanned_at", desc=True)
                 .limit(1)
-            )
-        ).data or []
+            ),
+        )
+        trial_rows = _trial_res.data or []
         if trial_rows:
             trial_raw = trial_rows[0]
+    else:
+        _scans_res = await _scans_coro
+    scans_raw = _scans_res.data or []
 
     # ── 3. 기준 점수 결정 ────────────────────────────────────────────
     trial_score      = _safe_float((trial_raw or {}).get("unified_score"))
@@ -2890,6 +2903,17 @@ async def get_place_compare(biz_id: str, background_tasks: BackgroundTasks, user
     if not biz:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
 
+    # 경쟁사 목록 — 플랜별 최대 수 (pro/biz: 10개, 나머지: 5개) — Q3 미리 시작
+    comp_limit = 10 if plan in ("pro", "biz") else 5
+    _comp_task = asyncio.create_task(execute(
+        supabase.table("competitors")
+        .select("id, name, naver_review_count, naver_avg_rating, has_faq, has_recent_post, has_menu, has_intro, naver_photo_count, blog_mention_count, detail_synced_at")
+        .eq("business_id", biz_id)
+        .eq("is_active", True)
+        .order("naver_review_count", desc=True)
+        .limit(comp_limit)
+    ))
+
     # 최신 스캔의 smart_place_completeness_result에서 photo_count, has_menu, has_intro 가져오기
     sp_auto: dict = {}
     try:
@@ -2914,16 +2938,7 @@ async def get_place_compare(biz_id: str, background_tasks: BackgroundTasks, user
             _sync_my_place_completeness, biz_id, biz["naver_place_id"], supabase
         )
 
-    # 경쟁사 목록 — 플랜별 최대 수 (pro/biz: 10개, 나머지: 5개)
-    comp_limit = 10 if plan in ("pro", "biz") else 5
-    competitors = (await execute(
-        supabase.table("competitors")
-        .select("id, name, naver_review_count, naver_avg_rating, has_faq, has_recent_post, has_menu, has_intro, naver_photo_count, blog_mention_count, detail_synced_at")
-        .eq("business_id", biz_id)
-        .eq("is_active", True)
-        .order("naver_review_count", desc=True)
-        .limit(comp_limit)
-    )).data or []
+    competitors = (await _comp_task).data or []
 
     # 비교 항목 정의
     FIELDS = [
@@ -3113,20 +3128,22 @@ async def get_multi_biz_summary(user=Depends(get_current_user)):
     if not biz_list:
         return {"items": []}
     biz_ids = [b["id"] for b in biz_list]
-    scans_res = await execute(
-        supabase.table("scan_results")
-        .select("business_id, unified_score, track1_score, track2_score, total_score, scanned_at")
-        .in_("business_id", biz_ids).order("scanned_at", desc=True)
+    scans_res, comp_res = await asyncio.gather(
+        execute(
+            supabase.table("scan_results")
+            .select("business_id, unified_score, track1_score, track2_score, total_score, scanned_at")
+            .in_("business_id", biz_ids).order("scanned_at", desc=True)
+        ),
+        execute(
+            supabase.table("competitors").select("business_id")
+            .in_("business_id", biz_ids).eq("is_active", True)
+        ),
     )
     scan_map: dict = {}
     for s in (scans_res.data or []):
         bid = s["business_id"]
         if bid not in scan_map:
             scan_map[bid] = s
-    comp_res = await execute(
-        supabase.table("competitors").select("business_id")
-        .in_("business_id", biz_ids).eq("is_active", True)
-    )
     comp_count: dict = {}
     for c in (comp_res.data or []):
         bid = c["business_id"]
@@ -3426,6 +3443,17 @@ async def log_business_action(
     if plan == "free":
         raise HTTPException(status_code=403, detail="Basic 이상 플랜 필요")
 
+    today_str = date.today().isoformat()
+    # Q3(dup check) 미리 시작 — Q2(score_history)와 독립적으로 병렬 실행
+    _dup_task = asyncio.create_task(execute(
+        supabase.table("business_action_log")
+        .select("id")
+        .eq("business_id", biz_id)
+        .eq("action_type", action_type)
+        .eq("action_date", today_str)
+        .limit(1)
+    ))
+
     score_before = None
     try:
         latest_score = await execute(
@@ -3442,16 +3470,8 @@ async def log_business_action(
     except Exception as e:
         _logger.warning("[action_log] score_history 조회 실패: %s", e)
 
-    today_str = date.today().isoformat()
     try:
-        existing = await execute(
-            supabase.table("business_action_log")
-            .select("id")
-            .eq("business_id", biz_id)
-            .eq("action_type", action_type)
-            .eq("action_date", today_str)
-            .limit(1)
-        )
+        existing = await _dup_task
         if existing.data:
             return {"ok": True, "score_before": score_before, "duplicate": True}
     except Exception as e:
@@ -3917,21 +3937,15 @@ async def get_score_explanation(biz_id: str, user=Depends(get_current_user)):
     if cached is not None:
         return cached
 
-    # 사업장 기본 정보
-    biz = (
-        await execute(
+    # 사업장 기본 정보 + 최신 스캔 결과 병렬 조회
+    _biz_res, _scan_res = await asyncio.gather(
+        execute(
             supabase.table("businesses")
             .select("name, category, has_faq, has_recent_post, has_intro, is_smart_place, review_count, avg_rating, keywords")
             .eq("id", biz_id)
             .maybe_single()
-        )
-    ).data
-    if not biz:
-        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
-
-    # 최신 스캔 결과
-    scan = (
-        await execute(
+        ),
+        execute(
             supabase.table("scan_results")
             .select(
                 "total_score, track1_score, track2_score, unified_score, "
@@ -3941,8 +3955,12 @@ async def get_score_explanation(biz_id: str, user=Depends(get_current_user)):
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(1)
-        )
-    ).data
+        ),
+    )
+    biz = _biz_res.data
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+    scan = _scan_res.data
     if not scan:
         raise HTTPException(status_code=404, detail="스캔 결과가 없습니다. 먼저 AI 스캔을 실행해주세요.")
 
@@ -4071,29 +4089,30 @@ async def get_blog_screenshots(biz_id: str, user=Depends(get_current_user)):
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    # 사업장 키워드 목록 조회
-    biz_res = await execute(
-        supabase.table("businesses")
-        .select("keywords")
-        .eq("id", biz_id)
-        .maybe_single()
+    # 사업장 키워드 목록 + 스크린샷 병렬 조회 (Q2는 투기적 — Q1 조기 종료 시 폐기)
+    _biz_res, _shots_res = await asyncio.gather(
+        execute(
+            supabase.table("businesses")
+            .select("keywords")
+            .eq("id", biz_id)
+            .maybe_single()
+        ),
+        execute(
+            supabase.table("before_after")
+            .select("id, keyword, image_url, created_at")
+            .eq("business_id", biz_id)
+            .eq("capture_type", "blog_keyword")
+            .order("created_at", desc=True)
+        ),
     )
-    if not (biz_res and biz_res.data):
+    if not (_biz_res and _biz_res.data):
         return []
 
-    keywords = biz_res.data.get("keywords") or []
+    keywords = _biz_res.data.get("keywords") or []
     if not keywords:
         return []
 
-    # blog_keyword 타입의 스크린샷 전체 조회
-    shots_res = await execute(
-        supabase.table("before_after")
-        .select("id, keyword, image_url, created_at")
-        .eq("business_id", biz_id)
-        .eq("capture_type", "blog_keyword")
-        .order("created_at", desc=True)
-    )
-    shots = shots_res.data or []
+    shots = _shots_res.data or []
 
     # 키워드별 최신 1개만 추출
     keyword_map: dict = {}
@@ -4343,12 +4362,19 @@ async def run_blog_analysis(
             except Exception as e:
                 _logger.warning("블로그 쿨다운 체크 실패 (쿨다운 미적용): %s", e)
 
-    # 사업장 정보 조회
-    biz_res = await execute(
-        supabase.table("businesses")
-        .select("name, keywords, region, naver_blog_id, blog_url")
-        .eq("id", biz_id)
-        .maybe_single()
+    # 사업장 정보 + 경쟁사 목록 병렬 조회
+    biz_res, comp_res = await asyncio.gather(
+        execute(
+            supabase.table("businesses")
+            .select("name, keywords, region, naver_blog_id, blog_url")
+            .eq("id", biz_id)
+            .maybe_single()
+        ),
+        execute(
+            supabase.table("competitors")
+            .select("name")
+            .eq("business_id", biz_id)
+        ),
     )
     if not (biz_res and biz_res.data):
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다.")
@@ -4371,12 +4397,6 @@ async def run_blog_analysis(
     if not keywords:
         raise HTTPException(status_code=400, detail="등록된 키워드가 없습니다.")
 
-    # 경쟁사 이름 목록 조회
-    comp_res = await execute(
-        supabase.table("competitors")
-        .select("name")
-        .eq("business_id", biz_id)
-    )
     competitor_names: list[str] = [
         r["name"] for r in (comp_res.data or []) if r.get("name")
     ]
@@ -4473,33 +4493,33 @@ async def simulate_score(
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    # 최신 사업장 정보 조회
-    biz_res = await execute(
-        supabase.table("businesses")
-        .select(
-            "id, category, has_faq, has_recent_post, has_intro, is_smart_place, "
-            "naver_place_id, kakao_place_id, review_count, avg_rating, "
-            "keywords, receipt_review_count"
-        )
-        .eq("id", biz_id)
-        .maybe_single()
+    # 최신 사업장 정보 + 스캔 병렬 조회
+    biz_res, scan_res = await asyncio.gather(
+        execute(
+            supabase.table("businesses")
+            .select(
+                "id, category, has_faq, has_recent_post, has_intro, is_smart_place, "
+                "naver_place_id, kakao_place_id, review_count, avg_rating, "
+                "keywords, receipt_review_count"
+            )
+            .eq("id", biz_id)
+            .maybe_single()
+        ),
+        execute(
+            supabase.table("scan_results")
+            .select(
+                "naver_result, gemini_result, chatgpt_result, "
+                "google_result, kakao_result, website_check_result, "
+                "track1_score, track2_score, unified_score"
+            )
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+        ),
     )
     if not (biz_res and biz_res.data):
         raise HTTPException(status_code=404, detail="사업장 정보 없음")
     biz = biz_res.data
-
-    # 최신 스캔 조회
-    scan_res = await execute(
-        supabase.table("scan_results")
-        .select(
-            "naver_result, gemini_result, chatgpt_result, "
-            "google_result, kakao_result, website_check_result, "
-            "track1_score, track2_score, unified_score"
-        )
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
-    )
     if not (scan_res and scan_res.data):
         raise HTTPException(status_code=404, detail="스캔 데이터 없음")
 
@@ -4611,20 +4631,20 @@ async def get_score_delta(biz_id: str, user=Depends(get_current_user)):
         next_scan_kst += _td(days=1)
     next_auto_scan = next_scan_kst.isoformat()
 
-    # 수동 스캔 잔여 횟수 (side effect 없음)
-    remaining, daily_limit = await _get_scan_remaining(user["id"], supabase)
-
-    # 마지막 스캔 조회
-    scan_res = await execute(
-        supabase.table("scan_results")
-        .select(
-            "naver_result, gemini_result, chatgpt_result, "
-            "google_result, kakao_result, website_check_result, "
-            "score_breakdown, track1_score, scanned_at"
-        )
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
+    # 수동 스캔 잔여 횟수 + 마지막 스캔 병렬 조회 (둘 다 biz_id/user_id 독립)
+    (remaining, daily_limit), scan_res = await asyncio.gather(
+        _get_scan_remaining(user["id"], supabase),
+        execute(
+            supabase.table("scan_results")
+            .select(
+                "naver_result, gemini_result, chatgpt_result, "
+                "google_result, kakao_result, website_check_result, "
+                "score_breakdown, track1_score, scanned_at"
+            )
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+        ),
     )
     if not (scan_res and scan_res.data):
         return {
@@ -5348,14 +5368,67 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
 
     now_utc = datetime.now(timezone.utc)
     month_label = f"{now_utc.month}월"
+    seven_days_ago = (now_utc - timedelta(days=7)).isoformat()
+    month_start = now_utc.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
 
-    # 1. businesses에서 review_count, keywords 가져오기
-    biz_res = await execute(
-        supabase.table("businesses")
-        .select("review_count, keywords, category, naver_place_id, naver_place_url")
-        .eq("id", biz_id)
+    # Q2(competitor_scores, try/except) 미리 시작 — Q1~Q6 모두 독립적, 최대 병렬화
+    _comp_task = asyncio.create_task(execute(
+        supabase.table("scan_results")
+        .select("competitor_scores")
+        .eq("business_id", biz_id)
+        .order("scanned_at", desc=True)
         .limit(1)
-    )
+    ))
+
+    # Q1+Q3+Q4+Q5+Q6 동시 조회
+    try:
+        biz_res, scan_res, recent_scan_res, action_res, streak_res = await asyncio.gather(
+            # 1. businesses
+            execute(
+                supabase.table("businesses")
+                .select("review_count, keywords, category, naver_place_id, naver_place_url")
+                .eq("id", biz_id)
+                .limit(1)
+            ),
+            # 2(main). scan_results 최신 1건
+            execute(
+                supabase.table("scan_results")
+                .select("scanned_at, keyword_coverage, score_breakdown, smart_place_completeness_result")
+                .eq("business_id", biz_id)
+                .order("scanned_at", desc=True)
+                .limit(1)
+            ),
+            # 3. 최근 7일 내 스캔 여부
+            execute(
+                supabase.table("scan_results")
+                .select("id")
+                .eq("business_id", biz_id)
+                .gte("scanned_at", seven_days_ago)
+                .limit(1)
+            ),
+            # 4. 이번 달 business_action_log
+            execute(
+                supabase.table("business_action_log")
+                .select("id")
+                .eq("business_id", biz_id)
+                .gte("action_date", month_start)
+                .limit(1)
+            ),
+            # 5. streak 계산용 score_history
+            execute(
+                supabase.table("score_history")
+                .select("score_date")
+                .eq("business_id", biz_id)
+                .order("score_date", desc=True)
+                .limit(60)
+            ),
+        )
+    except Exception:
+        # _comp_task(Q2, competitor_scores)가 미회수 상태로 남지 않도록 취소
+        # ("Task exception was never retrieved" 경고 방지, 2026-08-08)
+        _comp_task.cancel()
+        raise
+
     biz_rows = (biz_res.data or []) if biz_res else []
     biz_row = biz_rows[0] if biz_rows else {}
     review_count = int((biz_row.get("review_count") if biz_row else None) or 0)
@@ -5366,13 +5439,7 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
     # 경쟁사 평균 점수 조회 (monthly-checklist 기준값 개인화)
     _comp_avg_score: float | None = None
     try:
-        _scan_comp_res = await execute(
-            supabase.table("scan_results")
-            .select("competitor_scores")
-            .eq("business_id", biz_id)
-            .order("scanned_at", desc=True)
-            .limit(1)
-        )
+        _scan_comp_res = await _comp_task
         _scan_comp_rows = (_scan_comp_res.data or []) if _scan_comp_res else []
         if _scan_comp_rows:
             _raw_comp = _scan_comp_rows[0].get("competitor_scores") or {}
@@ -5387,14 +5454,6 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
     except Exception as e:
         _logger.warning(f"[monthly_checklist] competitor_scores 조회 실패: {e}")
 
-    # 2. scan_results 최신 1건 (keyword_coverage, score_breakdown, smart_place_completeness_result)
-    scan_res = await execute(
-        supabase.table("scan_results")
-        .select("scanned_at, keyword_coverage, score_breakdown, smart_place_completeness_result")
-        .eq("business_id", biz_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
-    )
     scan_rows = (scan_res.data or []) if scan_res else []
     latest = scan_rows[0] if scan_rows else {}
     has_any_scan = bool(scan_rows)  # 스캔 이력 유무
@@ -5438,36 +5497,8 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
         or (photo_count == 0 and smart_place_score >= 70)
     )
 
-    # 3. 최근 7일 내 스캔 여부
-    seven_days_ago = (now_utc - timedelta(days=7)).isoformat()
-    recent_scan_res = await execute(
-        supabase.table("scan_results")
-        .select("id")
-        .eq("business_id", biz_id)
-        .gte("scanned_at", seven_days_ago)
-        .limit(1)
-    )
     has_recent_scan = bool((recent_scan_res.data or []) if recent_scan_res else [])
-
-    # 4. 이번 달 business_action_log
-    month_start = now_utc.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
-    action_res = await execute(
-        supabase.table("business_action_log")
-        .select("id")
-        .eq("business_id", biz_id)
-        .gte("action_date", month_start)
-        .limit(1)
-    )
     has_action_this_month = bool((action_res.data or []) if action_res else [])
-
-    # 5. streak 계산
-    streak_res = await execute(
-        supabase.table("score_history")
-        .select("score_date")
-        .eq("business_id", biz_id)
-        .order("score_date", desc=True)
-        .limit(60)
-    )
     streak_rows = (streak_res.data or []) if streak_res else []
 
     streak_days = 0
@@ -5616,6 +5647,24 @@ async def get_score_attribution(
 
     since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
 
+    # Q2(action_log) + Q3(score_history) 미리 시작 — Q1(businesses)과 독립적
+    _action_task = asyncio.create_task(execute(
+        supabase.table("business_action_log")
+        .select("action_type,action_label,action_date,score_before,score_after,created_at")
+        .eq("business_id", biz_id)
+        .gte("action_date", since[:10])
+        .order("action_date", desc=True)
+        .limit(30)
+    ))
+    _hist_task = asyncio.create_task(execute(
+        supabase.table("score_history")
+        .select("score_date,unified_score,score_breakdown")
+        .eq("business_id", biz_id)
+        .gte("score_date", since[:10])
+        .order("score_date", desc=False)
+        .limit(100)
+    ))
+
     # 사업장 업종 조회
     try:
         biz_res = await execute(
@@ -5635,14 +5684,7 @@ async def get_score_attribution(
 
     # action_log 조회
     try:
-        log_res = await execute(
-            supabase.table("business_action_log")
-            .select("action_type,action_label,action_date,score_before,score_after,created_at")
-            .eq("business_id", biz_id)
-            .gte("action_date", since[:10])
-            .order("action_date", desc=True)
-            .limit(30)
-        )
+        log_res = await _action_task
         action_logs = log_res.data or []
     except Exception as e:
         _logger.warning("[score_attribution] action_log 조회 실패: %s", e)
@@ -5652,14 +5694,7 @@ async def get_score_attribution(
     # [2026-05-01] score_breakdown 토글: 컬럼 존재 시 사용, 미존재 시 unified_score만 (graceful).
     # ALTER 실행되면 자동으로 score_breakdown 활용 (score-attribution 정밀도 강화).
     try:
-        hist_res = await execute(
-            supabase.table("score_history")
-            .select("score_date,unified_score,score_breakdown")
-            .eq("business_id", biz_id)
-            .gte("score_date", since[:10])
-            .order("score_date", desc=False)
-            .limit(100)
-        )
+        hist_res = await _hist_task
         score_history = hist_res.data or []
     except Exception as e:
         if "score_breakdown" in str(e):
@@ -6037,35 +6072,39 @@ async def get_competitor_profile(
         or category in BRIEFING_LIKELY_CATEGORIES
     )
 
-    # --- 경쟁사 조회 ---
-    try:
-        comps_resp = await execute(
-            supabase.table("competitors")
-            .select(
-                "id, name, naver_place_id, "
-                "naver_review_count, naver_avg_rating, "
-                "has_faq, has_recent_post, has_menu, has_intro, "
-                "naver_photo_count, blog_mention_count, website_seo_score, "
-                "naver_place_last_synced_at"
-            )
-            .eq("business_id", biz_id)
-            .eq("is_active", True)
+    # --- 경쟁사 + 최신 스캔 병렬 조회 (둘 다 Q1 결과 불필요) ---
+    _comps_task = asyncio.create_task(execute(
+        supabase.table("competitors")
+        .select(
+            "id, name, naver_place_id, "
+            "naver_review_count, naver_avg_rating, "
+            "has_faq, has_recent_post, has_menu, has_intro, "
+            "naver_photo_count, blog_mention_count, website_seo_score, "
+            "naver_place_last_synced_at"
         )
+        .eq("business_id", biz_id)
+        .eq("is_active", True)
+    ))
+    _scan_task = asyncio.create_task(execute(
+        supabase.table("scan_results")
+        .select("competitor_scores, score_breakdown")
+        .eq("business_id", biz_id)
+        .order("scanned_at", desc=True)
+        .limit(1)
+    ))
+
+    # --- 경쟁사 조회 결과 수집 ---
+    try:
+        comps_resp = await _comps_task
         comps: list[dict] = (comps_resp.data if comps_resp and hasattr(comps_resp, "data") else comps_resp) or []
     except Exception as e:
         _logger.warning("[competitor_profile] 경쟁사 조회 실패 biz_id=%s: %s", biz_id, e)
         comps = []
 
-    # --- 최신 스캔 competitor_scores 조회 ---
+    # --- 최신 스캔 competitor_scores 조회 결과 수집 ---
     ai_scores: dict = {}
     try:
-        scan_resp = await execute(
-            supabase.table("scan_results")
-            .select("competitor_scores, score_breakdown")
-            .eq("business_id", biz_id)
-            .order("scanned_at", desc=True)
-            .limit(1)
-        )
+        scan_resp = await _scan_task
         if scan_resp and scan_resp.data:
             raw_cs = scan_resp.data[0].get("competitor_scores") or {}
             if isinstance(raw_cs, dict):
