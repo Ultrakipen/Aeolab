@@ -62,16 +62,17 @@ export function ShowcaseTabs() {
         </div>
 
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-auto max-h-[75vh]">
+          {/* 실제 제품과 동일한 글자 크기로 보이도록 축소 없이 원본 픽셀 그대로 표시 — 좌우·상하 스크롤로 탐색 */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`/showcase/${item.file}`}
             width={item.width}
             height={item.height}
             alt={`AEOlab ${item.title} 실제 화면`}
-            className="w-full h-auto block"
+            className="block max-w-none"
           />
         </div>
-        <p className="text-sm text-gray-400 mt-2">화면 안에서 스크롤해 전체 내용을 볼 수 있습니다 · 텍스트가 작다면 원본 크기 보기를 눌러주세요</p>
+        <p className="text-sm text-gray-400 mt-2">실제 제품과 동일한 글자 크기로 표시됩니다 · 좌우·상하로 스크롤해 전체 화면을 확인하세요</p>
       </section>
     </div>
   );
