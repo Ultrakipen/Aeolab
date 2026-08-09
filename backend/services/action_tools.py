@@ -1176,23 +1176,17 @@ def pick_top_action(scan_result: dict, biz_category: str, keyword_gap=None) -> d
 
 
 async def _generate_json_ld(biz: dict) -> str:
-    """JSON-LD 구조화 데이터 생성"""
-    try:
-        from services.schema_generator import generate_schema
-        schema = generate_schema(
-            business_name=biz.get("name", ""),
-            category=biz.get("category", ""),
-            region=biz.get("region", ""),
-            address=biz.get("address"),
-            phone=biz.get("phone"),
-            website_url=biz.get("website_url"),
-        )
-        return f'<script type="application/ld+json">\n{json.dumps(schema, ensure_ascii=False, indent=2)}\n</script>'
-    except Exception as e:
-        _logger.warning(f"JSON-LD generation failed: {e}")
-        # 기본 LocalBusiness 스키마
-        name = biz.get("name", "")
-        return f'''<script type="application/ld+json">
+    """JSON-LD 구조화 데이터 생성 (기본 LocalBusiness 스키마).
+
+    2026-08-09 발견: 과거 여기서 services.schema_generator.generate_schema를
+    import하려 했으나 그 함수는 존재한 적이 없어(실제 사용자 대상 JSON-LD 생성은
+    routers/schema_gen.py에 완전히 이관·통합됨, generate_local_business_schema는
+    이제 빈 stub) 매번 ImportError로 폴백만 반환했었다. 프론트엔드 어디서도 이
+    guide.tools_json.json_ld_schema 값을 읽지 않는 것도 확인됨(순수 죽은 코드) —
+    실패할 수밖에 없던 import 시도를 제거하고 실제 쓰이던 폴백을 그대로 정식 구현으로 정리.
+    """
+    name = biz.get("name", "")
+    return f'''<script type="application/ld+json">
 {{
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
