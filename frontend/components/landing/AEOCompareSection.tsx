@@ -47,11 +47,11 @@ export default function AEOCompareSection() {
             <p className="text-sm font-bold tracking-wider mb-1" style={{ color: "#64748B" }}>
               기존 SEO 서비스
             </p>
-            <p className="text-base font-black mb-4" style={{ color: "#94A3B8" }}>웹 검색 최적화</p>
+            <p className="text-base font-black mb-4" style={{ color: "#64748B" }}>웹 검색 최적화</p>
             <div className="space-y-3">
               {FEATURES.map((f) => (
                 <div key={f.label} className="flex items-center justify-between">
-                  <span className="text-sm" style={{ color: "#94A3B8" }}>{f.label}</span>
+                  <span className="text-sm" style={{ color: "#64748B" }}>{f.label}</span>
                   <FeatureCheck ok={f.seo} />
                 </div>
               ))}
@@ -66,11 +66,11 @@ export default function AEOCompareSection() {
             <p className="text-sm font-bold tracking-wider mb-1" style={{ color: "#64748B" }}>
               네이버 플레이스 관리
             </p>
-            <p className="text-base font-black mb-4" style={{ color: "#94A3B8" }}>플레이스 최적화</p>
+            <p className="text-base font-black mb-4" style={{ color: "#64748B" }}>플레이스 최적화</p>
             <div className="space-y-3">
               {FEATURES.map((f) => (
                 <div key={f.label} className="flex items-center justify-between">
-                  <span className="text-sm" style={{ color: "#94A3B8" }}>{f.label}</span>
+                  <span className="text-sm" style={{ color: "#64748B" }}>{f.label}</span>
                   <FeatureCheck ok={f.naver} />
                 </div>
               ))}

@@ -168,7 +168,7 @@ export default function InlineKeywordWidget() {
                   </button>
                 ))}
               </div>
-              <p className="text-sm mt-2" style={{ color: "#94A3B8" }}>
+              <p className="text-sm mt-2" style={{ color: "#64748B" }}>
                 키워드를 클릭하면 복사됩니다 · 더 많은 키워드와 상세 분석은 무료 진단에서 제공됩니다
               </p>
             </div>

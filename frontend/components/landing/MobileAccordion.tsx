@@ -13,11 +13,13 @@ import { useState } from "react";
 export function MobileAccordion({
   label,
   children,
+  defaultOpen = false,
 }: {
   label: string;
   children: React.ReactNode;
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
     <>

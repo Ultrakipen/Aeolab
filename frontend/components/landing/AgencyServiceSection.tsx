@@ -99,7 +99,7 @@ export default function AgencyServiceSection() {
               <div className="flex items-center justify-between">
                 <span
                   className="text-sm font-bold"
-                  style={{ color: pkg.highlight ? "#2563EB" : "#94A3B8" }}
+                  style={{ color: pkg.highlight ? "#2563EB" : "#64748B" }}
                 >
                   {pkg.num}
                 </span>

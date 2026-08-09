@@ -349,7 +349,7 @@ export default function LandingPage() {
       {/* ── 3-B. TRUST — AEOlab 서비스 신뢰 지표 (모바일 접힘, 스크롤 길이 영향 없음) ── */}
       <div className="px-4 py-3 md:p-0">
         <div className="max-w-[1020px] mx-auto">
-          <MobileAccordion label="AEOlab이 실제로 측정하는 것 — 신뢰 지표 보기">
+          <MobileAccordion label="AEOlab이 실제로 측정하는 것 — 신뢰 지표 보기" defaultOpen>
             <Testimonials />
           </MobileAccordion>
         </div>
@@ -606,7 +606,7 @@ export default function LandingPage() {
             음식점·카페·베이커리·바·숙박업 등 플레이스형 네이버 AI 브리핑 대상 업종 기준 ·{" "}
             <strong style={{ color: "#6366F1" }}>그 외 업종도 블로그·콘텐츠 채택 시 정보형 AI 브리핑 노출 가능 + AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini·Google AI 가이드 자동 제공</strong>
           </p>
-          <p className="text-center text-sm mt-2 fade-up break-keep" style={{ color: "#94A3B8" }}>
+          <p className="text-center text-sm mt-2 fade-up break-keep" style={{ color: "#64748B" }}>
             AI 브리핑 노출은 네이버 알고리즘 기준으로 보장되지 않으며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
           </p>
           </MobileAccordion>
@@ -768,7 +768,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <p className="text-center text-sm mt-4 fade-up break-keep" style={{ color: "#94A3B8" }}>
+          <p className="text-center text-sm mt-4 fade-up break-keep" style={{ color: "#64748B" }}>
             AI 브리핑·AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
           </p>
           </MobileAccordion>
@@ -1094,7 +1094,7 @@ export default function LandingPage() {
               <p className="text-sm" style={{ color: "#64748B" }}>
                 광고비 30만원 × 30% × 12개월 − AEOlab 연 118,800원 기준 추정
               </p>
-              <p className="text-sm mt-1" style={{ color: "#94A3B8" }}>
+              <p className="text-sm mt-1" style={{ color: "#64748B" }}>
                 계산 기준: 광고비의 30%를 AI 노출로 대체 가능하다고 가정 · 실제 효과는 업종·지역·경쟁 강도에 따라 다릅니다
               </p>
             </div>
@@ -1108,7 +1108,7 @@ export default function LandingPage() {
               >
                 직접 계산해보기 →
               </Link>
-              <p className="text-sm" style={{ color: "#94A3B8" }}>
+              <p className="text-sm" style={{ color: "#64748B" }}>
                 내 광고비로 계산
               </p>
             </div>
@@ -1140,17 +1140,17 @@ export default function LandingPage() {
               className="text-center border-r pr-3 md:pr-6"
               style={{ borderColor: "#BFDBFE" }}
             >
-              <p className="text-sm mb-0.5 font-medium" style={{ color: "#94A3B8" }}>네이버 광고</p>
+              <p className="text-sm mb-0.5 font-medium" style={{ color: "#64748B" }}>네이버 광고</p>
               <p
                 className="text-2xl md:text-3xl lg:text-4xl font-black line-through break-keep"
                 style={{
-                  color: "#94A3B8",
+                  color: "#64748B",
                   fontFamily: "var(--font-pretendard,'Pretendard Variable',sans-serif)",
                 }}
               >
                 월 30~<br className="sm:hidden" />100만원+
               </p>
-              <p className="text-sm mt-0.5" style={{ color: "#94A3B8" }}>끊으면 사라짐</p>
+              <p className="text-sm mt-0.5" style={{ color: "#64748B" }}>끊으면 사라짐</p>
             </div>
             <div className="text-center pl-3 md:pl-6">
               <p className="text-sm font-bold mb-0.5 tracking-wider" style={{ color: "#2563EB" }}>AEOlab</p>
