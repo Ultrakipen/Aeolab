@@ -868,7 +868,7 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
         bd = r.get("score_breakdown") or {}
         writer.writerow([
             _csv_safe(r.get("scanned_at", "")),
-            r.get("total_score") or r.get("unified_score", ""),
+            r.get("total_score") if r.get("total_score") is not None else r.get("unified_score", ""),
             r.get("track1_score", ""),
             r.get("track2_score", ""),
             _csv_safe(r.get("query_used", "")),
@@ -955,7 +955,9 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
 
     # ── [지역 내 경쟁 현황] — PDF와 동일 데이터, DB 조회만(추가 API 비용 없음) ──
     if rows:
-        my_total = float(rows[0].get("total_score") or rows[0].get("unified_score") or 0)
+        _my_total_raw = rows[0].get("total_score")
+        _my_unified_raw = rows[0].get("unified_score")
+        my_total = float(_my_total_raw if _my_total_raw is not None else (_my_unified_raw if _my_unified_raw is not None else 0))
         competitor_profiles = await _fetch_competitor_profiles(supabase, biz_id, rows[0].get("competitor_scores"))
         if competitor_profiles:
             entries = [{"name": biz.get("name") or "우리 가게", "score": my_total, "is_me": True}]

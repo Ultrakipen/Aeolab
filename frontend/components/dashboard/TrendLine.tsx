@@ -234,14 +234,23 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
                 />
               )}
               <span>{log.action_date.slice(5)} {deltaLabel(log)}</span>
-              {/* 차트 범위 밖(재스캔 뜸함) — 점선을 그릴 수 없어 대신 안내 */}
+              {/* 차트 범위 밖 — 점선을 그릴 수 없어 대신 안내.
+                  재스캔은 항상 "오늘" 날짜에만 score_history 행을 만들므로,
+                  오늘 기록된 행동(daysSince<=0)에만 "재스캔 시 반영"이 사실임.
+                  과거 날짜는 그 날 스캔이 없었던 것이라 재스캔으로 채워지지 않음 */}
               {!log.inRange && (
-                <span className="text-gray-500">
-                  · {log.daysSince}일 전 완료 · 재스캔 시 반영 —{' '}
-                  <a href="/dashboard" className="underline underline-offset-2 hover:opacity-80">
-                    지금 재스캔 →
-                  </a>
-                </span>
+                log.daysSince <= 0 ? (
+                  <span className="text-gray-500">
+                    · 오늘 기록됨 · 재스캔 시 반영 —{' '}
+                    <a href="/dashboard" className="underline underline-offset-2 hover:opacity-80">
+                      지금 재스캔 →
+                    </a>
+                  </span>
+                ) : (
+                  <span className="text-gray-500">
+                    · {log.daysSince}일 전 완료 · 해당 날짜에 스캔 기록이 없어 그래프에는 표시되지 않습니다
+                  </span>
+                )
               )}
             </div>
           ))}

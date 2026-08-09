@@ -99,6 +99,16 @@ def _grade(val) -> str:
     except (TypeError, ValueError):
         return "low"
 
+def _score_nz(r: dict) -> float:
+    """total_score 우선, 없으면(None) unified_score, 둘 다 없으면 0.
+    falsy-zero 버그 방지 — 0.0은 유효한 실측값(AI 노출 전혀 없음)이므로
+    `or`로 판별하면 안 되고 반드시 `is not None`으로 판별해야 함."""
+    t = r.get("total_score")
+    if t is not None:
+        return float(t)
+    u = r.get("unified_score")
+    return float(u) if u is not None else 0.0
+
 def _text_label(score) -> str:
     """frontend/lib/scoreLabels.ts getScoreTextLabel()과 동일 기준(75/55/30) —
     블로그 진단 등 개별 지표를 대시보드와 동일한 문구로 표시할 때 사용."""
@@ -429,8 +439,7 @@ def _banner(text: str, bg: str, border: str, S: dict):
 def _trend(history: list) -> str:
     if not history or len(history) < 2:
         return ""
-    def _s(r): return float(r.get("total_score") or r.get("unified_score") or 0)
-    diff = _s(history[0]) - _s(history[-1])
+    diff = _score_nz(history[0]) - _score_nz(history[-1])
     if abs(diff) < 1:
         return f"최근 {len(history)}회 측정 동안 점수 변화 거의 없음"
     return f"최근 {len(history)}회 측정 동안 {'상승' if diff > 0 else '하락'} 추세"
@@ -515,7 +524,7 @@ def _history_chart(history: list) -> Optional[Drawing]:
 
     def _score(r):
         try:
-            return float(r.get("total_score") or r.get("unified_score") or 0)
+            return _score_nz(r)
         except (TypeError, ValueError):
             return 0.0
 
@@ -774,7 +783,7 @@ def generate_pdf_report(
     keywords   = biz.get("keywords") or []
     is_franc   = bool(biz.get("is_franchise", False))
     bd         = latest_scan.get("score_breakdown") or {}
-    total      = float(latest_scan.get("total_score") or latest_scan.get("unified_score") or 0)
+    total      = _score_nz(latest_scan)
     scan_date  = _scanned_at_to_kst_date(latest_scan.get("scanned_at"))
     elig       = _elig(category, is_franc, bd)
     stage_lbl, stage_desc = _stage(total)

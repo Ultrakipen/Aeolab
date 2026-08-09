@@ -3575,15 +3575,37 @@ async def keyword_rank_scan(
             _logger.warning(f"keyword_rank scan_results insert 실패 [biz={req.biz_id}]: {e}")
 
     # score_history에 시계열 기록 (graceful — 컬럼 미존재 시 무시)
+    # score_date NOT NULL + UNIQUE(business_id, score_date) — 당일 풀스캔이 이미
+    # score_history 행을 만들어둔 경우가 흔해, 무조건 insert하면 score_date 누락
+    # (NOT NULL 위반) 또는 중복(UNIQUE 위반)으로 항상 실패했음(jobs.py의 스케줄 잡
+    # 버전과 동일 버그, 동일 패턴으로 수정 — 기존 행 있으면 update, 없으면 score_date
+    # 포함 insert).
     if avg_rank is not None:
         try:
-            await execute(
-                supabase.table("score_history").insert({
-                    "business_id": req.biz_id,
-                    "context": "keyword_rank",
-                    "keyword_rank_avg": avg_rank,
-                })
+            from datetime import date as _date
+            _today_str = str(_date.today())
+            _existing_sh = await execute(
+                supabase.table("score_history")
+                    .select("id")
+                    .eq("business_id", req.biz_id)
+                    .eq("score_date", _today_str)
+                    .limit(1)
             )
+            if _existing_sh and _existing_sh.data:
+                await execute(
+                    supabase.table("score_history")
+                        .update({"keyword_rank_avg": avg_rank})
+                        .eq("id", _existing_sh.data[0]["id"])
+                )
+            else:
+                await execute(
+                    supabase.table("score_history").insert({
+                        "business_id": req.biz_id,
+                        "score_date": _today_str,
+                        "context": "keyword_rank",
+                        "keyword_rank_avg": avg_rank,
+                    })
+                )
         except Exception as e:
             _logger.warning(f"keyword_rank score_history insert 실패 [biz={req.biz_id}]: {e}")
 
