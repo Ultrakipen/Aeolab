@@ -9,6 +9,7 @@ export function SiteFooter({ activePage }: { activePage?: string }) {
     { href: '/faq',     label: 'FAQ' },
     { href: '/pricing', label: '요금제' },
     { href: '/demo',    label: '미리보기' },
+    { href: '/showcase', label: '실사용 화면' },
     { href: '/trial',   label: '무료 체험' },
   ]
   const legalLinks = [

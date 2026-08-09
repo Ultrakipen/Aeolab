@@ -29,6 +29,7 @@ export default function PricingPage() {
             <Link href="/how-it-works" className="hidden lg:block text-sm text-gray-600 hover:text-gray-900 whitespace-nowrap">서비스 안내</Link>
             <Link href="/faq" className="hidden md:block text-sm text-gray-600 hover:text-gray-900">FAQ</Link>
             <Link href="/demo" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">미리보기</Link>
+            <Link href="/showcase" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">실사용 화면</Link>
             <AuthNavControlClient />
             <Link href="/trial" className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
               무료 체험
@@ -43,6 +44,16 @@ export default function PricingPage() {
         <p className="text-center text-base md:text-xl text-gray-500 mb-6">
           네이버 AI 브리핑 · ChatGPT · Gemini — AI가 내 가게를 먼저 추천하게 만드세요
         </p>
+
+        {/* 실사용 화면 유도 배너 */}
+        <div className="text-center mb-6">
+          <Link
+            href="/showcase"
+            className="inline-flex items-center gap-1.5 text-sm md:text-base text-blue-600 font-semibold hover:underline"
+          >
+            💡 실제 구독 사업장 화면 8개를 그대로 확인해보세요 →
+          </Link>
+        </div>
 
         {/* 업종 선택 → 그룹별 가치 메시지 */}
         <GroupHeadlineBanner />

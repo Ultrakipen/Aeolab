@@ -81,6 +81,13 @@ export default function LandingPage() {
             >
               FAQ
             </Link>
+            <Link
+              href="/showcase"
+              className="hidden md:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
+              style={{ color: "#475569" }}
+            >
+              실사용 화면
+            </Link>
             {/* PC 전용 도움말 검색창 — lg:flex (lg 미만에서 숨김) */}
             <div className="hidden lg:flex items-center ml-2">
               <HeaderHelpSearch />
@@ -1029,6 +1036,13 @@ export default function LandingPage() {
             <p className="text-sm mt-2 break-keep" style={{ color: "#475569" }}>
               자동 측정 · 카카오 알림 · AI 개선 가이드 — 한 번 설정하면 알아서 관리
             </p>
+            <Link
+              href="/showcase"
+              className="inline-block text-sm font-semibold mt-3 hover:underline"
+              style={{ color: "#2563EB" }}
+            >
+              예시 말고 실제 구독 사업장 화면이 궁금하다면 →
+            </Link>
           </div>
           <DashboardPreview />
           </MobileAccordion>
