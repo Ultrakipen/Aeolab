@@ -26,9 +26,10 @@ PASSWORD = os.environ.get("SHOWCASE_PASSWORD")
 
 OUTPUT_DIR = Path(__file__).resolve().parents[2] / "frontend" / "public" / "showcase"
 
-# 마스킹 대상 — 실제 상호명 → 표시용 마스킹 문구 (경쟁사명·지역명 등은 그대로 유지)
+# 마스킹 대상 — 실제 상호명·로그인 이메일 → 표시용 문구 (경쟁사명·지역명 등은 그대로 유지)
 BUSINESS_NAME = "홍뮤직스튜디오작곡교습소"
 MASK_TEXT = "OO음악학원"
+EMAIL_MASK_TEXT = "owner@example.com"
 
 PAGES = [
     ("/dashboard", "01_dashboard", "대시보드"),
@@ -46,23 +47,44 @@ VIEWPORTS = [
     ("mobile", {"width": 390, "height": 844}, "_mobile"),
 ]
 
+EXPAND_JS = """
+() => {
+    // [aria-haspopup]은 계정 메뉴 등 팝업 트리거(콘텐츠 아코디언 아님) — 실제 이메일 등이
+    // 노출될 수 있어 제외. 콘텐츠 섹션만 펼친다.
+    const els = Array.from(document.querySelectorAll('[aria-expanded="false"]:not([aria-haspopup])'));
+    els.forEach((el) => { try { el.click(); } catch (e) {} });
+    return els.length;
+}
+"""
+
 MASK_JS = """
-({businessName, maskText}) => {
+(pairs) => {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     const nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
     let count = 0;
     for (const node of nodes) {
-        if (node.nodeValue && node.nodeValue.includes(businessName)) {
-            node.nodeValue = node.nodeValue.split(businessName).join(maskText);
-            count++;
+        for (const {find, replace} of pairs) {
+            if (find && node.nodeValue && node.nodeValue.includes(find)) {
+                node.nodeValue = node.nodeValue.split(find).join(replace);
+                count++;
+            }
         }
     }
-    // input/textarea value는 텍스트 노드가 아니라 위 TreeWalker로 못 잡음 (예: /schema 폼)
-    document.querySelectorAll('input, textarea').forEach((el) => {
-        if (el.value && el.value.includes(businessName)) {
-            el.value = el.value.split(businessName).join(maskText);
-            count++;
+    // input/textarea value·title 속성은 텍스트 노드가 아니라 위 TreeWalker로 못 잡음
+    // (예: /schema 폼 입력값, 계정 메뉴 이메일 title 속성)
+    document.querySelectorAll('input, textarea, [title]').forEach((el) => {
+        for (const {find, replace} of pairs) {
+            if (!find) continue;
+            if ('value' in el && el.value && el.value.includes(find)) {
+                el.value = el.value.split(find).join(replace);
+                count++;
+            }
+            const title = el.getAttribute('title');
+            if (title && title.includes(find)) {
+                el.setAttribute('title', title.split(find).join(replace));
+                count++;
+            }
         }
     });
     return count;
@@ -77,7 +99,18 @@ async def capture_pages(context, suffix: str):
             print(f"캡처 중[{suffix or 'desktop'}]: {label} ({path})")
             await page.goto(f"{BASE_URL}{path}", wait_until="networkidle", timeout=30000)
             await page.wait_for_timeout(2500)
-            masked = await page.evaluate(MASK_JS, {"businessName": BUSINESS_NAME, "maskText": MASK_TEXT})
+            # 접힌 아코디언(aria-expanded=false)을 펼쳐 실제 콘텐츠 깊이가 보이도록 함.
+            # 라디오형(상호배타) 아코디언은 마지막 클릭 항목만 열린 채 남음 — 안전한 단일 순회, 무한루프 없음.
+            # 2회 순회: 1차에서 펼친 섹션 안에 중첩된 토글이 새로 나타나는 경우까지 커버.
+            for _ in range(2):
+                expanded_count = await page.evaluate(EXPAND_JS)
+                if not expanded_count:
+                    break
+                await page.wait_for_timeout(500)
+            masked = await page.evaluate(MASK_JS, [
+                {"find": BUSINESS_NAME, "replace": MASK_TEXT},
+                {"find": EMAIL, "replace": EMAIL_MASK_TEXT},
+            ])
             if masked:
                 print(f"  상호명 마스킹 {masked}건")
             await page.wait_for_timeout(300)

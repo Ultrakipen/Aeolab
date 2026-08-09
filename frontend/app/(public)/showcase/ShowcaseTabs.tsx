@@ -14,12 +14,12 @@ interface ShowcaseItem {
 }
 
 const ITEMS: ShowcaseItem[] = [
-  { desktopFile: "01_dashboard.png", desktopWidth: 1440, desktopHeight: 4914, mobileFile: "01_dashboard_mobile.png", mobileWidth: 390, mobileHeight: 4524, title: "대시보드", desc: "네이버·글로벌 AI 노출 현황, 오늘 할 일, 키워드 검색 순위를 한눈에 봅니다." },
+  { desktopFile: "01_dashboard.png", desktopWidth: 1440, desktopHeight: 17944, mobileFile: "01_dashboard_mobile.png", mobileWidth: 390, mobileHeight: 27223, title: "대시보드", desc: "네이버·글로벌 AI 노출 현황, 오늘 할 일, 키워드 검색 순위를 한눈에 봅니다." },
   { desktopFile: "02_competitors.png", desktopWidth: 1440, desktopHeight: 5074, mobileFile: "02_competitors_mobile.png", mobileWidth: 390, mobileHeight: 2396, title: "경쟁사 관리", desc: "주변 경쟁 가게와 AI 노출·리뷰·소개글 완성도를 항목별로 비교합니다." },
   { desktopFile: "03_history.png", desktopWidth: 1440, desktopHeight: 9404, mobileFile: "03_history_mobile.png", mobileWidth: 390, mobileHeight: 8469, title: "변화 기록", desc: "스캔할 때마다 AI 노출 상태가 어떻게 바뀌었는지 시점별로 기록합니다." },
   { desktopFile: "04_growth.png", desktopWidth: 1440, desktopHeight: 3780, mobileFile: "04_growth_mobile.png", mobileWidth: 390, mobileHeight: 4388, title: "성장 리포트", desc: "AI 노출 점수 변화, 내가 한 행동과 결과, 업종 내 위치를 정리해 보여줍니다." },
-  { desktopFile: "05_guide.png", desktopWidth: 1440, desktopHeight: 4999, mobileFile: "05_guide_mobile.png", mobileWidth: 390, mobileHeight: 7094, title: "개선 가이드", desc: "지금 바로 실행 가능한 개선 방법을 AI가 사업장별로 맞춤 제시합니다." },
-  { desktopFile: "06_blog_analysis.png", desktopWidth: 1440, desktopHeight: 6239, mobileFile: "06_blog_analysis_mobile.png", mobileWidth: 390, mobileHeight: 9881, title: "블로그 진단", desc: "블로그가 AI 브리핑에 얼마나 인용되는지, 키워드 커버리지와 포스팅 상세 분석을 제공합니다." },
+  { desktopFile: "05_guide.png", desktopWidth: 1440, desktopHeight: 6075, mobileFile: "05_guide_mobile.png", mobileWidth: 390, mobileHeight: 8608, title: "개선 가이드", desc: "지금 바로 실행 가능한 개선 방법을 AI가 사업장별로 맞춤 제시합니다." },
+  { desktopFile: "06_blog_analysis.png", desktopWidth: 1440, desktopHeight: 8441, mobileFile: "06_blog_analysis_mobile.png", mobileWidth: 390, mobileHeight: 13286, title: "블로그 진단", desc: "블로그가 AI 브리핑에 얼마나 인용되는지, 키워드 커버리지와 포스팅 상세 분석을 제공합니다." },
   { desktopFile: "07_schema.png", desktopWidth: 1440, desktopHeight: 1405, mobileFile: "07_schema_mobile.png", mobileWidth: 390, mobileHeight: 1786, title: "소개글·콘텐츠", desc: "AI 검색 등록 코드(JSON-LD)와 스마트플레이스 소개글 초안을 자동 생성합니다." },
   { desktopFile: "08_review_inbox.png", desktopWidth: 1440, desktopHeight: 900, mobileFile: "08_review_inbox_mobile.png", mobileWidth: 390, mobileHeight: 1007, title: "리뷰 답변", desc: "손님 리뷰를 붙여넣으면 업종 키워드를 포함한 답변 초안을 만들어 줍니다." },
 ];
