@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Sparkles, Loader2, ArrowLeft } from "lucide-react";
+import { Sparkles, Loader2, ArrowLeft, LogIn } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { getSafeSession } from "@/lib/supabase/client";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -45,6 +46,16 @@ export default function KeywordToolPage() {
   const [error, setError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // 백엔드 /keyword-suggest-preview가 로그인을 요구하는데, 이 페이지는 "무료 도구"로
+  // 비로그인 방문자에게 노출됨 — 폼을 채우고 클릭한 뒤에야 실패를 알던 문제를
+  // 방지하기 위해 사전에 로그인 여부를 확인해 안내한다 (2026-08-09 점검 P2).
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    getSafeSession().then((session) => {
+      setIsLoggedIn(!!session);
+    });
+  }, []);
 
   const startCooldown = () => {
     setCooldown(COOLDOWN_SECONDS);
@@ -130,6 +141,29 @@ export default function KeywordToolPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-8 md:py-12">
+        {/* 비로그인 안내 — 폼 채우고 클릭한 뒤에야 실패를 알던 문제 방지 */}
+        {isLoggedIn === false && (
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 flex items-start gap-3">
+            <LogIn className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-blue-900">
+                이 도구는 무료 회원가입 후 이용할 수 있어요
+              </p>
+              <p className="text-sm text-blue-700 mt-1">
+                가입은 무료이고 카드 등록도 필요 없습니다.{" "}
+                <Link href="/signup" className="font-semibold underline hover:text-blue-800">
+                  무료 회원가입
+                </Link>
+                {" 또는 "}
+                <Link href="/login" className="font-semibold underline hover:text-blue-800">
+                  로그인
+                </Link>
+                {" 후 바로 사용하세요."}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* 입력 폼 카드 */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 md:p-6 mb-6">
           <div className="space-y-4">
