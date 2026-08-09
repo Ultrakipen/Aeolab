@@ -2,8 +2,11 @@
 공개 쇼케이스 페이지(/showcase)용 정적 스크린샷 캡처 스크립트.
 
 실제 구독 사업장(홍뮤직스튜디오작곡교습소)의 대시보드 8개 화면을 로그인 후
-캡처해 frontend/public/showcase/*.png 로 저장한다. 1회성 관리자 스크립트 —
-FastAPI 앱과 별도 프로세스로 실행하므로 PLAYWRIGHT_SEMAPHORE 공유 불필요.
+PC·모바일 두 뷰포트로 각각 캡처해 frontend/public/showcase/*.png 로 저장한다.
+사이트가 PC/모바일 별개 레이아웃으로 구현되어 있어(CLAUDE.md 원칙), 데스크톱
+캡처를 축소해 모바일에 억지로 끼워 넣지 않고 실제 모바일 렌더링을 그대로 캡처한다.
+1회성 관리자 스크립트 — FastAPI 앱과 별도 프로세스로 실행하므로
+PLAYWRIGHT_SEMAPHORE 공유 불필요.
 
 사용법 (로컬 backend_venv):
     SHOWCASE_EMAIL=xxx SHOWCASE_PASSWORD=xxx backend_venv/Scripts/python backend/scripts/capture_showcase.py
@@ -28,14 +31,19 @@ BUSINESS_NAME = "홍뮤직스튜디오작곡교습소"
 MASK_TEXT = "OO음악학원"
 
 PAGES = [
-    ("/dashboard", "01_dashboard.png", "대시보드"),
-    ("/competitors", "02_competitors.png", "경쟁사 관리"),
-    ("/history", "03_history.png", "변화 기록"),
-    ("/growth", "04_growth.png", "성장 리포트"),
-    ("/guide", "05_guide.png", "개선 가이드"),
-    ("/blog-analysis", "06_blog_analysis.png", "블로그 진단"),
-    ("/schema", "07_schema.png", "소개글·콘텐츠"),
-    ("/review-inbox", "08_review_inbox.png", "리뷰 답변"),
+    ("/dashboard", "01_dashboard", "대시보드"),
+    ("/competitors", "02_competitors", "경쟁사 관리"),
+    ("/history", "03_history", "변화 기록"),
+    ("/growth", "04_growth", "성장 리포트"),
+    ("/guide", "05_guide", "개선 가이드"),
+    ("/blog-analysis", "06_blog_analysis", "블로그 진단"),
+    ("/schema", "07_schema", "소개글·콘텐츠"),
+    ("/review-inbox", "08_review_inbox", "리뷰 답변"),
+]
+
+VIEWPORTS = [
+    ("desktop", {"width": 1440, "height": 900}, ""),
+    ("mobile", {"width": 390, "height": 844}, "_mobile"),
 ]
 
 MASK_JS = """
@@ -62,6 +70,25 @@ MASK_JS = """
 """
 
 
+async def capture_pages(context, suffix: str):
+    page = await context.new_page()
+    for path, base_name, label in PAGES:
+        try:
+            print(f"캡처 중[{suffix or 'desktop'}]: {label} ({path})")
+            await page.goto(f"{BASE_URL}{path}", wait_until="networkidle", timeout=30000)
+            await page.wait_for_timeout(2500)
+            masked = await page.evaluate(MASK_JS, {"businessName": BUSINESS_NAME, "maskText": MASK_TEXT})
+            if masked:
+                print(f"  상호명 마스킹 {masked}건")
+            await page.wait_for_timeout(300)
+            out_path = OUTPUT_DIR / f"{base_name}{suffix}.png"
+            await page.screenshot(path=str(out_path), full_page=True)
+            print(f"  저장: {out_path}")
+        except Exception as e:
+            print(f"  실패({label}): {e}", file=sys.stderr)
+    await page.close()
+
+
 async def main():
     if not EMAIL or not PASSWORD:
         print("SHOWCASE_EMAIL / SHOWCASE_PASSWORD 환경변수가 필요합니다.", file=sys.stderr)
@@ -71,31 +98,31 @@ async def main():
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(viewport={"width": 1440, "height": 900})
-        page = await context.new_page()
 
+        # 데스크톱 컨텍스트에서 로그인 후 세션(storage_state)을 모바일 컨텍스트와 공유
+        desktop_ctx = await browser.new_context(viewport={"width": 1440, "height": 900})
+        login_page = await desktop_ctx.new_page()
         print("로그인 중...")
-        await page.goto(f"{BASE_URL}/login", wait_until="networkidle", timeout=30000)
-        await page.fill('input[type="email"]', EMAIL)
-        await page.fill('input[type="password"]', PASSWORD)
-        await page.click('button[type="submit"]')
-        await page.wait_for_url("**/dashboard**", timeout=20000)
-        print("로그인 완료 →", page.url)
+        await login_page.goto(f"{BASE_URL}/login", wait_until="networkidle", timeout=30000)
+        await login_page.fill('input[type="email"]', EMAIL)
+        await login_page.fill('input[type="password"]', PASSWORD)
+        await login_page.click('button[type="submit"]')
+        await login_page.wait_for_url("**/dashboard**", timeout=20000)
+        print("로그인 완료 →", login_page.url)
+        await login_page.close()
+        storage_state = await desktop_ctx.storage_state()
 
-        for path, filename, label in PAGES:
-            try:
-                print(f"캡처 중: {label} ({path})")
-                await page.goto(f"{BASE_URL}{path}", wait_until="networkidle", timeout=30000)
-                await page.wait_for_timeout(2500)
-                masked = await page.evaluate(MASK_JS, {"businessName": BUSINESS_NAME, "maskText": MASK_TEXT})
-                if masked:
-                    print(f"  상호명 마스킹 {masked}건")
-                await page.wait_for_timeout(300)
-                out_path = OUTPUT_DIR / filename
-                await page.screenshot(path=str(out_path), full_page=True)
-                print(f"  저장: {out_path}")
-            except Exception as e:
-                print(f"  실패({label}): {e}", file=sys.stderr)
+        await capture_pages(desktop_ctx, "")
+        await desktop_ctx.close()
+
+        mobile_ctx = await browser.new_context(
+            viewport={"width": 390, "height": 844},
+            storage_state=storage_state,
+            is_mobile=True,
+            has_touch=True,
+        )
+        await capture_pages(mobile_ctx, "_mobile")
+        await mobile_ctx.close()
 
         await browser.close()
     print("완료.")
