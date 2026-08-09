@@ -418,9 +418,6 @@ function NaverSearchOptimizationSection({
 }: {
   eligibility: BriefingEligibility
   spStatus: { is_smart_place: boolean; has_faq: boolean; has_intro: boolean; has_recent_post: boolean }
-  businessId: string
-  token: string | null
-  category?: string
 }) {
   const isActive = eligibility === "active"
   const isLikely = eligibility === "likely"
@@ -530,7 +527,9 @@ function NaverSearchOptimizationSection({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
           <p className="text-sm text-gray-600 flex-1">
             손님에게 QR 카드를 보여주면 리뷰 수가 빠르게 늘어납니다.
-            리뷰는 네이버 AI 브리핑·AI탭 노출의 핵심 신호입니다.
+            {isActive || isLikely
+              ? ' 리뷰는 네이버 AI 브리핑·AI탭 노출의 핵심 신호입니다.'
+              : ' 리뷰 내용은 네이버 AI탭·정보형 AI 브리핑에서 콘텐츠 소재로 인용될 수 있습니다.'}
           </p>
           <a
             href="#qr-card-section"
@@ -2884,6 +2883,7 @@ function PioneerDetailSection({ bizId, token }: { bizId: string; token: string }
       const res = await fetch(`${BACKEND}/api/guide/${bizId}/pioneer-detail`, {
         headers: { Authorization: `Bearer ${token}` },
       })
+      if (!res.ok) return // 실패 시 loaded=false 유지 → "상세 분석 보기" 버튼 재노출(재시도 가능)
       const data = await res.json()
       setItems(data.items || [])
       setLoaded(true)
@@ -4306,9 +4306,6 @@ function GuideTabView({
               <NaverSearchOptimizationSection
                 eligibility={briefingEligibility}
                 spStatus={spStatus}
-                businessId={business.id}
-                token={authToken}
-                category={business.category ?? category}
               />
 
               {/* 스마트플레이스 현황 업데이트 */}
@@ -4827,9 +4824,10 @@ export function GuideClient({
               <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               <p className="text-gray-700 font-semibold mb-1">Claude AI가 가이드를 만들고 있어요... ({elapsedSeconds}초)</p>
               <p className="text-gray-500 text-sm">
-                {elapsedSeconds < 10 ? '보통 10~30초 소요됩니다' :
-                 elapsedSeconds < 25 ? '거의 다 됐습니다...' :
-                 '조금만 더 기다려주세요...'}
+                {elapsedSeconds < 20 ? '보통 30초~3분 소요됩니다' :
+                 elapsedSeconds < 60 ? '거의 다 됐습니다...' :
+                 elapsedSeconds < 120 ? '내용이 많아 시간이 조금 더 걸리고 있어요...' :
+                 '거의 마무리 단계입니다. 조금만 더 기다려주세요...'}
               </p>
             </div>
             <div className="animate-pulse space-y-3">

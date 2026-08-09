@@ -786,6 +786,8 @@ async def _generate_and_save(req: GuideRequest):
             "breakdown": scan.get("score_breakdown", {}),
             "naver_channel_score": scan.get("naver_channel_score"),
             "global_channel_score": scan.get("global_channel_score"),
+            "track1_score": scan.get("track1_score"),
+            "track2_score": scan.get("track2_score"),
             "context": context,
             "kakao_result": scan.get("kakao_result"),
             "website_check_result": scan.get("website_check_result"),

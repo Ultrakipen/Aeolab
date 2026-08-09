@@ -340,7 +340,24 @@ class GuideGenerator:
         raw = await self._call_claude_async(prompt, system_prompt)
         guide = self._parse_response(raw)
 
-        # §C D.I.A. 점수 게이트 — 70점 미만 시 자동 재생성 (최대 2회)
+        # §C 콘텐츠 품질 게이트 — 70점 미만 시 자동 재생성 (최대 2회)
+        # content_validator.validate_intro_dia()는 원래 소개글(마케팅 카피)용이라 "information"
+        # (가격·시간·위치 구체 수치)·"authority"(운영 연수·수상) 두 요소는 실제 입력 데이터에 없는
+        # 사실을 채워 넣으라는 신호가 되기 쉬움 — 가이드는 소개글이 아니라 행동지침이라 이 두 요소는
+        # 게이팅/재생성 지시에서 제외(diversity·timeliness·originality만 사용, 60점 만점 재환산).
+        # (2026-08-09 발견 — 실측 시뮬레이션 결과 이 두 요소 제외 전엔 70점 문턱을 사실상 넘을 수
+        # 없어 매 생성마다 사실 지어내기 압력이 담긴 재생성이 거의 항상 발동했음)
+        _DIA_DIMS = ("diversity", "timeliness", "originality")
+        _DIA_DIM_MAX = {"diversity": 25, "timeliness": 15, "originality": 20}
+        _DIA_MAX_TOTAL = sum(_DIA_DIM_MAX.values())
+
+        def _guide_quality_score(dia: dict) -> float:
+            total = 0.0
+            for _elem, _mx in _DIA_DIM_MAX.items():
+                _d = dia.get(_elem, {})
+                total += _d.get("score", 0) if isinstance(_d, dict) else 0
+            return round(total / _DIA_MAX_TOTAL * 100, 1) if _DIA_MAX_TOTAL else 0.0
+
         _dia_score: float = 0.0
         _dia_validation: dict = {}
         _dia_regenerated: int = 0
@@ -354,7 +371,7 @@ class GuideGenerator:
                 return validate_intro_dia(text, keywords=_biz_keywords, lsi_keywords=_biz_keywords)
 
             _dia_validation = _run_dia(raw or "")
-            _dia_score = float(_dia_validation.get("score", 0))
+            _dia_score = _guide_quality_score(_dia_validation)
 
             # 재생성 루프
             for _retry in range(_max_retries):
@@ -362,60 +379,57 @@ class GuideGenerator:
                     break
                 # 부족 요소 분석
                 _weak_elements = []
-                for _elem in ("diversity", "information", "authority", "timeliness", "originality"):
+                for _elem in _DIA_DIMS:
                     _elem_data = _dia_validation.get(_elem, {})
                     _elem_score = _elem_data.get("score", 0) if isinstance(_elem_data, dict) else 0
-                    _elem_max = {"diversity": 25, "information": 25, "authority": 15,
-                                  "timeliness": 15, "originality": 20}.get(_elem, 20)
+                    _elem_max = _DIA_DIM_MAX.get(_elem, 20)
                     if _elem_score < _elem_max * 0.6:
                         _weak_elements.append(_elem)
                 _weak_labels = {
                     "diversity": "다양성(LSI 키워드 4개 이상 포함)",
-                    "information": "정보(가격·시간·위치 등 구체 수치 5개 이상)",
-                    "authority": "권위(운영 연수·수상·자격 표현)",
                     "timeliness": "적시성(YYYY년 MM월 형태의 날짜 마커)",
                     "originality": "독창성(시그니처·전용·차별 표현, 추상어 제거)",
                 }
-                _weak_desc = ", ".join(_weak_labels.get(e, e) for e in _weak_elements) or "전체 D.I.A. 요소"
+                _weak_desc = ", ".join(_weak_labels.get(e, e) for e in _weak_elements) or "전체 요소"
                 _regen_system = (
                     system_prompt
-                    + f"\n\n[재생성 지시] 이전 답변의 D.I.A. 품질 점수가 {_dia_score:.0f}/100이었습니다. "
-                    f"다음 부족 요소를 반드시 보강하세요: {_weak_desc}."
+                    + f"\n\n[재생성 지시] 이전 답변의 콘텐츠 품질 점수가 {_dia_score:.0f}/100이었습니다. "
+                    f"다음 부족 요소를 반드시 보강하세요: {_weak_desc}. "
+                    "(확인되지 않은 가격·운영기간·수상 등 사실을 지어내지 말 것 — 제공된 데이터 범위 내에서만 보강)"
                 )
                 _logger.warning(
-                    f"[guide_generator] D.I.A. 점수 {_dia_score}/100 — 재생성 {_retry + 1}/{_max_retries} 시도 "
+                    f"[guide_generator] 콘텐츠 품질 점수 {_dia_score}/100 — 재생성 {_retry + 1}/{_max_retries} 시도 "
                     f"(부족: {_weak_elements})"
                 )
                 raw = await self._call_claude_async(prompt, _regen_system)
                 guide = self._parse_response(raw)
                 _dia_validation = _run_dia(raw or "")
-                _dia_score = float(_dia_validation.get("score", 0))
+                _dia_score = _guide_quality_score(_dia_validation)
                 _dia_regenerated += 1
 
             # 최종 점수 로깅
             if _dia_score < 70:
                 _logger.error(
-                    f"[guide_generator] D.I.A. 재생성 {_dia_regenerated}회 후에도 "
+                    f"[guide_generator] 콘텐츠 품질 재생성 {_dia_regenerated}회 후에도 "
                     f"점수 미달 ({_dia_score}/100) — 현재 가이드 반환 (서비스 가용성 우선)"
                 )
             elif _dia_regenerated > 0:
                 _logger.info(
-                    f"[guide_generator] D.I.A. 재생성 {_dia_regenerated}회 후 {_dia_score}/100 달성"
+                    f"[guide_generator] 콘텐츠 품질 재생성 {_dia_regenerated}회 후 {_dia_score}/100 달성"
                 )
         except Exception as _dia_e:
-            _logger.warning(f"[guide_generator] D.I.A. 검증/재생성 실패 — {_dia_e}")
+            _logger.warning(f"[guide_generator] 콘텐츠 품질 검증/재생성 실패 — {_dia_e}")
 
-        # D.I.A. 점수별 차등 필드 주입
+        # 콘텐츠 품질 점수별 차등 필드 주입
         guide["dia_score"] = _dia_score
         guide["dia_regenerated"] = _dia_regenerated
         if _dia_score >= 70:
             # 70~89점: 낮은 요소 힌트 포함
             _hint_elems = []
-            for _elem in ("diversity", "information", "authority", "timeliness", "originality"):
+            for _elem in _DIA_DIMS:
                 _elem_data = _dia_validation.get(_elem, {})
                 _elem_score = _elem_data.get("score", 0) if isinstance(_elem_data, dict) else 0
-                _elem_max = {"diversity": 25, "information": 25, "authority": 15,
-                              "timeliness": 15, "originality": 20}.get(_elem, 20)
+                _elem_max = _DIA_DIM_MAX.get(_elem, 20)
                 if _elem_score < _elem_max * 0.8:
                     _hint_elems.append(_elem)
             if _hint_elems and _dia_score < 90:
@@ -596,8 +610,8 @@ class GuideGenerator:
     ) -> str:
         my_score = scan_result.get("total_score", 0)
         my_freq = scan_result.get("exposure_freq", 0)
-        # 표본 크기는 플랜별로 다름(Basic 자동 50회 / Full 100회) — 프롬프트에 고정 100회로
-        # 적으면 Basic 사용자의 실제 노출률을 Claude가 과소평가해 서술할 수 있음
+        # 실제 샘플 크기는 스캔마다 다름(scan_all()은 100회, trial/quick 등은 5회) — 프롬프트에
+        # 고정값을 쓰면 실제 노출률을 Claude가 과대·과소평가해 서술할 수 있어 sample_size를 직접 읽음
         my_freq_max = int((scan_result.get("gemini_result") or {}).get("sample_size") or 50)
         top_comp = sorted(competitor_data, key=lambda x: x.get("score", 0), reverse=True)[:3]
         breakdown = scan_result.get("breakdown", scan_result.get("score_breakdown", {}))

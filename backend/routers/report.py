@@ -3481,9 +3481,9 @@ async def log_business_action(
     if not (biz and biz.data):
         raise HTTPException(status_code=403, detail="권한 없음")
 
-    from middleware.plan_gate import get_user_plan
+    from middleware.plan_gate import get_user_plan, is_basic_trial_user
     plan = await get_user_plan(user_id, supabase)
-    if plan == "free":
+    if plan == "free" and not await is_basic_trial_user(user_id, supabase):
         raise HTTPException(status_code=403, detail="Basic 이상 플랜 필요")
 
     today_str = date.today().isoformat()

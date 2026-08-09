@@ -8,6 +8,17 @@ from datetime import datetime, timedelta, timezone
 
 _logger = logging.getLogger("aeolab")
 
+
+def _text_label(score: float) -> str:
+    """frontend/lib/scoreLabels.ts getScoreTextLabel()과 동일 기준(75/55/30)."""
+    if score >= 75:
+        return "양호"
+    if score >= 55:
+        return "보통"
+    if score >= 30:
+        return "주의 필요"
+    return "시작 전"
+
 # dimension 한글 레이블
 _DIMENSION_LABELS_KO: dict[str, str] = {
     "keyword_gap_score":        "키워드 커버리지",
@@ -131,17 +142,21 @@ def _make_attribution_text(
     delta: float,
     dim_changes: list[dict],
 ) -> str:
+    """AI Visibility 원점수는 사용자에게 직접 노출 금지(CLAUDE.md 점수 표시 원칙) —
+    API 페이로드에도 텍스트 레이블만 담는다(프론트가 이 필드를 안 써도 회귀 방지 차원)."""
+    before_label = _text_label(score_before)
+    after_label = _text_label(score_after)
     if delta > 0.5:
         main = dim_changes[0]["label"] if dim_changes else None
-        base = f"'{action_label}' 후 점수가 {score_before:.1f}→{score_after:.1f}점(+{delta:.1f}점) 올랐습니다."
+        base = f"'{action_label}' 후 노출 지수가 '{before_label}'에서 '{after_label}'로 개선됐습니다."
         return f"{base} {main} 향상이 주요 원인입니다." if main else base
     elif delta < -0.5:
         return (
-            f"'{action_label}' 후 점수가 {score_before:.1f}→{score_after:.1f}점"
-            f"({delta:.1f}점) 내려갔습니다. 경쟁사 변화 또는 측정 오차일 수 있습니다."
+            f"'{action_label}' 후 노출 지수가 '{before_label}'에서 '{after_label}'로 내려갔습니다. "
+            "경쟁사 변화 또는 측정 오차일 수 있습니다."
         )
     return (
-        f"'{action_label}' 후 점수 변화({delta:+.1f}점)가 아직 미반영 상태입니다."
+        f"'{action_label}' 후 노출 지수 변화가 아직 뚜렷하게 반영되지 않았습니다."
         " 재스캔을 실행하면 최신 효과를 확인할 수 있습니다."
     )
 
