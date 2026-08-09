@@ -2533,10 +2533,31 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
             worst_driver = min(drivers, key=lambda d: d["weighted_delta"])
 
     # ── 5-B. 헤드라인 문장 ───────────────────────────────────────────
+    # start_score의 기준(scans_raw[0])은 "이번 달"이 아니라 "최초 스캔"이므로
+    # 시간 간격이 짧을 때(가입 당일 같은 날 재스캔 등)는 AI 샘플링 노이즈만으로
+    # growth/decline 헤드라인이 튈 수 있다 — 최소 경과일 가드로 방지한다
+    # (2026-08-09 점검: 같은 날 스캔 2회만으로 "이번 달 노출이 줄었습니다" 오경보 재현됨).
+    headline_anchor_at = (trial_raw or {}).get("scanned_at") or (
+        scans_raw[0].get("scanned_at") if scans_raw else None
+    )
+    headline_latest_at = scans_raw[-1].get("scanned_at") if scans_raw else None
+    headline_elapsed_days = None
+    if headline_anchor_at and headline_latest_at:
+        try:
+            _anchor_dt = datetime.fromisoformat(headline_anchor_at.replace("Z", "+00:00"))
+            _latest_dt = datetime.fromisoformat(headline_latest_at.replace("Z", "+00:00"))
+            headline_elapsed_days = (_latest_dt - _anchor_dt).total_seconds() / 86400
+        except Exception as e:
+            _logger.warning(f"headline_elapsed_days parse failed: {e}")
+    _MIN_TREND_DAYS = 3
+
     total_delta_val = round(current_score - start_score, 1)
     headline = ""
     headline_type = "stable"
-    if scans_raw:
+    if scans_raw and (headline_elapsed_days is None or headline_elapsed_days < _MIN_TREND_DAYS):
+        headline = "아직 추세를 판단하기엔 스캔 기록이 부족합니다. 며칠 더 쌓이면 변화 방향을 알려드립니다."
+        headline_type = "insufficient_data"
+    elif scans_raw:
         latest_comp_raw = scans_raw[-1].get("competitor_scores") or {}
         prev_comp_raw   = scans_raw[-2].get("competitor_scores") if len(scans_raw) >= 2 else {}
         # 경쟁사 중 점수 상승한 곳 있는지 확인
@@ -2551,9 +2572,9 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
         elif total_delta_val <= -2:
             if worst_driver:
                 label = worst_driver["label"]
-                headline = f"이번 달 노출이 줄었습니다. 가장 큰 원인은 '{label}' 부족입니다."
+                headline = f"첫 스캔 이후 노출이 줄었습니다. 가장 큰 원인은 '{label}' 부족입니다."
             else:
-                headline = "이번 달 AI 검색 노출이 줄었습니다. 가이드에서 원인을 확인하세요."
+                headline = "첫 스캔 이후 AI 검색 노출이 줄었습니다. 가이드에서 원인을 확인하세요."
             headline_type = "decline"
         elif comp_gaining and total_delta_val < 1:
             headline = "경쟁 가게가 점수를 올리고 있습니다. 지금 조치가 필요합니다."

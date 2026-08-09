@@ -1908,10 +1908,13 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         query = f"{req.region} {_stream_keyword_ko} 추천" if req.region else f"{_stream_keyword_ko} 추천"
 
     # 이전 score_history로 weekly_change 계산
+    # 같은 날 재스캔(예: Biz 플랜 "직접 스캔 하루 10회")이면 prev_history가 오늘자 자기 자신의
+    # 이전 스캔이 되어 AI 샘플링 노이즈가 "주간 변화"로 둔갑함 — 같은 날짜면 비교 보류(0.0)
+    # (2026-08-09 점검: /history "전주 대비 ↓하락" 오경보로 재현, growth 헤드라인 버그와 동일 원인).
     prev_history = (
         await execute(
             supabase.table("score_history")
-            .select("total_score")
+            .select("total_score, score_date")
             .eq("business_id", business_id)
             .order("score_date", desc=True)
             .limit(1)
@@ -1919,7 +1922,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
     ).data
     weekly_change = round(
         score["total_score"] - prev_history[0]["total_score"], 2
-    ) if prev_history else 0.0
+    ) if prev_history and prev_history[0].get("score_date") != str(_date.today()) else 0.0
 
     # 경쟁사 목록 조회 (스캔은 백그라운드에서 수행) — 크롤링 실측 필드도 함께 조회해
     # compute_competitor_score()가 Gemini "미언급" 판정 시에도 경쟁사별로 차등 점수를 낼 수 있게 함
@@ -2677,10 +2680,12 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
         combined_result = {**result}
         score = calculate_score(combined_result, biz or {}, naver_data=naver_data or {})
 
+        # 같은 날 재스캔이면 prev_history가 오늘자 자기 자신이 되어 노이즈가 "주간 변화"로 둔갑함
+        # — 같은 날짜면 비교 보류(0.0). (2026-08-09 점검, growth 헤드라인 버그와 동일 원인)
         prev_history = (
             await execute(
                 supabase.table("score_history")
-                .select("total_score")
+                .select("total_score, score_date")
                 .eq("business_id", req.business_id)
                 .order("score_date", desc=True)
                 .limit(1)
@@ -2688,7 +2693,7 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
         ).data
         weekly_change = round(
             score["total_score"] - prev_history[0]["total_score"], 2
-        ) if prev_history else 0.0
+        ) if prev_history and prev_history[0].get("score_date") != str(_date.today()) else 0.0
 
         await execute(
             supabase.table("scan_results").insert({
@@ -2919,10 +2924,12 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         score = calculate_score(combined_result, biz or {}, naver_data=naver_data_full, keyword_coverage_rate=_full_kw_rate)
 
         # weekly_change 계산 (이전 score_history 기준)
+        # 같은 날 재스캔이면 prev_history가 오늘자 자기 자신이 되어 노이즈가 "주간 변화"로 둔갑함
+        # — 같은 날짜면 비교 보류(0.0). (2026-08-09 점검, growth 헤드라인 버그와 동일 원인)
         prev_history = (
             await execute(
                 supabase.table("score_history")
-                .select("total_score")
+                .select("total_score, score_date")
                 .eq("business_id", req.business_id)
                 .order("score_date", desc=True)
                 .limit(1)
@@ -2930,7 +2937,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         ).data
         weekly_change = round(
             score["total_score"] - prev_history[0]["total_score"], 2
-        ) if prev_history else 0.0
+        ) if prev_history and prev_history[0].get("score_date") != str(_date.today()) else 0.0
 
         # 경쟁사 단일 스캔으로 competitor_scores 계산 — 크롤링 실측 필드도 함께 조회
         # (compute_competitor_score()가 Gemini "미언급" 판정 시에도 경쟁사별 차등 점수를 내는 데 사용)

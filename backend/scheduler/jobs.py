@@ -876,14 +876,16 @@ async def daily_scan_all():
                 today_str = str(date.today())
                 _prev_res = await _db(
                     supabase.table("score_history")
-                    .select("total_score, track1_score")
+                    .select("total_score, track1_score, score_date")
                     .eq("business_id", biz["id"])
                     .order("score_date", desc=True)
                     .limit(1)
                 )
                 prev_history = _prev_res.data or []
                 weekly_change = 0.0
-                if prev_history:
+                # 같은 날 재스캔이면 prev_history가 오늘자 자기 자신이 되어 노이즈가 "주간 변화"로
+                # 둔갑함 — 같은 날짜면 비교 보류(0.0). (2026-08-09 점검, scan.py 3곳과 동일 원인)
+                if prev_history and prev_history[0].get("score_date") != today_str:
                     weekly_change = round(score["total_score"] - prev_history[0]["total_score"], 2)
                 _history_row: dict = {
                     "business_id": biz["id"],

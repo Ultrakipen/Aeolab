@@ -5066,7 +5066,7 @@ export function GuideClient({
                   AI 스캔 결과를 바탕으로 맞춤 가이드를 만들어 드립니다.
                 </p>
                 <p className="text-sm text-gray-500 leading-relaxed">
-                  생성에 약 30초 소요됩니다.
+                  생성에 30초~3분 정도 소요됩니다.
                 </p>
               </>
             )}
@@ -5097,7 +5097,7 @@ export function GuideClient({
               <TrendingUp className="w-4 h-4 text-gray-300 group-hover:text-blue-600 shrink-0" />
             </a>
             <a
-              href="/report"
+              href="/growth"
               className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-400 hover:bg-blue-50 transition-colors group"
             >
               <div>
