@@ -68,10 +68,10 @@ export function ShowcaseTabs() {
           </div>
         </div>
 
-        {/* 데스크톱: 페이지 폭 제한을 벗어나 뷰포트 전체 폭으로 표시 (대부분 모니터에서 스크롤 없이 원본 그대로) */}
+        {/* 데스크톱: 페이지 폭 제한을 벗어나 뷰포트 전체 폭으로 표시, 별도 박스 스크롤 없이 페이지 자체가 스크롤됨 */}
         <div className="hidden md:block relative left-1/2 right-1/2 -mx-[50vw] w-screen">
           <div className="flex justify-center px-4">
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-auto max-h-[80vh]">
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`/showcase/${item.desktopFile}`}
