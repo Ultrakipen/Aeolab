@@ -1408,7 +1408,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
               </p>
               <p className="text-xs text-amber-600 bg-amber-50 rounded px-2 py-1 mb-3">{TRACK1_ESTIMATED_NOTE}</p>
               {(() => {
-                const bd = compScore.breakdown
+                const bd = compScore.breakdown ?? {}
 
                 // AI 언급 — 항상 추정치 (breakdown 기반)
                 const aiMentionVals = [bd.naver_exposure_confirmed, bd.multi_ai_exposure].filter((v): v is number => typeof v === 'number')
