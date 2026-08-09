@@ -142,6 +142,15 @@ const BREAKDOWN_LABELS: Record<string, string> = {
 const TRACK1_KEYS = Object.keys(TRACK1_LABELS)
 const TRACK2_KEYS = Object.keys(TRACK2_LABELS)
 
+const MIN_TREND_DAYS = 3
+// 같은날/며칠 내 재스캔은 AI 샘플링 노이즈일 수 있어 상승/하락 확정 라벨을 노출하지 않는다
+// (2026-08-09 growth report 헤드라인·성장요인 등 4곳과 동일 근본원인, 2026-08-10 경쟁사 3곳 추가 발견)
+function hasSufficientTrendGap(latestAt?: string | null, prevAt?: string | null): boolean {
+  if (!latestAt || !prevAt) return false
+  const elapsedDays = (new Date(latestAt).getTime() - new Date(prevAt).getTime()) / 86400000
+  return elapsedDays >= MIN_TREND_DAYS
+}
+
 function sortBreakdownEntries(entries: [string, number][]): [string, number][] {
   const order = [...TRACK1_KEYS, ...TRACK2_KEYS]
   return [
@@ -775,6 +784,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
   // [0]이 최신 (DESC 정렬)이 아니라 sorted 기준 마지막이 최신
   const latest = sorted[sorted.length - 1]
   const prev   = sorted.length >= 2 ? sorted[sorted.length - 2] : null
+  const trendGapOk = hasSufficientTrendGap(latest?.scanned_at, prev?.scanned_at)
 
   interface EntityRow { name: string; score: number; delta: number | null; isMe: boolean }
 
@@ -782,7 +792,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
     {
       name: bizName,
       score: Math.round(latest.total_score),
-      delta: prev ? Math.round(latest.total_score) - Math.round(prev.total_score) : null,
+      delta: prev && trendGapOk ? Math.round(latest.total_score) - Math.round(prev.total_score) : null,
       isMe: true,
     },
     ...compList.map(name => {
@@ -795,7 +805,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
       return {
         name,
         score: Math.round(latestVal),
-        delta: prevVal !== null ? Math.round(latestVal) - Math.round(prevVal) : null,
+        delta: prevVal !== null && trendGapOk ? Math.round(latestVal) - Math.round(prevVal) : null,
         isMe: false,
       }
     }),
@@ -1150,10 +1160,11 @@ function CompetitorSparkline({ competitorName, trendScans }: { competitorName: s
     const v = s.competitor_scores
       ? Object.values(s.competitor_scores).find(c => c.name === competitorName)?.score
       : undefined
-    return v !== undefined ? [{ v: Math.round(v) }] : []
+    return v !== undefined ? [{ v: Math.round(v), scanned_at: s.scanned_at }] : []
   })
   if (data.length < 2) return null
-  const trend = data[data.length - 1].v - data[data.length - 2].v
+  const trendGapOk = hasSufficientTrendGap(data[data.length - 1].scanned_at, data[data.length - 2].scanned_at)
+  const trend = trendGapOk ? data[data.length - 1].v - data[data.length - 2].v : 0
   const color = trend > 0 ? '#ef4444' : trend < 0 ? '#22c55e' : '#9ca3af'
   return (
     <div
@@ -2162,7 +2173,8 @@ export function CompetitorsClient({
             const prevCsScore = prevScan?.competitor_scores
               ? Object.values(prevScan.competitor_scores).find(x => x.name === c.name)?.score ?? null
               : null
-            const csDelta = cs && prevCsScore !== null ? Math.round(cs.score - prevCsScore) : null
+            const csTrendGapOk = hasSufficientTrendGap(trendScans[0]?.scanned_at, prevScan?.scanned_at)
+            const csDelta = cs && prevCsScore !== null && csTrendGapOk ? Math.round(cs.score - prevCsScore) : null
 
             return (
               <li key={c.id} className="overflow-hidden transition-colors hover:bg-gray-50/50">

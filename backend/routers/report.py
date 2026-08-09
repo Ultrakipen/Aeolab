@@ -5839,8 +5839,25 @@ async def get_competitor_keyword_delta(
     current_covered: set[str] = set(current_cov.get("covered_keywords") or [])
     previous_covered: set[str] = set(previous_cov.get("covered_keywords") or [])
 
-    my_gained: list[str] = sorted(current_covered - previous_covered)
-    my_lost: list[str] = sorted(previous_covered - current_covered)
+    # 같은 날/며칠 내 재스캔은 리뷰 발췌 표본 차이로 인한 AI 샘플링 노이즈일 수 있어
+    # "커버리지 감소" 확정 라벨을 노출하지 않는다 (2026-08-09 growth report 4곳과 동일 근본원인,
+    # 2026-08-10 경쟁사 키워드 델타에서 추가 발견).
+    _MIN_TREND_DAYS = 3
+    trend_elapsed_days: float | None = None
+    try:
+        _cur_dt = datetime.fromisoformat((current_scan.get("scanned_at") or "").replace("Z", "+00:00"))
+        _prev_dt = datetime.fromisoformat((previous_scan.get("scanned_at") or "").replace("Z", "+00:00"))
+        trend_elapsed_days = (_cur_dt - _prev_dt).total_seconds() / 86400
+    except Exception as e:
+        _logger.warning("[competitor_keyword_delta] 경과일 계산 실패: %s", e)
+    insufficient_trend_data = trend_elapsed_days is None or trend_elapsed_days < _MIN_TREND_DAYS
+
+    if insufficient_trend_data:
+        my_gained: list[str] = []
+        my_lost: list[str] = []
+    else:
+        my_gained = sorted(current_covered - previous_covered)
+        my_lost = sorted(previous_covered - current_covered)
 
     scan_date_current: str | None = None
     scan_date_previous: str | None = None
