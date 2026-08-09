@@ -145,7 +145,12 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
     const dateStr = s.scanned_at || (s as unknown as Record<string, string>).score_date || ''
     const point: ChartPoint = {
       date: formatDate(dateStr),
-      내가게: Math.round(s.track1_score ?? s.unified_score ?? s.total_score ?? 0),
+      // 막대 높이·순위는 unified(total_score) 기준 — CompetitorTrendChart·heroCard와 동일 기준으로
+      // 맞춰 "내 가게 몇 위" 숫자가 위젯마다 달라지는 모순 방지 (2026-08-09 발견)
+      내가게: Math.round(s.total_score ?? s.unified_score ?? s.track1_score ?? 0),
+      // 성장 단계 라벨(지역 1등 등)은 track1_score 기준 유지 (CLAUDE.md 표준) — 위치와 라벨의
+      // 기준을 분리해 둘 다 만족
+      '내가게__stage': Math.round(s.track1_score ?? s.unified_score ?? s.total_score ?? 0),
     }
     // 이름으로 경쟁사 점수 조회 (UUID 키 → name 필드 매핑)
     compNames.forEach((name, compIdx) => {
@@ -318,7 +323,9 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
               <Tooltip
                 contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
                 formatter={(value, name, item) => {
-                  const raw = (item?.payload as Record<string, number | null> | undefined)?.[`${String(name)}__raw`]
+                  const payload = item?.payload as Record<string, number | null> | undefined
+                  // "내가게"는 성장 단계 라벨용 track1 기준 값(__stage)을 별도로 참조
+                  const raw = name === '내가게' ? payload?.['내가게__stage'] : payload?.[`${String(name)}__raw`]
                   const v = Math.round(Number(raw ?? value))
                   const label = v >= 75 ? '지역 1등' : v >= 55 ? '빠른 성장' : v >= 30 ? '성장 중' : '시작 단계'
                   return [label, undefined]
@@ -365,8 +372,10 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
               <div className="text-sm font-semibold text-gray-500 mb-2">최근 스캔 기준 점수 순위</div>
               <div className="space-y-1.5">
                 {(() => {
+                  // 순위는 unified(total_score) 기준 — 위 차트의 내가게 값·CompetitorTrendChart와
+                  // 동일 기준으로 맞춰 "몇 위" 숫자가 위젯마다 어긋나는 모순 방지 (2026-08-09)
                   const latestMy = sortedFiltered.length > 0
-                    ? Math.round(sortedFiltered[sortedFiltered.length - 1].track1_score ?? sortedFiltered[sortedFiltered.length - 1].unified_score ?? sortedFiltered[sortedFiltered.length - 1].total_score ?? 0)
+                    ? Math.round(sortedFiltered[sortedFiltered.length - 1].total_score ?? sortedFiltered[sortedFiltered.length - 1].unified_score ?? sortedFiltered[sortedFiltered.length - 1].track1_score ?? 0)
                     : 0
                   const rows = [
                     { name: bizName, score: latestMy, isMe: true, color: '#2563eb' },
