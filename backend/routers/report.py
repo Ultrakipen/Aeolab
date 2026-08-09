@@ -2473,6 +2473,26 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
     start_score      = trial_score if trial_raw else first_scan_score
     current_score    = _safe_float((scans_raw[-1] if scans_raw else {}).get("unified_score"))
 
+    # ── 3-B. 추세 판단 최소 경과일 가드 ─────────────────────────────
+    # 첫 스캔(또는 trial) vs 최신 스캔 간격이 짧으면(3일 미만) AI 샘플링 노이즈를 실제
+    # 변화로 오인할 수 있다. 헤드라인뿐 아니라 growth_drivers·keyword_resolution도
+    # 동일하게 첫 스캔 vs 최신 스캔 비교라 여기로 끌어올려 3곳이 함께 쓴다
+    # (2026-08-09 헤드라인 최초 도입 → 같은 날 재점검에서 나머지 2곳도 동일 원인 확인).
+    headline_anchor_at = (trial_raw or {}).get("scanned_at") or (
+        scans_raw[0].get("scanned_at") if scans_raw else None
+    )
+    headline_latest_at = scans_raw[-1].get("scanned_at") if scans_raw else None
+    headline_elapsed_days = None
+    if headline_anchor_at and headline_latest_at:
+        try:
+            _anchor_dt = datetime.fromisoformat(headline_anchor_at.replace("Z", "+00:00"))
+            _latest_dt = datetime.fromisoformat(headline_latest_at.replace("Z", "+00:00"))
+            headline_elapsed_days = (_latest_dt - _anchor_dt).total_seconds() / 86400
+        except Exception as e:
+            _logger.warning(f"headline_elapsed_days parse failed: {e}")
+    _MIN_TREND_DAYS = 3
+    insufficient_trend_data = headline_elapsed_days is None or headline_elapsed_days < _MIN_TREND_DAYS
+
     # ── 4. timeline 구성 ─────────────────────────────────────────────
     prev_score = start_score
     timeline: list[dict] = []
@@ -2524,6 +2544,13 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
                 "label": label, "key": key, "delta": delta, "current": current,
                 "weighted_delta": round(delta * weight, 2),
             })
+        # 첫 스캔-최신 스캔 간격이 짧으면(3일 미만) delta가 AI 샘플링 노이즈일 수 있어
+        # "개선됨/하락" 방향 주장을 내지 않고 중립화한다 — 헤드라인과 동일 가드
+        # (2026-08-09 재점검: growth_drivers도 동일 원인에 노출돼 있었음).
+        if insufficient_trend_data:
+            for d in drivers:
+                d["delta"] = 0
+                d["weighted_delta"] = 0.0
         # weighted_delta가 모두 0이면 current 값 기준 정렬 (초기 단계 사용자 대응)
         all_zero = all(d["weighted_delta"] == 0 for d in drivers)
         sort_key = (lambda x: x["current"]) if all_zero else (lambda x: x["weighted_delta"])
@@ -2537,26 +2564,13 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
     # ── 5-B. 헤드라인 문장 ───────────────────────────────────────────
     # start_score의 기준(scans_raw[0])은 "이번 달"이 아니라 "최초 스캔"이므로
     # 시간 간격이 짧을 때(가입 당일 같은 날 재스캔 등)는 AI 샘플링 노이즈만으로
-    # growth/decline 헤드라인이 튈 수 있다 — 최소 경과일 가드로 방지한다
+    # growth/decline 헤드라인이 튈 수 있다 — 최소 경과일 가드(insufficient_trend_data,
+    # 3-B에서 계산)로 방지한다
     # (2026-08-09 점검: 같은 날 스캔 2회만으로 "이번 달 노출이 줄었습니다" 오경보 재현됨).
-    headline_anchor_at = (trial_raw or {}).get("scanned_at") or (
-        scans_raw[0].get("scanned_at") if scans_raw else None
-    )
-    headline_latest_at = scans_raw[-1].get("scanned_at") if scans_raw else None
-    headline_elapsed_days = None
-    if headline_anchor_at and headline_latest_at:
-        try:
-            _anchor_dt = datetime.fromisoformat(headline_anchor_at.replace("Z", "+00:00"))
-            _latest_dt = datetime.fromisoformat(headline_latest_at.replace("Z", "+00:00"))
-            headline_elapsed_days = (_latest_dt - _anchor_dt).total_seconds() / 86400
-        except Exception as e:
-            _logger.warning(f"headline_elapsed_days parse failed: {e}")
-    _MIN_TREND_DAYS = 3
-
     total_delta_val = round(current_score - start_score, 1)
     headline = ""
     headline_type = "stable"
-    if scans_raw and (headline_elapsed_days is None or headline_elapsed_days < _MIN_TREND_DAYS):
+    if scans_raw and insufficient_trend_data:
         headline = "아직 추세를 판단하기엔 스캔 기록이 부족합니다. 며칠 더 쌓이면 변화 방향을 알려드립니다."
         headline_type = "insufficient_data"
     elif scans_raw:
@@ -2595,12 +2609,18 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
     )
 
     # ── 5-F. 키워드 해결 추이 ─────────────────────────────────────────
+    # "해결됨"은 첫 스캔 vs 최신 스캔 비교라 growth_drivers와 동일 가드 적용 —
+    # 경과일 부족 시 비교 기반 주장(resolved)만 비우고, 현재 상태 그대로인
+    # still_missing(비교 아님)은 계속 보여준다(2026-08-09 재점검).
     keyword_resolution: dict = {"resolved": [], "still_missing": []}
     if len(scans_raw) >= 2:
-        first_missing  = set(scans_raw[0].get("top_missing_keywords")  or [])
         latest_missing = set(scans_raw[-1].get("top_missing_keywords") or [])
+        resolved_list: list = []
+        if not insufficient_trend_data:
+            first_missing = set(scans_raw[0].get("top_missing_keywords") or [])
+            resolved_list = sorted(first_missing - latest_missing)
         keyword_resolution = {
-            "resolved":      sorted(first_missing - latest_missing),
+            "resolved":      resolved_list,
             "still_missing": sorted(latest_missing),
         }
     elif scans_raw:

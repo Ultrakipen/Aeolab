@@ -234,6 +234,19 @@ export default function GrowthClient({
   const firstScore = first ? Math.round(first.unified_score) : 0;
   const totalDelta = latest && first ? Math.round((latest.unified_score - first.unified_score) * 10) / 10 : 0;
 
+  // 첫 스캔 vs 최신 스캔 경과일 — 3일 미만이면 AI 샘플링 노이즈를 "개선됨/하락"으로 오판할 수 있음.
+  // 이 값은 /api/report/history 기반이라 백엔드 headline_elapsed_days(별도 엔드포인트)와는
+  // 별개로 프론트에서 직접 계산해 동일 가드를 적용한다(2026-08-09 재점검).
+  const firstAt = first?.scanned_at ?? first?.score_date ?? null;
+  const latestAt = latest?.scanned_at ?? latest?.score_date ?? null;
+  let totalDeltaElapsedDays: number | null = null;
+  if (firstAt && latestAt) {
+    const d1 = new Date(firstAt).getTime();
+    const d2 = new Date(latestAt).getTime();
+    if (!isNaN(d1) && !isNaN(d2)) totalDeltaElapsedDays = (d2 - d1) / 86400000;
+  }
+  const sufficientTrendData = totalDeltaElapsedDays !== null && totalDeltaElapsedDays >= 3;
+
   // weekly_change (최신 기록 기준)
   const latestWeeklyChange = latest?.weekly_change ?? null;
 
@@ -398,7 +411,7 @@ export default function GrowthClient({
                   return <span className={`text-lg font-bold ${cls}`}>{lbl}</span>
                 })()}
               </div>
-              {totalDelta !== 0 && (
+              {totalDelta !== 0 && sufficientTrendData && (
                 <p className={`text-sm font-semibold ${totalDelta > 0 ? "text-blue-600" : "text-red-500"}`}>
                   {totalDelta > 0 ? "↑ 첫 스캔 대비 개선됨" : "↓ 첫 스캔 대비 하락"}
                 </p>
