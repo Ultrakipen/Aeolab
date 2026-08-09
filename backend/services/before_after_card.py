@@ -30,6 +30,20 @@ def _load_font(paths: list, size: int):
         return None
 
 
+def _score_stage_label(score: float) -> str:
+    """점수 → 텍스트 레이블. share_card.py _score_stage_label과 동일 임계값
+    (75/55/30) 유지 — 드리프트 시 두 파일 함께 갱신할 것. CLAUDE.md 점수 표시
+    원칙(숫자 노출 금지) — 카카오 알림으로 자동 발송되는 이미지라 특히 엄격 적용."""
+    s = score or 0
+    if s >= 75:
+        return "AI 검색 노출 양호"
+    if s >= 55:
+        return "AI 검색 노출 개선 중"
+    if s >= 30:
+        return "AI 검색 노출 미흡"
+    return "AI 검색 노출 시작 전"
+
+
 async def generate_comparison_card(
     before_img_bytes: bytes,
     after_img_bytes: bytes,
@@ -74,21 +88,22 @@ async def generate_comparison_card(
         anchor="mm",
     )
 
-    # Before 라벨
+    # Before 라벨 — 원점수 노출 금지, 단계 레이블로 표시(before_score 실제값 기준)
     draw.rectangle([20, 90, 580, 125], fill="#555555")
     draw.text(
         (300, 107),
-        f"이전  |  {platform} 노출 없음",
+        f"이전  |  {_score_stage_label(before_score)}",
         fill="white",
         anchor="mm",
         font=font_reg_18,
     )
 
-    # After 라벨 (강조)
+    # After 라벨 (강조) — "노출 N회/100회"는 total_score를 마치 카운트인 것처럼
+    # 오도 표시하던 문구였음(2026-08-09 발견, CLAUDE.md 점수 표시 원칙 위반)
     draw.rectangle([620, 90, 1180, 125], fill="#2E5BA8")
     draw.text(
         (900, 107),
-        f"30일 후  |  노출 {after_score:.0f}회/100회",
+        f"30일 후  |  {_score_stage_label(after_score)}",
         fill="white",
         anchor="mm",
         font=font_reg_18,
