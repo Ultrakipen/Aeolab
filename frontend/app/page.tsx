@@ -110,6 +110,10 @@ export default function LandingPage() {
           <span className="whitespace-nowrap">🤖 <strong className="text-purple-700">AI 브리핑·AI탭</strong> 노출 가능성 ↑</span>
           <span className="hidden sm:block text-gray-500">·</span>
           <span className="whitespace-nowrap">💬 <strong className="text-green-700">ChatGPT·Gemini·Google AI</strong> 노출 현황 측정·추적</span>
+          <span className="hidden sm:block text-gray-500">·</span>
+          <Link href="/showcase" className="whitespace-nowrap font-semibold text-blue-600 hover:underline">
+            📸 실제 구독 사업장 화면 보기 →
+          </Link>
         </div>
       </div>
 
