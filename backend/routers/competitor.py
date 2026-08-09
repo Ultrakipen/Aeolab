@@ -523,7 +523,7 @@ async def add_competitor(req: CompetitorCreate, user=Depends(get_current_user)):
             try:
                 from services.competitor_place_crawler import sync_competitor_place
                 asyncio.create_task(
-                    sync_competitor_place(row["id"], req.naver_place_id, supabase)
+                    sync_competitor_place(row["id"], req.naver_place_id, supabase, registered_name=req.name)
                 )
             except Exception as e:
                 _logger.warning(f"competitor place sync 백그라운드 실행 실패: {e}")
@@ -534,7 +534,7 @@ async def add_competitor(req: CompetitorCreate, user=Depends(get_current_user)):
                     try:
                         await execute(sb.table("competitors").update({"naver_place_id": found_id}).eq("id", comp_id))
                         from services.competitor_place_crawler import sync_competitor_place
-                        await sync_competitor_place(comp_id, found_id, sb)
+                        await sync_competitor_place(comp_id, found_id, sb, registered_name=comp_name)
                         _logger.info(f"[auto_find] naver_place_id 자동 설정 완료 — comp={comp_name}, place_id={found_id}")
                     except Exception as e:
                         _logger.warning(f"[auto_find] sync 실패 — comp={comp_name}: {e}")
@@ -593,6 +593,17 @@ async def add_competitor(req: CompetitorCreate, user=Depends(get_current_user)):
 async def suggest_competitors(category: str, region: str, business_id: str, user: dict = Depends(get_current_user)):
     """업종·지역 기반 경쟁사 자동 추천 (동일 카테고리 상위 점수 사업장)"""
     supabase = get_client()
+
+    # 소유권 검증: 타인의 business_id로 조회해 기존 경쟁사 등록 여부를 유추하는 것 방지
+    biz = await execute(
+        supabase.table("businesses")
+        .select("id")
+        .eq("id", business_id)
+        .eq("user_id", user["id"])
+        .maybe_single()
+    )
+    if not biz.data:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
 
     candidates = (
         await execute(
@@ -1185,7 +1196,10 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
     # 동기화 실행 (await로 직접 호출하여 결과 반환)
     from services.competitor_place_crawler import sync_competitor_place
     try:
-        result = await sync_competitor_place(competitor_id, naver_place_id, supabase, biz.data.get("region", ""))
+        result = await sync_competitor_place(
+            competitor_id, naver_place_id, supabase, biz.data.get("region", ""),
+            registered_name=comp.data.get("name", ""),
+        )
     except TypeError:
         # sync_competitor_place 시그니처가 region 파라미터 없는 구버전인 경우 fallback
         result = await sync_competitor_place(competitor_id, naver_place_id, supabase)
