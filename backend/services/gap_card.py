@@ -68,6 +68,19 @@ def _bar_color(is_me: bool, score: float) -> str:
     return "#4B5563"       # 회색 — 약한 경쟁자
 
 
+def _stage_label(score: float) -> str:
+    """점수 → 성장 단계 텍스트 레이블. CLAUDE.md 점수 표시 원칙(숫자 노출 금지) —
+    프론트 getGrowthStageText()와 동일한 구간(75/55/30) 사용, 카카오톡·SNS
+    공유용 이미지라 숫자 대신 반드시 레이블만 노출해야 함."""
+    if score >= 75:
+        return "지역 1등"
+    if score >= 55:
+        return "빠른 성장"
+    if score >= 30:
+        return "성장 중"
+    return "시작 단계"
+
+
 def generate_gap_card(
     business_name: str,
     region: str,
@@ -110,7 +123,6 @@ def generate_gap_card(
     f_name   = _font(_BOLD, 15)
     f_score  = _font(_REG,  14)
     f_hint   = _font(_REG,  13)
-    f_badge  = _font(_BOLD, 13)
     f_water  = _font(_REG,  12)
 
     today_str = date.today().strftime("%Y.%m.%d")
@@ -146,8 +158,11 @@ def generate_gap_card(
         label_fill = "#FFFFFF" if is_me else "#9CA3AF"
         prefix = "▶ " if is_me else f"{rank}위 "
 
-        # 순위 + 이름 (최대 7자 truncate)
-        display_name = name[:7] + ("…" if len(name) > 7 else "")
+        # 순위 + 이름 (최대 7자 truncate, 내 가게는 표시를 이름에 붙여 오른쪽 배지 공간 절약)
+        name_limit = 5 if is_me else 7
+        display_name = name[:name_limit] + ("…" if len(name) > name_limit else "")
+        if is_me:
+            display_name += " (내 가게)"
         draw.text((MARGIN, y + 4), prefix + display_name, fill=label_fill, font=f_name)
 
         # 바 배경
@@ -157,14 +172,10 @@ def generate_gap_card(
         if bar_w > 0:
             draw.rectangle([BAR_X, y + 6, BAR_X + bar_w, y + 30], fill=color)
 
-        # 점수 텍스트
-        draw.text((BAR_X + BAR_MAX_W + 8, y + 8), f"{score:.0f}점", fill=label_fill, font=f_score)
-
-        # 내 가게 배지
-        if is_me:
-            badge_x = BAR_X + BAR_MAX_W + 52
-            draw.rectangle([badge_x, y + 4, badge_x + 44, y + 28], fill="#06B6D4", outline=None)
-            draw.text((badge_x + 22, y + 16), "내 가게", fill="#FFFFFF", font=f_badge, anchor="mm")
+        # 성장 단계 레이블 — 숫자 점수 직접 노출 금지(CLAUDE.md 점수 표시 원칙,
+        # 카카오톡·SNS 공유용 이미지라 특히 엄격 적용). "내 가게" 표시는 이름 옆으로
+        # 옮겨 이 영역 전체를 레이블에 할애
+        draw.text((BAR_X + BAR_MAX_W + 8, y + 8), _stage_label(score), fill=label_fill, font=f_score)
 
         y += ROW_H
 
