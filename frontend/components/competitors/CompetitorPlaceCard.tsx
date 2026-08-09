@@ -555,25 +555,32 @@ export function CompetitorPlaceCard({
             </div>
             {competitor.website_seo_result && (
               <div className="bg-gray-50 rounded-xl px-3 py-1">
-                {Object.entries(competitor.website_seo_result)
-                  .filter(([, v]) => typeof v === "boolean")
-                  .map(([key, val]) => {
-                    const LABELS: Record<string, string> = {
-                      has_json_ld: "AI 검색 정보 태그 설정",
-                      has_schema_local_business: "가게 정보 자동 인식 설정",
-                      has_open_graph: "SNS 공유 미리보기 설정",
-                      is_mobile_friendly: "모바일 화면 최적화",
-                      has_favicon: "사이트 아이콘 등록",
-                      is_https: "보안 연결 (HTTPS)",
-                      has_og_tags: "SNS 공유 미리보기 설정",
-                      has_viewport: "모바일 화면 최적화",
-                      has_local_business_schema: "가게 정보 자동 인식 설정",
-                    };
-                    if (!LABELS[key]) return null;
-                    return (
-                      <SeoItem key={key} label={LABELS[key]} hasComp={val as boolean} />
-                    );
-                  })}
+                {(() => {
+                  const LABELS: Record<string, string> = {
+                    has_json_ld: "AI 검색 정보 태그 설정",
+                    has_schema_local_business: "가게 정보 자동 인식 설정",
+                    has_open_graph: "SNS 공유 미리보기 설정",
+                    is_mobile_friendly: "모바일 화면 최적화",
+                    has_favicon: "사이트 아이콘 등록",
+                    is_https: "보안 연결 (HTTPS)",
+                    has_og_tags: "SNS 공유 미리보기 설정",
+                    has_viewport: "모바일 화면 최적화",
+                    has_local_business_schema: "가게 정보 자동 인식 설정",
+                  };
+                  // 백엔드가 같은 항목을 여러 별칭 키로 함께 반환할 수 있어(has_og_tags/has_open_graph 등)
+                  // 레이블 기준으로 중복 제거 — 하나라도 true면 true로 표시
+                  const byLabel = new Map<string, boolean>();
+                  Object.entries(competitor.website_seo_result)
+                    .filter(([, v]) => typeof v === "boolean")
+                    .forEach(([key, val]) => {
+                      const label = LABELS[key];
+                      if (!label) return;
+                      byLabel.set(label, (byLabel.get(label) ?? false) || (val as boolean));
+                    });
+                  return [...byLabel.entries()].map(([label, hasComp]) => (
+                    <SeoItem key={label} label={label} hasComp={hasComp} />
+                  ));
+                })()}
               </div>
             )}
           </div>
