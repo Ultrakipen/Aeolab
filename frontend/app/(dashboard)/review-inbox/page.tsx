@@ -496,6 +496,12 @@ export default function ReviewInboxPage() {
       setUsageStat({ used: data.used, limit: data.limit })
       setCrisisOnResult(false)
       fetchHistory()
+      // 행동 기록 — 변화 기록 페이지 타임라인 반영 (best-effort, 실패해도 무시)
+      fetch(`${BACKEND}/api/report/action-log/${businessId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action_type: 'review_replied', action_label: '리뷰 답변 생성' }),
+      }).catch(() => {})
     } catch (err: unknown) {
       const apiErr = err as { code?: string; detail?: { limit?: number; message?: string; retry_after?: number } }
       if (apiErr?.code === 'PLAN_REQUIRED') {

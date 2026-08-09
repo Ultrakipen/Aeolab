@@ -4686,6 +4686,12 @@ export function GuideClient({
       if (guideData) {
         setGuide(guideData)
         router.refresh()
+        // 행동 기록 — 변화 기록 페이지 타임라인 반영 (best-effort, 실패해도 무시)
+        fetch(`${BACKEND}/api/report/action-log/${business.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ action_type: 'guide_generated', action_label: 'AI 개선 가이드 생성' }),
+        }).catch(() => {})
       } else {
         setError('가이드 생성에 시간이 걸리고 있습니다. 페이지를 새로고침해주세요.')
       }
