@@ -575,7 +575,7 @@ export default function ReviewInboxPage() {
         </div>
 
         <div className="bg-blue-600 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
+          <div className="pr-12 sm:pr-0">
             <p className="text-white font-semibold text-sm">Basic 플랜부터 이용 가능</p>
             <p className="text-blue-100 text-sm mt-0.5">월 11,900원 · 리뷰 답변 월 50회 포함 (Pro·창업패키지·Biz·Enterprise 무제한)</p>
           </div>

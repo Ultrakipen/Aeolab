@@ -460,10 +460,10 @@ export default function OnboardingPage() {
                   {step > s.id ? <Check className="w-5 h-5" /> : s.id}
                 </div>
                 <div>
-                  <div className={`text-xs sm:text-sm font-semibold leading-tight ${step === s.id ? "text-gray-900" : "text-gray-500"}`}>
+                  <div className={`text-xs sm:text-sm font-semibold leading-tight break-keep ${step === s.id ? "text-gray-900" : "text-gray-500"}`}>
                     {s.label}
                   </div>
-                  <div className={`hidden sm:block text-sm leading-tight ${step === s.id ? "text-gray-500" : "text-gray-300"}`}>
+                  <div className={`hidden sm:block text-sm leading-tight break-keep ${step === s.id ? "text-gray-500" : "text-gray-300"}`}>
                     {s.desc}
                   </div>
                 </div>

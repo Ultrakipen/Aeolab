@@ -96,7 +96,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
           <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-emerald-100 shrink-0">
             <Gift className="w-5 h-5 md:w-6 md:h-6 text-emerald-600" />
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pr-10 md:pr-0">
             <h3 className="text-base md:text-lg font-bold text-emerald-900 flex items-center gap-2 flex-wrap">
               지금 <span className="underline decoration-2">무료로 전체 AI 체험</span> 한 번 사용해 보세요
               <Sparkles className="w-4 h-4 text-emerald-600" />
@@ -160,7 +160,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
           <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-200 shrink-0">
             <Lock className="w-5 h-5 md:w-6 md:h-6 text-slate-600" />
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pr-10 md:pr-0">
             <h3 className="text-base md:text-lg font-bold text-slate-800">
               무료 체험을 사용하셨습니다
             </h3>

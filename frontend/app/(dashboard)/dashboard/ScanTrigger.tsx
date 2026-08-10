@@ -218,21 +218,26 @@ export function ScanTrigger({
           {!limitReached && hasKeywords && keywords && (
             <div className="flex-1 flex flex-col gap-2">
               <span className="text-sm font-semibold text-gray-600">검색 키워드 선택</span>
-              <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:pb-0">
-                {keywords.map((kw) => (
-                  <button
-                    key={kw}
-                    type="button"
-                    onClick={() => setSelectedKeyword(kw)}
-                    className={`text-sm px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap ${
-                      selectedKeyword === kw
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'border-gray-300 text-gray-700 hover:border-blue-400 hover:text-blue-600 bg-white'
-                    }`}
-                  >
-                    {regionFirst} {kw}
-                  </button>
-                ))}
+              <div className="relative sm:contents">
+                <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:pb-0">
+                  {keywords.map((kw) => (
+                    <button
+                      key={kw}
+                      type="button"
+                      onClick={() => setSelectedKeyword(kw)}
+                      className={`text-sm px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap ${
+                        selectedKeyword === kw
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'border-gray-300 text-gray-700 hover:border-blue-400 hover:text-blue-600 bg-white'
+                      }`}
+                    >
+                      {regionFirst} {kw}
+                    </button>
+                  ))}
+                </div>
+                {keywords.length > 2 && (
+                  <div className="pointer-events-none absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-white to-transparent sm:hidden" />
+                )}
               </div>
               {/* 검색어 안내 */}
               {activeKw && (

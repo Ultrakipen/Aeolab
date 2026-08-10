@@ -115,7 +115,7 @@ function CollapsibleSub({
       >
         <span className="flex items-center gap-2 min-w-0">
           <span className="text-base shrink-0" aria-hidden="true">{icon}</span>
-          <span className="text-sm font-bold text-gray-700">{label}</span>
+          <span className="text-sm font-bold text-gray-700 break-keep">{label}</span>
         </span>
         {open ? (
           <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" />
