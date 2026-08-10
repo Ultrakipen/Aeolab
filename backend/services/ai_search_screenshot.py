@@ -11,6 +11,20 @@ from datetime import date
 
 _logger = logging.getLogger(__name__)
 
+
+# Playwright 세마포어: multi_scanner.PLAYWRIGHT_SEMAPHORE 공유 (동시 Playwright 전역 1개 보장)
+# GitHub Actions 등 multi_scanner import 불가 환경에서는 독립 Semaphore(1) fallback 사용
+# (smart_place_auto_check.py:_get_playwright_sem()과 동일 패턴)
+def _get_playwright_sem():
+    try:
+        from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+        return PLAYWRIGHT_SEMAPHORE
+    except Exception:
+        if not hasattr(_get_playwright_sem, "_fallback"):
+            _get_playwright_sem._fallback = asyncio.Semaphore(1)
+        return _get_playwright_sem._fallback
+
+
 _QUERY_TEMPLATES = {
     "restaurant": "{region} {name} 맛집 추천",
     "cafe": "{region} 카페 추천",
@@ -143,6 +157,23 @@ async def capture_naver_results(
     results: list[dict] = []
     today_str = date.today().isoformat()
 
+    def _degraded_results() -> list[dict]:
+        return [
+            {
+                "platform": f"naver_{tab_type}",
+                "query": query,
+                "is_mentioned": False,
+                "url": None,
+                "captured_at": today_str,
+                "label": label,
+            }
+            for tab_type, label in (("blog", "네이버 블로그"), ("cafe", "네이버 카페"))
+        ]
+
+    from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
+    if not _check_naver_quota("ai_search_screenshot.capture_naver_results"):
+        return _degraded_results()
+
     try:
         from playwright.async_api import async_playwright
         from db.supabase_client import get_client
@@ -155,88 +186,73 @@ async def capture_naver_results(
         _TAB_WHERE = {"blog": "blog", "cafe": "cafeblog"}
         _TAB_LABEL = {"blog": "네이버 블로그", "cafe": "네이버 카페"}
 
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(
-                headless=True,
-                args=["--no-sandbox", "--disable-dev-shm-usage"],
-            )
+        async with _get_playwright_sem():
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(
+                    headless=True,
+                    args=["--no-sandbox", "--disable-dev-shm-usage"],
+                )
 
-            for tab_type in ("blog", "cafe"):
-                # blog: 1200px — 페이지보다 작아야 스크롤 가능 (2200px이면 스크롤 불가)
-                # cafe: 2200px — 기존 동작 유지
-                vh = 1200 if tab_type == "blog" else 2200
-                page = await browser.new_page(viewport={"width": 1280, "height": vh})
-                where_param = _TAB_WHERE[tab_type]
-                encoded_query = _urlparse.quote(query)
-                url = f"https://search.naver.com/search.naver?where={where_param}&query={encoded_query}"
-                is_mentioned = False
-                img_url: str | None = None
-                try:
-                    await page.goto(url, timeout=30000, wait_until="domcontentloaded")
-                    await page.wait_for_timeout(2000)
-                    await page.evaluate(_AD_REMOVE_JS)
+                for tab_type in ("blog", "cafe"):
+                    # blog: 1200px — 페이지보다 작아야 스크롤 가능 (2200px이면 스크롤 불가)
+                    # cafe: 2200px — 기존 동작 유지
+                    vh = 1200 if tab_type == "blog" else 2200
+                    page = await browser.new_page(viewport={"width": 1280, "height": vh})
+                    where_param = _TAB_WHERE[tab_type]
+                    encoded_query = _urlparse.quote(query)
+                    url = f"https://search.naver.com/search.naver?where={where_param}&query={encoded_query}"
+                    is_mentioned = False
+                    img_url: str | None = None
+                    try:
+                        await page.goto(url, timeout=30000, wait_until="domcontentloaded")
+                        await page.wait_for_timeout(2000)
+                        await page.evaluate(_AD_REMOVE_JS)
 
-                    visible_text = await page.evaluate(_EXTRACT_BLOG_TEXT_JS)
-                    is_mentioned = bool(visible_text and business_name in visible_text)
+                        visible_text = await page.evaluate(_EXTRACT_BLOG_TEXT_JS)
+                        is_mentioned = bool(visible_text and business_name in visible_text)
 
-                    if tab_type == "blog":
-                        # 쇼핑·플레이스 DOM 제거 → 블로그 포스트 위치 탐지 → 스크롤
-                        await page.evaluate(_BLOG_PREPROCESS_JS)
-                        await page.wait_for_timeout(400)
-                        blog_y = await page.evaluate(_FIND_BLOG_START_JS)
-                        # 탐지 실패 시 1800px 고정 (플레이스 블록 높이 예상치 이후)
-                        scroll_y = max(0, blog_y - 40) if blog_y >= 0 else 1800
-                        await page.evaluate(f"window.scrollTo(0, {scroll_y})")
-                        await page.wait_for_timeout(500)
-                        img_bytes = await page.screenshot(full_page=False)
-                    else:
-                        await page.evaluate("window.scrollTo(0, 120)")
-                        await page.wait_for_timeout(200)
-                        img_bytes = await page.screenshot(full_page=False)
-                    path = f"ai-search/{biz_id}/{today_str}_naver_{tab_type}.png"
-                    img_url = await _upload_screenshot(_sb, path, img_bytes)
-                except Exception as e:
-                    _logger.warning("naver %s screenshot failed: %s", tab_type, e)
-                finally:
-                    await page.close()
+                        if tab_type == "blog":
+                            # 쇼핑·플레이스 DOM 제거 → 블로그 포스트 위치 탐지 → 스크롤
+                            await page.evaluate(_BLOG_PREPROCESS_JS)
+                            await page.wait_for_timeout(400)
+                            blog_y = await page.evaluate(_FIND_BLOG_START_JS)
+                            # 탐지 실패 시 1800px 고정 (플레이스 블록 높이 예상치 이후)
+                            scroll_y = max(0, blog_y - 40) if blog_y >= 0 else 1800
+                            await page.evaluate(f"window.scrollTo(0, {scroll_y})")
+                            await page.wait_for_timeout(500)
+                            img_bytes = await page.screenshot(full_page=False)
+                        else:
+                            await page.evaluate("window.scrollTo(0, 120)")
+                            await page.wait_for_timeout(200)
+                            img_bytes = await page.screenshot(full_page=False)
+                        path = f"ai-search/{biz_id}/{today_str}_naver_{tab_type}.png"
+                        img_url = await _upload_screenshot(_sb, path, img_bytes)
+                    except Exception as e:
+                        _logger.warning("naver %s screenshot failed: %s", tab_type, e)
+                    finally:
+                        await page.close()
 
-                platform = f"naver_{tab_type}"
-                results.append({
-                    "platform": platform,
-                    "query": query,
-                    "is_mentioned": is_mentioned,
-                    "url": img_url,
-                    "captured_at": today_str,
-                    "label": _TAB_LABEL[tab_type],
-                })
+                    platform = f"naver_{tab_type}"
+                    results.append({
+                        "platform": platform,
+                        "query": query,
+                        "is_mentioned": is_mentioned,
+                        "url": img_url,
+                        "captured_at": today_str,
+                        "label": _TAB_LABEL[tab_type],
+                    })
 
-            await browser.close()
+                await browser.close()
 
     except ImportError:
         _logger.warning("playwright not installed — naver screenshot skipped")
         if not results:
-            for tab_type, label in (("blog", "네이버 블로그"), ("cafe", "네이버 카페")):
-                results.append({
-                    "platform": f"naver_{tab_type}",
-                    "query": query,
-                    "is_mentioned": False,
-                    "url": None,
-                    "captured_at": today_str,
-                    "label": label,
-                })
+            results = _degraded_results()
     except Exception as e:
         _logger.warning("naver screenshot failed: %s", e)
         # 실패해도 빈 결과 반환
         if not results:
-            for tab_type, label in (("blog", "네이버 블로그"), ("cafe", "네이버 카페")):
-                results.append({
-                    "platform": f"naver_{tab_type}",
-                    "query": query,
-                    "is_mentioned": False,
-                    "url": None,
-                    "captured_at": today_str,
-                    "label": label,
-                })
+            results = _degraded_results()
 
     return results
 

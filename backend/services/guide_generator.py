@@ -613,6 +613,11 @@ class GuideGenerator:
         # 실제 샘플 크기는 스캔마다 다름(scan_all()은 100회, trial/quick 등은 5회) — 프롬프트에
         # 고정값을 쓰면 실제 노출률을 Claude가 과대·과소평가해 서술할 수 있어 sample_size를 직접 읽음
         my_freq_max = int((scan_result.get("gemini_result") or {}).get("sample_size") or 50)
+        # D.I.A. 적시성(timeliness) 게이팅용 — content_validator._check_timeliness()가 "20XX년 X월"
+        # 패턴을 찾는데 이 프롬프트가 날짜 마커를 요청하지 않으면 첫 생성이 거의 항상 0점 처리돼
+        # 불필요한 재생성(Claude 호출 2~3배)이 발동함 (2026-08-10 발견)
+        _now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
+        _current_year_month = f"{_now_kst.year}년 {_now_kst.month}월"
         top_comp = sorted(competitor_data, key=lambda x: x.get("score", 0), reverse=True)[:3]
         breakdown = scan_result.get("breakdown", scan_result.get("score_breakdown", {}))
 
@@ -1024,6 +1029,7 @@ class GuideGenerator:
 - competitor_example은 제공된 데이터에 있는 경쟁사만 언급, 없으면 null
 - 근거 없는 수치 예측 절대 금지 — "노출률 XX% 향상", "순위 X위 진입" 같은 문구 삽입 금지
 - 측정 데이터가 없으면 ("미측정" 표시된 항목) 임의 수치를 만들지 말고 "측정 후 가이드 제공" 안내만 할 것
+- next_month_goal 문장 안에 "{_current_year_month} 기준"이라는 표현을 자연스럽게 반드시 포함할 것 (예: "{_current_year_month} 기준으로 한 달 후...")
 - this_week_mission은 반드시 "easy" 난이도이면서 가장 점수 영향이 큰 1가지만 선택
 - weekly_roadmap은 4주간 단계별 실행 계획: 1주차는 즉시 가능한 것, 4주차는 medium 난이도
 - JSON 문자열 값에 literal 줄바꿈 절대 금지 — 여러 문장은 한 줄에 공백으로 연결 (예: "1단계: 접속. 2단계: 클릭.")
@@ -1043,7 +1049,7 @@ class GuideGenerator:
     }}
   ],
   "quick_wins": ["지금 당장 10분 안에 할 수 있는 것 2~3가지 (구체적인 행동으로)"],
-  "next_month_goal": "한 달 후 사장님이 체감할 수 있는 변화 (숫자 예측 금지)",
+  "next_month_goal": "'{_current_year_month} 기준'을 문장 안에 자연스럽게 포함해서, 한 달 후 사장님이 체감할 수 있는 변화 서술 (숫자 예측 금지)",
   "weekly_roadmap": [
     {{
       "week": 1,
