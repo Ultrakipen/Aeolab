@@ -216,6 +216,11 @@ async def capture_ai_result(
     _y_offset: int = 0
     _naver_full: bool = False  # naver 블로그: full_page+PIL 크롭 사용 여부
 
+    if platform in ("naver", "naver_ai", "naver_ai_tab"):
+        from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
+        if not _check_naver_quota(f"screenshot.capture_ai_result:{platform}"):
+            return None
+
     async with _get_playwright_sem():
         async with async_playwright() as p:
             browser = await p.chromium.launch(
@@ -564,6 +569,10 @@ async def capture_naver_blog_screenshot(keyword: str, biz_id: str, region: str =
 
     # Supabase Storage는 한글 경로 거부 → MD5 해시로 ASCII 경로 생성
     keyword_hash = hashlib.md5(keyword.strip().encode('utf-8')).hexdigest()[:12]
+
+    from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
+    if not _check_naver_quota("screenshot.capture_naver_blog_screenshot"):
+        return None
 
     async with _get_playwright_sem():
         async with async_playwright() as p:

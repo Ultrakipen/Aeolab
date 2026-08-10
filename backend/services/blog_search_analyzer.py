@@ -54,6 +54,19 @@ async def analyze_blog_search(
     posts: list[dict] = []
     _measurement_failed = False
 
+    from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
+    if not _check_naver_quota("blog_search_analyzer.analyze_blog_search"):
+        return {
+            "keyword": keyword,
+            "total_found": 0,
+            "my_rank": None,
+            "posts": [],
+            "analyzed_at": datetime.now(timezone.utc).isoformat(),
+            "blog_id_registered": bool(naver_blog_id.strip()),
+            "captcha_detected": False,
+            "error": "quota_exceeded",
+        }
+
     browser = None
     try:
         async with _get_playwright_sem():
