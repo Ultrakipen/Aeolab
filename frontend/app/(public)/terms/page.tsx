@@ -85,8 +85,7 @@ export default function TermsPage() {
                   <li>Basic: 월 11,900원 (신규 가입 첫 달 5,950원, 이후 정상가)</li>
                   <li>창업패키지: 월 12,900원</li>
                   <li>Pro: 월 23,900원</li>
-                  <li>Biz: 월 49,900원</li>
-                  <li>Enterprise: 월 200,000원</li>
+                  <li>Biz: 월 49,900원 (영업 문의 후 계약)</li>
                 </ul>
               </li>
               <li>결제는 토스페이먼츠를 통한 신용카드·체크카드 자동결제(빌링키 방식)로 이루어집니다.</li>
