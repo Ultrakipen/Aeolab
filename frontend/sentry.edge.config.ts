@@ -8,5 +8,6 @@ if (dsn) {
     environment: process.env.NEXT_PUBLIC_APP_ENV || "production",
     tracesSampleRate: 0.1,
     sendDefaultPii: false,
+    ignoreErrors: [/Server Reference ID did not match the expected format/],
   });
 }
