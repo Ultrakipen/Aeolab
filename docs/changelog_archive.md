@@ -540,3 +540,15 @@ CREATE INDEX IF NOT EXISTS idx_trial_scans_claimed
 
 ## 2026-07-13 — 경쟁사 키워드 노출 기능 실동작화
 > 경쟁사 관리 > 키워드 격차 분석의 "경쟁사 독점"/"경쟁사별" 탭이 항상 비활성이던 버그 근본원인 확인·수정 — 유일한 소스였던 Gemini LLM 추측(single_check_with_competitors)이 소상공인급 경쟁사엔 거의 항상 빈 문자열 반환하던 것을, 이미 크롤링만 하고 버리던 `/information`·`/menu` 탭 원문을 `competitors.place_intro_text`/`place_menu_sample`(신규 컬럼)에 보관해 1순위 소스로 전환(`gap_analyzer.py`, `competitor.py`). 라이브 실측: 5곳 중 4곳 원문 수집 성공, 키워드 재분류·출처 표시 확인.
+
+## 2026-07-12 — 상업 서비스 총괄 점검 C(사업성) 축 완료 + AI 텔레메트리 신설 + P0 라이브 장애 발견
+> Gemini SDK(0.8.3) thinking_config 미지원 + AI 호출 텔레메트리 전무 발견 → `ai_usage_logger.py` 신설(Gemini 5곳·ChatGPT 2곳 계측) 배포, `ai_usage_log` 테이블 SQL 실행·실동작 검증 완료. 마진율 계산 PG수수료 누락 발견·재계산. trial→가입→전환 선행지표 공백 확인 → `/admin/growth-funnel` 신설·배포. 텔레메트리 검증 도중 우연히 발견(P0): OpenAI 결제수단 미등록으로 ChatGPT 스캔 전체가 `insufficient_quota`로 실패 중이었고 예외를 삼켜 조용히 폴백 — 사용자 카드 등록으로 해결. 재발방지로 `_log_failure()` 대칭 추가 + `ai_provider_health_check_job` 신설. 상세 `docs/business_viability_audit_v1.0.md §1-A, §8`. git `aa42587`~.
+
+## 2026-07-15 — 동시 사용자 증가 대응 종합(세마포어 타임아웃·429 재시도·CPU 블로킹·미들웨어 캐시)
+> 세마포어 대기열 타임아웃 부재(Playwright·블로그) → 15s/15s/8s 타임아웃 추가. Gemini/ChatGPT 429 재시도 부재 → 1회 backoff 추가(git `3065558`). CPU 블로킹 미분리(reportlab PDF·PIL 렌더링이 `asyncio.to_thread` 없이 이벤트루프 블로킹) → `report.py`·`share.py`·`guide.py` 전수 분리(git `666edab`·`3e5d412`). 미들웨어 온보딩 DB쿼리 반복 → 쿠키 캐싱(긍정 결과만 캐시, git `e5ac9e1`). 실계정 라이브 검증 완료, 온보딩 리다이렉트 오발생 0건.
+
+## 2026-07-16 — §6-1/nine_pages 오판검증 + 잔여 4건 구현 + PG수수료 재계산
+> `commercial_launch_inspection_status_v1.0.md §6-1`·`nine_pages_measurement_inspection_v1.0.md` "미해결" 항목 재검증 — 2개는 이미 완료됐는데 문서 미갱신으로 미해결처럼 보였던 오판. 실제 잔여 4건(AI비용 텔레메트리 집계·개인정보방침 정정·Trial 이메일 동의) 구현·배포(git `95e91fb`). PG 수수료 카테고리 오류 발견 — 브랜드페이(4.3%)가 아닌 표준카드(3.4%)+영세등급(0.40%) 적용, 마진율 재계산(`business_viability_audit_v1.0.md §2`).
+
+## 2026-07-16 — 결제 라이브 키 승인 대비 점검 (오판/누락 재검증 후 3건)
+> "토스 결제 키 심사 중" 전제로 점검, 이전 턴 제안 5개 항목을 반증 시도 후 3건만 생존. PM2 워커 증설 위험 문서화(`ecosystem.config.js` 경고 주석). 오프사이트 백업 신설·라이브 검증(Supabase Storage, 43테이블). 차지백 대응 체크리스트 신규 문서화(`docs/chargeback_response_checklist_v1.0.md`). 반증 기각: 결제 라이브 전환 자체 리스크, 부하테스트(도구 미보유로 범위 밖).
