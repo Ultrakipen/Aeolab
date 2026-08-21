@@ -6012,6 +6012,18 @@ async def _check_data_wiring_readiness_job():
                 "참조. 검토 완료(착수 또는 보류 결정) 후 PHASE2_EXTENSION_REVIEWED=true로 "
                 "이 경고 해제."
             )
+
+        # 2026-08-21 신설: "Phase 기준 배제한 일반 상업기준" 재평가에서 격상됐으나 초기규모
+        # (20명 미만)에서는 출시를 막지 않기로 판단해 보류한 4개 항목(CSP설계·제3자보안점검·
+        # AI스캔경로 부하테스트·단일서버 가용성 재검토) 재검토 트리거.
+        hardening_reviewed = os.getenv("COMMERCIAL_HARDENING_20_REVIEWED", "false").lower() == "true"
+        if not hardening_reviewed and count >= 20:
+            _logger.warning(
+                f"[LAUNCH-READY-20-HARDENING] {today} -- active subscriber count={count} -- "
+                "CSP 설계·제3자 보안점검·AI스캔 경로 부하테스트·단일서버 가용성 재검토 "
+                "4개 항목 검토 필요. docs/commercial_launch_20_subscriber_hardening_checklist_v1.0.md "
+                "참조. 검토 완료 후 COMMERCIAL_HARDENING_20_REVIEWED=true로 이 경고 해제."
+            )
     except Exception as e:
         _logger.warning(f"[DATA-WIRING-READY] subscriber check failed: {e}")
 
