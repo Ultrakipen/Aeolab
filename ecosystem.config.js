@@ -11,6 +11,11 @@ module.exports = {
         NODE_ENV: "production",
       },
       max_memory_restart: "800M",
+      // 크래시루프 시 무한 재시작으로 CPU를 소모하며 짧게 반복 다운되는 대신,
+      // 10회(10초 미만 생존 기준) 넘게 반복되면 재시작을 멈추고 완전히 내려가도록 함
+      // — UptimeRobot이 그 다운을 감지해 알림, 무한 루프보다 명확한 신호가 됨(2026-08-21).
+      min_uptime: "10s",
+      max_restarts: 10,
       error_file: "/var/log/pm2/frontend-error.log",
       out_file: "/var/log/pm2/frontend-out.log",
     },
@@ -27,6 +32,8 @@ module.exports = {
       args: "main:app --host 127.0.0.1 --port 8000 --workers 1",
       interpreter: "none",
       max_memory_restart: "1G",
+      min_uptime: "10s",
+      max_restarts: 10,
       error_file: "/var/log/pm2/backend-error.log",
       out_file: "/var/log/pm2/backend-out.log",
     },
