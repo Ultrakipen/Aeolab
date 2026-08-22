@@ -4719,10 +4719,12 @@ export function GuideClient({
   }
 
   const guideRemaining = guideLimit >= 999 ? null : guideLimit - guideUsed
-  const guideExhausted = guideLimit > 0 && guideUsed >= guideLimit
+  const monthlyExhausted = guideLimit > 0 && guideUsed >= guideLimit
   const isFree = guideLimit === 0 || currentPlan === 'free'
+  // 체험(run_basic_trial)이 이미 만든 가이드 1건은 열람 허용, 재생성은 계속 차단
+  const guideExhausted = monthlyExhausted || isFree
 
-  if (isFree) {
+  if (isFree && !guide) {
     return (
       <PlanGate requiredPlan="basic" currentPlan={currentPlan} feature="AI 개선 가이드">
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6 text-center">
@@ -4778,6 +4780,19 @@ export function GuideClient({
     <PlanGate requiredPlan="basic" currentPlan={currentPlan} feature="AI 개선 가이드">
       <div className="space-y-4">
 
+        {isFree && guide && (
+          <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <span className="text-lg shrink-0">🎁</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-blue-900">체험으로 생성된 가이드입니다</p>
+              <p className="text-sm text-blue-700 mt-0.5">새 가이드를 계속 받으려면 Basic 플랜(월 11,900원)에 가입하세요.</p>
+            </div>
+            <a href="/pricing" className="shrink-0 text-sm font-semibold text-blue-700 hover:underline whitespace-nowrap">
+              플랜 보기 →
+            </a>
+          </div>
+        )}
+
         {/* ── 상단: 가이드 생성 버튼 + 사용량 ── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3 flex-wrap">
@@ -4806,9 +4821,9 @@ export function GuideClient({
               disabled={loading || !latestScanId || guideExhausted}
               className="bg-blue-600 text-white px-5 py-3 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 min-h-[44px]"
             >
-              {loading ? '생성 중...' : guideExhausted ? '이번 달 한도 초과' : guide ? '가이드 재생성' : '가이드 생성하기'}
+              {loading ? '생성 중...' : isFree ? '구독 후 재생성 가능' : guideExhausted ? '이번 달 한도 초과' : guide ? '가이드 재생성' : '가이드 생성하기'}
             </button>
-            {guideExhausted && (
+            {monthlyExhausted && (
               <a href="/pricing" className="text-sm text-blue-500 hover:underline">
                 플랜 업그레이드 →
               </a>

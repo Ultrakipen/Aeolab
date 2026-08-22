@@ -60,34 +60,6 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
   }
   const guideLimit = GUIDE_LIMITS[currentPlan] ?? 0
 
-  // Free 사용자 상단 게이트 — 가이드 생성 한도 0이면 업그레이드 안내
-  // (아래 guides/scans/guideUsed 조회는 Free 플랜에 불필요하므로 게이트 통과 후에만 실행)
-  if (guideLimit === 0) {
-    return (
-      <div className="p-4 md:p-8 max-w-lg mx-auto mt-10">
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 md:p-8 text-center space-y-4">
-          <div className="flex justify-center">
-            <Lock className="w-10 h-10 text-blue-400" strokeWidth={1.5} />
-          </div>
-          <h2 className="text-xl md:text-2xl font-bold text-blue-900">AI 개선 가이드는 Basic 이상 플랜에서 이용할 수 있습니다</h2>
-          <p className="text-blue-700 text-base leading-relaxed">
-            스캔 결과를 바탕으로 Claude AI가 지금 당장 실천 가능한 개선 방법을 생성해 드립니다.<br />
-            Basic 플랜은 월 3회 · Pro는 월 10회 가이드를 생성할 수 있습니다.
-          </p>
-          <a
-            href="/pricing"
-            className="inline-block w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-base transition-colors"
-          >
-            플랜 업그레이드 (월 11,900원~) →
-          </a>
-          <a href="/dashboard" className="block text-sm text-gray-500 hover:text-gray-700 transition-colors">
-            대시보드로 돌아가기
-          </a>
-        </div>
-      </div>
-    )
-  }
-
   const monthStart = new Date()
   monthStart.setDate(1)
   monthStart.setHours(0, 0, 0, 0)
@@ -124,6 +96,35 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
 
   if (guidesError) {
     console.error('[GuidePage] guides query error:', guidesError.message)
+  }
+
+  // Free 플랜 상단 게이트 — 단, 가입 후 1회 체험(run_basic_trial)이 이미 생성한 가이드가
+  // 있으면 그 1건은 열람 허용(재생성은 GuideClient의 guideExhausted가 계속 차단).
+  // 체험 결과 배너가 "체험 결과로 가이드 보기"를 약속하므로 실제로 보여줘야 함(2026-08-22).
+  if (guideLimit === 0 && !guides?.[0]) {
+    return (
+      <div className="p-4 md:p-8 max-w-lg mx-auto mt-10">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 md:p-8 text-center space-y-4">
+          <div className="flex justify-center">
+            <Lock className="w-10 h-10 text-blue-400" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-xl md:text-2xl font-bold text-blue-900">AI 개선 가이드는 Basic 이상 플랜에서 이용할 수 있습니다</h2>
+          <p className="text-blue-700 text-base leading-relaxed">
+            스캔 결과를 바탕으로 Claude AI가 지금 당장 실천 가능한 개선 방법을 생성해 드립니다.<br />
+            Basic 플랜은 월 3회 · Pro는 월 10회 가이드를 생성할 수 있습니다.
+          </p>
+          <a
+            href="/pricing"
+            className="inline-block w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-base transition-colors"
+          >
+            플랜 업그레이드 (월 11,900원~) →
+          </a>
+          <a href="/dashboard" className="block text-sm text-gray-500 hover:text-gray-700 transition-colors">
+            대시보드로 돌아가기
+          </a>
+        </div>
+      </div>
+    )
   }
 
   // 최신 스캔에서 네이버 AI 브리핑 또는 Gemini 노출 여부 추출
