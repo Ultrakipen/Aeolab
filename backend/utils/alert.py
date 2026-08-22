@@ -32,6 +32,8 @@ async def send_slack_alert(title: str, message: str, level: str = "warning"):
     }
     try:
         async with httpx.AsyncClient(timeout=10) as c:
-            await c.post(webhook_url, json=payload)
+            r = await c.post(webhook_url, json=payload)
+        if r.status_code >= 400:
+            logger.error(f"Slack alert 발송 실패 {r.status_code}: {r.text[:200]}")
     except Exception as e:
         logger.error(f"Failed to send Slack alert: {e}")

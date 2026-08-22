@@ -6107,7 +6107,9 @@ async def ai_tab_trigger_check_job():
             "naver_ai_search_optimization_plan_v1.0.md §P2 참조."
         )
         await send_slack_alert("[P2-READY] AI탭 전체 확대 감지", _alert_msg, level="info")
-        # SLACK_WEBHOOK_URL 미설정 시 위 호출은 무동작 — 이메일로 이중 발송 (2026-07-01)
+        # 2026-07-01 당시엔 SLACK_WEBHOOK_URL 미설정으로 위 호출이 무동작이라 이메일을 백업
+        # 채널로 추가했으나, 2026-08-22 재점검 시 SLACK_WEBHOOK_URL이 설정돼 있고 실제
+        # 채널에 정상 도달함을 실측 확인 — 현재는 Slack+이메일 이중 발송 상태
         from services.email_sender import send_operator_alert
         await send_operator_alert("[P2-READY] AI탭 전체 확대 감지", _alert_msg)
         _logger.warning(f"[P2-READY] AI탭 노출률 {rate*100:.0f}% — 전체 확대 감지")
@@ -6253,7 +6255,8 @@ async def briefing_category_expansion_monitor_job():
             "업데이트 필요. naver_gpt_work_standard_v1.0.md 기준으로 검토."
         )
         await send_slack_alert("[AI 브리핑 업종 확대 감지 — 플레이스형]", _alert_msg, level="info")
-        # SLACK_WEBHOOK_URL 미설정 시 위 호출은 무동작 — 이메일로 이중 발송 (2026-07-01)
+        # 2026-08-22 재점검: SLACK_WEBHOOK_URL 설정 확인 + 실제 채널 도달 실측 확인됨
+        # (2026-07-01 당시엔 미설정으로 무동작이라 이메일을 백업 채널로 추가했었음)
         from services.email_sender import send_operator_alert
         await send_operator_alert("[AI 브리핑 업종 확대 감지 — 플레이스형]", _alert_msg)
     if info_only_detected:
@@ -6283,6 +6286,10 @@ async def check_naver_cookie_health_job():
     무동작(no-op)이었음. 이미 동작 중인 Resend 이메일 채널(send_operator_alert)로 대체 발송.
     또한 NID_SES(AI 브리핑 전용, ~30일 만료 — NID_AUT의 365일보다 훨씬 짧음)는 기존에 만료
     추적이 전혀 없어 별도 블록으로 추가.
+
+    2026-08-22 재확인: 외부 API 헬스체크 도중 SLACK_WEBHOOK_URL이 이제 설정돼 있고 실제
+    채널(AEOlab Alert)에 테스트 메시지가 정상 도달함을 실측 확인 — 위 "무동작" 서술은
+    stale. 현재는 Slack+이메일 이중 발송 상태(둘 다 정상 도달, 중복 알림 자체는 무해).
 
     2026-08-08 추가: `naver_scraping_legal_risk_resolution_plan_v1.0.md` 검토 중 자동
     재로그인 코드가 NAVER_LOGIN_ID/PW 두 값만으로 활성화되는 구조임을 발견 — 네이버 약관이
