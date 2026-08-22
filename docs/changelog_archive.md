@@ -552,3 +552,9 @@ CREATE INDEX IF NOT EXISTS idx_trial_scans_claimed
 
 ## 2026-07-16 — 결제 라이브 키 승인 대비 점검 (오판/누락 재검증 후 3건)
 > "토스 결제 키 심사 중" 전제로 점검, 이전 턴 제안 5개 항목을 반증 시도 후 3건만 생존. PM2 워커 증설 위험 문서화(`ecosystem.config.js` 경고 주석). 오프사이트 백업 신설·라이브 검증(Supabase Storage, 43테이블). 차지백 대응 체크리스트 신규 문서화(`docs/chargeback_response_checklist_v1.0.md`). 반증 기각: 결제 라이브 전환 자체 리스크, 부하테스트(도구 미보유로 범위 밖).
+
+## 2026-07-14 — 경쟁사 페이지 종합 점검·수정 (6건)
+> `comp_keywords` DB 컬럼 미기록(전원 영구 빈 상태)·`naver_place_name` 스킵링크 오인식(블로그 언급 수 전원 동일값)·리뷰 수 파싱 정규식 불일치·경쟁사 점수 산식 고정값(15.0)+가짜 breakdown·`ReviewKeywordGap` 유령 필드·GrowthStage 라벨 unified score 오적용 6건 발견·수정·배포, 라이브 DB 재검증(경쟁사 9곳 재동기화). git `3515d78`~`766f188`.
+
+## 2026-07-21 — Biz 요금제 팀 계정·API 키 광고 문구 제거
+> 팀 초대(이메일 발송 플로우 전무)·API 키(검증 엔드포인트 0건) 둘 다 미작동 확인, 라이브 DB 실사용 0건 확인 후 요금제 비교표·온보딩 업셀·Biz 미리보기 데모에서 관련 문구·UI 전부 제거. `/settings/team`·`/settings/api-keys` 라우트는 유지(진입점만 제거). git `b177104`.
