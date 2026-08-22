@@ -79,10 +79,10 @@ function ClaimedContent() {
                   <span className="font-semibold text-blue-700 break-all">
                     {email}
                   </span>
-                  으로 보낸 링크를 클릭하면 가입 + 결과 보관이 완료됩니다.
+                  으로 보낸 링크를 클릭하면 가입이 완료되고, 더 정확한 전체 AI 분석을 무료로 1회 받을 수 있습니다.
                 </>
               ) : (
-                <>입력하신 이메일로 보낸 링크를 클릭하면 가입 + 결과 보관이 완료됩니다.</>
+                <>입력하신 이메일로 보낸 링크를 클릭하면 가입이 완료되고, 더 정확한 전체 AI 분석을 무료로 1회 받을 수 있습니다.</>
               )}
             </p>
           </div>
@@ -129,7 +129,7 @@ function ClaimedContent() {
           </div>
 
           <p className="mt-4 text-sm text-gray-500 text-center">
-            진단 결과는 30일간 보관됩니다. 가입을 완료하시면 영구 보관됩니다.
+            가입 후에는 Gemini·ChatGPT 각 50회+네이버 AI 브리핑+구글 AI까지 전체 채널을 무료로 1회 다시 분석해 드립니다.
           </p>
         </div>
 

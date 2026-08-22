@@ -499,8 +499,8 @@ export default async function DashboardPage({
             <BasicTrialBanner businessId={bizBase.id} businessName={bizBase.name} authToken={accessToken} />
           )}
 
-          {/* 📊 경쟁사 미등록 — 등록 유도 CTA */}
-          {latestScan && (competitors?.length ?? 0) === 0 && (
+          {/* 📊 경쟁사 미등록 — 등록 유도 CTA (free 플랜은 competitors:0 한도라 등록 자체가 403 실패하므로 제외) */}
+          {latestScan && plan !== "free" && (competitors?.length ?? 0) === 0 && (
             <div className="flex items-center justify-between gap-3 bg-orange-50 border border-orange-100 rounded-xl px-4 py-3">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-base shrink-0">📊</span>
