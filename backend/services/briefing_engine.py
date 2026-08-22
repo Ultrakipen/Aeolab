@@ -826,11 +826,12 @@ def _make_faq_pair(question: str, business_name: str, target_keyword: str, categ
 
     # 매칭 실패 시 — 즉답형(첫 문장 30~60자) 가이드 + [직접 입력] 플레이스홀더
     # 리드젠랩 AEO 가이드: "검색 쿼리에 대한 명확한 답변을 첫 번째 문단에 배치"
+    # target_keyword는 호출부 기준 missing/competitor_only(미보유 추정) — "네, 가능합니다"로
+    # 단정하면 사실 지어내기가 되므로 반드시 사장님이 채우는 플레이스홀더로만 제시한다.
     kw_clean = _clean_keyword(target_keyword) if target_keyword else ""
     if kw_clean:
         answer = (
-            f"네, {business_name}에서 {kw_clean} 가능합니다. "
-            f"[첫 문장 30~60자 즉답형 권장 — 위 문장을 유지하거나 더 구체적으로 수정하세요.] "
+            f"[{kw_clean} 관련 질문에 대한 답변을 여기에 작성하세요 — 첫 문장은 30~60자 즉답형 권장.] "
             f"[구체 조건·가격·시간을 한 문단 추가: 예 \"평일 OO시~OO시, 가격 OO원, 사전 예약 시 OO원 할인\".]"
         )
     else:
@@ -882,11 +883,13 @@ def _make_faq_content(
     lines: list[str] = []
 
     # 경쟁사 공통 키워드가 있으면 첫 번째 FAQ로 삽입
+    # competitor_common_kw는 경쟁사 리뷰에서 추출한 미보유 추정 키워드 — 실제 제공 여부를
+    # 확인하지 않은 채 "네, 가능합니다"로 단정하지 않는다.
     if competitor_common_kw:
         kw_clean = _clean_keyword(competitor_common_kw)
         lines.append(
             f"Q: {kw_clean}도 가능한가요?\n"
-            f"A: 네, {business_name}에서 {kw_clean} 가능합니다. "
+            f"A: [{kw_clean} 제공 여부를 확인한 뒤 답변을 작성하세요.] "
             f"자세한 내용은 전화 또는 네이버 예약으로 문의해 주세요."
         )
 
@@ -980,13 +983,16 @@ def _make_post_content(
     tags.append(f"#{_hashtag_safe(business_name)}")
 
     # 본문 문장 구성 (자연스러운 소식 형식)
+    # target_keywords는 missing/competitor_only(미보유 추정) — "~을 전문으로 하는"처럼
+    # 단정하면 사실 지어내기가 되므로 관심 초대형 문장만 사용한다.
     body_lines = [
-        f"{kw1_clean}{_select_josa(kw1_clean, '을', '를')} 전문으로 하는 {region_short} {business_name}입니다.",
+        f"{region_short} {business_name}입니다.",
+        f"{kw1_clean}{_select_josa(kw1_clean, '에', '에')} 관심 있으신 분들은 언제든 편하게 문의해 주세요.",
     ]
     if kw2_clean:
-        body_lines.append(f"{kw2_clean}도 함께 선보이고 있습니다.")
+        body_lines.append(f"{kw2_clean}도 궁금하시면 말씀해 주세요.")
     if kw3_clean:
-        body_lines.append(f"{kw3_clean}도 이용하실 수 있습니다.")
+        body_lines.append(f"{kw3_clean} 관련 문의도 환영합니다.")
     body_str = "\n".join(body_lines)
 
     return (
@@ -1116,34 +1122,37 @@ def _make_intro_content(
     LSI 묶음 (D.I.A. 주제 적합도 신호):
       target_keywords[0]이 속한 의미 그룹의 연관 키워드 2개를 자연 문장에 추가.
     """
+    # target_keywords/LSI는 missing(미보유 추정) — existing_keywords(실제 보유)만
+    # "■ 주요 서비스"에 단정 서술하고, 나머지는 관심 초대형 문장으로 분리한다
+    # (2026-07-08 guide_generator intro 사고와 동일 계열 재발 방지, 2026-08-22 발견·수정).
     clean_target = [_clean_keyword(kw) for kw in target_keywords[:3]]
     clean_existing = [_clean_keyword(kw) for kw in (existing_keywords or [])[:3]]
-    all_kws = clean_existing + [kw for kw in clean_target if kw not in clean_existing]
 
     region_short = _extract_region_short(region)
     category_ko = _to_ko_category(category)
     noun = _biz_noun(category)
 
-    # LSI 묶음: 첫 목표 키워드의 연관 키워드 추출
+    # LSI 묶음: 첫 목표 키워드의 연관 키워드 추출 (target 기반이라 마찬가지로 미보유 추정)
     lsi_keywords: list[str] = []
     if clean_target:
         lsi_keywords = _find_lsi_cluster(clean_target[0], category)
-    lsi_sentence = ""
-    if lsi_keywords:
-        lsi_sentence = (
-            f"{', '.join(lsi_keywords)} 등도 함께 제공하여 "
-            f"한 곳에서 편리하게 이용하실 수 있습니다.\n\n"
+
+    interest_kws = [kw for kw in (clean_target + lsi_keywords) if kw and kw not in clean_existing]
+    interest_sentence = ""
+    if interest_kws:
+        interest_sentence = (
+            f"{', '.join(dict.fromkeys(interest_kws))}에 관심 있으신 분들은 "
+            f"언제든 편하게 문의해 주세요.\n\n"
         )
 
-    # 주요 서비스 항목 (상위 4개 키워드 · 구분자)
-    feature_kws = all_kws[:4]
-    feature_str = " · ".join(feature_kws) if feature_kws else f"{category_ko} 전문 서비스"
+    # 주요 서비스 항목 — 실제 보유(existing_keywords)만 단정 서술
+    feature_str = " · ".join(clean_existing) if clean_existing else f"{category_ko} 전문 서비스"
 
     return (
         f"{region_short} {category_ko} {business_name}입니다.\n\n"
         f"■ 주요 서비스\n"
         f"· {feature_str}\n\n"
-        f"{lsi_sentence}"
+        f"{interest_sentence}"
         f"■ 이용 안내\n"
         f"· 네이버 예약으로 원하는 시간 직접 선택 가능\n"
         f"· 방문 전 전화·카카오톡 문의 환영\n\n"

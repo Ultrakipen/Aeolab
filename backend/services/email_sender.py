@@ -192,8 +192,10 @@ def _day3_html(
   </div>"""
 
     # 핵심: 키워드 + 붙여넣기 문장
+    # kw0는 missing(미보유 추정) 키워드 — "제공하고 있습니다"로 단정하면 사실 지어내기가
+    # 되므로 관심 초대형 문장만 제공한다(2026-08-22 briefing_engine 동일 계열 수정과 통일).
     if kw0:
-        example_sentence = f"저희 {cat_ko}{_select_josa(cat_ko, '은', '는')} {kw0} 서비스를 제공하고 있습니다. 방문 전 미리 문의해 주세요."
+        example_sentence = f"{kw0}에 관심 있으신 분들은 방문 전 미리 문의해 주세요."
         keyword_block = f"""
   <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:16px 18px; margin:0 0 20px;">
     <p style="font-size:12px; color:#92400e; font-weight:700; margin:0 0 8px;">경쟁 가게가 쓰는데 내 가게 소개글엔 없는 키워드</p>
