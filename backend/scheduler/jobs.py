@@ -337,6 +337,18 @@ def start_scheduler():
         id="backend_scaling_trigger_check", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
+    # 결제-구독 불일치 감지 — 매시 정각 (2026-08-23 운영 중 대응 점검 신설)
+    scheduler.add_job(
+        payment_subscription_reconciliation_job, "interval", hours=1,
+        id="payment_subscription_reconciliation", replace_existing=True,
+        max_instances=1, misfire_grace_time=1800,
+    )
+    # 서버 디스크 사용률 점검 — 매일 09:30 KST(UTC 00:30) (2026-08-23 운영 중 대응 점검 신설)
+    scheduler.add_job(
+        disk_usage_check_job, "cron", hour=0, minute=30,
+        id="disk_usage_check", replace_existing=True,
+        max_instances=1, misfire_grace_time=3600,
+    )
     scheduler.add_listener(_on_job_error, EVENT_JOB_ERROR)
     scheduler.start()
     logger.info("Scheduler started")
@@ -6585,6 +6597,155 @@ async def ai_provider_health_check_job() -> None:
                 "스캐너는 실패 시 '노출 없음'으로 조용히 폴백하므로, 해결 전까지 모든 신규 스캔의 "
                 f"{provider} 결과가 부정확합니다.",
             )
+
+
+async def payment_subscription_reconciliation_job() -> None:
+    """결제 성공(payment_events.status='success')인데 subscriptions에 반영 안 된
+    건을 찾아 운영자에게 알린다 — 매시 정각 실행.
+
+    2026-08-23 운영 중 대응 점검에서 발견: webhook.py issue_billing·
+    toss_billing.py retry_billing 둘 다 Toss 청구(돈이 빠져나가는 단계) 성공 뒤
+    subscriptions upsert가 별도 단계로 진행된다. 이 upsert만 실패하면(Supabase
+    일시 장애 등) "결제는 됐는데 구독은 비활성"인 상태가 되는데, 기존
+    `/admin/payment-events`(admin.py:367)는 단순 조회만 제공해 운영자가 수동
+    대조하지 않는 한 알 방법이 없었다. record_payment_event 자체가 예외를
+    삼키는 설계(payment_event_log.py:24 "실패해도 결제 흐름을 막지 않는다")라
+    이벤트 로그마저 누락되는 극단적 케이스도 이 잡이 다음 주기에 다시 잡아낸다
+    (subscriptions 쪽 상태로 판정하지, 이벤트 로그 존재 여부로 판정하지 않음).
+
+    판정 기준: 최근 2시간 내 성공한 결제 이벤트(billing_issue=신규,
+    renewal=갱신)의 user_id로 subscriptions를 조회해, 없거나 해당 결제 시각
+    이후로 갱신되지 않았으면(updated_at < 결제 시각) orphan으로 본다.
+    dedup: 같은 user_id로 6시간 내 이미 보낸 알림은 재발송하지 않는다
+    (ai_provider_health_check_job과 동일 패턴).
+    """
+    from db.supabase_client import get_client
+    from services.email_sender import send_operator_alert
+
+    supabase = get_client()
+    window_start = (datetime.utcnow() - timedelta(hours=2)).isoformat()
+
+    try:
+        events = (
+            await _db(
+                supabase.table("payment_events")
+                .select("user_id, event_type, amount, created_at")
+                .eq("status", "success")
+                .in_("event_type", ["billing_issue", "renewal"])
+                .gte("created_at", window_start)
+                .limit(500)
+            )
+        ).data or []
+    except Exception as e:
+        _logger.debug(f"[payment_reconciliation] payment_events 조회 실패(스킵): {e}")
+        return
+
+    if not events:
+        return
+
+    for ev in events:
+        user_id = ev.get("user_id")
+        if not user_id:
+            continue
+        try:
+            event_created = datetime.fromisoformat(str(ev["created_at"]).replace("Z", "+00:00"))
+        except (KeyError, ValueError):
+            continue
+
+        try:
+            sub_res = (
+                await _db(
+                    supabase.table("subscriptions")
+                    .select("status, updated_at")
+                    .eq("user_id", user_id)
+                    .limit(1)
+                )
+            ).data or []
+        except Exception as e:
+            _logger.debug(f"[payment_reconciliation] subscriptions 조회 실패(스킵): {e}")
+            continue
+
+        orphan = False
+        if not sub_res:
+            orphan = True
+        else:
+            sub = sub_res[0]
+            try:
+                sub_updated = datetime.fromisoformat(str(sub["updated_at"]).replace("Z", "+00:00"))
+            except (KeyError, ValueError, TypeError):
+                orphan = True
+            else:
+                if sub_updated < event_created - timedelta(seconds=60):
+                    orphan = True
+            if sub.get("status") not in ("active", "grace_period"):
+                orphan = True
+
+        if not orphan:
+            continue
+
+        try:
+            recent_alert = (
+                await _db(
+                    supabase.table("system_alerts")
+                    .select("id")
+                    .ilike("subject", f"%{user_id}%")
+                    .gte("created_at", (datetime.utcnow() - timedelta(hours=6)).isoformat())
+                    .limit(1)
+                )
+            ).data or []
+        except Exception as e:
+            _logger.debug(f"[payment_reconciliation] system_alerts 조회 실패: {e}")
+            recent_alert = []
+
+        if recent_alert:
+            _logger.info(f"[payment_reconciliation] user_id={user_id} 6시간 내 알림 기발송, 재발송 스킵")
+            continue
+
+        _logger.warning(
+            f"[payment_reconciliation] 결제-구독 불일치 감지 — user_id={user_id}, "
+            f"event_type={ev.get('event_type')}, amount={ev.get('amount')}, created_at={ev.get('created_at')}"
+        )
+        await send_operator_alert(
+            f"결제-구독 불일치 감지 (user_id={user_id})",
+            f"결제 이벤트(user_id={user_id})는 성공(event_type={ev.get('event_type')}, "
+            f"amount={ev.get('amount')}, created_at={ev.get('created_at')})으로 기록됐으나 "
+            "subscriptions에 활성 상태로 반영되지 않았습니다.\n"
+            "관리자 페이지 /admin/payment-events 및 Supabase subscriptions 테이블에서 "
+            "해당 user_id를 직접 확인하고 필요 시 수동 반영해주세요.",
+        )
+
+
+async def disk_usage_check_job() -> None:
+    """서버 디스크 사용률 매일 점검 — 임계값 초과 시 운영자 알림.
+
+    2026-08-23 운영 중 대응 점검에서 발견: 로그(pm2-logrotate)·백업 등은
+    기존에 관리되고 있었으나 디스크 사용량 자체를 감시하는 코드가 전무했다
+    (journald 누적, npm/.cache 빌드 캐시 누적 등 서서히 자라는 항목들이
+    있어 장기 운영 시 무경고 상태로 디스크가 가득 찰 위험). shutil은
+    표준 라이브러리라 추가 의존성 없음.
+    """
+    import shutil
+    from services.email_sender import send_operator_alert
+
+    try:
+        usage = shutil.disk_usage("/")
+    except Exception as e:
+        _logger.debug(f"[disk_usage_check] 디스크 사용량 조회 실패(스킵): {e}")
+        return
+
+    percent_used = usage.used / usage.total * 100
+    threshold = float(os.getenv("DISK_USAGE_WARN_PERCENT", "85"))
+    if percent_used < threshold:
+        return
+
+    free_gb = usage.free / (1024 ** 3)
+    _logger.warning(f"[disk_usage_check] 디스크 사용률 {percent_used:.1f}% (여유 {free_gb:.1f}GB) — 임계값 {threshold}% 초과")
+    await send_operator_alert(
+        f"서버 디스크 사용률 {percent_used:.1f}% 경고",
+        f"루트 파티션 사용률이 {percent_used:.1f}%(여유 {free_gb:.1f}GB)로 임계값({threshold}%)을 "
+        "초과했습니다. journald(`journalctl --disk-usage`), /root/.npm, /root/.cache, "
+        "pm2 로그 순으로 정리 대상을 확인해주세요.",
+    )
 
 
 # 프로바이더별 일일 호출 수 경보 임계값 — 실제 프로바이더 대시보드 한도를 반영한 값이
