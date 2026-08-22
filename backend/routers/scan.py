@@ -1135,19 +1135,16 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
 
 
     # FAQ 복사 텍스트 -- 업종 1순위 키워드 기반 기본 템플릿
+    # kw1은 top_missing_keywords(갭분석상 "미보유 추정" 키워드) — "전문으로 합니다"/"강점으로 하고 있습니다"처럼
+    # 단정 서술하면 사실 지어내기가 된다(2026-07-08 guide_generator intro 사고와 동일 계열, 2026-08-22 발견·수정).
+    # 프론트 TodayOneAction.tsx의 안전한 fallback 문구(안내드립니다 톤)와 동일한 원칙으로 맞춤.
     faq_copy_text = ""
     if top_missing_keywords:
         kw1 = top_missing_keywords[0]
         biz_nm = req.business_name
-        if keyword_ko and kw1 and keyword_ko.strip() == kw1.strip():
-            q_line = "Q: " + biz_nm + _josa(biz_nm, ("은", "는")) + " " + kw1 + _josa(kw1, ("을", "를")) + " 잘하나요?"
-            a_line = "A: 네, 저희 " + biz_nm + _josa(biz_nm, ("은", "는")) + " " + kw1 + _josa(kw1, ("을", "를")) + " 전문으로 합니다. 직접 방문하시거나 문의 주시면 자세히 안내해 드리겠습니다."
-            faq_copy_text = q_line + "\n" + a_line
-        else:
-            kw_display = keyword_ko or kw1
-            q_line = "Q: " + kw_display + " 중에서 " + kw1 + _josa(kw1, ("이", "가")) + " 좋은 곳인가요?"
-            a_line = "A: 네, 저희 " + biz_nm + _josa(biz_nm, ("은", "는")) + " " + kw1 + _josa(kw1, ("을", "를")) + " 강점으로 하고 있습니다. 방문하시면 직접 확인하실 수 있습니다."
-            faq_copy_text = q_line + "\n" + a_line
+        q_line = "Q: " + kw1 + "에 대해 궁금한 점이 있어요."
+        a_line = "A: 저희 " + biz_nm + _josa(biz_nm, ("은", "는")) + " " + kw1 + "에 대해 안내드립니다. 자세한 내용은 방문하시거나 문의 주시면 안내해 드리겠습니다."
+        faq_copy_text = q_line + "\n" + a_line
 
     # 리뷰 요청 메시지 생성 (briefing_engine 모듈 함수 직접 사용)
     review_copy_text = ""

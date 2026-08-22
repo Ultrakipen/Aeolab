@@ -711,10 +711,14 @@ def _make_review_response_content(
     답변에 키워드를 심는 것은 합법적인 AI 신호 강화 방법입니다.
 
     Args:
-        target_keywords: 목표 키워드 목록
+        target_keywords: 목표 키워드 목록 (호출부 기준 missing/competitor_only 키워드 — "미보유 추정")
         business_name: 사업장명
         category: 업종 코드
         review_excerpts: 실제 리뷰 발췌문 목록 (있으면 개인화된 답변 생성, 없으면 키워드 기반 fallback)
+
+    target_keywords를 "운영하고 있습니다"처럼 단정 서술하지 않는다 — 미보유 추정 키워드를
+    확정 사실로 단정하면 사실 지어내기가 된다(2026-07-08 guide_generator intro 사고와 동일 계열,
+    2026-08-22 발견·수정). "관심 있으시면 말씀해 주세요" 식 초대형 문장만 사용할 것.
     """
     category_ko = _to_ko_category(category)
     eun_neun_biz = _select_josa(business_name, "은", "는")
@@ -730,12 +734,12 @@ def _make_review_response_content(
 
         if kw2:
             kw_sentence = (
-                f"저희는 {kw1}·{kw2} 서비스를 운영하고 있습니다. "
+                f"{kw1}·{kw2}에 관심 있으시면 언제든 말씀해 주세요. "
                 f"다음에도 편하게 방문해 주세요."
             )
         elif kw1:
             kw_sentence = (
-                f"저희 {business_name}에서 {kw1} 서비스도 운영하고 있으니 "
+                f"{kw1}에 관심 있으시면 언제든 말씀해 주세요. "
                 f"다음에도 편하게 방문해 주세요."
             )
         else:
@@ -775,12 +779,12 @@ def _make_review_response_content(
 
     if kw2:
         kw_sentence = (
-            f"저희는 {kw1}·{kw2} 서비스를 운영하고 있습니다. "
+            f"{kw1}·{kw2}에 관심 있으시면 언제든 말씀해 주세요. "
             f"다음에도 편하게 방문해 주세요."
         )
     else:
         kw_sentence = (
-            f"저희 {business_name}에서 {kw1} 서비스도 운영하고 있으니 "
+            f"{kw1}에 관심 있으시면 언제든 말씀해 주세요. "
             f"다음에도 편하게 방문해 주세요."
         )
 

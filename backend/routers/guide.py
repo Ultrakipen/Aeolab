@@ -962,7 +962,7 @@ async def generate_smartplace_faq(
     # 소유권 확인
     biz_row = await execute(
         supabase.table("businesses")
-        .select("id, name, category, region, user_id, talktalk_faq_draft")
+        .select("id, name, category, region, user_id, talktalk_faq_draft, keywords")
         .eq("id", biz_id)
         .single()
     )
@@ -1004,21 +1004,15 @@ async def generate_smartplace_faq(
                     detail=f"이번 달 소개글·FAQ 합산 한도({limit}회)에 도달했습니다",
                 )
 
-        # 키워드 결정: 사용자 제공 키워드 우선, 없으면 최신 스캔에서 자동 추출
-        # (top_missing_keywords는 scan_results의 top-level 컬럼 — gemini_result 안에 없음. 2026-07-02 수정)
+        # 키워드 결정: 사용자 제공 키워드 우선, 없으면 사업장에 등록된 키워드(실제 보유 서비스) 사용.
+        # top_missing_keywords(갭분석상 "미보유 추정" 키워드, scan_results)는 여기서 쓰지 않는다 —
+        # 아래 프롬프트가 이 값을 "주요 서비스"로 Claude에 전달해 단정 서술로 이어지면
+        # 사실 지어내기가 된다(2026-07-08 guide_generator intro 사고와 동일 계열, 2026-08-22 발견).
         if req.keywords:
             final_keywords = req.keywords
         else:
-            scan_res = await execute(
-                supabase.table("scan_results")
-                .select("top_missing_keywords")
-                .eq("business_id", biz_id)
-                .order("scanned_at", desc=True)
-                .limit(1)
-            )
-            final_keywords = []
-            if scan_res.data:
-                final_keywords = scan_res.data[0].get("top_missing_keywords") or []
+            _biz_kw = biz.get("keywords")
+            final_keywords = _biz_kw if isinstance(_biz_kw, list) else []
 
         category_label = _CAT_KO.get(biz.get("category", ""), biz.get("category", ""))
         services = ", ".join(final_keywords) if final_keywords else ""
