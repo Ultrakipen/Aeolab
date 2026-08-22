@@ -595,7 +595,11 @@ export default function TrialInputStep(props: TrialInputStepProps) {
               onClick={handleMoveToInfo}
               className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
             >
-              {selectedTags.length > 0 ? "다음 →" : "태그 없이 다음으로 →"}
+              {selectedTags.length > 0
+                ? "다음 →"
+                : CATEGORIES_WITH_TYPE_KEYWORDS.has(selectedCategory)
+                  ? "종류를 선택해 주세요"
+                  : "태그 없이 다음으로 →"}
             </button>
           </div>
         )}
