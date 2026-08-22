@@ -589,7 +589,13 @@ class KakaoNotifier:
                         ],
                     },
                 )
-            if r.status_code >= 400:
+            body_ok = True
+            if r.status_code < 400:
+                try:
+                    body_ok = r.json().get("header", {}).get("isSuccessful", True)
+                except Exception:
+                    body_ok = True
+            if r.status_code >= 400 or not body_ok:
                 status = "failed"
                 logger.warning(
                     f"[{log_tag}] 알림톡 발송 실패 {r.status_code} "
@@ -686,7 +692,13 @@ class KakaoNotifier:
                         }],
                     },
                 )
-            if r.status_code >= 400:
+            body_ok = True
+            if r.status_code < 400:
+                try:
+                    body_ok = r.json().get("header", {}).get("isSuccessful", True)
+                except Exception:
+                    body_ok = True
+            if r.status_code >= 400 or not body_ok:
                 status = "failed"
                 logger.warning(f"Kakao _send_raw failed {r.status_code}: {r.text[:200]}")
             else:
@@ -729,7 +741,13 @@ class KakaoNotifier:
                         ],
                     },
                 )
-            if r.status_code >= 400:
+            body_ok = True
+            if r.status_code < 400:
+                try:
+                    body_ok = r.json().get("header", {}).get("isSuccessful", True)
+                except Exception:
+                    body_ok = True
+            if r.status_code >= 400 or not body_ok:
                 status = "failed"
                 kakao_failed = True
                 logger.warning(f"Kakao _send failed {r.status_code} ({ttype}): {r.text[:200]}")
