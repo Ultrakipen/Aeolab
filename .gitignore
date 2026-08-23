@@ -13,6 +13,9 @@ e2e/.biz_id
 # 관리자 계정 로컬 자격증명 (절대 커밋 금지)
 docs/.admin_credentials.local
 
+# GA4 Data API 서비스 계정 키 (절대 커밋 금지)
+backend/secrets/
+
 # E2E 테스트 결과물
 e2e/playwright-report/
 e2e/test-results/
