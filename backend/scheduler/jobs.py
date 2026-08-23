@@ -222,9 +222,11 @@ def start_scheduler():
         id="new_user_day7_rescan", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
-    # 가입 후 미결제 사용자 전환 알림 시퀀스 D+7/14/30 (매일 10:00 KST = UTC 01:00)
+    # 가입 후 미결제 사용자 전환 알림 시퀀스 D+7/14/30 (매일 10:00 KST — 2026-08-23 재검증으로 발견:
+    # scheduler가 timezone="Asia/Seoul"이라 UTC 변환 불필요한데 hour=1(UTC 01:00 착각)로 등록돼
+    # 실제론 01:00 KST에 실행 중이었음 — hour=10으로 수정)
     scheduler.add_job(
-        conversion_followup_job, "cron", hour=1, minute=0,
+        conversion_followup_job, "cron", hour=10, minute=0,
         id="conversion_followup", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
@@ -252,41 +254,48 @@ def start_scheduler():
         id="inactive_post_alert", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
-    # v5.8 대행 서비스 — 미결제 7일 방치 자동 취소 (매일 10:30 KST = UTC 01:30)
+    # v5.8 대행 서비스 — 미결제 7일 방치 자동 취소 (매일 10:30 KST — 2026-08-23 타임존버그 수정,
+    # 실제론 01:30 KST에 실행 중이었음)
     scheduler.add_job(
-        delivery_auto_cancel_job, "cron", hour=1, minute=30,
+        delivery_auto_cancel_job, "cron", hour=10, minute=30,
         id="delivery_auto_cancel", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
-    # v6.2b 대행 서비스 — 결제완료+자료 미제출 7일 자동 환불 (매일 11:30 KST = UTC 02:30)
+    # v6.2b 대행 서비스 — 결제완료+자료 미제출 7일 자동 환불 (매일 11:30 KST — 2026-08-23
+    # 타임존버그 수정, 실제론 02:30 KST에 실행 중이었음)
     scheduler.add_job(
-        delivery_auto_refund_job, "cron", hour=2, minute=30,
+        delivery_auto_refund_job, "cron", hour=11, minute=30,
         id="delivery_auto_refund", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
-    # 대행 서비스 — 진행중 14일 경과+납품물 없음 운영자 알림 (매일 12:30 KST = UTC 03:30,
+    # 대행 서비스 — 진행중 14일 경과+납품물 없음 운영자 알림 (매일 12:30 KST — 2026-08-23
+    # 타임존버그 수정, 실제론 03:30 KST에 실행 중이었음.
     # 2026-07-21 발견: delivery_auto_refund_job은 status='paid'만 감시해 in_progress 전환 후
     # 방치된 주문은 안전망에서 영구 제외됨 — 자동환불 대신 운영자 알림으로 보완)
     scheduler.add_job(
-        delivery_stalled_in_progress_alert_job, "cron", hour=3, minute=30,
+        delivery_stalled_in_progress_alert_job, "cron", hour=12, minute=30,
         id="delivery_stalled_in_progress_alert", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
-    # v5.8 대행 서비스 — 종합 풀패키지 완료 30일 후 자동 재스캔 (매일 11:00 KST = UTC 02:00)
+    # v5.8 대행 서비스 — 종합 풀패키지 완료 30일 후 자동 재스캔 (매일 11:00 KST — 2026-08-23
+    # 타임존버그 수정, 실제론 02:00 KST에 실행 중이었음)
     scheduler.add_job(
-        delivery_30day_rescan_job, "cron", hour=2, minute=0,
+        delivery_30day_rescan_job, "cron", hour=11, minute=0,
         id="delivery_30day_rescan", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
-    # [P3] v3.1 readiness check -- daily 09:15 KST (UTC 00:15)
+    # [P3] v3.1 readiness check -- daily 09:15 KST (2026-08-23 타임존버그 수정,
+    # 실제론 00:15 KST에 실행 중이었음)
     scheduler.add_job(
-        _check_v31_readiness_job, "cron", hour=0, minute=15,
+        _check_v31_readiness_job, "cron", hour=9, minute=15,
         id="v31_readiness_check_job", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
-    # [데이터 배선 확장] DataLab/Playwright 자동화 착수 조건 체크 -- daily 09:20 KST (UTC 00:20)
+    # [데이터 배선 확장] DataLab/Playwright 자동화 착수 조건 체크 -- daily 09:20 KST
+    # (2026-08-23 타임존버그 수정, 실제론 00:20 KST에 실행 중이었음 + get_supabase→get_client
+    # ImportError로 8/18부터 매일 조용히 실패 중이었던 것도 같이 수정)
     scheduler.add_job(
-        _check_data_wiring_readiness_job, "cron", hour=0, minute=20,
+        _check_data_wiring_readiness_job, "cron", hour=9, minute=20,
         id="data_wiring_readiness_check_job", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
@@ -312,9 +321,10 @@ def start_scheduler():
         replace_existing=True,
         misfire_grace_time=3600,
     )
-    # 네이버 NID_AUT 쿠키 유효성 검사 + 자동 갱신 — 매주 월요일 09:30 KST (UTC 00:30)
+    # 네이버 NID_AUT 쿠키 유효성 검사 + 자동 갱신 — 매주 월요일 09:30 KST (2026-08-23
+    # 타임존버그 수정, 실제론 월요일 00:30 KST에 실행 중이었음)
     scheduler.add_job(
-        check_naver_cookie_health_job, "cron", day_of_week="mon", hour=0, minute=30,
+        check_naver_cookie_health_job, "cron", day_of_week="mon", hour=9, minute=30,
         id="naver_cookie_health_check", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
@@ -324,16 +334,19 @@ def start_scheduler():
         id="ai_provider_health_check", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
-    # AI 프로바이더 일일 호출량 사전 경보 — 매일 00:05 KST(UTC 15:05) (외부 API 한도 확장 대응, 2026-07-19)
+    # AI 프로바이더 일일 호출량 사전 경보 — 매일 00:05 KST (외부 API 한도 확장 대응, 2026-07-19).
+    # 2026-08-23 타임존버그 수정 — 실제론 15:05 KST(오후 3시)에 실행 중이었음(자정 직후 경보라는
+    # 원 취지와 정반대 시점).
     scheduler.add_job(
-        ai_daily_usage_alert_job, "cron", hour=15, minute=5,
+        ai_daily_usage_alert_job, "cron", hour=0, minute=5,
         id="ai_daily_usage_alert", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
-    # 백엔드 --workers 1 확장 트리거 조건 점검 — 매일 09:25 KST(UTC 00:25)
-    # (docs/backend_worker_scaling_trigger_v1.0.md, 2026-07-19)
+    # 백엔드 --workers 1 확장 트리거 조건 점검 — 매일 09:25 KST
+    # (docs/backend_worker_scaling_trigger_v1.0.md, 2026-07-19. 2026-08-23 타임존버그 수정,
+    # 실제론 00:25 KST에 실행 중이었음)
     scheduler.add_job(
-        backend_scaling_trigger_check_job, "cron", hour=0, minute=25,
+        backend_scaling_trigger_check_job, "cron", hour=9, minute=25,
         id="backend_scaling_trigger_check", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
@@ -4534,7 +4547,7 @@ async def new_user_day7_rescan_job():
 
 # ── 가입 후 미결제 사용자 전환 알림 시퀀스 D+7/14/30 ────────────────────────
 async def conversion_followup_job():
-    """매일 오전 10시 KST (UTC 01:00): 가입 후 구독 미결제 사용자 전환 유도 알림.
+    """매일 오전 10시 KST: 가입 후 구독 미결제 사용자 전환 유도 알림.
 
     대상: auth.users 기준 D+7/14/30 가입자 중 subscriptions.status='active' 없는 사용자
     중복 차단: notifications 테이블 멱등키 (user_id + type='conversion_d7/d14/d30')
@@ -5933,8 +5946,8 @@ async def _check_v31_readiness_job():
         return  # v3.1 already active
 
     try:
-        from db.supabase_client import get_supabase
-        supabase = get_supabase()
+        from db.supabase_client import get_client
+        supabase = get_client()
 
         res = await _db(
             supabase.table("subscriptions")
@@ -5970,8 +5983,8 @@ async def _check_data_wiring_readiness_job():
         return  # 둘 다 이미 구현·활성화됨
 
     try:
-        from db.supabase_client import get_supabase
-        supabase = get_supabase()
+        from db.supabase_client import get_client
+        supabase = get_client()
 
         res = await _db(
             supabase.table("subscriptions")
