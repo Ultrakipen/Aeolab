@@ -8,7 +8,7 @@
 사용 예:
   python3 restore_json.py businesses_20260801_1741.json.gz --target restore_drill_businesses
 """
-import sys, os, json, gzip, argparse, urllib.request, urllib.error
+import sys, os, json, gzip, argparse, time, urllib.request, urllib.error
 
 SUPABASE_URL = os.getenv('SUPABASE_URL', '')
 KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
@@ -19,6 +19,7 @@ def restore(backup_path: str, target_table: str, batch_size: int, upsert: bool) 
         print('SUPABASE_URL 또는 SUPABASE_SERVICE_ROLE_KEY 미설정')
         return 1
 
+    _t0 = time.monotonic()
     with gzip.open(backup_path, 'rt', encoding='utf-8') as f:
         rows = json.load(f)
 
@@ -52,7 +53,8 @@ def restore(backup_path: str, target_table: str, batch_size: int, upsert: bool) 
             print(f'  배치 {i}~{i + len(batch)} 실패 ({e.code}): {body[:500]}')
             return 1
 
-    print(f'{backup_path} -> {target_table}: 총 {restored}/{len(rows)}행 복구 완료')
+    elapsed = time.monotonic() - _t0
+    print(f'{backup_path} -> {target_table}: 총 {restored}/{len(rows)}행 복구 완료 (소요 {elapsed:.1f}초)')
     return 0
 
 
