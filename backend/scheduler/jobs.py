@@ -343,9 +343,12 @@ def start_scheduler():
         id="payment_subscription_reconciliation", replace_existing=True,
         max_instances=1, misfire_grace_time=1800,
     )
-    # 서버 디스크 사용률 점검 — 매일 09:30 KST(UTC 00:30) (2026-08-23 운영 중 대응 점검 신설)
+    # 서버 디스크 사용률 점검 — 매일 09:30 KST (2026-08-23 신설, scheduler가 timezone="Asia/Seoul"로
+    # 구성돼 있어 cron hour/minute는 KST 기준 직접 지정 — UTC 변환 불필요. 최초 등록 시
+    # "09:30 KST(UTC 00:30)"로 잘못 계산해 hour=0으로 등록했던 걸 실측(재검증 요청으로 다른
+    # 기존 잡의 로그 대조 중 이 잡도 같은 실수를 반복한 것을 발견) 후 수정)
     scheduler.add_job(
-        disk_usage_check_job, "cron", hour=0, minute=30,
+        disk_usage_check_job, "cron", hour=9, minute=30,
         id="disk_usage_check", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
