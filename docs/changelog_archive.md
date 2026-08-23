@@ -1,9 +1,12 @@
 # AEOlab 변경 이력 아카이브 (v1.2 ~ v3.7)
 
 > CLAUDE.md 토큰 절약용 아카이브. 필요 시에만 이 파일 참조. 현재 상태·코드 패턴은 CLAUDE.md 본문 참조.
-> 최종 갱신: 2026-08-23
+> 최종 갱신: 2026-08-24
 
 ---
+
+## 2026-08-23 CSP 재검증 계속 — `window.open`+`document.write`+인라인 이벤트핸들러 패턴 신규 발견·검증(문제 없음 확인)
+> "계속 이어갈 것" 지시로 `dangerouslySetInnerHTML|document.write|new Worker(` 코드베이스 전체 grep — `GuideClient.tsx`의 QR카드 인쇄 기능(`window.open('','_blank')` 후 `document.write`로 `<img onload="window.print()...">` 삽입)이 지금까지 테스트 안 한 패턴(팝업이 오프너 CSP를 상속하는지가 브라우저 스펙상 불명확한 영역)임을 발견. 실사업장에 QR카드용 tools 데이터가 없어 실제 기능 재현 대신, 동일 패턴(about:blank 팝업+document.write+인라인 onload)을 라이브 origin에서 `browser_evaluate`로 직접 재현 → `onload` 정상 실행 확인(CSP 위반 로그 0건) — 팝업이 오프너의 `script-src 'unsafe-inline'`을 상속해 정상 동작함. 나머지 `dangerouslySetInnerHTML` 사용처(FAQSection·faq/page·layout.tsx)는 전부 `type="application/ld+json"`이라 애초에 script-src 적용 대상 아님(비실행 MIME), `new Worker(` 사용처는 코드베이스에 없음 확인.
 
 ## 2026-08-23 출시 전 "운영 중 대응력" 종합 점검 — 결제-구독 불일치 감지 잡 + 디스크 사용률 알림 잡 신설
 > "서비스 운영 중 발생 가능한 모든 상황을 대비한 점검"이라는 요청에, 페이지 단위(L1~L4) 대신 "장애·급증·악용 상황에서 운영자가 실제로 대응할 수 있는가"를 4개 영역으로 병렬 조사 후 직접 코드 재검증. 수정·배포 완료(P1 2건, git `ab0c2a0`): (1) Toss 청구 성공 뒤 `subscriptions` upsert만 실패하면 운영자가 알 방법이 없었음 → `payment_subscription_reconciliation_job`(매시 정각) 신설. (2) 서버 디스크 사용량 감시 코드 전무 → `disk_usage_check_job`(매일 09:30 KST — 2026-08-23 밤 타임존버그 발견·수정됨) 신설. 문서화만: 관리자 2FA·Naver/Google 헬스체크 공백·가입 rate limit·journald 디스크 누적. 반증 기각: `record_payment_event` 이중청구는 함수 자체가 예외를 삼키는 설계라 단독 발생 안 함.
