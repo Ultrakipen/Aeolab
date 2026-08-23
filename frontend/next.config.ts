@@ -30,8 +30,9 @@ const nextConfig: NextConfig = {
     //   - GA4/Google Ads: gtag.js가 googletagmanager.com 외에 analytics.google.com·
     //     stats.g.doubleclick.net(리마케팅 오디언스)·google.co.kr(ads-audiences 픽셀)까지 호출함
     //     (google-analytics.com만으로는 부족 — 실측으로 발견, *.google.com/*.doubleclick.net으로 포괄)
-    //     ※ google.co.kr 등 구글 국가별 TLD 리마케팅 픽셀은 img-src에서 커버 안 됨(수용된 공백 —
-    //     비필수 광고 리타게팅 정밀도만 영향, 핵심 기능 무관. 전 TLD 대응은 allowlist 비대화라 배제)
+    //     ※ 2026-08-23 강제적용 후 재검증 중 /admin에서 google.co.kr 픽셀이 실제 차단(Report-Only
+    //     때는 "수용 가능한 공백"으로 문서화만 했으나 실측으로 실제 발생 확인) — AEOlab 사용자는
+    //     거의 전원 한국(ko-kr)이라 google.co.kr을 명시 추가함(다른 국가 TLD는 트래픽 없어 배제)
     //   - Supabase: 브라우저가 직접 호출(REST+Storage), duqepesuqquqffqvlkxf.supabase.co
     //   - Sentry: instrumentation-client.ts → ingest.us.sentry.io
     //   - Cloudflare: static.cloudflareinsights.com (엣지에서 자동 주입되는 beacon)
@@ -39,7 +40,7 @@ const nextConfig: NextConfig = {
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://t1.kakaocdn.net https://static.cloudflareinsights.com https://js.tosspayments.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https://duqepesuqquqffqvlkxf.supabase.co https://t1.kakaocdn.net https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com https://*.doubleclick.net",
+      "img-src 'self' data: https://duqepesuqquqffqvlkxf.supabase.co https://t1.kakaocdn.net https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com https://*.google.co.kr https://*.doubleclick.net",
       "font-src 'self' data:",
       // *.analytics.google.com은 서브도메인만 매칭하고 루트 도메인 자체(analytics.google.com,
       // 실측된 gtag.js 수집 엔드포인트)는 못 잡아 별도로 명시 필요(실측으로 발견한 CSP 와일드카드 함정)
