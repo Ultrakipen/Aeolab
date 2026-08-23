@@ -5,6 +5,9 @@
 
 ---
 
+## 2026-08-22 무료체험/가입후1회체험 설득력 검토 — P0 콘텐츠 사실 지어내기 3곳 발견·즉시 수정·배포
+> "처음 접하는 사용자에게 체험 결과가 설득력·가치 있는지" 질문에 라이브 API 실호출(스타벅스·런던베이글뮤지엄·이혼전문법무사 등)로 시나리오별 재현. 콘텐츠 구조 자체(실측 기반 구체성, INACTIVE 업종 정직 안내)는 강했으나, 재현 도중 `top_missing_keywords`(경쟁사엔 있고 내겐 없는 "미보유 추정" 키워드)를 FAQ·리뷰 답변 자동생성 카피에서 "전문으로 합니다"/"강점으로 하고 있습니다"/"운영하고 있습니다"로 단정 서술하는 버그를 3곳(`scan.py` 체험 FAQ, `briefing_engine.py` 리뷰 답변 4개 분기, `guide.py`의 Basic+ 유료 기능 `smartplace-faq`) 발견 — 2026-07-08 `guide_generator.py` intro 사고와 동일 계열이나 이번엔 비회원 체험이 아니라 유료 구독자가 매달 쓰는 기능이라 더 심각. 단정 문장 → 중립 안내/초대 문장으로 교체, `smartplace-faq` 기본 키워드 출처를 갭분석 대신 사업장 등록 키워드(`biz.keywords`)로 변경. 라이브 curl 재현으로 수정 확인, git `bd379c0`. 잔여 개선안과 사업성장 방안은 `docs/trial_experience_persuasiveness_and_growth_v1.0.md` 참조.
+
 ## 2026-08-21 "Phase 기준 배제한 일반 상업기준" 재평가 — 프론트엔드 보안헤더 부재 P1 발견·수정 + PM2 재시작가드 신설 + 경량 부하테스트 실측
 > "토스 실키 제외 준비됐는지" 질문에 이어 "Phase(자체유예) 기준 말고 일반 SaaS 기준으로 보면?" 재질문 — 네이버 회색지대·부하테스트부재·단일서버 가용성·제3자 보안점검 부재를 격상 대상으로 재분류 후, 사용자 선택(가벼운 엔드포인트만)에 따라 실행. ①보안헤더 실측 스캔 중 신규 발견: `backend/main.py`의 `SecurityHeadersMiddleware`(X-Frame-Options·CSP 등)가 `/api`·`/health` FastAPI 응답에만 적용되고, Next.js가 렌더링하는 로그인·가입·대시보드 등 실제 사용자 화면 HTML은 `next.config.ts`에 `headers()` 자체가 없어 보안헤더가 전무했음(라이브 curl로 실측 확인). X-Content-Type-Options·X-Frame-Options·Referrer-Policy·HSTS·Permissions-Policy 추가(CSP는 별도 검토로 보류 — 2026-08-23 git `2507a62`로 완료). git `ce20752`. ②PM2 크래시루프 방지 가드 추가(`ecosystem.config.js` min_uptime/max_restarts, `pm2 startOrReload` 결함으로 잠깐 다운됐다 즉시 복구). git `aecd04a`. ③경량 부하테스트 실측 — 동시성 5→30, 오류 0%, p95 1초 미만. ④네이버 법률자문요청서는 2026-08-08 이미 발송 보류 결정된 사안임을 재확인(재권고 안함).
 
