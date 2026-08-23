@@ -2,13 +2,13 @@
 
 > "Phase 기준을 배제한 일반 상업 서비스 기준" 재평가(`project_general_commercial_standard_reeval_2026_08_21` 메모리)에서 격상 대상으로 분류했으나, 초기 규모(구독자 20명 미만)에서는 출시를 막을 정도는 아니라고 판단해 이 시점까지 보류한 4개 항목. `jobs.py`의 `_check_data_wiring_readiness_job`이 활성 구독 20명 도달 시 `[LAUNCH-READY-20-HARDENING]` 경고를 자동 발생시킨다.
 
-## 1. CSP(Content-Security-Policy) 설계
+## 1. ✅ CSP(Content-Security-Policy) 설계 — 완료(2026-08-23, git `2507a62`)
 
-`frontend/next.config.ts`의 `headers()`에 다른 보안헤더(X-Frame-Options·HSTS 등)는 2026-08-21 추가됐으나 CSP는 제외됨 — Toss 결제위젯(`@tosspayments/payment-sdk`)·Kakao SDK(`t1.kakaocdn.net`)·GA4(`googletagmanager.com`)·Supabase 등 allowlist를 정확히 설계하지 않으면 결제 플로우가 조용히 깨질 위험이 있어 신중한 설계·스테이징 테스트가 필요.
+`frontend/next.config.ts`에 CSP 신설·강제 적용 완료. Report-Only로 먼저 배포 → QA 계정으로 로그인·요금제 결제모달 클릭→Toss 카드입력 iframe 진입까지 Playwright 실측 → 위반 로그 기반으로 allowlist 보정(Toss SDK가 런타임에 `js.tosspayments.com` 스크립트를 직접 주입한다는 것, GA4가 `analytics.google.com` 루트 도메인도 호출한다는 것을 사전 추정 오류로 실측 발견) → 강제 적용 전환 후 신규 QA계정으로 동일 플로우 재실측, 위반 0건·결제 카드입력 폼 정상 렌더 확인. `script-src`에 `'unsafe-inline'` 포함한 의도적 절충(App Router nonce 미들웨어는 별도 과제)이라 Mozilla Observatory 만점은 아니지만 75(B)→80(B+) 확인. QA계정 2개 생성 후 완전 삭제 확인.
 
-## 2. 제3자 관점 보안점검
+## 2. ✅ 제3자 관점 보안점검 — 완료(2026-08-23)
 
-지금까지 전부 내부(에이전트+메인세션) 자체 점검. 무료 자동화 도구(Mozilla Observatory 스타일, OWASP ZAP baseline 등) 최소 1회 실행 권장.
+Mozilla HTTP Observatory(구 Mozilla Observatory 후속, `observatory-api.mdn.mozilla.net`) 실제 스캔 실행 — 최초 75점(B, CSP 미구현 -25), CSP 적용 후 80점(B+, `unsafe-inline` 포함이라 -20)까지 확인. OWASP ZAP baseline은 Docker 미가용(로컬·서버 둘 다)이라 미실행 — 필요 시 별도 환경 준비 후 진행.
 
 ## 3. AI스캔 경로 포함 부하테스트
 
