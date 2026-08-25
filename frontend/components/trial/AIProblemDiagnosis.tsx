@@ -351,7 +351,7 @@ export default function AIProblemDiagnosis({
     problems.length >= 3
       ? isActive
         ? `${iSubject(businessName)} 소개글 Q&A 추가와 키워드 정리만 해도 AI 브리핑 인용 후보 가능성이 크게 높아집니다`
-        : `${iSubject(businessName)} 소개글 Q&A 추가로 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 핵심입니다.`
+        : `${iSubject(businessName)} 소개글 Q&A 추가로 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 중요한 기반이 됩니다.`
       : track1Score >= 60
       ? isActive
         ? "네이버 AI 브리핑 기반은 잘 갖춰져 있습니다. 글로벌 AI 노출을 높이면 더 많은 손님이 찾아옵니다"

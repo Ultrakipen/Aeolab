@@ -60,7 +60,7 @@ def _briefing_strategy_header(eligibility: str, is_franchise: bool) -> str:
 
 def _faq_missing_msg(eligibility: str) -> str:
     if eligibility == "inactive":
-        return "FAQ는 ChatGPT·Gemini가 사용자 질문에 답변할 때 인용하는 핵심 정보입니다"
+        return "FAQ는 ChatGPT·Gemini가 사용자 질문에 답변할 때 인용 후보로 참고할 수 있는 정보입니다"
     return "소개글 Q&A 없음 — 네이버 AI 브리핑 인용 후보 중 가장 효과 큰 항목 (소개글 하단에 추가)"
 
 

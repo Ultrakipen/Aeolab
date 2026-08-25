@@ -7,7 +7,7 @@ import { ChatGptChecklist } from "./ChatGptChecklist"
 export const metadata: Metadata = {
   title: "ChatGPT에서 내 가게가 언급되는 조건 | AEOlab",
   description:
-    "ChatGPT는 Bing 검색 기반으로 자체 웹사이트·구글 비즈니스 프로필·영어권 플랫폼을 참조합니다. 네이버 블로그·스마트플레이스와는 직접 연결되지 않는 이유와 실제 노출 조건을 정리합니다.",
+    "ChatGPT 웹검색은 Bing과 OpenAI 자체 크롤러(OAI-SearchBot) 혼합 구조로 자체 웹사이트·구글 비즈니스 프로필·영어권 플랫폼을 참조합니다. 네이버 블로그·스마트플레이스와 직접 연결되지 않는 이유와 실제 노출 조건을 정리합니다.",
 }
 
 const LEARN_SOURCES = [
@@ -19,17 +19,17 @@ const LEARN_SOURCES = [
   {
     icon: "📍",
     title: "구글 비즈니스 프로필",
-    desc: "구글 비즈니스 프로필에 등록하면 사업장 정보가 웹 전반에 퍼지며 Bing에서도 발견될 가능성이 높아집니다. business.google.com 무료 등록 후 웹 전체 인덱싱까지 1~4주 소요됩니다.",
+    desc: "구글 비즈니스 프로필에 등록하면 사업장 정보가 웹 전반에 퍼지며 Bing 및 OAI-SearchBot(OpenAI 자체 크롤러)에서도 발견될 가능성이 높아집니다. business.google.com 무료 등록 후 웹 전체 인덱싱까지 1~4주 소요됩니다.",
   },
   {
     icon: "📰",
     title: "뉴스·언론 기사·영어권 플랫폼",
-    desc: "언론 보도, 트립어드바이저 등 영어권 글로벌 플랫폼은 Bing 인덱싱이 활발하여 권위 신호로 인식되고 인용 가능성이 높아집니다.",
+    desc: "언론 보도, 트립어드바이저 등 영어권 글로벌 플랫폼은 Bing 및 OAI-SearchBot(OpenAI 자체 크롤러) 인덱싱이 활발하여 권위 신호로 인식되고 인용 가능성이 높아집니다.",
   },
   {
     icon: "⚠️",
     title: "네이버 블로그·스마트플레이스 — ChatGPT 효과 제한적",
-    desc: "ChatGPT는 Bing 검색 기반입니다. 네이버 생태계(블로그·스마트플레이스)는 Bing 내 영향력이 제한적이어서 ChatGPT 응답에 미치는 효과가 작습니다. 네이버 최적화는 네이버 AI 브리핑·AI탭에 효과적입니다.",
+    desc: "ChatGPT 웹검색은 Bing과 OAI-SearchBot(OpenAI 자체 크롤러)의 혼합 구조입니다. 네이버 생태계(블로그·스마트플레이스)는 두 경로 모두에서 영향력이 제한적이어서 ChatGPT 응답에 미치는 효과가 작습니다. 네이버 최적화는 네이버 AI 브리핑·AI탭에 효과적입니다.",
   },
 ]
 
@@ -84,7 +84,7 @@ export default function ChatGptSearchGuidePage() {
             ChatGPT에서 내 가게를 노출시키는 방법
           </h1>
           <p className="text-base md:text-lg text-gray-600 mb-4 leading-relaxed break-keep">
-            ChatGPT 웹검색은 Bing 기반 — 자체 웹사이트와 구글 비즈니스 프로필이 핵심입니다
+            ChatGPT 웹검색은 Bing + OpenAI 자체 크롤러 혼합 구조 — 자체 웹사이트와 구글 비즈니스 프로필이 핵심입니다
           </p>
           {/* 면책 문구 */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
@@ -98,7 +98,7 @@ export default function ChatGptSearchGuidePage() {
         {/* ── 2. ChatGPT가 참조하는 정보 ── */}
         <section>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 break-keep">
-            ChatGPT가 실제로 참조하는 정보 — Bing 웹검색 기반
+            ChatGPT가 실제로 참조하는 정보 — Bing + OpenAI 자체 크롤러 혼합 구조
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {LEARN_SOURCES.map((item) => (
@@ -176,7 +176,7 @@ export default function ChatGptSearchGuidePage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <p className="text-sm font-semibold text-blue-800 mb-2">실사용자 ChatGPT 웹검색 (Bing 인덱싱 기준)</p>
+              <p className="text-sm font-semibold text-blue-800 mb-2">실사용자 ChatGPT 웹검색 (Bing 경로 기준)</p>
               <ul className="space-y-1.5 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
                   <span className="shrink-0 text-blue-500 mt-0.5">•</span>
@@ -188,7 +188,7 @@ export default function ChatGptSearchGuidePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="shrink-0 text-blue-500 mt-0.5">•</span>
-                  <span>Bing 웹마스터 도구 등록 시 인덱싱 단축 가능</span>
+                  <span>Bing 웹마스터 도구 등록 시 Bing 경로 인덱싱 단축 가능 (OAI-SearchBot 경로는 소요기간 미공개)</span>
                 </li>
               </ul>
             </div>

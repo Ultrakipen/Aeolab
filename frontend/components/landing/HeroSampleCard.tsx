@@ -88,7 +88,7 @@ const SAMPLES: SampleData[] = [
     ],
     myWeakness: "소개글 키워드 부족 · 리뷰 답변률 12% · 시술 카테고리 1개",
     advice: "3위 박준뷰티랩보다 AI 노출 격차가 큽니다.",
-    adviceSub: "소개글 키워드 다양화 + 리뷰 답변률 개선 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 핵심입니다.",
+    adviceSub: "소개글 키워드 다양화 + 리뷰 답변률 개선 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 중요한 기반이 됩니다.",
   },
   {
     region: "성남시 분당구",
@@ -106,7 +106,7 @@ const SAMPLES: SampleData[] = [
     ],
     myWeakness: "소개글 부족 · 진료 시간 미등록 · 영수증리뷰 0건",
     advice: "3위보다 AI 노출 격차가 있습니다.",
-    adviceSub: "소개글 강화 + 진료 시간 등록 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 핵심입니다.",
+    adviceSub: "소개글 강화 + 진료 시간 등록 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 중요한 기반이 됩니다.",
   },
   {
     region: "송파구 잠실동",
@@ -143,7 +143,7 @@ const SAMPLES: SampleData[] = [
     ],
     myWeakness: "소개글 부족 · 수강 후기 8건 · 학년별 커리큘럼 없음",
     advice: "3위보다 AI 노출 격차가 상당합니다.",
-    adviceSub: "학년별 커리큘럼 소개글에 추가 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 핵심입니다.",
+    adviceSub: "학년별 커리큘럼 소개글에 추가 시 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Google AI는 구글 비즈니스 프로필 등록이 중요한 기반이 됩니다.",
   },
 ];
 

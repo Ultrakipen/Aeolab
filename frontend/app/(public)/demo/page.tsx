@@ -67,7 +67,7 @@ const josa = (word: string, withBatchim: string, withoutBatchim: string) => {
 
 const GENERIC_WEAK_REASON: Record<string, (ctx: BorrowCtx) => string> = {
   "AI 검색 노출": ({ categoryLabel, bizName }) =>
-    `소개글에 가격·이용방법 등 구조화된 정보가 부족해 AI가 "${categoryLabel} 추천"을 물어봐도 ${bizName}${josa(bizName, "을", "를")} 인용 후보로 선택하기 어렵습니다. 소개글 Q&A 섹션 없이는 AI 브리핑·AI탭 노출 가능성이 낮습니다.`,
+    `소개글에 가격·이용방법 등 구조화된 정보가 부족해 AI가 "${categoryLabel} 추천"을 물어볼 때 ${bizName}${josa(bizName, "을", "를")} 인용 후보로 선택할 가능성이 낮아집니다. 소개글에 Q&A 섹션을 추가하면 AI 브리핑·AI탭 노출에 유리해질 수 있습니다.`,
   "리뷰 평판": ({ bizName }) =>
     `리뷰 수가 경쟁 업체 대비 적고 영수증 리뷰(방문 인증)가 없어 AI 신뢰도 점수가 낮습니다. ${bizName}의 실제 방문 후기가 더 필요합니다.`,
   "온라인 정보 정리": () =>
@@ -208,7 +208,7 @@ function getMock(category: string, region: string) {
       totalScore: 38, grade: "D", naverChannelScore: 32,
       weakItem: {
         label: "AI 검색 노출", score: 22, icon: "🔍",
-        reason: "소개글에 가격·예약·프로세스 정보가 구조화되지 않아 네이버 AI가 \"창원 웨딩스냅 추천\"을 물어봐도 홍스튜디오를 인용 후보로 선택하기 어렵습니다. 소개글 Q&A 섹션 없이는 AI탭 노출 가능성이 낮습니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 핵심입니다.",
+        reason: "소개글에 가격·예약·프로세스 정보가 구조화되지 않아 네이버 AI가 \"창원 웨딩스냅 추천\"을 물어볼 때 홍스튜디오를 인용 후보로 선택할 가능성이 낮아집니다. 소개글에 Q&A 섹션을 추가하면 AI탭 노출에 유리해질 수 있습니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 중요한 기반이 됩니다.",
         impact: "소개글에 Q&A 3~5개 추가만으로 AI 인용 후보 진입 가능 — 경쟁 스튜디오 중 선점 기회",
       },
       smartPlaceChecklist: [
@@ -218,7 +218,7 @@ function getMock(category: string, region: string) {
         { item: "전화번호·예약 방법",        impact: "medium", checked: true,  reason: "연락처 등록됨" },
         { item: "주소·주차 안내",            impact: "medium", checked: true,  reason: "주소 등록됨" },
         { item: "가게 소개 (키워드 포함)",   impact: "medium", checked: true,  reason: "소개글 있음 — Q&A 섹션만 추가하면 됩니다" },
-        { item: "소개글 Q&A 섹션",          impact: "high",   checked: false, reason: "Q&A 섹션 없음 — AI 브리핑 인용 후보 진입을 막는 핵심 누락 항목" },
+        { item: "소개글 Q&A 섹션",          impact: "high",   checked: false, reason: "Q&A 섹션 없음 — AI 브리핑 인용 후보 가능성을 낮추는 요인으로 추정됨" },
         { item: "최근 리뷰 답글",            impact: "low",    checked: true,  reason: "최근 리뷰 답글 있음 — AI가 운영 중으로 인식" },
       ],
       breakdown: {
@@ -233,7 +233,7 @@ function getMock(category: string, region: string) {
         stage: "stability",
         stage_label: "안정기",
         score_range: "30~50점",
-        focus_message: "기본 등록은 잘 되어 있습니다. 이제 소개글에 Q&A 섹션 추가가 최우선입니다. AI는 Q&A 형식 정보를 인용 후보로 선호하며, 소개글이 좋아도 Q&A 섹션 없이는 AI 브리핑 노출 가능성이 낮습니다.",
+        focus_message: "기본 등록은 잘 되어 있습니다. 이제 소개글에 Q&A 섹션 추가가 최우선입니다. AI는 Q&A 형식 정보를 인용 후보로 선호하는 경향이 있어, 소개글에 Q&A 섹션을 추가하면 AI 브리핑 노출에 도움이 될 수 있습니다.",
         this_week_action: "소개글 끝에 '자주 묻는 질문' Q&A 3개를 오늘 추가하세요 — \"가격은?\", \"예약 방법은?\", \"위치는?\"",
         do_not_do: "리뷰 이벤트(할인·쿠폰)는 네이버 정책 위반입니다. 자연스러운 방법으로 유도하세요.",
         estimated_weeks_to_next: 4,
@@ -270,7 +270,7 @@ function getMock(category: string, region: string) {
       totalScore: 45, grade: "D", naverChannelScore: 40,
       weakItem: {
         label: "AI 검색 노출", score: 25, icon: "🔍",
-        reason: "소개글에 커리큘럼·비용·대상 정보가 구조화되지 않아 AI가 \"창원 작곡학원 추천\"을 물어봐도 홍뮤직스튜디오를 인용 후보로 선택하기 어렵습니다. 리뷰 48건·평점 4.8이 있어도 소개글 Q&A 섹션 없이는 AI 브리핑 노출 가능성이 낮습니다.",
+        reason: "소개글에 커리큘럼·비용·대상 정보가 구조화되지 않아 AI가 \"창원 작곡학원 추천\"을 물어볼 때 홍뮤직스튜디오를 인용 후보로 선택할 가능성이 낮아집니다. 리뷰 48건·평점 4.8이 있어도 소개글에 Q&A 섹션을 추가하면 AI 브리핑 노출에 더 유리해질 수 있습니다.",
         impact: "소개글에 \"수강 커리큘럼·녹음 비용·초보 가능 여부\" Q&A 5개만 추가하면 AI 조건 검색 후보 진입 가능",
       },
       smartPlaceChecklist: [
@@ -280,7 +280,7 @@ function getMock(category: string, region: string) {
         { item: "전화번호·예약 방법",        impact: "medium", checked: true,  reason: "연락처 등록됨" },
         { item: "주소·주차 안내",            impact: "medium", checked: true,  reason: "주소 등록됨" },
         { item: "가게 소개 (키워드 포함)",   impact: "medium", checked: true,  reason: "소개글 있음 — Q&A 섹션 추가하면 AI 최적화 완성" },
-        { item: "소개글 Q&A 섹션",          impact: "high",   checked: false, reason: "Q&A 섹션 없음 — AI 브리핑 인용 후보 진입을 막는 핵심 누락 항목" },
+        { item: "소개글 Q&A 섹션",          impact: "high",   checked: false, reason: "Q&A 섹션 없음 — AI 브리핑 인용 후보 가능성을 낮추는 요인으로 추정됨" },
         { item: "최근 리뷰 답글",            impact: "low",    checked: true,  reason: "리뷰 48건 답글 있음 — AI가 운영 중으로 인식" },
       ],
       breakdown: {
@@ -295,7 +295,7 @@ function getMock(category: string, region: string) {
         stage: "stability",
         stage_label: "안정기",
         score_range: "30~50점",
-        focus_message: "기본 등록은 잘 되어 있습니다. 이제 소개글에 Q&A 섹션 추가가 최우선입니다. AI는 Q&A 형식 정보를 인용 후보로 선호하며, Q&A 섹션 없이는 AI 브리핑 노출 가능성이 낮습니다.",
+        focus_message: "기본 등록은 잘 되어 있습니다. 이제 소개글에 Q&A 섹션 추가가 최우선입니다. AI는 Q&A 형식 정보를 인용 후보로 선호하는 경향이 있어, Q&A 섹션을 추가하면 AI 브리핑 노출에 도움이 될 수 있습니다.",
         this_week_action: "소개글 끝에 '자주 묻는 질문' Q&A 3개를 오늘 추가하세요 — \"수강 가격은?\", \"초보도 가능한가요?\", \"녹음실 이용 방법은?\"",
         do_not_do: "리뷰 이벤트(할인·쿠폰)는 네이버 정책 위반입니다. 자연스러운 방법으로 유도하세요.",
         estimated_weeks_to_next: 4,
@@ -330,7 +330,7 @@ function getMock(category: string, region: string) {
       ],
       totalScore: 62, grade: "C", naverChannelScore: 48,
       weakItem: { label: "온라인 정보 정리", score: 45, icon: "📋",
-        reason: "스마트플레이스 소개글에 키워드가 부족하고 블로그 포스트가 없어 네이버 AI탭 인용 가능성이 낮습니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 핵심입니다.",
+        reason: "스마트플레이스 소개글에 키워드가 부족하고 블로그 포스트가 없어 네이버 AI탭 인용 가능성이 낮습니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 중요한 기반이 됩니다.",
         impact: "스마트플레이스 소개글 최적화 + 블로그 포스트 1건으로 이 항목 개선 시작 가능" },
       breakdown: {
         exposure_freq:     { label: "AI 검색 노출",     icon: "🔍", score: 58, what: "손님이 AI에 '맛집 추천해줘' 라고 물어봤을 때 내 가게가 답변에 나오는 빈도입니다.", stateMsg: "이번 1회 검색에서 AI가 내 가게를 언급했습니다.", isLow: false },
