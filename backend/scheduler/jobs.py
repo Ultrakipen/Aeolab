@@ -12,6 +12,9 @@ from services.ai_usage_logger import log_ai_usage
 # 카카오 알림 키 설정 여부 — 미설정 시 알림 발송 시도 자체를 스킵해 에러 로그 누적 방지
 _KAKAO_CONFIGURED = bool(os.getenv("KAKAO_APP_KEY") and os.getenv("KAKAO_SENDER_KEY"))
 
+# Healthchecks.io 알림파이프라인 데드맨스위치 — 미설정 시 heartbeat 잡은 자동 skip
+_HC_ALERT_PIPELINE_PING_URL = os.getenv("HC_ALERT_PIPELINE_PING_URL")
+
 logger = logging.getLogger(__name__)
 _logger = logger  # index_aggregator 패턴 통일용 alias
 scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
@@ -363,6 +366,14 @@ def start_scheduler():
     scheduler.add_job(
         disk_usage_check_job, "cron", hour=9, minute=30,
         id="disk_usage_check", replace_existing=True,
+        max_instances=1, misfire_grace_time=3600,
+    )
+    # 알림파이프라인 데드맨스위치 heartbeat — 매일 09:35 KST
+    # KST 직접 지정, UTC 변환 불필요(scheduler timezone="Asia/Seoul")
+    # HC_ALERT_PIPELINE_PING_URL 미설정 시 잡 내부에서 no-op으로 처리됨
+    scheduler.add_job(
+        alert_pipeline_heartbeat_job, "cron", hour=9, minute=35,
+        id="alert_pipeline_heartbeat", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
     scheduler.add_listener(_on_job_error, EVENT_JOB_ERROR)
@@ -6957,3 +6968,40 @@ async def backend_scaling_trigger_check_job() -> None:
         "자동 조치는 하지 않습니다 — 과거 세마포어 관련 데드락 사고 재발 방지를 위해 "
         "코드 확인 후 사람이 직접 결정할 것.",
     )
+
+
+async def alert_pipeline_heartbeat_job() -> None:
+    """알림 파이프라인 데드맨스위치 heartbeat — 매일 09:35 KST.
+
+    스케줄러 프로세스가 살아있고 이 잡이 정상 실행됐다는 사실을 Healthchecks.io에
+    ping으로 알린다. Healthchecks.io는 "일정 시간 안에 ping이 안 오면" 자체적으로
+    사용자에게 알림을 보내는 방식이라, AEOlab 서버·이메일·카카오 채널이 통째로
+    죽어도 사용자가 독립 외부 채널로 감지할 수 있다("누가 감시자를 감시하는가" 공백 해소).
+
+    HC_ALERT_PIPELINE_PING_URL 미설정 시 완전 no-op (에러 로그 없이 조용히 skip).
+    이 잡이 예외로 실패해도 전체 스케줄러를 죽이지 않도록 예외를 swallow.
+    send_operator_alert / send_email은 호출하지 않음(매일 이메일 스팸 방지) —
+    "스케줄러가 살아서 이 시각에 이 잡을 실행했다"는 사실만 ping으로 전달.
+    스케줄러가 죽으면 이 잡 자체가 실행 안 되므로 ping이 끊기고,
+    Healthchecks.io가 그걸 감지해 사용자에게 알려주는 것이 핵심 메커니즘이다.
+    """
+    if not _HC_ALERT_PIPELINE_PING_URL:
+        return
+
+    import aiohttp
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                _HC_ALERT_PIPELINE_PING_URL,
+                timeout=aiohttp.ClientTimeout(total=10),
+            ) as resp:
+                status = resp.status
+        if status == 200:
+            _logger.info("[alert_pipeline_heartbeat] Healthchecks.io ping 성공")
+        else:
+            _logger.warning(f"[alert_pipeline_heartbeat] Healthchecks.io ping 응답 이상: {status}")
+    except Exception as e:
+        _logger.warning(
+            f"[alert_pipeline_heartbeat] ping 실패(스케줄러 자체는 정상 — 이 경고만 남김): {e}"
+        )
