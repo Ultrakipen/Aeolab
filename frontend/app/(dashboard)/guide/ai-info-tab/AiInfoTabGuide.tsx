@@ -365,7 +365,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           </p>
           <ul className="list-disc list-inside space-y-1 text-sm md:text-base text-gray-700 mb-3">
             <li>키워드를 단순 나열이 아닌 문장 안에 자연스럽게 배치</li>
-            <li>소개글에 Q&A 5개 포함 — 스마트플레이스 사장님 Q&A 탭이 폐기된 현재, 소개글 안의 Q&A 섹션이 가장 효과적인 인용 후보 경로입니다</li>
+            <li>소개글에 Q&A 5개 포함 — 스마트플레이스 사장님 Q&A 탭이 폐기된 현재, 소개글 안의 Q&A 섹션이 인용 후보 경로 중 하나입니다</li>
             <li>최신 정보(영업시간·휴무·시즌 메뉴) 명시</li>
           </ul>
           {/* Q&A 자동 감지 불가 안내 — 사용자 노출 원칙 §7 */}

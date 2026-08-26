@@ -71,7 +71,7 @@ export default function TrialResultPreview() {
               <p className="text-sm text-gray-700 break-keep leading-relaxed">
                 스마트플레이스 소개글 안 Q&A에{" "}
                 <strong>&ldquo;창원 치킨 배달, 의창구 야식 추천&rdquo;</strong> 등
-                지역+업종 키워드 10개를 추가하면 AI 인용 후보 가능성이 즉시 높아집니다
+                지역+업종 키워드 10개를 추가하면 AI 인용 후보 가능성이 높아질 수 있습니다
               </p>
             </div>
           </div>

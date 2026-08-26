@@ -24,7 +24,7 @@ const SLIDES: Slide[] = [
     icon: <ClipboardList className="w-6 h-6 text-blue-600" />,
     title: "어떤 가게가 AI에 노출되나요?",
     body: "AI는 리뷰 수·평점, 스마트플레이스 소개글 안 Q&A, 소개글 키워드, 블로그 언급 수를 분석해서 가장 신뢰할 수 있는 가게를 추천합니다. 광고비와 무관합니다.",
-    highlight: "소개글 Q&A 1개 추가 = AI 브리핑 인용 후보 가능성 즉시 상승",
+    highlight: "소개글 Q&A 1개 추가 — AI 브리핑 인용 후보 가능성이 높아질 수 있음",
   },
   {
     icon: <BarChart2 className="w-6 h-6 text-blue-600" />,

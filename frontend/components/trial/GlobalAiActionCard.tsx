@@ -122,7 +122,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
         title: `'${keyword}' 정보 구조화 작성`,
         timeLabel: "5분",
         effectLabel: "1~3개월 (추정)",
-        description: `ChatGPT·Gemini는 '${keyword}'처럼 명확한 Q&A 형식 텍스트를 인용합니다. 홈페이지·소개글에 아래 문구를 추가하세요.`,
+        description: `ChatGPT·Gemini는 '${keyword}'처럼 명확한 Q&A 형식 텍스트를 인용하는 경향이 있습니다. 홈페이지·소개글에 아래 문구를 추가해 보세요.`,
         copyText,
         copyLabel: "Q&A 문구 복사하기",
         externalLink: null,
@@ -151,7 +151,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
         timeLabel: "5분",
         effectLabel: "1~3개월 (추정)",
         description:
-          "ChatGPT·Gemini는 명확한 Q&A 형식 텍스트를 인용합니다. 홈페이지·소개글에 아래 문구를 추가하세요.",
+          "ChatGPT·Gemini는 명확한 Q&A 형식 텍스트를 인용하는 경향이 있습니다. 홈페이지·소개글에 아래 문구를 추가해 보세요.",
         copyText,
         copyLabel: "Q&A 문구 복사하기",
         externalLink: null,

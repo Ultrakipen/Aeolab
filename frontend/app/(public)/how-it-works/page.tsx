@@ -438,7 +438,7 @@ export default function HowItWorksPage() {
             <ContentCard
               num={1}
               title="소개글"
-              detail="Claude Sonnet이 Q&A 5개를 자연스럽게 삽입하고 키워드·USP·서비스를 명시합니다. 네이버 블로그 분석에 따르면 'FAQ 구조 + 즉답형 첫 문단'이 AI 브리핑 인용 후보로 적합합니다. 스마트플레이스 사장님 Q&A 탭이 폐기된 현재(2026-05), 소개글 안의 Q&A 섹션이 사장님이 직접 컨트롤할 수 있는 가장 효과적인 인용 경로입니다."
+              detail="Claude Sonnet이 Q&A 5개를 자연스럽게 삽입하고 키워드·USP·서비스를 명시합니다. 네이버 블로그 분석에 따르면 'FAQ 구조 + 즉답형 첫 문단'이 AI 브리핑 인용 후보로 적합합니다. 스마트플레이스 사장님 Q&A 탭이 폐기된 현재(2026-05), 소개글 안의 Q&A 섹션이 사장님이 직접 컨트롤할 수 있는 인용 경로 중 하나입니다."
             />
             <ContentCard
               num={2}

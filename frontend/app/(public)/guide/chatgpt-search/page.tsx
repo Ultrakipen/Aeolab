@@ -84,7 +84,7 @@ export default function ChatGptSearchGuidePage() {
             ChatGPT에서 내 가게를 노출시키는 방법
           </h1>
           <p className="text-base md:text-lg text-gray-600 mb-4 leading-relaxed break-keep">
-            ChatGPT 웹검색은 Bing + OpenAI 자체 크롤러 혼합 구조 — 자체 웹사이트와 구글 비즈니스 프로필이 핵심입니다
+            ChatGPT 웹검색은 Bing + OpenAI 자체 크롤러 혼합 구조 — 자체 웹사이트와 구글 비즈니스 프로필이 중요한 기반이 됩니다
           </p>
           {/* 면책 문구 */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">

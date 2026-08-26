@@ -530,7 +530,7 @@ function FreeTab({
             스마트플레이스 소개글 안 Q&A 추가
           </p>
           <p className="text-sm text-amber-700 leading-relaxed">
-            주차 가능 여부, 단체 예약 가능 여부를 소개글 안 Q&A에 추가하면 AI 브리핑 인용 후보 가능성이 즉시 높아집니다.
+            주차 가능 여부, 단체 예약 가능 여부를 소개글 안 Q&A에 추가하면 AI 브리핑 인용 후보 가능성이 높아질 수 있습니다.
           </p>
         </div>
         <div className="relative rounded-lg overflow-hidden border border-dashed border-gray-300">

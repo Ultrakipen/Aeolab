@@ -470,7 +470,7 @@ export default function AIDiagnosisCard({
               ) : naverMentionedOnly ? (
                 <span className="flex items-start gap-1.5">
                   <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <span>AI 브리핑 미인용 = AI 결과 1위 자리를 경쟁 가게에 빼앗기고 있습니다 — 소개글 Q&A 1개 추가로 개선 가능</span>
+                  <span>AI 브리핑 미인용 — 경쟁 가게가 AI 결과 상단을 차지하고 있을 수 있습니다 — 소개글 Q&A 추가가 개선에 도움이 될 수 있습니다</span>
                 </span>
               ) : mentionedCount === 0 ? (
                 <span className="flex items-start gap-1.5">

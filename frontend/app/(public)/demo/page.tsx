@@ -78,7 +78,7 @@ const GENERIC_WEAK_REASON: Record<string, (ctx: BorrowCtx) => string> = {
     "최근 3개월간 새 리뷰나 게시물이 없어 AI가 현재 운영 중인지 불확실하게 인식합니다.",
 };
 const GENERIC_WEAK_IMPACT: Record<string, (ctx: BorrowCtx) => string> = {
-  "AI 검색 노출": ({ categoryLabel }) => `소개글에 Q&A 3~5개 추가만으로 AI 인용 후보 진입 가능 — 경쟁 ${categoryLabel} 중 선점 기회`,
+  "AI 검색 노출": ({ categoryLabel }) => `소개글에 Q&A 3~5개를 추가하면 AI 인용 후보 진입 가능성이 높아집니다 — 경쟁 ${categoryLabel} 중 선점 기회`,
   "리뷰 평판": () => "영수증 리뷰(방문 인증)가 쌓이면 AI가 실제 방문 경험이 있는 가게로 인식해 신뢰도 점수가 개선됩니다",
   "온라인 정보 정리": () => "스마트플레이스 소개글 최적화 + 블로그 포스트 1건으로 이 항목 개선 시작 가능",
   "온라인 언급 수": () => "후기가 쌓일수록 AI가 신뢰할 수 있는 정보로 인식해 추천 빈도가 높아집니다",
@@ -162,7 +162,7 @@ function getMock(category: string, region: string) {
       { item: "전화번호·예약 방법",        impact: "medium", checked: null as null | boolean, reason: "바로 전화/예약 가능해야 선택 확정" },
       { item: "주소·주차 안내",            impact: "medium", checked: null as null | boolean, reason: "\"어떻게 가나?\" — 네이버 지도 연동 필수" },
       { item: "가게 소개 (키워드 포함)",   impact: "medium", checked: null as null | boolean, reason: "AI·검색엔진이 이 글을 읽고 추천 여부 결정" },
-      { item: "소개글 Q&A 섹션",          impact: "high",   checked: null as null | boolean, reason: "소개글 안 Q&A는 AI 브리핑 인용 후보 텍스트 — 없으면 AI 추천 가능성 낮음" },
+      { item: "소개글 Q&A 섹션",          impact: "high",   checked: null as null | boolean, reason: "소개글 안 Q&A는 AI 브리핑 인용 후보 텍스트 중 하나 — 없으면 AI 추천 가능성이 낮아질 수 있음" },
       { item: "최근 리뷰 답글",            impact: "low",    checked: null as null | boolean, reason: "사업주 활동성 신호 — AI가 운영 중으로 인식" },
     ],
     growthStage: {
@@ -209,7 +209,7 @@ function getMock(category: string, region: string) {
       weakItem: {
         label: "AI 검색 노출", score: 22, icon: "🔍",
         reason: "소개글에 가격·예약·프로세스 정보가 구조화되지 않아 네이버 AI가 \"창원 웨딩스냅 추천\"을 물어볼 때 홍스튜디오를 인용 후보로 선택할 가능성이 낮아집니다. 소개글에 Q&A 섹션을 추가하면 AI탭 노출에 유리해질 수 있습니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 중요한 기반이 됩니다.",
-        impact: "소개글에 Q&A 3~5개 추가만으로 AI 인용 후보 진입 가능 — 경쟁 스튜디오 중 선점 기회",
+        impact: "소개글에 Q&A 3~5개를 추가하면 AI 인용 후보 진입 가능성이 높아집니다 — 경쟁 스튜디오 중 선점 기회",
       },
       smartPlaceChecklist: [
         { item: "대표 사진 5장 이상",        impact: "high",   checked: true,  reason: "사진 100장 이상 등록 — 강점" },
@@ -271,7 +271,7 @@ function getMock(category: string, region: string) {
       weakItem: {
         label: "AI 검색 노출", score: 25, icon: "🔍",
         reason: "소개글에 커리큘럼·비용·대상 정보가 구조화되지 않아 AI가 \"창원 작곡학원 추천\"을 물어볼 때 홍뮤직스튜디오를 인용 후보로 선택할 가능성이 낮아집니다. 리뷰 48건·평점 4.8이 있어도 소개글에 Q&A 섹션을 추가하면 AI 브리핑 노출에 더 유리해질 수 있습니다.",
-        impact: "소개글에 \"수강 커리큘럼·녹음 비용·초보 가능 여부\" Q&A 5개만 추가하면 AI 조건 검색 후보 진입 가능",
+        impact: "소개글에 \"수강 커리큘럼·녹음 비용·초보 가능 여부\" Q&A 5개를 추가하면 AI 조건 검색 후보 진입 가능성이 높아집니다",
       },
       smartPlaceChecklist: [
         { item: "대표 사진 5장 이상",        impact: "high",   checked: true,  reason: "사진 100장 이상 등록 — 강점" },

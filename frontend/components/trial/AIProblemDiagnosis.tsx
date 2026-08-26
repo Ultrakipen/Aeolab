@@ -305,7 +305,7 @@ export default function AIProblemDiagnosis({
       tag: "즉시 효과",
       copyText: faqCopyText ?? null,
       hint: isActive
-        ? "소개글 하단 Q&A가 AI 브리핑 인용 후보로 가장 효과적입니다"
+        ? "소개글 하단 Q&A는 AI 브리핑 인용 후보 가능성을 높이는 방법 중 하나입니다"
         : "소개글 Q&A를 추가하면 네이버 AI탭 노출 가능성이 높아집니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.",
     });
   }

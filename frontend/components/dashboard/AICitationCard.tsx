@@ -120,7 +120,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
         </p>
         <div className="mt-4 bg-amber-50 rounded-lg p-3">
           <p className="text-sm font-semibold text-amber-800">AI가 아직 내 가게를 언급하지 않고 있습니다</p>
-          <p className="text-sm text-amber-700 mt-1">소개글 Q&A 추가와 키워드 보강이 가장 효과적입니다.</p>
+          <p className="text-sm text-amber-700 mt-1">소개글 Q&A 추가와 키워드 보강이 도움이 될 수 있습니다.</p>
           <Link href="/guide" className="mt-2 inline-flex items-center text-sm font-semibold text-amber-800 hover:underline">
             지금 소개글 편집하러 가기 →
           </Link>

@@ -239,7 +239,7 @@ export default function TodayOneAction({
     if (!isSmartPlace) {
       actions.push({
         title: "Google 비즈니스 프로필 등록하기",
-        desc: "ChatGPT·Google AI는 구글 데이터를 기반으로 가게를 추천합니다. business.google.com 무료 등록만으로 글로벌 AI 노출 가능성이 즉시 높아집니다.",
+        desc: "ChatGPT·Google AI는 구글 데이터를 참고하는 경향이 있습니다. business.google.com 무료 등록이 글로벌 AI 노출 가능성을 높이는 데 도움이 될 수 있습니다.",
         time: "10분",
         primary: true,
         urgency: "today",
