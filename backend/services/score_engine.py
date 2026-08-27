@@ -13,6 +13,7 @@ docs/model_engine_v3.0.md 기준 구현
 """
 import logging
 import os
+import re
 from services.keyword_taxonomy import normalize_category
 from services.naver_visibility import blog_mention_score
 
@@ -407,6 +408,26 @@ def calc_review_quality(biz: dict) -> float:
     return min(100, rc / 200 * 50 + ar / 5 * 50 + receipt_bonus)
 
 
+_INTRO_QA_MARKER_RE = re.compile(r"(?:^|\n)\s*Q[.:)]\s")
+_INTRO_QA_HEADER_RE = re.compile(r"자주\s*묻는\s*질문")
+
+
+def _intro_contains_qa(intro_text: str) -> bool:
+    """소개글 본문 안에 실제 Q&A 섹션이 포함돼 있는지 탐지 (2026-08-27 신설).
+
+    [2026-05-01] Q&A 탭 폐기 이후 Q&A는 소개글(naver_intro_draft) 본문에
+    "Q. 질문 / A. 답변" 형식으로 삽입된다(briefing_engine.py 생성 포맷과 동일).
+    has_intro는 소개글 "존재 여부"만 보고 내용은 구분하지 않으므로,
+    calc_smart_place_completeness()에서 이 함수로 Q&A 포함 여부를 별도 가점한다.
+    오탐 방지를 위해 "Q." 마커가 2회 이상 반복되거나 "자주 묻는 질문" 헤더가 있을 때만 True.
+    """
+    if not intro_text:
+        return False
+    if _INTRO_QA_HEADER_RE.search(intro_text):
+        return True
+    return len(_INTRO_QA_MARKER_RE.findall(intro_text)) >= 2
+
+
 def calc_smart_place_completeness(naver_data: dict, biz: dict) -> float:
     """
     스마트플레이스 완성도 점수 (0~100).
@@ -414,6 +435,7 @@ def calc_smart_place_completeness(naver_data: dict, biz: dict) -> float:
     naver_place_rank: 지역 검색 순위 (1위=30점, 2~5위=20점, 6~20위=10점)
     has_recent_post / has_intro: 사용자 체크박스 입력
     has_faq: 2026-05-01 스마트플레이스 Q&A 탭 폐기 이후 가중치 0 — talktalk_faq_draft 호환용으로만 유지
+    has_qa_in_intro: 2026-08-27 신설 — 소개글 존재(15점) + 소개글 안 Q&A 포함(5점) 분리 가점
     """
     is_smart_place  = bool(
         naver_data.get("is_smart_place")  # 네이버 검색 결과에서 자동 확인
@@ -442,6 +464,7 @@ def calc_smart_place_completeness(naver_data: dict, biz: dict) -> float:
                 except (ValueError, TypeError):
                     pass
     has_intro       = bool(biz.get("has_intro")) or bool((biz.get("naver_intro_draft") or "").strip())
+    has_qa_in_intro = _intro_contains_qa(biz.get("naver_intro_draft") or "")
 
     # 네이버 지역 검색 순위 반영 — 검색 노출 = 소상공인에게 가장 직접적 성과
     _rank = naver_data.get("my_rank") or naver_data.get("naver_place_rank")
@@ -460,12 +483,16 @@ def calc_smart_place_completeness(naver_data: dict, biz: dict) -> float:
     # [2026-05-01] 스마트플레이스 사장님 Q&A 탭 폐기 대응:
     #   has_faq 가중치 0 — FAQ 25점을 소개글 20 + 소식 25로 재배분 완료.
     #   has_faq 변수는 talktalk_faq_draft 호환을 위해 계산되지만 점수 산출에서는 제외됨.
-    # 합계 100점: 25(등록) + 30(순위) + 25(소식) + 20(소개글) = 100점
+    # [2026-08-27] 소개글 20점을 15(존재)+5(Q&A 포함)로 재분할 — has_intro는 "존재"만
+    #   보고 내용을 구분 못해 Q&A 미포함 소개글도 만점을 받던 문제 수정. has_intro
+    #   자체는 다른 15개+ 파일에서 재사용되므로 이 함수 안에서만 분리 가점.
+    # 합계 100점: 25(등록) + 30(순위) + 25(소식) + 15(소개글 존재) + 5(소개글 Q&A) = 100점
     return min(100, (
         (25 if is_smart_place  else 0) +   # 스마트플레이스 등록 확인
         rank_score +                        # 네이버 지역 검색 순위 (최대 30점)
         (25 if has_recent_post else 0) +   # 최신성 (FAQ 25점 흡수, 15→25 상향)
-        (20 if has_intro       else 0)     # 소개글 (10→20점, AI 브리핑 인용 후보 핵심 + Q&A 섹션 포함 시 효과적)
+        (15 if has_intro       else 0) +   # 소개글 존재 (20→15점)
+        (5  if has_qa_in_intro else 0)     # 소개글 안 Q&A 포함 (신설 5점, AI 브리핑 인용 후보 핵심)
     ))
 
 
