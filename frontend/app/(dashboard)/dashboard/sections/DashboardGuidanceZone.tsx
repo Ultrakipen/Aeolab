@@ -41,7 +41,7 @@ export default function DashboardGuidanceZone({
     ? "ChatGPT·Gemini·Google AI 노출 가이드"
     : "네이버 AI 검색 노출 5단계 가이드";
   const guideDesc = isInactive
-    ? "Gemini는 Google 검색 실시간 연동으로 수 주~수개월 소요됩니다. ChatGPT는 학습 데이터 기반으로 수개월~1년 소요됩니다. 구글 비즈니스 프로필 등록부터 시작하세요."
+    ? "Gemini·ChatGPT 모두 AEOlab 스캐너는 학습 데이터 기반으로 측정해 반영까지 수개월~1년 소요됩니다. 구글 비즈니스 프로필 등록부터 시작하세요."
     : "AI 브리핑·AI탭 대응 체크리스트로 직접 설정하세요 (15분). 개선 시작 후 2~4주 내 변화가 나타납니다.";
   const colorBorder = isInactive ? "border-purple-200 bg-purple-50" : "border-blue-200 bg-blue-50";
   const colorMain = isInactive ? "bg-purple-600 hover:bg-purple-700" : "bg-blue-600 hover:bg-blue-700";

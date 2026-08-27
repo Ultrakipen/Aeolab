@@ -358,7 +358,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         >
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed">
             {isInactive
-              ? <>Gemini·Google AI는 <strong>구글 비즈니스 프로필</strong>을 실시간 참조합니다. ChatGPT는 학습 데이터 기반(컷오프 2024.06)이며 신규 콘텐츠 반영까지 수개월 소요됩니다. 아래 소개글을 홈페이지·구글 비즈니스 프로필에도 활용하세요.</>
+              ? <>Google AI(Overview)는 <strong>구글 비즈니스 프로필</strong>을 실시간 참조합니다. ChatGPT·Gemini는 AEOlab 스캐너 기준 학습 데이터 기반(ChatGPT 컷오프 2024.06)이며 반영까지 수개월~1년 소요됩니다. 아래 소개글을 홈페이지·구글 비즈니스 프로필에도 활용하세요.</>
 
               : <>AI 브리핑은 소개글의 <strong>핵심 정보를 학습 소스로 활용</strong>합니다.</>}
             {" "}200자 이상(AI 브리핑은 500자 이상 권장) 분량에 사업장의 강점·서비스·키워드를 자연스럽게 포함하세요.

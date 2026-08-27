@@ -911,7 +911,7 @@ export default function DemoPage() {
                 {[
                   { ch: "네이버 AI 브리핑", period: "2~4주(추정)",      border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집 · 네이버 비공개로 추정치" },
                   { ch: "네이버 AI탭",       period: "2~4주(추정)",      border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강 · 네이버 비공개로 추정치" },
-                  { ch: "Gemini",            period: "수 주~수개월",  border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필 등록 후 수주 내 반영 시작, 안정적 인용까지 수 개월 소요" },
+                  { ch: "Gemini",            period: "수개월~1년",  border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "AEOlab 스캐너는 학습 데이터 기반. 실사용 Gemini 앱은 구글 검색 그라운딩 기반이라 구글 비즈니스 프로필 등록 후 더 빠르게(수 주~수개월) 반영될 수 있음" },
                   { ch: "ChatGPT",           period: "수개월~1년",  border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "학습 데이터 기반(공식 확인) — 웹 콘텐츠가 학습에 반영되기까지 수개월~1년 소요" },
                 ].map((item) => (
                   <div key={item.ch} className={`rounded-xl border ${item.border} ${item.bg} px-3 py-2.5`}>
@@ -1174,7 +1174,7 @@ export default function DemoPage() {
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">Gemini</span>
-                        <span>Google 비즈니스 프로필 + 실시간 검색 그라운딩 기반 (프로필 등록 후 2~4주 내 반영 시작, 안정적 인용까지 수 개월 소요)</span>
+                        <span>학습 데이터 기반(AEOlab 스캐너 기준) — 반영까지 수개월~1년 소요. 실사용 Gemini 앱은 구글 검색 그라운딩 기반이라 구글 비즈니스 프로필 등록 후 더 빠르게(수 주~수개월) 반영될 수 있음</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">네이버 AI 브리핑</span>
@@ -1228,7 +1228,7 @@ export default function DemoPage() {
                     </>
                   )}
                   <p className="mt-2 text-sm text-gray-500 leading-relaxed">
-                    ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
+                    ChatGPT·Gemini 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
                     측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
                   </p>
 

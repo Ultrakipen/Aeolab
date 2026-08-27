@@ -106,8 +106,7 @@ export default function ScoreGuidePage() {
             <p className="text-sm md:text-base text-slate-700 leading-relaxed">
               <strong>지표 개선</strong>은 AI 검색 노출 가능성을 높이는 방향입니다.
               채널별 반영 속도가 다릅니다 — 네이버 AI 브리핑·AI탭은 콘텐츠 개선 후
-              <strong>2~4주</strong> 내 반영되며, Gemini는 구글 비즈니스 프로필 기준
-              <strong>수 주~수개월</strong> 반영 가능합니다. ChatGPT는
+              <strong>2~4주</strong> 내 반영되며, Gemini·ChatGPT는
               AI 재학습 주기 특성상 <strong>수개월~1년</strong> 후 스캐너 점수에 반영됩니다.
               그 결과 새 손님이 가게를 발견할 접점이 늘어납니다.
             </p>
