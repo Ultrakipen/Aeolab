@@ -812,7 +812,15 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
   ].sort((a, b) => b.score - a.score)
 
   const myRank  = entities.findIndex(e => e.isMe) + 1
-  const maxScore = Math.max(...entities.map(e => e.score), 10)
+  // 막대 길이 = 화면에 보이는 업체들 범위(최저~최고) 안에서 재조정(min-max 스케일).
+  // 절대 점수/최고점수 비율만 쓰면 점수 산식의 캡(예: AI 언급신호 80점 상한)에 걸린
+  // 상위권끼리 실제 점수가 달라도 막대가 거의 같은 길이로 보이는 문제가 있었음(2026-08-29).
+  // 최저 업체도 완전히 안 보이지 않도록 최소 폭(MIN_BAR_PCT)을 둠.
+  const scoreVals   = entities.map(e => e.score)
+  const minScore    = Math.min(...scoreVals)
+  const maxScore    = Math.max(...scoreVals, 10)
+  const scoreRange  = maxScore - minScore
+  const MIN_BAR_PCT = 8
   // 막대 색: 순위(배열 순서) 기반 단일 색조 그라데이션 — 1위가 가장 진하고 아래로 갈수록 옅어짐.
   // "내 가게"는 브랜드 블루로 고정해 항상 한눈에 구분되도록 함(경쟁사는 이 파랑을 쓰지 않음).
   // 과거 이력: ①무지개 순환(1위=빨강 오신호) → ②성장단계 색 재사용(같은 단계 경쟁사끼리
@@ -842,7 +850,9 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
       <div className="space-y-2">
         {entities.map((e, i) => {
           const barColor = e.isMe ? '#2563eb' : RANK_SHADES[Math.min(i, RANK_SHADES.length - 1)]
-          const barPct   = Math.round((e.score / maxScore) * 100)
+          const barPct   = scoreRange > 0
+            ? Math.round(MIN_BAR_PCT + ((e.score - minScore) / scoreRange) * (100 - MIN_BAR_PCT))
+            : 100
           return (
             <div key={e.name}>
               <div className="flex items-center gap-2 mb-1">
