@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 interface Props {
@@ -13,7 +12,6 @@ interface Props {
 export function PageHeaderAvatarMenu({ email, plan }: Props) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   // 외부 클릭 시 닫힘
   useEffect(() => {
@@ -28,9 +26,14 @@ export function PageHeaderAvatarMenu({ email, plan }: Props) {
   }, [open]);
 
   async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
+    try {
+      await createClient().auth.signOut();
+    } catch {
+      // 세션이 이미 만료된 경우 signOut()이 예외를 던질 수 있음 —
+      // 그래도 아래 리다이렉트는 항상 실행돼야 "버튼 눌러도 반응 없음"이 되지 않음
+    } finally {
+      window.location.href = "/login";
+    }
   }
 
   const initial = email ? email[0].toUpperCase() : "?";
