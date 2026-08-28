@@ -34,41 +34,6 @@ def _get_ai_client():
     return _ai_client
 
 
-def _estimate_competitor_score(naver_result: dict) -> float:
-    """
-    네이버 Gemini 단일 스캔 결과 기반 경쟁사 간이 점수 추정 (0~95점).
-    random.uniform 대신 실제 데이터 속성으로 점수를 결정한다.
-
-    기준:
-      - 기본값 30점 (미노출 기본)
-      - 스마트플레이스 등록: +15점
-      - 리뷰 수 (100+: +20, 30+: +12, 10+: +6)
-      - 평균 평점 (4.5+: +10, 4.0+: +5)
-      - 블로그 포스팅 있음: +8점
-      - AI 브리핑 언급됨: +17점
-    """
-    score = 30.0
-    if naver_result.get("is_smart_place"):
-        score += 15
-    review_count = naver_result.get("review_count", 0) or 0
-    if review_count >= 100:
-        score += 20
-    elif review_count >= 30:
-        score += 12
-    elif review_count >= 10:
-        score += 6
-    rating = naver_result.get("rating", 0) or 0
-    if rating >= 4.5:
-        score += 10
-    elif rating >= 4.0:
-        score += 5
-    if naver_result.get("has_blog_post"):
-        score += 8
-    if naver_result.get("in_briefing") or naver_result.get("mentioned_in_briefing") or naver_result.get("mentioned"):
-        score += 17
-    return min(score, 95.0)
-
-
 def start_scheduler():
     scheduler.add_job(
         daily_scan_all, "cron", hour=2, minute=0, id="daily_scan",
@@ -712,7 +677,11 @@ async def daily_scan_all():
                 try:
                     _comp_res2 = await _db(
                         supabase.table("competitors")
-                        .select("id, name")
+                        .select(
+                            "id, name, detail_synced_at, naver_review_count, "
+                            "naver_avg_rating, has_intro, has_menu, has_recent_post, "
+                            "blog_mention_count, website_seo_score, comp_keywords"
+                        )
                         .eq("business_id", biz["id"])
                         .eq("is_active", True)
                     )
@@ -720,6 +689,7 @@ async def daily_scan_all():
 
                     if comp_rows:
                         from services.ai_scanner.gemini_scanner import GeminiScanner
+                        from services.competitor_place_crawler import compute_competitor_score
                         _gemini = GeminiScanner()
                         comp_results = await asyncio.gather(
                             *[_gemini.single_check(query, c["name"]) for c in comp_rows],
@@ -741,18 +711,19 @@ async def daily_scan_all():
                                 continue
                             is_mentioned = (cr.get("exposure_freq") or 0) > 0
                             excerpt = cr.get("excerpt") or ""
-                            # Gemini 단일 스캔 결과로 간이 점수 추정 (random 제거)
-                            # cr은 gemini single_check 반환 dict — naver 데이터 없으므로
-                            # mentioned / excerpt 길이 기반 속성을 naver_result 포맷으로 변환
-                            _naver_proxy = {
-                                "mentioned": is_mentioned,
-                                "mentioned_in_briefing": is_mentioned,
-                                "has_blog_post": bool(excerpt and len(excerpt) > 100),
-                                "review_count": cr.get("review_count", 0) or 0,
-                                "rating": cr.get("rating", 0) or 0,
-                                "is_smart_place": cr.get("is_smart_place", False),
-                            }
-                            comp_score = round(_estimate_competitor_score(_naver_proxy), 1)
+                            # 2026-08-29 수정: 과거엔 Gemini 단건 응답(naver 크롤링 필드 없음)만으로
+                            # naver_result proxy를 만들어 _estimate_competitor_score()에 넘겼음 —
+                            # review_count/rating/is_smart_place가 늘 기본값(0/0/False)이라 실제
+                            # 크롤링된 리뷰수·평점·완성도(competitors 테이블)가 전혀 반영 안 되고
+                            # "mentioned" 여부 하나로만 30.0/47.0 두 값에 동률 수렴하던 버그.
+                            # competitor_place_crawler.compute_competitor_score()(단일 소스, 2026-07-14
+                            # scan.py/competitor.py 통합분)로 교체해 크롤링 실측치를 반영.
+                            comp_score, _breakdown = compute_competitor_score(
+                                comp_row=comp,
+                                mentioned=is_mentioned,
+                                exposure_freq=cr.get("exposure_freq") or 0,
+                                excerpt=excerpt,
+                            )
                             competitor_scores[comp["id"]] = {
                                 "name": comp["name"],
                                 "mentioned": is_mentioned,
