@@ -131,7 +131,7 @@ export function LandingHeaderNav() {
                 {email}
               </Link>
               <div className="px-1 py-1">
-                <HeaderLogoutButton className="w-full text-left px-2 py-1.5 text-sm text-gray-700 hover:bg-slate-50 rounded transition-colors" />
+                <HeaderLogoutButton className="w-full text-left px-2 py-1.5 text-sm text-gray-700 hover:bg-slate-50 rounded transition-colors cursor-pointer" />
               </div>
             </div>
           )}
