@@ -46,7 +46,8 @@ class NaverPlaceStatsService:
             return {"error": str(e), "naver_place_id": naver_place_id}
 
     async def _run(self, naver_place_id: str) -> dict:
-        from services.ai_scanner import apply_stealth as _as, get_proxy_config as _gpc, get_random_ua as _gua2
+        from services.ai_scanner import apply_stealth as _as, get_proxy_config as _gpc, get_random_ua as _gua2, block_heavy_resources as _bhr, attach_bandwidth_counter as _abc
+        from services.ai_scanner.bandwidth_tracker import record_usage_mb as _rum
         url = f"https://map.naver.com/p/entry/place/{naver_place_id}"
         async with async_playwright() as p:
             browser = await p.chromium.launch(
@@ -59,6 +60,8 @@ class NaverPlaceStatsService:
                 timezone_id="Asia/Seoul",
                 user_agent=_gua2(),
             )
+            await ctx.route("**/*", _bhr)
+            _bw_counter = _abc(ctx)
             page = await ctx.new_page()
             await _as(page)
             try:
@@ -190,6 +193,7 @@ class NaverPlaceStatsService:
                 }
             finally:
                 await browser.close()
+                await _rum(_bw_counter[0] / 1024 / 1024)
 
 
 async def check_smart_place_completeness(naver_place_url: str) -> dict:
@@ -263,7 +267,8 @@ async def _check_completeness(url: str) -> dict:
     base_url = _normalize_place_base_url(url)
     logger.info(f"[sp_check] base_url={base_url!r} from url={url!r}")
 
-    from services.ai_scanner import apply_stealth as _as2, get_proxy_config as _gpc2, get_random_ua as _gua
+    from services.ai_scanner import apply_stealth as _as2, get_proxy_config as _gpc2, get_random_ua as _gua, block_heavy_resources as _bhr2, attach_bandwidth_counter as _abc2
+    from services.ai_scanner.bandwidth_tracker import record_usage_mb as _rum2
     _TAB_TIMEOUT = 12000   # 탭당 타임아웃 (ms)
     _TAB_WAIT   = 4000     # 탭당 JS 렌더 대기 (ms)
 
@@ -279,6 +284,8 @@ async def _check_completeness(url: str) -> dict:
             user_agent=_gua(),
             viewport={"width": 412, "height": 915},
         )
+        await ctx.route("**/*", _bhr2)
+        _bw_counter2 = _abc2(ctx)
         page = await ctx.new_page()
         await _as2(page)
         _NAVER_BLOCK = "플레이스 서비스 이용이 제한"
@@ -446,6 +453,7 @@ async def _check_completeness(url: str) -> dict:
                 await browser.close()
             except Exception as e:
                 logger.warning("browser.close() failed [%s]: %s", url, e)
+            await _rum2(_bw_counter2[0] / 1024 / 1024)
 
 
 def _detect_intro_stats(info_body: str) -> tuple[bool, int]:
@@ -688,7 +696,8 @@ async def _fetch_low_rating_reviews(
     url = f"https://map.naver.com/p/entry/place/{naver_place_id}"
     low_reviews: list[dict] = []
 
-    from services.ai_scanner import apply_stealth as _as3, get_proxy_config as _gpc3, get_random_ua as _gua3
+    from services.ai_scanner import apply_stealth as _as3, get_proxy_config as _gpc3, get_random_ua as _gua3, block_heavy_resources as _bhr3, attach_bandwidth_counter as _abc3
+    from services.ai_scanner.bandwidth_tracker import record_usage_mb as _rum3
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
@@ -700,6 +709,8 @@ async def _fetch_low_rating_reviews(
             timezone_id="Asia/Seoul",
             user_agent=_gua3(),
         )
+        await ctx.route("**/*", _bhr3)
+        _bw_counter3 = _abc3(ctx)
         page = await ctx.new_page()
         await _as3(page)
         try:
@@ -763,5 +774,6 @@ async def _fetch_low_rating_reviews(
 
         finally:
             await browser.close()
+            await _rum3(_bw_counter3[0] / 1024 / 1024)
 
     return low_reviews

@@ -13,7 +13,8 @@ from typing import Optional
 
 import aiohttp
 from playwright.async_api import async_playwright
-from services.ai_scanner import apply_stealth as _apply_stealth, get_proxy_config as _get_proxy_config, check_naver_playwright_quota as _check_naver_quota
+from services.ai_scanner import apply_stealth as _apply_stealth, get_proxy_config as _get_proxy_config, check_naver_playwright_quota as _check_naver_quota, block_heavy_resources as _block_heavy_resources, attach_bandwidth_counter as _attach_bw_counter
+from services.ai_scanner.bandwidth_tracker import record_usage_mb as _record_usage_mb
 
 _logger = logging.getLogger(__name__)
 
@@ -143,6 +144,8 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
             user_agent=_ua,
             viewport=_vp,
         )
+        await ctx.route("**/*", _block_heavy_resources)
+        _bw_counter = _attach_bw_counter(ctx)
         page = await ctx.new_page()
         await _apply_stealth(page)
         try:
@@ -156,6 +159,7 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
             if "서비스 이용이 제한되었습니다" in body_text or "과도한 접근 요청" in body_text:
                 _logger.warning(f"competitor_place_crawler IP blocked [{naver_place_id}]")
                 await browser.close()
+                await _record_usage_mb(_bw_counter[0] / 1024 / 1024)
                 return {**default, "error": "ip_blocked"}
 
             # ── 사업장명 파싱 ─────────────────────────────────────────
@@ -474,6 +478,7 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
             }
         finally:
             await browser.close()
+            await _record_usage_mb(_bw_counter[0] / 1024 / 1024)
 
 
 async def fetch_competitor_faq_items(naver_place_id: str) -> dict:
