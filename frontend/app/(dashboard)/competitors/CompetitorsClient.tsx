@@ -1328,11 +1328,15 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                   </div>
                   {statRows.map(row => {
                     if (row.myVal === null) {
-                      // 크롤러 측정 실패 — 0으로 단정하지 않고 중립 표시 (경쟁사 값과 비교 안 함)
+                      // null 사유는 두 가지: (1) 크롤러가 못 가져옴(리뷰수·블로그 언급) (2) 네이버가
+                      // 애초에 공개하지 않는 값(평점 — 2021.10 방문자 별점 기능 종료 이후 대부분 미노출).
+                      // 후자를 "측정 실패"로 표시하면 시스템 오류처럼 보여 신뢰를 떨어뜨리므로 구분.
+                      // 0으로 단정하지도 않음 — 경쟁사 값과 비교하지 않고 중립 표시.
+                      const isRatingRow = row.label === '평점'
                       return (
                         <div key={row.label} className="grid grid-cols-3 px-4 py-3 border-b border-gray-100 last:border-0 items-center">
                           <span className="text-sm text-gray-600 font-medium">{row.label}</span>
-                          <span className="text-center text-sm text-gray-500">측정 실패</span>
+                          <span className="text-center text-sm text-gray-500">{isRatingRow ? '정보 없음' : '측정 실패'}</span>
                           <span className="text-center text-sm font-bold text-gray-500">
                             {row.decimals ? Number(row.compVal).toFixed(row.decimals) : String(row.compVal)}{row.unit}
                           </span>

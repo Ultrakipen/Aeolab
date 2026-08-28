@@ -134,6 +134,12 @@ _PROXY_ERROR_SIGNATURES = (
     "TUNNEL_CONNECTION_FAILED",
     "PROXY_AUTH_REQUESTED",
     "SOCKS_CONNECTION_FAILED",
+    # 2026-08-29 추가: 프록시 인증이 거부되면 Chromium이 위 net::ERR_* 코드 대신
+    # page.goto 자체를 조용히 매달아 "Page.goto: Timeout"으로만 표면화되는 사례를
+    # 실측 확인(naver_place_stats.py — 08-22부터 회로차단 없이 매일 조용히 실패 중이었음).
+    # 셀렉터 대기 등 다른 사후 타임아웃과 구분하기 위해 "Page.goto: Timeout"으로 한정
+    # (post-navigation 타임아웃까지 넓히면 프록시와 무관한 실패까지 오탐할 수 있음).
+    "Page.goto: Timeout",
 )
 
 
