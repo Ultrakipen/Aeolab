@@ -43,7 +43,7 @@ interface CompetitorWithPlace {
 interface Props {
   competitor: CompetitorWithPlace;
   myReviewCount: number;
-  myAvgRating: number;
+  myAvgRating: number | null;
   onSyncRequest: () => void;
   accessToken?: string;
   onPlaceIdSaved?: () => void;
@@ -105,7 +105,17 @@ function ReviewCompareBar({
   );
 }
 
-function StarRating({ rating }: { rating: number }) {
+function StarRating({ rating }: { rating: number | null }) {
+  if (rating === null) {
+    return (
+      <span className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star key={i} className="w-3.5 h-3.5 text-gray-200 fill-gray-100" />
+        ))}
+        <span className="ml-1 text-sm text-gray-500">정보 없음</span>
+      </span>
+    );
+  }
   const full = Math.floor(rating);
   const half = rating - full >= 0.5;
   return (
@@ -374,7 +384,7 @@ export function CompetitorPlaceCard({
 
   const compReviewCount = competitor.place_review_count ?? 0;
   const compAvgRating = competitor.place_avg_rating ?? 0;
-  const ratingDiff = myAvgRating - compAvgRating;
+  const ratingDiff = (myAvgRating ?? 0) - compAvgRating;
 
   return (
     <div className="mt-3 bg-white border border-gray-100 rounded-xl p-4 space-y-4">
@@ -414,7 +424,7 @@ export function CompetitorPlaceCard({
             <StarRating rating={compAvgRating} />
           </div>
         </div>
-        {compAvgRating > 0 && (
+        {compAvgRating > 0 && myAvgRating !== null && (
           <div>
             {ratingDiff < -0.2 ? (
               <span className="text-sm font-semibold text-orange-600 bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-full">

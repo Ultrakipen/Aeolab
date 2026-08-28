@@ -242,7 +242,7 @@ export default async function CompetitorsPage({
         myScore={latestScanWithScores?.total_score ?? latestScans?.[0]?.total_score ?? 0}
         myTrack1Score={latestScanWithScores?.track1_score ?? null}
         myReviewCount={business.review_count ?? 0}
-        myAvgRating={business.avg_rating ?? 0}
+        myAvgRating={business.avg_rating && business.avg_rating > 0 ? business.avg_rating : null}
         myBlogMentions={myBlogMentions}
         userId={user.id}
         trendScans={trendScans ?? []}

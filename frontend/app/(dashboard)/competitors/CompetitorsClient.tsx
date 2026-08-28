@@ -562,7 +562,7 @@ interface Props {
   myScore: number
   myTrack1Score?: number | null
   myReviewCount?: number
-  myAvgRating?: number
+  myAvgRating?: number | null
   myBlogMentions?: number | null
   userId: string
   trendScans?: TrendScan[]
@@ -1194,7 +1194,7 @@ interface CompareModalProps {
   myScore: number
   myStageScore: number
   myReviewCount: number
-  myAvgRating: number
+  myAvgRating: number | null
   myBlogMentions: number | null
   competitor: {
     name: string
@@ -1591,7 +1591,7 @@ export function CompetitorsClient({
   myScore,
   myTrack1Score = null,
   myReviewCount = 0,
-  myAvgRating = 0,
+  myAvgRating = null,
   myBlogMentions = 0,
   userId,
   trendScans = [],
