@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 
 export function HeaderLogoutButton({
-  className = "text-sm text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap",
+  className = "text-sm text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap cursor-pointer",
 }: {
   className?: string;
 }) {

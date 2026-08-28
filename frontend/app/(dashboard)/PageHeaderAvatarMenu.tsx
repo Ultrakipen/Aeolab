@@ -82,7 +82,7 @@ export function PageHeaderAvatarMenu({ email, plan }: Props) {
               type="button"
               role="menuitem"
               onClick={handleLogout}
-              className="w-full text-left flex items-center gap-2 px-4 py-2.5 text-[14px] text-gray-700 hover:bg-gray-50 transition-colors"
+              className="w-full text-left flex items-center gap-2 px-4 py-2.5 text-[14px] text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
             >
               로그아웃
             </button>
