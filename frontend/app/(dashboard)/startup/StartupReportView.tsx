@@ -106,6 +106,9 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                 ))}
               </ul>
             )}
+            <p className="text-sm text-blue-500 mt-2">
+              * 카카오맵 키워드 검색 기준 추정치입니다. 실제 사업자 등록 현황과 다를 수 있고, 인접 지역 업체가 일부 포함될 수 있습니다. 측정 시점에 따라 달라질 수 있음.
+            </p>
           </div>
         )}
 
