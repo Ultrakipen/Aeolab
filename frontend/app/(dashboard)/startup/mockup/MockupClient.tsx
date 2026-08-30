@@ -23,8 +23,17 @@ const SCENARIOS: Record<string, StartupReport> = {
       reasoning: "서울 강남 카페 업종의 등록 사업장 데이터가 아직 없습니다. 서비스 이용자가 늘면 더 정확한 분석이 가능합니다.",
       is_estimated: true,
     },
+    real_market: {
+      available: true,
+      total_count: 812,
+      samples: [
+        { name: "강남 로스터리", address: "서울 강남구 논현동 123-4", naver_place_url: "https://map.naver.com/v5/entry/place/1111111" },
+        { name: "청담 브런치카페", address: "서울 강남구 청담동 45-6", naver_place_url: "" },
+        { name: "역삼 스페셜티커피", address: "서울 강남구 역삼동 78-9", naver_place_url: "https://map.naver.com/v5/entry/place/2222222" },
+      ],
+    },
     strategy: {
-      entry_strategy: "현재 AEOlab에 등록된 경쟁 사업장이 없어 실측 비교는 어렵지만, 일반적으로 카페 업종은 스마트플레이스 완성도와 리뷰 관리가 AI 검색 노출의 기본입니다. 개업 초기부터 사업장 정보를 꾸준히 등록·관리하면 경쟁사가 늘기 전에 AI 검색 노출을 선점할 수 있습니다.",
+      entry_strategy: "AEOlab에 등록된 경쟁 사업장은 없지만, 카카오맵 실측 기준 이 지역엔 이미 800개 이상의 카페가 있어 실제로는 경쟁이 매우 치열한 상권입니다. 스마트플레이스 완성도와 리뷰 관리가 AI 검색 노출의 기본입니다. 개업 초기부터 사업장 정보를 꾸준히 등록·관리하면 AI 검색 노출을 선점할 수 있습니다.",
       key_actions: [
         "네이버 스마트플레이스에 메뉴·영업시간·사진을 빠짐없이 등록",
         "개업 초기 리뷰 확보를 위한 오픈 이벤트 기획",
@@ -62,6 +71,14 @@ const SCENARIOS: Record<string, StartupReport> = {
       opportunity_score: 85,
       reasoning: "부산 해운대 음식점 업종에 등록된 경쟁 사업장이 2개로 매우 적습니다. 지금 시작하면 AI 노출을 선점할 수 있습니다.",
       is_estimated: true,
+    },
+    real_market: {
+      available: true,
+      total_count: 214,
+      samples: [
+        { name: "해운대 조개구이", address: "부산 해운대구 중동 12-3", naver_place_url: "https://map.naver.com/v5/entry/place/3333333" },
+        { name: "달맞이 이자카야", address: "부산 해운대구 중동 55-1", naver_place_url: "" },
+      ],
     },
     strategy: {
       entry_strategy: "등록 경쟁사가 2곳뿐이라 표본은 적지만, 두 곳 모두 AI 노출 수준이 낮아 스마트플레이스 완성도와 리뷰 품질에서 우위를 점하기 쉬운 상황입니다. 개업 초기 3개월 내 집중 투자로 지역 대표 노출을 노려볼 만합니다.",

@@ -126,6 +126,17 @@ class StartupReportService:
         except Exception as _e:
             logger.warning(f"startup DataLab 조회 실패 (graceful): {_e}")
 
+        # 실제 시장 밀도(카카오 total_count 기준) — AEOlab 가입 사업장 수(competitor_count)와
+        # 무관하게 항상 실측값을 반환. 등록 사업장이 0건이라도 "데이터 없음"으로 끝내지 않고
+        # 실제 시장 규모를 보여주기 위함(2026-08-30). graceful — 실패해도 리포트 중단 안 함.
+        real_market: dict = {"available": False, "total_count": 0, "samples": []}
+        try:
+            from services.local_search import get_market_density
+            from services.schema_generator import CATEGORY_KO
+            real_market = await get_market_density(CATEGORY_KO.get(category, category), region)
+        except Exception as _e:
+            logger.warning(f"startup 실제 시장 밀도 조회 실패 (graceful): {_e}")
+
         # Claude로 진입 전략 생성 — 점수 숫자 미포함(strategy 텍스트에 노출 방지)
         from services.score_engine import get_briefing_eligibility
         eligibility = get_briefing_eligibility(category, False)
@@ -155,12 +166,22 @@ class StartupReportService:
                 f" ({delta:+.1f}% 변화) [측정 키워드: {kws}]"
             )
 
+        # AEOlab 가입 사업장(competitor_count)이 적거나 0이어도, 카카오 실측 기준 실제
+        # 시장 규모를 Claude에게 알려줘 "경쟁이 없다"는 성급한 결론을 방지
+        real_market_line = ""
+        if real_market.get("available"):
+            real_names = ", ".join(s["name"] for s in real_market.get("samples", [])[:3])
+            real_market_line = (
+                f"\n- 실제 시장 규모(카카오맵 실측, AEOlab 가입 여부와 무관): 약 {real_market['total_count']}개"
+                + (f" [예시: {real_names}]" if real_names else "")
+            )
+
         prompt = f"""한국 {region} {category} 업종 창업 분석:
 
-- 기존 사업장 수: {competitor_count}개
-- 경쟁 강도: {competition_level}
+- 기존 사업장 수(AEOlab 가입 기준): {competitor_count}개
+- 경쟁 강도(AEOlab 가입 사업장 기준): {competition_level}
 - 상위 경쟁사: {top_names}
-- {briefing_note}{trend_line}{data_caveat}
+- {briefing_note}{trend_line}{real_market_line}{data_caveat}
 {"- 창업 예정 사업장명: " + business_name if business_name else ""}
 
 위 데이터를 바탕으로 아래 형식으로 창업 전략을 JSON으로 제공해줘:
@@ -217,6 +238,7 @@ class StartupReportService:
             # 표본 3개 미만이거나 등록 사업장은 있으나 전부 미스캔이면 "평균"의 대표성이 낮음
             "is_estimated": competitor_count < 3 or no_scan_data,
             "no_scan_data": no_scan_data,
+            "real_market": real_market,
             "search_trend": {
                 "trend_direction": search_trend.get("trend_direction", "stable"),
                 "trend_delta": search_trend.get("trend_delta", 0.0),

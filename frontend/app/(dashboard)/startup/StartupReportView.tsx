@@ -31,6 +31,11 @@ export interface StartupReport {
     keywords_used: string[];
     available: boolean;
   };
+  real_market?: {
+    available: boolean;
+    total_count: number;
+    samples: Array<{ name: string; address: string; naver_place_url: string }>;
+  };
 }
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -72,6 +77,36 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           <p className="text-sm text-gray-500 -mt-2 mb-2">
             * 등록 사업장 표본이 적어 참고용 추정치입니다. 사업장이 더 등록되면 정확도가 올라갑니다.
           </p>
+        )}
+
+        {/* 실제 시장 규모 — AEOlab 가입 여부와 무관한 카카오맵 실측치. 위 "AEOlab 등록
+            사업장"이 0건이라도 실제 시장이 비어있는 게 아님을 보여주기 위함(2026-08-30) */}
+        {report.real_market?.available && (
+          <div className="mt-2 mb-2 bg-blue-50 border border-blue-100 rounded-xl p-4">
+            <p className="text-sm font-semibold text-blue-900 mb-1">
+              참고: 실제 시장 규모(카카오맵 기준, AEOlab 가입 여부와 무관) 약 {report.real_market.total_count}개
+            </p>
+            <p className="text-sm text-blue-800 leading-relaxed">
+              위 &quot;AEOlab 등록 사업장&quot;은 이 서비스에 가입한 곳만 집계한 숫자입니다. 실제 카카오맵 기준으로는
+              이 업종·지역에 약 {report.real_market.total_count}개의 사업장이 있습니다.
+            </p>
+            {report.real_market.samples.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {report.real_market.samples.slice(0, 5).map((s, i) => (
+                  <li key={i} className="text-sm text-blue-700">
+                    {s.naver_place_url ? (
+                      <a href={s.naver_place_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">
+                        {s.name}
+                      </a>
+                    ) : (
+                      s.name
+                    )}
+                    <span className="text-blue-500"> — {s.address}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
 
         {/* 창업 타이밍 지수 */}
