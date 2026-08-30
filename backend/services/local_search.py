@@ -179,8 +179,16 @@ async def get_market_density(category_ko: str, region: str) -> dict:
     데이터 수집 중"만 보여주던 한계를 보완하기 위해 신설(2026-08-30). 밀도 숫자는
     카카오 total_count만 신뢰하고(네이버는 클램프되어 무의미), 실제 업체 이름 예시는
     네이버+카카오 병합 결과를 사용(naver_place_url 딥링크 가치 보존).
+
+    region은 반드시 전체 문자열을 그대로 사용 — search_kakao/search_naver의
+    `region.split()[0]`(첫 단어만) 방식을 그대로 재사용하면 안 됨. 실측 확인(2026-08-31):
+    "서울 강남"을 첫 단어만 써서 "서울 카페"로 검색하면 서울 전체(28,384건, 강남과 무관한
+    주소들)가 나옴. 반대로 마지막 단어만 쓰는 것도 위험 — "일산 서구"에서 "서구"만 쓰면
+    고양시 일산서구가 아닌 대전 서구로 잘못 resolve됨(구 이름이 여러 도시에 중복 존재).
+    전체 문자열("서울 강남구 카페" 등)을 그대로 넘기는 것만 모든 테스트 케이스에서
+    정확한 지역으로 resolve됨.
     """
-    full_query = f"{region.split()[0]} {category_ko}".strip() if region else category_ko
+    full_query = f"{region.strip()} {category_ko}".strip() if region.strip() else category_ko
 
     (kakao_results, total_count), naver_results = await asyncio.gather(
         search_kakao(full_query, ""),
