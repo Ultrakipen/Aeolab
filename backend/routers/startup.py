@@ -138,7 +138,6 @@ async def generate_startup_report(
 @router.get("/market/{category}/{region}")
 async def get_market_overview(category: str, region: str):
     """업종·지역 시장 현황 요약 (무료 공개 — 상세 전략은 startup 전용)"""
-    from services.schema_generator import CATEGORY_KO
     from services.local_search import get_market_density
 
     cache_key = _cache._make_key("market_overview", category, region)
@@ -146,11 +145,12 @@ async def get_market_overview(category: str, region: str):
     if cached is not None:
         return cached
 
-    # AEOlab 가입 사업장과 무관한 실제 시장 밀도(카카오 total_count 기준) — 등록
-    # 사업장이 0건이라도 "데이터 수집 중"으로 끝내지 않고 실측 시장 규모를 보여주기
-    # 위함(2026-08-30). graceful — 실패해도 아래 본 로직은 계속 진행.
+    # AEOlab 가입 사업장과 무관한 실제 시장 밀도(소상공인시장진흥공단 상가정보 API 우선,
+    # 미매핑 카테고리는 카카오 total_count로 폴백) — 등록 사업장이 0건이라도 "데이터 수집
+    # 중"으로 끝내지 않고 실측 시장 규모를 보여주기 위함(2026-08-30/31). graceful —
+    # 실패해도 아래 본 로직은 계속 진행.
     try:
-        real_market = await get_market_density(CATEGORY_KO.get(category, category), region)
+        real_market = await get_market_density(category, region)
     except Exception as _e:
         _logger.warning(f"get_market_density 실패 (graceful): {_e}")
         real_market = {"available": False, "total_count": 0, "samples": []}

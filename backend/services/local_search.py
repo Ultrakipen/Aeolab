@@ -172,13 +172,19 @@ def merge_results(kakao_results: list[dict], naver_results: list[dict]) -> list[
     return list(seen.values())
 
 
-async def get_market_density(category_ko: str, region: str) -> dict:
+async def get_market_density(category: str, region: str) -> dict:
     """실제 시장 밀도 조회 — AEOlab 가입 사업장 수와 무관하게 항상 실측값을 반환.
 
     창업 시장 분석(startup_report.py, startup.py)에서 "AEOlab 등록 사업장 0건 =
-    데이터 수집 중"만 보여주던 한계를 보완하기 위해 신설(2026-08-30). 밀도 숫자는
-    카카오 total_count만 신뢰하고(네이버는 클램프되어 무의미), 실제 업체 이름 예시는
-    네이버+카카오 병합 결과를 사용(naver_place_url 딥링크 가치 보존).
+    데이터 수집 중"만 보여주던 한계를 보완하기 위해 신설(2026-08-30).
+
+    2단계 우선순위(2026-08-31):
+    1) 소상공인시장진흥공단 상가정보 API(sbiz_api.py) — 국세청·카드사 기반 실제 등록
+       사업자 수. category가 SBIZ_CATEGORY_CODES에 매핑된 경우만 사용(2026-08-31 실측
+       검증한 카테고리만 매핑 — 나머지는 추측하지 않고 카카오로 폴백).
+    2) 카카오 키워드 검색 total_count — SBIZ 매핑이 없거나 API 실패 시 폴백. 네이버
+       total은 display와 동일하게 클램프되어 무의미하므로 밀도 지표로 쓰지 않음(카카오만
+       신뢰). 실제 업체 이름 예시는 네이버+카카오 병합 결과 사용.
 
     region은 반드시 전체 문자열을 그대로 사용 — search_kakao/search_naver의
     `region.split()[0]`(첫 단어만) 방식을 그대로 재사용하면 안 됨. 실측 확인(2026-08-31):
@@ -188,6 +194,16 @@ async def get_market_density(category_ko: str, region: str) -> dict:
     전체 문자열("서울 강남구 카페" 등)을 그대로 넘기는 것만 모든 테스트 케이스에서
     정확한 지역으로 resolve됨.
     """
+    try:
+        from services.sbiz_api import get_sbiz_market_count
+        sbiz_result = await get_sbiz_market_count(category, region)
+        if sbiz_result is not None:
+            return sbiz_result
+    except Exception as e:
+        _logger.warning("sbiz_market_count 실패 (카카오로 폴백): %s", e)
+
+    from services.schema_generator import CATEGORY_KO
+    category_ko = CATEGORY_KO.get(category, category)
     full_query = f"{region.strip()} {category_ko}".strip() if region.strip() else category_ko
 
     (kakao_results, total_count), naver_results = await asyncio.gather(
@@ -199,6 +215,7 @@ async def get_market_density(category_ko: str, region: str) -> dict:
     return {
         "available": total_count is not None,
         "total_count": total_count or 0,
+        "source": "kakao",
         "samples": [
             {
                 "name": s["name"],

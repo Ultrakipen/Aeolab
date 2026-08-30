@@ -35,6 +35,8 @@ export interface StartupReport {
     available: boolean;
     total_count: number;
     samples: Array<{ name: string; address: string; naver_place_url: string }>;
+    source?: "sbiz" | "kakao";
+    stdr_ym?: string | null;
   };
 }
 
@@ -79,38 +81,50 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           </p>
         )}
 
-        {/* 실제 시장 규모 — AEOlab 가입 여부와 무관한 카카오맵 실측치. 위 "AEOlab 등록
-            사업장"이 0건이라도 실제 시장이 비어있는 게 아님을 보여주기 위함(2026-08-30) */}
-        {report.real_market?.available && (
-          <div className="mt-2 mb-2 bg-blue-50 border border-blue-100 rounded-xl p-4">
-            <p className="text-sm font-semibold text-blue-900 mb-1">
-              참고: 실제 시장 규모(카카오맵 기준, AEOlab 가입 여부와 무관) 약 {report.real_market.total_count}개
-            </p>
-            <p className="text-sm text-blue-800 leading-relaxed">
-              위 &quot;AEOlab 등록 사업장&quot;은 이 서비스에 가입한 곳만 집계한 숫자입니다. 실제 카카오맵 기준으로는
-              이 업종·지역에 약 {report.real_market.total_count}개의 사업장이 있습니다.
-            </p>
-            {report.real_market.samples.length > 0 && (
-              <ul className="mt-2 space-y-1">
-                {report.real_market.samples.slice(0, 5).map((s, i) => (
-                  <li key={i} className="text-sm text-blue-700">
-                    {s.naver_place_url ? (
-                      <a href={s.naver_place_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">
-                        {s.name}
-                      </a>
-                    ) : (
-                      s.name
-                    )}
-                    <span className="text-blue-500"> — {s.address}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="text-sm text-blue-500 mt-2">
-              * 카카오맵 키워드 검색 기준 추정치입니다. 실제 사업자 등록 현황과 다를 수 있고, 인접 지역 업체가 일부 포함될 수 있습니다. 측정 시점에 따라 달라질 수 있음.
-            </p>
-          </div>
-        )}
+        {/* 실제 시장 규모 — AEOlab 가입 여부와 무관한 실측치. 위 "AEOlab 등록 사업장"이
+            0건이라도 실제 시장이 비어있는 게 아님을 보여주기 위함(2026-08-30/31).
+            source="sbiz"(소상공인시장진흥공단 상가정보, 국세청·카드사 기반)가 있으면
+            우선 사용 — 더 권위 있는 실제 등록 사업자 수. 없으면 카카오맵 키워드 검색
+            기준으로 폴백 */}
+        {report.real_market?.available && (() => {
+          const isSbiz = report.real_market.source === "sbiz";
+          const ym = report.real_market.stdr_ym;
+          const ymLabel = ym && ym.length === 6 ? `${ym.slice(0, 4)}년 ${parseInt(ym.slice(4), 10)}월` : null;
+          const sourceLabel = isSbiz ? "국세청·카드사 등록 기준" : "카카오맵 검색 기준";
+          return (
+            <div className="mt-2 mb-2 bg-blue-50 border border-blue-100 rounded-xl p-4">
+              <p className="text-sm font-semibold text-blue-900 mb-1">
+                참고: 실제 시장 규모({sourceLabel}, AEOlab 가입 여부와 무관) 약 {report.real_market.total_count}개
+              </p>
+              <p className="text-sm text-blue-800 leading-relaxed">
+                위 &quot;AEOlab 등록 사업장&quot;은 이 서비스에 가입한 곳만 집계한 숫자입니다. {isSbiz ? "국세청·카드사 등록 통계" : "실제 카카오맵"} 기준으로는
+                이 업종·지역 반경 내에 약 {report.real_market.total_count}개의 사업장이 있습니다.
+              </p>
+              {report.real_market.samples.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {report.real_market.samples.slice(0, 5).map((s, i) => (
+                    <li key={i} className="text-sm text-blue-700">
+                      {s.naver_place_url ? (
+                        <a href={s.naver_place_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">
+                          {s.name}
+                        </a>
+                      ) : (
+                        s.name
+                      )}
+                      <span className="text-blue-500"> — {s.address}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="text-sm text-blue-500 mt-2">
+                {isSbiz
+                  ? `* 소상공인시장진흥공단 상가정보(국세청·카드사 기반)${ymLabel ? `, ${ymLabel} 기준` : ""} 반경 내 등록 사업자 수입니다. 실시간이 아니라 다소 지연된 통계일 수 있습니다.`
+                  : "* 카카오맵 키워드 검색 기준 추정치입니다. 실제 사업자 등록 현황과 다를 수 있고, 인접 지역 업체가 일부 포함될 수 있습니다."}
+                {" "}측정 시점에 따라 달라질 수 있음.
+              </p>
+            </div>
+          );
+        })()}
 
         {/* 창업 타이밍 지수 */}
         {report.timing && (

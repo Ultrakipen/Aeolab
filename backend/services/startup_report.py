@@ -132,8 +132,7 @@ class StartupReportService:
         real_market: dict = {"available": False, "total_count": 0, "samples": []}
         try:
             from services.local_search import get_market_density
-            from services.schema_generator import CATEGORY_KO
-            real_market = await get_market_density(CATEGORY_KO.get(category, category), region)
+            real_market = await get_market_density(category, region)
         except Exception as _e:
             logger.warning(f"startup 실제 시장 밀도 조회 실패 (graceful): {_e}")
 
@@ -166,13 +165,14 @@ class StartupReportService:
                 f" ({delta:+.1f}% 변화) [측정 키워드: {kws}]"
             )
 
-        # AEOlab 가입 사업장(competitor_count)이 적거나 0이어도, 카카오 실측 기준 실제
-        # 시장 규모를 Claude에게 알려줘 "경쟁이 없다"는 성급한 결론을 방지
+        # AEOlab 가입 사업장(competitor_count)이 적거나 0이어도, 실측 기준 실제 시장
+        # 규모를 Claude에게 알려줘 "경쟁이 없다"는 성급한 결론을 방지
         real_market_line = ""
         if real_market.get("available"):
             real_names = ", ".join(s["name"] for s in real_market.get("samples", [])[:3])
+            source_label = "국세청 사업자등록 기반 실측" if real_market.get("source") == "sbiz" else "카카오맵 실측"
             real_market_line = (
-                f"\n- 실제 시장 규모(카카오맵 실측, AEOlab 가입 여부와 무관): 약 {real_market['total_count']}개"
+                f"\n- 실제 시장 규모({source_label}, AEOlab 가입 여부와 무관): 약 {real_market['total_count']}개"
                 + (f" [예시: {real_names}]" if real_names else "")
             )
 
