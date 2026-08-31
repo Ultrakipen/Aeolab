@@ -53,33 +53,42 @@ SBIZ_CATEGORY_CODES: dict[str, list[tuple[str, str]]] = {
 _DEFAULT_RADIUS_M = 3000  # 행정구역 깊이 판별 실패 시(키워드검색 폴백 등)의 중간값 기본치
 
 # 행정구역 단위별 반경(m) — 2026-08-31 실측(강남구 중심 1.5~5km 스캔, 응답시간은 반경과
-# 무관하게 0.3~0.6초로 일정함을 확인해 반경 확대에 성능 부담 없음도 검증). 동 평균 면적
-# 1~3km², 서울 구 평균 면적 ~28km², 군은 구의 10배 이상(예: 완주군 820km²)인 실제 면적
-# 편차를 반영 — 고정 2km 하나로는 동은 과대, 구는 과소, 군은 극단적 과소 집계됐던 문제.
+# 무관하게 0.3~0.6초로 일정함을 확인해 반경 확대에 성능 부담 없음도 검증). 정확한 면적
+# 수치는 별도 검증하지 않았음(추정 금지 원칙) — 다만 "동 < 구/시 < 군" 순으로 실제 면적이
+# 커지는 것은 행정구역 체계상 일반적 사실이며, 고정 2km 하나로는 동은 과대, 구는 과소,
+# 특히 면적 편차가 큰 군은 극단적 과소 집계될 위험이 있어 단위별로 반경을 분리함.
 _RADIUS_DONG_M = 1200      # 동/읍/면 매칭(region_3depth_name 존재)
 _RADIUS_GU_M = 3000        # 구/시 매칭(region_2depth_name 존재, "군" 아님)
-_RADIUS_GUN_M = 6000       # 군 매칭(region_2depth_name이 "군"으로 끝남 — 면적 편차가 커 여전히 근사치)
-_RADIUS_NO_GU_M = 4000     # 세종 등 구 없는 광역단체(region_2depth_name 자체가 없음)
+_RADIUS_GUN_M = 6000       # 군 매칭(region_2depth_name이 "군"으로 끝남) — 군은 면적 편차가 매우 커서
+                           # 이 반경으로도 여전히 상당수 군에서 과소 집계될 수 있음(아래 신뢰도 라벨 참조)
+_RADIUS_NO_GU_M = 4000     # 세종 등 구 없는 광역단체(region_2depth_name 자체가 없음) — 군과 동일한 이유로 저신뢰
+
+# 반경 추정 신뢰도 — 2026-08-31 신설. 동/구는 행정구역 면적과 반경이 비교적 근접해 신뢰도
+# "양호", 군·구없는광역단체는 실제 면적이 반경보다 훨씬 큰 경우가 흔해 "낮음"(과소 집계 위험 명시),
+# 키워드검색 폴백(행정구역 정보 자체가 없음)은 "중간"으로 구분.
+_CONFIDENCE_GOOD = "good"
+_CONFIDENCE_MEDIUM = "medium"
+_CONFIDENCE_LOW = "low"
 
 
-def _radius_for_address(region_2: str, region_3: str) -> int:
+def _radius_for_address(region_2: str, region_3: str) -> tuple[int, str]:
     if region_3:
-        return _RADIUS_DONG_M
+        return _RADIUS_DONG_M, _CONFIDENCE_GOOD
     if region_2.endswith("군"):
-        return _RADIUS_GUN_M
+        return _RADIUS_GUN_M, _CONFIDENCE_LOW
     if region_2:
-        return _RADIUS_GU_M
-    return _RADIUS_NO_GU_M
+        return _RADIUS_GU_M, _CONFIDENCE_GOOD
+    return _RADIUS_NO_GU_M, _CONFIDENCE_LOW
 
 
-async def _geocode_region(region: str) -> tuple[float, float, int] | None:
-    """지역 자유텍스트 → (경도, 위도, 추천 반경m). 주소검색 우선, 실패 시 키워드검색으로
-    폴백(2026-08-31 실측: "서울 강남구"는 주소검색, "강남"처럼 행정구역명이 아닌 약칭은
-    주소검색이 못 찾을 수 있어 키워드검색이 보완).
+async def _geocode_region(region: str) -> tuple[float, float, int, str] | None:
+    """지역 자유텍스트 → (경도, 위도, 추천 반경m, 신뢰도). 주소검색 우선, 실패 시
+    키워드검색으로 폴백(2026-08-31 실측: "서울 강남구"는 주소검색, "강남"처럼 행정구역명이
+    아닌 약칭은 주소검색이 못 찾을 수 있어 키워드검색이 보완).
 
     반경은 주소검색 응답의 행정구역 매칭 깊이로 결정(추가 API 호출 없이 같은 응답 재사용,
     2026-08-31 신설) — 동/읍/면까지 매칭되면 좁게, 구/시 단위면 넓게, 군 단위면 더 넓게.
-    키워드검색 폴백(행정구역 정보 없음)은 중간값(_DEFAULT_RADIUS_M) 사용.
+    키워드검색 폴백(행정구역 정보 없음)은 중간값(_DEFAULT_RADIUS_M) + 중간 신뢰도 사용.
     """
     rest_key = os.getenv("KAKAO_REST_API_KEY")
     if not rest_key or not region.strip():
@@ -99,10 +108,10 @@ async def _geocode_region(region: str) -> tuple[float, float, int] | None:
                     docs = data.get("documents", [])
                     if docs:
                         addr = docs[0]["address"]
-                        radius = _radius_for_address(
+                        radius, confidence = _radius_for_address(
                             addr.get("region_2depth_name", ""), addr.get("region_3depth_name", "")
                         )
-                        return float(addr["x"]), float(addr["y"]), radius
+                        return float(addr["x"]), float(addr["y"]), radius, confidence
 
             async with session.get(
                 _KAKAO_KEYWORD_URL,
@@ -114,7 +123,7 @@ async def _geocode_region(region: str) -> tuple[float, float, int] | None:
                     data = await res.json()
                     docs = data.get("documents", [])
                     if docs:
-                        return float(docs[0]["x"]), float(docs[0]["y"]), _DEFAULT_RADIUS_M
+                        return float(docs[0]["x"]), float(docs[0]["y"]), _DEFAULT_RADIUS_M, _CONFIDENCE_MEDIUM
     except (aiohttp.ClientError, asyncio.TimeoutError, ValueError, KeyError) as e:
         _logger.warning("sbiz_geocode_error: %s", e)
     return None
@@ -202,8 +211,10 @@ async def get_sbiz_market_count(category: str, region: str, radius: int | None =
     coords = await _geocode_region(region)
     if coords is None:
         return None
-    cx, cy, auto_radius = coords
+    cx, cy, auto_radius, auto_confidence = coords
     used_radius = radius if radius is not None else auto_radius
+    # 호출부가 radius를 직접 넘기면(테스트 등) 행정구역 매칭 신뢰도 정보가 없으므로 중간값 처리
+    confidence = auto_confidence if radius is None else _CONFIDENCE_MEDIUM
 
     results = await asyncio.gather(
         *[_query_code(cx, cy, code_type, code, used_radius) for code_type, code in codes]
@@ -226,6 +237,13 @@ async def get_sbiz_market_count(category: str, region: str, radius: int | None =
                     "naver_place_url": "",
                 }
 
+    # 밀도(㎢당 개수) — 절대 개수만으로는 지역·업종 간 비교가 안 되는 문제 보완(2026-08-31).
+    # 원의 면적(πr²)로 나눔 — 반경 자체가 근사치라 밀도도 근사치이나, 상대 비교엔 유용.
+    import math
+    radius_km = used_radius / 1000
+    area_km2 = math.pi * radius_km * radius_km
+    density_per_km2 = round(total_count / area_km2, 1) if area_km2 > 0 else 0.0
+
     return {
         "available": True,
         "total_count": total_count,
@@ -233,4 +251,6 @@ async def get_sbiz_market_count(category: str, region: str, radius: int | None =
         "source": "sbiz",
         "stdr_ym": stdr_ym,
         "radius_m": used_radius,
+        "density_per_km2": density_per_km2,
+        "confidence": confidence,
     }

@@ -182,8 +182,15 @@ class StartupReportService:
             real_names = ", ".join(s["name"] for s in real_market.get("samples", [])[:3])
             source_label = "국세청 사업자등록 기반 실측" if real_market.get("source") == "sbiz" else "카카오맵 실측"
             radius_km = real_market.get("radius_m", 0) / 1000
+            density = real_market.get("density_per_km2")
+            is_low_confidence = real_market.get("source") == "sbiz" and real_market.get("confidence") == "low"
             radius_note = (
-                f"(입력 지역 중심 반경 {radius_km:g}km 기준 — 행정구역 전체 수치가 아니므로 절대 규모로 단정하지 말 것)"
+                (
+                    f"(입력 지역 중심 반경 {radius_km:g}km 기준 — 행정구역 전체 수치가 아니므로 절대 규모로 단정하지 말 것"
+                    + (f", 밀도 1㎢당 {density}개" if density is not None else "")
+                    + (". ⚠ 이 지역은 면적이 넓어(군·특별자치시 등) 반경이 전체를 못 덮음 — 실제로는 이보다 훨씬 많을 수 있다는 점을 전략에 반드시 반영할 것" if is_low_confidence else "")
+                    + ")"
+                )
                 if real_market.get("source") == "sbiz" else ""
             )
             real_market_line = (

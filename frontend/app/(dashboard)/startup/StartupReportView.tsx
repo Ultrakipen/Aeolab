@@ -38,6 +38,8 @@ export interface StartupReport {
     source?: "sbiz" | "kakao";
     stdr_ym?: string | null;
     radius_m?: number;
+    density_per_km2?: number;
+    confidence?: "good" | "medium" | "low";
   };
 }
 
@@ -93,15 +95,24 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           const ymLabel = ym && ym.length === 6 ? `${ym.slice(0, 4)}년 ${parseInt(ym.slice(4), 10)}월` : null;
           const radiusKm = report.real_market.radius_m ? (report.real_market.radius_m / 1000).toFixed(1).replace(/\.0$/, "") : null;
           const sourceLabel = isSbiz ? "국세청·카드사 등록 기준" : "카카오맵 검색 기준";
+          const density = report.real_market.density_per_km2;
+          const isLowConfidence = isSbiz && report.real_market.confidence === "low";
           return (
             <div className="mt-2 mb-2 bg-blue-50 border border-blue-100 rounded-xl p-4">
               <p className="text-sm font-semibold text-blue-900 mb-1">
                 참고: 실제 시장 규모({sourceLabel}, AEOlab 가입 여부와 무관) 약 {report.real_market.total_count}개
+                {density != null && <span className="font-normal text-blue-700"> (1㎢당 약 {density}개)</span>}
               </p>
               <p className="text-sm text-blue-800 leading-relaxed">
                 위 &quot;AEOlab 등록 사업장&quot;은 이 서비스에 가입한 곳만 집계한 숫자입니다. {isSbiz ? "국세청·카드사 등록 통계" : "실제 카카오맵"} 기준으로는
                 이 업종·지역 반경 내에 약 {report.real_market.total_count}개의 사업장이 있습니다.
+                {density != null && " 밀도(1㎢당 개수)로 다른 지역·업종과 상대 비교에 활용하세요."}
               </p>
+              {isLowConfidence && (
+                <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
+                  ⚠ 이 지역은 추정 신뢰도가 낮습니다 — 군·특별자치시처럼 면적이 넓은 지역은 반경이 행정구역 전체를 다 덮지 못해, 실제 사업장 수가 위 숫자보다 훨씬 많을 수 있습니다.
+                </p>
+              )}
               {report.real_market.samples.length > 0 && (
                 <ul className="mt-2 space-y-1">
                   {report.real_market.samples.slice(0, 5).map((s, i) => (
