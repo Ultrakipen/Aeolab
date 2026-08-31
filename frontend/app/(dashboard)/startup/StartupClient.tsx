@@ -37,6 +37,19 @@ export function StartupClient() {
         setError("창업 패키지(startup) 이상의 구독이 필요합니다.");
         return;
       }
+      if (res.status === 429) {
+        const errData = await res.json().catch(() => null);
+        setError(errData?.detail?.message || "이번 달 창업 시장 분석 생성 한도를 초과했습니다. 다음 달에 다시 이용하실 수 있습니다.");
+        return;
+      }
+      if (res.status === 409) {
+        setError("이미 창업 시장 분석이 생성 중입니다. 완료 후 다시 시도해주세요.");
+        return;
+      }
+      if (!res.ok) {
+        setError("분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        return;
+      }
       const data = await res.json();
       setReport(data);
     } catch {
