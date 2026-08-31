@@ -26,7 +26,7 @@ _KAKAO_KEYWORD_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 # (파라미터명, 코드값) 튜플 리스트 — 한 카테고리에 여러 상권업종코드가 걸치는 경우
 # (예: restaurant) 병렬 호출 후 totalCount를 합산한다. 전부 2026-08-31 실측 확인.
 SBIZ_CATEGORY_CODES: dict[str, list[tuple[str, str]]] = {
-    "restaurant": [("indsMclsCd", c) for c in ["I201", "I202", "I203", "I204", "I205", "I207"]],
+    "restaurant": [("indsMclsCd", c) for c in ["I201", "I202", "I203", "I204", "I205", "I206", "I207"]],
     "cafe": [("indsMclsCd", "I212")],
     "bar": [("indsMclsCd", "I211")],
     "bakery": [("indsSclsCd", "I21001")],
