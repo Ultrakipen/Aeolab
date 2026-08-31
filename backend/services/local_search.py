@@ -225,3 +225,37 @@ async def get_market_density(category: str, region: str) -> dict:
             for s in samples
         ],
     }
+
+
+async def find_naver_place_id(name: str, address: str, region: str = "") -> str | None:
+    """이름+주소로 네이버 지역검색 API를 호출해 place_id 조회 — 로그인·크롤링 없이
+    공개 오픈API(openapi.naver.com)만 사용(2026-08-31, routers/competitor.py의
+    `_find_naver_place_id`와 동일 로직을 서비스 레이어로 옮겨 재사용 — startup 관련
+    서비스가 라우터를 import하지 않도록 하기 위함, get_market_density와 동일 이유)."""
+    client_id = os.getenv("NAVER_CLIENT_ID")
+    client_secret = os.getenv("NAVER_CLIENT_SECRET")
+    if not client_id or not client_secret:
+        return None
+
+    headers = {"X-Naver-Client-Id": client_id, "X-Naver-Client-Secret": client_secret}
+    region_prefix = region.split()[0] if region else (address.split()[0] if address else "")
+    query = f"{region_prefix} {name}".strip()
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                _NAVER_LOCAL_URL, params={"query": query, "display": 5},
+                headers=headers, timeout=aiohttp.ClientTimeout(total=8),
+            ) as res:
+                if res.status != 200:
+                    return None
+                data = await res.json()
+                for item in data.get("items", []):
+                    item_name = strip_tags(item.get("title", ""))
+                    link = item.get("link", "")
+                    m = re.search(r"/place/(\d+)", link)
+                    if m and name in item_name:
+                        return m.group(1)
+    except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+        _logger.warning("find_naver_place_id 실패: %s — %s", name, e)
+    return None

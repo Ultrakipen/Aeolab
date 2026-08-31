@@ -136,6 +136,17 @@ class StartupReportService:
         except Exception as _e:
             logger.warning(f"startup 실제 시장 밀도 조회 실패 (graceful): {_e}")
 
+        # 실제 경쟁사(위 real_market.samples) 스마트플레이스 공개 완성도 체크(2026-08-31,
+        # 사용자 승인) — 로그인 우회·AI 브리핑 확인 없이 공개 페이지만 조회(범위 제한 근거는
+        # startup_competitor_readiness.py 모듈 docstring 참조). graceful — 실패해도 중단 안 함.
+        competitor_readiness: dict = {"available": False, "checked": 0, "items": []}
+        if real_market.get("source") == "sbiz" and real_market.get("samples"):
+            try:
+                from services.startup_competitor_readiness import check_competitors_readiness
+                competitor_readiness = await check_competitors_readiness(real_market["samples"], region)
+            except Exception as _e:
+                logger.warning(f"startup 경쟁사 준비도 체크 실패 (graceful): {_e}")
+
         # Claude로 진입 전략 생성 — 점수 숫자 미포함(strategy 텍스트에 노출 방지)
         from services.score_engine import get_briefing_eligibility
         eligibility = get_briefing_eligibility(category, False)
@@ -198,6 +209,20 @@ class StartupReportService:
                 + (f" [예시: {real_names}]" if real_names else "")
             )
 
+        # 실제 경쟁사 스마트플레이스 공개 완성도 — Claude에게 구체적 차별화 포인트를
+        # 제시할 근거로 제공(2026-08-31 신설). 이 정보가 없으면 Claude가 "차별화하세요"
+        # 같은 추상적 조언에 그치므로, 실측 기반 구체적 조언으로 바꾸기 위함.
+        readiness_line = ""
+        if competitor_readiness.get("available"):
+            n = competitor_readiness["checked"]
+            no_intro = competitor_readiness["no_intro_count"]
+            no_post = competitor_readiness["no_recent_post_count"]
+            readiness_line = (
+                f"\n- 실제 경쟁사 스마트플레이스 공개 조사({n}곳, 위 예시 업체 대상): "
+                f"소개글 없음 {no_intro}곳, 최근 소식 없음 {no_post}곳 "
+                "(이 항목들이 미비한 경쟁사가 많으면 '내가 이것부터 채우면 차별화된다'는 구체적 전략으로 반영할 것)"
+            )
+
         from services.schema_generator import CATEGORY_KO
         category_ko = CATEGORY_KO.get(category, category)
         prompt = f"""한국 {region} {category_ko} 업종 창업 분석:
@@ -205,7 +230,7 @@ class StartupReportService:
 - 기존 사업장 수(AEOlab 가입 기준): {competitor_count}개
 - 경쟁 강도(AEOlab 가입 사업장 기준): {competition_level}
 - 상위 경쟁사: {top_names}
-- {briefing_note}{trend_line}{real_market_line}{data_caveat}
+- {briefing_note}{trend_line}{real_market_line}{readiness_line}{data_caveat}
 {"- 창업 예정 사업장명: " + business_name if business_name else ""}
 - 중요: 임대료·평당 시세·인건비·손익분기점 개월 수 등 위에 제공되지 않은 구체적 비용·재무 수치는
   절대 지어내지 말 것. 비용 관련 조언이 필요하면 "목표 상권 인근 부동산·상권분석 서비스에 직접
@@ -267,6 +292,7 @@ class StartupReportService:
             "is_estimated": competitor_count < 3 or no_scan_data,
             "no_scan_data": no_scan_data,
             "real_market": real_market,
+            "competitor_readiness": competitor_readiness,
             "search_trend": {
                 "trend_direction": search_trend.get("trend_direction", "stable"),
                 "trend_delta": search_trend.get("trend_delta", 0.0),
