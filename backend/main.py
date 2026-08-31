@@ -11,6 +11,15 @@ if _SENTRY_DSN:
         environment=os.getenv("APP_ENV", "development"),
         traces_sample_rate=0.1,
         send_default_pii=False,
+        # 2026-08-31 실측 발견: Sentry가 aiohttp.ClientSession을 전역 패치해 활성 요청
+        # 중 만들어지는 모든 외부 aiohttp 호출에 sentry-trace/baggage 헤더를 자동 주입함
+        # (기본값 trace_propagation_targets=None = 모든 대상에 전파). 공공데이터포털
+        # (data.go.kr) 게이트웨이가 이 낯선 헤더를 거부해 SBIZ 상가정보 API가 항상
+        # INVALID_REQUEST_PARAMETER_ERROR(400)로 실패했음 — FastAPI+Sentry+실제요청
+        # 조합으로만 재현되고 bare 스크립트에선 재현 안 됐던 이유(활성 span이 있어야
+        # 헤더 주입 트리거). 외부 서드파티 API로는 트레이스 헤더를 전파하지 않도록
+        # 명시적으로 차단(우리 자체 서비스 간 호출이 없어 내부 전파도 불필요).
+        trace_propagation_targets=[],
     )
 
 from fastapi import FastAPI, Request

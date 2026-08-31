@@ -93,22 +93,23 @@ async def _geocode_region(region: str) -> tuple[float, float] | None:
     return None
 
 
-_MAX_ATTEMPTS = 1  # 재시도 무의미(2026-08-31 실측: 결정론적 실패, 아래 docstring 참조)
+_MAX_ATTEMPTS = 2  # 일반적인 일시적 오류(타임아웃 등) 대비 — 결정론적 400 원인은 해결됨(아래 참조)
 
 
 async def _query_code(cx: float, cy: float, code_type: str, code: str, radius: int) -> dict | None:
     """storeListInRadius 단일 코드 조회 — (totalCount, items 최대 5개).
 
-    ⚠️ 2026-08-31 실측: 이 앱(main:app, uvicorn으로 서빙)에서 호출하면 100% 결정론적으로
-    INVALID_REQUEST_PARAMETER_ERROR(400)가 발생 — 즉 항상 카카오로 폴백됨(기능은 정상
-    동작하나 SBIZ 데이터는 실질적으로 한 번도 쓰이지 않음). 원인 조사(env/uvloop/Sentry/
-    User-Agent/URL 인코딩/DNS/httpx 공존/전체 import 그래프 재현 등 10여 개 가설)로도
-    특정 못함 — main.py의 모든 import를 그대로 복사해 만든 순수 asyncio 스크립트에서는
-    100% 성공하는데, 실제 uvicorn ASGI 요청 처리 경로를 타면 100% 실패함. Starlette의
-    BaseHTTPMiddleware(AdminAuditMiddleware 등, main.py에 등록됨)가 요청 스코프 안의
-    독립적인 aiohttp 호출에 개입하는 것으로 의심되나 미확인. 재시도는 무의미(결정론적
-    실패라 매번 동일하게 실패) — 재시도 코드는 제거하고 1회만 시도 후 즉시 카카오
-    폴백. 향후 원인 규명 시 이 docstring과 _MAX_ATTEMPTS만 되돌리면 됨.
+    2026-08-31 근본 원인 규명·수정 완료: 이 함수가 main:app(uvicorn) 안의 실제 요청
+    처리 중 호출되면 100% 결정론적으로 INVALID_REQUEST_PARAMETER_ERROR(400)가
+    발생했던 원인은 Sentry SDK였음 — sentry_sdk.init()이 aiohttp.ClientSession을
+    전역 패치해, 활성 요청(span)이 있을 때 생성되는 모든 aiohttp 요청에
+    sentry-trace/baggage 추적 헤더를 자동 주입함(기본 trace_propagation_targets=None
+    = 전체 대상 전파). 공공데이터포털(data.go.kr) 게이트웨이가 이 낯선 헤더를 거부해
+    항상 400 에러가 났던 것 — bare 스크립트(활성 span 없음)에서는 재현이 안 됐던
+    이유도 이것. main.py의 sentry_sdk.init()에 trace_propagation_targets=[] 추가로
+    해결(외부 서드파티 API로 트레이스 헤더 전파 차단). 카카오·네이버 등 aiohttp를
+    쓰는 다른 외부 API 호출도 전역으로 동일 위험이 있었으나 이 한 번의 수정으로
+    전부 해소됨.
     """
     service_key = os.getenv("SBIZ_API_KEY")
     if not service_key:
