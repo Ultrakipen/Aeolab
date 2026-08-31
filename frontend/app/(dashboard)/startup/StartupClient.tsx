@@ -49,11 +49,11 @@ export function StartupClient() {
   return (
     <div className="p-4 md:p-8 max-w-3xl">
       <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">창업 시장 분석</h1>
-      <p className="text-sm text-gray-500 mb-4">업종·지역 AI 노출 경쟁 강도 + 진입 전략 (창업 패키지·Biz 전용, Enterprise는 별도 문의)</p>
+      <p className="text-sm text-gray-500 mb-4">실제 상권 규모·트렌드 분석 + 진입 전략 (창업 패키지·Biz 전용, Enterprise는 별도 문의)</p>
 
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-sm text-blue-900 leading-relaxed">
         <p className="font-semibold mb-1">이 기능은 이렇게 활용하세요</p>
-        <p>창업하려는 <b>업종과 지역</b>을 입력하면, 그 업종·지역에서 <b>AEOlab에 가입한 사업장</b>들의 AI 검색 노출 수준을 모아 경쟁 강도를 보여주고, Claude AI가 진입 전략을 제안합니다. 아직 등록된 사업장이 적은 업종·지역은 &quot;데이터 수집 중&quot;으로 표시되며, 이는 &quot;경쟁이 없다&quot;는 뜻이 아니라 &quot;참고할 실측 데이터가 부족하다&quot;는 뜻입니다.</p>
+        <p>창업하려는 <b>업종과 지역</b>을 입력하면, 국세청·카드사 등록 통계(또는 카카오맵 실측)로 <b>실제 상권 규모·밀도</b>와 <b>네이버 검색 수요 트렌드</b>를 보여주고, Claude AI가 이를 바탕으로 진입 전략을 제안합니다. 데이터가 부족한 지역·업종은 그 사실을 명시하며, &quot;경쟁이 없다&quot;고 단정하지 않습니다.</p>
       </div>
 
       {/* 입력 폼 */}

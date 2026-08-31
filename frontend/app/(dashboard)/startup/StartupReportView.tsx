@@ -1,5 +1,3 @@
-import { getScoreTextLabel } from "@/lib/scoreLabels";
-
 export interface StartupReport {
   category: string;
   region: string;
@@ -50,50 +48,21 @@ export interface StartupReport {
   };
 }
 
-const LEVEL_COLORS: Record<string, string> = {
-  red: "text-red-600 bg-red-50 border-red-200",
-  orange: "text-orange-600 bg-orange-50 border-orange-200",
-  yellow: "text-yellow-700 bg-yellow-50 border-yellow-200",
-  green: "text-green-700 bg-green-50 border-green-200",
-  gray: "text-gray-500 bg-gray-50 border-gray-200",
-};
-
 // 실제 API 응답과 목업(startup/mockup) 양쪽에서 공유하는 결과 렌더링 — 한쪽만 고치고
 // 다른 쪽을 깜빡하는 drift를 막기 위해 StartupClient.tsx에서 분리(2026-08-30)
 export function StartupReportView({ report }: { report: StartupReport }) {
   return (
     <>
-      {/* 경쟁 강도 */}
+      {/* 시장 현황 — 실제 상권 규모(정부·카카오 실측) 중심. AEOlab 자체 가입 사업장 데이터
+          (경쟁 강도·타이밍 지수 등)는 2026-08-31부터 이 페이지에 표시하지 않음 — 창업
+          예정자에게 필요한 건 AEOlab 내부 고객 현황이 아니라 실제 지역 상권 분석이라는
+          목적에 맞춰 재구성(사용자 방향 확정). 백엔드는 그 데이터를 계속 계산·기록하되
+          (차후 내부 활용 목적), 이 페이지 화면에는 노출하지 않는다. */}
       <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-4">
         <h2 className="text-base font-semibold text-gray-700 mb-1">시장 현황</h2>
-        <p className="text-sm text-gray-500 mb-4">아래 수치는 <b>AEOlab에 가입한 사업장</b> 기준입니다. 지역 전체 업체 수가 아니라, 이 서비스로 AI 노출을 관리 중인 사업장들 사이의 경쟁 강도입니다.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4">
-          <div className="text-center p-3 md:p-4 bg-gray-50 rounded-xl">
-            <div className="text-xl md:text-2xl font-bold text-gray-900">{report.competitor_count}</div>
-            <div className="text-sm text-gray-500 mt-1">AEOlab 등록 사업장</div>
-          </div>
-          <div className="text-center p-3 md:p-4 bg-gray-50 rounded-xl">
-            <div className="text-lg md:text-xl font-bold text-gray-900">{getScoreTextLabel(report.avg_competitor_score)}</div>
-            <div className="text-sm text-gray-500 mt-1">평균 AI 노출</div>
-          </div>
-          <div className={`text-center p-3 md:p-4 rounded-xl border ${LEVEL_COLORS[report.competition_level_color] ?? "bg-gray-50"}`}>
-            <div className="text-base md:text-lg font-bold">{report.competition_level}</div>
-            <div className="text-sm mt-1">경쟁 강도</div>
-          </div>
-        </div>
-        {report.competitor_count === 0 ? (
-          <p className="text-sm text-gray-500 -mt-2 mb-2">
-            * 이 업종·지역엔 아직 AEOlab 가입 사업장이 없어 비교할 데이터가 없습니다. &quot;경쟁이 없다&quot;는 뜻이 아니라 &quot;아직 측정하지 못했다&quot;는 뜻입니다.
-          </p>
-        ) : report.is_estimated && (
-          <p className="text-sm text-gray-500 -mt-2 mb-2">
-            * 등록 사업장 표본이 적어 참고용 추정치입니다. 사업장이 더 등록되면 정확도가 올라갑니다.
-          </p>
-        )}
+        <p className="text-sm text-gray-500 mb-4">국세청·카드사 등록 통계(또는 카카오맵 실측) 기준 실제 상권 규모입니다.</p>
 
-        {/* 실제 시장 규모 — AEOlab 가입 여부와 무관한 실측치. 위 "AEOlab 등록 사업장"이
-            0건이라도 실제 시장이 비어있는 게 아님을 보여주기 위함(2026-08-30/31).
-            source="sbiz"(소상공인시장진흥공단 상가정보, 국세청·카드사 기반)가 있으면
+        {/* source="sbiz"(소상공인시장진흥공단 상가정보, 국세청·카드사 기반)가 있으면
             우선 사용 — 더 권위 있는 실제 등록 사업자 수. 없으면 카카오맵 키워드 검색
             기준으로 폴백 */}
         {report.real_market?.available && (() => {
@@ -107,12 +76,11 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           return (
             <div className="mt-2 mb-2 bg-blue-50 border border-blue-100 rounded-xl p-4">
               <p className="text-sm font-semibold text-blue-900 mb-1">
-                참고: 실제 시장 규모({sourceLabel}, AEOlab 가입 여부와 무관) 약 {report.real_market.total_count}개
+                실제 시장 규모({sourceLabel}) 약 {report.real_market.total_count}개
                 {density != null && <span className="font-normal text-blue-700"> (1㎢당 약 {density}개)</span>}
               </p>
               <p className="text-sm text-blue-800 leading-relaxed">
-                위 &quot;AEOlab 등록 사업장&quot;은 이 서비스에 가입한 곳만 집계한 숫자입니다. {isSbiz ? "국세청·카드사 등록 통계" : "실제 카카오맵"} 기준으로는
-                이 업종·지역 반경 내에 약 {report.real_market.total_count}개의 사업장이 있습니다.
+                {isSbiz ? "국세청·카드사 등록 통계" : "카카오맵 실측"} 기준으로 이 업종·지역 반경 내에 약 {report.real_market.total_count}개의 사업장이 있습니다.
                 {density != null && " 밀도(1㎢당 개수)로 다른 지역·업종과 상대 비교에 활용하세요."}
               </p>
               {isLowConfidence && (
@@ -175,40 +143,6 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           </div>
         )}
 
-        {/* 창업 타이밍 지수 */}
-        {report.timing && (
-          <div className="mt-4 border-t border-gray-100 pt-4">
-            <p className="text-sm font-semibold text-gray-600 mb-1">창업 타이밍 지수</p>
-            <p className="text-sm text-gray-500 mb-2">최근 30일간 AI 노출 점수 변화 추세로, 지금 진입하기 좋은 시점인지를 알려줍니다.</p>
-            <div className={`rounded-xl p-4 ${report.timing.timing_color === "emerald" ? "bg-emerald-50 border border-emerald-200" : report.timing.timing_color === "blue" ? "bg-blue-50 border border-blue-200" : report.timing.timing_color === "red" ? "bg-red-50 border border-red-200" : report.timing.timing_color === "amber" ? "bg-amber-50 border border-amber-200" : "bg-gray-50 border border-gray-200"}`}>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-base font-bold">{report.timing.timing_label}</span>
-                {report.timing.is_estimated && (
-                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">추정</span>
-                )}
-              </div>
-              <p className="text-sm md:text-base text-gray-600 leading-relaxed">{report.timing.reasoning}</p>
-            </div>
-          </div>
-        )}
-
-        {report.top_competitors.length > 0 && (
-          <div className="mt-4 border-t border-gray-100 pt-4">
-            <p className="text-sm font-semibold text-gray-600 mb-3">상위 경쟁사</p>
-            <div className="space-y-2.5">
-              {report.top_competitors.map((c, i) => {
-                // 스캔 표본 크기(Basic 50회/Full 100회)를 알 수 없어 분수 대신 구간 레이블로 표시
-                const freqLabel = c.exposure_freq >= 30 ? "자주 노출" : c.exposure_freq >= 10 ? "가끔 노출" : c.exposure_freq > 0 ? "노출 적음" : "노출 없음"
-                return (
-                  <div key={i} className="flex items-center justify-between">
-                    <span className="text-sm md:text-base text-gray-700 font-medium">{i + 1}. {c.name}</span>
-                    <span className="text-sm text-gray-500">{freqLabel}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
       </section>
 
       {/* 네이버 검색 수요 트렌드 */}

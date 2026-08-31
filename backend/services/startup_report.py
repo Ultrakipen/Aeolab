@@ -165,14 +165,6 @@ class StartupReportService:
             "likely": "이 업종은 네이버 AI 브리핑(플레이스형) 확대 예정 업종이라 정확한 노출 시점은 미정입니다. 정보형(블로그·콘텐츠)과 Google AI Overview는 콘텐츠 등록 후 약 2~4주 내 반영 시작, ChatGPT·Gemini는 학습 데이터 기반이라 수개월~1년 소요됩니다.",
             "inactive": "이 업종은 네이버 AI 브리핑(플레이스형) 비대상입니다. 정보형(블로그·콘텐츠)과 Google AI Overview는 콘텐츠 등록 후 약 2~4주 내 반영 시작, ChatGPT·Gemini는 학습 데이터 기반이라 수개월~1년 소요됩니다.",
         }.get(eligibility, "채널별로 노출까지 걸리는 기간이 다릅니다 — 네이버는 콘텐츠 등록 후 2~4주 내 반영 시작, ChatGPT·Gemini는 학습 데이터 기반이라 수개월~1년 소요됩니다.")
-        top_names = ", ".join(c["name"] for c in top_competitors[:3]) if top_competitors else "데이터 없음"
-        data_caveat = (
-            "\n- 참고: 위 경쟁 강도는 AEOlab에 가입한 사업장 기준이며, 등록 사업장이 아직 없어"
-            " 실제 시장 경쟁 여부를 판단할 근거가 부족합니다. '경쟁이 없다/기회다'라고 단정하지 말고,"
-            " 데이터가 부족하다는 점을 전제로 일반적인 진입 전략을 제시할 것."
-            if no_business_data else ""
-        )
-
         # 트렌드 데이터가 있을 때만 프롬프트에 삽입 (빈 경우 "안정 +0.0%" 같은 무의미 문구 방지)
         trend_line = ""
         if search_trend.get("trend_data"):
@@ -227,10 +219,7 @@ class StartupReportService:
         category_ko = CATEGORY_KO.get(category, category)
         prompt = f"""한국 {region} {category_ko} 업종 창업 분석:
 
-- 기존 사업장 수(AEOlab 가입 기준): {competitor_count}개
-- 경쟁 강도(AEOlab 가입 사업장 기준): {competition_level}
-- 상위 경쟁사: {top_names}
-- {briefing_note}{trend_line}{real_market_line}{readiness_line}{data_caveat}
+- {briefing_note}{trend_line}{real_market_line}{readiness_line}
 {"- 창업 예정 사업장명: " + business_name if business_name else ""}
 - 중요: 임대료·평당 시세·인건비·손익분기점 개월 수 등 위에 제공되지 않은 구체적 비용·재무 수치는
   절대 지어내지 말 것. 비용 관련 조언이 필요하면 "목표 상권 인근 부동산·상권분석 서비스에 직접
