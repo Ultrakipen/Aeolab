@@ -41,6 +41,13 @@ export interface StartupReport {
     density_per_km2?: number;
     confidence?: "good" | "medium" | "low";
   };
+  competitor_readiness?: {
+    available: boolean;
+    checked: number;
+    no_intro_count?: number;
+    no_recent_post_count?: number;
+    items?: Array<{ name: string; has_intro: boolean; has_recent_post: boolean; photo_count: number; review_count: number }>;
+  };
 }
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -138,6 +145,35 @@ export function StartupReportView({ report }: { report: StartupReport }) {
             </div>
           );
         })()}
+
+        {/* 실제 경쟁사 스마트플레이스 공개 완성도 — 로그인 불필요한 공개 페이지만 조사
+            (2026-08-31 신설). 매칭 실패가 잦을 수 있어(소규모 업체는 네이버플레이스
+            자체가 없는 경우 많음) available=false면 조용히 숨김(그레이스풀). */}
+        {report.competitor_readiness?.available && (
+          <div className="mt-2 mb-2 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+            <p className="text-sm font-semibold text-emerald-900 mb-1">
+              실제 경쟁사 스마트플레이스 공개 조사 ({report.competitor_readiness.checked}곳)
+            </p>
+            <p className="text-sm text-emerald-800 leading-relaxed">
+              소개글 없음 {report.competitor_readiness.no_intro_count ?? 0}곳, 최근 소식 없음 {report.competitor_readiness.no_recent_post_count ?? 0}곳
+              {(report.competitor_readiness.no_intro_count || report.competitor_readiness.no_recent_post_count)
+                ? " — 이런 항목을 먼저 채우면 상대적으로 눈에 띄기 쉽습니다."
+                : " — 조사된 경쟁사들은 기본 항목을 이미 채워둔 상태입니다."}
+            </p>
+            {!!report.competitor_readiness.items?.length && (
+              <ul className="mt-2 space-y-1">
+                {report.competitor_readiness.items.map((it, i) => (
+                  <li key={i} className="text-sm text-emerald-700">
+                    {it.name} — 소개글 {it.has_intro ? "있음" : "없음"} · 최근 소식 {it.has_recent_post ? "있음" : "없음"} · 리뷰 {it.review_count}개
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="text-sm text-emerald-500 mt-2">
+              * 네이버 스마트플레이스 공개 페이지 기준(로그인 불필요). 위 실제 시장 규모 예시 업체 중 네이버플레이스가 확인된 곳만 표시 — 소규모 업체는 네이버플레이스가 없는 경우가 많아 일부만 표시될 수 있습니다.
+            </p>
+          </div>
+        )}
 
         {/* 창업 타이밍 지수 */}
         {report.timing && (
