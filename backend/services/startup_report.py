@@ -144,6 +144,16 @@ class StartupReportService:
             "likely": "이 업종은 네이버 AI 브리핑(플레이스형) 확대 예정 업종으로, 아직 전면 대상은 아닙니다.",
             "inactive": "이 업종은 네이버 AI 브리핑(플레이스형) 비대상입니다 — 'AI 브리핑 노출'을 핵심 전략으로 제안하지 말 것. 정보형(블로그·콘텐츠)·ChatGPT·Gemini·Google 노출 전략 위주로 제안할 것. 프랜차이즈로 창업하는 경우도 동일하게 비대상.",
         }.get(eligibility, "")
+        # AI 검색 노출 예상 기간은 Claude에게 자유 생성시키지 않고 CLAUDE.md에 정리된
+        # 실측/공식 근거 기준(네이버 AI브리핑·AI탭 2~4주 추정, ChatGPT·Gemini 수개월~1년 등)으로
+        # 백엔드에서 결정론적으로 산정 — 2026-08-31 실측: 근거 없이 자유 생성시켰더니 Claude가
+        # "3~5개월"처럼 앱 자체 기준(2~4주)과 4~10배 차이나는 수치를 지어낸 것을 발견해 수정
+        # (AI 생성 콘텐츠 사실 지어내기 금지 원칙, git fd946a9~501b37e와 동일 패턴의 재발).
+        exposure_timeline = {
+            "active": "네이버 AI 브리핑(플레이스형)은 스마트플레이스 등록 후 약 2~4주 내 노출 시작(추정, 네이버 미공개) — 안정적으로 자주 인용되려면 리뷰·콘텐츠가 쌓이는 수개월이 더 걸릴 수 있습니다. ChatGPT·Gemini는 학습 데이터 기반이라 수개월~1년 소요됩니다.",
+            "likely": "이 업종은 네이버 AI 브리핑(플레이스형) 확대 예정 업종이라 정확한 노출 시점은 미정입니다. 정보형(블로그·콘텐츠)과 Google AI Overview는 콘텐츠 등록 후 약 2~4주 내 반영 시작, ChatGPT·Gemini는 학습 데이터 기반이라 수개월~1년 소요됩니다.",
+            "inactive": "이 업종은 네이버 AI 브리핑(플레이스형) 비대상입니다. 정보형(블로그·콘텐츠)과 Google AI Overview는 콘텐츠 등록 후 약 2~4주 내 반영 시작, ChatGPT·Gemini는 학습 데이터 기반이라 수개월~1년 소요됩니다.",
+        }.get(eligibility, "채널별로 노출까지 걸리는 기간이 다릅니다 — 네이버는 콘텐츠 등록 후 2~4주 내 반영 시작, ChatGPT·Gemini는 학습 데이터 기반이라 수개월~1년 소요됩니다.")
         top_names = ", ".join(c["name"] for c in top_competitors[:3]) if top_competitors else "데이터 없음"
         data_caveat = (
             "\n- 참고: 위 경쟁 강도는 AEOlab에 가입한 사업장 기준이며, 등록 사업장이 아직 없어"
@@ -181,21 +191,25 @@ class StartupReportService:
                 + (f" [예시: {real_names}]" if real_names else "")
             )
 
-        prompt = f"""한국 {region} {category} 업종 창업 분석:
+        from services.schema_generator import CATEGORY_KO
+        category_ko = CATEGORY_KO.get(category, category)
+        prompt = f"""한국 {region} {category_ko} 업종 창업 분석:
 
 - 기존 사업장 수(AEOlab 가입 기준): {competitor_count}개
 - 경쟁 강도(AEOlab 가입 사업장 기준): {competition_level}
 - 상위 경쟁사: {top_names}
 - {briefing_note}{trend_line}{real_market_line}{data_caveat}
 {"- 창업 예정 사업장명: " + business_name if business_name else ""}
+- 중요: 임대료·평당 시세·인건비·손익분기점 개월 수 등 위에 제공되지 않은 구체적 비용·재무 수치는
+  절대 지어내지 말 것. 비용 관련 조언이 필요하면 "목표 상권 인근 부동산·상권분석 서비스에 직접
+  확인하세요" 같은 일반 안내로 대체할 것 (AEOlab은 실측 비용 데이터를 보유하지 않음).
 
 위 데이터를 바탕으로 아래 형식으로 창업 전략을 JSON으로 제공해줘:
 {{
   "entry_strategy": "3~4문장 진입 전략 요약",
   "key_actions": ["핵심 액션 1", "핵심 액션 2", "핵심 액션 3"],
   "ai_optimization_tips": ["AI 노출 최적화 팁 1", "팁 2", "팁 3"],
-  "risk_factors": ["주의사항 1", "주의사항 2"],
-  "estimated_time_to_visibility": "AI 검색 노출까지 예상 기간 (예: 2~3개월)"
+  "risk_factors": ["주의사항 1", "주의사항 2"]
 }}"""
 
         from services.anthropic_retry import create_message_with_retry
@@ -228,6 +242,8 @@ class StartupReportService:
             # 파싱 실패(응답 길이 초과로 JSON이 잘린 경우 등) — 코드펜스만 제거해 원문이라도 읽히게
             cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw).strip()
             strategy = {"entry_strategy": cleaned}
+        # Claude가 프롬프트에서 빠진 필드를 임의로 채워 넣을 가능성까지 차단 — 항상 결정론적 값으로 덮어씀
+        strategy["estimated_time_to_visibility"] = exposure_timeline
 
         return {
             "category": category,
