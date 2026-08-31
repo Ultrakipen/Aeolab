@@ -15,6 +15,9 @@ _logger = logging.getLogger(__name__)
 router = APIRouter()
 
 _TTL_MARKET = 1800  # 시장 현황 캐시: 30분
+_TTL_FULL_REPORT = 24 * 3600  # 전체 리포트(Claude 호출 포함) 캐시: 24시간 — 많은 사용자가
+# 같은 업종·지역을 반복 조회해도 Claude를 1번만 호출하도록(2026-08-31 신설).
+# business_name은 프롬프트에 장식적으로만 쓰여(startup_report.py 확인) 캐시 키에서 제외.
 
 # check_startup_report_limit() COUNT 체크 후 StartupReportService.generate()(Claude Sonnet
 # 호출) 완료까지의 창에서 동시요청이 같은 월별 한도를 여러 번 통과할 수 있는 TOCTOU 구조.
@@ -48,6 +51,19 @@ async def generate_startup_report(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "required_plans": required_plans},
         )
+
+    # 전체 리포트 캐시 — 캐시 히트 시 Claude 호출 없이 즉시 반환하고 월 한도도 소모하지
+    # 않음(비용이 안 드는 응답이라 사용자에게 불리할 이유가 없다는 판단, 2026-08-31 신설).
+    report_cache_key = _cache._make_key("startup_full_report", req.category, req.region.strip().lower())
+    cached_result = _cache.get(report_cache_key)
+    if cached_result is not None:
+        _allowed, used, limit = await check_startup_report_limit(user_id, supabase)
+        result = dict(cached_result)
+        result["region"] = req.region
+        result["business_name"] = req.business_name
+        result["used"] = used
+        result["limit"] = limit
+        return result
 
     # 월별 한도 체크 — COUNT 스냅샷 후 Claude 호출까지 TOCTOU 레이스 방지 락(M2와 동일 패턴)
     if user_id in _startup_report_locks:
@@ -94,6 +110,8 @@ async def generate_startup_report(
         is_fallback = result.get("is_fallback", False) if isinstance(result, dict) else False
         biz_id_for_log = None
         if not is_fallback:
+            if isinstance(result, dict):
+                _cache.set(report_cache_key, dict(result), _TTL_FULL_REPORT)
             try:
                 # startup_report에는 biz_id가 없으므로 user의 첫 번째 사업장에 연결해 기록
                 biz_res = await execute(
