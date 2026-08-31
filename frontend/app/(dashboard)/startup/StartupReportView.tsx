@@ -37,6 +37,7 @@ export interface StartupReport {
     samples: Array<{ name: string; address: string; naver_place_url: string }>;
     source?: "sbiz" | "kakao";
     stdr_ym?: string | null;
+    radius_m?: number;
   };
 }
 
@@ -90,6 +91,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           const isSbiz = report.real_market.source === "sbiz";
           const ym = report.real_market.stdr_ym;
           const ymLabel = ym && ym.length === 6 ? `${ym.slice(0, 4)}년 ${parseInt(ym.slice(4), 10)}월` : null;
+          const radiusKm = report.real_market.radius_m ? (report.real_market.radius_m / 1000).toFixed(1).replace(/\.0$/, "") : null;
           const sourceLabel = isSbiz ? "국세청·카드사 등록 기준" : "카카오맵 검색 기준";
           return (
             <div className="mt-2 mb-2 bg-blue-50 border border-blue-100 rounded-xl p-4">
@@ -118,7 +120,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
               )}
               <p className="text-sm text-blue-500 mt-2">
                 {isSbiz
-                  ? `* 소상공인시장진흥공단 상가정보(국세청·카드사 기반)${ymLabel ? `, ${ymLabel} 기준` : ""} 입력 지역 중심 반경 2km 내 등록 사업자 수입니다. 구·군 전체 규모가 아니라 중심점 주변 기준이라 실제 지역 전체 사업자 수보다 적게 집계될 수 있고, 실시간이 아니라 다소 지연된 통계입니다.`
+                  ? `* 소상공인시장진흥공단 상가정보(국세청·카드사 기반)${ymLabel ? `, ${ymLabel} 기준` : ""} 입력 지역 중심 반경${radiusKm ? ` ${radiusKm}km` : ""} 내 등록 사업자 수입니다. 동/구/군 등 행정구역 넓이에 맞춰 반경을 자동 조정하지만 실제 행정구역 경계와 정확히 일치하지는 않는 근사치이며, 실시간이 아니라 다소 지연된 통계입니다.`
                   : "* 카카오맵 키워드 검색 기준 추정치입니다. 실제 사업자 등록 현황과 다를 수 있고, 인접 지역 업체가 일부 포함될 수 있습니다."}
                 {" "}측정 시점에 따라 달라질 수 있음.
               </p>

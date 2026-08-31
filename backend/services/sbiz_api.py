@@ -50,13 +50,37 @@ SBIZ_CATEGORY_CODES: dict[str, list[tuple[str, str]]] = {
     "flower": [("indsMclsCd", "G219")],
 }
 
-_DEFAULT_RADIUS_M = 2000
+_DEFAULT_RADIUS_M = 3000  # 행정구역 깊이 판별 실패 시(키워드검색 폴백 등)의 중간값 기본치
+
+# 행정구역 단위별 반경(m) — 2026-08-31 실측(강남구 중심 1.5~5km 스캔, 응답시간은 반경과
+# 무관하게 0.3~0.6초로 일정함을 확인해 반경 확대에 성능 부담 없음도 검증). 동 평균 면적
+# 1~3km², 서울 구 평균 면적 ~28km², 군은 구의 10배 이상(예: 완주군 820km²)인 실제 면적
+# 편차를 반영 — 고정 2km 하나로는 동은 과대, 구는 과소, 군은 극단적 과소 집계됐던 문제.
+_RADIUS_DONG_M = 1200      # 동/읍/면 매칭(region_3depth_name 존재)
+_RADIUS_GU_M = 3000        # 구/시 매칭(region_2depth_name 존재, "군" 아님)
+_RADIUS_GUN_M = 6000       # 군 매칭(region_2depth_name이 "군"으로 끝남 — 면적 편차가 커 여전히 근사치)
+_RADIUS_NO_GU_M = 4000     # 세종 등 구 없는 광역단체(region_2depth_name 자체가 없음)
 
 
-async def _geocode_region(region: str) -> tuple[float, float] | None:
-    """지역 자유텍스트 → (경도, 위도). 주소검색 우선, 실패 시 키워드검색으로 폴백
-    (2026-08-31 실측: "서울 강남구"는 주소검색, "강남"처럼 행정구역명이 아닌 약칭은
-    주소검색이 못 찾을 수 있어 키워드검색이 보완)."""
+def _radius_for_address(region_2: str, region_3: str) -> int:
+    if region_3:
+        return _RADIUS_DONG_M
+    if region_2.endswith("군"):
+        return _RADIUS_GUN_M
+    if region_2:
+        return _RADIUS_GU_M
+    return _RADIUS_NO_GU_M
+
+
+async def _geocode_region(region: str) -> tuple[float, float, int] | None:
+    """지역 자유텍스트 → (경도, 위도, 추천 반경m). 주소검색 우선, 실패 시 키워드검색으로
+    폴백(2026-08-31 실측: "서울 강남구"는 주소검색, "강남"처럼 행정구역명이 아닌 약칭은
+    주소검색이 못 찾을 수 있어 키워드검색이 보완).
+
+    반경은 주소검색 응답의 행정구역 매칭 깊이로 결정(추가 API 호출 없이 같은 응답 재사용,
+    2026-08-31 신설) — 동/읍/면까지 매칭되면 좁게, 구/시 단위면 넓게, 군 단위면 더 넓게.
+    키워드검색 폴백(행정구역 정보 없음)은 중간값(_DEFAULT_RADIUS_M) 사용.
+    """
     rest_key = os.getenv("KAKAO_REST_API_KEY")
     if not rest_key or not region.strip():
         return None
@@ -75,7 +99,10 @@ async def _geocode_region(region: str) -> tuple[float, float] | None:
                     docs = data.get("documents", [])
                     if docs:
                         addr = docs[0]["address"]
-                        return float(addr["x"]), float(addr["y"])
+                        radius = _radius_for_address(
+                            addr.get("region_2depth_name", ""), addr.get("region_3depth_name", "")
+                        )
+                        return float(addr["x"]), float(addr["y"]), radius
 
             async with session.get(
                 _KAKAO_KEYWORD_URL,
@@ -87,7 +114,7 @@ async def _geocode_region(region: str) -> tuple[float, float] | None:
                     data = await res.json()
                     docs = data.get("documents", [])
                     if docs:
-                        return float(docs[0]["x"]), float(docs[0]["y"])
+                        return float(docs[0]["x"]), float(docs[0]["y"]), _DEFAULT_RADIUS_M
     except (aiohttp.ClientError, asyncio.TimeoutError, ValueError, KeyError) as e:
         _logger.warning("sbiz_geocode_error: %s", e)
     return None
@@ -160,10 +187,13 @@ async def _query_code(cx: float, cy: float, code_type: str, code: str, radius: i
     return None
 
 
-async def get_sbiz_market_count(category: str, region: str, radius: int = _DEFAULT_RADIUS_M) -> dict | None:
+async def get_sbiz_market_count(category: str, region: str, radius: int | None = None) -> dict | None:
     """국세청·카드사 기반 실제 등록 사업자 수 조회 — 매핑 안 된 카테고리·API 실패 시 None
-    (호출부에서 카카오 fallback으로 전환). 반경은 "동네 상권" 기준 기본 2km — 지역 입력이
-    "동" 단위든 "구" 단위든 고정 반경이라 정밀하지 않을 수 있음(한계, 한글 캐비엇에 명시).
+    (호출부에서 카카오 fallback으로 전환). radius를 명시하지 않으면(기본) `_geocode_region()`이
+    입력 지역의 행정구역 매칭 깊이(동/구/군)로 자동 산정한 반경을 사용 — 2026-08-31 실측으로
+    고정 2km 하나로는 동은 과대·구는 과소·군은 극단적 과소 집계됐던 문제를 해소. 그래도
+    원형 검색이라 실제 행정구역 경계(불규칙 폴리곤)와는 정확히 일치하지 않는 근사치임(한계,
+    한글 캐비엇에 명시, 실사용 반경은 응답의 radius_m로 노출).
     """
     codes = SBIZ_CATEGORY_CODES.get(category)
     if not codes:
@@ -172,10 +202,11 @@ async def get_sbiz_market_count(category: str, region: str, radius: int = _DEFAU
     coords = await _geocode_region(region)
     if coords is None:
         return None
-    cx, cy = coords
+    cx, cy, auto_radius = coords
+    used_radius = radius if radius is not None else auto_radius
 
     results = await asyncio.gather(
-        *[_query_code(cx, cy, code_type, code, radius) for code_type, code in codes]
+        *[_query_code(cx, cy, code_type, code, used_radius) for code_type, code in codes]
     )
     valid = [r for r in results if r is not None]
     if not valid:
@@ -201,4 +232,5 @@ async def get_sbiz_market_count(category: str, region: str, radius: int = _DEFAU
         "samples": list(seen.values())[:5],
         "source": "sbiz",
         "stdr_ym": stdr_ym,
+        "radius_m": used_radius,
     }
