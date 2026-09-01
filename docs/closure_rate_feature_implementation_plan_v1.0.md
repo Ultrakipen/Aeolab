@@ -48,13 +48,28 @@
 - Playwright 전역 세마포어 같은 쿼터 가드 불필요. **구독자 500명 이상 되면 재검토 필요 — 서비스 파일 상단에 주석으로 남길 것**
 - 월 추가 비용: **0원**
 
-### 5. UI/UX 배치 — `real_market` 섹션 직후
+### 5. UI/UX 배치 — ⚠️ 2026-09-01 정정: `next-feature` 초안이 실제 페이지 구조와 어긋났음, 재설계
 
-- 리포트 내러티브 흐름: 경쟁사 수·평균점수 → 시장규모(SBIZ) → **폐업율(신규)** → 경쟁 타이밍 → AI 전략
-- "얼마나 많이 있나(규모) → 얼마나 많이 폐업하나(위험도) → 지금 들어가기 좋은가(타이밍) → 어떻게 할 것인가(전략)" 흐름
+**최초 설계(next-feature 초안, 오류)**: "real_market 섹션 직후, timing 섹션 직전에 삽입" — **`StartupReportView.tsx` 직접 확인 결과 `timing` 섹션은 2026-08-31부터 화면에 렌더링되지 않음**(인터페이스엔 필드가 남아있지만 주석에 "창업 예정자에게 필요한 건 AEOlab 내부 고객 현황이 아니라 실제 지역 상권 분석"이라는 방향으로 재구성되며 비노출 처리됨). 즉 배치 기준으로 삼았던 섹션 자체가 이미 없음 — next-feature 에이전트가 코드 대신 요약 설명만으로 설계해 생긴 오류.
+
+**현재 실제 페이지 구조**(2026-09-01 직접 확인, `StartupReportView.tsx`):
+1. **시장 현황** — 실제 상권 규모(SBIZ/카카오, `real_market`) + 경쟁사 스마트플레이스 준비도(`competitor_readiness`) — 둘 다 "시장을 파악한다"는 하나의 내러티브로 이미 묶여 있음
+2. **네이버 검색 수요 트렌드** (`search_trend`)
+3. **AI 진입 전략** (`strategy`)
+4. **다음 단계**
+
+**→ "폐업" 관련 콘텐츠가 이 페이지에 전무함** — 4개 섹션 전부 "창업(진입)" 관점. 폐업율 기능은 이 페이지에서 처음 등장하는 "폐업/생존" 콘텐츠가 됨.
+
+**재설계 — 신규 최상위 섹션 대신, "시장 현황" 섹션 안에 3번째 서브블록으로 삽입**:
+- 순서: 실제 시장 규모(기존) → **폐업율/생존 현황(신규)** → 경쟁사 준비도(기존)
+- 근거: 이미 "시장 현황" 섹션이 "규모"+"경쟁사 준비도"를 하나의 상권 파악 내러티브로 묶고 있음 — 여기에 "이 시장이 얼마나 안정적인가"를 추가하면 "몇 개 있고 → 얼마나 안정적이고 → 경쟁사는 얼마나 준비됐나"로 자연스럽게 이어짐. 신규 최상위 섹션을 만들면 페이지가 5개 섹션으로 늘어나며 "창업 관점 3개 + 폐업 관점 1개"로 어색하게 분절됨
+- 섹션 서브타이틀도 자연스럽게 확장 가능: "국세청·카드사 등록 통계(또는 카카오맵 실측) 기준 실제 상권 규모입니다" → "...실제 상권 규모와 생존 현황입니다" 등(문구는 구현 시 frontend-dev가 다듬을 것)
+- `real_market.available`과 별개로 `closure_rate.available`을 독립 체크 — 시장 규모는 있어도 폐업율이 `available:false`(커버 불가 업종)인 조합이 있을 수 있으므로 두 블록을 독립적으로 조건부 렌더링
 - 전국 평균 대비 텍스트 레이블(낮음/비슷/높음)이 주인공, 숫자는 보조
 - "(역대 누적 기준 — 연간 폐업율 아님)" 캐비엇 그레이 텍스트로 항상 노출
-- `available: false`(커버 안 되는 업종)일 때는 섹션 자체를 렌더링하지 않음 — 빈 상태 안내도 생략(다른 섹션으로 충분히 보완됨)
+- `available: false`(커버 안 되는 업종)일 때는 이 서브블록만 렌더링 생략(섹션 자체는 시장 규모·경쟁사 준비도로 유지)
+
+**⚠️ 재발 방지 — 이번 오류의 교훈**: 프론트엔드 UI 배치를 설계할 때는 컴포넌트 파일을 직접 Read하지 않고 "리포트 흐름은 이럴 것"이라는 추정만으로 설계하면 이미 바뀐 화면 구조와 어긋날 수 있음. 다음에 유사한 UI 배치 결정을 할 때는 반드시 대상 `.tsx` 파일을 먼저 열어 실제 렌더링되는 섹션 목록을 확인할 것.
 
 ### 6. 에러/데이터 없음 처리
 
@@ -71,7 +86,7 @@
 
 **수정**:
 - `backend/routers/startup.py` — `GET /api/startup/closure-rate/{category}/{region}` 엔드포인트 추가(startup 플랜+ 인증)
-- `frontend/app/(dashboard)/startup/StartupReportView.tsx` — `ClosureRateCard` 컴포넌트 추가 + `StartupReport` 인터페이스에 `closure_rate` 옵션 필드
+- `frontend/app/(dashboard)/startup/StartupReportView.tsx` — `StartupReport` 인터페이스에 `closure_rate` 옵션 필드 추가 + 기존 "시장 현황" `<section>`(71~177행) 안에 실제 시장 규모 블록과 경쟁사 준비도 블록 사이(177행 앞)로 폐업율 서브블록 삽입(신규 최상위 섹션 아님 — §5 참조)
 - `frontend/app/(dashboard)/startup/StartupClient.tsx` — 리포트 생성 후 closure-rate 별도 fetch(Promise.all 병렬)
 - `backend/.env`(서버) — `LOCALDATA_API_KEY=<값>` 추가(사용자 조치)
 
@@ -162,7 +177,7 @@ setLoading(true)
 1. **서버 `.env` 추가** — `LOCALDATA_API_KEY=<값>` (사용자 직접, 구현 시작 전 확인 필요)
 2. `backend/services/localdata_api.py` 신규 작성 — ENDPOINT_MAP 상수, `_fetch_count()` + `get_closure_rate()`, 24h 캐시 + graceful fallback 완비
 3. `backend/routers/startup.py` — GET 엔드포인트 추가 + startup plan gate
-4. `frontend/.../StartupReportView.tsx` — `closure_rate` 필드 타입 추가 + `ClosureRateCard` 컴포넌트 작성
+4. `frontend/.../StartupReportView.tsx` — `closure_rate` 필드 타입 추가 + 기존 "시장 현황" 섹션 안(시장 규모 블록과 경쟁사 준비도 블록 사이)에 폐업율 서브블록 렌더링 추가(신규 섹션 아님)
 5. `frontend/.../StartupClient.tsx` — Promise.all 병렬 fetch + `closure_rate` 상태 병합
 6. 서버 배포 + 라이브 QA(startup 플랜 계정으로 restaurant/서울 강남구 실측)
 7. CLAUDE.md 완료 이력 업데이트
