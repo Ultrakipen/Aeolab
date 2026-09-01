@@ -206,22 +206,26 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           const isPartialFailure = isLowConfidence && report.real_market.partial_failure === true;
           return (
             <div className="mb-3">
-              {/* 한눈에 보는 핵심 수치 — 본문을 안 읽어도 규모·밀도가 바로 눈에 들어오도록 */}
+              {/* 한눈에 보는 핵심 수치 — 본문을 안 읽어도 규모·밀도가 바로 눈에 들어오도록.
+                  색상: blue는 이제 "기회 신호"(comparisonColor)로 의미가 정해졌으므로, 판단이
+                  섞이지 않은 순수 원시 수치는 closure_rate의 76.2%(slate)와 동일하게 중립색
+                  사용 — 바로 아래 밀도비교 배지(blue/amber)와 색 의미가 충돌하지 않도록
+                  분리(2026-09-02 정정). */}
               <div className={`grid ${density != null ? "grid-cols-2" : "grid-cols-1"} gap-3 mb-3`}>
-                <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3.5 text-center">
-                  <div className="text-2xl md:text-3xl font-extrabold text-blue-700 tabular-nums leading-none">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-center">
+                  <div className="text-2xl md:text-3xl font-extrabold text-slate-800 tabular-nums leading-none">
                     {report.real_market.total_count.toLocaleString()}
-                    <span className="text-sm font-semibold text-blue-400 ml-0.5">개</span>
+                    <span className="text-sm font-semibold text-slate-500 ml-0.5">개</span>
                   </div>
-                  <div className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mt-1.5">실제 시장 규모</div>
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">실제 시장 규모</div>
                 </div>
                 {density != null && (
-                  <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3.5 text-center">
-                    <div className="text-2xl md:text-3xl font-extrabold text-blue-700 tabular-nums leading-none">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-center">
+                    <div className="text-2xl md:text-3xl font-extrabold text-slate-800 tabular-nums leading-none">
                       {density}
-                      <span className="text-sm font-semibold text-blue-400 ml-0.5">/㎢</span>
+                      <span className="text-sm font-semibold text-slate-500 ml-0.5">/㎢</span>
                     </div>
-                    <div className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mt-1.5">밀도</div>
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">밀도</div>
                   </div>
                 )}
               </div>
