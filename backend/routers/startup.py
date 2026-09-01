@@ -30,6 +30,9 @@ class StartupReportRequest(BaseModel):
     category: str
     region: str
     business_name: str = ""
+    compare_region: str = ""  # 밀도 비교 대상 지역(선택) — 전국평균 대신 사용자 지정
+    # 지역 비교 채택(2026-09-01). 전국평균은 농어촌 면적에 의해 도심 상권이 항상
+    # "높음"으로 나오는 왜곡이 있어 배제, 사용자가 실제 비교하고 싶은 후보지를 직접 지정.
 
 
 @router.post("/report")
@@ -54,7 +57,10 @@ async def generate_startup_report(
 
     # 전체 리포트 캐시 — 캐시 히트 시 Claude 호출 없이 즉시 반환하고 월 한도도 소모하지
     # 않음(비용이 안 드는 응답이라 사용자에게 불리할 이유가 없다는 판단, 2026-08-31 신설).
-    report_cache_key = _cache._make_key("startup_full_report", req.category, req.region.strip().lower())
+    report_cache_key = _cache._make_key(
+        "startup_full_report", req.category, req.region.strip().lower(),
+        req.compare_region.strip().lower(),
+    )
     cached_result = _cache.get(report_cache_key)
     if cached_result is not None:
         _allowed, used, limit = await check_startup_report_limit(user_id, supabase)
@@ -98,7 +104,7 @@ async def generate_startup_report(
 
         from services.startup_report import StartupReportService
         service = StartupReportService()
-        result = await service.generate(req.category, req.region, req.business_name)
+        result = await service.generate(req.category, req.region, req.business_name, req.compare_region)
         # 창업 타이밍 지수 — 중복 인라인 로직 제거, get_timing_index() 재사용 (region 매칭 기준 통일)
         try:
             timing_data = await get_timing_index(req.category, req.region)

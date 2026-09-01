@@ -1,17 +1,61 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { apiBase } from "@/lib/api";
 import { getSafeSession } from "@/lib/supabase/client";
 import { FLAT_CATEGORY_GROUPS } from "@/lib/categories";
 import { StartupReportView, type StartupReport } from "./StartupReportView";
 
+// 마지막 분석 결과를 브라우저에 저장 — 페이지 이동 후 돌아오면 재입력·재생성 없이
+// 바로 보이도록 함(2026-09-01 신설). 서버 캐시(24h)와 동일한 유효기간을 써서, 캐시가
+// 만료된 뒤에는 복원하지 않고 빈 폼을 보여줌(오래된 결과를 최신인 것처럼 보여주지 않기 위함).
+const STORAGE_KEY = "aeolab_startup_report_v1";
+const STORAGE_TTL_MS = 24 * 60 * 60 * 1000;
+
+type SavedReport = {
+  category: string;
+  region: string;
+  bizName: string;
+  compareRegion: string;
+  report: StartupReport;
+  savedAt: number;
+};
+
+function loadSavedReport(): SavedReport | null {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as SavedReport;
+    if (!parsed?.report || !parsed?.savedAt) return null;
+    if (Date.now() - parsed.savedAt > STORAGE_TTL_MS) {
+      window.localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 export function StartupClient() {
   const [category, setCategory] = useState("restaurant");
   const [region, setRegion] = useState("");
   const [bizName, setBizName] = useState("");
+  const [compareRegion, setCompareRegion] = useState("");
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<StartupReport | null>(null);
   const [error, setError] = useState("");
+  const [restoredAt, setRestoredAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    const saved = loadSavedReport();
+    if (!saved) return;
+    setCategory(saved.category);
+    setRegion(saved.region);
+    setBizName(saved.bizName);
+    setCompareRegion(saved.compareRegion || "");
+    setReport(saved.report);
+    setRestoredAt(saved.savedAt);
+  }, []);
 
   async function handleGenerate() {
     if (!region.trim()) { setError("지역을 입력해주세요"); return; }
@@ -31,7 +75,12 @@ export function StartupClient() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ category, region: region.trim(), business_name: bizName.trim() }),
+        body: JSON.stringify({
+          category,
+          region: region.trim(),
+          business_name: bizName.trim(),
+          compare_region: compareRegion.trim(),
+        }),
       });
       if (res.status === 403) {
         setError("창업 패키지(startup) 이상의 구독이 필요합니다.");
@@ -52,6 +101,16 @@ export function StartupClient() {
       }
       const data = await res.json();
       setReport(data);
+      setRestoredAt(null);
+      try {
+        const saved: SavedReport = {
+          category, region: region.trim(), bizName: bizName.trim(),
+          compareRegion: compareRegion.trim(), report: data, savedAt: Date.now(),
+        };
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      } catch {
+        // 저장 실패(프라이빗 브라우징·용량 초과 등)해도 화면 표시엔 영향 없음 — 무시
+      }
     } catch {
       setError("분석 중 오류가 발생했습니다.");
     } finally {
@@ -108,6 +167,16 @@ export function StartupClient() {
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">비교할 지역 (선택)</label>
+          <input
+            value={compareRegion}
+            onChange={(e) => setCompareRegion(e.target.value)}
+            placeholder="예: 다른 후보 상권 (예: 홍대)"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <p className="text-sm text-gray-500 mt-1">입력하면 이 지역의 상권 밀도를 비교 지역과 실측으로 비교해서 보여드립니다. 전국 평균은 농어촌 지역에 왜곡되어 사용하지 않습니다.</p>
+        </div>
         {error && <p className="text-sm text-red-600 mb-3 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <button
           onClick={handleGenerate}
@@ -120,7 +189,14 @@ export function StartupClient() {
 
       {/* 결과 */}
       {report && (
-        <StartupReportView report={report} />
+        <>
+          {restoredAt && (
+            <p className="text-sm text-gray-500 mb-3">
+              마지막 분석 결과를 불러왔습니다 ({new Date(restoredAt).toLocaleString("ko-KR")} 생성) — 다시 분석하려면 위 버튼을 눌러주세요.
+            </p>
+          )}
+          <StartupReportView report={report} />
+        </>
       )}
     </div>
   );

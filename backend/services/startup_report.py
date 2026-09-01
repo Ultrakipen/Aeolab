@@ -28,7 +28,7 @@ class StartupReportService:
     def __init__(self):
         self.client = _get_ai_client()
 
-    async def generate(self, category: str, region: str, business_name: str = "") -> dict:
+    async def generate(self, category: str, region: str, business_name: str = "", compare_region: str = "") -> dict:
         """창업 패키지 리포트 생성"""
         supabase = get_client()
 
@@ -136,6 +136,40 @@ class StartupReportService:
         except Exception as _e:
             logger.warning(f"startup 실제 시장 밀도 조회 실패 (graceful): {_e}")
 
+        # 밀도 비교 — 전국평균 대신 사용자가 지정한 지역과 직접 비교(2026-09-01).
+        # 전국평균은 국토 대부분을 차지하는 농어촌 지역에 의해 어떤 도심 상권이든 거의
+        # 항상 "높음"으로 나오는 통계적 왜곡이 있어 배제(bar national_avg 제거와 동일 판단).
+        # 두 지역 모두 같은 API로 실측하는 방식이라 허위/오도 위험 없음.
+        market_comparison: dict = {"available": False}
+        compare_region_clean = (compare_region or "").strip()
+        if (
+            compare_region_clean
+            and real_market.get("available")
+            and real_market.get("density_per_km2") is not None
+        ):
+            try:
+                compare_market = await get_market_density(category, compare_region_clean)
+                cmp_density = compare_market.get("density_per_km2")
+                if compare_market.get("available") and cmp_density:
+                    base_density = real_market["density_per_km2"]
+                    diff_pct = (base_density - cmp_density) / cmp_density * 100
+                    if diff_pct > 15:
+                        comparison_label = "higher"
+                    elif diff_pct < -15:
+                        comparison_label = "lower"
+                    else:
+                        comparison_label = "similar"
+                    market_comparison = {
+                        "available": True,
+                        "compare_region": compare_region_clean,
+                        "compare_density_per_km2": cmp_density,
+                        "compare_total_count": compare_market.get("total_count"),
+                        "diff_pct": round(diff_pct, 1),
+                        "comparison": comparison_label,
+                    }
+            except Exception as _e:
+                logger.warning(f"startup 비교지역 밀도 조회 실패 (graceful): {_e}")
+
         # 실제 경쟁사(위 real_market.samples) 스마트플레이스 공개 완성도 체크(2026-08-31,
         # 사용자 승인) — 로그인 우회·AI 브리핑 확인 없이 공개 페이지만 조회(범위 제한 근거는
         # startup_competitor_readiness.py 모듈 docstring 참조). graceful — 실패해도 중단 안 함.
@@ -211,6 +245,18 @@ class StartupReportService:
                 + (f" [예시: {real_names}]" if real_names else "")
             )
 
+        # 사용자 지정 비교지역 밀도 프롬프트 라인
+        market_comparison_line = ""
+        if market_comparison.get("available"):
+            cmp_label = {"higher": "더 밀집", "similar": "비슷한 밀집도", "lower": "덜 밀집"}.get(
+                market_comparison.get("comparison") or "", ""
+            )
+            diff = market_comparison.get("diff_pct")
+            market_comparison_line = (
+                f"\n- 사용자가 비교 지정한 지역 '{market_comparison['compare_region']}' 대비 밀도: {cmp_label}"
+                + (f" ({diff:+.0f}%)" if diff is not None else "")
+            )
+
         # 실제 경쟁사 스마트플레이스 공개 완성도 — Claude에게 구체적 차별화 포인트를
         # 제시할 근거로 제공(2026-08-31 신설). 이 정보가 없으면 Claude가 "차별화하세요"
         # 같은 추상적 조언에 그치므로, 실측 기반 구체적 조언으로 바꾸기 위함.
@@ -242,7 +288,7 @@ class StartupReportService:
         category_ko = CATEGORY_KO.get(category, category)
         prompt = f"""한국 {region} {category_ko} 업종 창업 분석:
 
-- {briefing_note}{trend_line}{real_market_line}{readiness_line}{closure_rate_line}
+- {briefing_note}{trend_line}{real_market_line}{market_comparison_line}{readiness_line}{closure_rate_line}
 {"- 창업 예정 사업장명: " + business_name if business_name else ""}
 - 중요: 임대료·평당 시세·인건비·손익분기점 개월 수 등 위에 제공되지 않은 구체적 비용·재무 수치는
   절대 지어내지 말 것. 비용 관련 조언이 필요하면 "목표 상권 인근 부동산·상권분석 서비스에 직접
@@ -327,6 +373,7 @@ class StartupReportService:
             "is_estimated": competitor_count < 3 or no_scan_data,
             "no_scan_data": no_scan_data,
             "real_market": real_market,
+            "market_comparison": market_comparison,
             "competitor_readiness": competitor_readiness,
             "closure_rate": closure_rate,
             "search_trend": {

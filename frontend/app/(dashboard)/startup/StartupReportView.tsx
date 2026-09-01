@@ -39,6 +39,14 @@ export interface StartupReport {
     density_per_km2?: number;
     confidence?: "good" | "medium" | "low";
   };
+  market_comparison?: {
+    available: boolean;
+    compare_region?: string;
+    compare_density_per_km2?: number;
+    compare_total_count?: number;
+    diff_pct?: number;
+    comparison?: "lower" | "similar" | "higher";
+  };
   competitor_readiness?: {
     available: boolean;
     checked: number;
@@ -114,10 +122,36 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                 )}
               </div>
 
+              {/* 밀도 비교 배지 — 전국평균 대신 사용자가 지정한 지역과 실측 비교(2026-09-01).
+                  전국평균은 농어촌 지역에 의해 도심 상권이 항상 "높음"으로 나오는 통계적
+                  왜곡이 있어 배제하고, 사용자가 실제 비교하고 싶은 후보지를 직접 지정하는
+                  방식으로 대체 — closure_rate의 bar national_avg 제거와 동일한 판단 기준. */}
+              {report.market_comparison?.available && (() => {
+                const mc = report.market_comparison;
+                const label = { lower: "낮음", similar: "비슷함", higher: "높음" }[mc.comparison ?? "similar"];
+                const badgeColor =
+                  mc.comparison === "higher" ? "bg-rose-50 text-rose-700 border-rose-200"
+                  : mc.comparison === "lower" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : "bg-gray-50 text-gray-700 border-gray-200";
+                return (
+                  <div className="mb-3">
+                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border ${badgeColor}`}>
+                      &apos;{mc.compare_region}&apos; 대비 밀도 {label}
+                      {mc.diff_pct != null && ` (${mc.diff_pct > 0 ? "+" : ""}${mc.diff_pct}%)`}
+                    </span>
+                    {mc.compare_density_per_km2 != null && (
+                      <span className="text-xs text-gray-500 ml-2">
+                        {mc.compare_region}: {mc.compare_density_per_km2}/㎢
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
+
               <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-4">
                 <p className="text-sm text-blue-800 leading-relaxed">
                   <span className="font-semibold">{sourceLabel}</span> — 이 업종·지역 반경 내에 약 {report.real_market.total_count}개의 사업장이 있습니다.
-                  {density != null && " 밀도(1㎢당 개수)로 다른 지역·업종과 상대 비교에 활용하세요."}
+                  {density != null && !report.market_comparison?.available && " 밀도(1㎢당 개수)로 다른 지역·업종과 상대 비교에 활용하세요."}
                 </p>
                 {isLowConfidence && (
                   <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2.5 flex gap-2">
