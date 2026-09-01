@@ -186,6 +186,7 @@
 | **`docs/blog_diagnosis_session_2026_07_18_handoff_v1.0.md`** ⭐ | **블로그 진단 페이지 종합 핸드오프 — 목적 확정(①내블로그현황 ②AI노출개선, 경쟁사대비는 방식A(comp_keywords 재사용, 부하없음)로 포함/방식B(실시간블로그크롤링)는 비채택)·20개상한 키워드누락 P0(git `a8f76ec`)·자기추세 upsert 누락(git `dc59ae4`)·comp_keywords 오판 2회 정정 상세. **재점검 발견**: `showDetail`(기본값 false) 단일 토글이 키워드커버리지·자기추세·경쟁사대비 3축을 전부 기본 숨김 처리 중 — §6-1 토글 재설계가 최우선 (2026-07-18)** |
 | `docs/fastapi_starlette_upgrade_handoff_v1.0.md` | A·B·C·D 3개 문서 재검증 세션(2026-07-12) 결과물 — privacy §4 Resend 위탁 누락·§3 IP해시 문구 불일치·DMARC 부재·성능측정 이력 0건·pip-audit 미실행 5건 수정·배포(git `f51f490`·`6c65ab8`). `starlette` CVE 7건 → **fastapi 0.135.0+starlette 1.3.1 업그레이드 완료**(로컬 회귀검증 후 서버 배포·라이브 검증, git `7d23596`) — 이 문서 시리즈 전체 종료, 재작업 불필요 |
 | **`docs/trial_experience_persuasiveness_and_growth_v1.0.md`** ⭐ | **무료체험/가입후1회체험 설득력 검토 — 시나리오 5개 라이브 실측 + P0(FAQ·리뷰답변 자동생성 카피가 "미보유 추정" 키워드를 "전문으로 합니다/운영하고 있습니다"로 단정 서술, `smartplace-faq` 등 3곳) 발견 즉시 수정·배포(git `bd379c0`). §3 잔여(채널강점 vs 총점라벨 불일치·죽은 3단계비교박스 정리·프랜차이즈 메시징 재확인) + §5 사업성장 방안(결제심사 대기 중 체험 최적화 우선순위) (2026-08-22)** |
+| `docs/closure_rate_data_source_investigation_v1.0.md` | 창업 시장 분석용 지역별 폐업율 데이터 소스 조사 — **조사·매핑·라이브 검증 전부 완료(2026-09-01), 재점검 불필요.** 행안부 지방행정 인허가 통합API로 16개 업종(음식점·카페·미용·숙박·피트니스·애견·약국·마사지·댄스·무술·안경원·노래방·당구장 등) 검증 완료, 지역 필터는 `cond[LOTNO_ADDR::LIKE]=<지역명>` 확정. `bar`는 `general_restaurants`를 `BZSTAT_SE_NM`으로 필터링. 골프·수영장·찜질방은 SearchAd 실측 검색량이 낮아 제외 확정. 학원/독서실(NEIS)은 폐업 이력이 없어 이 기능엔 사용 불가. 요가/필라테스·스터디카페·클라이밍·방탈출은 커버 불가. **다음 단계는 조사 아닌 구현** — `next-feature` 에이전트로 |
 | **`docs/dashboard_load_test_and_capacity_v1.0.md`** ⭐ | **대시보드 페이지 부하테스트 실측 — QA임시계정+`@supabase/ssr` 쿠키 리버스엔지니어링으로 실제 로그인 세션 확보해 라이브 `/dashboard` 동시성 5~80 램프. 동시 30명은 3~9초, 50명 부근에서 34초로 급붕괴하나 그 순간 서버 CPU/RAM은 완전 유휴 — **병목이 vCPU2 서버가 아니라 대시보드 1회 로드당 약10개 Supabase 병렬쿼리의 Supabase Cloud 큐잉**임을 확인. vCPU/RAM 업그레이드로 해결 안 되는 별도 축(기존 Playwright 세마포어/워커=1 이슈와 무관). 페이지 동시접속 실질 안전선 약 30명 (2026-08-23)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
@@ -202,6 +203,7 @@
 > **대시보드 외부벤치마크 점검**: `docs/dashboard_external_benchmark_inspection_plan_v1.0.md 기준으로 대시보드 점검 진행`
 > **마스터 점검 계획 이어가기(전환 퍼널 L3 + 대비율 800건 잔여)**: `docs/master_inspection_plan_v1.0.md §5.1 기준으로 이어서 진행` — 2026-07-11 전 항목 완료됨, 재점검 불필요
 > **마스터 점검 종료 후 다음 단계(정리 또는 신규 기획)**: `docs/session_2026_07_11_next_steps_handoff_v1.0.md 기준으로 A(정리) 먼저 진행 후 B(신규 기능 기획)로 넘어가줘`
+> **창업 시장 분석 폐업율 기능 구현 착수**: `docs/closure_rate_data_source_investigation_v1.0.md 조사 결과(전 업종 라이브 검증·매핑 완료) 기준으로 next-feature 에이전트로 폐업율 기능 범위 설계부터 시작`
 > **상업 서비스 총괄 점검(보안/법적/사업성/인프라)**: A·B·C·D 전체 완료(2026-07-12) — A·B·D는 `docs/legal_compliance_and_infra_resilience_audit_v1.0.md`(git `3ab9545`), C는 `docs/business_viability_audit_v1.0.md` 참조. 재점검 불필요, 후속 과제만 `docs/business_viability_audit_v1.0.md §6` 참조
 > **FastAPI/Starlette 업그레이드**: 완료됨(2026-07-12, git `7d23596`) — 재작업 불필요
 > **상업 서비스 점검 현황 파악/이어가기**: `docs/commercial_launch_inspection_status_v1.0.md 기준으로 §6-1(즉시 가치) 항목부터 진행`
