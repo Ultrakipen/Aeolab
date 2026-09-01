@@ -8,7 +8,14 @@ import { StartupReportView, type StartupReport } from "./StartupReportView";
 // 마지막 분석 결과를 브라우저에 저장 — 페이지 이동 후 돌아오면 재입력·재생성 없이
 // 바로 보이도록 함(2026-09-01 신설). 서버 캐시(24h)와 동일한 유효기간을 써서, 캐시가
 // 만료된 뒤에는 복원하지 않고 빈 폼을 보여줌(오래된 결과를 최신인 것처럼 보여주지 않기 위함).
-const STORAGE_KEY = "aeolab_startup_report_v1";
+//
+// ⚠️ 저장 키에 사용자 id를 반드시 포함할 것 — 최초 구현(고정 키 "aeolab_startup_report_v1")은
+// 라이브 재현 확인 결과, 같은 브라우저에서 계정 A로 분석 후 로그아웃→계정 B로 재로그인하면
+// B가 A의 분석 결과를 그대로 보는 정합성 버그가 있었음(2026-09-01 실측 재현). localStorage는
+// 로그인 세션과 무관하게 도메인 단위로 유지되므로, 로그아웃 시 별도로 지우지 않는 한
+// 계정별로 반드시 키를 분리해야 함.
+const STORAGE_KEY_PREFIX = "aeolab_startup_report_v1";
+const LEGACY_STORAGE_KEY = "aeolab_startup_report_v1"; // 사용자 미분리 구버전 키 — 발견 시 정리만
 const STORAGE_TTL_MS = 24 * 60 * 60 * 1000;
 
 type SavedReport = {
@@ -20,14 +27,14 @@ type SavedReport = {
   savedAt: number;
 };
 
-function loadSavedReport(): SavedReport | null {
+function loadSavedReport(userId: string): SavedReport | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(`${STORAGE_KEY_PREFIX}:${userId}`);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as SavedReport;
     if (!parsed?.report || !parsed?.savedAt) return null;
     if (Date.now() - parsed.savedAt > STORAGE_TTL_MS) {
-      window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem(`${STORAGE_KEY_PREFIX}:${userId}`);
       return null;
     }
     return parsed;
@@ -47,14 +54,24 @@ export function StartupClient() {
   const [restoredAt, setRestoredAt] = useState<number | null>(null);
 
   useEffect(() => {
-    const saved = loadSavedReport();
-    if (!saved) return;
-    setCategory(saved.category);
-    setRegion(saved.region);
-    setBizName(saved.bizName);
-    setCompareRegion(saved.compareRegion || "");
-    setReport(saved.report);
-    setRestoredAt(saved.savedAt);
+    (async () => {
+      try {
+        window.localStorage.removeItem(LEGACY_STORAGE_KEY); // 사용자 미분리 구버전 키 정리
+      } catch {
+        // 저장소 접근 불가(프라이빗 브라우징 등) — 무시
+      }
+      const session = await getSafeSession();
+      const uid = session?.user?.id;
+      if (!uid) return;
+      const saved = loadSavedReport(uid);
+      if (!saved) return;
+      setCategory(saved.category);
+      setRegion(saved.region);
+      setBizName(saved.bizName);
+      setCompareRegion(saved.compareRegion || "");
+      setReport(saved.report);
+      setRestoredAt(saved.savedAt);
+    })();
   }, []);
 
   async function handleGenerate() {
@@ -103,11 +120,13 @@ export function StartupClient() {
       setReport(data);
       setRestoredAt(null);
       try {
+        const uid = session?.user?.id;
+        if (!uid) throw new Error("no user id");
         const saved: SavedReport = {
           category, region: region.trim(), bizName: bizName.trim(),
           compareRegion: compareRegion.trim(), report: data, savedAt: Date.now(),
         };
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+        window.localStorage.setItem(`${STORAGE_KEY_PREFIX}:${uid}`, JSON.stringify(saved));
       } catch {
         // 저장 실패(프라이빗 브라우징·용량 초과 등)해도 화면 표시엔 영향 없음 — 무시
       }
