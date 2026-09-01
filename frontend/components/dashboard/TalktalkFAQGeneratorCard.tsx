@@ -165,7 +165,7 @@ export function TalktalkFAQGeneratorCard({
   };
 
   return (
-    <div className="rounded-xl border bg-white p-4 md:p-6">
+    <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-4 md:p-6">
       {/* 헤더 */}
       <div className="flex items-center gap-2 flex-wrap mb-3">
         <h3 className="text-base md:text-lg font-bold text-gray-900">
@@ -198,6 +198,15 @@ export function TalktalkFAQGeneratorCard({
         </button>
       )}
 
+      {generating && (
+        <div className="mt-3 space-y-2" role="status" aria-live="polite">
+          <div className="h-3.5 bg-indigo-100 rounded animate-pulse w-full" />
+          <div className="h-3.5 bg-indigo-100 rounded animate-pulse w-4/5" />
+          <div className="h-3.5 bg-indigo-100 rounded animate-pulse w-3/5" />
+          <p className="text-sm text-indigo-400">실제 업종·문의 패턴을 분석해 메뉴·Q&amp;A를 작성하는 중...</p>
+        </div>
+      )}
+
       {error && (
         <p className="mt-3 text-sm md:text-base text-red-700 bg-red-50 p-3 rounded border border-red-200">
           {error}
@@ -211,6 +220,14 @@ export function TalktalkFAQGeneratorCard({
               일시적인 AI 생성 오류로 업종 기반 <strong>기본 템플릿</strong>이 대신 표시됐습니다. 우리 가게에 맞게 직접 수정 후 사용해 주세요. (이번 생성은 월 한도에서 차감되지 않았습니다)
             </p>
           )}
+          {!generated.is_fallback && (
+            <div className="rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2.5">
+              <p className="text-sm text-indigo-800 font-medium">
+                ✨ 실제 업종별 자주 묻는 문의 패턴을 반영해 AI가 방금 작성했습니다
+              </p>
+            </div>
+          )}
+
           {generatedAt && (
             <p className="text-sm text-gray-500">
               마지막 생성: {new Date(generatedAt).toLocaleString("ko-KR")}
@@ -236,7 +253,7 @@ export function TalktalkFAQGeneratorCard({
                 {generated.chat_menus.map((menu, i) => (
                   <div
                     key={i}
-                    className="rounded-xl border bg-gray-50 p-3 flex flex-col gap-2"
+                    className="rounded-xl border border-gray-200 bg-gray-50 shadow-sm p-3 flex flex-col gap-2"
                   >
                     {/* 메뉴명 + 배지 */}
                     <div className="flex items-center gap-2 flex-wrap">
@@ -308,7 +325,7 @@ export function TalktalkFAQGeneratorCard({
               </div>
               <div className="space-y-3">
                 {generated.items.map((faq, i) => (
-                  <div key={i} className="p-3 md:p-4 bg-gray-50 rounded-xl border">
+                  <div key={i} className="p-3 md:p-4 pl-3 md:pl-4 bg-gray-50 rounded-r-xl border border-gray-200 border-l-4 border-l-indigo-300 shadow-sm">
                     <div className="text-sm text-purple-700 font-medium mb-1">
                       [{faq.category}]
                     </div>

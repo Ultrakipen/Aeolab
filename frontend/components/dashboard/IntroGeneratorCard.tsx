@@ -113,7 +113,7 @@ export function IntroGeneratorCard({
     "bg-blue-100 text-blue-700";
 
   return (
-    <div id="intro-generator" className="rounded-xl border bg-white p-4 md:p-6">
+    <div id="intro-generator" className="rounded-xl border border-gray-200 bg-white shadow-sm p-4 md:p-6">
       <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-base md:text-lg font-bold text-gray-900">
@@ -187,6 +187,19 @@ export function IntroGeneratorCard({
         </button>
       )}
 
+      {generating && (
+        <div className="mt-3 space-y-2" role="status" aria-live="polite">
+          <div className="h-3.5 bg-indigo-100 rounded animate-pulse w-full" />
+          <div className="h-3.5 bg-indigo-100 rounded animate-pulse w-5/6" />
+          <div className="h-3.5 bg-indigo-100 rounded animate-pulse w-3/5" />
+          <p className="text-sm text-indigo-400">
+            {introType === "naver"
+              ? "실제 업종·키워드 데이터를 분석해 Q&A 포함 소개글을 작성하는 중..."
+              : "글로벌 AI 노출에 맞춰 소개글을 작성하는 중..."}
+          </p>
+        </div>
+      )}
+
       {error && (
         <p className="mt-3 text-sm md:text-base text-red-700 bg-red-50 p-3 rounded border border-red-200">
           {error}
@@ -201,30 +214,24 @@ export function IntroGeneratorCard({
           {introType === "global" && globalCurrentIntro && !stats && (
             <p className="text-sm text-gray-500 mb-2">이전에 생성된 글로벌 AI용 소개글입니다. 하단 &apos;다시 생성&apos; 버튼으로 새로 만들 수 있습니다.</p>
           )}
-          <div className="p-4 bg-gray-50 rounded border whitespace-pre-wrap break-words text-sm md:text-base text-gray-900 leading-relaxed">
-            {generated}
-          </div>
-
-          {localGeneratedAt && (
-            <p className="text-sm text-gray-500">
-              마지막 생성: {new Date(localGeneratedAt).toLocaleString("ko-KR")}
-            </p>
-          )}
 
           {stats && (
-            <>
-              <div className="flex flex-wrap gap-2">
-                <span className="text-sm bg-green-100 text-green-800 px-2.5 py-1 rounded font-medium">
+            <div className="rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2.5">
+              <p className="text-sm text-indigo-800 font-medium">
+                ✨ 실제 업종 키워드·Q&amp;A 구조를 반영해 AI가 방금 작성한 소개글입니다
+              </p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <span className="text-sm bg-white text-gray-700 border border-gray-200 px-2.5 py-1 rounded font-medium">
                   {stats.char_count}자
                 </span>
                 {stats.qa_count > 0 && (
-                <span className="text-sm bg-blue-100 text-blue-800 px-2.5 py-1 rounded font-medium">
+                <span className="text-sm bg-white text-gray-700 border border-gray-200 px-2.5 py-1 rounded font-medium">
                   Q&A {stats.qa_count}개
                 </span>
                 )}
                 {stats.keywords.length > 0 && (
-                  <span className="text-sm bg-purple-100 text-purple-800 px-2.5 py-1 rounded font-medium">
-                    키워드 {stats.keywords.length}개 포함
+                  <span className="text-sm bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded font-medium">
+                    반영 키워드 {stats.keywords.length}개
                   </span>
                 )}
                 {stats.dia_score && (
@@ -241,14 +248,24 @@ export function IntroGeneratorCard({
                   </span>
                 )}
               </div>
+            </div>
+          )}
 
-              {stats.dia_score && (
-                <DiaScoreBadge
-                  dia={stats.dia_score}
-                  onRegenerate={canGenerate ? () => { void handleGenerate(); } : undefined}
-                />
-              )}
-            </>
+          <div className="pl-3 md:pl-4 border-l-4 border-indigo-300 bg-gray-50 rounded-r-lg py-3 pr-4 whitespace-pre-wrap break-words text-sm md:text-base text-gray-900 leading-relaxed">
+            {generated}
+          </div>
+
+          {localGeneratedAt && (
+            <p className="text-sm text-gray-500">
+              마지막 생성: {new Date(localGeneratedAt).toLocaleString("ko-KR")}
+            </p>
+          )}
+
+          {stats?.dia_score && (
+            <DiaScoreBadge
+              dia={stats.dia_score}
+              onRegenerate={canGenerate ? () => { void handleGenerate(); } : undefined}
+            />
           )}
 
           <div className="flex flex-col md:flex-row gap-2">

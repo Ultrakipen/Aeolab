@@ -193,7 +193,7 @@ function CrisisGuidePanel({
             </div>
 
             {/* AI 검색 영향 최소화 팁 */}
-            <div className="bg-white rounded-xl border border-amber-200 overflow-hidden">
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <button
                 onClick={() => toggleExpand('tips')}
                 aria-expanded={expanded.tips}
@@ -646,6 +646,14 @@ export default function ReviewInboxPage() {
             </span>
           )}
         </div>
+        {usageStat && usageStat.limit < 999 && (
+          <div className="w-full h-1.5 rounded-full bg-gray-100 overflow-hidden mb-3" aria-hidden="true">
+            <div
+              className={`h-full rounded-full transition-all ${usageStat.used >= usageStat.limit ? "bg-amber-400" : "bg-blue-400"}`}
+              style={{ width: `${Math.min(100, (usageStat.used / usageStat.limit) * 100)}%` }}
+            />
+          </div>
+        )}
         <textarea
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}
@@ -672,6 +680,13 @@ export default function ReviewInboxPage() {
           </p>
         )}
         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        {loading && (
+          <div className="mt-3 space-y-2" role="status" aria-live="polite">
+            <div className="h-3.5 bg-indigo-100 rounded animate-pulse w-full" />
+            <div className="h-3.5 bg-indigo-100 rounded animate-pulse w-4/5" />
+            <p className="text-sm text-indigo-400">리뷰 내용과 감정을 분석해 답변 초안을 작성하는 중...</p>
+          </div>
+        )}
       </form>
 
       {/* 생성 결과 */}
@@ -695,19 +710,27 @@ export default function ReviewInboxPage() {
               <CopyButton text={result.draft_response} />
             </div>
           </div>
-          <p className="text-blue-900 text-sm leading-relaxed bg-white rounded-xl px-4 py-3 border border-blue-100">
-            {result.draft_response}
-          </p>
-          {result.keywords_used && result.keywords_used.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1 mt-2">
-              <span className="text-sm text-gray-500 shrink-0">사용 키워드:</span>
-              {result.keywords_used.map((kw, i) => (
-                <span key={i} className="text-sm bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-medium">
-                  {kw}
-                </span>
-              ))}
+
+          {!result.is_fallback && (
+            <div className="rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2 mb-3">
+              <p className="text-sm text-indigo-800 font-medium">
+                ✨ 리뷰 원문을 분석하고 업종 키워드를 반영해 AI가 방금 작성했습니다
+              </p>
+              {result.keywords_used && result.keywords_used.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                  {result.keywords_used.map((kw, i) => (
+                    <span key={i} className="text-sm bg-white text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded-full font-medium">
+                      {kw}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
+
+          <p className="text-blue-900 text-sm md:text-base leading-relaxed bg-white rounded-r-xl px-4 py-3 border border-blue-100 border-l-4 border-l-indigo-300">
+            {result.draft_response}
+          </p>
           <p className="text-sm text-blue-600 mt-2">
             위 답변을 네이버·카카오 리뷰 답글란에 붙여넣으세요.
           </p>

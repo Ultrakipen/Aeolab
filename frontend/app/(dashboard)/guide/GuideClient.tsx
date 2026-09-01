@@ -4861,7 +4861,12 @@ export function GuideClient({
         {guide && !loading && heroTask && (
           <div className="bg-blue-600 text-white rounded-xl p-5 md:p-6">
             <p className="text-sm font-medium text-blue-200 mb-2">지금 당장 할 일 1가지</p>
-            <h3 className="text-lg md:text-xl font-bold mb-3 leading-snug">{heroTask}</h3>
+            <h3 className="text-lg md:text-xl font-bold mb-2 leading-snug">{heroTask}</h3>
+            {guide?.generated_at && (
+              <p className="text-sm text-blue-200 mb-3">
+                ✨ {new Date(guide.generated_at).toLocaleDateString('ko-KR')} 스캔·경쟁사 데이터를 분석해 AI가 선정한 최우선 항목입니다
+              </p>
+            )}
             {heroReadyText && (
               <div className="bg-white/15 rounded-xl p-3 mb-3">
                 <div className="flex items-center justify-between mb-1">
@@ -4892,8 +4897,12 @@ export function GuideClient({
 
         {/* ── 사업장 현황 분석 (항상 표시) ── */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="text-base font-semibold text-gray-700">내 사업장 현황 분석</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-base font-semibold text-gray-700">내 사업장 현황 분석</span>
+              <span className="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">가이드 근거 데이터</span>
+            </div>
+            <p className="text-sm text-gray-500 mt-1">위 &quot;지금 당장 할 일&quot;은 아래 실측 데이터를 AI가 분석해 나온 결론입니다</p>
           </div>
           <AICitationHighlight businessId={business.id} authToken={authToken} currentPlan={currentPlan} isInactive={isBriefingInactive} />
           <KeywordCompletenessGauge businessId={business.id} authToken={authToken} currentPlan={currentPlan} />

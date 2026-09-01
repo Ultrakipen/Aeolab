@@ -47,6 +47,13 @@ export default function DashboardContentZone({
 }: Props) {
   return (
     <div className="space-y-6">
+      {plan !== "free" && (
+        <div className="flex items-center gap-2">
+          <span className="text-base" aria-hidden="true">🤖</span>
+          <h2 className="text-base md:text-lg font-bold text-gray-900">AI 콘텐츠 자동 생성</h2>
+          <span className="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">{planLabel} 전용</span>
+        </div>
+      )}
       {/* Free 사용자 업그레이드 프리뷰 */}
       {plan === "free" && (
         <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl px-4 py-3.5">
