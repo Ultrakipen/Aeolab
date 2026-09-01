@@ -68,6 +68,12 @@ export interface StartupReport {
     national_avg?: number | null;
     comparison?: "lower" | "similar" | "higher";
   };
+  ai_benchmark?: {
+    available: boolean;
+    level?: "주의 필요" | "미흡" | "보통" | "양호" | "우수";
+    sample_count?: number;
+    is_national_fallback?: boolean;
+  };
 }
 
 // 섹션 제목 공통 스타일 — 본문(text-sm/base)과 뚜렷이 구분되는 위계를 위해 크게·굵게
@@ -258,6 +264,43 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                 )}
                 <p className="text-xs text-gray-400 mt-3 leading-relaxed">
                   * 역대 누적 기준 — 연간 폐업율이 아닙니다. 행정안전부 지방행정 인허가 데이터 기준이며, 측정 시점에 따라 달라질 수 있음.
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* AI 검색 노출 벤치마크(2026-09-01 신설) — SBIZ·오픈업 등 어떤 상권분석 서비스도
+            갖지 못한 AEOlab 고유 실측 데이터. CLAUDE.md 점수 표시 원칙 준수 — 숫자는
+            응답에 아예 없고 텍스트 레벨만 전달됨(백엔드에서 이미 변환 완료). 표본 부족
+            시(현재 구독자 규모에서 흔함) available=false로 조용히 생략. */}
+        {report.ai_benchmark?.available && (() => {
+          const ab = report.ai_benchmark!;
+          const levelBadgeClass =
+            ab.level === "우수" || ab.level === "양호"
+              ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
+              : ab.level === "보통"
+              ? "text-yellow-700 bg-yellow-50 border border-yellow-200"
+              : "text-amber-700 bg-amber-50 border border-amber-200";
+          return (
+            <div className="mb-3">
+              <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-4">
+                <p className="text-[11px] font-bold text-indigo-500 uppercase tracking-wider mb-2.5">AI 검색 노출 수준</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`inline-block px-3 py-1.5 rounded-full text-sm font-bold ${levelBadgeClass}`}>
+                    {ab.level}
+                  </span>
+                  <span className="text-sm text-indigo-800">
+                    이 업종{ab.is_national_fallback ? "의 전국" : "·지역의"} 등록 사업장들이 네이버 AI브리핑·ChatGPT·Gemini 등에 노출되는 평균 수준입니다.
+                  </span>
+                </div>
+                {(ab.level === "미흡" || ab.level === "주의 필요") && (
+                  <p className="text-sm text-indigo-700 mt-2.5 leading-relaxed">
+                    경쟁사 대부분이 AI 검색 노출 관리를 못 하고 있다는 뜻 — 지금 시작하면 선점 기회가 될 수 있습니다.
+                  </p>
+                )}
+                <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                  * AEOlab 등록 사업장{ab.is_national_fallback ? "(지역 표본 부족으로 전국 기준)" : ""} 실측 데이터 기준(표본 {ab.sample_count}곳). 측정 시점에 따라 달라질 수 있음.
                 </p>
               </div>
             </div>

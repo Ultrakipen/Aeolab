@@ -215,6 +215,39 @@ class StartupReportService:
         except Exception as _e:
             logger.warning(f"startup closure_rate 조회 실패 (graceful): {_e}")
 
+        # 업종·지역 AI 검색 노출 벤치마크(2026-09-01 신설) — SBIZ·오픈업 등 어떤 경쟁 서비스도
+        # 갖지 못한 AEOlab 고유 실측 데이터(등록 사업장 score_history + 무료체험 trial_scans).
+        # report.py의 기존 /benchmark 엔드포인트를 그대로 재사용(최소 표본 3~5개 게이트 포함).
+        # ⚠️ CLAUDE.md "점수 표시 원칙" 준수 — avg_score/top10_score 원시 숫자는 응답에 절대
+        # 포함하지 않고, DualTrackCard.tsx getScoreStatusLabel()과 동일한 5단계 임계값
+        # (25/45/65/80)으로 변환한 텍스트 레이블만 전달. 표본 부족 시 report.py 자체가
+        # "insufficient"로 빈 결과를 반환 — 구독자 규모가 작은 지금은 대부분 비어있을 수 있음
+        # (graceful, available:False로 조용히 생략).
+        ai_benchmark: dict = {"available": False}
+        try:
+            from routers.report import get_benchmark
+            bm = await get_benchmark(category, region)
+            if bm.get("sample_count", 0) >= 3 and bm.get("fallback") != "insufficient":
+                avg = bm["avg_score"]
+                if avg < 25:
+                    level = "주의 필요"
+                elif avg < 45:
+                    level = "미흡"
+                elif avg < 65:
+                    level = "보통"
+                elif avg < 80:
+                    level = "양호"
+                else:
+                    level = "우수"
+                ai_benchmark = {
+                    "available": True,
+                    "level": level,
+                    "sample_count": bm["sample_count"],
+                    "is_national_fallback": bm.get("fallback") in ("region", "global"),
+                }
+        except Exception as _e:
+            logger.warning(f"startup AI노출 벤치마크 조회 실패 (graceful): {_e}")
+
         # Claude로 진입 전략 생성 — 점수 숫자 미포함(strategy 텍스트에 노출 방지)
         from services.score_engine import get_briefing_eligibility
         eligibility = get_briefing_eligibility(category, False)
@@ -313,11 +346,24 @@ class StartupReportService:
                 " risk_factors에서 이 캐비엇도 함께 전달할 것)"
             )
 
+        # AI 노출 벤치마크 프롬프트 라인 — 절대 숫자(avg_score 등)는 절대 넣지 말 것,
+        # level 텍스트만 전달. "미흡/주의 필요"는 경쟁사가 AI 노출을 못하고 있다는 뜻이므로
+        # 예비 창업자에게는 오히려 선점 기회로 해석 가능 — Claude에게 이 프레이밍을 안내.
+        ai_benchmark_line = ""
+        if ai_benchmark.get("available"):
+            fallback_note = "(전국 평균 기준, 지역 표본 부족)" if ai_benchmark.get("is_national_fallback") else "(이 지역 등록 사업장 기준)"
+            ai_benchmark_line = (
+                f"\n- 이 업종의 AI 검색 노출(네이버 AI브리핑·ChatGPT·Gemini 등) 평균 수준{fallback_note}: {ai_benchmark['level']}"
+                " (※ 경쟁사 준비도만으로도 SBIZ·오픈업 등 어떤 상권분석 서비스도 갖지 못한 AEOlab 고유 데이터임."
+                " 수준이 '미흡'·'주의 필요'라면 경쟁사 대부분이 AI 노출에 소홀하다는 뜻이므로,"
+                " 이를 위협이 아닌 선점 기회로 해석해 entry_strategy나 ai_optimization_tips에 반영할 것)"
+            )
+
         from services.schema_generator import CATEGORY_KO
         category_ko = CATEGORY_KO.get(category, category)
         prompt = f"""한국 {region} {category_ko} 업종 창업 분석:
 
-- {briefing_note}{trend_line}{real_market_line}{market_comparison_line}{readiness_line}{closure_rate_line}
+- {briefing_note}{trend_line}{real_market_line}{market_comparison_line}{readiness_line}{closure_rate_line}{ai_benchmark_line}
 {"- 창업 예정 사업장명: " + business_name if business_name else ""}
 - 중요: 임대료·평당 시세·인건비·손익분기점 개월 수 등 위에 제공되지 않은 구체적 비용·재무 수치는
   절대 지어내지 말 것. 비용 관련 조언이 필요하면 "목표 상권 인근 부동산·상권분석 서비스에 직접
@@ -332,7 +378,8 @@ class StartupReportService:
 - 근거 다양화: 같은 숫자 하나(예: 시장 규모)만 네 항목 전체에서 반복 인용하지 말 것 — 항목별로
   주로 참조할 근거를 다르게 배정할 것. entry_strategy는 시장 규모·밀도를 중심 축으로,
   key_actions는 위에 예시로 제시된 실제 경쟁사명을 중심으로(있는 경우), ai_optimization_tips는
-  AI 브리핑 적합성·노출 채널 특성을 중심으로, risk_factors는 폐업율(available 시 우선)과 검색 트렌드 방향을 중심으로 삼을 것.
+  AI 브리핑 적합성·노출 채널 특성과 AI 노출 벤치마크(available 시)를 중심으로, risk_factors는
+  폐업율(available 시 우선)과 검색 트렌드 방향을 중심으로 삼을 것.
   같은 항목 안에서도 문장마다 되도록 다른 근거를 쓸 것.
 - 통찰의 깊이: 단순히 숫자 하나를 언급하고 그 뒤에 상식적인 결론(예: "경쟁사가 많으니
   차별화가 필요합니다")을 붙이는 얕은 문장은 지양할 것. 대신 서로 다른 두 정보를 결합해
@@ -405,6 +452,7 @@ class StartupReportService:
             "market_comparison": market_comparison,
             "competitor_readiness": competitor_readiness,
             "closure_rate": closure_rate,
+            "ai_benchmark": ai_benchmark,
             "search_trend": {
                 "trend_direction": search_trend.get("trend_direction", "stable"),
                 "trend_delta": search_trend.get("trend_delta", 0.0),
