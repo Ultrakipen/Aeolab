@@ -31,6 +31,32 @@ if not _API_KEY:
 _BASE_URL = "https://apis.data.go.kr/1741000"
 _CACHE_TTL = 86_400  # 24시간 (행정 인허가 데이터는 일 단위 변동 미미)
 
+# LOTNO_ADDR::LIKE는 부분일치이지만 첫 토큰이 공식 시도명이 아니면 0건으로 실패한다.
+# UI(StartupClient)가 "서울 강남"처럼 시도명 축약형 입력을 예시로 권장하는데,
+# 행안부 인허가 데이터의 LOTNO_ADDR는 항상 공식 명칭("서울특별시")으로 시작해
+# 축약형("서울")로는 매칭이 안 됨(2026-09-01 라이브 브라우저 검증에서
+# "서울 강남구" 입력 시 active_count=0/closed_count=0 no_data 재현·발견).
+_SIDO_SHORT_TO_OFFICIAL: dict[str, str] = {
+    "서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시",
+    "인천": "인천광역시", "광주": "광주광역시", "대전": "대전광역시",
+    "울산": "울산광역시", "세종": "세종특별자치시", "경기": "경기도",
+    "강원": "강원특별자치도", "충북": "충청북도", "충남": "충청남도",
+    "전북": "전북특별자치도", "전남": "전라남도", "경북": "경상북도",
+    "경남": "경상남도", "제주": "제주특별자치도",
+}
+
+
+def _normalize_region_for_lotno(region: str) -> str:
+    """첫 토큰이 시도 축약형이면 LOTNO_ADDR 표기(공식 명칭)로 치환."""
+    tokens = (region or "").strip().split()
+    if not tokens:
+        return region
+    first = tokens[0]
+    if first in _SIDO_SHORT_TO_OFFICIAL:
+        tokens[0] = _SIDO_SHORT_TO_OFFICIAL[first]
+        return " ".join(tokens)
+    return region
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 업종 → 인허가 API 엔드포인트 경로 매핑
 # 출처: docs/closure_rate_data_source_investigation_v1.0.md "AEOlab 업종별 매핑" 표
@@ -192,7 +218,9 @@ async def get_closure_rate(category: str, region: str) -> dict:
             "category": category, "region": region,
         }
 
-    cache_key = f"closure_rate:{category}:{region.strip().lower()}"
+    lotno_region = _normalize_region_for_lotno(region)
+
+    cache_key = f"closure_rate:{category}:{lotno_region.strip().lower()}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -206,8 +234,8 @@ async def get_closure_rate(category: str, region: str) -> dict:
         timeout = aiohttp.ClientTimeout(total=70)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             active_count, closed_count = await asyncio.gather(
-                _fetch_count(endpoint, region, "01", bzstat_filter, session),
-                _fetch_count(endpoint, region, "03", bzstat_filter, session),
+                _fetch_count(endpoint, lotno_region, "01", bzstat_filter, session),
+                _fetch_count(endpoint, lotno_region, "03", bzstat_filter, session),
             )
     except Exception as e:
         _logger.warning("[localdata_api] 세션 오류 (graceful): %s", e)
