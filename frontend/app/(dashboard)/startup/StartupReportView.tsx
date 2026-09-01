@@ -1,3 +1,6 @@
+"use client";
+import { useState } from "react";
+
 export interface StartupReport {
   category: string;
   region: string;
@@ -90,7 +93,9 @@ function SubLabel({ children, colorClass = "text-gray-500" }: { children: React.
 // 다른 쪽을 깜빡하는 drift를 막기 위해 StartupClient.tsx에서 분리(2026-08-30)
 // 신호 요약 칩 — 상세 섹션과 동일한 값을 재사용해 상단에서 스캔 가능하게 압축(2026-09-02).
 // color: "good"(파랑·기회 방향) | "warn"(주황·주의 방향) | "neutral"(회색·정보성)
-function SignalChip({ label, color }: { label: string; color: "good" | "warn" | "neutral" }) {
+type SignalColor = "good" | "warn" | "neutral";
+
+function SignalChip({ label, color }: { label: string; color: SignalColor }) {
   const cls =
     color === "good" ? "bg-blue-50 text-blue-700 border-blue-200"
     : color === "warn" ? "bg-amber-50 text-amber-700 border-amber-200"
@@ -98,7 +103,25 @@ function SignalChip({ label, color }: { label: string; color: "good" | "warn" | 
   return <span className={`inline-block text-xs md:text-sm font-semibold px-2.5 py-1.5 rounded-full border ${cls}`}>{label}</span>;
 }
 
+// "높음/낮음/비슷함" 비교 라벨을 페이지 전체에서 동일한 3색 체계로 매핑(2026-09-02 통일).
+// 이전엔 블록마다 rose/emerald, red/green/yellow 등 서로 다른 색조를 써서 "같은 개념인데
+// 색이 다르다"는 비일관성이 있었음(코드 확인으로 검증) — 신호칩과 동일한 규칙 재사용:
+// higher(경쟁·위험 방향)=주황, lower(기회 방향)=파랑, similar=회색.
+function comparisonColor(c?: "lower" | "similar" | "higher"): SignalColor {
+  return c === "higher" ? "warn" : c === "lower" ? "good" : "neutral";
+}
+function comparisonBadgeClass(color: SignalColor): string {
+  return color === "good" ? "text-blue-700 bg-blue-50 border border-blue-200"
+    : color === "warn" ? "text-amber-700 bg-amber-50 border border-amber-200"
+    : "text-gray-600 bg-gray-50 border border-gray-200";
+}
+
 export function StartupReportView({ report }: { report: StartupReport }) {
+  // "AI 진입 전략 상세" 기본 접힘(2026-09-02 신설) — 결론은 이미 최상단 "AI 종합 판단"
+  // 카드에서 봤으므로, 빠르게 훑고 싶은 사용자는 스크롤을 여기서 끝낼 수 있게 해 이탈을
+  // 줄인다. 더 깊이 알고 싶은 사용자만 펼쳐서 핵심액션·AI최적화팁·주의사항을 본다 —
+  // 핵심 정보(요약·신호칩)는 이미 노출돼 있어 숨김으로 인한 정보 손실 없음.
+  const [showDetail, setShowDetail] = useState(false);
   return (
     <>
       {/* AI 종합 판단 — Claude의 핵심 요약을 페이지 최상단으로 이동(2026-09-02 재구성).
@@ -116,12 +139,12 @@ export function StartupReportView({ report }: { report: StartupReport }) {
             {report.market_comparison?.available && (() => {
               const mc = report.market_comparison!;
               const label = { lower: "낮음", similar: "비슷함", higher: "높음" }[mc.comparison ?? "similar"];
-              return <SignalChip label={`밀도 ${label}(${mc.compare_region} 대비)`} color={mc.comparison === "higher" ? "warn" : "neutral"} />;
+              return <SignalChip label={`밀도 ${label}(${mc.compare_region} 대비)`} color={comparisonColor(mc.comparison)} />;
             })()}
             {report.closure_rate?.available && report.closure_rate.comparison && (() => {
               const cr = report.closure_rate!;
               const label = { lower: "낮음", similar: "비슷함", higher: "높음" }[cr.comparison!];
-              return <SignalChip label={`생존율 전국대비 ${label}`} color={cr.comparison === "higher" ? "warn" : "neutral"} />;
+              return <SignalChip label={`생존율 전국대비 ${label}`} color={comparisonColor(cr.comparison)} />;
             })()}
             {report.ai_benchmark?.available && (() => {
               const ab = report.ai_benchmark!;
@@ -145,6 +168,18 @@ export function StartupReportView({ report }: { report: StartupReport }) {
               />
             )}
           </div>
+          {/* AI 노출 개념 설명 — "AI노출"이라는 용어가 예비 창업자에게 낯설 수 있어
+              처음 등장하는 이 카드에서 한 줄로 정의(2026-09-02 신설). */}
+          <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+            * AI 검색 노출 — ChatGPT·네이버 AI 등에서 이 업종이 얼마나 언급·추천되는지를 뜻합니다.
+          </p>
+          {/* 색상 범례 — 페이지 전체에서 이 3색이 무엇을 뜻하는지 한 번만 설명(2026-09-02
+              신설). 아래 모든 배지·칩이 이 규칙을 따름. */}
+          <p className="text-xs text-gray-500 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>기회 신호</span>
+            <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>주의 신호</span>
+            <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block"></span>참고 정보</span>
+          </p>
         </section>
       )}
 
@@ -198,10 +233,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
               {report.market_comparison?.available && (() => {
                 const mc = report.market_comparison;
                 const label = { lower: "낮음", similar: "비슷함", higher: "높음" }[mc.comparison ?? "similar"];
-                const badgeColor =
-                  mc.comparison === "higher" ? "bg-rose-50 text-rose-700 border-rose-200"
-                  : mc.comparison === "lower" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-gray-50 text-gray-700 border-gray-200";
+                const badgeColor = comparisonBadgeClass(comparisonColor(mc.comparison));
                 return (
                   <div className="mb-3">
                     <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border ${badgeColor}`}>
@@ -277,14 +309,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
             : cr.comparison === "similar" ? "비슷함"
             : cr.comparison === "higher" ? "높음"
             : null;
-          const compBadgeClass =
-            cr.comparison === "lower"
-              ? "text-green-700 bg-green-50 border border-green-200"
-              : cr.comparison === "similar"
-              ? "text-yellow-700 bg-yellow-50 border border-yellow-200"
-              : cr.comparison === "higher"
-              ? "text-red-700 bg-red-50 border border-red-200"
-              : "text-gray-600 bg-gray-50 border border-gray-200";
+          const compBadgeClass = comparisonBadgeClass(comparisonColor(cr.comparison));
           const hasNationalAvg = cr.national_avg != null;
           return (
             <div className="mb-3">
@@ -451,9 +476,23 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           "그냥 나열된 텍스트"가 아니라 우선순위가 있는 항목처럼 보이게 함. */}
       {report.strategy && (
         <section className="bg-white rounded-2xl p-5 md:p-7 shadow-sm mb-5">
-          <SectionTitle>AI 진입 전략 상세</SectionTitle>
-          <p className="text-sm text-gray-500 mb-4">위 "AI 종합 판단"의 근거가 된 구체적 실행 방안입니다.</p>
+          <div className="flex items-start justify-between gap-3 mb-1">
+            <div>
+              <SectionTitle>AI 진입 전략 상세</SectionTitle>
+              <p className="text-sm text-gray-500">위 &quot;AI 종합 판단&quot;의 근거가 된 구체적 실행 방안입니다.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowDetail((v) => !v)}
+              aria-expanded={showDetail}
+              className="flex-none text-sm font-semibold text-indigo-600 border border-indigo-200 bg-indigo-50 rounded-full px-4 py-2 hover:bg-indigo-100 transition-colors min-h-[40px]"
+            >
+              {showDetail ? "접기 ▲" : "자세히 보기 ▼"}
+            </button>
+          </div>
 
+          {showDetail && (
+          <div className="mt-4">
           {report.strategy.key_actions && (
             <div className="mb-5">
               <SubLabel colorClass="text-indigo-500">핵심 액션</SubLabel>
@@ -505,6 +544,8 @@ export function StartupReportView({ report }: { report: StartupReport }) {
               <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-1">예상 AI 노출 기간</p>
               <p className="text-sm md:text-base text-blue-800 leading-relaxed">{report.strategy.estimated_time_to_visibility}</p>
             </div>
+          )}
+          </div>
           )}
         </section>
       )}
