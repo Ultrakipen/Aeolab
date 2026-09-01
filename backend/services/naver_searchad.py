@@ -99,7 +99,7 @@ class NaverSearchAdClient:
 
     async def get_keyword_volumes(self, keywords: list[str]) -> dict[str, dict]:
         """
-        키워드 월간 검색량 일괄 조회 (배치 최대 100개).
+        키워드 월간 검색량 일괄 조회 (최대 100개 입력 허용, 내부에서 5개씩 나눠 호출).
         API 미설정 시 빈 dict 반환 (graceful degradation).
 
         Returns:
@@ -143,7 +143,13 @@ class NaverSearchAdClient:
         if not hint_terms:
             return {}
 
-        raw_result = await self._fetch_raw(hint_terms)
+        # 네이버 SearchAd API는 hintKeywords가 5개를 초과하면 에러 없이(HTTP 200)
+        # keywordList가 빈 배열로 조용히 무너진다(2026-09-01 실측 확인 — n=5는 정상,
+        # n=6부터 0건). 5개씩 나눠 순차 호출 후 합친다.
+        raw_result: dict[str, dict] = {}
+        for i in range(0, len(hint_terms), 5):
+            chunk_result = await self._fetch_raw(hint_terms[i : i + 5])
+            raw_result.update(chunk_result)
         if not raw_result:
             return {}
 
