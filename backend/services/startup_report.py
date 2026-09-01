@@ -147,6 +147,16 @@ class StartupReportService:
             except Exception as _e:
                 logger.warning(f"startup 경쟁사 준비도 체크 실패 (graceful): {_e}")
 
+        # 지역·업종 폐업율(역대 누적) — 행정안전부 지방행정 인허가 통합 API
+        # real_market/competitor_readiness와 동일한 graceful 패턴:
+        # 실패해도 리포트 생성 전체를 중단하지 않고 available:False로 조용히 생략
+        closure_rate: dict = {"available": False, "reason": None}
+        try:
+            from services.localdata_api import get_closure_rate
+            closure_rate = await get_closure_rate(category, region)
+        except Exception as _e:
+            logger.warning(f"startup closure_rate 조회 실패 (graceful): {_e}")
+
         # Claude로 진입 전략 생성 — 점수 숫자 미포함(strategy 텍스트에 노출 방지)
         from services.score_engine import get_briefing_eligibility
         eligibility = get_briefing_eligibility(category, False)
@@ -215,11 +225,24 @@ class StartupReportService:
                 "(이 항목들이 미비한 경쟁사가 많으면 '내가 이것부터 채우면 차별화된다'는 구체적 전략으로 반영할 것)"
             )
 
+        # 폐업율 프롬프트 라인 — available일 때만 삽입, 비교 레이블 한글화
+        closure_rate_line = ""
+        if closure_rate.get("available"):
+            comp_label = {"lower": "낮음", "similar": "비슷함", "higher": "높음"}.get(
+                closure_rate.get("comparison") or "", ""
+            )
+            avg_note = f", 전국 평균 대비 {comp_label}" if comp_label else ""
+            closure_rate_line = (
+                f"\n- 이 업종·지역의 역대 누적 폐업율: {closure_rate['closure_rate']:.1f}%{avg_note}"
+                " (※ 연간 폐업율이 아닌 누적 통계 — 과도하게 해석하지 말 것,"
+                " risk_factors에서 이 캐비엇도 함께 전달할 것)"
+            )
+
         from services.schema_generator import CATEGORY_KO
         category_ko = CATEGORY_KO.get(category, category)
         prompt = f"""한국 {region} {category_ko} 업종 창업 분석:
 
-- {briefing_note}{trend_line}{real_market_line}{readiness_line}
+- {briefing_note}{trend_line}{real_market_line}{readiness_line}{closure_rate_line}
 {"- 창업 예정 사업장명: " + business_name if business_name else ""}
 - 중요: 임대료·평당 시세·인건비·손익분기점 개월 수 등 위에 제공되지 않은 구체적 비용·재무 수치는
   절대 지어내지 말 것. 비용 관련 조언이 필요하면 "목표 상권 인근 부동산·상권분석 서비스에 직접
@@ -234,7 +257,7 @@ class StartupReportService:
 - 근거 다양화: 같은 숫자 하나(예: 시장 규모)만 네 항목 전체에서 반복 인용하지 말 것 — 항목별로
   주로 참조할 근거를 다르게 배정할 것. entry_strategy는 시장 규모·밀도를 중심 축으로,
   key_actions는 위에 예시로 제시된 실제 경쟁사명을 중심으로(있는 경우), ai_optimization_tips는
-  AI 브리핑 적합성·노출 채널 특성을 중심으로, risk_factors는 검색 트렌드 방향을 중심으로 삼을 것.
+  AI 브리핑 적합성·노출 채널 특성을 중심으로, risk_factors는 폐업율(available 시 우선)과 검색 트렌드 방향을 중심으로 삼을 것.
   같은 항목 안에서도 문장마다 되도록 다른 근거를 쓸 것.
 - 통찰의 깊이: 단순히 숫자 하나를 언급하고 그 뒤에 상식적인 결론(예: "경쟁사가 많으니
   차별화가 필요합니다")을 붙이는 얕은 문장은 지양할 것. 대신 서로 다른 두 정보를 결합해
@@ -305,6 +328,7 @@ class StartupReportService:
             "no_scan_data": no_scan_data,
             "real_market": real_market,
             "competitor_readiness": competitor_readiness,
+            "closure_rate": closure_rate,
             "search_trend": {
                 "trend_direction": search_trend.get("trend_direction", "stable"),
                 "trend_delta": search_trend.get("trend_delta", 0.0),
