@@ -88,9 +88,66 @@ function SubLabel({ children, colorClass = "text-gray-500" }: { children: React.
 
 // 실제 API 응답과 목업(startup/mockup) 양쪽에서 공유하는 결과 렌더링 — 한쪽만 고치고
 // 다른 쪽을 깜빡하는 drift를 막기 위해 StartupClient.tsx에서 분리(2026-08-30)
+// 신호 요약 칩 — 상세 섹션과 동일한 값을 재사용해 상단에서 스캔 가능하게 압축(2026-09-02).
+// color: "good"(파랑·기회 방향) | "warn"(주황·주의 방향) | "neutral"(회색·정보성)
+function SignalChip({ label, color }: { label: string; color: "good" | "warn" | "neutral" }) {
+  const cls =
+    color === "good" ? "bg-blue-50 text-blue-700 border-blue-200"
+    : color === "warn" ? "bg-amber-50 text-amber-700 border-amber-200"
+    : "bg-gray-50 text-gray-600 border-gray-200";
+  return <span className={`inline-block text-xs md:text-sm font-semibold px-2.5 py-1.5 rounded-full border ${cls}`}>{label}</span>;
+}
+
 export function StartupReportView({ report }: { report: StartupReport }) {
   return (
     <>
+      {/* AI 종합 판단 — Claude의 핵심 요약을 페이지 최상단으로 이동(2026-09-02 재구성).
+          "사용자가 상세 수치를 다 훑기 전에 결론부터 알고 싶어한다"는 피드백 반영 —
+          기존엔 맨 아래 AI 진입 전략 섹션에 있던 문단을 그대로 재사용(중복 방지를 위해
+          아래 섹션에서는 제거, 새 텍스트 생성 아님). 신호 칩도 아래 상세 섹션과 동일한
+          값만 재사용 — 새 판단 로직 없음. */}
+      {report.strategy?.entry_strategy && (
+        <section className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-5 md:p-7 shadow-sm mb-5">
+          <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider mb-2">AI 종합 판단</p>
+          <p className="text-base md:text-lg text-gray-900 leading-relaxed font-medium mb-4">
+            {report.strategy.entry_strategy}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {report.market_comparison?.available && (() => {
+              const mc = report.market_comparison!;
+              const label = { lower: "낮음", similar: "비슷함", higher: "높음" }[mc.comparison ?? "similar"];
+              return <SignalChip label={`밀도 ${label}(${mc.compare_region} 대비)`} color={mc.comparison === "higher" ? "warn" : "neutral"} />;
+            })()}
+            {report.closure_rate?.available && report.closure_rate.comparison && (() => {
+              const cr = report.closure_rate!;
+              const label = { lower: "낮음", similar: "비슷함", higher: "높음" }[cr.comparison!];
+              return <SignalChip label={`생존율 전국대비 ${label}`} color={cr.comparison === "higher" ? "warn" : "neutral"} />;
+            })()}
+            {report.ai_benchmark?.available && (() => {
+              const ab = report.ai_benchmark!;
+              const isOpportunity = ab.level === "미흡" || ab.level === "주의 필요";
+              const isCompetitive = ab.level === "양호" || ab.level === "우수";
+              return (
+                <SignalChip
+                  label={isOpportunity ? "AI노출 선점 기회" : isCompetitive ? "AI노출 경쟁 치열" : "AI노출 보통"}
+                  color={isOpportunity ? "good" : isCompetitive ? "warn" : "neutral"}
+                />
+              );
+            })()}
+            {report.search_trend?.available && (
+              <SignalChip
+                label={
+                  report.search_trend.trend_direction === "rising" ? "검색수요 상승세"
+                  : report.search_trend.trend_direction === "falling" ? "검색수요 하락세"
+                  : "검색수요 안정"
+                }
+                color={report.search_trend.trend_direction === "rising" ? "good" : report.search_trend.trend_direction === "falling" ? "warn" : "neutral"}
+              />
+            )}
+          </div>
+        </section>
+      )}
+
       {/* 시장 현황 — 실제 상권 규모(정부·카카오 실측) 중심. AEOlab 자체 가입 사업장 데이터
           (경쟁 강도·타이밍 지수 등)는 2026-08-31부터 이 페이지에 표시하지 않음 — 창업
           예정자에게 필요한 건 AEOlab 내부 고객 현황이 아니라 실제 지역 상권 분석이라는
@@ -262,7 +319,10 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                     이 지역 영업 <span className="font-semibold">{cr.active_count.toLocaleString()}개</span> · 폐업 이력 <span className="font-semibold">{cr.closed_count.toLocaleString()}개</span>
                   </p>
                 )}
-                <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                <p className="text-xs text-slate-500 mt-3 leading-relaxed">
+                  자영업은 업종 특성상 폐업 회전율 자체가 구조적으로 높습니다 — 이 숫자만으로 창업 여부를 단정하지 마세요.
+                </p>
+                <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
                   * 역대 누적 기준 — 연간 폐업율이 아닙니다. 행정안전부 지방행정 인허가 데이터 기준이며, 측정 시점에 따라 달라질 수 있음.
                 </p>
               </div>
@@ -276,12 +336,17 @@ export function StartupReportView({ report }: { report: StartupReport }) {
             시(현재 구독자 규모에서 흔함) available=false로 조용히 생략. */}
         {report.ai_benchmark?.available && (() => {
           const ab = report.ai_benchmark!;
-          const levelBadgeClass =
-            ab.level === "우수" || ab.level === "양호"
-              ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
-              : ab.level === "보통"
-              ? "text-yellow-700 bg-yellow-50 border border-yellow-200"
-              : "text-amber-700 bg-amber-50 border border-amber-200";
+          // 색상 방향 주의(2026-09-02 정정): "미흡·주의 필요"는 경쟁사가 AI 노출을 못
+          // 챙기고 있다는 뜻이라 예비 창업자에겐 오히려 긍정 신호(기회) — 경고색(주황)이
+          // 아닌 기회색(파랑)으로 표시. 반대로 "양호·우수"는 경쟁사가 이미 AI 노출을
+          // 잘 챙기고 있다는 뜻이라 신규 진입자에겐 경쟁이 치열하다는 주의 신호.
+          const isOpportunity = ab.level === "미흡" || ab.level === "주의 필요";
+          const isCompetitive = ab.level === "양호" || ab.level === "우수";
+          const levelBadgeClass = isOpportunity
+            ? "text-blue-700 bg-blue-50 border border-blue-200"
+            : isCompetitive
+            ? "text-amber-700 bg-amber-50 border border-amber-200"
+            : "text-gray-600 bg-gray-50 border border-gray-200";
           return (
             <div className="mb-3">
               <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-4">
@@ -294,13 +359,18 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                     이 업종{ab.is_national_fallback ? "의 전국" : "·지역의"} 등록 사업장들이 네이버 AI브리핑·ChatGPT·Gemini 등에 노출되는 평균 수준입니다.
                   </span>
                 </div>
-                {(ab.level === "미흡" || ab.level === "주의 필요") && (
-                  <p className="text-sm text-indigo-700 mt-2.5 leading-relaxed">
+                {isOpportunity && (
+                  <p className="text-sm text-blue-700 mt-2.5 leading-relaxed">
                     경쟁사 대부분이 AI 검색 노출 관리를 못 하고 있다는 뜻 — 지금 시작하면 선점 기회가 될 수 있습니다.
                   </p>
                 )}
+                {isCompetitive && (
+                  <p className="text-sm text-amber-700 mt-2.5 leading-relaxed">
+                    경쟁사들이 이미 AI 검색 노출을 잘 관리하고 있다는 뜻 — 신규 진입 시 AI 채널 경쟁이 치열할 수 있습니다.
+                  </p>
+                )}
                 <p className="text-xs text-gray-400 mt-3 leading-relaxed">
-                  * AEOlab 등록 사업장{ab.is_national_fallback ? "(지역 표본 부족으로 전국 기준)" : ""} 실측 데이터 기준(표본 {ab.sample_count}곳). 측정 시점에 따라 달라질 수 있음.
+                  * AEOlab 등록 사업장{ab.is_national_fallback ? "(지역 표본 부족으로 전국 기준)" : ""} 실측 데이터 기준(표본 {ab.sample_count}곳) — 표본이 작아 조회 시점에 따라 등급이 바뀔 수 있습니다.
                 </p>
               </div>
             </div>
@@ -381,15 +451,8 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           "그냥 나열된 텍스트"가 아니라 우선순위가 있는 항목처럼 보이게 함. */}
       {report.strategy && (
         <section className="bg-white rounded-2xl p-5 md:p-7 shadow-sm mb-5">
-          <SectionTitle>AI 진입 전략</SectionTitle>
-          <p className="text-sm text-gray-500 mb-4">위 시장 현황을 바탕으로 Claude AI가 제안하는 창업·AI 노출 전략입니다.</p>
-
-          {report.strategy.entry_strategy && (
-            <div className="border-l-4 border-indigo-500 bg-indigo-50/50 rounded-r-xl pl-4 pr-4 py-3.5 mb-5">
-              <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider mb-1.5">핵심 요약</p>
-              <p className="text-sm md:text-base text-gray-800 leading-relaxed">{report.strategy.entry_strategy}</p>
-            </div>
-          )}
+          <SectionTitle>AI 진입 전략 상세</SectionTitle>
+          <p className="text-sm text-gray-500 mb-4">위 "AI 종합 판단"의 근거가 된 구체적 실행 방안입니다.</p>
 
           {report.strategy.key_actions && (
             <div className="mb-5">
