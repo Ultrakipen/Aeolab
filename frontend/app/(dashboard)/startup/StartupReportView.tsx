@@ -46,6 +46,15 @@ export interface StartupReport {
     no_recent_post_count?: number;
     items?: Array<{ name: string; has_intro: boolean; has_recent_post: boolean; photo_count: number; review_count: number }>;
   };
+  closure_rate?: {
+    available: boolean;
+    reason?: string;
+    closure_rate?: number;
+    active_count?: number;
+    closed_count?: number;
+    national_avg?: number | null;
+    comparison?: "lower" | "similar" | "higher";
+  };
 }
 
 // 섹션 제목 공통 스타일 — 본문(text-sm/base)과 뚜렷이 구분되는 위계를 위해 크게·굵게
@@ -70,7 +79,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           (차후 내부 활용 목적), 이 페이지 화면에는 노출하지 않는다. */}
       <section className="bg-white rounded-2xl p-5 md:p-7 shadow-sm mb-5">
         <SectionTitle>시장 현황</SectionTitle>
-        <p className="text-sm text-gray-500 mb-4">국세청·카드사 등록 통계(또는 카카오맵 실측) 기준 실제 상권 규모입니다.</p>
+        <p className="text-sm text-gray-500 mb-4">국세청·카드사 등록 통계(또는 카카오맵 실측) 기준 실제 상권 규모와 생존 현황입니다.</p>
 
         {/* source="sbiz"(소상공인시장진흥공단 상가정보, 국세청·카드사 기반)가 있으면
             우선 사용 — 더 권위 있는 실제 등록 사업자 수. 없으면 카카오맵 키워드 검색
@@ -140,6 +149,66 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                     ? `* 소상공인시장진흥공단 상가정보(국세청·카드사 기반)${ymLabel ? `, ${ymLabel} 기준` : ""} 입력 지역 중심 반경${radiusKm ? ` ${radiusKm}km` : ""} 내 등록 사업자 수입니다. 동/구/군 등 행정구역 넓이에 맞춰 반경을 자동 조정하지만 실제 행정구역 경계와 정확히 일치하지는 않는 근사치이며, 실시간이 아니라 다소 지연된 통계입니다.`
                     : "* 카카오맵 키워드 검색 기준 추정치입니다. 실제 사업자 등록 현황과 다를 수 있고, 인접 지역 업체가 일부 포함될 수 있습니다."}
                   {" "}측정 시점에 따라 달라질 수 있음.
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* 폐업율/생존 현황 — 행정안전부 지방행정 인허가 누적 데이터 기반.
+            available=false(커버 불가 업종 포함)면 이 서브블록만 조용히 생략.
+            섹션 자체(시장 규모·경쟁사 준비도)는 유지됨. */}
+        {report.closure_rate?.available && (() => {
+          const cr = report.closure_rate!;
+          const compLabel =
+            cr.comparison === "lower" ? "낮음"
+            : cr.comparison === "similar" ? "비슷함"
+            : cr.comparison === "higher" ? "높음"
+            : null;
+          const compBadgeClass =
+            cr.comparison === "lower"
+              ? "text-green-700 bg-green-50 border border-green-200"
+              : cr.comparison === "similar"
+              ? "text-yellow-700 bg-yellow-50 border border-yellow-200"
+              : cr.comparison === "higher"
+              ? "text-red-700 bg-red-50 border border-red-200"
+              : "text-gray-600 bg-gray-50 border border-gray-200";
+          const hasNationalAvg = cr.national_avg != null;
+          return (
+            <div className="mb-3">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2.5">생존 현황</p>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  {cr.closure_rate != null && (
+                    <div>
+                      <div className="text-2xl md:text-3xl font-extrabold text-slate-800 tabular-nums leading-none">
+                        {cr.closure_rate.toFixed(1)}
+                        <span className="text-sm font-semibold text-slate-500 ml-0.5">%</span>
+                      </div>
+                      <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1">역대 누적 폐업율</div>
+                    </div>
+                  )}
+                  {compLabel && (
+                    <span className={`inline-block px-3 py-1.5 rounded-full text-sm font-bold ${compBadgeClass}`}>
+                      {hasNationalAvg ? `전국 평균 대비 ${compLabel}` : compLabel}
+                    </span>
+                  )}
+                </div>
+                {hasNationalAvg && (
+                  <p className="text-sm text-slate-600 mt-2.5 leading-relaxed">
+                    전국 평균: <span className="font-semibold">{cr.national_avg!.toFixed(1)}%</span>
+                    {cr.active_count != null && cr.closed_count != null && (
+                      <span className="text-slate-400"> · 이 지역 영업 {cr.active_count.toLocaleString()}개 · 폐업 이력 {cr.closed_count.toLocaleString()}개</span>
+                    )}
+                  </p>
+                )}
+                {!hasNationalAvg && cr.active_count != null && cr.closed_count != null && (
+                  <p className="text-sm text-slate-600 mt-2.5 leading-relaxed">
+                    이 지역 영업 <span className="font-semibold">{cr.active_count.toLocaleString()}개</span> · 폐업 이력 <span className="font-semibold">{cr.closed_count.toLocaleString()}개</span>
+                  </p>
+                )}
+                <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                  * 역대 누적 기준 — 연간 폐업율이 아닙니다. 행정안전부 지방행정 인허가 데이터 기준이며, 측정 시점에 따라 달라질 수 있음.
                 </p>
               </div>
             </div>
