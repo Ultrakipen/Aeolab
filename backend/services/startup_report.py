@@ -126,6 +126,22 @@ class StartupReportService:
         except Exception as _e:
             logger.warning(f"startup DataLab 조회 실패 (graceful): {_e}")
 
+        # SearchAd 절대 검색량 병합 — DataLab은 상대적 트렌드(%)만 주고 "한 달에 몇 번
+        # 검색되는지"라는 규모는 안 줌. report.py(성장 리포트)·blog.py(블로그 진단)가 이미
+        # 쓰는 병합 패턴을 그대로 재사용(2026-09-01 신설) — 새 API 계약·허위수치 위험 없음.
+        if search_trend.get("keywords_used"):
+            try:
+                from services.naver_searchad import get_searchad_client
+                kws = search_trend["keywords_used"][:20]  # report.py와 동일한 상한(청크 호출 지연 방지)
+                ad_client = get_searchad_client()
+                volumes = await ad_client.get_volumes_with_cache(kws, category, supabase)
+                search_trend["keyword_volumes"] = [
+                    {"keyword": kw, "monthly_volume": volumes[kw].get("monthly_total")}
+                    for kw in kws if kw in volumes and volumes[kw].get("monthly_total") is not None
+                ]
+            except Exception as _e:
+                logger.warning(f"startup SearchAd 검색량 병합 실패 (graceful): {_e}")
+
         # 실제 시장 밀도(카카오 total_count 기준) — AEOlab 가입 사업장 수(competitor_count)와
         # 무관하게 항상 실측값을 반환. 등록 사업장이 0건이라도 "데이터 없음"으로 끝내지 않고
         # 실제 시장 규모를 보여주기 위함(2026-08-30). graceful — 실패해도 리포트 중단 안 함.
@@ -229,6 +245,10 @@ class StartupReportService:
                 f"\n- 네이버 검색 수요(최근 3개월): {direction_label}"
                 f" ({delta:+.1f}% 변화) [측정 키워드: {kws}]"
             )
+            kw_vols = search_trend.get("keyword_volumes") or []
+            if kw_vols:
+                vol_parts = ", ".join(f"{v['keyword']} 월 {v['monthly_volume']:,}회" for v in kw_vols[:3])
+                trend_line += f"\n- 절대 검색량(네이버 SearchAd, 월간 PC+모바일 합산): {vol_parts}"
 
         # AEOlab 가입 사업장(competitor_count)이 적거나 0이어도, 실측 기준 실제 시장
         # 규모를 Claude에게 알려줘 "경쟁이 없다"는 성급한 결론을 방지
@@ -390,6 +410,7 @@ class StartupReportService:
                 "trend_delta": search_trend.get("trend_delta", 0.0),
                 "trend_data": search_trend.get("trend_data", []),
                 "keywords_used": search_trend.get("keywords_used", []),
+                "keyword_volumes": search_trend.get("keyword_volumes", []),
                 "available": bool(search_trend.get("trend_data")),
             } if search_trend else {"available": False},
         }

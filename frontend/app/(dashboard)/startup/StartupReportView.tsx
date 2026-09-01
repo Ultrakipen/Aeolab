@@ -27,6 +27,7 @@ export interface StartupReport {
     trend_delta: number;
     trend_data: Array<{ period: string; ratio: number }>;
     keywords_used: string[];
+    keyword_volumes?: Array<{ keyword: string; monthly_volume: number }>;
     available: boolean;
   };
   real_market?: {
@@ -312,6 +313,20 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           </div>
           {report.search_trend.keywords_used.length > 0 && (
             <p className="text-sm text-gray-500 mb-2">측정 키워드: {report.search_trend.keywords_used.join(", ")}</p>
+          )}
+          {/* 절대 검색량 — DataLab 트렌드(%)는 방향만 알려주고 "한 달에 몇 번 검색되는지"라는
+              규모는 안 줌. 이미 성장 리포트·블로그 진단이 쓰는 SearchAd 병합 패턴 재사용(2026-09-01). */}
+          {!!report.search_trend.keyword_volumes?.length && (
+            <div className="mb-3">
+              <p className="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-1.5">월간 검색량 (네이버 SearchAd)</p>
+              <div className="flex flex-wrap gap-1.5">
+                {report.search_trend.keyword_volumes.map((v, i) => (
+                  <span key={i} className="text-sm bg-amber-50 text-amber-800 border border-amber-100 rounded-full px-3 py-1 tabular-nums">
+                    {v.keyword} <span className="font-semibold">월 {v.monthly_volume.toLocaleString()}회</span>
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
           <p className="text-xs text-gray-400">* 네이버 DataLab 모바일 검색 기준. 측정 시점·기기에 따라 달라질 수 있음.</p>
         </section>
