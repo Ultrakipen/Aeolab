@@ -95,9 +95,16 @@ BAR_FILTER = "호프"
 
 # 업종별 전국 누적 폐업율 (2026-09-01 실측 근거 있는 것만)
 # 나머지 업종: None → 전국 평균 대비 comparison 생략
+#
+# ⚠️ bar는 restaurant 전국평균(70.5%)을 재사용하지 않는다(2026-09-01 외부조사로 정정) —
+# 국세청 TASIS 기반 복수 보도(세정일보·한국경제 등)에 따르면 호프주점은 100대 생활업종 중
+# 40~60세·60세 이상 연령대 3년 생존율 최저 업종이며, 사업자 수가 2018→2026 8년간 46.1%
+# 감소(기타음식점 5.2%·분식점 5.1%보다 훨씬 급격)해 general_restaurants 전체 평균과 뚜렷이
+# 다른(더 나쁜) 폐업 패턴을 보인다. restaurant 값을 재사용하면 bar 폐업율을 실제보다 좋아
+# 보이게 왜곡할 위험이 있어 None으로 유지 — bar 전용 전국평균은 별도 실측 필요.
 NATIONAL_AVG: dict[str, Optional[float]] = {
     "restaurant":    70.5,  # 전국 229만 건 중 폐업 161만 건 (data.go.kr 실측)
-    "bar":           70.5,  # general_restaurants 동일 데이터셋 기반
+    "bar":           None,
     "cafe":          None,
     "bakery":        None,
     "accommodation": None,
