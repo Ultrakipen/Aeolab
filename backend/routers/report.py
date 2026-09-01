@@ -4877,7 +4877,9 @@ async def get_keyword_trend(biz_id: str, user=Depends(get_current_user)):
     # SearchAd 볼륨 병합 (API 설정된 경우)
     try:
         from services.naver_searchad import get_searchad_client
-        all_kws = [item["keyword"] for item in trend_result.get("keywords", []) if item.get("keyword")]
+        # SearchAd는 5개씩 청크 호출되므로(naver_searchad.py) 상한 없이 넘기면
+        # 캐시 미스 시 순차 호출 수가 늘어나 동기 응답 지연이 커진다 — 20개로 캡
+        all_kws = [item["keyword"] for item in trend_result.get("keywords", []) if item.get("keyword")][:20]
         if all_kws:
             ad_client = get_searchad_client()
             volumes = await ad_client.get_volumes_with_cache(all_kws, category, supabase)
