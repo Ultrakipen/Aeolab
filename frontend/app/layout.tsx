@@ -72,6 +72,13 @@ export default function RootLayout({
       className={`${pretendard.variable} h-full antialiased light`}
     >
       <head>
+        {/* 네이버 서치어드바이저 RSS 자동 수집용 — /feed.xml (블로그) */}
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="AEOlab 블로그"
+          href="/feed.xml"
+        />
         {/* JSON-LD: Organization + Service — SERP rich result + AI 검색 인용 보강 */}
         <script
           type="application/ld+json"

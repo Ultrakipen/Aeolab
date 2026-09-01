@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { KEYWORD_PAGES } from "@/lib/keywords-data";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
 export async function generateStaticParams() {
   return KEYWORD_PAGES.map((p) => ({ slug: p.slug }));
@@ -52,6 +53,13 @@ export default async function KeywordPage({
 
   return (
     <main className="min-h-screen bg-white">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "홈", url: "https://aeolab.co.kr/" },
+          { name: "키워드 분석", url: "https://aeolab.co.kr/keywords" },
+          { name: page.title, url: `https://aeolab.co.kr/keywords/${page.slug}` },
+        ]}
+      />
       {/* 헤더 */}
       <header className="border-b border-gray-100 px-4 py-4 sticky top-0 bg-white/95 backdrop-blur z-50">
         <div className="max-w-4xl mx-auto flex items-center justify-between">

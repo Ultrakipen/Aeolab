@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { SiteFooter } from "@/components/common/SiteFooter"
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd"
 import {
   CHANNEL_GUIDE_MAP,
   CHANNEL_GUIDE,
@@ -99,6 +100,12 @@ export default async function ChannelGuidePage({
 
   return (
     <main className="min-h-screen bg-white">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "홈", url: "https://aeolab.co.kr/" },
+          { name: `${entry.label} AI 검색 노출 가이드`, url: `https://aeolab.co.kr/guide/channels/${entry.value}` },
+        ]}
+      />
       {/* ── 헤더 ── */}
       <header className="border-b border-gray-100 px-4 md:px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
