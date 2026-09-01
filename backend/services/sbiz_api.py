@@ -129,7 +129,11 @@ async def _geocode_region(region: str) -> tuple[float, float, int, str] | None:
     return None
 
 
-_MAX_ATTEMPTS = 2  # 일반적인 일시적 오류(타임아웃 등) 대비 — 결정론적 400 원인은 해결됨(아래 참조)
+_MAX_ATTEMPTS = 3  # 2026-09-01 2→3 상향 + 백오프 0.5초→1초 단위로 확대. restaurant 등은
+# 서브코드 7개가 asyncio.gather로 동시 조회되는데(SBIZ_CATEGORY_CODES 참조), "초당 요청제한"
+# 에러(LIMITED_NUMBER_OF_SERVICE_REQUESTS_PER_SECOND_EXCEEDS_ERROR)가 실측 확인됨 — 같은
+# "홍대" 조회가 시점에 따라 47.7~176.8개/㎢로 3.7배 차이나는 걸 재현. 0.5초 백오프는 "초당"
+# 제한 윈도우를 못 넘겨 재시도가 같은 창에서 또 실패하는 구조였음.
 
 
 async def _query_code(cx: float, cy: float, code_type: str, code: str, radius: int) -> dict | None:
@@ -168,7 +172,7 @@ async def _query_code(cx: float, cy: float, code_type: str, code: str, radius: i
                 ) as res:
                     if res.status != 200:
                         if attempt < _MAX_ATTEMPTS:
-                            await asyncio.sleep(0.5 * attempt)
+                            await asyncio.sleep(1.0 * attempt)  # "초당" 제한 윈도우를 넘기기 위해 최소 1초
                             continue
                         _body_preview = await res.text()
                         _logger.warning(
@@ -223,6 +227,18 @@ async def get_sbiz_market_count(category: str, region: str, radius: int | None =
     if not valid:
         return None
 
+    # 서브코드 일부만 실패해도 이전엔 조용히 나머지만 합산해 available:True로 반환했음(2026-09-01
+    # 실측 발견 — 같은 "홍대" 조회가 시점에 따라 47.7~176.8개/㎢로 3.7배 차이). 실패분이 있으면
+    # 반드시 confidence를 낮춰 "실제보다 적게 집계됐을 수 있음"을 화면에 전달할 것.
+    partial_failure = len(valid) < len(results)
+    if partial_failure:
+        failed = len(results) - len(valid)
+        _logger.warning(
+            "sbiz_partial_failure region=%s category=%s failed=%d/%d — confidence 강등",
+            region, category, failed, len(results),
+        )
+        confidence = _CONFIDENCE_LOW
+
     total_count = sum(r["total_count"] for r in valid)
     stdr_ym = next((r["stdr_ym"] for r in valid if r.get("stdr_ym")), None)
 
@@ -253,4 +269,5 @@ async def get_sbiz_market_count(category: str, region: str, radius: int | None =
         "radius_m": used_radius,
         "density_per_km2": density_per_km2,
         "confidence": confidence,
+        "partial_failure": partial_failure,
     }

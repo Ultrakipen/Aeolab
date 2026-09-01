@@ -164,8 +164,16 @@ class StartupReportService:
                         "compare_region": compare_region_clean,
                         "compare_density_per_km2": cmp_density,
                         "compare_total_count": compare_market.get("total_count"),
+                        "compare_radius_m": compare_market.get("radius_m"),
+                        "compare_confidence": compare_market.get("confidence"),
                         "diff_pct": round(diff_pct, 1),
                         "comparison": comparison_label,
+                        # 두 지역 중 한쪽이라도 신뢰도 낮음(면적 과소집계 또는 SBIZ 서브코드
+                        # 부분실패)이면 비교 자체의 정밀도가 떨어짐 — 화면에 캐비엇 노출용
+                        "low_confidence": (
+                            real_market.get("confidence") == "low"
+                            or compare_market.get("confidence") == "low"
+                        ),
                     }
             except Exception as _e:
                 logger.warning(f"startup 비교지역 밀도 조회 실패 (graceful): {_e}")
@@ -255,6 +263,7 @@ class StartupReportService:
             market_comparison_line = (
                 f"\n- 사용자가 비교 지정한 지역 '{market_comparison['compare_region']}' 대비 밀도: {cmp_label}"
                 + (f" ({diff:+.0f}%)" if diff is not None else "")
+                + (" (※ 신뢰도 낮음 — 두 지역 중 한쪽이 근사치이므로 이 비교 수치를 과도하게 정밀한 것처럼 단정하지 말 것)" if market_comparison.get("low_confidence") else "")
             )
 
         # 실제 경쟁사 스마트플레이스 공개 완성도 — Claude에게 구체적 차별화 포인트를

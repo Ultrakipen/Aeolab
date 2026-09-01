@@ -38,14 +38,18 @@ export interface StartupReport {
     radius_m?: number;
     density_per_km2?: number;
     confidence?: "good" | "medium" | "low";
+    partial_failure?: boolean;
   };
   market_comparison?: {
     available: boolean;
     compare_region?: string;
     compare_density_per_km2?: number;
     compare_total_count?: number;
+    compare_radius_m?: number;
+    compare_confidence?: "good" | "medium" | "low";
     diff_pct?: number;
     comparison?: "lower" | "similar" | "higher";
+    low_confidence?: boolean;
   };
   competitor_readiness?: {
     available: boolean;
@@ -100,6 +104,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           const sourceLabel = isSbiz ? "국세청·카드사 등록 기준" : "카카오맵 검색 기준";
           const density = report.real_market.density_per_km2;
           const isLowConfidence = isSbiz && report.real_market.confidence === "low";
+          const isPartialFailure = isLowConfidence && report.real_market.partial_failure === true;
           return (
             <div className="mb-3">
               {/* 한눈에 보는 핵심 수치 — 본문을 안 읽어도 규모·밀도가 바로 눈에 들어오도록 */}
@@ -144,6 +149,11 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                         {mc.compare_region}: {mc.compare_density_per_km2}/㎢
                       </span>
                     )}
+                    {mc.low_confidence && (
+                      <span className="block text-xs text-amber-700 mt-1.5">
+                        ⚠ 두 지역 중 한쪽의 추정 신뢰도가 낮아 이 비교 수치는 근사치입니다.
+                      </span>
+                    )}
                   </div>
                 );
               })()}
@@ -156,7 +166,11 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                 {isLowConfidence && (
                   <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2.5 flex gap-2">
                     <span className="flex-none">⚠</span>
-                    <span>이 지역은 추정 신뢰도가 낮습니다 — 군·특별자치시처럼 면적이 넓은 지역은 반경이 행정구역 전체를 다 덮지 못해, 실제 사업장 수가 위 숫자보다 훨씬 많을 수 있습니다.</span>
+                    {isPartialFailure ? (
+                      <span>일부 데이터 조회가 일시적으로 실패해 실제보다 적게 집계됐을 수 있습니다 — 잠시 후 다시 분석해 보세요.</span>
+                    ) : (
+                      <span>이 지역은 추정 신뢰도가 낮습니다 — 군·특별자치시처럼 면적이 넓은 지역은 반경이 행정구역 전체를 다 덮지 못해, 실제 사업장 수가 위 숫자보다 훨씬 많을 수 있습니다.</span>
+                    )}
                   </p>
                 )}
                 {report.real_market.samples.length > 0 && (
