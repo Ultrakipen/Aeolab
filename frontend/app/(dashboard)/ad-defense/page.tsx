@@ -124,16 +124,22 @@ export default async function AdDefensePage() {
   // 다시 보려면 또 한도를 소모해 재생성해야 했던 문제, 2026-09-02 수정).
   const { data: recentGuides } = await supabase
     .from("guides")
-    .select("business_id, items_json, generated_at")
+    .select("id, business_id, items_json, checklist_done, generated_at")
     .in("business_id", bizIds)
     .eq("context", "ad_defense")
     .order("generated_at", { ascending: false });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DB에서 그대로 전달, 실제 shape은 AdDefenseClient의 AdDefenseResult
-  const lastResultByBiz: Record<string, { result: any; generatedAt: string }> = {};
+  const lastResultByBiz: Record<string, { result: any; checklistDone: number[]; generatedAt: string }> = {};
   recentGuides?.forEach((g) => {
     if (!lastResultByBiz[g.business_id] && g.items_json) {
-      lastResultByBiz[g.business_id] = { result: g.items_json, generatedAt: g.generated_at };
+      // items_json엔 자기 행의 id가 없음(insert 당시엔 id가 아직 없었음) — 체크리스트
+      // API(PATCH /api/guide/{id}/checklist)가 필요로 하므로 여기서 채워 넣음
+      lastResultByBiz[g.business_id] = {
+        result: { ...g.items_json, id: g.id },
+        checklistDone: g.checklist_done ?? [],
+        generatedAt: g.generated_at,
+      };
     }
   });
 

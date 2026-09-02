@@ -34,9 +34,25 @@ class AdDefenseGuideService:
         briefing_eligibility: str = "inactive",
         competitor_names: list[str] | None = None,
         gap_keywords: list[str] | None = None,
+        competitor_mentioned_names: list[str] | None = None,
+        prev_global_channel_score: float | None = None,
     ) -> dict:
         """ChatGPT 광고 대응 가이드 생성"""
         score = scan_result.get("total_score", 0)
+        global_channel_score = scan_result.get("global_channel_score")
+
+        # 지난 가이드 대비 변화 — 텍스트 레이블만 계산(2026-09-02 추가). 원시 점수차는
+        # 절대 사용자에게 노출하지 않는다(CLAUDE.md "점수 표시 원칙"). 노이즈성 미세변화를
+        # "악화"로 오인시키지 않도록 SCORE_01 카톡 알림과 동일한 3점 임계값 사용.
+        momentum: str | None = None
+        if prev_global_channel_score is not None and global_channel_score is not None:
+            delta = global_channel_score - prev_global_channel_score
+            if delta >= 3:
+                momentum = "improved"
+            elif delta <= -3:
+                momentum = "declined"
+            else:
+                momentum = "steady"
         chatgpt_result = scan_result.get("chatgpt_result") or {}
         # sample_n() 기반 Basic/Full 스캔 결과엔 "mentioned" 키가 없다 — exposure_freq로 폴백
         # (guide.py:606-607의 chatgpt_mentioned 판정과 동일 패턴)
@@ -85,6 +101,17 @@ class AdDefenseGuideService:
             if gap_keywords
             else "- 미확보 키워드: 데이터 없음"
         )
+        # 실제 AI에 언급이 확인된 경쟁사만(추정치 제외) — 없으면 언급 생략(2026-09-02 추가)
+        _comp_mentioned_line = (
+            f"- 이미 AI에 언급이 확인된 경쟁사: {', '.join(competitor_mentioned_names)} — 이 격차를 구체적으로 짚어줄 것"
+            if competitor_mentioned_names
+            else ""
+        )
+        _momentum_line = {
+            "improved": "- 지난 가이드 생성 이후 글로벌 AI 노출 지표가 개선되는 추세입니다 — 이 성과를 언급하고 다음 단계를 제안할 것.",
+            "declined": "- 지난 가이드 생성 이후 글로벌 AI 노출 지표가 다소 낮아졌습니다 — 원인 점검을 우선순위로 제안할 것.",
+            "steady": "- 지난 가이드 생성 이후 글로벌 AI 노출 지표는 큰 변화가 없습니다.",
+        }.get(momentum, "")
 
         prompt = f"""당신은 한국 AI 검색 광고 전략 전문가입니다.
 
@@ -98,8 +125,11 @@ class AdDefenseGuideService:
 - 개선이 필요한 영역: {weak_areas_text}
 {_comp_line}
 {_gap_line}
+{_comp_mentioned_line}
+{_momentum_line}
 
-ChatGPT 광고(ChatGPT Ads)는 2026년 2월 미국 출시 이후 이미 확대 운영 중입니다. 이에 대응하여
+ChatGPT 광고(ChatGPT Ads)는 2026년 2월 미국에서 시작해 2026년 8월 11일부터 한국을 포함한
+9개국으로 노출이 확대됐습니다(무료·Go 등급 사용자 대상, 유료 등급은 광고 없음). 이에 대응하여
 유기적(Organic) AI 검색 노출을 강화하는 전략을 아래 JSON 형식으로 제공해줘.
 아래 경쟁사·미확보 키워드를 반드시 반영하여 이 사업장 맞춤으로 구체적으로 작성할 것:
 
@@ -156,4 +186,8 @@ organic_strategies는 5개, 소상공인이 직접 실행 가능한 것 위주�
             "chatgpt_measured": chatgpt_measured,
             "exposure_freq": exposure_freq,
             "sample_size": sample_size,
+            # 다음 생성 때의 momentum 비교용 스냅샷(원시 점수, 사용자에게 직접 노출 금지 —
+            # 프론트는 momentum 텍스트 레이블만 사용할 것) + 결정론적 momentum 레이블
+            "global_channel_score": global_channel_score,
+            "momentum": momentum,
         }

@@ -14,12 +14,16 @@ interface AdDefenseGuide {
 }
 
 interface AdDefenseResult {
+  id?: string;
   business_name: string;
   current_score: number;
   chatgpt_mentioned: boolean;
   chatgpt_measured?: boolean;
   exposure_freq: number;
   sample_size?: number;
+  // global_channel_score는 다음 비교용 원시 점수 — 화면에 숫자로 직접 표시하지 않는다
+  // (점수 표시 텍스트전용 원칙). momentum 텍스트 레이블만 사용할 것.
+  momentum?: "improved" | "declined" | "steady" | null;
   guide: AdDefenseGuide;
 }
 
@@ -32,6 +36,12 @@ const RISK_COLORS: Record<string, string> = {
 const RISK_LABELS: Record<string, string> = { low: "낮음", medium: "보통", high: "높음" };
 const PRIORITY_COLORS: Record<string, string> = {
   high: "border-l-red-500", medium: "border-l-yellow-500", low: "border-l-gray-300",
+};
+
+const MOMENTUM_LABELS: Record<string, { text: string; className: string }> = {
+  improved: { text: "지난 가이드 대비 개선 중", className: "text-emerald-700 bg-emerald-50" },
+  declined: { text: "지난 가이드 대비 다소 낮아짐", className: "text-amber-700 bg-amber-50" },
+  steady: { text: "지난 가이드 대비 변화 적음", className: "text-gray-600 bg-gray-100" },
 };
 
 function daysAgo(dateStr: string): number {
@@ -53,7 +63,7 @@ export function AdDefenseClient({
 }: {
   businesses: Array<{ id: string; name: string }>;
   lastScanByBiz?: Record<string, string>;
-  lastResultByBiz?: Record<string, { result: AdDefenseResult; generatedAt: string }>;
+  lastResultByBiz?: Record<string, { result: AdDefenseResult; checklistDone: number[]; generatedAt: string }>;
   initialBizId?: string;
 }) {
   const startBizId = initialBizId ?? businesses[0]?.id ?? "";
@@ -61,6 +71,9 @@ export function AdDefenseClient({
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AdDefenseResult | null>(lastResultByBiz[startBizId]?.result ?? null);
   const [resultSavedAt, setResultSavedAt] = useState<string | null>(lastResultByBiz[startBizId]?.generatedAt ?? null);
+  const [checkedItems, setCheckedItems] = useState<Set<number>>(
+    new Set(lastResultByBiz[startBizId]?.checklistDone ?? [])
+  );
   const [error, setError] = useState("");
 
   const lastScanDate = lastScanByBiz[bizId];
@@ -73,6 +86,29 @@ export function AdDefenseClient({
     // 가이드로 오인될 수 있어, 전환한 사업장의 저장된 결과(없으면 빈 화면)로 교체
     setResult(lastResultByBiz[nextBizId]?.result ?? null);
     setResultSavedAt(lastResultByBiz[nextBizId]?.generatedAt ?? null);
+    setCheckedItems(new Set(lastResultByBiz[nextBizId]?.checklistDone ?? []));
+  }
+
+  async function toggleCheck(index: number) {
+    if (!result?.id) return;
+    const next = new Set(checkedItems);
+    if (next.has(index)) next.delete(index);
+    else next.add(index);
+    setCheckedItems(next);
+    try {
+      const session = await getSafeSession();
+      const token = session?.access_token;
+      await fetch(`${apiBase}/api/guide/${result.id}/checklist`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ done: [...next] }),
+      });
+    } catch {
+      // 체크 상태는 이미 낙관적으로 반영됨 — 저장 실패해도 화면 경험은 유지, 재체크 시 재시도됨
+    }
   }
 
   async function handleGenerate() {
@@ -118,6 +154,7 @@ export function AdDefenseClient({
       const data = await res.json();
       setResult(data);
       setResultSavedAt(null); // 방금 생성한 결과 — "저장된 결과" 배지 미노출
+      setCheckedItems(new Set()); // 새로 생성된 가이드 — 이전 체크 상태 이월 안 함
     } catch {
       setError("가이드 생성 중 오류가 발생했습니다.");
     } finally {
@@ -136,8 +173,9 @@ export function AdDefenseClient({
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5">
         <p className="text-sm text-blue-800 leading-relaxed">
           <span className="font-semibold">왜 지금 대비해야 할까요?</span>{" "}
-          ChatGPT에 광고가 도입되면 유료 광고가 AI 검색 결과를 밀어낼 수 있습니다.
-          지금 유기적 노출 경쟁력을 높여두면 광고 없이도 AI 검색 상위에 지속 노출될 수 있습니다.
+          ChatGPT 광고는 2026년 8월 11일부터 한국에서도 노출이 시작됐습니다(무료·Go 등급 사용자 대상).
+          유료 광고가 AI 답변 아래 "Sponsored" 카드로 끼어들 수 있는 만큼, 지금 유기적 노출 경쟁력을
+          높여두면 광고 없이도 AI 검색 상위에 지속 노출될 수 있습니다.
         </p>
       </div>
 
@@ -258,11 +296,18 @@ export function AdDefenseClient({
             {result.guide.situation_summary && (
               <p className="text-sm md:text-base text-gray-700 leading-relaxed">{result.guide.situation_summary}</p>
             )}
-            {result.guide.risk_level && (
-              <div className="mt-3">
-                <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${RISK_COLORS[result.guide.risk_level] ?? "bg-gray-100"}`}>
-                  광고 리스크: {RISK_LABELS[result.guide.risk_level] ?? result.guide.risk_level}
-                </span>
+            {(result.guide.risk_level || result.momentum) && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {result.guide.risk_level && (
+                  <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${RISK_COLORS[result.guide.risk_level] ?? "bg-gray-100"}`}>
+                    광고 리스크: {RISK_LABELS[result.guide.risk_level] ?? result.guide.risk_level}
+                  </span>
+                )}
+                {result.momentum && MOMENTUM_LABELS[result.momentum] && (
+                  <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${MOMENTUM_LABELS[result.momentum].className}`}>
+                    {MOMENTUM_LABELS[result.momentum].text}
+                  </span>
+                )}
               </div>
             )}
           </section>
@@ -270,16 +315,33 @@ export function AdDefenseClient({
           {/* 유기적 전략 */}
           {result.guide.organic_strategies && (
             <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-4">
-              <h2 className="text-base font-semibold text-gray-700 mb-3">유기적 노출 강화 전략</h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-base font-semibold text-gray-700">유기적 노출 강화 전략</h2>
+                {result.id && (
+                  <span className="text-sm text-gray-500">
+                    {checkedItems.size}/{result.guide.organic_strategies.length} 실행 완료
+                  </span>
+                )}
+              </div>
               <div className="space-y-3">
                 {result.guide.organic_strategies.map((s, i) => (
-                  <div
+                  <label
                     key={i}
-                    className={`border-l-4 pl-4 py-2 ${PRIORITY_COLORS[s.priority] ?? "border-l-gray-300"}`}
+                    className={`flex gap-3 border-l-4 pl-4 py-2 ${PRIORITY_COLORS[s.priority] ?? "border-l-gray-300"} ${result.id ? "cursor-pointer" : ""}`}
                   >
-                    <p className="text-base font-semibold text-gray-900">{s.title}</p>
-                    <p className="text-sm text-gray-600 mt-0.5 leading-relaxed">{s.description}</p>
-                  </div>
+                    {result.id && (
+                      <input
+                        type="checkbox"
+                        checked={checkedItems.has(i)}
+                        onChange={() => toggleCheck(i)}
+                        className="mt-1 w-5 h-5 shrink-0 accent-blue-600"
+                      />
+                    )}
+                    <div>
+                      <p className={`text-base font-semibold ${checkedItems.has(i) ? "text-gray-400 line-through" : "text-gray-900"}`}>{s.title}</p>
+                      <p className={`text-sm mt-0.5 leading-relaxed ${checkedItems.has(i) ? "text-gray-400" : "text-gray-600"}`}>{s.description}</p>
+                    </div>
+                  </label>
                 ))}
               </div>
             </section>

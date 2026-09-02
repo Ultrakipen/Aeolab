@@ -655,7 +655,7 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
                 },
             )
 
-        biz_res, scan_res, comp_res = await asyncio.gather(
+        biz_res, scan_res, comp_res, prev_guide_res = await asyncio.gather(
             execute(
                 supabase.table("businesses")
                 .select("id, name, category, region, keywords, website_url, is_franchise")
@@ -663,13 +663,25 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
             ),
             execute(
                 supabase.table("scan_results")
-                .select("id, total_score, score_breakdown, gemini_result, chatgpt_result, naver_result, google_result, naver_channel_score, global_channel_score")
+                .select("id, total_score, score_breakdown, gemini_result, chatgpt_result, naver_result, google_result, naver_channel_score, global_channel_score, competitor_scores")
                 .eq("business_id", biz_id)
                 .order("scanned_at", desc=True)
                 .limit(1)
             ),
             execute(
                 supabase.table("competitors").select("name").eq("business_id", biz_id).limit(3)
+            ),
+            # 직전 ad_defense 가이드의 저장된 스냅샷 — "지난 가이드 이후 변화" 비교용.
+            # score_history(일별 자동 적재)는 스캔이 실제로 없었던 기간에도 0으로 채워지는
+            # 사례를 실측 확인해(2026-09-02) 신뢰할 수 없음 — 반드시 실제 scan_results
+            # 시점에만 존재하는 스냅샷끼리 비교해야 허위 "0으로 폭락" 표시를 피할 수 있음.
+            execute(
+                supabase.table("guides")
+                .select("items_json")
+                .eq("business_id", biz_id)
+                .eq("context", "ad_defense")
+                .order("generated_at", desc=True)
+                .limit(1)
             ),
             return_exceptions=True,
         )
@@ -697,6 +709,19 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
         except Exception as _ce:
             _logger.warning(f"ad-defense 경쟁사 조회 실패 — 빈 배열 사용 [biz={biz_id}]: {_ce}")
 
+        # 실제 AI에 언급된 경쟁사만 추출 — competitor_scores는 백그라운드에서 채워져
+        # null일 수 있고, score_estimated=true 항목은 실측이 아닌 추정 폴백이라 제외
+        # (2026-09-02 라이브 데이터로 두 케이스 모두 확인).
+        competitor_mentioned_names: list[str] = []
+        try:
+            _comp_scores = (scan[0].get("competitor_scores") or {}) if isinstance(scan, list) and scan else {}
+            competitor_mentioned_names = [
+                v.get("name", "") for v in _comp_scores.values()
+                if v.get("mentioned") is True and not v.get("score_estimated") and v.get("name")
+            ]
+        except Exception as _cme:
+            _logger.warning(f"ad-defense 경쟁사 노출현황 조회 실패 — 생략 [biz={biz_id}]: {_cme}")
+
         # 미확보 키워드 (gap_analyzer 재사용, 실패 시 빈 배열)
         gap_keywords: list[str] = []
         try:
@@ -707,8 +732,21 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
         except Exception as _ge:
             _logger.warning(f"ad-defense gap_keywords 조회 실패 — 빈 배열 사용 [biz={biz_id}]: {_ge}")
 
+        # 직전 ad_defense 가이드 스냅샷에서 global_channel_score만 추출(있을 때만)
+        prev_global_channel_score = None
+        try:
+            if not isinstance(prev_guide_res, Exception) and prev_guide_res.data:
+                _prev_items = prev_guide_res.data[0].get("items_json") or {}
+                prev_global_channel_score = _prev_items.get("global_channel_score")
+        except Exception as _pge:
+            _logger.warning(f"ad-defense 직전 스냅샷 조회 실패 — 생략 [biz={biz_id}]: {_pge}")
+
         svc = AdDefenseGuideService()
-        result = await svc.generate(biz, scan[0], eligibility, competitor_names, gap_keywords)
+        result = await svc.generate(
+            biz, scan[0], eligibility, competitor_names, gap_keywords,
+            competitor_mentioned_names=competitor_mentioned_names,
+            prev_global_channel_score=prev_global_channel_score,
+        )
 
         # 사용량 카운트 — AI 호출 성공 후에만 기록 (crisis_reply와 동일 원칙)
         # items_json에 결과 전체를 저장(2026-09-02 추가) — 기존엔 카운터 행만 남기고
@@ -718,7 +756,7 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
         is_fallback = result.get("is_fallback", False) if isinstance(result, dict) else False
         if not is_fallback:
             try:
-                await execute(
+                _ins = await execute(
                     supabase.table("guides").insert({
                         "business_id": biz_id,
                         "context": "ad_defense",
@@ -726,6 +764,10 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
                         "generated_at": datetime.now(timezone.utc).isoformat(),
                     })
                 )
+                # 체크리스트 추적용 — 기존 PATCH /{guide_id}/checklist를 그대로 재사용하기
+                # 위해 방금 insert한 행의 id를 응답에 포함(2026-09-02 추가)
+                if _ins and _ins.data and isinstance(result, dict):
+                    result["id"] = _ins.data[0].get("id")
             except Exception as e:
                 _logger.warning(f"ad-defense 사용량 기록 실패 (응답은 정상 반환, biz={biz_id}): {e}")
 
