@@ -738,12 +738,16 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
         except Exception as _ge:
             _logger.warning(f"ad-defense gap_keywords 조회 실패 — 빈 배열 사용 [biz={biz_id}]: {_ge}")
 
-        # 직전 ad_defense 가이드 스냅샷에서 global_channel_score만 추출(있을 때만)
+        # 직전 ad_defense 가이드 스냅샷에서 global_channel_score·risk_level 추출(있을 때만)
+        # — risk_level은 momentum 임계값 경계 근처에서 재실행마다 뒤집히는 걸 막는
+        # 히스테리시스(2026-09-02 추가)의 기준값으로 쓰임.
         prev_global_channel_score = None
+        prev_risk_level = None
         try:
             if not isinstance(prev_guide_res, Exception) and prev_guide_res.data:
                 _prev_items = prev_guide_res.data[0].get("items_json") or {}
                 prev_global_channel_score = _prev_items.get("global_channel_score")
+                prev_risk_level = (_prev_items.get("guide") or {}).get("risk_level")
         except Exception as _pge:
             _logger.warning(f"ad-defense 직전 스냅샷 조회 실패 — 생략 [biz={biz_id}]: {_pge}")
 
@@ -752,6 +756,7 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
             biz, scan[0], eligibility, competitor_names, gap_keywords,
             competitor_mentioned_names=competitor_mentioned_names,
             prev_global_channel_score=prev_global_channel_score,
+            prev_risk_level=prev_risk_level,
             naver_weight=dual_track_ratio.get("naver"),
             global_weight=dual_track_ratio.get("global"),
         )

@@ -36,6 +36,7 @@ class AdDefenseGuideService:
         gap_keywords: list[str] | None = None,
         competitor_mentioned_names: list[str] | None = None,
         prev_global_channel_score: float | None = None,
+        prev_risk_level: str | None = None,
         naver_weight: float | None = None,
         global_weight: float | None = None,
     ) -> dict:
@@ -50,16 +51,45 @@ class AdDefenseGuideService:
         # 크다. Claude 자유판단에 맡기면 이 비율과 무관한 risk_level이 나올 수 있음
         # (실측 QA: 네이버80% 업종인데 risk_level="high"로 나온 사례 확인) — 아래 계산값을
         # Claude 응답 파싱 후 강제 덮어써서 항상 이 비율과 일치하도록 보장.
+        #
+        # exposure(0~100)의 의미: "글로벌 채널이 약해서 위험에 노출된 unified score의
+        # 비율(%)". global_weight가 이 업종의 unified score 중 글로벌 채널 비중이고,
+        # track2_weakness가 그 채널이 얼마나 약한지(%)이므로 곱하면 "unified score 중
+        # 몇 %가 약한 글로벌 채널에 걸려있는가"가 된다. 임계값 20/40은 표본 데이터로
+        # 보정한 값이 아니라 이 의미 자체를 3등분한 것(<20%=낮음, 20~40%=보통, 40%+=
+        # 높음) — 활성 구독자가 소수(2026-09 기준)라 실사용 분포로 보정할 표본이 아직
+        # 없다. 향후 표본이 쌓이면 아래 log_ai_usage 인접 로그(risk_calc)로 실제 분포를
+        # 확인해 재보정할 것.
+        #
+        # 히스테리시스: 임계값 경계 근처(예: exposure 18~22)에서는 스캔마다 값이
+        # 흔들려 risk_level이 재생성할 때마다 low↔medium으로 뒤집힐 수 있음(실측:
+        # 한 사업장의 global_channel_score가 하루 만에 4.3→19.1로 변동한 사례 확인).
+        # 직전 가이드의 risk_level이 있으면 그 밴드를 5%p 넓게 유지해 경계 근처
+        # 미세 변동으로 라벨이 흔들리지 않게 한다 — 실제로 경계를 크게 넘어야만 전환.
         risk_level: str | None = None
+        exposure: float | None = None
         if global_channel_score is not None and global_weight is not None:
             track2_weakness = max(0.0, 100.0 - global_channel_score)
-            exposure = global_weight * track2_weakness  # 0~100 스케일
-            if exposure >= 40:
+            exposure = global_weight * track2_weakness  # 0~100 스케일(unified score 중 위험 노출 비율 %)
+            _BUF = 5
+            if prev_risk_level == "low" and exposure < 20 + _BUF:
+                risk_level = "low"
+            elif prev_risk_level == "medium" and 20 - _BUF <= exposure < 40 + _BUF:
+                risk_level = "medium"
+            elif prev_risk_level == "high" and exposure >= 40 - _BUF:
+                risk_level = "high"
+            elif exposure >= 40:
                 risk_level = "high"
             elif exposure >= 20:
                 risk_level = "medium"
             else:
                 risk_level = "low"
+            _logger.info(
+                "[ad_defense] risk_calc biz=%s category=%s global_weight=%.2f "
+                "global_channel_score=%.1f exposure=%.1f prev_risk=%s -> risk_level=%s",
+                biz.get("id"), biz.get("category"), global_weight,
+                global_channel_score, exposure, prev_risk_level, risk_level,
+            )
 
         # 네이버(Track1) 상태는 개별 항목이 아니라 종합 상태 텍스트로만 전달 — 실행
         # 아이템(organic_strategies)은 아래에서 Track2로 한정하므로 네이버는 "안전망"
@@ -147,7 +177,22 @@ class AdDefenseGuideService:
                 f"ChatGPT 광고는 글로벌 비중에만 영향을 준다 — 네이버 비중이 높을수록 실제 리스크는 작다."
             )
         _track1_line = f"- 네이버(Track1) 채널 상태: {track1_status}(참고용 배경 정보 — 이 가이드의 실행 항목 대상 아님)" if track1_status else ""
-        _risk_line = f"- risk_level은 반드시 \"{risk_level}\"로 고정해서 응답할 것(위 비율·데이터 기반 확정값)." if risk_level else ""
+        # risk_level="low"라도 "안심하고 아무것도 안 해도 됨"으로 끝내면 유료 기능으로서
+        # 가치가 없다 — 낮은 리스크를 "네이버 안전마진을 지렛대 삼아 글로벌 채널을
+        # 공격적으로 선점할 기회"로 재프레이밍하도록 지시(2026-09-02 추가). risk_level이
+        # medium/high일 때는 방어(원인 해결)에 집중하도록 별도 지시.
+        _risk_framing = {
+            "low": "situation_summary에서 \"위험이 낮다\"로 끝내지 말고, 이 안전마진(네이버 강점)을 지렛대 삼아 "
+                   "경쟁사보다 먼저 글로벌 AI 채널을 선점할 기회로 프레이밍할 것. organic_strategies도 방어가 아닌 "
+                   "선점·확장 관점으로 작성.",
+            "medium": "situation_summary에서 지금 보강하지 않으면 격차가 커질 수 있다는 점을 균형 있게 전달할 것.",
+            "high": "situation_summary에서 글로벌 채널 의존도가 높은데 노출이 약한 구체적 이유(위 데이터 기반)를 "
+                    "짚고, organic_strategies는 방어(원인 해결) 우선순위로 작성할 것.",
+        }.get(risk_level, "")
+        _risk_line = (
+            f"- risk_level은 반드시 \"{risk_level}\"로 고정해서 응답할 것(위 비율·데이터 기반 확정값). {_risk_framing}"
+            if risk_level else ""
+        )
 
         prompt = f"""당신은 한국 AI 검색 광고 전략 전문가입니다.
 
