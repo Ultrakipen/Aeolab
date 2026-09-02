@@ -1,6 +1,24 @@
 # 네이버 개발자센터 API → NAVER API Hub(NCP) 이관 대응
 
-> 2026-07-15 1차 공지 메일 수신 → 2026-08-13 더 상세한 공지(단계별 일정·이관 제외 API 명시)로 갱신. 지금은 수정 불필요, 2027-06-30 전까지만 마이그레이션 완료하면 됨.
+> 2026-07-15 1차 공지 메일 수신 → 2026-08-13 더 상세한 공지(단계별 일정·이관 제외 API 명시)로 갱신 → **2026-09-02 코드 배선 완료, 실제 전환은 NCP 콘솔 키 확인 대기**. 2027-06-30 전까지만 완료하면 됨.
+
+## 0. 진행 상황 요약 (2026-09-02)
+
+**완료**: 10개 파일(11개 호출처)의 `openapi.naver.com` 직접 호출을 `backend/services/naver_api_hub.py` 공용 헬퍼로 전부 배선 완료. `NAVER_API_HUB_ENABLED` 플래그로 전환하며 **기본값(미설정)은 기존 방식 그대로 동작** — 이번 배포 자체는 프로덕션 동작에 영향 없음(레거시 경로 라이브 스모크 테스트로 회귀 없음 확인, git `41f3c01`).
+
+**공식 문서 실측 확인** (api.ncloud-docs.com, WebFetch로 페이지별 직접 확인):
+- 도메인: `naverapihub.apigw.ntruss.com`
+- 경로: `/search/v1/{local,blog,cafearticle,kin,news}` (GET, `.json` 확장자 없음) + `/search-trend/v1/search` (POST, DataLab)
+- 헤더: `X-NCP-APIGW-API-KEY-ID`(Client ID) / `X-NCP-APIGW-API-KEY`(Client Secret) — 기존 `X-Naver-Client-Id`/`X-Naver-Client-Secret`와 이름·값 다름
+- 응답 스키마(items 필드명)는 local/blog/kin 전부 레거시와 동일 확인 — 파싱 코드 변경 불필요
+- ⚠️ **미확정**: local의 `mapx`/`mapy` 좌표가 레거시와 동일하게 WGS84×1e7 정수 문자열인지 — 공식 문서 예시가 `"{Longitude}"` 플레이스홀더뿐이라 확인 불가. `competitor.py`/`scan.py`가 `int(mapx)/1e7` 변환에 의존하므로 **플래그 ON 전 반드시 실측 확인 필요**(틀리면 지도 좌표가 조용히 잘못된 값으로 계산됨)
+- `news` 엔드포인트는 원 문서(§3) 표에 없던 사용처(`naver_visibility.py`)를 재점검 중 추가 발견 — 마이그레이션 대상에 포함됨
+
+**남은 작업 (사용자 액션 필요, §3-2 기록 정정)**: 2026-08-13 문서는 "Client ID/Secret 1쌍 이미 발급됨"으로 기록했으나, 2026-09-02 로컬 `backend/.env` 직접 재확인 결과 `NAVER_APIHUB_CLIENT_ID`/`NAVER_APIHUB_CLIENT_SECRET` 키 자체가 없음 — 저장이 안 됐거나 이후 유실. 아래 순서로 진행 필요:
+1. NCP 콘솔에서 §3-1의 5개 API 카드(블로그·지역·지식iN·카페·검색어트렌드) 활성화 여부 재확인 — 미활성 카드는 개별 신청
+2. `NAVER_APIHUB_CLIENT_ID`/`NAVER_APIHUB_CLIENT_SECRET` 값을 로컬 `backend/.env`에 설정
+3. 로컬에서 라이브 검증 스크립트로 5개 엔드포인트 실제 호출 + mapx/mapy 스케일 확인
+4. 문제없으면 서버 `.env`에도 반영 → `NAVER_API_HUB_ENABLED=true` → 배포·재시작 → 라이브 재검증
 
 ## 1. 공지 원문 요약 (네이버 개발자센터, 2026-08-13 재확인)
 
