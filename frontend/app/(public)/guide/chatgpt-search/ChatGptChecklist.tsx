@@ -93,7 +93,10 @@ export function ChatGptChecklist({ items }: Props) {
       {doneCount === items.length && (
         <div className="mt-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-center">
           <p className="text-sm md:text-base font-semibold text-green-800">
-            모든 항목 완료! ChatGPT 노출 준비가 되었습니다.
+            모든 항목 완료! 실사용자 ChatGPT 웹검색 노출 준비가 되었습니다.
+          </p>
+          <p className="text-sm text-green-700 mt-1">
+            ※ AEOlab 대시보드의 ChatGPT 점수는 모델 재학습 주기에 따라 별도로 움직이며, 이 체크리스트와는 무관합니다.
           </p>
         </div>
       )}

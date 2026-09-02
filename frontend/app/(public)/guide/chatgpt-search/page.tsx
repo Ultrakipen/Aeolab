@@ -7,39 +7,39 @@ import { ChatGptChecklist } from "./ChatGptChecklist"
 export const metadata: Metadata = {
   title: "ChatGPT에서 내 가게가 언급되는 조건 | AEOlab",
   description:
-    "ChatGPT 웹검색은 Bing과 OpenAI 자체 크롤러(OAI-SearchBot) 혼합 구조로 자체 웹사이트·구글 비즈니스 프로필·영어권 플랫폼을 참조합니다. 네이버 블로그·스마트플레이스와 직접 연결되지 않는 이유와 실제 노출 조건을 정리합니다.",
+    "ChatGPT 웹검색은 OpenAI 자체 크롤러(OAI-SearchBot)와 구글 인덱스가 중심이며 Bing 비중은 제한적입니다. 자체 웹사이트·구글 비즈니스 프로필·영어권 플랫폼을 참조하는 구조와, 네이버 블로그·스마트플레이스가 직접 연결되지 않는 이유·실제 노출 조건을 정리합니다.",
 }
 
 const LEARN_SOURCES = [
   {
     icon: "🌐",
     title: "자체 웹사이트 (가장 효과적)",
-    desc: "Bing·OAI-SearchBot이 직접 크롤링하는 외부 URL. JSON-LD 구조화 마크업이 있으면 인용 가능성이 높아집니다. 티스토리·워드프레스도 포함됩니다. Bing 웹마스터 도구 등록 시 크롤링 속도를 높일 수 있습니다.",
+    desc: "OAI-SearchBot(OpenAI 자체 크롤러)이 직접 크롤링하는 외부 URL. JSON-LD 구조화 마크업이 있으면 인용 가능성이 높아집니다. 티스토리·워드프레스도 포함됩니다. 구글·Bing 검색에도 함께 색인되면 발견 경로가 늘어납니다.",
   },
   {
     icon: "📍",
     title: "구글 비즈니스 프로필",
-    desc: "구글 비즈니스 프로필에 등록하면 사업장 정보가 웹 전반에 퍼지며 Bing 및 OAI-SearchBot(OpenAI 자체 크롤러)에서도 발견될 가능성이 높아집니다. business.google.com 무료 등록 후 웹 전체 인덱싱까지 1~4주 소요됩니다.",
+    desc: "구글 비즈니스 프로필에 등록하면 사업장 정보가 웹 전반에 퍼지며 OAI-SearchBot(OpenAI 자체 크롤러)과 구글 인덱스에서도 발견될 가능성이 높아집니다. business.google.com 무료 등록 후 웹 전체 인덱싱까지 1~4주 소요됩니다.",
   },
   {
     icon: "📰",
     title: "뉴스·언론 기사·영어권 플랫폼",
-    desc: "언론 보도, 트립어드바이저 등 영어권 글로벌 플랫폼은 Bing 및 OAI-SearchBot(OpenAI 자체 크롤러) 인덱싱이 활발하여 권위 신호로 인식되고 인용 가능성이 높아집니다.",
+    desc: "언론 보도, 트립어드바이저 등 영어권 글로벌 플랫폼은 OAI-SearchBot(OpenAI 자체 크롤러)과 구글 인덱싱이 활발하여 권위 신호로 인식되고 인용 가능성이 높아집니다.",
   },
   {
     icon: "⚠️",
     title: "네이버 블로그·스마트플레이스 — ChatGPT 효과 제한적",
-    desc: "ChatGPT 웹검색은 Bing과 OAI-SearchBot(OpenAI 자체 크롤러)의 혼합 구조입니다. 네이버 생태계(블로그·스마트플레이스)는 두 경로 모두에서 영향력이 제한적이어서 ChatGPT 응답에 미치는 효과가 작습니다. 네이버 최적화는 네이버 AI 브리핑·AI탭에 효과적입니다.",
+    desc: "네이버 생태계(블로그·스마트플레이스)는 ChatGPT가 참조하는 검색엔진 인덱스에서 영향력이 제한적이어서 ChatGPT 응답에 미치는 효과가 작습니다. 네이버 최적화는 네이버 AI 브리핑·AI탭에 효과적입니다.",
   },
 ]
 
 const CHECKLIST_ITEMS = [
-  { id: "google_biz", label: "구글 비즈니스 프로필 등록 완료 (business.google.com)" },
-  { id: "bing_webmaster", label: "Bing 웹마스터 도구 등록 (bing.com/webmasters) — 크롤링 속도 향상" },
   { id: "json_ld", label: "자체 웹사이트·홈페이지에 JSON-LD 구조화 마크업 적용" },
   { id: "qa", label: "자체 웹사이트·홈페이지에 Q&A 형식 콘텐츠 포함 (가격·운영시간·예약 방법 등)" },
   { id: "specific", label: "가격·운영시간·위치 구체 수치 명시" },
   { id: "authority", label: "권위 신호 포함 (경력·자격·수상)" },
+  { id: "google_biz", label: "구글 비즈니스 프로필 등록 완료 (business.google.com)" },
+  { id: "bing_webmaster", label: "Bing 웹마스터 도구 등록 (bing.com/webmasters) — 보조적 도움" },
   { id: "tripadvisor", label: "트립어드바이저 등 영어권 글로벌 플랫폼 등록" },
 ]
 
@@ -84,7 +84,7 @@ export default function ChatGptSearchGuidePage() {
             ChatGPT에서 내 가게를 노출시키는 방법
           </h1>
           <p className="text-base md:text-lg text-gray-600 mb-4 leading-relaxed break-keep">
-            ChatGPT 웹검색은 Bing + OpenAI 자체 크롤러 혼합 구조 — 자체 웹사이트와 구글 비즈니스 프로필이 중요한 기반이 됩니다
+            ChatGPT 웹검색은 OpenAI 자체 크롤러(OAI-SearchBot) + 구글 인덱스 중심 구조 — 자체 웹사이트와 구글 비즈니스 프로필이 중요한 기반이 됩니다
           </p>
           {/* 면책 문구 */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
@@ -95,10 +95,50 @@ export default function ChatGptSearchGuidePage() {
           </div>
         </section>
 
+        {/* ── 1-2. 두 트랙 구분 (먼저 이해해야 나머지 내용이 헷갈리지 않음) ── */}
+        <section>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
+            ChatGPT 웹검색 노출과 AEOlab 점수는 서로 다르게 움직입니다
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <p className="text-sm font-semibold text-blue-800 mb-2">실사용자 ChatGPT 웹검색 (검색엔진 인덱싱 참고)</p>
+              <ul className="space-y-1.5 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
+                  <span>자체 웹사이트 신규 등록 → 검색엔진 인덱싱: <strong>약 1~2주</strong> (Bing 기준 참고치)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
+                  <span>구글 비즈니스 프로필 등록 → 웹 전파 후 반영: <strong>약 2~4주</strong></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
+                  <span>Bing 웹마스터 도구 등록은 보조적으로 도움이 될 수 있음 (OpenAI 자체 인덱스·구글 경로는 소요기간 미공개)</span>
+                </li>
+              </ul>
+            </div>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm font-semibold text-amber-800 mb-2">AEOlab 스캐너 점수 (ChatGPT 학습 데이터 기준)</p>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                ChatGPT 모델 재학습 주기에 의존<br />
+                <strong>수개월~1년</strong> 이상 소요
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                GPT-4.1-mini 학습 데이터 컷오프: 2024년 6월 기준
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 leading-relaxed">
+            ※ AEOlab 점수는 학습 데이터 기반 측정이며, 실사용자 ChatGPT 웹검색 결과와 다를 수 있습니다.
+            이 페이지의 체크리스트는 이 중 &lsquo;실사용자 웹검색&rsquo; 트랙을 돕는 항목이며, AEOlab 대시보드 점수와는 별개로 움직입니다.
+          </p>
+        </section>
+
         {/* ── 2. ChatGPT가 참조하는 정보 ── */}
         <section>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 break-keep">
-            ChatGPT가 실제로 참조하는 정보 — Bing + OpenAI 자체 크롤러 혼합 구조
+            ChatGPT가 실제로 참조하는 정보 — OpenAI 자체 크롤러 + 구글 인덱스 중심 구조
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {LEARN_SOURCES.map((item) => (
@@ -167,45 +207,6 @@ export default function ChatGptSearchGuidePage() {
               </p>
             </div>
           </div>
-        </section>
-
-        {/* ── 개선 후 반영까지 걸리는 시간 ── */}
-        <section>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
-            개선 후 ChatGPT에 반영되기까지
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <p className="text-sm font-semibold text-blue-800 mb-2">실사용자 ChatGPT 웹검색 (Bing 경로 기준)</p>
-              <ul className="space-y-1.5 text-sm text-gray-700">
-                <li className="flex items-start gap-2">
-                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
-                  <span>자체 웹사이트 신규 등록 → Bing 인덱싱: <strong>약 1~2주</strong></span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
-                  <span>구글 비즈니스 프로필 등록 → 웹 전파 후 반영: <strong>약 2~4주</strong></span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
-                  <span>Bing 웹마스터 도구 등록 시 Bing 경로 인덱싱 단축 가능 (OAI-SearchBot 경로는 소요기간 미공개)</span>
-                </li>
-              </ul>
-            </div>
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-semibold text-amber-800 mb-2">AEOlab 스캐너 점수 (ChatGPT 학습 데이터 기준)</p>
-              <p className="text-sm text-gray-700 leading-relaxed">
-                ChatGPT 모델 재학습 주기에 의존<br />
-                <strong>수개월~1년</strong> 이상 소요
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                GPT-4.1-mini 학습 데이터 컷오프: 2024년 6월 기준
-              </p>
-            </div>
-          </div>
-          <p className="text-sm text-gray-500 leading-relaxed">
-            ※ AEOlab 점수는 학습 데이터 기반 측정이며, 실사용자 ChatGPT 웹검색 결과와 다를 수 있습니다.
-          </p>
         </section>
 
         {/* ── 4. ChatGPT 노출 체크리스트 ── */}
