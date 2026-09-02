@@ -191,14 +191,12 @@ async def _recover_naver_place_id(business_name: str, region: str) -> str:
 
     try:
         import aiohttp as _aiohttp
+        from services.naver_api_hub import search_request
+        _url, api_headers = search_request("local")
         timeout = _aiohttp.ClientTimeout(total=5)
-        api_headers = {
-            "X-Naver-Client-Id": client_id,
-            "X-Naver-Client-Secret": client_secret,
-        }
         async with _aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(
-                "https://openapi.naver.com/v1/search/local.json",
+                _url,
                 params={"query": query, "display": 5, "sort": "comment"},
                 headers=api_headers,
             ) as res:
@@ -400,17 +398,15 @@ async def trial_search(request: Request, query: str, region: str = ""):
             region_prefix = f"{_r_parts[2]} {_r_parts[3]}".strip()
     search_q = f"{region_prefix} {q}".strip() if region_prefix else q
 
-    headers = {
-        "X-Naver-Client-Id": client_id,
-        "X-Naver-Client-Secret": client_secret,
-    }
+    from services.naver_api_hub import search_request
+    url, headers = search_request("local")
 
     try:
         import aiohttp as _aiohttp
         timeout = _aiohttp.ClientTimeout(total=6)
         async with _aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(
-                "https://openapi.naver.com/v1/search/local.json",
+                url,
                 params={"query": search_q, "display": 5, "sort": "comment"},
                 headers=headers,
             ) as res:

@@ -13,7 +13,6 @@ router = APIRouter()
 _logger = logging.getLogger(__name__)
 
 _KAKAO_LOCAL_URL  = "https://dapi.kakao.com/v2/local/search/keyword.json"
-_NAVER_LOCAL_URL  = "https://openapi.naver.com/v1/search/local.json"
 _GOOGLE_PLACE_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json"
 
 # 업종 코드 → 한국어 검색어 변환
@@ -280,13 +279,14 @@ async def _naver_fetch_one(
     session: aiohttp.ClientSession,
     keyword: str,
     region_prefix: str,
-    headers: dict,
 ) -> list[dict]:
     """단일 키워드로 네이버 지역 검색 (최대 5개)"""
+    from services.naver_api_hub import search_request
+    url, headers = search_request("local")
     q = f"{region_prefix} {keyword}".strip() if region_prefix else keyword
     try:
         async with session.get(
-            _NAVER_LOCAL_URL,
+            url,
             params={"query": q, "display": 5, "start": 1, "sort": "comment"},
             headers=headers,
             timeout=aiohttp.ClientTimeout(total=6),
@@ -328,10 +328,6 @@ async def _search_naver(query: str, region: str) -> list[dict]:
         return []
 
     region_prefix = region.split()[0] if region else ""
-    headers = {
-        "X-Naver-Client-Id": client_id,
-        "X-Naver-Client-Secret": client_secret,
-    }
 
     # 유사어 목록 결정: 등록된 업종이면 확장, 아니면 원본 키워드만
     synonyms = _NAVER_SYNONYMS.get(query.strip(), [query.strip()])
@@ -339,7 +335,7 @@ async def _search_naver(query: str, region: str) -> list[dict]:
     try:
         async with aiohttp.ClientSession() as session:
             batches = await asyncio.gather(
-                *[_naver_fetch_one(session, kw, region_prefix, headers) for kw in synonyms],
+                *[_naver_fetch_one(session, kw, region_prefix) for kw in synonyms],
                 return_exceptions=True,
             )
 
@@ -368,17 +364,15 @@ async def _find_naver_place_id(name: str, address: str, region: str = "") -> str
     if not client_id or not client_secret:
         return None
 
-    headers = {
-        "X-Naver-Client-Id": client_id,
-        "X-Naver-Client-Secret": client_secret,
-    }
+    from services.naver_api_hub import search_request
+    url, headers = search_request("local")
     region_prefix = region.split()[0] if region else (address.split()[0] if address else "")
     query = f"{region_prefix} {name}".strip()
 
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                _NAVER_LOCAL_URL,
+                url,
                 params={"query": query, "display": 5},
                 headers=headers,
                 timeout=aiohttp.ClientTimeout(total=8),
@@ -861,14 +855,12 @@ async def brand_check(
     search_query = f"{region} {category_ko}".strip()
 
     try:
-        headers = {
-            "X-Naver-Client-Id": naver_client_id,
-            "X-Naver-Client-Secret": naver_client_secret,
-        }
+        from services.naver_api_hub import search_request
+        url, headers = search_request("local")
         params = {"query": search_query, "display": 20, "start": 1, "sort": "random"}
 
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
-            async with session.get(_NAVER_LOCAL_URL, headers=headers, params=params) as resp:
+            async with session.get(url, headers=headers, params=params) as resp:
                 if resp.status != 200:
                     _logger.warning(f"[brand_check] 네이버 API 오류 status={resp.status}")
                     return {"risk_level": "unknown", "message": "검색 결과를 가져오지 못했습니다"}
@@ -1264,18 +1256,17 @@ async def _fetch_blog_snippets(name: str, region: str) -> tuple[list[str], list[
     if not client_id or not client_secret:
         return [], [], False
 
+    from services.naver_api_hub import search_request
+    url, headers = search_request("blog")
     region_prefix = region.split()[0] if region else ""
     query = f"{region_prefix} {name}".strip() if region_prefix else name
 
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                "https://openapi.naver.com/v1/search/blog.json",
+                url,
                 params={"query": query, "display": 20, "sort": "date"},
-                headers={
-                    "X-Naver-Client-Id": client_id,
-                    "X-Naver-Client-Secret": client_secret,
-                },
+                headers=headers,
                 timeout=aiohttp.ClientTimeout(total=8),
             ) as res:
                 if res.status != 200:

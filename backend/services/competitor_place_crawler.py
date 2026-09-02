@@ -570,17 +570,15 @@ async def fetch_competitor_blog_mentions(competitor_name: str, region: str) -> i
     query_region  = f"{region_prefix} {_quoted_name}".strip() if region_prefix else _quoted_name
     query_name    = _quoted_name
 
-    headers = {
-        "X-Naver-Client-Id": naver_id,
-        "X-Naver-Client-Secret": naver_secret,
-    }
+    from services.naver_api_hub import search_request
+    url, headers = search_request("blog")
     timeout = aiohttp.ClientTimeout(total=6)
     best = 0
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
             # 1차: 지역+이름 쿼리 (가장 정확)
             async with session.get(
-                "https://openapi.naver.com/v1/search/blog.json",
+                url,
                 headers=headers,
                 params={"query": query_region, "display": 1},
             ) as resp:
@@ -593,7 +591,7 @@ async def fetch_competitor_blog_mentions(competitor_name: str, region: str) -> i
             # 2차: 이름 단독 쿼리 (1차가 0이거나 지역 없는 경우)
             if best == 0 and query_name != query_region:
                 async with session.get(
-                    "https://openapi.naver.com/v1/search/blog.json",
+                    url,
                     headers=headers,
                     params={"query": query_name, "display": 1},
                 ) as resp2:

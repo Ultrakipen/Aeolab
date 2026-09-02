@@ -23,7 +23,6 @@ import aiohttp
 _logger = logging.getLogger("aeolab.local_search")
 
 _KAKAO_LOCAL_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
-_NAVER_LOCAL_URL = "https://openapi.naver.com/v1/search/local.json"
 
 
 def strip_tags(text: str) -> str:
@@ -100,15 +99,15 @@ async def search_naver(query: str, region: str) -> list[dict]:
 
     full_query = f"{region.split()[0]} {query}".strip() if region else query
 
+    from services.naver_api_hub import search_request
+    url, headers = search_request("local")
+
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                _NAVER_LOCAL_URL,
+                url,
                 params={"query": full_query, "display": 5, "sort": "random"},
-                headers={
-                    "X-Naver-Client-Id": client_id,
-                    "X-Naver-Client-Secret": client_secret,
-                },
+                headers=headers,
                 timeout=aiohttp.ClientTimeout(total=5),
             ) as res:
                 if res.status != 200:
@@ -237,14 +236,15 @@ async def find_naver_place_id(name: str, address: str, region: str = "") -> str 
     if not client_id or not client_secret:
         return None
 
-    headers = {"X-Naver-Client-Id": client_id, "X-Naver-Client-Secret": client_secret}
+    from services.naver_api_hub import search_request
+    url, headers = search_request("local")
     region_prefix = region.split()[0] if region else (address.split()[0] if address else "")
     query = f"{region_prefix} {name}".strip()
 
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                _NAVER_LOCAL_URL, params={"query": query, "display": 5},
+                url, params={"query": query, "display": 5},
                 headers=headers, timeout=aiohttp.ClientTimeout(total=8),
             ) as res:
                 if res.status != 200:

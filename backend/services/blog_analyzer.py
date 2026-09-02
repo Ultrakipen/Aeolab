@@ -1286,13 +1286,12 @@ async def _search_naver_blog_once(
     def strip_tags(text: str) -> str:
         return re.sub(r"<[^>]+>", "", text or "").strip()
 
+    from services.naver_api_hub import search_request
+    _url, _headers = search_request("blog")
     request_kwargs = dict(
-        url="https://openapi.naver.com/v1/search/blog.json",
+        url=_url,
         params={"query": query, "display": display, "sort": "date"},
-        headers={
-            "X-Naver-Client-Id": client_id,
-            "X-Naver-Client-Secret": client_secret,
-        },
+        headers=_headers,
     )
     data = None
     # 429(rate limit)만 1회 재시도(backoff) — RSS(_fetch_naver_rss)·Gemini/ChatGPT/Claude와

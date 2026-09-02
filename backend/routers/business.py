@@ -72,15 +72,15 @@ async def search_address(name: str = Query(...), region: str = Query("")):
     def strip_tags(text: str) -> str:
         return re.sub(r"<[^>]+>", "", text or "")
 
+    from services.naver_api_hub import search_request
+    _url, _headers = search_request("local")
+
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                "https://openapi.naver.com/v1/search/local.json",
+                _url,
                 params={"query": query, "display": 10, "sort": "random"},
-                headers={
-                    "X-Naver-Client-Id": client_id,
-                    "X-Naver-Client-Secret": client_secret,
-                },
+                headers=_headers,
                 timeout=aiohttp.ClientTimeout(total=5),
             ) as res:
                 if res.status != 200:

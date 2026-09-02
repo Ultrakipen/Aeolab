@@ -2,8 +2,9 @@
 네이버 DataLab 검색어 트렌드 API 클라이언트
 기존 NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 사용 (별도 발급 불필요)
 
-API 문서: https://developers.naver.com/docs/serviceapi/datalab/search/search.md
-엔드포인트: POST https://openapi.naver.com/v1/datalab/search
+URL·인증 헤더는 services/naver_api_hub.datalab_request()가 생성 —
+NAVER_API_HUB_ENABLED 플래그로 개발자센터(openapi.naver.com)/API Hub(NCP) 전환.
+레거시 API 문서: https://developers.naver.com/docs/serviceapi/datalab/search/search.md
 """
 import logging
 import os
@@ -13,7 +14,6 @@ import aiohttp
 
 _logger = logging.getLogger(__name__)
 
-DATALAB_URL = "https://openapi.naver.com/v1/datalab/search"
 _TIMEOUT = aiohttp.ClientTimeout(total=10)
 
 # 캐시 유효 기간 (7일)
@@ -65,16 +65,13 @@ class NaverDataLabClient:
         if device:
             payload["device"] = device
 
-        headers = {
-            "X-Naver-Client-Id": self.client_id,
-            "X-Naver-Client-Secret": self.client_secret,
-            "Content-Type": "application/json",
-        }
+        from services.naver_api_hub import datalab_request
+        url, headers = datalab_request()
 
         try:
             async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
                 async with session.post(
-                    DATALAB_URL,
+                    url,
                     headers=headers,
                     json=payload,
                 ) as resp:

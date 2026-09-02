@@ -14,7 +14,6 @@ _logger = logging.getLogger("aeolab")
 
 _NAVER_ID     = os.getenv("NAVER_CLIENT_ID", "")
 _NAVER_SECRET = os.getenv("NAVER_CLIENT_SECRET", "")
-_BASE_URL     = "https://openapi.naver.com/v1/search"
 _TIMEOUT      = aiohttp.ClientTimeout(total=6)
 
 
@@ -107,21 +106,20 @@ def _clean_keyword(keyword: str) -> str:
     return cleaned
 
 
-async def _get(endpoint: str, params: dict) -> dict:
+async def _get(kind: str, params: dict) -> dict:
+    """kind: 'local' | 'blog' | 'news' (구 endpoint 파라미터의 '.json' 접미사는 제거됨)"""
     if not _NAVER_ID or not _NAVER_SECRET:
         return {}
-    headers = {
-        "X-Naver-Client-Id": _NAVER_ID,
-        "X-Naver-Client-Secret": _NAVER_SECRET,
-    }
+    from services.naver_api_hub import search_request
+    url, headers = search_request(kind)
     try:
         async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
-            async with session.get(f"{_BASE_URL}/{endpoint}", headers=headers, params=params) as resp:
+            async with session.get(url, headers=headers, params=params) as resp:
                 if resp.status == 200:
                     return await resp.json()
-                _logger.warning(f"Naver API {endpoint} HTTP {resp.status}")
+                _logger.warning(f"Naver API {kind} HTTP {resp.status}")
     except Exception as e:
-        _logger.warning(f"Naver API {endpoint} error: {e}")
+        _logger.warning(f"Naver API {kind} error: {e}")
     return {}
 
 
@@ -135,7 +133,7 @@ async def get_blog_doc_counts(keywords: list[str], max_concurrent: int = 5) -> d
 
     async def _one(kw: str) -> tuple[str, int | None]:
         async with sem:
-            data = await _get("blog.json", {"query": kw, "display": 1})
+            data = await _get("blog", {"query": kw, "display": 1})
             total = data.get("total")
             return kw, (int(total) if isinstance(total, int) else None)
 
@@ -206,11 +204,11 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
 
     # ── 병렬 호출: 지역 검색(20개) + 블로그 3종 + 최신 포스트 ─────
     local_data, blog_name_data, blog_region_data, blog_kw_data, blog_posts_data = await asyncio.gather(
-        _get("local.json", {"query": search_query,         "display": 20, "sort": "sim"}),
-        _get("blog.json",  {"query": blog_query_name,      "display": 1}),
-        _get("blog.json",  {"query": blog_query_region,    "display": 1}),
-        _get("blog.json",  {"query": blog_query_keyword,   "display": 1}),
-        _get("blog.json",  {"query": blog_query_region,    "display": 5, "sort": "date"}),
+        _get("local", {"query": search_query,         "display": 20, "sort": "sim"}),
+        _get("blog",  {"query": blog_query_name,      "display": 1}),
+        _get("blog",  {"query": blog_query_region,    "display": 1}),
+        _get("blog",  {"query": blog_query_keyword,   "display": 1}),
+        _get("blog",  {"query": blog_query_region,    "display": 5, "sort": "date"}),
         return_exceptions=True,
     )
 
@@ -236,7 +234,7 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
 
     # ── Fallback 1: 지역+업체명으로 직접 검색 (전국 동명업체 구분) ─────────
     if not is_smart_place and business_name and region_prefix:
-        direct_data = await _get("local.json", {
+        direct_data = await _get("local", {
             "query": f"{region_prefix} {business_name}",
             "display": 5,
             "sort": "sim",
@@ -252,7 +250,7 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
 
     # ── Fallback 2: 업체명 단독 검색 (지역이 없거나 Fallback 1 실패 시) ─────────
     if not is_smart_place and business_name:
-        direct_data2 = await _get("local.json", {
+        direct_data2 = await _get("local", {
             "query": business_name,
             "display": 5,
             "sort": "sim",
@@ -322,15 +320,15 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
         comp_region_name = f"{region_prefix} {_quoted_comp_name}".strip() if region_prefix else _quoted_comp_name
         if _kw_first:
             comp_base, comp_kw = await asyncio.gather(
-                _get("blog.json", {"query": comp_region_name,                  "display": 1}),
-                _get("blog.json", {"query": f"{comp_region_name} {_kw_first}", "display": 1}),
+                _get("blog", {"query": comp_region_name,                  "display": 1}),
+                _get("blog", {"query": f"{comp_region_name} {_kw_first}", "display": 1}),
             )
             if isinstance(comp_base, dict):
                 top_competitor_blog_count = int(comp_base.get("total", 0))
             if isinstance(comp_kw, dict):
                 competitor_kw_blog_count  = int(comp_kw.get("total", 0))
         else:
-            comp_blog_data = await _get("blog.json", {"query": comp_region_name, "display": 1})
+            comp_blog_data = await _get("blog", {"query": comp_region_name, "display": 1})
             if isinstance(comp_blog_data, dict):
                 top_competitor_blog_count = int(comp_blog_data.get("total", 0))
 
@@ -508,8 +506,8 @@ async def get_mini_serp(keyword: str) -> dict:
         }
     """
     blog_data, news_data = await asyncio.gather(
-        _get("blog.json", {"query": keyword, "display": 3, "sort": "sim"}),
-        _get("news.json", {"query": keyword, "display": 3, "sort": "date"}),
+        _get("blog", {"query": keyword, "display": 3, "sort": "sim"}),
+        _get("news", {"query": keyword, "display": 3, "sort": "date"}),
         return_exceptions=True,
     )
 

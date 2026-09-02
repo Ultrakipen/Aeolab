@@ -16,7 +16,6 @@ import aiohttp
 
 _logger = logging.getLogger("aeolab")
 
-_CAFE_API_URL = "https://openapi.naver.com/v1/search/cafearticle.json"
 _DEFAULT_DISPLAY = 20  # 한 쿼리당 최대 결과 수 (API 최대 100, 비용 절약 위해 20)
 _REQUEST_TIMEOUT = 10.0
 
@@ -33,14 +32,13 @@ async def _search_cafe(
     display: int = _DEFAULT_DISPLAY,
 ) -> list[dict]:
     """단일 쿼리로 네이버 카페 기사 검색 → 항목 목록 반환"""
+    from services.naver_api_hub import search_request
+    url, headers = search_request("cafearticle")
     try:
         async with session.get(
-            _CAFE_API_URL,
+            url,
             params={"query": query, "display": display, "sort": "sim"},
-            headers={
-                "X-Naver-Client-Id": client_id,
-                "X-Naver-Client-Secret": client_secret,
-            },
+            headers=headers,
             timeout=aiohttp.ClientTimeout(total=_REQUEST_TIMEOUT),
         ) as resp:
             if resp.status != 200:

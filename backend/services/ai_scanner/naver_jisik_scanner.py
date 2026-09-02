@@ -16,7 +16,6 @@ import aiohttp
 
 _logger = logging.getLogger("aeolab")
 
-_KIN_API_URL = "https://openapi.naver.com/v1/search/kin.json"
 _DEFAULT_DISPLAY = 10  # 지식인은 결과 수가 적어 10개로도 충분
 _REQUEST_TIMEOUT = 10.0
 
@@ -33,14 +32,13 @@ async def _search_kin(
     display: int = _DEFAULT_DISPLAY,
 ) -> tuple[list[dict], int]:
     """단일 쿼리로 네이버 지식인 검색 → (항목 목록, total) 반환"""
+    from services.naver_api_hub import search_request
+    url, headers = search_request("kin")
     try:
         async with session.get(
-            _KIN_API_URL,
+            url,
             params={"query": query, "display": display, "sort": "sim"},
-            headers={
-                "X-Naver-Client-Id": client_id,
-                "X-Naver-Client-Secret": client_secret,
-            },
+            headers=headers,
             timeout=aiohttp.ClientTimeout(total=_REQUEST_TIMEOUT),
         ) as resp:
             if resp.status != 200:
