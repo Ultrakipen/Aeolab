@@ -119,6 +119,24 @@ export default async function AdDefensePage() {
     if (!lastScanByBiz[s.business_id]) lastScanByBiz[s.business_id] = s.scanned_at;
   });
 
+  // 사업장별 마지막 생성 결과 복원 — 기존엔 생성 결과가 React state에만 존재해 새로고침·
+  // 재방문 시 영구 소실됐음(유료 플랜 월 5~10회 한도를 태워 만든 Claude Sonnet 결과인데
+  // 다시 보려면 또 한도를 소모해 재생성해야 했던 문제, 2026-09-02 수정).
+  const { data: recentGuides } = await supabase
+    .from("guides")
+    .select("business_id, items_json, generated_at")
+    .in("business_id", bizIds)
+    .eq("context", "ad_defense")
+    .order("generated_at", { ascending: false });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DB에서 그대로 전달, 실제 shape은 AdDefenseClient의 AdDefenseResult
+  const lastResultByBiz: Record<string, { result: any; generatedAt: string }> = {};
+  recentGuides?.forEach((g) => {
+    if (!lastResultByBiz[g.business_id] && g.items_json) {
+      lastResultByBiz[g.business_id] = { result: g.items_json, generatedAt: g.generated_at };
+    }
+  });
+
   // 다른 페이지(대시보드·경쟁사·가이드 등)와 동일하게 aeolab_active_biz 쿠키 기준으로 기본
   // 선택 사업장을 맞춘다 — businesses[0] 고정 시 사업장 전환 후 이 페이지로 오면 항상
   // 첫 번째 등록 사업장으로 되돌아가던 버그(553bc54와 동일 클래스, 이 페이지는 누락돼 있었음).
@@ -127,5 +145,12 @@ export default async function AdDefensePage() {
     ? activeBizId
     : businesses[0].id;
 
-  return <AdDefenseClient businesses={businesses} lastScanByBiz={lastScanByBiz} initialBizId={initialBizId} />;
+  return (
+    <AdDefenseClient
+      businesses={businesses}
+      lastScanByBiz={lastScanByBiz}
+      lastResultByBiz={lastResultByBiz}
+      initialBizId={initialBizId}
+    />
+  );
 }

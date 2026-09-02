@@ -73,10 +73,16 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
     { data: scans },
     { count: guideUsed },
   ] = await Promise.all([
+    // context 필터 필수(2026-09-02 수정) — guides 테이블은 ad_defense·crisis_reply·
+    // startup_report·faq_draft 등 다른 기능도 같은 테이블에 카운터 행을 insert한다.
+    // 필터 없이 최신 1건을 가져오면 이 페이지가 방금 그 기능들 중 하나를 쓴 직후
+    // 방문 시 내용 없는(items_json/summary가 null인) 카운터 행을 "가이드"로 잘못
+    // 표시한다(guide는 truthy라 "가이드 없음" 안내도 안 뜸).
     supabase
       .from('guides')
       .select('id, business_id, context, next_month_goal, priority_json, tools_json, scan_id, summary, items_json, generated_at')
       .eq('business_id', business.id)
+      .in('context', ['location_based', 'non_location'])
       .order('generated_at', { ascending: false })
       .limit(1),
     supabase
@@ -86,11 +92,12 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
       .order('scanned_at', { ascending: false })
       .limit(1),
     // 가이드 월 한도는 사업장이 아닌 계정 단위(모든 보유 사업장 합산)로 집계됨
-    // (backend/middleware/plan_gate.py check_guide_limit()과 동일 스코프 — 불일치 시 한도 우회 오표시)
+    // (backend/middleware/plan_gate.py check_guide_limit()과 동일 스코프+context 필터 — 불일치 시 한도 우회 오표시)
     supabase
       .from('guides')
       .select('id', { count: 'exact', head: true })
       .in('business_id', (businesses ?? []).map(b => b.id))
+      .in('context', ['location_based', 'non_location'])
       .gte('generated_at', monthStart.toISOString()),
   ])
 

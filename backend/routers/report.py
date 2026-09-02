@@ -1059,6 +1059,9 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
             supabase.table("guides")
             .select("summary, items_json")
             .eq("business_id", biz_id)
+            # context 필터 필수 — ad_defense 등 다른 기능의 콘텐츠 없는 카운터 행이
+            # "최신 가이드"로 잘못 선택되는 것 방지(2026-09-02, guide.py get_latest_guide와 동일 수정)
+            .in_("context", ["location_based", "non_location"])
             .order("generated_at", desc=True)
             .limit(1)
         ),
@@ -2116,6 +2119,8 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
             supabase.table("guides")
             .select("tools_json")
             .eq("business_id", biz_id)
+            # context 필터 필수(2026-09-02) — tools_json은 개선 가이드에만 채워짐
+            .in_("context", ["location_based", "non_location"])
             .order("generated_at", desc=True)
             .limit(1)
             .maybe_single()

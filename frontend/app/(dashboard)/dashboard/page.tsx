@@ -122,8 +122,11 @@ export default async function DashboardPage({
         business.category && business.region
           ? fetch(`${BACKEND}/api/report/benchmark/${business.category}/${encodeURIComponent(business.region)}`).then((r) => r.ok ? r.json() : null).catch(() => null)
           : Promise.resolve(null),
+        // context 필터 필수(2026-09-02) — 없으면 ad_defense 등 다른 기능의 콘텐츠 없는
+        // 카운터 행이 최신일 때 대시보드 "다음 할 일" 카드가 빈 값으로 표시됨
         supabase.from("guides").select("priority_json, next_month_goal, tools_json")
-          .eq("business_id", business.id).order("generated_at", { ascending: false }).limit(1)
+          .eq("business_id", business.id).in("context", ["location_based", "non_location"])
+          .order("generated_at", { ascending: false }).limit(1)
           .then((r) => ({ data: r.data?.[0] ?? null })),
         supabase.from("scan_results").select("id", { count: "exact", head: true })
           .eq("business_id", business.id).gte("scanned_at", todayISO + "T00:00:00"),

@@ -48,19 +48,32 @@ function formatScanDate(dateStr: string): string {
 export function AdDefenseClient({
   businesses,
   lastScanByBiz = {},
+  lastResultByBiz = {},
   initialBizId,
 }: {
   businesses: Array<{ id: string; name: string }>;
   lastScanByBiz?: Record<string, string>;
+  lastResultByBiz?: Record<string, { result: AdDefenseResult; generatedAt: string }>;
   initialBizId?: string;
 }) {
-  const [bizId, setBizId] = useState(initialBizId ?? businesses[0]?.id ?? "");
+  const startBizId = initialBizId ?? businesses[0]?.id ?? "";
+  const [bizId, setBizId] = useState(startBizId);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AdDefenseResult | null>(null);
+  const [result, setResult] = useState<AdDefenseResult | null>(lastResultByBiz[startBizId]?.result ?? null);
+  const [resultSavedAt, setResultSavedAt] = useState<string | null>(lastResultByBiz[startBizId]?.generatedAt ?? null);
   const [error, setError] = useState("");
 
   const lastScanDate = lastScanByBiz[bizId];
   const scanDays = lastScanDate ? daysAgo(lastScanDate) : null;
+
+  function handleBizChange(nextBizId: string) {
+    setBizId(nextBizId);
+    setError("");
+    // 사업장 전환 시 이전 사업장 결과가 그대로 남아있으면(라벨 없이) 다른 사업장의
+    // 가이드로 오인될 수 있어, 전환한 사업장의 저장된 결과(없으면 빈 화면)로 교체
+    setResult(lastResultByBiz[nextBizId]?.result ?? null);
+    setResultSavedAt(lastResultByBiz[nextBizId]?.generatedAt ?? null);
+  }
 
   async function handleGenerate() {
     if (!bizId) return;
@@ -104,6 +117,7 @@ export function AdDefenseClient({
       }
       const data = await res.json();
       setResult(data);
+      setResultSavedAt(null); // 방금 생성한 결과 — "저장된 결과" 배지 미노출
     } catch {
       setError("가이드 생성 중 오류가 발생했습니다.");
     } finally {
@@ -150,7 +164,7 @@ export function AdDefenseClient({
           <label className="block text-sm font-medium text-gray-700 mb-1.5">사업장 선택</label>
           <select
             value={bizId}
-            onChange={(e) => setBizId(e.target.value)}
+            onChange={(e) => handleBizChange(e.target.value)}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
             {businesses.map((b) => (
@@ -203,7 +217,14 @@ export function AdDefenseClient({
         <>
           {/* 현황 요약 */}
           <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-4">
-            <h2 className="text-base font-semibold text-gray-700 mb-3">현재 상황</h2>
+            <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+              <h2 className="text-base font-semibold text-gray-700">현재 상황</h2>
+              {resultSavedAt && (
+                <span className="text-sm text-gray-500">
+                  마지막 생성 결과 · {formatScanDate(resultSavedAt)}
+                </span>
+              )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
               <div className="text-center p-4 bg-gray-50 rounded-xl">
                 <div className="text-lg md:text-xl font-bold text-gray-900">{getScoreTextLabel(result.current_score)}</div>

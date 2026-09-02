@@ -2762,12 +2762,15 @@ async def _auto_generate_guide(business_id: str, scan_id: str) -> None:
 
         supabase = get_client()
 
-        # 오늘 이미 가이드가 생성됐으면 스킵
+        # 오늘 이미 (개선) 가이드가 생성됐으면 스킵 — context 필터 필수(2026-09-02):
+        # 필터 없으면 오늘 ad_defense·faq_draft 등 다른 기능만 썼는데도 "이미 생성됨"으로
+        # 오판해 실제 개선 가이드 자동 생성이 스킵됨
         today_start = date.today().isoformat() + "T00:00:00"
         existing = await execute(
             supabase.table("guides")
             .select("id", count="exact")
             .eq("business_id", business_id)
+            .in_("context", ["location_based", "non_location"])
             .gte("generated_at", today_start)
         )
         if existing.count and existing.count > 0:

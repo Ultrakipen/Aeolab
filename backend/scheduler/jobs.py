@@ -1189,6 +1189,9 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
             supabase.table("guides")
             .select("items_json")
             .eq("business_id", biz_id)
+            # context 필터 필수(2026-09-02) — 필터 없으면 ad_defense 등 콘텐츠 없는
+            # 카운터 행이 최근일 때 AEOLAB_ACTION_01 알림톡이 "할 일" 없이 발송됨
+            .in_("context", ["location_based", "non_location"])
             .order("generated_at", desc=True)
             .limit(1)
         )

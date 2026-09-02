@@ -226,6 +226,15 @@ async def get_user_plan(user_id: str, supabase) -> str:
 async def check_guide_limit(user_id: str, supabase) -> tuple[bool, int, int]:
     """월 가이드 생성 한도 체크 (guides → businesses → user_id 조인).
 
+    ⚠️ context 필터 필수 (2026-09-02 수정): guides 테이블은 ad_defense·crisis_reply·
+    startup_report·faq_draft·intro_draft·talktalk_faq·post_draft 등 서로 독립적인
+    한도(check_ad_defense_limit 등)를 가진 다른 기능들도 같은 테이블에 사용량 카운터
+    행을 insert한다. context 필터 없이 COUNT하면 다른 기능 사용이 "AI 개선 가이드"
+    월 한도(Basic 3회 등)를 조용히 갉아먹는다 — 예: FAQ 초안 2회 생성만으로 개선
+    가이드를 한 번도 안 써봤는데 한도 초과로 표시됨. 개선 가이드 생성 시 실제로
+    쓰는 context 값은 line 773 `context = biz.get("business_type") or "location_based"`
+    뿐이라 location_based/non_location 두 값으로 한정한다.
+
     Returns:
         (allowed, used_count, monthly_limit)
     """
@@ -248,6 +257,7 @@ async def check_guide_limit(user_id: str, supabase) -> tuple[bool, int, int]:
         supabase.table("guides")
         .select("id", count="exact")
         .in_("business_id", biz_ids)
+        .in_("context", ["location_based", "non_location"])
         .gte("generated_at", month_start)
     )
     used = result.count or 0

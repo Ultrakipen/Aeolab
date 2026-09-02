@@ -204,8 +204,16 @@ async def update_checklist(guide_id: str, payload: ChecklistUpdate, current_user
 
 
 @router.get("/{biz_id}/latest")
-async def get_latest_guide(biz_id: str, scan_id: str | None = None, user=Depends(get_current_user)):
-    """최신 가이드 조회 (ActionPlan 구조 포함). scan_id 지정 시 해당 스캔의 가이드만 반환(재생성 폴링용)"""
+async def get_latest_guide(biz_id: str, scan_id: str | None = None, context: str | None = None, user=Depends(get_current_user)):
+    """최신 가이드 조회 (ActionPlan 구조 포함). scan_id 지정 시 해당 스캔의 가이드만 반환(재생성 폴링용)
+
+    guides 테이블은 ad_defense·crisis_reply·startup_report·faq_draft·intro_draft·
+    talktalk_faq·post_draft 등 서로 다른 기능의 카운터/콘텐츠 행을 함께 저장한다.
+    context 필터 없이 business_id만으로 "가장 최근 1건"을 가져오면 다른 기능을 방금
+    사용한 직후 이 엔드포인트가 그 행(대부분 items_json이 비어있음)을 반환한다 —
+    GuideClient.tsx:2665가 이미 `?context=post_draft`로 이 필터링을 기대하고 호출하고
+    있었으나 파라미터 자체가 구현돼 있지 않아 무시되고 있었음(2026-09-02 발견·수정).
+    """
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
     query = (
@@ -214,7 +222,13 @@ async def get_latest_guide(biz_id: str, scan_id: str | None = None, user=Depends
         .eq("business_id", biz_id)
     )
     if scan_id:
+        # 개선 가이드(location_based/non_location)만 scan_id를 채워 저장하므로
+        # 이 필터만으로 이미 다른 context의 카운터 행과 구분됨
         query = query.eq("scan_id", scan_id)
+    elif context:
+        query = query.eq("context", context)
+    else:
+        query = query.in_("context", ["location_based", "non_location"])
     result = await execute(query.order("generated_at", desc=True).limit(1))
     if not result.data:
         raise HTTPException(status_code=404, detail="No guide found")
@@ -697,6 +711,10 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
         result = await svc.generate(biz, scan[0], eligibility, competitor_names, gap_keywords)
 
         # 사용량 카운트 — AI 호출 성공 후에만 기록 (crisis_reply와 동일 원칙)
+        # items_json에 결과 전체를 저장(2026-09-02 추가) — 기존엔 카운터 행만 남기고
+        # 실제 가이드 내용은 응답 한 번(React state)에만 존재해 페이지 새로고침·재방문 시
+        # 영구 소실됐음. 유료 플랜 월 한도(Pro 5/Biz 10회)를 태워 만든 Claude Sonnet
+        # 결과인데 다시 보려면 한도를 또 소모해 재생성해야 했던 문제.
         is_fallback = result.get("is_fallback", False) if isinstance(result, dict) else False
         if not is_fallback:
             try:
@@ -704,6 +722,7 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
                     supabase.table("guides").insert({
                         "business_id": biz_id,
                         "context": "ad_defense",
+                        "items_json": result if isinstance(result, dict) else None,
                         "generated_at": datetime.now(timezone.utc).isoformat(),
                     })
                 )
