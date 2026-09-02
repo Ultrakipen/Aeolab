@@ -43,8 +43,8 @@ EMAIL_TEMPLATES: dict[str, dict] = {
         "body_template": (
             "<div style='font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1e293b;'>"
             "<h2 style='color:#1d4ed8;margin-bottom:8px;'>{biz_name} AI 노출 점수 변화</h2>"
-            "<p style='font-size:16px;'>점수가 <strong>{score_before}점</strong> → "
-            "<strong style='color:#16a34a;'>{score_after}점</strong>으로 변동했습니다.</p>"
+            "<p style='font-size:16px;'>상태가 <strong>{score_before}</strong> → "
+            "<strong style='color:#16a34a;'>{score_after}</strong>(으)로 변동했습니다.</p>"
             "<p style='font-size:13px;color:#64748b;'>자세한 내용은 대시보드에서 확인하세요.<br>"
             "<a href='https://aeolab.co.kr/dashboard'>https://aeolab.co.kr/dashboard</a></p>"
             "<hr style='border:none;border-top:1px solid #e2e8f0;margin:20px 0;'>"

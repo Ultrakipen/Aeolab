@@ -1054,7 +1054,11 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
     biz = biz_list[0]
     biz_id = biz.get("id")
     biz_name = biz.get("name", "")
-    phone = (user.get("profiles") or {}).get("phone")
+    _profile = user.get("profiles") or {}
+    phone = _profile.get("phone")
+    # 다른 알림 잡들(day7_rescan_job 등)과 동일 관례: 명시적 False만 차단, 미설정(None)은 기본 발송
+    scan_notify_on = _profile.get("kakao_scan_notify") is not False
+    competitor_notify_on = _profile.get("kakao_competitor_notify") is not False
 
     if not biz_id:
         return
@@ -1068,10 +1072,12 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
         .limit(2)
     )
     history = _hist_res.data or []
-    if len(history) >= 2 and phone:
+    if len(history) >= 2 and phone and scan_notify_on:
         curr_h = history[0]
         prev_h = history[1]
-        if abs(curr_h["total_score"] - prev_h["total_score"]) > 0:
+        # 임계값 0→3점: Pro/Biz는 매일 스캔+매일 알림 잡이 실행되어 측정 노이즈 수준의
+        # 미세 변동(예: 0.1점)에도 매일 카톡이 발송되던 문제 — 체감 가능한 변화에만 알림
+        if abs(curr_h["total_score"] - prev_h["total_score"]) >= 3:
             await notifier.send_score_change(
                 phone, biz_name,
                 prev_h["total_score"], curr_h["total_score"],
@@ -1080,7 +1086,7 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
             )
 
     # 2. AI 인용 실증 알림 (최근 1일 신규 인용 첫 건)
-    if phone:
+    if phone and scan_notify_on:
         _cit_res = await _db(
             supabase.table("ai_citations")
             .select("platform, query, excerpt")
@@ -1100,7 +1106,7 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
             )
 
     # 3. 경쟁사 순위 변화 알림
-    if phone:
+    if phone and competitor_notify_on:
         _scan_res = await _db(
             supabase.table("scan_results")
             .select("competitor_scores, total_score")
@@ -1127,7 +1133,7 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
                     break  # 첫 번째 변화만 알림
 
     # 4. 이달 할 일 알림 (가이드 최신 항목 3개)
-    if phone:
+    if phone and scan_notify_on:
         _guide_res = await _db(
             supabase.table("guides")
             .select("items_json")
@@ -1195,7 +1201,7 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
                 competitor_items=competitor_items,
                 hint=hint,
             )
-            if gap_url and phone:
+            if gap_url and phone and scan_notify_on:
                 await notifier.send_gap_card_url(phone, biz_name, gap_url)
     except Exception as gap_err:
         logger.warning(f"Gap card generation failed for {biz_name}: {gap_err}")
@@ -1312,7 +1318,7 @@ async def weekly_kakao_notify():
                 uid = sub["user_id"]
                 # profiles/businesses 별도 조회 (subscriptions↔profiles FK 미등록, daily_kakao_notify와 동일 패턴)
                 _ph_res = await _db(
-                    supabase.table("profiles").select("phone").eq("user_id", uid).limit(1)
+                    supabase.table("profiles").select("phone, kakao_scan_notify, kakao_competitor_notify").eq("user_id", uid).limit(1)
                 )
                 _biz_res = await _db(
                     supabase.table("businesses")
@@ -1413,7 +1419,7 @@ async def daily_kakao_notify():
                 uid = sub["user_id"]
                 # profiles phone 별도 조회 (subscriptions↔profiles FK 미등록)
                 _ph_res = await _db(
-                    supabase.table("profiles").select("phone").eq("user_id", uid).limit(1)
+                    supabase.table("profiles").select("phone, kakao_scan_notify, kakao_competitor_notify").eq("user_id", uid).limit(1)
                 )
                 _biz_res = await _db(
                     supabase.table("businesses")
