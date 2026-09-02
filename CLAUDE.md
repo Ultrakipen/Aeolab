@@ -189,8 +189,10 @@
 | `docs/closure_rate_data_source_investigation_v1.0.md` | 창업 시장 분석용 지역별 폐업율 데이터 소스 조사 — **조사·매핑·라이브 검증 전부 완료(2026-09-01), 재점검 불필요.** 행안부 지방행정 인허가 통합API로 16개 업종(음식점·카페·미용·숙박·피트니스·애견·약국·마사지·댄스·무술·안경원·노래방·당구장 등) 검증 완료, 지역 필터는 `cond[LOTNO_ADDR::LIKE]=<지역명>` 확정. `bar`는 `general_restaurants`를 `BZSTAT_SE_NM`으로 필터링. 골프·수영장·찜질방은 SearchAd 실측 검색량이 낮아 제외 확정. 학원/독서실(NEIS)은 폐업 이력이 없어 이 기능엔 사용 불가. 요가/필라테스·스터디카페·클라이밍·방탈출은 커버 불가 |
 | `docs/closure_rate_feature_implementation_plan_v1.0.md` | 폐업율 기능 설계 + 외부상업서비스 벤치마크 재검증(2026-09-01) — SBIZ "창업진단(생존가능성)"과 개념 일치 확인, 실제 누락 1건(AI 프롬프트 미반영) 발견·아키텍처 정정. **구현·배포·실측검증 전체 완료(2026-09-01)** — 재작업 불필요, 상세는 아래 "최근 업데이트" 참조 |
 | **`docs/dashboard_load_test_and_capacity_v1.0.md`** ⭐ | **대시보드 페이지 부하테스트 실측 — QA임시계정+`@supabase/ssr` 쿠키 리버스엔지니어링으로 실제 로그인 세션 확보해 라이브 `/dashboard` 동시성 5~80 램프. 동시 30명은 3~9초, 50명 부근에서 34초로 급붕괴하나 그 순간 서버 CPU/RAM은 완전 유휴 — **병목이 vCPU2 서버가 아니라 대시보드 1회 로드당 약10개 Supabase 병렬쿼리의 Supabase Cloud 큐잉**임을 확인. vCPU/RAM 업그레이드로 해결 안 되는 별도 축(기존 Playwright 세마포어/워커=1 이슈와 무관). 페이지 동시접속 실질 안전선 약 30명 (2026-08-23)** |
+| **`docs/guide_sibling_pages_inspection_v1.0.md`** ⭐ | **`/guide/chatgpt-search` 점검(사실정확성·논리모순·PC/모바일 디자인, git `dd58c2b`·`09ff1ac`) 완료 후 형제 페이지 `/guide/channels/[category]` 점검용 트리거 문서 — 동일 방법론 재사용 절차 + "오픈 전 트래픽 낮은 건 문제 아님" 주의사항 포함 (2026-09-02)** |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
+> **가이드 형제 페이지 점검**: `docs/guide_sibling_pages_inspection_v1.0.md 기준으로 /guide/channels/[category] 점검 진행`
 > **관리자 화면 점검**: 완료됨 — 재점검 불필요(위 표 참조)
 > **관리자 기능 작업**: `docs/admin_panel_complete_documentation_v1.0.md 기준으로 관리자 페이지 현황 확인 후 진행`
 > **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
