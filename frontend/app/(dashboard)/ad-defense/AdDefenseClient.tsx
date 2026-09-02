@@ -7,7 +7,9 @@ import { getScoreTextLabel } from "@/lib/scoreLabels";
 interface AdDefenseGuide {
   situation_summary?: string;
   risk_level?: string;
-  organic_strategies?: Array<{ title: string; description: string; priority: string }>;
+  // steps는 신규 구조화 형식(2026-09-02), description은 그 이전 저장된 가이드용
+  // 하위호환 — steps가 있으면 체크리스트형 목록으로, 없으면 description을 문단으로 렌더링
+  organic_strategies?: Array<{ title: string; summary?: string; steps?: string[]; description?: string; priority: string }>;
   content_actions?: string[];
   schema_recommendations?: string[];
   timeline?: string;
@@ -43,6 +45,23 @@ const MOMENTUM_LABELS: Record<string, { text: string; className: string }> = {
   declined: { text: "지난 가이드 대비 다소 낮아짐", className: "text-amber-700 bg-amber-50" },
   steady: { text: "지난 가이드 대비 변화 적음", className: "text-gray-600 bg-gray-100" },
 };
+
+// "현재 상황" 3칸이 ChatGPT 카드만 상태별 배경색이 있고 나머지 2칸은 항상 회색이라
+// 한 줄 안에서 시각 언어가 일관되지 않던 문제 수정(2026-09-02) — 나머지 2칸도 같은
+// 방식(상태 반영 배경색)으로 통일. 임계값은 DashboardHeroCard.getStage()와 동일(75/55/30).
+function scoreStatusBg(score: number): string {
+  if (score >= 75) return "bg-emerald-50";
+  if (score >= 55) return "bg-blue-50";
+  if (score >= 30) return "bg-amber-50";
+  return "bg-gray-50";
+}
+function geminiExposureBg(freq: number, sampleSize: number): string {
+  if (sampleSize <= 0) return "bg-gray-50";
+  const ratio = freq / sampleSize;
+  if (ratio >= 0.3) return "bg-emerald-50";
+  if (ratio > 0) return "bg-amber-50";
+  return "bg-red-50";
+}
 
 function daysAgo(dateStr: string): number {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
@@ -163,7 +182,8 @@ export function AdDefenseClient({
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto">
+    <div className="max-w-3xl">
       <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">AI 광고 대비 가이드</h1>
       <p className="text-base text-gray-500 mb-5">
         이미 도입되어 확대되고 있는 ChatGPT 광고 속 유기적 AI 노출을 유지하는 전략을 제공합니다.
@@ -250,9 +270,14 @@ export function AdDefenseClient({
           {loading ? "가이드 생성 중 (10~20초)..." : "광고 대응 가이드 생성"}
         </button>
       </section>
+    </div>
 
       {result && (
-        <>
+        // PC(lg 1024px+)에서는 화면 폭을 활용해 좌(핵심 전략)/우(참고 자료) 2단으로 배치.
+        // 그 아래 화면폭에서는 기존처럼 세로 1단 스택(2026-09-02 재설계 — 이전엔 1400px
+        // 화면에서도 본문이 항상 ~660px 단일 컬럼이라 오른쪽이 여백으로 낭비되고 있었음)
+        <div className="lg:grid lg:grid-cols-[1.65fr_1fr] lg:gap-6 lg:items-start">
+        <div className="min-w-0">
           {/* 현황 요약 */}
           <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-4">
             <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
@@ -264,11 +289,11 @@ export function AdDefenseClient({
               )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-              <div className="text-center p-4 bg-gray-50 rounded-xl">
+              <div className={`text-center p-4 rounded-xl ${scoreStatusBg(result.current_score)}`}>
                 <div className="text-lg md:text-xl font-bold text-gray-900">{getScoreTextLabel(result.current_score)}</div>
                 <div className="text-sm text-gray-500 mt-1">AI 노출 상태</div>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-xl">
+              <div className={`text-center p-4 rounded-xl ${result.sample_size === 0 ? "bg-gray-50" : geminiExposureBg(result.exposure_freq, result.sample_size ?? 0)}`}>
                 {result.sample_size === 0 ? (
                   <div className="text-lg md:text-xl font-bold text-gray-500">측정 실패</div>
                 ) : (
@@ -327,7 +352,7 @@ export function AdDefenseClient({
                 {result.guide.organic_strategies.map((s, i) => (
                   <label
                     key={i}
-                    className={`flex gap-3 border-l-4 pl-4 py-2 ${PRIORITY_COLORS[s.priority] ?? "border-l-gray-300"} ${result.id ? "cursor-pointer" : ""}`}
+                    className={`flex gap-3 border-l-4 pl-4 py-2.5 ${PRIORITY_COLORS[s.priority] ?? "border-l-gray-300"} ${result.id ? "cursor-pointer" : ""}`}
                   >
                     {result.id && (
                       <input
@@ -337,18 +362,40 @@ export function AdDefenseClient({
                         className="mt-1 w-5 h-5 shrink-0 accent-blue-600"
                       />
                     )}
-                    <div>
+                    <div className="min-w-0">
                       <p className={`text-base font-semibold ${checkedItems.has(i) ? "text-gray-400 line-through" : "text-gray-900"}`}>{s.title}</p>
-                      <p className={`text-sm mt-0.5 leading-relaxed ${checkedItems.has(i) ? "text-gray-400" : "text-gray-600"}`}>{s.description}</p>
+                      {/* steps(신규, 배열)가 있으면 실제 목록으로 렌더링 — 없으면(과거 저장된
+                          가이드) description 문단을 그대로 표시(하위호환, 2026-09-02) */}
+                      {s.steps && s.steps.length > 0 ? (
+                        <>
+                          {s.summary && (
+                            <p className={`text-sm mt-0.5 leading-relaxed ${checkedItems.has(i) ? "text-gray-400" : "text-gray-600"}`}>{s.summary}</p>
+                          )}
+                          <ul className="mt-1.5 space-y-1">
+                            {s.steps.map((step, si) => (
+                              <li key={si} className={`text-sm leading-relaxed flex gap-1.5 ${checkedItems.has(i) ? "text-gray-400" : "text-gray-600"}`}>
+                                <span className="shrink-0">·</span>{step}
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      ) : (
+                        s.description && (
+                          <p className={`text-sm mt-0.5 leading-relaxed ${checkedItems.has(i) ? "text-gray-400" : "text-gray-600"}`}>{s.description}</p>
+                        )
+                      )}
                     </div>
                   </label>
                 ))}
               </div>
             </section>
           )}
+        </div>
 
+        {/* 참고 자료 — PC에서는 오른쪽 사이드 컬럼, 그 아래에서는 세로로 이어짐 */}
+        <div className="space-y-4">
           {/* 콘텐츠 액션 + 스키마 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
             {result.guide.content_actions && (
               <section className="bg-white rounded-xl p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-gray-700 mb-3">즉시 실행 액션</h2>
@@ -381,7 +428,8 @@ export function AdDefenseClient({
               <p className="text-sm text-blue-700">{result.guide.timeline}</p>
             </section>
           )}
-        </>
+        </div>
+        </div>
       )}
     </div>
   );

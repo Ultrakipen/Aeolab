@@ -235,7 +235,12 @@ Gemini 노출 실측값(위에 제공된 "N회 샘플링 중 M회")은 현재 �
   "situation_summary": "현재 상황 2문장 요약 — 듀얼트랙 비율과 네이버 상태를 배경으로 반영",
   "risk_level": "low/medium/high",
   "organic_strategies": [
-    {{"title": "전략명", "description": "상세 설명", "priority": "high/medium/low"}},
+    {{
+      "title": "전략명",
+      "summary": "이 전략이 왜 필요한지 1문장",
+      "steps": ["구체적 실행 단계 1(한 문장, 마침표로 끝낼 것)", "단계 2", "단계 3"],
+      "priority": "high/medium/low"
+    }},
     ...
   ],
   "content_actions": ["즉시 실행 콘텐츠 액션 1", "액션 2", "액션 3"],
@@ -243,7 +248,9 @@ Gemini 노출 실측값(위에 제공된 "N회 샘플링 중 M회")은 현재 �
   "timeline": "단기(1개월)/중기(3개월)/장기(6개월) 실행 로드맵 요약"
 }}
 
-organic_strategies는 5개, 소상공인이 직접 실행 가능한 것 위주로."""
+organic_strategies는 5개, 소상공인이 직접 실행 가능한 것 위주로. 각 전략의 steps는
+2~4개, 번호나 ①②③ 같은 기호를 문장 안에 넣지 말고(이미 배열이라 불필요) 항목당
+하나의 독립된 실행 단계만 담을 것 — 화면에 실제 체크리스트로 렌더링된다."""
 
         from services.anthropic_retry import create_message_with_retry
         try:
