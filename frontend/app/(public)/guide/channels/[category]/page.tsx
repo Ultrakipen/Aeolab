@@ -1,9 +1,11 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { Bot, Sparkles, Globe, type LucideIcon } from "lucide-react"
 import { SiteFooter } from "@/components/common/SiteFooter"
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd"
+import { ActionChecklist } from "./ActionChecklist"
 import {
   CHANNEL_GUIDE_MAP,
   CHANNEL_GUIDE,
@@ -43,7 +45,15 @@ export async function generateMetadata({
 }
 
 // ── 채널 카드 데이터 ─────────────────────────────────────────────────────
-function getChannelCards(entry: ChannelGuideEntry) {
+function getChannelCards(entry: ChannelGuideEntry): {
+  id: string
+  title: string
+  subtitle: string
+  status: string
+  statusColor: string
+  detail: string
+  icon: LucideIcon
+}[] {
   return [
     {
       id: "briefing",
@@ -57,7 +67,7 @@ function getChannelCards(entry: ChannelGuideEntry) {
           : entry.briefing === "likely"
           ? "'플레이스형' AI 브리핑 확대 예정 업종입니다. 업종 확대 시 즉시 노출 대상이 됩니다. (네이버 AI탭은 이미 전체 업종 대상으로 정식 출시되었습니다 — 아래 AI탭 카드 참고)"
           : "'플레이스형' AI 브리핑 대상 업종은 아니지만, 블로그·콘텐츠가 갖춰지면 업종 제한 없는 '정보형 AI 브리핑'에는 노출될 수 있습니다. AI탭과 글로벌 AI에도 집중하세요.",
-      icon: "🤖",
+      icon: Bot,
     },
     {
       id: "aitab",
@@ -67,7 +77,7 @@ function getChannelCards(entry: ChannelGuideEntry) {
       statusColor: "bg-violet-100 text-violet-800",
       detail:
         "2026-04-27 베타, 정식 출시. 업종 제한 발표가 없습니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
-      icon: "✨",
+      icon: Sparkles,
     },
     {
       id: "global",
@@ -79,7 +89,7 @@ function getChannelCards(entry: ChannelGuideEntry) {
         entry.globalRatio >= 70
           ? "이 업종은 글로벌 AI 노출 비중이 높습니다. ChatGPT·Gemini 최적화를 우선 진행하세요."
           : "글로벌 AI 노출도 꾸준히 관리하세요. 소개글 품질과 Schema.org 구조화 데이터가 핵심입니다.",
-      icon: "🌐",
+      icon: Globe,
     },
   ]
 }
@@ -186,47 +196,44 @@ export default async function ChannelGuidePage({
             AI 노출 채널 분석
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {channelCards.map((card) => (
-              <div
-                key={card.id}
-                className="rounded-xl border border-gray-200 bg-white p-4 md:p-5 space-y-2"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xl">{card.icon}</span>
-                  <div>
-                    <p className="text-sm md:text-base font-bold text-gray-900 break-keep">{card.title}</p>
-                    <p className="text-sm text-gray-500">{card.subtitle}</p>
+            {channelCards.map((card) => {
+              const Icon = card.icon
+              return (
+                <div
+                  key={card.id}
+                  className="rounded-xl border border-gray-200 bg-white p-4 md:p-5 space-y-2"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+                      <Icon className="w-4 h-4" aria-hidden="true" />
+                    </span>
+                    <div>
+                      <p className="text-sm md:text-base font-bold text-gray-900 break-keep">{card.title}</p>
+                      <p className="text-sm text-gray-500">{card.subtitle}</p>
+                    </div>
                   </div>
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-sm font-semibold ${card.statusColor}`}>
+                    {card.status}
+                  </span>
+                  <p className="text-sm text-gray-600 leading-relaxed break-keep">{card.detail}</p>
                 </div>
-                <span className={`inline-block px-2 py-0.5 rounded-full text-sm font-semibold ${card.statusColor}`}>
-                  {card.status}
-                </span>
-                <p className="text-sm text-gray-600 leading-relaxed break-keep">{card.detail}</p>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
 
         {/* ── 핵심 행동 5요소 ── */}
         <section className="mb-8">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 break-keep">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 break-keep">
             {entry.label} 핵심 행동 5요소
           </h2>
-          <div className="space-y-3">
-            {entry.keyActions.map((action, idx) => (
-              <div
-                key={idx}
-                className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4"
-              >
-                <span className="shrink-0 w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
-                  {idx + 1}
-                </span>
-                <p className="text-sm md:text-base text-gray-800 font-medium leading-relaxed break-keep">
-                  {action}
-                </p>
-              </div>
-            ))}
-          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            체크 상태는 이 브라우저에 저장됩니다 (새 기기·시크릿 모드에서는 초기화됩니다).
+          </p>
+          <ActionChecklist
+            storageKey={`aeolab.channel_checklist.${entry.value}`}
+            items={entry.keyActions.map((action, idx) => ({ id: String(idx), label: action }))}
+          />
           <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
             행동 5요소는 AEOlab 분석 기반 권장 사항이며, 노출 결과는 네이버·AI 플랫폼 정책에 따라 달라질 수 있습니다.
           </p>
@@ -283,7 +290,7 @@ export default async function ChannelGuidePage({
         </section>
       </div>
 
-      <SiteFooter activePage="" />
+      <SiteFooter activePage="/guide/channels" />
     </main>
   )
 }

@@ -150,6 +150,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    {
+      url: `${baseUrl}/guide/channels`,
+      lastModified: SITE_BUILD_DATE,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
     ...guideChannelPages,
     ...keywordPages,
     ...blogPages,
