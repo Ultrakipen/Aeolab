@@ -103,7 +103,8 @@ export default async function ChannelGuidePage({
       <BreadcrumbJsonLd
         items={[
           { name: "홈", url: "https://aeolab.co.kr/" },
-          { name: `${entry.label} AI 검색 노출 가이드`, url: `https://aeolab.co.kr/guide/channels/${entry.value}` },
+          { name: "서비스 안내", url: "https://aeolab.co.kr/how-it-works" },
+          { name: `${entry.label} 채널 가이드`, url: `https://aeolab.co.kr/guide/channels/${entry.value}` },
         ]}
       />
       {/* ── 헤더 ── */}

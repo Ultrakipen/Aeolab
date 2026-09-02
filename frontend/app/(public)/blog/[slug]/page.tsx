@@ -134,6 +134,7 @@ export default async function BlogPostPage({
       />
       <script
         type="application/ld+json"
+        // </script> 조기 종료 방지 — JSON.stringify는 "<"를 이스케이프하지 않음
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
@@ -141,13 +142,14 @@ export default async function BlogPostPage({
             "@id": `${postUrl}#article`,
             headline: post.title,
             description: post.description,
+            image: "https://aeolab.co.kr/opengraph-image",
             datePublished: post.publishedAt,
             dateModified: post.publishedAt,
             inLanguage: "ko-KR",
             mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
             author: { "@type": "Organization", name: "AEOlab", url: "https://aeolab.co.kr" },
             publisher: { "@type": "Organization", name: "AEOlab", url: "https://aeolab.co.kr" },
-          }),
+          }).replace(/</g, "\\u003c"),
         }}
       />
       {/* 헤더 */}
