@@ -248,6 +248,73 @@ function BlogMentionBar({
   );
 }
 
+// 핵심 격차 1줄 — 스크롤 없이 "오늘 뭘 해야 하는지"를 바로 보여주기 위해
+// 이미 카드 하단에 있는 리뷰수·블로그언급·소개글/메뉴 데이터 중 가장 큰 신호 하나만 뽑아 상단에 노출.
+// 색상은 이 파일 기존 관례(green=내가 앞섬, amber=경쟁사 앞섬/뒤처짐, blue=선점 기회) 그대로 사용.
+function CoreGapBadge({
+  myReviewCount,
+  compReviewCount,
+  myBlogMentions,
+  compBlogMentions,
+  compHasIntro,
+  compHasMenu,
+}: {
+  myReviewCount: number;
+  compReviewCount: number;
+  myBlogMentions: number | null;
+  compBlogMentions: number | null | undefined;
+  compHasIntro?: boolean;
+  compHasMenu?: boolean;
+}) {
+  type Gap = { text: string; tone: "behind" | "ahead" | "opportunity"; weight: number };
+  const gaps: Gap[] = [];
+
+  const reviewDiff = compReviewCount - myReviewCount;
+  if (Math.abs(reviewDiff) >= 5) {
+    gaps.push(
+      reviewDiff > 0
+        ? { text: `리뷰 ${reviewDiff}개 뒤처짐`, tone: "behind", weight: reviewDiff }
+        : { text: `리뷰 ${-reviewDiff}개 앞섬`, tone: "ahead", weight: -reviewDiff * 0.6 }
+    );
+  }
+
+  if (myBlogMentions != null && compBlogMentions != null) {
+    const blogDiff = compBlogMentions - myBlogMentions;
+    if (Math.abs(blogDiff) >= 3) {
+      gaps.push(
+        blogDiff > 0
+          ? { text: `블로그 언급(추정) ${blogDiff}건 뒤처짐`, tone: "behind", weight: blogDiff }
+          : { text: `블로그 언급(추정) ${-blogDiff}건 앞섬`, tone: "ahead", weight: -blogDiff * 0.6 }
+      );
+    }
+  }
+
+  if (compHasIntro === false) {
+    gaps.push({ text: "경쟁사 소개글 미등록 — 선점 기회", tone: "opportunity", weight: 8 });
+  }
+  if (compHasMenu === false) {
+    gaps.push({ text: "경쟁사 대표메뉴 미등록 — 선점 기회", tone: "opportunity", weight: 6 });
+  }
+
+  if (gaps.length === 0) return null;
+  gaps.sort((a, b) => b.weight - a.weight);
+  const top = gaps[0];
+  const toneClass =
+    top.tone === "behind"
+      ? "bg-amber-100 text-amber-700 border-amber-200"
+      : top.tone === "ahead"
+      ? "bg-green-100 text-green-700 border-green-200"
+      : "bg-blue-100 text-blue-700 border-blue-200";
+
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 text-sm font-semibold px-2.5 py-1 rounded-full border w-fit ${toneClass}`}
+    >
+      {top.text}
+    </div>
+  );
+}
+
 export function CompetitorPlaceCard({
   competitor,
   myReviewCount,
@@ -405,6 +472,16 @@ export function CompetitorPlaceCard({
           </button>
         </div>
       </div>
+
+      {/* 핵심 격차 1줄 — 클릭·스크롤 없이 바로 보이는 위치 */}
+      <CoreGapBadge
+        myReviewCount={myReviewCount}
+        compReviewCount={compReviewCount}
+        myBlogMentions={myBlogMentions}
+        compBlogMentions={competitor.blog_mention_count}
+        compHasIntro={competitor.place_has_intro}
+        compHasMenu={competitor.place_has_menu}
+      />
 
       {/* 리뷰 수 비교 */}
       <div>
