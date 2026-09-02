@@ -953,7 +953,63 @@ async def daily_scan_all():
                 except Exception as _rank_err:
                     logger.warning(f"[daily_scan_all] rank_in_category 계산 실패 biz={biz.get('id')}: {_rank_err}")
 
-                # GrowthStage 변화 감지 — 단계 업그레이드 시 로그 + 향후 카카오 알림 연동
+                # ── 알림 프로필 1회 조회 (스캔완료·성장단계·경쟁사역전 알림 공용, P1과 동일 원칙 —
+                # kakao_scan_notify/kakao_competitor_notify 명시적 False만 차단) ──────────────
+                _scan_phone = None
+                _scan_notify_ok = False
+                _comp_notify_ok = False
+                if _KAKAO_CONFIGURED:
+                    try:
+                        _sp_res = await _db(
+                            supabase.table("profiles")
+                            .select("phone, kakao_scan_notify, kakao_competitor_notify")
+                            .eq("user_id", biz.get("user_id")).maybe_single()
+                        )
+                        _scan_profile = _sp_res.data or {}
+                        _scan_phone = _scan_profile.get("phone")
+                        _scan_notify_ok = bool(_scan_phone) and _scan_profile.get("kakao_scan_notify") is not False
+                        _comp_notify_ok = bool(_scan_phone) and _scan_profile.get("kakao_competitor_notify") is not False
+                    except Exception as _spe:
+                        logger.warning(f"[daily_scan_all] 알림 프로필 조회 실패 biz={biz.get('id')}: {_spe}")
+
+                # ── 스캔 완료 즉시 알림 (AEOLAB_SCAN_01) ────────────────────────────
+                if _scan_notify_ok:
+                    try:
+                        from services.kakao_notify import KakaoNotifier as _KN0, _grade as _kn_grade
+                        _prev_grade = ""
+                        if prev_history:
+                            # falsy-zero 방지 — unified_score가 실제 0.0이어도 total_score로 안 덮임
+                            _ph_uni = prev_history[0].get("unified_score")
+                            _ph_score = _ph_uni if _ph_uni is not None else (prev_history[0].get("total_score") or 0)
+                            _prev_grade = _kn_grade(_ph_score)
+                        _platform_labels = {"gemini": "Gemini", "chatgpt": "ChatGPT", "naver": "네이버 AI 브리핑", "google": "Google AI Overview"}
+                        def _platform_signal(_k: str) -> float:
+                            _r = result.get(_k) or {}
+                            if _k == "naver":
+                                return float(sum(1 for _kr in (_r.get("keyword_results") or []) if _kr.get("in_briefing")))
+                            return float(_r.get("exposure_freq", 0) or (1.0 if _r.get("mentioned") else 0.0))
+                        _top_key = max(_platform_labels, key=_platform_signal)
+                        _top_platform = _platform_labels[_top_key] if _platform_signal(_top_key) > 0 else "AI 검색"
+                        _bd = score.get("breakdown") or {}
+                        _bd_labels = {
+                            "exposure_freq": "AI 언급 빈도", "review_quality": "리뷰 품질",
+                            "schema_score": "웹사이트 구조화", "online_mentions": "온라인 언급",
+                            "info_completeness": "정보 완성도", "content_freshness": "콘텐츠 최신성",
+                        }
+                        _lowest = min(_bd.items(), key=lambda x: x[1], default=(None, None))
+                        _top_improvement = (
+                            f"{_bd_labels.get(_lowest[0], _lowest[0])} 개선 시 점수 상승 예상"
+                            if _lowest[0] else "가이드에서 개선 방법을 확인하세요"
+                        )
+                        await _KN0().send_scan_complete(
+                            _scan_phone, biz["name"],
+                            score["total_score"], _prev_grade,
+                            weekly_change, _top_platform, _top_improvement,
+                        )
+                    except Exception as _sce:
+                        logger.warning(f"send_scan_complete 실패 biz={biz.get('id')}: {_sce}")
+
+                # GrowthStage 변화 감지 — 단계 업그레이드 시 로그 + 카카오 알림
                 try:
                     from services.gap_analyzer import _build_growth_stage
                     current_stage = _build_growth_stage(score.get("track1_score") or score["total_score"])
@@ -965,21 +1021,14 @@ async def daily_scan_all():
                                 f"{prev_stage.stage_label} → {current_stage.stage_label} "
                                 f"({prev_history[0]['total_score']:.1f}점 → {score['total_score']:.1f}점)"
                             )
-                            if _KAKAO_CONFIGURED:
+                            if _scan_notify_ok:
                                 try:
                                     from services.kakao_notify import KakaoNotifier as _KN
-                                    _notifier = _KN()
-                                    _phone_res = await _db(
-                                        supabase.table("profiles").select("phone")
-                                        .eq("user_id", biz.get("user_id")).single()
+                                    await _KN().send_growth_stage_upgrade(
+                                        _scan_phone, biz["name"],
+                                        prev_stage.stage_label, current_stage.stage_label,
+                                        current_stage.this_week_action,
                                     )
-                                    _phone = (_phone_res.data or {}).get("phone")
-                                    if _phone and hasattr(_notifier, "send_growth_stage_upgrade"):
-                                        await _notifier.send_growth_stage_upgrade(
-                                            _phone, biz["name"],
-                                            prev_stage.stage_label, current_stage.stage_label,
-                                            current_stage.this_week_action,
-                                        )
                                 except Exception as _ke:
                                     logger.warning(f"GrowthStage 카카오 알림 실패 ({biz.get('name')}): {_ke}")
                 except Exception as _ge:
@@ -998,7 +1047,7 @@ async def daily_scan_all():
                 except Exception as _ale:
                     logger.warning(f"auto_log_score 호출 실패 biz={biz.get('id')}: {_ale}")
 
-                # ── 경쟁사 역전 자동 로그 ─────────────────────────────────────────
+                # ── 경쟁사 역전 자동 로그 + 카카오 알림 (AEOLAB_COMP_02) ────────────
                 try:
                     if competitor_scores:
                         _uni_my = score.get("unified_score")
@@ -1010,6 +1059,8 @@ async def daily_scan_all():
                                 _cdata.get("name", "경쟁사"),
                                 my_s,
                                 float(_cdata.get("score", 0)),
+                                phone=_scan_phone if _comp_notify_ok else None,
+                                biz_name=biz.get("name", ""),
                             )
                 except Exception as _cle:
                     logger.warning(f"auto_log_competitor 호출 실패 biz={biz.get('id')}: {_cle}")
@@ -3747,14 +3798,22 @@ async def _auto_log_competitor_overtake(
     competitor_name: str,
     my_score: float,
     comp_score: float,
+    phone: str | None = None,
+    biz_name: str = "",
 ) -> None:
-    """경쟁사가 내 가게보다 20점 이상 앞서면 business_action_log 기록."""
+    """경쟁사가 내 가게보다 20점 이상 앞서면 business_action_log 기록.
+
+    phone이 주어지면(=kakao_competitor_notify ON) 최근 7일 내 동일 유형 알림이
+    없었을 때만 AEOLAB_COMP_02 카카오 알림도 발송 — "지속되는 격차"가 아니라
+    "새로 벌어진 격차"에만 알림이 가도록(매일 반복 알림 방지).
+    """
     from datetime import datetime as _dt, timezone as _tz
     gap = comp_score - my_score
     if gap < 20.0:
         return
 
-    today = _dt.now(_tz.utc).date().isoformat()
+    today_dt = _dt.now(_tz.utc).date()
+    today = today_dt.isoformat()
 
     try:
         existing = await execute(
@@ -3767,6 +3826,19 @@ async def _auto_log_competitor_overtake(
         )
         if existing.data:
             return
+
+        should_notify = False
+        if phone:
+            recent = await execute(
+                supabase.table("business_action_log")
+                .select("id")
+                .eq("business_id", business_id)
+                .eq("action_type", "competitor_ahead")
+                .gte("action_date", (today_dt - timedelta(days=7)).isoformat())
+                .limit(1)
+            )
+            should_notify = not recent.data
+
         await execute(
             supabase.table("business_action_log").insert({
                 "business_id": business_id,
@@ -3778,6 +3850,13 @@ async def _auto_log_competitor_overtake(
             })
         )
         _logger.info(f"auto_log_competitor: {business_id} gap={gap:.1f} comp={competitor_name}")
+
+        if should_notify:
+            try:
+                from services.kakao_notify import KakaoNotifier as _KNC
+                await _KNC().send_competitor_overtake(phone, biz_name, competitor_name, my_score, comp_score, gap)
+            except Exception as _ke:
+                _logger.warning(f"send_competitor_overtake 실패 {business_id}: {_ke}")
     except Exception as e:
         _logger.warning(f"auto_log_competitor 실패 {business_id}: {e}")
 
