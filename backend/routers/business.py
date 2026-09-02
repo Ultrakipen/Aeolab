@@ -859,13 +859,29 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
         )
 
     # 소유권 검증
-    biz_res = await execute(
-        supabase.table("businesses")
-        .select("id, name, category, region, keywords, user_id, address, phone, review_count, avg_rating")
-        .eq("id", req.biz_id)
-        .eq("is_active", True)
-        .single()
-    )
+    # 2026-09-02: awards_certifications/signature_points는 SQL 미실행 환경 대비 폴백 포함
+    # (없어도 생성 자체는 계속 — 두 필드가 "(미입력)"으로 처리되어 소개글 지어내기 방지 원칙 유지)
+    _intro_biz_cols = "id, name, category, region, keywords, user_id, address, phone, review_count, avg_rating, awards_certifications, signature_points"
+    try:
+        biz_res = await execute(
+            supabase.table("businesses")
+            .select(_intro_biz_cols)
+            .eq("id", req.biz_id)
+            .eq("is_active", True)
+            .single()
+        )
+    except Exception as e:
+        if "column" in str(e).lower() or "does not exist" in str(e).lower():
+            logger.warning(f"intro-generate: awards_certifications/signature_points 컬럼 없음 — 폴백: {e}")
+            biz_res = await execute(
+                supabase.table("businesses")
+                .select("id, name, category, region, keywords, user_id, address, phone, review_count, avg_rating")
+                .eq("id", req.biz_id)
+                .eq("is_active", True)
+                .single()
+            )
+        else:
+            raise
     if not biz_res.data:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
     biz = biz_res.data
