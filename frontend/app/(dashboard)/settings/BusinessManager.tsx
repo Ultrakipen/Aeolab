@@ -271,6 +271,8 @@ interface Business {
   has_recent_post?: boolean;
   has_intro?: boolean;
   review_sample?: string;
+  awards_certifications?: string;
+  signature_points?: string;
   created_at: string;
 }
 
@@ -418,6 +420,8 @@ function bizToForm(biz: Business): Omit<Business, "id" | "created_at"> {
     has_recent_post: biz.has_recent_post ?? false,
     has_intro: biz.has_intro ?? false,
     review_sample: biz.review_sample ?? "",
+    awards_certifications: biz.awards_certifications ?? "",
+    signature_points: biz.signature_points ?? "",
   };
 }
 
@@ -456,6 +460,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
       naver_place_id: "", google_place_id: "", naver_place_url: "", kakao_place_id: "",
       is_smart_place: false, has_faq: false, has_recent_post: false,
       has_intro: false, review_sample: "",
+      awards_certifications: "", signature_points: "",
     }
   );
 
@@ -927,6 +932,33 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               region={editForm.region}
               onChange={(kws) => setEditForm({ ...editForm, keywords: kws })}
             />
+            {/* ── 실제 차별점 (선택) — 소개글 AI 생성 시 권위·독창성 신호로 활용 ── */}
+            <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-indigo-900">실제 차별점 (선택 — 소개글 품질 향상)</p>
+                <p className="text-sm text-indigo-700 mt-0.5">여기에 입력한 내용만 AI가 소개글에 사실 그대로 반영합니다. 비워두면 지금처럼 안전하게 생략됩니다.</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">수상·인증·자격증</label>
+                <input
+                  value={editForm.awards_certifications ?? ""}
+                  onChange={(e) => setEditForm({ ...editForm, awards_certifications: e.target.value })}
+                  placeholder="예: 2026 블루리본 서베이 선정, 위생등급 우수업소 인증"
+                  maxLength={200}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">시그니처 메뉴·서비스·강점</label>
+                <input
+                  value={editForm.signature_points ?? ""}
+                  onChange={(e) => setEditForm({ ...editForm, signature_points: e.target.value })}
+                  placeholder="예: 24시간 우린 사골육수, 매일 아침 직접 굽는 빵"
+                  maxLength={200}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
             {/* 네이버 리뷰 현황 — 점수에 반영됨 */}
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-3">
               <div>

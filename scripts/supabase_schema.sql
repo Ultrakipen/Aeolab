@@ -2800,3 +2800,19 @@ ALTER TABLE team_members
 
 ALTER TABLE trial_scans
   ADD COLUMN IF NOT EXISTS imported_business_id UUID REFERENCES businesses(id);
+
+-- ===========================================================
+-- 2026-09-02: 소개글 생성 프리미엄 품질 개선(2단계) — 실제 차별화 데이터 2개 컬럼 추가
+-- 배경: content_validator.py의 D.I.A. Authority/Originality 채점은 "수상·인증·
+-- N년운영·시그니처·차별점" 같은 표현을 요구하지만, 사업장이 직접 입력한 진짜
+-- 데이터가 없으면 AI는 (사실 지어내기 금지 원칙상 당연히) 이런 표현을 전혀 쓰지
+-- 않아 두 항목이 구조적으로 0~5점에 머무름. 리뷰수·평점(1단계, 기존 완료)과 같은
+-- 원리로, "진짜 데이터가 있으면 AI가 정당하게 인용" 방식으로 해결.
+-- 두 컬럼 모두 선택 입력(NULL 허용) — 미입력 시 기존 동작 그대로, 회귀 없음.
+-- ===========================================================
+ALTER TABLE businesses
+  ADD COLUMN IF NOT EXISTS awards_certifications TEXT,
+  ADD COLUMN IF NOT EXISTS signature_points TEXT;
+
+COMMENT ON COLUMN businesses.awards_certifications IS '실제 수상·인증·자격증 (사장님 직접 입력, 선택) — 소개글 생성 시 권위(Authority) 신호로 사용, AI가 지어내지 않음';
+COMMENT ON COLUMN businesses.signature_points IS '실제 시그니처 메뉴·서비스·강점 (사장님 직접 입력, 선택) — 소개글 생성 시 차별점(Originality) 신호로 사용, AI가 지어내지 않음';

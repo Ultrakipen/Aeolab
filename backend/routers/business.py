@@ -263,7 +263,7 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
 
 
 _BIZ_BASE_COLS = "id, name, category, region, address, phone, website_url, blog_url, naver_place_url, keywords, business_type, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, receipt_review_count, visitor_review_count, is_active, created_at, has_faq, has_recent_post, has_intro, is_smart_place, review_sample, kakao_score, kakao_checklist, kakao_registered, business_registration_no, blog_mention_count"
-_BIZ_OPTIONAL_COLS = ["ai_info_tab_status", "is_franchise", "naver_intro_draft", "naver_intro_generated_at", "global_intro_draft", "global_intro_generated_at", "talktalk_faq_draft", "talktalk_faq_generated_at"]
+_BIZ_OPTIONAL_COLS = ["ai_info_tab_status", "is_franchise", "naver_intro_draft", "naver_intro_generated_at", "global_intro_draft", "global_intro_generated_at", "talktalk_faq_draft", "talktalk_faq_generated_at", "awards_certifications", "signature_points"]
 
 
 @router.get("/me")
@@ -320,7 +320,7 @@ async def update_business(biz_id: str, updates: dict, user=Depends(get_current_u
     from datetime import datetime, timezone
     x_user_id = user["id"]
     supabase = get_client()
-    allowed = {"name", "category", "address", "phone", "website_url", "blog_url", "naver_place_url", "keywords", "naver_place_id", "google_place_id", "kakao_place_id", "business_type", "region", "receipt_review_count", "visitor_review_count", "review_count", "avg_rating", "kakao_score", "kakao_checklist", "kakao_registered", "is_smart_place", "has_faq", "has_recent_post", "has_intro", "has_photos", "has_review_response", "review_sample", "business_registration_no", "naver_blog_id", "ai_info_tab_status", "is_franchise"}
+    allowed = {"name", "category", "address", "phone", "website_url", "blog_url", "naver_place_url", "keywords", "naver_place_id", "google_place_id", "kakao_place_id", "business_type", "region", "receipt_review_count", "visitor_review_count", "review_count", "avg_rating", "kakao_score", "kakao_checklist", "kakao_registered", "is_smart_place", "has_faq", "has_recent_post", "has_intro", "has_photos", "has_review_response", "review_sample", "business_registration_no", "naver_blog_id", "ai_info_tab_status", "is_franchise", "awards_certifications", "signature_points"}
     filtered = {k: v for k, v in updates.items() if k in allowed}
     if not filtered:
         raise HTTPException(status_code=400, detail="변경할 필드가 없습니다")
@@ -342,10 +342,17 @@ async def update_business(biz_id: str, updates: dict, user=Depends(get_current_u
     try:
         result = await execute(supabase.table("businesses").update(filtered).eq("id", biz_id).eq("user_id", x_user_id))
     except Exception as e:
-        # last_post_at 컬럼 미존재 시 폴백 — 재시도
-        if "last_post_at" in filtered and ("column" in str(e).lower() or "last_post_at" in str(e)):
-            logger.warning(f"last_post_at column missing — falling back without it: {e}")
-            filtered.pop("last_post_at", None)
+        # last_post_at / awards_certifications / signature_points 컬럼 미존재 시 폴백 — 재시도
+        # (2026-09-02 SQL 미실행 구간 보호 — scripts/supabase_schema.sql 참조)
+        _err_msg = str(e).lower()
+        _optional_update_cols = ["last_post_at", "awards_certifications", "signature_points"]
+        _missing = [c for c in _optional_update_cols if c in filtered and (c.lower() in _err_msg or "column" in _err_msg or "does not exist" in _err_msg)]
+        if _missing:
+            logger.warning(f"optional column(s) missing on business update — falling back without them {_missing}: {e}")
+            for c in _missing:
+                filtered.pop(c, None)
+            if not filtered:
+                raise HTTPException(status_code=400, detail="변경할 필드가 없습니다")
             result = await execute(supabase.table("businesses").update(filtered).eq("id", biz_id).eq("user_id", x_user_id))
         else:
             raise
@@ -918,6 +925,8 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
                 phone=biz.get("phone"),
                 review_count=biz.get("review_count"),
                 avg_rating=biz.get("avg_rating"),
+                awards=biz.get("awards_certifications"),
+                signature=biz.get("signature_points"),
             )
         except Exception as e:
             logger.warning(f"intro-generate Claude call failed [biz={req.biz_id}]: {e}")
@@ -952,6 +961,8 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
                         phone=biz.get("phone"),
                         review_count=biz.get("review_count"),
                         avg_rating=biz.get("avg_rating"),
+                        awards=biz.get("awards_certifications"),
+                        signature=biz.get("signature_points"),
                     )
                     _regen_dia = validate_intro_dia(_regen, keywords=keywords, lsi_keywords=_lsi)
                     _regen_score = float(_regen_dia.get("score", 0))
