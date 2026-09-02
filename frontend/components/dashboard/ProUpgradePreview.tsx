@@ -199,17 +199,17 @@ export default function ProUpgradePreview({ businessName, category: _category, p
           </LockedOverlay>
         </div>
 
-        {/* D. ChatGPT 광고 대응 분석 미리보기 */}
+        {/* D. ChatGPT 광고 대응 가이드 미리보기 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
-          <h3 className="text-sm font-bold text-gray-700 mb-1">ChatGPT 광고 대응 분석</h3>
+          <h3 className="text-sm font-bold text-gray-700 mb-1">ChatGPT 광고 대응 가이드</h3>
           <p className="text-sm text-gray-500 mb-3">
-            ChatGPT가 내 업종에서 경쟁사 광고를 어떻게 표시하는지 분석하고 대응 전략 제공
+            2026년 8월 한국 도입된 ChatGPT 광고 속에서도 유기적 AI 노출을 유지하는 맞춤 전략 제공
           </p>
           <LockedOverlay label="Pro 전용 기능">
             <div className="space-y-3">
-              <div className="bg-red-50 border border-red-100 rounded-lg p-3">
-                <p className="text-sm font-semibold text-red-700 mb-1">경쟁사 광고 노출 감지</p>
-                <p className="text-sm text-gray-600">경쟁 업체 3곳이 ChatGPT 검색에서 광고 노출 중</p>
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
+                <p className="text-sm font-semibold text-blue-700 mb-1">광고 리스크 진단</p>
+                <p className="text-sm text-gray-600">현재 AI 노출 상태 기반으로 광고 경쟁 리스크 수준 진단</p>
               </div>
               <div className="space-y-1.5">
                 <p className="text-sm font-semibold text-gray-600">대응 전략</p>
