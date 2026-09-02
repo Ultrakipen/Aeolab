@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { href: "/schema",      Icon: Store,       label: "소개글 · 스키마 만들기", desc: "소개글·블로그 자동 생성" },
   { href: "/competitors", Icon: BarChart2,   label: "경쟁사 관리",            desc: "주변 경쟁 점포와 비교" },
   { href: "/history",     Icon: TrendingUp,  label: "30일 변화 기록",         desc: "점수 변화 추이 보기" },
-  { href: "/resources",   Icon: BookOpen,    label: "가이드 자료실",           desc: "업종별 AI 검색 노출 체크리스트" },
+  { href: "/guide/channels", Icon: BookOpen, label: "가이드 자료실",           desc: "업종별 AI 검색 노출 체크리스트" },
 ];
 
 export default function DashboardFooter({ bizId, bizName, plan, accessToken }: Props) {
