@@ -697,8 +697,14 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
             raise HTTPException(status_code=404, detail="No scan results found")
 
         from services.ad_defense_guide import AdDefenseGuideService
-        from services.score_engine import get_briefing_eligibility
+        from services.score_engine import get_briefing_eligibility, get_dual_track_ratio
         eligibility = get_briefing_eligibility(biz.get("category", ""), bool(biz.get("is_franchise")))
+        # 업종별 네이버/글로벌 비중 — ChatGPT 광고는 글로벌(Track2) 채널에만 영향을 주므로
+        # 이 비율이 낮은 업종(예: 음식점 네이버80%)은 실제 리스크가 작고, 높은 업종
+        # (예: 법률 네이버20%)은 리스크가 큼. risk_level을 이 비율 기반으로 결정론적
+        # 계산하기 위함(2026-09-02 추가 — 기존엔 Claude 자유판단이라 이 비율과 무관하게
+        # 나올 수 있었음, 실측 QA에서 네이버80% 업종에 risk_level="high"가 나온 사례 확인).
+        dual_track_ratio = get_dual_track_ratio(biz.get("category", ""))
 
         # 경쟁사 이름 조회 (최대 3개, 미등록 시 빈 배열)
         competitor_names: list[str] = []
@@ -746,6 +752,8 @@ async def generate_ad_defense_guide(biz_id: str, current_user: dict = Depends(ge
             biz, scan[0], eligibility, competitor_names, gap_keywords,
             competitor_mentioned_names=competitor_mentioned_names,
             prev_global_channel_score=prev_global_channel_score,
+            naver_weight=dual_track_ratio.get("naver"),
+            global_weight=dual_track_ratio.get("global"),
         )
 
         # 사용량 카운트 — AI 호출 성공 후에만 기록 (crisis_reply와 동일 원칙)

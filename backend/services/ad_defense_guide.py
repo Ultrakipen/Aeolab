@@ -36,10 +36,37 @@ class AdDefenseGuideService:
         gap_keywords: list[str] | None = None,
         competitor_mentioned_names: list[str] | None = None,
         prev_global_channel_score: float | None = None,
+        naver_weight: float | None = None,
+        global_weight: float | None = None,
     ) -> dict:
         """ChatGPT 광고 대응 가이드 생성"""
         score = scan_result.get("total_score", 0)
         global_channel_score = scan_result.get("global_channel_score")
+        naver_channel_score = scan_result.get("naver_channel_score")
+
+        # 리스크 결정론적 계산(2026-09-02 추가) — ChatGPT 광고는 글로벌(Track2) 채널에만
+        # 영향을 준다. 네이버 비중이 큰 업종(예: 음식점 80%)은 Track2가 약해도 실질
+        # 리스크가 작고, 글로벌 비중이 큰 업종(예: 법률 80%)은 Track2가 약하면 리스크가
+        # 크다. Claude 자유판단에 맡기면 이 비율과 무관한 risk_level이 나올 수 있음
+        # (실측 QA: 네이버80% 업종인데 risk_level="high"로 나온 사례 확인) — 아래 계산값을
+        # Claude 응답 파싱 후 강제 덮어써서 항상 이 비율과 일치하도록 보장.
+        risk_level: str | None = None
+        if global_channel_score is not None and global_weight is not None:
+            track2_weakness = max(0.0, 100.0 - global_channel_score)
+            exposure = global_weight * track2_weakness  # 0~100 스케일
+            if exposure >= 40:
+                risk_level = "high"
+            elif exposure >= 20:
+                risk_level = "medium"
+            else:
+                risk_level = "low"
+
+        # 네이버(Track1) 상태는 개별 항목이 아니라 종합 상태 텍스트로만 전달 — 실행
+        # 아이템(organic_strategies)은 아래에서 Track2로 한정하므로 네이버는 "안전망"
+        # 서술용 배경 정보로만 쓰인다. 원시 점수는 프롬프트에만 쓰고 사용자 화면엔 노출 안 함.
+        track1_status = None
+        if naver_channel_score is not None:
+            track1_status = "양호" if naver_channel_score >= 70 else "보통" if naver_channel_score >= 40 else "주의 필요"
 
         # 지난 가이드 대비 변화 — 텍스트 레이블만 계산(2026-09-02 추가). 원시 점수차는
         # 절대 사용자에게 노출하지 않는다(CLAUDE.md "점수 표시 원칙"). 노이즈성 미세변화를
@@ -68,21 +95,19 @@ class AdDefenseGuideService:
         # "50회 측정해서 0회 노출"이라는 허위 확신을 프롬프트·응답에 심게 됨
         sample_size = gemini_result.get("sample_size", 0)
 
-        # 약한 영역 상위 3개 추출 (가이드 품질 향상)
-        # score_breakdown은 0~100 척도 점수 외에 불리언(google_captcha_blocked)·dict(track1_detail)·
-        # 문자열(user_group/model_version) 필드가 섞여 있음. bool은 int 서브클래스라
-        # isinstance(v, (int, float))를 통과하므로 명시적으로 제외해야 함.
-        _NON_SCORE_KEYS = {"google_captcha_blocked", "track1_detail", "user_group", "model_version"}
+        # 약한 영역 — Track2(글로벌 AI)로 한정(2026-09-02 재설계). ChatGPT 광고 대비
+        # 가이드인데 기존엔 score_breakdown 전체(Track1 네이버 항목 포함)에서 하위 3개를
+        # 뽑아 "네이버 플레이스 최적화"가 1순위 전략으로 나오는 등 주제와 무관한 조언이
+        # 섞였음(실측 QA로 확인). score_breakdown엔 v3.0/v3.1 호환용 중복·레거시 키
+        # (exposure_freq 등 0~100 척도가 아닌 값 포함)도 섞여 있어 화이트리스트 방식이
+        # 안전 — 실제 v3_1 Track2 4항목만 명시 지정.
+        _TRACK2_KEYS = ["multi_ai_exposure", "schema_seo", "online_mentions_t2", "google_presence"]
         score_breakdown = scan_result.get("score_breakdown") or {}
-        weak_areas = sorted(
-            [
-                (k, v) for k, v in score_breakdown.items()
-                if k not in _NON_SCORE_KEYS
-                and isinstance(v, (int, float)) and not isinstance(v, bool)
-                and v < 50
-            ],
-            key=lambda x: x[1]
-        )[:3]
+        track2_items = [
+            (k, score_breakdown[k]) for k in _TRACK2_KEYS
+            if isinstance(score_breakdown.get(k), (int, float)) and not isinstance(score_breakdown.get(k), bool)
+        ]
+        weak_areas = sorted(track2_items, key=lambda x: x[1])[:3]
         weak_areas_text = ", ".join(k for k, _ in weak_areas) if weak_areas else "없음"
 
         briefing_note = {
@@ -113,6 +138,16 @@ class AdDefenseGuideService:
             "steady": "- 지난 가이드 생성 이후 글로벌 AI 노출 지표는 큰 변화가 없습니다.",
         }.get(momentum, "")
 
+        # 듀얼트랙 비율 — situation_summary의 배경 설명용(2026-09-02 추가)
+        _ratio_line = ""
+        if naver_weight is not None and global_weight is not None:
+            _ratio_line = (
+                f"- 이 업종의 AI 노출 구성: 네이버 {naver_weight*100:.0f}% / 글로벌 AI(ChatGPT·Gemini 등) {global_weight*100:.0f}%. "
+                f"ChatGPT 광고는 글로벌 비중에만 영향을 준다 — 네이버 비중이 높을수록 실제 리스크는 작다."
+            )
+        _track1_line = f"- 네이버(Track1) 채널 상태: {track1_status}(참고용 배경 정보 — 이 가이드의 실행 항목 대상 아님)" if track1_status else ""
+        _risk_line = f"- risk_level은 반드시 \"{risk_level}\"로 고정해서 응답할 것(위 비율·데이터 기반 확정값)." if risk_level else ""
+
         prompt = f"""당신은 한국 AI 검색 광고 전략 전문가입니다.
 
 사업장 정보:
@@ -122,7 +157,10 @@ class AdDefenseGuideService:
 - {briefing_note}
 - ChatGPT 현재 언급 여부: {"측정 실패(데이터 없음)" if not chatgpt_measured else ("언급됨" if chatgpt_mentioned else "미언급")}
 - Gemini 노출 측정: {f"{sample_size}회 샘플링 중 {exposure_freq}회 노출" if sample_size > 0 else "이번 스캔에서 측정 실패(데이터 없음)"}
-- 개선이 필요한 영역: {weak_areas_text}
+- 개선이 필요한 글로벌 AI 영역: {weak_areas_text}
+{_ratio_line}
+{_track1_line}
+{_risk_line}
 {_comp_line}
 {_gap_line}
 {_comp_mentioned_line}
@@ -131,10 +169,16 @@ class AdDefenseGuideService:
 ChatGPT 광고(ChatGPT Ads)는 2026년 2월 미국에서 시작해 2026년 8월 11일부터 한국을 포함한
 9개국으로 노출이 확대됐습니다(무료·Go 등급 사용자 대상, 유료 등급은 광고 없음). 이에 대응하여
 유기적(Organic) AI 검색 노출을 강화하는 전략을 아래 JSON 형식으로 제공해줘.
-아래 경쟁사·미확보 키워드를 반드시 반영하여 이 사업장 맞춤으로 구체적으로 작성할 것:
+아래 경쟁사·미확보 키워드를 반드시 반영하여 이 사업장 맞춤으로 구체적으로 작성할 것.
+
+중요: organic_strategies·content_actions·schema_recommendations는 반드시 글로벌 AI 채널
+(ChatGPT·Gemini 노출, 웹사이트 Schema/SEO, 온라인 언급, Google AI Overview)에만 집중할 것 —
+네이버 스마트플레이스·네이버 AI 브리핑 관련 전략은 포함하지 말 것(이 가이드의 대상이 아니며
+별도 "AI 개선 가이드"가 다루는 영역). 네이버 상태는 situation_summary에서 "이미 네이버가
+튼튼해 리스크가 제한적이다/네이버도 약해 전반적 보강이 필요하다" 식의 배경 설명 1문장으로만 다룰 것.
 
 {{
-  "situation_summary": "현재 상황 2문장 요약",
+  "situation_summary": "현재 상황 2문장 요약 — 듀얼트랙 비율과 네이버 상태를 배경으로 반영",
   "risk_level": "low/medium/high",
   "organic_strategies": [
     {{"title": "전략명", "description": "상세 설명", "priority": "high/medium/low"}},
@@ -176,6 +220,11 @@ organic_strategies는 5개, 소상공인이 직접 실행 가능한 것 위주�
             # 파싱 실패(응답 길이 초과로 JSON이 잘린 경우 등) — 코드펜스만 제거해 원문이라도 읽히게
             cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw).strip()
             guide = {"situation_summary": cleaned}
+
+        # risk_level 결정론적 값으로 강제 — 프롬프트 지시를 Claude가 어길 가능성을
+        # 코드 레벨에서 차단(momentum과 동일 원칙: 사실성 있는 필드는 AI 자유판단에 맡기지 않음)
+        if risk_level is not None and isinstance(guide, dict):
+            guide["risk_level"] = risk_level
 
         return {
             "business_id": biz.get("id"),
