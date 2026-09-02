@@ -17,12 +17,12 @@ const GLOBAL_FOCUS_THRESHOLD = 0.65;
 /**
  * 글로벌 AI 주전장 업종 안내 카드
  *
- * 핵심 목적: 네이버 의존도 낮은 업종(legal·shopping·accounting·academy·design 등)
+ * 핵심 목적: 네이버 의존도 낮은 업종(legal·shopping·accounting·design 등)
  * 사용자가 "왜 ChatGPT·Gemini 점수가 더 중요한가"를 즉시 이해하도록 명시.
  *
- * 표시 조건: globalWeight ≥ 0.65 (DUAL_TRACK_RATIO 기준)
- * - legal 0.80, shopping 0.90, accounting 0.70, academy 0.60, design 0.65
- * - 0.65 미만 업종은 NaverAiPathwayCard만으로 충분
+ * 표시 조건: globalWeight ≥ 0.65 (DUAL_TRACK_RATIO 기준, 2026-09-03 재확인)
+ * - legal 0.80, shopping 0.90, accounting 0.70, design 0.65
+ * - academy 0.60 등 0.65 미만 업종은 NaverAiPathwayCard만으로 충분
  */
 export default function GlobalAiFocusCard({ globalWeight, categoryLabel, category }: Props) {
   if (globalWeight < GLOBAL_FOCUS_THRESHOLD) return null;

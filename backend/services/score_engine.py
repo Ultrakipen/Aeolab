@@ -195,7 +195,16 @@ DEFAULT_DUAL_TRACK_RATIO: dict[str, float] = {"naver": 0.60, "global": 0.40}
 
 
 def get_dual_track_ratio(category: str) -> dict[str, float]:
-    """업종 코드로 naver/global 비율 반환. 미등록 업종은 중립 기본값(0.60/0.40)."""
+    """업종 코드로 naver/global 비율 반환. 미등록 업종은 중립 기본값(0.60/0.40).
+
+    "기타"("other")는 정식 등록 업종이 아니지만 normalize_category()의 범용 fallback이
+    "restaurant"이라(다른 taxonomy 조회 함수들과 공유하는 동작이라 여기서 바꿀 수 없음),
+    그대로 두면 기타 업종이 restaurant과 동일한 80/20(네이버 우세) 비율로 잘못 계산됨.
+    get_briefing_eligibility()가 이미 쓰는 것과 동일한 패턴으로 여기서도 먼저 가로채
+    중립 기본값을 반환한다 (2026-09-03).
+    """
+    if (category or "").lower() in ("other", "기타"):
+        return DEFAULT_DUAL_TRACK_RATIO
     key = normalize_category(category)
     return DUAL_TRACK_RATIO.get(key, DEFAULT_DUAL_TRACK_RATIO)
 
@@ -1510,8 +1519,8 @@ def calc_shadow_v3_1(
     # Track2 는 v3.0/v3.1 공통 (AI 노출 점수 — 모델 버전 무관)
     track2_score = calc_track2_score(scan_result, biz, _naver_data)
 
-    # 업종별 듀얼트랙 비율 적용
-    ratio = DUAL_TRACK_RATIO.get(normalize_category(category), DEFAULT_DUAL_TRACK_RATIO)
+    # 업종별 듀얼트랙 비율 적용 ("기타" 가드 포함 — get_dual_track_ratio() 단일 소스 재사용)
+    ratio = get_dual_track_ratio(category)
     unified_v31 = round(track1_v31 * ratio["naver"] + track2_score * ratio["global"], 1)
 
     # 사용자 그룹 분류 (프랜차이즈 → INACTIVE)

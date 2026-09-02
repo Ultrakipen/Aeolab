@@ -326,12 +326,12 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
     keyActions: ["테마·공간 사진 등록", "이용 가격·인원 안내", "예약 방법 명시", "난이도·테마 종류 안내", "생일파티·단체 예약 패키지 안내"],
   },
 
-  // ── Group E: 글로벌 AI 중심 (1개) ───────────────────────────────────────
+  // ── Group E: 업종 미분류 (1개) ───────────────────────────────────────
   {
     value: "other", label: "기타", group: "E",
-    briefing: "inactive", naverRatio: 0, globalRatio: 100,
-    keyActions: ["사업장 정보 정확히 입력 (이름·주소·전화)", "구글 비즈니스 프로필 등록·최적화", "ChatGPT·Gemini가 인용할 소개글 작성", "Schema.org 구조화 데이터 적용", "외부 블로그·SNS 언급 확대"],
-    note: "'플레이스형' 네이버 AI 브리핑 대상 외 업종. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능하며, ChatGPT·Gemini·Google AI 최적화에도 집중",
+    briefing: "inactive", naverRatio: 60, globalRatio: 40,
+    keyActions: ["스마트플레이스 등록·정보 완성 (이름·주소·전화·영업시간)", "구글 비즈니스 프로필 등록·최적화", "ChatGPT·Gemini가 인용할 소개글 작성", "Schema.org 구조화 데이터 적용", "외부 블로그·SNS 언급 확대"],
+    note: "'플레이스형' 네이버 AI 브리핑 대상 외 업종. 59개 세부 업종 중 어디에도 해당하지 않아 네이버·글로벌 채널 비중은 중립 기본값(60%/40%)을 적용합니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다.",
   },
 ]
 
@@ -345,7 +345,7 @@ export const GROUP_LABELS: Record<ChannelGroup, string> = {
   B: "네이버 우세형",
   C: "전문서비스업",
   D: "생활서비스업",
-  E: "글로벌 AI 중심",
+  E: "업종 미분류",
 }
 
 export const GROUP_COLORS: Record<ChannelGroup, string> = {
