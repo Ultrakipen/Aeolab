@@ -3055,7 +3055,19 @@ export function CompetitorsClient({
   // analysisPanel 제거됨 — PC 레이아웃에서 추이 차트를 직접 렌더링, 순위 비교는 Hero 카드와 중복으로 제거
 
   // ── 격차 분석 패널 — PlaceCompareTable 통합 + 키워드 탭 ──
-  const gapPanel = gapAnalysis ? (
+  // PlaceCompareTable은 /api/report/place-compare를 자체 호출하는 독립 컴포넌트(AI 스캔 불필요,
+  // 경쟁사 등록+동기화만 있으면 데이터 존재) — gapAnalysis(/api/report/gap, AI 스캔 없으면 404)와는
+  // 서로 다른 데이터 소스인데 기존엔 gapAnalysis 유무 하나로 둘 다 감싸버려서, 스캔을 한 번도
+  // 안 돌린 사용자는 경쟁사를 등록·동기화해도 이 표를 아예 볼 수 없었음(2026-09-02 발견·분리).
+  const placeCompareSection = canViewBasic ? (
+    <PlaceCompareTable
+      bizId={business.id}
+      currentPlan={currentPlan}
+      authToken={accessToken}
+    />
+  ) : null
+
+  const gapAnalysisSection = gapAnalysis ? (
     <div className="space-y-4">
       {/* 네이버 전용 리스크 경고 */}
       {gapAnalysis.naver_only_risk && (
@@ -3086,15 +3098,6 @@ export function CompetitorsClient({
             </a>
           </div>
         </div>
-      )}
-
-      {/* 스마트플레이스 비교표 — 격차 분석 내로 이동 */}
-      {canViewBasic && (
-        <PlaceCompareTable
-          bizId={business.id}
-          currentPlan={currentPlan}
-          authToken={accessToken}
-        />
       )}
 
       {/* 키워드 격차 — 탭으로 압축 */}
@@ -3197,6 +3200,13 @@ export function CompetitorsClient({
           </div>
         )
       })()}
+    </div>
+  ) : null
+
+  const gapPanel = (placeCompareSection || gapAnalysisSection) ? (
+    <div className="space-y-4">
+      {placeCompareSection}
+      {gapAnalysisSection}
     </div>
   ) : null
 
