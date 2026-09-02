@@ -956,7 +956,7 @@ async def list_competitors(biz_id: str, user=Depends(get_current_user)):
             "naver_review_count, naver_avg_rating, "
             "has_faq, has_recent_post, has_menu, "
             "naver_photo_count, naver_place_last_synced_at, "
-            "has_intro, website_url"
+            "has_intro, website_url, blog_mention_count"
         )
         .eq("business_id", biz_id)
         .eq("is_active", True)
@@ -975,6 +975,7 @@ async def list_competitors(biz_id: str, user=Depends(get_current_user)):
             "place_synced_at": r.get("naver_place_last_synced_at"),
             "place_has_intro": r.get("has_intro"),
             "website_url": r.get("website_url"),
+            "blog_mention_count": r.get("blog_mention_count"),
         })
     return rows
 
