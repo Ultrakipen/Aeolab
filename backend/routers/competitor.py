@@ -293,7 +293,7 @@ async def _naver_fetch_one(
         ) as res:
             if res.status != 200:
                 return []
-            data = await res.json()
+            data = await res.json(content_type=None)
             items = data.get("items", [])
             return [
                 {
@@ -379,7 +379,7 @@ async def _find_naver_place_id(name: str, address: str, region: str = "") -> str
             ) as res:
                 if res.status != 200:
                     return None
-                data = await res.json()
+                data = await res.json(content_type=None)
                 for item in data.get("items", []):
                     item_name = _strip_tags(item.get("title", ""))
                     link = item.get("link", "")
@@ -864,7 +864,7 @@ async def brand_check(
                 if resp.status != 200:
                     _logger.warning(f"[brand_check] 네이버 API 오류 status={resp.status}")
                     return {"risk_level": "unknown", "message": "검색 결과를 가져오지 못했습니다"}
-                data = await resp.json()
+                data = await resp.json(content_type=None)
 
         items = data.get("items", [])
         total_in_region = data.get("total", 0)
@@ -1271,7 +1271,7 @@ async def _fetch_blog_snippets(name: str, region: str) -> tuple[list[str], list[
             ) as res:
                 if res.status != 200:
                     return [], [], False
-                data = await res.json()
+                data = await res.json(content_type=None)
                 snippets: list[str] = []
                 posts: list[dict] = []
                 for item in data.get("items", []):

@@ -116,7 +116,7 @@ async def _get(kind: str, params: dict) -> dict:
         async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
             async with session.get(url, headers=headers, params=params) as resp:
                 if resp.status == 200:
-                    return await resp.json()
+                    return await resp.json(content_type=None)
                 _logger.warning(f"Naver API {kind} HTTP {resp.status}")
     except Exception as e:
         _logger.warning(f"Naver API {kind} error: {e}")

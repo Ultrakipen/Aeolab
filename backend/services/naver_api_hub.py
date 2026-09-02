@@ -19,6 +19,12 @@ import os
 
 _SEARCH_KINDS = {"local", "blog", "cafearticle", "kin", "news"}
 
+# 2026-09-02 실측: 발급된 API Hub 키가 "뉴스" 카드는 커버하지 않음(401 확인) — 원래
+# 이관 대상 5개 카드(블로그·지역·지식iN·카페·검색어트렌드)에 뉴스가 없었기 때문.
+# 뉴스 카드가 NCP 콘솔에서 별도 활성화되기 전까지는 플래그 상태와 무관하게 레거시
+# (openapi.naver.com) 경로를 강제해 naver_visibility.py의 뉴스 검색이 깨지지 않도록 함.
+_HUB_UNSUPPORTED_KINDS = {"news"}
+
 
 def hub_enabled() -> bool:
     return os.getenv("NAVER_API_HUB_ENABLED", "").strip().lower() in ("1", "true", "yes")
@@ -27,7 +33,7 @@ def hub_enabled() -> bool:
 def search_request(kind: str) -> tuple[str, dict]:
     """kind: 'local' | 'blog' | 'cafearticle' | 'kin' | 'news' → (url, headers)"""
     assert kind in _SEARCH_KINDS, f"unknown naver search kind: {kind}"
-    if hub_enabled():
+    if hub_enabled() and kind not in _HUB_UNSUPPORTED_KINDS:
         cid = os.getenv("NAVER_APIHUB_CLIENT_ID", "")
         csec = os.getenv("NAVER_APIHUB_CLIENT_SECRET", "")
         return (

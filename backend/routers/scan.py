@@ -203,7 +203,7 @@ async def _recover_naver_place_id(business_name: str, region: str) -> str:
                 if res.status != 200:
                     _logger.debug(f"_recover_naver_place_id: API HTTP {res.status} for '{business_name}'")
                     return ""
-                data = await res.json()
+                data = await res.json(content_type=None)
     except Exception as _e:
         _logger.debug(f"_recover_naver_place_id failed for '{business_name}': {_e}")
         return ""
@@ -413,7 +413,7 @@ async def trial_search(request: Request, query: str, region: str = ""):
                 if res.status != 200:
                     _logger.warning(f"trial_search naver API HTTP {res.status}")
                     return {"items": [], "fallback_to_manual": True}
-                data = await res.json()
+                data = await res.json(content_type=None)
     except Exception as e:
         _logger.warning(f"trial_search naver API error: {e}")
         return {"items": [], "fallback_to_manual": True}

@@ -1307,7 +1307,7 @@ async def _search_naver_blog_once(
                         await asyncio.sleep(1.5)
                         continue
                     return [], 0, False
-                data = await resp.json()
+                data = await resp.json(content_type=None)
                 break
         except aiohttp.ClientError as e:
             _logger.warning(f"naver blog search failed for query='{query}' (attempt {attempt + 1}): {e}")

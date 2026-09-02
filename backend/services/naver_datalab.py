@@ -84,7 +84,7 @@ class NaverDataLabClient:
                     if resp.status != 200:
                         _logger.warning(f"NaverDataLab: HTTP {resp.status}")
                         return {"error": f"http_{resp.status}"}
-                    return await resp.json()
+                    return await resp.json(content_type=None)
 
         except aiohttp.ClientError as e:
             _logger.warning(f"NaverDataLab 네트워크 오류: {e}")

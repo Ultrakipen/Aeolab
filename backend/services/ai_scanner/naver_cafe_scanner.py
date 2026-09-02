@@ -44,7 +44,7 @@ async def _search_cafe(
             if resp.status != 200:
                 _logger.warning("[cafe_scanner] API status=%s for query=%r", resp.status, query)
                 return []
-            data = await resp.json()
+            data = await resp.json(content_type=None)
     except asyncio.TimeoutError:
         _logger.warning("[cafe_scanner] timeout for query=%r", query)
         return []

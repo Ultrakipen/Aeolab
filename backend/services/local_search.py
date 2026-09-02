@@ -113,7 +113,7 @@ async def search_naver(query: str, region: str) -> list[dict]:
                 if res.status != 200:
                     _logger.warning("naver_search_fail status=%s", res.status)
                     return []
-                data = await res.json()
+                data = await res.json(content_type=None)
 
         results = []
         for item in data.get("items", []):
@@ -249,7 +249,7 @@ async def find_naver_place_id(name: str, address: str, region: str = "") -> str 
             ) as res:
                 if res.status != 200:
                     return None
-                data = await res.json()
+                data = await res.json(content_type=None)
                 for item in data.get("items", []):
                     item_name = strip_tags(item.get("title", ""))
                     link = item.get("link", "")

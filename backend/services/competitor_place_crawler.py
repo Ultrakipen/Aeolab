@@ -583,7 +583,7 @@ async def fetch_competitor_blog_mentions(competitor_name: str, region: str) -> i
                 params={"query": query_region, "display": 1},
             ) as resp:
                 if resp.status == 200:
-                    data = await resp.json()
+                    data = await resp.json(content_type=None)
                     best = int(data.get("total", 0))
                 else:
                     _logger.warning(f"naver blog API HTTP {resp.status} for {competitor_name}")
@@ -596,7 +596,7 @@ async def fetch_competitor_blog_mentions(competitor_name: str, region: str) -> i
                     params={"query": query_name, "display": 1},
                 ) as resp2:
                     if resp2.status == 200:
-                        data2 = await resp2.json()
+                        data2 = await resp2.json(content_type=None)
                         best = int(data2.get("total", 0))
     except Exception as e:
         _logger.warning(f"fetch_competitor_blog_mentions error [{competitor_name}]: {e}")
