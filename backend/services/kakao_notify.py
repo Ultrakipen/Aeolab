@@ -774,7 +774,8 @@ class KakaoNotifier:
                     logger.warning("[email_fallback] fallback 예외: %s", fb_e)
             raise
         finally:
-            self._log_notification(None, ttype, {"phone": phone[:4] + "****", **params}, status)
+            _fin_masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
+            self._log_notification(None, ttype, {"phone": _fin_masked, **params}, status)
 
     async def send_weekly_score_report(
         self,
@@ -807,8 +808,9 @@ class KakaoNotifier:
         masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
 
         if not app_key:
+            abs_diff = abs(current_score - prev_score)
             logger.info(
-                "[weekly_report] %s %s → %s점 (%s%s): %s",
+                "[weekly_report] %s %s → %s점 (%s%.1f): %s",
                 masked, business_name, int(current_score), direction, abs_diff, top_action[:30],
             )
             return True

@@ -289,6 +289,9 @@ function CoreGapBadge({
     }
   }
 
+  // 의도적으로 엄격 비교(=== false, null/undefined는 배제) — 동기화 미완료(null)를 "미등록"으로
+  // 오해석해 선점 기회를 잘못 표시하지 않기 위함. 다른 컴포넌트(CompletenessItem)는 표시 목적이
+  // 달라 `?? false`로 null도 "미등록"으로 보여주는데, 여기선 그 완화된 처리를 쓰지 않는다.
   if (compHasIntro === false) {
     gaps.push({ text: "경쟁사 소개글 미등록 — 선점 기회", tone: "opportunity", weight: 8 });
   }
@@ -308,6 +311,8 @@ function CoreGapBadge({
 
   return (
     <div
+      role="status"
+      aria-live="polite"
       className={`inline-flex items-center gap-1.5 text-sm font-semibold px-2.5 py-1 rounded-full border w-fit ${toneClass}`}
     >
       {top.text}
@@ -322,7 +327,7 @@ export function CompetitorPlaceCard({
   onSyncRequest,
   accessToken,
   onPlaceIdSaved,
-  myBlogMentions = 0,
+  myBlogMentions = null,
   canViewStartup = false,
   competitorOnlyKeywords = [],
   pioneerKeywords = [],
@@ -589,7 +594,7 @@ export function CompetitorPlaceCard({
           <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">자동 수집</span>
         </div>
         <p className="text-sm text-gray-500 mb-2 leading-relaxed">
-          경쟁사 이름으로 네이버 블로그를 자동 검색해 몇 개의 포스팅이 있는지 확인합니다. 블로그 포스팅이 많을수록 AI 검색에서 더 자주 인용됩니다.
+          경쟁사 이름으로 네이버 블로그를 자동 검색한 결과 건수입니다(실제 포스팅 수와 다를 수 있음 — 동명 업체가 있거나 일반 명사와 겹치면 실제보다 높게 나올 수 있습니다). 블로그 포스팅이 많을수록 AI 검색에서 더 자주 인용됩니다.
         </p>
         {competitor.blog_mention_count == null ? (
           <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">

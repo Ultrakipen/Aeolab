@@ -48,7 +48,7 @@ async def _search_kin(
     except asyncio.TimeoutError:
         _logger.warning("[jisik_scanner] timeout for query=%r", query)
         return [], 0
-    except aiohttp.ClientError as e:
+    except (aiohttp.ClientError, ValueError) as e:
         _logger.warning("[jisik_scanner] request failed for query=%r: %s", query, e)
         return [], 0
 

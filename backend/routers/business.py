@@ -86,7 +86,7 @@ async def search_address(name: str = Query(...), region: str = Query("")):
                 if res.status != 200:
                     raise HTTPException(status_code=502, detail="네이버 API 호출 실패")
                 data = await res.json(content_type=None)
-    except aiohttp.ClientError:
+    except (aiohttp.ClientError, ValueError):
         raise HTTPException(status_code=502, detail="네이버 API 연결 오류")
 
     return [

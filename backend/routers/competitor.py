@@ -653,6 +653,9 @@ async def suggest_competitors(category: str, region: str, business_id: str, user
         })
 
     result.sort(key=lambda x: x["score"], reverse=True)
+    # score는 정렬 전용 — 타 사용자 사업장의 AI Visibility 점수를 응답에 그대로 노출하지 않도록 제거
+    for r in result:
+        r.pop("score", None)
     return result[:5]
 
 

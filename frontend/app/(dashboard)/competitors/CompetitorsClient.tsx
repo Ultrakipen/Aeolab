@@ -1606,7 +1606,7 @@ export function CompetitorsClient({
   myTrack1Score = null,
   myReviewCount = 0,
   myAvgRating = null,
-  myBlogMentions = 0,
+  myBlogMentions = null,
   userId,
   trendScans = [],
   competitorScores,

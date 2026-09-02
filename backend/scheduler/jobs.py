@@ -3767,7 +3767,7 @@ async def _auto_log_score_change(
     today = _dt.now(_tz.utc).date().isoformat()
 
     try:
-        existing = await execute(
+        existing = await _db(
             supabase.table("business_action_log")
             .select("id")
             .eq("business_id", business_id)
@@ -3777,7 +3777,7 @@ async def _auto_log_score_change(
         )
         if existing.data:
             return  # 오늘 이미 기록됨
-        await execute(
+        await _db(
             supabase.table("business_action_log").insert({
                 "business_id": business_id,
                 "action_type": action_type,
@@ -3815,13 +3815,19 @@ async def _auto_log_competitor_overtake(
     today_dt = _dt.now(_tz.utc).date()
     today = today_dt.isoformat()
 
+    # action_label에 "경쟁사 '{name}'가"로 이름이 항상 포함되므로 dedup을 경쟁사별로
+    # 구분하는 용도로 사용 — business_id+action_type만으로 걸면 경쟁사 A 알림이
+    # 경쟁사 B의 당일 기록·7일 알림을 전부 막아버리는 버그 방지(2026-09-02 발견)
+    _comp_label_filter = f"경쟁사 '{competitor_name}'가"
+
     try:
-        existing = await execute(
+        existing = await _db(
             supabase.table("business_action_log")
             .select("id")
             .eq("business_id", business_id)
             .eq("action_type", "competitor_ahead")
             .eq("action_date", today)
+            .ilike("action_label", f"%{_comp_label_filter}%")
             .limit(1)
         )
         if existing.data:
@@ -3829,17 +3835,18 @@ async def _auto_log_competitor_overtake(
 
         should_notify = False
         if phone:
-            recent = await execute(
+            recent = await _db(
                 supabase.table("business_action_log")
                 .select("id")
                 .eq("business_id", business_id)
                 .eq("action_type", "competitor_ahead")
                 .gte("action_date", (today_dt - timedelta(days=7)).isoformat())
+                .ilike("action_label", f"%{_comp_label_filter}%")
                 .limit(1)
             )
             should_notify = not recent.data
 
-        await execute(
+        await _db(
             supabase.table("business_action_log").insert({
                 "business_id": business_id,
                 "action_type": "competitor_ahead",

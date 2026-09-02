@@ -15,7 +15,10 @@ NAVER_APIHUB_CLIENT_ID/NAVER_APIHUB_CLIENT_SECRET 발급·설정 → 플래그 O
 각 호출처의 "키 미설정 시 조기 반환" 가드는 기존 NAVER_CLIENT_ID/NAVER_CLIENT_SECRET를
 그대로 확인한다 — 전환 후에도 두 키를 함께 유지하는 것을 전제로 최소 변경만 적용.
 """
+import logging
 import os
+
+_logger = logging.getLogger("aeolab")
 
 _SEARCH_KINDS = {"local", "blog", "cafearticle", "kin", "news"}
 
@@ -32,10 +35,16 @@ def hub_enabled() -> bool:
 
 def search_request(kind: str) -> tuple[str, dict]:
     """kind: 'local' | 'blog' | 'cafearticle' | 'kin' | 'news' → (url, headers)"""
-    assert kind in _SEARCH_KINDS, f"unknown naver search kind: {kind}"
+    if kind not in _SEARCH_KINDS:
+        raise ValueError(f"unknown naver search kind: {kind}")
     if hub_enabled() and kind not in _HUB_UNSUPPORTED_KINDS:
         cid = os.getenv("NAVER_APIHUB_CLIENT_ID", "")
         csec = os.getenv("NAVER_APIHUB_CLIENT_SECRET", "")
+        if not cid or not csec:
+            _logger.warning(
+                "NAVER_API_HUB_ENABLED=true인데 NAVER_APIHUB_CLIENT_ID/SECRET 미설정 — "
+                "빈 인증으로 Hub 요청 전송됨(kind=%s), 401 예상", kind,
+            )
         return (
             f"https://naverapihub.apigw.ntruss.com/search/v1/{kind}",
             {"X-NCP-APIGW-API-KEY-ID": cid, "X-NCP-APIGW-API-KEY": csec},
@@ -53,6 +62,11 @@ def datalab_request() -> tuple[str, dict]:
     if hub_enabled():
         cid = os.getenv("NAVER_APIHUB_CLIENT_ID", "")
         csec = os.getenv("NAVER_APIHUB_CLIENT_SECRET", "")
+        if not cid or not csec:
+            _logger.warning(
+                "NAVER_API_HUB_ENABLED=true인데 NAVER_APIHUB_CLIENT_ID/SECRET 미설정 — "
+                "빈 인증으로 Hub 요청 전송됨(datalab), 401 예상"
+            )
         return (
             "https://naverapihub.apigw.ntruss.com/search-trend/v1/search",
             {

@@ -48,7 +48,7 @@ async def _search_cafe(
     except asyncio.TimeoutError:
         _logger.warning("[cafe_scanner] timeout for query=%r", query)
         return []
-    except aiohttp.ClientError as e:
+    except (aiohttp.ClientError, ValueError) as e:
         _logger.warning("[cafe_scanner] request failed for query=%r: %s", query, e)
         return []
 

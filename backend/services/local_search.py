@@ -80,7 +80,7 @@ async def search_kakao(query: str, region: str) -> tuple[list[dict], int | None]
         total_count = (data.get("meta") or {}).get("total_count")
         return results, total_count
 
-    except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+    except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as e:
         _logger.warning("kakao_search_error: %s", e)
         return [], None
 
@@ -140,7 +140,7 @@ async def search_naver(query: str, region: str) -> list[dict]:
             )
         return results
 
-    except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+    except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as e:
         _logger.warning("naver_search_error: %s", e)
         return []
 
@@ -256,6 +256,6 @@ async def find_naver_place_id(name: str, address: str, region: str = "") -> str 
                     m = re.search(r"/place/(\d+)", link)
                     if m and name in item_name:
                         return m.group(1)
-    except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+    except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as e:
         _logger.warning("find_naver_place_id 실패: %s — %s", name, e)
     return None
