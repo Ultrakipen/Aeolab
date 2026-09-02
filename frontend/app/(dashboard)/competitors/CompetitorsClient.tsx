@@ -3110,6 +3110,9 @@ export function CompetitorsClient({
         </div>
       )}
 
+      {/* GapAnalysisCard + 키워드 격차 — PC(md 이상)는 화면 폭을 살려 2열, 모바일은 세로 스택.
+          PlaceCompareTable(비교표)은 폭이 필요해 여기 포함 안 하고 별도 전체폭 유지(2026-09-02) */}
+      <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4 md:items-start">
       {/* GapAnalysisCard + 가이드 링크 */}
       {(gapAnalysis.dimensions?.length ?? 0) > 0 && (
         <div>
@@ -3222,6 +3225,7 @@ export function CompetitorsClient({
           </div>
         )
       })()}
+      </div>
     </div>
   ) : null
 

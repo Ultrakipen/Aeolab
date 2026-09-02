@@ -3028,17 +3028,24 @@ async def get_place_compare(biz_id: str, background_tasks: BackgroundTasks, user
             }
         })
 
-    # 갭 분석: 경쟁사 중 최선값 대비 내 가게 차이
+    # 갭 분석: 경쟁사 중 최선값(표시용) + 평균값(개선필요 판정용) 대비 내 가게 차이
+    # 2026-09-02 변경: needs_action을 "최고 경쟁사" 기준에서 "경쟁사 평균" 기준으로 완화.
+    # 최고 기준만 쓰면 등록 경쟁사 3곳 중 2곳보다 앞서는 항목도 전부 빨간 "개선 필요"로
+    # 뜨는 문제 확인(라이브 QA 재현) — 사장님 입장에서 거의 모든 항목이 경고색이라 우선순위
+    # 판단이 어려워짐. best_competitor_value/name은 "최고 경쟁사가 누구인지" 참고 표시용으로 유지.
     gaps = []
     for field in FIELDS:
         key = field["key"]
         my_val = my_data.get(key, 0 if field["type"] in ("number", "rating") else False)
         best_comp_val = None
         best_comp_name = None
+        comp_num_vals: list[float] = []
         for c in comp_data:
             cv = c["data"].get(key, 0 if field["type"] in ("number", "rating") else False)
             if cv is None:
                 continue
+            if field["type"] in ("number", "rating"):
+                comp_num_vals.append(float(cv))
             if best_comp_val is None:
                 best_comp_val = cv
                 best_comp_name = c["name"]
@@ -3054,8 +3061,8 @@ async def get_place_compare(biz_id: str, background_tasks: BackgroundTasks, user
         needs_action = False
         if field["type"] in ("number", "rating"):
             my_num = my_val if my_val is not None else 0
-            best_num = best_comp_val if best_comp_val is not None else 0
-            needs_action = my_num < best_num
+            avg_num = (sum(comp_num_vals) / len(comp_num_vals)) if comp_num_vals else 0
+            needs_action = my_num < avg_num
         elif field["type"] == "bool":
             needs_action = not my_val and bool(best_comp_val)
 
