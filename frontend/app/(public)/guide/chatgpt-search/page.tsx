@@ -1,5 +1,6 @@
 import Link from "next/link"
 import type { Metadata } from "next"
+import { Globe, MapPin, Newspaper, AlertTriangle, Bot, MessageSquareText, ArrowRight, ArrowDown } from "lucide-react"
 import { SiteFooter } from "@/components/common/SiteFooter"
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
 import { ChatGptChecklist } from "./ChatGptChecklist"
@@ -12,22 +13,26 @@ export const metadata: Metadata = {
 
 const LEARN_SOURCES = [
   {
-    icon: "🌐",
+    icon: Globe,
+    tone: "default" as const,
     title: "자체 웹사이트 (가장 효과적)",
     desc: "OAI-SearchBot(OpenAI 자체 크롤러)이 직접 크롤링하는 외부 URL. JSON-LD 구조화 마크업이 있으면 인용 가능성이 높아집니다. 티스토리·워드프레스도 포함됩니다. 구글·Bing 검색에도 함께 색인되면 발견 경로가 늘어납니다.",
   },
   {
-    icon: "📍",
+    icon: MapPin,
+    tone: "default" as const,
     title: "구글 비즈니스 프로필",
     desc: "구글 비즈니스 프로필에 등록하면 사업장 정보가 웹 전반에 퍼지며 OAI-SearchBot(OpenAI 자체 크롤러)과 구글 인덱스에서도 발견될 가능성이 높아집니다. business.google.com 무료 등록 후 웹 전체 인덱싱까지 1~4주 소요됩니다.",
   },
   {
-    icon: "📰",
+    icon: Newspaper,
+    tone: "default" as const,
     title: "뉴스·언론 기사·영어권 플랫폼",
     desc: "언론 보도, 트립어드바이저 등 영어권 글로벌 플랫폼은 OAI-SearchBot(OpenAI 자체 크롤러)과 구글 인덱싱이 활발하여 권위 신호로 인식되고 인용 가능성이 높아집니다.",
   },
   {
-    icon: "⚠️",
+    icon: AlertTriangle,
+    tone: "warning" as const,
     title: "네이버 블로그·스마트플레이스 — ChatGPT 효과 제한적",
     desc: "네이버 생태계(블로그·스마트플레이스)는 ChatGPT가 참조하는 검색엔진 인덱스에서 영향력이 제한적이어서 ChatGPT 응답에 미치는 효과가 작습니다. 네이버 최적화는 네이버 AI 브리핑·AI탭에 효과적입니다.",
   },
@@ -118,8 +123,8 @@ export default function ChatGptSearchGuidePage() {
                 </li>
               </ul>
             </div>
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-semibold text-amber-800 mb-2">AEOlab 스캐너 점수 (ChatGPT 학습 데이터 기준)</p>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-800 mb-2">AEOlab 스캐너 점수 (ChatGPT 학습 데이터 기준)</p>
               <p className="text-sm text-gray-700 leading-relaxed">
                 ChatGPT 모델 재학습 주기에 의존<br />
                 <strong>수개월~1년</strong> 이상 소요
@@ -140,23 +145,73 @@ export default function ChatGptSearchGuidePage() {
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 break-keep">
             ChatGPT가 실제로 참조하는 정보 — OpenAI 자체 크롤러 + 구글 인덱스 중심 구조
           </h2>
+
+          {/* 흐름도: 내 사업장 정보가 ChatGPT 응답에 도달하는 경로 */}
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 md:p-6 mb-5">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+              <div className="flex flex-col items-center text-center gap-1.5 w-full md:w-auto">
+                <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+                  <Globe className="w-5 h-5" aria-hidden="true" />
+                </div>
+                <p className="text-sm font-semibold text-gray-900">내 사업장 정보</p>
+                <p className="text-sm text-gray-500">웹사이트 · 구글 비즈니스 프로필</p>
+              </div>
+
+              <ArrowDown className="w-5 h-5 text-gray-400 shrink-0 md:hidden" aria-hidden="true" />
+              <ArrowRight className="w-5 h-5 text-gray-400 shrink-0 hidden md:block" aria-hidden="true" />
+
+              <div className="flex flex-col items-center text-center gap-1.5 w-full md:w-auto">
+                <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+                  <Bot className="w-5 h-5" aria-hidden="true" />
+                </div>
+                <p className="text-sm font-semibold text-gray-900">OpenAI 인덱싱</p>
+                <p className="text-sm text-gray-500">OAI-SearchBot · 구글 인덱스</p>
+              </div>
+
+              <ArrowDown className="w-5 h-5 text-gray-400 shrink-0 md:hidden" aria-hidden="true" />
+              <ArrowRight className="w-5 h-5 text-gray-400 shrink-0 hidden md:block" aria-hidden="true" />
+
+              <div className="flex flex-col items-center text-center gap-1.5 w-full md:w-auto">
+                <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+                  <MessageSquareText className="w-5 h-5" aria-hidden="true" />
+                </div>
+                <p className="text-sm font-semibold text-gray-900">ChatGPT 응답</p>
+                <p className="text-sm text-gray-500">질문에 대한 답으로 인용</p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {LEARN_SOURCES.map((item) => (
-              <div
-                key={item.title}
-                className="rounded-xl border border-gray-200 bg-white p-4 md:p-5 flex flex-col gap-2"
-              >
-                <div className="flex items-start gap-2">
-                  <span className="text-2xl shrink-0 mt-0.5" aria-hidden="true">{item.icon}</span>
-                  <p className="text-sm md:text-base font-semibold text-gray-900 break-keep">
-                    {item.title}
+            {LEARN_SOURCES.map((item) => {
+              const Icon = item.icon
+              const isWarning = item.tone === "warning"
+              return (
+                <div
+                  key={item.title}
+                  className={`rounded-xl border p-4 md:p-5 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow ${
+                    isWarning
+                      ? "border-amber-200 bg-amber-50"
+                      : "border-gray-200 bg-white"
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <span
+                      className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                        isWarning ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" aria-hidden="true" />
+                    </span>
+                    <p className="text-sm md:text-base font-semibold text-gray-900 break-keep mt-1">
+                      {item.title}
+                    </p>
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed break-keep">
+                    {item.desc}
                   </p>
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
 
