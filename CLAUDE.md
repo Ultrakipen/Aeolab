@@ -181,7 +181,7 @@
 | **`docs/commercial_launch_readiness_audit_v1.0.md`** ⭐ | **상업 서비스 총괄 점검 계획 — 4개 신규 축(A보안·B법적컴플라이언스·C사업성·D인프라복원력). A·B·C·D 전체 완료(2026-07-12)** |
 | **`docs/legal_compliance_and_infra_resilience_audit_v1.0.md`** ⭐ | **B(법적)+D(인프라) 점검 결과 — D축 P0(DB 백업 생성 이래 0회 성공, pg_dump 아웃바운드 차단+비밀번호 미설정 이중원인) 발견 즉시 수정(REST API 전환, 43개 테이블, 실패알림, git `3ab9545`). B축 P1(정기결제 요금인상 사전고지, 법률자문 권장)+P2 3건은 문서화만(사용자 결정 대기). 잔여: 외부 업타임 모니터링·day-30 알림 구현 (2026-07-12)** |
 | **`docs/business_viability_audit_v1.0.md`** ⭐ | **C(사업성) 점검 결과 — Gemini SDK(0.8.3) thinking_config 미지원+AI 호출 텔레메트리 전무 발견(ai_usage_logger.py 신설·배포·SQL실행·실측검증 완료), 마진율 계산에서 PG수수료 누락 발견·재계산 — **2026-07-16 재확인으로 브랜드페이(4.3%)→표준카드(3.4%) 카테고리 정정 + 영세등급(0.40%) 사용자 확인 + 현재가 반영, 최종 Basic 83.8%/창업 83.9%/Pro 86.4%/Biz 91.4%**, 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재), trial→가입→유료전환 선행지표 실제공백 확인→`/admin/growth-funnel` 신설. **§1-A: 실측검증 도중 OpenAI 결제수단 미등록으로 ChatGPT 스캔 전면실패(insufficient_quota) P0 우연 발견·사용자 카드등록으로 해결**. 후속과제 잔여: max_tokens 등 (2026-07-12, PG 우대등급 항목은 2026-07-16 해소)** |
-| **`docs/naver_api_hub_migration_v1.0.md`** ⭐ | **네이버 개발자센터 Search API·DataLab API가 NAVER API Hub(NCP)로 이관 — 2027-06-30 전면 종료 전까지만 마이그레이션 완료하면 됨(현재 수정 불필요). 사용 파일 9개 전수 확인 포함 (2026-07-15)** |
+| **`docs/naver_api_hub_migration_v1.0.md`** ⭐ | **네이버 Search/DataLab API → NAVER API Hub(NCP) 이관 — 2026-09-02 코드 배선 완료(10파일 11호출처 → `naver_api_hub.py` 단일화, `NAVER_API_HUB_ENABLED` 플래그, 기본값 회귀 없음, git `41f3c01`). 잔여: NCP 콘솔 5개 카드 재확인 + 키 발급 필요(사용자 액션 대기) — 완료 후 플래그 ON 전 mapx/mapy 좌표 스케일 라이브 검증 필수** |
 | **`docs/chargeback_response_checklist_v1.0.md`** ⭐ | **카드 분쟁(차지백) 대응 체크리스트 — 결제 라이브 키 승인 전 점검에서 발견한 누락(코드·문서 0건). 이미 있는 증빙 소스(payment_events·subscriptions 등) 정리 + 통보받았을 때 절차만 문서화, 코드 변경 없음 (2026-07-16)** |
 | **`docs/blog_diagnosis_session_2026_07_18_handoff_v1.0.md`** ⭐ | **블로그 진단 페이지 종합 핸드오프 — 목적 확정(①내블로그현황 ②AI노출개선, 경쟁사대비는 방식A(comp_keywords 재사용, 부하없음)로 포함/방식B(실시간블로그크롤링)는 비채택)·20개상한 키워드누락 P0(git `a8f76ec`)·자기추세 upsert 누락(git `dc59ae4`)·comp_keywords 오판 2회 정정 상세. **재점검 발견**: `showDetail`(기본값 false) 단일 토글이 키워드커버리지·자기추세·경쟁사대비 3축을 전부 기본 숨김 처리 중 — §6-1 토글 재설계가 최우선 (2026-07-18)** |
 | `docs/fastapi_starlette_upgrade_handoff_v1.0.md` | A·B·C·D 3개 문서 재검증 세션(2026-07-12) 결과물 — privacy §4 Resend 위탁 누락·§3 IP해시 문구 불일치·DMARC 부재·성능측정 이력 0건·pip-audit 미실행 5건 수정·배포(git `f51f490`·`6c65ab8`). `starlette` CVE 7건 → **fastapi 0.135.0+starlette 1.3.1 업그레이드 완료**(로컬 회귀검증 후 서버 배포·라이브 검증, git `7d23596`) — 이 문서 시리즈 전체 종료, 재작업 불필요 |
@@ -732,6 +732,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 ### 사용자가 직접 해야 할 것
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
 - **실결제 전환 시**: `TOSS_SECRET_KEY` test_ → live_ 교체 + pm2 restart
+- ⏳ **NAVER API Hub 키 확인/발급** — NCP 콘솔에서 블로그·지역·지식iN·카페·검색어트렌드 5개 카드 활성화 확인 후 `NAVER_APIHUB_CLIENT_ID`/`NAVER_APIHUB_CLIENT_SECRET` 발급·전달 (코드는 준비됨, 마감 2027-06-30 여유 있음). 상세 `docs/naver_api_hub_migration_v1.0.md §0`
 - ✅ **네이버 서치어드바이저 사이트 등록 + 사이트맵 제출 완료** (2026-08-07) — HTML 파일 방식으로 소유확인(`frontend/public/naver90ab854379ebb072c6795b390f874ac8.html`, git `b45b952`, 라이브 200 확인) 후 사이트맵 제출까지 사용자 완료. 색인 반영은 네이버 측 처리 시간 소요 — 재작업 불필요
 
 ### 비즈니스 목표
@@ -741,7 +742,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - [ ] B2G 공식화 지자체 MOU (Phase 4)
 
 ### 외부 API 마감 대응 (하드 마감일 있음)
-- [ ] **네이버 Search API·DataLab API → NAVER API Hub(NCP) 마이그레이션** — 마감 **2027-06-30**(전면 종료). 현재 수정 불필요, 마감 전 아무때나 진행. 상세 `docs/naver_api_hub_migration_v1.0.md`
+- [x] ~~네이버 Search API·DataLab API → NAVER API Hub(NCP) 마이그레이션~~ 코드 배선 완료(2026-09-02, git `41f3c01`) — 잔여는 사용자의 NCP 콘솔 키 확인/발급 뿐. 마감 2027-06-30, 상세 `docs/naver_api_hub_migration_v1.0.md`
 
 ### 미래 과제 (구독자 확보 후)
 - `smart_place_completeness` Playwright 완전 자동화 — 50명 이후. 조건 충족 자동 감지: `jobs.py:_check_data_wiring_readiness_job` (`[DATA-WIRING-READY-50]` WARNING, 매일 09:20 KST 자동 체크 — 2026-08-23 타임존버그+get_supabase ImportError 둘 다 수정 완료, git `3381ce9`). DataLab 연동은 2026-07-05 완료
