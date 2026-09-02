@@ -248,10 +248,17 @@ function BlogMentionBar({
   );
 }
 
-// 핵심 격차 1줄 — 스크롤 없이 "오늘 뭘 해야 하는지"를 바로 보여주기 위해
-// 이미 카드 하단에 있는 리뷰수·블로그언급·소개글/메뉴 데이터 중 가장 큰 신호 하나만 뽑아 상단에 노출.
-// 색상은 이 파일 기존 관례(green=내가 앞섬, amber=경쟁사 앞섬/뒤처짐, blue=선점 기회) 그대로 사용.
-function CoreGapBadge({
+// 핵심 격차 1줄 — 스크롤·클릭 없이 "오늘 뭘 해야 하는지"를 바로 보여주기 위해
+// 리뷰수·블로그언급·소개글/메뉴 데이터 중 가장 큰 신호 하나만 뽑아낸다.
+// CompetitorsClient.tsx의 목록(접힌) 카드에서도 그대로 재사용 — 상세를 펼쳐야만
+// 보이던 걸 기본 화면에도 노출하기 위해 순수 함수로 분리(2026-09-02).
+export type CoreGapTone = "behind" | "ahead" | "opportunity";
+export interface CoreGap {
+  text: string;
+  tone: CoreGapTone;
+}
+
+export function computeCoreGap({
   myReviewCount,
   compReviewCount,
   myBlogMentions,
@@ -265,8 +272,8 @@ function CoreGapBadge({
   compBlogMentions: number | null | undefined;
   compHasIntro?: boolean;
   compHasMenu?: boolean;
-}) {
-  type Gap = { text: string; tone: "behind" | "ahead" | "opportunity"; weight: number };
+}): CoreGap | null {
+  type Gap = CoreGap & { weight: number };
   const gaps: Gap[] = [];
 
   const reviewDiff = compReviewCount - myReviewCount;
@@ -301,21 +308,36 @@ function CoreGapBadge({
 
   if (gaps.length === 0) return null;
   gaps.sort((a, b) => b.weight - a.weight);
-  const top = gaps[0];
-  const toneClass =
-    top.tone === "behind"
-      ? "bg-amber-100 text-amber-700 border-amber-200"
-      : top.tone === "ahead"
-      ? "bg-green-100 text-green-700 border-green-200"
-      : "bg-blue-100 text-blue-700 border-blue-200";
+  const { text, tone } = gaps[0];
+  return { text, tone };
+}
+
+export function coreGapToneClass(tone: CoreGapTone): string {
+  return tone === "behind"
+    ? "bg-amber-100 text-amber-700 border-amber-200"
+    : tone === "ahead"
+    ? "bg-green-100 text-green-700 border-green-200"
+    : "bg-blue-100 text-blue-700 border-blue-200";
+}
+
+function CoreGapBadge(props: {
+  myReviewCount: number;
+  compReviewCount: number;
+  myBlogMentions: number | null;
+  compBlogMentions: number | null | undefined;
+  compHasIntro?: boolean;
+  compHasMenu?: boolean;
+}) {
+  const gap = computeCoreGap(props);
+  if (!gap) return null;
 
   return (
     <div
       role="status"
       aria-live="polite"
-      className={`inline-flex items-center gap-1.5 text-sm font-semibold px-2.5 py-1 rounded-full border w-fit ${toneClass}`}
+      className={`inline-flex items-center gap-1.5 text-sm font-semibold px-2.5 py-1 rounded-full border w-fit ${coreGapToneClass(gap.tone)}`}
     >
-      {top.text}
+      {gap.text}
     </div>
   );
 }

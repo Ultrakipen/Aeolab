@@ -10,7 +10,7 @@ import {
   Info, ArrowRight, Building2, PlayCircle, Clock, X, Pencil, Pin,
 } from 'lucide-react'
 import { LineChart, Line, ResponsiveContainer } from 'recharts'
-import { CompetitorPlaceCard } from '@/components/competitors/CompetitorPlaceCard'
+import { CompetitorPlaceCard, computeCoreGap, coreGapToneClass } from '@/components/competitors/CompetitorPlaceCard'
 import { ScanProgress } from '@/components/scan/ScanProgress'
 import { syncCompetitorPlace } from '@/lib/api'
 import { PLAN_PRICES } from '@/lib/plans'
@@ -2346,6 +2346,28 @@ export function CompetitorsClient({
                             동기화 불완전 — 리뷰 수 미확인. 재스캔을 권장합니다.
                           </p>
                         )}
+
+                        {/* 핵심 격차 1줄 — "상세" 클릭 없이 목록에서 바로 보이도록(2026-09-02).
+                            스캔 여부와 무관하게 리뷰·블로그·소개글/메뉴만으로 계산 가능. */}
+                        {(() => {
+                          const gap = computeCoreGap({
+                            myReviewCount,
+                            compReviewCount: c.place_review_count ?? 0,
+                            myBlogMentions,
+                            compBlogMentions: c.blog_mention_count,
+                            compHasIntro: c.place_has_intro,
+                            compHasMenu: c.place_has_menu,
+                          })
+                          if (!gap) return null
+                          return (
+                            <div
+                              role="status"
+                              className={`mt-1.5 inline-flex items-center gap-1.5 text-sm font-semibold px-2.5 py-1 rounded-full border w-fit ${coreGapToneClass(gap.tone)}`}
+                            >
+                              {gap.text}
+                            </div>
+                          )
+                        })()}
 
                         {cs ? (
                           <>
