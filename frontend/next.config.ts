@@ -12,6 +12,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    // /resources는 /guide/channels의 더 오래된 중복 콘텐츠(10개 업종, duel-track 모델 미반영).
+    // 2026-09-03 두 시스템 병존으로 인한 콘텐츠 drift·내비게이션 혼선 확인 후 통합 —
+    // 더 나은 체크리스트 문구는 /guide/channels 쪽 10개 업종에 먼저 반영 완료.
+    return [
+      { source: "/resources", destination: "/guide/channels", permanent: true },
+      { source: "/resources/:category", destination: "/guide/channels/:category", permanent: true },
+    ];
+  },
   async headers() {
     // backend(main.py SecurityHeadersMiddleware)는 /api·/health 등 FastAPI 응답에만 적용되고
     // Next.js가 렌더링하는 로그인·가입·대시보드 등 사용자 화면 HTML에는 전혀 적용되지 않아 추가함.
