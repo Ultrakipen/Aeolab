@@ -99,8 +99,9 @@ class AdDefenseGuideService:
         # 가이드인데 기존엔 score_breakdown 전체(Track1 네이버 항목 포함)에서 하위 3개를
         # 뽑아 "네이버 플레이스 최적화"가 1순위 전략으로 나오는 등 주제와 무관한 조언이
         # 섞였음(실측 QA로 확인). score_breakdown엔 v3.0/v3.1 호환용 중복·레거시 키
-        # (exposure_freq 등 0~100 척도가 아닌 값 포함)도 섞여 있어 화이트리스트 방식이
-        # 안전 — 실제 v3_1 Track2 4항목만 명시 지정.
+        # (keyword_gap_score·naver_exposure_confirmed·kakao_completeness 등, v3_1에서는
+        # keyword_search_rank·ai_briefing_score 등으로 대체된 구버전 항목)도 섞여 있어
+        # 화이트리스트 방식이 안전 — 실제 v3_1 Track2 4항목만 명시 지정.
         _TRACK2_KEYS = ["multi_ai_exposure", "schema_seo", "online_mentions_t2", "google_presence"]
         score_breakdown = scan_result.get("score_breakdown") or {}
         track2_items = [
