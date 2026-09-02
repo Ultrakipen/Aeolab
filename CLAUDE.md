@@ -572,9 +572,13 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 ---
 
-## 카카오 알림톡 템플릿 5종
+## 카카오 알림톡 템플릿 (2026-09-02 비즈센터 승인내역 스크린샷으로 재확인 — 과거 "5종" 기재는 stale이었음, 실제 17개+ 승인됨)
 
-- `AEOLAB_SCORE_01` 점수 변화 / `AEOLAB_CITE_01` AI 인용 실증 / `AEOLAB_COMP_01` 경쟁사 변화 / `AEOLAB_NEWS_01` 시장 뉴스 / `AEOLAB_ACTION_01` 이달 할 일
+**핵심 5종(주기적 잡)**: `AEOLAB_SCORE_01` 점수 변화 / `AEOLAB_CITE_01` AI 인용 실증 / `AEOLAB_COMP_01` 경쟁사 변화 / `AEOLAB_NEWS_01` 시장 뉴스 / `AEOLAB_ACTION_01` 이달 할 일
+
+**그 외 승인 확인됨(2026-09-02)**: `AEOLAB_SCAN_01`(스캔 완료 즉시) · `AEOLAB_COMP_02`(경쟁사 역전 긴급) · `AEOLAB_ALERT_01`(별점 낮은 리뷰 긴급) · `AEOLAB_GROWTH_01`(성장 단계 업그레이드) · `AEOLAB_WEEKLY_01`(주간 성적표) · `AEOLAB_CANCEL_01`/`AEOLAB_EXPIRE_01`/`AEOLAB_SUSPEND_01`/`AEOLAB_RESUME_01`/`AEOLAB_PAYFAIL_01`/`AEOLAB_PRICEUP_01`(구독/결제 상태 안내) · `AEOLAB_DELIVERY_01~04`(대행 서비스) · `SCOREMODEL01`
+
+새 알림 트리거 추가 시 "AEOLAB_XXX_01 미승인이라 보류" 판단 전에 반드시 사용자에게 비즈센터 승인내역 재확인 요청할 것 — 코드에 이미 구현돼 있어도 CLAUDE.md 기재가 실제 승인 현황보다 낡아있을 수 있음.
 
 ---
 
@@ -729,14 +733,15 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - **2026-09-02 창업 시장 분석 페이지 재구성 — AI종합판단 카드 신설+비교색상 통일+세련도 개선**: 소상공인 데이터(SBIZ) 제외 후 대안으로 AI노출 벤치마크(`/benchmark` 재사용, 텍스트 레이블만) 통합 + 네이버 SearchAd 절대 검색량(`git 2a0e23a`, 위 항목) 통합 완료 후, "창업 예비자 관점 솔직 평가" 요청에 색상 불일치(market_comparison=rose/emerald, closure_rate=red/green/yellow, ai_benchmark=blue/amber 제각각) + AI노출"미흡" 배지가 실제로는 긍정 신호(선점 기회)인데 경고색(amber)으로 오분류된 것 발견 → `comparisonColor()`/`comparisonBadgeClass()` 공용 헬퍼로 전체 통일(blue=기회/파랑, amber=주의, gray=중립) + 색상 범례 추가 + "AI 진입 전략 상세" 섹션을 접이식(`useState showDetail`)으로 전환해 정보과다 완화. 이후 "파랑의 이중 의미"(비교판단색 vs 카테고리식별색) 자체점검에서 "실제 시장 규모/밀도" 원시수치 타일이 여전히 blue라 바로 아래 밀도비교 배지(blue=기회)와 의미 충돌하는 것 재발견 → closure_rate 76.2%(slate)와 동일하게 중립 slate로 정정(git `b23fd1d`). 라이브 QA(Biz플랜, 서울강남구 vs 홍대) desktop+mobile 재현 검증 완료. 목업 아티팩트는 https://claude.ai/code/artifact/c4f1c37d-6db0-457a-91af-646aaa99d25d — 최신 반영 필요(잔여 작업).
 - **2026-09-02 네이버 Search/DataLab API → NAVER API Hub(NCP) 마이그레이션 완료**: 10개 파일 11개 호출처를 `naver_api_hub.py` 공용 헬퍼로 단일화, `NAVER_API_HUB_ENABLED` 플래그로 라이브 전환. 전환 직후 실제로 발견한 이슈 2건 즉시 수정 — ①Hub가 200 OK에도 `Content-Type: text/plain`으로 응답해 `aiohttp.json()`이 파싱 실패, 전체 네이버 호출이 조용히 fallback되는 회귀가 실운영에 약 5분간 영향(즉시 롤백→16곳 `content_type=None` 수정→재검증→재적용) ②발급 키가 "뉴스" 카드는 미승인(401) — `news`만 레거시 강제 유지하는 예외 처리. 라이브 재검증: 실제 좌표 변환(mapx/mapy WGS84×1e7) 정상 확인. git `41f3c01`~`aa38a1f`.
 - **2026-09-02 유료가치 우위 확보 착수 — PDF리포트 제외판단 + 경쟁사비교 Phase 1**: "지불가치를 넘어서는 서비스 가능한가" 질의에 3개 후보(PDF·경쟁사비교·알림톡) 순차 착수. ①PDF: nginx 14일 로그 전수 확인(78,537건 중 PDF 요청 0건) → 제외 결정, 단 이 판단에 "실구독자 4명"을 근거로 넣었다가 **테스트 계정을 실사용자로 오판(3번째 재발, `project_similar_service_comparison_and_strategy_2026_08_25.md` 참조)** — 사용자 정정으로 즉시 메모리 강화(서비스 오픈 전, 실사용자 0명 기본 가정으로 통일). ②경쟁사비교 Phase 1: next-feature 기획에서 나온 "blog_mention_count가 list_competitors SELECT에서 누락" 발견을 코드 추적으로 반증(실제 메인 페이지는 page.tsx 직접쿼리를 써서 영향 없음, 다른 호출처엔 유효) → 정합성 차원 수정. 진짜 사용자체감 개선은 직접 설계한 `CoreGapBadge`(카드 상단 "핵심 격차 1줄", 리뷰수·블로그언급·소개글/메뉴 중 최대 격차 자동선별, DB/AI비용 0원) + **`PlaceCompareTable`이 전혀 다른 데이터소스(`gapAnalysis`, AI스캔 없으면 404)에 잘못 종속되어 스캔 0회 사용자에겐 아예 안 보이던 버그 발견·분리 수정**(스마트플레이스 비교표는 스캔 불필요, 경쟁사 등록+동기화만 있으면 됨). git `0c0b1d4`·`130e957`·`bd356ce`. **라이브 검증 완료**(락 해제 후 QA계정 재현) — 스캔 0회 상태에서 스마트플레이스 비교표가 실데이터로 정상 렌더링됨과 `CoreGapBadge`("경쟁사 소개글 미등록 — 선점 기회") 파란 배지 정확한 위치·문구 확인.
-- **2026-09-02 유료가치 우위 확보 ③알림톡 활용도 — 신뢰훼손 버그 3건 수정**: next-feature 기획 → 코드 추적 반증 후 적용(일반론 아님). **P1**: `_send_kakao_notifications()`가 `phone`만 확인하고 `kakao_scan_notify`/`kakao_competitor_notify`를 전혀 체크 안 해 설정에서 알림을 꺼도 SCORE_01·CITE_01·COMP_01·ACTION_01 4종이 계속 발송되던 버그 — weekly/daily_kakao_notify SELECT에 두 컬럼 추가 + 5개 발송 블록 전부 게이트. **P2**: 이메일 fallback이 `_grade_label()` 텍스트("양호 · 업종 3위")에 "점"을 붙여 "양호 · 업종 3위점"으로 문법이 깨지던 것 수정. **P3**: SCORE_01 트리거가 `abs(delta) > 0`이라 Pro/Biz(매일 스캔+매일 알림)는 측정 노이즈(0.1점)에도 매일 카톡 발송 가능 — 3점 이상으로 완화. git `4b682d1`. **보류(사용자 확인 필요)**: `send_scan_complete()`/`send_competitor_overtake()`(가장 가치 높다고 평가됐던 항목)는 `AEOLAB_SCAN_01`/`AEOLAB_COMP_02` 템플릿을 쓰는데 CLAUDE.md의 "승인된 5종" 목록에 없음 — 카카오 비즈센터 실제 승인 여부 확인 전까지 연결 보류.
+- **2026-09-02 유료가치 우위 확보 ③알림톡 활용도 — 신뢰훼손 버그 3건 수정**: next-feature 기획 → 코드 추적 반증 후 적용(일반론 아님). **P1**: `_send_kakao_notifications()`가 `phone`만 확인하고 `kakao_scan_notify`/`kakao_competitor_notify`를 전혀 체크 안 해 설정에서 알림을 꺼도 SCORE_01·CITE_01·COMP_01·ACTION_01 4종이 계속 발송되던 버그 — weekly/daily_kakao_notify SELECT에 두 컬럼 추가 + 5개 발송 블록 전부 게이트. **P2**: 이메일 fallback이 `_grade_label()` 텍스트("양호 · 업종 3위")에 "점"을 붙여 "양호 · 업종 3위점"으로 문법이 깨지던 것 수정. **P3**: SCORE_01 트리거가 `abs(delta) > 0`이라 Pro/Biz(매일 스캔+매일 알림)는 측정 노이즈(0.1점)에도 매일 카톡 발송 가능 — 3점 이상으로 완화. git `4b682d1`.
+- **2026-09-02 알림톡 활용도 — send_scan_complete/send_competitor_overtake 연결 완료(D/E)**: 사용자가 카카오 비즈센터 승인내역 스크린샷 제공 → `AEOLAB_SCAN_01`(스캔완료 즉시)·`AEOLAB_COMP_02`(경쟁사역전 긴급) 승인 확인, CLAUDE.md "5종" 문서가 stale이었음이 드러남(실제 17개+ 승인, 위 "카카오 알림톡 템플릿" 섹션 갱신). `send_scan_complete()`는 `daily_scan_all()` 스캔 완료 직후 연결(top_platform/top_improvement는 이미 계산된 값 재사용, 새 AI호출 없음). `send_competitor_overtake()`는 기존 "20점 이상 격차→business_action_log만 기록"하던 `_auto_log_competitor_overtake()`를 확장해 최근 7일 내 미발송 시에만 카톡 발송(지속 격차 아닌 "새로 벌어진 격차"에만, 매일반복 방지). 같은 자리의 GrowthStage 알림도 phone만 확인하고 토글 무시하던 동일계열 버그 추가 발견·P1 원칙 적용. 배포 전 활성 구독 5건 전화번호 미설정 확인해 실발송 위험 없음 확인. git `50ab946`.
 ## 남은 작업
 
 ### 사용자가 직접 해야 할 것
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
 - **실결제 전환 시**: `TOSS_SECRET_KEY` test_ → live_ 교체 + pm2 restart
 - ✅ **NAVER API Hub 키 발급·전환 완료** (2026-09-02) — 마이그레이션 실질 완료, 재작업 불필요
-- ⏳ **카카오 비즈센터에서 `AEOLAB_SCAN_01`(스캔완료)·`AEOLAB_COMP_02`(경쟁사역전) 템플릿 실제 승인 여부 확인** — 코드엔 이미 구현·미연결 상태(`send_scan_complete()`/`send_competitor_overtake()`). CLAUDE.md "승인된 5종" 목록에 없어 확인 전 연결 보류 중. 승인 확인되면 `_send_kakao_notifications()`/`daily_scan_all()`에 연결 진행 가능
+- ✅ **카카오 비즈센터 승인내역 확인 완료** (2026-09-02, 스크린샷 제공) — `AEOLAB_SCAN_01`/`AEOLAB_COMP_02` 승인 확인 후 `send_scan_complete()`/`send_competitor_overtake()` 연결 완료(git `50ab946`). 재작업 불필요
 - ✅ **네이버 서치어드바이저 사이트 등록 + 사이트맵 제출 완료** (2026-08-07) — HTML 파일 방식으로 소유확인(`frontend/public/naver90ab854379ebb072c6795b390f874ac8.html`, git `b45b952`, 라이브 200 확인) 후 사이트맵 제출까지 사용자 완료. 색인 반영은 네이버 측 처리 시간 소요 — 재작업 불필요
 
 ### 비즈니스 목표
