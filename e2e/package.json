@@ -17,9 +17,15 @@
     "test:gates": "playwright test tests/07_plan_gates.spec.ts",
     "test:setup": "playwright test tests/00_setup.spec.ts",
     "test:all-plans": "playwright test tests/08_all_plans_features.spec.ts",
+    "test:accessibility": "playwright test tests/09_accessibility.spec.ts",
+    "test:performance": "playwright test tests/10_performance.spec.ts",
+    "test:settings-support": "playwright test tests/11_settings_support.spec.ts",
+    "test:delivery-misc": "playwright test tests/12_delivery_misc.spec.ts",
+    "test:infra": "playwright test tests/09_accessibility.spec.ts tests/10_performance.spec.ts tests/11_settings_support.spec.ts tests/12_delivery_misc.spec.ts",
     "install:browsers": "playwright install chromium"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.44.0",
     "@types/node": "^20.0.0",
     "dotenv": "^16.0.0"
