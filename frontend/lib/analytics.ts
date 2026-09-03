@@ -75,7 +75,8 @@ export function trackClaimFunnel(
  * - skipped     : "건너뛰기" 클릭
  */
 export function trackOnboardingAction(
-  stage: "shown" | "completed" | "skipped",
+  stage: "shown" | "completed" | "skipped"
+    | "business_registered" | "scan_guide_viewed" | "onboarding_completed",
   meta?: Record<string, unknown>,
 ): void {
   trackEvent(`onboarding_action_${stage}`, meta);

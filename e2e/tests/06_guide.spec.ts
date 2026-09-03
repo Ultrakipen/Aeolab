@@ -112,6 +112,61 @@ test.describe('AI 브리핑 가이드 — /guide/ai-info-tab', () => {
   });
 });
 
+test.describe('멀티 사업장 biz_id 분기 — /guide/score-model-v3-1', () => {
+  /**
+   * 오늘 수정된 버그: /guide/score-model-v3-1 이 ?biz_id= 파라미터를 무시하고
+   * 항상 첫 번째 사업장 데이터를 표시하던 버그 회귀 방지용 케이스.
+   *
+   * 두 사업장의 업종이 다른 경우에만 실효적 검증이 가능하다.
+   * 같은 업종이면 페이지 텍스트가 동일해도 구별 불가이므로 skip 처리.
+   * 실서버 대상 테스트이므로 데이터 오염 방지를 위해 사업장 신규 생성 금지.
+   */
+  test('사업장이 2개 이상이고 업종이 다르면 biz_id별 페이지 내용이 다른지 확인', async ({ adminPage: page }) => {
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://aeolab.co.kr';
+
+    // 사업장 목록 API 호출 (이미 로그인된 adminPage 세션 사용)
+    const resp = await page.request.get(`${BACKEND_URL}/api/businesses/me`);
+    if (!resp.ok()) {
+      console.log('[06_guide] 사업장 목록 API 실패 — skip');
+      test.skip(true, '사업장 목록 API 조회 실패');
+      return;
+    }
+
+    const data = await resp.json() as unknown;
+    const businesses = (Array.isArray(data) ? data : (data as { businesses?: unknown[] })?.businesses || []) as Array<{ id: string; category: string }>;
+
+    if (businesses.length < 2) {
+      // 사업장 1개 — 멀티 사업장 시나리오 재현 불가, 신규 생성 금지
+      console.log('[06_guide] 사업장 1개 — 멀티 사업장 biz_id 테스트 skip (데이터 오염 방지)');
+      test.skip(true, '사업장이 2개 미만 — 멀티 사업장 검증 조건 미충족');
+      return;
+    }
+
+    const [bizA, bizB] = businesses;
+
+    if (bizA.category === bizB.category) {
+      // 같은 업종이면 biz_id별 페이지 텍스트 구별 불가 → skip
+      console.log(`[06_guide] 두 사업장 업종 동일(${bizA.category}) — skip`);
+      test.skip(true, '두 사업장 업종이 동일해 biz_id별 내용 구별 불가');
+      return;
+    }
+
+    // biz_id=A 접근
+    await page.goto(`/guide/score-model-v3-1?biz_id=${bizA.id}`, { waitUntil: 'domcontentloaded' });
+    const pageTextA = await page.locator('body').textContent() ?? '';
+
+    // biz_id=B 접근
+    await page.goto(`/guide/score-model-v3-1?biz_id=${bizB.id}`, { waitUntil: 'domcontentloaded' });
+    const pageTextB = await page.locator('body').textContent() ?? '';
+
+    // 두 페이지 본문이 완전히 동일하면 biz_id 무시 버그 재발 의심
+    expect(
+      pageTextA !== pageTextB,
+      `[06_guide] biz_id별 페이지 텍스트가 동일 — biz_id 무시 버그 재발 의심\n  bizA: ${bizA.id}(${bizA.category})\n  bizB: ${bizB.id}(${bizB.category})`
+    ).toBeTruthy();
+  });
+});
+
 test.describe('가이드 페이지 — 비로그인 리디렉션', () => {
   test('비로그인으로 /dashboard/guide 접근 → /login', async ({ page }) => {
     await page.goto('/dashboard/guide', { waitUntil: 'domcontentloaded' });

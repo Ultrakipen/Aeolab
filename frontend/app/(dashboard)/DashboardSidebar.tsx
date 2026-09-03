@@ -8,6 +8,7 @@ import {
   LayoutDashboard, Store, Lightbulb, Code2, History, FileText,
   Settings, MessageSquare, Menu, X, Lock, TrendingUp, BookOpen, ShoppingBag,
   Search, HelpCircle, MessageCircle, Shield, BarChart2, Sparkles, BookMarked,
+  Bell,
   type LucideIcon,
 } from "lucide-react";
 import { SidebarBusinessSwitcher } from "@/components/dashboard/SidebarBusinessSwitcher";
@@ -58,6 +59,7 @@ const NAV_GROUPS: {
 
 // 하단 서비스 링크 (검색 포함 여부 선택 — 여기선 포함)
 const FOOTER_ITEMS: NavItem[] = [
+  { href: "/notices",               label: "공지사항",              Icon: Bell },
   { href: "/guide/ai-info-tab",    label: "AI 브리핑 5단계",       Icon: BookOpen },
   { href: "/guide/chatgpt-search", label: "ChatGPT 가이드",        Icon: Sparkles },
   { href: "/how-it-works",         label: "서비스 매뉴얼",         Icon: BookMarked },

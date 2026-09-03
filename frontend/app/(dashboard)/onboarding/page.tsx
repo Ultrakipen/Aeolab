@@ -16,6 +16,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { FLAT_CATEGORY_GROUPS, FLAT_CATEGORY_MAP } from "@/lib/categories";
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
+import { trackOnboardingAction } from "@/lib/analytics";
+import { getUserGroup, GROUP_MESSAGES } from "@/lib/userGroup";
 import BusinessSearchDropdown from "@/components/dashboard/BusinessSearchDropdown";
 import { mapNaverCategory as mapKakaoCategory } from "@/lib/categories";
 import type { BusinessSearchResult } from "@/types";
@@ -276,7 +278,9 @@ export default function OnboardingPage() {
         is_franchise: form.is_franchise,
       }, session.user.id, session.access_token) as { id?: string } | null;
       if (biz?.id) setRegisteredBizId(biz.id);
+      trackOnboardingAction("business_registered", { category: form.category });
       setStep(2);
+      trackOnboardingAction("scan_guide_viewed");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "사업장 등록에 실패했습니다.");
     } finally {
@@ -322,6 +326,7 @@ export default function OnboardingPage() {
   }, [step, registeredBizId]);
 
   const handleComplete = async () => {
+    trackOnboardingAction("onboarding_completed");
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -620,6 +625,12 @@ export default function OnboardingPage() {
                         onChange={(v) => setForm(f => ({ ...f, category: v }))}
                       />
                       <p className="text-sm text-gray-500 mt-1">AI가 업종별 최적 키워드를 자동 선택합니다</p>
+                      {/* 업종 선택 즉시 AI 브리핑 대상군 안내 배지 */}
+                      {form.category && (
+                        <span className={`mt-1.5 text-sm font-semibold px-2.5 py-1 rounded-full inline-block ${GROUP_MESSAGES[getUserGroup(form.category, form.is_franchise)].badgeColor}`}>
+                          {GROUP_MESSAGES[getUserGroup(form.category, form.is_franchise)].badge}
+                        </span>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -682,6 +693,12 @@ export default function OnboardingPage() {
                     value={form.category}
                     onChange={(v) => setForm(f => ({ ...f, category: v }))}
                   />
+                  {/* 업종 선택 즉시 AI 브리핑 대상군 안내 배지 */}
+                  {form.category && (
+                    <span className={`mt-1.5 text-sm font-semibold px-2.5 py-1 rounded-full inline-block ${GROUP_MESSAGES[getUserGroup(form.category, form.is_franchise)].badgeColor}`}>
+                      {GROUP_MESSAGES[getUserGroup(form.category, form.is_franchise)].badge}
+                    </span>
+                  )}
                 </div>
               )}
 

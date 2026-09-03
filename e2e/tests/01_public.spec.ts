@@ -129,6 +129,56 @@ test.describe('AI탭 가이드 페이지 (/guide/ai-tab)', () => {
   });
 });
 
+test.describe('/keywords 공개 페이지', () => {
+  /**
+   * /keywords 는 공개(public) 페이지.
+   * 비로그인 접근 시 로드 성공 또는 로그인 리디렉션이 모두 허용된다.
+   * 로드 성공 케이스에서 헤더(로고) 노출 여부를 추가 확인.
+   */
+  test('페이지 로드 성공 또는 로그인 리디렉션', async ({ page }) => {
+    await page.goto('/keywords', { waitUntil: 'domcontentloaded' });
+    const url = page.url();
+    const isKeywords = url.includes('/keywords');
+    const isLogin = url.includes('/login');
+    expect(isKeywords || isLogin, `예상치 못한 URL: ${url}`).toBeTruthy();
+  });
+
+  test('로드 성공 시 헤더(AEOlab 로고) 노출', async ({ page }) => {
+    await page.goto('/keywords', { waitUntil: 'domcontentloaded' });
+    const url = page.url();
+    if (url.includes('/login')) {
+      // 로그인 리디렉션 케이스 — 헤더 검증 불필요
+      console.log('[01_public] /keywords → /login 리디렉션, 헤더 검증 skip');
+      return;
+    }
+    // 비로그인 접근 가능한 경우 헤더 또는 페이지 로고 확인
+    const logoOrHeader = page.getByText(/AEOlab|AEO/i).first();
+    await expect(logoOrHeader).toBeVisible({ timeout: 8_000 });
+  });
+});
+
+test.describe('점수표시 원칙 회귀 검증', () => {
+  /**
+   * CLAUDE.md "점수 표시 원칙": AI Visibility 점수 숫자는 사용자에게 직접 노출하지 않는다.
+   * "72점", "85점" 같은 패턴이 랜딩 페이지에 노출되면 원칙 위반 회귀.
+   *
+   * 주의: 가격("11,900원"), 리뷰 별점("4.8점"), 경험 연수("10년") 등은
+   * 이 패턴(\d{2,3}점)에 걸리지 않거나 별도로 false positive 여부를 확인해야 함.
+   * 현재는 두 자리 이상 정수 + "점" 패턴만 체크한다.
+   */
+  test('랜딩(/) — AI Visibility "N점" 형식 숫자 점수 미노출', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    const bodyText = await page.locator('body').textContent() ?? '';
+    // \d{2,}점 : 두 자리 이상 숫자 + "점" — AI 점수(0~100) 노출 회귀 감지
+    const scorePattern = /\d{2,}점/;
+    const hasScoreNumber = scorePattern.test(bodyText);
+    expect(
+      hasScoreNumber,
+      `랜딩 페이지에 "N점" 형식의 점수가 노출됨 — 점수표시 원칙 위반 의심\n해당 텍스트: ${(bodyText.match(/\S{0,10}\d{2,}점\S{0,10}/g) || []).join(', ')}`
+    ).toBeFalsy();
+  });
+});
+
 test.describe('모바일 뷰 — 랜딩 페이지 기본 가독성', () => {
   // 모바일 뷰포트는 playwright.config.ts projects: Pixel 5 에서 별도 실행됨
   // 여기서는 최소 콘텐츠 존재만 확인
