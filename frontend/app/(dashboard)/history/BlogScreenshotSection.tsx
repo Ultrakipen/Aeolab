@@ -665,7 +665,16 @@ export default function BlogScreenshotSection({
                     <React.Fragment key={analysis.keyword}>
                       <tr
                         onClick={() => setExpandedKeyword(isOpen ? null : analysis.keyword)}
-                        className="cursor-pointer hover:bg-gray-50 transition-colors"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            setExpandedKeyword(isOpen ? null : analysis.keyword)
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={isOpen}
+                        className="cursor-pointer hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-inset"
                       >
                         <td className="px-4 md:px-6 py-4 text-base font-semibold text-gray-800 whitespace-nowrap">
                           {analysis.keyword}

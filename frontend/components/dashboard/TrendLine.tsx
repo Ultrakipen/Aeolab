@@ -94,10 +94,12 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
   }
 
   const latestScore = chartData.length > 0 ? chartData[chartData.length - 1].score : null
+  // page.tsx 요약 카드·테이블과 동일한 색(emerald-700/blue-700/amber-700/slate-600) —
+  // 같은 페이지 안에서 동일 등급 배지가 다른 색으로 보이지 않도록 통일
   const GRADE_STYLE: Record<string, { color: string; bg: string }> = {
-    '양호': { color: '#065f46', bg: 'bg-emerald-100' },
+    '양호': { color: '#047857', bg: 'bg-emerald-100' },
     '보통': { color: '#1d4ed8', bg: 'bg-blue-100' },
-    '주의 필요': { color: '#92400e', bg: 'bg-amber-100' },
+    '주의 필요': { color: '#b45309', bg: 'bg-amber-100' },
     '시작 전': { color: '#475569', bg: 'bg-slate-100' },
   }
   const latestGrade = latestScore == null ? null

@@ -235,7 +235,7 @@ export default async function HistoryPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
               <p className="text-sm text-gray-500 mb-2 font-medium">현재 상태</p>
-              <p className={`text-base md:text-lg font-bold ${currentVal >= 75 ? 'text-emerald-700' : currentVal >= 55 ? 'text-blue-600' : currentVal >= 30 ? 'text-amber-700' : 'text-gray-500'}`}>
+              <p className={`text-base md:text-lg font-bold ${currentVal >= 75 ? 'text-emerald-700' : currentVal >= 55 ? 'text-blue-700' : currentVal >= 30 ? 'text-amber-700' : 'text-slate-600'}`}>
                 {getScoreTextLabel(currentVal)}
               </p>
             </div>
@@ -247,7 +247,7 @@ export default async function HistoryPage() {
             </div>
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
               <p className="text-sm text-gray-500 mb-2 font-medium">최고 도달 상태</p>
-              <p className={`text-base md:text-lg font-bold ${maxScore >= 75 ? 'text-emerald-700' : maxScore >= 55 ? 'text-blue-600' : maxScore >= 30 ? 'text-amber-700' : 'text-gray-500'}`}>
+              <p className={`text-base md:text-lg font-bold ${maxScore >= 75 ? 'text-emerald-700' : maxScore >= 55 ? 'text-blue-700' : maxScore >= 30 ? 'text-amber-700' : 'text-slate-600'}`}>
                 {getScoreTextLabel(maxScore)}
               </p>
             </div>
@@ -319,7 +319,7 @@ export default async function HistoryPage() {
                         {(() => {
                           const s = row.unified_score ?? row.total_score ?? 0
                           const lbl = getScoreTextLabel(s)
-                          const cls = s >= 75 ? 'text-emerald-700' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-700' : 'text-gray-500'
+                          const cls = s >= 75 ? 'text-emerald-700' : s >= 55 ? 'text-blue-700' : s >= 30 ? 'text-amber-700' : 'text-slate-600'
                           return <span className={`font-semibold text-sm ${cls}`}>{lbl}</span>
                         })()}
                       </td>
@@ -328,11 +328,11 @@ export default async function HistoryPage() {
                           (() => {
                             const s = row.track1_score
                             const lbl = getScoreTextLabel(s)
-                            const cls = s >= 75 ? 'text-emerald-700' : s >= 55 ? 'text-blue-600' : s >= 30 ? 'text-amber-700' : 'text-gray-500'
+                            const cls = s >= 75 ? 'text-emerald-700' : s >= 55 ? 'text-blue-700' : s >= 30 ? 'text-amber-700' : 'text-slate-600'
                             return <span className={`font-medium text-sm ${cls}`}>{lbl}</span>
                           })()
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-gray-500">—</span>
                         )}
                       </td>
                       <td className="px-4 md:px-6 py-3 text-gray-600 text-sm">{row.exposure_freq ?? 0}/{row.sample_size ?? 100}</td>
