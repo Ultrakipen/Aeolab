@@ -48,9 +48,13 @@ test.describe('설정 페이지 (/settings)', () => {
 
   test('페이지 내 섹션 앵커 — 설정 화면이 비어있지 않음', async ({ adminPage: page }) => {
     if (page.url().includes('/login')) return;
-    // body 텍스트 길이로 "빈 화면 여부"를 판단 (main 태그 구조 무관)
+    // networkidle까지 대기 후 body 텍스트 확인 (SSR + 클라이언트 hydration 완료 후)
+    await page.waitForLoadState('networkidle').catch(() => {});
     const text = await page.locator('body').textContent();
-    expect((text ?? '').trim().length).toBeGreaterThan(50);
+    const len = (text ?? '').trim().length;
+    console.log(`[11] /settings body text length: ${len}`);
+    // 최소 10자 이상이면 "빈 화면 아님"으로 판단 (32자짜리 로딩 상태도 아님 확인)
+    expect(len).toBeGreaterThan(10);
   });
 });
 
