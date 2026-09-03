@@ -98,6 +98,13 @@ async def execute(query) -> any:
         # 이전 버전 maybe_single() 결과 없음
         if "204" in err_str or "Missing response" in err_str:
             return _EmptyResponse()
+        # .single() 0건 매칭 — PostgREST가 예외로 던짐(maybe_single()과 달리 .data로
+        # 안전하게 안 돌아옴). 호출부 90여곳이 전부 `if not (res and res.data)` 패턴을
+        # 쓰고 있어 여기서 흡수하면 개별 수정 없이 전체가 정상 404/None 처리됨
+        # (2026-09-04 delivery.py/report.py 미처리 500 실사고 발견 후 근본수정).
+        # ">1 rows"(PGRST116이지만 다른 details)는 데이터 무결성 이상이라 그대로 raise.
+        if "PGRST116" in err_str and "0 rows" in err_str:
+            return _EmptyResponse()
         # HTTP/2 연결 끊김 — 클라이언트 재생성 후 1회 재시도
         if "RemoteProtocolError" in err_str or "Server disconnected" in err_str:
             _reset_client()

@@ -1245,7 +1245,7 @@ async def get_share_page_data(biz_id: str):
         raise HTTPException(status_code=404, detail="스캔 결과가 없습니다")
 
     s = score_data[0]
-    score = s["total_score"]
+    score = s["total_score"] or 0
     grade = "A" if score >= 80 else "B" if score >= 60 else "C" if score >= 40 else "D"
     return {
         "business_name": biz["name"],
@@ -1279,9 +1279,9 @@ async def generate_share_card(biz_id: str):
     if not score_data:
         raise HTTPException(status_code=404, detail="스캔 결과가 없습니다")
 
-    score = score_data[0]["total_score"]
+    score = score_data[0]["total_score"] or 0
     grade = "A" if score >= 80 else "B" if score >= 60 else "C" if score >= 40 else "D"
-    freq = score_data[0].get("exposure_freq", 0)
+    freq = score_data[0].get("exposure_freq") or 0
 
     def _build_share_card_png() -> bytes:
         from PIL import Image, ImageDraw, ImageFont
@@ -1353,7 +1353,7 @@ async def get_badge(biz_id: str, user=Depends(get_current_user)):
     if not score_data:
         raise HTTPException(status_code=404, detail="스캔 결과가 없습니다")
 
-    score = score_data[0]["total_score"]
+    score = score_data[0]["total_score"] or 0
     if score < 70:
         raise HTTPException(status_code=403, detail="점수 70점 이상인 사업장만 배지를 받을 수 있습니다")
 
@@ -1388,11 +1388,11 @@ async def get_badge_svg(biz_id: str):
             .limit(1)
         )
     ).data
-    if not score_data or score_data[0]["total_score"] < 70:
+    if not score_data or (score_data[0]["total_score"] or 0) < 70:
         raise HTTPException(status_code=403, detail="배지 발급 조건 미충족 (70점 이상 필요)")
 
     from datetime import datetime
-    score = score_data[0]["total_score"]
+    score = score_data[0]["total_score"] or 0
     grade = "A" if score >= 80 else "B"
     issued_at = datetime.now().strftime("%Y.%m")
     svg = f"""<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">

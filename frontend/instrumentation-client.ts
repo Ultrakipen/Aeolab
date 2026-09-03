@@ -14,6 +14,13 @@ if (dsn && typeof window !== "undefined") {
         environment: process.env.NEXT_PUBLIC_APP_ENV || "production",
         tracesSampleRate: 0.1,
         sendDefaultPii: false,
+        // sentry.server.config.ts/sentry.edge.config.ts와 동일 필터 — 봇/스캐너의
+        // 무작위 Server Action 헤더 두드림 + 배포 직후 구버전 캐시 재요청 노이즈
+        // (2026-08-21 발견, 서버측만 필터돼 있고 클라이언트측은 누락돼 있었음)
+        ignoreErrors: [
+          /Server Reference ID did not match the expected format/,
+          /Failed to find Server Action/,
+        ],
       });
     });
   };
