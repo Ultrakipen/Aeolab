@@ -227,6 +227,13 @@ export default async function ChannelGuidePage({
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 break-keep">
             {entry.label} 핵심 행동 5요소
           </h2>
+          <p className="text-sm text-gray-500 mb-1 leading-relaxed break-keep">
+            {entry.label} 업종에 공통으로 적용되는 가이드입니다. 내 가게 맞춤 진단 결과는{" "}
+            <Link href="/trial" className="text-blue-600 hover:underline font-medium">
+              무료 진단
+            </Link>{" "}
+            후 대시보드에서 확인할 수 있습니다.
+          </p>
           <p className="text-sm text-gray-500 mb-4">
             체크 상태는 이 브라우저에 저장됩니다 (새 기기·시크릿 모드에서는 초기화됩니다).
           </p>
