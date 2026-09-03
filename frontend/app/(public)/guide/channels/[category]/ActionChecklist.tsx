@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { trackEvent } from "@/lib/analytics"
 
 interface ChecklistItem {
   id: string
@@ -10,9 +11,11 @@ interface ChecklistItem {
 interface Props {
   storageKey: string
   items: ChecklistItem[]
+  /** GA4 이벤트 구분용 — 보통 업종 value (예: restaurant) */
+  category?: string
 }
 
-export function ActionChecklist({ storageKey, items }: Props) {
+export function ActionChecklist({ storageKey, items, category }: Props) {
   const [checked, setChecked] = useState<Record<string, boolean>>({})
 
   // localStorage에서 초기값 로드 (업종별 키로 분리 저장)
@@ -33,6 +36,12 @@ export function ActionChecklist({ storageKey, items }: Props) {
       } catch {
         // 저장 실패 무시
       }
+      trackEvent("guide_checklist_toggle", {
+        category: category ?? "unknown",
+        item_id: id,
+        checked: next[id] ?? false,
+        done_count: Object.values(next).filter(Boolean).length,
+      })
       return next
     })
   }

@@ -1,9 +1,10 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { Search, X } from "lucide-react"
 import type { ChannelGroup, ChannelGuideEntry } from "@/lib/channelGuideData"
+import { trackEvent } from "@/lib/analytics"
 
 interface GroupBlock {
   group: ChannelGroup
@@ -27,6 +28,20 @@ export function ChannelGuideList({ groups }: { groups: GroupBlock[] }) {
   }, [groups, query])
 
   const totalMatches = filteredGroups.reduce((sum, g) => sum + g.entries.length, 0)
+
+  // 검색어 입력이 멈춘 뒤 800ms 후에만 발송 — 키 입력마다 이벤트 스팸 방지
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (!query.trim()) return
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      trackEvent("guide_channel_search", { query: query.trim(), results: totalMatches })
+    }, 800)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query])
 
   return (
     <div>

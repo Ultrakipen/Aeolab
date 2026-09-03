@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/common/SiteFooter"
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
 import { CHANNEL_GUIDE, GROUP_LABELS, GROUP_COLORS, type ChannelGroup } from "@/lib/channelGuideData"
 import { ChannelGuideList } from "./ChannelGuideList"
+import TrackedCTA from "@/components/analytics/TrackedCTA"
 
 export const metadata: Metadata = {
   title: "업종별 AI 검색 노출 채널 가이드 | AEOlab",
@@ -81,12 +82,14 @@ export default function ChannelGuideIndexPage() {
           <p className="text-sm md:text-base text-gray-700 mb-5 leading-relaxed break-keep">
             가게 이름과 업종만 입력하면 1분 안에 AI 검색 노출 점수와 개선 가이드를 확인할 수 있습니다.
           </p>
-          <Link
+          <TrackedCTA
             href="/trial"
+            location="guide_channel_index"
+            label="trial_start"
             className="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
           >
             무료 진단 시작 →
-          </Link>
+          </TrackedCTA>
           <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
             회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인(5,950원).
           </p>

@@ -5,6 +5,7 @@ import { Bot, Sparkles, Globe, type LucideIcon } from "lucide-react"
 import { SiteFooter } from "@/components/common/SiteFooter"
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd"
+import TrackedCTA from "@/components/analytics/TrackedCTA"
 import { ActionChecklist } from "./ActionChecklist"
 import {
   CHANNEL_GUIDE_MAP,
@@ -240,6 +241,7 @@ export default async function ChannelGuidePage({
           <ActionChecklist
             storageKey={`aeolab.channel_checklist.${entry.value}`}
             items={entry.keyActions.map((action, idx) => ({ id: String(idx), label: action }))}
+            category={entry.value}
           />
           <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
             행동 5요소는 AEOlab 분석 기반 권장 사항이며, 노출 결과는 네이버·AI 플랫폼 정책에 따라 달라질 수 있습니다.
@@ -281,12 +283,14 @@ export default async function ChannelGuidePage({
             가게 이름과 업종만 입력하면 1분 안에 AI 검색 노출 점수와 개선 가이드를 확인할 수 있습니다.
           </p>
           <div className="flex flex-col md:flex-row gap-3">
-            <Link
+            <TrackedCTA
               href="/trial"
+              location="guide_channel_detail"
+              label="trial_start"
               className="flex-1 text-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
             >
               무료 진단 시작 →
-            </Link>
+            </TrackedCTA>
             <Link
               href="/how-it-works"
               className="flex-1 text-center px-6 py-3 border border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
