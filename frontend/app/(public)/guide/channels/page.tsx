@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { SiteFooter } from "@/components/common/SiteFooter"
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
 import { CHANNEL_GUIDE, GROUP_LABELS, GROUP_COLORS, type ChannelGroup } from "@/lib/channelGuideData"
+import { ChannelGuideList } from "./ChannelGuideList"
 
 export const metadata: Metadata = {
   title: "업종별 AI 검색 노출 채널 가이드 | AEOlab",
@@ -62,42 +63,15 @@ export default function ChannelGuideIndexPage() {
           </p>
         </div>
 
-        {/* ── 그룹별 업종 목록 ── */}
-        {GROUP_ORDER.map((group) => {
-          const entries = CHANNEL_GUIDE.filter((e) => e.group === group)
-          if (entries.length === 0) return null
-          return (
-            <section key={group} className="mb-10">
-              <div className="flex items-center gap-2 mb-4">
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold border ${GROUP_COLORS[group]}`}
-                >
-                  그룹 {group} — {GROUP_LABELS[group]}
-                </span>
-                <span className="text-sm text-gray-500">{entries.length}개 업종</span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {entries.map((e) => (
-                  <Link
-                    key={e.value}
-                    href={`/guide/channels/${e.value}`}
-                    className="group bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-md transition-all"
-                  >
-                    <div className="font-bold text-gray-900 text-sm md:text-base leading-tight break-keep mb-1">
-                      {e.label}
-                    </div>
-                    <p className="text-sm text-gray-500 leading-snug break-keep mb-2">
-                      네이버 {e.naverRatio}% · 글로벌 {e.globalRatio}%
-                    </p>
-                    <span className="text-sm font-medium text-blue-600 group-hover:underline">
-                      가이드 보기 →
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )
-        })}
+        {/* ── 검색 + 그룹별 업종 목록 ── */}
+        <ChannelGuideList
+          groups={GROUP_ORDER.map((group) => ({
+            group,
+            label: GROUP_LABELS[group],
+            colorClass: GROUP_COLORS[group],
+            entries: CHANNEL_GUIDE.filter((e) => e.group === group),
+          })).filter((g) => g.entries.length > 0)}
+        />
 
         {/* ── CTA ── */}
         <section className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-6 md:p-8">

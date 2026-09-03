@@ -113,7 +113,7 @@ export default async function ChannelGuidePage({
       <BreadcrumbJsonLd
         items={[
           { name: "홈", url: "https://aeolab.co.kr/" },
-          { name: "서비스 안내", url: "https://aeolab.co.kr/how-it-works" },
+          { name: "업종별 가이드", url: "https://aeolab.co.kr/guide/channels" },
           { name: `${entry.label} 채널 가이드`, url: `https://aeolab.co.kr/guide/channels/${entry.value}` },
         ]}
       />
@@ -143,7 +143,7 @@ export default async function ChannelGuidePage({
         <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6" aria-label="breadcrumb">
           <Link href="/" className="hover:text-blue-600">홈</Link>
           <span>/</span>
-          <Link href="/how-it-works" className="hover:text-blue-600">서비스 안내</Link>
+          <Link href="/guide/channels" className="hover:text-blue-600">업종별 가이드</Link>
           <span>/</span>
           <span className="text-gray-700 font-medium">{entry.label} 채널 가이드</span>
         </nav>
@@ -255,9 +255,12 @@ export default async function ChannelGuidePage({
               </Link>
             ))}
             {CHANNEL_GUIDE.length > 17 && (
-              <span className="px-3 py-1.5 text-sm text-gray-500">
-                +{CHANNEL_GUIDE.length - 17}개 업종
-              </span>
+              <Link
+                href="/guide/channels"
+                className="px-3 py-1.5 rounded-lg border border-blue-200 text-sm text-blue-600 font-medium hover:border-blue-300 hover:bg-blue-50 transition-colors"
+              >
+                전체 {CHANNEL_GUIDE.length}개 업종 보기 →
+              </Link>
             )}
           </div>
         </section>
