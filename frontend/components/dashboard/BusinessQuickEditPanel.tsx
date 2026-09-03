@@ -449,8 +449,9 @@ export default function BusinessQuickEditPanel({
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-gray-500 mb-1">방문자 리뷰 수</label>
+                  <label htmlFor={`biz-quickedit-${bizId}-visitor-review`} className="block text-sm text-gray-500 mb-1">방문자 리뷰 수</label>
                   <input
+                    id={`biz-quickedit-${bizId}-visitor-review`}
                     type="number"
                     min={0}
                     value={visitorReviewCount}
@@ -459,8 +460,9 @@ export default function BusinessQuickEditPanel({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-500 mb-1">영수증 리뷰 수</label>
+                  <label htmlFor={`biz-quickedit-${bizId}-receipt-review`} className="block text-sm text-gray-500 mb-1">영수증 리뷰 수</label>
                   <input
+                    id={`biz-quickedit-${bizId}-receipt-review`}
                     type="number"
                     min={0}
                     value={receiptReviewCount}
@@ -470,9 +472,10 @@ export default function BusinessQuickEditPanel({
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-gray-500 mb-1">평균 별점 (0.0 ~ 5.0)</label>
+                <label htmlFor={`biz-quickedit-${bizId}-rating`} className="block text-sm text-gray-500 mb-1">평균 별점 (0.0 ~ 5.0)</label>
                 <div className="flex items-center gap-3">
                   <input
+                    id={`biz-quickedit-${bizId}-rating`}
                     type="range"
                     min={0}
                     max={50}
