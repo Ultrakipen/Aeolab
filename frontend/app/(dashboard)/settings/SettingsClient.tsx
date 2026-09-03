@@ -266,6 +266,7 @@ export function SettingsClient({
               <button
                 role="switch"
                 aria-checked={value}
+                aria-label={label}
                 disabled={notifySaving}
                 onClick={() => handleNotifyToggle(field, !value)}
                 className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-50 ${value ? "bg-blue-600" : "bg-gray-200"}`}

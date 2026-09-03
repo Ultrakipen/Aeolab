@@ -291,6 +291,7 @@ export default function BusinessQuickEditPanel({
                 placeholder={keywords.length === 0 ? "예: 강남 맛집, 파스타 (Enter로 추가)" : ""}
                 className="flex-1 min-w-[100px] text-sm outline-none bg-transparent placeholder-gray-400"
                 disabled={keywords.length >= 10}
+                aria-label="키워드 입력"
               />
             </div>
             <div className="flex items-center justify-between mt-1.5">

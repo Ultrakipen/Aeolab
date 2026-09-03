@@ -25,10 +25,11 @@ export default function GroupHeadlineBanner() {
     <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 md:px-6 py-4 mb-2">
       {/* 셀렉터 행 */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <label className="text-sm font-semibold text-gray-700 shrink-0">
+        <label htmlFor="pricing-category-select" className="text-sm font-semibold text-gray-700 shrink-0">
           내 업종:
         </label>
         <select
+          id="pricing-category-select"
           value={category}
           onChange={(e) => { setCategory(e.target.value); setIsFranchise(false); }}
           className="flex-1 max-w-xs text-sm rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"

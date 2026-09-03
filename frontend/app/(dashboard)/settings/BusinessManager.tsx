@@ -797,8 +797,9 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
           <div className="bg-gray-50 px-4 py-5 space-y-4">
             {/* 사업장 이름 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">사업장 이름</label>
+              <label htmlFor={`biz-${activeBiz.id}-name`} className="block text-sm font-medium text-gray-700 mb-1.5">사업장 이름</label>
               <input
+                id={`biz-${activeBiz.id}-name`}
                 value={editForm.name}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -815,16 +816,18 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             {/* 지역 / 전화 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">지역 (구/동)</label>
+                <label htmlFor={`biz-${activeBiz.id}-region`} className="block text-sm font-medium text-gray-700 mb-1.5">지역 (구/동)</label>
                 <input
+                  id={`biz-${activeBiz.id}-region`}
                   value={editForm.region}
                   onChange={(e) => setEditForm({ ...editForm, region: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">전화번호</label>
+                <label htmlFor={`biz-${activeBiz.id}-phone`} className="block text-sm font-medium text-gray-700 mb-1.5">전화번호</label>
                 <input
+                  id={`biz-${activeBiz.id}-phone`}
                   value={editForm.phone ?? ""}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                   placeholder="010-0000-0000"
@@ -833,16 +836,18 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">주소</label>
+              <label htmlFor={`biz-${activeBiz.id}-address`} className="block text-sm font-medium text-gray-700 mb-1.5">주소</label>
               <input
+                id={`biz-${activeBiz.id}-address`}
                 value={editForm.address ?? ""}
                 onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div id="field-website_url">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">웹사이트</label>
+              <label htmlFor={`biz-${activeBiz.id}-website`} className="block text-sm font-medium text-gray-700 mb-1.5">웹사이트</label>
               <input
+                id={`biz-${activeBiz.id}-website`}
                 value={editForm.website_url ?? ""}
                 onChange={(e) => setEditForm({ ...editForm, website_url: e.target.value })}
                 placeholder="https://..."
@@ -850,11 +855,12 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor={`biz-${activeBiz.id}-blog`} className="block text-sm font-medium text-gray-700 mb-1.5">
                 블로그 주소
                 <span className="ml-1 font-normal text-gray-500 text-sm">(선택)</span>
               </label>
               <input
+                id={`biz-${activeBiz.id}-blog`}
                 value={editForm.blog_url ?? ""}
                 onChange={(e) => setEditForm({ ...editForm, blog_url: e.target.value })}
                 placeholder="https://blog.naver.com/내계정 또는 티스토리 주소"
@@ -876,10 +882,11 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               <p className="text-sm font-semibold text-gray-700">플랫폼 등록 정보 <span className="font-normal text-gray-500">(선택)</span></p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor={`biz-${activeBiz.id}-naver-place`} className="block text-sm font-medium text-gray-700 mb-1">
                     네이버 스마트플레이스 ID
                   </label>
                   <input
+                    id={`biz-${activeBiz.id}-naver-place`}
                     value={editForm.naver_place_id ?? ""}
                     onChange={(e) => setEditForm({ ...editForm, naver_place_id: e.target.value })}
                     placeholder="예: 12345678"
@@ -888,10 +895,11 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   <p className="text-sm text-gray-500 mt-1">예: place.naver.com/place/<strong className="text-gray-500">12345678</strong> → 12345678</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor={`biz-${activeBiz.id}-google-place-id`} className="block text-sm font-medium text-gray-700 mb-1">
                     구글 Place ID
                   </label>
                   <input
+                    id={`biz-${activeBiz.id}-google-place-id`}
                     value={editForm.google_place_id ?? ""}
                     onChange={(e) => setEditForm({ ...editForm, google_place_id: e.target.value })}
                     placeholder="예: ChIJN1t_..."
@@ -901,10 +909,11 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor={`biz-${activeBiz.id}-naver-url`} className="block text-sm font-medium text-gray-700 mb-1">
                   네이버 플레이스 URL
                 </label>
                 <input
+                  id={`biz-${activeBiz.id}-naver-url`}
                   value={editForm.naver_place_url ?? ""}
                   onChange={(e) => setEditForm({ ...editForm, naver_place_url: e.target.value })}
                   placeholder="예: https://map.naver.com/p/entry/place/12345678"
@@ -913,10 +922,11 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 <p className="text-sm text-gray-500 mt-1">입력 시 소식·소개글 등록 여부를 스캔 때 자동으로 확인합니다.</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor={`biz-${activeBiz.id}-kakao-id`} className="block text-sm font-medium text-gray-700 mb-1">
                   카카오맵 Place ID
                 </label>
                 <input
+                  id={`biz-${activeBiz.id}-kakao-id`}
                   value={editForm.kakao_place_id ?? ""}
                   onChange={(e) => setEditForm({ ...editForm, kakao_place_id: e.target.value })}
                   placeholder="예: 1234567890"
@@ -939,8 +949,9 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 <p className="text-sm text-indigo-700 mt-0.5">여기에 입력한 내용만 AI가 소개글에 사실 그대로 반영합니다. 비워두면 지금처럼 안전하게 생략됩니다.</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">수상·인증·자격증</label>
+                <label htmlFor={`biz-${activeBiz.id}-awards`} className="text-sm font-medium text-gray-700 block mb-1">수상·인증·자격증</label>
                 <input
+                  id={`biz-${activeBiz.id}-awards`}
                   value={editForm.awards_certifications ?? ""}
                   onChange={(e) => setEditForm({ ...editForm, awards_certifications: e.target.value })}
                   placeholder="예: 2026 블루리본 서베이 선정, 위생등급 우수업소 인증"
@@ -949,8 +960,9 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">시그니처 메뉴·서비스·강점</label>
+                <label htmlFor={`biz-${activeBiz.id}-signature`} className="text-sm font-medium text-gray-700 block mb-1">시그니처 메뉴·서비스·강점</label>
                 <input
+                  id={`biz-${activeBiz.id}-signature`}
                   value={editForm.signature_points ?? ""}
                   onChange={(e) => setEditForm({ ...editForm, signature_points: e.target.value })}
                   placeholder="예: 24시간 우린 사골육수, 매일 아침 직접 굽는 빵"
@@ -987,11 +999,12 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor={`biz-${activeBiz.id}-receipt-review`} className="block text-sm font-medium text-gray-700 mb-1.5">
                     영수증 리뷰 수
                     <span className="block font-normal text-gray-500 text-sm">네이버페이 결제 후 작성</span>
                   </label>
                   <input
+                    id={`biz-${activeBiz.id}-receipt-review`}
                     type="number"
                     min="0"
                     value={editForm.receipt_review_count ?? 0}
@@ -1000,11 +1013,12 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor={`biz-${activeBiz.id}-visitor-review`} className="block text-sm font-medium text-gray-700 mb-1.5">
                     방문자 리뷰 수
                     <span className="block font-normal text-gray-500 text-sm">일반 방문자 작성</span>
                   </label>
                   <input
+                    id={`biz-${activeBiz.id}-visitor-review`}
                     type="number"
                     min="0"
                     value={editForm.visitor_review_count ?? 0}
@@ -1013,11 +1027,12 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor={`biz-${activeBiz.id}-rating`} className="block text-sm font-medium text-gray-700 mb-1.5">
                     평균 별점
                     <span className="block font-normal text-gray-500 text-sm">0.0 ~ 5.0</span>
                   </label>
                   <input
+                    id={`biz-${activeBiz.id}-rating`}
                     type="number"
                     min="0"
                     max="5"
