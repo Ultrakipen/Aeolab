@@ -1016,6 +1016,14 @@ export default function HowItWorksPage() {
             </li>
           </ol>
 
+          <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed break-keep">
+            진단 전에 내 업종은 어떤 채널에 집중해야 하는지 먼저 궁금하다면{" "}
+            <Link href="/guide/channels" className="text-blue-600 hover:underline font-medium">
+              업종별 채널 가이드
+            </Link>
+            에서 59개 업종별 네이버·글로벌 AI 비중을 확인해보세요.
+          </p>
+
           <div className="flex flex-col md:flex-row gap-3">
             <Link
               href="/trial"
