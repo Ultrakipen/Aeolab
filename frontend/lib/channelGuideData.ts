@@ -341,7 +341,7 @@ export const CHANNEL_GUIDE_MAP: Record<string, ChannelGuideEntry> = Object.fromE
 )
 
 export const GROUP_LABELS: Record<ChannelGroup, string> = {
-  A: "양면 ACTIVE",
+  A: "외식·숙박업",
   B: "네이버 우세형",
   C: "전문서비스업",
   D: "생활서비스업",
