@@ -105,6 +105,7 @@ test.describe('접근성 베이스라인 — 비로그인 공개 페이지', () 
         console.log(`[axe] ${label} → /login 리디렉션, 스캔 skip`);
         return;
       }
+      await page.waitForLoadState('networkidle').catch(() => {});
       const summary = await runAxeAndReport(page, label);
       // 베이스라인 확보 목적 — critical 위반이 있어도 soft assertion 처리
       // (즉시 fail이 아닌 "경고"로 기록)
@@ -140,6 +141,10 @@ test.describe('접근성 베이스라인 — 로그인 필요 대시보드 페�
         console.log(`[axe] ${label} → /login 리디렉션, 인증 실패 — 스캔 skip`);
         return;
       }
+      // 대시보드 페이지는 비동기 데이터 로딩(스캔 결과·경쟁사 목록 등)이 domcontentloaded 이후에도
+      // 계속돼 스캔 타이밍에 따라 결과가 39건/0건으로 들쭉날쭉했음(2026-09-03 3회 반복 실행으로 확인).
+      // networkidle까지 대기해 로딩 스켈레톤이 아닌 안정된 최종 상태를 스캔한다.
+      await page.waitForLoadState('networkidle').catch(() => {});
       const summary = await runAxeAndReport(page, label);
       if (summary.critical > 0) {
         console.warn(`[axe] ⚠️ ${label}: critical 위반 ${summary.critical}건 — 수정 우선순위 검토 필요`);
