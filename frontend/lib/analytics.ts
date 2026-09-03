@@ -82,6 +82,14 @@ export function trackOnboardingAction(
   trackEvent(`onboarding_action_${stage}`, meta);
 }
 
+/**
+ * 랜딩 페이지 스크롤 깊이 — 25/50/75/100% 도달 시 1회씩 발화.
+ * 랜딩 길이(13,660px)가 실제 이탈을 유발하는지 추측이 아닌 데이터로 판단하기 위한 계측.
+ */
+export function trackScrollDepth(percent: 25 | 50 | 75 | 100): void {
+  trackEvent("scroll_depth", { percent, page: "landing" });
+}
+
 // ── 모바일 전환 깔때기 (v1.1) ────────────────────────────────────────
 //
 // 신규 이벤트:

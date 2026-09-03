@@ -15,6 +15,7 @@ import { MobileAccordion } from "@/components/landing/MobileAccordion";
 import { LandingHeaderNav } from "./LandingHeaderNav";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import LandingScrollAnimation from "@/components/landing/LandingScrollAnimation";
+import ScrollDepthTracker from "@/components/analytics/ScrollDepthTracker";
 import HeaderHelpSearch from "@/components/landing/HeaderHelpSearch";
 import HelpFAQFloat from "@/components/landing/HelpFAQFloat";
 
@@ -25,6 +26,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen" style={{ background: "#FFFFFF" }}>
       <LandingScrollAnimation />
+      <ScrollDepthTracker />
 
       {/* ── 헤더 ── */}
       <header
