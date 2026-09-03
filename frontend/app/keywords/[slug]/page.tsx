@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { KEYWORD_PAGES } from "@/lib/keywords-data";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
+import { SiteFooter } from "@/components/common/SiteFooter";
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 
 export async function generateStaticParams() {
   return KEYWORD_PAGES.map((p) => ({ slug: p.slug }));
@@ -66,12 +68,15 @@ export default async function KeywordPage({
           <Link href="/" className="text-xl font-bold text-blue-600">
             AEOlab
           </Link>
-          <Link
-            href="/trial"
-            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            무료 진단 시작
-          </Link>
+          <div className="flex items-center gap-2 md:gap-3">
+            <Link
+              href="/trial"
+              className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              무료 진단 시작
+            </Link>
+            <AuthNavControlClient />
+          </div>
         </div>
       </header>
 
@@ -223,22 +228,7 @@ export default async function KeywordPage({
         )}
       </div>
 
-      {/* 푸터 */}
-      <footer className="border-t border-gray-100 py-6 px-4 mt-4">
-        <div className="max-w-4xl mx-auto text-center text-sm text-gray-500">
-          <Link href="/" className="hover:text-gray-700">
-            AEOlab 홈으로
-          </Link>
-          <span className="mx-2">·</span>
-          <Link href="/keywords" className="hover:text-gray-700">
-            전체 키워드 분석
-          </Link>
-          <span className="mx-2">·</span>
-          <Link href="/trial" className="hover:text-gray-700">
-            무료 진단
-          </Link>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

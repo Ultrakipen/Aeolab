@@ -3,22 +3,35 @@ import { redirect } from "next/navigation";
 import { ScoreModelV31Client } from "./ScoreModelV31Client";
 import { getUserGroup } from "@/lib/userGroup";
 import { fetchBriefingCategories } from "@/lib/briefingCategoriesServer";
+import { getActiveBusinessId } from "@/lib/active-business";
 
-export default async function ScoreModelV31Page() {
+export default async function ScoreModelV31Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (!user || error) redirect("/login");
 
+  const params = await searchParams;
+  const selectedBizId = params.biz_id ?? null;
+  const activeBizId = selectedBizId ?? await getActiveBusinessId(user.id);
+
   let userCategory: string | null = null;
   let userGroup: "ACTIVE" | "LIKELY" | "INACTIVE" | "franchise" | null = null;
 
-  const { data: biz } = await supabase
+  const { data: businesses } = await supabase
     .from("businesses")
-    .select("category, is_franchise")
+    .select("id, category, is_franchise")
     .eq("user_id", user.id)
     .eq("is_active", true)
-    .limit(1)
-    .single();
+    .order("created_at", { ascending: true })
+    .limit(10);
+
+  const biz = (activeBizId
+    ? businesses?.find((b) => b.id === activeBizId)
+    : businesses?.[0]) ?? null;
 
   if (biz?.category) {
     const briefingCats = await fetchBriefingCategories();

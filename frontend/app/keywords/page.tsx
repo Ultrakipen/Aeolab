@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { KEYWORD_PAGES, REGION_GROUPS } from "@/lib/keywords-data";
+import { SiteFooter } from "@/components/common/SiteFooter";
+import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 
 export const metadata: Metadata = {
   title: "지역별 AI 검색 노출 현황 분석 | AEOlab",
@@ -37,12 +39,15 @@ export default function KeywordsIndexPage() {
           <Link href="/" className="text-xl font-bold text-blue-600">
             AEOlab
           </Link>
-          <Link
-            href="/trial"
-            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            무료 진단 시작
-          </Link>
+          <div className="flex items-center gap-2 md:gap-3">
+            <Link
+              href="/trial"
+              className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              무료 진단 시작
+            </Link>
+            <AuthNavControlClient />
+          </div>
         </div>
       </header>
 
@@ -171,22 +176,7 @@ export default function KeywordsIndexPage() {
         </div>
       </div>
 
-      {/* 푸터 */}
-      <footer className="border-t border-gray-100 py-6 px-4 mt-6">
-        <div className="max-w-5xl mx-auto text-center text-sm text-gray-500">
-          <Link href="/" className="hover:text-gray-700">
-            AEOlab 홈으로
-          </Link>
-          <span className="mx-2">·</span>
-          <Link href="/blog" className="hover:text-gray-700">
-            블로그
-          </Link>
-          <span className="mx-2">·</span>
-          <Link href="/trial" className="hover:text-gray-700">
-            무료 진단
-          </Link>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

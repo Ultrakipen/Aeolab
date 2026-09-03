@@ -263,7 +263,7 @@ export default function QuickPage() {
         <div className="max-w-md mx-auto flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-blue-600">AEOlab</Link>
           <div className="flex items-center gap-2 md:gap-3">
-            <span className="text-sm text-gray-500 font-medium">30초 간이 AI 진단</span>
+            <span className="hidden sm:inline text-sm text-gray-500 font-medium whitespace-nowrap">30초 간이 AI 진단</span>
             <AuthNavControlClient />
           </div>
         </div>

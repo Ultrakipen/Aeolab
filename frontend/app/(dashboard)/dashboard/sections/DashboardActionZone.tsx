@@ -97,7 +97,7 @@ export default function DashboardActionZone({
 
   // 앵커 id는 외부 CollapseSectionWrapper(id="section-action")가 제공 — 중복 id 방지로 여기선 미부착
   return (
-    <section aria-label="액션 가이드" className="flex flex-col gap-3">
+    <section aria-label="액션 가이드" className="flex flex-col gap-3 pb-36 md:pb-0">
       {/* 체험 사용자 가이드 잠금 카드 */}
       {isTrialUser && (
         <div className="rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 px-4 py-4 mb-2">

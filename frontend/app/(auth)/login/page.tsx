@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("reason") === "session_expired") {
@@ -90,15 +92,25 @@ export default function LoginPage() {
                 비밀번호 찾기
               </Link>
             </div>
-            <input
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="비밀번호를 입력하세요"
-              className="w-full border border-gray-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="비밀번호를 입력하세요"
+                className="w-full border border-gray-300 rounded-xl px-4 py-3.5 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
 
           {error && (

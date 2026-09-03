@@ -101,6 +101,11 @@ export default function UpdatePasswordPage() {
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
               <p className="text-base text-red-600">{error}</p>
+              <p className="text-sm text-red-500 mt-1.5">
+                <Link href="/reset-password" className="underline hover:text-red-700">
+                  비밀번호 재설정 다시 요청하기 →
+                </Link>
+              </p>
             </div>
           )}
 

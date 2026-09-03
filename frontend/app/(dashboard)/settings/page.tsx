@@ -175,11 +175,28 @@ export default async function SettingsPage({
         </div>
       )}
 
+      {/* ── 섹션 이동 서브네비 ── */}
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-gray-100 mb-4 -mx-4 md:-mx-8 px-4 md:px-8">
+        <div className="max-w-3xl mx-auto overflow-x-auto">
+          <div className="flex items-center gap-1 py-2 whitespace-nowrap">
+            <a href="#section-subscription" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">구독</a>
+            <span className="text-gray-300">·</span>
+            <a href="#section-notification" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">알림·결제</a>
+            <span className="text-gray-300">·</span>
+            <a href="#section-plans" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">요금제 비교</a>
+            <span className="text-gray-300">·</span>
+            <a href="#section-business" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">사업장 정보</a>
+            <span className="text-gray-300">·</span>
+            <a href="#section-account" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">계정</a>
+          </div>
+        </div>
+      </div>
+
       {/* ── 단일 컬럼 레이아웃 ── */}
       <div className="max-w-3xl mx-auto space-y-4 md:space-y-6">
 
           {/* ── 구독 현황 카드 ── */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <section id="section-subscription" className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             {/* 그라데이션 배너 */}
             <div className={`bg-gradient-to-r ${planMeta.gradient} px-5 py-4 md:py-5`}>
               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -304,7 +321,7 @@ export default async function SettingsPage({
               계속 보여줄 수 있음(2026-07-07 라이브 QA: 해지 직후 상단 "구독 중"
               배지가 갱신 안 되던 버그의 짝 수정) */}
           {(isActive || currentStatus === "suspended" || currentStatus === "cancelled") && (
-            <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <section id="section-notification" className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-4 md:px-5 py-4 border-b border-gray-100">
                 <h2 className="text-base md:text-lg font-semibold text-gray-800">알림 · 결제 설정</h2>
                 <p className="text-sm text-gray-500 mt-0.5">카카오 알림톡 수신 번호 및 결제 카드를 관리합니다.</p>
@@ -328,7 +345,7 @@ export default async function SettingsPage({
           )}
 
           {/* ── 플랜별 기능 비교 ── */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <section id="section-plans" className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-4 md:px-5 py-4 border-b border-gray-100">
               <h2 className="text-base md:text-lg font-semibold text-gray-800">플랜별 기능 비교</h2>
             </div>
@@ -404,7 +421,7 @@ export default async function SettingsPage({
 
           {/* ── 등록된 사업장 ── */}
           {businesses && businesses.length > 0 && (
-            <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <section id="section-business" className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-4 md:px-5 py-4 border-b border-gray-100">
                 <h2 className="text-base md:text-lg font-semibold text-gray-800">등록된 사업장</h2>
                 <p className="text-sm text-gray-500 mt-0.5">사업장 정보를 수정하면 AI 분석 정확도가 높아집니다.</p>
@@ -416,7 +433,7 @@ export default async function SettingsPage({
           )}
 
           {/* ── 계정 설정 ── */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <section id="section-account" className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-4 md:px-5 py-4 border-b border-gray-100">
               <h2 className="text-base md:text-lg font-semibold text-gray-800">계정 설정</h2>
               <p className="text-sm text-gray-500 mt-0.5">

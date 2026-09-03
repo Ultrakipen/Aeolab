@@ -34,6 +34,24 @@ export default function ResetPasswordPage() {
     setLoading(false);
   };
 
+  const handleResend = async () => {
+    setError("");
+    setLoading(true);
+    const supabase = createClient();
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || location.origin;
+    const { error: resendError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${appUrl}/auth/callback?next=/auth/update-password`,
+    });
+    if (resendError) {
+      if (resendError.message?.includes("security purposes") || resendError.message?.includes("rate") || resendError.status === 429) {
+        setError("잠시 후 다시 시도해주세요. (60초에 1회만 요청 가능)");
+      } else {
+        setError("이메일 재발송에 실패했습니다. 다시 시도해주세요.");
+      }
+    }
+    setLoading(false);
+  };
+
   if (done) {
     return (
       <main className="min-h-screen bg-gray-50 flex flex-col">
@@ -46,12 +64,25 @@ export default function ResetPasswordPage() {
                 <span className="font-medium text-gray-700">{email}</span>으로<br />
                 비밀번호 재설정 링크를 발송했습니다.
               </p>
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">
+                  <p className="text-base text-red-600">{error}</p>
+                </div>
+              )}
               <Link
                 href="/login"
                 className="block w-full bg-blue-600 text-white py-3.5 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors"
               >
                 로그인 페이지로
               </Link>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={loading}
+                className="mt-3 w-full border border-gray-300 text-gray-600 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                {loading ? "발송 중..." : "이메일 재발송"}
+              </button>
             </div>
           </div>
         </div>

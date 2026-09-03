@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TrendingUp, ArrowRight, BarChart2 } from "lucide-react";
+import { getScoreTextLabel } from "@/lib/scoreLabels";
 
 export const metadata = {
   title: "업종별 AI 검색 노출 현황 — AEOlab",
@@ -138,20 +139,19 @@ export default async function PublicIndexPage() {
                 </div>
 
                 <div className="mb-4">
-                  <div className="text-sm text-gray-500 mb-0.5">업종 평균 AI 노출 점수</div>
-                  <div className={`text-3xl md:text-4xl font-bold ${scoreColor(cat.avg_score)}`}>
-                    {Math.round(cat.avg_score)}
-                    <span className="text-base font-normal text-gray-500 ml-1">/ 100</span>
+                  <div className="text-sm text-gray-500 mb-0.5">업종 평균 AI 노출 수준</div>
+                  <div className={`text-2xl md:text-3xl font-bold ${scoreColor(cat.avg_score)}`}>
+                    {getScoreTextLabel(cat.avg_score)}
                   </div>
                 </div>
 
                 <div className="flex gap-3 mb-4">
                   <div className="flex-1 bg-white/60 rounded-xl p-2.5 text-center">
-                    <div className="text-base font-bold text-green-600">{Math.round(cat.top25_score)}</div>
+                    <div className="text-base font-bold text-green-600">{getScoreTextLabel(cat.top25_score)}</div>
                     <div className="text-sm text-gray-500 mt-0.5">상위 25%</div>
                   </div>
                   <div className="flex-1 bg-white/60 rounded-xl p-2.5 text-center">
-                    <div className="text-base font-bold text-gray-500">{Math.round(cat.bottom25_score)}</div>
+                    <div className="text-base font-bold text-gray-500">{getScoreTextLabel(cat.bottom25_score)}</div>
                     <div className="text-sm text-gray-500 mt-0.5">하위 25%</div>
                   </div>
                 </div>
