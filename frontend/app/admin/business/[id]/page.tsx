@@ -154,7 +154,7 @@ export default async function AdminBusinessDetailPage({
         {scans.length === 0 ? (
           <p className="text-sm text-gray-600">아직 스캔 이력이 없습니다.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0}>
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-sm text-gray-600 border-b border-gray-100">

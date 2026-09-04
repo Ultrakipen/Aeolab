@@ -125,7 +125,7 @@ export default function HowItWorksPage() {
           </p>
 
           {/* PC: 테이블 / 모바일: 카드 */}
-          <div className="hidden md:block overflow-x-auto mb-4">
+          <div className="hidden md:block overflow-x-auto mb-4" tabIndex={0}>
             <table className="w-full text-sm md:text-base border-collapse min-w-[540px]">
               <thead>
                 <tr className="bg-blue-50">
@@ -252,7 +252,7 @@ export default function HowItWorksPage() {
           </p>
 
           <p className="text-sm text-gray-600 text-center mb-1 md:hidden">← 좌우로 밀어 비교하세요</p>
-          <div className="overflow-x-auto mb-4">
+          <div className="overflow-x-auto mb-4" tabIndex={0}>
             <table className="w-full text-sm md:text-base border-collapse min-w-[640px]">
               <thead>
                 <tr className="bg-blue-50">
@@ -343,7 +343,7 @@ export default function HowItWorksPage() {
           </p>
 
           <p className="text-sm text-gray-600 text-center mb-1 md:hidden">← 좌우로 밀어 비교하세요</p>
-          <div className="overflow-x-auto mb-4">
+          <div className="overflow-x-auto mb-4" tabIndex={0}>
             <table className="w-full text-sm border border-gray-200 rounded-lg min-w-[480px]">
               <thead className="bg-gray-50">
                 <tr className="text-left text-sm uppercase text-gray-600">
@@ -544,7 +544,7 @@ export default function HowItWorksPage() {
             안내할 뿐, <strong>대신 ON 할 수 없습니다.</strong>
           </p>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0}>
             <table className="w-full text-sm md:text-base border-collapse min-w-[480px]">
               <thead>
                 <tr className="bg-gray-50">
@@ -633,7 +633,7 @@ export default function HowItWorksPage() {
                 사장님이 등록한 키워드로 네이버 PC·모바일·플레이스 탭을 직접 검색해 순위를 측정합니다.
                 순위가 ±3 이상 변동하거나 TOP10 진입·이탈 시 카카오 알림을 발송합니다.
               </p>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" tabIndex={0}>
                 <table className="w-full text-sm border-collapse min-w-[480px]">
                   <thead>
                     <tr className="bg-white/80">
@@ -849,7 +849,7 @@ export default function HowItWorksPage() {
             요금제마다 자동화 도구의 사용 한도가 다릅니다. 모든 요금제는 점수 측정·게이트 점검·결과 검증을 포함합니다.
           </p>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0}>
             <table className="w-full text-sm md:text-base border-collapse min-w-[640px]">
               <thead>
                 <tr className="bg-blue-50">
@@ -940,7 +940,7 @@ export default function HowItWorksPage() {
             AEOlab은 다음을 정직하게 명시합니다.
           </p>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0}>
             <table className="w-full text-sm md:text-base border-collapse min-w-[480px]">
               <thead>
                 <tr className="bg-gray-50">

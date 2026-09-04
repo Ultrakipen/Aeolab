@@ -197,6 +197,7 @@ function FAQTab() {
             <select
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
+              aria-label="FAQ 카테고리"
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {Object.entries(FAQ_CATEGORY_LABELS).map(([k, v]) => (
@@ -259,6 +260,7 @@ function FAQTab() {
                         <select
                           value={editForm.category}
                           onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                          aria-label="FAQ 카테고리 수정"
                           className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           {Object.entries(FAQ_CATEGORY_LABELS).map(([k, v]) => (
@@ -765,7 +767,7 @@ export function AdminDashboard() {
                 {stats.plan_stats && (
                   <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
                     <h2 className="text-sm font-semibold text-gray-700 mb-4">플랜별 상세 현황</h2>
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto" tabIndex={0}>
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="text-left text-sm text-gray-600 border-b border-gray-100">
@@ -789,12 +791,12 @@ export function AdminDashboard() {
                                 </td>
                                 <td className="py-2.5 text-right text-gray-600">{ps.price.toLocaleString()}원</td>
                                 <td className="py-2.5 text-right">
-                                  <span className={`font-semibold ${ps.subscribers > 0 ? "text-blue-600" : "text-gray-300"}`}>
+                                  <span className={`font-semibold ${ps.subscribers > 0 ? "text-blue-600" : "text-gray-500"}`}>
                                     {ps.subscribers}명
                                   </span>
                                 </td>
                                 <td className="py-2.5 text-right">
-                                  <span className={ps.mrr > 0 ? "font-medium text-gray-800" : "text-gray-300"}>
+                                  <span className={ps.mrr > 0 ? "font-medium text-gray-800" : "text-gray-500"}>
                                     {ps.mrr.toLocaleString()}원
                                   </span>
                                 </td>
@@ -812,7 +814,7 @@ export function AdminDashboard() {
                                   </div>
                                 </td>
                                 <td className="py-2.5 text-right">
-                                  <span className={ps.scan_month > 0 ? "text-gray-700" : "text-gray-300"}>
+                                  <span className={ps.scan_month > 0 ? "text-gray-700" : "text-gray-500"}>
                                     {ps.scan_month}회
                                   </span>
                                 </td>
@@ -838,7 +840,7 @@ export function AdminDashboard() {
             {revenue.length > 0 && (
               <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
                 <h2 className="text-sm font-semibold text-gray-700 mb-4">월별 매출 추이</h2>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto" tabIndex={0}>
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-sm text-gray-600 border-b border-gray-100">
@@ -900,7 +902,7 @@ export function AdminDashboard() {
                 ) : subs.length === 0 ? (
                   <div className="text-sm text-gray-600 py-4 text-center">검색 조건에 맞는 구독자가 없습니다.</div>
                 ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto" tabIndex={0}>
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-sm text-gray-600 border-b border-gray-100">
@@ -947,7 +949,7 @@ export function AdminDashboard() {
                                 구독 취소
                               </button>
                             ) : (
-                              <span className="text-sm text-gray-300">—</span>
+                              <span className="text-sm text-gray-500">—</span>
                             )}
                           </td>
                         </tr>
@@ -1080,7 +1082,7 @@ export function AdminDashboard() {
                   </div>
                 </div>
                 {cohort.signup_cohorts.length > 0 && (
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto" tabIndex={0}>
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-left text-sm text-gray-600 border-b border-gray-100">

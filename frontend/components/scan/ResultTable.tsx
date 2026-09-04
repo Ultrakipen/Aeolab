@@ -212,7 +212,7 @@ export function ResultTable({ results, briefingEligibility }: ResultTableProps) 
           각 AI 플랫폼에서 내 가게가 검색 결과에 나타나는지 확인합니다
         </div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0}>
         <table className="w-full text-sm min-w-[480px]">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>

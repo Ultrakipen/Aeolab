@@ -340,7 +340,7 @@ function ComparisonTable() {
   return (
     <div>
       <p className="text-sm text-gray-600 text-center mb-2 md:hidden">← 좌우로 밀어 비교하세요</p>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0}>
       <table className="w-full min-w-[480px] text-sm border-collapse">
         <thead>
           <tr className="bg-gray-50">

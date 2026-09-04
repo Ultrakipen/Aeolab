@@ -103,7 +103,7 @@ export default function DashboardHeader({
 
       {/* 사업장 탭 */}
       {businesses && (businesses.length > 1 || businesses.length < (PLAN_BIZ_LIMITS[plan] ?? 1)) && (
-        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-2 mb-3">
+        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-2 mb-3" tabIndex={0}>
           {businesses.map((b) => (
             <BusinessTabLink
               key={b.id}

@@ -581,7 +581,7 @@ export default function HeroSampleCard({ variant }: Props) {
           </div>
 
           {/* 업종 탭 네비게이터 */}
-          <div className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-50 border-t border-gray-100 overflow-x-auto">
+          <div className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-50 border-t border-gray-100 overflow-x-auto" tabIndex={0}>
             <span className="text-sm text-gray-600 shrink-0 mr-1">업종 예시:</span>
             {SAMPLES.map((s, i) => (
               <button
@@ -831,7 +831,7 @@ export default function HeroSampleCard({ variant }: Props) {
           {tab === 2 && <ScoreExplainPanel sample={sample} />}
         </div>
         {/* 업종 탭 네비게이터 */}
-        <div className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-50 border-t border-gray-100 overflow-x-auto">
+        <div className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-50 border-t border-gray-100 overflow-x-auto" tabIndex={0}>
           <span className="text-sm text-gray-600 shrink-0 mr-1">업종 예시:</span>
           {SAMPLES.map((s, i) => (
             <button

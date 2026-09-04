@@ -120,7 +120,7 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
             {statusFilter ? `[${STATUS_META[statusFilter]?.label ?? statusFilter}] 상태의 의뢰가 없습니다.` : "의뢰가 없습니다."}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0}>
             <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">

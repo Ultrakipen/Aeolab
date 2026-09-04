@@ -228,7 +228,7 @@ export default function PricingPage() {
         </div>
 
         {/* ─── 플랜 기능 비교표 ─── */}
-        <div className="overflow-x-auto mb-14">
+        <div className="overflow-x-auto mb-14" tabIndex={0}>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 text-center">플랜 기능 비교</h2>
           <p className="text-sm text-gray-600 text-center mb-4 md:hidden">← 좌우로 밀어 비교하세요</p>
           <table className="w-full min-w-[560px] text-sm border-collapse">

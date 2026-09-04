@@ -297,7 +297,7 @@ export function KeywordManagerModal({
 
         {/* Tabs */}
         <div className="px-5 md:px-6 pt-4">
-          <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
+          <div className="flex gap-2 border-b border-gray-200 overflow-x-auto" tabIndex={0}>
             <button
               type="button"
               onClick={() => { setActiveTab('custom'); setInput('') }}

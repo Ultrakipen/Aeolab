@@ -314,7 +314,7 @@ export default function RankingClient() {
           ) : (
             /* 랭킹 리스트 */
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" tabIndex={0}>
                 <table className="w-full min-w-[320px]">
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50">

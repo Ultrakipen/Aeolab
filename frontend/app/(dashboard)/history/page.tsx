@@ -298,7 +298,7 @@ export default async function HistoryPage() {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0}>
               <table className="w-full text-sm min-w-[480px]">
                 <thead className="bg-gray-50">
                   <tr>

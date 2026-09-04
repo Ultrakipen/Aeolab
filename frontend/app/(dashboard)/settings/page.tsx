@@ -177,7 +177,7 @@ export default async function SettingsPage({
 
       {/* ── 섹션 이동 서브네비 ── */}
       <div className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-gray-100 mb-4 -mx-4 md:-mx-8 px-4 md:px-8">
-        <div className="max-w-3xl mx-auto overflow-x-auto">
+        <div className="max-w-3xl mx-auto overflow-x-auto" tabIndex={0}>
           <div className="flex items-center gap-1 py-2 whitespace-nowrap">
             <a href="#section-subscription" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">구독</a>
             <span className="text-gray-500">·</span>
@@ -350,7 +350,7 @@ export default async function SettingsPage({
               <h2 className="text-base md:text-lg font-semibold text-gray-800">플랜별 기능 비교</h2>
             </div>
             <div className="p-4 md:p-5">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" tabIndex={0}>
                 <table className="min-w-[520px] w-full text-sm text-gray-600">
                   <thead>
                     <tr className="text-left border-b border-gray-100">

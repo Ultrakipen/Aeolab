@@ -369,7 +369,7 @@ export default function AdminOpsClient() {
         ) : (
           <>
             {/* PC 테이블 */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto" tabIndex={0}>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-sm text-gray-600 border-b border-gray-100">

@@ -1329,7 +1329,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                   <Star className="w-4 h-4 text-gray-600" />주요 수치 비교
                 </p>
                 <p className="text-sm text-gray-600 mb-3">* 마지막 동기화 시점 기준 — 실시간 값과 다를 수 있습니다</p>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto" tabIndex={0}>
                 <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 min-w-[280px]">
                   <div className="grid grid-cols-3 text-sm font-semibold text-gray-600 px-4 py-2.5 border-b border-gray-200 bg-gray-100">
                     <span>항목</span>
@@ -3155,7 +3155,7 @@ export function CompetitorsClient({
               <span className="text-sm font-bold text-gray-700">키워드 격차 분석</span>
             </div>
             {/* 탭 */}
-            <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-4 overflow-x-auto">
+            <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-4 overflow-x-auto" tabIndex={0}>
               {tabs.map(t => (
                 <button
                   key={t.key}

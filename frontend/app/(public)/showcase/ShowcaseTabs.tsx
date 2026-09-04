@@ -31,7 +31,7 @@ export function ShowcaseTabs() {
   return (
     <div>
       {/* 탭 바 — 모바일은 가로 스크롤 */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap" tabIndex={0}>
         {ITEMS.map((t, i) => (
           <button
             key={t.desktopFile}

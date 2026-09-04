@@ -137,7 +137,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
               : "문의가 없습니다."}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0}>
             <table className="w-full min-w-[560px]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">

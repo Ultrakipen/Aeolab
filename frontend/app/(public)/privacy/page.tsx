@@ -85,7 +85,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">4. 개인정보의 제3자 제공</h2>
             <p className="mb-2">회사는 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. 다만, 다음의 경우는 예외입니다.</p>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0}>
               <table className="w-full text-sm border-collapse border border-gray-200 min-w-[400px]">
                 <thead>
                   <tr className="bg-gray-50">
@@ -122,7 +122,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">5. 개인정보 처리 위탁</h2>
             <p className="mb-2">회사는 서비스 제공을 위해 다음과 같이 개인정보 처리 업무를 위탁합니다.</p>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0}>
               <table className="w-full text-sm border-collapse border border-gray-200 min-w-[400px]">
                 <thead>
                   <tr className="bg-gray-50">

@@ -223,7 +223,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
         return (
           <>
           <div className="relative">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0}>
             <table className="w-full text-sm md:text-base">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">

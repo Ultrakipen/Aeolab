@@ -381,7 +381,7 @@ export default function KeywordRankCard({
       {hasData && (
         <>
           {/* PC 화면 (md+): 표 형태 */}
-          <div className="hidden md:block overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto" tabIndex={0}>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 text-gray-600 text-sm uppercase">

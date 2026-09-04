@@ -356,7 +356,7 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
                 <p className="text-sm text-gray-600 dark:text-gray-600 mb-4">
                   대각선(y=x) 기준으로 위는 v3.1 상승, 아래는 하락
                 </p>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto" tabIndex={0}>
                   <ResponsiveContainer width="100%" height={340} minWidth={320}>
                     <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -407,7 +407,7 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
                 <p className="text-sm text-gray-600 dark:text-gray-600 mb-4">
                   총 {data.outliers.length}건, 차이 큰 순 정렬
                 </p>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto" tabIndex={0}>
                   <table className="w-full text-sm min-w-[480px]">
                     <thead>
                       <tr className="border-b border-gray-200 dark:border-gray-700">

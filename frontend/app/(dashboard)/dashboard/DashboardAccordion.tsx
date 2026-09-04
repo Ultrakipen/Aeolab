@@ -109,7 +109,7 @@ export default function DashboardAccordion({ tab1Content, tab2Content, tab3Conte
               {isOpen && (
                 <div className="border-t border-gray-100">
                   <div id={`${section.id}-panel`} className={["px-5 pb-5 bg-gray-50/30 rounded-b-xl", section.activeBar].join(" ")}>
-                    <div className="pt-4 overflow-x-auto">
+                    <div className="pt-4 overflow-x-auto" tabIndex={0}>
                       {contentMap[section.id]}
                     </div>
                   </div>

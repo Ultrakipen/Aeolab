@@ -162,7 +162,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
       </div>
 
       {businesses && businesses.length > 1 && (
-        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1" tabIndex={0}>
           {businesses.map(b => (
             <BusinessTabLink
               key={b.id}

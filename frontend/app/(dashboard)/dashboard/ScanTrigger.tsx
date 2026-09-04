@@ -219,7 +219,7 @@ export function ScanTrigger({
             <div className="flex-1 flex flex-col gap-2">
               <span className="text-sm font-semibold text-gray-600">검색 키워드 선택</span>
               <div className="relative sm:contents">
-                <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:pb-0">
+                <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:pb-0" tabIndex={0}>
                   {keywords.map((kw) => (
                     <button
                       key={kw}

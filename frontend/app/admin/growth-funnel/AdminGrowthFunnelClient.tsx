@@ -129,7 +129,7 @@ export default function AdminGrowthFunnelClient() {
             <StatCard label="가입→전환율" value={`${data.signup_to_paid_rate_pct}%`} />
           </div>
           {data.weekly.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0}>
               <table className="w-full text-sm min-w-[560px]">
                 <thead>
                   <tr className="text-left text-sm text-gray-600 border-b border-gray-100">
@@ -175,7 +175,7 @@ export default function AdminGrowthFunnelClient() {
             <StatCard label="결제→완료 전환율" value={`${data.delivery_funnel.paid_to_completed_rate_pct}%`} />
           </div>
           {data.delivery_funnel.weekly.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0}>
               <table className="w-full text-sm min-w-[400px]">
                 <thead>
                   <tr className="text-left text-sm text-gray-600 border-b border-gray-100">

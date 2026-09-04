@@ -372,7 +372,7 @@ export default function AdminStoriesPage() {
         <>
           {/* PC 테이블 */}
           <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0}>
               <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">

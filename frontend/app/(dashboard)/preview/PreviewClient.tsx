@@ -351,7 +351,7 @@ function PlatformResultTable({ showAll }: { showAll: boolean }) {
     : PLATFORM_RESULTS_DEMO.slice(0, 1);
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto" tabIndex={0}>
       <table className="w-full min-w-[360px] text-sm">
         <thead>
           <tr className="bg-gray-50 text-left">
@@ -1328,7 +1328,7 @@ function ProTab({
           title="Before/After 성장 히스토리"
           subtitle="스크린샷 + 점수 변화 타임라인"
         />
-        <div className="flex items-center gap-1 overflow-x-auto py-2">
+        <div className="flex items-center gap-1 overflow-x-auto py-2" tabIndex={0}>
           {[
             { month: "1월", score: 22, change: null },
             { month: "2월", score: 28, change: +6 },
@@ -1513,7 +1513,7 @@ function BizTab({
           title="사업장 5개 통합 대시보드"
           subtitle="여러 지점을 한 눈에 관리"
         />
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full min-w-[320px] text-sm">
             <thead>
               <tr className="bg-gray-50">
@@ -1753,7 +1753,7 @@ export default function PreviewClient({ currentPlan, businessData, latestScan, b
       {/* 탭 네비게이션 */}
       <div className="bg-white border border-gray-200 rounded-xl mb-5 overflow-hidden">
         <div className="relative">
-        <div className="flex overflow-x-auto scrollbar-hide border-b border-gray-100">
+        <div className="flex overflow-x-auto scrollbar-hide border-b border-gray-100" tabIndex={0}>
           {TABS.map((tab) => {
             const isActive = activeTab === tab;
             const owned = isAlreadyOwned(tab);

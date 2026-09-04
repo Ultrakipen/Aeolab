@@ -26,7 +26,7 @@ export function AdminHeaderNav() {
         AEOlab 관리자
       </Link>
       {/* 항목 수가 많아 모바일에서 줄바꿈 대신 가로 스크롤 — 브랜드·로그아웃은 항상 고정 노출 */}
-      <nav className="flex gap-1 overflow-x-auto flex-1 min-w-0">
+      <nav className="flex gap-1 overflow-x-auto flex-1 min-w-0" tabIndex={0}>
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
           return (

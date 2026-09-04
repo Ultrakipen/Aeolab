@@ -693,7 +693,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
       {error && <p className="text-sm text-red-700 mb-3">{error}</p>}
 
       {/* ── 탭 바 ──────────────────────────────────────────────────── */}
-      <div className="flex items-end gap-0 overflow-x-auto scrollbar-hide border-b border-gray-200">
+      <div className="flex items-end gap-0 overflow-x-auto scrollbar-hide border-b border-gray-200" tabIndex={0}>
         {businesses.map((biz, idx) => {
           const cat = EDIT_CATEGORIES.find((c) => c.value === biz.category);
           const colors = cat ? (COLOR_MAP[cat.color] ?? COLOR_MAP.gray) : COLOR_MAP.gray;

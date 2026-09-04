@@ -453,7 +453,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
 
           {/* 탭 */}
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="flex border-b border-gray-100 overflow-x-auto">
+            <div className="flex border-b border-gray-100 overflow-x-auto" tabIndex={0}>
               {tabs.map((t) => (
                 <button key={t.key} onClick={() => setTab(t.key)}
                   className={`flex items-center gap-1.5 px-3 md:px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${tab === t.key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-700'}`}>
@@ -763,7 +763,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                     <CopyButton text={result.script_tag} label="코드 복사" />
                   </div>
                   <div className="bg-gray-900 rounded-xl p-4">
-                    <pre className="text-green-400 text-sm overflow-x-auto whitespace-pre-wrap leading-relaxed">
+                    <pre className="text-green-400 text-sm overflow-x-auto whitespace-pre-wrap leading-relaxed" tabIndex={0}>
                       {result.script_tag}
                     </pre>
                   </div>

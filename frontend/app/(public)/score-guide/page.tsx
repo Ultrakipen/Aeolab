@@ -165,7 +165,7 @@ export default function ScoreGuidePage() {
         <p className="text-sm text-gray-600 mb-3">
           네이버 생태계 내 AI 검색 최적화 지표 (6개 항목) — 업종 그룹에 따라 아래 비중이 자동 적용됩니다
         </p>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm border-collapse min-w-[480px]">
             <thead>
               <tr className="bg-gray-50">
@@ -232,7 +232,7 @@ export default function ScoreGuidePage() {
         <p className="text-sm text-gray-600 mb-3">
           업종 그룹에 따라 아래 비중이 자동 적용됩니다.
         </p>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm border-collapse min-w-[520px]">
             <thead>
               <tr className="bg-gray-50">
@@ -272,7 +272,7 @@ export default function ScoreGuidePage() {
         <p className="text-sm text-gray-600 mb-3">
           ChatGPT·Gemini·Google AI 등 글로벌 AI 검색 최적화 지표 (4개 항목)
         </p>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm border-collapse min-w-[480px]">
             <thead>
               <tr className="bg-gray-50">
@@ -336,7 +336,7 @@ export default function ScoreGuidePage() {
         <p className="text-sm text-gray-600 mb-3">
           업종 특성에 따라 두 채널의 가중치가 다르게 적용됩니다.
         </p>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm border-collapse min-w-[480px]">
             <thead>
               <tr className="bg-gray-50">

@@ -73,7 +73,7 @@ export function MultiBizTable({ token }: Props) {
       </div>
 
       {/* PC 테이블 */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto" tabIndex={0}>
         <table className="w-full text-sm min-w-[480px]">
           <thead>
             <tr className="border-b border-gray-100">
