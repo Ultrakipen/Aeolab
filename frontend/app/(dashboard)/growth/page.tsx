@@ -27,7 +27,14 @@ export default async function GrowthPage() {
   // 구독 정보 조회 — 관리자 우회 (competitors/page.tsx:78-80과 동일 패턴)
   const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com").split(",").map((e) => e.trim().toLowerCase());
   const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? "").toLowerCase());
-  const activePlan = isAdmin ? "biz" : await getCachedActivePlan(user.id);
+
+  // 서로 독립적인 3개 조회(플랜·활성사업장ID·세션토큰)를 병렬화 — 순차 실행 시 각 200~1000ms씩
+  // 누적돼 TTFB가 느려짐(2026-09-04 실측: growth TTFB 5.6s). 결과는 아래에서 순서대로 소비.
+  const [activePlan, activeBizId, sessionResult] = await Promise.all([
+    isAdmin ? Promise.resolve("biz") : getCachedActivePlan(user.id),
+    getActiveBusinessId(user.id),
+    supabase.auth.getSession(),
+  ]);
 
   // Free 플랜 차단 (Basic 이상 필요)
   if ((PLAN_RANK[activePlan] ?? 0) < PLAN_RANK["basic"]) {
@@ -54,9 +61,6 @@ export default async function GrowthPage() {
       </div>
     );
   }
-
-  // cookie 기반 활성 사업장 결정
-  const activeBizId = await getActiveBusinessId(user.id)
 
   const { data: business } = activeBizId
     ? await supabase
@@ -121,11 +125,10 @@ export default async function GrowthPage() {
     );
   }
 
-  // 액세스 토큰 조회
+  // 액세스 토큰 — 위에서 병렬조회한 세션 결과 재사용
   let token = ""
   try {
-    const { data: { session } } = await supabase.auth.getSession()
-    token = session?.access_token ?? ""
+    token = sessionResult?.data?.session?.access_token ?? ""
   } catch { /* token = "" */ }
 
   // 점수 이력 · 성장카드 · 벤치마크 · 행동 로그 · 성장 리포트(헤드라인 등) 병렬 조회
