@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from db.supabase_client import get_client
 from utils.admin_auth import verify_admin
@@ -49,7 +50,7 @@ async def submit_feedback(
     if authorization:
         token = authorization.replace("Bearer ", "")
         try:
-            user_res = supabase.auth.get_user(token)
+            user_res = await asyncio.to_thread(supabase.auth.get_user, token)
             user_id = user_res.user.id if (user_res and user_res.user) else None
         except Exception as _auth_e:
             _logger.warning(f"[feedback] 토큰 파싱 실패 (비회원 처리) — {_auth_e}")

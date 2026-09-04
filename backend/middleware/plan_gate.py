@@ -1,3 +1,4 @@
+import asyncio
 import os
 import logging
 from fastapi import HTTPException, Depends, Header
@@ -471,7 +472,12 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
     token = authorization.removeprefix("Bearer ").strip()
     try:
         supabase = get_client()
-        response = supabase.auth.get_user(token)
+        # 동기 supabase-py 호출이 await 없이 실행되면 --workers 1 단일 이벤트루프를
+        # 그 순간 통째로 막는다(2026-09-05 실측: gap/action-log 등 인증필요 엔드포인트
+        # 4개 동시요청 시 5~7초 지연 — 이 함수가 172개 호출처 전체가 거치는 공유
+        # 의존성이라 파급력이 가장 큼). db/supabase_client.py execute()와 동일한
+        # asyncio.to_thread 패턴 적용.
+        response = await asyncio.to_thread(supabase.auth.get_user, token)
         if not response or not response.user:
             raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다")
         return {"id": response.user.id, "email": response.user.email}

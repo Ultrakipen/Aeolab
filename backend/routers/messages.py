@@ -26,7 +26,7 @@ async def get_unread_messages(
         return {"messages": [], "unread_count": 0}
     token = authorization.replace("Bearer ", "")
     try:
-        user_res = supabase.auth.get_user(token)
+        user_res = await asyncio.to_thread(supabase.auth.get_user, token)
         user_id = user_res.user.id if (user_res and user_res.user) else None
         if not user_id:
             return {"messages": [], "unread_count": 0}
@@ -68,7 +68,7 @@ async def mark_read(
         return {"ok": False}
     token = authorization.replace("Bearer ", "")
     try:
-        user_res = supabase.auth.get_user(token)
+        user_res = await asyncio.to_thread(supabase.auth.get_user, token)
         user_id = user_res.user.id if (user_res and user_res.user) else None
         if not user_id:
             return {"ok": False}
