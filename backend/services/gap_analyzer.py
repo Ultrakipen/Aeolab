@@ -689,21 +689,34 @@ def analyze_gap(
 
 async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysis]:
     """DB에서 최신 스캔 + 경쟁사 데이터 로드 후 GapAnalysis 반환"""
+    import asyncio
     from db.supabase_client import execute
     from services.keyword_resolver import get_user_keyword_prefs
 
-    # 사업장 정보 (category, name, 블로그 분석 결과 + 스마트플레이스 실제 상태 포함)
-    biz_row = (await execute(
+    # 사업장 정보·키워드 prefs·최신 스캔 — 서로 독립적(모두 business_id만 입력)이라
+    # 순차 실행 대신 병렬화(2026-09-05, /gap 엔드포인트 지연 조사 중 발견 — 3개 순차
+    # 왕복이 누적돼 다른 대시보드 backend fetch와 경합 시 지연을 키웠음)
+    _biz_task = execute(
         supabase.table("businesses")
         .select("id, name, category, region, business_type, review_sample, keywords, blog_url, blog_keyword_coverage, blog_analysis_json, blog_post_count, blog_latest_post_date, blog_analyzed_at, is_smart_place, has_faq, has_intro, has_recent_post, review_count, naver_intro_draft, is_franchise")
         .eq("id", business_id)
         .single()
-    )).data
+    )
+    _scan_task = execute(
+        supabase.table("scan_results")
+        .select("id, total_score, track1_score, score_breakdown, competitor_scores, naver_result, gemini_result, keyword_coverage")
+        .eq("business_id", business_id)
+        .order("scanned_at", desc=True)
+        .limit(1)
+    )
+    _prefs_task = get_user_keyword_prefs(business_id, supabase)
+
+    _biz_res, scan_row_res, _prefs = await asyncio.gather(_biz_task, _scan_task, _prefs_task)
+
+    biz_row = _biz_res.data
     if not biz_row:
         return None
 
-    # 사용자 맞춤 키워드 prefs 조회 (DB 컬럼 없으면 graceful fallback)
-    _prefs = await get_user_keyword_prefs(business_id, supabase)
     _custom_kw = _prefs.get("custom") or []
     _excluded_kw = _prefs.get("excluded") or []
 
@@ -711,14 +724,7 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
     category = biz_row.get("category") or ""
     business_name = biz_row.get("name") or ""
 
-    # 최신 스캔 결과 (track1_score, naver_result 포함)
-    scan_row = (await execute(
-        supabase.table("scan_results")
-        .select("id, total_score, track1_score, score_breakdown, competitor_scores, naver_result, gemini_result, keyword_coverage")
-        .eq("business_id", business_id)
-        .order("scanned_at", desc=True)
-        .limit(1)
-    )).data
+    scan_row = scan_row_res.data
     if not scan_row:
         return None
 
